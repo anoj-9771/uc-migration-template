@@ -1,0 +1,39 @@
+{
+	"name": "AzureDatabricks_Pool",
+	"properties": {
+		"description": "Utilize a Databricks Pool for faster processing",
+		"parameters": {
+			"kvSecret": {
+				"type": "string"
+			},
+			"poolId": {
+				"type": "string"
+			},
+			"version": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "AzureDatabricks",
+		"typeProperties": {
+			"domain": "https://australiaeast.azuredatabricks.net",
+			"accessToken": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "AzureKeyVault",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": {
+					"value": "@linkedService().kvSecret",
+					"type": "Expression"
+				}
+			},
+			"instancePoolId": "@linkedService().poolId",
+			"newClusterNumOfWorker": "1",
+			"newClusterSparkEnvVars": {
+				"PYSPARK_PYTHON": "/databricks/python3/bin/python3"
+			},
+			"newClusterVersion": "@linkedService().version"
+		}
+	}
+}

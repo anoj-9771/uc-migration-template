@@ -1,0 +1,36 @@
+{
+    "deployment":{
+        "name": "TestDeploymentName",
+        "template":"azuredeploy.json",
+        "environment":{
+            "npe":{
+                "subscription": {
+                    "name": "CBH Azure Dev/Test",
+                    "id": "a36e7bf6-adf6-40b8-bacd-f478bac75942",
+                    "resourceGroup":{
+                        "name": "cbhazr-inf-sand-rg-devops-test",
+                        "location": "Australia East"
+                    }
+                },
+                "parameters":{
+                    "azureResources":"azuredeploy.parameters.json",
+                    "adfResources":"adfdeploy.parameters.json"
+                }
+            },
+            "prd":{
+                "subscription": {
+                    "name": "Visual Studio Enterprise – MPN",
+                    "id": "5779e9d4-431f-4338-8539-0a35d83edb3f",
+                    "resourceGroup":{
+                        "name": "PRD ResourceGroup",
+                        "location": "Australia East"
+                    }
+                },
+                "parameters":{
+                    "azureResources":"azuredeploy.parameters.json",
+                    "adfResources":"adfdeploy.parameters.json"
+                }
+            }
+        }
+    }
+}

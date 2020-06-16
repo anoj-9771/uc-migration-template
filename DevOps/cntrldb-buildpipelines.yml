@@ -1,0 +1,25 @@
+trigger:
+  branches:
+    include:
+      - master
+      - develop
+  paths:  
+    include: 
+      - CntrlDb/*
+
+pool:
+  name: Azure Pipelines
+  demands: msbuild
+  vmImage: 'vs2017-win2016'
+
+steps:
+- task: MSBuild@1
+  displayName: 'Build CntrlDb'
+  inputs:
+    solution: CntrlDb/CntrlDb/CntrlDb.sqlproj
+
+- task: PublishBuildArtifacts@1
+  displayName: 'Publish Artifact: drop'
+  inputs:
+    PathtoPublish: CntrlDb/CntrlDb/bin/Debug
+    artifactName: sql_cntrldb

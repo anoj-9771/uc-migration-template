@@ -1,0 +1,112 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "prefix": {
+      "value": "cbharz-inf"
+    },
+    "environment": {
+      "value": "npe"
+    },
+    "directory":{
+      "value": "cbh4.onmicrosoft.com"
+    },
+
+    
+    "AzureSqlServerUn": {
+      "value": "servername"
+    },
+    "AzureSqlServerPw": {
+      "value": "password"
+    },
+
+
+    "storageAccountType": {
+      "value": "Standard_GRS"
+    },
+
+
+    "repositoryAccountName": {
+      "value": "lundalls"
+    },
+    "repoitoryProjectName": {
+      "value": "ADFAccelerator"
+    },
+    "repositoryTenantId": {
+      "value": ""
+    },
+    "repositoryName": {
+      "value": "ADFAccelerator"
+    },
+    "repositoryCollaborationBranch": {
+      "value": "Develop"
+    },
+    "repositoryRootFolder": {
+      "value": "/DataFactory/"
+    },
+    "repositoryLastCommitId": {
+      "value": ""
+    },
+    "repositoryType": {
+      "value": "FactoryVSTSConfiguration"
+    },
+
+
+    "databricksPricingTier": {
+      "value": "premium"
+    },
+
+    
+    "spObjectId": {
+      "value": "3e950b06-279f-4718-8680-9bbebdbd2b6b"
+    },
+    "secretsObject": {
+      "value": {
+        "secrets": [
+          {
+            "secretName": "rawZone-rwdl-SasToken",
+            "secretValue": "secretVaule1"
+          },
+          {
+            "secretName": "stageZone-rwdl-SasToken",
+            "secretValue": "secretValue2"
+          },
+          {
+            "secretName": "databricks-Token",
+            "secretValue": "secretValue3"
+          },
+          {
+            "secretName": "ADF-LS-AzureSqlDatabase-ControlDB",
+            "secretValue": "secretValue4"
+          },
+          {
+            "secretName": "ADF-LS-AzureSqlDatabase-SQLDB",
+            "secretValue": "secretValue5"
+          },
+          {
+            "secretName": "ADF-LS-IBIS-DEV",
+            "secretValue": "secretValue6"
+          },
+          {
+            "secretName": "ADF-LS-Oracle-EKAUAT2",
+            "secretValue": "secretValue7"
+          }
+        ]
+      }
+    },
+
+    
+    "vnetName":{
+      "value": ""
+    },
+    "vnetResourceGroupName":{
+      "value": ""
+    },
+    "controPanelIp":{
+      "value": "13.70.105.50/32"
+    },
+     "webappIp":{
+      "value": "13.75.218.172/32"
+    }
+  }
+}

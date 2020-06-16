@@ -1,0 +1,343 @@
+{
+	"source": 2,
+	"revision": 5,
+	"description": null,
+	"createdBy": {
+		"displayName": "ADS",
+		"url": "",
+		"_links": {
+			"avatar": {
+				"href": ""
+			}
+		},
+		"id": "e6791701-281d-695b-8644-a4c9a726e01d",
+		"uniqueName": "ADS",
+		"imageUrl": "",
+		"descriptor": "aad.ZTY3OTE3MDEtMjgxZC03OTViLTg2NDQtYTRjOWE3MjZlMDFk"
+	},
+	"createdOn": "2019-10-11T08:22:11.180Z",
+	"modifiedBy": {
+		"displayName": "ADS",
+		"url": "",
+		"_links": {
+			"avatar": {
+				"href": ""
+			}
+		},
+		"id": "64ca43af-eba1-6a80-926e-c90828da18e6",
+		"uniqueName": "ADS",
+		"imageUrl": "",
+		"descriptor": "aad.NjRjYTQzYWYtZWJhMS03YTgwLTkyNmUtYzkwODI4ZGExOGU2"
+	},
+	"modifiedOn": "2019-10-16T14:46:11.397Z",
+	"isDeleted": false,
+	"lastRelease": {
+		"id": 177,
+		"name": "Release-1",
+		"artifacts": [],
+		"_links": {},
+		"description": "",
+		"releaseDefinition": {
+			"id": 8,
+			"projectReference": null,
+			"_links": {}
+		},
+		"createdOn": "2019-10-11T08:24:43.207Z",
+		"createdBy": {
+			"displayName": "ADS",
+			"url": ",
+			"_links": {
+				"avatar": {
+					"href": ""
+				}
+			},
+			"id": "e6791701-281d-695b-8644-a4c9a726e01d",
+			"uniqueName": "ADS",
+			"imageUrl": "",
+			"descriptor": "aad.ZTY3OTE3MDEtMjgxZC03OTViLTg2NDQtYTRjOWE3MjZlMDFk"
+		}
+	},
+	"variables": {},
+	"variableGroups": [],
+	"environments": [
+		{
+			"id": 15,
+			"name": "PRD",
+			"rank": 1,
+			"owner": {
+				"displayName": "ADS",
+				"url": "",
+				"_links": {
+					"avatar": {
+						"href": ""
+					}
+				},
+				"id": "e6791701-281d-695b-8644-a4c9a726e01d",
+				"uniqueName": "ADS",
+				"imageUrl": "",
+				"descriptor": "aad.ZTY3OTE3MDEtMjgxZC03OTViLTg2NDQtYTRjOWE3MjZlMDFk"
+			},
+			"variables": {},
+			"variableGroups": [],
+			"preDeployApprovals": {
+				"approvals": [
+					{
+						"rank": 1,
+						"isAutomated": true,
+						"isNotificationOn": false,
+						"id": 53
+					}
+				],
+				"approvalOptions": {
+					"requiredApproverCount": null,
+					"releaseCreatorCanBeApprover": false,
+					"autoTriggeredAndPreviousEnvironmentApprovedCanBeSkipped": false,
+					"enforceIdentityRevalidation": false,
+					"timeoutInMinutes": 0,
+					"executionOrder": 1
+				}
+			},
+			"deployStep": {
+				"id": 54
+			},
+			"postDeployApprovals": {
+				"approvals": [
+					{
+						"rank": 1,
+						"isAutomated": true,
+						"isNotificationOn": false,
+						"id": 55
+					}
+				],
+				"approvalOptions": {
+					"requiredApproverCount": null,
+					"releaseCreatorCanBeApprover": false,
+					"autoTriggeredAndPreviousEnvironmentApprovedCanBeSkipped": false,
+					"enforceIdentityRevalidation": false,
+					"timeoutInMinutes": 0,
+					"executionOrder": 2
+				}
+			},
+			"deployPhases": [
+				{
+					"deploymentInput": {
+						"parallelExecution": {
+							"parallelExecutionType": 0
+						},
+						"agentSpecification": {
+							"identifier": "vs2017-win2016"
+						},
+						"skipArtifactsDownload": false,
+						"artifactsDownloadInput": {
+							"downloadInputs": []
+						},
+						"queueId": 51,
+						"demands": [],
+						"enableAccessToken": false,
+						"timeoutInMinutes": 0,
+						"jobCancelTimeoutInMinutes": 1,
+						"condition": "succeeded()",
+						"overrideInputs": {}
+					},
+					"rank": 1,
+					"phaseType": 1,
+					"name": "Agent job",
+					"refName": null,
+					"workflowTasks": [
+						{
+							"environment": {},
+							"taskId": "94a74903-f93f-4075-884f-dc11f34058b4",
+							"version": "2.*",
+							"name": "Azure Deployment: ADF Objects",
+							"refName": "",
+							"enabled": true,
+							"alwaysRun": false,
+							"continueOnError": false,
+							"timeoutInMinutes": 0,
+							"definitionType": "task",
+							"overrideInputs": {},
+							"condition": "succeeded()",
+							"inputs": {
+								"ConnectedServiceName": "81a15ef7-0b02-4a5a-941f-2657d87a360f",
+								"action": "Create Or Update Resource Group",
+								"resourceGroupName": "VW-PRD-ARG-DataPlatform",
+								"location": "Australia East",
+								"templateLocation": "Linked artifact",
+								"csmFileLink": "",
+								"csmParametersFileLink": "",
+								"csmFile": "$(System.DefaultWorkingDirectory)/_ADS ADF/Deploy/ARMTemplateForFactory.json",
+								"csmParametersFile": "$(System.DefaultWorkingDirectory)/_ADS ADF/Deploy/ARMTemplateParametersForFactory.json",
+								"overrideParameters": "-factoryName \"<Enter ADF name>\" -AzureKeyVault_properties_typeProperties_baseUrl \"<Enter Keyvault resource URL>\"",
+								"deploymentMode": "Incremental",
+								"enableDeploymentPrerequisites": "None",
+								"deploymentGroupEndpoint": "",
+								"project": "",
+								"deploymentGroupName": "",
+								"copyAzureVMTags": "true",
+								"runAgentServiceAsUser": "false",
+								"userName": "",
+								"password": "",
+								"outputVariable": "",
+								"deploymentName": "",
+								"deploymentOutputs": "",
+								"addSpnToEnvironment": "false"
+							}
+						}
+					]
+				}
+			],
+			"environmentOptions": {
+				"emailNotificationType": "OnlyOnFailure",
+				"emailRecipients": "release.environment.owner;release.creator",
+				"skipArtifactsDownload": false,
+				"timeoutInMinutes": 0,
+				"enableAccessToken": false,
+				"publishDeploymentStatus": true,
+				"badgeEnabled": false,
+				"autoLinkWorkItems": false,
+				"pullRequestDeploymentEnabled": false
+			},
+			"demands": [],
+			"conditions": [
+				{
+					"name": "ReleaseStarted",
+					"conditionType": 1,
+					"value": ""
+				}
+			],
+			"executionPolicy": {
+				"concurrencyCount": 1,
+				"queueDepthCount": 0
+			},
+			"schedules": [],
+			"currentRelease": {
+				"id": 177,
+				"url": "https://vsrm.dev.azure.com/vwteams/ee9649e8-55df-43be-9496-9289141d27c4/_apis/Release/releases/177",
+				"_links": {}
+			},
+			"retentionPolicy": {
+				"daysToKeep": 30,
+				"releasesToKeep": 3,
+				"retainBuild": true
+			},
+			"processParameters": {},
+			"properties": {
+				"BoardsEnvironmentType": {
+					"$type": "System.String",
+					"$value": "unmapped"
+				},
+				"LinkBoardsWorkItems": {
+					"$type": "System.String",
+					"$value": "False"
+				}
+			},
+			"preDeploymentGates": {
+				"id": 0,
+				"gatesOptions": null,
+				"gates": []
+			},
+			"postDeploymentGates": {
+				"id": 0,
+				"gatesOptions": null,
+				"gates": []
+			},
+			"environmentTriggers": [],
+			"badgeUrl": "https://vsrm.dev.azure.com/vwteams/_apis/public/Release/badge/ee9649e8-55df-43be-9496-9289141d27c4/8/15"
+		}
+	],
+	"artifacts": [
+		{
+			"sourceId": "ee9649e8-55df-43be-9496-9289141d27c4:16",
+			"type": "Build",
+			"alias": "_ADS ADF",
+			"definitionReference": {
+				"artifactSourceDefinitionUrl": {
+					"id": "https://dev.azure.com/vwteams/_permalink/_build/index?collectionId=5e66b444-edc4-4c4c-bd1e-bb7fbd8b1424&projectId=ee9649e8-55df-43be-9496-9289141d27c4&definitionId=16",
+					"name": ""
+				},
+				"defaultVersionBranch": {
+					"id": "",
+					"name": ""
+				},
+				"defaultVersionSpecific": {
+					"id": "",
+					"name": ""
+				},
+				"defaultVersionTags": {
+					"id": "",
+					"name": ""
+				},
+				"defaultVersionType": {
+					"id": "latestType",
+					"name": "Latest"
+				},
+				"definition": {
+					"id": "16",
+					"name": "ADS ADF"
+				},
+				"definitions": {
+					"id": "",
+					"name": ""
+				},
+				"IsMultiDefinitionType": {
+					"id": "False",
+					"name": "False"
+				},
+				"project": {
+					"id": "ee9649e8-55df-43be-9496-9289141d27c4",
+					"name": "VenuesWest"
+				},
+				"repository": {
+					"id": "",
+					"name": ""
+				}
+			},
+			"isPrimary": true,
+			"isRetained": false
+		}
+	],
+	"triggers": [
+		{
+			"artifactAlias": "_ADS ADF",
+			"triggerConditions": [
+				{
+					"sourceBranch": "master",
+					"tags": [],
+					"tagFilter": null,
+					"useBuildDefinitionBranch": false,
+					"createReleaseOnBuildTagging": false
+				}
+			],
+			"triggerType": 1
+		}
+	],
+	"releaseNameFormat": "Release-$(rev:r)",
+	"tags": [],
+	"properties": {
+		"DefinitionCreationSource": {
+			"$type": "System.String",
+			"$value": "ReleaseNew"
+		},
+		"IntegrateJiraWorkItems": {
+			"$type": "System.String",
+			"$value": "false"
+		},
+		"IntegrateBoardsWorkItems": {
+			"$type": "System.String",
+			"$value": "False"
+		}
+	},
+	"id": 8,
+	"name": "ADS DataFactory_CD",
+	"path": "\\",
+	"projectReference": null,
+	"url": "https://vsrm.dev.azure.com/vwteams/ee9649e8-55df-43be-9496-9289141d27c4/_apis/Release/definitions/8",
+	"_links": {
+		"self": {
+			"href": "https://vsrm.dev.azure.com/vwteams/ee9649e8-55df-43be-9496-9289141d27c4/_apis/Release/definitions/8"
+		},
+		"web": {
+			"href": "https://dev.azure.com/vwteams/ee9649e8-55df-43be-9496-9289141d27c4/_release?definitionId=8"
+		}
+	}
+}

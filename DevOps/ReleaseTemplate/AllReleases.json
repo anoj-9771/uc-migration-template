@@ -1,0 +1,255 @@
+{
+    "count": 5,
+    "value": [
+        {
+            "source": "userInterface",
+            "revision": 30,
+            "description": null,
+            "createdBy": {
+                "displayName": "Stephen Lundall",
+                "url": "https://spsprodeau1.vssps.visualstudio.com/A5873a80f-b498-485c-8987-ee62c0c4fa32/_apis/Identities/455e1f23-1ca9-4363-996d-d964b136fc6d",
+                "_links": {
+                    "avatar": {
+                        "href": "https://lundalls.visualstudio.com/_apis/GraphProfile/MemberAvatars/aad.MzVjNjQ4NzctNTc5ZC03YWNlLTlmN2EtZTExZWY3YTdkZTEx"
+                    }
+                },
+                "id": "455e1f23-1ca9-4363-996d-d964b136fc6d",
+                "uniqueName": "lundalls@cbh.com.au",
+                "imageUrl": "https://lundalls.visualstudio.com/_apis/GraphProfile/MemberAvatars/aad.MzVjNjQ4NzctNTc5ZC03YWNlLTlmN2EtZTExZWY3YTdkZTEx",
+                "descriptor": "aad.MzVjNjQ4NzctNTc5ZC03YWNlLTlmN2EtZTExZWY3YTdkZTEx"
+            },
+            "createdOn": "2019-07-30T04:19:12.417Z",
+            "modifiedBy": {
+                "displayName": "Stephen Lundall",
+                "url": "https://spsprodeau1.vssps.visualstudio.com/A5873a80f-b498-485c-8987-ee62c0c4fa32/_apis/Identities/455e1f23-1ca9-4363-996d-d964b136fc6d",
+                "_links": {
+                    "avatar": {
+                        "href": "https://lundalls.visualstudio.com/_apis/GraphProfile/MemberAvatars/aad.MzVjNjQ4NzctNTc5ZC03YWNlLTlmN2EtZTExZWY3YTdkZTEx"
+                    }
+                },
+                "id": "455e1f23-1ca9-4363-996d-d964b136fc6d",
+                "uniqueName": "lundalls@cbh.com.au",
+                "imageUrl": "https://lundalls.visualstudio.com/_apis/GraphProfile/MemberAvatars/aad.MzVjNjQ4NzctNTc5ZC03YWNlLTlmN2EtZTExZWY3YTdkZTEx",
+                "descriptor": "aad.MzVjNjQ4NzctNTc5ZC03YWNlLTlmN2EtZTExZWY3YTdkZTEx"
+            },
+            "modifiedOn": "2019-07-30T14:56:31.307Z",
+            "isDeleted": false,
+            "variableGroups": null,
+            "releaseNameFormat": "Release-$(rev:r)",
+            "properties": {},
+            "id": 4,
+            "name": "DeployAzureResources",
+            "path": "\\NPE",
+            "projectReference": null,
+            "url": "https://lundalls.vsrm.visualstudio.com/2628c820-2270-4010-bb76-a81e3757489d/_apis/Release/definitions/4",
+            "_links": {
+                "self": {
+                    "href": "https://lundalls.vsrm.visualstudio.com/2628c820-2270-4010-bb76-a81e3757489d/_apis/Release/definitions/4"
+                },
+                "web": {
+                    "href": "https://lundalls.visualstudio.com/2628c820-2270-4010-bb76-a81e3757489d/_release?definitionId=4"
+                }
+            }
+        },
+        {
+            "source": "userInterface",
+            "revision": 41,
+            "description": null,
+            "createdBy": {
+                "displayName": "Stephen Lundall",
+                "url": "https://spsprodeau1.vssps.visualstudio.com/A5873a80f-b498-485c-8987-ee62c0c4fa32/_apis/Identities/455e1f23-1ca9-4363-996d-d964b136fc6d",
+                "_links": {
+                    "avatar": {
+                        "href": "https://lundalls.visualstudio.com/_apis/GraphProfile/MemberAvatars/aad.MzVjNjQ4NzctNTc5ZC03YWNlLTlmN2EtZTExZWY3YTdkZTEx"
+                    }
+                },
+                "id": "455e1f23-1ca9-4363-996d-d964b136fc6d",
+                "uniqueName": "lundalls@cbh.com.au",
+                "imageUrl": "https://lundalls.visualstudio.com/_apis/GraphProfile/MemberAvatars/aad.MzVjNjQ4NzctNTc5ZC03YWNlLTlmN2EtZTExZWY3YTdkZTEx",
+                "descriptor": "aad.MzVjNjQ4NzctNTc5ZC03YWNlLTlmN2EtZTExZWY3YTdkZTEx"
+            },
+            "createdOn": "2019-07-30T09:27:24.29Z",
+            "modifiedBy": {
+                "displayName": "Stephen Lundall",
+                "url": "https://spsprodeau1.vssps.visualstudio.com/A5873a80f-b498-485c-8987-ee62c0c4fa32/_apis/Identities/455e1f23-1ca9-4363-996d-d964b136fc6d",
+                "_links": {
+                    "avatar": {
+                        "href": "https://lundalls.visualstudio.com/_apis/GraphProfile/MemberAvatars/aad.MzVjNjQ4NzctNTc5ZC03YWNlLTlmN2EtZTExZWY3YTdkZTEx"
+                    }
+                },
+                "id": "455e1f23-1ca9-4363-996d-d964b136fc6d",
+                "uniqueName": "lundalls@cbh.com.au",
+                "imageUrl": "https://lundalls.visualstudio.com/_apis/GraphProfile/MemberAvatars/aad.MzVjNjQ4NzctNTc5ZC03YWNlLTlmN2EtZTExZWY3YTdkZTEx",
+                "descriptor": "aad.MzVjNjQ4NzctNTc5ZC03YWNlLTlmN2EtZTExZWY3YTdkZTEx"
+            },
+            "modifiedOn": "2019-07-31T01:58:58.607Z",
+            "isDeleted": false,
+            "variableGroups": null,
+            "releaseNameFormat": "Release-$(rev:r)",
+            "properties": {},
+            "id": 5,
+            "name": "Azure_CD",
+            "path": "\\DeployAzure\\Develop",
+            "projectReference": null,
+            "url": "https://lundalls.vsrm.visualstudio.com/2628c820-2270-4010-bb76-a81e3757489d/_apis/Release/definitions/5",
+            "_links": {
+                "self": {
+                    "href": "https://lundalls.vsrm.visualstudio.com/2628c820-2270-4010-bb76-a81e3757489d/_apis/Release/definitions/5"
+                },
+                "web": {
+                    "href": "https://lundalls.visualstudio.com/2628c820-2270-4010-bb76-a81e3757489d/_release?definitionId=5"
+                }
+            }
+        },
+        {
+            "source": "userInterface",
+            "revision": 55,
+            "description": null,
+            "createdBy": {
+                "displayName": "Stephen Lundall",
+                "url": "https://spsprodeau1.vssps.visualstudio.com/A5873a80f-b498-485c-8987-ee62c0c4fa32/_apis/Identities/455e1f23-1ca9-4363-996d-d964b136fc6d",
+                "_links": {
+                    "avatar": {
+                        "href": "https://lundalls.visualstudio.com/_apis/GraphProfile/MemberAvatars/aad.MzVjNjQ4NzctNTc5ZC03YWNlLTlmN2EtZTExZWY3YTdkZTEx"
+                    }
+                },
+                "id": "455e1f23-1ca9-4363-996d-d964b136fc6d",
+                "uniqueName": "lundalls@cbh.com.au",
+                "imageUrl": "https://lundalls.visualstudio.com/_apis/GraphProfile/MemberAvatars/aad.MzVjNjQ4NzctNTc5ZC03YWNlLTlmN2EtZTExZWY3YTdkZTEx",
+                "descriptor": "aad.MzVjNjQ4NzctNTc5ZC03YWNlLTlmN2EtZTExZWY3YTdkZTEx"
+            },
+            "createdOn": "2019-07-30T09:41:47.303Z",
+            "modifiedBy": {
+                "displayName": "Stephen Lundall",
+                "url": "https://spsprodeau1.vssps.visualstudio.com/A5873a80f-b498-485c-8987-ee62c0c4fa32/_apis/Identities/455e1f23-1ca9-4363-996d-d964b136fc6d",
+                "_links": {
+                    "avatar": {
+                        "href": "https://lundalls.visualstudio.com/_apis/GraphProfile/MemberAvatars/aad.MzVjNjQ4NzctNTc5ZC03YWNlLTlmN2EtZTExZWY3YTdkZTEx"
+                    }
+                },
+                "id": "455e1f23-1ca9-4363-996d-d964b136fc6d",
+                "uniqueName": "lundalls@cbh.com.au",
+                "imageUrl": "https://lundalls.visualstudio.com/_apis/GraphProfile/MemberAvatars/aad.MzVjNjQ4NzctNTc5ZC03YWNlLTlmN2EtZTExZWY3YTdkZTEx",
+                "descriptor": "aad.MzVjNjQ4NzctNTc5ZC03YWNlLTlmN2EtZTExZWY3YTdkZTEx"
+            },
+            "modifiedOn": "2019-07-31T06:06:23.9Z",
+            "isDeleted": false,
+            "variableGroups": null,
+            "releaseNameFormat": "Release-$(rev:r)",
+            "properties": {},
+            "id": 6,
+            "name": "Databricks_CD",
+            "path": "\\Deploy\\Databricks",
+            "projectReference": null,
+            "url": "https://lundalls.vsrm.visualstudio.com/2628c820-2270-4010-bb76-a81e3757489d/_apis/Release/definitions/6",
+            "_links": {
+                "self": {
+                    "href": "https://lundalls.vsrm.visualstudio.com/2628c820-2270-4010-bb76-a81e3757489d/_apis/Release/definitions/6"
+                },
+                "web": {
+                    "href": "https://lundalls.visualstudio.com/2628c820-2270-4010-bb76-a81e3757489d/_release?definitionId=6"
+                }
+            }
+        },
+        {
+            "source": "userInterface",
+            "revision": 11,
+            "description": null,
+            "createdBy": {
+                "displayName": "Stephen Lundall",
+                "url": "https://spsprodeau1.vssps.visualstudio.com/A5873a80f-b498-485c-8987-ee62c0c4fa32/_apis/Identities/455e1f23-1ca9-4363-996d-d964b136fc6d",
+                "_links": {
+                    "avatar": {
+                        "href": "https://lundalls.visualstudio.com/_apis/GraphProfile/MemberAvatars/aad.MzVjNjQ4NzctNTc5ZC03YWNlLTlmN2EtZTExZWY3YTdkZTEx"
+                    }
+                },
+                "id": "455e1f23-1ca9-4363-996d-d964b136fc6d",
+                "uniqueName": "lundalls@cbh.com.au",
+                "imageUrl": "https://lundalls.visualstudio.com/_apis/GraphProfile/MemberAvatars/aad.MzVjNjQ4NzctNTc5ZC03YWNlLTlmN2EtZTExZWY3YTdkZTEx",
+                "descriptor": "aad.MzVjNjQ4NzctNTc5ZC03YWNlLTlmN2EtZTExZWY3YTdkZTEx"
+            },
+            "createdOn": "2019-07-30T09:46:38.043Z",
+            "modifiedBy": {
+                "displayName": "Stephen Lundall",
+                "url": "https://spsprodeau1.vssps.visualstudio.com/A5873a80f-b498-485c-8987-ee62c0c4fa32/_apis/Identities/455e1f23-1ca9-4363-996d-d964b136fc6d",
+                "_links": {
+                    "avatar": {
+                        "href": "https://lundalls.visualstudio.com/_apis/GraphProfile/MemberAvatars/aad.MzVjNjQ4NzctNTc5ZC03YWNlLTlmN2EtZTExZWY3YTdkZTEx"
+                    }
+                },
+                "id": "455e1f23-1ca9-4363-996d-d964b136fc6d",
+                "uniqueName": "lundalls@cbh.com.au",
+                "imageUrl": "https://lundalls.visualstudio.com/_apis/GraphProfile/MemberAvatars/aad.MzVjNjQ4NzctNTc5ZC03YWNlLTlmN2EtZTExZWY3YTdkZTEx",
+                "descriptor": "aad.MzVjNjQ4NzctNTc5ZC03YWNlLTlmN2EtZTExZWY3YTdkZTEx"
+            },
+            "modifiedOn": "2019-07-31T02:01:51.323Z",
+            "isDeleted": false,
+            "variableGroups": null,
+            "releaseNameFormat": "Release-$(rev:r)",
+            "properties": {},
+            "id": 7,
+            "name": "ControlDB_CD",
+            "path": "\\Deploy\\ControlDB",
+            "projectReference": null,
+            "url": "https://lundalls.vsrm.visualstudio.com/2628c820-2270-4010-bb76-a81e3757489d/_apis/Release/definitions/7",
+            "_links": {
+                "self": {
+                    "href": "https://lundalls.vsrm.visualstudio.com/2628c820-2270-4010-bb76-a81e3757489d/_apis/Release/definitions/7"
+                },
+                "web": {
+                    "href": "https://lundalls.visualstudio.com/2628c820-2270-4010-bb76-a81e3757489d/_release?definitionId=7"
+                }
+            }
+        },
+        {
+            "source": "userInterface",
+            "revision": 4,
+            "description": null,
+            "createdBy": {
+                "displayName": "Stephen Lundall",
+                "url": "https://spsprodeau1.vssps.visualstudio.com/A5873a80f-b498-485c-8987-ee62c0c4fa32/_apis/Identities/455e1f23-1ca9-4363-996d-d964b136fc6d",
+                "_links": {
+                    "avatar": {
+                        "href": "https://lundalls.visualstudio.com/_apis/GraphProfile/MemberAvatars/aad.MzVjNjQ4NzctNTc5ZC03YWNlLTlmN2EtZTExZWY3YTdkZTEx"
+                    }
+                },
+                "id": "455e1f23-1ca9-4363-996d-d964b136fc6d",
+                "uniqueName": "lundalls@cbh.com.au",
+                "imageUrl": "https://lundalls.visualstudio.com/_apis/GraphProfile/MemberAvatars/aad.MzVjNjQ4NzctNTc5ZC03YWNlLTlmN2EtZTExZWY3YTdkZTEx",
+                "descriptor": "aad.MzVjNjQ4NzctNTc5ZC03YWNlLTlmN2EtZTExZWY3YTdkZTEx"
+            },
+            "createdOn": "2019-07-30T09:50:19.77Z",
+            "modifiedBy": {
+                "displayName": "Stephen Lundall",
+                "url": "https://spsprodeau1.vssps.visualstudio.com/A5873a80f-b498-485c-8987-ee62c0c4fa32/_apis/Identities/455e1f23-1ca9-4363-996d-d964b136fc6d",
+                "_links": {
+                    "avatar": {
+                        "href": "https://lundalls.visualstudio.com/_apis/GraphProfile/MemberAvatars/aad.MzVjNjQ4NzctNTc5ZC03YWNlLTlmN2EtZTExZWY3YTdkZTEx"
+                    }
+                },
+                "id": "455e1f23-1ca9-4363-996d-d964b136fc6d",
+                "uniqueName": "lundalls@cbh.com.au",
+                "imageUrl": "https://lundalls.visualstudio.com/_apis/GraphProfile/MemberAvatars/aad.MzVjNjQ4NzctNTc5ZC03YWNlLTlmN2EtZTExZWY3YTdkZTEx",
+                "descriptor": "aad.MzVjNjQ4NzctNTc5ZC03YWNlLTlmN2EtZTExZWY3YTdkZTEx"
+            },
+            "modifiedOn": "2019-07-30T17:45:44.49Z",
+            "isDeleted": false,
+            "variableGroups": null,
+            "releaseNameFormat": "Release-$(rev:r)",
+            "properties": {},
+            "id": 8,
+            "name": "Automation_CD",
+            "path": "\\Deploy\\Automation",
+            "projectReference": null,
+            "url": "https://lundalls.vsrm.visualstudio.com/2628c820-2270-4010-bb76-a81e3757489d/_apis/Release/definitions/8",
+            "_links": {
+                "self": {
+                    "href": "https://lundalls.vsrm.visualstudio.com/2628c820-2270-4010-bb76-a81e3757489d/_apis/Release/definitions/8"
+                },
+                "web": {
+                    "href": "https://lundalls.visualstudio.com/2628c820-2270-4010-bb76-a81e3757489d/_release?definitionId=8"
+                }
+            }
+        }
+    ]
+}

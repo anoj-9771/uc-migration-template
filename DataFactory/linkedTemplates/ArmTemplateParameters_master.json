@@ -1,0 +1,48 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "factoryName": {
+            "value": "cbhazr-inf-datafactory-sand"
+        },
+        "AzureSqlDatabase_Ctrldb_connectionString": {
+            "value": ""
+        },
+        "IBIS_DEV_credential": {
+            "value": ""
+        },
+        "AzureBlobStorage_Raw_properties_typeProperties_sasUri_secretName": {
+            "value": "cbhazrinfraw-raw-rwdl-SasToken"
+        },
+        "AzureBlobStorage_Stage_properties_typeProperties_sasUri_secretName": {
+            "value": "cbhazrinfstage-stage-rwdl-SasToken"
+        },
+        "AzureSQLDatabase_properties_typeProperties_connectionString_secretName": {
+            "value": "@linkedService().kvSecret"
+        },
+        "AzureSqlDatabase_SQLDB_properties_typeProperties_connectionString_secretName": {
+            "value": "ADF-LS-AzureSqlDatabase-SQLDB"
+        },
+        "IBIS_DEV_properties_typeProperties_connectionString_secretName": {
+            "value": "ADF-LS-IBIS-DEV"
+        },
+        "Oracle_properties_typeProperties_connectionString_secretName": {
+            "value": "@linkedService().kvSecret"
+        },
+        "Oracle_EKAUAT2_properties_typeProperties_connectionString_secretName": {
+            "value": "ADF-LS-Oracle-EKAUAT2"
+        },
+        "cbhazr_inf_keyvault_sand_properties_typeProperties_baseUrl": {
+            "value": "https://cbhazr-inf-keyvault-sand.vault.azure.net/"
+        },
+        "NDCTSTIR01_properties_typeProperties_linkedInfo_resourceId": {
+            "value": "/subscriptions/f737934d-52a3-445b-9ef8-1ce8e58b024d/resourcegroups/cbhazr-info-backbone-rg-test/providers/Microsoft.DataFactory/factories/cbhazr-datafactory-tps-test/integrationruntimes/NDCTSTIR01"
+        },
+        "containerUri": {
+            "value": ""
+        },
+        "containerSasToken": {
+            "value": ""
+        }
+    }
+}

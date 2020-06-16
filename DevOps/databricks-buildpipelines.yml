@@ -1,0 +1,28 @@
+trigger:
+  branches:
+    include:
+      - master
+      - develop
+  paths:  
+    include: 
+      - Databricks/notebooks/*
+
+pool:
+  vmImage: 'Ubuntu-16.04'
+
+steps:
+
+- bash: |
+    mkdir -p "$(Build.ArtifactStagingDirectory)/notebook"
+    cp Databricks/notebooks/Util/**.py "$(Build.ArtifactStagingDirectory)/notebook/"
+    cp Databricks/notebooks/Util/**.scala "$(Build.ArtifactStagingDirectory)/notebook/"
+    cp Databricks/notebooks/DataProcessing/**.py "$(Build.ArtifactStagingDirectory)/notebook/"
+    cp Databricks/notebooks/DataProcessing/**.scala "$(Build.ArtifactStagingDirectory)/notebook/"
+    cp Databricks/notebook-run.json.tmpl "$(Build.ArtifactStagingDirectory)/notebook/notebook-run.json.tmpl"
+  displayName: 'Prepare Notebook Build Artifacts'
+
+- task: PublishBuildArtifacts@1
+  displayName: Publish Notebook Build Artifacts
+  inputs:
+    pathtoPublish: '$(Build.ArtifactStagingDirectory)/notebook'
+    artifactName: notebook

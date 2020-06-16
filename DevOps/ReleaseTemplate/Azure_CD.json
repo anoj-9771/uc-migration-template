@@ -1,0 +1,526 @@
+{
+    "source": "userInterface",
+    "revision": 41,
+    "description": null,
+    "createdBy": {
+        "displayName": "Stephen Lundall",
+        "url": "https://spsprodeau1.vssps.visualstudio.com/A5873a80f-b498-485c-8987-ee62c0c4fa32/_apis/Identities/455e1f23-1ca9-4363-996d-d964b136fc6d",
+        "_links": {
+            "avatar": {
+                "href": "https://lundalls.visualstudio.com/_apis/GraphProfile/MemberAvatars/aad.MzVjNjQ4NzctNTc5ZC03YWNlLTlmN2EtZTExZWY3YTdkZTEx"
+            }
+        },
+        "id": "455e1f23-1ca9-4363-996d-d964b136fc6d",
+        "uniqueName": "lundalls@cbh.com.au",
+        "imageUrl": "https://lundalls.visualstudio.com/_apis/GraphProfile/MemberAvatars/aad.MzVjNjQ4NzctNTc5ZC03YWNlLTlmN2EtZTExZWY3YTdkZTEx",
+        "descriptor": "aad.MzVjNjQ4NzctNTc5ZC03YWNlLTlmN2EtZTExZWY3YTdkZTEx"
+    },
+    "createdOn": "2019-07-30T09:27:24.29Z",
+    "modifiedBy": {
+        "displayName": "Stephen Lundall",
+        "url": "https://spsprodeau1.vssps.visualstudio.com/A5873a80f-b498-485c-8987-ee62c0c4fa32/_apis/Identities/455e1f23-1ca9-4363-996d-d964b136fc6d",
+        "_links": {
+            "avatar": {
+                "href": "https://lundalls.visualstudio.com/_apis/GraphProfile/MemberAvatars/aad.MzVjNjQ4NzctNTc5ZC03YWNlLTlmN2EtZTExZWY3YTdkZTEx"
+            }
+        },
+        "id": "455e1f23-1ca9-4363-996d-d964b136fc6d",
+        "uniqueName": "lundalls@cbh.com.au",
+        "imageUrl": "https://lundalls.visualstudio.com/_apis/GraphProfile/MemberAvatars/aad.MzVjNjQ4NzctNTc5ZC03YWNlLTlmN2EtZTExZWY3YTdkZTEx",
+        "descriptor": "aad.MzVjNjQ4NzctNTc5ZC03YWNlLTlmN2EtZTExZWY3YTdkZTEx"
+    },
+    "modifiedOn": "2019-07-31T01:58:58.607Z",
+    "isDeleted": false,
+    "lastRelease": {
+        "id": 50,
+        "name": "Release-24",
+        "artifacts": [],
+        "_links": {},
+        "description": "Triggered by Azure 20190731.1.",
+        "releaseDefinition": {
+            "id": 5,
+            "projectReference": null,
+            "_links": {}
+        },
+        "createdOn": "2019-07-31T01:07:29.45Z",
+        "createdBy": {
+            "displayName": "Stephen Lundall",
+            "url": "https://spsprodeau1.vssps.visualstudio.com/A5873a80f-b498-485c-8987-ee62c0c4fa32/_apis/Identities/455e1f23-1ca9-4363-996d-d964b136fc6d",
+            "_links": {
+                "avatar": {
+                    "href": "https://lundalls.visualstudio.com/_apis/GraphProfile/MemberAvatars/aad.MzVjNjQ4NzctNTc5ZC03YWNlLTlmN2EtZTExZWY3YTdkZTEx"
+                }
+            },
+            "id": "455e1f23-1ca9-4363-996d-d964b136fc6d",
+            "uniqueName": "lundalls@cbh.com.au",
+            "imageUrl": "https://lundalls.visualstudio.com/_apis/GraphProfile/MemberAvatars/aad.MzVjNjQ4NzctNTc5ZC03YWNlLTlmN2EtZTExZWY3YTdkZTEx",
+            "descriptor": "aad.MzVjNjQ4NzctNTc5ZC03YWNlLTlmN2EtZTExZWY3YTdkZTEx"
+        }
+    },
+    "variables": {
+        "system.debug": {
+            "value": "true"
+        }
+    },
+    "variableGroups": [
+        4
+    ],
+    "environments": [
+        {
+            "id": 10,
+            "name": "NPE",
+            "rank": 1,
+            "owner": {
+                "displayName": "Stephen Lundall",
+                "url": "https://spsprodeau1.vssps.visualstudio.com/A5873a80f-b498-485c-8987-ee62c0c4fa32/_apis/Identities/455e1f23-1ca9-4363-996d-d964b136fc6d",
+                "_links": {
+                    "avatar": {
+                        "href": "https://lundalls.visualstudio.com/_apis/GraphProfile/MemberAvatars/aad.MzVjNjQ4NzctNTc5ZC03YWNlLTlmN2EtZTExZWY3YTdkZTEx"
+                    }
+                },
+                "id": "455e1f23-1ca9-4363-996d-d964b136fc6d",
+                "uniqueName": "lundalls@cbh.com.au",
+                "imageUrl": "https://lundalls.visualstudio.com/_apis/GraphProfile/MemberAvatars/aad.MzVjNjQ4NzctNTc5ZC03YWNlLTlmN2EtZTExZWY3YTdkZTEx",
+                "descriptor": "aad.MzVjNjQ4NzctNTc5ZC03YWNlLTlmN2EtZTExZWY3YTdkZTEx"
+            },
+            "variables": {},
+            "variableGroups": [
+                1
+            ],
+            "preDeployApprovals": {
+                "approvals": [
+                    {
+                        "rank": 1,
+                        "isAutomated": true,
+                        "isNotificationOn": false,
+                        "id": 30
+                    }
+                ],
+                "approvalOptions": {
+                    "requiredApproverCount": null,
+                    "releaseCreatorCanBeApprover": false,
+                    "autoTriggeredAndPreviousEnvironmentApprovedCanBeSkipped": false,
+                    "enforceIdentityRevalidation": false,
+                    "timeoutInMinutes": 0,
+                    "executionOrder": "beforeGates"
+                }
+            },
+            "deployStep": {
+                "id": 33
+            },
+            "postDeployApprovals": {
+                "approvals": [
+                    {
+                        "rank": 1,
+                        "isAutomated": true,
+                        "isNotificationOn": false,
+                        "id": 34
+                    }
+                ],
+                "approvalOptions": {
+                    "requiredApproverCount": null,
+                    "releaseCreatorCanBeApprover": false,
+                    "autoTriggeredAndPreviousEnvironmentApprovedCanBeSkipped": false,
+                    "enforceIdentityRevalidation": false,
+                    "timeoutInMinutes": 0,
+                    "executionOrder": "afterSuccessfulGates"
+                }
+            },
+            "deployPhases": [
+                {
+                    "deploymentInput": {
+                        "parallelExecution": {
+                            "parallelExecutionType": "none"
+                        },
+                        "agentSpecification": null,
+                        "skipArtifactsDownload": false,
+                        "artifactsDownloadInput": {
+                            "downloadInputs": []
+                        },
+                        "queueId": 3,
+                        "demands": [],
+                        "enableAccessToken": false,
+                        "timeoutInMinutes": 0,
+                        "jobCancelTimeoutInMinutes": 1,
+                        "condition": "succeeded()",
+                        "overrideInputs": {}
+                    },
+                    "rank": 1,
+                    "phaseType": "agentBasedDeployment",
+                    "name": "Agent job",
+                    "refName": null,
+                    "workflowTasks": [
+                        {
+                            "environment": {},
+                            "taskId": "94a74903-f93f-4075-884f-dc11f34058b4",
+                            "version": "2.*",
+                            "name": "Deploy Azure Resources",
+                            "refName": "",
+                            "enabled": true,
+                            "alwaysRun": false,
+                            "continueOnError": false,
+                            "timeoutInMinutes": 0,
+                            "definitionType": "task",
+                            "overrideInputs": {},
+                            "condition": "succeeded()",
+                            "inputs": {
+                                "ConnectedServiceName": "dc8f29a4-dc9e-495a-84b8-3b5f106e9b5e",
+                                "action": "Create Or Update Resource Group",
+                                "resourceGroupName": "$(prefix)-$(environment)-rg",
+                                "location": "Australia East",
+                                "templateLocation": "Linked artifact",
+                                "csmFileLink": "",
+                                "csmParametersFileLink": "",
+                                "csmFile": "$(System.DefaultWorkingDirectory)/_Azure/arm_template/azuredeploy.json",
+                                "csmParametersFile": "$(System.DefaultWorkingDirectory)/_Azure/arm_template/azuredeploy.parameters.json",
+                                "overrideParameters": "-AzureSqlServerPw \"$(AzureSqlServerPw-npe)\" -AzureSqlServerUn \"$(AzureSqlServerUn)\" -controPanelIp \"$(controPanelIp)\" -databricksPricingTier \"$(databricksPricingTier)\" -environment \"$(environment)\" -prefix \"$(prefix)\" -spObjectId \"$(spObjectId)\" -storageAccountType \"$(storageAccountType)\" -vnetName \"$(vnetName)\" -webappIp \"$(webappIp)\"",
+                                "deploymentMode": "Incremental",
+                                "enableDeploymentPrerequisites": "None",
+                                "deploymentGroupEndpoint": "",
+                                "project": "",
+                                "deploymentGroupName": "",
+                                "copyAzureVMTags": "true",
+                                "runAgentServiceAsUser": "false",
+                                "userName": "",
+                                "password": "",
+                                "outputVariable": "",
+                                "deploymentName": "",
+                                "deploymentOutputs": "",
+                                "addSpnToEnvironment": "false"
+                            }
+                        }
+                    ]
+                }
+            ],
+            "environmentOptions": {
+                "emailNotificationType": "OnlyOnFailure",
+                "emailRecipients": "release.environment.owner;release.creator",
+                "skipArtifactsDownload": false,
+                "timeoutInMinutes": 0,
+                "enableAccessToken": false,
+                "publishDeploymentStatus": true,
+                "badgeEnabled": false,
+                "autoLinkWorkItems": false,
+                "pullRequestDeploymentEnabled": false
+            },
+            "demands": [],
+            "conditions": [
+                {
+                    "name": "ReleaseStarted",
+                    "conditionType": "event",
+                    "value": ""
+                },
+                {
+                    "name": "_Azure",
+                    "conditionType": "artifact",
+                    "value": "{\"sourceBranch\":\"develop\",\"tags\":[],\"useBuildDefinitionBranch\":false,\"createReleaseOnBuildTagging\":false}"
+                }
+            ],
+            "executionPolicy": {
+                "concurrencyCount": 1,
+                "queueDepthCount": 0
+            },
+            "schedules": [],
+            "currentRelease": {
+                "id": 50,
+                "url": "https://lundalls.vsrm.visualstudio.com/2628c820-2270-4010-bb76-a81e3757489d/_apis/Release/releases/50",
+                "_links": {}
+            },
+            "retentionPolicy": {
+                "daysToKeep": 30,
+                "releasesToKeep": 3,
+                "retainBuild": true
+            },
+            "processParameters": {},
+            "properties": {},
+            "preDeploymentGates": {
+                "id": 0,
+                "gatesOptions": null,
+                "gates": []
+            },
+            "postDeploymentGates": {
+                "id": 0,
+                "gatesOptions": null,
+                "gates": []
+            },
+            "environmentTriggers": [],
+            "badgeUrl": "https://lundalls.vsrm.visualstudio.com/_apis/public/Release/badge/2628c820-2270-4010-bb76-a81e3757489d/5/10"
+        },
+        {
+            "id": 11,
+            "name": "PRD",
+            "rank": 2,
+            "owner": {
+                "displayName": "Stephen Lundall",
+                "url": "https://spsprodeau1.vssps.visualstudio.com/A5873a80f-b498-485c-8987-ee62c0c4fa32/_apis/Identities/455e1f23-1ca9-4363-996d-d964b136fc6d",
+                "_links": {
+                    "avatar": {
+                        "href": "https://lundalls.visualstudio.com/_apis/GraphProfile/MemberAvatars/aad.MzVjNjQ4NzctNTc5ZC03YWNlLTlmN2EtZTExZWY3YTdkZTEx"
+                    }
+                },
+                "id": "455e1f23-1ca9-4363-996d-d964b136fc6d",
+                "uniqueName": "lundalls@cbh.com.au",
+                "imageUrl": "https://lundalls.visualstudio.com/_apis/GraphProfile/MemberAvatars/aad.MzVjNjQ4NzctNTc5ZC03YWNlLTlmN2EtZTExZWY3YTdkZTEx",
+                "descriptor": "aad.MzVjNjQ4NzctNTc5ZC03YWNlLTlmN2EtZTExZWY3YTdkZTEx"
+            },
+            "variables": {},
+            "variableGroups": [
+                2
+            ],
+            "preDeployApprovals": {
+                "approvals": [
+                    {
+                        "rank": 1,
+                        "isAutomated": true,
+                        "isNotificationOn": false,
+                        "id": 31
+                    }
+                ],
+                "approvalOptions": {
+                    "requiredApproverCount": null,
+                    "releaseCreatorCanBeApprover": false,
+                    "autoTriggeredAndPreviousEnvironmentApprovedCanBeSkipped": false,
+                    "enforceIdentityRevalidation": false,
+                    "timeoutInMinutes": 0,
+                    "executionOrder": "beforeGates"
+                }
+            },
+            "deployStep": {
+                "id": 32
+            },
+            "postDeployApprovals": {
+                "approvals": [
+                    {
+                        "rank": 1,
+                        "isAutomated": true,
+                        "isNotificationOn": false,
+                        "id": 35
+                    }
+                ],
+                "approvalOptions": {
+                    "requiredApproverCount": null,
+                    "releaseCreatorCanBeApprover": false,
+                    "autoTriggeredAndPreviousEnvironmentApprovedCanBeSkipped": false,
+                    "enforceIdentityRevalidation": false,
+                    "timeoutInMinutes": 0,
+                    "executionOrder": "afterSuccessfulGates"
+                }
+            },
+            "deployPhases": [
+                {
+                    "deploymentInput": {
+                        "parallelExecution": {
+                            "parallelExecutionType": "none"
+                        },
+                        "agentSpecification": null,
+                        "skipArtifactsDownload": false,
+                        "artifactsDownloadInput": {
+                            "downloadInputs": []
+                        },
+                        "queueId": 3,
+                        "demands": [],
+                        "enableAccessToken": false,
+                        "timeoutInMinutes": 0,
+                        "jobCancelTimeoutInMinutes": 1,
+                        "condition": "succeeded()",
+                        "overrideInputs": {}
+                    },
+                    "rank": 1,
+                    "phaseType": "agentBasedDeployment",
+                    "name": "Agent job",
+                    "refName": null,
+                    "workflowTasks": [
+                        {
+                            "environment": {},
+                            "taskId": "94a74903-f93f-4075-884f-dc11f34058b4",
+                            "version": "2.*",
+                            "name": "Deploy Azure Resources",
+                            "refName": "",
+                            "enabled": true,
+                            "alwaysRun": false,
+                            "continueOnError": false,
+                            "timeoutInMinutes": 0,
+                            "definitionType": "task",
+                            "overrideInputs": {},
+                            "condition": "succeeded()",
+                            "inputs": {
+                                "ConnectedServiceName": "b75f19d0-4a46-4b4f-b6de-6c0f14e4ddaf",
+                                "action": "Create Or Update Resource Group",
+                                "resourceGroupName": "$(prefix)-$(environment)-rg",
+                                "location": "Australia East",
+                                "templateLocation": "Linked artifact",
+                                "csmFileLink": "",
+                                "csmParametersFileLink": "",
+                                "csmFile": "$(System.DefaultWorkingDirectory)/_Azure/arm_template/azuredeploy.json",
+                                "csmParametersFile": "$(System.DefaultWorkingDirectory)/_Azure/arm_template/azuredeploy.parameters.json",
+                                "overrideParameters": "-AzureSqlServerPw \"$(AzureSqlServerPw-prd)\" -AzureSqlServerUn \"$(AzureSqlServerUn)\" -controPanelIp \"$(controPanelIp)\" -databricksPricingTier \"$(databricksPricingTier)\" -environment \"$(environment)\" -prefix \"$(prefix)\" -spObjectId \"$(spObjectId)\" -storageAccountType \"$(storageAccountType)\" -vnetName \"$(vnetName)\" -webappIp \"$(webappIp)\"",
+                                "deploymentMode": "Incremental",
+                                "enableDeploymentPrerequisites": "None",
+                                "deploymentGroupEndpoint": "",
+                                "project": "",
+                                "deploymentGroupName": "",
+                                "copyAzureVMTags": "true",
+                                "runAgentServiceAsUser": "false",
+                                "userName": "",
+                                "password": "",
+                                "outputVariable": "",
+                                "deploymentName": "",
+                                "deploymentOutputs": "",
+                                "addSpnToEnvironment": "false"
+                            }
+                        }
+                    ]
+                }
+            ],
+            "environmentOptions": {
+                "emailNotificationType": "OnlyOnFailure",
+                "emailRecipients": "release.environment.owner;release.creator",
+                "skipArtifactsDownload": false,
+                "timeoutInMinutes": 0,
+                "enableAccessToken": false,
+                "publishDeploymentStatus": true,
+                "badgeEnabled": false,
+                "autoLinkWorkItems": false,
+                "pullRequestDeploymentEnabled": false
+            },
+            "demands": [],
+            "conditions": [
+                {
+                    "name": "ReleaseStarted",
+                    "conditionType": "event",
+                    "value": ""
+                },
+                {
+                    "name": "_Azure",
+                    "conditionType": "artifact",
+                    "value": "{\"sourceBranch\":\"master\",\"tags\":[],\"useBuildDefinitionBranch\":false,\"createReleaseOnBuildTagging\":false}"
+                }
+            ],
+            "executionPolicy": {
+                "concurrencyCount": 1,
+                "queueDepthCount": 0
+            },
+            "schedules": [],
+            "currentRelease": {
+                "id": 49,
+                "url": "https://lundalls.vsrm.visualstudio.com/2628c820-2270-4010-bb76-a81e3757489d/_apis/Release/releases/49",
+                "_links": {}
+            },
+            "retentionPolicy": {
+                "daysToKeep": 30,
+                "releasesToKeep": 3,
+                "retainBuild": true
+            },
+            "processParameters": {},
+            "properties": {},
+            "preDeploymentGates": {
+                "id": 0,
+                "gatesOptions": null,
+                "gates": []
+            },
+            "postDeploymentGates": {
+                "id": 0,
+                "gatesOptions": null,
+                "gates": []
+            },
+            "environmentTriggers": [],
+            "badgeUrl": "https://lundalls.vsrm.visualstudio.com/_apis/public/Release/badge/2628c820-2270-4010-bb76-a81e3757489d/5/11"
+        }
+    ],
+    "artifacts": [
+        {
+            "sourceId": "2628c820-2270-4010-bb76-a81e3757489d:15",
+            "type": "Build",
+            "alias": "_Azure",
+            "definitionReference": {
+                "artifactSourceDefinitionUrl": {
+                    "id": "https://lundalls.visualstudio.com/_permalink/_build/index?collectionId=d0d4dd85-0abf-423c-a4f3-bfc5b48a0c2c&projectId=2628c820-2270-4010-bb76-a81e3757489d&definitionId=15",
+                    "name": ""
+                },
+                "defaultVersionBranch": {
+                    "id": "",
+                    "name": ""
+                },
+                "defaultVersionSpecific": {
+                    "id": "",
+                    "name": ""
+                },
+                "defaultVersionTags": {
+                    "id": "",
+                    "name": ""
+                },
+                "defaultVersionType": {
+                    "id": "latestType",
+                    "name": "Latest"
+                },
+                "definition": {
+                    "id": "15",
+                    "name": "Azure"
+                },
+                "definitions": {
+                    "id": "",
+                    "name": ""
+                },
+                "IsMultiDefinitionType": {
+                    "id": "False",
+                    "name": "False"
+                },
+                "project": {
+                    "id": "2628c820-2270-4010-bb76-a81e3757489d",
+                    "name": "ADFAccelerator"
+                },
+                "repository": {
+                    "id": "",
+                    "name": ""
+                }
+            },
+            "isPrimary": true,
+            "isRetained": false
+        }
+    ],
+    "triggers": [
+        {
+            "artifactAlias": "_Azure",
+            "triggerConditions": [
+                {
+                    "sourceBranch": "develop",
+                    "tags": [],
+                    "useBuildDefinitionBranch": false,
+                    "createReleaseOnBuildTagging": false
+                },
+                {
+                    "sourceBranch": "master",
+                    "tags": [],
+                    "useBuildDefinitionBranch": false,
+                    "createReleaseOnBuildTagging": false
+                }
+            ],
+            "triggerType": "artifactSource"
+        }
+    ],
+    "releaseNameFormat": "Release-$(rev:r)",
+    "tags": [],
+    "properties": {
+        "DefinitionCreationSource": {
+            "$type": "System.String",
+            "$value": "ReleaseClone"
+        },
+        "IntegrateJiraWorkItems": {
+            "$type": "System.String",
+            "$value": "false"
+        }
+    },
+    "id": 5,
+    "name": "Azure_CD",
+    "path": "\\DeployAzure\\Develop",
+    "projectReference": null,
+    "url": "https://lundalls.vsrm.visualstudio.com/2628c820-2270-4010-bb76-a81e3757489d/_apis/Release/definitions/5",
+    "_links": {
+        "self": {
+            "href": "https://lundalls.vsrm.visualstudio.com/2628c820-2270-4010-bb76-a81e3757489d/_apis/Release/definitions/5"
+        },
+        "web": {
+            "href": "https://lundalls.visualstudio.com/2628c820-2270-4010-bb76-a81e3757489d/_release?definitionId=5"
+        }
+    }
+}

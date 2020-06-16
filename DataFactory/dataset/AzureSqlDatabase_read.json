@@ -1,0 +1,24 @@
+{
+	"name": "AzureSqlDatabase_read",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureSQLDatabase",
+			"type": "LinkedServiceReference",
+			"parameters": {
+				"kvSecret": {
+					"value": "@dataset().kvSecret",
+					"type": "Expression"
+				}
+			}
+		},
+		"parameters": {
+			"kvSecret": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": []
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

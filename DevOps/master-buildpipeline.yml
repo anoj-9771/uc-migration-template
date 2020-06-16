@@ -1,0 +1,70 @@
+trigger:
+  branches:
+    include:
+      - master
+      - develop
+  paths:  
+    include: 
+      - Automation/*
+
+pool:
+  vmImage: 'Ubuntu-16.04'
+
+variables: 
+- name: NotebookName1
+  value: BlobHelper
+- name: NotebookName2
+  value: DbHelper_jdbc
+- name: NotebookName3
+  value: DbHelper_scala
+
+steps:
+
+- bash: |
+    mkdir -p "$(Build.ArtifactStagingDirectory)/arm_template"
+    cp AzureResources/azuredeploy.parameters.json "$(Build.ArtifactStagingDirectory)/arm_template/azuredeploy.parameters-$(Build.SourceVersion).json"
+    cp AzureResources/azuredeploy.json "$(Build.ArtifactStagingDirectory)/arm_template/azuredeploy-$(Build.SourceVersion).json"
+  displayName: 'Prepare Azure Resource Manager template Build Artifacts'
+  
+
+- bash: |
+    mkdir -p "$(Build.ArtifactStagingDirectory)/sql_cntrldb"
+    cp CntrlDb/CntrlDb/bin/Release/CntrlDb.dacpac "$(Build.ArtifactStagingDirectory)/sql_cntrldb/CntrlDb-$(Build.SourceVersion).dacpac"
+  displayName: 'Prepare SQL Control DB Build Artifacts'  
+  
+- bash: |
+    mkdir -p "$(Build.ArtifactStagingDirectory)/notebook"
+    cp Databricks/notebooks/$(NotebookName1).py "$(Build.ArtifactStagingDirectory)/notebook/$(NotebookName1)-$(Build.SourceVersion).py"
+    cp Databricks/notebooks/$(NotebookName2).py "$(Build.ArtifactStagingDirectory)/notebook/$(NotebookName2)-$(Build.SourceVersion).py"
+    cp Databricks/notebooks/$(NotebookName3).scala "$(Build.ArtifactStagingDirectory)/notebook/$(NotebookName2)-$(Build.SourceVersion).scala"
+    cp Databricks/notebook-run.json.tmpl "$(Build.ArtifactStagingDirectory)/notebook/notebook-run.json.tmpl"
+  displayName: 'Prepare Notebook Build Artifacts'
+  
+- bash: |
+    mkdir -p "$(Build.ArtifactStagingDirectory)/automation"
+    cp Automation/RotateStorageSASTokens.ps1 "$(Build.ArtifactStagingDirectory)/automation/RotateStorageSASTokens-$(Build.SourceVersion).ps1"
+  displayName: 'Prepare Automation Build Artifacts'  
+  
+- task: PublishBuildArtifacts@1
+  displayName: Publish ARM Template Build Artifacts
+  inputs:
+    pathtoPublish: '$(Build.ArtifactStagingDirectory)/arm_template'
+    artifactName: arm_template
+    
+- task: PublishBuildArtifacts@1
+  displayName: Publish SQL Control DB dacpac Build Artifacts
+  inputs:
+    pathtoPublish: '$(Build.ArtifactStagingDirectory)/sql_cntrldb'
+    artifactName: sql_cntrldb
+    
+- task: PublishBuildArtifacts@1
+  displayName: Publish Notebook Build Artifacts
+  inputs:
+    pathtoPublish: '$(Build.ArtifactStagingDirectory)/notebook'
+    artifactName: notebook
+
+- task: PublishBuildArtifacts@1
+  displayName: Publish Automation Build Artifacts
+  inputs:
+    pathtoPublish: '$(Build.ArtifactStagingDirectory)/automation'
+    artifactName: automation

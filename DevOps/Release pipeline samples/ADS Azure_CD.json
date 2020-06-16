@@ -1,0 +1,628 @@
+{
+	"source": 2,
+	"revision": 38,
+	"description": null,
+	"createdBy": {
+		"displayName": "ADS",
+		"url": "",
+		"_links": {
+			"avatar": {
+				"href": "ADS"
+			}
+		},
+		"id": "e6791701-281d-695b-8644-a4c9a726e01d",
+		"uniqueName": "ADS",
+		"imageUrl": "",
+		"descriptor": "aad.ZTY3OTE3MDEtMjgxZC03OTViLTg2NDQtYTRjOWE3MjZlMDFk"
+	},
+	"createdOn": "2019-09-23T09:33:40.810Z",
+	"modifiedBy": {
+		"displayName": "ADS",
+		"url": "",
+		"_links": {
+			"avatar": {
+				"href": ""
+			}
+		},
+		"id": "e6791701-281d-695b-8644-a4c9a726e01d",
+		"uniqueName": "ADS",
+		"imageUrl": "",
+		"descriptor": "aad.ZTY3OTE3MDEtMjgxZC03OTViLTg2NDQtYTRjOWE3MjZlMDFk"
+	},
+	"modifiedOn": "2019-10-13T04:11:30.203Z",
+	"isDeleted": false,
+	"lastRelease": {
+		"id": 175,
+		"name": "Release-96",
+		"artifacts": [],
+		"_links": {},
+		"description": "",
+		"releaseDefinition": {
+			"id": 4,
+			"projectReference": null,
+			"_links": {}
+		},
+		"createdOn": "2019-10-11T07:58:43.393Z",
+		"createdBy": {
+			"displayName": "ADS",
+			"url": "",
+			"_links": {
+				"avatar": {
+					"href": ""
+				}
+			},
+			"id": "e6791701-281d-695b-8644-a4c9a726e01d",
+			"uniqueName": "ADS",
+			"imageUrl": "",
+			"descriptor": "aad.ZTY3OTE3MDEtMjgxZC03OTViLTg2NDQtYTRjOWE3MjZlMDFk"
+		}
+	},
+	"variables": {},
+	"variableGroups": [
+		2
+	],
+	"environments": [
+		{
+			"id": 8,
+			"name": "DEV",
+			"rank": 1,
+			"owner": {
+				"displayName": "ADS",
+				"url": "",
+				"_links": {
+					"avatar": {
+						"href": ""
+					}
+				},
+				"id": "e6791701-281d-695b-8644-a4c9a726e01d",
+				"uniqueName": "ADS",
+				"imageUrl": "",
+				"descriptor": "aad.ZTY3OTE3MDEtMjgxZC03OTViLTg2NDQtYTRjOWE3MjZlMDFk"
+			},
+			"variables": {},
+			"variableGroups": [
+				1
+			],
+			"preDeployApprovals": {
+				"approvals": [
+					{
+						"rank": 1,
+						"isAutomated": true,
+						"isNotificationOn": false,
+						"id": 32
+					}
+				],
+				"approvalOptions": {
+					"requiredApproverCount": null,
+					"releaseCreatorCanBeApprover": false,
+					"autoTriggeredAndPreviousEnvironmentApprovedCanBeSkipped": false,
+					"enforceIdentityRevalidation": false,
+					"timeoutInMinutes": 0,
+					"executionOrder": 1
+				}
+			},
+			"deployStep": {
+				"id": 33
+			},
+			"postDeployApprovals": {
+				"approvals": [
+					{
+						"rank": 1,
+						"isAutomated": true,
+						"isNotificationOn": false,
+						"id": 34
+					}
+				],
+				"approvalOptions": {
+					"requiredApproverCount": null,
+					"releaseCreatorCanBeApprover": false,
+					"autoTriggeredAndPreviousEnvironmentApprovedCanBeSkipped": false,
+					"enforceIdentityRevalidation": false,
+					"timeoutInMinutes": 0,
+					"executionOrder": 2
+				}
+			},
+			"deployPhases": [
+				{
+					"deploymentInput": {
+						"parallelExecution": {
+							"parallelExecutionType": 0
+						},
+						"agentSpecification": {
+							"identifier": "vs2017-win2016"
+						},
+						"skipArtifactsDownload": false,
+						"artifactsDownloadInput": {
+							"downloadInputs": []
+						},
+						"queueId": 51,
+						"demands": [],
+						"enableAccessToken": false,
+						"timeoutInMinutes": 0,
+						"jobCancelTimeoutInMinutes": 1,
+						"condition": "succeeded()",
+						"overrideInputs": {}
+					},
+					"rank": 1,
+					"phaseType": 1,
+					"name": "Agent job",
+					"refName": null,
+					"workflowTasks": [
+						{
+							"environment": {},
+							"taskId": "94a74903-f93f-4075-884f-dc11f34058b4",
+							"version": "2.*",
+							"name": "RG Validation",
+							"refName": "",
+							"enabled": true,
+							"alwaysRun": false,
+							"continueOnError": false,
+							"timeoutInMinutes": 0,
+							"definitionType": "task",
+							"overrideInputs": {},
+							"condition": "succeeded()",
+							"inputs": {
+								"ConnectedServiceName": "2f419803-e698-417d-b950-acfecedef1d0",
+								"action": "Create Or Update Resource Group",
+								"resourceGroupName": "ADS-DEV-ARG-DataPlatform",
+								"location": "australiaeast",
+								"templateLocation": "Linked artifact",
+								"csmFileLink": "",
+								"csmParametersFileLink": "",
+								"csmFile": "$(System.DefaultWorkingDirectory)/_Azure/arm_template/azuredeploy.json",
+								"csmParametersFile": "$(System.DefaultWorkingDirectory)/_Azure/arm_template/azuredeploy.parameters.json",
+								"overrideParameters": " -location \"australiaeast\" -directory \"\"  -prefix \"$(prefix)\" -environment \"$(environment)\" -suffix \"\" -AzureSqlServerUn \"$(AzureSqlServerUn)\" -AzureSqlServerPw \"$(CntrlDbPassword)\" -storageAccountType \"$(storageAccountType)\" -databricksPricingTier \"$(databricksPricingTier)\" -workspaceName \"vw-databricks-dev\" -vnetName \"$(vnetName)\" -vnetRG \"$(vnetRG)\" -customVirtualNetworkId \"$(customVirtualNetworkId)\" -customPublicSubnetName \"$(customPublicSubnetName)\" -publicSubnetCidr \"$(publicSubnetCidr)\" -customPrivateSubnetName \"$(customPrivateSubnetName)\" -privateSubnetCidr \"$(privateSubnetCidr)\" -keysPermissions [\"all\"] -secretsPermissions [\"all\"] -spObjectId \"$(spObjectId)\" -keyVaultSkuName \"Standard\" -enabledForDeployment false -enabledForDiskEncryption false -enabledForTemplateDeployment true -connectionName \"AzureRunAsConnection\" -skuName \"S0\" -EDW_sku \"Hyperscale\"",
+								"deploymentMode": "Validation",
+								"enableDeploymentPrerequisites": "None",
+								"deploymentGroupEndpoint": "",
+								"project": "",
+								"deploymentGroupName": "",
+								"copyAzureVMTags": "true",
+								"runAgentServiceAsUser": "false",
+								"userName": "",
+								"password": "",
+								"outputVariable": "",
+								"deploymentName": "",
+								"deploymentOutputs": "",
+								"addSpnToEnvironment": "false"
+							}
+						},
+						{
+							"environment": {},
+							"taskId": "94a74903-f93f-4075-884f-dc11f34058b4",
+							"version": "2.*",
+							"name": "RG Deploy",
+							"refName": "",
+							"enabled": true,
+							"alwaysRun": false,
+							"continueOnError": true,
+							"timeoutInMinutes": 0,
+							"definitionType": "task",
+							"overrideInputs": {},
+							"condition": "succeeded()",
+							"inputs": {
+								"ConnectedServiceName": "2f419803-e698-417d-b950-acfecedef1d0",
+								"action": "Create Or Update Resource Group",
+								"resourceGroupName": "ADS-DEV-ARG-DataPlatform",
+								"location": "australiaeast",
+								"templateLocation": "Linked artifact",
+								"csmFileLink": "",
+								"csmParametersFileLink": "",
+								"csmFile": "$(System.DefaultWorkingDirectory)/_Azure/arm_template/azuredeploy.json",
+								"csmParametersFile": "$(System.DefaultWorkingDirectory)/_Azure/arm_template/azuredeploy.parameters.json",
+								"overrideParameters": " -location \"australiaeast\" -directory \"\"  -prefix \"$(prefix)\" -environment \"$(environment)\" -suffix \"\" -AzureSqlServerUn \"$(AzureSqlServerUn)\" -AzureSqlServerPw \"$(CntrlDbPassword)\" -storageAccountType \"$(storageAccountType)\" -databricksPricingTier \"$(databricksPricingTier)\" -workspaceName \"vw-databricks-dev\" -vnetName \"$(vnetName)\" -vnetRG \"$(vnetRG)\" -customVirtualNetworkId \"$(customVirtualNetworkId)\" -customPublicSubnetName \"$(customPublicSubnetName)\" -publicSubnetCidr \"$(publicSubnetCidr)\" -customPrivateSubnetName \"$(customPrivateSubnetName)\" -privateSubnetCidr \"$(privateSubnetCidr)\" -keysPermissions [\"all\"] -secretsPermissions [\"all\"] -spObjectId \"$(spObjectId)\" -keyVaultSkuName \"Standard\" -enabledForDeployment false -enabledForDiskEncryption false -enabledForTemplateDeployment true -connectionName \"AzureRunAsConnection\" -skuName \"S0\" -EDW_sku \"Hyperscale\"",
+								"deploymentMode": "Incremental",
+								"enableDeploymentPrerequisites": "None",
+								"deploymentGroupEndpoint": "",
+								"project": "",
+								"deploymentGroupName": "",
+								"copyAzureVMTags": "true",
+								"runAgentServiceAsUser": "false",
+								"userName": "",
+								"password": "",
+								"outputVariable": "",
+								"deploymentName": "",
+								"deploymentOutputs": "",
+								"addSpnToEnvironment": "false"
+							}
+						}
+					]
+				}
+			],
+			"environmentOptions": {
+				"emailNotificationType": "OnlyOnFailure",
+				"emailRecipients": "release.environment.owner;release.creator",
+				"skipArtifactsDownload": false,
+				"timeoutInMinutes": 0,
+				"enableAccessToken": false,
+				"publishDeploymentStatus": true,
+				"badgeEnabled": false,
+				"autoLinkWorkItems": false,
+				"pullRequestDeploymentEnabled": false
+			},
+			"demands": [],
+			"conditions": [
+				{
+					"name": "ReleaseStarted",
+					"conditionType": 1,
+					"value": ""
+				},
+				{
+					"name": "_Azure",
+					"conditionType": 4,
+					"value": "{\"sourceBranch\":\"develop\",\"tags\":[],\"useBuildDefinitionBranch\":false,\"createReleaseOnBuildTagging\":false}"
+				}
+			],
+			"executionPolicy": {
+				"concurrencyCount": 1,
+				"queueDepthCount": 0
+			},
+			"schedules": [],
+			"currentRelease": {
+				"id": 171,
+				"url": "",
+				"_links": {}
+			},
+			"retentionPolicy": {
+				"daysToKeep": 30,
+				"releasesToKeep": 3,
+				"retainBuild": true
+			},
+			"processParameters": {},
+			"properties": {
+				"BoardsEnvironmentType": {
+					"$type": "System.String",
+					"$value": "unmapped"
+				},
+				"LinkBoardsWorkItems": {
+					"$type": "System.String",
+					"$value": "False"
+				}
+			},
+			"preDeploymentGates": {
+				"id": 0,
+				"gatesOptions": null,
+				"gates": []
+			},
+			"postDeploymentGates": {
+				"id": 0,
+				"gatesOptions": null,
+				"gates": []
+			},
+			"environmentTriggers": [],
+			"badgeUrl": ""
+		},
+		{
+			"id": 12,
+			"name": "PRD",
+			"rank": 2,
+			"owner": {
+				"displayName": "ADS",
+				"url": "",
+				"_links": {
+					"avatar": {
+						"href": ""
+					}
+				},
+				"id": "e6791701-281d-695b-8644-a4c9a726e01d",
+				"uniqueName": "ADS",
+				"imageUrl": "",
+				"descriptor": "aad.ZTY3OTE3MDEtMjgxZC03OTViLTg2NDQtYTRjOWE3MjZlMDFk"
+			},
+			"variables": {},
+			"variableGroups": [
+				3
+			],
+			"preDeployApprovals": {
+				"approvals": [
+					{
+						"rank": 1,
+						"isAutomated": true,
+						"isNotificationOn": false,
+						"id": 44
+					}
+				],
+				"approvalOptions": {
+					"requiredApproverCount": null,
+					"releaseCreatorCanBeApprover": false,
+					"autoTriggeredAndPreviousEnvironmentApprovedCanBeSkipped": false,
+					"enforceIdentityRevalidation": false,
+					"timeoutInMinutes": 0,
+					"executionOrder": 1
+				}
+			},
+			"deployStep": {
+				"id": 45
+			},
+			"postDeployApprovals": {
+				"approvals": [
+					{
+						"rank": 1,
+						"isAutomated": true,
+						"isNotificationOn": false,
+						"id": 46
+					}
+				],
+				"approvalOptions": {
+					"requiredApproverCount": null,
+					"releaseCreatorCanBeApprover": false,
+					"autoTriggeredAndPreviousEnvironmentApprovedCanBeSkipped": false,
+					"enforceIdentityRevalidation": false,
+					"timeoutInMinutes": 0,
+					"executionOrder": 2
+				}
+			},
+			"deployPhases": [
+				{
+					"deploymentInput": {
+						"parallelExecution": {
+							"parallelExecutionType": 0
+						},
+						"agentSpecification": {
+							"identifier": "vs2017-win2016"
+						},
+						"skipArtifactsDownload": false,
+						"artifactsDownloadInput": {
+							"downloadInputs": []
+						},
+						"queueId": 51,
+						"demands": [],
+						"enableAccessToken": false,
+						"timeoutInMinutes": 0,
+						"jobCancelTimeoutInMinutes": 1,
+						"condition": "succeeded()",
+						"overrideInputs": {}
+					},
+					"rank": 1,
+					"phaseType": 1,
+					"name": "Agent job",
+					"refName": null,
+					"workflowTasks": [
+						{
+							"environment": {},
+							"taskId": "94a74903-f93f-4075-884f-dc11f34058b4",
+							"version": "2.*",
+							"name": "RG Validation",
+							"refName": "",
+							"enabled": true,
+							"alwaysRun": false,
+							"continueOnError": false,
+							"timeoutInMinutes": 0,
+							"definitionType": "task",
+							"overrideInputs": {},
+							"condition": "succeeded()",
+							"inputs": {
+								"ConnectedServiceName": "81a15ef7-0b02-4a5a-941f-2657d87a360f",
+								"action": "Create Or Update Resource Group",
+								"resourceGroupName": "ADS-PRD-ARG-DataPlatform",
+								"location": "australiaeast",
+								"templateLocation": "Linked artifact",
+								"csmFileLink": "",
+								"csmParametersFileLink": "",
+								"csmFile": "$(System.DefaultWorkingDirectory)/_Azure/arm_template/azuredeploy.json",
+								"csmParametersFile": "$(System.DefaultWorkingDirectory)/_Azure/arm_template/azuredeploy.parameters.json",
+								"overrideParameters": " -location \"australiaeast\" -directory \"\"  -prefix \"$(prefix)\" -environment \"$(environment)\" -suffix \"\" -AzureSqlServerUn \"$(AzureSqlServerUn)\" -AzureSqlServerPw \"$(AzureSQLServerPw-PRD)\" -storageAccountType \"$(storageAccountType)\" -databricksPricingTier \"$(databricksPricingTier)\" -workspaceName \"vw-databricks-dev\" -vnetName \"$(vnetName)\" -vnetRG \"$(vnetRG)\" -customVirtualNetworkId \"$(customVirtualNetworkId)\" -customPublicSubnetName \"$(customPublicSubnetName)\" -publicSubnetCidr \"$(publicSubnetCidr)\" -customPrivateSubnetName \"$(customPrivateSubnetName)\" -privateSubnetCidr \"$(privateSubnetCidr)\" -keysPermissions [\"all\"] -secretsPermissions [\"all\"] -spObjectId \"$(spObjectId)\" -keyVaultSkuName \"Standard\" -enabledForDeployment false -enabledForDiskEncryption false -enabledForTemplateDeployment true -connectionName \"AzureRunAsConnection\" -skuName \"S0\" -EDW_sku \"Hyperscale\"",
+								"deploymentMode": "Validation",
+								"enableDeploymentPrerequisites": "None",
+								"deploymentGroupEndpoint": "",
+								"project": "",
+								"deploymentGroupName": "",
+								"copyAzureVMTags": "true",
+								"runAgentServiceAsUser": "false",
+								"userName": "",
+								"password": "",
+								"outputVariable": "",
+								"deploymentName": "",
+								"deploymentOutputs": "",
+								"addSpnToEnvironment": "false"
+							}
+						},
+						{
+							"environment": {},
+							"taskId": "94a74903-f93f-4075-884f-dc11f34058b4",
+							"version": "2.*",
+							"name": "RG Deploy",
+							"refName": "",
+							"enabled": true,
+							"alwaysRun": false,
+							"continueOnError": true,
+							"timeoutInMinutes": 0,
+							"definitionType": "task",
+							"overrideInputs": {},
+							"condition": "succeeded()",
+							"inputs": {
+								"ConnectedServiceName": "81a15ef7-0b02-4a5a-941f-2657d87a360f",
+								"action": "Create Or Update Resource Group",
+								"resourceGroupName": "ADS-PRD-ARG-DataPlatform",
+								"location": "australiaeast",
+								"templateLocation": "Linked artifact",
+								"csmFileLink": "",
+								"csmParametersFileLink": "",
+								"csmFile": "$(System.DefaultWorkingDirectory)/_Azure/arm_template/azuredeploy.json",
+								"csmParametersFile": "$(System.DefaultWorkingDirectory)/_Azure/arm_template/azuredeploy.parameters.json",
+								"overrideParameters": " -location \"australiaeast\" -directory \"\"  -prefix \"$(prefix)\" -environment \"$(environment)\" -suffix \"\" -AzureSqlServerUn \"$(AzureSqlServerUn)\" -AzureSqlServerPw \"$(AzureSQLServerPw-PRD)\" -storageAccountType \"$(storageAccountType)\" -databricksPricingTier \"$(databricksPricingTier)\" -workspaceName \"vw-databricks-dev\" -vnetName \"$(vnetName)\" -vnetRG \"$(vnetRG)\" -customVirtualNetworkId \"$(customVirtualNetworkId)\" -customPublicSubnetName \"$(customPublicSubnetName)\" -publicSubnetCidr \"$(publicSubnetCidr)\" -customPrivateSubnetName \"$(customPrivateSubnetName)\" -privateSubnetCidr \"$(privateSubnetCidr)\" -keysPermissions [\"all\"] -secretsPermissions [\"all\"] -spObjectId \"$(spObjectId)\" -keyVaultSkuName \"Standard\" -enabledForDeployment false -enabledForDiskEncryption false -enabledForTemplateDeployment true -connectionName \"AzureRunAsConnection\" -skuName \"S0\" -EDW_sku \"Hyperscale\"",
+								"deploymentMode": "Incremental",
+								"enableDeploymentPrerequisites": "None",
+								"deploymentGroupEndpoint": "",
+								"project": "",
+								"deploymentGroupName": "",
+								"copyAzureVMTags": "true",
+								"runAgentServiceAsUser": "false",
+								"userName": "",
+								"password": "",
+								"outputVariable": "",
+								"deploymentName": "",
+								"deploymentOutputs": "",
+								"addSpnToEnvironment": "false"
+							}
+						}
+					]
+				}
+			],
+			"environmentOptions": {
+				"emailNotificationType": "OnlyOnFailure",
+				"emailRecipients": "release.environment.owner;release.creator",
+				"skipArtifactsDownload": false,
+				"timeoutInMinutes": 0,
+				"enableAccessToken": false,
+				"publishDeploymentStatus": true,
+				"badgeEnabled": false,
+				"autoLinkWorkItems": false,
+				"pullRequestDeploymentEnabled": false
+			},
+			"demands": [],
+			"conditions": [
+				{
+					"name": "ReleaseStarted",
+					"conditionType": 1,
+					"value": ""
+				},
+				{
+					"name": "_Azure",
+					"conditionType": 4,
+					"value": "{\"sourceBranch\":\"master\",\"tags\":[],\"useBuildDefinitionBranch\":false,\"createReleaseOnBuildTagging\":false}"
+				}
+			],
+			"executionPolicy": {
+				"concurrencyCount": 1,
+				"queueDepthCount": 0
+			},
+			"schedules": [],
+			"currentRelease": {
+				"id": 175,
+				"url": "",
+				"_links": {}
+			},
+			"retentionPolicy": {
+				"daysToKeep": 30,
+				"releasesToKeep": 3,
+				"retainBuild": true
+			},
+			"processParameters": {},
+			"properties": {
+				"BoardsEnvironmentType": {
+					"$type": "System.String",
+					"$value": "unmapped"
+				},
+				"LinkBoardsWorkItems": {
+					"$type": "System.String",
+					"$value": "False"
+				}
+			},
+			"preDeploymentGates": {
+				"id": 0,
+				"gatesOptions": null,
+				"gates": []
+			},
+			"postDeploymentGates": {
+				"id": 0,
+				"gatesOptions": null,
+				"gates": []
+			},
+			"environmentTriggers": [],
+			"badgeUrl": ""
+		}
+	],
+	"artifacts": [
+		{
+			"sourceId": "ee9649e8-55df-43be-9496-9289141d27c4:12",
+			"type": "Build",
+			"alias": "_Azure",
+			"definitionReference": {
+				"artifactSourceDefinitionUrl": {
+					"id": "",
+					"name": ""
+				},
+				"defaultVersionBranch": {
+					"id": "",
+					"name": ""
+				},
+				"defaultVersionSpecific": {
+					"id": "",
+					"name": ""
+				},
+				"defaultVersionTags": {
+					"id": "",
+					"name": ""
+				},
+				"defaultVersionType": {
+					"id": "latestType",
+					"name": "Latest"
+				},
+				"definition": {
+					"id": "12",
+					"name": "Azure"
+				},
+				"definitions": {
+					"id": "",
+					"name": ""
+				},
+				"IsMultiDefinitionType": {
+					"id": "False",
+					"name": "False"
+				},
+				"project": {
+					"id": "ee9649e8-55df-43be-9496-9289141d27c4",
+					"name": "ADS"
+				},
+				"repository": {
+					"id": "",
+					"name": ""
+				}
+			},
+			"isPrimary": true,
+			"isRetained": false
+		}
+	],
+	"triggers": [
+		{
+			"artifactAlias": "_Azure",
+			"triggerConditions": [
+				{
+					"sourceBranch": "develop",
+					"tags": [],
+					"tagFilter": null,
+					"useBuildDefinitionBranch": false,
+					"createReleaseOnBuildTagging": false
+				},
+				{
+					"sourceBranch": "master",
+					"tags": [],
+					"tagFilter": null,
+					"useBuildDefinitionBranch": false,
+					"createReleaseOnBuildTagging": false
+				}
+			],
+			"triggerType": 1
+		}
+	],
+	"releaseNameFormat": "Release-$(rev:r)",
+	"tags": [],
+	"properties": {
+		"DefinitionCreationSource": {
+			"$type": "System.String",
+			"$value": "ReleaseNew"
+		},
+		"IntegrateJiraWorkItems": {
+			"$type": "System.String",
+			"$value": "false"
+		},
+		"IntegrateBoardsWorkItems": {
+			"$type": "System.String",
+			"$value": "False"
+		}
+	},
+	"id": 4,
+	"name": "ADS Azure_CD",
+	"path": "\\",
+	"projectReference": null,
+	"url": "",
+	"_links": {
+		"self": {
+			"href": ""
+		},
+		"web": {
+			"href": ""
+		}
+	}
+}
