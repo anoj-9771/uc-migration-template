@@ -20,7 +20,7 @@ import org.apache.spark.sql.SaveMode
   
 
 def getConfig(kvSecret:String, table:String) : Config = {
-  var keyval = dbutils.secrets.get(scope="vwazr-dp-keyvault",key=kvSecret)
+  var keyval = dbutils.secrets.get(scope="azr-dp-keyvault",key=kvSecret)
   var conf = Map[String,String]()
   var cons = keyval.split(';')
   for (con <- cons){
@@ -34,7 +34,7 @@ def getConfig(kvSecret:String, table:String) : Config = {
       "dbTable"        -> table,
       "user"           -> conf("user id").toLowerCase,
       "password"       -> conf("password"),
-      "connectTimeout" -> "30", //seconds
+      "connectTimeout" -> "60", //seconds
       "queryTimeout"   -> "600"  //seconds
     )
   )
@@ -42,7 +42,7 @@ def getConfig(kvSecret:String, table:String) : Config = {
 }
 
 def getConfigPusdown(kvSecret:String, query:String) : Config = {
-  var keyval = dbutils.secrets.get(scope="vwazr-dp-keyvault",key=kvSecret)
+  var keyval = dbutils.secrets.get(scope="azr-dp-keyvault",key=kvSecret)
   var conf = Map[String,String]()
   var cons = keyval.split(';')
   for (con <- cons){
@@ -83,10 +83,16 @@ def readQueryFromDB(kvSecret:String, query:String): DataFrame ={
   return df
 }
 
-def pushdownToDB(kvSecret:String, query:String)={
-  val config = getConfigPusdown(kvSecret, query)
-  spark.read.sqlDB(config)
-}
+// def runSpFromDB(kvSecret:String, query:String): {
+//   val config = getConfigPusdown(kvSecret, query)
+//   sqlContext.sqlDBQuery(config)
+// }
+
+// def pushdownToDB(kvSecret:String, query:String): DataFrame={
+//   val config = getConfigPusdown(kvSecret, query)
+//   val df = sqlContext.sqlDBQuery(config)
+//   return df
+// }
 
 // COMMAND ----------
 
