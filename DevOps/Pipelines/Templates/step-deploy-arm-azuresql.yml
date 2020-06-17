@@ -1,0 +1,55 @@
+parameters:
+- name: AzDoServiceConnection # name of the parameter; required
+  type: string # data type of the parameter; required
+- name: resource_group
+  type: string
+
+steps:
+  - bash: |
+      set -e
+
+      # System info for debugging this pipeline if needed
+      echo -e "Linux name:"
+      uname -a
+      echo
+      echo -e "Working Directory:"
+      echo "$(Build.Repository.LocalPath)"
+      echo
+      echo -e "List of files available:\n"
+      ls -laR $(Build.Repository.LocalPath)
+      echo
+      echo -e "Pipeline workspace available:\n"
+      ls -laR $(Pipeline.Workspace)
+      echo -e "Environment variables:"
+      env | sort
+      echo
+    displayName: 'Agent info'
+
+  - task: AzureCLI@2
+    displayName: 'Add sp to ACL policy'
+    name: add_sp_to_acl_policy_sql
+    inputs:
+      azureSubscription: ${{ parameters.AzDoServiceConnection }}
+      scriptType: bash
+      scriptLocation: inlineScript
+      inlineScript: |
+        az keyvault set-policy --name "$(AZUREKEYVAULTNAME)" --secret-permissions set delete list get --object-id "$(SPOBJECTID)"
+
+  - task: AzureKeyVault@1
+    displayName: 'Get secrets'
+    inputs:
+      azureSubscription: ${{ parameters.AzDoServiceConnection }}
+      keyVaultName: $(AZUREKEYVAULTNAME)
+      secretsFilter: 'azuresqlserverpw'
+
+  - task: AzureResourceGroupDeployment@2
+    inputs:
+      azureSubscription: ${{ parameters.AzDoServiceConnection }}
+      action: 'Create Or Update Resource Group'
+      resourceGroupName: ${{ parameters.resource_group }}
+      location: $(LOCATION)
+      templateLocation: 'Linked artifact'
+      csmFile: '$(Pipeline.Workspace)/arm_templates/arm-sql-server-control-db.json'
+      overrideParameters: '-location $(LOCATION) -prefix $(PREFIX) -environment $(ENVIRONMENT) -AzureSqlServerUn $(AZURESQLSERVERUN) -AzureSqlServerPw $(AZURESQLSERVERPW)'
+      deploymentMode: 'Incremental'
+    displayName: 'Deploy Azure SQL Control DB'

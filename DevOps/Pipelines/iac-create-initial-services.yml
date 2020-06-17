@@ -1,0 +1,76 @@
+name: $(Build.BuildId).$(date:yyyyMMdd)
+
+trigger:
+  branches:
+    exclude:
+    - '*' 
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+stages:
+- stage: 'build'
+  jobs:
+  - template: Templates/job-copy-arm.yml
+
+- stage: deploy_to_npe
+  variables:
+  - template: Variables/npe-variables.yml
+  jobs:
+  - job: 'deploy_to_npe'
+    steps:
+    - download: current
+      artifact: arm_templates
+    - task: AzureResourceGroupDeployment@2
+      inputs:
+        # azureSubscription cannot be a stage scoped variable
+        azureSubscription: npe
+        action: 'Create Or Update Resource Group'
+        resourceGroupName: '$(PREFIX)-$(ENVIRONMENT)'
+        location: $(LOCATION)
+        templateLocation: 'Linked artifact'
+        csmFile: '$(Pipeline.Workspace)/arm_templates/arm-initial-keyvault.json'
+        overrideParameters: '-location $(LOCATION) -keyVaultName $(AZUREKEYVAULTNAME)'
+        deploymentMode: 'Incremental'
+      displayName: 'Deploy AKV to non prod'
+
+    - task: AzureCLI@2
+      displayName: 'Add sp to ACL policy'
+      name: add_sp_to_acl_policy
+      inputs:
+        azureSubscription: npe
+        scriptType: bash
+        scriptLocation: inlineScript
+        inlineScript: |
+          az keyvault set-policy --name "$(AZUREKEYVAULTNAME)" --secret-permissions set delete list get --object-id "$(SPOBJECTID)"
+
+- stage: deploy_to_prd
+  variables:
+  - template: Variables/prd-variables.yml
+  jobs:
+  - job: 'deploy_to_prd'
+    steps:
+    - download: current
+      artifact: arm_templates
+    - task: AzureResourceGroupDeployment@2
+      inputs:
+        # azureSubscription cannot be a stage scoped variable
+        azureSubscription: prodrg
+        action: 'Create Or Update Resource Group'
+        resourceGroupName: '$(PREFIX)-$(ENVIRONMENT)'
+        location: $(LOCATION)
+        templateLocation: 'Linked artifact'
+        csmFile: '$(Pipeline.Workspace)/arm_templates/arm-initial-keyvault.json'
+        overrideParameters: '-location $(LOCATION) -keyVaultName $(AZUREKEYVAULTNAME)'
+        deploymentMode: 'Incremental'
+      displayName: 'Deploy AKV to prod'
+
+    - task: AzureCLI@2
+      displayName: 'Add sp to ACL policy'
+      name: add_sp_to_acl_policy
+      inputs:
+        azureSubscription: prodrg
+        scriptType: bash
+        scriptLocation: inlineScript
+        inlineScript: |
+          az keyvault set-policy --name "$(AZUREKEYVAULTNAME)" --secret-permissions set delete list get --object-id "$(SPOBJECTID)"

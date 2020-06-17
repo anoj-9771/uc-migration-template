@@ -1,0 +1,69 @@
+variables:
+  # Used in service naming
+  - name: prefix
+    value: rl
+  - name: location
+    value: AustraliaSouthEast
+  - name: environment
+    value: prod
+  - name: azuresqlserverun
+    value: richard
+  - name: azdoresourceconnection
+    value: prodrg
+  - name: databricksPricingTier
+    value: standard
+  - name: spobjectid
+    value: 1cccb7c1-0da3-438d-a0cc-d9086cb59618
+  - name: storageAccountType
+    value: standard
+
+# ------------------------------------------------
+  # Service names for environment
+  # ------------------------------------------------
+  # Name of key vault for this environment
+  - name: azurekeyvaultname
+    value: $(PREFIX)-kv-$(ENVIRONMENT)
+  # Data Lake storage account names, commonly split
+  # into zones. Ensure it is a comma delimited list
+  # as it is split into an array within the ARM 
+  # template.
+  - name: datalakestorageaccountnames
+    value: $(PREFIX)saraw$(ENVIRONMENT), $(PREFIX)sastage$(ENVIRONMENT), $(PREFIX)sasandbox$(ENVIRONMENT)
+  # Container or file system names within storage account
+  # Used to iterate in ARM template
+  - name: zonenames
+    value: raw, stage, sandbox
+  # Databricks workspace name for this enironment
+  - name: databricksworkspacename
+    value: $(PREFIX)-dbws-$(ENVIRONMENT)
+  # Data Factory service name for this environment
+  - name: datafactoryname
+    value: $(PREFIX)-df-$(ENVIRONMENT)
+  # Data Factory self hosted integrated runtime name
+  - name: datafactoryshirname
+    value: $(PREFIX)-shir-$(ENVIRONMENT)
+  # Azure SQL Server Name
+  - name: azuresqlservername
+    value: $(PREFIX)-asql-$(ENVIRONMENT)
+
+  # ------------------------------------------------
+  # Databricks VNet related
+  # ------------------------------------------------
+  - name: databricksclustername
+    value: etl-cluster
+  - name: sparkClusterVersion
+    value: 6.2.x-scala2.11
+  - name: databricks_node_type_id
+    value: Standard_D3_v2
+  - name: vnetName
+    value: 
+  - name: customVirtualNetworkId
+    value: 
+  - name: publicSubnetCidr
+    value:  
+  - name: privateSubnetCidr
+    value: 
+  - name: customPublicSubnetName
+    value: 
+  - name: customPrivateSubnetName
+    value: 

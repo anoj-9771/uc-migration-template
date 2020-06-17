@@ -1,0 +1,13 @@
+  jobs:
+  - job: 'control_db'
+    pool:
+      demands: msbuild
+      vmImage: 'vs2017-win2016'
+    steps:
+    - task: MSBuild@1
+      displayName: 'Build CntrlDb'
+      inputs:
+        solution: CntrlDb/CntrlDb/CntrlDb.sqlproj
+
+    - publish: CntrlDb/CntrlDb/bin/Debug
+      artifact: sql_cntrldb
