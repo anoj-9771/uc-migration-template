@@ -15,7 +15,7 @@ parameters:
 - name: databricks_spark_version
   type: string
   default: 6.2.x-scala2.11
-- name: databricks_wokers
+- name: databricks_workers
   type: string
   default: 2
 - name: databricks_autotermination
