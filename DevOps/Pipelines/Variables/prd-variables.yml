@@ -7,13 +7,13 @@ variables:
   - name: environment
     value: prod
   - name: azuresqlserverun
-    value: steve
+    value: sqladmin
   - name: azdoresourceconnection
-    value: prodrg
+    value: SP-Stephen_Lundall-Insight
   - name: databricksPricingTier
     value: standard
   - name: spobjectid
-    value: 1cccb7c1-0da3-438d-a0cc-d9086cb59618
+    value: 786f5c85-f4ee-4d8e-80ed-fb40e88de914
   - name: storageAccountType
     value: standard
 
