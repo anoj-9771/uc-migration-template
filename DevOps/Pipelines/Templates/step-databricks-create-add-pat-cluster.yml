@@ -16,10 +16,10 @@ parameters:
   type: string
   default: 6.2.x-scala2.11
 - name: databricks_wokers
-  type: int
+  type: string
   default: 2
 - name: databricks_autotermination
-  type: int
+  type: string
   default: 30
 
 steps:
