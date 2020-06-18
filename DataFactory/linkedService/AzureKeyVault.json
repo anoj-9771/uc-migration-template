@@ -4,7 +4,7 @@
 		"annotations": [],
 		"type": "AzureKeyVault",
 		"typeProperties": {
-			"baseUrl": "https://etldemokv.vault.azure.net/"
+			"baseUrl": "https://insight-etlframework-akv.vault.azure.net/"
 		}
 	}
 }
