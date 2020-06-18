@@ -55,6 +55,10 @@ variables:
     value: 6.2.x-scala2.11
   - name: databricks_node_type_id
     value: Standard_D3_v2
+  - name: databricks_workers
+    value: 8
+  - name: databricks_autotermination
+    value: 10
   - name: vnetName
     value: 
   - name: customVirtualNetworkId

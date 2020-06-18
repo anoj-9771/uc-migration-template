@@ -12,6 +12,12 @@ parameters:
 - name: databricks_spark_version
   type: string
   default: 6.2.x-scala2.11
+- name: databricks_wokers
+  type: int
+  default: 2
+- name: databricks_autotermination
+  type: int
+  default: 30
 
 steps:
   - task: AzureCLI@2
@@ -106,11 +112,8 @@ steps:
           "cluster_name": "${{ parameters.databricks_cluster_name }}", 
           "spark_version": "${{ parameters.databricks_spark_version }}", 
           "node_type_id": "${{ parameters.databricks_node_type_id }}", 
-          "autotermination_minutes": 30,
-          "autoscale" : { 
-            "min_workers": 2, 
-            "max_workers": 6 
-          } 
+          "autotermination_minutes": "${{ parameters.databricks_autotermination }}",
+          "num_workers": "${{ parameters.databricks_workers }}"
         }'
         echo "Generated cluster config:"
         echo "$cluster_config"
