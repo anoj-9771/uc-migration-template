@@ -24,7 +24,7 @@ stages:
     - task: AzureResourceGroupDeployment@2
       inputs:
         # azureSubscription cannot be a stage scoped variable
-        azureSubscription: npe
+        azureSubscription: $(AZDORESOURCECONNECTION)
         action: 'Create Or Update Resource Group'
         resourceGroupName: '$(PREFIX)-$(ENVIRONMENT)'
         location: $(LOCATION)
@@ -38,7 +38,7 @@ stages:
       displayName: 'Add sp to ACL policy'
       name: add_sp_to_acl_policy
       inputs:
-        azureSubscription: npe
+        azureSubscription: $(AZDORESOURCECONNECTION)
         scriptType: bash
         scriptLocation: inlineScript
         inlineScript: |
@@ -55,7 +55,7 @@ stages:
     - task: AzureResourceGroupDeployment@2
       inputs:
         # azureSubscription cannot be a stage scoped variable
-        azureSubscription: prodrg
+        azureSubscription: $(AZDORESOURCECONNECTION)
         action: 'Create Or Update Resource Group'
         resourceGroupName: '$(PREFIX)-$(ENVIRONMENT)'
         location: $(LOCATION)
@@ -69,7 +69,7 @@ stages:
       displayName: 'Add sp to ACL policy'
       name: add_sp_to_acl_policy
       inputs:
-        azureSubscription: prodrg
+        azureSubscription: $(AZDORESOURCECONNECTION)
         scriptType: bash
         scriptLocation: inlineScript
         inlineScript: |
