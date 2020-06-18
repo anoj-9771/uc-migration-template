@@ -26,39 +26,13 @@ pool:
   vmImage: ubuntu-latest
 
 stages:
-# # ---------------------------------------------------------------------------
-# # Build artifacts
-# - stage: 'build'
-#   jobs:
-#   # Use this section to pull in or out build jobs
-#   - template: Templates/job-build-cntrldb.yml
-#   - template: Templates/job-copy-arm.yml
-
-# # ---------------------------------------------------------------------------
-# # Release to Non-Production
-# - template: Templates/stage-azure-pipelines-deployment.yml
-#   parameters:
-#     stage_name: 'non_prod'
-#     variable_template_name: npe-variables
-#     resource_group: sl-nonprod
-#     run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/develop'))
-
-# # ---------------------------------------------------------------------------
-# # Release to Production
-# - template: Templates/stage-azure-pipelines-deployment.yml
-#   parameters:
-#     stage_name: 'prod'
-#     variable_template_name: prd-variables
-#     resource_group: sl-prod
-#     run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
-
 # ---------------------------------------------------------------------------
 # Build artifacts
 - stage: 'build'
   jobs:
   # Use this section to pull in or out build jobs
   # - template: Templates/job-build-cntrldb.yml
-  # - template: Templates/job-copy-arm.yml
+  - template: Templates/job-copy-arm.yml
   - template: Templates/step-deploy-arm-databricks-no-vnet-nsg.yml
 
 # ---------------------------------------------------------------------------
@@ -69,3 +43,12 @@ stages:
     variable_template_name: npe-variables
     resource_group: sl-nonprod
     run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/develop'))
+
+# ---------------------------------------------------------------------------
+# Release to Production
+- template: Templates/stage-azure-pipelines-deployment.yml
+  parameters:
+    stage_name: 'prod'
+    variable_template_name: prd-variables
+    resource_group: sl-prod
+    run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
