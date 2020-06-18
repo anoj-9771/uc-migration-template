@@ -53,6 +53,8 @@ variables:
     value: etl-cluster
   - name: sparkClusterVersion
     value: 6.2.x-scala2.11
+  - name: databricks_driver_node_type_id
+    value: Standard_F8
   - name: databricks_node_type_id
     value: Standard_D3_v2
   - name: databricks_workers
