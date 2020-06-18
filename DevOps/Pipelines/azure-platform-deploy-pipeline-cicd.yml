@@ -40,7 +40,7 @@ stages:
   parameters:
     stage_name: 'non_prod'
     variable_template_name: npe-variables
-    resource_group: rl-nonprod
+    resource_group: sl-nonprod
     run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/develop'))
 
 # ---------------------------------------------------------------------------
@@ -49,5 +49,5 @@ stages:
   parameters:
     stage_name: 'prod'
     variable_template_name: prd-variables
-    resource_group: rl-prod
+    resource_group: sl-prod
     run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))

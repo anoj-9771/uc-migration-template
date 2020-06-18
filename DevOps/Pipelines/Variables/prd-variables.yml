@@ -1,13 +1,13 @@
 variables:
   # Used in service naming
   - name: prefix
-    value: rl
+    value: sl
   - name: location
     value: AustraliaSouthEast
   - name: environment
     value: prod
   - name: azuresqlserverun
-    value: richard
+    value: steve
   - name: azdoresourceconnection
     value: prodrg
   - name: databricksPricingTier

@@ -1,7 +1,7 @@
 variables:
   # Used in service naming
   - name: prefix
-    value: rl
+    value: sl
   # The default resource group region name
   - name: location
     value: australiasoutheast
@@ -10,7 +10,7 @@ variables:
     value: nonprod
   # username for SQL Server Control DB
   - name: azuresqlserverun
-    value: richard
+    value: sqladmin
   # Name of the service connection in Azure Devops
   - name: azdoresourceconnection
     value: npe
