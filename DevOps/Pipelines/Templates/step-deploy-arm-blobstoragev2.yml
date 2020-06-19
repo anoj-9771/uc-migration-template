@@ -7,13 +7,13 @@
 steps:
   - task: AzureResourceGroupDeployment@2
     inputs:
-      azureSubscription: ${{ variables.azdoresourceconnection}}
+      azureSubscription: ${{ variables.azdoresourceconnection }}
       action: 'Create Or Update Resource Group'
       resourceGroupName: '${{ variables.prefix }}-${{ variables.environment }}'
       location: ${{ variables.location }}
       templateLocation: 'Linked artifact'
       csmFile: '$(Pipeline.Workspace)/arm_templates/arm-blobstoragev2.json'
-      overrideParameters: '-location ${{ variables.location }} -accountNames "${{ variables.datalakestorageaccountnames}}" -zones "${{ variables.zonenames}}"'
+      overrideParameters: '-location ${{ variables.location }} -accountNames "${{ variables.datalakestorageaccountnames }}" -zones "${{ variables.zonenames }}"'
       deploymentMode: 'Incremental'
       deploymentOutputs: 'armOutputs'
     displayName: 'Deploy BLOB Storage Zones'
@@ -22,7 +22,7 @@ steps:
     displayName: 'Set SAS tokens in AKV for BLOB Storage'
     name: SetSasTokens
     inputs:
-      azureSubscription: ${{ variables.azdoresourceconnection}}
+      azureSubscription: ${{ variables.azdoresourceconnection }}
       scriptType: pscore
       scriptLocation: inlineScript
       inlineScript: |
@@ -31,7 +31,7 @@ steps:
         Write-Host '$(armOutputs)'
         $json = '$(armOutputs)' | convertfrom-json
 
-        az keyvault set-policy --name "${{ variables.azurekeyvaultname}}" --secret-permissions set list get --object-id "${{ variables.spobjectid}}"
+        az keyvault set-policy --name "${{ variables.azurekeyvaultname }}" --secret-permissions set list get --object-id "${{ variables.spobjectid }}"
         Write-Host "Policy set"
 
         $json.PSObject.Properties.Value.Value | ForEach-Object {
@@ -41,6 +41,6 @@ steps:
           $date_year=(Get-Date).AddYears(1).ToString("yyyy-MM-ddTH:mmZ")
           $sas_token=az storage account generate-sas --account-name $value --permissions racwdl --services b --resource-types sco --expiry $date_year --output tsv
           Write-Host "sas token genereated"
-          az keyvault secret set --name (-join($value, "-sa-sastoken")) --vault-name "${{ variables.azurekeyvaultname}}" --value "$sas_token"
+          az keyvault secret set --name (-join($value, "-sa-sastoken")) --vault-name "${{ variables.azurekeyvaultname }}" --value "$sas_token"
           Write-Host "Secret set"
         }

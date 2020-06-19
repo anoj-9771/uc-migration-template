@@ -9,13 +9,13 @@
 steps: 
   - task: AzureResourceGroupDeployment@2
     inputs:
-      azureSubscription: ${{ variables.azdoresourceconnection}}
+      azureSubscription: ${{ variables.azdoresourceconnection }}
       action: 'Create Or Update Resource Group'
       resourceGroupName: '${{ variables.prefix }}-${{ variables.environment }}'
-      location: ${{ variables.location}}
+      location: ${{ variables.location }}
       templateLocation: 'Linked artifact'
       csmFile: '$(Pipeline.Workspace)/arm_templates/arm-databricks-no-vnet-nsg.json'
-      overrideParameters: '-location ${{ variables.location}} -prefix ${{ variables.prefix}} -environment ${{ variables.environment}} -pricingTier ${{ variables.databrickspricingtier}}'
+      overrideParameters: '-location ${{ variables.location }} -prefix ${{ variables.prefix }} -environment ${{ variables.environment }} -pricingTier ${{ variables.databrickspricingtier }}'
       deploymentMode: 'Incremental'
       deploymentOutputs: 'databricksOutput'
     displayName: 'Deploy Databricks Workspace'
@@ -30,6 +30,6 @@ steps:
 
   - template: step-databricks-create-add-pat-cluster.yml
     parameters:
-      AzDoServiceConnection: ${{ variables.azdoresourceconnection}}
+      AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
       resource_group: '${{ variables.prefix }}-${{ variables.environment }}'
       databricks_cluster_name: ${{ parameters.databricksclustername }}
