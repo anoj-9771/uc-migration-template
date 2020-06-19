@@ -49,7 +49,7 @@ variables:
   # ------------------------------------------------
   # Databricks VNet related
   # ------------------------------------------------
-   - name: databricksclustername
+  - name: databricksclustername
     value: etl-cluster
   - name: sparkClusterVersion
     value: 7.0.x-scala2.12
