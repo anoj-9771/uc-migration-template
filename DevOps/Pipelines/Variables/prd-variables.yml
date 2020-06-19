@@ -52,7 +52,7 @@ variables:
    - name: databricksclustername
     value: etl-cluster
   - name: sparkClusterVersion
-    value: 6.2.x-scala2.11
+    value: 7.0.x-scala2.12
   - name: databricksdrivernodetypeid
     value: Standard_D3_v2
   - name: databricksnodetypeid
