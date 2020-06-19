@@ -12,9 +12,9 @@ parameters:
 - name: databricks_spark_version
   type: string
 - name: databricks_workers
-  type: integer
+  type: number
 - name: databricks_autotermination
-  type: integer
+  type: number
 
 steps:
   - task: AzureResourceGroupDeployment@2

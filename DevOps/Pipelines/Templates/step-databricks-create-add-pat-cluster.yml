@@ -16,10 +16,10 @@ parameters:
   type: string
   # default: 6.2.x-scala2.11
 - name: databricks_workers
-  type: integer
+  type: number
   # default: 2
 - name: databricks_autotermination
-  type: integer
+  type: number
   # default: 30
 
 steps:
