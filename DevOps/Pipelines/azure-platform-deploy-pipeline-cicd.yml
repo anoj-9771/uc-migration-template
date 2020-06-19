@@ -40,7 +40,8 @@ stages:
     stage_name: 'non_prod'
     variable_template_name: npe-variables
     resource_group: '$(PREFIX)-$(ENVIRONMENT)'
-    run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/develop'))
+    run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/sl-devops'))
+    # run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/develop'))
 
 # ---------------------------------------------------------------------------
 # Release to Production
@@ -49,4 +50,5 @@ stages:
     stage_name: 'prod'
     variable_template_name: prd-variables
     resource_group: '$(PREFIX)-$(ENVIRONMENT)'
-    run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
+    run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/sl-devops'))
+    # run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
