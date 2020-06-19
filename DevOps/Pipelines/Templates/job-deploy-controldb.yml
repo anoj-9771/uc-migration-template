@@ -15,16 +15,16 @@ jobs:
   - task: AzureKeyVault@1
     displayName: 'Get Secrets'
     inputs:
-      azureSubscription: $(AZDORESOURCECONNECTION)
-      keyVaultName: $(AZUREKEYVAULTNAME)
+      azureSubscription: '$(AZDORESOURCECONNECTION)'
+      keyVaultName: '$(AZUREKEYVAULTNAME)'
       secretsFilter: 'AzureSQLServerPw'
 
   - task: SqlAzureDacpacDeployment@1
     displayName: 'Azure SQL DacpacTask'
     inputs:
-      azureSubscription: $(AZDORESOURCECONNECTION)
+      azureSubscription: '$(AZDORESOURCECONNECTION)'
       ServerName: '$(AZURESQLSERVERNAME).database.windows.net'
       DatabaseName: ControlDB
-      SqlUsername: $(AZURESQLSERVERUN)
+      SqlUsername: '$(AZURESQLSERVERUN)'
       SqlPassword: '$(AzureSQLServerPw)'
       DacpacFile: '$(Pipeline.Workspace)/sql_cntrldb/CntrlDb.dacpac'
