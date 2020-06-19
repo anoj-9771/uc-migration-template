@@ -36,16 +36,16 @@ stages:
     steps:
     - download: current
       artifact: arm_templates
-    # # # Deploy Azure SQL DB for Control DB
-    # - template: step-deploy-arm-azuresql.yml
-    #   parameters:
-    #     AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
-    #     resource_group: '${{ variables.prefix }}-${{ variables.environment }}'
-    # # Deploy BLOB Storage accounts for Data Lake
-    # - template: step-deploy-arm-blobstoragev2.yml
-    #   parameters:
-    #     AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
-    #     resource_group: '${{ variables.prefix }}-${{ variables.environment }}'
+    # Deploy Azure SQL DB for Control DB
+    - template: step-deploy-arm-azuresql.yml
+      parameters:
+        AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
+        resource_group: '${{ variables.prefix }}-${{ variables.environment }}'
+    # Deploy BLOB Storage accounts for Data Lake
+    - template: step-deploy-arm-blobstoragev2.yml
+      parameters:
+        AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
+        resource_group: '${{ variables.prefix }}-${{ variables.environment }}'
     # Deploy Databricks Workspace
     - template: step-deploy-arm-databricks-no-vnet-nsg.yml
       parameters:
@@ -57,12 +57,12 @@ stages:
         databricks_spark_version : ${{ variables.sparkClusterVersion }}
         databricks_workers : ${{ variables.databricksworkers }}
         databricks_autotermination : ${{ variables.databricksautotermination }}
-  #   # Deploy Data Factory with access policies for AKV
-  #   - template: step-deploy-arm-datafactory-w-access-policies.yml
-  #     parameters:
-  #       AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
-  #       resource_group: '${{ variables.prefix }}-${{ variables.environment }}'
-  # # # Deploy Control DB schema / DACPAC
-  # - template: job-deploy-controldb.yml
-  #   parameters:
-  #     AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
+    # Deploy Data Factory with access policies for AKV
+    - template: step-deploy-arm-datafactory-w-access-policies.yml
+      parameters:
+        AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
+        resource_group: '${{ variables.prefix }}-${{ variables.environment }}'
+  # Deploy Control DB schema / DACPAC
+  - template: job-deploy-controldb.yml
+    parameters:
+      AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
