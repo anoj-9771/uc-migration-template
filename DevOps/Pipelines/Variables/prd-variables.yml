@@ -1,19 +1,19 @@
 variables:
   # Used in service naming
   - name: prefix
-    value: rl
+    value: sl
   - name: location
-    value: AustraliaSouthEast
+    value: australiaeast
   - name: environment
     value: prod
   - name: azuresqlserverun
-    value: richard
+    value: sqladmin
   - name: azdoresourceconnection
-    value: prodrg
+    value: SP-Stephen_Lundall-Insight
   - name: databricksPricingTier
     value: standard
   - name: spobjectid
-    value: 1cccb7c1-0da3-438d-a0cc-d9086cb59618
+    value: a1860bea-6cf3-4c01-8659-e7ec4977c6a7
   - name: storageAccountType
     value: standard
 
@@ -52,9 +52,15 @@ variables:
   - name: databricksclustername
     value: etl-cluster
   - name: sparkClusterVersion
-    value: 6.2.x-scala2.11
-  - name: databricks_node_type_id
+    value: 7.0.x-scala2.12
+  - name: databricksdrivernodetypeid
     value: Standard_D3_v2
+  - name: databricksnodetypeid
+    value: Standard_F4s
+  - name: databricksworkers
+    value: 4
+  - name: databricksautotermination
+    value: 30
   - name: vnetName
     value: 
   - name: customVirtualNetworkId
