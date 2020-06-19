@@ -26,5 +26,5 @@ jobs:
       ServerName: '$(AZURESQLSERVERNAME).database.windows.net'
       DatabaseName: ControlDB
       SqlUsername: $(AZURESQLSERVERUN)
-      SqlPassword: '$(azuresqlserverpw)'
+      SqlPassword: '$(AzureSQLServerPw)'
       DacpacFile: '$(Pipeline.Workspace)/sql_cntrldb/CntrlDb.dacpac'
