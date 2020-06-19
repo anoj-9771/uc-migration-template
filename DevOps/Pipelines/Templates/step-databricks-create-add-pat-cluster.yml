@@ -115,7 +115,7 @@ steps:
           "cluster_name": "${{ parameters.databricks_cluster_name }}", 
           "spark_version": "${{ parameters.databricks_spark_version }}", 
           "node_type_id": "${{ parameters.databricks_node_type_id }}",
-          "driver_node_type_id": "${{ parameters.databricks_driver_node_type_id }}"
+          "driver_node_type_id": "${{ parameters.databricks_driver_node_type_id }}",
           "autotermination_minutes": ${{ parameters.databricks_autotermination }},
           "num_workers": ${{ parameters.databricks_workers }}
         }'
