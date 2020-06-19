@@ -43,3 +43,8 @@ steps:
       AzDoServiceConnection: ${{ parameters.AzDoServiceConnection }}
       resource_group: ${{ parameters.resource_group }}
       databricks_cluster_name: ${{ parameters.databricksclustername }}
+      databricks_driver_node_type_id : ${{ parameters.databricks_driver_node_type_id }}
+      databricks_node_type_id : ${{ parameters.databricks_node_type_id }}
+      databricks_spark_version : ${{ parameters.databricks_spark_version }}
+      databricks_workers : ${{ parameters.databricks_workers }}
+      databricks_autotermination : ${{ parameters.databricks_autotermination }}
