@@ -5,6 +5,16 @@ parameters:
   type: string
 - name: databricksclustername
   type: string
+- name: databricks_driver_node_type_id
+  type: string
+- name: databricks_node_type_id
+  type: string
+- name: databricks_spark_version
+  type: string
+- name: databricks_workers
+  type: string
+- name: databricks_autotermination
+  type: string
 
 steps:
   - task: AzureResourceGroupDeployment@2
