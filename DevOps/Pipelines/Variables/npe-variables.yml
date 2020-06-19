@@ -4,7 +4,7 @@ variables:
     value: sl
   # The default resource group region name
   - name: location
-    value: australiasoutheast
+    value: australiaeast
   # environment name used in service naming
   - name: environment
     value: nonprod

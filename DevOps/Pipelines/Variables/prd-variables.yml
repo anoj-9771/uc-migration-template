@@ -3,7 +3,7 @@ variables:
   - name: prefix
     value: sl
   - name: location
-    value: AustraliaSouthEast
+    value: australiaeast
   - name: environment
     value: prod
   - name: azuresqlserverun
