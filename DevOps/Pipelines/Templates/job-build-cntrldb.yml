@@ -5,9 +5,9 @@
       vmImage: 'vs2017-win2016'
     steps:
     - task: MSBuild@1
-      displayName: 'Build ControlDB2'
+      displayName: 'Build ControlDB'
       inputs:
-        solution: ControlDB2/ControlDB2/ControlDB2.sqlproj
+        solution: ControlDB/ControlDB/ControlDB.sqlproj
 
-    - publish: ControlDB2/ControlDB2/bin/Debug
+    - publish: ControlDB/ControlDB/bin/Debug
       artifact: sql_cntrldb

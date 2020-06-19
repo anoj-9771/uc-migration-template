@@ -1,0 +1,130 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <Name>ControlDB</Name>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectVersion>4.1</ProjectVersion>
+    <ProjectGuid>{ad3961a2-ab7b-4924-879c-38ecf1664234}</ProjectGuid>
+    <DSP>Microsoft.Data.Tools.Schema.Sql.Sql130DatabaseSchemaProvider</DSP>
+    <OutputType>Database</OutputType>
+    <RootPath>
+    </RootPath>
+    <RootNamespace>ControlDB</RootNamespace>
+    <AssemblyName>ControlDB</AssemblyName>
+    <ModelCollation>1033, CI</ModelCollation>
+    <DefaultFileStructure>BySchemaAndSchemaType</DefaultFileStructure>
+    <DeployToDatabase>True</DeployToDatabase>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetLanguage>CS</TargetLanguage>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <SqlServerVerification>False</SqlServerVerification>
+    <IncludeCompositeObjects>True</IncludeCompositeObjects>
+    <TargetDatabaseSet>True</TargetDatabaseSet>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <OutputPath>bin\Release\</OutputPath>
+    <BuildScriptName>$(MSBuildProjectName).sql</BuildScriptName>
+    <TreatWarningsAsErrors>False</TreatWarningsAsErrors>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <DefineDebug>false</DefineDebug>
+    <DefineTrace>true</DefineTrace>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <OutputPath>bin\Debug\</OutputPath>
+    <BuildScriptName>$(MSBuildProjectName).sql</BuildScriptName>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <DefineDebug>true</DefineDebug>
+    <DefineTrace>true</DefineTrace>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">11.0</VisualStudioVersion>
+    <!-- Default to the v11.0 targets path if the targets file for the current VS version is not found -->
+    <SSDTExists Condition="Exists('$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v$(VisualStudioVersion)\SSDT\Microsoft.Data.Tools.Schema.SqlTasks.targets')">True</SSDTExists>
+    <VisualStudioVersion Condition="'$(SSDTExists)' == ''">11.0</VisualStudioVersion>
+  </PropertyGroup>
+  <Import Condition="'$(SQLDBExtensionsRefPath)' != ''" Project="$(SQLDBExtensionsRefPath)\Microsoft.Data.Tools.Schema.SqlTasks.targets" />
+  <Import Condition="'$(SQLDBExtensionsRefPath)' == ''" Project="$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v$(VisualStudioVersion)\SSDT\Microsoft.Data.Tools.Schema.SqlTasks.targets" />
+  <ItemGroup>
+    <Folder Include="Properties" />
+    <Folder Include="CTL\" />
+    <Folder Include="CTL\Tables\" />
+    <Folder Include="dbo\" />
+    <Folder Include="dbo\Tables\" />
+    <Folder Include="CTL\Views\" />
+    <Folder Include="CTL\Functions\" />
+    <Folder Include="CTL\Stored Procedures\" />
+    <Folder Include="dbo\Stored Procedures\" />
+    <Folder Include="Security\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Build Include="CTL\Tables\DataSet.sql" />
+    <Build Include="CTL\Tables\DataStore.sql" />
+    <Build Include="CTL\Tables\Process.sql" />
+    <Build Include="CTL\Tables\Project.sql" />
+    <Build Include="CTL\Tables\QueueMeta.sql" />
+    <Build Include="CTL\Tables\Stage.sql" />
+    <Build Include="CTL\Tables\Task.sql" />
+    <Build Include="CTL\Tables\TaskLog.sql" />
+    <Build Include="CTL\Tables\Type.sql" />
+    <Build Include="CTL\Tables\Watermark.sql" />
+    <Build Include="CTL\Tables\Worker.sql" />
+    <Build Include="dbo\Tables\DataProfile.sql" />
+    <Build Include="CTL\Views\vw_Task_ParentChildHierarchy.sql" />
+    <Build Include="CTL\Views\vw_TaskLogDetailed.sql" />
+    <Build Include="CTL\Functions\udf_BatchIdtoDatetime.sql" />
+    <Build Include="CTL\Functions\udf_CronToDatetime.sql" />
+    <Build Include="CTL\Functions\udf_CronToFrequency.sql" />
+    <Build Include="CTL\Functions\udf_getFileDateHierarchy.sql" />
+    <Build Include="CTL\Functions\udf_getMetaDataQuery.sql" />
+    <Build Include="CTL\Functions\udf_getWAustDateTime.sql" />
+    <Build Include="CTL\Functions\udf_secondsToTime.sql" />
+    <Build Include="CTL\Functions\udf_split.sql" />
+    <Build Include="CTL\Functions\udf_split_count.sql" />
+    <Build Include="CTL\Functions\udf_DelimitedSplit8K.sql" />
+    <Build Include="CTL\Functions\udf_getBatchStatus.sql" />
+    <Build Include="CTL\Functions\udf_GetDataSetExeLimit.sql" />
+    <Build Include="CTL\Functions\udf_GetDataStoreExeLimit.sql" />
+    <Build Include="CTL\Functions\udf_getQueueStatus.sql" />
+    <Build Include="CTL\Functions\udf_GetWorkerExeLimit.sql" />
+    <Build Include="CTL\Functions\udf_split_table.sql" />
+    <Build Include="CTL\Functions\udf_splitString.sql" />
+    <Build Include="CTL\Functions\udf_string_split.sql" />
+    <Build Include="CTL\Stored Procedures\sp_checkBatchStatus.sql" />
+    <Build Include="CTL\Stored Procedures\sp_checkProjectStatus.sql" />
+    <Build Include="CTL\Stored Procedures\sp_CreateControlEntry.sql" />
+    <Build Include="CTL\Stored Procedures\sp_CreateDataStore.sql" />
+    <Build Include="CTL\Stored Procedures\sp_CreateProcessTask.sql" />
+    <Build Include="CTL\Stored Procedures\sp_CreateProject.sql" />
+    <Build Include="CTL\Stored Procedures\sp_CreateProjectDependencies.sql" />
+    <Build Include="CTL\Stored Procedures\sp_CreateUpdateProcess.sql" />
+    <Build Include="CTL\Stored Procedures\sp_CreateUpdateTask.sql" />
+    <Build Include="CTL\Stored Procedures\sp_CreateWorker.sql" />
+    <Build Include="CTL\Stored Procedures\sp_DeleteProjectControlEntries.sql" />
+    <Build Include="CTL\Stored Procedures\sp_Dequeue.sql" />
+    <Build Include="CTL\Stored Procedures\sp_getNextTask.sql" />
+    <Build Include="CTL\Stored Procedures\sp_getProjects.sql" />
+    <Build Include="CTL\Stored Procedures\sp_getTasksToProcess.sql" />
+    <Build Include="CTL\Stored Procedures\sp_InitialQueue.sql" />
+    <Build Include="CTL\Stored Procedures\sp_logTasks.sql" />
+    <Build Include="CTL\Stored Procedures\sp_PurgeQueue.sql" />
+    <Build Include="CTL\Stored Procedures\sp_Queue.sql" />
+    <Build Include="CTL\Stored Procedures\sp_QueueProject.sql" />
+    <Build Include="CTL\Stored Procedures\sp_UpdateStatus.sql" />
+    <Build Include="CTL\Stored Procedures\sp_updateTaskLog.sql" />
+    <Build Include="CTL\Stored Procedures\usp_CreateSourceJson.sql" />
+    <Build Include="CTL\Stored Procedures\usp_ReprocessTask.sql" />
+    <Build Include="dbo\Stored Procedures\usp_BuildSchemaViews.sql" />
+    <Build Include="dbo\Stored Procedures\usp_TruncateIfExists.sql" />
+    <Build Include="Security\CTL.sql" />
+  </ItemGroup>
+</Project>
