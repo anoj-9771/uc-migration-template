@@ -1,6 +1,12 @@
 # parameters:
 # - name: AzDoServiceConnection # name of the parameter; required
 #   type: string # data type of the parameter; required
+parameters:
+- name: variable_template_name
+  type: string
+
+variables:
+- template: ../Variables/${{ parameters.variable_template_name }}.yml
 
 jobs:
 - job: 'deploy_control_db'

@@ -5,6 +5,12 @@
 #   type: string
 # - name: databricksclustername
 #   type: string
+parameters:
+- name: variable_template_name
+  type: string
+
+variables:
+- template: ../Variables/${{ parameters.variable_template_name }}.yml
 
 steps: 
   - task: AzureResourceGroupDeployment@2
