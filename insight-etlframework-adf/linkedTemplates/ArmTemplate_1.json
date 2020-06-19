@@ -7,6 +7,10 @@
 			"metadata": "Data Factory name",
 			"defaultValue": "insight-etlframework-adf"
 		},
+		"AzureSqlDatabase_SQLDB_properties_typeProperties_connectionString_secretName": {
+			"type": "string",
+			"defaultValue": "@linkedService().kvSecret"
+		},
 		"SQLServer_properties_typeProperties_connectionString_secretName": {
 			"type": "string",
 			"defaultValue": "@linkedService().kvSecret"
@@ -16,6 +20,35 @@
 		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
 	},
 	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/AzureSqlDatabase_SQLDB')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Example of Data Mart connection",
+				"parameters": {
+					"kvSecret": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "AzureSqlDatabase",
+				"typeProperties": {
+					"connectionString": {
+						"type": "AzureKeyVaultSecret",
+						"store": {
+							"referenceName": "AzureKeyVault",
+							"type": "LinkedServiceReference"
+						},
+						"secretName": {
+							"value": "[parameters('AzureSqlDatabase_SQLDB_properties_typeProperties_connectionString_secretName')]",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			"dependsOn": []
+		},
 		{
 			"name": "[concat(parameters('factoryName'), '/SQLServer')]",
 			"type": "Microsoft.DataFactory/factories/linkedServices",
@@ -40,6 +73,10 @@
 							"type": "Expression"
 						}
 					}
+				},
+				"connectVia": {
+					"referenceName": "SHIR-will-laptop",
+					"type": "IntegrationRuntimeReference"
 				}
 			},
 			"dependsOn": []
@@ -1654,12 +1691,12 @@
 										},
 										"waitOnCompletion": false,
 										"parameters": {
-											"BatchId": {
-												"value": "@activity('AddProjectTasksToQueue').output.firstRow.BatchId",
-												"type": "Expression"
-											},
 											"ExecTime": {
 												"value": "@activity('AddProjectTasksToQueue').output.firstRow.ExecTime",
+												"type": "Expression"
+											},
+											"BatchId": {
+												"value": "@activity('AddProjectTasksToQueue').output.firstRow.BatchId",
 												"type": "Expression"
 											}
 										}

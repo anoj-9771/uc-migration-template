@@ -762,12 +762,12 @@
 										},
 										"waitOnCompletion": false,
 										"parameters": {
-											"BatchId": {
-												"value": "@activity('AddProjectTasksToQueue').output.firstRow.BatchId",
-												"type": "Expression"
-											},
 											"ExecTime": {
 												"value": "@activity('AddProjectTasksToQueue').output.firstRow.ExecTime",
+												"type": "Expression"
+											},
+											"BatchId": {
+												"value": "@activity('AddProjectTasksToQueue').output.firstRow.BatchId",
 												"type": "Expression"
 											}
 										}
@@ -1432,8 +1432,6 @@
 								"value": "{}",
 								"type": "Expression"
 							},
-							"linkedServices": [],
-							"datasets": [],
 							"authentication": {
 								"type": "MSI",
 								"resource": "https://management.azure.com/"
@@ -1945,8 +1943,6 @@
 								"value": "@concat('{ \"properties\": {\"hardwareProfile\": {\"vmSize\": \"',pipeline().parameters.vmSize,'\"}}}')",
 								"type": "Expression"
 							},
-							"linkedServices": [],
-							"datasets": [],
 							"authentication": {
 								"type": "MSI",
 								"resource": "https://management.azure.com/"
@@ -2006,8 +2002,6 @@
 								"value": "@concat('{\"properties\":{\"requestedServiceObjectiveName\":\"',pipeline().parameters.size,'\"}}')",
 								"type": "Expression"
 							},
-							"linkedServices": [],
-							"datasets": [],
 							"authentication": {
 								"type": "MSI",
 								"resource": "https://management.azure.com/"
@@ -2062,8 +2056,6 @@
 							"headers": {
 								"Content-Type": "application/json"
 							},
-							"linkedServices": [],
-							"datasets": [],
 							"authentication": {
 								"type": "MSI",
 								"resource": "https://management.azure.com/"
@@ -2778,9 +2770,14 @@
 							"type": "Expression"
 						}
 					}
+				},
+				"connectVia": {
+					"referenceName": "SHIR-will-laptop",
+					"type": "IntegrationRuntimeReference"
 				}
 			},
 			"dependsOn": [
+				"[concat(variables('factoryId'), '/integrationRuntimes/SHIR-will-laptop')]",
 				"[concat(variables('factoryId'), '/linkedServices/AzureKeyVault')]"
 			]
 		},
@@ -2879,6 +2876,16 @@
 						}
 					}
 				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/SHIR-will-laptop')]",
+			"type": "Microsoft.DataFactory/factories/integrationRuntimes",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "SelfHosted",
+				"typeProperties": {}
 			},
 			"dependsOn": []
 		},
