@@ -626,19 +626,19 @@
 								},
 								"catalogSecret": "DataCatalog-SP",
 								"batchId": {
-									"value": "@pipeline().parameters.item.BatchId",
+									"value": "@string(pipeline().parameters.item.BatchId)",
 									"type": "Expression"
 								},
 								"sourceId": {
-									"value": "@pipeline().parameters.item.SourceId",
+									"value": "@string(pipeline().parameters.item.SourceId)",
 									"type": "Expression"
 								},
 								"targetId": {
-									"value": "@pipeline().parameters.item.TargetId",
+									"value": "@string(pipeline().parameters.item.TargetId)",
 									"type": "Expression"
 								},
 								"taskId": {
-									"value": "@pipeline().parameters.item.TaskId",
+									"value": "@string(pipeline().parameters.item.TaskId)",
 									"type": "Expression"
 								}
 							}
