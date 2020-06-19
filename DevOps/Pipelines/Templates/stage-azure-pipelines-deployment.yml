@@ -52,6 +52,11 @@ stages:
         AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
         resource_group: '${{ variables.prefix }}-${{ variables.environment }}'
         databricksclustername: ${{ variables.databricksclustername }}
+        databricks_driver_node_type_id : ${{ variables.databricks_driver_node_type_id }}
+        databricks_node_type_id : ${{ variables.databricks_node_type_id }}
+        databricks_spark_version : ${{ variables.databricks_spark_version }}
+        databricks_workers : ${{ variables.databricks_workers }}
+        databricks_autotermination : ${{ variables.databricks_autotermination }}
     # Deploy Data Factory with access policies for AKV
     - template: step-deploy-arm-datafactory-w-access-policies.yml
       parameters:
