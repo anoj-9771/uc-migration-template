@@ -61,9 +61,9 @@ variables:
   - name: sparkClusterVersion
     value: 6.2.x-scala2.11
   - name: databricksdrivernodetypeid
-    value: Standard_F4s
-  - name: databricksnodetypeid
     value: Standard_D3_v2
+  - name: databricksnodetypeid
+    value: Standard_F4s
   - name: databricksworkers
     value: 2
   - name: databricksautotermination
