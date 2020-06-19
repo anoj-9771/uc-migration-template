@@ -6,7 +6,7 @@ parameters:
 - name: databricksclustername
   type: string
 
-steps:
+steps: 
   - task: AzureResourceGroupDeployment@2
     inputs:
       azureSubscription: ${{ parameters.AzDoServiceConnection }}
