@@ -16,8 +16,8 @@ parameters:
   type: string
 - name: run_condition
   type: string
-- name: resource_group
-  type: string
+# - name: resource_group
+#   type: string
 
 stages:
 # ---------------------------------------------------------------------------
@@ -40,23 +40,23 @@ stages:
     - template: step-deploy-arm-azuresql.yml
       parameters:
         AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
-        resource_group: ${{ parameters.resource_group }}
+        resource_group: '${{ variables.prefix }}-${{ variables.environment }}'
     # Deploy BLOB Storage accounts for Data Lake
     - template: step-deploy-arm-blobstoragev2.yml
       parameters:
         AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
-        resource_group: ${{ parameters.resource_group }}
+        resource_group: '${{ variables.prefix }}-${{ variables.environment }}'
     # Deploy Databricks Workspace
     - template: step-deploy-arm-databricks-no-vnet-nsg.yml
       parameters:
         AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
-        resource_group: ${{ parameters.resource_group }}
+        resource_group: '${{ variables.prefix }}-${{ variables.environment }}'
         databricksclustername: ${{ variables.databricksclustername }}
     # Deploy Data Factory with access policies for AKV
     - template: step-deploy-arm-datafactory-w-access-policies.yml
       parameters:
         AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
-        resource_group: ${{ parameters.resource_group }}
+        resource_group: '${{ variables.prefix }}-${{ variables.environment }}'
   # # Deploy Control DB schema / DACPAC
   - template: job-deploy-controldb.yml
     parameters:
