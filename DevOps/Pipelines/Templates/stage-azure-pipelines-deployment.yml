@@ -25,6 +25,8 @@ stages:
 # Only execute if PR into Develop
 - stage: ${{ parameters.stage_name }}
   condition: ${{ parameters.run_condition }}
+  variables:
+  - template: ../Variables/${{ parameters.variable_template_name }}.yml
   jobs:
   # ---------------------------------------------------------------------------
   # Modularise deployment artifacts into separate ARM scripts. Expose these
@@ -61,6 +63,6 @@ stages:
         # resource_group: '${{ variables.prefix }}-${{ variables.environment }}'
   # # Deploy Control DB schema / DACPAC
   - template: job-deploy-controldb.yml
-      parameters:
-        variable_template_name: ${{ parameters.variable_template_name }}
+    parameters:
+      variable_template_name: ${{ parameters.variable_template_name }}
       # AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
