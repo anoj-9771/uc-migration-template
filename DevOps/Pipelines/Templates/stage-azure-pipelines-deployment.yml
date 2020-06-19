@@ -38,26 +38,26 @@ stages:
       artifact: arm_templates
     # # Deploy Azure SQL DB for Control DB
     - template: step-deploy-arm-azuresql.yml
-      parameters:
-        AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
-        resource_group: ${{ parameters.resource_group }}
+      # parameters:
+        # AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
+        # resource_group: '${{ variables.prefix }}-${{ variables.environment }}'
     # Deploy BLOB Storage accounts for Data Lake
     - template: step-deploy-arm-blobstoragev2.yml
-      parameters:
-        AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
-        resource_group: ${{ parameters.resource_group }}
+      # parameters:
+        # AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
+        # resource_group: '${{ variables.prefix }}-${{ variables.environment }}'
     # Deploy Databricks Workspace
     - template: step-deploy-arm-databricks-no-vnet-nsg.yml
-      parameters:
-        AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
-        resource_group: ${{ parameters.resource_group }}
-        databricksclustername: ${{ variables.databricksclustername }}
+      # parameters:
+        # AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
+        # resource_group: '${{ variables.prefix }}-${{ variables.environment }}'
+        # databricksclustername: ${{ variables.databricksclustername }}
     # Deploy Data Factory with access policies for AKV
     - template: step-deploy-arm-datafactory-w-access-policies.yml
-      parameters:
-        AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
-        resource_group: ${{ parameters.resource_group }}
+      # parameters:
+        # AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
+        # resource_group: '${{ variables.prefix }}-${{ variables.environment }}'
   # # Deploy Control DB schema / DACPAC
   - template: job-deploy-controldb.yml
-    parameters:
-      AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
+    # parameters:
+      # AzDoServiceConnection: ${{ variables.azdoresourceconnection }}

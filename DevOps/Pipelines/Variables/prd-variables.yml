@@ -13,7 +13,7 @@ variables:
   - name: databricksPricingTier
     value: standard
   - name: spobjectid
-    value: 786f5c85-f4ee-4d8e-80ed-fb40e88de914
+    value: a1860bea-6cf3-4c01-8659-e7ec4977c6a7
   - name: storageAccountType
     value: standard
 

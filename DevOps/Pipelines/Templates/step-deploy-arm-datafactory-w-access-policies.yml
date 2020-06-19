@@ -1,19 +1,19 @@
-parameters:
-- name: AzDoServiceConnection # name of the parameter; required
-  type: string # data type of the parameter; required
-- name: resource_group
-  type: string
+# parameters:
+# - name: AzDoServiceConnection # name of the parameter; required
+#   type: string # data type of the parameter; required
+# - name: resource_group
+#   type: string
 
 steps:
   - task: AzureResourceGroupDeployment@2
     inputs:
-      azureSubscription: ${{ parameters.AzDoServiceConnection }}
+      azureSubscription: ${{ variables.azdoresourceconnection}}
       action: 'Create Or Update Resource Group'
-      resourceGroupName: ${{ parameters.resource_group }}
+      resourceGroupName: '${{ variables.prefix }}-${{ variables.environment }}'
       location: $(LOCATION)
       templateLocation: 'Linked artifact'
       csmFile: '$(Pipeline.Workspace)/arm_templates/arm-datafactory-w-shir.json'
-      overrideParameters: '-dataFactoryName $(DATAFACTORYNAME) -dataFactorySHIRName $(DATAFACTORYSHIRNAME)'
+      overrideParameters: '-dataFactoryName ${{ variables.datafactoryname}} -dataFactorySHIRName ${{ variables.datafactoryshirname}}'
       deploymentMode: 'Incremental'
     displayName: 'Deploy Datafactory with Access Policies'
 
@@ -21,12 +21,12 @@ steps:
     displayName: 'Add Data Factory SP to AKV'
     name: add_adf_sp_to_akv
     inputs:
-      azureSubscription: ${{ parameters.AzDoServiceConnection }}
+      azureSubscription: ${{ variables.azdoresourceconnection}}
       scriptType: bash
       scriptLocation: inlineScript
       inlineScript: |
-        # adf_sp_oid=$(az ad sp list --display-name $(DATAFACTORYNAME) --output tsv --query "[].{id:objectId}") 
-        adf_sp_oid=$(az resource show -g ${{ parameters.resource_group }} --resource-type Microsoft.DataFactory/factories -n $(DATAFACTORYNAME) --query identity.principalId --output tsv)                  
+        # adf_sp_oid=$(az ad sp list --display-name ${{ variables.datafactoryname}} --output tsv --query "[].{id:objectId}") 
+        adf_sp_oid=$(az resource show -g '${{ variables.prefix }}-${{ variables.environment }}' --resource-type Microsoft.DataFactory/factories -n ${{ variables.datafactoryname}} --query identity.principalId --output tsv)                  
         echo "$adf_sp_oid"
         az keyvault set-policy --name "$(AZUREKEYVAULTNAME)" --secret-permissions list get --object-id "$adf_sp_oid" --query "{Status:properties.provisioningState}" --output table
         
