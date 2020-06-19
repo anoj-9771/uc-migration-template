@@ -15,14 +15,14 @@ jobs:
   - task: AzureKeyVault@1
     displayName: 'Get Secrets'
     inputs:
-      azureSubscription: ${{ parameters.AzDoServiceConnection }}
+      azureSubscription: $(AZDORESOURCECONNECTION)
       keyVaultName: $(AZUREKEYVAULTNAME)
       secretsFilter: 'azuresqlserverpw'
 
   - task: SqlAzureDacpacDeployment@1
     displayName: 'Azure SQL DacpacTask'
     inputs:
-      azureSubscription: ${{ parameters.AzDoServiceConnection }}
+      azureSubscription: $(AZDORESOURCECONNECTION)
       ServerName: '$(AZURESQLSERVERNAME).database.windows.net'
       DatabaseName: ControlDB
       SqlUsername: $(AZURESQLSERVERUN)
