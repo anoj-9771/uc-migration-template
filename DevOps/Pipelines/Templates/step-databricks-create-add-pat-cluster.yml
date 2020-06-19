@@ -5,22 +5,22 @@ parameters:
   type: string
 - name: databricks_cluster_name
   type: string
-  default: etl-cluster
+  # default: etl-cluster
 - name: databricks_driver_node_type_id
   type: string
-  default: Standard_D3_v2
+  # default: Standard_D3_v2
 - name: databricks_node_type_id
   type: string
-  default: Standard_D3_v2
+  # default: Standard_D3_v2
 - name: databricks_spark_version
   type: string
-  default: 6.2.x-scala2.11
+  # default: 6.2.x-scala2.11
 - name: databricks_workers
   type: string
-  default: 2
+  # default: 2
 - name: databricks_autotermination
   type: string
-  default: 30
+  # default: 30
 
 steps:
   - task: AzureCLI@2

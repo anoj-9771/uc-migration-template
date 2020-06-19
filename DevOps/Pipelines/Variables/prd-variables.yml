@@ -49,18 +49,18 @@ variables:
   # ------------------------------------------------
   # Databricks VNet related
   # ------------------------------------------------
-  - name: databricksclustername
+   - name: databricksclustername
     value: etl-cluster
   - name: sparkClusterVersion
     value: 6.2.x-scala2.11
-  - name: databricks_driver_node_type_id
-    value: Standard_F8
-  - name: databricks_node_type_id
+  - name: databricksdrivernodetypeid
+    value: Standard_F4
+  - name: databricksnodetypeid
     value: Standard_D3_v2
-  - name: databricks_workers
-    value: 8
-  - name: databricks_autotermination
-    value: 10
+  - name: databricksworkers
+    value: 4
+  - name: databricksautotermination
+    value: 30
   - name: vnetName
     value: 
   - name: customVirtualNetworkId
