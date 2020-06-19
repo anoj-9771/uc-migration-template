@@ -60,13 +60,13 @@ variables:
     value: etl-cluster
   - name: sparkClusterVersion
     value: 6.2.x-scala2.11
-  - name: databricks_driver_node_type_id
+  - name: databricksdrivernodetypeid
     value: Standard_F4
-  - name: databricks_node_type_id
+  - name: databricksnodetypeid
     value: Standard_D3_v2
-  - name: databricks_workers
+  - name: databricksworkers
     value: 2
-  - name: databricks_autotermination
+  - name: databricksautotermination
     value: 10
   - name: vnetName
     value: 
