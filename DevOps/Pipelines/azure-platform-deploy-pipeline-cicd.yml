@@ -33,8 +33,6 @@ stages:
   # Use this section to pull in or out build jobs
   # - template: Templates/job-build-cntrldb.yml
   - template: Templates/job-copy-arm.yml
-  - template: Templates/step-deploy-arm-databricks-no-vnet-nsg.yml
-
 # ---------------------------------------------------------------------------
 # Release to Non-Production
 - template: Templates/stage-azure-pipelines-deployment.yml
