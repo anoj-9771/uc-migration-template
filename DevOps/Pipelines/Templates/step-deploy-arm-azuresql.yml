@@ -1,14 +1,8 @@
-# parameters:
-# - name: AzDoServiceConnection # name of the parameter; required
-#   type: string # data type of the parameter; required
-# - name: resource_group
-#   type: string
 parameters:
-- name: variable_template_name
+- name: AzDoServiceConnection # name of the parameter; required
+  type: string # data type of the parameter; required
+- name: resource_group
   type: string
-
-variables:
-- template: ../Variables/${{ parameters.variable_template_name }}.yml
 
 steps:
   - bash: |
@@ -35,27 +29,27 @@ steps:
     displayName: 'Add sp to ACL policy'
     name: add_sp_to_acl_policy_sql
     inputs:
-      azureSubscription: ${{ variables.azdoresourceconnection }}
+      azureSubscription: ${{ parameters.AzDoServiceConnection }}
       scriptType: bash
       scriptLocation: inlineScript
       inlineScript: |
-        az keyvault set-policy --name "${{ variables.azurekeyvaultname }}" --secret-permissions set delete list get --object-id "${{ variables.spobjectid }}"
+        az keyvault set-policy --name "$(AZUREKEYVAULTNAME)" --secret-permissions set delete list get --object-id "$(SPOBJECTID)"
 
   - task: AzureKeyVault@1
     displayName: 'Get secrets'
     inputs:
-      azureSubscription: ${{ variables.azdoresourceconnection }}
-      keyVaultName: ${{ variables.azurekeyvaultname }}
+      azureSubscription: ${{ parameters.AzDoServiceConnection }}
+      keyVaultName: $(AZUREKEYVAULTNAME)
       secretsFilter: 'AzureSQLServerPw'
 
   - task: AzureResourceGroupDeployment@2
     inputs:
-      azureSubscription: ${{ variables.azdoresourceconnection }}
+      azureSubscription: ${{ parameters.AzDoServiceConnection }}
       action: 'Create Or Update Resource Group'
-      resourceGroupName: '${{ variables.prefix }}-${{ variables.environment }}'
-      location: ${{ variables.location }}
+      resourceGroupName: ${{ parameters.resource_group }}
+      location: $(LOCATION)
       templateLocation: 'Linked artifact'
       csmFile: '$(Pipeline.Workspace)/arm_templates/arm-sql-server-control-db.json'
-      overrideParameters: '-location ${{ variables.location }} -prefix ${{ variables.prefix}} -environment ${{ variables.environment }} -AzureSqlServerUn ${{ variables.azuresqlserverun }} -AzureSqlServerPw $(AZURESQLSERVERPW)'
+      overrideParameters: '-location $(LOCATION) -prefix $(PREFIX) -environment $(ENVIRONMENT) -AzureSqlServerUn $(AZURESQLSERVERUN) -AzureSqlServerPw $(AZURESQLSERVERPW)'
       deploymentMode: 'Incremental'
     displayName: 'Deploy Azure SQL Control DB'

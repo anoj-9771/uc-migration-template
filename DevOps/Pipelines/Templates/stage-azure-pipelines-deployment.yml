@@ -16,8 +16,8 @@ parameters:
   type: string
 - name: run_condition
   type: string
-# - name: resource_group
-#   type: string
+- name: resource_group
+  type: string
 
 stages:
 # ---------------------------------------------------------------------------
@@ -39,30 +39,25 @@ stages:
     # # Deploy Azure SQL DB for Control DB
     - template: step-deploy-arm-azuresql.yml
       parameters:
-        variable_template_name: ${{ parameters.variable_template_name }}
-        # AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
-        # resource_group: '${{ variables.prefix }}-${{ variables.environment }}'
+        AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
+        resource_group: ${{ parameters.resource_group }}
     # Deploy BLOB Storage accounts for Data Lake
     - template: step-deploy-arm-blobstoragev2.yml
       parameters:
-        variable_template_name: ${{ parameters.variable_template_name }}
-        # AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
-        # resource_group: '${{ variables.prefix }}-${{ variables.environment }}'
+        AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
+        resource_group: ${{ parameters.resource_group }}
     # Deploy Databricks Workspace
     - template: step-deploy-arm-databricks-no-vnet-nsg.yml
       parameters:
-        variable_template_name: ${{ parameters.variable_template_name }}
-        # AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
-        # resource_group: '${{ variables.prefix }}-${{ variables.environment }}'
-        # databricksclustername: ${{ variables.databricksclustername }}
+        AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
+        resource_group: ${{ parameters.resource_group }}
+        databricksclustername: ${{ variables.databricksclustername }}
     # Deploy Data Factory with access policies for AKV
     - template: step-deploy-arm-datafactory-w-access-policies.yml
       parameters:
-        variable_template_name: ${{ parameters.variable_template_name }}
-        # AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
-        # resource_group: '${{ variables.prefix }}-${{ variables.environment }}'
+        AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
+        resource_group: ${{ parameters.resource_group }}
   # # Deploy Control DB schema / DACPAC
   - template: job-deploy-controldb.yml
     parameters:
-      variable_template_name: ${{ parameters.variable_template_name }}
-      # AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
+      AzDoServiceConnection: ${{ variables.azdoresourceconnection }}

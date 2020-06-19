@@ -1,27 +1,21 @@
-# parameters:
-# - name: AzDoServiceConnection # name of the parameter; required
-#   type: string # data type of the parameter; required
-# - name: resource_group
-#   type: string
-# - name: databricksclustername
-#   type: string
 parameters:
-- name: variable_template_name
+- name: AzDoServiceConnection # name of the parameter; required
+  type: string # data type of the parameter; required
+- name: resource_group
+  type: string
+- name: databricksclustername
   type: string
 
-variables:
-- template: ../Variables/${{ parameters.variable_template_name }}.yml
-
-steps: 
+steps:
   - task: AzureResourceGroupDeployment@2
     inputs:
-      azureSubscription: ${{ variables.azdoresourceconnection }}
+      azureSubscription: ${{ parameters.AzDoServiceConnection }}
       action: 'Create Or Update Resource Group'
-      resourceGroupName: '${{ variables.prefix }}-${{ variables.environment }}'
-      location: ${{ variables.location }}
+      resourceGroupName: ${{ parameters.resource_group }}
+      location: $(LOCATION)
       templateLocation: 'Linked artifact'
       csmFile: '$(Pipeline.Workspace)/arm_templates/arm-databricks-no-vnet-nsg.json'
-      overrideParameters: '-location ${{ variables.location }} -prefix ${{ variables.prefix }} -environment ${{ variables.environment }} -pricingTier ${{ variables.databrickspricingtier }}'
+      overrideParameters: '-location $(LOCATION) -prefix $(PREFIX) -environment $(ENVIRONMENT) -pricingTier $(DATABRICKSPRICINGTIER)'
       deploymentMode: 'Incremental'
       deploymentOutputs: 'databricksOutput'
     displayName: 'Deploy Databricks Workspace'
@@ -36,6 +30,6 @@ steps:
 
   - template: step-databricks-create-add-pat-cluster.yml
     parameters:
-      AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
-      resource_group: '${{ variables.prefix }}-${{ variables.environment }}'
+      AzDoServiceConnection: ${{ parameters.AzDoServiceConnection }}
+      resource_group: ${{ parameters.resource_group }}
       databricks_cluster_name: ${{ parameters.databricksclustername }}
