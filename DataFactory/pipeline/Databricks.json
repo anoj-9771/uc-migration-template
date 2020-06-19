@@ -155,6 +155,23 @@
 						"dstType": {
 							"value": "@pipeline().parameters.item.TargetType",
 							"type": "Expression"
+						},
+						"catalogSecret": "DataCatalog-SP",
+						"batchId": {
+							"value": "@pipeline().parameters.item.BatchId",
+							"type": "Expression"
+						},
+						"sourceId": {
+							"value": "@pipeline().parameters.item.SourceId",
+							"type": "Expression"
+						},
+						"targetId": {
+							"value": "@pipeline().parameters.item.TargetId",
+							"type": "Expression"
+						},
+						"taskId": {
+							"value": "@pipeline().parameters.item.TaskId",
+							"type": "Expression"
 						}
 					}
 				},
