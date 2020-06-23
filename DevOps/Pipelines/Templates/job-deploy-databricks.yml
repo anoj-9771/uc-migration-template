@@ -1,0 +1,50 @@
+parameters:
+- name: AzDoServiceConnection # name of the parameter; required
+  type: string # data type of the parameter; required
+
+jobs:
+- job: 'deploy_databricks'
+  dependsOn: deploy_arm
+  pool:
+    demands: msbuild
+    vmImage: 'ubuntu-18.04'
+  steps:
+  - download: current
+    artifact: databricks
+
+  - task: AzureKeyVault@1
+    displayName: 'Get Secrets'
+    inputs:
+      azureSubscription: ${{ parameters.AzDoServiceConnection }}
+      keyVaultName: $(AZUREKEYVAULTNAME)
+      secretsFilter: 'databricks-token'
+      
+  - bash: |
+      set -e
+
+      # System info for debugging this pipeline if needed
+      echo -e "Linux name:"
+      uname -a
+      echo
+      echo -e "Working Directory:"
+      echo "$(Build.Repository.LocalPath)"
+      echo
+      echo -e "List of files available:\n"
+      ls -laR $(Build.Repository.LocalPath)
+      echo
+      echo -e "Pipeline workspace available:\n"
+      ls -laR $(Pipeline.Workspace)
+      echo -e "Environment variables:"
+      env | sort
+      echo
+    displayName: 'Agent info'
+
+  - task: SqlAzureDacpacDeployment@1
+    displayName: 'Azure SQL DacpacTask'
+    inputs:
+      azureSubscription: ${{ parameters.AzDoServiceConnection }}
+      ServerName: '$(AZURESQLSERVERNAME).database.windows.net'
+      DatabaseName: ControlDB
+      SqlUsername: $(AZURESQLSERVERUN)
+      SqlPassword: '$(databricks-token)'
+      DacpacFile: '$(Pipeline.Workspace)/sql_cntrldb/ControlDB.dacpac'
