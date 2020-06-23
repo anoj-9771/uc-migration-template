@@ -11,7 +11,7 @@ pr:
     - master
   paths:
     include:
-    - $(DATA_FACTORY_NAME)/*
+    - sl-df-nonprod/*
 
 trigger:
   branches:
@@ -19,7 +19,7 @@ trigger:
     - master
   paths:
     include:
-    - $(DATA_FACTORY_NAME)/*
+    - sl-df-nonprod/*
 
 pool:
   vmImage: ubuntu-latest
