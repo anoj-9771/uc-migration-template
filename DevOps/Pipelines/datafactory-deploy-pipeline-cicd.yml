@@ -1,10 +1,5 @@
 name: $(Build.BuildId).$(date:yyyyMMdd)
 
-parameters:
-  - name: data_factory_name
-    type: string
-    default: sl-df-nonprod
-
 pr:
   branches:
     include:
@@ -31,6 +26,9 @@ stages:
   jobs:
   # Use this section to pull in or out build jobs
   - template: Templates/job-copy-datafactory-arm.yml
+    parameters:
+    data_factory_name: sl-df-nonprod
+
 # ---------------------------------------------------------------------------
 # # Release to Production
 # - template: Templates/stage-databricks-integration.yml
