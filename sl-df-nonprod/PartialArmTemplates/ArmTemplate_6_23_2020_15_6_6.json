@@ -5,39 +5,7 @@
 		"factoryName": {
 			"type": "string",
 			"metadata": "Data Factory name",
-			"defaultValue": "insight-etlframework-adf"
-		},
-		"ADLSGen2_properties_typeProperties_url": {
-			"type": "string",
-			"defaultValue": "https://insightetlframeworkadls.dfs.core.windows.net/"
-		},
-		"AzureBlobStorage_Raw_properties_typeProperties_sasUri_secretName": {
-			"type": "string",
-			"defaultValue": "rawZone-rwdl-SasToken"
-		},
-		"AzureKeyVault_properties_typeProperties_baseUrl": {
-			"type": "string",
-			"defaultValue": "https://insight-etlframework-akv.vault.azure.net/"
-		},
-		"AzureSQLDatabase_properties_typeProperties_connectionString_secretName": {
-			"type": "string",
-			"defaultValue": "@linkedService().kvSecret"
-		},
-		"AzureSqlDatabase_Ctrldb_properties_typeProperties_connectionString_secretName": {
-			"type": "string",
-			"defaultValue": "ADF-LS-AzureSql-ControlDB"
-		},
-		"AzureSqlDatabase_SQLDB_properties_typeProperties_connectionString_secretName": {
-			"type": "string",
-			"defaultValue": "@linkedService().kvSecret"
-		},
-		"SQLServer_properties_typeProperties_connectionString_secretName": {
-			"type": "string",
-			"defaultValue": "@linkedService().kvSecret"
-		},
-		"Shared-IR-bdwadf_properties_typeProperties_linkedInfo_resourceId": {
-			"type": "string",
-			"defaultValue": "/subscriptions/9595d877-d313-4437-b41d-040a5da3eaa8/resourcegroups/BigDataWorkshop/providers/Microsoft.DataFactory/factories/bdwadf/integrationruntimes/datagateway"
+			"defaultValue": "sl-df-nonprod"
 		}
 	},
 	"variables": {
@@ -2376,8 +2344,7 @@
 				},
 				"annotations": [],
 				"type": "AzureSqlTable",
-				"schema": [],
-				"typeProperties": {}
+				"schema": []
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/AzureSqlDatabase_Ctrldb')]"
@@ -2442,8 +2409,7 @@
 				},
 				"annotations": [],
 				"type": "AzureSqlTable",
-				"schema": [],
-				"typeProperties": {}
+				"schema": []
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/AzureSQLDatabase')]"
@@ -2471,8 +2437,7 @@
 				},
 				"annotations": [],
 				"type": "SqlServerTable",
-				"schema": [],
-				"typeProperties": {}
+				"schema": []
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/SQLServer')]"
@@ -2527,7 +2492,7 @@
 				"annotations": [],
 				"type": "AzureBlobFS",
 				"typeProperties": {
-					"url": "[parameters('ADLSGen2_properties_typeProperties_url')]"
+					"url": "https://insightetlframeworkadls.dfs.core.windows.net/"
 				}
 			},
 			"dependsOn": []
@@ -2546,7 +2511,7 @@
 							"referenceName": "AzureKeyVault",
 							"type": "LinkedServiceReference"
 						},
-						"secretName": "[parameters('AzureBlobStorage_Raw_properties_typeProperties_sasUri_secretName')]"
+						"secretName": "rawZone-rwdl-SasToken"
 					}
 				}
 			},
@@ -2670,7 +2635,7 @@
 				"annotations": [],
 				"type": "AzureKeyVault",
 				"typeProperties": {
-					"baseUrl": "[parameters('AzureKeyVault_properties_typeProperties_baseUrl')]"
+					"baseUrl": "https://insight-etlframework-akv.vault.azure.net/"
 				}
 			},
 			"dependsOn": []
@@ -2696,7 +2661,7 @@
 							"type": "LinkedServiceReference"
 						},
 						"secretName": {
-							"value": "[parameters('AzureSQLDatabase_properties_typeProperties_connectionString_secretName')]",
+							"value": "@linkedService().kvSecret",
 							"type": "Expression"
 						}
 					}
@@ -2722,7 +2687,7 @@
 							"type": "LinkedServiceReference"
 						},
 						"secretName": {
-							"value": "[parameters('AzureSqlDatabase_Ctrldb_properties_typeProperties_connectionString_secretName')]",
+							"value": "ADF-LS-AzureSql-ControlDB",
 							"type": "Expression"
 						}
 					}
@@ -2753,7 +2718,7 @@
 							"type": "LinkedServiceReference"
 						},
 						"secretName": {
-							"value": "[parameters('AzureSqlDatabase_SQLDB_properties_typeProperties_connectionString_secretName')]",
+							"value": "@linkedService().kvSecret",
 							"type": "Expression"
 						}
 					}
@@ -2783,18 +2748,13 @@
 							"type": "LinkedServiceReference"
 						},
 						"secretName": {
-							"value": "[parameters('SQLServer_properties_typeProperties_connectionString_secretName')]",
+							"value": "@linkedService().kvSecret",
 							"type": "Expression"
 						}
 					}
-				},
-				"connectVia": {
-					"referenceName": "SHIR-will-laptop",
-					"type": "IntegrationRuntimeReference"
 				}
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/integrationRuntimes/SHIR-will-laptop')]",
 				"[concat(variables('factoryId'), '/linkedServices/AzureKeyVault')]"
 			]
 		},
@@ -2891,31 +2851,6 @@
 								21
 							]
 						}
-					}
-				}
-			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/SHIR-will-laptop')]",
-			"type": "Microsoft.DataFactory/factories/integrationRuntimes",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"type": "SelfHosted",
-				"typeProperties": {}
-			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/Shared-IR-bdwadf')]",
-			"type": "Microsoft.DataFactory/factories/integrationRuntimes",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"type": "SelfHosted",
-				"typeProperties": {
-					"linkedInfo": {
-						"resourceId": "[parameters('Shared-IR-bdwadf_properties_typeProperties_linkedInfo_resourceId')]",
-						"authorizationType": "Rbac"
 					}
 				}
 			},

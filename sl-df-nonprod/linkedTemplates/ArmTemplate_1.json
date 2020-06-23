@@ -5,7 +5,7 @@
 		"factoryName": {
 			"type": "string",
 			"metadata": "Data Factory name",
-			"defaultValue": "insight-etlframework-adf"
+			"defaultValue": "sl-df-nonprod"
 		},
 		"AzureSqlDatabase_SQLDB_properties_typeProperties_connectionString_secretName": {
 			"type": "string",
@@ -73,10 +73,6 @@
 							"type": "Expression"
 						}
 					}
-				},
-				"connectVia": {
-					"referenceName": "SHIR-will-laptop",
-					"type": "IntegrationRuntimeReference"
 				}
 			},
 			"dependsOn": []
