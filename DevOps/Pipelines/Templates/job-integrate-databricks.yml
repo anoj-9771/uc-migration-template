@@ -7,8 +7,6 @@ parameters:
   # dependsOn: deploy_arm
 
 # Specify the OS for agent
-pool:
-  vmImage: 'ubuntu-18.04'
 
 # Import the batabricks_notbook artifact
 steps:
