@@ -7,7 +7,7 @@ jobs:
   dependsOn: deploy_arm
   pool:
     demands: msbuild
-    vmImage: 'vs2017-win2016'
+    vmImage: 'windows-2019'
   steps:
   - download: current
     artifact: sql_cntrldb
@@ -17,7 +17,7 @@ jobs:
     inputs:
       azureSubscription: ${{ parameters.AzDoServiceConnection }}
       keyVaultName: $(AZUREKEYVAULTNAME)
-      secretsFilter: 'azuresqlserverpw'
+      secretsFilter: 'AzureSQLServerPw'
 
   - task: SqlAzureDacpacDeployment@1
     displayName: 'Azure SQL DacpacTask'
@@ -27,4 +27,4 @@ jobs:
       DatabaseName: ControlDB
       SqlUsername: $(AZURESQLSERVERUN)
       SqlPassword: '$(azuresqlserverpw)'
-      DacpacFile: '$(Pipeline.Workspace)/sql_cntrldb/CntrlDb.dacpac'
+      DacpacFile: '$(Pipeline.Workspace)/sql_cntrldb/ControlDB.dacpac'

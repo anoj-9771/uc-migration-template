@@ -5,13 +5,22 @@ parameters:
   type: string
 - name: databricks_cluster_name
   type: string
-  default: etl-cluster
+  # default: etl-cluster
+- name: databricks_driver_node_type_id
+  type: string
+  # default: Standard_D3_v2
 - name: databricks_node_type_id
   type: string
-  default: Standard_D3_v2
+  # default: Standard_D3_v2
 - name: databricks_spark_version
   type: string
-  default: 6.2.x-scala2.11
+  # default: 6.2.x-scala2.11
+- name: databricks_workers
+  type: number
+  # default: 2
+- name: databricks_autotermination
+  type: number
+  # default: 30
 
 steps:
   - task: AzureCLI@2
@@ -105,12 +114,10 @@ steps:
         cluster_config='{
           "cluster_name": "${{ parameters.databricks_cluster_name }}", 
           "spark_version": "${{ parameters.databricks_spark_version }}", 
-          "node_type_id": "${{ parameters.databricks_node_type_id }}", 
-          "autotermination_minutes": 30,
-          "autoscale" : { 
-            "min_workers": 2, 
-            "max_workers": 6 
-          } 
+          "node_type_id": "${{ parameters.databricks_node_type_id }}",
+          "driver_node_type_id": "${{ parameters.databricks_driver_node_type_id }}",
+          "autotermination_minutes": ${{ parameters.databricks_autotermination }},
+          "num_workers": ${{ parameters.databricks_workers }}
         }'
         echo "Generated cluster config:"
         echo "$cluster_config"

@@ -34,8 +34,13 @@ stages:
   parameters:
     stage_name: 'non_prod'
     variable_template_name: npe-variables
+<<<<<<< HEAD
     # run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/sl-devops'))
     run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/develop'))
+=======
+    run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/sl-devops'))
+    # run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/develop'))
+>>>>>>> c6a3b949500c2979f1fd89a6554c12499c72edc7
 
 # ---------------------------------------------------------------------------
 # Release to Production
