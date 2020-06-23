@@ -1,5 +1,5 @@
 jobs:
-- job: 'iac'
+- job: '_Databricks'
   steps:
   - bash: |
       mkdir -p "$(Build.ArtifactStagingDirectory)/databricks_notebooks"
