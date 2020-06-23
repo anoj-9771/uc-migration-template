@@ -1,7 +1,9 @@
 name: $(Build.BuildId).$(date:yyyyMMdd)
 
-# variables:
-- template: ../Variables/prd-variables.yml
+extends:
+  template: ../Variables/prd-variables.yml
+  variables:
+    datadactoryname
 
 pr:
   branches:
