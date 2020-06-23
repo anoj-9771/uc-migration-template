@@ -11,7 +11,7 @@ pr:
     - master
   paths:
     include:
-    - ${{ parameters.data_factory_name }}/*
+    - $(DATA_FACTORY_NAME)/*
 
 trigger:
   branches:
@@ -19,7 +19,7 @@ trigger:
     - master
   paths:
     include:
-    - ${{ parameters.data_factory_name }}/*
+    - $(DATA_FACTORY_NAME)/*
 
 pool:
   vmImage: ubuntu-latest
