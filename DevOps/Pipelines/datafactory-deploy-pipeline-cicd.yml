@@ -27,7 +27,7 @@ stages:
   # Use this section to pull in or out build jobs
   - template: Templates/job-copy-datafactory-arm.yml
     parameters:
-    data_factory_name: 'sl-df-nonprod'
+      data_factory_name: 'sl-df-nonprod'
 
 # ---------------------------------------------------------------------------
 # # Release to Production
