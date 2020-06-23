@@ -54,7 +54,7 @@ stages:
     # Authenticate with Databricks CLI
     - script: |
         databricks configure --token <<EOF
-        https://${{ location }}.azuredatabricks.net
+        https://${{ variables.location }}.azuredatabricks.net
         $(DATABRICKS-TOKEN)
         EOF
       displayName: 'Authenticate with Databricks CLI'
