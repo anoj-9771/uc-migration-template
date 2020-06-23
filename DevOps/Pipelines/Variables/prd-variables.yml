@@ -37,7 +37,7 @@ variables:
   - name: databricksworkspacename
     value: $(PREFIX)-dbws-$(ENVIRONMENT)
   # Data Factory service name for this environment
-  - name: ${{ parameters.datafactoryname}}
+  - name: datafactoryname
     value: $(PREFIX)-df-$(ENVIRONMENT)
   # Data Factory self hosted integrated runtime name
   - name: datafactoryshirname
