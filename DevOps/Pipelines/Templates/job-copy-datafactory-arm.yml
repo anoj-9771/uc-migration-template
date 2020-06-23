@@ -11,4 +11,4 @@ jobs:
     displayName: 'Prepare Azure Resource Manager template Build Artifacts'
 
   - publish: '$(Build.ArtifactStagingDirectory)/adf_arm_templates'
-    artifact: arm_templates
+    artifact: adf_arm_templates
