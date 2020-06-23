@@ -27,7 +27,7 @@ stages:
 - stage: 'build'
   jobs:
   # Use this section to pull in or out build jobs
-  - template: Templates/job-copy-notebooks.yml
+  - template: Templates/job-copy-databricks_notebooks.yml
 # ---------------------------------------------------------------------------
 # Release to Non-Production
 - template: Templates/stage-databricks-integration.yml
