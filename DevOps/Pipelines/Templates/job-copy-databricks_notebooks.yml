@@ -2,9 +2,9 @@ jobs:
 - job: 'iac'
   steps:
   - bash: |
-      mkdir -p "$(Build.ArtifactStagingDirectory)/arm_templates"
-      cp -r AzureResources/. "$(Build.ArtifactStagingDirectory)/arm_templates/"
-    displayName: 'Prepare Azure Resource Manager template Build Artifacts'
+      mkdir -p "$(Build.ArtifactStagingDirectory)/databricks_notebooks"
+      cp -r Databricks/notebooks/. "$(Build.ArtifactStagingDirectory)/databricks_notebooks/"
+    displayName: 'Prepare Databricks Notebook Build Artifacts'
 
-  - publish: '$(Build.ArtifactStagingDirectory)/arm_templates'
-    artifact: arm_templates
+  - publish: '$(Build.ArtifactStagingDirectory)/databricks_notebooks'
+    artifact: databricks_notebooks

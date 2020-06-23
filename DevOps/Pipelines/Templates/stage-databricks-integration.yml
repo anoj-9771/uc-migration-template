@@ -29,14 +29,6 @@ stages:
   # ---------------------------------------------------------------------------
   # Attach Databricks artifact and assign reference "databricks_notebooks"
   - job: 'integrate_databricks'
-    # steps:
-    # - download: current
-    #   artifact: databricks_notebooks
-    # # Integrate Databricks
-    # - template: job-integrate-databricks.yml
-    #   parameters:
-    #     AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
-    #     resource_group: '${{ variables.prefix }}-${{ variables.environment }}'
     steps:
     - download: current
       artifact: databricks_notebooks
