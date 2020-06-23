@@ -71,19 +71,19 @@ stages:
     - script: |
         databricks workspace mkdirs /build/Util;
         databricks workspace mkdirs /build/DataProcessing;
-        for filename in _Databricks/databricks_notebooks/*-dp.py; 
+        for filename in databricks_notebooks/*-dp.py; 
         do
             databricks workspace import --language PYTHON --format SOURCE --overwrite "${filename}" "/build/DataProcessing/${filename##*/}"
         done;
-        for filename in _Databricks/databricks_notebooks/*-dp.scala; 
+        for filename in databricks_notebooks/*-dp.scala; 
         do
             databricks workspace import --language SCALA --format SOURCE --overwrite "${filename}" "/build/DataProcessing/${filename##*/}"
         done;
-        for filename in _Databricks/databricks_notebooks/*-ut.py; 
+        for filename in databricks_notebooks/*-ut.py; 
         do
             databricks workspace import --language PYTHON --format SOURCE --overwrite "${filename}" "/build/Util/${filename##*/}"
         done;
-        for filename in _Databricks/databricks_notebooks/*-ut.scala; 
+        for filename in databricks_notebooks/*-ut.scala; 
         do
             databricks workspace import --language SCALA --format SOURCE --overwrite "${filename}" "/build/Util/${filename##*/}"
         done;
