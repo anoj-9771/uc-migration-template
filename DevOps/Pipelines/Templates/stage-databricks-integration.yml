@@ -50,46 +50,46 @@ stages:
     - script: |
       pip install --upgrade pip setuptools wheel databricks-cli
 
-    # Import Key Vault secret for databricks token
-    - task: AzureKeyVault@1
-      displayName: 'Get Secrets'
-      inputs:
-        azureSubscription: ${{ variables.azdoresourceconnection }}
-        keyVaultName: ${{ variables.azurekeyvaultname }}
-        secretsFilter: 'databricks-token'
+    # # Import Key Vault secret for databricks token
+    # - task: AzureKeyVault@1
+    #   displayName: 'Get Secrets'
+    #   inputs:
+    #     azureSubscription: ${{ variables.azdoresourceconnection }}
+    #     keyVaultName: ${{ variables.azurekeyvaultname }}
+    #     secretsFilter: 'databricks-token'
         
-    # Authenticate with Databricks CLI
-    - script: |
-      databricks configure --token <<EOF
-      https://${{ location }}.azuredatabricks.net
-      $(DATABRICKS-TOKEN)
-      EOF
+    # # Authenticate with Databricks CLI
+    # - script: |
+    #   databricks configure --token <<EOF
+    #   https://${{ location }}.azuredatabricks.net
+    #   $(DATABRICKS-TOKEN)
+    #   EOF
 
-    # Remove Current Notebooks
-    - script: |
-      databricks workspace mkdirs /build/Util;
-      databricks workspace mkdirs /build/DataProcessing;
-      databricks workspace rm -r /build/Util;
-      databricks workspace rm -r /build/DataProcessing;
+    # # Remove Current Notebooks
+    # - script: |
+    #   databricks workspace mkdirs /build/Util;
+    #   databricks workspace mkdirs /build/DataProcessing;
+    #   databricks workspace rm -r /build/Util;
+    #   databricks workspace rm -r /build/DataProcessing;
 
-    # Update Notebooks to Databricks workspace
-    - script: |
-      databricks workspace mkdirs /build/Util;
-      databricks workspace mkdirs /build/DataProcessing;
-      for filename in _Databricks/notebook/*-dp.py; 
-      do
-          databricks workspace import --language PYTHON --format SOURCE --overwrite "${filename}" "/build/DataProcessing/${filename##*/}"
-      done;
-      for filename in _Databricks/notebook/*-dp.scala; 
-      do
-          databricks workspace import --language SCALA --format SOURCE --overwrite "${filename}" "/build/DataProcessing/${filename##*/}"
-      done;
-      for filename in _Databricks/notebook/*-ut.py; 
-      do
-          databricks workspace import --language PYTHON --format SOURCE --overwrite "${filename}" "/build/Util/${filename##*/}"
-      done;
-      for filename in _Databricks/notebook/*-ut.scala; 
-      do
-          databricks workspace import --language SCALA --format SOURCE --overwrite "${filename}" "/build/Util/${filename##*/}"
-      done;
-      echo
+    # # Update Notebooks to Databricks workspace
+    # - script: |
+    #   databricks workspace mkdirs /build/Util;
+    #   databricks workspace mkdirs /build/DataProcessing;
+    #   for filename in _Databricks/notebook/*-dp.py; 
+    #   do
+    #       databricks workspace import --language PYTHON --format SOURCE --overwrite "${filename}" "/build/DataProcessing/${filename##*/}"
+    #   done;
+    #   for filename in _Databricks/notebook/*-dp.scala; 
+    #   do
+    #       databricks workspace import --language SCALA --format SOURCE --overwrite "${filename}" "/build/DataProcessing/${filename##*/}"
+    #   done;
+    #   for filename in _Databricks/notebook/*-ut.py; 
+    #   do
+    #       databricks workspace import --language PYTHON --format SOURCE --overwrite "${filename}" "/build/Util/${filename##*/}"
+    #   done;
+    #   for filename in _Databricks/notebook/*-ut.scala; 
+    #   do
+    #       databricks workspace import --language SCALA --format SOURCE --overwrite "${filename}" "/build/Util/${filename##*/}"
+    #   done;
+    #   echo
