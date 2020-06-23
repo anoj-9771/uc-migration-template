@@ -1,0 +1,10 @@
+jobs:
+- job: 'iac'
+  steps:
+  - bash: |
+      mkdir -p "$(Build.ArtifactStagingDirectory)/arm_templates"
+      cp -r AzureResources/. "$(Build.ArtifactStagingDirectory)/arm_templates/"
+    displayName: 'Prepare Azure Resource Manager template Build Artifacts'
+
+  - publish: '$(Build.ArtifactStagingDirectory)/arm_templates'
+    artifact: arm_templates
