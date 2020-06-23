@@ -42,20 +42,22 @@ stages:
     - script: |
         pip install --upgrade pip setuptools wheel databricks-cli
       displayName: 'Install required Python modules'
-    # # Import Key Vault secret for databricks token
-    # - task: AzureKeyVault@1
-    #   displayName: 'Get Secrets'
-    #   inputs:
-    #     azureSubscription: ${{ variables.azdoresourceconnection }}
-    #     keyVaultName: ${{ variables.azurekeyvaultname }}
-    #     secretsFilter: 'databricks-token'
+
+    # Import Key Vault secret for databricks token
+    - task: AzureKeyVault@1
+      displayName: 'Get Secrets'
+      inputs:
+        azureSubscription: ${{ variables.azdoresourceconnection }}
+        keyVaultName: ${{ variables.azurekeyvaultname }}
+        secretsFilter: 'databricks-token'
         
-    # # Authenticate with Databricks CLI
-    # - script: |
-    #   databricks configure --token <<EOF
-    #   https://${{ location }}.azuredatabricks.net
-    #   $(DATABRICKS-TOKEN)
-    #   EOF
+    # Authenticate with Databricks CLI
+    - script: |
+        databricks configure --token <<EOF
+        https://${{ location }}.azuredatabricks.net
+        $(DATABRICKS-TOKEN)
+        EOF
+      displayName: 'Authenticate with Databricks CLI'
 
     # # Remove Current Notebooks
     # - script: |
