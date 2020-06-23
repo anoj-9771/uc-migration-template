@@ -38,10 +38,10 @@ stages:
       inputs:
         versionSpec: '3.x'
 
-    # # Install required Python modules eg. databricks-connect
-    # - script: |
-    #   pip install --upgrade pip setuptools wheel databricks-cli
-    # displayName: 'Install required Python modules'
+    # Install required Python modules eg. databricks-connect
+    - script: |
+      pip install --upgrade pip setuptools wheel databricks-cli
+    displayName: 'Install required Python modules'
     # # Import Key Vault secret for databricks token
     # - task: AzureKeyVault@1
     #   displayName: 'Get Secrets'
