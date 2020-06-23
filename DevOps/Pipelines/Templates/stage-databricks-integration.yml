@@ -54,8 +54,8 @@ stages:
     - task: AzureKeyVault@1
       displayName: 'Get Secrets'
       inputs:
-        azureSubscription: ${{ parameters.AzDoServiceConnection }}
-        keyVaultName: $(AZUREKEYVAULTNAME)
+        azureSubscription: ${{ variables.azdoresourceconnection }}
+        keyVaultName: ${{ variables.azurekeyvaultname }}
         secretsFilter: 'databricks-token'
         
     # Authenticate with Databricks CLI
