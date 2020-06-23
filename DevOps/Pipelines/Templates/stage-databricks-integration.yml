@@ -40,7 +40,8 @@ stages:
 
     # Install required Python modules eg. databricks-connect
     # - script: |
-    scriptType: bash
+    inputs:
+      scriptType: bash
       scriptLocation: inlineScript
       inlineScript: |
         pip install --upgrade pip setuptools wheel databricks-cli
