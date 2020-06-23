@@ -36,7 +36,7 @@ jobs:
   - script: |
     databricks configure --token <<EOF
     https://${{ location }}.azuredatabricks.net
-    $(databricks-token)
+    $(DATABRICKS-TOKEN)
     EOF
 
   # Remove Current Notebooks
