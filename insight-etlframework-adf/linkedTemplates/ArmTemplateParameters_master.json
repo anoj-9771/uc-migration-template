@@ -1,0 +1,39 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"value": "insight-etlframework-adf"
+		},
+		"ADLSGen2_properties_typeProperties_url": {
+			"value": "https://insightetlframeworkadls.dfs.core.windows.net/"
+		},
+		"AzureBlobStorage_Raw_properties_typeProperties_sasUri_secretName": {
+			"value": "rawZone-rwdl-SasToken"
+		},
+		"AzureKeyVault_properties_typeProperties_baseUrl": {
+			"value": "https://insight-etlframework-akv.vault.azure.net/"
+		},
+		"AzureSQLDatabase_properties_typeProperties_connectionString_secretName": {
+			"value": "@linkedService().kvSecret"
+		},
+		"AzureSqlDatabase_Ctrldb_properties_typeProperties_connectionString_secretName": {
+			"value": "ADF-LS-AzureSql-ControlDB"
+		},
+		"AzureSqlDatabase_SQLDB_properties_typeProperties_connectionString_secretName": {
+			"value": "@linkedService().kvSecret"
+		},
+		"SQLServer_properties_typeProperties_connectionString_secretName": {
+			"value": "@linkedService().kvSecret"
+		},
+		"Shared-IR-bdwadf_properties_typeProperties_linkedInfo_resourceId": {
+			"value": "/subscriptions/9595d877-d313-4437-b41d-040a5da3eaa8/resourcegroups/BigDataWorkshop/providers/Microsoft.DataFactory/factories/bdwadf/integrationruntimes/datagateway"
+		},
+		"containerUri": {
+			"value": ""
+		},
+		"containerSasToken": {
+			"value": ""
+		}
+	}
+}
