@@ -1,4 +1,10 @@
 parameters:
+- name: stage_name
+  type: string
+- name: variable_template_name
+  type: string
+- name: run_condition
+  type: string
 - name: AzDoServiceConnection # name of the parameter; required
   type: string # data type of the parameter; required
 - name: resource_group
