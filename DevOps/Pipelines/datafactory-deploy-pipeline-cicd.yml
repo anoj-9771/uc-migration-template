@@ -1,6 +1,6 @@
 name: $(Build.BuildId).$(date:yyyyMMdd)
 
-variables:
+extends:
   - template: ../Variables/prd-variables.yml
 
 pr:
