@@ -12,7 +12,7 @@ steps:
       resourceGroupName: ${{ parameters.resource_group }}
       location: $(LOCATION)
       templateLocation: 'Linked artifact'
-      csmFile: '$(Pipeline.Workspace)/arm_templates/arm-datafactory-w-shir.json'
+      csmFile: '$(Pipeline.Workspace)/adf_arm_templates/ARMTemplateForFactory.json'
       overrideParameters: '-dataFactoryName $(DATAFACTORYNAME) -dataFactorySHIRName $(DATAFACTORYSHIRNAME)'
       deploymentMode: 'Incremental'
     displayName: 'Deploy Datafactory with Access Policies'

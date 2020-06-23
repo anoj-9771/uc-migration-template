@@ -73,8 +73,3 @@ variables:
     value: 
   - name: customPrivateSubnetName
     value: 
-
-paramters:
-  - name: datafactoryname
-    type: string
-    default: $(DATAFACTORYNAME)

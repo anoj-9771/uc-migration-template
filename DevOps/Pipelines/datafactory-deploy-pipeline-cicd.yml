@@ -28,14 +28,13 @@ stages:
   - template: Templates/job-copy-datafactory-arm.yml
     parameters:
       data_factory_name: 'sl-df-nonprod'
-
 # ---------------------------------------------------------------------------
-# # Release to Production
-# - template: Templates/stage-databricks-integration.yml
-#   parameters:
-#     stage_name: 'prod'
-#     variable_template_name: prd-variables
-#     run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/sl-devops'))
-#     # run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
+# Release to Production
+- template: Templates/stage-datafactory-integration.yml
+  parameters:
+    stage_name: 'prod'
+    variable_template_name: prd-variables
+    run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/sl-devops'))
+    # run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
 
 
