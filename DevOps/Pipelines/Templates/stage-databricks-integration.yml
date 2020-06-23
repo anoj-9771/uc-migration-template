@@ -40,11 +40,10 @@ stages:
 
     # Install required Python modules eg. databricks-connect
     # - script: |
-    inputs:
-      scriptType: bash
-      scriptLocation: inlineScript
-      inlineScript: |
-        pip install --upgrade pip setuptools wheel databricks-cli
+    scriptType: bash
+    scriptLocation: inlineScript
+    inlineScript: |
+      pip install --upgrade pip setuptools wheel databricks-cli
     # displayName: 'Install required Python modules'
     # # Import Key Vault secret for databricks token
     # - task: AzureKeyVault@1
