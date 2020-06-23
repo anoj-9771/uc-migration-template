@@ -44,4 +44,44 @@ stages:
     stage_name: 'prod'
     variable_template_name: prd-variables
     # run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/sl-devops'))
-    run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
+    run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))name: $(Build.BuildId).$(date:yyyyMMdd)
+
+variables:
+  - template: ../Variables/prd-variables.yml
+
+pr:
+  branches:
+    include:
+    - master
+  paths:
+    include:
+    - ${{ variables.datafactoryname }}/*
+
+trigger:
+  branches:
+    include:
+    - master
+  paths:
+    include:
+    - ${{ variables.datafactoryname }}/*
+
+pool:
+  vmImage: ubuntu-latest
+
+stages:
+# ---------------------------------------------------------------------------
+# Build artifacts
+- stage: 'build'
+  jobs:
+  # Use this section to pull in or out build jobs
+  - template: Templates/job-copy-datafactory-arm.yml
+# ---------------------------------------------------------------------------
+# # Release to Production
+# - template: Templates/stage-databricks-integration.yml
+#   parameters:
+#     stage_name: 'prod'
+#     variable_template_name: prd-variables
+#     run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/sl-devops'))
+#     # run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
+
+
