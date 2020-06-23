@@ -1,8 +1,12 @@
 name: $(Build.BuildId).$(date:yyyyMMdd)
 
-extends:
-  template: ../Variables/prd-variables.yml
-  parameters:
+variables:
+  - template: ../Variables/prd-variables.yml
+
+paramters:
+  - name: datafactoryname
+    type: string
+    default: $(DATAFACTORYNAME)
 
 pr:
   branches:
