@@ -1,0 +1,13 @@
+variables:
+  - template: ../Variables/prd-variables.yml
+
+jobs:
+- job: 'DataFactory'
+  steps:
+  - bash: |
+      mkdir -p "$(Build.ArtifactStagingDirectory)/adf_arm_templates"
+      cp -r $(DATAFACTORYNAME)/. "$(Build.ArtifactStagingDirectory)/adf_arm_templates/"
+    displayName: 'Prepare Azure Resource Manager template Build Artifacts'
+
+  - publish: '$(Build.ArtifactStagingDirectory)/adf_arm_templates'
+    artifact: arm_templates
