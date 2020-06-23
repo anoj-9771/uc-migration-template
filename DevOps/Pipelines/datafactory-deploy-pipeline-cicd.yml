@@ -3,7 +3,7 @@ name: $(Build.BuildId).$(date:yyyyMMdd)
 variables:
   - template: ../Variables/prd-variables.yml
 
-paramters:
+parameters:
   - name: datafactoryname
     type: string
     default: $(DATAFACTORYNAME)
