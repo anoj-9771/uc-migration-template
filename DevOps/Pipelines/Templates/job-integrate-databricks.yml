@@ -35,7 +35,7 @@ jobs:
   # Authenticate with Databricks CLI
   - script: |
     databricks configure --token <<EOF
-    https://$(location).azuredatabricks.net
+    https://${{ location }}.azuredatabricks.net
     $(databricks-token)
     EOF
 
