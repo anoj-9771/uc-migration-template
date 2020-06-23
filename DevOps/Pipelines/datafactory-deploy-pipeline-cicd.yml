@@ -2,6 +2,9 @@ name: $(Build.BuildId).$(date:yyyyMMdd)
 
 variables:
   - template: ../Variables/prd-variables.yml
+  
+parameters:
+  - datafactory_name: ${{ variables.datafactoryname }}
 
 pr:
   branches:
@@ -9,7 +12,7 @@ pr:
     - master
   paths:
     include:
-    - ${{ variables.datafactoryname }}/*
+    - ${{ parameters.datafactory_name }}/*
 
 trigger:
   branches:
@@ -17,7 +20,7 @@ trigger:
     - master
   paths:
     include:
-    - ${{ variables.datafactoryname }}/*
+    - ${{ parameters.datafactory_name }}/*
 
 pool:
   vmImage: ubuntu-latest
