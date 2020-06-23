@@ -2,9 +2,11 @@ name: $(Build.BuildId).$(date:yyyyMMdd)
 
 variables:
   - template: ../Variables/prd-variables.yml
-  
+
 parameters:
-  - datafactory_name: ${{ variables.datafactoryname }}
+  name: datafactory_name
+  type: string 
+  default: ${{ variables.datafactoryname }}
 
 pr:
   branches:
