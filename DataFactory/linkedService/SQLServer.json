@@ -20,10 +20,6 @@
 					"type": "Expression"
 				}
 			}
-		},
-		"connectVia": {
-			"referenceName": "SHIR-will-laptop",
-			"type": "IntegrationRuntimeReference"
 		}
 	},
 	"type": "Microsoft.DataFactory/factories/linkedservices"
