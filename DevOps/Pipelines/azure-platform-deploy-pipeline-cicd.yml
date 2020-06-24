@@ -44,7 +44,6 @@ stages:
 # ---------------------------------------------------------------------------
 # Release to Production
 - template: Templates/stage-azure-pipelines-deployment.yml
-  dependsOn: []
   parameters:
     stage_name: 'prod'
     variable_template_name: prd-variables
