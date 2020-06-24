@@ -7,6 +7,9 @@
         },
         "dataFactorySHIRName":{
             "type": "string"
+        },
+        "location":{
+            "type": "string"
         }
     },
     "functions": [
@@ -49,7 +52,7 @@
             "name": "[variables('dataFactoryName')]",
             "apiVersion": "2018-06-01",
             "type": "Microsoft.DataFactory/factories",
-            "location": "australiaeast",
+            "location": "[parameters('location')]",
             "identity": {
                 "type": "SystemAssigned"
             },

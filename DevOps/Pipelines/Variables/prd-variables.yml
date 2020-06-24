@@ -41,7 +41,7 @@ variables:
     value: $(PREFIX)-df-$(ENVIRONMENT)
   # Data Factory self hosted integrated runtime name
   - name: datafactoryshirname
-    value: $(PREFIX)-shir-$(ENVIRONMENT)
+    value: $(PREFIX)-adf-shir
   # Azure SQL Server Name
   - name: azuresqlservername
     value: $(PREFIX)-asql-$(ENVIRONMENT)

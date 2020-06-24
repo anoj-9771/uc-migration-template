@@ -20,6 +20,7 @@ stages:
     steps:
     - download: current
       artifact: adf_arm_templates
+
     - task: AzureResourceGroupDeployment@2
       inputs:
         azureSubscription: ${{ variables.azdoresourceconnection }}
@@ -28,7 +29,7 @@ stages:
         location: $(LOCATION)
         templateLocation: 'Linked artifact'
         csmFile: '$(Pipeline.Workspace)/adf_arm_templates/ARMTemplateForFactory.json'
-        overrideParameters: '-dataFactoryName $(DATAFACTORYNAME) -dataFactorySHIRName $(DATAFACTORYSHIRNAME)'
+        overrideParameters: '-factoryName $(DATAFACTORYNAME)'
         deploymentMode: 'Incremental'
       displayName: 'Deploy Datafactory with Access Policies'
 
