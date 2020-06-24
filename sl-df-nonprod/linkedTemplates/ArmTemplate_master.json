@@ -35,10 +35,6 @@
 			"type": "string",
 			"defaultValue": "@linkedService().kvSecret"
 		},
-		"Shared-IR-bdwadf_properties_typeProperties_linkedInfo_resourceId": {
-			"type": "string",
-			"defaultValue": "/subscriptions/9595d877-d313-4437-b41d-040a5da3eaa8/resourcegroups/BigDataWorkshop/providers/Microsoft.DataFactory/factories/bdwadf/integrationruntimes/datagateway"
-		},
 		"containerUri": {
 			"type": "string",
 			"metadata": "URI to storage account containing linked ARM templates"
@@ -72,9 +68,6 @@
 					"AzureKeyVault_properties_typeProperties_baseUrl": {
 						"value": "[parameters('AzureKeyVault_properties_typeProperties_baseUrl')]"
 					},
-					"Shared-IR-bdwadf_properties_typeProperties_linkedInfo_resourceId": {
-						"value": "[parameters('Shared-IR-bdwadf_properties_typeProperties_linkedInfo_resourceId')]"
-					},
 					"AzureBlobStorage_Raw_properties_typeProperties_sasUri_secretName": {
 						"value": "[parameters('AzureBlobStorage_Raw_properties_typeProperties_sasUri_secretName')]"
 					},
@@ -83,6 +76,12 @@
 					},
 					"AzureSqlDatabase_Ctrldb_properties_typeProperties_connectionString_secretName": {
 						"value": "[parameters('AzureSqlDatabase_Ctrldb_properties_typeProperties_connectionString_secretName')]"
+					},
+					"AzureSqlDatabase_SQLDB_properties_typeProperties_connectionString_secretName": {
+						"value": "[parameters('AzureSqlDatabase_SQLDB_properties_typeProperties_connectionString_secretName')]"
+					},
+					"SQLServer_properties_typeProperties_connectionString_secretName": {
+						"value": "[parameters('SQLServer_properties_typeProperties_connectionString_secretName')]"
 					}
 				}
 			},
@@ -101,12 +100,6 @@
 				"parameters": {
 					"factoryName": {
 						"value": "[parameters('factoryName')]"
-					},
-					"AzureSqlDatabase_SQLDB_properties_typeProperties_connectionString_secretName": {
-						"value": "[parameters('AzureSqlDatabase_SQLDB_properties_typeProperties_connectionString_secretName')]"
-					},
-					"SQLServer_properties_typeProperties_connectionString_secretName": {
-						"value": "[parameters('SQLServer_properties_typeProperties_connectionString_secretName')]"
 					}
 				}
 			},
