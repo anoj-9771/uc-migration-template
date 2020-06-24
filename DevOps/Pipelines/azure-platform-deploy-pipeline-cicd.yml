@@ -45,7 +45,7 @@ stages:
 # Release to Production
 - template: Templates/stage-azure-pipelines-deployment.yml
   parameters:
-    dependencies: ['build']
+    dependencies: ['non_prod']
     stage_name: 'prod'
     variable_template_name: prd-variables
     run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
