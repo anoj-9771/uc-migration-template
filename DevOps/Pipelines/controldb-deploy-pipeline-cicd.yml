@@ -1,0 +1,47 @@
+name: $(Build.BuildId).$(date:yyyyMMdd)
+
+pr:
+  branches:
+    include:
+    - master
+    - develop
+  paths:
+    include:
+    - ControlDB/*
+
+trigger:
+  branches:
+    include:
+    - master
+    - develop
+  paths:
+    include:
+    - ControlDB/ControlDB.sln
+
+pool:
+  vmImage: ubuntu-latest
+
+stages:
+# ---------------------------------------------------------------------------
+# Build artifacts
+- stage: 'build' # leave main artifact build stage as 'build'
+  jobs:
+  # Use this section to pull in or out build jobs
+  - template: Templates/job-build-cntrldb.yml
+# ---------------------------------------------------------------------------
+# Release to Non-Production
+- template: Templates/stage-databricks-integration.yml
+  parameters:
+    stage_name: 'non_prod'
+    variable_template_name: npe-variables
+    # run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/sl-devops'))
+    run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/develop'))
+
+# ---------------------------------------------------------------------------
+# Release to Production
+- template: Templates/stage-databricks-integration.yml
+  parameters:
+    stage_name: 'prod'
+    variable_template_name: prd-variables
+    # run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/sl-devops'))
+    run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
