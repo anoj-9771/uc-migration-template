@@ -3,6 +3,9 @@
 # for each deployment stage.
 
 parameters:
+- name: dependencies
+  type: object
+  default: ['build']
 - name: stage_name
   type: string
 - name: variable_template_name
@@ -15,6 +18,7 @@ stages:
 # Release to environment
 # Only execute if PR into Develop
 - stage: ${{ parameters.stage_name }}
+  dependsOn: ${{ parameters.dependencies }}
   condition: ${{ parameters.run_condition }}
   variables:
   - template: ../Variables/${{ parameters.variable_template_name }}.yml
