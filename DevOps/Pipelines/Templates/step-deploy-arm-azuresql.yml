@@ -40,7 +40,7 @@ steps:
     inputs:
       azureSubscription: ${{ parameters.AzDoServiceConnection }}
       keyVaultName: $(AZUREKEYVAULTNAME)
-      secretsFilter: 'azuresqlserverpw'
+      secretsFilter: 'AzureSQLServerPw'
 
   - task: AzureResourceGroupDeployment@2
     inputs:

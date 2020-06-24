@@ -10,17 +10,17 @@ pr:
     - AzureResources/*
     - DevOps/Pipelines/*
 
-trigger:
-  branches:
-    include:
-    - master
-    - develop
-  paths:
-    include:
-    - AzureResources/*
-    - DevOps/Pipelines/*
-    exclude:
-    - DevOps/Pipelines/iac-create-keyvaults.yml
+trigger: none
+  # branches:
+  #   include:
+  #   - master
+  #   - develop
+  # paths:
+  #   include:
+  #   - AzureResources/*
+  #   - DevOps/Pipelines/*
+  #   exclude:
+  #   - DevOps/Pipelines/iac-create-keyvaults.yml
 
 pool:
   vmImage: ubuntu-latest
@@ -33,14 +33,12 @@ stages:
   # Use this section to pull in or out build jobs
   - template: Templates/job-build-cntrldb.yml
   - template: Templates/job-copy-arm.yml
-
 # ---------------------------------------------------------------------------
 # Release to Non-Production
 - template: Templates/stage-azure-pipelines-deployment.yml
   parameters:
     stage_name: 'non_prod'
     variable_template_name: npe-variables
-    resource_group: rl-nonprod
     run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/develop'))
 
 # ---------------------------------------------------------------------------
@@ -49,5 +47,4 @@ stages:
   parameters:
     stage_name: 'prod'
     variable_template_name: prd-variables
-    resource_group: rl-prod
     run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
