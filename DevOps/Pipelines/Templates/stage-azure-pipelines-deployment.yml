@@ -24,6 +24,7 @@ stages:
 # Release to environment
 # Only execute if PR into Develop
 - stage: ${{ parameters.stage_name }}
+  dependsOn: ['build']
   condition: ${{ parameters.run_condition }}
   variables:
   - template: ../Variables/${{ parameters.variable_template_name }}.yml

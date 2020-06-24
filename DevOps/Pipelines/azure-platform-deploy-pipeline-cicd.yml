@@ -10,17 +10,17 @@ pr:
     - AzureResources/*
     - DevOps/Pipelines/*
 
-trigger: #none
-  branches:
-    include:
-    - master
-    - develop
-  paths:
-    include:
-    - AzureResources/arm-*
-    - DevOps/Pipelines/azure-platform-deploy-pipeline-cicd.yml
-    exclude:
-    - DevOps/Pipelines/iac-create-keyvaults.yml
+trigger: none
+  # branches:
+  #   include:
+  #   - master
+  #   - develop
+  # paths:
+  #   include:
+  #   - AzureResources/arm-*
+  #   - DevOps/Pipelines/azure-platform-deploy-pipeline-cicd.yml
+  #   exclude:
+  #   - DevOps/Pipelines/iac-create-keyvaults.yml
 
 pool:
   vmImage: ubuntu-latest
@@ -48,3 +48,4 @@ stages:
     stage_name: 'prod'
     variable_template_name: prd-variables
     run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
+    
