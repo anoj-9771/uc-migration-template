@@ -15,6 +15,8 @@ trigger:
   paths:
     include:
     - sl-df-nonprod/*
+    - DevOps/Pipelines/datafactory-deploy-pipeline-cicd.yml
+    - DevOps/Pipelines/stage-datafactory-integration.yml
 
 pool:
   vmImage: ubuntu-latest
@@ -22,7 +24,7 @@ pool:
 stages:
 # ---------------------------------------------------------------------------
 # Build artifacts
-- stage: 'build'
+- stage: 'adf_build'
   jobs:
   # Use this section to pull in or out build jobs
   - template: Templates/job-copy-datafactory-arm.yml
@@ -32,9 +34,9 @@ stages:
 # Release to Production
 - template: Templates/stage-datafactory-integration.yml
   parameters:
-    stage_name: 'prod'
+    stage_name: 'deploy_adf_prod'
     variable_template_name: prd-variables
-    run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/sl-devops'))
-    # run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
+    # run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/sl-devops'))
+    run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
 
 
