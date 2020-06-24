@@ -18,6 +18,8 @@ stages:
   condition: ${{ parameters.run_condition }}
   variables:
   - template: ../Variables/${{ parameters.variable_template_name }}.yml
+  - name: kv_base_url
+    value: 'https://${{ Variables.azurekeyvaultname }}.vault.azure.net/'
 
   jobs:
   - job:
@@ -33,7 +35,7 @@ stages:
         location: $(LOCATION)
         templateLocation: 'Linked artifact'
         csmFile: '$(Pipeline.Workspace)/adf_arm_templates/ARMTemplateForFactory.json'
-        overrideParameters: '-factoryName $(DATAFACTORYNAME)'
+        overrideParameters: '-factoryName $(DATAFACTORYNAME) -AzureKeyVault_properties_typeProperties_baseUrl ${{ variables.kv_base_url }}'
         deploymentMode: 'Incremental'
       displayName: 'Deploy Datafactory with Access Policies'
 
