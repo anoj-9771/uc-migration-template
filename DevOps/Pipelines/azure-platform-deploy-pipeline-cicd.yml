@@ -36,7 +36,7 @@ stages:
 # ---------------------------------------------------------------------------
 # Release to Non-Production
 - stage: 'build non-prod'
-  job:
+  jobs:
   - template: Templates/stage-azure-pipelines-deployment.yml
     parameters:
       stage_name: 'non_prod'
@@ -47,7 +47,7 @@ stages:
 # Release to Production
 - stage: 'build non-prod'
   depends: []
-  job:
+  jobs:
   - template: Templates/stage-azure-pipelines-deployment.yml
     parameters:
       stage_name: 'prod'
