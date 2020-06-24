@@ -30,7 +30,7 @@ stages:
   - template: Templates/job-build-cntrldb.yml
 # ---------------------------------------------------------------------------
 # Release to Non-Production
-- template: Templates/stage-databricks-integration.yml
+- template: Templates/stage-controldb-integration.yml
   parameters:
     stage_name: 'non_prod'
     variable_template_name: npe-variables
@@ -39,7 +39,7 @@ stages:
 
 # ---------------------------------------------------------------------------
 # Release to Production
-- template: Templates/stage-databricks-integration.yml
+- template: Templates/stage-controldb-integration.yml
   parameters:
     stage_name: 'prod'
     variable_template_name: prd-variables
