@@ -1,0 +1,826 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "sl-df-nonprod"
+		},
+		"ADLSGen2_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://insightetlframeworkadls.dfs.core.windows.net/"
+		},
+		"AzureKeyVault_properties_typeProperties_baseUrl": {
+			"type": "string",
+			"defaultValue": "https://insight-etlframework-akv.vault.azure.net/"
+		},
+		"Shared-IR-bdwadf_properties_typeProperties_linkedInfo_resourceId": {
+			"type": "string",
+			"defaultValue": "/subscriptions/9595d877-d313-4437-b41d-040a5da3eaa8/resourcegroups/BigDataWorkshop/providers/Microsoft.DataFactory/factories/bdwadf/integrationruntimes/datagateway"
+		},
+		"AzureBlobStorage_Raw_properties_typeProperties_sasUri_secretName": {
+			"type": "string",
+			"defaultValue": "rawZone-rwdl-SasToken"
+		},
+		"AzureSQLDatabase_properties_typeProperties_connectionString_secretName": {
+			"type": "string",
+			"defaultValue": "@linkedService().kvSecret"
+		},
+		"AzureSqlDatabase_Ctrldb_properties_typeProperties_connectionString_secretName": {
+			"type": "string",
+			"defaultValue": "ADF-LS-AzureSql-ControlDB"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/ResumePause_Synapse')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "ChangeState",
+						"type": "WebActivity",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"url": {
+								"value": "@concat(pipeline().parameters.baseURL,'/providers/Microsoft.Sql/servers/',pipeline().parameters.serverName,'/databases/BI_Reload/toLower(pipeline().parameters.action)?api-version=2014-04-01-preview')",
+								"type": "Expression"
+							},
+							"method": "POST",
+							"headers": {
+								"Content-Type": "application/json"
+							},
+							"body": {
+								"value": "{}",
+								"type": "Expression"
+							},
+							"authentication": {
+								"type": "MSI",
+								"resource": "https://management.azure.com/"
+							}
+						}
+					}
+				],
+				"parameters": {
+					"serverName": {
+						"type": "string",
+						"defaultValue": "emhs-syd-npe-asql-ddidatalake"
+					},
+					"action": {
+						"type": "string",
+						"defaultValue": "Resume"
+					},
+					"baseURL": {
+						"type": "string",
+						"defaultValue": "https://management.azure.com/subscriptions/4e3dc0e1-a8c6-4b13-a523-9d4afa9f0e3f/resourceGroups/EMHS-NPE-ARG-DDIDataLake"
+					}
+				},
+				"folder": {
+					"name": "Synapse_Management"
+				},
+				"annotations": []
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Scale_AzVM')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Scale",
+						"type": "WebActivity",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"url": {
+								"value": "@concat(pipeline().parameters.baseURL,'/providers/Microsoft.Compute/virtualMachines/',pipeline().parameters.vmName,'?api-version=2019-07-01')",
+								"type": "Expression"
+							},
+							"method": "PATCH",
+							"headers": {
+								"Content-Type": "application/json"
+							},
+							"body": {
+								"value": "@concat('{ \"properties\": {\"hardwareProfile\": {\"vmSize\": \"',pipeline().parameters.vmSize,'\"}}}')",
+								"type": "Expression"
+							},
+							"authentication": {
+								"type": "MSI",
+								"resource": "https://management.azure.com/"
+							}
+						}
+					}
+				],
+				"parameters": {
+					"vmSize": {
+						"type": "string",
+						"defaultValue": "Standard_B1ms"
+					},
+					"baseURL": {
+						"type": "string",
+						"defaultValue": "https://management.azure.com/subscriptions/4e3dc0e1-a8c6-4b13-a523-9d4afa9f0e3f/resourceGroups/EMHS-NPE-ARG-DDIDataLake"
+					},
+					"vmName": {
+						"type": "string",
+						"defaultValue": "WSAZ220APP"
+					}
+				},
+				"folder": {
+					"name": "AzVM_Management"
+				},
+				"annotations": []
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Scale_Synapse')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Scale",
+						"type": "WebActivity",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"url": {
+								"value": "@concat(pipeline().parameters.baseURL,'/providers/Microsoft.Sql/servers/',pipeline().parameters.serverName,'/databases/BI_Reload?api-version=2014-04-01-preview')",
+								"type": "Expression"
+							},
+							"method": "PATCH",
+							"headers": {
+								"Content-Type": "application/json"
+							},
+							"body": {
+								"value": "@concat('{\"properties\":{\"requestedServiceObjectiveName\":\"',pipeline().parameters.size,'\"}}')",
+								"type": "Expression"
+							},
+							"authentication": {
+								"type": "MSI",
+								"resource": "https://management.azure.com/"
+							}
+						}
+					}
+				],
+				"parameters": {
+					"size": {
+						"type": "string",
+						"defaultValue": "DW100c"
+					},
+					"serverName": {
+						"type": "string",
+						"defaultValue": "emhs-syd-npe-asql-ddidatalake"
+					},
+					"baseURL": {
+						"type": "string"
+					}
+				},
+				"folder": {
+					"name": "Synapse_Management"
+				},
+				"annotations": []
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ADLSGen2')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobFS",
+				"typeProperties": {
+					"url": "[parameters('ADLSGen2_properties_typeProperties_url')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AzureKeyVault')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureKeyVault",
+				"typeProperties": {
+					"baseUrl": "[parameters('AzureKeyVault_properties_typeProperties_baseUrl')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Main2')]",
+			"type": "Microsoft.DataFactory/factories/triggers",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"runtimeState": "Stopped",
+				"pipelines": [],
+				"type": "ScheduleTrigger",
+				"typeProperties": {
+					"recurrence": {
+						"frequency": "Minute",
+						"interval": 10,
+						"startTime": "2020-01-05T16:00:00.000Z",
+						"timeZone": "UTC"
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Test_12Am')]",
+			"type": "Microsoft.DataFactory/factories/triggers",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"runtimeState": "Stopped",
+				"pipelines": [],
+				"type": "ScheduleTrigger",
+				"typeProperties": {
+					"recurrence": {
+						"frequency": "Day",
+						"interval": 1,
+						"startTime": "2020-01-18T16:00:00.000Z",
+						"timeZone": "UTC",
+						"schedule": {
+							"hours": [
+								16
+							]
+						}
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Test_230AM')]",
+			"type": "Microsoft.DataFactory/factories/triggers",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"runtimeState": "Stopped",
+				"pipelines": [],
+				"type": "ScheduleTrigger",
+				"typeProperties": {
+					"recurrence": {
+						"frequency": "Day",
+						"interval": 1,
+						"startTime": "2020-01-17T16:01:00.000Z",
+						"timeZone": "UTC",
+						"schedule": {
+							"minutes": [
+								30
+							],
+							"hours": [
+								18
+							]
+						}
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Test_5AM')]",
+			"type": "Microsoft.DataFactory/factories/triggers",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"runtimeState": "Stopped",
+				"pipelines": [],
+				"type": "ScheduleTrigger",
+				"typeProperties": {
+					"recurrence": {
+						"frequency": "Day",
+						"interval": 1,
+						"startTime": "2020-01-17T16:05:00.000Z",
+						"timeZone": "UTC",
+						"schedule": {
+							"hours": [
+								21
+							]
+						}
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/SHIR-will-laptop')]",
+			"type": "Microsoft.DataFactory/factories/integrationRuntimes",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "SelfHosted",
+				"typeProperties": {}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Shared-IR-bdwadf')]",
+			"type": "Microsoft.DataFactory/factories/integrationRuntimes",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "SelfHosted",
+				"typeProperties": {
+					"linkedInfo": {
+						"resourceId": "[parameters('Shared-IR-bdwadf_properties_typeProperties_linkedInfo_resourceId')]",
+						"authorizationType": "Rbac"
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/SynapseControl')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "CheckStatus",
+						"type": "WebActivity",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"url": {
+								"value": "@concat(pipeline().parameters.baseURL,'/providers/Microsoft.Sql/servers/',pipeline().parameters.serverName,'/databases/BI_Reload?api-version=2014-04-01-preview')",
+								"type": "Expression"
+							},
+							"method": "GET",
+							"headers": {
+								"Content-Type": "application/json"
+							},
+							"authentication": {
+								"type": "MSI",
+								"resource": "https://management.azure.com/"
+							}
+						}
+					},
+					{
+						"name": "RoutExec",
+						"type": "Switch",
+						"dependsOn": [
+							{
+								"activity": "CheckStatus",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"on": {
+								"value": "@if(or(equals(pipeline().parameters.action,'Resume'),equals(pipeline().parameters.action,'Pause')),'Resume|Pause',pipeline().parameters.action)",
+								"type": "Expression"
+							},
+							"cases": [
+								{
+									"value": "Scale",
+									"activities": [
+										{
+											"name": "Scale_Synapse",
+											"type": "ExecutePipeline",
+											"dependsOn": [
+												{
+													"activity": "ResumePause_Synapse",
+													"dependencyConditions": [
+														"Succeeded"
+													]
+												}
+											],
+											"userProperties": [],
+											"typeProperties": {
+												"pipeline": {
+													"referenceName": "Scale_Synapse",
+													"type": "PipelineReference"
+												},
+												"waitOnCompletion": true,
+												"parameters": {
+													"baseURL": {
+														"value": "@pipeline().parameters.baseURL",
+														"type": "Expression"
+													},
+													"serverName": {
+														"value": "@pipeline().parameters.serverName",
+														"type": "Expression"
+													},
+													"size": {
+														"value": "@pipeline().parameters.size",
+														"type": "Expression"
+													}
+												}
+											}
+										},
+										{
+											"name": "ResumePause_Synapse",
+											"type": "ExecutePipeline",
+											"dependsOn": [],
+											"userProperties": [],
+											"typeProperties": {
+												"pipeline": {
+													"referenceName": "ResumePause_Synapse",
+													"type": "PipelineReference"
+												},
+												"waitOnCompletion": true,
+												"parameters": {
+													"baseURL": {
+														"value": "@pipeline().parameters.baseURL",
+														"type": "Expression"
+													},
+													"serverName": {
+														"value": "@pipeline().parameters.serverName",
+														"type": "Expression"
+													},
+													"action": "Resume"
+												}
+											}
+										}
+									]
+								},
+								{
+									"value": "Resume|Pause",
+									"activities": [
+										{
+											"name": "PauseResume_Synapse",
+											"type": "ExecutePipeline",
+											"dependsOn": [],
+											"userProperties": [],
+											"typeProperties": {
+												"pipeline": {
+													"referenceName": "ResumePause_Synapse",
+													"type": "PipelineReference"
+												},
+												"waitOnCompletion": true,
+												"parameters": {
+													"baaseURL": {
+														"value": "@pipeline().parameters.baseURL",
+														"type": "Expression"
+													},
+													"serverName": {
+														"value": "@pipeline().parameters.serverName",
+														"type": "Expression"
+													},
+													"action": {
+														"value": "@pipeline().parameters.action",
+														"type": "Expression"
+													}
+												}
+											}
+										}
+									]
+								}
+							],
+							"defaultActivities": [
+								{
+									"name": "Wait1",
+									"type": "Wait",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"waitTimeInSeconds": 1
+									}
+								}
+							]
+						}
+					}
+				],
+				"parameters": {
+					"action": {
+						"type": "string",
+						"defaultValue": "Pause"
+					},
+					"serverName": {
+						"type": "string",
+						"defaultValue": "emhs-syd-npe-asql-ddidatalake"
+					},
+					"size": {
+						"type": "string",
+						"defaultValue": "DW100c"
+					},
+					"baseURL": {
+						"type": "string",
+						"defaultValue": "https://management.azure.com/subscriptions/4e3dc0e1-a8c6-4b13-a523-9d4afa9f0e3f/resourceGroups/EMHS-NPE-ARG-DDIDataLake"
+					}
+				},
+				"folder": {
+					"name": "Synapse_Management"
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/pipelines/Scale_Synapse')]",
+				"[concat(variables('factoryId'), '/pipelines/ResumePause_Synapse')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ADLS_Raw')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ADLSGen2",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"BlobPath": {
+						"type": "string"
+					},
+					"BlobName": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": {
+							"value": "@dataset().BlobName",
+							"type": "Expression"
+						},
+						"folderPath": {
+							"value": "@dataset().BlobPath",
+							"type": "Expression"
+						},
+						"fileSystem": "raw"
+					},
+					"columnDelimiter": "|",
+					"compressionCodec": "gzip",
+					"compressionLevel": "Optimal",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ADLSGen2')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ADLS_Stage')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ADLSGen2",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"BlobPath": {
+						"type": "string"
+					},
+					"BlobName": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "Parquet",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": {
+							"value": "@dataset().BlobName",
+							"type": "Expression"
+						},
+						"folderPath": {
+							"value": "@dataset().BlobPath",
+							"type": "Expression"
+						},
+						"fileSystem": "staged"
+					},
+					"compressionCodec": "snappy"
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ADLSGen2')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AzureBlobStorage_Raw')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobStorage",
+				"typeProperties": {
+					"sasUri": {
+						"type": "AzureKeyVaultSecret",
+						"store": {
+							"referenceName": "AzureKeyVault",
+							"type": "LinkedServiceReference"
+						},
+						"secretName": "[parameters('AzureBlobStorage_Raw_properties_typeProperties_sasUri_secretName')]"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureKeyVault')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AzureDatabricksPool_Test')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureDatabricks",
+				"typeProperties": {
+					"domain": "https://australiaeast.azuredatabricks.net",
+					"accessToken": {
+						"type": "AzureKeyVaultSecret",
+						"store": {
+							"referenceName": "AzureKeyVault",
+							"type": "LinkedServiceReference"
+						},
+						"secretName": "databricks-Token"
+					},
+					"instancePoolId": "1129-054614-verge71-pool-N8mNYaYw",
+					"newClusterNumOfWorker": "1",
+					"newClusterSparkEnvVars": {
+						"PYSPARK_PYTHON": "/databricks/python3/bin/python3"
+					},
+					"newClusterVersion": "6.1.x-scala2.11"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureKeyVault')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AzureDatabricks_DefinedCluster')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"parameters": {
+					"kvSecret": {
+						"type": "string"
+					},
+					"clusterId": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "AzureDatabricks",
+				"typeProperties": {
+					"domain": "https://australiaeast.azuredatabricks.net",
+					"accessToken": {
+						"type": "AzureKeyVaultSecret",
+						"store": {
+							"referenceName": "AzureKeyVault",
+							"type": "LinkedServiceReference"
+						},
+						"secretName": {
+							"value": "@linkedService().kvSecret",
+							"type": "Expression"
+						}
+					},
+					"existingClusterId": "@linkedService().clusterId"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureKeyVault')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AzureDatabricks_Pool')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Utilize a Databricks Pool for faster processing",
+				"parameters": {
+					"kvSecret": {
+						"type": "string"
+					},
+					"poolId": {
+						"type": "string"
+					},
+					"version": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "AzureDatabricks",
+				"typeProperties": {
+					"domain": "https://australiaeast.azuredatabricks.net",
+					"accessToken": {
+						"type": "AzureKeyVaultSecret",
+						"store": {
+							"referenceName": "AzureKeyVault",
+							"type": "LinkedServiceReference"
+						},
+						"secretName": {
+							"value": "@linkedService().kvSecret",
+							"type": "Expression"
+						}
+					},
+					"instancePoolId": "@linkedService().poolId",
+					"newClusterNumOfWorker": "1",
+					"newClusterSparkEnvVars": {
+						"PYSPARK_PYTHON": "/databricks/python3/bin/python3"
+					},
+					"newClusterVersion": "@linkedService().version"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureKeyVault')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AzureSQLDatabase')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Linked service used to connect to all azure SQL servers based on a Key Vault string",
+				"parameters": {
+					"kvSecret": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "AzureSqlDatabase",
+				"typeProperties": {
+					"connectionString": {
+						"type": "AzureKeyVaultSecret",
+						"store": {
+							"referenceName": "AzureKeyVault",
+							"type": "LinkedServiceReference"
+						},
+						"secretName": {
+							"value": "[parameters('AzureSQLDatabase_properties_typeProperties_connectionString_secretName')]",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureKeyVault')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AzureSqlDatabase_Ctrldb')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "ETL Control database linked service",
+				"annotations": [],
+				"type": "AzureSqlDatabase",
+				"typeProperties": {
+					"connectionString": {
+						"type": "AzureKeyVaultSecret",
+						"store": {
+							"referenceName": "AzureKeyVault",
+							"type": "LinkedServiceReference"
+						},
+						"secretName": {
+							"value": "[parameters('AzureSqlDatabase_Ctrldb_properties_typeProperties_connectionString_secretName')]",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureKeyVault')]"
+			]
+		}
+	]
+}
