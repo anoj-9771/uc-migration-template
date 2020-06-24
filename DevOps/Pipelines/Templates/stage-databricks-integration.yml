@@ -1,20 +1,6 @@
 # ---------------------------------------------------------------------------
-<<<<<<< HEAD
-# This template is called by databricks-integration.yml
+# This template is called by databricks-deploy-pipeline-cicd.yml
 # for each deployment stage.
-#
-# As this is a straigh forward job, there was no need to use step and job templates
-=======
-# This template is called by azure-platform-deploy-pipeline-cicd.yml
-# for each deployment stage.
-#
-# Pull in and out the different templates that deploy the ARM resources
-# needed for your data platform solution. If your solution needs
-# a service that is not yet included, build the required ARM template 
-# (arm-[service-name-description].json) and step template 
-# (step-deploy-arm-[service-name-description].yml). Reference the step template
-# below.
->>>>>>> c6a3b949500c2979f1fd89a6554c12499c72edc7
 
 parameters:
 - name: stage_name
