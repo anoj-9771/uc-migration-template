@@ -12,6 +12,7 @@
 parameters:
 - name: dependencies
   type: object
+  default: ['build']
 - name: stage_name
   type: string
 - name: variable_template_name
