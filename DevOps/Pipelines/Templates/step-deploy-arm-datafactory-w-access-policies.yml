@@ -32,7 +32,7 @@ steps:
         az keyvault set-policy --name "$(AZUREKEYVAULTNAME)" --secret-permissions list get --object-id "$adf_sp_oid" --query "{Status:properties.provisioningState}" --output table
 
   # Add Data Factory MI to SQLServer
-  - task: AzureCLI@2
+  - task: AzureCLI@3
     displayName: 'Add Data Factory SP to SQL Server AAD'
     name: add_adf_sp_to_akv
     inputs:
