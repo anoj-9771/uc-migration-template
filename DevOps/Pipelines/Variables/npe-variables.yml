@@ -35,11 +35,13 @@ variables:
   # as it is split into an array within the ARM 
   # template.
   - name: datalakestorageaccountnames
-    value: $(PREFIX)saraw$(ENVIRONMENT), $(PREFIX)sastage$(ENVIRONMENT), $(PREFIX)sasandbox$(ENVIRONMENT)
+    value: $(PREFIX)saraw$(ENVIRONMENT), $(PREFIX)sacurated$(ENVIRONMENT)
+    # value: $(PREFIX)saraw$(ENVIRONMENT), $(PREFIX)sastage$(ENVIRONMENT), $(PREFIX)sasandbox$(ENVIRONMENT)
   # Container or file system names within storage account
   # Used to iterate in ARM template
   - name: zonenames
-    value: raw, stage, sandbox
+    value: raw, curated
+    # value: raw, stage, sandbox
   # Databricks workspace name for this enironment
   - name: databricksworkspacename
     value: $(PREFIX)-dbws-$(ENVIRONMENT)
