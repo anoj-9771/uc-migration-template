@@ -17,6 +17,7 @@ steps:
       deploymentMode: 'Incremental'
     displayName: 'Deploy Datafactory with Access Policies'
 
+  # Add Data Factory MI to Key Vault
   - task: AzureCLI@2
     displayName: 'Add Data Factory SP to AKV'
     name: add_adf_sp_to_akv
@@ -29,5 +30,19 @@ steps:
         adf_sp_oid=$(az resource show -g ${{ parameters.resource_group }} --resource-type Microsoft.DataFactory/factories -n $(DATAFACTORYNAME) --query identity.principalId --output tsv)                  
         echo "$adf_sp_oid"
         az keyvault set-policy --name "$(AZUREKEYVAULTNAME)" --secret-permissions list get --object-id "$adf_sp_oid" --query "{Status:properties.provisioningState}" --output table
-        
+
+  # Add Data Factory MI to SQLServer
+   - task: AzureCLI@2
+    displayName: 'Add Data Factory SP to SQL Server AAD'
+    name: add_adf_sp_to_akv
+    inputs:
+      azureSubscription: ${{ parameters.AzDoServiceConnection }}
+      scriptType: bash
+      scriptLocation: inlineScript
+      inlineScript: |
+        # adf_sp_oid=$(az ad sp list --display-name $(DATAFACTORYNAME) --output tsv --query "[].{id:objectId}") 
+        sql_resource_id = $(az resource list --name $(azuresqlservername) --output tsv --query "[].id")
+        adf_sp_oid=$(az resource show -g ${{ parameters.resource_group }} --resource-type Microsoft.DataFactory/factories -n $(DATAFACTORYNAME) --query identity.principalId --output tsv)                  
+        echo "$adf_sp_oid"
+        az role assignment create --role "Contributor" --assignee-object-id "$adf_sp_oid" --scope "$sql_resource_id" 
         
