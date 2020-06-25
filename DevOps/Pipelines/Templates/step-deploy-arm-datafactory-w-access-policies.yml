@@ -45,4 +45,5 @@ steps:
         adf_sp_oid=$(az resource show -g ${{ parameters.resource_group }} --resource-type Microsoft.DataFactory/factories -n $(DATAFACTORYNAME) --query identity.principalId --output tsv)                  
         echo "$adf_sp_oid"
         az role assignment create --role "Contributor" --assignee-object-id "$adf_sp_oid" --scope "$sql_resource_id" 
+        echo "$sql_resource_id"
         
