@@ -89,7 +89,7 @@ stages:
       parameters:
         AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
         resource_group: '${{ variables.prefix }}-${{ variables.environment }}-rg'
-  # Deploy Control DB schema / DACPAC
-  - template: job-deploy-controldb.yml
-    parameters:
-      AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
+  # # Deploy Control DB schema / DACPAC
+  # - template: job-deploy-controldb.yml
+  #   parameters:
+  #     AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
