@@ -32,10 +32,10 @@
         },
         "resources": [
         {
-            "type": "microsoft.operationalinsights/workspaces",
+            "type": "Microsoft.OperationalInsights/workspaces",
             "name": "[parameters('workspaceName')]",
             "apiVersion": "2020-03-01-preview",
-            "location": "centralus",
+            "location": "[parameters('location')]",
             "properties": {
                 "sku": {
                     "name": "[parameters('sku')]"
