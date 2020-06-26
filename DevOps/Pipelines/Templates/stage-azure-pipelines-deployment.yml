@@ -40,12 +40,24 @@ stages:
     steps:
     - download: current
       artifact: arm_templates
-      
+
+    # ------------------------------------------------------------------------
+    # Deploy Azure Log related resources
+    # ------------------------------------------------------------------------
+      # Deploy Log Analytics
+    - template: step-deploy-arm-loganalytics.yml
+      parameters:
+        AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
+        resource_group: '${{ variables.prefix }}-${{ variables.environment }}-rg'      
       # Deploy BLOB Storage accounts for Data Lake
     - template: step-deploy-arm-logstorage.yml
       parameters:
         AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
         resource_group: '${{ variables.prefix }}-${{ variables.environment }}-rg'
+
+    # ------------------------------------------------------------------------
+    # Deploy Azure resources
+    # ------------------------------------------------------------------------
     # Deploy Azure SQL DB for Control DB
     - template: step-deploy-arm-azuresql.yml
       parameters:
