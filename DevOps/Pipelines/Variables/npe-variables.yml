@@ -81,7 +81,7 @@ variables:
   # Log Analytics related
   # ------------------------------------------------
   - name: loganalyticssku
-    value: Free
+    value: pergb2018
   - name: loganalyticsretention
     value: 60
   - name: loganalyticsresourcepermissions
