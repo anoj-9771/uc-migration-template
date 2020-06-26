@@ -76,12 +76,7 @@
                 "sku": {
                     "name": "[parameters('sku')]"
                 },
-                "retentionInDays": "[parameters('retentionInDays')]",
-                "features": {
-                    "searchVersion": 1,
-                    "legacy": 0,
-                    "enableLogAccessUsingOnlyResourcePermissions": "[parameters('resourcePermissions')]"
-                }
+                "retentionInDays": "[parameters('retentionInDays')]"
             }
         }
     ]
