@@ -1,7 +1,7 @@
 variables:
   # Used in service naming
   - name: prefix
-    value: psc
+    value: sl
   # The default resource group region name
   - name: location
     value: australiaeast
