@@ -31,11 +31,11 @@ variables:
           App=ETL \
           Project=teamNameProjectName \
           MaxUpTime=3years \
-          ManagedBy=DnA,IT,Security
+          ManagedBy=DnA
   # ------------------------------------------------
   # Service names for environment
   # ------------------------------------------------
-  # Name of key vault for this environment
+  # Name of Azure SQL Server and EDW Database
   - name: azuresqlservername
     value: $(PREFIX)-asql-$(ENVIRONMENT)
   - name: azureedwdbname
@@ -47,8 +47,6 @@ variables:
   - name: loganalyticsworkspacename
     value: $(PREFIX)-la-$(ENVIRONMENT)
   # Name of Azure SQL Server and catalog name
-  - name: azure swl
-    value: $(PREFIX)-la-$(ENVIRONMENT)
   # Data Lake storage account names, commonly split
   # into zones. Ensure it is a comma delimited list
   # as it is split into an array within the ARM 
