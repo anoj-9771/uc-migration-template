@@ -85,7 +85,7 @@ variables:
   - name: loganalyticsretention
     value: 60
   - name: loganalyticsresourcepermissions
-    value: 
+    value: true
   
   # ------------------------------------------------
   # Databricks related
