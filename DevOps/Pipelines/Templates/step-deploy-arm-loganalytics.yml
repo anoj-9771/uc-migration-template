@@ -13,7 +13,7 @@ steps:
       location: $(LOCATION)
       templateLocation: 'Linked artifact'
       csmFile: '$(Pipeline.Workspace)/arm_templates/arm-loganalytics.json'
-      overrideParameters: '-location $(LOCATION) -workspaceName "$(LOGANALYTICSWORKSPACENAMES)" -sku "$(LOGANALYTICSSKU)" -retentionInDays $(LOGANALYTICSRETENTION) -resourcePermissions "$(LOGANALYTICSRESOURCEPERMISSIONS)"'
+      overrideParameters: '-location $(LOCATION) -workspaceName "$(LOGANALYTICSWORKSPACENAMES)" -sku "$(LOGANALYTICSSKU)" -retentionInDays $(LOGANALYTICSRETENTION)"'
       deploymentMode: 'Incremental'
       deploymentOutputs: 'armOutputs'
     displayName: 'Deploy Log Analytics'

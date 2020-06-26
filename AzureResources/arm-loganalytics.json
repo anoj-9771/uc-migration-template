@@ -60,19 +60,11 @@
           },
           "retentionInDays": {
             "type": "int",
-            "defaultValue": 60,
+            "defaultValue": 30,
             "metadata": {
               "description": "Number of days to retain data."
             }
-          },
-          "resourcePermissions": {
-            "type": "bool",
-            "defaultValue": true,
-            "metadata": {
-              "description": "true to use resource or workspace permissions. false to require workspace permissions."
-            }
-        }
-  
+          }  
         },
         "resources": [
         {

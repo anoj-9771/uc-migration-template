@@ -83,7 +83,7 @@ variables:
   - name: loganalyticssku
     value: pergb2018
   - name: loganalyticsretention
-    value: 60
+    value: 30
   - name: loganalyticsresourcepermissions
     value: true
   
