@@ -60,7 +60,7 @@ variables:
     # value: $(PREFIX)saraw$(ENVIRONMENT), $(PREFIX)sastage$(ENVIRONMENT), $(PREFIX)sasandbox$(ENVIRONMENT)
   # Container or file system names within storage account
   # Used to iterate in ARM template
-  - name: logzonenames
+  - name: logzonename
     value: databricks
   - name: zonenames
     value: raw, curated
