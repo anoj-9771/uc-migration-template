@@ -47,3 +47,34 @@ steps:
         az role assignment create --role "Contributor" --assignee-object-id "$adf_sp_oid" --scope "$sql_resource_id" 
         echo "$sql_resource_id"
         
+  # Add Tags to Data Factory
+  - task: AzureCLI@2
+    displayName: 'Add tags to Data Factory'
+    name: add_tags_adf
+    inputs:
+      azureSubscription: ${{ parameters.AzDoServiceConnection }}
+      scriptType: bash
+      scriptLocation: inlineScript
+      inlineScript: |
+        adf_resource_type=$(az resource list --name $(DATAFACTORYNAME) --resource-group ${{ parameters.resource_group }} --output tsv --query "[].type")
+        az resource tag --tags $(TAGS) --resource-group ${{ parameters.resource_group }} -n examplevnet --resource-type "$adf_resource_type"
+          
+  # Add diagnostic settings
+  - task: AzureCLI@2
+    displayName: 'Add diagnostic settings for Data Factory'
+    name: add_diagnostics_adf
+    inputs:
+      azureSubscription: ${{ parameters.AzDoServiceConnection }}
+      scriptType: bash
+      scriptLocation: inlineScript
+      inlineScript: |
+        adf_resource_id=$(az resource list --name $(DATAFACTORYNAME) --output tsv --query "[].id")
+        la_resource_id=$(az resource list --name $(LOGANALYTICSNAME) --output tsv --query "[].id")
+        lbs_resource_id=$(az resource list --name $(LOGSTORAGEACCOUNTNAME) --output tsv --query "[].id")
+        az monitor diagnostic-settings create  \
+        --name $(DATAFACTORYNAME)-Diagnostics \
+        --resource $adf_resource_id \
+        --logs    '[{"category": "ActivityRuns","enabled": true},{"category": "PipelineRuns","enabled": true},{"category": "TriggerRuns","enabled": true}]' \
+        --metrics '[{"category": "AllMetrics","enabled": true}]' \
+        --storage-account $lbs_resource_id \
+        --workspace $la_resource_id \

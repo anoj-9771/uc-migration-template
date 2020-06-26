@@ -40,21 +40,32 @@ stages:
     steps:
     - download: current
       artifact: arm_templates
+      
+      # Deploy BLOB Storage accounts for Data Lake
+    - template: step-deploy-arm-logstorage.yml
+      parameters:
+        AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
+        resource_group: '${{ variables.prefix }}-${{ variables.environment }}-rg'
     # Deploy Azure SQL DB for Control DB
     - template: step-deploy-arm-azuresql.yml
       parameters:
         AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
-        resource_group: '${{ variables.prefix }}-${{ variables.environment }}'
+        resource_group: '${{ variables.prefix }}-${{ variables.environment }}-rg'
     # Deploy BLOB Storage accounts for Data Lake
     - template: step-deploy-arm-blobstoragev2.yml
       parameters:
         AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
-        resource_group: '${{ variables.prefix }}-${{ variables.environment }}'
+        resource_group: '${{ variables.prefix }}-${{ variables.environment }}-rg'
+    # DeployADLS account for Data Lake
+    - template: step-deploy-arm-adlsv2.yml
+      parameters:
+        AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
+        resource_group: '${{ variables.prefix }}-${{ variables.environment }}-rg'
     # Deploy Databricks Workspace
     - template: step-deploy-arm-databricks-no-vnet-nsg.yml
       parameters:
         AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
-        resource_group: '${{ variables.prefix }}-${{ variables.environment }}'
+        resource_group: '${{ variables.prefix }}-${{ variables.environment }}-rg'
         databricksclustername: ${{ variables.databricksclustername }}
         databricks_driver_node_type_id : ${{ variables.databricksdrivernodetypeid }}
         databricks_node_type_id : ${{ variables.databricksnodetypeid }}
@@ -65,7 +76,7 @@ stages:
     - template: step-deploy-arm-datafactory-w-access-policies.yml
       parameters:
         AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
-        resource_group: '${{ variables.prefix }}-${{ variables.environment }}'
+        resource_group: '${{ variables.prefix }}-${{ variables.environment }}-rg'
   # Deploy Control DB schema / DACPAC
   - template: job-deploy-controldb.yml
     parameters:

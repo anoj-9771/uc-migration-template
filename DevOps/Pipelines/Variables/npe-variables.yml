@@ -1,13 +1,13 @@
 variables:
   # Used in service naming
   - name: prefix
-    value: sl
+    value: psc
   # The default resource group region name
   - name: location
     value: australiaeast
   # environment name used in service naming
   - name: environment
-    value: nonprod
+    value: dev
   # username for SQL Server Control DB
   - name: azuresqlserverun
     value: sqladmin
@@ -23,22 +23,47 @@ variables:
   # Store account type for BLOB Storage e.g. Standard_LRS)
   - name: storageAccountType
     value: Standard_LRS
-
+  # Tagging
+  - name: tags
+    value: CostCenter=Data and AI \
+          Environment=$(ENVIRONMENT) \
+          Owner=john.doe@email.com \
+          App=ETL \
+          Project=teamNameProjectName \
+          MaxUpTime=3years \
+          ManagedBy=DnA,IT,Security
   # ------------------------------------------------
   # Service names for environment
   # ------------------------------------------------
   # Name of key vault for this environment
+  - name: azuresqlservername
+    value: $(PREFIX)-asql-$(ENVIRONMENT)
+  - name: azureedwdbname
+    value: PSC_EDW
+  # Name of key vault for this environment
   - name: azurekeyvaultname
     value: $(PREFIX)-kv-$(ENVIRONMENT)
+  # Name of Log Analytics workspace name
+  - name: loganalyticsworkspacename
+    value: $(PREFIX)-la-$(ENVIRONMENT)
+  # Name of Azure SQL Server and catalog name
+  - name: azure swl
+    value: $(PREFIX)-la-$(ENVIRONMENT)
   # Data Lake storage account names, commonly split
   # into zones. Ensure it is a comma delimited list
   # as it is split into an array within the ARM 
   # template.
-  - name: datalakestorageaccountnames
+  - name: logstorageaccountname
+    value: $(PREFIX)salogs$(ENVIRONMENT)
+  - name: blobstorageaccountnames
     value: $(PREFIX)saraw$(ENVIRONMENT), $(PREFIX)sacurated$(ENVIRONMENT)
+  - name: datalakestorageaccountnames
+    value: $(PREFIX)adls$(ENVIRONMENT)
     # value: $(PREFIX)saraw$(ENVIRONMENT), $(PREFIX)sastage$(ENVIRONMENT), $(PREFIX)sasandbox$(ENVIRONMENT)
   # Container or file system names within storage account
   # Used to iterate in ARM template
+  - name: logzonenames
+    value: databricks
   - name: zonenames
     value: raw, curated
     # value: raw, stage, sandbox
@@ -51,10 +76,17 @@ variables:
   # Data Factory self hosted integrated runtime name
   - name: datafactoryshirname
     value: $(PREFIX)-shir-$(ENVIRONMENT)
-  # Azure SQL Server Name
-  - name: azuresqlservername
-    value: $(PREFIX)-asql-$(ENVIRONMENT)
 
+  # ------------------------------------------------
+  # Log Analytics related
+  # ------------------------------------------------
+  - name: loganalyticssku
+    value: Free
+  - name: loganalyticsretention
+    value: 60
+  - name: loganalyticsresourcepermissions
+    value: 
+  
   # ------------------------------------------------
   # Databricks related
   # ------------------------------------------------
