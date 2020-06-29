@@ -65,6 +65,6 @@ steps:
         asql_resource_type=$(az resource list --name $(AZURESQLSERVERNAME) --resource-group ${{ parameters.resource_group }} --output tsv --query "[].type")
         controldb_resource_type=$(az resource list --name "$(AZURESQLSERVERNAME)/ControlDB" --resource-group ${{ parameters.resource_group }} --output tsv --query "[].type")
         edw_resource_type=$(az resource list --name "$(AZURESQLSERVERNAME)/$(AZUREEDWDBNAME)" --resource-group ${{ parameters.resource_group }} --output tsv --query "[].type")
-        az resource tag --tags $(TAGS) --resource-group ${{ parameters.resource_group }} -n examplevnet --resource-type "$asql_resource_type"
-        az resource tag --tags $(TAGS) --resource-group ${{ parameters.resource_group }} -n examplevnet --resource-type "$controldb_resource_type"
-        az resource tag --tags $(TAGS) --resource-group ${{ parameters.resource_group }} -n examplevnet --resource-type "$edw_resource_type"
+        az resource tag --tags $(TAGS) --resource-group ${{ parameters.resource_group }} -n $(AZURESQLSERVERNAME) --resource-type "$asql_resource_type"
+        az resource tag --tags $(TAGS) --resource-group ${{ parameters.resource_group }} -n "$(AZURESQLSERVERNAME)/ControlDB" --resource-type "$controldb_resource_type"
+        az resource tag --tags $(TAGS) --resource-group ${{ parameters.resource_group }} -n "$(AZURESQLSERVERNAME)/$(AZUREEDWDBNAME)" --resource-type "$edw_resource_type"
