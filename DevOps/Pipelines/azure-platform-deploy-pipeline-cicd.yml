@@ -30,7 +30,7 @@ stages:
 # Build artifacts
 - stage: 'build' # leave main artifact build stage as 'build'
   variables:
-  - template: ../Variables/deployable-resources-variables.yml
+    - template: ../Variables/deployable-resources-variables.yml
   jobs:
   # Use this section to pull in or out build jobs
   - template: Templates/job-copy-arm.yml
