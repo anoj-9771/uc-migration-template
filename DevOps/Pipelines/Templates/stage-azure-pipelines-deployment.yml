@@ -122,7 +122,7 @@ stages:
         displayName: 'Add tags to Resources'
         name: add_tags
         inputs:
-          azureSubscription: ${{ parameters.AzDoServiceConnection }}
+          azureSubscription: ${{ variables.azdoresourceconnection }}
           scriptType: bash
           scriptLocation: inlineScript
           inlineScript: |
