@@ -13,7 +13,7 @@ variables:
     value: true
   # Used to set Azure SQL Server deployability
   - name: azuresqlserver
-    value: true
+    value: false
   # Used to set Blob Storage deployability
   - name: azureblobstorage
     value: false
@@ -25,11 +25,11 @@ variables:
     value: false
   # Databricks with v-Net integration
   - name: databricksnovnet
-    value: true
+    value: false
   # Used to set Log Analytics deployability
   - name: datafactory
     value: true
   # Used to set ControlDB Schema dacpac deployment
   - name: controlschema
-    value: true
+    value: false
  
