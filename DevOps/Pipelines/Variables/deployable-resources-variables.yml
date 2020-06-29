@@ -28,7 +28,7 @@ variables:
     value: false
   # Used to set Log Analytics deployability
   - name: datafactory
-    value: false
+    value: true
   # Used to set ControlDB Schema dacpac deployment
   - name: controlschema
     value: false

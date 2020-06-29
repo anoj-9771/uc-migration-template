@@ -60,6 +60,43 @@ steps:
         az resource tag --tags $(TAGS) --resource-group ${{ parameters.resource_group }} -n examplevnet --resource-type "$adf_resource_type"
           
   # Add diagnostic settings
+  - ${{ if and(eq(variables['loganalytics'], true),eq(variables['logstorageaccount'], true)) }}:
+    - task: AzureCLI@2
+      displayName: 'Add diagnostic settings for Data Factory'
+      name: add_diagnostics_adf
+      inputs:
+        azureSubscription: ${{ parameters.AzDoServiceConnection }}
+        scriptType: bash
+        scriptLocation: inlineScript
+        inlineScript: |
+          adf_resource_id=$(az resource list --name $(DATAFACTORYNAME) --output tsv --query "[].id")
+          la_resource_id=$(az resource list --name $(LOGANALYTICSNAME) --output tsv --query "[].id")
+          lbs_resource_id=$(az resource list --name $(LOGSTORAGEACCOUNTNAME) --output tsv --query "[].id")
+          az monitor diagnostic-settings create  \
+          --name $(DATAFACTORYNAME)-Diagnostics \
+          --resource $adf_resource_id \
+          --logs    '[{"category": "ActivityRuns","enabled": true},{"category": "PipelineRuns","enabled": true},{"category": "TriggerRuns","enabled": true}]' \
+          --metrics '[{"category": "AllMetrics","enabled": true}]' \
+          --storage-account $lbs_resource_id \
+          --workspace $la_resource_id \
+  - ${{ if and(eq(variables['loganalytics'], true),eq(variables['logstorageaccount'], false)) }}:
+    - task: AzureCLI@2
+      displayName: 'Add diagnostic settings for Data Factory'
+      name: add_diagnostics_adf
+      inputs:
+        azureSubscription: ${{ parameters.AzDoServiceConnection }}
+        scriptType: bash
+        scriptLocation: inlineScript
+        inlineScript: |
+          adf_resource_id=$(az resource list --name $(DATAFACTORYNAME) --output tsv --query "[].id")
+          la_resource_id=$(az resource list --name $(LOGANALYTICSNAME) --output tsv --query "[].id")
+          az monitor diagnostic-settings create  \
+          --name $(DATAFACTORYNAME)-Diagnostics \
+          --resource $adf_resource_id \
+          --logs    '[{"category": "ActivityRuns","enabled": true},{"category": "PipelineRuns","enabled": true},{"category": "TriggerRuns","enabled": true}]' \
+          --metrics '[{"category": "AllMetrics","enabled": true}]' \
+          --workspace $la_resource_id \
+  - ${{ if and(eq(variables['loganalytics'], false),eq(variables['logstorageaccount'], true)) }}:
   - task: AzureCLI@2
     displayName: 'Add diagnostic settings for Data Factory'
     name: add_diagnostics_adf
@@ -68,13 +105,11 @@ steps:
       scriptType: bash
       scriptLocation: inlineScript
       inlineScript: |
-        adf_resource_id=$(az resource list --name $(DATAFACTORYNAME) --output tsv --query "[].id")
-        la_resource_id=$(az resource list --name $(LOGANALYTICSNAME) --output tsv --query "[].id")
-        lbs_resource_id=$(az resource list --name $(LOGSTORAGEACCOUNTNAME) --output tsv --query "[].id")
-        az monitor diagnostic-settings create  \
-        --name $(DATAFACTORYNAME)-Diagnostics \
-        --resource $adf_resource_id \
-        --logs    '[{"category": "ActivityRuns","enabled": true},{"category": "PipelineRuns","enabled": true},{"category": "TriggerRuns","enabled": true}]' \
-        --metrics '[{"category": "AllMetrics","enabled": true}]' \
-        --storage-account $lbs_resource_id \
-        --workspace $la_resource_id \
+          adf_resource_id=$(az resource list --name $(DATAFACTORYNAME) --output tsv --query "[].id")
+          lbs_resource_id=$(az resource list --name $(LOGSTORAGEACCOUNTNAME) --output tsv --query "[].id")
+          az monitor diagnostic-settings create  \
+          --name $(DATAFACTORYNAME)-Diagnostics \
+          --resource $adf_resource_id \
+          --logs    '[{"category": "ActivityRuns","enabled": true},{"category": "PipelineRuns","enabled": true},{"category": "TriggerRuns","enabled": true}]' \
+          --metrics '[{"category": "AllMetrics","enabled": true}]' \
+          --storage-account $lbs_resource_id \
