@@ -46,4 +46,60 @@ steps:
         echo "$adf_sp_oid"
         az role assignment create --role "Contributor" --assignee-object-id "$adf_sp_oid" --scope "$sql_resource_id" 
         echo "$sql_resource_id"
-        
+
+# Add diagnostic settings for Log Analytics and Storage archiving
+  - task: AzureCLI@2
+    displayName: 'Add diagnostic settings for Data Factory'
+    name: add_diagnostics_adf_log_analytics_and_storage
+    condition: and(eq(variables['loganalytics'], true),eq(variables['logstorageaccount'], true))
+    inputs:
+      azureSubscription: ${{ parameters.AzDoServiceConnection }}
+      scriptType: bash
+      scriptLocation: inlineScript
+      inlineScript: |
+        adf_resource_id=$(az resource list --name $(DATAFACTORYNAME) --output tsv --query "[].id")
+        la_resource_id=$(az resource list --name $(LOGANALYTICSNAME) --output tsv --query "[].id")
+        lbs_resource_id=$(az resource list --name $(LOGSTORAGEACCOUNTNAME) --output tsv --query "[].id")
+        az monitor diagnostic-settings create  \
+        --name "$(DATAFACTORYNAME)-Diagnostics" \
+        --resource $adf_resource_id \
+        --logs    '[{"category": "ActivityRuns","enabled": true,"retentionPolicy": {"days": 30,"enabled": true}},{"category": "PipelineRuns","enabled": true,"retentionPolicy": {"days": 30,"enabled": true}},{"category": "TriggerRuns","enabled": true,"retentionPolicy": {"days": 30,"enabled": true}}]' \
+        --metrics '[{"category": "AllMetrics","enabled": true,"retentionPolicy": {"days": 30,"enabled": true}}]' \
+        --storage-account $lbs_resource_id \
+        --workspace $la_resource_id
+# Add diagnostic settings connecting to Log Analytics
+  - task: AzureCLI@2
+    displayName: 'Add diagnostic settings for Data Factory'
+    name: add_diagnostics_log_analytics
+    condition: and(eq(variables['loganalytics'], true),eq(variables['logstorageaccount'], false))
+    inputs:
+      azureSubscription: ${{ parameters.AzDoServiceConnection }}
+      scriptType: bash
+      scriptLocation: inlineScript
+      inlineScript: |
+        adf_resource_id=$(az resource list --name $(DATAFACTORYNAME) --output tsv --query "[].id")
+        la_resource_id=$(az resource list --name $(LOGANALYTICSNAME) --output tsv --query "[].id")
+        az monitor diagnostic-settings create  \
+        --name "$(DATAFACTORYNAME)-Diagnostics" \
+        --resource $adf_resource_id \
+        --logs    '[{"category": "ActivityRuns","enabled": true,"retentionPolicy": {"days": 30,"enabled": true}},{"category": "PipelineRuns","enabled": true,"retentionPolicy": {"days": 30,"enabled": true}},{"category": "TriggerRuns","enabled": true,"retentionPolicy": {"days": 30,"enabled": true}}]' \
+        --metrics '[{"category": "AllMetrics","enabled": true,"retentionPolicy": {"days": 30,"enabled": true}}]' \
+        --workspace $la_resource_id
+# Add diagnostic settings archiving to sotrage only
+  - task: AzureCLI@2
+    displayName: 'Add diagnostic settings for Data Factory'
+    name: add_diagnostics_storage
+    condition: and(eq(variables['loganalytics'], false),eq(variables['logstorageaccount'], true))
+    inputs:
+      azureSubscription: ${{ parameters.AzDoServiceConnection }}
+      scriptType: bash
+      scriptLocation: inlineScript
+      inlineScript: |
+        adf_resource_id=$(az resource list --name $(DATAFACTORYNAME) --output tsv --query "[].id")
+        lbs_resource_id=$(az resource list --name $(LOGSTORAGEACCOUNTNAME) --output tsv --query "[].id")
+        az monitor diagnostic-settings create  \
+        --name "$(DATAFACTORYNAME)-Diagnostics" \
+        --resource $adf_resource_id \
+        --logs    '[{"category": "ActivityRuns","enabled": true,"retentionPolicy": {"days": 30,"enabled": true}},{"category": "PipelineRuns","enabled": true,"retentionPolicy": {"days": 30,"enabled": true}},{"category": "TriggerRuns","enabled": true,"retentionPolicy": {"days": 30,"enabled": true}}]' \
+        --metrics '[{"category": "AllMetrics","enabled": true,"retentionPolicy": {"days": 30,"enabled": true}}]' \
+        --storage-account $lbs_resource_id

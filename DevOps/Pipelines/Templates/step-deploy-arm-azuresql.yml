@@ -49,7 +49,21 @@ steps:
       resourceGroupName: ${{ parameters.resource_group }}
       location: $(LOCATION)
       templateLocation: 'Linked artifact'
-      csmFile: '$(Pipeline.Workspace)/arm_templates/arm-sql-server-control-db.json'
-      overrideParameters: '-location $(LOCATION) -prefix $(PREFIX) -environment $(ENVIRONMENT) -AzureSqlServerUn $(AZURESQLSERVERUN) -AzureSqlServerPw $(AZURESQLSERVERPW)'
+      csmFile: '$(Pipeline.Workspace)/arm_templates/arm-sql-server.json'
+      overrideParameters: '-location $(LOCATION) -prefix $(PREFIX) -environment $(ENVIRONMENT) -azureSqlServerName $(AZURESQLSERVERNAME) -databaseName $(AZUREEDWDBNAME) -AzureSqlServerUn $(AZURESQLSERVERUN) -AzureSqlServerPw $(AZURESQLSERVERPW)'
       deploymentMode: 'Incremental'
     displayName: 'Deploy Azure SQL Control DB'
+
+  # - task: AzureCLI@2
+  #   displayName: 'Add tags to Resource'
+  #   name: add_tags
+  #   inputs:
+  #     azureSubscription: ${{ parameters.AzDoServiceConnection }}
+  #     scriptType: bash
+  #     scriptLocation: inlineScript
+  #     inlineScript: |
+  #       asql_resource_id=$(az resource list --name $(AZURESQLSERVERNAME) --resource-group ${{ parameters.resource_group }} --output tsv --query "[].id")
+  #       controldb_resource_id=$(az resource list --name "$(AZURESQLSERVERNAME)/ControlDB" --resource-group ${{ parameters.resource_group }} --output tsv --query "[].id")
+  #       edw_resource_id=$(az resource list --name "$(AZURESQLSERVERNAME)/$(AZUREEDWDBNAME)" --resource-group ${{ parameters.resource_group }} --output tsv --query "[].id")
+  #       az resource tag --tags $(TAGS) --ids "$asql_resource_id" "$controldb_resource_id" "$edw_resource_id"
+        

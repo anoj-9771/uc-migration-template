@@ -1,0 +1,35 @@
+  # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+#   ----------------------- Deployable Resources  -------------------------   #
+#   The following variables are for turning on or off azure resources for     #
+#   deployment. If a resource is set to false, it will not deploy, whereas    #
+#   if it is set to true then it will deploy.                                 #
+  # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+variables: 
+  # Used to set Log Analytics deployability
+  - name: loganalytics
+    value: false
+  # Used to set Log Blob Storage deployability
+  - name: logstorageaccount
+    value: true
+  # Used to set Azure SQL Server deployability
+  - name: azuresqlserver
+    value: false
+  # Used to set Blob Storage deployability
+  - name: azureblobstorage
+    value: false
+  # Used to set Data Lake Storage deployability
+  - name: azuredatalakestorage
+    value: false
+  # Used to set Databricks Workspace deployability
+  - name: databricksvnet
+    value: false
+  # Databricks with v-Net integration
+  - name: databricksnovnet
+    value: false
+  # Used to set Log Analytics deployability
+  - name: datafactory
+    value: true
+  # Used to set ControlDB Schema dacpac deployment
+  - name: controlschema
+    value: false
+ 

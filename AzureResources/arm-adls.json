@@ -97,14 +97,14 @@
         }
     ],
     "variables": {
-        "accountNamesObject": "[split(replace(parameters('accountNames'),' ',''), ',')]",
+        "accountNamesObject": "[parameters('accountNames')]",
         "zonesObject": "[split(replace(parameters('zones'),' ',''), ',')]",
         "copy": [
             {
-                "name": "storageAccounts",
-                "count": "[length(variables('accountNamesObject'))]",
+                "name": "zones",
+                "count": "[length(variables('zonesObject'))]",
                 "input": {
-                    "name": "[variables('accountNamesObject')[copyIndex('storageAccounts', 0)]]"
+                    "name": "[variables('zonesObject')[copyIndex('zones', 0)]]"
                 }
             }
         ]
@@ -112,7 +112,7 @@
     "resources": [
         {
             "type": "Microsoft.Storage/storageAccounts",
-            "name": "[variables('accountNamesObject')[copyIndex()]]",
+            "name": "[variables('accountNamesObject')]",
             "apiVersion": "2018-07-01",
             "location": "[parameters('location')]",
             "sku": {
@@ -137,7 +137,7 @@
                     "type": "blobServices/containers",
                     "apiVersion": "2018-07-01",
                     "dependsOn": [
-                        "[variables('accountNamesObject')[copyIndex()]]"
+                        "[variables('accountNamesObject')]"
                     ]
                 }
             ]

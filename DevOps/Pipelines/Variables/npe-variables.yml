@@ -23,22 +23,47 @@ variables:
   # Store account type for BLOB Storage e.g. Standard_LRS)
   - name: storageAccountType
     value: Standard_LRS
-
+  # Tagging
+  - name: applytags
+    value: true
+  - name: tags
+    value: CostCenter=Data_and_AI \
+          Environment=$(ENVIRONMENT) \
+          Owner=john.doe@email.com \
+          App=ETL \
+          Project=teamNameProjectName \
+          MaxUpTime=3years \
+          ManagedBy=DnA
   # ------------------------------------------------
   # Service names for environment
   # ------------------------------------------------
+  # Name of Azure SQL Server and EDW Database
+  - name: azuresqlservername
+    value: $(PREFIX)-asql-$(ENVIRONMENT)
+  - name: azureedwdbname
+    value: PSC_EDW
   # Name of key vault for this environment
   - name: azurekeyvaultname
     value: $(PREFIX)-kv-$(ENVIRONMENT)
+  # Name of Log Analytics workspace name
+  - name: loganalyticsworkspacename
+    value: $(PREFIX)-la-$(ENVIRONMENT)
+  # Name of Azure SQL Server and catalog name
   # Data Lake storage account names, commonly split
   # into zones. Ensure it is a comma delimited list
   # as it is split into an array within the ARM 
   # template.
-  - name: datalakestorageaccountnames
+  - name: logstorageaccountname
+    value: $(PREFIX)salogs$(ENVIRONMENT)
+  - name: blobstorageaccountnames
     value: $(PREFIX)saraw$(ENVIRONMENT), $(PREFIX)sacurated$(ENVIRONMENT)
+  - name: datalakestorageaccountnames
+    value: $(PREFIX)adls$(ENVIRONMENT)
     # value: $(PREFIX)saraw$(ENVIRONMENT), $(PREFIX)sastage$(ENVIRONMENT), $(PREFIX)sasandbox$(ENVIRONMENT)
   # Container or file system names within storage account
   # Used to iterate in ARM template
+  - name: logzonename
+    value: databricks
   - name: zonenames
     value: raw, curated
     # value: raw, stage, sandbox
@@ -51,10 +76,14 @@ variables:
   # Data Factory self hosted integrated runtime name
   - name: datafactoryshirname
     value: $(PREFIX)-shir-$(ENVIRONMENT)
-  # Azure SQL Server Name
-  - name: azuresqlservername
-    value: $(PREFIX)-asql-$(ENVIRONMENT)
 
+  # ------------------------------------------------
+  # Log Analytics related
+  # ------------------------------------------------
+  - name: loganalyticssku
+    value: PerGB2018
+  - name: loganalyticsretention
+    value: 30  
   # ------------------------------------------------
   # Databricks related
   # ------------------------------------------------
