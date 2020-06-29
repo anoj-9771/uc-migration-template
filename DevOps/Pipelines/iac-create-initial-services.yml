@@ -1,9 +1,15 @@
 name: $(Build.BuildId).$(date:yyyyMMdd)
 
-trigger:
+pr:
   branches:
-    exclude:
-    - '*' 
+    include:
+    - master
+    - develop
+
+trigger: none
+  # branches:
+  #   exclude:
+  #   - '*' 
 
 pool:
   vmImage: 'ubuntu-latest'
