@@ -116,18 +116,15 @@ stages:
         AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
   - job: "add_tags"
     - ${{ if eq(variables['applytags'], true) }}:
-      - script: |
-          ids=$(az resource list --resource-group ${{ variables.prefix }} --query "[].id" --output tsv)
-          az resource tag --tags $(TAGS) --ids $ids 
+      - task: AzureCLI@2
         displayName: 'Add tags to Resources'
+        name: add_tags
+        inputs:
+          azureSubscription: ${{ parameters.AzDoServiceConnection }}
+          scriptType: bash
+          scriptLocation: inlineScript
+          inlineScript: |
+            ids=$(az resource list --resource-group ${{ variables.prefix }} --query "[].id" --output tsv)
+            az resource tag --tags $(TAGS) --ids $ids 
 
-    # - task: AzureCLI@2
-    #   displayName: 'Add tags to Resources'
-    #   name: add_tags
-    #   inputs:
-    #     azureSubscription: ${{ parameters.AzDoServiceConnection }}
-    #     scriptType: bash
-    #     scriptLocation: inlineScript
-    #     inlineScript: |
-    #       ids=$(az resource list --resource-group ${{ variables.prefix }} --query "[].id" --output tsv)
-    #       az resource tag --tags $(TAGS) --ids $ids 
+    
