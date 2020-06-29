@@ -110,7 +110,7 @@ stages:
           AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
           resource_group: '${{ variables.prefix }}-${{ variables.environment }}'
   # Deploy Control DB schema / DACPAC
-  - ${{ if eq(variables['controlschema }} , true) }}:
+  - ${{ if eq(variables['controlschema'], true) }}:
     - template: job-deploy-controldb.yml
       parameters:
         AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
