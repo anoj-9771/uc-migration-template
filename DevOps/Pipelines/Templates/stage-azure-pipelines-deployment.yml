@@ -109,13 +109,9 @@ stages:
         parameters:
           AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
           resource_group: '${{ variables.prefix }}-${{ variables.environment }}'
-  # Deploy Control DB schema / DACPAC
-  - ${{ if eq(variables['controlschema'], true) }}:
-    - template: job-deploy-controldb.yml
-      parameters:
-        AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
-  
-  - ${{ if eq(variables['applytags'], true) }}:
+
+    # Add Tags to resources
+    - ${{ if eq(variables['applytags'], true) }}:
     steps:
     - task: AzureCLI@2
       displayName: 'Add tags to Resources'
@@ -128,4 +124,11 @@ stages:
           ids=$(az resource list --resource-group ${{ variables.prefix }} --query "[].id" --output tsv)
           az resource tag --tags $(TAGS) --ids $ids 
 
+  # Deploy Control DB schema / DACPAC
+  - ${{ if eq(variables['controlschema'], true) }}:
+    - template: job-deploy-controldb.yml
+      parameters:
+        AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
+  
+  
     
