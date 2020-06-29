@@ -117,6 +117,7 @@ stages:
   
   - ${{ if eq(variables['applytags'], true) }}:
     - job: "add_tags"
+      steps:
       - task: AzureCLI@2
         displayName: 'Add tags to Resources'
         name: add_tags
