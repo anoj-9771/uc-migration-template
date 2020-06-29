@@ -112,17 +112,16 @@ stages:
 
     # Add Tags to resources
     - ${{ if eq(variables['applytags'], true) }}:
-    steps:
-    - task: AzureCLI@2
-      displayName: 'Add tags to Resources'
-      name: add_tags
-      inputs:
-        azureSubscription: ${{ variables.azdoresourceconnection }}
-        scriptType: bash
-        scriptLocation: inlineScript
-        inlineScript: |
-          ids=$(az resource list --resource-group ${{ variables.prefix }} --query "[].id" --output tsv)
-          az resource tag --tags $(TAGS) --ids $ids 
+      - task: AzureCLI@2
+        displayName: 'Add tags to Resources'
+        name: add_tags
+        inputs:
+          azureSubscription: ${{ variables.azdoresourceconnection }}
+          scriptType: bash
+          scriptLocation: inlineScript
+          inlineScript: |
+            ids=$(az resource list --resource-group ${{ variables.prefix }} --query "[].id" --output tsv)
+            az resource tag --tags $(TAGS) --ids $ids 
 
   # Deploy Control DB schema / DACPAC
   - ${{ if eq(variables['controlschema'], true) }}:
