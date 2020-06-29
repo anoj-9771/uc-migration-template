@@ -47,8 +47,7 @@ steps:
         az role assignment create --role "Contributor" --assignee-object-id "$adf_sp_oid" --scope "$sql_resource_id" 
         echo "$sql_resource_id"
 
-# Add diagnostic settings
-# - ${{ if and(eq(variables['loganalytics'], true),eq(variables['logstorageaccount'], true)) }}:
+# Add diagnostic settings for Log Analytics and Storage archiving
   - task: AzureCLI@2
     displayName: 'Add diagnostic settings for Data Factory'
     name: add_diagnostics_adf_log_analytics_and_storage
@@ -68,7 +67,7 @@ steps:
         --metrics '[{"category": "AllMetrics","enabled": true,"retentionPolicy": {"days": 30,"enabled": true}}]' \
         --storage-account $lbs_resource_id \
         --workspace $la_resource_id
-# - ${{ if and(eq(variables['loganalytics'], true),eq(variables['logstorageaccount'], false)) }}:
+# Add diagnostic settings connecting to Log Analytics
   - task: AzureCLI@2
     displayName: 'Add diagnostic settings for Data Factory'
     name: add_diagnostics_log_analytics
