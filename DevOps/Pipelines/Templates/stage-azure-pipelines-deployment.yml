@@ -74,7 +74,7 @@ stages:
           AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
           resource_group: '${{ variables.prefix }}-${{ variables.environment }}'
     # DeployADLS account for Data Lake
-    - ${{ if eq(eq(variables['azuredatalakestorage'], true) }}:
+    - ${{ if eq(variables['azuredatalakestorage'], true) }}:
       - template: step-deploy-arm-adlsv2.yml
         parameters:
           AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
