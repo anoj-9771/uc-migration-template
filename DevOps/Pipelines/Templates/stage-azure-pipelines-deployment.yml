@@ -45,72 +45,73 @@ stages:
     # ------------------------------------------------------------------------
     # Deploy Azure Log related resources
     # ------------------------------------------------------------------------
-      # Deploy Log Analytics
-    - template: step-deploy-arm-loganalytics.yml
-      parameters:
-        AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
-        resource_group: '${{ variables.prefix }}-${{ variables.environment }}'  
-      condition: eq(${{ variables.loganalytics }}, true)     
+    # Deploy Log Analytics
+    - ${{ if eq(${{ variables.loganalytics }}, true) }}:  
+      - template: step-deploy-arm-loganalytics.yml
+        parameters:
+          AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
+          resource_group: '${{ variables.prefix }}-${{ variables.environment }}' 
       # Deploy BLOB Storage accounts for Data Lake
-    - template: step-deploy-arm-logstorage.yml
-      parameters:
-        AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
-        resource_group: '${{ variables.prefix }}-${{ variables.environment }}'
-      condition: eq(${{ variables.logstorageaccount }}, true)    
+    - ${{ if  }}:
+      - template: step-deploy-arm-logstorage.yml
+        parameters:
+          AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
+          resource_group: '${{ variables.prefix }}-${{ variables.environment }}'
+        condition: eq(${{ variables.logstorageaccount }}, true)    
 
     # ------------------------------------------------------------------------
     # Deploy Azure resources
     # ------------------------------------------------------------------------
     # Deploy Azure SQL DB for Control DB
-    - template: step-deploy-arm-azuresql.yml
-      parameters:
-        AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
-        resource_group: '${{ variables.prefix }}-${{ variables.environment }}'
-      condition: eq(${{ variables.azuresqlserver }}, true)    
+    - ${{ if eq(${{ variables.azuresqlserver }}, true) }}:
+      - template: step-deploy-arm-azuresql.yml
+        parameters:
+          AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
+          resource_group: '${{ variables.prefix }}-${{ variables.environment }}'
     # Deploy BLOB Storage accounts for Data Lake
-    - template: step-deploy-arm-blobstoragev2.yml
-      parameters:
-        AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
-        resource_group: '${{ variables.prefix }}-${{ variables.environment }}'
-      condition: eq(${{ variables.azureblobstorage }}, true)    
+    - ${{ if eq(${{ variables.azureblobstorage }}, true) }}:
+      - template: step-deploy-arm-blobstoragev2.yml
+        parameters:
+          AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
+          resource_group: '${{ variables.prefix }}-${{ variables.environment }}'
     # DeployADLS account for Data Lake
-    - template: step-deploy-arm-adlsv2.yml
-      parameters:
-        AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
-        resource_group: '${{ variables.prefix }}-${{ variables.environment }}'
-      condition: eq(eq(${{ variables.azuredatalakestorage }}, true)   
+    - ${{ if eq(eq(${{ variables.azuredatalakestorage }}, true) }}:
+      - template: step-deploy-arm-adlsv2.yml
+        parameters:
+          AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
+          resource_group: '${{ variables.prefix }}-${{ variables.environment }}'
     # Deploy Databricks Workspace with v-net integration
-    - template: step-deploy-arm-databricks-no-vnet-nsg.yml
-      parameters:
-        AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
-        resource_group: '${{ variables.prefix }}-${{ variables.environment }}'
-        databricksclustername: ${{ variables.databricksclustername }}
-        databricks_driver_node_type_id : ${{ variables.databricksdrivernodetypeid }}
-        databricks_node_type_id : ${{ variables.databricksnodetypeid }}
-        databricks_spark_version : ${{ variables.sparkClusterVersion }}
-        databricks_workers : ${{ variables.databricksworkers }}
-        databricks_autotermination : ${{ variables.databricksautotermination }}
-      condition: eq(${{ variables.databricksvnet }}, true)    
+    - ${{ if eq(${{ variables.databricksvnet }}, true) }}:
+      - template: step-deploy-arm-databricks-no-vnet-nsg.yml
+        parameters:
+          AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
+          resource_group: '${{ variables.prefix }}-${{ variables.environment }}'
+          databricksclustername: ${{ variables.databricksclustername }}
+          databricks_driver_node_type_id : ${{ variables.databricksdrivernodetypeid }}
+          databricks_node_type_id : ${{ variables.databricksnodetypeid }}
+          databricks_spark_version : ${{ variables.sparkClusterVersion }}
+          databricks_workers : ${{ variables.databricksworkers }}
+          databricks_autotermination : ${{ variables.databricksautotermination }}
     # Deploy Databricks Workspace without v-net integration
-    - template: step-deploy-arm-databricks-no-vnet-nsg.yml
-      parameters:
-        AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
-        resource_group: '${{ variables.prefix }}-${{ variables.environment }}'
-        databricksclustername: ${{ variables.databricksclustername }}
-        databricks_driver_node_type_id : ${{ variables.databricksdrivernodetypeid }}
-        databricks_node_type_id : ${{ variables.databricksnodetypeid }}
-        databricks_spark_version : ${{ variables.sparkClusterVersion }}
-        databricks_workers : ${{ variables.databricksworkers }}
-        databricks_autotermination : ${{ variables.databricksautotermination }}
-      condition: eq(${{ variables.databricksnovnet }}, true)    
+    - ${{ if eq(${{ variables.databricksnovnet }}, true) }}:
+      - template: step-deploy-arm-databricks-no-vnet-nsg.yml
+        parameters:
+          AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
+          resource_group: '${{ variables.prefix }}-${{ variables.environment }}'
+          databricksclustername: ${{ variables.databricksclustername }}
+          databricks_driver_node_type_id : ${{ variables.databricksdrivernodetypeid }}
+          databricks_node_type_id : ${{ variables.databricksnodetypeid }}
+          databricks_spark_version : ${{ variables.sparkClusterVersion }}
+          databricks_workers : ${{ variables.databricksworkers }}
+          databricks_autotermination : ${{ variables.databricksautotermination }}
     # Deploy Data Factory with access policies for AKV
-    - template: step-deploy-arm-datafactory-w-access-policies.yml
+    - ${{ if eq(${{ variables.datafactory }}, true) }}:
+      - template: step-deploy-arm-datafactory-w-access-policies.yml
+        parameters:
+          AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
+          resource_group: '${{ variables.prefix }}-${{ variables.environment }}'
+  # Deploy Control DB schema / DACPAC
+  - ${{ if eq(${{ variables.controlschema }} , true) }}:
+    - template: job-deploy-controldb.yml
       parameters:
         AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
-        resource_group: '${{ variables.prefix }}-${{ variables.environment }}'
-      condition: eq(${{ variables.datafactory }}, true)    
-  # Deploy Control DB schema / DACPAC
-  - template: job-deploy-controldb.yml
-    parameters:
-      AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
-    condition: eq(${{ variables.controlschema }} , true)   
