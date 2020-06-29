@@ -56,18 +56,18 @@ steps:
       azureSubscription: ${{ parameters.AzDoServiceConnection }}
       scriptType: bash
       scriptLocation: inlineScript
-      condition: and(eq(variables['loganalytics'], true),eq(variables['logstorageaccount'], true))
       inlineScript: |
-        adf_resource_id=$(az resource list --name $(DATAFACTORYNAME) --output tsv --query "[].id")
-        la_resource_id=$(az resource list --name $(LOGANALYTICSNAME) --output tsv --query "[].id")
-        lbs_resource_id=$(az resource list --name $(LOGSTORAGEACCOUNTNAME) --output tsv --query "[].id")
-        az monitor diagnostic-settings create  \
-        --name $(DATAFACTORYNAME)-Diagnostics \
-        --resource $adf_resource_id \
-        --logs    '[{"category": "ActivityRuns","enabled": true,"retentionPolicy": {"days": 30,"enabled": true}},{"category": "PipelineRuns","enabled": true,"retentionPolicy": {"days": 30,"enabled": true}},{"category": "TriggerRuns","enabled": true,"retentionPolicy": {"days": 30,"enabled": true}}]' \
-        --metrics '[{"category": "AllMetrics","enabled": true,"retentionPolicy": {"days": 30,"enabled": true}}]' \
-        --storage-account $lbs_resource_id \
-        --workspace $la_resource_id
+          adf_resource_id=$(az resource list --name $(DATAFACTORYNAME) --output tsv --query "[].id")
+          la_resource_id=$(az resource list --name $(LOGANALYTICSNAME) --output tsv --query "[].id")
+          lbs_resource_id=$(az resource list --name $(LOGSTORAGEACCOUNTNAME) --output tsv --query "[].id")
+          az monitor diagnostic-settings create  \
+          --name "$(DATAFACTORYNAME)-Diagnostics" \
+          --resource $adf_resource_id \
+          --logs    '[{"category": "ActivityRuns","enabled": true,"retentionPolicy": {"days": 30,"enabled": true}},{"category": "PipelineRuns","enabled": true,"retentionPolicy": {"days": 30,"enabled": true}},{"category": "TriggerRuns","enabled": true,"retentionPolicy": {"days": 30,"enabled": true}}]' \
+          --metrics '[{"category": "AllMetrics","enabled": true,"retentionPolicy": {"days": 30,"enabled": true}}]' \
+          --storage-account $lbs_resource_id \
+          --workspace $la_resource_id
+        condition: and(eq(variables['loganalytics'], true),eq(variables['logstorageaccount'], true))
 # - ${{ if and(eq(variables['loganalytics'], true),eq(variables['logstorageaccount'], false)) }}:
   - task: AzureCLI@2
     displayName: 'Add diagnostic settings for Data Factory'
@@ -76,16 +76,16 @@ steps:
       azureSubscription: ${{ parameters.AzDoServiceConnection }}
       scriptType: bash
       scriptLocation: inlineScript
-      condition: and(eq(variables['loganalytics'], true),eq(variables['logstorageaccount'], false))
       inlineScript: |
-        adf_resource_id=$(az resource list --name $(DATAFACTORYNAME) --output tsv --query "[].id")
-        la_resource_id=$(az resource list --name $(LOGANALYTICSNAME) --output tsv --query "[].id")
-        az monitor diagnostic-settings create  \
-        --name $(DATAFACTORYNAME)-Diagnostics \
-        --resource $adf_resource_id \
-        --logs    '[{"category": "ActivityRuns","enabled": true,"retentionPolicy": {"days": 30,"enabled": true}},{"category": "PipelineRuns","enabled": true,"retentionPolicy": {"days": 30,"enabled": true}},{"category": "TriggerRuns","enabled": true,"retentionPolicy": {"days": 30,"enabled": true}}]' \
-        --metrics '[{"category": "AllMetrics","enabled": true,"retentionPolicy": {"days": 30,"enabled": true}}]' \
-        --workspace $la_resource_id
+          adf_resource_id=$(az resource list --name $(DATAFACTORYNAME) --output tsv --query "[].id")
+          la_resource_id=$(az resource list --name $(LOGANALYTICSNAME) --output tsv --query "[].id")
+          az monitor diagnostic-settings create  \
+          --name "$(DATAFACTORYNAME)-Diagnostics" \
+          --resource $adf_resource_id \
+          --logs    '[{"category": "ActivityRuns","enabled": true,"retentionPolicy": {"days": 30,"enabled": true}},{"category": "PipelineRuns","enabled": true,"retentionPolicy": {"days": 30,"enabled": true}},{"category": "TriggerRuns","enabled": true,"retentionPolicy": {"days": 30,"enabled": true}}]' \
+          --metrics '[{"category": "AllMetrics","enabled": true,"retentionPolicy": {"days": 30,"enabled": true}}]' \
+          --workspace $la_resource_id
+        condition: and(eq(variables['loganalytics'], true),eq(variables['logstorageaccount'], false))
 # - ${{ if and(eq(variables['loganalytics'], false),eq(variables['logstorageaccount'], true)) }}:
   - task: AzureCLI@2
     displayName: 'Add diagnostic settings for Data Factory'
@@ -94,13 +94,13 @@ steps:
       azureSubscription: ${{ parameters.AzDoServiceConnection }}
       scriptType: bash
       scriptLocation: inlineScript
-      condition: and(eq(variables['loganalytics'], false),eq(variables['logstorageaccount'], true))
       inlineScript: |
-        adf_resource_id=$(az resource list --name $(DATAFACTORYNAME) --output tsv --query "[].id")
-        lbs_resource_id=$(az resource list --name $(LOGSTORAGEACCOUNTNAME) --output tsv --query "[].id")
-        az monitor diagnostic-settings create  \
-        --name $(DATAFACTORYNAME)-Diagnostics \
-        --resource $adf_resource_id \
-        --logs    '[{"category": "ActivityRuns","enabled": true,"retentionPolicy": {"days": 30,"enabled": true}},{"category": "PipelineRuns","enabled": true,"retentionPolicy": {"days": 30,"enabled": true}},{"category": "TriggerRuns","enabled": true,"retentionPolicy": {"days": 30,"enabled": true}}]' \
-        --metrics '[{"category": "AllMetrics","enabled": true,"retentionPolicy": {"days": 30,"enabled": true}}]' \
-        --storage-account $lbs_resource_id
+          adf_resource_id=$(az resource list --name $(DATAFACTORYNAME) --output tsv --query "[].id")
+          lbs_resource_id=$(az resource list --name $(LOGSTORAGEACCOUNTNAME) --output tsv --query "[].id")
+          az monitor diagnostic-settings create  \
+          --name "$(DATAFACTORYNAME)-Diagnostics" \
+          --resource $adf_resource_id \
+          --logs    '[{"category": "ActivityRuns","enabled": true,"retentionPolicy": {"days": 30,"enabled": true}},{"category": "PipelineRuns","enabled": true,"retentionPolicy": {"days": 30,"enabled": true}},{"category": "TriggerRuns","enabled": true,"retentionPolicy": {"days": 30,"enabled": true}}]' \
+          --metrics '[{"category": "AllMetrics","enabled": true,"retentionPolicy": {"days": 30,"enabled": true}}]' \
+          --storage-account $lbs_resource_id
+        condition: and(eq(variables['loganalytics'], false),eq(variables['logstorageaccount'], true))
