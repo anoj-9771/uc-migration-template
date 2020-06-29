@@ -19,8 +19,6 @@ parameters:
   type: string
 - name: run_condition
   type: string
-# - name: resource_group
-#   type: string
 
 stages:
 # ---------------------------------------------------------------------------
