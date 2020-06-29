@@ -120,7 +120,7 @@ stages:
           scriptType: bash
           scriptLocation: inlineScript
           inlineScript: |
-            ids=$(az resource list --resource-group ${{ variables.prefix }} --query "[].id" --output tsv)
+            ids=$(az resource list --resource-group '${{ variables.prefix }}-${{ variables.environment }}' --query "[].id" --output tsv)
             az resource tag --tags $(TAGS) --ids $ids 
 
   # Deploy Control DB schema / DACPAC
