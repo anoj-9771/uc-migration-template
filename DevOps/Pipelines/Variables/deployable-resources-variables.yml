@@ -10,7 +10,7 @@ variables:
     value: false
   # Used to set Log Blob Storage deployability
   - name: logstorageaccount
-    value: true
+    value: false
   # Used to set Azure SQL Server deployability
   - name: azuresqlserver
     value: true
