@@ -115,7 +115,7 @@ stages:
       parameters:
         AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
   
-  - ${{ if eq(variables['tags'], true) }}:
+  - ${{ if eq(variables['applytags'], true) }}:
     - task: AzureCLI@2
       displayName: 'Add tags to Resources'
       name: add_tags

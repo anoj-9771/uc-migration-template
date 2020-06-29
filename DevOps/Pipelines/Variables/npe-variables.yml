@@ -24,6 +24,8 @@ variables:
   - name: storageAccountType
     value: Standard_LRS
   # Tagging
+  - name: applytags
+    value: true
   - name: tags
     value: CostCenter=Data_and_AI \
           Environment=$(ENVIRONMENT) \
