@@ -54,7 +54,7 @@ stages:
 
 - stage: deploy_to_prd
   dependsOn: 'build'
-  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/develop'))
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
   variables:
   - template: Variables/prd-variables.yml
   jobs:
