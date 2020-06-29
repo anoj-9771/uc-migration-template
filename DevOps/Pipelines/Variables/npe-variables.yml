@@ -25,7 +25,7 @@ variables:
     value: Standard_LRS
   # Tagging
   - name: tags
-    value: CostCenter=Data and AI \
+    value: CostCenter=Data_and_AI \
           Environment=$(ENVIRONMENT) \
           Owner=john.doe@email.com \
           App=ETL \
