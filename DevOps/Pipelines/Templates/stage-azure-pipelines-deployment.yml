@@ -114,12 +114,12 @@ stages:
     - template: job-deploy-controldb.yml
       parameters:
         AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
-  
-  - ${{ if eq(variables['applytags'], true) }}:
-    - script: |
-        ids=$(az resource list --resource-group ${{ variables.prefix }} --query "[].id" --output tsv)
-        az resource tag --tags $(TAGS) --ids $ids 
-      displayName: 'Add tags to Resources'
+  - job: "add_tags"
+    - ${{ if eq(variables['applytags'], true) }}:
+      - script: |
+          ids=$(az resource list --resource-group ${{ variables.prefix }} --query "[].id" --output tsv)
+          az resource tag --tags $(TAGS) --ids $ids 
+        displayName: 'Add tags to Resources'
 
     # - task: AzureCLI@2
     #   displayName: 'Add tags to Resources'
