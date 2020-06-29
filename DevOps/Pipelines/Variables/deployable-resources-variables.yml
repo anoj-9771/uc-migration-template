@@ -10,7 +10,7 @@ variables:
     value: false
   # Used to set Log Blob Storage deployability
   - name: logstorageaccount
-    value: false
+    value: true
   # Used to set Azure SQL Server deployability
   - name: azuresqlserver
     value: true
@@ -25,11 +25,11 @@ variables:
     value: false
   # Databricks with v-Net integration
   - name: databricksnovnet
-    value: false
+    value: true
   # Used to set Log Analytics deployability
   - name: datafactory
     value: true
   # Used to set ControlDB Schema dacpac deployment
   - name: controlschema
-    value: false
+    value: true
  
