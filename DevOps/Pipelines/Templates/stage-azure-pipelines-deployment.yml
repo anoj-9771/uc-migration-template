@@ -114,8 +114,9 @@ stages:
     - template: job-deploy-controldb.yml
       parameters:
         AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
-  - job: "add_tags"
-    - ${{ if eq(variables['applytags'], true) }}:
+  
+  - ${{ if eq(variables['applytags'], true) }}:
+    - job: "add_tags"
       - task: AzureCLI@2
         displayName: 'Add tags to Resources'
         name: add_tags
