@@ -124,5 +124,5 @@ stages:
       scriptType: bash
       scriptLocation: inlineScript
       inlineScript: |
-        ids=$(az resource list --resource-group ${{ parameters.resource_group }} --query "[].id" --output tsv)
+        ids=$(az resource list --resource-group ${{ variables.prefix }} --query "[].id" --output tsv)
         az resource tag --tags $(TAGS) --ids $ids 
