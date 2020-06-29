@@ -31,6 +31,7 @@ stages:
   condition: ${{ parameters.run_condition }}
   variables:
   - template: ../Variables/${{ parameters.variable_template_name }}.yml
+  - template: ../Variables/deployable-resources-variables.yml
   jobs:
   # ---------------------------------------------------------------------------
   # Modularise deployment artifacts into separate ARM scripts. Expose these
@@ -48,12 +49,14 @@ stages:
     - template: step-deploy-arm-loganalytics.yml
       parameters:
         AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
-        resource_group: '${{ variables.prefix }}-${{ variables.environment }}'      
+        resource_group: '${{ variables.prefix }}-${{ variables.environment }}'  
+      condition: eq(${{ variables.loganalytics }}, true)     
       # Deploy BLOB Storage accounts for Data Lake
     - template: step-deploy-arm-logstorage.yml
       parameters:
         AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
         resource_group: '${{ variables.prefix }}-${{ variables.environment }}'
+      condition: eq(${{ variables.logstorageaccount }}, true)    
 
     # ------------------------------------------------------------------------
     # Deploy Azure resources
@@ -63,17 +66,20 @@ stages:
       parameters:
         AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
         resource_group: '${{ variables.prefix }}-${{ variables.environment }}'
+      condition: eq(${{ variables.azuresqlserver }}, true)    
     # Deploy BLOB Storage accounts for Data Lake
     - template: step-deploy-arm-blobstoragev2.yml
       parameters:
         AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
         resource_group: '${{ variables.prefix }}-${{ variables.environment }}'
+      condition: eq(${{ variables.azureblobstorage }}, true)    
     # DeployADLS account for Data Lake
     - template: step-deploy-arm-adlsv2.yml
       parameters:
         AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
         resource_group: '${{ variables.prefix }}-${{ variables.environment }}'
-    # Deploy Databricks Workspace
+      condition: eq(eq(${{ variables.azuredatalakestorage }}, true)   
+    # Deploy Databricks Workspace with v-net integration
     - template: step-deploy-arm-databricks-no-vnet-nsg.yml
       parameters:
         AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
@@ -84,12 +90,27 @@ stages:
         databricks_spark_version : ${{ variables.sparkClusterVersion }}
         databricks_workers : ${{ variables.databricksworkers }}
         databricks_autotermination : ${{ variables.databricksautotermination }}
+      condition: eq(${{ variables.databricksvnet }}, true)    
+    # Deploy Databricks Workspace without v-net integration
+    - template: step-deploy-arm-databricks-no-vnet-nsg.yml
+      parameters:
+        AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
+        resource_group: '${{ variables.prefix }}-${{ variables.environment }}'
+        databricksclustername: ${{ variables.databricksclustername }}
+        databricks_driver_node_type_id : ${{ variables.databricksdrivernodetypeid }}
+        databricks_node_type_id : ${{ variables.databricksnodetypeid }}
+        databricks_spark_version : ${{ variables.sparkClusterVersion }}
+        databricks_workers : ${{ variables.databricksworkers }}
+        databricks_autotermination : ${{ variables.databricksautotermination }}
+      condition: eq(${{ variables.databricksnovnet }}, true)    
     # Deploy Data Factory with access policies for AKV
     - template: step-deploy-arm-datafactory-w-access-policies.yml
       parameters:
         AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
         resource_group: '${{ variables.prefix }}-${{ variables.environment }}'
-  # # Deploy Control DB schema / DACPAC
-  # - template: job-deploy-controldb.yml
-  #   parameters:
-  #     AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
+      condition: eq(${{ variables.datafactory }}, true)    
+  # Deploy Control DB schema / DACPAC
+  - template: job-deploy-controldb.yml
+    parameters:
+      AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
+    condition: eq(${{ variables.controlschema }} , true)   

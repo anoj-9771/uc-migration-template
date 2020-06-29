@@ -3,26 +3,45 @@
     "contentVersion": "1.0.0.0",
     "parameters": {
         "workspaceName": {
-            "type": "string"
-        },
-        "location": {
-            "type": "string"
+            "type": "string",
+            "defaultValue": "something",
+            "metadata": {
+              "description": "Name of the workspace."
+            }
         },
         "sku": {
-            "type": "string"
-        }
-    },
-    "resources": [
+            "type": "string",
+            "defaultValue": "pergb2018",
+            "metadata": {
+            "description": "Pricing tier: PerGB2018 or legacy tiers (Free, Standalone, PerNode, Standard or Premium) which are not available to all customers."
+            }
+          },
+          "location": {
+            "type": "string",
+            "metadata": {
+                "description": "Specifies the location for the workspace."
+                }
+          },
+          "retentionInDays": {
+            "type": "int",
+            "defaultValue": 30,
+            "metadata": {
+              "description": "Number of days to retain data."
+            }
+          }  
+        },
+        "resources": [
         {
-            "apiVersion": "2017-03-15-preview",
-            "name": "[parameters('workspaceName')]",
-            "location": "[parameters('location')]",
             "type": "Microsoft.OperationalInsights/workspaces",
+            "name": "[parameters('workspaceName')]",
+            "apiVersion": "2020-03-01-preview",
+            "location": "[parameters('location')]",
             "properties": {
                 "sku": {
                     "name": "[parameters('sku')]"
-                }
+                },
+                "retentionInDays": "[parameters('retentionInDays')]"
             }
         }
     ]
-}
+  }
