@@ -46,19 +46,7 @@ steps:
         echo "$adf_sp_oid"
         az role assignment create --role "Contributor" --assignee-object-id "$adf_sp_oid" --scope "$sql_resource_id" 
         echo "$sql_resource_id"
-        
-  # Add Tags to Data Factory
-  - task: AzureCLI@2
-    displayName: 'Add tags to Data Factory'
-    name: add_tags_adf
-    inputs:
-      azureSubscription: ${{ parameters.AzDoServiceConnection }}
-      scriptType: bash
-      scriptLocation: inlineScript
-      inlineScript: |
-        adf_resource_type=$(az resource list --name $(DATAFACTORYNAME) --resource-group ${{ parameters.resource_group }} --output tsv --query "[].type")
-        az resource tag --tags $(TAGS) --resource-group ${{ parameters.resource_group }} -n examplevnet --resource-type "$adf_resource_type"
-          
+
   # Add diagnostic settings
   - ${{ if and(eq(variables['loganalytics'], true),eq(variables['logstorageaccount'], true)) }}:
     - task: AzureCLI@2
