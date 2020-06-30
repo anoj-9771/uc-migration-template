@@ -54,7 +54,7 @@ steps:
       location: $(LOCATION)
       templateLocation: 'Linked artifact'
       csmFile: '$(Pipeline.Workspace)/arm_templates/arm-databricks-vnet.json'
-      overrideParameters: '-location $(LOCAITON) -vnetName $(VNETNAME) -privateSubnetName $(PRIVATESUBNETNAME) -publicSubnetName $(PUBLICSUBNETNAME) -nsgId $(NSGID) -privateSubnetCidr $(PRIVATESUBNETCIDR) -publicSubnetCidr $(PUBLICSUBNETCIDR)'
+      overrideParameters: '-location $(LOCAITON) -vnetName $(VNETNAME) -privateSubnetName $(CUSTOMPRIVATESUBNETNAME) -publicSubnetName $(CUSTOMPUBLICSUBNETNAME) -nsgId $(NSGID) -privateSubnetCidr $(PRIVATESUBNETCIDR) -publicSubnetCidr $(PUBLICSUBNETCIDR)'
       deploymentMode: 'Incremental'
       deploymentOutputs: 'vnetOutput'
     displayName: 'Create or update Sub Nets'
