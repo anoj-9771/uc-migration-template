@@ -1,0 +1,102 @@
+parameters:
+- name: AzDoServiceConnection # name of the parameter; required
+  type: string # data type of the parameter; required
+- name: resource_group
+  type: string
+- name: databricksclustername
+  type: string
+- name: databricks_driver_node_type_id
+  type: string
+- name: databricks_node_type_id
+  type: string
+- name: databricks_spark_version
+  type: string
+- name: databricks_workers
+  type: number
+- name: databricks_autotermination
+  type: number
+
+steps:
+  # Create or update NSG
+  - task: AzureResourceGroupDeployment@2
+    condition: eq(variables['databricksvnetngs'], true)
+    inputs:
+      azureSubscription: ${{ parameters.AzDoServiceConnection }}
+      action: 'Create Or Update Resource Group'
+      resourceGroupName: ${{ parameters.resource_group }}
+      location: $(LOCATION)
+      templateLocation: 'Linked artifact'
+      csmFile: '$(Pipeline.Workspace)/arm_templates/arm-databricks-nsg.json'
+      overrideParameters: '-location $(LOCATION) -nsgName $(NSGNAME)'
+      deploymentMode: 'Incremental'
+      deploymentOutputs: 'databricksOutput'
+    displayName: 'Create or update NSG'
+  # Extract ARM NSG ID output
+  - powershell: |
+      $string = '$(nsgId)'
+      $json = $string | convertfrom-json
+      #Parse nsgId
+      $nsgId = $json.nsgId.value
+      Write-host "##vso[task.setvariable variable=nsgId;]$nsgId"
+    condition: eq(variables['databricksvnetngs'], true)
+    name: getNsgId
+    displayName: 'Extract NSG ID from ARM outputs'
+
+  # Create or update Vnet Subnets
+  - task: AzureResourceGroupDeployment@2
+    condition: eq(variables['databricksvnetsubnets'], true)
+    inputs:
+      azureSubscription: ${{ parameters.AzDoServiceConnection }}
+      action: 'Create Or Update Resource Group'
+      resourceGroupName: ${{ parameters.resource_group }}
+      location: $(LOCATION)
+      templateLocation: 'Linked artifact'
+      csmFile: '$(Pipeline.Workspace)/arm_templates/arm-databricks-vnet.json'
+      overrideParameters: '-location $(LOCAITON) -vnetName $(VNETNAME) -privateSubnetName $(PRIVATESUBNETNAME) -publicSubnetName $(PUBLICSUBNETNAME) -nsgId $(NSGID) -privateSubnetCidr $(PRIVATESUBNETCIDR) -publicSubnetCidr $(PUBLICSUBNETCIDR)'
+      deploymentMode: 'Incremental'
+      deploymentOutputs: 'vnetId'
+    displayName: 'Create or update Sub Nets'
+  # Extract ARM Vnet ID output
+  - powershell: | 
+      # Convert from json
+      $string = '$(vnetId)'
+      $json = $string | convertfrom-json
+      #Parse vnetId
+      $vnetId= $json.vnetId.value
+      Write-host "##vso[task.setvariable variable=vnetId;]$vnetId"
+    condition: eq(variables['databricksvnetsubnets'], true)
+    name: getVnetId
+    displayName: 'Extract Vnet ID from ARM outputs'
+
+  # Create Databricks Workspace
+  - task: AzureResourceGroupDeployment@2
+    inputs:
+      azureSubscription: ${{ parameters.AzDoServiceConnection }}
+      action: 'Create Or Update Resource Group'
+      resourceGroupName: ${{ parameters.resource_group }}
+      location: $(LOCATION)
+      templateLocation: 'Linked artifact'
+      csmFile: '$(Pipeline.Workspace)/arm_templates/arm-databricks-vnet-injection.json'
+      overrideParameters: '-workspaceName $(WORKSPACENAME) -pricingTier $(PRICINGTIER) -customVirtualNetworkId $(VNETID) -customPublicSubnetName $(CUSTOMPUBLICSUBNETNAME) -customPrivateSubnetName $(CUSTOMPRIVATESUBNETNAME) -location $(LOCATION)'
+      deploymentMode: 'Incremental'
+      deploymentOutputs: 'databricksOutput'
+    displayName: 'Deploy Databricks Workspace'
+  # Extract ARM output
+  - powershell: |
+      Write-Host '$(databricksOutput)'
+      $json = '$(databricksOutput)' | convertfrom-json
+      $workspaceNameValue = $json.WorkspaceName.value
+      Write-Host "##vso[task.setvariable variable=databricksWorkspaceName;isOutput=true]$workspaceNameValue"
+    name: getWorkspaceName
+    displayName: 'Extract ARM outputs'
+
+  - template: step-databricks-create-add-pat-cluster.yml
+    parameters:
+      AzDoServiceConnection: ${{ parameters.AzDoServiceConnection }}
+      resource_group: ${{ parameters.resource_group }}
+      databricks_cluster_name: ${{ parameters.databricksclustername }}
+      databricks_driver_node_type_id : ${{ parameters.databricks_driver_node_type_id }}
+      databricks_node_type_id : ${{ parameters.databricks_node_type_id }}
+      databricks_spark_version : ${{ parameters.databricks_spark_version }}
+      databricks_workers : ${{ parameters.databricks_workers }}
+      databricks_autotermination : ${{ parameters.databricks_autotermination }}

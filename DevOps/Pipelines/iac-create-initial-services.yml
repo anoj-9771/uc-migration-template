@@ -34,7 +34,7 @@ stages:
         # azureSubscription cannot be a stage scoped variable
         azureSubscription: ${{ variables.azdoresourceconnection }}
         action: 'Create Or Update Resource Group'
-        resourceGroupName: '${{ variables.prefix }}-${{ variables.environment }}'
+        resourceGroupName: ${{ variables.resourcegroupname }}
         location: ${{ variables.location }}
         templateLocation: 'Linked artifact'
         csmFile: '$(Pipeline.Workspace)/arm_templates/arm-initial-keyvault.json'
@@ -67,7 +67,7 @@ stages:
         # azureSubscription cannot be a stage scoped variable
         azureSubscription: ${{ variables.azdoresourceconnection }}
         action: 'Create Or Update Resource Group'
-        resourceGroupName: '${{ variables.prefix }}-${{ variables.environment }}'
+        resourceGroupName: ${{ variables.resourcegroupname }}
         location: ${{ variables.location }}
         templateLocation: 'Linked artifact'
         csmFile: '$(Pipeline.Workspace)/arm_templates/arm-initial-keyvault.json'

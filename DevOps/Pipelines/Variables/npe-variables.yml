@@ -1,25 +1,28 @@
 variables:
   # Used in service naming
   - name: prefix
-    value: sl
+    value: PSC-SYD
   # The default resource group region name
   - name: location
     value: australiaeast
   # environment name used in service naming
   - name: environment
-    value: nonprod
+    value: NPE
+  # Resource group name
+  - name: resourcegroupname
+    value: $(PREFIX)-$(ENVIRONMENT)-ARG
   # username for SQL Server Control DB
   - name: azuresqlserverun
     value: sqladmin
   # Name of the service connection in Azure Devops
   - name: azdoresourceconnection
-    value: SP-Stephen_Lundall-Insight
+    value: PSC_NPE_DataEstate
   # Set the pricing tier for Databricks
   - name: databricksPricingTier
     value: standard
-  # The service principal object ID (Not App ID)
+  # The service principal object ID (Not App ID) use az ad sp show --id <app-id> --query "objectId" --output tsv
   - name: spobjectid
-    value: a1860bea-6cf3-4c01-8659-e7ec4977c6a7
+    value: 9d773319-08cc-4775-bf74-19861826635b
   # Store account type for BLOB Storage e.g. Standard_LRS)
   - name: storageAccountType
     value: Standard_LRS
@@ -27,38 +30,34 @@ variables:
   - name: applytags
     value: true
   - name: tags
-    value: CostCenter=Data_and_AI \
-          Environment=$(ENVIRONMENT) \
-          Owner=john.doe@email.com \
-          App=ETL \
-          Project=teamNameProjectName \
-          MaxUpTime=3years \
-          ManagedBy=DnA
+    value: CostCenter=DataAndAnalytics \
+          Environment=Non-Production \
+          Owner=Michael.Clover@dpcwagov.onmicrosoft.com
   # ------------------------------------------------
   # Service names for environment
   # ------------------------------------------------
   # Name of Azure SQL Server and EDW Database
   - name: azuresqlservername
-    value: $(PREFIX)-asql-$(ENVIRONMENT)
+    value: lower($(PREFIX)-$(ENVIRONMENT))-asql
   - name: azureedwdbname
     value: PSC_EDW
   # Name of key vault for this environment
   - name: azurekeyvaultname
-    value: $(PREFIX)-kv-$(ENVIRONMENT)
+    value: $(PREFIX)-$(ENVIRONMENT)-AKV
   # Name of Log Analytics workspace name
   - name: loganalyticsworkspacename
-    value: $(PREFIX)-la-$(ENVIRONMENT)
+    value: $(PREFIX)-$(ENVIRONMENT)-ALA
   # Name of Azure SQL Server and catalog name
   # Data Lake storage account names, commonly split
   # into zones. Ensure it is a comma delimited list
   # as it is split into an array within the ARM 
   # template.
   - name: logstorageaccountname
-    value: $(PREFIX)salogs$(ENVIRONMENT)
+    value: replace(lower($(PREFIX)$(ENVIRONMENT)),'-','')salogs
   - name: blobstorageaccountnames
-    value: $(PREFIX)saraw$(ENVIRONMENT), $(PREFIX)sacurated$(ENVIRONMENT)
+    value: replace(lower($(PREFIX)$(ENVIRONMENT)),'-','')saraw, replace(lower($(PREFIX)$(ENVIRONMENT)),'-','')sacurated
   - name: datalakestorageaccountnames
-    value: $(PREFIX)adls$(ENVIRONMENT)
+    value: replace(lower($(PREFIX)$(ENVIRONMENT)),'-','')adls
     # value: $(PREFIX)saraw$(ENVIRONMENT), $(PREFIX)sastage$(ENVIRONMENT), $(PREFIX)sasandbox$(ENVIRONMENT)
   # Container or file system names within storage account
   # Used to iterate in ARM template
@@ -69,13 +68,13 @@ variables:
     # value: raw, stage, sandbox
   # Databricks workspace name for this enironment
   - name: databricksworkspacename
-    value: $(PREFIX)-dbws-$(ENVIRONMENT)
+    value: $(PREFIX)-$(ENVIRONMENT)-ADBWS
   # Data Factory service name for this environment
   - name: datafactoryname
-    value: $(PREFIX)-df-$(ENVIRONMENT)
+    value: $(PREFIX)-$(ENVIRONMENT)-ADF
   # Data Factory self hosted integrated runtime name
   - name: datafactoryshirname
-    value: $(PREFIX)-shir-$(ENVIRONMENT)
+    value: lower($(PREFIX)-$(ENVIRONMENT))-shir
 
   # ------------------------------------------------
   # Log Analytics related
@@ -87,6 +86,22 @@ variables:
   # ------------------------------------------------
   # Databricks related
   # ------------------------------------------------
+  - name: nsgid
+    value: 
+  - name: vnetName
+    value: 
+  - name: vnetid
+    value: 
+  - name: publicsubnetcidr
+    value:  
+  - name: privatesubnetcidr
+    value: 
+  - name: custompublicsubnetname
+    value: 
+  - name: customprivatesubnetname
+    value: 
+  - name: databrickspricingtier
+    value: premium
   - name: databricksclustername
     value: etl-cluster
   - name: sparkClusterVersion
@@ -99,15 +114,3 @@ variables:
     value: 2
   - name: databricksautotermination
     value: 10
-  - name: vnetName
-    value: 
-  - name: customVirtualNetworkId
-    value: 
-  - name: publicSubnetCidr
-    value:  
-  - name: privateSubnetCidr
-    value: 
-  - name: customPublicSubnetName
-    value: 
-  - name: customPrivateSubnetName
-    value: 

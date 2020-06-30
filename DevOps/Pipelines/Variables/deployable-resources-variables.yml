@@ -10,9 +10,12 @@ variables:
     value: false
   # Used to set Log Blob Storage deployability
   - name: logstorageaccount
-    value: true
+    value: false
   # Used to set Azure SQL Server deployability
   - name: azuresqlserver
+    value: false
+  # Used to set ControlDB Schema dacpac deployment
+  - name: controlschema
     value: false
   # Used to set Blob Storage deployability
   - name: azureblobstorage
@@ -22,14 +25,16 @@ variables:
     value: false
   # Used to set Databricks Workspace deployability
   - name: databricksvnet
-    value: false
+    value: true
+  # Used to set Databricks Workspace deployability
+  - name: databricksvnetsubnets
+    value: true
+  # Used to set Databricks Workspace deployability
+  - name: databricksvnetnsg
+    value: true
   # Databricks with v-Net integration
   - name: databricksnovnet
     value: false
   # Used to set Log Analytics deployability
   - name: datafactory
-    value: true
-  # Used to set ControlDB Schema dacpac deployment
-  - name: controlschema
     value: false
- 

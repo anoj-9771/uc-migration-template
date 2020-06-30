@@ -31,7 +31,7 @@ stages:
       inputs:
         azureSubscription: ${{ variables.azdoresourceconnection }}
         action: 'Create Or Update Resource Group'
-        resourceGroupName: '${{ variables.prefix }}-${{ variables.environment }}'
+        resourceGroupName: ${{ variables.resourcegroupname }}
         location: $(LOCATION)
         templateLocation: 'Linked artifact'
         csmFile: '$(Pipeline.Workspace)/adf_arm_templates/ARMTemplateForFactory.json'
@@ -48,7 +48,7 @@ stages:
         scriptLocation: inlineScript
         inlineScript: |
           # adf_sp_oid=$(az ad sp list --display-name $(DATAFACTORYNAME) --output tsv --query "[].{id:objectId}") 
-          adf_sp_oid=$(az resource show -g '${{ variables.prefix }}-${{ variables.environment }}' --resource-type Microsoft.DataFactory/factories -n $(DATAFACTORYNAME) --query identity.principalId --output tsv)                  
+          adf_sp_oid=$(az resource show -g ${{ variables.resourcegroupname }} --resource-type Microsoft.DataFactory/factories -n $(DATAFACTORYNAME) --query identity.principalId --output tsv)                  
           echo "$adf_sp_oid"
           az keyvault set-policy --name "$(AZUREKEYVAULTNAME)" --secret-permissions list get --object-id "$adf_sp_oid" --query "{Status:properties.provisioningState}" --output table
           
