@@ -70,7 +70,6 @@ steps:
         if [ $num_tokens -gt 0 ]
         then
           echo "PAT token already created. Rolling PAT token"
-          echo "##vso[task.setvariable variable=ADD_TO_KV;isOutput=true]No"
           jq -c '.token_infos[] | .token_id[0] | select(.expiry_time > "$CURRENTDATE" and .comment == "Azure DevOps Token")' | while read id;
           do
             echo "Deleting PAT token $id"
@@ -85,6 +84,9 @@ steps:
             -H "X-Databricks-Azure-SP-Management-Token:$azToken" \
             -H "X-Databricks-Azure-Workspace-Resource-Id:$wsId" \
             -d '{ "comment": "Azure DevOps Token" }')
+          
+          echo "##vso[task.setvariable variable=DATABRICKS_PAT_TOKEN;isOutput=true]$pat_token"
+          echo "##vso[task.setvariable variable=ADD_TO_KV;isOutput=true]Yes"
         else
           # You can also generate a PAT token. Note the quota limit of 600 tokens.
           api_response=$(curl -sf https://$(LOCATION).azuredatabricks.net/api/2.0/token/create \
