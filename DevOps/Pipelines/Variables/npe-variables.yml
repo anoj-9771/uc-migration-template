@@ -86,6 +86,8 @@ variables:
   # ------------------------------------------------
   # Databricks related
   # ------------------------------------------------
+  - name: nsgname
+    value: $(PREFIX)-$(ENVIRONMENT)-NSG
   - name: nsgid
     value: 
   - name: vnetName
