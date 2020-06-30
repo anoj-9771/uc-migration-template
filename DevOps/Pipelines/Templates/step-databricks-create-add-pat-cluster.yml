@@ -74,12 +74,11 @@ steps:
           jq -r '.token_infos[] | select(.expiry_time > $CURRENTDATEEPOCH and .comment == "Azure DevOps Token") | .token_id' --argjson CURRENTDATEEPOCH "$CURRENTDATEEPOCH"  <<< "$list_response"  | while read token_id
           do
             echo "Deleting PAT token $token_id"
-            api_response=$(curl -sf https://$(LOCATION).azuredatabricks.net/api/2.0/token/delete \
+            curl -sf https://$(LOCATION).azuredatabricks.net/api/2.0/token/delete \
               -H "Authorization: Bearer $token" \
               -H "X-Databricks-Azure-SP-Management-Token:$azToken" \
               -H "X-Databricks-Azure-Workspace-Resource-Id:$wsId" \
-              -d '{ "token_id": "$token_id" }')
-            echo "$(jq -r '.[]' <<< $api_response)"
+              -d '{ "token_id": "$token_id" }'
           done
           echo "Generating new PAT"
           # You can also generate a PAT token. Note the quota limit of 600 tokens.
