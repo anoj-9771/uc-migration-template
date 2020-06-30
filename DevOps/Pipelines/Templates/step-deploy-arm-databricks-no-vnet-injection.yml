@@ -1,0 +1,50 @@
+parameters:
+- name: AzDoServiceConnection # name of the parameter; required
+  type: string # data type of the parameter; required
+- name: resource_group
+  type: string
+- name: databricksclustername
+  type: string
+- name: databricks_driver_node_type_id
+  type: string
+- name: databricks_node_type_id
+  type: string
+- name: databricks_spark_version
+  type: string
+- name: databricks_workers
+  type: number
+- name: databricks_autotermination
+  type: number
+
+steps:
+  - task: AzureResourceGroupDeployment@2
+    inputs:
+      azureSubscription: ${{ parameters.AzDoServiceConnection }}
+      action: 'Create Or Update Resource Group'
+      resourceGroupName: ${{ parameters.resource_group }}
+      location: $(LOCATION)
+      templateLocation: 'Linked artifact'
+      csmFile: '$(Pipeline.Workspace)/arm_templates/arm-databricks-no-vnet-injection.json'
+      overrideParameters: '-location $(LOCATION) -prefix $(PREFIX) -environment $(ENVIRONMENT) -pricingTier $(DATABRICKSPRICINGTIER)'
+      deploymentMode: 'Incremental'
+      deploymentOutputs: 'databricksOutput'
+    displayName: 'Deploy Databricks Workspace'
+
+  - powershell: |
+      Write-Host '$(databricksOutput)'
+      $json = '$(databricksOutput)' | convertfrom-json
+      $workspaceNameValue = $json.WorkspaceName.value
+      Write-Host "##vso[task.setvariable variable=databricksWorkspaceName;isOutput=true]$workspaceNameValue"
+    name: getWorkspaceName
+    displayName: 'Extract ARM outputs'
+
+  - template: step-databricks-create-add-pat-cluster.yml
+    parameters:
+      AzDoServiceConnection: ${{ parameters.AzDoServiceConnection }}
+      resource_group: ${{ parameters.resource_group }}
+      databricks_cluster_name: ${{ parameters.databricksclustername }}
+      databricks_driver_node_type_id : ${{ parameters.databricks_driver_node_type_id }}
+      databricks_node_type_id : ${{ parameters.databricks_node_type_id }}
+      databricks_spark_version : ${{ parameters.databricks_spark_version }}
+      databricks_workers : ${{ parameters.databricks_workers }}
+      databricks_autotermination : ${{ parameters.databricks_autotermination }}

@@ -48,13 +48,13 @@ stages:
       - template: step-deploy-arm-loganalytics.yml
         parameters:
           AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
-          resource_group: '${{ variables.prefix }}-${{ variables.environment }}' 
+          resource_group: ${{ variables.resourcegroupname }} 
       # Deploy BLOB Storage accounts for Data Lake
     - ${{ if eq(variables['logstorageaccount'], true)  }}:
       - template: step-deploy-arm-logstorage.yml
         parameters:
           AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
-          resource_group: '${{ variables.prefix }}-${{ variables.environment }}'
+          resource_group: ${{ variables.resourcegroupname }}
 
     # ------------------------------------------------------------------------
     # Deploy Azure resources
@@ -64,25 +64,26 @@ stages:
       - template: step-deploy-arm-azuresql.yml
         parameters:
           AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
-          resource_group: '${{ variables.prefix }}-${{ variables.environment }}'
+          resource_group: ${{ variables.resourcegroupname }}
     # Deploy BLOB Storage accounts for Data Lake
     - ${{ if eq(variables['azureblobstorage'], true) }}:
       - template: step-deploy-arm-blobstoragev2.yml
         parameters:
           AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
-          resource_group: '${{ variables.prefix }}-${{ variables.environment }}'
+          resource_group: ${{ variables.resourcegroupname }}
     # DeployADLS account for Data Lake
     - ${{ if eq(variables['azuredatalakestorage'], true) }}:
       - template: step-deploy-arm-adlsv2.yml
         parameters:
           AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
-          resource_group: '${{ variables.prefix }}-${{ variables.environment }}'
+          resource_group: ${{ variables.resourcegroupname }}
     # Deploy Databricks Workspace with v-net integration
     - ${{ if eq(variables['databricksvnet'], true) }}:
-      - template: step-deploy-arm-databricks-no-vnet-nsg.yml
+      - template: step-deploy-arm-databricks-vnet-injection.yml
         parameters:
           AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
-          resource_group: '${{ variables.prefix }}-${{ variables.environment }}'
+          resource_group: ${{ variables.resourcegroupname }}
+          vnet_resource_group: ${{ variables.vnetresourcegroupname }}
           databricksclustername: ${{ variables.databricksclustername }}
           databricks_driver_node_type_id : ${{ variables.databricksdrivernodetypeid }}
           databricks_node_type_id : ${{ variables.databricksnodetypeid }}
@@ -91,10 +92,10 @@ stages:
           databricks_autotermination : ${{ variables.databricksautotermination }}
     # Deploy Databricks Workspace without v-net integration
     - ${{ if eq(variables['databricksnovnet'], true) }}:
-      - template: step-deploy-arm-databricks-no-vnet-nsg.yml
+      - template: step-deploy-arm-databricks-no-vnet-injection.yml
         parameters:
           AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
-          resource_group: '${{ variables.prefix }}-${{ variables.environment }}'
+          resource_group: ${{ variables.resourcegroupname }}
           databricksclustername: ${{ variables.databricksclustername }}
           databricks_driver_node_type_id : ${{ variables.databricksdrivernodetypeid }}
           databricks_node_type_id : ${{ variables.databricksnodetypeid }}
@@ -106,7 +107,7 @@ stages:
       - template: step-deploy-arm-datafactory-w-access-policies.yml
         parameters:
           AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
-          resource_group: '${{ variables.prefix }}-${{ variables.environment }}'
+          resource_group: ${{ variables.resourcegroupname }}
 
     # Add Tags to resources
     - ${{ if eq(variables['applytags'], true) }}:
@@ -118,7 +119,7 @@ stages:
           scriptType: bash
           scriptLocation: inlineScript
           inlineScript: |
-            ids=$(az resource list --resource-group '${{ variables.prefix }}-${{ variables.environment }}' --query "[].id" --output tsv)
+            ids=$(az resource list --resource-group ${{ variables.resourcegroupname }} --query "[].id" --output tsv)
             az resource tag --tags $(TAGS) --ids $ids 
 
   # Deploy Control DB schema / DACPAC
