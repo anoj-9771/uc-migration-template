@@ -101,9 +101,9 @@ variables:
   - name: privatesubnetcidr
     value: 10.179.1.0/24
   - name: custompublicsubnetname
-    value: publicsubnet
+    value: databrickspublicsubnet
   - name: customprivatesubnetname
-    value: privatesubnet
+    value: databricksprivatesubnet
   - name: databrickspricingtier
     value: premium
   - name: databricksclustername
