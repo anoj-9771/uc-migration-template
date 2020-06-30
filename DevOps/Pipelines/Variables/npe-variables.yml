@@ -1,7 +1,7 @@
 variables:
   # Used in service naming
   - name: prefix
-    value: PSC-SYD
+    value: SCL-SYD
   # The default resource group region name
   - name: location
     value: australiaeast
@@ -40,7 +40,7 @@ variables:
   - name: azuresqlservername
     value: lower($(PREFIX)-$(ENVIRONMENT))-asql
   - name: azureedwdbname
-    value: PSC_EDW
+    value: SCL_EDW
   # Name of key vault for this environment
   - name: azurekeyvaultname
     value: $(PREFIX)-$(ENVIRONMENT)-AKV
