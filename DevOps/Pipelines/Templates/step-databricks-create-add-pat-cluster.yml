@@ -70,7 +70,7 @@ steps:
         if [ $num_tokens -gt 0 ]
         then
           echo "PAT token already created. Rolling PAT token"
-          jq -r '.token_infos[] | .token_id[0] | select(.expiry_time > "$CURRENTDATE" and .comment == "Azure DevOps Token")' <<< "$list_response"  | while read id;
+          jq -r '.token_infos[] | .token_id | select(.expiry_time > "$CURRENTDATE" and .comment == "Azure DevOps Token")' <<< "$list_response"  | while read id;
           do
             echo "Deleting PAT token $id"
             api_response=$(curl -sf https://$(LOCATION).azuredatabricks.net/api/2.0/token/delete \
