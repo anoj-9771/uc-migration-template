@@ -63,7 +63,7 @@ steps:
         # We need to check that the token has been created by checking comment
         # and if it has been expired.
         CURRENTDATE="$(date +'%Y/%m/%d')"
-        CURRENTDATEEPOCH="$(date +'%s')"
+        CURRENTDATEEPOCH="$(date +'%s')000"
         num_tokens=$(jq 'if (. | length) == 0 then 0 else ([.token_infos[] | .expiry_time |= (. / 1000 | strftime("%Y-%m-%d")) | select(.expiry_time > "$CURRENTDATE" and .comment == "Azure DevOps Token")] | length) end' -r --arg CURRENTDATE "$CURRENTDATE" <<< "$list_response")
         echo "Number of PAT tokens created for Azure DevOps:"
         echo "$num_tokens"
