@@ -89,17 +89,17 @@ variables:
   - name: nsgid
     value: 
   - name: vnetName
-    value: 
+    value: SCL-SYD-NPRD-VNET
   - name: vnetid
-    value: 
+    value: /subscriptions/57ae12b4-4468-492a-9ed4-0c521964407b/resourceGroups/NetworkWatcherRG/providers/Microsoft.Network/virtualNetworks/SCL-SYD-NPRD-VNET
   - name: publicsubnetcidr
-    value:  
+    value: 10.179.2.0/24
   - name: privatesubnetcidr
-    value: 
+    value: 10.179.1.0/24
   - name: custompublicsubnetname
-    value: 
+    value: publicsubnet
   - name: customprivatesubnetname
-    value: 
+    value: privatesubnet
   - name: databrickspricingtier
     value: premium
   - name: databricksclustername
