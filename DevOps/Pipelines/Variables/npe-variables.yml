@@ -17,9 +17,6 @@ variables:
   # Name of the service connection in Azure Devops
   - name: azdoresourceconnection
     value: SP-Stephen_Lundall-Insight
-  # Set the pricing tier for Databricks
-  - name: databricksPricingTier
-    value: standard
   # The service principal object ID (Not App ID)
   - name: spobjectid
     value: a1860bea-6cf3-4c01-8659-e7ec4977c6a7
