@@ -65,7 +65,24 @@
             "addressPrefix": "[parameters('privateSubnetCidr')]",
             "networkSecurityGroup": {
               "id": "[parameters('nsgId')]"
-            }
+            },
+            "serviceEndpoints": [
+                {
+                    "service": "Microsoft.Storage",
+                    "locations": [
+                        "australiaeast",
+                        "australiasoutheast"
+                    ]
+                }
+            ],
+            "delegations": [
+                {
+                    "name": "DDIDatabricksWorkspace",
+                    "properties": {
+                        "serviceName": "Microsoft.Databricks/workspaces"
+                    }
+                }
+            ]
           }
         },
         {
@@ -80,7 +97,24 @@
             "addressPrefix": "[parameters('publicSubnetCidr')]",
             "networkSecurityGroup": {
               "id": "[parameters('nsgId')]"
-            }
+            },
+            "serviceEndpoints": [
+                {
+                    "service": "Microsoft.Storage",
+                    "locations": [
+                        "australiaeast",
+                        "australiasoutheast"
+                    ]
+                }
+            ],
+            "delegations": [
+                {
+                    "name": "DDIDatabricksWorkspace",
+                    "properties": {
+                        "serviceName": "Microsoft.Databricks/workspaces"
+                    }
+                }
+            ]
           }
         }
     ],
