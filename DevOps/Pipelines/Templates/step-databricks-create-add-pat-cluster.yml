@@ -64,20 +64,21 @@ steps:
         # and if it has been expired.
         CURRENTDATE="$(date +'%Y/%m/%d')"
         num_tokens=$(jq 'if (. | length) == 0 then 0 else ([.token_infos[] | .expiry_time |= (. / 1000 | strftime("%Y-%m-%d")) | select(.expiry_time > "$CURRENTDATE" and .comment == "Azure DevOps Token")] | length) end' -r --arg CURRENTDATE "$CURRENTDATE" <<< "$list_response")
+        token_ids=$(jq -r '.token_infos[] | select(.expiry_time > "$CURRENTDATE" and .comment == "Azure DevOps Token") | .token_id' <<< "$list_response")
         echo "Number of PAT tokens created for Azure DevOps:"
         echo "$num_tokens"
 
         if [ $num_tokens -gt 0 ]
         then
           echo "PAT token already created. Rolling PAT token"
-          jq -r '.token_infos[] | .token_id | select(.comment == "Azure DevOps Token")' <<< "$list_response"  | while read id;
-          do
-            echo "Deleting PAT token $id"
+          for token_id in $token_ids
+           do
+            echo "Deleting PAT token $token_id"
             api_response=$(curl -sf https://$(LOCATION).azuredatabricks.net/api/2.0/token/delete \
               -H "Authorization: Bearer $token" \
               -H "X-Databricks-Azure-SP-Management-Token:$azToken" \
               -H "X-Databricks-Azure-Workspace-Resource-Id:$wsId" \
-              -d '{ "token_id": "$id" }')
+              -d '{ "token_id": "$token_id" }')
           done
           api_response=$(curl -sf https://$(LOCATION).azuredatabricks.net/api/2.0/token/delete \
             -H "Authorization: Bearer $token" \
