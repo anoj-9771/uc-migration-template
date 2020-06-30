@@ -78,7 +78,7 @@ steps:
       location: $(LOCATION)
       templateLocation: 'Linked artifact'
       csmFile: '$(Pipeline.Workspace)/arm_templates/arm-databricks-vnet-injection.json'
-      overrideParameters: '-workspaceName $(WORKSPACENAME) -pricingTier $(DATABRICKSPRICINGTIER) -customVirtualNetworkId $(VNETID) -customPublicSubnetName $(CUSTOMPUBLICSUBNETNAME) -customPrivateSubnetName $(CUSTOMPRIVATESUBNETNAME) -location $(LOCATION)'
+      overrideParameters: '-workspaceName $(DATABRICKSWORKSPACENAME) -pricingTier $(DATABRICKSPRICINGTIER) -customVirtualNetworkId $(VNETID) -customPublicSubnetName $(CUSTOMPUBLICSUBNETNAME) -customPrivateSubnetName $(CUSTOMPRIVATESUBNETNAME) -location $(LOCATION)'
       deploymentMode: 'Incremental'
       deploymentOutputs: 'databricksOutput'
     displayName: 'Deploy Databricks Workspace'
