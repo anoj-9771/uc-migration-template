@@ -82,11 +82,12 @@ steps:
             echo "$(jq -r '.[]' <<< $api_response)"
           done
           echo "Generating new PAT"
-          api_response=$(curl -sf https://$(LOCATION).azuredatabricks.net/api/2.0/token/delete \
+          # You can also generate a PAT token. Note the quota limit of 600 tokens.
+          api_response=$(curl -sf https://$(LOCATION).azuredatabricks.net/api/2.0/token/create \
             -H "Authorization: Bearer $token" \
             -H "X-Databricks-Azure-SP-Management-Token:$azToken" \
             -H "X-Databricks-Azure-Workspace-Resource-Id:$wsId" \
-            -d '{ "comment": "Azure DevOps Token" }')
+            -d '{ "lifetime_seconds": 31557600, "comment": "Azure DevOps Token" }')
           pat_token=$(jq .token_value -r <<< "$api_response")
 
           echo "##vso[task.setvariable variable=DATABRICKS_PAT_TOKEN;isOutput=true]$pat_token"
