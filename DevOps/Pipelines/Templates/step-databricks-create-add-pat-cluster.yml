@@ -71,7 +71,7 @@ steps:
         then
           echo "PAT token already created. Rolling PAT token"
           echo "##vso[task.setvariable variable=ADD_TO_KV;isOutput=true]No"
-          jq -c '[.token_infos[] | .token_id[0] | .expiry_time |= (. / 1000 | strftime("%Y-%m-%d")) | select(.expiry_time > "$CURRENTDATE" and .comment == "Azure DevOps Token")]' | while read id;
+          jq -c '.token_infos[] | .token_id[0] | select(.expiry_time > "$CURRENTDATE" and .comment == "Azure DevOps Token")' | while read id;
           do
             echo "Deleting PAT token $id"
             api_response=$(curl -sf https://$(LOCATION).azuredatabricks.net/api/2.0/token/delete \
