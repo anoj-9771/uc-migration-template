@@ -64,13 +64,14 @@ steps:
         # and if it has been expired.
         CURRENTDATE="$(date +'%Y/%m/%d')"
         num_tokens=$(jq 'if (. | length) == 0 then 0 else ([.token_infos[] | .expiry_time |= (. / 1000 | strftime("%Y-%m-%d")) | select(.expiry_time > "$CURRENTDATE" and .comment == "Azure DevOps Token")] | length) end' -r --arg CURRENTDATE "$CURRENTDATE" <<< "$list_response")
-        token_ids=$(jq -r '.token_infos[] | select(.expiry_time > "$CURRENTDATE" and .comment == "Azure DevOps Token") | .token_id' <<< "$list_response")
+        token_ids=($(jq -r '.token_infos[] | select(.expiry_time > "$CURRENTDATE" and .comment == "Azure DevOps Token") | .token_id' <<< "$list_response"))
         echo "Number of PAT tokens created for Azure DevOps:"
         echo "$num_tokens"
 
         if [ $num_tokens -gt 0 ]
         then
           echo "PAT token already created. Rolling PAT token"
+          echo $token_ids
           for token_id in $token_ids
            do
             echo "Deleting PAT token $token_id"
