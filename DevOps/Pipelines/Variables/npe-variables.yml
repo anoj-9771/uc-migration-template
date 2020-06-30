@@ -7,7 +7,7 @@ variables:
     value: australiaeast
   # environment name used in service naming
   - name: environment
-    value: NPE
+    value: NPRD
   # Resource group name
   - name: resourcegroupname
     value: $(PREFIX)-$(ENVIRONMENT)-ARG
