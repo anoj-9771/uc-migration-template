@@ -19,7 +19,7 @@ parameters:
 steps:
   # Create or update NSG
   - task: AzureResourceGroupDeployment@2
-    condition: eq(variables['databricksvnetngs'], true)
+    condition: eq(variables['databricksvnetnsg'], true)
     inputs:
       azureSubscription: ${{ parameters.AzDoServiceConnection }}
       action: 'Create Or Update Resource Group'
@@ -38,7 +38,7 @@ steps:
       #Parse nsgId
       $nsgId = $json.nsgId.value
       Write-host "##vso[task.setvariable variable=nsgId;]$nsgId"
-    condition: eq(variables['databricksvnetngs'], true)
+    condition: eq(variables['databricksvnetnsg'], true)
     name: getNsgId
     displayName: 'Extract NSG ID from ARM outputs'
 
