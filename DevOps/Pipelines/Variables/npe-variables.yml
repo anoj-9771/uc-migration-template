@@ -90,7 +90,7 @@ variables:
     value: $(PREFIX)-$(ENVIRONMENT)-NSG
   - name: nsgid
     value: 
-  - name: vnetResourceGroup
+  - name: vnetresourcegroupname
     value: NetworkWatcherRG
   - name: vnetName
     value: SCL-SYD-NPRD-VNET
