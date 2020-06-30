@@ -90,10 +90,12 @@ variables:
     value: $(PREFIX)-$(ENVIRONMENT)-NSG
   - name: nsgid
     value: 
+  - name: vnetResourceGroup
+    value: NetworkWatcherRG
   - name: vnetName
     value: SCL-SYD-NPRD-VNET
   - name: vnetid
-    value: /subscriptions/57ae12b4-4468-492a-9ed4-0c521964407b/resourceGroups/NetworkWatcherRG/providers/Microsoft.Network/virtualNetworks/SCL-SYD-NPRD-VNET
+    value: 
   - name: publicsubnetcidr
     value: 10.179.2.0/24
   - name: privatesubnetcidr

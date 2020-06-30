@@ -83,6 +83,7 @@ stages:
         parameters:
           AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
           resource_group: ${{ variables.resourcegroupname }}
+          vnet_resource_group: ${{ variables.vnetresourcegroupname }}
           databricksclustername: ${{ variables.databricksclustername }}
           databricks_driver_node_type_id : ${{ variables.databricksdrivernodetypeid }}
           databricks_node_type_id : ${{ variables.databricksnodetypeid }}

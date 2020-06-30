@@ -3,6 +3,8 @@ parameters:
   type: string # data type of the parameter; required
 - name: resource_group
   type: string
+- name: vnet_resource_group
+  type: string
 - name: databricksclustername
   type: string
 - name: databricks_driver_node_type_id
@@ -48,7 +50,7 @@ steps:
     inputs:
       azureSubscription: ${{ parameters.AzDoServiceConnection }}
       action: 'Create Or Update Resource Group'
-      resourceGroupName: ${{ parameters.resource_group }}
+      resourceGroupName: ${{ parameters.vnet_resource_group }}
       location: $(LOCATION)
       templateLocation: 'Linked artifact'
       csmFile: '$(Pipeline.Workspace)/arm_templates/arm-databricks-vnet.json'
