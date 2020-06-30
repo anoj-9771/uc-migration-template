@@ -38,7 +38,7 @@ steps:
       #Parse nsgId
       $nsgId = $json.nsgId.value
       Write-host "##vso[task.setvariable variable=nsgId;]$nsgId"
-    condition: and(eq(variables['databricksvnetnsg'], true), eq(variables['nsgid'], '')),
+    condition: and(eq(variables['databricksvnetnsg'], true), eq(variables['nsgid'], ''))
     name: getNsgId
     displayName: 'Extract NSG ID from ARM outputs'
 
