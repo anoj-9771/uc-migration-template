@@ -79,7 +79,7 @@ steps:
               -H "X-Databricks-Azure-SP-Management-Token:$azToken" \
               -H "X-Databricks-Azure-Workspace-Resource-Id:$wsId" \
               -d '{ "token_id": "$id" }')
-            echo "$(jq [].)"
+            echo "$(jq -r []. | <<< $api_response)"
           done
           echo "Generating new PAT"
           api_response=$(curl -sf https://$(LOCATION).azuredatabricks.net/api/2.0/token/delete \
