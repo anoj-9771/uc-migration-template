@@ -174,7 +174,7 @@
       }
     ],
     "outputs":{
-        "nsgId": {
+        "nsgOutput": {
             "type" : "string",
             "value": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsgName'))]"
         }

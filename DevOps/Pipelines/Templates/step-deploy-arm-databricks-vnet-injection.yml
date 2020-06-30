@@ -29,16 +29,16 @@ steps:
       csmFile: '$(Pipeline.Workspace)/arm_templates/arm-databricks-nsg.json'
       overrideParameters: '-location $(LOCATION) -nsgName $(NSGNAME)'
       deploymentMode: 'Incremental'
-      deploymentOutputs: 'databricksOutput'
+      deploymentOutputs: 'nsgOutput'
     displayName: 'Create or update NSG'
   # Extract ARM NSG ID output
   - powershell: |
-      $string = '$(nsgId)'
-      $json = $string | convertfrom-json
+      Write-Host '$(nsgOutput)'
+      $json = '$(nsgOutput)' | convertfrom-json
       #Parse nsgId
       $nsgId = $json.nsgId.value
       Write-host "##vso[task.setvariable variable=nsgId;]$nsgId"
-    condition: eq(variables['databricksvnetnsg'], true)
+    condition: and(eq(variables['databricksvnetnsg'], true),eq(variables['nsgid'], '')),
     name: getNsgId
     displayName: 'Extract NSG ID from ARM outputs'
 
@@ -54,17 +54,16 @@ steps:
       csmFile: '$(Pipeline.Workspace)/arm_templates/arm-databricks-vnet.json'
       overrideParameters: '-location $(LOCAITON) -vnetName $(VNETNAME) -privateSubnetName $(PRIVATESUBNETNAME) -publicSubnetName $(PUBLICSUBNETNAME) -nsgId $(NSGID) -privateSubnetCidr $(PRIVATESUBNETCIDR) -publicSubnetCidr $(PUBLICSUBNETCIDR)'
       deploymentMode: 'Incremental'
-      deploymentOutputs: 'vnetId'
+      deploymentOutputs: 'vnetOutput'
     displayName: 'Create or update Sub Nets'
   # Extract ARM Vnet ID output
   - powershell: | 
-      # Convert from json
-      $string = '$(vnetId)'
-      $json = $string | convertfrom-json
+      Write-Host '$(vnetOutput)'
+      $json = '$(vnetOutput)' | convertfrom-json
       #Parse vnetId
       $vnetId= $json.vnetId.value
       Write-host "##vso[task.setvariable variable=vnetId;]$vnetId"
-    condition: eq(variables['databricksvnetsubnets'], true)
+    condition: and(eq(variables['databricksvnetsubnets'], true),eq(variables['vnetid'], ''))
     name: getVnetId
     displayName: 'Extract Vnet ID from ARM outputs'
 
