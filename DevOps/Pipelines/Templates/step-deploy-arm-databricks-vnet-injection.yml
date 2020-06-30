@@ -38,7 +38,7 @@ steps:
       #Parse nsgId
       $nsgId = $json.nsgId.value
       Write-host "##vso[task.setvariable variable=nsgId;]$nsgId"
-    condition: and(eq(variables['databricksvnetnsg'], true),eq(variables['nsgid'], '')),
+    condition: and(eq(variables['databricksvnetnsg'], true), eq(variables['nsgid'], '')),
     name: getNsgId
     displayName: 'Extract NSG ID from ARM outputs'
 
@@ -63,7 +63,7 @@ steps:
       #Parse vnetId
       $vnetId= $json.vnetId.value
       Write-host "##vso[task.setvariable variable=vnetId;]$vnetId"
-    condition: and(eq(variables['databricksvnetsubnets'], true),eq(variables['vnetid'], ''))
+    condition: and(eq(variables['databricksvnetsubnets'], true), eq(variables['vnetid'], ''))
     name: getVnetId
     displayName: 'Extract Vnet ID from ARM outputs'
 
