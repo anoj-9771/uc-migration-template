@@ -52,7 +52,7 @@ steps:
       location: $(LOCATION)
       templateLocation: 'Linked artifact'
       csmFile: '$(Pipeline.Workspace)/arm_templates/arm-databricks-vnet.json'
-      overrideParameters: '-location $(LOCAITON) -vnetName $(VNETNAME) -privateSubnetName $(PRIVATESUBNETNAME) -publicSubnetName $(PUBLICSUBNETNAME) -nsgId $(NSGID) -privateSubnetCidr $(PRIVATESUBNETCIDR) -publicSubnetCidr $(PUBLICSUBNETCIDR)'
+      overrideParameters: '-location $(LOCAITON) -vnetName $(VNETNAME) -privateSubnetName $(PRIVATESUBNETNAME) -publicSubnetName $(PUBLICSUBNETNAME) -nsgId coalesce($(NSGID),$(getNsgId.nsgid)) -privateSubnetCidr $(PRIVATESUBNETCIDR) -publicSubnetCidr $(PUBLICSUBNETCIDR)'
       deploymentMode: 'Incremental'
       deploymentOutputs: 'vnetOutput'
     displayName: 'Create or update Sub Nets'
@@ -76,7 +76,7 @@ steps:
       location: $(LOCATION)
       templateLocation: 'Linked artifact'
       csmFile: '$(Pipeline.Workspace)/arm_templates/arm-databricks-vnet-injection.json'
-      overrideParameters: '-workspaceName $(WORKSPACENAME) -pricingTier $(PRICINGTIER) -customVirtualNetworkId $(VNETID) -customPublicSubnetName $(CUSTOMPUBLICSUBNETNAME) -customPrivateSubnetName $(CUSTOMPRIVATESUBNETNAME) -location $(LOCATION)'
+      overrideParameters: '-workspaceName $(WORKSPACENAME) -pricingTier $(PRICINGTIER) -customVirtualNetworkId coalesce($(VNETID),$(getVnetId.vnetid)) -customPublicSubnetName $(CUSTOMPUBLICSUBNETNAME) -customPrivateSubnetName $(CUSTOMPRIVATESUBNETNAME) -location $(LOCATION)'
       deploymentMode: 'Incremental'
       deploymentOutputs: 'databricksOutput'
     displayName: 'Deploy Databricks Workspace'
