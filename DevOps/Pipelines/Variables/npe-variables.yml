@@ -16,13 +16,13 @@ variables:
     value: sqladmin
   # Name of the service connection in Azure Devops
   - name: azdoresourceconnection
-    value: PSC_NPE_DataEstate
+    value: SP-Stephen_Lundall-Insight
   # Set the pricing tier for Databricks
   - name: databricksPricingTier
     value: standard
-  # The service principal object ID (Not App ID) use az ad sp show --id <app-id> --query "objectId" --output tsv
+  # The service principal object ID (Not App ID)
   - name: spobjectid
-    value: 9d773319-08cc-4775-bf74-19861826635b
+    value: a1860bea-6cf3-4c01-8659-e7ec4977c6a7
   # Store account type for BLOB Storage e.g. Standard_LRS)
   - name: storageAccountType
     value: Standard_LRS
