@@ -225,6 +225,7 @@ def buildSchema(columns, fromSourceSystem):
 # COMMAND ----------
 
 def buildExperts(expert_rights, upn, fromSourceSystem, key, timestamp):
+#   upn = stephen.lundallxx@lundalls.onmicrosoft.com
   effectiveRights = []
   if 'r' in expert_rights:
       effectiveRights.append("Read")
@@ -284,10 +285,12 @@ def jsonToDataFrame(json, schema=None):
     reader.schema(schema)
   return reader.json(sc.parallelize([json])) 
 
+# clientIDFromAzureAppRegistration + "@" + tenantId
 
+#tenant_id=1cea56f5-9f48-413d-a7bd-1c7f033f3977;client_id=f2e51206-33cb-4706-8407-59e4d0745017;secret=6vpDy/66bt5A.[fDyGrG?n2Hg]GsyRv?
 def getCreds(kvSecret):
   try:
-    connection = dbutils.secrets.get(scope='azr-dp-keyvault',key=kvSecret)
+    connection = dbutils.secrets.get(scope='insight-etlframework-akv',key=kvSecret)
   except:
     connection = kvSecret
   cons = connection.split(';')
@@ -400,3 +403,37 @@ def deleteAsset(dataAssetUrl):
     r = requests.delete(fullUri, headers=http_headers)
     return str(r.status_code)
 
+
+# COMMAND ----------
+
+# import uuid
+# import json
+# import pandas as pd
+# import requests
+# from requests.auth import HTTPBasicAuth
+# from pyspark.sql import functions as F
+# from pyspark.sql.functions import explode, explode_outer, array, col, first, monotonically_increasing_id, isnan, when, count
+
+
+
+# catalogName = "Lundalls"
+# clientIDFromAzureAppRegistration = "f2e51206-33cb-4706-8407-59e4d0745017"
+# tenantId = "1cea56f5-9f48-413d-a7bd-1c7f033f3977"
+# registerUri = "https://api.azuredatacatalog.com/catalogs/{0}/views/tables?api-version=2016-03-30".format(catalogName)
+# upn = clientIDFromAzureAppRegistration + "@" + tenantId
+# searchTerm = parameters["srcAccName"]
+
+# data_profile = dataProfile(df, df.columns)
+
+# #Registration
+# asset = bodyJson(server_name, server_type, database_name, table_schema, table_name, upn, columns, sample, row_count, table_size, data_profile)
+# id = registerDataAsset(asset)
+# print("REG:" + id)
+
+# #Search
+# searchJson = searchDataAsset(searchTerm)
+# print("SER:" + searchJson)
+
+# #Delete
+# d = deleteAsset(id)
+# print("DEL:" + d)

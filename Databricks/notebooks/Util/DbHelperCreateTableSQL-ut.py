@@ -64,7 +64,7 @@ def recastTable(df_rc, schm):
         if dt == 'money':
           df_rc = df_rc.withColumn(cn, df_rc[cn].cast(DecimalType(10,2)))
         if dt in 'numeric float real':
-          df_rc = df_rc.withColumn(cn, df_rc[cn].cast(DoubleType()))
+          df_rc = df_rc.withColumn(cn, df_rc[cn].cast(DoubleType(18,6)))
 #           df = df.withColumn(cn, df[cn].cast("float"))
         if dt == 'date':
           df_rc = df_rc.withColumn(cn, df_rc[cn].cast(DateType()))
