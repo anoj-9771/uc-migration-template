@@ -78,7 +78,9 @@ steps:
               -H "Authorization: Bearer $token" \
               -H "X-Databricks-Azure-SP-Management-Token:$azToken" \
               -H "X-Databricks-Azure-Workspace-Resource-Id:$wsId" \
-              -d '{ "token_id": $token_id }')
+              -d '{ "token_id": "$token_id" }')
+            echo "|$token_id|"
+            echo '{ "token_id": "$token_id" }'
             echo "$api_response"
           done
           echo "Generating new PAT"
