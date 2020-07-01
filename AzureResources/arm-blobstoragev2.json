@@ -97,8 +97,8 @@
         }
     ],
     "variables": {
-        "accountNamesObject": "[split(replace(parameters('accountNames'),' ',''), ',')]",
-        "zonesObject": "[split(replace(parameters('zones'),' ',''), ',')]",
+        "accountNamesObject": "[split(lower(replace(replace(parameters('accountNames'),'-',''),' ','')), ',')]",
+        "zonesObject": "[split(lower(replace(parameters('zones'),' ','')), ',')]",
         "copy": [
             {
                 "name": "storageAccounts",
@@ -113,7 +113,7 @@
         {
             "type": "Microsoft.Storage/storageAccounts",
             "name": "[variables('accountNamesObject')[copyIndex()]]",
-            "apiVersion": "2019-06-01",
+            "apiVersion": "2018-07-01",
             "location": "[parameters('location')]",
             "sku": {
                 "name": "[parameters('storageAccountType')]",
@@ -135,7 +135,7 @@
                 {
                     "name": "[concat('default/', variables('zonesObject')[copyIndex()])]",
                     "type": "blobServices/containers",
-                    "apiVersion": "2019-06-01",
+                    "apiVersion": "2018-07-01",
                     "dependsOn": [
                         "[variables('accountNamesObject')[copyIndex()]]"
                     ]

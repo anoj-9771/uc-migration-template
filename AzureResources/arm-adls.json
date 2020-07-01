@@ -97,8 +97,8 @@
         }
     ],
     "variables": {
-        "accountNamesObject": "[parameters('accountNames')]",
-        "zonesObject": "[split(replace(parameters('zones'),' ',''), ',')]",
+        "accountNamesObject": "[lower(replace(parameters('accountNames'),'-',''))]",
+        "zonesObject": "[split(lower(replace(parameters('zones'),' ','')), ',')]",
         "copy": [
             {
                 "name": "zones",
