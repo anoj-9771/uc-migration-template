@@ -79,7 +79,7 @@ steps:
               -H "X-Databricks-Azure-SP-Management-Token:$azToken" \
               -H "X-Databricks-Azure-Workspace-Resource-Id:$wsId" \
               -d '{ "token_id": "$token_id" }')
-            echo "$list_response"
+            echo "$api_response"
           done
           echo "Generating new PAT"
           # You can also generate a PAT token. Note the quota limit of 600 tokens.
