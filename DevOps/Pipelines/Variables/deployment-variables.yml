@@ -19,7 +19,7 @@ variables:
     value: false
   # Used to set Azure SQL Server deployability
   - name: azuresqlserver
-    value: true
+    value: false
   # Used to set ControlDB Schema dacpac deployment
   - name: controlschema
     value: false
