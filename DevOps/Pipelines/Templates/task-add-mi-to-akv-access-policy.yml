@@ -31,5 +31,5 @@ steps:
     inlineScript: |
       src_resource_id=$(az resource list --name ${{ parameters.src_resource_name }} --resource-group ${{ parameters.resource_group }} --output tsv --query "[].id")
       src_sp_oid=$(az resource show --ids $src_resource_id --query identity.principalId --output tsv)                  
-      echo "Assiging object id: '$adf_sp_oid' a ${{ parameters.permissions }} permissions to resource: '$adf_sp_oid' to Key Vault: ${{ parameters.key_valut_name }}'s access policies'"
+      echo "Assiging object id: '$adf_sp_oid' a ${{ parameters.secret_permissions }} permissions to resource: '$adf_sp_oid' to Key Vault: ${{ parameters.key_valut_name }}'s access policies'"
       az keyvault set-policy --name "${{ parameters.key_valut_name }}" --secret-permissions ${{ parameters.secret_permissions }} --object-id "$src_sp_oid" --query "{Status:properties.provisioningState}" --output table
