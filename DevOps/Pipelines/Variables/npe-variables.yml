@@ -35,7 +35,7 @@ variables:
   # ------------------------------------------------
   # Name of Azure SQL Server and EDW Database
   - name: azuresqlservername
-    value: ${{ lower(variables.prefix }}-${{ lower(variables.environment) }}-asql
+    value: ${{ lower(variables.prefix) }}-${{ lower(variables.environment) }}-asql
   - name: azureedwdbname
     value: SCL_EDW
   # Name of key vault for this environment
