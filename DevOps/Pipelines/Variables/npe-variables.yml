@@ -73,7 +73,7 @@ variables:
     value: $(PREFIX)-$(ENVIRONMENT)-ADF
   # Data Factory self hosted integrated runtime name
   - name: datafactoryshirname
-    value: lower($(PREFIX)-$(ENVIRONMENT))-shir
+    value: $(PREFIX)-$(ENVIRONMENT)-SHIR
 
   # ------------------------------------------------
   # Log Analytics related
