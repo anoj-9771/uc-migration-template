@@ -17,49 +17,35 @@ steps:
       deploymentMode: 'Incremental'
     displayName: 'Deploy Datafactory with Access Policies'
 
-  # Add Data Factory MI to Key Vault Access Policies
-  - template: task-add-mi-to-akv-access-policy.yml
-    parameters:
-      service_connection: ${{ parameters.AzDoServiceConnection }}
-      resource_group: ${{ parameters.resource_group }}
-      src_resource_name: $(DATAFACTORYNAME)
-      key_valut_name: $(AZUREKEYVAULTNAME)
-      secret_permissions: 'list get'
-  # - task: AzureCLI@2
-  #   displayName: 'Add Data Factory SP to AKV'
-  #   name: add_adf_sp_to_akv
-  #   inputs:
-  #     azureSubscription: ${{ parameters.AzDoServiceConnection }}
-  #     scriptType: bash
-  #     scriptLocation: inlineScript
-  #     inlineScript: |
-  #       # adf_sp_oid=$(az ad sp list --display-name $(DATAFACTORYNAME) --output tsv --query "[].{id:objectId}") 
-  #       adf_sp_oid=$(az resource show -g ${{ parameters.resource_group }} --resource-type Microsoft.DataFactory/factories -n $(DATAFACTORYNAME) --query identity.principalId --output tsv)                  
-  #       echo "$adf_sp_oid"
-  #       az keyvault set-policy --name "$(AZUREKEYVAULTNAME)" --secret-permissions list get --object-id "$adf_sp_oid" --query "{Status:properties.provisioningState}" --output table
+  # Add Data Factory MI to Key Vault
+  - task: AzureCLI@2
+    displayName: 'Add Data Factory SP to AKV'
+    name: add_adf_sp_to_akv
+    inputs:
+      azureSubscription: ${{ parameters.AzDoServiceConnection }}
+      scriptType: bash
+      scriptLocation: inlineScript
+      inlineScript: |
+        # adf_sp_oid=$(az ad sp list --display-name $(DATAFACTORYNAME) --output tsv --query "[].{id:objectId}") 
+        adf_sp_oid=$(az resource show -g ${{ parameters.resource_group }} --resource-type Microsoft.DataFactory/factories -n $(DATAFACTORYNAME) --query identity.principalId --output tsv)                  
+        echo "$adf_sp_oid"
+        az keyvault set-policy --name "$(AZUREKEYVAULTNAME)" --secret-permissions list get --object-id "$adf_sp_oid" --query "{Status:properties.provisioningState}" --output table
 
-  # Add Data Factory MI to SQLServer Rbac
-  - template: task-add-mi-to-resource-rbac.yml
-    parameters:
-      service_connection: ${{ parameters.AzDoServiceConnection }}
-      resource_group: ${{ parameters.resource_group }}
-      src_resource_name: $(DATAFACTORYNAME)
-      trg_resource_name: $(AZURESQLSERVERNAME)
-      role: 'Contributor'
-  # - task: AzureCLI@2
-  #   displayName: 'Add Data Factory SP to SQL Server AAD'
-  #   name: add_adf_sp_to_asql
-  #   inputs:
-  #     azureSubscription: ${{ parameters.AzDoServiceConnection }}
-  #     scriptType: bash
-  #     scriptLocation: inlineScript
-  #     inlineScript: |
-  #       # adf_sp_oid=$(az ad sp list --display-name $(DATAFACTORYNAME) --output tsv --query "[].{id:objectId}") 
-  #       sql_resource_id=$(az resource list --name $(AZURESQLSERVERNAME) --output tsv --query "[].id")
-  #       adf_sp_oid=$(az resource show -g ${{ parameters.resource_group }} --resource-type Microsoft.DataFactory/factories -n $(DATAFACTORYNAME) --query identity.principalId --output tsv)                  
-  #       echo "$adf_sp_oid"
-  #       az role assignment create --role "Contributor" --assignee-object-id "$adf_sp_oid" --scope "$sql_resource_id" 
-  #       echo "$sql_resource_id"
+  # Add Data Factory MI to SQLServer
+  - task: AzureCLI@2
+    displayName: 'Add Data Factory SP to SQL Server AAD'
+    name: add_adf_sp_to_asql
+    inputs:
+      azureSubscription: ${{ parameters.AzDoServiceConnection }}
+      scriptType: bash
+      scriptLocation: inlineScript
+      inlineScript: |
+        # adf_sp_oid=$(az ad sp list --display-name $(DATAFACTORYNAME) --output tsv --query "[].{id:objectId}") 
+        sql_resource_id=$(az resource list --name $(AZURESQLSERVERNAME) --output tsv --query "[].id")
+        adf_sp_oid=$(az resource show -g ${{ parameters.resource_group }} --resource-type Microsoft.DataFactory/factories -n $(DATAFACTORYNAME) --query identity.principalId --output tsv)                  
+        echo "$adf_sp_oid"
+        az role assignment create --role "Contributor" --assignee-object-id "$adf_sp_oid" --scope "$sql_resource_id" 
+        echo "$sql_resource_id"
 
 # Add diagnostic settings for Log Analytics and Storage archiving
   - task: AzureCLI@2
