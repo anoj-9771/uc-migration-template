@@ -1,0 +1,37 @@
+                    # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+                  #                      | Add Source MI to Target Rbac |                           #    
+                  #                      --------------------------------                           #
+                  #     This is a task level template script used to add the MI from one azure      #
+                  #     resource to another's rbac. Parameters include service connection,          #
+                  #     resource group name source resource name, target resource name              #
+                  #     and the Rbac role.                                                          #
+                  #                                                                                 #
+                    # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+parameters: 
+- name: service_connection
+  type: string
+- name: resource_group
+  type: string
+- name: src_resource_name
+  type: string
+- name: trg_resource_name
+  type: string
+- name: role
+  type: string
+
+# Adds one source resource's MI to target resource rbac
+steps:
+- task: AzureCLI@2
+  displayName: 'Add Soure:${{ parameters.src_resource_name }} MI to Target:${{ parameters.src_resource_name }} Rbac'
+  name: add_${{ parameters.src_resource_name }}_to_${{ parameters.trg_resource_name }}
+  inputs:
+    azureSubscription: ${{ parameters.service_connection }}
+    scriptType: bash
+    scriptLocation: inlineScript
+    inlineScript: |
+      src_resource_id=$(az resource list --name ${{ parameters.src_resource_name }} --resource-group ${{ parameters.resource_group }} --output tsv --query "[].id")
+      trg_resource_id=$(az resource list --name ${{ parameters.trg_resource_name }} --resource-group ${{ parameters.resource_group }} --output tsv --query "[].id")
+      src_sp_oid=$(az resource show --ids $src_resource_id --query identity.principalId --output tsv)                  
+      echo "Assiging object id: '$adf_sp_oid' a ${{ parameters.role }} role to resource: '$adf_sp_oid' to trg_resource_id rbac"
+      az role assignment create --role "${{ parameters.role }}" --assignee-object-id "$src_sp_oid" --scope "$trg_resource_id" 
+      echo "${{ parameters.role }} role has been added!"

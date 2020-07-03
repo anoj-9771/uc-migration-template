@@ -41,6 +41,9 @@ variables:
   # Name of key vault for this environment
   - name: azurekeyvaultname
     value: $(PREFIX)-$(ENVIRONMENT)-AKV
+  # Setup secret rotation interval in days
+  - name: secretrotationinterval 
+    value: 30
   # Name of Log Analytics workspace name
   - name: loganalyticsworkspacename
     value: $(PREFIX)-$(ENVIRONMENT)-ALA
@@ -50,12 +53,11 @@ variables:
   # as it is split into an array within the ARM 
   # template.
   - name: logstorageaccountname
-    value: replace(lower($(PREFIX)$(ENVIRONMENT)),'-','')salogs
+    value: $(PREFIX)$(ENVIRONMENT)salogs
   - name: blobstorageaccountnames
-    value: replace(lower($(PREFIX)$(ENVIRONMENT)),'-','')saraw, replace(lower($(PREFIX)$(ENVIRONMENT)),'-','')sacurated
+    value: $(PREFIX)$(ENVIRONMENT)saraw, $(PREFIX)$(ENVIRONMENT)sacurated
   - name: datalakestorageaccountnames
-    value: replace(lower($(PREFIX)$(ENVIRONMENT)),'-','')adls
-    # value: $(PREFIX)saraw$(ENVIRONMENT), $(PREFIX)sastage$(ENVIRONMENT), $(PREFIX)sasandbox$(ENVIRONMENT)
+    value: $(PREFIX)$(ENVIRONMENT)adls
   # Container or file system names within storage account
   # Used to iterate in ARM template
   - name: logzonename

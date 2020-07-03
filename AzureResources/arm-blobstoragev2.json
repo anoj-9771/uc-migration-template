@@ -97,8 +97,8 @@
         }
     ],
     "variables": {
-        "accountNamesObject": "[split(lower(replace(replace(parameters('accountNames'),'-',''),' ','')), ',')]",
-        "zonesObject": "[split(lower(replace(parameters('zones'),' ','')), ',')]",
+        "accountNamesObject": "[split(toLower(replace(replace(parameters('accountNames'),'-',''),' ','')), ',')]",
+        "zonesObject": "[split(toLower(replace(parameters('zones'),' ','')), ',')]",
         "copy": [
             {
                 "name": "storageAccounts",

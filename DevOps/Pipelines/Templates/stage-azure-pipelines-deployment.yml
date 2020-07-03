@@ -29,7 +29,7 @@ stages:
   condition: ${{ parameters.run_condition }}
   variables:
   - template: ../Variables/${{ parameters.variable_template_name }}.yml
-  - template: ../Variables/deployable-resources-variables.yml
+  - template: ../Variables/deployment-variables.yml
   jobs:
   # ---------------------------------------------------------------------------
   # Modularise deployment artifacts into separate ARM scripts. Expose these

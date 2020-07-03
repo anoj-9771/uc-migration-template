@@ -5,6 +5,12 @@
 #   if it is set to true then it will deploy.                                 #
   # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
 variables: 
+  # Use uppercase in naming conventions
+  - name: useuppercase
+    value: false
+  # Secret rotation
+  - name: secretrotation
+    value: true
   # Used to set Log Analytics deployability
   - name: loganalytics
     value: false
