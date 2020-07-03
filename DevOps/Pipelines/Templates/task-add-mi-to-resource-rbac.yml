@@ -32,6 +32,6 @@ steps:
       src_resource_id=$(az resource list --name ${{ parameters.src_resource_name }} --resource-group ${{ parameters.resource_group }} --output tsv --query "[].id")
       trg_resource_id=$(az resource list --name ${{ parameters.trg_resource_name }} --resource-group ${{ parameters.resource_group }} --output tsv --query "[].id")
       src_sp_oid=$(az resource show --ids $src_resource_id --query identity.principalId --output tsv)                  
-      echo "Assiging object id: '$adf_sp_oid' a ${{ parameters.role }} role to resource: '$adf_sp_oid' to trg_resource_id rbac"
+      echo "Assiging a ${{ parameters.role }} role for object id: $src_sp_oid to resource: $trg_resource_id rbac"
       az role assignment create --role "${{ parameters.role }}" --assignee-object-id "$src_sp_oid" --scope "$trg_resource_id" 
       echo "${{ parameters.role }} role has been added!"
