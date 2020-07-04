@@ -47,13 +47,15 @@ variables:
   # Name of Log Analytics workspace name
   - name: loganalyticsworkspacename
     value: $(PREFIX)-$(ENVIRONMENT)-ALA
+  - name: logstorageaccountname
+    value: $(PREFIX)$(ENVIRONMENT)salogs
+  - name: retention
+    value: 30
   # Name of Azure SQL Server and catalog name
   # Data Lake storage account names, commonly split
   # into zones. Ensure it is a comma delimited list
   # as it is split into an array within the ARM 
   # template.
-  - name: logstorageaccountname
-    value: $(PREFIX)$(ENVIRONMENT)salogs
   - name: blobstorageaccountnames
     value: $(PREFIX)$(ENVIRONMENT)saraw, $(PREFIX)$(ENVIRONMENT)sacurated
   - name: datalakestorageaccountnames

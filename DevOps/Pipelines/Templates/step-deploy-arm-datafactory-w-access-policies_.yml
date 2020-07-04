@@ -47,6 +47,13 @@ steps:
         az role assignment create --role "Contributor" --assignee-object-id "$adf_sp_oid" --scope "$sql_resource_id" 
         echo "$sql_resource_id"
 
+parameters:
+  log_analitics_name: $(LOGANALYTICSNAME)
+  log_analytics_flag: $(LOGANALYTICS)
+  log_storage_name: $(LOGANALYTICSNAME)
+  log_storage_flag: $(LOGSTORAGEACCOUNT)
+  logs: '[{"category": "ActivityRuns","enabled": true,"retentionPolicy": {"days": 30,"enabled": true}},{"category": "PipelineRuns","enabled": true,"retentionPolicy": {"days": 30,"enabled": true}},{"category": "TriggerRuns","enabled": true,"retentionPolicy": {"days": 30,"enabled": true}}]'
+  metrics: '[{"category": "AllMetrics","enabled": true,"retentionPolicy": {"days": 30,"enabled": true}}]'
 # Add diagnostic settings for Log Analytics and Storage archiving
   - task: AzureCLI@2
     displayName: 'Add diagnostic settings for Data Factory'

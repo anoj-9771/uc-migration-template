@@ -1,9 +1,10 @@
   # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #   ----------------------- Deployable Resources  -------------------------   #
 #   The following variables are for turning on or off azure resources for     #
-#   deployment. If a resource is set to false, it will not deploy, whereas    #
+#   deployment. If a resource is set to false, it will not deploy, whereas,   #
 #   if it is set to true then it will deploy.                                 #
   # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+  
 variables: 
   # Use uppercase in naming conventions
   - name: useuppercase
@@ -15,8 +16,8 @@ variables:
   - name: loganalytics
     value: false
   # Used to set Log Blob Storage deployability
-  - name: logstorageaccount
-    value: false
+  - name: logstorage
+    value: true
   # Used to set Azure SQL Server deployability
   - name: azuresqlserver
     value: false
