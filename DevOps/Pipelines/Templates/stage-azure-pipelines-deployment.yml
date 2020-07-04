@@ -50,7 +50,7 @@ stages:
           AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
           resource_group: ${{ variables.resourcegroupname }} 
       # Deploy BLOB Storage accounts for Data Lake
-    - ${{ if eq(variables['logstorageaccount'], true)  }}:
+    - ${{ if eq(variables['logstorage'], true)  }}:
       - template: step-deploy-arm-logstorage.yml
         parameters:
           AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
@@ -108,6 +108,8 @@ stages:
         parameters:
           AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
           resource_group: ${{ variables.resourcegroupname }}
+          log_analytics: ${{ variables.loganalytics }}
+          log_storage: ${{ variables.logstorage }}
 
     # Add Tags to resources
     - ${{ if eq(variables['applytags'], true) }}:
