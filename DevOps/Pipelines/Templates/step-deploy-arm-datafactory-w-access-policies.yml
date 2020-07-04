@@ -41,7 +41,7 @@ steps:
 
 # Create or update diagnostic settings to send to Log Analytics
   - ${{ if eq(parameters['log_analytics'], true) }}:
-    - template: step-deploy-arm-databricks-vnet-injection.yml
+    - template: task-add-log-analytics-diagnostics.yml
       parameters:
         service_connection: ${{ parameters.AzDoServiceConnection }}
         resource_group: ${{ parameters.resource_group }}
@@ -52,7 +52,7 @@ steps:
 
 # Create or update diagnostic settings to archive to a storage account
   - ${{ if eq(parameters['log_storage'], true) }}:
-    - template: step-deploy-arm-databricks-vnet-injection.yml
+    - template: task-add-log-storage-diagnostics.yml
       parameters:
         service_connection: ${{ parameters.AzDoServiceConnection }}
         resource_group: ${{ parameters.resource_group }}
