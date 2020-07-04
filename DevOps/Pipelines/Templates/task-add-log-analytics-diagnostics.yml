@@ -21,19 +21,6 @@ parameters:
   type: string
 
 steps:
-# set variables
-  - task: AzureCLI@2
-    displayName: 'Add diagnostic settings for Data Factory'
-    name: set_variables
-    inputs:
-      azureSubscription: ${{ parameters.service_connection }}
-      scriptType: bash
-      scriptLocation: inlineScript
-      inlineScript: |
-        src_resource_id=$(az resource list --name ${{ parameters.src_resource_name }} --resource-group ${{ parameters.resource_group }} --output tsv --query "[].id")
-        log_resource_id=$(az resource list --name ${{ parameters.log_analitics_name}} --resource-group ${{ parameters.resource_group }} --output tsv --query "[].id")
-        # diagnostic_check=$(az monitor diagnostic-settings show --resource $src_resource_id --name ${{ parameters.src_resource_name }}-ala)
-
 # Create or updatediagnostic settings for Log Analytics and Storage archiving
   - task: AzureCLI@2
     displayName: 'Create Log Analytics diagnostic settings for Resource'
@@ -43,6 +30,8 @@ steps:
       scriptType: bash
       scriptLocation: inlineScript
       inlineScript: |
+        src_resource_id=$(az resource list --name ${{ parameters.src_resource_name }} --resource-group ${{ parameters.resource_group }} --output tsv --query "[].id")
+        log_resource_id=$(az resource list --name ${{ parameters.log_analitics_name}} --resource-group ${{ parameters.resource_group }} --output tsv --query "[].id")
         az monitor diagnostic-settings create  \
         --name "'${{ parameters.src_resource_name }}'-ala" \
         --resource $src_resource_id \
