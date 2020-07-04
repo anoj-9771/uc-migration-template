@@ -24,7 +24,7 @@ parameters:
 steps:
 # set variables
   - task: AzureCLI@2
-    displayName: 'Add diagnostic settings for Data Factory'
+    displayName: 'Set variables to be used.'
     name: set_variables
     inputs:
       azureSubscription: ${{ parameters.service_connection }}
@@ -37,7 +37,7 @@ steps:
 
 # Create or updatediagnostic settings for Log Analytics and Storage archiving
   - task: AzureCLI@2
-    displayName: 'Create Log Analytics diagnostic settings for Resource'
+    displayName: 'Create Log Storage diagnostic settings for Resource'
     name: create_diagnostic_settings
     inputs:
       azureSubscription: ${{ parameters.service_connection }}
@@ -47,6 +47,6 @@ steps:
         az monitor diagnostic-settings create  \
         --name "'${{ parameters.src_resource_name }}'-asa" \
         --resource $src_resource_id \
-        --logs '${{ parameters.logs }}' \
-        --metrics '${{ parameters.metrics }}' \
+        --logs ${{ parameters.logs }} \
+        --metrics ${{ parameters.metrics }} \
         --storage-account $log_resource_id
