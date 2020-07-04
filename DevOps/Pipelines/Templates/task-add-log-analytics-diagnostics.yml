@@ -25,7 +25,6 @@ steps:
   - task: AzureCLI@2
     displayName: 'Add diagnostic settings for Data Factory'
     name: set_variables
-    condition: and(ne(variables['loganalytics'], "false"),ne(variables['logstorageaccount'], "false"))
     inputs:
       azureSubscription: ${{ parameters.service_connection }}
       scriptType: bash
