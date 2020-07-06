@@ -16,7 +16,7 @@ parameters:
 steps:
   - task: AzureCLI@2
     displayName: 'Create Databricks PAT'
-    name: create_pat
+    # name: create_pat
     inputs:
       azureSubscription: ${{ parameters.service_connection }}
       scriptType: bash
@@ -99,7 +99,7 @@ steps:
 
   - task: AzureCLI@2
     displayName: 'Add PAT to Key Vault'
-    name: add_pat_to_keyvault
+    # name: add_pat_to_keyvault
     condition: eq(variables['create_pat.ADD_TO_KV'], 'Yes')
     inputs:
       azureSubscription: ${{ parameters.service_connection }}

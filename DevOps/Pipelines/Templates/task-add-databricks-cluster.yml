@@ -34,7 +34,7 @@ steps:
 
   - task: AzureCLI@2
     displayName: 'Create cluster'
-    name: create_cluster
+    # name: create_cluster
     inputs:
       azureSubscription: ${{ parameters.service_connection }}
       scriptType: bash

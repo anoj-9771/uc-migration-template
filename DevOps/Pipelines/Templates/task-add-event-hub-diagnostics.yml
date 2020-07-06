@@ -33,7 +33,7 @@ steps:
 # Add diagnostic settings for Log Analytics and Storage archiving
   - task: AzureCLI@2
     displayName: 'Add diagnostic settings for Data Factory'
-    name: add_diagnostics_to_resource
+    # name: add_diagnostics_to_resource
     condition: and(ne(variables['loganalytics'], "false"),ne(variables['logstorageaccount'], "false"))
     inputs:
       azureSubscription: ${{ parameters.service_connection }}

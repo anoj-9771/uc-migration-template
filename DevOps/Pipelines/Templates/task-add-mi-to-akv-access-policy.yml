@@ -23,7 +23,7 @@ parameters:
 steps:
 - task: AzureCLI@2
   displayName: 'Add Data Factory SP to AKV'
-  name: add_mi_sp_to_akv
+  # name: add_mi_sp_to_akv
   inputs:
     azureSubscription: ${{ parameters.service_connection }}
     scriptType: bash
