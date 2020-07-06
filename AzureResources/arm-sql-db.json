@@ -41,9 +41,9 @@
         "type": "Microsoft.Sql/servers/databases",
         "apiVersion": "2019-06-01-preview",
         "name": "[parameters('databaseName')]",
-        "location": "australiaeast",
+        "location": "[parameters('location')]",
         "sku": "[json(parameters('databaseSku'))]",
-        "kind": "[paramters['databaseKind']]",
+        "kind": "[parameters('databaseKind')]",
         "properties": "[json(parameters('databaseProperties'))]",
         "tags": {
           "displayName": "database"
