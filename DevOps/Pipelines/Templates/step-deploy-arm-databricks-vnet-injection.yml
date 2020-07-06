@@ -137,7 +137,89 @@ steps:
         resource_group: ${{ parameters.resource_group }}
         src_resource_name: $(DATABRICKSWORKSPACENAME)
         log_storage_name: $(LOGSTORAGEACCOUNTNAME)
-        logs: '[{"category": "dbfs","enabled": true,"retentionPolicy": {"days": 30,"enabled": true}}, {"category": "clusters","enabled": true,"retentionPolicy": {"days": 30,"enabled": true}}, {"category": "accounts","enabled": true,"retentionPolicy": {"days": 30,"enabled": true}}, {"category": "jobs","enabled": true,"retentionPolicy": {"days": 30,"enabled": true}}, {"category": "notebook","enabled": true,"retentionPolicy": {"days": 30,"enabled": true}}, {"category": "workspace","enabled": true,"retentionPolicy": {"days": 30,"enabled": true}}, {"category": "instancePools","enabled": true,"retentionPolicy": {"days": 30,"enabled": true}}]'
+        logs: |
+          '[
+            {
+              "category": "dbfs",
+              "enabled": true,
+              "retentionPolicy": {
+                "days": 30,
+                "enabled": true
+              }
+            },
+            {
+              "category": "clusters",
+              "enabled": false,
+              "retentionPolicy": {
+                "days": 0,
+                "enabled": false
+              }
+            },
+            {
+              "category": "accounts",
+              "enabled": true,
+              "retentionPolicy": {
+                "days": 30,
+                "enabled": true
+              }
+            },
+            {
+              "category": "jobs",
+              "enabled": true,
+              "retentionPolicy": {
+                "days": 30,
+                "enabled": true
+              }
+            },
+            {
+              "category": "notebook",
+              "enabled": true,
+              "retentionPolicy": {
+                "days": 30,
+                "enabled": true
+              }
+            },
+            {
+              "category": "ssh",
+              "enabled": false,
+              "retentionPolicy": {
+                "days": 0,
+                "enabled": false
+              }
+            },
+            {
+              "category": "workspace",
+              "enabled": true,
+              "retentionPolicy": {
+                "days": 30,
+                "enabled": true
+              }
+            },
+            {
+              "category": "secrets",
+              "enabled": true,
+              "retentionPolicy": {
+                "days": 30,
+                "enabled": true
+              }
+            },
+            {
+              "category": "sqlPermissions",
+              "enabled": false,
+              "retentionPolicy": {
+                "days": 0,
+                "enabled": false
+              }
+            },
+            {
+              "category": "instancePools",
+              "enabled": true,
+              "retentionPolicy": {
+                "days": 30,
+                "enabled": true
+              }
+            }
+          ]'
         # metrics: '[{"category": "AllMetrics","enabled": true,"retentionPolicy": {"days": 30,"enabled": true}}]'
 
 # Create or update diagnostic settings to stream to even hub **This has yet to be built
