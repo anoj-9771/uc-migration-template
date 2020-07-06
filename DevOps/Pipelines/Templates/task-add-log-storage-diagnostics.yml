@@ -22,15 +22,15 @@ parameters:
 
 
 steps:
-# set variables
-  - task: AzureCLI@2
-    displayName: 'Set variables to be used.'
-    name: set_variables
-    inputs:
-      azureSubscription: ${{ parameters.service_connection }}
-      scriptType: bash
-      scriptLocation: inlineScript
-      inlineScript: |
+# # set variables
+#   - task: AzureCLI@2
+#     displayName: 'Set variables to be used.'
+#     name: set_variables
+#     inputs:
+#       azureSubscription: ${{ parameters.service_connection }}
+#       scriptType: bash
+#       scriptLocation: inlineScript
+#       inlineScript: |
 
 # Create or updatediagnostic settings for Log Analytics and Storage archiving
   - task: AzureCLI@2
