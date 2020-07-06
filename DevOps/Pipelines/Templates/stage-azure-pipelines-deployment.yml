@@ -77,7 +77,7 @@ stages:
             {
               "name": "GP_S_Gen5",
               "tier": "GeneralPurpose",
-              "family": "Gen5".
+              "family": "Gen5",
               "capacity": 1
             }
           database_properties: |
