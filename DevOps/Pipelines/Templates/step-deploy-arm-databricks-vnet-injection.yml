@@ -118,7 +118,7 @@ steps:
       parameters:
         service_connection: ${{ parameters.AzDoServiceConnection }}
         resource_group: ${{ parameters.resource_group }}
-        src_resource_name: $(DATAFACTORYNAME)
+        src_resource_name: $(DATABRICKSWORKSPACENAME)
         log_analitics_name: $(LOGANALYTICSWORKSPACENAME)
         logs: '[{"category": "dbfs","enabled": true,"retentionPolicy": {"days": 30,"enabled": true}},
                 {"category": "clusters","enabled": true,"retentionPolicy": {"days": 30,"enabled": true}},
@@ -135,7 +135,7 @@ steps:
       parameters:
         service_connection: ${{ parameters.AzDoServiceConnection }}
         resource_group: ${{ parameters.resource_group }}
-        src_resource_name: $(DATAFACTORYNAME)
+        src_resource_name: $(DATABRICKSWORKSPACENAME)
         log_storage_name: $(LOGSTORAGEACCOUNTNAME)
         logs: '[{"category": "dbfs","enabled": true,"retentionPolicy": {"days": 30,"enabled": true}},
                 {"category": "clusters","enabled": true,"retentionPolicy": {"days": 30,"enabled": true}},
