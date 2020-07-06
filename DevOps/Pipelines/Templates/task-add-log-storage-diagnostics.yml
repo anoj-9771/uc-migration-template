@@ -22,10 +22,6 @@ parameters:
   type: string
   default: null
 
-variables:
-- name: clean_name
-  value: ${{ replace(replace(lower(parameters.src_resource_name),'-','_'),'/','_') }}
-
 steps:
 # Create or updatediagnostic settings for Log Analytics and Storage archiving
   - task: AzureCLI@2
