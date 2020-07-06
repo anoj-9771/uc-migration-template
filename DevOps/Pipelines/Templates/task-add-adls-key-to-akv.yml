@@ -1,0 +1,21 @@
+parameters:
+- name: service_connection # name of the parameter; required
+  type: string # data type of the parameter; required
+- name: resource_group
+  type: string
+- src_resource_name: 
+  type: string
+
+steps:
+  - task: AzureCLI@2
+    displayName: 'Set Key in AKV for ADLS'
+    name: SetKeyADLS
+    inputs:
+      azureSubscription: ${{ parameters.AzDoServiceConnection }}
+      scriptType: pscore
+      scriptLocation: inlineScript
+      inlineScript: |
+          adls_key=$(az storage account keys renew -g ${{ parameters.resource_group }} -n ${{ parameters.src_resource_name }} --key primary --query "[0].value" --output tsv)
+          Write-Host "Renewed key..."
+          az keyvault secret set --name ${{ parameters.src_resource_name }}-adls-key --vault-name "$(AZUREKEYVAULTNAME)" --value "$adls_key"
+          Write-Host "Secret set"

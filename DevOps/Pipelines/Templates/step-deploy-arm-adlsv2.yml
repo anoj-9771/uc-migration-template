@@ -6,6 +6,7 @@ parameters:
 
 steps:
   - task: AzureResourceGroupDeployment@2
+    name: deploy_adls
     inputs:
       azureSubscription: ${{ parameters.AzDoServiceConnection }}
       action: 'Create Or Update Resource Group'
@@ -18,29 +19,8 @@ steps:
       deploymentOutputs: 'armOutputs'
     displayName: 'Deploy BLOB Storage Zones'
 
-  - task: AzureCLI@2
-    displayName: 'Set SAS tokens in AKV for ADLS'
-    name: SetSasTokensADLS
-    inputs:
-      azureSubscription: ${{ parameters.AzDoServiceConnection }}
-      scriptType: pscore
-      scriptLocation: inlineScript
-      inlineScript: |
-        $ErrorActionPreference = "Stop"
-
-        Write-Host '$(armOutputs)'
-        $json = '$(armOutputs)' | convertfrom-json
-
-        az keyvault set-policy --name "$(AZUREKEYVAULTNAME)" --secret-permissions set list get --object-id "$(SPOBJECTID)"
-        Write-Host "Policy set"
-
-        $json.PSObject.Properties.Value.Value | ForEach-Object {
-          $value = $_.name
-          Write-Host $value
-          
-          $date_year=(Get-Date).AddYears(1).ToString("yyyy-MM-ddTH:mmZ")
-          $adls_key=az storage account keys list --account-name $(AZURE) --resource-group sl-nonprod --output tsv --query "[0].value"
-          Write-Host "Retrieved key..."
-          az keyvault secret set --name (-join($value, "-adls-key")) --vault-name "$(AZUREKEYVAULTNAME)" --value "$adls_key"
-          Write-Host "Secret set"
-        }
+  - template: AzureCLI@2
+    parameters:
+      service_connection: ${{ parameters.AzDoServiceConnection }}
+      resource_group: ${{ parameters.resource_group }}
+      src_resource_name: $(DATALAKESTORAGEACCOUNTNAMES)
