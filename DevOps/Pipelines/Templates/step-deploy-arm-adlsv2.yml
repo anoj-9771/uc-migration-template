@@ -19,7 +19,7 @@ steps:
       deploymentOutputs: 'armOutputs'
     displayName: 'Deploy BLOB Storage Zones'
 
-  - template: AzureCLI@2
+  - template: task-add-asa-key-to-akv.yml
     parameters:
       service_connection: ${{ parameters.AzDoServiceConnection }}
       resource_group: ${{ parameters.resource_group }}

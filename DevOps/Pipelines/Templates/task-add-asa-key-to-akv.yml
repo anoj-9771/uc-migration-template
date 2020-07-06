@@ -8,7 +8,7 @@ parameters:
 
 steps:
   - task: AzureCLI@2
-    displayName: 'Set Key in AKV for ADLS'
+    displayName: 'Set Key in AKV for Azure Storage'
     name: SetKeyADLS
     inputs:
       azureSubscription: ${{ parameters.AzDoServiceConnection }}
