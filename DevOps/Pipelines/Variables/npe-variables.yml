@@ -48,18 +48,16 @@ variables:
   - name: loganalyticsworkspacename
     value: $(PREFIX)-$(ENVIRONMENT)-ALA
   - name: logstorageaccountname
-    value: $(PREFIX)$(ENVIRONMENT)salogs
-  - name: retention
-    value: 30
+    value: ${{ replace(lower(variables.prefix),'-','') }}${{ replace(lower(variables.environment),'-','') }}salogs
   # Name of Azure SQL Server and catalog name
   # Data Lake storage account names, commonly split
   # into zones. Ensure it is a comma delimited list
   # as it is split into an array within the ARM 
   # template.
   - name: blobstorageaccountnames
-    value: $(PREFIX)$(ENVIRONMENT)saraw, $(PREFIX)$(ENVIRONMENT)sacurated
+    value: ${{ replace(lower(variables.prefix),'-','') }}${{ replace(lower(variables.environment),'-','') }}saraw, ${{ replace(lower(variables.prefix),'-','') }}${{ replace(lower(variables.environment),'-','') }}sacurated
   - name: datalakestorageaccountnames
-    value: $(PREFIX)$(ENVIRONMENT)adls
+    value: ${{ replace(lower(variables.prefix),'-','') }}${{ replace(lower(variables.environment),'-','') }}adls
   # Container or file system names within storage account
   # Used to iterate in ARM template
   - name: logzonename
