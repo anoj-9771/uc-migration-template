@@ -40,11 +40,11 @@
       {
         "type": "Microsoft.Sql/servers/databases",
         "apiVersion": "2019-06-01-preview",
-        "name": "[parameters['databaseName']]",
+        "name": "[parameters('databaseName')]",
         "location": "australiaeast",
-        "sku": "parameters['databaseSku']",
-        "kind": "v12.0,user,vcore,serverless",
-        "properties": "parameters['databaseProperties']",
+        "sku": "[json(parameters('databaseSku'))]",
+        "kind": "[paramters['databaseKind']]",
+        "properties": "[json(parameters('databaseProperties'))]",
         "tags": {
           "displayName": "database"
         }
