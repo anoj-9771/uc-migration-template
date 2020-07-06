@@ -12,7 +12,7 @@ steps:
     name: SetKeyADLS
     inputs:
       azureSubscription: ${{ parameters.service_connection }}
-      scriptType: pscore
+      scriptType: bash
       scriptLocation: inlineScript
       inlineScript: |
           adls_key=$(az storage account keys renew -g ${{ parameters.resource_group }} -n ${{ parameters.src_resource_name }} --key primary --query "[0].value" -o tsv)
