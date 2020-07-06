@@ -138,7 +138,7 @@ steps:
         src_resource_name: $(DATABRICKSWORKSPACENAME)
         log_storage_name: $(LOGSTORAGEACCOUNTNAME)
         logs: |
-          '[
+          [
             {
               "category": "dbfs",
               "enabled": true,
@@ -219,7 +219,7 @@ steps:
                 "enabled": true
               }
             }
-          ]'
+          ]
         # metrics: '[{"category": "AllMetrics","enabled": true,"retentionPolicy": {"days": 30,"enabled": true}}]'
 
 # Create or update diagnostic settings to stream to even hub **This has yet to be built
