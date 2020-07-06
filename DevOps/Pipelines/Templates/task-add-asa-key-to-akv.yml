@@ -11,7 +11,7 @@ steps:
     displayName: 'Set Key in AKV for Azure Storage'
     name: SetKeyADLS
     inputs:
-      azureSubscription: ${{ parameters.AzDoServiceConnection }}
+      azureSubscription: ${{ parameters.service_connection }}
       scriptType: pscore
       scriptLocation: inlineScript
       inlineScript: |
