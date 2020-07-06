@@ -22,12 +22,15 @@ parameters:
   type: string
   default: null
 
+variables:
+- name: clean_name
+  value: ${{ replace(replace(lower(parameters.src_resource_name),'-','_'),'/','_') }}
 
 steps:
 # Create or updatediagnostic settings for Log Analytics and Storage archiving
   - task: AzureCLI@2
     displayName: 'Create Log Storage diagnostic settings for Resource'
-    name: create_diagnostic_settings_$[replace(replace(lower(parameters.src_resource_name),'-','_'),'/','_')]
+    name: create_diagnostic_settings_$(CLEANNAME)
     inputs:
       azureSubscription: ${{ parameters.service_connection }}
       scriptType: bash
