@@ -34,7 +34,7 @@ stages:
   jobs:
   # Use this section to pull in or out build jobs
   - template: Templates/job-copy-arm.yml
-  - ${{ if eq(variables['controlschema'], true) }}:  
+  - ${{ if eq(variables['controldb'], true) }}:  
     - template: Templates/job-build-cntrldb.yml
 # ---------------------------------------------------------------------------
 # Release to Non-Production
