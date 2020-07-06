@@ -4,7 +4,7 @@
 #   deployment. If a resource is set to false, it will not deploy, whereas,   #
 #   if it is set to true then it will deploy.                                 #
   # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
-  
+
 variables: 
   # Use uppercase in naming conventions
   - name: useuppercase
@@ -17,7 +17,7 @@ variables:
     value: false
   # Used to set Log Blob Storage deployability
   - name: logstorage
-    value: true
+    value: false
   # Used to set Azure SQL Server deployability
   - name: azuresqlserver
     value: false
@@ -32,7 +32,7 @@ variables:
     value: false
   # Used to set Databricks Workspace deployability
   - name: databricksvnet
-    value: false
+    value: true
   # Used to set Databricks Workspace deployability
   - name: databricksvnetsubnets
     value: false
@@ -44,4 +44,4 @@ variables:
     value: false
   # Used to set Log Analytics deployability
   - name: datafactory
-    value: true
+    value: false

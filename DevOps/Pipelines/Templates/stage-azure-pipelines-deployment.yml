@@ -90,6 +90,8 @@ stages:
           databricks_spark_version : ${{ variables.sparkClusterVersion }}
           databricks_workers : ${{ variables.databricksworkers }}
           databricks_autotermination : ${{ variables.databricksautotermination }}
+          log_analytics: ${{ variables.loganalytics }}
+          log_storage: ${{ variables.logstorage }}
     # Deploy Databricks Workspace without v-net integration
     - ${{ if eq(variables['databricksnovnet'], true) }}:
       - template: step-deploy-arm-databricks-no-vnet-injection.yml
@@ -102,6 +104,8 @@ stages:
           databricks_spark_version : ${{ variables.sparkClusterVersion }}
           databricks_workers : ${{ variables.databricksworkers }}
           databricks_autotermination : ${{ variables.databricksautotermination }}
+          log_analytics: ${{ variables.loganalytics }}
+          log_storage: ${{ variables.logstorage }}
     # Deploy Data Factory with access policies for AKV
     - ${{ if eq(variables['datafactory'], true) }}:
       - template: step-deploy-arm-datafactory-w-access-policies.yml
