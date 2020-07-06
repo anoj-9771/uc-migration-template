@@ -74,20 +74,20 @@ stages:
           database_name: ${{ variables.azuresqlservername }}/ControlDB
           database_kind: "v12.0,user,vcore,serverless"
           database_sku:
-            - name: "GP_S_Gen5",
-              tier: "GeneralPurpose",
-              family: "Gen5",
-              capacity: 1
+            name: "GP_S_Gen5",
+            tier: "GeneralPurpose",
+            family: "Gen5",
+            capacity: 1
           database_properties:
-            - collation": "SQL_Latin1_General_CP1_CI_AS",
-              maxSizeBytes": 10737418240,
-              catalogCollation": "SQL_Latin1_General_CP1_CI_AS",
-              zoneRedundant": false,
-              readScale": "Disabled",
-              readReplicaCount": 0,
-              autoPauseDelay": 60,
-              storageAccountType": "GRS",
-              minCapacity": 0.5
+            collation": "SQL_Latin1_General_CP1_CI_AS",
+            maxSizeBytes": 10737418240,
+            catalogCollation": "SQL_Latin1_General_CP1_CI_AS",
+            zoneRedundant": false,
+            readScale": "Disabled",
+            readReplicaCount": 0,
+            autoPauseDelay": 60,
+            storageAccountType": "GRS",
+            minCapacity": 0.5
     # Deploy S0 EDW DB. Update parameters here if different to required.
     - ${{ if eq(variables['edw'], true) }}:
       - template: step-deploy-arm-azuresqldb.yml
@@ -97,17 +97,17 @@ stages:
           database_name: ${{ variables.azuresqlservername }}/${{ variables.azureedwdbname }}
           database_kind: "v12.0,user,vcore,serverless"
           database_sku:
-            - name: "S0",
-              tier: "Standard"
+            name: "S0",
+            tier: "Standard"
           database_properties:
-            - collation: "SQL_Latin1_General_CP1_CI_AS",
-              maxSizeBytes: 268435456000,
-              zoneRedundant: false,
-              licenseType: "",
-              readScale: "Disabled",
-              readReplicaCount: 0,
-              minCapacity: "",
-              autoPauseDelay: ""
+            collation: "SQL_Latin1_General_CP1_CI_AS",
+            maxSizeBytes: 268435456000,
+            zoneRedundant: false,
+            licenseType: "",
+            readScale: "Disabled",
+            readReplicaCount: 0,
+            minCapacity: "",
+            autoPauseDelay: ""
     # Deploy BLOB Storage accounts for Data Lake
     - ${{ if eq(variables['azureblobstorage'], true) }}:
       - template: step-deploy-arm-blobstoragev2.yml
