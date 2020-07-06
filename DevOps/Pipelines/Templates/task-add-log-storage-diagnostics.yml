@@ -49,7 +49,7 @@ steps:
         echo "Name: ${{ parameters.log_storage_name }}, Id: $log_resource_id"
 
         # diagnostic_check=$(az monitor diagnostic-settings show --resource $src_resource_id --name ${{ parameters.src_resource_name }}-asa)
-        echo "name ${{ parameters.src_resource_name }}-asa --resource $src_resource_id --logs '${{ parameters.logs }}' --metrics '${{ parameters.metrics }}' --storage-account $log_resource_id"
+        echo "az monitor diagnostic-settings create --name ${{ parameters.src_resource_name }}-asa --resource $src_resource_id --logs '${{ parameters.logs }}' --metrics '${{ parameters.metrics }}' --storage-account $log_resource_id"
 
         az monitor diagnostic-settings create \
         --name "${{ lower(parameters.src_resource_name) }}-asa" \
