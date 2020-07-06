@@ -3,7 +3,7 @@ parameters:
   type: string # data type of the parameter; required
 - name: resource_group
   type: string
-- src_resource_name: 
+- name: src_resource_name 
   type: string
 
 steps:
