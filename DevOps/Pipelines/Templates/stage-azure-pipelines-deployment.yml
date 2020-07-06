@@ -88,6 +88,8 @@ stages:
             autoPauseDelay": 60
             storageAccountType": "GRS"
             minCapacity": 0.5
+          log_analytics: ${{ variables.loganalytics }}
+          log_storage: ${{ variables.logstorage }}
     # Deploy S0 EDW DB. Update parameters here if different to required.
     - ${{ if eq(variables['edw'], true) }}:
       - template: step-deploy-arm-azuresqldb.yml
@@ -108,6 +110,8 @@ stages:
             readReplicaCount: 0
             minCapacity: ""
             autoPauseDelay: ""
+          log_analytics: ${{ variables.loganalytics }}
+          log_storage: ${{ variables.logstorage }}
     # Deploy BLOB Storage accounts for Data Lake
     - ${{ if eq(variables['azureblobstorage'], true) }}:
       - template: step-deploy-arm-blobstoragev2.yml

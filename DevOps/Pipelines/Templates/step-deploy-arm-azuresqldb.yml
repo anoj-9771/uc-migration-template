@@ -11,6 +11,10 @@ parameters:
   type: object
 - name: database_properties
   type: object
+- name: log_analytics
+  type: boolean
+- name: log_storage
+  type: boolean
 
 steps:
   - bash: |
