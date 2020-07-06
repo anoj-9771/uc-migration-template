@@ -17,10 +17,10 @@ parameters:
   type: string
 - name: logs
   type: string
-  default: ~
+  default: null
 - name: metrics
   type: string
-  default: ~
+  default: null
 
 
 steps:
