@@ -84,7 +84,7 @@ steps:
                 "enabled": true
               }
             }
-          ]'
+          ]
 
 # Create or update diagnostic settings to archive to a storage account
   - ${{ if eq(parameters['log_storage'], true) }}:
@@ -131,6 +131,6 @@ steps:
                 "enabled": true
               }
             }
-          ]'
+          ]
 
 # Create or update diagnostic settings to stream to even hub **This has yet to be built
