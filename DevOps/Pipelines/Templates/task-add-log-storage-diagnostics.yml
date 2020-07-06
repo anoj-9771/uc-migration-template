@@ -52,7 +52,7 @@ steps:
         echo "name ${{ parameters.src_resource_name }}-asa --resource $src_resource_id --logs '${{ parameters.logs }}' --metrics '${{ parameters.metrics }}' --storage-account $log_resource_id"
 
         az monitor diagnostic-settings create \
-        --name "${{ parameters.src_resource_name }}-asa" \
+        --name "${{ lower(parameters.src_resource_name) }}-asa" \
         --resource "$src_resource_id" \
         --logs '${{ parameters.logs }}' \
         --metrics '${{ parameters.metrics }}' \
