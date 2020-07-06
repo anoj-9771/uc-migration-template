@@ -8,9 +8,9 @@ parameters:
 - name: database_kind
   type: string
 - name: database_sku
-  type: object
+  type: string
 - name: database_properties
-  type: object
+  type: string
 - name: log_analytics
   type: boolean
 - name: log_storage
