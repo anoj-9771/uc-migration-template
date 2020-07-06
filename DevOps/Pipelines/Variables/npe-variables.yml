@@ -10,7 +10,7 @@ variables:
     value: NPRD
   # Resource group name
   - name: resourcegroupname
-    value: $(PREFIX)-$(ENVIRONMENT)-ARG
+    value: SCL-AUE-NPRD-ARG
   # username for SQL Server Control DB
   - name: azuresqlserverun
     value: sqladmin

@@ -64,7 +64,7 @@ stages:
       - template: step-deploy-arm-azuresql.yml
         parameters:
           AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
-          resource_group: ${{ variables.resourcegroupname }}# Deploy Azure SQL DB for Control DB
+          resource_group: ${{ variables.resourcegroupname }}
     # Deploy Control DB. Update parameters here if different to required.
     - ${{ if eq(variables['controldb'], true) }}:
       - template: step-deploy-arm-azuresqldb.yml
