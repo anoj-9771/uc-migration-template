@@ -20,31 +20,31 @@ variables:
     value: true
   # Used to set Azure SQL Server deployability
   - name: azuresqlserver
-    value: false
+    value: true
   # Used to add Control DB to Azure SQL server 
   - name: controldb
     value: true
   # Used to add EDW DB to Azure SQL server 
   - name: edw
-    value: false
+    value: true
   # Used to set Blob Storage deployability
   - name: azureblobstorage
-    value: false
+    value: true
   # Used to set Data Lake Storage deployability
   - name: azuredatalakestorage
-    value: false
+    value: true
   # Used to set Databricks Workspace deployability
   - name: databricksvnet
-    value: false
+    value: true
   # Used to set Databricks Workspace deployability
   - name: databricksvnetsubnets
-    value: false
+    value: true
   # Used to set Databricks Workspace deployability
   - name: databricksvnetnsg
-    value: false
+    value: true
   # Databricks with v-Net integration
   - name: databricksnovnet
     value: false
   # Used to set Log Analytics deployability
   - name: datafactory
-    value: false
+    value: true
