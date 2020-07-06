@@ -7,10 +7,10 @@ variables:
     value: australiaeast
   # environment name used in service naming
   - name: environment
-    value: NPRD
+    value: NPE
   # Resource group name
   - name: resourcegroupname
-    value: SCL-AUE-NPRD-ARG
+    value: SCL-AUE-NPE-ARG
   # username for SQL Server Control DB
   - name: azuresqlserverun
     value: sqladmin
@@ -29,7 +29,7 @@ variables:
   - name: tags
     value: CostCenter=DataAndAnalytics \
           Environment=Non-Production \
-          Owner=Michael.Clover@dpcwagov.onmicrosoft.com
+          Owner=stephen.lundall@insight.com
   # ------------------------------------------------
   # Service names for environment
   # ------------------------------------------------
@@ -73,7 +73,7 @@ variables:
     value: $(PREFIX)-$(ENVIRONMENT)-ADF
   # Data Factory self hosted integrated runtime name
   - name: datafactoryshirname
-    value: $(PREFIX)-$(ENVIRONMENT)-SHIR
+    value: $(PREFIX)-SHIR
 
   # ------------------------------------------------
   # Log Analytics related

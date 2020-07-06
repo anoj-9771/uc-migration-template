@@ -22,7 +22,7 @@ parameters:
 # Adds one source resource's MI to target resource rbac
 steps:
 - task: AzureCLI@2
-  displayName: 'Add Data Factory SP to AKV'
+  displayName: 'Add ${{ parameters.src_resource_name }} SP to AKV'
   # name: add_mi_sp_to_akv
   inputs:
     azureSubscription: ${{ parameters.service_connection }}

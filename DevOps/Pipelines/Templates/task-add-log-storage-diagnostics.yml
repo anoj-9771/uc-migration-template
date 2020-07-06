@@ -25,7 +25,7 @@ parameters:
 steps:
 # Create or updatediagnostic settings for Log Analytics and Storage archiving
   - task: AzureCLI@2
-    displayName: 'Create Log Storage diagnostic settings for Resource'
+    displayName: 'Create Log Storage diagnostic settings for ${{ parameters.src_resource_name }}'
     inputs:
       azureSubscription: ${{ parameters.service_connection }}
       scriptType: bash

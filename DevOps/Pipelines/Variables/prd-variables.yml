@@ -1,54 +1,110 @@
 variables:
   # Used in service naming
   - name: prefix
-    value: sl
+    value: SCL-AUE
+  # The default resource group region name
   - name: location
     value: australiaeast
+  # environment name used in service naming
   - name: environment
-    value: prod
+    value: PRD
+  # Resource group name
+  - name: resourcegroupname
+    value: SCL-AUE-PRD-ARG
+  # username for SQL Server Control DB
   - name: azuresqlserverun
     value: sqladmin
+  # Name of the service connection in Azure Devops
   - name: azdoresourceconnection
     value: SP-Stephen_Lundall-Insight
-  - name: databricksPricingTier
-    value: standard
+  # The service principal object ID (Not App ID)
   - name: spobjectid
     value: a1860bea-6cf3-4c01-8659-e7ec4977c6a7
+  # Store account type for BLOB Storage e.g. Standard_LRS)
   - name: storageAccountType
-    value: standard
-
-# ------------------------------------------------
+    value: Standard_LRS
+  # Tagging
+  - name: applytags
+    value: true
+  - name: tags
+    value: CostCenter=DataAndAnalytics \
+          Environment=Production \
+          Owner=stephen.lundall@insight.com
+  # ------------------------------------------------
   # Service names for environment
   # ------------------------------------------------
+  # Name of Azure SQL Server and EDW Database
+  - name: azuresqlservername
+    value: ${{ lower(variables.prefix) }}-${{ lower(variables.environment) }}-asql
+  - name: azureedwdbname
+    value: SCL_EDW
   # Name of key vault for this environment
   - name: azurekeyvaultname
-    value: $(PREFIX)-kv-$(ENVIRONMENT)
+    value: $(PREFIX)-$(ENVIRONMENT)-AKV
+  # Setup secret rotation interval in days
+  - name: secretrotationinterval 
+    value: 30
+  # Name of Log Analytics workspace name
+  - name: loganalyticsworkspacename
+    value: $(PREFIX)-$(ENVIRONMENT)-ALA
+  - name: logstorageaccountname
+    value: ${{ replace(lower(variables.prefix),'-','') }}${{ replace(lower(variables.environment),'-','') }}salogs
+  # Name of Azure SQL Server and catalog name
   # Data Lake storage account names, commonly split
   # into zones. Ensure it is a comma delimited list
   # as it is split into an array within the ARM 
   # template.
+  - name: blobstorageaccountnames
+    value: ${{ replace(lower(variables.prefix),'-','') }}${{ replace(lower(variables.environment),'-','') }}saraw, ${{ replace(lower(variables.prefix),'-','') }}${{ replace(lower(variables.environment),'-','') }}sacurated
   - name: datalakestorageaccountnames
-    value: $(PREFIX)saraw$(ENVIRONMENT), $(PREFIX)sastage$(ENVIRONMENT), $(PREFIX)sasandbox$(ENVIRONMENT)
+    value: ${{ replace(lower(variables.prefix),'-','') }}${{ replace(lower(variables.environment),'-','') }}adls
   # Container or file system names within storage account
   # Used to iterate in ARM template
+  - name: logzonename
+    value: databricks
   - name: zonenames
-    value: raw, stage, sandbox
+    value: raw, curated
+    # value: raw, stage, sandbox
   # Databricks workspace name for this enironment
   - name: databricksworkspacename
-    value: $(PREFIX)-dbws-$(ENVIRONMENT)
+    value: $(PREFIX)-$(ENVIRONMENT)-ADBWS
   # Data Factory service name for this environment
   - name: datafactoryname
-    value: $(PREFIX)-df-$(ENVIRONMENT)
+    value: $(PREFIX)-$(ENVIRONMENT)-ADF
   # Data Factory self hosted integrated runtime name
   - name: datafactoryshirname
-    value: $(PREFIX)-adf-shir
-  # Azure SQL Server Name
-  - name: azuresqlservername
-    value: $(PREFIX)-asql-$(ENVIRONMENT)
+    value: $(PREFIX)-SHIR
 
   # ------------------------------------------------
-  # Databricks VNet related
+  # Log Analytics related
   # ------------------------------------------------
+  - name: loganalyticssku
+    value: PerGB2018
+  - name: loganalyticsretention
+    value: 30  
+  # ------------------------------------------------
+  # Databricks related
+  # ------------------------------------------------
+  - name: nsgname
+    value: $(PREFIX)-$(ENVIRONMENT)-NSG
+  - name: nsgid
+    value: 
+  - name: vnetresourcegroupname
+    value: NetworkWatcherRG
+  - name: vnetName
+    value: SCL-SYD-PRD-VNET
+  - name: vnetid
+    value: 
+  - name: publicsubnetcidr
+    value: 10.0.2.0/24
+  - name: privatesubnetcidr
+    value: 10.0.1.0/24
+  - name: custompublicsubnetname
+    value: databrickspublicsubnet
+  - name: customprivatesubnetname
+    value: databricksprivatesubnet
+  - name: databrickspricingtier
+    value: premium
   - name: databricksclustername
     value: etl-cluster
   - name: sparkClusterVersion
@@ -58,18 +114,6 @@ variables:
   - name: databricksnodetypeid
     value: Standard_F4s
   - name: databricksworkers
-    value: 4
+    value: 2
   - name: databricksautotermination
-    value: 30
-  - name: vnetName
-    value: 
-  - name: customVirtualNetworkId
-    value: 
-  - name: publicSubnetCidr
-    value:  
-  - name: privateSubnetCidr
-    value: 
-  - name: customPublicSubnetName
-    value: 
-  - name: customPrivateSubnetName
-    value: 
+    value: 10

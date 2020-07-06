@@ -22,7 +22,7 @@ parameters:
 # Adds one source resource's MI to target resource rbac
 steps:
 - task: AzureCLI@2
-  displayName: 'Add Soure:${{ parameters.src_resource_name }} MI to Target:${{ parameters.src_resource_name }} Rbac'
+  displayName: 'Add ${{ parameters.src_resource_name }} MI to ${{ parameters.src_resource_name }}''s Rbac'
   # name: add_source_mi_to_target_rbac
   inputs:
     azureSubscription: ${{ parameters.service_connection }}

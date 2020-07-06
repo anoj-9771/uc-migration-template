@@ -19,7 +19,7 @@ steps:
     displayName: 'Deploy BLOB Storage Zones'
 
   - task: AzureCLI@2
-    displayName: 'Set SAS tokens in AKV for BLOB Storage'
+    displayName: 'Set SAS tokens in AKV for ADLS'
     name: SetSasTokensADLS
     inputs:
       azureSubscription: ${{ parameters.AzDoServiceConnection }}
