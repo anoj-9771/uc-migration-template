@@ -1,0 +1,55 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+  
+    "parameters": {    
+      "location": {
+        "type": "string",
+        "defaultValue": "[resourceGroup().location]",
+        "metadata": {
+          "description": "Specifies the Azure location where the key vault should be created."
+        }
+      },
+      "databaseName":{
+        "type": "string",
+        "metadata": {
+          "description": "Azure Sql Server Database Name"
+        }
+      },
+      "databaseKind":{
+        "type": "string",
+        "metadata": {
+          "description": "Azure Sql Server Database Kind"
+        }
+      },
+      "databaseSku":{
+        "type": "object",
+        "metadata": {
+          "description": "Azure Sql Server Database Kind"
+        }
+      },
+      "databaseProperties":{
+        "type": "object",
+        "metadata": {
+          "description": "Azure Sql Server Database Kind"
+        }
+      } 
+    },
+    "variables": {},  
+    "resources": [
+      {
+        "type": "Microsoft.Sql/servers/databases",
+        "apiVersion": "2019-06-01-preview",
+        "name": "[parameters['databaseName']]",
+        "location": "australiaeast",
+        "sku": "parameters['databaseSku']",
+        "kind": "v12.0,user,vcore,serverless",
+        "properties": "parameters['databaseProperties']",
+        "tags": {
+          "displayName": "database"
+        }
+      }
+    ],
+    "outputs": {}
+  }
+  
