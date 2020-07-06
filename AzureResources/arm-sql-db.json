@@ -23,13 +23,13 @@
         }
       },
       "databaseSku":{
-        "type": "object",
+        "type": "string",
         "metadata": {
           "description": "Azure Sql Server Database Kind"
         }
       },
       "databaseProperties":{
-        "type": "object",
+        "type": "string",
         "metadata": {
           "description": "Azure Sql Server Database Kind"
         }
