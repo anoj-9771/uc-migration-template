@@ -13,11 +13,11 @@ steps:
       resourceGroupName: ${{ parameters.resource_group }}
       location: $(LOCATION)
       templateLocation: 'Linked artifact'
-      csmFile: '$(Pipeline.Workspace)/arm_templates/arm-blobstoragev2.json'
+      csmFile: '$(Pipeline.Workspace)/arm_templates/arm-adlsv2.json'
       overrideParameters: '-location $(LOCATION) -accountNames "$(DATALAKESTORAGEACCOUNTNAMES)" -zones "$(ZONENAMES)"'
       deploymentMode: 'Incremental'
       deploymentOutputs: 'armOutputs'
-    displayName: 'Deploy BLOB Storage Zones'
+    displayName: 'Deploy ADLS Systems'
 
   - template: task-add-asa-key-to-akv.yml
     parameters:
