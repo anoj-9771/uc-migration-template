@@ -25,7 +25,7 @@ steps:
             if [$check]; then
               sas_token=$(az storage account generate-sas --account-name $value --permissions racwdl --services b --resource-types sco --expiry $date_year --output tsv)
               echo "sas token genereated"
-              az keyvault secret set --name (-join($value, "-sastoken")) --vault-name "$(AZUREKEYVAULTNAME)" --value "$sas_token"
+              az keyvault secret set --name $account_name-sastoken --vault-name "$(AZUREKEYVAULTNAME)" --value "$sas_token"
               echo "Secret set"
             else
               containers=$(az storage container list --connection-string $connection_string)
