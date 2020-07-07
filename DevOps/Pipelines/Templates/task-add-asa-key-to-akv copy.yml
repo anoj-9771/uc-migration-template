@@ -1,0 +1,22 @@
+parameters:
+- name: service_connection # name of the parameter; required
+  type: string # data type of the parameter; required
+- name: resource_group
+  type: string
+- name: src_resource_name 
+  type: string
+
+steps:
+  - task: AzureCLI@2
+    displayName: 'Set Key in AKV for Azure Storage'
+    name: SetKeyADLS
+    inputs:
+      azureSubscription: ${{ parameters.service_connection }}
+      scriptType: bash
+      scriptLocation: inlineScript
+      inlineScript: |
+          az keyvault set-policy --name "$(AZUREKEYVAULTNAME)" --secret-permissions set delete list get --object-id "$(SPOBJECTID)"
+          adls_key=$(az storage account keys renew -g ${{ parameters.resource_group }} -n ${{ parameters.src_resource_name }} --key primary --query "[0].value" -o tsv)
+          echo "Renewed key..."
+          az keyvault secret set --name ${{ parameters.src_resource_name }}-adls-key --vault-name $(AZUREKEYVAULTNAME) --value $adls_key
+          echo "Secret set"
