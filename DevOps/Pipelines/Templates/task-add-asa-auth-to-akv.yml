@@ -23,7 +23,7 @@ steps:
             echo "Writing Storage account connection string to Key Vault secret $account_name-connectionstring"
             az keyvault secret set --name $account_name-connectionstring --vault-name "$(AZUREKEYVAULTNAME)" --value "$connection_string"
             if [$check]; then
-              sas_token=$(az storage account generate-sas --account-name $value --permissions racwdl --services b --resource-types sco --expiry $date_year --output tsv)
+              sas_token=$(az storage account generate-sas --account-name $value --permissions racwdl --services b --resource-types sco --expiry "$date_year" --output tsv)
               echo "sas token genereated"
               az keyvault secret set --name $account_name-sastoken --vault-name "$(AZUREKEYVAULTNAME)" --value "$sas_token"
               echo "Secret set"
@@ -31,7 +31,7 @@ steps:
               containers=$(az storage container list --connection-string $connection_string)
               jq -r '.[] | .name' <<<"$containers" | while read container_name;
               do
-                sas_token=$(az storage container generate-sas --name $container_name --permissions racwdl --expiry $date_year --connection-string $connection_string --output tsv)
+                sas_token=$(az storage container generate-sas --name $container_name --permissions racwdl --expiry "$date_year" --connection-string $connection_string --output tsv)
                 echo "sas token genereated"
                 az keyvault secret set --name $account_name-$container_name-sastoken --vault-name "$(AZUREKEYVAULTNAME)" --value "$sas_token"
                 echo "Secret set";
