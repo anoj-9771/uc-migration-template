@@ -123,25 +123,24 @@
             "tags": {
                 "displayName": "Azure Data Lake Storage Account"
             },
-            "copy": {
-                "name": "storage",
-                "count": "[length(variables('zonesObject'))]"
-            },
             "properties": {
                 "accessTier": "Hot",
                 "isHnsEnabled": true
-            },
-            "resources": [
-                {
-                    "name": "[concat('default/', variables('zonesObject')[copyIndex()])]",
-                    "type": "blobServices/containers",
-                    "apiVersion": "2018-07-01",
-                    "dependsOn": [
-                        "[variables('accountNamesObject')]"
-                    ]
-                }
-            ]
+            }
+        },
+        {
+            "name": "[concat(variables('accountNamesObject'),'/','default/', variables('zonesObject')[copyIndex()])]",
+            "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+            "apiVersion": "2018-07-01",
+            "dependsOn": [
+                "[variables('accountNamesObject')]"
+            ],
+            "copy": {
+                "name": "storage",
+                "count": "[length(variables('zonesObject'))]"
+            }
         }
+
     ],
     "outputs": {
         "storageAccounts": {
