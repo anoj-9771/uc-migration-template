@@ -19,7 +19,7 @@ steps:
     displayName: 'Deploy Log BLOB Storage Zones'
 
   - task: AzureCLI@2
-    displayName: 'Set SAS tokens in AKV for BLOB Storage'
+    displayName: 'Set SAS tokens in AKV for Log Storage'
     name: SetSasTokensLogStorage
     inputs:
       azureSubscription: ${{ parameters.AzDoServiceConnection }}

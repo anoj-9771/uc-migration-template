@@ -1,16 +1,16 @@
 variables:
   # Used in service naming
   - name: prefix
-    value: SCL-SYD
+    value: SCL-AUE
   # The default resource group region name
   - name: location
     value: australiaeast
   # environment name used in service naming
   - name: environment
-    value: NPRD
+    value: NPE
   # Resource group name
   - name: resourcegroupname
-    value: $(PREFIX)-$(ENVIRONMENT)-ARG
+    value: SCL-AUE-NPE-ARG
   # username for SQL Server Control DB
   - name: azuresqlserverun
     value: sqladmin
@@ -29,33 +29,35 @@ variables:
   - name: tags
     value: CostCenter=DataAndAnalytics \
           Environment=Non-Production \
-          Owner=Michael.Clover@dpcwagov.onmicrosoft.com
+          Owner=stephen.lundall@insight.com
   # ------------------------------------------------
   # Service names for environment
   # ------------------------------------------------
   # Name of Azure SQL Server and EDW Database
   - name: azuresqlservername
-    value: lower($(PREFIX)-$(ENVIRONMENT))-asql
+    value: ${{ lower(variables.prefix) }}-${{ lower(variables.environment) }}-asql
   - name: azureedwdbname
     value: SCL_EDW
   # Name of key vault for this environment
   - name: azurekeyvaultname
     value: $(PREFIX)-$(ENVIRONMENT)-AKV
+  # Setup secret rotation interval in days
+  - name: secretrotationinterval 
+    value: 30
   # Name of Log Analytics workspace name
   - name: loganalyticsworkspacename
     value: $(PREFIX)-$(ENVIRONMENT)-ALA
+  - name: logstorageaccountname
+    value: ${{ replace(lower(variables.prefix),'-','') }}${{ replace(lower(variables.environment),'-','') }}salogs
   # Name of Azure SQL Server and catalog name
   # Data Lake storage account names, commonly split
   # into zones. Ensure it is a comma delimited list
   # as it is split into an array within the ARM 
   # template.
-  - name: logstorageaccountname
-    value: replace(lower($(PREFIX)$(ENVIRONMENT)),'-','')salogs
   - name: blobstorageaccountnames
-    value: replace(lower($(PREFIX)$(ENVIRONMENT)),'-','')saraw, replace(lower($(PREFIX)$(ENVIRONMENT)),'-','')sacurated
+    value: ${{ replace(lower(variables.prefix),'-','') }}${{ replace(lower(variables.environment),'-','') }}saraw, ${{ replace(lower(variables.prefix),'-','') }}${{ replace(lower(variables.environment),'-','') }}sacurated
   - name: datalakestorageaccountnames
-    value: replace(lower($(PREFIX)$(ENVIRONMENT)),'-','')adls
-    # value: $(PREFIX)saraw$(ENVIRONMENT), $(PREFIX)sastage$(ENVIRONMENT), $(PREFIX)sasandbox$(ENVIRONMENT)
+    value: ${{ replace(lower(variables.prefix),'-','') }}${{ replace(lower(variables.environment),'-','') }}adls
   # Container or file system names within storage account
   # Used to iterate in ARM template
   - name: logzonename
@@ -71,7 +73,7 @@ variables:
     value: $(PREFIX)-$(ENVIRONMENT)-ADF
   # Data Factory self hosted integrated runtime name
   - name: datafactoryshirname
-    value: lower($(PREFIX)-$(ENVIRONMENT))-shir
+    value: $(PREFIX)-SHIR
 
   # ------------------------------------------------
   # Log Analytics related

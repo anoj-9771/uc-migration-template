@@ -37,7 +37,6 @@ stages:
     #dependencies: ['uat'] # Used to define any stage dependencies
     stage_name: 'deploy_adf_prod'
     variable_template_name: prd-variables
-    # run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/sl-devops'))
     run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
 
 

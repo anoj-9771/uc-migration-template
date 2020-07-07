@@ -97,8 +97,8 @@
         }
     ],
     "variables": {
-        "accountNamesObject": "[parameters('accountNames')]",
-        "zonesObject": "[split(replace(parameters('zones'),' ',''), ',')]",
+        "accountNamesObject": "[toLower(replace(parameters('accountNames'),'-',''))]", 
+        "zonesObject": "[split(toLower(replace(parameters('zones'),' ','')), ',')]",
         "copy": [
             {
                 "name": "zones",
@@ -123,30 +123,23 @@
             "tags": {
                 "displayName": "Azure Data Lake Storage Account"
             },
-            "copy": {
-                "name": "storage",
-                "count": "[length(variables('accountNamesObject'))]"
-            },
             "properties": {
                 "accessTier": "Hot",
                 "isHnsEnabled": true
-            },
-            "resources": [
-                {
-                    "name": "[concat('default/', variables('zonesObject')[copyIndex()])]",
-                    "type": "blobServices/containers",
-                    "apiVersion": "2018-07-01",
-                    "dependsOn": [
-                        "[variables('accountNamesObject')]"
-                    ]
-                }
-            ]
+            }
+        },
+        {
+            "name": "[concat(variables('accountNamesObject'),'/','default/', variables('zonesObject')[copyIndex()])]",
+            "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+            "apiVersion": "2018-07-01",
+            "dependsOn": [
+                "[variables('accountNamesObject')]"
+            ],
+            "copy": {
+                "name": "storage",
+                "count": "[length(variables('zonesObject'))]"
+            }
         }
     ],
-    "outputs": {
-        "storageAccounts": {
-            "value": "[variables('storageAccounts')]",
-            "type": "array"
-        }
-    }
+    "outputs": {}
 }

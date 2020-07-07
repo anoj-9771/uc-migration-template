@@ -44,10 +44,10 @@ parameters = dict(
     ,prcType = dbutils.widgets.get('prcType')
     ,query = dbutils.widgets.get('query')
     ,catalogSecret = dbutils.widgets.get('catalogSecret')
-    ,batchId = dbutils.widgets.get('batchId')
-    ,srcId = dbutils.widgets.get('sourceId')
-    ,dstId = dbutils.widgets.get('targetId')
-    ,taskId = dbutils.widgets.get('taskId')
+    ,batchId = int(dbutils.widgets.get('batchId'))
+    ,srcId = int(dbutils.widgets.get('sourceId'))
+    ,dstId = int(dbutils.widgets.get('targetId'))
+    ,taskId = int(dbutils.widgets.get('taskId'))
 )
   
 

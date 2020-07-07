@@ -22,7 +22,15 @@
         "metadata": {
           "description": "The name of the environment to deploy into"
         }
-      }, 
+      },
+  
+      "databaseName": {
+        "type": "string",
+        "defaultValue": "EDW",
+        "metadata": {
+          "description": "Azure SQL Server Name"
+        }
+      },  
       "azureSqlServerName": {
         "type": "string",
         "metadata": {
@@ -74,13 +82,19 @@
             }
         }
     ],
-    "variables": {},
+    "variables": {
+      "controlDbName":"ControlDB",
+  
+      "databaseCollation": "SQL_Latin1_General_CP1_CI_AS",
+      "databaseEdition": "Standard",
+      "databaseRequestedServiceObjectiveName": "S3"
+    },
   
     "resources": [
       {
         "name": "[parameters('azureSqlServerName')]",
         "type": "Microsoft.Sql/servers",
-        "apiVersion": "2019-06-01-preview",
+        "apiVersion": "2015-05-01-preview",
         "location": "[parameters('location')]",
         "tags": {},
         "identity": {
@@ -91,20 +105,20 @@
           "administratorLoginPassword": "[parameters('AzureSqlServerPw')]"
         },
         "resources": [
-        {
-          "name": "AllowAllWindowsAzureIps",
-          "type": "firewallrules",
-          "location": "[parameters('location')]",
-          "apiVersion": "2015-05-01-preview",
-          "dependsOn": [
-            "[resourceId('Microsoft.Sql/servers', parameters('azureSqlServerName'))]"
-            ],
-          "properties": {
-            "startIpAddress": "0.0.0.0",
-            "endIpAddress": "0.0.0.0"
+          {
+            "name": "AllowAllWindowsAzureIps",
+            "type": "firewallrules",
+            "location": "[parameters('location')]",
+            "apiVersion": "2014-04-01-preview",
+            "dependsOn": [
+              "[resourceId('Microsoft.Sql/servers', parameters('azureSqlServerName'))]"
+              ],
+            "properties": {
+              "startIpAddress": "0.0.0.0",
+              "endIpAddress": "0.0.0.0"
+            }
           }
-        }
-      ]
+        ]
       }
     ],
     "outputs": {}

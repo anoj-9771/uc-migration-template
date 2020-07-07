@@ -1,6 +1,6 @@
 # Databricks notebook source
 def BlobStoreSASToken(kvSecret):
-    return dbutils.secrets.get(scope='azr-dp-keyvault',key=kvSecret)
+    return dbutils.secrets.get(scope='insight-etlframework-akv',key=kvSecret)
 
 def BlobStorePath(account,container, connectionType):
     if connectionType == 'wasbs':

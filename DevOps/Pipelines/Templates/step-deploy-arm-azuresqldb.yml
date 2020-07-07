@@ -1,71 +1,62 @@
 parameters:
-- name: AzDoServiceConnection # name of the parameter; required
+- name: service_connection # name of the parameter; required
   type: string # data type of the parameter; required
 - name: resource_group
   type: string
-- name: databricksclustername
+- name: database_name 
   type: string
-- name: databricks_driver_node_type_id
+- name: database_kind
   type: string
-- name: databricks_node_type_id
+- name: database_sku
   type: string
-- name: databricks_spark_version
+- name: database_properties
   type: string
-- name: databricks_workers
-  type: number
-- name: databricks_autotermination
-  type: number
 - name: log_analytics
   type: boolean
 - name: log_storage
   type: boolean
 
 steps:
+  - bash: |
+      set -e
+
+      # System info for debugging this pipeline if needed
+      echo -e "Linux name:"
+      uname -a
+      echo
+      echo -e "Working Directory:"
+      echo "$(Build.Repository.LocalPath)"
+      echo
+      echo -e "List of files available:\n"
+      ls -laR $(Build.Repository.LocalPath)
+      echo
+      echo -e "Pipeline workspace available:\n"
+      ls -laR $(Pipeline.Workspace)
+      echo -e "Environment variables:"
+      env | sort
+      echo
+    displayName: 'Agent info'
+
   - task: AzureResourceGroupDeployment@2
     inputs:
-      azureSubscription: ${{ parameters.AzDoServiceConnection }}
+      azureSubscription: ${{ parameters.service_connection }}
       action: 'Create Or Update Resource Group'
       resourceGroupName: ${{ parameters.resource_group }}
       location: $(LOCATION)
       templateLocation: 'Linked artifact'
-      csmFile: '$(Pipeline.Workspace)/arm_templates/arm-databricks-no-vnet-injection.json'
-      overrideParameters: '-location $(LOCATION) -prefix $(PREFIX) -environment $(ENVIRONMENT) -pricingTier $(DATABRICKSPRICINGTIER)'
+      csmFile: '$(Pipeline.Workspace)/arm_templates/arm-sql-db.json'
+      overrideParameters: |
+        -location $(LOCATION) -databaseName ${{ parameters.database_name }} -databaseKind ${{ parameters.database_kind }} -databaseSku ${{ parameters.database_sku }} -databaseProperties ${{ parameters.database_properties }}
       deploymentMode: 'Incremental'
-      deploymentOutputs: 'databricksOutput'
-    displayName: 'Deploy Databricks Workspace'
+    displayName: 'Deploy Azure SQL Control DB'
 
-  - powershell: |
-      Write-Host '$(databricksOutput)'
-      $json = '$(databricksOutput)' | convertfrom-json
-      $workspaceNameValue = $json.WorkspaceName.value
-      Write-Host "##vso[task.setvariable variable=databricksWorkspaceName;isOutput=true]$workspaceNameValue"
-    name: getWorkspaceName
-    displayName: 'Extract ARM outputs'
-  # Create and add Databricks PAT to Azure Key Vault
-  - template: task-add-pat-to-akv.yml
-    parameters:
-      service_connection: ${{ parameters.AzDoServiceConnection }}
-      resource_group: ${{ parameters.resource_group }}
-      databricks_workspace_name: $(DATABRICKSWORKSPACENAME)
-  # Create Databricks Cluster 
-  - template: task-add-databricks-cluster.yml
-    parameters:
-      service_connection: ${{ parameters.AzDoServiceConnection }}
-      resource_group: ${{ parameters.resource_group }}
-      databricks_cluster_name: ${{ parameters.databricksclustername }}
-      databricks_driver_node_type_id : ${{ parameters.databricks_driver_node_type_id }}
-      databricks_node_type_id : ${{ parameters.databricks_node_type_id }}
-      databricks_spark_version : ${{ parameters.databricks_spark_version }}
-      databricks_workers : ${{ parameters.databricks_workers }}
-      databricks_autotermination : ${{ parameters.databricks_autotermination }}
- 
 # Create or update diagnostic settings to send to Log Analytics
   - ${{ if eq(parameters['log_analytics'], true) }}:
     - template: task-add-log-analytics-diagnostics.yml
       parameters:
-        service_connection: ${{ parameters.AzDoServiceConnection }}
+        service_connection: ${{ parameters.service_connection }}
         resource_group: ${{ parameters.resource_group }}
-        src_resource_name: $(DATABRICKSWORKSPACENAME)
+        src_resource_name: ${{ parameters.database_name }}
         log_analitics_name: $(LOGANALYTICSWORKSPACENAME)
         logs: |
           [
@@ -155,22 +146,14 @@ steps:
   - ${{ if eq(parameters['log_storage'], true) }}:
     - template: task-add-log-storage-diagnostics.yml
       parameters:
-        service_connection: ${{ parameters.AzDoServiceConnection }}
+        service_connection: ${{ parameters.service_connection }}
         resource_group: ${{ parameters.resource_group }}
-        src_resource_name: $(DATABRICKSWORKSPACENAME)
+        src_resource_name: ${{ parameters.database_name }}
         log_storage_name: $(LOGSTORAGEACCOUNTNAME)
         logs: |
           [
             {
-              "category": "dbfs",
-              "enabled": true,
-              "retentionPolicy": {
-                "days": 30,
-                "enabled": true
-              }
-            },
-            {
-              "category": "clusters",
+              "category": "SQLInsights",
               "enabled": false,
               "retentionPolicy": {
                 "days": 0,
@@ -178,7 +161,7 @@ steps:
               }
             },
             {
-              "category": "accounts",
+              "category": "AutomaticTuning",
               "enabled": true,
               "retentionPolicy": {
                 "days": 30,
@@ -186,7 +169,7 @@ steps:
               }
             },
             {
-              "category": "jobs",
+              "category": "QueryStoreRuntimeStatistics",
               "enabled": true,
               "retentionPolicy": {
                 "days": 30,
@@ -194,7 +177,7 @@ steps:
               }
             },
             {
-              "category": "notebook",
+              "category": "QueryStoreWaitStatistics",
               "enabled": true,
               "retentionPolicy": {
                 "days": 30,
@@ -202,7 +185,7 @@ steps:
               }
             },
             {
-              "category": "ssh",
+              "category": "Errors",
               "enabled": false,
               "retentionPolicy": {
                 "days": 0,
@@ -210,23 +193,7 @@ steps:
               }
             },
             {
-              "category": "workspace",
-              "enabled": true,
-              "retentionPolicy": {
-                "days": 30,
-                "enabled": true
-              }
-            },
-            {
-              "category": "secrets",
-              "enabled": true,
-              "retentionPolicy": {
-                "days": 30,
-                "enabled": true
-              }
-            },
-            {
-              "category": "sqlPermissions",
+              "category": "DatabaseWaitStatistics",
               "enabled": false,
               "retentionPolicy": {
                 "days": 0,
@@ -234,12 +201,74 @@ steps:
               }
             },
             {
-              "category": "instancePools",
+              "category": "Timeouts",
+              "enabled": false,
+              "retentionPolicy": {
+                "days": 0,
+                "enabled": false
+              }
+            },
+            {
+              "category": "Blocks",
+              "enabled": false,
+              "retentionPolicy": {
+                "days": 0,
+                "enabled": false
+              }
+            },
+            {
+              "category": "Deadlocks",
+              "enabled": false,
+              "retentionPolicy": {
+                "days": 0,
+                "enabled": false
+              }
+            },
+            {
+              "category": "DevOpsOperationsAudit",
+              "enabled": false,
+              "retentionPolicy": {
+                "days": 0,
+                "enabled": false
+              }
+            },
+            {
+              "category": "SQLSecurityAuditEvents",
+              "enabled": false,
+              "retentionPolicy": {
+                "days": 0,
+                "enabled": false
+              }
+            }
+          ]
+        metrics: |
+          [
+            {
+              "category": "Basic",
               "enabled": true,
               "retentionPolicy": {
                 "days": 30,
                 "enabled": true
-              }
+              },
+              "timeGrain": null
+            },
+            {
+              "category": "InstanceAndAppAdvanced",
+              "enabled": false,
+              "retentionPolicy": {
+                "days": 0,
+                "enabled": false
+              },
+              "timeGrain": null
+            },
+            {
+              "category": "WorkloadManagement",
+              "enabled": false,
+              "retentionPolicy": {
+                "days": 0,
+                "enabled": false
+              },
+              "timeGrain": null
             }
           ]
 

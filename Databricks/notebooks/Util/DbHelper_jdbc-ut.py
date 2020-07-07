@@ -16,7 +16,7 @@ class DbHelper:
   ###
   def connect_db(self):
     key = self.kvSecret
-    connection = dbutils.secrets.get(scope='azr-dp-keyvault',key=key)
+    connection = dbutils.secrets.get(scope='insight-etlframework-akv',key=key)
     cons = connection.split(';')
     cons = cons
     for con in cons:

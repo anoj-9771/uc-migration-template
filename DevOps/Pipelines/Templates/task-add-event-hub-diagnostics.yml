@@ -1,0 +1,88 @@
+                    # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+                  #                      | Add Source MI to Key Vault Access Policy |               #    
+                  #                      --------------------------------------------               #
+                  #     This is a task level template script used to add the MI from one azure      #
+                  #     resource to Key Vault's Access Policy. Parameters include service           #
+                  #     connection, resource group name source resource name, Key Vault name        #
+                  #     and the relevant certificate, key, secret and storage permissions.          #
+                  #                                                                                 #
+                    # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+parameters: 
+- name: service_connection
+  type: string
+- name: resource_group
+  type: string
+- name: src_resource_name
+  type: string
+- name: log_analitics_name
+  type: string
+- name: metrics
+  type: string
+- name: log_storage_name
+  type: string
+  default: "false"
+- name: metrics
+  type: string
+- name: logs
+  type: string
+- name: metrics
+  type: string
+
+# Adds one source resource's MI to target resource rbac
+steps:
+# Add diagnostic settings for Log Analytics and Storage archiving
+  - task: AzureCLI@2
+    displayName: 'Add diagnostic settings for Data Factory'
+    # name: add_diagnostics_to_resource
+    condition: and(ne(variables['loganalytics'], "false"),ne(variables['logstorageaccount'], "false"))
+    inputs:
+      azureSubscription: ${{ parameters.service_connection }}
+      scriptType: bash
+      scriptLocation: inlineScript
+      inlineScript: |
+        adf_resource_id=$(az resource list --name ${{ parameters.src_resource_name }} --resource-group ${{ parameters.resource_group }} --output tsv --query "[].id")
+        la_resource_id=$(az resource list --name ${{ parameters.log_analitics_name}} --resource-group ${{ parameters.resource_group }} --output tsv --query "[].id")
+        lbs_resource_id=$(az resource list --name ${{ parameters.log_storage_name}} --output tsv --query "[].id")
+        az monitor diagnostic-settings create  \
+        --name "'${{ parameters.src_resource_name }}'-Diagnostics" \
+        --resource $adf_resource_id \
+        --logs '${{ parameters.logs }}' \
+        --metrics '${{ parameters.metrics }}' \
+        --storage-account $lbs_resource_id \
+        --workspace $la_resource_id
+# Add diagnostic settings connecting to Log Analytics
+  - task: AzureCLI@2
+    displayName: 'Add diagnostic settings for Data Factory'
+    name: add_diagnostics_log_analytics
+    condition: and(ne(variables['loganalytics'], "false"),eq(variables['logstorageaccount'], "false"))
+    inputs:
+      azureSubscription: ${{ parameters.AzDoServiceConnection }}
+      scriptType: bash
+      scriptLocation: inlineScript
+      inlineScript: |
+        adf_resource_id=$(az resource list --name ${{ parameters.src_resource_name }} --output tsv --query "[].id")
+        la_resource_id=$(az resource list --name ${{ parameters.log_analitics_name}} --output tsv --query "[].id")
+        az monitor diagnostic-settings create  \
+        --name "${{ parameters.src_resource_name }}-Diagnostics" \
+        --resource $adf_resource_id \
+        --logs    '[{"category": "ActivityRuns","enabled": true,"retentionPolicy": {"days": 30,"enabled": true}},{"category": "PipelineRuns","enabled": true,"retentionPolicy": {"days": 30,"enabled": true}},{"category": "TriggerRuns","enabled": true,"retentionPolicy": {"days": 30,"enabled": true}}]' \
+        --metrics '[{"category": "AllMetrics","enabled": true,"retentionPolicy": {"days": 30,"enabled": true}}]' \
+        --workspace $la_resource_id
+# Add diagnostic settings archiving to sotrage only
+  - task: AzureCLI@2
+    displayName: 'Add diagnostic settings for Data Factory'
+    name: add_diagnostics_storage
+    condition: and(eq(variables['loganalytics'], "false"),ne(variables['logstorageaccount'], "false"))
+    inputs:
+      azureSubscription: ${{ parameters.AzDoServiceConnection }}
+      scriptType: bash
+      scriptLocation: inlineScript
+      inlineScript: |
+        adf_resource_id=$(az resource list --name ${{ parameters.src_resource_name }} --output tsv --query "[].id")
+        lbs_resource_id=$(az resource list --name ${{ parameters.log_storage_name}} --output tsv --query "[].id")
+        az monitor diagnostic-settings create  \
+        --name "${{ parameters.src_resource_name }}-Diagnostics" \
+        --resource $adf_resource_id \
+        --logs    '[{"category": "ActivityRuns","enabled": true,"retentionPolicy": {"days": 30,"enabled": true}},{"category": "PipelineRuns","enabled": true,"retentionPolicy": {"days": 30,"enabled": true}},{"category": "TriggerRuns","enabled": true,"retentionPolicy": {"days": 30,"enabled": true}}]' \
+        --metrics '[{"category": "AllMetrics","enabled": true,"retentionPolicy": {"days": 30,"enabled": true}}]' \
+        --storage-account $lbs_resource_id
