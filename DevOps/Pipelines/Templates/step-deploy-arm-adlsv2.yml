@@ -18,9 +18,3 @@ steps:
       deploymentMode: 'Incremental'
       deploymentOutputs: 'armOutputs'
     displayName: 'Deploy ADLS Systems'
-
-  # - template: task-add-asa-key-to-akv.yml
-  #   parameters:
-  #     service_connection: ${{ parameters.AzDoServiceConnection }}
-  #     resource_group: ${{ parameters.resource_group }}
-  #     src_resource_name: $(DATALAKESTORAGEACCOUNTNAMES)
