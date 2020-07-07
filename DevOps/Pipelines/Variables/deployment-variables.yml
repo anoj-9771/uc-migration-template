@@ -26,10 +26,10 @@ variables:
     value: false
   # Used to set Blob Storage deployability
   - name: azureblobstorage
-    value: false
+    value: true
   # Used to set Data Lake Storage deployability
   - name: azuredatalakestorage
-    value: true
+    value: false
   # Used to set Databricks Workspace deployability
   - name: databricksvnet
     value: false

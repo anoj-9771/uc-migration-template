@@ -7,16 +7,42 @@ parameters:
   type: string
 
 steps:
-  - task: AzureCLI@2
-    displayName: 'Set Key in AKV for Azure Storage'
-    name: SetKeyADLS
+- task: AzureCLI@2
+    displayName: 'Set SAS tokens in AKV for BLOB Storage'
+    name: SetSasTokensBlobStorage
     inputs:
-      azureSubscription: ${{ parameters.service_connection }}
+      azureSubscription: ${{ parameters.AzDoServiceConnection }}
       scriptType: bash
       scriptLocation: inlineScript
       inlineScript: |
-          az keyvault set-policy --name "$(AZUREKEYVAULTNAME)" --secret-permissions set delete list get --object-id "$(SPOBJECTID)"
-          adls_key=$(az storage account keys renew -g ${{ parameters.resource_group }} -n ${{ parameters.src_resource_name }} --key primary --query "[0].value" -o tsv)
-          echo "Renewed key..."
-          az keyvault secret set --name ${{ parameters.src_resource_name }}-adls-key --vault-name $(AZUREKEYVAULTNAME) --value $adls_key
-          echo "Secret set"
+        list_response=$(az resource list )
+        jq -r '.token_infos[] | select(.expiry_time > $CURRENTDATEEPOCH and .comment == "Azure DevOps Token") | .token_id' --argjson CURRENTDATEEPOCH "$CURRENTDATEEPOCH"  <<< "$list_response"  | while read token_id
+          do
+            echo "Deleting PAT token $token_id"
+            api_response=$(curl -sf https://$(LOCATION).azuredatabricks.net/api/2.0/token/delete \
+              -H "Authorization: Bearer $token" \
+              -H "X-Databricks-Azure-SP-Management-Token:$azToken" \
+              -H "X-Databricks-Azure-Workspace-Resource-Id:$wsId" \
+              -d '{ "token_id": "'$token_id'" }')
+            echo '{ "token_id": "'$token_id'" }'
+            echo "$api_response"
+          done
+
+        $ErrorActionPreference = "Stop"
+
+        Write-Host '$(armOutputs)'
+        $json = '$(armOutputs)' | convertfrom-json
+
+        az keyvault set-policy --name "$(AZUREKEYVAULTNAME)" --secret-permissions set list get --object-id "$(SPOBJECTID)"
+        Write-Host "Policy set"
+
+        $json.PSObject.Properties.Value.Value | ForEach-Object {
+          $value = $_.name
+          Write-Host $value
+          
+          $date_year=(Get-Date).AddYears(1).ToString("yyyy-MM-ddTH:mmZ")
+          $sas_token=az storage account generate-sas --account-name $value --permissions racwdl --services b --resource-types sco --expiry $date_year --output tsv
+          Write-Host "sas token genereated"
+          az keyvault secret set --name (-join($value, "-sa-sastoken")) --vault-name "$(AZUREKEYVAULTNAME)" --value "$sas_token"
+          Write-Host "Secret set"
+        }
