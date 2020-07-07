@@ -5,39 +5,39 @@ parameters:
   type: string
 
 steps:
-- task: AzureCLI@2
-    displayName: 'Set SAS tokens in AKV for BLOB Storage'
-    inputs:
-      azureSubscription: ${{ parameters.service_connection }}
-      scriptType: bash
-      scriptLocation: inlineScript
-      inlineScript: |
-        # Renew keys, list and write connection strings to Key Vault: secret name = <account_name>-(connectionstring/sastoken) or <account_name>-<container_name>-sastoken
-        ids=$(az resource list -g ${{ parameters.resource_group }} --resource-type "Microsoft.Storage/storageAccounts" -o json)
-        # jq -r '.[]|"\(.id) \(.name)"' <<<"$ids" | while read id name;
-        #   do 
-        #     echo "id:$id, name:$account_name"; 
-        #     connection_string=$(az storage account show-connection-string --ids $id -o tsv)
-        #     check=$(az storage account show --ids $id --query "isHnsEnabled" -o tsv)
-        #     $date_year=(Get-Date).AddYears(1).ToString("yyyy-MM-ddTH:mmZ")
-        #     echo "Writing Storage account connection string to Key Vault secret $account_name-sa-connectionstring"
-        #     az keyvault secret set --name $account_name-connectionstring --vault-name "$(AZUREKEYVAULTNAME)" --value "$connection_string"
-        #     if [$check]; then
-        #       sas_token=$(az storage account generate-sas --account-name $value --permissions racwdl --services b --resource-types sco --expiry $date_year --output tsv)
-        #       echo "sas token genereated"
-        #       az keyvault secret set --name (-join($value, "-sastoken")) --vault-name "$(AZUREKEYVAULTNAME)" --value "$sas_token"
-        #       echo "Secret set"
-        #     else
-        #       containers=$(az storage container list --connection-string $connection_string)
-        #       jq -r '.[] | .name' <<<"$containers" | while read container_name;
-        #       do
-        #         sas_token=$(az storage container generate-sas --name $container --permissions racwdl --expiry $date_year --connection-string $connection_string --output tsv)
-        #         echo "sas token genereated"
-        #         az keyvault secret set --name $account_name-$container_name-sastoken --vault-name "$(AZUREKEYVAULTNAME)" --value "$sas_token"
-        #         echo "Secret set";
-        #       done
-        #     fi;
-        #   done
+  - task: AzureCLI@2
+      displayName: 'Set SAS tokens in AKV for BLOB Storage'
+      inputs:
+        azureSubscription: ${{ parameters.service_connection }}
+        scriptType: bash
+        scriptLocation: inlineScript
+        inlineScript: |
+          # Renew keys, list and write connection strings to Key Vault: secret name = <account_name>-(connectionstring/sastoken) or <account_name>-<container_name>-sastoken
+          ids=$(az resource list -g ${{ parameters.resource_group }} --resource-type "Microsoft.Storage/storageAccounts" -o json)
+          jq -r '.[]|"\(.id) \(.name)"' <<<"$ids" | while read id name;
+            do 
+              echo "id:$id, name:$account_name"; 
+              connection_string=$(az storage account show-connection-string --ids $id -o tsv)
+              check=$(az storage account show --ids $id --query "isHnsEnabled" -o tsv)
+              $date_year=(Get-Date).AddYears(1).ToString("yyyy-MM-ddTH:mmZ")
+              echo "Writing Storage account connection string to Key Vault secret $account_name-sa-connectionstring"
+              az keyvault secret set --name $account_name-connectionstring --vault-name "$(AZUREKEYVAULTNAME)" --value "$connection_string"
+              if [$check]; then
+                sas_token=$(az storage account generate-sas --account-name $value --permissions racwdl --services b --resource-types sco --expiry $date_year --output tsv)
+                echo "sas token genereated"
+                az keyvault secret set --name (-join($value, "-sastoken")) --vault-name "$(AZUREKEYVAULTNAME)" --value "$sas_token"
+                echo "Secret set"
+              else
+                containers=$(az storage container list --connection-string $connection_string)
+                jq -r '.[] | .name' <<<"$containers" | while read container_name;
+                do
+                  sas_token=$(az storage container generate-sas --name $container --permissions racwdl --expiry $date_year --connection-string $connection_string --output tsv)
+                  echo "sas token genereated"
+                  az keyvault secret set --name $account_name-$container_name-sastoken --vault-name "$(AZUREKEYVAULTNAME)" --value "$sas_token"
+                  echo "Secret set";
+                done
+              fi;
+            done
 
         
 
