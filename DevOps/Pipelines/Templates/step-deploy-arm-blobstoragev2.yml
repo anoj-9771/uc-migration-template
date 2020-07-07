@@ -18,29 +18,29 @@ steps:
       deploymentOutputs: 'armOutputs'
     displayName: 'Deploy BLOB Storage Zones'
 
-  - task: AzureCLI@2
-    displayName: 'Set SAS tokens in AKV for BLOB Storage'
-    name: SetSasTokensBlobStorage
-    inputs:
-      azureSubscription: ${{ parameters.AzDoServiceConnection }}
-      scriptType: pscore
-      scriptLocation: inlineScript
-      inlineScript: |
-        $ErrorActionPreference = "Stop"
+  # - task: AzureCLI@2
+  #   displayName: 'Set SAS tokens in AKV for BLOB Storage'
+  #   name: SetSasTokensBlobStorage
+  #   inputs:
+  #     azureSubscription: ${{ parameters.AzDoServiceConnection }}
+  #     scriptType: pscore
+  #     scriptLocation: inlineScript
+  #     inlineScript: |
+  #       $ErrorActionPreference = "Stop"
 
-        Write-Host '$(armOutputs)'
-        $json = '$(armOutputs)' | convertfrom-json
+  #       Write-Host '$(armOutputs)'
+  #       $json = '$(armOutputs)' | convertfrom-json
 
-        az keyvault set-policy --name "$(AZUREKEYVAULTNAME)" --secret-permissions set list get --object-id "$(SPOBJECTID)"
-        Write-Host "Policy set"
+  #       az keyvault set-policy --name "$(AZUREKEYVAULTNAME)" --secret-permissions set list get --object-id "$(SPOBJECTID)"
+  #       Write-Host "Policy set"
 
-        $json.PSObject.Properties.Value.Value | ForEach-Object {
-          $value = $_.name
-          Write-Host $value
+  #       $json.PSObject.Properties.Value.Value | ForEach-Object {
+  #         $value = $_.name
+  #         Write-Host $value
           
-          $date_year=(Get-Date).AddYears(1).ToString("yyyy-MM-ddTH:mmZ")
-          $sas_token=az storage account generate-sas --account-name $value --permissions racwdl --services b --resource-types sco --expiry $date_year --output tsv
-          Write-Host "sas token genereated"
-          az keyvault secret set --name (-join($value, "-sa-sastoken")) --vault-name "$(AZUREKEYVAULTNAME)" --value "$sas_token"
-          Write-Host "Secret set"
-        }
+  #         $date_year=(Get-Date).AddYears(1).ToString("yyyy-MM-ddTH:mmZ")
+  #         $sas_token=az storage account generate-sas --account-name $value --permissions racwdl --services b --resource-types sco --expiry $date_year --output tsv
+  #         Write-Host "sas token genereated"
+  #         az keyvault secret set --name (-join($value, "-sa-sastoken")) --vault-name "$(AZUREKEYVAULTNAME)" --value "$sas_token"
+  #         Write-Host "Secret set"
+  #       }

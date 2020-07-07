@@ -7,7 +7,6 @@ parameters:
 steps:
 - task: AzureCLI@2
     displayName: 'Set SAS tokens in AKV for BLOB Storage'
-    name: SetSasTokensBlobStorage
     inputs:
       azureSubscription: ${{ parameters.service_connection }}
       scriptType: bash
