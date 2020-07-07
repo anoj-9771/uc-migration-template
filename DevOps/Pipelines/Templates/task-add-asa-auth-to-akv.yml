@@ -19,7 +19,7 @@ steps:
             echo "id:$id, name:$account_name"; 
             connection_string=$(az storage account show-connection-string --ids $id -o tsv)
             check=$(az storage account show --ids $id --query "isHnsEnabled" -o tsv)
-            $date_year=$(date '+%Y-%m-%dT%H:%MZ' -d "$end_date+1year")
+            $date_year=$(date '+%Y-%m-%d' -d "$end_date+1year")
             echo "Writing Storage account connection string to Key Vault secret $account_name-connectionstring"
             az keyvault secret set --name $account_name-connectionstring --vault-name "$(AZUREKEYVAULTNAME)" --value "$connection_string"
             if [$check]; then
