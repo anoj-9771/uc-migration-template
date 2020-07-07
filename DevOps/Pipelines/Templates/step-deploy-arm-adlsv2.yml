@@ -13,7 +13,7 @@ steps:
       resourceGroupName: ${{ parameters.resource_group }}
       location: $(LOCATION)
       templateLocation: 'Linked artifact'
-      csmFile: '$(Pipeline.Workspace)/arm_templates/arm-adlsv2.json'
+      csmFile: '$(Pipeline.Workspace)/arm_templates/arm-adls.json'
       overrideParameters: '-location $(LOCATION) -accountNames "$(DATALAKESTORAGEACCOUNTNAMES)" -zones "$(ZONENAMES)"'
       deploymentMode: 'Incremental'
       deploymentOutputs: 'armOutputs'
