@@ -142,10 +142,5 @@
         }
 
     ],
-    "outputs": {
-        "storageAccounts": {
-            "value": "[variables('storageAccounts')]",
-            "type": "array"
-        }
-    }
+    "outputs": {}
 }
