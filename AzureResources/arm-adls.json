@@ -97,7 +97,7 @@
         }
     ],
     "variables": {
-        "accountNamesObject": "[toLower(replace(parameters('accountNames'),'-',''))]",
+        "accountNamesObject": "[toLower(replace(parameters('accountNames'),'-',''))]", 
         "zonesObject": "[split(toLower(replace(parameters('zones'),' ','')), ',')]",
         "copy": [
             {
@@ -123,10 +123,6 @@
             "tags": {
                 "displayName": "Azure Data Lake Storage Account"
             },
-            "copy": {
-                "name": "storage",
-                "count": "[length(variables('accountNamesObject'))]"
-            },
             "properties": {
                 "accessTier": "Hot",
                 "isHnsEnabled": true
@@ -138,7 +134,11 @@
                     "apiVersion": "2018-07-01",
                     "dependsOn": [
                         "[variables('accountNamesObject')]"
-                    ]
+                    ],
+                    "copy": {
+                        "name": "storage",
+                        "count": "[length(variables('zonesObject'))]"
+                    }
                 }
             ]
         }

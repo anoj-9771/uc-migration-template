@@ -6,9 +6,6 @@
   # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
 
 variables: 
-  # Use uppercase in naming conventions
-  - name: useuppercase
-    value: false
   # Secret rotation
   - name: secretrotation
     value: false
