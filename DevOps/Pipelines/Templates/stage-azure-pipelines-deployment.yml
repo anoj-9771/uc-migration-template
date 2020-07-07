@@ -37,15 +37,157 @@ stages:
   # as needed for your deployment
   - job: 'deploy_arm'
     steps:
+    - download: current
+      artifact: arm_templates
+
     # ------------------------------------------------------------------------
-    # Rotate Secrets in Azure Key Vault
+    # Deploy Azure Log related resources
     # ------------------------------------------------------------------------
-    - ${{ if eq(variables['secretrotation'], true) }}:  
-      - template: step-rotate-secrets.yml
+    # Deploy Log Analytics
+    - ${{ if eq(variables['loganalytics'], true) }}:  
+      - template: step-deploy-arm-loganalytics.yml
         parameters:
           AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
           resource_group: ${{ variables.resourcegroupname }} 
-    
-   
+      # Deploy BLOB Storage accounts for Data Lake
+    - ${{ if eq(variables['logstorage'], true)  }}:
+      - template: step-deploy-arm-logstorage.yml
+        parameters:
+          AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
+          resource_group: ${{ variables.resourcegroupname }}
+
+    # ------------------------------------------------------------------------
+    # Deploy Azure resources
+    # ------------------------------------------------------------------------
+    # Deploy Azure SQL DB for Control DB
+    - ${{ if eq(variables['azuresqlserver'], true) }}:
+      - template: step-deploy-arm-azuresql.yml
+        parameters:
+          AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
+          resource_group: ${{ variables.resourcegroupname }}
+    # Deploy Control DB. Update parameters here if different to required.
+    - ${{ if eq(variables['controldb'], true) }}:
+      - template: step-deploy-arm-azuresqldb.yml
+        parameters:
+          service_connection: ${{ variables.azdoresourceconnection }}
+          resource_group: ${{ variables.resourcegroupname }}
+          database_name: ${{ variables.azuresqlservername }}/ControlDB
+          database_kind: "v12.0,user,vcore,serverless"
+          database_sku: |
+            {
+              "name": "GP_S_Gen5",
+              "tier": "GeneralPurpose",
+              "family": "Gen5",
+              "capacity": 1
+            }
+          database_properties: |
+            {
+              "collation": "SQL_Latin1_General_CP1_CI_AS",
+              "maxSizeBytes": 10737418240,
+              "catalogCollation": "SQL_Latin1_General_CP1_CI_AS",
+              "zoneRedundant": false,
+              "readScale": "Disabled",
+              "readReplicaCount": 0,
+              "autoPauseDelay": 60,
+              "storageAccountType": "GRS",
+              "minCapacity": 0.5
+            }
+          log_analytics: ${{ variables.loganalytics }}
+          log_storage: ${{ variables.logstorage }}
+    # Deploy S0 EDW DB. Update parameters here if different to required.
+    - ${{ if eq(variables['edw'], true) }}:
+      - template: step-deploy-arm-azuresqldb.yml
+        parameters:
+          service_connection: ${{ variables.azdoresourceconnection }}
+          resource_group: ${{ variables.resourcegroupname }}
+          database_name: ${{ variables.azuresqlservername }}/${{ variables.azureedwdbname }}
+          database_kind: "v12.0,user,vcore,serverless"
+          database_sku: |
+            {
+              "name": "S0",
+              "tier": "Standard"
+            }
+          database_properties: |
+            {
+              "collation": "SQL_Latin1_General_CP1_CI_AS",
+              "maxSizeBytes": 268435456000,
+              "zoneRedundant": false,
+              "licenseType": "",
+              "readScale": "Disabled",
+              "readReplicaCount": 0,
+              "minCapacity": "",
+              "autoPauseDelay": ""
+            } 
+          log_analytics: ${{ variables.loganalytics }}
+          log_storage: ${{ variables.logstorage }}
+    # Deploy BLOB Storage accounts for Data Lake
+    - ${{ if eq(variables['azureblobstorage'], true) }}:
+      - template: step-deploy-arm-blobstoragev2.yml
+        parameters:
+          AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
+          resource_group: ${{ variables.resourcegroupname }}
+    # DeployADLS account for Data Lake
+    - ${{ if eq(variables['azuredatalakestorage'], true) }}:
+      - template: step-deploy-arm-adlsv2.yml
+        parameters:
+          AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
+          resource_group: ${{ variables.resourcegroupname }}
+    # Deploy Databricks Workspace with v-net integration
+    - ${{ if eq(variables['databricksvnet'], true) }}:
+      - template: step-deploy-arm-databricks-vnet-injection.yml
+        parameters:
+          AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
+          resource_group: ${{ variables.resourcegroupname }}
+          vnet_resource_group: ${{ variables.vnetresourcegroupname }}
+          databricksclustername: ${{ variables.databricksclustername }}
+          databricks_driver_node_type_id : ${{ variables.databricksdrivernodetypeid }}
+          databricks_node_type_id : ${{ variables.databricksnodetypeid }}
+          databricks_spark_version : ${{ variables.sparkClusterVersion }}
+          databricks_workers : ${{ variables.databricksworkers }}
+          databricks_autotermination : ${{ variables.databricksautotermination }}
+          log_analytics: ${{ variables.loganalytics }}
+          log_storage: ${{ variables.logstorage }}
+    # Deploy Databricks Workspace without v-net integration
+    - ${{ if eq(variables['databricksnovnet'], true) }}:
+      - template: step-deploy-arm-databricks-no-vnet-injection.yml
+        parameters:
+          AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
+          resource_group: ${{ variables.resourcegroupname }}
+          databricksclustername: ${{ variables.databricksclustername }}
+          databricks_driver_node_type_id : ${{ variables.databricksdrivernodetypeid }}
+          databricks_node_type_id : ${{ variables.databricksnodetypeid }}
+          databricks_spark_version : ${{ variables.sparkClusterVersion }}
+          databricks_workers : ${{ variables.databricksworkers }}
+          databricks_autotermination : ${{ variables.databricksautotermination }}
+          log_analytics: ${{ variables.loganalytics }}
+          log_storage: ${{ variables.logstorage }}
+    # Deploy Data Factory with access policies for AKV
+    - ${{ if eq(variables['datafactory'], true) }}:
+      - template: step-deploy-arm-datafactory-w-access-policies.yml
+        parameters:
+          AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
+          resource_group: ${{ variables.resourcegroupname }}
+          log_analytics: ${{ variables.loganalytics }}
+          log_storage: ${{ variables.logstorage }}
+
+    # Add Tags to resources
+    - ${{ if eq(variables['applytags'], true) }}:
+      - task: AzureCLI@2
+        displayName: 'Add tags to Resources'
+        name: add_tags
+        inputs:
+          azureSubscription: ${{ variables.azdoresourceconnection }}
+          scriptType: bash
+          scriptLocation: inlineScript
+          inlineScript: |
+            ids=$(az resource list --resource-group ${{ variables.resourcegroupname }} --query "[].id" --output tsv)
+            az resource tag --tags $(TAGS) --ids $ids 
+
+  # Deploy Control DB schema / DACPAC
+  - ${{ if eq(variables['controldb'], true) }}:
+    - template: job-deploy-controldb.yml
+      parameters:
+        AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
+  
   
     
