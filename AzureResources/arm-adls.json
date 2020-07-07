@@ -140,7 +140,6 @@
                 "count": "[length(variables('zonesObject'))]"
             }
         }
-
     ],
     "outputs": {}
 }

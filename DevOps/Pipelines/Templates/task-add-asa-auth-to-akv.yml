@@ -14,13 +14,13 @@ steps:
       inlineScript: |
         # Renew keys, list and write connection strings to Key Vault: secret name = <account_name>-(connectionstring/sastoken) or <account_name>-<container_name>-sastoken
         ids=$(az resource list -g ${{ parameters.resource_group }} --resource-type "Microsoft.Storage/storageAccounts" -o json)
-        jq -r '.[]|"\(.id) \(.name)"' <<<"$ids" | while read id name;
+        jq -r '.[]|"\(.id) \(.name)"' <<<"$ids" | while read id account_name;
           do 
             echo "id:$id, name:$account_name"; 
             connection_string=$(az storage account show-connection-string --ids $id -o tsv)
             check=$(az storage account show --ids $id --query "isHnsEnabled" -o tsv)
             $date_year=$(date '+%Y-%m-%dT%H:%MZ' -d "$end_date+1year")
-            echo "Writing Storage account connection string to Key Vault secret $account_name-sa-connectionstring"
+            echo "Writing Storage account connection string to Key Vault secret '$account_name'-sa-connectionstring"
             az keyvault secret set --name $account_name-connectionstring --vault-name "$(AZUREKEYVAULTNAME)" --value "$connection_string"
             if [$check]; then
               sas_token=$(az storage account generate-sas --account-name $value --permissions racwdl --services b --resource-types sco --expiry $date_year --output tsv)
