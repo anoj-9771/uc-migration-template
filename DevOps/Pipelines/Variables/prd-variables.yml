@@ -1,25 +1,25 @@
 variables:
   # Used in service naming
   - name: prefix
-    value: SCL-AUE
+    value: <<prefix>>
   # The default resource group region name
   - name: location
-    value: australiaeast
+    value: <<location>>
   # environment name used in service naming
   - name: environment
-    value: PRD
+    value: <<environment>>
   # Resource group name
   - name: resourcegroupname
-    value: SCL-AUE-PRD-ARG
+    value: <<resource group name>>
   # username for SQL Server Control DB
   - name: azuresqlserverun
     value: sqladmin
   # Name of the service connection in Azure Devops
   - name: azdoresourceconnection
-    value: SP-Stephen_Lundall-Insight
-  # The service principal object ID (Not App ID)
+    value: <<service connection name>>
+  # The service principal object ID (Not App ID)... Use 'az ad sp show --id <<app-id>> --query "objectId" -o tsv'
   - name: spobjectid
-    value: a1860bea-6cf3-4c01-8659-e7ec4977c6a7
+    value: <<sp objectId>>
   # Store account type for BLOB Storage e.g. Standard_LRS)
   - name: storageAccountType
     value: Standard_LRS
@@ -27,9 +27,9 @@ variables:
   - name: applytags
     value: true
   - name: tags
-    value: CostCenter=DataAndAnalytics \
+    value: CostCenter=<<cost centre name>> \
           Environment=Production \
-          Owner=stephen.lundall@insight.com
+          Owner=<<owner email>>
   # ------------------------------------------------
   # Service names for environment
   # ------------------------------------------------
@@ -37,7 +37,7 @@ variables:
   - name: azuresqlservername
     value: ${{ lower(variables.prefix) }}-${{ lower(variables.environment) }}-asql
   - name: azureedwdbname
-    value: SCL_EDW
+    value: <<azure edw db name>>
   # Name of key vault for this environment
   - name: azurekeyvaultname
     value: $(PREFIX)-$(ENVIRONMENT)-AKV
@@ -90,9 +90,9 @@ variables:
   - name: nsgid
     value: 
   - name: vnetresourcegroupname
-    value: NetworkWatcherRG
+    value: <<network resource group>>
   - name: vnetName
-    value: SCL-SYD-PRD-VNET
+    value: <<vnet name>>
   - name: vnetid
     value: 
   - name: publicsubnetcidr

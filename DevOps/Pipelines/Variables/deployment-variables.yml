@@ -26,7 +26,7 @@ variables:
     value: false
   # Used to set Blob Storage deployability
   - name: azureblobstorage
-    value: true
+    value: false
   # Used to set Data Lake Storage deployability
   - name: azuredatalakestorage
     value: false
