@@ -4,14 +4,16 @@
 -- Description: Returns the Project Task count as count or 0 if project is taking 3 time as long to complete 
 -- and updates log status to incomplete if 
 --==============================================
-CREATE     Procedure [CTL].[sp_checkBatchStatus] @BatchId bigint
+CREATE     Procedure [CTL].[sp_checkBatchStatus] @BatchId bigint--, @minBatchSize int
 As
 begin
 	declare @maxRank table (ProcessId bigint, MaxRank int)
+	declare @delay varchar(5)
+	declare @batchSize int = (select [CTL].[udf_getBatchDelay]())
 	insert into @maxRank 
 		select ProcessId, max(rank) 
 		from ctl.Task tsk
-		group by ProcessId
+		group by ProcessId	
 
 	declare @tskCount int = (
 		select distinct count(*)
@@ -46,21 +48,26 @@ begin
 		where  tl.BatchId = @BatchId
 		and tl.Status in ('Failed' , 'Succeeded')
 	)
+		
+	declare @minBatchSize int = 1
+	set @batchSize = (select [CTL].[udf_getBatchDelay]())
 	
-	if @tskCount >= 0 
-		begin 
-			select @tskCount TaskCount
-		end
-	--if @curPrjDuration > (3 * @avgPrjDuration)
-	--begin
-	--	begin
-	--		update tl
-	--		set Status = 'Incomplete'
-	--		from ctl.TaskLog tl
-	--		join ctl.Task tsk on tl.TaskId = tsk.TaskId
-	--		where tl.BatchId = @BatchId
-	--		and tl.Status = 'Processing'
-	--	end
-	--	select 0 TaskCount
-	--end
+	while @batchSize <  @minBatchSize and  @tskCount > 0 
+	begin
+		waitfor delay '00:00:01'
+		set @batchSize = [CTL].[udf_getBatchDelay]()
+		set @tskCount =  (
+			select distinct count(*)
+			from ctl.QueueMeta	qm
+			join ctl.Task tsk on tsk.TaskId = qm.TaskId
+			join @maxRank mr on tsk.ProcessId = mr.ProcessId
+			where BatchId = @BatchId 
+			and qm.status < 2 
+			or (
+				qm.status = 2 and 
+				tsk.rank < mr.MaxRank
+			)
+		)
+	end
+	select @tskCount TaskCount	
 end

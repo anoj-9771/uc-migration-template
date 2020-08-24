@@ -15,6 +15,7 @@ begin
 			Row_Id int,
 			TaskId bigint,
 			BatchId bigint,
+			ExecTime datetime,
 			StageName varchar(250),
 			TaskType varchar(100), 
 			ProcessId bigint,
@@ -51,7 +52,8 @@ begin
 	select
 			row_number() over(order by (select 1)) Row_Id,
 			qm.TaskId,
-			convert(bigint, replace([CTL].[udf_getFileDateHierarchy]('Second',@ExecTime), '/','')) BatchId,
+			@BatchId BatchId,
+			@ExecTime ExecTime,
 			stg.Name StageName,
 			tt.Name TaskType, 
 			tsk.ProcessId,

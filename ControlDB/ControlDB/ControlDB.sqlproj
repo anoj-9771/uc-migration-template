@@ -65,6 +65,9 @@
     <Folder Include="CTL\Stored Procedures\" />
     <Folder Include="dbo\Stored Procedures\" />
     <Folder Include="Security\" />
+    <Folder Include="STG\" />
+    <Folder Include="STG\Tables\" />
+    <Folder Include="dbo\Views\" />
   </ItemGroup>
   <ItemGroup>
     <Build Include="CTL\Tables\DataSet.sql" />
@@ -126,5 +129,26 @@
     <Build Include="dbo\Stored Procedures\usp_BuildSchemaViews.sql" />
     <Build Include="dbo\Stored Procedures\usp_TruncateIfExists.sql" />
     <Build Include="Security\CTL.sql" />
+    <Build Include="dbo\Tables\ADFPipelineRun.sql" />
+    <Build Include="dbo\Tables\ADFActivityRun.sql" />
+    <Build Include="STG\Tables\ADFActivityRun.sql" />
+    <Build Include="STG\Tables\ADFPipelineRun.sql" />
+    <Build Include="dbo\Views\vw_TaskLog.sql" />
+    <Build Include="dbo\Views\vw_ADFPipelineRun.sql" />
+    <Build Include="dbo\Views\vw_ADFActivityRun.sql" />
+    <Build Include="CTL\Functions\udf_getDependentProjects.sql" />
+    <Build Include="CTL\Functions\udf_getBatchDelay.sql" />
+    <Build Include="CTL\Functions\udf_getProjectExecPlan.sql" />
+    <Build Include="CTL\Functions\udf_getProjectDependents.sql" />
+    <Build Include="CTL\Functions\udf_getProcessDependents.sql" />
+    <Build Include="dbo\Stored Procedures\usp_Upsert.sql" />
+    <Build Include="dbo\Stored Procedures\usp_InsertMonitorLogs.sql" />
+    <Build Include="dbo\Stored Procedures\usp_InsertADFMonitorLogs.sql" />
+    <Build Include="CTL\Stored Procedures\sp_getProjectExecPlan.sql" />
+    <Build Include="CTL\Stored Procedures\sp_getFusionProcesses.sql" />
+    <Build Include="CTL\Stored Procedures\sp_getFusionFilesOrder.sql" />
+    <Build Include="CTL\Stored Procedures\sp_getFusionBatches.sql" />
+    <Build Include="CTL\Stored Procedures\sp_deletsQueueTask.sql" />
+    <Build Include="Security\STG.sql" />
   </ItemGroup>
 </Project>
