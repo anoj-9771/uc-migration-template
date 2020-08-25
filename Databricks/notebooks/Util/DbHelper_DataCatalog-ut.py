@@ -3,7 +3,8 @@
 import io
 import uuid
 import json
-import pandas as pd
+import databricks.koalas as ks
+# import pandas as pd
 import requests
 from io import StringIO
 import os
@@ -13,74 +14,56 @@ from pyspark.sql.functions import explode, explode_outer, array, col, first, mon
 
 # COMMAND ----------
 
+# 
+#   data_df.select([F.lit(c[0]) for c in data_df.dtypes]).withColumn("ColumnDFType", F.lit("columnName"))).unionAll(
+
+# COMMAND ----------
+
 # DBTITLE 1,Data Catalog Data Profile Function
 def dataCatalogProfile(data_all_df,data_cols, table_name, dataset_id):
-    data_df = data_all_df.select(data_cols)
-    columns2Bprofiled = data_df.columns
-    batchId = parameters["batchId"]
-    taskId = parameters["taskId"]
-    datasetId = dataset_id
-    schemaName = table_name.split('.')[0]
-    tableName = table_name.split('.')[1]
-    size = source_size
-    rowCount = data_df.count()
-    dprof_df = pd.DataFrame({'batchId':[batchId] * len(data_df.columns),\
-                             'taskId':[taskId] * len(data_df.columns),\
-                             'datasetId':[datasetId] * len(data_df.columns),\
-                             'schemaName':[schemaName] * len(data_df.columns),\
-                             'tableName':[tableName] * len(data_df.columns),\
-                             'columnName':data_df.columns,\
-                             'rowCount':[rowCount] * len(data_df.columns),\
-                             'size':[size] * len(data_df.columns),\
-                             'type':[x[1] for x in data_df.dtypes]}) 
-    dprof_df = dprof_df[['batchId', 'taskId', 'datasetId', 'schemaName', 'tableName','columnName', 'rowCount', 'size', 'type']]
-    dprof_df.set_index('columnName', inplace=False, drop=False)
-    # ======================    
-    # number of rows with nulls and nans   
-    try:
-      df_nacounts = data_df.select([count(when(isnan(c) | col(c).isNull(), c)).alias(c) for c in data_df.columns \
-                                    if data_df.select(c).dtypes[0][1]!='timestamp']).toPandas().transpose()
-    except:
-      df_nacounts = data_df.select([count(when(col(c).isNull(), c)).alias(c) for c in data_df.columns \
-                                    if data_df.select(c).dtypes[0][1]!='timestamp']).toPandas().transpose()
-    df_nacounts = df_nacounts.reset_index()  
-    df_nacounts.columns = ['columnName','nullCount']
-    dprof_df = pd.merge(dprof_df, df_nacounts, on = ['columnName'], how = 'left')
-    # =========================
-    # using the in built describe() function 
-    desc_df = data_df.describe().toPandas().transpose()
-    desc_df.columns = ['distinctCount', 'avg', 'stdev', 'min', 'max']
-    desc_df = desc_df.iloc[1:,:]  
-    desc_df = desc_df.reset_index()  
-    desc_df.columns.values[0] = 'columnName'  
-    desc_df = desc_df[['columnName','distinctCount', 'avg', 'stdev']] 
-    dprof_df = pd.merge(dprof_df, desc_df , on = ['columnName'], how = 'left')
-    # ===========================================
-    allminvalues = [data_df.select(F.min(x)).limit(1).toPandas().iloc[0][0] for x in columns2Bprofiled]
-    allmaxvalues = [data_df.select(F.max(x)).limit(1).toPandas().iloc[0][0] for x in columns2Bprofiled]
-    df_counts = dprof_df[['columnName']]
-    df_counts.insert(loc=0, column='min', value=allminvalues)
-    df_counts.insert(loc=0, column='max', value=allmaxvalues)
-    df_counts = df_counts[['columnName','min','max']]
-    dprof_df = pd.merge(dprof_df, df_counts , on = ['columnName'], how = 'left')
-    # ==========================================
-    # number of distinct values in each column
-    dprof_df['distinctCount'] = [data_df.select(x).distinct().count() for x in columns2Bprofiled]
-    #Recast for data catalog column profile
-    dprof_df = dprof_df.astype({'batchId':'int64'})
-    dprof_df = dprof_df.astype({'taskId':'int64'})
-    dprof_df = dprof_df.astype({'datasetId':'int64'})
-    dprof_df = dprof_df.astype({'columnName':'str'})
-    dprof_df = dprof_df.astype({'rowCount':'int64'})
-    dprof_df = dprof_df.astype({'size':'float64'})
-    dprof_df = dprof_df.astype({'type':'str'})
-    dprof_df = dprof_df.astype({'min':'str'})
-    dprof_df = dprof_df.astype({'max':'str'})
-    dprof_df = dprof_df.fillna('0').astype({'stdev':'float64'}).astype({'stdev':'int64'})
-    dprof_df = dprof_df.astype({'avg':'float64'}).astype({'avg':'int64'})
-    dprof_df = dprof_df.fillna(0).astype({'nullCount':'int64'})
-    dprof_df = dprof_df.astype({'distinctCount':'int64'})
-    return dprof_df
+  data_df = data_all_df.select(data_cols)
+  df0= data_df.select([count(when(col(c).isNull(), c)).alias(c).cast("string") for c in data_df.columns]).withColumn("ColumnDFType", F.lit("nullCount")).unionByName(
+  data_df.select([F.lit(c[1]).alias(c[0]).cast("string") for c in data_df.dtypes]).withColumn("ColumnDFType", F.lit("type"))).unionByName(
+  data_df.select([F.countDistinct(c).alias(c).cast("string") for c in data_df.columns]).withColumn("ColumnDFType", F.lit("distinctCount"))).unionByName(
+  data_df.select([F.min(c).alias(c).cast("string") for c in data_df.columns]).withColumn("ColumnDFType", F.lit("min"))).unionByName(
+  data_df.select([F.max(c).alias(c).cast("string") for c in data_df.columns]).withColumn("ColumnDFType", F.lit("max"))).unionByName(
+  data_df.select([F.avg(c[0]).alias(c[0]).cast("string") if c[1] not in ['string','boolean','guid','timestamp'] else F.lit(None).alias(c[0]).cast("string") for c in data_df.dtypes]).withColumn("ColumnDFType", F.lit("avg"))).unionByName(
+  data_df.select([F.stddev(c[0]).alias(c[0]).cast("string") if c[1] not in ['string','boolean','guid','timestamp'] else F.lit(None).alias(c[0]).cast("string") for c in data_df.dtypes]).withColumn("ColumnDFType", F.lit("stdev")))
+  tmp_table_name = table_name.replace('/','_').replace('.','_')
+  df0.createOrReplaceTempView("%s0"%(tmp_table_name))
+  l = []
+  sep = ','
+  a = data_df.columns
+  b = sep.join(a).split(",")
+  n = len(a)
+  for i in range(n):
+    l.append("'{}'".format(a[i]) + "," + b[i])
+  k = sep.join(l)
+  df1 = spark.sql("select ColumnDFType, stack(%s,%s) as (ColumnName, Amount) from %s0"%(n,k,tmp_table_name))
+  df1.createOrReplaceTempView("%s1"%(tmp_table_name))
+  df2 = spark.sql("select * from %s1"%(tmp_table_name)).groupBy("ColumnName").pivot("ColumnDFType").agg(F.min("Amount"))
+  return df2.withColumn("batchId", F.lit(parameters["batchId"]))\
+    .withColumn("taskId", F.lit(parameters["taskId"]))\
+    .withColumn("datasetId", F.lit(parameters["srcId"]))\
+    .withColumn("schemaName", F.lit(table_name.split('.')[0]))\
+    .withColumn("tableName", F.lit(table_name.split('.')[1]))\
+    .withColumn("rowCount", F.lit(df_source.count()))\
+    .withColumn("size", F.lit(source_size))\
+    .select(col("batchId").cast("long"),
+            col("taskId").cast("long"), 
+            col("datasetId").cast("long"), 
+            col("schemaName"),
+            col("tableName"), 
+            col("columnName"),
+            col("rowCount").cast("long"),
+            col("size").cast("float"),
+            col("type"),
+            col("min"),
+            col("max"),
+            col("stdev").cast("long"),
+            col("avg").cast("float"),
+            col("nullCount").cast("long"),
+            col("distinctCount").cast("long"))
 
 # COMMAND ----------
 
@@ -329,7 +312,7 @@ def bodyJson(data_asset, catalog_secret, key, timestamp, fromSourceSystem, **kwa
     upn = getUPN(catalog_secret)
     annotations = []
     if 'table_preview' in kwargs and kwargs["table_preview"] == True:
-        dsamp = df.select("*").limit(10).toPandas()
+        dsamp = df.select("*").limit(10).to_koalas()
         preview = dsamp.to_json(orient='records')
         table_preview = buildTablePreview(preview, 'table_preview_' + key, fromSourceSystem) #preview, key, fromSourceSystem
         annotations.append(table_preview)
@@ -339,10 +322,10 @@ def bodyJson(data_asset, catalog_secret, key, timestamp, fromSourceSystem, **kwa
         table_profile = buildTableProfile('table_profile_' + key, timestamp, fromSourceSystem, size = table_size, numberOfRows = row_count)
         annotations.append(table_profile)
     if data_asset == 'source_system':
-        dschm = schm.select(col("Column_Name").alias("name"),col("Column_DataType").alias("type"), F.when(schm.Column_Nullable == "",False).otherwise(True).alias("isNullable")).toPandas()
+        dschm = schm.select(col("Column_Name").alias("name"),col("Column_DataType").alias("type"), F.when(schm.Column_Nullable == "",False).otherwise(True).alias("isNullable")).to_koalas()
         build_properties = buildProperties(parameters["prcType"],parameters["dstTableName"], upn, fromSourceSystem, server = parameters["srcAccName"], database = parameters["srcDirectoryName"], schema = parameters["dstTableName"].split('.')[0], table = parameters["dstTableName"].split('.')[1])
     if data_asset == 'source':
-        dschm = pd.DataFrame(df.dtypes)
+        dschm = ks.DataFrame(df.dtypes)
         dschm.columns = ['name','type']
         dschm['isNullable'] = True
         build_properties = buildProperties('azure storage',parameters["dstTableName"].replace('.','_'), upn, fromSourceSystem, account = parameters["srcAccName"], container = parameters["srcContainerName"])
