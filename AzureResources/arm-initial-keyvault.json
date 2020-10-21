@@ -65,6 +65,17 @@
             "metadata": {
                 "description": "Specifies whether Azure Resource Manager is permitted to retrieve secrets from the key vault."
             }
+        },
+        "enableSoftDelete": {
+            "type": "bool",
+            "defaultValue": true,
+            "allowedValues": [
+                true,
+                false
+            ],
+            "metadata": {
+                "description": "Specifies whether the 'soft delete' functionality is enabled for this key vault."
+            }
         }
     },
     "functions": [
@@ -112,6 +123,7 @@
                 "enabledForDeployment": "[parameters('enabledForDeployment')]",
                 "enabledForTemplateDeployment": "[parameters('enabledForTemplateDeployment')]",
                 "enabledForDiskEncryption": "[parameters('enabledForDiskEncryption')]",
+                "enableSoftDelete": "[parameters('enableSoftDelete')]",
                 "accessPolicies": [
                 ],
                 "sku": {
