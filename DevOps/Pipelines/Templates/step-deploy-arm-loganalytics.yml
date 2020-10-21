@@ -3,8 +3,6 @@ parameters:
   type: string # data type of the parameter; required
 - name: resource_group
   type: string
-- name: deployability
-  type: boolean
 
 steps:
   - task: AzureResourceGroupDeployment@2
