@@ -37,26 +37,26 @@ steps:
         echo "Name: ${{ parameters.log_analytics_name }}, Id: $log_resource_id"
 
         # diagnostic_check=$(az monitor diagnostic-settings show --resource $src_resource_id --name ${{ parameters.src_resource_name }}-asa)
-        echo "az monitor diagnostic-settings create --name ${{ replace(parameters.src_resource_name,'/','') }}-asa --resource $src_resource_id --logs '${{ parameters.logs }}' --metrics '${{ parameters.metrics }}' --storage-account $log_resource_id"
+        echo "az monitor diagnostic-settings create --name ${{ replace(parameters.src_resource_name,'/','') }}-asa --resource $src_resource_id --logs '${{ parameters.logs }}' --metrics '${{ parameters.metrics }}' --workspace $log_resource_id"
         if [ ! -z "$logs" ] && [ -z "$metrics" ]
           then
             az monitor diagnostic-settings create \
             --name "${{ replace(lower(parameters.src_resource_name),'/','') }}-asa" \
             --resource "$src_resource_id" \
             --logs '${{ parameters.logs }}' \
-            --storage-account "$log_resource_id"
+            --workspace "$log_resource_id"
         elif [ ! -z "$metrics" ] && [ -z "$logs" ] 
           then 
             az monitor diagnostic-settings create \
             --name "${{ replace(lower(parameters.src_resource_name),'/','') }}-asa" \
             --resource "$src_resource_id" \
             --metrics '${{ parameters.metrics }}' \
-            --storage-account "$log_resource_id"
+            --workspace "$log_resource_id"
         else
           az monitor diagnostic-settings create \
           --name "${{ replace(lower(parameters.src_resource_name),'/','') }}-asa" \
           --resource "$src_resource_id" \
           --logs '${{ parameters.logs }}' \
           --metrics '${{ parameters.metrics }}' \
-          --storage-account "$log_resource_id"
+          --workspace "$log_resource_id"
         fi
