@@ -27,7 +27,7 @@ steps:
       service_connection: ${{ parameters.AzDoServiceConnection }}
       resource_group: ${{ parameters.resource_group }}
       src_resource_name: $(DATAFACTORYNAME)
-      key_valut_name: $(AZUREKEYVAULTNAME)
+      key_vault_name: $(AZUREKEYVAULTNAME)
       secret_permissions: 'list get'
 
   # Add Data Factory MI to SQLServer Rbac
