@@ -79,7 +79,7 @@
         }
     ],
     "variables": {
-        "managedResourceGroupName": "[concat(resourceGroup().name, '-', parameters('workspaceName'), '-', uniqueString(variables('workspaceName'), resourceGroup().id))]"
+        "managedResourceGroupName": "[concat(resourceGroup().name, '-', parameters('workspaceName'), '-', uniqueString(parameters('workspaceName'), resourceGroup().id))]"
     },
     "resources": [
         {
