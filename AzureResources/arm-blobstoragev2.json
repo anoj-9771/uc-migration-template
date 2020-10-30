@@ -39,6 +39,13 @@
             "metadata": {
                 "description": "Specifies the SKU for the key vault."
             }
+        },
+        "advancedThreatProtectionEnabled": {
+          "type": "bool",
+          "defaultValue": true,
+          "metadata": {
+            "description": "Enable or disable Advanced Threat Protection (Defender)."
+          }
         }
     },
     "functions": [
@@ -129,7 +136,9 @@
             },
             "properties": {
                 "accessTier": "Hot",
-                "isHnsEnabled": false
+                "isHnsEnabled": false,
+                "supportsHttpsTrafficOnly": true,
+                "allowBlobPublicAccess": false
             },
             "resources": [
                 {
@@ -139,7 +148,17 @@
                     "dependsOn": [
                         "[variables('accountNamesObject')[copyIndex()]]"
                     ]
-                }
+                },
+                {
+                    "condition": "[parameters('advancedThreatProtectionEnabled')]",
+                    "type": "providers/advancedThreatProtectionSettings",
+                    "name": "Microsoft.Security/current",
+                    "apiVersion": "2019-01-01",
+                    "dependsOn": ["[resourceId('Microsoft.Storage/storageAccounts/', variables('accountNamesObject')[copyIndex()])]"],
+                    "properties": {
+                      "isEnabled": true
+                    }
+                  }
             ]
         }
     ],
