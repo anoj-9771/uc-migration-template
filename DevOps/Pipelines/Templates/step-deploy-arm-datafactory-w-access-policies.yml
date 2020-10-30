@@ -17,7 +17,7 @@ steps:
       location: $(LOCATION)
       templateLocation: 'Linked artifact'
       csmFile: '$(Pipeline.Workspace)/arm_templates/arm-datafactory-w-shir.json'
-      overrideParameters: '-dataFactoryName $(DATAFACTORYNAME) -dataFactorySHIRName $(DATAFACTORYSHIRNAME) -location $(LOCATION)'
+      overrideParameters: '-dataFactoryName $(DATAFACTORYNAME) -dataFactorySHIRName $(DATAFACTORYSHIRNAME) -location $(LOCATION) -isRepoEnabled $(ISREPOENABLED)'
       deploymentMode: 'Incremental'
     displayName: 'Deploy Datafactory with Access Policies'
 
@@ -27,7 +27,7 @@ steps:
       service_connection: ${{ parameters.AzDoServiceConnection }}
       resource_group: ${{ parameters.resource_group }}
       src_resource_name: $(DATAFACTORYNAME)
-      key_valut_name: $(AZUREKEYVAULTNAME)
+      key_vault_name: $(AZUREKEYVAULTNAME)
       secret_permissions: 'list get'
 
   # Add Data Factory MI to SQLServer Rbac
@@ -46,7 +46,7 @@ steps:
         service_connection: ${{ parameters.AzDoServiceConnection }}
         resource_group: ${{ parameters.resource_group }}
         src_resource_name: $(DATAFACTORYNAME)
-        log_analitics_name: $(LOGANALYTICSWORKSPACENAME)
+        log_analytics_name: $(LOGANALYTICSWORKSPACENAME)
         logs: |
           [
             {

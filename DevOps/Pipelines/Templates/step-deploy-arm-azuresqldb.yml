@@ -57,19 +57,11 @@ steps:
         service_connection: ${{ parameters.service_connection }}
         resource_group: ${{ parameters.resource_group }}
         src_resource_name: ${{ parameters.database_name }}
-        log_analitics_name: $(LOGANALYTICSWORKSPACENAME)
+        log_analytics_name: $(LOGANALYTICSWORKSPACENAME)
         logs: |
           [
             {
-              "category": "dbfs",
-              "enabled": true,
-              "retentionPolicy": {
-                "days": 30,
-                "enabled": true
-              }
-            },
-            {
-              "category": "clusters",
+              "category": "SQLInsights",
               "enabled": false,
               "retentionPolicy": {
                 "days": 0,
@@ -77,7 +69,7 @@ steps:
               }
             },
             {
-              "category": "accounts",
+              "category": "AutomaticTuning",
               "enabled": true,
               "retentionPolicy": {
                 "days": 30,
@@ -85,7 +77,7 @@ steps:
               }
             },
             {
-              "category": "jobs",
+              "category": "QueryStoreRuntimeStatistics",
               "enabled": true,
               "retentionPolicy": {
                 "days": 30,
@@ -93,7 +85,7 @@ steps:
               }
             },
             {
-              "category": "notebook",
+              "category": "QueryStoreWaitStatistics",
               "enabled": true,
               "retentionPolicy": {
                 "days": 30,
@@ -101,7 +93,7 @@ steps:
               }
             },
             {
-              "category": "ssh",
+              "category": "Errors",
               "enabled": false,
               "retentionPolicy": {
                 "days": 0,
@@ -109,23 +101,7 @@ steps:
               }
             },
             {
-              "category": "workspace",
-              "enabled": true,
-              "retentionPolicy": {
-                "days": 30,
-                "enabled": true
-              }
-            },
-            {
-              "category": "secrets",
-              "enabled": true,
-              "retentionPolicy": {
-                "days": 30,
-                "enabled": true
-              }
-            },
-            {
-              "category": "sqlPermissions",
+              "category": "DatabaseWaitStatistics",
               "enabled": false,
               "retentionPolicy": {
                 "days": 0,
@@ -133,14 +109,76 @@ steps:
               }
             },
             {
-              "category": "instancePools",
-              "enabled": true,
+              "category": "Timeouts",
+              "enabled": false,
               "retentionPolicy": {
-                "days": 30,
-                "enabled": true
+                "days": 0,
+                "enabled": false
+              }
+            },
+            {
+              "category": "Blocks",
+              "enabled": false,
+              "retentionPolicy": {
+                "days": 0,
+                "enabled": false
+              }
+            },
+            {
+              "category": "Deadlocks",
+              "enabled": false,
+              "retentionPolicy": {
+                "days": 0,
+                "enabled": false
+              }
+            },
+            {
+              "category": "DevOpsOperationsAudit",
+              "enabled": false,
+              "retentionPolicy": {
+                "days": 0,
+                "enabled": false
+              }
+            },
+            {
+              "category": "SQLSecurityAuditEvents",
+              "enabled": false,
+              "retentionPolicy": {
+                "days": 0,
+                "enabled": false
               }
             }
           ]
+        metrics: |
+          [
+            {
+              "category": "Basic",
+              "enabled": true,
+              "retentionPolicy": {
+                "days": 30,
+                "enabled": true
+              },
+              "timeGrain": null
+            },
+            {
+              "category": "InstanceAndAppAdvanced",
+              "enabled": false,
+              "retentionPolicy": {
+                "days": 0,
+                "enabled": false
+              },
+              "timeGrain": null
+            },
+            {
+              "category": "WorkloadManagement",
+              "enabled": false,
+              "retentionPolicy": {
+                "days": 0,
+                "enabled": false
+              },
+              "timeGrain": null
+            }
+          ]          
 
 # Create or update diagnostic settings to archive to a storage account
   - ${{ if eq(parameters['log_storage'], true) }}:

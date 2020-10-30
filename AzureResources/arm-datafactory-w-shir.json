@@ -10,6 +10,43 @@
         },
         "location":{
             "type": "string"
+        },
+        "isRepoEnabled":{
+            "type": "bool",
+            "defaultValue": false,
+            "metadata": {"description": "Specifies whether the Git Integration is required. Usually required only in Dev environment"}
+        },
+        "repoType":{
+            "type":"string",
+            "defaultValue": "FactoryVSTSConfiguration",
+            "allowedValues": ["FactoryVSTSConfiguration"],
+            "metadata": {"description": "Azure DevOps Repo Type"}
+        },
+        "repoAccountName":{
+            "type":"string",
+            "defaultValue": "<Replace with Azure DevOps Account Name>",
+            "metadata": {"description": "Azure DevOps Account Name. For e.g InsightAUS for ADS GoFast Repo"}
+        },
+        "repoName":{
+            "type": "string",
+            "defaultValue": "<Replace with Repo Name>",
+            "metadata": {"description": "Git repository name. For e.g ADS Foundations V2"}
+        },
+        "repoCollaborationBranch":{
+            "type": "string",
+            "defaultValue": "develop",
+            "allowedValues": ["master","develop"],
+            "metadata": {"description": "Collaboration branch"}
+        },
+        "repoRootFolder":{
+            "type": "string",
+            "defaultValue": "/<Replace with Folder Path>/",
+            "metadata": {"description": "Folder where datafactory artifacts are comitted in repo. For e.g /Datafactory/"}
+        },
+        "repoProjectName":{
+            "type": "string",
+            "defaultValue": "<Replace with Azure DevOps Project Name>", 
+            "metadata": {"description": "Azure DevOps Project Name. For e.g BI Team"}
         }
     },
     "functions": [
@@ -45,7 +82,15 @@
     ],
     "variables": {
         "dataFactoryName": "[parameters('dataFactoryName')]",
-        "SHIRName": "[parameters('dataFactorySHIRName')]"
+        "SHIRName": "[parameters('dataFactorySHIRName')]",
+        "dataFactoryRepoConfiguration": {
+            "type": "[parameters('repoType')]",
+            "accountName": "[parameters('repoAccountName')]",
+            "repositoryName": "[parameters('repoName')]",
+            "projectName": "[parameters('repoProjectName')]", 
+            "collaborationBranch": "[parameters('repoCollaborationBranch')]",
+            "rootFolder": "[parameters('repoRootFolder')]"
+          }
     },
     "resources": [
         {
@@ -56,7 +101,7 @@
             "identity": {
                 "type": "SystemAssigned"
             },
-            "properties": {},
+            "properties": {"repoConfiguration": "[if(parameters('isRepoEnabled'), variables('dataFactoryRepoConfiguration'), json('null'))]"},
             "resources": [
                 {
                     "type": "integrationruntimes",
