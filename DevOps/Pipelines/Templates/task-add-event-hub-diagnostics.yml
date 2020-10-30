@@ -14,7 +14,7 @@ parameters:
   type: string
 - name: src_resource_name
   type: string
-- name: log_analitics_name
+- name: log_analytics_name
   type: string
 - name: metrics
   type: string
@@ -41,7 +41,7 @@ steps:
       scriptLocation: inlineScript
       inlineScript: |
         adf_resource_id=$(az resource list --name ${{ parameters.src_resource_name }} --resource-group ${{ parameters.resource_group }} --output tsv --query "[].id")
-        la_resource_id=$(az resource list --name ${{ parameters.log_analitics_name}} --resource-group ${{ parameters.resource_group }} --output tsv --query "[].id")
+        la_resource_id=$(az resource list --name ${{ parameters.log_analytics_name}} --resource-group ${{ parameters.resource_group }} --output tsv --query "[].id")
         lbs_resource_id=$(az resource list --name ${{ parameters.log_storage_name}} --output tsv --query "[].id")
         az monitor diagnostic-settings create  \
         --name "'${{ parameters.src_resource_name }}'-Diagnostics" \
@@ -61,7 +61,7 @@ steps:
       scriptLocation: inlineScript
       inlineScript: |
         adf_resource_id=$(az resource list --name ${{ parameters.src_resource_name }} --output tsv --query "[].id")
-        la_resource_id=$(az resource list --name ${{ parameters.log_analitics_name}} --output tsv --query "[].id")
+        la_resource_id=$(az resource list --name ${{ parameters.log_analytics_name}} --output tsv --query "[].id")
         az monitor diagnostic-settings create  \
         --name "${{ parameters.src_resource_name }}-Diagnostics" \
         --resource $adf_resource_id \

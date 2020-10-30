@@ -66,7 +66,7 @@ steps:
         service_connection: ${{ parameters.AzDoServiceConnection }}
         resource_group: ${{ parameters.resource_group }}
         src_resource_name: $(DATABRICKSWORKSPACENAME)
-        log_analitics_name: $(LOGANALYTICSWORKSPACENAME)
+        log_analytics_name: $(LOGANALYTICSWORKSPACENAME)
         logs: |
           [
             {
