@@ -17,7 +17,7 @@ steps:
       location: $(LOCATION)
       templateLocation: 'Linked artifact'
       csmFile: '$(Pipeline.Workspace)/arm_templates/arm-datafactory-w-shir.json'
-      overrideParameters: '-dataFactoryName $(DATAFACTORYNAME) -dataFactorySHIRName $(DATAFACTORYSHIRNAME) -location $(LOCATION)'
+      overrideParameters: '-dataFactoryName $(DATAFACTORYNAME) -dataFactorySHIRName $(DATAFACTORYSHIRNAME) -location $(LOCATION) -isRepoEnabled $(ISREPOENABLED)'
       deploymentMode: 'Incremental'
     displayName: 'Deploy Datafactory with Access Policies'
 
