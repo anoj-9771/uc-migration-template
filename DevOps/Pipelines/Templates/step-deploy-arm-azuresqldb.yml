@@ -48,7 +48,7 @@ steps:
       overrideParameters: |
         -location $(LOCATION) -databaseName ${{ parameters.database_name }} -databaseKind ${{ parameters.database_kind }} -databaseSku ${{ parameters.database_sku }} -databaseProperties ${{ parameters.database_properties }}
       deploymentMode: 'Incremental'
-    displayName: 'Deploy Azure SQL Control DB'
+    displayName: 'Deploy Azure SQL - ${{ parameters.database_name }}'
 
 # Create or update diagnostic settings to send to Log Analytics
   - ${{ if eq(parameters['log_analytics'], true) }}:
