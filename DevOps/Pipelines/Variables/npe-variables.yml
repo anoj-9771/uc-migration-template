@@ -92,11 +92,11 @@ variables:
   - name: nsgid
     value: 
   - name: vnetresourcegroupname
-    value: network-rg
+    value: staub-adsgofast-rg
   - name: vnetName
     value: staub-vnet-au
   - name: vnetid
-    value: /subscriptions/5662f75a-b1a8-47a5-9db7-a733884cd9db/resourceGroups/network-rg/providers/Microsoft.Network/virtualNetworks/staub-vnet-au/subnets/default
+    value: 
   - name: publicsubnetcidr
     value: 10.0.2.0/24
   - name: privatesubnetcidr
