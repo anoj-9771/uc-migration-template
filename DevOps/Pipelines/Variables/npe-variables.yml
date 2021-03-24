@@ -98,9 +98,9 @@ variables:
   - name: vnetid
     value: 
   - name: publicsubnetcidr
-    value: 10.0.2.0/24
+    value: 10.1.2.0/24
   - name: privatesubnetcidr
-    value: 10.0.1.0/24
+    value: 10.1.1.0/24
   - name: custompublicsubnetname
     value: databrickspublicsubnet
   - name: customprivatesubnetname
