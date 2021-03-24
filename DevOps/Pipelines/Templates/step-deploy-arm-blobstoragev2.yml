@@ -4,16 +4,16 @@ parameters:
 - name: resource_group
   type: string
 
-steps:
-  - task: AzureResourceGroupDeployment@2
-    inputs:
-      azureSubscription: ${{ parameters.AzDoServiceConnection }}
-      action: 'Create Or Update Resource Group'
-      resourceGroupName: ${{ parameters.resource_group }}
-      location: $(LOCATION)
-      templateLocation: 'Linked artifact'
-      csmFile: '$(Pipeline.Workspace)/arm_templates/arm-blobstoragev2.json'
-      overrideParameters: '-location $(LOCATION) -accountNames "$(BLOBSTORAGEACCOUNTNAMES)" -zones "$(ZONENAMES)"'
-      deploymentMode: 'Incremental'
-      deploymentOutputs: 'armOutputs'
-    displayName: 'Deploy BLOB Storage Zones'
+#steps:
+#  - task: AzureResourceGroupDeployment@2
+#    inputs:
+#      azureSubscription: ${{ parameters.AzDoServiceConnection }}
+#      action: 'Create Or Update Resource Group'
+#      resourceGroupName: ${{ parameters.resource_group }}
+#      location: $(LOCATION)
+#      templateLocation: 'Linked artifact'
+#      csmFile: '$(Pipeline.Workspace)/arm_templates/arm-blobstoragev2.json'
+#      overrideParameters: '-location $(LOCATION) -accountNames "$(BLOBSTORAGEACCOUNTNAMES)" -zones "$(ZONENAMES)"'
+#      deploymentMode: 'Incremental'
+#      deploymentOutputs: 'armOutputs'
+#    displayName: 'Deploy BLOB Storage Zones'
