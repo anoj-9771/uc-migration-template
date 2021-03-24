@@ -98,9 +98,9 @@ variables:
   - name: vnetid
     value: /subscriptions/5662f75a-b1a8-47a5-9db7-a733884cd9db/resourceGroups/network-rg/providers/Microsoft.Network/virtualNetworks/staub-vnet-au/subnets/default
   - name: publicsubnetcidr
-    value: 10.0.0.0/16
+    value: 10.0.2.0/24
   - name: privatesubnetcidr
-    value: 10.0.0.0/24
+    value: 10.0.1.0/24
   - name: custompublicsubnetname
     value: databrickspublicsubnet
   - name: customprivatesubnetname
