@@ -29,7 +29,7 @@ variables:
     value: true
   # Used to set Data Lake Storage deployability
   - name: azuredatalakestorage
-    value: false
+    value: true
   # Used to set Databricks Workspace deployability
   - name: databricksvnet
     value: true
