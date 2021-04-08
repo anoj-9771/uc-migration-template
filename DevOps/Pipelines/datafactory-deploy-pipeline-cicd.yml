@@ -31,6 +31,14 @@ stages:
     parameters:
       data_factory_name: 'sl-df-nonprod'
 # ---------------------------------------------------------------------------
+# Release to Non-Prod
+- template: Templates/stage-datafactory-integration.yml
+  parameters:
+    #dependencies: ['uat'] # Used to define any stage dependencies
+    stage_name: 'deploy_adf_nonprod'
+    variable_template_name: npe-variables
+    run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
+# ---------------------------------------------------------------------------
 # Release to Production
 - template: Templates/stage-datafactory-integration.yml
   parameters:
@@ -38,5 +46,4 @@ stages:
     stage_name: 'deploy_adf_prod'
     variable_template_name: prd-variables
     run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
-
 
