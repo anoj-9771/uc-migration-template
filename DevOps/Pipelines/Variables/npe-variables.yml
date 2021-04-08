@@ -1,7 +1,7 @@
 variables:
   # Used in service naming
   - name: prefix
-    value: staub-ads
+    value: ads-v2
   # The default resource group region name
   - name: location
     value: australiaeast
@@ -10,7 +10,7 @@ variables:
     value: dev
   # Resource group name
   - name: resourcegroupname
-    value: staub-adsgofast-rg
+    value: ads-v2-dev-rg
   # username for SQL Server Control DB
   - name: azuresqlserverun
     value: sqladmin
@@ -92,9 +92,9 @@ variables:
   - name: nsgid
     value: 
   - name: vnetresourcegroupname
-    value: staub-adsgofast-rg
+    value: ads-v2-dev-rg
   - name: vnetName
-    value: staub-vnet-au
+    value: ads-v2-dev-vnet
   - name: vnetid
     value: 
   - name: publicsubnetcidr
