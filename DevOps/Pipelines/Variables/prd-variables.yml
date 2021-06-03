@@ -1,31 +1,31 @@
 variables:
   # Used in service naming
   - name: prefix
-    value: staub-ads
+    value: SWC
   # The default resource group region name
   - name: location
     value: australiaeast
   # environment name used in service naming
   - name: environment
-    value: prd
+    value: test
   # Resource group name
   - name: resourcegroupname
-    value: staub-adsgofast-rg
+    value: rg-swcnonprod01-daf-test-01
   # username for SQL Server Control DB
   - name: azuresqlserverun
     value: sqladmin
   # Name of the service connection in Azure Devops
   - name: azdoresourceconnection
-    value: ADS_Demo_SP2
+    value: azure-rg-test-serviceconnection
   # The service principal object ID (Not App ID)... Use 'az ad sp show --id <<app-id>> --query "objectId" -o tsv'
   - name: spobjectid
-    value: c01fed7c-ab86-4e71-b9cf-0e0c890f45e0
+    value: 71beb4c2-8b21-458b-8a58-eda46894efe8
   # Store account type for BLOB Storage e.g. Standard_LRS)
   - name: storageAccountType
     value: Standard_LRS
   # Tagging
   - name: applytags
-    value: true
+    value: false
   - name: tags
     value: CostCenter=DataAndAI \
           Environment=Production \
@@ -92,15 +92,15 @@ variables:
   - name: nsgid
     value: 
   - name: vnetresourcegroupname
-    value: network-rg
+    value: rg-swcnonprod01-network-01
   - name: vnetName
-    value: staub-vnet-au
+    value: vnet-swcnonprod01-ae-01
   - name: vnetid
-    value: /subscriptions/5662f75a-b1a8-47a5-9db7-a733884cd9db/resourceGroups/network-rg/providers/Microsoft.Network/virtualNetworks/staub-vnet-au/subnets/default
+    value:                                #/subscriptions/5662f75a-b1a8-47a5-9db7-a733884cd9db/resourceGroups/network-rg/providers/Microsoft.Network/virtualNetworks/staub-vnet-au/subnets/default
   - name: publicsubnetcidr
-    value: 10.0.0.0/16
+    value: 10.97.47.64/26
   - name: privatesubnetcidr
-    value: 10.0.0.0/24
+    value: 10.97.47.0/26
   - name: custompublicsubnetname
     value: databrickspublicsubnet
   - name: customprivatesubnetname
