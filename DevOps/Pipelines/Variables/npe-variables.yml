@@ -1,7 +1,7 @@
 variables:
   # Used in service naming
   - name: prefix
-    value: ads-v2
+    value: SWC
   # The default resource group region name
   - name: location
     value: australiaeast
@@ -10,22 +10,22 @@ variables:
     value: dev
   # Resource group name
   - name: resourcegroupname
-    value: ads-v2-dev-rg
+    value: rg-swcnonprod01-daf-dev-01
   # username for SQL Server Control DB
   - name: azuresqlserverun
     value: sqladmin
   # Name of the service connection in Azure Devops
   - name: azdoresourceconnection
-    value: ADS_Demo_SP2
+    value: azure-rg-dev-serviceconnection
   # The service principal object ID (Not App ID)... Use 'az ad sp show --id <<app-id>> --query "objectId" -o tsv'
   - name: spobjectid
-    value: c01fed7c-ab86-4e71-b9cf-0e0c890f45e0
+    value: 5f94952e-aed6-47c0-8db3-a5e464f71e30
   # Store account type for BLOB Storage e.g. Standard_LRS)
   - name: storageAccountType
     value: Standard_LRS
-  # Tagging
+  # Tagging.
   - name: applytags
-    value: true
+    value: false
   - name: tags
     value: CostCenter=DataAndAI \
           Environment=NonProduction \
@@ -92,15 +92,15 @@ variables:
   - name: nsgid
     value: 
   - name: vnetresourcegroupname
-    value: ads-v2-dev-rg
+    value: rg-swcnonprod01-network-01
   - name: vnetName
-    value: ads-v2-dev-vnet
+    value: vnet-swcnonprod01-ae-01
   - name: vnetid
     value: 
   - name: publicsubnetcidr
-    value: 10.1.2.0/24
+    value: 10.97.47.192/26        #10.1.2.0/24
   - name: privatesubnetcidr
-    value: 10.1.1.0/24
+    value: 10.97.47.128/26        #10.1.1.0/24
   - name: custompublicsubnetname
     value: databrickspublicsubnet
   - name: customprivatesubnetname
