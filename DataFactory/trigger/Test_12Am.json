@@ -1,0 +1,29 @@
+{
+	"name": "Test_12Am",
+	"properties": {
+		"annotations": [],
+		"runtimeState": "Stopped",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "Main2",
+					"type": "PipelineReference"
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Day",
+				"interval": 1,
+				"startTime": "2020-01-18T16:00:00.000Z",
+				"timeZone": "UTC",
+				"schedule": {
+					"hours": [
+						16
+					]
+				}
+			}
+		}
+	}
+}

@@ -1,0 +1,24 @@
+{
+	"name": "AzureDatabricksPool_Test",
+	"properties": {
+		"annotations": [],
+		"type": "AzureDatabricks",
+		"typeProperties": {
+			"domain": "https://australiaeast.azuredatabricks.net",
+			"accessToken": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "AzureKeyVault",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "databricks-Token"
+			},
+			"instancePoolId": "1129-054614-verge71-pool-N8mNYaYw",
+			"newClusterNumOfWorker": "1",
+			"newClusterSparkEnvVars": {
+				"PYSPARK_PYTHON": "/databricks/python3/bin/python3"
+			},
+			"newClusterVersion": "6.1.x-scala2.11"
+		}
+	}
+}

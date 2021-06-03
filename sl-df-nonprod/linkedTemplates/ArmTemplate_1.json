@@ -1,0 +1,2016 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "sl-df-nonprod"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/Databricks')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Log Databricks",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "Databricks",
+								"dependencyConditions": [
+									"Completed"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 5,
+							"retryIntervalInSeconds": 120,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[CTL].[sp_updateTaskLog]",
+							"storedProcedureParameters": {
+								"BatchId": {
+									"value": {
+										"value": "@pipeline().parameters.item.BatchId",
+										"type": "Expression"
+									},
+									"type": "Int64"
+								},
+								"Output": {
+									"value": {
+										"value": "@if(empty(activity('Databricks').output), if(empty(activity('Databricks').error), '{\"error\": \"Data Factory processing error, check pipeline activity.\"}', string(activity('Databricks').error)), string(activity('Databricks').output))",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"FullBlobName": {
+									"value": {
+										"value": "@concat(pipeline().parameters.item.TargetName,pipeline().parameters.item.Path,pipeline().parameters.item.TargetName)",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"TaskId": {
+									"value": {
+										"value": "@pipeline().parameters.item.TaskId",
+										"type": "Expression"
+									},
+									"type": "Int64"
+								},
+								"RunId": {
+									"value": {
+										"value": "@pipeline().RunId",
+										"type": "Expression"
+									},
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "AzureSqlDatabase_Ctrldb",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "Databricks",
+						"type": "DatabricksNotebook",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"notebookPath": {
+								"value": "@pipeline().parameters.item.Query",
+								"type": "Expression"
+							},
+							"baseParameters": {
+								"srcBlobName": {
+									"value": "@pipeline().parameters.item.SourceBlobName",
+									"type": "Expression"
+								},
+								"dstDirectoryName": {
+									"value": "@replace(pipeline().parameters.item.TargetLocation, concat(tolower(split(pipeline().parameters.item.StageName,'->')[1]),'/'),'')",
+									"type": "Expression"
+								},
+								"srcDirectoryName": {
+									"value": "@replace(pipeline().parameters.item.SourceLocation, concat(tolower(split(pipeline().parameters.item.StageName,'->')[0]),'/'),'')",
+									"type": "Expression"
+								},
+								"srcKvSecret": {
+									"value": "@pipeline().parameters.item.SourceConnection",
+									"type": "Expression"
+								},
+								"dstKvSecret": {
+									"value": "@pipeline().parameters.item.TargetConnection",
+									"type": "Expression"
+								},
+								"srcContainerName": {
+									"value": "@tolower(split(pipeline().parameters.item.StageName,'->')[0])",
+									"type": "Expression"
+								},
+								"dstContainerName": {
+									"value": "@tolower(split(pipeline().parameters.item.StageName,'->')[1])",
+									"type": "Expression"
+								},
+								"srcAccount": {
+									"value": "@split(pipeline().parameters.item.SourceDataStoreName,'-')[0]",
+									"type": "Expression"
+								},
+								"dstAccount": {
+									"value": "@split(pipeline().parameters.item.TargetDataStoreName,'-')[0]\n",
+									"type": "Expression"
+								},
+								"srcFormat": {
+									"value": "@pipeline().parameters.item.SourceFormat",
+									"type": "Expression"
+								},
+								"dstFormat": {
+									"value": "@pipeline().parameters.item.TargetFormat",
+									"type": "Expression"
+								},
+								"dstTableName": {
+									"value": "@pipeline().parameters.item.DestinationTable",
+									"type": "Expression"
+								},
+								"srcType": {
+									"value": "@pipeline().parameters.item.SourceType",
+									"type": "Expression"
+								},
+								"prcType": {
+									"value": "@pipeline().parameters.item.ProcessType",
+									"type": "Expression"
+								},
+								"query": {
+									"value": "@pipeline().parameters.item.SourceQuery",
+									"type": "Expression"
+								},
+								"dstBlobName": {
+									"value": "@pipeline().parameters.item.TargetBlobName",
+									"type": "Expression"
+								},
+								"execTime": {
+									"value": "@pipeline().parameters.execTime",
+									"type": "Expression"
+								},
+								"dstType": {
+									"value": "@pipeline().parameters.item.TargetType",
+									"type": "Expression"
+								},
+								"catalogSecret": "DataCatalog-SP",
+								"batchId": {
+									"value": "@string(pipeline().parameters.item.BatchId)",
+									"type": "Expression"
+								},
+								"sourceId": {
+									"value": "@string(pipeline().parameters.item.SourceId)",
+									"type": "Expression"
+								},
+								"targetId": {
+									"value": "@string(pipeline().parameters.item.TargetId)",
+									"type": "Expression"
+								},
+								"taskId": {
+									"value": "@string(pipeline().parameters.item.TaskId)",
+									"type": "Expression"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "AzureDatabricks_DefinedCluster",
+							"type": "LinkedServiceReference",
+							"parameters": {
+								"kvSecret": {
+									"value": "@split(pipeline().parameters.item.WorkerDetails,'|')[0]",
+									"type": "Expression"
+								},
+								"clusterId": {
+									"value": "@split(pipeline().parameters.item.WorkerDetails,'|')[1]",
+									"type": "Expression"
+								}
+							}
+						}
+					}
+				],
+				"parameters": {
+					"item": {
+						"type": "object"
+					},
+					"execTime": {
+						"type": "string"
+					}
+				},
+				"annotations": []
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Resume_Control')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Resume_Control",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 3,
+							"retryIntervalInSeconds": 300,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "ctl.sp_getProjects"
+						},
+						"linkedServiceName": {
+							"referenceName": "AzureSqlDatabase_Ctrldb",
+							"type": "LinkedServiceReference"
+						}
+					}
+				],
+				"folder": {
+					"name": "Control_V2"
+				},
+				"annotations": []
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AzureBlobStorage_Raw')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureBlobStorage_Raw",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"BlobPath": {
+						"type": "string"
+					},
+					"BlobName": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": {
+							"value": "@dataset().BlobName",
+							"type": "Expression"
+						},
+						"folderPath": {
+							"value": "@dataset().BlobPath",
+							"type": "Expression"
+						},
+						"container": "raw"
+					},
+					"columnDelimiter": "|",
+					"compressionCodec": "gzip",
+					"compressionLevel": "Optimal",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AzureSqlDatabase_Ctrldb')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureSqlDatabase_Ctrldb",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AzureSqlDatabase_SQLDB')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureSQLDatabase",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"kvSecret": {
+							"value": "@dataset().kvSecret",
+							"type": "Expression"
+						}
+					}
+				},
+				"parameters": {
+					"kvSecret": {
+						"type": "string"
+					},
+					"tableName": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {
+					"tableName": {
+						"value": "@dataset().tableName",
+						"type": "Expression"
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AzureSqlDatabase_read')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureSQLDatabase",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"kvSecret": {
+							"value": "@dataset().kvSecret",
+							"type": "Expression"
+						}
+					}
+				},
+				"parameters": {
+					"kvSecret": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/SQLServer_Read')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "SQLServer",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"kvSecret": {
+							"value": "@dataset().kvSecret",
+							"type": "Expression"
+						}
+					}
+				},
+				"parameters": {
+					"kvSecret": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "SqlServerTable",
+				"schema": [],
+				"typeProperties": {}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/SQLServer_Table')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "SQLServer",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"kvSecret": {
+							"value": "@dataset().kvSecret",
+							"type": "Expression"
+						}
+					}
+				},
+				"parameters": {
+					"kvSecret": {
+						"type": "string"
+					},
+					"tableName": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "SqlServerTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": {
+						"value": "@split(dataset().tableName,'.')[0]",
+						"type": "Expression"
+					},
+					"table": {
+						"value": "@split(dataset().tableName,'.')[1]",
+						"type": "Expression"
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AzureSQL_Full_to_ABS csv_gz')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Log SQL_Full",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "SQL_Full",
+								"dependencyConditions": [
+									"Completed"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 5,
+							"retryIntervalInSeconds": 120,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[CTL].[sp_updateTaskLog]",
+							"storedProcedureParameters": {
+								"BatchId": {
+									"value": {
+										"value": "@pipeline().parameters.item.BatchId",
+										"type": "Expression"
+									},
+									"type": "Int64"
+								},
+								"Output": {
+									"value": {
+										"value": "@if(empty(activity('SQL_Full').error), string(activity('SQL_Full').output), string(activity('SQL_Full').error))",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"FullBlobName": {
+									"value": {
+										"value": "@concat(pipeline().parameters.item.TargetName,pipeline().parameters.item.Path,pipeline().parameters.item.TargetName)",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"TaskId": {
+									"value": {
+										"value": "@pipeline().parameters.item.TaskId",
+										"type": "Expression"
+									},
+									"type": "Int64"
+								},
+								"RunId": {
+									"value": {
+										"value": "@pipeline().RunId",
+										"type": "Expression"
+									},
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "AzureSqlDatabase_Ctrldb",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "SQL_Full",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"sqlReaderQuery": {
+									"value": "@pipeline().parameters.item.Query",
+									"type": "Expression"
+								},
+								"queryTimeout": "02:00:00"
+							},
+							"sink": {
+								"type": "DelimitedTextSink",
+								"storeSettings": {
+									"type": "AzureBlobStorageWriteSettings"
+								},
+								"formatSettings": {
+									"type": "DelimitedTextWriteSettings",
+									"quoteAllText": true,
+									"fileExtension": ".txt"
+								}
+							},
+							"enableStaging": false
+						},
+						"inputs": [
+							{
+								"referenceName": "AzureSqlDatabase_read",
+								"type": "DatasetReference",
+								"parameters": {
+									"kvSecret": {
+										"value": "@pipeline().parameters.item.SourceConnection",
+										"type": "Expression"
+									}
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "AzureBlobStorage_Raw",
+								"type": "DatasetReference",
+								"parameters": {
+									"BlobPath": {
+										"value": "@split(pipeline().parameters.item.TargetLocation,'/')[1]",
+										"type": "Expression"
+									},
+									"BlobName": {
+										"value": "@concat(pipeline().parameters.item.TargetBlobName, pipeline().parameters.item.TargetFormat)",
+										"type": "Expression"
+									}
+								}
+							}
+						]
+					},
+					{
+						"name": "GetSchema Sql Server_Full",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "SqlServerSource",
+								"sqlReaderQuery": {
+									"value": "@pipeline().parameters.item.MetaDataQuery",
+									"type": "Expression"
+								}
+							},
+							"sink": {
+								"type": "DelimitedTextSink",
+								"storeSettings": {
+									"type": "AzureBlobStorageWriteSettings"
+								},
+								"formatSettings": {
+									"type": "DelimitedTextWriteSettings",
+									"quoteAllText": true,
+									"fileExtension": ".txt"
+								}
+							},
+							"enableStaging": false
+						},
+						"inputs": [
+							{
+								"referenceName": "SQLServer_Read",
+								"type": "DatasetReference",
+								"parameters": {
+									"kvSecret": {
+										"value": "@pipeline().parameters.item.SourceConnection",
+										"type": "Expression"
+									}
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "AzureBlobStorage_Raw",
+								"type": "DatasetReference",
+								"parameters": {
+									"BlobPath": {
+										"value": "@split(pipeline().parameters.item.TargetLocation,'/')[1]",
+										"type": "Expression"
+									},
+									"BlobName": {
+										"value": "@concat(pipeline().parameters.item.TargetBlobName, '_schema', pipeline().parameters.item.TargetFormat)",
+										"type": "Expression"
+									}
+								}
+							}
+						]
+					}
+				],
+				"parameters": {
+					"item": {
+						"type": "object"
+					}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/AzureSqlDatabase_read')]",
+				"[concat(variables('factoryId'), '/datasets/AzureBlobStorage_Raw')]",
+				"[concat(variables('factoryId'), '/datasets/SQLServer_Read')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AzureSQL_Full_to_ADLS csv_gz')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Log SQL_Full",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "SQL_Full",
+								"dependencyConditions": [
+									"Completed"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 5,
+							"retryIntervalInSeconds": 120,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[CTL].[sp_updateTaskLog]",
+							"storedProcedureParameters": {
+								"BatchId": {
+									"value": {
+										"value": "@pipeline().parameters.item.BatchId",
+										"type": "Expression"
+									},
+									"type": "Int64"
+								},
+								"Output": {
+									"value": {
+										"value": "@if(empty(activity('SQL_Full').error), string(activity('SQL_Full').output), string(activity('SQL_Full').error))",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"FullBlobName": {
+									"value": {
+										"value": "@concat(pipeline().parameters.item.TargetName,pipeline().parameters.item.Path,pipeline().parameters.item.TargetName)",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"TaskId": {
+									"value": {
+										"value": "@pipeline().parameters.item.TaskId",
+										"type": "Expression"
+									},
+									"type": "Int64"
+								},
+								"RunId": {
+									"value": {
+										"value": "@pipeline().RunId",
+										"type": "Expression"
+									},
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "AzureSqlDatabase_Ctrldb",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "SQL_Full",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"sqlReaderQuery": {
+									"value": "@pipeline().parameters.item.Query",
+									"type": "Expression"
+								},
+								"queryTimeout": "02:00:00"
+							},
+							"sink": {
+								"type": "DelimitedTextSink",
+								"storeSettings": {
+									"type": "AzureBlobFSWriteSettings"
+								},
+								"formatSettings": {
+									"type": "DelimitedTextWriteSettings",
+									"quoteAllText": true,
+									"fileExtension": ".txt"
+								}
+							},
+							"enableStaging": false
+						},
+						"inputs": [
+							{
+								"referenceName": "AzureSqlDatabase_read",
+								"type": "DatasetReference",
+								"parameters": {
+									"kvSecret": {
+										"value": "@pipeline().parameters.item.SourceConnection",
+										"type": "Expression"
+									}
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "ADLS_Raw",
+								"type": "DatasetReference",
+								"parameters": {
+									"BlobPath": {
+										"value": "@pipeline().parameters.item.TargetLocation",
+										"type": "Expression"
+									},
+									"BlobName": {
+										"value": "@concat(pipeline().parameters.item.TargetBlobName, pipeline().parameters.item.TargetFormat)",
+										"type": "Expression"
+									}
+								}
+							}
+						]
+					},
+					{
+						"name": "GetSchema Sql Server_Full_ADLS",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "SqlServerSource",
+								"sqlReaderQuery": {
+									"value": "@pipeline().parameters.item.MetaDataQuery",
+									"type": "Expression"
+								}
+							},
+							"sink": {
+								"type": "DelimitedTextSink",
+								"storeSettings": {
+									"type": "AzureBlobFSWriteSettings"
+								},
+								"formatSettings": {
+									"type": "DelimitedTextWriteSettings",
+									"quoteAllText": true,
+									"fileExtension": ".txt"
+								}
+							},
+							"enableStaging": false
+						},
+						"inputs": [
+							{
+								"referenceName": "SQLServer_Read",
+								"type": "DatasetReference",
+								"parameters": {
+									"kvSecret": {
+										"value": "@pipeline().parameters.item.SourceConnection",
+										"type": "Expression"
+									}
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "ADLS_Raw",
+								"type": "DatasetReference",
+								"parameters": {
+									"BlobPath": {
+										"value": "@pipeline().parameters.item.TargetLocation",
+										"type": "Expression"
+									},
+									"BlobName": {
+										"value": "@concat(pipeline().parameters.item.TargetBlobName, '_schema', pipeline().parameters.item.TargetFormat)",
+										"type": "Expression"
+									}
+								}
+							}
+						]
+					}
+				],
+				"parameters": {
+					"item": {
+						"type": "object"
+					}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/AzureSqlDatabase_read')]",
+				"[concat(variables('factoryId'), '/datasets/SQLServer_Read')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/SQL_Full_to_ABS csv_gz')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Log SQL_Full",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "SQL_Full",
+								"dependencyConditions": [
+									"Completed"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 5,
+							"retryIntervalInSeconds": 120,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[CTL].[sp_updateTaskLog]",
+							"storedProcedureParameters": {
+								"BatchId": {
+									"value": {
+										"value": "@pipeline().parameters.item.BatchId",
+										"type": "Expression"
+									},
+									"type": "Int64"
+								},
+								"Output": {
+									"value": {
+										"value": "@if(empty(activity('SQL_Full').error), string(activity('SQL_Full').output), string(activity('SQL_Full').error))",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"FullBlobName": {
+									"value": {
+										"value": "@concat(pipeline().parameters.item.TargetName,pipeline().parameters.item.Path,pipeline().parameters.item.TargetName)",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"TaskId": {
+									"value": {
+										"value": "@pipeline().parameters.item.TaskId",
+										"type": "Expression"
+									},
+									"type": "Int64"
+								},
+								"RunId": {
+									"value": {
+										"value": "@pipeline().RunId",
+										"type": "Expression"
+									},
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "AzureSqlDatabase_Ctrldb",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "SQL_Full",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "SqlServerSource",
+								"sqlReaderQuery": {
+									"value": "@pipeline().parameters.item.Query",
+									"type": "Expression"
+								}
+							},
+							"sink": {
+								"type": "DelimitedTextSink",
+								"storeSettings": {
+									"type": "AzureBlobStorageWriteSettings"
+								},
+								"formatSettings": {
+									"type": "DelimitedTextWriteSettings",
+									"quoteAllText": true,
+									"fileExtension": ".txt"
+								}
+							},
+							"enableStaging": false
+						},
+						"inputs": [
+							{
+								"referenceName": "SQLServer_Read",
+								"type": "DatasetReference",
+								"parameters": {
+									"kvSecret": {
+										"value": "@pipeline().parameters.item.SourceConnection",
+										"type": "Expression"
+									}
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "AzureBlobStorage_Raw",
+								"type": "DatasetReference",
+								"parameters": {
+									"BlobPath": {
+										"value": "@split(pipeline().parameters.item.TargetLocation,'/')[1]",
+										"type": "Expression"
+									},
+									"BlobName": {
+										"value": "@concat(pipeline().parameters.item.TargetBlobName, pipeline().parameters.item.TargetFormat)",
+										"type": "Expression"
+									}
+								}
+							}
+						]
+					},
+					{
+						"name": "GetSchema Sql Server_Full",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "SqlServerSource",
+								"sqlReaderQuery": {
+									"value": "@pipeline().parameters.item.MetaDataQuery",
+									"type": "Expression"
+								}
+							},
+							"sink": {
+								"type": "DelimitedTextSink",
+								"storeSettings": {
+									"type": "AzureBlobStorageWriteSettings"
+								},
+								"formatSettings": {
+									"type": "DelimitedTextWriteSettings",
+									"quoteAllText": true,
+									"fileExtension": ".txt"
+								}
+							},
+							"enableStaging": false
+						},
+						"inputs": [
+							{
+								"referenceName": "SQLServer_Read",
+								"type": "DatasetReference",
+								"parameters": {
+									"kvSecret": {
+										"value": "@pipeline().parameters.item.SourceConnection",
+										"type": "Expression"
+									}
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "AzureBlobStorage_Raw",
+								"type": "DatasetReference",
+								"parameters": {
+									"BlobPath": {
+										"value": "@split(pipeline().parameters.item.TargetLocation,'/')[1]",
+										"type": "Expression"
+									},
+									"BlobName": {
+										"value": "@concat(pipeline().parameters.item.TargetBlobName, '_schema', pipeline().parameters.item.TargetFormat)",
+										"type": "Expression"
+									}
+								}
+							}
+						]
+					}
+				],
+				"parameters": {
+					"item": {
+						"type": "object"
+					}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/SQLServer_Read')]",
+				"[concat(variables('factoryId'), '/datasets/AzureBlobStorage_Raw')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/SQL_Full_to_ADLS csv_gz')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Log SQL_Full",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "SQL_Full",
+								"dependencyConditions": [
+									"Completed"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 5,
+							"retryIntervalInSeconds": 120,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[CTL].[sp_updateTaskLog]",
+							"storedProcedureParameters": {
+								"BatchId": {
+									"value": {
+										"value": "@pipeline().parameters.item.BatchId",
+										"type": "Expression"
+									},
+									"type": "Int64"
+								},
+								"Output": {
+									"value": {
+										"value": "@if(empty(activity('SQL_Full').error), string(activity('SQL_Full').output), string(activity('SQL_Full').error))",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"FullBlobName": {
+									"value": {
+										"value": "@concat(pipeline().parameters.item.TargetName,pipeline().parameters.item.Path,pipeline().parameters.item.TargetName)",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"TaskId": {
+									"value": {
+										"value": "@pipeline().parameters.item.TaskId",
+										"type": "Expression"
+									},
+									"type": "Int64"
+								},
+								"RunId": {
+									"value": {
+										"value": "@pipeline().RunId",
+										"type": "Expression"
+									},
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "AzureSqlDatabase_Ctrldb",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "SQL_Full",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "SqlServerSource",
+								"sqlReaderQuery": {
+									"value": "@pipeline().parameters.item.Query",
+									"type": "Expression"
+								}
+							},
+							"sink": {
+								"type": "DelimitedTextSink",
+								"storeSettings": {
+									"type": "AzureBlobFSWriteSettings"
+								},
+								"formatSettings": {
+									"type": "DelimitedTextWriteSettings",
+									"quoteAllText": true,
+									"fileExtension": ".txt"
+								}
+							},
+							"enableStaging": false
+						},
+						"inputs": [
+							{
+								"referenceName": "SQLServer_Read",
+								"type": "DatasetReference",
+								"parameters": {
+									"kvSecret": {
+										"value": "@pipeline().parameters.item.SourceConnection",
+										"type": "Expression"
+									}
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "ADLS_Raw",
+								"type": "DatasetReference",
+								"parameters": {
+									"BlobPath": {
+										"value": "@pipeline().parameters.item.TargetLocation",
+										"type": "Expression"
+									},
+									"BlobName": {
+										"value": "@concat(pipeline().parameters.item.TargetBlobName, pipeline().parameters.item.TargetFormat)",
+										"type": "Expression"
+									}
+								}
+							}
+						]
+					},
+					{
+						"name": "GetSchema Sql Server_Full_ADLS",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "SqlServerSource",
+								"sqlReaderQuery": {
+									"value": "@pipeline().parameters.item.MetaDataQuery",
+									"type": "Expression"
+								}
+							},
+							"sink": {
+								"type": "DelimitedTextSink",
+								"storeSettings": {
+									"type": "AzureBlobFSWriteSettings"
+								},
+								"formatSettings": {
+									"type": "DelimitedTextWriteSettings",
+									"quoteAllText": true,
+									"fileExtension": ".txt"
+								}
+							},
+							"enableStaging": false
+						},
+						"inputs": [
+							{
+								"referenceName": "SQLServer_Read",
+								"type": "DatasetReference",
+								"parameters": {
+									"kvSecret": {
+										"value": "@pipeline().parameters.item.SourceConnection",
+										"type": "Expression"
+									}
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "ADLS_Raw",
+								"type": "DatasetReference",
+								"parameters": {
+									"BlobPath": {
+										"value": "@pipeline().parameters.item.TargetLocation",
+										"type": "Expression"
+									},
+									"BlobName": {
+										"value": "@concat(pipeline().parameters.item.TargetBlobName, '_schema', pipeline().parameters.item.TargetFormat)",
+										"type": "Expression"
+									}
+								}
+							}
+						]
+					}
+				],
+				"parameters": {
+					"item": {
+						"type": "object"
+					}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/SQLServer_Read')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ProcessBatchTasks')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "GetTask",
+						"type": "Lookup",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 3,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"sqlReaderStoredProcedureName": "[[CTL].[sp_getTasksToProcess]",
+								"storedProcedureParameters": {
+									"BatchID": {
+										"type": "Int64",
+										"value": {
+											"value": "@pipeline().parameters.BatchId",
+											"type": "Expression"
+										}
+									},
+									"ExecTime": {
+										"type": "Datetime",
+										"value": {
+											"value": "@pipeline().parameters.ExecTime",
+											"type": "Expression"
+										}
+									}
+								}
+							},
+							"dataset": {
+								"referenceName": "AzureSqlDatabase_read",
+								"type": "DatasetReference",
+								"parameters": {
+									"kvSecret": "ADF-LS-AzureSql-ControlDB"
+								}
+							},
+							"firstRowOnly": false
+						}
+					},
+					{
+						"name": "ForEach1",
+						"type": "ForEach",
+						"dependsOn": [
+							{
+								"activity": "GetTask",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@activity('GetTask').output.value",
+								"type": "Expression"
+							},
+							"isSequential": false,
+							"batchCount": 50,
+							"activities": [
+								{
+									"name": "Switch1",
+									"type": "Switch",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"on": {
+											"value": "@item().TaskType",
+											"type": "Expression"
+										},
+										"cases": [
+											{
+												"value": "SQL Server_Full",
+												"activities": [
+													{
+														"name": "SQL_Full_to_ABS csv_gz",
+														"type": "ExecutePipeline",
+														"dependsOn": [],
+														"userProperties": [],
+														"typeProperties": {
+															"pipeline": {
+																"referenceName": "SQL_Full_to_ABS csv_gz",
+																"type": "PipelineReference"
+															},
+															"waitOnCompletion": true,
+															"parameters": {
+																"item": {
+																	"value": "@item()",
+																	"type": "Expression"
+																}
+															}
+														}
+													}
+												]
+											},
+											{
+												"value": "Databricks",
+												"activities": [
+													{
+														"name": "Databricks",
+														"type": "ExecutePipeline",
+														"dependsOn": [],
+														"userProperties": [],
+														"typeProperties": {
+															"pipeline": {
+																"referenceName": "Databricks",
+																"type": "PipelineReference"
+															},
+															"waitOnCompletion": true,
+															"parameters": {
+																"item": {
+																	"value": "@item()",
+																	"type": "Expression"
+																},
+																"execTime": {
+																	"value": "@pipeline().parameters.ExecTime",
+																	"type": "Expression"
+																}
+															}
+														}
+													}
+												]
+											},
+											{
+												"value": "SQL Server_Full_ADLS",
+												"activities": [
+													{
+														"name": "SQL_Full_to_ADLS csv_gz",
+														"type": "ExecutePipeline",
+														"dependsOn": [],
+														"userProperties": [],
+														"typeProperties": {
+															"pipeline": {
+																"referenceName": "SQL_Full_to_ADLS csv_gz",
+																"type": "PipelineReference"
+															},
+															"waitOnCompletion": true,
+															"parameters": {
+																"item": {
+																	"value": "@item()",
+																	"type": "Expression"
+																}
+															}
+														}
+													}
+												]
+											}
+										],
+										"defaultActivities": [
+											{
+												"name": "Default",
+												"type": "Wait",
+												"dependsOn": [],
+												"userProperties": [],
+												"typeProperties": {
+													"waitTimeInSeconds": 1
+												}
+											},
+											{
+												"name": "Log Oracle_Full",
+												"type": "SqlServerStoredProcedure",
+												"dependsOn": [
+													{
+														"activity": "Default",
+														"dependencyConditions": [
+															"Succeeded"
+														]
+													}
+												],
+												"policy": {
+													"timeout": "7.00:00:00",
+													"retry": 0,
+													"retryIntervalInSeconds": 30,
+													"secureOutput": false,
+													"secureInput": false
+												},
+												"userProperties": [],
+												"typeProperties": {
+													"storedProcedureName": "[[CTL].[sp_updateTaskLog]",
+													"storedProcedureParameters": {
+														"BatchId": {
+															"value": {
+																"value": "@item().BatchId",
+																"type": "Expression"
+															},
+															"type": "Int64"
+														},
+														"Output": {
+															"value": "{\"errorMessage\": \"Ran Default Pipeline\"}",
+															"type": "String"
+														},
+														"FullBlobName": {
+															"value": {
+																"value": "@concat(item().TargetName,item().Path,item().TargetName)",
+																"type": "Expression"
+															},
+															"type": "String"
+														},
+														"TaskId": {
+															"value": {
+																"value": "@item().TaskId",
+																"type": "Expression"
+															},
+															"type": "Int64"
+														},
+														"RunId": {
+															"value": {
+																"value": "@pipeline().RunId",
+																"type": "Expression"
+															},
+															"type": "String"
+														}
+													}
+												},
+												"linkedServiceName": {
+													"referenceName": "AzureSqlDatabase_Ctrldb",
+													"type": "LinkedServiceReference"
+												}
+											}
+										]
+									}
+								}
+							]
+						}
+					}
+				],
+				"parameters": {
+					"BatchId": {
+						"type": "int"
+					},
+					"ExecTime": {
+						"type": "string"
+					}
+				},
+				"variables": {
+					"FullBlobName": {
+						"type": "String"
+					}
+				},
+				"folder": {
+					"name": "Control_V2"
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/AzureSqlDatabase_read')]",
+				"[concat(variables('factoryId'), '/pipelines/SQL_Full_to_ABS csv_gz')]",
+				"[concat(variables('factoryId'), '/pipelines/Databricks')]",
+				"[concat(variables('factoryId'), '/pipelines/SQL_Full_to_ADLS csv_gz')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Main')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "GetProjects",
+						"type": "Lookup",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 5,
+							"retryIntervalInSeconds": 900,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"sqlReaderStoredProcedureName": "[[CTL].[sp_getProjects]"
+							},
+							"dataset": {
+								"referenceName": "AzureSqlDatabase_read",
+								"type": "DatasetReference",
+								"parameters": {
+									"kvSecret": "ADF-LS-AzureSql-ControlDB"
+								}
+							},
+							"firstRowOnly": false
+						}
+					},
+					{
+						"name": "UntilProjectEnd",
+						"type": "Until",
+						"dependsOn": [
+							{
+								"activity": "AddProjectTasksToQueue",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"expression": {
+								"value": "@equals(0,activity('Check Queue').output.firstRow.TaskCount)",
+								"type": "Expression"
+							},
+							"activities": [
+								{
+									"name": "Check Queue",
+									"type": "Lookup",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "7.00:00:00",
+										"retry": 5,
+										"retryIntervalInSeconds": 120,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "AzureSqlSource",
+											"sqlReaderStoredProcedureName": "[[CTL].[sp_checkBatchStatus]",
+											"storedProcedureParameters": {
+												"BatchId": {
+													"type": "Int64",
+													"value": {
+														"value": "@activity('AddProjectTasksToQueue').output.firstRow.BatchId",
+														"type": "Expression"
+													}
+												}
+											}
+										},
+										"dataset": {
+											"referenceName": "AzureSqlDatabase_read",
+											"type": "DatasetReference",
+											"parameters": {
+												"kvSecret": "ADF-LS-AzureSql-ControlDB"
+											}
+										}
+									}
+								},
+								{
+									"name": "ProcessProjects",
+									"type": "ExecutePipeline",
+									"dependsOn": [
+										{
+											"activity": "Check Queue",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "ProcessBatchTasks",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": false,
+										"parameters": {
+											"ExecTime": {
+												"value": "@activity('AddProjectTasksToQueue').output.firstRow.ExecTime",
+												"type": "Expression"
+											},
+											"BatchId": {
+												"value": "@activity('AddProjectTasksToQueue').output.firstRow.BatchId",
+												"type": "Expression"
+											}
+										}
+									}
+								},
+								{
+									"name": "Wait1",
+									"type": "Wait",
+									"dependsOn": [
+										{
+											"activity": "ProcessProjects",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"userProperties": [],
+									"typeProperties": {
+										"waitTimeInSeconds": 60
+									}
+								}
+							],
+							"timeout": "7.00:00:00"
+						}
+					},
+					{
+						"name": "Purge queue",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "UntilProjectEnd",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[CTL].[sp_PurgeQueue]",
+							"storedProcedureParameters": {
+								"BatchId": {
+									"value": {
+										"value": "@activity('AddProjectTasksToQueue').output.firstRow.BatchId",
+										"type": "Expression"
+									},
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "AzureSqlDatabase_Ctrldb",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "AddProjectTasksToQueue",
+						"type": "Lookup",
+						"dependsOn": [
+							{
+								"activity": "GetProjects",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"sqlReaderStoredProcedureName": "[[CTL].[sp_QueueProject]",
+								"storedProcedureParameters": {
+									"Items": {
+										"type": "String",
+										"value": {
+											"value": "@string(activity('GetProjects').output)",
+											"type": "Expression"
+										}
+									}
+								},
+								"queryTimeout": "02:00:00"
+							},
+							"dataset": {
+								"referenceName": "AzureSqlDatabase_read",
+								"type": "DatasetReference",
+								"parameters": {
+									"kvSecret": "ADF-LS-AzureSql-ControlDB"
+								}
+							}
+						}
+					}
+				],
+				"folder": {
+					"name": "Control_V2"
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/AzureSqlDatabase_read')]",
+				"[concat(variables('factoryId'), '/pipelines/ProcessBatchTasks')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ProcessBatch')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "UntilBatchEnds",
+						"type": "Until",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"expression": {
+								"value": "@equals(0,activity('Check Queue').output.firstRow.TaskCount)",
+								"type": "Expression"
+							},
+							"activities": [
+								{
+									"name": "Check Queue",
+									"type": "Lookup",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "7.00:00:00",
+										"retry": 5,
+										"retryIntervalInSeconds": 120,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "AzureSqlSource",
+											"sqlReaderStoredProcedureName": "[[CTL].[sp_checkBatchStatus]",
+											"storedProcedureParameters": {
+												"BatchId": {
+													"type": "Int64",
+													"value": {
+														"value": "@pipeline().parameters.BatchId",
+														"type": "Expression"
+													}
+												}
+											}
+										},
+										"dataset": {
+											"referenceName": "AzureSqlDatabase_read",
+											"type": "DatasetReference",
+											"parameters": {
+												"kvSecret": "ADF-LS-AzureSql-ControlDB2"
+											}
+										}
+									}
+								},
+								{
+									"name": "ProcessTask",
+									"type": "ExecutePipeline",
+									"dependsOn": [
+										{
+											"activity": "Check Queue",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "ProcessBatchTasks",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": false,
+										"parameters": {
+											"ExecTime": {
+												"value": "@pipeline().parameters.ExecTime",
+												"type": "Expression"
+											},
+											"BatchId": {
+												"value": "@pipeline().parameters.BatchId",
+												"type": "Expression"
+											}
+										}
+									}
+								},
+								{
+									"name": "Wait1",
+									"type": "Wait",
+									"dependsOn": [
+										{
+											"activity": "ProcessTask",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"userProperties": [],
+									"typeProperties": {
+										"waitTimeInSeconds": 30
+									}
+								}
+							],
+							"timeout": "7.00:00:00"
+						}
+					}
+				],
+				"parameters": {
+					"ExecTime": {
+						"type": "string"
+					},
+					"BatchId": {
+						"type": "int"
+					}
+				},
+				"folder": {
+					"name": "Control_V2"
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/AzureSqlDatabase_read')]",
+				"[concat(variables('factoryId'), '/pipelines/ProcessBatchTasks')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ProcessProject')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "UntilProjectEnd",
+						"type": "Until",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"expression": {
+								"value": "@equals(0,activity('Check Queue').output.firstRow.TaskCount)",
+								"type": "Expression"
+							},
+							"activities": [
+								{
+									"name": "Check Queue",
+									"type": "Lookup",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "7.00:00:00",
+										"retry": 5,
+										"retryIntervalInSeconds": 120,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "AzureSqlSource",
+											"sqlReaderStoredProcedureName": "[[CTL].[sp_checkProjectStatus]",
+											"storedProcedureParameters": {
+												"BatchId": {
+													"type": "Int64",
+													"value": {
+														"value": "@pipeline().parameters.BatchId",
+														"type": "Expression"
+													}
+												},
+												"ProjectId": {
+													"type": "Int32",
+													"value": {
+														"value": "@pipeline().parameters.ProjectId",
+														"type": "Expression"
+													}
+												}
+											}
+										},
+										"dataset": {
+											"referenceName": "AzureSqlDatabase_read",
+											"type": "DatasetReference",
+											"parameters": {
+												"kvSecret": "ADF-LS-AzureSql-ControlDB2"
+											}
+										}
+									}
+								},
+								{
+									"name": "ProcessTask",
+									"type": "ExecutePipeline",
+									"dependsOn": [
+										{
+											"activity": "Check Queue",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "ProcessBatchTasks",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": false,
+										"parameters": {
+											"ProjectId": {
+												"value": "@pipeline().parameters.ProjectId",
+												"type": "Expression"
+											},
+											"ExecTime": {
+												"value": "@pipeline().parameters.ExecTime",
+												"type": "Expression"
+											},
+											"BatchId": {
+												"value": "@pipeline().parameters.BatchId",
+												"type": "Expression"
+											}
+										}
+									}
+								},
+								{
+									"name": "Wait1",
+									"type": "Wait",
+									"dependsOn": [
+										{
+											"activity": "ProcessTask",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"userProperties": [],
+									"typeProperties": {
+										"waitTimeInSeconds": 30
+									}
+								}
+							],
+							"timeout": "7.00:00:00"
+						}
+					}
+				],
+				"parameters": {
+					"ProjectId": {
+						"type": "int"
+					},
+					"ExecTime": {
+						"type": "string"
+					},
+					"BatchId": {
+						"type": "int"
+					}
+				},
+				"folder": {
+					"name": "Control_V2"
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/AzureSqlDatabase_read')]",
+				"[concat(variables('factoryId'), '/pipelines/ProcessBatchTasks')]"
+			]
+		}
+	]
+}

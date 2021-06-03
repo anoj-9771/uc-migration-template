@@ -1,0 +1,47 @@
+  # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+#   ----------------------- Deployable Resources  -------------------------   #
+#   The following variables are for turning on or off azure resources for     #
+#   deployment. If a resource is set to false, it will not deploy, whereas,   #
+#   if it is set to true then it will deploy.                                 #
+  # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+
+variables: 
+  # Secret rotation
+  - name: secretrotation
+    value: false
+  # Used to set Log Analytics deployability
+  - name: loganalytics
+    value: false
+  # Used to set Log Blob Storage deployability
+  - name: logstorage
+    value: false
+  # Used to set Azure SQL Server deployability
+  - name: azuresqlserver
+    value: true
+  # Used to add Control DB to Azure SQL server 
+  - name: controldb
+    value: true
+  # Used to add EDW DB to Azure SQL server 
+  - name: edw
+    value: true
+  # Used to set Blob Storage deployability
+  - name: azureblobstorage
+    value: true
+  # Used to set Data Lake Storage deployability
+  - name: azuredatalakestorage
+    value: true
+  # Used to set Databricks Workspace deployability
+  - name: databricksvnet
+    value: true
+  # Used to set Databricks Workspace deployability
+  - name: databricksvnetsubnets
+    value: true
+  # Used to set Databricks Workspace deployability
+  - name: databricksvnetnsg
+    value: true
+  # Databricks with v-Net integration
+  - name: databricksnovnet
+    value: false
+  # Used to set Log Analytics deployability
+  - name: datafactory
+    value: true

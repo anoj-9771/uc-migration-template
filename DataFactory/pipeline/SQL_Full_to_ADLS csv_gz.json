@@ -1,0 +1,201 @@
+{
+	"name": "SQL_Full_to_ADLS csv_gz",
+	"properties": {
+		"activities": [
+			{
+				"name": "Log SQL_Full",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "SQL_Full",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 5,
+					"retryIntervalInSeconds": 120,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[CTL].[sp_updateTaskLog]",
+					"storedProcedureParameters": {
+						"BatchId": {
+							"value": {
+								"value": "@pipeline().parameters.item.BatchId",
+								"type": "Expression"
+							},
+							"type": "Int64"
+						},
+						"Output": {
+							"value": {
+								"value": "@if(empty(activity('SQL_Full').error), string(activity('SQL_Full').output), string(activity('SQL_Full').error))",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"FullBlobName": {
+							"value": {
+								"value": "@concat(pipeline().parameters.item.TargetName,pipeline().parameters.item.Path,pipeline().parameters.item.TargetName)",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"TaskId": {
+							"value": {
+								"value": "@pipeline().parameters.item.TaskId",
+								"type": "Expression"
+							},
+							"type": "Int64"
+						},
+						"RunId": {
+							"value": {
+								"value": "@pipeline().RunId",
+								"type": "Expression"
+							},
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "AzureSqlDatabase_Ctrldb",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "SQL_Full",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": {
+							"value": "@pipeline().parameters.item.Query",
+							"type": "Expression"
+						}
+					},
+					"sink": {
+						"type": "DelimitedTextSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "DelimitedTextWriteSettings",
+							"quoteAllText": true,
+							"fileExtension": ".txt"
+						}
+					},
+					"enableStaging": false
+				},
+				"inputs": [
+					{
+						"referenceName": "SQLServer_Read",
+						"type": "DatasetReference",
+						"parameters": {
+							"kvSecret": {
+								"value": "@pipeline().parameters.item.SourceConnection",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ADLS_Raw",
+						"type": "DatasetReference",
+						"parameters": {
+							"BlobPath": {
+								"value": "@pipeline().parameters.item.TargetLocation",
+								"type": "Expression"
+							},
+							"BlobName": {
+								"value": "@concat(pipeline().parameters.item.TargetBlobName, pipeline().parameters.item.TargetFormat)",
+								"type": "Expression"
+							}
+						}
+					}
+				]
+			},
+			{
+				"name": "GetSchema Sql Server_Full_ADLS",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": {
+							"value": "@pipeline().parameters.item.MetaDataQuery",
+							"type": "Expression"
+						}
+					},
+					"sink": {
+						"type": "DelimitedTextSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "DelimitedTextWriteSettings",
+							"quoteAllText": true,
+							"fileExtension": ".txt"
+						}
+					},
+					"enableStaging": false
+				},
+				"inputs": [
+					{
+						"referenceName": "SQLServer_Read",
+						"type": "DatasetReference",
+						"parameters": {
+							"kvSecret": {
+								"value": "@pipeline().parameters.item.SourceConnection",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ADLS_Raw",
+						"type": "DatasetReference",
+						"parameters": {
+							"BlobPath": {
+								"value": "@pipeline().parameters.item.TargetLocation",
+								"type": "Expression"
+							},
+							"BlobName": {
+								"value": "@concat(pipeline().parameters.item.TargetBlobName, '_schema', pipeline().parameters.item.TargetFormat)",
+								"type": "Expression"
+							}
+						}
+					}
+				]
+			}
+		],
+		"parameters": {
+			"item": {
+				"type": "object"
+			}
+		},
+		"annotations": []
+	}
+}

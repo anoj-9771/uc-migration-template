@@ -1,0 +1,116 @@
+{
+	"name": "ProcessBatch",
+	"properties": {
+		"activities": [
+			{
+				"name": "UntilBatchEnds",
+				"type": "Until",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@equals(0,activity('Check Queue').output.firstRow.TaskCount)",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "Check Queue",
+							"type": "Lookup",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 5,
+								"retryIntervalInSeconds": 120,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "AzureSqlSource",
+									"sqlReaderStoredProcedureName": "[CTL].[sp_checkBatchStatus]",
+									"storedProcedureParameters": {
+										"BatchId": {
+											"type": "Int64",
+											"value": {
+												"value": "@pipeline().parameters.BatchId",
+												"type": "Expression"
+											}
+										}
+									}
+								},
+								"dataset": {
+									"referenceName": "AzureSqlDatabase_read",
+									"type": "DatasetReference",
+									"parameters": {
+										"kvSecret": "ADF-LS-AzureSql-ControlDB2"
+									}
+								}
+							}
+						},
+						{
+							"name": "ProcessTask",
+							"type": "ExecutePipeline",
+							"dependsOn": [
+								{
+									"activity": "Check Queue",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "ProcessBatchTasks",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": false,
+								"parameters": {
+									"ExecTime": {
+										"value": "@pipeline().parameters.ExecTime",
+										"type": "Expression"
+									},
+									"BatchId": {
+										"value": "@pipeline().parameters.BatchId",
+										"type": "Expression"
+									}
+								}
+							}
+						},
+						{
+							"name": "Wait1",
+							"type": "Wait",
+							"dependsOn": [
+								{
+									"activity": "ProcessTask",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"waitTimeInSeconds": 30
+							}
+						}
+					],
+					"timeout": "7.00:00:00"
+				}
+			}
+		],
+		"parameters": {
+			"ExecTime": {
+				"type": "string"
+			},
+			"BatchId": {
+				"type": "int"
+			}
+		},
+		"folder": {
+			"name": "Control_V2"
+		},
+		"annotations": []
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

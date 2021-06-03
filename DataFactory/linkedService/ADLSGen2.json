@@ -1,0 +1,10 @@
+{
+	"name": "ADLSGen2",
+	"properties": {
+		"annotations": [],
+		"type": "AzureBlobFS",
+		"typeProperties": {
+			"url": "https://insightetlframeworkadls.dfs.core.windows.net/"
+		}
+	}
+}

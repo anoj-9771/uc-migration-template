@@ -1,0 +1,55 @@
+parameters:
+- name: dependencies
+  type: object
+  default: ['build']
+- name: stage_name
+  type: string
+- name: variable_template_name
+  type: string
+- name: run_condition
+  type: string
+
+stages:
+# ---------------------------------------------------------------------------
+# Release to environment
+# Only execute if PR into Develop
+- stage: ${{ parameters.stage_name }}
+  dependsOn: ${{ parameters.dependencies }}
+  condition: ${{ parameters.run_condition }}
+  variables:
+  - template: ../Variables/${{ parameters.variable_template_name }}.yml
+  - name: kv_base_url
+    value: 'https://${{ Variables.azurekeyvaultname }}.vault.azure.net/'
+
+  jobs:
+  - job:
+    steps:
+    - download: current
+      artifact: adf_arm_templates
+
+    - task: AzureResourceGroupDeployment@2
+      inputs:
+        azureSubscription: ${{ variables.azdoresourceconnection }}
+        action: 'Create Or Update Resource Group'
+        resourceGroupName: ${{ variables.resourcegroupname }}
+        location: $(LOCATION)
+        templateLocation: 'Linked artifact'
+        csmFile: '$(Pipeline.Workspace)/adf_arm_templates/ARMTemplateForFactory.json'
+        overrideParameters: '-factoryName $(DATAFACTORYNAME) -AzureKeyVault_properties_typeProperties_baseUrl ${{ variables.kv_base_url }}'
+        deploymentMode: 'Incremental'
+      displayName: 'Deploy Datafactory with Access Policies'
+
+    - task: AzureCLI@2
+      displayName: 'Add Data Factory SP to AKV'
+      name: add_adf_sp_to_akv
+      inputs:
+        azureSubscription: ${{ variables.azdoresourceconnection }}
+        scriptType: bash
+        scriptLocation: inlineScript
+        inlineScript: |
+          # adf_sp_oid=$(az ad sp list --display-name $(DATAFACTORYNAME) --output tsv --query "[].{id:objectId}") 
+          adf_sp_oid=$(az resource show -g ${{ variables.resourcegroupname }} --resource-type Microsoft.DataFactory/factories -n $(DATAFACTORYNAME) --query identity.principalId --output tsv)                  
+          echo "$adf_sp_oid"
+          az keyvault set-policy --name "$(AZUREKEYVAULTNAME)" --secret-permissions list get --object-id "$adf_sp_oid" --query "{Status:properties.provisioningState}" --output table
+          
+            

@@ -1,0 +1,35 @@
+{
+	"name": "ADLS_Stage",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ADLSGen2",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"BlobPath": {
+				"type": "string"
+			},
+			"BlobName": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "Parquet",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": {
+					"value": "@dataset().BlobName",
+					"type": "Expression"
+				},
+				"folderPath": {
+					"value": "@dataset().BlobPath",
+					"type": "Expression"
+				},
+				"fileSystem": "staged"
+			},
+			"compressionCodec": "snappy"
+		},
+		"schema": []
+	}
+}
