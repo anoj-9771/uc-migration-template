@@ -38,7 +38,7 @@ variables:
     value: false
   # Used to set Databricks Workspace deployability - Deploy NSG
   - name: databricksvnetnsg
-    value: false
+    value: true
   # Used to set Databricks Workspace deployability - No vnet integration
   - name: databricksnovnet
     value: false
