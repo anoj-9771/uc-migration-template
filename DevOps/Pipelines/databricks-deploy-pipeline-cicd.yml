@@ -1,0 +1,45 @@
+name: $(Build.BuildId).$(date:yyyyMMdd)
+
+pr:
+  branches:
+    include:
+    - master
+    - develop
+  paths:
+    include:
+    - Databricks/notebooks/*
+
+trigger:
+  branches:
+    include:
+    - master
+    - develop
+  paths:
+    include:
+    - Databricks/notebooks/*
+
+pool:
+  vmImage: ubuntu-latest
+
+stages:
+# ---------------------------------------------------------------------------
+# Build artifacts
+- stage: 'build'
+  jobs:
+  # Use this section to pull in or out build jobs
+  - template: Templates/job-copy-databricks_notebooks.yml
+# ---------------------------------------------------------------------------
+# Release to Non-Production
+- template: Templates/stage-databricks-integration.yml
+  parameters:
+    stage_name: 'non_prod'
+    variable_template_name: npe-variables
+    run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/develop'))
+
+# ---------------------------------------------------------------------------
+# Release to Production
+- template: Templates/stage-databricks-integration.yml
+  parameters:
+    stage_name: 'prod'
+    variable_template_name: prd-variables
+    run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))

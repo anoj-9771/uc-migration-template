@@ -1,0 +1,313 @@
+parameters:
+- name: service_connection # name of the parameter; required
+  type: string # data type of the parameter; required
+- name: resource_group
+  type: string
+- name: database_name 
+  type: string
+- name: database_kind
+  type: string
+- name: database_sku
+  type: string
+- name: database_properties
+  type: string
+- name: log_analytics
+  type: boolean
+- name: log_storage
+  type: boolean
+
+steps:
+  - bash: |
+      set -e
+
+      # System info for debugging this pipeline if needed
+      echo -e "Linux name:"
+      uname -a
+      echo
+      echo -e "Working Directory:"
+      echo "$(Build.Repository.LocalPath)"
+      echo
+      echo -e "List of files available:\n"
+      ls -laR $(Build.Repository.LocalPath)
+      echo
+      echo -e "Pipeline workspace available:\n"
+      ls -laR $(Pipeline.Workspace)
+      echo -e "Environment variables:"
+      env | sort
+      echo
+    displayName: 'Agent info'
+
+  - task: AzureResourceGroupDeployment@2
+    inputs:
+      azureSubscription: ${{ parameters.service_connection }}
+      action: 'Create Or Update Resource Group'
+      resourceGroupName: ${{ parameters.resource_group }}
+      location: $(LOCATION)
+      templateLocation: 'Linked artifact'
+      csmFile: '$(Pipeline.Workspace)/arm_templates/arm-sql-db.json'
+      overrideParameters: |
+        -location $(LOCATION) -databaseName ${{ parameters.database_name }} -databaseKind ${{ parameters.database_kind }} -databaseSku ${{ parameters.database_sku }} -databaseProperties ${{ parameters.database_properties }}
+      deploymentMode: 'Incremental'
+    displayName: 'Deploy Azure SQL - ${{ parameters.database_name }}'
+
+# Create or update diagnostic settings to send to Log Analytics
+  - ${{ if eq(parameters['log_analytics'], true) }}:
+    - template: task-add-log-analytics-diagnostics.yml
+      parameters:
+        service_connection: ${{ parameters.service_connection }}
+        resource_group: ${{ parameters.resource_group }}
+        src_resource_name: ${{ parameters.database_name }}
+        log_analytics_name: $(LOGANALYTICSWORKSPACENAME)
+        logs: |
+          [
+            {
+              "category": "SQLInsights",
+              "enabled": false,
+              "retentionPolicy": {
+                "days": 0,
+                "enabled": false
+              }
+            },
+            {
+              "category": "AutomaticTuning",
+              "enabled": true,
+              "retentionPolicy": {
+                "days": 30,
+                "enabled": true
+              }
+            },
+            {
+              "category": "QueryStoreRuntimeStatistics",
+              "enabled": true,
+              "retentionPolicy": {
+                "days": 30,
+                "enabled": true
+              }
+            },
+            {
+              "category": "QueryStoreWaitStatistics",
+              "enabled": true,
+              "retentionPolicy": {
+                "days": 30,
+                "enabled": true
+              }
+            },
+            {
+              "category": "Errors",
+              "enabled": false,
+              "retentionPolicy": {
+                "days": 0,
+                "enabled": false
+              }
+            },
+            {
+              "category": "DatabaseWaitStatistics",
+              "enabled": false,
+              "retentionPolicy": {
+                "days": 0,
+                "enabled": false
+              }
+            },
+            {
+              "category": "Timeouts",
+              "enabled": false,
+              "retentionPolicy": {
+                "days": 0,
+                "enabled": false
+              }
+            },
+            {
+              "category": "Blocks",
+              "enabled": false,
+              "retentionPolicy": {
+                "days": 0,
+                "enabled": false
+              }
+            },
+            {
+              "category": "Deadlocks",
+              "enabled": false,
+              "retentionPolicy": {
+                "days": 0,
+                "enabled": false
+              }
+            },
+            {
+              "category": "DevOpsOperationsAudit",
+              "enabled": false,
+              "retentionPolicy": {
+                "days": 0,
+                "enabled": false
+              }
+            },
+            {
+              "category": "SQLSecurityAuditEvents",
+              "enabled": false,
+              "retentionPolicy": {
+                "days": 0,
+                "enabled": false
+              }
+            }
+          ]
+        metrics: |
+          [
+            {
+              "category": "Basic",
+              "enabled": true,
+              "retentionPolicy": {
+                "days": 30,
+                "enabled": true
+              },
+              "timeGrain": null
+            },
+            {
+              "category": "InstanceAndAppAdvanced",
+              "enabled": false,
+              "retentionPolicy": {
+                "days": 0,
+                "enabled": false
+              },
+              "timeGrain": null
+            },
+            {
+              "category": "WorkloadManagement",
+              "enabled": false,
+              "retentionPolicy": {
+                "days": 0,
+                "enabled": false
+              },
+              "timeGrain": null
+            }
+          ]          
+
+# Create or update diagnostic settings to archive to a storage account
+  - ${{ if eq(parameters['log_storage'], true) }}:
+    - template: task-add-log-storage-diagnostics.yml
+      parameters:
+        service_connection: ${{ parameters.service_connection }}
+        resource_group: ${{ parameters.resource_group }}
+        src_resource_name: ${{ parameters.database_name }}
+        log_storage_name: $(LOGSTORAGEACCOUNTNAME)
+        logs: |
+          [
+            {
+              "category": "SQLInsights",
+              "enabled": false,
+              "retentionPolicy": {
+                "days": 0,
+                "enabled": false
+              }
+            },
+            {
+              "category": "AutomaticTuning",
+              "enabled": true,
+              "retentionPolicy": {
+                "days": 30,
+                "enabled": true
+              }
+            },
+            {
+              "category": "QueryStoreRuntimeStatistics",
+              "enabled": true,
+              "retentionPolicy": {
+                "days": 30,
+                "enabled": true
+              }
+            },
+            {
+              "category": "QueryStoreWaitStatistics",
+              "enabled": true,
+              "retentionPolicy": {
+                "days": 30,
+                "enabled": true
+              }
+            },
+            {
+              "category": "Errors",
+              "enabled": false,
+              "retentionPolicy": {
+                "days": 0,
+                "enabled": false
+              }
+            },
+            {
+              "category": "DatabaseWaitStatistics",
+              "enabled": false,
+              "retentionPolicy": {
+                "days": 0,
+                "enabled": false
+              }
+            },
+            {
+              "category": "Timeouts",
+              "enabled": false,
+              "retentionPolicy": {
+                "days": 0,
+                "enabled": false
+              }
+            },
+            {
+              "category": "Blocks",
+              "enabled": false,
+              "retentionPolicy": {
+                "days": 0,
+                "enabled": false
+              }
+            },
+            {
+              "category": "Deadlocks",
+              "enabled": false,
+              "retentionPolicy": {
+                "days": 0,
+                "enabled": false
+              }
+            },
+            {
+              "category": "DevOpsOperationsAudit",
+              "enabled": false,
+              "retentionPolicy": {
+                "days": 0,
+                "enabled": false
+              }
+            },
+            {
+              "category": "SQLSecurityAuditEvents",
+              "enabled": false,
+              "retentionPolicy": {
+                "days": 0,
+                "enabled": false
+              }
+            }
+          ]
+        metrics: |
+          [
+            {
+              "category": "Basic",
+              "enabled": true,
+              "retentionPolicy": {
+                "days": 30,
+                "enabled": true
+              },
+              "timeGrain": null
+            },
+            {
+              "category": "InstanceAndAppAdvanced",
+              "enabled": false,
+              "retentionPolicy": {
+                "days": 0,
+                "enabled": false
+              },
+              "timeGrain": null
+            },
+            {
+              "category": "WorkloadManagement",
+              "enabled": false,
+              "retentionPolicy": {
+                "days": 0,
+                "enabled": false
+              },
+              "timeGrain": null
+            }
+          ]
+
+# Create or update diagnostic settings to stream to even hub **This has yet to be built

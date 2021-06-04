@@ -1,0 +1,299 @@
+parameters:
+- name: AzDoServiceConnection # name of the parameter; required
+  type: string # data type of the parameter; required
+- name: resource_group
+  type: string
+- name: vnet_resource_group
+  type: string
+- name: databricksclustername
+  type: string
+- name: databricks_driver_node_type_id
+  type: string
+- name: databricks_node_type_id
+  type: string
+- name: databricks_spark_version
+  type: string
+- name: databricks_workers
+  type: number
+- name: databricks_autotermination
+  type: number
+- name: log_analytics
+  type: boolean
+- name: log_storage
+  type: boolean
+
+steps:
+  # Create or update NSG
+  - task: AzureResourceGroupDeployment@2
+    condition: eq(variables['databricksvnetnsg'], true)
+    inputs:
+      azureSubscription: ${{ parameters.AzDoServiceConnection }}
+      action: 'Create Or Update Resource Group'
+      resourceGroupName: ${{ parameters.resource_group }}
+      location: $(LOCATION)
+      templateLocation: 'Linked artifact'
+      csmFile: '$(Pipeline.Workspace)/arm_templates/arm-databricks-nsg.json'
+      overrideParameters: '-location $(LOCATION) -nsgName $(NSGNAME)'
+      deploymentMode: 'Incremental'
+      deploymentOutputs: 'nsgOutput'
+    displayName: 'Create or update NSG'
+  # Extract ARM NSG ID output
+  - powershell: |
+      Write-Host '$(nsgOutput)'
+      $json = '$(nsgOutput)' | convertfrom-json
+      #Parse nsgId
+      $nsgId = $json.nsgOutput.value
+      Write-host "##vso[task.setvariable variable=nsgId;]$nsgId"
+    condition: and(eq(variables['databricksvnetnsg'], true), eq(variables['nsgid'], ''))
+    name: getNsgId
+    displayName: 'Extract NSG ID from ARM outputs'
+
+  # Create or update Vnet Subnets
+  - task: AzureResourceGroupDeployment@2
+    condition: eq(variables['databricksvnetsubnets'], true)
+    inputs:
+      azureSubscription: ${{ parameters.AzDoServiceConnection }}
+      action: 'Create Or Update Resource Group'
+      resourceGroupName: ${{ parameters.vnet_resource_group }}
+      location: $(LOCATION)
+      templateLocation: 'Linked artifact'
+      csmFile: '$(Pipeline.Workspace)/arm_templates/arm-databricks-vnet.json'
+      overrideParameters: '-location $(LOCAITON) -vnetName $(VNETNAME) -privateSubnetName $(CUSTOMPRIVATESUBNETNAME) -publicSubnetName $(CUSTOMPUBLICSUBNETNAME) -nsgId $(NSGID) -privateSubnetCidr $(PRIVATESUBNETCIDR) -publicSubnetCidr $(PUBLICSUBNETCIDR)'
+      deploymentMode: 'Incremental'
+      deploymentOutputs: 'vnetOutput'
+    displayName: 'Create or update Sub Nets'
+  # Extract ARM Vnet ID output
+  - powershell: | 
+      Write-Host '$(vnetOutput)'
+      $json = '$(vnetOutput)' | convertfrom-json
+      #Parse vnetId
+      $vnetId= $json.vnetOutput.value
+      Write-host "##vso[task.setvariable variable=vnetId;]$vnetId"
+    condition: and(eq(variables['databricksvnetsubnets'], true), eq(variables['vnetid'], ''))
+    name: getVnetId
+    displayName: 'Extract Vnet ID from ARM outputs'
+
+  # Create Databricks Workspace
+  - task: AzureResourceGroupDeployment@2
+    inputs:
+      azureSubscription: ${{ parameters.AzDoServiceConnection }}
+      action: 'Create Or Update Resource Group'
+      resourceGroupName: ${{ parameters.resource_group }}
+      location: $(LOCATION)
+      templateLocation: 'Linked artifact'
+      csmFile: '$(Pipeline.Workspace)/arm_templates/arm-databricks-vnet-injection.json'
+      overrideParameters: '-workspaceName $(DATABRICKSWORKSPACENAME) -pricingTier $(DATABRICKSPRICINGTIER) -customVirtualNetworkId $(VNETID) -customPublicSubnetName $(CUSTOMPUBLICSUBNETNAME) -customPrivateSubnetName $(CUSTOMPRIVATESUBNETNAME) -location $(LOCATION)'
+      deploymentMode: 'Incremental'
+      deploymentOutputs: 'databricksOutput'
+    displayName: 'Deploy Databricks Workspace'
+  # Extract ARM output
+  - powershell: |
+      Write-Host '$(databricksOutput)'
+      $json = '$(databricksOutput)' | convertfrom-json
+      $workspaceNameValue = $json.WorkspaceName.value
+      Write-Host "##vso[task.setvariable variable=databricksWorkspaceName;isOutput=true]$workspaceNameValue"
+    name: getWorkspaceName
+    displayName: 'Extract ARM outputs'
+  # Create and add Databricks PAT to Azure Key Vault
+  - template: task-add-pat-to-akv.yml
+    parameters:
+      service_connection: ${{ parameters.AzDoServiceConnection }}
+      resource_group: ${{ parameters.resource_group }}
+      databricks_workspace_name: $(DATABRICKSWORKSPACENAME)
+  # Create Databricks Cluster 
+  - template: task-add-databricks-cluster.yml
+    parameters:
+      service_connection: ${{ parameters.AzDoServiceConnection }}
+      resource_group: ${{ parameters.resource_group }}
+      databricks_cluster_name: ${{ parameters.databricksclustername }}
+      databricks_driver_node_type_id : ${{ parameters.databricks_driver_node_type_id }}
+      databricks_node_type_id : ${{ parameters.databricks_node_type_id }}
+      databricks_spark_version : ${{ parameters.databricks_spark_version }}
+      databricks_workers : ${{ parameters.databricks_workers }}
+      databricks_autotermination : ${{ parameters.databricks_autotermination }}
+  
+# Create or update diagnostic settings to send to Log Analytics
+  - ${{ if eq(parameters['log_analytics'], true) }}:
+    - template: task-add-log-analytics-diagnostics.yml
+      parameters:
+        service_connection: ${{ parameters.AzDoServiceConnection }}
+        resource_group: ${{ parameters.resource_group }}
+        src_resource_name: $(DATABRICKSWORKSPACENAME)
+        log_analytics_name: $(LOGANALYTICSWORKSPACENAME)
+        logs: |
+          [
+            {
+              "category": "dbfs",
+              "enabled": true,
+              "retentionPolicy": {
+                "days": 30,
+                "enabled": true
+              }
+            },
+            {
+              "category": "clusters",
+              "enabled": false,
+              "retentionPolicy": {
+                "days": 0,
+                "enabled": false
+              }
+            },
+            {
+              "category": "accounts",
+              "enabled": true,
+              "retentionPolicy": {
+                "days": 30,
+                "enabled": true
+              }
+            },
+            {
+              "category": "jobs",
+              "enabled": true,
+              "retentionPolicy": {
+                "days": 30,
+                "enabled": true
+              }
+            },
+            {
+              "category": "notebook",
+              "enabled": true,
+              "retentionPolicy": {
+                "days": 30,
+                "enabled": true
+              }
+            },
+            {
+              "category": "ssh",
+              "enabled": false,
+              "retentionPolicy": {
+                "days": 0,
+                "enabled": false
+              }
+            },
+            {
+              "category": "workspace",
+              "enabled": true,
+              "retentionPolicy": {
+                "days": 30,
+                "enabled": true
+              }
+            },
+            {
+              "category": "secrets",
+              "enabled": true,
+              "retentionPolicy": {
+                "days": 30,
+                "enabled": true
+              }
+            },
+            {
+              "category": "sqlPermissions",
+              "enabled": false,
+              "retentionPolicy": {
+                "days": 0,
+                "enabled": false
+              }
+            },
+            {
+              "category": "instancePools",
+              "enabled": true,
+              "retentionPolicy": {
+                "days": 30,
+                "enabled": true
+              }
+            }
+          ]
+
+# Create or update diagnostic settings to archive to a storage account
+  - ${{ if eq(parameters['log_storage'], true) }}:
+    - template: task-add-log-storage-diagnostics.yml
+      parameters:
+        service_connection: ${{ parameters.AzDoServiceConnection }}
+        resource_group: ${{ parameters.resource_group }}
+        src_resource_name: $(DATABRICKSWORKSPACENAME)
+        log_storage_name: $(LOGSTORAGEACCOUNTNAME)
+        logs: |
+          [
+            {
+              "category": "dbfs",
+              "enabled": true,
+              "retentionPolicy": {
+                "days": 30,
+                "enabled": true
+              }
+            },
+            {
+              "category": "clusters",
+              "enabled": false,
+              "retentionPolicy": {
+                "days": 0,
+                "enabled": false
+              }
+            },
+            {
+              "category": "accounts",
+              "enabled": true,
+              "retentionPolicy": {
+                "days": 30,
+                "enabled": true
+              }
+            },
+            {
+              "category": "jobs",
+              "enabled": true,
+              "retentionPolicy": {
+                "days": 30,
+                "enabled": true
+              }
+            },
+            {
+              "category": "notebook",
+              "enabled": true,
+              "retentionPolicy": {
+                "days": 30,
+                "enabled": true
+              }
+            },
+            {
+              "category": "ssh",
+              "enabled": false,
+              "retentionPolicy": {
+                "days": 0,
+                "enabled": false
+              }
+            },
+            {
+              "category": "workspace",
+              "enabled": true,
+              "retentionPolicy": {
+                "days": 30,
+                "enabled": true
+              }
+            },
+            {
+              "category": "secrets",
+              "enabled": true,
+              "retentionPolicy": {
+                "days": 30,
+                "enabled": true
+              }
+            },
+            {
+              "category": "sqlPermissions",
+              "enabled": false,
+              "retentionPolicy": {
+                "days": 0,
+                "enabled": false
+              }
+            },
+            {
+              "category": "instancePools",
+              "enabled": true,
+              "retentionPolicy": {
+                "days": 30,
+                "enabled": true
+              }
+            }
+          ]
+
+# Create or update diagnostic settings to stream to even hub **This has yet to be built.

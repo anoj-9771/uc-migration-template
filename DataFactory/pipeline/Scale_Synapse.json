@@ -1,0 +1,55 @@
+{
+	"name": "Scale_Synapse",
+	"properties": {
+		"activities": [
+			{
+				"name": "Scale",
+				"type": "WebActivity",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"url": {
+						"value": "@concat(pipeline().parameters.baseURL,'/providers/Microsoft.Sql/servers/',pipeline().parameters.serverName,'/databases/BI_Reload?api-version=2014-04-01-preview')",
+						"type": "Expression"
+					},
+					"method": "PATCH",
+					"headers": {
+						"Content-Type": "application/json"
+					},
+					"body": {
+						"value": "@concat('{\"properties\":{\"requestedServiceObjectiveName\":\"',pipeline().parameters.size,'\"}}')",
+						"type": "Expression"
+					},
+					"authentication": {
+						"type": "MSI",
+						"resource": "https://management.azure.com/"
+					}
+				}
+			}
+		],
+		"parameters": {
+			"size": {
+				"type": "string",
+				"defaultValue": "DW100c"
+			},
+			"serverName": {
+				"type": "string",
+				"defaultValue": "emhs-syd-npe-asql-ddidatalake"
+			},
+			"baseURL": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "Synapse_Management"
+		},
+		"annotations": []
+	}
+}

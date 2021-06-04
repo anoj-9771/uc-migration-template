@@ -1,0 +1,86 @@
+name: $(Build.BuildId).$(date:yyyyMMdd)
+
+pr:
+  branches:
+    include:
+    - master
+    - develop
+
+trigger: none
+  # branches:
+  #   exclude:
+  #   - '*' 
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+stages:
+- stage: 'build'
+  jobs:
+  - template: Templates/job-copy-arm.yml
+
+- stage: deploy_to_npe
+  dependsOn: 'build'
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/develop'))
+  variables:
+  - template: Variables/npe-variables.yml
+  jobs:
+  - job: 'deploy_to_npe'
+    steps:
+    - download: current
+      artifact: arm_templates
+    - task: AzureResourceGroupDeployment@2
+      inputs:
+        # azureSubscription cannot be a stage scoped variable
+        azureSubscription: ${{ variables.azdoresourceconnection }}
+        action: 'Create Or Update Resource Group'
+        resourceGroupName: ${{ variables.resourcegroupname }}
+        location: ${{ variables.location }}
+        templateLocation: 'Linked artifact'
+        csmFile: '$(Pipeline.Workspace)/arm_templates/arm-initial-keyvault.json'
+        overrideParameters: '-location ${{ variables.location }} -keyVaultName ${{ variables.azurekeyvaultname }}'
+        deploymentMode: 'Incremental'
+      displayName: 'Deploy AKV to non prod'
+
+    - task: AzureCLI@2
+      displayName: 'Add sp to ACL policy'
+      name: add_sp_to_acl_policy
+      inputs:
+        azureSubscription: ${{ variables.azdoresourceconnection }}
+        scriptType: bash
+        scriptLocation: inlineScript
+        inlineScript: |
+          az keyvault set-policy --name "${{ variables.azurekeyvaultname }}" --secret-permissions set delete list get --object-id "${{ variables.spobjectid }}"
+
+- stage: deploy_to_prd
+  dependsOn: 'build'
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
+  variables:
+  - template: Variables/prd-variables.yml
+  jobs:
+  - job: 'deploy_to_prd'
+    steps:
+    - download: current
+      artifact: arm_templates
+    - task: AzureResourceGroupDeployment@2
+      inputs:
+        # azureSubscription cannot be a stage scoped variable
+        azureSubscription: ${{ variables.azdoresourceconnection }}
+        action: 'Create Or Update Resource Group'
+        resourceGroupName: ${{ variables.resourcegroupname }}
+        location: ${{ variables.location }}
+        templateLocation: 'Linked artifact'
+        csmFile: '$(Pipeline.Workspace)/arm_templates/arm-initial-keyvault.json'
+        overrideParameters: '-location ${{ variables.location }} -keyVaultName ${{ variables.azurekeyvaultname }}'
+        deploymentMode: 'Incremental'
+      displayName: 'Deploy AKV to prod'
+
+    - task: AzureCLI@2
+      displayName: 'Add sp to ACL policy'
+      name: add_sp_to_acl_policy
+      inputs:
+        azureSubscription: ${{ variables.azdoresourceconnection }}
+        scriptType: bash
+        scriptLocation: inlineScript
+        inlineScript: |
+          az keyvault set-policy --name "${{ variables.azurekeyvaultname }}" --secret-permissions set delete list get --object-id "${{ variables.spobjectid }}"

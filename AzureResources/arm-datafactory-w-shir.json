@@ -1,0 +1,121 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "dataFactoryName": {
+            "type": "string"
+        },
+        "dataFactorySHIRName":{
+            "type": "string"
+        },
+        "location":{
+            "type": "string"
+        },
+        "isRepoEnabled":{
+            "type": "bool",
+            "defaultValue": false,
+            "metadata": {"description": "Specifies whether the Git Integration is required. Usually required only in Dev environment"}
+        },
+        "repoType":{
+            "type":"string",
+            "defaultValue": "FactoryVSTSConfiguration",
+            "allowedValues": ["FactoryVSTSConfiguration"],
+            "metadata": {"description": "Azure DevOps Repo Type"}
+        },
+        "repoAccountName":{
+            "type":"string",
+            "defaultValue": "<Replace with Azure DevOps Account Name>",
+            "metadata": {"description": "Azure DevOps Account Name. For e.g InsightAUS for ADS GoFast Repo"}
+        },
+        "repoName":{
+            "type": "string",
+            "defaultValue": "<Replace with Repo Name>",
+            "metadata": {"description": "Git repository name. For e.g ADS Foundations V2"}
+        },
+        "repoCollaborationBranch":{
+            "type": "string",
+            "defaultValue": "develop",
+            "allowedValues": ["master","develop"],
+            "metadata": {"description": "Collaboration branch"}
+        },
+        "repoRootFolder":{
+            "type": "string",
+            "defaultValue": "/<Replace with Folder Path>/",
+            "metadata": {"description": "Folder where datafactory artifacts are comitted in repo. For e.g /Datafactory/"}
+        },
+        "repoProjectName":{
+            "type": "string",
+            "defaultValue": "<Replace with Azure DevOps Project Name>", 
+            "metadata": {"description": "Azure DevOps Project Name. For e.g BI Team"}
+        }
+    },
+    "functions": [
+        {
+            "namespace": "ads",
+            "members": {
+                "serviceWithNamingStandard": {
+                    "parameters": [
+                        {
+                            "name": "prefix",
+                            "type": "string"
+                        },
+                        {
+                            "name": "serviceacronym",
+                            "type": "string"
+                        },
+                        {
+                            "name": "environment",
+                            "type": "string"
+                        },
+                        {
+                            "name": "suffix",
+                            "type": "string"
+                        }
+                    ],
+                    "output": {
+                        "type": "string",
+                        "value": "[concat(parameters('prefix'), '-', parameters('serviceacronym'), '-', parameters('environment'))]"
+                    }
+                }
+            }
+        }
+    ],
+    "variables": {
+        "dataFactoryName": "[parameters('dataFactoryName')]",
+        "SHIRName": "[parameters('dataFactorySHIRName')]",
+        "dataFactoryRepoConfiguration": {
+            "type": "[parameters('repoType')]",
+            "accountName": "[parameters('repoAccountName')]",
+            "repositoryName": "[parameters('repoName')]",
+            "projectName": "[parameters('repoProjectName')]", 
+            "collaborationBranch": "[parameters('repoCollaborationBranch')]",
+            "rootFolder": "[parameters('repoRootFolder')]"
+          }
+    },
+    "resources": [
+        {
+            "name": "[variables('dataFactoryName')]",
+            "apiVersion": "2018-06-01",
+            "type": "Microsoft.DataFactory/factories",
+            "location": "[parameters('location')]",
+            "identity": {
+                "type": "SystemAssigned"
+            },
+            "properties": {"repoConfiguration": "[if(parameters('isRepoEnabled'), variables('dataFactoryRepoConfiguration'), json('null'))]"},
+            "resources": [
+                {
+                    "type": "integrationruntimes",
+                    "name": "[variables('SHIRName')]",
+                    "dependsOn": [
+                        "[variables('dataFactoryName')]"
+                    ],
+                    "apiVersion": "2017-09-01-preview",
+                    "properties": {
+                        "type": "SelfHosted"
+                    }
+                }
+            ]
+        }
+    ],
+    "outputs": {}
+}

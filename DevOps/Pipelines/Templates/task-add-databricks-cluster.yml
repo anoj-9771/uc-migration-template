@@ -1,0 +1,74 @@
+                    # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+                  #                         | Create Databricks cluster |                           #    
+                  #                         -----------------------------                           #
+                  #     This is a task level template script used to create a Databricks            #
+                  #     cluster.                                                                    #
+                  #                                                                                 #
+                    # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+parameters:
+- name: service_connection 
+  type: string 
+- name: resource_group
+  type: string
+- name: databricks_cluster_name
+  type: string
+- name: databricks_driver_node_type_id
+  type: string
+- name: databricks_node_type_id
+  type: string
+- name: databricks_spark_version
+  type: string
+- name: databricks_workers
+  type: number
+- name: databricks_autotermination
+  type: number
+
+steps:
+  - task: AzureKeyVault@1
+    displayName: 'Get PAT from AKV'
+    inputs:
+      azureSubscription: ${{ parameters.service_connection }}
+      keyVaultName: $(AZUREKEYVAULTNAME)
+      secretsFilter: 'databricks-token'
+
+  - task: AzureCLI@2
+    displayName: 'Create cluster'
+    # name: create_cluster
+    inputs:
+      azureSubscription: ${{ parameters.service_connection }}
+      scriptType: bash
+      scriptLocation: inlineScript
+      inlineScript: |
+        cluster_config='{
+          "cluster_name": "${{ parameters.databricks_cluster_name }}", 
+          "spark_version": "${{ parameters.databricks_spark_version }}", 
+          "node_type_id": "${{ parameters.databricks_node_type_id }}",
+          "driver_node_type_id": "${{ parameters.databricks_driver_node_type_id }}",
+          "autotermination_minutes": ${{ parameters.databricks_autotermination }},
+          "num_workers": ${{ parameters.databricks_workers }}
+        }'
+        echo "Generated cluster config:"
+        echo "$cluster_config"
+
+        list_response=$(curl -sf https://$(LOCATION).azuredatabricks.net/api/2.0/clusters/list -X GET \
+          -H "Authorization: Bearer $(DATABRICKS-TOKEN)")
+        echo "List of clusters in Databricks Workspace:"
+        echo "$list_response"
+
+        # Number of ETL clusters already created (should be 0 or 1)
+        num_clusters=$(jq 'if (. | length) == 0 then 0 else ([.clusters[] | select(.cluster_name == "${{ parameters.databricks_cluster_name }}") | { cluster_id: .cluster_id }] | length) end' -r <<< "$list_response")
+
+        if [ $num_clusters -eq 0 ]
+        then
+          echo "No ETL cluster found, creating..."
+          api_response=$(echo $cluster_config | curl -sf https://$(LOCATION).azuredatabricks.net/api/2.0/clusters/create \
+            -H "Authorization: Bearer $(DATABRICKS-TOKEN)" \
+              -d @-)
+          echo "$api_response"
+          cluster_id=$(jq .cluster_id -r <<< "$api_response")
+          echo "$cluster_id"
+          echo "##vso[task.setvariable variable=cluster_id;isOutput=true]$cluster_id"
+        else
+          echo "Cluster already created. Nothing to do here."
+        fi
