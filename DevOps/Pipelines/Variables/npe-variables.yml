@@ -104,9 +104,9 @@ variables:
   - name: DATABRICKSWORKSPACENAME
     value: swc-dbwc-dev-01
   - name: custompublicsubnetname
-    value: databrickspublicsubnet
+    value: snet-swcnonprod01-ae-daf-dev-dbwpublic-01
   - name: customprivatesubnetname
-    value: databricksprivatesubnet
+    value: snet-swcnonprod01-ae-daf-dev-dbwprivate-01
   - name: databrickspricingtier
     value: premium
   - name: databricksclustername
