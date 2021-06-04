@@ -29,7 +29,7 @@ steps:
       location: $(LOCATION)
       templateLocation: 'Linked artifact'
       csmFile: '$(Pipeline.Workspace)/arm_templates/arm-databricks-no-vnet-injection.json'
-      overrideParameters: '-location $(LOCATION) -prefix $(PREFIX) -environment $(ENVIRONMENT) -pricingTier $(DATABRICKSPRICINGTIER)'
+      overrideParameters: '-location $(LOCATION) -workspaceName $(DATABRICKSWORKSPACENAME)-prefix $(PREFIX) -environment $(ENVIRONMENT) -pricingTier $(DATABRICKSPRICINGTIER)'
       deploymentMode: 'Incremental'
       deploymentOutputs: 'databricksOutput'
     displayName: 'Deploy Databricks Workspace'
