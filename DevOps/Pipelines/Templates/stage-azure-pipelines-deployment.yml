@@ -65,35 +65,35 @@ stages:
         parameters:
           AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
           resource_group: ${{ variables.resourcegroupname }}
-    # Deploy Control DB. Update parameters here if different to required.
-    - ${{ if eq(variables['controldb'], true) }}:
-      - template: step-deploy-arm-azuresqldb.yml
-        parameters:
-          service_connection: ${{ variables.azdoresourceconnection }}
-          resource_group: ${{ variables.resourcegroupname }}
-          database_name: ${{ variables.azuresqlservername }}/ControlDB
-          database_kind: "v12.0,user,vcore,serverless"
-          database_sku: |
-            {
-              "name": "GP_S_Gen5",
-              "tier": "GeneralPurpose",
-              "family": "Gen5",
-              "capacity": 1
-            }
-          database_properties: |
-            {
-              "collation": "SQL_Latin1_General_CP1_CI_AS",
-              "maxSizeBytes": 10737418240,
-              "catalogCollation": "SQL_Latin1_General_CP1_CI_AS",
-              "zoneRedundant": false,
-              "readScale": "Disabled",
-              "readReplicaCount": 0,
-              "autoPauseDelay": 60,
-              "storageAccountType": "GRS",
-              "minCapacity": 0.5
-            }
-          log_analytics: ${{ variables.loganalytics }}
-          log_storage: ${{ variables.logstorage }}
+    # Deploy Control DB. Update parameters here if different to required
+    # - ${{ if eq(variables['controldb'], true) }}:
+    #   - template: step-deploy-arm-azuresqldb.yml
+    #     parameters:
+    #       service_connection: ${{ variables.azdoresourceconnection }}
+    #       resource_group: ${{ variables.resourcegroupname }}
+    #       database_name: ${{ variables.azuresqlservername }}/ControlDB
+    #       database_kind: "v12.0,user,vcore,serverless"
+    #       database_sku: |
+    #         {
+    #           "name": "GP_S_Gen5",
+    #           "tier": "GeneralPurpose",
+    #           "family": "Gen5",
+    #           "capacity": 1
+    #         }
+    #       database_properties: |
+    #         {
+    #           "collation": "SQL_Latin1_General_CP1_CI_AS",
+    #           "maxSizeBytes": 10737418240,
+    #           "catalogCollation": "SQL_Latin1_General_CP1_CI_AS",
+    #           "zoneRedundant": false,
+    #           "readScale": "Disabled",
+    #           "readReplicaCount": 0,
+    #           "autoPauseDelay": 60,
+    #           "storageAccountType": "GRS",
+    #           "minCapacity": 0.5
+    #         }
+    #       log_analytics: ${{ variables.loganalytics }}
+    #       log_storage: ${{ variables.logstorage }}
     # Deploy S0 EDW DB. Update parameters here if different to required.
     - ${{ if eq(variables['edw'], true) }}:
       - template: step-deploy-arm-azuresqldb.yml
