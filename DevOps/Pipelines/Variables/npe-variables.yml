@@ -96,11 +96,13 @@ variables:
   - name: vnetName
     value: vnet-swcnonprod01-ae-01
   - name: vnetid
-    value: 
+    value: /subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-network-01/providers/Microsoft.Network/virtualNetworks/vnet-swcnonprod01-ae-01
   - name: publicsubnetcidr
     value: 10.97.47.192/26        #10.1.2.0/24
   - name: privatesubnetcidr
     value: 10.97.47.128/26        #10.1.1.0/24
+  - name: DATABRICKSWORKSPACENAME
+    value: swc-dbwc-dev-01
   - name: custompublicsubnetname
     value: databrickspublicsubnet
   - name: customprivatesubnetname
