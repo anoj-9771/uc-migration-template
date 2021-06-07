@@ -127,7 +127,7 @@ variables:
   # ------------------------------------------------
   - name: DATABRICKSWORKSPACENAME #databricksworkspacename
     value: $(PREFIX)-$(ENVIRONMENT)-ADBWS
-- name: synapseworkspacename
+  - name: synapseworkspacename
     value: $(PREFIX)-$(ENVIRONMENT)-synapse-workspace
   - name: defaultDataLakeStorageAccountName
     value: staubswcdevadls           #st${{ lower(variables.environmentinitial) }}${{ lower(variables.applicationname) }}lake${{ lower(variables.locationnumber) }}${{ lower(variables.resourcecount) }}
