@@ -1,0 +1,62 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2014-04-01-preview/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "synapsesqlPoolName": {
+            "type": "string"
+        },
+        "sku": {
+            "type": "string",
+            "defaultValue": "DW100c"
+        },
+        "location": {
+            "type": "string"
+        },
+        "synapseworkspacename": {
+            "type": "string"
+        },
+        "collation": {
+            "type": "string",
+            "defaultValue": "SQL_Latin1_General_CP1_CI_AS"
+        },
+        "metadataSync": {
+            "type": "bool",
+            "defaultValue": false
+        },
+        "tags": {
+            "type": "object",
+            "defaultValue": {}
+        }
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Synapse/workspaces/sqlPools",
+            "apiVersion": "2019-06-01-preview",
+            "location": "[parameters('location')]",
+            "tags": "[parameters('tags')]",
+            "name": "[concat(parameters('synapseworkspacename'), '/', parameters('synapsesqlPoolName'))]",
+            "sku": {
+                "name": "[parameters('sku')]"
+            },
+            "properties": {
+                "createMode": "Default",
+                "collation": "[parameters('collation')]"
+            },
+            "resources": [
+                {
+                    "condition": "[parameters('metadataSync')]",
+                    "apiVersion": "2019-06-01-preview",
+                    "dependsOn": [
+                        "[concat('Microsoft.Synapse/workspaces/', parameters('synapseworkspacename'), '/sqlPools/', parameters('synapsesqlPoolName'))]"
+                    ],
+                    "location": "[parameters('location')]",
+                    "name": "config",
+                    "properties": {
+                        "Enabled": "[parameters('metadataSync')]"
+                    },
+                    "type": "metadataSync"
+                }
+            ]
+        }
+    ]
+}

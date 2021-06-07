@@ -121,3 +121,18 @@ variables:
     value: 2
   - name: databricksautotermination
     value: 10
+
+  # ------------------------------------------------
+  # Synapse Analytics related
+  # ------------------------------------------------
+  - name: synapseworkspacename
+    value: syn${{ lower(variables.environmentinitial) }}${{ lower(variables.applicationname) }}adm${{ lower(variables.locationnumber) }}${{ lower(variables.resourcecount) }}
+  - name: defaultDataLakeStorageAccountName
+    value: st${{ lower(variables.environmentinitial) }}${{ lower(variables.applicationname) }}lake${{ lower(variables.locationnumber) }}${{ lower(variables.resourcecount) }}
+  - name: defaultDataLakeStorageFilesystemName
+    value: synapseanalyticsfs
+  - name: synapsesqlAdministratorLogin
+    value: sqladminuser
+  - name: synapsesqlPoolName
+    value: syn${{ lower(variables.environmentinitial) }}${{ lower(variables.applicationname) }}adm${{ lower(variables.locationnumber) }}${{ lower(variables.resourcecount) }}sqlpool
+  #------------------------------------------------

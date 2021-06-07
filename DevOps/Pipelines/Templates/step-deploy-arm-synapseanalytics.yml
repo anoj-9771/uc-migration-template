@@ -1,0 +1,44 @@
+parameters:
+    - name: service_connection # name of the parameter; required
+      type: string # data type of the parameter; required
+    - name: resource_group
+      type: string
+    - name: synapseworkspacename 
+      type: string
+    - name: defaultDataLakeStorageAccountName
+      type: string
+    - name: defaultDataLakeStorageFilesystemName
+      type: string
+    - name: synapsesqlPoolName
+      type: string
+    
+
+steps:
+  - task: AzureResourceGroupDeployment@2
+    inputs:
+     azureSubscription: ${{ parameters.service_connection }}
+     action: 'Create Or Update Resource Group'
+     resourceGroupName: ${{ parameters.resource_group }}
+     location: $(LOCATION)
+     templateLocation: 'Linked artifact'
+     csmFile: '$(Pipeline.Workspace)/arm_templates/arm-synapseanalytics.json'
+     overrideParameters: |
+      -location $(LOCATION) -synapseworkspacename ${{ parameters.synapseworkspacename }} -defaultDataLakeStorageAccountName ${{ parameters.defaultDataLakeStorageAccountName }} -defaultDataLakeStorageFilesystemName ${{ parameters.defaultDataLakeStorageFilesystemName }}
+     deploymentMode: 'Incremental'
+     deploymentOutputs: 'armOutputs'
+    displayName: 'Deploy Synapse Analytics Workspace' 
+
+#Deploy Synapse analytics workspace SQL Pools
+  - task: AzureResourceGroupDeployment@2
+    inputs:
+     azureSubscription: ${{ parameters.service_connection }}
+     action: 'Create Or Update Resource Group'
+     resourceGroupName: ${{ parameters.resource_group }}
+     location: $(LOCATION)
+     templateLocation: 'Linked artifact'
+     csmFile: '$(Pipeline.Workspace)/arm_templates/arm-synapseanalytics-sqlpools.json'
+     overrideParameters: |
+      -location $(LOCATION) -synapseworkspacename ${{ parameters.synapseworkspacename }} -synapsesqlPoolName ${{ parameters.synapsesqlPoolName }}
+     deploymentMode: 'Incremental'
+     deploymentOutputs: 'armOutputs'
+    displayName: 'Deploy Synapse Analytics Workspace SQL pools' 
