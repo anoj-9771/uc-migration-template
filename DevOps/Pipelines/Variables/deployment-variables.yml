@@ -42,7 +42,7 @@ variables:
   # Used to set Databricks Workspace deployability - No vnet integration
   - name: databricksnovnet
     value: false
-  # Used to set Log Analytics deployability
+  # Used to set DataFactory deployability
   - name: datafactory
     value: true
   # Use to set Synapse Analytics worksspace deployability
