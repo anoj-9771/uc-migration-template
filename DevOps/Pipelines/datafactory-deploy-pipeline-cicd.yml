@@ -3,7 +3,7 @@ name: $(Build.BuildId).$(date:yyyyMMdd)
 pr:
   branches:
     include:
-    - master
+    - main
     - develop
   paths:
     include:
@@ -12,7 +12,7 @@ pr:
 trigger:
   branches:
     include:
-    - master
+    - main
     - develop
   paths:
     include:
@@ -39,7 +39,7 @@ stages:
     #dependencies: ['uat'] # Used to define any stage dependencies
     stage_name: 'deploy_adf_nonprod'
     variable_template_name: npe-variables
-    run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
+    run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
 # ---------------------------------------------------------------------------
 # Release to Production
 - template: Templates/stage-datafactory-integration.yml
@@ -47,5 +47,5 @@ stages:
     #dependencies: ['uat'] # Used to define any stage dependencies
     stage_name: 'deploy_adf_prod'
     variable_template_name: prd-variables
-    run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
+    run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
 

@@ -35,7 +35,7 @@
         "repoCollaborationBranch":{
             "type": "string",
             "defaultValue": "develop",
-            "allowedValues": ["master","develop"],
+            "allowedValues": ["main","develop"],
             "metadata": {"description": "Collaboration branch"}
         },
         "repoRootFolder":{
