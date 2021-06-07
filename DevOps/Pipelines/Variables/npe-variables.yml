@@ -66,7 +66,7 @@ variables:
     value: raw, cleansed, curated
     # value: raw, stage, sandbox
   # Databricks workspace name for this enironment
-  - name: databricksworkspacename
+  - name: DATABRICKSWORKSPACENAME #databricksworkspacename
     value: $(PREFIX)-$(ENVIRONMENT)-ADBWS
   # Data Factory service name for this environment
   - name: datafactoryname
@@ -101,8 +101,8 @@ variables:
     value: 10.97.47.192/26        #10.1.2.0/24
   - name: privatesubnetcidr
     value: 10.97.47.128/26        #10.1.1.0/24
-  - name: DATABRICKSWORKSPACENAME
-    value: swc-dbwc-dev-01
+  #- name: DATABRICKSWORKSPACENAME
+  #  value: swc-dbwc-dev-01
   - name: custompublicsubnetname
     value: snet-swcnonprod01-ae-daf-dev-dbwpublic-01
   - name: customprivatesubnetname
