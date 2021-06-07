@@ -153,6 +153,18 @@ stages:
           databricks_autotermination : ${{ variables.databricksautotermination }}
           log_analytics: ${{ variables.loganalytics }}
           log_storage: ${{ variables.logstorage }}
+          
+    # Deploy Synapse Analytics Workspace.
+    - ${{ if eq(variables['synapseanalyticsworkspace'], true) }}:
+      - template: step-deploy-arm-synapseanalytics.yml
+        parameters:
+          service_connection: ${{ variables.azdoresourceconnection }}
+          resource_group: ${{ variables.resourcegroupname }}
+          synapseworkspacename: ${{ variables.synapseworkspacename }}
+          defaultDataLakeStorageAccountName: ${{ variables.defaultDataLakeStorageAccountName }}
+          defaultDataLakeStorageFilesystemName: ${{ variables.defaultDataLakeStorageFilesystemName }}
+          synapsesqlPoolName: ${{ variables.synapsesqlPoolName }}
+
     # Deploy Databricks Workspace without v-net integration
     - ${{ if eq(variables['databricksnovnet'], true) }}:
       - template: step-deploy-arm-databricks-no-vnet-injection.yml

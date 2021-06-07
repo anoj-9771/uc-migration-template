@@ -17,4 +17,4 @@ steps:
       overrideParameters: '-location $(LOCATION) -accountNames "$(DATALAKESTORAGEACCOUNTNAMES)" -zones "$(ZONENAMES)"'
       deploymentMode: 'Incremental'
       deploymentOutputs: 'armOutputs'
-    displayName: 'Deploy ADLS Systems'
+    displayName: 'Deploy ADLS Systems - datalake'
