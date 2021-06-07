@@ -12,7 +12,7 @@ parameters:
     - name: synapsesqlPoolName
       type: string
     
-
+#Deploy Synapse Workspace
 steps:
   - task: AzureResourceGroupDeployment@2
     inputs:
