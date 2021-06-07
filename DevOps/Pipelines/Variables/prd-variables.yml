@@ -1,7 +1,7 @@
 variables:
   # Used in service naming
   - name: prefix
-    value: SWC
+    value: staubswc
   # The default resource group region name
   - name: location
     value: australiaeast
@@ -63,7 +63,7 @@ variables:
   - name: logzonename
     value: databricks
   - name: zonenames
-    value: raw, curated
+    value: raw, cleansed, curated
     # value: raw, stage, sandbox
   # Databricks workspace name for this enironment
   - name: databricksworkspacename
@@ -96,15 +96,17 @@ variables:
   - name: vnetName
     value: vnet-swcnonprod01-ae-01
   - name: vnetid
-    value:                                #/subscriptions/5662f75a-b1a8-47a5-9db7-a733884cd9db/resourceGroups/network-rg/providers/Microsoft.Network/virtualNetworks/staub-vnet-au/subnets/default
+    value: /subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-network-01/providers/Microsoft.Network/virtualNetworks/vnet-swcnonprod01-ae-01                               
   - name: publicsubnetcidr
     value: 10.97.47.64/26
   - name: privatesubnetcidr
     value: 10.97.47.0/26
   - name: custompublicsubnetname
-    value: databrickspublicsubnet
+    value: snet-swcnonprod01-ae-daf-test-dbwpublic-01
   - name: customprivatesubnetname
-    value: databricksprivatesubnet
+    value: snet-swcnonprod01-ae-daf-test-dbwprivate-01
+  #- name: DATABRICKSWORKSPACENAME
+  #  value: swc-dbwc-dev-01
   - name: databrickspricingtier
     value: premium
   - name: databricksclustername
