@@ -1,0 +1,145 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <Name>CntrlDb</Name>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectVersion>4.1</ProjectVersion>
+    <ProjectGuid>{27a34078-ccfc-4646-be2a-9d8c9fa267c4}</ProjectGuid>
+    <DSP>Microsoft.Data.Tools.Schema.Sql.SqlAzureV12DatabaseSchemaProvider</DSP>
+    <OutputType>Database</OutputType>
+    <RootPath>
+    </RootPath>
+    <RootNamespace>CntrlDb</RootNamespace>
+    <AssemblyName>CntrlDb</AssemblyName>
+    <ModelCollation>1033, CI</ModelCollation>
+    <DefaultFileStructure>BySchemaAndSchemaType</DefaultFileStructure>
+    <DeployToDatabase>True</DeployToDatabase>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetLanguage>CS</TargetLanguage>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <SqlServerVerification>False</SqlServerVerification>
+    <IncludeCompositeObjects>True</IncludeCompositeObjects>
+    <TargetDatabaseSet>True</TargetDatabaseSet>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <OutputPath>bin\Release\</OutputPath>
+    <BuildScriptName>$(MSBuildProjectName).sql</BuildScriptName>
+    <TreatWarningsAsErrors>False</TreatWarningsAsErrors>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <DefineDebug>false</DefineDebug>
+    <DefineTrace>true</DefineTrace>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <OutputPath>bin\Debug\</OutputPath>
+    <BuildScriptName>$(MSBuildProjectName).sql</BuildScriptName>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <DefineDebug>true</DefineDebug>
+    <DefineTrace>true</DefineTrace>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">11.0</VisualStudioVersion>
+    <!-- Default to the v11.0 targets path if the targets file for the current VS version is not found -->
+    <SSDTExists Condition="Exists('$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v$(VisualStudioVersion)\SSDT\Microsoft.Data.Tools.Schema.SqlTasks.targets')">True</SSDTExists>
+    <VisualStudioVersion Condition="'$(SSDTExists)' == ''">11.0</VisualStudioVersion>
+  </PropertyGroup>
+  <Import Condition="'$(SQLDBExtensionsRefPath)' != ''" Project="$(SQLDBExtensionsRefPath)\Microsoft.Data.Tools.Schema.SqlTasks.targets" />
+  <Import Condition="'$(SQLDBExtensionsRefPath)' == ''" Project="$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v$(VisualStudioVersion)\SSDT\Microsoft.Data.Tools.Schema.SqlTasks.targets" />
+  <ItemGroup>
+    <Folder Include="Properties" />
+    <Folder Include="CTL\" />
+    <Folder Include="CTL\Tables\" />
+    <Folder Include="Security\" />
+    <Folder Include="CTL\Functions\" />
+    <Folder Include="CTL\Stored Procedures\" />
+    <Folder Include="CTL\Views\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Build Include="CTL\Tables\BatchExecutionLog.sql" />
+    <Build Include="CTL\Tables\Configuration.sql" />
+    <Build Include="CTL\Tables\ControlProjects.sql" />
+    <Build Include="CTL\Tables\ControlSource.sql" />
+    <Build Include="CTL\Tables\ControlSourceColumns.sql" />
+    <Build Include="CTL\Tables\ControlStages.sql" />
+    <Build Include="CTL\Tables\ControlTarget.sql" />
+    <Build Include="CTL\Tables\ControlTargetColumns.sql" />
+    <Build Include="CTL\Tables\ControlTaskCommand.sql" />
+    <Build Include="CTL\Tables\ControlTasks.sql" />
+    <Build Include="CTL\Tables\ControlTypes.sql" />
+    <Build Include="CTL\Tables\ControlWatermark.sql" />
+    <Build Include="CTL\Tables\TaskExecutionLog.sql" />
+    <Build Include="CTL\Functions\udf_GetWAustDateTime.sql" />
+    <Build Include="CTL\Stored Procedures\CreateBatchLog.sql" />
+    <Build Include="CTL\Stored Procedures\CreateTask.sql" />
+    <Build Include="CTL\Stored Procedures\CreateTaskLog.sql" />
+    <Build Include="CTL\Stored Procedures\GetExecutionTasks.sql" />
+    <Build Include="CTL\Stored Procedures\GetStageTableSQL.sql" />
+    <Build Include="CTL\Stored Procedures\GetWatemarkSQL.sql" />
+    <Build Include="CTL\Stored Procedures\UpdateBatchLog.sql" />
+    <Build Include="CTL\Stored Procedures\UpdateTaskLog.sql" />
+    <Build Include="CTL\Stored Procedures\UpdateWatermarks.sql" />
+    <Build Include="Security\CTL.sql" />
+    <Build Include="CTL\Stored Procedures\GetExecutionStages.sql" />
+    <Build Include="CTL\Stored Procedures\CreateSource.sql" />
+    <Build Include="CTL\Stored Procedures\ClearDB.sql" />
+    <Build Include="CTL\Views\vw_TaskExecutionDetails.sql" />
+    <Build Include="CTL\Functions\udf_GetFileDateHierarchy.sql" />
+    <Build Include="CTL\Stored Procedures\DeleteProjectConfig.sql" />
+    <Build Include="CTL\Tables\ControlManifest.sql" />
+    <Build Include="CTL\Functions\udf_GetNZDateTime.sql" />
+    <Build Include="CTL\Functions\udf_GetLastLoadedFile.sql" />
+    <Build Include="CTL\Functions\udf_GetDeltaSQL.sql" />
+    <Build Include="CTL\Stored Procedures\GetStorageFileName.sql" />
+    <Build Include="CTL\Stored Procedures\GetProjects.sql" />
+    <Build Include="CTL\Stored Procedures\GetManifestRecords.sql" />
+    <Build Include="CTL\Stored Procedures\CreateManifestRecord.sql" />
+    <Build Include="CTL\Tables\ControlProjectSchedule.sql" />
+    <Build Include="CTL\Functions\udf_CronToFrequency.sql" />
+    <Build Include="CTL\Functions\udf_CronToDatetime.sql" />
+    <Build Include="CTL\Functions\udf_DelimitedSplit8K.sql" />
+    <Build Include="CTL\Stored Procedures\GetProjectSchedule.sql" />
+    <Build Include="CTL\Tables\ControlDataLoadTypes.sql" />
+    <Build Include="CTL\Stored Procedures\UpdateManifestDeltaRecords.sql" />
+    <Build Include="CTL\Functions\udf_GetEAustDateTime.sql" />
+    <Build Include="CTL\Stored Procedures\UpdateManifestSQLEDW.sql" />
+    <Build Include="CTL\Stored Procedures\UpdateManifestDLTrusted.sql" />
+    <Build Include="CTL\Tables\ControlCuratedConfig.sql" />
+    <Build Include="CTL\Tables\CustomDataLoad.sql" />
+    <Build Include="CTL\Stored Procedures\UpdateCustomDataLoad.sql" />
+    <Build Include="CTL\Stored Procedures\DeleteConfigTask.sql" />
+    <Build Include="CTL\Stored Procedures\ResetLogs.sql" />
+    <Build Include="CTL\Tables\ControlCuratedManifest.sql" />
+    <Build Include="CTL\Stored Procedures\CuratedLogStart.sql" />
+    <Build Include="CTL\Stored Procedures\CuratedLogComplete.sql" />
+    <Build Include="CTL\Stored Procedures\CuratedGetProcessingPeriod.sql" />
+    <Build Include="CTL\Views\vw_ControlConfiguration.sql" />
+    <Build Include="CTL\Stored Procedures\GetAPIParams.sql" />
+    <Build Include="CTL\Functions\udf_GetDateLocalTZ.sql" />
+    <Build Include="CTL\Stored Procedures\UpdateManifestAudit.sql" />
+    <Build Include="CTL\Stored Procedures\GetManifestTrusted.sql" />
+    <Build Include="CTL\Stored Procedures\GetManifestSQLEDW.sql" />
+    <Build Include="CTL\Stored Procedures\GetManifestAudit.sql" />
+    <Build Include="CTL\Functions\udf_GetMultiColTableJoinClause.sql" />
+    <Build Include="CTL\Functions\udf_GetMultiColSelectList.sql" />
+    <Build Include="CTL\Functions\udf_GetMultiColFilterClause.sql" />
+    <Build Include="CTL\Tables\ControlDataLoadValidation.sql" />
+    <Build Include="CTL\Stored Procedures\RecordDataValidation.sql" />
+    <Build Include="CTL\Stored Procedures\GetTableDetails.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <PostDeploy Include="Script.PostDeployment1.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <RefactorLog Include="CntrlDb.refactorlog" />
+  </ItemGroup>
+</Project>
