@@ -128,9 +128,9 @@ variables:
   - name: synapseworkspacename
     value: syn${{ lower(variables.environmentinitial) }}${{ lower(variables.applicationname) }}adm${{ lower(variables.locationnumber) }}${{ lower(variables.resourcecount) }}
   - name: defaultDataLakeStorageAccountName
-    value: st${{ lower(variables.environmentinitial) }}${{ lower(variables.applicationname) }}lake${{ lower(variables.locationnumber) }}${{ lower(variables.resourcecount) }}
+    value: staubswcdevadls           #st${{ lower(variables.environmentinitial) }}${{ lower(variables.applicationname) }}lake${{ lower(variables.locationnumber) }}${{ lower(variables.resourcecount) }}
   - name: defaultDataLakeStorageFilesystemName
-    value: synapseanalyticsfs
+    value: synapse
   - name: synapsesqlAdministratorLogin
     value: sqladminuser
   - name: synapsesqlPoolName
