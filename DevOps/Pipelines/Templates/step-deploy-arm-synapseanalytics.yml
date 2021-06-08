@@ -29,16 +29,16 @@ steps:
     displayName: 'Deploy Synapse Analytics Workspace' 
 
 #Deploy Synapse analytics workspace SQL Pools
-  # - task: AzureResourceGroupDeployment@2
-  #   inputs:
-  #    azureSubscription: ${{ parameters.service_connection }}
-  #    action: 'Create Or Update Resource Group'
-  #    resourceGroupName: ${{ parameters.resource_group }}
-  #    location: $(LOCATION)
-  #    templateLocation: 'Linked artifact'
-  #    csmFile: '$(Pipeline.Workspace)/arm_templates/arm-synapseanalytics-sqlpools.json'
-  #    overrideParameters: |
-  #     -location $(LOCATION) -synapseworkspacename ${{ parameters.synapseworkspacename }} -synapsesqlPoolName ${{ parameters.synapsesqlPoolName }}
-  #    deploymentMode: 'Incremental'
-  #    deploymentOutputs: 'armOutputs'
-  #   displayName: 'Deploy Synapse Analytics Workspace SQL pools' 
+  - task: AzureResourceGroupDeployment@2
+    inputs:
+     azureSubscription: ${{ parameters.service_connection }}
+     action: 'Create Or Update Resource Group'
+     resourceGroupName: ${{ parameters.resource_group }}
+     location: $(LOCATION)
+     templateLocation: 'Linked artifact'
+     csmFile: '$(Pipeline.Workspace)/arm_templates/arm-synapseanalytics-sqlpools.json'
+     overrideParameters: |
+      -location $(LOCATION) -synapseworkspacename ${{ parameters.synapseworkspacename }} -synapsesqlPoolName ${{ parameters.synapsesqlPoolName }}
+     deploymentMode: 'Incremental'
+     deploymentOutputs: 'armOutputs'
+    displayName: 'Deploy Synapse Analytics Workspace SQL pools' 
