@@ -1,0 +1,185 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Operations Version="1.0">
+  <Operation Name="Rename Refactor" Key="5e99db43-7b9f-45d5-8264-59a37a2a803c" ChangeDateTime="03/05/2020 00:35:35" xmlns="http://schemas.microsoft.com/sqlserver/dac/Serialization/2012/02">
+    <Property Name="ElementName" Value="[CTL].[fn_getWAustDateTime]" />
+    <Property Name="ElementType" Value="SqlScalarFunction" />
+    <Property Name="ParentElementName" Value="[CTL]" />
+    <Property Name="ParentElementType" Value="SqlSchema" />
+    <Property Name="NewName" Value="udf_getWAustDateTime" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="fb2f0bdb-161e-464c-9b21-e0e1e295e68b" ChangeDateTime="03/05/2020 00:37:33" xmlns="http://schemas.microsoft.com/sqlserver/dac/Serialization/2012/02">
+    <Property Name="ElementName" Value="[CTL].[getStageTableSQL]" />
+    <Property Name="ElementType" Value="SqlProcedure" />
+    <Property Name="ParentElementName" Value="[CTL]" />
+    <Property Name="ParentElementType" Value="SqlSchema" />
+    <Property Name="NewName" Value="[GetStageTableSQL]" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="b3b06575-75db-437b-88ee-3b7fdcb30171" ChangeDateTime="03/05/2020 00:37:51" xmlns="http://schemas.microsoft.com/sqlserver/dac/Serialization/2012/02">
+    <Property Name="ElementName" Value="[CTL].[getStorageFileName]" />
+    <Property Name="ElementType" Value="SqlProcedure" />
+    <Property Name="ParentElementName" Value="[CTL]" />
+    <Property Name="ParentElementType" Value="SqlSchema" />
+    <Property Name="NewName" Value="GetStorageFileName" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="23fa5535-2720-4a95-996d-2de9b64146d0" ChangeDateTime="03/05/2020 00:38:13" xmlns="http://schemas.microsoft.com/sqlserver/dac/Serialization/2012/02">
+    <Property Name="ElementName" Value="[CTL].[updateWatermarks]" />
+    <Property Name="ElementType" Value="SqlProcedure" />
+    <Property Name="ParentElementName" Value="[CTL]" />
+    <Property Name="ParentElementType" Value="SqlSchema" />
+    <Property Name="NewName" Value="[UpdateWatermarks]" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="9fa547ba-9cf3-44de-bff6-69b4db478e20" ChangeDateTime="03/06/2020 04:42:43" xmlns="http://schemas.microsoft.com/sqlserver/dac/Serialization/2012/02">
+    <Property Name="ElementName" Value="[CTL].[udf_getDeltaSQL]" />
+    <Property Name="ElementType" Value="SqlScalarFunction" />
+    <Property Name="ParentElementName" Value="[CTL]" />
+    <Property Name="ParentElementType" Value="SqlSchema" />
+    <Property Name="NewName" Value="[udf_GetDeltaSQL]" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="15c9113f-30d3-48af-af73-6a699e91fdf0" ChangeDateTime="03/06/2020 04:42:55" xmlns="http://schemas.microsoft.com/sqlserver/dac/Serialization/2012/02">
+    <Property Name="ElementName" Value="[CTL].[udf_getFileDateHierarchy]" />
+    <Property Name="ElementType" Value="SqlScalarFunction" />
+    <Property Name="ParentElementName" Value="[CTL]" />
+    <Property Name="ParentElementType" Value="SqlSchema" />
+    <Property Name="NewName" Value="[udf_GetFileDateHierarchy]" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="ae386e6c-6867-4fdb-b146-12f67c3f6d8c" ChangeDateTime="03/06/2020 04:43:06" xmlns="http://schemas.microsoft.com/sqlserver/dac/Serialization/2012/02">
+    <Property Name="ElementName" Value="[CTL].[udf_getLastLoadedFile]" />
+    <Property Name="ElementType" Value="SqlScalarFunction" />
+    <Property Name="ParentElementName" Value="[CTL]" />
+    <Property Name="ParentElementType" Value="SqlSchema" />
+    <Property Name="NewName" Value="[udf_GetLastLoadedFile]" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="b693bc61-dad7-4737-b269-ac0730eb66c3" ChangeDateTime="03/06/2020 04:43:18" xmlns="http://schemas.microsoft.com/sqlserver/dac/Serialization/2012/02">
+    <Property Name="ElementName" Value="[CTL].[udf_getNZDateTime]" />
+    <Property Name="ElementType" Value="SqlScalarFunction" />
+    <Property Name="ParentElementName" Value="[CTL]" />
+    <Property Name="ParentElementType" Value="SqlSchema" />
+    <Property Name="NewName" Value="udf_GetNZDateTime" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="10a5fbff-cfa3-45e6-8757-66f8de20b654" ChangeDateTime="03/06/2020 04:43:27" xmlns="http://schemas.microsoft.com/sqlserver/dac/Serialization/2012/02">
+    <Property Name="ElementName" Value="[CTL].[udf_getWAustDateTime]" />
+    <Property Name="ElementType" Value="SqlScalarFunction" />
+    <Property Name="ParentElementName" Value="[CTL]" />
+    <Property Name="ParentElementType" Value="SqlSchema" />
+    <Property Name="NewName" Value="udf_GetWAustDateTime" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="84bf20d3-232f-4b89-89bb-b57b4d976cdb" ChangeDateTime="03/06/2020 04:43:49" xmlns="http://schemas.microsoft.com/sqlserver/dac/Serialization/2012/02">
+    <Property Name="ElementName" Value="[CTL].[getExecutionStages]" />
+    <Property Name="ElementType" Value="SqlProcedure" />
+    <Property Name="ParentElementName" Value="[CTL]" />
+    <Property Name="ParentElementType" Value="SqlSchema" />
+    <Property Name="NewName" Value="[GetExecutionStages]" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="217d3362-1755-422f-af90-38548529e4d7" ChangeDateTime="03/06/2020 04:44:04" xmlns="http://schemas.microsoft.com/sqlserver/dac/Serialization/2012/02">
+    <Property Name="ElementName" Value="[CTL].[getProjects]" />
+    <Property Name="ElementType" Value="SqlProcedure" />
+    <Property Name="ParentElementName" Value="[CTL]" />
+    <Property Name="ParentElementType" Value="SqlSchema" />
+    <Property Name="NewName" Value="[GetProjects]" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="9df84337-0070-4a60-bbe4-d36bd9b0b12b" ChangeDateTime="03/06/2020 04:44:15" xmlns="http://schemas.microsoft.com/sqlserver/dac/Serialization/2012/02">
+    <Property Name="ElementName" Value="[CTL].[getProjectSchedule]" />
+    <Property Name="ElementType" Value="SqlProcedure" />
+    <Property Name="ParentElementName" Value="[CTL]" />
+    <Property Name="ParentElementType" Value="SqlSchema" />
+    <Property Name="NewName" Value="[GetProjectSchedule]" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="b0ca1000-ac6f-40bd-a8d9-c7896764dbcc" ChangeDateTime="03/06/2020 04:44:29" xmlns="http://schemas.microsoft.com/sqlserver/dac/Serialization/2012/02">
+    <Property Name="ElementName" Value="[CTL].[getWatemarkSQL]" />
+    <Property Name="ElementType" Value="SqlProcedure" />
+    <Property Name="ParentElementName" Value="[CTL]" />
+    <Property Name="ParentElementType" Value="SqlSchema" />
+    <Property Name="NewName" Value="[GetWatemarkSQL]" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="9786acad-28d8-4337-b6b5-9c6779931cb9" ChangeDateTime="04/13/2020 23:54:29" xmlns="http://schemas.microsoft.com/sqlserver/dac/Serialization/2012/02">
+    <Property Name="ElementName" Value="[CTL].[DataLoadType].[Id]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[CTL].[DataLoadType]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="DataLoadTypeID" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="e3fd0fd2-dc20-432b-b2d3-a503f45b5b0d" ChangeDateTime="04/20/2020 02:00:07" xmlns="http://schemas.microsoft.com/sqlserver/dac/Serialization/2012/02">
+    <Property Name="ElementName" Value="[CTL].[ControlDataLoadTypes].[IsDelta]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[CTL].[ControlDataLoadTypes]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="Delta" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="7adbd24a-2748-40ff-858c-7f0fb8835504" ChangeDateTime="04/20/2020 02:00:10" xmlns="http://schemas.microsoft.com/sqlserver/dac/Serialization/2012/02">
+    <Property Name="ElementName" Value="[CTL].[ControlDataLoadTypes].[IsCDC]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[CTL].[ControlDataLoadTypes]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="CDC" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="5474588e-4ad7-4e97-9aa8-350a7bd63946" ChangeDateTime="04/20/2020 02:00:41" xmlns="http://schemas.microsoft.com/sqlserver/dac/Serialization/2012/02">
+    <Property Name="ElementName" Value="[CTL].[ControlDataLoadTypes].[Delta]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[CTL].[ControlDataLoadTypes]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="DeltaExtract" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="3a43145e-b25c-463e-ae75-c9c37286eb27" ChangeDateTime="04/20/2020 02:00:55" xmlns="http://schemas.microsoft.com/sqlserver/dac/Serialization/2012/02">
+    <Property Name="ElementName" Value="[CTL].[ControlDataLoadTypes].[CDC]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[CTL].[ControlDataLoadTypes]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="CDCSource" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="802caf6b-c634-4d6e-986c-037348d71db7" ChangeDateTime="04/23/2020 04:39:30" xmlns="http://schemas.microsoft.com/sqlserver/dac/Serialization/2012/02">
+    <Property Name="ElementName" Value="[CTL].[ControlTypes].[FileExt]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[CTL].[ControlTypes]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="FileType" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="b45ecdfd-aba5-419e-b0cd-fa3e6a32cd7f" ChangeDateTime="04/23/2020 04:49:15" xmlns="http://schemas.microsoft.com/sqlserver/dac/Serialization/2012/02">
+    <Property Name="ElementName" Value="[CTL].[ControlTypes].[FileExt]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[CTL].[ControlTypes]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="FileType" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="b725dc32-6263-46dd-be40-7e4bcca4d5cb" ChangeDateTime="04/27/2020 06:03:45" xmlns="http://schemas.microsoft.com/sqlserver/dac/Serialization/2012/02">
+    <Property Name="ElementName" Value="[CTL].[ControlManifest].[StageRecordProcessed]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[CTL].[ControlManifest]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="[ProcessedToTrustedZone]" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="27afadab-1550-400e-8101-ad08c297cbfa" ChangeDateTime="05/21/2020 00:41:10" xmlns="http://schemas.microsoft.com/sqlserver/dac/Serialization/2012/02">
+    <Property Name="ElementName" Value="[CTL].[ControlCuratedEntityDependentObjects]" />
+    <Property Name="ElementType" Value="SqlTable" />
+    <Property Name="ParentElementName" Value="[CTL]" />
+    <Property Name="ParentElementType" Value="SqlSchema" />
+    <Property Name="NewName" Value="[ControlCuratedConfig]" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="ce5c7c3c-aa38-43f1-958b-435bf2617c8a" ChangeDateTime="05/21/2020 00:41:42" xmlns="http://schemas.microsoft.com/sqlserver/dac/Serialization/2012/02">
+    <Property Name="ElementName" Value="[CTL].[ControlCuratedWatermark]" />
+    <Property Name="ElementType" Value="SqlTable" />
+    <Property Name="ParentElementName" Value="[CTL]" />
+    <Property Name="ParentElementType" Value="SqlSchema" />
+    <Property Name="NewName" Value="[ControlCuratedManifest]" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="ce953f4d-0385-471c-a4bb-dce4bc084fd5" ChangeDateTime="05/21/2020 00:42:19" xmlns="http://schemas.microsoft.com/sqlserver/dac/Serialization/2012/02">
+    <Property Name="ElementName" Value="[CTL].[CuratedLogLoadPeriod]" />
+    <Property Name="ElementType" Value="SqlProcedure" />
+    <Property Name="ParentElementName" Value="[CTL]" />
+    <Property Name="ParentElementType" Value="SqlSchema" />
+    <Property Name="NewName" Value="[CuratedLogLoadingPeriod]" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="1d756886-7489-4821-95f8-de06315158ed" ChangeDateTime="05/21/2020 00:42:50" xmlns="http://schemas.microsoft.com/sqlserver/dac/Serialization/2012/02">
+    <Property Name="ElementName" Value="[CTL].[GetCuratedLoadPeriod]" />
+    <Property Name="ElementType" Value="SqlProcedure" />
+    <Property Name="ParentElementName" Value="[CTL]" />
+    <Property Name="ParentElementType" Value="SqlSchema" />
+    <Property Name="NewName" Value="CuratedGetLoadingPeriod" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="b61b2992-7abd-45bd-bd15-0ef6004e2448" ChangeDateTime="05/21/2020 00:43:22" xmlns="http://schemas.microsoft.com/sqlserver/dac/Serialization/2012/02">
+    <Property Name="ElementName" Value="[CTL].[UpdateCuratedLoadStatus]" />
+    <Property Name="ElementType" Value="SqlProcedure" />
+    <Property Name="ParentElementName" Value="[CTL]" />
+    <Property Name="ParentElementType" Value="SqlSchema" />
+    <Property Name="NewName" Value="CuratedUpdateLoadStatus" />
+  </Operation>
+</Operations>

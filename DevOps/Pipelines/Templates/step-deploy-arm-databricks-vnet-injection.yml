@@ -86,6 +86,7 @@ steps:
       deploymentMode: 'Incremental'
       deploymentOutputs: 'databricksOutput'
     displayName: 'Deploy Databricks Workspace'
+
   # Extract ARM output
   - powershell: |
       Write-Host '$(databricksOutput)'
@@ -94,12 +95,14 @@ steps:
       Write-Host "##vso[task.setvariable variable=databricksWorkspaceName;isOutput=true]$workspaceNameValue"
     name: getWorkspaceName
     displayName: 'Extract ARM outputs'
+
   # Create and add Databricks PAT to Azure Key Vault
   - template: task-add-pat-to-akv.yml
     parameters:
       service_connection: ${{ parameters.AzDoServiceConnection }}
       resource_group: ${{ parameters.resource_group }}
       databricks_workspace_name: $(DATABRICKSWORKSPACENAME)
+      
   # Create Databricks Cluster 
   - template: task-add-databricks-cluster.yml
     parameters:
