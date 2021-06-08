@@ -101,8 +101,8 @@ variables:
     value: 10.97.47.192/26        #10.1.2.0/24
   - name: privatesubnetcidr
     value: 10.97.47.128/26        #10.1.1.0/24
-  #- name: DATABRICKSWORKSPACENAME
-  #  value: swc-dbwc-dev-01
+  - name: DATABRICKSWORKSPACENAME #databricksworkspacename
+    value: $(PREFIX)-$(ENVIRONMENT)-ADBWS   
   - name: custompublicsubnetname
     value: snet-swcnonprod01-ae-daf-dev-dbwpublic-01
   - name: customprivatesubnetname
@@ -125,12 +125,10 @@ variables:
   # ------------------------------------------------
   # Synapse Analytics related
   # ------------------------------------------------
-  - name: DATABRICKSWORKSPACENAME #databricksworkspacename
-    value: $(PREFIX)-$(ENVIRONMENT)-ADBWS
   - name: synapseworkspacename
     value: $(PREFIX)-$(ENVIRONMENT)-synapse-workspace
   - name: defaultDataLakeStorageAccountName
-    value: staubswcdevadls           #st${{ lower(variables.environmentinitial) }}${{ lower(variables.applicationname) }}lake${{ lower(variables.locationnumber) }}${{ lower(variables.resourcecount) }}
+    value: $(DATALAKESTORAGEACCOUNTNAMES)        
   - name: defaultDataLakeStorageFilesystemName
     value: synapsestaging
   - name: synapsesqlAdministratorLogin
