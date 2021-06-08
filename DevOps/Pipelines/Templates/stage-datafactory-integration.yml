@@ -11,7 +11,7 @@ parameters:
 
 stages:
 # ---------------------------------------------------------------------------
-# Release to environment
+# Release to environment.
 # Only execute if PR into Develop
 - stage: ${{ parameters.stage_name }}
   dependsOn: ${{ parameters.dependencies }}
