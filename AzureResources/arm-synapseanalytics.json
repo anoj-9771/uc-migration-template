@@ -68,7 +68,7 @@
         },
         "isNewFileSystemOnly": {
             "type": "bool",
-            "defaultValue": false
+            "defaultValue": true
         },
         "adlaResourceId": {
             "type": "string",
@@ -100,11 +100,11 @@
         },
         "userObjectId": {
             "type": "string",
-            "defaultValue": "2b464433-282c-4338-b52a-c23ce0b2f998"
+            "defaultValue": ""
         },
         "setSbdcRbacOnStorageAccount": {
             "type": "bool",
-            "defaultValue": true
+            "defaultValue": false
         },
         "setWorkspaceMsiByPassOnStorageAccount": {
             "type": "bool",

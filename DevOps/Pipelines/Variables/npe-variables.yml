@@ -63,7 +63,7 @@ variables:
   - name: logzonename
     value: databricks
   - name: zonenames
-    value: raw, cleansed, curated, synapse-staging
+    value: raw, cleansed, curated, synapsestaging
     # value: raw, stage, sandbox
   # Databricks workspace name for this enironment
   - name: DATABRICKSWORKSPACENAME #databricksworkspacename
@@ -132,7 +132,7 @@ variables:
   - name: defaultDataLakeStorageAccountName
     value: staubswcdevadls           #st${{ lower(variables.environmentinitial) }}${{ lower(variables.applicationname) }}lake${{ lower(variables.locationnumber) }}${{ lower(variables.resourcecount) }}
   - name: defaultDataLakeStorageFilesystemName
-    value: synapse-staging
+    value: synapsestaging
   - name: synapsesqlAdministratorLogin
     value: sqladminuser
   - name: synapsesqlPoolName
