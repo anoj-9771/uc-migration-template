@@ -73,7 +73,7 @@ steps:
     name: getVnetId
     displayName: 'Extract Vnet ID from ARM outputs'
 
-  # Create Databricks Workspace
+  # Create Databricks Workspace (Vnet Injection)
   - task: AzureResourceGroupDeployment@2
     inputs:
       azureSubscription: ${{ parameters.AzDoServiceConnection }}

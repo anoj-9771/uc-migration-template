@@ -2,6 +2,13 @@
     "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
+      "disablePublicIp": {
+        "type": "bool",
+        "defaultValue": true,
+        "metadata": {
+          "description": "Specifies whether to deploy Azure Databricks workspace with Secure Cluster Connectivity (No Public IP) enabled or not"
+        }
+      },
       "workspaceName": {
         "type": "string",
         "defaultValue": "steve-test-db-001",
@@ -74,7 +81,10 @@
           },
           "customPrivateSubnetName": {
             "value": "[parameters('customPrivateSubnetName')]"
-          }
+          },
+          "enableNoPublicIp": {
+            "value": "[parameters('disablePublicIp')]"
+          }          
         }
       }
     }

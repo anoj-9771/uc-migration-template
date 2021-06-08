@@ -40,7 +40,7 @@
         },
         "managedVirtualNetwork": {
             "type": "string",
-            "defaultvalue": ""
+            "defaultvalue": "default"
         },
         "tags": {
             "type": "object",
