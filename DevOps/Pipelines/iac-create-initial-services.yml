@@ -6,10 +6,11 @@ pr:
     - main
     - develop
 
-trigger: none
-  # branches:
-  #   exclude:
-  #   - '*' 
+trigger:
+  branches:
+    include:
+    - main
+    - develop
 
 pool:
   vmImage: 'ubuntu-latest'
