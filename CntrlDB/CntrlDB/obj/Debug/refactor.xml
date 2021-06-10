@@ -182,4 +182,11 @@
     <Property Name="ParentElementType" Value="SqlSchema" />
     <Property Name="NewName" Value="CuratedUpdateLoadStatus" />
   </Operation>
+  <Operation Name="Rename Refactor" Key="d7cffcfd-426f-4185-9c41-dda282b81c6d" ChangeDateTime="12/07/2020 22:26:32" xmlns="http://schemas.microsoft.com/sqlserver/dac/Serialization/2012/02">
+    <Property Name="ElementName" Value="[CTL].[ControlProjectSchedule].[IX_ControlProjectSchedule_Column]" />
+    <Property Name="ElementType" Value="SqlIndex" />
+    <Property Name="ParentElementName" Value="[CTL].[ControlProjectSchedule]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="[IX_ControlProjectSchedule_Unique]" />
+  </Operation>
 </Operations>

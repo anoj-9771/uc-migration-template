@@ -9,22 +9,33 @@ Post-Deployment Script Template
                SELECT * FROM [$(TableName)]					
 --------------------------------------------------------------------------------------
 */
-IF (
-	SELECT p.rows 
-	FROM sys.tables t 
-	JOIN sys.schemas s ON t.schema_id = s.schema_id
-	JOIN sys.partitions p ON t.object_id = p.object_id 
-	WHERE s.name = 'CTL' 
-	AND t.name = 'ControlStages'
-) = 0
-	BEGIN
-		SET IDENTITY_INSERT [CTL].[ControlStages] ON 
-		INSERT [CTL].[ControlStages] ([ControlStageId], [StageSequence], [StageName]) VALUES (1, 100, N'Source to Raw')
-		INSERT [CTL].[ControlStages] ([ControlStageId], [StageSequence], [StageName]) VALUES (2, 200, N'Raw to Trusted')
-		INSERT [CTL].[ControlStages] ([ControlStageId], [StageSequence], [StageName]) VALUES (3, 300, N'Trusted to Curated')
-		INSERT [CTL].[ControlStages] ([ControlStageId], [StageSequence], [StageName]) VALUES (4, 400, N'Staging to DW')
-		SET IDENTITY_INSERT [CTL].[ControlStages] OFF
-	END
+
+/*****************INSERT Data*************************
+If you need to insert data into a table, please use a pattern like this.
+This checks if the record does not exists on the table then inserts it
+******************************************************/
+
+/************* ControlStages ***********************************/
+
+INSERT INTO [CTL].[ControlStages] ([StageSequence], [StageName]) SELECT 100, N'Source to Raw'
+WHERE NOT EXISTS (SELECT 1 FROM [CTL].[ControlStages] WHERE [StageName] = N'Source to Raw')
+
+INSERT INTO [CTL].[ControlStages] ([StageSequence], [StageName]) SELECT 200, N'Raw to Trusted'
+WHERE NOT EXISTS (SELECT 1 FROM [CTL].[ControlStages] WHERE [StageName] = N'Raw to Trusted')
+
+INSERT INTO [CTL].[ControlStages] ([StageSequence], [StageName]) SELECT 300, N'Raw to Synapse'
+WHERE NOT EXISTS (SELECT 1 FROM [CTL].[ControlStages] WHERE [StageName] = N'Raw to Synapse')
+
+INSERT INTO [CTL].[ControlStages] ([StageSequence], [StageName]) SELECT 400, N'Trusted to Curated'
+WHERE NOT EXISTS (SELECT 1 FROM [CTL].[ControlStages] WHERE [StageName] = N'Trusted to Curated')
+
+--INSERT INTO [CTL].[ControlStages] ([StageSequence], [StageName]) SELECT 500, N'Staging to DW'
+--WHERE NOT EXISTS (SELECT 1 FROM [CTL].[ControlStages] WHERE [StageName] = N'Staging to DW')
+
+--INSERT INTO [CTL].[ControlStages] ([StageSequence], [StageName]) SELECT 600, N'DW Export'
+--WHERE NOT EXISTS (SELECT 1 FROM [CTL].[ControlStages] WHERE [StageName] = N'DW Export')
+
+
 
 IF (
 	SELECT p.rows 
@@ -49,7 +60,6 @@ IF (
 		INSERT [CTL].[ControlTypes] ([TypeId], [ControlType]) VALUES (11, N'OData-Basic')
 		INSERT [CTL].[ControlTypes] ([TypeId], [ControlType]) VALUES (12, N'OData-AADServicePrincipal')
 		INSERT [CTL].[ControlTypes] ([TypeId], [ControlType]) VALUES (13, N'SharePoint')
-		INSERT [CTL].[ControlTypes] ([TypeId], [ControlType]) VALUES (14, N'API-TAFE')
 		INSERT [CTL].[ControlTypes] ([TypeId], [ControlType]) VALUES (15, N'API-General')
 		SET IDENTITY_INSERT [CTL].[ControlTypes] OFF
 	END
@@ -73,15 +83,20 @@ IF (
 	END
 
 
-	
-  UPDATE CTL.ControlStages SET StageName = 'Trusted to Curated' where ControlStageId = 3
+	/*************************************************************************
+	Post Deployment Update
+	If you need to update any data post deployment, please add the scripts below.
+	Please ensure that you check for column existence before you execute the script
+	as objects in the Post Deployment Scripts are not validated by compiler	
+	*************************************************************************/
 
-  UPDATE CTL.ControlTasks SET LoadToSqlEDW = 1 WHERE LoadToSqlEDW IS NULL
+	--Example Below to update the UseAuditTable column
+	/*
+	IF EXISTS(SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = 'CTL' AND TABLE_NAME = 'ControlSource' AND COLUMN_NAME = 'UseAuditTable')
+	BEGIN
+		UPDATE CTL.ControlSource SET UseAuditTable = 0 WHERE UseAuditTable IS NULL
+	END
+	*/
 
-  UPDATE CTL.ControlSource SET AdditionalProperty = '' WHERE AdditionalProperty IS NULL
-  UPDATE CTL.ControlSource SET SoftDeleteSource = '' WHERE SoftDeleteSource IS NULL
-  UPDATE CTL.ControlSource SET IsAuditTable = 0 WHERE IsAuditTable IS NULL
-  UPDATE CTL.ControlSource SET UseAuditTable = 0 WHERE UseAuditTable IS NULL
   
-
 GO

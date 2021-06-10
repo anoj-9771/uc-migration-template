@@ -23,14 +23,17 @@ WHERE NOT EXISTS (SELECT 1 FROM [CTL].[ControlStages] WHERE [StageName] = N'Sour
 INSERT INTO [CTL].[ControlStages] ([StageSequence], [StageName]) SELECT 200, N'Raw to Trusted'
 WHERE NOT EXISTS (SELECT 1 FROM [CTL].[ControlStages] WHERE [StageName] = N'Raw to Trusted')
 
-INSERT INTO [CTL].[ControlStages] ([StageSequence], [StageName]) SELECT 300, N'Trusted to Curated'
+INSERT INTO [CTL].[ControlStages] ([StageSequence], [StageName]) SELECT 300, N'Raw to Synapse'
+WHERE NOT EXISTS (SELECT 1 FROM [CTL].[ControlStages] WHERE [StageName] = N'Raw to Synapse')
+
+INSERT INTO [CTL].[ControlStages] ([StageSequence], [StageName]) SELECT 400, N'Trusted to Curated'
 WHERE NOT EXISTS (SELECT 1 FROM [CTL].[ControlStages] WHERE [StageName] = N'Trusted to Curated')
 
-INSERT INTO [CTL].[ControlStages] ([StageSequence], [StageName]) SELECT 400, N'Staging to DW'
-WHERE NOT EXISTS (SELECT 1 FROM [CTL].[ControlStages] WHERE [StageName] = N'Staging to DW')
+--INSERT INTO [CTL].[ControlStages] ([StageSequence], [StageName]) SELECT 500, N'Staging to DW'
+--WHERE NOT EXISTS (SELECT 1 FROM [CTL].[ControlStages] WHERE [StageName] = N'Staging to DW')
 
-INSERT INTO [CTL].[ControlStages] ([StageSequence], [StageName]) SELECT 500, N'DW Export'
-WHERE NOT EXISTS (SELECT 1 FROM [CTL].[ControlStages] WHERE [StageName] = N'DW Export')
+--INSERT INTO [CTL].[ControlStages] ([StageSequence], [StageName]) SELECT 600, N'DW Export'
+--WHERE NOT EXISTS (SELECT 1 FROM [CTL].[ControlStages] WHERE [StageName] = N'DW Export')
 
 
 
@@ -57,7 +60,6 @@ IF (
 		INSERT [CTL].[ControlTypes] ([TypeId], [ControlType]) VALUES (11, N'OData-Basic')
 		INSERT [CTL].[ControlTypes] ([TypeId], [ControlType]) VALUES (12, N'OData-AADServicePrincipal')
 		INSERT [CTL].[ControlTypes] ([TypeId], [ControlType]) VALUES (13, N'SharePoint')
-		INSERT [CTL].[ControlTypes] ([TypeId], [ControlType]) VALUES (14, N'API-TAFE')
 		INSERT [CTL].[ControlTypes] ([TypeId], [ControlType]) VALUES (15, N'API-General')
 		SET IDENTITY_INSERT [CTL].[ControlTypes] OFF
 	END

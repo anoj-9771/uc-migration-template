@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<DataSchemaModel FileFormatVersion="1.2" SchemaVersion="2.4" DspName="Microsoft.Data.Tools.Schema.Sql.SqlAzureV12DatabaseSchemaProvider" CollationLcid="1033" CollationCaseSensitive="False" xmlns="http://schemas.microsoft.com/sqlserver/dac/Serialization/2012/02">
+<DataSchemaModel FileFormatVersion="1.2" SchemaVersion="3.3" DspName="Microsoft.Data.Tools.Schema.Sql.SqlAzureV12DatabaseSchemaProvider" CollationLcid="1033" CollationCaseSensitive="False" xmlns="http://schemas.microsoft.com/sqlserver/dac/Serialization/2012/02">
 	<Header>
 		<CustomData Category="AnsiNulls">
 			<Metadata Name="AnsiNulls" Value="True" />
@@ -12,7 +12,7 @@
 		</CustomData>
 		<CustomData Category="Reference" Type="Assembly">
 			<Metadata Name="LogicalName" Value="CntrlDb.dll" />
-			<Metadata Name="FileName" Value="C:\USERS\RAGRAWAL\SOURCE\REPOS\INSIGHT\TAFE-BI\ADS-DATABASES\CNTRLDB\OBJ\DEBUG\CNTRLDB.DLL" />
+			<Metadata Name="FileName" Value="C:\USERS\ADM-FHASAN\DOCUMENTS\ESSENTIALENERGY\ADS\CNTRLDB\CNTRLDB\OBJ\DEBUG\CNTRLDB.DLL" />
 			<Metadata Name="AssemblyName" Value="CntrlDb" />
 			<Metadata Name="PermissionSet" Value="SAFE" />
 			<Metadata Name="Owner" Value="" />
@@ -20,7 +20,7 @@
 			<Metadata Name="IsVisible" Value="True" />
 			<Metadata Name="IsModelAware" Value="True" />
 			<Metadata Name="SkipCreationIfEmpty" Value="True" />
-			<Metadata Name="AssemblySymbolsName" Value="C:\Users\ragrawal\source\repos\Insight\TAFE-BI\ADS-Databases\CntrlDb\obj\Debug\CntrlDb.pdb" />
+			<Metadata Name="AssemblySymbolsName" Value="C:\Users\ADM-fhasan\Documents\EssentialEnergy\ADS\CntrlDb\CntrlDb\obj\Debug\CntrlDb.pdb" />
 		</CustomData>
 		<CustomData Category="SqlCmdVariables" Type="SqlCmdVariable" />
 	</Header>
@@ -37,6 +37,10 @@
 			<Property Name="PageVerifyMode" Value="3" />
 			<Property Name="DefaultLanguage" Value="" />
 			<Property Name="DefaultFullTextLanguage" Value="" />
+			<Property Name="QueryStoreDesiredState" Value="0" />
+			<Property Name="QueryStoreCaptureMode" Value="1" />
+			<Property Name="QueryStoreStaleQueryThreshold" Value="367" />
+			<Property Name="MaxDop" Value="0" />
 		</Element>
 		<Element Type="SqlSchema" Name="[CTL]">
 			<Relationship Name="Authorizer">
@@ -151,6 +155,79 @@
 				</Entry>
 			</Relationship>
 			<Annotation Type="SqlInlineConstraintAnnotation" Disambiguator="3" />
+		</Element>
+		<Element Type="SqlProcedure" Name="[CTL].[CheckFileExist]">
+			<Property Name="BodyScript">
+				<Value><![CDATA[
+
+SELECT count(1) as FileCount
+FROM [CTL].[ControlManifest]
+WHERE FolderName = @FolderName and
+      FileName = @FileName]]></Value>
+			</Property>
+			<Property Name="IsAnsiNullsOn" Value="True" />
+			<Relationship Name="BodyDependencies">
+				<Entry>
+					<References Name="[CTL].[ControlManifest]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlManifest].[FolderName]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[CheckFileExist].[@FolderName]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlManifest].[FileName]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[CheckFileExist].[@FileName]" />
+				</Entry>
+			</Relationship>
+			<Relationship Name="Parameters">
+				<Entry>
+					<Element Type="SqlSubroutineParameter" Name="[CTL].[CheckFileExist].[@FolderName]">
+						<Relationship Name="Type">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Property Name="Length" Value="1000" />
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[varchar]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlSubroutineParameter" Name="[CTL].[CheckFileExist].[@FileName]">
+						<Relationship Name="Type">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Property Name="Length" Value="1000" />
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[varchar]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+			</Relationship>
+			<Relationship Name="Schema">
+				<Entry>
+					<References Name="[CTL]" />
+				</Entry>
+			</Relationship>
+			<Annotation Type="SysCommentsObjectAnnotation">
+				<Property Name="Length" Value="228" />
+				<Property Name="StartLine" Value="1" />
+				<Property Name="StartColumn" Value="1" />
+				<Property Name="HeaderContents" Value="CREATE PROCEDURE [CTL].[CheckFileExist] (&#xD;&#xA;&#x9;@FolderName varchar(1000), &#xD;&#xA;&#x9;@FileName varchar(1000))&#xD;&#xA;AS" />
+			</Annotation>
 		</Element>
 		<Element Type="SqlProcedure" Name="[CTL].[ClearDB]">
 			<Property Name="BodyScript">
@@ -603,6 +680,218 @@ DBCC CHECKIDENT ('CTL.ControlWatermark',Reseed,0)]]></Value>
 			</Relationship>
 			<Annotation Type="SqlInlineConstraintAnnotation" Disambiguator="6" />
 		</Element>
+		<Element Type="SqlTable" Name="[CTL].[ControlDataLoadValidation]">
+			<Property Name="IsAnsiNullsOn" Value="True" />
+			<Relationship Name="Columns">
+				<Entry>
+					<Element Type="SqlSimpleColumn" Name="[CTL].[ControlDataLoadValidation].[DataValidationID]">
+						<Property Name="IsNullable" Value="False" />
+						<Property Name="IsIdentity" Value="True" />
+						<Relationship Name="TypeSpecifier">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[bigint]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlSimpleColumn" Name="[CTL].[ControlDataLoadValidation].[ProjectRunID]">
+						<Property Name="IsNullable" Value="False" />
+						<Relationship Name="TypeSpecifier">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Property Name="Length" Value="50" />
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[varchar]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlSimpleColumn" Name="[CTL].[ControlDataLoadValidation].[ObjectName]">
+						<Relationship Name="TypeSpecifier">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Property Name="Length" Value="255" />
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[varchar]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlSimpleColumn" Name="[CTL].[ControlDataLoadValidation].[SourceHighWatermark]">
+						<Relationship Name="TypeSpecifier">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Property Name="Length" Value="100" />
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[varchar]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlSimpleColumn" Name="[CTL].[ControlDataLoadValidation].[SourceRecordCount]">
+						<Relationship Name="TypeSpecifier">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[bigint]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlSimpleColumn" Name="[CTL].[ControlDataLoadValidation].[SourceTotalValue]">
+						<Relationship Name="TypeSpecifier">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[bigint]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlSimpleColumn" Name="[CTL].[ControlDataLoadValidation].[SourceMinValue]">
+						<Relationship Name="TypeSpecifier">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[bigint]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlSimpleColumn" Name="[CTL].[ControlDataLoadValidation].[SourceMaxValue]">
+						<Relationship Name="TypeSpecifier">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[bigint]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlSimpleColumn" Name="[CTL].[ControlDataLoadValidation].[TargetHighWatermark]">
+						<Relationship Name="TypeSpecifier">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Property Name="Length" Value="100" />
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[varchar]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlSimpleColumn" Name="[CTL].[ControlDataLoadValidation].[TargetRecordCount]">
+						<Relationship Name="TypeSpecifier">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[bigint]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlSimpleColumn" Name="[CTL].[ControlDataLoadValidation].[TargetTotalValue]">
+						<Relationship Name="TypeSpecifier">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[bigint]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlSimpleColumn" Name="[CTL].[ControlDataLoadValidation].[TargetMinValue]">
+						<Relationship Name="TypeSpecifier">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[bigint]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlSimpleColumn" Name="[CTL].[ControlDataLoadValidation].[TargetMaxValue]">
+						<Relationship Name="TypeSpecifier">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[bigint]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+			</Relationship>
+			<Relationship Name="Schema">
+				<Entry>
+					<References Name="[CTL]" />
+				</Entry>
+			</Relationship>
+		</Element>
 		<Element Type="SqlTable" Name="[CTL].[ControlManifest]">
 			<Property Name="IsAnsiNullsOn" Value="True" />
 			<Relationship Name="Columns">
@@ -750,6 +1039,7 @@ DBCC CHECKIDENT ('CTL.ControlWatermark',Reseed,0)]]></Value>
 				</Entry>
 				<Entry>
 					<Element Type="SqlSimpleColumn" Name="[CTL].[ControlManifest].[FileName]">
+						<Property Name="IsNullable" Value="False" />
 						<Relationship Name="TypeSpecifier">
 							<Entry>
 								<Element Type="SqlTypeSpecifier">
@@ -918,22 +1208,6 @@ DBCC CHECKIDENT ('CTL.ControlWatermark',Reseed,0)]]></Value>
 						</Relationship>
 					</Element>
 				</Entry>
-				<Entry>
-					<Element Type="SqlSimpleColumn" Name="[CTL].[ControlProjects].[TriggerName]">
-						<Relationship Name="TypeSpecifier">
-							<Entry>
-								<Element Type="SqlTypeSpecifier">
-									<Property Name="Length" Value="100" />
-									<Relationship Name="Type">
-										<Entry>
-											<References ExternalSource="BuiltIns" Name="[varchar]" />
-										</Entry>
-									</Relationship>
-								</Element>
-							</Entry>
-						</Relationship>
-					</Element>
-				</Entry>
 			</Relationship>
 			<Relationship Name="Schema">
 				<Entry>
@@ -994,6 +1268,37 @@ DBCC CHECKIDENT ('CTL.ControlWatermark',Reseed,0)]]></Value>
 						</Relationship>
 					</Element>
 				</Entry>
+				<Entry>
+					<Element Type="SqlSimpleColumn" Name="[CTL].[ControlProjectSchedule].[ControlStageID]">
+						<Relationship Name="TypeSpecifier">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[int]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlSimpleColumn" Name="[CTL].[ControlProjectSchedule].[TriggerName]">
+						<Relationship Name="TypeSpecifier">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Property Name="Length" Value="100" />
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[varchar]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
 			</Relationship>
 			<Relationship Name="Schema">
 				<Entry>
@@ -1001,6 +1306,43 @@ DBCC CHECKIDENT ('CTL.ControlWatermark',Reseed,0)]]></Value>
 				</Entry>
 			</Relationship>
 			<Annotation Type="SqlInlineConstraintAnnotation" Disambiguator="9" />
+		</Element>
+		<Element Type="SqlIndex" Name="[CTL].[ControlProjectSchedule].[IX_ControlProjectSchedule_Unique]">
+			<Property Name="IsUnique" Value="True" />
+			<Relationship Name="ColumnSpecifications">
+				<Entry>
+					<Element Type="SqlIndexedColumnSpecification">
+						<Relationship Name="Column">
+							<Entry>
+								<References Name="[CTL].[ControlProjectSchedule].[ControlProjectId]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlIndexedColumnSpecification">
+						<Relationship Name="Column">
+							<Entry>
+								<References Name="[CTL].[ControlProjectSchedule].[ControlStageID]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlIndexedColumnSpecification">
+						<Relationship Name="Column">
+							<Entry>
+								<References Name="[CTL].[ControlProjectSchedule].[TriggerName]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+			</Relationship>
+			<Relationship Name="IndexedObject">
+				<Entry>
+					<References Name="[CTL].[ControlProjectSchedule]" />
+				</Entry>
+			</Relationship>
 		</Element>
 		<Element Type="SqlTable" Name="[CTL].[ControlSource]">
 			<Property Name="IsAnsiNullsOn" Value="True" />
@@ -1191,6 +1533,22 @@ DBCC CHECKIDENT ('CTL.ControlWatermark',Reseed,0)]]></Value>
 									<Relationship Name="Type">
 										<Entry>
 											<References ExternalSource="BuiltIns" Name="[bit]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlSimpleColumn" Name="[CTL].[ControlSource].[ValidationColumn]">
+						<Relationship Name="TypeSpecifier">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Property Name="Length" Value="100" />
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[varchar]" />
 										</Entry>
 									</Relationship>
 								</Element>
@@ -1409,6 +1767,44 @@ DBCC CHECKIDENT ('CTL.ControlWatermark',Reseed,0)]]></Value>
 				</Entry>
 			</Relationship>
 			<Annotation Type="SqlInlineConstraintAnnotation" Disambiguator="13" />
+		</Element>
+		<Element Type="SqlIndex" Name="[CTL].[ControlStages].[IX_ControlStages_StageName]">
+			<Property Name="IsUnique" Value="True" />
+			<Relationship Name="ColumnSpecifications">
+				<Entry>
+					<Element Type="SqlIndexedColumnSpecification">
+						<Relationship Name="Column">
+							<Entry>
+								<References Name="[CTL].[ControlStages].[StageName]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+			</Relationship>
+			<Relationship Name="IndexedObject">
+				<Entry>
+					<References Name="[CTL].[ControlStages]" />
+				</Entry>
+			</Relationship>
+		</Element>
+		<Element Type="SqlIndex" Name="[CTL].[ControlStages].[IX_ControlStages_StageSequence]">
+			<Property Name="IsUnique" Value="True" />
+			<Relationship Name="ColumnSpecifications">
+				<Entry>
+					<Element Type="SqlIndexedColumnSpecification">
+						<Relationship Name="Column">
+							<Entry>
+								<References Name="[CTL].[ControlStages].[StageSequence]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+			</Relationship>
+			<Relationship Name="IndexedObject">
+				<Entry>
+					<References Name="[CTL].[ControlStages]" />
+				</Entry>
+			</Relationship>
 		</Element>
 		<Element Type="SqlTable" Name="[CTL].[ControlTarget]">
 			<Property Name="IsAnsiNullsOn" Value="True" />
@@ -2005,6 +2401,25 @@ DBCC CHECKIDENT ('CTL.ControlWatermark',Reseed,0)]]></Value>
 			</Relationship>
 			<Annotation Type="SqlInlineConstraintAnnotation" Disambiguator="25" />
 		</Element>
+		<Element Type="SqlIndex" Name="[CTL].[ControlTypes].[IX_ControlTypes_ControlType]">
+			<Property Name="IsUnique" Value="True" />
+			<Relationship Name="ColumnSpecifications">
+				<Entry>
+					<Element Type="SqlIndexedColumnSpecification">
+						<Relationship Name="Column">
+							<Entry>
+								<References Name="[CTL].[ControlTypes].[ControlType]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+			</Relationship>
+			<Relationship Name="IndexedObject">
+				<Entry>
+					<References Name="[CTL].[ControlTypes]" />
+				</Entry>
+			</Relationship>
+		</Element>
 		<Element Type="SqlTable" Name="[CTL].[ControlWatermark]">
 			<Property Name="IsAnsiNullsOn" Value="True" />
 			<Relationship Name="Columns">
@@ -2569,7 +2984,7 @@ BEGIN
 	RETURN
 END
 
-IF @DataLoadMode != 'TRUNCATE-LOAD' AND @BusinessKeyColumn = '' AND @StartStageName != 'Trusted to Curated'
+IF @DataLoadMode != 'TRUNCATE-LOAD' AND @BusinessKeyColumn = '' AND @StartStageName = 'Source to Raw'
 BEGIN
 	RAISERROR('Please specify a BusinessKeyColumn column when the data load mode is not TRUNCATE-LOAD', 16, 1) 
 	RETURN
@@ -2724,7 +3139,36 @@ begin
 			,@SoftDeleteSource
 	END	
 
+	if @currentStage IN ('Cubes', 'DW Export')
+	BEGIN
 
+		SET @TargetLocation = REPLACE(@SourceObjectName, '.', '_')
+
+		EXEC [CTL].[CreateTask] 
+			@SourceName
+			,@SourceObjectName
+			,@SourceTypeId
+			,'' --SourceSecretName
+			,@DBProcessor
+			,@TargetName
+			,@TargetLocation
+			,@SourceTypeId
+			,@SourceSecretName
+			,@counter
+			,@project
+			,@sourceTypeId
+			,@SourceCommand
+			,@DataLoadMode
+			,@DLObjectGrain
+			,@BusinessKeyColumn
+			,@WatermarkColumn
+			,@TrackChangeFlag
+			,@AdditionalProperty
+			,@LoadToSqlEDW
+			,@IsAuditTableFlag
+			,@SoftDeleteSource
+
+	END
 	set @counter += 1
 end]]></Value>
 			</Property>
@@ -3375,10 +3819,10 @@ end]]></Value>
 			</Relationship>
 			<Annotation Type="SysCommentsObjectAnnotation">
 				<Property Name="CreateOffset" Value="4" />
-				<Property Name="Length" Value="6533" />
+				<Property Name="Length" Value="7121" />
 				<Property Name="StartLine" Value="1" />
 				<Property Name="StartColumn" Value="1" />
-				<Property Name="HeaderContents" Value="&#xD;&#xA;&#xD;&#xA;CREATE PROC [CTL].[CreateSource] &#xD;&#xA;        @ProjectName&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@StartStageName&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@EndStageName&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@SourceName&#x9;&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@SourceObjectName&#x9; varchar(500),&#xD;&#xA;&#x9;&#x9;@SourceType&#x9;&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@DataLoadMode&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@SourceSecretName&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@DLRawSecret&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@DLStagedSecret&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@DBProcessor&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@StageDBSecret&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@DLRawSubFolder&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@DLRawType&#x9;&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@DLStagedMainFolder&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@DLStagedSubFolder&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@DLStagedType&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@DLObjectGrain&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@SourceCommand&#x9;&#x9; varchar(5000),&#xD;&#xA;&#x9;&#x9;@DLRawtoStageCommand varchar(5000),&#xD;&#xA;&#x9;&#x9;@DLStagetoDBCommand  varchar(5000),&#xD;&#xA;&#x9;&#x9;@TargetObjectType&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@TargetOverride&#x9;&#x9; varchar(150),&#xD;&#xA;&#x9;&#x9;@BusinessKeyColumn&#x9; varchar(150),&#xD;&#xA;&#x9;&#x9;@WatermarkColumn&#x9; varchar(150),&#xD;&#xA;&#x9;&#x9;@TrackChanges&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@AdditionalProperty&#x9; varchar(max),&#xD;&#xA;&#x9;&#x9;@IsAuditTable&#x9;&#x9; varchar(100) = '', --Add column to track if the table is a Audit Table&#xD;&#xA;&#x9;&#x9;@SoftDeleteSource&#x9; varchar(100) = '' --Add column to track if the table is a Audit Table&#xD;&#xA;&#xD;&#xA;as" />
+				<Property Name="HeaderContents" Value="&#xD;&#xA;&#xD;&#xA;CREATE PROC [CTL].[CreateSource] &#xD;&#xA;        @ProjectName&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@StartStageName&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@EndStageName&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@SourceName&#x9;&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@SourceObjectName&#x9; varchar(500),&#xD;&#xA;&#x9;&#x9;@SourceType&#x9;&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@DataLoadMode&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@SourceSecretName&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@DLRawSecret&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@DLStagedSecret&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@DBProcessor&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@StageDBSecret&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@DLRawSubFolder&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@DLRawType&#x9;&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@DLStagedMainFolder&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@DLStagedSubFolder&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@DLStagedType&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@DLObjectGrain&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@SourceCommand&#x9;&#x9; varchar(5000),&#xD;&#xA;&#x9;&#x9;@DLRawtoStageCommand varchar(5000),&#xD;&#xA;&#x9;&#x9;@DLStagetoDBCommand  varchar(5000),&#xD;&#xA;&#x9;&#x9;@TargetObjectType&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@TargetOverride&#x9;&#x9; varchar(150),&#xD;&#xA;&#x9;&#x9;@BusinessKeyColumn&#x9; varchar(150),&#xD;&#xA;&#x9;&#x9;@WatermarkColumn&#x9; varchar(150),&#xD;&#xA;&#x9;&#x9;@TrackChanges&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@AdditionalProperty&#x9; varchar(max),&#xD;&#xA;&#x9;&#x9;@IsAuditTable&#x9;&#x9; varchar(100) = '', --Add column to track if the table is a Audit Table&#xD;&#xA;&#x9;&#x9;@SoftDeleteSource&#x9; varchar(100) = '' --Name of the source to be used for Soft Delete&#xD;&#xA;as" />
 			</Annotation>
 		</Element>
 		<Element Type="SqlProcedure" Name="[CTL].[CreateTask]">
@@ -3391,6 +3835,9 @@ BEGIN
 
 	Begin Try
 	Begin Transaction
+
+		DECLARE @UseAuditTable INT
+		SET @UseAuditTable = 0 --The default value to UseAuditTable is False for now. If Audit Table is to be used, then set the value to 1 manually
 
 		--If the table is a Audit table, update the values for Audit Table
 		IF @IsAuditTable = 1
@@ -3408,8 +3855,8 @@ BEGIN
 		END
 
 		PRINT 'Adding record to ControlSource'
-		Insert Into CTL.ControlSource (SourceName, SourceTypeId, SourceLocation, LoadSource, SourceServer, Processor, BusinessKeyColumn, AdditionalProperty, IsAuditTable, SoftDeleteSource) 
-		Values(@SourceName, @SourceTypeId, @SourceLocation, 1, @SourceServer, @Processor, @BusinessKeyColumn, @AdditionalProperty, @IsAuditTable, @SoftDeleteSource)
+		Insert Into CTL.ControlSource (SourceName, SourceTypeId, SourceLocation, LoadSource, SourceServer, Processor, BusinessKeyColumn, AdditionalProperty, IsAuditTable, SoftDeleteSource, UseAuditTable) 
+		Values(@SourceName, @SourceTypeId, @SourceLocation, 1, @SourceServer, @Processor, @BusinessKeyColumn, @AdditionalProperty, @IsAuditTable, @SoftDeleteSource, @UseAuditTable)
 		Select @SourceId = @@IDENTITY
 
 		PRINT 'Adding record to ControlTarget'
@@ -3446,6 +3893,14 @@ BEGIN
 			VALUES (@SourceId, @WatermarkColumn, @WatermarkColumn, '2000-01-01 00:00:00', @SourceName)
 		END
 
+		IF NOT EXISTS(SELECT 1 FROM CTL.ControlProjectSchedule WHERE ControlProjectId = @ProjectId AND ControlStageID = @StageId)
+		BEGIN
+			DECLARE @ProjectName varchar(100)
+			SELECT @ProjectName = ProjectName FROM CTL.ControlProjects WHERE ProjectId = @ProjectId
+			--If the Project Schedule does not exist, add a default schedule entry
+			INSERT INTO CTL.ControlProjectSchedule (ControlProjectId, ControlStageID, TriggerName) VALUES (@ProjectId, @StageId, @ProjectName)
+		END
+
 
 	Commit
 	End Try
@@ -3470,6 +3925,12 @@ END]]></Value>
 				</Entry>
 				<Entry>
 					<References ExternalSource="BuiltIns" Name="[bigint]" />
+				</Entry>
+				<Entry>
+					<References ExternalSource="BuiltIns" Name="[int]" />
+				</Entry>
+				<Entry>
+					<References ExternalSource="BuiltIns" Name="[varchar]" />
 				</Entry>
 				<Entry>
 					<References ExternalSource="BuiltIns" Name="[varchar]" />
@@ -3539,6 +4000,9 @@ END]]></Value>
 				</Entry>
 				<Entry>
 					<References Name="[CTL].[ControlSource].[SoftDeleteSource]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlSource].[UseAuditTable]" />
 				</Entry>
 				<Entry>
 					<References Name="[CTL].[CreateTask].[@SourceName]" />
@@ -3670,6 +4134,33 @@ END]]></Value>
 				</Entry>
 				<Entry>
 					<References Name="[CTL].[ControlWatermark].[SourceName]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlProjectSchedule]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlProjectSchedule].[ControlProjectId]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlProjectSchedule].[ControlStageID]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlProjects]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlProjects].[ProjectName]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlProjects].[ProjectId]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlProjectSchedule].[ControlProjectId]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlProjectSchedule].[ControlStageID]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlProjectSchedule].[TriggerName]" />
 				</Entry>
 			</Relationship>
 			<Relationship Name="Parameters">
@@ -4091,7 +4582,7 @@ END]]></Value>
 			</Relationship>
 			<Annotation Type="SysCommentsObjectAnnotation">
 				<Property Name="CreateOffset" Value="8" />
-				<Property Name="Length" Value="3749" />
+				<Property Name="Length" Value="4439" />
 				<Property Name="StartLine" Value="1" />
 				<Property Name="StartColumn" Value="1" />
 				<Property Name="HeaderContents" Value="&#xD;&#xA;&#xD;&#xA;&#xD;&#xA;&#xD;&#xA;CREATE Procedure [CTL].[CreateTask] &#xD;&#xA;&#x9;@SourceName Varchar(255) = '',&#xD;&#xA;    @SourceLocation Varchar(255) = '',&#xD;&#xA;&#x9;@SourceTypeId BigInt = 2,  &#xD;&#xA;&#x9;@SourceServer varchar(255) = '',&#xD;&#xA;&#x9;@Processor varchar(255) = '',&#xD;&#xA;&#x9;@TargetName Varchar(255) = '',&#xD;&#xA;&#x9;@TargetLocation Varchar(255) = '',&#xD;&#xA;&#x9;@TargetTypeId BigInt = 4,&#xD;&#xA;&#x9;@TargetServer varchar(255)= '',&#xD;&#xA;&#x9;@StageId BigInt = 2,&#xD;&#xA;&#x9;@ProjectId BigInt = 1,&#xD;&#xA;&#x9;@CommandType int = 1,&#xD;&#xA;&#x9;@Command varchar(max)= '',&#xD;&#xA;&#x9;@DataLoadMode varchar(100) = '',&#xD;&#xA;&#x9;@Grain varchar(30) = '',&#xD;&#xA;&#x9;@BusinessKeyColumn varchar(100) = '',&#xD;&#xA;&#x9;@WatermarkColumn varchar(100) = '',&#xD;&#xA;&#x9;@TrackChangeFlag bit = 0,&#xD;&#xA;&#x9;@AdditionalProperty&#x9;varchar(max) = '', &#xD;&#xA;&#x9;@LoadToSqlEDW BIT = 0,&#xD;&#xA;&#x9;@IsAuditTable BIT = 0,&#xD;&#xA;&#x9;@SoftDeleteSource varchar(100) = ''&#xD;&#xA;&#xD;&#xA;As" />
@@ -4827,7 +5318,7 @@ DECLARE @StageID int = 1
 DECLARE @ProjectID bigint
 DECLARE @TaskID bigint, @SourceID bigint, @TargetID bigint
 
-WHILE @StageID <= 4
+WHILE @StageID <= 5
 BEGIN
 	SELECT @ProjectID = ProjectID FROM CTL.ControlProjects WHERE ProjectName = @ProjectName
 
@@ -5591,36 +6082,67 @@ END
 			<Property Name="BodyScript">
 				<Value><![CDATA[
 
-Select ControlStageId, StageName
-From CTL.ControlStages
-Where ControlStageId In (Select Distinct ControlStageId From CTL.ControlTasks Where TaskEnabled = 1 and ProjectId = @ProjectId)
-Order By StageSequence]]></Value>
+SELECT DISTINCT 
+	PS.ControlProjectId AS ProjectId, 
+	PS.ControlStageId,
+	S.StageName,
+	S.StageSequence
+FROM CTL.ControlProjectSchedule PS
+INNER JOIN CTL.ControlStages S ON PS.ControlStageID = S.ControlStageId
+AND PS.ControlProjectId = @ProjectID
+AND PS.TriggerName = @TriggerName
+AND EXISTS (SELECT 1 FROM CTL.ControlTasks T WHERE T.ProjectId = PS.ControlProjectId AND T.ControlStageId = S.ControlStageId)
+ORDER BY S.StageSequence]]></Value>
 			</Property>
 			<Property Name="IsAnsiNullsOn" Value="True" />
 			<Relationship Name="BodyDependencies">
 				<Entry>
+					<References Name="[CTL].[ControlProjectSchedule]" />
+				</Entry>
+				<Entry>
 					<References Name="[CTL].[ControlStages]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlProjectSchedule].[ControlStageID]" />
 				</Entry>
 				<Entry>
 					<References Name="[CTL].[ControlStages].[ControlStageId]" />
 				</Entry>
 				<Entry>
-					<References Name="[CTL].[ControlStages].[StageName]" />
+					<References Name="[CTL].[ControlProjectSchedule].[ControlProjectId]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[GetExecutionStages].[@ProjectId]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlProjectSchedule].[TriggerName]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[GetExecutionStages].[@TriggerName]" />
 				</Entry>
 				<Entry>
 					<References Name="[CTL].[ControlTasks]" />
 				</Entry>
 				<Entry>
-					<References Name="[CTL].[ControlTasks].[ControlStageId]" />
-				</Entry>
-				<Entry>
-					<References Name="[CTL].[ControlTasks].[TaskEnabled]" />
-				</Entry>
-				<Entry>
 					<References Name="[CTL].[ControlTasks].[ProjectId]" />
 				</Entry>
 				<Entry>
-					<References Name="[CTL].[GetExecutionStages].[@ProjectId]" />
+					<References Name="[CTL].[ControlProjectSchedule].[ControlProjectId]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlTasks].[ControlStageId]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlStages].[ControlStageId]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlProjectSchedule].[ControlProjectId]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlProjectSchedule].[ControlStageID]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlStages].[StageName]" />
 				</Entry>
 				<Entry>
 					<References Name="[CTL].[ControlStages].[StageSequence]" />
@@ -5642,6 +6164,22 @@ Order By StageSequence]]></Value>
 						</Relationship>
 					</Element>
 				</Entry>
+				<Entry>
+					<Element Type="SqlSubroutineParameter" Name="[CTL].[GetExecutionStages].[@TriggerName]">
+						<Relationship Name="Type">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Property Name="Length" Value="100" />
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[varchar]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
 			</Relationship>
 			<Relationship Name="Schema">
 				<Entry>
@@ -5650,10 +6188,10 @@ Order By StageSequence]]></Value>
 			</Relationship>
 			<Annotation Type="SysCommentsObjectAnnotation">
 				<Property Name="CreateOffset" Value="44" />
-				<Property Name="Length" Value="319" />
+				<Property Name="Length" Value="586" />
 				<Property Name="StartLine" Value="1" />
 				<Property Name="StartColumn" Value="1" />
-				<Property Name="HeaderContents" Value="&#xD;&#xA;&#xD;&#xA;-- EXEC [CTL].[getExecutionStages] 1&#xD;&#xA;&#xD;&#xA;Create Proc [CTL].[GetExecutionStages] (@ProjectId BigInt)&#xD;&#xA;As" />
+				<Property Name="HeaderContents" Value="&#xD;&#xA;&#xD;&#xA;-- EXEC [CTL].[getExecutionStages] 1&#xD;&#xA;&#xD;&#xA;CREATE Proc [CTL].[GetExecutionStages] (&#xD;&#xA;&#x9;@ProjectId BigInt,&#xD;&#xA;&#x9;@TriggerName VARCHAR(100)&#xD;&#xA;&#x9;)&#xD;&#xA;As" />
 			</Annotation>
 		</Element>
 		<Element Type="SqlProcedure" Name="[CTL].[GetExecutionTasks]">
@@ -5672,6 +6210,7 @@ Select
 	src.IsAuditTable,
 	ISNULL(Audit.SourceName, '') AS SoftDeleteSource,
 	p.ProjectName,
+	p.ProjectId,
 	ttyp.ControlType TargetType, 
 	targ.TargetName, 
 	targ.TargetLocation, 
@@ -5906,6 +6445,9 @@ Select *
 					<References Name="[CTL].[ControlProjects].[ProjectName]" />
 				</Entry>
 				<Entry>
+					<References Name="[CTL].[ControlProjects].[ProjectId]" />
+				</Entry>
+				<Entry>
 					<References Name="[CTL].[ControlTypes].[ControlType]" />
 				</Entry>
 				<Entry>
@@ -6110,6 +6652,15 @@ Select *
 									<Relationship Name="ExpressionDependencies">
 										<Entry>
 											<References Name="[CTL].[ControlProjects].[ProjectName]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+							<Entry>
+								<Element Type="SqlComputedColumn" Name="[CTL].[GetExecutionTasks].[CTE1].[allTasks].[ProjectId]">
+									<Relationship Name="ExpressionDependencies">
+										<Entry>
+											<References Name="[CTL].[ControlProjects].[ProjectId]" />
 										</Entry>
 									</Relationship>
 								</Element>
@@ -6406,7 +6957,7 @@ Select *
 			</Relationship>
 			<Annotation Type="SysCommentsObjectAnnotation">
 				<Property Name="CreateOffset" Value="45" />
-				<Property Name="Length" Value="3867" />
+				<Property Name="Length" Value="3882" />
 				<Property Name="StartLine" Value="1" />
 				<Property Name="StartColumn" Value="1" />
 				<Property Name="HeaderContents" Value="&#xD;&#xA;&#xD;&#xA;&#xD;&#xA;&#xD;&#xA;&#xD;&#xA;--[CTL].[getExecutionTasks] 1,1&#xD;&#xA;&#xD;&#xA;CREATE Procedure [CTL].[GetExecutionTasks] (@StageId BigInt, @ProjectId BigInt)&#xD;&#xA;As" />
@@ -6747,30 +7298,47 @@ SELECT [BatchExecutionLogID]
 			<Property Name="BodyScript">
 				<Value><![CDATA[
 
+--Get List of ProjectID for which Triggers have been configured
+SELECT DISTINCT 
+	P.ProjectId
+	,P.ProjectName
+FROM CTL.ControlProjectSchedule S
+INNER JOIN CTL.ControlProjects P ON S.ControlProjectId = P.ProjectId
+AND P.Enabled = 1
+AND S.TriggerName = @TriggerName
+
+/*
 SELECT ProjectId as ControlProjectID, ProjectName
 FROM CTL.ControlProjects
 WHERE Enabled = 1
-AND TriggerName = @TriggerName]]></Value>
+AND TriggerName = @TriggerName
+*/]]></Value>
 			</Property>
 			<Property Name="IsAnsiNullsOn" Value="True" />
 			<Relationship Name="BodyDependencies">
 				<Entry>
+					<References Name="[CTL].[ControlProjectSchedule]" />
+				</Entry>
+				<Entry>
 					<References Name="[CTL].[ControlProjects]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlProjectSchedule].[ControlProjectId]" />
 				</Entry>
 				<Entry>
 					<References Name="[CTL].[ControlProjects].[ProjectId]" />
 				</Entry>
 				<Entry>
-					<References Name="[CTL].[ControlProjects].[ProjectName]" />
-				</Entry>
-				<Entry>
 					<References Name="[CTL].[ControlProjects].[Enabled]" />
 				</Entry>
 				<Entry>
-					<References Name="[CTL].[ControlProjects].[TriggerName]" />
+					<References Name="[CTL].[ControlProjectSchedule].[TriggerName]" />
 				</Entry>
 				<Entry>
 					<References Name="[CTL].[GetProjects].[@TriggerName]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlProjects].[ProjectName]" />
 				</Entry>
 			</Relationship>
 			<Relationship Name="Parameters">
@@ -6797,7 +7365,7 @@ AND TriggerName = @TriggerName]]></Value>
 				</Entry>
 			</Relationship>
 			<Annotation Type="SysCommentsObjectAnnotation">
-				<Property Name="Length" Value="203" />
+				<Property Name="Length" Value="485" />
 				<Property Name="StartLine" Value="1" />
 				<Property Name="StartColumn" Value="1" />
 				<Property Name="HeaderContents" Value="CREATE PROCEDURE [CTL].[GetProjects] (&#xD;&#xA;&#x9;@TriggerName varchar(100)&#xD;&#xA;)&#xD;&#xA;As" />
@@ -6902,6 +7470,24 @@ Select t.ControlProjectId, t.ProjectName, format(t.ExecutionTime, 'HH:mm:ss')
 									<Relationship Name="ExpressionDependencies">
 										<Entry>
 											<References Name="[CTL].[ControlProjectSchedule].[CronExpression]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+							<Entry>
+								<Element Type="SqlComputedColumn" Name="[CTL].[GetProjectSchedule].[CTE1].[times].[ControlStageID]">
+									<Relationship Name="ExpressionDependencies">
+										<Entry>
+											<References Name="[CTL].[ControlProjectSchedule].[ControlStageID]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+							<Entry>
+								<Element Type="SqlComputedColumn" Name="[CTL].[GetProjectSchedule].[CTE1].[times].[TriggerName]">
+									<Relationship Name="ExpressionDependencies">
+										<Entry>
+											<References Name="[CTL].[ControlProjectSchedule].[TriggerName]" />
 										</Entry>
 									</Relationship>
 								</Element>
@@ -7265,6 +7851,248 @@ end]]></Value>
 				<Property Name="StartLine" Value="1" />
 				<Property Name="StartColumn" Value="1" />
 				<Property Name="HeaderContents" Value="CREATE proc [CTL].[GetStorageFileName] (&#xD;&#xA;&#x9;@FolderName varchar(255)&#xD;&#xA;&#x9;,@FileName varchar(255)&#xD;&#xA;&#x9;,@Grain varchar(30)&#xD;&#xA;&#x9;,@DeltaExtract bit&#xD;&#xA;&#x9;,@TargetType varchar(255)&#xD;&#xA;&#x9;,@Compressed bit = 1)&#xD;&#xA;as" />
+			</Annotation>
+		</Element>
+		<Element Type="SqlProcedure" Name="[CTL].[GetTableDetails]">
+			<Property Name="BodyScript">
+				<Value><![CDATA[
+
+BEGIN
+
+--DECLARE @SourceId BIGINT = 1008
+--DECLARE @ValidationType varchar(10) = 'TARGET'
+
+DECLARE @SQL Varchar(2000) = 'SELECT ',
+		@TableName Varchar(255) = ' FROM '
+
+
+DECLARE @DataLoadMode varchar(100)
+DECLARE @SourceType varchar(100)
+DECLARE @SourceTable varchar(100)
+DECLARE @SourceColumn varchar(100)
+DECLARE @ValidationColumn varchar(100)
+DECLARE @SourceName varchar(100)
+DECLARE @NULLFunction varchar(100), @DATEFunction varchar(100), @DATEFormat varchar(100)
+
+
+SELECT 
+	@DataLoadMode = CT.DataLoadMode 
+	,@SourceType = T.ControlType
+	,@SourceTable = CS.SourceLocation
+	,@SourceColumn = W.SourceColumn
+	,@ValidationColumn = CS.ValidationColumn
+	,@SourceName = CS.SourceName
+FROM CTL.ControlTasks CT 
+LEFT JOIN CTL.ControlSource CS ON CT.SourceId = CS.SourceId
+LEFT JOIN CTL.ControlTypes T ON CS.SourceTypeId = T.TypeId
+LEFT JOIN CTL.ControlWatermark W ON W.ControlSourceId = CS.SourceId
+WHERE CS.SourceId = @SourceId
+
+SET @NULLFunction = 'ISNULL'
+SET @DATEFunction = 'FORMAT'
+SET @DATEFormat = '''yyyy-MM-dd HH:mm:ss'''
+
+
+IF @ValidationType = 'SOURCE'
+BEGIN
+	IF @SourceType = 'Oracle'
+	BEGIN
+		SET @NULLFunction = 'NVL'
+		SET @DATEFunction = 'TO_CHAR'
+		SET @DATEFormat = '''YYYY-MM-DD HH24:MI:SS'''
+	END
+END
+
+
+
+
+IF @DataLoadMode = 'CDC'
+	BEGIN
+		SELECT @SQL = 'SELECT ''UPPER([__$start_lsn])'' AS SourceColumn, upper(sys.fn_varbintohexstr(sys.fn_cdc_get_max_lsn())) AS ReturnValue, sys.fn_cdc_map_lsn_to_time(sys.fn_cdc_get_max_lsn()) AS ReturnTime'
+	END
+ELSE
+	BEGIN
+		SET @TableName = @TableName + @SourceTable
+		DECLARE @COL varchar(100)
+		SET @COL = [CTL].[udf_GetMultiColFilterClause](@SourceColumn, @SourceColumn)
+		SET @COL = [CTL].[udf_GetMultiColFilterClause](@COL, @SourceType)
+
+		SET @SQL = @SQL + '''' + @COL + ''' As SourceColumn'
+		SET @SQL = @SQL + ', ' + @DATEFunction + '(MAX(' + @COL + '), ' + @DATEFormat + ') As ReturnValue'
+
+		SET @SQL = @SQL + ', COUNT(1) AS RecordCount'
+
+		IF @ValidationColumn <> ''
+		BEGIN
+			SET @SQL = @SQL + ', SUM(' + @NULLFunction + '(' + @ValidationColumn + ',0)) AS TotalValue'
+			SET @SQL = @SQL + ', MAX(' + @NULLFunction + '(' + @ValidationColumn + ',0)) AS MaxValue'
+			SET @SQL = @SQL + ', MIN(' + @NULLFunction + '(' + @ValidationColumn + ',0)) AS MinValue'
+		END
+		ELSE
+		BEGIN
+			SET @SQL = @SQL + ', 0 AS TotalValue'
+			SET @SQL = @SQL + ', 0 AS MaxValue'
+			SET @SQL = @SQL + ', 0 AS MinValue'
+		END
+
+		SET @SQL = @SQL + ', ''' + @ValidationType + ''' AS ValidationType'
+
+		IF UPPER(@ValidationType) = 'SOURCE'
+			SET @SQL = @SQL + @TableName
+		ELSE
+		BEGIN
+			SET @SQL = @SQL + ' FROM ' + 'edw.' + @SourceName + ' WHERE _RecordCurrent = 1 AND _RecordDeleted = 0'
+		END
+
+
+	END
+
+SELECT @SQL SQLStatement
+
+END]]></Value>
+			</Property>
+			<Property Name="IsAnsiNullsOn" Value="True" />
+			<Relationship Name="BodyDependencies">
+				<Entry>
+					<References ExternalSource="BuiltIns" Name="[varchar]" />
+				</Entry>
+				<Entry>
+					<References ExternalSource="BuiltIns" Name="[varchar]" />
+				</Entry>
+				<Entry>
+					<References ExternalSource="BuiltIns" Name="[varchar]" />
+				</Entry>
+				<Entry>
+					<References ExternalSource="BuiltIns" Name="[varchar]" />
+				</Entry>
+				<Entry>
+					<References ExternalSource="BuiltIns" Name="[varchar]" />
+				</Entry>
+				<Entry>
+					<References ExternalSource="BuiltIns" Name="[varchar]" />
+				</Entry>
+				<Entry>
+					<References ExternalSource="BuiltIns" Name="[varchar]" />
+				</Entry>
+				<Entry>
+					<References ExternalSource="BuiltIns" Name="[varchar]" />
+				</Entry>
+				<Entry>
+					<References ExternalSource="BuiltIns" Name="[varchar]" />
+				</Entry>
+				<Entry>
+					<References ExternalSource="BuiltIns" Name="[varchar]" />
+				</Entry>
+				<Entry>
+					<References ExternalSource="BuiltIns" Name="[varchar]" />
+				</Entry>
+				<Entry>
+					<References ExternalSource="BuiltIns" Name="[varchar]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlTasks]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlSource]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlTasks].[SourceId]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlSource].[SourceId]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlTypes]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlSource].[SourceTypeId]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlTypes].[TypeId]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlWatermark]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlWatermark].[ControlSourceId]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlSource].[SourceId]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlTasks].[DataLoadMode]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlTypes].[ControlType]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlSource].[SourceLocation]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlWatermark].[SourceColumn]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlSource].[ValidationColumn]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlSource].[SourceName]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[GetTableDetails].[@SourceId]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[GetTableDetails].[@ValidationType]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[udf_GetMultiColFilterClause]" />
+				</Entry>
+			</Relationship>
+			<Relationship Name="Parameters">
+				<Entry>
+					<Element Type="SqlSubroutineParameter" Name="[CTL].[GetTableDetails].[@SourceId]">
+						<Relationship Name="Type">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[bigint]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlSubroutineParameter" Name="[CTL].[GetTableDetails].[@ValidationType]">
+						<Property Name="DefaultExpressionScript">
+							<Value><![CDATA['SOURCE']]></Value>
+						</Property>
+						<Relationship Name="Type">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Property Name="Length" Value="10" />
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[varchar]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+			</Relationship>
+			<Relationship Name="Schema">
+				<Entry>
+					<References Name="[CTL]" />
+				</Entry>
+			</Relationship>
+			<Annotation Type="SysCommentsObjectAnnotation">
+				<Property Name="Length" Value="2880" />
+				<Property Name="StartLine" Value="1" />
+				<Property Name="StartColumn" Value="1" />
+				<Property Name="HeaderContents" Value="CREATE Procedure [CTL].[GetTableDetails] (&#xD;&#xA;&#x9;@SourceId BigInt&#xD;&#xA;&#x9;,@ValidationType varchar(10) = 'SOURCE'&#xD;&#xA;)&#xD;&#xA;As" />
 			</Annotation>
 		</Element>
 		<Element Type="SqlProcedure" Name="[CTL].[GetWatemarkSQL]">
@@ -7815,6 +8643,15 @@ END]]></Value>
 						</Relationship>
 					</Element>
 				</Entry>
+				<Entry>
+					<Element Type="SqlIndexedColumnSpecification">
+						<Relationship Name="Column">
+							<Entry>
+								<References Name="[CTL].[ControlManifest].[FileName]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
 			</Relationship>
 			<Relationship Name="DefiningTable">
 				<Entry>
@@ -7841,6 +8678,250 @@ END]]></Value>
 				</Entry>
 			</Relationship>
 			<Annotation Type="SqlInlineConstraintAnnotation" Disambiguator="30" />
+		</Element>
+		<Element Type="SqlProcedure" Name="[CTL].[RecordDataValidation]">
+			<Property Name="BodyScript">
+				<Value><![CDATA[
+
+IF UPPER(@ValidationType) = 'SOURCE'
+BEGIN
+
+	INSERT INTO CTL.ControlDataLoadValidation (
+		ProjectRunID
+		,ObjectName
+		,SourceHighWatermark
+		,SourceRecordCount
+		,SourceTotalValue
+		,SourceMinValue
+		,SourceMaxValue)
+	VALUES (
+		@ProjectRunID
+		,@ObjectName
+		,@HighWatermark
+		,@RecordCount
+		,@TotalValue
+		,@MinValue
+		,@MaxValue)
+
+END
+ELSE
+BEGIN
+	UPDATE CTL.ControlDataLoadValidation
+	SET TargetHighWatermark = @HighWatermark
+	,TargetRecordCount = @RecordCount
+	,TargetTotalValue = @TotalValue
+	,TargetMinValue = @MinValue 
+	,TargetMaxValue = @MaxValue
+
+	WHERE ProjectRunID = @ProjectRunID
+	AND ObjectName = @ObjectName
+
+END]]></Value>
+			</Property>
+			<Property Name="IsAnsiNullsOn" Value="True" />
+			<Relationship Name="BodyDependencies">
+				<Entry>
+					<References Name="[CTL].[RecordDataValidation].[@ValidationType]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlDataLoadValidation]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlDataLoadValidation].[ProjectRunID]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlDataLoadValidation].[ObjectName]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlDataLoadValidation].[SourceHighWatermark]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlDataLoadValidation].[SourceRecordCount]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlDataLoadValidation].[SourceTotalValue]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlDataLoadValidation].[SourceMinValue]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlDataLoadValidation].[SourceMaxValue]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[RecordDataValidation].[@ProjectRunID]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[RecordDataValidation].[@ObjectName]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[RecordDataValidation].[@HighWatermark]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[RecordDataValidation].[@RecordCount]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[RecordDataValidation].[@TotalValue]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[RecordDataValidation].[@MinValue]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[RecordDataValidation].[@MaxValue]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlDataLoadValidation].[TargetHighWatermark]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlDataLoadValidation].[TargetRecordCount]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlDataLoadValidation].[TargetTotalValue]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlDataLoadValidation].[TargetMinValue]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlDataLoadValidation].[TargetMaxValue]" />
+				</Entry>
+			</Relationship>
+			<Relationship Name="Parameters">
+				<Entry>
+					<Element Type="SqlSubroutineParameter" Name="[CTL].[RecordDataValidation].[@ProjectRunID]">
+						<Relationship Name="Type">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Property Name="Length" Value="50" />
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[varchar]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlSubroutineParameter" Name="[CTL].[RecordDataValidation].[@ObjectName]">
+						<Relationship Name="Type">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Property Name="Length" Value="255" />
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[varchar]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlSubroutineParameter" Name="[CTL].[RecordDataValidation].[@ValidationType]">
+						<Relationship Name="Type">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Property Name="Length" Value="10" />
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[varchar]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlSubroutineParameter" Name="[CTL].[RecordDataValidation].[@HighWatermark]">
+						<Relationship Name="Type">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Property Name="Length" Value="100" />
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[varchar]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlSubroutineParameter" Name="[CTL].[RecordDataValidation].[@RecordCount]">
+						<Relationship Name="Type">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[bigint]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlSubroutineParameter" Name="[CTL].[RecordDataValidation].[@TotalValue]">
+						<Relationship Name="Type">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[bigint]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlSubroutineParameter" Name="[CTL].[RecordDataValidation].[@MinValue]">
+						<Relationship Name="Type">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[bigint]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlSubroutineParameter" Name="[CTL].[RecordDataValidation].[@MaxValue]">
+						<Relationship Name="Type">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[bigint]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+			</Relationship>
+			<Relationship Name="Schema">
+				<Entry>
+					<References Name="[CTL]" />
+				</Entry>
+			</Relationship>
+			<Annotation Type="SysCommentsObjectAnnotation">
+				<Property Name="CreateOffset" Value="2" />
+				<Property Name="Length" Value="924" />
+				<Property Name="StartLine" Value="1" />
+				<Property Name="StartColumn" Value="1" />
+				<Property Name="HeaderContents" Value="&#xD;&#xA;CREATE PROCEDURE [CTL].[RecordDataValidation] (&#xD;&#xA;&#x9;@ProjectRunID varchar(50),&#xD;&#xA;&#x9;@ObjectName varchar(255),&#xD;&#xA;&#x9;@ValidationType varchar(10),&#xD;&#xA;&#x9;@HighWatermark varchar(100),&#xD;&#xA;&#x9;@RecordCount bigint,&#xD;&#xA;&#x9;@TotalValue bigint,&#xD;&#xA;&#x9;@MinValue bigint,&#xD;&#xA;&#x9;@MaxValue bigint)&#xD;&#xA;AS" />
+			</Annotation>
 		</Element>
 		<Element Type="SqlProcedure" Name="[CTL].[ResetLogs]">
 			<Property Name="BodyScript">
