@@ -45,6 +45,6 @@ variables:
   # Used to set DataFactory deployability
   - name: datafactory
     value: true
-  # Use to set Synapse Analytics worksspace deployability
+  # Use to set Synapse Analytics worksspace deployability.
   - name: synapseanalyticsworkspace
     value: true
