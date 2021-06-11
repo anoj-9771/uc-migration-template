@@ -1,0 +1,46 @@
+variables:
+  # Used in service naming
+  - name: prefix
+    value: staubswc
+  # The default resource group region name
+  - name: location
+    value: australiaeast
+  # environment name used in service naming
+  - name: environment
+    value: dev
+  # Resource group name
+  - name: resourcegroupname
+    value: rg-swcnonprod01-daf-dev-01
+  # username for SQL Server Control DB
+  - name: azuresqlserverun
+    value: sqladmin
+  # Name of the service connection in Azure Devops
+  - name: azdoresourceconnection
+    value: azure-rg-dev-serviceconnection
+  # The service principal object ID (Not App ID)... Use 'az ad sp show --id <<app-id>> --query "objectId" -o tsv'
+  - name: spobjectid
+    value: 5f94952e-aed6-47c0-8db3-a5e464f71e30
+  # Store account type for BLOB Storage e.g. Standard_LRS)
+  - name: storageAccountType
+    value: Standard_LRS
+  # Tagging.
+  - name: applytags
+    value: false
+  - name: tags
+    value: CostCenter=DataAndAI \
+          Environment=NonProduction \
+          Owner=jackson.staub@insight.com
+  # ------------------------------------------------
+  # Service names for environment
+  # ------------------------------------------------
+  # Name of Azure SQL Server and EDW Database
+  - name: azuresqlservername
+    value: ${{ lower(variables.prefix) }}-${{ lower(variables.environment) }}-asql
+  - name: azureedwdbname
+    value: EDW
+  # Name of key vault for this environment
+  - name: azurekeyvaultname
+    value: $(PREFIX)-$(ENVIRONMENT)-AKV
+  # Setup secret rotation interval in days
+  - name: secretrotationinterval 
+    value: 30
