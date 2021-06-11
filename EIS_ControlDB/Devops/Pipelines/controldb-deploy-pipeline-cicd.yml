@@ -5,21 +5,18 @@ pr:
     include:
     - main
     - develop
-
   paths:
     include:
     - ControlDB/*
 
-trigger: 
- branches:
-   include:
-   - main
-   - develop
-   - integration
-   - acceptance
-  paths:
-    include:
-    - ControlDB/ControlDB.sln
+# trigger: 
+#  branches:
+#    include:
+#    - main
+#    - develop
+#   paths:
+#     include:
+#     - ControlDB/ControlDB.sln
 
 pool:
   vmImage: ubuntu-latest
