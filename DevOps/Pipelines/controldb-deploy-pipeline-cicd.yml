@@ -7,7 +7,7 @@ pr:
     - develop
   paths:
     include:
-    - ControlDB/*
+    - CntrlDB/*
 
 trigger:
   branches:
@@ -16,7 +16,7 @@ trigger:
     - develop
   paths:
     include:
-    - ControlDB/ControlDB.sln
+    - CntrlDB/CntrlDB.sln
 
 pool:
   vmImage: ubuntu-latest

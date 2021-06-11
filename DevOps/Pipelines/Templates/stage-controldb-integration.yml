@@ -51,7 +51,7 @@ stages:
       inputs:
         azureSubscription: ${{ variables.azdoresourceconnection }}
         ServerName: '$(AZURESQLSERVERNAME).database.windows.net'
-        DatabaseName: ControlDB
+        DatabaseName: CntrlDB
         SqlUsername: $(AZURESQLSERVERUN)
         SqlPassword: '$(azuresqlserverpw)'
-        DacpacFile: '$(Pipeline.Workspace)/sql_cntrldb/ControlDB.dacpac'
+        DacpacFile: '$(Pipeline.Workspace)/sql_cntrldb/CntrlDB.dacpac'

@@ -1,0 +1,57 @@
+variables:
+  # Used in service naming
+  - name: applicationname
+    value: EIS
+  # Used in service naming
+  - name: resourcecount
+    value: '01'
+  # The default resource group region name
+  - name: location
+    value: australiaeast
+  # Numeric location identifier used for naming convention
+  - name: locationnumber
+    value: '2'
+  # environment name used in service naming
+  - name: environment
+    value: unit
+  # environment initial name used in service naming
+  - name: environmentinitial
+    value: U  
+  # Resource group name
+  - name: resourcegroupname
+    value: RGUEIS201
+  # username for SQL Server Control DB
+  - name: azuresqlserverun
+    value: sqladmin
+  # Name of the service connection in Azure Devops
+  - name: azdoresourceconnection
+    value: Test_IaaS_SP
+  # The service principal object ID (Not App ID)... Use 'az ad sp show --id <<appid>> --query "objectId" -o tsv'
+  - name: spobjectid
+    value: ff9eafb1-f34f-491b-ad89-7c7b3646e990
+  # Store account type for BLOB Storage e.g. Standard_LRS)
+  - name: storageAccountType
+    value: Standard_LRS
+  # Tagging
+  - name: applytags
+    value: true
+  - name: tags
+    value: Application=EIS \
+          CostCenter=143 \
+          Environment=UNIT \
+          ManagedBy=Data Management Team \
+          Owner=Shirley Wood 
+  # ------------------------------------------------
+  # Service names for environment
+  # ------------------------------------------------
+  # Name of Azure SQL Server and EDW Database
+  - name: azuresqlservername
+    value: ml${{ lower(variables.environmentinitial) }}sql${{ lower(variables.applicationname) }}${{ lower(variables.locationnumber) }}${{ lower(variables.resourcecount) }}
+ # Name of key vault for this environment
+  - name: azurekeyvaultname
+    value: kv${{ lower(variables.environmentinitial) }}${{ lower(variables.applicationname) }}${{ lower(variables.locationnumber) }}${{ lower(variables.resourcecount) }}
+  # Setup secret rotation interval in days
+  - name: secretrotationinterval 
+    value: 30
+ 
+

@@ -1,0 +1,14 @@
+  jobs:
+  - job: 'control_db'
+    pool:
+      demands: msbuild
+      vmImage: 'vs2017-win2016'
+    steps:
+    - task: MSBuild@1
+      displayName: 'Build ControlDB'
+      continueOnError: 'true'
+      inputs:
+        solution: ControlDB/ControlDB/ControlDB.sqlproj
+
+    - publish: ControlDB/ControlDB/bin/Debug
+      artifact: sql_cntrldb

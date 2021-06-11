@@ -1,0 +1,65 @@
+name: $(Build.BuildId).$(date:yyyyMMdd)
+
+pr:
+  branches:
+    include:
+    - main
+    - develop
+
+  paths:
+    include:
+    - ControlDB/*
+
+trigger: none
+#  branches:
+#    include:
+#    - prod
+#    - unit
+#    - integration
+#    - acceptance
+  paths:
+    include:
+    - ControlDB/ControlDB.sln
+
+pool:
+  vmImage: ubuntu-latest
+
+stages:
+# ---------------------------------------------------------------------------
+# Build artifacts
+- stage: 'build' # leave main artifact build stage as 'build'
+  jobs:
+  # Use this section to pull in or out build jobs
+  - template: Templates/job-build-cntrldb.yml
+# ---------------------------------------------------------------------------
+# Release to Unit Testing
+- template: Templates/stage-controldb-integration.yml
+  parameters:
+    stage_name: 'npe'
+    variable_template_name: npe-variables
+    run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/unit'))
+
+# ---------------------------------------------------------------------------
+# Release to Integration Testing
+- template: Templates/stage-controldb-integration.yml
+  parameters:
+    stage_name: 'intg'
+    variable_template_name: intg-variables
+    run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/intg'))
+
+# ---------------------------------------------------------------------------
+# Release to Acceptance Test
+- template: Templates/stage-controldb-integration.yml
+  parameters:
+    stage_name: 'acpt'
+    variable_template_name: acpt-variables
+    run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/acpt'))
+
+# ---------------------------------------------------------------------------
+# Release to Production
+- template: Templates/stage-controldb-integration.yml
+  parameters:
+    stage_name: 'prod'
+    variable_template_name: prd-variables
+    run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/prod'))
+    
