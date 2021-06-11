@@ -11,12 +11,12 @@ pr:
     - ControlDB/*
 
 trigger: none
-#  branches:
-#    include:
-#    - prod
-#    - unit
-#    - integration
-#    - acceptance
+ branches:
+   include:
+   - main
+   - develop
+   - integration
+   - acceptance
   paths:
     include:
     - ControlDB/ControlDB.sln
