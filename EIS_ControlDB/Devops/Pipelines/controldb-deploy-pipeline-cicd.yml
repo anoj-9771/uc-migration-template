@@ -10,7 +10,7 @@ pr:
     include:
     - ControlDB/*
 
-trigger: none
+trigger: 
  branches:
    include:
    - main
