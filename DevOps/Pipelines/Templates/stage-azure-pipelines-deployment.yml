@@ -71,7 +71,7 @@ stages:
         parameters:
           service_connection: ${{ variables.azdoresourceconnection }}
           resource_group: ${{ variables.resourcegroupname }}
-          database_name: ${{ variables.azuresqlservername }}/CntrlDB
+          database_name: ${{ variables.azuresqlservername }}/ControlDB
           database_kind: "v12.0,user,vcore,serverless"
           database_sku: |
             {

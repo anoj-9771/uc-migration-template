@@ -8,7 +8,7 @@
       displayName: 'Build ControlDB'
       continueOnError: 'true'
       inputs:
-        solution: CntrlDB/CntrlDB/CntrlDB.sqlproj
+        solution: ControlDB/ControlDB/ControlDB.sqlproj
 
-    - publish: CntrlDB/CntrlDB/bin/Debug
-      artifact: sql_cntrldb
+    - publish: ControlDB/ControlDB/bin/Debug
+      artifact: sql_Controldb

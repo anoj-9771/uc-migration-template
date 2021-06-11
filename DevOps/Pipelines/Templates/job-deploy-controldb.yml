@@ -10,7 +10,7 @@ jobs:
     vmImage: 'windows-2019'
   steps:
   - download: current
-    artifact: sql_cntrldb
+    artifact: sql_Controldb
 
   - task: AzureKeyVault@1
     displayName: 'Get Secrets'
@@ -24,7 +24,7 @@ jobs:
     inputs:
       azureSubscription: ${{ parameters.AzDoServiceConnection }}
       ServerName: '$(AZURESQLSERVERNAME).database.windows.net'
-      DatabaseName: CntrlDB
+      DatabaseName: ControlDB
       SqlUsername: $(AZURESQLSERVERUN)
       SqlPassword: '$(azuresqlserverpw)'
-      DacpacFile: '$(Pipeline.Workspace)/sql_cntrldb/CntrlDB.dacpac'
+      DacpacFile: '$(Pipeline.Workspace)/sql_Controldb/ControlDB.dacpac'

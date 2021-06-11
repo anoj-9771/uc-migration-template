@@ -11,4 +11,4 @@
         solution: ControlDB/ControlDB/ControlDB.sqlproj
 
     - publish: ControlDB/ControlDB/bin/Debug
-      artifact: sql_cntrldb
+      artifact: sql_Controldb
