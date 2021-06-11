@@ -23,7 +23,7 @@ pool:
 
 stages:
 # ---------------------------------------------------------------------------
-# Build artifacts
+# Build artifacts (NEW ONE)
 - stage: 'build' # leave main artifact build stage as 'build'
   jobs:
   # Use this section to pull in or out build jobs
