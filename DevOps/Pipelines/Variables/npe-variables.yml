@@ -1,7 +1,7 @@
 variables:
   # Used in service naming
   - name: prefix
-    value: staubswc
+    value: swcdaf
   # The default resource group region name
   - name: location
     value: australiaeast
