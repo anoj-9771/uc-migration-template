@@ -76,7 +76,7 @@ variables:
     value: $(PREFIX)-SHIR
   # Flag to specify whether Data Factory requires Git Integration
   - name: isRepoEnabled
-    value: true  
+    value: false  
   # ------------------------------------------------
   # Log Analytics related
   # ------------------------------------------------

@@ -23,11 +23,11 @@ pool:
 
 stages:
 # ---------------------------------------------------------------------------
-# Build artifacts
+# Build artifacts (OLD ONE)
 - stage: 'build' # leave main artifact build stage as 'build'
   jobs:
   # Use this section to pull in or out build jobs
-  - template: Templates/job-build-cntrldb.yml
+  - template: Templates/job-build-controldb.yml
 # ---------------------------------------------------------------------------
 # Release to Non-Production
 - template: Templates/stage-controldb-integration.yml

@@ -24,12 +24,12 @@
         },
         "repoAccountName":{
             "type":"string",
-            "defaultValue": "<Replace with Azure DevOps Account Name>",
+            "defaultValue": "SydneyWaterCorp",
             "metadata": {"description": "Azure DevOps Account Name. For e.g InsightAUS for ADS GoFast Repo"}
         },
         "repoName":{
             "type": "string",
-            "defaultValue": "<Replace with Repo Name>",
+            "defaultValue": "DAF POC REPO1",
             "metadata": {"description": "Git repository name. For e.g ADS Foundations V2"}
         },
         "repoCollaborationBranch":{
@@ -40,12 +40,12 @@
         },
         "repoRootFolder":{
             "type": "string",
-            "defaultValue": "/<Replace with Folder Path>/",
+            "defaultValue": "/Datafactory/",
             "metadata": {"description": "Folder where datafactory artifacts are comitted in repo. For e.g /Datafactory/"}
         },
         "repoProjectName":{
             "type": "string",
-            "defaultValue": "<Replace with Azure DevOps Project Name>", 
+            "defaultValue": "DAF POC1", 
             "metadata": {"description": "Azure DevOps Project Name. For e.g BI Team"}
         }
     },

@@ -47,4 +47,4 @@ jobs:
       DatabaseName: ControlDB
       SqlUsername: $(AZURESQLSERVERUN)
       SqlPassword: '$(databricks-token)'
-      DacpacFile: '$(Pipeline.Workspace)/sql_cntrldb/ControlDB.dacpac'
+      DacpacFile: '$(Pipeline.Workspace)/sql_Controldb/ControlDB.dacpac'

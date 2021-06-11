@@ -68,7 +68,7 @@
         },
         "isNewFileSystemOnly": {
             "type": "bool",
-            "defaultValue": true
+            "defaultValue": false
         },
         "adlaResourceId": {
             "type": "string",
