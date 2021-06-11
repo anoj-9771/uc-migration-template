@@ -3,6 +3,7 @@
 
 
 CREATE Procedure [CTL].[CreateTask] 
+	@SourceGroup varchar(255) = '',
 	@SourceName Varchar(255) = '',
     @SourceLocation Varchar(255) = '',
 	@SourceTypeId BigInt = 2,  
@@ -24,7 +25,8 @@ CREATE Procedure [CTL].[CreateTask]
 	@AdditionalProperty	varchar(max) = '', 
 	@LoadToSqlEDW BIT = 0,
 	@IsAuditTable BIT = 0,
-	@SoftDeleteSource varchar(100) = ''
+	@SoftDeleteSource varchar(100) = '',
+	@SourceTSFormat varchar(20) = ''
 
 As
 BEGIN
@@ -54,8 +56,8 @@ BEGIN
 		END
 
 		PRINT 'Adding record to ControlSource'
-		Insert Into CTL.ControlSource (SourceName, SourceTypeId, SourceLocation, LoadSource, SourceServer, Processor, BusinessKeyColumn, AdditionalProperty, IsAuditTable, SoftDeleteSource, UseAuditTable) 
-		Values(@SourceName, @SourceTypeId, @SourceLocation, 1, @SourceServer, @Processor, @BusinessKeyColumn, @AdditionalProperty, @IsAuditTable, @SoftDeleteSource, @UseAuditTable)
+		Insert Into CTL.ControlSource (SourceGroup, SourceName, SourceTypeId, SourceLocation, LoadSource, SourceServer, Processor, BusinessKeyColumn, AdditionalProperty, IsAuditTable, SoftDeleteSource, UseAuditTable, SourceTimeStampFormat) 
+		Values(@SourceGroup, @SourceName, @SourceTypeId, @SourceLocation, 1, @SourceServer, @Processor, @BusinessKeyColumn, @AdditionalProperty, @IsAuditTable, @SoftDeleteSource, @UseAuditTable, @SourceTSFormat)
 		Select @SourceId = @@IDENTITY
 
 		PRINT 'Adding record to ControlTarget'
@@ -97,7 +99,7 @@ BEGIN
 			DECLARE @ProjectName varchar(100)
 			SELECT @ProjectName = ProjectName FROM CTL.ControlProjects WHERE ProjectId = @ProjectId
 			--If the Project Schedule does not exist, add a default schedule entry
-			INSERT INTO CTL.ControlProjectSchedule (ControlProjectId, ControlStageID, TriggerName) VALUES (@ProjectId, @StageId, @ProjectName)
+			INSERT INTO CTL.ControlProjectSchedule (ControlProjectId, ControlStageID, TriggerName, StageEnabled) VALUES (@ProjectId, @StageId, @ProjectName, 1)
 		END
 
 

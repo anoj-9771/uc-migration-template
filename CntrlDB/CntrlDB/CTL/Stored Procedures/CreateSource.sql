@@ -4,6 +4,7 @@ CREATE PROC [CTL].[CreateSource]
         @ProjectName		 varchar(100),
 		@StartStageName		 varchar(100),
 		@EndStageName		 varchar(100),
+		@SourceGroup		 varchar(100),
 		@SourceName			 varchar(100),
 		@SourceObjectName	 varchar(500),
 		@SourceType			 varchar(100),
@@ -29,7 +30,8 @@ CREATE PROC [CTL].[CreateSource]
 		@TrackChanges		 varchar(100),
 		@AdditionalProperty	 varchar(max),
 		@IsAuditTable		 varchar(100) = '', --Add column to track if the table is a Audit Table
-		@SoftDeleteSource	 varchar(100) = '' --Name of the source to be used for Soft Delete
+		@SoftDeleteSource	 varchar(100) = '', --Name of the source to be used for Soft Delete
+		@SourceTSFormat		 varchar(100) = ''  --Format for the Source Delta Column Time
 as 
 
 declare @TargetName varchar(1000), @TargetLocation varchar(1000)
@@ -144,7 +146,8 @@ begin
 	if @currentStage = 'Source to Raw'
 	BEGIN
 		EXEC [CTL].[CreateTask] 
-			@SourceName
+			@SourceGroup
+			,@SourceName
 			,@SourceObjectName
 			,@sourceTypeId
 			,@SourceSecretName
@@ -166,13 +169,15 @@ begin
 			,@LoadToSqlEDW
 			,@IsAuditTableFlag
 			,@SoftDeleteSource
+			,@SourceTSFormat
 
 	END
 
     if @currentStage = 'Raw to Trusted'
 	BEGIN
 		EXEC [CTL].[CreateTask] 
-			@SourceName
+			@SourceGroup
+			,@SourceName
 			,@TargetLocation
 			,@rawTypeId
 			,@DLRawSecret
@@ -194,6 +199,7 @@ begin
 			,@LoadToSqlEDW
 			,@IsAuditTableFlag
 			,@SoftDeleteSource
+			,@SourceTSFormat
 
 	END
 	
@@ -202,7 +208,8 @@ begin
 	BEGIN
 
 		EXEC [CTL].[CreateTask] 
-			@SourceName
+			@SourceGroup
+			,@SourceName
 			,@DLStagedMainFolder
 			,@stageTypeId
 			,@DLStagedSecret
@@ -224,15 +231,17 @@ begin
 			,@LoadToSqlEDW
 			,@IsAuditTableFlag
 			,@SoftDeleteSource
+			,@SourceTSFormat
 	END	
 
-	if @currentStage IN ('Cubes', 'DW Export')
+	if @currentStage IN ('Cubes', 'DW Export', 'Validation', 'EDW-SP')
 	BEGIN
 
 		SET @TargetLocation = REPLACE(@SourceObjectName, '.', '_')
 
 		EXEC [CTL].[CreateTask] 
-			@SourceName
+			@SourceGroup
+			,@SourceName
 			,@SourceObjectName
 			,@SourceTypeId
 			,'' --SourceSecretName
@@ -254,6 +263,7 @@ begin
 			,@LoadToSqlEDW
 			,@IsAuditTableFlag
 			,@SoftDeleteSource
+			,@SourceTSFormat
 
 	END
 	set @counter += 1

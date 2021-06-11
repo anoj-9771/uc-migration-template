@@ -14,7 +14,7 @@ DECLARE @SQL Varchar(2000) = 'SELECT ',
 
 
 DECLARE @DataLoadMode varchar(100)
-DECLARE @SourceType varchar(100)
+DECLARE @DBType varchar(100)
 DECLARE @SourceTable varchar(100)
 DECLARE @SourceColumn varchar(100)
 DECLARE @ValidationColumn varchar(100)
@@ -24,7 +24,7 @@ DECLARE @NULLFunction varchar(100), @DATEFunction varchar(100), @DATEFormat varc
 
 SELECT 
 	@DataLoadMode = CT.DataLoadMode 
-	,@SourceType = T.ControlType
+	,@DBType = T.ControlType
 	,@SourceTable = CS.SourceLocation
 	,@SourceColumn = W.SourceColumn
 	,@ValidationColumn = CS.ValidationColumn
@@ -35,23 +35,7 @@ LEFT JOIN CTL.ControlTypes T ON CS.SourceTypeId = T.TypeId
 LEFT JOIN CTL.ControlWatermark W ON W.ControlSourceId = CS.SourceId
 WHERE CS.SourceId = @SourceId
 
-SET @NULLFunction = 'ISNULL'
-SET @DATEFunction = 'FORMAT'
-SET @DATEFormat = '''yyyy-MM-dd HH:mm:ss'''
-
-
-IF @ValidationType = 'SOURCE'
-BEGIN
-	IF @SourceType = 'Oracle'
-	BEGIN
-		SET @NULLFunction = 'NVL'
-		SET @DATEFunction = 'TO_CHAR'
-		SET @DATEFormat = '''YYYY-MM-DD HH24:MI:SS'''
-	END
-END
-
-
-
+IF @ValidationType = 'TARGET' SET @DBType = 'SQL Server'
 
 IF @DataLoadMode = 'CDC'
 	BEGIN
@@ -61,25 +45,50 @@ ELSE
 	BEGIN
 		SET @TableName = @TableName + @SourceTable
 		DECLARE @COL varchar(100)
-		SET @COL = [CTL].[udf_GetMultiColFilterClause](@SourceColumn, @SourceColumn)
-		SET @COL = [CTL].[udf_GetMultiColFilterClause](@COL, @SourceType)
+		DECLARE @SQLMax varchar(1000)
 
-		SET @SQL = @SQL + '''' + @COL + ''' As SourceColumn'
-		SET @SQL = @SQL + ', ' + @DATEFunction + '(MAX(' + @COL + '), ' + @DATEFormat + ') As ReturnValue'
+		/*Define the NULL function based on the Database Type*/
+		IF @DBType = 'Oracle' OR @DBType = 'MySQL' OR @DBType = 'SQL Server'
+			SET @NULLFunction = 'COALESCE'
+		ELSE
+			SET @NULLFunction = 'COALESCE'
 
-		SET @SQL = @SQL + ', COUNT(1) AS RecordCount'
+		/*Get the SQL Max value if the Source Column is defined*/
+		IF @SourceColumn IS NOT NULL
+		BEGIN
+			SET @COL = [CTL].[udf_GetMultiColFilterClause](@SourceColumn, @DBType)
+
+			IF @DBType = 'Oracle'
+				SELECT @SQLMax = 'TO_CHAR(MAX(' + @COL + '), ''YYYY-MM-DD HH24:MI:SS'')'
+			ELSE IF @DBType = 'MySQL'
+				SELECT @SQLMax = 'FROM_UNIXTIME(MAX(COALESCE(' + @COL + ', 0)))'
+			ELSE IF @DBType = 'SQL Server'
+				SELECT @SQLMax = 'FORMAT(MAX(' + @COL + '), ''yyyy-MM-dd HH:mm:ss'')'
+			ELSE
+				SELECT @SQLMax = 'FORMAT(MAX(' + @COL + '), ''yyyy-MM-dd HH:mm:ss'')'
+		END
+		ELSE
+		BEGIN
+			/*Set default value if the Source Column is NOT defined*/
+			SET @SourceColumn = @SourceName
+			SET @SQLMax = '0'
+		END
+
+		SET @SQL = @SQL + '''' + @SourceColumn + ''' AS SourceColumn, '
+		SET @SQL = @SQL + @SQLMax + ' As ReturnValue, '
+		SET @SQL = @SQL + 'COUNT(1) AS RecordCount'
 
 		IF @ValidationColumn <> ''
 		BEGIN
 			SET @SQL = @SQL + ', SUM(' + @NULLFunction + '(' + @ValidationColumn + ',0)) AS TotalValue'
-			SET @SQL = @SQL + ', MAX(' + @NULLFunction + '(' + @ValidationColumn + ',0)) AS MaxValue'
-			SET @SQL = @SQL + ', MIN(' + @NULLFunction + '(' + @ValidationColumn + ',0)) AS MinValue'
+			SET @SQL = @SQL + ', MAX(' + @NULLFunction + '(' + @ValidationColumn + ',0)) AS MaximumValue'
+			SET @SQL = @SQL + ', MIN(' + @NULLFunction + '(' + @ValidationColumn + ',0)) AS MinimumValue'
 		END
 		ELSE
 		BEGIN
 			SET @SQL = @SQL + ', 0 AS TotalValue'
-			SET @SQL = @SQL + ', 0 AS MaxValue'
-			SET @SQL = @SQL + ', 0 AS MinValue'
+			SET @SQL = @SQL + ', 0 AS MaximumValue'
+			SET @SQL = @SQL + ', 0 AS MinimumValue'
 		END
 
 		SET @SQL = @SQL + ', ''' + @ValidationType + ''' AS ValidationType'
@@ -88,7 +97,14 @@ ELSE
 			SET @SQL = @SQL + @TableName
 		ELSE
 		BEGIN
-			SET @SQL = @SQL + ' FROM ' + 'edw.' + @SourceName + ' WHERE _RecordCurrent = 1 AND _RecordDeleted = 0'
+			/*Check if table exists. Sometimes table may not exist on EDW because there may be no records on Source */
+			DECLARE @SQLExists varchar(1000), @SQLTargetDefault varchar(1000)
+			SET @SQLExists = 'IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = ''edw'' AND TABLE_NAME = ''' + @SourceName + ''') ' 
+			SET @SQLTargetDefault = 'ELSE SELECT '''' AS SourceColumn, 0 As ReturnValue, 0 AS RecordCount, 0 AS TotalValue, 0 AS MaximumValue, 0 AS MinimumValue, '''' AS ValidationType'
+
+			/*Somehow the ADF Lookup errors when there is no record returned. Thus, the following block will return default values when the table does not exists
+			However, as the Target is UPDATE command it will not update any rows */
+			SET @SQL = @SQLExists + @SQL + ' FROM ' + 'edw.' + @SourceName + ' WHERE _RecordCurrent = 1 AND _RecordDeleted = 0 ' + @SQLTargetDefault
 		END
 
 

@@ -14,11 +14,11 @@ DECLARE @COL VARCHAR(255)
 IF CHARINDEX (',', @Column) > 0
 BEGIN
 	IF @SourceType = 'SQL Server'
-		SET @COL = 'COALESCE (' + @Column + ')'
+		SET @COL = 'COALESCE(' + @Column + ')'
 	ELSE IF @SourceType = 'Oracle'
-		SET @COL = 'COALESCE (' + @Column + ')'
+		SET @COL = 'COALESCE(' + @Column + ')'
 	ELSE
-		SET @COL = @Column
+		SET @COL = 'COALESCE(' + @Column + ')'
 END
 ELSE
 	SET @COL = @Column

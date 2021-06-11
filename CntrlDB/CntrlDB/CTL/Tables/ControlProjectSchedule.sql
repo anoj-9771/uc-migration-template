@@ -4,8 +4,11 @@
     [CronExpression]        VARCHAR (250) NULL,
     [ControlStageID]        INT           NULL,
     [TriggerName]           VARCHAR (100) NULL,
+    [StageEnabled]          BIT           NULL,
     CONSTRAINT [PK_ControlProjectSchedule] PRIMARY KEY CLUSTERED ([ControlTaskScheduleId] ASC)
 );
+
+
 
 
 

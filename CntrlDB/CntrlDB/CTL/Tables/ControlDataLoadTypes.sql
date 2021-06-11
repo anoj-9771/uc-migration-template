@@ -5,8 +5,11 @@
     [CDCSource]      BIT           NOT NULL,
     [TruncateTarget] BIT           NOT NULL,
     [UpsertTarget]   BIT           NOT NULL,
+    [AppendTarget]   BIT           NULL,
     CONSTRAINT [PK_ControlDataLoadTypes] PRIMARY KEY CLUSTERED ([DataLoadTypeID] ASC)
 );
+
+
 
 
 

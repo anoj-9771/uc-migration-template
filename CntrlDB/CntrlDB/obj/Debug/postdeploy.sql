@@ -23,22 +23,24 @@ WHERE NOT EXISTS (SELECT 1 FROM [CTL].[ControlStages] WHERE [StageName] = N'Sour
 INSERT INTO [CTL].[ControlStages] ([StageSequence], [StageName]) SELECT 200, N'Raw to Trusted'
 WHERE NOT EXISTS (SELECT 1 FROM [CTL].[ControlStages] WHERE [StageName] = N'Raw to Trusted')
 
-INSERT INTO [CTL].[ControlStages] ([StageSequence], [StageName]) SELECT 300, N'Raw to Synapse'
-WHERE NOT EXISTS (SELECT 1 FROM [CTL].[ControlStages] WHERE [StageName] = N'Raw to Synapse')
+INSERT INTO [CTL].[ControlStages] ([StageSequence], [StageName]) SELECT 250, N'Validation'
+WHERE NOT EXISTS (SELECT 1 FROM [CTL].[ControlStages] WHERE [StageName] = N'Validation')
 
-INSERT INTO [CTL].[ControlStages] ([StageSequence], [StageName]) SELECT 400, N'Trusted to Curated'
+INSERT INTO [CTL].[ControlStages] ([StageSequence], [StageName]) SELECT 260, N'EDW-SP'
+WHERE NOT EXISTS (SELECT 1 FROM [CTL].[ControlStages] WHERE [StageName] = N'EDW-SP')
+
+INSERT INTO [CTL].[ControlStages] ([StageSequence], [StageName]) SELECT 300, N'Trusted to Curated'
 WHERE NOT EXISTS (SELECT 1 FROM [CTL].[ControlStages] WHERE [StageName] = N'Trusted to Curated')
 
---INSERT INTO [CTL].[ControlStages] ([StageSequence], [StageName]) SELECT 500, N'Staging to DW'
---WHERE NOT EXISTS (SELECT 1 FROM [CTL].[ControlStages] WHERE [StageName] = N'Staging to DW')
+INSERT INTO [CTL].[ControlStages] ([StageSequence], [StageName]) SELECT 400, N'Cubes'
+WHERE NOT EXISTS (SELECT 1 FROM [CTL].[ControlStages] WHERE [StageName] = N'Cubes')
 
---INSERT INTO [CTL].[ControlStages] ([StageSequence], [StageName]) SELECT 600, N'DW Export'
---WHERE NOT EXISTS (SELECT 1 FROM [CTL].[ControlStages] WHERE [StageName] = N'DW Export')
-
+INSERT INTO [CTL].[ControlStages] ([StageSequence], [StageName]) SELECT 500, N'DW Export'
+WHERE NOT EXISTS (SELECT 1 FROM [CTL].[ControlStages] WHERE [StageName] = N'DW Export')
 
 
 IF (
-	SELECT p.rows 
+	SELECT COUNT(*)
 	FROM sys.tables t 
 	JOIN sys.schemas s ON t.schema_id = s.schema_id
 	JOIN sys.partitions p ON t.object_id = p.object_id 
@@ -60,12 +62,13 @@ IF (
 		INSERT [CTL].[ControlTypes] ([TypeId], [ControlType]) VALUES (11, N'OData-Basic')
 		INSERT [CTL].[ControlTypes] ([TypeId], [ControlType]) VALUES (12, N'OData-AADServicePrincipal')
 		INSERT [CTL].[ControlTypes] ([TypeId], [ControlType]) VALUES (13, N'SharePoint')
+		INSERT [CTL].[ControlTypes] ([TypeId], [ControlType]) VALUES (14, N'API-TAFE')
 		INSERT [CTL].[ControlTypes] ([TypeId], [ControlType]) VALUES (15, N'API-General')
 		SET IDENTITY_INSERT [CTL].[ControlTypes] OFF
 	END
 
 IF (
-	SELECT p.rows 
+	SELECT COUNT(*)
 	FROM sys.tables t 
 	JOIN sys.schemas s ON t.schema_id = s.schema_id
 	JOIN sys.partitions p ON t.object_id = p.object_id 
@@ -98,5 +101,15 @@ IF (
 	END
 	*/
 
+  UPDATE CTL.ControlTasks SET LoadToSqlEDW = 1 WHERE LoadToSqlEDW IS NULL
+
+  UPDATE CTL.ControlSource SET AdditionalProperty = '' WHERE AdditionalProperty IS NULL
+  UPDATE CTL.ControlSource SET SoftDeleteSource = '' WHERE SoftDeleteSource IS NULL
+  UPDATE CTL.ControlSource SET IsAuditTable = 0 WHERE IsAuditTable IS NULL
+  UPDATE CTL.ControlSource SET UseAuditTable = 0 WHERE UseAuditTable IS NULL
   
+  UPDATE CTL.ControlSource SET SourceGroup = SUBSTRING(SourceName, 0, charindex('_', SourceName)) WHERE SourceGroup IS NULL
+
+  UPDATE CTL.ControlProjectSchedule SET StageEnabled = 1 WHERE StageEnabled IS NULL
+
 GO

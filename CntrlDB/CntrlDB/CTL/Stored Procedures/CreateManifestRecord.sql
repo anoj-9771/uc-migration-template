@@ -21,7 +21,7 @@ DECLARE @Start varchar(500)
 IF ISDATE(@StartCounter) = 1
 	SET @Start = FORMAT(TRY_CONVERT(DATETIME, @StartCounter), 'yyyy-MM-ddTHH:mm:ss')
 ELSE
-	SET @Start = @StartCounter
+	SET @Start = ISNULL(@StartCounter, '')
 
 DECLARE @End varchar(500)
 IF ISDATE(@EndCounter) = 1

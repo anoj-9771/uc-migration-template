@@ -44,21 +44,18 @@ ELSE
 			SET @COL = (Select Top 1 ColumnName From @Columns)
 			SET @COL = [CTL].[udf_GetMultiColFilterClause](@COL, @SourceType)
 
-			--Updated by Rahul Agrawal on 28-Jan-2020. Updated the condition to > from >=. The >= operator loads the last watermark data over and over.
 			IF @SourceType = 'Oracle'
 				Select @SQL = @SQL + ' ''' + @COL + ''' As SourceColumn,  TO_CHAR(MAX(' + @COL + '), ''YYYY-MM-DD HH24:MI:SS'') As ReturnValue, '
+			ELSE IF @SourceType = 'MySQL'
+				Select @SQL = @SQL + ' ''' + @COL + ''' As SourceColumn,  FROM_UNIXTIME(MAX(IFNULL(' + @COL + ', 0))) As ReturnValue, '
 			ELSE
-				--Select @SQL = @SQL + ' ''' + @COL + ''' As SourceColumn,  FORMAT(MAX(' + @COL + '), ''yyyy-MM-dd hh:mm:ss'') As ReturnValue, '
-				--Select @SQL = @SQL + ' ''' + @COL + ''' As SourceColumn,  MAX(' + @COL + ') As ReturnValue, '
 				Select @SQL = @SQL + ' ''' + @COL + ''' As SourceColumn,  FORMAT(MAX(' + @COL + '), ''yyyy-MM-dd HH:mm:ss'') As ReturnValue, '
 
---			Select @SQL = @SQL + ' ''' + (Select Top 1 ColumnName From @Columns) + ''' As SourceColumn,  MAX(' + @UpdateCol + ') As ReturnValue, '
---			Delete Top(1) From @Columns
 
 			Delete Top(1) From @Columns
 		  END
 
-		Select @SQL = LEFT(@SQL, Len(@SQL) - 1)
+		SELECT @SQL = @SQL + ' COUNT(1) AS RecCount '
 
 		Select @SQL = @SQL + @TableName
 

@@ -11,6 +11,10 @@
     [TargetRecordCount]   BIGINT        NULL,
     [TargetTotalValue]    BIGINT        NULL,
     [TargetMinValue]      BIGINT        NULL,
-    [TargetMaxValue]      BIGINT        NULL
+    [TargetMaxValue]      BIGINT        NULL,
+    [DataValidationDate]  DATE          NULL,
+    [ProjectName]         VARCHAR (100) NULL
 );
+
+
 

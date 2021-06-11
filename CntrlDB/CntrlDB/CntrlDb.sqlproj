@@ -135,7 +135,12 @@
     <Build Include="CTL\Tables\ControlDataLoadValidation.sql" />
     <Build Include="CTL\Stored Procedures\RecordDataValidation.sql" />
     <Build Include="CTL\Stored Procedures\GetTableDetails.sql" />
-    <Build Include="CTL\Stored Procedures\CheckFileExist.sql" />
+    <Build Include="CTL\Stored Procedures\ResetUpdateMetaDataFlag.sql" />
+    <Build Include="CTL\Tables\ControlDataLoadValidation.sql" />
+    <Build Include="CTL\Stored Procedures\RecordDataValidation.sql" />
+    <Build Include="CTL\Stored Procedures\GetTableDetails.sql" />
+    <Build Include="CTL\Views\vw_DataLoadDetails.sql" />
+    <Build Include="CTL\Views\vw_BatchExecution.sql" />
   </ItemGroup>
   <ItemGroup>
     <PostDeploy Include="Script.PostDeployment1.sql" />

@@ -2,13 +2,17 @@
 CREATE PROCEDURE [CTL].[ResetLogs] (@ProjectID INT)
 AS
 
+/*
+This SP resets the logs for BatchExecution and TaskExecution.
+*/
+
 UPDATE ctl.TaskExecutionLog 
-SET ExecutionStatus = 'Terminated'
+SET ExecutionStatus = 'TERMINATED'
 WHERE ExecutionStatus = 'In Progress' AND BatchExecutionId IN 
 	(select BatchExecutionLogID from ctl.BatchExecutionLog where ProjectID = @ProjectID)
 
 UPDATE CTL.BatchExecutionLog 
-SET BatchExecutionStatus = 'Terminated'
+SET BatchExecutionStatus = 'TERMINATED'
 WHERE BatchExecutionStatus = 'In Progress' AND ProjectID = @ProjectID
 
 /*

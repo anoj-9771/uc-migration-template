@@ -13,6 +13,7 @@ With allTasks as
 Select 
 	styp.ControlType SourceType, 
 	src.SourceServer, 
+	src.SourceGroup,
 	src.SourceName, 
 	src.SourceLocation, 
 	src.AdditionalProperty,
@@ -31,6 +32,7 @@ Select
 	DLT.CDCSource,
 	DLT.TruncateTarget,
 	DLT.UpsertTarget,
+	DLT.AppendTarget,
 	CT.TrackChanges,
 	CT.LoadToSqlEDW,
 	ct.TaskName, 
@@ -43,15 +45,16 @@ Select
 	ct.TargetId,
 	ct.ObjectGrain, 
 	ctc.CommandTypeId, 
-	CW.Watermarks,
+	CASE WHEN ct.DataLoadMode IN ('FULL-EXTRACT', 'TRUNCATE-LOAD') THEN '' ELSE CW.Watermarks END AS Watermarks,
 	FORMAT(TRY_CONVERT(DATETIME, CW.Watermarks), 'yyyy-MM-ddTHH:mm:ss') WatermarksDT,
 	ISNULL(CW.SourceColumn, '') AS WatermarkColumn,
 	src.BusinessKeyColumn,
-	Case 
-	    When (ctc.CommandTypeId = 1 OR ctc.CommandTypeId = 6) AND DLT.DeltaExtract = 1
-		Then CTL.[udf_GetDeltaSQL](ct.TaskId)
-		Else ctc.Command
-	End Command,
+	ct.UpdateMetaData,
+	src.SourceTimeStampFormat,
+	CASE 
+	    WHEN (styp.ControlType IN ('SQL Server', 'Oracle', 'MySQL')) AND DLT.DeltaExtract = 1 Then CTL.[udf_GetDeltaSQL](ct.TaskId)
+		ELSE ctc.Command
+	END Command,
 	CTL.[udf_GetLastLoadedFile](src.SourceName, src.SourceLocation) LastLoadedFile
 
   From CTL.ControlSource src
@@ -62,7 +65,6 @@ Select
 	Join CTL.ControlTarget targ On ct.TargetId = targ.TargetId
 	Join CTL.ControlTypes ttyp On targ.TargetTypeId = ttyp.TypeId
 	LEFT JOIN CTL.ControlProjects P ON ct.ProjectId = p.ProjectId
-	--join [CTL].[ControlProjectSchedule] cps on ct.ProjectId = cps.ControlProjectId
 	LEFT JOIN CTL.ControlWatermark CW ON SRC.SourceId = CW.ControlSourceId
 	LEFT JOIN CTL.ControlDataLoadTypes DLT ON CT.DataLoadMode = DLT.DataLoadType
 	LEFT JOIN CTL.ControlSource Audit ON ISNULL(src.SoftDeleteSource, '') = Audit.SourceLocation AND Audit.IsAuditTable = 1
@@ -96,20 +98,9 @@ Select ct.TaskId
    And tel.ControlTaskId Is Null
 )
 
-Select *
-  From allTasks t
- Where (TaskId In (Select TaskId From noExecutions)
-   Or t.TaskId In (Select ct.TaskId 
-                   From CTL.ControlTasks ct
-				     Join lastFullExecutions ex
-					   On ct.TaskId = ex.TaskId))
-				  --Where (Case 
-				  --        When ct.RunFrequencyTypeId = 1 and DATEDIFF(Hour,ex.lastExecutionDate, getdate()) > 24 --Daily
-						--    then 1
-						--  When ct.RunFrequencyTypeId = 2 and DATEDIFF(Hour, ex.lastExecutionDate, getdate()) > 1 --Hourly
-						--    then 1
-						--  When ct.RunFrequencyTypeId = 3 and DATEDIFF(day, ex.lastExecutionDate, getdate()) > 7 --Annualy
-						--    then 1
-						--  Else 0
-						--End) = 1))
- Order BY t.StageSequence, t.TaskId
+SELECT * FROM allTasks t
+ WHERE (
+	TaskId In (Select TaskId From noExecutions)
+	OR t.TaskId In (Select ct.TaskId From CTL.ControlTasks ct Join lastFullExecutions ex On ct.TaskId = ex.TaskId)
+	)
+ ORDER BY t.StageSequence, t.TaskId

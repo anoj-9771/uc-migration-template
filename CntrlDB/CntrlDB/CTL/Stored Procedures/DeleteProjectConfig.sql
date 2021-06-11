@@ -5,14 +5,6 @@ AS
 Delete From [CTL].[ControlTaskCommand]
 where ControlTaskId in (select TaskId from CTL.ControlTasks where ProjectId = @projectId)
 
-DELETE FROM CTL.ControlManifest
-WHERE TaskExecutionLogID IN (
-	SELECT ExecutionLogID
-	FROM CTL.TaskExecutionLog TEL
-	LEFT JOIN CTL.ControlTasks CT ON TEL.ControlTaskId = CT.TaskId
-	AND ProjectId = @projectId
-)
-
 Delete From [CTL].[TaskExecutionLog]
 where ControlTaskId in (select TaskId from CTL.ControlTasks where ProjectId = @projectId)
 

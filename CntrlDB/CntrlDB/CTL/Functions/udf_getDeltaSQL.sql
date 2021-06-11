@@ -52,6 +52,7 @@ BEGIN
 	--Start of Special Audit Table Handling of OneEBS
 	IF @UseAuditTable = 1 AND @AuditTable <> '' AND @TaskName LIKE 'OneEBS%'
 	BEGIN
+		DECLARE @OracleDateFormat varchar(50) = 'YYYY-MM-DD HH24:MI:SS'
 		DECLARE @ALIAS_MAIN varchar(50) = 'mn'
 		DECLARE @ALIAS_AUDIT varchar(50) = 'aud'
 		DECLARE @ALIAS_UPDATED_TRANS_DATE varchar(50) = '"_ONEEBS_UPDATED_TRANSACTION_DATE"' --Please ensure that this column name is used as in on DataBricks
@@ -71,12 +72,14 @@ BEGIN
 		SET @SQL = @SQL + ' LEFT JOIN ('
 		SET @SQL = @SQL + ' SELECT ' + @BusinessKey + ', MAX(AUDIT__TIMESTAMP) AS AUDIT__TIMESTAMP'
 		SET @SQL = @SQL + ' FROM ' + @AuditTable
-		SET @SQL = @SQL + ' WHERE AUDIT__TIMESTAMP'
-		SET @SQL = @SQL + ' BETWEEN TO_DATE(''' + @WatermarkVal + ''', ''YYYY-MM-DD HH24:MI:SS'') AND TO_DATE(''' + @EndDateKey + ''', ''YYYY-MM-DD HH24:MI:SS'')'
+		SET @SQL = @SQL + ' WHERE 1 = 1 '
+		SET @SQL = @SQL + ' AND AUDIT__TIMESTAMP >  TO_DATE(''' + @WatermarkVal + ''', ''YYYY-MM-DD HH24:MI:SS'') '
+		SET @SQL = @SQL + ' AND AUDIT__TIMESTAMP <= TO_DATE(''' + @EndDateKey + ''', ''YYYY-MM-DD HH24:MI:SS'') '
 		SET @SQL = @SQL + ' GROUP BY ' + @BusinessKey
 		SET @SQL = @SQL + ' ) ' + @ALIAS_AUDIT + ' ON ' + @JOIN_CLAUSE
-		SET @SQL = @SQL + ' WHERE COALESCE(' + @ALIAS_AUDIT + '.AUDIT__TIMESTAMP, ' + @WATERMARK_COLS + ')'
-		SET @SQL = @SQL + ' BETWEEN TO_DATE(''' + @WatermarkVal + ''', ''YYYY-MM-DD HH24:MI:SS'') AND TO_DATE(''' + @EndDateKey + ''', ''YYYY-MM-DD HH24:MI:SS'')'
+		SET @SQL = @SQL + ' WHERE 1 = 1 '
+		SET @SQL = @SQL + ' AND COALESCE(' + @ALIAS_AUDIT + '.AUDIT__TIMESTAMP, ' + @WATERMARK_COLS + ') >  TO_DATE(''' + @WatermarkVal + ''', ''YYYY-MM-DD HH24:MI:SS'') '
+		SET @SQL = @SQL + ' AND COALESCE(' + @ALIAS_AUDIT + '.AUDIT__TIMESTAMP, ' + @WATERMARK_COLS + ') <= TO_DATE(''' + @EndDateKey + ''', ''YYYY-MM-DD HH24:MI:SS'') '
 
 		RETURN @SQL
 
@@ -108,9 +111,15 @@ BEGIN
 
 		SET @WaterMarkCol = [CTL].[udf_GetMultiColFilterClause](@WaterMarkCol, @SourceType)
 		IF @SourceType = 'Oracle'
-			Select @WHERE = @WHERE  + ' AND ' + @WaterMarkCol + ' BETWEEN TO_DATE(''' + @WatermarkVal + ''', ''YYYY-MM-DD HH24:MI:SS'') AND TO_DATE(''' + @EndDateKey + ''', ''YYYY-MM-DD HH24:MI:SS'')'
+			SET @WaterMarkCol = 'TO_CHAR(' + @WaterMarkCol + ', ''YYYY-MM-DD HH24:MI:SS'')'
+		ELSE IF @SourceType = 'MySQL'
+			SET @WaterMarkCol = 'FROM_UNIXTIME(' + @WaterMarkCol + ')'
 		ELSE
-			Select @WHERE = @WHERE  + ' AND ' + @WaterMarkCol + ' BETWEEN ''' + @WatermarkVal + ''' AND ''' + @EndDateKey + ''
+			SET @WaterMarkCol = 'FORMAT(' + @WaterMarkCol + ', ''yyyy-MM-dd HH:mm:ss'')'
+
+		SET @WHERE = @WHERE + ' AND ' + @WaterMarkCol + ' > ' + '''' + @WatermarkVal + ''''  
+		SET @WHERE = @WHERE + ' AND ' + @WaterMarkCol + ' <= ' + '''' + @EndDateKey + ''''
+		
 	END
 	ELSE
 	BEGIN
@@ -131,5 +140,5 @@ BEGIN
 	SET @SQL = @SQL + @WHERE
 
 	--Return the SQL
-	Return @SQL 
+	RETURN @SQL 
 END

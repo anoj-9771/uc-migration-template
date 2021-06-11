@@ -10,7 +10,7 @@ DECLARE @StageID int = 1
 DECLARE @ProjectID bigint
 DECLARE @TaskID bigint, @SourceID bigint, @TargetID bigint
 
-WHILE @StageID <= 5
+WHILE @StageID <= 10
 BEGIN
 	SELECT @ProjectID = ProjectID FROM CTL.ControlProjects WHERE ProjectName = @ProjectName
 
