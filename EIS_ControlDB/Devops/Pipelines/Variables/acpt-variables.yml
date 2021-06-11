@@ -1,57 +1,46 @@
 variables:
   # Used in service naming
-  - name: applicationname
-    value: EIS
-  # Used in service naming
-  - name: resourcecount
-    value: '01'
+  - name: prefix
+    value: staubswc
   # The default resource group region name
   - name: location
     value: australiaeast
-  # Numeric location identifier used for naming convention
-  - name: locationnumber
-    value: '2'
   # environment name used in service naming
   - name: environment
-    value: acpt
-  # environment initial name used in service naming
-  - name: environmentinitial
-    value: A  
+    value: dev
   # Resource group name
   - name: resourcegroupname
-    value: RGAEIS201
+    value: rg-swcnonprod01-daf-dev-01
   # username for SQL Server Control DB
   - name: azuresqlserverun
     value: sqladmin
   # Name of the service connection in Azure Devops
   - name: azdoresourceconnection
-    value: Test_IaaS_SP
-  # The service principal object ID (Not App ID)... Use 'az ad sp show --id <<appid>> --query "objectId" -o tsv'
+    value: azure-rg-dev-serviceconnection
+  # The service principal object ID (Not App ID)... Use 'az ad sp show --id <<app-id>> --query "objectId" -o tsv'
   - name: spobjectid
-    value: ff9eafb1-f34f-491b-ad89-7c7b3646e990
+    value: 5f94952e-aed6-47c0-8db3-a5e464f71e30
   # Store account type for BLOB Storage e.g. Standard_LRS)
   - name: storageAccountType
     value: Standard_LRS
-  # Tagging
+  # Tagging.
   - name: applytags
-    value: true
+    value: false
   - name: tags
-    value: Application=EIS \
-          CostCenter=143 \
-          Environment=ACPT \
-          ManagedBy=Data Management Team \
-          Owner=Shirley Wood 
+    value: CostCenter=DataAndAI \
+          Environment=NonProduction \
+          Owner=jackson.staub@insight.com
   # ------------------------------------------------
   # Service names for environment
   # ------------------------------------------------
   # Name of Azure SQL Server and EDW Database
   - name: azuresqlservername
-    value: ml${{ lower(variables.environmentinitial) }}sql${{ lower(variables.applicationname) }}${{ lower(variables.locationnumber) }}${{ lower(variables.resourcecount) }}
- # Name of key vault for this environment
+    value: ${{ lower(variables.prefix) }}-${{ lower(variables.environment) }}-asql
+  - name: azureedwdbname
+    value: EDW
+  # Name of key vault for this environment
   - name: azurekeyvaultname
-    value: kv${{ lower(variables.environmentinitial) }}${{ lower(variables.applicationname) }}${{ lower(variables.locationnumber) }}${{ lower(variables.resourcecount) }}
+    value: $(PREFIX)-$(ENVIRONMENT)-AKV
   # Setup secret rotation interval in days
   - name: secretrotationinterval 
     value: 30
- 
-
