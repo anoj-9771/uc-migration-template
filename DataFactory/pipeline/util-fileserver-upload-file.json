@@ -1,0 +1,117 @@
+{
+	"name": "util-fileserver-upload-file",
+	"properties": {
+		"activities": [
+			{
+				"name": "Copy-Files-Out",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "BinarySource",
+						"storeSettings": {
+							"type": "AzureBlobStorageReadSettings",
+							"recursive": true
+						},
+						"formatSettings": {
+							"type": "BinaryReadSettings"
+						}
+					},
+					"sink": {
+						"type": "BinarySink",
+						"storeSettings": {
+							"type": "FileServerWriteSettings"
+						}
+					},
+					"enableStaging": false
+				},
+				"inputs": [
+					{
+						"referenceName": "BINARY_ADLS",
+						"type": "DatasetReference",
+						"parameters": {
+							"File": {
+								"value": "@pipeline().parameters.FileName",
+								"type": "Expression"
+							},
+							"Container": {
+								"value": "@pipeline().parameters.SourceContainer",
+								"type": "Expression"
+							},
+							"Folder": {
+								"value": "@pipeline().parameters.SourceFolder",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "BINARY_FILESERVER",
+						"type": "DatasetReference",
+						"parameters": {
+							"FileShareUserID": {
+								"value": "@pipeline().parameters.FileShareUserID",
+								"type": "Expression"
+							},
+							"Folder": {
+								"value": "@pipeline().parameters.UploadFolder",
+								"type": "Expression"
+							},
+							"File": {
+								"value": "@pipeline().parameters.FileName",
+								"type": "Expression"
+							},
+							"FileShareURL": {
+								"value": "@pipeline().parameters.FileShareURL",
+								"type": "Expression"
+							},
+							"FileSharePassword": {
+								"value": "@pipeline().parameters.FileSharePassword",
+								"type": "Expression"
+							}
+						}
+					}
+				]
+			}
+		],
+		"parameters": {
+			"SourceContainer": {
+				"type": "string",
+				"defaultValue": "external"
+			},
+			"SourceFolder": {
+				"type": "string",
+				"defaultValue": "test"
+			},
+			"FileName": {
+				"type": "string"
+			},
+			"UploadFolder": {
+				"type": "string",
+				"defaultValue": "In"
+			},
+			"FileShareURL": {
+				"type": "string"
+			},
+			"FileShareUserID": {
+				"type": "string"
+			},
+			"FileSharePassword": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "Utility/fileserver"
+		},
+		"annotations": []
+	}
+}

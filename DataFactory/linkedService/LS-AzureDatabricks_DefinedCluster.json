@@ -1,0 +1,33 @@
+{
+	"name": "LS-AzureDatabricks_DefinedCluster",
+	"properties": {
+		"parameters": {
+			"kvSecret": {
+				"type": "string",
+				"defaultValue": "databricks-token"
+			},
+			"clusterId": {
+				"type": "string",
+				"defaultValue": "0708-233111-note225"
+			}
+		},
+		"annotations": [],
+		"type": "AzureDatabricks",
+		"typeProperties": {
+			"domain": "https://eastus.azuredatabricks.net",
+			"accessToken": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "LS-AzureKeyVault",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": {
+					"value": "@linkedService().kvSecret",
+					"type": "Expression"
+				}
+			},
+			"existingClusterId": "@linkedService().clusterId"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/linkedservices"
+}

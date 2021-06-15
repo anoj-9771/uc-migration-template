@@ -1,0 +1,1226 @@
+{
+	"name": "04-Excel-Source-Load",
+	"properties": {
+		"activities": [
+			{
+				"name": "Get File Metadata",
+				"type": "GetMetadata",
+				"dependsOn": [
+					{
+						"activity": "Set-FileSharePassword",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "Set-FileShareUserID",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "Set-FileShareURL",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "Set-SourceFolder",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "BINARY_FILESERVER",
+						"type": "DatasetReference",
+						"parameters": {
+							"FileShareUserID": {
+								"value": "@variables('FileShareUserID')",
+								"type": "Expression"
+							},
+							"Folder": {
+								"value": "@variables('SourceFolder')",
+								"type": "Expression"
+							},
+							"File": {
+								"value": "@pipeline().parameters.TaskDetails.Command",
+								"type": "Expression"
+							},
+							"FileShareURL": {
+								"value": "@variables('FileShareURL')",
+								"type": "Expression"
+							},
+							"FileSharePassword": {
+								"value": "@variables('FileSharePassword')",
+								"type": "Expression"
+							}
+						}
+					},
+					"fieldList": [
+						"exists"
+					],
+					"storeSettings": {
+						"type": "FileServerReadSettings",
+						"recursive": true
+					},
+					"formatSettings": {
+						"type": "BinaryReadSettings"
+					}
+				}
+			},
+			{
+				"name": "If File Exists",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "Get File Metadata",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@activity('Get File Metadata').output.exists",
+						"type": "Expression"
+					},
+					"ifTrueActivities": [
+						{
+							"name": "Get Full File Name",
+							"type": "Lookup",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "AzureSqlSource",
+									"sqlReaderStoredProcedureName": "[CTL].[GetStorageFileName]",
+									"storedProcedureParameters": {
+										"DeltaExtract": {
+											"type": "Boolean",
+											"value": {
+												"value": "@pipeline().parameters.TaskDetails.DeltaExtract",
+												"type": "Expression"
+											}
+										},
+										"FileName": {
+											"type": "String",
+											"value": {
+												"value": "@pipeline().parameters.TaskDetails.SourceLocation",
+												"type": "Expression"
+											}
+										},
+										"FolderName": {
+											"type": "String",
+											"value": {
+												"value": "@pipeline().parameters.TaskDetails.TargetLocation",
+												"type": "Expression"
+											}
+										},
+										"Grain": {
+											"type": "String",
+											"value": {
+												"value": "@pipeline().parameters.TaskDetails.ObjectGrain",
+												"type": "Expression"
+											}
+										},
+										"Compressed": {
+											"type": "Boolean",
+											"value": {
+												"value": "false",
+												"type": "Expression"
+											}
+										},
+										"TargetType": {
+											"type": "String",
+											"value": {
+												"value": "@pipeline().parameters.TaskDetails.TargetType",
+												"type": "Expression"
+											}
+										}
+									},
+									"partitionOption": "None"
+								},
+								"dataset": {
+									"referenceName": "AzureSqlDatabase_Ctrldb",
+									"type": "DatasetReference"
+								},
+								"firstRowOnly": true
+							}
+						},
+						{
+							"name": "Copy Excel File",
+							"type": "Copy",
+							"dependsOn": [
+								{
+									"activity": "Get Full File Name",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								},
+								{
+									"activity": "EP-Download-File",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								},
+								{
+									"activity": "EP-Download-Schema",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "ExcelSource",
+									"storeSettings": {
+										"type": "AzureBlobStorageReadSettings",
+										"recursive": true
+									}
+								},
+								"sink": {
+									"type": "DelimitedTextSink",
+									"storeSettings": {
+										"type": "AzureBlobStorageWriteSettings"
+									},
+									"formatSettings": {
+										"type": "DelimitedTextWriteSettings",
+										"quoteAllText": true,
+										"fileExtension": ".txt"
+									}
+								},
+								"enableStaging": false
+							},
+							"inputs": [
+								{
+									"referenceName": "SRC_EXCEL",
+									"type": "DatasetReference",
+									"parameters": {
+										"FileName": {
+											"value": "@pipeline().parameters.TaskDetails.Command",
+											"type": "Expression"
+										},
+										"SheetName": {
+											"value": "@pipeline().parameters.TaskDetails.AdditionalProperty",
+											"type": "Expression"
+										},
+										"Container": {
+											"value": "@variables('StageContainer')",
+											"type": "Expression"
+										},
+										"Folder": {
+											"value": "@variables('StageFolder')",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "RAW_ADLS_CSV",
+									"type": "DatasetReference",
+									"parameters": {
+										"BlobPath": {
+											"value": "@activity('Get Full File Name').output.firstrow.StorageFolder",
+											"type": "Expression"
+										},
+										"BlobName": {
+											"value": "@activity('Get Full File Name').output.firstrow.StorageFile",
+											"type": "Expression"
+										},
+										"Compression": "none"
+									}
+								}
+							]
+						},
+						{
+							"name": "Log Notebook Failure",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "Execute-DB-Load-Delta-Table",
+									"dependencyConditions": [
+										"Failed"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[CTL].[UpdateTaskLog]",
+								"storedProcedureParameters": {
+									"BatchLogId": {
+										"value": {
+											"value": "@pipeline().parameters.BatchLogId",
+											"type": "Expression"
+										},
+										"type": "Int64"
+									},
+									"ErrorMessage": {
+										"value": {
+											"value": "Error running Databricks Noebook",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"ExecutionLogId": {
+										"value": {
+											"value": "@pipeline().parameters.TaskExecutionLogId",
+											"type": "Expression"
+										},
+										"type": "Int64"
+									},
+									"Output": {
+										"value": null,
+										"type": "String"
+									},
+									"Status": {
+										"value": "Failure",
+										"type": "String"
+									},
+									"TaskId": {
+										"value": {
+											"value": "@pipeline().parameters.TaskDetails.TaskId",
+											"type": "Expression"
+										},
+										"type": "Int64"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "LS-AzureSqlDatabase_Ctrldb",
+								"type": "LinkedServiceReference",
+								"parameters": {
+									"kvSecret": "AzureSqlDatabase-ControlDB"
+								}
+							}
+						},
+						{
+							"name": "Log Copy Failure",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "Copy Excel File",
+									"dependencyConditions": [
+										"Failed"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[CTL].[UpdateTaskLog]",
+								"storedProcedureParameters": {
+									"BatchLogId": {
+										"value": {
+											"value": "@pipeline().parameters.BatchLogId",
+											"type": "Expression"
+										},
+										"type": "Int64"
+									},
+									"ErrorMessage": {
+										"value": {
+											"value": "File Copy Error",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"ExecutionLogId": {
+										"value": {
+											"value": "@pipeline().parameters.TaskExecutionLogId",
+											"type": "Expression"
+										},
+										"type": "Int64"
+									},
+									"Output": {
+										"value": null,
+										"type": "String"
+									},
+									"Status": {
+										"value": "Failure",
+										"type": "String"
+									},
+									"TaskId": {
+										"value": {
+											"value": "@pipeline().parameters.TaskDetails.TaskId",
+											"type": "Expression"
+										},
+										"type": "Int64"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "LS-AzureSqlDatabase_Ctrldb",
+								"type": "LinkedServiceReference",
+								"parameters": {
+									"kvSecret": "AzureSqlDatabase-ControlDB"
+								}
+							}
+						},
+						{
+							"name": "SP-Record-Manifest",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "Copy Excel File",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[CTL].[CreateManifestRecord]",
+								"storedProcedureParameters": {
+									"BatchExecutionLogID": {
+										"value": {
+											"value": "@pipeline().parameters.BatchLogId",
+											"type": "Expression"
+										},
+										"type": "Int64"
+									},
+									"Container": {
+										"value": "raw",
+										"type": "String"
+									},
+									"EndCounter": {
+										"value": {
+											"value": "0",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"FileName": {
+										"value": {
+											"value": "@activity('Get Full File Name').output.firstrow.StorageFile",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"FolderName": {
+										"value": {
+											"value": "@activity('Get Full File Name').output.firstrow.StorageFolder",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"Records": {
+										"value": {
+											"value": "@activity('Copy Excel File').output.rowsCopied",
+											"type": "Expression"
+										},
+										"type": "Int64"
+									},
+									"SourceObject": {
+										"value": {
+											"value": "@pipeline().parameters.TaskDetails.SourceName",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"StartCounter": {
+										"value": {
+											"value": "0",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"TaskExecutionLogID": {
+										"value": {
+											"value": "@pipeline().parameters.TaskExecutionLogId",
+											"type": "Expression"
+										},
+										"type": "Int64"
+									},
+									"DeltaColumn": {
+										"value": {
+											"value": "@pipeline().parameters.TaskDetails.WatermarkColumn",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"PipelineRunID": {
+										"value": {
+											"value": "@pipeline().RunId",
+											"type": "Expression"
+										},
+										"type": "String"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "LS-AzureSqlDatabase_Ctrldb",
+								"type": "LinkedServiceReference",
+								"parameters": {
+									"kvSecret": "AzureSqlDatabase-ControlDB"
+								}
+							}
+						},
+						{
+							"name": "Log Manifest Failure",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "SP-Record-Manifest",
+									"dependencyConditions": [
+										"Failed"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[CTL].[UpdateTaskLog]",
+								"storedProcedureParameters": {
+									"BatchLogId": {
+										"value": {
+											"value": "@pipeline().parameters.BatchLogId",
+											"type": "Expression"
+										},
+										"type": "Int64"
+									},
+									"ErrorMessage": {
+										"value": {
+											"value": "Databricks Error has occured",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"ExecutionLogId": {
+										"value": {
+											"value": "@pipeline().parameters.TaskExecutionLogId",
+											"type": "Expression"
+										},
+										"type": "Int64"
+									},
+									"Output": {
+										"value": null,
+										"type": "String"
+									},
+									"Status": {
+										"value": "Failure",
+										"type": "String"
+									},
+									"TaskId": {
+										"value": {
+											"value": "@pipeline().parameters.TaskDetails.TaskId",
+											"type": "Expression"
+										},
+										"type": "Int64"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "LS-AzureSqlDatabase_Ctrldb",
+								"type": "LinkedServiceReference",
+								"parameters": {
+									"kvSecret": "AzureSqlDatabase-ControlDB"
+								}
+							}
+						},
+						{
+							"name": "Log Archive Failure",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "EP-Archive-ExcelFile",
+									"dependencyConditions": [
+										"Failed"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[CTL].[UpdateTaskLog]",
+								"storedProcedureParameters": {
+									"BatchLogId": {
+										"value": {
+											"value": "@pipeline().parameters.BatchLogId",
+											"type": "Expression"
+										},
+										"type": "Int64"
+									},
+									"ErrorMessage": {
+										"value": {
+											"value": "File Archive Error has occured",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"ExecutionLogId": {
+										"value": {
+											"value": "@pipeline().parameters.TaskExecutionLogId",
+											"type": "Expression"
+										},
+										"type": "Int64"
+									},
+									"Output": {
+										"value": null,
+										"type": "String"
+									},
+									"Status": {
+										"value": "Failure",
+										"type": "String"
+									},
+									"TaskId": {
+										"value": {
+											"value": "@pipeline().parameters.TaskDetails.TaskId",
+											"type": "Expression"
+										},
+										"type": "Int64"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "LS-AzureSqlDatabase_Ctrldb",
+								"type": "LinkedServiceReference",
+								"parameters": {
+									"kvSecret": "AzureSqlDatabase-ControlDB"
+								}
+							}
+						},
+						{
+							"name": "Execute-DB-Load-Delta-Table",
+							"type": "ExecutePipeline",
+							"dependsOn": [
+								{
+									"activity": "SP-Record-Manifest",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "04-DL-Load-Raw-to-Delta-Table",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"BatchLogId": {
+										"value": "@pipeline().parameters.BatchLogId",
+										"type": "Expression"
+									},
+									"TaskExecutionLogId": {
+										"value": "@pipeline().parameters.TaskExecutionLogId",
+										"type": "Expression"
+									},
+									"TaskDetails": {
+										"value": "@pipeline().parameters.TaskDetails",
+										"type": "Expression"
+									},
+									"TargetBLOBFolder": {
+										"value": "@activity('Get Full File Name').output.firstrow.StorageFolder",
+										"type": "Expression"
+									},
+									"TargetBLOBName": {
+										"value": "@activity('Get Full File Name').output.firstrow.StorageFile",
+										"type": "Expression"
+									},
+									"ProjectRunID": {
+										"value": "@pipeline().parameters.ProjectRunID",
+										"type": "Expression"
+									}
+								}
+							}
+						},
+						{
+							"name": "EP-Archive-ExcelFile",
+							"type": "ExecutePipeline",
+							"dependsOn": [
+								{
+									"activity": "Execute-DB-Load-Delta-Table",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "util-datalake-move-file",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"SourceFolder": {
+										"value": "@variables('StageFolder')",
+										"type": "Expression"
+									},
+									"SourceFile": {
+										"value": "@pipeline().parameters.TaskDetails.Command",
+										"type": "Expression"
+									},
+									"SourceContainer": {
+										"value": "@variables('StageContainer')",
+										"type": "Expression"
+									},
+									"TargetContainer": "raw",
+									"DeleteFile": true,
+									"TargetFolder": {
+										"value": "@replace(activity('Get Full File Name').output.firstRow.StorageFolder, 'csv', 'archive')",
+										"type": "Expression"
+									},
+									"TargetFile": {
+										"value": "@replace(activity('Get Full File Name').output.firstRow.StorageFile, 'csv', 'xlsx')",
+										"type": "Expression"
+									}
+								}
+							}
+						},
+						{
+							"name": "EP-Download-Schema",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "util-download-schema-file",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"TaskDetails": {
+										"value": "@pipeline().parameters.TaskDetails",
+										"type": "Expression"
+									},
+									"FileShareURL": {
+										"value": "@variables('FileShareURL')",
+										"type": "Expression"
+									},
+									"FileShareUserID": {
+										"value": "@variables('FileShareUserID')",
+										"type": "Expression"
+									},
+									"FileSharePassword": {
+										"value": "@variables('FileSharePassword')",
+										"type": "Expression"
+									},
+									"SourceFolder": {
+										"value": "@variables('SourceFolder')",
+										"type": "Expression"
+									}
+								}
+							}
+						},
+						{
+							"name": "EP-Download-File",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "util-fileserver-download-file",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"TargetFolder": {
+										"value": "@variables('StageFolder')",
+										"type": "Expression"
+									},
+									"TargetContainer": {
+										"value": "@variables('StageContainer')",
+										"type": "Expression"
+									},
+									"DeleteFile": false,
+									"SourceFile": {
+										"value": "@pipeline().parameters.TaskDetails.Command",
+										"type": "Expression"
+									},
+									"TargetFile": {
+										"value": "@pipeline().parameters.TaskDetails.Command",
+										"type": "Expression"
+									},
+									"SourceFolder": {
+										"value": "@variables('SourceFolder')",
+										"type": "Expression"
+									},
+									"FileShareURL": {
+										"value": "@variables('FileShareURL')",
+										"type": "Expression"
+									},
+									"FileShareUserID": {
+										"value": "@variables('FileShareUserID')",
+										"type": "Expression"
+									},
+									"FileSharePassword": {
+										"value": "@variables('FileSharePassword')",
+										"type": "Expression"
+									}
+								}
+							}
+						},
+						{
+							"name": "Log File Download Error",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "EP-Download-Schema",
+									"dependencyConditions": [
+										"Failed"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[CTL].[UpdateTaskLog]",
+								"storedProcedureParameters": {
+									"BatchLogId": {
+										"value": {
+											"value": "@pipeline().parameters.BatchLogId",
+											"type": "Expression"
+										},
+										"type": "Int64"
+									},
+									"ErrorMessage": {
+										"value": {
+											"value": "Error Downloading File",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"ExecutionLogId": {
+										"value": {
+											"value": "@pipeline().parameters.TaskExecutionLogId",
+											"type": "Expression"
+										},
+										"type": "Int64"
+									},
+									"Output": {
+										"value": null,
+										"type": "String"
+									},
+									"Status": {
+										"value": "Failure",
+										"type": "String"
+									},
+									"TaskId": {
+										"value": {
+											"value": "@pipeline().parameters.TaskDetails.TaskId",
+											"type": "Expression"
+										},
+										"type": "Int64"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "LS-AzureSqlDatabase_Ctrldb",
+								"type": "LinkedServiceReference",
+								"parameters": {
+									"kvSecret": "AzureSqlDatabase-ControlDB"
+								}
+							}
+						},
+						{
+							"name": "Log Schema Download Error",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "EP-Download-File",
+									"dependencyConditions": [
+										"Failed"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[CTL].[UpdateTaskLog]",
+								"storedProcedureParameters": {
+									"BatchLogId": {
+										"value": {
+											"value": "@pipeline().parameters.BatchLogId",
+											"type": "Expression"
+										},
+										"type": "Int64"
+									},
+									"ErrorMessage": {
+										"value": {
+											"value": "Error Downloading Schema File",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"ExecutionLogId": {
+										"value": {
+											"value": "@pipeline().parameters.TaskExecutionLogId",
+											"type": "Expression"
+										},
+										"type": "Int64"
+									},
+									"Output": {
+										"value": null,
+										"type": "String"
+									},
+									"Status": {
+										"value": "Failure",
+										"type": "String"
+									},
+									"TaskId": {
+										"value": {
+											"value": "@pipeline().parameters.TaskDetails.TaskId",
+											"type": "Expression"
+										},
+										"type": "Int64"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "LS-AzureSqlDatabase_Ctrldb",
+								"type": "LinkedServiceReference",
+								"parameters": {
+									"kvSecret": "AzureSqlDatabase-ControlDB"
+								}
+							}
+						},
+						{
+							"name": "EP-Delete-Source",
+							"type": "ExecutePipeline",
+							"dependsOn": [
+								{
+									"activity": "Execute-DB-Load-Delta-Table",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "util-fileserver-delete-file",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"SourceFile": {
+										"value": "@pipeline().parameters.TaskDetails.Command",
+										"type": "Expression"
+									},
+									"SourceFolder": {
+										"value": "@variables('SourceFolder')",
+										"type": "Expression"
+									},
+									"FileShareURL": {
+										"value": "@variables('FileShareURL')",
+										"type": "Expression"
+									},
+									"FileShareUserID": {
+										"value": "@variables('FileShareUserID')",
+										"type": "Expression"
+									},
+									"FileSharePassword": {
+										"value": "@variables('FileSharePassword')",
+										"type": "Expression"
+									}
+								}
+							}
+						},
+						{
+							"name": "Log Delete Source Failure",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "EP-Delete-Source",
+									"dependencyConditions": [
+										"Failed"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[CTL].[UpdateTaskLog]",
+								"storedProcedureParameters": {
+									"BatchLogId": {
+										"value": {
+											"value": "@pipeline().parameters.BatchLogId",
+											"type": "Expression"
+										},
+										"type": "Int64"
+									},
+									"ErrorMessage": {
+										"value": {
+											"value": "Source File Delete Error has occured",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"ExecutionLogId": {
+										"value": {
+											"value": "@pipeline().parameters.TaskExecutionLogId",
+											"type": "Expression"
+										},
+										"type": "Int64"
+									},
+									"Output": {
+										"value": null,
+										"type": "String"
+									},
+									"Status": {
+										"value": "Failure",
+										"type": "String"
+									},
+									"TaskId": {
+										"value": {
+											"value": "@pipeline().parameters.TaskDetails.TaskId",
+											"type": "Expression"
+										},
+										"type": "Int64"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "LS-AzureSqlDatabase_Ctrldb",
+								"type": "LinkedServiceReference",
+								"parameters": {
+									"kvSecret": "AzureSqlDatabase-ControlDB"
+								}
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "Log Text Load Success",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "If File Exists",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[CTL].[UpdateTaskLog]",
+					"storedProcedureParameters": {
+						"BatchLogId": {
+							"value": {
+								"value": "@pipeline().parameters.BatchLogId",
+								"type": "Expression"
+							},
+							"type": "Int64"
+						},
+						"ErrorMessage": {
+							"value": null,
+							"type": "String"
+						},
+						"ExecutionLogId": {
+							"value": {
+								"value": "@pipeline().parameters.TaskExecutionLogId",
+								"type": "Expression"
+							},
+							"type": "Int64"
+						},
+						"Output": {
+							"value": {
+								"value": "@pipeline().parameters.TaskDetails.LastLoadedFile",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"Status": {
+							"value": "Success",
+							"type": "String"
+						},
+						"TaskId": {
+							"value": {
+								"value": "@pipeline().parameters.TaskDetails.TaskId",
+								"type": "Expression"
+							},
+							"type": "Int64"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "LS-AzureSqlDatabase_Ctrldb",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"kvSecret": "AzureSqlDatabase-ControlDB"
+					}
+				}
+			},
+			{
+				"name": "Set-FileShareURL",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "FileShareURL",
+					"value": {
+						"value": "@split(pipeline().parameters.TaskDetails.SourceServer,'|')[0]",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Set-FileShareUserID",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "FileShareUserID",
+					"value": {
+						"value": "@split(pipeline().parameters.TaskDetails.SourceServer,'|')[1]",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Set-FileSharePassword",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "FileSharePassword",
+					"value": {
+						"value": "@split(pipeline().parameters.TaskDetails.SourceServer,'|')[2]",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Set-SourceFolder",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "SourceFolder",
+					"value": {
+						"value": "@split(pipeline().parameters.TaskDetails.SourceServer,'|')[3]",
+						"type": "Expression"
+					}
+				}
+			}
+		],
+		"parameters": {
+			"BatchLogId": {
+				"type": "int"
+			},
+			"TaskDetails": {
+				"type": "object"
+			},
+			"TaskExecutionLogId": {
+				"type": "int"
+			},
+			"ProjectRunID": {
+				"type": "string"
+			}
+		},
+		"variables": {
+			"StageContainer": {
+				"type": "String",
+				"defaultValue": "external"
+			},
+			"StageFolder": {
+				"type": "String",
+				"defaultValue": "stage"
+			},
+			"FileShareURL": {
+				"type": "String"
+			},
+			"FileShareUserID": {
+				"type": "String"
+			},
+			"FileSharePassword": {
+				"type": "String"
+			},
+			"SourceFolder": {
+				"type": "String",
+				"defaultValue": "In"
+			}
+		},
+		"folder": {
+			"name": "Excel"
+		},
+		"annotations": []
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

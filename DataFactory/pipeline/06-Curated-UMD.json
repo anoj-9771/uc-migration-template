@@ -1,0 +1,64 @@
+{
+	"name": "06-Curated-UMD",
+	"properties": {
+		"activities": [
+			{
+				"name": "SP-USP_RefreshUMDDataModel",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[UMD].[USP_RefreshUMDDataModel]"
+				},
+				"linkedServiceName": {
+					"referenceName": "LS-AzureSqlDatabase_SQLDB",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"kvSecret": "AzureSqlDatabase-SQLDB"
+					}
+				}
+			},
+			{
+				"name": "SP-USP_RefreshUMDDimFunding",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "SP-USP_RefreshUMDDataModel",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[UMD].[USP_RefreshUMDDimFunding]"
+				},
+				"linkedServiceName": {
+					"referenceName": "LS-AzureSqlDatabase_SQLDB",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"kvSecret": "AzureSqlDatabase-SQLDB"
+					}
+				}
+			}
+		],
+		"folder": {
+			"name": "Curated"
+		},
+		"annotations": []
+	}
+}

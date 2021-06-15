@@ -2,8 +2,11 @@
 	"name": "AzureSqlDatabase_Ctrldb",
 	"properties": {
 		"linkedServiceName": {
-			"referenceName": "AzureSqlDatabase_Ctrldb",
-			"type": "LinkedServiceReference"
+			"referenceName": "LS-AzureSqlDatabase_Ctrldb",
+			"type": "LinkedServiceReference",
+			"parameters": {
+				"kvSecret": "AzureSqlDatabase-ControlDB"
+			}
 		},
 		"annotations": [],
 		"type": "AzureSqlTable",
