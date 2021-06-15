@@ -40,7 +40,7 @@ variables:
     value: EDW
   # Name of key vault for this environment
   - name: azurekeyvaultname
-    value: $(PREFIX)-$(ENVIRONMENT)-AKV
+    value: $(PREFIX)-$(ENVIRONMENT)-AKV1
   # Setup secret rotation interval in days
   - name: secretrotationinterval 
     value: 30
