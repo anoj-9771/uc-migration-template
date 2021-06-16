@@ -5,16 +5,14 @@
 		"annotations": [],
 		"type": "AzureSqlDatabase",
 		"typeProperties": {
-			"connectionString": {
+			"connectionString": "Integrated Security=False;Encrypt=True;Connection Timeout=30;Data Source=swcdaf-dev-asql.database.windows.net;Initial Catalog=ControlDB;User ID=sqladmin",
+			"password": {
 				"type": "AzureKeyVaultSecret",
 				"store": {
 					"referenceName": "AzureKeyVault",
 					"type": "LinkedServiceReference"
 				},
-				"secretName": {
-					"value": "ADF-LS-AzureSql-ControlDB",
-					"type": "Expression"
-				}
+				"secretName": "AzureSQLServerPw"
 			}
 		}
 	},
