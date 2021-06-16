@@ -23,7 +23,7 @@ parameters:
   type: boolean
 
 steps:
-  # Create or update NSG
+  # Create or update NSG.
   - task: AzureResourceGroupDeployment@2
     condition: eq(variables['databricksvnetnsg'], true)
     inputs:
