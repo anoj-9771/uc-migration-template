@@ -188,7 +188,7 @@ stages:
           defaultDataLakeStorageFilesystemName: ${{ variables.defaultDataLakeStorageFilesystemName }}
           synapsesqlPoolName: ${{ variables.synapsesqlPoolName }}
 
-    # Add Tags to resources.
+    # Add Tags to resources
     - ${{ if eq(variables['applytags'], true) }}:
       - task: AzureCLI@2
         displayName: 'Add tags to Resources'
