@@ -4,7 +4,7 @@
 		"annotations": [],
 		"type": "AzureKeyVault",
 		"typeProperties": {
-			"baseUrl": "https://insight-etlframework-akv.vault.azure.net/"
+			"baseUrl": "https://swcdaf-dev-akv.vault.azure.net/"
 		}
 	}
 }
