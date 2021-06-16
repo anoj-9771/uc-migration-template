@@ -1,0 +1,264 @@
+{
+	"name": "SQL_to_ADLS csv_gz",
+	"properties": {
+		"description": "Pipeline used to extract Oracle sources..",
+		"activities": [
+			{
+				"name": "Log SQL",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "SQL",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 120,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[CTL].[sp_updateTaskLog]",
+					"storedProcedureParameters": {
+						"BatchId": {
+							"value": {
+								"value": "@pipeline().parameters.item.BatchId",
+								"type": "Expression"
+							},
+							"type": "Int64"
+						},
+						"Output": {
+							"value": {
+								"value": "@if(empty(activity('SQL').error), string(activity('SQL').output), string(activity('SQL').error))",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"FullBlobName": {
+							"value": {
+								"value": "@concat(pipeline().parameters.item.TargetName,pipeline().parameters.item.Path,pipeline().parameters.item.TargetName)",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"TaskId": {
+							"value": {
+								"value": "@pipeline().parameters.item.TaskId",
+								"type": "Expression"
+							},
+							"type": "Int64"
+						},
+						"RunId": {
+							"value": {
+								"value": "@pipeline().RunId",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"Watermark": {
+							"value": {
+								"value": "@string(activity('Get New Watermark').output.value)",
+								"type": "Expression"
+							},
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "AzureSqlDatabase_Ctrldb",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "SQL",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Get New Watermark",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": {
+							"value": "@if(not(equals(activity('Get New Watermark').output.value[0].to_value,null)),replace(pipeline().parameters.item.Query,'<<to_value>>',activity('Get New Watermark').output.value[0].to_value),pipeline().parameters.item.Query)",
+							"type": "Expression"
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "DelimitedTextSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "DelimitedTextWriteSettings",
+							"quoteAllText": true,
+							"fileExtension": ".txt"
+						}
+					},
+					"enableStaging": false
+				},
+				"inputs": [
+					{
+						"referenceName": "SQL_Read",
+						"type": "DatasetReference",
+						"parameters": {
+							"kvSecret": {
+								"value": "@pipeline().parameters.item.SourceConnection",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ADLS",
+						"type": "DatasetReference",
+						"parameters": {
+							"BlobPath": {
+								"value": "@pipeline().parameters.item.TargetLocation",
+								"type": "Expression"
+							},
+							"BlobName": {
+								"value": "@concat(pipeline().parameters.item.TargetBlobName,pipeline().parameters.item.TargetFormat)",
+								"type": "Expression"
+							}
+						}
+					}
+				]
+			},
+			{
+				"name": "GetSchema Oracle",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "SQL",
+						"dependencyConditions": [
+							"Skipped"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": {
+							"value": "@pipeline().parameters.item.MetaDataQuery",
+							"type": "Expression"
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "DelimitedTextSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "DelimitedTextWriteSettings",
+							"quoteAllText": true,
+							"fileExtension": ".txt"
+						}
+					},
+					"enableStaging": false
+				},
+				"inputs": [
+					{
+						"referenceName": "SQL_Read",
+						"type": "DatasetReference",
+						"parameters": {
+							"kvSecret": {
+								"value": "@pipeline().parameters.item.SourceConnection",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ADLS",
+						"type": "DatasetReference",
+						"parameters": {
+							"BlobPath": {
+								"value": "@split(pipeline().parameters.item.TargetLocation,'/')[1]",
+								"type": "Expression"
+							},
+							"BlobName": {
+								"value": "@concat(pipeline().parameters.item.TargetBlobName, '_schema', pipeline().parameters.item.TargetFormat)",
+								"type": "Expression"
+							}
+						}
+					}
+				]
+			},
+			{
+				"name": "Get New Watermark",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": {
+							"value": "@if(equals(pipeline().parameters.item.WatermarkQuery,null),'select null',pipeline().parameters.item.WatermarkQuery)",
+							"type": "Expression"
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "SQL_Read",
+						"type": "DatasetReference",
+						"parameters": {
+							"kvSecret": {
+								"value": "@pipeline().parameters.item.SourceConnection",
+								"type": "Expression"
+							}
+						}
+					},
+					"firstRowOnly": false
+				}
+			}
+		],
+		"parameters": {
+			"item": {
+				"type": "object"
+			}
+		},
+		"annotations": [],
+		"lastPublishTime": "2021-05-26T08:44:32Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

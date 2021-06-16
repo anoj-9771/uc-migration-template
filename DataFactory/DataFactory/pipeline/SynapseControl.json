@@ -1,0 +1,183 @@
+{
+	"name": "SynapseControl",
+	"properties": {
+		"activities": [
+			{
+				"name": "CheckStatus",
+				"type": "WebActivity",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"url": {
+						"value": "@concat(pipeline().parameters.baseURL,'/providers/Microsoft.Sql/servers/',pipeline().parameters.serverName,'/databases/BI_Reload?api-version=2014-04-01-preview')",
+						"type": "Expression"
+					},
+					"method": "GET",
+					"headers": {
+						"Content-Type": "application/json"
+					},
+					"authentication": {
+						"type": "MSI",
+						"resource": "https://management.azure.com/"
+					}
+				}
+			},
+			{
+				"name": "RoutExec",
+				"type": "Switch",
+				"dependsOn": [
+					{
+						"activity": "CheckStatus",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"on": {
+						"value": "@if(or(equals(pipeline().parameters.action,'Resume'),equals(pipeline().parameters.action,'Pause')),'Resume|Pause',pipeline().parameters.action)",
+						"type": "Expression"
+					},
+					"cases": [
+						{
+							"value": "Scale",
+							"activities": [
+								{
+									"name": "Scale_Synapse",
+									"type": "ExecutePipeline",
+									"dependsOn": [
+										{
+											"activity": "ResumePause_Synapse",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "Scale_Synapse",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": true,
+										"parameters": {
+											"baseURL": {
+												"value": "@pipeline().parameters.baseURL",
+												"type": "Expression"
+											},
+											"serverName": {
+												"value": "@pipeline().parameters.serverName",
+												"type": "Expression"
+											},
+											"size": {
+												"value": "@pipeline().parameters.size",
+												"type": "Expression"
+											}
+										}
+									}
+								},
+								{
+									"name": "ResumePause_Synapse",
+									"type": "ExecutePipeline",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "ResumePause_Synapse",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": true,
+										"parameters": {
+											"baseURL": {
+												"value": "@pipeline().parameters.baseURL",
+												"type": "Expression"
+											},
+											"serverName": {
+												"value": "@pipeline().parameters.serverName",
+												"type": "Expression"
+											},
+											"action": "Resume"
+										}
+									}
+								}
+							]
+						},
+						{
+							"value": "Resume|Pause",
+							"activities": [
+								{
+									"name": "PauseResume_Synapse",
+									"type": "ExecutePipeline",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "ResumePause_Synapse",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": true,
+										"parameters": {
+											"baaseURL": {
+												"value": "@pipeline().parameters.baseURL",
+												"type": "Expression"
+											},
+											"serverName": {
+												"value": "@pipeline().parameters.serverName",
+												"type": "Expression"
+											},
+											"action": {
+												"value": "@pipeline().parameters.action",
+												"type": "Expression"
+											}
+										}
+									}
+								}
+							]
+						}
+					],
+					"defaultActivities": [
+						{
+							"name": "Wait1",
+							"type": "Wait",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"waitTimeInSeconds": 1
+							}
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"action": {
+				"type": "string",
+				"defaultValue": "Pause"
+			},
+			"serverName": {
+				"type": "string",
+				"defaultValue": "emhs-syd-npe-asql-ddidatalake"
+			},
+			"size": {
+				"type": "string",
+				"defaultValue": "DW100c"
+			},
+			"baseURL": {
+				"type": "string",
+				"defaultValue": "https://management.azure.com/subscriptions/4e3dc0e1-a8c6-4b13-a523-9d4afa9f0e3f/resourceGroups/EMHS-NPE-ARG-DDIDataLake"
+			}
+		},
+		"folder": {
+			"name": "Synapse_Management"
+		},
+		"annotations": []
+	}
+}
