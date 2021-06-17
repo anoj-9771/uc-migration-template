@@ -22,10 +22,7 @@
 					},
 					"dataset": {
 						"referenceName": "AzureSqlDatabase_read",
-						"type": "DatasetReference",
-						"parameters": {
-							"kvSecret": "swcdaf-connectionstring-controldb"
-						}
+						"type": "DatasetReference"
 					},
 					"firstRowOnly": false
 				}
