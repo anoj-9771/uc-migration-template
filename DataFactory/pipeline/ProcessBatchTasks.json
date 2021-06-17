@@ -33,7 +33,8 @@
 									"type": "Expression"
 								}
 							}
-						}
+						},
+						"partitionOption": "None"
 					},
 					"dataset": {
 						"referenceName": "AzureSqlDatabase_read",
@@ -221,7 +222,10 @@
 										},
 										"linkedServiceName": {
 											"referenceName": "AzureSqlDatabase_Ctrldb",
-											"type": "LinkedServiceReference"
+											"type": "LinkedServiceReference",
+											"parameters": {
+												"kvSecret": "swcdaf-connectionstring-controldb"
+											}
 										}
 									}
 								]
