@@ -17,13 +17,14 @@
 				"typeProperties": {
 					"source": {
 						"type": "AzureSqlSource",
-						"sqlReaderStoredProcedureName": "[CTL].[sp_getProjects]"
+						"sqlReaderStoredProcedureName": "[CTL].[sp_getProjects]",
+						"partitionOption": "None"
 					},
 					"dataset": {
 						"referenceName": "AzureSqlDatabase_read",
 						"type": "DatasetReference",
 						"parameters": {
-							"kvSecret": "ADF-LS-AzureSql-ControlDB"
+							"kvSecret": "swcdaf-connectionstring-controldb"
 						}
 					},
 					"firstRowOnly": false
@@ -71,7 +72,8 @@
 												"type": "Expression"
 											}
 										}
-									}
+									},
+									"partitionOption": "None"
 								},
 								"dataset": {
 									"referenceName": "AzureSqlDatabase_read",
@@ -200,7 +202,8 @@
 								}
 							}
 						},
-						"queryTimeout": "02:00:00"
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
 					},
 					"dataset": {
 						"referenceName": "AzureSqlDatabase_read",
