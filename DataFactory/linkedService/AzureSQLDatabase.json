@@ -4,7 +4,8 @@
 		"description": "Linked service used to connect to all azure SQL servers based on a Key Vault string",
 		"parameters": {
 			"kvSecret": {
-				"type": "string"
+				"type": "string",
+				"defaultValue": "swcdaf-connectionstring-controldb"
 			}
 		},
 		"annotations": [],
