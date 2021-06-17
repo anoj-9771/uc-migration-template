@@ -3,7 +3,8 @@
 	"properties": {
 		"parameters": {
 			"kvSecret": {
-				"type": "string"
+				"type": "string",
+				"defaultValue": "swcdaf-connectionstring-controldb"
 			}
 		},
 		"annotations": [],
