@@ -17,7 +17,6 @@
 				"typeProperties": {
 					"source": {
 						"type": "AzureSqlSource",
-						"sqlReaderStoredProcedureName": "[CTL].[sp_getTasksToProcess]",
 						"storedProcedureParameters": {
 							"BatchID": {
 								"type": "Int64",
@@ -33,14 +32,12 @@
 									"type": "Expression"
 								}
 							}
-						}
+						},
+						"partitionOption": "None"
 					},
 					"dataset": {
-						"referenceName": "AzureSqlDatabase_read",
-						"type": "DatasetReference",
-						"parameters": {
-							"kvSecret": "ADF-LS-AzureSql-ControlDB"
-						}
+						"referenceName": "AzureSqlDatabase_Ctrldb",
+						"type": "DatasetReference"
 					},
 					"firstRowOnly": false
 				}
