@@ -17,7 +17,7 @@
 				"typeProperties": {
 					"source": {
 						"type": "AzureSqlSource",
-						"sqlReaderStoredProcedureName": "[CTL].[getProjects]",
+						"sqlReaderStoredProcedureName": "CTL.sp_getProjects",
 						"partitionOption": "None"
 					},
 					"dataset": {
