@@ -21,8 +21,11 @@
 						"partitionOption": "None"
 					},
 					"dataset": {
-						"referenceName": "AzureSqlDatabase_Ctrldb",
-						"type": "DatasetReference"
+						"referenceName": "AzureSqlDatabase_read",
+						"type": "DatasetReference",
+						"parameters": {
+							"kvSecret": "ADF-LS-AzureSql-ControlDB"
+						}
 					},
 					"firstRowOnly": false
 				}
