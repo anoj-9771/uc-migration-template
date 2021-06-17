@@ -98,17 +98,17 @@
 							"userProperties": [],
 							"typeProperties": {
 								"pipeline": {
-									"referenceName": "ProcessBatchTasks",
+									"referenceName": "ProcessBatch",
 									"type": "PipelineReference"
 								},
 								"waitOnCompletion": false,
 								"parameters": {
-									"BatchId": {
-										"value": "@activity('AddProjectTasksToQueue').output.firstRow.BatchId",
-										"type": "Expression"
-									},
 									"ExecTime": {
 										"value": "@activity('AddProjectTasksToQueue').output.firstRow.ExecTime",
+										"type": "Expression"
+									},
+									"BatchId": {
+										"value": "@activity('AddProjectTasksToQueue').output.firstRow.BatchId",
 										"type": "Expression"
 									}
 								}
