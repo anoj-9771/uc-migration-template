@@ -17,11 +17,11 @@
 				"typeProperties": {
 					"source": {
 						"type": "AzureSqlSource",
-						"sqlReaderStoredProcedureName": "[CTL].[sp_getProjects]",
+						"sqlReaderStoredProcedureName": "[CTL].[getProjects]",
 						"partitionOption": "None"
 					},
 					"dataset": {
-						"referenceName": "AzureSqlDatabase_read",
+						"referenceName": "AzureSqlDatabase_Ctrldb",
 						"type": "DatasetReference"
 					},
 					"firstRowOnly": false
