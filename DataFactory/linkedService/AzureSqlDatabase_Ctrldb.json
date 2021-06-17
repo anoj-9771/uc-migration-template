@@ -2,17 +2,22 @@
 	"name": "AzureSqlDatabase_Ctrldb",
 	"properties": {
 		"description": "ETL Control database linked service",
+		"parameters": {
+			"kvSecret": {
+				"type": "string",
+				"defaultValue": "swcdaf-connectionstring-controldb"
+			}
+		},
 		"annotations": [],
 		"type": "AzureSqlDatabase",
 		"typeProperties": {
-			"connectionString": "Integrated Security=False;Encrypt=True;Connection Timeout=30;Data Source=swcdaf-dev-asql.database.windows.net;Initial Catalog=ControlDB;User ID=sqladmin",
-			"password": {
+			"connectionString": {
 				"type": "AzureKeyVaultSecret",
 				"store": {
 					"referenceName": "AzureKeyVault",
 					"type": "LinkedServiceReference"
 				},
-				"secretName": "AzureSQLServerPw"
+				"secretName": "@linkedService().kvSecret"
 			}
 		}
 	},
