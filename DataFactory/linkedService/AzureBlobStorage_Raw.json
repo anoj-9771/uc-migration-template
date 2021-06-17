@@ -4,14 +4,8 @@
 		"annotations": [],
 		"type": "AzureBlobStorage",
 		"typeProperties": {
-			"sasUri": {
-				"type": "AzureKeyVaultSecret",
-				"store": {
-					"referenceName": "AzureKeyVault",
-					"type": "LinkedServiceReference"
-				},
-				"secretName": "rawZone-rwdl-SasToken"
-			}
+			"serviceEndpoint": "https://saswcnonprod01landingdev.blob.core.windows.net",
+			"accountKind": "StorageV2"
 		}
 	},
 	"type": "Microsoft.DataFactory/factories/linkedservices"
