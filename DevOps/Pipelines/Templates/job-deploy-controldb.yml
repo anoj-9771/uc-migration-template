@@ -27,4 +27,4 @@ jobs:
       DatabaseName: ControlDB
       SqlUsername: $(AZURESQLSERVERUN)
       SqlPassword: '$(azuresqlserverpw)'
-      DacpacFile: '$(Pipeline.Workspace)/sql_Controldb/ControlDB.dacpac'
+      DacpacFile: '$(Pipeline.Workspace)/sql_Controldb/CntrlDb.dacpac'
