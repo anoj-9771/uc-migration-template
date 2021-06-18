@@ -10,5 +10,5 @@
       inputs:
         solution: ADS-Databases/CntrlDB/CntrlDB.sqlproj
 
-    - publish: CntrlDB/CntrlDB/bin/Debug
+    - publish: ADS-Databses/CntrlDB/bin/Debug
       artifact: sql_Controldb
