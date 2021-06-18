@@ -1,0 +1,10 @@
+{
+	"name": "LS_DataLake",
+	"properties": {
+		"annotations": [],
+		"type": "AzureBlobFS",
+		"typeProperties": {
+			"url": "https://swcdafdevadls.dfs.core.windows.net"
+		}
+	}
+}
