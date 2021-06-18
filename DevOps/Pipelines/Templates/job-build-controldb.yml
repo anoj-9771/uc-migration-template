@@ -11,4 +11,4 @@
         solution: ADS-Databases/CntrlDB/CntrlDB.sqlproj
 
     - publish: ADS-Databases\CntrlDB\bin\Debug
-      artifact: sql_Cntrldb
+      artifact: sql_Controldb

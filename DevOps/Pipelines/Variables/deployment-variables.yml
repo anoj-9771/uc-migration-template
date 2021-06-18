@@ -24,7 +24,7 @@ variables:
   # Used to add EDW DB to Azure SQL server 
   - name: edw
     value: false
-  # Used to set Blob Storage deployability
+  # Used to set Blob Storage deployability.
   - name: azureblobstorage
     value: false
   # Used to set Data Lake Storage deployability
