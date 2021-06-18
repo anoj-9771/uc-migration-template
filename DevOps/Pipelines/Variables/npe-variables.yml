@@ -38,7 +38,7 @@ variables:
     value: ${{ lower(variables.prefix) }}-${{ lower(variables.environment) }}-asql
   - name: azureedwdbname
     value: EDW
-  # Name of key vault for this environment
+  # Name of key vault for this environment.
   - name: azurekeyvaultname
     value: $(PREFIX)-$(ENVIRONMENT)-AKV
   # Setup secret rotation interval in days

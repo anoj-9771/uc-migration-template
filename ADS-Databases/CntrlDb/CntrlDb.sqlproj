@@ -4,7 +4,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <Name>CntrlDb</Name>
+    <Name>ControlDb</Name>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectVersion>4.1</ProjectVersion>
     <ProjectGuid>{27a34078-ccfc-4646-be2a-9d8c9fa267c4}</ProjectGuid>
@@ -12,8 +12,8 @@
     <OutputType>Database</OutputType>
     <RootPath>
     </RootPath>
-    <RootNamespace>CntrlDb</RootNamespace>
-    <AssemblyName>CntrlDb</AssemblyName>
+    <RootNamespace>ControlDb</RootNamespace>
+    <AssemblyName>ControlDb</AssemblyName>
     <ModelCollation>1033, CI</ModelCollation>
     <DefaultFileStructure>BySchemaAndSchemaType</DefaultFileStructure>
     <DeployToDatabase>True</DeployToDatabase>
@@ -146,6 +146,6 @@
     <PostDeploy Include="Script.PostDeployment1.sql" />
   </ItemGroup>
   <ItemGroup>
-    <RefactorLog Include="CntrlDb.refactorlog" />
+    <RefactorLog Include="ControlDb.refactorlog" />
   </ItemGroup>
 </Project>
