@@ -74,11 +74,11 @@ variables:
   # Data Factory self hosted integrated runtime name
   - name: datafactoryshirname
     value: $(PREFIX)-SHIR
-  # Flag to specify whether Data Factory requires Git Integration
+  # Flag to specify whether Data Factory requires Git Integration..
   - name: isRepoEnabled
     value: true  
   # ------------------------------------------------
-  # Log Analytics related
+  # Log Analytics related.
   # ------------------------------------------------
   - name: loganalyticssku
     value: PerGB2018
