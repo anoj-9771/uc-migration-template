@@ -11,16 +11,16 @@
 			<Metadata Name="CompatibilityMode" Value="150" />
 		</CustomData>
 		<CustomData Category="Reference" Type="Assembly">
-			<Metadata Name="LogicalName" Value="ControlDb.dll" />
-			<Metadata Name="FileName" Value="C:\USERS\RAGRAWAL\SOURCE\REPOS\INSIGHT\TAFE-BI\ADS-DATABASES\ControlDB\OBJ\DEBUG\ControlDB.DLL" />
-			<Metadata Name="AssemblyName" Value="ControlDb" />
+			<Metadata Name="LogicalName" Value="CntrlDb.dll" />
+			<Metadata Name="FileName" Value="C:\USERS\RAGRAWAL\SOURCE\REPOS\INSIGHT\TAFE-BI\ADS-DATABASES\CNTRLDB\OBJ\DEBUG\CNTRLDB.DLL" />
+			<Metadata Name="AssemblyName" Value="CntrlDb" />
 			<Metadata Name="PermissionSet" Value="SAFE" />
 			<Metadata Name="Owner" Value="" />
 			<Metadata Name="GenerateSqlClrDdl" Value="True" />
 			<Metadata Name="IsVisible" Value="True" />
 			<Metadata Name="IsModelAware" Value="True" />
 			<Metadata Name="SkipCreationIfEmpty" Value="True" />
-			<Metadata Name="AssemblySymbolsName" Value="C:\Users\ragrawal\source\repos\Insight\TAFE-BI\ADS-Databases\ControlDb\obj\Debug\ControlDb.pdb" />
+			<Metadata Name="AssemblySymbolsName" Value="C:\Users\ragrawal\source\repos\Insight\TAFE-BI\ADS-Databases\CntrlDb\obj\Debug\CntrlDb.pdb" />
 		</CustomData>
 		<CustomData Category="SqlCmdVariables" Type="SqlCmdVariable" />
 	</Header>
