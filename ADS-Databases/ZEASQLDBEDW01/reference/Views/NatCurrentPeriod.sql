@@ -1,0 +1,1 @@
+﻿CREATE   VIEW  reference.NatCurrentPeriod AS SELECT *, _DLTrustedZoneTimeStamp _DLCuratedZoneTimeStamp  FROM edw.reference_nat_current_period

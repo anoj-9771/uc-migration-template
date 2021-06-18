@@ -1,0 +1,1 @@
+﻿Create   view OneEBS.[900_Unit_Instances] AS  Select * from edw.OneEBS_EBS_0900_UNIT_INSTANCES WHERE        (_RecordDeleted = 0) AND (_RecordCurrent = 1)

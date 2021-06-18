@@ -1,0 +1,60 @@
+{
+	"name": "SRC_TEXT_FILE",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS-AzureDataLake",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"FileName": {
+				"type": "string"
+			},
+			"FileEncoding": {
+				"type": "string",
+				"defaultValue": "UTF-8"
+			},
+			"Container": {
+				"type": "string"
+			},
+			"Folder": {
+				"type": "string"
+			},
+			"ColumnDelim": {
+				"type": "string",
+				"defaultValue": ","
+			}
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": {
+					"value": "@dataset().FileName",
+					"type": "Expression"
+				},
+				"folderPath": {
+					"value": "@dataset().Folder",
+					"type": "Expression"
+				},
+				"container": {
+					"value": "@dataset().Container",
+					"type": "Expression"
+				}
+			},
+			"columnDelimiter": {
+				"value": "@dataset().ColumnDelim",
+				"type": "Expression"
+			},
+			"encodingName": {
+				"value": "@dataset().FileEncoding",
+				"type": "Expression"
+			},
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": []
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

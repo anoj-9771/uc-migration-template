@@ -1,0 +1,42 @@
+﻿
+Create View [EChecklist].[ChecklistActions] as
+Select CheckListId,
+       InstanceID,
+	   TaskNo,
+       ActionedDate,
+       CreationDate,
+	   Actioner,
+	   TaskName,
+	   TaskOwner,
+	   InitiatedDate,
+	   InitiatedBy,
+	   HighestStatusId,
+	   SkillPoint,
+	   [Location],
+	   FundingType,
+	   AttendanceMode,
+	   CostCentre,
+	   VTO,
+	   CourseCode,
+	   Calocc,
+	   OfferType,
+	   LearnerNo,
+	   DOB,
+	   FirstName,
+	   LastName,
+	   Quantity,
+	   StartDate,
+	   EndDate,
+	   [Year],
+	   [Month],
+	   [Day],
+	   Term,
+	   ChangeType,
+	   Marketing,
+	   StatusName,
+	   TaskStatusName,
+	   Final_ChecklistStatus
+from [tsEChecklist].[ChecklistActions] ca
+ 
+
+GO

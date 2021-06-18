@@ -2,19 +2,15 @@
 	"name": "AzureSqlDatabase_Ctrldb",
 	"properties": {
 		"linkedServiceName": {
-			"referenceName": "AzureSqlDatabase_Ctrldb",
+			"referenceName": "LS-AzureSqlDatabase_Ctrldb",
 			"type": "LinkedServiceReference",
 			"parameters": {
-				"kvSecret": "swcdaf-connectionstring-controldb"
+				"kvSecret": "AzureSqlDatabase-ControlDB"
 			}
 		},
 		"annotations": [],
 		"type": "AzureSqlTable",
-		"schema": [],
-		"typeProperties": {
-			"schema": "CTL",
-			"table": "Project"
-		}
+		"schema": []
 	},
 	"type": "Microsoft.DataFactory/factories/datasets"
 }

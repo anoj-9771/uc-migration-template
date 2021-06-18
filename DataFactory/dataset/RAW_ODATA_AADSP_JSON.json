@@ -1,0 +1,46 @@
+{
+	"name": "RAW_ODATA_AADSP_JSON",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_ODataSource_AADSP",
+			"type": "LinkedServiceReference",
+			"parameters": {
+				"AppID": {
+					"value": "@dataset().UserName",
+					"type": "Expression"
+				},
+				"AppSecret": {
+					"value": "@dataset().Password",
+					"type": "Expression"
+				},
+				"BaseUrl": {
+					"value": "@dataset().BaseUrl",
+					"type": "Expression"
+				}
+			}
+		},
+		"parameters": {
+			"UserName": {
+				"type": "string"
+			},
+			"Password": {
+				"type": "string"
+			},
+			"BaseUrl": {
+				"type": "string"
+			},
+			"Table": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "ODataResource",
+		"schema": [],
+		"typeProperties": {
+			"path": {
+				"value": "@dataset().Table",
+				"type": "Expression"
+			}
+		}
+	}
+}

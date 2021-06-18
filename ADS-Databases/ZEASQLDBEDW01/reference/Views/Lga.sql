@@ -1,0 +1,1 @@
+﻿CREATE   VIEW  reference.Lga AS SELECT *, _DLTrustedZoneTimeStamp _DLCuratedZoneTimeStamp  FROM edw.reference_lga

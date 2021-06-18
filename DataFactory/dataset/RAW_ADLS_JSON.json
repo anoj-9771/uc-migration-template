@@ -1,0 +1,38 @@
+{
+	"name": "RAW_ADLS_JSON",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS-AzureDataLake",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"BlobPath": {
+				"type": "string"
+			},
+			"BlobName": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "Json",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": {
+					"value": "@dataset().BlobName",
+					"type": "Expression"
+				},
+				"folderPath": {
+					"value": "@dataset().BlobPath",
+					"type": "Expression"
+				},
+				"container": "raw"
+			},
+			"compression": {
+				"type": "gzip",
+				"level": "Optimal"
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

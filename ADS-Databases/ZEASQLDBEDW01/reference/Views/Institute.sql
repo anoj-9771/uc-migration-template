@@ -1,0 +1,1 @@
+﻿CREATE   VIEW  reference.Institute AS SELECT *, _DLTrustedZoneTimeStamp _DLCuratedZoneTimeStamp  FROM edw.reference_institute

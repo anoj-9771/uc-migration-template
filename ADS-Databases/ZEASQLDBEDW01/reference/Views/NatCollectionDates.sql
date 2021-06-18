@@ -1,0 +1,1 @@
+﻿CREATE   VIEW  reference.NatCollectionDates AS SELECT *, _DLTrustedZoneTimeStamp _DLCuratedZoneTimeStamp  FROM edw.reference_nat_collection_dates

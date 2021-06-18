@@ -1,0 +1,15 @@
+﻿CREATE VIEW OneEBS.Who_To_Pay
+AS
+SELECT [WHO_TO_PAY]
+      ,[LONG_DESCRIPTION]
+      ,[SHORT_DESCRIPTION]
+      ,[BAL_TO_UPDATE]
+      ,[TRANSFER_ALLOWED]
+      ,[CREATED_BY]
+      ,[CREATED_DATE]
+      ,[UPDATED_BY]
+      ,[UPDATED_DATE]
+      ,[IS_INCLUDED_IN_RETURN]
+      ,[INSTITUTION_CONTEXT_ID]
+  FROM [edw].[OneEBS_EBS_0165_WHO_TO_PAY]
+  WHERE _RecordCurrent = 1 AND _RecordDeleted = 0

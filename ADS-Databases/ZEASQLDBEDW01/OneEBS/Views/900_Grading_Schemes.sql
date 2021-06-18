@@ -1,0 +1,17 @@
+﻿CREATE VIEW OneEBS.[900_Grading_Schemes]
+AS
+SELECT [ALLOW_FLOOD_FILL]
+      ,[CODE]
+      ,[CREATED_BY]
+      ,[CREATED_DATE]
+      ,[DESCRIPTION]
+      ,[GRADING_SCHEME_SUBTYPE]
+      ,[GRADING_SCHEME_TYPE]
+      ,[ID]
+      ,[INSTITUTION_CONTEXT_ID]
+      ,[IS_ACTIVE]
+      ,[IS_EXCLUDED_FROM_AWARD_CALC]
+      ,[UPDATED_BY]
+      ,[UPDATED_DATE]
+  FROM [edw].[OneEBS_EBS_0900_GRADING_SCHEMES]
+WHERE        (_RecordDeleted = 0) AND (_RecordCurrent = 1)

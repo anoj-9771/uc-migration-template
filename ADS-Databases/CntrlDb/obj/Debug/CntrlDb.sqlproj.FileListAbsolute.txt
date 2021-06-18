@@ -1,0 +1,10 @@
+C:\Users\ragrawal\source\repos\Insight\TAFE-BI\ADS-Databases\CntrlDb\bin\Debug\CntrlDb.dacpac
+C:\Users\ragrawal\source\repos\Insight\TAFE-BI\ADS-Databases\CntrlDb\bin\Debug\CntrlDb.dll
+C:\Users\ragrawal\source\repos\Insight\TAFE-BI\ADS-Databases\CntrlDb\bin\Debug\CntrlDb.pdb
+C:\Users\ragrawal\source\repos\Insight\TAFE-BI\ADS-Databases\CntrlDb\obj\Debug\CntrlDb.dll
+C:\Users\ragrawal\source\repos\Insight\TAFE-BI\ADS-Databases\CntrlDb\obj\Debug\CntrlDb.pdb
+C:\Users\ragrawal\source\repos\Insight\TAFE-BI\ADS-Databases\CntrlDb\obj\Debug\Model.xml
+C:\Users\ragrawal\source\repos\Insight\TAFE-BI\ADS-Databases\CntrlDb\obj\Debug\refactor.xml
+C:\Users\ragrawal\source\repos\Insight\TAFE-BI\ADS-Databases\CntrlDb\obj\Debug\postdeploy.sql
+C:\Users\ragrawal\source\repos\Insight\TAFE-BI\ADS-Databases\CntrlDb\obj\Debug\predeploy.sql
+C:\Users\ragrawal\source\repos\Insight\TAFE-BI\ADS-Databases\CntrlDb\obj\Debug\CntrlDb.sqlprojAssemblyReference.cache

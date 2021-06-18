@@ -1,0 +1,26 @@
+﻿CREATE TABLE [edw].[OneEBS_EBS_0165_UIO_INSTALMENTS] (
+    [FIXED_FEE]               NUMERIC (15, 2) NULL,
+    [INSTITUTION_CONTEXT_ID]  NUMERIC (10)    NULL,
+    [ID]                      NUMERIC (10)    NULL,
+    [UIO_INSTALMENT_PLANS_ID] NUMERIC (10)    NULL,
+    [DUE_DATE]                DATETIME2 (7)            NULL,
+    [NUMBER_OF_DAYS]          NUMERIC (3)     NULL,
+    [INSTALMENT_NUMBER]       VARCHAR (13)    NULL,
+    [PERCENTAGE]              NUMERIC (3)     NULL,
+    [IS_ACTIVE]               VARCHAR (1)     NULL,
+    [CREATED_BY]              VARCHAR (30)    NULL,
+    [CREATED_DATE]            DATETIME2 (7)            NULL,
+    [UPDATED_BY]              VARCHAR (30)    NULL,
+    [UPDATED_DATE]            DATETIME2 (7)            NULL,
+    [_transaction_date]       DATETIME2 (7)        NULL,
+    [year]                    NVARCHAR (MAX)  NULL,
+    [month]                   NVARCHAR (MAX)  NULL,
+    [day]                     NVARCHAR (MAX)  NULL,
+    [_DLRawZoneTimeStamp]     DATETIME2 (7)   NULL,
+    [_DLTrustedZoneTimeStamp] DATETIME2 (7)   NULL,
+    [_RecordStart]            DATETIME2 (7)   NULL,
+    [_RecordEnd]              DATETIME2 (7)   NULL,
+    [_RecordDeleted]          INT             NULL,
+    [_RecordCurrent]          INT             NULL
+);
+

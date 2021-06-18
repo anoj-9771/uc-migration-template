@@ -1,0 +1,1 @@
+﻿CREATE   VIEW  reference.AvetmissCourseSkillsPoint AS SELECT *, _DLTrustedZoneTimeStamp _DLCuratedZoneTimeStamp  FROM edw.reference_avetmiss_course_skills_point

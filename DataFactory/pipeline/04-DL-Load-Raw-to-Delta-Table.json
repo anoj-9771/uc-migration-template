@@ -1,0 +1,327 @@
+{
+	"name": "04-DL-Load-Raw-to-Delta-Table",
+	"properties": {
+		"activities": [
+			{
+				"name": "SP-Record-Manifest",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "If-ClusterType",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[CTL].[UpdateManifestDeltaRecords]",
+					"storedProcedureParameters": {
+						"BatchExecutionLogID": {
+							"value": {
+								"value": "@pipeline().parameters.BatchLogId",
+								"type": "Expression"
+							},
+							"type": "Int64"
+						},
+						"TaskExecutionLogID": {
+							"value": {
+								"value": "@pipeline().parameters.TaskExecutionLogId",
+								"type": "Expression"
+							},
+							"type": "Int64"
+						},
+						"RecordsDeltaTable": {
+							"value": {
+								"value": "@variables('ReturnValue')",
+								"type": "Expression"
+							},
+							"type": "Int64"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "LS-AzureSqlDatabase_Ctrldb",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"kvSecret": "AzureSqlDatabase-ControlDB"
+					}
+				}
+			},
+			{
+				"name": "If-ClusterType",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "Set-ClusterType",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@equals(variables('ClusterType'), 'interactive')",
+						"type": "Expression"
+					},
+					"ifFalseActivities": [
+						{
+							"name": "Notebook-Delta-Table-Job",
+							"type": "DatabricksNotebook",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"notebookPath": {
+									"value": "@variables('NoteBookURL')",
+									"type": "Expression"
+								},
+								"baseParameters": {
+									"file_object": {
+										"value": "@concat(pipeline().parameters.TargetBLOBFolder,pipeline().parameters.TargetBLOBName)",
+										"type": "Expression"
+									},
+									"source_param": {
+										"value": "@string(pipeline().parameters.TaskDetails)",
+										"type": "Expression"
+									}
+								},
+								"libraries": [
+									{
+										"maven": {
+											"coordinates": "com.microsoft.azure:azure-sqldb-spark:1.0.2"
+										}
+									}
+								]
+							},
+							"linkedServiceName": {
+								"referenceName": "LS-AzureDatabricks_JobCluster",
+								"type": "LinkedServiceReference",
+								"parameters": {
+									"kvSecret": {
+										"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[0]",
+										"type": "Expression"
+									},
+									"DataBricksClusterType": {
+										"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[2]",
+										"type": "Expression"
+									},
+									"DataBricksClusterVersion": {
+										"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[3]",
+										"type": "Expression"
+									},
+									"DataBricksWorkerNodes": {
+										"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[4]",
+										"type": "Expression"
+									}
+								}
+							}
+						},
+						{
+							"name": "SET-ReturnValue-Job",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "Notebook-Delta-Table-Job",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "ReturnValue",
+								"value": {
+									"value": "@string(activity('Notebook-Delta-Table-Job').output.runOutput)",
+									"type": "Expression"
+								}
+							}
+						}
+					],
+					"ifTrueActivities": [
+						{
+							"name": "Notebook-Delta-Table-Interactive",
+							"type": "DatabricksNotebook",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"notebookPath": {
+									"value": "@variables('NoteBookURL')",
+									"type": "Expression"
+								},
+								"baseParameters": {
+									"file_object": {
+										"value": "@concat(pipeline().parameters.TargetBLOBFolder,pipeline().parameters.TargetBLOBName)",
+										"type": "Expression"
+									},
+									"source_param": {
+										"value": "@string(pipeline().parameters.TaskDetails)",
+										"type": "Expression"
+									}
+								},
+								"libraries": [
+									{
+										"maven": {
+											"coordinates": "com.microsoft.azure:azure-sqldb-spark:1.0.2"
+										}
+									}
+								]
+							},
+							"linkedServiceName": {
+								"referenceName": "LS-AzureDatabricks_DefinedCluster",
+								"type": "LinkedServiceReference",
+								"parameters": {
+									"kvSecret": {
+										"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[0]",
+										"type": "Expression"
+									},
+									"clusterId": {
+										"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[1]",
+										"type": "Expression"
+									}
+								}
+							}
+						},
+						{
+							"name": "SET-ReturnValue-Interactive",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "Notebook-Delta-Table-Interactive",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "ReturnValue",
+								"value": {
+									"value": "@string(activity('Notebook-Delta-Table-Interactive').output.runOutput)",
+									"type": "Expression"
+								}
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "Set-ClusterType",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "ClusterType",
+					"value": {
+						"value": "@toLower(last(split(pipeline().parameters.TaskDetails.Processor,'|')))",
+						"type": "Expression"
+					}
+				}
+			}
+		],
+		"parameters": {
+			"BatchLogId": {
+				"type": "int",
+				"defaultValue": 1
+			},
+			"TaskExecutionLogId": {
+				"type": "int",
+				"defaultValue": 1
+			},
+			"TaskDetails": {
+				"type": "object",
+				"defaultValue": {
+					"SourceType": "SQL Server",
+					"SourceServer": "onprem-wwidw",
+					"SourceGroup": "WWI",
+					"SourceName": "WWI_Dimension_Supplier",
+					"SourceLocation": "Dimension.Supplier",
+					"AdditionalProperty": "",
+					"Processor": "databricks-token|0607-060317-cases301|Standard_DS3_v2|8.1.x-scala2.12|2:8|interactive",
+					"IsAuditTable": false,
+					"SoftDeleteSource": "",
+					"ProjectName": "WWIDW",
+					"ProjectId": 1,
+					"TargetType": "BLOB Storage (json)",
+					"TargetName": "WWI_Dimension_Supplier",
+					"TargetLocation": "WWI/Dimension_Supplier",
+					"TargetServer": "datalake-SasToken",
+					"DataLoadMode": "TRUNCATE-LOAD",
+					"DeltaExtract": false,
+					"CDCSource": false,
+					"TruncateTarget": true,
+					"UpsertTarget": false,
+					"AppendTarget": null,
+					"TrackChanges": false,
+					"LoadToSqlEDW": true,
+					"TaskName": "WWI_Dimension_Supplier",
+					"ControlStageId": 1,
+					"TaskId": 3,
+					"StageSequence": 100,
+					"StageName": "Source to Raw",
+					"SourceId": 5,
+					"TargetId": 3,
+					"ObjectGrain": "Day",
+					"CommandTypeId": 1,
+					"Watermarks": "",
+					"WatermarksDT": null,
+					"WatermarkColumn": "",
+					"BusinessKeyColumn": "SupplierKey",
+					"UpdateMetaData": null,
+					"SourceTimeStampFormat": "",
+					"Command": "SELECT * FROM Dimension.Supplier",
+					"LastLoadedFile": null
+				}
+			},
+			"TargetBLOBFolder": {
+				"type": "string",
+				"defaultValue": "wwi/dimension_supplier/json/year=2021/month=06/day=07/"
+			},
+			"TargetBLOBName": {
+				"type": "string",
+				"defaultValue": "Dimension.Supplier_2021-06-07_210359_093.json.gz"
+			},
+			"ProjectRunID": {
+				"type": "string",
+				"defaultValue": "d4f67ed6-9268-4ec6-b2fe-1c967b5ef49e"
+			}
+		},
+		"variables": {
+			"ReturnValue": {
+				"type": "String"
+			},
+			"ClusterType": {
+				"type": "String"
+			},
+			"NoteBookURL": {
+				"type": "String",
+				"defaultValue": "/build/raw/load-raw-deltatable"
+			}
+		},
+		"folder": {
+			"name": "Data Lake"
+		},
+		"annotations": []
+	}
+}

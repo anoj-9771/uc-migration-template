@@ -1,0 +1,3 @@
+﻿CREATE SCHEMA [RevRec]
+    AUTHORIZATION [dbo];
+

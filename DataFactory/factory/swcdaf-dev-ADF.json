@@ -1,9 +1,0 @@
-{
-	"name": "swcdaf-dev-ADF",
-	"location": "australiaeast",
-	"identity": {
-		"type": "SystemAssigned",
-		"principalId": "b9a2cd16-c93e-485c-966d-f11014e42588",
-		"tenantId": "8351bb5c-749d-4ee4-b1c4-71a3971acbe9"
-	}
-}

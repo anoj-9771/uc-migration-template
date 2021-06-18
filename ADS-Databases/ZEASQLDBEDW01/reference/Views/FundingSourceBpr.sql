@@ -1,0 +1,1 @@
+﻿CREATE   VIEW  reference.FundingSourceBpr AS SELECT *, _DLTrustedZoneTimeStamp _DLCuratedZoneTimeStamp  FROM edw.reference_funding_source_bpr

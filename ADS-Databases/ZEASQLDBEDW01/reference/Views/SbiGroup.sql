@@ -1,0 +1,1 @@
+﻿CREATE   VIEW  reference.SbiGroup AS SELECT *, _DLTrustedZoneTimeStamp _DLCuratedZoneTimeStamp  FROM edw.reference_sbi_group

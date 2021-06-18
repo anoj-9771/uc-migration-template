@@ -1,0 +1,26 @@
+﻿CREATE TABLE [edw].[OneEBS_EBS_0165_Z_READ_BATCHES] (
+    [CREATED_DATE]            DATETIME2 (7)                                              NULL,
+    [UPDATED_BY]              VARCHAR (30)                                      NULL,
+    [UPDATED_DATE]            DATETIME2 (7)                                              NULL,
+    [BANKED_BY]               NUMERIC (10)                                      NULL,
+    [PC_NAME]                 VARCHAR (80)                                      NULL,
+    [BANKING_GROUP_ID]        NUMERIC (10) MASKED WITH (FUNCTION = 'default()') NULL,
+    [ORGANISATION_ID]         NUMERIC (10)                                      NULL,
+    [BANKING_DEPOSIT_NO]      VARCHAR (30) MASKED WITH (FUNCTION = 'default()') NULL,
+    [INSTITUTION_CONTEXT_ID]  NUMERIC (10)                                      NULL,
+    [DATE_TO_BE_BANKED]       DATETIME2 (7)                                              NULL,
+    [ID]                      NUMERIC (10)                                      NULL,
+    [TILL_CODE]               VARCHAR (10)                                      NULL,
+    [CREATED_BY]              VARCHAR (30)                                      NULL,
+    [_transaction_date]       DATETIME2 (7)                                          NULL,
+    [year]                    NVARCHAR (MAX)                                    NULL,
+    [month]                   NVARCHAR (MAX)                                    NULL,
+    [day]                     NVARCHAR (MAX)                                    NULL,
+    [_DLRawZoneTimeStamp]     DATETIME2 (7)                                     NULL,
+    [_DLTrustedZoneTimeStamp] DATETIME2 (7)                                     NULL,
+    [_RecordStart]            DATETIME2 (7)                                     NULL,
+    [_RecordEnd]              DATETIME2 (7)                                     NULL,
+    [_RecordDeleted]          INT                                               NULL,
+    [_RecordCurrent]          INT                                               NULL
+);
+

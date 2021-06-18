@@ -1,0 +1,23 @@
+{
+	"name": "SRC_MySQL",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_MySQL",
+			"type": "LinkedServiceReference",
+			"parameters": {
+				"kvSecret": {
+					"value": "@dataset().kvSecret",
+					"type": "Expression"
+				}
+			}
+		},
+		"parameters": {
+			"kvSecret": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "MySqlTable",
+		"schema": []
+	}
+}
