@@ -7,7 +7,7 @@ pr:
     - develop
   paths:
     include:
-    - ControlDB/*
+    - ADS-Databases/*
 
 trigger:
   branches:
@@ -16,7 +16,7 @@ trigger:
     - develop
   paths:
     include:
-    - ControlDB/ControlDB.sln
+    - ADS-Databases/ADS-Database.sln
 
 pool:
   vmImage: ubuntu-latest
