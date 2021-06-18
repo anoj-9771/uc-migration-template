@@ -37,7 +37,7 @@ stages:
   - ${{ if eq(variables['controldb'], true) }}:  
     - template: Templates/job-build-controldb.yml
 # ---------------------------------------------------------------------------
-# Release to Non-Production
+# Release to Non-Production.
 - template: Templates/stage-azure-pipelines-deployment.yml
   parameters:
     stage_name: 'non_prod'
