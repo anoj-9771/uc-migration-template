@@ -10,15 +10,15 @@ pr:
     include:
     - ADS-Databases/*
 
-trigger:
-  branches:
-    include:
-    - main
-    - develop
-    - test
-  paths:
-    include:
-    - ADS-Databases/ADS-Database.sln
+trigger: none
+#   branches:
+#     include:
+#     - main
+#     - develop
+#     - test
+#   paths:
+#     include:
+#     - ADS-Databases/ADS-Database.sln
 
 pool:
   vmImage: ubuntu-latest

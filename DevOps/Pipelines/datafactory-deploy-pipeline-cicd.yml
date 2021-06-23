@@ -10,18 +10,17 @@ pr:
     include:
     - sl-df-nonprod/*
 
-trigger:
-  branches:
-    include:
-    - main
-    - develop
-    - test
-
-  paths:
-    include:
-    - sl-df-nonprod/*
-    - DevOps/Pipelines/datafactory-deploy-pipeline-cicd.yml
-    - DevOps/Pipelines/stage-datafactory-integration.yml
+trigger: none
+#   branches:
+#     include:
+#     - main
+#     - develop
+#     - test
+#   paths:
+#     include:
+#     - sl-df-nonprod/*
+#     - DevOps/Pipelines/datafactory-deploy-pipeline-cicd.yml
+#     - DevOps/Pipelines/stage-datafactory-integration.yml
 
 pool:
   vmImage: ubuntu-latest
