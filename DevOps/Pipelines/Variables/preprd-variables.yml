@@ -7,19 +7,19 @@ variables:
     value: australiaeast
   # environment name used in service naming
   - name: environment
-    value: test
+    value: preprod
   # Resource group name
   - name: resourcegroupname
-    value: rg-swcnonprod01-daf-test-01
+    value: rg-swcnonprod01-daf-preprod-01
   # username for SQL Server Control DB
   - name: azuresqlserverun
     value: sqladmin
   # Name of the service connection in Azure Devops
   - name: azdoresourceconnection
-    value: azure-rg-dev-serviceconnection
-  # The service principal object ID (Not App ID)... Use 'az ad sp show --id <<app-id>> --query "objectId" -o tsv'
+    value: azure-rg-preprod-serviceconnection
+  # The service principal object ID (Not App ID)... Use 'az ad sp show --id dbab60f5-44d5-450c-aef1-0b62b0790524 --query "objectId" -o tsv'
   - name: spobjectid
-    value: 5f94952e-aed6-47c0-8db3-a5e464f71e30
+    value: 1ce42c3e-88e5-464a-b45e-efb2500856c2
   # Store account type for BLOB Storage e.g. Standard_LRS)
   - name: storageAccountType
     value: Standard_LRS
@@ -63,7 +63,7 @@ variables:
   - name: logzonename
     value: databricks
   - name: zonenames
-    value: raw, stage, cleansed, curated, synapsestaging
+    value: raw, stage, trusted, curated, synapsestaging
     # value: raw, stage, sandbox
   # Databricks workspace name for this enironment
   - name: DATABRICKSWORKSPACENAME #databricksworkspacename
