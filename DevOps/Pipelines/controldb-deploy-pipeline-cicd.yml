@@ -5,6 +5,7 @@ pr:
     include:
     - main
     - develop
+    - test
   paths:
     include:
     - ADS-Databases/*
@@ -14,6 +15,7 @@ trigger:
     include:
     - main
     - develop
+    - test
   paths:
     include:
     - ADS-Databases/ADS-Database.sln
@@ -32,14 +34,22 @@ stages:
 # Release to Non-Production
 - template: Templates/stage-controldb-integration.yml
   parameters:
-    stage_name: 'non_prod'
-    variable_template_name: npe-variables
+    stage_name: 'dev'
+    variable_template_name: dev-variables
     run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/develop'))
+
+# ---------------------------------------------------------------------------
+# Release to Non-Production
+- template: Templates/stage-controldb-integration.yml
+  parameters:
+    stage_name: 'test'
+    variable_template_name: test-variables
+    run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/test'))
 
 # ---------------------------------------------------------------------------
 # Release to Production
 - template: Templates/stage-controldb-integration.yml
   parameters:
-    stage_name: 'prod'
-    variable_template_name: prd-variables
+    stage_name: 'preprod'
+    variable_template_name: preprd-variables
     run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
