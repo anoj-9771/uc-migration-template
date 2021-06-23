@@ -60,6 +60,6 @@ stages:
   parameters:
     #dependencies: ['non_prod'] # Used to define any stage dependencies
     stage_name: 'preprod'
-    variable_template_name: prd-variables
+    variable_template_name: preprd-variables
     run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
     
