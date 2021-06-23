@@ -7,7 +7,7 @@ variables:
     value: australiaeast
   # environment name used in service naming
   - name: environment
-    value: test
+    value: preprod
   # Resource group name
   - name: resourcegroupname
     value: rg-swcnonprod01-daf-preprod-01
