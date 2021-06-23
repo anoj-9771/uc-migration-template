@@ -43,7 +43,7 @@ stages:
 - template: Templates/stage-azure-pipelines-deployment.yml
   parameters:
     stage_name: 'develop'
-    variable_template_name: npe-variables
+    variable_template_name: dev-variables
     run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/develop'))
 
 # ---------------------------------------------------------------------------
@@ -51,7 +51,7 @@ stages:
 - template: Templates/stage-azure-pipelines-deployment.yml
   parameters:
     stage_name: 'test'
-    variable_template_name: npe-variables
+    variable_template_name: test-variables
     run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/test'))
 
 # ---------------------------------------------------------------------------
