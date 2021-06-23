@@ -7,10 +7,10 @@ variables:
     value: australiaeast
   # environment name used in service naming
   - name: environment
-    value: test
+    value: preprod
   # Resource group name
   - name: resourcegroupname
-    value: rg-swcnonprod01-daf-test-01
+    value: rg-swcnonprod01-daf-preprod-01
   # username for SQL Server Control DB
   - name: azuresqlserverun
     value: sqladmin
@@ -98,13 +98,13 @@ variables:
   - name: vnetid
     value: /subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-network-01/providers/Microsoft.Network/virtualNetworks/vnet-swcnonprod01-ae-01                               
   - name: publicsubnetcidr
-    value: 10.97.47.64/26
+    value: 10.97.46.192/26
   - name: privatesubnetcidr
-    value: 10.97.47.0/26
+    value: 10.97.46.128/26
   - name: custompublicsubnetname
-    value: snet-swcnonprod01-ae-daf-test-dbwpublic-01
+    value: snet-swcnonprod01-ae-daf-preprod-dbwpublic-01
   - name: customprivatesubnetname
-    value: snet-swcnonprod01-ae-daf-test-dbwprivate-01
+    value: snet-swcnonprod01-ae-daf-preprod-dbwprivate-01
   - name: DATABRICKSWORKSPACENAME #databricksworkspacename
     value: $(PREFIX)-$(ENVIRONMENT)-ADBWS
   - name: databrickspricingtier
