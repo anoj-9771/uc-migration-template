@@ -1,0 +1,1 @@
+﻿CREATE   VIEW  reference.QualificationTypeMapping AS SELECT *, _DLTrustedZoneTimeStamp _DLCuratedZoneTimeStamp  FROM edw.reference_qualification_type_mapping

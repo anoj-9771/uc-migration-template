@@ -1,0 +1,12 @@
+{
+	"name": "zedfbi01t",
+	"properties": {
+		"globalParameters": {
+			"FileServerUserID": {
+				"type": "string",
+				"value": "srvEDWSMFT@tafenswtest.edu.au"
+			}
+		}
+	},
+	"location": "australiaeast"
+}

@@ -1,0 +1,27 @@
+﻿CREATE TABLE [edw].[OneEBS_EBS_0165_PEOPLE_DEDUPLICATION_AUDIT] (
+    [CREATED_BY]              VARCHAR (30)   NULL,
+    [CREATED_DATE]            DATETIME2 (7)  NULL,
+    [DATE_OF_BIRTH]           DATETIME2 (7)  NULL,
+    [EXTERNAL_REF]            VARCHAR (256)  NULL,
+    [FORENAME]                VARCHAR (32)   NULL,
+    [ID]                      NUMERIC (10)   NULL,
+    [INSTITUTION_CONTEXT_ID]  NUMERIC (10)   NULL,
+    [MIDDLE_NAMES]            VARCHAR (240)  NULL,
+    [REGISTRATION_NO]         VARCHAR (20)   NULL,
+    [REMOVED_PERSON_CODE]     NUMERIC (10)   NULL,
+    [RETAINED_PERSON_CODE]    NUMERIC (10)   NULL,
+    [SEX]                     VARCHAR (1)    NULL,
+    [SURNAME]                 VARCHAR (32)   NULL,
+    [ULI]                     VARCHAR (13)   NULL,
+    [_transaction_date]       DATETIME2 (7)  NULL,
+    [_DLRawZoneTimeStamp]     DATETIME2 (7)  NULL,
+    [year]                    NVARCHAR (MAX) NULL,
+    [month]                   NVARCHAR (MAX) NULL,
+    [day]                     NVARCHAR (MAX) NULL,
+    [_DLTrustedZoneTimeStamp] DATETIME2 (7)  NULL,
+    [_RecordStart]            DATETIME2 (7)  NULL,
+    [_RecordEnd]              DATETIME2 (7)  NULL,
+    [_RecordDeleted]          INT            NULL,
+    [_RecordCurrent]          INT            NULL
+);
+

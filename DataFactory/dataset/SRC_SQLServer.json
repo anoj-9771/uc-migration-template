@@ -1,0 +1,24 @@
+{
+	"name": "SRC_SQLServer",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS-SQLServer",
+			"type": "LinkedServiceReference",
+			"parameters": {
+				"kvSecret": {
+					"value": "@dataset().kvSecret",
+					"type": "Expression"
+				}
+			}
+		},
+		"parameters": {
+			"kvSecret": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "SqlServerTable",
+		"schema": []
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

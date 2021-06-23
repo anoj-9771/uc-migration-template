@@ -1,9 +1,0 @@
-{
-	"name": "ads-v2-dev-ADF",
-	"location": "australiaeast",
-	"identity": {
-		"type": "SystemAssigned",
-		"principalId": "2f2a433d-37ab-475e-8af9-3a9b109797fc",
-		"tenantId": "df849bf9-d715-4e43-a37a-a6d42db2b2c3"
-	}
-}

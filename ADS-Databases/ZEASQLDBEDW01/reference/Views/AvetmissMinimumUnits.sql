@@ -1,0 +1,1 @@
+﻿CREATE   VIEW  reference.AvetmissMinimumUnits AS SELECT *, _DLTrustedZoneTimeStamp _DLCuratedZoneTimeStamp  FROM edw.reference_avetmiss_minimum_units

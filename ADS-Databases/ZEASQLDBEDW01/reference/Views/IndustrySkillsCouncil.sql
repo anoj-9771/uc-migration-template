@@ -1,0 +1,1 @@
+﻿CREATE   VIEW  reference.IndustrySkillsCouncil AS SELECT *, _DLTrustedZoneTimeStamp _DLCuratedZoneTimeStamp  FROM edw.reference_industry_skills_council

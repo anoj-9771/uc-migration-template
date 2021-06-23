@@ -1,0 +1,26 @@
+﻿CREATE TABLE [edw].[OneEBS_EBS_0165_GRADING_SCHEMES] (
+    [INSTITUTION_CONTEXT_ID]      NUMERIC (10)   NULL,
+    [ID]                          NUMERIC (10)   NULL,
+    [CODE]                        VARCHAR (10)   NULL,
+    [GRADING_SCHEME_TYPE]         VARCHAR (40)   NULL,
+    [DESCRIPTION]                 VARCHAR (240)  NULL,
+    [IS_ACTIVE]                   VARCHAR (1)    NULL,
+    [CREATED_BY]                  VARCHAR (30)   NULL,
+    [CREATED_DATE]                DATETIME2 (7)           NULL,
+    [UPDATED_BY]                  VARCHAR (30)   NULL,
+    [UPDATED_DATE]                DATETIME2 (7)           NULL,
+    [GRADING_SCHEME_SUBTYPE]      VARCHAR (40)   NULL,
+    [ALLOW_FLOOD_FILL]            VARCHAR (1)    NULL,
+    [IS_EXCLUDED_FROM_AWARD_CALC] VARCHAR (1)    NULL,
+    [_transaction_date]           DATETIME2 (7)       NULL,
+    [year]                        NVARCHAR (MAX) NULL,
+    [month]                       NVARCHAR (MAX) NULL,
+    [day]                         NVARCHAR (MAX) NULL,
+    [_DLRawZoneTimeStamp]         DATETIME2 (7)  NULL,
+    [_DLTrustedZoneTimeStamp]     DATETIME2 (7)  NULL,
+    [_RecordStart]                DATETIME2 (7)  NULL,
+    [_RecordEnd]                  DATETIME2 (7)  NULL,
+    [_RecordDeleted]              INT            NULL,
+    [_RecordCurrent]              INT            NULL
+);
+

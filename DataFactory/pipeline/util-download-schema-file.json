@@ -1,0 +1,186 @@
+{
+	"name": "util-download-schema-file",
+	"properties": {
+		"activities": [
+			{
+				"name": "SET-Source-Folder",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "SourceFolder",
+					"value": {
+						"value": "@pipeline().parameters.SourceFolder",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "SET-Target-Folder",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "TargetFolder",
+					"value": {
+						"value": "@toLower(concat(\n  split(pipeline().parameters.TaskDetails.TargetLocation,'/')[0],\n  '/schema/'\n))",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "EP-Download-File",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "SET-Source-Folder",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "SET-Target-Folder",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "SET-Source-File",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "SET-Target-File",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "SET-FileShareUserID",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "util-fileserver-download-file",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"TargetFolder": {
+							"value": "@variables('TargetFolder')",
+							"type": "Expression"
+						},
+						"TargetContainer": "raw",
+						"DeleteFile": true,
+						"SourceFile": {
+							"value": "@variables('SourceFile')",
+							"type": "Expression"
+						},
+						"TargetFile": {
+							"value": "@variables('TargetFile')",
+							"type": "Expression"
+						},
+						"SourceFolder": {
+							"value": "@variables('SourceFolder')",
+							"type": "Expression"
+						},
+						"FileShareURL": {
+							"value": "@pipeline().parameters.FileShareURL",
+							"type": "Expression"
+						},
+						"FileShareUserID": {
+							"value": "@pipeline().parameters.FileShareUserID",
+							"type": "Expression"
+						},
+						"FileSharePassword": {
+							"value": "@pipeline().parameters.FileSharePassword",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "SET-Source-File",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "SourceFile",
+					"value": {
+						"value": "@toLower(concat(\n  pipeline().parameters.TaskDetails.TaskName,\n  '.schema'\n))",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "SET-Target-File",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "TargetFile",
+					"value": {
+						"value": "@toLower(concat(\n  pipeline().parameters.TaskDetails.TaskName,\n  '.schema'\n))",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "SET-FileShareUserID",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "FileShareUserID",
+					"value": {
+						"value": "@if(\n  equals(pipeline().parameters.FileShareUserID,'')\n  ,pipeline().globalParameters.FileServerUserID\n  ,pipeline().parameters.FileShareUserID\n)",
+						"type": "Expression"
+					}
+				}
+			}
+		],
+		"parameters": {
+			"TaskDetails": {
+				"type": "object"
+			},
+			"FileShareURL": {
+				"type": "string"
+			},
+			"FileShareUserID": {
+				"type": "string"
+			},
+			"FileSharePassword": {
+				"type": "string"
+			},
+			"SourceFolder": {
+				"type": "string"
+			}
+		},
+		"variables": {
+			"SourceFolder": {
+				"type": "String"
+			},
+			"TargetFolder": {
+				"type": "String"
+			},
+			"SourceFile": {
+				"type": "String"
+			},
+			"TargetFile": {
+				"type": "String"
+			},
+			"FileShareUserID": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "Utility"
+		},
+		"annotations": []
+	}
+}

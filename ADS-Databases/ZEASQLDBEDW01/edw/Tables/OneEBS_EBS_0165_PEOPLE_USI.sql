@@ -1,0 +1,28 @@
+﻿CREATE TABLE [edw].[OneEBS_EBS_0165_PEOPLE_USI] (
+    [ID]                             NUMERIC (10)                                      NULL,
+    [PERSON_CODE]                    NUMERIC (10)                                      NULL,
+    [USI]                            VARCHAR (10)                                      NULL,
+    [HAS_USI_BEEN_MANUALLY_VERIFIED] VARCHAR (1)                                       NULL,
+    [DATE_USI_VERIFIED]              DATETIME2 (7)                                              NULL,
+    [CITY_OF_BIRTH]                  VARCHAR (50) MASKED WITH (FUNCTION = 'default()') NULL,
+    [COUNTRY_OF_STUDY]               VARCHAR (40)                                      NULL,
+    [CREATED_DATE]                   DATETIME2 (7)                                              NULL,
+    [CREATED_BY]                     VARCHAR (30)                                      NULL,
+    [UPDATED_DATE]                   DATETIME2 (7)                                              NULL,
+    [UPDATED_BY]                     VARCHAR (30)                                      NULL,
+    [INSTITUTION_CONTEXT_ID]         NUMERIC (10)                                      NULL,
+    [DUPLICATE_USI]                  VARCHAR (10)                                      NULL,
+    [COUNTRY_OF_RESIDENCE]           VARCHAR (40)                                      NULL,
+    [COUNTRY_OF_BIRTH]               VARCHAR (40)                                      NULL,
+    [_transaction_date]              DATETIME2 (7)                                          NULL,
+    [year]                           NVARCHAR (MAX)                                    NULL,
+    [month]                          NVARCHAR (MAX)                                    NULL,
+    [day]                            NVARCHAR (MAX)                                    NULL,
+    [_DLRawZoneTimeStamp]            DATETIME2 (7)                                     NULL,
+    [_DLTrustedZoneTimeStamp]        DATETIME2 (7)                                     NULL,
+    [_RecordStart]                   DATETIME2 (7)                                     NULL,
+    [_RecordEnd]                     DATETIME2 (7)                                     NULL,
+    [_RecordDeleted]                 INT                                               NULL,
+    [_RecordCurrent]                 INT                                               NULL
+);
+

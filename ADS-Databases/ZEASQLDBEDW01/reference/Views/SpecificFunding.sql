@@ -1,0 +1,1 @@
+﻿CREATE   VIEW  reference.SpecificFunding AS SELECT *, _DLTrustedZoneTimeStamp _DLCuratedZoneTimeStamp  FROM edw.reference_specific_funding

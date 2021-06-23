@@ -1,0 +1,46 @@
+﻿CREATE TABLE [edw].[reference_funding_source_sbi_rules] (
+    [FundingSourceCode]                        NVARCHAR (6)                                       NULL,
+    [SBISubCategoryID]                         INT                                                NULL,
+    [SBIClassification]                        NVARCHAR (15)                                      NULL,
+    [Rule1_FES_UNINS_INSTANCE_CODE]            NVARCHAR (20)                                      NULL,
+    [Rule1_FundingSourceNationalID]            NVARCHAR (20) MASKED WITH (FUNCTION = 'default()') NULL,
+    [Rule1Value]                               INT                                                NULL,
+    [Rule2_SLOC_LOCATION_CODE]                 NVARCHAR (20)                                      NULL,
+    [Rule2_FundingSourceNationalID]            NVARCHAR (20) MASKED WITH (FUNCTION = 'default()') NULL,
+    [Rule2Value]                               INT                                                NULL,
+    [Rule3_USER_1]                             NVARCHAR (20)                                      NULL,
+    [Rule3Value]                               INT                                                NULL,
+    [Rule4_QualificationGroupID]               NVARCHAR (20)                                      NULL,
+    [Rule4Value]                               INT                                                NULL,
+    [Rule5_QualificationGroupID]               NVARCHAR (20)                                      NULL,
+    [Rule5Value]                               INT                                                NULL,
+    [Rule6_QualificationGroupID]               NVARCHAR (20)                                      NULL,
+    [Rule6Value]                               INT                                                NULL,
+    [Rule7_CourseEnrolmentStartDateBeforeYear] INT                                                NULL,
+    [Rule7_Value]                              INT                                                NULL,
+    [Rule8_NationalCourseCode]                 NVARCHAR (200)                                     NULL,
+    [Rule8Value]                               INT                                                NULL,
+    [Rule9_SBIClassification]                  NVARCHAR (80)                                      NULL,
+    [Rule9_Who_To_Pay]                         NVARCHAR (30)                                      NULL,
+    [Rule9_SPONSOR_ORG_CODE]                   NVARCHAR (80)                                      NULL,
+    [Rule9_FundingSourceNationalID]            NVARCHAR (20) MASKED WITH (FUNCTION = 'default()') NULL,
+    [Rule9_AQFGroupID]                         NVARCHAR (5)                                       NULL,
+    [Rule9Value]                               INT                                                NULL,
+    [Rule10_SBIClassification]                 NVARCHAR (80)                                      NULL,
+    [Rule10_Who_To_Pay]                        NVARCHAR (30)                                      NULL,
+    [Rule10_SPONSOR_ORG_CODE]                  NVARCHAR (80)                                      NULL,
+    [Rule10_FundingSourceNationalID]           NVARCHAR (20) MASKED WITH (FUNCTION = 'default()') NULL,
+    [Rule10_AQFGroupID]                        NVARCHAR (5)                                       NULL,
+    [Rule10Value]                              INT                                                NULL,
+    [_DLRawZoneTimeStamp]                      DATETIME2 (7)                                      NULL,
+    [_DLTrustedZoneTimeStamp]                  DATETIME2 (7)                                      NULL,
+    [_RecordStart]                             DATETIME2 (7)                                      NULL,
+    [_RecordEnd]                               DATETIME2 (7)                                      NULL,
+    [_RecordCurrent]                           INT                                                NULL,
+    [_RecordDeleted]                           INT                                                NULL
+);
+
+
+
+
+

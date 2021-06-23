@@ -1,0 +1,27 @@
+﻿
+Create   view [OneEBS].[Fee_Categories] AS  
+Select [AUTOPROGRESS_ONLY_IF_ZERO_FEES]
+      ,[FEE_CATEGORY_CODE]
+      ,[LONG_DESCRIPTION]
+      ,[TRANSACTION_TYPE]
+      ,[PRIORITY]
+      ,[ACCOUNT_CODE]
+      ,[GL_COMPONENT_1]
+      ,[GL_COMPONENT_2]
+      ,[GL_COMPONENT_3]
+      ,[GL_COMPONENT_4]
+      ,[TAX_CODE]
+      ,[ALLOW_REFUND]
+      ,[CHARGE_ONCE]
+      ,[ROLE_DEFS_ID]
+      ,[IS_ENFORCEABLE_DEBT]
+      ,[IS_ACTIVE]
+      ,[IS_ELIGIBLE_FOR_INSTALMENTS]
+      ,[CREATED_BY]
+      ,[CREATED_DATE]
+      ,[UPDATED_BY]
+      ,[UPDATED_DATE]
+      ,[IS_GIFT]
+      ,[INSTITUTION_CONTEXT_ID] 
+from edw.OneEBS_EBS_0165_FEE_CATEGORIES 
+WHERE        (_RecordDeleted = 0) AND (_RecordCurrent = 1)

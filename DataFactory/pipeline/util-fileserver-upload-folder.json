@@ -1,0 +1,156 @@
+{
+	"name": "util-fileserver-upload-folder",
+	"properties": {
+		"activities": [
+			{
+				"name": "Get-Files",
+				"type": "GetMetadata",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "BINARY_ADLS",
+						"type": "DatasetReference",
+						"parameters": {
+							"File": {
+								"value": "@pipeline().parameters.FileType",
+								"type": "Expression"
+							},
+							"Container": {
+								"value": "@pipeline().parameters.SourceContainer",
+								"type": "Expression"
+							},
+							"Folder": {
+								"value": "@pipeline().parameters.SourceFolder",
+								"type": "Expression"
+							}
+						}
+					},
+					"fieldList": [
+						"childItems"
+					],
+					"storeSettings": {
+						"type": "AzureBlobStorageReadSettings",
+						"recursive": true
+					},
+					"formatSettings": {
+						"type": "BinaryReadSettings"
+					}
+				}
+			},
+			{
+				"name": "ForEach-CopyFiles",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Get-Files",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Get-Files').output.childItems",
+						"type": "Expression"
+					},
+					"isSequential": true,
+					"activities": [
+						{
+							"name": "If-File-Copy",
+							"type": "IfCondition",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"expression": {
+									"value": "@equals(item().type, 'File')",
+									"type": "Expression"
+								},
+								"ifTrueActivities": [
+									{
+										"name": "EP-Upload-File",
+										"type": "ExecutePipeline",
+										"dependsOn": [],
+										"userProperties": [],
+										"typeProperties": {
+											"pipeline": {
+												"referenceName": "util-fileserver-upload-file",
+												"type": "PipelineReference"
+											},
+											"waitOnCompletion": true,
+											"parameters": {
+												"SourceContainer": {
+													"value": "@pipeline().parameters.SourceContainer",
+													"type": "Expression"
+												},
+												"SourceFolder": {
+													"value": "@pipeline().parameters.SourceFolder",
+													"type": "Expression"
+												},
+												"FileName": {
+													"value": "@item().name",
+													"type": "Expression"
+												},
+												"UploadFolder": {
+													"value": "@pipeline().parameters.TargetFolder",
+													"type": "Expression"
+												},
+												"FileShareURL": {
+													"value": "@pipeline().parameters.FileShareURL",
+													"type": "Expression"
+												},
+												"FileShareUserID": {
+													"value": "@pipeline().parameters.FileShareUserID",
+													"type": "Expression"
+												},
+												"FileSharePassword": {
+													"value": "@pipeline().parameters.FileSharePassword",
+													"type": "Expression"
+												}
+											}
+										}
+									}
+								]
+							}
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"FileType": {
+				"type": "string"
+			},
+			"SourceContainer": {
+				"type": "string"
+			},
+			"SourceFolder": {
+				"type": "string"
+			},
+			"TargetFolder": {
+				"type": "string"
+			},
+			"FileShareURL": {
+				"type": "string"
+			},
+			"FileShareUserID": {
+				"type": "string"
+			},
+			"FileSharePassword": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "Utility/fileserver"
+		},
+		"annotations": []
+	}
+}

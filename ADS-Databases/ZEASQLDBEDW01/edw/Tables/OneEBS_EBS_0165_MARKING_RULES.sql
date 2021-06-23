@@ -1,0 +1,25 @@
+﻿CREATE TABLE [edw].[OneEBS_EBS_0165_MARKING_RULES] (
+    [INSTITUTION_CONTEXT_ID]  NUMERIC (10)   NULL,
+    [ID]                      NUMERIC (10)   NULL,
+    [NAME]                    VARCHAR (50)   NULL,
+    [DESCRIPTION]             VARCHAR (200)  NULL,
+    [MARKING_RULE_TYPE]       NUMERIC (10)   NULL,
+    [CREATED_BY]              VARCHAR (30)   NULL,
+    [CREATED_DATE]            DATETIME2 (7)           NULL,
+    [UPDATED_BY]              VARCHAR (30)   NULL,
+    [UPDATED_DATE]            DATETIME2 (7)           NULL,
+    [RULE_WEIGHTING]          NUMERIC (6, 3) NULL,
+    [GRADING_SCHEME_ID]       NUMERIC (10)   NULL,
+    [MUST_PASS]               VARCHAR (1)    NULL,
+    [_transaction_date]       DATETIME2 (7)       NULL,
+    [year]                    NVARCHAR (MAX) NULL,
+    [month]                   NVARCHAR (MAX) NULL,
+    [day]                     NVARCHAR (MAX) NULL,
+    [_DLRawZoneTimeStamp]     DATETIME2 (7)  NULL,
+    [_DLTrustedZoneTimeStamp] DATETIME2 (7)  NULL,
+    [_RecordStart]            DATETIME2 (7)  NULL,
+    [_RecordEnd]              DATETIME2 (7)  NULL,
+    [_RecordDeleted]          INT            NULL,
+    [_RecordCurrent]          INT            NULL
+);
+

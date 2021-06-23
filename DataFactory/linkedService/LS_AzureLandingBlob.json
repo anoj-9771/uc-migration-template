@@ -1,0 +1,11 @@
+{
+	"name": "LS_AzureLandingBlob",
+	"properties": {
+		"annotations": [],
+		"type": "AzureBlobStorage",
+		"typeProperties": {
+			"serviceEndpoint": "https://saswcnonprod01landingdev.blob.core.windows.net",
+			"accountKind": "StorageV2"
+		}
+	}
+}

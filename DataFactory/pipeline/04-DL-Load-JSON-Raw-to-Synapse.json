@@ -1,0 +1,640 @@
+{
+	"name": "04-DL-Load-JSON-Raw-to-Synapse",
+	"properties": {
+		"activities": [
+			{
+				"name": "For Each File",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Get Metadata",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Get Metadata').output.childItems",
+						"type": "Expression"
+					},
+					"isSequential": true,
+					"activities": [
+						{
+							"name": "Set File Name",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "FileName",
+								"value": {
+									"value": "@item().name",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "If JSON GZ File",
+							"type": "IfCondition",
+							"dependsOn": [
+								{
+									"activity": "Check If Already Loaded",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"expression": {
+									"value": "@and(equals(activity('Check If Already Loaded').output.firstrow.FileCount,0),contains(variables('FileName'),'.json.gz'))",
+									"type": "Expression"
+								},
+								"ifTrueActivities": [
+									{
+										"name": "Copy File",
+										"type": "Copy",
+										"dependsOn": [],
+										"policy": {
+											"timeout": "7.00:00:00",
+											"retry": 0,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"source": {
+												"type": "JsonSource",
+												"storeSettings": {
+													"type": "AzureBlobFSReadSettings",
+													"recursive": true,
+													"enablePartitionDiscovery": false
+												},
+												"formatSettings": {
+													"type": "JsonReadSettings"
+												}
+											},
+											"sink": {
+												"type": "SqlPoolSink",
+												"allowPolyBase": true,
+												"polyBaseSettings": {
+													"rejectValue": 500,
+													"rejectType": "value",
+													"useTypeDefault": true
+												}
+											},
+											"enableStaging": true,
+											"stagingSettings": {
+												"linkedServiceName": {
+													"referenceName": "LS_ADLS_infohubazeadls",
+													"type": "LinkedServiceReference"
+												},
+												"path": "polybasestage",
+												"enableCompression": true
+											},
+											"parallelCopies": 5,
+											"enableSkipIncompatibleRow": true,
+											"logSettings": {
+												"enableCopyActivityLog": true,
+												"copyActivityLogSettings": {
+													"logLevel": "Warning",
+													"enableReliableLogging": false
+												},
+												"logLocationSettings": {
+													"linkedServiceName": {
+														"referenceName": "LS_ADLS_infohubazeadls",
+														"type": "LinkedServiceReference"
+													},
+													"path": "raw/ADS/synapse_polybase_logs"
+												}
+											}
+										},
+										"inputs": [
+											{
+												"referenceName": "DS_ADLS_raw_QLIK_for_synapse_EDDiS",
+												"type": "DatasetReference",
+												"parameters": {
+													"Container": {
+														"value": "@variables('Container')",
+														"type": "Expression"
+													},
+													"Folder": {
+														"value": "@variables('Folder')",
+														"type": "Expression"
+													},
+													"FileName": {
+														"value": "@variables('FileName')",
+														"type": "Expression"
+													}
+												}
+											}
+										],
+										"outputs": [
+											{
+												"referenceName": "DS_ADW_SQLPool1_no_table",
+												"type": "DatasetReference",
+												"parameters": {
+													"TableName": {
+														"value": "@pipeline().parameters.TaskDetails.TargetName",
+														"type": "Expression"
+													},
+													"SchemaName": {
+														"value": "@pipeline().parameters.TaskDetails.TargetLocation",
+														"type": "Expression"
+													}
+												}
+											}
+										]
+									},
+									{
+										"name": "SP-Record-Manifest",
+										"type": "SqlServerStoredProcedure",
+										"dependsOn": [
+											{
+												"activity": "Copy File",
+												"dependencyConditions": [
+													"Succeeded"
+												]
+											}
+										],
+										"policy": {
+											"timeout": "7.00:00:00",
+											"retry": 0,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"storedProcedureName": "[CTL].[CreateManifestRecord]",
+											"storedProcedureParameters": {
+												"BatchExecutionLogID": {
+													"value": {
+														"value": "@pipeline().parameters.BatchLogId",
+														"type": "Expression"
+													},
+													"type": "Int64"
+												},
+												"Container": {
+													"value": "raw",
+													"type": "String"
+												},
+												"DeltaColumn": {
+													"value": null,
+													"type": "String"
+												},
+												"EndCounter": {
+													"value": "0",
+													"type": "String"
+												},
+												"FileName": {
+													"value": {
+														"value": "@variables('FileName')",
+														"type": "Expression"
+													},
+													"type": "String"
+												},
+												"FolderName": {
+													"value": {
+														"value": "@variables('Folder')",
+														"type": "Expression"
+													},
+													"type": "String"
+												},
+												"PipelineRunID": {
+													"value": {
+														"value": "@pipeline().RunId",
+														"type": "Expression"
+													},
+													"type": "String"
+												},
+												"Records": {
+													"value": {
+														"value": "@activity('Copy File').output.rowsCopied",
+														"type": "Expression"
+													},
+													"type": "Int64"
+												},
+												"RecordsDeltaTable": {
+													"value": null,
+													"type": "Int64"
+												},
+												"SourceObject": {
+													"value": {
+														"value": "@pipeline().parameters.TaskDetails.SourceName",
+														"type": "Expression"
+													},
+													"type": "String"
+												},
+												"StartCounter": {
+													"value": "0",
+													"type": "String"
+												},
+												"TaskExecutionLogID": {
+													"value": {
+														"value": "@pipeline().parameters.TaskExecutionLogId",
+														"type": "Expression"
+													},
+													"type": "Int64"
+												}
+											}
+										},
+										"linkedServiceName": {
+											"referenceName": "LS_ASQL_SYNAPSE_USER_INFOHUB_AZE_SQL_INFOHUB_CONTROL",
+											"type": "LinkedServiceReference"
+										}
+									},
+									{
+										"name": "Log Copy Failure",
+										"type": "SqlServerStoredProcedure",
+										"dependsOn": [
+											{
+												"activity": "Copy File",
+												"dependencyConditions": [
+													"Failed"
+												]
+											}
+										],
+										"policy": {
+											"timeout": "7.00:00:00",
+											"retry": 0,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"storedProcedureName": "[CTL].[UpdateTaskLog]",
+											"storedProcedureParameters": {
+												"BatchLogId": {
+													"value": {
+														"value": "@pipeline().parameters.BatchLogId",
+														"type": "Expression"
+													},
+													"type": "Int64"
+												},
+												"ErrorMessage": {
+													"value": "File Copy Error",
+													"type": "String"
+												},
+												"ExecutionLogId": {
+													"value": {
+														"value": "@pipeline().parameters.TaskExecutionLogId",
+														"type": "Expression"
+													},
+													"type": "Int64"
+												},
+												"Output": {
+													"value": null,
+													"type": "String"
+												},
+												"Status": {
+													"value": "Failure",
+													"type": "String"
+												},
+												"TaskId": {
+													"value": {
+														"value": "@pipeline().parameters.TaskDetails.TaskId",
+														"type": "Expression"
+													},
+													"type": "Int64"
+												}
+											}
+										},
+										"linkedServiceName": {
+											"referenceName": "LS_ASQL_SYNAPSE_USER_INFOHUB_AZE_SQL_INFOHUB_CONTROL",
+											"type": "LinkedServiceReference"
+										}
+									},
+									{
+										"name": "Log Manifest Failure",
+										"type": "SqlServerStoredProcedure",
+										"dependsOn": [
+											{
+												"activity": "SP-Record-Manifest",
+												"dependencyConditions": [
+													"Failed"
+												]
+											}
+										],
+										"policy": {
+											"timeout": "7.00:00:00",
+											"retry": 0,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"storedProcedureName": "[CTL].[UpdateTaskLog]",
+											"storedProcedureParameters": {
+												"BatchLogId": {
+													"value": {
+														"value": "@pipeline().parameters.BatchLogId",
+														"type": "Expression"
+													},
+													"type": "Int64"
+												},
+												"ErrorMessage": {
+													"value": "Log Manifest Error",
+													"type": "String"
+												},
+												"ExecutionLogId": {
+													"value": {
+														"value": "@pipeline().parameters.TaskExecutionLogId",
+														"type": "Expression"
+													},
+													"type": "Int64"
+												},
+												"Output": {
+													"value": null,
+													"type": "String"
+												},
+												"Status": {
+													"value": "Failure",
+													"type": "String"
+												},
+												"TaskId": {
+													"value": {
+														"value": "@pipeline().parameters.TaskDetails.TaskId",
+														"type": "Expression"
+													},
+													"type": "Int64"
+												}
+											}
+										},
+										"linkedServiceName": {
+											"referenceName": "LS_ASQL_SYNAPSE_USER_INFOHUB_AZE_SQL_INFOHUB_CONTROL",
+											"type": "LinkedServiceReference"
+										}
+									}
+								]
+							}
+						},
+						{
+							"name": "Check If Already Loaded",
+							"type": "Lookup",
+							"dependsOn": [
+								{
+									"activity": "Set File Name",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "AzureSqlSource",
+									"sqlReaderStoredProcedureName": "[CTL].[CheckFileExist]",
+									"storedProcedureParameters": {
+										"FileName": {
+											"type": "String",
+											"value": {
+												"value": "@variables('FileName')",
+												"type": "Expression"
+											}
+										},
+										"FolderName": {
+											"type": "String",
+											"value": {
+												"value": "@variables('Folder')",
+												"type": "Expression"
+											}
+										}
+									},
+									"queryTimeout": "02:00:00",
+									"partitionOption": "None"
+								},
+								"dataset": {
+									"referenceName": "DS_ASQL_INFOHUB_AZE_SQL_INFOUB_CONTROL_no_table",
+									"type": "DatasetReference"
+								}
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "Get Metadata",
+				"type": "GetMetadata",
+				"dependsOn": [
+					{
+						"activity": "Set Folder",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "DS_ADLS_raw_QLIK_for_synapse_EDDiS",
+						"type": "DatasetReference",
+						"parameters": {
+							"Container": "raw",
+							"Folder": {
+								"value": "@variables('Folder')",
+								"type": "Expression"
+							},
+							"FileName": {
+								"value": "*.json.gz",
+								"type": "Expression"
+							}
+						}
+					},
+					"fieldList": [
+						"childItems"
+					],
+					"storeSettings": {
+						"type": "AzureBlobFSReadSettings",
+						"recursive": true,
+						"enablePartitionDiscovery": false
+					},
+					"formatSettings": {
+						"type": "JsonReadSettings"
+					}
+				}
+			},
+			{
+				"name": "Set Folder",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "Folder",
+					"value": {
+						"value": "@concat(string(pipeline().parameters.TaskDetails.SourceLocation),'/',string(pipeline().parameters.TaskDetails.SourceName))",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Log Load Success",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "SP_refresh_table",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[CTL].[UpdateTaskLog]",
+					"storedProcedureParameters": {
+						"BatchLogId": {
+							"value": {
+								"value": "@pipeline().parameters.BatchLogId",
+								"type": "Expression"
+							},
+							"type": "Int64"
+						},
+						"ErrorMessage": {
+							"value": null,
+							"type": "String"
+						},
+						"ExecutionLogId": {
+							"value": {
+								"value": "@pipeline().parameters.TaskExecutionLogId",
+								"type": "Expression"
+							},
+							"type": "Int64"
+						},
+						"Output": {
+							"value": null,
+							"type": "String"
+						},
+						"Status": {
+							"value": "Success",
+							"type": "String"
+						},
+						"TaskId": {
+							"value": {
+								"value": "@pipeline().parameters.TaskDetails.TaskId",
+								"type": "Expression"
+							},
+							"type": "Int64"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "LS_ASQL_SYNAPSE_USER_INFOHUB_AZE_SQL_INFOHUB_CONTROL",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "SP_refresh_table",
+				"description": "",
+				"type": "SqlPoolStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "For Each File",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"sqlPool": {
+					"referenceName": "SQLPool1",
+					"type": "SqlPoolReference"
+				},
+				"typeProperties": {
+					"storedProcedureName": "[STG_EDDIS].[refresh_table]",
+					"storedProcedureParameters": {
+						"print_cmd": {
+							"value": "N",
+							"type": "String"
+						},
+						"refresh_type": {
+							"value": "full_resync",
+							"type": "String"
+						},
+						"run_cmd": {
+							"value": "Y",
+							"type": "String"
+						},
+						"source_schema_name": {
+							"value": {
+								"value": "@pipeline().parameters.TaskDetails.TargetLocation",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"source_table_name": {
+							"value": {
+								"value": "@pipeline().parameters.TaskDetails.TargetName",
+								"type": "Expression"
+							},
+							"type": "String"
+						}
+					}
+				}
+			}
+		],
+		"parameters": {
+			"BatchLogId": {
+				"type": "int",
+				"defaultValue": 0
+			},
+			"TaskDetails": {
+				"type": "object"
+			},
+			"TaskExecutionLogId": {
+				"type": "int",
+				"defaultValue": 0
+			},
+			"ProjectRunId": {
+				"type": "string"
+			}
+		},
+		"variables": {
+			"Container": {
+				"type": "String",
+				"defaultValue": "raw"
+			},
+			"Folder": {
+				"type": "String"
+			},
+			"FileName": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "ADS_Framework/Data Lake"
+		},
+		"annotations": []
+	}
+}

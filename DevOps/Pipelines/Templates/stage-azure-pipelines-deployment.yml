@@ -154,17 +154,6 @@ stages:
           log_analytics: ${{ variables.loganalytics }}
           log_storage: ${{ variables.logstorage }}
           
-    # Deploy Synapse Analytics Workspace.
-    - ${{ if eq(variables['synapseanalyticsworkspace'], true) }}:
-      - template: step-deploy-arm-synapseanalytics.yml
-        parameters:
-          service_connection: ${{ variables.azdoresourceconnection }}
-          resource_group: ${{ variables.resourcegroupname }}
-          synapseworkspacename: ${{ variables.synapseworkspacename }}
-          defaultDataLakeStorageAccountName: ${{ variables.defaultDataLakeStorageAccountName }}
-          defaultDataLakeStorageFilesystemName: ${{ variables.defaultDataLakeStorageFilesystemName }}
-          synapsesqlPoolName: ${{ variables.synapsesqlPoolName }}
-
     # Deploy Databricks Workspace without v-net integration
     - ${{ if eq(variables['databricksnovnet'], true) }}:
       - template: step-deploy-arm-databricks-no-vnet-injection.yml
@@ -188,6 +177,17 @@ stages:
           log_analytics: ${{ variables.loganalytics }}
           log_storage: ${{ variables.logstorage }}
 
+    # Deploy Synapse Analytics Workspace.
+    - ${{ if eq(variables['synapseanalyticsworkspace'], true) }}:
+      - template: step-deploy-arm-synapseanalytics.yml
+        parameters:
+          service_connection: ${{ variables.azdoresourceconnection }}
+          resource_group: ${{ variables.resourcegroupname }}
+          synapseworkspacename: ${{ variables.synapseworkspacename }}
+          defaultDataLakeStorageAccountName: ${{ variables.defaultDataLakeStorageAccountName }}
+          defaultDataLakeStorageFilesystemName: ${{ variables.defaultDataLakeStorageFilesystemName }}
+          synapsesqlPoolName: ${{ variables.synapsesqlPoolName }}
+
     # Add Tags to resources
     - ${{ if eq(variables['applytags'], true) }}:
       - task: AzureCLI@2
@@ -201,7 +201,7 @@ stages:
             ids=$(az resource list --resource-group ${{ variables.resourcegroupname }} --query "[].id" --output tsv)
             az resource tag --tags $(TAGS) --ids $ids 
 
-  # Deploy Control DB schema / DACPAC
+  # Deploy Control DB schema / DACPAC.
   - ${{ if eq(variables['controldb'], true) }}:
     - template: job-deploy-controldb.yml
       parameters:

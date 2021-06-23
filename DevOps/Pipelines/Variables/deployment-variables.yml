@@ -21,10 +21,10 @@ variables:
   # Used to add Control DB to Azure SQL server 
   - name: controldb
     value: true
-  # Used to add EDW DB to Azure SQL server 
+  # Used to add EDW DB to Azure SQL serve.r 
   - name: edw
     value: false
-  # Used to set Blob Storage deployability
+  # Used to set Blob Storage deployability.
   - name: azureblobstorage
     value: false
   # Used to set Data Lake Storage deployability

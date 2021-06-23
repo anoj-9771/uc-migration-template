@@ -5,25 +5,27 @@ pr:
     include:
     - main
     - develop
+    - test
   paths:
     include:
-    - ControlDB/*
+    - ADS-Databases/*
 
-trigger:
-  branches:
-    include:
-    - main
-    - develop
-  paths:
-    include:
-    - ControlDB/ControlDB.sln
+trigger: none
+#   branches:
+#     include:
+#     - main
+#     - develop
+#     - test
+#   paths:
+#     include:
+#     - ADS-Databases/ADS-Database.sln
 
 pool:
   vmImage: ubuntu-latest
 
 stages:
 # ---------------------------------------------------------------------------
-# Build artifacts (OLD ONE)
+# Build artifacts.
 - stage: 'build' # leave main artifact build stage as 'build'
   jobs:
   # Use this section to pull in or out build jobs
@@ -32,14 +34,22 @@ stages:
 # Release to Non-Production
 - template: Templates/stage-controldb-integration.yml
   parameters:
-    stage_name: 'non_prod'
-    variable_template_name: npe-variables
+    stage_name: 'dev'
+    variable_template_name: dev-variables
     run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/develop'))
+
+# ---------------------------------------------------------------------------
+# Release to Non-Production
+- template: Templates/stage-controldb-integration.yml
+  parameters:
+    stage_name: 'test'
+    variable_template_name: test-variables
+    run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/test'))
 
 # ---------------------------------------------------------------------------
 # Release to Production
 - template: Templates/stage-controldb-integration.yml
   parameters:
-    stage_name: 'prod'
-    variable_template_name: prd-variables
+    stage_name: 'preprod'
+    variable_template_name: preprd-variables
     run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))

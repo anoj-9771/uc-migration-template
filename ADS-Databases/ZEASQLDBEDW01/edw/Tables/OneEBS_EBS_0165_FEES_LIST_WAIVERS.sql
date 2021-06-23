@@ -1,0 +1,27 @@
+﻿CREATE TABLE [edw].[OneEBS_EBS_0165_FEES_LIST_WAIVERS] (
+    [ID]                      NUMERIC (10)                                         NULL,
+    [FEE_RECORD_CODE]         NUMERIC (10)                                         NULL,
+    [WAIVER_VALUE_NUMBER]     NUMERIC (10)                                         NULL,
+    [ATTACHMENT_ID]           NUMERIC (10)                                         NULL,
+    [WAIVER_ORDER]            NUMERIC (5)                                          NULL,
+    [CUMULATIVE]              VARCHAR (1)                                          NULL,
+    [CREATED_BY]              VARCHAR (30)                                         NULL,
+    [CREATED_DATE]            DATETIME2 (7)                                                 NULL,
+    [UPDATED_BY]              VARCHAR (30)                                         NULL,
+    [UPDATED_DATE]            DATETIME2 (7)                                                 NULL,
+    [EVIDENCE_ACCEPTED]       VARCHAR (1)                                          NULL,
+    [NOTES_ID]                NUMERIC (10)                                         NULL,
+    [ADJUSTMENT_AMOUNT]       NUMERIC (13, 2) MASKED WITH (FUNCTION = 'default()') NULL,
+    [INSTITUTION_CONTEXT_ID]  NUMERIC (10)                                         NULL,
+    [_transaction_date]       DATETIME2 (7)                                             NULL,
+    [year]                    NVARCHAR (MAX)                                       NULL,
+    [month]                   NVARCHAR (MAX)                                       NULL,
+    [day]                     NVARCHAR (MAX)                                       NULL,
+    [_DLRawZoneTimeStamp]     DATETIME2 (7)                                        NULL,
+    [_DLTrustedZoneTimeStamp] DATETIME2 (7)                                        NULL,
+    [_RecordStart]            DATETIME2 (7)                                        NULL,
+    [_RecordEnd]              DATETIME2 (7)                                        NULL,
+    [_RecordDeleted]          INT                                                  NULL,
+    [_RecordCurrent]          INT                                                  NULL
+);
+

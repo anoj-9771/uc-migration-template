@@ -1,0 +1,60 @@
+﻿** Highlights
+     Tables that will be rebuilt
+       None
+     Clustered indexes that will be dropped
+       None
+     Clustered indexes that will be created
+       None
+     Possible data issues
+       None
+
+** User actions
+     Create
+       [banking] (Schema)
+       [qsu] (Schema)
+       [taleo] (Schema)
+       [dbo].[Configuration] (Table)
+       [edw].[Prada_dbo_COLLEGES] (Table)
+       [edw].[Prada_dbo_COURSE_ENROLMENTS_CY2019_Weekly] (Table)
+       [edw].[Prada_dbo_CURRENT_COURSE_MAPPING2] (Table)
+       [edw].[Prada_dbo_INSTITUTES] (Table)
+       [edw].[Prada_dbo_PEOPLE] (Table)
+       [edw].[Prada_dbo_REFERENCE_DATA] (Table)
+       [edw].[Prada_dbo_REFERENCE_DATA].[CCI_edw_Prada_dbo_REFERENCE_DATA] (Column Store Index)
+       [edw].[Prada_dbo_REPORT_DATE] (Table)
+       [edw].[Prada_dbo_SKILLS_TEAM_MAPPING] (Table)
+       [edw].[Prada_dbo_SKILLS_TEAM_MAPPING].[CCI_edw_Prada_dbo_skills_team_mapping] (Column Store Index)
+       [edw].[Prada_dbo_STS_DATA] (Table)
+       [edw].[Prada_dbo_STS_DATA].[CCI_edw_Prada_dbo_STS_DATA] (Column Store Index)
+       [edw].[Prada_dbo_UNIT_INSTANCE_OCCURRENCES] (Table)
+       [edw].[Prada_dbo_UNIT_INSTANCE_OCCURRENCES].[CCI_edw_Prada_dbo_UNIT_INSTANCE_OCCURRENCES] (Column Store Index)
+       [edw].[Prada_dbo_UNIT_INSTANCES] (Table)
+       [edw].[Prada_Unit_COURSE_ENROLMENTS] (Table)
+       [edw].[Prada_Unit_COURSE_UI] (Table)
+       [edw].[Prada_Unit_COURSE_UIO] (Table)
+       [edw].[Prada_Unit_UNIT_ENROLMENTS] (Table)
+       [edw].[Prada_Unit_UNIT_ENROLMENTS_FINALS] (Table)
+       [edw].[Prada_Unit_UNIT_INSTANCE_OCCURRENCES] (Table)
+       [edw].[Prada_Unit_UNIT_INSTANCES] (Table)
+       [tsEchecklist].[echecklistRptPrompt] (Table)
+       [EChecklist].[ChecklistActions] (View)
+       [eChecklist].[ChecklistActionsSummary] (View)
+       [eChecklist].[ChecklistTemplates] (View)
+       [eChecklist].[echecklistRptPrompt] (View)
+     Alter
+       [edw].[OneEBS_EBS_0165_ATTAINMENTS] (Table)
+       [edw].[OneEBS_EBS_0165_FEES_LIST] (Table)
+       [compliance].[vwAvetmissStudent] (View)
+       [reference].[CourseReplacement] (View)
+       [reference].[WaiverTypes] (View)
+       [compliance].[PopulateAvetmissFeeRecord] (Procedure)
+
+** Supporting actions
+     Refresh
+       [OneEBS].[Attainments] (View)
+       [OneEBS].[Fees_List] (View)
+       [UMD].[USP_RefreshUMDDataModel] (Procedure)
+
+If this deployment is executed, changes to [reference].[CourseReplacement] might introduce run-time errors in [reference].[vwCourseReplacement].
+If this deployment is executed, changes to [reference].[WaiverTypes] might introduce run-time errors in [reference].[vwWaiverTypes].
+

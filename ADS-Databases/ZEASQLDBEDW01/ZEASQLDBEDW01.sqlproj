@@ -1,0 +1,149 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <Name>ZEASQLDBEDW01</Name>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectVersion>4.1</ProjectVersion>
+    <ProjectGuid>{1347a342-1649-47fa-9343-98420e5239cc}</ProjectGuid>
+    <DSP>Microsoft.Data.Tools.Schema.Sql.SqlAzureV12DatabaseSchemaProvider</DSP>
+    <OutputType>Database</OutputType>
+    <RootPath>
+    </RootPath>
+    <RootNamespace>ZEASQLDBEDW01</RootNamespace>
+    <AssemblyName>ZEASQLDBEDW01</AssemblyName>
+    <ModelCollation>1033,CI</ModelCollation>
+    <DefaultFileStructure>BySchemaAndSchemaType</DefaultFileStructure>
+    <DeployToDatabase>True</DeployToDatabase>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetLanguage>CS</TargetLanguage>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <SqlServerVerification>False</SqlServerVerification>
+    <IncludeCompositeObjects>True</IncludeCompositeObjects>
+    <TargetDatabaseSet>True</TargetDatabaseSet>
+    <DefaultCollation>SQL_Latin1_General_CP1_CI_AS</DefaultCollation>
+    <DefaultFilegroup>PRIMARY</DefaultFilegroup>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <OutputPath>bin\Release\</OutputPath>
+    <BuildScriptName>$(MSBuildProjectName).sql</BuildScriptName>
+    <TreatWarningsAsErrors>False</TreatWarningsAsErrors>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <DefineDebug>false</DefineDebug>
+    <DefineTrace>true</DefineTrace>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <OutputPath>bin\Debug\</OutputPath>
+    <BuildScriptName>$(MSBuildProjectName).sql</BuildScriptName>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <DefineDebug>true</DefineDebug>
+    <DefineTrace>true</DefineTrace>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">11.0</VisualStudioVersion>
+    <!-- Default to the v11.0 targets path if the targets file for the current VS version is not found -->
+    <SSDTExists Condition="Exists('$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v$(VisualStudioVersion)\SSDT\Microsoft.Data.Tools.Schema.SqlTasks.targets')">True</SSDTExists>
+    <VisualStudioVersion Condition="'$(SSDTExists)' == ''">11.0</VisualStudioVersion>
+  </PropertyGroup>
+  <Import Condition="'$(SQLDBExtensionsRefPath)' != ''" Project="$(SQLDBExtensionsRefPath)\Microsoft.Data.Tools.Schema.SqlTasks.targets" />
+  <Import Condition="'$(SQLDBExtensionsRefPath)' == ''" Project="$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v$(VisualStudioVersion)\SSDT\Microsoft.Data.Tools.Schema.SqlTasks.targets" />
+  <ItemGroup>
+    <Folder Include="Properties" />
+    <Folder Include="edw\" />
+    <Folder Include="edw\Tables\" />
+    <Folder Include="reference\" />
+    <Folder Include="reference\Tables\" />
+    <Folder Include="compliance\" />
+    <Folder Include="compliance\Tables\" />
+    <Folder Include="stg\" />
+    <Folder Include="stg\Tables\" />
+    <Folder Include="stage\" />
+    <Folder Include="stage\Tables\" />
+    <Folder Include="dbo\" />
+    <Folder Include="dbo\Tables\" />
+    <Folder Include="dbo\Views\" />
+    <Folder Include="compliance\Views\" />
+    <Folder Include="Security\" />
+    <Folder Include="dbo\Stored Procedures\" />
+    <Folder Include="reference\Views\" />
+    <Folder Include="compliance\Functions\" />
+    <Folder Include="tsEChecklist\" />
+    <Folder Include="tsEChecklist\Tables\" />
+    <Folder Include="EChecklist\" />
+    <Folder Include="EChecklist\Views\" />
+    <Folder Include="VCPexip\" />
+    <Folder Include="VCPexip\Views\" />
+    <Folder Include="Avetmiss\" />
+    <Folder Include="Avetmiss\Views\" />
+    <Folder Include="aas\" />
+    <Folder Include="aas\Views\" />
+    <Folder Include="compliance\Stored Procedures\" />
+    <Folder Include="SchemaCompare" />
+    <Folder Include="tsPlanning\" />
+    <Folder Include="tsPlanning\Tables\" />
+    <Folder Include="ISDP\" />
+    <Folder Include="ISDP\Views\" />
+    <Folder Include="UMD\" />
+    <Folder Include="UMD\Stored Procedures\" />
+    <Folder Include="QSU" />
+    <Folder Include="tsEChecklist\Views" />
+    <Folder Include="QSU\Tables\" />
+    <Folder Include="RevRec\" />
+    <Folder Include="RevRec\Views\" />
+    <Folder Include="OneEBS\" />
+    <Folder Include="OneEBS\Views\" />
+    <Folder Include="edw\Stored Procedures\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Build Include="aas\Views\*.sql" />
+    <Build Include="Avetmiss\*\*.sql" />
+    <Build Include="compliance\*\*.sql" />
+    <Build Include="dbo\*\*.sql" />
+    <Build Include="EChecklist\*\*.sql" />
+    <Build Include="edw\Tables\VCPexip_participant.sql" />
+    <Build Include="ISDP\*\*.sql" />
+    <Build Include="QSU\*\*.sql" />
+    <Build Include="reference\*\*.sql" />
+    <Build Include="RevRec\*\*.sql" />
+    <Build Include="Security\*.sql" />
+    <Build Include="tsEChecklist\*\*.sql" />
+    <Build Include="tsPlanning\*\*.sql" />
+    <Build Include="UMD\*\*.sql" />
+    <Build Include="VCPexip\*\*.sql" />
+    <Build Include="OneEBS\Views\*.sql" />
+    <Build Include="edw\Tables\*.sql" />
+    <Build Include="edw\Tables\OneEBS_EBS_0900_GRADING_SCHEMES.sql" />
+    <Build Include="edw\Tables\OneEBS_EBS_0165_ROLES.sql" />
+    <Build Include="edw\Tables\OneEBS_EBS_0165_PEOPLE_DEDUPLICATION_AUDIT.sql" />
+    <Build Include="edw\Tables\OneEBS_EBS_0165_PEOPLE_VSL.sql" />
+    <Build Include="edw\Tables\OneEBS_EBS_0165_PEOPLE_UNITS_VSL.sql" />
+    <Build Include="OneEBS\Views\Calendar_Occurences.sql" />
+    <Build Include="OneEBS\Views\People_Units_Avetmiss.sql" />
+    <Build Include="edw\Tables\EBS_EnrolmentsAndFees.sql" />
+    <Build Include="edw\Stored Procedures\USP_RefreshEbsEnrolmentsAndFees.sql" />
+    <Build Include="OneEBS\Views\EnrolmentsAndFees.sql" />
+    <Build Include="OneEBS\Views\Note_Links.sql" />
+    <Build Include="OneEBS\Views\EBS_Progress_History.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <PostDeploy Include="Script.PostDeployment1.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="SchemaCompare\dev-to-proj.scmp" />
+    <None Include="ZEASQLDBEDW01-TEST.publish.xml" />
+    <None Include="ZEASQLDBEDW01-PREPROD.publish.xml" />
+    <None Include="ZEASQLDBEDW01-PROD.publish.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <PreDeploy Include="Script.PreDeployment1.sql" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,37 @@
+﻿CREATE TABLE [edw].[eChecklist_dbo_checklists_checklists] (
+    [CheckListId]                         INT            NULL,
+    [Sponsor]                             VARCHAR (100)  NULL,
+    [Version]                             MONEY          NULL,
+    [MinorVersion]                        INT            NULL,
+    [GroupName]                           VARCHAR (50)   NULL,
+    [DisplayOrder]                        SMALLINT       NULL,
+    [CheckListAcronym]                    VARCHAR (50)   NULL,
+    [CheckListName]                       VARCHAR (200)  NULL,
+    [CheckListSponsors]                   VARCHAR (500)  NULL,
+    [ShowInMyCheckListsTable]             BIT            NULL,
+    [IsUnderMaintenance]                  VARCHAR (20)   NULL,
+    [ImplementationDate]                  SMALLDATETIME  NULL,
+    [LastUpdated]                         SMALLDATETIME  NULL,
+    [ReviewDate]                          SMALLDATETIME  NULL,
+    [EnableAdminEditing]                  VARCHAR (20)   NULL,
+    [CheckListWorkUnitLocale]             INT            NULL,
+    [IncludeFinalTaskCommentInFinalEmail] BIT            NULL,
+    [IncludeCCFieldInFinalTask]           BIT            NULL,
+    [DefaultCCsForFinalTask]              VARCHAR (2000) NULL,
+    [DfltProductivityReportTask]          INT            NULL,
+    [CheckListUserGuideURL]               VARCHAR (500)  NULL,
+    [DefaultCCActionersForFinalTask]      VARCHAR (100)  NULL,
+    [IsOneTAFEApproved]                   BIT            NULL,
+    [InitiatorMemberMode]                 VARCHAR (4)    NULL,
+    [ReporterMemberMode]                  VARCHAR (4)    NULL,
+    [ReporterPlusMemberMode]              VARCHAR (4)    NULL,
+    [_DLRawZoneTimeStamp]                 DATETIME2 (7)  NULL,
+    [_DLTrustedZoneTimeStamp]             DATETIME2 (7)  NULL,
+    [_RecordStart]                        DATETIME2 (7)  NULL,
+    [_RecordEnd]                          DATETIME2 (7)  NULL,
+    [_RecordCurrent]                      INT            NULL,
+    [_RecordDeleted]                      INT            NULL
+);
+
+
+

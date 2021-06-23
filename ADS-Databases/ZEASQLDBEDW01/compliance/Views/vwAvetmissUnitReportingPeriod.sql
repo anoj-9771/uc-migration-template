@@ -1,0 +1,136 @@
+﻿
+
+CREATE view [compliance].[vwAvetmissUnitReportingPeriod] as
+
+Select 2018 as REPORT_DATE, 2018 as [Report Date], 2018 as [Report Year], 2018 as [Extract Date], 20171 as [Week Last Year], 'Previous Week 2018 - 2018' as [Current Week], NULL as [Current Week Flag] UNION ALL 
+Select '2019', '2019', '2019', '2019', '2018', 'Previous Week 2019 - 2019', NULL UNION ALL 
+Select '20161', '20161', '2016', '2016', NULL, 'Final Week 2016', NULL UNION ALL 
+Select '20171', '20171', '2017', '20171', '2016', 'Previous Week 2017 - 20171', NULL UNION ALL 
+Select '20150124', '20150124', '2015', '20160124', NULL, 'Previous Week 2015 - 20160124', NULL UNION ALL 
+Select '20150131', '20150131', '2015', '20160131', NULL, 'Previous Week 2015 - 20160131', NULL UNION ALL 
+Select '20150221', '20150221', '2015', '20160221', NULL, 'Previous Week 2015 - 20160221', NULL UNION ALL 
+Select '20160108', '20160108', '2016', '20170108', '20160110', 'Previous Week 2016 - 20170108', NULL UNION ALL 
+Select '20160115', '20160115', '2016', '20170115', NULL, 'Previous Week 2016 - 20170115', NULL UNION ALL 
+Select '20160122', '20160122', '2016', '20170122', '20150124', 'Previous Week 2016 - 20170122', NULL UNION ALL 
+Select '20160129', '20160129', '2016', '20170129', '20150131', 'Previous Week 2016 - 20170129', NULL UNION ALL 
+Select '20160205', '20160205', '2016', '20170205', NULL, 'Previous Week 2016 - 20170205', NULL UNION ALL 
+Select '20160212', '20160212', '2016', '20170212', '20150214', 'Previous Week 2016 - 20170212', NULL UNION ALL 
+Select '20160219', '20160219', '2016', '20170219', '20150221', 'Previous Week 2016 - 20170219', NULL UNION ALL 
+Select '20160306', '20160306', '2016', '20160306', '20150308', 'Previous Week 2016 - 20160306', NULL UNION ALL 
+Select '20160313', '20160313', '2016', '20160313', '20150315', 'Previous Week 2016 - 20160313', NULL UNION ALL 
+Select '20160320', '20160320', '2016', '20160320', '20150322', 'Previous Week 2016 - 20160320', NULL UNION ALL 
+Select '20160327', '20160327', '2016', '20160327', '20150329', 'Previous Week 2016 - 20160327', NULL UNION ALL 
+Select '20160403', '20160403', '2016', '20160403', '20150405', 'Previous Week 2016 - 20160403', NULL UNION ALL 
+Select '20160410', '20160410', '2016', '20160410', '20150412', 'Previous Week 2016 - 20160410', NULL UNION ALL 
+Select '20160417', '20160417', '2016', '20160417', '20150419', 'Previous Week 2016 - 20160417', NULL UNION ALL 
+Select '20160424', '20160424', '2016', '20160424', '20150426', 'Previous Week 2016 - 20160424', NULL UNION ALL 
+Select '20160501', '20160501', '2016', '20160501', '20150510', 'Previous Week 2016 - 20160501', NULL UNION ALL 
+Select '20160508', '20160508', '2016', '20160508', '20150510', 'Previous Week 2016 - 20160508', NULL UNION ALL 
+Select '20160605', '20160605', '2016', '20160605', '20150607', 'Previous Week 2016 - 20160605', NULL UNION ALL 
+Select '20160703', '20160703', '2016', '20160703', '20160705', 'Previous Week 2016 - 20160703', NULL UNION ALL 
+Select '20160807', '20160807', '2016', '20160807', '20150809', 'Previous Week 2016 - 20160807', NULL UNION ALL 
+Select '20160904', '20160904', '2016', '20160904', '20150906', 'Previous Week 2016 - 20160904', NULL UNION ALL 
+Select '20161002', '20161002', '2016', '20161002', '20151004', 'Previous Week 2016 - 20161002', NULL UNION ALL 
+Select '20161106', '20161106', '2016', '20161106', '20151108', 'Previous Week 2016 - 20161106', NULL UNION ALL 
+Select '20161204', '20161204', '2016', '20161204', '20151206', 'Previous Week 2016 - 20161204', NULL UNION ALL 
+Select '20161211', '20161211', '2016', '20161211', '20151213', 'Previous Week 2016 - 20161211', NULL UNION ALL 
+Select '20161218', '20161218', '2016', '20161218', '20160103', 'Previous Week 2016 - 20161218', NULL UNION ALL 
+Select '20170107', '20170107', '2017', '20180107', '20160108', 'Previous Week 2017 - 20180107', NULL UNION ALL 
+Select '20170108', '20170108', '2017', '20170108', '20160110', 'Previous Week 2017 - 20170108', NULL UNION ALL 
+Select '20170115', '20170115', '2017', '20170115', '20160117', 'Previous Week 2017 - 20170115', NULL UNION ALL 
+Select '20170122', '20170122', '2017', '20170122', '20160124', 'Previous Week 2017 - 20170122', NULL UNION ALL 
+Select '20170129', '20170129', '2017', '20170129', '20160130', 'Previous Week 2017 - 20170129', NULL UNION ALL 
+Select '20170204', '20170204', '2017', '20180204', '20160205', 'Previous Week 2017 - 20180204', NULL UNION ALL 
+Select '20170205', '20170205', '2017', '20170205', '20160207', 'Previous Week 2017 - 20170205', NULL UNION ALL 
+Select '20170212', '20170212', '2017', '20170212', '20160214', 'Previous Week 2017 - 20170212', NULL UNION ALL 
+Select '20170219', '20170219', '2017', '20170219', '20160221', 'Previous Week 2017 - 20170219', NULL UNION ALL 
+Select '20170226', '20170226', '2017', '20170226', '20160228', 'Previous Week 2017 - 20170226', NULL UNION ALL 
+Select '20170305', '20170305', '2017', '20170305', '20160306', 'Previous Week 2017 - 20170305', NULL UNION ALL 
+Select '20170312', '20170312', '2017', '20170312', '20160313', 'Previous Week 2017 - 20170312', NULL UNION ALL 
+Select '20170319', '20170319', '2017', '20170319', '20160320', 'Previous Week 2017 - 20170319', NULL UNION ALL 
+Select '20170326', '20170326', '2017', '20170326', '20160327', 'Previous Week 2017 - 20170326', NULL UNION ALL 
+Select '20170402', '20170402', '2017', '20170402', '20160403', 'Previous Week 2017 - 20170402', NULL UNION ALL 
+Select '20170409', '20170409', '2017', '20170409', '20160410', 'Previous Week 2017 - 20170409', NULL UNION ALL 
+Select '20170416', '20170416', '2017', '20170416', '20160417', 'Previous Week 2017 - 20170416', NULL UNION ALL 
+Select '20170423', '20170423', '2017', '20170423', '20160424', 'Previous Week 2017 - 20170423', NULL UNION ALL 
+Select '20170430', '20170430', '2017', '20170430', '20160501', 'Previous Week 2017 - 20170430', NULL UNION ALL 
+Select '20170507', '20170507', '2017', '20170507', '20160508', 'Previous Week 2017 - 20170507', NULL UNION ALL 
+Select '20170604', '20170604', '2017', '20170604', '20160605', 'Previous Week 2017 - 20170604', NULL UNION ALL 
+Select '20170702', '20170702', '2017', '20170702', '20160703', 'Previous Week 2017 - 20170702', NULL UNION ALL 
+Select '20170806', '20170806', '2017', '20170806', '20160807', 'Previous Week 2017 - 20170806', NULL UNION ALL 
+Select '20170903', '20170903', '2017', '20170903', '20160904', 'Previous Week 2017 - 20170903', NULL UNION ALL 
+Select '20171001', '20171001', '2017', '20171001', '20161002', 'Previous Week 2017 - 20171001', NULL UNION ALL 
+Select '20171105', '20171105', '2017', '20171105', '20161106', 'Previous Week 2017 - 20171105', NULL UNION ALL 
+Select '20171203', '20171203', '2017', '20171203', '20161204', 'Previous Week 2017 - 20171203', NULL UNION ALL 
+Select '20180106', '20180106', '2018', '20190106', '20170107', 'Previous Week 2018 - 20190106', NULL UNION ALL 
+Select '20180107', '20180107', '2018', '20180107', '20170108', 'Previous Week 2018 - 20180107', NULL UNION ALL 
+Select '20180203', '20180203', '2018', '20190203', '20170204', 'Previous Week 2018 - 20190203', NULL UNION ALL 
+Select '20180204', '20180204', '2018', '20180204', '20170205', 'Previous Week 2018 - 20180204', NULL UNION ALL 
+Select '20180304', '20180304', '2018', '20180304', '20170305', 'Previous Week 2018 - 20180304', NULL UNION ALL 
+Select '20180401', '20180401', '2018', '20180401', '20170402', 'Previous Week 2018 - 20180401', NULL UNION ALL 
+Select '20180506', '20180506', '2018', '20180506', '20170507', 'Previous Week 2018 - 20180506', NULL UNION ALL 
+Select '20180603', '20180603', '2018', '20180603', '20170604', 'Previous Week 2018 - 20180603', NULL UNION ALL 
+Select '20180701', '20180701', '2018', '20180701', '20170702', 'Previous Week 2018 - 20180701', NULL UNION ALL 
+Select '20180729', '20180729', '2018', '20180729', '20170730', 'Previous Week 2018 - 20180729', NULL UNION ALL 
+Select '20180805', '20180805', '2018', '20180805', '20170806', 'Previous Week 2018 - 20180805', NULL UNION ALL 
+Select '20180902', '20180902', '2018', '20180902', '20170903', 'Previous Week 2018 - 20180902', NULL UNION ALL 
+Select '20180930', '20180930', '2018', '20180930', '20171001', 'Previous Week 2018 - 20180930', NULL UNION ALL 
+Select '20181007', '20181007', '2018', '20181007', '20171008', 'Previous Week 2018 - 20181007', NULL UNION ALL 
+Select '20181104', '20181104', '2018', '20181104', '20171105', 'Previous Week 2018 - 20181104', NULL UNION ALL 
+Select '20181202', '20181202', '2018', '20181202', '20171203', 'Previous Week 2018 - 20181202', NULL UNION ALL 
+Select '20190105', '20190105', '2019', '20200105', '20180106', 'Previous Week 2019 - 20200105', NULL UNION ALL 
+Select '20190106', '20190106', '2019', '20190106', '20180107', 'Previous Week 2019 - 20190106', NULL UNION ALL 
+Select '20190202', '20190202', '2019', '20200202', '20180203', 'Previous Week 2019 - 20200202', NULL UNION ALL 
+Select '20190203', '20190203', '2019', '20190203', '20180204', 'Previous Week 2019 - 20190203', NULL UNION ALL 
+Select '20190303', '20190303', '2019', '20190303', '20180304', 'Previous Week 2019 - 20190303', NULL UNION ALL 
+Select '20190407', '20190407', '2019', '20190407', '20180408', 'Previous Week 2019 - 20190407', NULL UNION ALL 
+Select '20190505', '20190505', '2019', '20190505', '20180506', 'Previous Week 2019 - 20190505', NULL UNION ALL 
+Select '20190602', '20190602', '2019', '20190602', '20180603', 'Previous Week 2019 - 20190602', NULL UNION ALL 
+Select '20190707', '20190707', '2019', '20190707', '20180708', 'Previous Week 2019 - 20190707', NULL UNION ALL 
+Select '20190804', '20190804', '2019', '20190804', '20180805', 'Previous Week 2019 - 20190804', NULL UNION ALL 
+Select '20190901', '20190901', '2019', '20190901', '20180902', 'Previous Week 2019 - 20190901', NULL UNION ALL 
+Select '20191006', '20191006', '2019', '20191006', '20181007', 'Previous Week 2019 - 20191006', NULL UNION ALL 
+Select '20191103', '20191103', '2019', '20191103', '20181104', 'Previous Week 2019 - 20191103', NULL UNION ALL 
+Select '20191201', '20191201', '2019', '20191201', '20181202', 'Previous Week 2019 - 20191201', NULL UNION ALL 
+Select '20200105', '20200105', '2020', '20200105', '20190106', 'Previous Week 2020 - 20200105', NULL UNION ALL 
+Select '20200202', '20200202', '2020', '20200202', '20190203', 'Previous Week 2020 - 20200202', NULL UNION ALL 
+Select '20200301', '20200301', '2020', '20200301', '20190303', 'Previous Week 2020 - 20200301', NULL UNION ALL 
+Select '20200405', '20200405', '2020', '20200405', '20190407', 'Previous Week 2020 - 20200405', NULL UNION ALL 
+Select '20200503', '20200503', '2020', '20200503', '20190505', 'Previous Week 2020 - 20200503', NULL UNION ALL 
+Select '20200607', '20200607', '2020', '20200607', '20190609', 'Previous Week 2020 - 20200607', NULL UNION ALL 
+Select '20200705', '20200705', '2020', '20200705', '20190707', 'Previous Week 2020 - 20200705', NULL UNION ALL 
+Select '20200802', '20200802', '2020', '20200802', '20190802', 'Previous Week 2020 - 20200802', NULL UNION ALL 
+Select '20200906', '20200906', '2020', '20200906', '20190906', 'Previous Week 2020 - 20200906', NULL UNION ALL 
+
+	SELECT 
+ ReportingPeriodKey --as REPORT_DATE
+,ReportingPeriodKey --as 'Report Date'
+,cast(ReportingYearNo as varchar(12)) --as 'Report Year'
+,convert(varchar(10), ReportingDate, 112) --as 'Extract Date'
+,convert(varchar(10), ReportingPeriodKeyLastYear, 112) --as 'Week Last Year' 
+,CASE
+    WHEN ReportingDate = (SELECT max(ReportingDate) FROM compliance.AvetmissReportingPeriod rp where left(ReportingYear, 2) = 'CY' and rp.ReportingDate <= dateadd(hh,10,getdate() ))
+	THEN 'Current Week ' + cast(ReportingYearNo as varchar(4))
+WHEN ReportingPeriodKey = (SELECT max(ReportingPeriodKeyLastYear)
+						from compliance.AvetmissReportingPeriod
+						WHERE left(ReportingYear, 2) = 'CY'
+						and ReportingDate = (SELECT max(ReportingDate) FROM compliance.AvetmissReportingPeriod rp where left(reportingyear, 2) = 'CY' and rp.ReportingDate <= dateadd(hh,10,getdate() )    ))
+	THEN 'Current Week Last Year ' + cast(ReportingYearNo as varchar(4))
+WHEN ReportingDate = (SELECT max(dateadd(week, -1, ReportingDate))
+						from compliance.AvetmissReportingPeriod
+						WHERE left(ReportingYear, 2) = 'CY'
+						and ReportingDate = (SELECT max(ReportingDate) FROM compliance.AvetmissReportingPeriod rp where left(reportingyear, 2) = 'CY' and rp.ReportingDate <= dateadd(hh,10,getdate() )))
+	THEN 'Current Week Last Week CY ' + cast(ReportingYearNo as varchar(4))
+ELSE 'Previous Week ' + cast(ReportingYearNo as varchar(4)) + ' - ' + cast(ReportingPeriodKey as varchar(8)) 
+	END --AS 'Current Week'
+
+,NULL --AS 'Current Week Flag'
+
+
+
+from compliance.AvetmissReportingPeriod rp
+where left(ReportingYear, 2) = 'CY' 
+and rp.ReportingDate >= '2021-04-25'
+and rp.ReportingDate <=  dateadd(hh,10,dateadd(dd,1,getdate()))
+and rp._RecordCurrent = 1
+and rp._RecordDeleted = 0

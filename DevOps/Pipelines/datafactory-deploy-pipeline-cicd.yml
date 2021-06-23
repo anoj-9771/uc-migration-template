@@ -5,20 +5,22 @@ pr:
     include:
     - main
     - develop
+    - test
   paths:
     include:
     - sl-df-nonprod/*
 
-trigger:
-  branches:
-    include:
-    - main
-    - develop
-  paths:
-    include:
-    - sl-df-nonprod/*
-    - DevOps/Pipelines/datafactory-deploy-pipeline-cicd.yml
-    - DevOps/Pipelines/stage-datafactory-integration.yml
+trigger: none
+#   branches:
+#     include:
+#     - main
+#     - develop
+#     - test
+#   paths:
+#     include:
+#     - sl-df-nonprod/*
+#     - DevOps/Pipelines/datafactory-deploy-pipeline-cicd.yml
+#     - DevOps/Pipelines/stage-datafactory-integration.yml
 
 pool:
   vmImage: ubuntu-latest
@@ -31,21 +33,32 @@ stages:
   # Use this section to pull in or out build jobs
   - template: Templates/job-copy-datafactory-arm.yml
     parameters:
-      data_factory_name: 'sl-df-nonprod'
+      data_factory_name: 'swcdaf-dev-ADF'
+
 # ---------------------------------------------------------------------------
-# Release to Non-Prod
+# Release to Non-Prod - Dev Environment
 - template: Templates/stage-datafactory-integration.yml
   parameters:
     #dependencies: ['uat'] # Used to define any stage dependencies
-    stage_name: 'deploy_adf_nonprod'
-    variable_template_name: npe-variables
-    run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+    stage_name: 'deploy_adf_dev'
+    variable_template_name: dev-variables
+    run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/develop'))
+
 # ---------------------------------------------------------------------------
-# Release to Production
+# Release to Non-Prod - Test Environment
 - template: Templates/stage-datafactory-integration.yml
   parameters:
     #dependencies: ['uat'] # Used to define any stage dependencies
-    stage_name: 'deploy_adf_prod'
-    variable_template_name: prd-variables
+    stage_name: 'deploy_adf_test'
+    variable_template_name: test-variables
+    run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/test'))
+
+# ---------------------------------------------------------------------------
+# Release to Non-Prod - PreProd Environment
+- template: Templates/stage-datafactory-integration.yml
+  parameters:
+    #dependencies: ['uat'] # Used to define any stage dependencies
+    stage_name: 'deploy_adf_preprod'
+    variable_template_name: preprd-variables
     run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
 

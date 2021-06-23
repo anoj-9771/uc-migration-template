@@ -1,0 +1,27 @@
+﻿CREATE TABLE [edw].[OneEBS_EBS_0165_SKILLS_LIST_ITEMS] (
+    [ID]                          NUMERIC (10)   NULL,
+    [SKILLS_LISTS_ID]             NUMERIC (10)   NULL,
+    [QUALIFICATION_CODE]          VARCHAR (20)   NULL,
+    [TITLE]                       VARCHAR (100)  NULL,
+    [IS_ACTIVE]                   VARCHAR (1)    NULL,
+    [IS_LOC_AVAIL_FND_SKILLS]     VARCHAR (1)    NULL,
+    [IS_LOC_AVAIL_APPRENTICESHIP] VARCHAR (1)    NULL,
+    [IS_LOC_AVAIL_TRAINEESHIP]    VARCHAR (1)    NULL,
+    [IS_LOC_AVAIL_TRGT_PRIORITY]  VARCHAR (1)    NULL,
+    [CREATED_BY]                  VARCHAR (30)   NULL,
+    [CREATED_DATE]                DATETIME2 (7)           NULL,
+    [UPDATED_BY]                  VARCHAR (30)   NULL,
+    [UPDATED_DATE]                DATETIME2 (7)           NULL,
+    [INSTITUTION_CONTEXT_ID]      NUMERIC (10)   NULL,
+    [_transaction_date]           DATETIME2 (7)       NULL,
+    [year]                        NVARCHAR (MAX) NULL,
+    [month]                       NVARCHAR (MAX) NULL,
+    [day]                         NVARCHAR (MAX) NULL,
+    [_DLRawZoneTimeStamp]         DATETIME2 (7)  NULL,
+    [_DLTrustedZoneTimeStamp]     DATETIME2 (7)  NULL,
+    [_RecordStart]                DATETIME2 (7)  NULL,
+    [_RecordEnd]                  DATETIME2 (7)  NULL,
+    [_RecordDeleted]              INT            NULL,
+    [_RecordCurrent]              INT            NULL
+);
+

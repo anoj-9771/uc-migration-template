@@ -1,0 +1,4 @@
+﻿CREATE SCHEMA [OneEBS]
+    AUTHORIZATION [dbo];
+
+

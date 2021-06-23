@@ -1,0 +1,1 @@
+﻿CREATE   VIEW  reference.TrainingPackageIsc AS SELECT *, _DLTrustedZoneTimeStamp _DLCuratedZoneTimeStamp  FROM edw.reference_training_package_isc

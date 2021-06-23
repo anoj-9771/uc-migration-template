@@ -1,0 +1,101 @@
+﻿** Highlights
+     Tables that will be rebuilt
+       None
+     Clustered indexes that will be dropped
+       None
+     Clustered indexes that will be created
+       None
+     Possible data issues
+       None
+
+** User actions
+     Alter
+       [edw].[OneEBS_EBS_0165_ORGANISATION_UNITS] (Table)
+       [edw].[OneEBS_EBS_0165_PEOPLE] (Table)
+       [edw].[OneEBS_EBS_0165_PEOPLE_ASR] (Table)
+       [edw].[OneEBS_EBS_0165_PEOPLE_UNITS] (Table)
+       [edw].[OneEBS_EBS_0165_PEOPLE_UNITS_FINANCIAL] (Table)
+       [edw].[OneEBS_EBS_0165_PEOPLE_UNITS_SPECIAL] (Table)
+       [edw].[OneEBS_EBS_0165_PEOPLE_USI] (Table)
+       [edw].[OneEBS_EBS_0165_REGISTER_EVENT_DETAILS_SLOTS] (Table)
+       [edw].[OneEBS_EBS_0165_SCHOOLS] (Table)
+       [edw].[OneEBS_EBS_0165_UNIT_INSTANCE_OCCURRENCES] (Table)
+       [edw].[OneEBS_EBS_0165_UNIT_INSTANCES] (Table)
+       [edw].[OneEBS_EBS_0165_USERS] (Table)
+       [edw].[OneEBS_EBS_0165_VISA_SUBCLASSES] (Table)
+       [edw].[OneEBS_EBS_0165_VISAS] (Table)
+       [edw].[OneEBS_EBS_0165_WEB_CONFIG] (Table)
+       [edw].[OneEBS_EBS_0165_Z_READ_BATCHES] (Table)
+       [edw].[OneEBS_EBS_0900_UNIT_INSTANCES] (Table)
+       [edw].[Prada_dbo_COURSE_ENROLMENTS] (Table)
+       [edw].[Prada_dbo_COURSE_ENROLMENTS_FINALS] (Table)
+       [edw].[reference_date] (Table)
+       [edw].[reference_funding_source_sbi_rules] (Table)
+       [edw].[reference_ts_nsw_fund_group] (Table)
+       [edw].[UMD_FactUnenteredMarks] (Table)
+       [edw].[UMD_TempTeachersMarks] (Table)
+       [edw].[VCPexip_conference] (Table)
+       [edw].[VCPexip_participant] (Table)
+       [tsEChecklist].[ChecklistActions] (Table)
+       [tsEChecklist].[ChecklistActionsInvalidRecords] (Table)
+       [OneEBS].[EnrolmentsAndFees] (View)
+       [edw].[USP_RefreshEbsEnrolmentsAndFees] (Procedure)
+     Create
+       [edw].[EBS_EnrolmentsAndFees] (Table)
+       [OneEBS].[EBS_Progress_History] (View)
+       [OneEBS].[Note_Links] (View)
+
+** Supporting actions
+     Refresh
+       [compliance].[vwAvetmissCourseEnrolment_ReprocessOldPrada] (View)
+       [compliance].[vwAvetmissUnitEnrolmentFinals] (View)
+       [OneEBS].[Organisation_Units] (View)
+       [OneEBS].[People] (View)
+       [OneEBS].[People_ASR] (View)
+       [OneEBS].[People_Units] (View)
+       [OneEBS].[People_Units_Financial] (View)
+       [OneEBS].[People_Units_Special] (View)
+       [OneEBS].[People_USI] (View)
+       [OneEBS].[Register_Event_Details_Slots] (View)
+       [OneEBS].[Schools] (View)
+       [OneEBS].[Unit_Instance_Occurrences] (View)
+       [OneEBS].[Unit_Instances] (View)
+       [OneEBS].[Users] (View)
+       [OneEBS].[Visa_Subclasses] (View)
+       [OneEBS].[Visas] (View)
+       [OneEBS].[Web_Config] (View)
+       [OneEBS].[Z_Read_Batches] (View)
+       [OneEBS].[900_Unit_Instances] (View)
+       [reference].[Date] (View)
+       [reference].[FundingSourceSbiRules] (View)
+       [reference].[TsNswFundGroup] (View)
+       [compliance].[vwAvetmissCourseEnrolment] (View)
+       [compliance].[vwAvetmissUnitCourseEnrolment] (View)
+       [reference].[FundingSourceExtended] (View)
+       [VCPexip].[VCConferenceDetail] (View)
+       [VCPexip].[VCParticipantDetail] (View)
+       [EChecklist].[ChecklistActions] (View)
+       [EChecklist].[EChecklistExceptionReport] (View)
+       [UMD].[USP_RefreshUMDDataModel] (Procedure)
+       [compliance].[PopulatePeopleUnitLinks] (Procedure)
+
+If this deployment is executed, changes to [edw].[OneEBS_EBS_0165_ORGANISATION_UNITS] might introduce run-time errors in [reporting].[NonApprovedEpayments].
+If this deployment is executed, changes to [edw].[OneEBS_EBS_0165_ORGANISATION_UNITS] might introduce run-time errors in [reporting].[QsuScopeReport].
+If this deployment is executed, changes to [edw].[OneEBS_EBS_0165_ORGANISATION_UNITS] might introduce run-time errors in [reporting].[STSDAnalysis].
+If this deployment is executed, changes to [edw].[OneEBS_EBS_0165_PEOPLE] might introduce run-time errors in [reporting].[NonApprovedEpayments].
+If this deployment is executed, changes to [edw].[OneEBS_EBS_0165_PEOPLE] might introduce run-time errors in [reporting].[SmartThinking].
+If this deployment is executed, changes to [edw].[OneEBS_EBS_0165_PEOPLE] might introduce run-time errors in [reporting].[STSDAnalysis].
+If this deployment is executed, changes to [edw].[OneEBS_EBS_0165_PEOPLE_UNITS] might introduce run-time errors in [reporting].[SmartThinking].
+If this deployment is executed, changes to [edw].[OneEBS_EBS_0165_REGISTER_EVENT_DETAILS_SLOTS] might introduce run-time errors in [reporting].[STSDAnalysis].
+If this deployment is executed, changes to [edw].[OneEBS_EBS_0165_UNIT_INSTANCE_OCCURRENCES] might introduce run-time errors in [reporting].[SmartThinking].
+If this deployment is executed, changes to [edw].[OneEBS_EBS_0165_UNIT_INSTANCE_OCCURRENCES] might introduce run-time errors in [reporting].[STSDAnalysis].
+If this deployment is executed, changes to [edw].[OneEBS_EBS_0165_UNIT_INSTANCES] might introduce run-time errors in [reporting].[QsuCourseContentReport].
+If this deployment is executed, changes to [edw].[OneEBS_EBS_0165_UNIT_INSTANCES] might introduce run-time errors in [reporting].[QsuPreRequisiteUnitsReport].
+If this deployment is executed, changes to [edw].[OneEBS_EBS_0165_UNIT_INSTANCES] might introduce run-time errors in [reporting].[QsuScopeReport].
+If this deployment is executed, changes to [edw].[OneEBS_EBS_0165_UNIT_INSTANCES] might introduce run-time errors in [reporting].[QsuUnitMatchReport].
+If this deployment is executed, changes to [edw].[OneEBS_EBS_0165_UNIT_INSTANCES] might introduce run-time errors in [reporting].[SmartThinking].
+If this deployment is executed, changes to [edw].[OneEBS_EBS_0165_Z_READ_BATCHES] might introduce run-time errors in [reporting].[NonApprovedEpayments].
+If this deployment is executed, changes to [edw].[OneEBS_EBS_0900_UNIT_INSTANCES] might introduce run-time errors in [reporting].[QsuCourseContentReport].
+If this deployment is executed, changes to [edw].[OneEBS_EBS_0900_UNIT_INSTANCES] might introduce run-time errors in [reporting].[QsuScopeReport].
+If this deployment is executed, changes to [edw].[OneEBS_EBS_0900_UNIT_INSTANCES] might introduce run-time errors in [reporting].[QsuUnitMatchReport].
+

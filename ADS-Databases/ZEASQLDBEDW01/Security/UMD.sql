@@ -1,0 +1,3 @@
+﻿CREATE SCHEMA [UMD]
+    AUTHORIZATION [dbo];
+

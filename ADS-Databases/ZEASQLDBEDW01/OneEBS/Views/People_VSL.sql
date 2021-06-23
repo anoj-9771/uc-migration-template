@@ -1,0 +1,15 @@
+﻿CREATE VIEW OneEBS.People_VSL
+AS
+SELECT [CREATED_BY]
+      ,[CREATED_DATE]
+      ,[HAS_HS_OR_CERTIV]
+      ,[HAS_HS_OR_CERTIV_BEEN_VERIFIED]
+      ,[HAS_LLN_BEEN_VERIFIED]
+      ,[HS_OR_CERTIV_VERIFIED_DATE]
+      ,[ID]
+      ,[LLN_EXAM_PASSED_DATE]
+      ,[PERSON_CODE]
+      ,[UPDATED_BY]
+      ,[UPDATED_DATE]
+  FROM [edw].[OneEBS_EBS_0165_PEOPLE_VSL]
+  WHERE        (_RecordDeleted = 0) AND (_RecordCurrent = 1)

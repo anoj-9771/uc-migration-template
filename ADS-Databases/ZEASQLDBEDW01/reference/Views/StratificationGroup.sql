@@ -1,0 +1,1 @@
+﻿CREATE   VIEW  reference.StratificationGroup AS SELECT *, _DLTrustedZoneTimeStamp _DLCuratedZoneTimeStamp  FROM edw.reference_stratification_group

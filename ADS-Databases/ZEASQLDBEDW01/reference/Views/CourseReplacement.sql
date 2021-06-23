@@ -1,0 +1,1 @@
+﻿CREATE   VIEW  reference.CourseReplacement AS SELECT *, _DLTrustedZoneTimeStamp _DLCuratedZoneTimeStamp  FROM edw.reference_course_replacement

@@ -1,0 +1,1 @@
+﻿CREATE   VIEW  reference.MasterReferenceData AS SELECT *, _DLTrustedZoneTimeStamp _DLCuratedZoneTimeStamp  FROM edw.reference_master_reference_data

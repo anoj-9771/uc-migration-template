@@ -1,0 +1,25 @@
+﻿
+Create   view [OneEBS].[Usages] AS  
+Select [INSTITUTION_CONTEXT_ID]
+      ,[IS_NOT_AVAILABLE_IN_AGENT]
+      ,[IS_NOT_OVERWRITABLE_IN_AGENT]
+      ,[ID]
+      ,[USAGE_CODE]
+      ,[OBJECT_TYPE]
+      ,[DESCRIPTION]
+      ,[IS_POSITIVE]
+      ,[IS_DEFAULT_USAGE]
+      ,[ALTERNATE_KEY]
+      ,[POSITIVE_FOR_EMA]
+      ,[FES_ACTIVE]
+      ,[CREATED_BY]
+      ,[CREATED_DATE]
+      ,[UPDATED_BY]
+      ,[UPDATED_DATE]
+      ,[IS_LATE]
+      ,[IS_NOT_IN_CLASS]
+      ,[BG_COLOUR]
+      ,[SELECTION_ORDER]
+      ,[IS_PARTIAL] 
+from edw.OneEBS_EBS_0165_USAGES 
+WHERE        (_RecordDeleted = 0) AND (_RecordCurrent = 1)
