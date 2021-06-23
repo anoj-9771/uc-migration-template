@@ -7,7 +7,7 @@ variables:
     value: australiaeast
   # environment name used in service naming
   - name: environment
-    value: preprod
+    value: test
   # Resource group name
   - name: resourcegroupname
     value: rg-swcnonprod01-daf-preprod-01
@@ -16,19 +16,19 @@ variables:
     value: sqladmin
   # Name of the service connection in Azure Devops
   - name: azdoresourceconnection
-    value: azure-rg-test-serviceconnection
-  # The service principal object ID (Not App ID)... Use 'az ad sp show --id <<app-id>> --query "objectId" -o tsv'
+    value: azure-rg-preprod-serviceconnection
+  # The service principal object ID (Not App ID)... Use 'az ad sp show --id dbab60f5-44d5-450c-aef1-0b62b0790524 --query "objectId" -o tsv'
   - name: spobjectid
-    value: 71beb4c2-8b21-458b-8a58-eda46894efe8
+    value: 1ce42c3e-88e5-464a-b45e-efb2500856c2
   # Store account type for BLOB Storage e.g. Standard_LRS)
   - name: storageAccountType
     value: Standard_LRS
-  # Tagging
+  # Tagging.
   - name: applytags
     value: false
   - name: tags
     value: CostCenter=DataAndAI \
-          Environment=Production \
+          Environment=NonProduction \
           Owner=jackson.staub@insight.com
   # ------------------------------------------------
   # Service names for environment
@@ -40,7 +40,7 @@ variables:
     value: EDW
   # Name of key vault for this environment.
   - name: azurekeyvaultname
-    value: $(PREFIX)-$(ENVIRONMENT)-AKV1
+    value: $(PREFIX)-$(ENVIRONMENT)-AKV
   # Setup secret rotation interval in days
   - name: secretrotationinterval 
     value: 30
@@ -63,10 +63,10 @@ variables:
   - name: logzonename
     value: databricks
   - name: zonenames
-    value: raw, stage, cleansed, curated, synapsestaging
+    value: raw, stage, trusted, curated, synapsestaging
     # value: raw, stage, sandbox
   # Databricks workspace name for this enironment
-  - name: databricksworkspacename
+  - name: DATABRICKSWORKSPACENAME #databricksworkspacename
     value: $(PREFIX)-$(ENVIRONMENT)-ADBWS
   # Data Factory service name for this environment
   - name: datafactoryname
@@ -74,11 +74,11 @@ variables:
   # Data Factory self hosted integrated runtime name
   - name: datafactoryshirname
     value: $(PREFIX)-SHIR
-  # Flag to specify whether Data Factory requires Git Integration
+  # Flag to specify whether Data Factory requires Git Integration..
   - name: isRepoEnabled
     value: false  
   # ------------------------------------------------
-  # Log Analytics related
+  # Log Analytics related.
   # ------------------------------------------------
   - name: loganalyticssku
     value: PerGB2018
@@ -96,7 +96,7 @@ variables:
   - name: vnetName
     value: vnet-swcnonprod01-ae-01
   - name: vnetid
-    value: /subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-network-01/providers/Microsoft.Network/virtualNetworks/vnet-swcnonprod01-ae-01                               
+    value: /subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-network-01/providers/Microsoft.Network/virtualNetworks/vnet-swcnonprod01-ae-01
   - name: publicsubnetcidr
     value: 10.97.46.192/26
   - name: privatesubnetcidr
@@ -106,7 +106,7 @@ variables:
   - name: customprivatesubnetname
     value: snet-swcnonprod01-ae-daf-preprod-dbwprivate-01
   - name: DATABRICKSWORKSPACENAME #databricksworkspacename
-    value: $(PREFIX)-$(ENVIRONMENT)-ADBWS
+    value: $(PREFIX)-$(ENVIRONMENT)-ADBWS   
   - name: databrickspricingtier
     value: premium
   - name: databricksclustername
