@@ -9,7 +9,7 @@ ADS_KV_ACCOUNT_SCOPE = "ADS"
 
 # COMMAND ----------
 
-ADS_DATABASE_NAME = "<EDW>"
+ADS_DATABASE_NAME = "CntrlDb"
 ADS_DATABASE_USERNAME = "sqladmin"
 ADS_KV_DB_PWD_SECRET_KEY = "AzureSQLServerPw"
 
@@ -21,12 +21,12 @@ ADS_LOAD_SQLDB = True
 # COMMAND ----------
 
 #The resource names are automatically built based on Project Prefix and Environment
-ADS_DATA_LAKE_ACCOUNT = f"{ADS_COMPANY_INITIAL.replace('-', '')}dlsdp{ADS_ENVIRONMENT.lower()}{ADS_SUFFIX.replace('-', '')}"
-ADS_BLOB_STORAGE_ACCOUNT = ADS_COMPANY_INITIAL + "stor" + ADS_BUSINESS_UNIT + ADS_ENVIRONMENT + ".blob.core.windows.net"
+ADS_DATA_LAKE_ACCOUNT = "swcdafdevadls" #f"{ADS_COMPANY_INITIAL.replace('-', '')}dlsdp{ADS_ENVIRONMENT.lower()}{ADS_SUFFIX.replace('-', '')}"
+ADS_BLOB_STORAGE_ACCOUNT = "saswcnonprod01landingdev" #ADS_COMPANY_INITIAL + "stor" + ADS_BUSINESS_UNIT + ADS_ENVIRONMENT + ".blob.core.windows.net"
 
-ADS_DB_SERVER = ADS_COMPANY_INITIAL + "-sql-dp-" + ADS_ENVIRONMENT + "-" + ADS_SUFFIX + ".database.windows.net"
+ADS_DB_SERVER = "swcdaf-dev-asql.database.windows.net" #ADS_COMPANY_INITIAL + "-sql-dp-" + ADS_ENVIRONMENT + "-" + ADS_SUFFIX + ".database.windows.net"
 
-ADS_RESOURCE_GROUP =  f"RG-{ADS_ENVIRONMENT.upper()}-SYD-AMA-PANEL-BI"
+ADS_RESOURCE_GROUP =  "rg-swcnonprod01-daf-dev-01" #f"RG-{ADS_ENVIRONMENT.upper()}-SYD-AMA-PANEL-BI"
 
 # COMMAND ----------
 
