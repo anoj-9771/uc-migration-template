@@ -1,11 +1,11 @@
 # Databricks notebook source
 #Please udpate the environment varibale
 #This is a test line
-ADS_ENVIRONMENT = "<ADS_ENVIRONMENT>"
+ADS_ENVIRONMENT = "dev"
 #Project Prefix
-ADS_COMPANY_INITIAL = "ama-panel"
-ADS_SUFFIX = "as-01"
-ADS_BUSINESS_UNIT = "ops"
+ADS_COMPANY_INITIAL = "swcdaf"
+ADS_SUFFIX = "01"
+ADS_BUSINESS_UNIT = "daf"
 
 # COMMAND ----------
 
