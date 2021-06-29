@@ -1,21 +1,27 @@
 {
 	"name": "LS-AzureDataLake",
 	"properties": {
+		"parameters": {
+			"kvSecret": {
+				"type": "string",
+				"defaultValue": "swcdafdevadls-sastoken"
+			}
+		},
 		"annotations": [],
 		"type": "AzureBlobStorage",
 		"typeProperties": {
-			"sasUri": {
+			"connectionString": {
 				"type": "AzureKeyVaultSecret",
 				"store": {
 					"referenceName": "LS-AzureKeyVault",
 					"type": "LinkedServiceReference"
 				},
-				"secretName": "datalake-SasToken"
+				"secretName": {
+					"value": "swcdafdevadls-sastoken",
+					"type": "Expression"
+				},
+				"secretVersion": "synapseadmin"
 			}
-		},
-		"connectVia": {
-			"referenceName": "ADSINSHIRBI01",
-			"type": "IntegrationRuntimeReference"
 		}
 	},
 	"type": "Microsoft.DataFactory/factories/linkedservices"
