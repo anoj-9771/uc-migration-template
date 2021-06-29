@@ -3,124 +3,40 @@
     "contentVersion": "1.0.0.0",
     "parameters": {
         "factoryName": {
-            "value": "ama-panel-adf-dp-dev-as-01"
+            "value": "cbhazr-inf-datafactory-sand"
         },
-        "LS-AzureDataLake_connectionString": {
+        "AzureSqlDatabase_Ctrldb_connectionString": {
             "value": ""
         },
-        "LS_LocalSQL_EDW_Temp_connectionString": {
+        "IBIS_DEV_credential": {
             "value": ""
         },
-        "DAILY-5AM-QLD_properties_01-Main_parameters_TriggerName": {
-            "value": "DLY1300"
+        "AzureBlobStorage_Raw_properties_typeProperties_sasUri_secretName": {
+            "value": "cbhazrinfraw-raw-rwdl-SasToken"
         },
-        "LS_AzureLandingBlob_properties_typeProperties_serviceEndpoint": {
-            "value": "https://saswcnonprod01landingdev.blob.core.windows.net"
+        "AzureBlobStorage_Stage_properties_typeProperties_sasUri_secretName": {
+            "value": "cbhazrinfstage-stage-rwdl-SasToken"
         },
-        "LS-AzureKeyVault_properties_typeProperties_baseUrl": {
-            "value": "https://ama-panel-kv-dp-dev-as01.vault.azure.net/"
-        },
-        "LS_ODataSource_AADSP_properties_typeProperties_url": {
-            "value": "@{linkedService().BaseUrl}"
-        },
-        "LS_ODataSource_AADSP_properties_typeProperties_tenant": {
-            "value": {
-                "type": "AzureKeyVaultSecret",
-                "store": {
-                    "referenceName": "LS-AzureKeyVault",
-                    "type": "LinkedServiceReference"
-                },
-                "secretName": "directoryid"
-            }
-        },
-        "LS_ODataSource_AADSP_properties_typeProperties_aadResourceId": {
-            "value": "https://graph.microsoft.com"
-        },
-        "LS_ODataSource_AADSP_properties_typeProperties_servicePrincipalId": {
-            "value": {
-                "type": "AzureKeyVaultSecret",
-                "store": {
-                    "referenceName": "LS-AzureKeyVault",
-                    "type": "LinkedServiceReference"
-                },
-                "secretName": "@{linkedService().AppID}"
-            }
-        },
-        "LS-AzureSqlDatabase_SQLDB_properties_typeProperties_connectionString_secretName": {
+        "AzureSQLDatabase_properties_typeProperties_connectionString_secretName": {
             "value": "@linkedService().kvSecret"
         },
-        "LS_DataLake_properties_typeProperties_url": {
-            "value": "https://amapaneldlsdpdevas01.dfs.core.windows.net"
+        "AzureSqlDatabase_SQLDB_properties_typeProperties_connectionString_secretName": {
+            "value": "ADF-LS-AzureSqlDatabase-SQLDB"
         },
-        "LS-AzureSqlDatabase_Ctrldb_properties_typeProperties_connectionString_secretName": {
+        "IBIS_DEV_properties_typeProperties_connectionString_secretName": {
+            "value": "ADF-LS-IBIS-DEV"
+        },
+        "Oracle_properties_typeProperties_connectionString_secretName": {
             "value": "@linkedService().kvSecret"
         },
-        "LS_MySQL_properties_typeProperties_connectionString_secretName": {
-            "value": "@linkedService().kvSecret"
+        "Oracle_EKAUAT2_properties_typeProperties_connectionString_secretName": {
+            "value": "ADF-LS-Oracle-EKAUAT2"
         },
-        "LS_FileServer_properties_typeProperties_host": {
-            "value": {
-                "type": "AzureKeyVaultSecret",
-                "store": {
-                    "referenceName": "LS-AzureKeyVault",
-                    "type": "LinkedServiceReference"
-                },
-                "secretName": "@{linkedService().URL}"
-            }
+        "cbhazr_inf_keyvault_sand_properties_typeProperties_baseUrl": {
+            "value": "https://cbhazr-inf-keyvault-sand.vault.azure.net/"
         },
-        "LS_FileServer_properties_typeProperties_userId": {
-            "value": "@{linkedService().UserID}"
-        },
-        "LS_SharePointOnlineList_properties_typeProperties_servicePrincipalId": {
-            "value": {
-                "type": "AzureKeyVaultSecret",
-                "store": {
-                    "referenceName": "LS-AzureKeyVault",
-                    "type": "LinkedServiceReference"
-                },
-                "secretName": "@{linkedService().AppID}"
-            }
-        },
-        "LS_Oracle_properties_typeProperties_connectionString_secretName": {
-            "value": "@linkedService().kvSecret"
-        },
-        "LS_ODataSource_Basic_properties_typeProperties_url": {
-            "value": "@{linkedService().BaseUrl}"
-        },
-        "LS_ODataSource_Basic_properties_typeProperties_userName": {
-            "value": {
-                "type": "AzureKeyVaultSecret",
-                "store": {
-                    "referenceName": "LS-AzureKeyVault",
-                    "type": "LinkedServiceReference"
-                },
-                "secretName": "@{linkedService().Username}"
-            }
-        },
-        "LS_REST_IRTAFE_Basic_properties_typeProperties_url": {
-            "value": "@{linkedService().BaseUrl}"
-        },
-        "LS_REST_IRTAFE_Basic_properties_typeProperties_userName": {
-            "value": {
-                "type": "AzureKeyVaultSecret",
-                "store": {
-                    "referenceName": "LS-AzureKeyVault",
-                    "type": "LinkedServiceReference"
-                },
-                "secretName": {
-                    "value": "@linkedService().UserName",
-                    "type": "Expression"
-                }
-            }
-        },
-        "LS-SQLServer_properties_typeProperties_connectionString_secretName": {
-            "value": "CS-ReportingData-VM-10001-81"
-        },
-        "LS-SQLServer_properties_typeProperties_userName": {
-            "value": "geminiarc\\SVC-ADF-DP-DEV-AS"
-        },
-        "LS_SQLAzure_properties_typeProperties_connectionString_secretName": {
-            "value": "@linkedService().kvSecret"
+        "NDCTSTIR01_properties_typeProperties_linkedInfo_resourceId": {
+            "value": "/subscriptions/f737934d-52a3-445b-9ef8-1ce8e58b024d/resourcegroups/cbhazr-info-backbone-rg-test/providers/Microsoft.DataFactory/factories/cbhazr-datafactory-tps-test/integrationruntimes/NDCTSTIR01"
         }
     }
 }

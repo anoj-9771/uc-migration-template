@@ -4,149 +4,52 @@
     "parameters": {
         "factoryName": {
             "type": "string",
-            "metadata": "Data Factory name",
-            "defaultValue": "ama-panel-adf-dp-dev-as-01"
+            "metadata": "Data Factory Name",
+            "defaultValue": "cbhazr-inf-datafactory-sand"
         },
-        "LS-AzureDataLake_connectionString": {
+        "AzureSqlDatabase_Ctrldb_connectionString": {
             "type": "secureString",
-            "metadata": "Secure string for 'connectionString' of 'LS-AzureDataLake'"
+            "metadata": "Secure string for 'connectionString' of 'AzureSqlDatabase_Ctrldb'"
         },
-        "LS_LocalSQL_EDW_Temp_connectionString": {
+        "IBIS_DEV_credential": {
             "type": "secureString",
-            "metadata": "Secure string for 'connectionString' of 'LS_LocalSQL_EDW_Temp'"
+            "metadata": "Secure string for 'credential' of 'IBIS_DEV'"
         },
-        "DAILY-5AM-QLD_properties_01-Main_parameters_TriggerName": {
+        "AzureBlobStorage_Raw_properties_typeProperties_sasUri_secretName": {
             "type": "string",
-            "defaultValue": "DLY1300"
+            "defaultValue": "cbhazrinfraw-raw-rwdl-SasToken"
         },
-        "LS_AzureLandingBlob_properties_typeProperties_serviceEndpoint": {
+        "AzureBlobStorage_Stage_properties_typeProperties_sasUri_secretName": {
             "type": "string",
-            "defaultValue": "https://saswcnonprod01landingdev.blob.core.windows.net"
+            "defaultValue": "cbhazrinfstage-stage-rwdl-SasToken"
         },
-        "LS-AzureKeyVault_properties_typeProperties_baseUrl": {
-            "type": "string",
-            "defaultValue": "https://ama-panel-kv-dp-dev-as01.vault.azure.net/"
-        },
-        "LS_ODataSource_AADSP_properties_typeProperties_url": {
-            "type": "string",
-            "defaultValue": "@{linkedService().BaseUrl}"
-        },
-        "LS_ODataSource_AADSP_properties_typeProperties_tenant": {
-            "type": "object",
-            "defaultValue": {
-                "type": "AzureKeyVaultSecret",
-                "store": {
-                    "referenceName": "LS-AzureKeyVault",
-                    "type": "LinkedServiceReference"
-                },
-                "secretName": "directoryid"
-            }
-        },
-        "LS_ODataSource_AADSP_properties_typeProperties_aadResourceId": {
-            "type": "string",
-            "defaultValue": "https://graph.microsoft.com"
-        },
-        "LS_ODataSource_AADSP_properties_typeProperties_servicePrincipalId": {
-            "type": "object",
-            "defaultValue": {
-                "type": "AzureKeyVaultSecret",
-                "store": {
-                    "referenceName": "LS-AzureKeyVault",
-                    "type": "LinkedServiceReference"
-                },
-                "secretName": "@{linkedService().AppID}"
-            }
-        },
-        "LS-AzureSqlDatabase_SQLDB_properties_typeProperties_connectionString_secretName": {
+        "AzureSQLDatabase_properties_typeProperties_connectionString_secretName": {
             "type": "string",
             "defaultValue": "@linkedService().kvSecret"
         },
-        "LS_DataLake_properties_typeProperties_url": {
+        "AzureSqlDatabase_SQLDB_properties_typeProperties_connectionString_secretName": {
             "type": "string",
-            "defaultValue": "https://amapaneldlsdpdevas01.dfs.core.windows.net"
+            "defaultValue": "ADF-LS-AzureSqlDatabase-SQLDB"
         },
-        "LS-AzureSqlDatabase_Ctrldb_properties_typeProperties_connectionString_secretName": {
+        "IBIS_DEV_properties_typeProperties_connectionString_secretName": {
             "type": "string",
-            "defaultValue": "@linkedService().kvSecret"
+            "defaultValue": "ADF-LS-IBIS-DEV"
         },
-        "LS_MySQL_properties_typeProperties_connectionString_secretName": {
-            "type": "string",
-            "defaultValue": "@linkedService().kvSecret"
-        },
-        "LS_FileServer_properties_typeProperties_host": {
-            "type": "object",
-            "defaultValue": {
-                "type": "AzureKeyVaultSecret",
-                "store": {
-                    "referenceName": "LS-AzureKeyVault",
-                    "type": "LinkedServiceReference"
-                },
-                "secretName": "@{linkedService().URL}"
-            }
-        },
-        "LS_FileServer_properties_typeProperties_userId": {
-            "type": "string",
-            "defaultValue": "@{linkedService().UserID}"
-        },
-        "LS_SharePointOnlineList_properties_typeProperties_servicePrincipalId": {
-            "type": "object",
-            "defaultValue": {
-                "type": "AzureKeyVaultSecret",
-                "store": {
-                    "referenceName": "LS-AzureKeyVault",
-                    "type": "LinkedServiceReference"
-                },
-                "secretName": "@{linkedService().AppID}"
-            }
-        },
-        "LS_Oracle_properties_typeProperties_connectionString_secretName": {
+        "Oracle_properties_typeProperties_connectionString_secretName": {
             "type": "string",
             "defaultValue": "@linkedService().kvSecret"
         },
-        "LS_ODataSource_Basic_properties_typeProperties_url": {
+        "Oracle_EKAUAT2_properties_typeProperties_connectionString_secretName": {
             "type": "string",
-            "defaultValue": "@{linkedService().BaseUrl}"
+            "defaultValue": "ADF-LS-Oracle-EKAUAT2"
         },
-        "LS_ODataSource_Basic_properties_typeProperties_userName": {
-            "type": "object",
-            "defaultValue": {
-                "type": "AzureKeyVaultSecret",
-                "store": {
-                    "referenceName": "LS-AzureKeyVault",
-                    "type": "LinkedServiceReference"
-                },
-                "secretName": "@{linkedService().Username}"
-            }
-        },
-        "LS_REST_IRTAFE_Basic_properties_typeProperties_url": {
+        "cbhazr_inf_keyvault_sand_properties_typeProperties_baseUrl": {
             "type": "string",
-            "defaultValue": "@{linkedService().BaseUrl}"
+            "defaultValue": "https://cbhazr-inf-keyvault-sand.vault.azure.net/"
         },
-        "LS_REST_IRTAFE_Basic_properties_typeProperties_userName": {
-            "type": "object",
-            "defaultValue": {
-                "type": "AzureKeyVaultSecret",
-                "store": {
-                    "referenceName": "LS-AzureKeyVault",
-                    "type": "LinkedServiceReference"
-                },
-                "secretName": {
-                    "value": "@linkedService().UserName",
-                    "type": "Expression"
-                }
-            }
-        },
-        "LS-SQLServer_properties_typeProperties_connectionString_secretName": {
+        "NDCTSTIR01_properties_typeProperties_linkedInfo_resourceId": {
             "type": "string",
-            "defaultValue": "CS-ReportingData-VM-10001-81"
-        },
-        "LS-SQLServer_properties_typeProperties_userName": {
-            "type": "string",
-            "defaultValue": "geminiarc\\SVC-ADF-DP-DEV-AS"
-        },
-        "LS_SQLAzure_properties_typeProperties_connectionString_secretName": {
-            "type": "string",
-            "defaultValue": "@linkedService().kvSecret"
+            "defaultValue": "/subscriptions/f737934d-52a3-445b-9ef8-1ce8e58b024d/resourcegroups/cbhazr-info-backbone-rg-test/providers/Microsoft.DataFactory/factories/cbhazr-datafactory-tps-test/integrationruntimes/NDCTSTIR01"
         },
         "containerUri": {
             "type": "string",
@@ -154,7 +57,7 @@
         },
         "containerSasToken": {
             "type": "string",
-            "metadata": "Sas token to storage account containing linked ARM templates"
+            "metadata": "Sas Token to storage account containing linked ARM templates"
         }
     },
     "variables": {
@@ -162,7 +65,7 @@
     },
     "resources": [
         {
-            "name": "ama-panel-adf-dp-dev-as-01_ArmTemplate_0",
+            "name": "ArmTemplate_0",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2018-02-01",
             "properties": {
@@ -175,78 +78,45 @@
                     "factoryName": {
                         "value": "[parameters('factoryName')]"
                     },
-                    "LS-AzureDataLake_connectionString": {
-                        "value": "[parameters('LS-AzureDataLake_connectionString')]"
+                    "AzureSqlDatabase_Ctrldb_connectionString": {
+                        "value": "[parameters('AzureSqlDatabase_Ctrldb_connectionString')]"
                     },
-                    "LS_LocalSQL_EDW_Temp_connectionString": {
-                        "value": "[parameters('LS_LocalSQL_EDW_Temp_connectionString')]"
+                    "IBIS_DEV_credential": {
+                        "value": "[parameters('IBIS_DEV_credential')]"
                     },
-                    "LS_AzureLandingBlob_properties_typeProperties_serviceEndpoint": {
-                        "value": "[parameters('LS_AzureLandingBlob_properties_typeProperties_serviceEndpoint')]"
+                    "cbhazr_inf_keyvault_sand_properties_typeProperties_baseUrl": {
+                        "value": "[parameters('cbhazr_inf_keyvault_sand_properties_typeProperties_baseUrl')]"
                     },
-                    "LS-AzureKeyVault_properties_typeProperties_baseUrl": {
-                        "value": "[parameters('LS-AzureKeyVault_properties_typeProperties_baseUrl')]"
+                    "NDCTSTIR01_properties_typeProperties_linkedInfo_resourceId": {
+                        "value": "[parameters('NDCTSTIR01_properties_typeProperties_linkedInfo_resourceId')]"
                     },
-                    "LS_ODataSource_AADSP_properties_typeProperties_url": {
-                        "value": "[parameters('LS_ODataSource_AADSP_properties_typeProperties_url')]"
+                    "AzureBlobStorage_Raw_properties_typeProperties_sasUri_secretName": {
+                        "value": "[parameters('AzureBlobStorage_Raw_properties_typeProperties_sasUri_secretName')]"
                     },
-                    "LS_ODataSource_AADSP_properties_typeProperties_tenant": {
-                        "value": "[parameters('LS_ODataSource_AADSP_properties_typeProperties_tenant')]"
+                    "AzureBlobStorage_Stage_properties_typeProperties_sasUri_secretName": {
+                        "value": "[parameters('AzureBlobStorage_Stage_properties_typeProperties_sasUri_secretName')]"
                     },
-                    "LS_ODataSource_AADSP_properties_typeProperties_aadResourceId": {
-                        "value": "[parameters('LS_ODataSource_AADSP_properties_typeProperties_aadResourceId')]"
+                    "AzureSQLDatabase_properties_typeProperties_connectionString_secretName": {
+                        "value": "[parameters('AzureSQLDatabase_properties_typeProperties_connectionString_secretName')]"
                     },
-                    "LS_ODataSource_AADSP_properties_typeProperties_servicePrincipalId": {
-                        "value": "[parameters('LS_ODataSource_AADSP_properties_typeProperties_servicePrincipalId')]"
+                    "AzureSqlDatabase_SQLDB_properties_typeProperties_connectionString_secretName": {
+                        "value": "[parameters('AzureSqlDatabase_SQLDB_properties_typeProperties_connectionString_secretName')]"
                     },
-                    "LS-AzureSqlDatabase_SQLDB_properties_typeProperties_connectionString_secretName": {
-                        "value": "[parameters('LS-AzureSqlDatabase_SQLDB_properties_typeProperties_connectionString_secretName')]"
+                    "IBIS_DEV_properties_typeProperties_connectionString_secretName": {
+                        "value": "[parameters('IBIS_DEV_properties_typeProperties_connectionString_secretName')]"
                     },
-                    "LS_DataLake_properties_typeProperties_url": {
-                        "value": "[parameters('LS_DataLake_properties_typeProperties_url')]"
+                    "Oracle_properties_typeProperties_connectionString_secretName": {
+                        "value": "[parameters('Oracle_properties_typeProperties_connectionString_secretName')]"
                     },
-                    "LS-AzureSqlDatabase_Ctrldb_properties_typeProperties_connectionString_secretName": {
-                        "value": "[parameters('LS-AzureSqlDatabase_Ctrldb_properties_typeProperties_connectionString_secretName')]"
-                    },
-                    "LS_MySQL_properties_typeProperties_connectionString_secretName": {
-                        "value": "[parameters('LS_MySQL_properties_typeProperties_connectionString_secretName')]"
-                    },
-                    "LS_FileServer_properties_typeProperties_host": {
-                        "value": "[parameters('LS_FileServer_properties_typeProperties_host')]"
-                    },
-                    "LS_FileServer_properties_typeProperties_userId": {
-                        "value": "[parameters('LS_FileServer_properties_typeProperties_userId')]"
-                    },
-                    "LS_SharePointOnlineList_properties_typeProperties_servicePrincipalId": {
-                        "value": "[parameters('LS_SharePointOnlineList_properties_typeProperties_servicePrincipalId')]"
-                    },
-                    "LS_Oracle_properties_typeProperties_connectionString_secretName": {
-                        "value": "[parameters('LS_Oracle_properties_typeProperties_connectionString_secretName')]"
-                    },
-                    "LS_ODataSource_Basic_properties_typeProperties_url": {
-                        "value": "[parameters('LS_ODataSource_Basic_properties_typeProperties_url')]"
-                    },
-                    "LS_ODataSource_Basic_properties_typeProperties_userName": {
-                        "value": "[parameters('LS_ODataSource_Basic_properties_typeProperties_userName')]"
-                    },
-                    "LS_REST_IRTAFE_Basic_properties_typeProperties_url": {
-                        "value": "[parameters('LS_REST_IRTAFE_Basic_properties_typeProperties_url')]"
-                    },
-                    "LS_REST_IRTAFE_Basic_properties_typeProperties_userName": {
-                        "value": "[parameters('LS_REST_IRTAFE_Basic_properties_typeProperties_userName')]"
-                    },
-                    "LS-SQLServer_properties_typeProperties_connectionString_secretName": {
-                        "value": "[parameters('LS-SQLServer_properties_typeProperties_connectionString_secretName')]"
-                    },
-                    "LS-SQLServer_properties_typeProperties_userName": {
-                        "value": "[parameters('LS-SQLServer_properties_typeProperties_userName')]"
+                    "Oracle_EKAUAT2_properties_typeProperties_connectionString_secretName": {
+                        "value": "[parameters('Oracle_EKAUAT2_properties_typeProperties_connectionString_secretName')]"
                     }
                 }
             },
             "dependsOn": []
         },
         {
-            "name": "ama-panel-adf-dp-dev-as-01_ArmTemplate_1",
+            "name": "ArmTemplate_1",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2018-02-01",
             "properties": {
@@ -258,77 +128,11 @@
                 "parameters": {
                     "factoryName": {
                         "value": "[parameters('factoryName')]"
-                    },
-                    "LS_SQLAzure_properties_typeProperties_connectionString_secretName": {
-                        "value": "[parameters('LS_SQLAzure_properties_typeProperties_connectionString_secretName')]"
                     }
                 }
             },
             "dependsOn": [
-                "[resourceId('Microsoft.Resources/deployments', 'ama-panel-adf-dp-dev-as-01_ArmTemplate_0')]"
-            ]
-        },
-        {
-            "name": "ama-panel-adf-dp-dev-as-01_ArmTemplate_2",
-            "type": "Microsoft.Resources/deployments",
-            "apiVersion": "2018-02-01",
-            "properties": {
-                "mode": "incremental",
-                "templateLink": {
-                    "uri": "[concat(parameters('containerUri'), '/ArmTemplate_2.json', parameters('containerSasToken'))]",
-                    "contentVersion": "1.0.0.0"
-                },
-                "parameters": {
-                    "factoryName": {
-                        "value": "[parameters('factoryName')]"
-                    }
-                }
-            },
-            "dependsOn": [
-                "[resourceId('Microsoft.Resources/deployments', 'ama-panel-adf-dp-dev-as-01_ArmTemplate_1')]"
-            ]
-        },
-        {
-            "name": "ama-panel-adf-dp-dev-as-01_ArmTemplate_3",
-            "type": "Microsoft.Resources/deployments",
-            "apiVersion": "2018-02-01",
-            "properties": {
-                "mode": "incremental",
-                "templateLink": {
-                    "uri": "[concat(parameters('containerUri'), '/ArmTemplate_3.json', parameters('containerSasToken'))]",
-                    "contentVersion": "1.0.0.0"
-                },
-                "parameters": {
-                    "factoryName": {
-                        "value": "[parameters('factoryName')]"
-                    }
-                }
-            },
-            "dependsOn": [
-                "[resourceId('Microsoft.Resources/deployments', 'ama-panel-adf-dp-dev-as-01_ArmTemplate_2')]"
-            ]
-        },
-        {
-            "name": "ama-panel-adf-dp-dev-as-01_ArmTemplate_4",
-            "type": "Microsoft.Resources/deployments",
-            "apiVersion": "2018-02-01",
-            "properties": {
-                "mode": "incremental",
-                "templateLink": {
-                    "uri": "[concat(parameters('containerUri'), '/ArmTemplate_4.json', parameters('containerSasToken'))]",
-                    "contentVersion": "1.0.0.0"
-                },
-                "parameters": {
-                    "factoryName": {
-                        "value": "[parameters('factoryName')]"
-                    },
-                    "DAILY-5AM-QLD_properties_01-Main_parameters_TriggerName": {
-                        "value": "[parameters('DAILY-5AM-QLD_properties_01-Main_parameters_TriggerName')]"
-                    }
-                }
-            },
-            "dependsOn": [
-                "[resourceId('Microsoft.Resources/deployments', 'ama-panel-adf-dp-dev-as-01_ArmTemplate_3')]"
+                "[resourceId('Microsoft.Resources/deployments', 'ArmTemplate_0')]"
             ]
         }
     ]

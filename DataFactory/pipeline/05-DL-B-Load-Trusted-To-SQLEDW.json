@@ -1,0 +1,399 @@
+{
+	"name": "05-DL-B-Load-Trusted-To-SQLEDW",
+	"properties": {
+		"activities": [
+			{
+				"name": "LU-Manifest",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderStoredProcedureName": "[CTL].[GetManifestSQLEDW]",
+						"storedProcedureParameters": {
+							"SourceObject": {
+								"type": "String",
+								"value": {
+									"value": "@pipeline().parameters.TaskDetails.SourceName",
+									"type": "Expression"
+								}
+							}
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "AzureSqlDatabase_Ctrldb",
+						"type": "DatasetReference"
+					}
+				}
+			},
+			{
+				"name": "If-Check-Interactive",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "LU-Manifest",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "Set-ClusterType",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@and(\n  not(equals(activity('LU-Manifest').output.firstRow.Batches, 0)), \n  equals(variables('ClusterType'), 'interactive')\n)",
+						"type": "Expression"
+					},
+					"ifTrueActivities": [
+						{
+							"name": "Load-To-SQL-EDW-Interactive",
+							"type": "DatabricksNotebook",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"notebookPath": {
+									"value": "@variables('NotebookURL')",
+									"type": "Expression"
+								},
+								"baseParameters": {
+									"source_object": {
+										"value": "@pipeline().parameters.TaskDetails.SourceName",
+										"type": "Expression"
+									},
+									"start_counter": {
+										"value": "@activity('LU-Manifest').output.firstRow.StartCounter",
+										"type": "Expression"
+									},
+									"end_counter": {
+										"value": "@activity('LU-Manifest').output.firstRow.EndCounter",
+										"type": "Expression"
+									},
+									"delta_column": {
+										"value": "@activity('LU-Manifest').output.firstRow.DeltaColumn",
+										"type": "Expression"
+									},
+									"source_param": {
+										"value": "@string(pipeline().parameters.TaskDetails)",
+										"type": "Expression"
+									}
+								},
+								"libraries": [
+									{
+										"maven": {
+											"coordinates": "com.microsoft.azure:azure-sqldb-spark:1.0.2"
+										}
+									}
+								]
+							},
+							"linkedServiceName": {
+								"referenceName": "LS-AzureDatabricks_DefinedCluster",
+								"type": "LinkedServiceReference",
+								"parameters": {
+									"kvSecret": {
+										"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[0]",
+										"type": "Expression"
+									},
+									"clusterId": {
+										"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[1]",
+										"type": "Expression"
+									}
+								}
+							}
+						},
+						{
+							"name": "Set-DB-Output-Interactive",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "Load-To-SQL-EDW-Interactive",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "ReturnValue",
+								"value": {
+									"value": "@string(activity('Load-To-SQL-EDW-Interactive').output.runOutput)",
+									"type": "Expression"
+								}
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "Set-ClusterType",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "ClusterType",
+					"value": {
+						"value": "@toLower(last(split(pipeline().parameters.TaskDetails.Processor,'|')))",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "SP-UpdateManifest",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "If-Check-Job",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[CTL].[UpdateManifestSQLEDW]",
+					"storedProcedureParameters": {
+						"BatchExecutionLogID": {
+							"value": {
+								"value": "@pipeline().parameters.BatchLogId",
+								"type": "Expression"
+							},
+							"type": "Int64"
+						},
+						"SourceObject": {
+							"value": {
+								"value": "@pipeline().parameters.TaskDetails.SourceName",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"ProcessedToSQLEDW": {
+							"value": {
+								"value": "@variables('ReturnValue')",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"PipelineRunID": {
+							"value": {
+								"value": "@pipeline().RunId",
+								"type": "Expression"
+							},
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "LS-AzureSqlDatabase_Ctrldb",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"kvSecret": "AzureSqlDatabase-ControlDB"
+					}
+				}
+			},
+			{
+				"name": "If-Check-Job",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "If-Check-Interactive",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@and(\n  not(equals(activity('LU-Manifest').output.firstRow.Batches, 0)), \n  not(equals(variables('ClusterType'), 'interactive'))\n)",
+						"type": "Expression"
+					},
+					"ifTrueActivities": [
+						{
+							"name": "Load-To-SQL-EDW-Job",
+							"type": "DatabricksNotebook",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"notebookPath": {
+									"value": "@variables('NotebookURL')",
+									"type": "Expression"
+								},
+								"baseParameters": {
+									"source_object": {
+										"value": "@pipeline().parameters.TaskDetails.SourceName",
+										"type": "Expression"
+									},
+									"start_counter": {
+										"value": "@activity('LU-Manifest').output.firstRow.StartCounter",
+										"type": "Expression"
+									},
+									"end_counter": {
+										"value": "@activity('LU-Manifest').output.firstRow.EndCounter",
+										"type": "Expression"
+									},
+									"delta_column": {
+										"value": "@activity('LU-Manifest').output.firstRow.DeltaColumn",
+										"type": "Expression"
+									},
+									"source_param": {
+										"value": "@string(pipeline().parameters.TaskDetails)",
+										"type": "Expression"
+									}
+								},
+								"libraries": [
+									{
+										"maven": {
+											"coordinates": "com.microsoft.azure:azure-sqldb-spark:1.0.2"
+										}
+									}
+								]
+							},
+							"linkedServiceName": {
+								"referenceName": "LS-AzureDatabricks_JobCluster",
+								"type": "LinkedServiceReference",
+								"parameters": {
+									"kvSecret": {
+										"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[0]",
+										"type": "Expression"
+									},
+									"DataBricksClusterType": {
+										"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[2]",
+										"type": "Expression"
+									},
+									"DataBricksClusterVersion": {
+										"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[3]",
+										"type": "Expression"
+									},
+									"DataBricksWorkerNodes": {
+										"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[4]",
+										"type": "Expression"
+									}
+								}
+							}
+						},
+						{
+							"name": "Set-DB-Output-Job",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "Load-To-SQL-EDW-Job",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "ReturnValue",
+								"value": {
+									"value": "@string(activity('Load-To-SQL-EDW-Job').output.runOutput)",
+									"type": "Expression"
+								}
+							}
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"TaskDetails": {
+				"type": "object",
+				"defaultValue": {
+					"SourceType": "BLOB Storage (json)",
+					"SourceServer": "datalake-SasToken",
+					"SourceName": "OneEBS_EBS_0165_USERS",
+					"SourceLocation": "OneEBS/EBS_0165_USERS",
+					"Processor": "databricks-token|0708-233111-note225",
+					"ProjectName": "OneEBS",
+					"TargetType": "BLOB Storage (csv)",
+					"TargetName": "OneEBS_EBS_0165_USERS",
+					"TargetLocation": "OneEBS/EBS_0165_USERS",
+					"TargetServer": "datalake-SasToken",
+					"DataLoadMode": "FULL-EXTRACT",
+					"DeltaExtract": false,
+					"CDCSource": false,
+					"TruncateTarget": false,
+					"UpsertTarget": true,
+					"TrackChanges": true,
+					"TaskName": "Copy OneEBS_EBS_0165_USERS",
+					"ControlStageId": 2,
+					"TaskId": 38,
+					"StageSequence": 200,
+					"StageName": "Raw to Trusted",
+					"SourceId": 38,
+					"TargetId": 38,
+					"ObjectGrain": "Day",
+					"CommandTypeId": 8,
+					"Watermarks": null,
+					"WatermarkColumn": "",
+					"BusinessKeyColumn": "ID",
+					"Command": "/build/load-trusted-zone",
+					"LastLoadedFile": "EBS_0165.USERS_2020-05-14_090517_167.json.gz"
+				}
+			},
+			"BatchLogId": {
+				"type": "int",
+				"defaultValue": 118
+			},
+			"TaskExecutionLogId": {
+				"type": "int",
+				"defaultValue": 870
+			},
+			"ProjectRunID": {
+				"type": "string"
+			}
+		},
+		"variables": {
+			"ReturnValue": {
+				"type": "String"
+			},
+			"ClusterType": {
+				"type": "String"
+			},
+			"NotebookURL": {
+				"type": "String",
+				"defaultValue": "/build/trusted/function/load-trusted-sqledw-v2"
+			}
+		},
+		"folder": {
+			"name": "Data Lake"
+		},
+		"annotations": []
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

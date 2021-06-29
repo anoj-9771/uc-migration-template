@@ -1,0 +1,44 @@
+{
+	"name": "LS_FileServer",
+	"properties": {
+		"type": "FileServer",
+		"annotations": [],
+		"parameters": {
+			"UserID": {
+				"type": "String"
+			},
+			"URL": {
+				"type": "String",
+				"defaultValue": "FileServer-URL"
+			},
+			"Password": {
+				"type": "String",
+				"defaultValue": "FileServer-ServiceAccount-Password"
+			}
+		},
+		"typeProperties": {
+			"host": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "LS-AzureKeyVault",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "@{linkedService().URL}"
+			},
+			"userId": "@{linkedService().UserID}",
+			"password": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "LS-AzureKeyVault",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "@{linkedService().Password}"
+			}
+		},
+		"connectVia": {
+			"referenceName": "ADSINSHIRBI01",
+			"type": "IntegrationRuntimeReference"
+		},
+		"description": "File Share"
+	}
+}

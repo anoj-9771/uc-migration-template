@@ -1,0 +1,1073 @@
+{
+	"name": "04-MySQL-A-Source Load",
+	"properties": {
+		"activities": [
+			{
+				"name": "Check Delta Load",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "Get-Table-Values",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "Get Full File Name",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "Execute-Generate-Schema",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@equals(pipeline().parameters.TaskDetails.DeltaExtract,true)",
+						"type": "Expression"
+					},
+					"ifFalseActivities": [
+						{
+							"name": "Log Success",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "EP-SQL-Copy-Full",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[CTL].[UpdateTaskLog]",
+								"storedProcedureParameters": {
+									"BatchLogId": {
+										"value": {
+											"value": "@pipeline().parameters.BatchLogId",
+											"type": "Expression"
+										},
+										"type": "Int64"
+									},
+									"ErrorMessage": {
+										"value": "",
+										"type": "String"
+									},
+									"ExecutionLogId": {
+										"value": {
+											"value": "@pipeline().parameters.TaskExecutionLogId",
+											"type": "Expression"
+										},
+										"type": "Int64"
+									},
+									"Status": {
+										"value": "Success",
+										"type": "String"
+									},
+									"TaskId": {
+										"value": {
+											"value": "@pipeline().parameters.TaskDetails.TaskId",
+											"type": "Expression"
+										},
+										"type": "Int64"
+									},
+									"Output": {
+										"value": {
+											"value": "@activity('Get Full File Name').output.firstrow.StorageFile",
+											"type": "Expression"
+										},
+										"type": "String"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "LS-AzureSqlDatabase_Ctrldb",
+								"type": "LinkedServiceReference",
+								"parameters": {
+									"kvSecret": "AzureSqlDatabase-ControlDB"
+								}
+							}
+						},
+						{
+							"name": "Log Failure",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "EP-SQL-Copy-Full",
+									"dependencyConditions": [
+										"Failed"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[CTL].[UpdateTaskLog]",
+								"storedProcedureParameters": {
+									"BatchLogId": {
+										"value": {
+											"value": "@pipeline().parameters.BatchLogId",
+											"type": "Expression"
+										},
+										"type": "Int64"
+									},
+									"ErrorMessage": {
+										"value": "Some error occured",
+										"type": "String"
+									},
+									"ExecutionLogId": {
+										"value": {
+											"value": "@pipeline().parameters.TaskExecutionLogId",
+											"type": "Expression"
+										},
+										"type": "Int64"
+									},
+									"Status": {
+										"value": "Failure",
+										"type": "String"
+									},
+									"TaskId": {
+										"value": {
+											"value": "@pipeline().parameters.TaskDetails.TaskId",
+											"type": "Expression"
+										},
+										"type": "Int64"
+									},
+									"Output": {
+										"value": null,
+										"type": "String"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "LS-AzureSqlDatabase_Ctrldb",
+								"type": "LinkedServiceReference",
+								"parameters": {
+									"kvSecret": "AzureSqlDatabase-ControlDB"
+								}
+							}
+						},
+						{
+							"name": "EP-SQL-Copy-Full",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "04-MySQL-B-Source-Copy",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"BatchLogId": {
+										"value": "@pipeline().parameters.BatchLogId",
+										"type": "Expression"
+									},
+									"TaskDetails": {
+										"value": "@pipeline().parameters.TaskDetails",
+										"type": "Expression"
+									},
+									"TaskExecutionLogId": {
+										"value": "@pipeline().parameters.TaskExecutionLogId",
+										"type": "Expression"
+									},
+									"SourceSQL": {
+										"value": "@pipeline().parameters.TaskDetails.Command",
+										"type": "Expression"
+									},
+									"TargetBLOBFolder": {
+										"value": "@activity('Get Full File Name').output.firstrow.StorageFolder",
+										"type": "Expression"
+									},
+									"TargetBLOBName": {
+										"value": "@activity('Get Full File Name').output.firstrow.StorageFile",
+										"type": "Expression"
+									},
+									"StartCounter": "0",
+									"EndCounter": "0",
+									"ProjectRunID": {
+										"value": "@pipeline().parameters.ProjectRunID",
+										"type": "Expression"
+									},
+									"ValidationDetails": {
+										"value": "@activity('Get-Table-Values').output.firstRow",
+										"type": "Expression"
+									}
+								}
+							}
+						}
+					],
+					"ifTrueActivities": [
+						{
+							"name": "Task Log Failure Copy",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "EP-SQL-Copy-Delta",
+									"dependencyConditions": [
+										"Failed"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[CTL].[UpdateTaskLog]",
+								"storedProcedureParameters": {
+									"BatchLogId": {
+										"value": {
+											"value": "@pipeline().parameters.BatchLogId",
+											"type": "Expression"
+										},
+										"type": "Int64"
+									},
+									"ErrorMessage": {
+										"value": {
+											"value": "An Error Occurred",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"ExecutionLogId": {
+										"value": {
+											"value": "@pipeline().parameters.TaskExecutionLogId",
+											"type": "Expression"
+										},
+										"type": "Int64"
+									},
+									"Status": {
+										"value": "Failure",
+										"type": "String"
+									},
+									"TaskId": {
+										"value": {
+											"value": "@pipeline().parameters.TaskDetails.TaskId",
+											"type": "Expression"
+										},
+										"type": "Int64"
+									},
+									"Output": {
+										"value": null,
+										"type": "String"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "LS-AzureSqlDatabase_Ctrldb",
+								"type": "LinkedServiceReference",
+								"parameters": {
+									"kvSecret": "AzureSqlDatabase-ControlDB"
+								}
+							}
+						},
+						{
+							"name": "Watermark Task Failure",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "SP-Update-Watermark",
+									"dependencyConditions": [
+										"Failed"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[CTL].[UpdateTaskLog]",
+								"storedProcedureParameters": {
+									"BatchLogId": {
+										"value": {
+											"value": "@pipeline().parameters.BatchLogId",
+											"type": "Expression"
+										},
+										"type": "Int64"
+									},
+									"ErrorMessage": {
+										"value": {
+											"value": "An Error Occurred",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"ExecutionLogId": {
+										"value": {
+											"value": "@pipeline().parameters.TaskExecutionLogId",
+											"type": "Expression"
+										},
+										"type": "Int64"
+									},
+									"Status": {
+										"value": "Failure",
+										"type": "String"
+									},
+									"TaskId": {
+										"value": {
+											"value": "@pipeline().parameters.TaskDetails.TaskId",
+											"type": "Expression"
+										},
+										"type": "Int64"
+									},
+									"Output": {
+										"value": null,
+										"type": "String"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "LS-AzureSqlDatabase_Ctrldb",
+								"type": "LinkedServiceReference",
+								"parameters": {
+									"kvSecret": "AzureSqlDatabase-ControlDB"
+								}
+							}
+						},
+						{
+							"name": "Watermark Task Success",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "SP-Update-Watermark",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[CTL].[UpdateTaskLog]",
+								"storedProcedureParameters": {
+									"BatchLogId": {
+										"value": {
+											"value": "@pipeline().parameters.BatchLogId",
+											"type": "Expression"
+										},
+										"type": "Int64"
+									},
+									"ErrorMessage": {
+										"value": "",
+										"type": "String"
+									},
+									"ExecutionLogId": {
+										"value": {
+											"value": "@pipeline().parameters.TaskExecutionLogId",
+											"type": "Expression"
+										},
+										"type": "Int64"
+									},
+									"Status": {
+										"value": "Success",
+										"type": "String"
+									},
+									"TaskId": {
+										"value": {
+											"value": "@pipeline().parameters.TaskDetails.TaskId",
+											"type": "Expression"
+										},
+										"type": "Int64"
+									},
+									"Output": {
+										"value": {
+											"value": "@activity('Get Full File Name').output.firstrow.StorageFile",
+											"type": "Expression"
+										},
+										"type": "String"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "LS-AzureSqlDatabase_Ctrldb",
+								"type": "LinkedServiceReference",
+								"parameters": {
+									"kvSecret": "AzureSqlDatabase-ControlDB"
+								}
+							}
+						},
+						{
+							"name": "EP-SQL-Copy-Delta",
+							"type": "ExecutePipeline",
+							"dependsOn": [
+								{
+									"activity": "SET-Delta-SQL",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "04-MySQL-B-Source-Copy",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"BatchLogId": {
+										"value": "@pipeline().parameters.BatchLogId",
+										"type": "Expression"
+									},
+									"TaskDetails": {
+										"value": "@pipeline().parameters.TaskDetails",
+										"type": "Expression"
+									},
+									"TaskExecutionLogId": {
+										"value": "@pipeline().parameters.TaskExecutionLogId",
+										"type": "Expression"
+									},
+									"SourceSQL": {
+										"value": "@variables('DeltaSQL')",
+										"type": "Expression"
+									},
+									"TargetBLOBFolder": {
+										"value": "@activity('Get Full File Name').output.firstrow.StorageFolder",
+										"type": "Expression"
+									},
+									"TargetBLOBName": {
+										"value": "@activity('Get Full File Name').output.firstrow.StorageFile",
+										"type": "Expression"
+									},
+									"StartCounter": {
+										"value": "@pipeline().parameters.TaskDetails.Watermarks",
+										"type": "Expression"
+									},
+									"EndCounter": {
+										"value": "@activity('Get-Table-Values').output.firstRow.ReturnValue",
+										"type": "Expression"
+									},
+									"ProjectRunID": {
+										"value": "@pipeline().parameters.ProjectRunID",
+										"type": "Expression"
+									},
+									"ValidationDetails": {
+										"value": "@activity('Get-Table-Values').output.firstRow",
+										"type": "Expression"
+									}
+								}
+							}
+						},
+						{
+							"name": "SET-Delta-SQL",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "SET-Watermark-Value",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "DeltaSQL",
+								"value": {
+									"value": "@replace(pipeline().parameters.TaskDetails.Command, '<<ENDDATE>>', variables('WatermarkValue'))",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "SP-Update-Watermark",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "EP-SQL-Copy-Delta",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[CTL].[updateWatermarks]",
+								"storedProcedureParameters": {
+									"SourceId": {
+										"value": {
+											"value": "@pipeline().parameters.TaskDetails.SourceId",
+											"type": "Expression"
+										},
+										"type": "Int64"
+									},
+									"Watermark": {
+										"value": {
+											"value": "@variables('WatermarkValue')",
+											"type": "Expression"
+										},
+										"type": "String"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "LS-AzureSqlDatabase_Ctrldb",
+								"type": "LinkedServiceReference",
+								"parameters": {
+									"kvSecret": "AzureSqlDatabase-ControlDB"
+								}
+							}
+						},
+						{
+							"name": "SET-Watermark-Value",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "WatermarkValue",
+								"value": {
+									"value": "@if(\n equals(coalesce(activity('Get-Table-Values').output.firstRow.ReturnValue, 0), 0)\n ,'1970-01-01 00:00:00'\n ,replace(activity('Get-Table-Values').output.firstRow.ReturnValue, '\\', ' ')\n)",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "Task Log Failure-Watermark Value SET",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "SET-Watermark-Value",
+									"dependencyConditions": [
+										"Failed"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[CTL].[UpdateTaskLog]",
+								"storedProcedureParameters": {
+									"BatchLogId": {
+										"value": {
+											"value": "@pipeline().parameters.BatchLogId",
+											"type": "Expression"
+										},
+										"type": "Int64"
+									},
+									"ErrorMessage": {
+										"value": {
+											"value": "An Error Occurred",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"ExecutionLogId": {
+										"value": {
+											"value": "@pipeline().parameters.TaskExecutionLogId",
+											"type": "Expression"
+										},
+										"type": "Int64"
+									},
+									"Status": {
+										"value": "Failure",
+										"type": "String"
+									},
+									"TaskId": {
+										"value": {
+											"value": "@pipeline().parameters.TaskDetails.TaskId",
+											"type": "Expression"
+										},
+										"type": "Int64"
+									},
+									"Output": {
+										"value": null,
+										"type": "String"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "LS-AzureSqlDatabase_Ctrldb",
+								"type": "LinkedServiceReference",
+								"parameters": {
+									"kvSecret": "AzureSqlDatabase-ControlDB"
+								}
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "Get Full File Name",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderStoredProcedureName": "[CTL].[GetStorageFileName]",
+						"storedProcedureParameters": {
+							"DeltaExtract": {
+								"type": "Boolean",
+								"value": {
+									"value": "@pipeline().parameters.TaskDetails.DeltaExtract",
+									"type": "Expression"
+								}
+							},
+							"FileName": {
+								"type": "String",
+								"value": {
+									"value": "@pipeline().parameters.TaskDetails.SourceLocation",
+									"type": "Expression"
+								}
+							},
+							"FolderName": {
+								"type": "String",
+								"value": {
+									"value": "@pipeline().parameters.TaskDetails.TargetLocation",
+									"type": "Expression"
+								}
+							},
+							"Grain": {
+								"type": "String",
+								"value": {
+									"value": "@pipeline().parameters.TaskDetails.ObjectGrain",
+									"type": "Expression"
+								}
+							},
+							"Compressed": {
+								"type": "Boolean",
+								"value": {
+									"value": "true",
+									"type": "Expression"
+								}
+							},
+							"TargetType": {
+								"type": "String",
+								"value": {
+									"value": "@pipeline().parameters.TaskDetails.TargetType",
+									"type": "Expression"
+								}
+							}
+						},
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "AzureSqlDatabase_Ctrldb",
+						"type": "DatasetReference"
+					},
+					"firstRowOnly": true
+				}
+			},
+			{
+				"name": "Execute-Generate-Schema",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "04-MySQL-Generate-Source-Schema",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"TaskDetails": {
+							"value": "@pipeline().parameters.TaskDetails",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "Task Log Failure Schema",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "Execute-Generate-Schema",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[CTL].[UpdateTaskLog]",
+					"storedProcedureParameters": {
+						"BatchLogId": {
+							"value": {
+								"value": "@pipeline().parameters.BatchLogId",
+								"type": "Expression"
+							},
+							"type": "Int64"
+						},
+						"ErrorMessage": {
+							"value": {
+								"value": "An Error Occurred while generating schema",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"ExecutionLogId": {
+							"value": {
+								"value": "@pipeline().parameters.TaskExecutionLogId",
+								"type": "Expression"
+							},
+							"type": "Int64"
+						},
+						"Status": {
+							"value": "Failure",
+							"type": "String"
+						},
+						"TaskId": {
+							"value": {
+								"value": "@pipeline().parameters.TaskDetails.TaskId",
+								"type": "Expression"
+							},
+							"type": "Int64"
+						},
+						"Output": {
+							"value": null,
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "LS-AzureSqlDatabase_Ctrldb",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"kvSecret": "AzureSqlDatabase-ControlDB"
+					}
+				}
+			},
+			{
+				"name": "Task Log Failure FileName",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "Get Full File Name",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[CTL].[UpdateTaskLog]",
+					"storedProcedureParameters": {
+						"BatchLogId": {
+							"value": {
+								"value": "@pipeline().parameters.BatchLogId",
+								"type": "Expression"
+							},
+							"type": "Int64"
+						},
+						"ErrorMessage": {
+							"value": {
+								"value": "An Error Occurred while getting file name",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"ExecutionLogId": {
+							"value": {
+								"value": "@pipeline().parameters.TaskExecutionLogId",
+								"type": "Expression"
+							},
+							"type": "Int64"
+						},
+						"Status": {
+							"value": "Failure",
+							"type": "String"
+						},
+						"TaskId": {
+							"value": {
+								"value": "@pipeline().parameters.TaskDetails.TaskId",
+								"type": "Expression"
+							},
+							"type": "Int64"
+						},
+						"Output": {
+							"value": null,
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "LS-AzureSqlDatabase_Ctrldb",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"kvSecret": "AzureSqlDatabase-ControlDB"
+					}
+				}
+			},
+			{
+				"name": "Get-Table-SQL",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderStoredProcedureName": "[CTL].[GetTableDetails]",
+						"storedProcedureParameters": {
+							"SourceId": {
+								"type": "Int64",
+								"value": {
+									"value": "@pipeline().parameters.TaskDetails.SourceId",
+									"type": "Expression"
+								}
+							}
+						},
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "AzureSqlDatabase_Ctrldb",
+						"type": "DatasetReference"
+					}
+				}
+			},
+			{
+				"name": "Get-Table-Values",
+				"type": "Lookup",
+				"dependsOn": [
+					{
+						"activity": "Get-Table-SQL",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "MySqlSource",
+						"query": {
+							"value": "@activity('Get-Table-SQL').output.firstrow.SQLStatement",
+							"type": "Expression"
+						}
+					},
+					"dataset": {
+						"referenceName": "SRC_MySQL",
+						"type": "DatasetReference",
+						"parameters": {
+							"kvSecret": {
+								"value": "@pipeline().parameters.TaskDetails.SourceServer",
+								"type": "Expression"
+							}
+						}
+					},
+					"firstRowOnly": true
+				}
+			},
+			{
+				"name": "Task Log Failure-Watermark Values",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "Get-Table-Values",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[CTL].[UpdateTaskLog]",
+					"storedProcedureParameters": {
+						"BatchLogId": {
+							"value": {
+								"value": "@pipeline().parameters.BatchLogId",
+								"type": "Expression"
+							},
+							"type": "Int64"
+						},
+						"ErrorMessage": {
+							"value": {
+								"value": "An Error Occurred",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"ExecutionLogId": {
+							"value": {
+								"value": "@pipeline().parameters.TaskExecutionLogId",
+								"type": "Expression"
+							},
+							"type": "Int64"
+						},
+						"Status": {
+							"value": "Failure",
+							"type": "String"
+						},
+						"TaskId": {
+							"value": {
+								"value": "@pipeline().parameters.TaskDetails.TaskId",
+								"type": "Expression"
+							},
+							"type": "Int64"
+						},
+						"Output": {
+							"value": null,
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "LS-AzureSqlDatabase_Ctrldb",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"kvSecret": "AzureSqlDatabase-ControlDB"
+					}
+				}
+			}
+		],
+		"parameters": {
+			"BatchLogId": {
+				"type": "int",
+				"defaultValue": 1
+			},
+			"TaskDetails": {
+				"type": "object",
+				"defaultValue": {
+					"SourceType": "MySQL",
+					"SourceServer": "LMS-clms",
+					"SourceName": "LMS_lmsuu_mdl_assign_grades",
+					"SourceLocation": "lmsuu.mdl_assign_grades",
+					"AdditionalProperty": "",
+					"Processor": "databricks-token|0708-233111-note225|Standard_DS3_v2|6.4.x-scala2.11|2:8",
+					"IsAuditTable": false,
+					"SoftDeleteSource": "",
+					"ProjectName": "LMS",
+					"ProjectId": 37,
+					"TargetType": "BLOB Storage (json)",
+					"TargetName": "LMS_lmsuu_mdl_assign_grades",
+					"TargetLocation": "LMS/lmsuu_mdl_assign_grades",
+					"TargetServer": "datalake-SasToken",
+					"DataLoadMode": "INCREMENTAL",
+					"DeltaExtract": true,
+					"CDCSource": false,
+					"TruncateTarget": false,
+					"UpsertTarget": true,
+					"TrackChanges": true,
+					"LoadToSqlEDW": true,
+					"TaskName": "LMS_lmsuu_mdl_assign_grades",
+					"ControlStageId": 1,
+					"TaskId": 1218,
+					"StageSequence": 100,
+					"StageName": "Source to Raw",
+					"SourceId": 1256,
+					"TargetId": 1235,
+					"ObjectGrain": "Day",
+					"CommandTypeId": 16,
+					"Watermarks": "2000-01-01 00:00:00",
+					"WatermarksDT": "2000-01-01T00:00:00Z",
+					"WatermarkColumn": "TIMEMODIFIED, TIMECREATED",
+					"BusinessKeyColumn": "ID",
+					"UpdateMetaData": false,
+					"Command": "SELECT * FROM lmsuu.mdl_assign_grades",
+					"LastLoadedFile": null
+				}
+			},
+			"TaskExecutionLogId": {
+				"type": "int",
+				"defaultValue": 1
+			},
+			"ProjectRunID": {
+				"type": "string"
+			}
+		},
+		"variables": {
+			"OutputFileName": {
+				"type": "String"
+			},
+			"DeltaSQL": {
+				"type": "String"
+			},
+			"WatermarkValue": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "MySQL"
+		},
+		"annotations": []
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

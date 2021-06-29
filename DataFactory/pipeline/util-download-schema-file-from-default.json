@@ -1,0 +1,42 @@
+{
+	"name": "util-download-schema-file-from-default",
+	"properties": {
+		"activities": [
+			{
+				"name": "EP-Download-Schema",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "util-download-schema-file",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"TaskDetails": {
+							"value": "@pipeline().parameters.TaskDetails",
+							"type": "Expression"
+						},
+						"FileShareURL": "FileServer-URL",
+						"FileShareUserID": {
+							"value": "@pipeline().globalParameters.FileServerUserID",
+							"type": "Expression"
+						},
+						"FileSharePassword": "FileServer-ServiceAccount-Password",
+						"SourceFolder": "In"
+					}
+				}
+			}
+		],
+		"parameters": {
+			"TaskDetails": {
+				"type": "object"
+			}
+		},
+		"folder": {
+			"name": "Utility"
+		},
+		"annotations": []
+	}
+}

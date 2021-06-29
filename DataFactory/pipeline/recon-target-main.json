@@ -1,0 +1,123 @@
+{
+	"name": "recon-target-main",
+	"properties": {
+		"activities": [
+			{
+				"name": "Get Load Tasks",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderStoredProcedureName": "[CTL].[getExecutionTasks]",
+						"storedProcedureParameters": {
+							"ProjectId": {
+								"type": "Int64",
+								"value": {
+									"value": "@pipeline().parameters.ProjectId",
+									"type": "Expression"
+								}
+							},
+							"StageId": {
+								"type": "Int64",
+								"value": {
+									"value": "1",
+									"type": "Expression"
+								}
+							}
+						},
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "AzureSqlDatabase_Ctrldb",
+						"type": "DatasetReference"
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "Execute Each Task",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Get Load Tasks",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Get Load Tasks').output.value",
+						"type": "Expression"
+					},
+					"isSequential": false,
+					"activities": [
+						{
+							"name": "If-Validation",
+							"type": "IfCondition",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"expression": {
+									"value": "@not(item().IsAuditTable)",
+									"type": "Expression"
+								},
+								"ifTrueActivities": [
+									{
+										"name": "EP-Recon-Target",
+										"type": "ExecutePipeline",
+										"dependsOn": [],
+										"userProperties": [],
+										"typeProperties": {
+											"pipeline": {
+												"referenceName": "recon-target",
+												"type": "PipelineReference"
+											},
+											"waitOnCompletion": true,
+											"parameters": {
+												"ProjectID": {
+													"value": "@pipeline().parameters.ProjectID",
+													"type": "Expression"
+												},
+												"ProjectRunID": {
+													"value": "@pipeline().parameters.ProjectRunID",
+													"type": "Expression"
+												},
+												"SourceName": {
+													"value": "@item().SourceName",
+													"type": "Expression"
+												}
+											}
+										}
+									}
+								]
+							}
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"ProjectID": {
+				"type": "int"
+			},
+			"ProjectRunID": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "Validation"
+		},
+		"annotations": []
+	}
+}

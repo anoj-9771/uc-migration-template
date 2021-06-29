@@ -1,0 +1,43 @@
+{
+	"name": "LS_ODataSource_Basic",
+	"properties": {
+		"type": "OData",
+		"annotations": [],
+		"typeProperties": {
+			"url": "@{linkedService().BaseUrl}",
+			"enableServerCertificateValidation": true,
+			"authenticationType": "Basic",
+			"userName": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "LS-AzureKeyVault",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "@{linkedService().Username}"
+			},
+			"password": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "LS-AzureKeyVault",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "@{linkedService().SecretName}"
+			}
+		},
+		"parameters": {
+			"Username": {
+				"type": "String"
+			},
+			"SecretName": {
+				"type": "String"
+			},
+			"BaseUrl": {
+				"type": "String"
+			}
+		},
+		"connectVia": {
+			"referenceName": "ADSINSHIRBI01",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

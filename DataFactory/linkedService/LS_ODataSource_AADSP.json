@@ -1,0 +1,48 @@
+{
+	"name": "LS_ODataSource_AADSP",
+	"properties": {
+		"type": "OData",
+		"annotations": [],
+		"typeProperties": {
+			"url": "@{linkedService().BaseUrl}",
+			"authenticationType": "AadServicePrincipal",
+			"tenant": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "LS-AzureKeyVault",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "directoryid"
+			},
+			"aadResourceId": "https://graph.microsoft.com",
+			"aadServicePrincipalCredentialType": "ServicePrincipalKey",
+			"servicePrincipalId": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "LS-AzureKeyVault",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "@{linkedService().AppID}"
+			},
+			"servicePrincipalKey": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "LS-AzureKeyVault",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "@{linkedService().AppSecret}"
+			}
+		},
+		"parameters": {
+			"AppID": {
+				"type": "String"
+			},
+			"AppSecret": {
+				"type": "String"
+			},
+			"BaseUrl": {
+				"type": "String"
+			}
+		}
+	}
+}

@@ -1,0 +1,17 @@
+{
+	"name": "ADSINDFBI01NP",
+	"properties": {
+		"globalParameters": {
+			"FileServerUserID": {
+				"type": "string",
+				"value": "rahul.agrawal@insight.com"
+			}
+		}
+	},
+	"location": "australiaeast",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "e928747a-2d7d-4dcf-b456-0a3e851da9be",
+		"tenantId": "6c637512-c417-4e78-9d62-b61258e4b619"
+	}
+}

@@ -1,0 +1,272 @@
+{
+	"name": "08-EXPORT-SQLServer",
+	"properties": {
+		"activities": [
+			{
+				"name": "Copy-Data",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "SET-TargetTableID",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "AzureSqlSink",
+						"preCopyScript": {
+							"value": "@{replace(variables('TRUNCATESQL'), '<<TABLE_NAME>>', variables('TargetTableID'))}",
+							"type": "Expression"
+						},
+						"tableOption": "autoCreate",
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "DS_AZURE_SQLSERVER",
+						"type": "DatasetReference",
+						"parameters": {
+							"kvSecret": {
+								"value": "AzureSqlDatabase-SQLDB",
+								"type": "Expression"
+							},
+							"TableName": {
+								"value": "@split(pipeline().parameters.TaskDetails.SourceLocation,'.')[1]",
+								"type": "Expression"
+							},
+							"SchemaName": {
+								"value": "@split(pipeline().parameters.TaskDetails.SourceLocation,'.')[0]",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "DS_AZURE_SQLSERVER",
+						"type": "DatasetReference",
+						"parameters": {
+							"kvSecret": {
+								"value": "@pipeline().parameters.TaskDetails.TargetServer",
+								"type": "Expression"
+							},
+							"TableName": {
+								"value": "@pipeline().parameters.TaskDetails.TargetLocation",
+								"type": "Expression"
+							},
+							"SchemaName": {
+								"value": "@variables('TargetSchema')",
+								"type": "Expression"
+							}
+						}
+					}
+				]
+			},
+			{
+				"name": "Log Copy Load Failure",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "Copy-Data",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[CTL].[UpdateTaskLog]",
+					"storedProcedureParameters": {
+						"BatchLogId": {
+							"value": {
+								"value": "@pipeline().parameters.BatchLogId",
+								"type": "Expression"
+							},
+							"type": "Int64"
+						},
+						"ErrorMessage": {
+							"value": {
+								"value": "An Error Occurred while copy data",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"ExecutionLogId": {
+							"value": {
+								"value": "@pipeline().parameters.TaskExecutionLogId",
+								"type": "Expression"
+							},
+							"type": "Int64"
+						},
+						"Status": {
+							"value": "Failure",
+							"type": "String"
+						},
+						"TaskId": {
+							"value": {
+								"value": "@pipeline().parameters.TaskDetails.TaskId",
+								"type": "Expression"
+							},
+							"type": "Int64"
+						},
+						"Output": {
+							"value": null,
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "LS-AzureSqlDatabase_Ctrldb",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"kvSecret": "AzureSqlDatabase-ControlDB"
+					}
+				}
+			},
+			{
+				"name": "Log Copy Load Success",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "Copy-Data",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[CTL].[UpdateTaskLog]",
+					"storedProcedureParameters": {
+						"BatchLogId": {
+							"value": {
+								"value": "@pipeline().parameters.BatchLogId",
+								"type": "Expression"
+							},
+							"type": "Int64"
+						},
+						"ErrorMessage": {
+							"value": null,
+							"type": "String"
+						},
+						"ExecutionLogId": {
+							"value": {
+								"value": "@pipeline().parameters.TaskExecutionLogId",
+								"type": "Expression"
+							},
+							"type": "Int64"
+						},
+						"Output": {
+							"value": {
+								"value": "@pipeline().parameters.TaskDetails.LastLoadedFile",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"Status": {
+							"value": "Success",
+							"type": "String"
+						},
+						"TaskId": {
+							"value": {
+								"value": "@pipeline().parameters.TaskDetails.TaskId",
+								"type": "Expression"
+							},
+							"type": "Int64"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "LS-AzureSqlDatabase_Ctrldb",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"kvSecret": "AzureSqlDatabase-ControlDB"
+					}
+				}
+			},
+			{
+				"name": "SET-TargetTableID",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "TargetTableID",
+					"value": {
+						"value": "@concat(variables('TargetSchema'), '.', pipeline().parameters.TaskDetails.TargetLocation)",
+						"type": "Expression"
+					}
+				}
+			}
+		],
+		"parameters": {
+			"BatchLogId": {
+				"type": "int"
+			},
+			"TaskDetails": {
+				"type": "object"
+			},
+			"TaskExecutionLogId": {
+				"type": "int"
+			},
+			"ProjectRunID": {
+				"type": "string"
+			}
+		},
+		"variables": {
+			"TRUNCATESQL": {
+				"type": "String",
+				"defaultValue": "IF OBJECT_ID('<<TABLE_NAME>>', 'U') IS NOT NULL TRUNCATE TABLE <<TABLE_NAME>>"
+			},
+			"TargetSchema": {
+				"type": "String",
+				"defaultValue": "TRIP"
+			},
+			"TargetTableID": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "Export"
+		},
+		"annotations": []
+	}
+}

@@ -1,0 +1,168 @@
+{
+	"name": "LU_Source",
+	"properties": {
+		"activities": [
+			{
+				"name": "Lookup1",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "OracleSource",
+						"oracleReaderQuery": "SELECT * FROM all_tab_cols WHERE  owner like 'o%'",
+						"partitionOption": "None",
+						"queryTimeout": "02:00:00"
+					},
+					"dataset": {
+						"referenceName": "SRC_Oracle",
+						"type": "DatasetReference",
+						"parameters": {
+							"kvSecret": "OneEBS-0165"
+						}
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "Copy data1",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Lookup1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "OracleSource",
+						"oracleReaderQuery": "select * from all_tables\nwhere owner ='EBS_0900'",
+						"partitionOption": "None",
+						"queryTimeout": "02:00:00"
+					},
+					"sink": {
+						"type": "DelimitedTextSink",
+						"storeSettings": {
+							"type": "AzureBlobStorageWriteSettings"
+						},
+						"formatSettings": {
+							"type": "DelimitedTextWriteSettings",
+							"quoteAllText": true,
+							"fileExtension": ".txt"
+						}
+					},
+					"enableStaging": false
+				},
+				"inputs": [
+					{
+						"referenceName": "SRC_Oracle",
+						"type": "DatasetReference",
+						"parameters": {
+							"kvSecret": "EBS900T4U"
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "RAW_ADLS_CSV",
+						"type": "DatasetReference",
+						"parameters": {
+							"BlobPath": "external",
+							"BlobName": "filename.csv",
+							"Compression": "none"
+						}
+					}
+				]
+			},
+			{
+				"name": "LU-EBS",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "OracleSource",
+						"oracleReaderQuery": "select * FROM EBS_0165.DISABILITIES WHERE ID IN (38728, 38729)",
+						"partitionOption": "None",
+						"queryTimeout": "02:00:00"
+					},
+					"dataset": {
+						"referenceName": "SRC_Oracle",
+						"type": "DatasetReference",
+						"parameters": {
+							"kvSecret": "Oneebs-0165"
+						}
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "LU-MySQL",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "MySqlSource",
+						"query": "SELECT \n\t'timemodified, timecreated' AS SourceColumn, \n\tFROM_UNIXTIME(MAX(IFNULL(COALESCE(timemodified, timecreated), 0))) As ReturnValue, \n\tCOUNT(1) AS RecordCount, \n\t0 AS TotalValue, \n\t0 AS MaxValue, \n\t0 AS MinValue, \n\t'SOURCE' AS ValidationType \nFROM lmsuu.mdl_course"
+					},
+					"dataset": {
+						"referenceName": "SRC_MySQL",
+						"type": "DatasetReference",
+						"parameters": {
+							"kvSecret": "LMS-lmsp"
+						}
+					},
+					"firstRowOnly": false
+				}
+			}
+		],
+		"variables": {
+			"Owner": {
+				"type": "String"
+			},
+			"Table": {
+				"type": "String"
+			},
+			"BLOBPath": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "Archive"
+		},
+		"annotations": []
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}
