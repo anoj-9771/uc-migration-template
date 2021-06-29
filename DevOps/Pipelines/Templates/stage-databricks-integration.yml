@@ -56,33 +56,44 @@ stages:
         EOF
       displayName: 'Authenticate with Databricks CLI'
 
-    # Remove Current Notebooks
+    - task: PythonScript@0
+      inputs:
+        scriptSource: inline
+        script: |
+          def apply_substitutions(filepath, substitutions):
+            print("Filepath : " + filepath)
+            file = open(filepath, "rt")
+            filecontent = file.read()
+            for entry in substitutions:
+              filecontent = filecontent.replace(entry[0], entry[1])
+            file.close()
+            print('--------- Content After Substitution ')
+            print(filecontent)
+            file = open(filepath, "wt")
+            file.write(filecontent)
+            file.close()
+
+          globalConfigFile = "$(Pipeline.Workspace)/databricks_notebooks/includes/global-variables-config.py"
+          globalConfigSubs = [('<ADS_ENVIRONMENT>', '$(environment)')]
+          apply_substitutions(globalConfigFile, globalConfigSubs)
+
+          
+          globalVarsPython = "$(Pipeline.Workspace)/databricks_notebooks/includes/global-variables-python.py"
+          globalVarsPythonSubs = [('<EDW>', '$(azureedwdbname)')]
+          apply_substitutions(globalVarsPython, globalVarsPythonSubs)
+
+          globalVarsScala = "$(Pipeline.Workspace)/databricks_notebooks/includes/global-variables-scala.scala"
+          globalVarsScalaSubs = [('<EDW>', '$(azureedwdbname)')]
+          apply_substitutions(globalVarsScala, globalVarsScalaSubs)
+
+    # Remove Current Notebooks - continue on error is required for first run as there will be no build folders
     - script: |
-        databricks workspace mkdirs /build/Util;
-        databricks workspace mkdirs /build/DataProcessing;
-        databricks workspace rm -r /build/Util;
-        databricks workspace rm -r /build/DataProcessing;
+        databricks workspace rm -r /build;
       displayName: 'Remove Current Notebooks'
+      continueOnError: true
 
     # Update Notebooks to Databricks workspace
     - script: |
-        databricks workspace mkdirs /build/Util;
-        databricks workspace mkdirs /build/DataProcessing;
-        for filename in $(Pipeline.Workspace)/databricks_notebooks/DataProcessing/*-dp.py; 
-        do
-            databricks workspace import --language PYTHON --format SOURCE --overwrite "${filename}" "/build/DataProcessing/${filename##*/}"
-        done;
-        for filename in $(Pipeline.Workspace)/databricks_notebooks/DataProcessing/*-dp.scala; 
-        do
-            databricks workspace import --language SCALA --format SOURCE --overwrite "${filename}" "/build/DataProcessing/${filename##*/}"
-        done;
-        for filename in $(Pipeline.Workspace)/databricks_notebooks/Util/*-ut.py; 
-        do
-            databricks workspace import --language PYTHON --format SOURCE --overwrite "${filename}" "/build/Util/${filename##*/}"
-        done;
-        for filename in $(Pipeline.Workspace)/databricks_notebooks/Util/*-ut.scala; 
-        do
-            databricks workspace import --language SCALA --format SOURCE --overwrite "${filename}" "/build/Util/${filename##*/}"
-        done;
+        databricks workspace import_dir $(Pipeline.Workspace)/databricks_notebooks "/build"
         echo
       displayName: 'Add updated notbooks to workspace'
