@@ -137,5 +137,5 @@ variables:
   - name: synapsesqlAdministratorLogin
     value: sqladminuser
   - name: synapsesqlPoolName
-    value: syndw-$(SUBSCRIPTION)-$(PREFIX)-$(INCREMENT)
+    value: syndw$(PREFIX)$(INCREMENT)
   #------------------------------------------------
