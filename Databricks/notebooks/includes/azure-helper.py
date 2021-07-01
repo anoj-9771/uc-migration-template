@@ -9,9 +9,9 @@ def AzHelperGetAzureAccessToken():
   import time
   import requests 
   
-  CLIENT_ID = dbutils.secrets.get(scope = ADS_KV_ACCOUNT_SCOPE, key = "appjbdsid")
-  CLIENT_KEY = dbutils.secrets.get(scope = ADS_KV_ACCOUNT_SCOPE, key = "appjbdssecret")
-  DIRECTORY_ID = dbutils.secrets.get(scope = ADS_KV_ACCOUNT_SCOPE, key = "directoryid")
+  CLIENT_ID = dbutils.secrets.get(scope = ADS_KV_ACCOUNT_SCOPE, key = ADS_SECRET_APP_ID)
+  CLIENT_KEY = dbutils.secrets.get(scope = ADS_KV_ACCOUNT_SCOPE, key = ADS_SECRET_APP_SECRET)
+  DIRECTORY_ID = dbutils.secrets.get(scope = ADS_KV_ACCOUNT_SCOPE, key = ADS_TENANT_ID)
 
   authentication_endpoint = 'https://login.microsoftonline.com/'
   resource  = 'https://management.core.windows.net/'

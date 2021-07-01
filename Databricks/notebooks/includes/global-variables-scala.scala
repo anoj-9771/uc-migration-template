@@ -4,7 +4,7 @@
 // COMMAND ----------
 
 //Please ensure the name of the scope matches with the scope name created in the environment
-val ADS_KV_ACCOUNT_SCOPE = "ads"
+val ADS_KV_ACCOUNT_SCOPE = "ADS"
 
 // COMMAND ----------
 
@@ -21,13 +21,13 @@ val ADS_DATABASE_CURATED = "curated"
 
 // COMMAND ----------
 
-val ADS_DB_SERVER = ADS_COMPANY_INITIAL + "sql" + ADS_BUSINESS_UNIT + ADS_ENVIRONMENT + ".database.windows.net"
+val ADS_DB_SERVER = ADS_COMPANY_INITIAL + "-sql-dp-" + ADS_ENVIRONMENT + "-" + ADS_SUFFIX + ".database.windows.net"
 
 // COMMAND ----------
 
-val ADS_DATABASE_NAME = "ZEASQLDBEDW01"
-val ADS_DATABASE_USERNAME = "TRIPUser"
-val ADS_KV_DB_PWD_SECRET_KEY = "AzureSqlDatabase-TRIPUserPassword"
+val ADS_DATABASE_NAME = "<EDW>"
+val ADS_DATABASE_USERNAME = "sqladmin"
+val ADS_KV_DB_PWD_SECRET_KEY = "AzureSQLServerPw"
 
 // COMMAND ----------
 
