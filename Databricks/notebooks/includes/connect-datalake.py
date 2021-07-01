@@ -28,7 +28,7 @@ def DataLakeGetMountPoint(datalakezone):
   #Get Secrets from the Key Vault using the databricks defined scope
   CLIENT_ID = dbutils.secrets.get(scope = ADS_KV_ACCOUNT_SCOPE, key = ADS_SECRET_APP_ID)
   CLIENT_KEY = dbutils.secrets.get(scope = ADS_KV_ACCOUNT_SCOPE, key = ADS_SECRET_APP_SECRET)
-  DIRECTORY_ID = dbutils.secrets.get(scope = ADS_KV_ACCOUNT_SCOPE, key = "directoryid")
+  DIRECTORY_ID = dbutils.secrets.get(scope = ADS_KV_ACCOUNT_SCOPE, key = ADS_TENANT_ID)
 
   #Standard Configurations for connecting to Data Lake
   configs = {"fs.azure.account.auth.type": "OAuth",

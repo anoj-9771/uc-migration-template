@@ -123,7 +123,7 @@ variables:
     value: 10
 
   # ------------------------------------------------
-  # Synapse Analytics related
+  # Synapse Analytics related.
   # ------------------------------------------------
   - name: synapseworkspacename
     value: $(PREFIX)-$(ENVIRONMENT)-synapse-workspace

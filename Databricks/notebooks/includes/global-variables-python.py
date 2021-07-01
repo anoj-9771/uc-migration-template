@@ -4,13 +4,14 @@
 # COMMAND ----------
 
 #Please ensure the name of the scope matches with the scope name created in the environment
-ADS_KV_ACCOUNT_SCOPE = "ads"
+ADS_KV_ACCOUNT_SCOPE = "ADS"
+
 
 # COMMAND ----------
 
-ADS_DATABASE_NAME = "ZEASQLDBEDW01"
-ADS_DATABASE_USERNAME = "TRIPUser"
-ADS_KV_DB_PWD_SECRET_KEY = "AzureSqlDatabase-TRIPUserPassword"
+ADS_DATABASE_NAME = "CntrlDb"
+ADS_DATABASE_USERNAME = "sqladmin"
+ADS_KV_DB_PWD_SECRET_KEY = "AzureSQLServerPw"
 
 # COMMAND ----------
 
@@ -20,11 +21,12 @@ ADS_LOAD_SQLDB = True
 # COMMAND ----------
 
 #The resource names are automatically built based on Project Prefix and Environment
-ADS_DATA_LAKE_ACCOUNT = ADS_COMPANY_INITIAL + "dls" + ADS_BUSINESS_UNIT + ADS_ENVIRONMENT
-ADS_BLOB_STORAGE_ACCOUNT = ADS_COMPANY_INITIAL + "stor" + ADS_BUSINESS_UNIT + ADS_ENVIRONMENT + ".blob.core.windows.net"
-ADS_DB_SERVER = ADS_COMPANY_INITIAL + "sql" + ADS_BUSINESS_UNIT + ADS_ENVIRONMENT
+ADS_DATA_LAKE_ACCOUNT = "swcdafdevadls" #f"{ADS_COMPANY_INITIAL.replace('-', '')}dlsdp{ADS_ENVIRONMENT.lower()}{ADS_SUFFIX.replace('-', '')}"
+ADS_BLOB_STORAGE_ACCOUNT = "saswcnonprod01landingdev" #ADS_COMPANY_INITIAL + "stor" + ADS_BUSINESS_UNIT + ADS_ENVIRONMENT + ".blob.core.windows.net"
 
-ADS_RESOURCE_GROUP = ADS_COMPANY_INITIAL + "rg" + ADS_BUSINESS_UNIT + ADS_ENVIRONMENT
+ADS_DB_SERVER = "swcdaf-dev-asql.database.windows.net" #ADS_COMPANY_INITIAL + "-sql-dp-" + ADS_ENVIRONMENT + "-" + ADS_SUFFIX + ".database.windows.net"
+
+ADS_RESOURCE_GROUP =  "rg-swcnonprod01-daf-dev-01" #f"RG-{ADS_ENVIRONMENT.upper()}-SYD-AMA-PANEL-BI"
 
 # COMMAND ----------
 
@@ -63,8 +65,9 @@ ADS_LOG_VERBOSE = True
 
 # COMMAND ----------
 
-ADS_SECRET_APP_ID = "app" + ADS_COMPANY_INITIAL + ADS_BUSINESS_UNIT + "id"
-ADS_SECRET_APP_SECRET = "app" + ADS_COMPANY_INITIAL + ADS_BUSINESS_UNIT + "secret"
+ADS_SECRET_APP_ID = "SERVICE-PRINCIPAL-APP-ID"
+ADS_SECRET_APP_SECRET = "SERVICE-PRINCIPAL-SECRET"
+ADS_TENANT_ID = "TENANT-ID"
 
 # COMMAND ----------
 
@@ -82,7 +85,7 @@ ADS_MYSQL_LMS_DELTA_COL_UPDATED = "timemodified"
 ADS_COLUMN_CREATED = ["CREATED_DATE", "CREATEDTIME", ADS_MYSQL_LMS_DELTA_COL_CREATED]
 ADS_COLUMN_UPDATED = ["UPDATED_DATE", "UPDATEDTIME", ADS_MYSQL_LMS_DELTA_COL_UPDATED]
 ADS_COLUMN_TRANSACTION_DT = "_transaction_date"
-ADS_TZ_LOCAL = "Australia/Sydney"
+ADS_TZ_LOCAL = "Australia/Brisbane"
 
 # COMMAND ----------
 

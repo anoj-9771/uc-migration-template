@@ -43,10 +43,6 @@ val track_changes = GeneralGetBoolFromStringScala(p_track_changes)
 
 // COMMAND ----------
 
-ScalaCreateSchema(p_sql_schema_name)
-
-// COMMAND ----------
-
 var schema_name = ""
 if (p_data_load_mode == ADS_WRITE_MODE_OVERWRITE) {
   schema_name = p_sql_schema_name
@@ -54,6 +50,10 @@ if (p_data_load_mode == ADS_WRITE_MODE_OVERWRITE) {
 else {
   schema_name = ADS_SQL_SCHEMA_STAGE
 }
+
+// COMMAND ----------
+
+ScalaCreateSchema(schema_name)
 
 // COMMAND ----------
 

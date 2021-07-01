@@ -98,6 +98,24 @@ def ScalaExecuteSQLQuery(query: String, showRecordCount: Boolean = false) : Stri
   return "1"
 }
 
+
+// COMMAND ----------
+
+def ScalaCreateSchema (SchemaName:String): String= {
+  
+  //This method creates a schema on Azure SQL if if does not exists
+  
+  println("Creating Schema if it does not exists")
+  //Build the SQL
+  var SQL = s"IF NOT EXISTS (SELECT * FROM sys.schemas WHERE NAME = '$SchemaName') \n"
+  SQL += s"EXEC sp_executesql N'CREATE SCHEMA [$SchemaName]'"
+  
+  //Execute the SQL Query using our generic method
+  ScalaExecuteSQLQuery(SQL)
+  
+  return "1"
+}
+
 // COMMAND ----------
 
 // def ScalaExecuteSQLQuery(query: String) : String = {
@@ -135,7 +153,11 @@ def ScalaExecuteSQLQuery(query: String, showRecordCount: Boolean = false) : Stri
 
 def ScalaLoadDataToEDW(source_object:String, target_schema:String) : String = {
 
-  //This is a generic method to load data to SQL Server EDW from trusted zone 
+  //This is a generic method to load data to SQL Server EDW from trusted zone
+  println(s"Starting : ScalaLoadDataToEDW : Load Delta Table $source_object to schema $target_schema")
+
+  //Create the Schema at the beginning if it does not exists
+  ScalaCreateSchema(target_schema)
   
   //Get the generated SQL Query from Python
   //The query was stored in a temporary table
@@ -286,24 +308,6 @@ def ScalaAlterTableDataTypeFromSchema(SchemaFileURL:String, SourceObject:String,
 
   ScalaExecuteSQLQuery (DBricksTSColumnSQL)
   
-}
-
-// COMMAND ----------
-
-def ScalaCreateSchema (SchemaName:String): String= {
-  
-  //This method creates a schema on Azure SQL if if does not exists
-  
-  println("Creating Schema if it does not exists")
-  //Build the SQL
-  var SQL = ""
-  SQL = s"IF NOT EXISTS (SELECT * FROM sys.schemas WHERE NAME = '$SchemaName') \n"
-  SQL += s"EXEC sp_executesql N'CREATE SCHEMA [$SchemaName]'"
-  
-  //Execute the SQL Query using our generic method
-  ScalaExecuteSQLQuery(SQL)
-  
-  return "1"
 }
 
 // COMMAND ----------
