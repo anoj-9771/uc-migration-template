@@ -1,7 +1,11 @@
 variables:
   # Used in service naming
   - name: prefix
-    value: swcdaf
+    value: daf
+  - name: increment
+    value: 01
+  - name: subscription
+    value: swcnonprod01
   # The default resource group region name
   - name: location
     value: australiaeast
@@ -35,12 +39,12 @@ variables:
   # ------------------------------------------------
   # Name of Azure SQL Server and EDW Database
   - name: azuresqlservername
-    value: ${{ lower(variables.prefix) }}-${{ lower(variables.environment) }}-asql
+    value: sql-$(PREFIX)-$(ENVIRONMENT)-$(INCREMENT)
   - name: azureedwdbname
     value: EDW
   # Name of key vault for this environment.
   - name: azurekeyvaultname
-    value: $(PREFIX)-$(ENVIRONMENT)-AKV
+    value: kv-$(PREFIX)-$(ENVIRONMENT)-$(INCREMENT)
   # Setup secret rotation interval in days
   - name: secretrotationinterval 
     value: 30
@@ -57,20 +61,20 @@ variables:
   - name: blobstorageaccountnames
     value: ${{ replace(lower(variables.prefix),'-','') }}${{ replace(lower(variables.environment),'-','') }}saraw, ${{ replace(lower(variables.prefix),'-','') }}${{ replace(lower(variables.environment),'-','') }}sacurated
   - name: datalakestorageaccountnames
-    value: ${{ replace(lower(variables.prefix),'-','') }}${{ replace(lower(variables.environment),'-','') }}adls
+    value: sa$(PREFIX)$(ENVIRONMENT)$(INCREMENT)
   # Container or file system names within storage account
   # Used to iterate in ARM template
   - name: logzonename
     value: databricks
   - name: zonenames
-    value: raw, stage, trusted, curated, synapsestaging
+    value: raw, trusted, cleansed, curated, synapsestaging
     # value: raw, stage, sandbox
   # Databricks workspace name for this enironment
   - name: DATABRICKSWORKSPACENAME #databricksworkspacename
-    value: $(PREFIX)-$(ENVIRONMENT)-ADBWS
+    value: dbw-$(PREFIX)-$(ENVIRONMENT)-$(INCREMENT)
   # Data Factory service name for this environment
   - name: datafactoryname
-    value: $(PREFIX)-$(ENVIRONMENT)-ADF
+    value: adf-$(PREFIX)-$(ENVIRONMENT)-$(INCREMENT)
   # Data Factory self hosted integrated runtime name
   - name: datafactoryshirname
     value: $(PREFIX)-SHIR
@@ -88,7 +92,7 @@ variables:
   # Databricks related
   # ------------------------------------------------
   - name: nsgname
-    value: $(PREFIX)-$(ENVIRONMENT)-NSG
+    value: nsg-$(PREFIX)-$(ENVIRONMENT)-$(INCREMENT)
   - name: nsgid
     value: 
   - name: vnetresourcegroupname
@@ -105,8 +109,6 @@ variables:
     value: snet-swcnonprod01-ae-daf-preprod-dbwpublic-01
   - name: customprivatesubnetname
     value: snet-swcnonprod01-ae-daf-preprod-dbwprivate-01
-  - name: DATABRICKSWORKSPACENAME #databricksworkspacename
-    value: $(PREFIX)-$(ENVIRONMENT)-ADBWS   
   - name: databrickspricingtier
     value: premium
   - name: databricksclustername
@@ -126,7 +128,7 @@ variables:
   # Synapse Analytics related
   # ------------------------------------------------
   - name: synapseworkspacename
-    value: $(PREFIX)-$(ENVIRONMENT)-synapse-workspace
+    value: synws-$(PREFIX)-$(ENVIRONMENT)-$(INCREMENT)
   - name: defaultDataLakeStorageAccountName
     value: $(DATALAKESTORAGEACCOUNTNAMES)        
   - name: defaultDataLakeStorageFilesystemName
@@ -134,5 +136,5 @@ variables:
   - name: synapsesqlAdministratorLogin
     value: sqladminuser
   - name: synapsesqlPoolName
-    value: sqlpool$(ENVIRONMENT)
+    value: syndw$(ENVIRONMENT)$(INCREMENT)
   #------------------------------------------------
