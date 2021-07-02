@@ -35,11 +35,11 @@ variables:
           Environment=Production \
           Owner=jackson.staub@insight.com
   # ------------------------------------------------
-  # Service names for environment..
+  # Service names for environment.
   # ------------------------------------------------
   # Name of Azure SQL Server and EDW Database
   - name: azuresqlservername
-    value: sql-$(PREFIX)-$(ENVIRONMENT)-$(INCREMENT)
+    value: sql-$(SUBSCRIPTION)-$(PREFIX)-$(ENVIRONMENT)-$(INCREMENT)
   - name: azureedwdbname
     value: EDW
   # Name of key vault for this environment.
@@ -61,7 +61,7 @@ variables:
   - name: blobstorageaccountnames
     value: ${{ replace(lower(variables.prefix),'-','') }}${{ replace(lower(variables.environment),'-','') }}saraw, ${{ replace(lower(variables.prefix),'-','') }}${{ replace(lower(variables.environment),'-','') }}sacurated
   - name: datalakestorageaccountnames
-    value: sa$(PREFIX)$(ENVIRONMENT)$(INCREMENT)
+    value: sa$(SUBSCRIPTION)$(PREFIX)$(ENVIRONMENT)$(INCREMENT)
   # Container or file system names within storage account
   # Used to iterate in ARM template
   - name: logzonename
@@ -71,10 +71,10 @@ variables:
     # value: raw, stage, sandbox
   # Databricks workspace name for this enironment
   - name: databricksworkspacename
-    value: dbw-$(PREFIX)-$(ENVIRONMENT)-$(INCREMENT)
+    value: dbw-$(SUBSCRIPTION)-$(PREFIX)-$(ENVIRONMENT)-$(INCREMENT)
   # Data Factory service name for this environment
   - name: datafactoryname
-    value: adf-$(PREFIX)-$(ENVIRONMENT)-$(INCREMENT)
+    value: adf-$(SUBSCRIPTION)-$(PREFIX)-$(ENVIRONMENT)-$(INCREMENT)
   # Data Factory self hosted integrated runtime name
   - name: datafactoryshirname
     value: $(PREFIX)-SHIR
@@ -92,7 +92,7 @@ variables:
   # Databricks related
   # ------------------------------------------------
   - name: nsgname
-    value: nsg-$(PREFIX)-$(ENVIRONMENT)-$(INCREMENT)
+    value: nsg-$(SUBSCRIPTION)-$(PREFIX)-$(ENVIRONMENT)-$(INCREMENT)
   - name: nsgid
     value: 
   - name: vnetresourcegroupname
@@ -128,7 +128,7 @@ variables:
   # Synapse Analytics related
   # ------------------------------------------------
   - name: synapseworkspacename
-    value: synws-$(PREFIX)-$(ENVIRONMENT)-$(INCREMENT)
+    value: synws-$(SUBSCRIPTION)-$(PREFIX)-$(ENVIRONMENT)-$(INCREMENT)
   - name: defaultDataLakeStorageAccountName
     value: $(DATALAKESTORAGEACCOUNTNAMES)        
   - name: defaultDataLakeStorageFilesystemName
