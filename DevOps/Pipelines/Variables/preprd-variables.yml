@@ -39,7 +39,7 @@ variables:
   # ------------------------------------------------
   # Name of Azure SQL Server and EDW Database
   - name: azuresqlservername
-    value: sql-$(SUBSCRIPTION)-$(PREFIX)-$(INCREMENT)
+    value: sql-$(PREFIX)-$(ENVIRONMENT)-$(INCREMENT)
   - name: azureedwdbname
     value: EDW
   # Name of key vault for this environment.
@@ -61,7 +61,7 @@ variables:
   - name: blobstorageaccountnames
     value: ${{ replace(lower(variables.prefix),'-','') }}${{ replace(lower(variables.environment),'-','') }}saraw, ${{ replace(lower(variables.prefix),'-','') }}${{ replace(lower(variables.environment),'-','') }}sacurated
   - name: datalakestorageaccountnames
-    value: sa$(SUBSCRIPTION)${{ replace(lower(variables.prefix),'-','') }}$(INCREMENT)
+    value: sa$(PREFIX)$(ENVIRONMENT)$(INCREMENT)
   # Container or file system names within storage account
   # Used to iterate in ARM template
   - name: logzonename
@@ -71,10 +71,10 @@ variables:
     # value: raw, stage, sandbox
   # Databricks workspace name for this enironment
   - name: DATABRICKSWORKSPACENAME #databricksworkspacename
-    value: dbw-$(SUBSCRIPTION)-$(PREFIX)-$(INCREMENT)
+    value: dbw-$(PREFIX)-$(ENVIRONMENT)-$(INCREMENT)
   # Data Factory service name for this environment
   - name: datafactoryname
-    value: $(PREFIX)-$(ENVIRONMENT)-ADF
+    value: adf-$(PREFIX)-$(ENVIRONMENT)-$(INCREMENT)
   # Data Factory self hosted integrated runtime name
   - name: datafactoryshirname
     value: $(PREFIX)-SHIR
@@ -92,7 +92,7 @@ variables:
   # Databricks related
   # ------------------------------------------------
   - name: nsgname
-    value: nsg-$(SUBSCRIPTION)-$(PREFIX)-$(INCREMENT)
+    value: nsg-$(PREFIX)-$(ENVIRONMENT)-$(INCREMENT)
   - name: nsgid
     value: 
   - name: vnetresourcegroupname
@@ -128,7 +128,7 @@ variables:
   # Synapse Analytics related
   # ------------------------------------------------
   - name: synapseworkspacename
-    value: synws-$(SUBSCRIPTION)-$(PREFIX)-$(INCREMENT)
+    value: synws-$(PREFIX)-$(ENVIRONMENT)-$(INCREMENT)
   - name: defaultDataLakeStorageAccountName
     value: $(DATALAKESTORAGEACCOUNTNAMES)        
   - name: defaultDataLakeStorageFilesystemName
@@ -136,5 +136,5 @@ variables:
   - name: synapsesqlAdministratorLogin
     value: sqladminuser
   - name: synapsesqlPoolName
-    value: syndw$(PREFIX)$(INCREMENT)
+    value: syndw$(ENVIRONMENT)$(INCREMENT)
   #------------------------------------------------
