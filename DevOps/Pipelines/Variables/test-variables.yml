@@ -4,7 +4,6 @@ variables:
     value: daf
   - name: increment
     value: 01
-  # Used in service naming
   - name: subscription
     value: swcnonprod01
   # The default resource group region name
