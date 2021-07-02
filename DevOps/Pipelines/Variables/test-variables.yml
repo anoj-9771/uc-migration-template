@@ -35,7 +35,7 @@ variables:
           Environment=Production \
           Owner=jackson.staub@insight.com
   # ------------------------------------------------
-  # Service names for environment..
+  # Service names for environment.
   # ------------------------------------------------
   # Name of Azure SQL Server and EDW Database
   - name: azuresqlservername
