@@ -61,7 +61,7 @@ variables:
   - name: blobstorageaccountnames
     value: ${{ replace(lower(variables.prefix),'-','') }}${{ replace(lower(variables.environment),'-','') }}saraw, ${{ replace(lower(variables.prefix),'-','') }}${{ replace(lower(variables.environment),'-','') }}sacurated
   - name: datalakestorageaccountnames
-    value: sa$(SUBSCRIPTION)$(PREFIX)$(ENVIRONMENT)$(INCREMENT)
+    value: sa$(PREFIX)$(ENVIRONMENT)$(INCREMENT)
   # Container or file system names within storage account
   # Used to iterate in ARM template
   - name: logzonename
