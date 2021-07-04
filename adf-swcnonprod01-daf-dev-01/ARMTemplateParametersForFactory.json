@@ -1,0 +1,55 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"value": "adf-swcnonprod01-daf-dev-01"
+		},
+		"LS_AzureBlobStorage_connectionString": {
+			"value": ""
+		},
+		"LS_AzureSynapseAnalytics_connectionString": {
+			"value": ""
+		},
+		"LS-AzureKeyVault_properties_typeProperties_baseUrl": {
+			"value": "https://swcdaf-dev-akv.vault.azure.net/"
+		},
+		"LS-AzureSqlDatabase_Ctrldb_properties_typeProperties_connectionString_secretName": {
+			"value": "@linkedService().kvSecret"
+		},
+		"LS_AzureDatalake_properties_typeProperties_url": {
+			"value": "https://swcdafdevadls.dfs.core.windows.net"
+		},
+		"LS_Oracle_properties_typeProperties_connectionString_secretName": {
+			"value": "@linkedService().kvSecret"
+		},
+		"DLY1300_properties_01-Main_parameters_TriggerName": {
+			"value": "DLY1300"
+		},
+		"Emrvisaf_properties_01-Main_parameters_TriggerName": {
+			"value": "Emrvisaf"
+		},
+		"mpe-azureblob-landing-dev_properties_privateLinkResourceId": {
+			"value": "/subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-daf-dev-01/providers/Microsoft.Storage/storageAccounts/saswcnonprod01landingdev"
+		},
+		"mpe-azureblob-landing-dev_properties_groupId": {
+			"value": "blob"
+		},
+		"mpe-azureblob-landing-dev_properties_fqdns": {
+			"value": [
+				"saswcnonprod01landingdev.blob.core.windows.net"
+			]
+		},
+		"mpe-swcdaf-datalake-dev_properties_privateLinkResourceId": {
+			"value": "/subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-daf-dev-01/providers/Microsoft.Storage/storageAccounts/swcdafdevadls"
+		},
+		"mpe-swcdaf-datalake-dev_properties_groupId": {
+			"value": "dfs"
+		},
+		"mpe-swcdaf-datalake-dev_properties_fqdns": {
+			"value": [
+				"swcdafdevadls.dfs.core.windows.net"
+			]
+		}
+	}
+}
