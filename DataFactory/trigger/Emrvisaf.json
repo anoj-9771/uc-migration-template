@@ -1,0 +1,27 @@
+{
+	"name": "Emrvisaf",
+	"properties": {
+		"annotations": [],
+		"runtimeState": "Stopped",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "01-Main",
+					"type": "PipelineReference"
+				},
+				"parameters": {
+					"TriggerName": "Emrvisaf"
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Minute",
+				"interval": 20,
+				"startTime": "2021-06-02T00:11:00",
+				"timeZone": "AUS Eastern Standard Time"
+			}
+		}
+	}
+}

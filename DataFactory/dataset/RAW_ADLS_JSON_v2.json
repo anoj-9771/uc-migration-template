@@ -1,46 +1,45 @@
 {
-	"name": "BINARY_ADLS",
+	"name": "RAW_ADLS_JSON_v2",
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "LS_AzureDatalake",
 			"type": "LinkedServiceReference",
 			"parameters": {
-				"kvSecret": "datalake-SasToken"
+				"kvSecret": "swcdafdevadls-sastoken"
 			}
 		},
 		"parameters": {
-			"File": {
+			"BlobPath": {
 				"type": "string"
 			},
-			"Container": {
-				"type": "string"
-			},
-			"Folder": {
+			"BlobName": {
 				"type": "string"
 			}
 		},
 		"folder": {
-			"name": "z_Archive"
+			"name": "Data Lake"
 		},
 		"annotations": [],
-		"type": "Binary",
+		"type": "Json",
 		"typeProperties": {
 			"location": {
 				"type": "AzureBlobFSLocation",
 				"fileName": {
-					"value": "@dataset().File",
+					"value": "@dataset().BlobName",
 					"type": "Expression"
 				},
 				"folderPath": {
-					"value": "@dataset().Folder",
+					"value": "@dataset().BlobPath",
 					"type": "Expression"
 				},
-				"fileSystem": {
-					"value": "@dataset().Container",
-					"type": "Expression"
-				}
+				"fileSystem": "raw"
+			},
+			"compression": {
+				"type": "gzip",
+				"level": "Optimal"
 			}
-		}
+		},
+		"schema": {}
 	},
 	"type": "Microsoft.DataFactory/factories/datasets"
 }

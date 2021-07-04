@@ -4,6 +4,7 @@
 		"activities": [
 			{
 				"name": "Get Load Tasks",
+				"description": "",
 				"type": "Lookup",
 				"dependsOn": [],
 				"policy": {
@@ -63,58 +64,6 @@
 					"isSequential": false,
 					"activities": [
 						{
-							"name": "Oracle Source Load",
-							"type": "IfCondition",
-							"dependsOn": [
-								{
-									"activity": "Generate Task Log",
-									"dependencyConditions": [
-										"Succeeded"
-									]
-								}
-							],
-							"userProperties": [],
-							"typeProperties": {
-								"expression": {
-									"value": "@and(equals(item().SourceType,'Oracle'), equals(item().ControlStageId,1))",
-									"type": "Expression"
-								},
-								"ifTrueActivities": [
-									{
-										"name": "Load Oracle Source Data",
-										"type": "ExecutePipeline",
-										"dependsOn": [],
-										"userProperties": [],
-										"typeProperties": {
-											"pipeline": {
-												"referenceName": "04-Oracle-A-Source Load",
-												"type": "PipelineReference"
-											},
-											"waitOnCompletion": true,
-											"parameters": {
-												"BatchLogId": {
-													"value": "@activity('Generate Batch Log').output.firstrow.BatchLogId",
-													"type": "Expression"
-												},
-												"TaskDetails": {
-													"value": "@item()",
-													"type": "Expression"
-												},
-												"TaskExecutionLogId": {
-													"value": "@activity('Generate Task Log').output.firstrow.TaskLogId",
-													"type": "Expression"
-												},
-												"ProjectRunID": {
-													"value": "@pipeline().parameters.ProjectRunID",
-													"type": "Expression"
-												}
-											}
-										}
-									}
-								]
-							}
-						},
-						{
 							"name": "Generate Task Log",
 							"type": "Lookup",
 							"dependsOn": [],
@@ -155,7 +104,163 @@
 							}
 						},
 						{
-							"name": "ProcessNotebooks-Trusted",
+							"name": "ProcessNotebook-Raw-to-Trusted",
+							"type": "IfCondition",
+							"dependsOn": [
+								{
+									"activity": "Generate Task Log",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"expression": {
+									"value": "@equals(item().ControlStageId,4)",
+									"type": "Expression"
+								},
+								"ifTrueActivities": [
+									{
+										"name": "EP-Raw-to-Trusted Databricks",
+										"type": "ExecutePipeline",
+										"dependsOn": [],
+										"userProperties": [],
+										"typeProperties": {
+											"pipeline": {
+												"referenceName": "05-DL-Load-Raw-to-Trusted",
+												"type": "PipelineReference"
+											},
+											"waitOnCompletion": true,
+											"parameters": {
+												"TaskDetails": {
+													"value": "@item()",
+													"type": "Expression"
+												},
+												"BatchLogId": {
+													"value": "@activity('Generate Batch Log').output.firstrow.BatchLogId\n",
+													"type": "Expression"
+												},
+												"TaskExecutionLogId": {
+													"value": "@activity('Generate Task Log').output.firstrow.TaskLogId\n",
+													"type": "Expression"
+												},
+												"ProjectRunID": {
+													"value": "@pipeline().parameters.ProjectRunID",
+													"type": "Expression"
+												}
+											}
+										}
+									}
+								]
+							}
+						},
+						{
+							"name": "ProcessNotebook-Trusted-to-Curated",
+							"type": "IfCondition",
+							"dependsOn": [
+								{
+									"activity": "Generate Task Log",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"expression": {
+									"value": "@equals(item().ControlStageId,6)",
+									"type": "Expression"
+								},
+								"ifTrueActivities": [
+									{
+										"name": "EP-Trusted-to-Curated-Databricks",
+										"type": "ExecutePipeline",
+										"dependsOn": [],
+										"userProperties": [],
+										"typeProperties": {
+											"pipeline": {
+												"referenceName": "05-DL-Load-Trusted-to-Curated",
+												"type": "PipelineReference"
+											},
+											"waitOnCompletion": true,
+											"parameters": {
+												"TaskDetails": {
+													"value": "@item()",
+													"type": "Expression"
+												},
+												"BatchLogId": {
+													"value": "@activity('Generate Batch Log').output.firstrow.BatchLogId",
+													"type": "Expression"
+												},
+												"TaskExecutionLogId": {
+													"value": "@activity('Generate Task Log').output.firstrow.TaskLogId",
+													"type": "Expression"
+												},
+												"ProjectRunID": {
+													"value": "@pipeline().parameters.ProjectRunID",
+													"type": "Expression"
+												}
+											}
+										}
+									}
+								]
+							}
+						},
+						{
+							"name": "Blob-to-Raw      Stage1",
+							"type": "IfCondition",
+							"dependsOn": [
+								{
+									"activity": "Generate Task Log",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"expression": {
+									"value": "@and(equals(item().SourceType,'BLOB Storage (json)'), equals(item().ControlStageId,1))",
+									"type": "Expression"
+								},
+								"ifTrueActivities": [
+									{
+										"name": "EP-Blob-to-Raw",
+										"type": "ExecutePipeline",
+										"dependsOn": [],
+										"userProperties": [],
+										"typeProperties": {
+											"pipeline": {
+												"referenceName": "04-Blob-A-Source-Copy_copy1",
+												"type": "PipelineReference"
+											},
+											"waitOnCompletion": true,
+											"parameters": {
+												"TaskDetails": {
+													"value": "@item()",
+													"type": "Expression"
+												},
+												"BatchLogId": {
+													"value": "@activity('Generate Batch Log').output.firstrow.BatchLogId",
+													"type": "Expression"
+												},
+												"TaskExecutionLogId": {
+													"value": "@activity('Generate Task Log').output.firstrow.TaskLogId",
+													"type": "Expression"
+												},
+												"ProjectRunID": {
+													"value": "@pipeline().parameters.ProjectRunID",
+													"type": "Expression"
+												}
+											}
+										}
+									}
+								]
+							}
+						},
+						{
+							"name": "Raw-to-Trusted  Stage2",
 							"type": "IfCondition",
 							"dependsOn": [
 								{
@@ -173,13 +278,13 @@
 								},
 								"ifTrueActivities": [
 									{
-										"name": "EP-Trusted Databricks",
+										"name": "EP-Raw-to-Trusted",
 										"type": "ExecutePipeline",
 										"dependsOn": [],
 										"userProperties": [],
 										"typeProperties": {
 											"pipeline": {
-												"referenceName": "05-DL-A-Load-Raw-to-Trusted-Zone",
+												"referenceName": "05-DL-Copy-Raw-to-Trusted",
 												"type": "PipelineReference"
 											},
 											"waitOnCompletion": true,
@@ -207,7 +312,7 @@
 							}
 						},
 						{
-							"name": "Load Data Warehouse",
+							"name": "Trusted-to-Curated Stage3",
 							"type": "IfCondition",
 							"dependsOn": [
 								{
@@ -220,62 +325,28 @@
 							"userProperties": [],
 							"typeProperties": {
 								"expression": {
-									"value": "@and(equals(item().SourceType,'SQL Server'),equals(item().ControlStageId,4))",
+									"value": "@equals(item().ControlStageId,3)",
 									"type": "Expression"
 								},
 								"ifTrueActivities": [
 									{
-										"name": "Execute Load Data Warehouse Pipeline",
+										"name": "EP-Trusted-to-Curated",
 										"type": "ExecutePipeline",
 										"dependsOn": [],
 										"userProperties": [],
 										"typeProperties": {
 											"pipeline": {
-												"referenceName": "Load Data Warehouse",
-												"type": "PipelineReference"
-											},
-											"waitOnCompletion": true
-										}
-									}
-								]
-							}
-						},
-						{
-							"name": "SQL Source Load",
-							"type": "IfCondition",
-							"dependsOn": [
-								{
-									"activity": "Generate Task Log",
-									"dependencyConditions": [
-										"Succeeded"
-									]
-								}
-							],
-							"userProperties": [],
-							"typeProperties": {
-								"expression": {
-									"value": "@and(equals(item().SourceType,'SQL Server'), equals(item().ControlStageId,1))",
-									"type": "Expression"
-								},
-								"ifTrueActivities": [
-									{
-										"name": "Execute SQL Source Load",
-										"type": "ExecutePipeline",
-										"dependsOn": [],
-										"userProperties": [],
-										"typeProperties": {
-											"pipeline": {
-												"referenceName": "04-SQLServer-A-Source Load",
+												"referenceName": "05-DL-Copy-Trusted-to-Curated",
 												"type": "PipelineReference"
 											},
 											"waitOnCompletion": true,
 											"parameters": {
-												"BatchLogId": {
-													"value": "@activity('Generate Batch Log').output.firstrow.BatchLogId",
-													"type": "Expression"
-												},
 												"TaskDetails": {
 													"value": "@item()",
+													"type": "Expression"
+												},
+												"BatchLogId": {
+													"value": "@activity('Generate Batch Log').output.firstrow.BatchLogId",
 													"type": "Expression"
 												},
 												"TaskExecutionLogId": {
@@ -293,7 +364,7 @@
 							}
 						},
 						{
-							"name": "Flat File Load",
+							"name": "ProcessNotebook",
 							"type": "IfCondition",
 							"dependsOn": [
 								{
@@ -306,70 +377,18 @@
 							"userProperties": [],
 							"typeProperties": {
 								"expression": {
-									"value": "@and(equals(item().SourceType,'Flat File'), equals(item().ControlStageId,1))",
+									"value": "@equals(item().ControlStageId,5)",
 									"type": "Expression"
 								},
 								"ifTrueActivities": [
 									{
-										"name": "Execute Flat File Load",
+										"name": "EP-Raw-to-Trusted Databricks_copy1",
 										"type": "ExecutePipeline",
 										"dependsOn": [],
 										"userProperties": [],
 										"typeProperties": {
 											"pipeline": {
-												"referenceName": "04-Text-Source-Load",
-												"type": "PipelineReference"
-											},
-											"waitOnCompletion": true,
-											"parameters": {
-												"BatchLogId": {
-													"value": "@activity('Generate Batch Log').output.firstrow.BatchLogId",
-													"type": "Expression"
-												},
-												"TaskDetails": {
-													"value": "@item()",
-													"type": "Expression"
-												},
-												"TaskExecutionLogId": {
-													"value": "@activity('Generate Task Log').output.firstrow.TaskLogId",
-													"type": "Expression"
-												},
-												"ProjectRunID": {
-													"value": "@pipeline().parameters.ProjectRunID",
-													"type": "Expression"
-												}
-											}
-										}
-									}
-								]
-							}
-						},
-						{
-							"name": "ProcessNotebooks-Curated",
-							"type": "IfCondition",
-							"dependsOn": [
-								{
-									"activity": "Generate Task Log",
-									"dependencyConditions": [
-										"Succeeded"
-									]
-								}
-							],
-							"userProperties": [],
-							"typeProperties": {
-								"expression": {
-									"value": "@equals(item().StageName,'Trusted to Curated')",
-									"type": "Expression"
-								},
-								"ifTrueActivities": [
-									{
-										"name": "Execute Databricks-Curated",
-										"type": "ExecutePipeline",
-										"dependsOn": [],
-										"userProperties": [],
-										"typeProperties": {
-											"pipeline": {
-												"referenceName": "06-Curated-Main",
+												"referenceName": "05-DL-Load-Raw-to-Trusted",
 												"type": "PipelineReference"
 											},
 											"waitOnCompletion": true,
@@ -378,657 +397,12 @@
 													"value": "@item()",
 													"type": "Expression"
 												},
-												"TaskExecutionLogId": {
-													"value": "@activity('Generate Task Log').output.firstrow.TaskLogId",
-													"type": "Expression"
-												},
 												"BatchLogId": {
-													"value": "@activity('Generate Batch Log').output.firstrow.BatchLogId",
-													"type": "Expression"
-												},
-												"ProjectRunID": {
-													"value": "@pipeline().parameters.ProjectRunID",
-													"type": "Expression"
-												}
-											}
-										}
-									}
-								]
-							}
-						},
-						{
-							"name": "Excel File Load",
-							"type": "IfCondition",
-							"dependsOn": [
-								{
-									"activity": "Generate Task Log",
-									"dependencyConditions": [
-										"Succeeded"
-									]
-								}
-							],
-							"userProperties": [],
-							"typeProperties": {
-								"expression": {
-									"value": "@and(equals(item().SourceType,'Excel'), equals(item().ControlStageId,1))",
-									"type": "Expression"
-								},
-								"ifTrueActivities": [
-									{
-										"name": "Execute Excel File Load",
-										"type": "ExecutePipeline",
-										"dependsOn": [],
-										"userProperties": [],
-										"typeProperties": {
-											"pipeline": {
-												"referenceName": "04-Excel-Source-Load",
-												"type": "PipelineReference"
-											},
-											"waitOnCompletion": true,
-											"parameters": {
-												"BatchLogId": {
-													"value": "@activity('Generate Batch Log').output.firstrow.BatchLogId",
-													"type": "Expression"
-												},
-												"TaskDetails": {
-													"value": "@item()",
+													"value": "@activity('Generate Batch Log').output.firstrow.BatchLogId\n",
 													"type": "Expression"
 												},
 												"TaskExecutionLogId": {
-													"value": "@activity('Generate Task Log').output.firstrow.TaskLogId",
-													"type": "Expression"
-												},
-												"ProjectRunID": {
-													"value": "@pipeline().parameters.ProjectRunID",
-													"type": "Expression"
-												}
-											}
-										}
-									}
-								]
-							}
-						},
-						{
-							"name": "ODataBasic API Load",
-							"type": "IfCondition",
-							"dependsOn": [
-								{
-									"activity": "Generate Task Log",
-									"dependencyConditions": [
-										"Succeeded"
-									]
-								}
-							],
-							"userProperties": [],
-							"typeProperties": {
-								"expression": {
-									"value": "@and(equals(item().SourceType,'OData-Basic'), equals(item().ControlStageId,1))",
-									"type": "Expression"
-								},
-								"ifTrueActivities": [
-									{
-										"name": "Execute ODataBasic API Load",
-										"type": "ExecutePipeline",
-										"dependsOn": [],
-										"userProperties": [],
-										"typeProperties": {
-											"pipeline": {
-												"referenceName": "04-ODataBasic-Source-Load",
-												"type": "PipelineReference"
-											},
-											"waitOnCompletion": true,
-											"parameters": {
-												"BatchLogId": {
-													"value": "@activity('Generate Batch Log').output.firstrow.BatchLogId",
-													"type": "Expression"
-												},
-												"TaskDetails": {
-													"value": "@item()",
-													"type": "Expression"
-												},
-												"TaskExecutionLogId": {
-													"value": "@activity('Generate Task Log').output.firstrow.TaskLogId",
-													"type": "Expression"
-												},
-												"ProjectRunID": {
-													"value": "@pipeline().parameters.ProjectRunID",
-													"type": "Expression"
-												}
-											}
-										}
-									}
-								]
-							}
-						},
-						{
-							"name": "ODataAADSP API Load",
-							"type": "IfCondition",
-							"dependsOn": [
-								{
-									"activity": "Generate Task Log",
-									"dependencyConditions": [
-										"Succeeded"
-									]
-								}
-							],
-							"userProperties": [],
-							"typeProperties": {
-								"expression": {
-									"value": "@and(equals(item().SourceType,'OData-AADServicePrincipal'), equals(item().ControlStageId,1))",
-									"type": "Expression"
-								},
-								"ifTrueActivities": [
-									{
-										"name": "Execute OData AADSP API Load",
-										"type": "ExecutePipeline",
-										"dependsOn": [],
-										"userProperties": [],
-										"typeProperties": {
-											"pipeline": {
-												"referenceName": "04-ODataAADSP-Source-Load",
-												"type": "PipelineReference"
-											},
-											"waitOnCompletion": true,
-											"parameters": {
-												"BatchLogId": {
-													"value": "@activity('Generate Batch Log').output.firstrow.BatchLogId",
-													"type": "Expression"
-												},
-												"TaskDetails": {
-													"value": "@item()",
-													"type": "Expression"
-												},
-												"TaskExecutionLogId": {
-													"value": "@activity('Generate Task Log').output.firstrow.TaskLogId",
-													"type": "Expression"
-												},
-												"ProjectRunID": {
-													"value": "@pipeline().parameters.ProjectRunID",
-													"type": "Expression"
-												}
-											}
-										}
-									}
-								]
-							}
-						},
-						{
-							"name": "SharePoint Load",
-							"type": "IfCondition",
-							"dependsOn": [
-								{
-									"activity": "Generate Task Log",
-									"dependencyConditions": [
-										"Succeeded"
-									]
-								}
-							],
-							"userProperties": [],
-							"typeProperties": {
-								"expression": {
-									"value": "@and(equals(item().SourceType,'SharePoint'), equals(item().ControlStageId,1))",
-									"type": "Expression"
-								},
-								"ifTrueActivities": [
-									{
-										"name": "Execute SharePoint API Load",
-										"type": "ExecutePipeline",
-										"dependsOn": [],
-										"userProperties": [],
-										"typeProperties": {
-											"pipeline": {
-												"referenceName": "04-SharePoint-Source-Load",
-												"type": "PipelineReference"
-											},
-											"waitOnCompletion": true,
-											"parameters": {
-												"BatchLogId": {
-													"value": "@activity('Generate Batch Log').output.firstrow.BatchLogId",
-													"type": "Expression"
-												},
-												"TaskDetails": {
-													"value": "@item()",
-													"type": "Expression"
-												},
-												"TaskExecutionLogId": {
-													"value": "@activity('Generate Task Log').output.firstrow.TaskLogId",
-													"type": "Expression"
-												},
-												"ProjectRunID": {
-													"value": "@pipeline().parameters.ProjectRunID",
-													"type": "Expression"
-												}
-											}
-										}
-									}
-								]
-							}
-						},
-						{
-							"name": "API-TAFE Source Load",
-							"type": "IfCondition",
-							"dependsOn": [
-								{
-									"activity": "Generate Task Log",
-									"dependencyConditions": [
-										"Succeeded"
-									]
-								}
-							],
-							"userProperties": [],
-							"typeProperties": {
-								"expression": {
-									"value": "@and(equals(item().SourceType,'API-TAFE'), equals(item().ControlStageId,1))",
-									"type": "Expression"
-								},
-								"ifTrueActivities": [
-									{
-										"name": "Load API TAFE Source Data",
-										"type": "ExecutePipeline",
-										"dependsOn": [],
-										"userProperties": [],
-										"typeProperties": {
-											"pipeline": {
-												"referenceName": "04-REST-IRTAFE-Source-Load",
-												"type": "PipelineReference"
-											},
-											"waitOnCompletion": true,
-											"parameters": {
-												"BatchLogId": {
-													"value": "@activity('Generate Batch Log').output.firstrow.BatchLogId",
-													"type": "Expression"
-												},
-												"TaskDetails": {
-													"value": "@item()",
-													"type": "Expression"
-												},
-												"TaskExecutionLogId": {
-													"value": "@activity('Generate Task Log').output.firstrow.TaskLogId",
-													"type": "Expression"
-												},
-												"ProjectRunID": {
-													"value": "@pipeline().parameters.ProjectRunID",
-													"type": "Expression"
-												}
-											}
-										}
-									}
-								]
-							}
-						},
-						{
-							"name": "SQLEDW Export",
-							"type": "IfCondition",
-							"dependsOn": [
-								{
-									"activity": "Generate Task Log",
-									"dependencyConditions": [
-										"Succeeded"
-									]
-								}
-							],
-							"userProperties": [],
-							"typeProperties": {
-								"expression": {
-									"value": "@and(equals(item().TargetType,'SQL Server'), equals(item().ControlStageId,5))",
-									"type": "Expression"
-								},
-								"ifTrueActivities": [
-									{
-										"name": "Load SQLEDW Export SQLServer",
-										"type": "ExecutePipeline",
-										"dependsOn": [],
-										"userProperties": [],
-										"typeProperties": {
-											"pipeline": {
-												"referenceName": "08-EXPORT-SQLServer",
-												"type": "PipelineReference"
-											},
-											"waitOnCompletion": true,
-											"parameters": {
-												"BatchLogId": {
-													"value": "@activity('Generate Batch Log').output.firstrow.BatchLogId",
-													"type": "Expression"
-												},
-												"TaskDetails": {
-													"value": "@item()",
-													"type": "Expression"
-												},
-												"TaskExecutionLogId": {
-													"value": "@activity('Generate Task Log').output.firstrow.TaskLogId",
-													"type": "Expression"
-												},
-												"ProjectRunID": {
-													"value": "@pipeline().parameters.ProjectRunID",
-													"type": "Expression"
-												}
-											}
-										}
-									}
-								]
-							}
-						},
-						{
-							"name": "ProcessCubes",
-							"type": "IfCondition",
-							"dependsOn": [
-								{
-									"activity": "Generate Task Log",
-									"dependencyConditions": [
-										"Succeeded"
-									]
-								}
-							],
-							"userProperties": [],
-							"typeProperties": {
-								"expression": {
-									"value": "@equals(item().StageName,'Cubes')\n",
-									"type": "Expression"
-								},
-								"ifTrueActivities": [
-									{
-										"name": "Execute Process AAS Cubes",
-										"type": "ExecutePipeline",
-										"dependsOn": [],
-										"userProperties": [],
-										"typeProperties": {
-											"pipeline": {
-												"referenceName": "07-AAS-Main",
-												"type": "PipelineReference"
-											},
-											"waitOnCompletion": true,
-											"parameters": {
-												"BatchLogId": {
-													"value": "@activity('Generate Batch Log').output.firstrow.BatchLogId",
-													"type": "Expression"
-												},
-												"TaskDetails": {
-													"value": "@item()",
-													"type": "Expression"
-												},
-												"TaskExecutionLogId": {
-													"value": "@activity('Generate Task Log').output.firstrow.TaskLogId",
-													"type": "Expression"
-												},
-												"ProjectRunID": {
-													"value": "@pipeline().parameters.ProjectRunID",
-													"type": "Expression"
-												}
-											}
-										}
-									}
-								]
-							}
-						},
-						{
-							"name": "MySQL Source Load",
-							"type": "IfCondition",
-							"dependsOn": [
-								{
-									"activity": "Generate Task Log",
-									"dependencyConditions": [
-										"Succeeded"
-									]
-								}
-							],
-							"userProperties": [],
-							"typeProperties": {
-								"expression": {
-									"value": "@and(equals(item().SourceType,'MySQL'), equals(item().ControlStageId,1))",
-									"type": "Expression"
-								},
-								"ifTrueActivities": [
-									{
-										"name": "Execute MySQL Source Load",
-										"type": "ExecutePipeline",
-										"dependsOn": [],
-										"userProperties": [],
-										"typeProperties": {
-											"pipeline": {
-												"referenceName": "04-MySQL-A-Source Load",
-												"type": "PipelineReference"
-											},
-											"waitOnCompletion": true,
-											"parameters": {
-												"BatchLogId": {
-													"value": "@activity('Generate Batch Log').output.firstrow.BatchLogId",
-													"type": "Expression"
-												},
-												"TaskDetails": {
-													"value": "@item()",
-													"type": "Expression"
-												},
-												"TaskExecutionLogId": {
-													"value": "@activity('Generate Task Log').output.firstrow.TaskLogId",
-													"type": "Expression"
-												},
-												"ProjectRunID": {
-													"value": "@pipeline().parameters.ProjectRunID",
-													"type": "Expression"
-												}
-											}
-										}
-									}
-								]
-							}
-						},
-						{
-							"name": "Validation",
-							"type": "IfCondition",
-							"dependsOn": [
-								{
-									"activity": "Generate Task Log",
-									"dependencyConditions": [
-										"Succeeded"
-									]
-								}
-							],
-							"userProperties": [],
-							"typeProperties": {
-								"expression": {
-									"value": "@equals(item().StageName,'Validation')",
-									"type": "Expression"
-								},
-								"ifTrueActivities": [
-									{
-										"name": "Execute Validation",
-										"type": "ExecutePipeline",
-										"dependsOn": [],
-										"userProperties": [],
-										"typeProperties": {
-											"pipeline": {
-												"referenceName": "recon-target-main",
-												"type": "PipelineReference"
-											},
-											"waitOnCompletion": true,
-											"parameters": {
-												"ProjectID": {
-													"value": "@pipeline().parameters.ProjectId",
-													"type": "Expression"
-												},
-												"ProjectRunID": {
-													"value": "@pipeline().parameters.ProjectRunID",
-													"type": "Expression"
-												}
-											}
-										}
-									},
-									{
-										"name": "Task Log Failure-Validation",
-										"type": "SqlServerStoredProcedure",
-										"dependsOn": [
-											{
-												"activity": "Execute Validation",
-												"dependencyConditions": [
-													"Failed"
-												]
-											}
-										],
-										"policy": {
-											"timeout": "7.00:00:00",
-											"retry": 0,
-											"retryIntervalInSeconds": 30,
-											"secureOutput": false,
-											"secureInput": false
-										},
-										"userProperties": [],
-										"typeProperties": {
-											"storedProcedureName": "[CTL].[UpdateTaskLog]",
-											"storedProcedureParameters": {
-												"BatchLogId": {
-													"value": {
-														"value": "@activity('Generate Batch Log').output.firstrow.BatchLogId",
-														"type": "Expression"
-													},
-													"type": "Int64"
-												},
-												"ErrorMessage": {
-													"value": {
-														"value": "An Error Occurred",
-														"type": "Expression"
-													},
-													"type": "String"
-												},
-												"ExecutionLogId": {
-													"value": {
-														"value": "@activity('Generate Task Log').output.firstrow.TaskLogId",
-														"type": "Expression"
-													},
-													"type": "Int64"
-												},
-												"Status": {
-													"value": "Failure",
-													"type": "String"
-												},
-												"TaskId": {
-													"value": {
-														"value": "@item().TaskId",
-														"type": "Expression"
-													},
-													"type": "Int64"
-												},
-												"Output": {
-													"value": null,
-													"type": "String"
-												}
-											}
-										},
-										"linkedServiceName": {
-											"referenceName": "LS-AzureSqlDatabase_Ctrldb",
-											"type": "LinkedServiceReference",
-											"parameters": {
-												"kvSecret": "AzureSqlDatabase-ControlDB"
-											}
-										}
-									},
-									{
-										"name": "Log Success",
-										"type": "SqlServerStoredProcedure",
-										"dependsOn": [
-											{
-												"activity": "Execute Validation",
-												"dependencyConditions": [
-													"Succeeded"
-												]
-											}
-										],
-										"policy": {
-											"timeout": "7.00:00:00",
-											"retry": 0,
-											"retryIntervalInSeconds": 30,
-											"secureOutput": false,
-											"secureInput": false
-										},
-										"userProperties": [],
-										"typeProperties": {
-											"storedProcedureName": "[CTL].[UpdateTaskLog]",
-											"storedProcedureParameters": {
-												"BatchLogId": {
-													"value": {
-														"value": "@activity('Generate Batch Log').output.firstrow.BatchLogId",
-														"type": "Expression"
-													},
-													"type": "Int64"
-												},
-												"ErrorMessage": {
-													"value": null,
-													"type": "String"
-												},
-												"ExecutionLogId": {
-													"value": {
-														"value": "@activity('Generate Task Log').output.firstrow.TaskLogId",
-														"type": "Expression"
-													},
-													"type": "Int64"
-												},
-												"Output": {
-													"value": "Validation Complete",
-													"type": "String"
-												},
-												"Status": {
-													"value": "Success",
-													"type": "String"
-												},
-												"TaskId": {
-													"value": {
-														"value": "@item().TaskId",
-														"type": "Expression"
-													},
-													"type": "Int64"
-												}
-											}
-										},
-										"linkedServiceName": {
-											"referenceName": "LS-AzureSqlDatabase_Ctrldb",
-											"type": "LinkedServiceReference",
-											"parameters": {
-												"kvSecret": "AzureSqlDatabase-ControlDB"
-											}
-										}
-									}
-								]
-							}
-						},
-						{
-							"name": "EDW-SP",
-							"type": "IfCondition",
-							"dependsOn": [
-								{
-									"activity": "Generate Task Log",
-									"dependencyConditions": [
-										"Succeeded"
-									]
-								}
-							],
-							"userProperties": [],
-							"typeProperties": {
-								"expression": {
-									"value": "@equals(item().StageName,'EDW-SP')",
-									"type": "Expression"
-								},
-								"ifTrueActivities": [
-									{
-										"name": "EP-EDW-SP",
-										"type": "ExecutePipeline",
-										"dependsOn": [],
-										"userProperties": [],
-										"typeProperties": {
-											"pipeline": {
-												"referenceName": "06-Curated-EDWSP",
-												"type": "PipelineReference"
-											},
-											"waitOnCompletion": true,
-											"parameters": {
-												"TaskDetails": {
-													"value": "@item()",
-													"type": "Expression"
-												},
-												"TaskExecutionLogId": {
-													"value": "@activity('Generate Task Log').output.firstrow.TaskLogId",
-													"type": "Expression"
-												},
-												"BatchLogId": {
-													"value": "@activity('Generate Batch Log').output.firstrow.BatchLogId",
+													"value": "@activity('Generate Task Log').output.firstrow.TaskLogId\n",
 													"type": "Expression"
 												},
 												"ProjectRunID": {
@@ -1087,7 +461,7 @@
 					"referenceName": "LS-AzureSqlDatabase_Ctrldb",
 					"type": "LinkedServiceReference",
 					"parameters": {
-						"kvSecret": "AzureSqlDatabase-ControlDB"
+						"kvSecret": "swcdaf-connectionstring-controldb"
 					}
 				}
 			},
@@ -1134,7 +508,7 @@
 					"referenceName": "LS-AzureSqlDatabase_Ctrldb",
 					"type": "LinkedServiceReference",
 					"parameters": {
-						"kvSecret": "AzureSqlDatabase-ControlDB"
+						"kvSecret": "swcdaf-connectionstring-controldb"
 					}
 				}
 			},
@@ -1190,7 +564,8 @@
 				"type": "string"
 			}
 		},
-		"annotations": []
+		"annotations": [],
+		"lastPublishTime": "2021-06-30T02:11:41Z"
 	},
 	"type": "Microsoft.DataFactory/factories/pipelines"
 }

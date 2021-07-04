@@ -1,0 +1,113 @@
+{
+	"name": "Testting_Raw_to_Trusted",
+	"properties": {
+		"activities": [
+			{
+				"name": "Copy data1",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "JsonSource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": true,
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "JsonReadSettings"
+						}
+					},
+					"sink": {
+						"type": "JsonSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "JsonWriteSettings"
+						}
+					},
+					"enableStaging": false
+				},
+				"inputs": [
+					{
+						"referenceName": "RAW_ADLS_JSON",
+						"type": "DatasetReference",
+						"parameters": {
+							"LakeContainer": {
+								"value": "@pipeline().parameters.TaskDetails.SourceLocation",
+								"type": "Expression"
+							},
+							"LakeDirectory": {
+								"value": "@pipeline().parameters.TaskDetails.SourceName",
+								"type": "Expression"
+							},
+							"LakeFileName": {
+								"value": "@variables('TargetFolder')",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "DST_Curated_JSON",
+						"type": "DatasetReference",
+						"parameters": {
+							"Folder": "test",
+							"Filename": "0BPARTNER_ATTR_20210615111640.json"
+						}
+					}
+				]
+			}
+		],
+		"parameters": {
+			"TaskDetails": {
+				"type": "object"
+			},
+			"BatchLogId": {
+				"type": "int"
+			},
+			"TaskExecutionLogId": {
+				"type": "int"
+			},
+			"ProjectRunID": {
+				"type": "string"
+			}
+		},
+		"variables": {
+			"ReturnValue": {
+				"type": "String"
+			},
+			"ClusterType": {
+				"type": "String"
+			},
+			"SourceFolder": {
+				"type": "String"
+			},
+			"SourceBlob": {
+				"type": "String"
+			},
+			"TargetFolder": {
+				"type": "String"
+			},
+			"TargetBlob": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "z_Archive"
+		},
+		"annotations": [],
+		"lastPublishTime": "2021-06-22T11:30:26Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

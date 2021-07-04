@@ -6,7 +6,7 @@
 		"parameters": {
 			"kvSecret": {
 				"type": "string",
-				"defaultValue": "AzureSqlDatabase-ControlDB"
+				"defaultValue": "ADF-LS-AzureSql-ControlDB"
 			}
 		},
 		"annotations": [],

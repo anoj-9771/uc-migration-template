@@ -1,28 +1,25 @@
 {
 	"name": "LS-AzureDatabricks_JobCluster",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
 	"properties": {
 		"parameters": {
 			"kvSecret": {
-				"type": "String",
-				"defaultValue": "databricks-token"
+				"type": "String"
 			},
 			"DataBricksClusterType": {
-				"type": "String",
-				"defaultValue": "Standard_DS3_v2"
+				"type": "String"
 			},
 			"DataBricksClusterVersion": {
-				"type": "String",
-				"defaultValue": "8.1.x-scala2.12"
+				"type": "String"
 			},
 			"DataBricksWorkerNodes": {
-				"type": "String",
-				"defaultValue": "2:8"
+				"type": "String"
 			}
 		},
 		"annotations": [],
 		"type": "AzureDatabricks",
 		"typeProperties": {
-			"domain": "https://eastus.azuredatabricks.net",
+			"domain": "https://australiaeast.azuredatabricks.net",
 			"accessToken": {
 				"type": "AzureKeyVaultSecret",
 				"store": {
@@ -36,15 +33,11 @@
 			},
 			"newClusterNodeType": "@linkedService().DataBricksClusterType",
 			"newClusterNumOfWorker": "@linkedService().DataBricksWorkerNodes",
-			"newClusterSparkConf": {
-				"spark.driver.maxResultSize": "16g"
-			},
 			"newClusterSparkEnvVars": {
 				"PYSPARK_PYTHON": "/databricks/python3/bin/python3"
 			},
 			"newClusterVersion": "@linkedService().DataBricksClusterVersion",
 			"newClusterInitScripts": []
 		}
-	},
-	"type": "Microsoft.DataFactory/factories/linkedservices"
+	}
 }

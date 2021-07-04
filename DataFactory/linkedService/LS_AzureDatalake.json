@@ -1,17 +1,18 @@
 {
-	"name": "LS_Oracle",
+	"name": "LS_AzureDatalake",
 	"type": "Microsoft.DataFactory/factories/linkedservices",
 	"properties": {
 		"parameters": {
 			"kvSecret": {
 				"type": "string",
-				"defaultValue": "OracleDB-PAS"
+				"defaultValue": "swcdafdevadls-sastoken"
 			}
 		},
 		"annotations": [],
-		"type": "Oracle",
+		"type": "AzureBlobFS",
 		"typeProperties": {
-			"connectionString": {
+			"url": "https://swcdafdevadls.dfs.core.windows.net",
+			"accountKey": {
 				"type": "AzureKeyVaultSecret",
 				"store": {
 					"referenceName": "LS-AzureKeyVault",
