@@ -76,11 +76,17 @@
 					"LS_AzureDatalake_accountKey": {
 						"value": "[parameters('LS_AzureDatalake_accountKey')]"
 					},
+					"LS_AzureSynapseAnalytics_connectionString": {
+						"value": "[parameters('LS_AzureSynapseAnalytics_connectionString')]"
+					},
 					"LS-AzureKeyVault_properties_typeProperties_baseUrl": {
 						"value": "[parameters('LS-AzureKeyVault_properties_typeProperties_baseUrl')]"
 					},
 					"LS_AzureDatalake_properties_typeProperties_url": {
 						"value": "[parameters('LS_AzureDatalake_properties_typeProperties_url')]"
+					},
+					"LS_Oracle_properties_typeProperties_connectionString_secretName": {
+						"value": "[parameters('LS_Oracle_properties_typeProperties_connectionString_secretName')]"
 					}
 				}
 			},
@@ -99,12 +105,6 @@
 				"parameters": {
 					"factoryName": {
 						"value": "[parameters('factoryName')]"
-					},
-					"LS_AzureSynapseAnalytics_connectionString": {
-						"value": "[parameters('LS_AzureSynapseAnalytics_connectionString')]"
-					},
-					"LS_Oracle_properties_typeProperties_connectionString_secretName": {
-						"value": "[parameters('LS_Oracle_properties_typeProperties_connectionString_secretName')]"
 					},
 					"LS-AzureSqlDatabase_Ctrldb_properties_typeProperties_connectionString_secretName": {
 						"value": "[parameters('LS-AzureSqlDatabase_Ctrldb_properties_typeProperties_connectionString_secretName')]"

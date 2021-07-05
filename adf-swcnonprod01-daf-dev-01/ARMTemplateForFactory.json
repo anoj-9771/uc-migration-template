@@ -5854,14 +5854,14 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/Testting_Raw_to_Trusted')]",
+			"name": "[concat(parameters('factoryName'), '/pipeline1')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
 			"apiVersion": "2018-06-01",
 			"properties": {
 				"activities": [
 					{
-						"name": "Copy data1",
-						"type": "Copy",
+						"name": "Get Metadata1",
+						"type": "GetMetadata",
 						"dependsOn": [],
 						"policy": {
 							"timeout": "7.00:00:00",
@@ -5872,103 +5872,32 @@
 						},
 						"userProperties": [],
 						"typeProperties": {
-							"source": {
-								"type": "JsonSource",
-								"storeSettings": {
-									"type": "AzureBlobFSReadSettings",
-									"recursive": true,
-									"enablePartitionDiscovery": false
-								},
-								"formatSettings": {
-									"type": "JsonReadSettings"
-								}
-							},
-							"sink": {
-								"type": "JsonSink",
-								"storeSettings": {
-									"type": "AzureBlobFSWriteSettings"
-								},
-								"formatSettings": {
-									"type": "JsonWriteSettings"
-								}
-							},
-							"enableStaging": false
-						},
-						"inputs": [
-							{
-								"referenceName": "RAW_ADLS_JSON",
+							"dataset": {
+								"referenceName": "SRC_BLOB_JSON_copy1",
 								"type": "DatasetReference",
-								"parameters": {
-									"LakeContainer": {
-										"value": "@pipeline().parameters.TaskDetails.SourceLocation",
-										"type": "Expression"
-									},
-									"LakeDirectory": {
-										"value": "@pipeline().parameters.TaskDetails.SourceName",
-										"type": "Expression"
-									},
-									"LakeFileName": {
-										"value": "@variables('TargetFolder')",
-										"type": "Expression"
-									}
-								}
+								"parameters": {}
+							},
+							"fieldList": [
+								"childItems"
+							],
+							"storeSettings": {
+								"type": "AzureBlobStorageReadSettings",
+								"recursive": true,
+								"enablePartitionDiscovery": false
+							},
+							"formatSettings": {
+								"type": "JsonReadSettings"
 							}
-						],
-						"outputs": [
-							{
-								"referenceName": "DST_Curated_JSON",
-								"type": "DatasetReference",
-								"parameters": {
-									"Folder": "test",
-									"Filename": "0BPARTNER_ATTR_20210615111640.json"
-								}
-							}
-						]
+						}
 					}
 				],
-				"parameters": {
-					"TaskDetails": {
-						"type": "object"
-					},
-					"BatchLogId": {
-						"type": "int"
-					},
-					"TaskExecutionLogId": {
-						"type": "int"
-					},
-					"ProjectRunID": {
-						"type": "string"
-					}
-				},
-				"variables": {
-					"ReturnValue": {
-						"type": "String"
-					},
-					"ClusterType": {
-						"type": "String"
-					},
-					"SourceFolder": {
-						"type": "String"
-					},
-					"SourceBlob": {
-						"type": "String"
-					},
-					"TargetFolder": {
-						"type": "String"
-					},
-					"TargetBlob": {
-						"type": "String"
-					}
-				},
 				"folder": {
-					"name": "z_Archive"
+					"name": "Blob"
 				},
-				"annotations": [],
-				"lastPublishTime": "2021-06-22T11:30:26Z"
+				"annotations": []
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/RAW_ADLS_JSON')]",
-				"[concat(variables('factoryId'), '/datasets/DST_Curated_JSON')]"
+				"[concat(variables('factoryId'), '/datasets/SRC_BLOB_JSON_copy1')]"
 			]
 		},
 		{
@@ -6075,103 +6004,6 @@
 						}
 					}
 				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/LS_AzureDatalake')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/CURATED_ADLS_JSON')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "LS_AzureDatalake",
-					"type": "LinkedServiceReference",
-					"parameters": {
-						"kvSecret": "swcdafdevadls-sastoken"
-					}
-				},
-				"parameters": {
-					"LakeContainer": {
-						"type": "string",
-						"defaultValue": "curated"
-					},
-					"LakeDirectory": {
-						"type": "string"
-					},
-					"LakeFileName": {
-						"type": "string"
-					}
-				},
-				"folder": {
-					"name": "z_Archive"
-				},
-				"annotations": [],
-				"type": "Json",
-				"typeProperties": {
-					"location": {
-						"type": "AzureBlobFSLocation",
-						"fileName": {
-							"value": "@dataset().LakeFileName",
-							"type": "Expression"
-						},
-						"folderPath": {
-							"value": "@dataset().LakeDirectory",
-							"type": "Expression"
-						},
-						"fileSystem": {
-							"value": "@dataset().LakeContainer",
-							"type": "Expression"
-						}
-					}
-				},
-				"schema": {}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/LS_AzureDatalake')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/DST_Curated_JSON')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "LS_AzureDatalake",
-					"type": "LinkedServiceReference",
-					"parameters": {
-						"kvSecret": "swcdafdevadls-sastoken"
-					}
-				},
-				"parameters": {
-					"Folder": {
-						"type": "string"
-					},
-					"Filename": {
-						"type": "string"
-					}
-				},
-				"folder": {
-					"name": "z_Archive"
-				},
-				"annotations": [],
-				"type": "Json",
-				"typeProperties": {
-					"location": {
-						"type": "AzureBlobFSLocation",
-						"fileName": {
-							"value": "@dataset().Filename",
-							"type": "Expression"
-						},
-						"folderPath": {
-							"value": "@dataset().Folder",
-							"type": "Expression"
-						},
-						"fileSystem": "curated"
-					}
-				},
-				"schema": {}
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/LS_AzureDatalake')]"
@@ -6855,7 +6687,7 @@
 					}
 				},
 				"folder": {
-					"name": "Source - Blob"
+					"name": "z_Archive"
 				},
 				"annotations": [],
 				"type": "Json",
