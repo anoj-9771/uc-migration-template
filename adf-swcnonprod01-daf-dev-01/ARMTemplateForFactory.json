@@ -15,6 +15,10 @@
 			"type": "secureString",
 			"metadata": "Secure string for 'connectionString' of 'LS_AzureBlobStorage'"
 		},
+		"LS_AzureDatalake_accountKey": {
+			"type": "secureString",
+			"metadata": "Secure string for 'accountKey' of 'LS_AzureDatalake'"
+		},
 		"LS_Oracle_properties_typeProperties_connectionString_secretName": {
 			"type": "string",
 			"defaultValue": "@linkedService().kvSecret"
@@ -29,7 +33,7 @@
 		},
 		"LS_AzureDatalake_properties_typeProperties_url": {
 			"type": "string",
-			"defaultValue": "https://swcdafdevadls.dfs.core.windows.net"
+			"defaultValue": "https://sadafdev01.dfs.core.windows.net"
 		},
 		"DLY1300_properties_01-Main_parameters_TriggerName": {
 			"type": "string",
@@ -7087,13 +7091,13 @@
 					},
 					"clusterId": {
 						"type": "string",
-						"defaultValue": "0628-234357-forts274"
+						"defaultValue": "0704-231544-bugs938"
 					}
 				},
 				"annotations": [],
 				"type": "AzureDatabricks",
 				"typeProperties": {
-					"domain": "https://adb-407809886081934.14.azuredatabricks.net",
+					"domain": "https://adb-6510910994889.9.azuredatabricks.net/",
 					"accessToken": {
 						"type": "AzureKeyVaultSecret",
 						"store": {
@@ -7145,7 +7149,8 @@
 						"secretName": {
 							"value": "@linkedService().kvSecret",
 							"type": "Expression"
-						}
+						},
+						"secretVersion": "synapseadmin"
 					},
 					"newClusterNodeType": "@linkedService().DataBricksClusterType",
 					"newClusterNumOfWorker": "@linkedService().DataBricksWorkerNodes",
@@ -7213,7 +7218,7 @@
 				"parameters": {
 					"kvSecret": {
 						"type": "string",
-						"defaultValue": "swcdafdevadls-sastoken"
+						"defaultValue": "sadafdev01-raw-sastoken"
 					}
 				},
 				"annotations": [],
@@ -7221,21 +7226,12 @@
 				"typeProperties": {
 					"url": "[parameters('LS_AzureDatalake_properties_typeProperties_url')]",
 					"accountKey": {
-						"type": "AzureKeyVaultSecret",
-						"store": {
-							"referenceName": "LS-AzureKeyVault",
-							"type": "LinkedServiceReference"
-						},
-						"secretName": {
-							"value": "@linkedService().kvSecret",
-							"type": "Expression"
-						}
+						"type": "SecureString",
+						"value": "[parameters('LS_AzureDatalake_accountKey')]"
 					}
 				}
 			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/LS-AzureKeyVault')]"
-			]
+			"dependsOn": []
 		},
 		{
 			"name": "[concat(parameters('factoryName'), '/DLY1300')]",

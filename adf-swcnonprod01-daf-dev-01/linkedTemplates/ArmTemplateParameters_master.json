@@ -11,6 +11,9 @@
 		"LS_AzureBlobStorage_connectionString": {
 			"value": ""
 		},
+		"LS_AzureDatalake_accountKey": {
+			"value": ""
+		},
 		"LS_Oracle_properties_typeProperties_connectionString_secretName": {
 			"value": "@linkedService().kvSecret"
 		},
@@ -21,7 +24,7 @@
 			"value": "@linkedService().kvSecret"
 		},
 		"LS_AzureDatalake_properties_typeProperties_url": {
-			"value": "https://swcdafdevadls.dfs.core.windows.net"
+			"value": "https://sadafdev01.dfs.core.windows.net"
 		},
 		"DLY1300_properties_01-Main_parameters_TriggerName": {
 			"value": "DLY1300"
