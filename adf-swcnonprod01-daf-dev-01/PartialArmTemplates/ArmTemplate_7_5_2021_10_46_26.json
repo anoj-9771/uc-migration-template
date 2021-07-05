@@ -6,66 +6,6 @@
 			"type": "string",
 			"metadata": "Data Factory name",
 			"defaultValue": "adf-swcnonprod01-daf-dev-01"
-		},
-		"LS_AzureSynapseAnalytics_connectionString": {
-			"type": "secureString",
-			"metadata": "Secure string for 'connectionString' of 'LS_AzureSynapseAnalytics'"
-		},
-		"LS_AzureBlobStorage_connectionString": {
-			"type": "secureString",
-			"metadata": "Secure string for 'connectionString' of 'LS_AzureBlobStorage'"
-		},
-		"LS_Oracle_properties_typeProperties_connectionString_secretName": {
-			"type": "string",
-			"defaultValue": "@linkedService().kvSecret"
-		},
-		"LS-AzureKeyVault_properties_typeProperties_baseUrl": {
-			"type": "string",
-			"defaultValue": "https://kv-daf-dev-01.vault.azure.net/"
-		},
-		"LS-AzureSqlDatabase_Ctrldb_properties_typeProperties_connectionString_secretName": {
-			"type": "string",
-			"defaultValue": "@linkedService().kvSecret"
-		},
-		"LS_AzureDatalake_properties_typeProperties_url": {
-			"type": "string",
-			"defaultValue": "https://swcdafdevadls.dfs.core.windows.net"
-		},
-		"DLY1300_properties_01-Main_parameters_TriggerName": {
-			"type": "string",
-			"defaultValue": "DLY1300"
-		},
-		"Emrvisaf_properties_01-Main_parameters_TriggerName": {
-			"type": "string",
-			"defaultValue": "Emrvisaf"
-		},
-		"mpe-azureblob-landing-dev_properties_privateLinkResourceId": {
-			"type": "string",
-			"defaultValue": "/subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-daf-dev-01/providers/Microsoft.Storage/storageAccounts/saswcnonprod01landingdev"
-		},
-		"mpe-azureblob-landing-dev_properties_groupId": {
-			"type": "string",
-			"defaultValue": "blob"
-		},
-		"mpe-azureblob-landing-dev_properties_fqdns": {
-			"type": "array",
-			"defaultValue": [
-				"saswcnonprod01landingdev.blob.core.windows.net"
-			]
-		},
-		"mpe-swcdaf-datalake-dev_properties_privateLinkResourceId": {
-			"type": "string",
-			"defaultValue": "/subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-daf-dev-01/providers/Microsoft.Storage/storageAccounts/swcdafdevadls"
-		},
-		"mpe-swcdaf-datalake-dev_properties_groupId": {
-			"type": "string",
-			"defaultValue": "dfs"
-		},
-		"mpe-swcdaf-datalake-dev_properties_fqdns": {
-			"type": "array",
-			"defaultValue": [
-				"swcdafdevadls.dfs.core.windows.net"
-			]
 		}
 	},
 	"variables": {
@@ -93,7 +33,7 @@
 							"type": "LinkedServiceReference"
 						},
 						"secretName": {
-							"value": "[parameters('LS_Oracle_properties_typeProperties_connectionString_secretName')]",
+							"value": "@linkedService().kvSecret",
 							"type": "Expression"
 						}
 					}
@@ -111,7 +51,7 @@
 				"annotations": [],
 				"type": "AzureKeyVault",
 				"typeProperties": {
-					"baseUrl": "[parameters('LS-AzureKeyVault_properties_typeProperties_baseUrl')]"
+					"baseUrl": "https://kv-daf-dev-01.vault.azure.net/"
 				}
 			},
 			"dependsOn": []
@@ -124,7 +64,10 @@
 				"annotations": [],
 				"type": "AzureSqlDW",
 				"typeProperties": {
-					"connectionString": "[parameters('LS_AzureSynapseAnalytics_connectionString')]",
+					"connectionString": {
+						"type": "SecureString",
+						"value": "**********"
+					},
 					"password": {
 						"type": "AzureKeyVaultSecret",
 						"store": {
@@ -176,8 +119,7 @@
 							},
 							"dataset": {
 								"referenceName": "AzureSqlDatabase_Ctrldb",
-								"type": "DatasetReference",
-								"parameters": {}
+								"type": "DatasetReference"
 							},
 							"firstRowOnly": false
 						}
@@ -285,8 +227,7 @@
 							},
 							"dataset": {
 								"referenceName": "AzureSqlDatabase_Ctrldb",
-								"type": "DatasetReference",
-								"parameters": {}
+								"type": "DatasetReference"
 							},
 							"firstRowOnly": false
 						}
@@ -400,8 +341,7 @@
 							},
 							"dataset": {
 								"referenceName": "AzureSqlDatabase_Ctrldb",
-								"type": "DatasetReference",
-								"parameters": {}
+								"type": "DatasetReference"
 							},
 							"firstRowOnly": false
 						}
@@ -461,8 +401,7 @@
 										},
 										"dataset": {
 											"referenceName": "AzureSqlDatabase_Ctrldb",
-											"type": "DatasetReference",
-											"parameters": {}
+											"type": "DatasetReference"
 										}
 									}
 								},
@@ -911,8 +850,7 @@
 							},
 							"dataset": {
 								"referenceName": "AzureSqlDatabase_Ctrldb",
-								"type": "DatasetReference",
-								"parameters": {}
+								"type": "DatasetReference"
 							}
 						}
 					}
@@ -1591,8 +1529,7 @@
 						"inputs": [
 							{
 								"referenceName": "SRC_BLOB_JSON_copy1",
-								"type": "DatasetReference",
-								"parameters": {}
+								"type": "DatasetReference"
 							}
 						],
 						"outputs": [
@@ -1676,8 +1613,7 @@
 							},
 							"dataset": {
 								"referenceName": "AzureSqlDatabase_Ctrldb",
-								"type": "DatasetReference",
-								"parameters": {}
+								"type": "DatasetReference"
 							},
 							"firstRowOnly": true
 						}
@@ -1789,8 +1725,7 @@
 						"inputs": [
 							{
 								"referenceName": "SRC_BLOB_JSON_copy1",
-								"type": "DatasetReference",
-								"parameters": {}
+								"type": "DatasetReference"
 							}
 						],
 						"outputs": [
@@ -1828,8 +1763,7 @@
 						"typeProperties": {
 							"dataset": {
 								"referenceName": "SRC_BLOB_JSON_copy1",
-								"type": "DatasetReference",
-								"parameters": {}
+								"type": "DatasetReference"
 							},
 							"logStorageSettings": {
 								"linkedServiceName": {
@@ -1902,8 +1836,7 @@
 						"inputs": [
 							{
 								"referenceName": "SRC_BLOB_JSON_copy1",
-								"type": "DatasetReference",
-								"parameters": {}
+								"type": "DatasetReference"
 							}
 						],
 						"outputs": [
@@ -2513,8 +2446,7 @@
 							},
 							"dataset": {
 								"referenceName": "AzureSqlDatabase_Ctrldb",
-								"type": "DatasetReference",
-								"parameters": {}
+								"type": "DatasetReference"
 							},
 							"firstRowOnly": true
 						}
@@ -6093,9 +6025,7 @@
 				},
 				"schema": {}
 			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/LS_AzureBlobStorage')]"
-			]
+			"dependsOn": []
 		},
 		{
 			"name": "[concat(parameters('factoryName'), '/AzureSqlDatabase_Ctrldb')]",
@@ -6114,8 +6044,7 @@
 				},
 				"annotations": [],
 				"type": "AzureSqlTable",
-				"schema": [],
-				"typeProperties": {}
+				"schema": []
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/LS-AzureSqlDatabase_Ctrldb')]"
@@ -6444,8 +6373,7 @@
 				},
 				"annotations": [],
 				"type": "AzureSqlDWTable",
-				"schema": [],
-				"typeProperties": {}
+				"schema": []
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/LS_AzureSynapseAnalytics')]"
@@ -6965,9 +6893,7 @@
 				},
 				"schema": {}
 			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/LS_AzureBlobStorage')]"
-			]
+			"dependsOn": []
 		},
 		{
 			"name": "[concat(parameters('factoryName'), '/SRC_BLOB_JSON_copy1')]",
@@ -6991,9 +6917,7 @@
 				},
 				"schema": {}
 			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/LS_AzureBlobStorage')]"
-			]
+			"dependsOn": []
 		},
 		{
 			"name": "[concat(parameters('factoryName'), '/SRC_Oracle')]",
@@ -7016,8 +6940,7 @@
 					"name": "z_Archive"
 				},
 				"annotations": [],
-				"type": "OracleTable",
-				"typeProperties": {}
+				"type": "OracleTable"
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/LS_Oracle')]"
@@ -7182,7 +7105,7 @@
 							"type": "LinkedServiceReference"
 						},
 						"secretName": {
-							"value": "[parameters('LS-AzureSqlDatabase_Ctrldb_properties_typeProperties_connectionString_secretName')]",
+							"value": "@linkedService().kvSecret",
 							"type": "Expression"
 						}
 					}
@@ -7191,19 +7114,6 @@
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/LS-AzureKeyVault')]"
 			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/LS_AzureBlobStorage')]",
-			"type": "Microsoft.DataFactory/factories/linkedServices",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"annotations": [],
-				"type": "AzureBlobStorage",
-				"typeProperties": {
-					"connectionString": "[parameters('LS_AzureBlobStorage_connectionString')]"
-				}
-			},
-			"dependsOn": []
 		},
 		{
 			"name": "[concat(parameters('factoryName'), '/LS_AzureDatalake')]",
@@ -7219,7 +7129,7 @@
 				"annotations": [],
 				"type": "AzureBlobFS",
 				"typeProperties": {
-					"url": "[parameters('LS_AzureDatalake_properties_typeProperties_url')]",
+					"url": "https://swcdafdevadls.dfs.core.windows.net",
 					"accountKey": {
 						"type": "AzureKeyVaultSecret",
 						"store": {
@@ -7251,7 +7161,7 @@
 							"type": "PipelineReference"
 						},
 						"parameters": {
-							"TriggerName": "[parameters('DLY1300_properties_01-Main_parameters_TriggerName')]"
+							"TriggerName": "DLY1300"
 						}
 					}
 				],
@@ -7291,7 +7201,7 @@
 							"type": "PipelineReference"
 						},
 						"parameters": {
-							"TriggerName": "[parameters('Emrvisaf_properties_01-Main_parameters_TriggerName')]"
+							"TriggerName": "Emrvisaf"
 						}
 					}
 				],
@@ -7307,39 +7217,6 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/pipelines/01-Main')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/default')]",
-			"type": "Microsoft.DataFactory/factories/managedVirtualNetworks",
-			"apiVersion": "2018-06-01",
-			"properties": {},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/default/mpe-azureblob-landing-dev')]",
-			"type": "Microsoft.DataFactory/factories/managedVirtualNetworks/managedPrivateEndpoints",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"privateLinkResourceId": "[parameters('mpe-azureblob-landing-dev_properties_privateLinkResourceId')]",
-				"groupId": "[parameters('mpe-azureblob-landing-dev_properties_groupId')]",
-				"fqdns": "[parameters('mpe-azureblob-landing-dev_properties_fqdns')]"
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/managedVirtualNetworks/default')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/default/mpe-swcdaf-datalake-dev')]",
-			"type": "Microsoft.DataFactory/factories/managedVirtualNetworks/managedPrivateEndpoints",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"privateLinkResourceId": "[parameters('mpe-swcdaf-datalake-dev_properties_privateLinkResourceId')]",
-				"groupId": "[parameters('mpe-swcdaf-datalake-dev_properties_groupId')]",
-				"fqdns": "[parameters('mpe-swcdaf-datalake-dev_properties_fqdns')]"
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/managedVirtualNetworks/default')]"
 			]
 		}
 	]

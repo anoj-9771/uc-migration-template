@@ -7,17 +7,21 @@
 			"metadata": "Data Factory name",
 			"defaultValue": "adf-swcnonprod01-daf-dev-01"
 		},
-		"LS_AzureBlobStorage_connectionString": {
-			"type": "secureString",
-			"metadata": "Secure string for 'connectionString' of 'LS_AzureBlobStorage'"
-		},
 		"LS_AzureSynapseAnalytics_connectionString": {
 			"type": "secureString",
 			"metadata": "Secure string for 'connectionString' of 'LS_AzureSynapseAnalytics'"
 		},
+		"LS_AzureBlobStorage_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'LS_AzureBlobStorage'"
+		},
+		"LS_Oracle_properties_typeProperties_connectionString_secretName": {
+			"type": "string",
+			"defaultValue": "@linkedService().kvSecret"
+		},
 		"LS-AzureKeyVault_properties_typeProperties_baseUrl": {
 			"type": "string",
-			"defaultValue": "https://swcdaf-dev-akv.vault.azure.net/"
+			"defaultValue": "https://kv-daf-dev-01.vault.azure.net/"
 		},
 		"LS-AzureSqlDatabase_Ctrldb_properties_typeProperties_connectionString_secretName": {
 			"type": "string",
@@ -26,10 +30,6 @@
 		"LS_AzureDatalake_properties_typeProperties_url": {
 			"type": "string",
 			"defaultValue": "https://swcdafdevadls.dfs.core.windows.net"
-		},
-		"LS_Oracle_properties_typeProperties_connectionString_secretName": {
-			"type": "string",
-			"defaultValue": "@linkedService().kvSecret"
 		},
 		"DLY1300_properties_01-Main_parameters_TriggerName": {
 			"type": "string",
@@ -103,14 +103,14 @@
 					"LS-AzureKeyVault_properties_typeProperties_baseUrl": {
 						"value": "[parameters('LS-AzureKeyVault_properties_typeProperties_baseUrl')]"
 					},
+					"LS_Oracle_properties_typeProperties_connectionString_secretName": {
+						"value": "[parameters('LS_Oracle_properties_typeProperties_connectionString_secretName')]"
+					},
 					"LS-AzureSqlDatabase_Ctrldb_properties_typeProperties_connectionString_secretName": {
 						"value": "[parameters('LS-AzureSqlDatabase_Ctrldb_properties_typeProperties_connectionString_secretName')]"
 					},
 					"LS_AzureDatalake_properties_typeProperties_url": {
 						"value": "[parameters('LS_AzureDatalake_properties_typeProperties_url')]"
-					},
-					"LS_Oracle_properties_typeProperties_connectionString_secretName": {
-						"value": "[parameters('LS_Oracle_properties_typeProperties_connectionString_secretName')]"
 					},
 					"mpe-azureblob-landing-dev_properties_privateLinkResourceId": {
 						"value": "[parameters('mpe-azureblob-landing-dev_properties_privateLinkResourceId')]"

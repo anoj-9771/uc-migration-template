@@ -17,7 +17,11 @@
 		},
 		"LS-AzureKeyVault_properties_typeProperties_baseUrl": {
 			"type": "string",
-			"defaultValue": "https://swcdaf-dev-akv.vault.azure.net/"
+			"defaultValue": "https://kv-daf-dev-01.vault.azure.net/"
+		},
+		"LS_Oracle_properties_typeProperties_connectionString_secretName": {
+			"type": "string",
+			"defaultValue": "@linkedService().kvSecret"
 		},
 		"LS-AzureSqlDatabase_Ctrldb_properties_typeProperties_connectionString_secretName": {
 			"type": "string",
@@ -26,10 +30,6 @@
 		"LS_AzureDatalake_properties_typeProperties_url": {
 			"type": "string",
 			"defaultValue": "https://swcdafdevadls.dfs.core.windows.net"
-		},
-		"LS_Oracle_properties_typeProperties_connectionString_secretName": {
-			"type": "string",
-			"defaultValue": "@linkedService().kvSecret"
 		},
 		"mpe-azureblob-landing-dev_properties_privateLinkResourceId": {
 			"type": "string",
@@ -96,6 +96,60 @@
 			"apiVersion": "2018-06-01",
 			"properties": {},
 			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/LS_Oracle')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"parameters": {
+					"kvSecret": {
+						"type": "string",
+						"defaultValue": "OracleDB-PAS"
+					}
+				},
+				"annotations": [],
+				"type": "Oracle",
+				"typeProperties": {
+					"connectionString": {
+						"type": "AzureKeyVaultSecret",
+						"store": {
+							"referenceName": "LS-AzureKeyVault",
+							"type": "LinkedServiceReference"
+						},
+						"secretName": {
+							"value": "[parameters('LS_Oracle_properties_typeProperties_connectionString_secretName')]",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS-AzureKeyVault')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/LS_AzureSynapseAnalytics')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureSqlDW",
+				"typeProperties": {
+					"connectionString": "[parameters('LS_AzureSynapseAnalytics_connectionString')]",
+					"password": {
+						"type": "AzureKeyVaultSecret",
+						"store": {
+							"referenceName": "LS-AzureKeyVault",
+							"type": "LinkedServiceReference"
+						},
+						"secretName": "swcdaf-synapse-sqlpool-password"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS-AzureKeyVault')]"
+			]
 		},
 		{
 			"name": "[concat(parameters('factoryName'), '/ARCHIVE_BLOB_JSON')]",
@@ -346,87 +400,6 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/LS-AzureKeyVault')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/LS_AzureSynapseAnalytics')]",
-			"type": "Microsoft.DataFactory/factories/linkedServices",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"annotations": [],
-				"type": "AzureSqlDW",
-				"typeProperties": {
-					"connectionString": "[parameters('LS_AzureSynapseAnalytics_connectionString')]",
-					"password": {
-						"type": "AzureKeyVaultSecret",
-						"store": {
-							"referenceName": "LS-AzureKeyVault",
-							"type": "LinkedServiceReference"
-						},
-						"secretName": "swcdaf-synapse-sqlpool-password"
-					}
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/LS-AzureKeyVault')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/LS_Oracle')]",
-			"type": "Microsoft.DataFactory/factories/linkedServices",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"parameters": {
-					"kvSecret": {
-						"type": "string",
-						"defaultValue": "OracleDB-PAS"
-					}
-				},
-				"annotations": [],
-				"type": "Oracle",
-				"typeProperties": {
-					"connectionString": {
-						"type": "AzureKeyVaultSecret",
-						"store": {
-							"referenceName": "LS-AzureKeyVault",
-							"type": "LinkedServiceReference"
-						},
-						"secretName": {
-							"value": "[parameters('LS_Oracle_properties_typeProperties_connectionString_secretName')]",
-							"type": "Expression"
-						}
-					}
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/LS-AzureKeyVault')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/IntegrationRuntime-Azure-ManagedVnet-01')]",
-			"type": "Microsoft.DataFactory/factories/integrationRuntimes",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"type": "Managed",
-				"description": "IntegrationRuntime-Azure-ManagedVnet-01",
-				"typeProperties": {
-					"computeProperties": {
-						"location": "Australia East",
-						"dataFlowProperties": {
-							"computeType": "General",
-							"coreCount": 8,
-							"timeToLive": 10,
-							"cleanup": false
-						}
-					}
-				},
-				"managedVirtualNetwork": {
-					"type": "ManagedVirtualNetworkReference",
-					"referenceName": "default"
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/managedVirtualNetworks/default')]"
 			]
 		},
 		{
@@ -1979,6 +1952,56 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/LS-AzureSqlDatabase_Ctrldb')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/BINARY_ADLS')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_AzureDatalake",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"kvSecret": "datalake-SasToken"
+					}
+				},
+				"parameters": {
+					"File": {
+						"type": "string"
+					},
+					"Container": {
+						"type": "string"
+					},
+					"Folder": {
+						"type": "string"
+					}
+				},
+				"folder": {
+					"name": "z_Archive"
+				},
+				"annotations": [],
+				"type": "Binary",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": {
+							"value": "@dataset().File",
+							"type": "Expression"
+						},
+						"folderPath": {
+							"value": "@dataset().Folder",
+							"type": "Expression"
+						},
+						"fileSystem": {
+							"value": "@dataset().Container",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_AzureDatalake')]"
 			]
 		}
 	]

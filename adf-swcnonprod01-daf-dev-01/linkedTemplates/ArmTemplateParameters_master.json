@@ -5,23 +5,23 @@
 		"factoryName": {
 			"value": "adf-swcnonprod01-daf-dev-01"
 		},
-		"LS_AzureBlobStorage_connectionString": {
-			"value": ""
-		},
 		"LS_AzureSynapseAnalytics_connectionString": {
 			"value": ""
 		},
+		"LS_AzureBlobStorage_connectionString": {
+			"value": ""
+		},
+		"LS_Oracle_properties_typeProperties_connectionString_secretName": {
+			"value": "@linkedService().kvSecret"
+		},
 		"LS-AzureKeyVault_properties_typeProperties_baseUrl": {
-			"value": "https://swcdaf-dev-akv.vault.azure.net/"
+			"value": "https://kv-daf-dev-01.vault.azure.net/"
 		},
 		"LS-AzureSqlDatabase_Ctrldb_properties_typeProperties_connectionString_secretName": {
 			"value": "@linkedService().kvSecret"
 		},
 		"LS_AzureDatalake_properties_typeProperties_url": {
 			"value": "https://swcdafdevadls.dfs.core.windows.net"
-		},
-		"LS_Oracle_properties_typeProperties_connectionString_secretName": {
-			"value": "@linkedService().kvSecret"
 		},
 		"DLY1300_properties_01-Main_parameters_TriggerName": {
 			"value": "DLY1300"
