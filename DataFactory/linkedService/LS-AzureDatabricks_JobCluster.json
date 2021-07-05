@@ -1,6 +1,5 @@
 {
 	"name": "LS-AzureDatabricks_JobCluster",
-	"type": "Microsoft.DataFactory/factories/linkedservices",
 	"properties": {
 		"parameters": {
 			"kvSecret": {
@@ -29,7 +28,8 @@
 				"secretName": {
 					"value": "@linkedService().kvSecret",
 					"type": "Expression"
-				}
+				},
+				"secretVersion": "synapseadmin"
 			},
 			"newClusterNodeType": "@linkedService().DataBricksClusterType",
 			"newClusterNumOfWorker": "@linkedService().DataBricksWorkerNodes",
@@ -39,5 +39,6 @@
 			"newClusterVersion": "@linkedService().DataBricksClusterVersion",
 			"newClusterInitScripts": []
 		}
-	}
+	},
+	"type": "Microsoft.DataFactory/factories/linkedservices"
 }
