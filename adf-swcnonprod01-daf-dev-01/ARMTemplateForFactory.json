@@ -1350,7 +1350,7 @@
 							"referenceName": "LS-AzureSqlDatabase_Ctrldb",
 							"type": "LinkedServiceReference",
 							"parameters": {
-								"kvSecret": "AzureSqlDatabase-ControlDB"
+								"kvSecret": "sql-db-controldb-connectionstring"
 							}
 						}
 					},
@@ -1421,7 +1421,7 @@
 							"referenceName": "LS-AzureSqlDatabase_Ctrldb",
 							"type": "LinkedServiceReference",
 							"parameters": {
-								"kvSecret": "AzureSqlDatabase-ControlDB"
+								"kvSecret": "sql-db-controldb-connectionstring"
 							}
 						}
 					},
@@ -7283,13 +7283,6 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/default')]",
-			"type": "Microsoft.DataFactory/factories/managedVirtualNetworks",
-			"apiVersion": "2018-06-01",
-			"properties": {},
-			"dependsOn": []
-		},
-		{
 			"name": "[concat(parameters('factoryName'), '/IntegrationRuntime-Azure-ManagedVnet-01')]",
 			"type": "Microsoft.DataFactory/factories/integrationRuntimes",
 			"apiVersion": "2018-06-01",
@@ -7314,6 +7307,13 @@
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/managedVirtualNetworks/default')]"
 			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/default')]",
+			"type": "Microsoft.DataFactory/factories/managedVirtualNetworks",
+			"apiVersion": "2018-06-01",
+			"properties": {},
+			"dependsOn": []
 		}
 	]
 }

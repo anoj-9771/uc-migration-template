@@ -4294,7 +4294,7 @@
 							"referenceName": "LS-AzureSqlDatabase_Ctrldb",
 							"type": "LinkedServiceReference",
 							"parameters": {
-								"kvSecret": "AzureSqlDatabase-ControlDB"
+								"kvSecret": "sql-db-controldb-connectionstring"
 							}
 						}
 					},
@@ -4365,7 +4365,7 @@
 							"referenceName": "LS-AzureSqlDatabase_Ctrldb",
 							"type": "LinkedServiceReference",
 							"parameters": {
-								"kvSecret": "AzureSqlDatabase-ControlDB"
+								"kvSecret": "sql-db-controldb-connectionstring"
 							}
 						}
 					},
