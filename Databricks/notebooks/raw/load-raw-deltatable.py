@@ -110,6 +110,7 @@ df = spark.read \
       .format(file_type) \
       .option("header", True) \
       .option("inferSchema", False) \
+      .option("delimiter", "|") \
       .load(source_file_path) 
 
 current_record_count = df.count()
@@ -137,16 +138,16 @@ else:
 # COMMAND ----------
 
 # DBTITLE 1,Apply any transformation at this stage
-#df_updated = transform_raw_dataframe(df, Params)
+df_updated = transform_raw_dataframe(df, Params)
 
 # COMMAND ----------
 
-#df_updated.printSchema()
+df_updated.printSchema()
 
 # COMMAND ----------
 
-#if Debug:
-#  display(df_updated.limit(10))
+if Debug:
+  display(df_updated.limit(10))
 
 # COMMAND ----------
 
@@ -163,11 +164,11 @@ else:
 
 # COMMAND ----------
 
-DeltaSaveDataframeDirect(df, source_system, source_table, ADS_DATABASE_RAW, ADS_CONTAINER_RAW, write_mode) #df_updated, , partition_keys
+DeltaSaveDataframeDirect(df_updated, source_system, source_table, ADS_DATABASE_RAW, ADS_CONTAINER_RAW, write_mode, partition_keys)
 
 # COMMAND ----------
 
-record_count = df.count()
+record_count = df_updated.count()
 
 # COMMAND ----------
 
