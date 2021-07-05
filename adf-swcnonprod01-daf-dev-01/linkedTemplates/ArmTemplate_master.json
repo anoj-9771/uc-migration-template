@@ -7,10 +7,6 @@
 			"metadata": "Data Factory name",
 			"defaultValue": "adf-swcnonprod01-daf-dev-01"
 		},
-		"LS_AzureSynapseAnalytics_connectionString": {
-			"type": "secureString",
-			"metadata": "Secure string for 'connectionString' of 'LS_AzureSynapseAnalytics'"
-		},
 		"LS_AzureBlobStorage_connectionString": {
 			"type": "secureString",
 			"metadata": "Secure string for 'connectionString' of 'LS_AzureBlobStorage'"
@@ -19,9 +15,9 @@
 			"type": "secureString",
 			"metadata": "Secure string for 'accountKey' of 'LS_AzureDatalake'"
 		},
-		"LS_Oracle_properties_typeProperties_connectionString_secretName": {
-			"type": "string",
-			"defaultValue": "@linkedService().kvSecret"
+		"LS_AzureSynapseAnalytics_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'LS_AzureSynapseAnalytics'"
 		},
 		"LS-AzureKeyVault_properties_typeProperties_baseUrl": {
 			"type": "string",
@@ -35,6 +31,10 @@
 			"type": "string",
 			"defaultValue": "https://sadafdev01.dfs.core.windows.net"
 		},
+		"LS_Oracle_properties_typeProperties_connectionString_secretName": {
+			"type": "string",
+			"defaultValue": "@linkedService().kvSecret"
+		},
 		"DLY1300_properties_01-Main_parameters_TriggerName": {
 			"type": "string",
 			"defaultValue": "DLY1300"
@@ -42,34 +42,6 @@
 		"Emrvisaf_properties_01-Main_parameters_TriggerName": {
 			"type": "string",
 			"defaultValue": "Emrvisaf"
-		},
-		"mpe-azureblob-landing-dev_properties_privateLinkResourceId": {
-			"type": "string",
-			"defaultValue": "/subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-daf-dev-01/providers/Microsoft.Storage/storageAccounts/saswcnonprod01landingdev"
-		},
-		"mpe-azureblob-landing-dev_properties_groupId": {
-			"type": "string",
-			"defaultValue": "blob"
-		},
-		"mpe-azureblob-landing-dev_properties_fqdns": {
-			"type": "array",
-			"defaultValue": [
-				"saswcnonprod01landingdev.blob.core.windows.net"
-			]
-		},
-		"mpe-swcdaf-datalake-dev_properties_privateLinkResourceId": {
-			"type": "string",
-			"defaultValue": "/subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-daf-dev-01/providers/Microsoft.Storage/storageAccounts/swcdafdevadls"
-		},
-		"mpe-swcdaf-datalake-dev_properties_groupId": {
-			"type": "string",
-			"defaultValue": "dfs"
-		},
-		"mpe-swcdaf-datalake-dev_properties_fqdns": {
-			"type": "array",
-			"defaultValue": [
-				"swcdafdevadls.dfs.core.windows.net"
-			]
 		},
 		"containerUri": {
 			"type": "string",
@@ -104,17 +76,11 @@
 					"LS_AzureDatalake_accountKey": {
 						"value": "[parameters('LS_AzureDatalake_accountKey')]"
 					},
-					"LS_AzureSynapseAnalytics_connectionString": {
-						"value": "[parameters('LS_AzureSynapseAnalytics_connectionString')]"
-					},
 					"LS-AzureKeyVault_properties_typeProperties_baseUrl": {
 						"value": "[parameters('LS-AzureKeyVault_properties_typeProperties_baseUrl')]"
 					},
 					"LS_AzureDatalake_properties_typeProperties_url": {
 						"value": "[parameters('LS_AzureDatalake_properties_typeProperties_url')]"
-					},
-					"LS_Oracle_properties_typeProperties_connectionString_secretName": {
-						"value": "[parameters('LS_Oracle_properties_typeProperties_connectionString_secretName')]"
 					}
 				}
 			},
@@ -134,26 +100,14 @@
 					"factoryName": {
 						"value": "[parameters('factoryName')]"
 					},
+					"LS_AzureSynapseAnalytics_connectionString": {
+						"value": "[parameters('LS_AzureSynapseAnalytics_connectionString')]"
+					},
+					"LS_Oracle_properties_typeProperties_connectionString_secretName": {
+						"value": "[parameters('LS_Oracle_properties_typeProperties_connectionString_secretName')]"
+					},
 					"LS-AzureSqlDatabase_Ctrldb_properties_typeProperties_connectionString_secretName": {
 						"value": "[parameters('LS-AzureSqlDatabase_Ctrldb_properties_typeProperties_connectionString_secretName')]"
-					},
-					"mpe-azureblob-landing-dev_properties_privateLinkResourceId": {
-						"value": "[parameters('mpe-azureblob-landing-dev_properties_privateLinkResourceId')]"
-					},
-					"mpe-azureblob-landing-dev_properties_groupId": {
-						"value": "[parameters('mpe-azureblob-landing-dev_properties_groupId')]"
-					},
-					"mpe-azureblob-landing-dev_properties_fqdns": {
-						"value": "[parameters('mpe-azureblob-landing-dev_properties_fqdns')]"
-					},
-					"mpe-swcdaf-datalake-dev_properties_privateLinkResourceId": {
-						"value": "[parameters('mpe-swcdaf-datalake-dev_properties_privateLinkResourceId')]"
-					},
-					"mpe-swcdaf-datalake-dev_properties_groupId": {
-						"value": "[parameters('mpe-swcdaf-datalake-dev_properties_groupId')]"
-					},
-					"mpe-swcdaf-datalake-dev_properties_fqdns": {
-						"value": "[parameters('mpe-swcdaf-datalake-dev_properties_fqdns')]"
 					}
 				}
 			},
