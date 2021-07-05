@@ -18,7 +18,7 @@ variables:
   # username for SQL Server Control DB
   - name: azuresqlserverun
     value: sqladmin
-  # Name of the service connection in Azure Devops
+  # Name of the service connection in Azure Devops.
   - name: azdoresourceconnection
     value: azure-rg-dev-serviceconnection
   # The service principal object ID (Not App ID)... Use 'az ad sp show --id <<app-id>> --query "objectId" -o tsv'
