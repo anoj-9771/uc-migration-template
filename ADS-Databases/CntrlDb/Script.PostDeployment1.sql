@@ -17,6 +17,8 @@ This checks if the record does not exists on the table then inserts it
 
 /************* ControlStages ***********************************/
 
+
+
 INSERT INTO [CTL].[ControlStages] ([StageSequence], [StageName]) SELECT 100, N'Source to Raw'
 WHERE NOT EXISTS (SELECT 1 FROM [CTL].[ControlStages] WHERE [StageName] = N'Source to Raw')
 
@@ -25,13 +27,6 @@ WHERE NOT EXISTS (SELECT 1 FROM [CTL].[ControlStages] WHERE [StageName] = N'Raw 
 
 INSERT INTO [CTL].[ControlStages] ([StageSequence], [StageName]) SELECT 300, N'Trusted to Curated'
 WHERE NOT EXISTS (SELECT 1 FROM [CTL].[ControlStages] WHERE [StageName] = N'Trusted to Curated')
-
-INSERT INTO [CTL].[ControlStages] ([StageSequence], [StageName]) SELECT 400, N'Curated to DW'
-WHERE NOT EXISTS (SELECT 1 FROM [CTL].[ControlStages] WHERE [StageName] = N'Curated to DW')
-
-INSERT INTO [CTL].[ControlStages] ([StageSequence], [StageName]) SELECT 500, N'TestStage1'
-WHERE NOT EXISTS (SELECT 1 FROM [CTL].[ControlStages] WHERE [StageName] = N'TestStage1')
-
 
 IF (
 	SELECT COUNT(*)
@@ -77,7 +72,6 @@ IF (
 		SET IDENTITY_INSERT [CTL].[ControlDataLoadTypes] OFF
 	END
 
-
 	/*************************************************************************
 	Post Deployment Update
 	If you need to update any data post deployment, please add the scripts below.
@@ -94,6 +88,7 @@ IF (
 	*/
 
   UPDATE CTL.ControlTasks SET LoadToSqlEDW = 1 WHERE LoadToSqlEDW IS NULL
+
   UPDATE CTL.ControlSource SET AdditionalProperty = '' WHERE AdditionalProperty IS NULL
   UPDATE CTL.ControlSource SET SoftDeleteSource = '' WHERE SoftDeleteSource IS NULL
   UPDATE CTL.ControlSource SET IsAuditTable = 0 WHERE IsAuditTable IS NULL
