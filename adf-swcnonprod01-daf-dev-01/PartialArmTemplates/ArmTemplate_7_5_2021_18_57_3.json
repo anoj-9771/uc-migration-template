@@ -6,14 +6,6 @@
 			"type": "string",
 			"metadata": "Data Factory name",
 			"defaultValue": "adf-swcnonprod01-daf-dev-01"
-		},
-		"DLY1300_properties_01-Main_parameters_TriggerName": {
-			"type": "string",
-			"defaultValue": "DLY1300"
-		},
-		"Emrvisaf_properties_01-Main_parameters_TriggerName": {
-			"type": "string",
-			"defaultValue": "Emrvisaf"
 		}
 	},
 	"variables": {
@@ -63,8 +55,7 @@
 							},
 							"dataset": {
 								"referenceName": "AzureSqlDatabase_Ctrldb",
-								"type": "DatasetReference",
-								"parameters": {}
+								"type": "DatasetReference"
 							},
 							"firstRowOnly": false
 						}
@@ -124,8 +115,7 @@
 										},
 										"dataset": {
 											"referenceName": "AzureSqlDatabase_Ctrldb",
-											"type": "DatasetReference",
-											"parameters": {}
+											"type": "DatasetReference"
 										}
 									}
 								},
@@ -574,8 +564,7 @@
 							},
 							"dataset": {
 								"referenceName": "AzureSqlDatabase_Ctrldb",
-								"type": "DatasetReference",
-								"parameters": {}
+								"type": "DatasetReference"
 							}
 						}
 					}
@@ -597,16 +586,266 @@
 			"dependsOn": []
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/02-Execute-Project-Stages')]",
+			"name": "[concat(parameters('factoryName'), '/04-Blob-A-Source-Copy_OLD')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
 			"apiVersion": "2018-06-01",
 			"properties": {
+				"description": "Clone of 05-DL-Load-Raw-to-Trusted",
 				"activities": [
 					{
-						"name": "Get Stages",
-						"description": "",
-						"type": "Lookup",
+						"name": "Log Failure DL Raw",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "Copy-Blob-to-DataLake-Raw",
+								"dependencyConditions": [
+									"Failed"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": {
+								"value": "[[CTL].[UpdateTaskLog]",
+								"type": "Expression"
+							},
+							"storedProcedureParameters": {
+								"BatchLogId": {
+									"value": {
+										"value": "@pipeline().parameters.BatchLogId",
+										"type": "Expression"
+									},
+									"type": "Int64"
+								},
+								"ErrorMessage": {
+									"value": "Error Occurred during Blob Source Load",
+									"type": "String"
+								},
+								"ExecutionLogId": {
+									"value": {
+										"value": "@pipeline().parameters.TaskExecutionLogId",
+										"type": "Expression"
+									},
+									"type": "Int64"
+								},
+								"Output": {
+									"value": null
+								},
+								"Status": {
+									"value": "Failure",
+									"type": "String"
+								},
+								"TaskId": {
+									"value": {
+										"value": "@pipeline().parameters.TaskDetails.TaskId",
+										"type": "Expression"
+									},
+									"type": "Int64"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "LS-AzureSqlDatabase_Ctrldb",
+							"type": "LinkedServiceReference",
+							"parameters": {
+								"kvSecret": "AzureSqlDatabase-ControlDB"
+							}
+						}
+					},
+					{
+						"name": "Log Success",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "Copy-Blob-to-DataLake-Raw",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": {
+								"value": "[[CTL].[UpdateTaskLog]",
+								"type": "Expression"
+							},
+							"storedProcedureParameters": {
+								"BatchLogId": {
+									"value": {
+										"value": "@pipeline().parameters.BatchLogId",
+										"type": "Expression"
+									},
+									"type": "Int64"
+								},
+								"ErrorMessage": {
+									"value": null,
+									"type": "String"
+								},
+								"ExecutionLogId": {
+									"value": {
+										"value": "@pipeline().parameters.TaskExecutionLogId",
+										"type": "Expression"
+									},
+									"type": "Int64"
+								},
+								"Output": {
+									"value": {
+										"value": "@pipeline().parameters.TaskDetails.LastLoadedFile",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"Status": {
+									"value": "Success",
+									"type": "String"
+								},
+								"TaskId": {
+									"value": {
+										"value": "@pipeline().parameters.TaskDetails.TaskId",
+										"type": "Expression"
+									},
+									"type": "Int64"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "LS-AzureSqlDatabase_Ctrldb",
+							"type": "LinkedServiceReference",
+							"parameters": {
+								"kvSecret": "AzureSqlDatabase-ControlDB"
+							}
+						}
+					},
+					{
+						"name": "Set-ClusterType",
+						"type": "SetVariable",
 						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"variableName": "ClusterType",
+							"value": {
+								"value": "@toLower(last(split(pipeline().parameters.TaskDetails.Processor,'|')))",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "Set-Source-Container",
+						"type": "SetVariable",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"variableName": "SourceContainer",
+							"value": {
+								"value": "@toLower(first(split(pipeline().parameters.TaskDetails.SourceLocation,'/')))",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "Set-Source-Filename",
+						"type": "SetVariable",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"variableName": "SourceFileName",
+							"value": {
+								"value": "@last(split(pipeline().parameters.TaskDetails.SourceLocation,'/'))",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "Set-Target-Directory",
+						"type": "SetVariable",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"variableName": "TargetDirectory",
+							"value": {
+								"value": "@toLower(first(split(pipeline().parameters.TaskDetails.TargetLocation,'/')))",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "Set-Target-Filename",
+						"type": "SetVariable",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"variableName": "TargetFileName",
+							"value": {
+								"value": "@last(split(pipeline().parameters.TaskDetails.TargetLocation,'/'))",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "Set-Target-Container",
+						"type": "SetVariable",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"variableName": "TargetContainer",
+							"value": "raw"
+						}
+					},
+					{
+						"name": "Copy-Blob-to-DataLake-Raw",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "Set-ClusterType",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							},
+							{
+								"activity": "Set-Source-Container",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							},
+							{
+								"activity": "Set-Source-Filename",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							},
+							{
+								"activity": "Set-Target-Directory",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							},
+							{
+								"activity": "Set-Target-Filename",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							},
+							{
+								"activity": "Set-Target-Container",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
 						"policy": {
 							"timeout": "7.00:00:00",
 							"retry": 0,
@@ -617,40 +856,70 @@
 						"userProperties": [],
 						"typeProperties": {
 							"source": {
-								"type": "AzureSqlSource",
-								"sqlReaderStoredProcedureName": "[[CTL].[GetExecutionStages]",
-								"storedProcedureParameters": {
-									"ProjectId": {
-										"type": "Int64",
-										"value": {
-											"value": "@pipeline().parameters.ProjectId",
-											"type": "Expression"
-										}
-									},
-									"TriggerName": {
-										"type": "String",
-										"value": {
-											"value": "@pipeline().parameters.TriggerName",
-											"type": "Expression"
-										}
-									}
+								"type": "JsonSource",
+								"storeSettings": {
+									"type": "AzureBlobStorageReadSettings",
+									"recursive": true,
+									"enablePartitionDiscovery": false
 								},
-								"partitionOption": "None"
+								"formatSettings": {
+									"type": "JsonReadSettings"
+								}
 							},
-							"dataset": {
-								"referenceName": "AzureSqlDatabase_Ctrldb",
+							"sink": {
+								"type": "JsonSink",
+								"storeSettings": {
+									"type": "AzureBlobFSWriteSettings"
+								},
+								"formatSettings": {
+									"type": "JsonWriteSettings"
+								}
+							},
+							"enableStaging": false
+						},
+						"inputs": [
+							{
+								"referenceName": "SRC_BLOB_JSON",
 								"type": "DatasetReference",
-								"parameters": {}
-							},
-							"firstRowOnly": false
-						}
+								"parameters": {
+									"BlobContainer": {
+										"value": "@variables('SourceContainer')",
+										"type": "Expression"
+									},
+									"BlobFileName": {
+										"value": "@variables('SourceFileName')",
+										"type": "Expression"
+									}
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "DS_ADLS_JSON",
+								"type": "DatasetReference",
+								"parameters": {
+									"LakeContainer": {
+										"value": "@variables('TargetContainer')",
+										"type": "Expression"
+									},
+									"LakeDirectory": {
+										"value": "@variables('TargetDirectory')",
+										"type": "Expression"
+									},
+									"LakeFileName": {
+										"value": "@variables('TargetFileName')",
+										"type": "Expression"
+									}
+								}
+							}
+						]
 					},
 					{
-						"name": "Execute Stages",
-						"type": "ForEach",
+						"name": "Execute-DP-Load-Raw-to-Delta-Table",
+						"type": "ExecutePipeline",
 						"dependsOn": [
 							{
-								"activity": "Get Stages",
+								"activity": "Log Success",
 								"dependencyConditions": [
 									"Succeeded"
 								]
@@ -658,231 +927,88 @@
 						],
 						"userProperties": [],
 						"typeProperties": {
-							"items": {
-								"value": "@activity('Get Stages').output.value",
-								"type": "Expression"
+							"pipeline": {
+								"referenceName": "04-DL-Load-Raw-to-Delta-Table",
+								"type": "PipelineReference"
 							},
-							"isSequential": true,
-							"activities": [
-								{
-									"name": "Execute Task Load Pipeline",
-									"type": "ExecutePipeline",
-									"dependsOn": [],
-									"userProperties": [],
-									"typeProperties": {
-										"pipeline": {
-											"referenceName": "03-Execute-Project-Tasks",
-											"type": "PipelineReference"
-										},
-										"waitOnCompletion": true,
-										"parameters": {
-											"StageId": {
-												"value": "@item().ControlStageId",
-												"type": "Expression"
-											},
-											"ProjectId": {
-												"value": "@pipeline().parameters.ProjectId",
-												"type": "Expression"
-											},
-											"ProjectRunID": {
-												"value": "@pipeline().RunId",
-												"type": "Expression"
-											}
-										}
-									}
+							"waitOnCompletion": true,
+							"parameters": {
+								"BatchLogID": {
+									"value": "@pipeline().parameters.BatchLogId",
+									"type": "Expression"
+								},
+								"TaskExecutionLogId": {
+									"value": "@pipeline().parameters.TaskExecutionLogId",
+									"type": "Expression"
+								},
+								"TaskDetails": {
+									"value": "@pipeline().parameters.TaskDetails",
+									"type": "Expression"
+								},
+								"TargetContainer": {
+									"value": "@variables('TargetContainer')",
+									"type": "Expression"
+								},
+								"TargetDirectory": {
+									"value": "@variables('TargetDirectory')",
+									"type": "Expression"
+								},
+								"TargetFileName": {
+									"value": "@variables('TargetFileName')",
+									"type": "Expression"
+								},
+								"ProjectRunID": {
+									"value": "@pipeline().parameters.ProjectRunID",
+									"type": "Expression"
 								}
-							]
+							}
 						}
 					}
 				],
 				"parameters": {
-					"ProjectId": {
+					"TaskDetails": {
+						"type": "object"
+					},
+					"BatchLogId": {
 						"type": "int"
 					},
-					"TriggerName": {
+					"TaskExecutionLogId": {
+						"type": "int"
+					},
+					"ProjectRunID": {
 						"type": "string"
 					}
 				},
-				"annotations": [],
-				"lastPublishTime": "2021-06-21T01:45:17Z"
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/pipelines/03-Execute-Project-Tasks')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/01-Main')]",
-			"type": "Microsoft.DataFactory/factories/pipelines",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"description": "This is the main pipeline.",
-				"activities": [
-					{
-						"name": "Get Projects to Execute",
-						"description": "",
-						"type": "Lookup",
-						"dependsOn": [],
-						"policy": {
-							"timeout": "7.00:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"source": {
-								"type": "AzureSqlSource",
-								"sqlReaderStoredProcedureName": "[[CTL].[getProjects]",
-								"storedProcedureParameters": {
-									"TriggerName": {
-										"type": "String",
-										"value": {
-											"value": "@pipeline().parameters.TriggerName",
-											"type": "Expression"
-										}
-									}
-								},
-								"partitionOption": "None"
-							},
-							"dataset": {
-								"referenceName": "AzureSqlDatabase_Ctrldb",
-								"type": "DatasetReference",
-								"parameters": {}
-							},
-							"firstRowOnly": false
-						}
+				"variables": {
+					"ReturnValue": {
+						"type": "String"
 					},
-					{
-						"name": "Loop Projects",
-						"type": "ForEach",
-						"dependsOn": [
-							{
-								"activity": "Get Projects to Execute",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"userProperties": [],
-						"typeProperties": {
-							"items": {
-								"value": "@activity('Get Projects to Execute').output.value",
-								"type": "Expression"
-							},
-							"isSequential": false,
-							"activities": [
-								{
-									"name": "Execute Projects",
-									"type": "ExecutePipeline",
-									"dependsOn": [],
-									"userProperties": [],
-									"typeProperties": {
-										"pipeline": {
-											"referenceName": "02-Execute-Project-Stages",
-											"type": "PipelineReference"
-										},
-										"waitOnCompletion": true,
-										"parameters": {
-											"ProjectId": {
-												"value": "@item().ProjectId",
-												"type": "Expression"
-											},
-											"TriggerName": {
-												"value": "@pipeline().parameters.TriggerName",
-												"type": "Expression"
-											}
-										}
-									}
-								}
-							]
-						}
-					}
-				],
-				"parameters": {
-					"TriggerName": {
-						"type": "string",
-						"defaultValue": "OnDemand"
+					"ClusterType": {
+						"type": "String"
+					},
+					"SourceContainer": {
+						"type": "String"
+					},
+					"SourceFileName": {
+						"type": "String"
+					},
+					"TargetDirectory": {
+						"type": "String"
+					},
+					"TargetFileName": {
+						"type": "String"
+					},
+					"TargetContainer": {
+						"type": "String"
 					}
 				},
+				"folder": {
+					"name": "z_Archive"
+				},
 				"annotations": [],
-				"lastPublishTime": "2021-06-18T07:33:49Z"
+				"lastPublishTime": "2021-06-30T04:08:30Z"
 			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/pipelines/02-Execute-Project-Stages')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/DLY1300')]",
-			"type": "Microsoft.DataFactory/factories/triggers",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"annotations": [],
-				"runtimeState": "Stopped",
-				"pipelines": [
-					{
-						"pipelineReference": {
-							"referenceName": "01-Main",
-							"type": "PipelineReference"
-						},
-						"parameters": {
-							"TriggerName": "[parameters('DLY1300_properties_01-Main_parameters_TriggerName')]"
-						}
-					}
-				],
-				"type": "ScheduleTrigger",
-				"typeProperties": {
-					"recurrence": {
-						"frequency": "Day",
-						"interval": 1,
-						"startTime": "2020-12-01T05:10:00",
-						"timeZone": "AUS Eastern Standard Time",
-						"schedule": {
-							"minutes": [
-								0
-							],
-							"hours": [
-								13
-							]
-						}
-					}
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/pipelines/01-Main')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/Emrvisaf')]",
-			"type": "Microsoft.DataFactory/factories/triggers",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"annotations": [],
-				"runtimeState": "Stopped",
-				"pipelines": [
-					{
-						"pipelineReference": {
-							"referenceName": "01-Main",
-							"type": "PipelineReference"
-						},
-						"parameters": {
-							"TriggerName": "[parameters('Emrvisaf_properties_01-Main_parameters_TriggerName')]"
-						}
-					}
-				],
-				"type": "ScheduleTrigger",
-				"typeProperties": {
-					"recurrence": {
-						"frequency": "Minute",
-						"interval": 20,
-						"startTime": "2021-06-02T00:11:00",
-						"timeZone": "AUS Eastern Standard Time"
-					}
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/pipelines/01-Main')]"
-			]
+			"dependsOn": []
 		}
 	]
 }
