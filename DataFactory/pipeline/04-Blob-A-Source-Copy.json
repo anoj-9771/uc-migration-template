@@ -1,5 +1,5 @@
 {
-	"name": "04-Blob-A-Source-Copy_copy1",
+	"name": "04-Blob-A-Source-Copy",
 	"properties": {
 		"description": "Clone of 05-DL-Load-Raw-to-Trusted",
 		"activities": [

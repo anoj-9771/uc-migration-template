@@ -232,7 +232,7 @@
 										"userProperties": [],
 										"typeProperties": {
 											"pipeline": {
-												"referenceName": "04-Blob-A-Source-Copy_copy1",
+												"referenceName": "04-Blob-A-Source-Copy",
 												"type": "PipelineReference"
 											},
 											"waitOnCompletion": true,
