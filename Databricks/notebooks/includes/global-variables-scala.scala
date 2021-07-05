@@ -21,11 +21,11 @@ val ADS_DATABASE_CURATED = "curated"
 
 // COMMAND ----------
 
-val ADS_DB_SERVER = sql-swcnonprod01-daf-dev-01.database.windows.net //ADS_COMPANY_INITIAL + "-sql-dp-" + ADS_ENVIRONMENT + "-" + ADS_SUFFIX + ".database.windows.net"
+val ADS_DB_SERVER = ADS_COMPANY_INITIAL + "-sql-dp-" + ADS_ENVIRONMENT + "-" + ADS_SUFFIX + ".database.windows.net"
 
 // COMMAND ----------
 
-val ADS_DATABASE_NAME = "ControlDB"
+val ADS_DATABASE_NAME = "<EDW>"
 val ADS_DATABASE_USERNAME = "sqladmin"
 val ADS_KV_DB_PWD_SECRET_KEY = "AzureSQLServerPw"
 
