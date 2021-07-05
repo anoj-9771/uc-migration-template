@@ -1,0 +1,19 @@
+{
+	"name": "LS_AzureSynapseAnalytics",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "AzureSqlDW",
+		"typeProperties": {
+			"connectionString": "Integrated Security=False;Encrypt=True;Connection Timeout=30;Data Source=swcdaf-dev-synapse-workspace.sql.azuresynapse.net;Initial Catalog=sqlpooldev;User ID=synapseadmin",
+			"password": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "LS-AzureKeyVault",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "swcdaf-synapse-sqlpool-password"
+			}
+		}
+	}
+}

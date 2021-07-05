@@ -1,0 +1,16 @@
+{
+	"name": "DS_Synapse_SqlPool_EDW",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_AzureSynapseAnalytics",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "Warehouse"
+		},
+		"annotations": [],
+		"type": "AzureSqlDWTable",
+		"schema": []
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

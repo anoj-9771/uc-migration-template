@@ -1,0 +1,37 @@
+{
+	"name": "SRC_BLOB_JSON",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_AzureBlobStorage",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"BlobContainer": {
+				"type": "string"
+			},
+			"BlobFileName": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "Source - Blob"
+		},
+		"annotations": [],
+		"type": "Json",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": {
+					"value": "@dataset().BlobFileName",
+					"type": "Expression"
+				},
+				"container": {
+					"value": "@dataset().BlobContainer",
+					"type": "Expression"
+				}
+			}
+		},
+		"schema": {}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}
