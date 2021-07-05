@@ -215,7 +215,7 @@
 				},
 				"inputs": [
 					{
-						"referenceName": "SRC_BLOB_JSON_copy1",
+						"referenceName": "SRC_BLOB_JSON",
 						"type": "DatasetReference"
 					}
 				],
@@ -411,7 +411,7 @@
 				},
 				"inputs": [
 					{
-						"referenceName": "SRC_BLOB_JSON_copy1",
+						"referenceName": "SRC_BLOB_JSON",
 						"type": "DatasetReference"
 					}
 				],
@@ -449,7 +449,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"dataset": {
-						"referenceName": "SRC_BLOB_JSON_copy1",
+						"referenceName": "SRC_BLOB_JSON",
 						"type": "DatasetReference"
 					},
 					"logStorageSettings": {
@@ -522,7 +522,7 @@
 				},
 				"inputs": [
 					{
-						"referenceName": "SRC_BLOB_JSON_copy1",
+						"referenceName": "SRC_BLOB_JSON",
 						"type": "DatasetReference"
 					}
 				],

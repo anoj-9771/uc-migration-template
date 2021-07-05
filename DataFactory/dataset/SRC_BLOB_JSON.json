@@ -1,5 +1,5 @@
 {
-	"name": "SRC_BLOB_JSON_copy1",
+	"name": "SRC_BLOB_JSON",
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "LS_AzureBlobStorage",
