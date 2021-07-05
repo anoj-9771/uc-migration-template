@@ -1,5 +1,5 @@
 {
-	"name": "04-Blob-A-Source-Copy",
+	"name": "04-Blob-A-Source-Copy_OLD",
 	"properties": {
 		"description": "Clone of 05-DL-Load-Raw-to-Trusted",
 		"activities": [
@@ -414,7 +414,7 @@
 			}
 		},
 		"folder": {
-			"name": "Blob"
+			"name": "z_Archive"
 		},
 		"annotations": [],
 		"lastPublishTime": "2021-06-30T04:08:30Z"
