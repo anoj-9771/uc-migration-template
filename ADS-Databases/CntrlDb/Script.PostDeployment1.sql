@@ -17,7 +17,7 @@ This checks if the record does not exists on the table then inserts it
 
 /************* ControlStages ***********************************/
 
-
+INSERT INTO [CTL].[ControlProjects]([ProjectName],[Enabled]) VALUES ('SAP ISU',1)
 
 INSERT INTO [CTL].[ControlStages] ([StageSequence], [StageName]) SELECT 100, N'Source to Raw'
 WHERE NOT EXISTS (SELECT 1 FROM [CTL].[ControlStages] WHERE [StageName] = N'Source to Raw')
@@ -29,7 +29,7 @@ INSERT INTO [CTL].[ControlStages] ([StageSequence], [StageName]) SELECT 300, N'T
 WHERE NOT EXISTS (SELECT 1 FROM [CTL].[ControlStages] WHERE [StageName] = N'Trusted to Curated')
 
 IF (
-	SELECT COUNT(*)
+	SELECT DISTINCT p.rows 
 	FROM sys.tables t 
 	JOIN sys.schemas s ON t.schema_id = s.schema_id
 	JOIN sys.partitions p ON t.object_id = p.object_id 
@@ -55,7 +55,7 @@ IF (
 	END
 
 IF (
-	SELECT COUNT(*)
+	SELECT DISTINCT p.rows 
 	FROM sys.tables t 
 	JOIN sys.schemas s ON t.schema_id = s.schema_id
 	JOIN sys.partitions p ON t.object_id = p.object_id 
