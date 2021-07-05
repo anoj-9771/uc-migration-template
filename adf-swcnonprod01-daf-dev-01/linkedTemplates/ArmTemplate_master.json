@@ -108,26 +108,6 @@
 					},
 					"LS-AzureSqlDatabase_Ctrldb_properties_typeProperties_connectionString_secretName": {
 						"value": "[parameters('LS-AzureSqlDatabase_Ctrldb_properties_typeProperties_connectionString_secretName')]"
-					}
-				}
-			},
-			"dependsOn": [
-				"[resourceId('Microsoft.Resources/deployments', 'adf-swcnonprod01-daf-dev-01_ArmTemplate_0')]"
-			]
-		},
-		{
-			"name": "adf-swcnonprod01-daf-dev-01_ArmTemplate_2",
-			"type": "Microsoft.Resources/deployments",
-			"apiVersion": "2018-02-01",
-			"properties": {
-				"mode": "incremental",
-				"templateLink": {
-					"uri": "[concat(parameters('containerUri'), '/ArmTemplate_2.json', parameters('containerSasToken'))]",
-					"contentVersion": "1.0.0.0"
-				},
-				"parameters": {
-					"factoryName": {
-						"value": "[parameters('factoryName')]"
 					},
 					"DLY1300_properties_01-Main_parameters_TriggerName": {
 						"value": "[parameters('DLY1300_properties_01-Main_parameters_TriggerName')]"
@@ -138,7 +118,7 @@
 				}
 			},
 			"dependsOn": [
-				"[resourceId('Microsoft.Resources/deployments', 'adf-swcnonprod01-daf-dev-01_ArmTemplate_1')]"
+				"[resourceId('Microsoft.Resources/deployments', 'adf-swcnonprod01-daf-dev-01_ArmTemplate_0')]"
 			]
 		}
 	]
