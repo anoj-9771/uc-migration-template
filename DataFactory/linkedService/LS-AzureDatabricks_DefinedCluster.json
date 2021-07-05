@@ -1,6 +1,5 @@
 {
 	"name": "LS-AzureDatabricks_DefinedCluster",
-	"type": "Microsoft.DataFactory/factories/linkedservices",
 	"properties": {
 		"parameters": {
 			"kvSecret": {
@@ -9,13 +8,13 @@
 			},
 			"clusterId": {
 				"type": "string",
-				"defaultValue": "0628-234357-forts274"
+				"defaultValue": "0704-231544-bugs938"
 			}
 		},
 		"annotations": [],
 		"type": "AzureDatabricks",
 		"typeProperties": {
-			"domain": "https://adb-407809886081934.14.azuredatabricks.net",
+			"domain": "https://adb-6510910994889.9.azuredatabricks.net/",
 			"accessToken": {
 				"type": "AzureKeyVaultSecret",
 				"store": {
@@ -26,9 +25,10 @@
 					"value": "@linkedService().kvSecret",
 					"type": "Expression"
 				},
-				"secretVersion": ""
+				"secretVersion": "synapseadmin"
 			},
 			"existingClusterId": "@linkedService().clusterId"
 		}
-	}
+	},
+	"type": "Microsoft.DataFactory/factories/linkedservices"
 }
