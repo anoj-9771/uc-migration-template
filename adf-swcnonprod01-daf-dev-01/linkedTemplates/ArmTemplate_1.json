@@ -3602,7 +3602,7 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/04-Blob-A-Source-Copy_copy1')]",
+			"name": "[concat(parameters('factoryName'), '/04-Blob-A-Source-Copy')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
 			"apiVersion": "2018-06-01",
 			"properties": {
@@ -4918,7 +4918,7 @@
 												"userProperties": [],
 												"typeProperties": {
 													"pipeline": {
-														"referenceName": "04-Blob-A-Source-Copy_copy1",
+														"referenceName": "04-Blob-A-Source-Copy",
 														"type": "PipelineReference"
 													},
 													"waitOnCompletion": true,
@@ -5259,7 +5259,7 @@
 				"[concat(variables('factoryId'), '/linkedServices/LS-AzureSqlDatabase_Ctrldb')]",
 				"[concat(variables('factoryId'), '/pipelines/05-DL-Load-Raw-to-Trusted')]",
 				"[concat(variables('factoryId'), '/pipelines/05-DL-Load-Trusted-to-Curated')]",
-				"[concat(variables('factoryId'), '/pipelines/04-Blob-A-Source-Copy_copy1')]",
+				"[concat(variables('factoryId'), '/pipelines/04-Blob-A-Source-Copy')]",
 				"[concat(variables('factoryId'), '/pipelines/05-DL-Copy-Raw-to-Trusted')]",
 				"[concat(variables('factoryId'), '/pipelines/05-DL-Copy-Trusted-to-Curated')]"
 			]
