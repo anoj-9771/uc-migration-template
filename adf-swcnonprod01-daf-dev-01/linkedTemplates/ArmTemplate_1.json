@@ -4084,7 +4084,7 @@
 						}
 					},
 					{
-						"name": "Copy-Blob-to-DataLake-Raw_copy1",
+						"name": "Copy Blob File to Archive",
 						"type": "Copy",
 						"dependsOn": [
 							{
