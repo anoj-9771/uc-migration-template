@@ -1,6 +1,5 @@
 {
 	"name": "LS-AzureSqlDatabase_Ctrldb",
-	"type": "Microsoft.DataFactory/factories/linkedservices",
 	"properties": {
 		"description": "ETL Control database linked service",
 		"parameters": {
@@ -23,6 +22,11 @@
 					"type": "Expression"
 				}
 			}
+		},
+		"connectVia": {
+			"referenceName": "IntegrationRuntime-Azure-ManagedVnet-01",
+			"type": "IntegrationRuntimeReference"
 		}
-	}
+	},
+	"type": "Microsoft.DataFactory/factories/linkedservices"
 }
