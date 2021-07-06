@@ -1,5 +1,5 @@
 {
-	"name": "05-DL-Load-Raw-to-Trusted",
+	"name": "05-DL-Load-Raw-to-Cleansed",
 	"properties": {
 		"activities": [
 			{
@@ -262,7 +262,7 @@
 					],
 					"ifTrueActivities": [
 						{
-							"name": "Load-To-Trusted-Zone-Interactive",
+							"name": "Load-To-Cleansed-Zone-Interactive",
 							"type": "DatabricksNotebook",
 							"dependsOn": [],
 							"policy": {
