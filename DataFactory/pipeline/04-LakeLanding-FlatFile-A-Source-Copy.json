@@ -1,14 +1,13 @@
 {
-	"name": "04-Blob-Json-A-Source-Copy",
+	"name": "04-LakeLanding-FlatFile-A-Source-Copy",
 	"properties": {
-		"description": "Clone of 05-DL-Load-Raw-to-Trusted",
 		"activities": [
 			{
 				"name": "Log Failure DL Raw",
 				"type": "SqlServerStoredProcedure",
 				"dependsOn": [
 					{
-						"activity": "Copy-Blob-to-DataLake-Raw",
+						"activity": "Copy File to Raw Zone",
 						"dependencyConditions": [
 							"Failed"
 						]
@@ -75,7 +74,7 @@
 				"type": "SqlServerStoredProcedure",
 				"dependsOn": [
 					{
-						"activity": "Copy-Blob-to-DataLake-Raw",
+						"activity": "Copy File to Raw Zone",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -166,75 +165,6 @@
 						"type": "Expression"
 					}
 				}
-			},
-			{
-				"name": "Copy-Blob-to-DataLake-Raw",
-				"type": "Copy",
-				"dependsOn": [
-					{
-						"activity": "Delete Manifest file",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
-				"policy": {
-					"timeout": "7.00:00:00",
-					"retry": 0,
-					"retryIntervalInSeconds": 30,
-					"secureOutput": false,
-					"secureInput": false
-				},
-				"userProperties": [],
-				"typeProperties": {
-					"source": {
-						"type": "JsonSource",
-						"storeSettings": {
-							"type": "AzureBlobStorageReadSettings",
-							"recursive": true,
-							"wildcardFileName": {
-								"value": "@concat(first(split(variables('SourceFileName'),'_')),'_ATTR*')",
-								"type": "Expression"
-							},
-							"enablePartitionDiscovery": false
-						},
-						"formatSettings": {
-							"type": "JsonReadSettings"
-						}
-					},
-					"sink": {
-						"type": "JsonSink",
-						"storeSettings": {
-							"type": "AzureBlobFSWriteSettings"
-						},
-						"formatSettings": {
-							"type": "JsonWriteSettings"
-						}
-					},
-					"enableStaging": false
-				},
-				"inputs": [
-					{
-						"referenceName": "SRC_BLOB_JSON",
-						"type": "DatasetReference"
-					}
-				],
-				"outputs": [
-					{
-						"referenceName": "RAW_ADLS_JSON_v2",
-						"type": "DatasetReference",
-						"parameters": {
-							"BlobPath": {
-								"value": "@activity('Get Full File Name').output.firstrow.StorageFolder",
-								"type": "Expression"
-							},
-							"BlobName": {
-								"value": "@activity('Get Full File Name').output.firstrow.StorageFile",
-								"type": "Expression"
-							}
-						}
-					}
-				]
 			},
 			{
 				"name": "Get Full File Name",
@@ -352,7 +282,7 @@
 				}
 			},
 			{
-				"name": "Copy Manifest File to Archive",
+				"name": "Copy File to Raw Zone",
 				"type": "Copy",
 				"dependsOn": [
 					{
@@ -384,24 +314,20 @@
 				"userProperties": [],
 				"typeProperties": {
 					"source": {
-						"type": "JsonSource",
+						"type": "DelimitedTextSource",
 						"storeSettings": {
-							"type": "AzureBlobStorageReadSettings",
+							"type": "AzureBlobFSReadSettings",
 							"recursive": true,
-							"wildcardFileName": {
-								"value": "@concat(first(split(variables('SourceFileName'),'_')),'_ATTR_MANIFEST*')",
-								"type": "Expression"
-							},
 							"enablePartitionDiscovery": false
 						},
 						"formatSettings": {
-							"type": "JsonReadSettings"
+							"type": "DelimitedTextReadSettings"
 						}
 					},
 					"sink": {
 						"type": "JsonSink",
 						"storeSettings": {
-							"type": "AzureBlobStorageWriteSettings"
+							"type": "AzureBlobFSWriteSettings"
 						},
 						"formatSettings": {
 							"type": "JsonWriteSettings"
@@ -411,17 +337,31 @@
 				},
 				"inputs": [
 					{
-						"referenceName": "SRC_BLOB_JSON",
-						"type": "DatasetReference"
+						"referenceName": "SRC_RAW_LANDING_ADLS_CSV",
+						"type": "DatasetReference",
+						"parameters": {
+							"BlobPath": {
+								"value": "@variables('SourceContainer')",
+								"type": "Expression"
+							},
+							"BlobName": {
+								"value": "@variables('SourceFileName')",
+								"type": "Expression"
+							}
+						}
 					}
 				],
 				"outputs": [
 					{
-						"referenceName": "ARCHIVE_BLOB_JSON",
+						"referenceName": "RAW_ADLS_JSON_v2",
 						"type": "DatasetReference",
 						"parameters": {
-							"BlobContainer": {
-								"value": "@concat('archive/', activity('Get Full File Name').output.firstrow.StorageFolder)",
+							"BlobPath": {
+								"value": "@activity('Get Full File Name').output.firstrow.StorageFolder",
+								"type": "Expression"
+							},
+							"BlobName": {
+								"value": "@activity('Get Full File Name').output.firstrow.StorageFile",
 								"type": "Expression"
 							}
 						}
@@ -433,7 +373,7 @@
 				"type": "Delete",
 				"dependsOn": [
 					{
-						"activity": "Copy Manifest File to Archive",
+						"activity": "Copy File to Archive",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -449,8 +389,18 @@
 				"userProperties": [],
 				"typeProperties": {
 					"dataset": {
-						"referenceName": "SRC_BLOB_JSON",
-						"type": "DatasetReference"
+						"referenceName": "SRC_RAW_LANDING_ADLS_CSV",
+						"type": "DatasetReference",
+						"parameters": {
+							"BlobPath": {
+								"value": "@variables('SourceContainer')",
+								"type": "Expression"
+							},
+							"BlobName": {
+								"value": "@variables('SourceFileName')",
+								"type": "Expression"
+							}
+						}
 					},
 					"logStorageSettings": {
 						"linkedServiceName": {
@@ -464,18 +414,14 @@
 					},
 					"enableLogging": true,
 					"storeSettings": {
-						"type": "AzureBlobStorageReadSettings",
+						"type": "AzureBlobFSReadSettings",
 						"recursive": true,
-						"wildcardFileName": {
-							"value": "@{concat(first(split(variables('SourceFileName'),'_')),'_ATTR_MANIFEST*')}",
-							"type": "Expression"
-						},
 						"enablePartitionDiscovery": false
 					}
 				}
 			},
 			{
-				"name": "Copy Blob File to Archive",
+				"name": "Copy File to Archive",
 				"type": "Copy",
 				"dependsOn": [
 					{
@@ -495,44 +441,56 @@
 				"userProperties": [],
 				"typeProperties": {
 					"source": {
-						"type": "JsonSource",
+						"type": "DelimitedTextSource",
 						"storeSettings": {
-							"type": "AzureBlobStorageReadSettings",
+							"type": "AzureBlobFSReadSettings",
 							"recursive": true,
-							"wildcardFileName": {
-								"value": "@concat(first(split(variables('SourceFileName'),'_')),'_ATTR*')",
-								"type": "Expression"
-							},
 							"enablePartitionDiscovery": false
 						},
 						"formatSettings": {
-							"type": "JsonReadSettings"
+							"type": "DelimitedTextReadSettings"
 						}
 					},
 					"sink": {
-						"type": "JsonSink",
+						"type": "DelimitedTextSink",
 						"storeSettings": {
-							"type": "AzureBlobStorageWriteSettings"
+							"type": "AzureBlobFSWriteSettings"
 						},
 						"formatSettings": {
-							"type": "JsonWriteSettings"
+							"type": "DelimitedTextWriteSettings",
+							"quoteAllText": true,
+							"fileExtension": ".txt"
 						}
 					},
 					"enableStaging": false
 				},
 				"inputs": [
 					{
-						"referenceName": "SRC_BLOB_JSON",
-						"type": "DatasetReference"
+						"referenceName": "SRC_RAW_LANDING_ADLS_CSV",
+						"type": "DatasetReference",
+						"parameters": {
+							"BlobPath": {
+								"value": "@variables('SourceContainer')",
+								"type": "Expression"
+							},
+							"BlobName": {
+								"value": "@variables('SourceFileName')",
+								"type": "Expression"
+							}
+						}
 					}
 				],
 				"outputs": [
 					{
-						"referenceName": "ARCHIVE_BLOB_JSON",
+						"referenceName": "SRC_RAW_LANDING_ADLS_CSV",
 						"type": "DatasetReference",
 						"parameters": {
-							"BlobContainer": {
-								"value": "@concat('archive/', activity('Get Full File Name').output.firstrow.StorageFolder)",
+							"BlobPath": {
+								"value": "@concat(variables('SourceContainer'),'archive/')",
+								"type": "Expression"
+							},
+							"BlobName": {
+								"value": "@variables('SourceFileName')",
 								"type": "Expression"
 							}
 						}
