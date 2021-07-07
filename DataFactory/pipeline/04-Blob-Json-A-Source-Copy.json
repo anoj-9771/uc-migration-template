@@ -475,7 +475,7 @@
 				}
 			},
 			{
-				"name": "Copy Blob File to Archive",
+				"name": "Copy Blob File to ArchiveContainer",
 				"type": "Copy",
 				"dependsOn": [
 					{
@@ -538,6 +538,52 @@
 						}
 					}
 				]
+			},
+			{
+				"name": "Delete File from LandingBlob",
+				"type": "Delete",
+				"dependsOn": [
+					{
+						"activity": "Copy Blob File to ArchiveContainer",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "SRC_BLOB_JSON",
+						"type": "DatasetReference"
+					},
+					"logStorageSettings": {
+						"linkedServiceName": {
+							"referenceName": "LS_AzureDatalake",
+							"type": "LinkedServiceReference",
+							"parameters": {
+								"kvSecret": "swcdafdevadls-sastoken"
+							}
+						},
+						"path": "assurance"
+					},
+					"enableLogging": true,
+					"storeSettings": {
+						"type": "AzureBlobStorageReadSettings",
+						"recursive": true,
+						"wildcardFileName": {
+							"value": "@{concat(first(split(variables('SourceFileName'),'_')),'_ATTR*')}",
+							"type": "Expression"
+						},
+						"enablePartitionDiscovery": false
+					}
+				}
 			}
 		],
 		"parameters": {
