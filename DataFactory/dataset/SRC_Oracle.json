@@ -5,16 +5,16 @@
 			"referenceName": "LS_Oracle",
 			"type": "LinkedServiceReference",
 			"parameters": {
-				"kvSecret": {
-					"value": "@dataset().kvSecret",
-					"type": "Expression"
-				}
+				"kvSecret": "OracleDB-PAS"
 			}
 		},
 		"parameters": {
 			"kvSecret": {
 				"type": "string"
 			}
+		},
+		"folder": {
+			"name": "z_Archive"
 		},
 		"annotations": [],
 		"type": "OracleTable"

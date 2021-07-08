@@ -2,8 +2,11 @@
 	"name": "RAW_ADLS_Schema",
 	"properties": {
 		"linkedServiceName": {
-			"referenceName": "LS-AzureDataLake",
-			"type": "LinkedServiceReference"
+			"referenceName": "LS_AzureDatalake",
+			"type": "LinkedServiceReference",
+			"parameters": {
+				"kvSecret": "datalake-SasToken"
+			}
 		},
 		"parameters": {
 			"BlobPath": {
@@ -24,11 +27,14 @@
 				"defaultValue": true
 			}
 		},
+		"folder": {
+			"name": "z_Archive"
+		},
 		"annotations": [],
 		"type": "DelimitedText",
 		"typeProperties": {
 			"location": {
-				"type": "AzureBlobStorageLocation",
+				"type": "AzureBlobFSLocation",
 				"fileName": {
 					"value": "@dataset().BlobName",
 					"type": "Expression"
@@ -37,7 +43,7 @@
 					"value": "@dataset().BlobPath",
 					"type": "Expression"
 				},
-				"container": "raw"
+				"fileSystem": "raw"
 			},
 			"columnDelimiter": {
 				"value": "@dataset().ColumnDelim",

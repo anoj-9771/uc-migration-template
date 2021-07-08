@@ -2,8 +2,11 @@
 	"name": "BINARY_ADLS",
 	"properties": {
 		"linkedServiceName": {
-			"referenceName": "LS-AzureDataLake",
-			"type": "LinkedServiceReference"
+			"referenceName": "LS_AzureDatalake",
+			"type": "LinkedServiceReference",
+			"parameters": {
+				"kvSecret": "datalake-SasToken"
+			}
 		},
 		"parameters": {
 			"File": {
@@ -16,11 +19,14 @@
 				"type": "string"
 			}
 		},
+		"folder": {
+			"name": "z_Archive"
+		},
 		"annotations": [],
 		"type": "Binary",
 		"typeProperties": {
 			"location": {
-				"type": "AzureBlobStorageLocation",
+				"type": "AzureBlobFSLocation",
 				"fileName": {
 					"value": "@dataset().File",
 					"type": "Expression"
@@ -29,11 +35,12 @@
 					"value": "@dataset().Folder",
 					"type": "Expression"
 				},
-				"container": {
+				"fileSystem": {
 					"value": "@dataset().Container",
 					"type": "Expression"
 				}
 			}
 		}
-	}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
 }

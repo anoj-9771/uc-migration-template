@@ -54,7 +54,7 @@ variables:
   - name: logstorageaccountname
     value: ${{ replace(lower(variables.prefix),'-','') }}${{ replace(lower(variables.environment),'-','') }}salogs
   # Name of Azure SQL Server and catalog name
-  # Data Lake storage account names, commonly split
+  # Data Lake storage account names, commonly split.
   # into zones. Ensure it is a comma delimited list
   # as it is split into an array within the ARM 
   # template.

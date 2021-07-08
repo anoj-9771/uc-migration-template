@@ -6,9 +6,9 @@ pr:
     - main
     - develop
     - test
-  paths:
-    include:
-    - sl-df-nonprod/*
+#  paths:
+#    include:
+#    - sl-df-nonprod/*
 
 trigger: none
 #   branches:
@@ -33,7 +33,7 @@ stages:
   # Use this section to pull in or out build jobs
   - template: Templates/job-copy-datafactory-arm.yml
     parameters:
-      data_factory_name: 'swcdaf-dev-ADF'
+      data_factory_name: 'adf-swcnonprod01-daf-dev-01'
 
 # ---------------------------------------------------------------------------
 # Release to Non-Prod - Dev Environment
@@ -45,7 +45,7 @@ stages:
     run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/develop'))
 
 # ---------------------------------------------------------------------------
-# Release to Non-Prod - Test Environment
+# Release to Non-Prod - Test Environment..
 - template: Templates/stage-datafactory-integration.yml
   parameters:
     #dependencies: ['uat'] # Used to define any stage dependencies

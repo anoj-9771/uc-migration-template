@@ -4,6 +4,7 @@
 		"activities": [
 			{
 				"name": "Get Stages",
+				"description": "",
 				"type": "Lookup",
 				"dependsOn": [],
 				"policy": {
@@ -101,7 +102,8 @@
 				"type": "string"
 			}
 		},
-		"annotations": []
+		"annotations": [],
+		"lastPublishTime": "2021-06-21T01:45:17Z"
 	},
 	"type": "Microsoft.DataFactory/factories/pipelines"
 }
