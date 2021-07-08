@@ -74,11 +74,11 @@ variables:
     value: dbw-$(SUBSCRIPTION)-$(PREFIX)-$(ENVIRONMENT)-$(INCREMENT)
   # Data Factory service name for this environment
   - name: datafactoryname
-    value: adf-$(SUBSCRIPTION)-$(PREFIX)-$(ENVIRONMENT)-$(INCREMENT)
+    value: adf-$(SUBSCRIPTION)-$(PREFIX)-$(ENVIRONMENT)-$(INCREMENT)  
   # Data Factory self hosted integrated runtime name
   - name: datafactoryshirname
     value: $(PREFIX)-SHIR
-  # Flag to specify whether Data Factory requires Git Integration
+  # Flag to specify whether Data Factory requires Git Integration.
   - name: isRepoEnabled
     value: false  
   # ------------------------------------------------

@@ -6,9 +6,9 @@ pr:
     - main
     - develop
     - test
-  paths:
-    include:
-    - sl-df-nonprod/*
+#  paths:
+#    include:
+#    - sl-df-nonprod/*
 
 trigger: none
 #   branches:
