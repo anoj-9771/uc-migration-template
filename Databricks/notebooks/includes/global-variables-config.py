@@ -11,11 +11,12 @@ ADS_BUSINESS_UNIT = "daf"
 
 # MAGIC %scala
 # MAGIC //Please udpate the environment varibale
-# MAGIC val ADS_ENVIRONMENT = "<ADS_ENVIRONMENT>"
+# MAGIC val ADS_ENVIRONMENT = "dev"
 # MAGIC //Project Prefix
-# MAGIC val ADS_COMPANY_INITIAL = "ama-panel"
-# MAGIC val ADS_SUFFIX = "as-01"
-# MAGIC val ADS_BUSINESS_UNIT = "ops"
+# MAGIC val ADS_COMPANY_INITIAL = "swcdaf"
+# MAGIC val ADS_SUFFIX = "01"
+# MAGIC val ADS_BUSINESS_UNIT = "daf"
 
-# COMMAND ----------
+# COMMAND ----------.
+
 

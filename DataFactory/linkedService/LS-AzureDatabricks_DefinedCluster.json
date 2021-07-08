@@ -8,13 +8,13 @@
 			},
 			"clusterId": {
 				"type": "string",
-				"defaultValue": "0708-233111-note225"
+				"defaultValue": "0704-231544-bugs938"
 			}
 		},
 		"annotations": [],
 		"type": "AzureDatabricks",
 		"typeProperties": {
-			"domain": "https://eastus.azuredatabricks.net",
+			"domain": "https://adb-6510910994889.9.azuredatabricks.net/",
 			"accessToken": {
 				"type": "AzureKeyVaultSecret",
 				"store": {
@@ -24,7 +24,8 @@
 				"secretName": {
 					"value": "@linkedService().kvSecret",
 					"type": "Expression"
-				}
+				},
+				"secretVersion": ""
 			},
 			"existingClusterId": "@linkedService().clusterId"
 		}

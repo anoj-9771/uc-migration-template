@@ -17,30 +17,19 @@ This checks if the record does not exists on the table then inserts it
 
 /************* ControlStages ***********************************/
 
+INSERT INTO [CTL].[ControlProjects]([ProjectName],[Enabled]) VALUES ('SAP ISU',1)
+
 INSERT INTO [CTL].[ControlStages] ([StageSequence], [StageName]) SELECT 100, N'Source to Raw'
 WHERE NOT EXISTS (SELECT 1 FROM [CTL].[ControlStages] WHERE [StageName] = N'Source to Raw')
 
 INSERT INTO [CTL].[ControlStages] ([StageSequence], [StageName]) SELECT 200, N'Raw to Trusted'
 WHERE NOT EXISTS (SELECT 1 FROM [CTL].[ControlStages] WHERE [StageName] = N'Raw to Trusted')
 
-INSERT INTO [CTL].[ControlStages] ([StageSequence], [StageName]) SELECT 250, N'Validation'
-WHERE NOT EXISTS (SELECT 1 FROM [CTL].[ControlStages] WHERE [StageName] = N'Validation')
-
-INSERT INTO [CTL].[ControlStages] ([StageSequence], [StageName]) SELECT 260, N'EDW-SP'
-WHERE NOT EXISTS (SELECT 1 FROM [CTL].[ControlStages] WHERE [StageName] = N'EDW-SP')
-
 INSERT INTO [CTL].[ControlStages] ([StageSequence], [StageName]) SELECT 300, N'Trusted to Curated'
 WHERE NOT EXISTS (SELECT 1 FROM [CTL].[ControlStages] WHERE [StageName] = N'Trusted to Curated')
 
-INSERT INTO [CTL].[ControlStages] ([StageSequence], [StageName]) SELECT 400, N'Cubes'
-WHERE NOT EXISTS (SELECT 1 FROM [CTL].[ControlStages] WHERE [StageName] = N'Cubes')
-
-INSERT INTO [CTL].[ControlStages] ([StageSequence], [StageName]) SELECT 500, N'DW Export'
-WHERE NOT EXISTS (SELECT 1 FROM [CTL].[ControlStages] WHERE [StageName] = N'DW Export')
-
-
 IF (
-	SELECT COUNT(*)
+	SELECT DISTINCT p.rows 
 	FROM sys.tables t 
 	JOIN sys.schemas s ON t.schema_id = s.schema_id
 	JOIN sys.partitions p ON t.object_id = p.object_id 
@@ -62,13 +51,11 @@ IF (
 		INSERT [CTL].[ControlTypes] ([TypeId], [ControlType]) VALUES (11, N'OData-Basic')
 		INSERT [CTL].[ControlTypes] ([TypeId], [ControlType]) VALUES (12, N'OData-AADServicePrincipal')
 		INSERT [CTL].[ControlTypes] ([TypeId], [ControlType]) VALUES (13, N'SharePoint')
-		INSERT [CTL].[ControlTypes] ([TypeId], [ControlType]) VALUES (14, N'API-TAFE')
-		INSERT [CTL].[ControlTypes] ([TypeId], [ControlType]) VALUES (15, N'API-General')
 		SET IDENTITY_INSERT [CTL].[ControlTypes] OFF
 	END
 
 IF (
-	SELECT COUNT(*)
+	SELECT DISTINCT p.rows 
 	FROM sys.tables t 
 	JOIN sys.schemas s ON t.schema_id = s.schema_id
 	JOIN sys.partitions p ON t.object_id = p.object_id 
@@ -84,7 +71,6 @@ IF (
 		INSERT [CTL].[ControlDataLoadTypes] (DataLoadTypeID, [DataLoadType], [DeltaExtract], [CDCSource], TruncateTarget, UpsertTarget) VALUES (5, N'CDC', 1, 1, 0, 0)
 		SET IDENTITY_INSERT [CTL].[ControlDataLoadTypes] OFF
 	END
-
 
 	/*************************************************************************
 	Post Deployment Update

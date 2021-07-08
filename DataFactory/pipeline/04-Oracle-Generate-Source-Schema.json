@@ -4,28 +4,11 @@
 		"activities": [
 			{
 				"name": "Generate Schema",
+				"description": "",
 				"type": "Copy",
 				"dependsOn": [
 					{
-						"activity": "Set-Owner",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					},
-					{
-						"activity": "Set-Table",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					},
-					{
 						"activity": "Set-File",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					},
-					{
-						"activity": "Set-Folder",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -52,7 +35,7 @@
 					"sink": {
 						"type": "DelimitedTextSink",
 						"storeSettings": {
-							"type": "AzureBlobStorageWriteSettings"
+							"type": "AzureBlobFSWriteSettings"
 						},
 						"formatSettings": {
 							"type": "DelimitedTextWriteSettings",
@@ -68,7 +51,7 @@
 						"type": "DatasetReference",
 						"parameters": {
 							"kvSecret": {
-								"value": "@pipeline().parameters.TaskDetails.SourceServer",
+								"value": "@pipeline().parameters.SourceServer",
 								"type": "Expression"
 							}
 						}
@@ -93,6 +76,32 @@
 						}
 					}
 				]
+			},
+			{
+				"name": "Set-Owner",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "Owner",
+					"value": {
+						"value": "@split(pipeline().parameters.SourceObject,'.')[0]",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Set-Table",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "Table",
+					"value": {
+						"value": "@split(pipeline().parameters.SourceObject,'.')[1]",
+						"type": "Expression"
+					}
+				}
 			},
 			{
 				"name": "Generate Schema Original",
@@ -126,7 +135,7 @@
 					"sink": {
 						"type": "DelimitedTextSink",
 						"storeSettings": {
-							"type": "AzureBlobStorageWriteSettings"
+							"type": "AzureBlobFSWriteSettings"
 						},
 						"formatSettings": {
 							"type": "DelimitedTextWriteSettings",
@@ -142,7 +151,7 @@
 						"type": "DatasetReference",
 						"parameters": {
 							"kvSecret": {
-								"value": "@pipeline().parameters.TaskDetails.SourceServer",
+								"value": "@pipeline().parameters.SourceServer",
 								"type": "Expression"
 							}
 						}
@@ -167,6 +176,51 @@
 						}
 					}
 				]
+			},
+			{
+				"name": "Set-Folder",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "Folder",
+					"value": {
+						"value": "@toLower(concat(pipeline().parameters.Project, '//', 'schema'))",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Set-File",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "Set-Owner",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "Set-Table",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "Set-Folder",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "File",
+					"value": {
+						"value": "@toLower(concat(variables('Owner'), '_', variables('Table'), '.', 'schema'))",
+						"type": "Expression"
+					}
+				}
 			},
 			{
 				"name": "If-Empty-Delete",
@@ -216,77 +270,34 @@
 								},
 								"logStorageSettings": {
 									"linkedServiceName": {
-										"referenceName": "LS-AzureDataLake",
+										"referenceName": "LS_AzureDatalake",
 										"type": "LinkedServiceReference"
 									},
 									"path": "log"
 								},
 								"enableLogging": true,
 								"storeSettings": {
-									"type": "AzureBlobStorageReadSettings",
+									"type": "AzureBlobFSReadSettings",
 									"recursive": true
 								}
 							}
 						}
 					]
 				}
-			},
-			{
-				"name": "Set-Folder",
-				"type": "SetVariable",
-				"dependsOn": [],
-				"userProperties": [],
-				"typeProperties": {
-					"variableName": "Folder",
-					"value": {
-						"value": "@toLower(concat(pipeline().parameters.TaskDetails.SourceGroup, '//', 'schema'))",
-						"type": "Expression"
-					}
-				}
-			},
-			{
-				"name": "Set-File",
-				"type": "SetVariable",
-				"dependsOn": [],
-				"userProperties": [],
-				"typeProperties": {
-					"variableName": "File",
-					"value": {
-						"value": "@toLower(concat(pipeline().parameters.TaskDetails.SourceName, '.', 'schema'))",
-						"type": "Expression"
-					}
-				}
-			},
-			{
-				"name": "Set-Table",
-				"type": "SetVariable",
-				"dependsOn": [],
-				"userProperties": [],
-				"typeProperties": {
-					"variableName": "Table",
-					"value": {
-						"value": "@split(pipeline().parameters.TaskDetails.SourceLocation,'.')[1]",
-						"type": "Expression"
-					}
-				}
-			},
-			{
-				"name": "Set-Owner",
-				"type": "SetVariable",
-				"dependsOn": [],
-				"userProperties": [],
-				"typeProperties": {
-					"variableName": "Owner",
-					"value": {
-						"value": "@split(pipeline().parameters.TaskDetails.SourceLocation,'.')[0]",
-						"type": "Expression"
-					}
-				}
 			}
 		],
 		"parameters": {
-			"TaskDetails": {
-				"type": "object"
+			"SourceObject": {
+				"type": "string",
+				"defaultValue": "EBS_0165.USERS"
+			},
+			"Project": {
+				"type": "string",
+				"defaultValue": "OneEBS"
+			},
+			"SourceServer": {
+				"type": "string",
+				"defaultValue": "OneEBS-0165"
 			}
 		},
 		"variables": {
@@ -312,9 +323,10 @@
 			}
 		},
 		"folder": {
-			"name": "Oracle"
+			"name": "z_Archive/Oracle"
 		},
-		"annotations": []
+		"annotations": [],
+		"lastPublishTime": "2021-06-21T11:09:16Z"
 	},
 	"type": "Microsoft.DataFactory/factories/pipelines"
 }

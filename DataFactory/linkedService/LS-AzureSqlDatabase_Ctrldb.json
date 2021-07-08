@@ -1,12 +1,11 @@
 {
 	"name": "LS-AzureSqlDatabase_Ctrldb",
-	"type": "Microsoft.DataFactory/factories/linkedservices",
 	"properties": {
 		"description": "ETL Control database linked service",
 		"parameters": {
 			"kvSecret": {
 				"type": "string",
-				"defaultValue": "AzureSqlDatabase-ControlDB"
+				"defaultValue": "ADF-LS-AzureSql-ControlDB"
 			}
 		},
 		"annotations": [],
@@ -23,6 +22,11 @@
 					"type": "Expression"
 				}
 			}
+		},
+		"connectVia": {
+			"referenceName": "IntegrationRuntime-Azure-ManagedVnet-01",
+			"type": "IntegrationRuntimeReference"
 		}
-	}
+	},
+	"type": "Microsoft.DataFactory/factories/linkedservices"
 }

@@ -1,11 +1,11 @@
 {
-	"name": "RAW_ADLS_Schema",
+	"name": "SRC_RAW_LANDING_ADLS_CSV",
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "LS_AzureDatalake",
 			"type": "LinkedServiceReference",
 			"parameters": {
-				"kvSecret": "datalake-SasToken"
+				"kvSecret": "swcdafdevadls-sastoken"
 			}
 		},
 		"parameters": {
@@ -14,21 +14,10 @@
 			},
 			"BlobName": {
 				"type": "string"
-			},
-			"Compression": {
-				"type": "string"
-			},
-			"ColumnDelim": {
-				"type": "string",
-				"defaultValue": ","
-			},
-			"HeaderRow": {
-				"type": "bool",
-				"defaultValue": true
 			}
 		},
 		"folder": {
-			"name": "z_Archive"
+			"name": "Data Lake"
 		},
 		"annotations": [],
 		"type": "DelimitedText",
@@ -43,23 +32,12 @@
 					"value": "@dataset().BlobPath",
 					"type": "Expression"
 				},
-				"fileSystem": "raw"
+				"fileSystem": "raw/landing"
 			},
-			"columnDelimiter": {
-				"value": "@dataset().ColumnDelim",
-				"type": "Expression"
-			},
-			"compressionCodec": {
-				"value": "@dataset().Compression",
-				"type": "Expression"
-			},
-			"compressionLevel": "Optimal",
+			"columnDelimiter": ",",
 			"escapeChar": "\\",
-			"firstRowAsHeader": {
-				"value": "@dataset().HeaderRow",
-				"type": "Expression"
-			},
-			"quoteChar": ""
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
 		},
 		"schema": []
 	},

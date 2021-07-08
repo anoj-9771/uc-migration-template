@@ -1,5 +1,5 @@
 {
-	"name": "RAW_ADLS_Schema",
+	"name": "RAW_PARQUET",
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "LS_AzureDatalake",
@@ -14,24 +14,13 @@
 			},
 			"BlobName": {
 				"type": "string"
-			},
-			"Compression": {
-				"type": "string"
-			},
-			"ColumnDelim": {
-				"type": "string",
-				"defaultValue": ","
-			},
-			"HeaderRow": {
-				"type": "bool",
-				"defaultValue": true
 			}
 		},
 		"folder": {
 			"name": "z_Archive"
 		},
 		"annotations": [],
-		"type": "DelimitedText",
+		"type": "Parquet",
 		"typeProperties": {
 			"location": {
 				"type": "AzureBlobFSLocation",
@@ -45,21 +34,7 @@
 				},
 				"fileSystem": "raw"
 			},
-			"columnDelimiter": {
-				"value": "@dataset().ColumnDelim",
-				"type": "Expression"
-			},
-			"compressionCodec": {
-				"value": "@dataset().Compression",
-				"type": "Expression"
-			},
-			"compressionLevel": "Optimal",
-			"escapeChar": "\\",
-			"firstRowAsHeader": {
-				"value": "@dataset().HeaderRow",
-				"type": "Expression"
-			},
-			"quoteChar": ""
+			"compressionCodec": "snappy"
 		},
 		"schema": []
 	},
