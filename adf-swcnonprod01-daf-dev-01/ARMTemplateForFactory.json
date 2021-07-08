@@ -5,7 +5,7 @@
 		"factoryName": {
 			"type": "string",
 			"metadata": "Data Factory name",
-			"defaultValue": "adf-swcnonprod01-daf-dev-01"
+			"defaultValue": "adf-swcnonprod01-daf-test-01"
 		},
 		"LS_AzureBlobStorage_connectionString": {
 			"type": "secureString",
@@ -29,7 +29,7 @@
 		},
 		"LS_AzureDatalake_properties_typeProperties_url": {
 			"type": "string",
-			"defaultValue": "https://sadafdev01.dfs.core.windows.net"
+			"defaultValue": "https://sadaftest01.dfs.core.windows.net"
 		},
 		"LS_Oracle_properties_typeProperties_connectionString_secretName": {
 			"type": "string",

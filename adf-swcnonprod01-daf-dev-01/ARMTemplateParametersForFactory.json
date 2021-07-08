@@ -3,7 +3,7 @@
 	"contentVersion": "1.0.0.0",
 	"parameters": {
 		"factoryName": {
-			"value": "adf-swcnonprod01-daf-dev-01"
+			"value": "adf-swcnonprod01-daf-test-01"
 		},
 		"LS_AzureBlobStorage_connectionString": {
 			"value": ""
@@ -21,7 +21,7 @@
 			"value": "@linkedService().kvSecret"
 		},
 		"LS_AzureDatalake_properties_typeProperties_url": {
-			"value": "https://sadafdev01.dfs.core.windows.net"
+			"value": "https://sadaftest01.dfs.core.windows.net"
 		},
 		"LS_Oracle_properties_typeProperties_connectionString_secretName": {
 			"value": "@linkedService().kvSecret"
