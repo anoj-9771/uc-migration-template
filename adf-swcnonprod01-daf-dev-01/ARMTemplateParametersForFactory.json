@@ -15,7 +15,7 @@
 			"value": ""
 		},
 		"LS-AzureKeyVault_properties_typeProperties_baseUrl": {
-			"value": "https://kv-daf-dev-01.vault.azure.net/"
+			"value": "https://kv-daf-test-01.vault.azure.net/"
 		},
 		"LS-AzureSqlDatabase_Ctrldb_properties_typeProperties_connectionString_secretName": {
 			"value": "@linkedService().kvSecret"
