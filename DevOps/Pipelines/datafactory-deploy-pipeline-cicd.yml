@@ -33,7 +33,7 @@ stages:
   # Use this section to pull in or out build jobs
   - template: Templates/job-copy-datafactory-arm.yml
     parameters:
-      data_factory_name: 'DataFactory'
+      data_factory_name: 'adf-swcnonprod01-daf-dev-01'
 
 # ---------------------------------------------------------------------------
 # Release to Non-Prod - Dev Environment
