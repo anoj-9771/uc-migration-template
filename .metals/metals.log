@@ -1199,3 +1199,74 @@ val ADS_KV_ACCOUNT_SCOPE = "ADS"
 	at scala.meta.internal.semanticdb.scalac.TextDocumentOps$XtensionCompilationUnitDocument.toTextDocument(TextDocumentOps.scala:201)
 	at scala.meta.internal.pc.SemanticdbTextDocumentProvider.textDocument(SemanticdbTextDocumentProvider.scala:51)
 
+Jul 05, 2021 2:59:35 PM scala.meta.internal.pc.CompilerAccess handleError
+SEVERE: file%3A%2F%2F%2FC%3A%2FUsers%2Fjstaub%2FInsight%2FSydney%2520Water%2520-%2520DAF%2520Project%2F6.%2520Implementation%2520Documentation%2FDAF%2520Repo%2FDAFPOCREPO1%2FDatabricks%2Fnotebooks%2Fincludes%2Fglobal-variables-scala.scala:7: error: expected class or object definition val
+val ADS_KV_ACCOUNT_SCOPE = "ADS"
+^
+file%3A%2F%2F%2FC%3A%2FUsers%2Fjstaub%2FInsight%2FSydney%2520Water%2520-%2520DAF%2520Project%2F6.%2520Implementation%2520Documentation%2FDAF%2520Repo%2FDAFPOCREPO1%2FDatabricks%2Fnotebooks%2Fincludes%2Fglobal-variables-scala.scala:7: error: expected class or object definition val
+val ADS_KV_ACCOUNT_SCOPE = "ADS"
+^
+	at scala.meta.internal.parsers.Reporter.syntaxError(Reporter.scala:16)
+	at scala.meta.internal.parsers.Reporter.syntaxError$(Reporter.scala:16)
+	at scala.meta.internal.parsers.Reporter$$anon$1.syntaxError(Reporter.scala:22)
+	at scala.meta.internal.parsers.Reporter.syntaxError(Reporter.scala:17)
+	at scala.meta.internal.parsers.Reporter.syntaxError$(Reporter.scala:17)
+	at scala.meta.internal.parsers.Reporter$$anon$1.syntaxError(Reporter.scala:22)
+	at scala.meta.internal.parsers.ScalametaParser.statSeq(ScalametaParser.scala:4914)
+	at scala.meta.internal.parsers.ScalametaParser.topStatSeq(ScalametaParser.scala:4921)
+	at scala.meta.internal.parsers.ScalametaParser.$anonfun$batchSource$1(ScalametaParser.scala:5145)
+	at scala.meta.internal.parsers.ScalametaParser.atPos(ScalametaParser.scala:847)
+	at scala.meta.internal.parsers.ScalametaParser.autoPos(ScalametaParser.scala:878)
+	at scala.meta.internal.parsers.ScalametaParser.batchSource(ScalametaParser.scala:5111)
+	at scala.meta.internal.parsers.ScalametaParser.$anonfun$source$1(ScalametaParser.scala:5094)
+	at scala.meta.internal.parsers.ScalametaParser.atPos(ScalametaParser.scala:847)
+	at scala.meta.internal.parsers.ScalametaParser.autoPos(ScalametaParser.scala:878)
+	at scala.meta.internal.parsers.ScalametaParser.source(ScalametaParser.scala:5093)
+	at scala.meta.internal.parsers.ScalametaParser.entrypointSource(ScalametaParser.scala:5099)
+	at scala.meta.internal.parsers.ScalametaParser.$anonfun$parseSource$2(ScalametaParser.scala:143)
+	at scala.meta.internal.parsers.ScalametaParser.parseRule(ScalametaParser.scala:53)
+	at scala.meta.internal.parsers.ScalametaParser.parseSource(ScalametaParser.scala:143)
+	at scala.meta.parsers.Parse$.$anonfun$parseSource$1(Parse.scala:29)
+	at scala.meta.internal.parsers.ScalametaParser$$anon$261.apply(ScalametaParser.scala:5156)
+	at scala.meta.parsers.Api$XtensionParseDialectInput.parse(Api.scala:25)
+	at scala.meta.internal.semanticdb.scalac.ParseOps$XtensionCompilationUnitSource.toSource(ParseOps.scala:17)
+	at scala.meta.internal.semanticdb.scalac.TextDocumentOps$XtensionCompilationUnitDocument.toTextDocument(TextDocumentOps.scala:201)
+	at scala.meta.internal.pc.SemanticdbTextDocumentProvider.textDocument(SemanticdbTextDocumentProvider.scala:51)
+
+Jul 05, 2021 2:59:36 PM scala.meta.internal.pc.CompilerAccess handleError
+SEVERE: file%3A%2F%2F%2FC%3A%2FUsers%2Fjstaub%2FInsight%2FSydney%2520Water%2520-%2520DAF%2520Project%2F6.%2520Implementation%2520Documentation%2FDAF%2520Repo%2FDAFPOCREPO1%2FDatabricks%2Fnotebooks%2Fincludes%2Fglobal-variables-scala.scala:7: error: expected class or object definition val
+val ADS_KV_ACCOUNT_SCOPE = "ADS"
+^
+file%3A%2F%2F%2FC%3A%2FUsers%2Fjstaub%2FInsight%2FSydney%2520Water%2520-%2520DAF%2520Project%2F6.%2520Implementation%2520Documentation%2FDAF%2520Repo%2FDAFPOCREPO1%2FDatabricks%2Fnotebooks%2Fincludes%2Fglobal-variables-scala.scala:7: error: expected class or object definition val
+val ADS_KV_ACCOUNT_SCOPE = "ADS"
+^
+	at scala.meta.internal.parsers.Reporter.syntaxError(Reporter.scala:16)
+	at scala.meta.internal.parsers.Reporter.syntaxError$(Reporter.scala:16)
+	at scala.meta.internal.parsers.Reporter$$anon$1.syntaxError(Reporter.scala:22)
+	at scala.meta.internal.parsers.Reporter.syntaxError(Reporter.scala:17)
+	at scala.meta.internal.parsers.Reporter.syntaxError$(Reporter.scala:17)
+	at scala.meta.internal.parsers.Reporter$$anon$1.syntaxError(Reporter.scala:22)
+	at scala.meta.internal.parsers.ScalametaParser.statSeq(ScalametaParser.scala:4914)
+	at scala.meta.internal.parsers.ScalametaParser.topStatSeq(ScalametaParser.scala:4921)
+	at scala.meta.internal.parsers.ScalametaParser.$anonfun$batchSource$1(ScalametaParser.scala:5145)
+	at scala.meta.internal.parsers.ScalametaParser.atPos(ScalametaParser.scala:847)
+	at scala.meta.internal.parsers.ScalametaParser.autoPos(ScalametaParser.scala:878)
+	at scala.meta.internal.parsers.ScalametaParser.batchSource(ScalametaParser.scala:5111)
+	at scala.meta.internal.parsers.ScalametaParser.$anonfun$source$1(ScalametaParser.scala:5094)
+	at scala.meta.internal.parsers.ScalametaParser.atPos(ScalametaParser.scala:847)
+	at scala.meta.internal.parsers.ScalametaParser.autoPos(ScalametaParser.scala:878)
+	at scala.meta.internal.parsers.ScalametaParser.source(ScalametaParser.scala:5093)
+	at scala.meta.internal.parsers.ScalametaParser.entrypointSource(ScalametaParser.scala:5099)
+	at scala.meta.internal.parsers.ScalametaParser.$anonfun$parseSource$2(ScalametaParser.scala:143)
+	at scala.meta.internal.parsers.ScalametaParser.parseRule(ScalametaParser.scala:53)
+	at scala.meta.internal.parsers.ScalametaParser.parseSource(ScalametaParser.scala:143)
+	at scala.meta.parsers.Parse$.$anonfun$parseSource$1(Parse.scala:29)
+	at scala.meta.internal.parsers.ScalametaParser$$anon$261.apply(ScalametaParser.scala:5156)
+	at scala.meta.parsers.Api$XtensionParseDialectInput.parse(Api.scala:25)
+	at scala.meta.internal.semanticdb.scalac.ParseOps$XtensionCompilationUnitSource.toSource(ParseOps.scala:17)
+	at scala.meta.internal.semanticdb.scalac.TextDocumentOps$XtensionCompilationUnitDocument.toTextDocument(TextDocumentOps.scala:201)
+	at scala.meta.internal.pc.SemanticdbTextDocumentProvider.textDocument(SemanticdbTextDocumentProvider.scala:51)
+
+Jul 05, 2021 2:59:37 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 80
+[0m2021.07.05 21:15:50 INFO  shutting down Metals[0m
