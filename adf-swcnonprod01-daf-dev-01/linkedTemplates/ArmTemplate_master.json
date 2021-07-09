@@ -7,14 +7,6 @@
 			"metadata": "Data Factory name",
 			"defaultValue": "adf-swcnonprod01-daf-dev-01"
 		},
-		"LS_AzureBlobStorage_connectionString": {
-			"type": "secureString",
-			"metadata": "Secure string for 'connectionString' of 'LS_AzureBlobStorage'"
-		},
-		"LS_AzureDatalake_accountKey": {
-			"type": "secureString",
-			"metadata": "Secure string for 'accountKey' of 'LS_AzureDatalake'"
-		},
 		"LS_AzureSynapseAnalytics_connectionString": {
 			"type": "secureString",
 			"metadata": "Secure string for 'connectionString' of 'LS_AzureSynapseAnalytics'"
@@ -26,6 +18,10 @@
 		"LS-AzureSqlDatabase_Ctrldb_properties_typeProperties_connectionString_secretName": {
 			"type": "string",
 			"defaultValue": "@linkedService().kvSecret"
+		},
+		"LS_AzureBlobStorage_properties_typeProperties_connectionString_secretName": {
+			"type": "string",
+			"defaultValue": "daf-sa-landingblob-connectionstring"
 		},
 		"LS_AzureDatalake_properties_typeProperties_url": {
 			"type": "string",
@@ -70,17 +66,14 @@
 					"factoryName": {
 						"value": "[parameters('factoryName')]"
 					},
-					"LS_AzureBlobStorage_connectionString": {
-						"value": "[parameters('LS_AzureBlobStorage_connectionString')]"
-					},
-					"LS_AzureDatalake_accountKey": {
-						"value": "[parameters('LS_AzureDatalake_accountKey')]"
-					},
 					"LS_AzureSynapseAnalytics_connectionString": {
 						"value": "[parameters('LS_AzureSynapseAnalytics_connectionString')]"
 					},
 					"LS-AzureKeyVault_properties_typeProperties_baseUrl": {
 						"value": "[parameters('LS-AzureKeyVault_properties_typeProperties_baseUrl')]"
+					},
+					"LS_AzureBlobStorage_properties_typeProperties_connectionString_secretName": {
+						"value": "[parameters('LS_AzureBlobStorage_properties_typeProperties_connectionString_secretName')]"
 					},
 					"LS_AzureDatalake_properties_typeProperties_url": {
 						"value": "[parameters('LS_AzureDatalake_properties_typeProperties_url')]"
