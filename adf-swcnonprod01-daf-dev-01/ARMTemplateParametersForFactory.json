@@ -5,12 +5,6 @@
 		"factoryName": {
 			"value": "adf-swcnonprod01-daf-test-01"
 		},
-		"LS_AzureBlobStorage_connectionString": {
-			"value": ""
-		},
-		"LS_AzureDatalake_accountKey": {
-			"value": ""
-		},
 		"LS_AzureSynapseAnalytics_connectionString": {
 			"value": ""
 		},
@@ -19,6 +13,9 @@
 		},
 		"LS-AzureSqlDatabase_Ctrldb_properties_typeProperties_connectionString_secretName": {
 			"value": "@linkedService().kvSecret"
+		},
+		"LS_AzureBlobStorage_properties_typeProperties_connectionString_secretName": {
+			"value": "daf-sa-landingblob-connectionstring"
 		},
 		"LS_AzureDatalake_properties_typeProperties_url": {
 			"value": "https://sadaftest01.dfs.core.windows.net"
