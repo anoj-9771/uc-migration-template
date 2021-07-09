@@ -4,8 +4,7 @@
 		"description": "ETL Control database linked service",
 		"parameters": {
 			"kvSecret": {
-				"type": "string",
-				"defaultValue": "ADF-LS-AzureSql-ControlDB"
+				"type": "string"
 			}
 		},
 		"annotations": [],
