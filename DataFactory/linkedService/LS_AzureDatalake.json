@@ -1,11 +1,6 @@
 {
 	"name": "LS_AzureDatalake",
 	"properties": {
-		"parameters": {
-			"kvSecret": {
-				"type": "string"
-			}
-		},
 		"annotations": [],
 		"type": "AzureBlobFS",
 		"typeProperties": {
@@ -16,7 +11,7 @@
 					"referenceName": "LS-AzureKeyVault",
 					"type": "LinkedServiceReference"
 				},
-				"secretName": "saswcnonprod01accountkey1"
+				"secretName": "daf-sa-lake-key1"
 			}
 		}
 	},
