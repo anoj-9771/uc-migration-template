@@ -1,12 +1,9 @@
 {
-	"name": "TRUSTED_ADLS_JSON",
+	"name": "TRUSTED_ADLS_JSONN",
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "LS_AzureDatalake",
-			"type": "LinkedServiceReference",
-			"parameters": {
-				"kvSecret": "swcdafdevadls-sastoken"
-			}
+			"type": "LinkedServiceReference"
 		},
 		"parameters": {
 			"LakeContainer": {
