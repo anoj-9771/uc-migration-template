@@ -50,9 +50,7 @@
 				"linkedServiceName": {
 					"referenceName": "LS_AzureDatalake",
 					"type": "LinkedServiceReference",
-					"parameters": {
-						"kvSecret": "swcdafdevadls-sastoken"
-					}
+					"parameters": {}
 				},
 				"parameters": {
 					"BlobPath": {
@@ -97,9 +95,7 @@
 				"linkedServiceName": {
 					"referenceName": "LS_AzureDatalake",
 					"type": "LinkedServiceReference",
-					"parameters": {
-						"kvSecret": "swcdafdevadls-sastoken"
-					}
+					"parameters": {}
 				},
 				"parameters": {
 					"LakeContainer": {
@@ -4135,9 +4131,7 @@
 								"linkedServiceName": {
 									"referenceName": "LS_AzureDatalake",
 									"type": "LinkedServiceReference",
-									"parameters": {
-										"kvSecret": "swcdafdevadls-sastoken"
-									}
+									"parameters": {}
 								},
 								"path": "assurance"
 							},
@@ -4248,9 +4242,7 @@
 								"linkedServiceName": {
 									"referenceName": "LS_AzureDatalake",
 									"type": "LinkedServiceReference",
-									"parameters": {
-										"kvSecret": "swcdafdevadls-sastoken"
-									}
+									"parameters": {}
 								},
 								"path": "assurance"
 							},
@@ -4724,9 +4716,7 @@
 								"linkedServiceName": {
 									"referenceName": "LS_AzureDatalake",
 									"type": "LinkedServiceReference",
-									"parameters": {
-										"kvSecret": "swcdafdevadls-sastoken"
-									}
+									"parameters": {}
 								},
 								"path": "assurance"
 							},
