@@ -6,7 +6,7 @@
 			"value": "adf-swcnonprod01-daf-test-01"
 		},
 		"LS_AzureSynapseAnalytics_connectionString": {
-			"value": ""
+			"value": "Server=tcp:synws-swcnonprod01-daf-test-01.sql.azuresynapse.net,1433;Initial Catalog=syndwtest01;Persist Security Info=False;User ID=synapseadmin;Password=Password1!;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
 		},
 		"LS-AzureKeyVault_properties_typeProperties_baseUrl": {
 			"value": "https://kv-daf-test-01.vault.azure.net/"
