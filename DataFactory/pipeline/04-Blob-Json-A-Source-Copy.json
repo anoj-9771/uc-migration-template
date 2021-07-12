@@ -193,7 +193,7 @@
 							"type": "AzureBlobStorageReadSettings",
 							"recursive": true,
 							"wildcardFileName": {
-								"value": "@concat(first(split(variables('SourceFileName'),'_')),'_ATTR*')",
+								"value": "@variables('SourceFileName')",
 								"type": "Expression"
 							},
 							"enablePartitionDiscovery": false
@@ -455,10 +455,7 @@
 					"logStorageSettings": {
 						"linkedServiceName": {
 							"referenceName": "LS_AzureDatalake",
-							"type": "LinkedServiceReference",
-							"parameters": {
-								"kvSecret": "swcdafdevadls-sastoken"
-							}
+							"type": "LinkedServiceReference"
 						},
 						"path": "assurance"
 					},
@@ -566,10 +563,7 @@
 					"logStorageSettings": {
 						"linkedServiceName": {
 							"referenceName": "LS_AzureDatalake",
-							"type": "LinkedServiceReference",
-							"parameters": {
-								"kvSecret": "swcdafdevadls-sastoken"
-							}
+							"type": "LinkedServiceReference"
 						},
 						"path": "assurance"
 					},
