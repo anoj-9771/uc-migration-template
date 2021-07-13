@@ -25,6 +25,7 @@
 					],
 					"storeSettings": {
 						"type": "AzureBlobStorageReadSettings",
+						"recursive": true,
 						"enablePartitionDiscovery": false
 					},
 					"formatSettings": {
@@ -48,15 +49,7 @@
 					"expression": {
 						"value": "@contains(activity('Get Metadata1').output.childItems,'0BPARTNER_ATTR_1.json')",
 						"type": "Expression"
-					},
-					"ifTrueActivities": [
-						{
-							"name": "Set variable1",
-							"type": "SetVariable",
-							"dependsOn": [],
-							"userProperties": []
-						}
-					]
+					}
 				}
 			}
 		],
