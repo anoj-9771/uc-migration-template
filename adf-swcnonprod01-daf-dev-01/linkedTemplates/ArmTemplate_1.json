@@ -1463,7 +1463,7 @@
 					}
 				},
 				"folder": {
-					"name": "Data Lake"
+					"name": "z_Archive"
 				},
 				"annotations": [],
 				"lastPublishTime": "2021-06-24T00:16:57Z"
@@ -2263,7 +2263,7 @@
 					}
 				},
 				"folder": {
-					"name": "Data Lake"
+					"name": "z_Archive"
 				},
 				"annotations": [],
 				"lastPublishTime": "2021-06-24T00:16:57Z"
@@ -5507,7 +5507,7 @@
 									}
 								},
 								{
-									"name": "Raw-to-Trusted  Stage2",
+									"name": "Raw-to-Cleansed Stage2",
 									"type": "IfCondition",
 									"dependsOn": [
 										{
@@ -5559,7 +5559,7 @@
 									}
 								},
 								{
-									"name": "Trusted-to-Curated Stage3",
+									"name": "Cleansed-to-Curated Stage3",
 									"type": "IfCondition",
 									"dependsOn": [
 										{
