@@ -174,13 +174,13 @@
 								},
 								"ifTrueActivities": [
 									{
-										"name": "EP-Raw-to-Trusted",
+										"name": "EP-Raw-to-Cleansed",
 										"type": "ExecutePipeline",
 										"dependsOn": [],
 										"userProperties": [],
 										"typeProperties": {
 											"pipeline": {
-												"referenceName": "05-DL-Copy-Raw-to-Trusted",
+												"referenceName": "05-DL-Load-Raw-to-Cleansed",
 												"type": "PipelineReference"
 											},
 											"waitOnCompletion": true,
