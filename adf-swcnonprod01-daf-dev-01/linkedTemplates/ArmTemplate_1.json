@@ -3772,7 +3772,7 @@
 									"type": "AzureBlobStorageReadSettings",
 									"recursive": true,
 									"wildcardFileName": {
-										"value": "@variables('SourceFileName')",
+										"value": "@concat(first(split(variables('SourceFileName'),'.')),'_*')",
 										"type": "Expression"
 									},
 									"enablePartitionDiscovery": false
@@ -3970,7 +3970,7 @@
 									"type": "AzureBlobStorageReadSettings",
 									"recursive": true,
 									"wildcardFileName": {
-										"value": "@concat(first(split(variables('SourceFileName'),'.')),'_MANIFEST.json')",
+										"value": "@concat(first(split(variables('SourceFileName'),'.')),'_MANIFEST_*')",
 										"type": "Expression"
 									},
 									"enablePartitionDiscovery": false
@@ -4047,7 +4047,7 @@
 								"type": "AzureBlobStorageReadSettings",
 								"recursive": true,
 								"wildcardFileName": {
-									"value": "@{concat(first(split(variables('SourceFileName'),'.')),'_MANIFEST.json')}",
+									"value": "@{concat(first(split(variables('SourceFileName'),'.')),'_MANIFEST_*')}",
 									"type": "Expression"
 								},
 								"enablePartitionDiscovery": false
