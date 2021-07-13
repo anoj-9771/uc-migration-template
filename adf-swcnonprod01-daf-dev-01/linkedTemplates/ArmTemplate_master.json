@@ -108,9 +108,6 @@
 					},
 					"LS_AzureBlobStorage_connectionString": {
 						"value": "[parameters('LS_AzureBlobStorage_connectionString')]"
-					},
-					"DLY1300_properties_01-Main_parameters_TriggerName": {
-						"value": "[parameters('DLY1300_properties_01-Main_parameters_TriggerName')]"
 					}
 				}
 			},
@@ -131,6 +128,9 @@
 				"parameters": {
 					"factoryName": {
 						"value": "[parameters('factoryName')]"
+					},
+					"DLY1300_properties_01-Main_parameters_TriggerName": {
+						"value": "[parameters('DLY1300_properties_01-Main_parameters_TriggerName')]"
 					},
 					"Emrvisaf_properties_01-Main_parameters_TriggerName": {
 						"value": "[parameters('Emrvisaf_properties_01-Main_parameters_TriggerName')]"

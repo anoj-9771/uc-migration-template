@@ -10,10 +10,6 @@
 		"LS_AzureBlobStorage_connectionString": {
 			"type": "secureString",
 			"metadata": "Secure string for 'connectionString' of 'LS_AzureBlobStorage'"
-		},
-		"DLY1300_properties_01-Main_parameters_TriggerName": {
-			"type": "string",
-			"defaultValue": "DLY1300"
 		}
 	},
 	"variables": {
@@ -5256,6 +5252,78 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/pipeline1')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Get Metadata1",
+						"type": "GetMetadata",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataset": {
+								"referenceName": "SRC_BLOB_JSON",
+								"type": "DatasetReference",
+								"parameters": {}
+							},
+							"fieldList": [
+								"childItems",
+								"exists"
+							],
+							"storeSettings": {
+								"type": "AzureBlobStorageReadSettings",
+								"recursive": true,
+								"enablePartitionDiscovery": false
+							},
+							"formatSettings": {
+								"type": "JsonReadSettings"
+							}
+						}
+					},
+					{
+						"name": "If Condition1",
+						"type": "IfCondition",
+						"dependsOn": [
+							{
+								"activity": "Get Metadata1",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"expression": {
+								"value": "@contains(activity('Get Metadata1').output.childItems,'0BPARTNER_ATTR_1.json')",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"variables": {
+					"abc": {
+						"type": "String"
+					}
+				},
+				"folder": {
+					"name": "Blob"
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/SRC_BLOB_JSON')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/03-Execute-Project-Tasks')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
 			"apiVersion": "2018-06-01",
@@ -5365,111 +5433,7 @@
 									}
 								},
 								{
-									"name": "ProcessNotebook-Raw-to-Trusted",
-									"type": "IfCondition",
-									"dependsOn": [
-										{
-											"activity": "Generate Task Log",
-											"dependencyConditions": [
-												"Succeeded"
-											]
-										}
-									],
-									"userProperties": [],
-									"typeProperties": {
-										"expression": {
-											"value": "@equals(item().ControlStageId,4)",
-											"type": "Expression"
-										},
-										"ifTrueActivities": [
-											{
-												"name": "EP-Raw-to-Trusted Databricks",
-												"type": "ExecutePipeline",
-												"dependsOn": [],
-												"userProperties": [],
-												"typeProperties": {
-													"pipeline": {
-														"referenceName": "05-DL-Load-Raw-to-Cleansed",
-														"type": "PipelineReference"
-													},
-													"waitOnCompletion": true,
-													"parameters": {
-														"TaskDetails": {
-															"value": "@item()",
-															"type": "Expression"
-														},
-														"BatchLogId": {
-															"value": "@activity('Generate Batch Log').output.firstrow.BatchLogId\n",
-															"type": "Expression"
-														},
-														"TaskExecutionLogId": {
-															"value": "@activity('Generate Task Log').output.firstrow.TaskLogId\n",
-															"type": "Expression"
-														},
-														"ProjectRunID": {
-															"value": "@pipeline().parameters.ProjectRunID",
-															"type": "Expression"
-														}
-													}
-												}
-											}
-										]
-									}
-								},
-								{
-									"name": "ProcessNotebook-Trusted-to-Curated",
-									"type": "IfCondition",
-									"dependsOn": [
-										{
-											"activity": "Generate Task Log",
-											"dependencyConditions": [
-												"Succeeded"
-											]
-										}
-									],
-									"userProperties": [],
-									"typeProperties": {
-										"expression": {
-											"value": "@equals(item().ControlStageId,6)",
-											"type": "Expression"
-										},
-										"ifTrueActivities": [
-											{
-												"name": "EP-Trusted-to-Curated-Databricks",
-												"type": "ExecutePipeline",
-												"dependsOn": [],
-												"userProperties": [],
-												"typeProperties": {
-													"pipeline": {
-														"referenceName": "05-DL-Load-Trusted-to-Curated",
-														"type": "PipelineReference"
-													},
-													"waitOnCompletion": true,
-													"parameters": {
-														"TaskDetails": {
-															"value": "@item()",
-															"type": "Expression"
-														},
-														"BatchLogId": {
-															"value": "@activity('Generate Batch Log').output.firstrow.BatchLogId",
-															"type": "Expression"
-														},
-														"TaskExecutionLogId": {
-															"value": "@activity('Generate Task Log').output.firstrow.TaskLogId",
-															"type": "Expression"
-														},
-														"ProjectRunID": {
-															"value": "@pipeline().parameters.ProjectRunID",
-															"type": "Expression"
-														}
-													}
-												}
-											}
-										]
-									}
-								},
-								{
-									"name": "Blob-to-Raw      Stage1",
+									"name": "Source-to-Raw-Blob      Stage1",
 									"type": "IfCondition",
 									"dependsOn": [
 										{
@@ -5539,13 +5503,13 @@
 										},
 										"ifTrueActivities": [
 											{
-												"name": "EP-Raw-to-Trusted",
+												"name": "EP-Raw-to-Cleansed",
 												"type": "ExecutePipeline",
 												"dependsOn": [],
 												"userProperties": [],
 												"typeProperties": {
 													"pipeline": {
-														"referenceName": "05-DL-Copy-Raw-to-Trusted",
+														"referenceName": "05-DL-Load-Raw-to-Cleansed",
 														"type": "PipelineReference"
 													},
 													"waitOnCompletion": true,
@@ -5612,58 +5576,6 @@
 														},
 														"TaskExecutionLogId": {
 															"value": "@activity('Generate Task Log').output.firstrow.TaskLogId",
-															"type": "Expression"
-														},
-														"ProjectRunID": {
-															"value": "@pipeline().parameters.ProjectRunID",
-															"type": "Expression"
-														}
-													}
-												}
-											}
-										]
-									}
-								},
-								{
-									"name": "ProcessNotebook",
-									"type": "IfCondition",
-									"dependsOn": [
-										{
-											"activity": "Generate Task Log",
-											"dependencyConditions": [
-												"Succeeded"
-											]
-										}
-									],
-									"userProperties": [],
-									"typeProperties": {
-										"expression": {
-											"value": "@equals(item().ControlStageId,5)",
-											"type": "Expression"
-										},
-										"ifTrueActivities": [
-											{
-												"name": "EP-Raw-to-Trusted Databricks_copy1",
-												"type": "ExecutePipeline",
-												"dependsOn": [],
-												"userProperties": [],
-												"typeProperties": {
-													"pipeline": {
-														"referenceName": "05-DL-Load-Raw-to-Cleansed",
-														"type": "PipelineReference"
-													},
-													"waitOnCompletion": true,
-													"parameters": {
-														"TaskDetails": {
-															"value": "@item()",
-															"type": "Expression"
-														},
-														"BatchLogId": {
-															"value": "@activity('Generate Batch Log').output.firstrow.BatchLogId\n",
-															"type": "Expression"
-														},
-														"TaskExecutionLogId": {
-															"value": "@activity('Generate Task Log').output.firstrow.TaskLogId\n",
 															"type": "Expression"
 														},
 														"ProjectRunID": {
@@ -5831,10 +5743,8 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/AzureSqlDatabase_Ctrldb')]",
-				"[concat(variables('factoryId'), '/pipelines/05-DL-Load-Raw-to-Cleansed')]",
-				"[concat(variables('factoryId'), '/pipelines/05-DL-Load-Trusted-to-Curated')]",
 				"[concat(variables('factoryId'), '/pipelines/04-Blob-Json-A-Source-Copy')]",
-				"[concat(variables('factoryId'), '/pipelines/05-DL-Copy-Raw-to-Trusted')]",
+				"[concat(variables('factoryId'), '/pipelines/05-DL-Load-Raw-to-Cleansed')]",
 				"[concat(variables('factoryId'), '/pipelines/05-DL-Copy-Trusted-to-Curated')]"
 			]
 		},
@@ -6054,46 +5964,6 @@
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/AzureSqlDatabase_Ctrldb')]",
 				"[concat(variables('factoryId'), '/pipelines/02-Execute-Project-Stages')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/DLY1300')]",
-			"type": "Microsoft.DataFactory/factories/triggers",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"annotations": [],
-				"runtimeState": "Stopped",
-				"pipelines": [
-					{
-						"pipelineReference": {
-							"referenceName": "01-Main",
-							"type": "PipelineReference"
-						},
-						"parameters": {
-							"TriggerName": "[parameters('DLY1300_properties_01-Main_parameters_TriggerName')]"
-						}
-					}
-				],
-				"type": "ScheduleTrigger",
-				"typeProperties": {
-					"recurrence": {
-						"frequency": "Day",
-						"interval": 1,
-						"startTime": "2020-12-01T05:10:00",
-						"timeZone": "AUS Eastern Standard Time",
-						"schedule": {
-							"minutes": [
-								0
-							],
-							"hours": [
-								13
-							]
-						}
-					}
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/pipelines/01-Main')]"
 			]
 		}
 	]
