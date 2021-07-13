@@ -3887,52 +3887,6 @@
 						}
 					},
 					{
-						"name": "Execute-DP-Load-Raw-to-Delta-Table",
-						"type": "ExecutePipeline",
-						"dependsOn": [
-							{
-								"activity": "Log Success",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"userProperties": [],
-						"typeProperties": {
-							"pipeline": {
-								"referenceName": "04-DL-Load-Raw-to-Delta-Table",
-								"type": "PipelineReference"
-							},
-							"waitOnCompletion": true,
-							"parameters": {
-								"BatchLogID": {
-									"value": "@pipeline().parameters.BatchLogId",
-									"type": "Expression"
-								},
-								"TaskExecutionLogId": {
-									"value": "@pipeline().parameters.TaskExecutionLogId",
-									"type": "Expression"
-								},
-								"TaskDetails": {
-									"value": "@pipeline().parameters.TaskDetails",
-									"type": "Expression"
-								},
-								"TargetBLOBFolder": {
-									"value": "@activity('Get Full File Name').output.firstrow.StorageFolder",
-									"type": "Expression"
-								},
-								"TargetBLOBName": {
-									"value": "@activity('Get Full File Name').output.firstrow.StorageFile",
-									"type": "Expression"
-								},
-								"ProjectRunID": {
-									"value": "@pipeline().parameters.ProjectRunID",
-									"type": "Expression"
-								}
-							}
-						}
-					},
-					{
 						"name": "Copy Manifest File to Archive",
 						"type": "Copy",
 						"dependsOn": [
@@ -4055,113 +4009,173 @@
 						}
 					},
 					{
-						"name": "Copy Blob File to ArchiveContainer",
-						"type": "Copy",
+						"name": "If File Was Copied",
+						"type": "IfCondition",
 						"dependsOn": [
 							{
-								"activity": "Execute-DP-Load-Raw-to-Delta-Table",
+								"activity": "Log Success",
 								"dependencyConditions": [
 									"Succeeded"
 								]
 							}
 						],
-						"policy": {
-							"timeout": "7.00:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
 						"userProperties": [],
 						"typeProperties": {
-							"source": {
-								"type": "JsonSource",
-								"storeSettings": {
-									"type": "AzureBlobStorageReadSettings",
-									"recursive": true,
-									"wildcardFileName": {
-										"value": "@concat(first(split(variables('SourceFileName'),'.')),'_*')",
-										"type": "Expression"
+							"expression": {
+								"value": "@greater(activity('Copy-Blob-to-DataLake-Raw').output.filesWritten, 0)",
+								"type": "Expression"
+							},
+							"ifTrueActivities": [
+								{
+									"name": "Execute-DP-Load-Raw-to-Delta-Table",
+									"type": "ExecutePipeline",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "04-DL-Load-Raw-to-Delta-Table",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": true,
+										"parameters": {
+											"BatchLogID": {
+												"value": "@pipeline().parameters.BatchLogId",
+												"type": "Expression"
+											},
+											"TaskExecutionLogId": {
+												"value": "@pipeline().parameters.TaskExecutionLogId",
+												"type": "Expression"
+											},
+											"TaskDetails": {
+												"value": "@pipeline().parameters.TaskDetails",
+												"type": "Expression"
+											},
+											"TargetBLOBFolder": {
+												"value": "@activity('Get Full File Name').output.firstrow.StorageFolder",
+												"type": "Expression"
+											},
+											"TargetBLOBName": {
+												"value": "@activity('Get Full File Name').output.firstrow.StorageFile",
+												"type": "Expression"
+											},
+											"ProjectRunID": {
+												"value": "@pipeline().parameters.ProjectRunID",
+												"type": "Expression"
+											}
+										}
+									}
+								},
+								{
+									"name": "Copy Blob File to ArchiveContainer",
+									"type": "Copy",
+									"dependsOn": [
+										{
+											"activity": "Execute-DP-Load-Raw-to-Delta-Table",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "7.00:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
 									},
-									"enablePartitionDiscovery": false
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "JsonSource",
+											"storeSettings": {
+												"type": "AzureBlobStorageReadSettings",
+												"recursive": true,
+												"wildcardFileName": {
+													"value": "@concat(first(split(variables('SourceFileName'),'.')),'_*')",
+													"type": "Expression"
+												},
+												"enablePartitionDiscovery": false
+											},
+											"formatSettings": {
+												"type": "JsonReadSettings"
+											}
+										},
+										"sink": {
+											"type": "JsonSink",
+											"storeSettings": {
+												"type": "AzureBlobStorageWriteSettings"
+											},
+											"formatSettings": {
+												"type": "JsonWriteSettings"
+											}
+										},
+										"enableStaging": false
+									},
+									"inputs": [
+										{
+											"referenceName": "SRC_BLOB_JSON",
+											"type": "DatasetReference",
+											"parameters": {}
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "ARCHIVE_BLOB_JSON",
+											"type": "DatasetReference",
+											"parameters": {
+												"BlobContainer": {
+													"value": "@concat('archive/', activity('Get Full File Name').output.firstrow.StorageFolder)",
+													"type": "Expression"
+												}
+											}
+										}
+									]
 								},
-								"formatSettings": {
-									"type": "JsonReadSettings"
-								}
-							},
-							"sink": {
-								"type": "JsonSink",
-								"storeSettings": {
-									"type": "AzureBlobStorageWriteSettings"
-								},
-								"formatSettings": {
-									"type": "JsonWriteSettings"
-								}
-							},
-							"enableStaging": false
-						},
-						"inputs": [
-							{
-								"referenceName": "SRC_BLOB_JSON",
-								"type": "DatasetReference",
-								"parameters": {}
-							}
-						],
-						"outputs": [
-							{
-								"referenceName": "ARCHIVE_BLOB_JSON",
-								"type": "DatasetReference",
-								"parameters": {
-									"BlobContainer": {
-										"value": "@concat('archive/', activity('Get Full File Name').output.firstrow.StorageFolder)",
-										"type": "Expression"
+								{
+									"name": "Delete File from LandingBlob",
+									"type": "Delete",
+									"dependsOn": [
+										{
+											"activity": "Copy Blob File to ArchiveContainer",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "7.00:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"dataset": {
+											"referenceName": "SRC_BLOB_JSON",
+											"type": "DatasetReference",
+											"parameters": {}
+										},
+										"logStorageSettings": {
+											"linkedServiceName": {
+												"referenceName": "LS_AzureDatalake",
+												"type": "LinkedServiceReference"
+											},
+											"path": "assurance"
+										},
+										"enableLogging": true,
+										"storeSettings": {
+											"type": "AzureBlobStorageReadSettings",
+											"recursive": true,
+											"wildcardFileName": {
+												"value": "@{concat(first(split(variables('SourceFileName'),'.')),'_*')}",
+												"type": "Expression"
+											},
+											"enablePartitionDiscovery": false
+										}
 									}
 								}
-							}
-						]
-					},
-					{
-						"name": "Delete File from LandingBlob",
-						"type": "Delete",
-						"dependsOn": [
-							{
-								"activity": "Copy Blob File to ArchiveContainer",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"policy": {
-							"timeout": "7.00:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"dataset": {
-								"referenceName": "SRC_BLOB_JSON",
-								"type": "DatasetReference",
-								"parameters": {}
-							},
-							"logStorageSettings": {
-								"linkedServiceName": {
-									"referenceName": "LS_AzureDatalake",
-									"type": "LinkedServiceReference"
-								},
-								"path": "assurance"
-							},
-							"enableLogging": true,
-							"storeSettings": {
-								"type": "AzureBlobStorageReadSettings",
-								"recursive": true,
-								"wildcardFileName": {
-									"value": "@{concat(first(split(variables('SourceFileName'),'.')),'_*')}",
-									"type": "Expression"
-								},
-								"enablePartitionDiscovery": false
-							}
+							]
 						}
 					}
 				],
@@ -4208,8 +4222,8 @@
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/SRC_BLOB_JSON')]",
 				"[concat(variables('factoryId'), '/datasets/AzureSqlDatabase_Ctrldb')]",
-				"[concat(variables('factoryId'), '/pipelines/04-DL-Load-Raw-to-Delta-Table')]",
-				"[concat(variables('factoryId'), '/datasets/ARCHIVE_BLOB_JSON')]"
+				"[concat(variables('factoryId'), '/datasets/ARCHIVE_BLOB_JSON')]",
+				"[concat(variables('factoryId'), '/pipelines/04-DL-Load-Raw-to-Delta-Table')]"
 			]
 		},
 		{
