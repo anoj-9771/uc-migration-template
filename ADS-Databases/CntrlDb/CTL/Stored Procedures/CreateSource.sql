@@ -173,7 +173,7 @@ begin
 
 	END
 
-    if @currentStage = 'Raw to Trusted'
+    if @currentStage = 'Raw to Cleansed'
 	BEGIN
 		EXEC [CTL].[CreateTask] 
 			@SourceGroup
@@ -204,7 +204,7 @@ begin
 	END
 	
 
-	if @currentStage = 'Trusted to Curated'
+	if @currentStage = 'Cleansed to Curated'
 	BEGIN
 
 		EXEC [CTL].[CreateTask] 
