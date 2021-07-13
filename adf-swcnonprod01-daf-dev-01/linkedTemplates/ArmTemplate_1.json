@@ -7,17 +7,13 @@
 			"metadata": "Data Factory name",
 			"defaultValue": "adf-swcnonprod01-daf-dev-01"
 		},
-		"LS-AzureSqlDatabase_Ctrldb_properties_typeProperties_connectionString_secretName": {
-			"type": "string",
-			"defaultValue": "@linkedService().kvSecret"
+		"LS_AzureBlobStorage_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'LS_AzureBlobStorage'"
 		},
 		"DLY1300_properties_01-Main_parameters_TriggerName": {
 			"type": "string",
 			"defaultValue": "DLY1300"
-		},
-		"Emrvisaf_properties_01-Main_parameters_TriggerName": {
-			"type": "string",
-			"defaultValue": "Emrvisaf"
 		}
 	},
 	"variables": {
@@ -25,77 +21,14 @@
 	},
 	"resources": [
 		{
-			"name": "[concat(parameters('factoryName'), '/TRUSTED_ADLS_JSONN')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "LS_AzureDatalake",
-					"type": "LinkedServiceReference"
-				},
-				"parameters": {
-					"LakeContainer": {
-						"type": "string",
-						"defaultValue": "trusted"
-					},
-					"LakeDirectory": {
-						"type": "string"
-					},
-					"LakeFileName": {
-						"type": "string"
-					}
-				},
-				"folder": {
-					"name": "z_Archive"
-				},
-				"annotations": [],
-				"type": "Json",
-				"typeProperties": {
-					"location": {
-						"type": "AzureBlobFSLocation",
-						"fileName": {
-							"value": "@dataset().LakeFileName",
-							"type": "Expression"
-						},
-						"folderPath": {
-							"value": "@dataset().LakeDirectory",
-							"type": "Expression"
-						},
-						"fileSystem": {
-							"value": "@dataset().LakeContainer",
-							"type": "Expression"
-						}
-					}
-				},
-				"schema": {}
-			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/LS-AzureSqlDatabase_Ctrldb')]",
+			"name": "[concat(parameters('factoryName'), '/LS_AzureBlobStorage')]",
 			"type": "Microsoft.DataFactory/factories/linkedServices",
 			"apiVersion": "2018-06-01",
 			"properties": {
-				"description": "ETL Control database linked service",
-				"parameters": {
-					"kvSecret": {
-						"type": "string"
-					}
-				},
 				"annotations": [],
-				"type": "AzureSqlDatabase",
+				"type": "AzureBlobStorage",
 				"typeProperties": {
-					"connectionString": {
-						"type": "AzureKeyVaultSecret",
-						"store": {
-							"referenceName": "LS-AzureKeyVault",
-							"type": "LinkedServiceReference"
-						},
-						"secretName": {
-							"value": "[parameters('LS-AzureSqlDatabase_Ctrldb_properties_typeProperties_connectionString_secretName')]",
-							"type": "Expression"
-						}
-					}
+					"connectionString": "[parameters('LS_AzureBlobStorage_connectionString')]"
 				},
 				"connectVia": {
 					"referenceName": "IntegrationRuntime-Azure-ManagedVnet-01",
@@ -366,9 +299,7 @@
 				"annotations": [],
 				"lastPublishTime": "2021-06-30T03:14:35Z"
 			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/LS-AzureSqlDatabase_Ctrldb')]"
-			]
+			"dependsOn": []
 		},
 		{
 			"name": "[concat(parameters('factoryName'), '/04-Oracle-B-Source-Copy')]",
@@ -803,9 +734,7 @@
 				"annotations": [],
 				"lastPublishTime": "2021-06-24T00:21:44Z"
 			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/LS-AzureSqlDatabase_Ctrldb')]"
-			]
+			"dependsOn": []
 		},
 		{
 			"name": "[concat(parameters('factoryName'), '/04-Oracle-Generate-Source-Schema')]",
@@ -1539,9 +1468,7 @@
 				"annotations": [],
 				"lastPublishTime": "2021-06-24T00:16:57Z"
 			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/LS-AzureSqlDatabase_Ctrldb')]"
-			]
+			"dependsOn": []
 		},
 		{
 			"name": "[concat(parameters('factoryName'), '/05-DL-Copy-Raw-to-Trusted_OLD')]",
@@ -1941,10 +1868,7 @@
 				"annotations": [],
 				"lastPublishTime": "2021-06-24T00:16:57Z"
 			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/LS-AzureSqlDatabase_Ctrldb')]",
-				"[concat(variables('factoryId'), '/datasets/TRUSTED_ADLS_JSONN')]"
-			]
+			"dependsOn": []
 		},
 		{
 			"name": "[concat(parameters('factoryName'), '/05-DL-Copy-Trusted-to-Curated')]",
@@ -2344,9 +2268,7 @@
 				"annotations": [],
 				"lastPublishTime": "2021-06-24T00:16:57Z"
 			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/LS-AzureSqlDatabase_Ctrldb')]"
-			]
+			"dependsOn": []
 		},
 		{
 			"name": "[concat(parameters('factoryName'), '/05-DL-Load-Raw-to-Cleansed')]",
@@ -2756,9 +2678,7 @@
 				"annotations": [],
 				"lastPublishTime": "2021-06-21T11:04:49Z"
 			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/LS-AzureSqlDatabase_Ctrldb')]"
-			]
+			"dependsOn": []
 		},
 		{
 			"name": "[concat(parameters('factoryName'), '/05-DL-Load-Trusted-to-Curated')]",
@@ -3168,9 +3088,7 @@
 				"annotations": [],
 				"lastPublishTime": "2021-06-21T11:04:49Z"
 			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/LS-AzureSqlDatabase_Ctrldb')]"
-			]
+			"dependsOn": []
 		},
 		{
 			"name": "[concat(parameters('factoryName'), '/06-DL-Load-Trusted-to-Curated')]",
@@ -3572,8 +3490,41 @@
 				"annotations": [],
 				"lastPublishTime": "2021-06-21T11:06:48Z"
 			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ARCHIVE_BLOB_JSON')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_AzureBlobStorage",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"BlobContainer": {
+						"type": "string"
+					}
+				},
+				"folder": {
+					"name": "Source - Blob"
+				},
+				"annotations": [],
+				"type": "Json",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"folderPath": {
+							"value": "@dataset().BlobContainer",
+							"type": "Expression"
+						},
+						"container": "archive"
+					}
+				},
+				"schema": {}
+			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/LS-AzureSqlDatabase_Ctrldb')]"
+				"[concat(variables('factoryId'), '/linkedServices/LS_AzureBlobStorage')]"
 			]
 		},
 		{
@@ -3596,8 +3547,32 @@
 				"schema": [],
 				"typeProperties": {}
 			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/SRC_BLOB_JSON')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_AzureBlobStorage",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "Source - Blob"
+				},
+				"annotations": [],
+				"type": "Json",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"container": "bods"
+					}
+				},
+				"schema": {}
+			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/LS-AzureSqlDatabase_Ctrldb')]"
+				"[concat(variables('factoryId'), '/linkedServices/LS_AzureBlobStorage')]"
 			]
 		},
 		{
@@ -3797,7 +3772,7 @@
 									"type": "AzureBlobStorageReadSettings",
 									"recursive": true,
 									"wildcardFileName": {
-										"value": "@concat(first(split(variables('SourceFileName'),'_')),'_ATTR*')",
+										"value": "@variables('SourceFileName')",
 										"type": "Expression"
 									},
 									"enablePartitionDiscovery": false
@@ -3995,7 +3970,7 @@
 									"type": "AzureBlobStorageReadSettings",
 									"recursive": true,
 									"wildcardFileName": {
-										"value": "@concat(first(split(variables('SourceFileName'),'_')),'_ATTR_MANIFEST*')",
+										"value": "@concat(first(split(variables('SourceFileName'),'.')),'_MANIFEST.json')",
 										"type": "Expression"
 									},
 									"enablePartitionDiscovery": false
@@ -4063,8 +4038,7 @@
 							"logStorageSettings": {
 								"linkedServiceName": {
 									"referenceName": "LS_AzureDatalake",
-									"type": "LinkedServiceReference",
-									"parameters": {}
+									"type": "LinkedServiceReference"
 								},
 								"path": "assurance"
 							},
@@ -4073,7 +4047,7 @@
 								"type": "AzureBlobStorageReadSettings",
 								"recursive": true,
 								"wildcardFileName": {
-									"value": "@{concat(first(split(variables('SourceFileName'),'_')),'_ATTR_MANIFEST*')}",
+									"value": "@{concat(first(split(variables('SourceFileName'),'.')),'_MANIFEST.json')}",
 									"type": "Expression"
 								},
 								"enablePartitionDiscovery": false
@@ -4174,8 +4148,7 @@
 							"logStorageSettings": {
 								"linkedServiceName": {
 									"referenceName": "LS_AzureDatalake",
-									"type": "LinkedServiceReference",
-									"parameters": {}
+									"type": "LinkedServiceReference"
 								},
 								"path": "assurance"
 							},
@@ -4233,9 +4206,10 @@
 				"lastPublishTime": "2021-06-30T08:46:15Z"
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/LS-AzureSqlDatabase_Ctrldb')]",
+				"[concat(variables('factoryId'), '/datasets/SRC_BLOB_JSON')]",
 				"[concat(variables('factoryId'), '/datasets/AzureSqlDatabase_Ctrldb')]",
-				"[concat(variables('factoryId'), '/pipelines/04-DL-Load-Raw-to-Delta-Table')]"
+				"[concat(variables('factoryId'), '/pipelines/04-DL-Load-Raw-to-Delta-Table')]",
+				"[concat(variables('factoryId'), '/datasets/ARCHIVE_BLOB_JSON')]"
 			]
 		},
 		{
@@ -4780,7 +4754,6 @@
 				"lastPublishTime": "2021-06-30T08:46:15Z"
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/LS-AzureSqlDatabase_Ctrldb')]",
 				"[concat(variables('factoryId'), '/datasets/AzureSqlDatabase_Ctrldb')]",
 				"[concat(variables('factoryId'), '/pipelines/04-DL-Load-Raw-to-Delta-Table')]"
 			]
@@ -5265,7 +5238,6 @@
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/AzureSqlDatabase_Ctrldb')]",
 				"[concat(variables('factoryId'), '/pipelines/04-Oracle-Generate-Source-Schema')]",
-				"[concat(variables('factoryId'), '/linkedServices/LS-AzureSqlDatabase_Ctrldb')]",
 				"[concat(variables('factoryId'), '/pipelines/04-Oracle-B-Source-Copy')]"
 			]
 		},
@@ -5845,7 +5817,6 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/AzureSqlDatabase_Ctrldb')]",
-				"[concat(variables('factoryId'), '/linkedServices/LS-AzureSqlDatabase_Ctrldb')]",
 				"[concat(variables('factoryId'), '/pipelines/05-DL-Load-Raw-to-Cleansed')]",
 				"[concat(variables('factoryId'), '/pipelines/05-DL-Load-Trusted-to-Curated')]",
 				"[concat(variables('factoryId'), '/pipelines/04-Blob-Json-A-Source-Copy')]",
@@ -6104,38 +6075,6 @@
 								13
 							]
 						}
-					}
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/pipelines/01-Main')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/Emrvisaf')]",
-			"type": "Microsoft.DataFactory/factories/triggers",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"annotations": [],
-				"runtimeState": "Stopped",
-				"pipelines": [
-					{
-						"pipelineReference": {
-							"referenceName": "01-Main",
-							"type": "PipelineReference"
-						},
-						"parameters": {
-							"TriggerName": "[parameters('Emrvisaf_properties_01-Main_parameters_TriggerName')]"
-						}
-					}
-				],
-				"type": "ScheduleTrigger",
-				"typeProperties": {
-					"recurrence": {
-						"frequency": "Minute",
-						"interval": 20,
-						"startTime": "2021-06-02T00:11:00",
-						"timeZone": "AUS Eastern Standard Time"
 					}
 				}
 			},

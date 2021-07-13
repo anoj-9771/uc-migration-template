@@ -7,6 +7,10 @@
 			"metadata": "Data Factory name",
 			"defaultValue": "adf-swcnonprod01-daf-dev-01"
 		},
+		"LS_AzureBlobStorage_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'LS_AzureBlobStorage'"
+		},
 		"LS-AzureKeyVault_properties_typeProperties_baseUrl": {
 			"type": "string",
 			"defaultValue": "https://kv-daf-dev-01.vault.azure.net/"
@@ -14,10 +18,6 @@
 		"LS-AzureSqlDatabase_Ctrldb_properties_typeProperties_connectionString_secretName": {
 			"type": "string",
 			"defaultValue": "@linkedService().kvSecret"
-		},
-		"LS_AzureBlobStorage_properties_typeProperties_connectionString_secretName": {
-			"type": "string",
-			"defaultValue": "daf-sa-landingblob-connectionstring"
 		},
 		"LS_AzureDatalake_properties_typeProperties_url": {
 			"type": "string",
@@ -34,6 +34,14 @@
 		"Emrvisaf_properties_01-Main_parameters_TriggerName": {
 			"type": "string",
 			"defaultValue": "Emrvisaf"
+		},
+		"pe-saswcnonprod01landingdev_properties_privateLinkResourceId": {
+			"type": "string",
+			"defaultValue": "/subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-daf-dev-01/providers/Microsoft.Storage/storageAccounts/saswcnonprod01landingdev"
+		},
+		"pe-saswcnonprod01landingdev_properties_groupId": {
+			"type": "string",
+			"defaultValue": "blob"
 		}
 	},
 	"variables": {
@@ -1039,7 +1047,7 @@
 									"type": "AzureBlobStorageReadSettings",
 									"recursive": true,
 									"wildcardFileName": {
-										"value": "@concat(first(split(variables('SourceFileName'),'_')),'_ATTR*')",
+										"value": "@variables('SourceFileName')",
 										"type": "Expression"
 									},
 									"enablePartitionDiscovery": false
@@ -1237,7 +1245,7 @@
 									"type": "AzureBlobStorageReadSettings",
 									"recursive": true,
 									"wildcardFileName": {
-										"value": "@concat(first(split(variables('SourceFileName'),'_')),'_ATTR_MANIFEST*')",
+										"value": "@concat(first(split(variables('SourceFileName'),'.')),'_MANIFEST.json')",
 										"type": "Expression"
 									},
 									"enablePartitionDiscovery": false
@@ -1305,8 +1313,7 @@
 							"logStorageSettings": {
 								"linkedServiceName": {
 									"referenceName": "LS_AzureDatalake",
-									"type": "LinkedServiceReference",
-									"parameters": {}
+									"type": "LinkedServiceReference"
 								},
 								"path": "assurance"
 							},
@@ -1315,7 +1322,7 @@
 								"type": "AzureBlobStorageReadSettings",
 								"recursive": true,
 								"wildcardFileName": {
-									"value": "@{concat(first(split(variables('SourceFileName'),'_')),'_ATTR_MANIFEST*')}",
+									"value": "@{concat(first(split(variables('SourceFileName'),'.')),'_MANIFEST.json')}",
 									"type": "Expression"
 								},
 								"enablePartitionDiscovery": false
@@ -1416,8 +1423,7 @@
 							"logStorageSettings": {
 								"linkedServiceName": {
 									"referenceName": "LS_AzureDatalake",
-									"type": "LinkedServiceReference",
-									"parameters": {}
+									"type": "LinkedServiceReference"
 								},
 								"path": "assurance"
 							},
@@ -7033,18 +7039,15 @@
 				"annotations": [],
 				"type": "AzureBlobStorage",
 				"typeProperties": {
-					"connectionString": {
-						"type": "AzureKeyVaultSecret",
-						"store": {
-							"referenceName": "LS-AzureKeyVault",
-							"type": "LinkedServiceReference"
-						},
-						"secretName": "[parameters('LS_AzureBlobStorage_properties_typeProperties_connectionString_secretName')]"
-					}
+					"connectionString": "[parameters('LS_AzureBlobStorage_connectionString')]"
+				},
+				"connectVia": {
+					"referenceName": "IntegrationRuntime-Azure-ManagedVnet-01",
+					"type": "IntegrationRuntimeReference"
 				}
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/LS-AzureKeyVault')]"
+				"[concat(variables('factoryId'), '/integrationRuntimes/IntegrationRuntime-Azure-ManagedVnet-01')]"
 			]
 		},
 		{
@@ -7205,6 +7208,18 @@
 			"apiVersion": "2018-06-01",
 			"properties": {},
 			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/default/pe-saswcnonprod01landingdev')]",
+			"type": "Microsoft.DataFactory/factories/managedVirtualNetworks/managedPrivateEndpoints",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"privateLinkResourceId": "[parameters('pe-saswcnonprod01landingdev_properties_privateLinkResourceId')]",
+				"groupId": "[parameters('pe-saswcnonprod01landingdev_properties_groupId')]"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/managedVirtualNetworks/default')]"
+			]
 		}
 	]
 }
