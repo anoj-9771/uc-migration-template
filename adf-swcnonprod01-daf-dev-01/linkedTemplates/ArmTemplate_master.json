@@ -7,6 +7,10 @@
 			"metadata": "Data Factory name",
 			"defaultValue": "adf-swcnonprod01-daf-dev-01"
 		},
+		"LS_AzureBlobStorage_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'LS_AzureBlobStorage'"
+		},
 		"LS-AzureKeyVault_properties_typeProperties_baseUrl": {
 			"type": "string",
 			"defaultValue": "https://kv-daf-dev-01.vault.azure.net/"
@@ -14,10 +18,6 @@
 		"LS-AzureSqlDatabase_Ctrldb_properties_typeProperties_connectionString_secretName": {
 			"type": "string",
 			"defaultValue": "@linkedService().kvSecret"
-		},
-		"LS_AzureBlobStorage_properties_typeProperties_connectionString_secretName": {
-			"type": "string",
-			"defaultValue": "daf-sa-landingblob-connectionstring"
 		},
 		"LS_AzureDatalake_properties_typeProperties_url": {
 			"type": "string",
@@ -34,6 +34,14 @@
 		"Emrvisaf_properties_01-Main_parameters_TriggerName": {
 			"type": "string",
 			"defaultValue": "Emrvisaf"
+		},
+		"pe-saswcnonprod01landingdev_properties_privateLinkResourceId": {
+			"type": "string",
+			"defaultValue": "/subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-daf-dev-01/providers/Microsoft.Storage/storageAccounts/saswcnonprod01landingdev"
+		},
+		"pe-saswcnonprod01landingdev_properties_groupId": {
+			"type": "string",
+			"defaultValue": "blob"
 		},
 		"containerUri": {
 			"type": "string",
@@ -65,14 +73,20 @@
 					"LS-AzureKeyVault_properties_typeProperties_baseUrl": {
 						"value": "[parameters('LS-AzureKeyVault_properties_typeProperties_baseUrl')]"
 					},
-					"LS_AzureBlobStorage_properties_typeProperties_connectionString_secretName": {
-						"value": "[parameters('LS_AzureBlobStorage_properties_typeProperties_connectionString_secretName')]"
-					},
 					"LS_AzureDatalake_properties_typeProperties_url": {
 						"value": "[parameters('LS_AzureDatalake_properties_typeProperties_url')]"
 					},
 					"LS_Oracle_properties_typeProperties_connectionString_secretName": {
 						"value": "[parameters('LS_Oracle_properties_typeProperties_connectionString_secretName')]"
+					},
+					"pe-saswcnonprod01landingdev_properties_privateLinkResourceId": {
+						"value": "[parameters('pe-saswcnonprod01landingdev_properties_privateLinkResourceId')]"
+					},
+					"pe-saswcnonprod01landingdev_properties_groupId": {
+						"value": "[parameters('pe-saswcnonprod01landingdev_properties_groupId')]"
+					},
+					"LS-AzureSqlDatabase_Ctrldb_properties_typeProperties_connectionString_secretName": {
+						"value": "[parameters('LS-AzureSqlDatabase_Ctrldb_properties_typeProperties_connectionString_secretName')]"
 					}
 				}
 			},
@@ -92,8 +106,28 @@
 					"factoryName": {
 						"value": "[parameters('factoryName')]"
 					},
-					"LS-AzureSqlDatabase_Ctrldb_properties_typeProperties_connectionString_secretName": {
-						"value": "[parameters('LS-AzureSqlDatabase_Ctrldb_properties_typeProperties_connectionString_secretName')]"
+					"LS_AzureBlobStorage_connectionString": {
+						"value": "[parameters('LS_AzureBlobStorage_connectionString')]"
+					}
+				}
+			},
+			"dependsOn": [
+				"[resourceId('Microsoft.Resources/deployments', 'adf-swcnonprod01-daf-dev-01_ArmTemplate_0')]"
+			]
+		},
+		{
+			"name": "adf-swcnonprod01-daf-dev-01_ArmTemplate_2",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2018-02-01",
+			"properties": {
+				"mode": "incremental",
+				"templateLink": {
+					"uri": "[concat(parameters('containerUri'), '/ArmTemplate_2.json', parameters('containerSasToken'))]",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"factoryName": {
+						"value": "[parameters('factoryName')]"
 					},
 					"DLY1300_properties_01-Main_parameters_TriggerName": {
 						"value": "[parameters('DLY1300_properties_01-Main_parameters_TriggerName')]"
@@ -104,7 +138,7 @@
 				}
 			},
 			"dependsOn": [
-				"[resourceId('Microsoft.Resources/deployments', 'adf-swcnonprod01-daf-dev-01_ArmTemplate_0')]"
+				"[resourceId('Microsoft.Resources/deployments', 'adf-swcnonprod01-daf-dev-01_ArmTemplate_1')]"
 			]
 		}
 	]

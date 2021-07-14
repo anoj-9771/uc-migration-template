@@ -5,14 +5,14 @@
 		"factoryName": {
 			"value": "adf-swcnonprod01-daf-dev-01"
 		},
+		"LS_AzureBlobStorage_connectionString": {
+			"value": ""
+		},
 		"LS-AzureKeyVault_properties_typeProperties_baseUrl": {
 			"value": "https://kv-daf-dev-01.vault.azure.net/"
 		},
 		"LS-AzureSqlDatabase_Ctrldb_properties_typeProperties_connectionString_secretName": {
 			"value": "@linkedService().kvSecret"
-		},
-		"LS_AzureBlobStorage_properties_typeProperties_connectionString_secretName": {
-			"value": "daf-sa-landingblob-connectionstring"
 		},
 		"LS_AzureDatalake_properties_typeProperties_url": {
 			"value": "https://sadafdev01.dfs.core.windows.net"
@@ -25,6 +25,12 @@
 		},
 		"Emrvisaf_properties_01-Main_parameters_TriggerName": {
 			"value": "Emrvisaf"
+		},
+		"pe-saswcnonprod01landingdev_properties_privateLinkResourceId": {
+			"value": "/subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-daf-dev-01/providers/Microsoft.Storage/storageAccounts/saswcnonprod01landingdev"
+		},
+		"pe-saswcnonprod01landingdev_properties_groupId": {
+			"value": "blob"
 		},
 		"containerUri": {
 			"value": ""
