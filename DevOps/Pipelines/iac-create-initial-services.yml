@@ -21,7 +21,7 @@ stages:
   - template: Templates/job-copy-arm.yml
 
 # ---------------------------------------------------------------------------
-# Release to Non-Prod - Dev..
+# Release to Non-Prod - Dev.
 - stage: deploy_to_dev
   dependsOn: 'build'
   condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/develop'))
