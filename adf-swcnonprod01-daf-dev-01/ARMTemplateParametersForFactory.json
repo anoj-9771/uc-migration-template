@@ -6,7 +6,7 @@
 			"value": "adf-swcnonprod01-daf-test-01"
 		},
 		"LS_AzureBlobStorage_connectionString": {
-			"value": ""
+			"value": "daf-sa-landingblob-connectionstring"
 		},
 		"LS-AzureKeyVault_properties_typeProperties_baseUrl": {
 			"value": "https://kv-daf-test-01.vault.azure.net/"
