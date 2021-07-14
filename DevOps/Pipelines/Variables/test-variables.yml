@@ -89,7 +89,7 @@ variables:
   - name: loganalyticsretention
     value: 30  
   # ------------------------------------------------
-  # Databricks related
+  # Databricks related.
   # ------------------------------------------------
   - name: nsgname
     value: nsg-$(SUBSCRIPTION)-$(PREFIX)-$(ENVIRONMENT)-$(INCREMENT)
