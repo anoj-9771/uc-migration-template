@@ -15,7 +15,7 @@ variables:
   # Used to set Log Blob Storage deployability
   - name: logstorage
     value: false
-  # Used to set Azure SQL Server deployability
+  # Used to set Azure SQL Server deployability.
   - name: azuresqlserver
     value: true
   # Used to add Control DB to Azure SQL server 
