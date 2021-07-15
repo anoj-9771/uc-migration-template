@@ -1,5 +1,5 @@
 {
-	"name": "SRC_RAW_LANDING_ADLS_CSV_copy1",
+	"name": "DST_RAW_ADLS_CSV",
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "LS_AzureDatalake",
