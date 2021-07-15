@@ -29,7 +29,7 @@
 					"value": "@dataset().BlobPath",
 					"type": "Expression"
 				},
-				"fileSystem": "raw/landing"
+				"fileSystem": "raw"
 			},
 			"columnDelimiter": "|",
 			"escapeChar": "\\",
