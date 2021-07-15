@@ -637,7 +637,7 @@
 							"referenceName": "LS-AzureSqlDatabase_Ctrldb",
 							"type": "LinkedServiceReference",
 							"parameters": {
-								"kvSecret": "sql-db-controldb-connectionstring"
+								"kvSecret": "daf-sql-controldb-connectionstring"
 							}
 						}
 					},
@@ -684,7 +684,7 @@
 							"referenceName": "LS-AzureSqlDatabase_Ctrldb",
 							"type": "LinkedServiceReference",
 							"parameters": {
-								"kvSecret": "sql-db-controldb-connectionstring"
+								"kvSecret": "daf-sql-controldb-connectionstring"
 							}
 						}
 					},
@@ -823,7 +823,7 @@
 							"referenceName": "LS-AzureSqlDatabase_Ctrldb",
 							"type": "LinkedServiceReference",
 							"parameters": {
-								"kvSecret": "sql-db-controldb-connectionstring"
+								"kvSecret": "daf-sql-controldb-connectionstring"
 							}
 						}
 					},
@@ -894,7 +894,7 @@
 							"referenceName": "LS-AzureSqlDatabase_Ctrldb",
 							"type": "LinkedServiceReference",
 							"parameters": {
-								"kvSecret": "sql-db-controldb-connectionstring"
+								"kvSecret": "daf-sql-controldb-connectionstring"
 							}
 						}
 					},
@@ -1622,7 +1622,7 @@
 							"referenceName": "LS-AzureSqlDatabase_Ctrldb",
 							"type": "LinkedServiceReference",
 							"parameters": {
-								"kvSecret": "ADF-LS-AzureSql-ControlDB"
+								"kvSecret": "daf-sql-controldb-connectionstring"
 							}
 						}
 					}
@@ -2087,8 +2087,7 @@
 							"logStorageSettings": {
 								"linkedServiceName": {
 									"referenceName": "LS_AzureDatalake",
-									"type": "LinkedServiceReference",
-									"parameters": {}
+									"type": "LinkedServiceReference"
 								},
 								"path": "assurance"
 							},
@@ -6049,7 +6048,7 @@
 					"referenceName": "LS-AzureSqlDatabase_Ctrldb",
 					"type": "LinkedServiceReference",
 					"parameters": {
-						"kvSecret": "ADF-LS-AzureSql-ControlDB"
+						"kvSecret": "daf-sql-controldb-connectionstring"
 					}
 				},
 				"folder": {
@@ -6255,6 +6254,52 @@
 							"type": "Expression"
 						},
 						"folderPath": "access data/Z309_TPROPERTY",
+						"fileSystem": "raw"
+					},
+					"columnDelimiter": "|",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_AzureDatalake')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/RAW_ADLS_CSV')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_AzureDatalake",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"BlobPath": {
+						"type": "string"
+					},
+					"BlobName": {
+						"type": "string"
+					}
+				},
+				"folder": {
+					"name": "Data Lake"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": {
+							"value": "@dataset().BlobName",
+							"type": "Expression"
+						},
+						"folderPath": {
+							"value": "@dataset().BlobPath",
+							"type": "Expression"
+						},
 						"fileSystem": "raw"
 					},
 					"columnDelimiter": "|",
@@ -7222,52 +7267,6 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/managedVirtualNetworks/default')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/RAW_ADLS_CSV')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "LS_AzureDatalake",
-					"type": "LinkedServiceReference"
-				},
-				"parameters": {
-					"BlobPath": {
-						"type": "string"
-					},
-					"BlobName": {
-						"type": "string"
-					}
-				},
-				"folder": {
-					"name": "Data Lake"
-				},
-				"annotations": [],
-				"type": "DelimitedText",
-				"typeProperties": {
-					"location": {
-						"type": "AzureBlobFSLocation",
-						"fileName": {
-							"value": "@dataset().BlobName",
-							"type": "Expression"
-						},
-						"folderPath": {
-							"value": "@dataset().BlobPath",
-							"type": "Expression"
-						},
-						"fileSystem": "raw"
-					},
-					"columnDelimiter": ",",
-					"escapeChar": "\\",
-					"firstRowAsHeader": true,
-					"quoteChar": "\""
-				},
-				"schema": []
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/LS_AzureDatalake')]"
 			]
 		}
 	]

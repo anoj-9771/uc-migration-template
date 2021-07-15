@@ -92,9 +92,6 @@
 					},
 					"pe-saswcnonprod01landingdev_properties_groupId": {
 						"value": "[parameters('pe-saswcnonprod01landingdev_properties_groupId')]"
-					},
-					"LS-AzureSqlDatabase_Ctrldb_properties_typeProperties_connectionString_secretName": {
-						"value": "[parameters('LS-AzureSqlDatabase_Ctrldb_properties_typeProperties_connectionString_secretName')]"
 					}
 				}
 			},
@@ -113,6 +110,9 @@
 				"parameters": {
 					"factoryName": {
 						"value": "[parameters('factoryName')]"
+					},
+					"LS-AzureSqlDatabase_Ctrldb_properties_typeProperties_connectionString_secretName": {
+						"value": "[parameters('LS-AzureSqlDatabase_Ctrldb_properties_typeProperties_connectionString_secretName')]"
 					},
 					"LS_AzureBlobStorage_properties_typeProperties_serviceEndpoint": {
 						"value": "[parameters('LS_AzureBlobStorage_properties_typeProperties_serviceEndpoint')]"
