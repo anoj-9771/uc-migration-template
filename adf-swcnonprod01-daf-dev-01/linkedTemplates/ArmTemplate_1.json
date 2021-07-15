@@ -1467,7 +1467,7 @@
 			"dependsOn": []
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/05-DL-Copy-Raw-to-Trustedddd')]",
+			"name": "[concat(parameters('factoryName'), '/05-DL-Copy-Raw-to-Trusteddddd')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
 			"apiVersion": "2018-06-01",
 			"properties": {
