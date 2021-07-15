@@ -54,7 +54,7 @@ stages:
     run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/test'))
 
 # ---------------------------------------------------------------------------
-# Release to Non-Prod - PreProd Environment
+# Release to Non-Prod - PreProd Environment.
 - template: Templates/stage-datafactory-integration.yml
   parameters:
     #dependencies: ['uat'] # Used to define any stage dependencies
