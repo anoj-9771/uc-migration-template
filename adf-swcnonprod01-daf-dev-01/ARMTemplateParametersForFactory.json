@@ -8,6 +8,9 @@
 		"LS-AzureKeyVault_properties_typeProperties_baseUrl": {
 			"value": "https://kv-daf-test-01.vault.azure.net/"
 		},
+		"LS_AzureBlobStorage_connectionString": {
+			"value": "DefaultEndpointsProtocol=https;AccountName=saswcnonprod01landingtst;AccountKey=Q+HaXshlbfD+738t5Fx1De4AMI2tp1mS/4geF1gMf+delp+q2RaTT7njeC6Qksfoe0sVnPSAU8uaT7lM8XfIMg==;EndpointSuffix=core.windows.net"
+		},
 		"LS-AzureSqlDatabase_Ctrldb_properties_typeProperties_connectionString_secretName": {
 			"value": "@linkedService().kvSecret"
 		},
