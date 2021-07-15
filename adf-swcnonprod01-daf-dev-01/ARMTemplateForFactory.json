@@ -6302,9 +6302,7 @@
 						},
 						"fileSystem": "raw"
 					},
-					"columnDelimiter": "|",
-					"compressionCodec": "gzip",
-					"compressionLevel": "Optimal",
+					"columnDelimiter": ",",
 					"escapeChar": "\\",
 					"firstRowAsHeader": true,
 					"quoteChar": "\""
