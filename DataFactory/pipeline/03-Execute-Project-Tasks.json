@@ -260,7 +260,7 @@
 							}
 						},
 						{
-							"name": "Source-to-Raw-Blob      Stage1_Copy_FlatFile",
+							"name": "Source-to-Raw-Blob _FlatFile_Copy",
 							"type": "IfCondition",
 							"dependsOn": [
 								{
