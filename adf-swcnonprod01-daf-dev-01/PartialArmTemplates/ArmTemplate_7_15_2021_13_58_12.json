@@ -1,0 +1,44 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "adf-swcnonprod01-daf-dev-01"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/LS_AzureBlobStorage')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobStorage",
+				"typeProperties": {
+					"serviceEndpoint": "https://saswcnonprod01landingdev.blob.core.windows.net",
+					"tenant": "8351bb5c-749d-4ee4-b1c4-71a3971acbe9",
+					"servicePrincipalId": "acff96db-8630-433b-bbb1-35a3813fa036",
+					"servicePrincipalKey": {
+						"type": "AzureKeyVaultSecret",
+						"store": {
+							"referenceName": "LS-AzureKeyVault",
+							"type": "LinkedServiceReference"
+						},
+						"secretName": "daf-serviceprincipal-app-secret"
+					},
+					"accountKind": "StorageV2"
+				},
+				"connectVia": {
+					"referenceName": "IntegrationRuntime-Azure-ManagedVnet-01",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": []
+		}
+	]
+}
