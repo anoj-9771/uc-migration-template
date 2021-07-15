@@ -5,14 +5,20 @@
 		"factoryName": {
 			"value": "adf-swcnonprod01-daf-dev-01"
 		},
-		"LS_AzureBlobStorage_connectionString": {
-			"value": ""
-		},
 		"LS-AzureKeyVault_properties_typeProperties_baseUrl": {
 			"value": "https://kv-daf-dev-01.vault.azure.net/"
 		},
 		"LS-AzureSqlDatabase_Ctrldb_properties_typeProperties_connectionString_secretName": {
 			"value": "@linkedService().kvSecret"
+		},
+		"LS_AzureBlobStorage_properties_typeProperties_serviceEndpoint": {
+			"value": "https://saswcnonprod01landingdev.blob.core.windows.net"
+		},
+		"LS_AzureBlobStorage_properties_typeProperties_tenant": {
+			"value": "8351bb5c-749d-4ee4-b1c4-71a3971acbe9"
+		},
+		"LS_AzureBlobStorage_properties_typeProperties_servicePrincipalId": {
+			"value": "acff96db-8630-433b-bbb1-35a3813fa036"
 		},
 		"LS_AzureDatalake_properties_typeProperties_url": {
 			"value": "https://sadafdev01.dfs.core.windows.net"
