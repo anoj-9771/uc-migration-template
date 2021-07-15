@@ -6302,7 +6302,7 @@
 						},
 						"fileSystem": "raw"
 					},
-					"columnDelimiter": ",",
+					"columnDelimiter": "|",
 					"escapeChar": "\\",
 					"firstRowAsHeader": true,
 					"quoteChar": "\""
@@ -6843,8 +6843,7 @@
 			"properties": {
 				"linkedServiceName": {
 					"referenceName": "LS_AzureDatalake",
-					"type": "LinkedServiceReference",
-					"parameters": {}
+					"type": "LinkedServiceReference"
 				},
 				"parameters": {
 					"BlobPath": {
@@ -6872,7 +6871,7 @@
 						},
 						"fileSystem": "raw/landing"
 					},
-					"columnDelimiter": ",",
+					"columnDelimiter": "|",
 					"escapeChar": "\\",
 					"firstRowAsHeader": true,
 					"quoteChar": "\""
