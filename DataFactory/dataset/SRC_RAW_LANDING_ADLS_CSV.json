@@ -3,10 +3,7 @@
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "LS_AzureDatalake",
-			"type": "LinkedServiceReference",
-			"parameters": {
-				"kvSecret": "swcdafdevadls-sastoken"
-			}
+			"type": "LinkedServiceReference"
 		},
 		"parameters": {
 			"BlobPath": {
@@ -34,7 +31,7 @@
 				},
 				"fileSystem": "raw/landing"
 			},
-			"columnDelimiter": ",",
+			"columnDelimiter": "|",
 			"escapeChar": "\\",
 			"firstRowAsHeader": true,
 			"quoteChar": "\""
