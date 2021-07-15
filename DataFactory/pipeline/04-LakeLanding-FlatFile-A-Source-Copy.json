@@ -359,11 +359,11 @@
 						"type": "DatasetReference",
 						"parameters": {
 							"BlobPath": {
-								"value": "@variables('SourceContainer')",
+								"value": "@activity('Get Full File Name').output.firstrow.StorageFolder",
 								"type": "Expression"
 							},
 							"BlobName": {
-								"value": "@variables('SourceFileName')",
+								"value": "@activity('Get Full File Name').output.firstrow.StorageFile",
 								"type": "Expression"
 							}
 						}
