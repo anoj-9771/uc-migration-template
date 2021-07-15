@@ -538,6 +538,58 @@
 											}
 										]
 									}
+								},
+								{
+									"name": "Source-to-Raw-Blob _FlatFile_Copy",
+									"type": "IfCondition",
+									"dependsOn": [
+										{
+											"activity": "Generate Task Log",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"userProperties": [],
+									"typeProperties": {
+										"expression": {
+											"value": "@and(equals(item().SourceType,'Flat File'), equals(item().ControlStageId,1))",
+											"type": "Expression"
+										},
+										"ifTrueActivities": [
+											{
+												"name": "EP-Blob-to-Raw_copy1",
+												"type": "ExecutePipeline",
+												"dependsOn": [],
+												"userProperties": [],
+												"typeProperties": {
+													"pipeline": {
+														"referenceName": "04-LakeLanding-FlatFile-A-Source-Copy",
+														"type": "PipelineReference"
+													},
+													"waitOnCompletion": true,
+													"parameters": {
+														"TaskDetails": {
+															"value": "@item()",
+															"type": "Expression"
+														},
+														"BatchLogId": {
+															"value": "@activity('Generate Batch Log').output.firstrow.BatchLogId",
+															"type": "Expression"
+														},
+														"TaskExecutionLogId": {
+															"value": "@activity('Generate Task Log').output.firstrow.TaskLogId",
+															"type": "Expression"
+														},
+														"ProjectRunID": {
+															"value": "@pipeline().parameters.ProjectRunID",
+															"type": "Expression"
+														}
+													}
+												}
+											}
+										]
+									}
 								}
 							]
 						}
@@ -697,7 +749,8 @@
 				"[concat(variables('factoryId'), '/linkedServices/LS-AzureSqlDatabase_Ctrldb')]",
 				"[concat(variables('factoryId'), '/pipelines/04-Blob-Json-A-Source-Copy')]",
 				"[concat(variables('factoryId'), '/pipelines/05-DL-Load-Raw-to-Cleansed')]",
-				"[concat(variables('factoryId'), '/pipelines/05-DL-Copy-Trusted-to-Curated')]"
+				"[concat(variables('factoryId'), '/pipelines/05-DL-Copy-Trusted-to-Curated')]",
+				"[concat(variables('factoryId'), '/pipelines/04-LakeLanding-FlatFile-A-Source-Copy')]"
 			]
 		},
 		{
