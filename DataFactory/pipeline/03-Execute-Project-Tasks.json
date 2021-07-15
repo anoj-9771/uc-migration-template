@@ -258,6 +258,58 @@
 									}
 								]
 							}
+						},
+						{
+							"name": "Source-to-Raw-Blob      Stage1_Copy_FlatFile",
+							"type": "IfCondition",
+							"dependsOn": [
+								{
+									"activity": "Generate Task Log",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"expression": {
+									"value": "@and(equals(item().SourceType,'Flat File'), equals(item().ControlStageId,1))",
+									"type": "Expression"
+								},
+								"ifTrueActivities": [
+									{
+										"name": "EP-Blob-to-Raw_copy1",
+										"type": "ExecutePipeline",
+										"dependsOn": [],
+										"userProperties": [],
+										"typeProperties": {
+											"pipeline": {
+												"referenceName": "04-LakeLanding-FlatFile-A-Source-Copy",
+												"type": "PipelineReference"
+											},
+											"waitOnCompletion": true,
+											"parameters": {
+												"TaskDetails": {
+													"value": "@item()",
+													"type": "Expression"
+												},
+												"BatchLogId": {
+													"value": "@activity('Generate Batch Log').output.firstrow.BatchLogId",
+													"type": "Expression"
+												},
+												"TaskExecutionLogId": {
+													"value": "@activity('Generate Task Log').output.firstrow.TaskLogId",
+													"type": "Expression"
+												},
+												"ProjectRunID": {
+													"value": "@pipeline().parameters.ProjectRunID",
+													"type": "Expression"
+												}
+											}
+										}
+									}
+								]
+							}
 						}
 					]
 				}
