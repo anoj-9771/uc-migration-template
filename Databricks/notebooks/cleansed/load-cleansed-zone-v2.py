@@ -1,9 +1,16 @@
 # Databricks notebook source
+#Notebook structure/Method 
+#1.Load libreries
+#2.
+
+# COMMAND ----------
+
 # MAGIC %md
 # MAGIC #Load data to Trusted Zone from Raw Zone
 
 # COMMAND ----------
 
+#1.Load libreries
 from pyspark.sql.functions import mean, min, max, desc, abs, coalesce, when, expr
 from pyspark.sql.functions import date_add, to_utc_timestamp, from_utc_timestamp, datediff
 from pyspark.sql.functions import regexp_replace, concat, col, lit, substring
@@ -23,10 +30,6 @@ from pyspark.context import SparkContext
 # COMMAND ----------
 
 spark = SparkSession.builder.getOrCreate()
-
-# COMMAND ----------
-
-#dbutils.widgets.removeAll()
 
 # COMMAND ----------
 
@@ -68,7 +71,7 @@ print(json.dumps(Params, indent=4, sort_keys=True))
 
 # COMMAND ----------
 
-# MAGIC %run ./utility/transform_data_trustedzone
+# MAGIC %run ./utility/transform_data_cleansedzone
 
 # COMMAND ----------
 
@@ -88,12 +91,12 @@ print(data_load_mode)
 # COMMAND ----------
 
 #Delta and SQL tables are case INsensitive. Seems Delta table are always lower case
-delta_trusted_tbl_name = "{0}.{1}".format(ADS_DATABASE_TRUSTED, source_object)
+delta_cleansed_tbl_name = "{0}.{1}".format(ADS_DATABASE_CLEANSED, source_object)
 delta_raw_tbl_name = "{0}.{1}".format(ADS_DATABASE_RAW, source_object)
 
 
 #Destination
-print(delta_trusted_tbl_name)
+print(delta_cleansed_tbl_name)
 print(delta_raw_tbl_name)
 
 
@@ -102,8 +105,8 @@ print(delta_raw_tbl_name)
 DeltaSaveToDeltaTable (
   source_table = delta_raw_tbl_name, 
   target_table = source_object, 
-  target_data_lake_zone = ADS_DATALAKE_ZONE_TRUSTED, 
-  target_database = ADS_DATABASE_TRUSTED,
+  target_data_lake_zone = ADS_DATALAKE_ZONE_CLEANSED, 
+  target_database = ADS_DATABASE_CLEANSED,
   data_lake_folder = Params[PARAMS_SOURCE_GROUP],
   data_load_mode = data_load_mode,
   track_changes =  Params[PARAMS_TRACK_CHANGES], 
@@ -113,6 +116,33 @@ DeltaSaveToDeltaTable (
   start_counter = start_counter, 
   end_counter = end_counter
 )
+
+# COMMAND ----------
+
+df = spark.sql("select partner as Business_Partner_NUM,ZZPAS_INDICATOR as Payment_Assist_Scheme_IND,ZZBA_INDICATOR as Bill_Assist_IND from raw.sap_0bpartner_attr" )
+display(df)
+
+# COMMAND ----------
+
+changes_df = spark.read.format("delta").option("readChangeData", True).option("startingVersion", 2).table('raw.sap_0bpartner_attr')
+display(changes_df)
+
+# COMMAND ----------
+
+DeltaSaveDataFrameToDeltaTable(
+    dataframe = df, 
+    target_table = "T_" + source_object, 
+    target_data_lake_zone = ADS_DATALAKE_ZONE_CLEANSED, 
+    target_database = ADS_DATABASE_CLEANSED,
+    data_lake_folder = Params[PARAMS_SOURCE_GROUP],
+    data_load_mode = data_load_mode,
+    track_changes = False, 
+    is_delta_extract = False, 
+    business_key = "", 
+    AddSKColumn = False,
+    delta_column = "", 
+    start_counter = "0", 
+    end_counter = "0")
 
 # COMMAND ----------
 
