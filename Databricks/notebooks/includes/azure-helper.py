@@ -92,3 +92,4 @@ def AzHelperPauseSynapse(DB_SERVER, DATABASE_NAME):
 
 # COMMAND ----------
 
+

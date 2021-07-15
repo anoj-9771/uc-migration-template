@@ -72,7 +72,7 @@ def DeltaSaveDataframeDirect(dataframe, source_system, table_name, database_name
   query = "CREATE DATABASE IF NOT EXISTS {0}".format(database_name)
   spark.sql(query)
   
-  if database_name == ADS_DATABASE_RAW or database_name == ADS_DATABASE_TRUSTED or database_name == ADS_DATABASE_CURATED:
+  if database_name == ADS_DATABASE_RAW or database_name == ADS_DATABASE_CLEANSED or database_name == ADS_DATABASE_CURATED:
     table_name = "{0}_{1}".format(source_system, table_name)
     
   table_name_fq = "{0}.{1}".format(database_name, table_name)
@@ -87,14 +87,16 @@ def DeltaSaveDataframeDirect(dataframe, source_system, table_name, database_name
     LogEtl ("No partition keys")
     dataframe.write \
         .format('delta') \
-        .option('mergeSchema', 'true') \
+        .option("mergeSchema", "true") \
+        .option("overwriteSchema", "true") \
         .mode(write_mode) \
         .save(delta_path)
   else:
     LogEtl ("Partition keys : " + str(partition_keys))
     dataframe.write \
         .format('delta') \
-        .option('mergeSchema', 'true') \
+        .option("mergeSchema", "true")\
+        .option("overwriteSchema", "true") \
         .mode(write_mode) \
         .partitionBy(partition_keys) \
         .save(delta_path)
@@ -127,9 +129,9 @@ def DeltaCreateTableIfNotExists(delta_target_table, delta_source_table, data_lak
 
   df = spark.sql(source_query)
   
-  col_timestamp = COL_DL_TRUSTED_LOAD if data_lake_zone == ADS_DATALAKE_ZONE_TRUSTED else COL_DL_CURATED_LOAD
+  col_timestamp = COL_DL_CLEANSED_LOAD if data_lake_zone == ADS_DATALAKE_ZONE_CLEANSED else COL_DL_CURATED_LOAD
 
-  #Adding a default column for Trusted Zone load timestamp type
+  #Adding a default column for Cleansed Zone load timestamp type
   df = df.withColumn(col_timestamp, lit(None).cast(TimestampType())) 
   
   #Adding SCD Columns. Have these columns even if the table is not on SCD
@@ -158,12 +160,16 @@ def DeltaCreateTableIfNotExists(delta_target_table, delta_source_table, data_lak
       .format('delta') \
       .mode("overwrite") \
       .partitionBy("year", "month", "day") \
-      .save(delta_table_path)
+      .option("mergeSchema", "true") \
+     .option("overwriteSchema", "true") \
+      .save(delta_table_path) 
   else:
     #If the extract is not on delta, then we do not know the partitioning column, hence the table will be created without partition
     df.write \
       .format('delta') \
       .mode("overwrite") \
+      .option("mergeSchema", "true") \
+      .option("overwriteSchema", "true") \
       .save(delta_table_path)
 
   query = "CREATE TABLE IF NOT EXISTS " + delta_target_table + " USING DELTA LOCATION \'" + delta_table_path + "\'"
@@ -362,6 +368,43 @@ def DeltaSaveDataFrameToDeltaTable(
     dlTargetTableFqn = f"{target_database}.{target_table}"
     DeltaUpdateSurrogateKey(target_database, target_table, business_key) 
 
+
+
+# COMMAND ----------
+
+def DeltaSaveDataFrameToDeltaTableCleansed(
+  dataframe, target_table, target_data_lake_zone, target_database, data_lake_folder, data_load_mode, track_changes = False, is_delta_extract = False, business_key = "", AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0"):
+  
+  stage_table_name = f"{ADS_DATABASE_CLEANSED}.{target_table}"
+  
+  if AddSKColumn:
+    dataframe = DeltaInjectSurrogateKeyToDataFrame(dataframe, target_table)
+    
+  
+  #Drop the stage table if it exists
+  spark.sql(f"DROP TABLE IF EXISTS {stage_table_name}")
+  #Save the dataframe temporarily to Stage database
+  dataframe.write.saveAsTable(stage_table_name)
+  
+  #Use our generic method to save the dataframe now to Delta Table
+  DeltaSaveToDeltaTable(
+    source_table = stage_table_name, 
+    target_table = target_table, 
+    target_data_lake_zone = target_data_lake_zone, 
+    target_database = target_database, 
+    data_lake_folder = data_lake_folder,
+    data_load_mode = data_load_mode,
+    track_changes = track_changes, 
+    is_delta_extract =  is_delta_extract, 
+    business_key = business_key, 
+    delta_column = delta_column, 
+    start_counter = start_counter, 
+    end_counter = end_counter
+    )
+  
+  if AddSKColumn:
+    dlTargetTableFqn = f"{target_database}.{target_table}"
+    DeltaUpdateSurrogateKey(target_database, target_table, business_key) 
 
 
 # COMMAND ----------
