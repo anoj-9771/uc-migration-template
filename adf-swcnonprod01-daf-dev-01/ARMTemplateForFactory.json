@@ -2035,7 +2035,7 @@
 						],
 						"outputs": [
 							{
-								"referenceName": "RAW_ADLS_CSV",
+								"referenceName": "SRC_RAW_LANDING_ADLS_CSV_copy1",
 								"type": "DatasetReference",
 								"parameters": {
 									"BlobPath": {
@@ -2222,7 +2222,7 @@
 				"[concat(variables('factoryId'), '/datasets/AzureSqlDatabase_Ctrldb')]",
 				"[concat(variables('factoryId'), '/pipelines/04-DL-Load-Raw-to-Delta-Table')]",
 				"[concat(variables('factoryId'), '/datasets/SRC_RAW_LANDING_ADLS_CSV')]",
-				"[concat(variables('factoryId'), '/datasets/RAW_ADLS_CSV')]",
+				"[concat(variables('factoryId'), '/datasets/SRC_RAW_LANDING_ADLS_CSV_copy1')]",
 				"[concat(variables('factoryId'), '/linkedServices/LS_AzureDatalake')]"
 			]
 		},
@@ -6305,7 +6305,7 @@
 					"columnDelimiter": "|",
 					"escapeChar": "\\",
 					"firstRowAsHeader": true,
-					"quoteChar": "\""
+					"quoteChar": ""
 				},
 				"schema": []
 			},
@@ -6874,7 +6874,7 @@
 					"columnDelimiter": "|",
 					"escapeChar": "\\",
 					"firstRowAsHeader": true,
-					"quoteChar": "\""
+					"quoteChar": ""
 				},
 				"schema": []
 			},
@@ -7266,6 +7266,52 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/managedVirtualNetworks/default')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/SRC_RAW_LANDING_ADLS_CSV_copy1')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_AzureDatalake",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"BlobPath": {
+						"type": "string"
+					},
+					"BlobName": {
+						"type": "string"
+					}
+				},
+				"folder": {
+					"name": "Data Lake"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": {
+							"value": "@dataset().BlobName",
+							"type": "Expression"
+						},
+						"folderPath": {
+							"value": "@dataset().BlobPath",
+							"type": "Expression"
+						},
+						"fileSystem": "raw"
+					},
+					"columnDelimiter": "|",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": ""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_AzureDatalake')]"
 			]
 		}
 	]

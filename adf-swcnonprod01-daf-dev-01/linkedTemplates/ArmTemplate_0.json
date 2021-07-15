@@ -472,7 +472,7 @@
 					"columnDelimiter": "|",
 					"escapeChar": "\\",
 					"firstRowAsHeader": true,
-					"quoteChar": "\""
+					"quoteChar": ""
 				},
 				"schema": []
 			},
@@ -1015,7 +1015,7 @@
 					"columnDelimiter": "|",
 					"escapeChar": "\\",
 					"firstRowAsHeader": true,
-					"quoteChar": "\""
+					"quoteChar": ""
 				},
 				"schema": []
 			},
