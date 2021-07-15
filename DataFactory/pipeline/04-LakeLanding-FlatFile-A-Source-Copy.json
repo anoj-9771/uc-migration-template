@@ -355,7 +355,7 @@
 				],
 				"outputs": [
 					{
-						"referenceName": "SRC_RAW_LANDING_ADLS_CSV_copy1",
+						"referenceName": "DST_RAW_ADLS_CSV",
 						"type": "DatasetReference",
 						"parameters": {
 							"BlobPath": {
