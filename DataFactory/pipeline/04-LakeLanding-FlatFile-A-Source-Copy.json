@@ -355,15 +355,15 @@
 				],
 				"outputs": [
 					{
-						"referenceName": "RAW_ADLS_CSV",
+						"referenceName": "SRC_RAW_LANDING_ADLS_CSV_copy1",
 						"type": "DatasetReference",
 						"parameters": {
 							"BlobPath": {
-								"value": "@activity('Get Full File Name').output.firstrow.StorageFolder",
+								"value": "@variables('SourceContainer')",
 								"type": "Expression"
 							},
 							"BlobName": {
-								"value": "@activity('Get Full File Name').output.firstrow.StorageFile",
+								"value": "@variables('SourceFileName')",
 								"type": "Expression"
 							}
 						}
