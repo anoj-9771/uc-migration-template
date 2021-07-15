@@ -125,6 +125,8 @@
 						"fileSystem": "raw"
 					},
 					"columnDelimiter": "|",
+					"compressionCodec": "gzip",
+					"compressionLevel": "Optimal",
 					"escapeChar": "\\",
 					"firstRowAsHeader": true,
 					"quoteChar": ""
