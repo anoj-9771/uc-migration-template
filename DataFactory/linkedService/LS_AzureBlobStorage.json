@@ -1,16 +1,22 @@
 {
 	"name": "LS_AzureBlobStorage",
-	"type": "Microsoft.DataFactory/factories/linkedservices",
 	"properties": {
 		"annotations": [],
 		"type": "AzureBlobStorage",
 		"typeProperties": {
-			"connectionString": "DefaultEndpointsProtocol=https;AccountName=saswcnonprod01landingdev;EndpointSuffix=core.windows.net;",
-			"encryptedCredential": "ew0KICAiVmVyc2lvbiI6ICIyMDE3LTExLTMwIiwNCiAgIlByb3RlY3Rpb25Nb2RlIjogIktleSIsDQogICJTZWNyZXRDb250ZW50VHlwZSI6ICJQbGFpbnRleHQiLA0KICAiQ3JlZGVudGlhbElkIjogIkFERi1TV0NOT05QUk9EMDEtREFGLURFVi0wMV8xYjViMDAyNC0yMDZkLTRjYzctYWNhZS00NzllMWZkNThiOGIiDQp9"
+			"connectionString": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "LS-AzureKeyVault",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "daf-sa-landingblob-key1"
+			}
 		},
 		"connectVia": {
 			"referenceName": "IntegrationRuntime-Azure-ManagedVnet-01",
 			"type": "IntegrationRuntimeReference"
 		}
-	}
+	},
+	"type": "Microsoft.DataFactory/factories/linkedservices"
 }
