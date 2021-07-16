@@ -646,7 +646,7 @@
 									},
 									"Records": {
 										"value": {
-											"value": "@variables('RecordCount')",
+											"value": "@greater(activity('Copy-Blob-to-DataLake-Raw').output.filesWritten, 0)",
 											"type": "Expression"
 										},
 										"type": "Int64"
