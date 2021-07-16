@@ -50,9 +50,9 @@ variables:
     value: 30
   # Name of Log Analytics workspace name
   - name: loganalyticsworkspacename
-    value: $(PREFIX)-$(ENVIRONMENT)-ALA
+    value: logws-$(SUBSCRIPTION)-$(PREFIX)-$(ENVIRONMENT)-$(INCREMENT)
   - name: logstorageaccountname
-    value: ${{ replace(lower(variables.prefix),'-','') }}${{ replace(lower(variables.environment),'-','') }}salogs
+    value: salog$(PREFIX)$(ENVIRONMENT)
   # Name of Azure SQL Server and catalog name
   # Data Lake storage account names, commonly split
   # into zones. Ensure it is a comma delimited list
@@ -65,7 +65,7 @@ variables:
   # Container or file system names within storage account
   # Used to iterate in ARM template
   - name: logzonename
-    value: databricks
+    value: logs_databricks, logs_datafactory, logs_keyvault, logs_datalake
   - name: zonenames
     value: raw, trusted, cleansed, curated, synapsestaging
     # value: raw, stage, sandbox

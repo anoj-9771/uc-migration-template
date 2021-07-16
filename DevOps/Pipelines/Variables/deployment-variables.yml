@@ -11,10 +11,10 @@ variables:
     value: false
   # Used to set Log Analytics deployability
   - name: loganalytics
-    value: false
+    value: true
   # Used to set Log Blob Storage deployability
   - name: logstorage
-    value: false
+    value: true
   # Used to set Azure SQL Server deployability.
   - name: azuresqlserver
     value: true
