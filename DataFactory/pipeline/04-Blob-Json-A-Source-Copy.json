@@ -446,7 +446,14 @@
 						{
 							"name": "Execute-DP-Load-Raw-to-Delta-Table",
 							"type": "ExecutePipeline",
-							"dependsOn": [],
+							"dependsOn": [
+								{
+									"activity": "Create Manifest Record",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
 							"userProperties": [],
 							"typeProperties": {
 								"pipeline": {
@@ -587,6 +594,29 @@
 										"type": "Expression"
 									},
 									"enablePartitionDiscovery": false
+								}
+							}
+						},
+						{
+							"name": "Create Manifest Record",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[CTL].[CreateManifestRecord]"
+							},
+							"linkedServiceName": {
+								"referenceName": "LS-AzureSqlDatabase_Ctrldb",
+								"type": "LinkedServiceReference",
+								"parameters": {
+									"kvSecret": "daf-sql-controldb-connectionstring"
 								}
 							}
 						}
