@@ -1,19 +1,19 @@
 # Databricks notebook source
 # DBTITLE 1,Notebook Structure/Method 
 #Notebook structure/Method 
-#1.Import libraries/functions
-#2.Create spark session
-#3.Define Widgets/Parameters
-#4.Get Values from parameters/widgets
-#5.Format the Source_param parameter value into JSON
-#6.Include all util user function for the notebook
-#7.Include User functions (CleansedZone) for the notebook
-#8.Initilize/update parameter values
-#9.Set raw and cleansed table name
-#10.Load to Cleanse Delta Table from Raw Delta Table
-#11.Update/Rename Columns and load into a dataframe
-#12.Save Data frame into Cleansed Delta table (Final)
-#13.Exit Notebook
+#1.Import libraries/functions -- Generic
+#2.Create spark session -- Generic
+#3.Define Widgets/Parameters -- Generic
+#4.Get Values from parameters/widgets -- Generic
+#5.Format the Source_param parameter value into JSON -- Generic
+#6.Include all util user function for the notebook -- Generic
+#7.Include User functions (CleansedZone) for the notebook -- Generic
+#8.Initilize/update parameter values -- Generic
+#9.Set raw and cleansed table name -- Generic
+#10.Load to Cleanse Delta Table from Raw Delta Table -- Generic
+#11.Update/Rename Columns and load into a dataframe -- Custom
+#12.Save Data frame into Cleansed Delta table (Final) -- Generic
+#13.Exit Notebook -- Generic
 
 # COMMAND ----------
 
@@ -22,8 +22,8 @@
 
 # COMMAND ----------
 
-# DBTITLE 1,1. Import libraries/functions
-#1.Import libreries/functions
+# DBTITLE 1,1. Import libreries/functions
+#1.Import libraries/functions
 from pyspark.sql.functions import mean, min, max, desc, abs, coalesce, when, expr
 from pyspark.sql.functions import date_add, to_utc_timestamp, from_utc_timestamp, datediff
 from pyspark.sql.functions import regexp_replace, concat, col, lit, substring
@@ -96,10 +96,6 @@ print(json.dumps(Params, indent=4, sort_keys=True))
 # COMMAND ----------
 
 # DBTITLE 1,8. Initilize/update parameter values
-#Intitialize Counter
-start_counter = start_counter.replace("T", " ")
-print(start_counter)
-
 #Align Table Name (replace '[-@ ,;{}()]' charecter by '_')
 source_object = GeneralAlignTableName(source_object)
 print(source_object)
@@ -118,7 +114,7 @@ print(data_load_mode)
 # DBTITLE 1,9. Set raw and cleansed table name
 #Set raw and cleansed table name
 #Delta and SQL tables are case Insensitive. Seems Delta table are always lower case
-delta_cleansed_tbl_name = "{0}.{1}".format(ADS_DATABASE_CLEANSED, source_object)
+delta_cleansed_tbl_name = "{0}.{1}".format(ADS_DATABASE_CLEANSED, "stg_"+source_object)
 delta_raw_tbl_name = "{0}.{1}".format(ADS_DATABASE_RAW, source_object)
 
 
@@ -133,7 +129,7 @@ print(delta_raw_tbl_name)
 #This method uses the source table to load data into target Delta Table
 DeltaSaveToDeltaTable (
   source_table = delta_raw_tbl_name, 
-  target_table = source_object, 
+  target_table = "stg_"+source_object, 
   target_data_lake_zone = ADS_DATALAKE_ZONE_CLEANSED, 
   target_database = ADS_DATABASE_CLEANSED,
   data_lake_folder = Params[PARAMS_SOURCE_GROUP],
@@ -150,16 +146,65 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_updated_column = spark.sql("SELECT  \
-                                INDEXNR	as	Register_Reln_ID,\
-                                PRUEFGR	as	Validation_Grp_CD,\
-                                ZWZUART	as	Register_Reln_type_CD,\
-                                AUTOEND as Auto_Proprate_Register_Reln_IND, \
-                                ERDAT	as	Record_Create_DT,\
-                                ERNAM	as	Obj_Create_Person_NM,\
-                                AEDAT	as	Last_Change_DT,\
-                                AENAM	as	Obj_Change_Person_NM \
-                               FROM CLEANSED.SAP_EASTIH")
+df_updated_column = spark.sql("SELECT \
+                                  MATNR as materialNumber,\
+                                  KOMBINAT as deviceCategoryCombination,\
+                                  FUNKLAS as functionClassCode,\
+                                  BAUKLAS as constructionClassCode,\
+                                  BAUFORM as deviceCategoryDescription,\
+                                  BAUTXT as deviceCategoryName,\
+                                  PREISKLA as Price_Class_NM,\
+                                  PTBNUM as ptiNumber,\
+                                  DVGWNUM as ggwaNumber,\
+                                  BGLKZ as certificationRequirementType,\
+                                  VLZEITT as calibrationValidityYears,\
+                                  VLZEITTI as internalCertificationYears,\
+                                  VLZEITN as VLZEITN,\
+                                  VLKZBAU as VLKZBAU,\
+                                  ZWGRUPPE as registerGroupCode,\
+                                  EAGRUPPE as Input_Output_Group_CD,\
+                                  MESSART as Measurement_Type_CD,\
+                                  UEBERVER as transformationRatio,\
+                                  BGLNETZ as Install_Device_Certify_IND,\
+                                  WGRUPPE as Winding_Group_CD,\
+                                  PRIMWNR1 as Active_Primary_Winding_NUM,\
+                                  SEKWNR1 as Active_Secondary_Winding_NUM,\
+                                  PRIMWNR2 as PRIMWNR2,\
+                                  SEKWNR2 as SEKWNR2,\
+                                  AENAM as changedBy,\
+                                  AEDAT as lastChangedDate,\
+                                  ZSPANNS as ZSPANNS,\
+                                  ZSTROMS as ZSTROMS,\
+                                  ZSPANNP as ZSPANNP,\
+                                  ZSTROMP as ZSTROMP,\
+                                  GRPMATNR as GRPMATNR,\
+                                  ORDER_CODE as ORDER_CODE,\
+                                  SPARTE as division,\
+                                  NENNBEL as nominalLoad,\
+                                  KENNZTYP as Vehicle_Category_CD,\
+                                  KENNZTYP_TXT as KENNZTYP_TXT,\
+                                  STELLPLATZ as containerSpaceCount,\
+                                  HOEHEBEH as containerCategoryHeight,\
+                                  BREITEBEH as containerCategoryWidth,\
+                                  TIEFEBEH as containerCategoryDepth,\
+                                  ABMEIH as ABMEIH,\
+                                  LADEZEIT as LADEZEIT,\
+                                  LADZ_EIH as LADZ_EIH,\
+                                  LADEVOL as LADEVOL,\
+                                  LADV_EIH as LADV_EIH,\
+                                  GEW_ZUL as GEW_ZUL,\
+                                  GEWEIH as GEWEIH,\
+                                  EIGENTUM as EIGENTUM,\
+                                  EIGENTUM_TXT as EIGENTUM_TXT,\
+                                  LADV_TXT as LADV_TXT,\
+                                  LADZ_TXT as LADZ_TXT,\
+                                  GEW_TXT as GEW_TXT,\
+                                  ABM_TXT as ABM_TXT,\
+                                  PRODUCT_AREA as PRODUCT_AREA,\
+                                  NOTIF_CODE as NOTIF_CODE,\
+                                  G_INFOSATZ as G_INFOSATZ,\
+                                  PPM_METER as PPM_METER \
+                              FROM CLEANSED.SAP_0UC_DEVCAT_ATTR")
 display(df_updated_column)
 
 # COMMAND ----------
