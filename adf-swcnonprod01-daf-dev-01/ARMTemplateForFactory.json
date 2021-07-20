@@ -6996,8 +6996,14 @@
 				"typeProperties": {
 					"location": {
 						"type": "AzureBlobFSLocation",
-						"fileName": "Z309_TLOCALGOVT.csv",
-						"folderPath": "landing/accessdata",
+						"fileName": {
+							"value": "@dataset().BlobName",
+							"type": "Expression"
+						},
+						"folderPath": {
+							"value": "@concat('landing/',dataset().BlobPath)",
+							"type": "Expression"
+						},
 						"fileSystem": "raw"
 					},
 					"columnDelimiter": "|",
