@@ -21,7 +21,10 @@
 		"typeProperties": {
 			"location": {
 				"type": "AzureBlobFSLocation",
-				"fileName": "Z309_TRATATYPE.csv",
+				"fileName": {
+					"value": "@dataset().BlobName",
+					"type": "Expression"
+				},
 				"folderPath": {
 					"value": "@concat('landing/',dataset().BlobPath)",
 					"type": "Expression"
