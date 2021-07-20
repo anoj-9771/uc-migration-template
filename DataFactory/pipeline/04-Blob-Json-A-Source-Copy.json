@@ -686,7 +686,7 @@
 								"referenceName": "LS-AzureSqlDatabase_Ctrldb",
 								"type": "LinkedServiceReference",
 								"parameters": {
-									"kvSecret": "AzureSqlDatabase-ControlDB"
+									"kvSecret": "daf-sql-controldb-connectionstring"
 								}
 							}
 						}
