@@ -23,7 +23,7 @@
 # COMMAND ----------
 
 # DBTITLE 1,1. Import libreries/functions
-#1.Import libreries/functions
+#1.Import libraries/functions
 from pyspark.sql.functions import mean, min, max, desc, abs, coalesce, when, expr
 from pyspark.sql.functions import date_add, to_utc_timestamp, from_utc_timestamp, datediff
 from pyspark.sql.functions import regexp_replace, concat, col, lit, substring
