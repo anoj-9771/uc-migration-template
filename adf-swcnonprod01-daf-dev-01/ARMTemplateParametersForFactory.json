@@ -32,11 +32,29 @@
 		"Emrvisaf_properties_01-Main_parameters_TriggerName": {
 			"value": "Emrvisaf"
 		},
+		"kv-daf-dev-01_properties_privateLinkResourceId": {
+			"value": "/subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-daf-dev-01/providers/Microsoft.KeyVault/vaults/kv-daf-dev-01"
+		},
+		"kv-daf-dev-01_properties_groupId": {
+			"value": "vault"
+		},
 		"pe-saswcnonprod01landingdev_properties_privateLinkResourceId": {
 			"value": "/subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-daf-dev-01/providers/Microsoft.Storage/storageAccounts/saswcnonprod01landingdev"
 		},
 		"pe-saswcnonprod01landingdev_properties_groupId": {
 			"value": "blob"
+		},
+		"sadafdev01_properties_privateLinkResourceId": {
+			"value": "/subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-daf-dev-01/providers/Microsoft.Storage/storageAccounts/sadafdev01"
+		},
+		"sadafdev01_properties_groupId": {
+			"value": "dfs"
+		},
+		"sql-swcnonprod01-daf-dev-01_properties_privateLinkResourceId": {
+			"value": "/subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-daf-dev-01/providers/Microsoft.Sql/servers/sql-swcnonprod01-daf-dev-01"
+		},
+		"sql-swcnonprod01-daf-dev-01_properties_groupId": {
+			"value": "sqlServer"
 		}
 	}
 }
