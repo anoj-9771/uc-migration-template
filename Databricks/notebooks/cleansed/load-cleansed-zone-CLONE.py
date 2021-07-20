@@ -1,19 +1,19 @@
 # Databricks notebook source
 # DBTITLE 1,Notebook Structure/Method 
 #Notebook structure/Method 
-#1.Import libreries/functions
-#2.Create spark session
-#3.Define Widgets/Parameters
-#4.Get Values from parameters/widgets
-#5.Format the Source_param parameter value into JSON
-#6.Include all util user function for the notebook
-#7.Include User functions (CleansedZone) for the notebook
-#8.Initilize/update parameter values
-#9.Set raw and cleansed table name
-#10.Load to Cleanse Delta Table from Raw Delta Table
-#11.Update/Rename Columns and load into a dataframe
-#12.Save Data frame into Cleansed Delta table (Final)
-#13.Exit Notebook
+#1.Import libraries/functions -- Generic
+#2.Create spark session -- Generic
+#3.Define Widgets/Parameters -- Generic
+#4.Get Values from parameters/widgets -- Generic
+#5.Format the Source_param parameter value into JSON -- Generic
+#6.Include all util user function for the notebook -- Generic
+#7.Include User functions (CleansedZone) for the notebook -- Generic
+#8.Initilize/update parameter values -- Generic
+#9.Set raw and cleansed table name -- Generic
+#10.Load to Cleanse Delta Table from Raw Delta Table -- Generic
+#11.Update/Rename Columns and load into a dataframe -- Custom
+#12.Save Data frame into Cleansed Delta table (Final) -- Generic
+#13.Exit Notebook -- Generic
 
 # COMMAND ----------
 
@@ -96,10 +96,6 @@ print(json.dumps(Params, indent=4, sort_keys=True))
 # COMMAND ----------
 
 # DBTITLE 1,8. Initilize/update parameter values
-#Intitialize Counter
-start_counter = start_counter.replace("T", " ")
-print(start_counter)
-
 #Align Table Name (replace '[-@ ,;{}()]' charecter by '_')
 source_object = GeneralAlignTableName(source_object)
 print(source_object)
@@ -118,7 +114,7 @@ print(data_load_mode)
 # DBTITLE 1,9. Set raw and cleansed table name
 #Set raw and cleansed table name
 #Delta and SQL tables are case Insensitive. Seems Delta table are always lower case
-delta_cleansed_tbl_name = "{0}.{1}".format(ADS_DATABASE_CLEANSED, source_object)
+delta_cleansed_tbl_name = "{0}.{1}".format(ADS_DATABASE_CLEANSED, "stg_"+source_object)
 delta_raw_tbl_name = "{0}.{1}".format(ADS_DATABASE_RAW, source_object)
 
 
@@ -133,7 +129,7 @@ print(delta_raw_tbl_name)
 #This method uses the source table to load data into target Delta Table
 DeltaSaveToDeltaTable (
   source_table = delta_raw_tbl_name, 
-  target_table = source_object, 
+  target_table = "stg_"+source_object, 
   target_data_lake_zone = ADS_DATALAKE_ZONE_CLEANSED, 
   target_database = ADS_DATABASE_CLEANSED,
   data_lake_folder = Params[PARAMS_SOURCE_GROUP],
@@ -159,7 +155,7 @@ df_updated_column = spark.sql("SELECT  \
                                 ERNAM	as	Obj_Create_Person_NM,\
                                 AEDAT	as	Last_Change_DT,\
                                 AENAM	as	Obj_Change_Person_NM \
-                               FROM CLEANSED.SAP_EASTIH")
+                               FROM CLEANSED.STG_SAP_EASTIH")
 display(df_updated_column)
 
 # COMMAND ----------
