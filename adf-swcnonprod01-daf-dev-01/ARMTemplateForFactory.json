@@ -1473,7 +1473,7 @@
 										"referenceName": "LS-AzureSqlDatabase_Ctrldb",
 										"type": "LinkedServiceReference",
 										"parameters": {
-											"kvSecret": "AzureSqlDatabase-ControlDB"
+											"kvSecret": "daf-sql-controldb-connectionstring"
 										}
 									}
 								}
@@ -7219,7 +7219,8 @@
 				"description": "ETL Control database linked service",
 				"parameters": {
 					"kvSecret": {
-						"type": "string"
+						"type": "string",
+						"defaultValue": "daf-sql-controldb-connectionstring"
 					}
 				},
 				"annotations": [],
