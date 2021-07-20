@@ -1,7 +1,7 @@
 # Databricks notebook source
 # DBTITLE 1,Notebook Structure/Method 
 #Notebook structure/Method 
-#1.Import libreries/functions -- Generic
+#1.Import libraries/functions -- Generic
 #2.Create spark session -- Generic
 #3.Define Widgets/Parameters -- Generic
 #4.Get Values from parameters/widgets -- Generic
@@ -22,7 +22,7 @@
 
 # COMMAND ----------
 
-# DBTITLE 1,1. Import libreries/functions
+# DBTITLE 1,1. Import libraries/functions
 #1.Import libreries/functions
 from pyspark.sql.functions import mean, min, max, desc, abs, coalesce, when, expr
 from pyspark.sql.functions import date_add, to_utc_timestamp, from_utc_timestamp, datediff
@@ -146,16 +146,15 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_updated_column = spark.sql("SELECT  \
-                                INDEXNR	as	Register_Reln_ID,\
-                                PRUEFGR	as	Validation_Grp_CD,\
-                                ZWZUART	as	Register_Reln_type_CD,\
-                                AUTOEND as Auto_Proprate_Register_Reln_IND, \
-                                ERDAT	as	Record_Create_DT,\
-                                ERNAM	as	Obj_Create_Person_NM,\
-                                AEDAT	as	Last_Change_DT,\
-                                AENAM	as	Obj_Change_Person_NM \
-                               FROM CLEANSED.STG_SAP_EASTIH")
+df_updated_column = spark.sql("SELECT \
+                                  INDEXNR as consecutiveNumberOfRegisterRelationship, \
+                                  PRUEFGR as validationGroupForDependentValidations, \
+                                  ZWZUART as registerRelationshipType, \
+                                  ERDAT as createdDate, \
+                                  ERNAM as createdBy, \
+                                  AEDAT as lastChangedDate,\
+                                  AENAM as changedBy \
+                              FROM CLEANSED.STG_SAP_EASTIH")
 display(df_updated_column)
 
 # COMMAND ----------
