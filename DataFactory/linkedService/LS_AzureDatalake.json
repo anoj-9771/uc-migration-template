@@ -4,7 +4,15 @@
 		"annotations": [],
 		"type": "AzureBlobFS",
 		"typeProperties": {
-			"url": "https://sadafdev01.dfs.core.windows.net"
+			"url": "https://sadafdev01.dfs.core.windows.net",
+			"accountKey": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "LS-AzureKeyVault",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "daf-sa-lake-key1"
+			}
 		},
 		"connectVia": {
 			"referenceName": "IntegrationRuntime-Azure-ManagedVnet-01",
