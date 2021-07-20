@@ -448,7 +448,7 @@
 							"type": "ExecutePipeline",
 							"dependsOn": [
 								{
-									"activity": "SP-Record-Manifest",
+									"activity": "SP-Create-Manifest",
 									"dependencyConditions": [
 										"Succeeded"
 									]
@@ -598,7 +598,7 @@
 							}
 						},
 						{
-							"name": "SP-Record-Manifest",
+							"name": "SP-Create-Manifest",
 							"type": "SqlServerStoredProcedure",
 							"dependsOn": [],
 							"policy": {
