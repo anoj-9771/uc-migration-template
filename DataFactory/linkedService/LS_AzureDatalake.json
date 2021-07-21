@@ -13,6 +13,10 @@
 				},
 				"secretName": "daf-sa-lake-key1"
 			}
+		},
+		"connectVia": {
+			"referenceName": "IntegrationRuntime-Azure-ManagedVnet-01",
+			"type": "IntegrationRuntimeReference"
 		}
 	},
 	"type": "Microsoft.DataFactory/factories/linkedservices"

@@ -1,5 +1,5 @@
 {
-	"name": "SRC_RAW_LANDING_ADLS_CSV",
+	"name": "DST_RAW_ADLS_CSV",
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "LS_AzureDatalake",
@@ -26,12 +26,14 @@
 					"type": "Expression"
 				},
 				"folderPath": {
-					"value": "@concat('landing/',dataset().BlobPath)",
+					"value": "@dataset().BlobPath",
 					"type": "Expression"
 				},
 				"fileSystem": "raw"
 			},
 			"columnDelimiter": "|",
+			"compressionCodec": "gzip",
+			"compressionLevel": "Optimal",
 			"escapeChar": "\\",
 			"firstRowAsHeader": true,
 			"quoteChar": ""

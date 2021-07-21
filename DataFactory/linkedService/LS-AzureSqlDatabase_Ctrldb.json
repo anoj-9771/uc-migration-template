@@ -4,7 +4,8 @@
 		"description": "ETL Control database linked service",
 		"parameters": {
 			"kvSecret": {
-				"type": "string"
+				"type": "string",
+				"defaultValue": "daf-sql-controldb-connectionstring"
 			}
 		},
 		"annotations": [],
