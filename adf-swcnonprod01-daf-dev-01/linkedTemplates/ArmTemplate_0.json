@@ -602,14 +602,14 @@
 									},
 									"type": "Int64"
 								},
-								"RecordsDeltaTable": {
+								"TaskExecutionLogID": {
 									"value": {
 										"value": "@pipeline().parameters.TaskExecutionLogId",
 										"type": "Expression"
 									},
 									"type": "Int64"
 								},
-								"TaskExecutionLogID": {
+								"RecordsDeltaTable": {
 									"value": {
 										"value": "@variables('ReturnValue')",
 										"type": "Expression"
