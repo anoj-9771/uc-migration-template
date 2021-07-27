@@ -42,9 +42,17 @@ from pyspark.context import SparkContext
 
 # COMMAND ----------
 
+
+
+# COMMAND ----------
+
 # DBTITLE 1,2. Create spark session
 #2.Create spark session
 spark = SparkSession.builder.getOrCreate()
+
+# COMMAND ----------
+
+
 
 # COMMAND ----------
 
@@ -163,7 +171,7 @@ display(df_updated_column_temp)
 
 # COMMAND ----------
 
-# Create target schema
+# Create schema for the cleanse table
 cleanse_Schema = StructType(
   [
     StructField("consecutiveNumberOfRegisterRelationship", StringType(), False),
@@ -179,9 +187,13 @@ cleanse_Schema = StructType(
     StructField('_RecordCurrent',IntegerType(),False)
   ]
 )
-
+# Apply the new schema to cleanse data frame
 df_updated_column = spark.createDataFrame(df_updated_column_temp.rdd, schema=cleanse_Schema)
 display(df_updated_column)
+
+# COMMAND ----------
+
+
 
 # COMMAND ----------
 
