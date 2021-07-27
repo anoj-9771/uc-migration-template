@@ -154,7 +154,11 @@ df_updated_column = spark.sql("SELECT  \
                                 ERDAT	as	Record_Create_DT,\
                                 ERNAM	as	Obj_Create_Person_NM,\
                                 AEDAT	as	Last_Change_DT,\
-                                AENAM	as	Obj_Change_Person_NM \
+                                AENAM	as	Obj_Change_Person_NM, \
+                                _RecordStart, \
+                                _RecordEnd, \
+                                _RecordDeleted, \
+                                _RecordCurrent \
                                FROM CLEANSED.STG_SAP_EASTIH")
 display(df_updated_column)
 
