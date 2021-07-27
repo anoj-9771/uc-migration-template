@@ -146,15 +146,41 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_updated_column = spark.sql("SELECT \
+df_updated_column_temp = spark.sql("SELECT \
                                   INDEXNR as consecutiveNumberOfRegisterRelationship, \
                                   PRUEFGR as validationGroupForDependentValidations, \
                                   ZWZUART as registerRelationshipType, \
-                                  ERDAT as createdDate, \
+                                  to_date(ERDAT) as createdDate, \
                                   ERNAM as createdBy, \
-                                  AEDAT as lastChangedDate,\
-                                  AENAM as changedBy \
+                                  to_date(AEDAT) as lastChangedDate,\
+                                  AENAM as changedBy, \
+                                  _RecordStart, \
+                                  _RecordEnd, \
+                                  _RecordDeleted, \
+                                  _RecordCurrent \
                               FROM CLEANSED.STG_SAP_EASTIH")
+display(df_updated_column_temp)
+
+# COMMAND ----------
+
+# Create target schema
+cleanse_Schema = StructType(
+  [
+    StructField("consecutiveNumberOfRegisterRelationship", StringType(), False),
+    StructField("validationGroupForDependentValidations", StringType(), True),
+    StructField("registerRelationshipType", StringType(), True),
+    StructField("createdDate", DateType(), True),
+    StructField("createdBy", StringType(), True),
+    StructField("lastChangedDate", DateType(), True),
+    StructField("changedBy", StringType(), True),    
+    StructField('_RecordStart',TimestampType(),False),
+    StructField('_RecordEnd',TimestampType(),False),
+    StructField('_RecordDeleted',IntegerType(),False),
+    StructField('_RecordCurrent',IntegerType(),False)
+  ]
+)
+
+df_updated_column = spark.createDataFrame(df_updated_column_temp.rdd, schema=cleanse_Schema)
 display(df_updated_column)
 
 # COMMAND ----------
