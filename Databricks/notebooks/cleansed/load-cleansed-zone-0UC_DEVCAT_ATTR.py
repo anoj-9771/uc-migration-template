@@ -150,6 +150,7 @@ df_updated_column = spark.sql("SELECT \
                                   MATNR as materialNumber,\
                                   KOMBINAT as deviceCategoryCombination,\
                                   FUNKLAS as functionClassCode,\
+                                  '' as functionClass,\
                                   BAUKLAS as constructionClassCode,\
                                   BAUFORM as deviceCategoryDescription,\
                                   BAUTXT as deviceCategoryName,\
