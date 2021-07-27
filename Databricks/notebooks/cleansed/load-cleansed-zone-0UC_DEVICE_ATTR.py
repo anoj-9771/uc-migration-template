@@ -146,7 +146,7 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_updated_column = spark.sql("SELECT  \
+df_updated_column_temp = spark.sql("SELECT  \
                                   EQUNR as equipmentNumber,\
                                   MATNR as materialNumber,\
                                   GERAET as deviceNumber,\
@@ -156,8 +156,37 @@ df_updated_column = spark.sql("SELECT  \
                                   SERGE as manufacturerSerialNumber,\
                                   ZZTYPBZ as manufacturerModelNumber,\
                                   ZZOBJNR as objectNumber,\
-                                  ZWNABR as registerNotRelevantToBilling \
-                               FROM CLEANSED.STG_SAP_0UC_DEVICE_ATTR")
+                                  ZWNABR as registerNotRelevantToBilling, \
+                                  _RecordStart, \
+                                  _RecordEnd, \
+                                  _RecordDeleted, \
+                                  _RecordCurrent \
+                                FROM CLEANSED.STG_SAP_0UC_DEVICE_ATTR")
+display(df_updated_column_temp)
+
+# COMMAND ----------
+
+# Create schema for the cleanse table
+cleanse_Schema = StructType(
+  [
+    StructField("equipmentNumber", StringType(), False),
+    StructField("materialNumber", StringType(), True),
+    StructField("deviceNumber", StringType(), True),
+    StructField("inspectionRelevanceIndicator", StringType(), True),
+    StructField("deviceSize", StringType(), True),
+    StructField("assetManufacturerName", StringType(), True),
+    StructField("manufacturerSerialNumber", StringType(), True),    
+    StructField("manufacturerModelNumber", DateType(), True),
+    StructField("objectNumber", StringType(), True),  
+    StructField("registerNotRelevantToBilling", StringType(), True),     
+    StructField('_RecordStart',TimestampType(),False),
+    StructField('_RecordEnd',TimestampType(),False),
+    StructField('_RecordDeleted',IntegerType(),False),
+    StructField('_RecordCurrent',IntegerType(),False)
+  ]
+)
+# Apply the new schema to cleanse Data Frame
+df_updated_column = spark.createDataFrame(df_updated_column_temp.rdd, schema=cleanse_Schema)
 display(df_updated_column)
 
 # COMMAND ----------
