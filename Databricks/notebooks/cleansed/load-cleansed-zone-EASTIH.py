@@ -187,13 +187,9 @@ cleanse_Schema = StructType(
     StructField('_RecordCurrent',IntegerType(),False)
   ]
 )
-# Apply the new schema to cleanse data frame
+# Apply the new schema to cleanse Data Frame
 df_updated_column = spark.createDataFrame(df_updated_column_temp.rdd, schema=cleanse_Schema)
 display(df_updated_column)
-
-# COMMAND ----------
-
-
 
 # COMMAND ----------
 
