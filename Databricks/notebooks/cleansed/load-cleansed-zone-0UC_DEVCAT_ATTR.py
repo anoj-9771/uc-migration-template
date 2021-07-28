@@ -146,66 +146,71 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_updated_column = spark.sql("SELECT \
+df_updated_column_temp = spark.sql("SELECT \
                                   MATNR as materialNumber,\
                                   KOMBINAT as deviceCategoryCombination,\
                                   FUNKLAS as functionClassCode,\
-                                  '' as functionClass,\
+                                  'To be Mapped' as functionClass,\
                                   BAUKLAS as constructionClassCode,\
+                                  'To be Mapped' as constructionClass,\
                                   BAUFORM as deviceCategoryDescription,\
                                   BAUTXT as deviceCategoryName,\
-                                  PREISKLA as Price_Class_NM,\
                                   PTBNUM as ptiNumber,\
                                   DVGWNUM as ggwaNumber,\
                                   BGLKZ as certificationRequirementType,\
-                                  VLZEITT as calibrationValidityYears,\
-                                  VLZEITTI as internalCertificationYears,\
-                                  VLZEITN as VLZEITN,\
-                                  VLKZBAU as VLKZBAU,\
                                   ZWGRUPPE as registerGroupCode,\
-                                  EAGRUPPE as Input_Output_Group_CD,\
-                                  MESSART as Measurement_Type_CD,\
+                                  'To be Mapped' as registerGroup,\
                                   UEBERVER as transformationRatio,\
-                                  BGLNETZ as Install_Device_Certify_IND,\
-                                  WGRUPPE as Winding_Group_CD,\
-                                  PRIMWNR1 as Active_Primary_Winding_NUM,\
-                                  SEKWNR1 as Active_Secondary_Winding_NUM,\
-                                  PRIMWNR2 as PRIMWNR2,\
-                                  SEKWNR2 as SEKWNR2,\
                                   AENAM as changedBy,\
-                                  AEDAT as lastChangedDate,\
-                                  ZSPANNS as ZSPANNS,\
-                                  ZSTROMS as ZSTROMS,\
-                                  ZSPANNP as ZSPANNP,\
-                                  ZSTROMP as ZSTROMP,\
-                                  GRPMATNR as GRPMATNR,\
-                                  ORDER_CODE as ORDER_CODE,\
+                                  to_date(AEDAT) as lastChangedDate,\
                                   SPARTE as division,\
                                   NENNBEL as nominalLoad,\
-                                  KENNZTYP as Vehicle_Category_CD,\
-                                  KENNZTYP_TXT as KENNZTYP_TXT,\
                                   STELLPLATZ as containerSpaceCount,\
                                   HOEHEBEH as containerCategoryHeight,\
                                   BREITEBEH as containerCategoryWidth,\
                                   TIEFEBEH as containerCategoryDepth,\
-                                  ABMEIH as ABMEIH,\
-                                  LADEZEIT as LADEZEIT,\
-                                  LADZ_EIH as LADZ_EIH,\
-                                  LADEVOL as LADEVOL,\
-                                  LADV_EIH as LADV_EIH,\
-                                  GEW_ZUL as GEW_ZUL,\
-                                  GEWEIH as GEWEIH,\
-                                  EIGENTUM as EIGENTUM,\
-                                  EIGENTUM_TXT as EIGENTUM_TXT,\
-                                  LADV_TXT as LADV_TXT,\
-                                  LADZ_TXT as LADZ_TXT,\
-                                  GEW_TXT as GEW_TXT,\
-                                  ABM_TXT as ABM_TXT,\
-                                  PRODUCT_AREA as PRODUCT_AREA,\
-                                  NOTIF_CODE as NOTIF_CODE,\
-                                  G_INFOSATZ as G_INFOSATZ,\
-                                  PPM_METER as PPM_METER \
-                              FROM CLEANSED.SAPISU_0UC_DEVCAT_ATTR")
+                                  _RecordStart, \
+                                  _RecordEnd, \
+                                  _RecordDeleted, \
+                                  _RecordCurrent \
+                              FROM CLEANSED.STG_SAPISU_0UC_DEVCAT_ATTR")
+display(df_updated_column_temp)
+
+# COMMAND ----------
+
+# Create schema for the cleanse table
+cleanse_Schema = StructType(
+  [
+    StructField("materialNumber", StringType(), False),
+    StructField("deviceCategoryCombination", StringType(), True),
+    StructField("functionClassCode", StringType(), True),
+    StructField("functionClass", StringType(), True),
+    StructField("constructionClassCode", StringType(), True),
+    StructField("constructionClass", StringType(), True),
+    StructField("deviceCategoryDescription", StringType(), True),
+    StructField("deviceCategoryName", StringType(), True),
+    StructField("ptiNumber", StringType(), True),
+    StructField("ggwaNumber", StringType(), True),
+    StructField("certificationRequirementType", StringType(), True),
+    StructField("registerGroupCode", StringType(), True),
+    StructField("registerGroup", StringType(), True),
+    StructField("transformationRatio", DoubleType(), True),  
+    StructField("changedBy", StringType(), True),
+    StructField("lastChangedDate", DateType(), True),
+    StructField("division", StringType(), True),
+    StructField("nominalLoad", DoubleType(), True),
+    StructField("containerSpaceCount", StringType(), True),
+    StructField("containerCategoryHeight", DoubleType(), True),
+    StructField("containerCategoryWidth", DoubleType(), True),
+    StructField("containerCategoryDepth", DoubleType(), True),   
+    StructField('_RecordStart',TimestampType(),False),
+    StructField('_RecordEnd',TimestampType(),False),
+    StructField('_RecordDeleted',IntegerType(),False),
+    StructField('_RecordCurrent',IntegerType(),False)
+  ]
+)
+# Apply the new schema to cleanse Data Frame
+df_updated_column = spark.createDataFrame(df_updated_column_temp.rdd, schema=cleanse_Schema)
 display(df_updated_column)
 
 # COMMAND ----------
