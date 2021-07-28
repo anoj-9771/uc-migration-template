@@ -313,7 +313,7 @@
 				],
 				"outputs": [
 					{
-						"referenceName": "TRUSTED_ADLS_JSON",
+						"referenceName": "TRUSTED_ADLS_JSONN",
 						"type": "DatasetReference",
 						"parameters": {
 							"LakeContainer": {

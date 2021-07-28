@@ -22,11 +22,11 @@ INSERT INTO [CTL].[ControlProjects]([ProjectName],[Enabled]) VALUES ('SAP ISU',1
 INSERT INTO [CTL].[ControlStages] ([StageSequence], [StageName]) SELECT 100, N'Source to Raw'
 WHERE NOT EXISTS (SELECT 1 FROM [CTL].[ControlStages] WHERE [StageName] = N'Source to Raw')
 
-INSERT INTO [CTL].[ControlStages] ([StageSequence], [StageName]) SELECT 200, N'Raw to Trusted'
-WHERE NOT EXISTS (SELECT 1 FROM [CTL].[ControlStages] WHERE [StageName] = N'Raw to Trusted')
+INSERT INTO [CTL].[ControlStages] ([StageSequence], [StageName]) SELECT 200, N'Raw to Cleansed'
+WHERE NOT EXISTS (SELECT 1 FROM [CTL].[ControlStages] WHERE [StageName] = N'Raw to Cleansed')
 
-INSERT INTO [CTL].[ControlStages] ([StageSequence], [StageName]) SELECT 300, N'Trusted to Curated'
-WHERE NOT EXISTS (SELECT 1 FROM [CTL].[ControlStages] WHERE [StageName] = N'Trusted to Curated')
+INSERT INTO [CTL].[ControlStages] ([StageSequence], [StageName]) SELECT 300, N'Cleansed to Curated'
+WHERE NOT EXISTS (SELECT 1 FROM [CTL].[ControlStages] WHERE [StageName] = N'Cleansed to Curated')
 
 IF (
 	SELECT DISTINCT p.rows 
@@ -65,7 +65,7 @@ IF (
 	BEGIN
 		SET IDENTITY_INSERT [CTL].[ControlDataLoadTypes] ON
 		INSERT [CTL].[ControlDataLoadTypes] (DataLoadTypeID, [DataLoadType], [DeltaExtract], [CDCSource], TruncateTarget, UpsertTarget) VALUES (1, N'TRUNCATE-LOAD', 0, 0, 1, 0)
-		INSERT [CTL].[ControlDataLoadTypes] (DataLoadTypeID, [DataLoadType], [DeltaExtract], [CDCSource], TruncateTarget, UpsertTarget) VALUES (2, N'FULL-EXTRACT', 0, 0, 0, 1)
+		INSERT [CTL].[ControlDataLoadTypes] (DataLoadTypeID, [DataLoadType], [DeltaExtract], [CDCSource], TruncateTarget, UpsertTarget) VALUES (2, N'FULL-EXTRACT', 1, 0, 0, 1)
 		INSERT [CTL].[ControlDataLoadTypes] (DataLoadTypeID, [DataLoadType], [DeltaExtract], [CDCSource], TruncateTarget, UpsertTarget) VALUES (3, N'INCREMENTAL', 1, 0, 0, 1)
 		INSERT [CTL].[ControlDataLoadTypes] (DataLoadTypeID, [DataLoadType], [DeltaExtract], [CDCSource], TruncateTarget, UpsertTarget) VALUES (4, N'APPEND', 1, 0, 0, 0)
 		INSERT [CTL].[ControlDataLoadTypes] (DataLoadTypeID, [DataLoadType], [DeltaExtract], [CDCSource], TruncateTarget, UpsertTarget) VALUES (5, N'CDC', 1, 1, 0, 0)

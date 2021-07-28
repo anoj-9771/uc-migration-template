@@ -176,7 +176,7 @@ def transform_raw_add_partition_cols(dataframe, source_object, is_delta_extract,
   
   print ("Starting : transform_raw_add_partition_cols. delta_column : " + delta_column)
   
-  is_partitioned = True if DeltaTablePartitioned(f"{ADS_DATABASE_RAW}.{source_object}") or is_delta_extract else False
+  is_partitioned = True #if DeltaTablePartitioned(f"{ADS_DATABASE_RAW}.{source_object}") or is_delta_extract else False
   
   if is_cdc:
     print ("Adding Partition Columns for CDC Load")

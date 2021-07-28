@@ -5,7 +5,7 @@
 		"parameters": {
 			"kvSecret": {
 				"type": "string",
-				"defaultValue": "ADF-LS-AzureSql-ControlDB"
+				"defaultValue": "daf-sql-controldb-connectionstring"
 			}
 		},
 		"annotations": [],

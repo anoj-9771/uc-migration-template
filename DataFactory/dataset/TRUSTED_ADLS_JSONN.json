@@ -1,0 +1,45 @@
+{
+	"name": "TRUSTED_ADLS_JSONN",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_AzureDatalake",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"LakeContainer": {
+				"type": "string",
+				"defaultValue": "trusted"
+			},
+			"LakeDirectory": {
+				"type": "string"
+			},
+			"LakeFileName": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "z_Archive"
+		},
+		"annotations": [],
+		"type": "Json",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": {
+					"value": "@dataset().LakeFileName",
+					"type": "Expression"
+				},
+				"folderPath": {
+					"value": "@dataset().LakeDirectory",
+					"type": "Expression"
+				},
+				"fileSystem": {
+					"value": "@dataset().LakeContainer",
+					"type": "Expression"
+				}
+			}
+		},
+		"schema": {}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

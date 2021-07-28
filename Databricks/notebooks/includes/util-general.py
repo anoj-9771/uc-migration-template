@@ -5,6 +5,7 @@ import pytz
 
 # COMMAND ----------
 
+#Please check the spelling mistake and the effect
 CURRET_TIMEZONE = "Australia/NSW"
 
 # COMMAND ----------

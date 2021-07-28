@@ -30,7 +30,7 @@ def SQLMerge_DeltaTable_GenerateSQL(source_table_name, target_table_name, busine
     
     if data_load_mode == ADS_WRITE_MODE_OVERWRITE:
       sql_query = sql_query.replace("INSERT INTO", "INSERT OVERWRITE") 
-    elif data_load_mode == ADS_WRITE_MODE_APPEND and target_data_lake_zone == ADS_DATABASE_TRUSTED:
+    elif data_load_mode == ADS_WRITE_MODE_APPEND and target_data_lake_zone == ADS_DATABASE_CLEANSED:
       print(f"Generating append query. Zone : {target_data_lake_zone}")
       sql_query += f" WHERE date_trunc('Second', {COL_DL_RAW_LOAD}) >= to_timestamp('{start_counter}')" 
     
@@ -72,7 +72,7 @@ def _GenerateMergeSQL_DeltaTable(source_table_name, target_table_name, business_
   sql += TAB + f"SELECT {business_key_updated} AS merge_key, {ALIAS_TABLE_SOURCE}.* FROM {ALIAS_TABLE_SOURCE}" + NEW_LINE
   #We need RecordVersion only if it is the Delta Table load from the Raw Zone because we want the last version
   #For SQL Server, this would have already been resolved
-  if is_delta_extract and target_data_lake_zone == ADS_DATABASE_TRUSTED: sql += TAB + f"WHERE {COL_RECORD_VERSION} = 1" + NEW_LINE
+  if is_delta_extract and target_data_lake_zone == ADS_DATABASE_CLEANSED: sql += TAB + f"WHERE {COL_RECORD_VERSION} = 1" + NEW_LINE
   
   if track_changes:
     #Union the previous query with the next one
@@ -151,7 +151,7 @@ def _SQLSourceSelect_DeltaTable(source_table, business_key, delta_column, start_
   business_key_updated = _GetSQLCollectiveColumnsFromColumnNames(business_key, tbl_alias, "CONCAT", DELTA_COL_QUALIFER)
 
   source_sql = TAB + "SELECT *" + NEW_LINE
-  if is_delta_extract and target_data_lake_zone == ADS_DATABASE_TRUSTED :
+  if is_delta_extract and target_data_lake_zone == ADS_DATABASE_CLEANSED :
       source_sql += TAB + ",ROW_NUMBER() OVER (PARTITION BY " + business_key_updated + " ORDER BY " + delta_column + " DESC, " + COL_DL_RAW_LOAD + " DESC) AS " + COL_RECORD_VERSION + NEW_LINE
 
   source_sql += TAB + "FROM " + source_table + " " + tbl_alias + NEW_LINE
@@ -187,7 +187,7 @@ def _SQLTrackChanges_UnionQuery(source_table_name, target_table_name, business_k
     sql += TAB + "WHERE 1 = 1 " + NEW_LINE
     
     #If it is delta extract then only use the latest version of the record
-    if is_delta_extract and target_data_lake_zone == ADS_DATABASE_TRUSTED:
+    if is_delta_extract and target_data_lake_zone == ADS_DATABASE_CLEANSED:
       sql += TAB + "-- Additional Joins to ensure we pick only the latest record from source (if delta extract)" + NEW_LINE
       sql += TAB + f"AND {ALIAS_TABLE_SOURCE}.{COL_RECORD_VERSION} = 1" + NEW_LINE
 
@@ -204,7 +204,7 @@ def _SQLUpdateCompareCondition_DeltaTable(dataframe, business_key, source_alias,
   #Generate SQL for UPDATE column compare
   
   #Exclude the following columns from Update
-  col_exception_list = [business_key, COL_RECORD_VERSION, COL_RECORD_START, COL_RECORD_END, COL_RECORD_CURRENT, COL_RECORD_DELETED, COL_DL_RAW_LOAD, COL_DL_TRUSTED_LOAD, COL_DL_CURATED_LOAD]
+  col_exception_list = [business_key, COL_RECORD_VERSION, COL_RECORD_START, COL_RECORD_END, COL_RECORD_CURRENT, COL_RECORD_DELETED, COL_DL_RAW_LOAD, COL_DL_CLEANSED_LOAD, COL_DL_CURATED_LOAD]
   #Get the list of columns which does not include the exception list 
   updated_col_list = _GetExclusiveList(dataframe.columns, col_exception_list)
 
@@ -238,9 +238,9 @@ def _SQLUpdateSetValue_DeltaTable(dataframe, business_key, source_alias, target_
   col_exception_list = [business_key, COL_RECORD_VERSION, COL_RECORD_START, COL_RECORD_END, COL_RECORD_CURRENT, COL_RECORD_DELETED]
 
   #Chose the timestamp column based on data lake zone
-  if target_data_lake_zone == ADS_DATABASE_TRUSTED:
-    col_exception_list.append(COL_DL_TRUSTED_LOAD)
-    COL_TIMESTAMP = COL_DL_TRUSTED_LOAD
+  if target_data_lake_zone == ADS_DATABASE_CLEANSED:
+    col_exception_list.append(COL_DL_CLEANSED_LOAD)
+    COL_TIMESTAMP = COL_DL_CLEANSED_LOAD
   elif target_data_lake_zone == ADS_DATABASE_CURATED:
     col_exception_list.append(COL_DL_CURATED_LOAD)
     COL_TIMESTAMP = COL_DL_CURATED_LOAD
@@ -305,9 +305,9 @@ def _SQLInsertSyntax_DeltaTable_Generate(dataframe, is_delta_extract, delta_colu
   delete_flag = 1 if delete_data else 0
 
   #Chose the timestamp column based on data lake zone
-  if target_data_lake_zone == ADS_DATABASE_TRUSTED:
-    col_exception_list.append(COL_DL_TRUSTED_LOAD)
-    COL_TIMESTAMP = COL_DL_TRUSTED_LOAD
+  if target_data_lake_zone == ADS_DATABASE_CLEANSED:
+    col_exception_list.append(COL_DL_CLEANSED_LOAD)
+    COL_TIMESTAMP = COL_DL_CLEANSED_LOAD
   elif target_data_lake_zone == ADS_DATABASE_CURATED:
     col_exception_list.append(COL_DL_CURATED_LOAD)
     COL_TIMESTAMP = COL_DL_CURATED_LOAD

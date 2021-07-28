@@ -3,10 +3,7 @@
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "LS_AzureDatalake",
-			"type": "LinkedServiceReference",
-			"parameters": {
-				"kvSecret": "swcdafdevadls-sastoken"
-			}
+			"type": "LinkedServiceReference"
 		},
 		"parameters": {
 			"BlobPath": {
@@ -29,15 +26,15 @@
 					"type": "Expression"
 				},
 				"folderPath": {
-					"value": "@dataset().BlobPath",
+					"value": "@concat('landing/',dataset().BlobPath)",
 					"type": "Expression"
 				},
-				"fileSystem": "raw/landing"
+				"fileSystem": "raw"
 			},
-			"columnDelimiter": ",",
+			"columnDelimiter": "|",
 			"escapeChar": "\\",
 			"firstRowAsHeader": true,
-			"quoteChar": "\""
+			"quoteChar": ""
 		},
 		"schema": []
 	},

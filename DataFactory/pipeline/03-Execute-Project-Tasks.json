@@ -104,111 +104,7 @@
 							}
 						},
 						{
-							"name": "ProcessNotebook-Raw-to-Trusted",
-							"type": "IfCondition",
-							"dependsOn": [
-								{
-									"activity": "Generate Task Log",
-									"dependencyConditions": [
-										"Succeeded"
-									]
-								}
-							],
-							"userProperties": [],
-							"typeProperties": {
-								"expression": {
-									"value": "@equals(item().ControlStageId,4)",
-									"type": "Expression"
-								},
-								"ifTrueActivities": [
-									{
-										"name": "EP-Raw-to-Trusted Databricks",
-										"type": "ExecutePipeline",
-										"dependsOn": [],
-										"userProperties": [],
-										"typeProperties": {
-											"pipeline": {
-												"referenceName": "05-DL-Load-Raw-to-Cleansed",
-												"type": "PipelineReference"
-											},
-											"waitOnCompletion": true,
-											"parameters": {
-												"TaskDetails": {
-													"value": "@item()",
-													"type": "Expression"
-												},
-												"BatchLogId": {
-													"value": "@activity('Generate Batch Log').output.firstrow.BatchLogId\n",
-													"type": "Expression"
-												},
-												"TaskExecutionLogId": {
-													"value": "@activity('Generate Task Log').output.firstrow.TaskLogId\n",
-													"type": "Expression"
-												},
-												"ProjectRunID": {
-													"value": "@pipeline().parameters.ProjectRunID",
-													"type": "Expression"
-												}
-											}
-										}
-									}
-								]
-							}
-						},
-						{
-							"name": "ProcessNotebook-Trusted-to-Curated",
-							"type": "IfCondition",
-							"dependsOn": [
-								{
-									"activity": "Generate Task Log",
-									"dependencyConditions": [
-										"Succeeded"
-									]
-								}
-							],
-							"userProperties": [],
-							"typeProperties": {
-								"expression": {
-									"value": "@equals(item().ControlStageId,6)",
-									"type": "Expression"
-								},
-								"ifTrueActivities": [
-									{
-										"name": "EP-Trusted-to-Curated-Databricks",
-										"type": "ExecutePipeline",
-										"dependsOn": [],
-										"userProperties": [],
-										"typeProperties": {
-											"pipeline": {
-												"referenceName": "05-DL-Load-Trusted-to-Curated",
-												"type": "PipelineReference"
-											},
-											"waitOnCompletion": true,
-											"parameters": {
-												"TaskDetails": {
-													"value": "@item()",
-													"type": "Expression"
-												},
-												"BatchLogId": {
-													"value": "@activity('Generate Batch Log').output.firstrow.BatchLogId",
-													"type": "Expression"
-												},
-												"TaskExecutionLogId": {
-													"value": "@activity('Generate Task Log').output.firstrow.TaskLogId",
-													"type": "Expression"
-												},
-												"ProjectRunID": {
-													"value": "@pipeline().parameters.ProjectRunID",
-													"type": "Expression"
-												}
-											}
-										}
-									}
-								]
-							}
-						},
-						{
-							"name": "Blob-to-Raw      Stage1",
+							"name": "Source-to-Raw-Blob      Stage1",
 							"type": "IfCondition",
 							"dependsOn": [
 								{
@@ -260,7 +156,7 @@
 							}
 						},
 						{
-							"name": "Raw-to-Trusted  Stage2",
+							"name": "Raw-to-Cleansed Stage2",
 							"type": "IfCondition",
 							"dependsOn": [
 								{
@@ -278,13 +174,13 @@
 								},
 								"ifTrueActivities": [
 									{
-										"name": "EP-Raw-to-Trusted",
+										"name": "EP-Raw-to-Cleansed",
 										"type": "ExecutePipeline",
 										"dependsOn": [],
 										"userProperties": [],
 										"typeProperties": {
 											"pipeline": {
-												"referenceName": "05-DL-Copy-Raw-to-Trusted",
+												"referenceName": "05-DL-Load-Raw-to-Cleansed",
 												"type": "PipelineReference"
 											},
 											"waitOnCompletion": true,
@@ -312,7 +208,7 @@
 							}
 						},
 						{
-							"name": "Trusted-to-Curated Stage3",
+							"name": "Cleansed-to-Curated Stage3",
 							"type": "IfCondition",
 							"dependsOn": [
 								{
@@ -364,7 +260,7 @@
 							}
 						},
 						{
-							"name": "ProcessNotebook",
+							"name": "Source-to-Raw-Blob _FlatFile_Copy",
 							"type": "IfCondition",
 							"dependsOn": [
 								{
@@ -377,18 +273,18 @@
 							"userProperties": [],
 							"typeProperties": {
 								"expression": {
-									"value": "@equals(item().ControlStageId,5)",
+									"value": "@and(equals(item().SourceType,'Flat File'), equals(item().ControlStageId,1))",
 									"type": "Expression"
 								},
 								"ifTrueActivities": [
 									{
-										"name": "EP-Raw-to-Trusted Databricks_copy1",
+										"name": "EP-Blob-to-Raw_copy1",
 										"type": "ExecutePipeline",
 										"dependsOn": [],
 										"userProperties": [],
 										"typeProperties": {
 											"pipeline": {
-												"referenceName": "05-DL-Load-Raw-to-Cleansed",
+												"referenceName": "04-LakeLanding-FlatFile-A-Source-Copy",
 												"type": "PipelineReference"
 											},
 											"waitOnCompletion": true,
@@ -398,11 +294,11 @@
 													"type": "Expression"
 												},
 												"BatchLogId": {
-													"value": "@activity('Generate Batch Log').output.firstrow.BatchLogId\n",
+													"value": "@activity('Generate Batch Log').output.firstrow.BatchLogId",
 													"type": "Expression"
 												},
 												"TaskExecutionLogId": {
-													"value": "@activity('Generate Task Log').output.firstrow.TaskLogId\n",
+													"value": "@activity('Generate Task Log').output.firstrow.TaskLogId",
 													"type": "Expression"
 												},
 												"ProjectRunID": {
@@ -461,7 +357,7 @@
 					"referenceName": "LS-AzureSqlDatabase_Ctrldb",
 					"type": "LinkedServiceReference",
 					"parameters": {
-						"kvSecret": "sql-db-controldb-connectionstring"
+						"kvSecret": "daf-sql-controldb-connectionstring"
 					}
 				}
 			},
@@ -508,7 +404,7 @@
 					"referenceName": "LS-AzureSqlDatabase_Ctrldb",
 					"type": "LinkedServiceReference",
 					"parameters": {
-						"kvSecret": "sql-db-controldb-connectionstring"
+						"kvSecret": "daf-sql-controldb-connectionstring"
 					}
 				}
 			},
