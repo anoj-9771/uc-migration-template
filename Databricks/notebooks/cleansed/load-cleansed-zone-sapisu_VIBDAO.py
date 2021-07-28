@@ -148,15 +148,74 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_updated_column = spark.sql("SELECT  \
-                                INDEXNR	as	Register_Reln_ID,\
-                                PRUEFGR	as	Validation_Grp_CD,\
-                                ZWZUART	as	Register_Reln_type_CD,\
-                                AUTOEND as Auto_Proprate_Register_Reln_IND, \
-                                ERDAT	as	Record_Create_DT,\
-                                ERNAM	as	Obj_Create_Person_NM,\
-                                AEDAT	as	Last_Change_DT,\
-                                AENAM	as	Obj_Change_Person_NM \
-                               FROM CLEANSED.STG_SAP_EASTIH")
+                                  INTRENO as architecturalObjectInternalId , \
+                                  AOID as architecturalObjectId , \
+                                  AOTYPE as architecturalObjectTypeCode , \
+                                  'TBA' as architecturalObjectType , \
+                                  AONR as architecturalObjectNumber , \
+                                  VALIDFROM as validFromDate , \
+                                  VALIDTO as validToDate , \
+                                  PARTAOID as partArchitecturalObjectId , \
+                                  OBJNR as objectNumber , \
+                                  RERF as firstEnteredBy , \
+                                  DERF as firstEnteredOnDate , \
+                                  TERF as firstEnteredTime , \
+                                  REHER as firstEnteredSource , \
+                                  RBEAR as employeeId , \
+                                  DBEAR as lastEdittedOnDate , \
+                                  TBEAR as lastEdittedTime , \
+                                  RBHER as lastEdittedSource , \
+                                  RESPONSIBLE as responsiblePerson , \
+                                  USEREXCLUSIVE as exclusiveUser , \
+                                  LASTRENO as lastRelocationDate , \
+                                  MEASSTRC as measurementStructure , \
+                                  DOORPLT as shortDescription , \
+                                  RSAREA as reservationArea , \
+                                  SINSTBEZ as maintenanceDistrict , \
+                                  SVERKEHR as businessEntityTransportConnectionsIndicator , \
+                                  ZCD_PROPERTY_NO as propertyNumber , \
+                                  ZCD_PROP_CR_DATE as propertyCreatedDate , \
+                                  ZCD_PROP_LOT_NO as propertyLotNumber , \
+                                  ZCD_REQUEST_NO as propertyRequestNumber , \
+                                  ZCD_PLAN_TYPE as planTypeCode , \
+                                  'TBA' as planType , \
+                                  ZCD_PLAN_NUMBER as planNumber , \
+                                  ZCD_PROCESS_TYPE as processTypeCode , \
+                                  'TBA' as processType , \
+                                  ZCD_ADDR_LOT_NO as addressLotNumber , \
+                                  ZCD_LOT_TYPE as lotTypeCode , \
+                                  ZCD_UNIT_ENTITLEMENT as unitEntitlement , \
+                                  ZCD_NO_OF_FLATS as flatCount , \
+                                  ZCD_SUP_PROP_TYPE as superiorPropertyTypeCode , \
+                                  'TBA' as superiorPropertyType , \
+                                  ZCD_INF_PROP_TYPE as inferiorPropertyTypeCode , \
+                                  'TBA' as inferiorPropertyType , \
+                                  ZCD_STORM_WATER_ASSESS as stormWaterAssesmentIndicator , \
+                                  ZCD_IND_MLIM as mlimIndicator , \
+                                  ZCD_IND_WICA as wicaIndicator , \
+                                  ZCD_IND_SOPA as sopaIndicator , \
+                                  ZCD_IND_COMMUNITY_TITLE as communityTitleIndicator , \
+                                  ZCD_SECTION_NUMBER as sectionNumber , \
+                                  ZCD_HYDRA_CALC_AREA as hydraCalculatedArea , \
+                                  ZCD_HYDRA_AREA_UNIT as hydraAreaUnit , \
+                                  ZCD_HYDRA_AREA_FLAG as hydraAreaIndicator , \
+                                  ZCD_CASENO_FLAG as caseNumberIndicator , \
+                                  ZCD_OVERRIDE_AREA as overrideArea , \
+                                  ZCD_OVERRIDE_AREA_UNIT as overrideAreaUnit , \
+                                  ZCD_CANCELLATION_DATE as cancellationDate , \
+                                  ZCD_CANC_REASON as cancellationReasonCode , \
+                                  ZCD_COMMENTS as comments , \
+                                  ZCD_PROPERTY_INFO as propertyInfo , \
+                                  'OBJNRTRG' as targetObjectNumber , \
+                                  'DIAGRAM_NO' as diagramNumber , \
+                                  'FIXFITCHARACT' as fixtureAndFittingCharacteristicCode , \
+                                  'TBA' as fixtureAndFittingCharacteristic , \
+                                  _RecordStart, \
+                                  _RecordEnd, \
+                                  _RecordDeleted, \
+                                  _RecordCurrent \
+                              FROM CLEANSED.stg_sapisu_vibdao")
+
 display(df_updated_column)
 
 # COMMAND ----------
