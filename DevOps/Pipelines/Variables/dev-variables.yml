@@ -65,7 +65,7 @@ variables:
   # Container or file system names within storage account
   # Used to iterate in ARM template
   - name: logzonename
-    value: databricks
+    value: daflogs
   - name: zonenames
     value: raw, trusted, cleansed, curated, synapsestaging
     # value: raw, stage, sandbox
@@ -114,7 +114,7 @@ variables:
   - name: databricksclustername
     value: etl-cluster
   - name: sparkClusterVersion
-    value: 7.0.x-scala2.12
+    value: 8.0.x-scala2.12
   - name: databricksdrivernodetypeid
     value: Standard_D3_v2
   - name: databricksnodetypeid
