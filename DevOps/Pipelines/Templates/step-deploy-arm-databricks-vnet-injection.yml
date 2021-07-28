@@ -301,13 +301,13 @@ steps:
         metrics: |
           [
             {
-              "category": "Basic",
+              "category": "AllMetrics",
               "enabled": true,
               "retentionPolicy": {
                 "days": 30,
                 "enabled": true
-              },
-              "timeGrain": null
-            },        
+              }
+            }
+          ]
 
 # Create or update diagnostic settings to stream to even hub **This has yet to be built.
