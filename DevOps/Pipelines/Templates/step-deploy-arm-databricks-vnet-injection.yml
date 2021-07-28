@@ -206,6 +206,17 @@ steps:
               }
             }
           ]
+        metrics: |
+          [
+            {
+              "category": "AllMetrics",
+              "enabled": true,
+              "retentionPolicy": {
+                "days": 30,
+                "enabled": true
+              }
+            }
+          ]          
 
 # Create or update diagnostic settings to archive to a storage account
   - ${{ if eq(parameters['log_storage'], true) }}:
