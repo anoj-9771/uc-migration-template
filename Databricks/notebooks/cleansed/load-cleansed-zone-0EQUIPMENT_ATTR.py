@@ -116,7 +116,7 @@ print(data_load_mode)
 #Delta and SQL tables are case Insensitive. Seems Delta table are always lower case
 delta_cleansed_tbl_name = "{0}.{1}".format(ADS_DATABASE_CLEANSED, "stg_"+source_object)
 delta_raw_tbl_name = "{0}.{1}".format(ADS_DATABASE_RAW, source_object)
-
+delta_raw_tbl_name = "raw.sap_0equipment_attr"
 
 #Destination
 print(delta_cleansed_tbl_name)
@@ -146,11 +146,11 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_updated_column = spark.sql("SELECT \
+df_updated_column_temp = spark.sql("SELECT \
                                   EQUNR as equipmentNumber,\
-                                  DATETO as validToDate,\
-                                  DATEFROM as validFromDate,\
-                                  EQART as technicalObjjectTypeCode,\
+                                  to_date(DATETO) as validToDate,\
+                                  to_date(DATEFROM) as validFromDate,\
+                                  EQART as technicalObjectTypeCode,\
                                   INVNR as inventoryNumber,\
                                   IWERK as maintenancePlanningPlant,\
                                   KOKRS as controllingArea,\
@@ -158,16 +158,55 @@ df_updated_column = spark.sql("SELECT \
                                   SWERK as maintenancePlant,\
                                   ADRNR as addressNumber,\
                                   BUKRS as companyCode,\
-                                  '' as companyName,\
+                                  'To be mapped' as companyName,\
                                   MATNR as materialNumber,\
-                                  ANSWT as acquisitionDate,\
-                                  ANSDT as acquisitionValue,\
-                                  ERDAT as createdDate,\
-                                  AEDAT as lastChangedDate,\
-                                  INBDT as startUpDate,\
+                                  ANSWT as acquisitionValue,\
+                                  to_date(ANSDT) as acquisitionDate,\
+                                  to_date(ERDAT) as createdDate,\
+                                  to_date(AEDAT) as lastChangedDate,\
+                                  to_date(INBDT) as startUpDate,\
                                   PROID as workBreakdownStructureElement,\
-                                  EQTYP as equipmentCategoryCode \
-                                FROM CLEANSED.STG_SAP_0EQUIPMENT_ATTR")
+                                  EQTYP as equipmentCategoryCode, \
+                                  _RecordStart,\
+                                  _RecordEnd,\
+                                  _RecordDeleted,\
+                                   _RecordCurrent \
+                                FROM CLEANSED.STG_SAPISU_0EQUIPMENT_ATTR")
+display(df_updated_column_temp)
+
+# COMMAND ----------
+
+# Create schema for the cleanse table
+cleanse_Schema = StructType(
+  [
+    StructField("equipmentNumber", StringType(), False),
+    StructField("validToDate", DateType(), True),
+    StructField("validFromDate", DateType(), True),
+    StructField("technicalObjectTypeCode", StringType(), True),
+    StructField("inventoryNumber", StringType(), True),
+    StructField("maintenancePlanningPlant", StringType(), True),
+    StructField("controllingArea", StringType(), True),
+    StructField("functionalLocationNumber", StringType(), True),
+    StructField("maintenancePlant", StringType(), True),
+    StructField("addressNumber", StringType(), True),
+    StructField("companyCode", StringType(), True),
+    StructField("companyName", StringType(), True),
+    StructField("materialNumber", StringType(), True),
+    StructField("acquisitionValue", DoubleType(), True),
+    StructField("acquisitionDate", DateType(), True),
+    StructField("createdDate", DateType(), True),
+    StructField("lastChangedDate", DateType(), True),
+    StructField("startUpDate", DateType(), True),
+    StructField("workBreakdownStructureElement", StringType(), True),
+    StructField("equipmentCategoryCode", StringType(), True),    
+    StructField('_RecordStart',TimestampType(),False),
+    StructField('_RecordEnd',TimestampType(),False),
+    StructField('_RecordDeleted',IntegerType(),False),
+    StructField('_RecordCurrent',IntegerType(),False)
+  ]
+)
+# Apply the new schema to cleanse Data Frame
+df_updated_column = spark.createDataFrame(df_updated_column_temp.rdd, schema=cleanse_Schema)
 display(df_updated_column)
 
 # COMMAND ----------
