@@ -1,19 +1,19 @@
 # Databricks notebook source
 # DBTITLE 1,Notebook Structure/Method 
 #Notebook structure/Method 
-#1.Import libraries/functions
-#2.Create spark session
-#3.Define Widgets/Parameters
-#4.Get Values from parameters/widgets
-#5.Format the Source_param parameter value into JSON
-#6.Include all util user function for the notebook
-#7.Include User functions (CleansedZone) for the notebook
-#8.Initilize/update parameter values
-#9.Set raw and cleansed table name
-#10.Load to Cleanse Delta Table from Raw Delta Table
-#11.Update/Rename Columns and load into a dataframe
-#12.Save Data frame into Cleansed Delta table (Final)
-#13.Exit Notebook
+#1.Import libraries/functions -- Generic
+#2.Create spark session -- Generic
+#3.Define Widgets/Parameters -- Generic
+#4.Get Values from parameters/widgets -- Generic
+#5.Format the Source_param parameter value into JSON -- Generic
+#6.Include all util user function for the notebook -- Generic
+#7.Include User functions (CleansedZone) for the notebook -- Generic
+#8.Initilize/update parameter values -- Generic
+#9.Set raw and cleansed table name -- Generic
+#10.Load to Cleanse Delta Table from Raw Delta Table -- Generic
+#11.Update/Rename Columns and load into a dataframe -- Custom
+#12.Save Data frame into Cleansed Delta table (Final) -- Generic
+#13.Exit Notebook -- Generic
 
 # COMMAND ----------
 
@@ -96,10 +96,6 @@ print(json.dumps(Params, indent=4, sort_keys=True))
 # COMMAND ----------
 
 # DBTITLE 1,8. Initilize/update parameter values
-#Intitialize Counter
-start_counter = start_counter.replace("T", " ")
-print(start_counter)
-
 #Align Table Name (replace '[-@ ,;{}()]' charecter by '_')
 source_object = GeneralAlignTableName(source_object)
 print(source_object)
@@ -118,9 +114,9 @@ print(data_load_mode)
 # DBTITLE 1,9. Set raw and cleansed table name
 #Set raw and cleansed table name
 #Delta and SQL tables are case Insensitive. Seems Delta table are always lower case
-delta_cleansed_tbl_name = "{0}.{1}".format(ADS_DATABASE_CLEANSED, source_object)
+delta_cleansed_tbl_name = "{0}.{1}".format(ADS_DATABASE_CLEANSED, "stg_"+source_object)
 delta_raw_tbl_name = "{0}.{1}".format(ADS_DATABASE_RAW, source_object)
-
+delta_raw_tbl_name = "raw.sap_0bpartner_attr"
 
 #Destination
 print(delta_cleansed_tbl_name)
@@ -133,7 +129,7 @@ print(delta_raw_tbl_name)
 #This method uses the source table to load data into target Delta Table
 DeltaSaveToDeltaTable (
   source_table = delta_raw_tbl_name, 
-  target_table = source_object, 
+  target_table = "stg_"+source_object, 
   target_data_lake_zone = ADS_DATALAKE_ZONE_CLEANSED, 
   target_database = ADS_DATABASE_CLEANSED,
   data_lake_folder = Params[PARAMS_SOURCE_GROUP],
@@ -150,16 +146,135 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_updated_column = spark.sql("SELECT  \
-                                INDEXNR	as	Register_Reln_ID,\
-                                PRUEFGR	as	Validation_Grp_CD,\
-                                ZWZUART	as	Register_Reln_type_CD,\
-                                AUTOEND as Auto_Proprate_Register_Reln_IND, \
-                                ERDAT	as	Record_Create_DT,\
-                                ERNAM	as	Obj_Create_Person_NM,\
-                                AEDAT	as	Last_Change_DT,\
-                                AENAM	as	Obj_Change_Person_NM \
-                               FROM CLEANSED.SAP_EASTIH")
+df_updated_column_temp = spark.sql("SELECT \
+                                PARTNER as businessPartnerNumber,\
+                                TYPE as businessPartnerCategoryCode,\
+                                'To be mapped' as businessPartnerCategory,\
+                                BPKIND as businessPartnerTypeCode,\
+                                'To be mapped' as businessPartnerType,\
+                                BU_GROUP as businessPartnerGroupCode,\
+                                'To be mapped' as businessPartnerGroup,\
+                                BPEXT as externalBusinessPartnerNumber,\
+                                BU_SORT1 as searchTerm1,\
+                                BU_SORT2 as searchTerm2,\
+                                TITLE as titleCode,\
+                                'To be mapped' as title,\
+                                XDELE as deletedIndicator,\
+                                XBLCK as centralBlockBusinessPartner,\
+                                ZZUSER as userId,\
+                                ZZPAS_INDICATOR as paymentAssistSchemeIndicator,\
+                                ZZBA_INDICATOR as billAssistIndicator,\
+                                to_date(ZZAFLD00001Z) as createdOn,\
+                                NAME_ORG1 as organizationName1,\
+                                NAME_ORG2 as organizationName2,\
+                                NAME_ORG3 as organizationName3,\
+                                to_date(FOUND_DAT) as organizationFoundedDate,\
+                                LOCATION_1 as internationalLocationNumber1,\
+                                LOCATION_2 as internationalLocationNumber2,\
+                                LOCATION_3 as internationalLocationNumber3,\
+                                NAME_LAST as lastName,\
+                                NAME_FIRST as firstName,\
+                                NAME_LAST2 as atBirthName,\
+                                NAMEMIDDLE as middleName,\
+                                TITLE_ACA1 as academicTitle,\
+                                NICKNAME as nickName,\
+                                INITIALS as nameInitials,\
+                                NAMCOUNTRY as countryName,\
+                                LANGU_CORR as correspondanceLanguage,\
+                                NATIO as nationality,\
+                                PERSNUMBER as personNumber,\
+                                XSEXU as unknownGenderIndicator,\
+                                BU_LANGU as language,\
+                                to_date(BIRTHDT) as dateOfBirth,\
+                                to_date(DEATHDT) as dateOfDeath,\
+                                PERNO as personnelNumber,\
+                                NAME_GRP1 as nameGroup1,\
+                                NAME_GRP2 as nameGroup2,\
+                                CRUSR as createdBy,\
+                                to_date(CRDAT) as createdDate,\
+                                CRTIM as createdTime,\
+                                CHUSR as changedBy,\
+                                to_date(CHDAT) as changedDate,\
+                                CHTIM as changedTime,\
+                                PARTNER_GUID as businessPartnerGUID,\
+                                ADDRCOMM as addressNumber,\
+                                VALID_FROM as validFromDate,\
+                                VALID_TO as validToDate,\
+                                NATPERS as naturalPersonIndicator,\
+                                _RecordStart, \
+                                _RecordEnd, \
+                                _RecordDeleted, \
+                                _RecordCurrent \
+                               FROM CLEANSED.STG_SAPISU_0BPARTNER_ATTR")
+display(df_updated_column_temp)
+
+# COMMAND ----------
+
+# Create schema for the cleanse table
+cleanse_Schema = StructType(
+  [
+    StructField("businessPartnerNumber", StringType(), False),
+    StructField("businessPartnerCategoryCode", StringType(), True),
+    StructField("businessPartnerCategory", StringType(), True),
+    StructField("businessPartnerTypeCode", StringType(), True),
+    StructField("businessPartnerType", StringType(), True),
+    StructField("businessPartnerGroupCode", StringType(), True),
+    StructField("businessPartnerGroup", StringType(), True),
+    StructField("externalBusinessPartnerNumber", StringType(), True),
+    StructField("searchTerm1", StringType(), True),
+    StructField("searchTerm2", StringType(), True),
+    StructField("titleCode", StringType(), True),
+    StructField("title", StringType(), True),
+    StructField("deletedIndicator", StringType(), True),
+    StructField("centralBlockBusinessPartner", StringType(), True),
+    StructField("userId", StringType(), True),
+    StructField("paymentAssistSchemeIndicator", StringType(), True),
+    StructField("billAssistIndicator", StringType(), True),
+    StructField("createdOn", DateType(), True),
+    StructField("organizationName1", StringType(), True),
+    StructField("organizationName2", StringType(), True),
+    StructField("organizationName3", StringType(), True),
+    StructField("organizationFoundedDate", DateType(), True),
+    StructField("internationalLocationNumber1", StringType(), True),
+    StructField("internationalLocationNumber2", StringType(), True),
+    StructField("internationalLocationNumber3", StringType(), True),
+    StructField("lastName", StringType(), True),
+    StructField("firstName", StringType(), True),
+    StructField("atBirthName", StringType(), True),
+    StructField("middleName", StringType(), True),
+    StructField("academicTitle", StringType(), True),
+    StructField("nickName", StringType(), True),
+    StructField("nameInitials", StringType(), True),
+    StructField("countryName", StringType(), True),
+    StructField("correspondanceLanguage", StringType(), True),
+    StructField("nationality", StringType(), True),
+    StructField("personNumber", StringType(), True),
+    StructField("unknownGenderIndicator", StringType(), True),
+    StructField("language", StringType(), True),
+    StructField("dateOfBirth", DateType(), True),
+    StructField("dateOfDeath", DateType(), True),
+    StructField("personnelNumber", StringType(), True),
+    StructField("nameGroup1", StringType(), True),
+    StructField("nameGroup2", StringType(), True),
+    StructField("createdBy", StringType(), True),
+    StructField("createdDate", DateType(), True),
+    StructField("createdTime", StringType(), True),
+    StructField("changedBy", StringType(), True),
+    StructField("changedDate", DateType(), True),
+    StructField("changedTime", StringType(), True),
+    StructField("businessPartnerGUID", StringType(), True),
+    StructField("addressNumber", StringType(), True),
+    StructField("validFromDate",StringType(), True),
+    StructField("validToDate",StringType(), True),
+    StructField("naturalPersonIndicator", StringType(), True),
+    StructField('_RecordStart',TimestampType(),False),
+    StructField('_RecordEnd',TimestampType(),False),
+    StructField('_RecordDeleted',IntegerType(),False),
+    StructField('_RecordCurrent',IntegerType(),False)
+  ]
+)
+# Apply the new schema to cleanse Data Frame
+df_updated_column = spark.createDataFrame(df_updated_column_temp.rdd, schema=cleanse_Schema)
 display(df_updated_column)
 
 # COMMAND ----------
