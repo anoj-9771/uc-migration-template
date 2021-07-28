@@ -221,6 +221,10 @@ newSchema = StructType([
                           StructField('previousMeterReadingAfterDecimalPlaces', DoubleType(), True),
                           StructField('meterReadingDifferenceBeforeDecimalPlaces', DoubleType(), True),
                           StructField('meterReadingDifferenceAfterDecimalPlaces', DoubleType(), True),
+                          StructField('_RecordStart', TimestampType(), False),
+                          StructField('_RecordEnd', TimestampType(), False),
+                          StructField('_RecordDeleted', IntegerType(), False),
+                          StructField('_RecordCurrent', IntegerType(), False)
                       ])
 
 df_updated_column = spark.createDataFrame(df_cleansed_column.rdd, schema=newSchema)
