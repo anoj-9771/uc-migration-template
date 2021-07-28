@@ -32,7 +32,7 @@ variables:
     value: false
   # Used to set Databricks Workspace deployability - With Vnet injection
   - name: databricksvnet
-    value: true
+    value: false
   # Used to set Databricks Workspace deployability - Deploy Subnets
   - name: databricksvnetsubnets
     value: false
