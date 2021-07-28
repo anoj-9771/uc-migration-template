@@ -50,7 +50,7 @@ variables:
     value: 30
   # Name of Log Analytics workspace name
   - name: loganalyticsworkspacename
-    value: $(PREFIX)-$(ENVIRONMENT)-ALA
+    value: logws-$(PREFIX)-$(ENVIRONMENT)
   - name: logstorageaccountname
     value: salogs$(PREFIX)$(ENVIRONMENT)$(INCREMENT)
   # Name of Azure SQL Server and catalog name
