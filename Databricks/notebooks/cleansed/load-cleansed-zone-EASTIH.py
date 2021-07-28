@@ -42,17 +42,9 @@ from pyspark.context import SparkContext
 
 # COMMAND ----------
 
-
-
-# COMMAND ----------
-
 # DBTITLE 1,2. Create spark session
 #2.Create spark session
 spark = SparkSession.builder.getOrCreate()
-
-# COMMAND ----------
-
-
 
 # COMMAND ----------
 
@@ -124,7 +116,7 @@ print(data_load_mode)
 #Delta and SQL tables are case Insensitive. Seems Delta table are always lower case
 delta_cleansed_tbl_name = "{0}.{1}".format(ADS_DATABASE_CLEANSED, "stg_"+source_object)
 delta_raw_tbl_name = "{0}.{1}".format(ADS_DATABASE_RAW, source_object)
-
+delta_raw_tbl_name = "raw.sap_eastih"
 
 #Destination
 print(delta_cleansed_tbl_name)
@@ -166,7 +158,7 @@ df_updated_column_temp = spark.sql("SELECT \
                                   _RecordEnd, \
                                   _RecordDeleted, \
                                   _RecordCurrent \
-                              FROM CLEANSED.STG_SAP_EASTIH")
+                              FROM CLEANSED.STG_SAPISU_EASTIH")
 display(df_updated_column_temp)
 
 # COMMAND ----------
