@@ -147,65 +147,70 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_updated_column_temp = spark.sql("SELECT \
-                                PARTNER as businessPartnerNumber,\
-                                TYPE as businessPartnerCategoryCode,\
-                                'To be mapped' as businessPartnerCategory,\
-                                BPKIND as businessPartnerTypeCode,\
-                                'To be mapped' as businessPartnerType,\
-                                BU_GROUP as businessPartnerGroupCode,\
-                                'To be mapped' as businessPartnerGroup,\
-                                BPEXT as externalBusinessPartnerNumber,\
-                                BU_SORT1 as searchTerm1,\
-                                BU_SORT2 as searchTerm2,\
-                                TITLE as titleCode,\
+                                BP.PARTNER as businessPartnerNumber,\
+                                BP.TYPE as businessPartnerCategoryCode,\
+                                BP_TXT.businessPartnerCategory as businessPartnerCategory,\
+                                BP.BPKIND as businessPartnerTypeCode,\
+                                BPTYPE.businessPartnerType as businessPartnerType,\
+                                BP.BU_GROUP as businessPartnerGroupCode,\
+                                BPGRP.businessPartnerGroup as businessPartnerGroup,\
+                                BP.BPEXT as externalBusinessPartnerNumber,\
+                                BP.BU_SORT1 as searchTerm1,\
+                                BP.BU_SORT2 as searchTerm2,\
+                                BP.TITLE as titleCode,\
                                 'To be mapped' as title,\
-                                XDELE as deletedIndicator,\
-                                XBLCK as centralBlockBusinessPartner,\
-                                ZZUSER as userId,\
-                                ZZPAS_INDICATOR as paymentAssistSchemeIndicator,\
-                                ZZBA_INDICATOR as billAssistIndicator,\
-                                to_date(ZZAFLD00001Z) as createdOn,\
-                                NAME_ORG1 as organizationName1,\
-                                NAME_ORG2 as organizationName2,\
-                                NAME_ORG3 as organizationName3,\
-                                to_date(FOUND_DAT) as organizationFoundedDate,\
-                                LOCATION_1 as internationalLocationNumber1,\
-                                LOCATION_2 as internationalLocationNumber2,\
-                                LOCATION_3 as internationalLocationNumber3,\
-                                NAME_LAST as lastName,\
-                                NAME_FIRST as firstName,\
-                                NAME_LAST2 as atBirthName,\
-                                NAMEMIDDLE as middleName,\
-                                TITLE_ACA1 as academicTitle,\
-                                NICKNAME as nickName,\
-                                INITIALS as nameInitials,\
-                                NAMCOUNTRY as countryName,\
-                                LANGU_CORR as correspondanceLanguage,\
-                                NATIO as nationality,\
-                                PERSNUMBER as personNumber,\
-                                XSEXU as unknownGenderIndicator,\
-                                BU_LANGU as language,\
-                                to_date(BIRTHDT) as dateOfBirth,\
-                                to_date(DEATHDT) as dateOfDeath,\
-                                PERNO as personnelNumber,\
-                                NAME_GRP1 as nameGroup1,\
-                                NAME_GRP2 as nameGroup2,\
-                                CRUSR as createdBy,\
-                                to_date(CRDAT) as createdDate,\
-                                CRTIM as createdTime,\
-                                CHUSR as changedBy,\
-                                to_date(CHDAT) as changedDate,\
-                                CHTIM as changedTime,\
-                                PARTNER_GUID as businessPartnerGUID,\
-                                ADDRCOMM as addressNumber,\
-                                VALID_FROM as validFromDate,\
-                                VALID_TO as validToDate,\
-                                NATPERS as naturalPersonIndicator,\
-                                _RecordStart, \
-                                _RecordEnd, \
-                                _RecordDeleted, \
-                                _RecordCurrent \
-                               FROM CLEANSED.STG_SAPISU_0BPARTNER_ATTR")
+                                BP.XDELE as deletedIndicator,\
+                                BP.XBLCK as centralBlockBusinessPartner,\
+                                BP.ZZUSER as userId,\
+                                BP.ZZPAS_INDICATOR as paymentAssistSchemeIndicator,\
+                                BP.ZZBA_INDICATOR as billAssistIndicator,\
+                                to_date(BP.ZZAFLD00001Z) as createdOn,\
+                                BP.NAME_ORG1 as organizationName1,\
+                                BP.NAME_ORG2 as organizationName2,\
+                                BP.NAME_ORG3 as organizationName3,\
+                                to_date(BP.FOUND_DAT) as organizationFoundedDate,\
+                                BP.LOCATION_1 as internationalLocationNumber1,\
+                                BP.LOCATION_2 as internationalLocationNumber2,\
+                                BP.LOCATION_3 as internationalLocationNumber3,\
+                                BP.NAME_LAST as lastName,\
+                                BP.NAME_FIRST as firstName,\
+                                BP.NAME_LAST2 as atBirthName,\
+                                BP.NAMEMIDDLE as middleName,\
+                                BP.TITLE_ACA1 as academicTitle,\
+                                BP.NICKNAME as nickName,\
+                                BP.INITIALS as nameInitials,\
+                                BP.NAMCOUNTRY as countryName,\
+                                BP.LANGU_CORR as correspondanceLanguage,\
+                                BP.NATIO as nationality,\
+                                BP.PERSNUMBER as personNumber,\
+                                BP.XSEXU as unknownGenderIndicator,\
+                                BP.BU_LANGU as language,\
+                                to_date(BP.BIRTHDT) as dateOfBirth,\
+                                to_date(BP.DEATHDT) as dateOfDeath,\
+                                BP.PERNO as personnelNumber,\
+                                BP.NAME_GRP1 as nameGroup1,\
+                                BP.NAME_GRP2 as nameGroup2,\
+                                BP.CRUSR as createdBy,\
+                                to_date(BP.CRDAT) as createdDate,\
+                                BP.CRTIM as createdTime,\
+                                BP.CHUSR as changedBy,\
+                                to_date(BP.CHDAT) as changedDate,\
+                                BP.CHTIM as changedTime,\
+                                BP.PARTNER_GUID as businessPartnerGUID,\
+                                BP.ADDRCOMM as addressNumber,\
+                                BP.VALID_FROM as validFromDate,\
+                                BP.VALID_TO as validToDate,\
+                                BP.NATPERS as naturalPersonIndicator,\
+                                BP._RecordStart, \
+                                BP._RecordEnd, \
+                                BP._RecordDeleted, \
+                                BP._RecordCurrent \
+                               FROM CLEANSED.STG_SAPISU_0BPARTNER_ATTR BP \
+                               LEFT OUTER JOIN CLEANSED.T_SAPISU_0BPARTNER_TEXT BP_TXT \
+                                 ON BP.PARTNER = BP_TXT.businessPartnerNumber AND BP.TYPE =BP_TXT.businessPartnerCategoryCode \
+                               LEFT OUTER JOIN CLEANSED.T_SAPISU_0BPTYPE_TEXT BPTYPE ON BP.TYPE = BPTYPE.businessPartnerTypeCode \
+                               LEFT OUTER JOIN CLEANSED.T_SAPISU_0BP_GROUP_TEXT BPGRP ON BP.TYPE = BPGRP.businessPartnerGroupCode")
+
 display(df_updated_column_temp)
 
 # COMMAND ----------
