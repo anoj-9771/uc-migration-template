@@ -147,22 +147,15 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_updated_column = spark.sql("SELECT  \
-                                  PROPERTY_NO as propertyNumber , \
-                                  SUP_PROP_TYPE as superiorPropertyTypeCode , \
-                                  sup_typ.superiorPropertyType  as superiorPropertyType , \
-                                  INF_PROP_TYPE as inferiorPropertyTypeCode , \
-                                  inf_typ.inferiorPropertyType  as inferiorPropertyType , \
-                                  DATE_FROM as validFromDate , \
-                                  DATE_TO as validToDate  , \
-                                  prop_hist._RecordStart, \
-                                  prop_hist._RecordEnd, \
-                                  prop_hist._RecordDeleted, \
-                                  prop_hist._RecordCurrent \
-                              FROM CLEANSED.stg_sapisu_zcd_tpropty_hist prop_hist \
-                                left outer join CLEANSED.t_sapisu_zcd_tinfprty_tx inf_typ on prop_hist.INF_PROP_TYPE = inf_typ.inferiorPropertyTypecode \
-                                left outer join CLEANSED.t_sapisu_zcd_tsupprtyp_tx sup_typ on prop_hist.SUP_PROP_TYPE = sup_typ.superiorPropertyTypecode \
-                              ")
-
+                                INDEXNR	as	Register_Reln_ID,\
+                                PRUEFGR	as	Validation_Grp_CD,\
+                                ZWZUART	as	Register_Reln_type_CD,\
+                                AUTOEND as Auto_Proprate_Register_Reln_IND, \
+                                ERDAT	as	Record_Create_DT,\
+                                ERNAM	as	Obj_Create_Person_NM,\
+                                AEDAT	as	Last_Change_DT,\
+                                AENAM	as	Obj_Change_Person_NM \
+                               FROM CLEANSED.STG_SAP_EASTIH")
 display(df_updated_column)
 
 # COMMAND ----------
