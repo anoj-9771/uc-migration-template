@@ -117,7 +117,6 @@ print(data_load_mode)
 delta_cleansed_tbl_name = "{0}.{1}".format(ADS_DATABASE_CLEANSED, "stg_"+source_object)
 delta_raw_tbl_name = "{0}.{1}".format(ADS_DATABASE_RAW, source_object)
 
-delta_raw_tbl_name = "raw.sap_dberchz2"
 #Destination
 print(delta_cleansed_tbl_name)
 print(delta_raw_tbl_name)
@@ -175,7 +174,7 @@ df_cleansed_column = spark.sql("SELECT  \
                                 N_ZWSTAND as meterReadingAfterDecimalPoint, \
                                 V_ZWSTNDAB as billedMeterReadingBeforeDecimalPlaces, \
                                 N_ZWSTNDAB as billedMeterReadingAfterDecimalPlaces, \
-                                V_ZWSTVOR as billedMeterReadingBeforeDecimalPlaces, \
+                                V_ZWSTVOR as prevousMeterReadingBeforeDecimalPlaces, \
                                 N_ZWSTVOR as previousMeterReadingAfterDecimalPlaces, \
                                 V_ZWSTDIFF as meterReadingDifferenceBeforeDecimalPlaces, \
                                 N_ZWSTDIFF as meterReadingDifferenceAfterDecimalPlaces, \
@@ -212,14 +211,14 @@ newSchema = StructType([
                           StructField('meterReadingResultsSimulationIndicator', StringType(), True),
                           StructField('forecastPeriodStartDate', StringType(), True),
                           StructField('forecastPeriodEndDate', DateType(), True),
-                          StructField('meterReaderNoteText', DateType(), True),
-                          StructField('meterReadingBeforeDecimalPoint', StringType(), True),
+                          StructField('meterReaderNoteText', StringType(), True),
+                          StructField('meterReadingBeforeDecimalPoint', IntegerType(), True),
                           StructField('meterReadingAfterDecimalPoint', DoubleType(), True),
-                          StructField('billedMeterReadingBeforeDecimalPlaces', DoubleType(), True),
+                          StructField('billedMeterReadingBeforeDecimalPlaces', IntegerType(), True),
                           StructField('billedMeterReadingAfterDecimalPlaces', DoubleType(), True),
-                          StructField('billedMeterReadingBeforeDecimalPlaces', DoubleType(), True),
+                          StructField('previousMeterReadingBeforeDecimalPlaces', IntegerType(), True),
                           StructField('previousMeterReadingAfterDecimalPlaces', DoubleType(), True),
-                          StructField('meterReadingDifferenceBeforeDecimalPlaces', DoubleType(), True),
+                          StructField('meterReadingDifferenceBeforeDecimalPlaces', IntegerType(), True),
                           StructField('meterReadingDifferenceAfterDecimalPlaces', DoubleType(), True),
                           StructField('_RecordStart', TimestampType(), False),
                           StructField('_RecordEnd', TimestampType(), False),
