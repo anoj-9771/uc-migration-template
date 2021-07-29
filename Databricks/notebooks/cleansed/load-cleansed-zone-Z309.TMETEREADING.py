@@ -1,7 +1,7 @@
 # Databricks notebook source
 # DBTITLE 1,Generate parameter and source object name for unit testing
 import json
-accessTable = 'Z309_TDEBIT'
+accessTable = 'Z309_TMETEREADING'
 
 runParm = '{"SourceType":"Flat File","SourceServer":"saswcnonprod01landingdev-sastoken","SourceGroup":"access","SourceName":"access_access/####_csv","SourceLocation":"access/####.csv","AdditionalProperty":"","Processor":"databricks-token|0705-044124-gored835|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive","IsAuditTable":false,"SoftDeleteSource":"","ProjectName":"Access Data","ProjectId":2,"TargetType":"BLOB Storage (csv)","TargetName":"access_access/####_csv","TargetLocation":"access/####","TargetServer":"daf-sa-lake-sastoken","DataLoadMode":"TRUNCATE-LOAD","DeltaExtract":false,"CDCSource":false,"TruncateTarget":true,"UpsertTarget":false,"AppendTarget":null,"TrackChanges":false,"LoadToSqlEDW":true,"TaskName":"access_access/####_csv","ControlStageId":1,"TaskId":4,"StageSequence":100,"StageName":"Source to Raw","SourceId":4,"TargetId":4,"ObjectGrain":"Day","CommandTypeId":5,"Watermarks":"","WatermarksDT":null,"WatermarkColumn":"","BusinessKeyColumn":"","UpdateMetaData":null,"SourceTimeStampFormat":"","Command":"","LastLoadedFile":null}'
 
@@ -165,86 +165,87 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_cleansed = spark.sql("SELECT C_LGA AS LGACode, \
-        b.LGA, \
-		cast(N_PROP as int) AS propertyNumber, \
-		cast(N_DEBI_REFE as int) AS debitReferenceNumber, \
-		C_DEBI_TYPE AS debitTypeCode, \
-        c.debitType, \
-		C_DEBI_REAS AS debitReasonCode, \
-        d.debitReason, " +
-		#cast(A_DEBI as decimal(15,2)) AS debitAmount, \
-		#cast(A_DEBI_OUTS as decimal(15,2)) AS debitOutstandingAmount, \
-		#cast(A_WATE as decimal(15,2)) AS waterAmount, \
-		#cast(A_SEWE as decimal(15,2)) AS sewerAmount, \
-		#cast(A_DRAI as decimal(15,2)) AS drainAmount, \
-        #remove the following line and uncomment the five above to reinstate amounts
-        "cast (0 as decimal(15,2)) AS debitAmount, cast (0 as decimal(15,2)) AS debitOutstandingAmount, cast (0 as decimal(15,2)) AS waterAmount, cast (0 as decimal(15,2)) AS sewerAmount, cast (0 as decimal(15,2)) AS drainAmount, \
-		to_date(D_DEFE_FROM, 'yyyyMMdd') AS debitDeferredFrom, \
-		to_date(D_DEFE_TO, 'yyyyMMdd') AS debitDeferredTo, \
-		to_date(D_DISP, 'yyyyMMdd') AS dateDebitDisputed, \
-		C_RECO_LEVE AS recoveryLevelCode, \
-		to_date(D_RECO_LEVE, 'yyyyMMdd') AS dateRecoveryLevelSet, \
-        case when F_OCCU = '0' then true else false end as isOwnerDebit, \
-        case when F_OCCU = '0' then false else true end as isOccupierDebit, \
-		case when F_ARRE = 'Y' then true else false end as isInArrears, \
-        case when N_FINA_YEAR is null then case when substr(d_debi_crea,5,2) < '07' then substr(d_debi_crea,1,4) \
-                                                                                    else cast(int(substr(D_DEBI_CREA,1,4)) + 1 as string) \
-                                           end \
-                                      else case when N_FINA_YEAR > '70' then '19'||N_FINA_YEAR \
-                                                                        else '20'||N_FINA_YEAR \
-                                           end \
-        end AS financialYear, \
-		C_ISSU AS issuedCode, \
-		to_date(D_DEBI_CREA, 'yyyyMMdd') AS debitCreatedDate, \
-		to_date(D_DEBI_UPDA, 'yyyyMMdd') AS debitUpdatedDate, \
-		to_date(D_ORIG_ISSU, 'yyyyMMdd') AS originalIssueDate, \
+df_cleansed = spark.sql("SELECT cast(N_PROP as int) AS propertyNumber, \
+		cast(N_PROP_METE as int) AS propertyMeterNumber, \
+		cast(N_METE_READ as int) AS meterReadingNumber, \
+		C_METE_READ_TOLE AS meterReadingToleranceCode, \
+        initcap(d.meterReadingTolerance) as meterReadingTolerance, \
+		C_METE_READ_TYPE AS meterReadingTypeCode, \
+        initcap(e.meterReadingType) as meterReadingType, \
+		C_METE_READ_CONS AS consumptionTypeCode, \
+        initcap(f.consumptionType) as consumptionType, \
+		C_METE_READ_STAT AS meterReadingStatusCode, \
+        initcap(g.meterReadingStatus) as meterReadingStatus, \
+		C_METE_CANT_READ AS cannotReadCode, \
+        initcap(h.cannotReadReason) as cannotReadReason, \
+		C_PDE_READ_METH AS PDEReadingMethodCode, \
+        initcap(i.PDEReadingMethod) as PDEReadingMethod, \
+		cast(Q_METE_READ as decimal(9,0)) AS meterReading, \
+        cast(unix_timestamp(D_METE_READ||case when substr(trim(T_METE_READ_TIME),-1) = '-' then substr(T_METE_READ_TIME,1,5)||'0' \
+                                              when substr(T_METE_READ_TIME,1,2) not between '00' and '23' or \
+                                                   substr(T_METE_READ_TIME,3,2) not between '00' and '59' or \
+                                                   substr(T_METE_READ_TIME,5,2) not between '00' and '59' then '120000' \
+                                              when T_METE_READ_TIME is null then '120000' \
+                                                                            else T_METE_READ_TIME end, 'yyyyMMddHHmmss') as Timestamp) as meterReadingTimestamp, \
+		cast(Q_METE_READ_CONS as decimal(9,0)) AS meterReadingConsumption, \
+        date_sub(to_date(D_METE_READ,'yyyyMMdd'),int(Q_METE_READ_DAYS) - 1) as readingFromDate, \
+        to_date(D_METE_READ,'yyyyMMdd') as readingToDate, \
+		cast(Q_METE_READ_DAYS as decimal(7,0)) AS meterReadingDays, \
+		case when F_READ_COMM_CODE = '1' then true else false end AS hasReadingCommentCode, \
+		case when F_READ_COMM_FREE = '1' then true else false end AS hasReadingCommentFreeFormat, \
+		cast(Q_PDE_HIGH_LOW as int) AS PDEHighLow, \
+		cast(Q_PDE_REEN_COUN as int) AS PDEReenteredCount, \
+		case when F_PDE_AUXI_READ = '0' then true else false end AS isPDEAuxilaryReading, \
+		to_date(D_METE_READ_UPDA, 'yyyyMMdd') AS meterReadingUpdatedDate, \
 		a._RecordStart, \
 		a._RecordEnd, \
 		a._RecordDeleted, \
 		a._RecordCurrent \
-	FROM CLEANSED.STG_ACCESS_Z309_TDEBIT a \
-         left outer join CLEANSED.t_access_z309_tlocalgovt b on a.c_lga = b.LGACode \
-         left outer join CLEANSED.t_access_z309_tdebittype c on a.c_debi_type = c.debitTypeCode \
-         left outer join CLEANSED.t_access_z309_tdebitreason d on a.c_debi_type = d.debitTypeCode and a.c_debi_reas = d.debitReasonCode \
+	FROM CLEANSED.STG_ACCESS_Z309_TMETEREADING a \
+         left outer join CLEANSED.t_access_Z309_TMETEREADTOLE d on a.C_METE_READ_TOLE = d.meterReadingToleranceCode \
+         left outer join CLEANSED.t_access_Z309_TMETEREADTYPE e on a.C_METE_READ_TYPE = e.meterReadingTypeCode \
+         left outer join CLEANSED.t_access_Z309_TMETEREADCONTYP f on a.C_METE_READ_CONS = f.consumptionTypeCode \
+         left outer join CLEANSED.t_access_Z309_TMRSTATUSTYPE g on a.C_METE_READ_STAT = g.meterReadingStatusCode \
+         left outer join CLEANSED.t_access_Z309_TMETERCANTREAD h on a.C_METE_CANT_READ = h.cannotReadReason \
+         left outer join CLEANSED.t_access_Z309_TPDEREADMETH i on a.C_PDE_READ_METH = i.PDEReadingMethodCode \
          ")
 
 display(df_cleansed)
 
 # COMMAND ----------
 
-
 newSchema = StructType([
-	StructField('LGACode',StringType(),False),
-    StructField('LGA',StringType(),False),
-    StructField('propertyNumber',IntegerType(),False),
-    StructField('debitReferenceNumber',IntegerType(),False),
-    StructField('debitTypeCode',StringType(),False),
-    StructField('debitType',StringType(),False),
-    StructField('debitReasonCode',StringType(),False),
-    StructField('debitReason',StringType(),False),
-    StructField('debitAmount',DecimalType(15,2),False),
-	StructField('debitOutstandingAmount',DecimalType(15,2),False),
-    StructField('waterAmount',DecimalType(15,2),False),
-    StructField('sewerAmount',DecimalType(15,2),False),
-    StructField('drainAmount',DecimalType(15,2),False),
-    StructField('debitDeferredFrom',DateType(),True),
-	StructField('debitDeferredTo',DateType(),True),
-    StructField('dateDebitDisputed',DateType(),True),
-    StructField('recoveryLevelCode',StringType(),True),
-    StructField('dateRecoveryLevelSet',DateType(),True),
-    StructField('isOwnerDebit',BooleanType(),False),
-    StructField('isOccupierDebit',BooleanType(),False),
-    StructField('isInArrears',BooleanType(),False),
-    StructField('financialYear',StringType(),False),
-    StructField('issuedCode',StringType(),True),
-    StructField('debitCreatedDate',DateType(),True),
-    StructField('debitUpdatedDate',DateType(),True),
-    StructField('originalIssueDate',DateType(),True),
-    StructField('_RecordStart',TimestampType(),False),
-    StructField('_RecordEnd',TimestampType(),False),
-    StructField('_RecordDeleted',IntegerType(),False),
-    StructField('_RecordCurrent',IntegerType(),False)
+	StructField('propertyNumber',IntegerType(),False),
+	StructField('propertyMeterNumber',IntegerType(),False),
+	StructField('meterReadingNumber',IntegerType(),False),
+	StructField('meterReadingToleranceCode',StringType(),True),
+    StructField('meterReadingTolerance',StringType(),True),
+	StructField('meterReadingTypeCode',StringType(),False),
+    StructField('meterReadingType',StringType(),False),
+	StructField('consumptionTypeCode',StringType(),True),
+    StructField('consumptionType',StringType(),True),
+	StructField('meterReadingStatusCode',StringType(),True),
+    StructField('meterReadingStatus',StringType(),True),
+	StructField('cannotReadCode',StringType(),True),
+    StructField('cannotReadReason',StringType(),True),
+	StructField('PDEReadingMethodCode',StringType(),True),
+    StructField('PDEReadingMethod',StringType(),True),
+	StructField('meterReading',DecimalType(9,0),False),
+	StructField('meterReadingTimestamp',TimestampType(),True),
+	StructField('meterReadingConsumption',DecimalType(9,0),False),
+    StructField('readingFromDate',DateType(),False),
+    StructField('readingFromTo',DateType(),False),
+	StructField('meterReadingDays',DecimalType(7,0),False),
+	StructField('hasReadingCommentCode',BooleanType(),False),
+	StructField('hasReadingCommentFreeFormat',BooleanType(),False),
+	StructField('PDEHighLow',IntegerType(),False),
+	StructField('PDEReenteredCount',IntegerType(),False),
+	StructField('isPDEAuxilaryReading',BooleanType(),False),
+	StructField('meterReadingUpdatedDate',DateType(),True),
+	StructField('_RecordStart',TimestampType(),False),
+	StructField('_RecordEnd',TimestampType(),False),
+	StructField('_RecordDeleted',IntegerType(),False),
+	StructField('_RecordCurrent',IntegerType(),False)
 ])
 
 df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)

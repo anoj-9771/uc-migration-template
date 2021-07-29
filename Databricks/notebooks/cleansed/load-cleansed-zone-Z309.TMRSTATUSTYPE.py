@@ -1,7 +1,7 @@
 # Databricks notebook source
 # DBTITLE 1,Generate parameter and source object name for unit testing
 import json
-accessTable = 'Z309_TDEBIT'
+accessTable = 'Z309_TMRSTATUSTYPE'
 
 runParm = '{"SourceType":"Flat File","SourceServer":"saswcnonprod01landingdev-sastoken","SourceGroup":"access","SourceName":"access_access/####_csv","SourceLocation":"access/####.csv","AdditionalProperty":"","Processor":"databricks-token|0705-044124-gored835|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive","IsAuditTable":false,"SoftDeleteSource":"","ProjectName":"Access Data","ProjectId":2,"TargetType":"BLOB Storage (csv)","TargetName":"access_access/####_csv","TargetLocation":"access/####","TargetServer":"daf-sa-lake-sastoken","DataLoadMode":"TRUNCATE-LOAD","DeltaExtract":false,"CDCSource":false,"TruncateTarget":true,"UpsertTarget":false,"AppendTarget":null,"TrackChanges":false,"LoadToSqlEDW":true,"TaskName":"access_access/####_csv","ControlStageId":1,"TaskId":4,"StageSequence":100,"StageName":"Source to Raw","SourceId":4,"TargetId":4,"ObjectGrain":"Day","CommandTypeId":5,"Watermarks":"","WatermarksDT":null,"WatermarkColumn":"","BusinessKeyColumn":"","UpdateMetaData":null,"SourceTimeStampFormat":"","Command":"","LastLoadedFile":null}'
 
@@ -165,86 +165,33 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_cleansed = spark.sql("SELECT C_LGA AS LGACode, \
-        b.LGA, \
-		cast(N_PROP as int) AS propertyNumber, \
-		cast(N_DEBI_REFE as int) AS debitReferenceNumber, \
-		C_DEBI_TYPE AS debitTypeCode, \
-        c.debitType, \
-		C_DEBI_REAS AS debitReasonCode, \
-        d.debitReason, " +
-		#cast(A_DEBI as decimal(15,2)) AS debitAmount, \
-		#cast(A_DEBI_OUTS as decimal(15,2)) AS debitOutstandingAmount, \
-		#cast(A_WATE as decimal(15,2)) AS waterAmount, \
-		#cast(A_SEWE as decimal(15,2)) AS sewerAmount, \
-		#cast(A_DRAI as decimal(15,2)) AS drainAmount, \
-        #remove the following line and uncomment the five above to reinstate amounts
-        "cast (0 as decimal(15,2)) AS debitAmount, cast (0 as decimal(15,2)) AS debitOutstandingAmount, cast (0 as decimal(15,2)) AS waterAmount, cast (0 as decimal(15,2)) AS sewerAmount, cast (0 as decimal(15,2)) AS drainAmount, \
-		to_date(D_DEFE_FROM, 'yyyyMMdd') AS debitDeferredFrom, \
-		to_date(D_DEFE_TO, 'yyyyMMdd') AS debitDeferredTo, \
-		to_date(D_DISP, 'yyyyMMdd') AS dateDebitDisputed, \
-		C_RECO_LEVE AS recoveryLevelCode, \
-		to_date(D_RECO_LEVE, 'yyyyMMdd') AS dateRecoveryLevelSet, \
-        case when F_OCCU = '0' then true else false end as isOwnerDebit, \
-        case when F_OCCU = '0' then false else true end as isOccupierDebit, \
-		case when F_ARRE = 'Y' then true else false end as isInArrears, \
-        case when N_FINA_YEAR is null then case when substr(d_debi_crea,5,2) < '07' then substr(d_debi_crea,1,4) \
-                                                                                    else cast(int(substr(D_DEBI_CREA,1,4)) + 1 as string) \
-                                           end \
-                                      else case when N_FINA_YEAR > '70' then '19'||N_FINA_YEAR \
-                                                                        else '20'||N_FINA_YEAR \
-                                           end \
-        end AS financialYear, \
-		C_ISSU AS issuedCode, \
-		to_date(D_DEBI_CREA, 'yyyyMMdd') AS debitCreatedDate, \
-		to_date(D_DEBI_UPDA, 'yyyyMMdd') AS debitUpdatedDate, \
-		to_date(D_ORIG_ISSU, 'yyyyMMdd') AS originalIssueDate, \
-		a._RecordStart, \
-		a._RecordEnd, \
-		a._RecordDeleted, \
-		a._RecordCurrent \
-	FROM CLEANSED.STG_ACCESS_Z309_TDEBIT a \
-         left outer join CLEANSED.t_access_z309_tlocalgovt b on a.c_lga = b.LGACode \
-         left outer join CLEANSED.t_access_z309_tdebittype c on a.c_debi_type = c.debitTypeCode \
-         left outer join CLEANSED.t_access_z309_tdebitreason d on a.c_debi_type = d.debitTypeCode and a.c_debi_reas = d.debitReasonCode \
+df_cleansed = spark.sql("SELECT C_METE_READ_STAT AS meterReadingStatusCode, \
+		initcap(T_READ_STAT_ABBR) AS readingStatusAbbreviation, \
+		initcap(T_METE_READ_STAT) AS meterReadingStatus, \
+		to_date(D_READ_STAT_EFFE, 'yyyyMMdd') AS readingStatusEffectiveDate, \
+		to_date(D_READ_STAT_CANC, 'yyyyMMdd') AS readingStatusCancelledDate, \
+		_RecordStart, \
+		_RecordEnd, \
+		_RecordDeleted, \
+		_RecordCurrent \
+	FROM CLEANSED.STG_ACCESS_Z309_TMRSTATUSTYPE \
          ")
 
 display(df_cleansed)
+print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
 
-
 newSchema = StructType([
-	StructField('LGACode',StringType(),False),
-    StructField('LGA',StringType(),False),
-    StructField('propertyNumber',IntegerType(),False),
-    StructField('debitReferenceNumber',IntegerType(),False),
-    StructField('debitTypeCode',StringType(),False),
-    StructField('debitType',StringType(),False),
-    StructField('debitReasonCode',StringType(),False),
-    StructField('debitReason',StringType(),False),
-    StructField('debitAmount',DecimalType(15,2),False),
-	StructField('debitOutstandingAmount',DecimalType(15,2),False),
-    StructField('waterAmount',DecimalType(15,2),False),
-    StructField('sewerAmount',DecimalType(15,2),False),
-    StructField('drainAmount',DecimalType(15,2),False),
-    StructField('debitDeferredFrom',DateType(),True),
-	StructField('debitDeferredTo',DateType(),True),
-    StructField('dateDebitDisputed',DateType(),True),
-    StructField('recoveryLevelCode',StringType(),True),
-    StructField('dateRecoveryLevelSet',DateType(),True),
-    StructField('isOwnerDebit',BooleanType(),False),
-    StructField('isOccupierDebit',BooleanType(),False),
-    StructField('isInArrears',BooleanType(),False),
-    StructField('financialYear',StringType(),False),
-    StructField('issuedCode',StringType(),True),
-    StructField('debitCreatedDate',DateType(),True),
-    StructField('debitUpdatedDate',DateType(),True),
-    StructField('originalIssueDate',DateType(),True),
-    StructField('_RecordStart',TimestampType(),False),
-    StructField('_RecordEnd',TimestampType(),False),
-    StructField('_RecordDeleted',IntegerType(),False),
-    StructField('_RecordCurrent',IntegerType(),False)
+	StructField('meterReadingStatusCode',StringType(),False),
+	StructField('readingStatusAbbreviation',StringType(),False),
+	StructField('meterReadingStatus',StringType(),False),
+	StructField('readingStatusEffectiveDate',DateType(),True),
+	StructField('readingStatusCancelledDate',DateType(),True),
+	StructField('_RecordStart',TimestampType(),False),
+	StructField('_RecordEnd',TimestampType(),False),
+	StructField('_RecordDeleted',IntegerType(),False),
+	StructField('_RecordCurrent',IntegerType(),False)
 ])
 
 df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
