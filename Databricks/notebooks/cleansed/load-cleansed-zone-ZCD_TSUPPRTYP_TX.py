@@ -147,15 +147,13 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_updated_column = spark.sql("SELECT  \
-                                INDEXNR	as	Register_Reln_ID,\
-                                PRUEFGR	as	Validation_Grp_CD,\
-                                ZWZUART	as	Register_Reln_type_CD,\
-                                AUTOEND as Auto_Proprate_Register_Reln_IND, \
-                                ERDAT	as	Record_Create_DT,\
-                                ERNAM	as	Obj_Create_Person_NM,\
-                                AEDAT	as	Last_Change_DT,\
-                                AENAM	as	Obj_Change_Person_NM \
-                               FROM CLEANSED.STG_SAP_EASTIH")
+                                  SUPERIOR_PROP_TYPE as superiorPropertyTypeCode , \
+                                  DESCRIPTION as superiorPropertyType , \
+                                  _RecordStart, \
+                                  _RecordEnd, \
+                                  _RecordDeleted, \
+                                  _RecordCurrent \
+                               FROM CLEANSED.stg_sapisu_zcd_tsupprtyp_tx")
 display(df_updated_column)
 
 # COMMAND ----------
