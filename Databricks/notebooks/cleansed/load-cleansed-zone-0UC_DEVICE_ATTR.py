@@ -116,7 +116,7 @@ print(data_load_mode)
 #Delta and SQL tables are case Insensitive. Seems Delta table are always lower case
 delta_cleansed_tbl_name = "{0}.{1}".format(ADS_DATABASE_CLEANSED, "stg_"+source_object)
 delta_raw_tbl_name = "{0}.{1}".format(ADS_DATABASE_RAW, source_object)
-delta_raw_tbl_name = "raw.sap_0uc_device_attr"
+#delta_raw_tbl_name = "raw.sap_0uc_device_attr"
 
 #Destination
 print(delta_cleansed_tbl_name)
@@ -176,7 +176,7 @@ cleanse_Schema = StructType(
     StructField("deviceSize", StringType(), True),
     StructField("assetManufacturerName", StringType(), True),
     StructField("manufacturerSerialNumber", StringType(), True),    
-    StructField("manufacturerModelNumber", DateType(), True),
+    StructField("manufacturerModelNumber", StringType(), True),
     StructField("objectNumber", StringType(), True),  
     StructField("registerNotRelevantToBilling", StringType(), True),     
     StructField('_RecordStart',TimestampType(),False),
