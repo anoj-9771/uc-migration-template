@@ -117,8 +117,6 @@ print(data_load_mode)
 delta_cleansed_tbl_name = "{0}.{1}".format(ADS_DATABASE_CLEANSED, "stg_"+source_object)
 delta_raw_tbl_name = "{0}.{1}".format(ADS_DATABASE_RAW, source_object)
 
-delta_raw_tbl_name = 'raw.sap_dberchz1'
-
 #Destination
 print(delta_cleansed_tbl_name)
 print(delta_raw_tbl_name)
@@ -147,10 +145,10 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_updated_column = spark.sql("SELECT  \
+df_cleansed_column = spark.sql("SELECT  \
                                   BELNR as billingDocumentNumber, \
                                   BELZEILE as billingDocumentLineItemId, \
-                                  CSNO as B]billingSequenceNumber, \
+                                  CSNO as billingSequenceNumber, \
                                   BELZART as lineItemTypeCode, \
                                   ABSLKZ as billingLineItemBudgetBillingIndicator, \
                                   DIFFKZ as lineItemDiscountStatisticsIndicator, \
@@ -161,13 +159,13 @@ df_updated_column = spark.sql("SELECT  \
                                   STGRAMT as amountStatisticsGroupCoide, \
                                   PRINTREL as billingLinePrintReleventIndicator, \
                                   AKLASSE as billingClassCode, \
-                                  'To be Mapped' as bllngClass, \
+                                  bc.billingClass as billingClass, \
                                   BRANCHE as industryText, \
                                   TVORG as subtransactionForDocumentItem, \
                                   GEGEN_TVORG as offsettingTransactionSubtransactionForDocumentItem, \
                                   LINESORT as poresortingBillingLineItems, \
-                                  todate(AB, 'yyyy-MM-dd') as validFromDate, \
-                                  todate(BIS, 'yyyy-MM-dd') as validToDate, \
+                                  to_date(AB, 'yyyy-MM-dd') as validFromDate, \
+                                  to_date(BIS, 'yyyy-MM-dd') as validToDate, \
                                   TIMTYPZA as billingLineItemTimeCategoryCode, \
                                   SCHEMANR as billingSchemaNumber, \
                                   SNO as billingSchemaStepSequenceNumber, \
@@ -207,19 +205,21 @@ df_updated_column = spark.sql("SELECT  \
                                   OUCONTRACT as individualContractID, \
                                   V_ABRMENGE as billingQuantityPlaceBeforeDecimalPoint, \
                                   N_ABRMENGE as billingQuantityPlaceAfterDecimalPoint, \
-                                _RecordStart, \
-                                _RecordEnd, \
-                                _RecordDeleted, \
-                                _RecordCurrent \
-                               FROM CLEANSED.STG_SAPISU_DBERCHZ1")
-display(df_updated_column)
+                                  stg._RecordStart, \
+                                  stg._RecordEnd, \
+                                  stg._RecordDeleted, \
+                                  stg._RecordCurrent \
+                               FROM CLEANSED.STG_SAPISU_DBERCHZ1 stg \
+                                 left outer join cleansed.t_sapisu_0uc_aklasse_text bc on bc.billingClassCode = stg.AKLASSE"
+                             )
+display(df_cleansed_column)
 
 # COMMAND ----------
 
 newSchema = StructType([
-                            StructField('billingDocumentNumber', StringType(), True),
-                            StructField('billingDocumentLineItemId', StringType(), True),
-                            StructField('B]billingSequenceNumber', StringType(), True),
+                            StructField('billingDocumentNumber', StringType(), False),
+                            StructField('billingDocumentLineItemId', IntegerType(), False),
+                            StructField('billingSequenceNumber', StringType(), True),
                             StructField('lineItemTypeCode', StringType(), True),
                             StructField('billingLineItemBudgetBillingIndicator', StringType(), True),
                             StructField('lineItemDiscountStatisticsIndicator', StringType(), True),
@@ -230,7 +230,7 @@ newSchema = StructType([
                             StructField('amountStatisticsGroupCoide', StringType(), True),
                             StructField('billingLinePrintReleventIndicator', StringType(), True),
                             StructField('billingClassCode', StringType(), True),
-                            StructField('bllngClass', StringType(), True),
+                            StructField('billingClass', StringType(), True),
                             StructField('industryText', StringType(), True),
                             StructField('subtransactionForDocumentItem', StringType(), True),
                             StructField('offsettingTransactionSubtransactionForDocumentItem', StringType(), True),
@@ -252,7 +252,7 @@ newSchema = StructType([
                             StructField('rateFactGroupNumber', StringType(), True),
                             StructField('statisticalRate', StringType(), True),
                             StructField('weightingKeyId', StringType(), True),
-                            StructField('referenceValuesForRepetitionFactor', IntType(), True),
+                            StructField('referenceValuesForRepetitionFactor', IntegerType(), True),
                             StructField('tempratureArea', StringType(), True),
                             StructField('reversalDynamicPeriodControl1', StringType(), True),
                             StructField('reversalDynamicPeriodControl2', StringType(), True),
@@ -274,15 +274,15 @@ newSchema = StructType([
                             StructField('franchiseContractIndicator', StringType(), True),
                             StructField('billingPeriodInternalCategoryCode', StringType(), True),
                             StructField('individualContractID', StringType(), True),
-                            StructField('billingQuantityPlaceBeforeDecimalPoint', DoubleType(), True),
+                            StructField('billingQuantityPlaceBeforeDecimalPoint', IntegerType(), True),
                             StructField('billingQuantityPlaceAfterDecimalPoint', DoubleType(), True),
                             StructField('_RecordStart', DateType(), False),
                             StructField('_RecordEnd', DateType(), False),
-                            StructField('_RecordDeleted', DateType(), False),
-                            StructField('_RecordCurrent', DateType(), False),
+                            StructField('_RecordDeleted', IntegerType(), False),
+                            StructField('_RecordCurrent', IntegerType(), False),
                     ])
 
-df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
+df_updated_column = spark.createDataFrame(df_cleansed_column.rdd, schema=newSchema)
 display(df_updated_column)
 
 # COMMAND ----------
