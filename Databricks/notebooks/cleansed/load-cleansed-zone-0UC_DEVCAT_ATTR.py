@@ -116,7 +116,7 @@ print(data_load_mode)
 #Delta and SQL tables are case Insensitive. Seems Delta table are always lower case
 delta_cleansed_tbl_name = "{0}.{1}".format(ADS_DATABASE_CLEANSED, "stg_"+source_object)
 delta_raw_tbl_name = "{0}.{1}".format(ADS_DATABASE_RAW, source_object)
-delta_raw_tbl_name = "raw.sap_0uc_devcat_attr"
+#delta_raw_tbl_name = "raw.sap_0uc_devcat_attr"
 
 #Destination
 print(delta_cleansed_tbl_name)
@@ -147,33 +147,37 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_updated_column_temp = spark.sql("SELECT \
-                                  MATNR as materialNumber,\
-                                  KOMBINAT as deviceCategoryCombination,\
-                                  FUNKLAS as functionClassCode,\
-                                  'To be Mapped' as functionClass,\
-                                  BAUKLAS as constructionClassCode,\
-                                  'To be Mapped' as constructionClass,\
-                                  BAUFORM as deviceCategoryDescription,\
-                                  BAUTXT as deviceCategoryName,\
-                                  PTBNUM as ptiNumber,\
-                                  DVGWNUM as ggwaNumber,\
-                                  BGLKZ as certificationRequirementType,\
-                                  ZWGRUPPE as registerGroupCode,\
-                                  'To be Mapped' as registerGroup,\
-                                  UEBERVER as transformationRatio,\
-                                  AENAM as changedBy,\
-                                  to_date(AEDAT) as lastChangedDate,\
-                                  SPARTE as division,\
-                                  NENNBEL as nominalLoad,\
-                                  STELLPLATZ as containerSpaceCount,\
-                                  HOEHEBEH as containerCategoryHeight,\
-                                  BREITEBEH as containerCategoryWidth,\
-                                  TIEFEBEH as containerCategoryDepth,\
-                                  _RecordStart, \
-                                  _RecordEnd, \
-                                  _RecordDeleted, \
-                                  _RecordCurrent \
-                              FROM CLEANSED.STG_SAPISU_0UC_DEVCAT_ATTR")
+                                  DEVCAT.MATNR as materialNumber,\
+                                  DEVCAT.KOMBINAT as deviceCategoryCombination,\
+                                  DEVCAT.FUNKLAS as functionClassCode,\
+                                  FKLASTX.FUNKTXT as functionClass,\
+                                  DEVCAT.BAUKLAS as constructionClassCode,\
+                                  BKLASTX.BAUKLTXT as constructionClass,\
+                                  DEVCAT.BAUFORM as deviceCategoryDescription,\
+                                  DEVCAT.BAUTXT as deviceCategoryName,\
+                                  DEVCAT.PTBNUM as ptiNumber,\
+                                  DEVCAT.DVGWNUM as ggwaNumber,\
+                                  DEVCAT.BGLKZ as certificationRequirementType,\
+                                  DEVCAT.ZWGRUPPE as registerGroupCode,\
+                                  REGGRP.EZWG_INFO as registerGroup,\
+                                  DEVCAT.UEBERVER as transformationRatio,\
+                                  DEVCAT.AENAM as changedBy,\
+                                  to_date(DEVCAT.AEDAT) as lastChangedDate,\
+                                  DEVCAT.SPARTE as division,\
+                                  DEVCAT.NENNBEL as nominalLoad,\
+                                  DEVCAT.STELLPLATZ as containerSpaceCount,\
+                                  DEVCAT.HOEHEBEH as containerCategoryHeight,\
+                                  DEVCAT.BREITEBEH as containerCategoryWidth,\
+                                  DEVCAT.TIEFEBEH as containerCategoryDepth,\
+                                  DEVCAT._RecordStart, \
+                                  DEVCAT._RecordEnd, \
+                                  DEVCAT._RecordDeleted, \
+                                  DEVCAT._RecordCurrent \
+                              FROM CLEANSED.STG_SAPISU_0UC_DEVCAT_ATTR DEVCAT \
+                              LEFT OUTER JOIN RAW.SAPISU_0UC_FUNKLAS_TEXT FKLASTX ON DEVCAT.FUNKLAS = FKLASTX.FUNKLAS \
+                              LEFT OUTER JOIN RAW.SAPISU_0UC_BAUKLAS_TEXT BKLASTX ON DEVCAT.BAUKLAS = BKLASTX.BAUKLAS \
+                              LEFT OUTER JOIN RAW.SAPISU_0UC_REGGRP_TEXT REGGRP ON DEVCAT.ZWGRUPPE = REGGRP.ZWGRUPPE")
+                                   
 display(df_updated_column_temp)
 
 # COMMAND ----------
