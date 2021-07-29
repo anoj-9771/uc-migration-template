@@ -96,7 +96,6 @@ print(json.dumps(Params, indent=4, sort_keys=True))
 # COMMAND ----------
 
 # DBTITLE 1,8. Initilize/update parameter values
-
 #Align Table Name (replace '[-@ ,;{}()]' charecter by '_')
 source_object = GeneralAlignTableName(source_object)
 print(source_object)
@@ -117,19 +116,12 @@ print(data_load_mode)
 #Delta and SQL tables are case Insensitive. Seems Delta table are always lower case
 delta_cleansed_tbl_name = "{0}.{1}".format(ADS_DATABASE_CLEANSED, "stg_"+source_object)
 delta_raw_tbl_name = "{0}.{1}".format(ADS_DATABASE_RAW, source_object)
-#delta_raw_tbl_name = "raw.sap_0uc_mtr_doc"
 
 
 #Destination
 print(delta_cleansed_tbl_name)
 print(delta_raw_tbl_name)
 
-
-# COMMAND ----------
-
-a = spark.sql("SELECT count(1) FROM raw.sapisu_0uc_mtr_doc group by ABLBELNR ,EQUNR ")
-
-display(a)
 
 # COMMAND ----------
 
@@ -155,42 +147,15 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_updated_column = spark.sql("SELECT  \
-                                    ABLBELNR as meterReadingId , \
-                                    EQUNR as equipmentNumber , \
-                                    ZWNUMMER as registerNumber , \
-                                    ADAT as meterReadingDate , \
-                                    MRESULT as meterReadingTaken , \
-                                    MR_BILL as duplicate , \
-                                    AKTIV as meterReadingActive , \
-                                    ADATSOLL as scheduledMeterReadingDate , \
-                                    ABLSTAT as meterReadingStatus , \
-                                    ABLHINW as notefromMeterReader , \
-                                    ABLESART as scheduledMeterReadingCategory , \
-                                    ABLESER as meterReaderNumber , \
-                                    MDEUPL as orderHasBeenOutput , \
-                                    ISTABLART as meterReadingType , \
-                                    ABLESTYP as meterReadingCategory , \
-                                    MASSREAD as unitOfMeasurementMeterReading , \
-                                    UPDMOD as bwDeltaProcess , \
-                                    LOEVM as deletedIndicator , \
-                                    PRUEFPKT as independentValidation , \
-                                    POPCODE as dependentValidation , \
-                                    AMS as advancedMeteringSystem , \
-                                    TRANSSTAT as transferStatusCode , \
-                                    TRANSTSTAMP as timeStamp , \
-                                    SOURCESYST as sourceSystemOrigin , \
-                                    ZPREV_ADT as actualmeterReadingDate , \
-                                    ZPREV_MRESULT as zmeterReadingTaken , \
-                                    ZZ_PHOTO_IND as meterPhotoIndicator , \
-                                    ZZ_FREE_TEXT as freeText , \
-                                    ZZ_COMM_CODE as meterReadingCommentCode , \
-                                    ZZ_NO_READ_CODE as noReadCode , \
-                                    ZGERNR as DeviceNumber , \
-                                    ZADATTATS as actualMeterReadingDate , \
-                                    ZWNABR as registerNotRelevantToBilling , \
-                                    AEDAT as lastChangedDate \
-                                FROM CLEANSED.stg_sapisu_0uc_mtr_doc")
-
+                                INDEXNR	as	Register_Reln_ID,\
+                                PRUEFGR	as	Validation_Grp_CD,\
+                                ZWZUART	as	Register_Reln_type_CD,\
+                                AUTOEND as Auto_Proprate_Register_Reln_IND, \
+                                ERDAT	as	Record_Create_DT,\
+                                ERNAM	as	Obj_Create_Person_NM,\
+                                AEDAT	as	Last_Change_DT,\
+                                AENAM	as	Obj_Change_Person_NM \
+                               FROM CLEANSED.STG_SAP_EASTIH")
 display(df_updated_column)
 
 # COMMAND ----------
