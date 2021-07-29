@@ -117,7 +117,6 @@ print(data_load_mode)
 delta_cleansed_tbl_name = "{0}.{1}".format(ADS_DATABASE_CLEANSED, "stg_"+source_object)
 delta_raw_tbl_name = "{0}.{1}".format(ADS_DATABASE_RAW, source_object)
 
-delta_raw_tbl_name = "raw.sap_ercho"
 #Destination
 print(delta_cleansed_tbl_name)
 print(delta_raw_tbl_name)
@@ -146,7 +145,7 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_updated_column = spark.sql("SELECT  \
+df_cleansed_column = spark.sql("SELECT  \
                                   BELNR as billingDocumentNumber, \
                                   cast(OUTCNSO as int) as outsortingNumber, \
                                   VALIDATION as billingValidationName, \
@@ -155,9 +154,13 @@ df_updated_column = spark.sql("SELECT  \
                                   FREI_VON as documentReleasedUserName, \
                                   cast(DEVIATION as double) as deviation, \
                                   SIMULATION as billingSimulationIndicator, \
-                                  cast(OUTCOUNT as int) as manualOutsortingCount \
+                                  cast(OUTCOUNT as int) as manualOutsortingCount, \
+                                  _RecordStart, \
+                                  _RecordEnd, \
+                                  _RecordDeleted, \
+                                  _RecordCurrent \
                                FROM CLEANSED.STG_SAPISU_ERCHO")
-display(df_updated_column)
+display(df_cleansed_column)
 
 # COMMAND ----------
 
@@ -170,10 +173,14 @@ newSchema = StructType([
                         StructField('documentReleasedUserName', StringType(), True),
                         StructField('deviation', DoubleType(), True),
                         StructField('billingSimulationIndicator', StringType(), True),
-                        StructField('manualOutsortingCount', IntegerType(), True),
+                        StructField('manualOutsortingCount', IntegerType(), True), 
+                        StructField('_RecordStart', TimestampType(), False),
+                        StructField('_RecordEnd', TimestampType(), False),
+                        StructField('_RecordDeleted', IntegerType(), False),
+                        StructField('_RecordCurrent', IntegerType(), False),
                     ])
 
-df_updated_column = spark.createDataFrame(df_updated_column.rdd, schema=newSchema)
+df_updated_column = spark.createDataFrame(df_cleansed_column.rdd, schema=newSchema)
 display(df_updated_column)
 
 # COMMAND ----------
