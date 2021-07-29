@@ -148,13 +148,13 @@ DeltaSaveToDeltaTable (
 df_cleansed_column = spark.sql("SELECT  \
                                   BELNR as billingDocumentNumber, \
                                   BUKRS as companyCode, \
-                                  'To be mapped' as companyName, \
+                                  cc.companyName as companyName, \
                                   SPARTE as divisonCode, \
                                   GPARTNER as businessPartnerNumber, \
                                   VKONT as contractAccountNumber, \
                                   VERTRAG as contractID, \
-                                  BEGABRPE as startBillingPeriod, \
-                                  ENDABRPE as endBillingPeriod, \
+                                  to_date(BEGABRPE, 'yyyy-MM-dd') as startBillingPeriod, \
+                                  to_date(ENDABRPE, 'yyyy-MM-dd') as endBillingPeriod, \
                                   to_date(ABRDATS, 'yyyy-MM-dd') as billingScheduleDate, \
                                   to_date(ADATSOLL, 'yyyy-MM-dd') as meterReadingScheduleDate, \
                                   to_date(PTERMTDAT, 'yyyy-MM-dd') as billingPeriodEndDate, \
@@ -178,9 +178,9 @@ df_cleansed_column = spark.sql("SELECT  \
                                   ABRVORG2 as periodEndBillingTransactionCode, \
                                   ABLEINH as meterReadingUnit, \
                                   ENDPRIO as billingEndingPriorityCodfe, \
-                                  to_date(ERDAT, 'yyyy-MM-dd hh24:mi:ss') as createdDate, \
+                                  to_date(ERDAT, 'yyyy-MM-dd hh24:mm:ss') as createdDate, \
                                   ERNAM as createdBy, \
-                                  to_date(AEDAT, 'yyyy-MM-dd hh24:mi:ss') as lastChangedDate, \
+                                  to_date(AEDAT, 'yyyy-MM-dd hh24:mm:ss') as lastChangedDate, \
                                   AENAM as changedBy, \
                                   BEGRU as authorizationGroupCode, \
                                   LOEVM as deletedIndicator, \
@@ -206,7 +206,7 @@ df_cleansed_column = spark.sql("SELECT  \
                                   NOCANC as billingDonotExecuteIndicator, \
                                   ABSCHLPAN as billingPlanAdjustIndicator, \
                                   MEM_OPBEL as newBillingDocumentNumberForReversedInvoicing, \
-                                  MEM_BUDAT as billingPostingDateInDocument, \
+                                  to_date(MEM_BUDAT, 'yyyy-MM-dd') as billingPostingDateInDocument, \
                                   EXBILLDOCNO as externalDocumentNumber, \
                                   BCREASON as reversalReasonCode, \
                                   NINVOICE as billingDocumentWithoutInvoicingCode, \
@@ -228,11 +228,13 @@ df_cleansed_column = spark.sql("SELECT  \
                                   MAINDOCNO as billingDocumentPrimaryInstallationNumber, \
                                   INSTGRTYPE as instalGroupTypeCode, \
                                   INSTROLE as instalGroupRoleCode, \
-                                  _RecordStart, \
-                                  _RecordEnd, \
-                                  _RecordDeleted, \
-                                  _RecordCurrent \
-                               FROM CLEANSED.STG_SAPISU_ERCH")
+                                  stg._RecordStart, \
+                                  stg._RecordEnd, \
+                                  stg._RecordDeleted, \
+                                  stg._RecordCurrent \
+                              FROM CLEANSED.STG_SAPISU_ERCH stg \
+                               left outer join cleansed.t_sapisu_0comp_code_text cc on cc.companyCode = stg.BUKRS"
+                              )
 display(df_cleansed_column)
 
 # COMMAND ----------
@@ -326,7 +328,7 @@ newSchema = StructType([
                           StructField('_RecordCurrent', IntegerType(), False)
 ])
 
-df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
+df_updated_column = spark.createDataFrame(df_cleansed_column.rdd, schema=newSchema)
 display(df_updated_column)
 
 # COMMAND ----------
