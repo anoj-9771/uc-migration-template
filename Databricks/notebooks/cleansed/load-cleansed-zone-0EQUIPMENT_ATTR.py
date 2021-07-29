@@ -116,7 +116,7 @@ print(data_load_mode)
 #Delta and SQL tables are case Insensitive. Seems Delta table are always lower case
 delta_cleansed_tbl_name = "{0}.{1}".format(ADS_DATABASE_CLEANSED, "stg_"+source_object)
 delta_raw_tbl_name = "{0}.{1}".format(ADS_DATABASE_RAW, source_object)
-delta_raw_tbl_name = "raw.sap_0equipment_attr"
+
 
 #Destination
 print(delta_cleansed_tbl_name)
@@ -147,31 +147,32 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_updated_column_temp = spark.sql("SELECT \
-                                  EQUNR as equipmentNumber,\
-                                  to_date(DATETO) as validToDate,\
-                                  to_date(DATEFROM) as validFromDate,\
-                                  EQART as technicalObjectTypeCode,\
-                                  INVNR as inventoryNumber,\
-                                  IWERK as maintenancePlanningPlant,\
-                                  KOKRS as controllingArea,\
-                                  TPLNR as functionalLocationNumber,\
-                                  SWERK as maintenancePlant,\
-                                  ADRNR as addressNumber,\
-                                  BUKRS as companyCode,\
-                                  'To be mapped' as companyName,\
-                                  MATNR as materialNumber,\
-                                  ANSWT as acquisitionValue,\
-                                  to_date(ANSDT) as acquisitionDate,\
-                                  to_date(ERDAT) as createdDate,\
-                                  to_date(AEDAT) as lastChangedDate,\
-                                  to_date(INBDT) as startUpDate,\
-                                  PROID as workBreakdownStructureElement,\
-                                  EQTYP as equipmentCategoryCode, \
-                                  _RecordStart,\
-                                  _RecordEnd,\
-                                  _RecordDeleted,\
-                                   _RecordCurrent \
-                                FROM CLEANSED.STG_SAPISU_0EQUIPMENT_ATTR")
+                                  EQUI.EQUNR as equipmentNumber,\
+                                  to_date(EQUI.DATETO) as validToDate,\
+                                  to_date(EQUI.DATEFROM) as validFromDate,\
+                                  EQUI.EQART as technicalObjectTypeCode,\
+                                  EQUI.INVNR as inventoryNumber,\
+                                  EQUI.IWERK as maintenancePlanningPlant,\
+                                  EQUI.KOKRS as controllingArea,\
+                                  EQUI.TPLNR as functionalLocationNumber,\
+                                  EQUI.SWERK as maintenancePlant,\
+                                  EQUI.ADRNR as addressNumber,\
+                                  EQUI.BUKRS as companyCode,\
+                                  COMP.TXTMD as companyName,\
+                                  EQUI.MATNR as materialNumber,\
+                                  EQUI.ANSWT as acquisitionValue,\
+                                  to_date(EQUI.ANSDT) as acquisitionDate,\
+                                  to_date(EQUI.ERDAT) as createdDate,\
+                                  to_date(EQUI.AEDAT) as lastChangedDate,\
+                                  to_date(EQUI.INBDT) as startUpDate,\
+                                  EQUI.PROID as workBreakdownStructureElement,\
+                                  EQUI.EQTYP as equipmentCategoryCode, \
+                                  EQUI._RecordStart,\
+                                  EQUI._RecordEnd,\
+                                  EQUI._RecordDeleted,\
+                                  EQUI._RecordCurrent \
+                                FROM CLEANSED.STG_SAPISU_0EQUIPMENT_ATTR EQUI \
+                                LEFT OUTER JOIN RAW.SAPISU_0COMP_CODE_TEXT COMP ON EQUI.BUKRS = COMP.BUKRS")
 display(df_updated_column_temp)
 
 # COMMAND ----------
