@@ -228,16 +228,106 @@ df_cleansed_column = spark.sql("SELECT  \
                                   MAINDOCNO as billingDocumentPrimaryInstallationNumber, \
                                   INSTGRTYPE as instalGroupTypeCode, \
                                   INSTROLE as instalGroupRoleCode, \
-                                _RecordStart, \
-                                _RecordEnd, \
-                                _RecordDeleted, \
-                                _RecordCurrent \
+                                  _RecordStart, \
+                                  _RecordEnd, \
+                                  _RecordDeleted, \
+                                  _RecordCurrent \
                                FROM CLEANSED.STG_SAPISU_ERCH")
 display(df_cleansed_column)
 
 # COMMAND ----------
 
+newSchema = StructType([
+                          StructField('billingDocumentNumber', StringType(), False),
+                          StructField('companyCode', StringType(), True),
+                          StructField('companyName', StringType(), True),
+                          StructField('divisonCode', StringType(), True),
+                          StructField('businessPartnerNumber', StringType(), True),
+                          StructField('contractAccountNumber', StringType(), True),
+                          StructField('contractID', StringType(), True),
+                          StructField('startBillingPeriod', DateType(), True),
+                          StructField('endBillingPeriod', DateType(), True),
+                          StructField('billingScheduleDate', DateType(), True),
+                          StructField('meterReadingScheduleDate', DateType(), True),
+                          StructField('billingPeriodEndDate', DateType(), True),
+                          StructField('billingDocumentCreateDate', DateType(), True),
+                          StructField('alternativeContractAccountForCollectiveBills', StringType(), True),
+                          StructField('previousDocumentNumber', StringType(), True),
+                          StructField('reversalDate', DateType(), True),
+                          StructField('billingTransactionCode', StringType(), True),
+                          StructField('mainTransactionLineItemCode', StringType(), True),
+                          StructField('contractAccountDeterminationID', StringType(), True),
+                          StructField('portionNumber', StringType(), True),
+                          StructField('formName', StringType(), True),
+                          StructField('billingSimulationIndicator', StringType(), True),
+                          StructField('documentTypeCode', StringType(), True),
+                          StructField('backbillingCreditReasonCode', StringType(), True),
+                          StructField('backbillingStartPeriod', DateType(), True),
+                          StructField('DocumentNotReleasedIndicator', StringType(), True),
+                          StructField('taxJurisdictionDescription', StringType(), True),
+                          StructField('franchiseContractCode', StringType(), True),
+                          StructField('billingDocumentCreateTime', StringType(), True),
+                          StructField('periodEndBillingTransactionCode', StringType(), True),
+                          StructField('meterReadingUnit', StringType(), True),
+                          StructField('billingEndingPriorityCodfe', StringType(), True),
+                          StructField('createdDate', DateType(), True),
+                          StructField('createdBy', StringType(), True),
+                          StructField('lastChangedDate', DateType(), True),
+                          StructField('changedBy', StringType(), True),
+                          StructField('authorizationGroupCode', StringType(), True),
+                          StructField('deletedIndicator', StringType(), True),
+                          StructField('suppressedBillingOrderScheduleDate', DateType(), True),
+                          StructField('suppressedBillingOrderTransactionCode', StringType(), True),
+                          StructField('jointInvoiceAutomaticDocumentIndicator', StringType(), True),
+                          StructField('BudgetBillingPlanCode', StringType(), True),
+                          StructField('manualDocumentReleasedInvoicingIndicator', StringType(), True),
+                          StructField('backbillingTypeCode', StringType(), True),
+                          StructField('billingPeriodEndType', StringType(), True),
+                          StructField('backbillingPeriodNumber', IntegerType(), True),
+                          StructField('periodEndBillingStartDate', DateType(), True),
+                          StructField('backbillingPeriodEndIndicator', StringType(), True),
+                          StructField('billingPeriodEndIndicator', StringType(), True),
+                          StructField('billingPeriodEndCount', IntegerType(), True),
+                          StructField('billingDoumentAdjustmentReversalCount', StringType(), True),
+                          StructField('billingDocumentNumberForAdjustmentReverssal', StringType(), True),
+                          StructField('billingAllocationDate', DateType(), True),
+                          StructField('billingRunNumber', StringType(), True),
+                          StructField('simulationPeriodID', StringType(), True),
+                          StructField('accountClassCode', StringType(), True),
+                          StructField('billingDocumentOriginCode', StringType(), True),
+                          StructField('billingDonotExecuteIndicator', StringType(), True),
+                          StructField('billingPlanAdjustIndicator', StringType(), True),
+                          StructField('newBillingDocumentNumberForReversedInvoicing', StringType(), True),
+                          StructField('billingPostingDateInDocument', DateType(), True),
+                          StructField('externalDocumentNumber', StringType(), True),
+                          StructField('reversalReasonCode', StringType(), True),
+                          StructField('billingDocumentWithoutInvoicingCode', StringType(), True),
+                          StructField('billingRelavancyIndicator', StringType(), True),
+                          StructField('errorDetectedDate', DateType(), True),
+                          StructField('basicCategoryDynamicPeriodControlCode', StringType(), True),
+                          StructField('meterReadingResultEstimatedBillingIndicator', StringType(), True),
+                          StructField('SuppressedOrderEstimateBillingIndicator', StringType(), True),
+                          StructField('originalValueEstimateBillingIndicator', StringType(), True),
+                          StructField('suppressedOrderBillingIndicator', StringType(), True),
+                          StructField('currentBillingPeriodCategoryCode', StringType(), True),
+                          StructField('toBeBilledPeriodOriginalCategoryCode', StringType(), True),
+                          StructField('incomingPaymentMethodCode', StringType(), True),
+                          StructField('standingOrderIndicator', StringType(), True),
+                          StructField('planningGroupNumber', StringType(), True),
+                          StructField('billingKeyDate', StringType(), True),
+                          StructField('onsiteBillingGroupCode', StringType(), True),
+                          StructField('resultingBillingPeriodIndicator', StringType(), True),
+                          StructField('billingDocumentPrimaryInstallationNumber', StringType(), True),
+                          StructField('instalGroupTypeCode', StringType(), True),
+                          StructField('instalGroupRoleCode', StringType(), True),
+                          StructField('_RecordStart', TimestampType(), False),
+                          StructField('_RecordEnd', TimestampType(), False),
+                          StructField('_RecordDeleted', IntegerType(), False),
+                          StructField('_RecordCurrent', IntegerType(), False)
+])
 
+df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
+display(df_updated_column)
 
 # COMMAND ----------
 
