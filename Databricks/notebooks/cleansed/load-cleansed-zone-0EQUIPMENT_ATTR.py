@@ -116,7 +116,7 @@ print(data_load_mode)
 #Delta and SQL tables are case Insensitive. Seems Delta table are always lower case
 delta_cleansed_tbl_name = "{0}.{1}".format(ADS_DATABASE_CLEANSED, "stg_"+source_object)
 delta_raw_tbl_name = "{0}.{1}".format(ADS_DATABASE_RAW, source_object)
-
+#delta_raw_tbl_name = "raw.sap_0equipment_attr"
 
 #Destination
 print(delta_cleansed_tbl_name)
@@ -158,7 +158,7 @@ df_updated_column_temp = spark.sql("SELECT \
                                   EQUI.SWERK as maintenancePlant,\
                                   EQUI.ADRNR as addressNumber,\
                                   EQUI.BUKRS as companyCode,\
-                                  COMP.TXTMD as companyName,\
+                                  COMP.companyName as companyName,\
                                   EQUI.MATNR as materialNumber,\
                                   EQUI.ANSWT as acquisitionValue,\
                                   to_date(EQUI.ANSDT) as acquisitionDate,\
@@ -172,7 +172,7 @@ df_updated_column_temp = spark.sql("SELECT \
                                   EQUI._RecordDeleted,\
                                   EQUI._RecordCurrent \
                                 FROM CLEANSED.STG_SAPISU_0EQUIPMENT_ATTR EQUI \
-                                LEFT OUTER JOIN RAW.SAPISU_0COMP_CODE_TEXT COMP ON EQUI.BUKRS = COMP.BUKRS")
+                                LEFT OUTER JOIN CLEANSED.T_SAPISU_0COMP_CODE_TEXT COMP ON EQUI.BUKRS = COMP.companyCode")
 display(df_updated_column_temp)
 
 # COMMAND ----------
