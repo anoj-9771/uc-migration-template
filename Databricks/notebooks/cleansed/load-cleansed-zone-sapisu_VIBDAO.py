@@ -212,7 +212,8 @@ df_updated_column = spark.sql("SELECT  \
                                   _RecordEnd, \
                                   _RecordDeleted, \
                                   _RecordCurrent \
-                              FROM CLEANSED.stg_sapisu_vibdao")
+                              FROM CLEANSED.stg_sapisu_vibdao \
+                              ")
 
 display(df_updated_column)
 
