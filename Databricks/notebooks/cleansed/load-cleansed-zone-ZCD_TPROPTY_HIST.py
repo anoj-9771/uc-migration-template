@@ -146,14 +146,14 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_updated_column = spark.sql("SELECT  \
+df_updated_column_temp = spark.sql("SELECT  \
                                   PROPERTY_NO as propertyNumber , \
                                   SUP_PROP_TYPE as superiorPropertyTypeCode , \
                                   sup_typ.superiorPropertyType  as superiorPropertyType , \
                                   INF_PROP_TYPE as inferiorPropertyTypeCode , \
                                   inf_typ.inferiorPropertyType  as inferiorPropertyType , \
-                                  DATE_FROM as validFromDate , \
-                                  DATE_TO as validToDate  , \
+                                  to_date(DATE_FROM) as validFromDate , \
+                                  to_date(DATE_TO) as validToDate  , \
                                   prop_hist._RecordStart, \
                                   prop_hist._RecordEnd, \
                                   prop_hist._RecordDeleted, \
@@ -163,7 +163,32 @@ df_updated_column = spark.sql("SELECT  \
                                 left outer join CLEANSED.t_sapisu_zcd_tsupprtyp_tx sup_typ on prop_hist.SUP_PROP_TYPE = sup_typ.superiorPropertyTypecode \
                               ")
 
+display(df_updated_column_temp)
+
+# COMMAND ----------
+
+# Create schema for the cleanse table
+cleanse_Schema = StructType(
+[
+StructField("propertyNumber", StringType(), False),
+StructField("superiorPropertyTypeCode", StringType(), True),
+StructField("superiorPropertyType", StringType(), True),
+StructField("inferiorPropertyTypeCode", StringType(), True),
+StructField("inferiorPropertyType", StringType(), True),
+StructField("validFromDate", DateType(), True),
+StructField("validToDate", DateType(), True),
+StructField('_RecordStart',TimestampType(),False),
+StructField('_RecordEnd',TimestampType(),False),
+StructField('_RecordDeleted',IntegerType(),False),
+StructField('_RecordCurrent',IntegerType(),False)
+]
+)
+# Apply the new schema to cleanse Data Frame
+df_updated_column = spark.createDataFrame(df_updated_column_temp.rdd, schema=cleanse_Schema)
 display(df_updated_column)
+
+
+
 
 # COMMAND ----------
 
