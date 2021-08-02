@@ -50,22 +50,22 @@ variables:
     value: 30
   # Name of Log Analytics workspace name
   - name: loganalyticsworkspacename
-    value: $(PREFIX)-$(ENVIRONMENT)-ALA
+    value: logws-$(PREFIX)-$(ENVIRONMENT)
   - name: logstorageaccountname
-    value: ${{ replace(lower(variables.prefix),'-','') }}${{ replace(lower(variables.environment),'-','') }}salogs
+    value: salogs$(PREFIX)$(ENVIRONMENT)$(INCREMENT)
   # Name of Azure SQL Server and catalog name
   # Data Lake storage account names, commonly split
   # into zones. Ensure it is a comma delimited list.
   # as it is split into an array within the ARM 
   # template.
   - name: blobstorageaccountnames
-    value: ${{ replace(lower(variables.prefix),'-','') }}${{ replace(lower(variables.environment),'-','') }}saraw, ${{ replace(lower(variables.prefix),'-','') }}${{ replace(lower(variables.environment),'-','') }}sacurated
+    value: sablob$(PREFIX)$(ENVIRONMENT)$(INCREMENT)
   - name: datalakestorageaccountnames
     value: sa$(PREFIX)$(ENVIRONMENT)$(INCREMENT)
   # Container or file system names within storage account
   # Used to iterate in ARM template
   - name: logzonename
-    value: databricks
+    value: daflogs
   - name: zonenames
     value: raw, trusted, cleansed, curated, synapsestaging
     # value: raw, stage, sandbox
@@ -114,7 +114,7 @@ variables:
   - name: databricksclustername
     value: etl-cluster
   - name: sparkClusterVersion
-    value: 7.0.x-scala2.12
+    value: 8.0.x-scala2.12
   - name: databricksdrivernodetypeid
     value: Standard_D3_v2
   - name: databricksnodetypeid

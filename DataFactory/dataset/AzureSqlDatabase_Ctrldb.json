@@ -5,7 +5,7 @@
 			"referenceName": "LS-AzureSqlDatabase_Ctrldb",
 			"type": "LinkedServiceReference",
 			"parameters": {
-				"kvSecret": "ADF-LS-AzureSql-ControlDB"
+				"kvSecret": "daf-sql-controldb-connectionstring"
 			}
 		},
 		"folder": {
