@@ -1,1 +1,0 @@
-﻿CREATE   VIEW  reference.AvetmissDeliveryModePre2018 AS SELECT *, _DLTrustedZoneTimeStamp _DLCuratedZoneTimeStamp  FROM edw.reference_avetmiss_delivery_mode_pre_2018

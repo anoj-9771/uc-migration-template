@@ -37,7 +37,7 @@ steps:
       deploymentMode: 'Incremental'
       deploymentOutputs: 'nsgOutput'
     displayName: 'Create or update NSG'
-  # Extract ARM NSG ID output
+  # Extract ARM NSG ID output.
   - powershell: |
       Write-Host '$(nsgOutput)'
       $json = '$(nsgOutput)' | convertfrom-json

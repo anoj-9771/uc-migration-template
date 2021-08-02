@@ -1,1 +1,0 @@
-﻿CREATE   VIEW  reference.TsNswFund AS SELECT *, _DLTrustedZoneTimeStamp _DLCuratedZoneTimeStamp  FROM edw.reference_ts_nsw_fund

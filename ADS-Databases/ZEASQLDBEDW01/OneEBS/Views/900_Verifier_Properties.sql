@@ -1,1 +1,0 @@
-﻿Create   view OneEBS.[900_Verifier_Properties] AS  Select * from edw.OneEBS_EBS_0900_VERIFIER_PROPERTIES WHERE        (_RecordDeleted = 0) AND (_RecordCurrent = 1)
