@@ -696,7 +696,7 @@
 						"type": "SqlServerStoredProcedure",
 						"dependsOn": [
 							{
-								"activity": "If-ClusterType",
+								"activity": "Load-To-Curated-Zone-Interactive_copy1",
 								"dependencyConditions": [
 									"Failed"
 								]
@@ -763,7 +763,7 @@
 						"type": "SqlServerStoredProcedure",
 						"dependsOn": [
 							{
-								"activity": "If-ClusterType",
+								"activity": "Load-To-Curated-Zone-Interactive_copy1",
 								"dependencyConditions": [
 									"Succeeded"
 								]
@@ -830,129 +830,29 @@
 						}
 					},
 					{
-						"name": "If-ClusterType",
-						"description": "",
-						"type": "IfCondition",
-						"dependsOn": [
-							{
-								"activity": "Set-ClusterType",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"userProperties": [],
-						"typeProperties": {
-							"expression": {
-								"value": "@equals(variables('ClusterType'), 'interactive')",
-								"type": "Expression"
-							},
-							"ifFalseActivities": [
-								{
-									"name": "Load-To-Curated-Zone-Job",
-									"type": "DatabricksNotebook",
-									"dependsOn": [],
-									"policy": {
-										"timeout": "7.00:00:00",
-										"retry": 0,
-										"retryIntervalInSeconds": 30,
-										"secureOutput": false,
-										"secureInput": false
-									},
-									"userProperties": [],
-									"typeProperties": {
-										"notebookPath": {
-											"value": "@pipeline().parameters.TaskDetails.Command",
-											"type": "Expression"
-										},
-										"baseParameters": {
-											"storage_account_key": {
-												"value": "@pipeline().parameters.TaskDetails.SourceServer",
-												"type": "Expression"
-											},
-											"srcDirectoryName": {
-												"value": "@variables('SourceFolder')",
-												"type": "Expression"
-											},
-											"dstDirectoryName": {
-												"value": "@variables('TargetFolder')",
-												"type": "Expression"
-											},
-											"srcBlobName": {
-												"value": "@variables('SourceBlob')",
-												"type": "Expression"
-											},
-											"dstBlobName": {
-												"value": "@variables('TargetBlob')",
-												"type": "Expression"
-											}
-										}
-									},
-									"linkedServiceName": {
-										"referenceName": "LS-AzureDatabricks_JobCluster",
-										"type": "LinkedServiceReference",
-										"parameters": {
-											"kvSecret": {
-												"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[0]",
-												"type": "Expression"
-											},
-											"DataBricksClusterType": {
-												"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[2]",
-												"type": "Expression"
-											},
-											"DataBricksClusterVersion": {
-												"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[3]",
-												"type": "Expression"
-											},
-											"DataBricksWorkerNodes": {
-												"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[4]",
-												"type": "Expression"
-											}
-										}
-									}
-								}
-							],
-							"ifTrueActivities": [
-								{
-									"name": "Load-To-Curated-Zone-Interactive",
-									"type": "DatabricksNotebook",
-									"dependsOn": [],
-									"policy": {
-										"timeout": "7.00:00:00",
-										"retry": 0,
-										"retryIntervalInSeconds": 30,
-										"secureOutput": false,
-										"secureInput": false
-									},
-									"userProperties": [],
-									"typeProperties": {
-										"notebookPath": {
-											"value": "/build/curated/common/common-curated-master",
-											"type": "Expression"
-										}
-									},
-									"linkedServiceName": {
-										"referenceName": "LS-AzureDatabricks_DefinedCluster",
-										"type": "LinkedServiceReference",
-										"parameters": {
-											"kvSecret": "databricks-token",
-											"clusterId": "0705-044124-gored835|Standard_DS3_v2"
-										}
-									}
-								}
-							]
-						}
-					},
-					{
-						"name": "Set-ClusterType",
-						"type": "SetVariable",
+						"name": "Load-To-Curated-Zone-Interactive_copy1",
+						"type": "DatabricksNotebook",
 						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
 						"userProperties": [],
 						"typeProperties": {
-							"variableName": "ClusterType",
-							"value": {
-								"value": "@toLower(last(split(pipeline().parameters.TaskDetails.Processor,'|')))",
+							"notebookPath": {
+								"value": "/build/curated/common/common-curated-master",
 								"type": "Expression"
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "LS-AzureDatabricks_DefinedCluster",
+							"type": "LinkedServiceReference",
+							"parameters": {
+								"kvSecret": "databricks-token",
+								"clusterId": "0705-044124-gored835|Standard_DS3_v2"
 							}
 						}
 					}
@@ -1010,7 +910,6 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/LS-AzureSqlDatabase_Ctrldb')]",
-				"[concat(variables('factoryId'), '/linkedServices/LS-AzureDatabricks_JobCluster')]",
 				"[concat(variables('factoryId'), '/linkedServices/LS-AzureDatabricks_DefinedCluster')]"
 			]
 		},
