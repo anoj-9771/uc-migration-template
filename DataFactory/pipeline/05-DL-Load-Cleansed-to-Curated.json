@@ -295,11 +295,12 @@
 				"type": "String"
 			},
 			"ClusterType": {
-				"type": "String"
+				"type": "String",
+				"defaultValue": "interactive"
 			},
 			"SourceContainer": {
 				"type": "String",
-				"defaultValue": "trusted"
+				"defaultValue": "cleansed"
 			},
 			"SourceDirectory": {
 				"type": "String"
