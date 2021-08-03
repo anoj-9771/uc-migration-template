@@ -141,19 +141,6 @@
 				}
 			},
 			{
-				"name": "Set-ClusterType",
-				"type": "SetVariable",
-				"dependsOn": [],
-				"userProperties": [],
-				"typeProperties": {
-					"variableName": "ClusterType",
-					"value": {
-						"value": "@toLower(last(split(pipeline().parameters.TaskDetails.Processor,'|')))",
-						"type": "Expression"
-					}
-				}
-			},
-			{
 				"name": "If-ClusterType",
 				"description": "",
 				"type": "IfCondition",
@@ -271,6 +258,19 @@
 							}
 						}
 					]
+				}
+			},
+			{
+				"name": "Set-ClusterType",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "ClusterType",
+					"value": {
+						"value": "@toLower(last(split(pipeline().parameters.TaskDetails.Processor,'|')))",
+						"type": "Expression"
+					}
 				}
 			}
 		],
