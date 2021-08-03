@@ -252,7 +252,7 @@
 										},
 										"ifTrueActivities": [
 											{
-												"name": "EP-Trusted-to-Curated",
+												"name": "EP-Cleansed-to-Curated",
 												"type": "ExecutePipeline",
 												"dependsOn": [],
 												"userProperties": [],
