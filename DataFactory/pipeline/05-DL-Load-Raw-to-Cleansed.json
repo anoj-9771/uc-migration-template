@@ -188,6 +188,16 @@
 								"notebookPath": {
 									"value": "@pipeline().parameters.TaskDetails.Command",
 									"type": "Expression"
+								},
+								"baseParameters": {
+									"source_object": {
+										"value": "@pipeline().parameters.TaskDetails.SourceName",
+										"type": "Expression"
+									},
+									"source_param": {
+										"value": "@string(pipeline().parameters.TaskDetails)",
+										"type": "Expression"
+									}
 								}
 							},
 							"linkedServiceName": {
