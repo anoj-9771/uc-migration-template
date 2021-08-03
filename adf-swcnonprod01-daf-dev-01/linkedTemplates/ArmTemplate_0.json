@@ -830,19 +830,6 @@
 						}
 					},
 					{
-						"name": "Set-ClusterType",
-						"type": "SetVariable",
-						"dependsOn": [],
-						"userProperties": [],
-						"typeProperties": {
-							"variableName": "ClusterType",
-							"value": {
-								"value": "@toLower(last(split(pipeline().parameters.TaskDetails.Processor,'|')))",
-								"type": "Expression"
-							}
-						}
-					},
-					{
 						"name": "If-ClusterType",
 						"description": "",
 						"type": "IfCondition",
@@ -961,6 +948,19 @@
 								}
 							]
 						}
+					},
+					{
+						"name": "Set-ClusterType",
+						"type": "SetVariable",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"variableName": "ClusterType",
+							"value": {
+								"value": "@toLower(last(split(pipeline().parameters.TaskDetails.Processor,'|')))",
+								"type": "Expression"
+							}
+						}
 					}
 				],
 				"parameters": {
@@ -968,10 +968,12 @@
 						"type": "object"
 					},
 					"BatchLogId": {
-						"type": "int"
+						"type": "int",
+						"defaultValue": 1
 					},
 					"TaskExecutionLogId": {
-						"type": "int"
+						"type": "int",
+						"defaultValue": 1
 					},
 					"ProjectRunID": {
 						"type": "string"
@@ -982,11 +984,12 @@
 						"type": "String"
 					},
 					"ClusterType": {
-						"type": "String"
+						"type": "String",
+						"defaultValue": "interactive"
 					},
 					"SourceContainer": {
 						"type": "String",
-						"defaultValue": "trusted"
+						"defaultValue": "cleansed"
 					},
 					"SourceDirectory": {
 						"type": "String"
