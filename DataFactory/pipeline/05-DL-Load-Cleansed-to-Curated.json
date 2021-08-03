@@ -1,5 +1,5 @@
 {
-	"name": "05-DL-Load-Trusted-to-Curated",
+	"name": "05-DL-Load-Cleansed-to-Curated",
 	"properties": {
 		"activities": [
 			{
@@ -163,30 +163,6 @@
 						"dependencyConditions": [
 							"Succeeded"
 						]
-					},
-					{
-						"activity": "Set-Source-Container",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					},
-					{
-						"activity": "Set-Source-FileName",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					},
-					{
-						"activity": "Set-Target-Container",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					},
-					{
-						"activity": "Set-Target-FileName",
-						"dependencyConditions": [
-							"Succeeded"
-						]
 					}
 				],
 				"userProperties": [],
@@ -277,12 +253,6 @@
 								"notebookPath": {
 									"value": "@pipeline().parameters.TaskDetails.Command",
 									"type": "Expression"
-								},
-								"baseParameters": {
-									"source_object": {
-										"value": "@pipeline().parameters.TaskDetails.SourceName",
-										"type": "Expression"
-									}
 								}
 							},
 							"linkedServiceName": {
@@ -301,58 +271,6 @@
 							}
 						}
 					]
-				}
-			},
-			{
-				"name": "Set-Source-Container",
-				"type": "SetVariable",
-				"dependsOn": [],
-				"userProperties": [],
-				"typeProperties": {
-					"variableName": "SourceContainer",
-					"value": {
-						"value": "@toLower(first(split(pipeline().parameters.TaskDetails.SourceLocation,'/')))",
-						"type": "Expression"
-					}
-				}
-			},
-			{
-				"name": "Set-Source-FileName",
-				"type": "SetVariable",
-				"dependsOn": [],
-				"userProperties": [],
-				"typeProperties": {
-					"variableName": "SourceFileName",
-					"value": {
-						"value": "@toLower(last(split(pipeline().parameters.TaskDetails.TargetLocation,'/')))",
-						"type": "Expression"
-					}
-				}
-			},
-			{
-				"name": "Set-Target-Container",
-				"type": "SetVariable",
-				"dependsOn": [],
-				"userProperties": [],
-				"typeProperties": {
-					"variableName": "TargetContainer",
-					"value": {
-						"value": "@toLower(first(split(pipeline().parameters.TaskDetails.TargetLocation,'/')))",
-						"type": "Expression"
-					}
-				}
-			},
-			{
-				"name": "Set-Target-FileName",
-				"type": "SetVariable",
-				"dependsOn": [],
-				"userProperties": [],
-				"typeProperties": {
-					"variableName": "TargetFileName",
-					"value": {
-						"value": "@toLower(last(split(pipeline().parameters.TaskDetails.TargetLocation,'/')))",
-						"type": "Expression"
-					}
 				}
 			}
 		],
