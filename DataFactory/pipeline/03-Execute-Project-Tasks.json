@@ -232,7 +232,7 @@
 										"userProperties": [],
 										"typeProperties": {
 											"pipeline": {
-												"referenceName": "05-DL-Copy-Trusted-to-Curated",
+												"referenceName": "05-DL-Load-Cleansed-to-Curated",
 												"type": "PipelineReference"
 											},
 											"waitOnCompletion": true,

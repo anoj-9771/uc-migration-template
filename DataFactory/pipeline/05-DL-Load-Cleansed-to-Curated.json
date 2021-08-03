@@ -1,9 +1,9 @@
 {
-	"name": "05-DL-Load-Raw-to-Cleansed",
+	"name": "05-DL-Load-Cleansed-to-Curated",
 	"properties": {
 		"activities": [
 			{
-				"name": "Log Failure DL Cleansed",
+				"name": "Log Failure DL Curated",
 				"type": "SqlServerStoredProcedure",
 				"dependsOn": [
 					{
@@ -35,7 +35,7 @@
 							"type": "Int64"
 						},
 						"ErrorMessage": {
-							"value": "Error Occurred during Trusted Zone load",
+							"value": "Error Occurred during Curated Zone load",
 							"type": "String"
 						},
 						"ExecutionLogId": {
@@ -173,7 +173,7 @@
 					},
 					"ifFalseActivities": [
 						{
-							"name": "Load-To-Cleansed-Zone-Job",
+							"name": "Load-To-Curated-Zone-Job",
 							"type": "DatabricksNotebook",
 							"dependsOn": [],
 							"policy": {
@@ -190,12 +190,24 @@
 									"type": "Expression"
 								},
 								"baseParameters": {
-									"source_object": {
-										"value": "@pipeline().parameters.TaskDetails.SourceName",
+									"storage_account_key": {
+										"value": "@pipeline().parameters.TaskDetails.SourceServer",
 										"type": "Expression"
 									},
-									"source_param": {
-										"value": "@string(pipeline().parameters.TaskDetails)",
+									"srcDirectoryName": {
+										"value": "@variables('SourceFolder')",
+										"type": "Expression"
+									},
+									"dstDirectoryName": {
+										"value": "@variables('TargetFolder')",
+										"type": "Expression"
+									},
+									"srcBlobName": {
+										"value": "@variables('SourceBlob')",
+										"type": "Expression"
+									},
+									"dstBlobName": {
+										"value": "@variables('TargetBlob')",
 										"type": "Expression"
 									}
 								}
@@ -226,7 +238,7 @@
 					],
 					"ifTrueActivities": [
 						{
-							"name": "Load-To-Cleansed-Zone-Interactive",
+							"name": "Load-To-Curated-Zone-Interactive",
 							"type": "DatabricksNotebook",
 							"dependsOn": [],
 							"policy": {
@@ -241,16 +253,6 @@
 								"notebookPath": {
 									"value": "@pipeline().parameters.TaskDetails.Command",
 									"type": "Expression"
-								},
-								"baseParameters": {
-									"source_object": {
-										"value": "@pipeline().parameters.TaskDetails.SourceName",
-										"type": "Expression"
-									},
-									"source_param": {
-										"value": "@string(pipeline().parameters.TaskDetails)",
-										"type": "Expression"
-									}
 								}
 							},
 							"linkedServiceName": {
@@ -295,7 +297,7 @@
 			},
 			"SourceContainer": {
 				"type": "String",
-				"defaultValue": "raw"
+				"defaultValue": "trusted"
 			},
 			"SourceDirectory": {
 				"type": "String"
@@ -305,7 +307,7 @@
 			},
 			"TargetContainer": {
 				"type": "String",
-				"defaultValue": "trusted"
+				"defaultValue": "curated"
 			},
 			"TargetDirectory": {
 				"type": "String"
