@@ -279,10 +279,12 @@
 				"type": "object"
 			},
 			"BatchLogId": {
-				"type": "int"
+				"type": "int",
+				"defaultValue": 1
 			},
 			"TaskExecutionLogId": {
-				"type": "int"
+				"type": "int",
+				"defaultValue": 1
 			},
 			"ProjectRunID": {
 				"type": "string"
