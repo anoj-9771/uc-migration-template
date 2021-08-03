@@ -754,7 +754,7 @@
 							"referenceName": "LS-AzureSqlDatabase_Ctrldb",
 							"type": "LinkedServiceReference",
 							"parameters": {
-								"kvSecret": "AzureSqlDatabase-ControlDB"
+								"kvSecret": "daf-sql-controldb-connectionstring"
 							}
 						}
 					},
@@ -825,7 +825,7 @@
 							"referenceName": "LS-AzureSqlDatabase_Ctrldb",
 							"type": "LinkedServiceReference",
 							"parameters": {
-								"kvSecret": "AzureSqlDatabase-ControlDB"
+								"kvSecret": "daf-sql-controldb-connectionstring"
 							}
 						}
 					},
@@ -852,7 +852,7 @@
 							"type": "LinkedServiceReference",
 							"parameters": {
 								"kvSecret": "databricks-token",
-								"clusterId": "0705-044124-gored835|Standard_DS3_v2"
+								"clusterId": "0705-044124-gored835"
 							}
 						}
 					}
@@ -982,7 +982,7 @@
 							"referenceName": "LS-AzureSqlDatabase_Ctrldb",
 							"type": "LinkedServiceReference",
 							"parameters": {
-								"kvSecret": "AzureSqlDatabase-ControlDB"
+								"kvSecret": "daf-sql-controldb-connectionstring"
 							}
 						}
 					},
@@ -1053,7 +1053,7 @@
 							"referenceName": "LS-AzureSqlDatabase_Ctrldb",
 							"type": "LinkedServiceReference",
 							"parameters": {
-								"kvSecret": "AzureSqlDatabase-ControlDB"
+								"kvSecret": "daf-sql-controldb-connectionstring"
 							}
 						}
 					},
