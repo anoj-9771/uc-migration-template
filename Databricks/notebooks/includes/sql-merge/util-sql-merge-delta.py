@@ -28,9 +28,9 @@ def SQLMerge_DeltaTable_GenerateSQL(source_table_name, target_table_name, busine
     delta_column = COL_DL_RAW_LOAD
     sql_query = _SQLInsertSyntax_DeltaTable_Insert(df_col_list, is_delta_extract, delta_column, curr_time_stamp, target_data_lake_zone, source_table_name, target_table_name)
     
-    if data_load_mode == ADS_WRITE_MODE_OVERWRITE:
+  if data_load_mode == ADS_WRITE_MODE_OVERWRITE:
       sql_query = sql_query.replace("INSERT INTO", "INSERT OVERWRITE") 
-    elif data_load_mode == ADS_WRITE_MODE_APPEND and target_data_lake_zone == ADS_DATABASE_CLEANSED:
+  elif data_load_mode == ADS_WRITE_MODE_APPEND and target_data_lake_zone == ADS_DATABASE_CLEANSED:
       print(f"Generating append query. Zone : {target_data_lake_zone}")
       sql_query += f" WHERE date_trunc('Second', {COL_DL_RAW_LOAD}) >= to_timestamp('{start_counter}')" 
     
