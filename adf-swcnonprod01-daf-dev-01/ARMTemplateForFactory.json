@@ -5206,7 +5206,7 @@
 									"userProperties": [],
 									"typeProperties": {
 										"notebookPath": {
-											"value": "@pipeline().parameters.TaskDetails.Command",
+											"value": "/build/curated/common/common-curated-master",
 											"type": "Expression"
 										}
 									},
