@@ -1,9 +1,9 @@
 {
-	"name": "05-DL-Load-Trusted-to-Curated",
+	"name": "05-DL-Load-Raw-to-Cleansed_copy1",
 	"properties": {
 		"activities": [
 			{
-				"name": "Log Failure DL Curated",
+				"name": "Log Failure DL Trusted",
 				"type": "SqlServerStoredProcedure",
 				"dependsOn": [
 					{
@@ -35,7 +35,7 @@
 							"type": "Int64"
 						},
 						"ErrorMessage": {
-							"value": "Error Occurred during Curated Zone load",
+							"value": "Error Occurred during Trusted Zone load",
 							"type": "String"
 						},
 						"ExecutionLogId": {
@@ -197,7 +197,7 @@
 					},
 					"ifFalseActivities": [
 						{
-							"name": "Load-To-Curated-Zone-Job",
+							"name": "Load-To-Trusted-Zone-Job",
 							"type": "DatabricksNotebook",
 							"dependsOn": [],
 							"policy": {
@@ -262,7 +262,7 @@
 					],
 					"ifTrueActivities": [
 						{
-							"name": "Load-To-Curated-Zone-Interactive",
+							"name": "Load-To-Cleansed-Zone-Interactive",
 							"type": "DatabricksNotebook",
 							"dependsOn": [],
 							"policy": {
@@ -379,7 +379,7 @@
 			},
 			"SourceContainer": {
 				"type": "String",
-				"defaultValue": "trusted"
+				"defaultValue": "raw"
 			},
 			"SourceDirectory": {
 				"type": "String"
@@ -389,7 +389,7 @@
 			},
 			"TargetContainer": {
 				"type": "String",
-				"defaultValue": "curated"
+				"defaultValue": "trusted"
 			},
 			"TargetDirectory": {
 				"type": "String"
@@ -399,7 +399,7 @@
 			}
 		},
 		"folder": {
-			"name": "Data Lake"
+			"name": "z_Archive"
 		},
 		"annotations": [],
 		"lastPublishTime": "2021-06-21T11:04:49Z"

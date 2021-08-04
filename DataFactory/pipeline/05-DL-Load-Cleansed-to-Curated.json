@@ -1,9 +1,9 @@
 {
-	"name": "05-DL-Load-Raw-to-Cleansed",
+	"name": "05-DL-Load-Cleansed-to-Curated",
 	"properties": {
 		"activities": [
 			{
-				"name": "Log Failure DL Cleansed",
+				"name": "Log Failure DL Curated",
 				"type": "SqlServerStoredProcedure",
 				"dependsOn": [
 					{
@@ -35,7 +35,7 @@
 							"type": "Int64"
 						},
 						"ErrorMessage": {
-							"value": "Error Occurred during Trusted Zone load",
+							"value": "Error Occurred during Curated Zone load",
 							"type": "String"
 						},
 						"ExecutionLogId": {
@@ -173,7 +173,7 @@
 					},
 					"ifFalseActivities": [
 						{
-							"name": "Load-To-Cleansed-Zone-Job",
+							"name": "Load-To-Curated-Zone-Job",
 							"type": "DatabricksNotebook",
 							"dependsOn": [],
 							"policy": {
@@ -188,16 +188,6 @@
 								"notebookPath": {
 									"value": "@pipeline().parameters.TaskDetails.Command",
 									"type": "Expression"
-								},
-								"baseParameters": {
-									"source_object": {
-										"value": "@pipeline().parameters.TaskDetails.SourceName",
-										"type": "Expression"
-									},
-									"source_param": {
-										"value": "@string(pipeline().parameters.TaskDetails)",
-										"type": "Expression"
-									}
 								}
 							},
 							"linkedServiceName": {
@@ -226,7 +216,7 @@
 					],
 					"ifTrueActivities": [
 						{
-							"name": "Load-To-Cleansed-Zone-Interactive",
+							"name": "Load-To-Curated-Zone-Interactive",
 							"type": "DatabricksNotebook",
 							"dependsOn": [],
 							"policy": {
@@ -241,16 +231,6 @@
 								"notebookPath": {
 									"value": "@pipeline().parameters.TaskDetails.Command",
 									"type": "Expression"
-								},
-								"baseParameters": {
-									"source_object": {
-										"value": "@pipeline().parameters.TaskDetails.SourceName",
-										"type": "Expression"
-									},
-									"source_param": {
-										"value": "@string(pipeline().parameters.TaskDetails)",
-										"type": "Expression"
-									}
 								}
 							},
 							"linkedServiceName": {
@@ -277,10 +257,12 @@
 				"type": "object"
 			},
 			"BatchLogId": {
-				"type": "int"
+				"type": "int",
+				"defaultValue": 1
 			},
 			"TaskExecutionLogId": {
-				"type": "int"
+				"type": "int",
+				"defaultValue": 1
 			},
 			"ProjectRunID": {
 				"type": "string"
@@ -291,11 +273,12 @@
 				"type": "String"
 			},
 			"ClusterType": {
-				"type": "String"
+				"type": "String",
+				"defaultValue": "interactive"
 			},
 			"SourceContainer": {
 				"type": "String",
-				"defaultValue": "raw"
+				"defaultValue": "cleansed"
 			},
 			"SourceDirectory": {
 				"type": "String"
@@ -305,7 +288,7 @@
 			},
 			"TargetContainer": {
 				"type": "String",
-				"defaultValue": "trusted"
+				"defaultValue": "curated"
 			},
 			"TargetDirectory": {
 				"type": "String"
