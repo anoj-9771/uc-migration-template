@@ -22,7 +22,7 @@ ADS_LOAD_SQLDB = True
 
 #The resource names are automatically built based on Project Prefix and Environment
 ADS_DATA_LAKE_ACCOUNT = "sadaf"+ ADS_ENVIRONMENT + "01" #f"{ADS_COMPANY_INITIAL.replace('-', '')}dlsdp{ADS_ENVIRONMENT.lower()}{ADS_SUFFIX.replace('-', '')}"
-ADS_BLOB_STORAGE_ACCOUNT = "saswcnonprod01landingdev" #ADS_COMPANY_INITIAL + "stor" + ADS_BUSINESS_UNIT + ADS_ENVIRONMENT + ".blob.core.windows.net"
+ADS_BLOB_STORAGE_ACCOUNT = "saswcnonprod01landingtst" #ADS_COMPANY_INITIAL + "stor" + ADS_BUSINESS_UNIT + ADS_ENVIRONMENT + ".blob.core.windows.net"
 
 ADS_DB_SERVER = "sql-swcnonprod01-daf-" + ADS_ENVIRONMENT + "-01.database.windows.net" #ADS_COMPANY_INITIAL + "-sql-dp-" + ADS_ENVIRONMENT + "-" + ADS_SUFFIX + ".database.windows.net"
 
