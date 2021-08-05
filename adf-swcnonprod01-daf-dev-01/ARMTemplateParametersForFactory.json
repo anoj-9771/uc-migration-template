@@ -12,7 +12,7 @@
 			"value": "@linkedService().kvSecret"
 		},
 		"LS_AzureBlobStorage_properties_typeProperties_serviceEndpoint": {
-			"value": "https://saswcnonprod01landingtest.blob.core.windows.net"
+			"value": "https://saswcnonprod01landingtst.blob.core.windows.net"
 		},
 		"LS_AzureBlobStorage_properties_typeProperties_tenant": {
 			"value": "8351bb5c-749d-4ee4-b1c4-71a3971acbe9"
