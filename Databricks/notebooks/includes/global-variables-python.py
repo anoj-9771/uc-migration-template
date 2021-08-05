@@ -46,6 +46,7 @@ ADS_DATABASE_RAW = "raw"
 ADS_DATABASE_CLEANSED_STAGE = "cleansed.stg"
 ADS_DATABASE_CLEANSED = "cleansed"
 ADS_DATABASE_STAGE = "stage"
+ADS_DATABASE_CURATED_STAGE = "curated.stg"
 ADS_DATABASE_CURATED = "curated"
 
 ADS_DATALAKE_ZONE_RAW = "raw"
@@ -66,9 +67,9 @@ ADS_LOG_VERBOSE = True
 
 # COMMAND ----------
 
-ADS_SECRET_APP_ID = "SERVICE-PRINCIPAL-APP-ID"
-ADS_SECRET_APP_SECRET = "SERVICE-PRINCIPAL-SECRET"
-ADS_TENANT_ID = "TENANT-ID"
+ADS_SECRET_APP_ID = "daf-serviceprincipal-app-id"
+ADS_SECRET_APP_SECRET = "daf-serviceprincipal-app-secret"
+ADS_TENANT_ID = "daf-tenant-id"
 
 # COMMAND ----------
 
