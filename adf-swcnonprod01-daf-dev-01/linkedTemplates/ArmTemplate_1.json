@@ -1638,7 +1638,7 @@
 						"typeProperties": {
 							"variableName": "SourceFileName",
 							"value": {
-								"value": "@last(split(pipeline().parameters.TaskDetails.SourceLocation,'/'))",
+								"value": "@concat(last(split(pipeline().parameters.TaskDetails.SourceLocation,'/')),'.csv')",
 								"type": "Expression"
 							}
 						}
