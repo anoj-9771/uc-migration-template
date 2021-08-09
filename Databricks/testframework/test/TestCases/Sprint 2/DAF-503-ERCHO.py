@@ -2,9 +2,9 @@
 # DBTITLE 1,[Config] Connection Setup
 storage_account_name = "saswcnonprod01landingtst"
 storage_account_access_key = dbutils.secrets.get(scope="Test-Access",key="test-blob-key")
-container_name = "test"
-file_location = "wasbs://test@saswcnonprod01landingtst.blob.core.windows.net/ERCHO_27July.csv"
-file_type = "csv"
+container_name = "archive"
+file_location = "wasbs://archive@saswcnonprod01landingtst.blob.core.windows.net/archive/sap/ercho/json/year=2021/month=07/day=21/ERCHO_20210720152842.json"
+file_type = "json"
 print(storage_account_name)
 
 # COMMAND ----------
@@ -17,7 +17,7 @@ spark.conf.set(
 # COMMAND ----------
 
 # DBTITLE 1,[Source] Loading data into Dataframe
-df = spark.read.format(file_type).option("header", "true").load(file_location)
+df = spark.read.format(file_type).option("inferSchema", "true").load(file_location)
 
 # COMMAND ----------
 
@@ -27,25 +27,17 @@ df.printSchema()
 # COMMAND ----------
 
 # DBTITLE 1,[Source] Creating Temporary Table
-df.createOrReplaceTempView("SourceTable")
+df.createOrReplaceTempView("Source")
 
 # COMMAND ----------
 
 # DBTITLE 1,[Source] Displaying Records
 # MAGIC %sql
-# MAGIC select * from SourceTable
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC select * from raw.sap_ercho
-
-# COMMAND ----------
-
-# DBTITLE 1,[Verification] Compare Source and Target Data
-# MAGIC %sql
 # MAGIC select * from Source
-# MAGIC except
+
+# COMMAND ----------
+
+# MAGIC %sql
 # MAGIC select * from raw.sap_ercho
 
 # COMMAND ----------
@@ -67,26 +59,20 @@ lakedf.createOrReplaceTempView("Target")
 # MAGIC %sql
 # MAGIC select count (*) as RecordCount, 'Target' as TableName from Target
 # MAGIC union all
-# MAGIC select count (*) as RecordCount, 'Source' as TableName from SourceTable
+# MAGIC select count (*) as RecordCount, 'Source' as TableName from Source
+
+# COMMAND ----------
+
+# DBTITLE 1,[Verification] Compare Source and Target Data
+# MAGIC %sql
+# MAGIC select BELNR,COLOGRP_INST,DEVIATION,EXTRACT_DATETIME,EXTRACT_RUN_ID,FREI_AM,FREI_VON,MANDT,MANOUTSORT,OUTCNSO,OUTCOUNT,SIMULATION,VALIDATION from Source
+# MAGIC except
+# MAGIC select BELNR,COLOGRP_INST,DEVIATION,EXTRACT_DATETIME,EXTRACT_RUN_ID,FREI_AM,FREI_VON,MANDT,MANOUTSORT,OUTCNSO,OUTCOUNT,SIMULATION,VALIDATION from Target
 
 # COMMAND ----------
 
 # DBTITLE 1,[Verification] Compare Target and Source Data
 # MAGIC %sql
-# MAGIC select MANDT,BELNR,  OUTCNSO, VALIDATION, MANOUTSORT, FREI_AM, FREI_VON, DEVIATION, SIMULATION, OUTCOUNT, COLOGRP_INST from SourceTable
+# MAGIC select BELNR,COLOGRP_INST,DEVIATION,EXTRACT_DATETIME,EXTRACT_RUN_ID,FREI_AM,FREI_VON,MANDT,MANOUTSORT,OUTCNSO,OUTCOUNT,SIMULATION,VALIDATION from Target
 # MAGIC except
-# MAGIC select MANDT,BELNR, OUTCNSO, VALIDATION, MANOUTSORT, FREI_AM, FREI_VON, DEVIATION, SIMULATION, OUTCOUNT, COLOGRP_INST from Target
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC select * from SourceTable
-# MAGIC except
-# MAGIC select MANDT,BELNR, OUTCNSO, VALIDATION, MANOUTSORT, FREI_AM, FREI_VON, DEVIATION, SIMULATION, OUTCOUNT, COLOGRP_INST from Target
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC select MANOUTSORT from SourceTable
-# MAGIC except
-# MAGIC select MANOUTSORT from Target
+# MAGIC select BELNR,COLOGRP_INST,DEVIATION,EXTRACT_DATETIME,EXTRACT_RUN_ID,FREI_AM,FREI_VON,MANDT,MANOUTSORT,OUTCNSO,OUTCOUNT,SIMULATION,VALIDATION from Source

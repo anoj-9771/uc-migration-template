@@ -37,6 +37,7 @@ df.createOrReplaceTempView("Source")
 
 # COMMAND ----------
 
+# DBTITLE 1,[Target] Displaying Records
 # MAGIC %sql
 # MAGIC select * from raw.sap_0uc_devcat_attr
 
@@ -219,7 +220,7 @@ lakedf.createOrReplaceTempView("Target")
 
 # COMMAND ----------
 
-# DBTITLE 1,[Verification] Compare Target and Source Data
+# DBTITLE 1,[Verification] Compare Target and Source Data (Template)
 # MAGIC %sql
 # MAGIC select * from Source
 # MAGIC except

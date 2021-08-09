@@ -512,7 +512,8 @@ HAUS 	as	propertyNumber
 ,H.INFERIOR_PROP_TYPE	as	inferiorPropertyType
 ,Z_OWNER 	as	objectReferenceIndicator
 ,Z_OBJNR 	as	objectNumber
-,ZCD_NO_OF_FLATS 	as	flatCount
+,ZCD_NO_OF_FLATS 	as	flatCount,
+DATE_FROM as 
 FROM 0UC_CONNOBJ_ATTR_2 a
 LEFT JOIN CRM_0CAM_STREETCODE_TEXT B
 LEFT JOIN ZBL_DS_REGPOLIT_TEXT C
@@ -674,17 +675,17 @@ on d.ZWGRUPPE = b.ZWGRUPPE
 SELECT
 PARTNER  AS businessPartnerNumber,
 TYPE  AS businessPartnerCategoryCode,
-Derived AS businessPartnerCategory,
+b.TXTMD AS businessPartnerCategory,
 BPKIND  AS businessPartnerTypeCode,
-Derived AS businessPartnerType,
+c.TEXT40 AS businessPartnerType,
 BU_GROUP  AS businessPartnerGroupCode,
-Derived AS businessPartnerGroup,
+d.TEXT40 AS businessPartnerGroup,
 BPEXT  AS externalBusinessPartnerNumber,
 BU_SORT1  AS searchTerm1,
 BU_SORT2  AS searchTerm2,
 SOURCE  AS SOURCE ,
 TITLE  AS titleCode,
-Derived AS title,
+f.TITLE_MEDI AS title,
 XDELE  AS deletedIndicator,
 XBLCK  AS centralBlockBusinessPartner,
 AUGRP  AS Authorization Group ,
@@ -788,14 +789,14 @@ DQ_ONLINE_UPDATE  AS DQ_ONLINE_UPDATE ,
 DQ_OFFLINE_UPDATE  AS DQ_OFFLINE_UPDATE ,
 DQ_TIMESTAMP  AS deltaQueueUpdateTimestamp 
 FROM 0BPARTNER_ATTR a
-LEFT JOIN (select TXTMD from 0BPARTNER_TEXT ref where ref.PARTNER = BUT000.PARTNER and ref.TYPE = but000.TYPE) B
-ON A.OBPARTNER_TEXT = B.businessPartnerCategory
-LEFT JOIN (select TEXT40 from 0BPTYPE_TEXT ref where ref.BPKIND = BUT000.BPKIND) C
-ON A.OBPTYPE_TEXT = C.businessPartnerType
-LEFT JOIN (select TEXT40 from 0BP_GROUP_TEXT ref where ref.BU_GROUP = BUT000.BU_GROUP) D
-ON A.0BP_GROUP_TEXT = D.businessPartnerGroup
-LEFT JOIN (select TITLE_MEDI from ZDSTITLET ref where ref.TITLE = BUT000.TITLE) E
-0N A.ZDSTITLET = E.title
+LEFT JOIN OBPARTNER_TEXT b
+ON a.PARTNER = b.PARTNER and a.TYPE = b.TYPE
+LEFT JOIN 0BPTYPE_TEXT c
+ON a.BPKIND = c.BPKIND and c.SPRAS = 'E'
+LEFT JOIN  0BP_GROUP_TEXT d
+ON a.BU_GROUP = d.BU_GROUP and d.SPRAS = 'E'
+LEFT JOIN ZDSTITLET f
+ON a.TITLE = f.TITLE and f.LANGU = 'E'
 
 
 -- COMMAND ----------
@@ -816,4 +817,157 @@ FROM 0UCDEVICE_ATTR
 
 -- COMMAND ----------
 
+-- DBTITLE 1,16-DBERCHZ3
+SELECT
+BELNR	as	billingDocumentNumber
+,BELZEILE	as	billingDocumentLineItemId
+,MWSKZ	as	taxSalesCode
+,ERMWSKZ	as	texDeterminationCode
+,NETTOBTR	as	billingLineItemNetAmount
+,TWAERS	as	transactionCurrency
+,PREISTUF	as	priceLevel
+,PREISTYP	as	priceCategory
+,PREIS	as	price
+,PREISZUS	as	priceSummaryIndicator
+,VONZONE	as	fromBlock
+,BISZONE	as	toBlock
+,ZONENNR	as	numberOfPriceBlock
+,PREISBTR	as	priceAmount
+,MNGBASIS	as	amountLongQuantityBase
+,PREIGKL	as	priceAdjustemntClause
+,URPREIS	as	priceAdjustemntClauseBasePrice
+,PREIADD	as	PREIADD
+,PREIFAKT	as	priceAdjustmentFactor
+,OPMULT	as	additionFirst
+,TXDAT_KK	as	taxDecisiveDate
+,PRCTR	as	profitCenter
+,KOSTL	as	costCenter
+,PS_PSP_PNR	as	wbsElement
+,AUFNR	as	orderNumber
+,PAOBJNR	as	profitabilitySegmentNumber
+,PAOBJNR_S	as	profitabilitySegmentNumberForPost
+,GSBER	as	businessArea
+,APERIODIC	as	nonPeriodicPosting
+,GROSSGROUP	as	grossGroup
+,BRUTTOZEILE	as	grossBillingLineItem
+,BUPLA	as	businessPlace
+,LINE_CLASS	as	billingLineClassificationIndicator
+,PREISART	as	priceType
+,V_NETTOBTR_L	as	longNetAmountPredecimalPlaces
+,N_NETTOBTR_L	as	longNetAmountDecimalPlaces
+FROM DBERCHZ3
+
+-- COMMAND ----------
+
+-- DBTITLE 1,17-VIBDNODE
+
+SELECT
+INTRENO AS architecturalObjectInternalId,
+TREE AS alternativeDisplayStructureId,
+AOTYPE_AO AS architecturalObjectTypeCode,
+b.XMAOTYPE AS architecturalObjectType,
+AONR_AO AS architecturalObjectNumber,
+PARENT AS parentArchitecturalObjectInternalId,
+AOTYPE_PA AS parentArchitecturalObjectTypeCode,
+c.XMAOTYPE AS parentArchitecturalObjectType,
+AONR_PA AS parentArchitecturalObjectNumber
+FROM VIBDNODE a
+LEFT JOIN ZEDWAOTYPTXT b
+ON a.AOTYPE_AO= b.AOTYPE and b.SPRAS = 'E'
+LEFT JOIN ZEDWAOTYPTXT c
+ON c.AOTYPE_PA = b.AOTYPE and c.SPRAS = 'E'
+
+
+---------ORRRRRR--------
+
+SELECT
+architecturalObjectInternalId,
+alternativeDisplayStructureId,
+architecturalObjectTypeCode,
+architecturalObjectType,
+architecturalObjectNumber,
+parentArchitecturalObjectInternalId,
+parentArchitecturalObjectTypeCode,
+set1.XMAOTYPE AS parentArchitecturalObjectType,
+parentArchitecturalObjectNumber
+(
+SELECT
+INTRENO AS architecturalObjectInternalId,
+TREE AS alternativeDisplayStructureId,
+AOTYPE_AO AS architecturalObjectTypeCode,
+b.XMAOTYPE AS architecturalObjectType,
+AONR_AO AS architecturalObjectNumber,
+PARENT AS parentArchitecturalObjectInternalId,
+AOTYPE_PA AS parentArchitecturalObjectTypeCode,
+--b.XMAOTYPE AS parentArchitecturalObjectType,
+AONR_PA AS parentArchitecturalObjectNumber
+FROM VIBDNODE a
+LEFT JOIN ZEDWAOTYPTXT b
+ON a.AOTYPE_AO= b.AOTYPE and b.SPRAS = 'E'
+)set1
+LEFT JOIN ZEDWAOTYPTXT c
+ON set1.parentArchitecturalObjectTypeCode = c.AOTYPE and c.SPRAS = 'E'
+
+-- COMMAND ----------
+
+-- DBTITLE 1,18-ERCHO
+SELECT
+BELNR AS billingDocumentNumber,
+OUTCNSO AS outsortingNumber,
+VALIDATION AS billingValidationName,
+MANOUTSORT AS manualOutsortingReasonCode,
+FREI_AM AS documentReleasedDate,
+FREI_VON AS documentReleasedUserName,
+DEVIATION AS deviation,
+SIMULATION AS billingSimulationIndicator,
+OUTCOUNT AS manualOutsortingCount
+FROM ERCHO
+
+--------------------------------NULL VERFIFICATION----------------------------------------
+select distinct BELNR from ERCHO where BELNR = null
+union
+select distinct OUTCNSO from ERCHO where OUTCNSO = null
+
+
+-- COMMAND ----------
+
+-- DBTITLE 1,TMETERREADING
+SELECT N_PROP AS propertyNumber ,
+N_PROP_METE AS propertyMeterNumber,
+N_METE_READ AS meterReadingNumber,
+C_METE_READ_TOLE AS meterReadingTolerenceCode,
+C_METE_READ_TYPE AS meterReadingTypeCode,
+C_METE_READ_CONS AS meterReadingConsumptionTypeCode,
+C_METE_READ_STAT AS meterReadingStatusTypeCode,
+C_METE_CANT_READ AS meterCantReadReasonCode,
+C_PDE_READ_METH AS pdeReadingMethodCode,
+Q_METE_READ AS meterReadingQuantity,
+D_METE_READ AS meterReadingDate,
+T_METE_READ_TIME AS meterReadingTime,
+Q_METE_READ_CONS AS meterReadingConsumptionQuantity,
+Q_METE_READ_DAYS AS meterReadingDaysNumberberCount,
+F_READ_COMM_CODE AS meterReadingCommentCodeIndicatoricator,
+F_READ_COMM_FREE AS meterReadingFreeCommentIndicator,
+Q_PDE_HIGH_LOW AS pdeHighLowAttemptCount,
+Q_PDE_REEN_COUN AS pdeHighReEntryCount,
+F_PDE_AUXI_READ AS pdeHighReEntryAuxiliaryReadIndicator,
+D_METE_READ_UPDA AS meterReadingUpdateDate
+FROM TMETERREADING
+
+--------------------------NULL VERFIFICATION--------------------------
+select distinct N_PROP from TMETERREADING where N_PROP = null
+union
+select distinct N_PROP_METE from TMETERREADING where N_PROP_METE = null
+union
+select distinct N_METE_READ from TMETERREADING where N_METE_READ = null
+union
+select distinct Q_METE_READ from TMETERREADING where Q_METE_READ = null
+union
+select distinct Q_METE_READ_CONS from TMETERREADING where Q_METE_READ_CONS = null
+union
+select distinct Q_METE_READ_DAYS from TMETERREADING where Q_METE_READ_DAYS = null
+union
+select distinct Q_PDE_HIGH_LOW from TMETERREADING where Q_PDE_HIGH_LOW = null
+union
+select distinct Q_PDE_REEN_COUN from TMETERREADING where Q_PDE_REEN_COUN = null
 
