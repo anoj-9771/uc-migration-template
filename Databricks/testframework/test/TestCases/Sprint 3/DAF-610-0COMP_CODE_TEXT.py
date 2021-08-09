@@ -64,45 +64,45 @@ df.createOrReplaceTempView("Source")
 # DBTITLE 1,[Verification] Compare Source and Target Data
 # MAGIC %sql
 # MAGIC select
-# MAGIC BAUKLAS                           
-# MAGIC ,BAUKLTXT                          
+# MAGIC BUKRS                              
 # MAGIC ,EXTRACT_DATETIME                  
 # MAGIC ,EXTRACT_RUN_ID                    
+# MAGIC ,LANGU                             
 # MAGIC ,ODQ_CHANGEMODE                    
 # MAGIC ,ODQ_ENTITYCNTR                    
-# MAGIC ,SPRAS                                                        
+# MAGIC ,TXTMD                                                       
 # MAGIC from Source
 # MAGIC except
 # MAGIC select
-# MAGIC BAUKLAS                           
-# MAGIC ,BAUKLTXT                          
+# MAGIC BUKRS                              
 # MAGIC ,EXTRACT_DATETIME                  
 # MAGIC ,EXTRACT_RUN_ID                    
+# MAGIC ,LANGU                             
 # MAGIC ,ODQ_CHANGEMODE                    
 # MAGIC ,ODQ_ENTITYCNTR                    
-# MAGIC ,SPRAS                                                        
-# MAGIC from raw.sapisu_0uc_bauklas_text
+# MAGIC ,TXTMD                                                        
+# MAGIC from raw.sapisu_0comp_code_text
 
 # COMMAND ----------
 
 # DBTITLE 1,[Verification] Compare Target and Source Data
 # MAGIC %sql
 # MAGIC select
-# MAGIC BAUKLAS                           
-# MAGIC ,BAUKLTXT                          
+# MAGIC BUKRS                              
 # MAGIC ,EXTRACT_DATETIME                  
 # MAGIC ,EXTRACT_RUN_ID                    
+# MAGIC ,LANGU                             
 # MAGIC ,ODQ_CHANGEMODE                    
 # MAGIC ,ODQ_ENTITYCNTR                    
-# MAGIC ,SPRAS                                                        
-# MAGIC from raw.sapisu_0uc_bauklas_text
+# MAGIC ,TXTMD                                                        
+# MAGIC from raw.sapisu_0comp_code_text
 # MAGIC except
 # MAGIC select
-# MAGIC BAUKLAS                           
-# MAGIC ,BAUKLTXT                          
+# MAGIC BUKRS                              
 # MAGIC ,EXTRACT_DATETIME                  
 # MAGIC ,EXTRACT_RUN_ID                    
+# MAGIC ,LANGU                             
 # MAGIC ,ODQ_CHANGEMODE                    
 # MAGIC ,ODQ_ENTITYCNTR                    
-# MAGIC ,SPRAS                                                        
+# MAGIC ,TXTMD                                                        
 # MAGIC from Source
