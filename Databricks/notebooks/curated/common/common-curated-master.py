@@ -256,8 +256,8 @@ spark.conf.set("spark.sql.autoBroadcastJoinThreshold", -1)
 # #                                                   ELSE null END AS propertyArea") 
 # display(sapisuVibdaoDf)
 
-df = spark.sql("select * from curated.dimproperty") #2357919
-display(df)
+# df = spark.sql("select * from curated.dimproperty") #2357919
+# display(df)
 
 # COMMAND ----------
 
