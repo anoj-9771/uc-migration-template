@@ -1,7 +1,7 @@
 # Databricks notebook source
 # DBTITLE 1,Generate parameter and source object name for unit testing
 import json
-accessTable = 'Z309_TMETEREADING'
+accessTable = 'Z309_TMETERREADING'
 
 runParm = '{"SourceType":"Flat File","SourceServer":"saswcnonprod01landingdev-sastoken","SourceGroup":"access","SourceName":"access_access/####_csv","SourceLocation":"access/####.csv","AdditionalProperty":"","Processor":"databricks-token|0705-044124-gored835|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive","IsAuditTable":false,"SoftDeleteSource":"","ProjectName":"Access Data","ProjectId":2,"TargetType":"BLOB Storage (csv)","TargetName":"access_access/####_csv","TargetLocation":"access/####","TargetServer":"daf-sa-lake-sastoken","DataLoadMode":"TRUNCATE-LOAD","DeltaExtract":false,"CDCSource":false,"TruncateTarget":true,"UpsertTarget":false,"AppendTarget":null,"TrackChanges":false,"LoadToSqlEDW":true,"TaskName":"access_access/####_csv","ControlStageId":1,"TaskId":4,"StageSequence":100,"StageName":"Source to Raw","SourceId":4,"TargetId":4,"ObjectGrain":"Day","CommandTypeId":5,"Watermarks":"","WatermarksDT":null,"WatermarkColumn":"","BusinessKeyColumn":"","UpdateMetaData":null,"SourceTimeStampFormat":"","Command":"","LastLoadedFile":null}'
 
@@ -41,7 +41,7 @@ print(runParm)
 
 # COMMAND ----------
 
-# DBTITLE 1,1. Import libreries/functions
+# DBTITLE 1,1. Import libraries/functions
 #1.Import libreries/functions
 from pyspark.sql.functions import mean, min, max, desc, abs, coalesce, when, expr
 from pyspark.sql.functions import date_add, to_utc_timestamp, from_utc_timestamp, datediff
@@ -201,7 +201,7 @@ df_cleansed = spark.sql("SELECT cast(N_PROP as int) AS propertyNumber, \
 		a._RecordEnd, \
 		a._RecordDeleted, \
 		a._RecordCurrent \
-	FROM CLEANSED.STG_ACCESS_Z309_TMETEREADING a \
+	FROM CLEANSED.STG_ACCESS_Z309_TMETERREADING a \
          left outer join CLEANSED.t_access_Z309_TMETEREADTOLE d on a.C_METE_READ_TOLE = d.meterReadingToleranceCode \
          left outer join CLEANSED.t_access_Z309_TMETEREADTYPE e on a.C_METE_READ_TYPE = e.meterReadingTypeCode \
          left outer join CLEANSED.t_access_Z309_TMETEREADCONTYP f on a.C_METE_READ_CONS = f.consumptionTypeCode \
@@ -262,3 +262,7 @@ DeltaSaveDataframeDirect(df_updated_column, "t", source_object, ADS_DATABASE_CLE
 
 # DBTITLE 1,13. Exit Notebook
 dbutils.notebook.exit("1")
+
+# COMMAND ----------
+
+
