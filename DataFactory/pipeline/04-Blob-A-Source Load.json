@@ -1,0 +1,200 @@
+{
+	"name": "04-Blob-A-Source Load",
+	"properties": {
+		"description": "Clone of 05-DL-Load-Raw-to-Trusted",
+		"activities": [
+			{
+				"name": "Get Metadata",
+				"type": "GetMetadata",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "SRC_BLOB_JSON",
+						"type": "DatasetReference"
+					},
+					"fieldList": [
+						"childItems"
+					],
+					"storeSettings": {
+						"type": "AzureBlobStorageReadSettings",
+						"recursive": true,
+						"enablePartitionDiscovery": false
+					},
+					"formatSettings": {
+						"type": "JsonReadSettings"
+					}
+				}
+			},
+			{
+				"name": "Loop-All-Files",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Get Metadata",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Get Metadata').output.childItems",
+						"type": "Expression"
+					},
+					"isSequential": true,
+					"activities": [
+						{
+							"name": "If Condition1",
+							"type": "IfCondition",
+							"dependsOn": [
+								{
+									"activity": "SET-FileName",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								},
+								{
+									"activity": "SET-DateStamp",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								},
+								{
+									"activity": "Set-Source-Filename",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"expression": {
+									"value": "@equals(variables('FileName'),variables('SourceFileName'))",
+									"type": "Expression"
+								},
+								"ifTrueActivities": [
+									{
+										"name": "Execute Blob-Source-Copy",
+										"type": "ExecutePipeline",
+										"dependsOn": [],
+										"userProperties": [],
+										"typeProperties": {
+											"pipeline": {
+												"referenceName": "04-Blob-B-Source Copy",
+												"type": "PipelineReference"
+											},
+											"waitOnCompletion": true
+										}
+									}
+								]
+							}
+						},
+						{
+							"name": "SET-FileName",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "FileName",
+								"value": {
+									"value": "@concat(first(split(item().name,'-')),'.json')",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "SET-DateStamp",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "FileName",
+								"value": {
+									"value": "@last(split(item().name,'-'))",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "Set-Source-Filename",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "SourceFileName",
+								"value": {
+									"value": "@last(split(pipeline().parameters.TaskDetails.SourceLocation,'/'))",
+									"type": "Expression"
+								}
+							}
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"TaskDetails": {
+				"type": "object"
+			},
+			"BatchLogId": {
+				"type": "int"
+			},
+			"TaskExecutionLogId": {
+				"type": "int"
+			},
+			"ProjectRunID": {
+				"type": "string"
+			},
+			"TargetBLOBFolder": {
+				"type": "string"
+			},
+			"TargetBLOBName": {
+				"type": "string"
+			},
+			"StartCounter": {
+				"type": "string"
+			},
+			"EndCounter": {
+				"type": "string"
+			},
+			"ValidationDetails": {
+				"type": "string"
+			}
+		},
+		"variables": {
+			"SourceContainer": {
+				"type": "String"
+			},
+			"SourceFileName": {
+				"type": "String"
+			},
+			"OutputFileName": {
+				"type": "String"
+			},
+			"DeltaSQL": {
+				"type": "String"
+			},
+			"FileName": {
+				"type": "String"
+			},
+			"DateStamp": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "Blob"
+		},
+		"annotations": [],
+		"lastPublishTime": "2021-06-30T08:46:15Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}
