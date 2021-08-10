@@ -67,19 +67,22 @@ print(file_object)
 # COMMAND ----------
 
 DeltaExtract = Params[PARAMS_DELTA_EXTRACT]
+DataLoadMode = Params["DataLoadMode"]
 Debug = GeneralGetBoolFromString(debug_mode)
 
 print(DeltaExtract)
+print(DataLoadMode)
 print(Debug)
 
 
 # COMMAND ----------
 
-if DeltaExtract:
+if DeltaExtract or DataLoadMode == "FULL-EXTRACT" :
   write_mode = ADS_WRITE_MODE_APPEND
 else:
   write_mode = ADS_WRITE_MODE_OVERWRITE
 
+print(write_mode)
 
 # COMMAND ----------
 
