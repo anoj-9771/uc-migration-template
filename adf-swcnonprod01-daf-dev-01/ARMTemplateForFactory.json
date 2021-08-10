@@ -432,7 +432,7 @@
 												"userProperties": [],
 												"typeProperties": {
 													"pipeline": {
-														"referenceName": "04-Blob-Json-A-Source-Copy",
+														"referenceName": "04-Blob-A-Source Load",
 														"type": "PipelineReference"
 													},
 													"waitOnCompletion": true,
@@ -771,10 +771,848 @@
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/AzureSqlDatabase_Ctrldb')]",
 				"[concat(variables('factoryId'), '/linkedServices/LS-AzureSqlDatabase_Ctrldb')]",
-				"[concat(variables('factoryId'), '/pipelines/04-Blob-Json-A-Source-Copy')]",
+				"[concat(variables('factoryId'), '/pipelines/04-Blob-A-Source Load')]",
 				"[concat(variables('factoryId'), '/pipelines/05-DL-Load-Raw-to-Cleansed')]",
 				"[concat(variables('factoryId'), '/pipelines/05-DL-Load-Cleansed-to-Curated')]",
 				"[concat(variables('factoryId'), '/pipelines/04-LakeLanding-FlatFile-A-Source-Copy')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/04-Blob-A-Source Load')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Clone of 05-DL-Load-Raw-to-Trusted",
+				"activities": [
+					{
+						"name": "Get Metadata",
+						"type": "GetMetadata",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataset": {
+								"referenceName": "SRC_BLOB_JSON",
+								"type": "DatasetReference",
+								"parameters": {}
+							},
+							"fieldList": [
+								"childItems"
+							],
+							"storeSettings": {
+								"type": "AzureBlobStorageReadSettings",
+								"recursive": true,
+								"enablePartitionDiscovery": false
+							},
+							"formatSettings": {
+								"type": "JsonReadSettings"
+							}
+						}
+					},
+					{
+						"name": "Loop-All-Files",
+						"type": "ForEach",
+						"dependsOn": [
+							{
+								"activity": "Get Metadata",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@activity('Get Metadata').output.childItems",
+								"type": "Expression"
+							},
+							"isSequential": true,
+							"activities": [
+								{
+									"name": "If Condition1",
+									"type": "IfCondition",
+									"dependsOn": [
+										{
+											"activity": "SET-FileName",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										},
+										{
+											"activity": "SET-DateStamp",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										},
+										{
+											"activity": "Set-Source-Filename",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"userProperties": [],
+									"typeProperties": {
+										"expression": {
+											"value": "@equals(variables('FileName'),variables('SourceFileName'))",
+											"type": "Expression"
+										},
+										"ifTrueActivities": [
+											{
+												"name": "Execute Blob-Source-Copy",
+												"type": "ExecutePipeline",
+												"dependsOn": [],
+												"userProperties": [],
+												"typeProperties": {
+													"pipeline": {
+														"referenceName": "04-Blob-B-Source Copy",
+														"type": "PipelineReference"
+													},
+													"waitOnCompletion": true,
+													"parameters": {}
+												}
+											}
+										]
+									}
+								},
+								{
+									"name": "SET-FileName",
+									"type": "SetVariable",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"variableName": "FileName",
+										"value": {
+											"value": "@concat(first(split(item().name,'-')),'.json')",
+											"type": "Expression"
+										}
+									}
+								},
+								{
+									"name": "SET-DateStamp",
+									"type": "SetVariable",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"variableName": "FileName",
+										"value": {
+											"value": "@last(split(item().name,'-'))",
+											"type": "Expression"
+										}
+									}
+								},
+								{
+									"name": "Set-Source-Filename",
+									"type": "SetVariable",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"variableName": "SourceFileName",
+										"value": {
+											"value": "@last(split(pipeline().parameters.TaskDetails.SourceLocation,'/'))",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						}
+					}
+				],
+				"parameters": {
+					"TaskDetails": {
+						"type": "object"
+					},
+					"BatchLogId": {
+						"type": "int"
+					},
+					"TaskExecutionLogId": {
+						"type": "int"
+					},
+					"ProjectRunID": {
+						"type": "string"
+					},
+					"TargetBLOBFolder": {
+						"type": "string"
+					},
+					"TargetBLOBName": {
+						"type": "string"
+					},
+					"StartCounter": {
+						"type": "string"
+					},
+					"EndCounter": {
+						"type": "string"
+					},
+					"ValidationDetails": {
+						"type": "string"
+					}
+				},
+				"variables": {
+					"SourceContainer": {
+						"type": "String"
+					},
+					"SourceFileName": {
+						"type": "String"
+					},
+					"OutputFileName": {
+						"type": "String"
+					},
+					"DeltaSQL": {
+						"type": "String"
+					},
+					"FileName": {
+						"type": "String"
+					},
+					"DateStamp": {
+						"type": "String"
+					}
+				},
+				"folder": {
+					"name": "Blob"
+				},
+				"annotations": [],
+				"lastPublishTime": "2021-06-30T08:46:15Z"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/SRC_BLOB_JSON')]",
+				"[concat(variables('factoryId'), '/pipelines/04-Blob-B-Source Copy')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/04-Blob-B-Source Copy')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Clone of 05-DL-Load-Raw-to-Trusted",
+				"activities": [
+					{
+						"name": "Set-Source-Container",
+						"type": "SetVariable",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"variableName": "SourceContainer",
+							"value": {
+								"value": "@toLower(first(split(pipeline().parameters.TaskDetails.SourceLocation,'/')))",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "Set-Source-Filename_copy1",
+						"type": "SetVariable",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"variableName": "SourceFileName",
+							"value": {
+								"value": "@last(split(pipeline().parameters.TaskDetails.SourceLocation,'/'))",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "Copy-Blob-to-DataLake-Raw",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "Delete Manifest file",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "JsonSource",
+								"storeSettings": {
+									"type": "AzureBlobStorageReadSettings",
+									"recursive": true,
+									"wildcardFileName": {
+										"value": "@concat(first(split(variables('SourceFileName'),'.')),'_*')",
+										"type": "Expression"
+									},
+									"enablePartitionDiscovery": false
+								},
+								"formatSettings": {
+									"type": "JsonReadSettings"
+								}
+							},
+							"sink": {
+								"type": "JsonSink",
+								"storeSettings": {
+									"type": "AzureBlobFSWriteSettings"
+								},
+								"formatSettings": {
+									"type": "JsonWriteSettings"
+								}
+							},
+							"enableStaging": false
+						},
+						"inputs": [
+							{
+								"referenceName": "SRC_BLOB_JSON",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "RAW_ADLS_JSON_v2",
+								"type": "DatasetReference",
+								"parameters": {
+									"BlobPath": {
+										"value": "@activity('Get Full File Name').output.firstrow.StorageFolder",
+										"type": "Expression"
+									},
+									"BlobName": {
+										"value": "@activity('Get Full File Name').output.firstrow.StorageFile",
+										"type": "Expression"
+									}
+								}
+							}
+						]
+					},
+					{
+						"name": "Get Full File Name",
+						"type": "Lookup",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"sqlReaderStoredProcedureName": "[[CTL].[GetStorageFileName]",
+								"storedProcedureParameters": {
+									"DeltaExtract": {
+										"type": "Boolean",
+										"value": {
+											"value": "@pipeline().parameters.TaskDetails.DeltaExtract",
+											"type": "Expression"
+										}
+									},
+									"FileName": {
+										"type": "String",
+										"value": {
+											"value": "@pipeline().parameters.TaskDetails.SourceLocation",
+											"type": "Expression"
+										}
+									},
+									"FolderName": {
+										"type": "String",
+										"value": {
+											"value": "@pipeline().parameters.TaskDetails.TargetLocation",
+											"type": "Expression"
+										}
+									},
+									"Grain": {
+										"type": "String",
+										"value": {
+											"value": "@pipeline().parameters.TaskDetails.ObjectGrain",
+											"type": "Expression"
+										}
+									},
+									"Compressed": {
+										"type": "Boolean",
+										"value": {
+											"value": "true",
+											"type": "Expression"
+										}
+									},
+									"TargetType": {
+										"type": "String",
+										"value": {
+											"value": "@pipeline().parameters.TaskDetails.TargetType",
+											"type": "Expression"
+										}
+									}
+								},
+								"partitionOption": "None"
+							},
+							"dataset": {
+								"referenceName": "AzureSqlDatabase_Ctrldb",
+								"type": "DatasetReference",
+								"parameters": {}
+							},
+							"firstRowOnly": true
+						}
+					},
+					{
+						"name": "Copy Manifest File to Archive",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "Set-Source-Container",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							},
+							{
+								"activity": "Set-Source-Filename_copy1",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							},
+							{
+								"activity": "Get Full File Name",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "JsonSource",
+								"storeSettings": {
+									"type": "AzureBlobStorageReadSettings",
+									"recursive": true,
+									"wildcardFileName": {
+										"value": "@concat(first(split(variables('SourceFileName'),'.')),'_MANIFEST_*')",
+										"type": "Expression"
+									},
+									"enablePartitionDiscovery": false
+								},
+								"formatSettings": {
+									"type": "JsonReadSettings"
+								}
+							},
+							"sink": {
+								"type": "JsonSink",
+								"storeSettings": {
+									"type": "AzureBlobStorageWriteSettings"
+								},
+								"formatSettings": {
+									"type": "JsonWriteSettings"
+								}
+							},
+							"enableStaging": false
+						},
+						"inputs": [
+							{
+								"referenceName": "SRC_BLOB_JSON",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "ARCHIVE_BLOB_JSON",
+								"type": "DatasetReference",
+								"parameters": {
+									"BlobContainer": {
+										"value": "@concat('archive/', activity('Get Full File Name').output.firstrow.StorageFolder)",
+										"type": "Expression"
+									}
+								}
+							}
+						]
+					},
+					{
+						"name": "Delete Manifest file",
+						"type": "Delete",
+						"dependsOn": [
+							{
+								"activity": "Copy Manifest File to Archive",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataset": {
+								"referenceName": "SRC_BLOB_JSON",
+								"type": "DatasetReference",
+								"parameters": {}
+							},
+							"logStorageSettings": {
+								"linkedServiceName": {
+									"referenceName": "LS_AzureDatalake",
+									"type": "LinkedServiceReference"
+								},
+								"path": "assurance"
+							},
+							"enableLogging": true,
+							"storeSettings": {
+								"type": "AzureBlobStorageReadSettings",
+								"recursive": true,
+								"wildcardFileName": {
+									"value": "@{concat(first(split(variables('SourceFileName'),'.')),'_MANIFEST_*')}",
+									"type": "Expression"
+								},
+								"enablePartitionDiscovery": false
+							}
+						}
+					},
+					{
+						"name": "If File Was Copied",
+						"type": "IfCondition",
+						"dependsOn": [
+							{
+								"activity": "Copy-Blob-to-DataLake-Raw",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"expression": {
+								"value": "@greater(activity('Copy-Blob-to-DataLake-Raw').output.filesWritten, 0)",
+								"type": "Expression"
+							},
+							"ifTrueActivities": [
+								{
+									"name": "Execute-DP-Load-Raw-to-Delta-Table",
+									"type": "ExecutePipeline",
+									"dependsOn": [
+										{
+											"activity": "SP-Create-Manifest",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "04-DL-Load-Raw-to-Delta-Table",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": true,
+										"parameters": {
+											"BatchLogID": {
+												"value": "@pipeline().parameters.BatchLogId",
+												"type": "Expression"
+											},
+											"TaskExecutionLogId": {
+												"value": "@pipeline().parameters.TaskExecutionLogId",
+												"type": "Expression"
+											},
+											"TaskDetails": {
+												"value": "@pipeline().parameters.TaskDetails",
+												"type": "Expression"
+											},
+											"TargetBLOBFolder": {
+												"value": "@activity('Get Full File Name').output.firstrow.StorageFolder",
+												"type": "Expression"
+											},
+											"TargetBLOBName": {
+												"value": "@activity('Get Full File Name').output.firstrow.StorageFile",
+												"type": "Expression"
+											},
+											"ProjectRunID": {
+												"value": "@pipeline().parameters.ProjectRunID",
+												"type": "Expression"
+											}
+										}
+									}
+								},
+								{
+									"name": "Copy Blob File to ArchiveContainer",
+									"type": "Copy",
+									"dependsOn": [
+										{
+											"activity": "Execute-DP-Load-Raw-to-Delta-Table",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "7.00:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "JsonSource",
+											"storeSettings": {
+												"type": "AzureBlobStorageReadSettings",
+												"recursive": true,
+												"wildcardFileName": {
+													"value": "@concat(first(split(variables('SourceFileName'),'.')),'_*')",
+													"type": "Expression"
+												},
+												"enablePartitionDiscovery": false
+											},
+											"formatSettings": {
+												"type": "JsonReadSettings"
+											}
+										},
+										"sink": {
+											"type": "JsonSink",
+											"storeSettings": {
+												"type": "AzureBlobStorageWriteSettings"
+											},
+											"formatSettings": {
+												"type": "JsonWriteSettings"
+											}
+										},
+										"enableStaging": false
+									},
+									"inputs": [
+										{
+											"referenceName": "SRC_BLOB_JSON",
+											"type": "DatasetReference",
+											"parameters": {}
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "ARCHIVE_BLOB_JSON",
+											"type": "DatasetReference",
+											"parameters": {
+												"BlobContainer": {
+													"value": "@concat('archive/', activity('Get Full File Name').output.firstrow.StorageFolder)",
+													"type": "Expression"
+												}
+											}
+										}
+									]
+								},
+								{
+									"name": "Delete File from LandingBlob",
+									"type": "Delete",
+									"dependsOn": [
+										{
+											"activity": "Copy Blob File to ArchiveContainer",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "7.00:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"dataset": {
+											"referenceName": "SRC_BLOB_JSON",
+											"type": "DatasetReference",
+											"parameters": {}
+										},
+										"logStorageSettings": {
+											"linkedServiceName": {
+												"referenceName": "LS_AzureDatalake",
+												"type": "LinkedServiceReference"
+											},
+											"path": "assurance"
+										},
+										"enableLogging": true,
+										"storeSettings": {
+											"type": "AzureBlobStorageReadSettings",
+											"recursive": true,
+											"wildcardFileName": {
+												"value": "@{concat(first(split(variables('SourceFileName'),'.')),'_*')}",
+												"type": "Expression"
+											},
+											"enablePartitionDiscovery": false
+										}
+									}
+								},
+								{
+									"name": "SP-Create-Manifest",
+									"type": "SqlServerStoredProcedure",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "7.00:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"storedProcedureName": "[[CTL].[CreateManifestRecord]",
+										"storedProcedureParameters": {
+											"BatchExecutionLogID": {
+												"value": {
+													"value": "@pipeline().parameters.BatchLogId",
+													"type": "Expression"
+												},
+												"type": "Int64"
+											},
+											"Container": {
+												"value": "raw",
+												"type": "String"
+											},
+											"EndCounter": {
+												"value": "0",
+												"type": "String"
+											},
+											"FileName": {
+												"value": {
+													"value": "@activity('Get Full File Name').output.firstrow.StorageFile",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"FolderName": {
+												"value": {
+													"value": "@activity('Get Full File Name').output.firstrow.StorageFolder",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"Records": {
+												"value": {
+													"value": "@activity('Copy-Blob-to-DataLake-Raw').output.Fileswritten",
+													"type": "Expression"
+												},
+												"type": "Int64"
+											},
+											"SourceObject": {
+												"value": {
+													"value": "@pipeline().parameters.TaskDetails.SourceName",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"StartCounter": {
+												"value": "0",
+												"type": "String"
+											},
+											"TaskExecutionLogID": {
+												"value": {
+													"value": "@pipeline().parameters.TaskExecutionLogId",
+													"type": "Expression"
+												},
+												"type": "Int64"
+											},
+											"DeltaColumn": {
+												"value": {
+													"value": "@pipeline().parameters.TaskDetails.WatermarkColumn",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"PipelineRunID": {
+												"value": {
+													"value": "@pipeline().RunId",
+													"type": "Expression"
+												},
+												"type": "String"
+											}
+										}
+									},
+									"linkedServiceName": {
+										"referenceName": "LS-AzureSqlDatabase_Ctrldb",
+										"type": "LinkedServiceReference",
+										"parameters": {
+											"kvSecret": "daf-sql-controldb-connectionstring"
+										}
+									}
+								}
+							]
+						}
+					}
+				],
+				"parameters": {
+					"TaskDetails": {
+						"type": "object"
+					},
+					"BatchLogId": {
+						"type": "int"
+					},
+					"TaskExecutionLogId": {
+						"type": "int"
+					},
+					"ProjectRunID": {
+						"type": "string"
+					},
+					"TargetBLOBFolder": {
+						"type": "string"
+					},
+					"TargetBLOBName": {
+						"type": "string"
+					},
+					"StartCounter": {
+						"type": "string"
+					},
+					"EndCounter": {
+						"type": "string"
+					},
+					"ValidationDetails": {
+						"type": "string"
+					}
+				},
+				"variables": {
+					"SourceContainer": {
+						"type": "String"
+					},
+					"SourceFileName": {
+						"type": "String"
+					},
+					"OutputFileName": {
+						"type": "String"
+					},
+					"DeltaSQL": {
+						"type": "String"
+					},
+					"FileName": {
+						"type": "String"
+					},
+					"DateStamp": {
+						"type": "String"
+					}
+				},
+				"folder": {
+					"name": "Blob"
+				},
+				"annotations": [],
+				"lastPublishTime": "2021-06-30T08:46:15Z"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/SRC_BLOB_JSON')]",
+				"[concat(variables('factoryId'), '/datasets/RAW_ADLS_JSON_v2')]",
+				"[concat(variables('factoryId'), '/datasets/AzureSqlDatabase_Ctrldb')]",
+				"[concat(variables('factoryId'), '/datasets/ARCHIVE_BLOB_JSON')]",
+				"[concat(variables('factoryId'), '/linkedServices/LS_AzureDatalake')]",
+				"[concat(variables('factoryId'), '/pipelines/04-DL-Load-Raw-to-Delta-Table')]",
+				"[concat(variables('factoryId'), '/linkedServices/LS-AzureSqlDatabase_Ctrldb')]"
 			]
 		},
 		{
@@ -3673,18 +4511,11 @@
 									"userProperties": [],
 									"typeProperties": {
 										"dataset": {
-											"referenceName": "BINARY_ADLS",
+											"referenceName": "RAW_PARQUET",
 											"type": "DatasetReference",
 											"parameters": {
-												"File": {
-													"value": "@variables('File')",
-													"type": "Expression"
-												},
-												"Container": "raw",
-												"Folder": {
-													"value": "@variables('Folder')",
-													"type": "Expression"
-												}
+												"BlobPath": "a",
+												"BlobName": "a"
 											}
 										},
 										"logStorageSettings": {
@@ -3750,1218 +4581,8 @@
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/SRC_Oracle')]",
 				"[concat(variables('factoryId'), '/datasets/RAW_ADLS_Schema')]",
-				"[concat(variables('factoryId'), '/datasets/BINARY_ADLS')]",
+				"[concat(variables('factoryId'), '/datasets/RAW_PARQUET')]",
 				"[concat(variables('factoryId'), '/linkedServices/LS_AzureDatalake')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/05-DL-Copy-Raw-to-Trusted_OLD')]",
-			"type": "Microsoft.DataFactory/factories/pipelines",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"description": "04-Blob-A-Source-Copy",
-				"activities": [
-					{
-						"name": "Log Failure",
-						"type": "SqlServerStoredProcedure",
-						"dependsOn": [
-							{
-								"activity": "Copy-Raw-to-Trusted",
-								"dependencyConditions": [
-									"Failed"
-								]
-							}
-						],
-						"policy": {
-							"timeout": "7.00:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"storedProcedureName": {
-								"value": "[[CTL].[UpdateTaskLog]",
-								"type": "Expression"
-							},
-							"storedProcedureParameters": {
-								"BatchLogId": {
-									"value": {
-										"value": "@pipeline().parameters.BatchLogId",
-										"type": "Expression"
-									},
-									"type": "Int64"
-								},
-								"ErrorMessage": {
-									"value": "Error Occurred during Copy to Trusted",
-									"type": "String"
-								},
-								"ExecutionLogId": {
-									"value": {
-										"value": "@pipeline().parameters.TaskExecutionLogId",
-										"type": "Expression"
-									},
-									"type": "Int64"
-								},
-								"Output": {
-									"value": null
-								},
-								"Status": {
-									"value": "Failure",
-									"type": "String"
-								},
-								"TaskId": {
-									"value": {
-										"value": "@pipeline().parameters.TaskDetails.TaskId",
-										"type": "Expression"
-									},
-									"type": "Int64"
-								}
-							}
-						},
-						"linkedServiceName": {
-							"referenceName": "LS-AzureSqlDatabase_Ctrldb",
-							"type": "LinkedServiceReference",
-							"parameters": {
-								"kvSecret": "AzureSqlDatabase-ControlDB"
-							}
-						}
-					},
-					{
-						"name": "Log Success",
-						"type": "SqlServerStoredProcedure",
-						"dependsOn": [
-							{
-								"activity": "Copy-Raw-to-Trusted",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"policy": {
-							"timeout": "7.00:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"storedProcedureName": {
-								"value": "[[CTL].[UpdateTaskLog]",
-								"type": "Expression"
-							},
-							"storedProcedureParameters": {
-								"BatchLogId": {
-									"value": {
-										"value": "@pipeline().parameters.BatchLogId",
-										"type": "Expression"
-									},
-									"type": "Int64"
-								},
-								"ErrorMessage": {
-									"value": null,
-									"type": "String"
-								},
-								"ExecutionLogId": {
-									"value": {
-										"value": "@pipeline().parameters.TaskExecutionLogId",
-										"type": "Expression"
-									},
-									"type": "Int64"
-								},
-								"Output": {
-									"value": {
-										"value": "@pipeline().parameters.TaskDetails.LastLoadedFile",
-										"type": "Expression"
-									},
-									"type": "String"
-								},
-								"Status": {
-									"value": "Success",
-									"type": "String"
-								},
-								"TaskId": {
-									"value": {
-										"value": "@pipeline().parameters.TaskDetails.TaskId",
-										"type": "Expression"
-									},
-									"type": "Int64"
-								}
-							}
-						},
-						"linkedServiceName": {
-							"referenceName": "LS-AzureSqlDatabase_Ctrldb",
-							"type": "LinkedServiceReference",
-							"parameters": {
-								"kvSecret": "AzureSqlDatabase-ControlDB"
-							}
-						}
-					},
-					{
-						"name": "Set-ClusterType",
-						"type": "SetVariable",
-						"dependsOn": [],
-						"userProperties": [],
-						"typeProperties": {
-							"variableName": "ClusterType",
-							"value": {
-								"value": "@toLower(last(split(pipeline().parameters.TaskDetails.Processor,'|')))",
-								"type": "Expression"
-							}
-						}
-					},
-					{
-						"name": "Set-Source-Container",
-						"type": "SetVariable",
-						"dependsOn": [],
-						"userProperties": [],
-						"typeProperties": {
-							"variableName": "SourceContainer",
-							"value": "raw"
-						}
-					},
-					{
-						"name": "Set-Source-Filename",
-						"type": "SetVariable",
-						"dependsOn": [],
-						"userProperties": [],
-						"typeProperties": {
-							"variableName": "SourceFileName",
-							"value": {
-								"value": "@last(split(pipeline().parameters.TaskDetails.SourceLocation,'/'))",
-								"type": "Expression"
-							}
-						}
-					},
-					{
-						"name": "Set-Target-Directory",
-						"type": "SetVariable",
-						"dependsOn": [],
-						"userProperties": [],
-						"typeProperties": {
-							"variableName": "TargetDirectory",
-							"value": {
-								"value": "@toLower(first(split(pipeline().parameters.TaskDetails.TargetLocation,'/')))",
-								"type": "Expression"
-							}
-						}
-					},
-					{
-						"name": "Set-Target-Filename",
-						"type": "SetVariable",
-						"dependsOn": [],
-						"userProperties": [],
-						"typeProperties": {
-							"variableName": "TargetFileName",
-							"value": {
-								"value": "@last(split(pipeline().parameters.TaskDetails.TargetLocation,'/'))",
-								"type": "Expression"
-							}
-						}
-					},
-					{
-						"name": "Set-Target-Container",
-						"type": "SetVariable",
-						"dependsOn": [],
-						"userProperties": [],
-						"typeProperties": {
-							"variableName": "TargetContainer",
-							"value": "trusted"
-						}
-					},
-					{
-						"name": "Copy-Raw-to-Trusted",
-						"type": "Copy",
-						"dependsOn": [
-							{
-								"activity": "Set-Source-Container",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							},
-							{
-								"activity": "Set-Source-Filename",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							},
-							{
-								"activity": "Set-Target-Directory",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							},
-							{
-								"activity": "Set-Target-Filename",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							},
-							{
-								"activity": "Set-Target-Container",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							},
-							{
-								"activity": "Set-ClusterType",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							},
-							{
-								"activity": "Set-Source-Directory",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"policy": {
-							"timeout": "7.00:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"source": {
-								"type": "JsonSource",
-								"storeSettings": {
-									"type": "AzureBlobFSReadSettings",
-									"recursive": true,
-									"enablePartitionDiscovery": false
-								},
-								"formatSettings": {
-									"type": "JsonReadSettings"
-								}
-							},
-							"sink": {
-								"type": "JsonSink",
-								"storeSettings": {
-									"type": "AzureBlobFSWriteSettings"
-								},
-								"formatSettings": {
-									"type": "JsonWriteSettings"
-								}
-							},
-							"enableStaging": false
-						},
-						"inputs": [
-							{
-								"referenceName": "RAW_ADLS_JSON",
-								"type": "DatasetReference",
-								"parameters": {
-									"LakeContainer": {
-										"value": "@variables('SourceContainer')",
-										"type": "Expression"
-									},
-									"LakeDirectory": {
-										"value": "@variables('SourceDirectory')",
-										"type": "Expression"
-									},
-									"LakeFileName": {
-										"value": "@variables('SourceFileName')",
-										"type": "Expression"
-									}
-								}
-							}
-						],
-						"outputs": [
-							{
-								"referenceName": "TRUSTED_ADLS_JSONN",
-								"type": "DatasetReference",
-								"parameters": {
-									"LakeContainer": {
-										"value": "@variables('TargetContainer')",
-										"type": "Expression"
-									},
-									"LakeDirectory": {
-										"value": "@variables('TargetDirectory')",
-										"type": "Expression"
-									},
-									"LakeFileName": {
-										"value": "@variables('TargetFileName')",
-										"type": "Expression"
-									}
-								}
-							}
-						]
-					},
-					{
-						"name": "Set-Source-Directory",
-						"type": "SetVariable",
-						"dependsOn": [],
-						"userProperties": [],
-						"typeProperties": {
-							"variableName": "SourceDirectory",
-							"value": {
-								"value": "@toLower(first(split(pipeline().parameters.TaskDetails.SourceLocation,'/')))",
-								"type": "Expression"
-							}
-						}
-					}
-				],
-				"parameters": {
-					"TaskDetails": {
-						"type": "object"
-					},
-					"BatchLogId": {
-						"type": "int"
-					},
-					"TaskExecutionLogId": {
-						"type": "int"
-					},
-					"ProjectRunID": {
-						"type": "string"
-					}
-				},
-				"variables": {
-					"ReturnValue": {
-						"type": "String"
-					},
-					"ClusterType": {
-						"type": "String"
-					},
-					"SourceContainer": {
-						"type": "String",
-						"defaultValue": "raw"
-					},
-					"SourceDirectory": {
-						"type": "String"
-					},
-					"SourceFileName": {
-						"type": "String"
-					},
-					"TargetContainer": {
-						"type": "String",
-						"defaultValue": "trusted"
-					},
-					"TargetDirectory": {
-						"type": "String"
-					},
-					"TargetFileName": {
-						"type": "String"
-					}
-				},
-				"folder": {
-					"name": "z_Archive"
-				},
-				"annotations": [],
-				"lastPublishTime": "2021-06-24T00:16:57Z"
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/LS-AzureSqlDatabase_Ctrldb')]",
-				"[concat(variables('factoryId'), '/datasets/RAW_ADLS_JSON')]",
-				"[concat(variables('factoryId'), '/datasets/TRUSTED_ADLS_JSONN')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/05-DL-Copy-Raw-to-Trustedddddd')]",
-			"type": "Microsoft.DataFactory/factories/pipelines",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"description": "04-Blob-A-Source-Copy",
-				"activities": [
-					{
-						"name": "Log Failure",
-						"type": "SqlServerStoredProcedure",
-						"dependsOn": [
-							{
-								"activity": "Copy-Raw-to-Trusted",
-								"dependencyConditions": [
-									"Failed"
-								]
-							}
-						],
-						"policy": {
-							"timeout": "7.00:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"storedProcedureName": {
-								"value": "[[CTL].[UpdateTaskLog]",
-								"type": "Expression"
-							},
-							"storedProcedureParameters": {
-								"BatchLogId": {
-									"value": {
-										"value": "@pipeline().parameters.BatchLogId",
-										"type": "Expression"
-									},
-									"type": "Int64"
-								},
-								"ErrorMessage": {
-									"value": "Error Occurred during Copy to Trusted",
-									"type": "String"
-								},
-								"ExecutionLogId": {
-									"value": {
-										"value": "@pipeline().parameters.TaskExecutionLogId",
-										"type": "Expression"
-									},
-									"type": "Int64"
-								},
-								"Output": {
-									"value": null
-								},
-								"Status": {
-									"value": "Failure",
-									"type": "String"
-								},
-								"TaskId": {
-									"value": {
-										"value": "@pipeline().parameters.TaskDetails.TaskId",
-										"type": "Expression"
-									},
-									"type": "Int64"
-								}
-							}
-						},
-						"linkedServiceName": {
-							"referenceName": "LS-AzureSqlDatabase_Ctrldb",
-							"type": "LinkedServiceReference",
-							"parameters": {
-								"kvSecret": "AzureSqlDatabase-ControlDB"
-							}
-						}
-					},
-					{
-						"name": "Log Success",
-						"type": "SqlServerStoredProcedure",
-						"dependsOn": [
-							{
-								"activity": "Copy-Raw-to-Trusted",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"policy": {
-							"timeout": "7.00:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"storedProcedureName": {
-								"value": "[[CTL].[UpdateTaskLog]",
-								"type": "Expression"
-							},
-							"storedProcedureParameters": {
-								"BatchLogId": {
-									"value": {
-										"value": "@pipeline().parameters.BatchLogId",
-										"type": "Expression"
-									},
-									"type": "Int64"
-								},
-								"ErrorMessage": {
-									"value": null,
-									"type": "String"
-								},
-								"ExecutionLogId": {
-									"value": {
-										"value": "@pipeline().parameters.TaskExecutionLogId",
-										"type": "Expression"
-									},
-									"type": "Int64"
-								},
-								"Output": {
-									"value": {
-										"value": "@pipeline().parameters.TaskDetails.LastLoadedFile",
-										"type": "Expression"
-									},
-									"type": "String"
-								},
-								"Status": {
-									"value": "Success",
-									"type": "String"
-								},
-								"TaskId": {
-									"value": {
-										"value": "@pipeline().parameters.TaskDetails.TaskId",
-										"type": "Expression"
-									},
-									"type": "Int64"
-								}
-							}
-						},
-						"linkedServiceName": {
-							"referenceName": "LS-AzureSqlDatabase_Ctrldb",
-							"type": "LinkedServiceReference",
-							"parameters": {
-								"kvSecret": "AzureSqlDatabase-ControlDB"
-							}
-						}
-					},
-					{
-						"name": "Set-ClusterType",
-						"type": "SetVariable",
-						"dependsOn": [],
-						"userProperties": [],
-						"typeProperties": {
-							"variableName": "ClusterType",
-							"value": {
-								"value": "@toLower(last(split(pipeline().parameters.TaskDetails.Processor,'|')))",
-								"type": "Expression"
-							}
-						}
-					},
-					{
-						"name": "Set-Source-Container",
-						"type": "SetVariable",
-						"dependsOn": [],
-						"userProperties": [],
-						"typeProperties": {
-							"variableName": "SourceContainer",
-							"value": "raw"
-						}
-					},
-					{
-						"name": "Set-Source-Filename",
-						"type": "SetVariable",
-						"dependsOn": [],
-						"userProperties": [],
-						"typeProperties": {
-							"variableName": "SourceFileName",
-							"value": {
-								"value": "@last(split(pipeline().parameters.TaskDetails.SourceLocation,'/'))",
-								"type": "Expression"
-							}
-						}
-					},
-					{
-						"name": "Set-Target-Directory",
-						"type": "SetVariable",
-						"dependsOn": [],
-						"userProperties": [],
-						"typeProperties": {
-							"variableName": "TargetDirectory",
-							"value": {
-								"value": "@toLower(first(split(pipeline().parameters.TaskDetails.TargetLocation,'/')))",
-								"type": "Expression"
-							}
-						}
-					},
-					{
-						"name": "Set-Target-Filename",
-						"type": "SetVariable",
-						"dependsOn": [],
-						"userProperties": [],
-						"typeProperties": {
-							"variableName": "TargetFileName",
-							"value": {
-								"value": "@last(split(pipeline().parameters.TaskDetails.TargetLocation,'/'))",
-								"type": "Expression"
-							}
-						}
-					},
-					{
-						"name": "Set-Target-Container",
-						"type": "SetVariable",
-						"dependsOn": [],
-						"userProperties": [],
-						"typeProperties": {
-							"variableName": "TargetContainer",
-							"value": "trusted"
-						}
-					},
-					{
-						"name": "Copy-Raw-to-Trusted",
-						"type": "Copy",
-						"dependsOn": [
-							{
-								"activity": "Set-Source-Container",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							},
-							{
-								"activity": "Set-Source-Filename",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							},
-							{
-								"activity": "Set-Target-Directory",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							},
-							{
-								"activity": "Set-Target-Filename",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							},
-							{
-								"activity": "Set-Target-Container",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							},
-							{
-								"activity": "Set-ClusterType",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							},
-							{
-								"activity": "Set-Source-Directory",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"policy": {
-							"timeout": "7.00:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"source": {
-								"type": "JsonSource",
-								"storeSettings": {
-									"type": "AzureBlobFSReadSettings",
-									"recursive": true,
-									"enablePartitionDiscovery": false
-								},
-								"formatSettings": {
-									"type": "JsonReadSettings"
-								}
-							},
-							"sink": {
-								"type": "JsonSink",
-								"storeSettings": {
-									"type": "AzureBlobFSWriteSettings"
-								},
-								"formatSettings": {
-									"type": "JsonWriteSettings"
-								}
-							},
-							"enableStaging": false
-						},
-						"inputs": [
-							{
-								"referenceName": "DS_ADLS_JSON",
-								"type": "DatasetReference",
-								"parameters": {
-									"LakeContainer": {
-										"value": "@variables('SourceContainer')",
-										"type": "Expression"
-									},
-									"LakeDirectory": {
-										"value": "@variables('SourceDirectory')",
-										"type": "Expression"
-									},
-									"LakeFileName": {
-										"value": "@variables('SourceFileName')",
-										"type": "Expression"
-									}
-								}
-							}
-						],
-						"outputs": [
-							{
-								"referenceName": "DS_ADLS_JSON",
-								"type": "DatasetReference",
-								"parameters": {
-									"LakeContainer": {
-										"value": "@variables('TargetContainer')",
-										"type": "Expression"
-									},
-									"LakeDirectory": {
-										"value": "@variables('TargetDirectory')",
-										"type": "Expression"
-									},
-									"LakeFileName": {
-										"value": "@variables('TargetFileName')",
-										"type": "Expression"
-									}
-								}
-							}
-						]
-					},
-					{
-						"name": "Set-Source-Directory",
-						"type": "SetVariable",
-						"dependsOn": [],
-						"userProperties": [],
-						"typeProperties": {
-							"variableName": "SourceDirectory",
-							"value": {
-								"value": "@toLower(first(split(pipeline().parameters.TaskDetails.SourceLocation,'/')))",
-								"type": "Expression"
-							}
-						}
-					}
-				],
-				"parameters": {
-					"TaskDetails": {
-						"type": "object"
-					},
-					"BatchLogId": {
-						"type": "int"
-					},
-					"TaskExecutionLogId": {
-						"type": "int"
-					},
-					"ProjectRunID": {
-						"type": "string"
-					}
-				},
-				"variables": {
-					"ReturnValue": {
-						"type": "String"
-					},
-					"ClusterType": {
-						"type": "String"
-					},
-					"SourceContainer": {
-						"type": "String",
-						"defaultValue": "raw"
-					},
-					"SourceDirectory": {
-						"type": "String"
-					},
-					"SourceFileName": {
-						"type": "String"
-					},
-					"TargetContainer": {
-						"type": "String",
-						"defaultValue": "trusted"
-					},
-					"TargetDirectory": {
-						"type": "String"
-					},
-					"TargetFileName": {
-						"type": "String"
-					}
-				},
-				"folder": {
-					"name": "z_Archive"
-				},
-				"annotations": [],
-				"lastPublishTime": "2021-06-24T00:16:57Z"
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/LS-AzureSqlDatabase_Ctrldb')]",
-				"[concat(variables('factoryId'), '/datasets/DS_ADLS_JSON')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/05-DL-Copy-Trusted-to-Curated')]",
-			"type": "Microsoft.DataFactory/factories/pipelines",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"description": "Clone of raw to trusted copy",
-				"activities": [
-					{
-						"name": "Log Failure",
-						"type": "SqlServerStoredProcedure",
-						"dependsOn": [
-							{
-								"activity": "Copy-Trusted-to-Curated",
-								"dependencyConditions": [
-									"Failed"
-								]
-							}
-						],
-						"policy": {
-							"timeout": "7.00:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"storedProcedureName": {
-								"value": "[[CTL].[UpdateTaskLog]",
-								"type": "Expression"
-							},
-							"storedProcedureParameters": {
-								"BatchLogId": {
-									"value": {
-										"value": "@pipeline().parameters.BatchLogId",
-										"type": "Expression"
-									},
-									"type": "Int64"
-								},
-								"ErrorMessage": {
-									"value": "Error Occurred during Copy to Trusted",
-									"type": "String"
-								},
-								"ExecutionLogId": {
-									"value": {
-										"value": "@pipeline().parameters.TaskExecutionLogId",
-										"type": "Expression"
-									},
-									"type": "Int64"
-								},
-								"Output": {
-									"value": null
-								},
-								"Status": {
-									"value": "Failure",
-									"type": "String"
-								},
-								"TaskId": {
-									"value": {
-										"value": "@pipeline().parameters.TaskDetails.TaskId",
-										"type": "Expression"
-									},
-									"type": "Int64"
-								}
-							}
-						},
-						"linkedServiceName": {
-							"referenceName": "LS-AzureSqlDatabase_Ctrldb",
-							"type": "LinkedServiceReference",
-							"parameters": {
-								"kvSecret": "AzureSqlDatabase-ControlDB"
-							}
-						}
-					},
-					{
-						"name": "Log Success",
-						"type": "SqlServerStoredProcedure",
-						"dependsOn": [
-							{
-								"activity": "Copy-Trusted-to-Curated",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"policy": {
-							"timeout": "7.00:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"storedProcedureName": {
-								"value": "[[CTL].[UpdateTaskLog]",
-								"type": "Expression"
-							},
-							"storedProcedureParameters": {
-								"BatchLogId": {
-									"value": {
-										"value": "@pipeline().parameters.BatchLogId",
-										"type": "Expression"
-									},
-									"type": "Int64"
-								},
-								"ErrorMessage": {
-									"value": null,
-									"type": "String"
-								},
-								"ExecutionLogId": {
-									"value": {
-										"value": "@pipeline().parameters.TaskExecutionLogId",
-										"type": "Expression"
-									},
-									"type": "Int64"
-								},
-								"Output": {
-									"value": {
-										"value": "@pipeline().parameters.TaskDetails.LastLoadedFile",
-										"type": "Expression"
-									},
-									"type": "String"
-								},
-								"Status": {
-									"value": "Success",
-									"type": "String"
-								},
-								"TaskId": {
-									"value": {
-										"value": "@pipeline().parameters.TaskDetails.TaskId",
-										"type": "Expression"
-									},
-									"type": "Int64"
-								}
-							}
-						},
-						"linkedServiceName": {
-							"referenceName": "LS-AzureSqlDatabase_Ctrldb",
-							"type": "LinkedServiceReference",
-							"parameters": {
-								"kvSecret": "AzureSqlDatabase-ControlDB"
-							}
-						}
-					},
-					{
-						"name": "Set-ClusterType",
-						"type": "SetVariable",
-						"dependsOn": [],
-						"userProperties": [],
-						"typeProperties": {
-							"variableName": "ClusterType",
-							"value": {
-								"value": "@toLower(last(split(pipeline().parameters.TaskDetails.Processor,'|')))",
-								"type": "Expression"
-							}
-						}
-					},
-					{
-						"name": "Set-Source-Container",
-						"type": "SetVariable",
-						"dependsOn": [],
-						"userProperties": [],
-						"typeProperties": {
-							"variableName": "SourceContainer",
-							"value": "trusted"
-						}
-					},
-					{
-						"name": "Set-Source-Filename",
-						"type": "SetVariable",
-						"dependsOn": [],
-						"userProperties": [],
-						"typeProperties": {
-							"variableName": "SourceFileName",
-							"value": {
-								"value": "@last(split(pipeline().parameters.TaskDetails.SourceLocation,'/'))",
-								"type": "Expression"
-							}
-						}
-					},
-					{
-						"name": "Set-Target-Directory",
-						"type": "SetVariable",
-						"dependsOn": [],
-						"userProperties": [],
-						"typeProperties": {
-							"variableName": "TargetDirectory",
-							"value": {
-								"value": "@toLower(first(split(pipeline().parameters.TaskDetails.TargetLocation,'/')))",
-								"type": "Expression"
-							}
-						}
-					},
-					{
-						"name": "Set-Target-Filename",
-						"type": "SetVariable",
-						"dependsOn": [],
-						"userProperties": [],
-						"typeProperties": {
-							"variableName": "TargetFileName",
-							"value": {
-								"value": "@last(split(pipeline().parameters.TaskDetails.TargetLocation,'/'))",
-								"type": "Expression"
-							}
-						}
-					},
-					{
-						"name": "Set-Target-Container",
-						"type": "SetVariable",
-						"dependsOn": [],
-						"userProperties": [],
-						"typeProperties": {
-							"variableName": "TargetContainer",
-							"value": "curated"
-						}
-					},
-					{
-						"name": "Copy-Trusted-to-Curated",
-						"type": "Copy",
-						"dependsOn": [
-							{
-								"activity": "Set-Source-Container",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							},
-							{
-								"activity": "Set-Source-Filename",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							},
-							{
-								"activity": "Set-Target-Directory",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							},
-							{
-								"activity": "Set-Target-Filename",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							},
-							{
-								"activity": "Set-Target-Container",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							},
-							{
-								"activity": "Set-ClusterType",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							},
-							{
-								"activity": "Set-Source-Directory",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"policy": {
-							"timeout": "7.00:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"source": {
-								"type": "JsonSource",
-								"storeSettings": {
-									"type": "AzureBlobFSReadSettings",
-									"recursive": true,
-									"enablePartitionDiscovery": false
-								},
-								"formatSettings": {
-									"type": "JsonReadSettings"
-								}
-							},
-							"sink": {
-								"type": "JsonSink",
-								"storeSettings": {
-									"type": "AzureBlobFSWriteSettings"
-								},
-								"formatSettings": {
-									"type": "JsonWriteSettings"
-								}
-							},
-							"enableStaging": false
-						},
-						"inputs": [
-							{
-								"referenceName": "DS_ADLS_JSON",
-								"type": "DatasetReference",
-								"parameters": {
-									"LakeContainer": {
-										"value": "@variables('SourceContainer')",
-										"type": "Expression"
-									},
-									"LakeDirectory": {
-										"value": "@variables('SourceDirectory')",
-										"type": "Expression"
-									},
-									"LakeFileName": {
-										"value": "@variables('SourceFileName')",
-										"type": "Expression"
-									}
-								}
-							}
-						],
-						"outputs": [
-							{
-								"referenceName": "DS_ADLS_JSON",
-								"type": "DatasetReference",
-								"parameters": {
-									"LakeContainer": {
-										"value": "@variables('TargetContainer')",
-										"type": "Expression"
-									},
-									"LakeDirectory": {
-										"value": "@variables('TargetDirectory')",
-										"type": "Expression"
-									},
-									"LakeFileName": {
-										"value": "@variables('TargetFileName')",
-										"type": "Expression"
-									}
-								}
-							}
-						]
-					},
-					{
-						"name": "Set-Source-Directory",
-						"type": "SetVariable",
-						"dependsOn": [],
-						"userProperties": [],
-						"typeProperties": {
-							"variableName": "SourceDirectory",
-							"value": {
-								"value": "@toLower(first(split(pipeline().parameters.TaskDetails.SourceLocation,'/')))",
-								"type": "Expression"
-							}
-						}
-					}
-				],
-				"parameters": {
-					"TaskDetails": {
-						"type": "object"
-					},
-					"BatchLogId": {
-						"type": "int"
-					},
-					"TaskExecutionLogId": {
-						"type": "int"
-					},
-					"ProjectRunID": {
-						"type": "string"
-					}
-				},
-				"variables": {
-					"ReturnValue": {
-						"type": "String"
-					},
-					"ClusterType": {
-						"type": "String"
-					},
-					"SourceContainer": {
-						"type": "String",
-						"defaultValue": "raw"
-					},
-					"SourceDirectory": {
-						"type": "String"
-					},
-					"SourceFileName": {
-						"type": "String"
-					},
-					"TargetContainer": {
-						"type": "String",
-						"defaultValue": "trusted"
-					},
-					"TargetDirectory": {
-						"type": "String"
-					},
-					"TargetFileName": {
-						"type": "String"
-					}
-				},
-				"folder": {
-					"name": "z_Archive"
-				},
-				"annotations": [],
-				"lastPublishTime": "2021-06-24T00:16:57Z"
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/LS-AzureSqlDatabase_Ctrldb')]",
-				"[concat(variables('factoryId'), '/datasets/DS_ADLS_JSON')]"
 			]
 		},
 		{
@@ -5608,826 +5229,6 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/05-DL-Load-Raw-to-Cleansed_copy1')]",
-			"type": "Microsoft.DataFactory/factories/pipelines",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"activities": [
-					{
-						"name": "Log Failure DL Trusted",
-						"type": "SqlServerStoredProcedure",
-						"dependsOn": [
-							{
-								"activity": "If-ClusterType",
-								"dependencyConditions": [
-									"Failed"
-								]
-							}
-						],
-						"policy": {
-							"timeout": "7.00:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"storedProcedureName": {
-								"value": "[[CTL].[UpdateTaskLog]",
-								"type": "Expression"
-							},
-							"storedProcedureParameters": {
-								"BatchLogId": {
-									"value": {
-										"value": "@pipeline().parameters.BatchLogId",
-										"type": "Expression"
-									},
-									"type": "Int64"
-								},
-								"ErrorMessage": {
-									"value": "Error Occurred during Trusted Zone load",
-									"type": "String"
-								},
-								"ExecutionLogId": {
-									"value": {
-										"value": "@pipeline().parameters.TaskExecutionLogId",
-										"type": "Expression"
-									},
-									"type": "Int64"
-								},
-								"Output": {
-									"value": null
-								},
-								"Status": {
-									"value": "Failure",
-									"type": "String"
-								},
-								"TaskId": {
-									"value": {
-										"value": "@pipeline().parameters.TaskDetails.TaskId",
-										"type": "Expression"
-									},
-									"type": "Int64"
-								}
-							}
-						},
-						"linkedServiceName": {
-							"referenceName": "LS-AzureSqlDatabase_Ctrldb",
-							"type": "LinkedServiceReference",
-							"parameters": {
-								"kvSecret": "AzureSqlDatabase-ControlDB"
-							}
-						}
-					},
-					{
-						"name": "Log Success",
-						"type": "SqlServerStoredProcedure",
-						"dependsOn": [
-							{
-								"activity": "If-ClusterType",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"policy": {
-							"timeout": "7.00:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"storedProcedureName": {
-								"value": "[[CTL].[UpdateTaskLog]",
-								"type": "Expression"
-							},
-							"storedProcedureParameters": {
-								"BatchLogId": {
-									"value": {
-										"value": "@pipeline().parameters.BatchLogId",
-										"type": "Expression"
-									},
-									"type": "Int64"
-								},
-								"ErrorMessage": {
-									"value": null,
-									"type": "String"
-								},
-								"ExecutionLogId": {
-									"value": {
-										"value": "@pipeline().parameters.TaskExecutionLogId",
-										"type": "Expression"
-									},
-									"type": "Int64"
-								},
-								"Output": {
-									"value": {
-										"value": "@pipeline().parameters.TaskDetails.LastLoadedFile",
-										"type": "Expression"
-									},
-									"type": "String"
-								},
-								"Status": {
-									"value": "Success",
-									"type": "String"
-								},
-								"TaskId": {
-									"value": {
-										"value": "@pipeline().parameters.TaskDetails.TaskId",
-										"type": "Expression"
-									},
-									"type": "Int64"
-								}
-							}
-						},
-						"linkedServiceName": {
-							"referenceName": "LS-AzureSqlDatabase_Ctrldb",
-							"type": "LinkedServiceReference",
-							"parameters": {
-								"kvSecret": "AzureSqlDatabase-ControlDB"
-							}
-						}
-					},
-					{
-						"name": "Set-ClusterType",
-						"type": "SetVariable",
-						"dependsOn": [],
-						"userProperties": [],
-						"typeProperties": {
-							"variableName": "ClusterType",
-							"value": {
-								"value": "@toLower(last(split(pipeline().parameters.TaskDetails.Processor,'|')))",
-								"type": "Expression"
-							}
-						}
-					},
-					{
-						"name": "If-ClusterType",
-						"description": "",
-						"type": "IfCondition",
-						"dependsOn": [
-							{
-								"activity": "Set-ClusterType",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							},
-							{
-								"activity": "Set-Source-Container",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							},
-							{
-								"activity": "Set-Source-FileName",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							},
-							{
-								"activity": "Set-Target-Container",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							},
-							{
-								"activity": "Set-Target-FileName",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"userProperties": [],
-						"typeProperties": {
-							"expression": {
-								"value": "@equals(variables('ClusterType'), 'interactive')",
-								"type": "Expression"
-							},
-							"ifFalseActivities": [
-								{
-									"name": "Load-To-Trusted-Zone-Job",
-									"type": "DatabricksNotebook",
-									"dependsOn": [],
-									"policy": {
-										"timeout": "7.00:00:00",
-										"retry": 0,
-										"retryIntervalInSeconds": 30,
-										"secureOutput": false,
-										"secureInput": false
-									},
-									"userProperties": [],
-									"typeProperties": {
-										"notebookPath": {
-											"value": "@pipeline().parameters.TaskDetails.Command",
-											"type": "Expression"
-										},
-										"baseParameters": {
-											"storage_account_key": {
-												"value": "@pipeline().parameters.TaskDetails.SourceServer",
-												"type": "Expression"
-											},
-											"srcDirectoryName": {
-												"value": "@variables('SourceFolder')",
-												"type": "Expression"
-											},
-											"dstDirectoryName": {
-												"value": "@variables('TargetFolder')",
-												"type": "Expression"
-											},
-											"srcBlobName": {
-												"value": "@variables('SourceBlob')",
-												"type": "Expression"
-											},
-											"dstBlobName": {
-												"value": "@variables('TargetBlob')",
-												"type": "Expression"
-											}
-										}
-									},
-									"linkedServiceName": {
-										"referenceName": "LS-AzureDatabricks_JobCluster",
-										"type": "LinkedServiceReference",
-										"parameters": {
-											"kvSecret": {
-												"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[0]",
-												"type": "Expression"
-											},
-											"DataBricksClusterType": {
-												"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[2]",
-												"type": "Expression"
-											},
-											"DataBricksClusterVersion": {
-												"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[3]",
-												"type": "Expression"
-											},
-											"DataBricksWorkerNodes": {
-												"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[4]",
-												"type": "Expression"
-											}
-										}
-									}
-								}
-							],
-							"ifTrueActivities": [
-								{
-									"name": "Load-To-Cleansed-Zone-Interactive",
-									"type": "DatabricksNotebook",
-									"dependsOn": [],
-									"policy": {
-										"timeout": "7.00:00:00",
-										"retry": 0,
-										"retryIntervalInSeconds": 30,
-										"secureOutput": false,
-										"secureInput": false
-									},
-									"userProperties": [],
-									"typeProperties": {
-										"notebookPath": {
-											"value": "@pipeline().parameters.TaskDetails.Command",
-											"type": "Expression"
-										},
-										"baseParameters": {
-											"source_object": {
-												"value": "@pipeline().parameters.TaskDetails.SourceName",
-												"type": "Expression"
-											}
-										}
-									},
-									"linkedServiceName": {
-										"referenceName": "LS-AzureDatabricks_DefinedCluster",
-										"type": "LinkedServiceReference",
-										"parameters": {
-											"kvSecret": {
-												"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[0]",
-												"type": "Expression"
-											},
-											"clusterId": {
-												"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[1]",
-												"type": "Expression"
-											}
-										}
-									}
-								}
-							]
-						}
-					},
-					{
-						"name": "Set-Source-Container",
-						"type": "SetVariable",
-						"dependsOn": [],
-						"userProperties": [],
-						"typeProperties": {
-							"variableName": "SourceContainer",
-							"value": {
-								"value": "@toLower(first(split(pipeline().parameters.TaskDetails.SourceLocation,'/')))",
-								"type": "Expression"
-							}
-						}
-					},
-					{
-						"name": "Set-Source-FileName",
-						"type": "SetVariable",
-						"dependsOn": [],
-						"userProperties": [],
-						"typeProperties": {
-							"variableName": "SourceFileName",
-							"value": {
-								"value": "@toLower(last(split(pipeline().parameters.TaskDetails.TargetLocation,'/')))",
-								"type": "Expression"
-							}
-						}
-					},
-					{
-						"name": "Set-Target-Container",
-						"type": "SetVariable",
-						"dependsOn": [],
-						"userProperties": [],
-						"typeProperties": {
-							"variableName": "TargetContainer",
-							"value": {
-								"value": "@toLower(first(split(pipeline().parameters.TaskDetails.TargetLocation,'/')))",
-								"type": "Expression"
-							}
-						}
-					},
-					{
-						"name": "Set-Target-FileName",
-						"type": "SetVariable",
-						"dependsOn": [],
-						"userProperties": [],
-						"typeProperties": {
-							"variableName": "TargetFileName",
-							"value": {
-								"value": "@toLower(last(split(pipeline().parameters.TaskDetails.TargetLocation,'/')))",
-								"type": "Expression"
-							}
-						}
-					}
-				],
-				"parameters": {
-					"TaskDetails": {
-						"type": "object"
-					},
-					"BatchLogId": {
-						"type": "int"
-					},
-					"TaskExecutionLogId": {
-						"type": "int"
-					},
-					"ProjectRunID": {
-						"type": "string"
-					}
-				},
-				"variables": {
-					"ReturnValue": {
-						"type": "String"
-					},
-					"ClusterType": {
-						"type": "String"
-					},
-					"SourceContainer": {
-						"type": "String",
-						"defaultValue": "raw"
-					},
-					"SourceDirectory": {
-						"type": "String"
-					},
-					"SourceFileName": {
-						"type": "String"
-					},
-					"TargetContainer": {
-						"type": "String",
-						"defaultValue": "trusted"
-					},
-					"TargetDirectory": {
-						"type": "String"
-					},
-					"TargetFileName": {
-						"type": "String"
-					}
-				},
-				"folder": {
-					"name": "z_Archive"
-				},
-				"annotations": [],
-				"lastPublishTime": "2021-06-21T11:04:49Z"
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/LS-AzureSqlDatabase_Ctrldb')]",
-				"[concat(variables('factoryId'), '/linkedServices/LS-AzureDatabricks_JobCluster')]",
-				"[concat(variables('factoryId'), '/linkedServices/LS-AzureDatabricks_DefinedCluster')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/06-DL-Load-Trusted-to-Curated')]",
-			"type": "Microsoft.DataFactory/factories/pipelines",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"activities": [
-					{
-						"name": "Log Failure DL Curated",
-						"type": "SqlServerStoredProcedure",
-						"dependsOn": [
-							{
-								"activity": "If-ClusterType",
-								"dependencyConditions": [
-									"Failed"
-								]
-							}
-						],
-						"policy": {
-							"timeout": "7.00:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"storedProcedureName": {
-								"value": "[[CTL].[UpdateTaskLog]",
-								"type": "Expression"
-							},
-							"storedProcedureParameters": {
-								"BatchLogId": {
-									"value": {
-										"value": "@pipeline().parameters.BatchLogId",
-										"type": "Expression"
-									},
-									"type": "Int64"
-								},
-								"ErrorMessage": {
-									"value": "Error Occurred during Trusted Zone load",
-									"type": "String"
-								},
-								"ExecutionLogId": {
-									"value": {
-										"value": "@pipeline().parameters.TaskExecutionLogId",
-										"type": "Expression"
-									},
-									"type": "Int64"
-								},
-								"Output": {
-									"value": null
-								},
-								"Status": {
-									"value": "Failure",
-									"type": "String"
-								},
-								"TaskId": {
-									"value": {
-										"value": "@pipeline().parameters.TaskDetails.TaskId",
-										"type": "Expression"
-									},
-									"type": "Int64"
-								}
-							}
-						},
-						"linkedServiceName": {
-							"referenceName": "LS-AzureSqlDatabase_Ctrldb",
-							"type": "LinkedServiceReference",
-							"parameters": {
-								"kvSecret": "AzureSqlDatabase-ControlDB"
-							}
-						}
-					},
-					{
-						"name": "Log Success",
-						"type": "SqlServerStoredProcedure",
-						"dependsOn": [
-							{
-								"activity": "If-ClusterType",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"policy": {
-							"timeout": "7.00:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"storedProcedureName": {
-								"value": "[[CTL].[UpdateTaskLog]",
-								"type": "Expression"
-							},
-							"storedProcedureParameters": {
-								"BatchLogId": {
-									"value": {
-										"value": "@pipeline().parameters.BatchLogId",
-										"type": "Expression"
-									},
-									"type": "Int64"
-								},
-								"ErrorMessage": {
-									"value": null,
-									"type": "String"
-								},
-								"ExecutionLogId": {
-									"value": {
-										"value": "@pipeline().parameters.TaskExecutionLogId",
-										"type": "Expression"
-									},
-									"type": "Int64"
-								},
-								"Output": {
-									"value": {
-										"value": "@pipeline().parameters.TaskDetails.LastLoadedFile",
-										"type": "Expression"
-									},
-									"type": "String"
-								},
-								"Status": {
-									"value": "Success",
-									"type": "String"
-								},
-								"TaskId": {
-									"value": {
-										"value": "@pipeline().parameters.TaskDetails.TaskId",
-										"type": "Expression"
-									},
-									"type": "Int64"
-								}
-							}
-						},
-						"linkedServiceName": {
-							"referenceName": "LS-AzureSqlDatabase_Ctrldb",
-							"type": "LinkedServiceReference",
-							"parameters": {
-								"kvSecret": "AzureSqlDatabase-ControlDB"
-							}
-						}
-					},
-					{
-						"name": "Set-ClusterType",
-						"type": "SetVariable",
-						"dependsOn": [],
-						"userProperties": [],
-						"typeProperties": {
-							"variableName": "ClusterType",
-							"value": {
-								"value": "@toLower(last(split(pipeline().parameters.TaskDetails.Processor,'|')))",
-								"type": "Expression"
-							}
-						}
-					},
-					{
-						"name": "If-ClusterType",
-						"description": "",
-						"type": "IfCondition",
-						"dependsOn": [
-							{
-								"activity": "Set-ClusterType",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							},
-							{
-								"activity": "Set-Source-Folder",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							},
-							{
-								"activity": "Set-Source-Filename",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							},
-							{
-								"activity": "Set-Target-Folder",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							},
-							{
-								"activity": "Set-Target-Filename",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"userProperties": [],
-						"typeProperties": {
-							"expression": {
-								"value": "@equals(variables('ClusterType'), 'interactive')",
-								"type": "Expression"
-							},
-							"ifFalseActivities": [
-								{
-									"name": "Load-To-Curated-Zone-Job",
-									"type": "DatabricksNotebook",
-									"dependsOn": [],
-									"policy": {
-										"timeout": "7.00:00:00",
-										"retry": 0,
-										"retryIntervalInSeconds": 30,
-										"secureOutput": false,
-										"secureInput": false
-									},
-									"userProperties": [],
-									"typeProperties": {
-										"notebookPath": {
-											"value": "@pipeline().parameters.TaskDetails.Command",
-											"type": "Expression"
-										},
-										"baseParameters": {
-											"storage_account_key": {
-												"value": "@pipeline().parameters.TaskDetails.SourceServer",
-												"type": "Expression"
-											},
-											"srcDirectoryName": {
-												"value": "@variables('SourceFolder')",
-												"type": "Expression"
-											},
-											"dstDirectoryName": {
-												"value": "@variables('TargetFolder')",
-												"type": "Expression"
-											},
-											"srcBlobName": {
-												"value": "@variables('SourceBlob')",
-												"type": "Expression"
-											},
-											"dstBlobName": {
-												"value": "@variables('TargetBlob')",
-												"type": "Expression"
-											}
-										}
-									},
-									"linkedServiceName": {
-										"referenceName": "LS-AzureDatabricks_JobCluster",
-										"type": "LinkedServiceReference",
-										"parameters": {
-											"kvSecret": {
-												"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[0]",
-												"type": "Expression"
-											},
-											"DataBricksClusterType": {
-												"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[2]",
-												"type": "Expression"
-											},
-											"DataBricksClusterVersion": {
-												"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[3]",
-												"type": "Expression"
-											},
-											"DataBricksWorkerNodes": {
-												"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[4]",
-												"type": "Expression"
-											}
-										}
-									}
-								}
-							],
-							"ifTrueActivities": [
-								{
-									"name": "Load-To-Curated-Zone-Interactive",
-									"type": "DatabricksNotebook",
-									"dependsOn": [],
-									"policy": {
-										"timeout": "7.00:00:00",
-										"retry": 0,
-										"retryIntervalInSeconds": 30,
-										"secureOutput": false,
-										"secureInput": false
-									},
-									"userProperties": [],
-									"typeProperties": {
-										"notebookPath": {
-											"value": "@pipeline().parameters.TaskDetails.Command",
-											"type": "Expression"
-										},
-										"baseParameters": {
-											"source_object": {
-												"value": "@pipeline().parameters.TaskDetails.SourceName",
-												"type": "Expression"
-											}
-										}
-									},
-									"linkedServiceName": {
-										"referenceName": "LS-AzureDatabricks_DefinedCluster",
-										"type": "LinkedServiceReference",
-										"parameters": {
-											"kvSecret": {
-												"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[0]",
-												"type": "Expression"
-											},
-											"clusterId": {
-												"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[1]",
-												"type": "Expression"
-											}
-										}
-									}
-								}
-							]
-						}
-					},
-					{
-						"name": "Set-Source-Folder",
-						"type": "SetVariable",
-						"dependsOn": [],
-						"userProperties": [],
-						"typeProperties": {
-							"variableName": "SourceFolder",
-							"value": {
-								"value": "@toLower(first(split(pipeline().parameters.TaskDetails.SourceLocation,'/')))",
-								"type": "Expression"
-							}
-						}
-					},
-					{
-						"name": "Set-Source-Filename",
-						"type": "SetVariable",
-						"dependsOn": [],
-						"userProperties": [],
-						"typeProperties": {
-							"variableName": "SourceBlob",
-							"value": {
-								"value": "@toLower(last(split(pipeline().parameters.TaskDetails.SourceLocation,'/')))",
-								"type": "Expression"
-							}
-						}
-					},
-					{
-						"name": "Set-Target-Folder",
-						"type": "SetVariable",
-						"dependsOn": [],
-						"userProperties": [],
-						"typeProperties": {
-							"variableName": "TargetFolder",
-							"value": {
-								"value": "@toLower(first(split(pipeline().parameters.TaskDetails.TargetLocation,'/')))",
-								"type": "Expression"
-							}
-						}
-					},
-					{
-						"name": "Set-Target-Filename",
-						"type": "SetVariable",
-						"dependsOn": [],
-						"userProperties": [],
-						"typeProperties": {
-							"variableName": "TargetBlob",
-							"value": {
-								"value": "@toLower(last(split(pipeline().parameters.TaskDetails.TargetLocation,'/')))",
-								"type": "Expression"
-							}
-						}
-					}
-				],
-				"parameters": {
-					"TaskDetails": {
-						"type": "object"
-					},
-					"BatchLogId": {
-						"type": "int"
-					},
-					"TaskExecutionLogId": {
-						"type": "int"
-					},
-					"ProjectRunID": {
-						"type": "string"
-					}
-				},
-				"variables": {
-					"ReturnValue": {
-						"type": "String"
-					},
-					"ClusterType": {
-						"type": "String"
-					},
-					"SourceFolder": {
-						"type": "String"
-					},
-					"SourceBlob": {
-						"type": "String"
-					},
-					"TargetFolder": {
-						"type": "String"
-					},
-					"TargetBlob": {
-						"type": "String"
-					}
-				},
-				"folder": {
-					"name": "z_Archive"
-				},
-				"annotations": [],
-				"lastPublishTime": "2021-06-21T11:06:48Z"
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/LS-AzureSqlDatabase_Ctrldb')]",
-				"[concat(variables('factoryId'), '/linkedServices/LS-AzureDatabricks_JobCluster')]",
-				"[concat(variables('factoryId'), '/linkedServices/LS-AzureDatabricks_DefinedCluster')]"
-			]
-		},
-		{
 			"name": "[concat(parameters('factoryName'), '/ARCHIVE_BLOB_JSON')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -6484,54 +5285,6 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/LS-AzureSqlDatabase_Ctrldb')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/BINARY_ADLS')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "LS_AzureDatalake",
-					"type": "LinkedServiceReference",
-					"parameters": {}
-				},
-				"parameters": {
-					"File": {
-						"type": "string"
-					},
-					"Container": {
-						"type": "string"
-					},
-					"Folder": {
-						"type": "string"
-					}
-				},
-				"folder": {
-					"name": "z_Archive"
-				},
-				"annotations": [],
-				"type": "Binary",
-				"typeProperties": {
-					"location": {
-						"type": "AzureBlobFSLocation",
-						"fileName": {
-							"value": "@dataset().File",
-							"type": "Expression"
-						},
-						"folderPath": {
-							"value": "@dataset().Folder",
-							"type": "Expression"
-						},
-						"fileSystem": {
-							"value": "@dataset().Container",
-							"type": "Expression"
-						}
-					}
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/LS_AzureDatalake')]"
 			]
 		},
 		{
@@ -6739,315 +5492,6 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/RAW_ADLS_JSON')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "LS_AzureDatalake",
-					"type": "LinkedServiceReference",
-					"parameters": {}
-				},
-				"parameters": {
-					"LakeContainer": {
-						"type": "string",
-						"defaultValue": "raw"
-					},
-					"LakeDirectory": {
-						"type": "string"
-					},
-					"LakeFileName": {
-						"type": "string"
-					}
-				},
-				"folder": {
-					"name": "z_Archive"
-				},
-				"annotations": [],
-				"type": "Json",
-				"typeProperties": {
-					"location": {
-						"type": "AzureBlobFSLocation",
-						"fileName": {
-							"value": "@dataset().LakeFileName",
-							"type": "Expression"
-						},
-						"folderPath": {
-							"value": "@dataset().LakeDirectory",
-							"type": "Expression"
-						},
-						"fileSystem": {
-							"value": "@dataset().LakeContainer",
-							"type": "Expression"
-						}
-					}
-				},
-				"schema": {
-					"type": "object",
-					"properties": {
-						"DI_SEQUENCE_NUMBER": {
-							"type": "integer"
-						},
-						"DI_OPERATION_TYPE": {
-							"type": "string"
-						},
-						"PARTNER": {
-							"type": "string"
-						},
-						"TYPE": {
-							"type": "string"
-						},
-						"BPKIND": {
-							"type": "null"
-						},
-						"BU_GROUP": {
-							"type": "string"
-						},
-						"BPEXT": {
-							"type": "null"
-						},
-						"BU_SORT1": {
-							"type": "string"
-						},
-						"BU_SORT2": {
-							"type": "null"
-						},
-						"SOURCE": {
-							"type": "null"
-						},
-						"TITLE": {
-							"type": "string"
-						},
-						"XDELE": {
-							"type": "null"
-						},
-						"XBLCK": {
-							"type": "null"
-						},
-						"TITLE_LET": {
-							"type": "null"
-						},
-						"CONTACT": {
-							"type": "null"
-						},
-						"PRINT_MODE": {
-							"type": "null"
-						},
-						"ZZUSER": {
-							"type": "null"
-						},
-						"ZZPAS_INDICATOR": {
-							"type": "null"
-						},
-						"ZZBA_INDICATOR": {
-							"type": "null"
-						},
-						"ZZAFLD00001Z": {
-							"type": "null"
-						},
-						"NAME_ORG1": {
-							"type": "null"
-						},
-						"NAME_ORG2": {
-							"type": "null"
-						},
-						"NAME_ORG3": {
-							"type": "null"
-						},
-						"NAME_ORG4": {
-							"type": "null"
-						},
-						"LEGAL_ENTY": {
-							"type": "null"
-						},
-						"IND_SECTOR": {
-							"type": "null"
-						},
-						"LEGAL_ORG": {
-							"type": "null"
-						},
-						"FOUND_DAT": {
-							"type": "null"
-						},
-						"LIQUID_DAT": {
-							"type": "null"
-						},
-						"LOCATION_1": {
-							"type": "integer"
-						},
-						"LOCATION_2": {
-							"type": "integer"
-						},
-						"LOCATION_3": {
-							"type": "integer"
-						},
-						"NAME_LAST": {
-							"type": "string"
-						},
-						"NAME_FIRST": {
-							"type": "string"
-						},
-						"NAME_LST2": {
-							"type": "null"
-						},
-						"NAME_LAST2": {
-							"type": "null"
-						},
-						"NAMEMIDDLE": {
-							"type": "null"
-						},
-						"TITLE_ACA1": {
-							"type": "null"
-						},
-						"TITLE_ACA2": {
-							"type": "null"
-						},
-						"TITLE_ROYL": {
-							"type": "null"
-						},
-						"PREFIX1": {
-							"type": "null"
-						},
-						"PREFIX2": {
-							"type": "null"
-						},
-						"NAME1_TEXT": {
-							"type": "null"
-						},
-						"NICKNAME": {
-							"type": "null"
-						},
-						"INITIALS": {
-							"type": "null"
-						},
-						"NAMEFORMAT": {
-							"type": "null"
-						},
-						"NAMCOUNTRY": {
-							"type": "null"
-						},
-						"LANGU_CORR": {
-							"type": "string"
-						},
-						"XSEXM": {
-							"type": "null"
-						},
-						"XSEXF": {
-							"type": "null"
-						},
-						"BIRTHPL": {
-							"type": "null"
-						},
-						"MARST": {
-							"type": "null"
-						},
-						"EMPLO": {
-							"type": "null"
-						},
-						"JOBGR": {
-							"type": "null"
-						},
-						"NATIO": {
-							"type": "null"
-						},
-						"CNTAX": {
-							"type": "null"
-						},
-						"CNDSC": {
-							"type": "null"
-						},
-						"PERSNUMBER": {
-							"type": "string"
-						},
-						"XSEXU": {
-							"type": "string"
-						},
-						"XUBNAME": {
-							"type": "null"
-						},
-						"BU_LANGU": {
-							"type": "string"
-						},
-						"BIRTHDT": {
-							"type": "null"
-						},
-						"DEATHDT": {
-							"type": "null"
-						},
-						"PERNO": {
-							"type": "integer"
-						},
-						"CHILDREN": {
-							"type": "integer"
-						},
-						"MEM_HOUSE": {
-							"type": "integer"
-						},
-						"PARTGRPTYP": {
-							"type": "null"
-						},
-						"NAME_GRP1": {
-							"type": "string"
-						},
-						"NAME_GRP2": {
-							"type": "string"
-						},
-						"MC_NAME1": {
-							"type": "string"
-						},
-						"MC_NAME2": {
-							"type": "string"
-						},
-						"CRUSR": {
-							"type": "string"
-						},
-						"CRDAT": {
-							"type": "string"
-						},
-						"CRTIM": {
-							"type": "string"
-						},
-						"CHUSR": {
-							"type": "string"
-						},
-						"CHDAT": {
-							"type": "string"
-						},
-						"CHTIM": {
-							"type": "string"
-						},
-						"PARTNER_GUID": {
-							"type": "string"
-						},
-						"ADDRCOMM": {
-							"type": "string"
-						},
-						"TD_SWITCH": {
-							"type": "string"
-						},
-						"VALID_FROM": {
-							"type": "integer"
-						},
-						"VALID_TO": {
-							"type": "integer"
-						},
-						"NATPERS": {
-							"type": "string"
-						},
-						"ODQ_CHANGEMODE": {
-							"type": "string"
-						},
-						"ODQ_ENTITYCNTR": {
-							"type": "integer"
-						}
-					}
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/LS_AzureDatalake')]"
-			]
-		},
-		{
 			"name": "[concat(parameters('factoryName'), '/RAW_ADLS_JSON_v2')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -7101,8 +5545,7 @@
 			"properties": {
 				"linkedServiceName": {
 					"referenceName": "LS_AzureDatalake",
-					"type": "LinkedServiceReference",
-					"parameters": {}
+					"type": "LinkedServiceReference"
 				},
 				"parameters": {
 					"BlobPath": {
@@ -7170,8 +5613,7 @@
 			"properties": {
 				"linkedServiceName": {
 					"referenceName": "LS_AzureDatalake",
-					"type": "LinkedServiceReference",
-					"parameters": {}
+					"type": "LinkedServiceReference"
 				},
 				"parameters": {
 					"BlobPath": {
@@ -7302,55 +5744,6 @@
 					"quoteChar": ""
 				},
 				"schema": []
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/LS_AzureDatalake')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/TRUSTED_ADLS_JSONN')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "LS_AzureDatalake",
-					"type": "LinkedServiceReference"
-				},
-				"parameters": {
-					"LakeContainer": {
-						"type": "string",
-						"defaultValue": "trusted"
-					},
-					"LakeDirectory": {
-						"type": "string"
-					},
-					"LakeFileName": {
-						"type": "string"
-					}
-				},
-				"folder": {
-					"name": "z_Archive"
-				},
-				"annotations": [],
-				"type": "Json",
-				"typeProperties": {
-					"location": {
-						"type": "AzureBlobFSLocation",
-						"fileName": {
-							"value": "@dataset().LakeFileName",
-							"type": "Expression"
-						},
-						"folderPath": {
-							"value": "@dataset().LakeDirectory",
-							"type": "Expression"
-						},
-						"fileSystem": {
-							"value": "@dataset().LakeContainer",
-							"type": "Expression"
-						}
-					}
-				},
-				"schema": {}
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/LS_AzureDatalake')]"
