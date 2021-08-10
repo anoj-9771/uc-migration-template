@@ -254,19 +254,8 @@
 							"userProperties": [],
 							"typeProperties": {
 								"dataset": {
-									"referenceName": "BINARY_ADLS",
-									"type": "DatasetReference",
-									"parameters": {
-										"File": {
-											"value": "@variables('File')",
-											"type": "Expression"
-										},
-										"Container": "raw",
-										"Folder": {
-											"value": "@variables('Folder')",
-											"type": "Expression"
-										}
-									}
+									"referenceName": "RAW_PARQUET",
+									"type": "DatasetReference"
 								},
 								"logStorageSettings": {
 									"linkedServiceName": {
