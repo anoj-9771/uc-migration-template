@@ -255,7 +255,11 @@
 							"typeProperties": {
 								"dataset": {
 									"referenceName": "RAW_PARQUET",
-									"type": "DatasetReference"
+									"type": "DatasetReference",
+									"parameters": {
+										"BlobPath": "a",
+										"BlobName": "a"
+									}
 								},
 								"logStorageSettings": {
 									"linkedServiceName": {
