@@ -957,144 +957,6 @@
 														]
 													},
 													{
-														"name": "Log Failure - DataFile to Raw Zone",
-														"type": "SqlServerStoredProcedure",
-														"dependsOn": [
-															{
-																"activity": "Copy-Blob-to-DataLake-Raw",
-																"dependencyConditions": [
-																	"Failed"
-																]
-															}
-														],
-														"policy": {
-															"timeout": "7.00:00:00",
-															"retry": 0,
-															"retryIntervalInSeconds": 30,
-															"secureOutput": false,
-															"secureInput": false
-														},
-														"userProperties": [],
-														"typeProperties": {
-															"storedProcedureName": {
-																"value": "[[CTL].[UpdateTaskLog]",
-																"type": "Expression"
-															},
-															"storedProcedureParameters": {
-																"BatchLogId": {
-																	"value": {
-																		"value": "@pipeline().parameters.BatchLogId",
-																		"type": "Expression"
-																	},
-																	"type": "Int64"
-																},
-																"ErrorMessage": {
-																	"value": "Error Occurred during Blob Source Load",
-																	"type": "String"
-																},
-																"ExecutionLogId": {
-																	"value": {
-																		"value": "@pipeline().parameters.TaskExecutionLogId",
-																		"type": "Expression"
-																	},
-																	"type": "Int64"
-																},
-																"Output": {
-																	"value": null
-																},
-																"Status": {
-																	"value": "Failure",
-																	"type": "String"
-																},
-																"TaskId": {
-																	"value": {
-																		"value": "@pipeline().parameters.TaskDetails.TaskId",
-																		"type": "Expression"
-																	},
-																	"type": "Int64"
-																}
-															}
-														},
-														"linkedServiceName": {
-															"referenceName": "LS-AzureSqlDatabase_Ctrldb",
-															"type": "LinkedServiceReference",
-															"parameters": {
-																"kvSecret": "daf-sql-controldb-connectionstring"
-															}
-														}
-													},
-													{
-														"name": "Log Sucess - DataFile to Raw Zone",
-														"type": "SqlServerStoredProcedure",
-														"dependsOn": [
-															{
-																"activity": "Copy-Blob-to-DataLake-Raw",
-																"dependencyConditions": [
-																	"Succeeded"
-																]
-															}
-														],
-														"policy": {
-															"timeout": "7.00:00:00",
-															"retry": 0,
-															"retryIntervalInSeconds": 30,
-															"secureOutput": false,
-															"secureInput": false
-														},
-														"userProperties": [],
-														"typeProperties": {
-															"storedProcedureName": {
-																"value": "[[CTL].[UpdateTaskLog]",
-																"type": "Expression"
-															},
-															"storedProcedureParameters": {
-																"BatchLogId": {
-																	"value": {
-																		"value": "@pipeline().parameters.BatchLogId",
-																		"type": "Expression"
-																	},
-																	"type": "Int64"
-																},
-																"ErrorMessage": {
-																	"value": null,
-																	"type": "String"
-																},
-																"ExecutionLogId": {
-																	"value": {
-																		"value": "@pipeline().parameters.TaskExecutionLogId",
-																		"type": "Expression"
-																	},
-																	"type": "Int64"
-																},
-																"Output": {
-																	"value": {
-																		"value": "@pipeline().parameters.TaskDetails.LastLoadedFile",
-																		"type": "Expression"
-																	},
-																	"type": "String"
-																},
-																"Status": {
-																	"value": "Success",
-																	"type": "String"
-																},
-																"TaskId": {
-																	"value": {
-																		"value": "@pipeline().parameters.TaskDetails.TaskId",
-																		"type": "Expression"
-																	},
-																	"type": "Int64"
-																}
-															}
-														},
-														"linkedServiceName": {
-															"referenceName": "LS-AzureSqlDatabase_Ctrldb",
-															"type": "LinkedServiceReference",
-															"parameters": {
-																"kvSecret": "daf-sql-controldb-connectionstring"
-															}
-														}
-													},
-													{
 														"name": "Execute-DP-Load-Raw-to-Delta-Table",
 														"type": "ExecutePipeline",
 														"dependsOn": [
@@ -1257,7 +1119,7 @@
 														"type": "SqlServerStoredProcedure",
 														"dependsOn": [
 															{
-																"activity": "Log Sucess - DataFile to Raw Zone",
+																"activity": "Copy-Blob-to-DataLake-Raw",
 																"dependencyConditions": [
 																	"Succeeded"
 																]
@@ -1422,149 +1284,11 @@
 														]
 													},
 													{
-														"name": "Log Failure - Manifest to Raw Zone",
-														"type": "SqlServerStoredProcedure",
-														"dependsOn": [
-															{
-																"activity": "Copy Manifest to Raw Zone",
-																"dependencyConditions": [
-																	"Failed"
-																]
-															}
-														],
-														"policy": {
-															"timeout": "7.00:00:00",
-															"retry": 0,
-															"retryIntervalInSeconds": 30,
-															"secureOutput": false,
-															"secureInput": false
-														},
-														"userProperties": [],
-														"typeProperties": {
-															"storedProcedureName": {
-																"value": "[[CTL].[UpdateTaskLog]",
-																"type": "Expression"
-															},
-															"storedProcedureParameters": {
-																"BatchLogId": {
-																	"value": {
-																		"value": "@pipeline().parameters.BatchLogId",
-																		"type": "Expression"
-																	},
-																	"type": "Int64"
-																},
-																"ErrorMessage": {
-																	"value": "Error Occurred during manifest copy",
-																	"type": "String"
-																},
-																"ExecutionLogId": {
-																	"value": {
-																		"value": "@pipeline().parameters.TaskExecutionLogId",
-																		"type": "Expression"
-																	},
-																	"type": "Int64"
-																},
-																"Output": {
-																	"value": null
-																},
-																"Status": {
-																	"value": "Failure",
-																	"type": "String"
-																},
-																"TaskId": {
-																	"value": {
-																		"value": "@pipeline().parameters.TaskDetails.TaskId",
-																		"type": "Expression"
-																	},
-																	"type": "Int64"
-																}
-															}
-														},
-														"linkedServiceName": {
-															"referenceName": "LS-AzureSqlDatabase_Ctrldb",
-															"type": "LinkedServiceReference",
-															"parameters": {
-																"kvSecret": "daf-sql-controldb-connectionstring"
-															}
-														}
-													},
-													{
-														"name": "Log Sucess - Manifest to Raw Zone",
-														"type": "SqlServerStoredProcedure",
-														"dependsOn": [
-															{
-																"activity": "Copy Manifest to Raw Zone",
-																"dependencyConditions": [
-																	"Succeeded"
-																]
-															}
-														],
-														"policy": {
-															"timeout": "7.00:00:00",
-															"retry": 0,
-															"retryIntervalInSeconds": 30,
-															"secureOutput": false,
-															"secureInput": false
-														},
-														"userProperties": [],
-														"typeProperties": {
-															"storedProcedureName": {
-																"value": "[[CTL].[UpdateTaskLog]",
-																"type": "Expression"
-															},
-															"storedProcedureParameters": {
-																"BatchLogId": {
-																	"value": {
-																		"value": "@pipeline().parameters.BatchLogId",
-																		"type": "Expression"
-																	},
-																	"type": "Int64"
-																},
-																"ErrorMessage": {
-																	"value": null,
-																	"type": "String"
-																},
-																"ExecutionLogId": {
-																	"value": {
-																		"value": "@pipeline().parameters.TaskExecutionLogId",
-																		"type": "Expression"
-																	},
-																	"type": "Int64"
-																},
-																"Output": {
-																	"value": {
-																		"value": "@pipeline().parameters.TaskDetails.LastLoadedFile",
-																		"type": "Expression"
-																	},
-																	"type": "String"
-																},
-																"Status": {
-																	"value": "Success",
-																	"type": "String"
-																},
-																"TaskId": {
-																	"value": {
-																		"value": "@pipeline().parameters.TaskDetails.TaskId",
-																		"type": "Expression"
-																	},
-																	"type": "Int64"
-																}
-															}
-														},
-														"linkedServiceName": {
-															"referenceName": "LS-AzureSqlDatabase_Ctrldb",
-															"type": "LinkedServiceReference",
-															"parameters": {
-																"kvSecret": "daf-sql-controldb-connectionstring"
-															}
-														}
-													},
-													{
 														"name": "Archive Manifest File",
 														"type": "Copy",
 														"dependsOn": [
 															{
-																"activity": "Log Sucess - Manifest to Raw Zone",
+																"activity": "Copy Manifest to Raw Zone",
 																"dependencyConditions": [
 																	"Succeeded"
 																]
@@ -1693,6 +1417,144 @@
 										"value": {
 											"value": "@if(contains(variables('FileName'),'MANIFEST'),'ManifestFile','DataFile')",
 											"type": "Expression"
+										}
+									}
+								},
+								{
+									"name": "Log Failure - DataFile to Raw Zone",
+									"type": "SqlServerStoredProcedure",
+									"dependsOn": [
+										{
+											"activity": "Handle Manifest Files",
+											"dependencyConditions": [
+												"Failed"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "7.00:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"storedProcedureName": {
+											"value": "[[CTL].[UpdateTaskLog]",
+											"type": "Expression"
+										},
+										"storedProcedureParameters": {
+											"BatchLogId": {
+												"value": {
+													"value": "@pipeline().parameters.BatchLogId",
+													"type": "Expression"
+												},
+												"type": "Int64"
+											},
+											"ErrorMessage": {
+												"value": "Error Occurred during Blob Source Load",
+												"type": "String"
+											},
+											"ExecutionLogId": {
+												"value": {
+													"value": "@pipeline().parameters.TaskExecutionLogId",
+													"type": "Expression"
+												},
+												"type": "Int64"
+											},
+											"Output": {
+												"value": null
+											},
+											"Status": {
+												"value": "Failure",
+												"type": "String"
+											},
+											"TaskId": {
+												"value": {
+													"value": "@pipeline().parameters.TaskDetails.TaskId",
+													"type": "Expression"
+												},
+												"type": "Int64"
+											}
+										}
+									},
+									"linkedServiceName": {
+										"referenceName": "LS-AzureSqlDatabase_Ctrldb",
+										"type": "LinkedServiceReference",
+										"parameters": {
+											"kvSecret": "daf-sql-controldb-connectionstring"
+										}
+									}
+								},
+								{
+									"name": "Log Sucess - DataFile to Raw Zone",
+									"type": "SqlServerStoredProcedure",
+									"dependsOn": [
+										{
+											"activity": "Handle Manifest Files",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "7.00:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"storedProcedureName": {
+											"value": "[[CTL].[UpdateTaskLog]",
+											"type": "Expression"
+										},
+										"storedProcedureParameters": {
+											"BatchLogId": {
+												"value": {
+													"value": "@pipeline().parameters.BatchLogId",
+													"type": "Expression"
+												},
+												"type": "Int64"
+											},
+											"ErrorMessage": {
+												"value": null,
+												"type": "String"
+											},
+											"ExecutionLogId": {
+												"value": {
+													"value": "@pipeline().parameters.TaskExecutionLogId",
+													"type": "Expression"
+												},
+												"type": "Int64"
+											},
+											"Output": {
+												"value": {
+													"value": "@pipeline().parameters.TaskDetails.LastLoadedFile",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"Status": {
+												"value": "Success",
+												"type": "String"
+											},
+											"TaskId": {
+												"value": {
+													"value": "@pipeline().parameters.TaskDetails.TaskId",
+													"type": "Expression"
+												},
+												"type": "Int64"
+											}
+										}
+									},
+									"linkedServiceName": {
+										"referenceName": "LS-AzureSqlDatabase_Ctrldb",
+										"type": "LinkedServiceReference",
+										"parameters": {
+											"kvSecret": "daf-sql-controldb-connectionstring"
 										}
 									}
 								}
@@ -1857,8 +1719,8 @@
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/SRC_BLOB_JSON_copy1')]",
 				"[concat(variables('factoryId'), '/datasets/AzureSqlDatabase_Ctrldb')]",
-				"[concat(variables('factoryId'), '/datasets/RAW_ADLS_JSON_v2')]",
 				"[concat(variables('factoryId'), '/linkedServices/LS-AzureSqlDatabase_Ctrldb')]",
+				"[concat(variables('factoryId'), '/datasets/RAW_ADLS_JSON_v2')]",
 				"[concat(variables('factoryId'), '/pipelines/04-DL-Load-Raw-to-Delta-Table')]",
 				"[concat(variables('factoryId'), '/datasets/ARCHIVE_BLOB_JSON')]",
 				"[concat(variables('factoryId'), '/linkedServices/LS_AzureDatalake')]"
