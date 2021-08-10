@@ -296,16 +296,15 @@ def Property():
              entity="DimProperty", 
              businessKey="propertyId,sourceSystemCode,propertyEndDate",
              AddSK=True
-            )
+            )  
 
-  
-# Add New Dim here
-# def Dim2_Example():
-#   TemplateEtl(df=GetDim2Example(), 
-#              entity="Dim2Example",
-#              businessKey="col1",
-#              AddSK=True
-#             )
+#Call Property function to load DimProperty
+def Meter():
+  TemplateEtl(df=GetCommonProperty(), 
+             entity="DimMeter", 
+             businessKey="meterId,sourceSystemCode",
+             AddSK=True
+            )    
 
 
 # COMMAND ----------
@@ -334,7 +333,8 @@ def Main():
   
   if LoadDimensions:
     LogEtl("Start Dimensions")
-    Property()
+    #Property()
+    Meter()
     #Add new Dim here()
     
     LogEtl("End Dimensions")
