@@ -254,18 +254,11 @@
 							"userProperties": [],
 							"typeProperties": {
 								"dataset": {
-									"referenceName": "BINARY_ADLS",
+									"referenceName": "RAW_PARQUET",
 									"type": "DatasetReference",
 									"parameters": {
-										"File": {
-											"value": "@variables('File')",
-											"type": "Expression"
-										},
-										"Container": "raw",
-										"Folder": {
-											"value": "@variables('Folder')",
-											"type": "Expression"
-										}
+										"BlobPath": "a",
+										"BlobName": "a"
 									}
 								},
 								"logStorageSettings": {
