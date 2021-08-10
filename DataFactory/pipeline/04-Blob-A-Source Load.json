@@ -176,7 +176,7 @@
 												]
 											},
 											{
-												"name": "Log Failure DL Raw",
+												"name": "Log Failure - DataFile to Raw Zone",
 												"type": "SqlServerStoredProcedure",
 												"dependsOn": [
 													{
@@ -243,7 +243,7 @@
 												}
 											},
 											{
-												"name": "Log Success",
+												"name": "Log Sucess - DataFile to Raw Zone",
 												"type": "SqlServerStoredProcedure",
 												"dependsOn": [
 													{
@@ -384,10 +384,6 @@
 														"storeSettings": {
 															"type": "AzureBlobStorageReadSettings",
 															"recursive": true,
-															"wildcardFileName": {
-																"value": "@concat(first(split(variables('SourceFileName'),'.')),'_*')",
-																"type": "Expression"
-															},
 															"enablePartitionDiscovery": false
 														},
 														"formatSettings": {
@@ -407,8 +403,14 @@
 												},
 												"inputs": [
 													{
-														"referenceName": "SRC_BLOB_JSON",
-														"type": "DatasetReference"
+														"referenceName": "SRC_BLOB_JSON_copy1",
+														"type": "DatasetReference",
+														"parameters": {
+															"BlobName": {
+																"value": "@variables('FileName')",
+																"type": "Expression"
+															}
+														}
 													}
 												],
 												"outputs": [
@@ -445,8 +447,14 @@
 												"userProperties": [],
 												"typeProperties": {
 													"dataset": {
-														"referenceName": "SRC_BLOB_JSON",
-														"type": "DatasetReference"
+														"referenceName": "SRC_BLOB_JSON_copy1",
+														"type": "DatasetReference",
+														"parameters": {
+															"BlobName": {
+																"value": "@variables('FileName')",
+																"type": "Expression"
+															}
+														}
 													},
 													"logStorageSettings": {
 														"linkedServiceName": {
@@ -459,10 +467,6 @@
 													"storeSettings": {
 														"type": "AzureBlobStorageReadSettings",
 														"recursive": true,
-														"wildcardFileName": {
-															"value": "@{concat(first(split(variables('SourceFileName'),'.')),'_*')}",
-															"type": "Expression"
-														},
 														"enablePartitionDiscovery": false
 													}
 												}
@@ -472,7 +476,7 @@
 												"type": "SqlServerStoredProcedure",
 												"dependsOn": [
 													{
-														"activity": "Log Success",
+														"activity": "Log Sucess - DataFile to Raw Zone",
 														"dependencyConditions": [
 															"Succeeded"
 														]
@@ -573,7 +577,7 @@
 										"value": "ManifestFile",
 										"activities": [
 											{
-												"name": "Copy-Blob-to-DataLake-Raw_copy1",
+												"name": "Copy Manifest to Raw Zone",
 												"type": "Copy",
 												"dependsOn": [],
 												"policy": {
@@ -637,13 +641,13 @@
 												]
 											},
 											{
-												"name": "Log Failure DL Raw_copy1",
+												"name": "Log Failure - Manifest to Raw Zone",
 												"type": "SqlServerStoredProcedure",
 												"dependsOn": [
 													{
-														"activity": "Copy-Blob-to-DataLake-Raw_copy1",
+														"activity": "Copy Manifest to Raw Zone",
 														"dependencyConditions": [
-															"Succeeded"
+															"Failed"
 														]
 													}
 												],
@@ -669,7 +673,7 @@
 															"type": "Int64"
 														},
 														"ErrorMessage": {
-															"value": "Error Occurred during Blob Source Load",
+															"value": "Error Occurred during manifest copy",
 															"type": "String"
 														},
 														"ExecutionLogId": {
@@ -704,11 +708,11 @@
 												}
 											},
 											{
-												"name": "Log Success_copy1",
+												"name": "Log Sucess - Manifest to Raw Zone",
 												"type": "SqlServerStoredProcedure",
 												"dependsOn": [
 													{
-														"activity": "Copy-Blob-to-DataLake-Raw_copy1",
+														"activity": "Copy Manifest to Raw Zone",
 														"dependencyConditions": [
 															"Succeeded"
 														]
@@ -771,6 +775,118 @@
 													"type": "LinkedServiceReference",
 													"parameters": {
 														"kvSecret": "daf-sql-controldb-connectionstring"
+													}
+												}
+											},
+											{
+												"name": "Archive Manifest File",
+												"type": "Copy",
+												"dependsOn": [
+													{
+														"activity": "Log Sucess - Manifest to Raw Zone",
+														"dependencyConditions": [
+															"Succeeded"
+														]
+													}
+												],
+												"policy": {
+													"timeout": "7.00:00:00",
+													"retry": 0,
+													"retryIntervalInSeconds": 30,
+													"secureOutput": false,
+													"secureInput": false
+												},
+												"userProperties": [],
+												"typeProperties": {
+													"source": {
+														"type": "JsonSource",
+														"storeSettings": {
+															"type": "AzureBlobStorageReadSettings",
+															"recursive": true,
+															"enablePartitionDiscovery": false
+														},
+														"formatSettings": {
+															"type": "JsonReadSettings"
+														}
+													},
+													"sink": {
+														"type": "JsonSink",
+														"storeSettings": {
+															"type": "AzureBlobStorageWriteSettings"
+														},
+														"formatSettings": {
+															"type": "JsonWriteSettings"
+														}
+													},
+													"enableStaging": false
+												},
+												"inputs": [
+													{
+														"referenceName": "SRC_BLOB_JSON_copy1",
+														"type": "DatasetReference",
+														"parameters": {
+															"BlobName": {
+																"value": "@variables('FileName')",
+																"type": "Expression"
+															}
+														}
+													}
+												],
+												"outputs": [
+													{
+														"referenceName": "ARCHIVE_BLOB_JSON",
+														"type": "DatasetReference",
+														"parameters": {
+															"BlobContainer": {
+																"value": "@concat('archive/', activity('Get Full File Name').output.firstrow.StorageFolder)",
+																"type": "Expression"
+															}
+														}
+													}
+												]
+											},
+											{
+												"name": "Delete File From Landing",
+												"type": "Delete",
+												"dependsOn": [
+													{
+														"activity": "Archive Manifest File",
+														"dependencyConditions": [
+															"Succeeded"
+														]
+													}
+												],
+												"policy": {
+													"timeout": "7.00:00:00",
+													"retry": 0,
+													"retryIntervalInSeconds": 30,
+													"secureOutput": false,
+													"secureInput": false
+												},
+												"userProperties": [],
+												"typeProperties": {
+													"dataset": {
+														"referenceName": "SRC_BLOB_JSON_copy1",
+														"type": "DatasetReference",
+														"parameters": {
+															"BlobName": {
+																"value": "@variables('FileName')",
+																"type": "Expression"
+															}
+														}
+													},
+													"logStorageSettings": {
+														"linkedServiceName": {
+															"referenceName": "LS_AzureDatalake",
+															"type": "LinkedServiceReference"
+														},
+														"path": "assurance"
+													},
+													"enableLogging": true,
+													"storeSettings": {
+														"type": "AzureBlobStorageReadSettings",
+														"recursive": true,
+														"enablePartitionDiscovery": false
 													}
 												}
 											}
