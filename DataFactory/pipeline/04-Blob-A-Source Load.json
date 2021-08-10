@@ -1,5 +1,5 @@
 {
-	"name": "04-Blob-Json-A-Source-Copy_copy1",
+	"name": "04-Blob-A-Source Load",
 	"properties": {
 		"description": "Clone of 05-DL-Load-Raw-to-Trusted",
 		"activities": [
@@ -53,16 +53,88 @@
 					"isSequential": true,
 					"activities": [
 						{
-							"name": "Execute Pipeline1",
-							"type": "ExecutePipeline",
+							"name": "If Condition1",
+							"type": "IfCondition",
+							"dependsOn": [
+								{
+									"activity": "SET-FileName",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								},
+								{
+									"activity": "SET-DateStamp",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								},
+								{
+									"activity": "Set-Source-Filename",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"expression": {
+									"value": "@equals(variables('FileName'),variables('SourceFileName'))",
+									"type": "Expression"
+								},
+								"ifTrueActivities": [
+									{
+										"name": "Execute Blob-Source-Copy",
+										"type": "ExecutePipeline",
+										"dependsOn": [],
+										"userProperties": [],
+										"typeProperties": {
+											"pipeline": {
+												"referenceName": "04-Blob-B-Source Copy",
+												"type": "PipelineReference"
+											},
+											"waitOnCompletion": true
+										}
+									}
+								]
+							}
+						},
+						{
+							"name": "SET-FileName",
+							"type": "SetVariable",
 							"dependsOn": [],
 							"userProperties": [],
 							"typeProperties": {
-								"pipeline": {
-									"referenceName": "04-Blob-Json-A-Source-Copy_copy2",
-									"type": "PipelineReference"
-								},
-								"waitOnCompletion": true
+								"variableName": "FileName",
+								"value": {
+									"value": "@concat(first(split(item().name,'-')),'.json')",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "SET-DateStamp",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "FileName",
+								"value": {
+									"value": "@last(split(item().name,'-'))",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "Set-Source-Filename",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "SourceFileName",
+								"value": {
+									"value": "@last(split(pipeline().parameters.TaskDetails.SourceLocation,'/'))",
+									"type": "Expression"
+								}
 							}
 						}
 					]
