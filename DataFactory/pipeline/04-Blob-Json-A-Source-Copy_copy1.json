@@ -53,73 +53,16 @@
 					"isSequential": true,
 					"activities": [
 						{
-							"name": "SET-FileName",
-							"type": "SetVariable",
+							"name": "Execute Pipeline1",
+							"type": "ExecutePipeline",
 							"dependsOn": [],
 							"userProperties": [],
 							"typeProperties": {
-								"variableName": "FileName",
-								"value": {
-									"value": "@concat(first(split(item().name,'-')),'.json')",
-									"type": "Expression"
-								}
-							}
-						},
-						{
-							"name": "SET-DateStamp",
-							"type": "SetVariable",
-							"dependsOn": [],
-							"userProperties": [],
-							"typeProperties": {
-								"variableName": "FileName",
-								"value": {
-									"value": "@last(split(item().name,'-'))",
-									"type": "Expression"
-								}
-							}
-						},
-						{
-							"name": "Set-Source-Filename",
-							"type": "SetVariable",
-							"dependsOn": [],
-							"userProperties": [],
-							"typeProperties": {
-								"variableName": "SourceFileName",
-								"value": {
-									"value": "@last(split(pipeline().parameters.TaskDetails.SourceLocation,'/'))",
-									"type": "Expression"
-								}
-							}
-						},
-						{
-							"name": "If Condition1",
-							"type": "IfCondition",
-							"dependsOn": [
-								{
-									"activity": "Set-Source-Filename",
-									"dependencyConditions": [
-										"Succeeded"
-									]
+								"pipeline": {
+									"referenceName": "04-Blob-Json-A-Source-Copy_copy2",
+									"type": "PipelineReference"
 								},
-								{
-									"activity": "SET-DateStamp",
-									"dependencyConditions": [
-										"Succeeded"
-									]
-								},
-								{
-									"activity": "SET-FileName",
-									"dependencyConditions": [
-										"Succeeded"
-									]
-								}
-							],
-							"userProperties": [],
-							"typeProperties": {
-								"expression": {
-									"value": "@equals(variables('FileName'),variables('SourceFileName'))",
-									"type": "Expression"
-								}
+								"waitOnCompletion": true
 							}
 						}
 					]
