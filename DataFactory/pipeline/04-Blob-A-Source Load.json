@@ -85,13 +85,13 @@
 							"typeProperties": {
 								"variableName": "FileName",
 								"value": {
-									"value": "item().name",
+									"value": "@item().name",
 									"type": "Expression"
 								}
 							}
 						},
 						{
-							"name": "Switch1",
+							"name": "Handle Manifest Files",
 							"type": "Switch",
 							"dependsOn": [
 								{
