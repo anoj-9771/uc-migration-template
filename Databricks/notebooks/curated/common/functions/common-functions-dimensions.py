@@ -8,3 +8,7 @@
 # COMMAND ----------
 
 #%run ./dimensions/UnitOffering
+
+# COMMAND ----------
+
+# MAGIC %run ./dimensions/Meter

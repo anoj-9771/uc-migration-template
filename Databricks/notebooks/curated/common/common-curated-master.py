@@ -270,7 +270,7 @@ def TemplateEtl(df : object, entity, businessKey, AddSK = True):
   v_COMMON_SQL_SCHEMA = "COMMON"
   v_COMMON_CURATED_DATABASE = "curated"
   v_COMMON_DATALAKE_FOLDER = "curated"
-  
+ 
   DeltaSaveDataFrameToDeltaTable(df, 
                                  rawEntity, 
                                  ADS_DATALAKE_ZONE_CURATED, 
@@ -300,7 +300,7 @@ def Property():
 
 #Call Property function to load DimProperty
 def Meter():
-  TemplateEtl(df=GetCommonProperty(), 
+  TemplateEtl(df=GetCommonMeter(), 
              entity="DimMeter", 
              businessKey="meterId,sourceSystemCode",
              AddSK=True
