@@ -298,7 +298,13 @@ def Property():
              AddSK=True
             )
 
-  
+#Call Property function to load DimProperty
+def Location():
+  TemplateEtl(df=GetCommonLocation(), 
+             entity="DimLocation", 
+             businessKey="locationId",
+             AddSK=True
+            )  
 # Add New Dim here
 # def Dim2_Example():
 #   TemplateEtl(df=GetDim2Example(), 
@@ -335,6 +341,7 @@ def Main():
   if LoadDimensions:
     LogEtl("Start Dimensions")
     Property()
+    Location()
     #Add new Dim here()
     
     LogEtl("End Dimensions")
@@ -359,3 +366,12 @@ Main()
 
 # DBTITLE 1,12. Exit Notebook
 dbutils.notebook.exit("1")
+
+# COMMAND ----------
+
+#%sql
+#select * from curated.dimlocation
+
+# COMMAND ----------
+
+

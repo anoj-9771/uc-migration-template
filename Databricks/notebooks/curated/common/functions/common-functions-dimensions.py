@@ -3,6 +3,10 @@
 
 # COMMAND ----------
 
+# MAGIC %run ./dimensions/Location
+
+# COMMAND ----------
+
 #%run ./dimensions/OfferingSkillsPoint
 
 # COMMAND ----------
