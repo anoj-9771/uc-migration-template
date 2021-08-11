@@ -8,12 +8,6 @@
 				"type": "GetMetadata",
 				"dependsOn": [
 					{
-						"activity": "Get Full File Name",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					},
-					{
 						"activity": "Set-Source-Container",
 						"dependencyConditions": [
 							"Succeeded"
@@ -628,6 +622,12 @@
 									"dependencyConditions": [
 										"Succeeded"
 									]
+								},
+								{
+									"activity": "Get Full File Name",
+									"dependencyConditions": [
+										"Succeeded"
+									]
 								}
 							],
 							"userProperties": [],
@@ -637,6 +637,75 @@
 									"value": "@if(contains(variables('FileName'),'MANIFEST'),'ManifestFile','DataFile')",
 									"type": "Expression"
 								}
+							}
+						},
+						{
+							"name": "Get Full File Name",
+							"type": "Lookup",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "AzureSqlSource",
+									"sqlReaderStoredProcedureName": "[CTL].[GetStorageFileName]",
+									"storedProcedureParameters": {
+										"DeltaExtract": {
+											"type": "Boolean",
+											"value": {
+												"value": "@pipeline().parameters.TaskDetails.DeltaExtract",
+												"type": "Expression"
+											}
+										},
+										"FileName": {
+											"type": "String",
+											"value": {
+												"value": "@pipeline().parameters.TaskDetails.SourceLocation",
+												"type": "Expression"
+											}
+										},
+										"FolderName": {
+											"type": "String",
+											"value": {
+												"value": "@pipeline().parameters.TaskDetails.TargetLocation",
+												"type": "Expression"
+											}
+										},
+										"Grain": {
+											"type": "String",
+											"value": {
+												"value": "@pipeline().parameters.TaskDetails.ObjectGrain",
+												"type": "Expression"
+											}
+										},
+										"Compressed": {
+											"type": "Boolean",
+											"value": {
+												"value": "true",
+												"type": "Expression"
+											}
+										},
+										"TargetType": {
+											"type": "String",
+											"value": {
+												"value": "@pipeline().parameters.TaskDetails.TargetType",
+												"type": "Expression"
+											}
+										}
+									},
+									"partitionOption": "None"
+								},
+								"dataset": {
+									"referenceName": "AzureSqlDatabase_Ctrldb",
+									"type": "DatasetReference"
+								},
+								"firstRowOnly": true
 							}
 						}
 					]
@@ -666,75 +735,6 @@
 						"value": "@last(split(pipeline().parameters.TaskDetails.SourceLocation,'/'))",
 						"type": "Expression"
 					}
-				}
-			},
-			{
-				"name": "Get Full File Name",
-				"type": "Lookup",
-				"dependsOn": [],
-				"policy": {
-					"timeout": "7.00:00:00",
-					"retry": 0,
-					"retryIntervalInSeconds": 30,
-					"secureOutput": false,
-					"secureInput": false
-				},
-				"userProperties": [],
-				"typeProperties": {
-					"source": {
-						"type": "AzureSqlSource",
-						"sqlReaderStoredProcedureName": "[CTL].[GetStorageFileName]",
-						"storedProcedureParameters": {
-							"DeltaExtract": {
-								"type": "Boolean",
-								"value": {
-									"value": "@pipeline().parameters.TaskDetails.DeltaExtract",
-									"type": "Expression"
-								}
-							},
-							"FileName": {
-								"type": "String",
-								"value": {
-									"value": "@pipeline().parameters.TaskDetails.SourceLocation",
-									"type": "Expression"
-								}
-							},
-							"FolderName": {
-								"type": "String",
-								"value": {
-									"value": "@pipeline().parameters.TaskDetails.TargetLocation",
-									"type": "Expression"
-								}
-							},
-							"Grain": {
-								"type": "String",
-								"value": {
-									"value": "@pipeline().parameters.TaskDetails.ObjectGrain",
-									"type": "Expression"
-								}
-							},
-							"Compressed": {
-								"type": "Boolean",
-								"value": {
-									"value": "true",
-									"type": "Expression"
-								}
-							},
-							"TargetType": {
-								"type": "String",
-								"value": {
-									"value": "@pipeline().parameters.TaskDetails.TargetType",
-									"type": "Expression"
-								}
-							}
-						},
-						"partitionOption": "None"
-					},
-					"dataset": {
-						"referenceName": "AzureSqlDatabase_Ctrldb",
-						"type": "DatasetReference"
-					},
-					"firstRowOnly": true
 				}
 			}
 		],
