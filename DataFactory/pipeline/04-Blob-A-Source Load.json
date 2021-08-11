@@ -8,7 +8,7 @@
 				"type": "GetMetadata",
 				"dependsOn": [
 					{
-						"activity": "Get Full File Name.",
+						"activity": "Get Full File Name",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -807,7 +807,7 @@
 				}
 			},
 			{
-				"name": "Get Full File Name.",
+				"name": "Get Full File Name",
 				"type": "Lookup",
 				"dependsOn": [],
 				"policy": {
