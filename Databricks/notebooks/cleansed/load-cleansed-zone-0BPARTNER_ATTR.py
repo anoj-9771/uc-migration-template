@@ -116,7 +116,6 @@ print(data_load_mode)
 #Delta and SQL tables are case Insensitive. Seems Delta table are always lower case
 delta_cleansed_tbl_name = "{0}.{1}".format(ADS_DATABASE_CLEANSED, "stg_"+source_object)
 delta_raw_tbl_name = "{0}.{1}".format(ADS_DATABASE_RAW, source_object)
-delta_raw_tbl_name = "raw.sap_0bpartner_attr"
 
 #Destination
 print(delta_cleansed_tbl_name)
@@ -158,7 +157,7 @@ df_updated_column_temp = spark.sql("SELECT \
                                 BP.BU_SORT1 as searchTerm1,\
                                 BP.BU_SORT2 as searchTerm2,\
                                 BP.TITLE as titleCode,\
-                                'To be mapped' as title,\
+                                TITLE.TITLE as title,\
                                 BP.XDELE as deletedIndicator,\
                                 BP.XBLCK as centralBlockBusinessPartner,\
                                 BP.ZZUSER as userId,\
@@ -209,7 +208,8 @@ df_updated_column_temp = spark.sql("SELECT \
                                LEFT OUTER JOIN CLEANSED.T_SAPISU_0BPARTNER_TEXT BP_TXT \
                                  ON BP.PARTNER = BP_TXT.businessPartnerNumber AND BP.TYPE =BP_TXT.businessPartnerCategoryCode \
                                LEFT OUTER JOIN CLEANSED.T_SAPISU_0BPTYPE_TEXT BPTYPE ON BP.TYPE = BPTYPE.businessPartnerTypeCode \
-                               LEFT OUTER JOIN CLEANSED.T_SAPISU_0BP_GROUP_TEXT BPGRP ON BP.TYPE = BPGRP.businessPartnerGroupCode")
+                               LEFT OUTER JOIN CLEANSED.T_SAPISU_0BP_GROUP_TEXT BPGRP ON BP.TYPE = BPGRP.businessPartnerGroupCode \
+                               LEFT OUTER JOIN CLEANSED.T_SAPISU_TSAD3T TITLE ON BP.TITLE = TITLE.titlecode")
 
 display(df_updated_column_temp)
 
