@@ -21,12 +21,12 @@ ADS_LOAD_SQLDB = True
 # COMMAND ----------
 
 #The resource names are automatically built based on Project Prefix and Environment
-ADS_DATA_LAKE_ACCOUNT = "sadafdev01" #f"{ADS_COMPANY_INITIAL.replace('-', '')}dlsdp{ADS_ENVIRONMENT.lower()}{ADS_SUFFIX.replace('-', '')}"
+ADS_DATA_LAKE_ACCOUNT = "sadaf"+ ADS_ENVIRONMENT + "01" #f"{ADS_COMPANY_INITIAL.replace('-', '')}dlsdp{ADS_ENVIRONMENT.lower()}{ADS_SUFFIX.replace('-', '')}"
 ADS_BLOB_STORAGE_ACCOUNT = "saswcnonprod01landingdev" #ADS_COMPANY_INITIAL + "stor" + ADS_BUSINESS_UNIT + ADS_ENVIRONMENT + ".blob.core.windows.net"
 
-ADS_DB_SERVER = "sql-swcnonprod01-daf-dev-01.database.windows.net" #ADS_COMPANY_INITIAL + "-sql-dp-" + ADS_ENVIRONMENT + "-" + ADS_SUFFIX + ".database.windows.net"
+ADS_DB_SERVER = "sql-swcnonprod01-daf-" + ADS_ENVIRONMENT + "-01.database.windows.net" #ADS_COMPANY_INITIAL + "-sql-dp-" + ADS_ENVIRONMENT + "-" + ADS_SUFFIX + ".database.windows.net"
 
-ADS_RESOURCE_GROUP =  "rg-swcnonprod01-daf-dev-01" #f"RG-{ADS_ENVIRONMENT.upper()}-SYD-AMA-PANEL-BI"
+ADS_RESOURCE_GROUP =  "rg-swcnonprod01-daf-" + ADS_ENVIRONMENT + "-01" #f"RG-{ADS_ENVIRONMENT.upper()}-SYD-AMA-PANEL-BI"
 
 # COMMAND ----------
 
@@ -43,8 +43,10 @@ ADS_CONTAINER_STAGE = "stage"
 
 #Delta Lake Databases
 ADS_DATABASE_RAW = "raw"
+ADS_DATABASE_CLEANSED_STAGE = "cleansed.stg"
 ADS_DATABASE_CLEANSED = "cleansed"
 ADS_DATABASE_STAGE = "stage"
+ADS_DATABASE_CURATED_STAGE = "curated.stg"
 ADS_DATABASE_CURATED = "curated"
 
 ADS_DATALAKE_ZONE_RAW = "raw"
@@ -65,9 +67,9 @@ ADS_LOG_VERBOSE = True
 
 # COMMAND ----------
 
-ADS_SECRET_APP_ID = "SERVICE-PRINCIPAL-APP-ID"
-ADS_SECRET_APP_SECRET = "SERVICE-PRINCIPAL-SECRET"
-ADS_TENANT_ID = "TENANT-ID"
+ADS_SECRET_APP_ID = "daf-serviceprincipal-app-id"
+ADS_SECRET_APP_SECRET = "daf-serviceprincipal-app-secret"
+ADS_TENANT_ID = "daf-tenant-id"
 
 # COMMAND ----------
 
@@ -85,7 +87,7 @@ ADS_MYSQL_LMS_DELTA_COL_UPDATED = "timemodified"
 ADS_COLUMN_CREATED = ["CREATED_DATE", "CREATEDTIME", ADS_MYSQL_LMS_DELTA_COL_CREATED]
 ADS_COLUMN_UPDATED = ["UPDATED_DATE", "UPDATEDTIME", ADS_MYSQL_LMS_DELTA_COL_UPDATED]
 ADS_COLUMN_TRANSACTION_DT = "_transaction_date"
-ADS_TZ_LOCAL = "Australia/Brisbane"
+ADS_TZ_LOCAL = "Australia/Sydney"
 
 # COMMAND ----------
 

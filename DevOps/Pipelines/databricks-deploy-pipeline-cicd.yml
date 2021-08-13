@@ -21,7 +21,7 @@ trigger: none
 #     - Databricks/notebooks/*
 
 pool: Daf-Self-Pool01
-  #vmImage: ubuntu-latest
+# vmImage: ubuntu-latest
 
 stages:
 # ---------------------------------------------------------------------------

@@ -49,6 +49,16 @@
 								"notebookPath": {
 									"value": "@variables('NoteBookURL')",
 									"type": "Expression"
+								},
+								"baseParameters": {
+									"file_object": {
+										"value": "@concat(pipeline().parameters.TargetBLOBFolder,pipeline().parameters.TargetBLOBName)",
+										"type": "Expression"
+									},
+									"source_param": {
+										"value": "@string(pipeline().parameters.TaskDetails)",
+										"type": "Expression"
+									}
 								}
 							},
 							"linkedServiceName": {

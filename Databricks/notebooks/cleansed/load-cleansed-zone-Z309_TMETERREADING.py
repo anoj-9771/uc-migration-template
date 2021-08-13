@@ -1,8 +1,8 @@
 # Databricks notebook source
 # DBTITLE 1,Generate parameter and source object name for unit testing
 import json
-accessTable = 'Z309_TPROPMETER'
-
+accessTable = 'Z309_TMETERREADING'
+ 
 runParm = '{"SourceType":"Flat File","SourceServer":"saswcnonprod01landingdev-sastoken","SourceGroup":"access","SourceName":"access_access/####_csv","SourceLocation":"access/####.csv","AdditionalProperty":"","Processor":"databricks-token|0705-044124-gored835|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive","IsAuditTable":false,"SoftDeleteSource":"","ProjectName":"Access Data","ProjectId":2,"TargetType":"BLOB Storage (csv)","TargetName":"access_access/####_csv","TargetLocation":"access/####","TargetServer":"daf-sa-lake-sastoken","DataLoadMode":"TRUNCATE-LOAD","DeltaExtract":false,"CDCSource":false,"TruncateTarget":true,"UpsertTarget":false,"AppendTarget":null,"TrackChanges":false,"LoadToSqlEDW":true,"TaskName":"access_access/####_csv","ControlStageId":1,"TaskId":4,"StageSequence":100,"StageName":"Source to Raw","SourceId":4,"TargetId":4,"ObjectGrain":"Day","CommandTypeId":5,"Watermarks":"","WatermarksDT":null,"WatermarkColumn":"","BusinessKeyColumn":"","UpdateMetaData":null,"SourceTimeStampFormat":"","Command":"","LastLoadedFile":null}'
 
 s = json.loads(runParm)
@@ -41,7 +41,7 @@ print(runParm)
 
 # COMMAND ----------
 
-# DBTITLE 1,1. Import libreries/functions
+# DBTITLE 1,1. Import libraries/functions
 #1.Import libreries/functions
 from pyspark.sql.functions import mean, min, max, desc, abs, coalesce, when, expr
 from pyspark.sql.functions import date_add, to_utc_timestamp, from_utc_timestamp, datediff
@@ -167,86 +167,81 @@ DeltaSaveToDeltaTable (
 #Update/rename Column
 df_cleansed = spark.sql("SELECT cast(N_PROP as int) AS propertyNumber, \
 		cast(N_PROP_METE as int) AS propertyMeterNumber, \
-		N_METE_MAKE AS meterMakerNumber, \
-		C_METE_TYPE AS meterTypeCode, \
-        cast(b.meterSize as string)||lower(b.meterSizeUnit) as meterType, \
-		case when C_METE_POSI_STAT = 'M' then true else false end as isMasterMeter, \
-        case when C_METE_POSI_STAT = 'C' then true else false end as isCheckMeter, \
-        case when F_METE_CONN = 'D' then false else true end AS isMeterConnected, \
-		C_METE_READ_FREQ AS meterReadingFrequencyCode, \
-		C_METE_CLAS AS meterClassCode, \
-        initcap(c.meterClass) as meterClass, \
-        case when c.meterTypeCode = 'P' then 'Potable' \
-             when c.meterTypeCode = 'R' then 'Recycled' \
-                                        else 'Other' \
-        end as waterType, \
-        C_METE_CATE AS meterCategoryCode, \
-        initcap(d.meterCategory) as meterCategory, \
-		C_METE_GROU AS meterGroupCode, \
-        replace(initcap(e.meterGroup),'ami','AMI') as meterGroup, \
-		C_METE_READ_LOCA AS meterReadingLocationCode, \
-		cast(N_METE_READ_ROUT as int) AS meterReadingRouteNumber, \
-		initcap(T_METE_SERV) AS meterServes, \
-		C_METE_GRID_LOCA AS meterGridLocationCode, \
-		C_READ_INST_NUM1 AS readingInstructionCode1, \
-		C_READ_INST_NUM2 AS readingInstructionCode2, \
-		case when F_METE_ADDI_DESC = 'Y' then true else false end AS hasdditionalDescription, \
-		case when F_METE_ROUT_PREP = 'Y' then true else false end AS hasMeterRoutePreparation, \
-		case when F_METE_WARN_NOTE = 'Y' then true else false end AS hasMeterWarningNote, \
-		to_date(D_METE_FIT, 'yyyyMMdd') AS meterFittedDate, \
-		cast(N_METE_READ_SEQU as int) AS meterReadingSequenceNumber, \
-		C_METE_CHAN_REAS AS meterChangeReasonCode, \
-		N_METE_CHAN_ADVI AS meterChangeAdviceNumber, \
-		to_date(D_METE_REMO, 'yyyyMMdd') AS meterRemovedDate, \
-		to_date(D_PROP_METE_UPDA, 'yyyyMMdd') AS propertyMeterUpdatedDate, \
+		cast(N_METE_READ as int) AS meterReadingNumber, \
+		C_METE_READ_TOLE AS meterReadingToleranceCode, \
+        initcap(d.meterReadingTolerance) as meterReadingTolerance, \
+		C_METE_READ_TYPE AS meterReadingTypeCode, \
+        initcap(e.meterReadingType) as meterReadingType, \
+		C_METE_READ_CONS AS consumptionTypeCode, \
+        initcap(f.consumptionType) as consumptionType, \
+		C_METE_READ_STAT AS meterReadingStatusCode, \
+        initcap(g.meterReadingStatus) as meterReadingStatus, \
+		C_METE_CANT_READ AS cannotReadCode, \
+        initcap(h.cannotReadReason) as cannotReadReason, \
+		C_PDE_READ_METH AS PDEReadingMethodCode, \
+        initcap(i.PDEReadingMethod) as PDEReadingMethod, \
+		cast(Q_METE_READ as decimal(9,0)) AS meterReading, \
+        cast(unix_timestamp(D_METE_READ||case when substr(trim(T_METE_READ_TIME),-1) = '-' then substr(T_METE_READ_TIME,1,5)||'0' \
+                                              when substr(T_METE_READ_TIME,1,2) not between '00' and '23' or \
+                                                   substr(T_METE_READ_TIME,3,2) not between '00' and '59' or \
+                                                   substr(T_METE_READ_TIME,5,2) not between '00' and '59' then '120000' \
+                                              when T_METE_READ_TIME is null then '120000' \
+                                                                            else T_METE_READ_TIME end, 'yyyyMMddHHmmss') as Timestamp) as meterReadingTimestamp, \
+		cast(Q_METE_READ_CONS as decimal(9,0)) AS meterReadingConsumption, \
+        date_sub(to_date(D_METE_READ,'yyyyMMdd'),int(Q_METE_READ_DAYS) - 1) as readingFromDate, \
+        to_date(D_METE_READ,'yyyyMMdd') as readingToDate, \
+		cast(Q_METE_READ_DAYS as decimal(7,0)) AS meterReadingDays, \
+		case when F_READ_COMM_CODE = '1' then true else false end AS hasReadingCommentCode, \
+		case when F_READ_COMM_FREE = '1' then true else false end AS hasReadingCommentFreeFormat, \
+		cast(Q_PDE_HIGH_LOW as int) AS PDEHighLow, \
+		cast(Q_PDE_REEN_COUN as int) AS PDEReenteredCount, \
+		case when F_PDE_AUXI_READ = '0' then true else false end AS isPDEAuxilaryReading, \
+		to_date(D_METE_READ_UPDA, 'yyyyMMdd') AS meterReadingUpdatedDate, \
 		a._RecordStart, \
 		a._RecordEnd, \
 		a._RecordDeleted, \
 		a._RecordCurrent \
-	FROM CLEANSED.STG_ACCESS_Z309_TPROPMETER a \
-         left outer join CLEANSED.t_access_Z309_TMeterType b on b.meterTypeCode = a.C_METE_TYPE \
-         left outer join CLEANSED.t_access_Z309_TMeterClass c on c.meterClassCode = a.C_METE_CLAS \
-         left outer join CLEANSED.t_access_Z309_TMeterCategory d on d.meterCategoryCode = a.C_METE_CATE \
-         left outer join CLEANSED.t_access_Z309_TMeterGroup e on e.meterGroupCode = a.C_METE_GROU \
+	FROM CLEANSED.STG_ACCESS_Z309_TMETERREADING a \
+         left outer join CLEANSED.t_access_Z309_TMETEREADTOLE d on a.C_METE_READ_TOLE = d.meterReadingToleranceCode \
+         left outer join CLEANSED.t_access_Z309_TMETEREADTYPE e on a.C_METE_READ_TYPE = e.meterReadingTypeCode \
+         left outer join CLEANSED.t_access_Z309_TMETEREADCONTYP f on a.C_METE_READ_CONS = f.consumptionTypeCode \
+         left outer join CLEANSED.t_access_Z309_TMRSTATUSTYPE g on a.C_METE_READ_STAT = g.meterReadingStatusCode \
+         left outer join CLEANSED.t_access_Z309_TMETERCANTREAD h on a.C_METE_CANT_READ = h.cannotReadReason \
+         left outer join CLEANSED.t_access_Z309_TPDEREADMETH i on a.C_PDE_READ_METH = i.PDEReadingMethodCode \
          ")
 
 display(df_cleansed)
-print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
 
 newSchema = StructType([
 	StructField('propertyNumber',IntegerType(),False),
 	StructField('propertyMeterNumber',IntegerType(),False),
-	StructField('meterMakerNumber',StringType(),True),
-    StructField('meterTypeCode',StringType(),False),
-	StructField('meterType',StringType(),False),
-    StructField('isMasterMeter',BooleanType(),False),
-	StructField('isCheckMeter',BooleanType(),False),
-	StructField('isMeterConnected',BooleanType(),False),
-	StructField('meterReadingFrequencyCode',StringType(),True),
-	StructField('meterClassCode',StringType(),True),
-	StructField('meterClass',StringType(),True),
-    StructField('waterType',StringType(),True),
-	StructField('meterCategoryCode',StringType(),True),
-	StructField('meterCategory',StringType(),True),
-	StructField('meterGroupCode',StringType(),True),
-	StructField('meterGroup',StringType(),True),
-	StructField('meterReadingLocationCode',StringType(),True),
-	StructField('meterReadingRouteNumber',IntegerType(),True),
-	StructField('meterServes',StringType(),True),
-	StructField('meterGridLocationCode',StringType(),True),
-	StructField('readingInstructionCode1',StringType(),True),
-	StructField('readingInstructionCode2',StringType(),True),
-	StructField('hasAdditionalDescription',BooleanType(),False),
-	StructField('hasMeterRoutePreparation',BooleanType(),False),
-	StructField('hasMeterWarningNote',BooleanType(),False),
-	StructField('meterFittedDate',DateType(),True),
-	StructField('meterReadingSequenceNumber',IntegerType(),False),
-	StructField('meterChangeReasonCode',StringType(),True),
-	StructField('meterChangeAdviceNumber',StringType(),True),
-	StructField('meterRemovedDate',DateType(),True),
-	StructField('propertyMeterUpdatedDate',DateType(),True),
+	StructField('meterReadingNumber',IntegerType(),False),
+	StructField('meterReadingToleranceCode',StringType(),True),
+    StructField('meterReadingTolerance',StringType(),True),
+	StructField('meterReadingTypeCode',StringType(),False),
+    StructField('meterReadingType',StringType(),False),
+	StructField('consumptionTypeCode',StringType(),True),
+    StructField('consumptionType',StringType(),True),
+	StructField('meterReadingStatusCode',StringType(),True),
+    StructField('meterReadingStatus',StringType(),True),
+	StructField('cannotReadCode',StringType(),True),
+    StructField('cannotReadReason',StringType(),True),
+	StructField('PDEReadingMethodCode',StringType(),True),
+    StructField('PDEReadingMethod',StringType(),True),
+	StructField('meterReading',DecimalType(9,0),False),
+	StructField('meterReadingTimestamp',TimestampType(),True),
+	StructField('meterReadingConsumption',DecimalType(9,0),False),
+    StructField('readingFromDate',DateType(),False),
+    StructField('readingFromTo',DateType(),False),
+	StructField('meterReadingDays',DecimalType(7,0),False),
+	StructField('hasReadingCommentCode',BooleanType(),False),
+	StructField('hasReadingCommentFreeFormat',BooleanType(),False),
+	StructField('PDEHighLow',IntegerType(),False),
+	StructField('PDEReenteredCount',IntegerType(),False),
+	StructField('isPDEAuxilaryReading',BooleanType(),False),
+	StructField('meterReadingUpdatedDate',DateType(),True),
 	StructField('_RecordStart',TimestampType(),False),
 	StructField('_RecordEnd',TimestampType(),False),
 	StructField('_RecordDeleted',IntegerType(),False),
@@ -267,3 +262,7 @@ DeltaSaveDataframeDirect(df_updated_column, "t", source_object, ADS_DATABASE_CLE
 
 # DBTITLE 1,13. Exit Notebook
 dbutils.notebook.exit("1")
+
+# COMMAND ----------
+
+

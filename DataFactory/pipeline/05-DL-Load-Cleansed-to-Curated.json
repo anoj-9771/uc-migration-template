@@ -1,5 +1,5 @@
 {
-	"name": "05-DL-Load-Trusted-to-Curated",
+	"name": "05-DL-Load-Cleansed-to-Curated",
 	"properties": {
 		"activities": [
 			{
@@ -65,7 +65,7 @@
 					"referenceName": "LS-AzureSqlDatabase_Ctrldb",
 					"type": "LinkedServiceReference",
 					"parameters": {
-						"kvSecret": "AzureSqlDatabase-ControlDB"
+						"kvSecret": "daf-sql-controldb-connectionstring"
 					}
 				}
 			},
@@ -136,7 +136,7 @@
 					"referenceName": "LS-AzureSqlDatabase_Ctrldb",
 					"type": "LinkedServiceReference",
 					"parameters": {
-						"kvSecret": "AzureSqlDatabase-ControlDB"
+						"kvSecret": "daf-sql-controldb-connectionstring"
 					}
 				}
 			},
@@ -160,30 +160,6 @@
 				"dependsOn": [
 					{
 						"activity": "Set-ClusterType",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					},
-					{
-						"activity": "Set-Source-Container",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					},
-					{
-						"activity": "Set-Source-FileName",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					},
-					{
-						"activity": "Set-Target-Container",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					},
-					{
-						"activity": "Set-Target-FileName",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -212,28 +188,6 @@
 								"notebookPath": {
 									"value": "@pipeline().parameters.TaskDetails.Command",
 									"type": "Expression"
-								},
-								"baseParameters": {
-									"storage_account_key": {
-										"value": "@pipeline().parameters.TaskDetails.SourceServer",
-										"type": "Expression"
-									},
-									"srcDirectoryName": {
-										"value": "@variables('SourceFolder')",
-										"type": "Expression"
-									},
-									"dstDirectoryName": {
-										"value": "@variables('TargetFolder')",
-										"type": "Expression"
-									},
-									"srcBlobName": {
-										"value": "@variables('SourceBlob')",
-										"type": "Expression"
-									},
-									"dstBlobName": {
-										"value": "@variables('TargetBlob')",
-										"type": "Expression"
-									}
 								}
 							},
 							"linkedServiceName": {
@@ -277,12 +231,6 @@
 								"notebookPath": {
 									"value": "@pipeline().parameters.TaskDetails.Command",
 									"type": "Expression"
-								},
-								"baseParameters": {
-									"source_object": {
-										"value": "@pipeline().parameters.TaskDetails.SourceName",
-										"type": "Expression"
-									}
 								}
 							},
 							"linkedServiceName": {
@@ -302,58 +250,6 @@
 						}
 					]
 				}
-			},
-			{
-				"name": "Set-Source-Container",
-				"type": "SetVariable",
-				"dependsOn": [],
-				"userProperties": [],
-				"typeProperties": {
-					"variableName": "SourceContainer",
-					"value": {
-						"value": "@toLower(first(split(pipeline().parameters.TaskDetails.SourceLocation,'/')))",
-						"type": "Expression"
-					}
-				}
-			},
-			{
-				"name": "Set-Source-FileName",
-				"type": "SetVariable",
-				"dependsOn": [],
-				"userProperties": [],
-				"typeProperties": {
-					"variableName": "SourceFileName",
-					"value": {
-						"value": "@toLower(last(split(pipeline().parameters.TaskDetails.TargetLocation,'/')))",
-						"type": "Expression"
-					}
-				}
-			},
-			{
-				"name": "Set-Target-Container",
-				"type": "SetVariable",
-				"dependsOn": [],
-				"userProperties": [],
-				"typeProperties": {
-					"variableName": "TargetContainer",
-					"value": {
-						"value": "@toLower(first(split(pipeline().parameters.TaskDetails.TargetLocation,'/')))",
-						"type": "Expression"
-					}
-				}
-			},
-			{
-				"name": "Set-Target-FileName",
-				"type": "SetVariable",
-				"dependsOn": [],
-				"userProperties": [],
-				"typeProperties": {
-					"variableName": "TargetFileName",
-					"value": {
-						"value": "@toLower(last(split(pipeline().parameters.TaskDetails.TargetLocation,'/')))",
-						"type": "Expression"
-					}
-				}
 			}
 		],
 		"parameters": {
@@ -361,10 +257,12 @@
 				"type": "object"
 			},
 			"BatchLogId": {
-				"type": "int"
+				"type": "int",
+				"defaultValue": 1
 			},
 			"TaskExecutionLogId": {
-				"type": "int"
+				"type": "int",
+				"defaultValue": 1
 			},
 			"ProjectRunID": {
 				"type": "string"
@@ -375,11 +273,12 @@
 				"type": "String"
 			},
 			"ClusterType": {
-				"type": "String"
+				"type": "String",
+				"defaultValue": "interactive"
 			},
 			"SourceContainer": {
 				"type": "String",
-				"defaultValue": "trusted"
+				"defaultValue": "cleansed"
 			},
 			"SourceDirectory": {
 				"type": "String"

@@ -3,7 +3,7 @@
 	"properties": {
 		"activities": [
 			{
-				"name": "Log Failure DL Trusted",
+				"name": "Log Failure DL Cleansed",
 				"type": "SqlServerStoredProcedure",
 				"dependsOn": [
 					{
@@ -65,7 +65,7 @@
 					"referenceName": "LS-AzureSqlDatabase_Ctrldb",
 					"type": "LinkedServiceReference",
 					"parameters": {
-						"kvSecret": "AzureSqlDatabase-ControlDB"
+						"kvSecret": "daf-sql-controldb-connectionstring"
 					}
 				}
 			},
@@ -136,7 +136,7 @@
 					"referenceName": "LS-AzureSqlDatabase_Ctrldb",
 					"type": "LinkedServiceReference",
 					"parameters": {
-						"kvSecret": "AzureSqlDatabase-ControlDB"
+						"kvSecret": "daf-sql-controldb-connectionstring"
 					}
 				}
 			},
@@ -163,30 +163,6 @@
 						"dependencyConditions": [
 							"Succeeded"
 						]
-					},
-					{
-						"activity": "Set-Source-Container",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					},
-					{
-						"activity": "Set-Source-FileName",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					},
-					{
-						"activity": "Set-Target-Container",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					},
-					{
-						"activity": "Set-Target-FileName",
-						"dependencyConditions": [
-							"Succeeded"
-						]
 					}
 				],
 				"userProperties": [],
@@ -197,7 +173,7 @@
 					},
 					"ifFalseActivities": [
 						{
-							"name": "Load-To-Trusted-Zone-Job",
+							"name": "Load-To-Cleansed-Zone-Job",
 							"type": "DatabricksNotebook",
 							"dependsOn": [],
 							"policy": {
@@ -214,24 +190,12 @@
 									"type": "Expression"
 								},
 								"baseParameters": {
-									"storage_account_key": {
-										"value": "@pipeline().parameters.TaskDetails.SourceServer",
+									"source_object": {
+										"value": "@pipeline().parameters.TaskDetails.SourceName",
 										"type": "Expression"
 									},
-									"srcDirectoryName": {
-										"value": "@variables('SourceFolder')",
-										"type": "Expression"
-									},
-									"dstDirectoryName": {
-										"value": "@variables('TargetFolder')",
-										"type": "Expression"
-									},
-									"srcBlobName": {
-										"value": "@variables('SourceBlob')",
-										"type": "Expression"
-									},
-									"dstBlobName": {
-										"value": "@variables('TargetBlob')",
+									"source_param": {
+										"value": "@string(pipeline().parameters.TaskDetails)",
 										"type": "Expression"
 									}
 								}
@@ -282,6 +246,10 @@
 									"source_object": {
 										"value": "@pipeline().parameters.TaskDetails.SourceName",
 										"type": "Expression"
+									},
+									"source_param": {
+										"value": "@string(pipeline().parameters.TaskDetails)",
+										"type": "Expression"
 									}
 								}
 							},
@@ -301,58 +269,6 @@
 							}
 						}
 					]
-				}
-			},
-			{
-				"name": "Set-Source-Container",
-				"type": "SetVariable",
-				"dependsOn": [],
-				"userProperties": [],
-				"typeProperties": {
-					"variableName": "SourceContainer",
-					"value": {
-						"value": "@toLower(first(split(pipeline().parameters.TaskDetails.SourceLocation,'/')))",
-						"type": "Expression"
-					}
-				}
-			},
-			{
-				"name": "Set-Source-FileName",
-				"type": "SetVariable",
-				"dependsOn": [],
-				"userProperties": [],
-				"typeProperties": {
-					"variableName": "SourceFileName",
-					"value": {
-						"value": "@toLower(last(split(pipeline().parameters.TaskDetails.TargetLocation,'/')))",
-						"type": "Expression"
-					}
-				}
-			},
-			{
-				"name": "Set-Target-Container",
-				"type": "SetVariable",
-				"dependsOn": [],
-				"userProperties": [],
-				"typeProperties": {
-					"variableName": "TargetContainer",
-					"value": {
-						"value": "@toLower(first(split(pipeline().parameters.TaskDetails.TargetLocation,'/')))",
-						"type": "Expression"
-					}
-				}
-			},
-			{
-				"name": "Set-Target-FileName",
-				"type": "SetVariable",
-				"dependsOn": [],
-				"userProperties": [],
-				"typeProperties": {
-					"variableName": "TargetFileName",
-					"value": {
-						"value": "@toLower(last(split(pipeline().parameters.TaskDetails.TargetLocation,'/')))",
-						"type": "Expression"
-					}
 				}
 			}
 		],

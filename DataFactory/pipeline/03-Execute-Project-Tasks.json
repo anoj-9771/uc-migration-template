@@ -128,7 +128,7 @@
 										"userProperties": [],
 										"typeProperties": {
 											"pipeline": {
-												"referenceName": "04-Blob-Json-A-Source-Copy",
+												"referenceName": "04-Blob-A-Source Load",
 												"type": "PipelineReference"
 											},
 											"waitOnCompletion": true,
@@ -226,13 +226,13 @@
 								},
 								"ifTrueActivities": [
 									{
-										"name": "EP-Trusted-to-Curated",
+										"name": "EP-Cleansed-to-Curated",
 										"type": "ExecutePipeline",
 										"dependsOn": [],
 										"userProperties": [],
 										"typeProperties": {
 											"pipeline": {
-												"referenceName": "05-DL-Copy-Trusted-to-Curated",
+												"referenceName": "05-DL-Load-Cleansed-to-Curated",
 												"type": "PipelineReference"
 											},
 											"waitOnCompletion": true,
