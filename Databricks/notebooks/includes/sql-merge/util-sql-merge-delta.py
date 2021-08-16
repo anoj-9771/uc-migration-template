@@ -55,7 +55,8 @@ def _GenerateMergeSQL_DeltaTable(source_table_name, target_table_name, business_
     sql_source_query = _SQLSourceSelect_Delete(source_table_name, target_table_name, business_key, target_data_lake_zone)
   else:
     sql_source_query = _SQLSourceSelect_DeltaTable(source_table_name, business_key, delta_column, start_counter, end_counter, is_delta_extract, target_data_lake_zone)
-  sql = f"WITH {ALIAS_TABLE_SOURCE} AS (" + NEW_LINE + sql_source_query + ")" + NEW_LINE
+  sql = f"WITH {ALIAS_TABLE_SOURCE} AS (" + NEW_LINE + "SELECT * FROM (SELECT *, ROW_NUMBER() OVER (PARTITION BY " + business_key + " ORDER BY _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM " + source_table_name + ") where _RecordVersion = 1)" + NEW_LINE
+  #sql = f"WITH {ALIAS_TABLE_SOURCE} AS (" + NEW_LINE + sql_source_query + NEW_LINE
   #################PART 1 SOURCE QUERY ####################################
 
 
@@ -72,16 +73,16 @@ def _GenerateMergeSQL_DeltaTable(source_table_name, target_table_name, business_
   sql += TAB + f"SELECT {business_key_updated} AS merge_key, {ALIAS_TABLE_SOURCE}.* FROM {ALIAS_TABLE_SOURCE}" + NEW_LINE
   #We need RecordVersion only if it is the Delta Table load from the Raw Zone because we want the last version
   #For SQL Server, this would have already been resolved
-  if is_delta_extract and target_data_lake_zone == ADS_DATABASE_CLEANSED: sql += TAB + f"WHERE {COL_RECORD_VERSION} = 1" + NEW_LINE
+  if target_data_lake_zone == ADS_DATABASE_CLEANSED: sql += TAB + f"WHERE {COL_RECORD_VERSION} = 1" + NEW_LINE
   
-  if track_changes:
+  #if track_changes:
     #Union the previous query with the next one
-    sql += TAB + "UNION ALL" + NEW_LINE
-    if delete_data:
-      sql_track_change_union = f"SELECT NULL AS merge_key, {ALIAS_TABLE_SOURCE}.* FROM {ALIAS_TABLE_SOURCE} " + NEW_LINE
-    else:
-      sql_track_change_union = _SQLTrackChanges_UnionQuery(ALIAS_TABLE_SOURCE, target_table_name, business_key, target_data_lake_zone, df_col_list, delta_column, is_delta_extract)
-    sql += TAB + sql_track_change_union + NEW_LINE
+  #  sql += TAB + "UNION ALL" + NEW_LINE
+  #  if delete_data:
+  #    sql_track_change_union = f"SELECT NULL AS merge_key, {ALIAS_TABLE_SOURCE}.* FROM {ALIAS_TABLE_SOURCE} " + NEW_LINE
+  #  else:
+  #    sql_track_change_union = _SQLTrackChanges_UnionQuery(ALIAS_TABLE_SOURCE, target_table_name, business_key, target_data_lake_zone, df_col_list, delta_column, is_delta_extract)
+  #  sql += TAB + sql_track_change_union + NEW_LINE
   
   #Complete the Merge SQL and join on merge_key
   sql += ") " + ALIAS_TABLE_STAGE + NEW_LINE
@@ -148,14 +149,15 @@ def _SQLSourceSelect_DeltaTable(source_table, business_key, delta_column, start_
   
   tbl_alias = "SRC"
   
-  business_key_updated = _GetSQLCollectiveColumnsFromColumnNames(business_key, tbl_alias, "CONCAT", DELTA_COL_QUALIFER)
+  business_key_updated = "BUKRS" #_GetSQLCollectiveColumnsFromColumnNames(business_key, tbl_alias, "CONCAT", DELTA_COL_QUALIFER)
 
-  source_sql = TAB + "SELECT *" + NEW_LINE
-  if is_delta_extract and target_data_lake_zone == ADS_DATABASE_CLEANSED :
-      source_sql += TAB + ",ROW_NUMBER() OVER (PARTITION BY " + business_key_updated + " ORDER BY " + delta_column + " DESC, " + COL_DL_RAW_LOAD + " DESC) AS " + COL_RECORD_VERSION + NEW_LINE
-
-  source_sql += TAB + "FROM " + source_table + " " + tbl_alias + NEW_LINE
+  source_sql = TAB + "SELECT * FROM (SELECT *, ROW_NUMBER() OVER (PARTITION BY " + business_key_updated + " ORDER BY " + COL_DL_RAW_LOAD + " DESC) AS _RecordVersion FROM " + source_table + ") where _RecordVersion = 1)"
+  #if is_delta_extract and target_data_lake_zone == ADS_DATABASE_CLEANSED :
   
+  #source_sql += TAB + "FROM (SELECT *, ROW_NUMBER() OVER (PARTITION BY " + business_key_updated + " ORDER BY " + COL_DL_RAW_LOAD + " DESC) AS _RecordVersion FROM " + source_table + ") where _RecordVersion = 1)" + NEW_LINE
+  
+  #source_sql += TAB + "FROM " + source_table + " " + tbl_alias + NEW_LINE
+
   if is_delta_extract:
     #We need the where filter only for the Delta Table Load
     source_sql += TAB + "WHERE date_trunc('Second', " + COL_DL_RAW_LOAD + ") >= to_timestamp('" + start_counter + "')" + NEW_LINE
@@ -187,7 +189,7 @@ def _SQLTrackChanges_UnionQuery(source_table_name, target_table_name, business_k
     sql += TAB + "WHERE 1 = 1 " + NEW_LINE
     
     #If it is delta extract then only use the latest version of the record
-    if is_delta_extract and target_data_lake_zone == ADS_DATABASE_CLEANSED:
+    if target_data_lake_zone == ADS_DATABASE_CLEANSED:
       sql += TAB + "-- Additional Joins to ensure we pick only the latest record from source (if delta extract)" + NEW_LINE
       sql += TAB + f"AND {ALIAS_TABLE_SOURCE}.{COL_RECORD_VERSION} = 1" + NEW_LINE
 

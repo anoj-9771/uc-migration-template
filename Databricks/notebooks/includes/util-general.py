@@ -315,4 +315,3 @@ def GeneralGetDataLoadMode(truncate, upsert, append):
     mode = ADS_WRITE_MODE_OVERWRITE
     
   return mode
-

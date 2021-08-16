@@ -848,4 +848,3 @@ def _AppendDeltaAndSql(dataFrame : object, businessKey : str, dlStageTableFqn : 
 
 # COMMAND ----------
 
-

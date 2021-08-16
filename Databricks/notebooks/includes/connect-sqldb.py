@@ -67,4 +67,3 @@ def AzSqlGetData(query):
 
 # COMMAND ----------
 
-

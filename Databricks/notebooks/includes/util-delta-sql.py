@@ -511,4 +511,3 @@ def DeltaSyncToSQLEDWOverwrite(delta_table, target_schema, target_table):
   
   DeltaSyncToSQLEDW (delta_table, target_schema, target_table, business_key, delta_column, start_counter, ADS_WRITE_MODE_OVERWRITE, track_changes, is_delta_extract)
     
-
