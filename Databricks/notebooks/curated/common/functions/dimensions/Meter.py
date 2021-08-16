@@ -21,11 +21,27 @@ def GetCommonMeter():
   #DimProperty
   #2.Load Cleansed layer table data into dataframe
   
-  accessZ309TpropmeterDf = spark.sql("select 'Access' as sourceSystemCode, meterMakerNumber as meterId, meterSize, waterType \
+  #Meter Data from Access
+  accessZ309TpropmeterDf = spark.sql("select 'Access' as sourceSystemCode, \
+                                              meterMakerNumber as meterId, \
+                                              meterSize, waterType, \
+                                              meterFittedDate, \
+                                              meterRemovedDate, \
+                                              row_number() over (partition by metermakernumber order by meterFittedDate desc) rownum \
                                       from cleansed.t_access_z309_tpropmeter \
-                                      where _RecordCurrent = 1 and _RecordDeleted = 0")
+                                      where (meterFittedDate<>meterRemovedDate or meterRemovedDate is null) \
+                                             and _RecordCurrent = 1 and _RecordDeleted = 0 ")
+  #Filter for active meter
+  accessZ309TpropmeterDf = accessZ309TpropmeterDf.filter(col("rownum") == "1")
+  
+  #Drop unwanted columns
+  accessZ309TpropmeterDf = accessZ309TpropmeterDf.drop(accessZ309TpropmeterDf.meterFittedDate) \
+                                               .drop(accessZ309TpropmeterDf.meterRemovedDate) \
+                                               .drop(accessZ309TpropmeterDf.rownum)
+  
   accessZ309TpropmeterDf = accessZ309TpropmeterDf.dropDuplicates() #Please remove once upstream data is fixed
     
+  #Meter Data from SAP ISU  
   sapisu0ucDeviceAttrDf  = spark.sql("select materialNumber, 'SAP' as sourceSystemCode, equipmentNumber as meterId \
                                       from cleansed.t_sapisu_0uc_device_attr \
                                       where _RecordCurrent = 1 and _RecordDeleted = 0")

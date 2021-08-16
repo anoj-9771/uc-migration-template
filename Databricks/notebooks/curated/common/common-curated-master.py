@@ -333,7 +333,7 @@ def Main():
   
   if LoadDimensions:
     LogEtl("Start Dimensions")
-    #Property()
+    Property()
     Meter()
     #Add new Dim here()
     
