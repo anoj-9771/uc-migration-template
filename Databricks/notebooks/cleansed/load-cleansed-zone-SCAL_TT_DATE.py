@@ -146,6 +146,8 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
+df = spark.sql("select * from cleansed.stg_sapisu_scal_tt_date where calendardate ='1903-01-30'")
+print(df.count())
 df_updated_column = spark.sql("SELECT \
                                 to_date(CALENDARDATE,'yyyy-mm-dd') as calendarDate , \
                                 CALENDARYEAR as CALENDARYEAR , \
@@ -166,7 +168,7 @@ df_updated_column = spark.sql("SELECT \
                                 _RecordEnd, \
                                 _RecordDeleted, \
                                 _RecordCurrent \
-                              FROM CLEANSED.stg_sapisu_SCAL_TT_DATE")
+                              FROM CLEANSED.stg_sapisu_SCAL_TT_DATE where calendardate ='1903-01-30'")
 
                                    
 display(df_updated_column)
@@ -194,9 +196,11 @@ newSchema = StructType([
                             StructField('_RecordDeleted', IntegerType(), False),
                             StructField('_RecordCurrent', IntegerType(), False),
                     ])
-
+print(df_updated_column.count())
 df_cleansed_column = spark.createDataFrame(df_updated_column.rdd, schema=newSchema)
 display(df_cleansed_column)
+print(df_cleansed_column.count())
+
 
 # COMMAND ----------
 

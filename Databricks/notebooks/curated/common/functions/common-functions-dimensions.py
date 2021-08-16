@@ -7,6 +7,10 @@
 
 # COMMAND ----------
 
+# MAGIC %run ./dimensions/Date
+
+# COMMAND ----------
+
 #%run ./dimensions/OfferingSkillsPoint
 
 # COMMAND ----------

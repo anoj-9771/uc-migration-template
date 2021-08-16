@@ -305,6 +305,14 @@ def Location():
              businessKey="locationId",
              AddSK=True
             )  
+  
+#Call Property function to load DimProperty
+def Date():
+  TemplateEtl(df=GetCommonDate(), 
+             entity="DimDate", 
+             businessKey="calendarDate",
+             AddSK=True
+            )  
 # Add New Dim here
 # def Dim2_Example():
 #   TemplateEtl(df=GetDim2Example(), 
@@ -340,8 +348,9 @@ def Main():
   
   if LoadDimensions:
     LogEtl("Start Dimensions")
-    Property()
-    Location()
+#     Property()
+#     Location()
+    Date()
     #Add new Dim here()
     
     LogEtl("End Dimensions")
