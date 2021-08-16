@@ -116,7 +116,7 @@ print(data_load_mode)
 #Delta and SQL tables are case Insensitive. Seems Delta table are always lower case
 delta_cleansed_tbl_name = "{0}.{1}".format(ADS_DATABASE_CLEANSED, "stg_"+source_object)
 delta_raw_tbl_name = "{0}.{1}".format(ADS_DATABASE_RAW, source_object)
-#delta_raw_tbl_name = "raw.sap_0uc_devcat_attr"
+
 
 #Destination
 print(delta_cleansed_tbl_name)
@@ -146,75 +146,11 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_updated_column_temp = spark.sql("SELECT \
-                                  DEVCAT.MATNR as materialNumber,\
-                                  DEVCAT.KOMBINAT as deviceCategoryCombination,\
-                                  DEVCAT.FUNKLAS as functionClassCode,\
-                                  FKLASTX.functionClass as functionClass,\
-                                  DEVCAT.BAUKLAS as constructionClassCode,\
-                                  BKLASTX.constructionClass as constructionClass,\
-                                  DEVCAT.BAUFORM as deviceCategoryDescription,\
-                                  DEVCAT.BAUTXT as deviceCategoryName,\
-                                  DEVCAT.PTBNUM as ptiNumber,\
-                                  DEVCAT.DVGWNUM as ggwaNumber,\
-                                  DEVCAT.BGLKZ as certificationRequirementType,\
-                                  DEVCAT.ZWGRUPPE as registerGroupCode,\
-                                  REGGRP.registerGroup as registerGroup,\
-                                  cast(DEVCAT.UEBERVER as decimal (10,3)) as transformationRatio,\
-                                  DEVCAT.AENAM as changedBy,\
-                                  to_date(DEVCAT.AEDAT) as lastChangedDate,\
-                                  DEVCAT.SPARTE as division,\
-                                  cast(DEVCAT.NENNBEL as decimal(10,4)) as nominalLoad,\
-                                  DEVCAT.STELLPLATZ as containerSpaceCount,\
-                                  cast(DEVCAT.HOEHEBEH as decimal(7,2)) as containerCategoryHeight,\
-                                  cast(DEVCAT.BREITEBEH as decimal(7,2)) as containerCategoryWidth,\
-                                  cast(DEVCAT.TIEFEBEH as decimal(7,2)) as containerCategoryDepth,\
-                                  DEVCAT._RecordStart, \
-                                  DEVCAT._RecordEnd, \
-                                  DEVCAT._RecordDeleted, \
-                                  DEVCAT._RecordCurrent \
-                              FROM CLEANSED.STG_SAPISU_0UC_DEVCAT_ATTR DEVCAT \
-                              LEFT OUTER JOIN CLEANSED.T_SAPISU_0UC_FUNKLAS_TEXT FKLASTX ON DEVCAT.FUNKLAS = FKLASTX.functionClassCode \
-                              LEFT OUTER JOIN CLEANSED.T_SAPISU_0UC_BAUKLAS_TEXT BKLASTX ON DEVCAT.BAUKLAS = BKLASTX.constructionClassCode \
-                              LEFT OUTER JOIN CLEANSED.T_SAPISU_0UC_REGGRP_TEXT REGGRP ON DEVCAT.ZWGRUPPE = REGGRP.registerGroupCode")
+df_updated_column = spark.sql("SELECT \
+                                       TITLE as titlecode,\
+                                       TITLE_MEDI as title \
+                                       FROM CLEANSED.STG_SAPISU_TSAD3T")
                                    
-display(df_updated_column_temp)
-
-# COMMAND ----------
-
-# Create schema for the cleanse table
-cleanse_Schema = StructType(
-  [
-    StructField("materialNumber", StringType(), False),
-    StructField("deviceCategoryCombination", StringType(), True),
-    StructField("functionClassCode", StringType(), True),
-    StructField("functionClass", StringType(), True),
-    StructField("constructionClassCode", StringType(), True),
-    StructField("constructionClass", StringType(), True),
-    StructField("deviceCategoryDescription", StringType(), True),
-    StructField("deviceCategoryName", StringType(), True),
-    StructField("ptiNumber", StringType(), True),
-    StructField("ggwaNumber", StringType(), True),
-    StructField("certificationRequirementType", StringType(), True),
-    StructField("registerGroupCode", StringType(), True),
-    StructField("registerGroup", StringType(), True),
-    StructField("transformationRatio", DecimalType(10,3), True),  
-    StructField("changedBy", StringType(), True),
-    StructField("lastChangedDate", DateType(), True),
-    StructField("division", StringType(), True),
-    StructField("nominalLoad", DecimalType(10,4), True),
-    StructField("containerSpaceCount", StringType(), True),
-    StructField("containerCategoryHeight", DecimalType(7,2), True),
-    StructField("containerCategoryWidth", DecimalType(7,2), True),
-    StructField("containerCategoryDepth", DecimalType(7,2), True),   
-    StructField('_RecordStart',TimestampType(),False),
-    StructField('_RecordEnd',TimestampType(),False),
-    StructField('_RecordDeleted',IntegerType(),False),
-    StructField('_RecordCurrent',IntegerType(),False)
-  ]
-)
-# Apply the new schema to cleanse Data Frame
-df_updated_column = spark.createDataFrame(df_updated_column_temp.rdd, schema=cleanse_Schema)
 display(df_updated_column)
 
 # COMMAND ----------
