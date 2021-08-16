@@ -207,8 +207,8 @@ df_updated_column_temp = spark.sql("SELECT \
                                FROM CLEANSED.STG_SAPISU_0BPARTNER_ATTR BP \
                                LEFT OUTER JOIN CLEANSED.T_SAPISU_0BPARTNER_TEXT BP_TXT \
                                  ON BP.PARTNER = BP_TXT.businessPartnerNumber AND BP.TYPE =BP_TXT.businessPartnerCategoryCode \
-                               LEFT OUTER JOIN CLEANSED.T_SAPISU_0BPTYPE_TEXT BPTYPE ON BP.TYPE = BPTYPE.businessPartnerTypeCode \
-                               LEFT OUTER JOIN CLEANSED.T_SAPISU_0BP_GROUP_TEXT BPGRP ON BP.TYPE = BPGRP.businessPartnerGroupCode \
+                               LEFT OUTER JOIN CLEANSED.T_SAPISU_0BPTYPE_TEXT BPTYPE ON BP.BPKIND = BPTYPE.businessPartnerTypeCode \
+                               LEFT OUTER JOIN CLEANSED.T_SAPISU_0BP_GROUP_TEXT BPGRP ON BP.BU_GROUP = BPGRP.businessPartnerGroupCode \
                                LEFT OUTER JOIN CLEANSED.T_SAPISU_TSAD3T TITLE ON BP.TITLE = TITLE.titlecode")
 
 display(df_updated_column_temp)
