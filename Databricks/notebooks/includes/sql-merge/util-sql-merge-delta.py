@@ -51,12 +51,13 @@ def _GenerateMergeSQL_DeltaTable(source_table_name, target_table_name, business_
 
   #################PART 1 SOURCE QUERY ####################################
   #Get the source data from Raw Zone and wrap in a CTE
-  if delete_data:
-    sql_source_query = _SQLSourceSelect_Delete(source_table_name, target_table_name, business_key, target_data_lake_zone)
-  else:
-    sql_source_query = _SQLSourceSelect_DeltaTable(source_table_name, business_key, delta_column, start_counter, end_counter, is_delta_extract, target_data_lake_zone)
-  sql = f"WITH {ALIAS_TABLE_SOURCE} AS (" + NEW_LINE + "SELECT * FROM (SELECT *, ROW_NUMBER() OVER (PARTITION BY " + business_key + " ORDER BY _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM " + source_table_name + ") where _RecordVersion = 1)" + NEW_LINE
-  #sql = f"WITH {ALIAS_TABLE_SOURCE} AS (" + NEW_LINE + sql_source_query + NEW_LINE
+  #if delete_data:
+  #  sql_source_query = _SQLSourceSelect_Delete(source_table_name, target_table_name, business_key, target_data_lake_zone)
+  #else:
+  #  sql_source_query = _SQLSourceSelect_DeltaTable(source_table_name, business_key, delta_column, start_counter, end_counter, is_delta_extract, target_data_lake_zone)
+  #sql = f"WITH {ALIAS_TABLE_SOURCE} AS (" + NEW_LINE + "SELECT * FROM (SELECT *, ROW_NUMBER() OVER (PARTITION BY " + business_key + " ORDER BY _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM " + source_table_name + ") where _RecordVersion = 1)" + NEW_LINE
+  sql_source_query = _SQLSourceSelect_DeltaTable(source_table_name, business_key, delta_column, start_counter, end_counter, is_delta_extract, target_data_lake_zone)
+  sql = f"WITH {ALIAS_TABLE_SOURCE} AS (" + NEW_LINE + sql_source_query + NEW_LINE
   #################PART 1 SOURCE QUERY ####################################
 
 
@@ -148,15 +149,23 @@ def _SQLSourceSelect_DeltaTable(source_table, business_key, delta_column, start_
   #Ideally when daily data load happens, we will only have 1 version
   
   tbl_alias = "SRC"
-  
-  business_key_updated = "BUKRS" #_GetSQLCollectiveColumnsFromColumnNames(business_key, tbl_alias, "CONCAT", DELTA_COL_QUALIFER)
+  business_key_updated = _GetSQLCollectiveColumnsFromColumnNames(business_key, tbl_alias, "CONCAT", DELTA_COL_QUALIFER)
 
-  source_sql = TAB + "SELECT * FROM (SELECT *, ROW_NUMBER() OVER (PARTITION BY " + business_key_updated + " ORDER BY " + COL_DL_RAW_LOAD + " DESC) AS _RecordVersion FROM " + source_table + ") where _RecordVersion = 1)"
-  #if is_delta_extract and target_data_lake_zone == ADS_DATABASE_CLEANSED :
-  
-  #source_sql += TAB + "FROM (SELECT *, ROW_NUMBER() OVER (PARTITION BY " + business_key_updated + " ORDER BY " + COL_DL_RAW_LOAD + " DESC) AS _RecordVersion FROM " + source_table + ") where _RecordVersion = 1)" + NEW_LINE
-  
-  #source_sql += TAB + "FROM " + source_table + " " + tbl_alias + NEW_LINE
+  #source_sql = TAB + "SELECT * FROM (SELECT *, ROW_NUMBER() OVER (PARTITION BY " + business_key_updated + " ORDER BY " + COL_DL_RAW_LOAD + " DESC) AS _RecordVersion FROM " + source_table + ") WHERE _RecordVersion = 1)"
+
+  source_sql = TAB + "SELECT *" + NEW_LINE
+  if not is_delta_extract and target_data_lake_zone == ADS_DATABASE_CLEANSED :
+    source_sql += TAB + ",ROW_NUMBER() OVER (PARTITION BY " + business_key_updated + " ORDER BY " + COL_DL_RAW_LOAD + " DESC) AS " + COL_RECORD_VERSION + NEW_LINE
+    source_sql += TAB + "FROM " + source_table + " " + tbl_alias + NEW_LINE
+    source_sql += TAB + ")" + NEW_LINE 
+      
+  if is_delta_extract and target_data_lake_zone == ADS_DATABASE_CLEANSED :
+    source_sql += TAB + ",ROW_NUMBER() OVER (PARTITION BY " + business_key_updated + " ORDER BY " + delta_column + " DESC, " + COL_DL_RAW_LOAD + " DESC) AS " + COL_RECORD_VERSION + NEW_LINE
+    source_sql += TAB + "FROM " + source_table + " " + tbl_alias + NEW_LINE
+    source_sql += TAB + ")" + NEW_LINE #this bracket was added by jackson while fixing the if not script above
+    
+  if not target_data_lake_zone == ADS_DATABASE_CLEANSED :
+    source_sql += TAB + "FROM " + source_table + " " + tbl_alias + NEW_LINE
 
   if is_delta_extract:
     #We need the where filter only for the Delta Table Load
