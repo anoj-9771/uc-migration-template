@@ -127,12 +127,6 @@ print(delta_raw_tbl_name)
 
 # COMMAND ----------
 
-a = spark.sql("SELECT count(1) FROM raw.sapisu_0uc_mtr_doc group by ABLBELNR ,EQUNR ")
-
-display(a)
-
-# COMMAND ----------
-
 # DBTITLE 1,10. Load to Cleanse Delta Table from Raw Delta Table
 #This method uses the source table to load data into target Delta Table
 DeltaSaveToDeltaTable (
