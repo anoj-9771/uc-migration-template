@@ -670,7 +670,10 @@
 							"type": "Int64"
 						},
 						"ErrorMessage": {
-							"value": "Error Occurred during Blob Source Load",
+							"value": {
+								"value": "@concat(pipeline().parameters.TaskDetails.SourceLocation, ' failed to load to raw zone')",
+								"type": "Expression"
+							},
 							"type": "String"
 						},
 						"ExecutionLogId": {
