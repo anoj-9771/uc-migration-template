@@ -41,8 +41,8 @@ print(runParm)
 
 # COMMAND ----------
 
-# DBTITLE 1,1. Import libreries/functions
-#1.Import libreries/functions
+# DBTITLE 1,1. Import libraries/functions
+#1.Import libraries/functions
 from pyspark.sql.functions import mean, min, max, desc, abs, coalesce, when, expr
 from pyspark.sql.functions import date_add, to_utc_timestamp, from_utc_timestamp, datediff
 from pyspark.sql.functions import regexp_replace, concat, col, lit, substring
@@ -166,7 +166,7 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_cleansed = spark.sql("SELECT C_PDE_READ_METH AS PDEReadingMethodCode, \
-        case when c_pde_read_meth = 'N' then 'Can\\'t' \
+        case when c_pde_read_meth = 'N' then 'Can\\'t Read' \
 		                                else initcap(T_PDE_READ_METH) \
         end AS PDEReadingMethod, \
 		to_date(D_READ_METH_EFFE, 'yyyyMMdd') AS readingMethodEffectiveDate, \
