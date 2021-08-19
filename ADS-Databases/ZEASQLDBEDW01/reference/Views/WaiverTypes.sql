@@ -1,1 +1,0 @@
-﻿CREATE   VIEW  reference.WaiverTypes AS SELECT *, _DLTrustedZoneTimeStamp _DLCuratedZoneTimeStamp  FROM edw.reference_waiver_types

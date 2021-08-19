@@ -1,1 +1,0 @@
-﻿CREATE   VIEW  reference.BprSubCategory AS SELECT *, _DLTrustedZoneTimeStamp _DLCuratedZoneTimeStamp  FROM edw.reference_bpr_sub_category

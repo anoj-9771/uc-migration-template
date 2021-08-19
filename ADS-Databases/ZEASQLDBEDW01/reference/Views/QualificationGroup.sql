@@ -1,1 +1,0 @@
-﻿CREATE   VIEW  reference.QualificationGroup AS SELECT *, _DLTrustedZoneTimeStamp _DLCuratedZoneTimeStamp  FROM edw.reference_qualification_group

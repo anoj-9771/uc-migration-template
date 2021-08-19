@@ -1,1 +1,0 @@
-﻿CREATE   VIEW  reference.FundingSourceSbiRules AS SELECT *, _DLTrustedZoneTimeStamp _DLCuratedZoneTimeStamp  FROM edw.reference_funding_source_sbi_rules

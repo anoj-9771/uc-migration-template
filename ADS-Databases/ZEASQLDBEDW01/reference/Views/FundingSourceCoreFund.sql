@@ -1,1 +1,0 @@
-﻿CREATE   VIEW  reference.FundingSourceCoreFund AS SELECT *, _DLTrustedZoneTimeStamp _DLCuratedZoneTimeStamp  FROM edw.reference_funding_source_core_fund

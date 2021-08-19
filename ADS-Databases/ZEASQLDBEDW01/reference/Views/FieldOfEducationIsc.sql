@@ -1,1 +1,0 @@
-﻿CREATE   VIEW  reference.FieldOfEducationIsc AS SELECT *, _DLTrustedZoneTimeStamp _DLCuratedZoneTimeStamp  FROM edw.reference_field_of_education_isc

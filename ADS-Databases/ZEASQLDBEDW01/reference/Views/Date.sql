@@ -1,1 +1,0 @@
-﻿CREATE   VIEW  reference.Date AS SELECT *, _DLTrustedZoneTimeStamp _DLCuratedZoneTimeStamp  FROM edw.reference_date
