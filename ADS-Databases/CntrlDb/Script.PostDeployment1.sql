@@ -18,6 +18,12 @@ This checks if the record does not exists on the table then inserts it
 /************* ControlStages ***********************************/
 
 INSERT INTO [CTL].[ControlProjects]([ProjectName],[Enabled]) VALUES ('SAP ISU',1)
+INSERT INTO [CTL].[ControlProjects]([ProjectName],[Enabled]) VALUES ('SAP REF',1)
+INSERT INTO [CTL].[ControlProjects]([ProjectName],[Enabled]) VALUES ('Access Data',1)
+INSERT INTO [CTL].[ControlProjects]([ProjectName],[Enabled]) VALUES ('Access REF',1)
+INSERT INTO [CTL].[ControlProjects]([ProjectName],[Enabled]) VALUES ('Hydra',1)
+INSERT INTO [CTL].[ControlProjects]([ProjectName],[Enabled]) VALUES ('Common',1)
+INSERT INTO [CTL].[ControlProjects]([ProjectName],[Enabled]) VALUES ('TEST1',1)
 
 INSERT INTO [CTL].[ControlStages] ([StageSequence], [StageName]) SELECT 100, N'Source to Raw'
 WHERE NOT EXISTS (SELECT 1 FROM [CTL].[ControlStages] WHERE [StageName] = N'Source to Raw')

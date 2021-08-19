@@ -1,1 +1,0 @@
-﻿CREATE   VIEW  reference.SbiSubCategory AS SELECT *, _DLTrustedZoneTimeStamp _DLCuratedZoneTimeStamp  FROM edw.reference_sbi_sub_category

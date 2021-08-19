@@ -1,1 +1,0 @@
-﻿CREATE   VIEW  reference.VerifiersViewList AS SELECT *, _DLTrustedZoneTimeStamp _DLCuratedZoneTimeStamp  FROM edw.reference_verifiers_view_list

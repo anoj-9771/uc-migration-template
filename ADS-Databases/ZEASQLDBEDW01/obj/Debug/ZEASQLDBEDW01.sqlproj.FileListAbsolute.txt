@@ -1,5 +1,0 @@
-C:\Users\ragrawal\source\repos\Insight\TAFE-BI\ADS-Databases\ZEASQLDBEDW01\bin\Debug\ZEASQLDBEDW01.dacpac
-C:\Users\ragrawal\source\repos\Insight\TAFE-BI\ADS-Databases\ZEASQLDBEDW01\obj\Debug\ZEASQLDBEDW01.dll
-C:\Users\ragrawal\source\repos\Insight\TAFE-BI\ADS-Databases\ZEASQLDBEDW01\obj\Debug\ZEASQLDBEDW01.pdb
-C:\Users\ragrawal\source\repos\Insight\TAFE-BI\ADS-Databases\ZEASQLDBEDW01\bin\Debug\ZEASQLDBEDW01.dll
-C:\Users\ragrawal\source\repos\Insight\TAFE-BI\ADS-Databases\ZEASQLDBEDW01\bin\Debug\ZEASQLDBEDW01.pdb

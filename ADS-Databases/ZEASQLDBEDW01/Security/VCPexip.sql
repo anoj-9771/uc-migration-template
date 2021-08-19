@@ -1,3 +1,0 @@
-﻿CREATE SCHEMA [VCPexip]
-    AUTHORIZATION [dbo];
-

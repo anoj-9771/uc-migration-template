@@ -1,1 +1,0 @@
-﻿CREATE   VIEW  reference.ReportingPeriod AS SELECT *, _DLTrustedZoneTimeStamp _DLCuratedZoneTimeStamp  FROM edw.reference_reporting_period

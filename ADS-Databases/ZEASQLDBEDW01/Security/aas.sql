@@ -1,5 +1,0 @@
-﻿CREATE SCHEMA [aas]
-    AUTHORIZATION [dbo];
-
-
-

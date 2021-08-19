@@ -1,3 +1,0 @@
-﻿CREATE SCHEMA [ISDP]
-    AUTHORIZATION [dbo];
-

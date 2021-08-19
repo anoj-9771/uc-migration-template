@@ -1,1 +1,0 @@
-﻿CREATE   VIEW  reference.VetFeeHelpFund AS SELECT *, _DLTrustedZoneTimeStamp _DLCuratedZoneTimeStamp  FROM edw.reference_vet_fee_help_fund

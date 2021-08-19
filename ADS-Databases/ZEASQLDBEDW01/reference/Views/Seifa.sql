@@ -1,1 +1,0 @@
-﻿CREATE   VIEW  reference.Seifa AS SELECT *, _DLTrustedZoneTimeStamp _DLCuratedZoneTimeStamp  FROM edw.reference_seifa
