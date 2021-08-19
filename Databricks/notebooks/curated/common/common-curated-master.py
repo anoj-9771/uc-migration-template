@@ -28,7 +28,7 @@
 # COMMAND ----------
 
 # DBTITLE 1,3. Include all fact related user function for the notebook
-# MAGIC %run ./functions/common-functions-facts
+#%run ./functions/common-functions-facts
 
 # COMMAND ----------
 

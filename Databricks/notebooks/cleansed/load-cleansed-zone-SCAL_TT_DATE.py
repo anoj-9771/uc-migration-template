@@ -146,60 +146,100 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df = spark.sql("select * from cleansed.stg_sapisu_scal_tt_date where calendardate ='1903-01-30'")
-print(df.count())
-df_updated_column = spark.sql("SELECT \
-                                to_date(CALENDARDATE,'yyyy-mm-dd') as calendarDate , \
-                                CALENDARYEAR as CALENDARYEAR , \
+    
+df_calendar_column = spark.sql("SELECT \
+                                to_date(CALENDARDATE,'yyyy-MM-dd') as calendarDate , \
+                                CALENDARDAY as dayOfMonth , \
+                                CALENDARDAYOFYEAR as dayOfYear  , \
+                                CALENDARWEEK as weekOfYear , \
                                 CALENDARMONTH as monthOfYear , \
                                 CALENDARQUARTER as quarterOfYear , \
-                                CALENDARWEEK as CALENDARWEEK , \
-                                CALENDARDAY as CALENDARDAY , \
-                                WEEKDAY as WEEKDAY  , \
-                                YEARWEEK as YEARWEEK  , \
-                                YEARQUARTER as YEARQUARTER  , \
-                                YEARMONTH as YEARMONTH  , \
-                                to_date(FIRSTDAYOFMONTHDATE,'yyyy-mm-dd')  as monthStartDate  , \
-                                to_date(LASTDAYOFMONTHDATE,'yyyy-mm-dd') as monthEndDate  , \
-                                HALFYEAR as HALFYEAR  , \
-                                to_date(FIRSTDAYOFWEEKDATE,'yyyy-mm-dd') as FIRSTDAYOFWEEKDATE  , \
-                                CALENDARDAYOFYEAR as CALENDARDAYOFYEAR  , \
+                                HALFYEAR as halfOfYear  , \
+                                CALENDARYEAR as calendarYear , \
+                                WEEKDAY as dayOfWeek  , \
+                                YEARWEEK as calendarYearWeek  , \
+                                YEARMONTH as calendarYearMonth  , \
+                                YEARQUARTER as calendarYearQuarter  , \
+                                to_date(FIRSTDAYOFMONTHDATE,'yyyy-MM-dd')  as monthStartDate  , \
+                                to_date(LASTDAYOFMONTHDATE,'yyyy-MM-dd') as monthEndDate  , \
+                                trunc(CALENDARDATE,'YEAR') as yearStartDate , \
+                                add_months(trunc(CALENDARDATE,'YEAR'), 12) -1 as yearEndDate, \
+                                add_months(CALENDARDATE,6) as fiscalDate, \
                                 _RecordStart, \
                                 _RecordEnd, \
                                 _RecordDeleted, \
                                 _RecordCurrent \
-                              FROM CLEANSED.stg_sapisu_SCAL_TT_DATE where calendardate ='1903-01-30'")
+                              FROM CLEANSED.stg_sapisu_SCAL_TT_DATE \
+                               where calendardate <> to_date('9999-12-31','yyyy-MM-dd') \
+                               ")
 
+
+df_calendar_column = df_calendar_column.selectExpr( \
+                                "calendarDate" , \
+                                "dayOfMonth" , \
+                                "dayOfYear"  , \
+                                "weekOfYear" , \
+                                "monthOfYear" , \
+                                "quarterOfYear" , \
+                                "halfOfYear"  , \
+                                "calendarYear" , \
+                                "dayOfWeek"  , \
+                                "calendarYearWeek"  , \
+                                "calendarYearMonth"  , \
+                                "calendarYearQuarter"  , \
+                                "monthStartDate"  , \
+                                "monthEndDate"  , \
+                                "yearStartDate" , \
+                                "yearEndDate" , \
+                                "year(fiscalDate) as financialYear", \
+                                "add_months(yearStartDate, 6) as financialYearStartDate", \
+                                "add_months(yearEndDate, 6) as financialYearEndDate", \
+                                "weekofyear(fiscalDate) as weekOfFinancialYear", \
+                                "month(fiscalDate) as monthOfFinancialYear", \
+                                "quarter(fiscalDate) as quarterOfFinancialYear", \
+                                "case when quarter(fiscalDate)< 3 then 1 else 2 end as halfOfFinancialYear", \
+                                "_RecordStart", \
+                                "_RecordEnd", \
+                                "_RecordDeleted", \
+                                "_RecordCurrent" 
+)
                                    
-display(df_updated_column)
+display(df_calendar_column)
+
 
 # COMMAND ----------
 
 newSchema = StructType([
                             StructField("calendarDate", DateType(), True),
-                            StructField("CALENDARYEAR", LongType(), True),
+                            StructField("dayOfMonth", LongType(), True),
+                            StructField("dayOfYear", LongType(), True),
+                            StructField("weekOfYear", LongType(), True),
                             StructField("monthOfYear", LongType(), True),
                             StructField("quarterOfYear", LongType(), True),
-                            StructField("CALENDARWEEK", LongType(), True),
-                            StructField("CALENDARDAY", LongType(), True),
-                            StructField("WEEKDAY", LongType(), True),
-                            StructField("YEARWEEK", LongType(), True),
-                            StructField("YEARQUARTER", LongType(), True),
-                            StructField("YEARMONTH", LongType(), True),
+                            StructField("halfOfYear", LongType(), True),
+                            StructField("calendarYear", LongType(), True),
+                            StructField("dayOfWeek", LongType(), True),
+                            StructField("calendarYearWeek", LongType(), True),
+                            StructField("calendarYearMonth", LongType(), True),
+                            StructField("calendarYearQuarter", LongType(), True),
                             StructField("monthStartDate", DateType(), True),
                             StructField("monthEndDate", DateType(), True),
-                            StructField("HALFYEAR", LongType(), True),
-                            StructField("FIRSTDAYOFWEEKDATE", DateType(), True),
-                            StructField("CALENDARDAYOFYEAR", LongType(), True),
-                            StructField('_RecordStart', DateType(), False),
-                            StructField('_RecordEnd', DateType(), False),
+                            StructField("yearStartDate", DateType(), True),
+                            StructField("yearEndDate", DateType(), True),
+                            StructField("financialYear", LongType(), True),
+                            StructField("financialYearStartDate", DateType(), True),
+                            StructField("financialYearEndDate", DateType(), True),
+                            StructField("weekOfFinancialYear", LongType(), True),
+                            StructField("monthOfFinancialYear", LongType(), True),
+                            StructField("quarterOfFinancialYear", LongType(), True),
+                            StructField("halfOfFinancialYear", LongType(), True),
+                            StructField('_RecordStart', TimestampType(), False),
+                            StructField('_RecordEnd', TimestampType(), False),
                             StructField('_RecordDeleted', IntegerType(), False),
                             StructField('_RecordCurrent', IntegerType(), False),
                     ])
-print(df_updated_column.count())
-df_cleansed_column = spark.createDataFrame(df_updated_column.rdd, schema=newSchema)
+df_cleansed_column = spark.createDataFrame(df_calendar_column.rdd, schema=newSchema)
 display(df_cleansed_column)
-print(df_cleansed_column.count())
 
 
 # COMMAND ----------
@@ -207,6 +247,12 @@ print(df_cleansed_column.count())
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
 DeltaSaveDataframeDirect(df_cleansed_column, "t", source_object, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
+
+# COMMAND ----------
+
+ print(df_cleansed_column.count())
+df = spark.sql("select * from cleansed.t_sapisu_scal_tt_date")
+print(df.count())
 
 # COMMAND ----------
 
