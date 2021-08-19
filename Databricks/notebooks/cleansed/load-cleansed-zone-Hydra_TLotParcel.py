@@ -1,19 +1,19 @@
 # Databricks notebook source
 # DBTITLE 1,Generate parameter and source object name for unit testing
 import json
-accessTable = 'Z309_TPDEREADMETH'
+hydraTable = 'TLOTPARCEL'
 
-runParm = '{"SourceType":"Flat File","SourceServer":"saswcnonprod01landingdev-sastoken","SourceGroup":"access","SourceName":"access_access/####_csv","SourceLocation":"access/####.csv","AdditionalProperty":"","Processor":"databricks-token|0705-044124-gored835|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive","IsAuditTable":false,"SoftDeleteSource":"","ProjectName":"Access Data","ProjectId":2,"TargetType":"BLOB Storage (csv)","TargetName":"access_access/####_csv","TargetLocation":"access/####","TargetServer":"daf-sa-lake-sastoken","DataLoadMode":"TRUNCATE-LOAD","DeltaExtract":false,"CDCSource":false,"TruncateTarget":true,"UpsertTarget":false,"AppendTarget":null,"TrackChanges":false,"LoadToSqlEDW":true,"TaskName":"access_access/####_csv","ControlStageId":1,"TaskId":4,"StageSequence":100,"StageName":"Source to Raw","SourceId":4,"TargetId":4,"ObjectGrain":"Day","CommandTypeId":5,"Watermarks":"","WatermarksDT":null,"WatermarkColumn":"","BusinessKeyColumn":"","UpdateMetaData":null,"SourceTimeStampFormat":"","Command":"","LastLoadedFile":null}'
+runParm = '{"SourceType":"Flat File","SourceServer":"saswcnonprod01landingdev-sastoken","SourceGroup":"hydra","SourceName":"hydra_hydra/####_csv","SourceLocation":"hydra/####.csv","AdditionalProperty":"","Processor":"databricks-token|0705-044124-gored835|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive","IsAuditTable":false,"SoftDeleteSource":"","ProjectName":"hydra Data","ProjectId":2,"TargetType":"BLOB Storage (csv)","TargetName":"hydra_hydra/####_csv","TargetLocation":"hydra/####","TargetServer":"daf-sa-lake-sastoken","DataLoadMode":"TRUNCATE-LOAD","DeltaExtract":false,"CDCSource":false,"TruncateTarget":true,"UpsertTarget":false,"AppendTarget":null,"TrackChanges":false,"LoadToSqlEDW":true,"TaskName":"hydra_hydra/####_csv","ControlStageId":1,"TaskId":4,"StageSequence":100,"StageName":"Source to Raw","SourceId":4,"TargetId":4,"ObjectGrain":"Day","CommandTypeId":5,"Watermarks":"","WatermarksDT":null,"WatermarkColumn":"","BusinessKeyColumn":"","UpdateMetaData":null,"SourceTimeStampFormat":"","Command":"","LastLoadedFile":null}'
 
 s = json.loads(runParm)
 for parm in ['SourceName','SourceLocation','TargetName','TargetLocation','TaskName']:
-    s[parm] = s[parm].replace('####',accessTable)
+    s[parm] = s[parm].replace('####',hydraTable)
 runParm = json.dumps(s)
 
 # COMMAND ----------
 
 print('Use the following as parameters for unit testing:')
-print(f'access_{accessTable.lower()}')
+print(f'hydra_{hydraTable.lower()}')
 print(runParm)
 
 # COMMAND ----------
@@ -41,8 +41,8 @@ print(runParm)
 
 # COMMAND ----------
 
-# DBTITLE 1,1. Import libraries/functions
-#1.Import libraries/functions
+# DBTITLE 1,1. Import libreries/functions
+#1.Import libreries/functions
 from pyspark.sql.functions import mean, min, max, desc, abs, coalesce, when, expr
 from pyspark.sql.functions import date_add, to_utc_timestamp, from_utc_timestamp, datediff
 from pyspark.sql.functions import regexp_replace, concat, col, lit, substring
@@ -165,39 +165,72 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_cleansed = spark.sql("SELECT C_PDE_READ_METH AS PDEReadingMethodCode, \
-        case when c_pde_read_meth = 'N' then 'Can\\'t Read' \
-		                                else initcap(T_PDE_READ_METH) \
-        end AS PDEReadingMethod, \
-		to_date(D_READ_METH_EFFE, 'yyyyMMdd') AS readingMethodEffectiveDate, \
-		to_date(D_READ_METH_CANC, 'yyyyMMdd') AS readingMethodCancelledDate, \
+df_cleansed = spark.sql("SELECT cast(Property_Number as int) AS propertyNumber, \
+		initcap(LGA) as LGA, \
+		case when Address = ' ' then null else initcap(Address) end as propertyAddress, \
+		case when Suburb = 'N/A' then null else initcap(Suburb) end AS suburb, \
+        case when Land_Use = 'N/A' then null else initcap(Land_Use) end as landUse, \
+        case when Superior_Land_Use = 'N/A' then null else initcap(Superior_Land_Use) end as superiorLandUse, \
+        cast(Area_m2 as int) as areaSize, \
+        'm2' as areaSizeUnit, \
+        cast(Lon as float) as longitude, \
+        cast(Lat as float) as latitude, \
+        cast(MGA56_X as float) as x_coordinate_MGA56, \
+        cast(_MGA56_Y as float) as y_coordinate_MGA56, \
+		case when Water_Delivery_System = 'N/A' then null else Water_Delivery_System end as waterDeliverySystem, \
+		case when Water_Distribution_System = 'N/A' then null else Water_Distribution_System end as waterDistributionSystem, \
+		case when Water_Supply_Zone = 'N/A' then null else Water_Supply_Zone end as waterSupplyZone, \
+        case when Water_Pressure_Zone = 'N/A' then null else Water_Pressure_Zone end as waterPressureZone, \
+        case when Sewer_Network = 'N/A' then null else Sewer_Network end as sewerNetwork, \
+        case when Sewer_Catchment = 'N/A' then null else Sewer_Catchment end as sewerCatchment, \
+        case when Sewer_SCAMP = 'N/A' then null else Sewer_SCAMP end as sewerScamp, \
+        case when Recycled_Delivery_System = 'N/A' then null else Recycled_Delivery_System end as recycledDeliverySystem, \
+        case when Recycled_Distribution_System = 'N/A' then null else Recycled_Distribution_System end as recycledDistributionSystem, \
+        case when Recycled_Supply_Zone = 'N/A' then null else Recycled_Supply_Zone end as recycledSupplyZone, \
+        case when Stormwater_Catchment = 'N/A' then null else Stormwater_Catchment end as stormwaterCatchment, \
 		_RecordStart, \
 		_RecordEnd, \
 		_RecordDeleted, \
 		_RecordCurrent \
-	FROM CLEANSED.STG_ACCESS_Z309_TPDEREADMETH \
-         ")
+	FROM CLEANSED.STG_HYDRA_TLOTPARCEL \
+    WHERE Property_Number <> ''")
 
 display(df_cleansed)
-print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
 
-
 newSchema = StructType([
-	StructField('PDEReadingMethodCode',StringType(),False),
-	StructField('PDEReadingMethod',StringType(),True),
-	StructField('readingMethodEffectiveDate',DateType(),True),
-	StructField('readingMethodCancelledDate',DateType(),True),
-	StructField('_RecordStart',TimestampType(),False),
-	StructField('_RecordEnd',TimestampType(),False),
-	StructField('_RecordDeleted',IntegerType(),False),
-	StructField('_RecordCurrent',IntegerType(),False)
+	StructField('propertyNumber',IntegerType(),True),
+    StructField('LGA',StringType(),False),
+	StructField('propertyAddress',StringType(),True),
+    StructField('suburb',StringType(),True),
+    StructField('landUse',StringType(),True),
+    StructField('superiorLandUse',StringType(),True),
+    StructField('areaSize',IntegerType(),True),
+    StructField('areaSizeUnit',StringType(),True),
+    StructField('longitude',FloatType(),False),
+    StructField('latitude',FloatType(),False),
+    StructField('x_coordinate_MGA56',FloatType(),False),
+    StructField('y_coordinate_MGA56',FloatType(),False),
+    StructField('waterDeliverySystem',StringType(),True),
+    StructField('waterDistributionSystem',StringType(),True),
+    StructField('waterSupplyZone',StringType(),True),
+    StructField('waterPressureZone',StringType(),True),
+    StructField('sewerNetwork',StringType(),True),
+    StructField('sewerCatchment',StringType(),True),
+    StructField('sewerScamp',StringType(),True),
+    StructField('recycledDeliverySystem',StringType(),True),
+    StructField('recycledDistributionSystem',StringType(),True),
+    StructField('recycledSupplyZone',StringType(),True),
+    StructField('stormwaterCatchment',StringType(),True),
+    StructField('_RecordStart',TimestampType(),False),
+    StructField('_RecordEnd',TimestampType(),False),
+    StructField('_RecordDeleted',IntegerType(),False),
+    StructField('_RecordCurrent',IntegerType(),False)
 ])
 
 df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
 display(df_updated_column)
-print(f'Number of rows: {df_updated_column.count()}')
 
 # COMMAND ----------
 

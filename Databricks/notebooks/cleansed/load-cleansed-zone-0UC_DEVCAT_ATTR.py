@@ -160,15 +160,15 @@ df_updated_column_temp = spark.sql("SELECT \
                                   DEVCAT.BGLKZ as certificationRequirementType,\
                                   DEVCAT.ZWGRUPPE as registerGroupCode,\
                                   REGGRP.registerGroup as registerGroup,\
-                                  DEVCAT.UEBERVER as transformationRatio,\
+                                  cast(DEVCAT.UEBERVER as decimal (10,3)) as transformationRatio,\
                                   DEVCAT.AENAM as changedBy,\
                                   to_date(DEVCAT.AEDAT) as lastChangedDate,\
                                   DEVCAT.SPARTE as division,\
-                                  DEVCAT.NENNBEL as nominalLoad,\
+                                  cast(DEVCAT.NENNBEL as decimal(10,4)) as nominalLoad,\
                                   DEVCAT.STELLPLATZ as containerSpaceCount,\
-                                  DEVCAT.HOEHEBEH as containerCategoryHeight,\
-                                  DEVCAT.BREITEBEH as containerCategoryWidth,\
-                                  DEVCAT.TIEFEBEH as containerCategoryDepth,\
+                                  cast(DEVCAT.HOEHEBEH as decimal(7,2)) as containerCategoryHeight,\
+                                  cast(DEVCAT.BREITEBEH as decimal(7,2)) as containerCategoryWidth,\
+                                  cast(DEVCAT.TIEFEBEH as decimal(7,2)) as containerCategoryDepth,\
                                   DEVCAT._RecordStart, \
                                   DEVCAT._RecordEnd, \
                                   DEVCAT._RecordDeleted, \
@@ -198,15 +198,15 @@ cleanse_Schema = StructType(
     StructField("certificationRequirementType", StringType(), True),
     StructField("registerGroupCode", StringType(), True),
     StructField("registerGroup", StringType(), True),
-    StructField("transformationRatio", DoubleType(), True),  
+    StructField("transformationRatio", DecimalType(10,3), True),  
     StructField("changedBy", StringType(), True),
     StructField("lastChangedDate", DateType(), True),
     StructField("division", StringType(), True),
-    StructField("nominalLoad", DoubleType(), True),
+    StructField("nominalLoad", DecimalType(10,4), True),
     StructField("containerSpaceCount", StringType(), True),
-    StructField("containerCategoryHeight", DoubleType(), True),
-    StructField("containerCategoryWidth", DoubleType(), True),
-    StructField("containerCategoryDepth", DoubleType(), True),   
+    StructField("containerCategoryHeight", DecimalType(7,2), True),
+    StructField("containerCategoryWidth", DecimalType(7,2), True),
+    StructField("containerCategoryDepth", DecimalType(7,2), True),   
     StructField('_RecordStart',TimestampType(),False),
     StructField('_RecordEnd',TimestampType(),False),
     StructField('_RecordDeleted',IntegerType(),False),

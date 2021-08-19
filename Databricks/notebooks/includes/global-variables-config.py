@@ -19,4 +19,3 @@ ADS_BUSINESS_UNIT = "daf"
 
 # COMMAND ----------
 
-

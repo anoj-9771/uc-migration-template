@@ -1,7 +1,7 @@
 # Databricks notebook source
 # DBTITLE 1,Generate parameter and source object name for unit testing
 import json
-accessTable = 'Z309_TPROPMETER'
+accessTable = 'Z309_TPROPMETER' 
 
 runParm = '{"SourceType":"Flat File","SourceServer":"saswcnonprod01landingdev-sastoken","SourceGroup":"access","SourceName":"access_access/####_csv","SourceLocation":"access/####.csv","AdditionalProperty":"","Processor":"databricks-token|0705-044124-gored835|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive","IsAuditTable":false,"SoftDeleteSource":"","ProjectName":"Access Data","ProjectId":2,"TargetType":"BLOB Storage (csv)","TargetName":"access_access/####_csv","TargetLocation":"access/####","TargetServer":"daf-sa-lake-sastoken","DataLoadMode":"TRUNCATE-LOAD","DeltaExtract":false,"CDCSource":false,"TruncateTarget":true,"UpsertTarget":false,"AppendTarget":null,"TrackChanges":false,"LoadToSqlEDW":true,"TaskName":"access_access/####_csv","ControlStageId":1,"TaskId":4,"StageSequence":100,"StageName":"Source to Raw","SourceId":4,"TargetId":4,"ObjectGrain":"Day","CommandTypeId":5,"Watermarks":"","WatermarksDT":null,"WatermarkColumn":"","BusinessKeyColumn":"","UpdateMetaData":null,"SourceTimeStampFormat":"","Command":"","LastLoadedFile":null}'
 
@@ -168,8 +168,8 @@ DeltaSaveToDeltaTable (
 df_cleansed = spark.sql("SELECT cast(N_PROP as int) AS propertyNumber, \
 		cast(N_PROP_METE as int) AS propertyMeterNumber, \
 		N_METE_MAKE AS meterMakerNumber, \
-		C_METE_TYPE AS meterTypeCode, \
-        cast(b.meterSize as string)||lower(b.meterSizeUnit) as meterType, \
+		C_METE_TYPE AS meterSizeCode, \
+        cast(b.meterSize as string)||lower(b.meterSizeUnit) as meterSize, \
 		case when C_METE_POSI_STAT = 'M' then true else false end as isMasterMeter, \
         case when C_METE_POSI_STAT = 'C' then true else false end as isCheckMeter, \
         case when F_METE_CONN = 'D' then false else true end AS isMeterConnected, \
@@ -219,8 +219,8 @@ newSchema = StructType([
 	StructField('propertyNumber',IntegerType(),False),
 	StructField('propertyMeterNumber',IntegerType(),False),
 	StructField('meterMakerNumber',StringType(),True),
-    StructField('meterTypeCode',StringType(),False),
-	StructField('meterType',StringType(),False),
+    StructField('meterSizeCode',StringType(),False),
+	StructField('meterSize',StringType(),False),
     StructField('isMasterMeter',BooleanType(),False),
 	StructField('isCheckMeter',BooleanType(),False),
 	StructField('isMeterConnected',BooleanType(),False),
@@ -262,6 +262,11 @@ print(f'Number of rows: {df_updated_column.count()}')
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
 DeltaSaveDataframeDirect(df_updated_column, "t", source_object, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC select * from cleansed.t_access_z309_tpropmeter
 
 # COMMAND ----------
 

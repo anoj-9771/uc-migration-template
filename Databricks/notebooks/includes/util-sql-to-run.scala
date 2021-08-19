@@ -51,4 +51,3 @@ dbutils.notebook.exit("{\"affected_rows\":\""+returnValue+"\"}")
 
 // COMMAND ----------
 
-

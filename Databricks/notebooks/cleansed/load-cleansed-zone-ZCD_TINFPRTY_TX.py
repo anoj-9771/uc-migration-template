@@ -1,23 +1,4 @@
 # Databricks notebook source
-# DBTITLE 1,Generate parameter and source object name for unit testing
-import json
-accessTable = 'Z309_TPDEREADMETH'
-
-runParm = '{"SourceType":"Flat File","SourceServer":"saswcnonprod01landingdev-sastoken","SourceGroup":"access","SourceName":"access_access/####_csv","SourceLocation":"access/####.csv","AdditionalProperty":"","Processor":"databricks-token|0705-044124-gored835|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive","IsAuditTable":false,"SoftDeleteSource":"","ProjectName":"Access Data","ProjectId":2,"TargetType":"BLOB Storage (csv)","TargetName":"access_access/####_csv","TargetLocation":"access/####","TargetServer":"daf-sa-lake-sastoken","DataLoadMode":"TRUNCATE-LOAD","DeltaExtract":false,"CDCSource":false,"TruncateTarget":true,"UpsertTarget":false,"AppendTarget":null,"TrackChanges":false,"LoadToSqlEDW":true,"TaskName":"access_access/####_csv","ControlStageId":1,"TaskId":4,"StageSequence":100,"StageName":"Source to Raw","SourceId":4,"TargetId":4,"ObjectGrain":"Day","CommandTypeId":5,"Watermarks":"","WatermarksDT":null,"WatermarkColumn":"","BusinessKeyColumn":"","UpdateMetaData":null,"SourceTimeStampFormat":"","Command":"","LastLoadedFile":null}'
-
-s = json.loads(runParm)
-for parm in ['SourceName','SourceLocation','TargetName','TargetLocation','TaskName']:
-    s[parm] = s[parm].replace('####',accessTable)
-runParm = json.dumps(s)
-
-# COMMAND ----------
-
-print('Use the following as parameters for unit testing:')
-print(f'access_{accessTable.lower()}')
-print(runParm)
-
-# COMMAND ----------
-
 # DBTITLE 1,Notebook Structure/Method 
 #Notebook structure/Method 
 #1.Import libraries/functions -- Generic
@@ -41,8 +22,8 @@ print(runParm)
 
 # COMMAND ----------
 
-# DBTITLE 1,1. Import libraries/functions
-#1.Import libraries/functions
+# DBTITLE 1,1. Import libreries/functions
+#1.Import libreries/functions
 from pyspark.sql.functions import mean, min, max, desc, abs, coalesce, when, expr
 from pyspark.sql.functions import date_add, to_utc_timestamp, from_utc_timestamp, datediff
 from pyspark.sql.functions import regexp_replace, concat, col, lit, substring
@@ -165,39 +146,16 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_cleansed = spark.sql("SELECT C_PDE_READ_METH AS PDEReadingMethodCode, \
-        case when c_pde_read_meth = 'N' then 'Can\\'t Read' \
-		                                else initcap(T_PDE_READ_METH) \
-        end AS PDEReadingMethod, \
-		to_date(D_READ_METH_EFFE, 'yyyyMMdd') AS readingMethodEffectiveDate, \
-		to_date(D_READ_METH_CANC, 'yyyyMMdd') AS readingMethodCancelledDate, \
-		_RecordStart, \
-		_RecordEnd, \
-		_RecordDeleted, \
-		_RecordCurrent \
-	FROM CLEANSED.STG_ACCESS_Z309_TPDEREADMETH \
-         ")
+df_updated_column = spark.sql("SELECT  \
+                                INFERIOR_PROP_TYPE as inferiorPropertyTypeCode , \
+                                DESCRIPTION as inferiorPropertyType , \
+                                _RecordStart, \
+                                _RecordEnd, \
+                                _RecordDeleted, \
+                                _RecordCurrent \
+                              FROM CLEANSED.stg_sapisu_ZCD_TINFPRTY_TX")
 
-display(df_cleansed)
-print(f'Number of rows: {df_cleansed.count()}')
-
-# COMMAND ----------
-
-
-newSchema = StructType([
-	StructField('PDEReadingMethodCode',StringType(),False),
-	StructField('PDEReadingMethod',StringType(),True),
-	StructField('readingMethodEffectiveDate',DateType(),True),
-	StructField('readingMethodCancelledDate',DateType(),True),
-	StructField('_RecordStart',TimestampType(),False),
-	StructField('_RecordEnd',TimestampType(),False),
-	StructField('_RecordDeleted',IntegerType(),False),
-	StructField('_RecordCurrent',IntegerType(),False)
-])
-
-df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
 display(df_updated_column)
-print(f'Number of rows: {df_updated_column.count()}')
 
 # COMMAND ----------
 

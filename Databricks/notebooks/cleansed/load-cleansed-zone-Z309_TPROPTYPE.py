@@ -168,7 +168,7 @@ DeltaSaveToDeltaTable (
 df_cleansed = spark.sql("SELECT C_PROP_TYPE AS propertyTypeCode, \
 		C_SUPE_PROP_TYPE AS superiorPropertyTypeCode, \
 		T_PROP_TYPE_ABBR AS propertyTypeAbbreviation, \
-		initcap(T_SUPE_OR_PROP) AS propertyType, \
+		T_SUPE_OR_PROP AS propertyType, \
         case when F_FLAT_VALI = 'Y' then true \
                                     else false \
         end AS isFlatValid, \
@@ -189,6 +189,32 @@ df_cleansed = spark.sql("SELECT C_PROP_TYPE AS propertyTypeCode, \
 		_RecordCurrent \
 	FROM CLEANSED.STG_ACCESS_Z309_TPROPTYPE")
 
+import pandas as pd
+
+#get rid of quoted strings
+def unquote(row):
+    row.propertyType = row.propertyType.strip("'")
+    row.propertyType = row.propertyType.replace('\'\'','\'')
+    
+#convert first capital after ' to lowercase
+def fixApostropheS(row):
+    row.propertyType = row.propertyType.replace('\'S','\'s')
+
+#convert abbreviations to uppercase
+def fixAbbreviations(row):
+    row.propertyType = row.propertyType.replace('Ifis','IFIS')
+    
+pddf_cleansed = df_cleansed['propertyTypeCode','propertyType'].toPandas()
+#remove quotes
+pddf_cleansed.apply(unquote, axis=1)
+#change to title case
+pddf_cleansed['propertyType'] = pddf_cleansed['propertyType'].str.title()
+#fix possessive s
+pddf_cleansed.apply(fixApostropheS, axis=1)
+pddf_cleansed.apply(fixAbbreviations, axis=1)
+df_PropType = spark.createDataFrame(pddf_cleansed)
+df_cleansed = df_cleansed.drop('propertyType').join(df_PropType,'propertyTypeCode')['propertyTypeCode','superiorPropertyTypeCode','propertyTypeAbbreviation','propertyType','isFlatValid','isSLICValid','isAccountPropertyValid','isRouseHillLandChargeLiable','propertyTypeEffectiveDate','propertyTypeCancelledDate', 
+                                                                            '_RecordStart','_RecordEnd','_RecordDeleted','_RecordCurrent']
 display(df_cleansed)
 
 # COMMAND ----------

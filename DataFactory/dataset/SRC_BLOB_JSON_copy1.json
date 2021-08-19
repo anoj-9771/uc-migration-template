@@ -1,39 +1,31 @@
 {
-	"name": "RAW_PARQUET",
+	"name": "SRC_BLOB_JSON_copy1",
 	"properties": {
 		"linkedServiceName": {
-			"referenceName": "LS_AzureDatalake",
+			"referenceName": "LS_AzureBlobStorage",
 			"type": "LinkedServiceReference"
 		},
 		"parameters": {
-			"BlobPath": {
-				"type": "string"
-			},
 			"BlobName": {
 				"type": "string"
 			}
 		},
 		"folder": {
-			"name": "z_Archive"
+			"name": "Source - Blob"
 		},
 		"annotations": [],
-		"type": "Parquet",
+		"type": "Json",
 		"typeProperties": {
 			"location": {
-				"type": "AzureBlobFSLocation",
+				"type": "AzureBlobStorageLocation",
 				"fileName": {
 					"value": "@dataset().BlobName",
 					"type": "Expression"
 				},
-				"folderPath": {
-					"value": "@dataset().BlobPath",
-					"type": "Expression"
-				},
-				"fileSystem": "raw"
-			},
-			"compressionCodec": "snappy"
+				"container": "bods"
+			}
 		},
-		"schema": []
+		"schema": {}
 	},
 	"type": "Microsoft.DataFactory/factories/datasets"
 }
