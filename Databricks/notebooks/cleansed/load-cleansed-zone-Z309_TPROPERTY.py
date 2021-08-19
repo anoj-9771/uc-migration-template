@@ -41,8 +41,8 @@ print(runParm)
 
 # COMMAND ----------
 
-# DBTITLE 1,1. Import libreries/functions
-#1.Import libreries/functions
+# DBTITLE 1,1. Import libraries/functions
+#1.Import libraries/functions
 from pyspark.sql.functions import mean, min, max, desc, abs, coalesce, when, expr
 from pyspark.sql.functions import date_add, to_utc_timestamp, from_utc_timestamp, datediff
 from pyspark.sql.functions import regexp_replace, concat, col, lit, substring
@@ -169,9 +169,9 @@ df_cleansed = spark.sql("SELECT cast(N_PROP as int) AS propertyNumber, \
 		C_LGA AS LGACode, \
         b.LGA, \
 		C_PROP_TYPE AS propertyTypeCode, \
-        initcap(e.propertyType) as propertyType, \
+        e.propertyType, \
         f.propertyTypeCode as superiorPropertyTypecode, \
-        initcap(f.propertyType) as superiorPropertytype, \
+        f.propertyType as superiorPropertyType, \
         case when D_PROP_TYPE_EFFE is not null \
                   then to_date(D_PROP_TYPE_EFFE,'yyyyMMdd') \
              when D_PROP_RATE_CANC is not null \
