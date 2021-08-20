@@ -41,8 +41,8 @@ print(runParm)
 
 # COMMAND ----------
 
-# DBTITLE 1,1. Import libreries/functions
-#1.Import libreries/functions
+# DBTITLE 1,1. Import libraries/functions
+#1.Import libraries/functions
 from pyspark.sql.functions import mean, min, max, desc, abs, coalesce, when, expr
 from pyspark.sql.functions import date_add, to_utc_timestamp, from_utc_timestamp, datediff
 from pyspark.sql.functions import regexp_replace, concat, col, lit, substring
@@ -220,11 +220,11 @@ df_cleansed = spark.sql("SELECT cast(N_PROP as int) AS propertyNumber, \
 		C_EXTR_LOT AS extraLotCode, \
         to_date(D_PROP_UPDA, 'yyyyMMdd') AS propertyUpdatedDate, \
 		T_PROP_LOT AS lotDescription, \
-		C_USER_CREA AS userCreated, \
-		C_PLAN_CREA AS planCreated, \
+		C_USER_CREA AS createdByUserID, \
+		C_PLAN_CREA AS createdByPlan, \
 		cast(to_unix_timestamp(H_CREA, 'yyyy-MM-dd hh:mm:ss a') as timestamp) as createdTimestamp, \
-		C_USER_MODI AS userModified, \
-		C_PLAN_MODI AS planModified, \
+		C_USER_MODI AS modifiedByUserID, \
+		C_PLAN_MODI AS modifiedByPlan, \
 		cast(to_unix_timestamp(H_CREA, 'yyyy-MM-dd hh:mm:ss a') as timestamp) as modifiedTimestamp, \
         a._RecordStart, \
         a._RecordEnd, \
@@ -269,11 +269,11 @@ newSchema = StructType([
 	StructField('extraLotCode',StringType(),True),
 	StructField('propertyUpdatedDate',DateType(),True),
     StructField('lotDescription',StringType(),True),
-	StructField('userCreated',StringType(),True),
-	StructField('planCreated',StringType(),True),
+	StructField('createdByUserID',StringType(),True),
+	StructField('createdByPlan',StringType(),True),
 	StructField('createdTimestamp',TimestampType(),True),
-	StructField('userModified',StringType(),True),
-	StructField('planModified',StringType(),True),
+	StructField('modifiedByUserID',StringType(),True),
+	StructField('modifiedByUserID',StringType(),True),
 	StructField('modifiedTimestamp',TimestampType(),True),
     StructField('_RecordStart',TimestampType(),False),
     StructField('_RecordEnd',TimestampType(),False),

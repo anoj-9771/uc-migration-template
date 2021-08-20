@@ -41,8 +41,8 @@ print(runParm)
 
 # COMMAND ----------
 
-# DBTITLE 1,1. Import libreries/functions
-#1.Import libreries/functions
+# DBTITLE 1,1. Import libraries/functions
+#1.Import libraries/functions
 from pyspark.sql.functions import mean, min, max, desc, abs, coalesce, when, expr
 from pyspark.sql.functions import date_add, to_utc_timestamp, from_utc_timestamp, datediff
 from pyspark.sql.functions import regexp_replace, concat, col, lit, substring
@@ -166,7 +166,7 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_cleansed = spark.sql("SELECT C_METE_TYPE AS meterTypeCode, \
-		cast(Q_METE_SIZE as int) AS meterSize, \
+		cast(Q_METE_SIZE as decimal(5,2)) AS meterSize, \
 		lower(T_METE_TYPE_ABBR) AS meterSizeUnit, \
 		initcap(T_METE_TYPE) AS meterType, \
 		C_METR_METE_TYPE AS equivMetricMeterTypeCode, \
@@ -187,7 +187,7 @@ display(df_cleansed)
 
 newSchema = StructType([
 	StructField('meterTypeCode',StringType(),False),
-	StructField('meterSize',IntegerType(),False),
+	StructField('meterSize',DecimalType(5,2),False),
 	StructField('meterSizeUnit',StringType(),False),
 	StructField('meterType',StringType(),False),
 	StructField('equivMetricMeterTypeCode',StringType(),False),

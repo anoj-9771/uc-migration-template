@@ -41,8 +41,8 @@ print(runParm)
 
 # COMMAND ----------
 
-# DBTITLE 1,1. Import libreries/functions
-#1.Import libreries/functions
+# DBTITLE 1,1. Import libraries/functions
+#1.Import libraries/functions
 from pyspark.sql.functions import mean, min, max, desc, abs, coalesce, when, expr
 from pyspark.sql.functions import date_add, to_utc_timestamp, from_utc_timestamp, datediff
 from pyspark.sql.functions import regexp_replace, concat, col, lit, substring
@@ -172,15 +172,17 @@ df_cleansed = spark.sql("SELECT C_LGA AS LGACode, \
 		C_DEBI_TYPE AS debitTypeCode, \
         c.debitType, \
 		C_DEBI_REAS AS debitReasonCode, \
-        d.debitReason, " +
-		#cast(A_DEBI as decimal(15,2)) AS debitAmount, \
-		#cast(A_DEBI_OUTS as decimal(15,2)) AS debitOutstandingAmount, \
-		#cast(A_WATE as decimal(15,2)) AS waterAmount, \
-		#cast(A_SEWE as decimal(15,2)) AS sewerAmount, \
-		#cast(A_DRAI as decimal(15,2)) AS drainAmount, \
-        #remove the following line and uncomment the five above to reinstate amounts
-        "cast (0 as decimal(15,2)) AS debitAmount, cast (0 as decimal(15,2)) AS debitOutstandingAmount, cast (0 as decimal(15,2)) AS waterAmount, cast (0 as decimal(15,2)) AS sewerAmount, cast (0 as decimal(15,2)) AS drainAmount, \
-		to_date(D_DEFE_FROM, 'yyyyMMdd') AS debitDeferredFrom, \
+        d.debitReason, " + (" \
+		cast(A_DEBI as decimal(15,2)) AS debitAmount, \
+		cast(A_DEBI_OUTS as decimal(15,2)) AS debitOutstandingAmount, \
+		cast(A_WATE as decimal(15,2)) AS waterAmount, \
+		cast(A_SEWE as decimal(15,2)) AS sewerAmount, \
+		cast(A_DRAI as decimal(15,2)) AS drainAmount, " if ADS_ENVIRONMENT not in ['dev','test'] else " cast(0 as decimal(15,2)) AS debitAmount, \
+		cast(0 as decimal(15,2)) AS debitOutstandingAmount, \
+		cast(0 as decimal(15,2)) AS waterAmount, \
+		cast(0 as decimal(15,2)) AS sewerAmount, \
+		cast(0 as decimal(15,2)) AS drainAmount, ") + " \
+        to_date(D_DEFE_FROM, 'yyyyMMdd') AS debitDeferredFrom, \
 		to_date(D_DEFE_TO, 'yyyyMMdd') AS debitDeferredTo, \
 		to_date(D_DISP, 'yyyyMMdd') AS dateDebitDisputed, \
 		C_RECO_LEVE AS recoveryLevelCode, \
