@@ -18,6 +18,12 @@
 						"dependencyConditions": [
 							"Succeeded"
 						]
+					},
+					{
+						"activity": "Set ProjectName",
+						"dependencyConditions": [
+							"Succeeded"
+						]
 					}
 				],
 				"policy": {
@@ -777,6 +783,19 @@
 						"kvSecret": "daf-sql-controldb-connectionstring"
 					}
 				}
+			},
+			{
+				"name": "Set ProjectName",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "ProjectName",
+					"value": {
+						"value": "@pipeline().parameters.TaskDetails.SourceGroup",
+						"type": "Expression"
+					}
+				}
 			}
 		],
 		"parameters": {
@@ -809,6 +828,9 @@
 			},
 			"RunDate": {
 				"type": "string"
+			},
+			"RubTime": {
+				"type": "string"
 			}
 		},
 		"variables": {
@@ -831,6 +853,9 @@
 				"type": "String"
 			},
 			"Manifest": {
+				"type": "String"
+			},
+			"ProjectName": {
 				"type": "String"
 			}
 		},

@@ -165,6 +165,10 @@
 												"RunDate": {
 													"value": "@variables('RunDate')",
 													"type": "Expression"
+												},
+												"RubTime": {
+													"value": "@variables('RunTime')",
+													"type": "Expression"
 												}
 											}
 										}
