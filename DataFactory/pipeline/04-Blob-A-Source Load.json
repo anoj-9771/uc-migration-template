@@ -18,6 +18,12 @@
 						"dependencyConditions": [
 							"Succeeded"
 						]
+					},
+					{
+						"activity": "Set ProjectName",
+						"dependencyConditions": [
+							"Succeeded"
+						]
 					}
 				],
 				"policy": {
@@ -275,7 +281,7 @@
 														"type": "DatasetReference",
 														"parameters": {
 															"BlobContainer": {
-																"value": "@concat('archive/', activity('Get Full File Name').output.firstrow.StorageFolder)",
+																"value": "@concat(variables('ProjectName'),'/',pipeline().parameters.RunDate,'/',pipeline().parameters.RunTime)",
 																"type": "Expression"
 															}
 														}
@@ -456,7 +462,7 @@
 														"type": "DatasetReference",
 														"parameters": {
 															"BlobContainer": {
-																"value": "@concat('archive/', activity('Get Full File Name').output.firstrow.StorageFolder)",
+																"value": "@concat(variables('ProjectName'),pipeline().parameters.RunDate,pipeline().parameters.RunTime)",
 																"type": "Expression"
 															}
 														}
@@ -777,6 +783,19 @@
 						"kvSecret": "daf-sql-controldb-connectionstring"
 					}
 				}
+			},
+			{
+				"name": "Set ProjectName",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "ProjectName",
+					"value": {
+						"value": "@pipeline().parameters.TaskDetails.SourceGroup",
+						"type": "Expression"
+					}
+				}
 			}
 		],
 		"parameters": {
@@ -806,6 +825,12 @@
 			},
 			"ValidationDetails": {
 				"type": "string"
+			},
+			"RunDate": {
+				"type": "string"
+			},
+			"RunTime": {
+				"type": "string"
 			}
 		},
 		"variables": {
@@ -828,6 +853,9 @@
 				"type": "String"
 			},
 			"Manifest": {
+				"type": "String"
+			},
+			"ProjectName": {
 				"type": "String"
 			}
 		},

@@ -15,6 +15,20 @@
 			"type": "string",
 			"defaultValue": "@linkedService().kvSecret"
 		},
+		"PrivateLinkService1_properties_privateLinkResourceId": {
+			"type": "string",
+			"defaultValue": "/subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-daf-dev-01/providers/Microsoft.Network/privateLinkServices/pe-link-daf-dev-01"
+		},
+		"PrivateLinkService1_properties_groupId": {
+			"type": "string",
+			"defaultValue": ""
+		},
+		"PrivateLinkService1_properties_fqdns": {
+			"type": "array",
+			"defaultValue": [
+				"nt097dslt01.adsdev.swcdev"
+			]
+		},
 		"kv-daf-dev-01_properties_privateLinkResourceId": {
 			"type": "string",
 			"defaultValue": "/subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-daf-dev-01/providers/Microsoft.KeyVault/vaults/kv-daf-dev-01"
@@ -230,6 +244,19 @@
 					"type": "ManagedVirtualNetworkReference",
 					"referenceName": "default"
 				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/managedVirtualNetworks/default')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/default/PrivateLinkService1')]",
+			"type": "Microsoft.DataFactory/factories/managedVirtualNetworks/managedPrivateEndpoints",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"privateLinkResourceId": "[parameters('PrivateLinkService1_properties_privateLinkResourceId')]",
+				"groupId": "[parameters('PrivateLinkService1_properties_groupId')]",
+				"fqdns": "[parameters('PrivateLinkService1_properties_fqdns')]"
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/managedVirtualNetworks/default')]"
@@ -1385,54 +1412,6 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/LS-AzureSqlDatabase_Ctrldb')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/DST_RAW_ADLS_CSV')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "LS_AzureDatalake",
-					"type": "LinkedServiceReference"
-				},
-				"parameters": {
-					"BlobPath": {
-						"type": "string"
-					},
-					"BlobName": {
-						"type": "string"
-					}
-				},
-				"folder": {
-					"name": "Data Lake"
-				},
-				"annotations": [],
-				"type": "DelimitedText",
-				"typeProperties": {
-					"location": {
-						"type": "AzureBlobFSLocation",
-						"fileName": {
-							"value": "@dataset().BlobName",
-							"type": "Expression"
-						},
-						"folderPath": {
-							"value": "@dataset().BlobPath",
-							"type": "Expression"
-						},
-						"fileSystem": "raw"
-					},
-					"columnDelimiter": "|",
-					"compressionCodec": "gzip",
-					"compressionLevel": "Optimal",
-					"escapeChar": "\\",
-					"firstRowAsHeader": true,
-					"quoteChar": ""
-				},
-				"schema": []
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/LS_AzureDatalake')]"
 			]
 		}
 	]
