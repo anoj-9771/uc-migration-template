@@ -6,7 +6,20 @@
 				"name": "Get Load Tasks",
 				"description": "",
 				"type": "Lookup",
-				"dependsOn": [],
+				"dependsOn": [
+					{
+						"activity": "Set RunDate",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "Set RunTime",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
 				"policy": {
 					"timeout": "7.00:00:00",
 					"retry": 0,
@@ -147,6 +160,10 @@
 												},
 												"ProjectRunID": {
 													"value": "@pipeline().parameters.ProjectRunID",
+													"type": "Expression"
+												},
+												"RunDate": {
+													"value": "@variables('RunDate')",
 													"type": "Expression"
 												}
 											}
@@ -447,6 +464,32 @@
 						"type": "DatasetReference"
 					}
 				}
+			},
+			{
+				"name": "Set RunDate",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "RunDate",
+					"value": {
+						"value": "@formatDateTime(convertFromUtc(utcnow(),'AUS Eastern Standard Time'),'yyyyMMdd')",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Set RunTime",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "RunTime",
+					"value": {
+						"value": "@formatDateTime(convertFromUtc(utcnow(),'AUS Eastern Standard Time'),'yyyyMMdd_HH:mm:ss')",
+						"type": "Expression"
+					}
+				}
 			}
 		],
 		"parameters": {
@@ -458,6 +501,14 @@
 			},
 			"ProjectRunID": {
 				"type": "string"
+			}
+		},
+		"variables": {
+			"RunDate": {
+				"type": "String"
+			},
+			"RunTime": {
+				"type": "String"
 			}
 		},
 		"annotations": [],

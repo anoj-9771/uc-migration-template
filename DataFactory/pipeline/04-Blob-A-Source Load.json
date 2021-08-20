@@ -275,7 +275,7 @@
 														"type": "DatasetReference",
 														"parameters": {
 															"BlobContainer": {
-																"value": "@concat('archive/', activity('Get Full File Name').output.firstrow.StorageFolder)",
+																"value": "@concat(pipeline().parameters.RunDate,'SAP ISU', '11am')",
 																"type": "Expression"
 															}
 														}
@@ -805,6 +805,9 @@
 				"type": "string"
 			},
 			"ValidationDetails": {
+				"type": "string"
+			},
+			"RunDate": {
 				"type": "string"
 			}
 		},
