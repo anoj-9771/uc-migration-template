@@ -43,6 +43,20 @@
 			"type": "string",
 			"defaultValue": "Emrvisaf"
 		},
+		"PrivateLinkService1_properties_privateLinkResourceId": {
+			"type": "string",
+			"defaultValue": "/subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-daf-dev-01/providers/Microsoft.Network/privateLinkServices/pe-link-daf-dev-01"
+		},
+		"PrivateLinkService1_properties_groupId": {
+			"type": "string",
+			"defaultValue": ""
+		},
+		"PrivateLinkService1_properties_fqdns": {
+			"type": "array",
+			"defaultValue": [
+				"nt097dslt01.adsdev.swcdev"
+			]
+		},
 		"kv-daf-dev-01_properties_privateLinkResourceId": {
 			"type": "string",
 			"defaultValue": "/subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-daf-dev-01/providers/Microsoft.KeyVault/vaults/kv-daf-dev-01"
@@ -173,6 +187,11 @@
 					"TriggerName": {
 						"type": "string",
 						"defaultValue": "OnDemand"
+					}
+				},
+				"variables": {
+					"ProjectName": {
+						"type": "String"
 					}
 				},
 				"annotations": [],
@@ -308,7 +327,20 @@
 						"name": "Get Load Tasks",
 						"description": "",
 						"type": "Lookup",
-						"dependsOn": [],
+						"dependsOn": [
+							{
+								"activity": "Set RunDate",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							},
+							{
+								"activity": "Set RunTime",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
 						"policy": {
 							"timeout": "7.00:00:00",
 							"retry": 0,
@@ -451,6 +483,14 @@
 														},
 														"ProjectRunID": {
 															"value": "@pipeline().parameters.ProjectRunID",
+															"type": "Expression"
+														},
+														"RunDate": {
+															"value": "@variables('RunDate')",
+															"type": "Expression"
+														},
+														"RunTime": {
+															"value": "@variables('RunTime')",
 															"type": "Expression"
 														}
 													}
@@ -752,6 +792,32 @@
 								"parameters": {}
 							}
 						}
+					},
+					{
+						"name": "Set RunDate",
+						"type": "SetVariable",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"variableName": "RunDate",
+							"value": {
+								"value": "@formatDateTime(convertFromUtc(utcnow(),'AUS Eastern Standard Time'),'yyyyMMdd')",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "Set RunTime",
+						"type": "SetVariable",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"variableName": "RunTime",
+							"value": {
+								"value": "@formatDateTime(convertFromUtc(utcnow(),'AUS Eastern Standard Time'),'yyyyMMdd_HH:mm:ss')",
+								"type": "Expression"
+							}
+						}
 					}
 				],
 				"parameters": {
@@ -763,6 +829,14 @@
 					},
 					"ProjectRunID": {
 						"type": "string"
+					}
+				},
+				"variables": {
+					"RunDate": {
+						"type": "String"
+					},
+					"RunTime": {
+						"type": "String"
 					}
 				},
 				"annotations": [],
@@ -796,6 +870,12 @@
 							},
 							{
 								"activity": "Set-Source-Filename",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							},
+							{
+								"activity": "Set ProjectName",
 								"dependencyConditions": [
 									"Succeeded"
 								]
@@ -1056,7 +1136,7 @@
 																"type": "DatasetReference",
 																"parameters": {
 																	"BlobContainer": {
-																		"value": "@concat('archive/', activity('Get Full File Name').output.firstrow.StorageFolder)",
+																		"value": "@concat(variables('ProjectName'),'/',pipeline().parameters.RunDate,'/',pipeline().parameters.RunTime)",
 																		"type": "Expression"
 																	}
 																}
@@ -1237,7 +1317,7 @@
 																"type": "DatasetReference",
 																"parameters": {
 																	"BlobContainer": {
-																		"value": "@concat('archive/', activity('Get Full File Name').output.firstrow.StorageFolder)",
+																		"value": "@concat(variables('ProjectName'),pipeline().parameters.RunDate,pipeline().parameters.RunTime)",
 																		"type": "Expression"
 																	}
 																}
@@ -1559,6 +1639,19 @@
 								"kvSecret": "daf-sql-controldb-connectionstring"
 							}
 						}
+					},
+					{
+						"name": "Set ProjectName",
+						"type": "SetVariable",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"variableName": "ProjectName",
+							"value": {
+								"value": "@pipeline().parameters.TaskDetails.SourceGroup",
+								"type": "Expression"
+							}
+						}
 					}
 				],
 				"parameters": {
@@ -1588,6 +1681,12 @@
 					},
 					"ValidationDetails": {
 						"type": "string"
+					},
+					"RunDate": {
+						"type": "string"
+					},
+					"RunTime": {
+						"type": "string"
 					}
 				},
 				"variables": {
@@ -1610,6 +1709,9 @@
 						"type": "String"
 					},
 					"Manifest": {
+						"type": "String"
+					},
+					"ProjectName": {
 						"type": "String"
 					}
 				},
@@ -2377,7 +2479,7 @@
 					}
 				},
 				"folder": {
-					"name": "Blob"
+					"name": "z_Archive"
 				},
 				"annotations": [],
 				"lastPublishTime": "2021-06-30T08:46:15Z"
@@ -6128,6 +6230,19 @@
 			"apiVersion": "2018-06-01",
 			"properties": {},
 			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/default/PrivateLinkService1')]",
+			"type": "Microsoft.DataFactory/factories/managedVirtualNetworks/managedPrivateEndpoints",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"privateLinkResourceId": "[parameters('PrivateLinkService1_properties_privateLinkResourceId')]",
+				"groupId": "[parameters('PrivateLinkService1_properties_groupId')]",
+				"fqdns": "[parameters('PrivateLinkService1_properties_fqdns')]"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/managedVirtualNetworks/default')]"
+			]
 		},
 		{
 			"name": "[concat(parameters('factoryName'), '/default/kv-daf-dev-01')]",
