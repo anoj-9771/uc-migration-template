@@ -189,6 +189,11 @@
 						"defaultValue": "OnDemand"
 					}
 				},
+				"variables": {
+					"ProjectName": {
+						"type": "String"
+					}
+				},
 				"annotations": [],
 				"lastPublishTime": "2021-06-18T07:33:49Z"
 			},
@@ -322,7 +327,20 @@
 						"name": "Get Load Tasks",
 						"description": "",
 						"type": "Lookup",
-						"dependsOn": [],
+						"dependsOn": [
+							{
+								"activity": "Set RunDate",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							},
+							{
+								"activity": "Set RunTime",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
 						"policy": {
 							"timeout": "7.00:00:00",
 							"retry": 0,
@@ -465,6 +483,14 @@
 														},
 														"ProjectRunID": {
 															"value": "@pipeline().parameters.ProjectRunID",
+															"type": "Expression"
+														},
+														"RunDate": {
+															"value": "@variables('RunDate')",
+															"type": "Expression"
+														},
+														"RunTime": {
+															"value": "@variables('RunTime')",
 															"type": "Expression"
 														}
 													}
@@ -766,6 +792,32 @@
 								"parameters": {}
 							}
 						}
+					},
+					{
+						"name": "Set RunDate",
+						"type": "SetVariable",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"variableName": "RunDate",
+							"value": {
+								"value": "@formatDateTime(convertFromUtc(utcnow(),'AUS Eastern Standard Time'),'yyyyMMdd')",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "Set RunTime",
+						"type": "SetVariable",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"variableName": "RunTime",
+							"value": {
+								"value": "@formatDateTime(convertFromUtc(utcnow(),'AUS Eastern Standard Time'),'yyyyMMdd_HH:mm:ss')",
+								"type": "Expression"
+							}
+						}
 					}
 				],
 				"parameters": {
@@ -777,6 +829,14 @@
 					},
 					"ProjectRunID": {
 						"type": "string"
+					}
+				},
+				"variables": {
+					"RunDate": {
+						"type": "String"
+					},
+					"RunTime": {
+						"type": "String"
 					}
 				},
 				"annotations": [],
@@ -810,6 +870,12 @@
 							},
 							{
 								"activity": "Set-Source-Filename",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							},
+							{
+								"activity": "Set ProjectName",
 								"dependencyConditions": [
 									"Succeeded"
 								]
@@ -1070,7 +1136,7 @@
 																"type": "DatasetReference",
 																"parameters": {
 																	"BlobContainer": {
-																		"value": "@concat('archive/', activity('Get Full File Name').output.firstrow.StorageFolder)",
+																		"value": "@concat(variables('ProjectName'),pipeline().parameters.RunDate,pipeline().parameters.RunTime)",
 																		"type": "Expression"
 																	}
 																}
@@ -1251,7 +1317,7 @@
 																"type": "DatasetReference",
 																"parameters": {
 																	"BlobContainer": {
-																		"value": "@concat('archive/', activity('Get Full File Name').output.firstrow.StorageFolder)",
+																		"value": "@concat(variables('ProjectName'),pipeline().parameters.RunDate,pipeline().parameters.RunTime)",
 																		"type": "Expression"
 																	}
 																}
@@ -1573,6 +1639,19 @@
 								"kvSecret": "daf-sql-controldb-connectionstring"
 							}
 						}
+					},
+					{
+						"name": "Set ProjectName",
+						"type": "SetVariable",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"variableName": "ProjectName",
+							"value": {
+								"value": "@pipeline().parameters.TaskDetails.SourceGroup",
+								"type": "Expression"
+							}
+						}
 					}
 				],
 				"parameters": {
@@ -1602,6 +1681,12 @@
 					},
 					"ValidationDetails": {
 						"type": "string"
+					},
+					"RunDate": {
+						"type": "string"
+					},
+					"RunTime": {
+						"type": "string"
 					}
 				},
 				"variables": {
@@ -1624,6 +1709,9 @@
 						"type": "String"
 					},
 					"Manifest": {
+						"type": "String"
+					},
+					"ProjectName": {
 						"type": "String"
 					}
 				},
@@ -2391,7 +2479,7 @@
 					}
 				},
 				"folder": {
-					"name": "Blob"
+					"name": "z_Archive"
 				},
 				"annotations": [],
 				"lastPublishTime": "2021-06-30T08:46:15Z"
