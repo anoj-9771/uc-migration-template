@@ -281,7 +281,7 @@
 														"type": "DatasetReference",
 														"parameters": {
 															"BlobContainer": {
-																"value": "@concat(variables('ProjectName'),pipeline().parameters.RunDate,pipeline().parameters.RunTime)",
+																"value": "@concat(variables('ProjectName'),'/',pipeline().parameters.RunDate,'/',pipeline().parameters.RunTime)",
 																"type": "Expression"
 															}
 														}
