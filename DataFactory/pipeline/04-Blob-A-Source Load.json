@@ -462,7 +462,7 @@
 														"type": "DatasetReference",
 														"parameters": {
 															"BlobContainer": {
-																"value": "@concat('archive/', activity('Get Full File Name').output.firstrow.StorageFolder)",
+																"value": "@concat(variables('ProjectName'),pipeline().parameters.RunDate,pipeline().parameters.RunTime)",
 																"type": "Expression"
 															}
 														}
