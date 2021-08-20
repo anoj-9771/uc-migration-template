@@ -41,8 +41,8 @@ print(runParm)
 
 # COMMAND ----------
 
-# DBTITLE 1,1. Import libreries/functions
-#1.Import libreries/functions
+# DBTITLE 1,1. Import libraries/functions
+#1.Import libraries/functions
 from pyspark.sql.functions import mean, min, max, desc, abs, coalesce, when, expr
 from pyspark.sql.functions import date_add, to_utc_timestamp, from_utc_timestamp, datediff
 from pyspark.sql.functions import regexp_replace, concat, col, lit, substring
@@ -176,10 +176,7 @@ df_cleansed = spark.sql("SELECT cast(N_PROP as int) AS propertyNumber, \
 		C_METE_READ_FREQ AS meterReadingFrequencyCode, \
 		C_METE_CLAS AS meterClassCode, \
         initcap(c.meterClass) as meterClass, \
-        case when c.meterTypeCode = 'P' then 'Potable' \
-             when c.meterTypeCode = 'R' then 'Recycled' \
-                                        else 'Other' \
-        end as waterType, \
+        c.waterMeterType, \
         C_METE_CATE AS meterCategoryCode, \
         initcap(d.meterCategory) as meterCategory, \
 		C_METE_GROU AS meterGroupCode, \
@@ -227,7 +224,7 @@ newSchema = StructType([
 	StructField('meterReadingFrequencyCode',StringType(),True),
 	StructField('meterClassCode',StringType(),True),
 	StructField('meterClass',StringType(),True),
-    StructField('waterType',StringType(),True),
+    StructField('waterMeterType',StringType(),True),
 	StructField('meterCategoryCode',StringType(),True),
 	StructField('meterCategory',StringType(),True),
 	StructField('meterGroupCode',StringType(),True),
@@ -266,7 +263,7 @@ DeltaSaveDataframeDirect(df_updated_column, "t", source_object, ADS_DATABASE_CLE
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC select * from cleansed.t_access_z309_tpropmeter
+# MAGIC select * from cleansed.t_access_z309_tpropmeter where waterMeterType is null
 
 # COMMAND ----------
 

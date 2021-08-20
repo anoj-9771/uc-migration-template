@@ -41,8 +41,8 @@ print(runParm)
 
 # COMMAND ----------
 
-# DBTITLE 1,1. Import libreries/functions
-#1.Import libreries/functions
+# DBTITLE 1,1. Import libraries/functions
+#1.Import libraries/functions
 from pyspark.sql.functions import mean, min, max, desc, abs, coalesce, when, expr
 from pyspark.sql.functions import date_add, to_utc_timestamp, from_utc_timestamp, datediff
 from pyspark.sql.functions import regexp_replace, concat, col, lit, substring
@@ -171,26 +171,22 @@ DeltaSaveToDeltaTable (
                 #T_HOUS_2_SUFX, \
 df_cleansed = spark.sql("SELECT C_LGA AS LGACode, \
 		cast(N_PROP as int) AS propertyNumber, \
-		C_STRE_GUID AS streetGuideCode, \
-        '00000000' as DPID, \
-		C_FLOR_LVL AS floorLevelCode, \
+		C_STRE_GUID AS streetGuideCode, " + 
+        ("C_DPID as DPID, " if ADS_ENVIRONMENT not in ['dev','test'] else "'00000000' as DPID, ") + " \
+		C_FLOR_LVL AS floorLevelType, \
 		N_FLOR_LVL AS floorLevelNumber, \
-		C_FLAT_UNIT AS flatUnitCode, \
-		N_FLAT_UNIT AS flatUnitNumber, \
-        cast(1 as int) as houseNumber1, \
-		T_HOUS_1_SUFX AS houseNumber1Suffix, \
-		cast(0 as int) AS houseNumber2, \
-		' ' AS houseNumber2Suffix, \
-		N_LOT AS lotNumber, \
-		N_RMB AS RMB, \
+		C_FLAT_UNIT AS flatUnitType, \
+		N_FLAT_UNIT AS flatUnitNumber, " + 
+        ("N_HOUS_1 as houseNumber1, T_HOUS_1_SUFX AS houseNumber1Suffix, N_HOUS_2 as houseNumber2, T_HOUS_2_SUFX AS houseNumber2Suffix, N_LOT AS lotNumber, N_RMB AS RMB, " if ADS_ENVIRONMENT not in ['dev','test'] else " \
+        cast(1 as int) as houseNumber1, T_HOUS_1_SUFX AS houseNumber1Suffix, cast(0 as int) AS houseNumber2, ' ' AS houseNumber2Suffix, ' ' AS lotNumber, ' ' AS RMB, ") + " \
 		T_OTHE_ADDR_INFO AS otherAddressInformation, \
 		T_SPEC_DESC AS specialDescription, \
 		M_BUIL_1 AS buildingName1, \
 		M_BUIL_2 AS buildingName2, \
-		C_USER_CREA AS createdByUser, \
+		C_USER_CREA AS createdByUserID, \
 		C_PLAN_CREA AS createdByPlan, \
         cast(to_unix_timestamp(H_CREA, 'yyyy-MM-dd hh:mm:ss a') as timestamp) as createdTimestamp, \
-        C_USER_MODI AS modifiedByUser, \
+        C_USER_MODI AS modifiedByUserID, \
 		C_PLAN_MODI AS modifiedByPlan, \
         cast(to_unix_timestamp(H_MODI, 'yyyy-MM-dd hh:mm:ss a') as timestamp) as modifiedTimestamp, \
         _RecordStart, \
@@ -208,9 +204,9 @@ newSchema = StructType([
 	StructField('propertyNumber',IntegerType(),False),
 	StructField('streetGuideCode',StringType(),True),
 	StructField('DPID',StringType(),True),
-	StructField('floorLevelCode',StringType(),True),
+	StructField('floorLevelType',StringType(),True),
 	StructField('floorLevelNumber',StringType(),True),
-	StructField('flatUnitCode',StringType(),True),
+	StructField('flatUnitType',StringType(),True),
 	StructField('flatUnitNumber',StringType(),True),
 	StructField('houseNumber1',IntegerType(),False),
 	StructField('houseNumber1Suffix',StringType(),True),
@@ -222,10 +218,10 @@ newSchema = StructType([
 	StructField('specialDescription',StringType(),True),
 	StructField('buildingName1',StringType(),True),
 	StructField('buildingName2',StringType(),True),
-	StructField('createdByUser',StringType(),True),
+	StructField('createdByUserID',StringType(),True),
 	StructField('createdByPlan',StringType(),True),
 	StructField('createdTimestamp',TimestampType(),False),
-	StructField('modifiedByUser',StringType(),True),
+	StructField('modifiedByUserID',StringType(),True),
 	StructField('modifiedByPlan',StringType(),True),
 	StructField('modifiedTimestamp',TimestampType(),False),
     StructField('_RecordStart',TimestampType(),False),

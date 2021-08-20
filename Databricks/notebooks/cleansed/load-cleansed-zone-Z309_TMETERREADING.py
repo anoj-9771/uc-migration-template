@@ -42,7 +42,7 @@ print(runParm)
 # COMMAND ----------
 
 # DBTITLE 1,1. Import libraries/functions
-#1.Import libreries/functions
+#1.Import libraries/functions
 from pyspark.sql.functions import mean, min, max, desc, abs, coalesce, when, expr
 from pyspark.sql.functions import date_add, to_utc_timestamp, from_utc_timestamp, datediff
 from pyspark.sql.functions import regexp_replace, concat, col, lit, substring
@@ -176,7 +176,7 @@ df_cleansed = spark.sql("SELECT cast(N_PROP as int) AS propertyNumber, \
         initcap(f.consumptionType) as consumptionType, \
 		C_METE_READ_STAT AS meterReadingStatusCode, \
         initcap(g.meterReadingStatus) as meterReadingStatus, \
-		C_METE_CANT_READ AS cannotReadCode, \
+		coalesce(C_METE_CANT_READ,'') AS cannotReadCode, \
         initcap(h.cannotReadReason) as cannotReadReason, \
 		C_PDE_READ_METH AS PDEReadingMethodCode, \
         initcap(i.PDEReadingMethod) as PDEReadingMethod, \
@@ -206,11 +206,15 @@ df_cleansed = spark.sql("SELECT cast(N_PROP as int) AS propertyNumber, \
          left outer join CLEANSED.t_access_Z309_TMETEREADTYPE e on a.C_METE_READ_TYPE = e.meterReadingTypeCode \
          left outer join CLEANSED.t_access_Z309_TMETEREADCONTYP f on a.C_METE_READ_CONS = f.consumptionTypeCode \
          left outer join CLEANSED.t_access_Z309_TMRSTATUSTYPE g on a.C_METE_READ_STAT = g.meterReadingStatusCode \
-         left outer join CLEANSED.t_access_Z309_TMETERCANTREAD h on a.C_METE_CANT_READ = h.cannotReadReason \
+         left outer join CLEANSED.t_access_Z309_TMETERCANTREAD h on coalesce(a.C_METE_CANT_READ,'') = h.cannotReadCode \
          left outer join CLEANSED.t_access_Z309_TPDEREADMETH i on a.C_PDE_READ_METH = i.PDEReadingMethodCode \
          ")
 
-display(df_cleansed)
+display(df_cleansed.select('PDEReadingMethodCode is not null'))
+
+# COMMAND ----------
+
+display(df_cleansed.select('PDEReadingMethodCode is not null'))
 
 # COMMAND ----------
 
@@ -226,8 +230,8 @@ newSchema = StructType([
     StructField('consumptionType',StringType(),True),
 	StructField('meterReadingStatusCode',StringType(),True),
     StructField('meterReadingStatus',StringType(),True),
-	StructField('cannotReadCode',StringType(),True),
-    StructField('cannotReadReason',StringType(),True),
+	StructField('cannotReadCode',StringType(),False),
+    StructField('cannotReadReason',StringType(),False),
 	StructField('PDEReadingMethodCode',StringType(),True),
     StructField('PDEReadingMethod',StringType(),True),
 	StructField('meterReading',DecimalType(9,0),False),
