@@ -145,84 +145,15 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_updated_column = spark.sql("SELECT  \
-                                  INTRENO as architecturalObjectInternalId , \
-                                  AOID as architecturalObjectId , \
-                                  AOTYPE as architecturalObjectTypeCode , \
-                                  tiv.XMAOTYPE as architecturalObjectType , \
-                                  AONR as architecturalObjectNumber , \
-                                  VALIDFROM as validFromDate , \
-                                  VALIDTO as validToDate , \
-                                  PARTAOID as partArchitecturalObjectId , \
-                                  OBJNR as objectNumber , \
-                                  RERF as firstEnteredBy , \
-                                  DERF as firstEnteredOnDate , \
-                                  TERF as firstEnteredTime , \
-                                  REHER as firstEnteredSource , \
-                                  RBEAR as employeeId , \
-                                  DBEAR as lastEdittedOnDate , \
-                                  TBEAR as lastEdittedTime , \
-                                  RBHER as lastEdittedSource , \
-                                  RESPONSIBLE as responsiblePerson , \
-                                  USEREXCLUSIVE as exclusiveUser , \
-                                  LASTRENO as lastRelocationDate , \
-                                  MEASSTRC as measurementStructure , \
-                                  DOORPLT as shortDescription , \
-                                  RSAREA as reservationArea , \
-                                  SINSTBEZ as maintenanceDistrict , \
-                                  SVERKEHR as businessEntityTransportConnectionsIndicator , \
-                                  ZCD_PROPERTY_NO as propertyNumber , \
-                                  ZCD_PROP_CR_DATE as propertyCreatedDate , \
-                                  ZCD_PROP_LOT_NO as propertyLotNumber , \
-                                  ZCD_REQUEST_NO as propertyRequestNumber , \
-                                  ZCD_PLAN_TYPE as planTypeCode , \
-                                  plt.DESCRIPTION as planType , \
-                                  ZCD_PLAN_NUMBER as planNumber , \
-                                  ZCD_PROCESS_TYPE as processTypeCode , \
-                                  prt.DESCRIPTION as processType , \
-                                  ZCD_ADDR_LOT_NO as addressLotNumber , \
-                                  ZCD_LOT_TYPE as lotTypeCode , \
-                                  ZCD_UNIT_ENTITLEMENT as unitEntitlement , \
-                                  ZCD_NO_OF_FLATS as flatCount , \
-                                  ZCD_SUP_PROP_TYPE as superiorPropertyTypeCode , \
-                                  sp.DESCRIPTION as superiorPropertyType , \
-                                  ZCD_INF_PROP_TYPE as inferiorPropertyTypeCode , \
-                                  ip.DESCRIPTION as inferiorPropertyType , \
-                                  ZCD_STORM_WATER_ASSESS as stormWaterAssesmentIndicator , \
-                                  ZCD_IND_MLIM as mlimIndicator , \
-                                  ZCD_IND_WICA as wicaIndicator , \
-                                  ZCD_IND_SOPA as sopaIndicator , \
-                                  ZCD_IND_COMMUNITY_TITLE as communityTitleIndicator , \
-                                  ZCD_SECTION_NUMBER as sectionNumber , \
-                                  ZCD_HYDRA_CALC_AREA as hydraCalculatedArea , \
-                                  ZCD_HYDRA_AREA_UNIT as hydraAreaUnit , \
-                                  ZCD_HYDRA_AREA_FLAG as hydraAreaIndicator , \
-                                  ZCD_CASENO_FLAG as caseNumberIndicator , \
-                                  ZCD_OVERRIDE_AREA as overrideArea , \
-                                  ZCD_OVERRIDE_AREA_UNIT as overrideAreaUnit , \
-                                  ZCD_CANCELLATION_DATE as cancellationDate , \
-                                  ZCD_CANC_REASON as cancellationReasonCode , \
-                                  ZCD_COMMENTS as comments , \
-                                  ZCD_PROPERTY_INFO as propertyInfo , \
-                                  OBJNRTRG as targetObjectNumber , \
-                                  DIAGRAM_NO as diagramNumber , \
-                                  FIXFITCHARACT as fixtureAndFittingCharacteristicCode , \
-                                  XFIXFITCHARACT as fixtureAndFittingCharacteristic , \
+df_updated_column_temp = spark.sql("SELECT  \
+                                  COUNTRY  as COUNTRY  , \
+                                  REGPOLIT  as REGPOLIT  , \
+                                  REGNAME  as REGNAME  , \
                                   _RecordStart, \
                                   _RecordEnd, \
                                   _RecordDeleted, \
                                   _RecordCurrent \
-                              FROM CLEANSED.stg_sapisu_vibdao vib \
-                                    LEFT OUTER JOIN CLEANSED.t_sapisu_ZCD_TINFPRTY_TX ip ON \
-                                   vib.ZCD_INF_PROP_TYPE = ip.INFERIOR_PROP_TYPE \
-                                    LEFT OUTER JOIN CLEANSED.t_sapisu_ZCD_TSUPPRTYP_TX sp ON \
-                                   vib.ZCD_SUP_PROP_TYPE = sp.SUPERIOR_PROP_TYPE \
-                                    LEFT OUTER JOIN CLEANSED.t_sapisu_ZCD_TPLANTYPE_TX plt ON \
-                                   vib.ZCD_PLAN_TYPE = plt.PLAN_TYPE \
-                                    LEFT OUTER JOIN CLEANSED.t_sapisu_TIVBDAROBJTYPET tiv ON \
-                                   vib.ZCD_AOTYPE = tiv.AOTYPE \
-                                    LEFT OUTER JOIN CLEANSED.t_sapisu_ZCD_TPROCTYPE_TX prt ON \
-                                   vib.ZCD_PROCESS_TYPE = prt.PROCESS_TYPE \
+                              FROM CLEANSED.stg_sapisu_TE227T \
                               ")
 
 display(df_updated_column)
@@ -232,68 +163,9 @@ display(df_updated_column)
 # Create schema for the cleanse table
 cleanse_Schema = StructType(
                             [
-                            StructField("architecturalObjectInternalId", StringType(), True),
-                            StructField("architecturalObjectId", StringType(), True),
-                            StructField("architecturalObjectTypeCode", StringType(), True),
-                            StructField("architecturalObjectType", StringType(), True),
-                            StructField("architecturalObjectNumber", StringType(), True),
-                            StructField("validFromDate", DateType(), True),
-                            StructField("validToDate", DateType(), True),
-                            StructField("partArchitecturalObjectId", StringType(), True),
-                            StructField("objectNumber", StringType(), True),
-                            StructField("firstEnteredBy", StringType(), True),
-                            StructField("firstEnteredOnDate", DateType(), True),
-                            StructField("firstEnteredTime", DateType(), True),
-                            StructField("firstEnteredSource", StringType(), True),
-                            StructField("employeeId", StringType(), True),
-                            StructField("lastEdittedOnDate", DateType(), True),
-                            StructField("lastEdittedTime", DateType(), True),
-                            StructField("lastEdittedSource", StringType(), True),
-                            StructField("responsiblePerson", StringType(), True),
-                            StructField("exclusiveUser", StringType(), True),
-                            StructField("lastRelocationDate", DateType(), True),
-                            StructField("measurementStructure", StringType(), True),
-                            StructField("shortDescription", StringType(), True),
-                            StructField("reservationArea", StringType(), True),
-                            StructField("maintenanceDistrict", LongType(), True),
-                            StructField("businessEntityTransportConnectionsIndicator", StringType(), True),
-                            StructField("propertyNumber", StringType(), True),
-                            StructField("propertyCreatedDate", DateType(), True),
-                            StructField("propertyLotNumber", LongType(), True),
-                            StructField("propertyRequestNumber", LongType(), True),
-                            StructField("planTypeCode", StringType(), True),
-                            StructField("planType", StringType(), True),
-                            StructField("planNumber", LongType(), True),
-                            StructField("processTypeCode", StringType(), True),
-                            StructField("processType", StringType(), True),
-                            StructField("addressLotNumber", StringType(), True),
-                            StructField("lotTypeCode", StringType(), True),
-                            StructField("unitEntitlement", StringType(), True),
-                            StructField("flatCount", StringType(), True),
-                            StructField("superiorPropertyTypeCode", StringType(), True),
-                            StructField("superiorPropertyType", StringType(), True),
-                            StructField("inferiorPropertyTypeCode", StringType(), True),
-                            StructField("inferiorPropertyType", StringType(), True),
-                            StructField("stormWaterAssesmentIndicator", StringType(), True),
-                            StructField("mlimIndicator", StringType(), True),
-                            StructField("wicaIndicator", StringType(), True),
-                            StructField("sopaIndicator", StringType(), True),
-                            StructField("communityTitleIndicator", StringType(), True),
-                            StructField("sectionNumber", StringType(), True),
-                            StructField("hydraCalculatedArea", StringType(), True),
-                            StructField("hydraAreaUnit", StringType(), True),
-                            StructField("hydraAreaIndicator", StringType(), True),
-                            StructField("caseNumberIndicator", StringType(), True),
-                            StructField("overrideArea", StringType(), True),
-                            StructField("overrideAreaUnit", StringType(), True),
-                            StructField("cancellationDate", DateType(), True),
-                            StructField("cancellationReasonCode", StringType(), True),
-                            StructField("comments", StringType(), True),
-                            StructField("propertyInfo", StringType(), True),
-                            StructField("targetObjectNumber", StringType(), True),
-                            StructField("diagramNumber", LongType(), True),
-                            StructField("fixtureAndFittingCharacteristicCode", StringType(), True),
-                            StructField("fixtureAndFittingCharacteristic", StringType(), True),
+                            StructField("COUNTRY ", StringType(), True),
+                            StructField("REGPOLIT ", StringType(), True),
+                            StructField("REGNAME ", StringType(), True),
                             StructField('_RecordStart',TimestampType(),False),
                             StructField('_RecordEnd',TimestampType(),False),
                             StructField('_RecordDeleted',IntegerType(),False),
@@ -305,6 +177,12 @@ df_updated_column = spark.createDataFrame(df_updated_column_temp.rdd, schema=cle
 display(df_updated_column)
 
 
+
+# COMMAND ----------
+
+df =spark.sql("select regpolit,regname , count(1) from CLEANSED.stg_sapisu_TE227T group by regpolit,regname having count(1)> 1")
+# df =spark.sql("select distinct country from  CLEANSED.stg_sapisu_TE227T ")
+display(df)
 
 # COMMAND ----------
 
