@@ -210,11 +210,7 @@ df_cleansed = spark.sql("SELECT cast(N_PROP as int) AS propertyNumber, \
          left outer join CLEANSED.t_access_Z309_TPDEREADMETH i on a.C_PDE_READ_METH = i.PDEReadingMethodCode \
          ")
 
-display(df_cleansed.select('PDEReadingMethodCode is not null'))
 
-# COMMAND ----------
-
-display(df_cleansed.select('PDEReadingMethodCode is not null'))
 
 # COMMAND ----------
 
