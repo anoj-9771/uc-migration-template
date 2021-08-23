@@ -194,7 +194,7 @@ df_updated_column_temp = spark.sql("SELECT \
                                 BP.CRTIM as createdTime,\
                                 BP.CHUSR as changedBy,\
                                 to_date(BP.CHDAT) as changedDate,\
-                                BP.CHTIM as changedTime,\
+                                to_date(Concat(BP.CRDAT,BP.CRTIM)) as createdDateTime,\
                                 BP.PARTNER_GUID as businessPartnerGUID,\
                                 BP.ADDRCOMM as addressNumber,\
                                 BP.VALID_FROM as validFromDate,\
