@@ -149,7 +149,7 @@ df_updated_column = spark.sql("SELECT  \
                                   INTRENO as architecturalObjectInternalId , \
                                   AOID as architecturalObjectId , \
                                   AOTYPE as architecturalObjectTypeCode , \
-                                  'TBA' as architecturalObjectType , \
+                                  tiv.XMAOTYPE as architecturalObjectType , \
                                   AONR as architecturalObjectNumber , \
                                   VALIDFROM as validFromDate , \
                                   VALIDTO as validToDate , \
@@ -176,18 +176,18 @@ df_updated_column = spark.sql("SELECT  \
                                   ZCD_PROP_LOT_NO as propertyLotNumber , \
                                   ZCD_REQUEST_NO as propertyRequestNumber , \
                                   ZCD_PLAN_TYPE as planTypeCode , \
-                                  'TBA' as planType , \
+                                  plt.DESCRIPTION as planType , \
                                   ZCD_PLAN_NUMBER as planNumber , \
                                   ZCD_PROCESS_TYPE as processTypeCode , \
-                                  'TBA' as processType , \
+                                  prt.DESCRIPTION as processType , \
                                   ZCD_ADDR_LOT_NO as addressLotNumber , \
                                   ZCD_LOT_TYPE as lotTypeCode , \
                                   ZCD_UNIT_ENTITLEMENT as unitEntitlement , \
                                   ZCD_NO_OF_FLATS as flatCount , \
                                   ZCD_SUP_PROP_TYPE as superiorPropertyTypeCode , \
-                                  'TBA' as superiorPropertyType , \
+                                  sp.DESCRIPTION as superiorPropertyType , \
                                   ZCD_INF_PROP_TYPE as inferiorPropertyTypeCode , \
-                                  'TBA' as inferiorPropertyType , \
+                                  ip.DESCRIPTION as inferiorPropertyType , \
                                   ZCD_STORM_WATER_ASSESS as stormWaterAssesmentIndicator , \
                                   ZCD_IND_MLIM as mlimIndicator , \
                                   ZCD_IND_WICA as wicaIndicator , \
@@ -204,18 +204,107 @@ df_updated_column = spark.sql("SELECT  \
                                   ZCD_CANC_REASON as cancellationReasonCode , \
                                   ZCD_COMMENTS as comments , \
                                   ZCD_PROPERTY_INFO as propertyInfo , \
-                                  'OBJNRTRG' as targetObjectNumber , \
-                                  'DIAGRAM_NO' as diagramNumber , \
-                                  'FIXFITCHARACT' as fixtureAndFittingCharacteristicCode , \
-                                  'TBA' as fixtureAndFittingCharacteristic , \
+                                  OBJNRTRG as targetObjectNumber , \
+                                  DIAGRAM_NO as diagramNumber , \
+                                  FIXFITCHARACT as fixtureAndFittingCharacteristicCode , \
+                                  XFIXFITCHARACT as fixtureAndFittingCharacteristic , \
                                   _RecordStart, \
                                   _RecordEnd, \
                                   _RecordDeleted, \
                                   _RecordCurrent \
-                              FROM CLEANSED.stg_sapisu_vibdao \
+                              FROM CLEANSED.stg_sapisu_vibdao vib \
+                                    LEFT OUTER JOIN CLEANSED.t_sapisu_ZCD_TINFPRTY_TX ip ON \
+                                   vib.ZCD_INF_PROP_TYPE = ip.INFERIOR_PROP_TYPE \
+                                    LEFT OUTER JOIN CLEANSED.t_sapisu_ZCD_TSUPPRTYP_TX sp ON \
+                                   vib.ZCD_SUP_PROP_TYPE = sp.SUPERIOR_PROP_TYPE \
+                                    LEFT OUTER JOIN CLEANSED.t_sapisu_ZCD_TPLANTYPE_TX plt ON \
+                                   vib.ZCD_PLAN_TYPE = plt.PLAN_TYPE \
+                                    LEFT OUTER JOIN CLEANSED.t_sapisu_TIVBDAROBJTYPET tiv ON \
+                                   vib.ZCD_AOTYPE = tiv.AOTYPE \
+                                    LEFT OUTER JOIN CLEANSED.t_sapisu_ZCD_TPROCTYPE_TX prt ON \
+                                   vib.ZCD_PROCESS_TYPE = prt.PROCESS_TYPE \
                               ")
 
 display(df_updated_column)
+
+# COMMAND ----------
+
+# Create schema for the cleanse table
+cleanse_Schema = StructType(
+                            [
+                            StructField("architecturalObjectInternalId", StringType(), True),
+                            StructField("architecturalObjectId", StringType(), True),
+                            StructField("architecturalObjectTypeCode", StringType(), True),
+                            StructField("architecturalObjectType", StringType(), True),
+                            StructField("architecturalObjectNumber", StringType(), True),
+                            StructField("validFromDate", DateType(), True),
+                            StructField("validToDate", DateType(), True),
+                            StructField("partArchitecturalObjectId", StringType(), True),
+                            StructField("objectNumber", StringType(), True),
+                            StructField("firstEnteredBy", StringType(), True),
+                            StructField("firstEnteredOnDate", DateType(), True),
+                            StructField("firstEnteredTime", DateType(), True),
+                            StructField("firstEnteredSource", StringType(), True),
+                            StructField("employeeId", StringType(), True),
+                            StructField("lastEdittedOnDate", DateType(), True),
+                            StructField("lastEdittedTime", DateType(), True),
+                            StructField("lastEdittedSource", StringType(), True),
+                            StructField("responsiblePerson", StringType(), True),
+                            StructField("exclusiveUser", StringType(), True),
+                            StructField("lastRelocationDate", DateType(), True),
+                            StructField("measurementStructure", StringType(), True),
+                            StructField("shortDescription", StringType(), True),
+                            StructField("reservationArea", StringType(), True),
+                            StructField("maintenanceDistrict", LongType(), True),
+                            StructField("businessEntityTransportConnectionsIndicator", StringType(), True),
+                            StructField("propertyNumber", StringType(), True),
+                            StructField("propertyCreatedDate", DateType(), True),
+                            StructField("propertyLotNumber", LongType(), True),
+                            StructField("propertyRequestNumber", LongType(), True),
+                            StructField("planTypeCode", StringType(), True),
+                            StructField("planType", StringType(), True),
+                            StructField("planNumber", LongType(), True),
+                            StructField("processTypeCode", StringType(), True),
+                            StructField("processType", StringType(), True),
+                            StructField("addressLotNumber", StringType(), True),
+                            StructField("lotTypeCode", StringType(), True),
+                            StructField("unitEntitlement", StringType(), True),
+                            StructField("flatCount", StringType(), True),
+                            StructField("superiorPropertyTypeCode", StringType(), True),
+                            StructField("superiorPropertyType", StringType(), True),
+                            StructField("inferiorPropertyTypeCode", StringType(), True),
+                            StructField("inferiorPropertyType", StringType(), True),
+                            StructField("stormWaterAssesmentIndicator", StringType(), True),
+                            StructField("mlimIndicator", StringType(), True),
+                            StructField("wicaIndicator", StringType(), True),
+                            StructField("sopaIndicator", StringType(), True),
+                            StructField("communityTitleIndicator", StringType(), True),
+                            StructField("sectionNumber", StringType(), True),
+                            StructField("hydraCalculatedArea", StringType(), True),
+                            StructField("hydraAreaUnit", StringType(), True),
+                            StructField("hydraAreaIndicator", StringType(), True),
+                            StructField("caseNumberIndicator", StringType(), True),
+                            StructField("overrideArea", StringType(), True),
+                            StructField("overrideAreaUnit", StringType(), True),
+                            StructField("cancellationDate", DateType(), True),
+                            StructField("cancellationReasonCode", StringType(), True),
+                            StructField("comments", StringType(), True),
+                            StructField("propertyInfo", StringType(), True),
+                            StructField("targetObjectNumber", StringType(), True),
+                            StructField("diagramNumber", LongType(), True),
+                            StructField("fixtureAndFittingCharacteristicCode", StringType(), True),
+                            StructField("fixtureAndFittingCharacteristic", StringType(), True),
+                            StructField('_RecordStart',TimestampType(),False),
+                            StructField('_RecordEnd',TimestampType(),False),
+                            StructField('_RecordDeleted',IntegerType(),False),
+                            StructField('_RecordCurrent',IntegerType(),False)
+                            ]
+                        )
+# Apply the new schema to cleanse Data Frame
+df_updated_column = spark.createDataFrame(df_updated_column_temp.rdd, schema=cleanse_Schema)
+display(df_updated_column)
+
+
 
 # COMMAND ----------
 
