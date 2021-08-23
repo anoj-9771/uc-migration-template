@@ -273,7 +273,7 @@ newSchema = StructType([
 	StructField('createdByPlan',StringType(),True),
 	StructField('createdTimestamp',TimestampType(),True),
 	StructField('modifiedByUserID',StringType(),True),
-	StructField('modifiedByUserID',StringType(),True),
+	StructField('modifiedByPlan',StringType(),True),
 	StructField('modifiedTimestamp',TimestampType(),True),
     StructField('_RecordStart',TimestampType(),False),
     StructField('_RecordEnd',TimestampType(),False),
