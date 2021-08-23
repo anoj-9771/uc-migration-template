@@ -149,43 +149,91 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_updated_column = spark.sql("SELECT  \
-                                    ABLBELNR as meterReadingId , \
-                                    EQUNR as equipmentNumber , \
-                                    ZWNUMMER as registerNumber , \
-                                    ADAT as meterReadingDate , \
-                                    MRESULT as meterReadingTaken , \
-                                    MR_BILL as duplicate , \
-                                    AKTIV as meterReadingActive , \
-                                    ADATSOLL as scheduledMeterReadingDate , \
-                                    ABLSTAT as meterReadingStatus , \
-                                    ABLHINW as notefromMeterReader , \
-                                    ABLESART as scheduledMeterReadingCategory , \
-                                    ABLESER as meterReaderNumber , \
-                                    MDEUPL as orderHasBeenOutput , \
-                                    ISTABLART as meterReadingType , \
-                                    ABLESTYP as meterReadingCategory , \
-                                    MASSREAD as unitOfMeasurementMeterReading , \
-                                    UPDMOD as bwDeltaProcess , \
-                                    LOEVM as deletedIndicator , \
-                                    PRUEFPKT as independentValidation , \
-                                    POPCODE as dependentValidation , \
-                                    AMS as advancedMeteringSystem , \
-                                    TRANSSTAT as transferStatusCode , \
-                                    TRANSTSTAMP as timeStamp , \
-                                    SOURCESYST as sourceSystemOrigin , \
-                                    ZPREV_ADT as actualmeterReadingDate , \
-                                    ZPREV_MRESULT as zmeterReadingTaken , \
-                                    ZZ_PHOTO_IND as meterPhotoIndicator , \
-                                    ZZ_FREE_TEXT as freeText , \
-                                    ZZ_COMM_CODE as meterReadingCommentCode , \
-                                    ZZ_NO_READ_CODE as noReadCode , \
-                                    ZGERNR as DeviceNumber , \
-                                    ZADATTATS as actualMeterReadingDate , \
-                                    ZWNABR as registerNotRelevantToBilling , \
-                                    AEDAT as lastChangedDate \
-                                FROM CLEANSED.stg_sapisu_0uc_mtr_doc")
+                                ABLBELNR  as meterReadingId , \
+                                EQUNR  as equipmentNumber , \
+                                ZWNUMMER  as registerNumber , \
+                                to_date(ADAT ) as meterReadingDate , \
+                                MRESULT  as meterReadingTaken  , \
+                                MR_BILL  as duplicate , \
+                                AKTIV  as meterReadingActive  , \
+                                to_date(ADATSOLL ) as scheduledMeterReadingDate  , \
+                                ABLSTAT  as meterReadingStatus  , \
+                                ABLHINW  as notefromMeterReader  , \
+                                ABLESART  as scheduledMeterReadingCategory  , \
+                                ABLESER  as meterReaderNumber  , \
+                                MDEUPL  as orderHasBeenOutput  , \
+                                ISTABLART  as meterReadingType  , \
+                                ABLESTYP  as meterReadingCategory  , \
+                                MASSREAD  as unitOfMeasurementMeterReading  , \
+                                UPDMOD  as bwDeltaProcess , \
+                                LOEVM  as deletedIndicator  , \
+                                PRUEFPKT  as independentValidation  , \
+                                POPCODE  as dependentValidation  , \
+                                AMS  as advancedMeteringSystem  , \
+                                TRANSSTAT  as transferStatusCode  , \
+                                TRANSTSTAMP  as timeStamp , \
+                                SOURCESYST  as sourceSystemOrigin , \
+                                to_date(ZPREV_ADT ) as actualmeterReadingDate  , \
+                                ZPREV_MRESULT  as meterReadingTaken  , \
+                                ZZ_PHOTO_IND  as meterPhotoIndicator  , \
+                                ZZ_FREE_TEXT  as freeText  , \
+                                ZZ_COMM_CODE  as meterReadingCommentCode  , \
+                                ZZ_NO_READ_CODE  as noReadCode  , \
+                                ZGERNR  as DeviceNumber , \
+                                to_date(ZADATTATS ) as actualMeterReadingDate  , \
+                                ZWNABR  as registerNotRelevantToBilling  , \
+                                to_date(AEDAT ) as lastChangedDate , \
+                                _RecordStart, \
+                                _RecordEnd, \
+                                _RecordDeleted, \
+                                _RecordCurrent \
+                              FROM CLEANSED.stg_sapisu_0uc_mtr_doc")
 
 display(df_updated_column)
+
+# COMMAND ----------
+
+# Create schema for the cleanse table
+cleanse_Schema = StructType(
+  [
+      StructField("meterReadingId", StringType(), True),
+      StructField("equipmentNumber", StringType(), True),
+      StructField("registerNumber", LongType(), True),
+      StructField("meterReadingDate", DateType(), True),
+      StructField("meterReadingTaken ",DoubleType(), True),
+      StructField("duplicate",DoubleType(), True),
+      StructField("meterReadingActive ", StringType(), True),
+      StructField("scheduledMeterReadingDate ", DateType(), True),
+      StructField("meterReadingStatus ", StringType(), True),
+      StructField("notefromMeterReader ", StringType(), True),
+      StructField("scheduledMeterReadingCategory ", StringType(), True),
+      StructField("meterReaderNumber ", StringType(), True),
+      StructField("orderHasBeenOutput ", StringType(), True),
+      StructField("meterReadingType ", StringType(), True),
+      StructField("meterReadingCategory ", StringType(), True),
+      StructField("unitOfMeasurementMeterReading ", StringType(), True),
+      StructField("bwDeltaProcess", StringType(), True),
+      StructField("deletedIndicator ", StringType(), True),
+      StructField("independentValidation ", StringType(), True),
+      StructField("dependentValidation ", StringType(), True),
+      StructField("advancedMeteringSystem ", StringType(), True),
+      StructField("transferStatusCode ", StringType(), True),
+      StructField("timeStamp",DoubleType(), True),
+      StructField("sourceSystemOrigin", LongType(), True),
+      StructField("actualmeterReadingDate ", DateType(), True),
+      StructField("meterReadingTaken ",DoubleType(), True),
+      StructField("meterPhotoIndicator ", StringType(), True),
+      StructField("freeText ", StringType(), True),
+      StructField("meterReadingCommentCode ", StringType(), True),
+      StructField("noReadCode ", StringType(), True),
+      StructField("DeviceNumber", StringType(), True),
+      StructField("actualMeterReadingDate ", DateType(), True),
+      StructField("registerNotRelevantToBilling ", StringType(), True),
+      StructField("lastChangedDate", DateType(), True),
+  ]
+)
+# Apply the new schema to cleanse Data Frame
+df_updated_column = spark.createDataFrame(df_updated_column_temp.rdd, schema=cleanse_Schema)
 
 # COMMAND ----------
 
