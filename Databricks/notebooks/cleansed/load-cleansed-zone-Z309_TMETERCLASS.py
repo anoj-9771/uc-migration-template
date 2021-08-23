@@ -41,8 +41,8 @@ print(runParm)
 
 # COMMAND ----------
 
-# DBTITLE 1,1. Import libreries/functions
-#1.Import libreries/functions
+# DBTITLE 1,1. Import libraries/functions
+#1.Import libraries/functions
 from pyspark.sql.functions import mean, min, max, desc, abs, coalesce, when, expr
 from pyspark.sql.functions import date_add, to_utc_timestamp, from_utc_timestamp, datediff
 from pyspark.sql.functions import regexp_replace, concat, col, lit, substring
@@ -168,7 +168,9 @@ DeltaSaveToDeltaTable (
 df_cleansed = spark.sql("SELECT C_METE_CLAS AS meterClassCode, \
 		initcap(T_METE_CLAS) AS meterClass, \
 		T_METE_CLAS_ABBR AS meterClassAbbreviation, \
-		C_WATE_METE_TYPE AS meterTypeCode, \
+		case when C_WATE_METE_TYPE = 'P' then 'Potable' \
+             when C_WATE_METE_TYPE = 'R' then 'Recycled' \
+                                         else 'Other' end AS waterMeterType, \
 		to_date(D_METE_CLAS_EFFE, 'yyyyMMdd') AS meterClassEffectiveDate, \
 		to_date(D_METE_CLAS_CANC, 'yyyyMMdd') AS meterClassCancelledDate, \
 		_RecordStart, \
@@ -187,7 +189,7 @@ newSchema = StructType([
 	StructField('meterClassCode',StringType(),False),
 	StructField('meterClass',StringType(),False),
 	StructField('meterClassAbbreviation',StringType(),False),
-	StructField('meterTypeCode',StringType(),False),
+	StructField('waterMeterType',StringType(),False),
 	StructField('meterClassEffectiveDate',DateType(),True),
 	StructField('meterClassCancelledDate',DateType(),True),
 	StructField('_RecordStart',TimestampType(),False),

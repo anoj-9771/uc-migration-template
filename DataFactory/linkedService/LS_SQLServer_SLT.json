@@ -1,0 +1,16 @@
+{
+	"name": "LS_SQLServer_SLT",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "SqlServer",
+		"typeProperties": {
+			"connectionString": "integrated security=False;data source=nt097dslt01.adsdev.swcdev;initial catalog=slt_replication_db;user id=SLTADMIN",
+			"encryptedCredential": "eyJDcmVkZW50aWFsSWQiOiJiYWJkMzRmNS1jZTE2LTRlYTYtOWJmYS1kOTA1MTE5MWQ2MDciLCJWZXJzaW9uIjoiMi4wIiwiQ2xhc3NUeXBlIjoiTWljcm9zb2Z0LkRhdGFQcm94eS5Db3JlLkludGVyU2VydmljZURhdGFDb250cmFjdC5DcmVkZW50aWFsU1UwNkNZMTQifQ=="
+		},
+		"connectVia": {
+			"referenceName": "IntegrationRuntime-SelfHosted",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

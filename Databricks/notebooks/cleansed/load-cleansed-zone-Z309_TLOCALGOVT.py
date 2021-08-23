@@ -176,7 +176,7 @@ df_local_govt = spark.sql("SELECT C_LGA AS LGACode, \
                 _RecordEnd, \
                 _RecordDeleted, \
                 _RecordCurrent \
-	FROM CLEANSED.STG_ACCESSDATA_Z309_TLOCALGOVT")
+	FROM CLEANSED.STG_ACCESS_Z309_TLOCALGOVT")
 
 display(df_local_govt)
 
