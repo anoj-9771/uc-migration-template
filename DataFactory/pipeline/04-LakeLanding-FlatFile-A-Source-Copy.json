@@ -10,7 +10,7 @@
 				"typeProperties": {
 					"variableName": "SourceContainer",
 					"value": {
-						"value": "@toLower(first(split(pipeline().parameters.TaskDetails.SourceLocation,'/')))",
+						"value": "@toLower(first(split(pipeline().parameters.TaskDetails.SourceName,'/')))",
 						"type": "Expression"
 					}
 				}
