@@ -1,0 +1,15 @@
+{
+	"name": "SRC_SQLSERVER_SLT",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_SQLServer_SLT",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "SQL Server"
+		},
+		"annotations": [],
+		"type": "SqlServerTable",
+		"schema": []
+	}
+}
