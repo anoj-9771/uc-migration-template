@@ -171,6 +171,10 @@
 							"dependsOn": [],
 							"userProperties": [],
 							"typeProperties": {
+								"pipeline": {
+									"referenceName": "04-SQLServer-B-Source-Copy",
+									"type": "PipelineReference"
+								},
 								"waitOnCompletion": true,
 								"parameters": {
 									"BatchLogId": {
@@ -427,6 +431,10 @@
 							],
 							"userProperties": [],
 							"typeProperties": {
+								"pipeline": {
+									"referenceName": "04-SQLServer-B-Source-Copy",
+									"type": "PipelineReference"
+								},
 								"waitOnCompletion": true,
 								"parameters": {
 									"BatchLogId": {
@@ -689,6 +697,10 @@
 				"dependsOn": [],
 				"userProperties": [],
 				"typeProperties": {
+					"pipeline": {
+						"referenceName": "04-SQLServer-Generate-Source-Schema",
+						"type": "PipelineReference"
+					},
 					"waitOnCompletion": true,
 					"parameters": {
 						"TaskDetails": {
@@ -895,6 +907,10 @@
 						},
 						"queryTimeout": "02:00:00",
 						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "SRC_SQLSERVER_SLT",
+						"type": "DatasetReference"
 					},
 					"firstRowOnly": true
 				}
