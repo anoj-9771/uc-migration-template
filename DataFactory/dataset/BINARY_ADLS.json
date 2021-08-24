@@ -1,0 +1,31 @@
+{
+	"name": "BINARY_ADLS",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_AzureDatalake",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"File": {
+				"type": "string"
+			},
+			"Container": {
+				"type": "string"
+			},
+			"Folder": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "Data Lake"
+		},
+		"annotations": [],
+		"type": "Binary",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation"
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}
