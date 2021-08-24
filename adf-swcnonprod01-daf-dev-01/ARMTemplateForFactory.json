@@ -2790,7 +2790,7 @@
 						"typeProperties": {
 							"variableName": "SourceContainer",
 							"value": {
-								"value": "@toLower(first(split(pipeline().parameters.TaskDetails.SourceName,'/')))",
+								"value": "@toLower(first(split(pipeline().parameters.TaskDetails.SourceName,'_')))",
 								"type": "Expression"
 							}
 						}
