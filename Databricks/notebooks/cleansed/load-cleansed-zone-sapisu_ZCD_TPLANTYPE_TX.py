@@ -155,15 +155,15 @@ df_updated_column_temp = spark.sql("SELECT  \
                               FROM CLEANSED.stg_sapisu_ZCD_TPLANTYPE_TX \
                               ")
 
-display(df_updated_column)
+display(df_updated_column_temp)
 
 # COMMAND ----------
 
 # Create schema for the cleanse table
 cleanse_Schema = StructType(
                             [
-                            StructField("PLAN_TYPE ", StringType(), True),
-                            StructField("DESCRIPTION ", StringType(), True),
+                            StructField("PLAN_TYPE", StringType(), True),
+                            StructField("DESCRIPTION", StringType(), True),
                             StructField('_RecordStart',TimestampType(),False),
                             StructField('_RecordEnd',TimestampType(),False),
                             StructField('_RecordDeleted',IntegerType(),False),
