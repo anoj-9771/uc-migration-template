@@ -78,13 +78,13 @@
 							"userProperties": [],
 							"typeProperties": {
 								"source": {
-									"type": "AzureSqlSource",
-									"sqlReaderQuery": {
-										"value": "@activity('Get-SQL').output.firstrow.SQLStatement",
-										"type": "Expression"
-									},
+									"type": "SqlServerSource",
 									"queryTimeout": "02:00:00",
 									"partitionOption": "None"
+								},
+								"dataset": {
+									"referenceName": "SRC_SQLSERVER_SLT",
+									"type": "DatasetReference"
 								},
 								"firstRowOnly": true
 							}
@@ -102,6 +102,10 @@
 							],
 							"userProperties": [],
 							"typeProperties": {
+								"pipeline": {
+									"referenceName": "recon-record-validation",
+									"type": "PipelineReference"
+								},
 								"waitOnCompletion": true,
 								"parameters": {
 									"ProjectRunID": {
