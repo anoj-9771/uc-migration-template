@@ -5,6 +5,9 @@
 		"factoryName": {
 			"value": "adf-swcnonprod01-daf-dev-01"
 		},
+		"LS_SQLServer_SLT_connectionString": {
+			"value": ""
+		},
 		"LS-AzureKeyVault_properties_typeProperties_baseUrl": {
 			"value": "https://kv-daf-dev-01.vault.azure.net/"
 		},

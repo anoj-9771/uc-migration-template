@@ -6,16 +6,67 @@
 			"type": "string",
 			"metadata": "Data Factory name",
 			"defaultValue": "adf-swcnonprod01-daf-dev-01"
-		},
-		"DLY1300_properties_01-Main_parameters_TriggerName": {
-			"type": "string",
-			"defaultValue": "DLY1300"
 		}
 	},
 	"variables": {
 		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
 	},
 	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/ARCHIVE_BLOB_JSON')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_AzureBlobStorage",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"BlobContainer": {
+						"type": "string"
+					}
+				},
+				"folder": {
+					"name": "Source - Blob"
+				},
+				"annotations": [],
+				"type": "Json",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"folderPath": {
+							"value": "@dataset().BlobContainer",
+							"type": "Expression"
+						},
+						"container": "archive"
+					}
+				},
+				"schema": {}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AzureSqlDatabase_Ctrldb')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS-AzureSqlDatabase_Ctrldb",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"kvSecret": "daf-sql-controldb-connectionstring"
+					}
+				},
+				"folder": {
+					"name": "Control"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {}
+			},
+			"dependsOn": []
+		},
 		{
 			"name": "[concat(parameters('factoryName'), '/DST_RAW_ADLS_CSV')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
@@ -1337,7 +1388,9 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/SRC_BLOB_JSON_copy1')]",
-				"[concat(variables('factoryId'), '/datasets/RAW_ADLS_JSON_v2')]"
+				"[concat(variables('factoryId'), '/datasets/AzureSqlDatabase_Ctrldb')]",
+				"[concat(variables('factoryId'), '/datasets/RAW_ADLS_JSON_v2')]",
+				"[concat(variables('factoryId'), '/datasets/ARCHIVE_BLOB_JSON')]"
 			]
 		},
 		{
@@ -2095,7 +2148,9 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/SRC_BLOB_JSON')]",
-				"[concat(variables('factoryId'), '/datasets/RAW_ADLS_JSON_v2')]"
+				"[concat(variables('factoryId'), '/datasets/RAW_ADLS_JSON_v2')]",
+				"[concat(variables('factoryId'), '/datasets/AzureSqlDatabase_Ctrldb')]",
+				"[concat(variables('factoryId'), '/datasets/ARCHIVE_BLOB_JSON')]"
 			]
 		},
 		{
@@ -2112,7 +2167,7 @@
 						"typeProperties": {
 							"variableName": "SourceContainer",
 							"value": {
-								"value": "@toLower(first(split(pipeline().parameters.TaskDetails.SourceLocation,'/')))",
+								"value": "@toLower(first(split(pipeline().parameters.TaskDetails.SourceName,'/')))",
 								"type": "Expression"
 							}
 						}
@@ -2764,6 +2819,7 @@
 				"lastPublishTime": "2021-06-30T08:46:15Z"
 			},
 			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/AzureSqlDatabase_Ctrldb')]",
 				"[concat(variables('factoryId'), '/datasets/SRC_RAW_LANDING_ADLS_CSV')]",
 				"[concat(variables('factoryId'), '/datasets/DST_RAW_ADLS_CSV')]"
 			]
@@ -4061,6 +4117,7 @@
 				"lastPublishTime": "2021-06-30T02:11:41Z"
 			},
 			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/AzureSqlDatabase_Ctrldb')]",
 				"[concat(variables('factoryId'), '/pipelines/04-Blob-A-Source Load')]",
 				"[concat(variables('factoryId'), '/pipelines/04-LakeLanding-FlatFile-A-Source-Copy')]"
 			]
@@ -4543,6 +4600,7 @@
 				"lastPublishTime": "2021-06-21T11:09:16Z"
 			},
 			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/AzureSqlDatabase_Ctrldb')]",
 				"[concat(variables('factoryId'), '/pipelines/04-Oracle-Generate-Source-Schema')]",
 				"[concat(variables('factoryId'), '/pipelines/04-Oracle-B-Source-Copy')]"
 			]
@@ -4658,154 +4716,8 @@
 				"lastPublishTime": "2021-06-21T01:45:17Z"
 			},
 			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/AzureSqlDatabase_Ctrldb')]",
 				"[concat(variables('factoryId'), '/pipelines/03-Execute-Project-Tasks')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/01-Main')]",
-			"type": "Microsoft.DataFactory/factories/pipelines",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"description": "This is the main pipeline.",
-				"activities": [
-					{
-						"name": "Get Projects to Execute",
-						"description": "",
-						"type": "Lookup",
-						"dependsOn": [],
-						"policy": {
-							"timeout": "7.00:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"source": {
-								"type": "AzureSqlSource",
-								"sqlReaderStoredProcedureName": "[[CTL].[getProjects]",
-								"storedProcedureParameters": {
-									"TriggerName": {
-										"type": "String",
-										"value": {
-											"value": "@pipeline().parameters.TriggerName",
-											"type": "Expression"
-										}
-									}
-								},
-								"partitionOption": "None"
-							},
-							"dataset": {
-								"referenceName": "AzureSqlDatabase_Ctrldb",
-								"type": "DatasetReference",
-								"parameters": {}
-							},
-							"firstRowOnly": false
-						}
-					},
-					{
-						"name": "Loop Projects",
-						"type": "ForEach",
-						"dependsOn": [
-							{
-								"activity": "Get Projects to Execute",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"userProperties": [],
-						"typeProperties": {
-							"items": {
-								"value": "@activity('Get Projects to Execute').output.value",
-								"type": "Expression"
-							},
-							"isSequential": false,
-							"activities": [
-								{
-									"name": "Execute Projects",
-									"type": "ExecutePipeline",
-									"dependsOn": [],
-									"userProperties": [],
-									"typeProperties": {
-										"pipeline": {
-											"referenceName": "02-Execute-Project-Stages",
-											"type": "PipelineReference"
-										},
-										"waitOnCompletion": true,
-										"parameters": {
-											"ProjectId": {
-												"value": "@item().ProjectId",
-												"type": "Expression"
-											},
-											"TriggerName": {
-												"value": "@pipeline().parameters.TriggerName",
-												"type": "Expression"
-											}
-										}
-									}
-								}
-							]
-						}
-					}
-				],
-				"parameters": {
-					"TriggerName": {
-						"type": "string",
-						"defaultValue": "OnDemand"
-					}
-				},
-				"variables": {
-					"ProjectName": {
-						"type": "String"
-					}
-				},
-				"annotations": [],
-				"lastPublishTime": "2021-06-18T07:33:49Z"
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/pipelines/02-Execute-Project-Stages')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/DLY1300')]",
-			"type": "Microsoft.DataFactory/factories/triggers",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"annotations": [],
-				"runtimeState": "Stopped",
-				"pipelines": [
-					{
-						"pipelineReference": {
-							"referenceName": "01-Main",
-							"type": "PipelineReference"
-						},
-						"parameters": {
-							"TriggerName": "[parameters('DLY1300_properties_01-Main_parameters_TriggerName')]"
-						}
-					}
-				],
-				"type": "ScheduleTrigger",
-				"typeProperties": {
-					"recurrence": {
-						"frequency": "Day",
-						"interval": 1,
-						"startTime": "2020-12-01T05:10:00",
-						"timeZone": "AUS Eastern Standard Time",
-						"schedule": {
-							"minutes": [
-								0
-							],
-							"hours": [
-								13
-							]
-						}
-					}
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/pipelines/01-Main')]"
 			]
 		}
 	]

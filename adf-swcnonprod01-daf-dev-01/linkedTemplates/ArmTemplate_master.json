@@ -7,6 +7,10 @@
 			"metadata": "Data Factory name",
 			"defaultValue": "adf-swcnonprod01-daf-dev-01"
 		},
+		"LS_SQLServer_SLT_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'LS_SQLServer_SLT'"
+		},
 		"LS-AzureKeyVault_properties_typeProperties_baseUrl": {
 			"type": "string",
 			"defaultValue": "https://kv-daf-dev-01.vault.azure.net/"
@@ -116,6 +120,9 @@
 					"factoryName": {
 						"value": "[parameters('factoryName')]"
 					},
+					"LS_SQLServer_SLT_connectionString": {
+						"value": "[parameters('LS_SQLServer_SLT_connectionString')]"
+					},
 					"LS-AzureKeyVault_properties_typeProperties_baseUrl": {
 						"value": "[parameters('LS-AzureKeyVault_properties_typeProperties_baseUrl')]"
 					},
@@ -187,9 +194,6 @@
 				"parameters": {
 					"factoryName": {
 						"value": "[parameters('factoryName')]"
-					},
-					"DLY1300_properties_01-Main_parameters_TriggerName": {
-						"value": "[parameters('DLY1300_properties_01-Main_parameters_TriggerName')]"
 					}
 				}
 			},
@@ -210,6 +214,9 @@
 				"parameters": {
 					"factoryName": {
 						"value": "[parameters('factoryName')]"
+					},
+					"DLY1300_properties_01-Main_parameters_TriggerName": {
+						"value": "[parameters('DLY1300_properties_01-Main_parameters_TriggerName')]"
 					},
 					"Emrvisaf_properties_01-Main_parameters_TriggerName": {
 						"value": "[parameters('Emrvisaf_properties_01-Main_parameters_TriggerName')]"
