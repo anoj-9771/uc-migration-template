@@ -305,17 +305,17 @@
 										"userProperties": [],
 										"typeProperties": {
 											"pipeline": {
-												"referenceName": "04-LakeLanding-FlatFile-A-Source-Copy",
+												"referenceName": "04-SQLServer-A-Source Load",
 												"type": "PipelineReference"
 											},
 											"waitOnCompletion": true,
 											"parameters": {
-												"TaskDetails": {
-													"value": "@item()",
-													"type": "Expression"
-												},
 												"BatchLogId": {
 													"value": "@activity('Generate Batch Log').output.firstrow.BatchLogId",
+													"type": "Expression"
+												},
+												"TaskDetails": {
+													"value": "@item()",
 													"type": "Expression"
 												},
 												"TaskExecutionLogId": {

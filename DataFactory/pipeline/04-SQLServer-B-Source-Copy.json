@@ -44,7 +44,17 @@
 				"outputs": [
 					{
 						"referenceName": "RAW_ADLS_JSON_v2",
-						"type": "DatasetReference"
+						"type": "DatasetReference",
+						"parameters": {
+							"BlobPath": {
+								"value": "@pipeline().parameters.TargetBLOBFolder",
+								"type": "Expression"
+							},
+							"BlobName": {
+								"value": "@pipeline().parameters.TargetBLOBName",
+								"type": "Expression"
+							}
+						}
 					}
 				]
 			},
@@ -220,6 +230,10 @@
 							],
 							"userProperties": [],
 							"typeProperties": {
+								"pipeline": {
+									"referenceName": "recon-record-validation",
+									"type": "PipelineReference"
+								},
 								"waitOnCompletion": true,
 								"parameters": {
 									"ProjectRunID": {
