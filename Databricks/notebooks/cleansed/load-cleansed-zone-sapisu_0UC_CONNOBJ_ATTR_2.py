@@ -145,155 +145,149 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_updated_column = spark.sql("SELECT  \
-                                  INTRENO as architecturalObjectInternalId , \
-                                  AOID as architecturalObjectId , \
-                                  AOTYPE as architecturalObjectTypeCode , \
-                                  tiv.XMAOTYPE as architecturalObjectType , \
-                                  AONR as architecturalObjectNumber , \
-                                  VALIDFROM as validFromDate , \
-                                  VALIDTO as validToDate , \
-                                  PARTAOID as partArchitecturalObjectId , \
-                                  OBJNR as objectNumber , \
-                                  RERF as firstEnteredBy , \
-                                  DERF as firstEnteredOnDate , \
-                                  TERF as firstEnteredTime , \
-                                  REHER as firstEnteredSource , \
-                                  RBEAR as employeeId , \
-                                  DBEAR as lastEdittedOnDate , \
-                                  TBEAR as lastEdittedTime , \
-                                  RBHER as lastEdittedSource , \
-                                  RESPONSIBLE as responsiblePerson , \
-                                  USEREXCLUSIVE as exclusiveUser , \
-                                  LASTRENO as lastRelocationDate , \
-                                  MEASSTRC as measurementStructure , \
-                                  DOORPLT as shortDescription , \
-                                  RSAREA as reservationArea , \
-                                  SINSTBEZ as maintenanceDistrict , \
-                                  SVERKEHR as businessEntityTransportConnectionsIndicator , \
-                                  ZCD_PROPERTY_NO as propertyNumber , \
-                                  ZCD_PROP_CR_DATE as propertyCreatedDate , \
-                                  ZCD_PROP_LOT_NO as propertyLotNumber , \
-                                  ZCD_REQUEST_NO as propertyRequestNumber , \
-                                  ZCD_PLAN_TYPE as planTypeCode , \
+df_updated_column_temp = spark.sql("SELECT  \
+                                  HAUS  as propertyNumber , \
+                                  COUNTRY  as countryShortName , \
+                                  CITY_CODE  as cityCode , \
+                                  STREETCODE  as streetCode , \
+                                  stc.STREET as streetName , \
+                                  POSTALCODE  as postCode , \
+                                  REGION  as stateCode , \
+                                  REGIO_GRP  as regionGroup , \
+                                  REGPOLIT  as politicalRegionCode , \
+                                  reg.REGNAME as politicalRegion , \
+                                  wwTP  as connectionObjectGUID , \
+                                  UPDMOD  as updateMode , \
+                                  LOEVM  as deletedIndicator , \
+                                  REGIOGROUP_PERM  as regionGroupPermit , \
+                                  ZCD_PLAN_TYPE  as planTypeCode , \
                                   plt.DESCRIPTION as planType , \
-                                  ZCD_PLAN_NUMBER as planNumber , \
-                                  ZCD_PROCESS_TYPE as processTypeCode , \
+                                  ZCD_PROCESS_TYPE  as processTypeCode , \
                                   prt.DESCRIPTION as processType , \
-                                  ZCD_ADDR_LOT_NO as addressLotNumber , \
-                                  ZCD_LOT_TYPE as lotTypeCode , \
-                                  ZCD_UNIT_ENTITLEMENT as unitEntitlement , \
-                                  ZCD_NO_OF_FLATS as flatCount , \
-                                  ZCD_SUP_PROP_TYPE as superiorPropertyTypeCode , \
+                                  ZCD_PLAN_NUMBER  as planNumber , \
+                                  ZCD_LOT_TYPE  as lotTypeCode , \
+                                  ZCD_LOT_NUMBER  as lotNumber , \
+                                  ZCD_SECTION_NUMBER  as sectionNumber , \
+                                  ZCD_IND_SRV_AGR  as serviceAgreementIndicator , \
+                                  ZCD_IND_MLIM  as mlimIndicator , \
+                                  ZCD_IND_WICA  as wicaIndicator , \
+                                  ZCD_IND_SOPA  as sopaIndicator , \
+                                  ZCD_AONR  as architecturalObjectNumber , \
+                                  ZCD_AOTYPE  as architecturalObjectTypeCode , \
+                                  ZCD_CASE_NO  as caseNumber , \
+                                  tiv.XMAOTYPE as architecturalObjectType , \
+                                  ZCD_BLD_FEE_DATE  as buildingFeeDate , \
+                                  ZCD_CAD_ID  as cadID , \
+                                  ZZPUMP_WW  as pumpWateWaterIndicator , \
+                                  ZZFIRE_SERVICE  as fireServiceIndicator , \
+                                  ZINTRENO  as architecturalObjectInternalId , \
+                                  ZAOID  as architecturalObjectId , \
+                                  ZFIXFITCHARACT  as fixtureAndFittingCharacteristic , \
+                                  HOUSE_ADRNR  as houseAddressNumber , \
+                                  WWTP  as WWTP , \
+                                  SCAMP  as SCAMP , \
+                                  HAUS_STREET  as streetName , \
+                                  HAUS_NUM1  as houseNumber , \
+                                  HAUS_LGA_NAME  as LGA , \
+                                  HOUS_CITY1  as cityName , \
+                                  WATER_DELIVERY_SYSTEM  as waterDeliverySystem , \
+                                  WATER_DISTRIBUTION_SYSTEM_WATE  as waterDistributionSystem , \
+                                  WATER_SUPPLY_ZONE  as waterSupplyZone , \
+                                  RECYCLE_WATER_DELIVERY_SYSTEM  as receycleWaterDeliverySystem , \
+                                  RECYCLE_WATER_DISTRIBUTION_SYS  as receycleWaterDistributionSystem , \
+                                  RECYCLE_WATER_SUPPLY_ZONE  as recycleWaterSupplyZone , \
+                                  ZCD_SUP_PROP_TYPE  as superiorPropertyTypeCode , \
                                   sp.DESCRIPTION as superiorPropertyType , \
-                                  ZCD_INF_PROP_TYPE as inferiorPropertyTypeCode , \
+                                  ZCD_INF_PROP_TYPE  as inferiorPropertyTypeCode , \
                                   ip.DESCRIPTION as inferiorPropertyType , \
-                                  ZCD_STORM_WATER_ASSESS as stormWaterAssesmentIndicator , \
-                                  ZCD_IND_MLIM as mlimIndicator , \
-                                  ZCD_IND_WICA as wicaIndicator , \
-                                  ZCD_IND_SOPA as sopaIndicator , \
-                                  ZCD_IND_COMMUNITY_TITLE as communityTitleIndicator , \
-                                  ZCD_SECTION_NUMBER as sectionNumber , \
-                                  ZCD_HYDRA_CALC_AREA as hydraCalculatedArea , \
-                                  ZCD_HYDRA_AREA_UNIT as hydraAreaUnit , \
-                                  ZCD_HYDRA_AREA_FLAG as hydraAreaIndicator , \
-                                  ZCD_CASENO_FLAG as caseNumberIndicator , \
-                                  ZCD_OVERRIDE_AREA as overrideArea , \
-                                  ZCD_OVERRIDE_AREA_UNIT as overrideAreaUnit , \
-                                  ZCD_CANCELLATION_DATE as cancellationDate , \
-                                  ZCD_CANC_REASON as cancellationReasonCode , \
-                                  ZCD_COMMENTS as comments , \
-                                  ZCD_PROPERTY_INFO as propertyInfo , \
-                                  OBJNRTRG as targetObjectNumber , \
-                                  DIAGRAM_NO as diagramNumber , \
-                                  FIXFITCHARACT as fixtureAndFittingCharacteristicCode , \
-                                  XFIXFITCHARACT as fixtureAndFittingCharacteristic , \
+                                  Z_OWNER  as objectReferenceIndicator , \
+                                  Z_OBJNR  as objectNumber , \
+                                  ZCD_NO_OF_FLATS  as flatCount , \
                                   _RecordStart, \
                                   _RecordEnd, \
                                   _RecordDeleted, \
                                   _RecordCurrent \
-                              FROM CLEANSED.stg_sapisu_vibdao vib \
+                              FROM CLEANSED.stg_sapisu_0UC_CONNOBJ_ATTR_2 con \
                                     LEFT OUTER JOIN CLEANSED.t_sapisu_ZCD_TINFPRTY_TX ip ON \
-                                   vib.ZCD_INF_PROP_TYPE = ip.INFERIOR_PROP_TYPE \
+                                   con.ZCD_INF_PROP_TYPE = ip.INFERIOR_PROP_TYPE \
                                     LEFT OUTER JOIN CLEANSED.t_sapisu_ZCD_TSUPPRTYP_TX sp ON \
-                                   vib.ZCD_SUP_PROP_TYPE = sp.SUPERIOR_PROP_TYPE \
+                                   con.ZCD_SUP_PROP_TYPE = sp.SUPERIOR_PROP_TYPE \
                                     LEFT OUTER JOIN CLEANSED.t_sapisu_ZCD_TPLANTYPE_TX plt ON \
-                                   vib.ZCD_PLAN_TYPE = plt.PLAN_TYPE \
+                                   con.ZCD_PLAN_TYPE = plt.PLAN_TYPE \
                                     LEFT OUTER JOIN CLEANSED.t_sapisu_TIVBDAROBJTYPET tiv ON \
-                                   vib.ZCD_AOTYPE = tiv.AOTYPE \
+                                   con.ZCD_AOTYPE = tiv.AOTYPE \
                                     LEFT OUTER JOIN CLEANSED.t_sapisu_ZCD_TPROCTYPE_TX prt ON \
-                                   vib.ZCD_PROCESS_TYPE = prt.PROCESS_TYPE \
+                                   con.ZCD_PROCESS_TYPE = prt.PROCESS_TYPE \
+                                    LEFT OUTER JOIN CLEANSED.t_sapisu_0CAM_STREETCODE_TEXT stc ON \
+                                   con.STRT_CODE = stc.streetCode \
+                                    LEFT OUTER JOIN CLEANSED.t_sapisu_TE227T reg ON \
+                                   con.REGPOLIT = reg.REGPOLIT \
                               ")
 
-display(df_updated_column)
+display(df_updated_column_temp)
 
 # COMMAND ----------
 
 # Create schema for the cleanse table
 cleanse_Schema = StructType(
                             [
-                            StructField("architecturalObjectInternalId", StringType(), True),
-                            StructField("architecturalObjectId", StringType(), True),
-                            StructField("architecturalObjectTypeCode", StringType(), True),
-                            StructField("architecturalObjectType", StringType(), True),
-                            StructField("architecturalObjectNumber", StringType(), True),
-                            StructField("validFromDate", DateType(), True),
-                            StructField("validToDate", DateType(), True),
-                            StructField("partArchitecturalObjectId", StringType(), True),
-                            StructField("objectNumber", StringType(), True),
-                            StructField("firstEnteredBy", StringType(), True),
-                            StructField("firstEnteredOnDate", DateType(), True),
-                            StructField("firstEnteredTime", DateType(), True),
-                            StructField("firstEnteredSource", StringType(), True),
-                            StructField("employeeId", StringType(), True),
-                            StructField("lastEdittedOnDate", DateType(), True),
-                            StructField("lastEdittedTime", DateType(), True),
-                            StructField("lastEdittedSource", StringType(), True),
-                            StructField("responsiblePerson", StringType(), True),
-                            StructField("exclusiveUser", StringType(), True),
-                            StructField("lastRelocationDate", DateType(), True),
-                            StructField("measurementStructure", StringType(), True),
-                            StructField("shortDescription", StringType(), True),
-                            StructField("reservationArea", StringType(), True),
-                            StructField("maintenanceDistrict", LongType(), True),
-                            StructField("businessEntityTransportConnectionsIndicator", StringType(), True),
-                            StructField("propertyNumber", StringType(), True),
-                            StructField("propertyCreatedDate", DateType(), True),
-                            StructField("propertyLotNumber", LongType(), True),
-                            StructField("propertyRequestNumber", LongType(), True),
-                            StructField("planTypeCode", StringType(), True),
-                            StructField("planType", StringType(), True),
-                            StructField("planNumber", LongType(), True),
-                            StructField("processTypeCode", StringType(), True),
-                            StructField("processType", StringType(), True),
-                            StructField("addressLotNumber", StringType(), True),
-                            StructField("lotTypeCode", StringType(), True),
-                            StructField("unitEntitlement", StringType(), True),
-                            StructField("flatCount", StringType(), True),
-                            StructField("superiorPropertyTypeCode", StringType(), True),
-                            StructField("superiorPropertyType", StringType(), True),
-                            StructField("inferiorPropertyTypeCode", StringType(), True),
-                            StructField("inferiorPropertyType", StringType(), True),
-                            StructField("stormWaterAssesmentIndicator", StringType(), True),
-                            StructField("mlimIndicator", StringType(), True),
-                            StructField("wicaIndicator", StringType(), True),
-                            StructField("sopaIndicator", StringType(), True),
-                            StructField("communityTitleIndicator", StringType(), True),
-                            StructField("sectionNumber", StringType(), True),
-                            StructField("hydraCalculatedArea", StringType(), True),
-                            StructField("hydraAreaUnit", StringType(), True),
-                            StructField("hydraAreaIndicator", StringType(), True),
-                            StructField("caseNumberIndicator", StringType(), True),
-                            StructField("overrideArea", StringType(), True),
-                            StructField("overrideAreaUnit", StringType(), True),
-                            StructField("cancellationDate", DateType(), True),
-                            StructField("cancellationReasonCode", StringType(), True),
-                            StructField("comments", StringType(), True),
-                            StructField("propertyInfo", StringType(), True),
-                            StructField("targetObjectNumber", StringType(), True),
-                            StructField("diagramNumber", LongType(), True),
-                            StructField("fixtureAndFittingCharacteristicCode", StringType(), True),
-                            StructField("fixtureAndFittingCharacteristic", StringType(), True),
+StructField("propertyNumber", StringType(), True),
+StructField("countryShortName", StringType(), True),
+StructField("cityCode", StringType(), True),
+StructField("streetCode", StringType(), True),
+StructField("streetName", StringType(), True),
+StructField("postCode", StringType(), True),
+StructField("stateCode", StringType(), True),
+StructField("regionGroup", StringType(), True),
+StructField("politicalRegionCode", StringType(), True),
+StructField("politicalRegion", StringType(), True),
+StructField("connectionObjectGUID", StringType(), True),
+StructField("updateMode", StringType(), True),
+StructField("deletedIndicator", StringType(), True),
+StructField("regionGroupPermit", StringType(), True),
+StructField("planTypeCode", StringType(), True),
+StructField("planType", StringType(), True),
+StructField("processTypeCode", StringType(), True),
+StructField("processType", StringType(), True),
+StructField("planNumber", StringType(), True),
+StructField("lotTypeCode", StringType(), True),
+StructField("lotNumber", StringType(), True),
+StructField("sectionNumber", StringType(), True),
+StructField("serviceAgreementIndicator", StringType(), True),
+StructField("mlimIndicator", StringType(), True),
+StructField("wicaIndicator", StringType(), True),
+StructField("sopaIndicator", StringType(), True),
+StructField("architecturalObjectNumber", StringType(), True),
+StructField("architecturalObjectTypeCode", StringType(), True),
+StructField("caseNumber", StringType(), True),
+StructField("architecturalObjectType", StringType(), True),
+StructField("buildingFeeDate", DateType(), True),
+StructField("cadID", StringType(), True),
+StructField("pumpWateWaterIndicator", StringType(), True),
+StructField("fireServiceIndicator", StringType(), True),
+StructField("architecturalObjectInternalId", StringType(), True),
+StructField("architecturalObjectId", StringType(), True),
+StructField("fixtureAndFittingCharacteristic", StringType(), True),
+StructField("houseAddressNumber", StringType(), True),
+StructField("WWTP", StringType(), True),
+StructField("SCAMP", StringType(), True),
+StructField("streetName", StringType(), True),
+StructField("houseNumber", StringType(), True),
+StructField("LGA", StringType(), True),
+StructField("cityName", StringType(), True),
+StructField("waterDeliverySystem", StringType(), True),
+StructField("waterDistributionSystem", StringType(), True),
+StructField("waterSupplyZone", StringType(), True),
+StructField("receycleWaterDeliverySystem", StringType(), True),
+StructField("receycleWaterDistributionSystem", StringType(), True),
+StructField("recycleWaterSupplyZone", StringType(), True),
+StructField("superiorPropertyTypeCode", StringType(), True),
+StructField("superiorPropertyType", StringType(), True),
+StructField("inferiorPropertyTypeCode", StringType(), True),
+StructField("inferiorPropertyType", StringType(), True),
+StructField("objectReferenceIndicator", StringType(), True),
+StructField("objectNumber", StringType(), True),
+StructField("flatCount", StringType(), True),
                             StructField('_RecordStart',TimestampType(),False),
                             StructField('_RecordEnd',TimestampType(),False),
                             StructField('_RecordDeleted',IntegerType(),False),

@@ -146,14 +146,13 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_updated_column_temp = spark.sql("SELECT  \
-                                  PROCESS_TYPE as PROCESS_TYPE , \
-                                  PROCESS_MODE as PROCESS_MODE , \
-                                  DESCRIPTION as DESCRIPTION , \
+                                  PLAN_TYPE  as PLAN_TYPE  , \
+                                  DESCRIPTION  as DESCRIPTION  , \
                                   _RecordStart, \
                                   _RecordEnd, \
                                   _RecordDeleted, \
                                   _RecordCurrent \
-                              FROM CLEANSED.stg_sapisu_ZCD_TPROCTYPE_TX \
+                              FROM CLEANSED.stg_sapisu_ZCD_TPLANTYPE_TX \
                               ")
 
 display(df_updated_column_temp)
@@ -163,8 +162,7 @@ display(df_updated_column_temp)
 # Create schema for the cleanse table
 cleanse_Schema = StructType(
                             [
-                            StructField("PROCESS_TYPE", StringType(), True),
-                            StructField("PROCESS_MODE", StringType(), True),
+                            StructField("PLAN_TYPE", StringType(), True),
                             StructField("DESCRIPTION", StringType(), True),
                             StructField('_RecordStart',TimestampType(),False),
                             StructField('_RecordEnd',TimestampType(),False),
