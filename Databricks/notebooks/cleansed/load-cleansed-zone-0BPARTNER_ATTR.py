@@ -191,10 +191,10 @@ df_updated_column_temp = spark.sql("SELECT \
                                 BP.NAME_GRP2 as nameGroup2,\
                                 BP.CRUSR as createdBy,\
                                 to_date(BP.CRDAT) as createdDate,\
-                                BP.CRTIM as createdTime,\
+                                cast(concat(BP.CRDAT,' ',(case WHEN BP.CRTIM is null then  '00:00:00' else BP.CRTIM END)) as timestamp)  as createdDateTime,\
                                 BP.CHUSR as changedBy,\
                                 to_date(BP.CHDAT) as changedDate,\
-                                to_date(Concat(BP.CRDAT,BP.CRTIM)) as createdDateTime,\
+                                cast(concat(BP.CHDAT,' ',(case WHEN BP.CHTIM is null then  '00:00:00' else BP.CHTIM END)) as timestamp)  as changedDateTime,\
                                 BP.PARTNER_GUID as businessPartnerGUID,\
                                 BP.ADDRCOMM as addressNumber,\
                                 BP.VALID_FROM as validFromDate,\
@@ -263,10 +263,10 @@ cleanse_Schema = StructType(
     StructField("nameGroup2", StringType(), True),
     StructField("createdBy", StringType(), True),
     StructField("createdDate", DateType(), True),
-    StructField("createdTime", StringType(), True),
+    StructField("createdDateTime", TimestampType(), True),
     StructField("changedBy", StringType(), True),
     StructField("changedDate", DateType(), True),
-    StructField("changedTime", StringType(), True),
+    StructField("changedDateTime", TimestampType(), True),
     StructField("businessPartnerGUID", StringType(), True),
     StructField("addressNumber", StringType(), True),
     StructField("validFromDate",StringType(), True),
@@ -281,6 +281,11 @@ cleanse_Schema = StructType(
 # Apply the new schema to cleanse Data Frame
 df_updated_column = spark.createDataFrame(df_updated_column_temp.rdd, schema=cleanse_Schema)
 display(df_updated_column)
+
+# COMMAND ----------
+
+df = spark.sql("Select * from cleansed.t_sapisu_0bpartner_attr")
+display(df)
 
 # COMMAND ----------
 
