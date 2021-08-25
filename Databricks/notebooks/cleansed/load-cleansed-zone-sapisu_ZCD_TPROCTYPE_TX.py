@@ -96,7 +96,6 @@ print(json.dumps(Params, indent=4, sort_keys=True))
 # COMMAND ----------
 
 # DBTITLE 1,8. Initilize/update parameter values
-
 #Align Table Name (replace '[-@ ,;{}()]' charecter by '_')
 source_object = GeneralAlignTableName(source_object)
 print(source_object)
@@ -117,8 +116,6 @@ print(data_load_mode)
 #Delta and SQL tables are case Insensitive. Seems Delta table are always lower case
 delta_cleansed_tbl_name = "{0}.{1}".format(ADS_DATABASE_CLEANSED, "stg_"+source_object)
 delta_raw_tbl_name = "{0}.{1}".format(ADS_DATABASE_RAW, source_object)
-#delta_raw_tbl_name = "raw.sap_0uc_mtr_doc"
-
 
 #Destination
 print(delta_cleansed_tbl_name)
@@ -148,92 +145,38 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_updated_column = spark.sql("SELECT  \
-                                ABLBELNR  as meterReadingId , \
-                                EQUNR  as equipmentNumber , \
-                                ZWNUMMER  as registerNumber , \
-                                to_date(ADAT ) as meterReadingDate , \
-                                MRESULT  as meterReadingTaken  , \
-                                MR_BILL  as duplicate , \
-                                AKTIV  as meterReadingActive  , \
-                                to_date(ADATSOLL ) as scheduledMeterReadingDate  , \
-                                ABLSTAT  as meterReadingStatus  , \
-                                ABLHINW  as notefromMeterReader  , \
-                                ABLESART  as scheduledMeterReadingCategory  , \
-                                ABLESER  as meterReaderNumber  , \
-                                MDEUPL  as orderHasBeenOutput  , \
-                                ISTABLART  as meterReadingType  , \
-                                ABLESTYP  as meterReadingCategory  , \
-                                MASSREAD  as unitOfMeasurementMeterReading  , \
-                                UPDMOD  as bwDeltaProcess , \
-                                LOEVM  as deletedIndicator  , \
-                                PRUEFPKT  as independentValidation  , \
-                                POPCODE  as dependentValidation  , \
-                                AMS  as advancedMeteringSystem  , \
-                                TRANSSTAT  as transferStatusCode  , \
-                                TRANSTSTAMP  as timeStamp , \
-                                SOURCESYST  as sourceSystemOrigin , \
-                                to_date(ZPREV_ADT ) as actualmeterReadingDate  , \
-                                ZPREV_MRESULT  as meterReadingTaken  , \
-                                ZZ_PHOTO_IND  as meterPhotoIndicator  , \
-                                ZZ_FREE_TEXT  as freeText  , \
-                                ZZ_COMM_CODE  as meterReadingCommentCode  , \
-                                ZZ_NO_READ_CODE  as noReadCode  , \
-                                ZGERNR  as DeviceNumber , \
-                                to_date(ZADATTATS ) as actualMeterReadingDate  , \
-                                ZWNABR  as registerNotRelevantToBilling  , \
-                                to_date(AEDAT ) as lastChangedDate , \
-                                _RecordStart, \
-                                _RecordEnd, \
-                                _RecordDeleted, \
-                                _RecordCurrent \
-                              FROM CLEANSED.stg_sapisu_0uc_mtr_doc")
+df_updated_column_temp = spark.sql("SELECT  \
+                                  PROCESS_TYPE as PROCESS_TYPE , \
+                                  PROCESS_MODE as PROCESS_MODE , \
+                                  DESCRIPTION as DESCRIPTION , \
+                                  _RecordStart, \
+                                  _RecordEnd, \
+                                  _RecordDeleted, \
+                                  _RecordCurrent \
+                              FROM CLEANSED.stg_sapisu_ZCD_TPROCTYPE_TX \
+                              ")
 
-display(df_updated_column)
+display(df_updated_column_temp)
 
 # COMMAND ----------
 
 # Create schema for the cleanse table
 cleanse_Schema = StructType(
-  [
-      StructField("meterReadingId", StringType(), True),
-      StructField("equipmentNumber", StringType(), True),
-      StructField("registerNumber", LongType(), True),
-      StructField("meterReadingDate", DateType(), True),
-      StructField("meterReadingTaken ",DoubleType(), True),
-      StructField("duplicate",DoubleType(), True),
-      StructField("meterReadingActive ", StringType(), True),
-      StructField("scheduledMeterReadingDate ", DateType(), True),
-      StructField("meterReadingStatus ", StringType(), True),
-      StructField("notefromMeterReader ", StringType(), True),
-      StructField("scheduledMeterReadingCategory ", StringType(), True),
-      StructField("meterReaderNumber ", StringType(), True),
-      StructField("orderHasBeenOutput ", StringType(), True),
-      StructField("meterReadingType ", StringType(), True),
-      StructField("meterReadingCategory ", StringType(), True),
-      StructField("unitOfMeasurementMeterReading ", StringType(), True),
-      StructField("bwDeltaProcess", StringType(), True),
-      StructField("deletedIndicator ", StringType(), True),
-      StructField("independentValidation ", StringType(), True),
-      StructField("dependentValidation ", StringType(), True),
-      StructField("advancedMeteringSystem ", StringType(), True),
-      StructField("transferStatusCode ", StringType(), True),
-      StructField("timeStamp",DoubleType(), True),
-      StructField("sourceSystemOrigin", LongType(), True),
-      StructField("actualmeterReadingDate ", DateType(), True),
-      StructField("meterReadingTaken ",DoubleType(), True),
-      StructField("meterPhotoIndicator ", StringType(), True),
-      StructField("freeText ", StringType(), True),
-      StructField("meterReadingCommentCode ", StringType(), True),
-      StructField("noReadCode ", StringType(), True),
-      StructField("DeviceNumber", StringType(), True),
-      StructField("actualMeterReadingDate ", DateType(), True),
-      StructField("registerNotRelevantToBilling ", StringType(), True),
-      StructField("lastChangedDate", DateType(), True),
-  ]
-)
+                            [
+                            StructField("PROCESS_TYPE", StringType(), True),
+                            StructField("PROCESS_MODE", StringType(), True),
+                            StructField("DESCRIPTION", StringType(), True),
+                            StructField('_RecordStart',TimestampType(),False),
+                            StructField('_RecordEnd',TimestampType(),False),
+                            StructField('_RecordDeleted',IntegerType(),False),
+                            StructField('_RecordCurrent',IntegerType(),False)
+                            ]
+                        )
 # Apply the new schema to cleanse Data Frame
 df_updated_column = spark.createDataFrame(df_updated_column_temp.rdd, schema=cleanse_Schema)
+display(df_updated_column)
+
+
 
 # COMMAND ----------
 
