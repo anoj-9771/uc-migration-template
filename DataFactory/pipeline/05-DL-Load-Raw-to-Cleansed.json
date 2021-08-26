@@ -250,6 +250,10 @@
 									"source_param": {
 										"value": "@string(pipeline().parameters.TaskDetails)",
 										"type": "Expression"
+									},
+									"delta_column": {
+										"value": "@pipeline().parameters.TaskDetails.WatermarkColumn",
+										"type": "Expression"
 									}
 								}
 							},
