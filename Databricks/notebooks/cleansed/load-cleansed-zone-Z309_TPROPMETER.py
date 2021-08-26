@@ -172,6 +172,7 @@ df_cleansed = spark.sql("SELECT cast(N_PROP as int) AS propertyNumber, \
         cast(b.meterSize as string)||lower(b.meterSizeUnit) as meterSize, \
 		case when C_METE_POSI_STAT = 'M' then true else false end as isMasterMeter, \
         case when C_METE_POSI_STAT = 'C' then true else false end as isCheckMeter, \
+        case when C_METE_POSI_STAT = 'A' then true else false end as allowAlso, \
         case when F_METE_CONN = 'D' then false else true end AS isMeterConnected, \
 		C_METE_READ_FREQ AS meterReadingFrequencyCode, \
 		C_METE_CLAS AS meterClassCode, \
@@ -220,6 +221,7 @@ newSchema = StructType([
 	StructField('meterSize',StringType(),False),
     StructField('isMasterMeter',BooleanType(),False),
 	StructField('isCheckMeter',BooleanType(),False),
+    StructField('allowAlso',BooleanType(),False),
 	StructField('isMeterConnected',BooleanType(),False),
 	StructField('meterReadingFrequencyCode',StringType(),True),
 	StructField('meterClassCode',StringType(),True),

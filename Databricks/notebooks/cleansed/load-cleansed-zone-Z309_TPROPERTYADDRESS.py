@@ -177,8 +177,8 @@ df_cleansed = spark.sql("SELECT C_LGA AS LGACode, \
 		N_FLOR_LVL AS floorLevelNumber, \
 		C_FLAT_UNIT AS flatUnitType, \
 		N_FLAT_UNIT AS flatUnitNumber, " + 
-        ("N_HOUS_1 as houseNumber1, T_HOUS_1_SUFX AS houseNumber1Suffix, N_HOUS_2 as houseNumber2, T_HOUS_2_SUFX AS houseNumber2Suffix, N_LOT AS lotNumber, N_RMB AS RMB, " if ADS_ENVIRONMENT not in ['dev','test'] else " \
-        cast(1 as int) as houseNumber1, T_HOUS_1_SUFX AS houseNumber1Suffix, cast(0 as int) AS houseNumber2, ' ' AS houseNumber2Suffix, ' ' AS lotNumber, ' ' AS RMB, ") + " \
+        ("N_HOUS_1 as houseNumber1, T_HOUS_1_SUFX AS houseNumber1Suffix, N_HOUS_2 as houseNumber2, T_HOUS_2_SUFX AS houseNumber2Suffix, N_LOT AS lotNumber, N_RMB AS roadSideMailbox, " if ADS_ENVIRONMENT not in ['dev','test'] else " \
+        cast(1 as int) as houseNumber1, T_HOUS_1_SUFX AS houseNumber1Suffix, cast(0 as int) AS houseNumber2, ' ' AS houseNumber2Suffix, ' ' AS lotNumber, ' ' AS roadSideMailbox, ") + " \
 		T_OTHE_ADDR_INFO AS otherAddressInformation, \
 		T_SPEC_DESC AS specialDescription, \
 		M_BUIL_1 AS buildingName1, \
@@ -213,7 +213,7 @@ newSchema = StructType([
 	StructField('houseNumber2',IntegerType(),False),
 	StructField('houseNumber2Suffix',StringType(),True),
 	StructField('lotNumber',StringType(),True),
-	StructField('RMB',StringType(),True),
+	StructField('roadSideMailbox',StringType(),True),
 	StructField('otherAddressInformation',StringType(),True),
 	StructField('specialDescription',StringType(),True),
 	StructField('buildingName1',StringType(),True),

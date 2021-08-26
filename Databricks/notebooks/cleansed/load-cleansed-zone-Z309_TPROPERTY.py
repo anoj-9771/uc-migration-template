@@ -209,13 +209,13 @@ df_cleansed = spark.sql("SELECT cast(N_PROP as int) AS propertyNumber, \
 		cast(Q_PROP_METE as int) AS propertyMeterCount, \
 		cast(Q_PROP_AREA as decimal(9,3)) AS propertyArea, \
 		C_PROP_AREA_TYPE AS propertyAreaTypeCode, \
-		cast(A_PROP_PURC_PRIC as decimal(11,0)) AS propertyPurchasePriceAmount, \
+		cast(A_PROP_PURC_PRIC as decimal(11,0)) AS purchasePrice, \
 		case when d_prop_sale_sett = '00000000' \
                   then null \
              when D_PROP_SALE_SETT = '00181029' \
                   then to_date('20181029','yyyyMMdd') \
                   else to_date(D_PROP_SALE_SETT,'yyyyMMdd') \
-        end AS propertySaleSettledDate, \
+        end AS settlementDate, \
 		to_date(D_CNTR, 'yyyyMMdd') AS contractDate, \
 		C_EXTR_LOT AS extraLotCode, \
         to_date(D_PROP_UPDA, 'yyyyMMdd') AS propertyUpdatedDate, \
@@ -263,8 +263,8 @@ newSchema = StructType([
 	StructField('propertyMeterCount',IntegerType(),False),
 	StructField('propertyArea',DecimalType(9,3),False),
 	StructField('propertyAreaTypeCode',StringType(),True),
-	StructField('propertyPurchasePriceAmount',DecimalType(11,0),False),
-	StructField('propertySaleSettledDate',DateType(),True),
+	StructField('purchasePrice',DecimalType(11,0),False),
+	StructField('settlementDate',DateType(),True),
 	StructField('contractDate',DateType(),True),
 	StructField('extraLotCode',StringType(),True),
 	StructField('propertyUpdatedDate',DateType(),True),
