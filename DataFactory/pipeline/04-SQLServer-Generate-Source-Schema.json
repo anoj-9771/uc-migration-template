@@ -64,8 +64,14 @@
 				},
 				"inputs": [
 					{
-						"referenceName": "SRC_SQLSERVER_SLT",
-						"type": "DatasetReference"
+						"referenceName": "SRC_SQLSERVER",
+						"type": "DatasetReference",
+						"parameters": {
+							"kvSecret": {
+								"value": "@pipeline().parameters.TaskDetails.SourceServer",
+								"type": "Expression"
+							}
+						}
 					}
 				],
 				"outputs": [
@@ -132,8 +138,14 @@
 				},
 				"inputs": [
 					{
-						"referenceName": "SRC_SQLSERVER_SLT",
-						"type": "DatasetReference"
+						"referenceName": "SRC_SQLSERVER",
+						"type": "DatasetReference",
+						"parameters": {
+							"kvSecret": {
+								"value": "@pipeline().parameters.TaskDetails.SourceServer",
+								"type": "Expression"
+							}
+						}
 					}
 				],
 				"outputs": [
