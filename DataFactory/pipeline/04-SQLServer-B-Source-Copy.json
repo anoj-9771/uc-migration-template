@@ -194,6 +194,10 @@
 								},
 								"waitOnCompletion": true,
 								"parameters": {
+									"BatchLogID": {
+										"value": "@pipeline().parameters.BatchLogId",
+										"type": "Expression"
+									},
 									"TaskExecutionLogId": {
 										"value": "@pipeline().parameters.TaskExecutionLogId",
 										"type": "Expression"
