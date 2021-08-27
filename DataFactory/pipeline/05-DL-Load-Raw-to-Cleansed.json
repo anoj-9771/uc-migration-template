@@ -149,6 +149,26 @@
 								},
 								"ifFalseActivities": [
 									{
+										"name": "Set-ReturnValue-Job",
+										"type": "SetVariable",
+										"dependsOn": [
+											{
+												"activity": "Load-To-Cleansed-Zone-Job",
+												"dependencyConditions": [
+													"Succeeded"
+												]
+											}
+										],
+										"userProperties": [],
+										"typeProperties": {
+											"variableName": "ReturnValue",
+											"value": {
+												"value": "@string(activity('Load-To-Cleansed-Zone-Job').output.runOutput)",
+												"type": "Expression"
+											}
+										}
+									},
+									{
 										"name": "Load-To-Cleansed-Zone-Job",
 										"type": "DatabricksNotebook",
 										"dependsOn": [],
@@ -170,11 +190,30 @@
 													"value": "@pipeline().parameters.TaskDetails.SourceName",
 													"type": "Expression"
 												},
+												"start_counter": {
+													"value": "@item().StartCounter",
+													"type": "Expression"
+												},
+												"end_counter": {
+													"value": "@item().EndCounter",
+													"type": "Expression"
+												},
+												"delta_column": {
+													"value": "@item().DeltaColumn",
+													"type": "Expression"
+												},
 												"source_param": {
 													"value": "@string(pipeline().parameters.TaskDetails)",
 													"type": "Expression"
 												}
-											}
+											},
+											"libraries": [
+												{
+													"maven": {
+														"coordinates": "com.microsoft.azure:azure-sqldb-spark:1.0.2"
+													}
+												}
+											]
 										},
 										"linkedServiceName": {
 											"referenceName": "LS-AzureDatabricks_JobCluster",
@@ -198,13 +237,15 @@
 												}
 											}
 										}
-									},
+									}
+								],
+								"ifTrueActivities": [
 									{
-										"name": "Set-ReturnValue-Job",
+										"name": "Set-Return-Interactive",
 										"type": "SetVariable",
 										"dependsOn": [
 											{
-												"activity": "Load-To-Cleansed-Zone-Job",
+												"activity": "Load-To-Cleansed-Zone-Interactive",
 												"dependencyConditions": [
 													"Succeeded"
 												]
@@ -214,13 +255,11 @@
 										"typeProperties": {
 											"variableName": "ReturnValue",
 											"value": {
-												"value": "@string(activity('Load-To-Cleansed-Zone-Job').output.runOutput)",
+												"value": "@string(activity('Load-To-Cleansed-Zone-Interactive').output.runOutput)",
 												"type": "Expression"
 											}
 										}
-									}
-								],
-								"ifTrueActivities": [
+									},
 									{
 										"name": "Load-To-Cleansed-Zone-Interactive",
 										"type": "DatabricksNotebook",
@@ -243,15 +282,30 @@
 													"value": "@pipeline().parameters.TaskDetails.SourceName",
 													"type": "Expression"
 												},
-												"source_param": {
-													"value": "@string(pipeline().parameters.TaskDetails)",
+												"start_counter": {
+													"value": "@item().StartCounter",
+													"type": "Expression"
+												},
+												"end_counter": {
+													"value": "@item().EndCounter",
 													"type": "Expression"
 												},
 												"delta_column": {
-													"value": "@pipeline().parameters.TaskDetails.WatermarkColumn",
+													"value": "@item().DeltaColumn",
+													"type": "Expression"
+												},
+												"source_param": {
+													"value": "@string(pipeline().parameters.TaskDetails)",
 													"type": "Expression"
 												}
-											}
+											},
+											"libraries": [
+												{
+													"maven": {
+														"coordinates": "com.microsoft.azure:azure-sqldb-spark:1.0.2"
+													}
+												}
+											]
 										},
 										"linkedServiceName": {
 											"referenceName": "LS-AzureDatabricks_DefinedCluster",
@@ -265,26 +319,6 @@
 													"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[1]",
 													"type": "Expression"
 												}
-											}
-										}
-									},
-									{
-										"name": "Set-Return-Interactive",
-										"type": "SetVariable",
-										"dependsOn": [
-											{
-												"activity": "Load-To-Cleansed-Zone-Interactive",
-												"dependencyConditions": [
-													"Succeeded"
-												]
-											}
-										],
-										"userProperties": [],
-										"typeProperties": {
-											"variableName": "ReturnValue",
-											"value": {
-												"value": "@string(activity('Load-To-Cleansed-Zone-Interactive').output.runOutput)",
-												"type": "Expression"
 											}
 										}
 									}
@@ -466,7 +500,7 @@
 			},
 			"TargetContainer": {
 				"type": "String",
-				"defaultValue": "trusted"
+				"defaultValue": "cleansed"
 			},
 			"TargetDirectory": {
 				"type": "String"
