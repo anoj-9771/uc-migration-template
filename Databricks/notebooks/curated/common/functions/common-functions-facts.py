@@ -1,5 +1,17 @@
 # Databricks notebook source
-# MAGIC %run ./facts/fact_example_1
+# MAGIC %run ./commonBilledWaterConsumptionSapisu
+
+# COMMAND ----------
+
+# MAGIC %run ./commonBilledWaterConsumptionAccess
+
+# COMMAND ----------
+
+# MAGIC %run ./facts/BilledWaterConsumption
+
+# COMMAND ----------
+
+# MAGIC %run ./facts/BilledWaterConsumptionDaily
 
 # COMMAND ----------
 

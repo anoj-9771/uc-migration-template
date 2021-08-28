@@ -298,7 +298,27 @@ def Property():
              AddSK=True
             )
 
-  
+def billingDocumentSapisu():
+  TemplateEtl(df=getCommonBillingDocumentSapisu(), 
+             entity="dimBillingDocument", 
+             businessKey="billingDocumentNumber,sourceSystemCode",
+             AddSK=True
+            )
+
+def billedWaterConsumption():
+  TemplateEtl(df=getBilledWaterConsumption(), 
+             entity="factBilledWaterConsumption", 
+             businessKey="sourceSystemCode,dimBillingDocumentSK,dimPropertySK,dimMeterSK,billingPeriodStartDateSK",
+             AddSK=True
+            )
+
+def billedWaterConsumptionDaily():
+  TemplateEtl(df=getBilledWaterConsumptionDaily(), 
+             entity="factDailyApportionedConsumption", 
+             businessKey="sourceSystemCode,consumptionDateSK,dimBillingDocumentSK,dimPropertySK,dimMeterSK",
+             AddSK=True
+            )
+
 # Add New Dim here
 # def Dim2_Example():
 #   TemplateEtl(df=GetDim2Example(), 
@@ -320,8 +340,8 @@ def DatabaseChanges():
 # COMMAND ----------
 
 # DBTITLE 1,9. Flag Dimension/Fact load
-LoadDimensions = True
-LoadFacts = False
+LoadDimensions = False
+LoadFacts = True
 
 # COMMAND ----------
 
@@ -334,7 +354,8 @@ def Main():
   
   if LoadDimensions:
     LogEtl("Start Dimensions")
-    Property()
+    #Property()
+    billingDocumentSapisu()
     #Add new Dim here()
     
     LogEtl("End Dimensions")
@@ -344,7 +365,8 @@ def Main():
   #==============
   if LoadFacts:
     LogEtl("Start Facts")
-    #fact1()
+    #billedWaterConsumption()
+    billedWaterConsumptionDaily()
     #fact2()
   
     LogEtl("End Facts")   

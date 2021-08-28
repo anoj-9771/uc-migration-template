@@ -3,6 +3,10 @@
 
 # COMMAND ----------
 
+# MAGIC %run ./dimensions/BillingDocumentSapisu
+
+# COMMAND ----------
+
 #%run ./dimensions/OfferingSkillsPoint
 
 # COMMAND ----------
