@@ -125,7 +125,7 @@ display(countdf)
 
 # DBTITLE 1,Writing Count Result in Database
 # MAGIC %sql
-# MAGIC CREATE DATABASE IF NOT EXISTS TestDbSales
+# MAGIC CREATE DATABASE IF NOT EXISTS test
 
 # COMMAND ----------
 

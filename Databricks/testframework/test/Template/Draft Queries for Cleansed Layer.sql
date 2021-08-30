@@ -598,76 +598,42 @@ ON A.BUKRS = B.BUKRS
 -- COMMAND ----------
 
 -- DBTITLE 1,13-0UC_DEVCAT_ATTR
-SELECT
-MATNR	as	materialNumber
-,KOMBINAT	as	deviceCategoryCombination
-,FUNKLAS	as	functionClassCode
-,fk.FUNKTXT	as	functionClass
-,BAUKLAS	as	constructionClassCode
-,bk.BAUKLTXT	as	constructionClass
-,BAUFORM	as	deviceCategoryDescription
-,BAUTXT	as	deviceCategoryName
-,PREISKLA	as	Price_Class_NM
-,PTBNUM	as	ptiNumber
-,DVGWNUM	as	ggwaNumber
-,BGLKZ	as	certificationRequirementType
-,VLZEITT	as	calibrationValidityYears
-,VLZEITTI	as	internalCertificationYears
-,VLZEITN	as	VLZEITN
-,VLKZBAU	as	VLKZBAU
-,ZWGRUPPE	as	registerGroupCode
-,EAGRUPPE	as	Input_Output_Group_CD
-,MESSART	as	Measurement_Type_CD
-,b.EZWG_INFO	as	registerGroup
-,UEBERVER	as	transformationRatio
-,BGLNETZ	as	Install_Device_Certify_IND
-,WGRUPPE	as	Winding_Group_CD
-,PRIMWNR1	as	Active_Primary_Winding_NUM
-,SEKWNR1	as	Active_Secondary_Winding_NUM
-,PRIMWNR2	as	PRIMWNR2
-,SEKWNR2	as	SEKWNR2
-,AENAM	as	changedBy
-,AEDAT	as	lastChangedDate
-,ZSPANNS	as	ZSPANNS
-,ZSTROMS	as	ZSTROMS
-,ZSPANNP	as	ZSPANNP
-,ZSTROMP	as	ZSTROMP
-,GRPMATNR	as	GRPMATNR
-,ORDER_CODE	as	ORDER_CODE
-,SPARTE	as	division
-,NENNBEL	as	nominalLoad
-,KENNZTYP	as	Vehicle_Category_CD
-,KENNZTYP_TXT	as	KENNZTYP_TXT
-,STELLPLATZ	as	containerSpaceCount
-,HOEHEBEH	as	containerCategoryHeight
-,BREITEBEH	as	containerCategoryWidth
-,TIEFEBEH	as	containerCategoryDepth
-,ABMEIH	as	ABMEIH
-,LADEZEIT	as	LADEZEIT
-,LADZ_EIH	as	LADZ_EIH
-,LADEVOL	as	LADEVOL
-,LADV_EIH	as	LADV_EIH
-,GEW_ZUL	as	GEW_ZUL
-,GEWEIH	as	GEWEIH
-,EIGENTUM	as	EIGENTUM
-,EIGENTUM_TXT	as	EIGENTUM_TXT
-,LADV_TXT	as	LADV_TXT
-,LADZ_TXT	as	LADZ_TXT
-,GEW_TXT	as	GEW_TXT
-,ABM_TXT	as	ABM_TXT
-,PRODUCT_AREA	as	PRODUCT_AREA
-,NOTIF_CODE	as	NOTIF_CODE
-,G_INFOSATZ	as	G_INFOSATZ
-,PPM_METER	as	PPM_METER
-from CUSTOMER_BILLING.S4H_0UC_DEVCAT_ATTR d
-left join CUSTOMER_BILLING.S4H_0UC_FUNKLAS_TEXT fk 
-on fk.FUNKLAS = d.FUNKLAS
-left join CUSTOMER_BILLING.S4H_0UC_BAUKLAS_TEXT bk 
-on bk.BAUKLAS = d.BAUKLAS and SPRAS ='E'
-left join 0UC_REGGRP_TEXT b
-on d.ZWGRUPPE = b.ZWGRUPPE
-
-
+-- MAGIC %sql
+-- MAGIC SELECT
+-- MAGIC MATNR	as	materialNumber
+-- MAGIC ,KOMBINAT	as	deviceCategoryCombination
+-- MAGIC ,FUNKLAS	as	functionClassCode
+-- MAGIC ,fk.functionClass	as	functionClass
+-- MAGIC ,BAUKLAS	as	constructionClassCode
+-- MAGIC ,bk.constructionClass	as	constructionClass
+-- MAGIC ,BAUFORM	as	deviceCategoryDescription
+-- MAGIC ,BAUTXT	as	deviceCategoryName
+-- MAGIC ,PTBNUM	as	ptiNumber
+-- MAGIC ,DVGWNUM	as	ggwaNumber
+-- MAGIC ,BGLKZ	as	certificationRequirementType
+-- MAGIC ,ZWGRUPPE	as	registerGroupCode
+-- MAGIC ,b.registerGroup	as	registerGroup
+-- MAGIC --,UEBERVER	as	transformationRatio
+-- MAGIC ,CAST(UEBERVER AS DECIMAL(10,3)) AS transformationRatio
+-- MAGIC ,AENAM	as	changedBy
+-- MAGIC ,AEDAT	as	lastChangedDate
+-- MAGIC ,SPARTE	as	division
+-- MAGIC --,NENNBEL	as	nominalLoad
+-- MAGIC ,CAST(NENNBEL AS DECIMAL(10,4)) AS nominalLoad
+-- MAGIC ,STELLPLATZ	as	containerSpaceCount
+-- MAGIC --,HOEHEBEH	as	containerCategoryHeight
+-- MAGIC ,CAST(HOEHEBEH AS DECIMAL(5,2)) AS containerCategoryHeight 
+-- MAGIC --,BREITEBEH	as	containerCategoryWidth
+-- MAGIC ,CAST(BREITEBEH AS DECIMAL(5,2)) AS containerCategoryWidth
+-- MAGIC --,TIEFEBEH	as	containerCategoryDepth
+-- MAGIC ,CAST(TIEFEBEH AS DECIMAL(5,2)) AS containerCategoryDepth
+-- MAGIC from Source d
+-- MAGIC left join cleansed.t_sapisu_0uc_funklas_text fk 
+-- MAGIC on fk.functionClassCode = d.FUNKLAS
+-- MAGIC left join cleansed.t_sapisu_0uc_bauklas_text bk 
+-- MAGIC on bk.constructionClassCode = d.BAUKLAS --and SPRAS ='E'
+-- MAGIC left join cleansed.t_sapisu_0uc_reggrp_text b
+-- MAGIC on d.ZWGRUPPE = b.registerGroupCode
 
 -- COMMAND ----------
 
