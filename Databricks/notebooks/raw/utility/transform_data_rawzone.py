@@ -37,6 +37,10 @@ def transform_raw_dataframe(dataframe, Params):
   #Custom changes for MySQL as the datetime delta columns are stored as number
   if source_system == "lms" or source_system == "cms":
     dataframe = transform_custom_mysql_lms_update_delta_col(dataframe, Params)
+  
+  #Custom changes for SLT SQL Source as the datetime delta columns are stored as number
+  if source_system == "slt":
+    dataframe = transform_custom_slt_transaction_date(dataframe)
 
   #Make sure the delta columns are stored as TimestampType
   ts_format = Params[PARAMS_SOURCE_TS_FORMAT]
@@ -317,3 +321,14 @@ def transform_custom_oneebs_transaction_date(dataframe):
 
 
   
+
+# COMMAND ----------
+
+def transform_custom_slt_transaction_date(dataframe):
+  
+#   if DELTA_TS_DT in dataframe.columns:
+  print("Using the DELTA_TS updated transaction date")
+  print(dataframe)
+  dataframe = dataframe.withColumn('DELTA_TS', to_timestamp(col('DELTA_TS_DT')))
+    
+  return dataframe

@@ -166,10 +166,11 @@ def _SQLSourceSelect_DeltaTable(source_table, business_key, delta_column, start_
     
   if not target_data_lake_zone == ADS_DATABASE_CLEANSED :
     source_sql += TAB + "FROM " + source_table + " " + tbl_alias + NEW_LINE
+    source_sql += TAB + ")" + NEW_LINE
 
-  if is_delta_extract:
-    #We need the where filter only for the Delta Table Load
-    source_sql += TAB + "WHERE date_trunc('Second', " + COL_DL_RAW_LOAD + ") >= to_timestamp('" + start_counter + "')" + NEW_LINE
+#   if is_delta_extract:
+#     #We need the where filter only for the Delta Table Load
+#     source_sql += TAB + "WHERE date_trunc('Second', " + COL_DL_RAW_LOAD + ") >= to_timestamp('" + start_counter + "')" + NEW_LINE
 
   return source_sql
 

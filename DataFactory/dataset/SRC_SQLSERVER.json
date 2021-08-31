@@ -1,0 +1,26 @@
+{
+	"name": "SRC_SQLSERVER",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_SQLServer",
+			"type": "LinkedServiceReference",
+			"parameters": {
+				"kvSecret": {
+					"value": "@dataset().kvSecret",
+					"type": "Expression"
+				}
+			}
+		},
+		"parameters": {
+			"kvSecret": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "SQL Server"
+		},
+		"annotations": [],
+		"type": "SqlServerTable",
+		"schema": []
+	}
+}

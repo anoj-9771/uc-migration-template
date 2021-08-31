@@ -1,0 +1,184 @@
+{
+	"name": "recon-target",
+	"properties": {
+		"activities": [
+			{
+				"name": "If-Exists",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "LU-GetSourceID",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@contains(activity('LU-GetSourceID').output,'firstRow')",
+						"type": "Expression"
+					},
+					"ifTrueActivities": [
+						{
+							"name": "Get-SQL",
+							"type": "Lookup",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "AzureSqlSource",
+									"sqlReaderStoredProcedureName": "[CTL].[GetTableDetails]",
+									"storedProcedureParameters": {
+										"SourceId": {
+											"type": "Int64",
+											"value": {
+												"value": "@activity('LU-GetSourceID').output.firstRow.SourceID",
+												"type": "Expression"
+											}
+										},
+										"ValidationType": {
+											"type": "String",
+											"value": "TARGET"
+										}
+									},
+									"partitionOption": "None"
+								},
+								"dataset": {
+									"referenceName": "AzureSqlDatabase_Ctrldb",
+									"type": "DatasetReference"
+								}
+							}
+						},
+						{
+							"name": "Get-Values",
+							"type": "Lookup",
+							"dependsOn": [
+								{
+									"activity": "Get-SQL",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "SqlServerSource",
+									"sqlReaderQuery": {
+										"value": "@activity('Get-SQL').output.firstrow.SQLStatement",
+										"type": "Expression"
+									},
+									"queryTimeout": "02:00:00",
+									"partitionOption": "None"
+								},
+								"dataset": {
+									"referenceName": "SRC_SQLSERVER",
+									"type": "DatasetReference",
+									"parameters": {
+										"kvSecret": "daf-sql-slt-connectionstring"
+									}
+								},
+								"firstRowOnly": true
+							}
+						},
+						{
+							"name": "EP-Record-Validation",
+							"type": "ExecutePipeline",
+							"dependsOn": [
+								{
+									"activity": "Get-Values",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "recon-record-validation",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"ProjectRunID": {
+										"value": "@pipeline().parameters.ProjectRunID",
+										"type": "Expression"
+									},
+									"ValidationDetails": {
+										"value": "@activity('Get-Values').output.firstRow",
+										"type": "Expression"
+									},
+									"SourceID": {
+										"value": "@activity('LU-GetSourceID').output.firstRow.SourceID",
+										"type": "Expression"
+									}
+								}
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "LU-GetSourceID",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": {
+							"value": "@concat('SELECT SourceId FROM CTL.vw_ControlConfiguration WHERE TaskName = ''', pipeline().parameters.SourceName, ''' AND ControlStageID = 1')",
+							"type": "Expression"
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "AzureSqlDatabase_Ctrldb",
+						"type": "DatasetReference"
+					}
+				}
+			}
+		],
+		"parameters": {
+			"ProjectID": {
+				"type": "int",
+				"defaultValue": 1
+			},
+			"ProjectRunID": {
+				"type": "string",
+				"defaultValue": "c1ff545d-e875-4b1b-a579-975f86dbaf21"
+			},
+			"SourceName": {
+				"type": "string",
+				"defaultValue": "OneEBS_EBS_0165_LOCATIONS"
+			}
+		},
+		"folder": {
+			"name": "Validation"
+		},
+		"annotations": []
+	}
+}
