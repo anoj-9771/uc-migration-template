@@ -35,6 +35,10 @@
 			"type": "string",
 			"defaultValue": "@linkedService().kvSecret"
 		},
+		"LS_SQLServer_properties_typeProperties_connectionString_secretName": {
+			"type": "string",
+			"defaultValue": "@linkedService().kvSecret"
+		},
 		"DLY1300_properties_01-Main_parameters_TriggerName": {
 			"type": "string",
 			"defaultValue": "DLY1300"
@@ -122,6 +126,9 @@
 					"LS_Oracle_properties_typeProperties_connectionString_secretName": {
 						"value": "[parameters('LS_Oracle_properties_typeProperties_connectionString_secretName')]"
 					},
+					"LS_SQLServer_properties_typeProperties_connectionString_secretName": {
+						"value": "[parameters('LS_SQLServer_properties_typeProperties_connectionString_secretName')]"
+					},
 					"PrivateLinkService1_properties_privateLinkResourceId": {
 						"value": "[parameters('PrivateLinkService1_properties_privateLinkResourceId')]"
 					},
@@ -187,9 +194,6 @@
 				"parameters": {
 					"factoryName": {
 						"value": "[parameters('factoryName')]"
-					},
-					"DLY1300_properties_01-Main_parameters_TriggerName": {
-						"value": "[parameters('DLY1300_properties_01-Main_parameters_TriggerName')]"
 					}
 				}
 			},
@@ -210,6 +214,9 @@
 				"parameters": {
 					"factoryName": {
 						"value": "[parameters('factoryName')]"
+					},
+					"DLY1300_properties_01-Main_parameters_TriggerName": {
+						"value": "[parameters('DLY1300_properties_01-Main_parameters_TriggerName')]"
 					},
 					"Emrvisaf_properties_01-Main_parameters_TriggerName": {
 						"value": "[parameters('Emrvisaf_properties_01-Main_parameters_TriggerName')]"
