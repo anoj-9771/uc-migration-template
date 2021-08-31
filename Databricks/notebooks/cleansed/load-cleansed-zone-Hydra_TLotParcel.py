@@ -166,7 +166,7 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_cleansed = spark.sql("SELECT cast(Property_Number as int) AS propertyNumber, \
-		initcap(LGA) as LGA, \
+		case when LGA = 'N/A' then null else initcap(LGA) end as LGA, \
 		case when Address = ' ' then null else " + 
         ("initcap(Address) " if ADS_ENVIRONMENT not in ['dev','test'] else "'1 Mumble St, Somewhere NSW 2000'") + " end as propertyAddress, \
 		case when Suburb = 'N/A' then null else initcap(Suburb) end AS suburb, \
@@ -192,7 +192,7 @@ df_cleansed = spark.sql("SELECT cast(Property_Number as int) AS propertyNumber, 
 		_RecordDeleted, \
 		_RecordCurrent \
 	FROM CLEANSED.STG_HYDRA_TLOTPARCEL \
-    WHERE Property_Number <> ''")
+    WHERE Property_Number <> 'N/A'")
 
 display(df_cleansed)
 
@@ -200,7 +200,7 @@ display(df_cleansed)
 
 newSchema = StructType([
 	StructField('propertyNumber',IntegerType(),True),
-    StructField('LGA',StringType(),False),
+    StructField('LGA',StringType(),True),
 	StructField('propertyAddress',StringType(),True),
     StructField('suburb',StringType(),True),
     StructField('landUse',StringType(),True),
@@ -241,3 +241,7 @@ DeltaSaveDataframeDirect(df_updated_column, "t", source_object, ADS_DATABASE_CLE
 
 # DBTITLE 1,13. Exit Notebook
 dbutils.notebook.exit("1")
+
+# COMMAND ----------
+
+

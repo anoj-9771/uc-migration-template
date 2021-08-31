@@ -177,31 +177,39 @@ df_cleansed = spark.sql("SELECT cast(N_PROP as int) AS propertyNumber, \
              when D_PROP_RATE_CANC is not null \
                   then to_date(D_PROP_RATE_CANC,'yyyyMMdd') \
                   else to_date(D_PROP_UPDA,'yyyyMMdd') \
-        end AS propertyTypeEffectiveDate, \
+        end AS propertyTypeEffectiveFrom, \
         C_RATA_TYPE AS rateabilityTypeCode, \
 		initcap(h.rateabilityType) as rateabilityType, \
 		cast(Q_RESI_PORT as decimal(5,0)) AS residentialPortionCount, \
-        case when F_RATE_INCL = 'Y' \
+        case when F_RATE_INCL = 'R' \
                   then true \
                   else false \
         end AS hasIncludedRatings, \
-        case when F_VALU_INCL = 'Y' \
+        case when F_RATE_INCL = 'I' \
                   then true \
                   else false \
-        end AS hasIncludedValuations, \
-        case when F_METE_INCL = 'Y' \
+        end AS isIncludedInOtherRating, \
+        case when F_METE_INCL = 'M' \
                   then true \
                   else false \
-        end AS hasIncludedMeters, \
-        case when F_SPEC_METE_ALLO = 'Y' \
+        end AS meterServesOtherProperties, \
+        case when F_METE_INCL = 'L' \
+                  then true \
+                  else false \
+        end AS hasMeterOnOtherPropery, \
+        case when F_SPEC_METE_ALLO = '1' \
                   then true \
                   else false \
         end AS hasSpecialMeterAllocation, \
+        case when F_FREE_SUPP = 'K' \
+                  then true \
+                  else false \
+        end AS hasKidneyFreeSupply, \
         case when F_FREE_SUPP = 'Y' \
                   then true \
                   else false \
-        end AS hasFreeSupply, \
-        case when F_SPEC_PROP_DESC = 'Y' \
+        end AS hasNonKidneyFreeSupply, \
+        case when F_SPEC_PROP_DESC = '1' \
                   then true \
                   else false \
         end AS hasSpecialPropertyDescription, \
@@ -225,7 +233,7 @@ df_cleansed = spark.sql("SELECT cast(N_PROP as int) AS propertyNumber, \
 		cast(to_unix_timestamp(H_CREA, 'yyyy-MM-dd hh:mm:ss a') as timestamp) as createdTimestamp, \
 		C_USER_MODI AS modifiedByUserID, \
 		C_PLAN_MODI AS modifiedByPlan, \
-		cast(to_unix_timestamp(H_CREA, 'yyyy-MM-dd hh:mm:ss a') as timestamp) as modifiedTimestamp, \
+		cast(to_unix_timestamp(H_MODI, 'yyyy-MM-dd hh:mm:ss a') as timestamp) as modifiedTimestamp, \
         a._RecordStart, \
         a._RecordEnd, \
         a._RecordDeleted, \
@@ -254,10 +262,12 @@ newSchema = StructType([
     StructField('rateabilityType',StringType(),False),
 	StructField('residentialPortionCount',DecimalType(5,0),False),
     StructField('hasIncludedRatings',BooleanType(),False),
-    StructField('hasIncludedValuations',BooleanType(),False),
-    StructField('hasIncludedMeters',BooleanType(),False),
+    StructField('isIncludedInOtherRating',BooleanType(),False),
+    StructField('meterServesOtherProperties',BooleanType(),False),
+    StructField('hasMeterOnOtherPropery',BooleanType(),False),
     StructField('hasSpecialMeterAllocation',BooleanType(),False),
-    StructField('hasFreeSupply',BooleanType(),False),
+    StructField('hasKidneyFreeSupply',BooleanType(),False),
+    StructField('hasNonKidneyFreeSupply',BooleanType(),False),
     StructField('hasSpecialPropertyDescription',BooleanType(),False),
 	StructField('sewerUsageTypeCode',StringType(),True),
 	StructField('propertyMeterCount',IntegerType(),False),
