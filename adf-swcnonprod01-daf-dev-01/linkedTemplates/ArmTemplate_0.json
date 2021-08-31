@@ -7,15 +7,15 @@
 			"metadata": "Data Factory name",
 			"defaultValue": "adf-swcnonprod01-daf-dev-01"
 		},
-		"LS_SQLServer_SLT_connectionString": {
-			"type": "secureString",
-			"metadata": "Secure string for 'connectionString' of 'LS_SQLServer_SLT'"
-		},
 		"LS-AzureKeyVault_properties_typeProperties_baseUrl": {
 			"type": "string",
 			"defaultValue": "https://kv-daf-dev-01.vault.azure.net/"
 		},
 		"LS_Oracle_properties_typeProperties_connectionString_secretName": {
+			"type": "string",
+			"defaultValue": "@linkedService().kvSecret"
+		},
+		"LS_SQLServer_properties_typeProperties_connectionString_secretName": {
 			"type": "string",
 			"defaultValue": "@linkedService().kvSecret"
 		},
@@ -238,14 +238,30 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/LS_SQLServer_SLT')]",
+			"name": "[concat(parameters('factoryName'), '/LS_SQLServer')]",
 			"type": "Microsoft.DataFactory/factories/linkedServices",
 			"apiVersion": "2018-06-01",
 			"properties": {
+				"parameters": {
+					"kvSecret": {
+						"type": "string",
+						"defaultValue": "daf-sql-slt-connectionstring"
+					}
+				},
 				"annotations": [],
 				"type": "SqlServer",
 				"typeProperties": {
-					"connectionString": "[parameters('LS_SQLServer_SLT_connectionString')]"
+					"connectionString": {
+						"type": "AzureKeyVaultSecret",
+						"store": {
+							"referenceName": "LS-AzureKeyVault",
+							"type": "LinkedServiceReference"
+						},
+						"secretName": {
+							"value": "[parameters('LS_SQLServer_properties_typeProperties_connectionString_secretName')]",
+							"type": "Expression"
+						}
+					}
 				},
 				"connectVia": {
 					"referenceName": "IntegrationRuntime-SelfHosted",
@@ -253,7 +269,8 @@
 				}
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/integrationRuntimes/IntegrationRuntime-SelfHosted')]"
+				"[concat(variables('factoryId'), '/integrationRuntimes/IntegrationRuntime-SelfHosted')]",
+				"[concat(variables('factoryId'), '/linkedServices/LS-AzureKeyVault')]"
 			]
 		},
 		{
@@ -369,6 +386,38 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/LS_Oracle')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/SRC_SQLSERVER')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_SQLServer",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"kvSecret": {
+							"value": "@dataset().kvSecret",
+							"type": "Expression"
+						}
+					}
+				},
+				"parameters": {
+					"kvSecret": {
+						"type": "string"
+					}
+				},
+				"folder": {
+					"name": "SQL Server"
+				},
+				"annotations": [],
+				"type": "SqlServerTable",
+				"schema": [],
+				"typeProperties": {}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_SQLServer')]"
 			]
 		},
 		{
@@ -1038,336 +1087,6 @@
 					"TargetContainer": {
 						"type": "String",
 						"defaultValue": "curated"
-					},
-					"TargetDirectory": {
-						"type": "String"
-					},
-					"TargetFileName": {
-						"type": "String"
-					}
-				},
-				"folder": {
-					"name": "Data Lake"
-				},
-				"annotations": [],
-				"lastPublishTime": "2021-06-21T11:04:49Z"
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/LS-AzureSqlDatabase_Ctrldb')]",
-				"[concat(variables('factoryId'), '/linkedServices/LS-AzureDatabricks_JobCluster')]",
-				"[concat(variables('factoryId'), '/linkedServices/LS-AzureDatabricks_DefinedCluster')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/05-DL-Load-Raw-to-Cleansed')]",
-			"type": "Microsoft.DataFactory/factories/pipelines",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"activities": [
-					{
-						"name": "Log Failure DL Cleansed",
-						"type": "SqlServerStoredProcedure",
-						"dependsOn": [
-							{
-								"activity": "If-ClusterType",
-								"dependencyConditions": [
-									"Failed"
-								]
-							}
-						],
-						"policy": {
-							"timeout": "7.00:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"storedProcedureName": {
-								"value": "[[CTL].[UpdateTaskLog]",
-								"type": "Expression"
-							},
-							"storedProcedureParameters": {
-								"BatchLogId": {
-									"value": {
-										"value": "@pipeline().parameters.BatchLogId",
-										"type": "Expression"
-									},
-									"type": "Int64"
-								},
-								"ErrorMessage": {
-									"value": "Error Occurred during Trusted Zone load",
-									"type": "String"
-								},
-								"ExecutionLogId": {
-									"value": {
-										"value": "@pipeline().parameters.TaskExecutionLogId",
-										"type": "Expression"
-									},
-									"type": "Int64"
-								},
-								"Output": {
-									"value": null
-								},
-								"Status": {
-									"value": "Failure",
-									"type": "String"
-								},
-								"TaskId": {
-									"value": {
-										"value": "@pipeline().parameters.TaskDetails.TaskId",
-										"type": "Expression"
-									},
-									"type": "Int64"
-								}
-							}
-						},
-						"linkedServiceName": {
-							"referenceName": "LS-AzureSqlDatabase_Ctrldb",
-							"type": "LinkedServiceReference",
-							"parameters": {
-								"kvSecret": "daf-sql-controldb-connectionstring"
-							}
-						}
-					},
-					{
-						"name": "Log Success",
-						"type": "SqlServerStoredProcedure",
-						"dependsOn": [
-							{
-								"activity": "If-ClusterType",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"policy": {
-							"timeout": "7.00:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"storedProcedureName": {
-								"value": "[[CTL].[UpdateTaskLog]",
-								"type": "Expression"
-							},
-							"storedProcedureParameters": {
-								"BatchLogId": {
-									"value": {
-										"value": "@pipeline().parameters.BatchLogId",
-										"type": "Expression"
-									},
-									"type": "Int64"
-								},
-								"ErrorMessage": {
-									"value": null,
-									"type": "String"
-								},
-								"ExecutionLogId": {
-									"value": {
-										"value": "@pipeline().parameters.TaskExecutionLogId",
-										"type": "Expression"
-									},
-									"type": "Int64"
-								},
-								"Output": {
-									"value": {
-										"value": "@pipeline().parameters.TaskDetails.LastLoadedFile",
-										"type": "Expression"
-									},
-									"type": "String"
-								},
-								"Status": {
-									"value": "Success",
-									"type": "String"
-								},
-								"TaskId": {
-									"value": {
-										"value": "@pipeline().parameters.TaskDetails.TaskId",
-										"type": "Expression"
-									},
-									"type": "Int64"
-								}
-							}
-						},
-						"linkedServiceName": {
-							"referenceName": "LS-AzureSqlDatabase_Ctrldb",
-							"type": "LinkedServiceReference",
-							"parameters": {
-								"kvSecret": "daf-sql-controldb-connectionstring"
-							}
-						}
-					},
-					{
-						"name": "Set-ClusterType",
-						"type": "SetVariable",
-						"dependsOn": [],
-						"userProperties": [],
-						"typeProperties": {
-							"variableName": "ClusterType",
-							"value": {
-								"value": "@toLower(last(split(pipeline().parameters.TaskDetails.Processor,'|')))",
-								"type": "Expression"
-							}
-						}
-					},
-					{
-						"name": "If-ClusterType",
-						"description": "",
-						"type": "IfCondition",
-						"dependsOn": [
-							{
-								"activity": "Set-ClusterType",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"userProperties": [],
-						"typeProperties": {
-							"expression": {
-								"value": "@equals(variables('ClusterType'), 'interactive')",
-								"type": "Expression"
-							},
-							"ifFalseActivities": [
-								{
-									"name": "Load-To-Cleansed-Zone-Job",
-									"type": "DatabricksNotebook",
-									"dependsOn": [],
-									"policy": {
-										"timeout": "7.00:00:00",
-										"retry": 0,
-										"retryIntervalInSeconds": 30,
-										"secureOutput": false,
-										"secureInput": false
-									},
-									"userProperties": [],
-									"typeProperties": {
-										"notebookPath": {
-											"value": "@pipeline().parameters.TaskDetails.Command",
-											"type": "Expression"
-										},
-										"baseParameters": {
-											"source_object": {
-												"value": "@pipeline().parameters.TaskDetails.SourceName",
-												"type": "Expression"
-											},
-											"source_param": {
-												"value": "@string(pipeline().parameters.TaskDetails)",
-												"type": "Expression"
-											}
-										}
-									},
-									"linkedServiceName": {
-										"referenceName": "LS-AzureDatabricks_JobCluster",
-										"type": "LinkedServiceReference",
-										"parameters": {
-											"kvSecret": {
-												"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[0]",
-												"type": "Expression"
-											},
-											"DataBricksClusterType": {
-												"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[2]",
-												"type": "Expression"
-											},
-											"DataBricksClusterVersion": {
-												"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[3]",
-												"type": "Expression"
-											},
-											"DataBricksWorkerNodes": {
-												"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[4]",
-												"type": "Expression"
-											}
-										}
-									}
-								}
-							],
-							"ifTrueActivities": [
-								{
-									"name": "Load-To-Cleansed-Zone-Interactive",
-									"type": "DatabricksNotebook",
-									"dependsOn": [],
-									"policy": {
-										"timeout": "7.00:00:00",
-										"retry": 0,
-										"retryIntervalInSeconds": 30,
-										"secureOutput": false,
-										"secureInput": false
-									},
-									"userProperties": [],
-									"typeProperties": {
-										"notebookPath": {
-											"value": "@pipeline().parameters.TaskDetails.Command",
-											"type": "Expression"
-										},
-										"baseParameters": {
-											"source_object": {
-												"value": "@pipeline().parameters.TaskDetails.SourceName",
-												"type": "Expression"
-											},
-											"source_param": {
-												"value": "@string(pipeline().parameters.TaskDetails)",
-												"type": "Expression"
-											}
-										}
-									},
-									"linkedServiceName": {
-										"referenceName": "LS-AzureDatabricks_DefinedCluster",
-										"type": "LinkedServiceReference",
-										"parameters": {
-											"kvSecret": {
-												"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[0]",
-												"type": "Expression"
-											},
-											"clusterId": {
-												"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[1]",
-												"type": "Expression"
-											}
-										}
-									}
-								}
-							]
-						}
-					}
-				],
-				"parameters": {
-					"TaskDetails": {
-						"type": "object"
-					},
-					"BatchLogId": {
-						"type": "int"
-					},
-					"TaskExecutionLogId": {
-						"type": "int"
-					},
-					"ProjectRunID": {
-						"type": "string"
-					}
-				},
-				"variables": {
-					"ReturnValue": {
-						"type": "String"
-					},
-					"ClusterType": {
-						"type": "String"
-					},
-					"SourceContainer": {
-						"type": "String",
-						"defaultValue": "raw"
-					},
-					"SourceDirectory": {
-						"type": "String"
-					},
-					"SourceFileName": {
-						"type": "String"
-					},
-					"TargetContainer": {
-						"type": "String",
-						"defaultValue": "trusted"
 					},
 					"TargetDirectory": {
 						"type": "String"

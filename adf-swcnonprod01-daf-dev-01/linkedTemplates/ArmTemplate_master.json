@@ -7,10 +7,6 @@
 			"metadata": "Data Factory name",
 			"defaultValue": "adf-swcnonprod01-daf-dev-01"
 		},
-		"LS_SQLServer_SLT_connectionString": {
-			"type": "secureString",
-			"metadata": "Secure string for 'connectionString' of 'LS_SQLServer_SLT'"
-		},
 		"LS-AzureKeyVault_properties_typeProperties_baseUrl": {
 			"type": "string",
 			"defaultValue": "https://kv-daf-dev-01.vault.azure.net/"
@@ -36,6 +32,10 @@
 			"defaultValue": "https://sadafdev01.dfs.core.windows.net"
 		},
 		"LS_Oracle_properties_typeProperties_connectionString_secretName": {
+			"type": "string",
+			"defaultValue": "@linkedService().kvSecret"
+		},
+		"LS_SQLServer_properties_typeProperties_connectionString_secretName": {
 			"type": "string",
 			"defaultValue": "@linkedService().kvSecret"
 		},
@@ -120,14 +120,14 @@
 					"factoryName": {
 						"value": "[parameters('factoryName')]"
 					},
-					"LS_SQLServer_SLT_connectionString": {
-						"value": "[parameters('LS_SQLServer_SLT_connectionString')]"
-					},
 					"LS-AzureKeyVault_properties_typeProperties_baseUrl": {
 						"value": "[parameters('LS-AzureKeyVault_properties_typeProperties_baseUrl')]"
 					},
 					"LS_Oracle_properties_typeProperties_connectionString_secretName": {
 						"value": "[parameters('LS_Oracle_properties_typeProperties_connectionString_secretName')]"
+					},
+					"LS_SQLServer_properties_typeProperties_connectionString_secretName": {
+						"value": "[parameters('LS_SQLServer_properties_typeProperties_connectionString_secretName')]"
 					},
 					"PrivateLinkService1_properties_privateLinkResourceId": {
 						"value": "[parameters('PrivateLinkService1_properties_privateLinkResourceId')]"

@@ -5,9 +5,6 @@
 		"factoryName": {
 			"value": "adf-swcnonprod01-daf-dev-01"
 		},
-		"LS_SQLServer_SLT_connectionString": {
-			"value": ""
-		},
 		"LS-AzureKeyVault_properties_typeProperties_baseUrl": {
 			"value": "https://kv-daf-dev-01.vault.azure.net/"
 		},
@@ -27,6 +24,9 @@
 			"value": "https://sadafdev01.dfs.core.windows.net"
 		},
 		"LS_Oracle_properties_typeProperties_connectionString_secretName": {
+			"value": "@linkedService().kvSecret"
+		},
+		"LS_SQLServer_properties_typeProperties_connectionString_secretName": {
 			"value": "@linkedService().kvSecret"
 		},
 		"DLY1300_properties_01-Main_parameters_TriggerName": {
