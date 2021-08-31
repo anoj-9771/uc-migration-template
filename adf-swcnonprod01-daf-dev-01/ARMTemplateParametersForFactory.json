@@ -26,6 +26,9 @@
 		"LS_Oracle_properties_typeProperties_connectionString_secretName": {
 			"value": "@linkedService().kvSecret"
 		},
+		"LS_SQLServer_properties_typeProperties_connectionString_secretName": {
+			"value": "@linkedService().kvSecret"
+		},
 		"DLY1300_properties_01-Main_parameters_TriggerName": {
 			"value": "DLY1300"
 		},
