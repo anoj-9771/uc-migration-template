@@ -1,11 +1,13 @@
 # Databricks notebook source
-#Run this command when running this notebook for unit testing
 #%run ../commonBilledWaterConsumptionSapisu
 
 # COMMAND ----------
 
-#Run this command when running this notebook for unit testing
 #%run ../commonBilledWaterConsumptionAccess
+
+# COMMAND ----------
+
+# Run the above two commands only when running this notebook independently, otherwise the curated master notebook would take care of calling the above notebooks
 
 # COMMAND ----------
 

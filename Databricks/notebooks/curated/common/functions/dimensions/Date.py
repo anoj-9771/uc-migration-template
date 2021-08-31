@@ -32,34 +32,22 @@ def GetCommonDate():
   
   #5.SELECT / TRANSFORM
   df = dateDf.selectExpr( \
-	 "calendarDate" \
-    ,"CALENDARYEAR as calendarYear" \
-    ,"monthOfYear" \
-    ,"quarterOfYear" \
-    ,"monthStartDate" \
-    ,"monthEndDate" \
-  )
+                          "calendarDate" \
+                          ,"monthOfYear" \
+                          ,"monthName" \
+                          ,"dayOfMonth" \
+                          ,"dayName" \
+                          ,"quarterOfYear" \
+                          ,"monthStartDate" \
+                          ,"monthEndDate" \
+                          ,"yearStartDate" \
+                          ,"yearEndDate" \
+                          ,"financialYear" \
+                          ,"financialYearStartDate" \
+                          ,"financialYearEndDate" \
+                          ,"monthOfFinancialYear" \
+                          ,"quarterOfFinancialYear" \
+                       )
 
   return df
 
-
-# COMMAND ----------
-
-
-
-# COMMAND ----------
-
-df = spark.sql("Select calendardate, count(1) from  cleansed.t_sapisu_scal_tt_date group by calendardate having count(1) > 1 order by 1")
-display(df)
-
-# COMMAND ----------
-
-  df2 = spark.sql("SELECT  * \
-                                   from cleansed.t_sapisu_scal_tt_date where calendardate ='1903-01-30'")
-  
-print(df2.count())
-df2 = df2.dropDuplicates() #Please remove once upstream data is fixed
-print(df2.count())
-# df2 = spark.sql("Select calendardate, count(1) from  cleansed.t_sapisu_scal_tt_date group by calendardate having count(1) > 1")
-
-display(df2)
