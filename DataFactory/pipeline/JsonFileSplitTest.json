@@ -42,7 +42,7 @@
 						"referenceName": "SRC_BLOB_JSON_copy1",
 						"type": "DatasetReference",
 						"parameters": {
-							"BlobName": "0COMP_CODE_TEXT_20210726164331.json"
+							"BlobName": "\"0COMP_CODE_TEXT_20210726164331.json\""
 						}
 					}
 				],
