@@ -42,7 +42,7 @@
 						"referenceName": "SRC_BLOB_JSON_copy1",
 						"type": "DatasetReference",
 						"parameters": {
-							"BlobName": "\"ERCH_20210729125136.json\""
+							"BlobName": "ERCH_20210729125136.json"
 						}
 					}
 				],
@@ -51,8 +51,8 @@
 						"referenceName": "RAW_ADLS_JSON_v2",
 						"type": "DatasetReference",
 						"parameters": {
-							"BlobPath": "\"sapisu/erch/json/year=2021/month=08/day=25/\"",
-							"BlobName": "\"ERCH_2021-08-25_233535_987.json"
+							"BlobPath": "sapisu/erch/json/year=2021/month=08/day=25/",
+							"BlobName": "ERCH_2021-08-25_233535_987.json"
 						}
 					}
 				]
