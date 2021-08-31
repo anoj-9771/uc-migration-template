@@ -20,6 +20,7 @@ DECLARE @SourceColumn varchar(100)
 DECLARE @ValidationColumn varchar(100)
 DECLARE @SourceName varchar(100)
 DECLARE @NULLFunction varchar(100), @DATEFunction varchar(100), @DATEFormat varchar(100)
+DECLARE @TaskName varchar(255)
 
 
 SELECT 
@@ -29,6 +30,7 @@ SELECT
 	,@SourceColumn = W.SourceColumn
 	,@ValidationColumn = CS.ValidationColumn
 	,@SourceName = CS.SourceName
+	,@TaskName = CT.TaskName
 FROM CTL.ControlTasks CT 
 LEFT JOIN CTL.ControlSource CS ON CT.SourceId = CS.SourceId
 LEFT JOIN CTL.ControlTypes T ON CS.SourceTypeId = T.TypeId
@@ -62,8 +64,10 @@ ELSE
 				SELECT @SQLMax = 'TO_CHAR(MAX(' + @COL + '), ''YYYY-MM-DD HH24:MI:SS'')'
 			ELSE IF @DBType = 'MySQL'
 				SELECT @SQLMax = 'FROM_UNIXTIME(MAX(COALESCE(' + @COL + ', 0)))'
-			ELSE IF @DBType = 'SQL Server'
-				SELECT @SQLMax = 'FORMAT(MAX(' + @COL + '), ''yyyy-MM-dd HH:mm:ss'')'
+			--ELSE IF @DBType = 'SQL Server'
+			--	SELECT @SQLMax = 'FORMAT(MAX(' + @COL + '), ''yyyy-MM-dd HH:mm:ss'')'
+			ELSE IF @DBType = 'SQL Server' AND @TaskName LIKE 'slt%'
+				SELECT @SQLMax = 'FORMAT(MAX(convert(datetime,(CONVERT(VARCHAR(25) , CAST(LEFT(' +@COL +', 8) AS DATETIME), 23) + '' '' +  LEFT(RIGHT(' + @COL + ' , 6) ,2) + '':'' + SUBSTRING(RIGHT(' +@COL + ' , 6) , 3,2) + '':''    + RIGHT(' + @COL + ' , 2) ),120)), ''yyyy-MM-dd HH:mm:ss'')'
 			ELSE
 				SELECT @SQLMax = 'FORMAT(MAX(' + @COL + '), ''yyyy-MM-dd HH:mm:ss'')'
 		END
