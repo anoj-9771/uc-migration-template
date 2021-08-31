@@ -40,7 +40,10 @@
 				"inputs": [
 					{
 						"referenceName": "SRC_BLOB_JSON_copy1",
-						"type": "DatasetReference"
+						"type": "DatasetReference",
+						"parameters": {
+							"BlobName": "\"ERCH_20210729125136.json\""
+						}
 					}
 				],
 				"outputs": [
