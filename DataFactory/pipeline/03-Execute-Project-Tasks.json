@@ -305,17 +305,69 @@
 										"userProperties": [],
 										"typeProperties": {
 											"pipeline": {
-												"referenceName": "04-LakeLanding-FlatFile-A-Source-Copy",
+												"referenceName": "04-SQLServer-A-Source Load",
 												"type": "PipelineReference"
 											},
 											"waitOnCompletion": true,
 											"parameters": {
+												"BatchLogId": {
+													"value": "@activity('Generate Batch Log').output.firstrow.BatchLogId",
+													"type": "Expression"
+												},
 												"TaskDetails": {
 													"value": "@item()",
 													"type": "Expression"
 												},
+												"TaskExecutionLogId": {
+													"value": "@activity('Generate Task Log').output.firstrow.TaskLogId",
+													"type": "Expression"
+												},
+												"ProjectRunID": {
+													"value": "@pipeline().parameters.ProjectRunID",
+													"type": "Expression"
+												}
+											}
+										}
+									}
+								]
+							}
+						},
+						{
+							"name": "Source-to-Raw-SQL Stage1",
+							"type": "IfCondition",
+							"dependsOn": [
+								{
+									"activity": "Generate Task Log",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"expression": {
+									"value": "@and(equals(item().SourceType,'SQL Server'), equals(item().ControlStageId,1))",
+									"type": "Expression"
+								},
+								"ifTrueActivities": [
+									{
+										"name": "EP-SqlSource-to-Raw-Load",
+										"type": "ExecutePipeline",
+										"dependsOn": [],
+										"userProperties": [],
+										"typeProperties": {
+											"pipeline": {
+												"referenceName": "04-SQLServer-A-Source Load",
+												"type": "PipelineReference"
+											},
+											"waitOnCompletion": true,
+											"parameters": {
 												"BatchLogId": {
 													"value": "@activity('Generate Batch Log').output.firstrow.BatchLogId",
+													"type": "Expression"
+												},
+												"TaskDetails": {
+													"value": "@item()",
 													"type": "Expression"
 												},
 												"TaskExecutionLogId": {
