@@ -176,10 +176,12 @@ df_calendar_column = spark.sql("SELECT \
 
 df_calendar_column = df_calendar_column.selectExpr( \
                                 "calendarDate" , \
+                                "'tba' as dayName", \
                                 "dayOfMonth" , \
                                 "dayOfYear"  , \
                                 "weekOfYear" , \
                                 "monthOfYear" , \
+                                "'tba' as monthName", \
                                 "quarterOfYear" , \
                                 "halfOfYear"  , \
                                 "calendarYear" , \
@@ -210,29 +212,31 @@ display(df_calendar_column)
 # COMMAND ----------
 
 newSchema = StructType([
-                            StructField("calendarDate", DateType(), True),
-                            StructField("dayOfMonth", LongType(), True),
-                            StructField("dayOfYear", LongType(), True),
-                            StructField("weekOfYear", LongType(), True),
-                            StructField("monthOfYear", LongType(), True),
-                            StructField("quarterOfYear", LongType(), True),
-                            StructField("halfOfYear", LongType(), True),
-                            StructField("calendarYear", LongType(), True),
-                            StructField("dayOfWeek", LongType(), True),
-                            StructField("calendarYearWeek", LongType(), True),
-                            StructField("calendarYearMonth", LongType(), True),
-                            StructField("calendarYearQuarter", LongType(), True),
-                            StructField("monthStartDate", DateType(), True),
-                            StructField("monthEndDate", DateType(), True),
-                            StructField("yearStartDate", DateType(), True),
-                            StructField("yearEndDate", DateType(), True),
-                            StructField("financialYear", LongType(), True),
-                            StructField("financialYearStartDate", DateType(), True),
-                            StructField("financialYearEndDate", DateType(), True),
-                            StructField("weekOfFinancialYear", LongType(), True),
-                            StructField("monthOfFinancialYear", LongType(), True),
-                            StructField("quarterOfFinancialYear", LongType(), True),
-                            StructField("halfOfFinancialYear", LongType(), True),
+                            StructField("calendarDate", DateType(), False),
+                            StructField("dayName", StringType(), False),
+                            StructField("dayOfMonth", LongType(), False),
+                            StructField("dayOfYear", LongType(), False),
+                            StructField("weekOfYear", LongType(), False),
+                            StructField("monthOfYear", LongType(), False),
+                            StructField("monthName", StringType(), False),
+                            StructField("quarterOfYear", LongType(), False),
+                            StructField("halfOfYear", LongType(), False),
+                            StructField("calendarYear", LongType(), False),
+                            StructField("dayOfWeek", LongType(), False),
+                            StructField("calendarYearWeek", LongType(), False),
+                            StructField("calendarYearMonth", LongType(), False),
+                            StructField("calendarYearQuarter", LongType(), False),
+                            StructField("monthStartDate", DateType(), False),
+                            StructField("monthEndDate", DateType(), False),
+                            StructField("yearStartDate", DateType(), False),
+                            StructField("yearEndDate", DateType(), False),
+                            StructField("financialYear", LongType(), False),
+                            StructField("financialYearStartDate", DateType(), False),
+                            StructField("financialYearEndDate", DateType(), False),
+                            StructField("weekOfFinancialYear", LongType(), False),
+                            StructField("monthOfFinancialYear", LongType(), False),
+                            StructField("quarterOfFinancialYear", LongType(), False),
+                            StructField("halfOfFinancialYear", LongType(), False),
                             StructField('_RecordStart', TimestampType(), False),
                             StructField('_RecordEnd', TimestampType(), False),
                             StructField('_RecordDeleted', IntegerType(), False),
@@ -250,9 +254,11 @@ DeltaSaveDataframeDirect(df_cleansed_column, "t", source_object, ADS_DATABASE_CL
 
 # COMMAND ----------
 
- print(df_cleansed_column.count())
-df = spark.sql("select * from cleansed.t_sapisu_scal_tt_date")
-print(df.count())
+# MAGIC %sql
+# MAGIC select calendarDate, count(1) from cleansed.t_sapisu_scal_tt_date
+# MAGIC group by calendarDate
+# MAGIC having count(1) > 1
+# MAGIC order by 1
 
 # COMMAND ----------
 

@@ -166,6 +166,7 @@ def _SQLSourceSelect_DeltaTable(source_table, business_key, delta_column, start_
     
   if not target_data_lake_zone == ADS_DATABASE_CLEANSED :
     source_sql += TAB + "FROM " + source_table + " " + tbl_alias + NEW_LINE
+    source_sql += TAB + ")" + NEW_LINE
 
   if is_delta_extract:
     #We need the where filter only for the Delta Table Load
