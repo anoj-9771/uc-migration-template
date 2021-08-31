@@ -1,5 +1,5 @@
 ﻿
-CREATE PROCEDURE CTL.GetManifestTrusted (
+CREATE PROCEDURE [CTL].[GetManifestCleansed] (
 	@SourceObject varchar(100)
 )
 AS
@@ -8,6 +8,6 @@ AS
 	FROM CTL.ControlManifest
 	WHERE SourceObject = @SourceObject
 	AND RecordCountLoaded > 0 
-	AND ProcessedToTrustedZone IS NULL 
+	AND ProcessedToCleansedZone IS NULL 
 	AND RecordCountDeltaTable IS NOT NULL 
 	ORDER BY StartCounter
