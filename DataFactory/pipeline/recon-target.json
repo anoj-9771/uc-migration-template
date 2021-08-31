@@ -79,12 +79,19 @@
 							"typeProperties": {
 								"source": {
 									"type": "SqlServerSource",
+									"sqlReaderQuery": {
+										"value": "@activity('Get-SQL').output.firstrow.SQLStatement",
+										"type": "Expression"
+									},
 									"queryTimeout": "02:00:00",
 									"partitionOption": "None"
 								},
 								"dataset": {
-									"referenceName": "SRC_SQLSERVER_SLT",
-									"type": "DatasetReference"
+									"referenceName": "SRC_SQLSERVER",
+									"type": "DatasetReference",
+									"parameters": {
+										"kvSecret": "@pipeline().parameters.TaskDetails.SourceServer"
+									}
 								},
 								"firstRowOnly": true
 							}
