@@ -1,4 +1,8 @@
 # Databricks notebook source
+#%run ../../includes/util-common
+
+# COMMAND ----------
+
 #%run ../commonBilledWaterConsumptionSapisu
 
 # COMMAND ----------
@@ -7,7 +11,7 @@
 
 # COMMAND ----------
 
-# Run the above two commands only when running this notebook independently, otherwise the curated master notebook would take care of calling the above notebooks
+# Run the above commands only when running this notebook independently, otherwise the curated master notebook would take care of calling the above notebooks
 
 # COMMAND ----------
 

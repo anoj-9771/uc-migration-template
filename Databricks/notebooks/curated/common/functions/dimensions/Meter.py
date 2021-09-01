@@ -42,7 +42,7 @@ def GetCommonMeter():
   accessZ309TpropmeterDf = accessZ309TpropmeterDf.dropDuplicates() #Please remove once upstream data is fixed
     
   #Meter Data from SAP ISU  
-  sapisu0ucDeviceAttrDf  = spark.sql("select materialNumber, 'SAP' as sourceSystemCode, equipmentNumber as meterId \
+  sapisu0ucDeviceAttrDf  = spark.sql("select 'SAPISU' as sourceSystemCode, materialNumber, equipmentNumber as meterId \
                                       from cleansed.t_sapisu_0uc_device_attr \
                                       where _RecordCurrent = 1 and _RecordDeleted = 0")
   sapisu0ucDeviceAttrDf  = sapisu0ucDeviceAttrDf.dropDuplicates() #Please remove once upstream data is fixed
@@ -57,10 +57,9 @@ def GetCommonMeter():
                                   how="leftouter") \
                             .drop(sapisu0ucDeviceAttrDf.materialNumber) \
                             .drop(sapisu0ucDevcatAttrDf.materialNumber)
-  df = df.select("meterId", "sourceSystemCode", "meterSize", "waterType")
-    
+  df = df.select("sourceSystemCode", "meterId", "meterSize", "waterType")
 
-
+  
   #4.UNION TABLES
   df = accessZ309TpropmeterDf.union(df)
 
