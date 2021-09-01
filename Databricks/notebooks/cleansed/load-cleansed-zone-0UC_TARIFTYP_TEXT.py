@@ -145,7 +145,7 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_updated_column = spark.sql("SELECT  \
+df_updated_column_temp = spark.sql("SELECT  \
                                   SPRAS as SPRAS , \
                                   TARIFTYP as TARIFTYP , \
                                   TTYPBEZ as TTYPBEZ , \
@@ -156,7 +156,7 @@ df_updated_column = spark.sql("SELECT  \
                               FROM CLEANSED.stg_sapisu_0UC_TARIFTYP_TEXT \
                               ")
 
-display(df_updated_column)
+display(df_updated_column_temp)
 
 # COMMAND ----------
 
