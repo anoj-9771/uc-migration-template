@@ -1,15 +1,4 @@
 # Databricks notebook source
-# DBTITLE 1,Generate parameter and source object name for unit testing
-import json
-#For unit testing...
-#Use this string in the Param widget: 
-#{"SourceType": "BLOB Storage (json)", "SourceServer": "daf-sa-lake-sastoken", "SourceGroup": "sapisu", "SourceName": "sapisu_0DF_REFIXFI_ATTR", "SourceLocation": "sapisu/0DF_REFIXFI_ATTR", "AdditionalProperty": "", "Processor": "databricks-token|0711-011053-turfs581|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive", "IsAuditTable": false, "SoftDeleteSource": "", "ProjectName": "SAP DATA", "ProjectId": 2, "TargetType": "BLOB Storage (json)", "TargetName": "sapisu_0DF_REFIXFI_ATTR", "TargetLocation": "sapisu/0DF_REFIXFI_ATTR", "TargetServer": "daf-sa-lake-sastoken", "DataLoadMode": "FULL-EXTRACT", "DeltaExtract": false, "CDCSource": false, "TruncateTarget": false, "UpsertTarget": true, "AppendTarget": null, "TrackChanges": false, "LoadToSqlEDW": true, "TaskName": "sapisu_0DF_REFIXFI_ATTR", "ControlStageId": 2, "TaskId": 46, "StageSequence": 200, "StageName": "Raw to Cleansed", "SourceId": 46, "TargetId": 46, "ObjectGrain": "Day", "CommandTypeId": 8, "Watermarks": "", "WatermarksDT": null, "WatermarkColumn": "", "BusinessKeyColumn": "", "UpdateMetaData": null, "SourceTimeStampFormat": "", "Command": "", "LastLoadedFile": null}
-
-#Use this string in the Source Object widget
-#SAPISU_0DF_REFIXFI_ATTR
-
-# COMMAND ----------
-
 # DBTITLE 1,Notebook Structure/Method 
 #Notebook structure/Method 
 #1.Import libraries/functions -- Generic
@@ -33,8 +22,8 @@ import json
 
 # COMMAND ----------
 
-# DBTITLE 1,1. Import libraries/functions
-#1.Import libraries/functions
+# DBTITLE 1,1. Import libreries/functions
+#1.Import libreries/functions
 from pyspark.sql.functions import mean, min, max, desc, abs, coalesce, when, expr
 from pyspark.sql.functions import date_add, to_utc_timestamp, from_utc_timestamp, datediff
 from pyspark.sql.functions import regexp_replace, concat, col, lit, substring
@@ -125,9 +114,8 @@ print(data_load_mode)
 # DBTITLE 1,9. Set raw and cleansed table name
 #Set raw and cleansed table name
 #Delta and SQL tables are case Insensitive. Seems Delta table are always lower case
-delta_cleansed_tbl_name = f'{ADS_DATABASE_CLEANSED}.stg_{source_object}'
-delta_raw_tbl_name = f'{ADS_DATABASE_RAW}.stg_{source_object}'
-
+delta_cleansed_tbl_name = "{0}.{1}".format(ADS_DATABASE_CLEANSED, "stg_"+source_object)
+delta_raw_tbl_name = "{0}.{1}".format(ADS_DATABASE_RAW, source_object)
 
 #Destination
 print(delta_cleansed_tbl_name)
@@ -157,53 +145,37 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_cleansed = spark.sql("SELECT \
-	INTRENO as architecturalObjectInternalId, \
-	FIXFITCHARACT as fixtureAndFittingCharacteristicCode, \
-	to_date(VALIDTO, 'yyyyMMdd') as validToDate, \
-	to_date(VALIDFROM, 'yyyyMMdd') as validFromDate, \
-	WEIGHT as weightingValue, \
-	cast(RESULTVAL as int) as resultValue, \
-	cast(ADDITIONALINFO as int) as characteristicAdditionalValue, \
-	cast(AMOUNTPERAREA as dec(18,6)) as amountPerAreaUnit, \
-	FFCTACCURATE as applicableIndicator, \
-	cast(CHARACTAMTAREA as int) as characteristicAmountArea, \
-	CHARACTPERCENT as characteristicPercentage, \
-	cast(CHARACTAMTABS as dec(18,6)) as characteristicPriceAmount, \
-	MANDT as clientId, \
-	_RecordStart, \
-	_RecordEnd, \
-	_RecordDeleted, \
-	_RecordCurrent \
-	FROM CLEANSED.STG_SAPISU_0DF_REFIXFI_ATTR \
-         ")
+df_updated_column_temp = spark.sql("SELECT  \
+                                  SPRAS as SPRAS , \
+                                  TARIFTYP as TARIFTYP , \
+                                  TTYPBEZ as TTYPBEZ , \
+                                  _RecordStart, \
+                                  _RecordEnd, \
+                                  _RecordDeleted, \
+                                  _RecordCurrent \
+                              FROM CLEANSED.stg_sapisu_0UC_TARIFTYP_TEXT \
+                              ")
 
-display(df_cleansed)
-print(f'Number of rows: {df_cleansed.count()}')
+display(df_updated_column_temp)
 
 # COMMAND ----------
 
-newSchema = StructType([
-	StructField('architecturalObjectInternalId',StringType(),False,
-	StructField('fixtureAndFittingCharacteristicCode',StringType(),False,
-	StructField('validToDate',DateType(),False,
-	StructField('validFromDate',DateType(),True,
-	StructField('weightingValue',StringType(),True,
-	StructField('resultValue',IntegerType(),True,
-	StructField('characteristicAdditionalValue',IntegerType(),True,
-	StructField('amountPerAreaUnit',DecimalType(18,6),True,
-	StructField('applicableIndicator',StringType(),True,
-	StructField('characteristicAmountArea',IntegerType(),True,
-	StructField('characteristicPercentage',StringType(),True,
-	StructField('characteristicPriceAmount',DecimalType(18,6),True,
-	StructField('clientId',StringType(),True,
-	StructField('_RecordStart',TimestampType(),False),
-	StructField('_RecordEnd',TimestampType(),False),
-	StructField('_RecordDeleted',IntegerType(),False),
-	StructField('_RecordCurrent',IntegerType(),False)
-])
+# Create schema for the cleanse table
+cleanse_Schema = StructType(
+                            [
+                            StructField("SPRAS", StringType(), True),
+                            StructField("TARIFTYP", StringType(), True),
+                            StructField("TTYPBEZ", StringType(), True),
+                            StructField('_RecordStart',TimestampType(),False),
+                            StructField('_RecordEnd',TimestampType(),False),
+                            StructField('_RecordDeleted',IntegerType(),False),
+                            StructField('_RecordCurrent',IntegerType(),False)
+                            ]
+                        )
+# Apply the new schema to cleanse Data Frame
+df_updated_column = spark.createDataFrame(df_updated_column_temp.rdd, schema=cleanse_Schema)
+display(df_updated_column)
 
-df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
 
 
 # COMMAND ----------

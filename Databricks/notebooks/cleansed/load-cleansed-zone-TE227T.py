@@ -146,9 +146,9 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_updated_column_temp = spark.sql("SELECT  \
-                                  COUNTRY  as COUNTRY  , \
-                                  REGPOLIT  as REGPOLIT  , \
-                                  REGNAME  as REGNAME  , \
+                                  COUNTRY  as COUNTRY, \
+                                  REGPOLIT  as REGPOLIT, \
+                                  REGNAME  as REGNAME, \
                                   _RecordStart, \
                                   _RecordEnd, \
                                   _RecordDeleted, \
@@ -156,16 +156,16 @@ df_updated_column_temp = spark.sql("SELECT  \
                               FROM CLEANSED.stg_sapisu_TE227T \
                               ")
 
-display(df_updated_column)
+display(df_updated_column_temp)
 
 # COMMAND ----------
 
 # Create schema for the cleanse table
 cleanse_Schema = StructType(
                             [
-                            StructField("COUNTRY ", StringType(), True),
-                            StructField("REGPOLIT ", StringType(), True),
-                            StructField("REGNAME ", StringType(), True),
+                            StructField("COUNTRY", StringType(), True),
+                            StructField("REGPOLIT", StringType(), True),
+                            StructField("REGNAME", StringType(), True),
                             StructField('_RecordStart',TimestampType(),False),
                             StructField('_RecordEnd',TimestampType(),False),
                             StructField('_RecordDeleted',IntegerType(),False),
@@ -177,12 +177,6 @@ df_updated_column = spark.createDataFrame(df_updated_column_temp.rdd, schema=cle
 display(df_updated_column)
 
 
-
-# COMMAND ----------
-
-df =spark.sql("select regpolit,regname , count(1) from CLEANSED.stg_sapisu_TE227T group by regpolit,regname having count(1)> 1")
-# df =spark.sql("select distinct country from  CLEANSED.stg_sapisu_TE227T ")
-display(df)
 
 # COMMAND ----------
 
