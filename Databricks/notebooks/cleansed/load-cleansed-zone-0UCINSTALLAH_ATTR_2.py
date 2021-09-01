@@ -149,8 +149,8 @@ df_cleansed_column = spark.sql("SELECT  \
                                   ANLAGE as installationId, \
                                   to_date(BIS, 'yyyy-MM-dd') as validToDate, \
                                   to_date(AB, 'yyyy-MM-dd') as validFromDate, \
-                                  TARIFTYP as rateCategoryCode, \
-                                  'To be mapped' as rateCategory, \
+                                  stg.TARIFTYP as rateCategoryCode, \
+                                  tt.TTYPBEZ as rateCategory, \
                                   BRANCHE as industry, \
                                   AKLASSE as billingClassCode, \
                                   bc.billingClass as billingClass, \
@@ -162,8 +162,9 @@ df_cleansed_column = spark.sql("SELECT  \
                                   stg._RecordDeleted, \
                                   stg._RecordCurrent \
                                FROM CLEANSED.STG_SAPISU_0UCINSTALLAH_ATTR_2 stg \
-                                 left outer join cleansed.t_sapisu_0uc_aklasse_text bc on bc.billingClass = stg.AKLASSE"
-                              )
+                                 left outer join cleansed.t_sapisu_0uc_aklasse_text bc on bc.billingClass = stg.AKLASSE \
+                                 left outer join cleansed.t_sapisu_0uc_tariftyp_text tt on tt.TARIFTYP = stg.TARIFTYP \
+                              ")
 display(df_cleansed_column)
 
 # COMMAND ----------
