@@ -146,14 +146,14 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_updated_column = spark.sql("SELECT  \
-                                  COUNTRY as COUNTRY , \
-                                  STRT_CODE as streetCode , \
-                                  STREET as STREET , \
+                                  SPRAS as SPRAS , \
+                                  TARIFTYP as TARIFTYP , \
+                                  TTYPBEZ as TTYPBEZ , \
                                   _RecordStart, \
                                   _RecordEnd, \
                                   _RecordDeleted, \
                                   _RecordCurrent \
-                              FROM CLEANSED.stg_sapisu_0CAM_STREETCODE_TEXT \
+                              FROM CLEANSED.stg_sapisu_0UC_TARIFTYP_TEXT \
                               ")
 
 display(df_updated_column)
@@ -163,9 +163,9 @@ display(df_updated_column)
 # Create schema for the cleanse table
 cleanse_Schema = StructType(
                             [
-                            StructField("COUNTRY", StringType(), True),
-                            StructField("streetCode", StringType(), True),
-                            StructField("STREET", StringType(), True),
+                            StructField("SPRAS", StringType(), True),
+                            StructField("TARIFTYP", StringType(), True),
+                            StructField("TTYPBEZ", StringType(), True),
                             StructField('_RecordStart',TimestampType(),False),
                             StructField('_RecordEnd',TimestampType(),False),
                             StructField('_RecordDeleted',IntegerType(),False),
@@ -173,7 +173,7 @@ cleanse_Schema = StructType(
                             ]
                         )
 # Apply the new schema to cleanse Data Frame
-df_updated_column = spark.createDataFrame(df_updated_column.rdd, schema=cleanse_Schema)
+df_updated_column = spark.createDataFrame(df_updated_column_temp.rdd, schema=cleanse_Schema)
 display(df_updated_column)
 
 
