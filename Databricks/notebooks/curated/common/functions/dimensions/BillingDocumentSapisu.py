@@ -1,4 +1,16 @@
 # Databricks notebook source
+#%run ../../includes/util-common
+
+# COMMAND ----------
+
+#%run ../commonBilledWaterConsumptionSapisu
+
+# COMMAND ----------
+
+# Run the above commands only when running this notebook independently, otherwise the curated master notebook would take care of calling the above notebooks
+
+# COMMAND ----------
+
 ###########################################################################################################################
 # Function: getCommonBillingDocumentSapisu
 #  GETS BillingDocument DIMENSION 
