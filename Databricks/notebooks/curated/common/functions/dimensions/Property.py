@@ -29,7 +29,7 @@ def GetCommonProperty():
                                      where _RecordCurrent = 1 and _RecordDeleted = 0")
   accessZ309TpropertyDf = accessZ309TpropertyDf.dropDuplicates() #Please remove once upstream data is fixed
 
-  sapisu0ucConbjAttr2Df = spark.sql("select propertyNumber, 'SAP' as sourceSystemCode,inferiorPropertyType as PropertyType, superiorPropertyType, \
+  sapisu0ucConbjAttr2Df = spark.sql("select propertyNumber, 'SAPISU' as sourceSystemCode,inferiorPropertyType as PropertyType, superiorPropertyType, \
                                             architecturalObjectInternalId, validFromDate as propertyStartDate, LGA,\
                                             coalesce(lead(validFromDate) over (partition by propertyNumber order by validFromDate)-1, \
                                             to_date('9999-12-31', 'yyyy-mm-dd'))  as propertyEndDate \

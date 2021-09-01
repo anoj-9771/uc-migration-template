@@ -145,84 +145,77 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_updated_column_temp = spark.sql("SELECT  \
-                                  HAUS  as propertyNumber , \
-                                  COUNTRY  as countryShortName , \
-                                  CITY_CODE  as cityCode , \
-                                  STREETCODE  as streetCode , \
-                                  stc.STREET as streetName , \
-                                  POSTALCODE  as postCode , \
-                                  REGION  as stateCode , \
-                                  REGIO_GRP  as regionGroup , \
-                                  REGPOLIT  as politicalRegionCode , \
-                                  reg.REGNAME as politicalRegion , \
-                                  wwTP  as connectionObjectGUID , \
-                                  UPDMOD  as updateMode , \
-                                  LOEVM  as deletedIndicator , \
-                                  REGIOGROUP_PERM  as regionGroupPermit , \
-                                  ZCD_PLAN_TYPE  as planTypeCode , \
-                                  plt.DESCRIPTION as planType , \
-                                  ZCD_PROCESS_TYPE  as processTypeCode , \
-                                  prt.DESCRIPTION as processType , \
-                                  ZCD_PLAN_NUMBER  as planNumber , \
-                                  ZCD_LOT_TYPE  as lotTypeCode , \
-                                  ZCD_LOT_NUMBER  as lotNumber , \
-                                  ZCD_SECTION_NUMBER  as sectionNumber , \
-                                  ZCD_IND_SRV_AGR  as serviceAgreementIndicator , \
-                                  ZCD_IND_MLIM  as mlimIndicator , \
-                                  ZCD_IND_WICA  as wicaIndicator , \
-                                  ZCD_IND_SOPA  as sopaIndicator , \
-                                  ZCD_AONR  as architecturalObjectNumber , \
-                                  ZCD_AOTYPE  as architecturalObjectTypeCode , \
-                                  ZCD_CASE_NO  as caseNumber , \
-                                  tiv.XMAOTYPE as architecturalObjectType , \
-                                  ZCD_BLD_FEE_DATE  as buildingFeeDate , \
-                                  ZCD_CAD_ID  as cadID , \
-                                  ZZPUMP_WW  as pumpWateWaterIndicator , \
-                                  ZZFIRE_SERVICE  as fireServiceIndicator , \
-                                  ZINTRENO  as architecturalObjectInternalId , \
-                                  ZAOID  as architecturalObjectId , \
-                                  ZFIXFITCHARACT  as fixtureAndFittingCharacteristic , \
-                                  HOUSE_ADRNR  as houseAddressNumber , \
-                                  WWTP  as WWTP , \
-                                  SCAMP  as SCAMP , \
-                                  HAUS_STREET  as streetName , \
-                                  HAUS_NUM1  as houseNumber , \
-                                  HAUS_LGA_NAME  as LGA , \
-                                  HOUS_CITY1  as cityName , \
-                                  WATER_DELIVERY_SYSTEM  as waterDeliverySystem , \
-                                  WATER_DISTRIBUTION_SYSTEM_WATE  as waterDistributionSystem , \
-                                  WATER_SUPPLY_ZONE  as waterSupplyZone , \
-                                  RECYCLE_WATER_DELIVERY_SYSTEM  as receycleWaterDeliverySystem , \
-                                  RECYCLE_WATER_DISTRIBUTION_SYS  as receycleWaterDistributionSystem , \
-                                  RECYCLE_WATER_SUPPLY_ZONE  as recycleWaterSupplyZone , \
-                                  ZCD_SUP_PROP_TYPE  as superiorPropertyTypeCode , \
-                                  sp.DESCRIPTION as superiorPropertyType , \
-                                  ZCD_INF_PROP_TYPE  as inferiorPropertyTypeCode , \
-                                  ip.DESCRIPTION as inferiorPropertyType , \
-                                  Z_OWNER  as objectReferenceIndicator , \
-                                  Z_OBJNR  as objectNumber , \
-                                  ZCD_NO_OF_FLATS  as flatCount , \
-                                  _RecordStart, \
-                                  _RecordEnd, \
-                                  _RecordDeleted, \
-                                  _RecordCurrent \
-                              FROM CLEANSED.stg_sapisu_0UC_CONNOBJ_ATTR_2 con \
-                                    LEFT OUTER JOIN CLEANSED.t_sapisu_ZCD_TINFPRTY_TX ip ON \
-                                   con.ZCD_INF_PROP_TYPE = ip.INFERIOR_PROP_TYPE \
-                                    LEFT OUTER JOIN CLEANSED.t_sapisu_ZCD_TSUPPRTYP_TX sp ON \
-                                   con.ZCD_SUP_PROP_TYPE = sp.SUPERIOR_PROP_TYPE \
-                                    LEFT OUTER JOIN CLEANSED.t_sapisu_ZCD_TPLANTYPE_TX plt ON \
-                                   con.ZCD_PLAN_TYPE = plt.PLAN_TYPE \
-                                    LEFT OUTER JOIN CLEANSED.t_sapisu_TIVBDAROBJTYPET tiv ON \
-                                   con.ZCD_AOTYPE = tiv.AOTYPE \
-                                    LEFT OUTER JOIN CLEANSED.t_sapisu_ZCD_TPROCTYPE_TX prt ON \
-                                   con.ZCD_PROCESS_TYPE = prt.PROCESS_TYPE \
-                                    LEFT OUTER JOIN CLEANSED.t_sapisu_0CAM_STREETCODE_TEXT stc ON \
-                                   con.STRT_CODE = stc.streetCode \
-                                    LEFT OUTER JOIN CLEANSED.t_sapisu_TE227T reg ON \
-                                   con.REGPOLIT = reg.REGPOLIT \
-                              ")
+df_updated_column_temp = spark.sql("SELECT \
+                                      HAUS as propertyNumber, \
+                                      COUNTRY as countryShortName, \
+                                      CITY_CODE as cityCode, \
+                                      STREETCODE as streetCode, \
+                                      stc.STREET as streetName, \
+                                      POSTALCODE as postCode, \
+                                      REGION as stateCode, \
+                                      REGIO_GRP as regionGroup, \
+                                      REGPOLIT as politicalRegionCode, \
+                                      reg.REGNAME as politicalRegion, \
+                                      wwTP as connectionObjectGUID, \
+                                      UPDMOD as updateMode, \
+                                      LOEVM as deletedIndicator, \
+                                      REGIOGROUP_PERM as regionGroupPermit, \
+                                      ZCD_PLAN_TYPE as planTypeCode, \
+                                      plt.DESCRIPTION as planType, \
+                                      ZCD_PROCESS_TYPE as processTypeCode, \
+                                      prt.DESCRIPTION as processType, \
+                                      ZCD_PLAN_NUMBER as planNumber, \
+                                      ZCD_LOT_TYPE as lotTypeCode, \
+                                      ZCD_LOT_NUMBER as lotNumber, \
+                                      ZCD_SECTION_NUMBER as sectionNumber, \
+                                      ZCD_IND_SRV_AGR as serviceAgreementIndicator, \
+                                      ZCD_IND_MLIM as mlimIndicator, \
+                                      ZCD_IND_WICA as wicaIndicator, \
+                                      ZCD_IND_SOPA as sopaIndicator, \
+                                      ZCD_AONR as architecturalObjectNumber, \
+                                      ZCD_AOTYPE as architecturalObjectTypeCode, \
+                                      ZCD_CASE_NO as caseNumber, \
+                                      tiv.XMAOTYPE as architecturalObjectType, \
+                                      ZCD_BLD_FEE_DATE as buildingFeeDate, \
+                                      ZCD_CAD_ID as cadID, \
+                                      ZZPUMP_WW as pumpWateWaterIndicator, \
+                                      ZZFIRE_SERVICE as fireServiceIndicator, \
+                                      ZINTRENO as architecturalObjectInternalId, \
+                                      ZAOID as architecturalObjectId, \
+                                      ZFIXFITCHARACT as fixtureAndFittingCharacteristic, \
+                                      HOUSE_ADRNR as houseAddressNumber, \
+                                      WWTP as WWTP, \
+                                      SCAMP as SCAMP, \
+                                      HAUS_STREET as streetName, \
+                                      HAUS_NUM1 as houseNumber, \
+                                      HAUS_LGA_NAME as LGA, \
+                                      HOUS_CITY1 as cityName, \
+                                      WATER_DELIVERY_SYSTEM as waterDeliverySystem, \
+                                      WATER_DISTRIBUTION_SYSTEM_WATE as waterDistributionSystem, \
+                                      WATER_SUPPLY_ZONE as waterSupplyZone, \
+                                      RECYCLE_WATER_DELIVERY_SYSTEM as receycleWaterDeliverySystem, \
+                                      RECYCLE_WATER_DISTRIBUTION_SYS as receycleWaterDistributionSystem, \
+                                      RECYCLE_WATER_SUPPLY_ZONE as recycleWaterSupplyZone, \
+                                      ZCD_SUP_PROP_TYPE as superiorPropertyTypeCode, \
+                                      sp.DESCRIPTION as superiorPropertyType, \
+                                      ZCD_INF_PROP_TYPE as inferiorPropertyTypeCode, \
+                                      ip.DESCRIPTION as inferiorPropertyType, \
+                                      Z_OWNER as objectReferenceIndicator, \
+                                      Z_OBJNR as objectNumber, \
+                                      ZCD_NO_OF_FLATS as flatCount, \
+                                      _RecordStart, \
+                                      _RecordEnd, \
+                                      _RecordDeleted, \
+                                      _RecordCurrent \
+                                    FROM CLEANSED.stg_sapisu_0UC_CONNOBJ_ATTR_2 con \
+                                    LEFT OUTER JOIN CLEANSED.t_sapisu_ZCD_TINFPRTY_TX ip ON con.ZCD_INF_PROP_TYPE = ip.INFERIOR_PROP_TYPE \
+                                    LEFT OUTER JOIN CLEANSED.t_sapisu_ZCD_TSUPPRTYP_TX sp ON con.ZCD_SUP_PROP_TYPE = sp.SUPERIOR_PROP_TYPE \
+                                    LEFT OUTER JOIN CLEANSED.t_sapisu_ZCD_TPLANTYPE_TX plt ON con.ZCD_PLAN_TYPE = plt.PLAN_TYPE \
+                                    LEFT OUTER JOIN CLEANSED.t_sapisu_TIVBDAROBJTYPET tiv ON con.ZCD_AOTYPE = tiv.AOTYPE \
+                                    LEFT OUTER JOIN CLEANSED.t_sapisu_ZCD_TPROCTYPE_TX prt ON con.ZCD_PROCESS_TYPE = prt.PROCESS_TYPE \
+                                    LEFT OUTER JOIN CLEANSED.t_sapisu_0CAM_STREETCODE_TEXT stc ON con.STRT_CODE = stc.streetCode \
+                                    LEFT OUTER JOIN CLEANSED.t_sapisu_TE227T reg ON con.REGPOLIT = reg.REGPOLIT \
+                                ")
 
 display(df_updated_column_temp)
 

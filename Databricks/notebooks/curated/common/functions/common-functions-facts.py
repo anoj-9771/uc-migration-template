@@ -15,4 +15,4 @@
 
 # COMMAND ----------
 
-# MAGIC %run ./facts/fact_example_2
+#%run ./facts/fact_example_2
