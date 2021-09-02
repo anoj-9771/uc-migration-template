@@ -188,9 +188,9 @@ df_cleansed = spark.sql("SELECT cast(N_PROP as int) AS propertyNumber, \
 		C_METE_GRID_LOCA AS meterGridLocationCode, \
 		C_READ_INST_NUM1 AS readingInstructionCode1, \
 		C_READ_INST_NUM2 AS readingInstructionCode2, \
-		case when F_METE_ADDI_DESC = 'Y' then true else false end AS hasdditionalDescription, \
-		case when F_METE_ROUT_PREP = 'Y' then true else false end AS hasMeterRoutePreparation, \
-		case when F_METE_WARN_NOTE = 'Y' then true else false end AS hasMeterWarningNote, \
+		case when F_METE_ADDI_DESC = '1' then true else false end AS hasdditionalDescription, \
+		case when F_METE_ROUT_PREP = '1' then true else false end AS hasMeterRoutePreparation, \
+		case when F_METE_WARN_NOTE = '1' then true else false end AS hasMeterWarningNote, \
 		to_date(D_METE_FIT, 'yyyyMMdd') AS meterFittedDate, \
 		cast(N_METE_READ_SEQU as int) AS meterReadingSequenceNumber, \
 		C_METE_CHAN_REAS AS meterChangeReasonCode, \
@@ -261,11 +261,6 @@ print(f'Number of rows: {df_updated_column.count()}')
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
 DeltaSaveDataframeDirect(df_updated_column, "t", source_object, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC select * from cleansed.t_access_z309_tpropmeter where waterMeterType is null
 
 # COMMAND ----------
 

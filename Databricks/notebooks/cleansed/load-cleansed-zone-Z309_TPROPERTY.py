@@ -196,7 +196,7 @@ df_cleansed = spark.sql("SELECT cast(N_PROP as int) AS propertyNumber, \
         case when F_METE_INCL = 'L' \
                   then true \
                   else false \
-        end AS hasMeterOnOtherPropery, \
+        end AS hasMeterOnOtherProperty, \
         case when F_SPEC_METE_ALLO = '1' \
                   then true \
                   else false \
@@ -231,7 +231,7 @@ df_cleansed = spark.sql("SELECT cast(N_PROP as int) AS propertyNumber, \
 		C_USER_CREA AS createdByUserID, \
 		C_PLAN_CREA AS createdByPlan, \
 		cast(to_unix_timestamp(H_CREA, 'yyyy-MM-dd hh:mm:ss a') as timestamp) as createdTimestamp, \
-		C_USER_MODI AS modifiedByUserID, \
+        case when substr(hex(c_user_modi),1,2) = '00' then ' ' else C_USER_MODI end AS modifiedByUserID, \
 		C_PLAN_MODI AS modifiedByPlan, \
 		cast(to_unix_timestamp(H_MODI, 'yyyy-MM-dd hh:mm:ss a') as timestamp) as modifiedTimestamp, \
         a._RecordStart, \
@@ -293,6 +293,11 @@ newSchema = StructType([
 
 df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
 display(df_updated_column)
+
+# COMMAND ----------
+
+df = spark.table('cleansed.t_access_z309_tproperty')
+df.printSchema()
 
 # COMMAND ----------
 
