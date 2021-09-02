@@ -367,10 +367,6 @@
 															"type": "String"
 														},
 														"EndCounter": {
-															"value": {
-																"value": "@json(string(pipeline().parameters.ValidationDetails)).ReturnValue",
-																"type": "Expression"
-															},
 															"type": "String"
 														},
 														"FileName": {
