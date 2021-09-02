@@ -1074,7 +1074,7 @@
 														"type": "ExecutePipeline",
 														"dependsOn": [
 															{
-																"activity": "Copy-Blob-to-DataLake-Raw",
+																"activity": "SP-Record-Manifest",
 																"dependencyConditions": [
 																	"Succeeded"
 																]
@@ -1224,6 +1224,104 @@
 																"type": "AzureBlobStorageReadSettings",
 																"recursive": true,
 																"enablePartitionDiscovery": false
+															}
+														}
+													},
+													{
+														"name": "SP-Record-Manifest",
+														"type": "SqlServerStoredProcedure",
+														"dependsOn": [
+															{
+																"activity": "Copy-Blob-to-DataLake-Raw",
+																"dependencyConditions": [
+																	"Succeeded"
+																]
+															}
+														],
+														"policy": {
+															"timeout": "7.00:00:00",
+															"retry": 0,
+															"retryIntervalInSeconds": 30,
+															"secureOutput": false,
+															"secureInput": false
+														},
+														"userProperties": [],
+														"typeProperties": {
+															"storedProcedureName": "[[CTL].[CreateManifestRecord]",
+															"storedProcedureParameters": {
+																"BatchExecutionLogID": {
+																	"value": {
+																		"value": "@pipeline().parameters.BatchLogId",
+																		"type": "Expression"
+																	},
+																	"type": "Int64"
+																},
+																"Container": {
+																	"value": "raw",
+																	"type": "String"
+																},
+																"DeltaColumn": {
+																	"value": null,
+																	"type": "String"
+																},
+																"EndCounter": {
+																	"value": "0",
+																	"type": "String"
+																},
+																"FileName": {
+																	"value": {
+																		"value": "@activity('Get Full File Name').output.firstrow.StorageFile",
+																		"type": "Expression"
+																	},
+																	"type": "String"
+																},
+																"FolderName": {
+																	"value": {
+																		"value": "@activity('Get Full File Name').output.firstrow.StorageFolder",
+																		"type": "Expression"
+																	},
+																	"type": "String"
+																},
+																"PipelineRunID": {
+																	"value": {
+																		"value": "@pipeline().RunId",
+																		"type": "Expression"
+																	},
+																	"type": "String"
+																},
+																"Records": {
+																	"value": "1",
+																	"type": "Int64"
+																},
+																"RecordsDeltaTable": {
+																	"value": null,
+																	"type": "Int64"
+																},
+																"SourceObject": {
+																	"value": {
+																		"value": "@pipeline().parameters.TaskDetails.SourceName",
+																		"type": "Expression"
+																	},
+																	"type": "String"
+																},
+																"StartCounter": {
+																	"value": "0",
+																	"type": "String"
+																},
+																"TaskExecutionLogID": {
+																	"value": {
+																		"value": "@pipeline().parameters.TaskExecutionLogId",
+																		"type": "Expression"
+																	},
+																	"type": "Int64"
+																}
+															}
+														},
+														"linkedServiceName": {
+															"referenceName": "LS-AzureSqlDatabase_Ctrldb",
+															"type": "LinkedServiceReference",
+															"parameters": {
+																"kvSecret": "daf-sql-controldb-connectionstring"
 															}
 														}
 													}
@@ -2981,7 +3079,7 @@
 									"type": "ExecutePipeline",
 									"dependsOn": [
 										{
-											"activity": "Log Success",
+											"activity": "SP-Record-Manifest",
 											"dependencyConditions": [
 												"Succeeded"
 											]
@@ -3147,6 +3245,103 @@
 											}
 										}
 									]
+								},
+								{
+									"name": "SP-Record-Manifest",
+									"type": "SqlServerStoredProcedure",
+									"dependsOn": [
+										{
+											"activity": "Log Success",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "7.00:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"storedProcedureName": "[[CTL].[CreateManifestRecord]",
+										"storedProcedureParameters": {
+											"BatchExecutionLogID": {
+												"value": {
+													"value": "@pipeline().parameters.BatchLogId",
+													"type": "Expression"
+												},
+												"type": "Int64"
+											},
+											"Container": {
+												"value": "raw",
+												"type": "String"
+											},
+											"EndCounter": {
+												"value": "0",
+												"type": "String"
+											},
+											"FileName": {
+												"value": {
+													"value": "@pipeline().parameters.TargetBLOBName",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"FolderName": {
+												"value": {
+													"value": "@pipeline().parameters.TargetBLOBFolder",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"Records": {
+												"value": {
+													"value": "@string(activity('Copy File to Raw Zone').output.dataWritten)",
+													"type": "Expression"
+												},
+												"type": "Int64"
+											},
+											"SourceObject": {
+												"value": {
+													"value": "@pipeline().parameters.TaskDetails.SourceName",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"StartCounter": {
+												"value": "0",
+												"type": "String"
+											},
+											"TaskExecutionLogID": {
+												"value": {
+													"value": "@pipeline().parameters.TaskExecutionLogId",
+													"type": "Expression"
+												},
+												"type": "Int64"
+											},
+											"DeltaColumn": {
+												"value": null,
+												"type": "String"
+											},
+											"PipelineRunID": {
+												"value": {
+													"value": "@pipeline().RunId",
+													"type": "Expression"
+												},
+												"type": "String"
+											}
+										}
+									},
+									"linkedServiceName": {
+										"referenceName": "LS-AzureSqlDatabase_Ctrldb",
+										"type": "LinkedServiceReference",
+										"parameters": {
+											"kvSecret": "daf-sql-controldb-connectionstring"
+										}
+									}
 								}
 							]
 						}
