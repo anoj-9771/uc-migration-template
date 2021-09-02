@@ -668,7 +668,7 @@
 									},
 									"Records": {
 										"value": {
-											"value": "@string(activity('Copy File to Raw Zone').output.rowsCopied)",
+											"value": "@string(activity('Copy File to Raw Zone').output.dataWritten)",
 											"type": "Expression"
 										},
 										"type": "Int64"
