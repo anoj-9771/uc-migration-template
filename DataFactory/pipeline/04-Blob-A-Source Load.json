@@ -366,26 +366,44 @@
 															"value": "raw",
 															"type": "String"
 														},
+														"DeltaColumn": {
+															"value": null,
+															"type": "String"
+														},
 														"EndCounter": {
 															"value": "0",
 															"type": "String"
 														},
 														"FileName": {
 															"value": {
-																"value": "@pipeline().parameters.TaskDetails.TargetName",
+																"value": "@activity('Get Full File Name').output.firstrow.StorageFile",
 																"type": "Expression"
 															},
 															"type": "String"
 														},
 														"FolderName": {
 															"value": {
-																"value": "@pipeline().parameters.TaskDetails.TargetLocation",
+																"value": "@activity('Get Full File Name').output.firstrow.StorageFolder",
+																"type": "Expression"
+															},
+															"type": "String"
+														},
+														"PipelineRunID": {
+															"value": {
+																"value": "@pipeline().RunId",
 																"type": "Expression"
 															},
 															"type": "String"
 														},
 														"Records": {
-															"value": "0",
+															"value": {
+																"value": "@string(activity('Copy-Blob-to-DataLake-Raw').output.rowsCopied)",
+																"type": "Expression"
+															},
+															"type": "Int64"
+														},
+														"RecordsDeltaTable": {
+															"value": null,
 															"type": "Int64"
 														},
 														"SourceObject": {
@@ -405,17 +423,6 @@
 																"type": "Expression"
 															},
 															"type": "Int64"
-														},
-														"DeltaColumn": {
-															"value": null,
-															"type": "String"
-														},
-														"PipelineRunID": {
-															"value": {
-																"value": "@pipeline().RunId",
-																"type": "Expression"
-															},
-															"type": "String"
 														}
 													}
 												},
