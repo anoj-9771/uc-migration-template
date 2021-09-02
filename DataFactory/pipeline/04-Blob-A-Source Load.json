@@ -385,6 +385,7 @@
 															"type": "String"
 														},
 														"Records": {
+															"value": "0",
 															"type": "Int64"
 														},
 														"SourceObject": {
