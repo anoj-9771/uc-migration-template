@@ -396,10 +396,7 @@
 															"type": "String"
 														},
 														"Records": {
-															"value": {
-																"value": "@string(activity('Copy-Blob-to-DataLake-Raw').output.rowsCopied)",
-																"type": "Expression"
-															},
+															"value": "1",
 															"type": "Int64"
 														},
 														"RecordsDeltaTable": {
