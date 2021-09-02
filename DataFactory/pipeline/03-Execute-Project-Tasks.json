@@ -299,23 +299,23 @@
 								},
 								"ifTrueActivities": [
 									{
-										"name": "EP-Blob-to-Raw_copy1",
+										"name": "EP-Lake-to-Raw",
 										"type": "ExecutePipeline",
 										"dependsOn": [],
 										"userProperties": [],
 										"typeProperties": {
 											"pipeline": {
-												"referenceName": "04-SQLServer-A-Source Load",
+												"referenceName": "04-LakeLanding-FlatFile-A-Source-Copy",
 												"type": "PipelineReference"
 											},
 											"waitOnCompletion": true,
 											"parameters": {
-												"BatchLogId": {
-													"value": "@activity('Generate Batch Log').output.firstrow.BatchLogId",
-													"type": "Expression"
-												},
 												"TaskDetails": {
 													"value": "@item()",
+													"type": "Expression"
+												},
+												"BatchLogId": {
+													"value": "@activity('Generate Batch Log').output.firstrow.BatchLogId",
 													"type": "Expression"
 												},
 												"TaskExecutionLogId": {
