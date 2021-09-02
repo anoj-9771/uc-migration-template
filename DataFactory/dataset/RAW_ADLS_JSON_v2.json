@@ -30,6 +30,10 @@
 					"type": "Expression"
 				},
 				"fileSystem": "raw"
+			},
+			"compression": {
+				"type": "gzip",
+				"level": "Optimal"
 			}
 		},
 		"schema": {}
