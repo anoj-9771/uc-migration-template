@@ -372,14 +372,14 @@
 														},
 														"FileName": {
 															"value": {
-																"value": "@pipeline().parameters.TargetBLOBName",
+																"value": "@pipeline().parameters.TaskDetails.TargetName",
 																"type": "Expression"
 															},
 															"type": "String"
 														},
 														"FolderName": {
 															"value": {
-																"value": "@pipeline().parameters.TargetBLOBFolder",
+																"value": "@pipeline().parameters.TaskDetails.TargetLocation",
 																"type": "Expression"
 															},
 															"type": "String"
