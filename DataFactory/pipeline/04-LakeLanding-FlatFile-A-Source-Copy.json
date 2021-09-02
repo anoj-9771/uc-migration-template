@@ -650,6 +650,7 @@
 										"type": "String"
 									},
 									"EndCounter": {
+										"value": "0",
 										"type": "String"
 									},
 									"FileName": {
@@ -681,10 +682,7 @@
 										"type": "String"
 									},
 									"StartCounter": {
-										"value": {
-											"value": "@pipeline().parameters.TaskDetails.Watermarks",
-											"type": "Expression"
-										},
+										"value": "0",
 										"type": "String"
 									},
 									"TaskExecutionLogID": {
@@ -695,10 +693,7 @@
 										"type": "Int64"
 									},
 									"DeltaColumn": {
-										"value": {
-											"value": "@pipeline().parameters.TaskDetails.WatermarkColumn",
-											"type": "Expression"
-										},
+										"value": null,
 										"type": "String"
 									},
 									"PipelineRunID": {
