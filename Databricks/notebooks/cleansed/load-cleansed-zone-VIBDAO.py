@@ -146,83 +146,78 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_updated_column = spark.sql("SELECT  \
-                                  INTRENO as architecturalObjectInternalId , \
-                                  AOID as architecturalObjectId , \
-                                  AOTYPE as architecturalObjectTypeCode , \
+                                  vib.INTRENO as architecturalObjectInternalId , \
+                                  vib.AOID as architecturalObjectId , \
+                                  vib.AOTYPE as architecturalObjectTypeCode , \
                                   tiv.XMAOTYPE as architecturalObjectType , \
-                                  AONR as architecturalObjectNumber , \
-                                  VALIDFROM as validFromDate , \
-                                  VALIDTO as validToDate , \
-                                  PARTAOID as partArchitecturalObjectId , \
-                                  OBJNR as objectNumber , \
-                                  RERF as firstEnteredBy , \
-                                  DERF as firstEnteredOnDate , \
-                                  TERF as firstEnteredTime , \
-                                  REHER as firstEnteredSource , \
-                                  RBEAR as employeeId , \
-                                  DBEAR as lastEdittedOnDate , \
-                                  TBEAR as lastEdittedTime , \
-                                  RBHER as lastEdittedSource , \
-                                  RESPONSIBLE as responsiblePerson , \
-                                  USEREXCLUSIVE as exclusiveUser , \
-                                  LASTRENO as lastRelocationDate , \
-                                  MEASSTRC as measurementStructure , \
-                                  DOORPLT as shortDescription , \
-                                  RSAREA as reservationArea , \
-                                  SINSTBEZ as maintenanceDistrict , \
-                                  SVERKEHR as businessEntityTransportConnectionsIndicator , \
-                                  ZCD_PROPERTY_NO as propertyNumber , \
-                                  ZCD_PROP_CR_DATE as propertyCreatedDate , \
-                                  ZCD_PROP_LOT_NO as propertyLotNumber , \
-                                  ZCD_REQUEST_NO as propertyRequestNumber , \
-                                  ZCD_PLAN_TYPE as planTypeCode , \
+                                  vib.AONR as architecturalObjectNumber , \
+                                  to_date(vib.VALIDFROM, 'yyyy-MM-dd') as validFromDate , \
+                                  to_date(vib.VALIDTO, 'yyyy-MM-dd') as validToDate , \
+                                  vib.PARTAOID as partArchitecturalObjectId , \
+                                  vib.OBJNR as objectNumber , \
+                                  vib.RERF as firstEnteredBy , \
+                                  to_date(vib.DERF, 'yyyy-MM-dd') as firstEnteredOnDate , \
+                                  vib.TERF as firstEnteredTime , \
+                                  vib.REHER as firstEnteredSource , \
+                                  vib.RBEAR as employeeId , \
+                                  to_date(vib.DBEAR, 'yyyy-MM-dd') as lastEdittedOnDate , \
+                                  vib.TBEAR as lastEdittedTime , \
+                                  vib.RBHER as lastEdittedSource , \
+                                  vib.RESPONSIBLE as responsiblePerson , \
+                                  vib.USEREXCLUSIVE as exclusiveUser , \
+                                  to_date(vib.LASTRENO, 'yyyy-MM-dd') as lastRelocationDate , \
+                                  vib.MEASSTRC as measurementStructure , \
+                                  vib.DOORPLT as shortDescription , \
+                                  vib.RSAREA as reservationArea , \
+                                  vib.SINSTBEZ as maintenanceDistrict , \
+                                  vib.SVERKEHR as businessEntityTransportConnectionsIndicator , \
+                                  vib.ZCD_PROPERTY_NO as propertyNumber , \
+                                  to_date(vib.ZCD_PROP_CR_DATE, 'yyyy-MM-dd') as propertyCreatedDate , \
+                                  cast(vib.ZCD_PROP_LOT_NO as long) as propertyLotNumber , \
+                                  cast(vib.ZCD_REQUEST_NO as long) as propertyRequestNumber , \
+                                  vib.ZCD_PLAN_TYPE as planTypeCode , \
                                   plt.DESCRIPTION as planType , \
-                                  ZCD_PLAN_NUMBER as planNumber , \
-                                  ZCD_PROCESS_TYPE as processTypeCode , \
+                                  cast(vib.ZCD_PLAN_NUMBER as long) as planNumber , \
+                                  vib.ZCD_PROCESS_TYPE as processTypeCode , \
                                   prt.DESCRIPTION as processType , \
-                                  ZCD_ADDR_LOT_NO as addressLotNumber , \
-                                  ZCD_LOT_TYPE as lotTypeCode , \
-                                  ZCD_UNIT_ENTITLEMENT as unitEntitlement , \
-                                  ZCD_NO_OF_FLATS as flatCount , \
-                                  ZCD_SUP_PROP_TYPE as superiorPropertyTypeCode , \
-                                  sp.DESCRIPTION as superiorPropertyType , \
-                                  ZCD_INF_PROP_TYPE as inferiorPropertyTypeCode , \
-                                  ip.DESCRIPTION as inferiorPropertyType , \
-                                  ZCD_STORM_WATER_ASSESS as stormWaterAssesmentIndicator , \
-                                  ZCD_IND_MLIM as mlimIndicator , \
-                                  ZCD_IND_WICA as wicaIndicator , \
-                                  ZCD_IND_SOPA as sopaIndicator , \
-                                  ZCD_IND_COMMUNITY_TITLE as communityTitleIndicator , \
-                                  ZCD_SECTION_NUMBER as sectionNumber , \
-                                  ZCD_HYDRA_CALC_AREA as hydraCalculatedArea , \
-                                  ZCD_HYDRA_AREA_UNIT as hydraAreaUnit , \
-                                  ZCD_HYDRA_AREA_FLAG as hydraAreaIndicator , \
-                                  ZCD_CASENO_FLAG as caseNumberIndicator , \
-                                  ZCD_OVERRIDE_AREA as overrideArea , \
-                                  ZCD_OVERRIDE_AREA_UNIT as overrideAreaUnit , \
-                                  ZCD_CANCELLATION_DATE as cancellationDate , \
-                                  ZCD_CANC_REASON as cancellationReasonCode , \
-                                  ZCD_COMMENTS as comments , \
-                                  ZCD_PROPERTY_INFO as propertyInfo , \
-                                  OBJNRTRG as targetObjectNumber , \
-                                  DIAGRAM_NO as diagramNumber , \
-                                  FIXFITCHARACT as fixtureAndFittingCharacteristicCode , \
-                                  XFIXFITCHARACT as fixtureAndFittingCharacteristic , \
-                                  _RecordStart, \
-                                  _RecordEnd, \
-                                  _RecordDeleted, \
-                                  _RecordCurrent \
+                                  vib.ZCD_ADDR_LOT_NO as addressLotNumber , \
+                                  vib.ZCD_LOT_TYPE as lotTypeCode , \
+                                  vib.ZCD_UNIT_ENTITLEMENT as unitEntitlement , \
+                                  vib.ZCD_NO_OF_FLATS as flatCount , \
+                                  vib.ZCD_SUP_PROP_TYPE as superiorPropertyTypeCode , \
+                                  sp.superiorPropertyType as superiorPropertyType , \
+                                  vib.ZCD_INF_PROP_TYPE as inferiorPropertyTypeCode , \
+                                  ip.inferiorPropertyType as inferiorPropertyType , \
+                                  vib.ZCD_STORM_WATER_ASSESS as stormWaterAssesmentIndicator , \
+                                  vib.ZCD_IND_MLIM as mlimIndicator , \
+                                  vib.ZCD_IND_WICA as wicaIndicator , \
+                                  vib.ZCD_IND_SOPA as sopaIndicator , \
+                                  vib.ZCD_IND_COMMUNITY_TITLE as communityTitleIndicator , \
+                                  vib.ZCD_SECTION_NUMBER as sectionNumber , \
+                                  vib.ZCD_HYDRA_CALC_AREA as hydraCalculatedArea , \
+                                  vib.ZCD_HYDRA_AREA_UNIT as hydraAreaUnit , \
+                                  vib.ZCD_HYDRA_AREA_FLAG as hydraAreaIndicator , \
+                                  vib.ZCD_CASENO_FLAG as caseNumberIndicator , \
+                                  vib.ZCD_OVERRIDE_AREA as overrideArea , \
+                                  vib.ZCD_OVERRIDE_AREA_UNIT as overrideAreaUnit , \
+                                  to_date(vib.ZCD_CANCELLATION_DATE, 'yyyy-MM-dd') as cancellationDate , \
+                                  vib.ZCD_CANC_REASON as cancellationReasonCode , \
+                                  vib.ZCD_COMMENTS as comments , \
+                                  vib.ZCD_PROPERTY_INFO as propertyInfo , \
+                                  'OBJNRTRG - not in source' as targetObjectNumber , \
+                                  'DIAGRAM_NO - not in source' as diagramNumber , \
+                                  'FIXFITCHARACT - not in source' as fixtureAndFittingCharacteristicCode , \
+                                  'Could not be derived' as fixtureAndFittingCharacteristic , \
+                                  vib._RecordStart, \
+                                  vib._RecordEnd, \
+                                  vib._RecordDeleted, \
+                                  vib._RecordCurrent \
                               FROM CLEANSED.stg_sapisu_vibdao vib \
-                                    LEFT OUTER JOIN CLEANSED.t_sapisu_ZCD_TINFPRTY_TX ip ON \
-                                   vib.ZCD_INF_PROP_TYPE = ip.INFERIOR_PROP_TYPE \
-                                    LEFT OUTER JOIN CLEANSED.t_sapisu_ZCD_TSUPPRTYP_TX sp ON \
-                                   vib.ZCD_SUP_PROP_TYPE = sp.SUPERIOR_PROP_TYPE \
-                                    LEFT OUTER JOIN CLEANSED.t_sapisu_ZCD_TPLANTYPE_TX plt ON \
-                                   vib.ZCD_PLAN_TYPE = plt.PLAN_TYPE \
-                                    LEFT OUTER JOIN CLEANSED.t_sapisu_TIVBDAROBJTYPET tiv ON \
-                                   vib.ZCD_AOTYPE = tiv.AOTYPE \
-                                    LEFT OUTER JOIN CLEANSED.t_sapisu_ZCD_TPROCTYPE_TX prt ON \
-                                   vib.ZCD_PROCESS_TYPE = prt.PROCESS_TYPE \
+                                    LEFT OUTER JOIN CLEANSED.t_sapisu_ZCD_TINFPRTY_TX ip ON vib.ZCD_INF_PROP_TYPE = ip.inferiorPropertyTypeCode \
+                                    LEFT OUTER JOIN CLEANSED.t_sapisu_ZCD_TSUPPRTYP_TX sp ON vib.ZCD_SUP_PROP_TYPE = sp.superiorPropertyTypeCode \
+                                    LEFT OUTER JOIN CLEANSED.t_sapisu_ZCD_TPLANTYPE_TX plt ON vib.ZCD_PLAN_TYPE = plt.PLAN_TYPE \
+                                    LEFT OUTER JOIN CLEANSED.t_sapisu_TIVBDAROBJTYPET tiv ON vib.AOTYPE = tiv.AOTYPE \
+                                    LEFT OUTER JOIN CLEANSED.t_sapisu_ZCD_TPROCTYPE_TX prt ON vib.ZCD_PROCESS_TYPE = prt.PROCESS_TYPE \
                               ")
 
 display(df_updated_column)
@@ -243,11 +238,11 @@ cleanse_Schema = StructType(
                             StructField("objectNumber", StringType(), True),
                             StructField("firstEnteredBy", StringType(), True),
                             StructField("firstEnteredOnDate", DateType(), True),
-                            StructField("firstEnteredTime", DateType(), True),
+                            StructField("firstEnteredTime", StringType(), True),
                             StructField("firstEnteredSource", StringType(), True),
                             StructField("employeeId", StringType(), True),
                             StructField("lastEdittedOnDate", DateType(), True),
-                            StructField("lastEdittedTime", DateType(), True),
+                            StructField("lastEdittedTime", StringType(), True),
                             StructField("lastEdittedSource", StringType(), True),
                             StructField("responsiblePerson", StringType(), True),
                             StructField("exclusiveUser", StringType(), True),
@@ -291,7 +286,7 @@ cleanse_Schema = StructType(
                             StructField("comments", StringType(), True),
                             StructField("propertyInfo", StringType(), True),
                             StructField("targetObjectNumber", StringType(), True),
-                            StructField("diagramNumber", LongType(), True),
+                            StructField("diagramNumber", StringType(), True),
                             StructField("fixtureAndFittingCharacteristicCode", StringType(), True),
                             StructField("fixtureAndFittingCharacteristic", StringType(), True),
                             StructField('_RecordStart',TimestampType(),False),
@@ -301,7 +296,7 @@ cleanse_Schema = StructType(
                             ]
                         )
 # Apply the new schema to cleanse Data Frame
-df_updated_column = spark.createDataFrame(df_updated_column_temp.rdd, schema=cleanse_Schema)
+df_updated_column = spark.createDataFrame(df_updated_column.rdd, schema=cleanse_Schema)
 display(df_updated_column)
 
 

@@ -21,8 +21,6 @@ def GetCommonDate():
   #2.Load Cleansed layer table data into dataframe
   dateDf = spark.sql("SELECT  * \
                                    from cleansed.t_sapisu_scal_tt_date")
-#  dateDf = dateDf.dropDuplicates() #Please remove once upstream data is fixed
-
  
   #3.JOIN TABLES  
   
