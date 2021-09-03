@@ -149,7 +149,6 @@ DeltaSaveToDeltaTable (
     
 df_calendar_column = spark.sql("SELECT \
                                 to_date(CALENDARDATE,'yyyy-MM-dd') as calendarDate , \
-                                
                                 CALENDARDAY as dayOfMonth , \
                                 CALENDARDAYOFYEAR as dayOfYear  , \
                                 CALENDARWEEK as weekOfYear , \
@@ -174,8 +173,6 @@ df_calendar_column = spark.sql("SELECT \
                                where calendardate <> to_date('9999-12-31','yyyy-MM-dd') \
                                ")
 
-#df_calendar_column = df_calendar_column.withColumn('mnthnm',month(df_calendar_column.calendarDate))
-
 df_calendar_column = df_calendar_column.selectExpr( \
                                 "calendarDate" , \
                                 "'tba' as dayName", \
@@ -183,8 +180,7 @@ df_calendar_column = df_calendar_column.selectExpr( \
                                 "dayOfYear"  , \
                                 "weekOfYear" , \
                                 "monthOfYear" , \
-                                --"datetime.datetime.now().strftime("%B") as mnthnm", \
-                                "monthName", \
+                                "'tba' as monthName", \
                                 "quarterOfYear" , \
                                 "halfOfYear"  , \
                                 "calendarYear" , \
@@ -254,30 +250,6 @@ display(df_cleansed_column)
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
 DeltaSaveDataframeDirect(df_cleansed_column, "t", source_object, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC select calendarDate, count(1) from cleansed.t_sapisu_scal_tt_date
-# MAGIC group by calendarDate
-# MAGIC having count(1) > 1
-# MAGIC order by 1;
-
-# COMMAND ----------
-
-#df['monthName'] = df['monthNumer'].apply(lambda x: calendar.month_name[x])
-#import datetime
-
-#provide month number
-month_num = "3"
-datetime_object = datetime.datetime.strptime("4", "%m")
-print(datetime_object)
-
-month_name = datetime_object.strftime("%b")
-print("Short name: ",month_name)
-
-full_month_name = datetime_object.strftime("%B")
-print("Full name: ",full_month_name)
 
 # COMMAND ----------
 
