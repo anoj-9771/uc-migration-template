@@ -146,7 +146,7 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_updated_column_temp = spark.sql("SELECT  \
-                                  AOTYPE  as AOTYPE, \
+                                  AOTYPE as AOTYPE, \
                                   XMAOTYPE as XMAOTYPE , \
                                   _RecordStart, \
                                   _RecordEnd, \
@@ -155,14 +155,14 @@ df_updated_column_temp = spark.sql("SELECT  \
                               FROM CLEANSED.stg_sapisu_TIVBDAROBJTYPET \
                               ")
 
-display(df_updated_column)
+display(df_updated_column_temp)
 
 # COMMAND ----------
 
 # Create schema for the cleanse table
 cleanse_Schema = StructType(
                             [
-                            StructField("AOTYPE ", StringType(), True),
+                            StructField("AOTYPE", StringType(), True),
                             StructField("XMAOTYPE", StringType(), True),
                             StructField('_RecordStart',TimestampType(),False),
                             StructField('_RecordEnd',TimestampType(),False),
