@@ -3285,14 +3285,14 @@
 											},
 											"FileName": {
 												"value": {
-													"value": "@pipeline().parameters.TargetBLOBName",
+													"value": "@activity('Get Full File Name').output.firstrow.StorageFile",
 													"type": "Expression"
 												},
 												"type": "String"
 											},
 											"FolderName": {
 												"value": {
-													"value": "@pipeline().parameters.TargetBLOBFolder",
+													"value": "@activity('Get Full File Name').output.firstrow.StorageFolder",
 													"type": "Expression"
 												},
 												"type": "String"
