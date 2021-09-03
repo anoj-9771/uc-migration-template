@@ -24,7 +24,7 @@ def GetCommonMeter():
   #Meter Data from Access
   accessZ309TpropmeterDf = spark.sql("select 'Access' as sourceSystemCode, \
                                               meterMakerNumber as meterId, \
-                                              meterSize, waterType, \
+                                              meterSize, waterMeterType, \
                                               meterFittedDate, \
                                               meterRemovedDate, \
                                               row_number() over (partition by metermakernumber order by meterFittedDate desc) rownum \
@@ -39,25 +39,22 @@ def GetCommonMeter():
                                                .drop(accessZ309TpropmeterDf.meterRemovedDate) \
                                                .drop(accessZ309TpropmeterDf.rownum)
   
-  accessZ309TpropmeterDf = accessZ309TpropmeterDf.dropDuplicates() #Please remove once upstream data is fixed
     
   #Meter Data from SAP ISU  
   sapisu0ucDeviceAttrDf  = spark.sql("select 'SAPISU' as sourceSystemCode, materialNumber, equipmentNumber as meterId \
                                       from cleansed.t_sapisu_0uc_device_attr \
                                       where _RecordCurrent = 1 and _RecordDeleted = 0")
-  sapisu0ucDeviceAttrDf  = sapisu0ucDeviceAttrDf.dropDuplicates() #Please remove once upstream data is fixed
       
-  sapisu0ucDevcatAttrDf  = spark.sql("select materialNumber, deviceCategoryDescription as meterSize, functionClass as waterType \
+  sapisu0ucDevcatAttrDf  = spark.sql("select materialNumber, deviceCategoryDescription as meterSize, functionClass as waterMeterType \
                                       from cleansed.t_sapisu_0uc_devcat_attr \
                                       where _RecordCurrent = 1 and _RecordDeleted = 0")
-  sapisu0ucDevcatAttrDf  = sapisu0ucDevcatAttrDf.dropDuplicates() #Please remove once upstream data is fixed
   
   #3.JOIN TABLES
   df = sapisu0ucDeviceAttrDf.join(sapisu0ucDevcatAttrDf, sapisu0ucDeviceAttrDf.materialNumber == sapisu0ucDevcatAttrDf.materialNumber, 
                                   how="leftouter") \
                             .drop(sapisu0ucDeviceAttrDf.materialNumber) \
                             .drop(sapisu0ucDevcatAttrDf.materialNumber)
-  df = df.select("sourceSystemCode", "meterId", "meterSize", "waterType")
+  df = df.select("sourceSystemCode", "meterId", "meterSize", "waterMeterType")
 
   
   #4.UNION TABLES
