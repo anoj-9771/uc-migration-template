@@ -22,7 +22,8 @@ trigger: none
 #     - DevOps/Pipelines/datafactory-deploy-pipeline-cicd.yml
 #     - DevOps/Pipelines/stage-datafactory-integration.yml
 
-pool: ubuntu-latest
+pool:
+  vmImage: ubuntu-latest
 #Daf-Self-Pool01
 # vmImage: ubuntu-latest
 

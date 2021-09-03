@@ -12,7 +12,7 @@ variables:
   # Used to set Log Analytics deployability
   - name: loganalytics
     value: true
-  # Used to set Log Blob Storage deployability
+  # Used to set Log Blob Storage deployability.
   - name: logstorage
     value: true
   # Used to set Azure SQL Server deployability
