@@ -159,9 +159,7 @@ DeltaSaveToDeltaTable (
 #Update/rename Column
 df_cleansed = spark.sql("SELECT \
 	KEY1 as businessPartnerCategoryCode, \
-	TXTMD as businessPartnerCategory, \
-	to_date(DATEFROM, 'yyyyMMdd') as validFromDate, \
-	to_date(DATETO, 'yyyyMMdd') as validToDate, \
+	TXTLG as businessPartnerCategory, \
 	_RecordStart, \
 	_RecordEnd, \
 	_RecordDeleted, \
@@ -174,17 +172,16 @@ print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
 
-newSchema = StructType(
+newSchema  = StructType(
   [
-	StructField('businessPartnerCategoryCode',StringType(),False,
-	StructField('businessPartnerCategory',StringType(),True,
-	StructField('_RecordStart',TimestampType(),False),
-	StructField('_RecordEnd',TimestampType(),False),
-	StructField('_RecordDeleted',IntegerType(),False),
-	StructField('_RecordCurrent',IntegerType(),False)
-   ]
- )
-
+    StructField("businessPartnerCategoryCode", StringType(), False),
+    StructField("businessPartnerCategory", StringType(), True),
+    StructField('_RecordStart',TimestampType(),False),
+    StructField('_RecordEnd',TimestampType(),False),
+    StructField('_RecordDeleted',IntegerType(),False),
+    StructField('_RecordCurrent',IntegerType(),False)
+  ]
+)
 df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
 
 
