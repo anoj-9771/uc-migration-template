@@ -9,7 +9,7 @@ variables:
   # The default resource group region name
   - name: location
     value: australiaeast
-  # environment name used in service naming
+  # environment name used in service naming..
   - name: environment
     value: dev
   # Resource group name
@@ -37,7 +37,7 @@ variables:
   # ------------------------------------------------
   # Service names for environment
   # ------------------------------------------------
-  # Name of Azure SQL Server and EDW Database
+  # Name of Azure SQL Server and EDW Database.
   - name: azuresqlservername
     value: sql-$(SUBSCRIPTION)-$(PREFIX)-$(ENVIRONMENT)-$(INCREMENT)
   - name: azureedwdbname

@@ -35,6 +35,10 @@
 			"type": "string",
 			"defaultValue": "@linkedService().kvSecret"
 		},
+		"LS_SQLServer_properties_typeProperties_connectionString_secretName": {
+			"type": "string",
+			"defaultValue": "@linkedService().kvSecret"
+		},
 		"DLY1300_properties_01-Main_parameters_TriggerName": {
 			"type": "string",
 			"defaultValue": "DLY1300"
@@ -42,6 +46,20 @@
 		"Emrvisaf_properties_01-Main_parameters_TriggerName": {
 			"type": "string",
 			"defaultValue": "Emrvisaf"
+		},
+		"PrivateLinkService1_properties_privateLinkResourceId": {
+			"type": "string",
+			"defaultValue": "/subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-daf-dev-01/providers/Microsoft.Network/privateLinkServices/pe-link-daf-dev-01"
+		},
+		"PrivateLinkService1_properties_groupId": {
+			"type": "string",
+			"defaultValue": ""
+		},
+		"PrivateLinkService1_properties_fqdns": {
+			"type": "array",
+			"defaultValue": [
+				"nt097dslt01.adsdev.swcdev"
+			]
 		},
 		"kv-daf-dev-01_properties_privateLinkResourceId": {
 			"type": "string",
@@ -107,6 +125,18 @@
 					},
 					"LS_Oracle_properties_typeProperties_connectionString_secretName": {
 						"value": "[parameters('LS_Oracle_properties_typeProperties_connectionString_secretName')]"
+					},
+					"LS_SQLServer_properties_typeProperties_connectionString_secretName": {
+						"value": "[parameters('LS_SQLServer_properties_typeProperties_connectionString_secretName')]"
+					},
+					"PrivateLinkService1_properties_privateLinkResourceId": {
+						"value": "[parameters('PrivateLinkService1_properties_privateLinkResourceId')]"
+					},
+					"PrivateLinkService1_properties_groupId": {
+						"value": "[parameters('PrivateLinkService1_properties_groupId')]"
+					},
+					"PrivateLinkService1_properties_fqdns": {
+						"value": "[parameters('PrivateLinkService1_properties_fqdns')]"
 					},
 					"kv-daf-dev-01_properties_privateLinkResourceId": {
 						"value": "[parameters('kv-daf-dev-01_properties_privateLinkResourceId')]"

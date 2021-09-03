@@ -17,4 +17,3 @@ def AdminRemoveDeltaTable(fq_table_name):
   
   print ("ALL DONE!!")
   
-

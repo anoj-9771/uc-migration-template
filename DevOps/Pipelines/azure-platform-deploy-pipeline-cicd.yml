@@ -22,10 +22,10 @@ trigger: none
   #   - AzureResources/arm-*
   #   - DevOps/Pipelines/azure-platform-deploy-pipeline-cicd.yml
   #   exclude:
-  #   - DevOps/Pipelines/iac-create-keyvaults.yml
+  #   - DevOps/Pipelines/iac-create-keyvaults.yml..
 
-pool:
-  vmImage: ubuntu-latest
+pool: Daf-Self-Pool01
+# vmImage: ubuntu-latest
 
 stages:
 # ---------------------------------------------------------------------------

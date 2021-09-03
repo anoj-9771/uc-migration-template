@@ -294,27 +294,27 @@ def DeltaSaveToDeltaTable(
   LogEtl("Executing merge query")
   spark.sql(delta_query)
   
-  if is_delta_extract == False and data_load_mode == ADS_WRITE_MODE_MERGE:
-    LogEtl("Generating delete query as it is full load extraction")
-    #Generate the Query to save the data
-    delta_query = SQLMerge_DeltaTable_GenerateSQL(
-        source_table_name = source_table, 
-        target_table_name = target_table_fqn, 
-        business_key = business_key, 
-        delta_column = delta_column, 
-        start_counter = start_counter, 
-        end_counter = end_counter, 
-        is_delta_extract = is_delta_extract, 
-        data_load_mode = data_load_mode,
-        track_changes = track_changes, 
-        target_data_lake_zone = target_data_lake_zone,
-        delete_data = True
-    )
-    LogExtended(delta_query)
+#   if is_delta_extract == False and data_load_mode == ADS_WRITE_MODE_MERGE:
+#     LogEtl("Generating delete query as it is full load extraction")
+#     #Generate the Query to save the data
+#     delta_query = SQLMerge_DeltaTable_GenerateSQL(
+#         source_table_name = source_table, 
+#         target_table_name = target_table_fqn, 
+#         business_key = business_key, 
+#         delta_column = delta_column, 
+#         start_counter = start_counter, 
+#         end_counter = end_counter, 
+#         is_delta_extract = is_delta_extract, 
+#         data_load_mode = data_load_mode,
+#         track_changes = track_changes, 
+#         target_data_lake_zone = target_data_lake_zone,
+#         delete_data = True
+#     )
+#     LogExtended(delta_query)
 
-    #Execute the SQL Query
-    LogEtl("Executing delete query")
-    spark.sql(delta_query)
+#     #Execute the SQL Query
+#     LogEtl("Executing delete query")
+#     spark.sql(delta_query)
   
 
 
@@ -336,6 +336,8 @@ def DeltaInjectSurrogateKeyToDataFrame(df, table_name):
 
 def DeltaSaveDataFrameToDeltaTable(
   dataframe, target_table, target_data_lake_zone, target_database, data_lake_folder, data_load_mode, track_changes = False, is_delta_extract = False, business_key = "", AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0"):
+  
+
   
   stage_table_name = f"{ADS_DATABASE_STAGE}.{target_table}"
   
@@ -509,4 +511,3 @@ def DeltaSyncToSQLEDWOverwrite(delta_table, target_schema, target_table):
   
   DeltaSyncToSQLEDW (delta_table, target_schema, target_table, business_key, delta_column, start_counter, ADS_WRITE_MODE_OVERWRITE, track_changes, is_delta_extract)
     
-

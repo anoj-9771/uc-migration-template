@@ -10,18 +10,17 @@ pr:
     include:
     - Databricks/notebooks/*
 
-trigger: none
-#   branches:
-#     include:
-#     - main
-#     - develop
-#     - test
-#   paths:
-#     include:
-#     - Databricks/notebooks/*
+trigger:
+  branches:
+    include:
+    - test
+    - develop
+  paths:
+    include:
+    - Databricks/notebooks/*
 
-pool:
-  vmImage: ubuntu-latest
+pool: Daf-Self-Pool01
+# vmImage: ubuntu-latest
 
 stages:
 # ---------------------------------------------------------------------------

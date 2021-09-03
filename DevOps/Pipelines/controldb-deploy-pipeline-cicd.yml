@@ -20,8 +20,8 @@ trigger: none
 #     include:
 #     - ADS-Databases/ADS-Database.sln
 
-pool:
-  vmImage: ubuntu-latest
+pool: Daf-Self-Pool01
+# vmImage: ubuntu-latest
 
 stages:
 # ---------------------------------------------------------------------------

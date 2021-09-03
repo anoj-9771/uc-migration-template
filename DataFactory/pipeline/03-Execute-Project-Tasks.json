@@ -6,7 +6,20 @@
 				"name": "Get Load Tasks",
 				"description": "",
 				"type": "Lookup",
-				"dependsOn": [],
+				"dependsOn": [
+					{
+						"activity": "Set RunDate",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "Set RunTime",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
 				"policy": {
 					"timeout": "7.00:00:00",
 					"retry": 0,
@@ -128,7 +141,7 @@
 										"userProperties": [],
 										"typeProperties": {
 											"pipeline": {
-												"referenceName": "04-Blob-Json-A-Source-Copy",
+												"referenceName": "04-Blob-A-Source Load",
 												"type": "PipelineReference"
 											},
 											"waitOnCompletion": true,
@@ -147,6 +160,14 @@
 												},
 												"ProjectRunID": {
 													"value": "@pipeline().parameters.ProjectRunID",
+													"type": "Expression"
+												},
+												"RunDate": {
+													"value": "@variables('RunDate')",
+													"type": "Expression"
+												},
+												"RunTime": {
+													"value": "@variables('RunTime')",
 													"type": "Expression"
 												}
 											}
@@ -226,13 +247,13 @@
 								},
 								"ifTrueActivities": [
 									{
-										"name": "EP-Trusted-to-Curated",
+										"name": "EP-Cleansed-to-Curated",
 										"type": "ExecutePipeline",
 										"dependsOn": [],
 										"userProperties": [],
 										"typeProperties": {
 											"pipeline": {
-												"referenceName": "05-DL-Copy-Trusted-to-Curated",
+												"referenceName": "05-DL-Load-Cleansed-to-Curated",
 												"type": "PipelineReference"
 											},
 											"waitOnCompletion": true,
@@ -278,7 +299,7 @@
 								},
 								"ifTrueActivities": [
 									{
-										"name": "EP-Blob-to-Raw_copy1",
+										"name": "EP-Lake-to-Raw",
 										"type": "ExecutePipeline",
 										"dependsOn": [],
 										"userProperties": [],
@@ -295,6 +316,58 @@
 												},
 												"BatchLogId": {
 													"value": "@activity('Generate Batch Log').output.firstrow.BatchLogId",
+													"type": "Expression"
+												},
+												"TaskExecutionLogId": {
+													"value": "@activity('Generate Task Log').output.firstrow.TaskLogId",
+													"type": "Expression"
+												},
+												"ProjectRunID": {
+													"value": "@pipeline().parameters.ProjectRunID",
+													"type": "Expression"
+												}
+											}
+										}
+									}
+								]
+							}
+						},
+						{
+							"name": "Source-to-Raw-SQL Stage1",
+							"type": "IfCondition",
+							"dependsOn": [
+								{
+									"activity": "Generate Task Log",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"expression": {
+									"value": "@and(equals(item().SourceType,'SQL Server'), equals(item().ControlStageId,1))",
+									"type": "Expression"
+								},
+								"ifTrueActivities": [
+									{
+										"name": "EP-SqlSource-to-Raw-Load",
+										"type": "ExecutePipeline",
+										"dependsOn": [],
+										"userProperties": [],
+										"typeProperties": {
+											"pipeline": {
+												"referenceName": "04-SQLServer-A-Source Load",
+												"type": "PipelineReference"
+											},
+											"waitOnCompletion": true,
+											"parameters": {
+												"BatchLogId": {
+													"value": "@activity('Generate Batch Log').output.firstrow.BatchLogId",
+													"type": "Expression"
+												},
+												"TaskDetails": {
+													"value": "@item()",
 													"type": "Expression"
 												},
 												"TaskExecutionLogId": {
@@ -447,6 +520,32 @@
 						"type": "DatasetReference"
 					}
 				}
+			},
+			{
+				"name": "Set RunDate",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "RunDate",
+					"value": {
+						"value": "@formatDateTime(convertFromUtc(utcnow(),'AUS Eastern Standard Time'),'yyyyMMdd')",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Set RunTime",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "RunTime",
+					"value": {
+						"value": "@formatDateTime(convertFromUtc(utcnow(),'AUS Eastern Standard Time'),'yyyyMMdd_HH:mm:ss')",
+						"type": "Expression"
+					}
+				}
 			}
 		],
 		"parameters": {
@@ -458,6 +557,14 @@
 			},
 			"ProjectRunID": {
 				"type": "string"
+			}
+		},
+		"variables": {
+			"RunDate": {
+				"type": "String"
+			},
+			"RunTime": {
+				"type": "String"
 			}
 		},
 		"annotations": [],
