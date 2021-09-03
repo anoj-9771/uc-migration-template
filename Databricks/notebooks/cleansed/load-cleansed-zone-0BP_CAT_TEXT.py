@@ -126,7 +126,7 @@ print(data_load_mode)
 #Set raw and cleansed table name
 #Delta and SQL tables are case Insensitive. Seems Delta table are always lower case
 delta_cleansed_tbl_name = f'{ADS_DATABASE_CLEANSED}.stg_{source_object}'
-delta_raw_tbl_name = f'{ADS_DATABASE_RAW}.stg_{source_object}'
+delta_raw_tbl_name = f'{ADS_DATABASE_RAW}.{source_object}'
 
 
 #Destination
@@ -174,16 +174,16 @@ print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
 
-newSchema = StructType([
-	StructField('businessPartnerCategoyCode',StringType(),False,
-	StructField('businessPartnerCategoy',StringType(),True,
-	StructField('validFromDate',DateType(),True,
-	StructField('validToDate',DateType(),False,
+newSchema = StructType(
+  [
+	StructField('businessPartnerCategoryCode',StringType(),False,
+	StructField('businessPartnerCategory',StringType(),True,
 	StructField('_RecordStart',TimestampType(),False),
 	StructField('_RecordEnd',TimestampType(),False),
 	StructField('_RecordDeleted',IntegerType(),False),
 	StructField('_RecordCurrent',IntegerType(),False)
-])
+   ]
+ )
 
 df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
 
