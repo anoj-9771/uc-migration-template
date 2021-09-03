@@ -158,8 +158,8 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_cleansed = spark.sql("SELECT \
-	KEY1 as businessPartnerCategoyCode, \
-	TXTMD as businessPartnerCategoy, \
+	KEY1 as businessPartnerCategoryCode, \
+	TXTMD as businessPartnerCategory, \
 	to_date(DATEFROM, 'yyyyMMdd') as validFromDate, \
 	to_date(DATETO, 'yyyyMMdd') as validToDate, \
 	_RecordStart, \
