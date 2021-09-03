@@ -173,7 +173,6 @@ df_calendar_column = spark.sql("SELECT \
                                where calendardate <> to_date('9999-12-31','yyyy-MM-dd') \
                                ")
 
-
 df_calendar_column = df_calendar_column.selectExpr( \
                                 "calendarDate" , \
                                 "'tba' as dayName", \
@@ -251,14 +250,6 @@ display(df_cleansed_column)
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
 DeltaSaveDataframeDirect(df_cleansed_column, "t", source_object, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC select calendarDate, count(1) from cleansed.t_sapisu_scal_tt_date
-# MAGIC group by calendarDate
-# MAGIC having count(1) > 1
-# MAGIC order by 1
 
 # COMMAND ----------
 
