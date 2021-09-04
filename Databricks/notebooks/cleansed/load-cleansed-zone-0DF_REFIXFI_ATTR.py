@@ -175,6 +175,7 @@ df_cleansed = spark.sql("SELECT \
 	_RecordDeleted, \
 	_RecordCurrent \
 	FROM CLEANSED.STG_SAPISU_0DF_REFIXFI_ATTR \
+#    WHERE INTRENO = 'I000100016693' \
          ")
 
 display(df_cleansed)
