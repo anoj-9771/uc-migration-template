@@ -170,7 +170,6 @@ df_cleansed = spark.sql("SELECT \
 	cast(CHARACTAMTAREA as int) as characteristicAmountArea, \
 	CHARACTPERCENT as characteristicPercentage, \
 	cast(CHARACTAMTABS as dec(18,6)) as characteristicPriceAmount, \
-	MANDT as clientId, \
 	_RecordStart, \
 	_RecordEnd, \
 	_RecordDeleted, \
@@ -196,7 +195,6 @@ newSchema = StructType([
 	StructField('characteristicAmountArea',IntegerType(),True),
 	StructField('characteristicPercentage',StringType(),True),
 	StructField('characteristicPriceAmount',DecimalType(18,6),True),
-	StructField('clientId',StringType(),True),
 	StructField('_RecordStart',TimestampType(),False),
 	StructField('_RecordEnd',TimestampType(),False),
 	StructField('_RecordDeleted',IntegerType(),False),
