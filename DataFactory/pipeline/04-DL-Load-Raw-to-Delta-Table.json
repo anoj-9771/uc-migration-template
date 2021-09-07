@@ -214,6 +214,13 @@
 								"type": "Expression"
 							},
 							"type": "Int64"
+						},
+						"SourceFileName": {
+							"value": {
+								"value": "@pipeline().parameters.SourceFileName",
+								"type": "Expression"
+							},
+							"type": "String"
 						}
 					}
 				},
@@ -247,6 +254,9 @@
 				"defaultValue": "targetdirectory"
 			},
 			"ProjectRunID": {
+				"type": "string"
+			},
+			"SourceFileName": {
 				"type": "string"
 			}
 		},

@@ -217,6 +217,10 @@
 														"ProjectRunID": {
 															"value": "@pipeline().parameters.ProjectRunID",
 															"type": "Expression"
+														},
+														"SourceFileName": {
+															"value": "@variables('FileName')",
+															"type": "Expression"
 														}
 													}
 												}
@@ -512,7 +516,7 @@
 												"type": "Copy",
 												"dependsOn": [
 													{
-														"activity": "Copy Manifest to Raw Zone",
+														"activity": "SP-Update-Manifest-Value",
 														"dependencyConditions": [
 															"Succeeded"
 														]
@@ -616,6 +620,63 @@
 														"type": "AzureBlobStorageReadSettings",
 														"recursive": true,
 														"enablePartitionDiscovery": false
+													}
+												}
+											},
+											{
+												"name": "SP-Update-Manifest-Value",
+												"type": "SqlServerStoredProcedure",
+												"dependsOn": [
+													{
+														"activity": "Copy Manifest to Raw Zone",
+														"dependencyConditions": [
+															"Succeeded"
+														]
+													}
+												],
+												"policy": {
+													"timeout": "7.00:00:00",
+													"retry": 0,
+													"retryIntervalInSeconds": 30,
+													"secureOutput": false,
+													"secureInput": false
+												},
+												"userProperties": [],
+												"typeProperties": {
+													"storedProcedureName": "[CTL].[UpdateManifestValue]",
+													"storedProcedureParameters": {
+														"BatchExecutionLogID": {
+															"value": {
+																"value": "@pipeline().parameters.BatchLogId",
+																"type": "Expression"
+															},
+															"type": "Int64"
+														},
+														"TaskExecutionLogID": {
+															"value": {
+																"value": "@pipeline().parameters.TaskExecutionLogId",
+																"type": "Expression"
+															},
+															"type": "Int64"
+														},
+														"SourceFileName": {
+															"value": {
+																"value": "@replace(variables('SourceFileName'), '_Manifest_', '')",
+																"type": "Expression"
+															},
+															"type": "String"
+														},
+														"ManifestValue": {
+															"value": "1",
+															"type": "Int64"
+														}
+													}
+												},
+												"linkedServiceName": {
+													"referenceName": "LS-AzureSqlDatabase_Ctrldb",
+													"type": "LinkedServiceReference",
+													"parameters": {
+														"kvSecret": "daf-sql-controldb-connectionstring"
 													}
 												}
 											}
