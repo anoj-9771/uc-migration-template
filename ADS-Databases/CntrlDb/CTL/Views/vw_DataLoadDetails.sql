@@ -11,11 +11,11 @@ M.BatchExecutionLogID
 ,M.RecordCountDeltaTable
 ,M.FolderName
 ,M.FileName
-,M.ProcessedToTrustedZone
+,M.ProcessedToCleansedZone
 ,M.DeltaColumn
 ,M.ProcessedToSQLEDW
 ,M.RawZonePipelineRunID
-,M.TrustedZonePipelineRunID
+,M.CleansedZonePipelineRunID
 ,M.SQLEDWPipelineRunID
 ,B.StartDate as BatchStart
 ,B.EndDate AS BatchEnd

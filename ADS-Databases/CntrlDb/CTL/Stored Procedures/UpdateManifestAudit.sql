@@ -8,9 +8,9 @@ AS
 BEGIN
 	IF @ProcessedToTrusted = '1'
 		UPDATE CTL.ControlManifest SET 
-		[ProcessedToTrustedZone] = 1
-		,TrustedZonePipelineRunID = @PipelineRunID
-		WHERE [ProcessedToTrustedZone] IS NULL
+		ProcessedToCleansedZone = 1
+		,CleansedZonePipelineRunID = @PipelineRunID
+		WHERE ProcessedToCleansedZone IS NULL
 		AND BatchExecutionLogID <= @BatchExecutionLogID
 		AND SourceObject = @SourceObject
 END

@@ -8,3 +8,13 @@ C:\Users\ragrawal\source\repos\Insight\TAFE-BI\ADS-Databases\CntrlDb\obj\Debug\r
 C:\Users\ragrawal\source\repos\Insight\TAFE-BI\ADS-Databases\CntrlDb\obj\Debug\postdeploy.sql
 C:\Users\ragrawal\source\repos\Insight\TAFE-BI\ADS-Databases\CntrlDb\obj\Debug\predeploy.sql
 C:\Users\ragrawal\source\repos\Insight\TAFE-BI\ADS-Databases\CntrlDb\obj\Debug\CntrlDb.sqlprojAssemblyReference.cache
+C:\Repos\DAF POC REPO1\ADS-Databases\CntrlDb\bin\Debug\CntrlDb.dacpac
+C:\Repos\DAF POC REPO1\ADS-Databases\CntrlDb\obj\Debug\CntrlDb.sqlproj.AssemblyReference.cache
+C:\Repos\DAF POC REPO1\ADS-Databases\CntrlDb\obj\Debug\Model.xml
+C:\Repos\DAF POC REPO1\ADS-Databases\CntrlDb\obj\Debug\refactor.xml
+C:\Repos\DAF POC REPO1\ADS-Databases\CntrlDb\obj\Debug\postdeploy.sql
+C:\Repos\DAF POC REPO1\ADS-Databases\CntrlDb\obj\Debug\predeploy.sql
+C:\Repos\DAF POC REPO1\ADS-Databases\CntrlDb\obj\Debug\CntrlDb.dll
+C:\Repos\DAF POC REPO1\ADS-Databases\CntrlDb\obj\Debug\CntrlDb.pdb
+C:\Repos\DAF POC REPO1\ADS-Databases\CntrlDb\bin\Debug\CntrlDb.dll
+C:\Repos\DAF POC REPO1\ADS-Databases\CntrlDb\bin\Debug\CntrlDb.pdb
