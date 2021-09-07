@@ -420,6 +420,13 @@
 																"type": "Expression"
 															},
 															"type": "Int64"
+														},
+														"SourceFileName": {
+															"value": {
+																"value": "@variables('FileName')",
+																"type": "Expression"
+															},
+															"type": "String"
 														}
 													}
 												},
