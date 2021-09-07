@@ -175,7 +175,6 @@ df_cleansed = spark.sql("SELECT \
 	_RecordDeleted, \
 	_RecordCurrent \
 	FROM CLEANSED.STG_SAPISU_0DF_REFIXFI_ATTR \
-#    WHERE INTRENO = 'I000100016693' \
          ")
 
 display(df_cleansed)
@@ -203,6 +202,7 @@ newSchema = StructType([
 ])
 
 df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
+
 
 
 # COMMAND ----------
