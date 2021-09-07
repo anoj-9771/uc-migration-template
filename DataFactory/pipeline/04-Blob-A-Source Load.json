@@ -357,7 +357,7 @@
 												},
 												"userProperties": [],
 												"typeProperties": {
-													"storedProcedureName": "[CTL].[CreateManifestRecord]",
+													"storedProcedureName": "[CTL].[CreateManifestRecord_New]",
 													"storedProcedureParameters": {
 														"BatchExecutionLogID": {
 															"value": {
