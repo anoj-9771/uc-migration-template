@@ -180,7 +180,7 @@
 												"type": "ExecutePipeline",
 												"dependsOn": [
 													{
-														"activity": "SP-UPSERT-Manifest-Record-DataFile",
+														"activity": "SP-Upsert-Manifest-Record-Data",
 														"dependencyConditions": [
 															"Succeeded"
 														]
@@ -342,7 +342,7 @@
 												}
 											},
 											{
-												"name": "SP-UPSERT-Manifest-Record-DataFile",
+												"name": "SP-Upsert-Manifest-Record-Data",
 												"type": "SqlServerStoredProcedure",
 												"dependsOn": [
 													{
@@ -639,7 +639,7 @@
 												}
 											},
 											{
-												"name": "SP-UPSERT-MANIFEST-RECORD-Manifest",
+												"name": "SP-Upsert-Manifest-Record-Manifest",
 												"type": "SqlServerStoredProcedure",
 												"dependsOn": [
 													{
@@ -759,7 +759,7 @@
 												"type": "DatabricksNotebook",
 												"dependsOn": [
 													{
-														"activity": "SP-UPSERT-MANIFEST-RECORD-Manifest",
+														"activity": "SP-Upsert-Manifest-Record-Manifest",
 														"dependencyConditions": [
 															"Succeeded"
 														]
