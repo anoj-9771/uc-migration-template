@@ -440,7 +440,7 @@
 															"value": "false",
 															"type": "Boolean"
 														},
-														"SourceFileDateTimeStamp": {
+														"SourceFileDateStamp": {
 															"value": {
 																"value": "@variables('FileDateTimeStamp')",
 																"type": "Expression"
