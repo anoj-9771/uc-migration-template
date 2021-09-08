@@ -29,7 +29,7 @@ BEGIN
 			WHERE Config.SubjectArea =  @SubjectArea
 			AND Config.Project =  @Project
 			AND Config.Valid = 1
-			AND ProcessedToTrustedZone = 1
+			AND ProcessedToCleansedZone = 1
 		)
 	), LastLoadedTime AS (
 		--Take only the latest load for each table
