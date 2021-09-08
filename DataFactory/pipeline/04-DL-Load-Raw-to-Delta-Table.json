@@ -173,7 +173,7 @@
 				}
 			},
 			{
-				"name": "SP-Record-Manifest",
+				"name": "SP-Update-Manifest-RecordCount",
 				"type": "SqlServerStoredProcedure",
 				"dependsOn": [
 					{
@@ -215,9 +215,9 @@
 							},
 							"type": "Int64"
 						},
-						"SourceFileName": {
+						"SourceFileDateTimeStamp": {
 							"value": {
-								"value": "@pipeline().parameters.SourceFileName",
+								"value": "@pipeline().parameters.SourceFileDateTimeStamp",
 								"type": "Expression"
 							},
 							"type": "String"
@@ -257,6 +257,9 @@
 				"type": "string"
 			},
 			"SourceFileName": {
+				"type": "string"
+			},
+			"SourceFileDateTimeStamp": {
 				"type": "string"
 			}
 		},

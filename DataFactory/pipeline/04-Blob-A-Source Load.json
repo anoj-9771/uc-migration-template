@@ -180,7 +180,7 @@
 												"type": "ExecutePipeline",
 												"dependsOn": [
 													{
-														"activity": "SP-Record-Manifest",
+														"activity": "SP-UPSERT-Manifest-Record-DataFile",
 														"dependencyConditions": [
 															"Succeeded"
 														]
@@ -220,6 +220,10 @@
 														},
 														"SourceFileName": {
 															"value": "@variables('FileName')",
+															"type": "Expression"
+														},
+														"SourceFileDateTimeStamp": {
+															"value": "@variables('FileDateTimeStamp')",
 															"type": "Expression"
 														}
 													}
@@ -338,7 +342,7 @@
 												}
 											},
 											{
-												"name": "SP-Record-Manifest",
+												"name": "SP-UPSERT-Manifest-Record-DataFile",
 												"type": "SqlServerStoredProcedure",
 												"dependsOn": [
 													{
@@ -357,7 +361,7 @@
 												},
 												"userProperties": [],
 												"typeProperties": {
-													"storedProcedureName": "[CTL].[CreateManifestRecord_New]",
+													"storedProcedureName": "[CTL].[UPSERTManifestRecord]",
 													"storedProcedureParameters": {
 														"BatchExecutionLogID": {
 															"value": {
@@ -428,6 +432,17 @@
 														"SourceFileName": {
 															"value": {
 																"value": "@variables('FileName')",
+																"type": "Expression"
+															},
+															"type": "String"
+														},
+														"IsManifest": {
+															"value": "false",
+															"type": "Boolean"
+														},
+														"SourceFileDateTimeStamp": {
+															"value": {
+																"value": "@variables('FileDateTimeStamp')",
 																"type": "Expression"
 															},
 															"type": "String"
@@ -516,7 +531,7 @@
 												"type": "Copy",
 												"dependsOn": [
 													{
-														"activity": "SP-Update-Manifest-Value",
+														"activity": "SP-UPSERT-MANIFEST-RECORD-Manifest",
 														"dependencyConditions": [
 															"Succeeded"
 														]
@@ -624,7 +639,7 @@
 												}
 											},
 											{
-												"name": "SP-Update-Manifest-Value",
+												"name": "SP-UPSERT-MANIFEST-RECORD-Manifest",
 												"type": "SqlServerStoredProcedure",
 												"dependsOn": [
 													{
@@ -643,7 +658,7 @@
 												},
 												"userProperties": [],
 												"typeProperties": {
-													"storedProcedureName": "[CTL].[UpdateManifestValue_New]",
+													"storedProcedureName": "[CTL].[UPSERTManifestRecord]",
 													"storedProcedureParameters": {
 														"BatchExecutionLogID": {
 															"value": {
@@ -652,6 +667,65 @@
 															},
 															"type": "Int64"
 														},
+														"Container": {
+															"value": "raw",
+															"type": "String"
+														},
+														"DeltaColumn": {
+															"value": null,
+															"type": "String"
+														},
+														"EndCounter": {
+															"value": "0",
+															"type": "String"
+														},
+														"FileName": {
+															"value": {
+																"value": "@activity('Get Full File Name').output.firstrow.StorageFile",
+																"type": "Expression"
+															},
+															"type": "String"
+														},
+														"FolderName": {
+															"value": {
+																"value": "@activity('Get Full File Name').output.firstrow.StorageFolder",
+																"type": "Expression"
+															},
+															"type": "String"
+														},
+														"PipelineRunID": {
+															"value": {
+																"value": "@pipeline().RunId",
+																"type": "Expression"
+															},
+															"type": "String"
+														},
+														"Records": {
+															"value": "1",
+															"type": "Int64"
+														},
+														"RecordsDeltaTable": {
+															"value": null,
+															"type": "Int64"
+														},
+														"SourceFileName": {
+															"value": {
+																"value": "@variables('FileName')",
+																"type": "Expression"
+															},
+															"type": "String"
+														},
+														"SourceObject": {
+															"value": {
+																"value": "@pipeline().parameters.TaskDetails.SourceName",
+																"type": "Expression"
+															},
+															"type": "String"
+														},
+														"StartCounter": {
+															"value": "0",
+															"type": "String"
+														},
 														"TaskExecutionLogID": {
 															"value": {
 																"value": "@pipeline().parameters.TaskExecutionLogId",
@@ -659,16 +733,16 @@
 															},
 															"type": "Int64"
 														},
-														"SourceFileName": {
+														"IsManifest": {
+															"value": "true",
+															"type": "Boolean"
+														},
+														"SourceFileDateStamp": {
 															"value": {
-																"value": "@replace(variables('SourceFileName'), '_Manifest_', '')",
+																"value": "@variables('FileDateTimeStamp')",
 																"type": "Expression"
 															},
 															"type": "String"
-														},
-														"ManifestValue": {
-															"value": "1",
-															"type": "Int64"
 														}
 													}
 												},
@@ -690,13 +764,7 @@
 							"type": "SetVariable",
 							"dependsOn": [
 								{
-									"activity": "SET-FileName to Child Item",
-									"dependencyConditions": [
-										"Succeeded"
-									]
-								},
-								{
-									"activity": "Get Full File Name",
+									"activity": "Set FileDateTimeStamp",
 									"dependencyConditions": [
 										"Succeeded"
 									]
@@ -778,6 +846,32 @@
 									"type": "DatasetReference"
 								},
 								"firstRowOnly": true
+							}
+						},
+						{
+							"name": "Set FileDateTimeStamp",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "Get Full File Name",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								},
+								{
+									"activity": "SET-FileName to Child Item",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "FileDateTimeStamp",
+								"value": {
+									"value": "@replace(last(split(variables('FileName'),'_')),'.json','')",
+									"type": "Expression"
+								}
 							}
 						}
 					]
@@ -1022,6 +1116,9 @@
 				"type": "String"
 			},
 			"ProjectName": {
+				"type": "String"
+			},
+			"FileDateTimeStamp": {
 				"type": "String"
 			}
 		},
