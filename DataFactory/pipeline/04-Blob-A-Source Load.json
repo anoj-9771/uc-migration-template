@@ -531,7 +531,7 @@
 												"type": "Copy",
 												"dependsOn": [
 													{
-														"activity": "SP-UPSERT-MANIFEST-RECORD-Manifest",
+														"activity": "SP-Update-Manifest-Value",
 														"dependencyConditions": [
 															"Succeeded"
 														]
@@ -743,6 +743,116 @@
 																"type": "Expression"
 															},
 															"type": "String"
+														}
+													}
+												},
+												"linkedServiceName": {
+													"referenceName": "LS-AzureSqlDatabase_Ctrldb",
+													"type": "LinkedServiceReference",
+													"parameters": {
+														"kvSecret": "daf-sql-controldb-connectionstring"
+													}
+												}
+											},
+											{
+												"name": "Notebook-Read-Manifest-Value",
+												"type": "DatabricksNotebook",
+												"dependsOn": [
+													{
+														"activity": "SP-UPSERT-MANIFEST-RECORD-Manifest",
+														"dependencyConditions": [
+															"Succeeded"
+														]
+													}
+												],
+												"policy": {
+													"timeout": "7.00:00:00",
+													"retry": 0,
+													"retryIntervalInSeconds": 30,
+													"secureOutput": false,
+													"secureInput": false
+												},
+												"userProperties": [],
+												"typeProperties": {
+													"notebookPath": {
+														"value": "@variables('NoteBookURL')",
+														"type": "Expression"
+													},
+													"baseParameters": {
+														"file_object": {
+															"value": "@concat(pipeline().parameters.TargetBLOBFolder,pipeline().parameters.TargetBLOBName)",
+															"type": "Expression"
+														},
+														"source_param": {
+															"value": "@string(pipeline().parameters.TaskDetails)",
+															"type": "Expression"
+														}
+													}
+												},
+												"linkedServiceName": {
+													"referenceName": "LS-AzureDatabricks_DefinedCluster",
+													"type": "LinkedServiceReference",
+													"parameters": {
+														"kvSecret": {
+															"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[0]",
+															"type": "Expression"
+														},
+														"clusterId": {
+															"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[1]",
+															"type": "Expression"
+														}
+													}
+												}
+											},
+											{
+												"name": "SP-Update-Manifest-Value",
+												"type": "SqlServerStoredProcedure",
+												"dependsOn": [
+													{
+														"activity": "Notebook-Read-Manifest-Value",
+														"dependencyConditions": [
+															"Succeeded"
+														]
+													}
+												],
+												"policy": {
+													"timeout": "7.00:00:00",
+													"retry": 0,
+													"retryIntervalInSeconds": 30,
+													"secureOutput": false,
+													"secureInput": false
+												},
+												"userProperties": [],
+												"typeProperties": {
+													"storedProcedureName": "[CTL].[UpdateManifestValue]",
+													"storedProcedureParameters": {
+														"BatchExecutionLogID": {
+															"value": {
+																"value": "@pipeline().parameters.BatchLogId",
+																"type": "Expression"
+															},
+															"type": "Int64"
+														},
+														"ManifestValue": {
+															"value": {
+																"value": "@string(activity('Notebook-Read-Manifest-Value').output.runOutput)",
+																"type": "Expression"
+															},
+															"type": "Int64"
+														},
+														"SourceFileDateStamp": {
+															"value": {
+																"value": "@variables('FileDateTimeStamp')",
+																"type": "Expression"
+															},
+															"type": "String"
+														},
+														"TaskExecutionLogID": {
+															"value": {
+																"value": "@pipeline().parameters.TaskExecutionLogId",
+																"type": "Expression"
+															},
+															"type": "Int64"
 														}
 													}
 												},
@@ -1120,6 +1230,10 @@
 			},
 			"FileDateTimeStamp": {
 				"type": "String"
+			},
+			"NoteBookURL": {
+				"type": "String",
+				"defaultValue": "/build/raw/read-manifest-value"
 			}
 		},
 		"folder": {

@@ -215,7 +215,7 @@
 							},
 							"type": "Int64"
 						},
-						"SourceFileDateTimeStamp": {
+						"SourceFileDateStamp": {
 							"value": {
 								"value": "@pipeline().parameters.SourceFileDateTimeStamp",
 								"type": "Expression"
