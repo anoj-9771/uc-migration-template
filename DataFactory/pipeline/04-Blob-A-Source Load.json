@@ -361,7 +361,7 @@
 												},
 												"userProperties": [],
 												"typeProperties": {
-													"storedProcedureName": "[CTL].[UPSERTManifestRecord]",
+													"storedProcedureName": "[CTL].[UpsertManifestRecord]",
 													"storedProcedureParameters": {
 														"BatchExecutionLogID": {
 															"value": {
@@ -658,7 +658,7 @@
 												},
 												"userProperties": [],
 												"typeProperties": {
-													"storedProcedureName": "[CTL].[UPSERTManifestRecord]",
+													"storedProcedureName": "[CTL].[UpsertManifestRecord]",
 													"storedProcedureParameters": {
 														"BatchExecutionLogID": {
 															"value": {
