@@ -4,9 +4,8 @@
     "\\ADS-Databases",
     "\\ADS-Databases\\CntrlDb",
     "\\DataFactory",
-    "\\DataFactory\\pipeline",
-    "\\DevOps\\Pipelines"
+    "\\DataFactory\\pipeline"
   ],
-  "SelectedNode": "\\ADS-Databases\\CntrlDb\\CntrlDb.sqlproj",
+  "SelectedNode": "\\ADS-Databases\\ADS-Database.sln",
   "PreviewInSolutionExplorer": false
 }

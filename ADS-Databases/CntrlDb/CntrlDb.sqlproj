@@ -145,6 +145,7 @@
     <Build Include="CTL\Tables\ControlManifest_New.sql" />
     <Build Include="CTL\Stored Procedures\GetManifestCleansed.sql" />
     <Build Include="CTL\Stored Procedures\UpdateManifestDLCleansed.sql" />
+    <Build Include="CTL\Stored Procedures\UpsertManifestRecord.sql" />
   </ItemGroup>
   <ItemGroup>
     <PostDeploy Include="Script.PostDeployment1.sql" />
