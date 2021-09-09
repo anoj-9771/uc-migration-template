@@ -1,7 +1,7 @@
 ﻿CREATE PROCEDURE [CTL].[UpdateManifestValue]
 	@BatchExecutionLogID bigint,
 	@TaskExecutionLogID bigint,
-	@SourceFileName varchar(1000),
+	@SourceFileDateStamp char(14),
 	@ManifestValue bigint
 AS
 	
@@ -10,5 +10,5 @@ BEGIN
 	SET ManifestValue = @ManifestValue
 	WHERE BatchExecutionLogID = @BatchExecutionLogID
 		AND TaskExecutionLogID = @TaskExecutionLogID
-		AND SourceFileName = @SourceFileName
+		AND SourceFileDateStamp = @SourceFileDateStamp
 END

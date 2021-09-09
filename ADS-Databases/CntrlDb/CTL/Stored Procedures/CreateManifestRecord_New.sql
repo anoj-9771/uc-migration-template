@@ -12,7 +12,8 @@ CREATE PROCEDURE [CTL].[CreateManifestRecord_New] (
 	@FolderName varchar(1000),
 	@FileName varchar(1000),
 	@PipelineRunID varchar(50) = '',
-	@SourceFileName varchar(1000)
+	@SourceFileName varchar(1000),
+	@SourceFileDateStamp char(14)
 )
 AS 
 
@@ -37,6 +38,7 @@ INSERT INTO CTL.ControlManifest_New(
 	,[SourceObject]
 	,[Container]
 	,[SourceFileName]
+	,[SourceFileDateStamp]
 	,[DeltaColumn]
 	,[StartCounter]
 	,[EndCounter]
@@ -52,6 +54,7 @@ VALUES (
 	,@SourceObject
 	,@Container
 	,@SourceFileName
+	,@SourceFileDateStamp
 	,@DeltaColumn
 	,@Start
 	,@End
