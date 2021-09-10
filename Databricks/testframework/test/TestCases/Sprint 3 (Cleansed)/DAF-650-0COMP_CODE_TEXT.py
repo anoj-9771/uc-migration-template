@@ -43,7 +43,7 @@ df.createOrReplaceTempView("Source")
 
 # DBTITLE 1,[Source] Displaying Records
 # MAGIC %sql
-# MAGIC select * from Source
+# MAGIC select * from Source where langu = 'E'
 
 # COMMAND ----------
 
@@ -57,7 +57,7 @@ df.createOrReplaceTempView("Source")
 # MAGIC %sql
 # MAGIC select count (*) as RecordCount, 'Target' as TableName from cleansed.t_sapisu_0comp_code_text
 # MAGIC union all
-# MAGIC select count (*) as RecordCount, 'Source' as TableName from Source
+# MAGIC select count (*) as RecordCount, 'Source' as TableName from Source where langu = 'E'
 
 # COMMAND ----------
 
@@ -66,7 +66,7 @@ df.createOrReplaceTempView("Source")
 # MAGIC select
 # MAGIC BUKRS as companyCode                                               
 # MAGIC ,TXTMD as companyName                                                      
-# MAGIC from Source
+# MAGIC from Source where LANGU = 'E'
 # MAGIC except
 # MAGIC select
 # MAGIC  companyCode                                               
@@ -85,4 +85,4 @@ df.createOrReplaceTempView("Source")
 # MAGIC select
 # MAGIC BUKRS as companyCode                                               
 # MAGIC ,TXTMD as companyName                                                      
-# MAGIC from Source
+# MAGIC from Source where LANGU = 'E'
