@@ -346,7 +346,7 @@ def billingDocumentSapisu():
 def billedWaterConsumption():
   TemplateEtl(df=getBilledWaterConsumption(),
              entity="factBilledWaterConsumption", 
-             businessKey="sourceSystemCode,dimBillingDocumentSK,dimPropertySK,dimMeterSK,billingPeriodStartDateSK",
+             businessKey="sourceSystemCode,dimBillingDocumentSK,dimPropertySK,dimMeterSK,billingPeriodStartDateSK,billingPeriodEndDateSK,dimWaterNetworkSK",
              AddSK=True
             )
 
@@ -378,7 +378,7 @@ def DatabaseChanges():
 # COMMAND ----------
 
 # DBTITLE 1,10. Flag Dimension/Fact load
-LoadDimensions = True
+LoadDimensions = False
 LoadFacts = True
 
 # COMMAND ----------

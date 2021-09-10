@@ -33,10 +33,13 @@ def getCommonBillingDocumentSapisu():
   #2.Load Cleansed layer table data into dataframe
 
   billedConsSapisuDf = getBilledWaterConsumptionSapisu()
+
+  dummyDimRecDf = spark.createDataFrame([("SAPISU", "-1", "1900-01-01", "9999-12-31"), ("Access", "-2", "1900-01-01", "9999-12-31")], ["sourceSystemCode", "billingDocumentNumber", "billingPeriodStartDate", "billingPeriodEndDate"])
   
   #3.JOIN TABLES  
   
   #4.UNION TABLES
+  billedConsSapisuDf = billedConsSapisuDf.unionByName(dummyDimRecDf, allowMissingColumns = True)
   
   #5.SELECT / TRANSFORM
   billDocDf = billedConsSapisuDf.selectExpr \

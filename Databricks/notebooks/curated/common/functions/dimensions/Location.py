@@ -24,6 +24,9 @@ def GetCommonLocation():
                                      from cleansed.t_hydra_tlotparcel \
                                      where propertyNumber is not null \
                                      group by propertyNumber")
+  
+  dummyDimRecDf = spark.createDataFrame([("-1", "Unknown")],["locationID", "formattedAddress"])
+  
   #3.JOIN TABLES  
   #df = sapisu0ucConbjAttr2Df.join(sapisuVibdaoDf, sapisu0ucConbjAttr2Df.architecturalObjectInternalId == sapisuVibdaoDf.architecturalObjectInternalId, how="inner")\
   #                          .drop(sapisuVibdaoDf.architecturalObjectInternalId).drop(sapisu0ucConbjAttr2Df.architecturalObjectInternalId)
@@ -32,6 +35,7 @@ def GetCommonLocation():
   
   #4.UNION TABLES
   #df = accessZ309TpropertyDf.union(df)
+  HydraLocationDf = HydraLocationDf.unionByName(dummyDimRecDf, allowMissingColumns = True)
   
   #5.SELECT / TRANSFORM
   HydraLocationDf = HydraLocationDf.selectExpr( \
