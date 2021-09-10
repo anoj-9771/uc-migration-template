@@ -29,7 +29,7 @@ def GetCommonMeter():
                                               meterRemovedDate, \
                                               row_number() over (partition by metermakernumber order by meterFittedDate desc) rownum \
                                       from cleansed.t_access_z309_tpropmeter \
-                                      where (meterFittedDate<>meterRemovedDate or meterRemovedDate is null) \
+                                      where (meterFittedDate <> meterRemovedDate or meterRemovedDate is null) \
                                              and _RecordCurrent = 1 and _RecordDeleted = 0 ")
   #Filter for active meter
   accessZ309TpropmeterDf = accessZ309TpropmeterDf.filter(col("rownum") == "1")
@@ -40,7 +40,7 @@ def GetCommonMeter():
                                                .drop(accessZ309TpropmeterDf.rownum)
   
     
-  #Meter Data from SAP ISU  
+  #Meter Data from SAP ISU
   sapisu0ucDeviceAttrDf  = spark.sql("select 'SAPISU' as sourceSystemCode, materialNumber, equipmentNumber as meterId \
                                       from cleansed.t_sapisu_0uc_device_attr \
                                       where _RecordCurrent = 1 and _RecordDeleted = 0")
@@ -48,6 +48,9 @@ def GetCommonMeter():
   sapisu0ucDevcatAttrDf  = spark.sql("select materialNumber, deviceCategoryDescription as meterSize, functionClass as waterMeterType \
                                       from cleansed.t_sapisu_0uc_devcat_attr \
                                       where _RecordCurrent = 1 and _RecordDeleted = 0")
+
+  #Dummy Record to be added to Meter Dimension
+  dummyDimRecDf = spark.createDataFrame([("SAPISU", "-1", "Unknown", "Unknown"), ("Access", "-1", "Unknown", "Unknown")], ["sourceSystemCode", "meterId", "meterSize", "waterMeterType"])
   
   #3.JOIN TABLES
   df = sapisu0ucDeviceAttrDf.join(sapisu0ucDevcatAttrDf, sapisu0ucDeviceAttrDf.materialNumber == sapisu0ucDevcatAttrDf.materialNumber, 
@@ -59,6 +62,7 @@ def GetCommonMeter():
   
   #4.UNION TABLES
   df = accessZ309TpropmeterDf.union(df)
+  df = df.unionByName(dummyDimRecDf, allowMissingColumns = True)
 
   #5.SELECT / TRANSFORM
   #df = df.selectExpr( \
