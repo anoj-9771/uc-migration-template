@@ -39,7 +39,7 @@ def transform_raw_dataframe(dataframe, Params):
     dataframe = transform_custom_mysql_lms_update_delta_col(dataframe, Params)
   
   #Custom changes for SLT SQL Source as the datetime delta columns are stored as number
-  if source_system == "slt":
+  if Params[PARAMS_SOURCE_TYPE] == "SQL Server" and source_system == "sapisu":
     dataframe = transform_custom_slt_transaction_date(dataframe)
 
   #Make sure the delta columns are stored as TimestampType

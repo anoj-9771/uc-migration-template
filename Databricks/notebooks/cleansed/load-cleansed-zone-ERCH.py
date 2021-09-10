@@ -170,7 +170,7 @@ df_cleansed_column = spark.sql("SELECT  \
                                   SIMULATION as billingSimulationIndicator, \
                                   BELEGART as documentTypeCode, \
                                   BERGRUND as backbillingCreditReasonCode, \
-                                  BEGNACH as backbillingStartPeriod, \
+                                  to_date(BEGNACH, 'yyyy-MM-dd') as backbillingStartPeriod, \
                                   TOBRELEASD as DocumentNotReleasedIndicator, \
                                   TXJCD as taxJurisdictionDescription, \
                                   KONZVER as franchiseContractCode, \
@@ -191,11 +191,11 @@ df_cleansed_column = spark.sql("SELECT  \
                                   MANBILLREL as manualDocumentReleasedInvoicingIndicator, \
                                   BACKBI as backbillingTypeCode, \
                                   PERENDBI as billingPeriodEndType, \
-                                  NUMPERBB as backbillingPeriodNumber, \
+                                  cast(NUMPERBB as integer) as backbillingPeriodNumber, \
                                   to_date(BEGEND, 'yyyy-MM-dd') as periodEndBillingStartDate, \
                                   ENDOFBB as backbillingPeriodEndIndicator, \
                                   ENDOFPEB as billingPeriodEndIndicator, \
-                                  NUMPERPEB as billingPeriodEndCount, \
+                                  cast(NUMPERPEB as integer) as billingPeriodEndCount, \
                                   SC_BELNR_H as billingDoumentAdjustmentReversalCount, \
                                   SC_BELNR_N as billingDocumentNumberForAdjustmentReverssal, \
                                   to_date(ZUORDDAA, 'yyyy-MM-dd') as billingAllocationDate, \
@@ -322,7 +322,7 @@ newSchema = StructType([
                           StructField('billingDocumentPrimaryInstallationNumber', StringType(), True),
                           StructField('instalGroupTypeCode', StringType(), True),
                           StructField('instalGroupRoleCode', StringType(), True),
-                          StructField('_RecordStart', TimestampType(), False),
+                          StructField('_RecordStart', TimestampType(), True),
                           StructField('_RecordEnd', TimestampType(), False),
                           StructField('_RecordDeleted', IntegerType(), False),
                           StructField('_RecordCurrent', IntegerType(), False)

@@ -1,4 +1,8 @@
 # Databricks notebook source
+#%run ../includes/util-common
+
+# COMMAND ----------
+
 ###########################################################################################################################
 # Function: getBilledWaterConsumptionAccess
 #  GETS Access Billed Water Consumption from cleansed layer
@@ -38,6 +42,7 @@ def getBilledWaterConsumptionAccess():
                                                     where mr.propertyNumber = dr.propertyNumber \
                                                     and dr.debitTypeCode = '10' \
                                                     and dr.debitReasonCode IN ('360','367')) \
+                                                    --and mr.propertyNumber = '3692184' \
                                    ")
   
   billedConsDf = billedConsDf.where("meterReadRecNum = 1")
@@ -59,7 +64,3 @@ def getBilledWaterConsumptionAccess():
                               )
 
   return billedConsDf
-
-# COMMAND ----------
-
-
