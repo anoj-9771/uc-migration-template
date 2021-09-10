@@ -3,10 +3,10 @@
 import json
 #For unit testing...
 #Use this string in the Param widget: 
-#{"SourceType": "BLOB Storage (json)", "SourceServer": "daf-sa-lake-sastoken", "SourceGroup": "sapisu", "SourceName": "sapisu_0BP_CAT_TEXT", "SourceLocation": "sapisu/0BP_CAT_TEXT", "AdditionalProperty": "", "Processor": "databricks-token|0711-011053-turfs581|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive", "IsAuditTable": false, "SoftDeleteSource": "", "ProjectName": "SAP REF", "ProjectId": 2, "TargetType": "BLOB Storage (json)", "TargetName": "sapisu_0BP_CAT_TEXT", "TargetLocation": "sapisu/0BP_CAT_TEXT", "TargetServer": "daf-sa-lake-sastoken", "DataLoadMode": "FULL-EXTRACT", "DeltaExtract": false, "CDCSource": false, "TruncateTarget": false, "UpsertTarget": true, "AppendTarget": null, "TrackChanges": false, "LoadToSqlEDW": true, "TaskName": "sapisu_0BP_CAT_TEXT", "ControlStageId": 2, "TaskId": 46, "StageSequence": 200, "StageName": "Raw to Cleansed", "SourceId": 46, "TargetId": 46, "ObjectGrain": "Day", "CommandTypeId": 8, "Watermarks": "", "WatermarksDT": null, "WatermarkColumn": "", "BusinessKeyColumn": "", "UpdateMetaData": null, "SourceTimeStampFormat": "", "Command": "", "LastLoadedFile": null}
+#{"SourceType": "BLOB Storage (json)", "SourceServer": "daf-sa-lake-sastoken", "SourceGroup": "sapisu", "SourceName": "sapisu_0BP_CAT_TEXT", "SourceLocation": "sapisu/0BP_CAT_TEXT", "AdditionalProperty": "", "Processor": "databricks-token|0711-011053-turfs581|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive", "IsAuditTable": false, "SoftDeleteSource": "", "ProjectName": "SAP REF", "ProjectId": 2, "TargetType": "BLOB Storage (json)", "TargetName": "sapisu_0BP_CAT_TEXT", "TargetLocation": "sapisu/0BP_CAT_TEXT", "TargetServer": "daf-sa-lake-sastoken", "DataLoadMode": "FULL-EXTRACT", "DeltaExtract": false, "CDCSource": false, "TruncateTarget": false, "UpsertTarget": true, "AppendTarget": null, "TrackChanges": false, "LoadToSqlEDW": true, "TaskName": "sapisu_0BP_CAT_TEXT", "ControlStageId": 2, "TaskId": 46, "StageSequence": 200, "StageName": "Raw to Cleansed", "SourceId": 46, "TargetId": 46, "ObjectGrain": "Day", "CommandTypeId": 8, "Watermarks": "", "WatermarksDT": null, "WatermarkColumn": "", "BusinessKeyColumn": "KEY1", "UpdateMetaData": null, "SourceTimeStampFormat": "", "Command": "", "LastLoadedFile": null}
 
 #Use this string in the Source Object widget
-#SAPISU_0BP_CAT_TEXT
+#sapisu_0BP_CAT_TEXT
 
 # COMMAND ----------
 
@@ -126,7 +126,7 @@ print(data_load_mode)
 #Set raw and cleansed table name
 #Delta and SQL tables are case Insensitive. Seems Delta table are always lower case
 delta_cleansed_tbl_name = f'{ADS_DATABASE_CLEANSED}.stg_{source_object}'
-delta_raw_tbl_name = f'{ADS_DATABASE_RAW}.stg_{source_object}'
+delta_raw_tbl_name = f'{ADS_DATABASE_RAW}.{source_object}'
 
 
 #Destination
@@ -158,10 +158,8 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_cleansed = spark.sql("SELECT \
-	KEY1 as businessPartnerCategoyCode, \
-	TXTMD as businessPartnerCategoy, \
-	to_date(DATEFROM, 'yyyyMMdd') as validFromDate, \
-	to_date(DATETO, 'yyyyMMdd') as validToDate, \
+	KEY1 as businessPartnerCategoryCode, \
+	TXTLG as businessPartnerCategory, \
 	_RecordStart, \
 	_RecordEnd, \
 	_RecordDeleted, \
@@ -174,17 +172,16 @@ print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
 
-newSchema = StructType([
-	StructField('businessPartnerCategoyCode',StringType(),False,
-	StructField('businessPartnerCategoy',StringType(),True,
-	StructField('validFromDate',DateType(),True,
-	StructField('validToDate',DateType(),False,
-	StructField('_RecordStart',TimestampType(),False),
-	StructField('_RecordEnd',TimestampType(),False),
-	StructField('_RecordDeleted',IntegerType(),False),
-	StructField('_RecordCurrent',IntegerType(),False)
-])
-
+newSchema  = StructType(
+  [
+    StructField("businessPartnerCategoryCode", StringType(), False),
+    StructField("businessPartnerCategory", StringType(), True),
+    StructField('_RecordStart',TimestampType(),False),
+    StructField('_RecordEnd',TimestampType(),False),
+    StructField('_RecordDeleted',IntegerType(),False),
+    StructField('_RecordCurrent',IntegerType(),False)
+  ]
+)
 df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
 
 

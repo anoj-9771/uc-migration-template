@@ -197,8 +197,8 @@ df_updated_column_temp = spark.sql("SELECT \
                                 cast(concat(BP.CHDAT,' ',(case WHEN BP.CHTIM is null then  '00:00:00' else BP.CHTIM END)) as timestamp)  as changedDateTime,\
                                 BP.PARTNER_GUID as businessPartnerGUID,\
                                 BP.ADDRCOMM as addressNumber,\
-                                BP.VALID_FROM as validFromDate,\
-                                BP.VALID_TO as validToDate,\
+                                Case WHEN BP.VALID_FROM = '10101000000' then to_date('19000101', 'yyyyMMdd') else to_date(substr(BP.VALID_FROM,0,8),'yyyyMMdd') END as validFromDate,\
+                                to_date(substr(BP.VALID_TO,0,8),'yyyyMMdd') as validToDate,\
                                 BP.NATPERS as naturalPersonIndicator,\
                                 BP._RecordStart, \
                                 BP._RecordEnd, \
@@ -269,8 +269,8 @@ cleanse_Schema = StructType(
     StructField("changedDateTime", TimestampType(), True),
     StructField("businessPartnerGUID", StringType(), True),
     StructField("addressNumber", StringType(), True),
-    StructField("validFromDate",StringType(), True),
-    StructField("validToDate",StringType(), True),
+    StructField("validFromDate",DateType(), True),
+    StructField("validToDate",DateType(), True),
     StructField("naturalPersonIndicator", StringType(), True),
     StructField('_RecordStart',TimestampType(),False),
     StructField('_RecordEnd',TimestampType(),False),
@@ -281,11 +281,6 @@ cleanse_Schema = StructType(
 # Apply the new schema to cleanse Data Frame
 df_updated_column = spark.createDataFrame(df_updated_column_temp.rdd, schema=cleanse_Schema)
 display(df_updated_column)
-
-# COMMAND ----------
-
-df = spark.sql("Select * from cleansed.t_sapisu_0bpartner_attr")
-display(df)
 
 # COMMAND ----------
 

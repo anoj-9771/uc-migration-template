@@ -39,13 +39,42 @@ df.createOrReplaceTempView("Source")
 # MAGIC %sql
 # MAGIC select 
 # MAGIC C_LGA as LGACode,
+# MAGIC b.LGA as LGA,
+# MAGIC cast(N_PROP as int) as propertyNumber,
+# MAGIC cast(N_DEBI_REFE as int) as debitReferenceNumber,
+# MAGIC C_DEBI_TYPE as debitTypeCode,
+# MAGIC c.debitType as debitType,
+# MAGIC C_DEBI_REAS as debitReasonCode,
+# MAGIC d.debitReason as debitReason,
+# MAGIC cast(0 as decimal(15,2)) AS debitAmount,
+# MAGIC cast(0 as decimal(15,2)) AS debitOutstandingAmount,
+# MAGIC cast(0 as decimal(15,2)) AS waterAmount,
+# MAGIC cast(0 as decimal(15,2)) AS sewerAmount,
+# MAGIC cast(0 as decimal(15,2)) AS drainAmount,
+# MAGIC to_date(D_DEFE_FROM, 'yyyyMMdd') as debitDeferredFrom,
+# MAGIC to_date(D_DEFE_TO, 'yyyyMMdd') as debitDeferredTo,
+# MAGIC to_date(D_DISP, 'yyyyMMdd') as dateDebitDisputed,
+# MAGIC C_RECO_LEVE as recoveryLevelCode,
+# MAGIC to_date(D_RECO_LEVE, 'yyyyMMdd') as dateRecoveryLevelSet,
+# MAGIC case when F_OCCU = '1' then true else false end as isOwnerDebit,
+# MAGIC --case when F_OCCU = '0' then false else true end as isOccupierDebit,
+# MAGIC case when F_ARRE = 'Y' then true else false end as isInArrears,
+# MAGIC case when N_FINA_YEAR is null then case when substr(d_debi_crea,5,2) < '07' then substr(d_debi_crea,1,4)
+# MAGIC else cast(int(substr(D_DEBI_CREA,1,4)) + 1 as string) end 
+# MAGIC else case when N_FINA_YEAR > '70' then '19'||N_FINA_YEAR else '20'||N_FINA_YEAR end
+# MAGIC end as financialYear,
+# MAGIC C_ISSU as issuedCode,
+# MAGIC to_date(D_DEBI_CREA, 'yyyyMMdd') AS debitCreatedDate,
+# MAGIC to_date(D_DEBI_UPDA, 'yyyyMMdd') AS debitUpdatedDate,
+# MAGIC to_date(D_ORIG_ISSU, 'yyyyMMdd') AS originalIssueDate 
 # MAGIC 
-# MAGIC N_PROP as propertyNumber,
-# MAGIC N_DEBI_REFE as debitReferenceNumber ,
-# MAGIC C_DEBI_TYPE as debitTypeCode
-# MAGIC 
-# MAGIC 
-# MAGIC from Source
+# MAGIC from Source a
+# MAGIC left join cleansed.t_access_z309_tlocalgovt b
+# MAGIC on b.LGAcode = a.c_lga
+# MAGIC left join cleansed.t_access_z309_tdebittype c
+# MAGIC on c.debitTypeCode = a.c_debi_type
+# MAGIC left join cleansed.t_access_z309_tdebitreason d 
+# MAGIC on  d.debitTypeCode = a.c_debi_type  and d.debitReasonCode = a.c_debi_reas 
 
 # COMMAND ----------
 
@@ -56,7 +85,7 @@ df.createOrReplaceTempView("Source")
 # COMMAND ----------
 
 # DBTITLE 0,[Result] Load Count Result into DataFrame
-cleansedf = spark.sql("select * from cleansed.t_access_z309_tmetercantread")
+cleansedf = spark.sql("select * from cleansed.t_access_z309_tdebit")
 
 # COMMAND ----------
 
@@ -72,16 +101,16 @@ cleansedf.createOrReplaceTempView("Target")
 # DBTITLE 1,[Verification] Duplicate checks
 # MAGIC %sql
 # MAGIC SELECT 
-# MAGIC cannotReadReason, COUNT (*) as count
-# MAGIC FROM cleansed.t_access_z309_tmetercantread
-# MAGIC GROUP BY cannotReadReason
+# MAGIC propertyNumber,debitReferenceNumber, COUNT (*) as count
+# MAGIC FROM cleansed.t_access_z309_tdebit
+# MAGIC GROUP BY propertyNumber,debitReferenceNumber
 # MAGIC HAVING COUNT (*) > 1
 
 # COMMAND ----------
 
 # DBTITLE 1,[Verification] Records count check
 # MAGIC %sql
-# MAGIC select count (*) as RecordCount, 'Target' as TableName from cleansed.t_access_z309_tmetercantread
+# MAGIC select count (*) as RecordCount, 'Target' as TableName from cleansed.t_access_z309_tdebit
 # MAGIC union all
 # MAGIC select count (*) as RecordCount, 'Source' as TableName from Source
 
@@ -90,46 +119,142 @@ cleansedf.createOrReplaceTempView("Target")
 # DBTITLE 1,[Verification] Compare Source and Target Data
 # MAGIC %sql
 # MAGIC select 
-# MAGIC C_METE_CANT_READ as cannotReadCode
-# MAGIC ,T_METE_CANT_READ as cannotReadReason,
-# MAGIC case when D_CANT_READ_EFFE <> 'null' then 
-# MAGIC CONCAT(LEFT(D_CANT_READ_EFFE,4),'-',SUBSTRING(D_CANT_READ_EFFE,5,2),'-',RIGHT(D_CANT_READ_EFFE,2))
-# MAGIC else D_CANT_READ_EFFE end as cannotReadEffectiveDate,
-# MAGIC case when D_CANT_READ_CANC <> 'null' then 
-# MAGIC CONCAT(LEFT(D_CANT_READ_CANC,4),'-',SUBSTRING(D_CANT_READ_CANC,5,2),'-',RIGHT(D_CANT_READ_CANC,2))
-# MAGIC else D_CANT_READ_CANC end as cannotReadCancelledDate,
-# MAGIC T_CANT_READ_ABBR as cannotReadAbbreviation
-# MAGIC from Source
+# MAGIC C_LGA as LGACode,
+# MAGIC b.LGA as LGA,
+# MAGIC cast(N_PROP as int) as propertyNumber,
+# MAGIC cast(N_DEBI_REFE as int) as debitReferenceNumber,
+# MAGIC C_DEBI_TYPE as debitTypeCode,
+# MAGIC c.debitType as debitType,
+# MAGIC C_DEBI_REAS as debitReasonCode,
+# MAGIC d.debitReason as debitReason,
+# MAGIC cast(0 as decimal(15,2)) AS debitAmount,
+# MAGIC cast(0 as decimal(15,2)) AS debitOutstandingAmount,
+# MAGIC cast(0 as decimal(15,2)) AS waterAmount,
+# MAGIC cast(0 as decimal(15,2)) AS sewerAmount,
+# MAGIC cast(0 as decimal(15,2)) AS drainAmount,
+# MAGIC to_date(D_DEFE_FROM, 'yyyyMMdd') as debitDeferredFrom,
+# MAGIC to_date(D_DEFE_TO, 'yyyyMMdd') as debitDeferredTo,
+# MAGIC to_date(D_DISP, 'yyyyMMdd') as dateDebitDisputed,
+# MAGIC C_RECO_LEVE as recoveryLevelCode,
+# MAGIC to_date(D_RECO_LEVE, 'yyyyMMdd') as dateRecoveryLevelSet,
+# MAGIC case when F_OCCU = '0' then true else false end as isOwnerDebit,
+# MAGIC case when F_OCCU = '1' then true else false end as isOccupierDebit,
+# MAGIC case when F_ARRE = 'Y' then true else false end as isInArrears,
+# MAGIC case when N_FINA_YEAR is null then case when substr(d_debi_crea,5,2) < '07' then substr(d_debi_crea,1,4)
+# MAGIC else cast(int(substr(D_DEBI_CREA,1,4)) + 1 as string) end 
+# MAGIC else case when N_FINA_YEAR > '70' then '19'||N_FINA_YEAR else '20'||N_FINA_YEAR end
+# MAGIC end as financialYear,
+# MAGIC C_ISSU as issuedCode,
+# MAGIC to_date(D_DEBI_CREA, 'yyyyMMdd') AS debitCreatedDate,
+# MAGIC to_date(D_DEBI_UPDA, 'yyyyMMdd') AS debitUpdatedDate,
+# MAGIC to_date(D_ORIG_ISSU, 'yyyyMMdd') AS originalIssueDate 
+# MAGIC 
+# MAGIC from Source a
+# MAGIC left join cleansed.t_access_z309_tlocalgovt b
+# MAGIC on b.LGAcode = a.c_lga
+# MAGIC left join cleansed.t_access_z309_tdebittype c
+# MAGIC on c.debitTypeCode = a.c_debi_type
+# MAGIC left join cleansed.t_access_z309_tdebitreason d 
+# MAGIC on  d.debitTypeCode = a.c_debi_type  and d.debitReasonCode = a.c_debi_reas 
 # MAGIC except
-# MAGIC select 
-# MAGIC cannotReadCode,
-# MAGIC UPPER(cannotReadReason),
-# MAGIC cannotReadEffectiveDate,
-# MAGIC cannotReadCancelledDate,
-# MAGIC cannotReadAbbreviation
-# MAGIC from cleansed.t_access_z309_tmetercantread
+# MAGIC 
+# MAGIC select
+# MAGIC LGACode,
+# MAGIC LGA,
+# MAGIC propertyNumber,
+# MAGIC debitReferenceNumber,
+# MAGIC debitTypeCode,
+# MAGIC debitType,
+# MAGIC debitReasonCode,
+# MAGIC debitReason,
+# MAGIC debitAmount,
+# MAGIC debitOutstandingAmount,
+# MAGIC waterAmount,
+# MAGIC sewerAmount,
+# MAGIC drainAmount,
+# MAGIC debitDeferredFrom,
+# MAGIC debitDeferredTo,
+# MAGIC dateDebitDisputed,
+# MAGIC recoveryLevelCode,
+# MAGIC dateRecoveryLevelSet,
+# MAGIC isOwnerDebit,
+# MAGIC isOccupierDebit,
+# MAGIC isInArrears,
+# MAGIC financialYear,
+# MAGIC issuedCode,
+# MAGIC debitCreatedDate,
+# MAGIC debitUpdatedDate,
+# MAGIC originalIssueDate
+# MAGIC FROM cleansed.t_access_z309_tdebit
 
 # COMMAND ----------
 
 # DBTITLE 1,[Verification] Compare Target and Source Data
 # MAGIC %sql
-# MAGIC select 
-# MAGIC cannotReadCode,
-# MAGIC UPPER(cannotReadReason),
-# MAGIC cannotReadEffectiveDate,
-# MAGIC cannotReadCancelledDate,
-# MAGIC cannotReadAbbreviation
-# MAGIC from cleansed.t_access_z309_tmetercantread
+# MAGIC select
+# MAGIC LGACode,
+# MAGIC LGA,
+# MAGIC propertyNumber,
+# MAGIC debitReferenceNumber,
+# MAGIC debitTypeCode,
+# MAGIC debitType,
+# MAGIC debitReasonCode,
+# MAGIC debitReason,
+# MAGIC debitAmount,
+# MAGIC debitOutstandingAmount,
+# MAGIC waterAmount,
+# MAGIC sewerAmount,
+# MAGIC drainAmount,
+# MAGIC debitDeferredFrom,
+# MAGIC debitDeferredTo,
+# MAGIC dateDebitDisputed,
+# MAGIC recoveryLevelCode,
+# MAGIC dateRecoveryLevelSet,
+# MAGIC isOwnerDebit,
+# MAGIC isOccupierDebit,
+# MAGIC isInArrears,
+# MAGIC financialYear,
+# MAGIC issuedCode,
+# MAGIC debitCreatedDate,
+# MAGIC debitUpdatedDate,
+# MAGIC originalIssueDate
+# MAGIC FROM cleansed.t_access_z309_tdebit
 # MAGIC except
 # MAGIC select 
-# MAGIC C_METE_CANT_READ as cannotReadCode
-# MAGIC ,T_METE_CANT_READ as cannotReadReason,
-# MAGIC case when D_CANT_READ_EFFE <> 'null' then 
-# MAGIC CONCAT(LEFT(D_CANT_READ_EFFE,4),'-',SUBSTRING(D_CANT_READ_EFFE,5,2),'-',RIGHT(D_CANT_READ_EFFE,2))
-# MAGIC else D_CANT_READ_EFFE end as cannotReadEffectiveDate,
-# MAGIC case when D_CANT_READ_CANC <> 'null' then 
-# MAGIC CONCAT(LEFT(D_CANT_READ_CANC,4),'-',SUBSTRING(D_CANT_READ_CANC,5,2),'-',RIGHT(D_CANT_READ_CANC,2))
-# MAGIC else D_CANT_READ_CANC end as cannotReadCancelledDate,
-# MAGIC T_CANT_READ_ABBR as cannotReadAbbreviation
+# MAGIC C_LGA as LGACode,
+# MAGIC b.LGA as LGA,
+# MAGIC cast(N_PROP as int) as propertyNumber,
+# MAGIC cast(N_DEBI_REFE as int) as debitReferenceNumber,
+# MAGIC C_DEBI_TYPE as debitTypeCode,
+# MAGIC c.debitType as debitType,
+# MAGIC C_DEBI_REAS as debitReasonCode,
+# MAGIC d.debitReason as debitReason,
+# MAGIC cast(0 as decimal(15,2)) AS debitAmount,
+# MAGIC cast(0 as decimal(15,2)) AS debitOutstandingAmount,
+# MAGIC cast(0 as decimal(15,2)) AS waterAmount,
+# MAGIC cast(0 as decimal(15,2)) AS sewerAmount,
+# MAGIC cast(0 as decimal(15,2)) AS drainAmount,
+# MAGIC to_date(D_DEFE_FROM, 'yyyyMMdd') as debitDeferredFrom,
+# MAGIC to_date(D_DEFE_TO, 'yyyyMMdd') as debitDeferredTo,
+# MAGIC to_date(D_DISP, 'yyyyMMdd') as dateDebitDisputed,
+# MAGIC C_RECO_LEVE as recoveryLevelCode,
+# MAGIC to_date(D_RECO_LEVE, 'yyyyMMdd') as dateRecoveryLevelSet,
+# MAGIC case when F_OCCU = '0' then true else false end as isOwnerDebit,
+# MAGIC case when F_OCCU = '1' then true else false end as isOccupierDebit,
+# MAGIC case when F_ARRE = 'Y' then true else false end as isInArrears,
+# MAGIC case when N_FINA_YEAR is null then case when substr(d_debi_crea,5,2) < '07' then substr(d_debi_crea,1,4)
+# MAGIC else cast(int(substr(D_DEBI_CREA,1,4)) + 1 as string) end 
+# MAGIC else case when N_FINA_YEAR > '70' then '19'||N_FINA_YEAR else '20'||N_FINA_YEAR end
+# MAGIC end as financialYear,
+# MAGIC C_ISSU as issuedCode,
+# MAGIC to_date(D_DEBI_CREA, 'yyyyMMdd') AS debitCreatedDate,
+# MAGIC to_date(D_DEBI_UPDA, 'yyyyMMdd') AS debitUpdatedDate,
+# MAGIC to_date(D_ORIG_ISSU, 'yyyyMMdd') AS originalIssueDate 
 # MAGIC 
-# MAGIC from Source
+# MAGIC from Source a
+# MAGIC left join cleansed.t_access_z309_tlocalgovt b
+# MAGIC on b.LGAcode = a.c_lga
+# MAGIC left join cleansed.t_access_z309_tdebittype c
+# MAGIC on c.debitTypeCode = a.c_debi_type
+# MAGIC left join cleansed.t_access_z309_tdebitreason d 
+# MAGIC on  d.debitTypeCode = a.c_debi_type  and d.debitReasonCode = a.c_debi_reas 

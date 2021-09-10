@@ -165,7 +165,8 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_cleansed = spark.sql("SELECT cast(Property_Number as int) AS propertyNumber, \
+df_cleansed = spark.sql("SELECT cast(System_Key as int) AS systemKey, \
+        cast(Property_Number as int) AS propertyNumber, \
 		case when LGA = 'N/A' then null else initcap(LGA) end as LGA, \
 		case when Address = ' ' then null else " + 
         ("initcap(Address) " if ADS_ENVIRONMENT not in ['dev','test'] else "'1 Mumble St, Somewhere NSW 2000'") + " end as propertyAddress, \
@@ -174,8 +175,8 @@ df_cleansed = spark.sql("SELECT cast(Property_Number as int) AS propertyNumber, 
         case when Superior_Land_Use = 'N/A' then null else initcap(Superior_Land_Use) end as superiorLandUse, \
         cast(Area_m2 as int) as areaSize, \
         'm2' as areaSizeUnit, " +
-        ("cast(Lon as float) as longitude, cast(Lat as float) as latitude, cast(MGA56_X as float) as x_coordinate_MGA56, cast(_MGA56_Y as float) as y_coordinate_MGA56, " if ADS_ENVIRONMENT not in ['dev','test'] else "\
-          cast(Lon as float)+17 as longitude, cast(Lat as float)+23 as latitude, cast(MGA56_X as float)+11235 as x_coordinate_MGA56, cast(_MGA56_Y as float)+33245 as y_coordinate_MGA56, ") + "\
+        ("cast(Lon as float) as longitude, cast(Lat as float) as latitude, cast(MGA56_X as float) as x_coordinate_MGA56, cast(MGA56_Y as float) as y_coordinate_MGA56, " if ADS_ENVIRONMENT not in ['dev','test'] else "\
+          cast(Lon as float)+17 as longitude, cast(Lat as float)+23 as latitude, cast(MGA56_X as float)+11235 as x_coordinate_MGA56, cast(MGA56_Y as float)+33245 as y_coordinate_MGA56, ") + "\
 		case when Water_Delivery_System = 'N/A' then null else Water_Delivery_System end as waterDeliverySystem, \
 		case when Water_Distribution_System = 'N/A' then null else Water_Distribution_System end as waterDistributionSystem, \
 		case when Water_Supply_Zone = 'N/A' then null else Water_Supply_Zone end as waterSupplyZone, \
@@ -191,15 +192,15 @@ df_cleansed = spark.sql("SELECT cast(Property_Number as int) AS propertyNumber, 
 		_RecordEnd, \
 		_RecordDeleted, \
 		_RecordCurrent \
-	FROM CLEANSED.STG_HYDRA_TLOTPARCEL \
-    WHERE Property_Number <> 'N/A'")
+	FROM CLEANSED.STG_HYDRA_TLOTPARCEL")
 
 display(df_cleansed)
 
 # COMMAND ----------
 
 newSchema = StructType([
-	StructField('propertyNumber',IntegerType(),True),
+	StructField('systemKey',IntegerType(),False),
+    StructField('propertyNumber',IntegerType(),True),
     StructField('LGA',StringType(),True),
 	StructField('propertyAddress',StringType(),True),
     StructField('suburb',StringType(),True),

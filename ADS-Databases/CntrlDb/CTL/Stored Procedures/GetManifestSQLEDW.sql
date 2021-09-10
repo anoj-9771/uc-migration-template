@@ -24,4 +24,4 @@ AS
 	WHERE 1 = 1
 	AND (SourceObject = @SourceObject OR SourceObject = @AuditTable) --Check the Manifest logs for both the main and Audit table
 	AND ProcessedToSQLEDW IS NULL 
-	AND ProcessedToTrustedZone IS NOT NULL
+	AND ProcessedToCleansedZone IS NOT NULL

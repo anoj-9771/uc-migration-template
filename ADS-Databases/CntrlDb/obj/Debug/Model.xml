@@ -12,7 +12,7 @@
 		</CustomData>
 		<CustomData Category="Reference" Type="Assembly">
 			<Metadata Name="LogicalName" Value="CntrlDb.dll" />
-			<Metadata Name="FileName" Value="C:\USERS\RAGRAWAL\SOURCE\REPOS\INSIGHT\TAFE-BI\ADS-DATABASES\CNTRLDB\OBJ\DEBUG\CNTRLDB.DLL" />
+			<Metadata Name="FileName" Value="C:\REPOS\DAF POC REPO1\ADS-DATABASES\CNTRLDB\OBJ\DEBUG\CNTRLDB.DLL" />
 			<Metadata Name="AssemblyName" Value="CntrlDb" />
 			<Metadata Name="PermissionSet" Value="SAFE" />
 			<Metadata Name="Owner" Value="" />
@@ -20,7 +20,7 @@
 			<Metadata Name="IsVisible" Value="True" />
 			<Metadata Name="IsModelAware" Value="True" />
 			<Metadata Name="SkipCreationIfEmpty" Value="True" />
-			<Metadata Name="AssemblySymbolsName" Value="C:\Users\ragrawal\source\repos\Insight\TAFE-BI\ADS-Databases\CntrlDb\obj\Debug\CntrlDb.pdb" />
+			<Metadata Name="AssemblySymbolsName" Value="C:\Repos\DAF POC REPO1\ADS-Databases\CntrlDb\obj\Debug\CntrlDb.pdb" />
 		</CustomData>
 		<CustomData Category="SqlCmdVariables" Type="SqlCmdVariable" />
 	</Header>
@@ -1027,7 +1027,7 @@ DBCC CHECKIDENT ('CTL.ControlWatermark',Reseed,0)]]></Value>
 					</Element>
 				</Entry>
 				<Entry>
-					<Element Type="SqlSimpleColumn" Name="[CTL].[ControlManifest].[ProcessedToTrustedZone]">
+					<Element Type="SqlSimpleColumn" Name="[CTL].[ControlManifest].[ProcessedToCleansedZone]">
 						<Relationship Name="TypeSpecifier">
 							<Entry>
 								<Element Type="SqlTypeSpecifier">
@@ -1089,7 +1089,7 @@ DBCC CHECKIDENT ('CTL.ControlWatermark',Reseed,0)]]></Value>
 					</Element>
 				</Entry>
 				<Entry>
-					<Element Type="SqlSimpleColumn" Name="[CTL].[ControlManifest].[TrustedZonePipelineRunID]">
+					<Element Type="SqlSimpleColumn" Name="[CTL].[ControlManifest].[CleansedZonePipelineRunID]">
 						<Relationship Name="TypeSpecifier">
 							<Entry>
 								<Element Type="SqlTypeSpecifier">
@@ -1127,6 +1127,318 @@ DBCC CHECKIDENT ('CTL.ControlWatermark',Reseed,0)]]></Value>
 				</Entry>
 			</Relationship>
 			<Annotation Type="SqlInlineConstraintAnnotation" Disambiguator="7" />
+		</Element>
+		<Element Type="SqlTable" Name="[CTL].[ControlManifest_New]">
+			<Property Name="IsAnsiNullsOn" Value="True" />
+			<Relationship Name="Columns">
+				<Entry>
+					<Element Type="SqlSimpleColumn" Name="[CTL].[ControlManifest_New].[ManifestID]">
+						<Property Name="IsNullable" Value="False" />
+						<Property Name="IsIdentity" Value="True" />
+						<Relationship Name="TypeSpecifier">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[bigint]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlSimpleColumn" Name="[CTL].[ControlManifest_New].[BatchExecutionLogID]">
+						<Property Name="IsNullable" Value="False" />
+						<Relationship Name="TypeSpecifier">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[bigint]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlSimpleColumn" Name="[CTL].[ControlManifest_New].[TaskExecutionLogID]">
+						<Property Name="IsNullable" Value="False" />
+						<Relationship Name="TypeSpecifier">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[bigint]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlSimpleColumn" Name="[CTL].[ControlManifest_New].[SourceObject]">
+						<Relationship Name="TypeSpecifier">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Property Name="Length" Value="1000" />
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[varchar]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlSimpleColumn" Name="[CTL].[ControlManifest_New].[Container]">
+						<Relationship Name="TypeSpecifier">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Property Name="Length" Value="1000" />
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[varchar]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlSimpleColumn" Name="[CTL].[ControlManifest_New].[SourceFileName]">
+						<Property Name="IsNullable" Value="False" />
+						<Relationship Name="TypeSpecifier">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Property Name="Length" Value="1000" />
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[varchar]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlSimpleColumn" Name="[CTL].[ControlManifest_New].[StartCounter]">
+						<Relationship Name="TypeSpecifier">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Property Name="Length" Value="500" />
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[varchar]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlSimpleColumn" Name="[CTL].[ControlManifest_New].[EndCounter]">
+						<Relationship Name="TypeSpecifier">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Property Name="Length" Value="500" />
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[varchar]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlSimpleColumn" Name="[CTL].[ControlManifest_New].[ManifestValue]">
+						<Relationship Name="TypeSpecifier">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[bigint]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlSimpleColumn" Name="[CTL].[ControlManifest_New].[RecordCountLoaded]">
+						<Relationship Name="TypeSpecifier">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[bigint]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlSimpleColumn" Name="[CTL].[ControlManifest_New].[RecordCountDeltaTable]">
+						<Relationship Name="TypeSpecifier">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[bigint]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlSimpleColumn" Name="[CTL].[ControlManifest_New].[FolderName]">
+						<Relationship Name="TypeSpecifier">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Property Name="Length" Value="1000" />
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[varchar]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlSimpleColumn" Name="[CTL].[ControlManifest_New].[FileName]">
+						<Relationship Name="TypeSpecifier">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Property Name="Length" Value="1000" />
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[varchar]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlSimpleColumn" Name="[CTL].[ControlManifest_New].[ProcessedToCleansedZone]">
+						<Relationship Name="TypeSpecifier">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[bit]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlSimpleColumn" Name="[CTL].[ControlManifest_New].[DeltaColumn]">
+						<Relationship Name="TypeSpecifier">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Property Name="Length" Value="100" />
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[nvarchar]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlSimpleColumn" Name="[CTL].[ControlManifest_New].[ProcessedToSQLEDW]">
+						<Relationship Name="TypeSpecifier">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[bit]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlSimpleColumn" Name="[CTL].[ControlManifest_New].[RawZonePipelineRunID]">
+						<Relationship Name="TypeSpecifier">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Property Name="Length" Value="50" />
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[varchar]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlSimpleColumn" Name="[CTL].[ControlManifest_New].[CleansedZonePipelineRunID]">
+						<Relationship Name="TypeSpecifier">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Property Name="Length" Value="50" />
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[varchar]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlSimpleColumn" Name="[CTL].[ControlManifest_New].[SQLEDWPipelineRunID]">
+						<Relationship Name="TypeSpecifier">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Property Name="Length" Value="50" />
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[varchar]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+			</Relationship>
+			<Relationship Name="Schema">
+				<Entry>
+					<References Name="[CTL]" />
+				</Entry>
+			</Relationship>
+			<Annotation Type="SqlInlineConstraintAnnotation" Disambiguator="8" />
 		</Element>
 		<Element Type="SqlTable" Name="[CTL].[ControlProjects]">
 			<Property Name="IsAnsiNullsOn" Value="True" />
@@ -1186,7 +1498,7 @@ DBCC CHECKIDENT ('CTL.ControlWatermark',Reseed,0)]]></Value>
 					<References Name="[CTL]" />
 				</Entry>
 			</Relationship>
-			<Annotation Type="SqlInlineConstraintAnnotation" Disambiguator="8" />
+			<Annotation Type="SqlInlineConstraintAnnotation" Disambiguator="9" />
 		</Element>
 		<Element Type="SqlTable" Name="[CTL].[ControlProjectSchedule]">
 			<Property Name="IsAnsiNullsOn" Value="True" />
@@ -1292,7 +1604,7 @@ DBCC CHECKIDENT ('CTL.ControlWatermark',Reseed,0)]]></Value>
 					<References Name="[CTL]" />
 				</Entry>
 			</Relationship>
-			<Annotation Type="SqlInlineConstraintAnnotation" Disambiguator="9" />
+			<Annotation Type="SqlInlineConstraintAnnotation" Disambiguator="10" />
 		</Element>
 		<Element Type="SqlIndex" Name="[CTL].[ControlProjectSchedule].[IX_ControlProjectSchedule_Unique]">
 			<Property Name="IsUnique" Value="True" />
@@ -1581,8 +1893,8 @@ DBCC CHECKIDENT ('CTL.ControlWatermark',Reseed,0)]]></Value>
 					<References Name="[CTL]" />
 				</Entry>
 			</Relationship>
-			<Annotation Type="SqlInlineConstraintAnnotation" Disambiguator="10" />
 			<Annotation Type="SqlInlineConstraintAnnotation" Disambiguator="11" />
+			<Annotation Type="SqlInlineConstraintAnnotation" Disambiguator="12" />
 		</Element>
 		<Element Type="SqlTable" Name="[CTL].[ControlSourceColumns]">
 			<Property Name="IsAnsiNullsOn" Value="True" />
@@ -1725,7 +2037,7 @@ DBCC CHECKIDENT ('CTL.ControlWatermark',Reseed,0)]]></Value>
 					<References Name="[CTL]" />
 				</Entry>
 			</Relationship>
-			<Annotation Type="SqlInlineConstraintAnnotation" Disambiguator="12" />
+			<Annotation Type="SqlInlineConstraintAnnotation" Disambiguator="13" />
 		</Element>
 		<Element Type="SqlTable" Name="[CTL].[ControlStages]">
 			<Property Name="IsAnsiNullsOn" Value="True" />
@@ -1785,7 +2097,7 @@ DBCC CHECKIDENT ('CTL.ControlWatermark',Reseed,0)]]></Value>
 					<References Name="[CTL]" />
 				</Entry>
 			</Relationship>
-			<Annotation Type="SqlInlineConstraintAnnotation" Disambiguator="13" />
+			<Annotation Type="SqlInlineConstraintAnnotation" Disambiguator="14" />
 		</Element>
 		<Element Type="SqlIndex" Name="[CTL].[ControlStages].[IX_ControlStages_StageName]">
 			<Property Name="IsUnique" Value="True" />
@@ -1947,8 +2259,8 @@ DBCC CHECKIDENT ('CTL.ControlWatermark',Reseed,0)]]></Value>
 					<References Name="[CTL]" />
 				</Entry>
 			</Relationship>
-			<Annotation Type="SqlInlineConstraintAnnotation" Disambiguator="14" />
 			<Annotation Type="SqlInlineConstraintAnnotation" Disambiguator="15" />
+			<Annotation Type="SqlInlineConstraintAnnotation" Disambiguator="16" />
 		</Element>
 		<Element Type="SqlTable" Name="[CTL].[ControlTargetColumns]">
 			<Property Name="IsAnsiNullsOn" Value="True" />
@@ -2058,8 +2370,8 @@ DBCC CHECKIDENT ('CTL.ControlWatermark',Reseed,0)]]></Value>
 					<References Name="[CTL]" />
 				</Entry>
 			</Relationship>
-			<Annotation Type="SqlInlineConstraintAnnotation" Disambiguator="16" />
 			<Annotation Type="SqlInlineConstraintAnnotation" Disambiguator="17" />
+			<Annotation Type="SqlInlineConstraintAnnotation" Disambiguator="18" />
 		</Element>
 		<Element Type="SqlTable" Name="[CTL].[ControlTaskCommand]">
 			<Property Name="IsAnsiNullsOn" Value="True" />
@@ -2135,8 +2447,8 @@ DBCC CHECKIDENT ('CTL.ControlWatermark',Reseed,0)]]></Value>
 					<References Name="[CTL]" />
 				</Entry>
 			</Relationship>
-			<Annotation Type="SqlInlineConstraintAnnotation" Disambiguator="18" />
 			<Annotation Type="SqlInlineConstraintAnnotation" Disambiguator="19" />
+			<Annotation Type="SqlInlineConstraintAnnotation" Disambiguator="20" />
 		</Element>
 		<Element Type="SqlTable" Name="[CTL].[ControlTasks]">
 			<Property Name="IsAnsiNullsOn" Value="True" />
@@ -2385,11 +2697,11 @@ DBCC CHECKIDENT ('CTL.ControlWatermark',Reseed,0)]]></Value>
 					<References Name="[CTL]" />
 				</Entry>
 			</Relationship>
-			<Annotation Type="SqlInlineConstraintAnnotation" Disambiguator="20" />
 			<Annotation Type="SqlInlineConstraintAnnotation" Disambiguator="21" />
 			<Annotation Type="SqlInlineConstraintAnnotation" Disambiguator="22" />
 			<Annotation Type="SqlInlineConstraintAnnotation" Disambiguator="23" />
 			<Annotation Type="SqlInlineConstraintAnnotation" Disambiguator="24" />
+			<Annotation Type="SqlInlineConstraintAnnotation" Disambiguator="25" />
 		</Element>
 		<Element Type="SqlTable" Name="[CTL].[ControlTypes]">
 			<Property Name="IsAnsiNullsOn" Value="True" />
@@ -2433,7 +2745,7 @@ DBCC CHECKIDENT ('CTL.ControlWatermark',Reseed,0)]]></Value>
 					<References Name="[CTL]" />
 				</Entry>
 			</Relationship>
-			<Annotation Type="SqlInlineConstraintAnnotation" Disambiguator="25" />
+			<Annotation Type="SqlInlineConstraintAnnotation" Disambiguator="26" />
 		</Element>
 		<Element Type="SqlIndex" Name="[CTL].[ControlTypes].[IX_ControlTypes_ControlType]">
 			<Property Name="IsUnique" Value="True" />
@@ -2561,8 +2873,8 @@ DBCC CHECKIDENT ('CTL.ControlWatermark',Reseed,0)]]></Value>
 					<References Name="[CTL]" />
 				</Entry>
 			</Relationship>
-			<Annotation Type="SqlInlineConstraintAnnotation" Disambiguator="26" />
 			<Annotation Type="SqlInlineConstraintAnnotation" Disambiguator="27" />
+			<Annotation Type="SqlInlineConstraintAnnotation" Disambiguator="28" />
 		</Element>
 		<Element Type="SqlProcedure" Name="[CTL].[CreateBatchLog]">
 			<Property Name="BodyScript">
@@ -2975,6 +3287,368 @@ VALUES (
 				<Property Name="HeaderContents" Value="&#xD;&#xA;CREATE PROCEDURE [CTL].[CreateManifestRecord] (&#xD;&#xA;&#x9;@BatchExecutionLogID bigint,&#xD;&#xA;&#x9;@TaskExecutionLogID bigint,&#xD;&#xA;&#x9;@SourceObject varchar(1000),&#xD;&#xA;&#x9;@Container varchar(1000),&#xD;&#xA;&#x9;@DeltaColumn varchar(100),&#xD;&#xA;&#x9;@StartCounter varchar(500),&#xD;&#xA;&#x9;@EndCounter varchar(500),&#xD;&#xA;&#x9;@Records bigint,&#xD;&#xA;&#x9;@RecordsDeltaTable bigint = 0,&#xD;&#xA;&#x9;@FolderName varchar(1000),&#xD;&#xA;&#x9;@FileName varchar(1000),&#xD;&#xA;&#x9;@PipelineRunID varchar(50) = ''&#xD;&#xA;)&#xD;&#xA;AS" />
 			</Annotation>
 		</Element>
+		<Element Type="SqlProcedure" Name="[CTL].[CreateManifestRecord_New]">
+			<Property Name="BodyScript">
+				<Value><![CDATA[ 
+
+SET @DeltaColumn = ISNULL(@DeltaColumn, '')
+
+DECLARE @Start varchar(500)
+IF ISDATE(@StartCounter) = 1
+	SET @Start = FORMAT(TRY_CONVERT(DATETIME, @StartCounter), 'yyyy-MM-ddTHH:mm:ss')
+ELSE
+	SET @Start = ISNULL(@StartCounter, '')
+
+DECLARE @End varchar(500)
+IF ISDATE(@EndCounter) = 1
+	SET @End = FORMAT(TRY_CONVERT(DATETIME, @EndCounter), 'yyyy-MM-ddTHH:mm:ss')
+ELSE
+	SET @End = @EndCounter
+
+
+INSERT INTO CTL.ControlManifest_New(
+	[BatchExecutionLogID]
+	,[TaskExecutionLogID]
+	,[SourceObject]
+	,[Container]
+	,[SourceFileName]
+	,[DeltaColumn]
+	,[StartCounter]
+	,[EndCounter]
+	,[RecordCountLoaded]
+	,[RecordCountDeltaTable]
+	,[FolderName]
+	,[FileName]
+	,[RawZonePipelineRunID]
+	)
+VALUES (
+	@BatchExecutionLogID
+	,@TaskExecutionLogID
+	,@SourceObject
+	,@Container
+	,@SourceFileName
+	,@DeltaColumn
+	,@Start
+	,@End
+	,@Records
+	,NULL
+	,@FolderName
+	,@FileName
+	,@PipelineRunID
+)]]></Value>
+			</Property>
+			<Property Name="IsAnsiNullsOn" Value="True" />
+			<Relationship Name="BodyDependencies">
+				<Entry>
+					<References ExternalSource="BuiltIns" Name="[varchar]" />
+				</Entry>
+				<Entry>
+					<References ExternalSource="BuiltIns" Name="[varchar]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[CreateManifestRecord_New].[@DeltaColumn]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[CreateManifestRecord_New].[@StartCounter]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[CreateManifestRecord_New].[@EndCounter]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlManifest_New]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlManifest_New].[BatchExecutionLogID]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlManifest_New].[TaskExecutionLogID]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlManifest_New].[SourceObject]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlManifest_New].[Container]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlManifest_New].[SourceFileName]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlManifest_New].[DeltaColumn]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlManifest_New].[StartCounter]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlManifest_New].[EndCounter]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlManifest_New].[RecordCountLoaded]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlManifest_New].[RecordCountDeltaTable]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlManifest_New].[FolderName]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlManifest_New].[FileName]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlManifest_New].[RawZonePipelineRunID]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[CreateManifestRecord_New].[@BatchExecutionLogID]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[CreateManifestRecord_New].[@TaskExecutionLogID]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[CreateManifestRecord_New].[@SourceObject]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[CreateManifestRecord_New].[@Container]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[CreateManifestRecord_New].[@SourceFileName]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[CreateManifestRecord_New].[@Records]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[CreateManifestRecord_New].[@FolderName]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[CreateManifestRecord_New].[@FileName]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[CreateManifestRecord_New].[@PipelineRunID]" />
+				</Entry>
+			</Relationship>
+			<Relationship Name="Parameters">
+				<Entry>
+					<Element Type="SqlSubroutineParameter" Name="[CTL].[CreateManifestRecord_New].[@BatchExecutionLogID]">
+						<Relationship Name="Type">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[bigint]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlSubroutineParameter" Name="[CTL].[CreateManifestRecord_New].[@TaskExecutionLogID]">
+						<Relationship Name="Type">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[bigint]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlSubroutineParameter" Name="[CTL].[CreateManifestRecord_New].[@SourceObject]">
+						<Relationship Name="Type">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Property Name="Length" Value="1000" />
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[varchar]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlSubroutineParameter" Name="[CTL].[CreateManifestRecord_New].[@Container]">
+						<Relationship Name="Type">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Property Name="Length" Value="1000" />
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[varchar]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlSubroutineParameter" Name="[CTL].[CreateManifestRecord_New].[@DeltaColumn]">
+						<Relationship Name="Type">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Property Name="Length" Value="100" />
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[varchar]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlSubroutineParameter" Name="[CTL].[CreateManifestRecord_New].[@StartCounter]">
+						<Relationship Name="Type">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Property Name="Length" Value="500" />
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[varchar]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlSubroutineParameter" Name="[CTL].[CreateManifestRecord_New].[@EndCounter]">
+						<Relationship Name="Type">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Property Name="Length" Value="500" />
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[varchar]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlSubroutineParameter" Name="[CTL].[CreateManifestRecord_New].[@Records]">
+						<Relationship Name="Type">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[bigint]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlSubroutineParameter" Name="[CTL].[CreateManifestRecord_New].[@RecordsDeltaTable]">
+						<Property Name="DefaultExpressionScript">
+							<Value><![CDATA[0]]></Value>
+						</Property>
+						<Relationship Name="Type">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[bigint]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlSubroutineParameter" Name="[CTL].[CreateManifestRecord_New].[@FolderName]">
+						<Relationship Name="Type">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Property Name="Length" Value="1000" />
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[varchar]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlSubroutineParameter" Name="[CTL].[CreateManifestRecord_New].[@FileName]">
+						<Relationship Name="Type">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Property Name="Length" Value="1000" />
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[varchar]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlSubroutineParameter" Name="[CTL].[CreateManifestRecord_New].[@PipelineRunID]">
+						<Property Name="DefaultExpressionScript">
+							<Value><![CDATA['']]></Value>
+						</Property>
+						<Relationship Name="Type">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Property Name="Length" Value="50" />
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[varchar]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlSubroutineParameter" Name="[CTL].[CreateManifestRecord_New].[@SourceFileName]">
+						<Relationship Name="Type">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Property Name="Length" Value="1000" />
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[varchar]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+			</Relationship>
+			<Relationship Name="Schema">
+				<Entry>
+					<References Name="[CTL]" />
+				</Entry>
+			</Relationship>
+			<Annotation Type="SysCommentsObjectAnnotation">
+				<Property Name="CreateOffset" Value="2" />
+				<Property Name="Length" Value="1361" />
+				<Property Name="StartLine" Value="1" />
+				<Property Name="StartColumn" Value="1" />
+				<Property Name="HeaderContents" Value="&#xD;&#xA;CREATE PROCEDURE [CTL].[CreateManifestRecord_New] (&#xD;&#xA;&#x9;@BatchExecutionLogID bigint,&#xD;&#xA;&#x9;@TaskExecutionLogID bigint,&#xD;&#xA;&#x9;@SourceObject varchar(1000),&#xD;&#xA;&#x9;@Container varchar(1000),&#xD;&#xA;&#x9;@DeltaColumn varchar(100),&#xD;&#xA;&#x9;@StartCounter varchar(500),&#xD;&#xA;&#x9;@EndCounter varchar(500),&#xD;&#xA;&#x9;@Records bigint,&#xD;&#xA;&#x9;@RecordsDeltaTable bigint = 0,&#xD;&#xA;&#x9;@FolderName varchar(1000),&#xD;&#xA;&#x9;@FileName varchar(1000),&#xD;&#xA;&#x9;@PipelineRunID varchar(50) = '',&#xD;&#xA;&#x9;@SourceFileName varchar(1000)&#xD;&#xA;)&#xD;&#xA;AS" />
+			</Annotation>
+		</Element>
 		<Element Type="SqlProcedure" Name="[CTL].[CreateSource]">
 			<Property Name="BodyScript">
 				<Value><![CDATA[ 
@@ -3118,7 +3792,7 @@ begin
 
 	END
 
-    if @currentStage = 'Raw to Trusted'
+    if @currentStage = 'Raw to Cleansed'
 	BEGIN
 		EXEC [CTL].[CreateTask] 
 			@SourceGroup
@@ -3149,7 +3823,7 @@ begin
 	END
 	
 
-	if @currentStage = 'Trusted to Curated'
+	if @currentStage = 'Cleansed to Curated'
 	BEGIN
 
 		EXEC [CTL].[CreateTask] 
@@ -3902,7 +4576,7 @@ end]]></Value>
 			</Relationship>
 			<Annotation Type="SysCommentsObjectAnnotation">
 				<Property Name="CreateOffset" Value="4" />
-				<Property Name="Length" Value="7416" />
+				<Property Name="Length" Value="7418" />
 				<Property Name="StartLine" Value="1" />
 				<Property Name="StartColumn" Value="1" />
 				<Property Name="HeaderContents" Value="&#xD;&#xA;&#xD;&#xA;CREATE PROC [CTL].[CreateSource] &#xD;&#xA;        @ProjectName&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@StartStageName&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@EndStageName&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@SourceGroup&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@SourceName&#x9;&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@SourceObjectName&#x9; varchar(500),&#xD;&#xA;&#x9;&#x9;@SourceType&#x9;&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@DataLoadMode&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@SourceSecretName&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@DLRawSecret&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@DLStagedSecret&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@DBProcessor&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@StageDBSecret&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@DLRawSubFolder&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@DLRawType&#x9;&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@DLStagedMainFolder&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@DLStagedSubFolder&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@DLStagedType&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@DLObjectGrain&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@SourceCommand&#x9;&#x9; varchar(5000),&#xD;&#xA;&#x9;&#x9;@DLRawtoStageCommand varchar(5000),&#xD;&#xA;&#x9;&#x9;@DLStagetoDBCommand  varchar(5000),&#xD;&#xA;&#x9;&#x9;@TargetObjectType&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@TargetOverride&#x9;&#x9; varchar(150),&#xD;&#xA;&#x9;&#x9;@BusinessKeyColumn&#x9; varchar(150),&#xD;&#xA;&#x9;&#x9;@WatermarkColumn&#x9; varchar(150),&#xD;&#xA;&#x9;&#x9;@TrackChanges&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@AdditionalProperty&#x9; varchar(max),&#xD;&#xA;&#x9;&#x9;@IsAuditTable&#x9;&#x9; varchar(100) = '', --Add column to track if the table is a Audit Table&#xD;&#xA;&#x9;&#x9;@SoftDeleteSource&#x9; varchar(100) = '', --Name of the source to be used for Soft Delete&#xD;&#xA;&#x9;&#x9;@SourceTSFormat&#x9;&#x9; varchar(100) = ''  --Format for the Source Delta Column Time&#xD;&#xA;as" />
@@ -4862,7 +5536,7 @@ BEGIN
 			WHERE Config.SubjectArea =  @SubjectArea
 			AND Config.Project =  @Project
 			AND Config.Valid = 1
-			AND ProcessedToTrustedZone = 1
+			AND ProcessedToCleansedZone = 1
 		)
 	), LastLoadedTime AS (
 		--Take only the latest load for each table
@@ -4948,7 +5622,7 @@ SELECT @StartDate AS ProcessingStartDate, @EndDate AS ProcessingEndDate]]></Valu
 					<References Name="[CTL].[ControlCuratedConfig].[Valid]" />
 				</Entry>
 				<Entry>
-					<References Name="[CTL].[ControlManifest].[ProcessedToTrustedZone]" />
+					<References Name="[CTL].[ControlManifest].[ProcessedToCleansedZone]" />
 				</Entry>
 				<Entry>
 					<References ExternalSource="BuiltIns" Name="[datetime]" />
@@ -5074,7 +5748,7 @@ SELECT @StartDate AS ProcessingStartDate, @EndDate AS ProcessingEndDate]]></Valu
 				</Entry>
 			</Relationship>
 			<Annotation Type="SysCommentsObjectAnnotation">
-				<Property Name="Length" Value="2021" />
+				<Property Name="Length" Value="2022" />
 				<Property Name="StartLine" Value="1" />
 				<Property Name="StartColumn" Value="1" />
 				<Property Name="HeaderContents" Value="CREATE PROCEDURE [CTL].[CuratedGetProcessingPeriod] (&#xD;&#xA;&#x9;@SubjectArea varchar(255),&#xD;&#xA;&#x9;@Project varchar(255)&#xD;&#xA;&#x9;)&#xD;&#xA;AS" />
@@ -5859,7 +6533,7 @@ Drop table if exists #tempTarget]]></Value>
 					<References Name="[CTL].[ControlTypes]" />
 				</Entry>
 			</Relationship>
-			<AttachedAnnotation Disambiguator="11" />
+			<AttachedAnnotation Disambiguator="12" />
 		</Element>
 		<Element Type="SqlForeignKeyConstraint" Name="[CTL].[FK_ControlTarget_ControlTypes]">
 			<Relationship Name="Columns">
@@ -5882,7 +6556,7 @@ Drop table if exists #tempTarget]]></Value>
 					<References Name="[CTL].[ControlTypes]" />
 				</Entry>
 			</Relationship>
-			<AttachedAnnotation Disambiguator="15" />
+			<AttachedAnnotation Disambiguator="16" />
 		</Element>
 		<Element Type="SqlForeignKeyConstraint" Name="[CTL].[FK_ControlTargetColumns_ControlTarget]">
 			<Relationship Name="Columns">
@@ -5905,7 +6579,7 @@ Drop table if exists #tempTarget]]></Value>
 					<References Name="[CTL].[ControlTarget]" />
 				</Entry>
 			</Relationship>
-			<AttachedAnnotation Disambiguator="16" />
+			<AttachedAnnotation Disambiguator="17" />
 		</Element>
 		<Element Type="SqlForeignKeyConstraint" Name="[CTL].[FK_ControlTaskCommand_ControlTasks]">
 			<Relationship Name="Columns">
@@ -5928,7 +6602,7 @@ Drop table if exists #tempTarget]]></Value>
 					<References Name="[CTL].[ControlTasks]" />
 				</Entry>
 			</Relationship>
-			<AttachedAnnotation Disambiguator="18" />
+			<AttachedAnnotation Disambiguator="19" />
 		</Element>
 		<Element Type="SqlForeignKeyConstraint" Name="[CTL].[FK_ControlTasks_ControlSource]">
 			<Relationship Name="Columns">
@@ -5951,7 +6625,7 @@ Drop table if exists #tempTarget]]></Value>
 					<References Name="[CTL].[ControlSource]" />
 				</Entry>
 			</Relationship>
-			<AttachedAnnotation Disambiguator="21" />
+			<AttachedAnnotation Disambiguator="22" />
 		</Element>
 		<Element Type="SqlForeignKeyConstraint" Name="[CTL].[FK_ControlTasks_ControlStages]">
 			<Relationship Name="Columns">
@@ -5974,7 +6648,7 @@ Drop table if exists #tempTarget]]></Value>
 					<References Name="[CTL].[ControlStages]" />
 				</Entry>
 			</Relationship>
-			<AttachedAnnotation Disambiguator="22" />
+			<AttachedAnnotation Disambiguator="23" />
 		</Element>
 		<Element Type="SqlForeignKeyConstraint" Name="[CTL].[FK_ControlTasks_ControlTarget]">
 			<Relationship Name="Columns">
@@ -5997,7 +6671,7 @@ Drop table if exists #tempTarget]]></Value>
 					<References Name="[CTL].[ControlTarget]" />
 				</Entry>
 			</Relationship>
-			<AttachedAnnotation Disambiguator="23" />
+			<AttachedAnnotation Disambiguator="24" />
 		</Element>
 		<Element Type="SqlForeignKeyConstraint" Name="[CTL].[FK_ControlWatermark_ControlSource]">
 			<Relationship Name="Columns">
@@ -6020,7 +6694,7 @@ Drop table if exists #tempTarget]]></Value>
 					<References Name="[CTL].[ControlSource]" />
 				</Entry>
 			</Relationship>
-			<AttachedAnnotation Disambiguator="27" />
+			<AttachedAnnotation Disambiguator="28" />
 		</Element>
 		<Element Type="SqlForeignKeyConstraint" Name="[CTL].[FK_TaskExecutionLog_BatchExecutionLog]">
 			<Relationship Name="Columns">
@@ -6043,7 +6717,7 @@ Drop table if exists #tempTarget]]></Value>
 					<References Name="[CTL].[BatchExecutionLog]" />
 				</Entry>
 			</Relationship>
-			<Annotation Type="SqlInlineConstraintAnnotation" Disambiguator="28" />
+			<Annotation Type="SqlInlineConstraintAnnotation" Disambiguator="29" />
 		</Element>
 		<Element Type="SqlForeignKeyConstraint" Name="[CTL].[FK_TaskExecutionLog_ControlTasks]">
 			<Relationship Name="Columns">
@@ -6066,7 +6740,7 @@ Drop table if exists #tempTarget]]></Value>
 					<References Name="[CTL].[ControlTasks]" />
 				</Entry>
 			</Relationship>
-			<Annotation Type="SqlInlineConstraintAnnotation" Disambiguator="29" />
+			<Annotation Type="SqlInlineConstraintAnnotation" Disambiguator="30" />
 		</Element>
 		<Element Type="SqlProcedure" Name="[CTL].[GetAPIParams]">
 			<Property Name="BodyScript">
@@ -7128,7 +7802,7 @@ SELECT * FROM allTasks t
 	FROM CTL.ControlManifest
 	WHERE SourceObject = @SourceObject
 	AND RecordCountLoaded > 0 
-	AND ProcessedToTrustedZone IS NULL 
+	AND ProcessedToCleansedZone IS NULL 
 	AND RecordCountDeltaTable IS NOT NULL]]></Value>
 			</Property>
 			<Property Name="IsAnsiNullsOn" Value="True" />
@@ -7158,7 +7832,7 @@ SELECT * FROM allTasks t
 					<References Name="[CTL].[ControlManifest].[RecordCountLoaded]" />
 				</Entry>
 				<Entry>
-					<References Name="[CTL].[ControlManifest].[ProcessedToTrustedZone]" />
+					<References Name="[CTL].[ControlManifest].[ProcessedToCleansedZone]" />
 				</Entry>
 				<Entry>
 					<References Name="[CTL].[ControlManifest].[RecordCountDeltaTable]" />
@@ -7189,10 +7863,77 @@ SELECT * FROM allTasks t
 			</Relationship>
 			<Annotation Type="SysCommentsObjectAnnotation">
 				<Property Name="CreateOffset" Value="2" />
-				<Property Name="Length" Value="458" />
+				<Property Name="Length" Value="459" />
 				<Property Name="StartLine" Value="1" />
 				<Property Name="StartColumn" Value="1" />
 				<Property Name="HeaderContents" Value="&#xD;&#xA;CREATE PROCEDURE [CTL].[GetManifestAudit] (&#xD;&#xA;&#x9;@SourceObject varchar(100)&#xD;&#xA;)&#xD;&#xA;AS" />
+			</Annotation>
+		</Element>
+		<Element Type="SqlProcedure" Name="[CTL].[GetManifestCleansed]">
+			<Property Name="BodyScript">
+				<Value><![CDATA[
+	SELECT
+	*
+	FROM CTL.ControlManifest
+	WHERE SourceObject = @SourceObject
+	AND RecordCountLoaded > 0 
+	AND ProcessedToCleansedZone IS NULL 
+	AND RecordCountDeltaTable IS NOT NULL 
+	ORDER BY StartCounter]]></Value>
+			</Property>
+			<Property Name="IsAnsiNullsOn" Value="True" />
+			<Relationship Name="BodyDependencies">
+				<Entry>
+					<References Name="[CTL].[ControlManifest]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlManifest].[SourceObject]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[GetManifestCleansed].[@SourceObject]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlManifest].[RecordCountLoaded]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlManifest].[ProcessedToCleansedZone]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlManifest].[RecordCountDeltaTable]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlManifest].[StartCounter]" />
+				</Entry>
+			</Relationship>
+			<Relationship Name="Parameters">
+				<Entry>
+					<Element Type="SqlSubroutineParameter" Name="[CTL].[GetManifestCleansed].[@SourceObject]">
+						<Relationship Name="Type">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Property Name="Length" Value="100" />
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[varchar]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+			</Relationship>
+			<Relationship Name="Schema">
+				<Entry>
+					<References Name="[CTL]" />
+				</Entry>
+			</Relationship>
+			<Annotation Type="SysCommentsObjectAnnotation">
+				<Property Name="CreateOffset" Value="2" />
+				<Property Name="Length" Value="294" />
+				<Property Name="StartLine" Value="1" />
+				<Property Name="StartColumn" Value="1" />
+				<Property Name="HeaderContents" Value="&#xD;&#xA;CREATE PROCEDURE [CTL].[GetManifestCleansed] (&#xD;&#xA;&#x9;@SourceObject varchar(100)&#xD;&#xA;)&#xD;&#xA;AS" />
 			</Annotation>
 		</Element>
 		<Element Type="SqlProcedure" Name="[CTL].[GetManifestRecords]">
@@ -7299,7 +8040,7 @@ SELECT [BatchExecutionLogID]
 	WHERE 1 = 1
 	AND (SourceObject = @SourceObject OR SourceObject = @AuditTable) --Check the Manifest logs for both the main and Audit table
 	AND ProcessedToSQLEDW IS NULL 
-	AND ProcessedToTrustedZone IS NOT NULL]]></Value>
+	AND ProcessedToCleansedZone IS NOT NULL]]></Value>
 			</Property>
 			<Property Name="IsAnsiNullsOn" Value="True" />
 			<Relationship Name="BodyDependencies">
@@ -7346,7 +8087,7 @@ SELECT [BatchExecutionLogID]
 					<References Name="[CTL].[ControlManifest].[ProcessedToSQLEDW]" />
 				</Entry>
 				<Entry>
-					<References Name="[CTL].[ControlManifest].[ProcessedToTrustedZone]" />
+					<References Name="[CTL].[ControlManifest].[ProcessedToCleansedZone]" />
 				</Entry>
 			</Relationship>
 			<Relationship Name="Parameters">
@@ -7374,77 +8115,10 @@ SELECT [BatchExecutionLogID]
 			</Relationship>
 			<Annotation Type="SysCommentsObjectAnnotation">
 				<Property Name="CreateOffset" Value="2" />
-				<Property Name="Length" Value="936" />
+				<Property Name="Length" Value="937" />
 				<Property Name="StartLine" Value="1" />
 				<Property Name="StartColumn" Value="1" />
 				<Property Name="HeaderContents" Value="&#xD;&#xA;CREATE PROCEDURE [CTL].[GetManifestSQLEDW] (&#xD;&#xA;&#x9;@SourceObject varchar(100)&#xD;&#xA;)&#xD;&#xA;AS" />
-			</Annotation>
-		</Element>
-		<Element Type="SqlProcedure" Name="[CTL].[GetManifestTrusted]">
-			<Property Name="BodyScript">
-				<Value><![CDATA[
-	SELECT
-	*
-	FROM CTL.ControlManifest
-	WHERE SourceObject = @SourceObject
-	AND RecordCountLoaded > 0 
-	AND ProcessedToTrustedZone IS NULL 
-	AND RecordCountDeltaTable IS NOT NULL 
-	ORDER BY StartCounter]]></Value>
-			</Property>
-			<Property Name="IsAnsiNullsOn" Value="True" />
-			<Relationship Name="BodyDependencies">
-				<Entry>
-					<References Name="[CTL].[ControlManifest]" />
-				</Entry>
-				<Entry>
-					<References Name="[CTL].[ControlManifest].[SourceObject]" />
-				</Entry>
-				<Entry>
-					<References Name="[CTL].[GetManifestTrusted].[@SourceObject]" />
-				</Entry>
-				<Entry>
-					<References Name="[CTL].[ControlManifest].[RecordCountLoaded]" />
-				</Entry>
-				<Entry>
-					<References Name="[CTL].[ControlManifest].[ProcessedToTrustedZone]" />
-				</Entry>
-				<Entry>
-					<References Name="[CTL].[ControlManifest].[RecordCountDeltaTable]" />
-				</Entry>
-				<Entry>
-					<References Name="[CTL].[ControlManifest].[StartCounter]" />
-				</Entry>
-			</Relationship>
-			<Relationship Name="Parameters">
-				<Entry>
-					<Element Type="SqlSubroutineParameter" Name="[CTL].[GetManifestTrusted].[@SourceObject]">
-						<Relationship Name="Type">
-							<Entry>
-								<Element Type="SqlTypeSpecifier">
-									<Property Name="Length" Value="100" />
-									<Relationship Name="Type">
-										<Entry>
-											<References ExternalSource="BuiltIns" Name="[varchar]" />
-										</Entry>
-									</Relationship>
-								</Element>
-							</Entry>
-						</Relationship>
-					</Element>
-				</Entry>
-			</Relationship>
-			<Relationship Name="Schema">
-				<Entry>
-					<References Name="[CTL]" />
-				</Entry>
-			</Relationship>
-			<Annotation Type="SysCommentsObjectAnnotation">
-				<Property Name="CreateOffset" Value="2" />
-				<Property Name="Length" Value="288" />
-				<Property Name="StartLine" Value="1" />
-				<Property Name="StartColumn" Value="1" />
-				<Property Name="HeaderContents" Value="&#xD;&#xA;CREATE PROCEDURE CTL.GetManifestTrusted (&#xD;&#xA;&#x9;@SourceObject varchar(100)&#xD;&#xA;)&#xD;&#xA;AS" />
 			</Annotation>
 		</Element>
 		<Element Type="SqlProcedure" Name="[CTL].[GetProjects]">
@@ -8035,6 +8709,7 @@ DECLARE @SourceColumn varchar(100)
 DECLARE @ValidationColumn varchar(100)
 DECLARE @SourceName varchar(100)
 DECLARE @NULLFunction varchar(100), @DATEFunction varchar(100), @DATEFormat varchar(100)
+DECLARE @TaskName varchar(255)
 
 
 SELECT 
@@ -8044,6 +8719,7 @@ SELECT
 	,@SourceColumn = W.SourceColumn
 	,@ValidationColumn = CS.ValidationColumn
 	,@SourceName = CS.SourceName
+	,@TaskName = CT.TaskName
 FROM CTL.ControlTasks CT 
 LEFT JOIN CTL.ControlSource CS ON CT.SourceId = CS.SourceId
 LEFT JOIN CTL.ControlTypes T ON CS.SourceTypeId = T.TypeId
@@ -8077,8 +8753,10 @@ ELSE
 				SELECT @SQLMax = 'TO_CHAR(MAX(' + @COL + '), ''YYYY-MM-DD HH24:MI:SS'')'
 			ELSE IF @DBType = 'MySQL'
 				SELECT @SQLMax = 'FROM_UNIXTIME(MAX(COALESCE(' + @COL + ', 0)))'
-			ELSE IF @DBType = 'SQL Server'
-				SELECT @SQLMax = 'FORMAT(MAX(' + @COL + '), ''yyyy-MM-dd HH:mm:ss'')'
+			--ELSE IF @DBType = 'SQL Server'
+			--	SELECT @SQLMax = 'FORMAT(MAX(' + @COL + '), ''yyyy-MM-dd HH:mm:ss'')'
+			ELSE IF @DBType = 'SQL Server' AND @TaskName LIKE 'slt%'
+				SELECT @SQLMax = 'FORMAT(MAX(convert(datetime,(CONVERT(VARCHAR(25) , CAST(LEFT(' +@COL +', 8) AS DATETIME), 23) + '' '' +  LEFT(RIGHT(' + @COL + ' , 6) ,2) + '':'' + SUBSTRING(RIGHT(' +@COL + ' , 6) , 3,2) + '':''    + RIGHT(' + @COL + ' , 2) ),120)), ''yyyy-MM-dd HH:mm:ss'')'
 			ELSE
 				SELECT @SQLMax = 'FORMAT(MAX(' + @COL + '), ''yyyy-MM-dd HH:mm:ss'')'
 		END
@@ -8177,6 +8855,9 @@ END]]></Value>
 					<References ExternalSource="BuiltIns" Name="[varchar]" />
 				</Entry>
 				<Entry>
+					<References ExternalSource="BuiltIns" Name="[varchar]" />
+				</Entry>
+				<Entry>
 					<References Name="[CTL].[ControlTasks]" />
 				</Entry>
 				<Entry>
@@ -8223,6 +8904,9 @@ END]]></Value>
 				</Entry>
 				<Entry>
 					<References Name="[CTL].[ControlSource].[SourceName]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlTasks].[TaskName]" />
 				</Entry>
 				<Entry>
 					<References Name="[CTL].[GetTableDetails].[@SourceId]" />
@@ -8276,7 +8960,7 @@ END]]></Value>
 				</Entry>
 			</Relationship>
 			<Annotation Type="SysCommentsObjectAnnotation">
-				<Property Name="Length" Value="4187" />
+				<Property Name="Length" Value="4594" />
 				<Property Name="StartLine" Value="1" />
 				<Property Name="StartColumn" Value="1" />
 				<Property Name="HeaderContents" Value="CREATE Procedure [CTL].[GetTableDetails] (&#xD;&#xA;&#x9;@SourceId BigInt&#xD;&#xA;&#x9;,@ValidationType varchar(10) = 'SOURCE'&#xD;&#xA;)&#xD;&#xA;As" />
@@ -8615,7 +9299,7 @@ END]]></Value>
 					<References Name="[CTL].[ControlProjects]" />
 				</Entry>
 			</Relationship>
-			<AttachedAnnotation Disambiguator="8" />
+			<AttachedAnnotation Disambiguator="9" />
 		</Element>
 		<Element Type="SqlPrimaryKeyConstraint" Name="[CTL].[PK_ControlProjectSchedule]">
 			<Relationship Name="ColumnSpecifications">
@@ -8634,7 +9318,7 @@ END]]></Value>
 					<References Name="[CTL].[ControlProjectSchedule]" />
 				</Entry>
 			</Relationship>
-			<AttachedAnnotation Disambiguator="9" />
+			<AttachedAnnotation Disambiguator="10" />
 		</Element>
 		<Element Type="SqlPrimaryKeyConstraint" Name="[CTL].[PK_ControlSource]">
 			<Relationship Name="ColumnSpecifications">
@@ -8653,7 +9337,7 @@ END]]></Value>
 					<References Name="[CTL].[ControlSource]" />
 				</Entry>
 			</Relationship>
-			<AttachedAnnotation Disambiguator="10" />
+			<AttachedAnnotation Disambiguator="11" />
 		</Element>
 		<Element Type="SqlPrimaryKeyConstraint" Name="[CTL].[PK_ControlSourceColumns]">
 			<Relationship Name="ColumnSpecifications">
@@ -8672,7 +9356,7 @@ END]]></Value>
 					<References Name="[CTL].[ControlSourceColumns]" />
 				</Entry>
 			</Relationship>
-			<AttachedAnnotation Disambiguator="12" />
+			<AttachedAnnotation Disambiguator="13" />
 		</Element>
 		<Element Type="SqlPrimaryKeyConstraint" Name="[CTL].[PK_ControlStages]">
 			<Relationship Name="ColumnSpecifications">
@@ -8691,7 +9375,7 @@ END]]></Value>
 					<References Name="[CTL].[ControlStages]" />
 				</Entry>
 			</Relationship>
-			<AttachedAnnotation Disambiguator="13" />
+			<AttachedAnnotation Disambiguator="14" />
 		</Element>
 		<Element Type="SqlPrimaryKeyConstraint" Name="[CTL].[PK_ControlTarget]">
 			<Relationship Name="ColumnSpecifications">
@@ -8710,7 +9394,7 @@ END]]></Value>
 					<References Name="[CTL].[ControlTarget]" />
 				</Entry>
 			</Relationship>
-			<AttachedAnnotation Disambiguator="14" />
+			<AttachedAnnotation Disambiguator="15" />
 		</Element>
 		<Element Type="SqlPrimaryKeyConstraint" Name="[CTL].[PK_ControlTargetColumns]">
 			<Relationship Name="ColumnSpecifications">
@@ -8729,7 +9413,7 @@ END]]></Value>
 					<References Name="[CTL].[ControlTargetColumns]" />
 				</Entry>
 			</Relationship>
-			<AttachedAnnotation Disambiguator="17" />
+			<AttachedAnnotation Disambiguator="18" />
 		</Element>
 		<Element Type="SqlPrimaryKeyConstraint" Name="[CTL].[PK_ControlTaskCommand]">
 			<Relationship Name="ColumnSpecifications">
@@ -8748,7 +9432,7 @@ END]]></Value>
 					<References Name="[CTL].[ControlTaskCommand]" />
 				</Entry>
 			</Relationship>
-			<AttachedAnnotation Disambiguator="19" />
+			<AttachedAnnotation Disambiguator="20" />
 		</Element>
 		<Element Type="SqlPrimaryKeyConstraint" Name="[CTL].[PK_ControlTasks]">
 			<Relationship Name="ColumnSpecifications">
@@ -8767,7 +9451,7 @@ END]]></Value>
 					<References Name="[CTL].[ControlTasks]" />
 				</Entry>
 			</Relationship>
-			<AttachedAnnotation Disambiguator="20" />
+			<AttachedAnnotation Disambiguator="21" />
 		</Element>
 		<Element Type="SqlPrimaryKeyConstraint" Name="[CTL].[PK_ControlTypes]">
 			<Relationship Name="ColumnSpecifications">
@@ -8786,7 +9470,7 @@ END]]></Value>
 					<References Name="[CTL].[ControlTypes]" />
 				</Entry>
 			</Relationship>
-			<AttachedAnnotation Disambiguator="25" />
+			<AttachedAnnotation Disambiguator="26" />
 		</Element>
 		<Element Type="SqlPrimaryKeyConstraint" Name="[CTL].[PK_ControlWatermark]">
 			<Relationship Name="ColumnSpecifications">
@@ -8805,7 +9489,7 @@ END]]></Value>
 					<References Name="[CTL].[ControlWatermark]" />
 				</Entry>
 			</Relationship>
-			<AttachedAnnotation Disambiguator="26" />
+			<AttachedAnnotation Disambiguator="27" />
 		</Element>
 		<Element Type="SqlPrimaryKeyConstraint" Name="[CTL].[PK_CTL_ControlManifest]">
 			<Relationship Name="ColumnSpecifications">
@@ -8835,6 +9519,25 @@ END]]></Value>
 			</Relationship>
 			<AttachedAnnotation Disambiguator="7" />
 		</Element>
+		<Element Type="SqlPrimaryKeyConstraint" Name="[CTL].[PK_CTL_ControlManifest_New]">
+			<Relationship Name="ColumnSpecifications">
+				<Entry>
+					<Element Type="SqlIndexedColumnSpecification">
+						<Relationship Name="Column">
+							<Entry>
+								<References Name="[CTL].[ControlManifest_New].[ManifestID]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+			</Relationship>
+			<Relationship Name="DefiningTable">
+				<Entry>
+					<References Name="[CTL].[ControlManifest_New]" />
+				</Entry>
+			</Relationship>
+			<AttachedAnnotation Disambiguator="8" />
+		</Element>
 		<Element Type="SqlPrimaryKeyConstraint" Name="[CTL].[PK_TaskExecutionLog]">
 			<Relationship Name="ColumnSpecifications">
 				<Entry>
@@ -8852,7 +9555,7 @@ END]]></Value>
 					<References Name="[CTL].[TaskExecutionLog]" />
 				</Entry>
 			</Relationship>
-			<Annotation Type="SqlInlineConstraintAnnotation" Disambiguator="30" />
+			<Annotation Type="SqlInlineConstraintAnnotation" Disambiguator="31" />
 		</Element>
 		<Element Type="SqlProcedure" Name="[CTL].[RecordDataValidation]">
 			<Property Name="BodyScript">
@@ -9430,9 +10133,9 @@ delete from ctl.TaskExecutionLog where ExecutionStatus = 'In Progress'
 					<References Name="[CTL]" />
 				</Entry>
 			</Relationship>
-			<AttachedAnnotation Disambiguator="28" />
 			<AttachedAnnotation Disambiguator="29" />
 			<AttachedAnnotation Disambiguator="30" />
+			<AttachedAnnotation Disambiguator="31" />
 		</Element>
 		<Element Type="SqlScalarFunction" Name="[CTL].[udf_CronToDatetime]">
 			<Property Name="IsAnsiNullsOn" Value="True" />
@@ -10254,7 +10957,7 @@ BEGIN
 	DECLARE @TaskName varchar(100)
 	DECLARE @AuditTable varchar(100)
 	DECLARE @SQLCommand varchar(max)
-	DECLARE @WaterMarkCol varchar(100), @WatermarkVal varchar(40)
+	DECLARE @WaterMarkCol varchar(max), @WatermarkVal varchar(40)
 	DECLARE @BusinessKey varchar(100)
 
 	--This keyword will be inserted in the current delta sql and will be replaced with endvalue in ADF
@@ -10350,6 +11053,11 @@ BEGIN
 			SET @WaterMarkCol = 'TO_CHAR(' + @WaterMarkCol + ', ''YYYY-MM-DD HH24:MI:SS'')'
 		ELSE IF @SourceType = 'MySQL'
 			SET @WaterMarkCol = 'FROM_UNIXTIME(' + @WaterMarkCol + ')'
+		ELSE IF @SourceType = 'SQL Server' AND @TaskName LIKE 'slt%'
+		BEGIN
+		    SET @SQL = 'SELECT *, FORMAT(CONVERT(datetime, (CONVERT(varchar(25), CAST(LEFT(DELTA_TS, 8) AS datetime), 23) + '' '' + LEFT(RIGHT(DELTA_TS, 6), 2) + '':'' + SUBSTRING(RIGHT(DELTA_TS, 6), 3, 2) + '':'' + RIGHT(DELTA_TS, 2)), 120), ''yyyy-MM-dd HH:mm:ss'') AS DELTA_TS_DT '
+ 			SET @WaterMarkCol = 'FORMAT(convert(datetime,(CONVERT(VARCHAR(25) , CAST(LEFT(' +@WaterMarkCol +', 8) AS DATETIME), 23) + '' '' +  LEFT(RIGHT(' + @WaterMarkCol + ' , 6) ,2) + '':'' + SUBSTRING(RIGHT(' +@WaterMarkCol + ' , 6) , 3,2) + '':''    + RIGHT(' + @WaterMarkCol + ' , 2) ),120), ''yyyy-MM-dd HH:mm:ss'')'
+		END
 		ELSE
 			SET @WaterMarkCol = 'FORMAT(' + @WaterMarkCol + ', ''yyyy-MM-dd HH:mm:ss'')'
 
@@ -10380,7 +11088,7 @@ BEGIN
 END]]></Value>
 						</Property>
 						<Annotation Type="SysCommentsObjectAnnotation">
-							<Property Name="Length" Value="6148" />
+							<Property Name="Length" Value="6825" />
 							<Property Name="StartLine" Value="1" />
 							<Property Name="StartColumn" Value="1" />
 							<Property Name="HeaderContents" Value="CREATE FUNCTION [CTL].[udf_GetDeltaSQL] (@TaskId BigInt)&#xD;&#xA;Returns Varchar(MAX)&#xD;&#xA;AS" />
@@ -11620,9 +12328,9 @@ AND StartDate = @StartDate]]></Value>
 BEGIN
 	IF @ProcessedToTrusted = '1'
 		UPDATE CTL.ControlManifest SET 
-		[ProcessedToTrustedZone] = 1
-		,TrustedZonePipelineRunID = @PipelineRunID
-		WHERE [ProcessedToTrustedZone] IS NULL
+		ProcessedToCleansedZone = 1
+		,CleansedZonePipelineRunID = @PipelineRunID
+		WHERE ProcessedToCleansedZone IS NULL
 		AND BatchExecutionLogID <= @BatchExecutionLogID
 		AND SourceObject = @SourceObject
 END]]></Value>
@@ -11636,10 +12344,10 @@ END]]></Value>
 					<References Name="[CTL].[ControlManifest]" />
 				</Entry>
 				<Entry>
-					<References Name="[CTL].[ControlManifest].[ProcessedToTrustedZone]" />
+					<References Name="[CTL].[ControlManifest].[ProcessedToCleansedZone]" />
 				</Entry>
 				<Entry>
-					<References Name="[CTL].[ControlManifest].[TrustedZonePipelineRunID]" />
+					<References Name="[CTL].[ControlManifest].[CleansedZonePipelineRunID]" />
 				</Entry>
 				<Entry>
 					<References Name="[CTL].[UpdateManifestAudit].[@PipelineRunID]" />
@@ -11728,7 +12436,7 @@ END]]></Value>
 				</Entry>
 			</Relationship>
 			<Annotation Type="SysCommentsObjectAnnotation">
-				<Property Name="Length" Value="459" />
+				<Property Name="Length" Value="458" />
 				<Property Name="StartLine" Value="1" />
 				<Property Name="StartColumn" Value="1" />
 				<Property Name="HeaderContents" Value="CREATE PROCEDURE [CTL].[UpdateManifestAudit] (&#xD;&#xA;&#x9;@BatchExecutionLogID bigint,&#xD;&#xA;&#x9;@SourceObject varchar(255),&#xD;&#xA;&#x9;@ProcessedToTrusted char(1),&#xD;&#xA;&#x9;@PipelineRunID varchar(50))&#xD;&#xA;AS" />
@@ -11828,72 +12536,51 @@ END]]></Value>
 				<Property Name="HeaderContents" Value="CREATE PROCEDURE [CTL].[UpdateManifestDeltaRecords] (&#xD;&#xA;&#x9;@BatchExecutionLogID bigint,&#xD;&#xA;&#x9;@TaskExecutionLogID bigint,&#xD;&#xA;&#x9;@RecordsDeltaTable bigint)&#xD;&#xA;AS" />
 			</Annotation>
 		</Element>
-		<Element Type="SqlProcedure" Name="[CTL].[UpdateManifestDLTrusted]">
+		<Element Type="SqlProcedure" Name="[CTL].[UpdateManifestDeltaRecords_New]">
 			<Property Name="BodyScript">
 				<Value><![CDATA[
 
 BEGIN
-	UPDATE CTL.ControlManifest SET 
-	[ProcessedToTrustedZone] = 1
-	,TrustedZonePipelineRunID = @PipelineRunID
-	WHERE [ProcessedToTrustedZone] IS NULL
-	AND BatchExecutionLogID = @BatchExecutionLogID
-	AND SourceObject = @SourceObject
-	AND StartCounter = @StartCounter
+	UPDATE CTL.ControlManifest_New
+	SET RecordCountDeltaTable = @RecordsDeltaTable
+	WHERE BatchExecutionLogID = @BatchExecutionLogID
+		AND TaskExecutionLogID = @TaskExecutionLogID
+		AND SourceFileName = @SourceFileName
 END]]></Value>
 			</Property>
 			<Property Name="IsAnsiNullsOn" Value="True" />
 			<Relationship Name="BodyDependencies">
 				<Entry>
-					<References Name="[CTL].[ControlManifest]" />
+					<References Name="[CTL].[ControlManifest_New]" />
 				</Entry>
 				<Entry>
-					<References Name="[CTL].[ControlManifest].[ProcessedToTrustedZone]" />
+					<References Name="[CTL].[ControlManifest_New].[RecordCountDeltaTable]" />
 				</Entry>
 				<Entry>
-					<References Name="[CTL].[ControlManifest].[TrustedZonePipelineRunID]" />
+					<References Name="[CTL].[UpdateManifestDeltaRecords_New].[@RecordsDeltaTable]" />
 				</Entry>
 				<Entry>
-					<References Name="[CTL].[UpdateManifestDLTrusted].[@PipelineRunID]" />
+					<References Name="[CTL].[ControlManifest_New].[BatchExecutionLogID]" />
 				</Entry>
 				<Entry>
-					<References Name="[CTL].[ControlManifest].[BatchExecutionLogID]" />
+					<References Name="[CTL].[UpdateManifestDeltaRecords_New].[@BatchExecutionLogID]" />
 				</Entry>
 				<Entry>
-					<References Name="[CTL].[UpdateManifestDLTrusted].[@BatchExecutionLogID]" />
+					<References Name="[CTL].[ControlManifest_New].[TaskExecutionLogID]" />
 				</Entry>
 				<Entry>
-					<References Name="[CTL].[ControlManifest].[SourceObject]" />
+					<References Name="[CTL].[UpdateManifestDeltaRecords_New].[@TaskExecutionLogID]" />
 				</Entry>
 				<Entry>
-					<References Name="[CTL].[UpdateManifestDLTrusted].[@SourceObject]" />
+					<References Name="[CTL].[ControlManifest_New].[SourceFileName]" />
 				</Entry>
 				<Entry>
-					<References Name="[CTL].[ControlManifest].[StartCounter]" />
-				</Entry>
-				<Entry>
-					<References Name="[CTL].[UpdateManifestDLTrusted].[@StartCounter]" />
+					<References Name="[CTL].[UpdateManifestDeltaRecords_New].[@SourceFileName]" />
 				</Entry>
 			</Relationship>
 			<Relationship Name="Parameters">
 				<Entry>
-					<Element Type="SqlSubroutineParameter" Name="[CTL].[UpdateManifestDLTrusted].[@SourceObject]">
-						<Relationship Name="Type">
-							<Entry>
-								<Element Type="SqlTypeSpecifier">
-									<Property Name="Length" Value="255" />
-									<Relationship Name="Type">
-										<Entry>
-											<References ExternalSource="BuiltIns" Name="[varchar]" />
-										</Entry>
-									</Relationship>
-								</Element>
-							</Entry>
-						</Relationship>
-					</Element>
-				</Entry>
-				<Entry>
-					<Element Type="SqlSubroutineParameter" Name="[CTL].[UpdateManifestDLTrusted].[@BatchExecutionLogID]">
+					<Element Type="SqlSubroutineParameter" Name="[CTL].[UpdateManifestDeltaRecords_New].[@BatchExecutionLogID]">
 						<Relationship Name="Type">
 							<Entry>
 								<Element Type="SqlTypeSpecifier">
@@ -11908,7 +12595,114 @@ END]]></Value>
 					</Element>
 				</Entry>
 				<Entry>
-					<Element Type="SqlSubroutineParameter" Name="[CTL].[UpdateManifestDLTrusted].[@StartCounter]">
+					<Element Type="SqlSubroutineParameter" Name="[CTL].[UpdateManifestDeltaRecords_New].[@TaskExecutionLogID]">
+						<Relationship Name="Type">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[bigint]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlSubroutineParameter" Name="[CTL].[UpdateManifestDeltaRecords_New].[@SourceFileName]">
+						<Relationship Name="Type">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Property Name="Length" Value="1000" />
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[varchar]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlSubroutineParameter" Name="[CTL].[UpdateManifestDeltaRecords_New].[@RecordsDeltaTable]">
+						<Relationship Name="Type">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[bigint]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+			</Relationship>
+			<Relationship Name="Schema">
+				<Entry>
+					<References Name="[CTL]" />
+				</Entry>
+			</Relationship>
+			<Annotation Type="SysCommentsObjectAnnotation">
+				<Property Name="Length" Value="419" />
+				<Property Name="StartLine" Value="1" />
+				<Property Name="StartColumn" Value="1" />
+				<Property Name="HeaderContents" Value="CREATE PROCEDURE [CTL].[UpdateManifestDeltaRecords_New] (&#xD;&#xA;&#x9;@BatchExecutionLogID bigint,&#xD;&#xA;&#x9;@TaskExecutionLogID bigint,&#xD;&#xA;&#x9;@SourceFileName varchar(1000),&#xD;&#xA;&#x9;@RecordsDeltaTable bigint)&#xD;&#xA;AS" />
+			</Annotation>
+		</Element>
+		<Element Type="SqlProcedure" Name="[CTL].[UpdateManifestDLCleansed]">
+			<Property Name="BodyScript">
+				<Value><![CDATA[
+
+BEGIN
+	UPDATE CTL.ControlManifest SET 
+	[ProcessedToCleansedZone] = 1
+	,CleansedZonePipelineRunID = @PipelineRunID
+	WHERE [ProcessedToCleansedZone] IS NULL
+	AND BatchExecutionLogID = @BatchExecutionLogID
+	AND SourceObject = @SourceObject
+	AND StartCounter = @StartCounter
+END]]></Value>
+			</Property>
+			<Property Name="IsAnsiNullsOn" Value="True" />
+			<Relationship Name="BodyDependencies">
+				<Entry>
+					<References Name="[CTL].[ControlManifest]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlManifest].[ProcessedToCleansedZone]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlManifest].[CleansedZonePipelineRunID]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[UpdateManifestDLCleansed].[@PipelineRunID]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlManifest].[BatchExecutionLogID]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[UpdateManifestDLCleansed].[@BatchExecutionLogID]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlManifest].[SourceObject]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[UpdateManifestDLCleansed].[@SourceObject]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlManifest].[StartCounter]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[UpdateManifestDLCleansed].[@StartCounter]" />
+				</Entry>
+			</Relationship>
+			<Relationship Name="Parameters">
+				<Entry>
+					<Element Type="SqlSubroutineParameter" Name="[CTL].[UpdateManifestDLCleansed].[@SourceObject]">
 						<Relationship Name="Type">
 							<Entry>
 								<Element Type="SqlTypeSpecifier">
@@ -11924,7 +12718,38 @@ END]]></Value>
 					</Element>
 				</Entry>
 				<Entry>
-					<Element Type="SqlSubroutineParameter" Name="[CTL].[UpdateManifestDLTrusted].[@PipelineRunID]">
+					<Element Type="SqlSubroutineParameter" Name="[CTL].[UpdateManifestDLCleansed].[@BatchExecutionLogID]">
+						<Relationship Name="Type">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[bigint]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlSubroutineParameter" Name="[CTL].[UpdateManifestDLCleansed].[@StartCounter]">
+						<Relationship Name="Type">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Property Name="Length" Value="255" />
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[varchar]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlSubroutineParameter" Name="[CTL].[UpdateManifestDLCleansed].[@PipelineRunID]">
 						<Relationship Name="Type">
 							<Entry>
 								<Element Type="SqlTypeSpecifier">
@@ -11946,10 +12771,10 @@ END]]></Value>
 				</Entry>
 			</Relationship>
 			<Annotation Type="SysCommentsObjectAnnotation">
-				<Property Name="Length" Value="459" />
+				<Property Name="Length" Value="463" />
 				<Property Name="StartLine" Value="1" />
 				<Property Name="StartColumn" Value="1" />
-				<Property Name="HeaderContents" Value="CREATE PROCEDURE [CTL].[UpdateManifestDLTrusted] (&#xD;&#xA;&#x9;@SourceObject varchar(255),&#xD;&#xA;&#x9;@BatchExecutionLogID bigint,&#xD;&#xA;&#x9;@StartCounter varchar(255),&#xD;&#xA;&#x9;@PipelineRunID varchar(50))&#xD;&#xA;AS" />
+				<Property Name="HeaderContents" Value="CREATE PROCEDURE [CTL].[UpdateManifestDLCleansed] (&#xD;&#xA;&#x9;@SourceObject varchar(255),&#xD;&#xA;&#x9;@BatchExecutionLogID bigint,&#xD;&#xA;&#x9;@StartCounter varchar(255),&#xD;&#xA;&#x9;@PipelineRunID varchar(50))&#xD;&#xA;AS" />
 			</Annotation>
 		</Element>
 		<Element Type="SqlProcedure" Name="[CTL].[UpdateManifestSQLEDW]">
@@ -12103,6 +12928,123 @@ END]]></Value>
 				<Property Name="StartLine" Value="1" />
 				<Property Name="StartColumn" Value="1" />
 				<Property Name="HeaderContents" Value="CREATE PROCEDURE [CTL].[UpdateManifestSQLEDW] (&#xD;&#xA;&#x9;@BatchExecutionLogID bigint,&#xD;&#xA;&#x9;@SourceObject varchar(255),&#xD;&#xA;&#x9;@ProcessedToSQLEDW char(1),&#xD;&#xA;&#x9;@PipelineRunID varchar(50)&#xD;&#xA;&#x9;)&#xD;&#xA;AS" />
+			</Annotation>
+		</Element>
+		<Element Type="SqlProcedure" Name="[CTL].[UpdateManifestValue]">
+			<Property Name="BodyScript">
+				<Value><![CDATA[
+	
+BEGIN
+	UPDATE CTL.ControlManifest_New
+	SET ManifestValue = @ManifestValue
+	WHERE BatchExecutionLogID = @BatchExecutionLogID
+		AND TaskExecutionLogID = @TaskExecutionLogID
+		AND SourceFileName = @SourceFileName
+END]]></Value>
+			</Property>
+			<Property Name="IsAnsiNullsOn" Value="True" />
+			<Relationship Name="BodyDependencies">
+				<Entry>
+					<References Name="[CTL].[ControlManifest_New]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlManifest_New].[ManifestValue]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[UpdateManifestValue].[@ManifestValue]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlManifest_New].[BatchExecutionLogID]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[UpdateManifestValue].[@BatchExecutionLogID]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlManifest_New].[TaskExecutionLogID]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[UpdateManifestValue].[@TaskExecutionLogID]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlManifest_New].[SourceFileName]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[UpdateManifestValue].[@SourceFileName]" />
+				</Entry>
+			</Relationship>
+			<Relationship Name="Parameters">
+				<Entry>
+					<Element Type="SqlSubroutineParameter" Name="[CTL].[UpdateManifestValue].[@BatchExecutionLogID]">
+						<Relationship Name="Type">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[bigint]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlSubroutineParameter" Name="[CTL].[UpdateManifestValue].[@TaskExecutionLogID]">
+						<Relationship Name="Type">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[bigint]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlSubroutineParameter" Name="[CTL].[UpdateManifestValue].[@SourceFileName]">
+						<Relationship Name="Type">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Property Name="Length" Value="1000" />
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[varchar]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlSubroutineParameter" Name="[CTL].[UpdateManifestValue].[@ManifestValue]">
+						<Relationship Name="Type">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[bigint]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+			</Relationship>
+			<Relationship Name="Schema">
+				<Entry>
+					<References Name="[CTL]" />
+				</Entry>
+			</Relationship>
+			<Annotation Type="SysCommentsObjectAnnotation">
+				<Property Name="Length" Value="390" />
+				<Property Name="StartLine" Value="1" />
+				<Property Name="StartColumn" Value="1" />
+				<Property Name="HeaderContents" Value="CREATE PROCEDURE [CTL].[UpdateManifestValue]&#xD;&#xA;&#x9;@BatchExecutionLogID bigint,&#xD;&#xA;&#x9;@TaskExecutionLogID bigint,&#xD;&#xA;&#x9;@SourceFileName varchar(1000),&#xD;&#xA;&#x9;@ManifestValue bigint&#xD;&#xA;AS" />
 			</Annotation>
 		</Element>
 		<Element Type="SqlProcedure" Name="[CTL].[UpdateTaskLog]">
@@ -12414,7 +13356,7 @@ END]]></Value>
 					<References Name="[CTL].[ControlTasks]" />
 				</Entry>
 			</Relationship>
-			<AttachedAnnotation Disambiguator="24" />
+			<AttachedAnnotation Disambiguator="25" />
 		</Element>
 		<Element Type="SqlView" Name="[CTL].[vw_BatchExecution]">
 			<Property Name="QueryScript">
@@ -12961,11 +13903,11 @@ M.BatchExecutionLogID
 ,M.RecordCountDeltaTable
 ,M.FolderName
 ,M.FileName
-,M.ProcessedToTrustedZone
+,M.ProcessedToCleansedZone
 ,M.DeltaColumn
 ,M.ProcessedToSQLEDW
 ,M.RawZonePipelineRunID
-,M.TrustedZonePipelineRunID
+,M.CleansedZonePipelineRunID
 ,M.SQLEDWPipelineRunID
 ,B.StartDate as BatchStart
 ,B.EndDate AS BatchEnd
@@ -13064,10 +14006,10 @@ LEFT JOIN CTL.TaskExecutionLog T ON M.TaskExecutionLogID = T.ExecutionLogId]]></
 					</Element>
 				</Entry>
 				<Entry>
-					<Element Type="SqlComputedColumn" Name="[CTL].[vw_DataLoadDetails].[ProcessedToTrustedZone]">
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_DataLoadDetails].[ProcessedToCleansedZone]">
 						<Relationship Name="ExpressionDependencies">
 							<Entry>
-								<References Name="[CTL].[ControlManifest].[ProcessedToTrustedZone]" />
+								<References Name="[CTL].[ControlManifest].[ProcessedToCleansedZone]" />
 							</Entry>
 						</Relationship>
 					</Element>
@@ -13100,10 +14042,10 @@ LEFT JOIN CTL.TaskExecutionLog T ON M.TaskExecutionLogID = T.ExecutionLogId]]></
 					</Element>
 				</Entry>
 				<Entry>
-					<Element Type="SqlComputedColumn" Name="[CTL].[vw_DataLoadDetails].[TrustedZonePipelineRunID]">
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_DataLoadDetails].[CleansedZonePipelineRunID]">
 						<Relationship Name="ExpressionDependencies">
 							<Entry>
-								<References Name="[CTL].[ControlManifest].[TrustedZonePipelineRunID]" />
+								<References Name="[CTL].[ControlManifest].[CleansedZonePipelineRunID]" />
 							</Entry>
 						</Relationship>
 					</Element>
@@ -13240,7 +14182,7 @@ LEFT JOIN CTL.TaskExecutionLog T ON M.TaskExecutionLogID = T.ExecutionLogId]]></
 					<References Name="[CTL].[ControlManifest].[FileName]" />
 				</Entry>
 				<Entry>
-					<References Name="[CTL].[ControlManifest].[ProcessedToTrustedZone]" />
+					<References Name="[CTL].[ControlManifest].[ProcessedToCleansedZone]" />
 				</Entry>
 				<Entry>
 					<References Name="[CTL].[ControlManifest].[DeltaColumn]" />
@@ -13252,7 +14194,7 @@ LEFT JOIN CTL.TaskExecutionLog T ON M.TaskExecutionLogID = T.ExecutionLogId]]></
 					<References Name="[CTL].[ControlManifest].[RawZonePipelineRunID]" />
 				</Entry>
 				<Entry>
-					<References Name="[CTL].[ControlManifest].[TrustedZonePipelineRunID]" />
+					<References Name="[CTL].[ControlManifest].[CleansedZonePipelineRunID]" />
 				</Entry>
 				<Entry>
 					<References Name="[CTL].[ControlManifest].[SQLEDWPipelineRunID]" />
@@ -13295,7 +14237,7 @@ LEFT JOIN CTL.TaskExecutionLog T ON M.TaskExecutionLogID = T.ExecutionLogId]]></
 			</Relationship>
 			<Annotation Type="SysCommentsObjectAnnotation">
 				<Property Name="CreateOffset" Value="2" />
-				<Property Name="Length" Value="787" />
+				<Property Name="Length" Value="789" />
 				<Property Name="StartLine" Value="1" />
 				<Property Name="StartColumn" Value="1" />
 				<Property Name="HeaderContents" Value="&#xD;&#xA;CREATE VIEW CTL.vw_DataLoadDetails&#xD;&#xA;AS" />
