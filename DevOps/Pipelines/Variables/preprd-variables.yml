@@ -27,6 +27,9 @@ variables:
   # Store account type for BLOB Storage e.g. Standard_LRS)
   - name: storageAccountType
     value: Standard_LRS
+  # Name of the service connection in Devops
+  - name: devops-service-connection
+    value: azure-rg-preprod-serviceconnection
   # Tagging.
   - name: applytags
     value: false
