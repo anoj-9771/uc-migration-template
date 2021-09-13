@@ -782,10 +782,6 @@
 														"file_object": {
 															"value": "@concat(activity('Get Full File Name').output.firstrow.StorageFolder,activity('Get Full File Name').output.firstrow.StorageFile)",
 															"type": "Expression"
-														},
-														"source_param": {
-															"value": "@string(pipeline().parameters.TaskDetails)",
-															"type": "Expression"
 														}
 													}
 												},
