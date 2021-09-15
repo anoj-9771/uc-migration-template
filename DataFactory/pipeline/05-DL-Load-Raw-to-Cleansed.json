@@ -17,7 +17,7 @@
 				"typeProperties": {
 					"source": {
 						"type": "AzureSqlSource",
-						"sqlReaderStoredProcedureName": "[CTL].[GetManifestCleansed]",
+						"sqlReaderStoredProcedureName": "[CTL].[GetManifestCleansed_New]",
 						"storedProcedureParameters": {
 							"SourceObject": {
 								"type": "String",
@@ -76,7 +76,7 @@
 							},
 							"userProperties": [],
 							"typeProperties": {
-								"storedProcedureName": "[CTL].[UpdateManifestDLCleansed]",
+								"storedProcedureName": "[CTL].[UpdateManifestDLCleansed_New]",
 								"storedProcedureParameters": {
 									"BatchExecutionLogID": {
 										"value": {
@@ -540,13 +540,6 @@
 								"type": "Expression"
 							},
 							"type": "String"
-						},
-						"BatchExecutionLogID": {
-							"value": {
-								"value": "@pipeline().parameters.BatchLogId",
-								"type": "Expression"
-							},
-							"type": "Int64"
 						},
 						"TotalNoRecords": {
 							"value": {
