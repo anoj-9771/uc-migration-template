@@ -532,11 +532,39 @@
 				},
 				"userProperties": [],
 				"typeProperties": {
-					"storedProcedureName": "CTL.UpdateManifestTotalNoRecords",
+					"storedProcedureName": "CTL.CreateManifestTotalNoRecords",
 					"storedProcedureParameters": {
+						"BatchExecutionId": {
+							"value": {
+								"value": "@pipeline().parameters.BatchLogId",
+								"type": "Expression"
+							},
+							"type": "Int64"
+						},
+						"TaskExecutionLogId": {
+							"value": {
+								"value": "@pipeline().parameters.TaskExecutionLogId",
+								"type": "Expression"
+							},
+							"type": "Int64"
+						},
+						"TaskId": {
+							"value": {
+								"value": "@pipeline().parameters.TaskDetails.TaskId",
+								"type": "Expression"
+							},
+							"type": "Int64"
+						},
 						"SourceObject": {
 							"value": {
 								"value": "@pipeline().parameters.TaskDetails.SourceName",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"TargetName": {
+							"value": {
+								"value": "@pipeline().parameters.TaskDetails.TargetName",
 								"type": "Expression"
 							},
 							"type": "String"
