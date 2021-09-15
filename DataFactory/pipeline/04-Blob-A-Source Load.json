@@ -829,9 +829,9 @@
 															},
 															"type": "Int64"
 														},
-														"ManifestValue": {
+														"M_DeltaRecordCou": {
 															"value": {
-																"value": "@string(activity('Notebook-Read-Manifest-Value').output.runOutput)",
+																"value": "@string(activity('Notebook-Read-Manifest-Value').output.runOutput.DELTA_RECORD_COUNT)",
 																"type": "Expression"
 															},
 															"type": "Int64"
@@ -846,6 +846,13 @@
 														"TaskExecutionLogID": {
 															"value": {
 																"value": "@pipeline().parameters.TaskExecutionLogId",
+																"type": "Expression"
+															},
+															"type": "Int64"
+														},
+														"M_TotalNoRows": {
+															"value": {
+																"value": "@string(activity('Notebook-Read-Manifest-Value').output.runOutput.TOTAL_NO_OF_ROWS)",
 																"type": "Expression"
 															},
 															"type": "Int64"
