@@ -333,7 +333,7 @@
 				"type": "SqlServerStoredProcedure",
 				"dependsOn": [
 					{
-						"activity": "Loop Manifest",
+						"activity": "SP-Update-Manifest-TotalNoRecords",
 						"dependencyConditions": [
 							"Failed"
 						]
@@ -400,7 +400,7 @@
 				"type": "SqlServerStoredProcedure",
 				"dependsOn": [
 					{
-						"activity": "Loop Manifest",
+						"activity": "SP-Update-Manifest-TotalNoRecords",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -465,6 +465,105 @@
 						"kvSecret": "daf-sql-controldb-connectionstring"
 					}
 				}
+			},
+			{
+				"name": "Notebook-GetDeltaTableRecordCount",
+				"type": "DatabricksNotebook",
+				"dependsOn": [
+					{
+						"activity": "Loop Manifest",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"notebookPath": {
+						"value": "@variables('NotbookURL')",
+						"type": "Expression"
+					},
+					"baseParameters": {
+						"target_table": {
+							"value": "@pipeline().parameters.TaskDetails.TargetName",
+							"type": "Expression"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "LS-AzureDatabricks_DefinedCluster",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"kvSecret": {
+							"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[0]",
+							"type": "Expression"
+						},
+						"clusterId": {
+							"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[1]",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "SP-Update-Manifest-TotalNoRecords",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "Notebook-GetDeltaTableRecordCount",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "CTL.UpdateManifestTotalNoRecords",
+					"storedProcedureParameters": {
+						"SourceObject": {
+							"value": {
+								"value": "@pipeline().parameters.TaskDetails.SourceName",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"BatchExecutionLogID": {
+							"value": {
+								"value": "@pipeline().parameters.BatchLogId",
+								"type": "Expression"
+							},
+							"type": "Int64"
+						},
+						"TotalNoRecords": {
+							"value": {
+								"value": "@activity('Notebook-GetDeltaTableRecordCount').output.runOutput",
+								"type": "Expression"
+							},
+							"type": "Int64"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "LS-AzureSqlDatabase_Ctrldb",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"kvSecret": "daf-sql-controldb-connectionstring"
+					}
+				}
 			}
 		],
 		"parameters": {
@@ -507,6 +606,10 @@
 			},
 			"TargetFileName": {
 				"type": "String"
+			},
+			"NotbookURL": {
+				"type": "String",
+				"defaultValue": "/Repos/o3an@sydneywater.com.au/DAFPOCREPO1/Databricks/notebooks/cleansed/utility/getDeltaTableRecordCount"
 			}
 		},
 		"folder": {
