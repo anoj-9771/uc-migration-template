@@ -829,7 +829,7 @@
 															},
 															"type": "Int64"
 														},
-														"M_DeltaRecordCou": {
+														"M_DeltaRecordCount": {
 															"value": {
 																"value": "@string(activity('Notebook-Read-Manifest-Value').output.runOutput.DELTA_RECORD_COUNT)",
 																"type": "Expression"
