@@ -1,4 +1,9 @@
 # Databricks notebook source
+# MAGIC %md
+# MAGIC { "SourceType": "BLOB Storage (json)", "SourceServer": "saswcnonprod01landingdev-sastoken", "SourceGroup": "sapisu", "SourceName": "sapisu_0FUNCT_LOC_ATTR", "SourceLocation": "0FUNCT_LOC_ATTR", "AdditionalProperty": "", "Processor": "databricks-token|0711-011053-turfs581|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive", "IsAuditTable": false, "SoftDeleteSource": "", "ProjectName": "SAP ISU", "ProjectId": 2, "TargetType": "BLOB Storage (json)", "TargetName": "sapisu_0FUNCT_LOC_ATTR", "TargetLocation": "sapisu/0FUNCT_LOC_ATTR", "TargetServer": "daf-sa-lake-sastoken", "DataLoadMode": "FULL-EXTRACT", "DeltaExtract": false, "CDCSource": false, "TruncateTarget": false, "UpsertTarget": true, "AppendTarget": null, "TrackChanges": false, "LoadToSqlEDW": true, "TaskName": "sapisu_0FUNCT_LOC_ATTR", "ControlStageId": 1, "TaskId": 69, "StageSequence": 100, "StageName": "Source to Raw", "SourceId": 69, "TargetId": 69, "ObjectGrain": "Day", "CommandTypeId": 3, "Watermarks": "", "WatermarksDT": null, "WatermarkColumn": "", "BusinessKeyColumn": "TPLNR", "UpdateMetaData": null, "SourceTimeStampFormat": "", "Command": "", "LastLoadedFile": null }
+
+# COMMAND ----------
+
 # DBTITLE 1,Notebook Structure/Method 
 #Notebook structure/Method 
 #1.Import libraries/functions -- Generic
@@ -22,8 +27,8 @@
 
 # COMMAND ----------
 
-# DBTITLE 1,1. Import libreries/functions
-#1.Import libreries/functions
+# DBTITLE 1,1. Import libraries/functions
+#1.Import libraries/functions
 from pyspark.sql.functions import mean, min, max, desc, abs, coalesce, when, expr
 from pyspark.sql.functions import date_add, to_utc_timestamp, from_utc_timestamp, datediff
 from pyspark.sql.functions import regexp_replace, concat, col, lit, substring
@@ -156,8 +161,8 @@ df_cleansed_column = spark.sql("SELECT  \
                                   BUKRS as companyCode, \
                                   cc.companyName as companyName, \
                                   PROID as workBreakdownStructureElement, \
-                                  to_date(ERDAT, 'yyyy-MM-dd hh24:mm:ss') as createdDate, \
-                                  to_date(AEDAT, 'yyyy-MM-dd hh24:mm:ss') as lastChangedDate, \
+                                  to_date(ERDAT, 'yyyy-MM-dd') as createdDate, \
+                                  to_date(AEDAT, 'yyyy-MM-dd') as lastChangedDate, \
                                   ZZ_ZCD_AONR as architecturalObjectCount, \
                                   ZZ_ADRNR as zzaddressNumber, \
                                   ZZ_OWNER as objectReferenceIndicator, \

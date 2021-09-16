@@ -1,4 +1,9 @@
 # Databricks notebook source
+# MAGIC %md
+# MAGIC { "SourceType": "BLOB Storage (json)", "SourceServer": "saswcnonprod01landingdev-sastoken", "SourceGroup": "sapisu", "SourceName": "sapisu_0BPARTNER_ATTR", "SourceLocation": "0BPARTNER_ATTR", "AdditionalProperty": "", "Processor": "databricks-token|0711-011053-turfs581|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive", "IsAuditTable": false, "SoftDeleteSource": "", "ProjectName": "SAP ISU", "ProjectId": 2, "TargetType": "BLOB Storage (json)", "TargetName": "sapisu_0BPARTNER_ATTR", "TargetLocation": "sapisu/0BPARTNER_ATTR", "TargetServer": "daf-sa-lake-sastoken", "DataLoadMode": "FULL-EXTRACT", "DeltaExtract": false, "CDCSource": false, "TruncateTarget": false, "UpsertTarget": true, "AppendTarget": null, "TrackChanges": false, "LoadToSqlEDW": true, "TaskName": "sapisu_0BPARTNER_ATTR", "ControlStageId": 1, "TaskId": 65, "StageSequence": 100, "StageName": "Source to Raw", "SourceId": 65, "TargetId": 65, "ObjectGrain": "Day", "CommandTypeId": 3, "Watermarks": "", "WatermarksDT": null, "WatermarkColumn": "", "BusinessKeyColumn": "PARTNER", "UpdateMetaData": null, "SourceTimeStampFormat": "", "Command": "", "LastLoadedFile": null }
+
+# COMMAND ----------
+
 # DBTITLE 1,Notebook Structure/Method 
 #Notebook structure/Method 
 #1.Import libraries/functions -- Generic
@@ -22,8 +27,8 @@
 
 # COMMAND ----------
 
-# DBTITLE 1,1. Import libreries/functions
-#1.Import libreries/functions
+# DBTITLE 1,1. Import libraries/functions
+#1.Import libraries/functions
 from pyspark.sql.functions import mean, min, max, desc, abs, coalesce, when, expr
 from pyspark.sql.functions import date_add, to_utc_timestamp, from_utc_timestamp, datediff
 from pyspark.sql.functions import regexp_replace, concat, col, lit, substring
@@ -190,10 +195,8 @@ df_updated_column_temp = spark.sql("SELECT \
                                 BP.NAME_GRP1 as nameGroup1,\
                                 BP.NAME_GRP2 as nameGroup2,\
                                 BP.CRUSR as createdBy,\
-                                to_date(BP.CRDAT) as createdDate,\
                                 cast(concat(BP.CRDAT,' ',(case WHEN BP.CRTIM is null then  '00:00:00' else BP.CRTIM END)) as timestamp)  as createdDateTime,\
                                 BP.CHUSR as changedBy,\
-                                to_date(BP.CHDAT) as changedDate,\
                                 cast(concat(BP.CHDAT,' ',(case WHEN BP.CHTIM is null then  '00:00:00' else BP.CHTIM END)) as timestamp)  as changedDateTime,\
                                 BP.PARTNER_GUID as businessPartnerGUID,\
                                 BP.ADDRCOMM as addressNumber,\
@@ -262,10 +265,8 @@ cleanse_Schema = StructType(
     StructField("nameGroup1", StringType(), True),
     StructField("nameGroup2", StringType(), True),
     StructField("createdBy", StringType(), True),
-    StructField("createdDate", DateType(), True),
     StructField("createdDateTime", TimestampType(), True),
     StructField("changedBy", StringType(), True),
-    StructField("changedDate", DateType(), True),
     StructField("changedDateTime", TimestampType(), True),
     StructField("businessPartnerGUID", StringType(), True),
     StructField("addressNumber", StringType(), True),
