@@ -182,7 +182,6 @@ newSchema = StructType([
                             StructField("dayOfWeek", LongType(), False),
                             StructField("weekOfYear", LongType(), False),
                             StructField("monthOfYear", LongType(), False),
-                            StructField("monthName", StringType(), False),
                             StructField("quarterOfYear", LongType(), False),
                             StructField("halfOfYear", LongType(), False),
                             StructField("calendarYear", LongType(), False),

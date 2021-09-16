@@ -40,8 +40,8 @@ def GetCommonDate():
                           ,"halfOfYear" \
                           ,"monthStartDate" \
                           ,"monthEndDate" \
-                          ,"yearStartDate" \
-                          ,"yearEndDate" \
+                          ,"cast(cast(calendarYear as string)||'-01-01' as date) as yearStartDate" \
+                          ,"cast(cast(calendarYear as string)||'-12-31' as date) as yearEndDate" \
                           ,"cast(case when date_format(calendarDate,'M') > 6 then date_format(calendarDate,'yyyy') else date_format(calendarDate,'yyyy') - 1 end as int) as financialYear" \
                           ,"cast(cast(cast(case when date_format(calendarDate,'M') > 6 then date_format(calendarDate,'yyyy') else date_format(calendarDate,'yyyy') - 1 end as int) as string)||'-07-01' as date)  as financialYearStartDate" \
                           ,"cast(cast(cast(case when date_format(calendarDate,'M') > 6 then date_format(calendarDate,'yyyy') + 1 else date_format(calendarDate,'yyyy') end as int) as string)||'-06-30' as date)  as financialYearEndDate" \
