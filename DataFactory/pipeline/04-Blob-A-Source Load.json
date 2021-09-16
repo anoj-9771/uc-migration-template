@@ -180,7 +180,7 @@
 												"type": "ExecutePipeline",
 												"dependsOn": [
 													{
-														"activity": "SP-Upsert-Manifest-Record-Data",
+														"activity": "SP-Upsert-Tech-Rec-Src-To-Raw-Data",
 														"dependencyConditions": [
 															"Succeeded"
 														]
@@ -342,7 +342,7 @@
 												}
 											},
 											{
-												"name": "SP-Upsert-Manifest-Record-Data",
+												"name": "SP-Upsert-Tech-Rec-Src-To-Raw-Data",
 												"type": "SqlServerStoredProcedure",
 												"dependsOn": [
 													{
@@ -361,7 +361,7 @@
 												},
 												"userProperties": [],
 												"typeProperties": {
-													"storedProcedureName": "[CTL].[UpsertManifestRecord]",
+													"storedProcedureName": "[CTL].[UpsertTechRecSrcToRaw]",
 													"storedProcedureParameters": {
 														"BatchExecutionLogID": {
 															"value": {
@@ -639,7 +639,7 @@
 												}
 											},
 											{
-												"name": "SP-Upsert-Manifest-Record-Manifest",
+												"name": "SP-Upsert-Tech-Rec-Src-To-Raw-Manifest",
 												"type": "SqlServerStoredProcedure",
 												"dependsOn": [
 													{
@@ -658,7 +658,7 @@
 												},
 												"userProperties": [],
 												"typeProperties": {
-													"storedProcedureName": "[CTL].[UpsertManifestRecord]",
+													"storedProcedureName": "[CTL].[UpsertTechRecSrcToRaw]",
 													"storedProcedureParameters": {
 														"BatchExecutionLogID": {
 															"value": {
@@ -759,7 +759,7 @@
 												"type": "DatabricksNotebook",
 												"dependsOn": [
 													{
-														"activity": "SP-Upsert-Manifest-Record-Manifest",
+														"activity": "SP-Upsert-Tech-Rec-Src-To-Raw-Manifest",
 														"dependencyConditions": [
 															"Succeeded"
 														]
