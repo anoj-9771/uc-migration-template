@@ -23,7 +23,7 @@ def GetCommonMeter():
   
   #Meter Data from Access
   accessZ309TpropmeterDf = spark.sql("select 'Access' as sourceSystemCode, \
-                                              meterMakerNumber as meterId, \
+                                              coalesce(meterMakerNumber,'') as meterId, \
                                               meterSize, waterMeterType, \
                                               meterFittedDate, \
                                               meterRemovedDate, \
@@ -63,7 +63,16 @@ def GetCommonMeter():
   #4.UNION TABLES
   df = accessZ309TpropmeterDf.union(df)
   df = df.unionByName(dummyDimRecDf, allowMissingColumns = True)
-
+  
+  #5.Apply schema definition
+  newSchema = StructType([
+                            StructField("sourceSystemCode", StringType(), False),
+                            StructField("meterId", StringType(), False),
+                            StructField("meterSize", StringType(), True),
+                            StructField("waterMeterType", StringType(), True)
+                      ])
+  
+  df = spark.createDataFrame(df.rdd, schema=newSchema)
   #5.SELECT / TRANSFORM
   #df = df.selectExpr( \
   	 #"meterId", \
@@ -71,5 +80,9 @@ def GetCommonMeter():
      #"meterSize", \
      #"waterType"
   #)  
-  return df  
+  return df
   
+
+# COMMAND ----------
+
+
