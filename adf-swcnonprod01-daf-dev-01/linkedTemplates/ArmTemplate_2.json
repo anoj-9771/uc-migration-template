@@ -492,6 +492,10 @@
 						}
 					}
 				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
 				"parameters": {
 					"TaskDetails": {
 						"type": "object"
@@ -604,6 +608,10 @@
 						]
 					}
 				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
 				"folder": {
 					"name": "z_Archive/Test"
 				},
@@ -749,6 +757,10 @@
 						}
 					}
 				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
 				"parameters": {
 					"ProjectRunID": {
 						"type": "string",
@@ -1223,6 +1235,10 @@
 						}
 					}
 				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
 				"parameters": {
 					"BatchLogId": {
 						"type": "int"
@@ -1525,6 +1541,10 @@
 						}
 					}
 				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
 				"parameters": {
 					"BatchLogId": {
 						"type": "int"
@@ -1728,6 +1748,10 @@
 						}
 					}
 				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
 				"parameters": {
 					"ProjectID": {
 						"type": "int",
@@ -2747,6 +2771,10 @@
 						}
 					}
 				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
 				"parameters": {
 					"BatchLogId": {
 						"type": "int"
@@ -2917,7 +2945,7 @@
 									"userProperties": [],
 									"typeProperties": {
 										"expression": {
-											"value": "@and(equals(item().SourceType,'BLOB Storage (json)'), equals(item().ControlStageId,1))",
+											"value": "@and(equals(item().SourceType,'BLOB Storage (csv)'), equals(item().ControlStageId,1))",
 											"type": "Expression"
 										},
 										"ifTrueActivities": [
@@ -3336,6 +3364,10 @@
 						}
 					}
 				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
 				"parameters": {
 					"StageId": {
 						"type": "int"
@@ -3462,6 +3494,10 @@
 						}
 					}
 				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
 				"parameters": {
 					"ProjectId": {
 						"type": "int"
@@ -3566,6 +3602,10 @@
 						}
 					}
 				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
 				"parameters": {
 					"TriggerName": {
 						"type": "string",
