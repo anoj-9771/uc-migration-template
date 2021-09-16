@@ -10,7 +10,7 @@ import re
 
 # COMMAND ----------
 
-def transform_raw_dataframe(dataframe, Params):
+def transform_raw_dataframe(dataframe, Params, file_date_time_stamp):
   source_object = Params[PARAMS_SOURCE_NAME].lower()
   source_system = Params[PARAMS_SOURCE_GROUP].lower()
   print ("Starting : transform_raw_dataframe for : " + source_object)
@@ -39,7 +39,7 @@ def transform_raw_dataframe(dataframe, Params):
     dataframe = transform_custom_mysql_lms_update_delta_col(dataframe, Params)
   
   #Custom changes for SLT SQL Source as the datetime delta columns are stored as number
-  if source_system == "slt":
+  if Params[PARAMS_SOURCE_TYPE] == "SQL Server" and source_system == "sapisu":
     dataframe = transform_custom_slt_transaction_date(dataframe)
 
   #Make sure the delta columns are stored as TimestampType
@@ -52,6 +52,10 @@ def transform_raw_dataframe(dataframe, Params):
   
   curr_time = str(datetime.now())
   dataframe = dataframe.withColumn(COL_DL_RAW_LOAD, from_utc_timestamp(F.lit(curr_time).cast(TimestampType()), ADS_TZ_LOCAL))
+  
+  #Add a DateTimeStamp column as per datetime in filename if the source system is sapisu 
+  if Params[PARAMS_SOURCE_TYPE] == "BLOB Storage (json)" and source_system == 'sapisu': 
+    dataframe = transform_custom_sapisu_datetimestamp(dataframe, file_date_time_stamp)
   
   #If it is a Delta/CDC add year, month, day partition columns so that the Delta Table can be partitioned on YMD
   dataframe = transform_raw_add_partition_cols(dataframe, source_object, is_delta_extract, delta_column, is_cdc)
@@ -331,4 +335,13 @@ def transform_custom_slt_transaction_date(dataframe):
   print(dataframe)
   dataframe = dataframe.withColumn('DELTA_TS', to_timestamp(col('DELTA_TS_DT')))
     
+  return dataframe
+
+# COMMAND ----------
+
+def transform_custom_sapisu_datetimestamp(dataframe, file_date_time_stamp):
+  print("Adding datetimestamp column to dataframe")
+  dataframe = dataframe.withColumn('_FileDateTimeStamp', F.lit(file_date_time_stamp))
+  print(dataframe)
+  
   return dataframe
