@@ -499,6 +499,14 @@
 									"TaskDetails": {
 										"value": "@pipeline().parameters.TaskDetails",
 										"type": "Expression"
+									},
+									"BatchLogId": {
+										"value": "@pipeline().parameters.BatchLogId",
+										"type": "Expression"
+									},
+									"TaskExecutionLogId": {
+										"value": "@pipeline().parameters.TaskExecutionLogId",
+										"type": "Expression"
 									}
 								}
 							}
@@ -547,10 +555,6 @@
 			},
 			"TargetFileName": {
 				"type": "String"
-			},
-			"NotbookURL": {
-				"type": "String",
-				"defaultValue": "/Repos/o3an@sydneywater.com.au/DAFPOCREPO1/Databricks/notebooks/cleansed/utility/getDeltaTableRecordCount"
 			}
 		},
 		"folder": {

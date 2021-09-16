@@ -42,7 +42,7 @@
 				}
 			},
 			{
-				"name": "SP-Update-Manifest-TotalNoRecords",
+				"name": "SP-CreateTechRecRawToCleansed",
 				"type": "SqlServerStoredProcedure",
 				"dependsOn": [
 					{
@@ -61,7 +61,7 @@
 				},
 				"userProperties": [],
 				"typeProperties": {
-					"storedProcedureName": "CTL.CreateManifestTotalNoRecords",
+					"storedProcedureName": "CTL.CreateTechRecRawToCleansed",
 					"storedProcedureParameters": {
 						"BatchExecutionId": {
 							"value": {
@@ -119,6 +119,18 @@
 		"parameters": {
 			"TaskDetails": {
 				"type": "object"
+			},
+			"BatchLogId": {
+				"type": "int"
+			},
+			"TaskExecutionLogId": {
+				"type": "int"
+			}
+		},
+		"variables": {
+			"NotbookURL": {
+				"type": "String",
+				"defaultValue": "/Repos/o3an@sydneywater.com.au/DAFPOCREPO1/Databricks/notebooks/cleansed/utility/getDeltaTableRecordCount"
 			}
 		},
 		"folder": {
