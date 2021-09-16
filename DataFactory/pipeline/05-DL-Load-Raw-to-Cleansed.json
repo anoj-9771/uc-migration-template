@@ -17,7 +17,7 @@
 				"typeProperties": {
 					"source": {
 						"type": "AzureSqlSource",
-						"sqlReaderStoredProcedureName": "[CTL].[GetManifestCleansed_New]",
+						"sqlReaderStoredProcedureName": "[CTL].[GetTechRecSrcToRawCleansed]",
 						"storedProcedureParameters": {
 							"SourceObject": {
 								"type": "String",
@@ -57,7 +57,7 @@
 					"isSequential": true,
 					"activities": [
 						{
-							"name": "SP-UpdateManifest",
+							"name": "SP-UpdateTechRecSrcToRaw",
 							"type": "SqlServerStoredProcedure",
 							"dependsOn": [
 								{
@@ -76,7 +76,7 @@
 							},
 							"userProperties": [],
 							"typeProperties": {
-								"storedProcedureName": "[CTL].[UpdateManifestDLCleansed_New]",
+								"storedProcedureName": "[CTL].[UpdateTechRecSrcToRawDLCleansed]",
 								"storedProcedureParameters": {
 									"BatchExecutionLogID": {
 										"value": {
