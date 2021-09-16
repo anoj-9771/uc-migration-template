@@ -22,7 +22,7 @@
 
 # COMMAND ----------
 
-# DBTITLE 1,1. Import libreries/functions
+# DBTITLE 1,1. Import libraries/functions
 #1.Import libraries/functions
 from pyspark.sql.functions import mean, min, max, desc, abs, coalesce, when, expr
 from pyspark.sql.functions import date_add, to_utc_timestamp, from_utc_timestamp, datediff
@@ -151,20 +151,17 @@ df_calendar_column = spark.sql("SELECT \
                                 to_date(CALENDARDATE,'yyyy-MM-dd') as calendarDate , \
                                 CALENDARDAY as dayOfMonth , \
                                 CALENDARDAYOFYEAR as dayOfYear  , \
+                                WEEKDAY as dayOfWeek  , \
                                 CALENDARWEEK as weekOfYear , \
                                 CALENDARMONTH as monthOfYear , \
                                 CALENDARQUARTER as quarterOfYear , \
                                 HALFYEAR as halfOfYear  , \
                                 CALENDARYEAR as calendarYear , \
-                                WEEKDAY as dayOfWeek  , \
                                 YEARWEEK as calendarYearWeek  , \
                                 YEARMONTH as calendarYearMonth  , \
                                 YEARQUARTER as calendarYearQuarter  , \
                                 to_date(FIRSTDAYOFMONTHDATE,'yyyy-MM-dd')  as monthStartDate  , \
                                 to_date(LASTDAYOFMONTHDATE,'yyyy-MM-dd') as monthEndDate  , \
-                                trunc(CALENDARDATE,'YEAR') as yearStartDate , \
-                                add_months(trunc(CALENDARDATE,'YEAR'), 12) -1 as yearEndDate, \
-                                add_months(CALENDARDATE,6) as fiscalDate, \
                                 _RecordStart, \
                                 _RecordEnd, \
                                 _RecordDeleted, \
@@ -173,38 +170,6 @@ df_calendar_column = spark.sql("SELECT \
                                where calendardate <> to_date('9999-12-31','yyyy-MM-dd') \
                                ")
 
-df_calendar_column = df_calendar_column.selectExpr( \
-                                "calendarDate" , \
-                                "'tba' as dayName", \
-                                "dayOfMonth" , \
-                                "dayOfYear"  , \
-                                "weekOfYear" , \
-                                "monthOfYear" , \
-                                "'tba' as monthName", \
-                                "quarterOfYear" , \
-                                "halfOfYear"  , \
-                                "calendarYear" , \
-                                "dayOfWeek"  , \
-                                "calendarYearWeek"  , \
-                                "calendarYearMonth"  , \
-                                "calendarYearQuarter"  , \
-                                "monthStartDate"  , \
-                                "monthEndDate"  , \
-                                "yearStartDate" , \
-                                "yearEndDate" , \
-                                "year(fiscalDate) as financialYear", \
-                                "add_months(yearStartDate, 6) as financialYearStartDate", \
-                                "add_months(yearEndDate, 6) as financialYearEndDate", \
-                                "weekofyear(fiscalDate) as weekOfFinancialYear", \
-                                "month(fiscalDate) as monthOfFinancialYear", \
-                                "quarter(fiscalDate) as quarterOfFinancialYear", \
-                                "case when quarter(fiscalDate)< 3 then 1 else 2 end as halfOfFinancialYear", \
-                                "_RecordStart", \
-                                "_RecordEnd", \
-                                "_RecordDeleted", \
-                                "_RecordCurrent" 
-)
-                                   
 display(df_calendar_column)
 
 
@@ -212,30 +177,20 @@ display(df_calendar_column)
 
 newSchema = StructType([
                             StructField("calendarDate", DateType(), False),
-                            StructField("dayName", StringType(), False),
                             StructField("dayOfMonth", LongType(), False),
                             StructField("dayOfYear", LongType(), False),
+                            StructField("dayOfWeek", LongType(), False),
                             StructField("weekOfYear", LongType(), False),
                             StructField("monthOfYear", LongType(), False),
                             StructField("monthName", StringType(), False),
                             StructField("quarterOfYear", LongType(), False),
                             StructField("halfOfYear", LongType(), False),
                             StructField("calendarYear", LongType(), False),
-                            StructField("dayOfWeek", LongType(), False),
                             StructField("calendarYearWeek", LongType(), False),
                             StructField("calendarYearMonth", LongType(), False),
                             StructField("calendarYearQuarter", LongType(), False),
                             StructField("monthStartDate", DateType(), False),
                             StructField("monthEndDate", DateType(), False),
-                            StructField("yearStartDate", DateType(), False),
-                            StructField("yearEndDate", DateType(), False),
-                            StructField("financialYear", LongType(), False),
-                            StructField("financialYearStartDate", DateType(), False),
-                            StructField("financialYearEndDate", DateType(), False),
-                            StructField("weekOfFinancialYear", LongType(), False),
-                            StructField("monthOfFinancialYear", LongType(), False),
-                            StructField("quarterOfFinancialYear", LongType(), False),
-                            StructField("halfOfFinancialYear", LongType(), False),
                             StructField('_RecordStart', TimestampType(), False),
                             StructField('_RecordEnd', TimestampType(), False),
                             StructField('_RecordDeleted', IntegerType(), False),
