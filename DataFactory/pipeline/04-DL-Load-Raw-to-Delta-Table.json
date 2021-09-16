@@ -59,7 +59,7 @@
 										"value": "@string(pipeline().parameters.TaskDetails)",
 										"type": "Expression"
 									},
-									"FileDateTimeStamp": {
+									"file_date_time_stamp": {
 										"value": "@pipeline().parameters.SourceFileDateTimeStamp",
 										"type": "Expression"
 									}
@@ -136,7 +136,7 @@
 										"value": "@string(pipeline().parameters.TaskDetails)",
 										"type": "Expression"
 									},
-									"FileDateTimeStamp": {
+									"file_date_time_stamp": {
 										"value": "@pipeline().parameters.SourceFileDateTimeStamp",
 										"type": "Expression"
 									}
