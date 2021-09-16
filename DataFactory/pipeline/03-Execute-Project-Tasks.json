@@ -130,7 +130,7 @@
 							"userProperties": [],
 							"typeProperties": {
 								"expression": {
-									"value": "@and(equals(item().SourceType,'BLOB Storage (csv)'), equals(item().ControlStageId,1))",
+									"value": "@and(equals(item().SourceType,'BLOB Storage (json)'), equals(item().ControlStageId,1))",
 									"type": "Expression"
 								},
 								"ifTrueActivities": [
