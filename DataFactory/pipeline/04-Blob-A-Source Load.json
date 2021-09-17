@@ -361,7 +361,7 @@
 												},
 												"userProperties": [],
 												"typeProperties": {
-													"storedProcedureName": "[CTL].[UpsertTechRecSrcToRaw]",
+													"storedProcedureName": "[CTL].[UpsertManifestRecord]",
 													"storedProcedureParameters": {
 														"BatchExecutionLogID": {
 															"value": {

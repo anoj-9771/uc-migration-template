@@ -181,7 +181,7 @@
 				}
 			},
 			{
-				"name": "SP-Update-Tech-Rec-SrcToRaw-Delta-Records",
+				"name": "SP-Update-Manifest-Delta-Records",
 				"type": "SqlServerStoredProcedure",
 				"dependsOn": [
 					{
@@ -200,7 +200,7 @@
 				},
 				"userProperties": [],
 				"typeProperties": {
-					"storedProcedureName": "[CTL].[UpdateTechRecSrcToRaw_DeltaRecords]",
+					"storedProcedureName": "[CTL].[UpdateManifestDeltaRecords]",
 					"storedProcedureParameters": {
 						"BatchExecutionLogID": {
 							"value": {
