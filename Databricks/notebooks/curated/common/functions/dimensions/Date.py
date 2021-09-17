@@ -64,7 +64,7 @@ def GetCommonDate():
                             StructField("monthEndDate", DateType(), False),
                             StructField("yearStartDate", DateType(), False),
                             StructField("yearEndDate", DateType(), False),
-                            StructField("financialYear", IntegerType(), False),
+                            StructField("financialYear", StringType(), False),
                             StructField("financialYearStartDate", DateType(), False),
                             StructField("financialYearEndDate", DateType(), False),
                             StructField("monthOfFinancialYear", IntegerType(), False),
