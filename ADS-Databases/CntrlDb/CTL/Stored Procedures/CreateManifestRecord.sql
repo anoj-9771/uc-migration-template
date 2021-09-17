@@ -11,7 +11,9 @@ CREATE PROCEDURE [CTL].[CreateManifestRecord] (
 	@RecordsDeltaTable bigint = 0,
 	@FolderName varchar(1000),
 	@FileName varchar(1000),
-	@PipelineRunID varchar(50) = ''
+	@PipelineRunID varchar(50) = '',
+	@SourceFileName varchar(1000),
+	@SourceFileDateStamp char(14)
 )
 AS 
 
@@ -43,6 +45,8 @@ INSERT INTO CTL.ControlManifest(
 	,[FolderName]
 	,[FileName]
 	,[RawZonePipelineRunID]
+	,[SourceFileName]
+	,[SourceFileDateStamp]
 	)
 VALUES (
 	@BatchExecutionLogID
@@ -57,4 +61,6 @@ VALUES (
 	,@FolderName
 	,@FileName
 	,@PipelineRunID
+	,@SourceFileName
+	,@SourceFileDateStamp
 	)
