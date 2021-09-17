@@ -130,7 +130,7 @@
 		"variables": {
 			"NotbookURL": {
 				"type": "String",
-				"defaultValue": "/Repos/o3an@sydneywater.com.au/DAFPOCREPO1/Databricks/notebooks/cleansed/utility/getDeltaTableRecordCount"
+				"defaultValue": "/build/cleansed/utility/getDeltaTableRecordCount"
 			}
 		},
 		"folder": {

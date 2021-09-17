@@ -1236,7 +1236,7 @@
 			},
 			"NoteBookURL": {
 				"type": "String",
-				"defaultValue": "/Repos/o3an@sydneywater.com.au/DAFPOCREPO1/Databricks/notebooks/raw/read-manifest-value"
+				"defaultValue": "/build/raw/read-manifest-value"
 			}
 		},
 		"folder": {

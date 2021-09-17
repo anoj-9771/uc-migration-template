@@ -280,7 +280,7 @@
 			},
 			"NoteBookURL": {
 				"type": "String",
-				"defaultValue": "/Repos/o3an@sydneywater.com.au/DAFPOCREPO1/Databricks/notebooks/raw/load-raw-deltatable"
+				"defaultValue": "/build/raw/load-raw-deltatable"
 			}
 		},
 		"folder": {
