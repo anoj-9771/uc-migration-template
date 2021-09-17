@@ -42,6 +42,7 @@ BEGIN
 			@RecordsDeltaTable = @RecordsDeltaTable,
 			@FolderName = @FolderName,
 			@FileName = @FileName,
+			@PipelineRunID = @PipelineRunID,
 			@SourceFileName = @SourceFileName,
 			@SourceFileDateStamp = @SourceFileDateStamp
 	END

@@ -8429,7 +8429,7 @@ ELSE
 				SELECT @SQLMax = 'FROM_UNIXTIME(MAX(COALESCE(' + @COL + ', 0)))'
 			--ELSE IF @DBType = 'SQL Server'
 			--	SELECT @SQLMax = 'FORMAT(MAX(' + @COL + '), ''yyyy-MM-dd HH:mm:ss'')'
-			ELSE IF @DBType = 'SQL Server' AND @TaskName LIKE 'slt%'
+			ELSE IF @DBType = 'SQL Server' AND @TaskName LIKE 'sapisu%'
 				SELECT @SQLMax = 'FORMAT(MAX(convert(datetime,(CONVERT(VARCHAR(25) , CAST(LEFT(' +@COL +', 8) AS DATETIME), 23) + '' '' +  LEFT(RIGHT(' + @COL + ' , 6) ,2) + '':'' + SUBSTRING(RIGHT(' +@COL + ' , 6) , 3,2) + '':''    + RIGHT(' + @COL + ' , 2) ),120)), ''yyyy-MM-dd HH:mm:ss'')'
 			ELSE
 				SELECT @SQLMax = 'FORMAT(MAX(' + @COL + '), ''yyyy-MM-dd HH:mm:ss'')'
@@ -8634,7 +8634,7 @@ END]]></Value>
 				</Entry>
 			</Relationship>
 			<Annotation Type="SysCommentsObjectAnnotation">
-				<Property Name="Length" Value="4594" />
+				<Property Name="Length" Value="4597" />
 				<Property Name="StartLine" Value="1" />
 				<Property Name="StartColumn" Value="1" />
 				<Property Name="HeaderContents" Value="CREATE Procedure [CTL].[GetTableDetails] (&#xD;&#xA;&#x9;@SourceId BigInt&#xD;&#xA;&#x9;,@ValidationType varchar(10) = 'SOURCE'&#xD;&#xA;)&#xD;&#xA;As" />
@@ -9202,6 +9202,25 @@ END]]></Value>
 				</Entry>
 			</Relationship>
 			<Annotation Type="SqlInlineConstraintAnnotation" Disambiguator="31" />
+		</Element>
+		<Element Type="SqlPrimaryKeyConstraint" Name="[CTL].[PK_TechRecRawToCleansed]">
+			<Relationship Name="ColumnSpecifications">
+				<Entry>
+					<Element Type="SqlIndexedColumnSpecification">
+						<Relationship Name="Column">
+							<Entry>
+								<References Name="[CTL].[TechRecRawToCleansed].[TechRecID]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+			</Relationship>
+			<Relationship Name="DefiningTable">
+				<Entry>
+					<References Name="[CTL].[TechRecRawToCleansed]" />
+				</Entry>
+			</Relationship>
+			<Annotation Type="SqlInlineConstraintAnnotation" Disambiguator="32" />
 		</Element>
 		<Element Type="SqlProcedure" Name="[CTL].[RecordDataValidation]">
 			<Property Name="BodyScript">
@@ -9938,6 +9957,7 @@ delete from ctl.TaskExecutionLog where ExecutionStatus = 'In Progress'
 					<References Name="[CTL]" />
 				</Entry>
 			</Relationship>
+			<AttachedAnnotation Disambiguator="32" />
 		</Element>
 		<Element Type="SqlScalarFunction" Name="[CTL].[udf_CronToDatetime]">
 			<Property Name="IsAnsiNullsOn" Value="True" />
@@ -10855,7 +10875,7 @@ BEGIN
 			SET @WaterMarkCol = 'TO_CHAR(' + @WaterMarkCol + ', ''YYYY-MM-DD HH24:MI:SS'')'
 		ELSE IF @SourceType = 'MySQL'
 			SET @WaterMarkCol = 'FROM_UNIXTIME(' + @WaterMarkCol + ')'
-		ELSE IF @SourceType = 'SQL Server' AND @TaskName LIKE 'slt%'
+		ELSE IF @SourceType = 'SQL Server' AND @TaskName LIKE 'sapisu%'
 		BEGIN
 		    SET @SQL = 'SELECT *, FORMAT(CONVERT(datetime, (CONVERT(varchar(25), CAST(LEFT(DELTA_TS, 8) AS datetime), 23) + '' '' + LEFT(RIGHT(DELTA_TS, 6), 2) + '':'' + SUBSTRING(RIGHT(DELTA_TS, 6), 3, 2) + '':'' + RIGHT(DELTA_TS, 2)), 120), ''yyyy-MM-dd HH:mm:ss'') AS DELTA_TS_DT '
  			SET @WaterMarkCol = 'FORMAT(convert(datetime,(CONVERT(VARCHAR(25) , CAST(LEFT(' +@WaterMarkCol +', 8) AS DATETIME), 23) + '' '' +  LEFT(RIGHT(' + @WaterMarkCol + ' , 6) ,2) + '':'' + SUBSTRING(RIGHT(' +@WaterMarkCol + ' , 6) , 3,2) + '':''    + RIGHT(' + @WaterMarkCol + ' , 2) ),120), ''yyyy-MM-dd HH:mm:ss'')'
@@ -10890,7 +10910,7 @@ BEGIN
 END]]></Value>
 						</Property>
 						<Annotation Type="SysCommentsObjectAnnotation">
-							<Property Name="Length" Value="6825" />
+							<Property Name="Length" Value="6828" />
 							<Property Name="StartLine" Value="1" />
 							<Property Name="StartColumn" Value="1" />
 							<Property Name="HeaderContents" Value="CREATE FUNCTION [CTL].[udf_GetDeltaSQL] (@TaskId BigInt)&#xD;&#xA;Returns Varchar(MAX)&#xD;&#xA;AS" />
@@ -13081,6 +13101,7 @@ BEGIN
 			@RecordsDeltaTable = @RecordsDeltaTable,
 			@FolderName = @FolderName,
 			@FileName = @FileName,
+			@PipelineRunID = @PipelineRunID,
 			@SourceFileName = @SourceFileName,
 			@SourceFileDateStamp = @SourceFileDateStamp
 	END
@@ -13178,6 +13199,12 @@ END]]></Value>
 				</Entry>
 				<Entry>
 					<References Name="[CTL].[CreateManifestRecord].[@FileName]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[CreateManifestRecord].[@PipelineRunID]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[UpsertManifestRecord].[@PipelineRunID]" />
 				</Entry>
 				<Entry>
 					<References Name="[CTL].[CreateManifestRecord].[@SourceFileName]" />
@@ -13435,7 +13462,7 @@ END]]></Value>
 				</Entry>
 			</Relationship>
 			<Annotation Type="SysCommentsObjectAnnotation">
-				<Property Name="Length" Value="1406" />
+				<Property Name="Length" Value="1443" />
 				<Property Name="StartLine" Value="1" />
 				<Property Name="StartColumn" Value="1" />
 				<Property Name="HeaderContents" Value="CREATE PROCEDURE [CTL].[UpsertManifestRecord]&#xD;&#xA;&#x9;@BatchExecutionLogID bigint,&#xD;&#xA;&#x9;@TaskExecutionLogID bigint,&#xD;&#xA;&#x9;@SourceObject varchar(1000),&#xD;&#xA;&#x9;@Container varchar(1000),&#xD;&#xA;&#x9;@DeltaColumn varchar(100),&#xD;&#xA;&#x9;@StartCounter varchar(500),&#xD;&#xA;&#x9;@EndCounter varchar(500),&#xD;&#xA;&#x9;@Records bigint,&#xD;&#xA;&#x9;@RecordsDeltaTable bigint = 0,&#xD;&#xA;&#x9;@FolderName varchar(1000),&#xD;&#xA;&#x9;@FileName varchar(1000),&#xD;&#xA;&#x9;@PipelineRunID varchar(50) = '',&#xD;&#xA;&#x9;@SourceFileName varchar(1000),&#xD;&#xA;&#x9;@SourceFileDateStamp char(14),&#xD;&#xA;&#x9;@IsManifest bit&#xD;&#xA;AS" />

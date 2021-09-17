@@ -8,5 +8,6 @@
 	[SourceFileDateStamp] [char](14) NOT NULL,
 	[TargetName] [varchar](255) NOT NULL,
 	[ManifestTotalNoRecords] [bigint] NULL,
-	[TargetTableRowCount] [bigint] NULL
+	[TargetTableRowCount] [bigint] NULL, 
+    CONSTRAINT [PK_TechRecRawToCleansed] PRIMARY KEY ([TechRecID])
 )
