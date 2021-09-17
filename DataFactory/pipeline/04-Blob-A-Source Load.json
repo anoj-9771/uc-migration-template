@@ -531,7 +531,7 @@
 												"type": "Copy",
 												"dependsOn": [
 													{
-														"activity": "SP-Update-Tech-Rec-SrcToRaw",
+														"activity": "SP-Update-Manifest-Value",
 														"dependencyConditions": [
 															"Succeeded"
 														]
@@ -801,7 +801,7 @@
 												}
 											},
 											{
-												"name": "SP-Update-Tech-Rec-SrcToRaw",
+												"name": "SP-Update-Manifest-Value",
 												"type": "SqlServerStoredProcedure",
 												"dependsOn": [
 													{
@@ -820,7 +820,7 @@
 												},
 												"userProperties": [],
 												"typeProperties": {
-													"storedProcedureName": "[CTL].[UpdateTechRecSrcToRaw_ManifestValue]",
+													"storedProcedureName": "[CTL].[UpdateManifestValue]",
 													"storedProcedureParameters": {
 														"BatchExecutionLogID": {
 															"value": {
