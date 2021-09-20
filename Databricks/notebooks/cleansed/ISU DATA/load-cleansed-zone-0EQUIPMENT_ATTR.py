@@ -216,7 +216,7 @@ display(df_updated_column)
 #Save Data frame into Cleansed Delta table (final)
 DeltaSaveDataframeDirect(df_updated_column, "t", source_object, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
 #verify and, if necessary, update schema definition
-verifyTableSchema(f'{ADS_DATABASE_CLEANSED}.t_{source_object}',newSchema)
+verifyTableSchema(f'{ADS_DATABASE_CLEANSED}.t_{source_object}',cleanse_Schema)
 
 # COMMAND ----------
 
