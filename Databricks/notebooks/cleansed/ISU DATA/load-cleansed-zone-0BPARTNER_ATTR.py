@@ -173,9 +173,9 @@ df_updated_column_temp = spark.sql("SELECT \
                                 BP.NAME_ORG2 as organizationName2,\
                                 BP.NAME_ORG3 as organizationName3,\
                                 to_date(BP.FOUND_DAT) as organizationFoundedDate,\
-                                cast(BP.LOCATION_1 as long) as internationalLocationNumber1,\
-                                cast(BP.LOCATION_2 as long) as internationalLocationNumber2,\
-                                cast(BP.LOCATION_3 as long) as internationalLocationNumber3,\
+                                BP.LOCATION_1 as internationalLocationNumber1,\
+                                BP.LOCATION_2 as internationalLocationNumber2,\
+                                BP.LOCATION_3 as internationalLocationNumber3,\
                                 BP.NAME_LAST as lastName,\
                                 BP.NAME_FIRST as firstName,\
                                 BP.NAME_LAST2 as atBirthName,\
@@ -186,7 +186,7 @@ df_updated_column_temp = spark.sql("SELECT \
                                 BP.NAMCOUNTRY as countryName,\
                                 BP.LANGU_CORR as correspondanceLanguage,\
                                 BP.NATIO as nationality,\
-                                cast(BP.PERSNUMBER as long) as personNumber,\
+                                BP.PERSNUMBER as personNumber,\
                                 BP.XSEXU as unknownGenderIndicator,\
                                 BP.BU_LANGU as language,\
                                 to_date(BP.BIRTHDT) as dateOfBirth,\
@@ -243,9 +243,9 @@ cleanse_Schema = StructType(
     StructField("organizationName2", StringType(), True),
     StructField("organizationName3", StringType(), True),
     StructField("organizationFoundedDate", DateType(), True),
-    StructField("internationalLocationNumber1", LongType(), True),
-    StructField("internationalLocationNumber2", LongType(), True),
-    StructField("internationalLocationNumber3", LongType(), True),
+    StructField("internationalLocationNumber1", StringType(), True),
+    StructField("internationalLocationNumber2", StringType(), True),
+    StructField("internationalLocationNumber3", StringType(), True),
     StructField("lastName", StringType(), True),
     StructField("firstName", StringType(), True),
     StructField("atBirthName", StringType(), True),
@@ -261,7 +261,7 @@ cleanse_Schema = StructType(
     StructField("language", StringType(), True),
     StructField("dateOfBirth", DateType(), True),
     StructField("dateOfDeath", DateType(), True),
-    StructField("personnelNumber", LongType(), True),
+    StructField("personnelNumber", StringType(), True),
     StructField("nameGroup1", StringType(), True),
     StructField("nameGroup2", StringType(), True),
     StructField("createdBy", StringType(), True),
@@ -288,6 +288,8 @@ display(df_updated_column)
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
 DeltaSaveDataframeDirect(df_updated_column, "t", source_object, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
+#verify and, if necessary, update schema definition
+verifyTableSchema(f'{ADS_DATABASE_CLEANSED}.t_{source_object}',newSchema)
 
 # COMMAND ----------
 
