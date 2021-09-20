@@ -146,22 +146,48 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_updated_column = spark.sql("SELECT  \
-                                INTRENO as architecturalObjectInternalId , \
-                                TREE as alternativeDisplayStructureId , \
-                                AOTYPE_AO as architecturalObjectTypeCode , \
-                                'TBD' as architecturalObjectType , \
-                                AONR_AO as architecturalObjectNumber , \
-                                PARENT as parentArchitecturalObjectInternalId , \
-                                AOTYPE_PA as parentArchitecturalObjectTypeCode  , \
-                                'TBD' as parentArchitecturalObjectType  , \
-                                AONR_PA as parentArchitecturalObjectNumber  , \
-                                _RecordStart, \
-                                _RecordEnd, \
-                                _RecordDeleted, \
-                                _RecordCurrent \
-                               FROM CLEANSED.stg_sapisu_vibdnode")
+df_updated_column_temp = spark.sql("SELECT  \
+                                VIB.INTRENO as architecturalObjectInternalId , \
+                                VIB.TREE as alternativeDisplayStructureId , \
+                                VIB.AOTYPE_AO as architecturalObjectTypeCode , \
+                                ARCH.XMAOTYPE as architecturalObjectType , \
+                                VIB.AONR_AO as architecturalObjectNumber , \
+                                VIB.PARENT as parentArchitecturalObjectInternalId , \
+                                VIB.AOTYPE_PA as parentArchitecturalObjectTypeCode  , \
+                                ARCHOBJ.XMAOTYPE as parentArchitecturalObjectType  , \
+                                VIB.AONR_PA as parentArchitecturalObjectNumber  , \
+                                VIB._RecordStart, \
+                                VIB._RecordEnd, \
+                                VIB._RecordDeleted, \
+                                VIB._RecordCurrent \
+                               FROM CLEANSED.stg_sapisu_vibdnode vib \
+                               LEFT OUTER JOIN CLEANSED.t_sapisu_tivbdarobjtypet arch ON vib.aotype_ao = arch.aotype \
+                               LEFT OUTER JOIN CLEANSED.t_sapisu_tivbdarobjtypet archobj ON vib.aotype_ao = archobj.aotype")
 
+display(df_updated_column_temp)
+
+# COMMAND ----------
+
+# Create schema for the cleanse table
+cleanse_Schema = StructType(
+  [
+    StructField("architecturalObjectInternalId", StringType(), False),
+    StructField("alternativeDisplayStructureId", StringType(), True),
+    StructField("architecturalObjectTypeCode", StringType(), True),
+    StructField("architecturalObjectType", StringType(), True),
+    StructField("architecturalObjectNumber", StringType(), True),
+    StructField("parentArchitecturalObjectInternalId", StringType(), True),
+    StructField("parentArchitecturalObjectTypeCode", StringType(), True),
+    StructField("parentArchitecturalObjectType", StringType(), True),
+    StructField("parentArchitecturalObjectNumber", StringType(), True),
+    StructField('_RecordStart',TimestampType(),False),
+    StructField('_RecordEnd',TimestampType(),False),
+    StructField('_RecordDeleted',IntegerType(),False),
+    StructField('_RecordCurrent',IntegerType(),False)
+  ]
+)
+# Apply the new schema to cleanse Data Frame
+df_updated_column = spark.createDataFrame(df_updated_column_temp.rdd, schema=cleanse_Schema)
 display(df_updated_column)
 
 # COMMAND ----------
