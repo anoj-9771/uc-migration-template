@@ -486,7 +486,12 @@
 									"ProjectRunID": {
 										"value": "@pipeline().parameters.ProjectRunID",
 										"type": "Expression"
-									}
+									},
+									"SourceFileName": {
+										"value": "@variables('SourceFileName')",
+										"type": "Expression"
+									},
+									"SourceFileDateTimeStamp": "1"
 								}
 							}
 						},
@@ -701,6 +706,17 @@
 											"value": "@pipeline().RunId",
 											"type": "Expression"
 										},
+										"type": "String"
+									},
+									"SourceFileName": {
+										"value": {
+											"value": "@variables('SourceFileName')",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"SourceFileDateStamp": {
+										"value": "1",
 										"type": "String"
 									}
 								}
