@@ -1,18 +1,22 @@
 {
-    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
         "keyVaultName": {
             "type": "string",
             "metadata": {
-                "description": "The prefix of naming convention"
+                "description": "Specifies a name for the resource"
             }
         },
         "location": {
             "type": "string",
-            "defaultValue": "[resourceGroup().location]",
+            "defaultValue": "Australia East",
+            "allowedValues": [
+                "Australia East",
+                "Australia Southeast"
+            ],
             "metadata": {
-                "description": "Specifies the location for all resources."
+                "description": "Specifies the location for the resource"
             }
         },
         "tenantId": {
@@ -76,41 +80,38 @@
             "metadata": {
                 "description": "Specifies whether the 'soft delete' functionality is enabled for this key vault."
             }
-        }
-    },
-    "functions": [
-        {
-            "namespace": "ads",
-            "members": {
-                "serviceWithNamingStandard": {
-                    "parameters": [
-                        {
-                            "name": "prefix",
-                            "type": "string"
-                        },
-                        {
-                            "name": "serviceacronym",
-                            "type": "string"
-                        },
-                        {
-                            "name": "environment",
-                            "type": "string"
-                        },
-                        {
-                            "name": "suffix",
-                            "type": "string"
-                        }
-                        
-                    ],
-                    "output": {
-                        "type": "string",
-                        "value": "[concat(parameters('prefix'), '-', parameters('serviceacronym'), '-', parameters('environment'))]"
-                    }
-                }
+        },
+        "adfResourceId": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Resource ID of Data Factory (Required for Network ACL)"
+            }
+        },
+        "vnetNameInternalSubnetId": {
+            "type": "string",
+            "metadata": {
+                "description": "Resource ID of Internal Subnet (Used by Private Endpoints and VMs)"
+            }
+        },
+        "vnetNameDatabricksPrivateSubnetId": {
+            "type": "string",
+            "metadata": {
+                "description": "Resource ID of Databricks Private Subnet"
+            }
+        },
+        "vnetNameDatabricksPublicSubnetId": {
+            "type": "string",
+            "metadata": {
+                "description": "Resource ID of Databricks Public Subnet"
+            }
+        },
+        "diagnosticSettingsWorkspaceID": {
+            "type": "string",
+            "metadata": {
+                "description": "Log Analytics Workspace ID for Logs"
             }
         }
-    ],
-    "variables": {
     },
     "resources": [
         {
@@ -129,8 +130,51 @@
                 "sku": {
                     "name": "[parameters('skuName')]",
                     "family": "A"
+                },
+                "networkAcls": {
+                    "resourceAccessRules": [
+                        {
+                            "tenantId": "[subscription().tenantId]",
+                            "resourceId": "[parameters('adfResourceId')]"
+                        }
+                    ],
+                    "bypass": "AzureServices",
+                    "virtualNetworkRules": [
+                        {
+                            "id": "[parameters('vnetNameInternalSubnetId')]",
+                            "action": "Allow"
+                        },
+                        {
+                            "id": "[parameters('vnetNameDatabricksPrivateSubnetId')]",
+                            "action": "Allow"
+                        },
+                        {
+                            "id": "[parameters('vnetNameDatabricksPublicSubnetId')]",
+                            "action": "Allow"
+                        }
+                    ],
+                    "defaultAction": "Deny"
                 }
-            }
+            },
+            "resources": [
+                {
+                    "type": "Microsoft.KeyVault/vaults/providers/diagnosticsettings",
+                    "apiVersion": "2016-09-01",
+                    "name": "[concat(parameters('keyVaultName'), '/Microsoft.Insights/service')]",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.KeyVault/vaults', Parameters('keyVaultName'))]"
+                    ],
+                    "properties": {
+                        "workspaceId": "[parameters('diagnosticSettingsWorkspaceID')]",
+                        "logs": [
+                            {
+                                "category": "AuditEvent",
+                                "enabled": true
+                            }
+                        ]
+                    }
+                }
+            ]
         },
         {
             "type": "Microsoft.KeyVault/vaults/secrets",

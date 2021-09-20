@@ -6,7 +6,15 @@
             "type": "string"
         },
         "location": {
-            "type": "string"
+            "type": "string",
+            "defaultValue": "Australia East",
+            "allowedValues": [
+                "Australia East",
+                "Australia Southeast"
+            ],
+            "metadata": {
+                "description": "Specifies the location for the resource"
+            }
         },
         "defaultDataLakeStorageAccountName": {
             "type": "string"
@@ -84,7 +92,7 @@
         },
         "storageAccountType": {
             "type": "string",
-            "defaultValue": "Standard_RAGRS"
+            "defaultValue": "Standard_LRS"
         },
         "storageSupportsHttpsTrafficOnly": {
             "type": "bool",
