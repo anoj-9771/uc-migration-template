@@ -32,28 +32,28 @@ stages:
     steps:
     - download: current
       artifact: arm_templates
-    # - task: AzureResourceGroupDeployment@2
-    #   inputs:
-    #     # azureSubscription cannot be a stage scoped variable
-    #     azureSubscription: ${{ variables.azdoresourceconnection }}
-    #     action: 'Create Or Update Resource Group'
-    #     resourceGroupName: ${{ variables.resourcegroupname }}
-    #     location: ${{ variables.location }}
-    #     templateLocation: 'Linked artifact'
-    #     csmFile: '$(Pipeline.Workspace)/arm_templates/arm-initial-keyvault.json'
-    #     overrideParameters: '-location ${{ variables.location }} -keyVaultName ${{ variables.azurekeyvaultname }}'
-    #     deploymentMode: 'Incremental'
-    #   displayName: 'Deploy AKV to non prod'
+    - task: AzureResourceGroupDeployment@2
+      inputs:
+        # azureSubscription cannot be a stage scoped variable
+        azureSubscription: ${{ variables.azdoresourceconnection }}
+        action: 'Create Or Update Resource Group'
+        resourceGroupName: ${{ variables.resourcegroupname }}
+        location: ${{ variables.location }}
+        templateLocation: 'Linked artifact'
+        csmFile: '$(Pipeline.Workspace)/arm_templates/arm-initial-keyvault.json'
+        overrideParameters: '-location ${{ variables.location }} -keyVaultName ${{ variables.azurekeyvaultname }}'
+        deploymentMode: 'Incremental'
+      displayName: 'Deploy AKV to non prod'
 
-    # - task: AzureCLI@2
-    #   displayName: 'Add sp to ACL policy'
-    #   name: add_sp_to_acl_policy
-    #   inputs:
-    #     azureSubscription: ${{ variables.azdoresourceconnection }}
-    #     scriptType: bash
-    #     scriptLocation: inlineScript
-    #     inlineScript: |
-    #       az keyvault set-policy --name "${{ variables.azurekeyvaultname }}" --secret-permissions set delete list get --object-id "${{ variables.spobjectid }}"
+    - task: AzureCLI@2
+      displayName: 'Add sp to ACL policy'
+      name: add_sp_to_acl_policy
+      inputs:
+        azureSubscription: ${{ variables.azdoresourceconnection }}
+        scriptType: bash
+        scriptLocation: inlineScript
+        inlineScript: |
+          az keyvault set-policy --name "${{ variables.azurekeyvaultname }}" --secret-permissions set delete list get --object-id "${{ variables.spobjectid }}"
 
     - task: AzureCLI@2
       displayName: 'Set PAL'
@@ -74,7 +74,7 @@ stages:
           Write-Host "Verifying partner Id"
           az managementpartner show
 
-# ----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Release to Non-Prod - Test
 - stage: deploy_to_test
   dependsOn: 'build'
