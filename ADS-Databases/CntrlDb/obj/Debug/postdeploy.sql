@@ -17,12 +17,19 @@ This checks if the record does not exists on the table then inserts it
 
 /************* ControlStages ***********************************/
 
+DELETE FROM CTL.ControlProjects
+DELETE FROM CTL.ControlProjectSchedule
+DBCC CHECKIDENT ('CTL.ControlProjects',Reseed,0)
+DBCC CHECKIDENT ('CTL.ControlProjectSchedule',Reseed,0)
+
 INSERT INTO [CTL].[ControlProjects]([ProjectName],[Enabled]) VALUES ('SAP ISU',1)
 INSERT INTO [CTL].[ControlProjects]([ProjectName],[Enabled]) VALUES ('SAP REF',1)
 INSERT INTO [CTL].[ControlProjects]([ProjectName],[Enabled]) VALUES ('Access Data',1)
 INSERT INTO [CTL].[ControlProjects]([ProjectName],[Enabled]) VALUES ('Access REF',1)
-INSERT INTO [CTL].[ControlProjects]([ProjectName],[Enabled]) VALUES ('Hydra',1)
+INSERT INTO [CTL].[ControlProjects]([ProjectName],[Enabled]) VALUES ('HYRDA',1)
 INSERT INTO [CTL].[ControlProjects]([ProjectName],[Enabled]) VALUES ('Common',1)
+INSERT INTO [CTL].[ControlProjects]([ProjectName],[Enabled]) VALUES ('SAP SLT',1)
+INSERT INTO [CTL].[ControlProjects]([ProjectName],[Enabled]) VALUES ('TEST BP',1)
 INSERT INTO [CTL].[ControlProjects]([ProjectName],[Enabled]) VALUES ('TEST1',1)
 
 INSERT INTO [CTL].[ControlStages] ([StageSequence], [StageName]) SELECT 100, N'Source to Raw'

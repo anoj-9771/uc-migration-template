@@ -1,14 +1,16 @@
 ﻿CREATE PROCEDURE [CTL].[UpdateManifestValue]
 	@BatchExecutionLogID bigint,
 	@TaskExecutionLogID bigint,
-	@SourceFileName varchar(1000),
-	@ManifestValue bigint
+	@SourceFileDateStamp char(14),
+	@M_DeltaRecordCount bigint,
+	@M_TotalNoRows bigint
 AS
 	
 BEGIN
-	UPDATE CTL.ControlManifest_New
-	SET ManifestValue = @ManifestValue
+	UPDATE CTL.ControlManifest
+	SET M_DeltaRecordCount = @M_DeltaRecordCount,
+		M_TotalNoRows = @M_TotalNoRows
 	WHERE BatchExecutionLogID = @BatchExecutionLogID
 		AND TaskExecutionLogID = @TaskExecutionLogID
-		AND SourceFileName = @SourceFileName
+		AND SourceFileDateStamp = @SourceFileDateStamp
 END

@@ -170,6 +170,14 @@
 											"type": "Expression"
 										},
 										"type": "String"
+									},
+									"SourceFileName": {
+										"value": "SQL",
+										"type": "String"
+									},
+									"SourceFileDateStamp": {
+										"value": "1",
+										"type": "String"
 									}
 								}
 							},
@@ -223,7 +231,9 @@
 									"ProjectRunID": {
 										"value": "@pipeline().parameters.ProjectRunID",
 										"type": "Expression"
-									}
+									},
+									"SourceFileName": "SQL",
+									"SourceFileDateTimeStamp": "1"
 								}
 							}
 						},

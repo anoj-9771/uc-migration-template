@@ -66,7 +66,7 @@ ELSE
 				SELECT @SQLMax = 'FROM_UNIXTIME(MAX(COALESCE(' + @COL + ', 0)))'
 			--ELSE IF @DBType = 'SQL Server'
 			--	SELECT @SQLMax = 'FORMAT(MAX(' + @COL + '), ''yyyy-MM-dd HH:mm:ss'')'
-			ELSE IF @DBType = 'SQL Server' AND @TaskName LIKE 'slt%'
+			ELSE IF @DBType = 'SQL Server' AND @TaskName LIKE 'sapisu%'
 				SELECT @SQLMax = 'FORMAT(MAX(convert(datetime,(CONVERT(VARCHAR(25) , CAST(LEFT(' +@COL +', 8) AS DATETIME), 23) + '' '' +  LEFT(RIGHT(' + @COL + ' , 6) ,2) + '':'' + SUBSTRING(RIGHT(' +@COL + ' , 6) , 3,2) + '':''    + RIGHT(' + @COL + ' , 2) ),120)), ''yyyy-MM-dd HH:mm:ss'')'
 			ELSE
 				SELECT @SQLMax = 'FORMAT(MAX(' + @COL + '), ''yyyy-MM-dd HH:mm:ss'')'
