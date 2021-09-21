@@ -43,14 +43,14 @@
             "description": "Enable Auditing of Microsoft support operations (DevOps)"
         }
       },
-      "vnetNameInternalSubnetId": {
+      "internalSubnetId": {
           "type": "string",
           "metadata": {
               "description": "Resource ID of Internal Subnet (Used by Private Endpoints and VMs)"
           },
           "defaultValue": "/subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-network-01/providers/Microsoft.Network/virtualNetworks/vnet-swcnonprod01-ae-01/subnets/snet-swcnonprod01-ae-01"
       },
-      "vnetNameDatabricksPrivateSubnetId": {
+      "databricksPrivateSubnetId": {
           "type": "string",
           "metadata": {
               "description": "Resource ID of Databricks Private Subnet"
@@ -162,7 +162,7 @@
                 "[resourceId('Microsoft.Sql/servers', parameters('azureSqlServerName'))]"
             ],
             "properties": {
-                "virtualNetworkSubnetId": "[parameters('vnetNameInternalSubnetId')]",
+                "virtualNetworkSubnetId": "[parameters('internalSubnetId')]",
                 "ignoreMissingVnetServiceEndpoint": false
             }
         },
@@ -174,7 +174,7 @@
                 "[resourceId('Microsoft.Sql/servers', parameters('azureSqlServerName'))]"
             ],
             "properties": {
-                "virtualNetworkSubnetId": "[parameters('vnetNameDatabricksPrivateSubnetId')]",
+                "virtualNetworkSubnetId": "[parameters('databricksPrivateSubnetId')]",
                 "ignoreMissingVnetServiceEndpoint": false
             }
         }

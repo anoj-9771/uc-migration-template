@@ -90,19 +90,19 @@
                 "description": "Resource ID of Data Factory (Required for Network ACL)"
             }
         },
-        "vnetNameInternalSubnetId": {
+        "internalSubnetId": {
             "type": "string",
             "metadata": {
                 "description": "Resource ID of Internal Subnet (Used by Private Endpoints and VMs)"
             }
         },
-        "vnetNameDatabricksPrivateSubnetId": {
+        "databricksPrivateSubnetId": {
             "type": "string",
             "metadata": {
                 "description": "Resource ID of Databricks Private Subnet"
             }
         },
-        "vnetNameDatabricksPublicSubnetId": {
+        "databricksPublicSubnetId": {
             "type": "string",
             "metadata": {
                 "description": "Resource ID of Databricks Public Subnet"
@@ -143,15 +143,15 @@
                     "bypass": "AzureServices",
                     "virtualNetworkRules": [
                         {
-                            "id": "[parameters('vnetNameInternalSubnetId')]",
+                            "id": "[parameters('internalSubnetId')]",
                             "action": "Allow"
                         },
                         {
-                            "id": "[parameters('vnetNameDatabricksPrivateSubnetId')]",
+                            "id": "[parameters('databricksPrivateSubnetId')]",
                             "action": "Allow"
                         },
                         {
-                            "id": "[parameters('vnetNameDatabricksPublicSubnetId')]",
+                            "id": "[parameters('databricksPublicSubnetId')]",
                             "action": "Allow"
                         }
                     ],

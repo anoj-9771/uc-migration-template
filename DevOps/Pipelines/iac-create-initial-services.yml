@@ -32,25 +32,7 @@ stages:
     steps:
     - download: current
       artifact: arm_templates
-    # - task: AzureCLI@2
-    #   displayName: 'Set PAL'
-    #   inputs:
-    #     azureSubscription: $(devops-service-connection)
-    #     scriptType: pscore
-    #     scriptLocation: inlineScript
-    #     inlineScript: |
-    #     az account show
-    #     az extension add --name managementpartner 
-    #     $partner = az managementpartner show | ConvertFrom-Json 
-    #     if ($null -eq $partner) { 
-    #         az managementpartner create --partner-id 1158331 
-    #     }  
-    #     else { 
-    #         az managementpartner update --partner-id 1158331 
-    #     }
-    #     Write-Host "Verifying partner Id"
-    #     az managementpartner show
-
+    
     - task: AzureResourceGroupDeployment@2
       inputs:
         # azureSubscription cannot be a stage scoped variable
@@ -159,24 +141,7 @@ stages:
     steps:
     - download: current
       artifact: arm_templates
-    # - task: AzureCLI@2
-    #   displayName: 'Set PAL'
-    #   inputs:
-    #     azureSubscription: $(devops-service-connection)
-    #     scriptType: pscore
-    #     scriptLocation: inlineScript
-    #     inlineScript: |
-    #     az account show
-    #     az extension add --name managementpartner 
-    #     $partner = az managementpartner show | ConvertFrom-Json 
-    #     if ($null -eq $partner) { 
-    #         az managementpartner create --partner-id 1158331 
-    #     }  
-    #     else { 
-    #         az managementpartner update --partner-id 1158331 
-    #     }
-    #     Write-Host "Verifying partner Id"
-    #     az managementpartner show
+   
     - task: AzureResourceGroupDeployment@2
       inputs:
         # azureSubscription cannot be a stage scoped variable
