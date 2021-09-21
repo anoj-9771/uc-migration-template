@@ -24,13 +24,13 @@ BEGIN
 
    IF (
 	SELECT COUNT(*) 
-	FROM CTL.ControlManifest_New
+	FROM CTL.ControlManifest
 	WHERE BatchExecutionLogID = @BatchExecutionLogID 
 		AND TaskExecutionLogID  = @TaskExecutionLogID
 		AND SourceFileDateStamp = @SourceFileDateStamp
 	) = 0 
 	BEGIN
-		EXEC CTL.CreateManifestRecord_New 
+		EXEC CTL.CreateManifestRecord 
 			@BatchExecutionLogID = @BatchExecutionLogID,
 			@TaskExecutionLogID = @TaskExecutionLogID,
 			@SourceObject = @SourceObject,
@@ -42,6 +42,7 @@ BEGIN
 			@RecordsDeltaTable = @RecordsDeltaTable,
 			@FolderName = @FolderName,
 			@FileName = @FileName,
+			@PipelineRunID = @PipelineRunID,
 			@SourceFileName = @SourceFileName,
 			@SourceFileDateStamp = @SourceFileDateStamp
 	END

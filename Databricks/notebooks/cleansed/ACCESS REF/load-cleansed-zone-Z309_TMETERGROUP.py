@@ -201,6 +201,7 @@ print(f'Number of rows: {df_updated_column.count()}')
 #Save Data frame into Cleansed Delta table (final)
 DeltaSaveDataframeDirect(df_updated_column, "t", source_object, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
 
+
 # COMMAND ----------
 
 # DBTITLE 1,13. Exit Notebook

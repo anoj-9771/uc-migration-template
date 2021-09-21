@@ -57,7 +57,7 @@
 					"isSequential": true,
 					"activities": [
 						{
-							"name": "SP-UpdateManifest",
+							"name": "SP-Update-Manifest-DL-Cleansed",
 							"type": "SqlServerStoredProcedure",
 							"dependsOn": [
 								{
@@ -333,7 +333,7 @@
 				"type": "SqlServerStoredProcedure",
 				"dependsOn": [
 					{
-						"activity": "Loop Manifest",
+						"activity": "If Tech Reconciliation Required",
 						"dependencyConditions": [
 							"Failed"
 						]
@@ -400,7 +400,7 @@
 				"type": "SqlServerStoredProcedure",
 				"dependsOn": [
 					{
-						"activity": "Loop Manifest",
+						"activity": "If Tech Reconciliation Required",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -464,6 +464,54 @@
 					"parameters": {
 						"kvSecret": "daf-sql-controldb-connectionstring"
 					}
+				}
+			},
+			{
+				"name": "If Tech Reconciliation Required",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "Loop Manifest",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@and(equals(pipeline().parameters.TaskDetails.SourceType,'BLOB Storage (json)'), equals(pipeline().parameters.TaskDetails.ControlStageId,2))",
+						"type": "Expression"
+					},
+					"ifTrueActivities": [
+						{
+							"name": "Execute-Technical-Reconciliation",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "Technical-Reconciliation",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"TaskDetails": {
+										"value": "@pipeline().parameters.TaskDetails",
+										"type": "Expression"
+									},
+									"BatchLogId": {
+										"value": "@pipeline().parameters.BatchLogId",
+										"type": "Expression"
+									},
+									"TaskExecutionLogId": {
+										"value": "@pipeline().parameters.TaskExecutionLogId",
+										"type": "Expression"
+									}
+								}
+							}
+						}
+					]
 				}
 			}
 		],
