@@ -480,7 +480,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"expression": {
-						"value": "@and(equals(pipeline().parameters.TaskDetails.SourceType,'BLOB Storage (json)'), equals(pipeline().parameters.TaskDetails.ControlStageId,2))",
+						"value": "@and(activity('LU-Manifest').output.count>0, and(equals(pipeline().parameters.TaskDetails.SourceType,'BLOB Storage (json)'), equals(pipeline().parameters.TaskDetails.ControlStageId,2)))",
 						"type": "Expression"
 					},
 					"ifTrueActivities": [
