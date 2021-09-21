@@ -172,8 +172,7 @@ df_calendar_column = spark.sql("SELECT \
                                 _RecordDeleted, \
                                 _RecordCurrent \
                                FROM CLEANSED.stg_sapisu_SCAL_TT_DATE \
-                               where calendardate <> '9999-12-31' \
-                               and calendardate is not null \
+                               where calendardate is not null \
                                order by 1 \
                                ")
 

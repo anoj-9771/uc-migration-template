@@ -49,7 +49,21 @@ def GetCommonLocation():
     ,"CAST(latitude AS DECIMAL(9,6)) as latitude" \
     ,"CAST(longitude AS DECIMAL(9,6)) as longitude"                   
   )
-
+  
+  #6.Apply schema definition
+  newSchema = StructType([
+                            StructField("LocationID", IntegerType(), False),
+                            StructField("formattedAddress", StringType(), True),
+                            StructField("streetName", StringType(), True),
+                            StructField("StreetType", StringType(), True),
+                            StructField("LGA", StringType(), True),
+                            StructField("suburb", StringType(), True),
+                            StructField("state", StringType(), True),
+                            StructField("latitude", LongType(), True),
+                            StructField("longitude", LongType(), True)
+                      ])
+  
+  HydraLocationDf = spark.createDataFrame(HydraLocationDf.rdd, schema=newSchema)
   return HydraLocationDf
 
 # COMMAND ----------
