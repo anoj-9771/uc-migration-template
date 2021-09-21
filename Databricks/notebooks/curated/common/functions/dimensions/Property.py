@@ -41,6 +41,7 @@ def GetCommonProperty():
                                         ELSE null END AS propertyArea \
                             from cleansed.t_sapisu_vibdao \
                             where _RecordCurrent = 1 and _RecordDeleted = 0")
+  dummyDimRecDf = spark.createDataFrame([("-1", "SAPISU", "9999-12-31"), ("-1", "Access", "9999-12-31")], ["propertyNumber", "sourceSystemCode", "propertyEndDate"])
   
   #3.JOIN TABLES  
   df = sapisu0ucConbjAttr2Df.join(sapisuVibdaoDf, sapisu0ucConbjAttr2Df.architecturalObjectInternalId == sapisuVibdaoDf.architecturalObjectInternalId, how="inner")\
@@ -50,6 +51,7 @@ def GetCommonProperty():
   
   #4.UNION TABLES
   df = accessZ309TpropertyDf.union(df)
+  df = df.unionByName(dummyDimRecDf, allowMissingColumns = True)
   
   #5.SELECT / TRANSFORM
   df = df.selectExpr( \
@@ -62,5 +64,22 @@ def GetCommonProperty():
     ,"CAST(propertyArea AS DECIMAL(18,6)) as areaSize" \
     ,"LGA" \
   )
-
+  
+  #6.Apply schema definition
+  newSchema = StructType([
+                            StructField("propertyId", IntegerType(), False),
+                            StructField("sourceSystemCode", StringType(), False),
+                            StructField("propertyStartDate", DateType(), False),
+                            StructField("propertyEndDate", DateType(), True),
+                            StructField("propertyType", StringType(), True),
+                            StructField("superiorPropertyType", StringType(), True),
+                            StructField("areaSize", DecimalType(18,6), True),
+                            StructField("LGA", LongType(), True)
+                      ])
+  
+  df = spark.createDataFrame(df.rdd, schema=newSchema)
   return df
+
+# COMMAND ----------
+
+

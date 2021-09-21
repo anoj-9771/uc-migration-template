@@ -58,6 +58,10 @@
 									"source_param": {
 										"value": "@string(pipeline().parameters.TaskDetails)",
 										"type": "Expression"
+									},
+									"file_date_time_stamp": {
+										"value": "@pipeline().parameters.SourceFileDateTimeStamp",
+										"type": "Expression"
 									}
 								}
 							},
@@ -131,6 +135,10 @@
 									"source_param": {
 										"value": "@string(pipeline().parameters.TaskDetails)",
 										"type": "Expression"
+									},
+									"file_date_time_stamp": {
+										"value": "@pipeline().parameters.SourceFileDateTimeStamp",
+										"type": "Expression"
 									}
 								}
 							},
@@ -173,7 +181,7 @@
 				}
 			},
 			{
-				"name": "SP-Record-Manifest",
+				"name": "SP-Update-Manifest-Delta-Records",
 				"type": "SqlServerStoredProcedure",
 				"dependsOn": [
 					{
@@ -214,6 +222,13 @@
 								"type": "Expression"
 							},
 							"type": "Int64"
+						},
+						"SourceFileDateStamp": {
+							"value": {
+								"value": "@pipeline().parameters.SourceFileDateTimeStamp",
+								"type": "Expression"
+							},
+							"type": "String"
 						}
 					}
 				},
@@ -247,6 +262,12 @@
 				"defaultValue": "targetdirectory"
 			},
 			"ProjectRunID": {
+				"type": "string"
+			},
+			"SourceFileName": {
+				"type": "string"
+			},
+			"SourceFileDateTimeStamp": {
 				"type": "string"
 			}
 		},

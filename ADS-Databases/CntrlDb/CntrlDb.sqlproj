@@ -140,11 +140,11 @@
     <Build Include="CTL\Views\vw_DataLoadDetails.sql" />
     <Build Include="CTL\Views\vw_BatchExecution.sql" />
     <Build Include="CTL\Stored Procedures\UpdateManifestValue.sql" />
-    <Build Include="CTL\Stored Procedures\CreateManifestRecord_New.sql" />
-    <Build Include="CTL\Stored Procedures\UpdateManifestDeltaRecords_New.sql" />
-    <Build Include="CTL\Tables\ControlManifest_New.sql" />
     <Build Include="CTL\Stored Procedures\GetManifestCleansed.sql" />
     <Build Include="CTL\Stored Procedures\UpdateManifestDLCleansed.sql" />
+    <Build Include="CTL\Stored Procedures\UpsertManifestRecord.sql" />
+    <Build Include="CTL\Tables\TechRecRawToCleansed.sql" />
+    <Build Include="CTL\Stored Procedures\CreateTechRecRawToCleansed.sql" />
   </ItemGroup>
   <ItemGroup>
     <PostDeploy Include="Script.PostDeployment1.sql" />
