@@ -37,8 +37,8 @@ variables:
     value: CostCenter=DataAndAI \
           Environment=NonProduction \
           Owner=jackson.staub@insight.com
-  # Vnet
-  - name: vnetNameInternalSubnetId
+  # Vnet Ids
+  - name: internalSubnetId
     value: /subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-network-01/providers/Microsoft.Network/virtualNetworks/vnet-swcnonprod01-ae-01/subnets/snet-swcnonprod01-ae-01
   # ------------------------------------------------
   # Service names for environment
