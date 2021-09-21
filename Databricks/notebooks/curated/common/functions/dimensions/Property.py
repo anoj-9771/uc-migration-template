@@ -64,5 +64,22 @@ def GetCommonProperty():
     ,"CAST(propertyArea AS DECIMAL(18,6)) as areaSize" \
     ,"LGA" \
   )
-
+  
+  #6.Apply schema definition
+  newSchema = StructType([
+                            StructField("propertyId", IntegerType(), False),
+                            StructField("sourceSystemCode", StringType(), False),
+                            StructField("propertyStartDate", DateType(), False),
+                            StructField("propertyEndDate", DateType(), True),
+                            StructField("propertyType", StringType(), True),
+                            StructField("superiorPropertyType", StringType(), True),
+                            StructField("areaSize", DecimalType(18,6), True),
+                            StructField("LGA", LongType(), True)
+                      ])
+  
+  df = spark.createDataFrame(df.rdd, schema=newSchema)
   return df
+
+# COMMAND ----------
+
+
