@@ -172,7 +172,8 @@ df_calendar_column = spark.sql("SELECT \
                                 _RecordDeleted, \
                                 _RecordCurrent \
                                FROM CLEANSED.stg_sapisu_SCAL_TT_DATE \
-                               where calendardate is not null \
+                               where calendardate <> '9999-12-31' \
+                               and calendardate is not null \
                                order by 1 \
                                ")
 
@@ -210,8 +211,6 @@ display(df_cleansed_column)
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
 DeltaSaveDataframeDirect(df_cleansed_column, "t", source_object, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
-#verify and, if necessary, update schema definition
-verifyTableSchema(f'{ADS_DATABASE_CLEANSED}.t_{source_object}',newSchema)
 
 # COMMAND ----------
 

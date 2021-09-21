@@ -219,7 +219,7 @@ display(df_updated_column_temp)
 # COMMAND ----------
 
 # Create schema for the cleanse table
-newSchema = StructType(
+cleanse_Schema = StructType(
   [
     StructField("businessPartnerNumber", StringType(), False),
     StructField("businessPartnerCategoryCode", StringType(), True),
@@ -280,7 +280,7 @@ newSchema = StructType(
   ]
 )
 # Apply the new schema to cleanse Data Frame
-df_updated_column = spark.createDataFrame(df_updated_column_temp.rdd, schema=newSchema)
+df_updated_column = spark.createDataFrame(df_updated_column_temp.rdd, schema=cleanse_Schema)
 display(df_updated_column)
 
 # COMMAND ----------
@@ -288,8 +288,7 @@ display(df_updated_column)
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
 DeltaSaveDataframeDirect(df_updated_column, "t", source_object, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
-#verify and, if necessary, update schema definition
-verifyTableSchema(f'{ADS_DATABASE_CLEANSED}.t_{source_object}',newSchema)
+
 
 # COMMAND ----------
 
