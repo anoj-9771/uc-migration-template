@@ -105,7 +105,7 @@ def DeltaSaveDataframeDirect(dataframe, source_system, table_name, database_name
   query = "CREATE TABLE IF NOT EXISTS {0}.{1}  USING DELTA LOCATION \'{2}\'".format(database_name, table_name, delta_path)
   spark.sql(query)
   
-  verifyTableSchema(f"{database_name}.{table_name}", dataframe.schema())
+  verifyTableSchema(f"{database_name}.{table_name}", dataframe.schema)
   
   LogEtl ("Finishing : DeltaSaveDataframeToTable")
   
@@ -371,7 +371,7 @@ def DeltaSaveDataFrameToDeltaTable(
     dlTargetTableFqn = f"{target_database}.{target_table}"
     DeltaUpdateSurrogateKey(target_database, target_table, business_key) 
 
-  verifyTableSchema(f"{ADS_DATABASE_STAGE}.{target_table}", dataframe.schema())
+  verifyTableSchema(f"{ADS_DATABASE_STAGE}.{target_table}", dataframe.schema)
 
 # COMMAND ----------
 
@@ -409,7 +409,7 @@ def DeltaSaveDataFrameToDeltaTableCleansed(
     dlTargetTableFqn = f"{target_database}.{target_table}"
     DeltaUpdateSurrogateKey(target_database, target_table, business_key) 
 
-  verifyTableSchema(f"{ADS_DATABASE_STAGE}.{target_table}", dataframe.schema())
+  verifyTableSchema(f"{ADS_DATABASE_STAGE}.{target_table}", dataframe.schema)
 
 # COMMAND ----------
 
