@@ -219,7 +219,7 @@ display(df_updated_column_temp)
 # COMMAND ----------
 
 # Create schema for the cleanse table
-newSchema = StructType(
+cleanse_Schema = StructType(
   [
     StructField("businessPartnerNumber", StringType(), False),
     StructField("businessPartnerCategoryCode", StringType(), True),
@@ -280,7 +280,7 @@ newSchema = StructType(
   ]
 )
 # Apply the new schema to cleanse Data Frame
-df_updated_column = spark.createDataFrame(df_updated_column_temp.rdd, schema=newSchema)
+df_updated_column = spark.createDataFrame(df_updated_column_temp.rdd, schema=cleanse_Schema)
 display(df_updated_column)
 
 # COMMAND ----------
