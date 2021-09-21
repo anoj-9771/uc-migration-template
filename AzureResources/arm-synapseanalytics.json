@@ -10,7 +10,9 @@
             "defaultValue": "Australia East",
             "allowedValues": [
                 "Australia East",
-                "Australia Southeast"
+                "Australia Southeast",
+                "australiaeast",
+                "australiasoutheast"
             ],
             "metadata": {
                 "description": "Specifies the location for the resource"
