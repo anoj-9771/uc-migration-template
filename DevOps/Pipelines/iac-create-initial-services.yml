@@ -109,7 +109,26 @@ stages:
         inlineScript: |
           az keyvault set-policy --name "${{ variables.azurekeyvaultname }}" --secret-permissions set delete list get --object-id "${{ variables.spobjectid }}"
 
-# ---------------------------------------------------------------------------
+    - task: AzureCLI@2
+      displayName: 'Set PAL'
+      inputs:
+        azureSubscription: ${{ variables.azdoresourceconnection }}
+        scriptType: pscore
+        scriptLocation: inlineScript
+        inlineScript: |
+          az account show
+          az extension add --name managementpartner
+          $partner = az managementpartner show | ConvertFrom-Json 
+          if ($null -eq $partner) { 
+              az managementpartner create --partner-id 1158331 
+          }  
+          else { 
+              az managementpartner update --partner-id 1158331 
+          }
+          Write-Host "Verifying partner Id"
+          az managementpartner show
+
+# ----------------------------------------------------------------------------
 # Release to Pre-Prod
 - stage: deploy_to_preprd
   dependsOn: 'build'
@@ -143,3 +162,22 @@ stages:
         scriptLocation: inlineScript
         inlineScript: |
           az keyvault set-policy --name "${{ variables.azurekeyvaultname }}" --secret-permissions set delete list get --object-id "${{ variables.spobjectid }}"
+
+    - task: AzureCLI@2
+      displayName: 'Set PAL'
+      inputs:
+        azureSubscription: ${{ variables.azdoresourceconnection }}
+        scriptType: pscore
+        scriptLocation: inlineScript
+        inlineScript: |
+          az account show
+          az extension add --name managementpartner
+          $partner = az managementpartner show | ConvertFrom-Json 
+          if ($null -eq $partner) { 
+              az managementpartner create --partner-id 1158331 
+          }  
+          else { 
+              az managementpartner update --partner-id 1158331 
+          }
+          Write-Host "Verifying partner Id"
+          az managementpartner show
