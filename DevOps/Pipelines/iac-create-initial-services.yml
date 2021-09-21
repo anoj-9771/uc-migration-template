@@ -32,8 +32,8 @@ stages:
     steps:
     - download: current
       artifact: arm_templates
-    - task: AzureResourceGroupDeployment@2
-      inputs:
+    # - task: AzureResourceGroupDeployment@2
+    #   inputs:
     #     # azureSubscription cannot be a stage scoped variable
     #     azureSubscription: ${{ variables.azdoresourceconnection }}
     #     action: 'Create Or Update Resource Group'
@@ -63,7 +63,8 @@ stages:
         scriptLocation: inlineScript
         inlineScript: |
           az account show az extension add --name managementpartner $partner = az managementpartner show | ConvertFrom-Json if ($null -eq $partner) {az managementpartner create --partner-id 1158331} else {az managementpartner update --partner-id 1158331} Write-Host "Verifying partner Id" az managementpartner show
-# ----------------------------------------------------------------------------
+
+# -----------------------------------------------------------------------------
 # Release to Non-Prod - Test
 - stage: deploy_to_test
   dependsOn: 'build'
