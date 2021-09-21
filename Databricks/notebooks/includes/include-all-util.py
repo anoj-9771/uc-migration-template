@@ -36,3 +36,11 @@
 # COMMAND ----------
 
 # MAGIC %run ./sql-merge/util-sql-merge-all
+
+# COMMAND ----------
+
+# MAGIC %run ./util-update-table-schema
+
+# COMMAND ----------
+
+

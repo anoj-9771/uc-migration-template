@@ -35,6 +35,7 @@ spark = SparkSession.builder.getOrCreate()
 dbutils.widgets.text("file_object", "", "01:File-Path")
 dbutils.widgets.text("debug_mode", "false", "02:Debug-Mode")
 dbutils.widgets.text("source_param", "", "03:Parameters")
+dbutils.widgets.text("file_date_time_stamp", "", "04:File-Date-Time-Stamp")
 
 
 # COMMAND ----------
@@ -43,10 +44,12 @@ dbutils.widgets.text("source_param", "", "03:Parameters")
 file_object = dbutils.widgets.get("file_object")
 debug_mode = dbutils.widgets.get("debug_mode")
 source_param = dbutils.widgets.get("source_param")
+file_date_time_stamp = dbutils.widgets.get("file_date_time_stamp")
 
 print(file_object)
 print(debug_mode)
 print(source_param)
+print(file_date_time_stamp)
 
 
 # COMMAND ----------
@@ -141,7 +144,7 @@ else:
 # COMMAND ----------
 
 # DBTITLE 1,Apply any transformation at this stage
-df_updated = transform_raw_dataframe(df, Params)
+df_updated = transform_raw_dataframe(df, Params, file_date_time_stamp)
 
 # COMMAND ----------
 

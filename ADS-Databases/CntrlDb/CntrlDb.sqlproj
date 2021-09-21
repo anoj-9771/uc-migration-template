@@ -112,7 +112,6 @@
     <Build Include="CTL\Stored Procedures\UpdateManifestDeltaRecords.sql" />
     <Build Include="CTL\Functions\udf_GetEAustDateTime.sql" />
     <Build Include="CTL\Stored Procedures\UpdateManifestSQLEDW.sql" />
-    <Build Include="CTL\Stored Procedures\UpdateManifestDLTrusted.sql" />
     <Build Include="CTL\Tables\ControlCuratedConfig.sql" />
     <Build Include="CTL\Tables\CustomDataLoad.sql" />
     <Build Include="CTL\Stored Procedures\UpdateCustomDataLoad.sql" />
@@ -126,7 +125,6 @@
     <Build Include="CTL\Stored Procedures\GetAPIParams.sql" />
     <Build Include="CTL\Functions\udf_GetDateLocalTZ.sql" />
     <Build Include="CTL\Stored Procedures\UpdateManifestAudit.sql" />
-    <Build Include="CTL\Stored Procedures\GetManifestTrusted.sql" />
     <Build Include="CTL\Stored Procedures\GetManifestSQLEDW.sql" />
     <Build Include="CTL\Stored Procedures\GetManifestAudit.sql" />
     <Build Include="CTL\Functions\udf_GetMultiColTableJoinClause.sql" />
@@ -141,6 +139,12 @@
     <Build Include="CTL\Stored Procedures\GetTableDetails.sql" />
     <Build Include="CTL\Views\vw_DataLoadDetails.sql" />
     <Build Include="CTL\Views\vw_BatchExecution.sql" />
+    <Build Include="CTL\Stored Procedures\UpdateManifestValue.sql" />
+    <Build Include="CTL\Stored Procedures\GetManifestCleansed.sql" />
+    <Build Include="CTL\Stored Procedures\UpdateManifestDLCleansed.sql" />
+    <Build Include="CTL\Stored Procedures\UpsertManifestRecord.sql" />
+    <Build Include="CTL\Tables\TechRecRawToCleansed.sql" />
+    <Build Include="CTL\Stored Procedures\CreateTechRecRawToCleansed.sql" />
   </ItemGroup>
   <ItemGroup>
     <PostDeploy Include="Script.PostDeployment1.sql" />

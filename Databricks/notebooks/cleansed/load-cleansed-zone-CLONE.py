@@ -22,8 +22,8 @@
 
 # COMMAND ----------
 
-# DBTITLE 1,1. Import libreries/functions
-#1.Import libreries/functions
+# DBTITLE 1,1. Import libraries/functions
+#1.Import libraries/functions
 from pyspark.sql.functions import mean, min, max, desc, abs, coalesce, when, expr
 from pyspark.sql.functions import date_add, to_utc_timestamp, from_utc_timestamp, datediff
 from pyspark.sql.functions import regexp_replace, concat, col, lit, substring
@@ -86,12 +86,12 @@ print(json.dumps(Params, indent=4, sort_keys=True))
 # COMMAND ----------
 
 # DBTITLE 1,6. Include all util user functions for this notebook
-# MAGIC %run ../includes/include-all-util
+# MAGIC %run ../../includes/include-all-util
 
 # COMMAND ----------
 
 # DBTITLE 1,7. Include User functions (CleansedZone) for the notebook
-# MAGIC %run ./utility/transform_data_cleansedzone
+# MAGIC %run ./../utility/transform_data_cleansedzone
 
 # COMMAND ----------
 
