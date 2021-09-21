@@ -62,19 +62,8 @@ stages:
         scriptType: pscore
         scriptLocation: inlineScript
         inlineScript: |
-          az account show
-          az extension add --name managementpartner
-          $partner = az managementpartner show | ConvertFrom-Json 
-          if ($null -eq $partner) { 
-              az managementpartner create --partner-id 1158331 
-          }  
-          else { 
-              az managementpartner update --partner-id 1158331 
-          }
-          Write-Host "Verifying partner Id"
-          az managementpartner show
-
-# ---------------------------------------------------------------------------
+          az account show az extension add --name managementpartner $partner = az managementpartner show | ConvertFrom-Json if ($null -eq $partner) {az managementpartner create --partner-id 1158331} else {az managementpartner update --partner-id 1158331} Write-Host "Verifying partner Id" az managementpartner show
+# ----------------------------------------------------------------------------
 # Release to Non-Prod - Test
 - stage: deploy_to_test
   dependsOn: 'build'
