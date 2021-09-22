@@ -25,7 +25,7 @@ def GetCommonLocation():
                                      where propertyNumber is not null \
                                      group by propertyNumber")
   
-  dummyDimRecDf = spark.createDataFrame([("-1", "Unknown")],["locationID", "formattedAddress"])
+  dummyDimRecDf = spark.createDataFrame([(-1, "Unknown")],["locationID", "formattedAddress"])
   
   #3.JOIN TABLES  
   #df = sapisu0ucConbjAttr2Df.join(sapisuVibdaoDf, sapisu0ucConbjAttr2Df.architecturalObjectInternalId == sapisuVibdaoDf.architecturalObjectInternalId, how="inner")\
@@ -49,7 +49,7 @@ def GetCommonLocation():
     ,"CAST(latitude AS DECIMAL(9,6)) as latitude" \
     ,"CAST(longitude AS DECIMAL(9,6)) as longitude"                   
   )
-  
+  display(HydraLocationDf)
   #6.Apply schema definition
   newSchema = StructType([
                             StructField("LocationID", IntegerType(), False),
@@ -59,8 +59,8 @@ def GetCommonLocation():
                             StructField("LGA", StringType(), True),
                             StructField("suburb", StringType(), True),
                             StructField("state", StringType(), True),
-                            StructField("latitude", LongType(), True),
-                            StructField("longitude", LongType(), True)
+                            StructField("latitude", DecimalType(9,6), True),
+                            StructField("longitude", DecimalType(9,6), True)
                       ])
   
   HydraLocationDf = spark.createDataFrame(HydraLocationDf.rdd, schema=newSchema)
