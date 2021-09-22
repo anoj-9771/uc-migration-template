@@ -190,7 +190,7 @@ stages:
 
     # Deploy Private Endpoints
     - ${{ if eq(variables['privateendpoints'], true) }}:
-      - template: step-deploy-private-endpoints.yml
+      - template: step-deploy-arm-private-endpoints.yml
         parameters:
           AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
           resource_group: ${{ variables.resourcegroupname }}
