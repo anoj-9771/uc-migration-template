@@ -50,9 +50,9 @@ steps:
       location: $(LOCATION)
       templateLocation: 'Linked artifact'
       csmFile: '$(Pipeline.Workspace)/arm_templates/arm-sql-server.json'
-      overrideParameters: '-location $(LOCATION) -prefix $(PREFIX) -environment $(ENVIRONMENT) -azureSqlServerName $(AZURESQLSERVERNAME) -AzureSqlServerUn $(AZURESQLSERVERUN) -AzureSqlServerPw $(AZURESQLSERVERPW)'
+      overrideParameters: '-location $(LOCATION) -azureSqlServerName $(AZURESQLSERVERNAME) -AzureSqlServerUn $(AZURESQLSERVERUN) -AzureSqlServerPw $(AZURESQLSERVERPW)'
       deploymentMode: 'Incremental'
-    displayName: 'Deploy Azure SQL Control DB'
+    displayName: 'Deploy Azure SQL for Control DB'
 
   # - task: AzureCLI@2
   #   displayName: 'Add tags to Resource'
