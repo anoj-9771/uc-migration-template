@@ -46,31 +46,6 @@
             "metadata": {
                 "description": "Specifies the storage SKU tier"
             }
-        },
-        "adfResourceId": {
-            "type": "string",
-            "defaultValue": "",
-            "metadata": {
-                "description": "Resource ID of Data Factory (Required for Network ACL)"
-            }
-        },
-        "internalSubnetId": {
-            "type": "string",
-            "metadata": {
-                "description": "Resource ID of Internal Subnet (Used by Private Endpoints and VMs)"
-            }
-        },
-        "databricksPrivateSubnetId": {
-            "type": "string",
-            "metadata": {
-                "description": "Resource ID of Databricks Private Subnet"
-            }
-        },
-        "databricksPublicSubnetId": {
-            "type": "string",
-            "metadata": {
-                "description": "Resource ID of Databricks Public Subnet"
-            }
         }
     },
     "variables": {
@@ -106,27 +81,7 @@
                 "supportsHttpsTrafficOnly": true,
                 "allowBlobPublicAccess": false,
                 "networkAcls": {
-                    "resourceAccessRules": [
-                        {
-                            "tenantId": "[subscription().tenantId]",
-                            "resourceId": "[parameters('adfResourceId')]"
-                        }
-                    ],
                     "bypass": "AzureServices",
-                    "virtualNetworkRules": [
-                        {
-                            "id": "[parameters('internalSubnetId')]",
-                            "action": "Allow"
-                        },
-                        {
-                            "id": "[parameters('databricksPrivateSubnetId')]",
-                            "action": "Allow"
-                        },
-                        {
-                            "id": "[parameters('databricksPublicSubnetId')]",
-                            "action": "Allow"
-                        }
-                    ],
                     "defaultAction": "Deny"
                 }
             },
