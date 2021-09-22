@@ -150,11 +150,19 @@ def _SQLSourceSelect_DeltaTable(source_table, business_key, delta_column, start_
   
   tbl_alias = "SRC"
   business_key_updated = _GetSQLCollectiveColumnsFromColumnNames(business_key, tbl_alias, "CONCAT", DELTA_COL_QUALIFER)
-
+  isSAPISU = False
+  if source_table != None and "sapisu" in source_table:
+    isSAPISU = True
+    
   #source_sql = TAB + "SELECT * FROM (SELECT *, ROW_NUMBER() OVER (PARTITION BY " + business_key_updated + " ORDER BY " + COL_DL_RAW_LOAD + " DESC) AS _RecordVersion FROM " + source_table + ") WHERE _RecordVersion = 1)"
 
   source_sql = TAB + "SELECT *" + NEW_LINE
-  if not is_delta_extract and target_data_lake_zone == ADS_DATABASE_CLEANSED :
+  if not is_delta_extract and target_data_lake_zone == ADS_DATABASE_CLEANSED and isSAPISU:
+    source_sql += TAB + ",ROW_NUMBER() OVER (PARTITION BY " + business_key_updated + " ORDER BY " + "_FileDateTimeStamp" + " DESC) AS " + COL_RECORD_VERSION + NEW_LINE
+    source_sql += TAB + "FROM " + source_table + " " + tbl_alias + NEW_LINE
+    source_sql += TAB + ")" + NEW_LINE 
+    
+  if not is_delta_extract and target_data_lake_zone == ADS_DATABASE_CLEANSED and not isSAPISU :
     source_sql += TAB + ",ROW_NUMBER() OVER (PARTITION BY " + business_key_updated + " ORDER BY " + COL_DL_RAW_LOAD + " DESC) AS " + COL_RECORD_VERSION + NEW_LINE
     source_sql += TAB + "FROM " + source_table + " " + tbl_alias + NEW_LINE
     source_sql += TAB + ")" + NEW_LINE 
