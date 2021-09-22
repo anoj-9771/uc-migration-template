@@ -23,13 +23,13 @@ pool: Daf-Self-Pool01
 # vmImage: ubuntu-latest
 
 stages:
-# ---------------------------------------------------------------------------
+# --------------------------------------------------------------------------
 # Build artifacts
 - stage: 'build'
   jobs:
   # Use this section to pull in or out build jobs
   - template: Templates/job-copy-databricks_notebooks.yml
-# ---------------------------------------------------------------------------
+# --------------------------------------------------------------------------
 # Release to Non-Production - Dev Environment
 - template: Templates/stage-databricks-integration.yml
   parameters:
