@@ -328,6 +328,8 @@ def DeltaInjectSurrogateKeyToDataFrame(df, table_name):
   LogEtl(f"Adding SK column : {skColumn}")
   dfSK = df.withColumn(skColumn, lit(None).cast(LongType()))
   df = dfSK.select(skColumn, *cols)
+  #the surrogate key should never be null
+  df.schema[skColumn].nullable = False
   
   return df
 
@@ -338,13 +340,10 @@ def DeltaInjectSurrogateKeyToDataFrame(df, table_name):
 def DeltaSaveDataFrameToDeltaTable(
   dataframe, target_table, target_data_lake_zone, target_database, data_lake_folder, data_load_mode, track_changes = False, is_delta_extract = False, business_key = "", AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0"):
   
-
-  
   stage_table_name = f"{ADS_DATABASE_STAGE}.{target_table}"
   
   if AddSKColumn:
     dataframe = DeltaInjectSurrogateKeyToDataFrame(dataframe, target_table)
-    
   
   #Drop the stage table if it exists
   spark.sql(f"DROP TABLE IF EXISTS {stage_table_name}")
@@ -371,7 +370,7 @@ def DeltaSaveDataFrameToDeltaTable(
     dlTargetTableFqn = f"{target_database}.{target_table}"
     DeltaUpdateSurrogateKey(target_database, target_table, business_key) 
 
-  verifyTableSchema(f"{ADS_DATABASE_STAGE}.{target_table}", dataframe.schema)
+  verifyTableSchema(f"{target_database}.{target_table}", dataframe.schema)
 
 # COMMAND ----------
 
@@ -408,8 +407,8 @@ def DeltaSaveDataFrameToDeltaTableCleansed(
   if AddSKColumn:
     dlTargetTableFqn = f"{target_database}.{target_table}"
     DeltaUpdateSurrogateKey(target_database, target_table, business_key) 
-
-  verifyTableSchema(f"{ADS_DATABASE_STAGE}.{target_table}", dataframe.schema)
+  
+  verifyTableSchema(f"{target_database}.{target_table}", dataframe.schema)
 
 # COMMAND ----------
 
