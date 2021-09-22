@@ -273,10 +273,7 @@
 										},
 										"userProperties": [],
 										"typeProperties": {
-											"notebookPath": {
-												"value": "@pipeline().parameters.TaskDetails.Command",
-												"type": "Expression"
-											},
+											"notebookPath": "/Repos/o3an@sydneywater.com.au/DAFPOCREPO1/Databricks/notebooks/cleansed/load-cleansed-zone-DBERCHZ2",
 											"baseParameters": {
 												"source_object": {
 													"value": "@pipeline().parameters.TaskDetails.SourceName",
