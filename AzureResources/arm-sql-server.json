@@ -30,38 +30,6 @@
         }
       }
     },
-    "functions": [
-        {
-            "namespace": "ads",
-            "members": {
-                "serviceWithNamingStandard": {
-                    "parameters": [
-                        {
-                            "name": "prefix",
-                            "type": "string"
-                        },
-                        {
-                            "name": "serviceacronym",
-                            "type": "string"
-                        },
-                        {
-                            "name": "environment",
-                            "type": "string"
-                        },
-                        {
-                            "name": "suffix",
-                            "type": "string"
-                        }
-                        
-                    ],
-                    "output": {
-                        "type": "string",
-                        "value": "[concat(parameters('prefix'), '-', parameters('serviceacronym'), '-', parameters('environment'))]"
-                    }
-                }
-            }
-        }
-    ],
     "variables": {},
     "resources": [
       {
