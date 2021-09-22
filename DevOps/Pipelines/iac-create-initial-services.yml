@@ -151,7 +151,7 @@ stages:
         location: ${{ variables.location }}
         templateLocation: 'Linked artifact'
         csmFile: '$(Pipeline.Workspace)/arm_templates/arm-initial-keyvault.json'
-        overrideParameters: '-location ${{ variables.location }} -keyVaultName ${{ variables.azurekeyvaultname }} -internalSubnetId ${{ variables.internalSubnetId}}'
+        overrideParameters: '-location ${{ variables.location }} -keyVaultName ${{ variables.azurekeyvaultname }} -internalSubnetId ${{ variables.internalSubnetId}} -databricksPrivateSubnetId ${{ variables.databricksPrivateSubnetId}} -databricksPublicSubnetId ${{variables.databricksPublicSubnetId}} -diagnosticSettingsWorkspaceID ${{ variables.diagnosticSettingsWorkspaceID}}'
         deploymentMode: 'Incremental'
       displayName: 'Deploy AKV to prod'
 
