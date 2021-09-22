@@ -153,8 +153,8 @@ DeltaSaveToDeltaTable (
 #Update/rename Column
 df_updated_column_temp = spark.sql("SELECT \
                                   EQUI.EQUNR as equipmentNumber,\
-                                  to_date(EQUI.DATETO) as validToDate,\
-                                  to_date(EQUI.DATEFROM) as validFromDate,\
+                                  to_date(EQUI.DATETO, 'yyyy-MM-dd') as validToDate,\
+                                  case when EQUI.DATEFROM < '1900-01-01' then null else to_date(EQUI.DATEFROM, 'yyyy-MM-dd') end as validFromDate,\
                                   EQUI.EQART as technicalObjectTypeCode,\
                                   EQUI.INVNR as inventoryNumber,\
                                   EQUI.IWERK as maintenancePlanningPlant,\
@@ -166,11 +166,11 @@ df_updated_column_temp = spark.sql("SELECT \
                                   COMP.companyName as companyName,\
                                   EQUI.MATNR as materialNumber,\
                                   EQUI.ANSWT as acquisitionValue,\
-                                  to_date(EQUI.ANSDT) as acquisitionDate,\
-                                  to_date(EQUI.ERDAT) as createdDate,\
-                                  to_date(EQUI.AEDAT) as lastChangedDate,\
-                                  to_date(EQUI.INBDT) as startUpDate,\
-                                  EQUI.PROID as workBreakdownStructureElement,\
+                                  to_date(EQUI.ANSDT, 'yyyy-MM-dd') as acquisitionDate,\
+                                  to_date(EQUI.ERDAT, 'yyyy-MM-dd') as createdDate,\
+                                  to_date(EQUI.AEDAT, 'yyyy-MM-dd') as lastChangedDate,\
+                                  to_date(EQUI.INBDT, 'yyyy-MM-dd') as startUpDate,\
+                                  cast(EQUI.PROID as int) as workBreakdownStructureElement,\
                                   EQUI.EQTYP as equipmentCategoryCode, \
                                   EQUI._RecordStart,\
                                   EQUI._RecordEnd,\
@@ -203,7 +203,7 @@ cleanse_Schema = StructType(
     StructField("createdDate", DateType(), True),
     StructField("lastChangedDate", DateType(), True),
     StructField("startUpDate", DateType(), True),
-    StructField("workBreakdownStructureElement", StringType(), True),
+    StructField("workBreakdownStructureElement", IntegerType(), True),
     StructField("equipmentCategoryCode", StringType(), True),    
     StructField('_RecordStart',TimestampType(),False),
     StructField('_RecordEnd',TimestampType(),False),
