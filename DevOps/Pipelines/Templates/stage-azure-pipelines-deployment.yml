@@ -188,6 +188,13 @@ stages:
           defaultDataLakeStorageFilesystemName: ${{ variables.defaultDataLakeStorageFilesystemName }}
           synapsesqlPoolName: ${{ variables.synapsesqlPoolName }}
 
+    # Deploy Private Endpoints
+    - ${{ if eq(variables['privateendpoints'], true) }}:
+    - template: step-deploy-privateendpoints.yml
+      parameters:
+        AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
+        resource_group: ${{ variables.resourcegroupname }}
+
     # Add Tags to resources
     - ${{ if eq(variables['applytags'], true) }}:
       - task: AzureCLI@2
@@ -206,6 +213,8 @@ stages:
     - template: job-deploy-controldb.yml
       parameters:
         AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
+
+ 
   
   
     

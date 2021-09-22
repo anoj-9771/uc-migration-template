@@ -48,3 +48,6 @@ variables:
   # Use to set Synapse Analytics worksspace deployability...
   - name: synapseanalyticsworkspace
     value: true
+  # Use to set Synapse Analytics worksspace deployability...
+  - name: privateendpoints
+    value: true

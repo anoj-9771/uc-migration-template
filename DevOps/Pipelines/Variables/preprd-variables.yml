@@ -37,7 +37,16 @@ variables:
     value: CostCenter=DataAndAI \
           Environment=NonProduction \
           Owner=jackson.staub@insight.com
-    # ------------------------------------------------
+  # ------------------------------------------------
+  # Vnet Related
+  # -------------------------------------------------
+  - name: vnetName
+    value: vnet-swcnonprod01-ae-01
+  - name: vnetid
+    value: /subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-network-01/providers/Microsoft.Network/virtualNetworks/vnet-swcnonprod01-ae-01
+  - name: internalSubnetId
+    value: /subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-network-01/providers/Microsoft.Network/virtualNetworks/vnet-swcnonprod01-ae-01/subnets/snet-swcnonprod01-ae-01
+  # ------------------------------------------------
   # Service names for environment
   # -------------------------------------------------
   # Name of Azure SQL Server and EDW Database
@@ -100,10 +109,6 @@ variables:
     value: 
   - name: vnetresourcegroupname
     value: rg-swcnonprod01-network-01
-  - name: vnetName
-    value: vnet-swcnonprod01-ae-01
-  - name: vnetid
-    value: /subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-network-01/providers/Microsoft.Network/virtualNetworks/vnet-swcnonprod01-ae-01
   - name: publicsubnetcidr
     value: 10.97.46.192/26
   - name: privatesubnetcidr
