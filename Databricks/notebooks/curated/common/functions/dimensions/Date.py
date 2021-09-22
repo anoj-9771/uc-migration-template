@@ -15,7 +15,7 @@
 #1.Create Function
 def GetCommonDate():
   
-  spark.udf.register("TidyCase", GeneralToTidyCase)  
+  #spark.udf.register("TidyCase", GeneralToTidyCase)  
   
   #DimProperty
   #2.Load Cleansed layer table data into dataframe
@@ -26,7 +26,7 @@ def GetCommonDate():
   
   
   #4.UNION TABLES
- 
+
   #5.SELECT / TRANSFORM
   df = dateDf.selectExpr( \
                           "calendarDate" \
@@ -66,7 +66,7 @@ def GetCommonDate():
                             StructField("yearEndDate", DateType(), False),
                             StructField("financialYear", StringType(), False),
                             StructField("financialYearStartDate", DateType(), False),
-                            StructField("financialYearEndDate", DateType(), False),
+                            StructField("financialYearEndDate", DateType(), True),
                             StructField("monthOfFinancialYear", IntegerType(), False),
                             StructField("quarterOfFinancialYear", IntegerType(), False),
                             StructField("halfOfFinancialYear", IntegerType(), False)
