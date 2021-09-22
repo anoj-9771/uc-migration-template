@@ -190,10 +190,10 @@ stages:
 
     # Deploy Private Endpoints
     - ${{ if eq(variables['privateendpoints'], true) }}:
-    - template: step-deploy-privateendpoints.yml
-      parameters:
-        AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
-        resource_group: ${{ variables.resourcegroupname }}
+      - template: step-deploy-privateendpoints.yml
+        parameters:
+          AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
+          resource_group: ${{ variables.resourcegroupname }}
 
     # Add Tags to resources
     - ${{ if eq(variables['applytags'], true) }}:
