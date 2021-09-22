@@ -145,6 +145,8 @@
     <Build Include="CTL\Stored Procedures\UpsertManifestRecord.sql" />
     <Build Include="CTL\Tables\TechRecRawToCleansed.sql" />
     <Build Include="CTL\Stored Procedures\CreateTechRecRawToCleansed.sql" />
+    <Build Include="CTL\Views\vw_TechRecSrcToRaw.sql" />
+    <Build Include="CTL\Views\vw_TechRecRawToCleansed.sql" />
   </ItemGroup>
   <ItemGroup>
     <PostDeploy Include="Script.PostDeployment1.sql" />
