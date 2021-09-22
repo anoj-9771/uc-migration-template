@@ -14658,5 +14658,436 @@ SELECT [ExecutionLogId]
 				<Property Name="HeaderContents" Value="&#xD;&#xA;CREATE VIEW [CTL].[vw_TaskExecutionDetails]&#xD;&#xA;AS" />
 			</Annotation>
 		</Element>
+		<Element Type="SqlView" Name="[CTL].[vw_TechRecRawToCleansed]">
+			<Property Name="QueryScript">
+				<Value><![CDATA[ 
+SELECT [TechRecID]
+	,S.SourceGroup
+	,S.SourceLocation	
+	,[SourceFileDateStamp]
+	,[TargetName]
+	,[ManifestTotalNoRecords]
+	,[TargetTableRowCount]
+	,CASE WHEN ManifestTotalNoRecords = TargetTableRowCount THEN 'Passed' ELSE 'Failed' END AS TechRecRawToCleansed
+	,TL.StartTime
+	,TL.EndTime
+	,BL.BatchExecutionStatus
+	,TL.ExecutionStatus AS TaskExecutionStatus
+FROM [CTL].TechRecRawToCleansed TR
+	INNER JOIN CTL.ControlTasks T ON TR.TaskId = T.TaskId
+	INNER JOIN CTL.ControlSource S ON T.SourceId = S.SourceId
+	INNER JOIN CTL.TaskExecutionLog TL ON TR.TaskExecutionLogId = TL.ExecutionLogId
+	INNER JOIN CTL.BatchExecutionLog BL ON TR.BatchExecutionId = BL.BatchExecutionLogId]]></Value>
+			</Property>
+			<Property Name="IsAnsiNullsOn" Value="True" />
+			<Relationship Name="Columns">
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_TechRecRawToCleansed].[TechRecID]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[TechRecRawToCleansed].[TechRecID]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_TechRecRawToCleansed].[SourceGroup]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[ControlSource].[SourceGroup]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_TechRecRawToCleansed].[SourceLocation]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[ControlSource].[SourceLocation]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_TechRecRawToCleansed].[SourceFileDateStamp]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[TechRecRawToCleansed].[SourceFileDateStamp]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_TechRecRawToCleansed].[TargetName]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[TechRecRawToCleansed].[TargetName]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_TechRecRawToCleansed].[ManifestTotalNoRecords]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[TechRecRawToCleansed].[ManifestTotalNoRecords]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_TechRecRawToCleansed].[TargetTableRowCount]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[TechRecRawToCleansed].[TargetTableRowCount]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_TechRecRawToCleansed].[TechRecRawToCleansed]" />
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_TechRecRawToCleansed].[StartTime]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[TaskExecutionLog].[StartTime]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_TechRecRawToCleansed].[EndTime]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[TaskExecutionLog].[EndTime]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_TechRecRawToCleansed].[BatchExecutionStatus]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[BatchExecutionLog].[BatchExecutionStatus]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_TechRecRawToCleansed].[TaskExecutionStatus]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[TaskExecutionLog].[ExecutionStatus]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+			</Relationship>
+			<Relationship Name="QueryDependencies">
+				<Entry>
+					<References Name="[CTL].[TechRecRawToCleansed]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlTasks]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[TechRecRawToCleansed].[TaskId]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlTasks].[TaskId]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlSource]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlTasks].[SourceId]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlSource].[SourceId]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[TaskExecutionLog]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[TechRecRawToCleansed].[TaskExecutionLogId]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[TaskExecutionLog].[ExecutionLogId]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[BatchExecutionLog]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[TechRecRawToCleansed].[BatchExecutionId]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[BatchExecutionLog].[BatchExecutionLogId]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[TechRecRawToCleansed].[TechRecID]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlSource].[SourceGroup]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlSource].[SourceLocation]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[TechRecRawToCleansed].[SourceFileDateStamp]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[TechRecRawToCleansed].[TargetName]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[TechRecRawToCleansed].[ManifestTotalNoRecords]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[TechRecRawToCleansed].[TargetTableRowCount]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[TaskExecutionLog].[StartTime]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[TaskExecutionLog].[EndTime]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[BatchExecutionLog].[BatchExecutionStatus]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[TaskExecutionLog].[ExecutionStatus]" />
+				</Entry>
+			</Relationship>
+			<Relationship Name="Schema">
+				<Entry>
+					<References Name="[CTL]" />
+				</Entry>
+			</Relationship>
+			<Annotation Type="SysCommentsObjectAnnotation">
+				<Property Name="Length" Value="736" />
+				<Property Name="StartLine" Value="1" />
+				<Property Name="StartColumn" Value="1" />
+				<Property Name="HeaderContents" Value="CREATE VIEW [CTL].[vw_TechRecRawToCleansed]&#xD;&#xA;AS" />
+			</Annotation>
+		</Element>
+		<Element Type="SqlView" Name="[CTL].[vw_TechRecSrcToRaw]">
+			<Property Name="QueryScript">
+				<Value><![CDATA[
+SELECT [ManifestID]
+	,S.SourceGroup
+    ,S.SourceLocation
+	,[SourceFileDateStamp]
+    ,[RecordCountDeltaTable]
+	,[M_DeltaRecordCount]
+	,CASE WHEN M.M_DeltaRecordCount = M.RecordCountDeltaTable THEN 'Passed' ELSE 'Failed' END AS SrcToRawMatchStatus
+	,TL.StartTime
+	,TL.EndTime
+	,B.BatchExecutionStatus
+	,TL.ExecutionStatus AS TaskExecutionStatus
+FROM [CTL].[ControlManifest] M
+	INNER JOIN CTL.BatchExecutionLog B ON M.BatchExecutionLogID = B.BatchExecutionLogId
+	INNER JOIN CTL.TaskExecutionLog TL ON M.TaskExecutionLogID = TL.ExecutionLogId
+	INNER JOIN CTL.ControlTasks T ON TL.ControlTaskId = T.TaskId
+	INNER JOIN CTL.ControlSource S ON T.SourceId = S.SourceId
+	INNER JOIN CTL.ControlTypes ST ON S.SourceTypeId = ST.TypeId
+WHERE ST.ControlType = 'BLOB Storage (json)']]></Value>
+			</Property>
+			<Property Name="IsAnsiNullsOn" Value="True" />
+			<Relationship Name="Columns">
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_TechRecSrcToRaw].[ManifestID]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[ControlManifest].[ManifestID]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_TechRecSrcToRaw].[SourceGroup]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[ControlSource].[SourceGroup]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_TechRecSrcToRaw].[SourceLocation]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[ControlSource].[SourceLocation]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_TechRecSrcToRaw].[SourceFileDateStamp]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[ControlManifest].[SourceFileDateStamp]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_TechRecSrcToRaw].[RecordCountDeltaTable]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[ControlManifest].[RecordCountDeltaTable]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_TechRecSrcToRaw].[M_DeltaRecordCount]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[ControlManifest].[M_DeltaRecordCount]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_TechRecSrcToRaw].[SrcToRawMatchStatus]" />
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_TechRecSrcToRaw].[StartTime]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[TaskExecutionLog].[StartTime]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_TechRecSrcToRaw].[EndTime]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[TaskExecutionLog].[EndTime]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_TechRecSrcToRaw].[BatchExecutionStatus]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[BatchExecutionLog].[BatchExecutionStatus]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_TechRecSrcToRaw].[TaskExecutionStatus]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[TaskExecutionLog].[ExecutionStatus]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+			</Relationship>
+			<Relationship Name="QueryDependencies">
+				<Entry>
+					<References Name="[CTL].[ControlManifest]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[BatchExecutionLog]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlManifest].[BatchExecutionLogID]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[BatchExecutionLog].[BatchExecutionLogId]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[TaskExecutionLog]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlManifest].[TaskExecutionLogID]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[TaskExecutionLog].[ExecutionLogId]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlTasks]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[TaskExecutionLog].[ControlTaskId]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlTasks].[TaskId]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlSource]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlTasks].[SourceId]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlSource].[SourceId]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlTypes]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlSource].[SourceTypeId]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlTypes].[TypeId]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlManifest].[ManifestID]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlSource].[SourceGroup]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlSource].[SourceLocation]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlManifest].[SourceFileDateStamp]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlManifest].[RecordCountDeltaTable]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlManifest].[M_DeltaRecordCount]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlManifest].[M_DeltaRecordCount]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlManifest].[RecordCountDeltaTable]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[TaskExecutionLog].[StartTime]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[TaskExecutionLog].[EndTime]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[BatchExecutionLog].[BatchExecutionStatus]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[TaskExecutionLog].[ExecutionStatus]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlTypes].[ControlType]" />
+				</Entry>
+			</Relationship>
+			<Relationship Name="Schema">
+				<Entry>
+					<References Name="[CTL]" />
+				</Entry>
+			</Relationship>
+			<Annotation Type="SysCommentsObjectAnnotation">
+				<Property Name="Length" Value="825" />
+				<Property Name="StartLine" Value="1" />
+				<Property Name="StartColumn" Value="1" />
+				<Property Name="HeaderContents" Value="CREATE VIEW CTL.vw_TechRecSrcToRaw&#xD;&#xA;AS" />
+			</Annotation>
+		</Element>
 	</Model>
 </DataSchemaModel>
