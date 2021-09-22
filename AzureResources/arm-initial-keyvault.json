@@ -83,13 +83,6 @@
                 "description": "Specifies whether the 'soft delete' functionality is enabled for this key vault."
             }
         },
-        "adfResourceId": {
-            "type": "string",
-            "defaultValue": "",
-            "metadata": {
-                "description": "Resource ID of Data Factory (Required for Network ACL)"
-            }
-        },
         "internalSubnetId": {
             "type": "string",
             "metadata": {
@@ -134,12 +127,6 @@
                     "family": "A"
                 },
                 "networkAcls": {
-                    "resourceAccessRules": [
-                        {
-                            "tenantId": "[subscription().tenantId]",
-                            "resourceId": "[parameters('adfResourceId')]"
-                        }
-                    ],
                     "bypass": "AzureServices",
                     "virtualNetworkRules": [
                         {
