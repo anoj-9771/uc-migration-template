@@ -82,30 +82,6 @@
             "metadata": {
                 "description": "Specifies whether the 'soft delete' functionality is enabled for this key vault."
             }
-        },
-        "internalSubnetId": {
-            "type": "string",
-            "metadata": {
-                "description": "Resource ID of Internal Subnet (Used by Private Endpoints and VMs)"
-            }
-        },
-        "databricksPrivateSubnetId": {
-            "type": "string",
-            "metadata": {
-                "description": "Resource ID of Databricks Private Subnet"
-            }
-        },
-        "databricksPublicSubnetId": {
-            "type": "string",
-            "metadata": {
-                "description": "Resource ID of Databricks Public Subnet"
-            }
-        },
-        "diagnosticSettingsWorkspaceID": {
-            "type": "string",
-            "metadata": {
-                "description": "Log Analytics Workspace ID for Logs"
-            }
         }
     },
     "resources": [
@@ -128,42 +104,9 @@
                 },
                 "networkAcls": {
                     "bypass": "AzureServices",
-                    "virtualNetworkRules": [
-                        {
-                            "id": "[parameters('internalSubnetId')]",
-                            "action": "Allow"
-                        },
-                        {
-                            "id": "[parameters('databricksPrivateSubnetId')]",
-                            "action": "Allow"
-                        },
-                        {
-                            "id": "[parameters('databricksPublicSubnetId')]",
-                            "action": "Allow"
-                        }
-                    ],
                     "defaultAction": "Deny"
                 }
-            },
-            "resources": [
-                {
-                    "type": "Microsoft.KeyVault/vaults/providers/diagnosticsettings",
-                    "apiVersion": "2016-09-01",
-                    "name": "[concat(parameters('keyVaultName'), '/Microsoft.Insights/service')]",
-                    "dependsOn": [
-                        "[resourceId('Microsoft.KeyVault/vaults', Parameters('keyVaultName'))]"
-                    ],
-                    "properties": {
-                        "workspaceId": "[parameters('diagnosticSettingsWorkspaceID')]",
-                        "logs": [
-                            {
-                                "category": "AuditEvent",
-                                "enabled": true
-                            }
-                        ]
-                    }
-                }
-            ]
+            }
         },
         {
             "type": "Microsoft.KeyVault/vaults/secrets",
