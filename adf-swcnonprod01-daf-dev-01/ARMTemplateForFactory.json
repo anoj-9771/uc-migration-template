@@ -39,6 +39,10 @@
 			"type": "string",
 			"defaultValue": "@linkedService().kvSecret"
 		},
+		"IntegrationRuntime-SelfHosted_properties_typeProperties_linkedInfo_resourceId": {
+            "type": "string",
+            "defaultValue": "/subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourcegroups/rg-swcnonprod01-daf-dev-01/providers/Microsoft.DataFactory/factories/adf-swcnonprod01-daf-dev-01/integrationruntimes/IntegrationRuntime-SelfHosted"
+        },
 		"DLY1300_properties_01-Main_parameters_TriggerName": {
 			"type": "string",
 			"defaultValue": "DLY1300"
@@ -9830,16 +9834,19 @@
 				"[concat(variables('factoryId'), '/managedVirtualNetworks/default')]"
 			]
 		},
-		{
-			"name": "[concat(parameters('factoryName'), '/IntegrationRuntime-SelfHosted')]",
-			"type": "Microsoft.DataFactory/factories/integrationRuntimes",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"type": "SelfHosted",
-				"typeProperties": {
-					"linkedInfo": {}	
-				}
-			},
+        {
+            "name": "[concat(parameters('factoryName'), '/IntegrationRuntime-SelfHosted')]",
+            "type": "Microsoft.DataFactory/factories/integrationRuntimes",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "type": "SelfHosted",
+                "typeProperties": {
+                    "linkedInfo": {
+                        "resourceId": "[parameters('IntegrationRuntime-SelfHosted_properties_typeProperties_linkedInfo_resourceId')]",
+                        "authorizationType": "Rbac"
+                    }
+                }
+            },
 			"dependsOn": []
 		},
 		{
