@@ -1,4 +1,3 @@
-
 {
 	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
 	"contentVersion": "1.0.0.0",
@@ -188,6 +187,10 @@
 						}
 					}
 				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
 				"parameters": {
 					"TriggerName": {
 						"type": "string",
@@ -306,6 +309,10 @@
 						}
 					}
 				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
 				"parameters": {
 					"ProjectId": {
 						"type": "int"
@@ -877,6 +884,10 @@
 						}
 					}
 				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
 				"parameters": {
 					"StageId": {
 						"type": "int"
@@ -1093,7 +1104,7 @@
 														"type": "ExecutePipeline",
 														"dependsOn": [
 															{
-																"activity": "SP-Record-Manifest",
+																"activity": "SP-Upsert-Manifest-Record-Data",
 																"dependencyConditions": [
 																	"Succeeded"
 																]
@@ -1129,6 +1140,14 @@
 																},
 																"ProjectRunID": {
 																	"value": "@pipeline().parameters.ProjectRunID",
+																	"type": "Expression"
+																},
+																"SourceFileName": {
+																	"value": "@variables('FileName')",
+																	"type": "Expression"
+																},
+																"SourceFileDateTimeStamp": {
+																	"value": "@variables('FileDateTimeStamp')",
 																	"type": "Expression"
 																}
 															}
@@ -1247,7 +1266,7 @@
 														}
 													},
 													{
-														"name": "SP-Record-Manifest",
+														"name": "SP-Upsert-Manifest-Record-Data",
 														"type": "SqlServerStoredProcedure",
 														"dependsOn": [
 															{
@@ -1266,7 +1285,7 @@
 														},
 														"userProperties": [],
 														"typeProperties": {
-															"storedProcedureName": "[[CTL].[CreateManifestRecord]",
+															"storedProcedureName": "[[CTL].[UpsertManifestRecord]",
 															"storedProcedureParameters": {
 																"BatchExecutionLogID": {
 																	"value": {
@@ -1333,6 +1352,24 @@
 																		"type": "Expression"
 																	},
 																	"type": "Int64"
+																},
+																"SourceFileName": {
+																	"value": {
+																		"value": "@variables('FileName')",
+																		"type": "Expression"
+																	},
+																	"type": "String"
+																},
+																"IsManifest": {
+																	"value": "false",
+																	"type": "Boolean"
+																},
+																"SourceFileDateStamp": {
+																	"value": {
+																		"value": "@variables('FileDateTimeStamp')",
+																		"type": "Expression"
+																	},
+																	"type": "String"
 																}
 															}
 														},
@@ -1418,7 +1455,7 @@
 														"type": "Copy",
 														"dependsOn": [
 															{
-																"activity": "Copy Manifest to Raw Zone",
+																"activity": "SP-Update-Manifest-Value",
 																"dependencyConditions": [
 																	"Succeeded"
 																]
@@ -1473,7 +1510,7 @@
 																"type": "DatasetReference",
 																"parameters": {
 																	"BlobContainer": {
-																		"value": "@concat(variables('ProjectName'),pipeline().parameters.RunDate,pipeline().parameters.RunTime)",
+																		"value": "@concat(variables('ProjectName'),'/',pipeline().parameters.RunDate,'/',pipeline().parameters.RunTime)",
 																		"type": "Expression"
 																	}
 																}
@@ -1524,6 +1561,235 @@
 																"enablePartitionDiscovery": false
 															}
 														}
+													},
+													{
+														"name": "SP-Upsert-Manifest-Record",
+														"type": "SqlServerStoredProcedure",
+														"dependsOn": [
+															{
+																"activity": "Copy Manifest to Raw Zone",
+																"dependencyConditions": [
+																	"Succeeded"
+																]
+															}
+														],
+														"policy": {
+															"timeout": "7.00:00:00",
+															"retry": 0,
+															"retryIntervalInSeconds": 30,
+															"secureOutput": false,
+															"secureInput": false
+														},
+														"userProperties": [],
+														"typeProperties": {
+															"storedProcedureName": "[[CTL].[UpsertManifestRecord]",
+															"storedProcedureParameters": {
+																"BatchExecutionLogID": {
+																	"value": {
+																		"value": "@pipeline().parameters.BatchLogId",
+																		"type": "Expression"
+																	},
+																	"type": "Int64"
+																},
+																"Container": {
+																	"value": "raw",
+																	"type": "String"
+																},
+																"DeltaColumn": {
+																	"value": null,
+																	"type": "String"
+																},
+																"EndCounter": {
+																	"value": "0",
+																	"type": "String"
+																},
+																"FileName": {
+																	"value": {
+																		"value": "@activity('Get Full File Name').output.firstrow.StorageFile",
+																		"type": "Expression"
+																	},
+																	"type": "String"
+																},
+																"FolderName": {
+																	"value": {
+																		"value": "@activity('Get Full File Name').output.firstrow.StorageFolder",
+																		"type": "Expression"
+																	},
+																	"type": "String"
+																},
+																"PipelineRunID": {
+																	"value": {
+																		"value": "@pipeline().RunId",
+																		"type": "Expression"
+																	},
+																	"type": "String"
+																},
+																"Records": {
+																	"value": "1",
+																	"type": "Int64"
+																},
+																"RecordsDeltaTable": {
+																	"value": null,
+																	"type": "Int64"
+																},
+																"SourceFileName": {
+																	"value": {
+																		"value": "@variables('FileName')",
+																		"type": "Expression"
+																	},
+																	"type": "String"
+																},
+																"SourceObject": {
+																	"value": {
+																		"value": "@pipeline().parameters.TaskDetails.SourceName",
+																		"type": "Expression"
+																	},
+																	"type": "String"
+																},
+																"StartCounter": {
+																	"value": "0",
+																	"type": "String"
+																},
+																"TaskExecutionLogID": {
+																	"value": {
+																		"value": "@pipeline().parameters.TaskExecutionLogId",
+																		"type": "Expression"
+																	},
+																	"type": "Int64"
+																},
+																"IsManifest": {
+																	"value": "true",
+																	"type": "Boolean"
+																},
+																"SourceFileDateStamp": {
+																	"value": {
+																		"value": "@variables('FileDateTimeStamp')",
+																		"type": "Expression"
+																	},
+																	"type": "String"
+																}
+															}
+														},
+														"linkedServiceName": {
+															"referenceName": "LS-AzureSqlDatabase_Ctrldb",
+															"type": "LinkedServiceReference",
+															"parameters": {
+																"kvSecret": "daf-sql-controldb-connectionstring"
+															}
+														}
+													},
+													{
+														"name": "Notebook-Read-Manifest-Value",
+														"type": "DatabricksNotebook",
+														"dependsOn": [
+															{
+																"activity": "SP-Upsert-Manifest-Record",
+																"dependencyConditions": [
+																	"Succeeded"
+																]
+															}
+														],
+														"policy": {
+															"timeout": "7.00:00:00",
+															"retry": 0,
+															"retryIntervalInSeconds": 30,
+															"secureOutput": false,
+															"secureInput": false
+														},
+														"userProperties": [],
+														"typeProperties": {
+															"notebookPath": {
+																"value": "@variables('NoteBookURL')",
+																"type": "Expression"
+															},
+															"baseParameters": {
+																"file_object": {
+																	"value": "@concat(activity('Get Full File Name').output.firstrow.StorageFolder,activity('Get Full File Name').output.firstrow.StorageFile)",
+																	"type": "Expression"
+																}
+															}
+														},
+														"linkedServiceName": {
+															"referenceName": "LS-AzureDatabricks_DefinedCluster",
+															"type": "LinkedServiceReference",
+															"parameters": {
+																"kvSecret": {
+																	"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[0]",
+																	"type": "Expression"
+																},
+																"clusterId": {
+																	"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[1]",
+																	"type": "Expression"
+																}
+															}
+														}
+													},
+													{
+														"name": "SP-Update-Manifest-Value",
+														"type": "SqlServerStoredProcedure",
+														"dependsOn": [
+															{
+																"activity": "Notebook-Read-Manifest-Value",
+																"dependencyConditions": [
+																	"Succeeded"
+																]
+															}
+														],
+														"policy": {
+															"timeout": "7.00:00:00",
+															"retry": 0,
+															"retryIntervalInSeconds": 30,
+															"secureOutput": false,
+															"secureInput": false
+														},
+														"userProperties": [],
+														"typeProperties": {
+															"storedProcedureName": "[[CTL].[UpdateManifestValue]",
+															"storedProcedureParameters": {
+																"BatchExecutionLogID": {
+																	"value": {
+																		"value": "@pipeline().parameters.BatchLogId",
+																		"type": "Expression"
+																	},
+																	"type": "Int64"
+																},
+																"M_DeltaRecordCount": {
+																	"value": {
+																		"value": "@string(activity('Notebook-Read-Manifest-Value').output.runOutput.DELTA_RECORD_COUNT)",
+																		"type": "Expression"
+																	},
+																	"type": "Int64"
+																},
+																"SourceFileDateStamp": {
+																	"value": {
+																		"value": "@variables('FileDateTimeStamp')",
+																		"type": "Expression"
+																	},
+																	"type": "String"
+																},
+																"TaskExecutionLogID": {
+																	"value": {
+																		"value": "@pipeline().parameters.TaskExecutionLogId",
+																		"type": "Expression"
+																	},
+																	"type": "Int64"
+																},
+																"M_TotalNoRows": {
+																	"value": {
+																		"value": "@string(activity('Notebook-Read-Manifest-Value').output.runOutput.TOTAL_NO_OF_ROWS)",
+																		"type": "Expression"
+																	},
+																	"type": "Int64"
+																}
+															}
+														},
+														"linkedServiceName": {
+															"referenceName": "LS-AzureSqlDatabase_Ctrldb",
+															"type": "LinkedServiceReference",
+															"parameters": {
+																"kvSecret": "daf-sql-controldb-connectionstring"
+															}
+														}
 													}
 												]
 											}
@@ -1535,13 +1801,7 @@
 									"type": "SetVariable",
 									"dependsOn": [
 										{
-											"activity": "SET-FileName to Child Item",
-											"dependencyConditions": [
-												"Succeeded"
-											]
-										},
-										{
-											"activity": "Get Full File Name",
+											"activity": "Set FileDateTimeStamp",
 											"dependencyConditions": [
 												"Succeeded"
 											]
@@ -1583,7 +1843,7 @@
 												"FileName": {
 													"type": "String",
 													"value": {
-														"value": "@pipeline().parameters.TaskDetails.SourceLocation",
+														"value": "@concat(pipeline().parameters.TaskDetails.SourceLocation, if(contains(variables('FileName'),'MANIFEST'),'_MANIFEST',''))",
 														"type": "Expression"
 													}
 												},
@@ -1624,6 +1884,32 @@
 											"parameters": {}
 										},
 										"firstRowOnly": true
+									}
+								},
+								{
+									"name": "Set FileDateTimeStamp",
+									"type": "SetVariable",
+									"dependsOn": [
+										{
+											"activity": "Get Full File Name",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										},
+										{
+											"activity": "SET-FileName to Child Item",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"userProperties": [],
+									"typeProperties": {
+										"variableName": "FileDateTimeStamp",
+										"value": {
+											"value": "@replace(last(split(variables('FileName'),'_')),'.json','')",
+											"type": "Expression"
+										}
 									}
 								}
 							]
@@ -1810,6 +2096,10 @@
 						}
 					}
 				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
 				"parameters": {
 					"TaskDetails": {
 						"type": "object"
@@ -1869,6 +2159,13 @@
 					},
 					"ProjectName": {
 						"type": "String"
+					},
+					"FileDateTimeStamp": {
+						"type": "String"
+					},
+					"NoteBookURL": {
+						"type": "String",
+						"defaultValue": "/build/raw/read-manifest-value"
 					}
 				},
 				"folder": {
@@ -1884,6 +2181,7 @@
 				"[concat(variables('factoryId'), '/datasets/RAW_ADLS_JSON_v2')]",
 				"[concat(variables('factoryId'), '/pipelines/04-DL-Load-Raw-to-Delta-Table')]",
 				"[concat(variables('factoryId'), '/datasets/ARCHIVE_BLOB_JSON')]",
+				"[concat(variables('factoryId'), '/linkedServices/LS-AzureDatabricks_DefinedCluster')]",
 				"[concat(variables('factoryId'), '/linkedServices/LS_AzureDatalake')]"
 			]
 		},
@@ -2591,6 +2889,10 @@
 						}
 					}
 				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
 				"parameters": {
 					"TaskDetails": {
 						"type": "object"
@@ -2712,6 +3014,10 @@
 											"source_param": {
 												"value": "@string(pipeline().parameters.TaskDetails)",
 												"type": "Expression"
+											},
+											"file_date_time_stamp": {
+												"value": "@pipeline().parameters.SourceFileDateTimeStamp",
+												"type": "Expression"
 											}
 										}
 									},
@@ -2785,6 +3091,10 @@
 											"source_param": {
 												"value": "@string(pipeline().parameters.TaskDetails)",
 												"type": "Expression"
+											},
+											"file_date_time_stamp": {
+												"value": "@pipeline().parameters.SourceFileDateTimeStamp",
+												"type": "Expression"
 											}
 										}
 									},
@@ -2827,7 +3137,7 @@
 						}
 					},
 					{
-						"name": "SP-Record-Manifest",
+						"name": "SP-Update-Manifest-Delta-Records",
 						"type": "SqlServerStoredProcedure",
 						"dependsOn": [
 							{
@@ -2868,6 +3178,13 @@
 										"type": "Expression"
 									},
 									"type": "Int64"
+								},
+								"SourceFileDateStamp": {
+									"value": {
+										"value": "@pipeline().parameters.SourceFileDateTimeStamp",
+										"type": "Expression"
+									},
+									"type": "String"
 								}
 							}
 						},
@@ -2880,6 +3197,10 @@
 						}
 					}
 				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
 				"parameters": {
 					"BatchLogID": {
 						"type": "int",
@@ -2901,6 +3222,12 @@
 						"defaultValue": "targetdirectory"
 					},
 					"ProjectRunID": {
+						"type": "string"
+					},
+					"SourceFileName": {
+						"type": "string"
+					},
+					"SourceFileDateTimeStamp": {
 						"type": "string"
 					}
 				},
@@ -3419,7 +3746,12 @@
 											"ProjectRunID": {
 												"value": "@pipeline().parameters.ProjectRunID",
 												"type": "Expression"
-											}
+											},
+											"SourceFileName": {
+												"value": "@variables('SourceFileName')",
+												"type": "Expression"
+											},
+											"SourceFileDateTimeStamp": "1"
 										}
 									}
 								},
@@ -3588,14 +3920,14 @@
 											},
 											"FileName": {
 												"value": {
-													"value": "@pipeline().parameters.TargetBLOBName",
+													"value": "@activity('Get Full File Name').output.firstrow.StorageFile",
 													"type": "Expression"
 												},
 												"type": "String"
 											},
 											"FolderName": {
 												"value": {
-													"value": "@pipeline().parameters.TargetBLOBFolder",
+													"value": "@activity('Get Full File Name').output.firstrow.StorageFolder",
 													"type": "Expression"
 												},
 												"type": "String"
@@ -3635,6 +3967,17 @@
 													"type": "Expression"
 												},
 												"type": "String"
+											},
+											"SourceFileName": {
+												"value": {
+													"value": "@variables('SourceFileName')",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"SourceFileDateStamp": {
+												"value": "1",
+												"type": "String"
 											}
 										}
 									},
@@ -3650,6 +3993,10 @@
 						}
 					}
 				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
 				"parameters": {
 					"TaskDetails": {
 						"type": "object"
@@ -4145,6 +4492,10 @@
 						}
 					}
 				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
 				"parameters": {
 					"BatchLogId": {
 						"type": "int"
@@ -4576,6 +4927,10 @@
 						}
 					}
 				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
 				"parameters": {
 					"BatchLogId": {
 						"type": "int"
@@ -4905,6 +5260,10 @@
 						}
 					}
 				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
 				"parameters": {
 					"SourceObject": {
 						"type": "string",
@@ -5950,6 +6309,10 @@
 						}
 					}
 				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
 				"parameters": {
 					"BatchLogId": {
 						"type": "int"
@@ -6162,6 +6525,14 @@
 													"type": "Expression"
 												},
 												"type": "String"
+											},
+											"SourceFileName": {
+												"value": "SQL",
+												"type": "String"
+											},
+											"SourceFileDateStamp": {
+												"value": "1",
+												"type": "String"
 											}
 										}
 									},
@@ -6215,7 +6586,9 @@
 											"ProjectRunID": {
 												"value": "@pipeline().parameters.ProjectRunID",
 												"type": "Expression"
-											}
+											},
+											"SourceFileName": "SQL",
+											"SourceFileDateTimeStamp": "1"
 										}
 									}
 								},
@@ -6257,6 +6630,10 @@
 						}
 					}
 				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
 				"parameters": {
 					"BatchLogId": {
 						"type": "int"
@@ -6584,6 +6961,10 @@
 						}
 					}
 				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
 				"parameters": {
 					"TaskDetails": {
 						"type": "object"
@@ -6879,6 +7260,10 @@
 						}
 					}
 				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
 				"parameters": {
 					"TaskDetails": {
 						"type": "object"
@@ -6998,7 +7383,7 @@
 							"isSequential": true,
 							"activities": [
 								{
-									"name": "SP-UpdateManifest",
+									"name": "SP-Update-Manifest-DL-Cleansed",
 									"type": "SqlServerStoredProcedure",
 									"dependsOn": [
 										{
@@ -7274,7 +7659,7 @@
 						"type": "SqlServerStoredProcedure",
 						"dependsOn": [
 							{
-								"activity": "Loop Manifest",
+								"activity": "If Tech Reconciliation Required",
 								"dependencyConditions": [
 									"Failed"
 								]
@@ -7341,7 +7726,7 @@
 						"type": "SqlServerStoredProcedure",
 						"dependsOn": [
 							{
-								"activity": "Loop Manifest",
+								"activity": "If Tech Reconciliation Required",
 								"dependencyConditions": [
 									"Succeeded"
 								]
@@ -7406,8 +7791,60 @@
 								"kvSecret": "daf-sql-controldb-connectionstring"
 							}
 						}
+					},
+					{
+						"name": "If Tech Reconciliation Required",
+						"type": "IfCondition",
+						"dependsOn": [
+							{
+								"activity": "Loop Manifest",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"expression": {
+								"value": "@and(and(equals(pipeline().parameters.TaskDetails.SourceType,'BLOB Storage (json)'),equals(pipeline().parameters.TaskDetails.ControlStageId,2)),greater(activity('LU-Manifest').output.count,0))",
+								"type": "Expression"
+							},
+							"ifTrueActivities": [
+								{
+									"name": "Execute-Technical-Reconciliation",
+									"type": "ExecutePipeline",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "Technical-Reconciliation",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": true,
+										"parameters": {
+											"TaskDetails": {
+												"value": "@pipeline().parameters.TaskDetails",
+												"type": "Expression"
+											},
+											"BatchLogId": {
+												"value": "@pipeline().parameters.BatchLogId",
+												"type": "Expression"
+											},
+											"TaskExecutionLogId": {
+												"value": "@pipeline().parameters.TaskExecutionLogId",
+												"type": "Expression"
+											}
+										}
+									}
+								}
+							]
+						}
 					}
 				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
 				"parameters": {
 					"TaskDetails": {
 						"type": "object"
@@ -7459,6 +7896,7 @@
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/AzureSqlDatabase_Ctrldb')]",
 				"[concat(variables('factoryId'), '/linkedServices/LS-AzureSqlDatabase_Ctrldb')]",
+				"[concat(variables('factoryId'), '/pipelines/Technical-Reconciliation')]",
 				"[concat(variables('factoryId'), '/linkedServices/LS-AzureDatabricks_JobCluster')]",
 				"[concat(variables('factoryId'), '/linkedServices/LS-AzureDatabricks_DefinedCluster')]"
 			]
@@ -7743,6 +8181,10 @@
 						}
 					}
 				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
 				"parameters": {
 					"TaskDetails": {
 						"type": "object"
@@ -7859,6 +8301,10 @@
 						]
 					}
 				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
 				"folder": {
 					"name": "z_Archive/Test"
 				},
@@ -7867,6 +8313,157 @@
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/SRC_BLOB_JSON_copy1')]",
 				"[concat(variables('factoryId'), '/datasets/RAW_ADLS_JSON_v2')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Technical-Reconciliation')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Notebook-GetDeltaTableRecordCount",
+						"type": "DatabricksNotebook",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"notebookPath": {
+								"value": "@variables('NotbookURL')",
+								"type": "Expression"
+							},
+							"baseParameters": {
+								"target_table": {
+									"value": "@pipeline().parameters.TaskDetails.TargetName",
+									"type": "Expression"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "LS-AzureDatabricks_DefinedCluster",
+							"type": "LinkedServiceReference",
+							"parameters": {
+								"kvSecret": {
+									"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[0]",
+									"type": "Expression"
+								},
+								"clusterId": {
+									"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[1]",
+									"type": "Expression"
+								}
+							}
+						}
+					},
+					{
+						"name": "SP-CreateTechRecRawToCleansed",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "Notebook-GetDeltaTableRecordCount",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "CTL.CreateTechRecRawToCleansed",
+							"storedProcedureParameters": {
+								"BatchExecutionId": {
+									"value": {
+										"value": "@pipeline().parameters.BatchLogId",
+										"type": "Expression"
+									},
+									"type": "Int64"
+								},
+								"TaskExecutionLogId": {
+									"value": {
+										"value": "@pipeline().parameters.TaskExecutionLogId",
+										"type": "Expression"
+									},
+									"type": "Int64"
+								},
+								"TaskId": {
+									"value": {
+										"value": "@pipeline().parameters.TaskDetails.TaskId",
+										"type": "Expression"
+									},
+									"type": "Int64"
+								},
+								"SourceObject": {
+									"value": {
+										"value": "@pipeline().parameters.TaskDetails.SourceName",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"TargetName": {
+									"value": {
+										"value": "@pipeline().parameters.TaskDetails.TargetName",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"TotalNoRecords": {
+									"value": {
+										"value": "@activity('Notebook-GetDeltaTableRecordCount').output.runOutput",
+										"type": "Expression"
+									},
+									"type": "Int64"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "LS-AzureSqlDatabase_Ctrldb",
+							"type": "LinkedServiceReference",
+							"parameters": {
+								"kvSecret": "daf-sql-controldb-connectionstring"
+							}
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"parameters": {
+					"TaskDetails": {
+						"type": "object"
+					},
+					"BatchLogId": {
+						"type": "int"
+					},
+					"TaskExecutionLogId": {
+						"type": "int"
+					}
+				},
+				"variables": {
+					"NotbookURL": {
+						"type": "String",
+						"defaultValue": "/build/cleansed/utility/getDeltaTableRecordCount"
+					}
+				},
+				"folder": {
+					"name": "Validation"
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS-AzureDatabricks_DefinedCluster')]",
+				"[concat(variables('factoryId'), '/linkedServices/LS-AzureSqlDatabase_Ctrldb')]"
 			]
 		},
 		{
@@ -8007,6 +8604,10 @@
 						}
 					}
 				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
 				"parameters": {
 					"ProjectRunID": {
 						"type": "string",
@@ -8206,6 +8807,10 @@
 						}
 					}
 				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
 				"parameters": {
 					"ProjectID": {
 						"type": "int",
@@ -9229,23 +9834,10 @@
 			"name": "[concat(parameters('factoryName'), '/IntegrationRuntime-SelfHosted')]",
 			"type": "Microsoft.DataFactory/factories/integrationRuntimes",
 			"apiVersion": "2018-06-01",
-			 "properties": {
-
-                "type": "SelfHosted",
-
-                "typeProperties": {
-
-                    "linkedInfo": {
-
-                        "resourceId": "/subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourcegroups/rg-swcnonprod01-daf-dev-01/providers/Microsoft.DataFactory/factories/adf-swcnonprod01-daf-dev-01/integrationruntimes/IntegrationRuntime-SelfHosted",
-
-                        "authorizationType": "Rbac"
-
-                    }
-
-                }
-
-            },
+			"properties": {
+				"type": "SelfHosted",
+				"typeProperties": {}
+			},
 			"dependsOn": []
 		},
 		{
