@@ -14,6 +14,10 @@ print('\tThis function will verify nullable flags in schema against table defini
 def verifyTableSchema(table, newSchema):
     from pyspark.sql.types import StructType, StructField, IntegerType, StringType, TimestampType, BooleanType, FloatType, DecimalType, DateType, LongType
     
+    #This function is not relevant for tables in the raw layer or the staged step of the cleansed layer
+    if table.split('.')[0] == 'raw' or (table.split('.')[0] == 'cleansed' and table.split('.')[1][:5] == 'stg_'):
+        return
+    
     dfStruct = []
     desiredStruct = []
     alterStmts = []
