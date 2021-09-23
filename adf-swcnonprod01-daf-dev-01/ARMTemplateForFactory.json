@@ -9837,10 +9837,7 @@
 			"properties": {
 				"type": "SelfHosted",
 				"typeProperties": {
-					"linkedInfo": {
-						"resourceId": "/subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourcegroups/rg-swcnonprod01-daf-dev-01/providers/Microsoft.DataFactory/factories/adf-swcnonprod01-daf-dev-01/integrationruntimes/IntegrationRuntime-SelfHosted",
-						"authorizationType": "Rbac"		
-					}	
+					"linkedInfo": {}	
 				}
 			},
 			"dependsOn": []
