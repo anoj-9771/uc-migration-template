@@ -154,7 +154,7 @@ DeltaSaveToDeltaTable (
 df_updated_column_temp = spark.sql("SELECT \
                                   EQUI.EQUNR as equipmentNumber,\
                                   to_date(EQUI.DATETO, 'yyyy-MM-dd') as validToDate,\
-                                  case when EQUI.DATEFROM < '1900-01-01' then null else to_date(EQUI.DATEFROM, 'yyyy-MM-dd') end as validFromDate,\
+                                  case when EQUI.DATEFROM < '1900-01-01' then to_date('1900-01-01', 'yyyy-MM-dd') else to_date(EQUI.DATEFROM, 'yyyy-MM-dd') end as validFromDate,\
                                   EQUI.EQART as technicalObjectTypeCode,\
                                   EQUI.INVNR as inventoryNumber,\
                                   EQUI.IWERK as maintenancePlanningPlant,\
@@ -186,7 +186,7 @@ display(df_updated_column_temp)
 cleanse_Schema = StructType(
   [
     StructField("equipmentNumber", StringType(), False),
-    StructField("validToDate", DateType(), True),
+    StructField("validToDate", DateType(), False),
     StructField("validFromDate", DateType(), True),
     StructField("technicalObjectTypeCode", StringType(), True),
     StructField("inventoryNumber", StringType(), True),
