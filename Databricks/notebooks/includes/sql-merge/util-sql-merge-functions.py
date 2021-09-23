@@ -20,9 +20,14 @@ def _GetSQLCollectiveColumnsFromColumnNames(columns, alias = "", func = "", colu
   #Convert the string to a list
   col_list = columns_str.split(',')
   
+  #Start of Fix for Handling Null in Key Coulumns
+  if alias == "SRC":
+    col_list = [item + '_TX' for item in col_list] 
+  #End of Fix for Handling Null in Key Coulumns
+    
   #Add quotes to quality the column names
   col_list = [column_qualifer + item + column_qualifer for item in col_list]
-
+    
   #If using alias names, append the alias name and a dot to the list elements
   if alias != "":
     src_col_list = [alias + "." + item for item in col_list]
