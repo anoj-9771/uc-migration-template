@@ -1,0 +1,74 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"value": "adf-swcnonprod01-daf-dev-01"
+		},
+		"LS-AzureKeyVault_properties_typeProperties_baseUrl": {
+			"value": "https://kv-daf-dev-01.vault.azure.net/"
+		},
+		"LS-AzureSqlDatabase_Ctrldb_properties_typeProperties_connectionString_secretName": {
+			"value": "@linkedService().kvSecret"
+		},
+		"LS_AzureBlobStorage_properties_typeProperties_serviceEndpoint": {
+			"value": "https://saswcnonprod01landingdev.blob.core.windows.net"
+		},
+		"LS_AzureBlobStorage_properties_typeProperties_tenant": {
+			"value": "8351bb5c-749d-4ee4-b1c4-71a3971acbe9"
+		},
+		"LS_AzureBlobStorage_properties_typeProperties_servicePrincipalId": {
+			"value": "acff96db-8630-433b-bbb1-35a3813fa036"
+		},
+		"LS_AzureDatalake_properties_typeProperties_url": {
+			"value": "https://sadafdev01.dfs.core.windows.net"
+		},
+		"LS_Oracle_properties_typeProperties_connectionString_secretName": {
+			"value": "@linkedService().kvSecret"
+		},
+		"LS_SQLServer_properties_typeProperties_connectionString_secretName": {
+			"value": "@linkedService().kvSecret"
+		},
+		"DLY1300_properties_01-Main_parameters_TriggerName": {
+			"value": "DLY1300"
+		},
+		"Emrvisaf_properties_01-Main_parameters_TriggerName": {
+			"value": "Emrvisaf"
+		},
+		"PrivateLinkService1_properties_privateLinkResourceId": {
+			"value": "/subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-daf-dev-01/providers/Microsoft.Network/privateLinkServices/pe-link-daf-dev-01"
+		},
+		"PrivateLinkService1_properties_groupId": {
+			"value": ""
+		},
+		"PrivateLinkService1_properties_fqdns": {
+			"value": [
+				"nt097dslt01.adsdev.swcdev"
+			]
+		},
+		"kv-daf-dev-01_properties_privateLinkResourceId": {
+			"value": "/subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-daf-dev-01/providers/Microsoft.KeyVault/vaults/kv-daf-dev-01"
+		},
+		"kv-daf-dev-01_properties_groupId": {
+			"value": "vault"
+		},
+		"pe-saswcnonprod01landingdev_properties_privateLinkResourceId": {
+			"value": "/subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-daf-dev-01/providers/Microsoft.Storage/storageAccounts/saswcnonprod01landingdev"
+		},
+		"pe-saswcnonprod01landingdev_properties_groupId": {
+			"value": "blob"
+		},
+		"sadafdev01_properties_privateLinkResourceId": {
+			"value": "/subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-daf-dev-01/providers/Microsoft.Storage/storageAccounts/sadafdev01"
+		},
+		"sadafdev01_properties_groupId": {
+			"value": "dfs"
+		},
+		"sql-swcnonprod01-daf-dev-01_properties_privateLinkResourceId": {
+			"value": "/subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-daf-dev-01/providers/Microsoft.Sql/servers/sql-swcnonprod01-daf-dev-01"
+		},
+		"sql-swcnonprod01-daf-dev-01_properties_groupId": {
+			"value": "sqlServer"
+		}
+	}
+}
