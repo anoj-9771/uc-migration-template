@@ -70,7 +70,7 @@
         },
         "storageRoleUniqueId": {
             "type": "string",
-            "defaultValue": "d9ba9835-2626-5861-b222-e2ba5985b828"
+            "defaultValue": "[newGuid()]"
         },
         "isNewStorageAccount": {
             "type": "bool",
@@ -206,7 +206,7 @@
                         {
                             "type": "Microsoft.Storage/storageAccounts/providers/roleAssignments",
                             "apiVersion": "2018-09-01-preview",
-                            "name": "[concat(parameters('defaultDataLakeStorageAccountName'), '/Microsoft.Authorization/', parameters('storageRoleUniqueId'))]",
+                            "name": "[concat(parameters('defaultDataLakeStorageAccountName'), '/Microsoft.Authorization/',  guid(concat(resourceGroup().id, '/', variables('storageBlobDataContributorRoleID'), '/', parameters('synapseworkspacename'), '/', parameters('storageRoleUniqueId'))))]",
                             "location": "[parameters('storageLocation')]",
                             "properties": {
                                 "roleDefinitionId": "[resourceId('Microsoft.Authorization/roleDefinitions', variables('storageBlobDataContributorRoleID'))]",
@@ -218,7 +218,7 @@
                             "condition": "[parameters('setSbdcRbacOnStorageAccount')]",
                             "type": "Microsoft.Storage/storageAccounts/providers/roleAssignments",
                             "apiVersion": "2018-09-01-preview",
-                            "name": "[concat(parameters('defaultDataLakeStorageAccountName'), '/Microsoft.Authorization/', parameters('storageRoleUniqueId'))]",
+                            "name": "[concat(parameters('defaultDataLakeStorageAccountName'), '/Microsoft.Authorization/',  guid(concat(resourceGroup().id, '/', variables('storageBlobDataContributorRoleID'), '/', parameters('userObjectId'), '/', parameters('storageRoleUniqueId'))))]",
                             "properties": {
                                 "roleDefinitionId": "[resourceId('Microsoft.Authorization/roleDefinitions', variables('storageBlobDataContributorRoleID'))]",
                                 "principalId": "[parameters('userObjectId')]",
