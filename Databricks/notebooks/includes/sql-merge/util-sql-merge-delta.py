@@ -48,6 +48,7 @@ def _GenerateMergeSQL_DeltaTable(source_table_name, target_table_name, business_
   
   #If Delta Column is a combination of Created and Upated Date then use the _transaction_date as delta column
   delta_column = GeneralGetUpdatedDeltaColumn(delta_column)
+  
 
   #################PART 1 SOURCE QUERY ####################################
   #Get the source data from Raw Zone and wrap in a CTE
@@ -75,7 +76,11 @@ def _GenerateMergeSQL_DeltaTable(source_table_name, target_table_name, business_
 #   sql += TAB + f"SELECT {business_key_updated} AS merge_key, {ALIAS_TABLE_SOURCE}.* FROM {ALIAS_TABLE_SOURCE}" + NEW_LINE
 #   #We need RecordVersion only if it is the Delta Table load from the Raw Zone because we want the last version
 #   #For SQL Server, this would have already been resolved
-  
+  #Start of Arman's Fix
+  isSAPISU = False
+  if source_table_name != None and "sapisu" in source_table_name:
+    isSAPISU = True
+  #End of Arman's Fix
   #Create a MERGE SQL for SCD
   sql += f"MERGE INTO {target_table_name} {ALIAS_TABLE_MAIN} " + NEW_LINE
   sql += "USING (" + NEW_LINE
@@ -87,8 +92,11 @@ def _GenerateMergeSQL_DeltaTable(source_table_name, target_table_name, business_
 
   #Get data from the first CTE above
   sql += TAB + f"SELECT {ALIAS_TABLE_SOURCE}.*, {business_key_updated} AS merge_key" + NEW_LINE
-  if not is_delta_extract and target_data_lake_zone == ADS_DATABASE_CLEANSED :
-    sql += TAB + ",ROW_NUMBER() OVER (PARTITION BY " + business_key_updated + " ORDER BY " + COL_DL_RAW_LOAD + " DESC) AS " + COL_RECORD_VERSION + NEW_LINE
+  if not is_delta_extract and target_data_lake_zone == ADS_DATABASE_CLEANSED and isSAPISU:
+    sql += TAB + ",ROW_NUMBER() OVER (PARTITION BY " + business_key_updated + " ORDER BY " + COL_DL_RAW_LOAD + " DESC) AS " + COL_RECORD_VERSION + NEW_LINE    
+    
+  if not is_delta_extract and target_data_lake_zone == ADS_DATABASE_CLEANSED and not isSAPISU:
+    sql += TAB + ",ROW_NUMBER() OVER (PARTITION BY " + business_key_updated + " ORDER BY " + COL_DL_RAW_LOAD + " DESC) AS " + COL_RECORD_VERSION + NEW_LINE    
     
   if is_delta_extract and target_data_lake_zone == ADS_DATABASE_CLEANSED :
     sql += TAB + ",ROW_NUMBER() OVER (PARTITION BY " + business_key_updated + " ORDER BY " + delta_column + " DESC, " + COL_DL_RAW_LOAD + " DESC) AS " + COL_RECORD_VERSION + NEW_LINE
@@ -179,7 +187,6 @@ def _SQLSourceSelect_DeltaTable(source_table, business_key, delta_column, start_
   #Ideally when daily data load happens, we will only have 1 version
 
   tbl_alias = "SRC"
-  #business_key_updated = _GetSQLCollectiveColumnsFromColumnNames(business_key,'' , "CONCAT", DELTA_COL_QUALIFER)
   business_key_updated = _GetSQLCollectiveColumnsFromColumnNames(business_key, tbl_alias, "CONCAT", DELTA_COL_QUALIFER)
   
   #Start of Fix for Handling Null in Key Coulumns
