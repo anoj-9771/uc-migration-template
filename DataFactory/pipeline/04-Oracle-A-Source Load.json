@@ -373,7 +373,7 @@
 				}
 			},
 			{
-				"name": "Task Log Failure FileName",
+				"name": "Task Log Failure FileNamee",
 				"type": "SqlServerStoredProcedure",
 				"dependsOn": [
 					{
