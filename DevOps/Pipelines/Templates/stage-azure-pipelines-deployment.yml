@@ -187,6 +187,7 @@ stages:
           defaultDataLakeStorageAccountName: ${{ variables.defaultDataLakeStorageAccountName }}
           defaultDataLakeStorageFilesystemName: ${{ variables.defaultDataLakeStorageFilesystemName }}
           synapsesqlPoolName: ${{ variables.synapsesqlPoolName }}
+          setWorkspaceIdentityRbacOnStorageAccount: ${{ variables.setWorkspaceIdentityRbacOnStorageAccount }}
 
     # Deploy Private Endpoints
     - ${{ if eq(variables['privateendpoints'], true) }}:
