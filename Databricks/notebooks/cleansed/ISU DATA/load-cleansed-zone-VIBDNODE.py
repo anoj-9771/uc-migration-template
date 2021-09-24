@@ -168,6 +168,7 @@ display(df_updated_column_temp)
 
 # COMMAND ----------
 
+
 # Create schema for the cleanse table
 cleanse_Schema = StructType(
   [
@@ -200,3 +201,12 @@ DeltaSaveDataframeDirect(df_updated_column, "t", source_object, ADS_DATABASE_CLE
 
 # DBTITLE 1,13. Exit Notebook
 dbutils.notebook.exit("1")
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC select count(*) FROM cleansed.stg_sapisu_vibdnode;
+# MAGIC 
+# MAGIC 
+# MAGIC 
+# MAGIC   
