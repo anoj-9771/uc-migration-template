@@ -190,12 +190,12 @@ def _SQLSourceSelect_DeltaTable(source_table, business_key, delta_column, start_
   business_key_updated = _GetSQLCollectiveColumnsFromColumnNames(business_key, tbl_alias, "CONCAT", DELTA_COL_QUALIFER)
   
   #Start of Fix for Handling Null in Key Coulumns
-  #Transform the business_key column string to business_key column string with a suffix of '_TX'
+  #Transform the business_key column string to business_key column string with a suffix of '-TX'
   business_key_tx = _GetSQLCollectiveColumnsFromColumnNames(business_key, tbl_alias, '', DELTA_COL_QUALIFER)
   business_key_tx = business_key_tx.replace("SRC.", "").replace(" ", "")  
   col_list = business_key_tx.split(',') 
-  #Generating the sql string for the additional _TX coulmns
-  col_list =["COALESCE(" + tbl_alias + "." + item.replace("_TX","") + ", 'na') as " + item for item in col_list]
+  #Generating the sql string for the additional '-TX' coulmns
+  col_list =["COALESCE(" + tbl_alias + "." + item.replace("-TX","") + ", 'na') as " + item for item in col_list]
   business_key_tx = ','.join(col_list)
   
   #End of Fix for Handling Null in Key Coulumns
@@ -405,11 +405,11 @@ def _SQLInsertSyntax_DeltaTable_Generate(dataframe, is_delta_extract, delta_colu
   
   business_key =  Params[PARAMS_BUSINESS_KEY_COLUMN]
   buskey_col_list = business_key.split(",")
-  business_key_tx_list = [item + "_TX" for item in buskey_col_list]
+  business_key_tx_list = [item + "-TX" for item in buskey_col_list]
   col_exception_list.extend(buskey_col_list) 
   updated_col_list = _GetExclusiveList(dataframe.columns, col_exception_list)
   updated_col_list.extend(business_key_tx_list)
-  updated_col_list.sort()    
+  updated_col_list.sort()
   #End of Fix for Handling Null in Key Columns
   
   sql_values = _GetSQLCollectiveColumnsFromColumnNames(updated_col_list, alias = "", func = "", column_qualifer = DELTA_COL_QUALIFER)

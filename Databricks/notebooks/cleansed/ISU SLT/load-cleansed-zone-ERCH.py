@@ -348,8 +348,3 @@ DeltaSaveDataframeDirect(df_updated_column, "t", source_object, ADS_DATABASE_CLE
 
 # DBTITLE 1,13. Exit Notebook
 dbutils.notebook.exit("1")
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC select cast("12345678901234567" as dec(17)) from cleansed.stg_sapisu_erch
