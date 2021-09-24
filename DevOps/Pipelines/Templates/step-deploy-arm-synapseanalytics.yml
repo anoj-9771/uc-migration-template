@@ -11,6 +11,8 @@ parameters:
       type: string
     - name: synapsesqlPoolName
       type: string
+    - name: setWorkspaceIdentityRbacOnStorageAccount
+      type: bool
     
 #Deploy Synapse Workspace (Synapse Analytics)
 steps:
