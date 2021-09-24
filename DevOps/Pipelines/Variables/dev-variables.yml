@@ -9,7 +9,7 @@ variables:
   # The default resource group region name
   - name: location
     value: australiaeast
-  # environment name used in service naming..
+  # environment name used in service naming...
   - name: environment
     value: dev
   # Resource group name
@@ -71,7 +71,7 @@ variables:
   - name: logzonename
     value: daflogs
   - name: zonenames
-    value: raw, trusted, cleansed, curated, synapsestaging
+    value: raw, cleansed, curated, datalab, synapsestaging
     # value: raw, stage, sandbox
   # Databricks workspace name for this enironment
   - name: databricksworkspacename
