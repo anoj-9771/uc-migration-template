@@ -59,13 +59,13 @@ variables:
   # as it is split into an array within the ARM 
   # template.
   - name: blobstorageaccountnames
-    value: ${{ replace(lower(variables.prefix),'-','') }}${{ replace(lower(variables.environment),'-','') }}saraw, ${{ replace(lower(variables.prefix),'-','') }}${{ replace(lower(variables.environment),'-','') }}sacurated
+    value: sa$(SUBSCRIPTION)$(INCREMENT)landingtst
   - name: datalakestorageaccountnames
     value: sa$(PREFIX)$(ENVIRONMENT)$(INCREMENT)
   # Container or file system names within storage account
   # Used to iterate in ARM template
   - name: logzonename
-    value: logs_databricks, logs_datafactory, logs_keyvault, logs_datalake
+    value: container1
   - name: zonenames
     value: raw, cleansed, curated, datalab, synapsestaging
     # value: raw, stage, sandbox
