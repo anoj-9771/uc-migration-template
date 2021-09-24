@@ -67,7 +67,7 @@ variables:
   - name: logzonename
     value: logs_databricks, logs_datafactory, logs_keyvault, logs_datalake
   - name: zonenames
-    value: raw, trusted, cleansed, curated, synapsestaging
+    value: raw, cleansed, curated, datalab, synapsestaging
     # value: raw, stage, sandbox
   # Databricks workspace name for this enironment
   - name: databricksworkspacename

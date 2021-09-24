@@ -27,21 +27,23 @@ def GetCommonProperty():
                                             ELSE propertyArea END AS propertyArea \
                                      from cleansed.t_access_z309_tproperty \
                                      where _RecordCurrent = 1 and _RecordDeleted = 0")
-
-  sapisu0ucConbjAttr2Df = spark.sql("select propertyNumber, 'SAPISU' as sourceSystemCode,inferiorPropertyType as PropertyType, superiorPropertyType, \
+  
+  sapisu0ucConbjAttr2Df = spark.sql("select cast(propertyNumber as int), 'SAPISU' as sourceSystemCode,inferiorPropertyType as PropertyType, superiorPropertyType, \
                                             architecturalObjectInternalId, validFromDate as propertyStartDate, LGA,\
                                             coalesce(lead(validFromDate) over (partition by propertyNumber order by validFromDate)-1, \
                                             to_date('9999-12-31', 'yyyy-mm-dd'))  as propertyEndDate \
                                      from cleansed.t_sapisu_0uc_connobj_attr_2 \
                                      where _RecordCurrent = 1 and _RecordDeleted = 0")
-
-  sapisuVibdaoDf = spark.sql("select architecturalObjectInternalId, \
+  
+  sapisuVibdaoDf = spark.sql("select cast(architecturalObjectInternalId as int), \
                                    CASE WHEN hydraAreaUnit == 'HAR' THEN  hydraCalculatedArea * 10000 \
                                         WHEN hydraAreaUnit == 'M2' THEN  hydraCalculatedArea \
                                         ELSE null END AS propertyArea \
                             from cleansed.t_sapisu_vibdao \
                             where _RecordCurrent = 1 and _RecordDeleted = 0")
-  dummyDimRecDf = spark.createDataFrame([("-1", "SAPISU", "9999-12-31"), ("-1", "Access", "9999-12-31")], ["propertyNumber", "sourceSystemCode", "propertyEndDate"])
+  
+  dummyDimRecDf = spark.createDataFrame([(-1, "SAPISU", "9999-12-31"), (-1, "Access", "9999-12-31")], ["propertyNumber", "sourceSystemCode", "propertyEndDate"])
+  dummyDimRecDf = dummyDimRecDf.withColumn("propertyEndDate",dummyDimRecDf['propertyEndDate'].cast(DateType()))
   
   #3.JOIN TABLES  
   df = sapisu0ucConbjAttr2Df.join(sapisuVibdaoDf, sapisu0ucConbjAttr2Df.architecturalObjectInternalId == sapisuVibdaoDf.architecturalObjectInternalId, how="inner")\
@@ -69,16 +71,17 @@ def GetCommonProperty():
   newSchema = StructType([
                             StructField("propertyId", IntegerType(), False),
                             StructField("sourceSystemCode", StringType(), False),
-                            StructField("propertyStartDate", DateType(), False),
+                            StructField("propertyStartDate", DateType(), True),
                             StructField("propertyEndDate", DateType(), True),
                             StructField("propertyType", StringType(), True),
                             StructField("superiorPropertyType", StringType(), True),
                             StructField("areaSize", DecimalType(18,6), True),
-                            StructField("LGA", LongType(), True)
+                            StructField("LGA", StringType(), True)
                       ])
   
   df = spark.createDataFrame(df.rdd, schema=newSchema)
   return df
+
 
 # COMMAND ----------
 

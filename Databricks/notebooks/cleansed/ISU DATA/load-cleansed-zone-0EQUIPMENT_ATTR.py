@@ -1,4 +1,9 @@
 # Databricks notebook source
+# MAGIC %md
+# MAGIC { "SourceType": "BLOB Storage (json)", "SourceServer": "saswcnonprod01landingdev-sastoken", "SourceGroup": "sapisu", "SourceName": "sapisu_0EQUIPMENT_ATTR", "SourceLocation": "0EQUIPMENT_ATTR", "AdditionalProperty": "", "Processor": "databricks-token|0711-011053-turfs581|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive", "IsAuditTable": false, "SoftDeleteSource": "", "ProjectName": "SAP ISU", "ProjectId": 2, "TargetType": "BLOB Storage (json)", "TargetName": "sapisu_0EQUIPMENT_ATTR", "TargetLocation": "sapisu/0EQUIPMENT_ATTR", "TargetServer": "daf-sa-lake-sastoken", "DataLoadMode": "FULL-EXTRACT", "DeltaExtract": false, "CDCSource": false, "TruncateTarget": false, "UpsertTarget": true, "AppendTarget": null, "TrackChanges": false, "LoadToSqlEDW": true, "TaskName": "sapisu_0EQUIPMENT_ATTR", "ControlStageId": 1, "TaskId": 65, "StageSequence": 100, "StageName": "Source to Raw", "SourceId": 65, "TargetId": 65, "ObjectGrain": "Day", "CommandTypeId": 3, "Watermarks": "", "WatermarksDT": null, "WatermarkColumn": "", "BusinessKeyColumn": "EQUNR,DATETO", "UpdateMetaData": null, "SourceTimeStampFormat": "", "Command": "", "LastLoadedFile": null }
+
+# COMMAND ----------
+
 # DBTITLE 1,Notebook Structure/Method 
 #Notebook structure/Method 
 #1.Import libraries/functions -- Generic
@@ -148,8 +153,8 @@ DeltaSaveToDeltaTable (
 #Update/rename Column
 df_updated_column_temp = spark.sql("SELECT \
                                   EQUI.EQUNR as equipmentNumber,\
-                                  to_date(EQUI.DATETO) as validToDate,\
-                                  to_date(EQUI.DATEFROM) as validFromDate,\
+                                  to_date(EQUI.DATETO, 'yyyy-MM-dd') as validToDate,\
+                                  case when EQUI.DATEFROM < '1900-01-01' then to_date('1900-01-01', 'yyyy-MM-dd') else to_date(EQUI.DATEFROM, 'yyyy-MM-dd') end as validFromDate,\
                                   EQUI.EQART as technicalObjectTypeCode,\
                                   EQUI.INVNR as inventoryNumber,\
                                   EQUI.IWERK as maintenancePlanningPlant,\
@@ -161,11 +166,11 @@ df_updated_column_temp = spark.sql("SELECT \
                                   COMP.companyName as companyName,\
                                   EQUI.MATNR as materialNumber,\
                                   EQUI.ANSWT as acquisitionValue,\
-                                  to_date(EQUI.ANSDT) as acquisitionDate,\
-                                  to_date(EQUI.ERDAT) as createdDate,\
-                                  to_date(EQUI.AEDAT) as lastChangedDate,\
-                                  to_date(EQUI.INBDT) as startUpDate,\
-                                  EQUI.PROID as workBreakdownStructureElement,\
+                                  to_date(EQUI.ANSDT, 'yyyy-MM-dd') as acquisitionDate,\
+                                  to_date(EQUI.ERDAT, 'yyyy-MM-dd') as createdDate,\
+                                  to_date(EQUI.AEDAT, 'yyyy-MM-dd') as lastChangedDate,\
+                                  to_date(EQUI.INBDT, 'yyyy-MM-dd') as startUpDate,\
+                                  cast(EQUI.PROID as int) as workBreakdownStructureElement,\
                                   EQUI.EQTYP as equipmentCategoryCode, \
                                   EQUI._RecordStart,\
                                   EQUI._RecordEnd,\
@@ -181,7 +186,7 @@ display(df_updated_column_temp)
 cleanse_Schema = StructType(
   [
     StructField("equipmentNumber", StringType(), False),
-    StructField("validToDate", DateType(), True),
+    StructField("validToDate", DateType(), False),
     StructField("validFromDate", DateType(), True),
     StructField("technicalObjectTypeCode", StringType(), True),
     StructField("inventoryNumber", StringType(), True),
@@ -198,7 +203,7 @@ cleanse_Schema = StructType(
     StructField("createdDate", DateType(), True),
     StructField("lastChangedDate", DateType(), True),
     StructField("startUpDate", DateType(), True),
-    StructField("workBreakdownStructureElement", StringType(), True),
+    StructField("workBreakdownStructureElement", IntegerType(), True),
     StructField("equipmentCategoryCode", StringType(), True),    
     StructField('_RecordStart',TimestampType(),False),
     StructField('_RecordEnd',TimestampType(),False),
