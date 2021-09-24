@@ -22,7 +22,7 @@ def _GetSQLCollectiveColumnsFromColumnNames(columns, alias = "", func = "", colu
   
   #Start of Fix for Handling Null in Key Coulumns
   if alias == "SRC":
-    col_list = [item + '_TX' for item in col_list] 
+    col_list = [item + '-TX' for item in col_list] 
   #End of Fix for Handling Null in Key Coulumns
     
   #Add quotes to quality the column names
