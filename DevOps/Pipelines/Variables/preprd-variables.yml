@@ -27,6 +27,9 @@ variables:
   # Store account type for BLOB Storage e.g. Standard_LRS)
   - name: storageAccountType
     value: Standard_LRS
+  # Name of the service connection in Devops
+  - name: devops-service-connection
+    value: azure-rg-preprod-serviceconnection
   # Tagging.
   - name: applytags
     value: false
@@ -35,8 +38,17 @@ variables:
           Environment=NonProduction \
           Owner=jackson.staub@insight.com
   # ------------------------------------------------
-  # Service names for environment
+  # Vnet Related
+  # -------------------------------------------------
+  - name: vnetName
+    value: vnet-swcnonprod01-ae-01
+  - name: vnetid
+    value: /subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-network-01/providers/Microsoft.Network/virtualNetworks/vnet-swcnonprod01-ae-01
+  - name: internalSubnetId
+    value: /subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-network-01/providers/Microsoft.Network/virtualNetworks/vnet-swcnonprod01-ae-01/subnets/snet-swcnonprod01-ae-01
   # ------------------------------------------------
+  # Service names for environment
+  # -------------------------------------------------
   # Name of Azure SQL Server and EDW Database
   - name: azuresqlservername
     value: sql-$(SUBSCRIPTION)-$(PREFIX)-$(ENVIRONMENT)-$(INCREMENT)
@@ -44,7 +56,7 @@ variables:
     value: EDW
   # Name of key vault for this environment.
   - name: azurekeyvaultname
-    value: kv-$(PREFIX)-$(ENVIRONMENT)-$(INCREMENT)
+    value: akv-$(PREFIX)-$(ENVIRONMENT)-$(INCREMENT)
   # Setup secret rotation interval in days
   - name: secretrotationinterval 
     value: 30
@@ -97,10 +109,6 @@ variables:
     value: 
   - name: vnetresourcegroupname
     value: rg-swcnonprod01-network-01
-  - name: vnetName
-    value: vnet-swcnonprod01-ae-01
-  - name: vnetid
-    value: /subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-network-01/providers/Microsoft.Network/virtualNetworks/vnet-swcnonprod01-ae-01
   - name: publicsubnetcidr
     value: 10.97.46.192/26
   - name: privatesubnetcidr

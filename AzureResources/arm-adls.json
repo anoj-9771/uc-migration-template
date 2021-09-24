@@ -1,35 +1,42 @@
 {
-    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
         "accountNames": {
             "type": "string",
-            "defaultValue": "something, something"
-        },
-        "zones": {
-            "type": "string"
+            "metadata": {
+                "description": "Specifies a name for the resource"
+            }
         },
         "location": {
             "type": "string",
-            "defaultValue": "[resourceGroup().location]",
+            "defaultValue": "Australia East",
+            "allowedValues": [
+                "Australia East",
+                "Australia Southeast",
+                "australiaeast",
+                "australiasoutheast"
+            ],
             "metadata": {
-                "description": "Specifies the Azure location where the key vault should be created."
+                "description": "Specifies the location for the resource"
             }
         },
-        "storageAccountType": {
+        "zones": {
+            "type": "string",
+            "defaultValue": "raw,cleansed,curated,datalab,synapsestaging"
+        },
+        "skuName": {
             "type": "string",
             "defaultValue": "Standard_LRS",
             "allowedValues": [
                 "Standard_LRS",
-                "Standard_GRS",
-                "Standard_ZRS",
                 "Premium_LRS"
             ],
             "metadata": {
-                "description": "Storage Account type"
+                "description": "Specifies the storage SKU name"
             }
         },
-        "skuName": {
+        "skuTier": {
             "type": "string",
             "defaultValue": "Standard",
             "allowedValues": [
@@ -37,72 +44,10 @@
                 "Premium"
             ],
             "metadata": {
-                "description": "Specifies the SKU for the key vault."
+                "description": "Specifies the storage SKU tier"
             }
-        },
-        "advancedThreatProtectionEnabled": {
-          "type": "bool",
-          "defaultValue": true,
-          "metadata": {
-            "description": "Enable or disable Advanced Threat Protection."
-          }
         }
     },
-    "functions": [
-        {
-            "namespace": "ads",
-            "members": {
-                "serviceWithNamingStandard": {
-                    "parameters": [
-                        {
-                            "name": "prefix",
-                            "type": "string"
-                        },
-                        {
-                            "name": "serviceacronym",
-                            "type": "string"
-                        },
-                        {
-                            "name": "environment",
-                            "type": "string"
-                        },
-                        {
-                            "name": "suffix",
-                            "type": "string"
-                        }
-                    ],
-                    "output": {
-                        "type": "string",
-                        "value": "[concat(parameters('prefix'), '-', parameters('serviceacronym'), '-', parameters('environment'))]"
-                    }
-                },
-                "serviceWithNamingStandardNoHyphen": {
-                    "parameters": [
-                        {
-                            "name": "prefix",
-                            "type": "string"
-                        },
-                        {
-                            "name": "serviceacronym",
-                            "type": "string"
-                        },
-                        {
-                            "name": "environment",
-                            "type": "string"
-                        },
-                        {
-                            "name": "suffix",
-                            "type": "string"
-                        }
-                    ],
-                    "output": {
-                        "type": "string",
-                        "value": "[concat(parameters('prefix'), parameters('serviceacronym'), parameters('environment'))]"
-                    }
-                }
-            }
-        }
-    ],
     "variables": {
         "accountNamesObject": "[toLower(replace(parameters('accountNames'),'-',''))]", 
         "zonesObject": "[split(toLower(replace(parameters('zones'),' ','')), ',')]",
@@ -120,11 +65,11 @@
         {
             "type": "Microsoft.Storage/storageAccounts",
             "name": "[variables('accountNamesObject')]",
-            "apiVersion": "2018-07-01",
+            "apiVersion": "2021-04-01",
             "location": "[parameters('location')]",
             "sku": {
-                "name": "[parameters('storageAccountType')]",
-                "tier": "[parameters('skuName')]"
+                "name": "[parameters('skuName')]",
+                "tier": "[parameters('skuTier')]"
             },
             "kind": "StorageV2",
             "tags": {
@@ -134,18 +79,13 @@
                 "accessTier": "Hot",
                 "isHnsEnabled": true,
                 "supportsHttpsTrafficOnly": true,
-                "allowBlobPublicAccess": false
+                "allowBlobPublicAccess": false,
+                "networkAcls": {
+                    "bypass": "AzureServices",
+                    "defaultAction": "Deny"
+                }
             },
-            "resources": [
-              {
-                "condition": "[parameters('advancedThreatProtectionEnabled')]",
-                "type": "providers/advancedThreatProtectionSettings",
-                "name": "Microsoft.Security/current",
-                "apiVersion": "2019-01-01",
-                "dependsOn": ["[resourceId('Microsoft.Storage/storageAccounts/', variables('accountNamesObject'))]"],
-                "properties": {"isEnabled": true}
-              }
-            ]
+            "resources": []
         },
         {
             "name": "[concat(variables('accountNamesObject'),'/','default/', variables('zonesObject')[copyIndex()])]",

@@ -12,8 +12,8 @@ steps:
       resourceGroupName: ${{ parameters.resource_group }}
       location: $(LOCATION)
       templateLocation: 'Linked artifact'
-      csmFile: '$(Pipeline.Workspace)/arm_templates/arm-blobstoragev2.json'
-      overrideParameters: '-location $(LOCATION) -accountName "$(BLOBSTORAGEACCOUNTNAMES)"'
+      csmFile: '$(Pipeline.Workspace)/arm_templates/arm-private-endpoints.json'
+      overrideParameters: '-location $(LOCATION) -dataLakeName $(datalakestorageaccountnames) -blobStorageName $(blobstorageaccountnames) -sqlServerName $(azuresqlservername) -dataFactoryName $(datafactoryname) -keyVaultName $(azurekeyvaultname) -subnetId $(internalSubnetId)'
       deploymentMode: 'Incremental'
       deploymentOutputs: 'armOutputs'
-    displayName: 'Deploy BLOB Storage Zones'
+    displayName: 'Deploy Private Endpoints'

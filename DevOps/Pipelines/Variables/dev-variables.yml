@@ -27,6 +27,10 @@ variables:
   # Store account type for BLOB Storage e.g. Standard_LRS)
   - name: storageAccountType
     value: Standard_LRS
+  # Name of the service connection in Devops
+  - name: devops-service-connection
+    value: azure-rg-dev-serviceconnection
+
   # Tagging.
   - name: applytags
     value: false
@@ -44,7 +48,7 @@ variables:
     value: EDW
   # Name of key vault for this environment.
   - name: azurekeyvaultname
-    value: kv-$(PREFIX)-$(ENVIRONMENT)-$(INCREMENT)
+    value: kv-$(PREFIX)-$(ENVIRONMENT)-$(INCREMENT)-test
   # Setup secret rotation interval in days
   - name: secretrotationinterval 
     value: 30

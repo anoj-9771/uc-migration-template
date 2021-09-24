@@ -1,5 +1,5 @@
 {
-    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
         "dataFactoryName": {
@@ -49,37 +49,6 @@
             "metadata": {"description": "Azure DevOps Project Name. For e.g BI Team"}
         }
     },
-    "functions": [
-        {
-            "namespace": "ads",
-            "members": {
-                "serviceWithNamingStandard": {
-                    "parameters": [
-                        {
-                            "name": "prefix",
-                            "type": "string"
-                        },
-                        {
-                            "name": "serviceacronym",
-                            "type": "string"
-                        },
-                        {
-                            "name": "environment",
-                            "type": "string"
-                        },
-                        {
-                            "name": "suffix",
-                            "type": "string"
-                        }
-                    ],
-                    "output": {
-                        "type": "string",
-                        "value": "[concat(parameters('prefix'), '-', parameters('serviceacronym'), '-', parameters('environment'))]"
-                    }
-                }
-            }
-        }
-    ],
     "variables": {
         "dataFactoryName": "[parameters('dataFactoryName')]",
         "SHIRName": "[parameters('dataFactorySHIRName')]",
@@ -101,7 +70,10 @@
             "identity": {
                 "type": "SystemAssigned"
             },
-            "properties": {"repoConfiguration": "[if(parameters('isRepoEnabled'), variables('dataFactoryRepoConfiguration'), json('null'))]"},
+            "properties": {
+                "repoConfiguration": "[if(parameters('isRepoEnabled'), variables('dataFactoryRepoConfiguration'), json('null'))]",
+                "publicNetworkAccess": "Disabled"
+            },
             "resources": [
                 {
                     "type": "integrationruntimes",

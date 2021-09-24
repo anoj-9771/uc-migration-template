@@ -1,18 +1,24 @@
 {
-    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
         "keyVaultName": {
             "type": "string",
             "metadata": {
-                "description": "The prefix of naming convention"
+                "description": "Specifies a name for the resource"
             }
         },
         "location": {
             "type": "string",
-            "defaultValue": "[resourceGroup().location]",
+            "defaultValue": "Australia East",
+            "allowedValues": [
+                "Australia East",
+                "Australia Southeast",
+                "australiaeast",
+                "australiasoutheast"
+            ],
             "metadata": {
-                "description": "Specifies the location for all resources."
+                "description": "Specifies the location for the resource"
             }
         },
         "tenantId": {
@@ -78,40 +84,6 @@
             }
         }
     },
-    "functions": [
-        {
-            "namespace": "ads",
-            "members": {
-                "serviceWithNamingStandard": {
-                    "parameters": [
-                        {
-                            "name": "prefix",
-                            "type": "string"
-                        },
-                        {
-                            "name": "serviceacronym",
-                            "type": "string"
-                        },
-                        {
-                            "name": "environment",
-                            "type": "string"
-                        },
-                        {
-                            "name": "suffix",
-                            "type": "string"
-                        }
-                        
-                    ],
-                    "output": {
-                        "type": "string",
-                        "value": "[concat(parameters('prefix'), '-', parameters('serviceacronym'), '-', parameters('environment'))]"
-                    }
-                }
-            }
-        }
-    ],
-    "variables": {
-    },
     "resources": [
         {
             "type": "Microsoft.KeyVault/vaults",
@@ -129,6 +101,10 @@
                 "sku": {
                     "name": "[parameters('skuName')]",
                     "family": "A"
+                },
+                "networkAcls": {
+                    "bypass": "AzureServices",
+                    "defaultAction": "Deny"
                 }
             }
         },
