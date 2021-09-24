@@ -1,4 +1,10 @@
 # Databricks notebook source
+#{"SourceType":"BLOB Storage (json)","SourceServer":"daf-sa-lake-sastoken","SourceGroup":"sapisu","SourceName":"sapisu_DBERCHZ1","SourceLocation":"sapisu/DBERCHZ1","AdditionalProperty":"","Processor":"databricks-token|0705-044124-gored835|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive","IsAuditTable":false,"SoftDeleteSource":"","ProjectName":"TEST1","ProjectId":9,"TargetType":"BLOB Storage (json)","TargetName":"sapisu_DBERCHZ1","TargetLocation":"sapisu/DBERCHZ1","TargetServer":"daf-sa-lake-sastoken","DataLoadMode":"INCREMENTAL","DeltaExtract":true,"CDCSource":false,"TruncateTarget":false,"UpsertTarget":true,"AppendTarget":null,"TrackChanges":true,"LoadToSqlEDW":true,"TaskName":"sapisu_DBERCHZ1","ControlStageId":2,"TaskId":38,"StageSequence":200,"StageName":"Raw to Cleansed","SourceId":38,"TargetId":38,"ObjectGrain":"Day","CommandTypeId":8,"Watermarks":null,"WatermarksDT":null,"WatermarkColumn":"","BusinessKeyColumn":"BELNR,BELZEILE","UpdateMetaData":null,"SourceTimeStampFormat":"","Command":"/build/cleansed/ISU SLT/load-cleansed-zone-DBERCHZ1","LastLoadedFile":"DBO.DBERCHZ1_2021-09-24_120610_600.json.gz"}
+#Delta Column : DELTA_TS
+#Source Object : sapisu_DBERCHZ1
+
+# COMMAND ----------
+
 # DBTITLE 1,Notebook Structure/Method 
 #Notebook structure/Method 
 #1.Import libraries/functions -- Generic
@@ -196,15 +202,15 @@ df_cleansed_column = spark.sql("SELECT  \
                                   ARTMENGE as billedQuantityStatisticsCode, \
                                   STATTART as statisticalAnalysisRateType, \
                                   TIMECONTRL as periodControlCode, \
-                                  TCNUMTOR as timesliceNumeratorTimePortion, \
-                                  TCDENOMTOR as timesliceDenominatorTimePortion, \
+                                  cast(TCNUMTOR as dec(8)) as timesliceNumeratorTimePortion, \
+                                  cast(TCDENOMTOR as dec(8)) as timesliceDenominatorTimePortion, \
                                   TIMTYPQUOT as timesliceTimeCatogoryTimePortion, \
                                   AKTIV as meterReadingActiveIndicator, \
                                   KONZVER as franchiseContractIndicator, \
                                   PERTYP as billingPeriodInternalCategoryCode, \
                                   OUCONTRACT as individualContractID, \
-                                  V_ABRMENGE as billingQuantityPlaceBeforeDecimalPoint, \
-                                  N_ABRMENGE as billingQuantityPlaceAfterDecimalPoint, \
+                                  cast(V_ABRMENGE as dec(17)) as billingQuantityPlaceBeforeDecimalPoint, \
+                                  cast(N_ABRMENGE as dec(14)) as billingQuantityPlaceAfterDecimalPoint, \
                                   stg._RecordStart, \
                                   stg._RecordEnd, \
                                   stg._RecordDeleted, \
@@ -218,7 +224,7 @@ display(df_cleansed_column)
 
 newSchema = StructType([
                             StructField('billingDocumentNumber', StringType(), False),
-                            StructField('billingDocumentLineItemId', IntegerType(), False),
+                            StructField('billingDocumentLineItemId', StringType(), False),
                             StructField('billingSequenceNumber', StringType(), True),
                             StructField('lineItemTypeCode', StringType(), True),
                             StructField('billingLineItemBudgetBillingIndicator', StringType(), True),
@@ -267,15 +273,15 @@ newSchema = StructType([
                             StructField('billedQuantityStatisticsCode', StringType(), True),
                             StructField('statisticalAnalysisRateType', StringType(), True),
                             StructField('periodControlCode', StringType(), True),
-                            StructField('timesliceNumeratorTimePortion', DoubleType(), True),
-                            StructField('timesliceDenominatorTimePortion', DoubleType(), True),
+                            StructField('timesliceNumeratorTimePortion', DecimalType(), True),
+                            StructField('timesliceDenominatorTimePortion', DecimalType(), True),
                             StructField('timesliceTimeCatogoryTimePortion', StringType(), True),
                             StructField('meterReadingActiveIndicator', StringType(), True),
                             StructField('franchiseContractIndicator', StringType(), True),
                             StructField('billingPeriodInternalCategoryCode', StringType(), True),
                             StructField('individualContractID', StringType(), True),
-                            StructField('billingQuantityPlaceBeforeDecimalPoint', IntegerType(), True),
-                            StructField('billingQuantityPlaceAfterDecimalPoint', DoubleType(), True),
+                            StructField('billingQuantityPlaceBeforeDecimalPoint', DecimalType(), True),
+                            StructField('billingQuantityPlaceAfterDecimalPoint', DecimalType(), True),
                             StructField('_RecordStart', DateType(), False),
                             StructField('_RecordEnd', DateType(), False),
                             StructField('_RecordDeleted', IntegerType(), False),
