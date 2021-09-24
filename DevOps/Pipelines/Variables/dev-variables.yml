@@ -141,4 +141,6 @@ variables:
     value: sqladminuser
   - name: synapsesqlPoolName
     value: syndw$(ENVIRONMENT)$(INCREMENT)
+  - name: setWorkspaceIdentityRbacOnStorageAccount
+    value: false
   #------------------------------------------------
