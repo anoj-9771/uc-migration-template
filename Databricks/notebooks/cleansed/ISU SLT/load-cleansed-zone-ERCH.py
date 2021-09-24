@@ -1,4 +1,10 @@
 # Databricks notebook source
+#source_param: {"SourceType":"BLOB Storage (json)","SourceServer":"daf-sa-lake-sastoken","SourceGroup":"sapisu","SourceName":"sapisu_ERCH","SourceLocation":"sapisu/ERCH","AdditionalProperty":"","Processor":"databricks-token|0705-044124-gored835|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive","IsAuditTable":false,"SoftDeleteSource":"","ProjectName":"TEST1","ProjectId":9,"TargetType":"BLOB Storage (json)","TargetName":"sapisu_ERCH","TargetLocation":"sapisu/ERCH","TargetServer":"daf-sa-lake-sastoken","DataLoadMode":"INCREMENTAL","DeltaExtract":true,"CDCSource":false,"TruncateTarget":false,"UpsertTarget":true,"AppendTarget":null,"TrackChanges":true,"LoadToSqlEDW":true,"TaskName":"sapisu_ERCH","ControlStageId":2,"TaskId":36,"StageSequence":200,"StageName":"Raw to Cleansed","SourceId":36,"TargetId":36,"ObjectGrain":"Day","CommandTypeId":8,"Watermarks":null,"WatermarksDT":null,"WatermarkColumn":"","BusinessKeyColumn":"BELNR","UpdateMetaData":null,"SourceTimeStampFormat":"","Command":"/build/cleansed/ISU SLT/load-cleansed-zone-ERCH","LastLoadedFile":"DBO.ERCH_2021-09-24_120608_647.json.gz"}
+#Delta Column: DELTA_TS
+#Source Object: sapisu_ERCH
+
+# COMMAND ----------
+
 # DBTITLE 1,Notebook Structure/Method 
 #Notebook structure/Method 
 #1.Import libraries/functions -- Generic
@@ -342,3 +348,8 @@ DeltaSaveDataframeDirect(df_updated_column, "t", source_object, ADS_DATABASE_CLE
 
 # DBTITLE 1,13. Exit Notebook
 dbutils.notebook.exit("1")
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC select cast("12345678901234567" as dec(17)) from cleansed.stg_sapisu_erch

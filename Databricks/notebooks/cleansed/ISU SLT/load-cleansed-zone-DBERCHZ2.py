@@ -1,4 +1,10 @@
 # Databricks notebook source
+#{"SourceType":"BLOB Storage (json)","SourceServer":"daf-sa-lake-sastoken","SourceGroup":"sapisu","SourceName":"sapisu_DBERCHZ2","SourceLocation":"sapisu/DBERCHZ2","AdditionalProperty":"","Processor":"databricks-token|0705-044124-gored835|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive","IsAuditTable":false,"SoftDeleteSource":"","ProjectName":"TEST1","ProjectId":9,"TargetType":"BLOB Storage (json)","TargetName":"sapisu_DBERCHZ2","TargetLocation":"sapisu/DBERCHZ2","TargetServer":"daf-sa-lake-sastoken","DataLoadMode":"INCREMENTAL","DeltaExtract":true,"CDCSource":false,"TruncateTarget":false,"UpsertTarget":true,"AppendTarget":null,"TrackChanges":true,"LoadToSqlEDW":true,"TaskName":"sapisu_DBERCHZ2","ControlStageId":2,"TaskId":40,"StageSequence":200,"StageName":"Raw to Cleansed","SourceId":40,"TargetId":40,"ObjectGrain":"Day","CommandTypeId":8,"Watermarks":null,"WatermarksDT":null,"WatermarkColumn":"","BusinessKeyColumn":"BELNR,BELZEILE","UpdateMetaData":null,"SourceTimeStampFormat":"","Command":"/build/cleansed/ISU SLT/load-cleansed-zone-DBERCHZ2","LastLoadedFile":"DBO.DBERCHZ2_2021-09-24_120612_140.json.gz"}
+#Delta Column : DELTA_TS
+#Source Object: sapisu_dberchz2
+
+# COMMAND ----------
+
 # DBTITLE 1,Notebook Structure/Method 
 #Notebook structure/Method 
 #1.Import libraries/functions -- Generic
@@ -170,14 +176,14 @@ df_cleansed_column = spark.sql("SELECT  \
                                 to_date(BEGPROG, 'yyyy-MM-dd') as forecastPeriodStartDate, \
                                 to_date(ENDEPROG, 'yyyy-MM-dd') as forecastPeriodEndDate, \
                                 ABLHINW as meterReaderNoteText, \
-                                V_ZWSTAND as meterReadingBeforeDecimalPoint, \
-                                N_ZWSTAND as meterReadingAfterDecimalPoint, \
-                                V_ZWSTNDAB as billedMeterReadingBeforeDecimalPlaces, \
-                                N_ZWSTNDAB as billedMeterReadingAfterDecimalPlaces, \
-                                V_ZWSTVOR as prevousMeterReadingBeforeDecimalPlaces, \
-                                N_ZWSTVOR as previousMeterReadingAfterDecimalPlaces, \
-                                V_ZWSTDIFF as meterReadingDifferenceBeforeDecimalPlaces, \
-                                N_ZWSTDIFF as meterReadingDifferenceAfterDecimalPlaces, \
+                                cast(V_ZWSTAND as dec(17)) as meterReadingBeforeDecimalPoint, \
+                                cast(N_ZWSTAND as dec(14)) as meterReadingAfterDecimalPoint, \
+                                cast(V_ZWSTNDAB as dec(17)) as billedMeterReadingBeforeDecimalPlaces, \
+                                cast(N_ZWSTNDAB as dec(14)) as billedMeterReadingAfterDecimalPlaces, \
+                                cast(V_ZWSTVOR as dec(17)) as prevousMeterReadingBeforeDecimalPlaces, \
+                                cast(N_ZWSTVOR as dec(14)) as previousMeterReadingAfterDecimalPlaces, \
+                                cast(V_ZWSTDIFF as dec(17)) as meterReadingDifferenceBeforeDecimalPlaces, \
+                                cast(N_ZWSTDIFF as dec(14)) as meterReadingDifferenceAfterDecimalPlaces, \
                                 _RecordStart, \
                                 _RecordEnd, \
                                 _RecordDeleted, \
@@ -212,14 +218,14 @@ newSchema = StructType([
                           StructField('forecastPeriodStartDate', StringType(), True),
                           StructField('forecastPeriodEndDate', DateType(), True),
                           StructField('meterReaderNoteText', StringType(), True),
-                          StructField('meterReadingBeforeDecimalPoint', IntegerType(), True),
-                          StructField('meterReadingAfterDecimalPoint', DoubleType(), True),
-                          StructField('billedMeterReadingBeforeDecimalPlaces', IntegerType(), True),
-                          StructField('billedMeterReadingAfterDecimalPlaces', DoubleType(), True),
-                          StructField('previousMeterReadingBeforeDecimalPlaces', IntegerType(), True),
-                          StructField('previousMeterReadingAfterDecimalPlaces', DoubleType(), True),
-                          StructField('meterReadingDifferenceBeforeDecimalPlaces', IntegerType(), True),
-                          StructField('meterReadingDifferenceAfterDecimalPlaces', DoubleType(), True),
+                          StructField('meterReadingBeforeDecimalPoint', DecimalType(), True),
+                          StructField('meterReadingAfterDecimalPoint', DecimalType(), True),
+                          StructField('billedMeterReadingBeforeDecimalPlaces', DecimalType(), True),
+                          StructField('billedMeterReadingAfterDecimalPlaces', DecimalType(), True),
+                          StructField('previousMeterReadingBeforeDecimalPlaces', DecimalType(), True),
+                          StructField('previousMeterReadingAfterDecimalPlaces', DecimalType(), True),
+                          StructField('meterReadingDifferenceBeforeDecimalPlaces', DecimalType(), True),
+                          StructField('meterReadingDifferenceAfterDecimalPlaces', DecimalType(), True),
                           StructField('_RecordStart', TimestampType(), False),
                           StructField('_RecordEnd', TimestampType(), False),
                           StructField('_RecordDeleted', IntegerType(), False),
