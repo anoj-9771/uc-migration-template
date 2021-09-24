@@ -55,6 +55,34 @@ df2 = spark.sql("select * from Source22")
 
 # COMMAND ----------
 
+# DBTITLE 1,[Verify] Masking Check
+# MAGIC %sql
+# MAGIC select
+# MAGIC NAME_ORG1
+# MAGIC ,NAME_ORG2
+# MAGIC ,NAME_ORG3
+# MAGIC ,NAME_ORG4
+# MAGIC ,NAME_LAST
+# MAGIC ,NAME_FIRST
+# MAGIC ,NAME_LST2
+# MAGIC ,NAME_LAST2
+# MAGIC ,NAMEMIDDLE
+# MAGIC ,NAME1_TEXT
+# MAGIC ,NICKNAME
+# MAGIC ,BIRTHPL
+# MAGIC ,EMPLO
+# MAGIC ,BIRTHDT
+# MAGIC ,PERNO
+# MAGIC ,NAME_GRP1
+# MAGIC ,NAME_GRP2
+# MAGIC ,MC_NAME1
+# MAGIC ,MC_NAME2
+# MAGIC ,CRUSR
+# MAGIC ,CHUSR
+# MAGIC from Source22
+
+# COMMAND ----------
+
 # MAGIC %sql
 # MAGIC select *, '2/09' as filedate from Source22
 # MAGIC --except
@@ -114,13 +142,17 @@ df2 = spark.sql("select * from Source22")
 # MAGIC ,NAME_GRP1 as nameGroup1
 # MAGIC ,NAME_GRP2 as nameGroup2
 # MAGIC ,CRUSR as createdBy
-# MAGIC ,CONCAT(CHDAT,'T',CHTIM,'.000+0000') as createdDateTime
+# MAGIC ,cast(to_unix_timestamp(CRDAT||' '||CRTIM,'yyyy-MM-dd HH:mm:ss') as timestamp) as createdDateTime
 # MAGIC ,CHUSR as changedBy
-# MAGIC ,CONCAT(CHDAT,'T',CHTIM,'.000+0000') as changedDateTime
+# MAGIC ,cast(to_unix_timestamp(CHDAT||' '||CHTIM,'yyyy-MM-dd HH:mm:ss') as timestamp) as changedDateTime
 # MAGIC ,PARTNER_GUID as businessPartnerGUID
 # MAGIC ,ADDRCOMM as addressNumber
-# MAGIC ,VALID_FROM as validFromDate
-# MAGIC ,VALID_TO as validToDate
+# MAGIC ,case when VALID_FROM = '10101000000' then '1900-01-01' else CONCAT(LEFT(VALID_FROM,4),'-',SUBSTRING(VALID_FROM,5,2),'-',SUBSTRING(VALID_FROM,7,2)) end as validFromDate
+# MAGIC --,substr(VALID_TO, 1, 8) as validToDate
+# MAGIC ,CONCAT(LEFT(VALID_TO,4),'-',SUBSTRING(VALID_TO,5,2),'-',SUBSTRING(VALID_TO,7,2)) as validToDate
+# MAGIC --,VALID_FROM as validFromDate
+# MAGIC --,VALID_TO as validToDateyes ====!!!! all dates need converting..... :)
+# MAGIC 
 # MAGIC ,NATPERS as naturalPersonIndicator
 # MAGIC from source22 a
 # MAGIC left join cleansed.t_sapisu_0BPARTNER_TEXT b
@@ -131,7 +163,7 @@ df2 = spark.sql("select * from Source22")
 # MAGIC ON a.BU_GROUP = d.businessPartnerGroupCode --and d.SPRAS = 'E'
 # MAGIC LEFT JOIN cleansed.t_sapisu_tsad3t f
 # MAGIC ON a.TITLE = f.TITLEcode --and f.LANGU = 'E'
-# MAGIC where PARTNER = '0001000185'
+# MAGIC where PARTNER = '0001000363'
 
 # COMMAND ----------
 
@@ -139,7 +171,7 @@ df2 = spark.sql("select * from Source22")
 # MAGIC select
 # MAGIC *
 # MAGIC FROM
-# MAGIC cleansed.t_sapisu_0BPartner_attr where businesspartnernumber = '0001000185'
+# MAGIC cleansed.t_sapisu_0BPartner_attr where businesspartnernumber = '0001000363AA'
 
 # COMMAND ----------
 
@@ -151,13 +183,7 @@ lakedf.createOrReplaceTempView("Target")
 # MAGIC %sql
 # MAGIC select count (*) as RecordCount, 'Target' as TableName from cleansed.t_sapisu_0bpartner_attr
 # MAGIC union all
-# MAGIC select count (*) as RecordCount, 'Source' as TableName from Source22
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC select count (*) as RecordCount, 'cleansed.Source' as TableName from (
-# MAGIC select
+# MAGIC select count (*) as RecordCount, 'Source' as TableName from (select
 # MAGIC PARTNER as businessPartnerNumber
 # MAGIC ,TYPE as businessPartnerCategoryCode
 # MAGIC ,b.businessPartnerCategory as businessPartnerCategory
@@ -202,15 +228,17 @@ lakedf.createOrReplaceTempView("Target")
 # MAGIC ,NAME_GRP1 as nameGroup1
 # MAGIC ,NAME_GRP2 as nameGroup2
 # MAGIC ,CRUSR as createdBy
-# MAGIC ,CRDAT as createdDate
-# MAGIC ,CRTIM as createdTime
+# MAGIC ,cast(to_unix_timestamp(CRDAT||' '||CRTIM,'yyyy-MM-dd HH:mm:ss') as timestamp) as createdDateTime
 # MAGIC ,CHUSR as changedBy
-# MAGIC ,CHDAT as changedDate
-# MAGIC ,CHTIM as changedTime
+# MAGIC ,cast(to_unix_timestamp(CHDAT||' '||CHTIM,'yyyy-MM-dd HH:mm:ss') as timestamp) as changedDateTime
 # MAGIC ,PARTNER_GUID as businessPartnerGUID
 # MAGIC ,ADDRCOMM as addressNumber
-# MAGIC ,VALID_FROM as validFromDate
-# MAGIC ,VALID_TO as validToDate
+# MAGIC ,case when VALID_FROM = '10101000000' then '1900-01-01' else CONCAT(LEFT(VALID_FROM,4),'-',SUBSTRING(VALID_FROM,5,2),'-',SUBSTRING(VALID_FROM,7,2)) end as validFromDate
+# MAGIC --,substr(VALID_TO, 1, 8) as validToDate
+# MAGIC ,CONCAT(LEFT(VALID_TO,4),'-',SUBSTRING(VALID_TO,5,2),'-',SUBSTRING(VALID_TO,7,2)) as validToDate
+# MAGIC --,VALID_FROM as validFromDate
+# MAGIC --,VALID_TO as validToDateyes ====!!!! all dates need converting..... :)
+# MAGIC 
 # MAGIC ,NATPERS as naturalPersonIndicator
 # MAGIC from source22 a
 # MAGIC left join cleansed.t_sapisu_0BPARTNER_TEXT b
@@ -220,14 +248,7 @@ lakedf.createOrReplaceTempView("Target")
 # MAGIC LEFT JOIN cleansed.t_sapisu_0BP_GROUP_TEXT d
 # MAGIC ON a.BU_GROUP = d.businessPartnerGroupCode --and d.SPRAS = 'E'
 # MAGIC LEFT JOIN cleansed.t_sapisu_tsad3t f
-# MAGIC ON a.TITLE = f.TITLE --and f.LANGU = 'E'
-# MAGIC 
-# MAGIC 
-# MAGIC )a
-# MAGIC 
-# MAGIC union
-# MAGIC 
-# MAGIC select count (*) as RecordCount, 'cleansed.t_sapisu_0bpartner_attr' as TableNAme from cleansed.t_sapisu_0bpartner_attr
+# MAGIC ON a.TITLE = f.TITLEcode) --and f.LANGU = 'E'
 
 # COMMAND ----------
 
@@ -299,15 +320,17 @@ lakedf.createOrReplaceTempView("Target")
 # MAGIC ,NAME_GRP1 as nameGroup1
 # MAGIC ,NAME_GRP2 as nameGroup2
 # MAGIC ,CRUSR as createdBy
-# MAGIC ,CRDAT as createdDate
-# MAGIC --,CRTIM as createdTime
+# MAGIC ,cast(to_unix_timestamp(CRDAT||' '||CRTIM,'yyyy-MM-dd HH:mm:ss') as timestamp) as createdDateTime
 # MAGIC ,CHUSR as changedBy
-# MAGIC ,CHDAT as changedDate
-# MAGIC --,CHTIM as changedTime
+# MAGIC ,cast(to_unix_timestamp(CHDAT||' '||CHTIM,'yyyy-MM-dd HH:mm:ss') as timestamp) as changedDateTime
 # MAGIC ,PARTNER_GUID as businessPartnerGUID
 # MAGIC ,ADDRCOMM as addressNumber
-# MAGIC ,VALID_FROM as validFromDate
-# MAGIC ,VALID_TO as validToDate
+# MAGIC ,case when VALID_FROM = '10101000000' then '1900-01-01' else CONCAT(LEFT(VALID_FROM,4),'-',SUBSTRING(VALID_FROM,5,2),'-',SUBSTRING(VALID_FROM,7,2)) end as validFromDate
+# MAGIC --,substr(VALID_TO, 1, 8) as validToDate
+# MAGIC ,CONCAT(LEFT(VALID_TO,4),'-',SUBSTRING(VALID_TO,5,2),'-',SUBSTRING(VALID_TO,7,2)) as validToDate
+# MAGIC --,VALID_FROM as validFromDate
+# MAGIC --,VALID_TO as validToDateyes ====!!!! all dates need converting..... :)
+# MAGIC 
 # MAGIC ,NATPERS as naturalPersonIndicator
 # MAGIC from source22 a
 # MAGIC left join cleansed.t_sapisu_0BPARTNER_TEXT b
@@ -365,11 +388,11 @@ lakedf.createOrReplaceTempView("Target")
 # MAGIC ,nameGroup1
 # MAGIC ,nameGroup2
 # MAGIC ,createdBy
-# MAGIC ,createdDate
-# MAGIC --,createdDateTime
+# MAGIC --,createdDate
+# MAGIC ,createdDateTime
 # MAGIC ,changedBy
-# MAGIC ,changedDate
-# MAGIC --,changedDateTime
+# MAGIC --,changedDate
+# MAGIC ,changedDateTime
 # MAGIC ,businessPartnerGUID
 # MAGIC ,addressNumber
 # MAGIC ,validFromDate
@@ -428,11 +451,11 @@ lakedf.createOrReplaceTempView("Target")
 # MAGIC ,nameGroup1
 # MAGIC ,nameGroup2
 # MAGIC ,createdBy
-# MAGIC ,createdDate
-# MAGIC --,createdDateTime
+# MAGIC --,createdDate
+# MAGIC ,createdDateTime
 # MAGIC ,changedBy
-# MAGIC ,changedDate
-# MAGIC --,changedDateTime
+# MAGIC --,changedDate
+# MAGIC ,changedDateTime
 # MAGIC ,businessPartnerGUID
 # MAGIC ,addressNumber
 # MAGIC ,validFromDate
@@ -442,7 +465,7 @@ lakedf.createOrReplaceTempView("Target")
 # MAGIC FROM
 # MAGIC cleansed.t_sapisu_0bpartner_attr
 # MAGIC 
-# MAGIC except 
+# MAGIC EXCEPT 
 # MAGIC select
 # MAGIC PARTNER as businessPartnerNumber
 # MAGIC ,TYPE as businessPartnerCategoryCode
@@ -488,15 +511,17 @@ lakedf.createOrReplaceTempView("Target")
 # MAGIC ,NAME_GRP1 as nameGroup1
 # MAGIC ,NAME_GRP2 as nameGroup2
 # MAGIC ,CRUSR as createdBy
-# MAGIC ,CRDAT as createdDate
-# MAGIC --,CRTIM as createdTime
+# MAGIC ,cast(to_unix_timestamp(CRDAT||' '||CRTIM,'yyyy-MM-dd HH:mm:ss') as timestamp) as createdDateTime
 # MAGIC ,CHUSR as changedBy
-# MAGIC ,CHDAT as changedDate
-# MAGIC --,CHTIM as changedTime
+# MAGIC ,cast(to_unix_timestamp(CHDAT||' '||CHTIM,'yyyy-MM-dd HH:mm:ss') as timestamp) as changedDateTime
 # MAGIC ,PARTNER_GUID as businessPartnerGUID
 # MAGIC ,ADDRCOMM as addressNumber
-# MAGIC ,VALID_FROM as validFromDate
-# MAGIC ,VALID_TO as validToDate
+# MAGIC ,case when VALID_FROM = '10101000000' then '1900-01-01' else CONCAT(LEFT(VALID_FROM,4),'-',SUBSTRING(VALID_FROM,5,2),'-',SUBSTRING(VALID_FROM,7,2)) end as validFromDate
+# MAGIC --,substr(VALID_TO, 1, 8) as validToDate
+# MAGIC ,CONCAT(LEFT(VALID_TO,4),'-',SUBSTRING(VALID_TO,5,2),'-',SUBSTRING(VALID_TO,7,2)) as validToDate
+# MAGIC --,VALID_FROM as validFromDate
+# MAGIC --,VALID_TO as validToDateyes ====!!!! all dates need converting..... :)
+# MAGIC 
 # MAGIC ,NATPERS as naturalPersonIndicator
 # MAGIC from source22 a
 # MAGIC left join cleansed.t_sapisu_0BPARTNER_TEXT b
