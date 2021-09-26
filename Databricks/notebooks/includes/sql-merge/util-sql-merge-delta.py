@@ -76,11 +76,21 @@ def _GenerateMergeSQL_DeltaTable(source_table_name, target_table_name, business_
 #   sql += TAB + f"SELECT {business_key_updated} AS merge_key, {ALIAS_TABLE_SOURCE}.* FROM {ALIAS_TABLE_SOURCE}" + NEW_LINE
 #   #We need RecordVersion only if it is the Delta Table load from the Raw Zone because we want the last version
 #   #For SQL Server, this would have already been resolved
-  #Start of Arman's Fix
-  isSAPISU = False
-  if source_table_name != None and "sapisu" in source_table_name:
-    isSAPISU = True
-  #End of Arman's Fix
+
+  raw_file_timestamp_exist = False
+  query = f"SELECT * FROM {source_table_name} LIMIT 0"
+  df_col_list = spark.sql(query)
+  lst = df_col_list.columns
+  col_lst = [col.strip() for col in lst]
+
+  if len(col_lst) > 0:
+    raw_file_timestamp_exist = any(COL_DL_RAW_FILE_TIMESTAMP in col for col in col_lst)
+    
+#Start of Arman's Fix
+#   isSAPISU = False
+#   if source_table_name != None and "sapisu" in source_table_name:
+#     isSAPISU = True
+#End of Arman's Fix
   #Create a MERGE SQL for SCD
   sql += f"MERGE INTO {target_table_name} {ALIAS_TABLE_MAIN} " + NEW_LINE
   sql += "USING (" + NEW_LINE
@@ -92,10 +102,10 @@ def _GenerateMergeSQL_DeltaTable(source_table_name, target_table_name, business_
 
   #Get data from the first CTE above
   sql += TAB + f"SELECT {ALIAS_TABLE_SOURCE}.*, {business_key_updated} AS merge_key" + NEW_LINE
-  if not is_delta_extract and target_data_lake_zone == ADS_DATABASE_CLEANSED and isSAPISU:
-    sql += TAB + ",ROW_NUMBER() OVER (PARTITION BY " + business_key_updated + " ORDER BY " + COL_DL_RAW_LOAD + " DESC) AS " + COL_RECORD_VERSION + NEW_LINE    
+  if not is_delta_extract and target_data_lake_zone == ADS_DATABASE_CLEANSED and raw_file_timestamp_exist:
+    sql += TAB + ",ROW_NUMBER() OVER (PARTITION BY " + business_key_updated + " ORDER BY " + COL_DL_RAW_FILE_TIMESTAMP + " DESC) AS " + COL_RECORD_VERSION + NEW_LINE    
     
-  if not is_delta_extract and target_data_lake_zone == ADS_DATABASE_CLEANSED and not isSAPISU:
+  if not is_delta_extract and target_data_lake_zone == ADS_DATABASE_CLEANSED and not raw_file_timestamp_exist:
     sql += TAB + ",ROW_NUMBER() OVER (PARTITION BY " + business_key_updated + " ORDER BY " + COL_DL_RAW_LOAD + " DESC) AS " + COL_RECORD_VERSION + NEW_LINE    
     
   if is_delta_extract and target_data_lake_zone == ADS_DATABASE_CLEANSED :
@@ -103,13 +113,10 @@ def _GenerateMergeSQL_DeltaTable(source_table_name, target_table_name, business_
     
   sql += TAB +  f"FROM {ALIAS_TABLE_SOURCE} ) WHERE {COL_RECORD_VERSION} = 1" + NEW_LINE
   
-  
   #We need RecordVersion only if it is the Delta Table load from the Raw Zone because we want the last version
   #For SQL Server, this would have already been resolved  
   #if target_data_lake_zone == ADS_DATABASE_CLEANSED: sql += TAB + f"WHERE {COL_RECORD_VERSION} = 1" + NEW_LINE  
   #End of Fix for Handling Null in Key Coulumns
-  
-
   
   #if track_changes:
     #Union the previous query with the next one
