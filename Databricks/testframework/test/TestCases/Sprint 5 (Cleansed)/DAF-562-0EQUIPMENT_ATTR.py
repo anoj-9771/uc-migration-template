@@ -165,7 +165,7 @@ df = spark.sql("select * from Source1")
 # MAGIC ,EQTYP 
 # MAGIC ,'20210904145700' as FILEDATE
 # MAGIC from Source5
-# MAGIC )a)) where rn = 1 --and EQUNR = '000000000011520707'
+# MAGIC )a))-- where rn = 1 --and EQUNR = '000000000011520707'
 # MAGIC --except
 # MAGIC --SELECT *, '3/09' as filedate from Source;
 
@@ -210,7 +210,12 @@ df = spark.sql("select * from Source1")
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC select * from cleansed.t_sapisu_0equipment_attr limit 1
+# MAGIC select * from cleansed.t_sapisu_0equipment_attr order by validfromdate desc-- where validfromdate = '1102-01-07'
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC select * from source1 where DATEFROM < '1900-01-01'
 
 # COMMAND ----------
 
@@ -247,76 +252,6 @@ lakedf.createOrReplaceTempView("Target")
 
 # COMMAND ----------
 
-# MAGIC %sql
-# MAGIC --scratch
-# MAGIC a.PARTNER as businessPartnerNumber
-# MAGIC ,a.TYPE as businessPartnerCategoryCode
-# MAGIC ,b.TXTMD as businessPartnerCategory
-# MAGIC ,a.BPKIND as businessPartnerTypeCode
-# MAGIC ,c.TEXT40 as businessPartnerType
-# MAGIC ,a.BU_GROUP as businessPartnerGroupCode
-# MAGIC ,d.TXT40 as businessPartnerGroup
-# MAGIC ,BPEXT as externalBusinessPartnerNumber
-# MAGIC ,BU_SORT1 as searchTerm1
-# MAGIC ,BU_SORT2 as searchTerm2
-# MAGIC ,TITLE as titleCode
-# MAGIC ,'To be mapped' as title
-# MAGIC --,f.TITLE_MEDI AS title
-# MAGIC ,XDELE as deletedIndicator
-# MAGIC ,XBLCK as centralBlockBusinessPartner
-# MAGIC ,ZZUSER as userId
-# MAGIC ,ZZPAS_INDICATOR as paymentAssistSchemeIndicator
-# MAGIC ,ZZBA_INDICATOR as billAssistIndicator
-# MAGIC ,ZZAFLD00001Z as createdOn
-# MAGIC ,NAME_ORG1 as organizationName1
-# MAGIC ,NAME_ORG2 as organizationName2
-# MAGIC ,NAME_ORG3 as organizationName3
-# MAGIC ,FOUND_DAT as organizationFoundedDate
-# MAGIC ,LOCATION_1 as internationalLocationNumber1
-# MAGIC ,LOCATION_2 as internationalLocationNumber2
-# MAGIC ,LOCATION_3 as internationalLocationNumber3
-# MAGIC ,NAME_LAST as lastName
-# MAGIC ,NAME_FIRST as firstName
-# MAGIC ,NAME_LAST2 as atBirthName
-# MAGIC ,NAMEMIDDLE as middleName
-# MAGIC ,TITLE_ACA1 as academicTitle
-# MAGIC ,NICKNAME as nickName
-# MAGIC ,INITIALS as nameInitials
-# MAGIC ,NAMCOUNTRY as countryName
-# MAGIC ,LANGU_CORR as correspondanceLanguage
-# MAGIC ,NATIO as nationality
-# MAGIC ,PERSNUMBER as personNumber
-# MAGIC ,XSEXU as unknownGenderIndicator
-# MAGIC ,BU_LANGU as language
-# MAGIC ,BIRTHDT as dateOfBirth
-# MAGIC ,DEATHDT as dateOfDeath
-# MAGIC ,PERNO as personnelNumber
-# MAGIC ,NAME_GRP1 as nameGroup1
-# MAGIC ,NAME_GRP2 as nameGroup2
-# MAGIC ,CRUSR as createdBy
-# MAGIC ,CRDAT as createdDate
-# MAGIC ,CRTIM as createdTime
-# MAGIC ,CHUSR as changedBy
-# MAGIC ,CHDAT as changedDate
-# MAGIC ,CHTIM as changedTime
-# MAGIC ,a.PARTNER_GUID as businessPartnerGUID
-# MAGIC ,ADDRCOMM as addressNumber
-# MAGIC ,VALID_FROM as validFromDate
-# MAGIC ,VALID_TO as validToDate
-# MAGIC ,NATPERS as naturalPersonIndicator
-# MAGIC FROM raw.sapisu_0BPARTNER_ATTR a
-# MAGIC LEFT JOIN raw.sapisu_0BPARTNER_TEXT b
-# MAGIC ON a.PARTNER = b.PARTNER and a.TYPE = b.TYPE
-# MAGIC LEFT JOIN raw.sapisu_0BPTYPE_TEXT c
-# MAGIC ON a.BPKIND = c.BPKIND --and c.SPRAS = 'E'
-# MAGIC LEFT JOIN raw.sapisu_0BP_GROUP_TEXT d
-# MAGIC ON a.BU_GROUP = d.BU_GROUP and d.SPRAS = 'E'
-# MAGIC --LEFT JOIN ZDSTITLET f
-# MAGIC --ON a.TITLE = f.TITLE and f.LANGU = 'E'
-# MAGIC where a.PARTNER = '0001000090'
-
-# COMMAND ----------
-
 # DBTITLE 1,[Verification] Count Checks
 # MAGIC %sql
 # MAGIC select count (*) as RecordCount, 'Target' as TableName from cleansed.t_sapisu_0equipment_attr
@@ -325,7 +260,7 @@ lakedf.createOrReplaceTempView("Target")
 # MAGIC select
 # MAGIC EQUNR as equipmentNumber
 # MAGIC ,DATETO as validToDate
-# MAGIC ,DATEFROM as validFromDate
+# MAGIC ,case when DATEFROM <'1900-01-01' then null else DATEFROM end as validFromDate
 # MAGIC ,EQART as technicalObjectTypeCode
 # MAGIC ,INVNR as inventoryNumber
 # MAGIC ,IWERK as maintenancePlanningPlant
@@ -375,7 +310,7 @@ lakedf.createOrReplaceTempView("Target")
 # MAGIC select
 # MAGIC EQUNR as equipmentNumber
 # MAGIC ,DATETO as validToDate
-# MAGIC ,DATEFROM as validFromDate
+# MAGIC ,case when DATEFROM <'1900-01-01' then null else DATEFROM end as validFromDate
 # MAGIC ,EQART as technicalObjectTypeCode
 # MAGIC ,INVNR as inventoryNumber
 # MAGIC ,IWERK as maintenancePlanningPlant
@@ -455,7 +390,7 @@ lakedf.createOrReplaceTempView("Target")
 # MAGIC select
 # MAGIC EQUNR as equipmentNumber
 # MAGIC ,DATETO as validToDate
-# MAGIC ,DATEFROM as validFromDate
+# MAGIC ,case when DATEFROM <'1900-01-01' then null else DATEFROM end as validFromDate
 # MAGIC ,EQART as technicalObjectTypeCode
 # MAGIC ,INVNR as inventoryNumber
 # MAGIC ,IWERK as maintenancePlanningPlant
