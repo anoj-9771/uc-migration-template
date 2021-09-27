@@ -174,9 +174,9 @@ df_cleansed = spark.sql("SELECT cast(System_Key as int) AS systemKey, \
         case when Land_Use = 'N/A' then null else initcap(Land_Use) end as landUse, \
         case when Superior_Land_Use = 'N/A' then null else initcap(Superior_Land_Use) end as superiorLandUse, \
         cast(Area_m2 as int) as areaSize, \
-        'm2' as areaSizeUnit, " +
-        ("cast(Lon as float) as longitude, cast(Lat as float) as latitude, cast(MGA56_X as float) as x_coordinate_MGA56, cast(MGA56_Y as float) as y_coordinate_MGA56, " if ADS_ENVIRONMENT not in ['dev','test'] else "\
-          cast(Lon as float)+17 as longitude, cast(Lat as float)+23 as latitude, cast(MGA56_X as float)+11235 as x_coordinate_MGA56, cast(MGA56_Y as float)+33245 as y_coordinate_MGA56, ") + "\
+        'm2' as areaSizeUnit, " + 
+        ("cast(Lon as dec(9,6)) as longitude, cast(Lat as dec(9,6)) as latitude, cast(MGA56_X as long) as x_coordinate_MGA56, cast(MGA56_Y as long) as y_coordinate_MGA56, " if ADS_ENVIRONMENT not in ['dev','test'] else "\
+          cast(Lon as dec(9,6))+0.17 as longitude, cast(Lat as dec(9,6))+0.23 as latitude, cast(MGA56_X as long)+112 as x_coordinate_MGA56, cast(MGA56_Y as long)+332 as y_coordinate_MGA56, ") + "\
 		case when Water_Delivery_System = 'N/A' then null else Water_Delivery_System end as waterDeliverySystem, \
 		case when Water_Distribution_System = 'N/A' then null else Water_Distribution_System end as waterDistributionSystem, \
 		case when Water_Supply_Zone = 'N/A' then null else Water_Supply_Zone end as waterSupplyZone, \
@@ -192,7 +192,7 @@ df_cleansed = spark.sql("SELECT cast(System_Key as int) AS systemKey, \
 		_RecordEnd, \
 		_RecordDeleted, \
 		_RecordCurrent \
-	FROM CLEANSED.STG_HYDRA_TLOTPARCEL")
+	FROM CLEANSED.STG_" + source_object)
 
 display(df_cleansed)
 
@@ -208,10 +208,10 @@ newSchema = StructType([
     StructField('superiorLandUse',StringType(),True),
     StructField('areaSize',IntegerType(),True),
     StructField('areaSizeUnit',StringType(),True),
-    StructField('longitude',FloatType(),False),
-    StructField('latitude',FloatType(),False),
-    StructField('x_coordinate_MGA56',FloatType(),False),
-    StructField('y_coordinate_MGA56',FloatType(),False),
+    StructField('longitude',DecimalType(9,6),False),
+    StructField('latitude',DecimalType(9,6),False),
+    StructField('x_coordinate_MGA56',LongType(),False),
+    StructField('y_coordinate_MGA56',LongType(),False),
     StructField('waterDeliverySystem',StringType(),True),
     StructField('waterDistributionSystem',StringType(),True),
     StructField('waterSupplyZone',StringType(),True),
