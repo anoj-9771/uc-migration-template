@@ -153,7 +153,7 @@ df_updated_column = spark.sql("SELECT  \
                                   _RecordEnd, \
                                   _RecordDeleted, \
                                   _RecordCurrent \
-                               FROM CLEANSED.stg_sapisu_zcd_tsupprtyp_tx")
+                               FROM CLEANSED.stg_isu_zcd_tsupprtyp_tx")
 display(df_updated_column)
 
 # COMMAND ----------

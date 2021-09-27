@@ -1,6 +1,6 @@
 # Databricks notebook source
 # MAGIC %md
-# MAGIC { "SourceType": "BLOB Storage (json)", "SourceServer": "saswcnonprod01landingdev-sastoken", "SourceGroup": "sapisu", "SourceName": "sapisu_0FUNCT_LOC_ATTR", "SourceLocation": "0FUNCT_LOC_ATTR", "AdditionalProperty": "", "Processor": "databricks-token|0711-011053-turfs581|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive", "IsAuditTable": false, "SoftDeleteSource": "", "ProjectName": "SAP ISU", "ProjectId": 2, "TargetType": "BLOB Storage (json)", "TargetName": "sapisu_0FUNCT_LOC_ATTR", "TargetLocation": "sapisu/0FUNCT_LOC_ATTR", "TargetServer": "daf-sa-lake-sastoken", "DataLoadMode": "FULL-EXTRACT", "DeltaExtract": false, "CDCSource": false, "TruncateTarget": false, "UpsertTarget": true, "AppendTarget": null, "TrackChanges": false, "LoadToSqlEDW": true, "TaskName": "sapisu_0FUNCT_LOC_ATTR", "ControlStageId": 1, "TaskId": 69, "StageSequence": 100, "StageName": "Source to Raw", "SourceId": 69, "TargetId": 69, "ObjectGrain": "Day", "CommandTypeId": 3, "Watermarks": "", "WatermarksDT": null, "WatermarkColumn": "", "BusinessKeyColumn": "TPLNR", "UpdateMetaData": null, "SourceTimeStampFormat": "", "Command": "", "LastLoadedFile": null }
+# MAGIC { "SourceType": "BLOB Storage (json)", "SourceServer": "saswcnonprod01landingdev-sastoken", "SourceGroup": "isu", "SourceName": "isu_0FUNCT_LOC_ATTR", "SourceLocation": "0FUNCT_LOC_ATTR", "AdditionalProperty": "", "Processor": "databricks-token|0711-011053-turfs581|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive", "IsAuditTable": false, "SoftDeleteSource": "", "ProjectName": "SAP ISU", "ProjectId": 2, "TargetType": "BLOB Storage (json)", "TargetName": "isu_0FUNCT_LOC_ATTR", "TargetLocation": "isu/0FUNCT_LOC_ATTR", "TargetServer": "daf-sa-lake-sastoken", "DataLoadMode": "FULL-EXTRACT", "DeltaExtract": false, "CDCSource": false, "TruncateTarget": false, "UpsertTarget": true, "AppendTarget": null, "TrackChanges": false, "LoadToSqlEDW": true, "TaskName": "isu_0FUNCT_LOC_ATTR", "ControlStageId": 1, "TaskId": 69, "StageSequence": 100, "StageName": "Source to Raw", "SourceId": 69, "TargetId": 69, "ObjectGrain": "Day", "CommandTypeId": 3, "Watermarks": "", "WatermarksDT": null, "WatermarkColumn": "", "BusinessKeyColumn": "TPLNR", "UpdateMetaData": null, "SourceTimeStampFormat": "", "Command": "", "LastLoadedFile": null }
 
 # COMMAND ----------
 
@@ -203,8 +203,8 @@ df_cleansed_column = spark.sql("SELECT  \
                                   stg._RecordEnd, \
                                   stg._RecordDeleted, \
                                   stg._RecordCurrent \
-                               FROM CLEANSED.STG_SAPISU_0FUNCT_LOC_ATTR stg \
-                                 left outer join cleansed.t_sapisu_0comp_code_text cc on cc.companyCode = stg.BUKRS"
+                               FROM CLEANSED.STG_isu_0FUNCT_LOC_ATTR stg \
+                                 left outer join cleansed.t_isu_0comp_code_text cc on cc.companyCode = stg.BUKRS"
                               )
 display(df_cleansed_column)
 
