@@ -149,7 +149,7 @@ DeltaSaveToDeltaTable (
 df_updated_column = spark.sql("SELECT \
                                        ZWGRUPPE as registerGroupCode,\
                                        EZWG_INFO as registerGroup \
-                                       FROM CLEANSED.STG_SAPISU_0UC_REGGRP_TEXT")
+                                       FROM CLEANSED.STG_isu_0UC_REGGRP_TEXT")
                                    
 display(df_updated_column)
 
