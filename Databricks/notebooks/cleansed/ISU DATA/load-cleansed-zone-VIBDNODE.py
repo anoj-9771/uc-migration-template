@@ -160,9 +160,9 @@ df_updated_column_temp = spark.sql("SELECT  \
                                 VIB._RecordEnd, \
                                 VIB._RecordDeleted, \
                                 VIB._RecordCurrent \
-                               FROM CLEANSED.stg_sapisu_vibdnode vib \
-                               LEFT OUTER JOIN CLEANSED.t_sapisu_tivbdarobjtypet arch ON vib.aotype_ao = arch.aotype \
-                               LEFT OUTER JOIN CLEANSED.t_sapisu_tivbdarobjtypet archobj ON vib.aotype_ao = archobj.aotype")
+                               FROM CLEANSED.stg_isu_vibdnode vib \
+                               LEFT OUTER JOIN CLEANSED.t_isu_tivbdarobjtypet arch ON vib.aotype_ao = arch.aotype \
+                               LEFT OUTER JOIN CLEANSED.t_isu_tivbdarobjtypet archobj ON vib.aotype_ao = archobj.aotype")
 
 display(df_updated_column_temp)
 
@@ -205,7 +205,7 @@ dbutils.notebook.exit("1")
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC select count(*) FROM cleansed.stg_sapisu_vibdnode;
+# MAGIC select count(*) FROM cleansed.stg_isu_vibdnode;
 # MAGIC 
 # MAGIC 
 # MAGIC 
