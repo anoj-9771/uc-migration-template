@@ -1,7 +1,7 @@
 # Databricks notebook source
-#{"SourceType":"BLOB Storage (json)","SourceServer":"daf-sa-lake-sastoken","SourceGroup":"sapisu","SourceName":"sapisu_DBERCHZ2","SourceLocation":"sapisu/DBERCHZ2","AdditionalProperty":"","Processor":"databricks-token|0705-044124-gored835|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive","IsAuditTable":false,"SoftDeleteSource":"","ProjectName":"TEST1","ProjectId":9,"TargetType":"BLOB Storage (json)","TargetName":"sapisu_DBERCHZ2","TargetLocation":"sapisu/DBERCHZ2","TargetServer":"daf-sa-lake-sastoken","DataLoadMode":"INCREMENTAL","DeltaExtract":true,"CDCSource":false,"TruncateTarget":false,"UpsertTarget":true,"AppendTarget":null,"TrackChanges":true,"LoadToSqlEDW":true,"TaskName":"sapisu_DBERCHZ2","ControlStageId":2,"TaskId":40,"StageSequence":200,"StageName":"Raw to Cleansed","SourceId":40,"TargetId":40,"ObjectGrain":"Day","CommandTypeId":8,"Watermarks":null,"WatermarksDT":null,"WatermarkColumn":"","BusinessKeyColumn":"BELNR,BELZEILE","UpdateMetaData":null,"SourceTimeStampFormat":"","Command":"/build/cleansed/ISU SLT/load-cleansed-zone-DBERCHZ2","LastLoadedFile":"DBO.DBERCHZ2_2021-09-24_120612_140.json.gz"}
+#{"SourceType":"BLOB Storage (json)","SourceServer":"daf-sa-lake-sastoken","SourceGroup":"isu","SourceName":"isu_DBERCHZ2","SourceLocation":"isu/DBERCHZ2","AdditionalProperty":"","Processor":"databricks-token|0705-044124-gored835|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive","IsAuditTable":false,"SoftDeleteSource":"","ProjectName":"TEST1","ProjectId":9,"TargetType":"BLOB Storage (json)","TargetName":"isu_DBERCHZ2","TargetLocation":"isu/DBERCHZ2","TargetServer":"daf-sa-lake-sastoken","DataLoadMode":"INCREMENTAL","DeltaExtract":true,"CDCSource":false,"TruncateTarget":false,"UpsertTarget":true,"AppendTarget":null,"TrackChanges":true,"LoadToSqlEDW":true,"TaskName":"isu_DBERCHZ2","ControlStageId":2,"TaskId":40,"StageSequence":200,"StageName":"Raw to Cleansed","SourceId":40,"TargetId":40,"ObjectGrain":"Day","CommandTypeId":8,"Watermarks":null,"WatermarksDT":null,"WatermarkColumn":"","BusinessKeyColumn":"BELNR,BELZEILE","UpdateMetaData":null,"SourceTimeStampFormat":"","Command":"/build/cleansed/ISU SLT/load-cleansed-zone-DBERCHZ2","LastLoadedFile":"DBO.DBERCHZ2_2021-09-24_120612_140.json.gz"}
 #Delta Column : DELTA_TS
-#Source Object: sapisu_dberchz2
+#Source Object: isu_dberchz2
 
 # COMMAND ----------
 
@@ -188,7 +188,7 @@ df_cleansed_column = spark.sql("SELECT  \
                                 _RecordEnd, \
                                 _RecordDeleted, \
                                 _RecordCurrent \
-                               FROM CLEANSED.STG_SAPISU_DBERCHZ2")
+                               FROM CLEANSED.STG_isu_DBERCHZ2")
 display(df_cleansed_column)
 
 # COMMAND ----------

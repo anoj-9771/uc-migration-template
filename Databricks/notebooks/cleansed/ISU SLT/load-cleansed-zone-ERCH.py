@@ -1,7 +1,7 @@
 # Databricks notebook source
-#source_param: {"SourceType":"BLOB Storage (json)","SourceServer":"daf-sa-lake-sastoken","SourceGroup":"sapisu","SourceName":"sapisu_ERCH","SourceLocation":"sapisu/ERCH","AdditionalProperty":"","Processor":"databricks-token|0705-044124-gored835|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive","IsAuditTable":false,"SoftDeleteSource":"","ProjectName":"TEST1","ProjectId":9,"TargetType":"BLOB Storage (json)","TargetName":"sapisu_ERCH","TargetLocation":"sapisu/ERCH","TargetServer":"daf-sa-lake-sastoken","DataLoadMode":"INCREMENTAL","DeltaExtract":true,"CDCSource":false,"TruncateTarget":false,"UpsertTarget":true,"AppendTarget":null,"TrackChanges":true,"LoadToSqlEDW":true,"TaskName":"sapisu_ERCH","ControlStageId":2,"TaskId":36,"StageSequence":200,"StageName":"Raw to Cleansed","SourceId":36,"TargetId":36,"ObjectGrain":"Day","CommandTypeId":8,"Watermarks":null,"WatermarksDT":null,"WatermarkColumn":"","BusinessKeyColumn":"BELNR","UpdateMetaData":null,"SourceTimeStampFormat":"","Command":"/build/cleansed/ISU SLT/load-cleansed-zone-ERCH","LastLoadedFile":"DBO.ERCH_2021-09-24_120608_647.json.gz"}
+#source_param: {"SourceType":"BLOB Storage (json)","SourceServer":"daf-sa-lake-sastoken","SourceGroup":"isu","SourceName":"isu_ERCH","SourceLocation":"isu/ERCH","AdditionalProperty":"","Processor":"databricks-token|0705-044124-gored835|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive","IsAuditTable":false,"SoftDeleteSource":"","ProjectName":"TEST1","ProjectId":9,"TargetType":"BLOB Storage (json)","TargetName":"isu_ERCH","TargetLocation":"isu/ERCH","TargetServer":"daf-sa-lake-sastoken","DataLoadMode":"INCREMENTAL","DeltaExtract":true,"CDCSource":false,"TruncateTarget":false,"UpsertTarget":true,"AppendTarget":null,"TrackChanges":true,"LoadToSqlEDW":true,"TaskName":"isu_ERCH","ControlStageId":2,"TaskId":36,"StageSequence":200,"StageName":"Raw to Cleansed","SourceId":36,"TargetId":36,"ObjectGrain":"Day","CommandTypeId":8,"Watermarks":null,"WatermarksDT":null,"WatermarkColumn":"","BusinessKeyColumn":"BELNR","UpdateMetaData":null,"SourceTimeStampFormat":"","Command":"/build/cleansed/ISU SLT/load-cleansed-zone-ERCH","LastLoadedFile":"DBO.ERCH_2021-09-24_120608_647.json.gz"}
 #Delta Column: DELTA_TS
-#Source Object: sapisu_ERCH
+#Source Object: isu_ERCH
 
 # COMMAND ----------
 
@@ -238,8 +238,8 @@ df_cleansed_column = spark.sql("SELECT  \
                                   stg._RecordEnd, \
                                   stg._RecordDeleted, \
                                   stg._RecordCurrent \
-                              FROM CLEANSED.STG_SAPISU_ERCH stg \
-                               left outer join cleansed.t_sapisu_0comp_code_text cc on cc.companyCode = stg.BUKRS"
+                              FROM CLEANSED.STG_isu_ERCH stg \
+                               left outer join cleansed.t_isu_0comp_code_text cc on cc.companyCode = stg.BUKRS"
                               )
 display(df_cleansed_column)
 

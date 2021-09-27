@@ -25,10 +25,10 @@
 import json
 #For unit testing...
 #Use this string in the Param widget: 
-#{"SourceType": "BLOB Storage (json)", "SourceServer": "daf-sa-lake-sastoken", "SourceGroup": "sapisu", "SourceName": "sapisu_0DF_REFIXFI_ATTR", "SourceLocation": "sapisu/0DF_REFIXFI_ATTR", "AdditionalProperty": "", "Processor": "databricks-token|0711-011053-turfs581|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive", "IsAuditTable": false, "SoftDeleteSource": "", "ProjectName": "SAP DATA", "ProjectId": 2, "TargetType": "BLOB Storage (json)", "TargetName": "sapisu_0DF_REFIXFI_ATTR", "TargetLocation": "sapisu/0DF_REFIXFI_ATTR", "TargetServer": "daf-sa-lake-sastoken", "DataLoadMode": "FULL-EXTRACT", "DeltaExtract": false, "CDCSource": false, "TruncateTarget": false, "UpsertTarget": true, "AppendTarget": null, "TrackChanges": false, "LoadToSqlEDW": true, "TaskName": "sapisu_0DF_REFIXFI_ATTR", "ControlStageId": 2, "TaskId": 46, "StageSequence": 200, "StageName": "Raw to Cleansed", "SourceId": 46, "TargetId": 46, "ObjectGrain": "Day", "CommandTypeId": 8, "Watermarks": "", "WatermarksDT": null, "WatermarkColumn": "", "BusinessKeyColumn": "INTRENO,FIXFITCHARACT,VALIDTO", "UpdateMetaData": null, "SourceTimeStampFormat": "", "Command": "", "LastLoadedFile": null}
+#{"SourceType": "BLOB Storage (json)", "SourceServer": "daf-sa-lake-sastoken", "SourceGroup": "isu", "SourceName": "isu_0DF_REFIXFI_ATTR", "SourceLocation": "isu/0DF_REFIXFI_ATTR", "AdditionalProperty": "", "Processor": "databricks-token|0711-011053-turfs581|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive", "IsAuditTable": false, "SoftDeleteSource": "", "ProjectName": "SAP DATA", "ProjectId": 2, "TargetType": "BLOB Storage (json)", "TargetName": "isu_0DF_REFIXFI_ATTR", "TargetLocation": "isu/0DF_REFIXFI_ATTR", "TargetServer": "daf-sa-lake-sastoken", "DataLoadMode": "FULL-EXTRACT", "DeltaExtract": false, "CDCSource": false, "TruncateTarget": false, "UpsertTarget": true, "AppendTarget": null, "TrackChanges": false, "LoadToSqlEDW": true, "TaskName": "isu_0DF_REFIXFI_ATTR", "ControlStageId": 2, "TaskId": 46, "StageSequence": 200, "StageName": "Raw to Cleansed", "SourceId": 46, "TargetId": 46, "ObjectGrain": "Day", "CommandTypeId": 8, "Watermarks": "", "WatermarksDT": null, "WatermarkColumn": "", "BusinessKeyColumn": "INTRENO,FIXFITCHARACT,VALIDTO", "UpdateMetaData": null, "SourceTimeStampFormat": "", "Command": "", "LastLoadedFile": null}
 
 #Use this string in the Source Object widget
-#sapisu_0ARCHOBJECT_ATTR
+#isu_0ARCHOBJECT_ATTR
 
 # COMMAND ----------
 
@@ -208,12 +208,12 @@ df_updated_column_temp = spark.sql("SELECT  \
                                   vib._RecordEnd, \
                                   vib._RecordDeleted, \
                                   vib._RecordCurrent \
-                              FROM CLEANSED.stg_sapisu_0archobject_attr vib \
-                                    LEFT OUTER JOIN CLEANSED.t_sapisu_ZCD_TINFPRTY_TX ip ON vib.ZCD_INF_PROP_TYPE = ip.inferiorPropertyTypeCode \
-                                    LEFT OUTER JOIN CLEANSED.t_sapisu_ZCD_TSUPPRTYP_TX sp ON vib.ZCD_SUP_PROP_TYPE = sp.superiorPropertyTypeCode \
-                                    LEFT OUTER JOIN CLEANSED.t_sapisu_ZCD_TPLANTYPE_TX plt ON vib.ZCD_PLAN_TYPE = plt.PLAN_TYPE \
-                                    LEFT OUTER JOIN CLEANSED.t_sapisu_TIVBDAROBJTYPET tiv ON vib.AOTYPE = tiv.AOTYPE \
-                                    LEFT OUTER JOIN CLEANSED.t_sapisu_ZCD_TPROCTYPE_TX prt ON vib.ZCD_PROCESS_TYPE = prt.PROCESS_TYPE \
+                              FROM CLEANSED.stg_isu_0archobject_attr vib \
+                                    LEFT OUTER JOIN CLEANSED.t_isu_ZCD_TINFPRTY_TX ip ON vib.ZCD_INF_PROP_TYPE = ip.inferiorPropertyTypeCode \
+                                    LEFT OUTER JOIN CLEANSED.t_isu_ZCD_TSUPPRTYP_TX sp ON vib.ZCD_SUP_PROP_TYPE = sp.superiorPropertyTypeCode \
+                                    LEFT OUTER JOIN CLEANSED.t_isu_ZCD_TPLANTYPE_TX plt ON vib.ZCD_PLAN_TYPE = plt.PLAN_TYPE \
+                                    LEFT OUTER JOIN CLEANSED.t_isu_TIVBDAROBJTYPET tiv ON vib.AOTYPE = tiv.AOTYPE \
+                                    LEFT OUTER JOIN CLEANSED.t_isu_ZCD_TPROCTYPE_TX prt ON vib.ZCD_PROCESS_TYPE = prt.PROCESS_TYPE \
                               ")
 
 display(df_updated_column_temp)
