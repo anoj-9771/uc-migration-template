@@ -158,9 +158,9 @@ df_updated_column_temp = spark.sql("SELECT  \
                                   prop_hist._RecordEnd, \
                                   prop_hist._RecordDeleted, \
                                   prop_hist._RecordCurrent \
-                              FROM CLEANSED.stg_sapisu_zcd_tpropty_hist prop_hist \
-                                left outer join CLEANSED.t_sapisu_zcd_tinfprty_tx inf_typ on prop_hist.INF_PROP_TYPE = inf_typ.inferiorPropertyTypecode \
-                                left outer join CLEANSED.t_sapisu_zcd_tsupprtyp_tx sup_typ on prop_hist.SUP_PROP_TYPE = sup_typ.superiorPropertyTypecode \
+                              FROM CLEANSED.stg_isu_zcd_tpropty_hist prop_hist \
+                                left outer join CLEANSED.t_isu_zcd_tinfprty_tx inf_typ on prop_hist.INF_PROP_TYPE = inf_typ.inferiorPropertyTypecode \
+                                left outer join CLEANSED.t_isu_zcd_tsupprtyp_tx sup_typ on prop_hist.SUP_PROP_TYPE = sup_typ.superiorPropertyTypecode \
                               ")
 
 display(df_updated_column_temp)

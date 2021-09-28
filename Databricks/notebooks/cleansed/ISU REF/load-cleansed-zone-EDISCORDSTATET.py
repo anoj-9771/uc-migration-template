@@ -3,10 +3,10 @@
 import json
 #For unit testing...
 #Use this string in the Param widget: 
-#{"SourceType": "BLOB Storage (json)", "SourceServer": "daf-sa-lake-sastoken", "SourceGroup": "sapisu", "SourceName": "sapisu_EDISCORDSTATET", "SourceLocation": "sapisu/EDISCORDSTATET", "AdditionalProperty": "", "Processor": "databricks-token|0711-011053-turfs581|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive", "IsAuditTable": false, "SoftDeleteSource": "", "ProjectName": "SAP REF", "ProjectId": 2, "TargetType": "BLOB Storage (json)", "TargetName": "sapisu_EDISCORDSTATET", "TargetLocation": "sapisu/EDISCORDSTATET", "TargetServer": "daf-sa-lake-sastoken", "DataLoadMode": "FULL-EXTRACT", "DeltaExtract": false, "CDCSource": false, "TruncateTarget": false, "UpsertTarget": true, "AppendTarget": null, "TrackChanges": false, "LoadToSqlEDW": true, "TaskName": "sapisu_EDISCORDSTATET", "ControlStageId": 2, "TaskId": 46, "StageSequence": 200, "StageName": "Raw to Cleansed", "SourceId": 46, "TargetId": 46, "ObjectGrain": "Day", "CommandTypeId": 8, "Watermarks": "", "WatermarksDT": null, "WatermarkColumn": "", "BusinessKeyColumn": "ORDSTATE", "UpdateMetaData": null, "SourceTimeStampFormat": "", "Command": "", "LastLoadedFile": null}
+#{"SourceType": "BLOB Storage (json)", "SourceServer": "daf-sa-lake-sastoken", "SourceGroup": "isu", "SourceName": "isu_EDISCORDSTATET", "SourceLocation": "isu/EDISCORDSTATET", "AdditionalProperty": "", "Processor": "databricks-token|0711-011053-turfs581|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive", "IsAuditTable": false, "SoftDeleteSource": "", "ProjectName": "SAP REF", "ProjectId": 2, "TargetType": "BLOB Storage (json)", "TargetName": "isu_EDISCORDSTATET", "TargetLocation": "isu/EDISCORDSTATET", "TargetServer": "daf-sa-lake-sastoken", "DataLoadMode": "FULL-EXTRACT", "DeltaExtract": false, "CDCSource": false, "TruncateTarget": false, "UpsertTarget": true, "AppendTarget": null, "TrackChanges": false, "LoadToSqlEDW": true, "TaskName": "isu_EDISCORDSTATET", "ControlStageId": 2, "TaskId": 46, "StageSequence": 200, "StageName": "Raw to Cleansed", "SourceId": 46, "TargetId": 46, "ObjectGrain": "Day", "CommandTypeId": 8, "Watermarks": "", "WatermarksDT": null, "WatermarkColumn": "", "BusinessKeyColumn": "ORDSTATE", "UpdateMetaData": null, "SourceTimeStampFormat": "", "Command": "", "LastLoadedFile": null}
 
 #Use this string in the Source Object widget
-#SAPISU_EDISCORDSTATET
+#isu_EDISCORDSTATET
 
 # COMMAND ----------
 
@@ -164,7 +164,7 @@ df_cleansed = spark.sql("SELECT \
                             _RecordEnd, \
                             _RecordDeleted, \
                             _RecordCurrent \
-                            FROM CLEANSED.STG_SAPISU_EDISCORDSTATET \
+                            FROM CLEANSED.STG_isu_EDISCORDSTATET \
                        ")
 
 display(df_cleansed)

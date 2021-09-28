@@ -150,7 +150,7 @@ df_updated_column = spark.sql("SELECT \
                                        PARTNER as businessPartnerNumber,\
                                        TYPE as businessPartnerCategoryCode, \
                                        TXTMD as businessPartnerCategory \
-                                       FROM CLEANSED.STG_SAPISU_0BPARTNER_TEXT")
+                                       FROM CLEANSED.STG_isu_0BPARTNER_TEXT")
                                    
 display(df_updated_column)
 
