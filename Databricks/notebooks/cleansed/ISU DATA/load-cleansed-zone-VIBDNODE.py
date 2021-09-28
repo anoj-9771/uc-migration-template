@@ -173,7 +173,7 @@ display(df_updated_column_temp)
 cleanse_Schema = StructType(
   [
     StructField("architecturalObjectInternalId", StringType(), False),
-    StructField("alternativeDisplayStructureId", StringType(), True),
+    StructField("alternativeDisplayStructureId", StringType(), False),
     StructField("architecturalObjectTypeCode", StringType(), True),
     StructField("architecturalObjectType", StringType(), True),
     StructField("architecturalObjectNumber", StringType(), True),
@@ -201,12 +201,3 @@ DeltaSaveDataframeDirect(df_updated_column, "t", source_object, ADS_DATABASE_CLE
 
 # DBTITLE 1,13. Exit Notebook
 dbutils.notebook.exit("1")
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC select count(*) FROM cleansed.stg_isu_vibdnode;
-# MAGIC 
-# MAGIC 
-# MAGIC 
-# MAGIC   
