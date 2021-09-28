@@ -162,7 +162,7 @@ df_updated_column_temp = spark.sql("SELECT  \
                                 VIB._RecordCurrent \
                                FROM CLEANSED.stg_isu_vibdnode vib \
                                LEFT OUTER JOIN CLEANSED.t_isu_tivbdarobjtypet arch ON vib.aotype_ao = arch.aotype \
-                               LEFT OUTER JOIN CLEANSED.t_isu_tivbdarobjtypet archobj ON vib.aotype_ao = archobj.aotype")
+                               LEFT OUTER JOIN CLEANSED.t_isu_tivbdarobjtypet archobj ON vib.aotype_pa = archobj.aotype")
 
 display(df_updated_column_temp)
 
