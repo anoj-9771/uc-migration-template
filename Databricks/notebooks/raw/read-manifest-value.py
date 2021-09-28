@@ -130,7 +130,10 @@ if Debug:
 # DBTITLE 1,Read the record count fields
 if current_record_count == 0:
   print("Exiting Notebook as no records to process")
-  dbutils.notebook.exit(-1)
+  dbutils.notebook.exit(json.dumps({
+    "DELTA_RECORD_COUNT": -1,
+    "TOTAL_NO_OF_ROWS": -1
+  }))
 elif all(x in df.columns for x in ["DELTA_RECORD_COUNT", "TOTAL_NO_OF_ROWS"]):
   DELTA_RECORD_COUNT = df.collect()[0]["DELTA_RECORD_COUNT"]
   TOTAL_NO_OF_ROWS = df.collect()[0]["TOTAL_NO_OF_ROWS"]
@@ -144,5 +147,8 @@ elif all(x in df.columns for x in ["DELTA_RECORD_COUNT", "TOTAL_NO_OF_ROWS"]):
   }))
 else:
   print("Exiting Notebook as record count columns were not found in the manifest schema")
-  dbutils.notebook.exit(-1)
+  dbutils.notebook.exit(json.dumps({
+    "DELTA_RECORD_COUNT": -1,
+    "TOTAL_NO_OF_ROWS": -1
+  }))
 
