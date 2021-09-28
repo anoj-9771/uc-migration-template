@@ -1,6 +1,6 @@
 # Databricks notebook source
 # MAGIC %md
-# MAGIC { "SourceType": "BLOB Storage (json)", "SourceServer": "saswcnonprod01landingdev-sastoken", "SourceGroup": "isu", "SourceName": "isu_0BPARTNER_ATTR", "SourceLocation": "0BPARTNER_ATTR", "AdditionalProperty": "", "Processor": "databricks-token|0711-011053-turfs581|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive", "IsAuditTable": false, "SoftDeleteSource": "", "ProjectName": "SAP ISU", "ProjectId": 2, "TargetType": "BLOB Storage (json)", "TargetName": "isu_0BPARTNER_ATTR", "TargetLocation": "isu/0BPARTNER_ATTR", "TargetServer": "daf-sa-lake-sastoken", "DataLoadMode": "FULL-EXTRACT", "DeltaExtract": false, "CDCSource": false, "TruncateTarget": false, "UpsertTarget": true, "AppendTarget": null, "TrackChanges": false, "LoadToSqlEDW": true, "TaskName": "isu_0BPARTNER_ATTR", "ControlStageId": 1, "TaskId": 65, "StageSequence": 100, "StageName": "Source to Raw", "SourceId": 65, "TargetId": 65, "ObjectGrain": "Day", "CommandTypeId": 3, "Watermarks": "", "WatermarksDT": null, "WatermarkColumn": "", "BusinessKeyColumn": "PARTNER", "UpdateMetaData": null, "SourceTimeStampFormat": "", "Command": "", "LastLoadedFile": null }
+# MAGIC { "SourceType": "BLOB Storage (json)", "SourceServer": "saswcnonprod01landingdev-sastoken", "SourceGroup": "sapisu", "SourceName": "sapisu_0BPARTNER_ATTR", "SourceLocation": "0BPARTNER_ATTR", "AdditionalProperty": "", "Processor": "databricks-token|0711-011053-turfs581|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive", "IsAuditTable": false, "SoftDeleteSource": "", "ProjectName": "SAP ISU", "ProjectId": 2, "TargetType": "BLOB Storage (json)", "TargetName": "sapisu_0BPARTNER_ATTR", "TargetLocation": "sapisu/0BPARTNER_ATTR", "TargetServer": "daf-sa-lake-sastoken", "DataLoadMode": "FULL-EXTRACT", "DeltaExtract": false, "CDCSource": false, "TruncateTarget": false, "UpsertTarget": true, "AppendTarget": null, "TrackChanges": false, "LoadToSqlEDW": true, "TaskName": "sapisu_0BPARTNER_ATTR", "ControlStageId": 1, "TaskId": 65, "StageSequence": 100, "StageName": "Source to Raw", "SourceId": 65, "TargetId": 65, "ObjectGrain": "Day", "CommandTypeId": 3, "Watermarks": "", "WatermarksDT": null, "WatermarkColumn": "", "BusinessKeyColumn": "PARTNER", "UpdateMetaData": null, "SourceTimeStampFormat": "", "Command": "", "LastLoadedFile": null }
 
 # COMMAND ----------
 
@@ -207,12 +207,12 @@ df_updated_column_temp = spark.sql("SELECT \
                                 BP._RecordEnd, \
                                 BP._RecordDeleted, \
                                 BP._RecordCurrent \
-                               FROM CLEANSED.STG_isu_0BPARTNER_ATTR BP \
-                               LEFT OUTER JOIN CLEANSED.T_isu_0BPARTNER_TEXT BP_TXT \
+                               FROM CLEANSED.STG_SAPISU_0BPARTNER_ATTR BP \
+                               LEFT OUTER JOIN CLEANSED.T_SAPISU_0BPARTNER_TEXT BP_TXT \
                                  ON BP.PARTNER = BP_TXT.businessPartnerNumber AND BP.TYPE =BP_TXT.businessPartnerCategoryCode \
-                               LEFT OUTER JOIN CLEANSED.T_isu_0BPTYPE_TEXT BPTYPE ON BP.BPKIND = BPTYPE.businessPartnerTypeCode \
-                               LEFT OUTER JOIN CLEANSED.T_isu_0BP_GROUP_TEXT BPGRP ON BP.BU_GROUP = BPGRP.businessPartnerGroupCode \
-                               LEFT OUTER JOIN CLEANSED.T_isu_TSAD3T TITLE ON BP.TITLE = TITLE.titlecode")
+                               LEFT OUTER JOIN CLEANSED.T_SAPISU_0BPTYPE_TEXT BPTYPE ON BP.BPKIND = BPTYPE.businessPartnerTypeCode \
+                               LEFT OUTER JOIN CLEANSED.T_SAPISU_0BP_GROUP_TEXT BPGRP ON BP.BU_GROUP = BPGRP.businessPartnerGroupCode \
+                               LEFT OUTER JOIN CLEANSED.T_SAPISU_TSAD3T TITLE ON BP.TITLE = TITLE.titlecode")
 
 display(df_updated_column_temp)
 

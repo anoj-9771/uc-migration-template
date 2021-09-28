@@ -173,10 +173,10 @@ df_updated_column_temp = spark.sql("SELECT \
                                   DEVCAT._RecordEnd, \
                                   DEVCAT._RecordDeleted, \
                                   DEVCAT._RecordCurrent \
-                              FROM CLEANSED.STG_isu_0UC_DEVCAT_ATTR DEVCAT \
-                              LEFT OUTER JOIN CLEANSED.T_isu_0UC_FUNKLAS_TEXT FKLASTX ON DEVCAT.FUNKLAS = FKLASTX.functionClassCode \
-                              LEFT OUTER JOIN CLEANSED.T_isu_0UC_BAUKLAS_TEXT BKLASTX ON DEVCAT.BAUKLAS = BKLASTX.constructionClassCode \
-                              LEFT OUTER JOIN CLEANSED.T_isu_0UC_REGGRP_TEXT REGGRP ON DEVCAT.ZWGRUPPE = REGGRP.registerGroupCode")
+                              FROM CLEANSED.STG_SAPISU_0UC_DEVCAT_ATTR DEVCAT \
+                              LEFT OUTER JOIN CLEANSED.T_SAPISU_0UC_FUNKLAS_TEXT FKLASTX ON DEVCAT.FUNKLAS = FKLASTX.functionClassCode \
+                              LEFT OUTER JOIN CLEANSED.T_SAPISU_0UC_BAUKLAS_TEXT BKLASTX ON DEVCAT.BAUKLAS = BKLASTX.constructionClassCode \
+                              LEFT OUTER JOIN CLEANSED.T_SAPISU_0UC_REGGRP_TEXT REGGRP ON DEVCAT.ZWGRUPPE = REGGRP.registerGroupCode")
                                    
 display(df_updated_column_temp)
 

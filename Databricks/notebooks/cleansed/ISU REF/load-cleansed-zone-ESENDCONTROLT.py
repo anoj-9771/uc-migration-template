@@ -3,10 +3,10 @@
 import json
 #For unit testing...
 #Use this string in the Param widget: 
-#{"SourceType": "BLOB Storage (json)", "SourceServer": "daf-sa-lake-sastoken", "SourceGroup": "isu", "SourceName": "isu_ESENDCONTROLT", "SourceLocation": "isu/ESENDCONTROLT", "AdditionalProperty": "", "Processor": "databricks-token|0711-011053-turfs581|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive", "IsAuditTable": false, "SoftDeleteSource": "", "ProjectName": "SAP REF", "ProjectId": 2, "TargetType": "BLOB Storage (json)", "TargetName": "isu_ESENDCONTROLT", "TargetLocation": "isu/ESENDCONTROLT", "TargetServer": "daf-sa-lake-sastoken", "DataLoadMode": "FULL-EXTRACT", "DeltaExtract": false, "CDCSource": false, "TruncateTarget": false, "UpsertTarget": true, "AppendTarget": null, "TrackChanges": false, "LoadToSqlEDW": true, "TaskName": "isu_ESENDCONTROLT", "ControlStageId": 2, "TaskId": 46, "StageSequence": 200, "StageName": "Raw to Cleansed", "SourceId": 46, "TargetId": 46, "ObjectGrain": "Day", "CommandTypeId": 8, "Watermarks": "", "WatermarksDT": null, "WatermarkColumn": "", "BusinessKeyColumn": "SENDCONTROL", "UpdateMetaData": null, "SourceTimeStampFormat": "", "Command": "", "LastLoadedFile": null}
+#{"SourceType": "BLOB Storage (json)", "SourceServer": "daf-sa-lake-sastoken", "SourceGroup": "sapisu", "SourceName": "sapisu_ESENDCONTROLT", "SourceLocation": "sapisu/ESENDCONTROLT", "AdditionalProperty": "", "Processor": "databricks-token|0711-011053-turfs581|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive", "IsAuditTable": false, "SoftDeleteSource": "", "ProjectName": "SAP REF", "ProjectId": 2, "TargetType": "BLOB Storage (json)", "TargetName": "sapisu_ESENDCONTROLT", "TargetLocation": "sapisu/ESENDCONTROLT", "TargetServer": "daf-sa-lake-sastoken", "DataLoadMode": "FULL-EXTRACT", "DeltaExtract": false, "CDCSource": false, "TruncateTarget": false, "UpsertTarget": true, "AppendTarget": null, "TrackChanges": false, "LoadToSqlEDW": true, "TaskName": "sapisu_ESENDCONTROLT", "ControlStageId": 2, "TaskId": 46, "StageSequence": 200, "StageName": "Raw to Cleansed", "SourceId": 46, "TargetId": 46, "ObjectGrain": "Day", "CommandTypeId": 8, "Watermarks": "", "WatermarksDT": null, "WatermarkColumn": "", "BusinessKeyColumn": "SENDCONTROL", "UpdateMetaData": null, "SourceTimeStampFormat": "", "Command": "", "LastLoadedFile": null}
 
 #Use this string in the Source Object widget
-#isu_ESENDCONTROLT
+#SAPISU_ESENDCONTROLT
 
 # COMMAND ----------
 
@@ -137,7 +137,7 @@ print(delta_raw_tbl_name)
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC select * from raw.isu_ESENDCONTROLT
+# MAGIC select * from raw.SAPISU_ESENDCONTROLT
 
 # COMMAND ----------
 
@@ -169,7 +169,7 @@ df_cleansed = spark.sql("SELECT \
                             _RecordEnd, \
                             _RecordDeleted, \
                             _RecordCurrent \
-                            FROM CLEANSED.STG_isu_ESENDCONTROLT \
+                            FROM CLEANSED.STG_SAPISU_ESENDCONTROLT \
                        ")
 
 display(df_cleansed)

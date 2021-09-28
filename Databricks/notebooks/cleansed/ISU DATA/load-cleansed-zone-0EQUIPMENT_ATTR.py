@@ -1,6 +1,6 @@
 # Databricks notebook source
 # MAGIC %md
-# MAGIC { "SourceType": "BLOB Storage (json)", "SourceServer": "saswcnonprod01landingdev-sastoken", "SourceGroup": "isu", "SourceName": "isu_0EQUIPMENT_ATTR", "SourceLocation": "0EQUIPMENT_ATTR", "AdditionalProperty": "", "Processor": "databricks-token|0711-011053-turfs581|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive", "IsAuditTable": false, "SoftDeleteSource": "", "ProjectName": "SAP ISU", "ProjectId": 2, "TargetType": "BLOB Storage (json)", "TargetName": "isu_0EQUIPMENT_ATTR", "TargetLocation": "isu/0EQUIPMENT_ATTR", "TargetServer": "daf-sa-lake-sastoken", "DataLoadMode": "FULL-EXTRACT", "DeltaExtract": false, "CDCSource": false, "TruncateTarget": false, "UpsertTarget": true, "AppendTarget": null, "TrackChanges": false, "LoadToSqlEDW": true, "TaskName": "isu_0EQUIPMENT_ATTR", "ControlStageId": 1, "TaskId": 65, "StageSequence": 100, "StageName": "Source to Raw", "SourceId": 65, "TargetId": 65, "ObjectGrain": "Day", "CommandTypeId": 3, "Watermarks": "", "WatermarksDT": null, "WatermarkColumn": "", "BusinessKeyColumn": "EQUNR,DATETO", "UpdateMetaData": null, "SourceTimeStampFormat": "", "Command": "", "LastLoadedFile": null }
+# MAGIC { "SourceType": "BLOB Storage (json)", "SourceServer": "saswcnonprod01landingdev-sastoken", "SourceGroup": "sapisu", "SourceName": "sapisu_0EQUIPMENT_ATTR", "SourceLocation": "0EQUIPMENT_ATTR", "AdditionalProperty": "", "Processor": "databricks-token|0711-011053-turfs581|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive", "IsAuditTable": false, "SoftDeleteSource": "", "ProjectName": "SAP ISU", "ProjectId": 2, "TargetType": "BLOB Storage (json)", "TargetName": "sapisu_0EQUIPMENT_ATTR", "TargetLocation": "sapisu/0EQUIPMENT_ATTR", "TargetServer": "daf-sa-lake-sastoken", "DataLoadMode": "FULL-EXTRACT", "DeltaExtract": false, "CDCSource": false, "TruncateTarget": false, "UpsertTarget": true, "AppendTarget": null, "TrackChanges": false, "LoadToSqlEDW": true, "TaskName": "sapisu_0EQUIPMENT_ATTR", "ControlStageId": 1, "TaskId": 65, "StageSequence": 100, "StageName": "Source to Raw", "SourceId": 65, "TargetId": 65, "ObjectGrain": "Day", "CommandTypeId": 3, "Watermarks": "", "WatermarksDT": null, "WatermarkColumn": "", "BusinessKeyColumn": "EQUNR,DATETO", "UpdateMetaData": null, "SourceTimeStampFormat": "", "Command": "", "LastLoadedFile": null }
 
 # COMMAND ----------
 
@@ -176,8 +176,8 @@ df_updated_column_temp = spark.sql("SELECT \
                                   EQUI._RecordEnd,\
                                   EQUI._RecordDeleted,\
                                   EQUI._RecordCurrent \
-                                FROM CLEANSED.STG_isu_0EQUIPMENT_ATTR EQUI \
-                                LEFT OUTER JOIN CLEANSED.T_isu_0COMP_CODE_TEXT COMP ON EQUI.BUKRS = COMP.companyCode")
+                                FROM CLEANSED.STG_SAPISU_0EQUIPMENT_ATTR EQUI \
+                                LEFT OUTER JOIN CLEANSED.T_SAPISU_0COMP_CODE_TEXT COMP ON EQUI.BUKRS = COMP.companyCode")
 display(df_updated_column_temp)
 
 # COMMAND ----------

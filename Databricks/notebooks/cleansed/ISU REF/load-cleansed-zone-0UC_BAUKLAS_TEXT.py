@@ -149,7 +149,7 @@ DeltaSaveToDeltaTable (
 df_updated_column = spark.sql("SELECT \
                                        BAUKLAS as constructionClassCode,\
                                        BAUKLTXT as constructionClass \
-                                       FROM CLEANSED.STG_isu_0UC_BAUKLAS_TEXT \
+                                       FROM CLEANSED.STG_SAPISU_0UC_BAUKLAS_TEXT \
                                        WHERE SPRAS = 'E'")
                                    
 display(df_updated_column)

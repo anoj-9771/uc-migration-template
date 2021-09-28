@@ -161,9 +161,9 @@ df_cleansed_column = spark.sql("SELECT  \
                                   stg._RecordEnd, \
                                   stg._RecordDeleted, \
                                   stg._RecordCurrent \
-                               FROM CLEANSED.STG_isu_0UCINSTALLAH_ATTR_2 stg \
-                                 left outer join cleansed.t_isu_0uc_aklasse_text bc on bc.billingClass = stg.AKLASSE \
-                                 left outer join cleansed.t_isu_0uc_tariftyp_text tt on tt.TARIFTYP = stg.TARIFTYP \
+                               FROM CLEANSED.STG_SAPISU_0UCINSTALLAH_ATTR_2 stg \
+                                 left outer join cleansed.t_sapisu_0uc_aklasse_text bc on bc.billingClass = stg.AKLASSE \
+                                 left outer join cleansed.t_sapisu_0uc_tariftyp_text tt on tt.TARIFTYP = stg.TARIFTYP \
                               ")
 display(df_cleansed_column)
 

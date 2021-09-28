@@ -3,10 +3,10 @@
 import json
 #For unit testing...
 #Use this string in the Param widget: 
-#{"SourceType": "BLOB Storage (json)", "SourceServer": "daf-sa-lake-sastoken", "SourceGroup": "isu", "SourceName": "isu_ZCD_TPROP_REL", "SourceLocation": "isu/ZCD_TPROP_REL", "AdditionalProperty": "", "Processor": "databricks-token|0711-011053-turfs581|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive", "IsAuditTable": false, "SoftDeleteSource": "", "ProjectName": "SAP REF", "ProjectId": 2, "TargetType": "BLOB Storage (json)", "TargetName": "isu_ZCD_TPROP_REL", "TargetLocation": "isu/ZCD_TPROP_REL", "TargetServer": "daf-sa-lake-sastoken", "DataLoadMode": "FULL-EXTRACT", "DeltaExtract": false, "CDCSource": false, "TruncateTarget": false, "UpsertTarget": true, "AppendTarget": null, "TrackChanges": false, "LoadToSqlEDW": true, "TaskName": "isu_ZCD_TPROP_REL", "ControlStageId": 2, "TaskId": 46, "StageSequence": 200, "StageName": "Raw to Cleansed", "SourceId": 46, "TargetId": 46, "ObjectGrain": "Day", "CommandTypeId": 8, "Watermarks": "", "WatermarksDT": null, "WatermarkColumn": "", "BusinessKeyColumn": "PROPERTY1,PROPERTY2,REL_TYPE1,DATE_TO", "UpdateMetaData": null, "SourceTimeStampFormat": "", "Command": "", "LastLoadedFile": null}
+#{"SourceType": "BLOB Storage (json)", "SourceServer": "daf-sa-lake-sastoken", "SourceGroup": "sapisu", "SourceName": "sapisu_ZCD_TPROP_REL", "SourceLocation": "sapisu/ZCD_TPROP_REL", "AdditionalProperty": "", "Processor": "databricks-token|0711-011053-turfs581|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive", "IsAuditTable": false, "SoftDeleteSource": "", "ProjectName": "SAP REF", "ProjectId": 2, "TargetType": "BLOB Storage (json)", "TargetName": "sapisu_ZCD_TPROP_REL", "TargetLocation": "sapisu/ZCD_TPROP_REL", "TargetServer": "daf-sa-lake-sastoken", "DataLoadMode": "FULL-EXTRACT", "DeltaExtract": false, "CDCSource": false, "TruncateTarget": false, "UpsertTarget": true, "AppendTarget": null, "TrackChanges": false, "LoadToSqlEDW": true, "TaskName": "sapisu_ZCD_TPROP_REL", "ControlStageId": 2, "TaskId": 46, "StageSequence": 200, "StageName": "Raw to Cleansed", "SourceId": 46, "TargetId": 46, "ObjectGrain": "Day", "CommandTypeId": 8, "Watermarks": "", "WatermarksDT": null, "WatermarkColumn": "", "BusinessKeyColumn": "PROPERTY1,PROPERTY2,REL_TYPE1,DATE_TO", "UpdateMetaData": null, "SourceTimeStampFormat": "", "Command": "", "LastLoadedFile": null}
 
 #Use this string in the Source Object widget
-#isu_ZCD_TPROP_REL
+#SAPISU_ZCD_TPROP_REL
 
 # COMMAND ----------
 
@@ -170,9 +170,9 @@ df_cleansed = spark.sql("SELECT \
                             stg._RecordEnd, \
                             stg._RecordDeleted, \
                             stg._RecordCurrent \
-                            FROM CLEANSED.STG_isu_ZCD_TPROP_REL stg\
-                            left outer join cleansed.t_isu_zcd_vireltyptx rtyp1 on stg.REL_TYPE1 = rtyp1.relationshipTypeCode and rtyp1._RecordCurrent = 1 and rtyp1._RecordDeleted = 0 \
-                            left outer join cleansed.t_isu_zcd_vireltyp2tx rtyp2 on stg.REL_TYPE2 = rtyp2.relationshipTypeCode and rtyp2._RecordCurrent = 1 and rtyp2._RecordDeleted = 0\
+                            FROM CLEANSED.STG_SAPISU_ZCD_TPROP_REL stg\
+                            left outer join cleansed.t_sapisu_zcd_vireltyptx rtyp1 on stg.REL_TYPE1 = rtyp1.relationshipTypeCode and rtyp1._RecordCurrent = 1 and rtyp1._RecordDeleted = 0 \
+                            left outer join cleansed.t_sapisu_zcd_vireltyp2tx rtyp2 on stg.REL_TYPE2 = rtyp2.relationshipTypeCode and rtyp2._RecordCurrent = 1 and rtyp2._RecordDeleted = 0\
                        ")
 
 display(df_cleansed)

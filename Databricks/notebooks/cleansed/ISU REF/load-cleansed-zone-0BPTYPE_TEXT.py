@@ -149,7 +149,7 @@ DeltaSaveToDeltaTable (
 df_updated_column = spark.sql("SELECT \
                                        BPKIND as businessPartnerTypeCode,\
                                        TEXT40 as businessPartnerType \
-                                       FROM CLEANSED.STG_isu_0BPTYPE_TEXT \
+                                       FROM CLEANSED.STG_SAPISU_0BPTYPE_TEXT \
                               WHERE SPRAS = 'E'")
                                    
 display(df_updated_column)
