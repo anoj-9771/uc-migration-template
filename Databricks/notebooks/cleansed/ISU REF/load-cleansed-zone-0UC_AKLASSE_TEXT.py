@@ -152,7 +152,7 @@ df_cleansed_column = spark.sql("SELECT  \
                                   _RecordEnd, \
                                   _RecordDeleted, \
                                   _RecordCurrent \
-                               FROM CLEANSED.STG_isu_0UC_AKLASSE_TEXT \
+                               FROM CLEANSED.STG_SAPISU_0UC_AKLASSE_TEXT \
                                  where SPRAS = 'E'"
                              )
 display(df_cleansed_column)

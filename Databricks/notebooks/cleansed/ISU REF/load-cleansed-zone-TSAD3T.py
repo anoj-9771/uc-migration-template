@@ -149,7 +149,7 @@ DeltaSaveToDeltaTable (
 df_updated_column = spark.sql("SELECT \
                                        TITLE as titlecode,\
                                        TITLE_MEDI as title \
-                                       FROM CLEANSED.STG_isu_TSAD3T")
+                                       FROM CLEANSED.STG_SAPISU_TSAD3T")
                                    
 display(df_updated_column)
 

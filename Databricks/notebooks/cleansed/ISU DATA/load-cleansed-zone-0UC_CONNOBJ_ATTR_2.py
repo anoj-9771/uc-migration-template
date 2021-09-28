@@ -209,14 +209,14 @@ df_updated_column_temp = spark.sql("SELECT \
                                       con._RecordEnd, \
                                       con._RecordDeleted, \
                                       con._RecordCurrent \
-                                    FROM CLEANSED.stg_isu_0UC_CONNOBJ_ATTR_2 con \
-                                    LEFT OUTER JOIN CLEANSED.t_isu_ZCD_TINFPRTY_TX ip ON con.ZCD_INF_PROP_TYPE = ip.inferiorPropertyTypeCode \
-                                    LEFT OUTER JOIN CLEANSED.t_isu_ZCD_TSUPPRTYP_TX sp ON con.ZCD_SUP_PROP_TYPE = sp.superiorPropertyTypeCode \
-                                    LEFT OUTER JOIN CLEANSED.t_isu_ZCD_TPLANTYPE_TX plt ON con.ZCD_PLAN_TYPE = plt.PLAN_TYPE \
-                                    LEFT OUTER JOIN CLEANSED.t_isu_TIVBDAROBJTYPET tiv ON con.ZCD_AOTYPE = tiv.AOTYPE \
-                                    LEFT OUTER JOIN CLEANSED.t_isu_ZCD_TPROCTYPE_TX prt ON con.ZCD_PROCESS_TYPE = prt.PROCESS_TYPE \
-                                    LEFT OUTER JOIN CLEANSED.t_isu_0CAM_STREETCODE_TEXT stc ON con.STREETCODE = stc.streetCode and con.COUNTRY = stc.COUNTRY\
-                                    LEFT OUTER JOIN CLEANSED.t_isu_TE227T reg ON con.REGPOLIT = reg.REGPOLIT and con.COUNTRY = reg.COUNTRY\
+                                    FROM CLEANSED.stg_sapisu_0UC_CONNOBJ_ATTR_2 con \
+                                    LEFT OUTER JOIN CLEANSED.t_sapisu_ZCD_TINFPRTY_TX ip ON con.ZCD_INF_PROP_TYPE = ip.inferiorPropertyTypeCode \
+                                    LEFT OUTER JOIN CLEANSED.t_sapisu_ZCD_TSUPPRTYP_TX sp ON con.ZCD_SUP_PROP_TYPE = sp.superiorPropertyTypeCode \
+                                    LEFT OUTER JOIN CLEANSED.t_sapisu_ZCD_TPLANTYPE_TX plt ON con.ZCD_PLAN_TYPE = plt.PLAN_TYPE \
+                                    LEFT OUTER JOIN CLEANSED.t_sapisu_TIVBDAROBJTYPET tiv ON con.ZCD_AOTYPE = tiv.AOTYPE \
+                                    LEFT OUTER JOIN CLEANSED.t_sapisu_ZCD_TPROCTYPE_TX prt ON con.ZCD_PROCESS_TYPE = prt.PROCESS_TYPE \
+                                    LEFT OUTER JOIN CLEANSED.t_sapisu_0CAM_STREETCODE_TEXT stc ON con.STREETCODE = stc.streetCode and con.COUNTRY = stc.COUNTRY\
+                                    LEFT OUTER JOIN CLEANSED.t_sapisu_TE227T reg ON con.REGPOLIT = reg.REGPOLIT and con.COUNTRY = reg.COUNTRY\
                                 ")
 
 display(df_updated_column_temp)

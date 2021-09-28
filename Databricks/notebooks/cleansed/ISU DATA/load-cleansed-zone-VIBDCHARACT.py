@@ -163,8 +163,8 @@ df_cleansed_column = spark.sql("SELECT  \
                                   stg._RecordEnd, \
                                   stg._RecordDeleted, \
                                   stg._RecordCurrent \
-                               FROM CLEANSED.STG_isu_VIBDCHARACT stg\
-                                 left outer join cleansed.t_isu_0df_refixfi_text ff on ff.fixtureAndFittingCharacteristicCode = stg.FIXFITCHARACT"
+                               FROM CLEANSED.STG_SAPISU_VIBDCHARACT stg\
+                                 left outer join cleansed.t_sapisu_0df_refixfi_text ff on ff.fixtureAndFittingCharacteristicCode = stg.FIXFITCHARACT"
                               )
 display(df_cleansed_column)
 

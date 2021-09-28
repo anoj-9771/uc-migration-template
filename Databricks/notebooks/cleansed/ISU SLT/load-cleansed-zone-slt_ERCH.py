@@ -1,10 +1,4 @@
 # Databricks notebook source
-#source_param: {"SourceType":"BLOB Storage (json)","SourceServer":"daf-sa-lake-sastoken","SourceGroup":"isu","SourceName":"isu_ERCH","SourceLocation":"isu/ERCH","AdditionalProperty":"","Processor":"databricks-token|0705-044124-gored835|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive","IsAuditTable":false,"SoftDeleteSource":"","ProjectName":"TEST1","ProjectId":9,"TargetType":"BLOB Storage (json)","TargetName":"isu_ERCH","TargetLocation":"isu/ERCH","TargetServer":"daf-sa-lake-sastoken","DataLoadMode":"INCREMENTAL","DeltaExtract":true,"CDCSource":false,"TruncateTarget":false,"UpsertTarget":true,"AppendTarget":null,"TrackChanges":true,"LoadToSqlEDW":true,"TaskName":"isu_ERCH","ControlStageId":2,"TaskId":36,"StageSequence":200,"StageName":"Raw to Cleansed","SourceId":36,"TargetId":36,"ObjectGrain":"Day","CommandTypeId":8,"Watermarks":null,"WatermarksDT":null,"WatermarkColumn":"","BusinessKeyColumn":"BELNR","UpdateMetaData":null,"SourceTimeStampFormat":"","Command":"/build/cleansed/ISU SLT/load-cleansed-zone-ERCH","LastLoadedFile":"DBO.ERCH_2021-09-24_120608_647.json.gz"}
-#Delta Column: DELTA_TS
-#Source Object: isu_ERCH
-
-# COMMAND ----------
-
 # DBTITLE 1,Notebook Structure/Method 
 #Notebook structure/Method 
 #1.Import libraries/functions -- Generic
@@ -176,7 +170,7 @@ df_cleansed_column = spark.sql("SELECT  \
                                   SIMULATION as billingSimulationIndicator, \
                                   BELEGART as documentTypeCode, \
                                   BERGRUND as backbillingCreditReasonCode, \
-                                  to_date(BEGNACH, 'yyyy-MM-dd') as backbillingStartPeriod, \
+                                  BEGNACH as backbillingStartPeriod, \
                                   TOBRELEASD as DocumentNotReleasedIndicator, \
                                   TXJCD as taxJurisdictionDescription, \
                                   KONZVER as franchiseContractCode, \
@@ -197,11 +191,11 @@ df_cleansed_column = spark.sql("SELECT  \
                                   MANBILLREL as manualDocumentReleasedInvoicingIndicator, \
                                   BACKBI as backbillingTypeCode, \
                                   PERENDBI as billingPeriodEndType, \
-                                  cast(NUMPERBB as integer) as backbillingPeriodNumber, \
+                                  NUMPERBB as backbillingPeriodNumber, \
                                   to_date(BEGEND, 'yyyy-MM-dd') as periodEndBillingStartDate, \
                                   ENDOFBB as backbillingPeriodEndIndicator, \
                                   ENDOFPEB as billingPeriodEndIndicator, \
-                                  cast(NUMPERPEB as integer) as billingPeriodEndCount, \
+                                  NUMPERPEB as billingPeriodEndCount, \
                                   SC_BELNR_H as billingDoumentAdjustmentReversalCount, \
                                   SC_BELNR_N as billingDocumentNumberForAdjustmentReverssal, \
                                   to_date(ZUORDDAA, 'yyyy-MM-dd') as billingAllocationDate, \
@@ -238,8 +232,8 @@ df_cleansed_column = spark.sql("SELECT  \
                                   stg._RecordEnd, \
                                   stg._RecordDeleted, \
                                   stg._RecordCurrent \
-                              FROM CLEANSED.STG_isu_ERCH stg \
-                               left outer join cleansed.t_isu_0comp_code_text cc on cc.companyCode = stg.BUKRS"
+                              FROM CLEANSED.STG_slt_ERCH stg \
+                               left outer join cleansed.t_sapisu_0comp_code_text cc on cc.companyCode = stg.BUKRS"
                               )
 display(df_cleansed_column)
 
@@ -270,7 +264,7 @@ newSchema = StructType([
                           StructField('billingSimulationIndicator', StringType(), True),
                           StructField('documentTypeCode', StringType(), True),
                           StructField('backbillingCreditReasonCode', StringType(), True),
-                          StructField('backbillingStartPeriod', DateType(), True),
+                          StructField('backbillingStartPeriod', StringType(), True),
                           StructField('DocumentNotReleasedIndicator', StringType(), True),
                           StructField('taxJurisdictionDescription', StringType(), True),
                           StructField('franchiseContractCode', StringType(), True),
@@ -291,11 +285,11 @@ newSchema = StructType([
                           StructField('manualDocumentReleasedInvoicingIndicator', StringType(), True),
                           StructField('backbillingTypeCode', StringType(), True),
                           StructField('billingPeriodEndType', StringType(), True),
-                          StructField('backbillingPeriodNumber', IntegerType(), True),
+                          StructField('backbillingPeriodNumber', StringType(), True),
                           StructField('periodEndBillingStartDate', DateType(), True),
                           StructField('backbillingPeriodEndIndicator', StringType(), True),
                           StructField('billingPeriodEndIndicator', StringType(), True),
-                          StructField('billingPeriodEndCount', IntegerType(), True),
+                          StructField('billingPeriodEndCount', StringType(), True),
                           StructField('billingDoumentAdjustmentReversalCount', StringType(), True),
                           StructField('billingDocumentNumberForAdjustmentReverssal', StringType(), True),
                           StructField('billingAllocationDate', DateType(), True),
@@ -328,7 +322,7 @@ newSchema = StructType([
                           StructField('billingDocumentPrimaryInstallationNumber', StringType(), True),
                           StructField('instalGroupTypeCode', StringType(), True),
                           StructField('instalGroupRoleCode', StringType(), True),
-                          StructField('_RecordStart', TimestampType(), True),
+                          StructField('_RecordStart', TimestampType(), False),
                           StructField('_RecordEnd', TimestampType(), False),
                           StructField('_RecordDeleted', IntegerType(), False),
                           StructField('_RecordCurrent', IntegerType(), False)

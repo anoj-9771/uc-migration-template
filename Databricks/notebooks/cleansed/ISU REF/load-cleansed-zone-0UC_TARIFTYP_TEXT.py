@@ -153,7 +153,7 @@ df_updated_column_temp = spark.sql("SELECT  \
                                   _RecordEnd, \
                                   _RecordDeleted, \
                                   _RecordCurrent \
-                              FROM CLEANSED.stg_isu_0UC_TARIFTYP_TEXT \
+                              FROM CLEANSED.stg_sapisu_0UC_TARIFTYP_TEXT \
                               ")
 
 display(df_updated_column_temp)

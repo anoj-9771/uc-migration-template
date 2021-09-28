@@ -1,10 +1,4 @@
 # Databricks notebook source
-# {"SourceType":"BLOB Storage (json)","SourceServer":"daf-sa-lake-sastoken","SourceGroup":"isu","SourceName":"isu_DBERCHZ3","SourceLocation":"isu/DBERCHZ3","AdditionalProperty":"","Processor":"databricks-token|0705-044124-gored835|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive","IsAuditTable":false,"SoftDeleteSource":"","ProjectName":"TEST1","ProjectId":9,"TargetType":"BLOB Storage (json)","TargetName":"isu_DBERCHZ3","TargetLocation":"isu/DBERCHZ3","TargetServer":"daf-sa-lake-sastoken","DataLoadMode":"INCREMENTAL","DeltaExtract":true,"CDCSource":false,"TruncateTarget":false,"UpsertTarget":true,"AppendTarget":null,"TrackChanges":true,"LoadToSqlEDW":true,"TaskName":"isu_DBERCHZ3","ControlStageId":2,"TaskId":42,"StageSequence":200,"StageName":"Raw to Cleansed","SourceId":42,"TargetId":42,"ObjectGrain":"Day","CommandTypeId":8,"Watermarks":null,"WatermarksDT":null,"WatermarkColumn":"","BusinessKeyColumn":"BELNR,BELZEILE","UpdateMetaData":null,"SourceTimeStampFormat":"","Command":"/build/cleansed/ISU SLT/load-cleansed-zone-DBERCHZ3","LastLoadedFile":"DBO.DBERCHZ3_2021-09-24_120610_613.json.gz"}
-#Delta Column : DELTA_TS
-#Source Object : isu_DBERCHZ3
-
-# COMMAND ----------
-
 # DBTITLE 1,Notebook Structure/Method 
 #Notebook structure/Method 
 #1.Import libraries/functions -- Generic
@@ -157,7 +151,7 @@ df_cleansed_column = spark.sql("SELECT  \
                                     BELZEILE as billingDocumentLineItemId, \
                                     MWSKZ as taxSalesCode, \
                                     ERMWSKZ as texDeterminationCode, \
-                                    cast(NETTOBTR as double) as billingLineItemNetAmount, \
+                                    NETTOBTR as billingLineItemNetAmount, \
                                     TWAERS as transactionCurrency, \
                                     PREISTUF as priceLevel, \
                                     PREISTYP as priceCategory, \
@@ -166,12 +160,12 @@ df_cleansed_column = spark.sql("SELECT  \
                                     VONZONE as fromBlock, \
                                     BISZONE as toBlock, \
                                     ZONENNR as numberOfPriceBlock, \
-                                    cast(PREISBTR as dec(17)) as priceAmount, \
-                                    cast(MNGBASIS as dec(9)) as amountLongQuantityBase, \
+                                    PREISBTR as priceAmount, \
+                                    MNGBASIS as amountLongQuantityBase, \
                                     PREIGKL as priceAdjustemntClause, \
-                                    cast(URPREIS as dec(17)) as priceAdjustemntClauseBasePrice, \
-                                    cast(PREIADD as dec(17)) as prceAdjustmentPrceAddition, \
-                                    cast(PREIFAKT as dec(12)) as priceAdjustmentFactor, \
+                                    URPREIS as priceAdjustemntClauseBasePrice, \
+                                    PREIADD as prceAdjustmentPrceAddition, \
+                                    PREIFAKT as priceAdjustmentFactor, \
                                     OPMULT as additionFirst, \
                                     to_date(TXDAT_KK, 'yyyy-MM-dd') as taxDecisiveDate, \
                                     PRCTR as profitCenter, \
@@ -187,13 +181,13 @@ df_cleansed_column = spark.sql("SELECT  \
                                     BUPLA as businessPlace, \
                                     LINE_CLASS as billingLineClassificationIndicator, \
                                     PREISART as priceType, \
-                                    cast(V_NETTOBTR_L as dec(17)) as longNetAmountPredecimalPlaces, \
-                                    cast(N_NETTOBTR_L as dec(14))as longNetAmountDecimalPlaces, \
+                                    V_NETTOBTR_L as longNetAmountPredecimalPlaces, \
+                                    N_NETTOBTR_L as longNetAmountDecimalPlaces, \
                                     _RecordStart, \
                                     _RecordEnd, \
                                     _RecordDeleted, \
                                     _RecordCurrent \
-                               FROM CLEANSED.STG_isu_DBERCHZ3")
+                               FROM CLEANSED.STG_SAPISU_DBERCHZ3")
 display(df_cleansed_column)
 
 # COMMAND ----------
@@ -212,12 +206,12 @@ newSchema = StructType([
                         StructField('fromBlock', StringType(), True),
                         StructField('toBlock', StringType(), True),
                         StructField('numberOfPriceBlock', StringType(), True),
-                        StructField('priceAmount', DecimalType(), True),
-                        StructField('amountLongQuantityBase', DecimalType(), True),
+                        StructField('priceAmount', DoubleType(), True),
+                        StructField('amountLongQuantityBase', DoubleType(), True),
                         StructField('priceAdjustemntClause', StringType(), True),
-                        StructField('priceAdjustemntClauseBasePrice', DecimalType(), True),
-                        StructField('prceAdjustmentPrceAddition', DecimalType(), True),
-                        StructField('priceAdjustmentFactor', DecimalType(), True),
+                        StructField('priceAdjustemntClauseBasePrice', DoubleType(), True),
+                        StructField('prceAdjustmentPrceAddition', DoubleType(), True),
+                        StructField('priceAdjustmentFactor', DoubleType(), True),
                         StructField('additionFirst', StringType(), True),
                         StructField('taxDecisiveDate', DateType(), True),
                         StructField('profitCenter', StringType(), True),
@@ -233,8 +227,8 @@ newSchema = StructType([
                         StructField('businessPlace', StringType(), True),
                         StructField('billingLineClassificationIndicator', StringType(), True),
                         StructField('priceType', StringType(), True),
-                        StructField('longNetAmountPredecimalPlaces', DecimalType(), True),
-                        StructField('longNetAmountDecimalPlaces', DecimalType(), True),
+                        StructField('longNetAmountPredecimalPlaces', IntegerType(), True),
+                        StructField('longNetAmountDecimalPlaces', DoubleType(), True),
                         StructField('_RecordStart',TimestampType(),False),
                         StructField('_RecordEnd',TimestampType(),False),
                         StructField('_RecordDeleted',IntegerType(),False),

@@ -212,16 +212,16 @@ df_updated_column = spark.sql("SELECT  \
                                   _RecordEnd, \
                                   _RecordDeleted, \
                                   _RecordCurrent \
-                              FROM CLEANSED.stg_isu_vibdao vib \
-                                    LEFT OUTER JOIN CLEANSED.t_isu_ZCD_TINFPRTY_TX ip ON \
+                              FROM CLEANSED.stg_sapisu_vibdao vib \
+                                    LEFT OUTER JOIN CLEANSED.t_sapisu_ZCD_TINFPRTY_TX ip ON \
                                    vib.ZCD_INF_PROP_TYPE = ip.INFERIOR_PROP_TYPE \
-                                    LEFT OUTER JOIN CLEANSED.t_isu_ZCD_TSUPPRTYP_TX sp ON \
+                                    LEFT OUTER JOIN CLEANSED.t_sapisu_ZCD_TSUPPRTYP_TX sp ON \
                                    vib.ZCD_SUP_PROP_TYPE = sp.SUPERIOR_PROP_TYPE \
-                                    LEFT OUTER JOIN CLEANSED.t_isu_ZCD_TPLANTYPE_TX plt ON \
+                                    LEFT OUTER JOIN CLEANSED.t_sapisu_ZCD_TPLANTYPE_TX plt ON \
                                    vib.ZCD_PLAN_TYPE = plt.PLAN_TYPE \
-                                    LEFT OUTER JOIN CLEANSED.t_isu_TIVBDAROBJTYPET tiv ON \
+                                    LEFT OUTER JOIN CLEANSED.t_sapisu_TIVBDAROBJTYPET tiv ON \
                                    vib.ZCD_AOTYPE = tiv.AOTYPE \
-                                    LEFT OUTER JOIN CLEANSED.t_isu_ZCD_TPROCTYPE_TX prt ON \
+                                    LEFT OUTER JOIN CLEANSED.t_sapisu_ZCD_TPROCTYPE_TX prt ON \
                                    vib.ZCD_PROCESS_TYPE = prt.PROCESS_TYPE \
                               ")
 

@@ -1,6 +1,6 @@
 # Databricks notebook source
 # MAGIC %md
-# MAGIC { "SourceType": "BLOB Storage (json)", "SourceServer": "saswcnonprod01landingdev-sastoken", "SourceGroup": "isu", "SourceName": "isu_SCAL_TT_DATE", "SourceLocation": "SCAL_TT_DATE", "AdditionalProperty": "", "Processor": "databricks-token|0711-011053-turfs581|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive", "IsAuditTable": false, "SoftDeleteSource": "", "ProjectName": "SAP ISU", "ProjectId": 2, "TargetType": "BLOB Storage (json)", "TargetName": "isu_SCAL_TT_DATE", "TargetLocation": "isu/SCAL_TT_DATE", "TargetServer": "daf-sa-lake-sastoken", "DataLoadMode": "FULL-EXTRACT", "DeltaExtract": false, "CDCSource": false, "TruncateTarget": false, "UpsertTarget": true, "AppendTarget": null, "TrackChanges": false, "LoadToSqlEDW": true, "isu_SCAL_TT_DATE": "isu_SCAL_TT_DATE", "ControlStageId": 1, "TaskId": 63, "StageSequence": 100, "StageName": "Source to Raw", "SourceId": 63, "TargetId": 63, "ObjectGrain": "Day", "CommandTypeId": 3, "Watermarks": "", "WatermarksDT": null, "WatermarkColumn": "", "BusinessKeyColumn": "CALENDARDATE", "UpdateMetaData": null, "SourceTimeStampFormat": "", "Command": "", "LastLoadedFile": null }
+# MAGIC { "SourceType": "BLOB Storage (json)", "SourceServer": "saswcnonprod01landingdev-sastoken", "SourceGroup": "sapisu", "SourceName": "sapisu_SCAL_TT_DATE", "SourceLocation": "SCAL_TT_DATE", "AdditionalProperty": "", "Processor": "databricks-token|0711-011053-turfs581|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive", "IsAuditTable": false, "SoftDeleteSource": "", "ProjectName": "SAP ISU", "ProjectId": 2, "TargetType": "BLOB Storage (json)", "TargetName": "sapisu_SCAL_TT_DATE", "TargetLocation": "sapisu/SCAL_TT_DATE", "TargetServer": "daf-sa-lake-sastoken", "DataLoadMode": "FULL-EXTRACT", "DeltaExtract": false, "CDCSource": false, "TruncateTarget": false, "UpsertTarget": true, "AppendTarget": null, "TrackChanges": false, "LoadToSqlEDW": true, "sapisu_SCAL_TT_DATE": "sapisu_SCAL_TT_DATE", "ControlStageId": 1, "TaskId": 63, "StageSequence": 100, "StageName": "Source to Raw", "SourceId": 63, "TargetId": 63, "ObjectGrain": "Day", "CommandTypeId": 3, "Watermarks": "", "WatermarksDT": null, "WatermarkColumn": "", "BusinessKeyColumn": "CALENDARDATE", "UpdateMetaData": null, "SourceTimeStampFormat": "", "Command": "", "LastLoadedFile": null }
 
 # COMMAND ----------
 
@@ -171,7 +171,7 @@ df_calendar_column = spark.sql("SELECT \
                                 _RecordEnd, \
                                 _RecordDeleted, \
                                 _RecordCurrent \
-                               FROM CLEANSED.stg_isu_SCAL_TT_DATE \
+                               FROM CLEANSED.stg_sapisu_SCAL_TT_DATE \
                                where calendardate is not null \
                                order by 1 \
                                ")
