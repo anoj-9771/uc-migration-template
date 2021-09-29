@@ -28,6 +28,10 @@
 				"secretVersion": ""
 			},
 			"existingClusterId": "@linkedService().clusterId"
+		},
+		"connectVia": {
+			"referenceName": "IntegrationRuntime-SelfHosted",
+			"type": "IntegrationRuntimeReference"
 		}
 	},
 	"type": "Microsoft.DataFactory/factories/linkedservices"
