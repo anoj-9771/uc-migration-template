@@ -56,7 +56,7 @@
       }
     },
     "variables": {
-      "managedResourceGroupId": "[concat(subscription().id, '/resourceGroups/', variables('managedResourceGroupName'))]",
+      "managedResourceGroupId": "[concat(subscription().subscriptionId, '/resourceGroups/', variables('managedResourceGroupName'))]",
       "managedResourceGroupName": "[concat('databricks-rg-', parameters('workspaceName'), '-', uniqueString(parameters('workspaceName'), resourceGroup().id))]"
     },
     "resources": [{
