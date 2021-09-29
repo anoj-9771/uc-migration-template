@@ -24,7 +24,7 @@
 			}
 		},
 		"connectVia": {
-			"referenceName": "IntegrationRuntime-Azure-ManagedVnet-01",
+			"referenceName": "IntegrationRuntime-SelfHosted",
 			"type": "IntegrationRuntimeReference"
 		}
 	},
