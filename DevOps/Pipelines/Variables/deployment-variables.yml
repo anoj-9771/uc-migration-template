@@ -12,9 +12,9 @@ variables:
   # Used to set Log Analytics deployability
   - name: loganalytics
     value: true
-  # Used to set Log Blob Storage deployability
+  # Used to set Log Blob Storage deployability.
   - name: logstorage
-    value: true
+    value: false
   # Used to set Azure SQL Server deployability
   - name: azuresqlserver
     value: true
@@ -24,9 +24,9 @@ variables:
   # Used to add EDW DB to Azure SQL serve.r 
   - name: edw
     value: false
-  # Used to set Blob Storage deployability.
+  # Used to set Blob Storage deployability..
   - name: azureblobstorage
-    value: false
+    value: true
   # Used to set Data Lake Storage deployability
   - name: azuredatalakestorage
     value: true
@@ -45,6 +45,9 @@ variables:
   # Used to set DataFactory deployability
   - name: datafactory
     value: true
-  # Use to set Synapse Analytics worksspace deployability.
+  # Use to set Synapse Analytics worksspace deployability...
   - name: synapseanalyticsworkspace
+    value: true
+  # Use to set Synapse Analytics worksspace deployability...
+  - name: privateendpoints
     value: true

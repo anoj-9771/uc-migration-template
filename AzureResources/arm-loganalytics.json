@@ -1,10 +1,9 @@
 {
-    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
         "workspaceName": {
             "type": "string",
-            "defaultValue": "something",
             "metadata": {
               "description": "Name of the workspace."
             }
@@ -18,13 +17,20 @@
           },
           "location": {
             "type": "string",
+            "defaultValue": "Australia East",
+            "allowedValues": [
+                "Australia East",
+                "Australia Southeast",
+                "australiaeast",
+                "australiasoutheast"
+            ],
             "metadata": {
-                "description": "Specifies the location for the workspace."
-                }
+                "description": "Specifies the location for the resource"
+            }
           },
           "retentionInDays": {
             "type": "int",
-            "defaultValue": 30,
+            "defaultValue": 90,
             "metadata": {
               "description": "Number of days to retain data."
             }

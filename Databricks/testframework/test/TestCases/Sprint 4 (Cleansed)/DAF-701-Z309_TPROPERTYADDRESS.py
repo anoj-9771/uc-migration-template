@@ -86,6 +86,12 @@ cleansedf.createOrReplaceTempView("Target")
 
 # COMMAND ----------
 
+# DBTITLE 1,Check for hex values
+# MAGIC %sql
+# MAGIC select  modifiedByUserID from cleansed.t_access_z309_tpropertyaddress where  substr(hex(modifiedByUserID),1,2) = '00'
+
+# COMMAND ----------
+
 # DBTITLE 1,[Target] displaying records
 # MAGIC %sql
 # MAGIC select 

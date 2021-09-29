@@ -32,6 +32,7 @@ stages:
     steps:
     - download: current
       artifact: arm_templates
+    
     - task: AzureResourceGroupDeployment@2
       inputs:
         # azureSubscription cannot be a stage scoped variable
@@ -140,6 +141,7 @@ stages:
     steps:
     - download: current
       artifact: arm_templates
+   
     - task: AzureResourceGroupDeployment@2
       inputs:
         # azureSubscription cannot be a stage scoped variable

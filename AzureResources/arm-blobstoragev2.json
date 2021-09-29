@@ -1,35 +1,38 @@
 {
-    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "accountNames": {
+        "accountName": {
             "type": "string",
-            "defaultValue": "something, something"
-        },
-        "zones": {
-            "type": "string"
+            "metadata": {
+                "description": "Specifies a name for the resource"
+            }
         },
         "location": {
             "type": "string",
-            "defaultValue": "[resourceGroup().location]",
+            "defaultValue": "Australia East",
+            "allowedValues": [
+                "Australia East",
+                "Australia Southeast",
+                "australiaeast",
+                "australiasoutheast"
+            ],
             "metadata": {
-                "description": "Specifies the Azure location where the key vault should be created."
+                "description": "Specifies the location for the resource"
             }
         },
-        "storageAccountType": {
+        "skuName": {
             "type": "string",
             "defaultValue": "Standard_LRS",
             "allowedValues": [
                 "Standard_LRS",
-                "Standard_GRS",
-                "Standard_ZRS",
                 "Premium_LRS"
             ],
             "metadata": {
-                "description": "Storage Account type"
+                "description": "Specifies the storage SKU name"
             }
         },
-        "skuName": {
+        "skuTier": {
             "type": "string",
             "defaultValue": "Standard",
             "allowedValues": [
@@ -37,135 +40,36 @@
                 "Premium"
             ],
             "metadata": {
-                "description": "Specifies the SKU for the key vault."
-            }
-        },
-        "advancedThreatProtectionEnabled": {
-          "type": "bool",
-          "defaultValue": true,
-          "metadata": {
-            "description": "Enable or disable Advanced Threat Protection (Defender)."
-          }
-        }
-    },
-    "functions": [
-        {
-            "namespace": "ads",
-            "members": {
-                "serviceWithNamingStandard": {
-                    "parameters": [
-                        {
-                            "name": "prefix",
-                            "type": "string"
-                        },
-                        {
-                            "name": "serviceacronym",
-                            "type": "string"
-                        },
-                        {
-                            "name": "environment",
-                            "type": "string"
-                        },
-                        {
-                            "name": "suffix",
-                            "type": "string"
-                        }
-                    ],
-                    "output": {
-                        "type": "string",
-                        "value": "[concat(parameters('prefix'), '-', parameters('serviceacronym'), '-', parameters('environment'))]"
-                    }
-                },
-                "serviceWithNamingStandardNoHyphen": {
-                    "parameters": [
-                        {
-                            "name": "prefix",
-                            "type": "string"
-                        },
-                        {
-                            "name": "serviceacronym",
-                            "type": "string"
-                        },
-                        {
-                            "name": "environment",
-                            "type": "string"
-                        },
-                        {
-                            "name": "suffix",
-                            "type": "string"
-                        }
-                    ],
-                    "output": {
-                        "type": "string",
-                        "value": "[concat(parameters('prefix'), parameters('serviceacronym'), parameters('environment'))]"
-                    }
-                }
+                "description": "Specifies the storage SKU tier"
             }
         }
-    ],
-    "variables": {
-        "accountNamesObject": "[split(toLower(replace(replace(parameters('accountNames'),'-',''),' ','')), ',')]",
-        "zonesObject": "[split(toLower(replace(parameters('zones'),' ','')), ',')]",
-        "copy": [
-            {
-                "name": "storageAccounts",
-                "count": "[length(variables('accountNamesObject'))]",
-                "input": {
-                    "name": "[variables('accountNamesObject')[copyIndex('storageAccounts', 0)]]"
-                }
-            }
-        ]
     },
     "resources": [
         {
             "type": "Microsoft.Storage/storageAccounts",
-            "name": "[variables('accountNamesObject')[copyIndex()]]",
-            "apiVersion": "2018-07-01",
+            "name": "[parameters('accountName')]",
+            "apiVersion": "2021-04-01",
             "location": "[parameters('location')]",
             "sku": {
-                "name": "[parameters('storageAccountType')]",
-                "tier": "[parameters('skuName')]"
+                "name": "[parameters('skuName')]",
+                "tier": "[parameters('skuTier')]"
             },
             "kind": "StorageV2",
             "tags": {
-                "displayName": "Azure Blob Storage Account"
-            },
-            "copy": {
-                "name": "storage",
-                "count": "[length(variables('accountNamesObject'))]"
+                "displayName": "Azure Storage Account"
             },
             "properties": {
                 "accessTier": "Hot",
                 "isHnsEnabled": false,
                 "supportsHttpsTrafficOnly": true,
-                "allowBlobPublicAccess": false
+                "allowBlobPublicAccess": false,
+                "networkAcls": {
+                    "bypass": "AzureServices",
+                    "defaultAction": "Deny"
+                }
             },
-            "resources": [
-                {
-                    "name": "[concat('default/', variables('zonesObject')[copyIndex()])]",
-                    "type": "blobServices/containers",
-                    "apiVersion": "2018-07-01",
-                    "dependsOn": [
-                        "[variables('accountNamesObject')[copyIndex()]]"
-                    ]
-                },
-                {
-                    "condition": "[parameters('advancedThreatProtectionEnabled')]",
-                    "type": "providers/advancedThreatProtectionSettings",
-                    "name": "Microsoft.Security/current",
-                    "apiVersion": "2019-01-01",
-                    "dependsOn": ["[resourceId('Microsoft.Storage/storageAccounts/', variables('accountNamesObject')[copyIndex()])]"],
-                    "properties": {
-                      "isEnabled": true
-                    }
-                  }
-            ]
+            "resources": []
         }
     ],
-    "outputs": {
-        "storageAccounts": {
-            "value": "[variables('storageAccounts')]",
-            "type": "array"
-        }
-    }
+    "outputs": {}
 }

@@ -27,6 +27,10 @@ variables:
   # Store account type for BLOB Storage e.g. Standard_LRS)
   - name: storageAccountType
     value: Standard_LRS
+  # Name of the service connection in Devops
+  - name: devops-service-connection
+    value: azure-rg-dev-serviceconnection
+
   # Tagging.
   - name: applytags
     value: false
@@ -44,7 +48,7 @@ variables:
     value: EDW
   # Name of key vault for this environment.
   - name: azurekeyvaultname
-    value: kv-$(PREFIX)-$(ENVIRONMENT)-$(INCREMENT)
+    value: kv-$(PREFIX)-$(ENVIRONMENT)-$(INCREMENT)-test
   # Setup secret rotation interval in days
   - name: secretrotationinterval 
     value: 30
@@ -59,13 +63,13 @@ variables:
   # as it is split into an array within the ARM 
   # template.
   - name: blobstorageaccountnames
-    value: sablob$(PREFIX)$(ENVIRONMENT)$(INCREMENT)
+    value: sa$(SUBSCRIPTION)$(INCREMENT)landing$(ENVIRONMENT)
   - name: datalakestorageaccountnames
     value: sa$(PREFIX)$(ENVIRONMENT)$(INCREMENT)
   # Container or file system names within storage account
   # Used to iterate in ARM template
   - name: logzonename
-    value: daflogs
+    value: container1
   - name: zonenames
     value: raw, cleansed, curated, datalab, synapsestaging
     # value: raw, stage, sandbox

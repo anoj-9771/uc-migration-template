@@ -13,7 +13,7 @@ steps:
       location: $(LOCATION)
       templateLocation: 'Linked artifact'
       csmFile: '$(Pipeline.Workspace)/arm_templates/arm-blobstoragev2.json'
-      overrideParameters: '-location $(LOCATION) -accountNames "$(BLOBSTORAGEACCOUNTNAMES)" -zones "$(ZONENAMES)"'
+      overrideParameters: '-location $(LOCATION) -accountName "$(BLOBSTORAGEACCOUNTNAMES)"'
       deploymentMode: 'Incremental'
       deploymentOutputs: 'armOutputs'
     displayName: 'Deploy BLOB Storage Zones'
