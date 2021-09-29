@@ -39,7 +39,7 @@ def transform_raw_dataframe(dataframe, Params, file_date_time_stamp):
     dataframe = transform_custom_mysql_lms_update_delta_col(dataframe, Params)
   
   #Custom changes for SLT SQL Source as the datetime delta columns are stored as number
-  if Params[PARAMS_SOURCE_TYPE] == "SQL Server" and source_system == "sapisu":
+  if Params[PARAMS_SOURCE_TYPE] == "SQL Server":
     dataframe = transform_custom_slt_transaction_date(dataframe)
 
   #Make sure the delta columns are stored as TimestampType
@@ -54,7 +54,7 @@ def transform_raw_dataframe(dataframe, Params, file_date_time_stamp):
   dataframe = dataframe.withColumn(COL_DL_RAW_LOAD, from_utc_timestamp(F.lit(curr_time).cast(TimestampType()), ADS_TZ_LOCAL))
   
   #Add a DateTimeStamp column as per datetime in filename if the source system is sapisu 
-  if Params[PARAMS_SOURCE_TYPE] == "BLOB Storage (json)" and source_system == 'sapisu': 
+  if Params[PARAMS_SOURCE_TYPE] == "BLOB Storage (json)": 
     dataframe = transform_custom_sapisu_datetimestamp(dataframe, file_date_time_stamp)
   
   #If it is a Delta/CDC add year, month, day partition columns so that the Delta Table can be partitioned on YMD
@@ -340,8 +340,8 @@ def transform_custom_slt_transaction_date(dataframe):
 # COMMAND ----------
 
 def transform_custom_sapisu_datetimestamp(dataframe, file_date_time_stamp):
-  print("Adding datetimestamp column to dataframe")
-  dataframe = dataframe.withColumn('_FileDateTimeStamp', F.lit(file_date_time_stamp))
+  print("Adding _FileDateTimeStamp column to dataframe")
+  dataframe = dataframe.withColumn(COL_DL_RAW_FILE_TIMESTAMP, F.lit(file_date_time_stamp))
   print(dataframe)
   
   return dataframe
