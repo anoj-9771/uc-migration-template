@@ -28,8 +28,8 @@ def GetCommonLocation():
   dummyDimRecDf = spark.createDataFrame([(-1, "Unknown")],["locationID", "formattedAddress"])
   
   #3.JOIN TABLES  
-  #df = sapisu0ucConbjAttr2Df.join(sapisuVibdaoDf, sapisu0ucConbjAttr2Df.architecturalObjectInternalId == sapisuVibdaoDf.architecturalObjectInternalId, how="inner")\
-  #                          .drop(sapisuVibdaoDf.architecturalObjectInternalId).drop(sapisu0ucConbjAttr2Df.architecturalObjectInternalId)
+  #df = isu0ucConbjAttr2Df.join(isuVibdaoDf, isu0ucConbjAttr2Df.architecturalObjectInternalId == isuVibdaoDf.architecturalObjectInternalId, how="inner")\
+  #                          .drop(isuVibdaoDf.architecturalObjectInternalId).drop(isu0ucConbjAttr2Df.architecturalObjectInternalId)
   #df = df.select("propertyNumber","sourceSystemCode","propertyStartDate","propertyEndDate", \
   #                                              "propertyType","superiorPropertyType","propertyArea","LGA")
   

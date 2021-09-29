@@ -3,7 +3,7 @@
 
 # COMMAND ----------
 
-#%run ../commonBilledWaterConsumptionSapisu
+#%run ../commonBilledWaterConsumptionisu
 
 # COMMAND ----------
 
@@ -12,7 +12,7 @@
 # COMMAND ----------
 
 ###########################################################################################################################
-# Function: getCommonBillingDocumentSapisu
+# Function: getCommonBillingDocumentisu
 #  GETS BillingDocument DIMENSION 
 # Returns:
 #  Dataframe of transformed BillingDocument
@@ -25,24 +25,24 @@
 # 5.SELECT / TRANSFORM
 #############################################################################################################################
 #1.Create Function
-def getCommonBillingDocumentSapisu():
+def getCommonBillingDocumentisu():
   
   spark.udf.register("TidyCase", GeneralToTidyCase)  
   
   #DimBillingDocument
   #2.Load Cleansed layer table data into dataframe
 
-  billedConsSapisuDf = getBilledWaterConsumptionSapisu()
+  billedConsisuDf = getBilledWaterConsumptionisu()
 
-  dummyDimRecDf = spark.createDataFrame([("SAPISU", "-1", "1900-01-01", "9999-12-31"), ("Access", "-2", "1900-01-01", "9999-12-31")], ["sourceSystemCode", "billingDocumentNumber", "billingPeriodStartDate", "billingPeriodEndDate"])
+  dummyDimRecDf = spark.createDataFrame([("ISU", "-1", "1900-01-01", "9999-12-31"), ("Access", "-2", "1900-01-01", "9999-12-31")], ["sourceSystemCode", "billingDocumentNumber", "billingPeriodStartDate", "billingPeriodEndDate"])
   
   #3.JOIN TABLES  
   
   #4.UNION TABLES
-  billedConsSapisuDf = billedConsSapisuDf.unionByName(dummyDimRecDf, allowMissingColumns = True)
+  billedConsisuDf = billedConsisuDf.unionByName(dummyDimRecDf, allowMissingColumns = True)
   
   #5.SELECT / TRANSFORM
-  billDocDf = billedConsSapisuDf.selectExpr \
+  billDocDf = billedConsisuDf.selectExpr \
                                 ( \
                                    "sourceSystemCode" \
                                   ,"billingDocumentNumber" \

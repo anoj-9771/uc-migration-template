@@ -41,22 +41,22 @@ def GetCommonMeter():
   
     
   #Meter Data from SAP ISU
-  sapisu0ucDeviceAttrDf  = spark.sql("select 'SAPISU' as sourceSystemCode, materialNumber, equipmentNumber as meterId \
-                                      from cleansed.t_sapisu_0uc_device_attr \
+  isu0ucDeviceAttrDf  = spark.sql("select 'ISU' as sourceSystemCode, materialNumber, equipmentNumber as meterId \
+                                      from cleansed.t_isu_0uc_device_attr \
                                       where _RecordCurrent = 1 and _RecordDeleted = 0")
       
-  sapisu0ucDevcatAttrDf  = spark.sql("select materialNumber, deviceCategoryDescription as meterSize, functionClass as waterMeterType \
-                                      from cleansed.t_sapisu_0uc_devcat_attr \
+  isu0ucDevcatAttrDf  = spark.sql("select materialNumber, deviceCategoryDescription as meterSize, functionClass as waterMeterType \
+                                      from cleansed.t_isu_0uc_devcat_attr \
                                       where _RecordCurrent = 1 and _RecordDeleted = 0")
 
   #Dummy Record to be added to Meter Dimension
-  dummyDimRecDf = spark.createDataFrame([("SAPISU", "-1", "Unknown", "Unknown"), ("Access", "-1", "Unknown", "Unknown")], ["sourceSystemCode", "meterId", "meterSize", "waterMeterType"])
+  dummyDimRecDf = spark.createDataFrame([("ISU", "-1", "Unknown", "Unknown"), ("Access", "-1", "Unknown", "Unknown")], ["sourceSystemCode", "meterId", "meterSize", "waterMeterType"])
   
   #3.JOIN TABLES
-  df = sapisu0ucDeviceAttrDf.join(sapisu0ucDevcatAttrDf, sapisu0ucDeviceAttrDf.materialNumber == sapisu0ucDevcatAttrDf.materialNumber, 
+  df = isu0ucDeviceAttrDf.join(isu0ucDevcatAttrDf, isu0ucDeviceAttrDf.materialNumber == isu0ucDevcatAttrDf.materialNumber, 
                                   how="leftouter") \
-                            .drop(sapisu0ucDeviceAttrDf.materialNumber) \
-                            .drop(sapisu0ucDevcatAttrDf.materialNumber)
+                            .drop(isu0ucDeviceAttrDf.materialNumber) \
+                            .drop(isu0ucDevcatAttrDf.materialNumber)
   df = df.select("sourceSystemCode", "meterId", "meterSize", "waterMeterType")
 
   
