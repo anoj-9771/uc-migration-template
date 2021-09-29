@@ -333,7 +333,7 @@
 				"type": "SqlServerStoredProcedure",
 				"dependsOn": [
 					{
-						"activity": "If Tech Reconciliation Required",
+						"activity": "Loop Manifest",
 						"dependencyConditions": [
 							"Failed"
 						]
@@ -400,7 +400,7 @@
 				"type": "SqlServerStoredProcedure",
 				"dependsOn": [
 					{
-						"activity": "If Tech Reconciliation Required",
+						"activity": "Loop Manifest",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -471,7 +471,7 @@
 				"type": "IfCondition",
 				"dependsOn": [
 					{
-						"activity": "Loop Manifest",
+						"activity": "Log Success",
 						"dependencyConditions": [
 							"Succeeded"
 						]
