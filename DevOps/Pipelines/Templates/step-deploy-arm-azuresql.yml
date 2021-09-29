@@ -50,7 +50,7 @@ steps:
       location: $(LOCATION)
       templateLocation: 'Linked artifact'
       csmFile: '$(Pipeline.Workspace)/arm_templates/arm-sql-server.json'
-      overrideParameters: '-location $(LOCATION) -azureSqlServerName $(AZURESQLSERVERNAME) -AzureSqlServerUn $(AZURESQLSERVERUN) -AzureSqlServerPw $(AZURESQLSERVERPW)'
+      overrideParameters: '-location $(LOCATION) -azureSqlServerName $(AZURESQLSERVERNAME) -AzureSqlServerUn $(AZURESQLSERVERUN) -AzureSqlServerPw $(AZURESQLSERVERPW) -diagnosticSettingsWorkspaceID $(diagnosticSettingsWorkspaceID) -internalSubnetId $(internalSubnetId) -databricksPrivateSubnetId $(databricksPrivateSubnetId)'
       deploymentMode: 'Incremental'
     displayName: 'Deploy Azure SQL for Control DB'
 
