@@ -46,7 +46,7 @@
             "administratorLoginPassword": "[parameters('AzureSqlServerPw')]",
             "version": "12.0",
             "minimalTlsVersion": "1.2",
-            "publicNetworkAccess": "Enabled"
+            "publicNetworkAccess": "Disabled"
           },
           "resources": [
             {
