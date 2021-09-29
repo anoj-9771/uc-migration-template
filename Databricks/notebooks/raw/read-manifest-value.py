@@ -128,21 +128,19 @@ if Debug:
 # COMMAND ----------
 
 # DBTITLE 1,Read the record count fields
+col_name_DELTA_RECORD_COUNT = "DELTA_RECORD_COUNT" 
+col_name_TOTAL_NO_OF_ROWS = "TOTAL_NO_OF_ROWS"
+
+output = {col_name_DELTA_RECORD_COUNT: -1, col_name_TOTAL_NO_OF_ROWS: -1}
+
 if current_record_count == 0:
-  print("Exiting Notebook as no records to process")
-  dbutils.notebook.exit(-1)
-elif all(x in df.columns for x in ["DELTA_RECORD_COUNT", "TOTAL_NO_OF_ROWS"]):
-  DELTA_RECORD_COUNT = df.collect()[0]["DELTA_RECORD_COUNT"]
-  TOTAL_NO_OF_ROWS = df.collect()[0]["TOTAL_NO_OF_ROWS"]
-  print(json.dumps({
-    "DELTA_RECORD_COUNT": DELTA_RECORD_COUNT,
-    "TOTAL_NO_OF_ROWS": TOTAL_NO_OF_ROWS
-  }))
-  dbutils.notebook.exit(json.dumps({
-    "DELTA_RECORD_COUNT": DELTA_RECORD_COUNT,
-    "TOTAL_NO_OF_ROWS": TOTAL_NO_OF_ROWS
-  }))
+  print("Exiting Notebook as there are no records to process")
+elif all(x in df.columns for x in [col_name_DELTA_RECORD_COUNT, col_name_TOTAL_NO_OF_ROWS]):
+  output[col_name_DELTA_RECORD_COUNT] = df.collect()[0][col_name_DELTA_RECORD_COUNT]
+  output[col_name_TOTAL_NO_OF_ROWS] = df.collect()[0][col_name_TOTAL_NO_OF_ROWS]
+  print("Manifest file is read successfully")
 else:
-  print("Exiting Notebook as record count columns were not found in the manifest schema")
-  dbutils.notebook.exit(-1)
+  print("Exiting Notebook as record count columns were not found in the manifest file")
+  
+dbutils.notebook.exit(json.dumps(output))
 
