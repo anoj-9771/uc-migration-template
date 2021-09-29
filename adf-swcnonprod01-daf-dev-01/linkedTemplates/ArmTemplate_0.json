@@ -258,9 +258,14 @@
 							"type": "Expression"
 						}
 					}
+				},
+				"connectVia": {
+					"referenceName": "IntegrationRuntime-SelfHosted",
+					"type": "IntegrationRuntimeReference"
 				}
 			},
 			"dependsOn": [
+				"[concat(variables('factoryId'), '/integrationRuntimes/IntegrationRuntime-SelfHosted')]",
 				"[concat(variables('factoryId'), '/linkedServices/LS-AzureKeyVault')]"
 			]
 		},
