@@ -11,7 +11,7 @@ variables:
     value: false
   # Used to set Log Analytics deployability
   - name: loganalytics
-    value: true
+    value: false
   # Used to set Log Blob Storage deployability.
   - name: logstorage
     value: false
