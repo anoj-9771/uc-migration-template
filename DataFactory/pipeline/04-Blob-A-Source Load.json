@@ -856,6 +856,13 @@
 																"type": "Expression"
 															},
 															"type": "Int64"
+														},
+														"M_Message": {
+															"value": {
+																"value": "@string(activity('Notebook-Read-Manifest-Value').output.runOutput.message)",
+																"type": "Expression"
+															},
+															"type": "String"
 														}
 													}
 												},
