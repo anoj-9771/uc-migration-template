@@ -107,8 +107,8 @@ variables:
     value: nsg-$(SUBSCRIPTION)-$(PREFIX)-$(ENVIRONMENT)-$(INCREMENT)
   - name: nsgid
     value: 
-  - name: databricks_env_domain 
-    value: XXXXXXX              #Get this after databricks environment has been deployed
+  - name: databricks_base_url 
+    value: #Get this after databricks environment has been deployed
   - name: vnetresourcegroupname
     value: rg-swcnonprod01-network-01
   - name: publicsubnetcidr

@@ -98,8 +98,8 @@ variables:
     value: nsg-$(SUBSCRIPTION)-$(PREFIX)-$(ENVIRONMENT)-$(INCREMENT)
   - name: nsgid
     value: 
-  - name: databricks_env_domain #Get this after databricks environment has been deployed
-    value: adb-8098469541873946.6
+  - name: databricks_base_url 
+    value: https://adb-8098469541873946.6.azuredatabricks.net #Get this after databricks environment has been deployed
   - name: vnetresourcegroupname
     value: rg-swcnonprod01-network-01
   - name: vnetName
