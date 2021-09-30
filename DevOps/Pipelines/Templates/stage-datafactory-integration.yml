@@ -39,7 +39,7 @@ stages:
         location: $(LOCATION)
         templateLocation: 'Linked artifact'
         csmFile: '$(Pipeline.Workspace)/adf_arm_templates/ARMTemplateForFactory.json'
-        overrideParameters: '-factoryName $(DATAFACTORYNAME) -LS-AzureKeyVault_properties_typeProperties_baseUrl ${{ variables.kv_base_url }} -LS_AzureDatalake_properties_typeProperties_url ${{ variables.datalake_base_url }} -LS_AzureBlobStorage_properties_typeProperties_serviceEndpoint ${{ variables.blob_base_url }}
+        overrideParameters: '-factoryName $(DATAFACTORYNAME) -LS-AzureKeyVault_properties_typeProperties_baseUrl ${{ variables.kv_base_url }} -LS_AzureDatalake_properties_typeProperties_url ${{ variables.datalake_base_url }} -LS_AzureBlobStorage_properties_typeProperties_serviceEndpoint ${{ variables.blob_base_url }}'
         deploymentMode: 'Incremental'
       displayName: 'Deploy Datafactory with Access Policies'
 
