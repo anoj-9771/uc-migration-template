@@ -1277,6 +1277,13 @@
 																		"type": "Expression"
 																	},
 																	"type": "Int64"
+																},
+																"M_Message": {
+																	"value": {
+																		"value": "@string(activity('Notebook-Read-Manifest-Value').output.runOutput.message)",
+																		"type": "Expression"
+																	},
+																	"type": "String"
 																}
 															}
 														},
@@ -4667,7 +4674,7 @@
 						"type": "SqlServerStoredProcedure",
 						"dependsOn": [
 							{
-								"activity": "If Tech Reconciliation Required",
+								"activity": "Loop Manifest",
 								"dependencyConditions": [
 									"Failed"
 								]
@@ -4842,6 +4849,70 @@
 												"value": "@pipeline().parameters.TaskExecutionLogId",
 												"type": "Expression"
 											}
+										}
+									}
+								},
+								{
+									"name": "Log Failure Tech Rec",
+									"type": "SqlServerStoredProcedure",
+									"dependsOn": [
+										{
+											"activity": "Execute-Technical-Reconciliation",
+											"dependencyConditions": [
+												"Failed"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "7.00:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"storedProcedureName": "[[CTL].[UpdateTaskLog]",
+										"storedProcedureParameters": {
+											"BatchLogId": {
+												"value": {
+													"value": "@pipeline().parameters.BatchLogId",
+													"type": "Expression"
+												},
+												"type": "Int64"
+											},
+											"TaskId": {
+												"value": {
+													"value": "@pipeline().parameters.TaskDetails.TaskId",
+													"type": "Expression"
+												},
+												"type": "Int64"
+											},
+											"ExecutionLogId": {
+												"value": {
+													"value": "@pipeline().parameters.TaskExecutionLogId",
+													"type": "Expression"
+												},
+												"type": "Int64"
+											},
+											"Status": {
+												"value": "Failure",
+												"type": "String"
+											},
+											"ErrorMessage": {
+												"value": "Error Occurred during Cleansed Zone load technical reconciliation",
+												"type": "String"
+											},
+											"Output": {
+												"value": null
+											}
+										}
+									},
+									"linkedServiceName": {
+										"referenceName": "LS-AzureSqlDatabase_Ctrldb",
+										"type": "LinkedServiceReference",
+										"parameters": {
+											"kvSecret": "daf-sql-controldb-connectionstring"
 										}
 									}
 								}
