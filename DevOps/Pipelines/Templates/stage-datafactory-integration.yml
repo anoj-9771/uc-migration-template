@@ -21,9 +21,9 @@ stages:
   - name: kv_base_url
     value: 'https://${{ Variables.azurekeyvaultname }}.vault.azure.net/'
   - name: datalake_base_url
-    value: 'https://${{ Variables.datalakestorageaccountnames }}.blob.core.windows.net/'
+    value: 'https://${{ Variables.datalakestorageaccountnames }}.dfs.core.windows.net/'
   - name: blob_base_url
-    value: 'https://${{ Variables.blobstorageaccountnames }}.dfs.core.windows.net/'
+    value: 'https://${{ Variables.blobstorageaccountnames }}.blob.core.windows.net/'
 
   jobs:
   - job:
