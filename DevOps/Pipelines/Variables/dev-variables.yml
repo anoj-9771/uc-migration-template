@@ -27,10 +27,6 @@ variables:
   # Store account type for BLOB Storage e.g. Standard_LRS)
   - name: storageAccountType
     value: Standard_LRS
-  # Name of the service connection in Devops
-  - name: devops-service-connection
-    value: azure-rg-dev-serviceconnection
-
   # Tagging.
   - name: applytags
     value: false
@@ -48,7 +44,7 @@ variables:
     value: EDW
   # Name of key vault for this environment.
   - name: azurekeyvaultname
-    value: kv-$(PREFIX)-$(ENVIRONMENT)-$(INCREMENT)-test
+    value: kv-$(PREFIX)-$(ENVIRONMENT)-$(INCREMENT)
   # Setup secret rotation interval in days
   - name: secretrotationinterval 
     value: 30
@@ -72,10 +68,13 @@ variables:
     value: container1
   - name: zonenames
     value: raw, cleansed, curated, datalab, synapsestaging
-    # value: raw, stage, sandbox
+  # value: raw, stage, sandbox
   # Databricks workspace name for this enironment
   - name: databricksworkspacename
     value: dbw-$(SUBSCRIPTION)-$(PREFIX)-$(ENVIRONMENT)-$(INCREMENT)
+  # ------------------------------------------------
+  # Data Factory  related.
+  # ------------------------------------------------
   # Data Factory service name for this environment
   - name: datafactoryname
     value: adf-$(SUBSCRIPTION)-$(PREFIX)-$(ENVIRONMENT)-$(INCREMENT)

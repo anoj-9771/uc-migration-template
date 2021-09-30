@@ -32,7 +32,7 @@ variables:
     value: false
   - name: tags
     value: CostCenter=DataAndAI \
-          Environment=Production \
+          Environment=NonProduction \
           Owner=jackson.staub@insight.com
   # ------------------------------------------------
   # Service names for environment.
