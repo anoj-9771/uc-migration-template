@@ -81,5 +81,14 @@ stages:
         resource_group: ${{ variables.resourcegroupname }}
         src_resource_name: $(DATAFACTORYNAME)
         trg_resource_name: $(datalakestorageaccountnames)
+        role: 'Storage Blob Data Contributor'
+
+    # Add Data Factory MI to Blob Storage
+    - template: task-add-mi-to-resource-rbac.yml
+      parameters:
+        service_connection: ${{ variables.azdoresourceconnection }}
+        resource_group: ${{ variables.resourcegroupname }}
+        src_resource_name: $(DATAFACTORYNAME)
+        trg_resource_name: $(blobstorageaccountnames)
         role: 'Storage Blob Data Contributor'   
             
