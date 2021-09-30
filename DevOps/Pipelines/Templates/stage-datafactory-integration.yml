@@ -20,6 +20,10 @@ stages:
   - template: ../Variables/${{ parameters.variable_template_name }}.yml
   - name: kv_base_url
     value: 'https://${{ Variables.azurekeyvaultname }}.vault.azure.net/'
+  - name: datalake_base_url
+    value: 'https://${{ Variables.datalakestorageaccountnames }}.blob.core.windows.net/'
+  - name: blob_base_url
+    value: 'https://${{ Variables.blobstorageaccountnames }}.dfs.core.windows.net/'
 
   jobs:
   - job:
@@ -35,7 +39,7 @@ stages:
         location: $(LOCATION)
         templateLocation: 'Linked artifact'
         csmFile: '$(Pipeline.Workspace)/adf_arm_templates/ARMTemplateForFactory.json'
-        overrideParameters: '-factoryName $(DATAFACTORYNAME) -LS-AzureKeyVault_properties_typeProperties_baseUrl ${{ variables.kv_base_url }}'
+        overrideParameters: '-factoryName $(DATAFACTORYNAME) -LS-AzureKeyVault_properties_typeProperties_baseUrl ${{ variables.kv_base_url }} -LS_AzureDatalake_properties_typeProperties_url ${{ variables.datalake_base_url }} -LS_AzureBlobStorage_properties_typeProperties_serviceEndpoint ${{ variables.blob_base_url }}
         deploymentMode: 'Incremental'
       displayName: 'Deploy Datafactory with Access Policies'
 
@@ -51,5 +55,5 @@ stages:
           adf_sp_oid=$(az resource show -g ${{ variables.resourcegroupname }} --resource-type Microsoft.DataFactory/factories -n $(DATAFACTORYNAME) --query identity.principalId --output tsv)                  
           echo "$adf_sp_oid"
           az keyvault set-policy --name "$(AZUREKEYVAULTNAME)" --secret-permissions list get --object-id "$adf_sp_oid" --query "{Status:properties.provisioningState}" --output table
-          
+    
             

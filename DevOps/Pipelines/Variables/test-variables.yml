@@ -72,6 +72,9 @@ variables:
   # Databricks workspace name for this enironment
   - name: databricksworkspacename
     value: dbw-$(SUBSCRIPTION)-$(PREFIX)-$(ENVIRONMENT)-$(INCREMENT)
+  # ------------------------------------------------
+  # Data Factory  related.
+  # ------------------------------------------------
   # Data Factory service name for this environment
   - name: datafactoryname
     value: adf-$(SUBSCRIPTION)-$(PREFIX)-$(ENVIRONMENT)-$(INCREMENT)  
