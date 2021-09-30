@@ -32,7 +32,7 @@ variables:
     value: false
   - name: tags
     value: CostCenter=DataAndAI \
-          Environment=Production \
+          Environment=NonProduction \
           Owner=jackson.staub@insight.com
   # ------------------------------------------------
   # Service names for environment.
@@ -59,7 +59,7 @@ variables:
   # as it is split into an array within the ARM 
   # template.
   - name: blobstorageaccountnames
-    value: sa$(SUBSCRIPTION)$(INCREMENT)landingtst
+    value: sa$(SUBSCRIPTION)landingtst
   - name: datalakestorageaccountnames
     value: sa$(PREFIX)$(ENVIRONMENT)$(INCREMENT)
   # Container or file system names within storage account
@@ -72,6 +72,9 @@ variables:
   # Databricks workspace name for this enironment
   - name: databricksworkspacename
     value: dbw-$(SUBSCRIPTION)-$(PREFIX)-$(ENVIRONMENT)-$(INCREMENT)
+  # ------------------------------------------------
+  # Data Factory  related.
+  # ------------------------------------------------
   # Data Factory service name for this environment
   - name: datafactoryname
     value: adf-$(SUBSCRIPTION)-$(PREFIX)-$(ENVIRONMENT)-$(INCREMENT)  
@@ -95,6 +98,8 @@ variables:
     value: nsg-$(SUBSCRIPTION)-$(PREFIX)-$(ENVIRONMENT)-$(INCREMENT)
   - name: nsgid
     value: 
+  - name: databricks_base_url 
+    value: https://adb-8098469541873946.6.azuredatabricks.net #Get this after databricks environment has been deployed
   - name: vnetresourcegroupname
     value: rg-swcnonprod01-network-01
   - name: vnetName

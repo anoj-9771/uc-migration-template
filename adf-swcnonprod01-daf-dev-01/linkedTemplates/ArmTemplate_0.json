@@ -11,6 +11,14 @@
 			"type": "string",
 			"defaultValue": "https://kv-daf-dev-01.vault.azure.net/"
 		},
+		"LS-AzureDatabricks_DefinedCluster_properties_typeProperties_domain": {
+			"type": "string",
+			"defaultValue": "https://adb-6510910994889.9.azuredatabricks.net"
+		},
+		"LS-AzureDatabricks_JobCluster_properties_typeProperties_domain": {
+			"type": "string",
+			"defaultValue": "https://australiaeast.azuredatabricks.net"
+		},
 		"LS-AzureSqlDatabase_Ctrldb_properties_typeProperties_connectionString_secretName": {
 			"type": "string",
 			"defaultValue": "@linkedService().kvSecret"
@@ -84,7 +92,7 @@
 				"annotations": [],
 				"type": "AzureDatabricks",
 				"typeProperties": {
-					"domain": "https://adb-6510910994889.9.azuredatabricks.net/",
+					"domain": "[parameters('LS-AzureDatabricks_DefinedCluster_properties_typeProperties_domain')]",
 					"accessToken": {
 						"type": "AzureKeyVaultSecret",
 						"store": {
@@ -131,7 +139,7 @@
 				"annotations": [],
 				"type": "AzureDatabricks",
 				"typeProperties": {
-					"domain": "https://australiaeast.azuredatabricks.net",
+					"domain": "[parameters('LS-AzureDatabricks_JobCluster_properties_typeProperties_domain')]",
 					"accessToken": {
 						"type": "AzureKeyVaultSecret",
 						"store": {

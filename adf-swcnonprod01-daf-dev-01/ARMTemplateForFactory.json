@@ -7,6 +7,14 @@
 			"metadata": "Data Factory name",
 			"defaultValue": "adf-swcnonprod01-daf-dev-01"
 		},
+		"LS-AzureDatabricks_DefinedCluster_properties_typeProperties_domain": {
+			"type": "string",
+			"defaultValue": "https://adb-6510910994889.9.azuredatabricks.net"
+		},
+		"LS-AzureDatabricks_JobCluster_properties_typeProperties_domain": {
+			"type": "string",
+			"defaultValue": "https://australiaeast.azuredatabricks.net"
+		},
 		"LS-AzureKeyVault_properties_typeProperties_baseUrl": {
 			"type": "string",
 			"defaultValue": "https://kv-daf-dev-01.vault.azure.net/"
@@ -9433,7 +9441,7 @@
 				"annotations": [],
 				"type": "AzureDatabricks",
 				"typeProperties": {
-					"domain": "https://adb-6510910994889.9.azuredatabricks.net/",
+					"domain": "[parameters('LS-AzureDatabricks_DefinedCluster_properties_typeProperties_domain')]",
 					"accessToken": {
 						"type": "AzureKeyVaultSecret",
 						"store": {
@@ -9480,7 +9488,7 @@
 				"annotations": [],
 				"type": "AzureDatabricks",
 				"typeProperties": {
-					"domain": "https://australiaeast.azuredatabricks.net",
+					"domain": "[parameters('LS-AzureDatabricks_JobCluster_properties_typeProperties_domain')]",
 					"accessToken": {
 						"type": "AzureKeyVaultSecret",
 						"store": {
@@ -9771,7 +9779,12 @@
 			"apiVersion": "2018-06-01",
 			"properties": {
 				"type": "SelfHosted",
-				"typeProperties": {}
+				"typeProperties": {
+					"linkedInfo": {
+                        "resourceId": "/subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourcegroups/rg-swcnonprod01-daf-dev-01/providers/Microsoft.DataFactory/factories/adf-swcnonprod01-daf-dev-01/integrationruntimes/IntegrationRuntime-SelfHosted",
+                        "authorizationType": "Rbac"
+					}
+				}
 			},
 			"dependsOn": []
 		},

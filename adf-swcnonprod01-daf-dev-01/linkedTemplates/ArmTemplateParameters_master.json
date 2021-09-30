@@ -5,6 +5,12 @@
 		"factoryName": {
 			"value": "adf-swcnonprod01-daf-dev-01"
 		},
+		"LS-AzureDatabricks_DefinedCluster_properties_typeProperties_domain": {
+			"value": "https://adb-6510910994889.9.azuredatabricks.net"
+		},
+		"LS-AzureDatabricks_JobCluster_properties_typeProperties_domain": {
+			"value": "https://australiaeast.azuredatabricks.net"
+		},
 		"LS-AzureKeyVault_properties_typeProperties_baseUrl": {
 			"value": "https://kv-daf-dev-01.vault.azure.net/"
 		},
