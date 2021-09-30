@@ -59,8 +59,8 @@ stages:
     # Add Data Factory MI to Key Vault Access Policies
     - template: task-add-mi-to-akv-access-policy.yml
       parameters:
-        service_connection: $(azdoresourceconnection)
-        resource_group: $(resource_group)
+        service_connection: ${{ variables.azdoresourceconnection }}
+        resource_group: ${{ variables.resourcegroupname }}
         src_resource_name: $(DATAFACTORYNAME)
         key_vault_name: $(AZUREKEYVAULTNAME)
         secret_permissions: 'list get'
@@ -68,8 +68,8 @@ stages:
     # Add Data Factory MI to SQLServer Rbac
     - template: task-add-mi-to-resource-rbac.yml
       parameters:
-        service_connection: $(azdoresourceconnection)
-        resource_group: $(resource_group)
+        service_connection: ${{ variables.azdoresourceconnection }}
+        resource_group: ${{ variables.resourcegroupname }}
         src_resource_name: $(DATAFACTORYNAME)
         trg_resource_name: $(AZURESQLSERVERNAME)
         role: 'Contributor'   
@@ -77,8 +77,8 @@ stages:
     # Add Data Factory MI to DataLake Rbac
     - template: task-add-mi-to-resource-rbac.yml
       parameters:
-        service_connection: $(azdoresourceconnection)
-        resource_group: $(resource_group)
+        service_connection: ${{ variables.azdoresourceconnection }}
+        resource_group: ${{ variables.resourcegroupname }}
         src_resource_name: $(DATAFACTORYNAME)
         trg_resource_name: $(datalakestorageaccountnames)
         role: 'Blob Contributor'   
