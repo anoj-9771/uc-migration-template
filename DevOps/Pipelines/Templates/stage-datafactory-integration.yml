@@ -81,5 +81,5 @@ stages:
         resource_group: ${{ variables.resourcegroupname }}
         src_resource_name: $(DATAFACTORYNAME)
         trg_resource_name: $(datalakestorageaccountnames)
-        role: 'Blob Contributor'   
+        role: 'Storage Blob Data Contributor'   
             
