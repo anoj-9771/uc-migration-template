@@ -7,6 +7,14 @@
 			"metadata": "Data Factory name",
 			"defaultValue": "adf-swcnonprod01-daf-dev-01"
 		},
+		"LS-AzureDatabricks_DefinedCluster_properties_typeProperties_domain": {
+			"type": "string",
+			"defaultValue": "https://adb-6510910994889.9.azuredatabricks.net"
+		},
+		"LS-AzureDatabricks_JobCluster_properties_typeProperties_domain": {
+			"type": "string",
+			"defaultValue": "https://australiaeast.azuredatabricks.net"
+		},
 		"LS-AzureKeyVault_properties_typeProperties_baseUrl": {
 			"type": "string",
 			"defaultValue": "https://kv-daf-dev-01.vault.azure.net/"
@@ -68,6 +76,12 @@
 					},
 					"LS-AzureKeyVault_properties_typeProperties_baseUrl": {
 						"value": "[parameters('LS-AzureKeyVault_properties_typeProperties_baseUrl')]"
+					},
+					"LS-AzureDatabricks_DefinedCluster_properties_typeProperties_domain": {
+						"value": "[parameters('LS-AzureDatabricks_DefinedCluster_properties_typeProperties_domain')]"
+					},
+					"LS-AzureDatabricks_JobCluster_properties_typeProperties_domain": {
+						"value": "[parameters('LS-AzureDatabricks_JobCluster_properties_typeProperties_domain')]"
 					},
 					"LS-AzureSqlDatabase_Ctrldb_properties_typeProperties_connectionString_secretName": {
 						"value": "[parameters('LS-AzureSqlDatabase_Ctrldb_properties_typeProperties_connectionString_secretName')]"
