@@ -432,7 +432,7 @@
 									}
 								},
 								{
-									"name": "Set-ReturnValue-Job",
+									"name": "Set-ReturnValue-Job-DataFile",
 									"type": "SetVariable",
 									"dependsOn": [
 										{
@@ -444,9 +444,29 @@
 									],
 									"userProperties": [],
 									"typeProperties": {
-										"variableName": "ReturnValue",
+										"variableName": "DataFileRecordCount",
 										"value": {
-											"value": "@string(activity('Notebook-Delta-Table-Job').output.runOutput)",
+											"value": "@string(activity('Notebook-Delta-Table-Job').output.runOutput.DataFileRecordCount)",
+											"type": "Expression"
+										}
+									}
+								},
+								{
+									"name": "Set-ReturnValue-Job-TargetTable",
+									"type": "SetVariable",
+									"dependsOn": [
+										{
+											"activity": "Notebook-Delta-Table-Job",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"userProperties": [],
+									"typeProperties": {
+										"variableName": "TargetTableRecordCount",
+										"value": {
+											"value": "@string(activity('Notebook-Delta-Table-Job').output.runOutput.TargetTableRecordCount)",
 											"type": "Expression"
 										}
 									}
@@ -501,7 +521,7 @@
 									}
 								},
 								{
-									"name": "Set-ReturnValue-Interactive",
+									"name": "Set-ReturnValue-Interactive-DataFile",
 									"type": "SetVariable",
 									"dependsOn": [
 										{
@@ -513,9 +533,29 @@
 									],
 									"userProperties": [],
 									"typeProperties": {
-										"variableName": "ReturnValue",
+										"variableName": "DataFileRecordCount",
 										"value": {
-											"value": "@string(activity('Notebook-Delta-Table-Interactive').output.runOutput)",
+											"value": "@string(activity('Notebook-Delta-Table-Interactive').output.runOutput.DataFileRecordCount)",
+											"type": "Expression"
+										}
+									}
+								},
+								{
+									"name": "Set-ReturnValue-Interactive-TargetTable",
+									"type": "SetVariable",
+									"dependsOn": [
+										{
+											"activity": "Notebook-Delta-Table-Interactive",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"userProperties": [],
+									"typeProperties": {
+										"variableName": "TargetTableRecordCount",
+										"value": {
+											"value": "@string(activity('Notebook-Delta-Table-Interactive').output.runOutput.TargetTableRecordCount)",
 											"type": "Expression"
 										}
 									}
@@ -561,7 +601,7 @@
 								},
 								"RecordsDeltaTable": {
 									"value": {
-										"value": "@variables('ReturnValue')",
+										"value": "@variables('DataFileRecordCount')",
 										"type": "Expression"
 									},
 									"type": "Int64"
@@ -572,6 +612,13 @@
 										"type": "Expression"
 									},
 									"type": "String"
+								},
+								"RecordsTargetTable": {
+									"value": {
+										"value": "@variables('TargetTableRecordCount')",
+										"type": "Expression"
+									},
+									"type": "Int64"
 								}
 							}
 						},
@@ -619,7 +666,7 @@
 					}
 				},
 				"variables": {
-					"ReturnValue": {
+					"TargetTableRecordCount": {
 						"type": "String"
 					},
 					"ClusterType": {
@@ -628,6 +675,9 @@
 					"NoteBookURL": {
 						"type": "String",
 						"defaultValue": "/build/raw/load-raw-deltatable"
+					},
+					"DataFileRecordCount": {
+						"type": "String"
 					}
 				},
 				"folder": {

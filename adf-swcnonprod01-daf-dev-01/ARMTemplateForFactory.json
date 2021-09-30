@@ -1734,6 +1734,13 @@
 																		"type": "Expression"
 																	},
 																	"type": "Int64"
+																},
+																"M_Message": {
+																	"value": {
+																		"value": "@string(activity('Notebook-Read-Manifest-Value').output.runOutput.message)",
+																		"type": "Expression"
+																	},
+																	"type": "String"
 																}
 															}
 														},
@@ -2999,7 +3006,7 @@
 									}
 								},
 								{
-									"name": "Set-ReturnValue-Job",
+									"name": "Set-ReturnValue-Job-DataFile",
 									"type": "SetVariable",
 									"dependsOn": [
 										{
@@ -3011,9 +3018,29 @@
 									],
 									"userProperties": [],
 									"typeProperties": {
-										"variableName": "ReturnValue",
+										"variableName": "DataFileRecordCount",
 										"value": {
-											"value": "@string(activity('Notebook-Delta-Table-Job').output.runOutput)",
+											"value": "@string(activity('Notebook-Delta-Table-Job').output.runOutput.DataFileRecordCount)",
+											"type": "Expression"
+										}
+									}
+								},
+								{
+									"name": "Set-ReturnValue-Job-TargetTable",
+									"type": "SetVariable",
+									"dependsOn": [
+										{
+											"activity": "Notebook-Delta-Table-Job",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"userProperties": [],
+									"typeProperties": {
+										"variableName": "TargetTableRecordCount",
+										"value": {
+											"value": "@string(activity('Notebook-Delta-Table-Job').output.runOutput.TargetTableRecordCount)",
 											"type": "Expression"
 										}
 									}
@@ -3068,7 +3095,7 @@
 									}
 								},
 								{
-									"name": "Set-ReturnValue-Interactive",
+									"name": "Set-ReturnValue-Interactive-DataFile",
 									"type": "SetVariable",
 									"dependsOn": [
 										{
@@ -3080,9 +3107,29 @@
 									],
 									"userProperties": [],
 									"typeProperties": {
-										"variableName": "ReturnValue",
+										"variableName": "DataFileRecordCount",
 										"value": {
-											"value": "@string(activity('Notebook-Delta-Table-Interactive').output.runOutput)",
+											"value": "@string(activity('Notebook-Delta-Table-Interactive').output.runOutput.DataFileRecordCount)",
+											"type": "Expression"
+										}
+									}
+								},
+								{
+									"name": "Set-ReturnValue-Interactive-TargetTable",
+									"type": "SetVariable",
+									"dependsOn": [
+										{
+											"activity": "Notebook-Delta-Table-Interactive",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"userProperties": [],
+									"typeProperties": {
+										"variableName": "TargetTableRecordCount",
+										"value": {
+											"value": "@string(activity('Notebook-Delta-Table-Interactive').output.runOutput.TargetTableRecordCount)",
 											"type": "Expression"
 										}
 									}
@@ -3128,7 +3175,7 @@
 								},
 								"RecordsDeltaTable": {
 									"value": {
-										"value": "@variables('ReturnValue')",
+										"value": "@variables('DataFileRecordCount')",
 										"type": "Expression"
 									},
 									"type": "Int64"
@@ -3139,6 +3186,13 @@
 										"type": "Expression"
 									},
 									"type": "String"
+								},
+								"RecordsTargetTable": {
+									"value": {
+										"value": "@variables('TargetTableRecordCount')",
+										"type": "Expression"
+									},
+									"type": "Int64"
 								}
 							}
 						},
@@ -3186,7 +3240,7 @@
 					}
 				},
 				"variables": {
-					"ReturnValue": {
+					"TargetTableRecordCount": {
 						"type": "String"
 					},
 					"ClusterType": {
@@ -3195,6 +3249,9 @@
 					"NoteBookURL": {
 						"type": "String",
 						"defaultValue": "/build/raw/load-raw-deltatable"
+					},
+					"DataFileRecordCount": {
+						"type": "String"
 					}
 				},
 				"folder": {
@@ -7613,7 +7670,7 @@
 						"type": "SqlServerStoredProcedure",
 						"dependsOn": [
 							{
-								"activity": "If Tech Reconciliation Required",
+								"activity": "Loop Manifest",
 								"dependencyConditions": [
 									"Failed"
 								]
@@ -7788,6 +7845,70 @@
 												"value": "@pipeline().parameters.TaskExecutionLogId",
 												"type": "Expression"
 											}
+										}
+									}
+								},
+								{
+									"name": "Log Failure Tech Rec",
+									"type": "SqlServerStoredProcedure",
+									"dependsOn": [
+										{
+											"activity": "Execute-Technical-Reconciliation",
+											"dependencyConditions": [
+												"Failed"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "7.00:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"storedProcedureName": "[[CTL].[UpdateTaskLog]",
+										"storedProcedureParameters": {
+											"BatchLogId": {
+												"value": {
+													"value": "@pipeline().parameters.BatchLogId",
+													"type": "Expression"
+												},
+												"type": "Int64"
+											},
+											"TaskId": {
+												"value": {
+													"value": "@pipeline().parameters.TaskDetails.TaskId",
+													"type": "Expression"
+												},
+												"type": "Int64"
+											},
+											"ExecutionLogId": {
+												"value": {
+													"value": "@pipeline().parameters.TaskExecutionLogId",
+													"type": "Expression"
+												},
+												"type": "Int64"
+											},
+											"Status": {
+												"value": "Failure",
+												"type": "String"
+											},
+											"ErrorMessage": {
+												"value": "Error Occurred during Cleansed Zone load technical reconciliation",
+												"type": "String"
+											},
+											"Output": {
+												"value": null
+											}
+										}
+									},
+									"linkedServiceName": {
+										"referenceName": "LS-AzureSqlDatabase_Ctrldb",
+										"type": "LinkedServiceReference",
+										"parameters": {
+											"kvSecret": "daf-sql-controldb-connectionstring"
 										}
 									}
 								}
