@@ -58,13 +58,13 @@ variables:
     value: EDW
   # Name of key vault for this environment.
   - name: azurekeyvaultname
-    value: kyv-$(PREFIX)-$(ENVIRONMENT)-$(INCREMENT)
+    value: kv-$(PREFIX)-$(ENVIRONMENT)-$(INCREMENT)
   # Setup secret rotation interval in days
   - name: secretrotationinterval 
     value: 30
   # Name of Log Analytics workspace name
   - name: loganalyticsworkspacename
-    value: logws-$(PREFIX)-$(ENVIRONMENT)
+    value: law-$(PREFIX)-$(ENVIRONMENT)
   - name: logstorageaccountname
     value: salogs$(PREFIX)$(ENVIRONMENT)$(INCREMENT)
   # Name of Azure SQL Server and catalog name
