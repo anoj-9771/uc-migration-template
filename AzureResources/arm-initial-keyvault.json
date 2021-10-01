@@ -116,6 +116,9 @@
                     "name": "[concat(parameters('keyVaultName'), '-pe')]",
                     "type": "Microsoft.Network/privateEndpoints",
                     "location": "[parameters('location')]",
+                    "dependsOn": [
+                        "[concat('Microsoft.KeyVault/vaults/', parameters('keyVaultName'))]"
+                    ],
                     "properties": {
                         "privateLinkServiceConnections": [
                             {
