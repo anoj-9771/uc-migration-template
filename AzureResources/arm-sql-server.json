@@ -47,12 +47,6 @@
           "metadata": {
               "description": "Resource ID of Internal Subnet (Used by Private Endpoints and VMs)"
           }
-      },
-      "databricksPrivateSubnetId": {
-          "type": "string",
-          "metadata": {
-              "description": "Resource ID of Databricks Private Subnet"
-          }
       }
     },
     "resources": [
@@ -96,19 +90,6 @@
                         "id": "[parameters('internalSubnetId')]"
                     }
                 }
-            },
-            {
-              "name": "AllowAllWindowsAzureIps",
-              "type": "firewallrules",
-              "location": "[parameters('location')]",
-              "apiVersion": "2014-04-01-preview",
-              "dependsOn": [
-                "[resourceId('Microsoft.Sql/servers', parameters('azureSqlServerName'))]"
-                ],
-              "properties": {
-                "startIpAddress": "0.0.0.0",
-                "endIpAddress": "0.0.0.0"
-              }
             },
             {
               "type": "databases",
@@ -174,31 +155,7 @@
                 "State": "Enabled",
                 "isAzureMonitorTargetEnabled": true
             }
-          },
-          {
-            "type": "Microsoft.Sql/servers/virtualNetworkRules",
-            "apiVersion": "2021-02-01-preview",
-            "name": "[concat(parameters('azureSqlServerName'), '/Allow_Dev_DB_Subnet')]",
-            "dependsOn": [
-                "[resourceId('Microsoft.Sql/servers', parameters('azureSqlServerName'))]"
-            ],
-            "properties": {
-                "virtualNetworkSubnetId": "[parameters('internalSubnetId')]",
-                "ignoreMissingVnetServiceEndpoint": false
-            }
-        },
-        {
-            "type": "Microsoft.Sql/servers/virtualNetworkRules",
-            "apiVersion": "2021-02-01-preview",
-            "name": "[concat(parameters('azureSqlServerName'), '/vnetRule-', parameters('azureSqlServerName'))]",
-            "dependsOn": [
-                "[resourceId('Microsoft.Sql/servers', parameters('azureSqlServerName'))]"
-            ],
-            "properties": {
-                "virtualNetworkSubnetId": "[parameters('databricksPrivateSubnetId')]",
-                "ignoreMissingVnetServiceEndpoint": false
-            }
-        }
+          }
         ]
       }
     ],
