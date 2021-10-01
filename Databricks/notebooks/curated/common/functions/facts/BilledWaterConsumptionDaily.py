@@ -3,7 +3,7 @@
 
 # COMMAND ----------
 
-#%run ../commonBilledWaterConsumptionSapisu
+#%run ../commonBilledWaterConsumptionisu
 
 # COMMAND ----------
 
@@ -40,24 +40,24 @@ def getBilledWaterConsumptionDaily():
   #FactBilledWaterConsumption
 
 #2.Load Cleansed layer tables into dataframe
-  sapisuConsDf = getBilledWaterConsumptionSapisu()
+  isuConsDf = getBilledWaterConsumptionisu()
   accessConsDf = getBilledWaterConsumptionAccess()
 
   legacyConsDS = accessConsDf.select('propertyNumber', 'billingPeriodStartDate', 'billingPeriodEndDate') \
-                             .subtract(sapisuConsDf.select('businessPartnerNumber', 'billingPeriodStartDate', 'billingPeriodEndDate'))
+                             .subtract(isuConsDf.select('businessPartnerNumber', 'billingPeriodStartDate', 'billingPeriodEndDate'))
   
   accessConsDf = accessConsDf.join(legacyConsDS, (legacyConsDS.propertyNumber == accessConsDf.propertyNumber) \
                                              & ((legacyConsDS.billingPeriodStartDate == accessConsDf.billingPeriodStartDate) \
                                              & (legacyConsDS.billingPeriodEndDate == accessConsDf.billingPeriodEndDate)), how="inner" ) \
                              .select(accessConsDf['*'])
 
-#3.Union Access and Sapisu billed consumption datasets
-  sapisuConsDf = sapisuConsDf.select("sourceSystemCode", "billingDocumentNumber", \
+#3.Union Access and isu billed consumption datasets
+  isuConsDf = isuConsDf.select("sourceSystemCode", "billingDocumentNumber", \
                                   "businessPartnerNumber", "equipmentNumber", \
                                   "meterActiveStartDate", "meterActiveEndDate", \
                                   (datediff("meterActiveEndDate", "meterActiveStartDate") + 1).alias("totalMeterActiveDays"), \
                                   "meteredWaterConsumption") \
-                                  .where((sapisuConsDf.isReversedFlag == 'N') & (sapisuConsDf.isOutsortedFlag == 'N'))
+                                  .where((isuConsDf.isReversedFlag == 'N') & (isuConsDf.isOutsortedFlag == 'N'))
 
   accessConsDf = accessConsDf.selectExpr("sourceSystemCode", "-1 as billingDocumentNumber", \
                                   "PropertyNumber", "propertyMeterNumber", \
@@ -65,7 +65,7 @@ def getBilledWaterConsumptionDaily():
                                   "billingPeriodDays", \
                                   "meteredWaterConsumption") \
   
-  billedConsDf = sapisuConsDf.union(accessConsDf)
+  billedConsDf = isuConsDf.union(accessConsDf)
   
   billedConsDf = billedConsDf.withColumn("avgMeteredWaterConsumption", F.col("meteredWaterConsumption")/F.col("totalMeterActiveDays"))
 

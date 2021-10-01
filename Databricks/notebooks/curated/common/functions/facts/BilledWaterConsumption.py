@@ -3,7 +3,7 @@
 
 # COMMAND ----------
 
-#%run ../commonBilledWaterConsumptionSapisu
+#%run ../commonBilledWaterConsumptionisu
 
 # COMMAND ----------
 
@@ -17,7 +17,7 @@
 
 ###########################################################################################################################
 # Function: getBilledWaterConsumption
-#  Merges both SAPISU and ACCESS BilledWaterConsumption FACT 
+#  Merges both ISU and ACCESS BilledWaterConsumption FACT 
 # Returns:
 #  Dataframe of transformed BilledWaterConsumption
 #############################################################################################################################
@@ -36,11 +36,11 @@ def getBilledWaterConsumption():
   #FactBilledWaterConsumption
 
 #2.Load Cleansed layer tables into dataframe
-  sapisuConsDf = getBilledWaterConsumptionSapisu()
+  isuConsDf = getBilledWaterConsumptionisu()
   accessConsDf = getBilledWaterConsumptionAccess()
   
   legacyConsDS = accessConsDf.select('propertyNumber', 'billingPeriodStartDate', 'billingPeriodEndDate') \
-                             .subtract(sapisuConsDf.select('businessPartnerNumber', 'billingPeriodStartDate', 'billingPeriodEndDate'))
+                             .subtract(isuConsDf.select('businessPartnerNumber', 'billingPeriodStartDate', 'billingPeriodEndDate'))
   
   accessConsDf = accessConsDf.join(legacyConsDS, (legacyConsDS.propertyNumber == accessConsDf.propertyNumber) \
                                              & ((legacyConsDS.billingPeriodStartDate == accessConsDf.billingPeriodStartDate) \
@@ -48,18 +48,18 @@ def getBilledWaterConsumption():
                              .select(accessConsDf['*'])
 
 #3.Union tables
-  sapisuConsDf = sapisuConsDf.select("sourceSystemCode", "billingDocumentNumber", \
+  isuConsDf = isuConsDf.select("sourceSystemCode", "billingDocumentNumber", \
                                   "businessPartnerNumber", "equipmentNumber", \
                                   "billingPeriodStartDate", "billingPeriodEndDate", \
                                   "meteredWaterConsumption") \
-                                  .where((sapisuConsDf.isReversedFlag == 'N') & (sapisuConsDf.isOutsortedFlag == 'N'))
+                                  .where((isuConsDf.isReversedFlag == 'N') & (isuConsDf.isOutsortedFlag == 'N'))
 
   accessConsDf = accessConsDf.selectExpr("sourceSystemCode", "-1 as billingDocumentNumber", \
                                   "PropertyNumber", "propertyMeterNumber", \
                                   "billingPeriodStartDate", "billingPeriodEndDate", \
                                   "meteredWaterConsumption") \
 
-  billedConsDf = sapisuConsDf.union(accessConsDf)
+  billedConsDf = isuConsDf.union(accessConsDf)
   
   
 #4.Load dimension tables into dataframe

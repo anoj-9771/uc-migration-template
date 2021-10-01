@@ -4,9 +4,10 @@ SELECT [ManifestID]
 	,S.SourceGroup
     ,S.SourceLocation
 	,[SourceFileDateStamp]
-    ,[RecordCountDeltaTable]
-	,[M_DeltaRecordCount]
-	,CASE WHEN M.M_DeltaRecordCount = M.RecordCountDeltaTable THEN 'Passed' ELSE 'Failed' END AS SrcToRawMatchStatus
+	,[M_DeltaRecordCount] AS [ManifestDeltaRecordCount]
+	,[RecordCountDeltaTable] AS RecordCount_ReadFromDataFile
+	,[RecordCountTargetTable] AS RecordCount_SavedToDeltaTable
+	,CASE WHEN M.M_DeltaRecordCount = M.[RecordCountTargetTable] THEN 'Passed' ELSE 'Failed' END AS SrcToRawMatchStatus
 	,TL.StartTime
 	,TL.EndTime
 	,B.BatchExecutionStatus

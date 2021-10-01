@@ -8,6 +8,7 @@
 	[EndCounter] [varchar](500) NULL,
 	[RecordCountLoaded] [bigint] NULL,
 	[RecordCountDeltaTable] [bigint] NULL,
+	[RecordCountTargetTable] [bigint] NULL,
 	[FolderName] [varchar](1000) NULL,
 	[FileName] [varchar](1000) NULL,
 	[ProcessedToCleansedZone] [bit] NULL,
@@ -20,6 +21,7 @@
 	[SourceFileName] [varchar](1000) NULL,
 	[M_DeltaRecordCount] [bigint] NULL,
 	[M_TotalNoRows] [bigint] NULL,
+    [M_Message] VARCHAR(255) NULL, 
     CONSTRAINT [PK_CTL_ControlManifest] PRIMARY KEY CLUSTERED ([ManifestID] ASC),
 	CONSTRAINT [UQ_ControlManifest_SrcFileDateStamp] UNIQUE NONCLUSTERED 
 	(

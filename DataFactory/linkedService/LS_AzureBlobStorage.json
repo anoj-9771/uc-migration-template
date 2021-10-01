@@ -5,20 +5,10 @@
 		"type": "AzureBlobStorage",
 		"typeProperties": {
 			"serviceEndpoint": "https://saswcnonprod01landingdev.blob.core.windows.net",
-			"tenant": "8351bb5c-749d-4ee4-b1c4-71a3971acbe9",
-			"servicePrincipalId": "acff96db-8630-433b-bbb1-35a3813fa036",
-			"servicePrincipalKey": {
-				"type": "AzureKeyVaultSecret",
-				"store": {
-					"referenceName": "LS-AzureKeyVault",
-					"type": "LinkedServiceReference"
-				},
-				"secretName": "daf-serviceprincipal-app-secret"
-			},
 			"accountKind": "StorageV2"
 		},
 		"connectVia": {
-			"referenceName": "IntegrationRuntime-Azure-ManagedVnet-01",
+			"referenceName": "IntegrationRuntime-SelfHosted",
 			"type": "IntegrationRuntimeReference"
 		}
 	},

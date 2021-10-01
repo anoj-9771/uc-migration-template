@@ -1012,6 +1012,21 @@ DBCC CHECKIDENT ('CTL.ControlWatermark',Reseed,0)]]></Value>
 					</Element>
 				</Entry>
 				<Entry>
+					<Element Type="SqlSimpleColumn" Name="[CTL].[ControlManifest].[RecordCountTargetTable]">
+						<Relationship Name="TypeSpecifier">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[bigint]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
 					<Element Type="SqlSimpleColumn" Name="[CTL].[ControlManifest].[FolderName]">
 						<Relationship Name="TypeSpecifier">
 							<Entry>
@@ -1192,6 +1207,22 @@ DBCC CHECKIDENT ('CTL.ControlWatermark',Reseed,0)]]></Value>
 									<Relationship Name="Type">
 										<Entry>
 											<References ExternalSource="BuiltIns" Name="[bigint]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlSimpleColumn" Name="[CTL].[ControlManifest].[M_Message]">
+						<Relationship Name="TypeSpecifier">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Property Name="Length" Value="255" />
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[varchar]" />
 										</Entry>
 									</Relationship>
 								</Element>
@@ -4967,43 +4998,51 @@ END]]></Value>
 BEGIN
 
 	--Get Total Number of records of the source object from the latest processed manifest file
-	DECLARE @SourceFileDateStamp char(14), @ManifestTotalNoRecords bigint
+	DECLARE @SourceFileDateStamp char(14), @ManifestTotalNoRecords bigint, @ManifestId bigint
 	
-	SELECT @SourceFileDateStamp = SourceFileDateStamp, @ManifestTotalNoRecords = M_TotalNoRows
+	SELECT @SourceFileDateStamp = SourceFileDateStamp, @ManifestTotalNoRecords = M_TotalNoRows, @ManifestId = ManifestID
 	FROM(
-		SELECT TOP 1 SourceFileDateStamp, M_TotalNoRows
+		SELECT TOP 1 SourceFileDateStamp, M_TotalNoRows, ManifestID
 		FROM CTL.ControlManifest M
 		WHERE SourceObject = @SourceObject
 			AND [ProcessedToCleansedZone] = 1
 		ORDER BY SourceFileDateStamp DESC
 	)T
 
-	INSERT INTO CTL.TechRecRawToCleansed(
-		BatchExecutionId,
-		TaskExecutionLogId,
-		TaskId,
-		SourceObject,
-		TargetName,
-		ManifestTotalNoRecords,
-		TargetTableRowCount,
-		SourceFileDateStamp
-	)
-	VALUES(
-		@BatchExecutionId,
-		@TaskExecutionLogId,
-		@TaskId,
-		@SourceObject,
-		@TargetName,
-		@ManifestTotalNoRecords,
-		@TotalNoRecords,
-		@SourceFileDateStamp
-	)
+	IF @ManifestId IS NOT NULL
+	BEGIN
+		INSERT INTO CTL.TechRecRawToCleansed(
+			BatchExecutionId,
+			TaskExecutionLogId,
+			TaskId,
+			SourceObject,
+			TargetName,
+			ManifestId,
+			ManifestTotalNoRecords,
+			TargetTableRowCount,
+			SourceFileDateStamp
+		)
+		VALUES(
+			@BatchExecutionId,
+			@TaskExecutionLogId,
+			@TaskId,
+			@SourceObject,
+			@TargetName,
+			@ManifestId,
+			@ManifestTotalNoRecords,
+			@TotalNoRecords,
+			@SourceFileDateStamp
+		)
+	END
 END]]></Value>
 			</Property>
 			<Property Name="IsAnsiNullsOn" Value="True" />
 			<Relationship Name="BodyDependencies">
 				<Entry>
 					<References ExternalSource="BuiltIns" Name="[char]" />
+				</Entry>
+				<Entry>
+					<References ExternalSource="BuiltIns" Name="[bigint]" />
 				</Entry>
 				<Entry>
 					<References ExternalSource="BuiltIns" Name="[bigint]" />
@@ -5016,6 +5055,9 @@ END]]></Value>
 				</Entry>
 				<Entry>
 					<References Name="[CTL].[ControlManifest].[M_TotalNoRows]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlManifest].[ManifestID]" />
 				</Entry>
 				<Entry>
 					<References Name="[CTL].[ControlManifest].[SourceObject]" />
@@ -5031,6 +5073,9 @@ END]]></Value>
 				</Entry>
 				<Entry>
 					<References Name="[CTL].[ControlManifest].[M_TotalNoRows]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlManifest].[ManifestID]" />
 				</Entry>
 				<Entry>
 					<References Name="[CTL].[TechRecRawToCleansed]" />
@@ -5049,6 +5094,9 @@ END]]></Value>
 				</Entry>
 				<Entry>
 					<References Name="[CTL].[TechRecRawToCleansed].[TargetName]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[TechRecRawToCleansed].[ManifestId]" />
 				</Entry>
 				<Entry>
 					<References Name="[CTL].[TechRecRawToCleansed].[ManifestTotalNoRecords]" />
@@ -5175,7 +5223,7 @@ END]]></Value>
 				</Entry>
 			</Relationship>
 			<Annotation Type="SysCommentsObjectAnnotation">
-				<Property Name="Length" Value="1090" />
+				<Property Name="Length" Value="1244" />
 				<Property Name="StartLine" Value="1" />
 				<Property Name="StartColumn" Value="1" />
 				<Property Name="HeaderContents" Value="CREATE PROCEDURE [CTL].[CreateTechRecRawToCleansed]&#xD;&#xA;(&#xD;&#xA;&#x9;@BatchExecutionId bigint,&#xD;&#xA;&#x9;@TaskExecutionLogId bigint,&#xD;&#xA;&#x9;@TaskId bigint,&#xD;&#xA;    @SourceObject varchar(255),&#xD;&#xA;&#x9;@TargetName varchar(255),&#xD;&#xA;&#x9;@TotalNoRecords bigint&#xD;&#xA;)&#xD;&#xA;AS" />
@@ -9922,6 +9970,22 @@ delete from ctl.TaskExecutionLog where ExecutionStatus = 'In Progress'
 					</Element>
 				</Entry>
 				<Entry>
+					<Element Type="SqlSimpleColumn" Name="[CTL].[TechRecRawToCleansed].[ManifestId]">
+						<Property Name="IsNullable" Value="False" />
+						<Relationship Name="TypeSpecifier">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[bigint]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
 					<Element Type="SqlSimpleColumn" Name="[CTL].[TechRecRawToCleansed].[ManifestTotalNoRecords]">
 						<Relationship Name="TypeSpecifier">
 							<Entry>
@@ -12270,7 +12334,8 @@ END]]></Value>
 
 BEGIN
 	UPDATE CTL.ControlManifest
-	SET RecordCountDeltaTable = @RecordsDeltaTable
+	SET RecordCountDeltaTable = @RecordsDeltaTable,
+		RecordCountTargetTable = @RecordsTargetTable
 	WHERE BatchExecutionLogID = @BatchExecutionLogID
 		AND TaskExecutionLogID = @TaskExecutionLogID
 		AND SourceFileDateStamp = @SourceFileDateStamp
@@ -12286,6 +12351,12 @@ END]]></Value>
 				</Entry>
 				<Entry>
 					<References Name="[CTL].[UpdateManifestDeltaRecords].[@RecordsDeltaTable]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlManifest].[RecordCountTargetTable]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[UpdateManifestDeltaRecords].[@RecordsTargetTable]" />
 				</Entry>
 				<Entry>
 					<References Name="[CTL].[ControlManifest].[BatchExecutionLogID]" />
@@ -12368,6 +12439,21 @@ END]]></Value>
 						</Relationship>
 					</Element>
 				</Entry>
+				<Entry>
+					<Element Type="SqlSubroutineParameter" Name="[CTL].[UpdateManifestDeltaRecords].[@RecordsTargetTable]">
+						<Relationship Name="Type">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[bigint]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
 			</Relationship>
 			<Relationship Name="Schema">
 				<Entry>
@@ -12375,10 +12461,10 @@ END]]></Value>
 				</Entry>
 			</Relationship>
 			<Annotation Type="SysCommentsObjectAnnotation">
-				<Property Name="Length" Value="421" />
+				<Property Name="Length" Value="502" />
 				<Property Name="StartLine" Value="1" />
 				<Property Name="StartColumn" Value="1" />
-				<Property Name="HeaderContents" Value="CREATE PROCEDURE [CTL].[UpdateManifestDeltaRecords] (&#xD;&#xA;&#x9;@BatchExecutionLogID bigint,&#xD;&#xA;&#x9;@TaskExecutionLogID bigint,&#xD;&#xA;&#x9;@SourceFileDateStamp char(14),&#xD;&#xA;&#x9;@RecordsDeltaTable bigint)&#xD;&#xA;AS" />
+				<Property Name="HeaderContents" Value="CREATE PROCEDURE [CTL].[UpdateManifestDeltaRecords] (&#xD;&#xA;&#x9;@BatchExecutionLogID bigint,&#xD;&#xA;&#x9;@TaskExecutionLogID bigint,&#xD;&#xA;&#x9;@SourceFileDateStamp char(14),&#xD;&#xA;&#x9;@RecordsDeltaTable bigint,&#xD;&#xA;&#x9;@RecordsTargetTable bigint&#xD;&#xA;)&#xD;&#xA;AS" />
 			</Annotation>
 		</Element>
 		<Element Type="SqlProcedure" Name="[CTL].[UpdateManifestDLCleansed]">
@@ -12665,7 +12751,8 @@ END]]></Value>
 BEGIN
 	UPDATE CTL.ControlManifest
 	SET M_DeltaRecordCount = @M_DeltaRecordCount,
-		M_TotalNoRows = @M_TotalNoRows
+		M_TotalNoRows = @M_TotalNoRows,
+		M_Message = @M_Message
 	WHERE BatchExecutionLogID = @BatchExecutionLogID
 		AND TaskExecutionLogID = @TaskExecutionLogID
 		AND SourceFileDateStamp = @SourceFileDateStamp
@@ -12687,6 +12774,12 @@ END]]></Value>
 				</Entry>
 				<Entry>
 					<References Name="[CTL].[UpdateManifestValue].[@M_TotalNoRows]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlManifest].[M_Message]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[UpdateManifestValue].[@M_Message]" />
 				</Entry>
 				<Entry>
 					<References Name="[CTL].[ControlManifest].[BatchExecutionLogID]" />
@@ -12784,6 +12877,22 @@ END]]></Value>
 						</Relationship>
 					</Element>
 				</Entry>
+				<Entry>
+					<Element Type="SqlSubroutineParameter" Name="[CTL].[UpdateManifestValue].[@M_Message]">
+						<Relationship Name="Type">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Property Name="Length" Value="255" />
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[varchar]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
 			</Relationship>
 			<Relationship Name="Schema">
 				<Entry>
@@ -12791,10 +12900,10 @@ END]]></Value>
 				</Entry>
 			</Relationship>
 			<Annotation Type="SysCommentsObjectAnnotation">
-				<Property Name="Length" Value="471" />
+				<Property Name="Length" Value="525" />
 				<Property Name="StartLine" Value="1" />
 				<Property Name="StartColumn" Value="1" />
-				<Property Name="HeaderContents" Value="CREATE PROCEDURE [CTL].[UpdateManifestValue]&#xD;&#xA;&#x9;@BatchExecutionLogID bigint,&#xD;&#xA;&#x9;@TaskExecutionLogID bigint,&#xD;&#xA;&#x9;@SourceFileDateStamp char(14),&#xD;&#xA;&#x9;@M_DeltaRecordCount bigint,&#xD;&#xA;&#x9;@M_TotalNoRows bigint&#xD;&#xA;AS" />
+				<Property Name="HeaderContents" Value="CREATE PROCEDURE [CTL].[UpdateManifestValue]&#xD;&#xA;&#x9;@BatchExecutionLogID bigint,&#xD;&#xA;&#x9;@TaskExecutionLogID bigint,&#xD;&#xA;&#x9;@SourceFileDateStamp char(14),&#xD;&#xA;&#x9;@M_DeltaRecordCount bigint,&#xD;&#xA;&#x9;@M_TotalNoRows bigint,&#xD;&#xA;&#x9;@M_Message varchar(255)&#xD;&#xA;AS" />
 			</Annotation>
 		</Element>
 		<Element Type="SqlProcedure" Name="[CTL].[UpdateTaskLog]">
@@ -14666,6 +14775,7 @@ SELECT [TechRecID]
 	,S.SourceLocation	
 	,[SourceFileDateStamp]
 	,[TargetName]
+	,ManifestId
 	,[ManifestTotalNoRecords]
 	,[TargetTableRowCount]
 	,CASE WHEN ManifestTotalNoRecords = TargetTableRowCount THEN 'Passed' ELSE 'Failed' END AS TechRecRawToCleansed
@@ -14722,6 +14832,15 @@ FROM [CTL].TechRecRawToCleansed TR
 						<Relationship Name="ExpressionDependencies">
 							<Entry>
 								<References Name="[CTL].[TechRecRawToCleansed].[TargetName]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_TechRecRawToCleansed].[ManifestId]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[TechRecRawToCleansed].[ManifestId]" />
 							</Entry>
 						</Relationship>
 					</Element>
@@ -14840,6 +14959,9 @@ FROM [CTL].TechRecRawToCleansed TR
 					<References Name="[CTL].[TechRecRawToCleansed].[TargetName]" />
 				</Entry>
 				<Entry>
+					<References Name="[CTL].[TechRecRawToCleansed].[ManifestId]" />
+				</Entry>
+				<Entry>
 					<References Name="[CTL].[TechRecRawToCleansed].[ManifestTotalNoRecords]" />
 				</Entry>
 				<Entry>
@@ -14864,7 +14986,7 @@ FROM [CTL].TechRecRawToCleansed TR
 				</Entry>
 			</Relationship>
 			<Annotation Type="SysCommentsObjectAnnotation">
-				<Property Name="Length" Value="736" />
+				<Property Name="Length" Value="750" />
 				<Property Name="StartLine" Value="1" />
 				<Property Name="StartColumn" Value="1" />
 				<Property Name="HeaderContents" Value="CREATE VIEW [CTL].[vw_TechRecRawToCleansed]&#xD;&#xA;AS" />
@@ -14877,9 +14999,10 @@ SELECT [ManifestID]
 	,S.SourceGroup
     ,S.SourceLocation
 	,[SourceFileDateStamp]
-    ,[RecordCountDeltaTable]
-	,[M_DeltaRecordCount]
-	,CASE WHEN M.M_DeltaRecordCount = M.RecordCountDeltaTable THEN 'Passed' ELSE 'Failed' END AS SrcToRawMatchStatus
+	,[M_DeltaRecordCount] AS [ManifestDeltaRecordCount]
+	,[RecordCountDeltaTable] AS RecordCount_ReadFromDataFile
+	,[RecordCountTargetTable] AS RecordCount_SavedToDeltaTable
+	,CASE WHEN M.M_DeltaRecordCount = M.[RecordCountTargetTable] THEN 'Passed' ELSE 'Failed' END AS SrcToRawMatchStatus
 	,TL.StartTime
 	,TL.EndTime
 	,B.BatchExecutionStatus
@@ -14931,7 +15054,16 @@ WHERE ST.ControlType = 'BLOB Storage (json)']]></Value>
 					</Element>
 				</Entry>
 				<Entry>
-					<Element Type="SqlComputedColumn" Name="[CTL].[vw_TechRecSrcToRaw].[RecordCountDeltaTable]">
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_TechRecSrcToRaw].[ManifestDeltaRecordCount]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[ControlManifest].[M_DeltaRecordCount]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_TechRecSrcToRaw].[RecordCount_ReadFromDataFile]">
 						<Relationship Name="ExpressionDependencies">
 							<Entry>
 								<References Name="[CTL].[ControlManifest].[RecordCountDeltaTable]" />
@@ -14940,10 +15072,10 @@ WHERE ST.ControlType = 'BLOB Storage (json)']]></Value>
 					</Element>
 				</Entry>
 				<Entry>
-					<Element Type="SqlComputedColumn" Name="[CTL].[vw_TechRecSrcToRaw].[M_DeltaRecordCount]">
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_TechRecSrcToRaw].[RecordCount_SavedToDeltaTable]">
 						<Relationship Name="ExpressionDependencies">
 							<Entry>
-								<References Name="[CTL].[ControlManifest].[M_DeltaRecordCount]" />
+								<References Name="[CTL].[ControlManifest].[RecordCountTargetTable]" />
 							</Entry>
 						</Relationship>
 					</Element>
@@ -15050,16 +15182,19 @@ WHERE ST.ControlType = 'BLOB Storage (json)']]></Value>
 					<References Name="[CTL].[ControlManifest].[SourceFileDateStamp]" />
 				</Entry>
 				<Entry>
+					<References Name="[CTL].[ControlManifest].[M_DeltaRecordCount]" />
+				</Entry>
+				<Entry>
 					<References Name="[CTL].[ControlManifest].[RecordCountDeltaTable]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlManifest].[RecordCountTargetTable]" />
 				</Entry>
 				<Entry>
 					<References Name="[CTL].[ControlManifest].[M_DeltaRecordCount]" />
 				</Entry>
 				<Entry>
-					<References Name="[CTL].[ControlManifest].[M_DeltaRecordCount]" />
-				</Entry>
-				<Entry>
-					<References Name="[CTL].[ControlManifest].[RecordCountDeltaTable]" />
+					<References Name="[CTL].[ControlManifest].[RecordCountTargetTable]" />
 				</Entry>
 				<Entry>
 					<References Name="[CTL].[TaskExecutionLog].[StartTime]" />
@@ -15083,7 +15218,7 @@ WHERE ST.ControlType = 'BLOB Storage (json)']]></Value>
 				</Entry>
 			</Relationship>
 			<Annotation Type="SysCommentsObjectAnnotation">
-				<Property Name="Length" Value="825" />
+				<Property Name="Length" Value="948" />
 				<Property Name="StartLine" Value="1" />
 				<Property Name="StartColumn" Value="1" />
 				<Property Name="HeaderContents" Value="CREATE VIEW CTL.vw_TechRecSrcToRaw&#xD;&#xA;AS" />

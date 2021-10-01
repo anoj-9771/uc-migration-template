@@ -174,8 +174,24 @@ DeltaSaveDataframeDirect(df_updated, source_system, source_table, ADS_DATABASE_R
 
 # COMMAND ----------
 
-record_count = df_updated.count()
+output = {"DataFileRecordCount" : -1, "TargetTableRecordCount": -1} 
+output["DataFileRecordCount"] = df_updated.count()
+print(output)
+
 
 # COMMAND ----------
 
-dbutils.notebook.exit(record_count)
+delta_raw_tbl_name = "{0}.{1}_{2}".format(ADS_DATABASE_RAW, source_system, source_table)
+if Params[PARAMS_SOURCE_TYPE] == "BLOB Storage (json)" and DeltaTableExists(delta_raw_tbl_name): 
+  sql_query = "SELECT COUNT(*) FROM {0} WHERE _FileDateTimeStamp = {1}".format(delta_raw_tbl_name, file_date_time_stamp)
+  df_dl = spark.sql(sql_query)
+  output["TargetTableRecordCount"] = df_dl.collect()[0][0]
+else:
+  output["TargetTableRecordCount"] = -1
+
+print(output)
+
+
+# COMMAND ----------
+
+dbutils.notebook.exit(json.dumps(output))
