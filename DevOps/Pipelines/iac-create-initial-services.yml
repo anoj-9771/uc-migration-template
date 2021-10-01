@@ -42,7 +42,7 @@ stages:
         location: ${{ variables.location }}
         templateLocation: 'Linked artifact'
         csmFile: '$(Pipeline.Workspace)/arm_templates/arm-initial-keyvault.json'
-        overrideParameters: '-location ${{ variables.location }} -keyVaultName ${{ variables.azurekeyvaultname }}'
+        overrideParameters: '-location ${{ variables.location }} -keyVaultName ${{ variables.azurekeyvaultname }} -subnetId $(internalSubnetId)'
         deploymentMode: 'Incremental'
       displayName: 'Deploy AKV to non prod'
 
@@ -96,7 +96,7 @@ stages:
         location: ${{ variables.location }}
         templateLocation: 'Linked artifact'
         csmFile: '$(Pipeline.Workspace)/arm_templates/arm-initial-keyvault.json'
-        overrideParameters: '-location ${{ variables.location }} -keyVaultName ${{ variables.azurekeyvaultname }}'
+        overrideParameters: '-location ${{ variables.location }} -keyVaultName ${{ variables.azurekeyvaultname }} -subnetId $(internalSubnetId)'
         deploymentMode: 'Incremental'
       displayName: 'Deploy AKV to non prod'
 
@@ -133,7 +133,7 @@ stages:
 # Release to Pre-Prod
 - stage: deploy_to_preprd
   dependsOn: 'build'
-  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/bruno-sandbox'))
   variables:
   - template: Variables/preprd-variables.yml
   jobs:
@@ -151,7 +151,7 @@ stages:
         location: ${{ variables.location }}
         templateLocation: 'Linked artifact'
         csmFile: '$(Pipeline.Workspace)/arm_templates/arm-initial-keyvault.json'
-        overrideParameters: '-location ${{ variables.location }} -keyVaultName ${{ variables.azurekeyvaultname }}'
+        overrideParameters: '-location ${{ variables.location }} -keyVaultName ${{ variables.azurekeyvaultname }} -subnetId $(internalSubnetId)'
         deploymentMode: 'Incremental'
       displayName: 'Deploy AKV to prod'
 

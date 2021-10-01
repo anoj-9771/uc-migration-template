@@ -82,6 +82,9 @@
             "metadata": {
                 "description": "Specifies whether the 'soft delete' functionality is enabled for this key vault."
             }
+        },
+        "subnetId": {
+            "type": "string"
         }
     },
     "resources": [
@@ -106,7 +109,30 @@
                     "bypass": "AzureServices",
                     "defaultAction": "Deny"
                 }
-            }
+            },
+            "resources": [
+                {
+                    "apiVersion": "2019-04-01",
+                    "name": "[concat(parameters('keyVaultName'), '-pe')]",
+                    "type": "Microsoft.Network/privateEndpoints",
+                    "location": "[parameters('location')]",
+                    "properties": {
+                        "privateLinkServiceConnections": [
+                            {
+                                "name": "[concat(parameters('keyVaultName'), '-pe-conn')]",
+                                "properties": {
+                                    "privateLinkServiceId": "[resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName'))]",
+                                    "groupIds": ["vault"]
+                                }
+                            }
+                        ],
+                        "manualPrivateLinkServiceConnections": [],
+                        "subnet": {
+                            "id": "[parameters('subnetId')]"
+                        }
+                    }
+                }
+            ]
         },
         {
             "type": "Microsoft.KeyVault/vaults/secrets",
