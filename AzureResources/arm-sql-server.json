@@ -35,9 +35,16 @@
               "description": "Log Analytics Workspace ID for Logs"
           }
       },
+      "isAuditEnabled": {
+        "type": "bool",
+        "defaultValue": false,
+        "metadata": {
+            "description": "Enable Auditing of Microsoft support operations (DevOps)"
+        }
+      },
       "isMSDevOpsAuditEnabled": {
         "type": "bool",
-        "defaultValue": true,
+        "defaultValue": false,
         "metadata": {
             "description": "Enable Auditing of Microsoft support operations (DevOps)"
         }
@@ -102,6 +109,7 @@
               "properties": {}
             },
             {
+              "condition": "[parameters('isAuditEnabled')]",
               "type": "databases/providers/diagnosticSettings",
               "name": "[concat('master/microsoft.insights/','service')]",
               "dependsOn": [
@@ -134,6 +142,7 @@
               }
             },
             {
+              "condition": "[parameters('isAuditEnabled')]",
               "apiVersion": "2017-03-01-preview",
               "type": "auditingSettings",
               "name": "DefaultAuditingSettings",
