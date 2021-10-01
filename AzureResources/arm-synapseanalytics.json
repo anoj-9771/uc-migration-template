@@ -36,10 +36,6 @@
             "type": "bool",
             "defaultValue": true
         },
-        "allowAllConnections": {
-            "type": "bool",
-            "defaultValue": true
-        },
         "grantWorkspaceIdentityControlForSql": {
             "type": "string",
             "defaultValue": "Enabled",
@@ -147,23 +143,10 @@
                 "sqlAdministratorLoginPassword": "[parameters('synapsesqlAdministratorLoginPassword')]",
                 "adlaResourceId": "[parameters('adlaResourceId')]",
                 "managedVirtualNetwork": "[parameters('managedVirtualNetwork')]",
-                "managedResourceGroupName": "[parameters('synapsemanagedResourceGroupName')]"
+                "managedResourceGroupName": "[parameters('synapsemanagedResourceGroupName')]",
+                "publicNetworkAccess": "disabled"
             },
             "resources": [
-                {
-                    "condition": "[parameters('allowAllConnections')]",
-                    "apiVersion": "2019-06-01-preview",
-                    "dependsOn": [
-                        "[concat('Microsoft.Synapse/workspaces/', parameters('synapseworkspacename'))]"
-                    ],
-                    "location": "[parameters('location')]",
-                    "name": "allowAll",
-                    "properties": {
-                        "startIpAddress": "0.0.0.0",
-                        "endIpAddress": "255.255.255.255"
-                    },
-                    "type": "firewallrules"
-                },
                 {
                     "apiVersion": "2019-06-01-preview",
                     "dependsOn": [

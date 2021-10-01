@@ -17,6 +17,9 @@
         "keyVaultName": {
             "type": "string"
         },
+        "synapseWorkspaceName": {
+            "type": "string"
+        },
         "subnetId": {
             "type": "string"
         },
@@ -131,6 +134,27 @@
                         "properties": {
                             "privateLinkServiceId": "[resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName'))]",
                             "groupIds": ["vault"]
+                        }
+                    }
+                ],
+                "manualPrivateLinkServiceConnections": [],
+                "subnet": {
+                    "id": "[parameters('subnetId')]"
+                }
+            }
+        },
+        {
+            "apiVersion": "2019-04-01",
+            "name": "[concat(parameters('synapseWorkspaceName'), '-pe')]",
+            "type": "Microsoft.Network/privateEndpoints",
+            "location": "[parameters('location')]",
+            "properties": {
+                "privateLinkServiceConnections": [
+                    {
+                        "name": "[concat(parameters('synapseWorkspaceName'), '-pe-conn')]",
+                        "properties": {
+                            "privateLinkServiceId": "[resourceId('Microsoft.Synapse/workspaces', parameters('synapseWorkspaceName'))]",
+                            "groupIds": ["sql"]
                         }
                     }
                 ],
