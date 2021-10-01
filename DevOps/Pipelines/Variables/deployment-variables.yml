@@ -26,10 +26,10 @@ variables:
     value: false
   # Used to set Blob Storage deployability..
   - name: azureblobstorage
-    value: false
+    value: true
   # Used to set Data Lake Storage deployability
   - name: azuredatalakestorage
-    value: false
+    value: true
   # Used to set Databricks Workspace deployability - With Vnet injection
   - name: databricksvnet
     value: false
@@ -50,4 +50,4 @@ variables:
     value: false
   # Use to set Synapse Analytics worksspace deployability...
   - name: privateendpoints
-    value: false
+    value: true

@@ -48,12 +48,6 @@
         "metadata": {
             "description": "Enable Auditing of Microsoft support operations (DevOps)"
         }
-      },
-      "internalSubnetId": {
-          "type": "string",
-          "metadata": {
-              "description": "Resource ID of Internal Subnet (Used by Private Endpoints and VMs)"
-          }
       }
     },
     "resources": [
@@ -74,30 +68,6 @@
             "publicNetworkAccess": "disabled"
           },
           "resources": [
-              {
-                "apiVersion": "2019-04-01",
-                "name": "[concat(parameters('azureSqlServerName'), '-pe')]",
-                "type": "Microsoft.Network/privateEndpoints",
-                "location": "[parameters('location')]",
-                "dependsOn": [
-                "[resourceId('Microsoft.Sql/servers', parameters('azureSqlServerName'))]"
-                ],
-                "properties": {
-                    "privateLinkServiceConnections": [
-                        {
-                            "name": "[concat(parameters('azureSqlServerName'), '-pe-conn')]",
-                            "properties": {
-                                "privateLinkServiceId": "[resourceId('Microsoft.Sql/servers', parameters('azureSqlServerName'))]",
-                                "groupIds": ["sqlServer"]
-                            }
-                        }
-                    ],
-                    "manualPrivateLinkServiceConnections": [],
-                    "subnet": {
-                        "id": "[parameters('internalSubnetId')]"
-                    }
-                }
-            },
             {
               "type": "databases",
               "apiVersion": "2017-03-01-preview",
