@@ -141,7 +141,7 @@
 										"userProperties": [],
 										"typeProperties": {
 											"pipeline": {
-												"referenceName": "04-Blob-A-Source Load_Old",
+												"referenceName": "04-Blob-Json-A-Source-Copy",
 												"type": "PipelineReference"
 											},
 											"waitOnCompletion": true,
@@ -160,14 +160,6 @@
 												},
 												"ProjectRunID": {
 													"value": "@pipeline().parameters.ProjectRunID",
-													"type": "Expression"
-												},
-												"RunDate": {
-													"value": "@variables('RunDate')",
-													"type": "Expression"
-												},
-												"RunTime": {
-													"value": "@variables('RunTime')",
 													"type": "Expression"
 												}
 											}
