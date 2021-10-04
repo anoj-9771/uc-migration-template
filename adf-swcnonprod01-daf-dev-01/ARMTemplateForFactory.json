@@ -430,7 +430,7 @@
 												"userProperties": [],
 												"typeProperties": {
 													"pipeline": {
-														"referenceName": "04-Blob-A-Source Load_Old",
+														"referenceName": "04-Blob-Json-A-Source-Copy",
 														"type": "PipelineReference"
 													},
 													"waitOnCompletion": true,
@@ -449,14 +449,6 @@
 														},
 														"ProjectRunID": {
 															"value": "@pipeline().parameters.ProjectRunID",
-															"type": "Expression"
-														},
-														"RunDate": {
-															"value": "@variables('RunDate')",
-															"type": "Expression"
-														},
-														"RunTime": {
-															"value": "@variables('RunTime')",
 															"type": "Expression"
 														}
 													}
@@ -867,7 +859,7 @@
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/AzureSqlDatabase_Ctrldb')]",
 				"[concat(variables('factoryId'), '/linkedServices/LS-AzureSqlDatabase_Ctrldb')]",
-				"[concat(variables('factoryId'), '/pipelines/04-Blob-A-Source Load_Old')]",
+				"[concat(variables('factoryId'), '/pipelines/04-Blob-Json-A-Source-Copy')]",
 				"[concat(variables('factoryId'), '/pipelines/05-DL-Load-Raw-to-Cleansed')]",
 				"[concat(variables('factoryId'), '/pipelines/05-DL-Load-Cleansed-to-Curated')]",
 				"[concat(variables('factoryId'), '/pipelines/04-LakeLanding-FlatFile-A-Source-Copy')]",
@@ -9072,8 +9064,7 @@
 			"properties": {
 				"linkedServiceName": {
 					"referenceName": "LS_AzureDatalake",
-					"type": "LinkedServiceReference",
-					"parameters": {}
+					"type": "LinkedServiceReference"
 				},
 				"parameters": {
 					"LakeContainer": {
