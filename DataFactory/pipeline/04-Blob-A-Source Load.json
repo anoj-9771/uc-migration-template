@@ -1,5 +1,5 @@
 {
-	"name": "04-Blob-A-Source Load_v2",
+	"name": "04-Blob-A-Source Load",
 	"properties": {
 		"description": "Clone of 05-DL-Load-Raw-to-Trusted",
 		"activities": [
