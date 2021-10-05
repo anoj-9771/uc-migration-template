@@ -166,14 +166,14 @@ df_cleansed_column = spark.sql("SELECT  \
                                     VONZONE as fromBlock, \
                                     BISZONE as toBlock, \
                                     ZONENNR as numberOfPriceBlock, \
-                                    cast(PREISBTR as dec(17)) as priceAmount, \
-                                    cast(MNGBASIS as dec(9)) as amountLongQuantityBase, \
+                                    cast(PREISBTR as dec(17,8)) as priceAmount, \
+                                    cast(MNGBASIS as dec(9,7)) as amountLongQuantityBase, \
                                     PREIGKL as priceAdjustemntClause, \
                                     cast(URPREIS as dec(17)) as priceAdjustemntClauseBasePrice, \
-                                    cast(PREIADD as dec(17)) as prceAdjustmentPrceAddition, \
+                                    cast(PREIADD as dec(17)) as addedAdjustmentPrice, \
                                     cast(PREIFAKT as dec(12)) as priceAdjustmentFactor, \
                                     OPMULT as additionFirst, \
-                                    to_date(TXDAT_KK, 'yyyy-MM-dd') as taxDecisiveDate, \
+                                    to_date(TXDAT_KK, 'yyyyMMdd') as taxDecisiveDate, \
                                     PRCTR as profitCenter, \
                                     KOSTL as costCenter, \
                                     PS_PSP_PNR as wbsElement, \
@@ -188,7 +188,7 @@ df_cleansed_column = spark.sql("SELECT  \
                                     LINE_CLASS as billingLineClassificationIndicator, \
                                     PREISART as priceType, \
                                     cast(V_NETTOBTR_L as dec(17)) as longNetAmountPredecimalPlaces, \
-                                    cast(N_NETTOBTR_L as dec(14))as longNetAmountDecimalPlaces, \
+                                    cast(N_NETTOBTR_L as dec(14,14))as longNetAmountDecimalPlaces, \
                                     _RecordStart, \
                                     _RecordEnd, \
                                     _RecordDeleted, \
@@ -212,12 +212,12 @@ newSchema = StructType([
                         StructField('fromBlock', StringType(), True),
                         StructField('toBlock', StringType(), True),
                         StructField('numberOfPriceBlock', StringType(), True),
-                        StructField('priceAmount', DecimalType(), True),
-                        StructField('amountLongQuantityBase', DecimalType(), True),
+                        StructField('priceAmount', DecimalType(17,8), True),
+                        StructField('amountLongQuantityBase', DecimalType(9,7), True),
                         StructField('priceAdjustemntClause', StringType(), True),
-                        StructField('priceAdjustemntClauseBasePrice', DecimalType(), True),
-                        StructField('prceAdjustmentPrceAddition', DecimalType(), True),
-                        StructField('priceAdjustmentFactor', DecimalType(), True),
+                        StructField('priceAdjustemntClauseBasePrice', DecimalType(17), True),
+                        StructField('addedAdjustmentPrice', DecimalType(17), True),
+                        StructField('priceAdjustmentFactor', DecimalType(12), True),
                         StructField('additionFirst', StringType(), True),
                         StructField('taxDecisiveDate', DateType(), True),
                         StructField('profitCenter', StringType(), True),
@@ -233,8 +233,8 @@ newSchema = StructType([
                         StructField('businessPlace', StringType(), True),
                         StructField('billingLineClassificationIndicator', StringType(), True),
                         StructField('priceType', StringType(), True),
-                        StructField('longNetAmountPredecimalPlaces', DecimalType(), True),
-                        StructField('longNetAmountDecimalPlaces', DecimalType(), True),
+                        StructField('longNetAmountPredecimalPlaces', DecimalType(17), True),
+                        StructField('longNetAmountDecimalPlaces', DecimalType(14,14), True),
                         StructField('_RecordStart',TimestampType(),False),
                         StructField('_RecordEnd',TimestampType(),False),
                         StructField('_RecordDeleted',IntegerType(),False),
