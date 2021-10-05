@@ -1,5 +1,5 @@
 # Databricks notebook source
-#{"SourceType":"BLOB Storage (json)","SourceServer":"daf-sa-lake-sastoken","SourceGroup":"isu","SourceName":"isu_DBERCHZ1","SourceLocation":"isu/DBERCHZ1","AdditionalProperty":"","Processor":"databricks-token|0705-044124-gored835|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive","IsAuditTable":false,"SoftDeleteSource":"","ProjectName":"TEST1","ProjectId":9,"TargetType":"BLOB Storage (json)","TargetName":"isu_DBERCHZ1","TargetLocation":"isu/DBERCHZ1","TargetServer":"daf-sa-lake-sastoken","DataLoadMode":"INCREMENTAL","DeltaExtract":true,"CDCSource":false,"TruncateTarget":false,"UpsertTarget":true,"AppendTarget":null,"TrackChanges":true,"LoadToSqlEDW":true,"TaskName":"isu_DBERCHZ1","ControlStageId":2,"TaskId":38,"StageSequence":200,"StageName":"Raw to Cleansed","SourceId":38,"TargetId":38,"ObjectGrain":"Day","CommandTypeId":8,"Watermarks":null,"WatermarksDT":null,"WatermarkColumn":"","BusinessKeyColumn":"BELNR,BELZEILE","UpdateMetaData":null,"SourceTimeStampFormat":"","Command":"/build/cleansed/ISU SLT/load-cleansed-zone-DBERCHZ1","LastLoadedFile":"DBO.DBERCHZ1_2021-09-24_120610_600.json.gz"}
+#{"SourceType":"BLOB Storage (json)","SourceServer":"daf-sa-lake-sastoken","SourceGroup":"isu","SourceName":"isu_DBERCHZ1","SourceLocation":"isu/DBERCHZ1","AdditionalProperty":"","Processor":"databricks-token|0705-044124-gored835|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive","IsAuditTable":false,"SoftDeleteSource":"","ProjectName":"TEST1","ProjectId":9,"TargetType":"BLOB Storage (json)","TargetName":"isu_DBERCHZ1","TargetLocation":"isu/DBERCHZ1","TargetServer":"daf-sa-lake-sastoken","DataLoadMode":"INCREMENTAL","DeltaExtract":true,"CDCSource":false,"TruncateTarget":false,"UpsertTarget":true,"AppendTarget":null,"TrackChanges":true,"LoadToSqlEDW":true,"TaskName":"isu_DBERCHZ1","ControlStageId":2,"TaskId":38,"StageSequence":200,"StageName":"Raw to Cleansed","SourceId":38,"TargetId":38,"ObjectGrain":"Day","CommandTypeId":8,"Watermarks":null,"WatermarksDT":null,"WatermarkColumn":"","BusinessKeyColumn":"BELNR,BELZEILE","UpdateMetaData":null,"SourceTimeStampFormat":"","Command":"/build/cleansed/ISU SLT/DBERCHZ1","LastLoadedFile":"DBO.DBERCHZ1_2021-09-24_120610_600.json.gz"}
 #Delta Column : DELTA_TS
 #Source Object : isu_DBERCHZ1
 
@@ -170,8 +170,8 @@ df_cleansed_column = spark.sql("SELECT  \
                                   TVORG as subtransactionForDocumentItem, \
                                   GEGEN_TVORG as offsettingTransactionSubtransactionForDocumentItem, \
                                   LINESORT as poresortingBillingLineItems, \
-                                  to_date(AB, 'yyyy-MM-dd') as validFromDate, \
-                                  to_date(BIS, 'yyyy-MM-dd') as validToDate, \
+                                  to_date(AB, 'yyyyMMdd') as validFromDate, \
+                                  to_date(BIS, 'yyyyMMdd') as validToDate, \
                                   TIMTYPZA as billingLineItemTimeCategoryCode, \
                                   SCHEMANR as billingSchemaNumber, \
                                   SNO as billingSchemaStepSequenceNumber, \
@@ -210,7 +210,7 @@ df_cleansed_column = spark.sql("SELECT  \
                                   PERTYP as billingPeriodInternalCategoryCode, \
                                   OUCONTRACT as individualContractID, \
                                   cast(V_ABRMENGE as dec(17)) as billingQuantityPlaceBeforeDecimalPoint, \
-                                  cast(N_ABRMENGE as dec(14)) as billingQuantityPlaceAfterDecimalPoint, \
+                                  cast(N_ABRMENGE as dec(14,14)) as billingQuantityPlaceAfterDecimalPoint, \
                                   stg._RecordStart, \
                                   stg._RecordEnd, \
                                   stg._RecordDeleted, \
@@ -280,8 +280,8 @@ newSchema = StructType([
                             StructField('franchiseContractIndicator', StringType(), True),
                             StructField('billingPeriodInternalCategoryCode', StringType(), True),
                             StructField('individualContractID', StringType(), True),
-                            StructField('billingQuantityPlaceBeforeDecimalPoint', DecimalType(), True),
-                            StructField('billingQuantityPlaceAfterDecimalPoint', DecimalType(), True),
+                            StructField('billingQuantityPlaceBeforeDecimalPoint', DecimalType(17), True),
+                            StructField('billingQuantityPlaceAfterDecimalPoint', DecimalType(14,14), True),
                             StructField('_RecordStart', DateType(), False),
                             StructField('_RecordEnd', DateType(), False),
                             StructField('_RecordDeleted', IntegerType(), False),
