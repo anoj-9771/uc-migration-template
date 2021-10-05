@@ -1,0 +1,12 @@
+{
+	"name": "adf-swcnonprod01-daf-dev-01",
+	"properties": {
+		"globalParameters": {
+			"environment": {
+				"type": "string",
+				"value": "dev"
+			}
+		}
+	},
+	"location": "australiaeast"
+}
