@@ -496,7 +496,7 @@
 							}
 						},
 						{
-							"name": "Delete file",
+							"name": "Delete file from source",
 							"type": "Delete",
 							"dependsOn": [
 								{
