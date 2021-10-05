@@ -401,33 +401,38 @@ def _SQLInsertSyntax_DeltaTable_Generate(dataframe, is_delta_extract, delta_colu
     COL_TIMESTAMP = COL_DL_CURATED_LOAD
 
 #Start of Fix for Handling Null in Key Columns  
-  business_key =  Params[PARAMS_BUSINESS_KEY_COLUMN]
-  buskey_col_list = business_key.split(",")
-  col_exception_list.extend(buskey_col_list) 
+  business_key_inp =  Params[PARAMS_BUSINESS_KEY_COLUMN]
+  business_key_list = business_key_inp.split(",")
+  col_exception_list.extend(business_key_list) 
 
   #Get the list of columns which does not include the exception list 
   updated_col_list = _GetExclusiveList(dataframe.columns, col_exception_list)
   updated_col_list.sort()
+  
 #End of Fix for Handling Null in Key Columns  
   
   sql_col = _GetSQLCollectiveColumnsFromColumnNames(updated_col_list, alias = "", func = "", column_qualifer = DELTA_COL_QUALIFER)
-  
-#Start of Fix for Handling Null in Key Columns
+#Start of Fix for Handling Null in Key Columns  
+
+  #sql_values = _GetSQLCollectiveColumnsFromColumnNames(updated_col_list, alias = "", func = "", column_qualifer = DELTA_COL_QUALIFER)
+  sql_values = sql_col
+
+  business_key = _GetSQLCollectiveColumnsFromColumnNames(business_key_list, alias = "", func = "", column_qualifer = DELTA_COL_QUALIFER)
+
   if is_delta_extract and target_data_lake_zone == ADS_DATABASE_CLEANSED:
-    business_key_tx_list = [item + "-TX" for item in buskey_col_list]
-    updated_col_list.extend(business_key_tx_list)
+    business_key_tx_list = [item + "-TX" for item in business_key_list]
+    business_key_tx = _GetSQLCollectiveColumnsFromColumnNames(business_key_tx_list, alias = "", func = "", column_qualifer = DELTA_COL_QUALIFER)
 
   if not is_delta_extract and target_data_lake_zone == ADS_DATABASE_CLEANSED:
     #Generating the sql string for the additional '-TX' coulmns
-    business_key_tx_list =["COALESCE(" + item + ", 'na') " for item in buskey_col_list]
-    business_key_tx = ",".join(business_key_tx_list)
-    #updated_col_list.extend(business_key_tx_list)
+    business_key_col = business_key.split(",")
+    business_key_col_list =["COALESCE(" + item + ", 'na') " for item in business_key_col]
+    business_key_tx = ",".join(business_key_col_list)
 
-  updated_col_list.sort()
+  sql_col += f", {business_key}"
+  sql_values += f", {business_key_tx}"
 #End of Fix for Handling Null in Key Columns
  
-  sql_values = _GetSQLCollectiveColumnsFromColumnNames(updated_col_list, alias = "", func = "", column_qualifer = DELTA_COL_QUALIFER)
-
 
   #Add current timestamp column for data load
   sql_col += f", {COL_TIMESTAMP}, "
@@ -438,8 +443,8 @@ def _SQLInsertSyntax_DeltaTable_Generate(dataframe, is_delta_extract, delta_colu
   col_record_start = delta_column if is_delta_extract else f"'{curr_time_stamp}'"
   #sql_col += f"{COL_RECORD_START}, {COL_RECORD_END}, {COL_RECORD_DELETED}, {COL_RECORD_CURRENT}"
   #sql_values += f"{col_record_start}, to_timestamp('9999-12-31 00:00:00'), {delete_flag}, 1"
-  sql_col += f"{COL_RECORD_START}, {COL_RECORD_END}, {COL_RECORD_DELETED}, {COL_RECORD_CURRENT}, {business_key}"
-  sql_values += f"{col_record_start}, to_timestamp('2199-12-31 00:00:00'), {delete_flag}, 1, {business_key_tx}"
+  sql_col += f" {COL_RECORD_START}, {COL_RECORD_END}, {COL_RECORD_DELETED}, {COL_RECORD_CURRENT}"
+  sql_values += f"{col_record_start}, to_timestamp('2199-12-31 00:00:00'), {delete_flag}, 1"
 
   #Build the INSERT SQL with column list and values list
   if not is_delta_extract and target_data_lake_zone == ADS_DATABASE_CLEANSED and only_insert:
