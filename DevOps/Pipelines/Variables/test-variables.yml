@@ -15,7 +15,7 @@ variables:
   # Resource group name
   - name: resourcegroupname
     value: rg-swcnonprod01-daf-test-01
-  # username for SQL Server Control DB.
+  # username for SQL Server Control DB
   - name: azuresqlserverun
     value: sqladmin
   # Name of the service connection in Azure Devops
