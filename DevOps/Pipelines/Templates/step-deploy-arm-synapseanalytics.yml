@@ -13,6 +13,8 @@ parameters:
       type: string
     - name: setWorkspaceIdentityRbacOnStorageAccount
       type: string
+    - name: defaultAdlsGen2AccountResourceId
+      type: string
     
 #Deploy Synapse Workspace (Synapse Analytics)
 steps:
