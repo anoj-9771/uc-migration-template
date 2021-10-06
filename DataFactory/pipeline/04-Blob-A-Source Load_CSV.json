@@ -125,14 +125,14 @@
 												"userProperties": [],
 												"typeProperties": {
 													"source": {
-														"type": "JsonSource",
+														"type": "DelimitedTextSource",
 														"storeSettings": {
 															"type": "AzureBlobStorageReadSettings",
 															"recursive": true,
 															"enablePartitionDiscovery": false
 														},
 														"formatSettings": {
-															"type": "JsonReadSettings"
+															"type": "DelimitedTextReadSettings"
 														}
 													},
 													"sink": {
@@ -148,7 +148,7 @@
 												},
 												"inputs": [
 													{
-														"referenceName": "SRC_BLOB_JSON_v2",
+														"referenceName": "SRC_BLOB_CSV",
 														"type": "DatasetReference",
 														"parameters": {
 															"BlobContainer": {
@@ -254,14 +254,14 @@
 												"userProperties": [],
 												"typeProperties": {
 													"source": {
-														"type": "JsonSource",
+														"type": "DelimitedTextSource",
 														"storeSettings": {
 															"type": "AzureBlobStorageReadSettings",
 															"recursive": true,
 															"enablePartitionDiscovery": false
 														},
 														"formatSettings": {
-															"type": "JsonReadSettings"
+															"type": "DelimitedTextReadSettings"
 														}
 													},
 													"sink": {
@@ -277,9 +277,13 @@
 												},
 												"inputs": [
 													{
-														"referenceName": "SRC_BLOB_JSON_copy1",
+														"referenceName": "SRC_BLOB_CSV",
 														"type": "DatasetReference",
 														"parameters": {
+															"BlobContainer": {
+																"value": "@variables('SourceContainer')",
+																"type": "Expression"
+															},
 															"BlobName": {
 																"value": "@variables('FileName')",
 																"type": "Expression"
@@ -321,9 +325,13 @@
 												"userProperties": [],
 												"typeProperties": {
 													"dataset": {
-														"referenceName": "SRC_BLOB_JSON_copy1",
+														"referenceName": "SRC_BLOB_CSV",
 														"type": "DatasetReference",
 														"parameters": {
+															"BlobContainer": {
+																"value": "@variables('SourceContainer')",
+																"type": "Expression"
+															},
 															"BlobName": {
 																"value": "@variables('FileName')",
 																"type": "Expression"
