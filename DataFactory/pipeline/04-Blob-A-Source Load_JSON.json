@@ -509,13 +509,11 @@
 												},
 												"inputs": [
 													{
-														"referenceName": "SRC_BLOB_JSON_copy1",
+														"referenceName": "SRC_BLOB_JSON_v2",
 														"type": "DatasetReference",
 														"parameters": {
-															"BlobName": {
-																"value": "@variables('FileName')",
-																"type": "Expression"
-															}
+															"BlobContainer": "@variables('SourceContainer')",
+															"BlobName": "@variables('FileName')"
 														}
 													}
 												],
