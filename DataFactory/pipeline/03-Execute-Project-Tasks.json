@@ -141,7 +141,7 @@
 										"userProperties": [],
 										"typeProperties": {
 											"pipeline": {
-												"referenceName": "04-Blob-Json-A-Source-Copy",
+												"referenceName": "04-Blob-A-Source Load_JSON",
 												"type": "PipelineReference"
 											},
 											"waitOnCompletion": true,
