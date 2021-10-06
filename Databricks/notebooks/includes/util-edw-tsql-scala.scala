@@ -135,17 +135,6 @@ def ScalaGetAzSqlDBConnectionProperties(): java.util.Properties = {
 
 // COMMAND ----------
 
-// var df = spark.sql("select * from curated.dimproperty")
-// ScalaLoadDataToAzSynDB(df,"dbo","Dimproperty1","overwrite")
-// // ScalaLoadDataToAzSqlDB(df, schema_name, table_name, "append")
-
-// // var df = spark.sql("select * from curated.factdailyapportionedconsumption")
-// // ScalaLoadDataToAzSynDB(df,"dbo","factdailyapportionedconsumption","overwrite")
-// // ScalaLoadDataToAzSqlDB(df, schema_name, table_name, "append")
-
-
-// COMMAND ----------
-
 def ScalaGetDataFrameFromAzSqlDB(query:String): org.apache.spark.sql.DataFrame = {
   
   //Get the Connection JDBC URL
