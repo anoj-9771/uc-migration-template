@@ -73,8 +73,8 @@ def SQLMerge_SQLEDW_GenerateSQL_Merge(source_table_name, target_table_name, busi
   sql += ") " + ALIAS_TABLE_STAGE + NEW_LINE
   business_key_updated = _GetSQLCollectiveColumnsFromColumnNames(business_key, ALIAS_TABLE_MAIN, "CONCAT", SQL_SERVER_COL_QUALIFER)
   sql += "ON " + business_key_updated + " = merge_key " + NEW_LINE
-#   if track_changes:
-#     sql += "AND " + ALIAS_TABLE_MAIN + "." + COL_RECORD_START + " = " + ALIAS_TABLE_STAGE + "." + COL_RECORD_START + NEW_LINE
+  if track_changes:
+    sql += "AND " + ALIAS_TABLE_MAIN + "." + COL_RECORD_START + " = " + ALIAS_TABLE_STAGE + "." + COL_RECORD_START + NEW_LINE
   #################PART 2 MERGE QUERY ####################################
 
 
