@@ -32,9 +32,6 @@
             "type": "Bool",
             "defaultValue": true
         },
-        "defaultAdlsGen2AccountResourceId": {
-            "type": "String"
-        },
         "grantWorkspaceIdentityControlForSql": {
             "allowedValues": [
                 "Enabled",
@@ -171,7 +168,6 @@
                 "defaultDataLakeStorage": {
                     "accountUrl": "[variables('defaultDataLakeStorageAccountUrl')]",
                     "filesystem": "[parameters('defaultDataLakeStorageFilesystemName')]",
-                    "resourceId": "[parameters('defaultAdlsGen2AccountResourceId')]",
                     "createManagedPrivateEndpoint": "[parameters('createManagedPrivateEndpoint')]"
                 },
                 "managedVirtualNetwork": "[parameters('managedVirtualNetwork')]",
