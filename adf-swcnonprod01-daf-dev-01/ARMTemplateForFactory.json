@@ -2786,13 +2786,11 @@
 														},
 														"inputs": [
 															{
-																"referenceName": "SRC_BLOB_JSON_copy1",
+																"referenceName": "SRC_BLOB_JSON_v2",
 																"type": "DatasetReference",
 																"parameters": {
-																	"BlobName": {
-																		"value": "@variables('FileName')",
-																		"type": "Expression"
-																	}
+																	"BlobContainer": "@variables('SourceContainer')",
+																	"BlobName": "@variables('FileName')"
 																}
 															}
 														],
@@ -2830,13 +2828,11 @@
 														"userProperties": [],
 														"typeProperties": {
 															"dataset": {
-																"referenceName": "SRC_BLOB_JSON_copy1",
+																"referenceName": "SRC_BLOB_JSON_v2",
 																"type": "DatasetReference",
 																"parameters": {
-																	"BlobName": {
-																		"value": "@variables('FileName')",
-																		"type": "Expression"
-																	}
+																	"BlobContainer": "@variables('SourceContainer')",
+																	"BlobName": "@variables('FileName')"
 																}
 															},
 															"logStorageSettings": {
@@ -3480,7 +3476,6 @@
 				"[concat(variables('factoryId'), '/datasets/RAW_ADLS_JSON_v2')]",
 				"[concat(variables('factoryId'), '/pipelines/04-DL-Load-Raw-to-Delta-Table')]",
 				"[concat(variables('factoryId'), '/datasets/ARCHIVE_BLOB_JSON')]",
-				"[concat(variables('factoryId'), '/datasets/SRC_BLOB_JSON_copy1')]",
 				"[concat(variables('factoryId'), '/linkedServices/LS-AzureDatabricks_DefinedCluster')]",
 				"[concat(variables('factoryId'), '/linkedServices/LS_AzureDatalake')]"
 			]
