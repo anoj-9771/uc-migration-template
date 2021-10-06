@@ -430,7 +430,7 @@
 												"userProperties": [],
 												"typeProperties": {
 													"pipeline": {
-														"referenceName": "04-Blob-Json-A-Source-Copy",
+														"referenceName": "04-Blob-A-Source Load_JSON",
 														"type": "PipelineReference"
 													},
 													"waitOnCompletion": true,
@@ -911,7 +911,7 @@
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/AzureSqlDatabase_Ctrldb')]",
 				"[concat(variables('factoryId'), '/linkedServices/LS-AzureSqlDatabase_Ctrldb')]",
-				"[concat(variables('factoryId'), '/pipelines/04-Blob-Json-A-Source-Copy')]",
+				"[concat(variables('factoryId'), '/pipelines/04-Blob-A-Source Load_JSON')]",
 				"[concat(variables('factoryId'), '/pipelines/05-DL-Load-Raw-to-Cleansed')]",
 				"[concat(variables('factoryId'), '/pipelines/05-DL-Load-Cleansed-to-Curated')]",
 				"[concat(variables('factoryId'), '/pipelines/04-LakeLanding-FlatFile-A-Source-Copy')]",
@@ -2244,13 +2244,11 @@
 						"userProperties": [],
 						"typeProperties": {
 							"dataset": {
-								"referenceName": "SRC_BLOB_JSON_copy1",
+								"referenceName": "SRC_BLOB_JSON_v2",
 								"type": "DatasetReference",
 								"parameters": {
-									"BlobName": {
-										"value": "@concat(variables('SourceFileName'),'*')",
-										"type": "Expression"
-									}
+									"BlobContainer": "variables('SourceContainer')",
+									"BlobName": "@concat(variables('SourceFileName'),'*')"
 								}
 							},
 							"fieldList": [
@@ -3478,13 +3476,13 @@
 				"lastPublishTime": "2021-06-30T08:46:15Z"
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/SRC_BLOB_JSON_copy1')]",
+				"[concat(variables('factoryId'), '/datasets/SRC_BLOB_JSON_v2')]",
 				"[concat(variables('factoryId'), '/linkedServices/LS-AzureSqlDatabase_Ctrldb')]",
 				"[concat(variables('factoryId'), '/datasets/AzureSqlDatabase_Ctrldb')]",
-				"[concat(variables('factoryId'), '/datasets/SRC_BLOB_JSON_v2')]",
 				"[concat(variables('factoryId'), '/datasets/RAW_ADLS_JSON_v2')]",
 				"[concat(variables('factoryId'), '/pipelines/04-DL-Load-Raw-to-Delta-Table')]",
 				"[concat(variables('factoryId'), '/datasets/ARCHIVE_BLOB_JSON')]",
+				"[concat(variables('factoryId'), '/datasets/SRC_BLOB_JSON_copy1')]",
 				"[concat(variables('factoryId'), '/linkedServices/LS-AzureDatabricks_DefinedCluster')]",
 				"[concat(variables('factoryId'), '/linkedServices/LS_AzureDatalake')]"
 			]
