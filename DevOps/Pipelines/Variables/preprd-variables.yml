@@ -151,4 +151,6 @@ variables:
     value: syndw$(ENVIRONMENT)$(INCREMENT)
   - name: setWorkspaceIdentityRbacOnStorageAccount
     value: false
+  - name: defaultAdlsGen2AccountResourceId
+    value: /subscriptions/$(SUBSCRIPTION)/resourcegroups/$(resourcegroupname)/providers/Microsoft.Storage/storageAccounts/$(defaultDataLakeStorageAccountName)
   #------------------------------------------------

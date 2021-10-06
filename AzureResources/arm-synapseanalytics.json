@@ -3,8 +3,7 @@
     "contentVersion": "1.0.0.1",
     "parameters": {
         "synapseworkspacename": {
-            "type": "String",
-            "defaultValue": "synws-swcnonprod01-daf-preprod-01"
+            "type": "String"
         },
         "location": {
             "type": "String",
@@ -31,6 +30,9 @@
         "createManagedPrivateEndpoint": {
             "type": "Bool",
             "defaultValue": true
+        },
+        "defaultAdlsGen2AccountResourceId": {
+            "type": "String"
         },
         "grantWorkspaceIdentityControlForSql": {
             "allowedValues": [
@@ -157,7 +159,7 @@
     "resources": [
         {
             "type": "Microsoft.Synapse/workspaces",
-            "apiVersion": "2021-06-01-preview",
+            "apiVersion": "2021-06-01",
             "name": "[parameters('synapseworkspacename')]",
             "location": "[parameters('location')]",
             "tags": "[parameters('tags')]",
@@ -168,6 +170,7 @@
                 "defaultDataLakeStorage": {
                     "accountUrl": "[variables('defaultDataLakeStorageAccountUrl')]",
                     "filesystem": "[parameters('defaultDataLakeStorageFilesystemName')]",
+                    "resourceId": "[parameters('defaultAdlsGen2AccountResourceId')]",
                     "createManagedPrivateEndpoint": "[parameters('createManagedPrivateEndpoint')]"
                 },
                 "managedVirtualNetwork": "[parameters('managedVirtualNetwork')]",
@@ -180,7 +183,7 @@
             "resources": [
                 {
                     "type": "managedIdentitySqlControlSettings",
-                    "apiVersion": "2021-06-01-preview",
+                    "apiVersion": "2021-06-01",
                     "name": "default",
                     "location": "[parameters('location')]",
                     "dependsOn": [
@@ -196,7 +199,7 @@
         },
         {
             "type": "Microsoft.Resources/deployments",
-            "apiVersion": "2019-05-01",
+            "apiVersion": "2021-06-01-preview",
             "name": "StorageRoleDeploymentResource",
             "dependsOn": [
                 "[concat('Microsoft.Synapse/workspaces/', parameters('synapseworkspacename'))]"
@@ -216,7 +219,7 @@
                             "location": "[parameters('storageLocation')]",
                             "properties": {
                                 "roleDefinitionId": "[resourceId('Microsoft.Authorization/roleDefinitions', variables('storageBlobDataContributorRoleID'))]",
-                                "principalId": "[reference(concat('Microsoft.Synapse/workspaces/', parameters('synapseworkspacename')), '2021-06-01-preview', 'Full').identity.principalId]",
+                                "principalId": "[reference(concat('Microsoft.Synapse/workspaces/', parameters('synapseworkspacename')), '2021-06-01', 'Full').identity.principalId]",
                                 "principalType": "ServicePrincipal"
                             }
                         },
@@ -240,7 +243,7 @@
         },
         {
             "type": "Microsoft.Resources/deployments",
-            "apiVersion": "2019-05-01",
+            "apiVersion": "2021-06-01-preview",
             "name": "UpdateStorageAccountNetworkingAcls",
             "dependsOn": [
                 "[concat('Microsoft.Synapse/workspaces/', parameters('synapseworkspacename'))]"
