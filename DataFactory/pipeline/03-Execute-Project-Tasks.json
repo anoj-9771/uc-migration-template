@@ -375,6 +375,58 @@
 									}
 								]
 							}
+						},
+						{
+							"name": "SRC-RAW-Blob-CSV      Stage1",
+							"type": "IfCondition",
+							"dependsOn": [
+								{
+									"activity": "Generate Task Log",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"expression": {
+									"value": "@and(equals(item().SourceType,'BLOB Storage (csv)'), equals(item().ControlStageId,1))",
+									"type": "Expression"
+								},
+								"ifTrueActivities": [
+									{
+										"name": "EP-SRC-RAW-BLOB-CSV",
+										"type": "ExecutePipeline",
+										"dependsOn": [],
+										"userProperties": [],
+										"typeProperties": {
+											"pipeline": {
+												"referenceName": "04-Blob-Json-A-Source-Copy",
+												"type": "PipelineReference"
+											},
+											"waitOnCompletion": true,
+											"parameters": {
+												"TaskDetails": {
+													"value": "@item()",
+													"type": "Expression"
+												},
+												"BatchLogId": {
+													"value": "@activity('Generate Batch Log').output.firstrow.BatchLogId",
+													"type": "Expression"
+												},
+												"TaskExecutionLogId": {
+													"value": "@activity('Generate Task Log').output.firstrow.TaskLogId",
+													"type": "Expression"
+												},
+												"ProjectRunID": {
+													"value": "@pipeline().parameters.ProjectRunID",
+													"type": "Expression"
+												}
+											}
+										}
+									}
+								]
+							}
 						}
 					]
 				}
