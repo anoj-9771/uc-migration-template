@@ -470,6 +470,7 @@ def DeltaSyncToSQLEDW(delta_table, target_schema, target_table, business_key, de
   
   sql_stg_tbl_name = f"{ADS_SQL_SCHEMA_STAGE}.{target_table}"
   sql_main_tbl_name = f"{target_schema}.{target_table}"
+  stage_schema = f"{ADS_SQL_SCHEMA_STAGE}"
   
   if data_load_mode != ADS_WRITE_MODE_OVERWRITE:
     LogEtl("Generating SQL Query")
@@ -489,9 +490,9 @@ def DeltaSyncToSQLEDW(delta_table, target_schema, target_table, business_key, de
   else:
     LogEtl("SQL query not needed for OVERWRITE. Will write directly to table")
   
-  #Call the Scala notebook to sync the SQL EDW from Data Lake
-  dbutils.notebook.run("/build/includes/scala-executors/exec-sync-sqledw", 0, {"p_delta_table":delta_table, "p_sql_schema_name":target_schema, "p_sql_edw_table":target_table, "p_data_load_mode":data_load_mode, "p_schema_file_url":schema_file_url, "p_delta_column":delta_column, "p_start_counter":start_counter, "p_is_delta_extract":str(is_delta_extract), "p_track_changes":str(track_changes), "p_additional_property":additional_property})
-  
+  Call the Scala notebook to sync the SQL EDW from Data Lake
+  dbutils.notebook.run("/build/includes/scala-executors/exec-sync-sqledw", 0, {"p_delta_table":delta_table, "p_sql_schema_name":stage_schema, "p_sql_edw_table":target_table, "p_data_load_mode":data_load_mode, "p_schema_file_url":schema_file_url, "p_delta_column":delta_column, "p_start_counter":start_counter, "p_is_delta_extract":str(is_delta_extract), "p_track_changes":str(track_changes), "p_additional_property":additional_property})
+ 
 
 
 # COMMAND ----------

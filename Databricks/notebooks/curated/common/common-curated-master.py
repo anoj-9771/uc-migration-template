@@ -256,8 +256,10 @@ spark.conf.set("spark.sql.autoBroadcastJoinThreshold", -1)
 # #                                                   ELSE null END AS propertyArea") 
 # display(sapisuVibdaoDf)
 
-# df = spark.sql("select * from curated.dimproperty") #2357919
+# spark.sql("update curated.dimproperty set propertyType = 'test4' where propertyid = 3100038") #2357919
+# df = spark.sql("select * from curated.dimproperty where propertyid = 3100038") #2357919
 # display(df)
+
 
 # COMMAND ----------
 
@@ -267,10 +269,10 @@ def TemplateEtl(df : object, entity, businessKey, AddSK = True):
   entity = GeneralToPascalCase(rawEntity)
   LogEtl(f"Starting {entity}.")
   
-  v_COMMON_SQL_SCHEMA = "COMMON"
+  v_COMMON_SQL_SCHEMA = "dbo"
   v_COMMON_CURATED_DATABASE = "curated"
   v_COMMON_DATALAKE_FOLDER = "curated"
- 
+  
   DeltaSaveDataFrameToDeltaTable(df, 
                                  rawEntity, 
                                  ADS_DATALAKE_ZONE_CURATED, 
@@ -284,6 +286,11 @@ def TemplateEtl(df : object, entity, businessKey, AddSK = True):
                                  delta_column = "", 
                                  start_counter = "0", 
                                  end_counter = "0")
+
+  delta_table = f"{v_COMMON_CURATED_DATABASE}.{rawEntity}"
+  print(delta_table)
+  DeltaSyncToSQLEDW(delta_table, v_COMMON_SQL_SCHEMA, entity, businessKey, delta_column = "", start_counter = "0", data_load_mode = ADS_WRITE_MODE_MERGE, track_changes = False, is_delta_extract = False, schema_file_url = "", additional_property = "")
+#   SynapseLoadDataToDB(df,entity,'overwrite')
     
   LogEtl(f"Finished {entity}.")
 
@@ -378,8 +385,8 @@ def DatabaseChanges():
 # COMMAND ----------
 
 # DBTITLE 1,10. Flag Dimension/Fact load
-LoadDimensions = False
-LoadFacts = True
+LoadDimensions = True
+LoadFacts = False
 
 # COMMAND ----------
 

@@ -15,7 +15,7 @@ ADS_KV_DB_PWD_SECRET_KEY = "AzureSQLServerPw"
 
 # COMMAND ----------
 
-ADS_LOAD_SYNAPSE = False
+ADS_LOAD_SYNAPSE = True
 ADS_LOAD_SQLDB = True
 
 # COMMAND ----------
@@ -27,6 +27,15 @@ ADS_BLOB_STORAGE_ACCOUNT = "saswcnonprod01landingdev" #ADS_COMPANY_INITIAL + "st
 ADS_DB_SERVER = "sql-swcnonprod01-daf-" + ADS_ENVIRONMENT + "-01.database.windows.net" #ADS_COMPANY_INITIAL + "-sql-dp-" + ADS_ENVIRONMENT + "-" + ADS_SUFFIX + ".database.windows.net"
 
 ADS_RESOURCE_GROUP =  "rg-swcnonprod01-daf-" + ADS_ENVIRONMENT + "-01" #f"RG-{ADS_ENVIRONMENT.upper()}-SYD-AMA-PANEL-BI"
+
+# COMMAND ----------
+
+#Synapse settings
+ADS_SYN_DATABASE_NAME = "syndwdev01"
+ADS_SYN_DATABASE_USERNAME = "svc_synapse1"
+ADS_KV_SYN_DB_PWD_SECRET_KEY = "daf-syn-d-sqlpool-password"
+
+ADS_SYNAPSE_DB_SERVER = "synws-swcnonprod01-daf-dev-01" 
 
 # COMMAND ----------
 

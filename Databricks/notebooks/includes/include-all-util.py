@@ -43,4 +43,4 @@
 
 # COMMAND ----------
 
-
+# MAGIC %run ./connect-synapse
