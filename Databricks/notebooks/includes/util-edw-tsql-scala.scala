@@ -9,9 +9,104 @@ def ScalaGetAzSqlDBConnectionURL(): String = {
   //We need to pass the UserID and Password seperately using Connection Properties
   
   var JDBC_PORT =  "1433"
-  val jdbcUrl = s"jdbc:sqlserver://${ADS_DB_SERVER}:${JDBC_PORT};database=${ADS_DATABASE_NAME}"
+  val jdbcUrl = s"jdbc:sqlserver://${ADS_SYNAPSE_DB_SERVER}:${JDBC_PORT};database=${ADS_SYN_DATABASE_NAME}"
   
   return jdbcUrl
+}
+
+// COMMAND ----------
+
+def ScalaSynGetBlobStorageStageFolder(): String = {
+  var BLOB_ACCESS_KEY = dbutils.secrets.get(scope = ADS_KV_ACCOUNT_SCOPE, key = "daf-sa-lake-key1")
+
+  var BLOB_CONTAINER = "synapsestaging"
+  var TEMPFOLDER = "abfss://" + BLOB_CONTAINER + "@" + ADS_DATA_LAKE_ACCOUNT + ".dfs.core.windows.net" + "/temp"
+  
+
+  // Set up the Blob Storage account access key in the notebook session conf.
+  spark.conf.set("fs.azure.account.key." +  ADS_DATA_LAKE_ACCOUNT + ".dfs.core.windows.net" + "", BLOB_ACCESS_KEY)
+  spark.conf.set("spark.sql.parquet.writeLegacyFormat", "true")
+  
+  //sc._jsc.hadoopConfiguration().set("fs.azure.account.key." +  ADS_DATA_LAKE_ACCOUNT + ".dfs.core.windows.net" + "", BLOB_ACCESS_KEY)
+  
+  return TEMPFOLDER
+}
+
+// COMMAND ----------
+
+def ScalaGetAzSynDBConnectionURL(): String = {
+  
+  //This method gets the JDBC URL for Azure SQL
+  //We need to pass the UserID and Password seperately using Connection Properties
+//   var DB_SERVER_FULL = ADS_SYNAPSE_DB_SERVER + ".sql.azuresynapse.net"
+//   var JDBC_PORT =  "1433"
+//   val jdbcUrl = s"jdbc:sqlserver://${DB_SERVER_FULL}:${JDBC_PORT};database=${ADS_DATABASE_NAME}"
+  
+  var DB_SERVER_FULL = ADS_SYNAPSE_DB_SERVER + ".sql.azuresynapse.net"
+  var DB_USER_NAME = "svc_synapse1@" + ADS_SYNAPSE_DB_SERVER
+
+  //SQL Data Warehouse related settings
+  var DB_PASSWORD = dbutils.secrets.get(scope = ADS_KV_ACCOUNT_SCOPE, key = ADS_KV_SYN_DB_PWD_SECRET_KEY)
+  var JDBC_PORT =  "1433"
+  var JDBC_EXTRA_OPTIONS = "encrypt=true;trustServerCertificate=true;hostNameInCertificate=*.database.windows.net;loginTimeout=30;"
+  val SQL_DW_URL = "jdbc:sqlserver://" + DB_SERVER_FULL + ":" + JDBC_PORT + ";database=" + ADS_SYN_DATABASE_NAME + ";user=" + DB_USER_NAME+";password=" + DB_PASSWORD + ";" + JDBC_EXTRA_OPTIONS
+  val SQL_DW_URL_SMALL = "jdbc:sqlserver://" + DB_SERVER_FULL + ":" + JDBC_PORT + ";database=" + ADS_SYN_DATABASE_NAME + ";user=" + DB_USER_NAME+";password=" + DB_PASSWORD  
+  return SQL_DW_URL
+
+}
+
+// COMMAND ----------
+
+def ScalaGetAzSynDBConnectionProperties(): java.util.Properties = {
+
+  //This method builds the Connection Properties to be passed to connect to Azure SQL DB
+  
+  //Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver")
+  Class.forName("com.databricks.spark.sqldw.DefaultSource")
+
+  var DB_USER_NAME = ADS_SYN_DATABASE_USERNAME 
+  var DB_PASSWORD = dbutils.secrets.get(scope = ADS_KV_ACCOUNT_SCOPE, key = ADS_KV_SYN_DB_PWD_SECRET_KEY)
+
+  import java.util.Properties
+  val connectionProperties = new Properties()
+
+  connectionProperties.put("user", s"${DB_USER_NAME}")
+  connectionProperties.put("password", s"${DB_PASSWORD}")
+
+  val driverClass = "com.microsoft.sqlserver.jdbc.SQLServerDriver"
+  connectionProperties.setProperty("Driver", driverClass)
+  
+  return connectionProperties
+  
+}
+
+// COMMAND ----------
+
+def ScalaLoadDataToAzSynDB(dataframe:org.apache.spark.sql.DataFrame, schemaname:String, tablename:String, writemode:String) {
+  
+  println(s"Starting : ScalaLoadDataToAzSynDB : Writing data to table $schemaname.$tablename with mode $writemode")
+
+  //Get the SQL Table Name
+  val sqltablename = s"$schemaname.$tablename"  
+  
+  var SQL_DW_URL = ScalaGetAzSynDBConnectionURL()
+  var TEMPFOLDER = ScalaSynGetBlobStorageStageFolder()
+
+  print(TEMPFOLDER)
+  print(SQL_DW_URL)
+  
+  print("Writing data to table " + sqltablename + " with mode " + writemode)
+
+  dataframe.write 
+  .format("com.databricks.spark.sqldw") 
+  .option("url", SQL_DW_URL) 
+  .option("useAzureMSI", "true") 
+  .option("dbtable", sqltablename) 
+  .option("tempdir", TEMPFOLDER) 
+  .mode(writemode) 
+  .save()
+
+  println(s"Finished : ScalaLoadDataToAzSqlDB : Writing data to table $schemaname.$tablename with mode $writemode")
 }
 
 // COMMAND ----------
@@ -60,6 +155,33 @@ def ScalaGetDataFrameFromAzSqlDB(query:String): org.apache.spark.sql.DataFrame =
 
 // COMMAND ----------
 
+def ScalaExecuteSQLRead(query: String, showRecordCount: Boolean = false) {
+  //ScalaExecuteSQLQuery(query: String, showRecordCount: Boolean = false) :
+  
+  println(s"Starting : ScalaExecuteSQLQuery : executing qury data to table $query")
+
+
+  
+  var SQL_DW_URL = ScalaGetAzSynDBConnectionURL()
+  var TEMPFOLDER = ScalaSynGetBlobStorageStageFolder()
+
+  print(TEMPFOLDER)
+  print(SQL_DW_URL)
+  
+  
+   val df = spark.read 
+  .format("com.databricks.spark.sqldw") 
+  .option("url", SQL_DW_URL) 
+  .option("useAzureMSI", "true") 
+  .option("tempdir", TEMPFOLDER) 
+  .option("query",query)
+  .load()
+  
+  println(s"Finished : ScalaExecuteSQLQuery : Execution query: $query")
+}
+
+// COMMAND ----------
+
 def ScalaExecuteSQLQuery(query: String, showRecordCount: Boolean = false) : String = {
   
   //This method allows runnning a T-SQL on a SQL Server
@@ -69,15 +191,16 @@ def ScalaExecuteSQLQuery(query: String, showRecordCount: Boolean = false) : Stri
   import java.sql.ResultSet;
   import java.sql.Statement;
   import com.microsoft.sqlserver.jdbc.SQLServerDataSource;
-
+  
+  var DB_SERVER_FULL = ADS_SYNAPSE_DB_SERVER + ".sql.azuresynapse.net"
   //Retrieve the database password from Key Vault
-  val dbpwd = dbutils.secrets.get(scope = ADS_KV_ACCOUNT_SCOPE, key = ADS_KV_DB_PWD_SECRET_KEY)
+  var DB_PASSWORD = dbutils.secrets.get(scope = ADS_KV_ACCOUNT_SCOPE, key = ADS_KV_SYN_DB_PWD_SECRET_KEY)
 
   val ds = new SQLServerDataSource();
-  ds.setServerName(ADS_DB_SERVER); // Replace with your server name
-  ds.setDatabaseName(ADS_DATABASE_NAME); // Replace with your database
-  ds.setUser(ADS_DATABASE_USERNAME); // Replace with your user name
-  ds.setPassword(dbpwd); // Replace with your password
+  ds.setServerName(DB_SERVER_FULL); // Replace with your server name
+  ds.setDatabaseName(ADS_SYN_DATABASE_NAME); // Replace with your database
+  ds.setUser(ADS_SYN_DATABASE_USERNAME); // Replace with your user name
+  ds.setPassword(DB_PASSWORD); // Replace with your password
   ds.setHostNameInCertificate("*.database.windows.net");
 
   val connection = ds.getConnection(); 
@@ -101,6 +224,47 @@ def ScalaExecuteSQLQuery(query: String, showRecordCount: Boolean = false) : Stri
 
 // COMMAND ----------
 
+// def ScalaExecuteSQLQuery(query: String, showRecordCount: Boolean = false) : String = {
+  
+//   //This method allows runnning a T-SQL on a SQL Server
+//   //The advantage of the java based method is that it does not require installing library on the cluster and can also run on the latest Spark version
+
+//   import java.sql.Connection;
+//   import java.sql.ResultSet;
+//   import java.sql.Statement;
+//   import com.microsoft.sqlserver.jdbc.SQLServerDataSource;
+
+//   //Retrieve the database password from Key Vault
+//   val dbpwd = dbutils.secrets.get(scope = ADS_KV_ACCOUNT_SCOPE, key = ADS_KV_DB_PWD_SECRET_KEY)
+
+//   val ds = new SQLServerDataSource();
+//   ds.setServerName(ADS_DB_SERVER); // Replace with your server name
+//   ds.setDatabaseName(ADS_DATABASE_NAME); // Replace with your database
+//   ds.setUser(ADS_DATABASE_USERNAME); // Replace with your user name
+//   ds.setPassword(dbpwd); // Replace with your password
+//   ds.setHostNameInCertificate("*.database.windows.net");
+
+//   val connection = ds.getConnection(); 
+
+//   try
+//   {
+//     println(query)
+//     val pStmt = connection.prepareStatement(query);
+//     val affectedRows = pStmt.executeUpdate();
+//     if (showRecordCount)
+//       println(affectedRows + " rows.")
+//   }
+//   catch
+//   {
+//     case unknown : Throwable  => throw new Exception(unknown)
+//   }
+  
+//   return "1"
+// }
+
+
+// COMMAND ----------
+
 def ScalaCreateSchema (SchemaName:String): String= {
   
   //This method creates a schema on Azure SQL if if does not exists
@@ -118,39 +282,6 @@ def ScalaCreateSchema (SchemaName:String): String= {
 
 // COMMAND ----------
 
-// def ScalaExecuteSQLQuery(query: String) : String = {
-//This method is being retired in favour of above method.
-//The above method does not require installing the library and can also run on the latest Spark version
-  
-//   //This method allows runnning a T-SQL on a SQL Server
-
-//   import com.microsoft.azure.sqldb.spark.config.Config
-//   import com.microsoft.azure.sqldb.spark.query._
-
-//   //Get the DB Password from the Key Vault
-//   val dbpwd = dbutils.secrets.get(scope = ADS_KV_ACCOUNT_SCOPE, key = ADS_KV_DB_PWD_SECRET_KEY)
-  
-//   //Get the connection String and assign the T-SQL Query from the parameter
-//   val config = Config(Map(
-//     "url"          -> ADS_DB_SERVER,
-//     "databaseName" -> ADS_DATABASE_NAME,
-//     "user"         -> ADS_DATABASE_USERNAME,
-//     "password"     -> dbpwd,
-//     "queryCustom"  -> query,
-//     "encrypt"      -> "true",
-//     "trustServerCertificate"      -> "true"
-//   ))
-  
-//   println(query)
-  
-//   //Execute the Query
-//   sqlContext.sqlDBQuery(config)
-  
-//   return "1"
-// }
-
-// COMMAND ----------
-
 def ScalaLoadDataToEDW(source_object:String, target_schema:String) : String = {
 
   //This is a generic method to load data to SQL Server EDW from trusted zone
@@ -162,7 +293,8 @@ def ScalaLoadDataToEDW(source_object:String, target_schema:String) : String = {
   //Get the generated SQL Query from Python
   //The query was stored in a temporary table
   val sql_merge_table = source_object + "_sql_merge"
-  val scalaDF = spark.table(sql_merge_table)
+  val scalaDF = spark.table("default." + sql_merge_table)
+//   val scalaDF = spark.table(sql_merge_table)
   val merge_sql_query = scalaDF.select("sql").collect()(0).toString().replace("[","").replace("]","")
   
   spark.sql("DROP TABLE IF EXISTS " + sql_merge_table)
@@ -295,18 +427,18 @@ def ScalaAlterTableDataTypeFromSchema(SchemaFileURL:String, SourceObject:String,
 
   //The following block of code assigns the datetime2 datatype to all the system date columns
   //This will ensure that if there are any miliseconds in the datetime part it will be included for SQLEDW
-  var DBricksTSColumnSQL = ""
+//   var DBricksTSColumnSQL = ""
 
-  DBricksTSColumnSQL += (s"ALTER TABLE $TargetTable ALTER COLUMN $COL_RECORD_START datetime2(7) \n")
-  DBricksTSColumnSQL += (s"ALTER TABLE $TargetTable ALTER COLUMN $COL_RECORD_END datetime2(7) \n")
-  DBricksTSColumnSQL += (s"ALTER TABLE $TargetTable ALTER COLUMN $COL_DL_RAW_LOAD datetime2(7) \n")
-  DBricksTSColumnSQL += (s"ALTER TABLE $TargetTable ALTER COLUMN $COL_DL_TRUSTED_LOAD datetime2(7) \n")
+//   DBricksTSColumnSQL += (s"ALTER TABLE $TargetTable ALTER COLUMN $COL_RECORD_START datetime2(7) \n")
+//   DBricksTSColumnSQL += (s"ALTER TABLE $TargetTable ALTER COLUMN $COL_RECORD_END datetime2(7) \n")
+//   DBricksTSColumnSQL += (s"ALTER TABLE $TargetTable ALTER COLUMN $COL_DL_RAW_LOAD datetime2(7) \n")
+//   DBricksTSColumnSQL += (s"ALTER TABLE $TargetTable ALTER COLUMN $COL_DL_TRUSTED_LOAD datetime2(7) \n")
 
-  //If there is _transaction_date in the target table then upate the data type for it
-  if (lstTableMeta.contains(ADS_COLUMN_TRANSACTION_DT.toUpperCase()))
-    DBricksTSColumnSQL += (s"ALTER TABLE $TargetTable ALTER COLUMN $ADS_COLUMN_TRANSACTION_DT datetime2(7) \n")
+//   //If there is _transaction_date in the target table then upate the data type for it
+//   if (lstTableMeta.contains(ADS_COLUMN_TRANSACTION_DT.toUpperCase()))
+//     DBricksTSColumnSQL += (s"ALTER TABLE $TargetTable ALTER COLUMN $ADS_COLUMN_TRANSACTION_DT datetime2(7) \n")
 
-  ScalaExecuteSQLQuery (DBricksTSColumnSQL)
+//   ScalaExecuteSQLQuery (DBricksTSColumnSQL)
   
 }
 
@@ -384,3 +516,7 @@ def ScalaLoadDeltaTableToAzureSQL(delta_table_name:String, schema_name:String, t
   return "1"
   
 }
+
+// COMMAND ----------
+
+

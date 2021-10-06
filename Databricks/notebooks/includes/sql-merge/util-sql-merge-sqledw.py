@@ -88,6 +88,8 @@ def SQLMerge_SQLEDW_GenerateSQL_Merge(source_table_name, target_table_name, busi
   else:
     sql_update = _SQLUpdateSetValue_SQLEDW(df_col_list, business_key, ALIAS_TABLE_MAIN, ALIAS_TABLE_STAGE)
   sql += sql_update
+#   sql_update = _SQLUpdateSetValue_SQLEDW(df_col_list, business_key, ALIAS_TABLE_MAIN, ALIAS_TABLE_STAGE)
+#   sql += sql_update
   #################PART 3 UPDATE DATA ####################################
 
   #################PART 4 INSERT DATA ####################################

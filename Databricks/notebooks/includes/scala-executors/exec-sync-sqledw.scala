@@ -62,7 +62,7 @@ ScalaCreateSchema(schema_name)
 //Thus it is easier to have the data type updated before loading any data for performance
 var query = s"SELECT * FROM $p_delta_table LIMIT 0"
 var df_col_names = spark.sql(query)
-ScalaLoadDataToAzSqlDB(df_col_names, schema_name, p_sql_edw_table, ADS_WRITE_MODE_OVERWRITE)
+ScalaLoadDataToAzSynDB(df_col_names, schema_name, p_sql_edw_table, ADS_WRITE_MODE_OVERWRITE)
 
 // COMMAND ----------
 
@@ -99,10 +99,14 @@ println (query)
 // COMMAND ----------
 
 var df = spark.sql(query)
-ScalaLoadDataToAzSqlDB (df, schema_name, p_sql_edw_table, ADS_WRITE_MODE_APPEND)
+ScalaLoadDataToAzSynDB (df, schema_name, p_sql_edw_table, ADS_WRITE_MODE_APPEND)
 
 // COMMAND ----------
 
 if (p_data_load_mode != ADS_WRITE_MODE_OVERWRITE) {
   ScalaLoadDataToEDW(p_sql_edw_table, p_sql_schema_name)
 }
+
+// COMMAND ----------
+
+

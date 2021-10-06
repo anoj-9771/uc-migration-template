@@ -9,13 +9,13 @@ val ADS_KV_ACCOUNT_SCOPE = "ADS"
 // COMMAND ----------
 
 val ADS_SQL_SCHEMA_RAW = "raw"
-val ADS_SQL_SCHEMA_TRUSTED = "edw"
+val ADS_SQL_SCHEMA_CLEANSED = "cleansed"
 val ADS_SQL_SCHEMA_STAGE = "stage"
 
 // COMMAND ----------
 
 val ADS_DATABASE_RAW = "raw"
-val ADS_DATABASE_TRUSTED = "trusted"
+val ADS_DATABASE_CLEANSED = "cleansed"
 val ADS_DATABASE_STAGE = "stage"
 val ADS_DATABASE_CURATED = "curated"
 
@@ -25,9 +25,27 @@ val ADS_DB_SERVER = "sql-swcnonprod01-daf-dev-01.database.windows.net" //ADS_COM
 
 // COMMAND ----------
 
-val ADS_DATABASE_NAME = "EDW"
-val ADS_DATABASE_USERNAME = "sqladmin"
-val ADS_KV_DB_PWD_SECRET_KEY = "AzureSQLServerPw"
+val ADS_DATA_LAKE_ACCOUNT = "sadaf"+ ADS_ENVIRONMENT + "01" //f"{ADS_COMPANY_INITIAL.replace('-', '')}dlsdp{ADS_ENVIRONMENT.lower()}{ADS_SUFFIX.replace('-', '')}"
+
+// COMMAND ----------
+
+// val ADS_DATABASE_NAME = "EDW"
+// val ADS_DATABASE_USERNAME = "sqladmin"
+// val ADS_KV_DB_PWD_SECRET_KEY = "AzureSQLServerPw"
+
+val ADS_DATABASE_NAME = "syndwdev01"
+val ADS_DATABASE_USERNAME = "svc_synapse1"
+val ADS_KV_DB_PWD_SECRET_KEY = "daf-syn-d-sqlpool-password"
+
+// COMMAND ----------
+
+//Synapse settings
+val ADS_SYN_DATABASE_NAME = "syndwdev01"
+val ADS_SYN_DATABASE_USERNAME = "svc_synapse1"
+val ADS_KV_SYN_DB_PWD_SECRET_KEY = "daf-syn-d-sqlpool-password"
+
+
+val ADS_SYNAPSE_DB_SERVER = "synws-swcnonprod01-daf-dev-01" 
 
 // COMMAND ----------
 
@@ -36,7 +54,7 @@ val ADS_COLUMN_TRANSACTION_DT = "_transaction_date"
 val COL_RECORD_START = "_RecordStart"
 val COL_RECORD_END = "_RecordEnd"
 val COL_DL_RAW_LOAD = "_DLRawZoneTimeStamp"
-val COL_DL_TRUSTED_LOAD = "_DLTrustedZoneTimeStamp"
+val COL_DL_CLEANSED_LOAD = "_DLCleansedZoneTimeStamp"
 
 // COMMAND ----------
 
