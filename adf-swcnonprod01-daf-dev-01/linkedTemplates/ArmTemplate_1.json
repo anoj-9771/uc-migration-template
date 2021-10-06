@@ -1820,7 +1820,7 @@
 								"referenceName": "SRC_BLOB_JSON_v2",
 								"type": "DatasetReference",
 								"parameters": {
-									"BlobContainer": "variables('SourceContainer')",
+									"BlobContainer": "@variables('SourceContainer')",
 									"BlobName": "@concat(variables('SourceFileName'),'*')"
 								}
 							},
