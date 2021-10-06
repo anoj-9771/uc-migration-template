@@ -22,7 +22,7 @@
 					"value": "@dataset().BlobName",
 					"type": "Expression"
 				},
-				"container": "isuref"
+				"container": "bods"
 			}
 		},
 		"schema": {}
