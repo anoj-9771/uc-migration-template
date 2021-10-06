@@ -199,7 +199,7 @@
         },
         {
             "type": "Microsoft.Resources/deployments",
-            "apiVersion": "2021-04-01",
+            "apiVersion": "2019-05-01",
             "name": "StorageRoleDeploymentResource",
             "dependsOn": [
                 "[concat('Microsoft.Synapse/workspaces/', parameters('synapseworkspacename'))]"
@@ -243,7 +243,7 @@
         },
         {
             "type": "Microsoft.Resources/deployments",
-            "apiVersion": "2021-04-01",
+            "apiVersion": "2019-05-01",
             "name": "UpdateStorageAccountNetworkingAcls",
             "dependsOn": [
                 "[concat('Microsoft.Synapse/workspaces/', parameters('synapseworkspacename'))]"
