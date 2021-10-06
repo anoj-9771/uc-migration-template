@@ -36,14 +36,8 @@
 				"userProperties": [],
 				"typeProperties": {
 					"dataset": {
-						"referenceName": "SRC_BLOB_JSON_copy1",
-						"type": "DatasetReference",
-						"parameters": {
-							"BlobName": {
-								"value": "@concat(variables('SourceFileName'),'*')",
-								"type": "Expression"
-							}
-						}
+						"referenceName": "SRC_BLOB_JSON_v2",
+						"type": "DatasetReference"
 					},
 					"fieldList": [
 						"childItems"
