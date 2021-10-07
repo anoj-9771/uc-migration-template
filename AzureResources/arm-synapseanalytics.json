@@ -169,18 +169,6 @@
                             "desiredState": "[parameters('grantWorkspaceIdentityControlForSql')]"
                         }
                     }
-                },
-                {
-                    "type": "Microsoft.Synapse/privateLinkHubs",
-                    "apiVersion": "2021-06-01-preview",
-                    "name": "string",
-                    "location": "string",
-                    "dependsOn": [
-                        "[concat('Microsoft.Synapse/workspaces/', parameters('synapseworkspacename'))]"
-                    ],
-                    "properties": {
-                        "provisioningState": "Enabled"
-                    }
                 }
             ]
         },
