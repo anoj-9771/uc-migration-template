@@ -107,7 +107,11 @@
                         },
                         {
                             "resourceId":"[concat('/subscriptions/',subscription().subscriptionId,'/resourcegroups/',resourceGroup().name,'/Microsoft.Synapse/workspaces/',parameters('synapseworkspacename'))]",
-                            "tenantId":"[subscription().tenantId]"
+                            "tenantId":"[subscription().tenantId]",
+                            "bypass":"AzureServices",
+                            "virtualNetworkRules":[],
+                            "ipRules":[],
+                            "defaultAction":"Deny"
                         }
                     ]
                 }
@@ -164,6 +168,18 @@
                         "grantSqlControlToManagedIdentity": {
                             "desiredState": "[parameters('grantWorkspaceIdentityControlForSql')]"
                         }
+                    }
+                },
+                {
+                    "type": "Microsoft.Synapse/privateLinkHubs",
+                    "apiVersion": "2021-06-01-preview",
+                    "name": "string",
+                    "location": "string",
+                    "dependsOn": [
+                        "[concat('Microsoft.Synapse/workspaces/', parameters('synapseworkspacename'))]"
+                    ],
+                    "properties": {
+                        "provisioningState": "Enabled"
                     }
                 }
             ]
