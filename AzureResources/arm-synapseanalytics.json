@@ -1,5 +1,5 @@
 {
-    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.1",
     "parameters": {
         "synapseworkspacename": {
@@ -102,46 +102,16 @@
                 "networkAcls": {
                     "resourceAccessRules": [
                         {
-                            "tenantId":"8351bb5c-749d-4ee4-b1c4-71a3971acbe9",
-                            "resourceId":"/subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourcegroups/rg-swcnonprod01-daf-preprod-01/providers/Microsoft.Synapse/workspaces/synws-swcnonprod01-daf-preprod-01-rg"
+                            "tenantId":"[subscription().tenantId]",
+                            "resourceId":"[concat('/subscriptions/',subscription().subscriptionId,'/resourcegroups/',resourceGroup().name,'/Microsoft.Synapse/workspaces/',parameters('synapseworkspacename'),'-rg')]"
                         },
                         {
-                            "resourceId":"/subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourcegroups/rg-swcnonprod01-daf-preprod-01/providers/Microsoft.Synapse/workspaces/synws-swcnonprod01-daf-preprod-01",
-                            "tenantId":"8351bb5c-749d-4ee4-b1c4-71a3971acbe9"}],
-                            "bypass":"AzureServices",
-                            "virtualNetworkRules":[],
-                            "ipRules":[],
-                            "defaultAction":"Deny"},
-                            "supportsHttpsTrafficOnly":true,
-                            "encryption": {
-                                "services": {
-                                    "file": {
-                                        "keyType":"Account",
-                                        "enabled":true,
-                                        "lastEnabledTime":"2021-10-01T03:56:28.8654015Z"
-                                    },
-                                    "blob": {
-                                        "keyType":"Account",
-                                        "enabled":true,
-                                        "lastEnabledTime":"2021-10-01T03:56:28.8654015Z"
-                                    }
-                                },
-                                "keySource":"Microsoft.Storage"
-                            },
-                            "accessTier":"Hot",
-                            "provisioningState":"Succeeded",
-                            "creationTime":"2021-10-01T03:56:28.7872500Z",
-                            "primaryEndpoints": {
-                                "dfs":"https://sadafpreprod01.dfs.core.windows.net/",
-                                "web":"https://sadafpreprod01.z8.web.core.windows.net/",
-                                "blob":"https://sadafpreprod01.blob.core.windows.net/",
-                                "queue":"https://sadafpreprod01.queue.core.windows.net/",
-                                "table":"https://sadafpreprod01.table.core.windows.net/",
-                                "file":"https://sadafpreprod01.file.core.windows.net/"
-                            },
-                            "primaryLocation":"australiaeast",
-                            "statusOfPrimary":"available"
-                        },
+                            "resourceId":"[concat('/subscriptions/',subscription().subscriptionId,'/resourcegroups/',resourceGroup().name,'/Microsoft.Synapse/workspaces/',parameters('synapseworkspacename'))]",
+                            "tenantId":"[subscription().tenantId]"
+                        }
+                    ]
+                }
+            },
             "type": "Object"
         },
         "managedVirtualNetworkSettings": {
@@ -167,6 +137,7 @@
                 "type": "SystemAssigned"
             },
             "properties": {
+                "mode": "incremental",
                 "defaultDataLakeStorage": {
                     "accountUrl": "[variables('defaultDataLakeStorageAccountUrl')]",
                     "filesystem": "[parameters('defaultDataLakeStorageFilesystemName')]",
