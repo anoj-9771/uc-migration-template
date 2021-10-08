@@ -1,5 +1,5 @@
 # Databricks notebook source
-table = 'VIBDCHARACT'
+table = 'ZCD_TPROPTY_HIST'
 
 # COMMAND ----------
 
@@ -80,9 +80,53 @@ for myFile in fileNames:
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC select * from test.0uc_devcat_attr
+# MAGIC 
+# MAGIC select * from test.zcd_tpropty_hist
 
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC select distinct EXTRACT_DATETIME from test.0uc_devcat_attr order by EXTRACT_DATETIME desc
+# MAGIC select distinct EXTRACT_DATETIME from test.zcd_tpropty_hist order by EXTRACT_DATETIME desc
+
+# COMMAND ----------
+
+# DBTITLE 1,[Source with mapping]
+
+
+# COMMAND ----------
+
+lakedf = spark.sql("select * from cleansed.t_sapisu_zcd_tpropty_hist")
+
+# COMMAND ----------
+
+# DBTITLE 1,[Target] Schema Check
+lakedf.printSchema()
+
+# COMMAND ----------
+
+# DBTITLE 1,[Verification] count
+# MAGIC %sql
+# MAGIC select count (*) as RecordCount, 'Target' as TableName from cleansed.t_sapisu_zcd_tpropty_hist
+# MAGIC union all
+# MAGIC select count (*) as RecordCount, 'Source' as TableName from test.zcd_tpropty_hist
+
+# COMMAND ----------
+
+# DBTITLE 1,[Duplicate checks]
+# MAGIC %sql
+# MAGIC SELECT * FROM (
+# MAGIC SELECT
+# MAGIC *,
+# MAGIC row_number() OVER(PARTITION BY propertyNumber,superiorPropertyTypeCode,inferiorPropertyTypeCode,validFromDate order by validFromDate) as rn
+# MAGIC FROM  cleansed.t_sapisu_zcd_tpropty_hist
+# MAGIC )a where a.rn > 1
+
+# COMMAND ----------
+
+# DBTITLE 1,[Verification] Compare Source and Target Data
+
+
+# COMMAND ----------
+
+# DBTITLE 1,[Verification] Compare Target and Source Data
+
