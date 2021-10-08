@@ -103,10 +103,10 @@
                     "resourceAccessRules": [
                         {
                             "tenantId":"[subscription().tenantId]",
-                            "resourceId":"[concat('/subscriptions/',subscription().subscriptionId,'/resourcegroups/',resourceGroup().name,'/Microsoft.Synapse/workspaces/',parameters('synapseworkspacename'),'-rg')]"
+                            "resourceId":"[concat('/subscriptions/',subscription().subscriptionId,'/resourcegroups/',resourceGroup().name,'/providers/Microsoft.Synapse/workspaces/',parameters('synapseworkspacename'),'-rg')]"
                         },
                         {
-                            "resourceId":"[concat('/subscriptions/',subscription().subscriptionId,'/resourcegroups/',resourceGroup().name,'/Microsoft.Synapse/workspaces/',parameters('synapseworkspacename'))]",
+                            "resourceId":"[concat('/subscriptions/',subscription().subscriptionId,'/resourcegroups/',resourceGroup().name,'/providers/Microsoft.Synapse/workspaces/',parameters('synapseworkspacename'))]",
                             "tenantId":"[subscription().tenantId]"
                         }
                     ],
