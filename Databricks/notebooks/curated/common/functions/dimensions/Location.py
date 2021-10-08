@@ -19,22 +19,17 @@ def GetCommonLocation():
   
   #DimLocation
   #2.Load Cleansed layer table data into dataframe
-  HydraLocationDf = spark.sql("select propertyNumber as locationID, first(propertyAddress) as formattedAddress, cast(null as string) as streetName, cast(null as string) as streetType, \
+  HydraLocationDf = spark.sql(f"select propertyNumber as locationID, first(propertyAddress) as formattedAddress, cast(null as string) as streetName, cast(null as string) as streetType, \
                                      first(LGA) as LGA, first(suburb) as suburb, 'NSW' as state, first(latitude) as latitude, first(longitude) as longitude \
-                                     from cleansed.t_hydra_tlotparcel \
+                                     from {ADS_DATABASE_CLEANSED}.hydra_tlotparcel \
                                      where propertyNumber is not null \
                                      group by propertyNumber")
   
   dummyDimRecDf = spark.createDataFrame([(-1, "Unknown")],["locationID", "formattedAddress"])
   
   #3.JOIN TABLES  
-  #df = isu0ucConbjAttr2Df.join(isuVibdaoDf, isu0ucConbjAttr2Df.architecturalObjectInternalId == isuVibdaoDf.architecturalObjectInternalId, how="inner")\
-  #                          .drop(isuVibdaoDf.architecturalObjectInternalId).drop(isu0ucConbjAttr2Df.architecturalObjectInternalId)
-  #df = df.select("propertyNumber","sourceSystemCode","propertyStartDate","propertyEndDate", \
-  #                                              "propertyType","superiorPropertyType","propertyArea","LGA")
   
   #4.UNION TABLES
-  #df = accessZ309TpropertyDf.union(df)
   HydraLocationDf = HydraLocationDf.unionByName(dummyDimRecDf, allowMissingColumns = True)
   
   #5.SELECT / TRANSFORM
@@ -65,11 +60,6 @@ def GetCommonLocation():
   
   HydraLocationDf = spark.createDataFrame(HydraLocationDf.rdd, schema=newSchema)
   return HydraLocationDf
-
-# COMMAND ----------
-
-#df = GetCommonLocation()
-#display(df)
 
 # COMMAND ----------
 

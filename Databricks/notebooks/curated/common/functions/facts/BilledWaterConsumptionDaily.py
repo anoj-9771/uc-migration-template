@@ -70,24 +70,24 @@ def getBilledWaterConsumptionDaily():
   billedConsDf = billedConsDf.withColumn("avgMeteredWaterConsumption", F.col("meteredWaterConsumption")/F.col("totalMeterActiveDays"))
 
 #4.Load Dmension tables into dataframe
-  dimDateDf = spark.sql("select dimDateSK, calendarDate \
-                                  from curated.dimDate \
+  dimDateDf = spark.sql(f"select dimDateSK, calendarDate \
+                                  from {ADS_DATABASE_CURATED}.dimDate \
                                   where _RecordCurrent = 1 and _RecordDeleted = 0")
 
-  dimPropertyDf = spark.sql("select sourceSystemCode, dimPropertySK, propertyId, propertyStartDate, propertyEndDate \
-                                  from curated.dimProperty \
+  dimPropertyDf = spark.sql(f"select sourceSystemCode, dimPropertySK, propertyId, propertyStartDate, propertyEndDate \
+                                  from {ADS_DATABASE_CURATED}.dimProperty \
                                   where _RecordCurrent = 1 and _RecordDeleted = 0")
 
-  dimLocationDf = spark.sql("select dimLocationSK, locationID \
-                                   from curated.dimLocation \
+  dimLocationDf = spark.sql(f"select dimLocationSK, locationID \
+                                   from {ADS_DATABASE_CURATED}.dimLocation \
                                    where _RecordCurrent = 1 and _RecordDeleted = 0")
 
-  dimMeterDf = spark.sql("select sourceSystemCode, dimMeterSK, meterID \
-                                   from curated.dimMeter \
+  dimMeterDf = spark.sql(f"select sourceSystemCode, dimMeterSK, meterID \
+                                   from {ADS_DATABASE_CURATED}.dimMeter \
                                    where _RecordCurrent = 1 and _RecordDeleted = 0")
 
-  dimBillDocDf = spark.sql("select dimBillingDocumentSK, sourceSystemCode, billingDocumentNumber \
-                                  from curated.dimBillingDocument \
+  dimBillDocDf = spark.sql(f"select dimBillingDocumentSK, sourceSystemCode, billingDocumentNumber \
+                                  from {ADS_DATABASE_CURATED}.dimBillingDocument \
                                   where _RecordCurrent = 1 and _RecordDeleted = 0")
 
 #4.JOIN TABLES

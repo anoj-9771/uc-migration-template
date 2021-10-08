@@ -19,8 +19,8 @@ def GetCommonDate():
   
   #DimProperty
   #2.Load Cleansed layer table data into dataframe
-  dateDf = spark.sql("SELECT  * \
-                                   from cleansed.t_isu_scal_tt_date")
+  dateDf = spark.sql(f"SELECT  * \
+                                   from {ADS_DATABASE_CLEANSED}.isu_scal_tt_date")
  
   #3.JOIN TABLES  
   
@@ -74,8 +74,4 @@ def GetCommonDate():
   
   df = spark.createDataFrame(df.rdd, schema=newSchema)
   return df
-
-
-# COMMAND ----------
-
 

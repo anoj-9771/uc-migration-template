@@ -1,5 +1,5 @@
 # Databricks notebook source
-# MAGIC %run ./commonBilledWaterConsumptionisu
+# MAGIC %run ./commonBilledWaterConsumptionIsu
 
 # COMMAND ----------
 
