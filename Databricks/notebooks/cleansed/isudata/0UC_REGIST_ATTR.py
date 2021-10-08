@@ -169,7 +169,7 @@ df_cleansed = spark.sql("SELECT \
 	ZWARTTXT as registerTypeDescription, \
 	cast(ZWTYP as int) as registerCategory, \
 	cast(BLIWIRK as int) as reactiveApparentOrActiveRegister, \
-	MASSREAD as unitOfMeasurementMeterReading , \
+	MASSREAD as unitOfMeasurementMeterReadingï¿½, \
 	NABLESEN as nan, \
 	cast(HOEKORR as int) as altitudeCorrectionPressure, \
 	cast(KZAHLE as int) as setGasLawDeviationFactor, \
@@ -201,7 +201,7 @@ newSchema = StructType([
 	StructField('registerTypeDescription',StringType(),True),
 	StructField('registerCategory',IntegerType(),True),
 	StructField('reactiveApparentOrActiveRegister',IntegerType(),True),
-	StructField('unitOfMeasurementMeterReading ',StringType(),True),
+	StructField('unitOfMeasurementMeterReadingï¿½',StringType(),True),
 	StructField('nan',StringType(),True),
 	StructField('altitudeCorrectionPressure',IntegerType(),True),
 	StructField('setGasLawDeviationFactor',IntegerType(),True),
