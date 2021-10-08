@@ -2,52 +2,21 @@
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
   
-    "parameters": {    
+    "parameters": 
+    {    
       "location": {
         "type": "string",
-        "defaultValue": "[resourceGroup().location]",
-        "metadata": {
-          "description": "Specifies the Azure location where the key vault should be created."
-        }
+        "defaultValue": "[resourceGroup().location]"
       },  
       "azureSqlServerName": {
-        "type": "string",
-        "metadata": {
-          "description": "Azure SQL Server Name"
-        }
+        "type": "string"
       },  
       "AzureSqlServerUn": {
         "type": "string",
-        "metadata": {
-          "description": "SQL Server User Name"
-        },
-        "defaultValue": "azureadmin"
+        "defaultValue": "azuresqladmin"
       },
       "AzureSqlServerPw": {
-        "type": "string",
-        "metadata": {
-          "description": "SQL Server Password"
-        }
-      },
-      "diagnosticSettingsWorkspaceID": {
-          "type": "string",
-          "metadata": {
-              "description": "Log Analytics Workspace ID for Logs"
-          }
-      },
-      "isAuditEnabled": {
-        "type": "bool",
-        "defaultValue": false,
-        "metadata": {
-            "description": "Enable Auditing of Microsoft support operations (DevOps)"
-        }
-      },
-      "isMSDevOpsAuditEnabled": {
-        "type": "bool",
-        "defaultValue": false,
-        "metadata": {
-            "description": "Enable Auditing of Microsoft support operations (DevOps)"
-        }
+        "type": "string"
       }
     },
     "resources": [
@@ -77,64 +46,7 @@
               ],
               "name": "master",
               "properties": {}
-            },
-            {
-              "condition": "[parameters('isAuditEnabled')]",
-              "type": "databases/providers/diagnosticSettings",
-              "name": "[concat('master/microsoft.insights/','service')]",
-              "dependsOn": [
-                "[parameters('azureSqlServerName')]",
-                "[resourceId('Microsoft.Sql/servers/databases', parameters('azureSqlServerName'), 'master')]"
-              ],
-              "apiVersion": "2017-05-01-preview",
-              "properties": {
-                "name": "service",
-                "workspaceId": "[parameters('diagnosticSettingsWorkspaceID')]",
-                "logs": [
-                  {
-                    "category": "SQLSecurityAuditEvents",
-                    "enabled": true,
-                    "retentionPolicy": {
-                      "days": 0,
-                      "enabled": false
-                    }
-                  },
-                  {
-                    "condition": "[parameters('isMSDevOpsAuditEnabled')]",
-                    "category": "DevOpsOperationsAudit",
-                    "enabled": true,
-                    "retentionPolicy": {
-                      "days": 0,
-                      "enabled": false
-                    }
-                  }
-                ]
-              }
-            },
-            {
-              "condition": "[parameters('isAuditEnabled')]",
-              "apiVersion": "2017-03-01-preview",
-              "type": "auditingSettings",
-              "name": "DefaultAuditingSettings",
-              "dependsOn": [
-                "[resourceId('Microsoft.Sql/servers/', parameters('azureSqlServerName'))]"
-              ],
-              "properties": {
-                "State": "Enabled",
-                "isAzureMonitorTargetEnabled": true
-              }
-            },
-            {          
-              "condition": "[parameters('isMSDevOpsAuditEnabled')]",
-              "type": "devOpsAuditingSettings",
-              "apiVersion": "2020-08-01-preview",
-              "name": "Default",
-              "dependsOn": ["[parameters('azureSqlServerName')]"],
-              "properties": {
-                "State": "Enabled",
-                "isAzureMonitorTargetEnabled": true
             }
-          }
         ]
       }
     ],

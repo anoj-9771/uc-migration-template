@@ -1,0 +1,19 @@
+parameters:
+- name: AzDoServiceConnection # name of the parameter; required
+  type: string # data type of the parameter; required
+- name: resource_group
+  type: string
+
+steps:
+  - task: AzureResourceGroupDeployment@2
+    inputs:
+      azureSubscription: ${{ parameters.AzDoServiceConnection }}
+      action: 'Create Or Update Resource Group'
+      resourceGroupName: ${{ parameters.resource_group }}
+      location: $(LOCATION)
+      templateLocation: 'Linked artifact'
+      csmFile: '$(Pipeline.Workspace)/arm_templates/arm-private-endpoints.json'
+      overrideParameters: '-location $(LOCATION) -azureSqlServerName $(azuresqlservername) -keyVaultName $(azurekeyvaultname) -diagnosticSettingsWorkspaceID $(diagnosticSettingsWorkspaceID)'
+      deploymentMode: 'Incremental'
+      deploymentOutputs: 'armOutputs'
+    displayName: 'Deploy Azure Monitor Audit Settings'

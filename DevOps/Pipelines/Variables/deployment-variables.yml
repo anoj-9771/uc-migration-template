@@ -17,10 +17,10 @@ variables:
     value: false
   # Used to set Azure SQL Server deployability
   - name: azuresqlserver
-    value: false
+    value: true
   # Used to add Control DB to Azure SQL server 
   - name: controldb
-    value: false
+    value: true
   # Used to add EDW DB to Azure SQL server 
   - name: edw
     value: false
@@ -48,6 +48,10 @@ variables:
   # Use to set Synapse Analytics worksspace deployability...
   - name: synapseanalyticsworkspace
     value: false
-  # Use to set Synapse Analytics worksspace deployability...
+  # Use to set Private Endpoints deployaility - Deploy Private Endpoints and Private Links
   - name: privateendpoints
+    value: false
+  # Use to set logging deployaility - Deploy Diagnostic Settings and Auditing configuration
+  - name: auditsettings
     value: true
+  

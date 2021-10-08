@@ -197,6 +197,13 @@ stages:
           AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
           resource_group: ${{ variables.resourcegroupname }}
 
+    # Deploy Azure Monitor Audit Settings
+    - ${{ if eq(variables['auditsettings'], true) }}:
+      - template: step-deploy-arm-audit-settings.yml
+        parameters:
+          AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
+          resource_group: ${{ variables.resourcegroupname }}
+
     # Add Tags to resources
     - ${{ if eq(variables['applytags'], true) }}:
       - task: AzureCLI@2
