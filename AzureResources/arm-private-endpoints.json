@@ -205,6 +205,13 @@
                     "id": "[parameters('subnetId')]"
                 }
             }
+        },
+        {
+            "type": "Microsoft.Synapse/privateLinkHubs",
+            "apiVersion": "2021-06-01-preview",
+            "name": "[concat(parameters('synapseWorkspaceName'), '-pe-dev')]",
+            "location": "[parameters('location')]",
+            "properties": {}
         }
     ],
     "outputs": {
