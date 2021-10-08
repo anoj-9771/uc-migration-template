@@ -54,7 +54,10 @@ def DeltaGetDataLakePath(data_lake_zone, data_lake_folder, object):
   
   mount_point = DataLakeGetMountPoint(data_lake_zone)
   
-  data_lake_path = f"dbfs:{mount_point}/{data_lake_folder.lower()}/{object.lower()}/delta"
+  if data_lake_zone == ADS_DATALAKE_ZONE_CURATED:
+    data_lake_path = f"dbfs:{mount_point}/{object.lower()}/delta"
+  else:
+    data_lake_path = f"dbfs:{mount_point}/{data_lake_folder.lower()}/{object.lower()}/delta"
   LogEtl(data_lake_path)
   
   return data_lake_path
@@ -66,15 +69,22 @@ def DeltaSaveDataframeDirect(dataframe, source_system, table_name, database_name
   #Mount the Data Lake 
   data_lake_mount_point = DataLakeGetMountPoint(container)
   
-  delta_path = "dbfs:{mount}/{folder}/{sourceobject}/delta".format(mount=data_lake_mount_point, folder = source_system.lower(), sourceobject = table_name.lower())
+  delta_path = "dbfs:{mount}/{folder}/{sourceobject}/delta".format(mount=data_lake_mount_point, folder = source_system.lower(), sourceobject = table_name.split("_",1)[-1].lower())
   LogEtl ("Saving delta lake file : " + delta_path + " with mode " + write_mode)
 
   query = "CREATE DATABASE IF NOT EXISTS {0}".format(database_name)
   spark.sql(query)
   
-  if database_name == ADS_DATABASE_RAW or database_name == ADS_DATABASE_CLEANSED or database_name == ADS_DATABASE_CURATED:
-    table_name = "{0}_{1}".format(source_system, table_name)
-    
+  #Start of fix to restructure framework folders 
+  #Commented the below lines as part of the fix
+#   if database_name == ADS_DATABASE_RAW or database_name == ADS_DATABASE_CLEANSED or database_name == ADS_DATABASE_CURATED:
+#     table_name = "{0}_{1}".format(source_system, table_name)
+  if database_name == ADS_DATABASE_RAW:
+    table_name = "{0}_{1}".format(source_system, table_name)  
+  if database_name == ADS_DATABASE_CLEANSED or database_name == ADS_DATABASE_CURATED:
+    table_name = table_name    
+  #End of fix to restructure framework folders 
+  
   table_name_fq = "{0}.{1}".format(database_name, table_name)
   
   if write_mode == ADS_WRITE_MODE_OVERWRITE:
@@ -261,9 +271,13 @@ def DeltaSaveToDeltaTable(
   It can also track history with SCD columns
   '''
   
-  spark.conf.set("spark.sql.autoBroadcastJoinThreshold", -1)
-
-  target_table_fqn = f"{target_database}.{target_table}"
+  spark.conf.set("spark.sql.autoBroadcastJoinThreshold", -1)  
+  
+  target_table_fqn = f"{target_database}.{target_table}" 
+  # Start of Fix for Framework Folder Restructure
+  if target_data_lake_zone != ADS_DATALAKE_ZONE_CURATED:
+    target_table = target_table.split("_",1)[-1] 
+  # End of Fix for Framework Folder Restructure
   data_lake_path = DeltaGetDataLakePath(target_data_lake_zone, data_lake_folder, target_table)
   
   #Ensure we have a table before we start the data load.

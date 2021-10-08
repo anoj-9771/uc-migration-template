@@ -64,32 +64,32 @@ def getBilledWaterConsumption():
   
 #4.Load dimension tables into dataframe
 
-  dimPropertyDf = spark.sql("select sourceSystemCode, dimPropertySK, propertyId, propertyStartDate, propertyEndDate \
-                                  from curated.dimProperty \
+  dimPropertyDf = spark.sql(f"select sourceSystemCode, dimPropertySK, propertyId, propertyStartDate, propertyEndDate \
+                                  from {ADS_DATABASE_CURATED}.dimProperty \
                                   where _RecordCurrent = 1 and _RecordDeleted = 0")
 
-  dimLocationDf = spark.sql("select dimLocationSK, locationId \
-                                   from curated.dimLocation \
+  dimLocationDf = spark.sql(f"select dimLocationSK, locationId \
+                                   from {ADS_DATABASE_CURATED}.dimLocation \
                                    where _RecordCurrent = 1 and _RecordDeleted = 0")
 
-  dimMeterDf = spark.sql("select sourceSystemCode, dimMeterSK, meterId \
-                                   from curated.dimMeter \
+  dimMeterDf = spark.sql(f"select sourceSystemCode, dimMeterSK, meterId \
+                                   from {ADS_DATABASE_CURATED}.dimMeter \
                                    where _RecordCurrent = 1 and _RecordDeleted = 0")
 
-  dimBillDocDf = spark.sql("select dimBillingDocumentSK, sourceSystemCode, billingDocumentNumber \
-                                  from curated.dimBillingDocument \
+  dimBillDocDf = spark.sql(f"select dimBillingDocumentSK, sourceSystemCode, billingDocumentNumber \
+                                  from {ADS_DATABASE_CURATED}.dimBillingDocument \
                                   where _RecordCurrent = 1 and _RecordDeleted = 0")
 
-  dimDateDf = spark.sql("select dimDateSK, calendarDate \
-                                  from curated.dimDate \
+  dimDateDf = spark.sql(f"select dimDateSK, calendarDate \
+                                  from {ADS_DATABASE_CURATED}.dimDate \
                                   where _RecordCurrent = 1 and _RecordDeleted = 0")
 
-  dummyDimRecDf = spark.sql("select dimPropertySk as dummyDimSK, sourceSystemCode, 'dimProperty' as dimension from curated.dimProperty where propertyId = '-1' \
-                            union select dimLocationSk as dummyDimSK, 'null' as sourceSystemCode, 'dimLocation' as dimension from curated.dimLocation where LocationId = '-1' \
-                            union select dimMeterSK as dummyDimSK, sourceSystemCode, 'dimMeter' as dimension from curated.dimMeter where meterId = '-1' \
-                            union select dimBillingDocumentSK as dummyDimSK, sourceSystemCode, 'dimBillingDocument' as dimension from curated.dimBillingDocument \
+  dummyDimRecDf = spark.sql(f"select dimPropertySk as dummyDimSK, sourceSystemCode, 'dimProperty' as dimension from {ADS_DATABASE_CURATED}.dimProperty where propertyId = '-1' \
+                            union select dimLocationSk as dummyDimSK, 'null' as sourceSystemCode, 'dimLocation' as dimension from {ADS_DATABASE_CURATED}.dimLocation where LocationId = '-1' \
+                            union select dimMeterSK as dummyDimSK, sourceSystemCode, 'dimMeter' as dimension from {ADS_DATABASE_CURATED}.dimMeter where meterId = '-1' \
+                            union select dimBillingDocumentSK as dummyDimSK, sourceSystemCode, 'dimBillingDocument' as dimension from {ADS_DATABASE_CURATED}.dimBillingDocument \
                                                                                                                                   where billingDocumentNumber in ('-1', '-2') \
-                            union select dimDateSK as dummyDimSK, 'null' as sourceSystemCode, 'dimDate' as dimension from curated.dimDate \
+                            union select dimDateSK as dummyDimSK, 'null' as sourceSystemCode, 'dimDate' as dimension from {ADS_DATABASE_CURATED}.dimDate \
                                                                                                                                   where calendarDate = ('1900-01-01') \
                             ")
 

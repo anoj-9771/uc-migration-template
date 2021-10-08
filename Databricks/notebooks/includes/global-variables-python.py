@@ -45,7 +45,6 @@ ADS_CONTAINER_CLEANSED = "cleansed"
 ADS_CONTAINER_STAGE = "stage"
 ADS_CONTAINER_CURATED = "curated"
 ADS_CONTAINER_EXTERNAL = "external"
-ADS_CONTAINER_STAGE = "stage"
 
 
 # COMMAND ----------

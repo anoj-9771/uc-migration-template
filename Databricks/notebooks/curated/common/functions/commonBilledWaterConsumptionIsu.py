@@ -27,7 +27,7 @@ def getBilledWaterConsumptionisu():
                              case when startBillingPeriod is null then to_date('19000101', 'yyyymmdd') else startBillingPeriod end as startBillingPeriod, \
                              case when endBillingPeriod is null then to_date('19000101', 'yyyymmdd') else endBillingPeriod end as endBillingPeriod, \
                              billingDocumentCreateDate, documentNotReleasedIndicator, reversalDate \
-                         from cleansed.t_isu_erch \
+                         from {ADS_DATABASE_CLEANSED}.isu_erch \
                          where billingSimulationIndicator = '' \
                            and _RecordCurrent = 1 and _RecordDeleted = 0")
 
@@ -36,7 +36,7 @@ def getBilledWaterConsumptionisu():
 #                              case when startBillingPeriod is null then to_date('19000101', 'yyyymmdd') else startBillingPeriod end as startBillingPeriod, \
 #                              case when endBillingPeriod is null then to_date('19000101', 'yyyymmdd') else endBillingPeriod end as endBillingPeriod, \
 #                              billingDocumentCreateDate, documentNotReleasedIndicator, reversalDate \
-#                          from cleansed.t_slt_erch \
+#                          from {ADS_DATABASE_CLEANSED}.slt_erch \
 #                          where trim(billingSimulationIndicator) = '' \
 #                            and _RecordCurrent = 1 and _RecordDeleted = 0")
  
@@ -44,14 +44,14 @@ def getBilledWaterConsumptionisu():
   dberchz1Df = spark.sql("select billingDocumentNumber, billingDocumentLineItemId \
                                 ,validFromDate, validToDate \
                                 ,billingQuantityPlaceBeforeDecimalPoint \
-                             from cleansed.t_isu_dberchz1 \
+                             from {ADS_DATABASE_CLEANSED}.isu_dberchz1 \
                              where lineItemTypeCode in ('ZDQUAN', 'ZRQUAN') \
                              and trim(billingLineItemBudgetBillingIndicator) = '' \
                                and _RecordCurrent = 1 and _RecordDeleted = 0")
   
   dberchz2Df = spark.sql("select billingDocumentNumber, billingDocumentLineItemId \
                                 ,equipmentNumber \
-                             from cleansed.t_isu_dberchz2 \
+                             from {ADS_DATABASE_CLEANSED}.isu_dberchz2 \
                              where suppressedMeterReadingDocumentId <> '' \
                                and _RecordCurrent = 1 and _RecordDeleted = 0")
   
