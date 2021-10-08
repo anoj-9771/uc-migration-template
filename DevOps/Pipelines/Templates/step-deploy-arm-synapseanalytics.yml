@@ -34,6 +34,7 @@ steps:
   
 # #Deploy Synapse analytics workspace SQL Pools
   - task: AzureResourceGroupDeployment@2
+    enabled: false
     inputs:
      azureSubscription: ${{ parameters.service_connection }}
      action: 'Create Or Update Resource Group'
