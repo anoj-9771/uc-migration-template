@@ -203,6 +203,8 @@ stages:
         parameters:
           AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
           resource_group: ${{ variables.resourcegroupname }}
+          azureSqlServerName: ${{ variables.azureSqlServerName }}
+          diagnosticSettingsWorkspaceID: ${{ variables.diagnosticSettingsWorkspaceID }}
 
     # Add Tags to resources
     - ${{ if eq(variables['applytags'], true) }}:
