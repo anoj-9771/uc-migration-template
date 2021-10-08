@@ -2,7 +2,7 @@
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "keyVaultName": {
+        "azurekeyvaultname": {
             "type": "string"
         },
         "azureSqlServerName": {
@@ -16,7 +16,7 @@
         {
             "type": "Microsoft.KeyVault/vaults/providers/diagnosticsettings",
             "apiVersion": "2016-09-01",
-            "name": "[concat(parameters('keyVaultName'), '/Microsoft.Insights/service')]",
+            "name": "[concat(parameters('azurekeyvaultname'), '/Microsoft.Insights/service')]",
             "properties": {
                 "workspaceId": "[parameters('diagnosticSettingsWorkspaceID')]",
                 "logs": [
