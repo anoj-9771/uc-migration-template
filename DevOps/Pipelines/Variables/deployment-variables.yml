@@ -54,6 +54,6 @@ variables:
   # Use to set logging deployaility - Deploy Diagnostic Settings and Auditing configuration
   - name: auditsettings
     value: false
-  - name: firstrun
+  - name: firstRun
     value: false
   
