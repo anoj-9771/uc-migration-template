@@ -13,7 +13,7 @@ steps:
       location: $(LOCATION)
       templateLocation: 'Linked artifact'
       csmFile: '$(Pipeline.Workspace)/arm_templates/arm-security-audit.json'
-      overrideParameters: '-location $(LOCATION) -azureSqlServerName $(azuresqlservername) -azurekeyvaultname $(azurekeyvaultname) -diagnosticSettingsWorkspaceID $(diagnosticSettingsWorkspaceID)'
+      overrideParameters: '-azureSqlServerName $(azuresqlservername) -azurekeyvaultname $(azurekeyvaultname) -diagnosticSettingsWorkspaceID $(diagnosticSettingsWorkspaceID)'
       deploymentMode: 'Incremental'
       deploymentOutputs: 'armOutputs'
     displayName: 'Deploy Azure Monitor Audit Settings'
