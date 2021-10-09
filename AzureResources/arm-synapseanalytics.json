@@ -160,7 +160,7 @@
                     "accountUrl": "[variables('defaultDataLakeStorageAccountUrl')]",
                     "filesystem": "[parameters('defaultDataLakeStorageFilesystemName')]",
                     "resourceId": "[parameters('defaultAdlsGen2AccountResourceId')]",
-                    "createManagedPrivateEndpoint": "[parameters('createManagedPrivateEndpoint')]"
+                    "createManagedPrivateEndpoint": "[if(not(empty(parameters('firstrun'))), parameters('createManagedPrivateEndpoint'), json('null'))]"
                 },
                 "managedVirtualNetwork": "[parameters('managedVirtualNetwork')]",
                 "managedResourceGroupName": "[parameters('managedResourceGroupName')]",
