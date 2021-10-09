@@ -105,7 +105,7 @@ variables:
   - name: loganalyticsretention
     value: 30 
   - name: diagnosticSettingsWorkspaceID
-    value: /subscriptions/$(SUBSCRIPTION)/resourcegroups/$(resourcegroupname)/providers/microsoft.operationalinsights/workspaces/$(loganalyticsworkspacename)
+    value: /subscriptions/$(subscriptionId)/resourcegroups/$(resourcegroupname)/providers/microsoft.operationalinsights/workspaces/$(loganalyticsworkspacename)
   # ------------------------------------------------
   # Databricks related
   # ------------------------------------------------
