@@ -12,8 +12,8 @@ steps:
       resourceGroupName: ${{ parameters.resource_group }}
       location: $(LOCATION)
       templateLocation: 'Linked artifact'
-      csmFile: '$(Pipeline.Workspace)/arm_templates/arm-private-endpoints.json'
-      overrideParameters: '-location $(LOCATION) -dataLakeName $(datalakestorageaccountnames) -blobStorageName $(blobstorageaccountnames) -sqlServerName $(azuresqlservername) -dataFactoryName $(datafactoryname) -keyVaultName $(azurekeyvaultname) -subnetId $(internalSubnetId) -synapseWorkspaceName $(synapseworkspacename)'
+      csmFile: '$(Pipeline.Workspace)/arm_templates/arm-security-audit.json'
+      overrideParameters: '-azureSqlServerName $(azuresqlservername) -azurekeyvaultname $(azurekeyvaultname) -diagnosticSettingsWorkspaceID $(diagnosticSettingsWorkspaceID)'
       deploymentMode: 'Incremental'
       deploymentOutputs: 'armOutputs'
-    displayName: 'Deploy Private Endpoints'
+    displayName: 'Deploy Azure Monitor Audit Settings'

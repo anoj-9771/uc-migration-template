@@ -2,57 +2,21 @@
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
   
-    "parameters": {    
+    "parameters": 
+    {    
       "location": {
         "type": "string",
-        "defaultValue": "[resourceGroup().location]",
-        "metadata": {
-          "description": "Specifies the Azure location where the key vault should be created."
-        }
+        "defaultValue": "[resourceGroup().location]"
       },  
       "azureSqlServerName": {
-        "type": "string",
-        "metadata": {
-          "description": "Azure SQL Server Name"
-        }
+        "type": "string"
       },  
       "AzureSqlServerUn": {
         "type": "string",
-        "metadata": {
-          "description": "SQL Server User Name"
-        },
-        "defaultValue": "azureadmin"
+        "defaultValue": "azuresqladmin"
       },
       "AzureSqlServerPw": {
-        "type": "string",
-        "metadata": {
-          "description": "SQL Server Password"
-        }
-      },
-      "diagnosticSettingsWorkspaceID": {
-          "type": "string",
-          "metadata": {
-              "description": "Log Analytics Workspace ID for Logs"
-          }
-      },
-      "isMSDevOpsAuditEnabled": {
-        "type": "bool",
-        "defaultValue": true,
-        "metadata": {
-            "description": "Enable Auditing of Microsoft support operations (DevOps)"
-        }
-      },
-      "internalSubnetId": {
-          "type": "string",
-          "metadata": {
-              "description": "Resource ID of Internal Subnet (Used by Private Endpoints and VMs)"
-          }
-      },
-      "databricksPrivateSubnetId": {
-          "type": "string",
-          "metadata": {
-              "description": "Resource ID of Databricks Private Subnet"
-          }
+        "type": "string"
       }
     },
     "resources": [
@@ -73,43 +37,6 @@
             "publicNetworkAccess": "disabled"
           },
           "resources": [
-              {
-                "apiVersion": "2019-04-01",
-                "name": "[concat(parameters('azureSqlServerName'), '-pe')]",
-                "type": "Microsoft.Network/privateEndpoints",
-                "location": "[parameters('location')]",
-                "dependsOn": [
-                "[resourceId('Microsoft.Sql/servers', parameters('azureSqlServerName'))]"
-                ],
-                "properties": {
-                    "privateLinkServiceConnections": [
-                        {
-                            "name": "[concat(parameters('azureSqlServerName'), '-pe-conn')]",
-                            "properties": {
-                                "privateLinkServiceId": "[resourceId('Microsoft.Sql/servers', parameters('azureSqlServerName'))]",
-                                "groupIds": ["sqlServer"]
-                            }
-                        }
-                    ],
-                    "manualPrivateLinkServiceConnections": [],
-                    "subnet": {
-                        "id": "[parameters('internalSubnetId')]"
-                    }
-                }
-            },
-            {
-              "name": "AllowAllWindowsAzureIps",
-              "type": "firewallrules",
-              "location": "[parameters('location')]",
-              "apiVersion": "2014-04-01-preview",
-              "dependsOn": [
-                "[resourceId('Microsoft.Sql/servers', parameters('azureSqlServerName'))]"
-                ],
-              "properties": {
-                "startIpAddress": "0.0.0.0",
-                "endIpAddress": "0.0.0.0"
-              }
-            },
             {
               "type": "databases",
               "apiVersion": "2017-03-01-preview",
@@ -119,86 +46,7 @@
               ],
               "name": "master",
               "properties": {}
-            },
-            {
-              "type": "databases/providers/diagnosticSettings",
-              "name": "[concat('master/microsoft.insights/','service')]",
-              "dependsOn": [
-                "[parameters('azureSqlServerName')]",
-                "[resourceId('Microsoft.Sql/servers/databases', parameters('azureSqlServerName'), 'master')]"
-              ],
-              "apiVersion": "2017-05-01-preview",
-              "properties": {
-                "name": "service",
-                "workspaceId": "[parameters('diagnosticSettingsWorkspaceID')]",
-                "logs": [
-                  {
-                    "category": "SQLSecurityAuditEvents",
-                    "enabled": true,
-                    "retentionPolicy": {
-                      "days": 0,
-                      "enabled": false
-                    }
-                  },
-                  {
-                    "condition": "[parameters('isMSDevOpsAuditEnabled')]",
-                    "category": "DevOpsOperationsAudit",
-                    "enabled": true,
-                    "retentionPolicy": {
-                      "days": 0,
-                      "enabled": false
-                    }
-                  }
-                ]
-              }
-            },
-            {
-              "apiVersion": "2017-03-01-preview",
-              "type": "auditingSettings",
-              "name": "DefaultAuditingSettings",
-              "dependsOn": [
-                "[resourceId('Microsoft.Sql/servers/', parameters('azureSqlServerName'))]"
-              ],
-              "properties": {
-                "State": "Enabled",
-                "isAzureMonitorTargetEnabled": true
-              }
-            },
-            {          
-              "condition": "[parameters('isMSDevOpsAuditEnabled')]",
-              "type": "devOpsAuditingSettings",
-              "apiVersion": "2020-08-01-preview",
-              "name": "Default",
-              "dependsOn": ["[parameters('azureSqlServerName')]"],
-              "properties": {
-                "State": "Enabled",
-                "isAzureMonitorTargetEnabled": true
             }
-          },
-          {
-            "type": "Microsoft.Sql/servers/virtualNetworkRules",
-            "apiVersion": "2021-02-01-preview",
-            "name": "[concat(parameters('azureSqlServerName'), '/Allow_Dev_DB_Subnet')]",
-            "dependsOn": [
-                "[resourceId('Microsoft.Sql/servers', parameters('azureSqlServerName'))]"
-            ],
-            "properties": {
-                "virtualNetworkSubnetId": "[parameters('internalSubnetId')]",
-                "ignoreMissingVnetServiceEndpoint": false
-            }
-        },
-        {
-            "type": "Microsoft.Sql/servers/virtualNetworkRules",
-            "apiVersion": "2021-02-01-preview",
-            "name": "[concat(parameters('azureSqlServerName'), '/vnetRule-', parameters('azureSqlServerName'))]",
-            "dependsOn": [
-                "[resourceId('Microsoft.Sql/servers', parameters('azureSqlServerName'))]"
-            ],
-            "properties": {
-                "virtualNetworkSubnetId": "[parameters('databricksPrivateSubnetId')]",
-                "ignoreMissingVnetServiceEndpoint": false
-            }
-        }
         ]
       }
     ],

@@ -6,6 +6,8 @@ variables:
     value: 01
   - name: subscription
     value: swcnonprod01
+  - name: subscriptionId
+    value: e59a4313-66c3-4db6-842d-6154c5e08205
   # The default resource group region name
   - name: location
     value: australiaeast
@@ -43,12 +45,12 @@ variables:
   - name: vnetName
     value: vnet-swcnonprod01-ae-01
   - name: vnetid
-    value: /subscriptions/$(SUBSCRIPTION)/resourceGroups/rg-swcnonprod01-network-01/providers/Microsoft.Network/virtualNetworks/vnet-swcnonprod01-ae-01
+    value: /subscriptions/$(subscriptionId)/resourceGroups/rg-swcnonprod01-network-01/providers/Microsoft.Network/virtualNetworks/vnet-swcnonprod01-ae-01
   - name: internalSubnetId
-    value: /subscriptions/$(SUBSCRIPTION)/resourceGroups/rg-swcnonprod01-network-01/providers/Microsoft.Network/virtualNetworks/vnet-swcnonprod01-ae-01/subnets/snet-swcnonprod01-ae-01
+    value: /subscriptions/$(subscriptionId)/resourceGroups/rg-swcnonprod01-network-01/providers/Microsoft.Network/virtualNetworks/vnet-swcnonprod01-ae-01/subnets/snet-swcnonprod01-ae-01
   - name: databricksPrivateSubnetId
-    value: /subscriptions/$(SUBSCRIPTION)/resourceGroups/rg-swcnonprod01-network-01/providers/Microsoft.Network/virtualNetworks/vnet-swcnonprod01-ae-01/subnets/snet-swcnonprod01-ae-daf-preprod-dbwprivate-01
-  # ------------------------------------------------
+    value: /subscriptions/$(subscriptionId)/resourceGroups/rg-swcnonprod01-network-01/providers/Microsoft.Network/virtualNetworks/vnet-swcnonprod01-ae-01/subnets/snet-swcnonprod01-ae-daf-$(environment)-dbwprivate-01
+  # -------------------------------------------------
   # Service names for environment
   # -------------------------------------------------
   # Name of Azure SQL Server and EDW Database
@@ -58,17 +60,17 @@ variables:
     value: EDW
   # Name of key vault for this environment.
   - name: azurekeyvaultname
-    value: kyv-$(PREFIX)-$(ENVIRONMENT)-$(INCREMENT)
+    value: kv-$(PREFIX)-$(ENVIRONMENT)-$(INCREMENT)
   # Setup secret rotation interval in days
   - name: secretrotationinterval 
     value: 30
   # Name of Log Analytics workspace name
   - name: loganalyticsworkspacename
-    value: logws-$(PREFIX)-$(ENVIRONMENT)
+    value: law-$(PREFIX)-$(ENVIRONMENT)
   - name: logstorageaccountname
     value: salogs$(PREFIX)$(ENVIRONMENT)$(INCREMENT)
   # Name of Azure SQL Server and catalog name
-  # Data Lake storage account names, commonly split.
+  # Data Lake storage account names, commonly split
   # into zones. Ensure it is a comma delimited list
   # as it is split into an array within the ARM 
   # template.
@@ -103,7 +105,7 @@ variables:
   - name: loganalyticsretention
     value: 30 
   - name: diagnosticSettingsWorkspaceID
-    value: /subscriptions/$(SUBSCRIPTION)/resourcegroups/$(resourcegroupname)/providers/microsoft.operationalinsights/workspaces/$(loganalyticsworkspacename)
+    value: /subscriptions/$(subscriptionId)/resourcegroups/$(resourcegroupname)/providers/microsoft.operationalinsights/workspaces/$(loganalyticsworkspacename)
   # ------------------------------------------------
   # Databricks related
   # ------------------------------------------------
@@ -118,9 +120,9 @@ variables:
   - name: privatesubnetcidr
     value: 10.97.46.128/26
   - name: custompublicsubnetname
-    value: snet-swcnonprod01-ae-daf-preprod-dbwpublic-01
+    value: snet-swcnonprod01-ae-daf-$(environment)-dbwpublic-01
   - name: customprivatesubnetname
-    value: snet-swcnonprod01-ae-daf-preprod-dbwprivate-01
+    value: snet-swcnonprod01-ae-daf-$(environment)-dbwprivate-01
   - name: databrickspricingtier
     value: premium
   - name: databricksclustername
@@ -149,6 +151,6 @@ variables:
     value: sqladminuser
   - name: synapsesqlPoolName
     value: syndw$(ENVIRONMENT)$(INCREMENT)
-  - name: setWorkspaceIdentityRbacOnStorageAccount
-    value: false
+  - name: defaultAdlsGen2AccountResourceId
+    value: /subscriptions/$(subscriptionId)/resourcegroups/$(resourcegroupname)/providers/Microsoft.Storage/storageAccounts/$(defaultDataLakeStorageAccountName)
   #------------------------------------------------
