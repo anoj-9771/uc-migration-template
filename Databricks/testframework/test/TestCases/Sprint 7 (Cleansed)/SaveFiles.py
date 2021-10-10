@@ -1,16 +1,5 @@
 # Databricks notebook source
-table = 'VIBDCHARACT'
-
-# COMMAND ----------
-
-# DBTITLE 0,Writing Count Result in Database
-# MAGIC %sql
-# MAGIC CREATE DATABASE IF NOT EXISTS test
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC drop table if exists test.table
+table = 'ZDSBILLFORMT'
 
 # COMMAND ----------
 
@@ -37,8 +26,7 @@ def listDetails(inFile):
     tmpTable = f'{inFile.name.split(".")[0]}_file{str(fileCount)}'
     dfs[fileCount].createOrReplaceTempView(tmpTable)
     display(spark.sql(f'select * from {tmpTable}'))
-    testdf = spark.sql(f'select * from {tmpTable}')
-    testdf.write.format(fileType).mode("append").saveAsTable("test" + "." + table)
+    
    
 
 # COMMAND ----------
@@ -76,13 +64,3 @@ for folder in folders:
 
 for myFile in fileNames:
     listDetails(myFile)
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC select * from test.0uc_devcat_attr
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC select distinct EXTRACT_DATETIME from test.0uc_devcat_attr order by EXTRACT_DATETIME desc

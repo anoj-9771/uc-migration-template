@@ -7,6 +7,78 @@
 # COMMAND ----------
 
 # MAGIC %sql
+# MAGIC select 
+# MAGIC 
+# MAGIC rtrim(ltrim(propertyNumber)) as LocationId,
+# MAGIC propertyAddress as formattedAddress,
+# MAGIC null as streetName,
+# MAGIC null as streetType,
+# MAGIC LGA as LGA,
+# MAGIC suburb as suburb,
+# MAGIC 'NSW' as state,
+# MAGIC first(latitude) as latitude, 
+# MAGIC first(longitude) as longitude
+# MAGIC from cleansed.t_hydra_tlotparcel  group by LocationId having propertyNumber is not null and  propertynumber = '4858656'
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC select 
+# MAGIC rtrim(ltrim(propertyNumber)) as LocationId,
+# MAGIC first(propertyAddress) as formattedAddress,
+# MAGIC null as streetName,
+# MAGIC null as streetType,
+# MAGIC first(LGA) as LGA,
+# MAGIC first(suburb) as suburb,
+# MAGIC 'NSW' as state,
+# MAGIC first(latitude) as latitude, 
+# MAGIC first(longitude) as longitude
+# MAGIC from cleansed.t_hydra_tlotparcel where propertyNumber is not null and  propertynumber = '4858656' group by propertyNumber 
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC select * from curated.dimlocation where locationID = '4858656'
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC select 
+# MAGIC rtrim(ltrim(propertyNumber)) as LocationId,
+# MAGIC first(propertyAddress) as formattedAddress,
+# MAGIC null as streetName,
+# MAGIC null as streetType,
+# MAGIC first(LGA) as LGA,
+# MAGIC first(suburb) as suburb,
+# MAGIC 'NSW' as state,
+# MAGIC first(latitude) as latitude, 
+# MAGIC first(longitude) as longitude
+# MAGIC from cleansed.t_hydra_tlotparcel where propertyNumber is not null and  propertynumber = '4858656' group by propertyNumber 
+
+# COMMAND ----------
+
+# DBTITLE 1,[Mapping Rule]
+# MAGIC %sql
+# MAGIC select 
+# MAGIC rtrim(ltrim(propertyNumber)) as LocationId,
+# MAGIC propertyAddress as formattedAddress,
+# MAGIC null as streetName,
+# MAGIC null as streetType,
+# MAGIC --LGA,
+# MAGIC --suburb,
+# MAGIC 'NSW' as state,
+# MAGIC first(latitude) as latitude, 
+# MAGIC first(longitude) as longitude
+# MAGIC from cleansed.t_hydra_tlotparcel where propertyNumber is not null and  propertynumber = '4858656' group by propertyNumber 
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC select * from curated.dimlocation where locationID = '4858656'
+
+# COMMAND ----------
+
+# MAGIC %sql
 # MAGIC select * from (
 # MAGIC select propertyNumber, count(propertyNumber) as testcount from
 # MAGIC cleansed.t_hydra_tlotparcel group by propertyNumber)a  where a.testcount > 1 
@@ -34,8 +106,8 @@
 # MAGIC LGA,
 # MAGIC suburb as suburb,
 # MAGIC 'NSW' as state,
-# MAGIC latitude,
-# MAGIC longitude,
+# MAGIC first(latitude) as latitude, 
+# MAGIC first(longitude) as longitude,
 # MAGIC row_number() over (partition by propertyNumber order by systemKey desc) rn
 # MAGIC from 
 # MAGIC cleansed.t_hydra_tlotparcel 
@@ -57,6 +129,27 @@
 
 # COMMAND ----------
 
+# MAGIC %sql
+# MAGIC select * from cleansed.t_hydra_tlotparcel
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC select
+# MAGIC rtrim(ltrim(propertyNumber)) as LocationId,
+# MAGIC propertyAddress as formattedAddress,
+# MAGIC null as streetName,
+# MAGIC null as streetType,
+# MAGIC LGA,
+# MAGIC suburb as suburb,
+# MAGIC 'NSW' as state,
+# MAGIC first(latitude),
+# MAGIC first(longitude)
+# MAGIC from 
+# MAGIC cleansed.t_hydra_tlotparcel group by LocationId
+
+# COMMAND ----------
+
 # DBTITLE 1,[additional check]
 # MAGIC %sql
 # MAGIC select 
@@ -70,7 +163,6 @@
 # MAGIC latitude,
 # MAGIC longitude from (
 # MAGIC select
-# MAGIC systemKey,
 # MAGIC rtrim(ltrim(propertyNumber)) as LocationId,
 # MAGIC propertyAddress as formattedAddress,
 # MAGIC null as streetName,
@@ -78,13 +170,12 @@
 # MAGIC LGA,
 # MAGIC suburb as suburb,
 # MAGIC 'NSW' as state,
-# MAGIC latitude,
-# MAGIC longitude
-# MAGIC --row_number() over (partition by propertyNumber order by systemKey desc) rn
+# MAGIC first(latitude),
+# MAGIC first(longitude)
 # MAGIC from 
-# MAGIC cleansed.t_hydra_tlotparcel group by propertyNumber
-# MAGIC where propertyNumber is not null )a
-# MAGIC --where propertyNumber is not null and propertyNumber='-1' )a where a.rn = 1
+# MAGIC cleansed.t_hydra_tlotparcel
+# MAGIC where propertyNumber is not null )a  group by LocationId
+# MAGIC 
 # MAGIC union all
 # MAGIC 
 # MAGIC select * from(
@@ -417,5 +508,82 @@ lakedftarget.printSchema()
 
 # COMMAND ----------
 
-# DBTITLE 1,[S vs T for Latitude]
+# DBTITLE 1,[S vs T based on new mapping]
+# MAGIC %sql
+# MAGIC select 
+# MAGIC rtrim(ltrim(propertyNumber)) as LocationId,
+# MAGIC first(propertyAddress) as formattedAddress,
+# MAGIC null as streetName,
+# MAGIC null as streetType,
+# MAGIC first(LGA) as LGA,
+# MAGIC first(suburb) as suburb,
+# MAGIC 'NSW' as state,
+# MAGIC first(latitude) as latitude, 
+# MAGIC first(longitude) as longitude
+# MAGIC from cleansed.t_hydra_tlotparcel where propertyNumber is not null and propertyNumber='4858656'group by propertyNumber 
+# MAGIC except
+# MAGIC select 
+# MAGIC LocationID,
+# MAGIC formattedAddress,
+# MAGIC streetName,
+# MAGIC streetType,
+# MAGIC LGA,
+# MAGIC suburb,
+# MAGIC state,
+# MAGIC latitude,
+# MAGIC longitude
+# MAGIC from
+# MAGIC curated.dimlocation where LocationId='4858656'
 
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC select * from cleansed.t_hydra_tlotparcel where propertyNumber='4858656'
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC select 
+# MAGIC LocationID,
+# MAGIC formattedAddress,
+# MAGIC streetName,
+# MAGIC streetType,
+# MAGIC LGA,
+# MAGIC suburb,
+# MAGIC state,
+# MAGIC latitude,
+# MAGIC longitude
+# MAGIC from
+# MAGIC curated.dimlocation where LocationId='4858656'
+# MAGIC except
+# MAGIC select 
+# MAGIC rtrim(ltrim(propertyNumber)) as LocationId,
+# MAGIC first(propertyAddress) as formattedAddress,
+# MAGIC null as streetName,
+# MAGIC null as streetType,
+# MAGIC first(LGA) as LGA,
+# MAGIC first(suburb) as suburb,
+# MAGIC 'NSW' as state,
+# MAGIC first(latitude) as latitude, 
+# MAGIC first(longitude) as longitude
+# MAGIC from cleansed.t_hydra_tlotparcel where propertyNumber is not null and propertyNumber='4858656'group by propertyNumber 
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC select * from curated.dimlocation where LocationId ='4858656'
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC select 
+# MAGIC rtrim(ltrim(propertyNumber)) as LocationId,
+# MAGIC first(propertyAddress) as formattedAddress,
+# MAGIC null as streetName,
+# MAGIC null as streetType,
+# MAGIC first(LGA) as LGA,
+# MAGIC first(suburb) as suburb,
+# MAGIC 'NSW' as state,
+# MAGIC first(latitude) as latitude, 
+# MAGIC first(longitude) as longitude
+# MAGIC from cleansed.t_hydra_tlotparcel where propertyNumber is not null and propertyNumber='4858656'group by propertyNumber 
