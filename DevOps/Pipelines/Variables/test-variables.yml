@@ -6,6 +6,8 @@ variables:
     value: 01
   - name: subscription
     value: swcnonprod01
+  - name: subscriptionId
+    value: e59a4313-66c3-4db6-842d-6154c5e08205
   # The default resource group region name
   - name: location
     value: australiaeast
@@ -14,29 +16,43 @@ variables:
     value: test
   # Resource group name
   - name: resourcegroupname
-    value: rg-swcnonprod01-daf-test-01
-  # username for SQL Server Control DB.
+    value: rg-swcnonprod01-daf-$(environment)-01
+  # username for SQL Server Control DB
   - name: azuresqlserverun
     value: sqladmin
   # Name of the service connection in Azure Devops
   - name: azdoresourceconnection
-    value: azure-rg-test-serviceconnection
+    value: azure-rg-$(environment)-serviceconnection
   # The service principal object ID (Not App ID)... Use 'az ad sp show --id <<app-id>> --query "objectId" -o tsv'
   - name: spobjectid
     value: 71beb4c2-8b21-458b-8a58-eda46894efe8
   # Store account type for BLOB Storage e.g. Standard_LRS)
   - name: storageAccountType
     value: Standard_LRS
+  # Name of the service connection in Devops
+  - name: devops-service-connection
+    value: azure-rg-$(environment)-serviceconnection
   # Tagging
   - name: applytags
     value: false
   - name: tags
     value: CostCenter=DataAndAI \
-          Environment=Production \
+          Environment=NonProduction \
           Owner=jackson.staub@insight.com
   # ------------------------------------------------
-  # Service names for environment.
-  # ------------------------------------------------
+  # Vnet Related
+  # -------------------------------------------------
+  - name: vnetName
+    value: vnet-swcnonprod01-ae-01
+  - name: vnetid
+    value: /subscriptions/$(subscriptionId)/resourceGroups/rg-swcnonprod01-network-01/providers/Microsoft.Network/virtualNetworks/vnet-swcnonprod01-ae-01
+  - name: internalSubnetId
+    value: /subscriptions/$(subscriptionId)/resourceGroups/rg-swcnonprod01-network-01/providers/Microsoft.Network/virtualNetworks/vnet-swcnonprod01-ae-01/subnets/snet-swcnonprod01-ae-01
+  - name: databricksPrivateSubnetId
+    value: /subscriptions/$(subscriptionId)/resourceGroups/rg-swcnonprod01-network-01/providers/Microsoft.Network/virtualNetworks/vnet-swcnonprod01-ae-01/subnets/snet-swcnonprod01-ae-daf-$(environment)-dbwprivate-01
+  # -------------------------------------------------
+  # Service names for environment
+  # -------------------------------------------------
   # Name of Azure SQL Server and EDW Database
   - name: azuresqlservername
     value: sql-$(SUBSCRIPTION)-$(PREFIX)-$(ENVIRONMENT)-$(INCREMENT)
@@ -50,22 +66,22 @@ variables:
     value: 30
   # Name of Log Analytics workspace name
   - name: loganalyticsworkspacename
-    value: logws-$(SUBSCRIPTION)-$(PREFIX)-$(ENVIRONMENT)-$(INCREMENT)
+    value: law-$(PREFIX)-$(ENVIRONMENT)
   - name: logstorageaccountname
-    value: salog$(PREFIX)$(ENVIRONMENT)
+    value: salogs$(PREFIX)$(ENVIRONMENT)$(INCREMENT)
   # Name of Azure SQL Server and catalog name
   # Data Lake storage account names, commonly split
   # into zones. Ensure it is a comma delimited list
   # as it is split into an array within the ARM 
   # template.
   - name: blobstorageaccountnames
-    value: ${{ replace(lower(variables.prefix),'-','') }}${{ replace(lower(variables.environment),'-','') }}saraw, ${{ replace(lower(variables.prefix),'-','') }}${{ replace(lower(variables.environment),'-','') }}sacurated
+    value: sablob$(PREFIX)$(ENVIRONMENT)$(INCREMENT)
   - name: datalakestorageaccountnames
     value: sa$(PREFIX)$(ENVIRONMENT)$(INCREMENT)
   # Container or file system names within storage account
   # Used to iterate in ARM template
   - name: logzonename
-    value: logs_databricks, logs_datafactory, logs_keyvault, logs_datalake
+    value: daflogs
   - name: zonenames
     value: raw, cleansed, curated, datalab, synapsestaging
     # value: raw, stage, sandbox
@@ -88,8 +104,10 @@ variables:
     value: PerGB2018
   - name: loganalyticsretention
     value: 30  
+  - name: diagnosticSettingsWorkspaceID
+    value: /subscriptions/$(subscriptionId)/resourcegroups/$(resourcegroupname)/providers/microsoft.operationalinsights/workspaces/$(loganalyticsworkspacename)
   # ------------------------------------------------
-  # Databricks related.
+  # Databricks related
   # ------------------------------------------------
   - name: nsgname
     value: nsg-$(SUBSCRIPTION)-$(PREFIX)-$(ENVIRONMENT)-$(INCREMENT)
@@ -97,24 +115,20 @@ variables:
     value: 
   - name: vnetresourcegroupname
     value: rg-swcnonprod01-network-01
-  - name: vnetName
-    value: vnet-swcnonprod01-ae-01
-  - name: vnetid
-    value: /subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-network-01/providers/Microsoft.Network/virtualNetworks/vnet-swcnonprod01-ae-01                               
   - name: publicsubnetcidr
-    value: 10.97.47.64/26        #10.1.2.0/24
+    value: 10.97.47.64/26
   - name: privatesubnetcidr
-    value: 10.97.47.0/26        #10.1.1.0/24
+    value: 10.97.47.0/26
   - name: custompublicsubnetname
-    value: snet-swcnonprod01-ae-daf-test-dbwpublic-01
+    value: snet-swcnonprod01-ae-daf-$(environment)-dbwpublic-01
   - name: customprivatesubnetname
-    value: snet-swcnonprod01-ae-daf-test-dbwprivate-01
+    value: snet-swcnonprod01-ae-daf-$(environment)-dbwprivate-01
   - name: databrickspricingtier
     value: premium
   - name: databricksclustername
     value: etl-cluster
   - name: sparkClusterVersion
-    value: 7.0.x-scala2.12
+    value: 8.0.x-scala2.12
   - name: databricksdrivernodetypeid
     value: Standard_D3_v2
   - name: databricksnodetypeid
@@ -137,8 +151,7 @@ variables:
     value: sqladminuser
   - name: synapsesqlPoolName
     value: syndw$(ENVIRONMENT)$(INCREMENT)
-  - name: setWorkspaceIdentityRbacOnStorageAccount
-    value: false
   - name: defaultAdlsGen2AccountResourceId
-    value: /subscriptions/$(SUBSCRIPTION)/resourcegroups/$(resourcegroupname)/providers/Microsoft.Storage/storageAccounts/$(defaultDataLakeStorageAccountName)
+    value: /subscriptions/$(subscriptionId)/resourcegroups/$(resourcegroupname)/providers/Microsoft.Storage/storageAccounts/$(defaultDataLakeStorageAccountName)
   #------------------------------------------------
+  

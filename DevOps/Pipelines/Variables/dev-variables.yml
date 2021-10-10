@@ -6,21 +6,23 @@ variables:
     value: 01
   - name: subscription
     value: swcnonprod01
+  - name: subscriptionId
+    value: e59a4313-66c3-4db6-842d-6154c5e08205
   # The default resource group region name
   - name: location
     value: australiaeast
-  # environment name used in service naming...
+  # environment name used in service naming
   - name: environment
     value: dev
   # Resource group name
   - name: resourcegroupname
-    value: rg-swcnonprod01-daf-dev-01
+    value: rg-swcnonprod01-daf-$(environment)-01
   # username for SQL Server Control DB
   - name: azuresqlserverun
     value: sqladmin
-  # Name of the service connection in Azure Devops.
+  # Name of the service connection in Azure Devops
   - name: azdoresourceconnection
-    value: azure-rg-dev-serviceconnection
+    value: azure-rg-$(environment)-serviceconnection
   # The service principal object ID (Not App ID)... Use 'az ad sp show --id <<app-id>> --query "objectId" -o tsv'
   - name: spobjectid
     value: 5f94952e-aed6-47c0-8db3-a5e464f71e30
@@ -29,9 +31,8 @@ variables:
     value: Standard_LRS
   # Name of the service connection in Devops
   - name: devops-service-connection
-    value: azure-rg-dev-serviceconnection
-
-  # Tagging.
+    value: azure-rg-$(environment)-serviceconnection
+  # Tagging
   - name: applytags
     value: false
   - name: tags
@@ -39,27 +40,38 @@ variables:
           Environment=NonProduction \
           Owner=jackson.staub@insight.com
   # ------------------------------------------------
+  # Vnet Related
+  # -------------------------------------------------
+  - name: vnetName
+    value: vnet-swcnonprod01-ae-01
+  - name: vnetid
+    value: /subscriptions/$(subscriptionId)/resourceGroups/rg-swcnonprod01-network-01/providers/Microsoft.Network/virtualNetworks/vnet-swcnonprod01-ae-01
+  - name: internalSubnetId
+    value: /subscriptions/$(subscriptionId)/resourceGroups/rg-swcnonprod01-network-01/providers/Microsoft.Network/virtualNetworks/vnet-swcnonprod01-ae-01/subnets/snet-swcnonprod01-ae-01
+  - name: databricksPrivateSubnetId
+    value: /subscriptions/$(subscriptionId)/resourceGroups/rg-swcnonprod01-network-01/providers/Microsoft.Network/virtualNetworks/vnet-swcnonprod01-ae-01/subnets/snet-swcnonprod01-ae-daf-$(environment)-dbwprivate-01
+  # -------------------------------------------------
   # Service names for environment
-  # ------------------------------------------------
-  # Name of Azure SQL Server and EDW Database.
+  # -------------------------------------------------
+  # Name of Azure SQL Server and EDW Database
   - name: azuresqlservername
     value: sql-$(SUBSCRIPTION)-$(PREFIX)-$(ENVIRONMENT)-$(INCREMENT)
   - name: azureedwdbname
     value: EDW
   # Name of key vault for this environment.
   - name: azurekeyvaultname
-    value: kv-$(PREFIX)-$(ENVIRONMENT)-$(INCREMENT)-test
+    value: kv-$(PREFIX)-$(ENVIRONMENT)-$(INCREMENT)
   # Setup secret rotation interval in days
   - name: secretrotationinterval 
     value: 30
   # Name of Log Analytics workspace name
   - name: loganalyticsworkspacename
-    value: logws-$(PREFIX)-$(ENVIRONMENT)
+    value: law-$(PREFIX)-$(ENVIRONMENT)
   - name: logstorageaccountname
     value: salogs$(PREFIX)$(ENVIRONMENT)$(INCREMENT)
   # Name of Azure SQL Server and catalog name
   # Data Lake storage account names, commonly split
-  # into zones. Ensure it is a comma delimited list.
+  # into zones. Ensure it is a comma delimited list
   # as it is split into an array within the ARM 
   # template.
   - name: blobstorageaccountnames
@@ -82,16 +94,18 @@ variables:
   # Data Factory self hosted integrated runtime name
   - name: datafactoryshirname
     value: $(PREFIX)-SHIR
-  # Flag to specify whether Data Factory requires Git Integration..
+  # Flag to specify whether Data Factory requires Git Integration.
   - name: isRepoEnabled
-    value: true  
+    value: false
   # ------------------------------------------------
-  # Log Analytics related.
+  # Log Analytics related
   # ------------------------------------------------
   - name: loganalyticssku
     value: PerGB2018
   - name: loganalyticsretention
     value: 30  
+  - name: diagnosticSettingsWorkspaceID
+    value: /subscriptions/$(subscriptionId)/resourcegroups/$(resourcegroupname)/providers/microsoft.operationalinsights/workspaces/$(loganalyticsworkspacename)
   # ------------------------------------------------
   # Databricks related
   # ------------------------------------------------
@@ -101,18 +115,14 @@ variables:
     value: 
   - name: vnetresourcegroupname
     value: rg-swcnonprod01-network-01
-  - name: vnetName
-    value: vnet-swcnonprod01-ae-01
-  - name: vnetid
-    value: /subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-network-01/providers/Microsoft.Network/virtualNetworks/vnet-swcnonprod01-ae-01
   - name: publicsubnetcidr
-    value: 10.97.47.192/26        #10.1.2.0/24
+    value: 10.97.47.192/26
   - name: privatesubnetcidr
-    value: 10.97.47.128/26        #10.1.1.0/24
+    value: 10.97.47.128/26
   - name: custompublicsubnetname
-    value: snet-swcnonprod01-ae-daf-dev-dbwpublic-01
+    value: snet-swcnonprod01-ae-daf-$(environment)-dbwpublic-01
   - name: customprivatesubnetname
-    value: snet-swcnonprod01-ae-daf-dev-dbwprivate-01
+    value: snet-swcnonprod01-ae-daf-$(environment)-dbwprivate-01
   - name: databrickspricingtier
     value: premium
   - name: databricksclustername
@@ -129,7 +139,7 @@ variables:
     value: 10
 
   # ------------------------------------------------
-  # Synapse Analytics related.
+  # Synapse Analytics related
   # ------------------------------------------------
   - name: synapseworkspacename
     value: synws-$(SUBSCRIPTION)-$(PREFIX)-$(ENVIRONMENT)-$(INCREMENT)
@@ -141,8 +151,6 @@ variables:
     value: sqladminuser
   - name: synapsesqlPoolName
     value: syndw$(ENVIRONMENT)$(INCREMENT)
-  - name: setWorkspaceIdentityRbacOnStorageAccount
-    value: false
   - name: defaultAdlsGen2AccountResourceId
-    value: /subscriptions/$(SUBSCRIPTION)/resourcegroups/$(resourcegroupname)/providers/Microsoft.Storage/storageAccounts/$(defaultDataLakeStorageAccountName)
+    value: /subscriptions/$(subscriptionId)/resourcegroups/$(resourcegroupname)/providers/Microsoft.Storage/storageAccounts/$(defaultDataLakeStorageAccountName)
   #------------------------------------------------

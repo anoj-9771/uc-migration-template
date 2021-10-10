@@ -23,10 +23,6 @@
             "defaultValue": "",
             "type": "SecureString"
         },
-        "setWorkspaceIdentityRbacOnStorageAccount": {
-            "type": "Bool",
-            "defaultValue": true
-        },
         "createManagedPrivateEndpoint": {
             "type": "Bool",
             "defaultValue": true
@@ -88,10 +84,6 @@
         },
         "setSbdcRbacOnStorageAccount": {
             "defaultValue": false,
-            "type": "Bool"
-        },
-        "setWorkspaceMsiByPassOnStorageAccount": {
-            "defaultValue": true,
             "type": "Bool"
         },
         "workspaceStorageAccountProperties": {
@@ -232,7 +224,7 @@
             },
             "subscriptionId": "[parameters('storageSubscriptionID')]",
             "resourceGroup": "[parameters('storageResourceGroupName')]",
-            "condition": "[parameters('setWorkspaceIdentityRbacOnStorageAccount')]"
+            "condition": "[parameters('firstRun')]"
         },
         {
             "type": "Microsoft.Resources/deployments",
@@ -261,7 +253,7 @@
             },
             "subscriptionId": "[parameters('storageSubscriptionID')]",
             "resourceGroup": "[parameters('storageResourceGroupName')]",
-            "condition": "[parameters('setWorkspaceMsiByPassOnStorageAccount')]"
+            "condition": "[parameters('firstRun')]"
         }
     ],
     "outputs": {}

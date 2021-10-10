@@ -20,7 +20,7 @@ variables:
     value: true
   # Used to add Control DB to Azure SQL server 
   - name: controldb
-    value: true
+    value: false
   # Used to add EDW DB to Azure SQL server 
   - name: edw
     value: false

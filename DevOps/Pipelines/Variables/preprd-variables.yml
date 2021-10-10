@@ -16,13 +16,13 @@ variables:
     value: preprod
   # Resource group name
   - name: resourcegroupname
-    value: rg-swcnonprod01-daf-preprod-01
+    value: rg-swcnonprod01-daf-$(environment)-01
   # username for SQL Server Control DB
   - name: azuresqlserverun
     value: sqladmin
   # Name of the service connection in Azure Devops.
   - name: azdoresourceconnection
-    value: azure-rg-preprod-serviceconnection
+    value: azure-rg-$(environment)-serviceconnection
   # The service principal object ID (Not App ID)... Use 'az ad sp show --id dbab60f5-44d5-450c-aef1-0b62b0790524 --query "objectId" -o tsv'
   - name: spobjectid
     value: 1ce42c3e-88e5-464a-b45e-efb2500856c2
@@ -31,7 +31,7 @@ variables:
     value: Standard_LRS
   # Name of the service connection in Devops
   - name: devops-service-connection
-    value: azure-rg-preprod-serviceconnection
+    value: azure-rg-$(environment)-serviceconnection
   # Tagging.
   - name: applytags
     value: false
@@ -49,8 +49,8 @@ variables:
   - name: internalSubnetId
     value: /subscriptions/$(subscriptionId)/resourceGroups/rg-swcnonprod01-network-01/providers/Microsoft.Network/virtualNetworks/vnet-swcnonprod01-ae-01/subnets/snet-swcnonprod01-ae-01
   - name: databricksPrivateSubnetId
-    value: /subscriptions/$(subscriptionId)/resourceGroups/rg-swcnonprod01-network-01/providers/Microsoft.Network/virtualNetworks/vnet-swcnonprod01-ae-01/subnets/snet-swcnonprod01-ae-daf-preprod-dbwprivate-01
-  # ------------------------------------------------
+    value: /subscriptions/$(subscriptionId)/resourceGroups/rg-swcnonprod01-network-01/providers/Microsoft.Network/virtualNetworks/vnet-swcnonprod01-ae-01/subnets/snet-swcnonprod01-ae-daf-$(environment)-dbwprivate-01
+  # -------------------------------------------------
   # Service names for environment
   # -------------------------------------------------
   # Name of Azure SQL Server and EDW Database
@@ -70,7 +70,7 @@ variables:
   - name: logstorageaccountname
     value: salogs$(PREFIX)$(ENVIRONMENT)$(INCREMENT)
   # Name of Azure SQL Server and catalog name
-  # Data Lake storage account names, commonly split.
+  # Data Lake storage account names, commonly split
   # into zones. Ensure it is a comma delimited list
   # as it is split into an array within the ARM 
   # template.
@@ -120,9 +120,9 @@ variables:
   - name: privatesubnetcidr
     value: 10.97.46.128/26
   - name: custompublicsubnetname
-    value: snet-swcnonprod01-ae-daf-preprod-dbwpublic-01
+    value: snet-swcnonprod01-ae-daf-$(environment)-dbwpublic-01
   - name: customprivatesubnetname
-    value: snet-swcnonprod01-ae-daf-preprod-dbwprivate-01
+    value: snet-swcnonprod01-ae-daf-$(environment)-dbwprivate-01
   - name: databrickspricingtier
     value: premium
   - name: databricksclustername
@@ -151,8 +151,6 @@ variables:
     value: sqladminuser
   - name: synapsesqlPoolName
     value: syndw$(ENVIRONMENT)$(INCREMENT)
-  - name: setWorkspaceIdentityRbacOnStorageAccount
-    value: false
   - name: defaultAdlsGen2AccountResourceId
     value: /subscriptions/$(subscriptionId)/resourcegroups/$(resourcegroupname)/providers/Microsoft.Storage/storageAccounts/$(defaultDataLakeStorageAccountName)
   #------------------------------------------------
