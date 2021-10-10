@@ -166,7 +166,7 @@
             },
             "properties": {
                 "mode": "incremental",
-                "defaultDataLakeStorage": "[if(equals(string(parameters('firstRun')), 'true'), variables('defaultDataLakeStorage'), json('null'))]",
+                "defaultDataLakeStorage": "[if(equals(string(parameters('firstRun')), 'true'), variables('defaultDataLakeStorage'), variables('defaultDataLakeStorage'))]",
                 "managedVirtualNetwork": "[parameters('managedVirtualNetwork')]",
                 "managedResourceGroupName": "[parameters('managedResourceGroupName')]",
                 "publicNetworkAccess": "[parameters('publicNetworkAccess')]",
