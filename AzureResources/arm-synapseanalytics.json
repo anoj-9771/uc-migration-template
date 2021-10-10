@@ -146,13 +146,7 @@
     },
     "variables": {
         "storageBlobDataContributorRoleID": "ba92f5b4-2d11-453d-a403-e96b0029c9fe",
-        "defaultDataLakeStorageAccountUrl": "[concat('https://', parameters('defaultDataLakeStorageAccountName'), '.dfs.core.windows.net')]",
-        "defaultDataLakeStorage": {
-            "accountUrl": "[variables('defaultDataLakeStorageAccountUrl')]",
-            "filesystem": "[parameters('defaultDataLakeStorageFilesystemName')]",
-            "resourceId": "[parameters('defaultAdlsGen2AccountResourceId')]",
-            "createManagedPrivateEndpoint": "[parameters('createManagedPrivateEndpoint')]"
-        }
+        "defaultDataLakeStorageAccountUrl": "[concat('https://', parameters('defaultDataLakeStorageAccountName'), '.dfs.core.windows.net')]"
     },
     "resources": [
         {
@@ -166,7 +160,12 @@
             },
             "properties": {
                 "mode": "incremental",
-                "defaultDataLakeStorage": "[if(equals(string(parameters('firstRun')), 'true'), variables('defaultDataLakeStorage'), variables('defaultDataLakeStorage'))]",
+                "defaultDataLakeStorage": {
+                    "accountUrl": "[variables('defaultDataLakeStorageAccountUrl')]",
+                    "filesystem": "[parameters('defaultDataLakeStorageFilesystemName')]",
+                    "resourceId": "[parameters('defaultAdlsGen2AccountResourceId')]",
+                    "createManagedPrivateEndpoint": "[if(equals(string(parameters('firstRun')), 'true'), parameters('createManagedPrivateEndpoint'), bool('false'))]"
+                },
                 "managedVirtualNetwork": "[parameters('managedVirtualNetwork')]",
                 "managedResourceGroupName": "[parameters('managedResourceGroupName')]",
                 "publicNetworkAccess": "[parameters('publicNetworkAccess')]",
