@@ -16,13 +16,13 @@ variables:
     value: dev
   # Resource group name
   - name: resourcegroupname
-    value: rg-swcnonprod01-daf-$(environment)-01
+    value: rg-swcnonprod01-daf-dev-01
   # username for SQL Server Control DB
   - name: azuresqlserverun
     value: sqladmin
   # Name of the service connection in Azure Devops
   - name: azdoresourceconnection
-    value: azure-rg-$(environment)-serviceconnection
+    value: azure-rg-dev-serviceconnection
   # The service principal object ID (Not App ID)... Use 'az ad sp show --id <<app-id>> --query "objectId" -o tsv'
   - name: spobjectid
     value: 5f94952e-aed6-47c0-8db3-a5e464f71e30
@@ -31,7 +31,7 @@ variables:
     value: Standard_LRS
   # Name of the service connection in Devops
   - name: devops-service-connection
-    value: azure-rg-$(environment)-serviceconnection
+    value: azure-rg-dev-serviceconnection
   # Tagging
   - name: applytags
     value: false

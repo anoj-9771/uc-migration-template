@@ -11,8 +11,6 @@ parameters:
       type: string
     - name: synapsesqlPoolName
       type: string
-    - name: setWorkspaceIdentityRbacOnStorageAccount
-      type: string
     - name: defaultAdlsGen2AccountResourceId
       type: string
     
@@ -27,7 +25,7 @@ steps:
      templateLocation: 'Linked artifact'
      csmFile: '$(Pipeline.Workspace)/arm_templates/arm-synapseanalytics.json'
      overrideParameters: |
-      -location $(LOCATION) -synapseworkspacename ${{ parameters.synapseworkspacename }} -defaultDataLakeStorageAccountName ${{ parameters.defaultDataLakeStorageAccountName }} -defaultDataLakeStorageFilesystemName ${{ parameters.defaultDataLakeStorageFilesystemName }} -setWorkspaceIdentityRbacOnStorageAccount ${{ parameters.setWorkspaceIdentityRbacOnStorageAccount }} -defaultAdlsGen2AccountResourceId ${{ parameters.defaultAdlsGen2AccountResourceId}}
+      -location $(LOCATION) -synapseworkspacename ${{ parameters.synapseworkspacename }} -defaultDataLakeStorageAccountName ${{ parameters.defaultDataLakeStorageAccountName }} -defaultDataLakeStorageFilesystemName ${{ parameters.defaultDataLakeStorageFilesystemName }} -defaultAdlsGen2AccountResourceId ${{ parameters.defaultAdlsGen2AccountResourceId}}
      deploymentMode: 'Incremental'
      deploymentOutputs: 'armOutputs'
     displayName: 'Deploy Synapse Analytics Workspace' 
