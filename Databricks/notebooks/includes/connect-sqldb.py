@@ -37,14 +37,14 @@ def AzSqlLoadDataToDB(dataframe, tablename, writemode):
 
 def AzSqlExecTSQL(query):
   
-  #Execute the Scala notebook to run the Query on SQLEDW
-  dbutils.notebook.run("/build/includes/scala-executors/exec-tsql-edw", 0, {"query":query})
+  #Execute the Scala notebook to run the Query on SQLDW
+  dbutils.notebook.run("/build/includes/scala-executors/exec-tsql-dw", 0, {"query":query})
 
 # COMMAND ----------
 
 def AzSqlGetData(query):
   
-  #Method to return data from SQL Server EDW
+  #Method to return data from SQL Server DW
   #Query can be either table name or a SELECT Query
   
   #Trim the query at the beginning in case there are blank spaces
@@ -66,4 +66,5 @@ def AzSqlGetData(query):
   return df
 
 # COMMAND ----------
+
 

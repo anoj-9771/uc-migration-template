@@ -15,8 +15,8 @@
 
 # COMMAND ----------
 
-# MAGIC %run ./commonBilledWaterConsumptionisu
+# MAGIC %run ../functions/commonBilledWaterConsumptionIsu
 
 # COMMAND ----------
 
-# MAGIC %run ./dimensions/BillingDocumentisu
+# MAGIC %run ./dimensions/BillingDocumentSapisu

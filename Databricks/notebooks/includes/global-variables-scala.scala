@@ -29,10 +29,6 @@ val ADS_DATA_LAKE_ACCOUNT = "sadaf"+ ADS_ENVIRONMENT + "01" //f"{ADS_COMPANY_INI
 
 // COMMAND ----------
 
-// val ADS_DATABASE_NAME = "EDW"
-// val ADS_DATABASE_USERNAME = "sqladmin"
-// val ADS_KV_DB_PWD_SECRET_KEY = "AzureSQLServerPw"
-
 val ADS_DATABASE_NAME = "syndwdev01"
 val ADS_DATABASE_USERNAME = "svc_synapse1"
 val ADS_KV_DB_PWD_SECRET_KEY = "daf-syn-d-sqlpool-password"
