@@ -58,3 +58,24 @@ def SynapseLoadDataToDB(dataframe, tablename, writemode):
   .option("tempdir", TEMPFOLDER) \
   .mode(writemode) \
   .save()
+
+# COMMAND ----------
+
+def SynapseExecuteSQLRead(query):
+  
+  SQL_DW_URL = SynapseGetConnectionURL()
+  TEMPFOLDER = SynapseGetBlobStorageStageFolder()
+
+  print(TEMPFOLDER)
+  print(SQL_DW_URL)
+  
+  df = spark.read \
+  .format("com.databricks.spark.sqldw") \
+  .option("url", SQL_DW_URL) \
+  .option("useAzureMSI", "true") \
+  .option("tempdir", TEMPFOLDER) \
+  .option("query",query)\
+  .load()
+
+  print("Finished : ScalaExecuteSQLQuery : Execution query: " + query)
+  return df

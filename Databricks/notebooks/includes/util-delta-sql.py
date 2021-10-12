@@ -472,15 +472,15 @@ def DeltaSaveDataFrameToCurated(df, database_name, data_lake_folder, table_name,
     delta_table_name = database_name + "." + table_name
     azure_table_name = table_name
     
-    DeltaSyncToSQLEDWOverwrite (delta_table_name, azure_schema_name, azure_table_name)
+    DeltaSyncToSQLDWOverwrite (delta_table_name, azure_schema_name, azure_table_name)
 
   
 
 # COMMAND ----------
 
-def DeltaSyncToSQLEDW(delta_table, target_schema, target_table, business_key, delta_column, start_counter, data_load_mode, track_changes, is_delta_extract, schema_file_url = "", additional_property = ""):
+def DeltaSyncToSQLDW(delta_table, target_schema, target_table, business_key, start_counter, data_load_mode, additional_property = ""):
   '''
-  This function sync's Delta Table to SQL EDW
+  This function sync's Delta Table to SQL DW
   '''
   
   sql_stg_tbl_name = f"{ADS_SQL_SCHEMA_STAGE}.{target_table}"
@@ -489,13 +489,11 @@ def DeltaSyncToSQLEDW(delta_table, target_schema, target_table, business_key, de
   
   if data_load_mode != ADS_WRITE_MODE_OVERWRITE:
     LogEtl("Generating SQL Query")
-    sql_merge_query = SQLMerge_SQLEDW_GenerateSQL(
+    sql_merge_query = SQLMerge_SQLDW_GenerateSQL(
       source_table_name = sql_stg_tbl_name, 
       target_table_name = sql_main_tbl_name, 
       business_key = business_key, 
-      delta_column = delta_column, 
       data_load_mode = data_load_mode,
-      track_changes = track_changes, 
       datalake_source_table =  delta_table)
 
     LogEtl("Saving the query to a temp table from Python so that it can be used by Scala later.")
@@ -505,26 +503,23 @@ def DeltaSyncToSQLEDW(delta_table, target_schema, target_table, business_key, de
   else:
     LogEtl("SQL query not needed for OVERWRITE. Will write directly to table")
   
-  # Call the Scala notebook to sync the SQL EDW from Data Lake
-#   dbutils.notebook.run("/build/includes/scala-executors/exec-sync-sqledw", 0, {"p_delta_table":delta_table, "p_sql_schema_name":stage_schema, "p_sql_edw_table":target_table, "p_data_load_mode":data_load_mode, "p_schema_file_url":schema_file_url, "p_delta_column":delta_column, "p_start_counter":start_counter, "p_is_delta_extract":str(is_delta_extract), "p_track_changes":str(track_changes), "p_additional_property":additional_property})
-  dbutils.notebook.run("/Repos/o5s5@sydneywater.com.au/DAFPOCREPO1/Databricks/notebooks/includes/scala-executors/exec-sync-sqledw", 0, {"p_delta_table":delta_table, "p_sql_schema_name":stage_schema, "p_sql_edw_table":target_table, "p_data_load_mode":data_load_mode, "p_schema_file_url":schema_file_url, "p_delta_column":delta_column, "p_start_counter":start_counter, "p_is_delta_extract":str(is_delta_extract), "p_track_changes":str(track_changes), "p_additional_property":additional_property})
+  # Call the Scala notebook to sync the SQL DW from Data Lake
+  dbutils.notebook.run("/build/includes/scala-executors/exec-sync-sqldw", 0, {"p_delta_table":delta_table, "p_sql_schema_name":stage_schema, "p_sql_dw_table":target_table, "p_data_load_mode":data_load_mode, "p_start_counter":start_counter, "p_additional_property":additional_property})
   
 
 
 # COMMAND ----------
 
-def DeltaSyncToSQLEDWOverwrite(delta_table, target_schema, target_table):
+def DeltaSyncToSQLDWOverwrite(delta_table, target_schema, target_table):
   '''
-  This function sync's Delta Table to SQL EDW using the OVERWRITE/TRUNCATE mode
-  It calls the same function DeltaSyncToSQLEDW but passes the default params to make it TRUNCATE write
+  This function sync's Delta Table to SQL DW using the OVERWRITE/TRUNCATE mode
+  It calls the same function DeltaSyncToSQLDW but passes the default params to make it TRUNCATE write
   '''
   
   #Defaults
   business_key = ""
   delta_column = ""
   start_counter = ""
-  track_changes = False
-  is_delta_extract = False
   
-  DeltaSyncToSQLEDW (delta_table, target_schema, target_table, business_key, delta_column, start_counter, ADS_WRITE_MODE_OVERWRITE, track_changes, is_delta_extract)
+  DeltaSyncToSQLDW (delta_table, target_schema, target_table, business_key, start_counter, ADS_WRITE_MODE_OVERWRITE)
     

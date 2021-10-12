@@ -155,12 +155,9 @@ def ScalaGetDataFrameFromAzSqlDB(query:String): org.apache.spark.sql.DataFrame =
 
 // COMMAND ----------
 
-def ScalaExecuteSQLRead(query: String, showRecordCount: Boolean = false) {
-  //ScalaExecuteSQLQuery(query: String, showRecordCount: Boolean = false) :
+def ScalaExecuteSQLRead(query: String, showRecordCount: Boolean = false): org.apache.spark.sql.DataFrame =  {
   
   println(s"Starting : ScalaExecuteSQLQuery : executing qury data to table $query")
-
-
   
   var SQL_DW_URL = ScalaGetAzSynDBConnectionURL()
   var TEMPFOLDER = ScalaSynGetBlobStorageStageFolder()
@@ -178,6 +175,7 @@ def ScalaExecuteSQLRead(query: String, showRecordCount: Boolean = false) {
   .load()
   
   println(s"Finished : ScalaExecuteSQLQuery : Execution query: $query")
+  return df
 }
 
 // COMMAND ----------
@@ -224,47 +222,6 @@ def ScalaExecuteSQLQuery(query: String, showRecordCount: Boolean = false) : Stri
 
 // COMMAND ----------
 
-// def ScalaExecuteSQLQuery(query: String, showRecordCount: Boolean = false) : String = {
-  
-//   //This method allows runnning a T-SQL on a SQL Server
-//   //The advantage of the java based method is that it does not require installing library on the cluster and can also run on the latest Spark version
-
-//   import java.sql.Connection;
-//   import java.sql.ResultSet;
-//   import java.sql.Statement;
-//   import com.microsoft.sqlserver.jdbc.SQLServerDataSource;
-
-//   //Retrieve the database password from Key Vault
-//   val dbpwd = dbutils.secrets.get(scope = ADS_KV_ACCOUNT_SCOPE, key = ADS_KV_DB_PWD_SECRET_KEY)
-
-//   val ds = new SQLServerDataSource();
-//   ds.setServerName(ADS_DB_SERVER); // Replace with your server name
-//   ds.setDatabaseName(ADS_DATABASE_NAME); // Replace with your database
-//   ds.setUser(ADS_DATABASE_USERNAME); // Replace with your user name
-//   ds.setPassword(dbpwd); // Replace with your password
-//   ds.setHostNameInCertificate("*.database.windows.net");
-
-//   val connection = ds.getConnection(); 
-
-//   try
-//   {
-//     println(query)
-//     val pStmt = connection.prepareStatement(query);
-//     val affectedRows = pStmt.executeUpdate();
-//     if (showRecordCount)
-//       println(affectedRows + " rows.")
-//   }
-//   catch
-//   {
-//     case unknown : Throwable  => throw new Exception(unknown)
-//   }
-  
-//   return "1"
-// }
-
-
-// COMMAND ----------
-
 def ScalaCreateSchema (SchemaName:String): String= {
   
   //This method creates a schema on Azure SQL if if does not exists
@@ -282,10 +239,10 @@ def ScalaCreateSchema (SchemaName:String): String= {
 
 // COMMAND ----------
 
-def ScalaLoadDataToEDW(source_object:String, target_schema:String) : String = {
+def ScalaLoadDataToDW(source_object:String, target_schema:String) : String = {
 
-  //This is a generic method to load data to SQL Server EDW from trusted zone
-  println(s"Starting : ScalaLoadDataToEDW : Load Delta Table $source_object to schema $target_schema")
+  //This is a generic method to load data to SQL Server DW from trusted zone
+  println(s"Starting : ScalaLoadDataToDW : Load Delta Table $source_object to schema $target_schema")
 
   //Create the Schema at the beginning if it does not exists
   ScalaCreateSchema(target_schema)
@@ -302,7 +259,7 @@ def ScalaLoadDataToEDW(source_object:String, target_schema:String) : String = {
   //Query to check if table exists
   val query_table_exists = "SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '" + target_schema + "' AND TABLE_NAME = '" + source_object + "'"
   
-  //If EDW table does not exists in SQL Server, then simply transfer the schema of Stage table to EDW table
+  //If DW table does not exists in SQL Server, then simply transfer the schema of Stage table to DW table
   //This should work as this is the first time
   val query_transfer_schema_object = "ALTER SCHEMA " + target_schema + " TRANSFER " + ADS_SQL_SCHEMA_STAGE + "." + source_object
   
@@ -343,11 +300,11 @@ def ScalaAlterTableDataTypeFromSchema(SchemaFileURL:String, SourceObject:String,
   var TableName = TargetTable.split("\\.")(1)
   var SchemaName = TargetTable.split("\\.")(0)
   
-  //Generate the SQL to get all the columns from SQLEDW 
+  //Generate the SQL to get all the columns from SQLDW 
   var sql = s"SELECT UPPER(column_name) column_name FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = '$SchemaName' AND TABLE_NAME = '$TableName'"
   println(sql)
 
-  //Get the Query from SQLEDW in a dataframe
+  //Get the Query from SQLDW in a dataframe
   var df = ScalaGetDataFrameFromAzSqlDB(sql)
 
   //Convert dataframe to a list so that it is easier to read them
@@ -426,7 +383,7 @@ def ScalaAlterTableDataTypeFromSchema(SchemaFileURL:String, SourceObject:String,
   //ScalaExecuteSQLQuery(columnSql)
 
   //The following block of code assigns the datetime2 datatype to all the system date columns
-  //This will ensure that if there are any miliseconds in the datetime part it will be included for SQLEDW
+  //This will ensure that if there are any miliseconds in the datetime part it will be included for SQLDW
 //   var DBricksTSColumnSQL = ""
 
 //   DBricksTSColumnSQL += (s"ALTER TABLE $TargetTable ALTER COLUMN $COL_RECORD_START datetime2(7) \n")

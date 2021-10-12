@@ -21,7 +21,7 @@ SQL_SERVER_COL_QUALIFER = '"'
 
 # COMMAND ----------
 
-def SQLMerge_SQLEDW_GenerateSQL(source_table_name, target_table_name, business_key, delta_column, data_load_mode, track_changes, datalake_source_table):
+def SQLMerge_SQLDW_GenerateSQL(source_table_name, target_table_name, business_key, data_load_mode, datalake_source_table):
   
   curr_time_stamp = GeneralLocalDateTime()
   curr_time_stamp = str(curr_time_stamp.strftime("%Y-%m-%d %H:%M:%S"))
@@ -31,32 +31,26 @@ def SQLMerge_SQLEDW_GenerateSQL(source_table_name, target_table_name, business_k
   
   sql_query = ""
   if data_load_mode == ADS_WRITE_MODE_MERGE:
-    sql_query = SQLMerge_SQLEDW_GenerateSQL_Merge(source_table_name, target_table_name, business_key, delta_column, track_changes, datalake_source_table, curr_time_stamp, df_col_list)
+    sql_query = SQLMerge_SQLDW_GenerateSQL_Merge(source_table_name, target_table_name, business_key, datalake_source_table, curr_time_stamp, df_col_list)
   elif data_load_mode == ADS_WRITE_MODE_APPEND:
     delta_column = COL_DL_RAW_LOAD
-    sql_query = _SQLInsertSyntax_SQLEDW_APPEND(df_col_list, source_table_name, target_table_name)
+    sql_query = _SQLInsertSyntax_SQLDW_APPEND(df_col_list, source_table_name, target_table_name)
     
   return sql_query
 
 # COMMAND ----------
 
-def SQLMerge_SQLEDW_GenerateSQL_Merge(source_table_name, target_table_name, business_key, delta_column, track_changes, datalake_source_table, curr_time_stamp, df_col_list):
+def SQLMerge_SQLDW_GenerateSQL_Merge(source_table_name, target_table_name, business_key, datalake_source_table, curr_time_stamp, df_col_list):
   
   ALIAS_TABLE_SOURCE = "tbl_src"
   ALIAS_TABLE_TARGET = "tbl_tgt"
   ALIAS_TABLE_STAGE = "tbl_stg"
   ALIAS_TABLE_MAIN = "tbl_mn"
 
-  #If Delta Column is a combination of Created and Upated Date then use the _transaction_date as delta column
-  delta_column_update = GeneralGetUpdatedDeltaColumn(delta_column)
-  
-
   #################PART 1 SOURCE QUERY ####################################
   #Get the source data and wrap in a CTE
   sql = "WITH " + ALIAS_TABLE_SOURCE + " AS (" + NEW_LINE + "SELECT * FROM " + source_table_name + NEW_LINE + ")" + NEW_LINE
   #################PART 1 SOURCE QUERY ####################################
-
-
   
   #################PART 2 MERGE QUERY ####################################
   #Create a MERGE SQL for SCD UPSERT
@@ -73,40 +67,28 @@ def SQLMerge_SQLEDW_GenerateSQL_Merge(source_table_name, target_table_name, busi
   sql += ") " + ALIAS_TABLE_STAGE + NEW_LINE
   business_key_updated = _GetSQLCollectiveColumnsFromColumnNames(business_key, ALIAS_TABLE_MAIN, "CONCAT", SQL_SERVER_COL_QUALIFER)
   sql += "ON " + business_key_updated + " = merge_key " + NEW_LINE
-  if track_changes:
-    sql += "AND " + ALIAS_TABLE_MAIN + "." + COL_RECORD_START + " = " + ALIAS_TABLE_STAGE + "." + COL_RECORD_START + NEW_LINE
   #################PART 2 MERGE QUERY ####################################
 
-
   #################PART 3 UPDATE DATA ####################################
-  #If the records match then set the current version of the record as previous.
-  #Update thh Row End Date and CurrentRecord = 0
-  sql += "WHEN MATCHED " 
-
-  if track_changes:
-    sql_update = _SQLUpdateSetValue_SCD_SQLEDW(ALIAS_TABLE_MAIN, ALIAS_TABLE_STAGE)
-  else:
-    sql_update = _SQLUpdateSetValue_SQLEDW(df_col_list, business_key, ALIAS_TABLE_MAIN, ALIAS_TABLE_STAGE)
+  sql += "WHEN MATCHED "
+  sql_update = _SQLUpdateSetValue_SQLDW(df_col_list, business_key, ALIAS_TABLE_MAIN, ALIAS_TABLE_STAGE)
   sql += sql_update
-#   sql_update = _SQLUpdateSetValue_SQLEDW(df_col_list, business_key, ALIAS_TABLE_MAIN, ALIAS_TABLE_STAGE)
-#   sql += sql_update
   #################PART 3 UPDATE DATA ####################################
 
   #################PART 4 INSERT DATA ####################################
   #If not matched, then this is the new version of the record. Insert the new row
   sql += NEW_LINE
   sql += "WHEN NOT MATCHED THEN " + NEW_LINE
-  sql_insert = _SQLInsertSyntax_SQLEDW(df_col_list, ALIAS_TABLE_STAGE)
+  sql_insert = _SQLInsertSyntax_SQLDW(df_col_list, ALIAS_TABLE_STAGE)
   sql += sql_insert
   #################PART 4 INSERT DATA ####################################
-  sql += ";"
-  
+  sql += ";"  
   
   return sql
 
 # COMMAND ----------
 
-def _SQLUpdateSetValue_SQLEDW(dataframe, business_key, source_alias, target_alias):
+def _SQLUpdateSetValue_SQLDW(dataframe, business_key, source_alias, target_alias):
   #Generate SQL for UPDATE column compare
   
   sql = "THEN " + NEW_LINE + "UPDATE SET "+ NEW_LINE
@@ -124,7 +106,7 @@ def _SQLUpdateSetValue_SQLEDW(dataframe, business_key, source_alias, target_alia
 
 # COMMAND ----------
 
-def _SQLUpdateSetValue_SCD_SQLEDW(source_alias, table_alias):
+def _SQLUpdateSetValue_SCD_SQLDW(source_alias, table_alias):
   #Generate SQL for UPDATE column compare
   
   #For SQL Server as the data is already built, we just update from the Stage table when the PK + RecordStart matches
@@ -139,7 +121,7 @@ def _SQLUpdateSetValue_SCD_SQLEDW(source_alias, table_alias):
 
 # COMMAND ----------
 
-def _SQLInsertSyntax_SQLEDW(dataframe, table_alias):
+def _SQLInsertSyntax_SQLDW(dataframe, table_alias):
   #Generate SQL for INSERT
   
   sql_col = _GetSQLCollectiveColumnsFromColumnNames(dataframe.columns, "", "", SQL_SERVER_COL_QUALIFER)
@@ -151,7 +133,7 @@ def _SQLInsertSyntax_SQLEDW(dataframe, table_alias):
 
 # COMMAND ----------
 
-def _SQLInsertSyntax_SQLEDW_APPEND(dataframe, source_table_name, target_table_name):
+def _SQLInsertSyntax_SQLDW_APPEND(dataframe, source_table_name, target_table_name):
   #Generate SQL for INSERT
   
   sql_col = _GetSQLCollectiveColumnsFromColumnNames(dataframe.columns, "", "", SQL_SERVER_COL_QUALIFER)

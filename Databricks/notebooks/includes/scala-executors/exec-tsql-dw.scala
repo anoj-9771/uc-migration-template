@@ -1,5 +1,5 @@
 // Databricks notebook source
-// MAGIC %run ../util-edw-tsql-scala
+// MAGIC %run ../util-dw-tsql-scala
 
 // COMMAND ----------
 
