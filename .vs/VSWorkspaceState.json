@@ -2,10 +2,8 @@
   "ExpandedNodes": [
     "",
     "\\ADS-Databases",
-    "\\ADS-Databases\\CntrlDb",
-    "\\DataFactory",
-    "\\DataFactory\\pipeline"
+    "\\ADS-Databases\\CntrlDb"
   ],
-  "SelectedNode": "\\ADS-Databases\\ADS-Database.sln",
+  "SelectedNode": "\\readme.md",
   "PreviewInSolutionExplorer": false
 }
