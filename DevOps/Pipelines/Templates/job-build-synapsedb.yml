@@ -1,5 +1,5 @@
   jobs:
-  - job: 'Synpase DB'
+  - job: 'Synpase_db'
     pool:
       demands: msbuild
       vmImage: 'vs2017-win2016'
