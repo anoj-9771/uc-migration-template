@@ -1,0 +1,55 @@
+name: $(Build.BuildId).$(date:yyyyMMdd)
+
+pr:
+  branches:
+    include:
+    - main
+    - develop
+    - test
+  paths:
+    include:
+    - Synapse-Databases/*
+
+trigger: none
+#   branches:
+#     include:
+#     - main
+#     - develop
+#     - test
+#   paths:
+#     include:
+#     - Synapse-Databases/Synapse-Database.sln
+
+pool: Daf-Self-Pool01
+# vmImage: ubuntu-latest
+
+stages:
+# ---------------------------------------------------------------------------
+# Build artifacts.
+- stage: 'build' # leave main artifact build stage as 'build'
+  jobs:
+  # Use this section to pull in or out build jobs
+  - template: Templates/job-build-synapsedb.yml
+# ---------------------------------------------------------------------------
+# Release to Non-Production
+- template: Templates/stage-synapsedb-integration.yml
+  parameters:
+    stage_name: 'dev'
+    variable_template_name: dev-variables
+    run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/develop'))
+
+# ---------------------------------------------------------------------------
+# Release to Non-Production
+- template: Templates/stage-synapsedb-integration.yml
+  parameters:
+    stage_name: 'test'
+    variable_template_name: test-variables
+    run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/test'))
+
+# ---------------------------------------------------------------------------
+# Release to Production
+- template: Templates/stage-synapsedb-integration.yml
+  parameters:
+    stage_name: 'preprod'
+    variable_template_name: preprd-variables
+    run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
