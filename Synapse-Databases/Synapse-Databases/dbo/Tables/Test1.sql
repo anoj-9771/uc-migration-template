@@ -1,5 +1,5 @@
 ﻿CREATE TABLE [dbo].[Test1] (
-    [EXTRACT_DATETIME]    NVARCHAR (256) NULL,
+    [EXTRACT_DATETIME]    NVARCHAR (255) NULL,
     [EXTRACT_RUN_ID]      BIGINT         NULL,
     [KEY1]                NVARCHAR (256) NULL,
     [LANGU]               NVARCHAR (256) NULL,

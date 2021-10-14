@@ -12,7 +12,7 @@
 		</CustomData>
 		<CustomData Category="Reference" Type="Assembly">
 			<Metadata Name="LogicalName" Value="Synapse_Databases.dll" />
-			<Metadata Name="FileName" Value="C:\USERS\FHASAN\SOURCE\REPOS\SYNAPSE-DATABASES\SYNAPSE-DATABASES\OBJ\DEBUG\SYNAPSE_DATABASES.DLL" />
+			<Metadata Name="FileName" Value="C:\USERS\FHASAN\SOURCE\REPOS\DAF_POC_REPO1\SYNAPSE-DATABASES\SYNAPSE-DATABASES\OBJ\DEBUG\SYNAPSE_DATABASES.DLL" />
 			<Metadata Name="AssemblyName" Value="Synapse_Databases" />
 			<Metadata Name="PermissionSet" Value="SAFE" />
 			<Metadata Name="Owner" Value="" />
@@ -20,7 +20,7 @@
 			<Metadata Name="IsVisible" Value="True" />
 			<Metadata Name="IsModelAware" Value="True" />
 			<Metadata Name="SkipCreationIfEmpty" Value="True" />
-			<Metadata Name="AssemblySymbolsName" Value="C:\Users\fhasan\source\repos\Synapse-Databases\Synapse-Databases\obj\Debug\Synapse_Databases.pdb" />
+			<Metadata Name="AssemblySymbolsName" Value="C:\Users\fhasan\Source\Repos\DAF_POC_REPO1\Synapse-Databases\Synapse-Databases\obj\Debug\Synapse_Databases.pdb" />
 		</CustomData>
 		<CustomData Category="SqlCmdVariables" Type="SqlCmdVariable" />
 	</Header>
@@ -6909,7 +6909,7 @@
 						<Relationship Name="TypeSpecifier">
 							<Entry>
 								<Element Type="SqlTypeSpecifier">
-									<Property Name="Length" Value="256" />
+									<Property Name="Length" Value="255" />
 									<Relationship Name="Type">
 										<Entry>
 											<References ExternalSource="BuiltIns" Name="[nvarchar]" />

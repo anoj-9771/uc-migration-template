@@ -7,3 +7,12 @@ C:\Users\fhasan\source\repos\Synapse-Databases\Synapse-Databases\obj\Debug\postd
 C:\Users\fhasan\source\repos\Synapse-Databases\Synapse-Databases\obj\Debug\predeploy.sql
 C:\Users\fhasan\source\repos\Synapse-Databases\Synapse-Databases\obj\Debug\Synapse_Databases.dll
 C:\Users\fhasan\source\repos\Synapse-Databases\Synapse-Databases\obj\Debug\Synapse_Databases.pdb
+C:\Users\fhasan\Source\Repos\DAF_POC_REPO1\Synapse-Databases\Synapse-Databases\bin\Debug\Synapse-Databases.dacpac
+C:\Users\fhasan\Source\Repos\DAF_POC_REPO1\Synapse-Databases\Synapse-Databases\bin\Debug\Synapse_Databases.dll
+C:\Users\fhasan\Source\Repos\DAF_POC_REPO1\Synapse-Databases\Synapse-Databases\bin\Debug\Synapse_Databases.pdb
+C:\Users\fhasan\Source\Repos\DAF_POC_REPO1\Synapse-Databases\Synapse-Databases\obj\Debug\Synapse_Databases.dll
+C:\Users\fhasan\Source\Repos\DAF_POC_REPO1\Synapse-Databases\Synapse-Databases\obj\Debug\Synapse_Databases.pdb
+C:\Users\fhasan\Source\Repos\DAF_POC_REPO1\Synapse-Databases\Synapse-Databases\obj\Debug\Model.xml
+C:\Users\fhasan\Source\Repos\DAF_POC_REPO1\Synapse-Databases\Synapse-Databases\obj\Debug\refactor.xml
+C:\Users\fhasan\Source\Repos\DAF_POC_REPO1\Synapse-Databases\Synapse-Databases\obj\Debug\postdeploy.sql
+C:\Users\fhasan\Source\Repos\DAF_POC_REPO1\Synapse-Databases\Synapse-Databases\obj\Debug\predeploy.sql
