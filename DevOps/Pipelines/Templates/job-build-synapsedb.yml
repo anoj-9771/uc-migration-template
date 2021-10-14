@@ -2,7 +2,7 @@
   - job: 'Synpase_db'
     pool:
       demands: msbuild
-      vmImage: 'vs2017-win2016'
+      vmImage: 'windows-2019'
     steps:
     - task: MSBuild@1
       displayName: 'Build SynapseDB'
