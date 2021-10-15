@@ -174,6 +174,13 @@ if Debug:
 
 # COMMAND ----------
 
+if DeltaExtract or DeltaTablePartitioned(f"{ADS_DATABASE_RAW}.{raw_table}"):
+partition_keys = ("year","month", "day")
+else:
+partition_keys = ""
+
+# COMMAND ----------
+
 print("source_group: " + source_group)
 print("raw_table: " + raw_table)
 print("ADS_DATABASE_RAW: " + ADS_DATABASE_RAW)
