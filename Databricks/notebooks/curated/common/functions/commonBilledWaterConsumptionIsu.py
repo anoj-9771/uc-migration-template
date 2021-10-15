@@ -17,12 +17,12 @@
 # 5.SELECT / TRANSFORM
 #############################################################################################################################
 #1.Create Function
-def getBilledWaterConsumptionisu():
+def getBilledWaterConsumptionIsu():
   
   spark.udf.register("TidyCase", GeneralToTidyCase)  
   
   #2.Load Cleansed layer table data into dataframe
-  erchDf = spark.sql("select 'ISU' as sourceSystemCode, billingDocumentNumber, \
+  erchDf = spark.sql(f"select 'ISU' as sourceSystemCode, billingDocumentNumber, \
                              case when ltrim('0', businessPartnerNumber) is null then 'Unknown' else ltrim('0', businessPartnerNumber) end as businessPartnerNumber, \
                              case when startBillingPeriod is null then to_date('19000101', 'yyyymmdd') else startBillingPeriod end as startBillingPeriod, \
                              case when endBillingPeriod is null then to_date('19000101', 'yyyymmdd') else endBillingPeriod end as endBillingPeriod, \
@@ -41,7 +41,7 @@ def getBilledWaterConsumptionisu():
 #                            and _RecordCurrent = 1 and _RecordDeleted = 0")
  
   
-  dberchz1Df = spark.sql("select billingDocumentNumber, billingDocumentLineItemId \
+  dberchz1Df = spark.sql(f"select billingDocumentNumber, billingDocumentLineItemId \
                                 ,validFromDate, validToDate \
                                 ,billingQuantityPlaceBeforeDecimalPoint \
                              from {ADS_DATABASE_CLEANSED}.isu_dberchz1 \
@@ -49,7 +49,7 @@ def getBilledWaterConsumptionisu():
                              and trim(billingLineItemBudgetBillingIndicator) = '' \
                                and _RecordCurrent = 1 and _RecordDeleted = 0")
   
-  dberchz2Df = spark.sql("select billingDocumentNumber, billingDocumentLineItemId \
+  dberchz2Df = spark.sql(f"select billingDocumentNumber, billingDocumentLineItemId \
                                 ,equipmentNumber \
                              from {ADS_DATABASE_CLEANSED}.isu_dberchz2 \
                              where suppressedMeterReadingDocumentId <> '' \

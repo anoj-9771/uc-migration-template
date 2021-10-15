@@ -3,7 +3,7 @@
 
 # COMMAND ----------
 
-#%run ../commonBilledWaterConsumptionisu
+#%run ../commonBilledWaterConsumptionIsu
 
 # COMMAND ----------
 
@@ -40,7 +40,7 @@ def getBilledWaterConsumptionDaily():
   #FactBilledWaterConsumption
 
 #2.Load Cleansed layer tables into dataframe
-  isuConsDf = getBilledWaterConsumptionisu()
+  isuConsDf = getBilledWaterConsumptionIsu()
   accessConsDf = getBilledWaterConsumptionAccess()
 
   legacyConsDS = accessConsDf.select('propertyNumber', 'billingPeriodStartDate', 'billingPeriodEndDate') \

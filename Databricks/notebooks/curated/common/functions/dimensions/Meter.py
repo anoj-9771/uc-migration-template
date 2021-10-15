@@ -14,7 +14,7 @@
 #############################################################################################################################
 #1.Create Function
 
-def GetCommonMeter():
+def getMeter():
   
   #spark.udf.register("TidyCase", GeneralToTidyCase) 
   

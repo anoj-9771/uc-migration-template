@@ -130,39 +130,39 @@ def TemplateEtl(df : object, entity, businessKey, AddSK = True):
 # DBTITLE 1,7. Function: Load Dimensions
 #Call Date function to load DimDate
 def Date():
-  TemplateEtl(df=GetCommonDate(), 
-             entity="DimDate", 
+  TemplateEtl(df=getCommonDate(), 
+             entity="dimDate", 
              businessKey="calendarDate",
              AddSK=True
             )
 
 Call Property function to load DimProperty
 def Property():
-  TemplateEtl(df=GetCommonProperty(), 
-             entity="DimProperty", 
+  TemplateEtl(df=getCommonProperty(), 
+             entity="dimProperty", 
              businessKey="propertyId,sourceSystemCode,propertyEndDate",
              AddSK=True
             )
 
 #Call Location function to load DimLocation
 def Location():
-  TemplateEtl(df=GetCommonLocation(), 
-             entity="DimLocation", 
+  TemplateEtl(df=getCommonLocation(), 
+             entity="dimLocation", 
              businessKey="locationId",
              AddSK=True
             )
 
 #Call Meter function to load DimMeter
 def Meter():
-  TemplateEtl(df=GetCommonMeter(), 
-             entity="DimMeter", 
+  TemplateEtl(df=getCommonMeter(), 
+             entity="dimMeter", 
              businessKey="meterId,sourceSystemCode",
              AddSK=True
             )
 
 #Call BillingDocumentSapisu function to load DimBillingDocument
-def billingDocumentSapisu():
-  TemplateEtl(df=getCommonBillingDocumentSapisu(), 
+def billingDocumentIsu():
+  TemplateEtl(df=getBillingDocumentIsu(), 
              entity="dimBillingDocument", 
              businessKey="sourceSystemCode,billingDocumentNumber",
              AddSK=True
@@ -231,11 +231,11 @@ def Main():
   
   if LoadDimensions:
     LogEtl("Start Dimensions")
-    Date()
-    Property()
-    Location()
-    Meter()
-    billingDocumentSapisu()
+    #Date()
+    #Property()
+    #Location()
+    #meter()
+    billingDocumentIsu()
 
     #Add new Dim here()
     LogEtl("End Dimensions")
@@ -245,8 +245,8 @@ def Main():
   #==============
   if LoadFacts:
     LogEtl("Start Facts")
-    billedWaterConsumption()
-    billedWaterConsumptionDaily()
+    #billedWaterConsumption()
+    #billedWaterConsumptionDaily()
 
     #fact2()
     LogEtl("End Facts")   
