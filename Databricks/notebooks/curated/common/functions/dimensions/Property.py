@@ -13,11 +13,11 @@
 # 5.SELECT / TRANSFORM
 #############################################################################################################################
 #1.Create Function
-def GetCommonProperty():
+def getProperty():
   
   spark.udf.register("TidyCase", GeneralToTidyCase)  
   
-  #DimProperty
+  #dimProperty
   #2.Load Cleansed layer table data into dataframe
   accessZ309TpropertyDf = spark.sql(f"select propertyNumber, 'Access' as sourceSystemCode, propertyTypeEffectiveFrom as propertyStartDate, \
                                             coalesce(lead(propertyTypeEffectiveFrom) over (partition by propertyNumber order by propertyTypeEffectiveFrom)-1, \

@@ -102,6 +102,7 @@ DATA_LAKE_MOUNT_POINT = DataLakeGetMountPoint(ADS_CONTAINER_RAW)
 # DBTITLE 1,Load the file that was passed in Widget
 #Start of Fix to use Target Name from Parameter String
 #Variable 'source_table'has been replaced by 'raw_table'
+source_group = Params["SourceGroup"]
 target_table = Params["TargetName"]
 if target_table != '':
   source_system = target_table.split('_')[0]
@@ -114,10 +115,11 @@ source_file_path = "dbfs:{mount}/{sourcefile}".format(mount=DATA_LAKE_MOUNT_POIN
 #Source
 #End of Fix to use Target Name from Parameter String
 
-print (target_table)
-print (source_system)
-print (raw_table)
-print (source_file_path)
+print ("source_group: " + source_group)
+print ("target_table:" + target_table)
+print ("source_system: " + source_system)
+print ("raw_table: " + raw_table)
+print ("source_file_path: " + source_file_path)
 
 
 # COMMAND ----------
@@ -172,15 +174,15 @@ if Debug:
 
 # COMMAND ----------
 
-if DeltaExtract or DeltaTablePartitioned(f"{ADS_DATABASE_RAW}.{raw_table}"):
-  partition_keys = ("year","month", "day")
-else:
-  partition_keys = ""
+print("source_group: " + source_group)
+print("raw_table: " + raw_table)
+print("ADS_DATABASE_RAW: " + ADS_DATABASE_RAW)
+print("ADS_CONTAINER_RAW: " + ADS_CONTAINER_RAW)
+print("write_mode: " + write_mode)
+print("partition_keys: " + partition_keys)
 
-
-# COMMAND ----------
-
-DeltaSaveDataframeDirect(df_updated, source_system, raw_table, ADS_DATABASE_RAW, ADS_CONTAINER_RAW, write_mode, partition_keys)
+#DeltaSaveDataframeDirect(df_updated, source_system, raw_table, ADS_DATABASE_RAW, ADS_CONTAINER_RAW, write_mode, partition_keys)
+DeltaSaveDataframeDirect(df_updated, source_group, raw_table, ADS_DATABASE_RAW, ADS_CONTAINER_RAW, write_mode, partition_keys)
 
 # COMMAND ----------
 
@@ -188,6 +190,12 @@ output = {"DataFileRecordCount" : -1, "TargetTableRecordCount": -1}
 output["DataFileRecordCount"] = df_updated.count()
 print(output)
 
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC delete from raw.isu_0archobject_text;
+# MAGIC drop table raw.isu_0archobject_text;
 
 # COMMAND ----------
 

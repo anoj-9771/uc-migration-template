@@ -13,7 +13,7 @@
 # 5.SELECT / TRANSFORM
 #############################################################################################################################
 #1.Create Function
-def GetCommonDate():
+def getCommonDate():
   
   #spark.udf.register("TidyCase", GeneralToTidyCase)  
   

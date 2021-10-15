@@ -13,7 +13,7 @@
 # 5.SELECT / TRANSFORM
 #############################################################################################################################
 #1.Create Function
-def GetCommonLocation():
+def getLocation():
   
   #spark.udf.register("TidyCase", GeneralToTidyCase)  
   

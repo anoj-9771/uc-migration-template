@@ -64,13 +64,13 @@ def DeltaGetDataLakePath(data_lake_zone, data_lake_folder, object):
 
 # COMMAND ----------
 
-def DeltaSaveDataframeDirect(dataframe, source_system, table_name, database_name, container, write_mode, partition_keys = ""):
+def DeltaSaveDataframeDirect(dataframe, source_group, table_name, database_name, container, write_mode, partition_keys = ""):
 
   #Mount the Data Lake 
   data_lake_mount_point = DataLakeGetMountPoint(container)
   
-  delta_path = "dbfs:{mount}/{folder}/{sourceobject}/delta".format(mount=data_lake_mount_point, folder = source_system.lower(), sourceobject = table_name.split("_",1)[-1].lower())
-  LogEtl ("Saving delta lake file : " + delta_path + " with mode " + write_mode)
+  print("table_name: "+table_name)
+  print(table_name.split("_",1)[-1].lower())
 
   query = "CREATE DATABASE IF NOT EXISTS {0}".format(database_name)
   spark.sql(query)
@@ -80,10 +80,15 @@ def DeltaSaveDataframeDirect(dataframe, source_system, table_name, database_name
 #   if database_name == ADS_DATABASE_RAW or database_name == ADS_DATABASE_CLEANSED or database_name == ADS_DATABASE_CURATED:
 #     table_name = "{0}_{1}".format(source_system, table_name)
   if database_name == ADS_DATABASE_RAW:
-    table_name = "{0}_{1}".format(source_system, table_name)  
+    delta_path = "dbfs:{mount}/{folder}/{sourceobject}/delta".format(mount=data_lake_mount_point, folder = source_group.lower(), sourceobject = table_name.lower())  
+    table_name = "{0}_{1}".format(source_group, table_name)
+    
   if database_name == ADS_DATABASE_CLEANSED or database_name == ADS_DATABASE_CURATED:
-    table_name = table_name    
-  #End of fix to restructure framework folders 
+    delta_path = "dbfs:{mount}/{folder}/{sourceobject}/delta".format(mount=data_lake_mount_point, folder = source_group.lower(), sourceobject = table_name.split("_",1)[-1].lower())
+    #table_name = table_name
+
+  LogEtl ("Saving delta lake file : " + delta_path + " with mode " + write_mode)
+#End of fix to restructure framework folders 
   
   table_name_fq = "{0}.{1}".format(database_name, table_name)
   
