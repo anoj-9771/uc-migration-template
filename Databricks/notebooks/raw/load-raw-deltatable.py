@@ -175,9 +175,9 @@ if Debug:
 # COMMAND ----------
 
 if DeltaExtract or DeltaTablePartitioned(f"{ADS_DATABASE_RAW}.{raw_table}"):
-partition_keys = ("year","month", "day")
+  partition_keys = ("year","month", "day")
 else:
-partition_keys = ""
+  partition_keys = ""
 
 # COMMAND ----------
 
@@ -197,12 +197,6 @@ output = {"DataFileRecordCount" : -1, "TargetTableRecordCount": -1}
 output["DataFileRecordCount"] = df_updated.count()
 print(output)
 
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC delete from raw.isu_0archobject_text;
-# MAGIC drop table raw.isu_0archobject_text;
 
 # COMMAND ----------
 
