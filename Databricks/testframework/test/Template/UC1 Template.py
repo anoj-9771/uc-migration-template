@@ -1,6 +1,7 @@
 # Databricks notebook source
 table = 'ZCD_TPROPTY_HIST'
 
+
 # COMMAND ----------
 
 # DBTITLE 0,Writing Count Result in Database
