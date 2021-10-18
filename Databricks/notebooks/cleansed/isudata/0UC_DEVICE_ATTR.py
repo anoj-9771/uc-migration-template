@@ -114,7 +114,7 @@ print(data_load_mode)
 # DBTITLE 1,9. Set raw and cleansed table name
 #Set raw and cleansed table name
 #Delta and SQL tables are case Insensitive. Seems Delta table are always lower case
-delta_cleansed_tbl_name = "{0}.{1}".format(ADS_DATABASE_CLEANSED, "stg_"+source_object)
+delta_cleansed_tbl_name = "{0}.{1}".format(ADS_DATABASE_CLEANSED, source_object)
 delta_raw_tbl_name = "{0}.{1}".format(ADS_DATABASE_RAW, source_object)
 #delta_raw_tbl_name = "raw.sap_0uc_device_attr"
 
