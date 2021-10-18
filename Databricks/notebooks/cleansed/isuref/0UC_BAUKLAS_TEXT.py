@@ -174,7 +174,7 @@ DeltaSaveToDeltaTable (
 # COMMAND ----------
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
-{ADS_DATABASE_STAGE}.{source_object}#Update/rename Column
+#Update/rename Column
 df_updated_column = spark.sql(f"SELECT \
                                        BAUKLAS as constructionClassCode,\
                                        BAUKLTXT as constructionClass \
