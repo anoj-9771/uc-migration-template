@@ -303,6 +303,50 @@
 			"dependsOn": []
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/SRC_BLOB_CSV_NO_QUOTE_CHAR')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Quote Character is set to default(No quote character)",
+				"linkedServiceName": {
+					"referenceName": "LS_AzureBlobStorage",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"BlobContainer": {
+						"type": "string"
+					},
+					"BlobName": {
+						"type": "string"
+					}
+				},
+				"folder": {
+					"name": "Source - Blob"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": {
+							"value": "@dataset().BlobName",
+							"type": "Expression"
+						},
+						"container": {
+							"value": "@dataset().BlobContainer",
+							"type": "Expression"
+						}
+					},
+					"columnDelimiter": "|",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": ""
+				},
+				"schema": []
+			},
+			"dependsOn": []
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/SRC_BLOB_JSON')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -5471,7 +5515,7 @@
 										"source": {
 											"type": "DelimitedTextSource",
 											"storeSettings": {
-												"type": "AzureBlobFSReadSettings",
+												"type": "AzureBlobStorageReadSettings",
 												"recursive": true,
 												"enablePartitionDiscovery": false
 											},
@@ -5494,10 +5538,10 @@
 									},
 									"inputs": [
 										{
-											"referenceName": "SRC_RAW_LANDING_ADLS_CSV",
+											"referenceName": "SRC_BLOB_CSV_NO_QUOTE_CHAR",
 											"type": "DatasetReference",
 											"parameters": {
-												"BlobPath": {
+												"BlobContainer": {
 													"value": "@variables('SourceContainer')",
 													"type": "Expression"
 												},
@@ -5859,7 +5903,8 @@
 				"lastPublishTime": "2021-06-30T08:46:15Z"
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/SRC_RAW_LANDING_ADLS_CSV')]"
+				"[concat(variables('factoryId'), '/datasets/SRC_RAW_LANDING_ADLS_CSV')]",
+				"[concat(variables('factoryId'), '/datasets/SRC_BLOB_CSV_NO_QUOTE_CHAR')]"
 			]
 		},
 		{
@@ -6636,335 +6681,6 @@
 				"[concat(variables('factoryId'), '/datasets/SRC_Oracle')]",
 				"[concat(variables('factoryId'), '/datasets/RAW_ADLS_Schema')]",
 				"[concat(variables('factoryId'), '/datasets/RAW_PARQUET')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/04-SQLServer-Generate-Source-Schema')]",
-			"type": "Microsoft.DataFactory/factories/pipelines",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"activities": [
-					{
-						"name": "Generate Schema",
-						"type": "Copy",
-						"dependsOn": [
-							{
-								"activity": "Set-Schema",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							},
-							{
-								"activity": "Set-Table",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							},
-							{
-								"activity": "Set-File",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							},
-							{
-								"activity": "Set-Folder",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"policy": {
-							"timeout": "7.00:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"source": {
-								"type": "SqlServerSource",
-								"sqlReaderQuery": {
-									"value": "@replace(replace(variables('SQL'), '<<TABLE>>', variables('Table')), '<<SCHEMA>>', variables('Schema'))",
-									"type": "Expression"
-								},
-								"queryTimeout": "02:00:00",
-								"partitionOption": "None"
-							},
-							"sink": {
-								"type": "DelimitedTextSink",
-								"storeSettings": {
-									"type": "AzureBlobFSWriteSettings"
-								},
-								"formatSettings": {
-									"type": "DelimitedTextWriteSettings",
-									"quoteAllText": true,
-									"fileExtension": ".txt"
-								}
-							},
-							"enableStaging": false
-						},
-						"inputs": [
-							{
-								"referenceName": "SRC_SQLSERVER",
-								"type": "DatasetReference",
-								"parameters": {
-									"kvSecret": {
-										"value": "@pipeline().parameters.TaskDetails.SourceServer",
-										"type": "Expression"
-									}
-								}
-							}
-						],
-						"outputs": [
-							{
-								"referenceName": "RAW_ADLS_Schema",
-								"type": "DatasetReference",
-								"parameters": {
-									"BlobPath": {
-										"value": "@variables('Folder')",
-										"type": "Expression"
-									},
-									"BlobName": {
-										"value": "@variables('File')",
-										"type": "Expression"
-									},
-									"Compression": "none",
-									"ColumnDelim": ",",
-									"HeaderRow": false
-								}
-							}
-						]
-					},
-					{
-						"name": "Generate Schema Original",
-						"type": "Copy",
-						"dependsOn": [
-							{
-								"activity": "Generate Schema",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"policy": {
-							"timeout": "7.00:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"source": {
-								"type": "SqlServerSource",
-								"sqlReaderQuery": {
-									"value": "@replace(replace(variables('SQL-Original'), '<<TABLE>>', variables('Table')), '<<SCHEMA>>', variables('Schema'))",
-									"type": "Expression"
-								},
-								"queryTimeout": "02:00:00",
-								"partitionOption": "None"
-							},
-							"sink": {
-								"type": "DelimitedTextSink",
-								"storeSettings": {
-									"type": "AzureBlobFSWriteSettings"
-								},
-								"formatSettings": {
-									"type": "DelimitedTextWriteSettings",
-									"quoteAllText": true,
-									"fileExtension": ".txt"
-								}
-							},
-							"enableStaging": false
-						},
-						"inputs": [
-							{
-								"referenceName": "SRC_SQLSERVER",
-								"type": "DatasetReference",
-								"parameters": {
-									"kvSecret": {
-										"value": "@pipeline().parameters.TaskDetails.SourceServer",
-										"type": "Expression"
-									}
-								}
-							}
-						],
-						"outputs": [
-							{
-								"referenceName": "RAW_ADLS_Schema",
-								"type": "DatasetReference",
-								"parameters": {
-									"BlobPath": {
-										"value": "@concat(variables('Folder'), '/original/')",
-										"type": "Expression"
-									},
-									"BlobName": {
-										"value": "@concat(variables('File'), '.csv')",
-										"type": "Expression"
-									},
-									"Compression": "none",
-									"ColumnDelim": ",",
-									"HeaderRow": true
-								}
-							}
-						]
-					},
-					{
-						"name": "If-Empty-Delete",
-						"type": "IfCondition",
-						"dependsOn": [
-							{
-								"activity": "Generate Schema Original",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"userProperties": [],
-						"typeProperties": {
-							"expression": {
-								"value": "@equals(activity('Generate Schema').output.rowsCopied, 0)",
-								"type": "Expression"
-							},
-							"ifTrueActivities": [
-								{
-									"name": "Delete-Empty-File",
-									"type": "Delete",
-									"dependsOn": [],
-									"policy": {
-										"timeout": "7.00:00:00",
-										"retry": 0,
-										"retryIntervalInSeconds": 30,
-										"secureOutput": false,
-										"secureInput": false
-									},
-									"userProperties": [],
-									"typeProperties": {
-										"dataset": {
-											"referenceName": "BINARY_ADLS",
-											"type": "DatasetReference",
-											"parameters": {
-												"File": {
-													"value": "@variables('File')",
-													"type": "Expression"
-												},
-												"Container": "raw",
-												"Folder": {
-													"value": "@variables('Folder')",
-													"type": "Expression"
-												}
-											}
-										},
-										"logStorageSettings": {
-											"linkedServiceName": {
-												"referenceName": "LS_AzureDatalake",
-												"type": "LinkedServiceReference"
-											},
-											"path": "log"
-										},
-										"enableLogging": true,
-										"storeSettings": {
-											"type": "AzureBlobFSReadSettings",
-											"recursive": true
-										}
-									}
-								}
-							]
-						}
-					},
-					{
-						"name": "Set-Folder",
-						"type": "SetVariable",
-						"dependsOn": [],
-						"userProperties": [],
-						"typeProperties": {
-							"variableName": "Folder",
-							"value": {
-								"value": "@toLower(concat(pipeline().parameters.TaskDetails.SourceGroup, '//', 'schema'))",
-								"type": "Expression"
-							}
-						}
-					},
-					{
-						"name": "Set-File",
-						"type": "SetVariable",
-						"dependsOn": [],
-						"userProperties": [],
-						"typeProperties": {
-							"variableName": "File",
-							"value": {
-								"value": "@toLower(concat(pipeline().parameters.TaskDetails.SourceName, '.', 'schema'))",
-								"type": "Expression"
-							}
-						}
-					},
-					{
-						"name": "Set-Table",
-						"type": "SetVariable",
-						"dependsOn": [],
-						"userProperties": [],
-						"typeProperties": {
-							"variableName": "Table",
-							"value": {
-								"value": "@split(pipeline().parameters.TaskDetails.SourceLocation,'.')[1]",
-								"type": "Expression"
-							}
-						}
-					},
-					{
-						"name": "Set-Schema",
-						"type": "SetVariable",
-						"dependsOn": [],
-						"userProperties": [],
-						"typeProperties": {
-							"variableName": "Schema",
-							"value": {
-								"value": "@split(pipeline().parameters.TaskDetails.SourceLocation,'.')[0]",
-								"type": "Expression"
-							}
-						}
-					}
-				],
-				"policy": {
-					"elapsedTimeMetric": {},
-					"cancelAfter": {}
-				},
-				"parameters": {
-					"TaskDetails": {
-						"type": "object"
-					}
-				},
-				"variables": {
-					"Schema": {
-						"type": "String"
-					},
-					"Table": {
-						"type": "String"
-					},
-					"SQL": {
-						"type": "String",
-						"defaultValue": "SELECT column_name,     CASE \t\tWHEN data_type = 'bit' THEN 'boolean' \t\tWHEN data_type = 'bigint' THEN 'long' \t\tWHEN data_type IN ( 'int', 'smallint' ) THEN 'integer' \t\tWHEN data_type IN ( 'float', 'double', 'money', 'smallmoney' ) THEN 'double' \t\tWHEN data_type IN ( 'numeric' ) THEN 'decimal'  \t\tWHEN data_type IN ( 'nvarchar', 'varchar', 'char', 'nchar' ) THEN 'string' \t\tWHEN data_type IN ( 'date', 'datetime', 'datetime2', 'smalldatetime') THEN 'timestamp' \t\tELSE 'string'          \tEND AS fieldtype,     data_type,     COALESCE(datetime_precision, numeric_precision, character_maximum_length) precision,     numeric_scale scale, \ttable_name, \ttable_schema FROM information_schema.columns   WHERE table_name = '<<TABLE>>'          AND table_schema = '<<SCHEMA>>'  ORDER BY ORDINAL_POSITION"
-					},
-					"SQL-Original": {
-						"type": "String",
-						"defaultValue": "SELECT * FROM information_schema.columns WHERE table_name = '<<TABLE>>' AND table_schema = '<<SCHEMA>>'"
-					},
-					"Folder": {
-						"type": "String"
-					},
-					"File": {
-						"type": "String"
-					}
-				},
-				"folder": {
-					"name": "SQL Server"
-				},
-				"annotations": []
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/SRC_SQLSERVER')]",
-				"[concat(variables('factoryId'), '/datasets/RAW_ADLS_Schema')]"
 			]
 		}
 	]
