@@ -7,7 +7,7 @@
 			"type": "LinkedServiceReference"
 		},
 		"parameters": {
-			"BlobPath": {
+			"BlobContainer": {
 				"type": "string"
 			},
 			"BlobName": {
