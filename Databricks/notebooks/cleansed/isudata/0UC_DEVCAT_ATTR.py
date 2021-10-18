@@ -116,9 +116,9 @@ target_object = Params["TargetName"]
 target_object = GeneralAlignTableName(target_object)
 
 if target_object != "":
-    target_table = target_object
+  target_table = target_object
 else:
-    target_table = source_object
+  target_table = source_object
 print("target_table: "+target_table)
 #Get delta columns form the delta_columnn parameter
 delta_column = GeneralGetUpdatedDeltaColumn(delta_column)
