@@ -81,7 +81,7 @@ def DeltaSaveDataframeDirect(dataframe, source_group, table_name, database_name,
 #     table_name = "{0}_{1}".format(source_system, table_name)
   if database_name == ADS_DATABASE_RAW:
     delta_path = "dbfs:{mount}/{folder}/{sourceobject}/delta".format(mount=data_lake_mount_point, folder = source_group.lower(), sourceobject = table_name.lower())  
-    table_name = "{0}_{1}".format(source_group, table_name)
+    #table_name = "{0}_{1}".format(source_group, table_name)
     
   if database_name == ADS_DATABASE_CLEANSED or database_name == ADS_DATABASE_CURATED:
     delta_path = "dbfs:{mount}/{folder}/{sourceobject}/delta".format(mount=data_lake_mount_point, folder = source_group.lower(), sourceobject = table_name.split("_",1)[-1].lower())

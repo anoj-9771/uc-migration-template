@@ -104,17 +104,14 @@ DATA_LAKE_MOUNT_POINT = DataLakeGetMountPoint(ADS_CONTAINER_RAW)
 #Variable 'source_table'has been replaced by 'raw_table'
 source_group = Params["SourceGroup"]
 target_table = Params["TargetName"]
-if target_table != '':
-  source_system = target_table.split('_')[0]
-  raw_table = target_table.split('_',1)[-1]
-else:
+source_system = target_table.split('_')[0]
+raw_table = target_table
 #Source
-  source_system = file_object.split('/')[0]
-  raw_table = file_object.split('/')[1]
-source_file_path = "dbfs:{mount}/{sourcefile}".format(mount=DATA_LAKE_MOUNT_POINT, sourcefile = file_object)
-#Source
+#The below code is commented as part of this fix
+#source_system = file_object.split('/')[0]
+#raw_table = file_object.split('/')[1]
 #End of Fix to use Target Name from Parameter String
-
+source_file_path = "dbfs:{mount}/{sourcefile}".format(mount=DATA_LAKE_MOUNT_POINT, sourcefile = file_object)
 print ("source_group: " + source_group)
 print ("target_table:" + target_table)
 print ("source_system: " + source_system)
@@ -200,7 +197,12 @@ print(output)
 
 # COMMAND ----------
 
-delta_raw_tbl_name = "{0}.{1}_{2}".format(ADS_DATABASE_RAW, source_system, raw_table)
+#Start of Fix to use Target Name from Parameter String
+#The below code is commented as part of this fix
+#delta_raw_tbl_name = "{0}.{1}_{2}".format(ADS_DATABASE_RAW, source_system, raw_table)
+delta_raw_tbl_name = "{0}.{1}".format(ADS_DATABASE_RAW, raw_table)
+#End of Fix to use Target Name from Parameter String
+
 if Params[PARAMS_SOURCE_TYPE] == "BLOB Storage (json)" and DeltaTableExists(delta_raw_tbl_name): 
   sql_query = "SELECT COUNT(*) FROM {0} WHERE _FileDateTimeStamp = {1}".format(delta_raw_tbl_name, file_date_time_stamp)
   df_dl = spark.sql(sql_query)
