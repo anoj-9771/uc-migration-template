@@ -1,6 +1,7 @@
 {
-	"name": "SRC_RAW_LANDING_ADLS_CSV_v2",
+	"name": "SRC_BLOB_CSV_NO_QUOTE_CHAR",
 	"properties": {
+		"description": "Quote Character is set to default(No quote character)",
 		"linkedServiceName": {
 			"referenceName": "LS_AzureBlobStorage",
 			"type": "LinkedServiceReference"
@@ -14,7 +15,7 @@
 			}
 		},
 		"folder": {
-			"name": "Data Lake"
+			"name": "Source - Blob"
 		},
 		"annotations": [],
 		"type": "DelimitedText",
