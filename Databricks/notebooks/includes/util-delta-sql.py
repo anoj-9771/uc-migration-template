@@ -76,19 +76,14 @@ def DeltaSaveDataframeDirect(dataframe, source_group, table_name, database_name,
   spark.sql(query)
   
   #Start of fix to restructure framework folders 
-  #Commented the below lines as part of the fix
-#   if database_name == ADS_DATABASE_RAW or database_name == ADS_DATABASE_CLEANSED or database_name == ADS_DATABASE_CURATED:
-#     table_name = "{0}_{1}".format(source_system, table_name)
-  if database_name == ADS_DATABASE_RAW:
-    delta_path = "dbfs:{mount}/{folder}/{sourceobject}/delta".format(mount=data_lake_mount_point, folder = source_group.lower(), sourceobject = table_name.lower())  
-    #table_name = "{0}_{1}".format(source_group, table_name)
-    
-  if database_name == ADS_DATABASE_CLEANSED or database_name == ADS_DATABASE_CURATED:
+  
+  if database_name == ADS_DATABASE_RAW or database_name == ADS_DATABASE_CLEANSED or database_name == ADS_DATABASE_CURATED:
+    #Commented the below lines as part of the fix   
+    #table_name = "{0}_{1}".format(source_system, table_name)
     delta_path = "dbfs:{mount}/{folder}/{sourceobject}/delta".format(mount=data_lake_mount_point, folder = source_group.lower(), sourceobject = table_name.split("_",1)[-1].lower())
-    #table_name = table_name
-
+    
   LogEtl ("Saving delta lake file : " + delta_path + " with mode " + write_mode)
-#End of fix to restructure framework folders 
+  #End of fix to restructure framework folders 
   
   table_name_fq = "{0}.{1}".format(database_name, table_name)
   
