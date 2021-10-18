@@ -96,25 +96,44 @@ print(json.dumps(Params, indent=4, sort_keys=True))
 # COMMAND ----------
 
 # DBTITLE 1,8. Initilize/update parameter values
-#Align Table Name (replace '[-@ ,;{}()]' charecter by '_')
-source_object = GeneralAlignTableName(source_object)
-print(source_object)
+#Get and Align Source Group (replace '[-@ ,;{}()]' character by '_')
+source_group = Params[PARAMS_SOURCE_GROUP]
+source_group = GeneralAlignTableName(source_group)
+print("source_group: " + source_group)
 
+#Get Data Lake Folder
+data_lake_folder = source_group + "/stg"
+print("data_lake_folder: " + data_lake_folder)
+
+#Get and Align Source Table Name (replace '[-@ ,;{}()]' character by '_')
+source_object = Params["SourceName"]
+source_object = GeneralAlignTableName(source_object)
+print("source_object: " + source_object)
+
+#Get Target Object 
+#Get and Align Target Table Name (replace '[-@ ,;{}()]' character by '_')
+target_object = Params["TargetName"]
+target_object = GeneralAlignTableName(target_object)
+
+if target_object != "":
+    target_table = target_object
+else:
+    target_table = source_object
+print("target_table: "+target_table)
 #Get delta columns form the delta_columnn parameter
 delta_column = GeneralGetUpdatedDeltaColumn(delta_column)
-print(delta_column)
+print("delta_column: " + delta_column)
 
 #Get the Data Load Mode using the params
 data_load_mode = GeneralGetDataLoadMode(Params[PARAMS_TRUNCATE_TARGET], Params[PARAMS_UPSERT_TARGET], Params[PARAMS_APPEND_TARGET])
-print(data_load_mode)
-
+print("data_load_mode: " + data_load_mode)
 
 # COMMAND ----------
 
 # DBTITLE 1,9. Set raw and cleansed table name
 #Set raw and cleansed table name
 #Delta and SQL tables are case Insensitive. Seems Delta table are always lower case
-delta_cleansed_tbl_name = "{0}.{1}".format(ADS_DATABASE_CLEANSED, "stg_"+source_object)
+delta_cleansed_tbl_name = "{0}.{1}".format(ADS_DATABASE_CLEANSED, source_object)
 delta_raw_tbl_name = "{0}.{1}".format(ADS_DATABASE_RAW, source_object)
 #delta_raw_tbl_name = "raw.sap_0uc_device_attr"
 
@@ -128,25 +147,25 @@ print(delta_raw_tbl_name)
 # DBTITLE 1,10. Load to Cleanse Delta Table from Raw Delta Table
 #This method uses the source table to load data into target Delta Table
 DeltaSaveToDeltaTable (
-  source_table = delta_raw_tbl_name, 
-  target_table = "stg_"+source_object, 
-  target_data_lake_zone = ADS_DATALAKE_ZONE_CLEANSED, 
-  target_database = ADS_DATABASE_CLEANSED,
-  data_lake_folder = Params[PARAMS_SOURCE_GROUP],
-  data_load_mode = data_load_mode,
-  track_changes =  Params[PARAMS_TRACK_CHANGES], 
-  is_delta_extract =  Params[PARAMS_DELTA_EXTRACT], 
-  business_key =  Params[PARAMS_BUSINESS_KEY_COLUMN], 
-  delta_column = delta_column, 
-  start_counter = start_counter, 
-  end_counter = end_counter
+    source_table = delta_raw_tbl_name,
+    target_table = target_table,
+    target_data_lake_zone = ADS_DATALAKE_ZONE_CLEANSED,
+    target_database = ADS_DATABASE_STAGE,
+    data_lake_folder = data_lake_folder,
+    data_load_mode = data_load_mode,
+    track_changes =  Params[PARAMS_TRACK_CHANGES],
+    is_delta_extract =  Params[PARAMS_DELTA_EXTRACT],
+    business_key =  Params[PARAMS_BUSINESS_KEY_COLUMN],
+    delta_column = delta_column,
+    start_counter = start_counter,
+    end_counter = end_counter
 )
 
 # COMMAND ----------
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_updated_column_temp = spark.sql("SELECT  \
+df_updated_column_temp = spark.sql(f"SELECT  \
                                   EQUNR as equipmentNumber,\
                                   MATNR as materialNumber,\
                                   GERAET as deviceNumber,\
@@ -161,7 +180,7 @@ df_updated_column_temp = spark.sql("SELECT  \
                                   _RecordEnd, \
                                   _RecordDeleted, \
                                   _RecordCurrent \
-                                FROM CLEANSED.STG_isu_0UC_DEVICE_ATTR")
+                                FROM {ADS_DATABASE_STAGE}.{source_object}")
 display(df_updated_column_temp)
 
 # COMMAND ----------
@@ -193,8 +212,7 @@ display(df_updated_column)
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
-DeltaSaveDataframeDirect(df_updated_column, "t", source_object, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
-
+DeltaSaveDataframeDirect(df_updated_column, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
 
 # COMMAND ----------
 

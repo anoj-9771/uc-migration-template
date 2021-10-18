@@ -175,7 +175,7 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_updated_column = spark.sql("SELECT \
+df_updated_column = spark.sql(f"SELECT \
                                        ZWGRUPPE as registerGroupCode,\
                                        EZWG_INFO as registerGroup \
                                        FROM {ADS_DATABASE_STAGE}.{source_object}")
