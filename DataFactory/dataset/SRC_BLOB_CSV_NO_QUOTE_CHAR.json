@@ -26,11 +26,10 @@
 					"value": "@dataset().BlobName",
 					"type": "Expression"
 				},
-				"folderPath": {
+				"container": {
 					"value": "@dataset().BlobPath",
 					"type": "Expression"
-				},
-				"container": "raw"
+				}
 			},
 			"columnDelimiter": "|",
 			"compressionCodec": "gzip",
