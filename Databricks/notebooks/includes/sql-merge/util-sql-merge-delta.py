@@ -401,9 +401,10 @@ def _SQLInsertSyntax_DeltaTable_Generate(dataframe, is_delta_extract, delta_colu
     COL_TIMESTAMP = COL_DL_CURATED_LOAD
 
 #Start of Fix for Handling Null in Key Columns  
-  business_key_inp =  Params[PARAMS_BUSINESS_KEY_COLUMN]
-  business_key_list = business_key_inp.split(",")
-  col_exception_list.extend(business_key_list) 
+  if target_data_lake_zone == ADS_DATABASE_CLEANSED:
+    business_key_inp =  Params[PARAMS_BUSINESS_KEY_COLUMN]
+    business_key_list = business_key_inp.split(",")
+    col_exception_list.extend(business_key_list) 
 
   #Get the list of columns which does not include the exception list 
   updated_col_list = _GetExclusiveList(dataframe.columns, col_exception_list)
@@ -416,21 +417,22 @@ def _SQLInsertSyntax_DeltaTable_Generate(dataframe, is_delta_extract, delta_colu
 
   #sql_values = _GetSQLCollectiveColumnsFromColumnNames(updated_col_list, alias = "", func = "", column_qualifer = DELTA_COL_QUALIFER)
   sql_values = sql_col
+  if target_data_lake_zone == ADS_DATABASE_CLEANSED:
+    business_key = _GetSQLCollectiveColumnsFromColumnNames(business_key_list, alias = "", func = "", column_qualifer = DELTA_COL_QUALIFER)
 
-  business_key = _GetSQLCollectiveColumnsFromColumnNames(business_key_list, alias = "", func = "", column_qualifer = DELTA_COL_QUALIFER)
+  
+    if is_delta_extract:
+      business_key_tx_list = [item + "-TX" for item in business_key_list]
+      business_key_tx = _GetSQLCollectiveColumnsFromColumnNames(business_key_tx_list, alias = "", func = "", column_qualifer = DELTA_COL_QUALIFER)
 
-  if is_delta_extract and target_data_lake_zone == ADS_DATABASE_CLEANSED:
-    business_key_tx_list = [item + "-TX" for item in business_key_list]
-    business_key_tx = _GetSQLCollectiveColumnsFromColumnNames(business_key_tx_list, alias = "", func = "", column_qualifer = DELTA_COL_QUALIFER)
+    if not is_delta_extract:
+      #Generating the sql string for the additional '-TX' coulmns
+      business_key_col = business_key.split(",")
+      business_key_col_list =["COALESCE(" + item + ", 'na') " for item in business_key_col]
+      business_key_tx = ",".join(business_key_col_list)
 
-  if not is_delta_extract and target_data_lake_zone == ADS_DATABASE_CLEANSED:
-    #Generating the sql string for the additional '-TX' coulmns
-    business_key_col = business_key.split(",")
-    business_key_col_list =["COALESCE(" + item + ", 'na') " for item in business_key_col]
-    business_key_tx = ",".join(business_key_col_list)
-
-  sql_col += f", {business_key}"
-  sql_values += f", {business_key_tx}"
+    sql_col += f", {business_key}"
+    sql_values += f", {business_key_tx}"
 #End of Fix for Handling Null in Key Columns
  
 
