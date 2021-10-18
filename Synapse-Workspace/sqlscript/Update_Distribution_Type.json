@@ -1,0 +1,17 @@
+{
+	"name": "Update_Distribution_Type",
+	"properties": {
+		"content": {
+			"query": "CREATE TABLE dbo.sapisu_ehauisu_replicate  \nWITH   \n  (   \n    CLUSTERED COLUMNSTORE INDEX,  \n    DISTRIBUTION = REPLICATE \n  )  \nAS SELECT * FROM dbo.sapisu_ehauisu; \n\n---------------------\n\nCREATE TABLE dbo.sapisu_0bp_cat_text_replicate  \nWITH   \n  (   \n    CLUSTERED COLUMNSTORE INDEX,  \n    DISTRIBUTION = REPLICATE \n  )  \nAS SELECT * FROM dbo.sapisu_0bp_cat_text; \n\n-- Switch table names\n\n-- RENAME OBJECT [dbo].[DimSalesTerritory] to [DimSalesTerritory_old];\n-- RENAME OBJECT [dbo].[myTable] TO [DimSalesTerritory];\n\n-- DROP TABLE [dbo].[DimSalesTerritory_old];",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "syndwdev01",
+				"poolName": "syndwdev01"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

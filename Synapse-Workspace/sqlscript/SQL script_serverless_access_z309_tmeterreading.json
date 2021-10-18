@@ -1,0 +1,17 @@
+{
+	"name": "SQL script_serverless_access_z309_tmeterreading",
+	"properties": {
+		"content": {
+			"query": "IF NOT EXISTS (SELECT * FROM sys.external_file_formats WHERE name = 'SynapseParquetFormat') \n\tCREATE EXTERNAL FILE FORMAT [SynapseParquetFormat] \n\tWITH ( FORMAT_TYPE = PARQUET)\nGO\n\nIF NOT EXISTS (SELECT * FROM sys.external_data_sources WHERE name = 'raw_sadafdev01_dfs_core_windows_net') \n\tCREATE EXTERNAL DATA SOURCE [raw_sadafdev01_dfs_core_windows_net] \n\tWITH (\n\t\tLOCATION   = 'https://sadafdev01.dfs.core.windows.net/raw', \n\t)\nGo\n\nCREATE EXTERNAL TABLE access_z309_tmeterreading (\n\t[N_PROP] varchar(100),\n\t[N_PROP_METE] varchar(100),\n\t[N_METE_READ] varchar(100),\n\t[C_METE_READ_TOLE] varchar(100),\n\t[C_METE_READ_TYPE] varchar(100),\n\t[C_METE_READ_CONS] varchar(100),\n\t[C_METE_READ_STAT] varchar(100),\n\t[C_METE_CANT_READ] varchar(100),\n\t[C_PDE_READ_METH] varchar(100),\n\t[Q_METE_READ] varchar(100),\n\t[D_METE_READ] varchar(100),\n\t[T_METE_READ_TIME] varchar(100),\n\t[Q_METE_READ_CONS] varchar(100),\n\t[Q_METE_READ_DAYS] varchar(100),\n\t[F_READ_COMM_CODE] varchar(100),\n\t[F_READ_COMM_FREE] varchar(100),\n\t[Q_PDE_HIGH_LOW] varchar(100),\n\t[Q_PDE_REEN_COUN] varchar(100),\n\t[F_PDE_AUXI_READ] varchar(100),\n\t[D_METE_READ_UPDA] varchar(100),\n\t[_DLRawZoneTimeStamp] datetime2(7),\n\t[year] varchar(4),\n\t[month] varchar(2),\n\t[day] varchar(2)\n\t)\n\tWITH (\n\tLOCATION = 'access/z309_tmeterreading/delta/part-00000-9fe96860-1092-4741-9730-2a0652c44e53-c000.snappy.parquet',\n\tDATA_SOURCE = [raw_sadafdev01_dfs_core_windows_net],\n\tFILE_FORMAT = [SynapseParquetFormat]\n\t)\nGO\n\nSELECT TOP 100 * FROM access_z309_tmeterreading\nGO\n\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "Test",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

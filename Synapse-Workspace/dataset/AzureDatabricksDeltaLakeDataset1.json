@@ -1,0 +1,74 @@
+{
+	"name": "AzureDatabricksDeltaLakeDataset1",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureDatabricksDeltaLake1",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureDatabricksDeltaLakeDataset",
+		"typeProperties": {
+			"database": "default",
+			"table": "dproperty"
+		},
+		"schema": [
+			{
+				"name": "DimPropertySK",
+				"type": "long"
+			},
+			{
+				"name": "propertyId",
+				"type": "string"
+			},
+			{
+				"name": "sourceSystemCode",
+				"type": "string"
+			},
+			{
+				"name": "propertyStartDate",
+				"type": "date"
+			},
+			{
+				"name": "propertyEndDate",
+				"type": "date"
+			},
+			{
+				"name": "propertyType",
+				"type": "string"
+			},
+			{
+				"name": "superiorPropertyType",
+				"type": "string"
+			},
+			{
+				"name": "areaSize",
+				"type": "decimal(18,6)"
+			},
+			{
+				"name": "LGA",
+				"type": "string"
+			},
+			{
+				"name": "_DLCuratedZoneTimeStamp",
+				"type": "timestamp"
+			},
+			{
+				"name": "_RecordStart",
+				"type": "timestamp"
+			},
+			{
+				"name": "_RecordEnd",
+				"type": "timestamp"
+			},
+			{
+				"name": "_RecordDeleted",
+				"type": "integer"
+			},
+			{
+				"name": "_RecordCurrent",
+				"type": "integer"
+			}
+		]
+	},
+	"type": "Microsoft.Synapse/workspaces/datasets"
+}

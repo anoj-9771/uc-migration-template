@@ -1,0 +1,91 @@
+{
+	"name": "SqlPoolTable",
+	"properties": {
+		"parameters": {
+			"Table": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "SqlPoolTable",
+		"schema": [
+			{
+				"name": "AEDAT",
+				"type": "varchar"
+			},
+			{
+				"name": "AENAM",
+				"type": "varchar"
+			},
+			{
+				"name": "AUTOEND",
+				"type": "varchar"
+			},
+			{
+				"name": "ERDAT",
+				"type": "varchar"
+			},
+			{
+				"name": "ERNAM",
+				"type": "varchar"
+			},
+			{
+				"name": "EXTRACT_DATETIME",
+				"type": "varchar"
+			},
+			{
+				"name": "EXTRACT_RUN_ID",
+				"type": "bigint",
+				"precision": 19
+			},
+			{
+				"name": "NDEXNR",
+				"type": "bigint",
+				"precision": 19
+			},
+			{
+				"name": "MANDT",
+				"type": "varchar"
+			},
+			{
+				"name": "PRUEFGR",
+				"type": "varchar"
+			},
+			{
+				"name": "ZWZUART",
+				"type": "bigint",
+				"precision": 19
+			},
+			{
+				"name": "_DLRawZoneTimeStamp",
+				"type": "datetime",
+				"precision": 23,
+				"scale": 3
+			},
+			{
+				"name": "year",
+				"type": "varchar"
+			},
+			{
+				"name": "month",
+				"type": "varchar"
+			},
+			{
+				"name": "day",
+				"type": "varchar"
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": {
+				"value": "@dataset().Table",
+				"type": "Expression"
+			}
+		},
+		"sqlPool": {
+			"referenceName": "syndwdev01",
+			"type": "SqlPoolReference"
+		}
+	},
+	"type": "Microsoft.Synapse/workspaces/datasets"
+}
