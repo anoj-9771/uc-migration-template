@@ -27,7 +27,7 @@
 					"type": "Expression"
 				},
 				"container": {
-					"value": "@dataset().BlobPath",
+					"value": "@dataset().BlobContainer",
 					"type": "Expression"
 				}
 			},
