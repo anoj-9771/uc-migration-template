@@ -138,6 +138,7 @@ print("delta_column: " + delta_column)
 #Get the Data Load Mode using the params
 data_load_mode = GeneralGetDataLoadMode(Params[PARAMS_TRUNCATE_TARGET], Params[PARAMS_UPSERT_TARGET], Params[PARAMS_APPEND_TARGET])
 print("data_load_mode: " + data_load_mode)
+
 # COMMAND ----------
 
 # DBTITLE 1,9. Set raw and cleansed table name
@@ -174,7 +175,7 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_cleansed = spark.sql("SELECT \
+df_cleansed = spark.sql(f"SELECT \
 	case when TERMSCHL = 'na' then '' else TERMSCHL end as portion, \
 	cast(EPER_ABL as dec(Integer,0)) as intervalBetweenReadingAndEnd, \
 	cast(AUF_ABL as dec(Integer,0)) as intervalBetweenOrderAndReading, \
@@ -183,7 +184,7 @@ df_cleansed = spark.sql("SELECT \
 	cast(ANSCH_AUF as dec(Integer,0)) as intervalBetweenAnnouncementAndOrder, \
 	cast(AUKSA_AUF as dec(Integer,0)) as intervalBetweenPrintoutAndOrder, \
 	PORTION as portionNumber, \
-	ABLESER as meterReaderNumber , \
+	ABLESER as meterReaderNumber, \
 	cast(ABLZEIT as dec(Integer,0)) as meterReadingTime, \
 	cast(AZVORABL as dec(Integer,0)) as numberOfPreviousReadings, \
 	MDENR as numberOFMobileDataEntry, \
@@ -208,8 +209,7 @@ df_cleansed = spark.sql("SELECT \
 	_RecordEnd, \
 	_RecordDeleted, \
 	_RecordCurrent \
-	FROM CLEANSED.STG_" + source_object \
-         )
+	FROM {ADS_DATABASE_STAGE}.{source_object}")
 
 display(df_cleansed)
 print(f'Number of rows: {df_cleansed.count()}')
@@ -225,7 +225,7 @@ newSchema = StructType([
 	StructField('intervalBetweenAnnouncementAndOrder',DecimalType(Integer,0),True),
 	StructField('intervalBetweenPrintoutAndOrder',DecimalType(Integer,0),True),
 	StructField('portionNumber',StringType(),True),
-	StructField('meterReaderNumber ',StringType(),True),
+	StructField('meterReaderNumber',StringType(),True),
 	StructField('meterReadingTime',DecimalType(Integer,0),True),
 	StructField('numberOfPreviousReadings',DecimalType(Integer,0),True),
 	StructField('numberOFMobileDataEntry',StringType(),True),
@@ -260,6 +260,7 @@ df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
 DeltaSaveDataframeDirect(df_updated_column, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
+
 # COMMAND ----------
 
 # DBTITLE 1,13. Exit Notebook
