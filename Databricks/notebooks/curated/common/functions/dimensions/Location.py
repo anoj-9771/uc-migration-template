@@ -1,6 +1,6 @@
 # Databricks notebook source
 ###########################################################################################################################
-# Function: GetCommonLocation
+# Function: GetLocation
 #  GETS Location DIMENSION 
 # Returns:
 #  Dataframe of transformed Location

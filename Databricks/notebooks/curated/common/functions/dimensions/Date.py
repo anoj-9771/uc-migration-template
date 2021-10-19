@@ -1,6 +1,6 @@
 # Databricks notebook source
 ###########################################################################################################################
-# Function: GetCommonDate
+# Function: GetDate
 #  GETS Date DIMENSION 
 # Returns:
 #  Dataframe of transformed dates
@@ -13,7 +13,7 @@
 # 5.SELECT / TRANSFORM
 #############################################################################################################################
 #1.Create Function
-def getCommonDate():
+def getDate():
   
   #spark.udf.register("TidyCase", GeneralToTidyCase)  
   

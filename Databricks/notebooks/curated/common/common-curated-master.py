@@ -130,7 +130,7 @@ def TemplateEtl(df : object, entity, businessKey, AddSK = True):
 # DBTITLE 1,7. Function: Load Dimensions
 #Call Date function to load DimDate
 def Date():
-  TemplateEtl(df=getCommonDate(), 
+  TemplateEtl(df=getDate(), 
              entity="dimDate", 
              businessKey="calendarDate",
              AddSK=True
@@ -138,7 +138,7 @@ def Date():
 
 Call Property function to load DimProperty
 def Property():
-  TemplateEtl(df=getCommonProperty(), 
+  TemplateEtl(df=getProperty(), 
              entity="dimProperty", 
              businessKey="propertyId,sourceSystemCode,propertyEndDate",
              AddSK=True
@@ -146,7 +146,7 @@ def Property():
 
 #Call Location function to load DimLocation
 def Location():
-  TemplateEtl(df=getCommonLocation(), 
+  TemplateEtl(df=getLocation(), 
              entity="dimLocation", 
              businessKey="locationId",
              AddSK=True
@@ -154,7 +154,7 @@ def Location():
 
 #Call Meter function to load DimMeter
 def Meter():
-  TemplateEtl(df=getCommonMeter(), 
+  TemplateEtl(df=getMeter(), 
              entity="dimMeter", 
              businessKey="meterId,sourceSystemCode",
              AddSK=True

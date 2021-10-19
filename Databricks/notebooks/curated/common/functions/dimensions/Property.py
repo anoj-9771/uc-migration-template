@@ -1,6 +1,6 @@
 # Databricks notebook source
 ###########################################################################################################################
-# Function: GetCommonProperty
+# Function: GetProperty
 #  GETS Property DIMENSION 
 # Returns:
 #  Dataframe of transformed Property
