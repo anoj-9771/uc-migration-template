@@ -138,6 +138,7 @@ print("delta_column: " + delta_column)
 #Get the Data Load Mode using the params
 data_load_mode = GeneralGetDataLoadMode(Params[PARAMS_TRUNCATE_TARGET], Params[PARAMS_UPSERT_TARGET], Params[PARAMS_APPEND_TARGET])
 print("data_load_mode: " + data_load_mode)
+
 # COMMAND ----------
 
 # DBTITLE 1,9. Set raw and cleansed table name
@@ -175,7 +176,7 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
     
-df_calendar_column = spark.sql("SELECT \
+df_cleansed = spark.sql(f"SELECT \
                                 to_date(CALENDARDATE,'yyyy-MM-dd') as calendarDate , \
                                 CALENDARDAY as dayOfMonth , \
                                 CALENDARDAYOFYEAR as dayOfYear  , \
@@ -194,13 +195,13 @@ df_calendar_column = spark.sql("SELECT \
                                 _RecordEnd, \
                                 _RecordDeleted, \
                                 _RecordCurrent \
-                               FROM CLEANSED.stg_isu_SCAL_TT_DATE \
+                               FROM {ADS_DATABASE_STAGE}.{source_object} \
                                where calendardate is not null \
                                order by 1 \
                                ")
 
-display(df_calendar_column)
-
+display(df_cleansed)
+print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
 
@@ -224,8 +225,8 @@ newSchema = StructType([
                             StructField('_RecordDeleted', IntegerType(), False),
                             StructField('_RecordCurrent', IntegerType(), False),
                     ])
-df_cleansed_column = spark.createDataFrame(df_calendar_column.rdd, schema=newSchema)
-display(df_cleansed_column)
+df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
+display(df_updated_column)
 
 
 # COMMAND ----------
@@ -233,6 +234,7 @@ display(df_cleansed_column)
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
 DeltaSaveDataframeDirect(df_updated_column, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
+
 # COMMAND ----------
 
 # DBTITLE 1,13. Exit Notebook

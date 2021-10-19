@@ -138,6 +138,7 @@ print("delta_column: " + delta_column)
 #Get the Data Load Mode using the params
 data_load_mode = GeneralGetDataLoadMode(Params[PARAMS_TRUNCATE_TARGET], Params[PARAMS_UPSERT_TARGET], Params[PARAMS_APPEND_TARGET])
 print("data_load_mode: " + data_load_mode)
+
 # COMMAND ----------
 
 # DBTITLE 1,9. Set raw and cleansed table name
@@ -174,7 +175,7 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_cleansed = spark.sql("SELECT \
+df_cleansed = spark.sql(f"SELECT \
                             stg.PROPERTY1 as property1Number, \
                             stg.PROPERTY2 as property2Number, \
                             stg.REL_TYPE1 as relationshipTypeCode1, \
@@ -187,9 +188,9 @@ df_cleansed = spark.sql("SELECT \
                             stg._RecordEnd, \
                             stg._RecordDeleted, \
                             stg._RecordCurrent \
-                            FROM CLEANSED.STG_isu_ZCD_TPROP_REL stg\
-                            left outer join cleansed.t_isu_zcd_vireltyptx rtyp1 on stg.REL_TYPE1 = rtyp1.relationshipTypeCode and rtyp1._RecordCurrent = 1 and rtyp1._RecordDeleted = 0 \
-                            left outer join cleansed.t_isu_zcd_vireltyp2tx rtyp2 on stg.REL_TYPE2 = rtyp2.relationshipTypeCode and rtyp2._RecordCurrent = 1 and rtyp2._RecordDeleted = 0\
+                            FROM {ADS_DATABASE_STAGE}.{source_object} stg\
+                            left outer join cleansed.isu_zcd_vireltyptx rtyp1 on stg.REL_TYPE1 = rtyp1.relationshipTypeCode and rtyp1._RecordCurrent = 1 and rtyp1._RecordDeleted = 0 \
+                            left outer join cleansed.isu_zcd_vireltyp2tx rtyp2 on stg.REL_TYPE2 = rtyp2.relationshipTypeCode and rtyp2._RecordCurrent = 1 and rtyp2._RecordDeleted = 0\
                        ")
 
 display(df_cleansed)
@@ -220,6 +221,7 @@ df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
 DeltaSaveDataframeDirect(df_updated_column, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
+
 # COMMAND ----------
 
 # DBTITLE 1,13. Exit Notebook
