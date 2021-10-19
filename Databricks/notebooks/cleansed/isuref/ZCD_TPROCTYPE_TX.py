@@ -138,6 +138,7 @@ print("delta_column: " + delta_column)
 #Get the Data Load Mode using the params
 data_load_mode = GeneralGetDataLoadMode(Params[PARAMS_TRUNCATE_TARGET], Params[PARAMS_UPSERT_TARGET], Params[PARAMS_APPEND_TARGET])
 print("data_load_mode: " + data_load_mode)
+
 # COMMAND ----------
 
 # DBTITLE 1,9. Set raw and cleansed table name
@@ -174,7 +175,7 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_updated_column_temp = spark.sql("SELECT  \
+df_cleansed = spark.sql(f"SELECT  \
                                   PROCESS_TYPE as PROCESS_TYPE , \
                                   PROCESS_MODE as PROCESS_MODE , \
                                   DESCRIPTION as DESCRIPTION , \
@@ -182,18 +183,18 @@ df_updated_column_temp = spark.sql("SELECT  \
                                   _RecordEnd, \
                                   _RecordDeleted, \
                                   _RecordCurrent \
-                              FROM CLEANSED.stg_isu_ZCD_TPROCTYPE_TX \
-                              ")
+                              FROM {ADS_DATABASE_STAGE}.{source_object}")
 
-display(df_updated_column_temp)
+display(df_cleansed)
+print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
 
 # Create schema for the cleanse table
-cleanse_Schema = StructType(
+newSchema = StructType(
                             [
-                            StructField("PROCESS_TYPE", StringType(), True),
-                            StructField("PROCESS_MODE", StringType(), True),
+                            StructField("PROCESS_TYPE", StringType(), False),
+                            StructField("PROCESS_MODE", StringType(), False),
                             StructField("DESCRIPTION", StringType(), True),
                             StructField('_RecordStart',TimestampType(),False),
                             StructField('_RecordEnd',TimestampType(),False),
@@ -202,7 +203,7 @@ cleanse_Schema = StructType(
                             ]
                         )
 # Apply the new schema to cleanse Data Frame
-df_updated_column = spark.createDataFrame(df_updated_column_temp.rdd, schema=cleanse_Schema)
+df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
 display(df_updated_column)
 
 
@@ -212,6 +213,7 @@ display(df_updated_column)
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
 DeltaSaveDataframeDirect(df_updated_column, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
+
 # COMMAND ----------
 
 # DBTITLE 1,13. Exit Notebook
