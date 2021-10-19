@@ -1,0 +1,10 @@
+{
+	"name": "synapse-ws-sql--synws-swcnonprod01-daf-dev-01",
+	"properties": {
+		"privateLinkResourceId": "/subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-daf-dev-01/providers/Microsoft.Synapse/workspaces/synws-swcnonprod01-daf-dev-01",
+		"groupId": "sql",
+		"fqdns": [
+			"synws-swcnonprod01-daf-dev-01.559cb789-ff17-4b17-9886-e30d030eb13b.sql.azuresynapse.net"
+		]
+	}
+}

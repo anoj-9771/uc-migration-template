@@ -7,6 +7,10 @@
 
 # COMMAND ----------
 
+# MAGIC %run ./global-variables-scala
+
+# COMMAND ----------
+
 # MAGIC %run ./connect-datalake
 
 # COMMAND ----------
@@ -31,7 +35,7 @@
 
 # COMMAND ----------
 
-# MAGIC %run ./util-edw-tsql-scala
+# MAGIC %run ./util-dw-tsql-scala
 
 # COMMAND ----------
 
@@ -40,6 +44,10 @@
 # COMMAND ----------
 
 # MAGIC %run ./util-update-table-schema
+
+# COMMAND ----------
+
+# MAGIC %run ./connect-synapse
 
 # COMMAND ----------
 

@@ -1,0 +1,20 @@
+{
+	"name": "DataLakeSynapseStaging_Parque",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "synws-swcnonprod01-daf-dev-01-WorkspaceDefaultStorage",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Parquet",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileSystem": "synapsestaging"
+			},
+			"compressionCodec": "snappy"
+		},
+		"schema": []
+	},
+	"type": "Microsoft.Synapse/workspaces/datasets"
+}

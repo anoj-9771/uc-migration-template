@@ -10,7 +10,7 @@
 				"typeProperties": {
 					"variableName": "SourceContainer",
 					"value": {
-						"value": "@toLower(first(split(pipeline().parameters.TaskDetails.SourceName,'_')))",
+						"value": "@toLower(pipeline().parameters.TaskDetails.SourceGroup)",
 						"type": "Expression"
 					}
 				}
@@ -390,7 +390,7 @@
 								"source": {
 									"type": "DelimitedTextSource",
 									"storeSettings": {
-										"type": "AzureBlobFSReadSettings",
+										"type": "AzureBlobStorageReadSettings",
 										"recursive": true,
 										"enablePartitionDiscovery": false
 									},
@@ -413,10 +413,10 @@
 							},
 							"inputs": [
 								{
-									"referenceName": "SRC_RAW_LANDING_ADLS_CSV",
+									"referenceName": "SRC_BLOB_CSV_NO_QUOTE_CHAR",
 									"type": "DatasetReference",
 									"parameters": {
-										"BlobPath": {
+										"BlobContainer": {
 											"value": "@variables('SourceContainer')",
 											"type": "Expression"
 										},
@@ -496,7 +496,7 @@
 							}
 						},
 						{
-							"name": "Delete Manifest file",
+							"name": "Delete file from source",
 							"type": "Delete",
 							"dependsOn": [
 								{

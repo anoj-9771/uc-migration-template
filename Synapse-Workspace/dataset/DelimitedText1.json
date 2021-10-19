@@ -1,0 +1,30 @@
+{
+	"name": "DelimitedText1",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureDataLakeStorage1",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": "Z309_TDEBITREASON.csv",
+				"folderPath": "landing/accessarchive",
+				"fileSystem": "raw"
+			},
+			"columnDelimiter": "|",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": [
+			{
+				"name": "C_LGA|N_PROP|N_DEBI_REFE|C_DEBI_TYPE|C_DEBI_REAS|A_DEBI|A_DEBI_OUTS|A_WATE|A_SEWE|A_DRAI|D_DEFE_FROM|D_DEFE_TO|D_DISP|C_RECO_LEVE|D_RECO_LEVE|F_OCCU|F_ARRE|N_FINA_YEAR|C_ISSU|D_DEBI_CREA|D_DEBI_UPDA|D_ORIG_ISSU",
+				"type": "String"
+			}
+		]
+	},
+	"type": "Microsoft.Synapse/workspaces/datasets"
+}

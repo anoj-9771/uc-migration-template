@@ -18,6 +18,9 @@ variables:
   # username for SQL Server Control DB
   - name: azuresqlserverun
     value: sqladmin
+ # username for Synapse Dedicated SQL Pool syndwdev01 DB
+  - name: synsqlpoolrun
+    value: synapseadmin
   # Name of the service connection in Azure Devops.
   - name: azdoresourceconnection
     value: azure-rg-dev-serviceconnection
@@ -37,11 +40,14 @@ variables:
   # ------------------------------------------------
   # Service names for environment
   # ------------------------------------------------
-  # Name of Azure SQL Server and EDW Database.
+  # Name of Azure SQL Server
   - name: azuresqlservername
     value: sql-$(SUBSCRIPTION)-$(PREFIX)-$(ENVIRONMENT)-$(INCREMENT)
-  - name: azureedwdbname
-    value: EDW
+  # Name of Synapse DW server and Database
+  - name: synapsesqlservername
+    value: synws-$(SUBSCRIPTION)-$(PREFIX)-$(ENVIRONMENT)-$(INCREMENT)
+  - name: synapsedwdbname
+    value: syndwdev01
   # Name of key vault for this environment.
   - name: azurekeyvaultname
     value: kv-$(PREFIX)-$(ENVIRONMENT)-$(INCREMENT)

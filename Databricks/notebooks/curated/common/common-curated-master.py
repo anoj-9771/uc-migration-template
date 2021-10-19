@@ -68,196 +68,24 @@ spark.conf.set("spark.sql.autoBroadcastJoinThreshold", -1)
 
 # DBTITLE 1,Test - Remove it
 # #Remove - For testing
-# # from pyspark.sql import functions as F
-# # accessZ309TpropertyDf1 = accessZ309TpropertyDf.withColumn("sourceSystemCode", lit("Access")).drop()
-# # # df = accessZ309TpropertyDf1.select("propertyNumber","sourceSystemCode","propertyTypeEffectiveFrom","propertyType","superiorPropertyType","propertyArea","propertyAreaTypeCode","LGA")
-
-# # df = accessZ309TpropertyDf1.selectExpr("propertyNumber","sourceSystemCode","propertyTypeEffectiveFrom","propertyType","superiorPropertyType","LGA","CASE WHEN propertyAreaTypeCode == 'H' THEN  propertyArea * 10000 ELSE propertyArea END AS propertyArea")
-# # df = df.withColumnRenamed("propertyTypeEffectiveFrom", "propertyStartDate")
-# # # accessZ309TpropertyDf1 = accessZ309TpropertyDf1.withColumn(col("propertyArea"),when(accessZ309TpropertyDf1.propertyAreaTypeCode == 'H', accessZ309TpropertyDf1.propertyArea * 10000).otherwise(col("propertyArea")))
-
-# # # df = accessZ309TpropertyDf1.selectExpr("propertyNumber","sourceSystemCode","propertyTypeEffectiveFrom","propertyType","superiorPropertyType","propertyAreaTypeCode","LGA","CASE WHEN propertyAreaTypeCode == 'H' THEN  propertyArea * 10000 ELSE propertyArea END AS propertyArea").show()
-
-# # #df = df.withColumn(df[propertyArea], when(df[propertyAreaTypeCode]=="H",df[propertyArea] * 10000).otherwise(df[propertyArea]))
-
-# # sapisu0ucConbjAttr2Df1 = sapisu0ucConbjAttr2Df.selectExpr("propertyNumber","sourceSystemCode", \
-# #                                                            "inferiorPropertyType","superiorPropertyType","architecturalObjectInternalId","LGA")
-# # sapisu0ucConbjAttr2Df1 = sapisu0ucConbjAttr2Df1.withColumn("propertyStartDate", lit("9999-12-31")).withColumn("propertyEndDate", lit("9999-12-31"))
-# # sapisu0ucConbjAttr2Df1 = sapisu0ucConbjAttr2Df1.withColumnRenamed("inferiorPropertyType", "PropertyType")
-
-# accessZ309TpropertyDf = accessZ309TpropertyDf.selectExpr("propertyNumber","sourceSystemCode","propertyTypeEffectiveFrom", \
-#                                                            "propertyType","superiorPropertyType","LGA", \
-#                                                            "CASE WHEN propertyAreaTypeCode == 'H' THEN  propertyArea * 10000 \
-#                                                            ELSE propertyArea END AS propertyArea")
-# accessZ309TpropertyDf = accessZ309TpropertyDf.withColumnRenamed("propertyTypeEffectiveFrom", "propertyStartDate")
-# accessZ309TpropertyDf = accessZ309TpropertyDf.withColumn("propertyEndDate", lit("9999-12-31"))
-# accessZ309TpropertyDf = accessZ309TpropertyDf.select("propertyNumber","sourceSystemCode","propertyStartDate","propertyEndDate", \
-#                                               "propertyType","superiorPropertyType","propertyArea","LGA")
-
-# sapisu0ucConbjAttr2Df = sapisu0ucConbjAttr2Df.selectExpr("propertyNumber","sourceSystemCode","inferiorPropertyType","superiorPropertyType", \
-#                                                          "architecturalObjectInternalId","validFromDate","LGA")
-# sapisu0ucConbjAttr2Df = sapisu0ucConbjAttr2Df.withColumn("propertyEndDate", lit("9999-12-31"))
-# sapisu0ucConbjAttr2Df = sapisu0ucConbjAttr2Df.withColumnRenamed("inferiorPropertyType", "PropertyType")\
-#                                               .withColumnRenamed("validFromDate", "propertyStartDate")
-
-# # sapisuVibdaoDf = sapisuVibdaoDf.selectExpr("architecturalObjectInternalId","validFromDate","validToDate", \
-# #                                           "CASE WHEN hydraAreaUnit == 'HAR' THEN  hydraCalculatedArea * 10000 \
-# #                                                 WHEN hydraAreaUnit == 'M2' THEN  hydraCalculatedArea \
-# #                                                 ELSE null END AS propertyArea")
-
-# sapisuVibdaoDf = sapisuVibdaoDf.selectExpr("architecturalObjectInternalId", \
-#                                           "CASE WHEN hydraAreaUnit == 'HAR' THEN  hydraCalculatedArea * 10000 \
-#                                                 WHEN hydraAreaUnit == 'M2' THEN  hydraCalculatedArea \
-#                                                 ELSE null END AS propertyArea")
-
-# df = sapisu0ucConbjAttr2Df.join(sapisuVibdaoDf, sapisu0ucConbjAttr2Df.architecturalObjectInternalId == sapisuVibdaoDf.architecturalObjectInternalId, how="inner")\
-#                           .drop(sapisuVibdaoDf.architecturalObjectInternalId).drop(sapisu0ucConbjAttr2Df.architecturalObjectInternalId)
-# df = df.select("propertyNumber","sourceSystemCode","propertyStartDate","propertyEndDate", \
-#                                               "propertyType","superiorPropertyType","propertyArea","LGA")
-
-# df = accessZ309TpropertyDf.union(df) 
-# # this is working fine
-
-
-
-# df = df.selectExpr( \
-# 	 "propertyNumber  as propertyId" \
-#     ,"sourceSystemCode" \
-#     ,"propertyStartDate" \
-#     ,"propertyEndDate" \
-#     ,"sourceSystemCode as propertyType" \
-#     ,"superiorPropertyType" \
-#     ,"CAST(propertyArea AS DECIMAL(18,6)) as propertyArea" \
-#     ,"LGA" \
-#   )
-# display(df)
-
+#
 # spark.sql("DROP TABLE curated.dimproperty")
 # spark.sql("DROP TABLE stage.dimproperty")
-
-# df = spark.sql("SELECT \
-#                     propertyId, \
-#                     _RecordStart, \
-#                     CAST(ROW_NUMBER() OVER (ORDER BY 1) AS bigint) + 0 AS dimPropertySK \
-#                   FROM curated.dimProperty \
-#                   WHERE dimPropertySK IS NULL") 
-               
-# # if df.count() > df.dropDuplicates(['propertyId']).count():
-# #     raise ValueError('Data has duplicates')
-
-# df \
-#     .groupby(['propertyId']) \
-#     .count() \
-#     .where('count > 1') \
-#     .sort('count', ascending=True) \
-#     .show()
-
-# # sapisu0ucConbjAttr2Df = sapisu0ucConbjAttr2Df.dropDuplicates()
-# # sapisu0ucConbjAttr2Df \
-# #     .groupby(['propertyNumber']) \
-# #     .count() \
-# #     .where('count > 1') \
-# #     .sort('count', ascending=True) \
-# #     .show()
-
-# # display(sapisu0ucConbjAttr2Df.filter("PropertyNumber == 6206050"))
-
-# df = spark.sql("select * from cleansed.stg_sapisu_0uc_connobj_attr_2 where haus = 5471789")
-# df = spark.sql("select * from curated.dimProperty where propertyId = 5471789")
-# display(df)
-  
-# df = spark.sql("select *, coalesce(lead(validFromDate) over (partition by propertyNumber order by validFromDate)-1, to_date('9999-12-31', 'yyyy-mm-dd'))  as propertyEndDate from cleansed.t_sapisu_0uc_connobj_attr_2 where _RecordCurrent = 1 and _RecordDeleted = 0")
-
-# df = spark.sql("select *, coalesce(lead(propertyTypeEffectiveFrom) over (partition by propertyNumber order by propertyTypeEffectiveFrom)-1, to_date('9999-12-31', 'yyyy-mm-dd'))  as propertyEndDate from cleansed.t_access_z309_tproperty where _RecordCurrent = 1 and _RecordDeleted = 0")
 
 # df = spark.sql("select * from cleansed.stg_sapisu_0uc_connobj_attr_2 where haus = 6206050")
 # df = spark.sql("select * from cleansed.t_sapisu_0uc_connobj_attr_2 where propertyNumber = 6206050")
 
+
+# spark.sql("update curated.dimproperty set propertyType = 'Single Dwelling', _recordCurrent = 1 where propertyid = 3100038") #2357919
+# spark.sql("update curated.dimproperty set propertyType = 'test12', _RecordStart = '2021-10-09T09:59:24.000+0000' where propertyid = 3100005") # Single Dwelling
+# df = spark.sql("select * from curated.dimproperty where propertyid = 3100005") #2357919
+# display(df)
+# spark.sql("update curated.dimproperty set  _RecordStart = '2021-10-08T09:59:24.000+0000' where dimpropertysk = 895312") # Single Dwelling
+# df = spark.sql("select * from curated.dimproperty where dimpropertysk = 895312") 
+# display(df)
+# df = spark.sql("select count(*) from curated.Factdailyapportionedconsumption") 
 # display(df)
 
-# df = spark.sql("WITH UpdateSK \
-# AS (SELECT \
-#   propertyId, \
-#   sourceSystemCode, \
-#   propertyStartDate, \
-#   _RecordStart, \
-#   CAST(ROW_NUMBER() OVER (ORDER BY 1) AS bigint) + 0 AS DimPropertySK \
-# FROM curated.DimProperty \
-# WHERE DimPropertySK IS NULL) \
-# MERGE INTO curated.DimProperty TGT USING UpdateSK SRC ON SRC.propertyId = TGT.propertyId AND SRC.sourceSystemCode = TGT.sourceSystemCode AND SRC.propertyStartDate = TGT.propertyStartDate AND SRC._RecordStart = TGT._RecordStart WHEN MATCHED THEN UPDATE SET DimPropertySK = SRC.DimPropertySK")
-
-# df = spark.sql("SELECT \
-#   propertyId, \
-#   sourceSystemCode, \
-#   propertyStartDate, \
-#   _RecordStart, \
-#   CAST(ROW_NUMBER() OVER (ORDER BY 1) AS bigint) + 0 AS DimPropertySK \
-# FROM curated.DimProperty \
-# WHERE DimPropertySK IS NULL \
-# ")
-
-# if df.count() > df.dropDuplicates(['propertyId','sourceSystemCode', 'propertyStartDate']).count():
-#     raise ValueError('Data has duplicates')
-    
-# df \
-#     .groupby(['propertyId','sourceSystemCode', 'propertyStartDate']) \
-#     .count() \
-#     .where('count > 1') \
-#     .sort('count', ascending=True) \
-#     .show()
-
-# df = spark.sql("select * from curated.dimProperty where propertyId = 6206051")
-
-# display(df)
-
-# accessZ309TpropertyDf = spark.sql("select propertyNumber, 'Access' as sourceSystemCode, propertyTypeEffectiveFrom as propertyStartDate, \
-#                                             coalesce(lead(propertyTypeEffectiveFrom) over (partition by propertyNumber order by propertyTypeEffectiveFrom)-1, \
-#                                             to_date('9999-12-31', 'yyyy-mm-dd'))  as propertyEndDate, \
-#                                             propertyType, superiorPropertyType, LGA, \
-#                                             CASE WHEN propertyAreaTypeCode == 'H' THEN  propertyArea * 10000 \
-#                                             ELSE propertyArea END AS propertyArea \
-#                                      from cleansed.t_access_z309_tproperty \
-#                                      where _RecordCurrent = 1 and _RecordDeleted = 0")
-# #   accessZ309TpropertyDf = accessZ309TpropertyDf.withColumn("sourceSystemCode", lit("Access"))
-# #   accessZ309TpropertyDf = accessZ309TpropertyDf.dropDuplicates() #Please remove once upstream data is fixed
-# #   accessZ309TpropertyDf = accessZ309TpropertyDf.selectExpr("propertyNumber","sourceSystemCode","propertyTypeEffectiveFrom", \
-# #                                                              "propertyEndDate","propertyType","superiorPropertyType","LGA", \
-# #                                                              "CASE WHEN propertyAreaTypeCode == 'H' THEN  propertyArea * 10000 \
-# #                                                              ELSE propertyArea END AS propertyArea")
-# #   accessZ309TpropertyDf = accessZ309TpropertyDf.withColumnRenamed("propertyTypeEffectiveFrom", "propertyStartDate")
-# accessZ309TpropertyDf = accessZ309TpropertyDf.select("propertyNumber","sourceSystemCode","propertyStartDate","propertyEndDate", \
-#                                                        "propertyType","superiorPropertyType","propertyArea","LGA")
-# display(accessZ309TpropertyDf)
-
-#   sapisu0ucConbjAttr2Df = spark.sql("select propertyNumber, 'SAP' as sourceSystemCode,inferiorPropertyType as PropertyType, superiorPropertyType, \
-#                                             architecturalObjectInternalId, validFromDate as propertyStartDate, LGA,\
-#                                             coalesce(lead(validFromDate) over (partition by propertyNumber order by validFromDate)-1, \
-#                                             to_date('9999-12-31', 'yyyy-mm-dd'))  as propertyEndDate \
-#                                      from cleansed.t_sapisu_0uc_connobj_attr_2 \
-#                                      where _RecordCurrent = 1 and _RecordDeleted = 0")
-# #   sapisu0ucConbjAttr2Df = sapisu0ucConbjAttr2Df.withColumn("sourceSystemCode", lit("SAP"))
-# #   sapisu0ucConbjAttr2Df = sapisu0ucConbjAttr2Df.dropDuplicates() #Please remove once upstream data is fixed
-# #   sapisu0ucConbjAttr2Df = sapisu0ucConbjAttr2Df.selectExpr("propertyNumber","sourceSystemCode","inferiorPropertyType","superiorPropertyType", \
-# #                                                            "architecturalObjectInternalId","validFromDate","propertyEndDate","LGA")
-# #   sapisu0ucConbjAttr2Df = sapisu0ucConbjAttr2Df.withColumnRenamed("inferiorPropertyType", "PropertyType")\
-# #                                                 .withColumnRenamed("validFromDate", "propertyStartDate")
-# display(sapisu0ucConbjAttr2Df)
-
-# sapisuVibdaoDf = spark.sql("select architecturalObjectInternalId, \
-#                                    CASE WHEN hydraAreaUnit == 'HAR' THEN  hydraCalculatedArea * 10000 \
-#                                         WHEN hydraAreaUnit == 'M2' THEN  hydraCalculatedArea \
-#                                         ELSE null END AS propertyArea \
-#                             from cleansed.t_sapisu_vibdao \
-#                             where _RecordCurrent = 1 and _RecordDeleted = 0")
-# sapisuVibdaoDf = sapisuVibdaoDf.dropDuplicates() #Please remove once upstream data is fixed
-# #   sapisuVibdaoDf = sapisuVibdaoDf.selectExpr("architecturalObjectInternalId", \
-# #                                             "CASE WHEN hydraAreaUnit == 'HAR' THEN  hydraCalculatedArea * 10000 \
-# #                                                   WHEN hydraAreaUnit == 'M2' THEN  hydraCalculatedArea \
-# #                                                   ELSE null END AS propertyArea") 
-# display(sapisuVibdaoDf)
-
-# df = spark.sql("select * from curated.dimproperty") #2357919
-# display(df)
 
 # COMMAND ----------
 
@@ -267,10 +95,10 @@ def TemplateEtl(df : object, entity, businessKey, AddSK = True):
   entity = GeneralToPascalCase(rawEntity)
   LogEtl(f"Starting {entity}.")
   
-  v_COMMON_SQL_SCHEMA = "COMMON"
+  v_COMMON_SQL_SCHEMA = "dbo"
   v_COMMON_CURATED_DATABASE = "curated"
   v_COMMON_DATALAKE_FOLDER = "curated"
- 
+  
   DeltaSaveDataFrameToDeltaTable(df, 
                                  rawEntity, 
                                  ADS_DATALAKE_ZONE_CURATED, 
@@ -284,6 +112,16 @@ def TemplateEtl(df : object, entity, businessKey, AddSK = True):
                                  delta_column = "", 
                                  start_counter = "0", 
                                  end_counter = "0")
+
+  delta_table = f"{v_COMMON_CURATED_DATABASE}.{rawEntity}"
+  print(delta_table)
+  dw_table = f"{v_COMMON_SQL_SCHEMA}.{rawEntity}"
+  print(dw_table)
+
+  maxDate = SynapseExecuteSQLRead("SELECT cast(max([_RecordStart]) as varchar(50)) as maxval FROM " + dw_table + " ").first()["maxval"]
+  print(maxDate)
+  
+  DeltaSyncToSQLDW(delta_table, v_COMMON_SQL_SCHEMA, entity, businessKey, start_counter = maxDate, data_load_mode = ADS_WRITE_MODE_MERGE, additional_property = "")
     
   LogEtl(f"Finished {entity}.")
 
@@ -291,40 +129,40 @@ def TemplateEtl(df : object, entity, businessKey, AddSK = True):
 
 # DBTITLE 1,7. Function: Load Dimensions
 #Call Date function to load DimDate
-def Date():
-  TemplateEtl(df=GetCommonDate(), 
-             entity="DimDate", 
+def date():
+  TemplateEtl(df=getDate(), 
+             entity="dimDate", 
              businessKey="calendarDate",
              AddSK=True
             )
 
 #Call Property function to load DimProperty
-def Property():
-  TemplateEtl(df=GetCommonProperty(), 
-             entity="DimProperty", 
+def property():
+  TemplateEtl(df=getProperty(), 
+             entity="dimProperty", 
              businessKey="propertyId,sourceSystemCode,propertyEndDate",
              AddSK=True
             )
 
 #Call Location function to load DimLocation
-def Location():
-  TemplateEtl(df=GetCommonLocation(), 
-             entity="DimLocation", 
+def location():
+  TemplateEtl(df=getLocation(), 
+             entity="dimLocation", 
              businessKey="locationId",
              AddSK=True
             )
 
 #Call Meter function to load DimMeter
-def Meter():
-  TemplateEtl(df=GetCommonMeter(), 
-             entity="DimMeter", 
+def meter():
+  TemplateEtl(df=getMeter(), 
+             entity="dimMeter", 
              businessKey="meterId,sourceSystemCode",
              AddSK=True
             )
 
 #Call BillingDocumentSapisu function to load DimBillingDocument
-def billingDocumentSapisu():
-  TemplateEtl(df=getCommonBillingDocumentSapisu(), 
+def billingDocumentIsu():
+  TemplateEtl(df=getBillingDocumentIsu(), 
              entity="dimBillingDocument", 
              businessKey="sourceSystemCode,billingDocumentNumber",
              AddSK=True
@@ -356,6 +194,7 @@ def billedWaterConsumptionDaily():
              businessKey="sourceSystemCode,consumptionDateSK,dimBillingDocumentSK,dimPropertySK,dimMeterSK",
              AddSK=True
             )
+  
 
 # Add New Fact here
 # def Fact2_Example():
@@ -378,7 +217,7 @@ def DatabaseChanges():
 # COMMAND ----------
 
 # DBTITLE 1,10. Flag Dimension/Fact load
-LoadDimensions = False
+LoadDimensions = True
 LoadFacts = True
 
 # COMMAND ----------
@@ -392,11 +231,11 @@ def Main():
   
   if LoadDimensions:
     LogEtl("Start Dimensions")
-    Date()
-    Property()
-    Location()
-    Meter()
-    billingDocumentSapisu()
+    date()
+    property()
+    location()
+    meter()
+    billingDocumentIsu()
 
     #Add new Dim here()
     LogEtl("End Dimensions")

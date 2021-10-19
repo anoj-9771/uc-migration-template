@@ -1,6 +1,6 @@
 # Databricks notebook source
 ###########################################################################################################################
-# Function: GetCommonMeter
+# Function: getMeter
 #  GETS Meter DIMENSION 
 # Returns:
 #  Dataframe of transformed Metery
@@ -14,7 +14,7 @@
 #############################################################################################################################
 #1.Create Function
 
-def GetCommonMeter():
+def getMeter():
   
   #spark.udf.register("TidyCase", GeneralToTidyCase) 
   
@@ -22,13 +22,13 @@ def GetCommonMeter():
   #2.Load Cleansed layer table data into dataframe
   
   #Meter Data from Access
-  accessZ309TpropmeterDf = spark.sql("select 'Access' as sourceSystemCode, \
+  accessZ309TpropmeterDf = spark.sql(f"select 'Access' as sourceSystemCode, \
                                               coalesce(meterMakerNumber,'') as meterId, \
                                               meterSize, waterMeterType, \
                                               meterFittedDate, \
                                               meterRemovedDate, \
                                               row_number() over (partition by metermakernumber order by meterFittedDate desc) rownum \
-                                      from cleansed.t_access_z309_tpropmeter \
+                                      from {ADS_DATABASE_CLEANSED}.access_z309_tpropmeter \
                                       where (meterFittedDate <> meterRemovedDate or meterRemovedDate is null) \
                                              and _RecordCurrent = 1 and _RecordDeleted = 0 ")
   #Filter for active meter
@@ -41,12 +41,12 @@ def GetCommonMeter():
   
     
   #Meter Data from SAP ISU
-  isu0ucDeviceAttrDf  = spark.sql("select 'ISU' as sourceSystemCode, materialNumber, equipmentNumber as meterId \
-                                      from cleansed.t_isu_0uc_device_attr \
+  isu0ucDeviceAttrDf  = spark.sql(f"select 'ISU' as sourceSystemCode, materialNumber, equipmentNumber as meterId \
+                                      from {ADS_DATABASE_CLEANSED}.isu_0uc_device_attr \
                                       where _RecordCurrent = 1 and _RecordDeleted = 0")
       
-  isu0ucDevcatAttrDf  = spark.sql("select materialNumber, deviceCategoryDescription as meterSize, functionClass as waterMeterType \
-                                      from cleansed.t_isu_0uc_devcat_attr \
+  isu0ucDevcatAttrDf  = spark.sql(f"select materialNumber, deviceCategoryDescription as meterSize, functionClass as waterMeterType \
+                                      from {ADS_DATABASE_CLEANSED}.isu_0uc_devcat_attr \
                                       where _RecordCurrent = 1 and _RecordDeleted = 0")
 
   #Dummy Record to be added to Meter Dimension
