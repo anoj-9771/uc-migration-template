@@ -99,20 +99,26 @@ def _GenerateMergeSQL_DeltaTable(source_table_name, target_table_name, business_
   sql += TAB + "(" + NEW_LINE
   
   sql += TAB + "-- These rows will either EXPIRE/UPDATE the current existing record (if merge_key matches) or INSERT the new record (if merge_key is not available)"+ NEW_LINE
-  business_key_updated = _GetSQLCollectiveColumnsFromColumnNames(business_key, ALIAS_TABLE_SOURCE, "CONCAT", DELTA_COL_QUALIFER)
 
   #Get data from the first CTE above
-  sql += TAB + f"SELECT {ALIAS_TABLE_SOURCE}.*, {business_key_updated} AS merge_key" + NEW_LINE
-  if not is_delta_extract and target_data_lake_zone == ADS_DATABASE_CLEANSED and raw_file_timestamp_exist:
-    sql += TAB + ",ROW_NUMBER() OVER (PARTITION BY " + business_key_updated + " ORDER BY " + COL_DL_RAW_FILE_TIMESTAMP + " DESC) AS " + COL_RECORD_VERSION + NEW_LINE    
+  if target_data_lake_zone == ADS_DATABASE_CLEANSED:
+    business_key_updated = _GetSQLCollectiveColumnsFromColumnNames(business_key, ALIAS_TABLE_SOURCE, "CONCAT", DELTA_COL_QUALIFER)
+    sql += TAB + f"SELECT {ALIAS_TABLE_SOURCE}.*, {business_key_updated} AS merge_key" + NEW_LINE
+    if not is_delta_extract and raw_file_timestamp_exist:
+      sql += TAB + ",ROW_NUMBER() OVER (PARTITION BY " + business_key_updated + " ORDER BY " + COL_DL_RAW_FILE_TIMESTAMP + " DESC) AS " + COL_RECORD_VERSION + NEW_LINE    
+
+    if not is_delta_extract and not raw_file_timestamp_exist:
+      sql += TAB + ",ROW_NUMBER() OVER (PARTITION BY " + business_key_updated + " ORDER BY " + COL_DL_RAW_LOAD + " DESC) AS " + COL_RECORD_VERSION + NEW_LINE    
+
+    if is_delta_extract:
+      sql += TAB + ",ROW_NUMBER() OVER (PARTITION BY " + business_key_updated + " ORDER BY " + delta_column + " DESC, " + COL_DL_RAW_LOAD + " DESC) AS " + COL_RECORD_VERSION + NEW_LINE
     
-  if not is_delta_extract and target_data_lake_zone == ADS_DATABASE_CLEANSED and not raw_file_timestamp_exist:
-    sql += TAB + ",ROW_NUMBER() OVER (PARTITION BY " + business_key_updated + " ORDER BY " + COL_DL_RAW_LOAD + " DESC) AS " + COL_RECORD_VERSION + NEW_LINE    
-    
-  if is_delta_extract and target_data_lake_zone == ADS_DATABASE_CLEANSED :
-    sql += TAB + ",ROW_NUMBER() OVER (PARTITION BY " + business_key_updated + " ORDER BY " + delta_column + " DESC, " + COL_DL_RAW_LOAD + " DESC) AS " + COL_RECORD_VERSION + NEW_LINE
-    
-  sql += TAB +  f"FROM {ALIAS_TABLE_SOURCE} ) WHERE {COL_RECORD_VERSION} = 1" + NEW_LINE
+    sql += TAB +  f"FROM {ALIAS_TABLE_SOURCE} ) WHERE {COL_RECORD_VERSION} = 1" + NEW_LINE
+  else:
+    business_key_updated = _GetSQLCollectiveColumnsFromColumnNames(business_key, ALIAS_TABLE_STAGE, "CONCAT", DELTA_COL_QUALIFER)
+    business_key_updated = business_key_updated.replace("STG.", "SRC.").replace(" ", "")
+    sql += TAB + f"SELECT {ALIAS_TABLE_SOURCE}.*, {business_key_updated} AS merge_key" + NEW_LINE
+    sql += TAB +  f"FROM {ALIAS_TABLE_SOURCE} )" + NEW_LINE
   
   #We need RecordVersion only if it is the Delta Table load from the Raw Zone because we want the last version
   #For SQL Server, this would have already been resolved  
@@ -129,7 +135,7 @@ def _GenerateMergeSQL_DeltaTable(source_table_name, target_table_name, business_
   #  sql += TAB + sql_track_change_union + NEW_LINE
   
   #Complete the Merge SQL and join on merge_key
-  sql += ") " + ALIAS_TABLE_STAGE + NEW_LINE
+  sql += TAB + ") " + ALIAS_TABLE_STAGE + NEW_LINE
   business_key_updated = _GetSQLCollectiveColumnsFromColumnNames(business_key, ALIAS_TABLE_MAIN, "CONCAT", DELTA_COL_QUALIFER)
   sql += f"ON {business_key_updated} = merge_key " + NEW_LINE
   #Start of Fix for Handling Null in Key Coulumns
@@ -198,22 +204,23 @@ def _SQLSourceSelect_DeltaTable(source_table, business_key, delta_column, start_
   business_key_updated = _GetSQLCollectiveColumnsFromColumnNames(business_key, tbl_alias, "CONCAT", DELTA_COL_QUALIFER)
   
   #Start of Fix for Handling Null in Key Coulumns
-  #Transform the business_key column string to business_key column string with a suffix of '-TX'
-  business_key_tx = _GetSQLCollectiveColumnsFromColumnNames(business_key, tbl_alias, '', DELTA_COL_QUALIFER)
-  business_key_tx = business_key_tx.replace("SRC.", "").replace(" ", "")  
-  col_list = business_key_tx.split(',') 
-  #Generating the sql string for the additional '-TX' coulmns
-  col_list =["COALESCE(" + tbl_alias + "." + item.replace("-TX","") + ", 'na') as " + item for item in col_list]
-  business_key_tx = ','.join(col_list)
-  
+  if target_data_lake_zone == ADS_DATALAKE_ZONE_CLEANSED:
+    #Transform the business_key column string to business_key column string with a suffix of '-TX'
+    business_key_tx = _GetSQLCollectiveColumnsFromColumnNames(business_key, tbl_alias, '', DELTA_COL_QUALIFER)
+    business_key_tx = business_key_tx.replace("SRC.", "").replace(" ", "")  
+    col_list = business_key_tx.split(',') 
+    #Generating the sql string for the additional '-TX' coulmns
+    col_list =["COALESCE(" + tbl_alias + "." + item.replace("-TX","") + ", 'na') as " + item for item in col_list]
+    business_key_tx = ','.join(col_list)
   #End of Fix for Handling Null in Key Coulumns
 
   #source_sql = TAB + "SELECT * FROM (SELECT *, ROW_NUMBER() OVER (PARTITION BY " + business_key_updated + " ORDER BY " + COL_DL_RAW_LOAD + " DESC) AS _RecordVersion FROM " + source_table + ") WHERE _RecordVersion = 1)"
   #Start of Fix for Handling Null in Key Coulumns
   #Below line commented as part of the fix
   #source_sql = TAB + "SELECT *" + NEW_LINE
-  source_sql = TAB + "SELECT " + tbl_alias + ".*," + NEW_LINE
-  source_sql += TAB + business_key_tx + NEW_LINE
+  source_sql = TAB + "SELECT " + tbl_alias + ".*" + NEW_LINE
+  if target_data_lake_zone == ADS_DATALAKE_ZONE_CLEANSED:
+    source_sql += TAB + ", " + business_key_tx + NEW_LINE
   #Start of Fix for Handling Null in Key Coulumns
 #   if not is_delta_extract and target_data_lake_zone == ADS_DATABASE_CLEANSED :
 #     source_sql += TAB + ",ROW_NUMBER() OVER (PARTITION BY " + business_key_updated + " ORDER BY " + COL_DL_RAW_LOAD + " DESC) AS " + COL_RECORD_VERSION + NEW_LINE
@@ -401,9 +408,10 @@ def _SQLInsertSyntax_DeltaTable_Generate(dataframe, is_delta_extract, delta_colu
     COL_TIMESTAMP = COL_DL_CURATED_LOAD
 
 #Start of Fix for Handling Null in Key Columns  
-  business_key_inp =  Params[PARAMS_BUSINESS_KEY_COLUMN]
-  business_key_list = business_key_inp.split(",")
-  col_exception_list.extend(business_key_list) 
+  if target_data_lake_zone == ADS_DATABASE_CLEANSED:
+    business_key_inp =  Params[PARAMS_BUSINESS_KEY_COLUMN]
+    business_key_list = business_key_inp.split(",")
+    col_exception_list.extend(business_key_list) 
 
   #Get the list of columns which does not include the exception list 
   updated_col_list = _GetExclusiveList(dataframe.columns, col_exception_list)
@@ -416,21 +424,22 @@ def _SQLInsertSyntax_DeltaTable_Generate(dataframe, is_delta_extract, delta_colu
 
   #sql_values = _GetSQLCollectiveColumnsFromColumnNames(updated_col_list, alias = "", func = "", column_qualifer = DELTA_COL_QUALIFER)
   sql_values = sql_col
+  if target_data_lake_zone == ADS_DATABASE_CLEANSED:
+    business_key = _GetSQLCollectiveColumnsFromColumnNames(business_key_list, alias = "", func = "", column_qualifer = DELTA_COL_QUALIFER)
 
-  business_key = _GetSQLCollectiveColumnsFromColumnNames(business_key_list, alias = "", func = "", column_qualifer = DELTA_COL_QUALIFER)
+  
+    if is_delta_extract:
+      business_key_tx_list = [item + "-TX" for item in business_key_list]
+      business_key_tx = _GetSQLCollectiveColumnsFromColumnNames(business_key_tx_list, alias = "", func = "", column_qualifer = DELTA_COL_QUALIFER)
 
-  if is_delta_extract and target_data_lake_zone == ADS_DATABASE_CLEANSED:
-    business_key_tx_list = [item + "-TX" for item in business_key_list]
-    business_key_tx = _GetSQLCollectiveColumnsFromColumnNames(business_key_tx_list, alias = "", func = "", column_qualifer = DELTA_COL_QUALIFER)
+    if not is_delta_extract:
+      #Generating the sql string for the additional '-TX' coulmns
+      business_key_col = business_key.split(",")
+      business_key_col_list =["COALESCE(" + item + ", 'na') " for item in business_key_col]
+      business_key_tx = ",".join(business_key_col_list)
 
-  if not is_delta_extract and target_data_lake_zone == ADS_DATABASE_CLEANSED:
-    #Generating the sql string for the additional '-TX' coulmns
-    business_key_col = business_key.split(",")
-    business_key_col_list =["COALESCE(" + item + ", 'na') " for item in business_key_col]
-    business_key_tx = ",".join(business_key_col_list)
-
-  sql_col += f", {business_key}"
-  sql_values += f", {business_key_tx}"
+    sql_col += f", {business_key}"
+    sql_values += f", {business_key_tx}"
 #End of Fix for Handling Null in Key Columns
  
 

@@ -1,6 +1,6 @@
 # Databricks notebook source
 ###########################################################################################################################
-# Function: GetCommonMeter
+# Function: getMeter
 #  GETS Meter DIMENSION 
 # Returns:
 #  Dataframe of transformed Metery
