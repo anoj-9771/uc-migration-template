@@ -46,15 +46,12 @@ stages:
         keyVaultName: $(AZUREKEYVAULTNAME)
         secretsFilter: 'daf-syn-d-sqlpoo-synapseadmin-password'
 
-    - task: SynapseSqlDacpacDeployment@1
-      displayName: 'Synapse SQL DacpacTask'
+    - task: SynapseSqlDacpacDeployment1@1
+      displayName: 'Synapse SQL DacpacTask1'
       inputs:
         azureSubscription: ${{ variables.azdoresourceconnection }}
         ServerName: 'synws-swcnonprod01-daf-dev-01.sql.azuresynapse.net'
         DatabaseName: syndwdev01
-        #ServerName: '$(SYNAPSESQLSERVERNAME).sql.azuresynapse.net'
-        #DatabaseName: $(SYNAPSEDWDBNAME)
-        SqlUsername: $(SYNSQLPOOLRUN)
-        SqlPassword: '$(daf-syn-d-sqlpoo-synapseadmin-password)'
-        #DacpacFile: '$(Pipeline.Workspace)/sql_Synapsedb/Synapse-Databases.dacpac'
-        DacpacFile: 'D:\a\1\s\Synapse-Databases\Synapse-Databases\bin\Debug\Synapse-Databases.dacpac'
+        ServerName: '$(SYNAPSESQLSERVERNAME).sql.azuresynapse.net'
+        DatabaseName: $(SYNAPSEDWDBNAME)
+        DacpacFile: '$(Pipeline.Workspace)/sql_Synapsedb/Synapse-Databases.dacpac'
