@@ -3,10 +3,10 @@
 import json
 #For unit testing...
 #Use this string in the Param widget: 
-#{"SourceType": "BLOB Storage (json)", "SourceServer": "daf-sa-lake-sastoken", "SourceGroup": "ISU", "SourceName": "ISU_0CAM_STREETCODE_TEXT", "SourceLocation": "ISU/0CAM_STREETCODE_TEXT", "AdditionalProperty": "", "Processor": "databricks-token|0711-011053-turfs581|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive", "IsAuditTable": false, "SoftDeleteSource": "", "ProjectName": "ISUREF", "ProjectId": 2, "TargetType": "BLOB Storage (json)", "TargetName": "ISU_0CAM_STREETCODE_TEXT", "TargetLocation": "ISU/0CAM_STREETCODE_TEXT", "TargetServer": "daf-sa-lake-sastoken", "DataLoadMode": "FULL-EXTRACT", "DeltaExtract": false, "CDCSource": false, "TruncateTarget": false, "UpsertTarget": true, "AppendTarget": null, "TrackChanges": false, "LoadToSqlEDW": true, "TaskName": "ISU_0CAM_STREETCODE_TEXT", "ControlStageId": 2, "TaskId": 46, "StageSequence": 200, "StageName": "Raw to Cleansed", "SourceId": 46, "TargetId": 46, "ObjectGrain": "Day", "CommandTypeId": 8, "Watermarks": "", "WatermarksDT": null, "WatermarkColumn": "", "BusinessKeyColumn": "streetCode", "UpdateMetaData": null, "SourceTimeStampFormat": "", "Command": "", "LastLoadedFile": null}
+#{"SourceType": "BLOB Storage (json)", "SourceServer": "daf-sa-lake-sastoken", "SourceGroup": "ISU", "SourceName": "ISU_TE192T", "SourceLocation": "ISU/TE192T", "AdditionalProperty": "", "Processor": "databricks-token|0711-011053-turfs581|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive", "IsAuditTable": false, "SoftDeleteSource": "", "ProjectName": "ISUREF", "ProjectId": 2, "TargetType": "BLOB Storage (json)", "TargetName": "ISU_TE192T", "TargetLocation": "ISU/TE192T", "TargetServer": "daf-sa-lake-sastoken", "DataLoadMode": "FULL-EXTRACT", "DeltaExtract": false, "CDCSource": false, "TruncateTarget": false, "UpsertTarget": true, "AppendTarget": null, "TrackChanges": false, "LoadToSqlEDW": true, "TaskName": "ISU_TE192T", "ControlStageId": 2, "TaskId": 46, "StageSequence": 200, "StageName": "Raw to Cleansed", "SourceId": 46, "TargetId": 46, "ObjectGrain": "Day", "CommandTypeId": 8, "Watermarks": "", "WatermarksDT": null, "WatermarkColumn": "", "BusinessKeyColumn": "clientId,language,outsortingCheckGroupCode", "UpdateMetaData": null, "SourceTimeStampFormat": "", "Command": "", "LastLoadedFile": null}
 
 #Use this string in the Source Object widget
-#ISU_0CAM_STREETCODE_TEXT
+#ISU_TE192T
 
 # COMMAND ----------
 
@@ -175,9 +175,10 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_cleansed = spark.sql("SELECT \
-	COUNTRY as countryShortName, \
-	case when STRT_CODE = 'na' then '' else STRT_CODE end as streetCode, \
-	STREET as streetName, \
+	case when MANDT = 'na' then '' else MANDT end as clientId, \
+	case when SPRAS = 'na' then '' else SPRAS end as language, \
+	case when AUSGRUP_IN = 'na' then '' else AUSGRUP_IN end as outsortingCheckGroupCode, \
+	TEXT30 as outsortingCheckGroup, \
 	_RecordStart, \
 	_RecordEnd, \
 	_RecordDeleted, \
@@ -191,9 +192,10 @@ print(f'Number of rows: {df_cleansed.count()}')
 # COMMAND ----------
 
 newSchema = StructType([
-	StructField('countryShortName',StringType(),True),
-	StructField('streetCode',StringType(),False),
-	StructField('streetName',StringType(),True),
+	StructField('clientId',StringType(),False),
+	StructField('language',StringType(),False),
+	StructField('outsortingCheckGroupCode',StringType(),False),
+	StructField('outsortingCheckGroup',StringType(),True),
 	StructField('_RecordStart',TimestampType(),False),
 	StructField('_RecordEnd',TimestampType(),False),
 	StructField('_RecordDeleted',IntegerType(),False),
