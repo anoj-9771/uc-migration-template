@@ -1,6 +1,6 @@
 # Databricks notebook source
 ###########################################################################################################################
-# Function: GetMeter
+# Function: getMeter
 #  GETS Meter DIMENSION 
 # Returns:
 #  Dataframe of transformed Metery
@@ -28,7 +28,7 @@ def getMeter():
                                               meterFittedDate, \
                                               meterRemovedDate, \
                                               row_number() over (partition by metermakernumber order by meterFittedDate desc) rownum \
-                                      from {ADS_DATABASE_CLEANSED}.t_access_z309_tpropmeter \
+                                      from {ADS_DATABASE_CLEANSED}.access_z309_tpropmeter \
                                       where (meterFittedDate <> meterRemovedDate or meterRemovedDate is null) \
                                              and _RecordCurrent = 1 and _RecordDeleted = 0 ")
   #Filter for active meter

@@ -129,15 +129,15 @@ def TemplateEtl(df : object, entity, businessKey, AddSK = True):
 
 # DBTITLE 1,7. Function: Load Dimensions
 #Call Date function to load DimDate
-def Date():
+def date():
   TemplateEtl(df=getDate(), 
              entity="dimDate", 
              businessKey="calendarDate",
              AddSK=True
             )
 
-Call Property function to load DimProperty
-def Property():
+#Call Property function to load DimProperty
+def property():
   TemplateEtl(df=getProperty(), 
              entity="dimProperty", 
              businessKey="propertyId,sourceSystemCode,propertyEndDate",
@@ -145,7 +145,7 @@ def Property():
             )
 
 #Call Location function to load DimLocation
-def Location():
+def location():
   TemplateEtl(df=getLocation(), 
              entity="dimLocation", 
              businessKey="locationId",
@@ -153,7 +153,7 @@ def Location():
             )
 
 #Call Meter function to load DimMeter
-def Meter():
+def meter():
   TemplateEtl(df=getMeter(), 
              entity="dimMeter", 
              businessKey="meterId,sourceSystemCode",
@@ -231,11 +231,11 @@ def Main():
   
   if LoadDimensions:
     LogEtl("Start Dimensions")
-    #Date()
-    #Property()
-    #Location()
-    Meter()
-    #billingDocumentIsu()
+    date()
+    property()
+    location()
+    meter()
+    billingDocumentIsu()
 
     #Add new Dim here()
     LogEtl("End Dimensions")
@@ -245,8 +245,8 @@ def Main():
   #==============
   if LoadFacts:
     LogEtl("Start Facts")
-    #billedWaterConsumption()
-    #billedWaterConsumptionDaily()
+    billedWaterConsumption()
+    billedWaterConsumptionDaily()
 
     #fact2()
     LogEtl("End Facts")   

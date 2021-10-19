@@ -1,6 +1,6 @@
 # Databricks notebook source
 ###########################################################################################################################
-# Function: GetDate
+# Function: getDate
 #  GETS Date DIMENSION 
 # Returns:
 #  Dataframe of transformed dates
