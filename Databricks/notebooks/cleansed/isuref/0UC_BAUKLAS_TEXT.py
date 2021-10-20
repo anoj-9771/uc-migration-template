@@ -181,9 +181,8 @@ df_cleansed = spark.sql(f"SELECT \
                                        _RecordStart, \
                                        _RecordEnd, \
                                        _RecordDeleted, \
-                                       _RecordCurrent \                                       
-                                       FROM {ADS_DATABASE_STAGE}.{source_object} \
-                                       WHERE SPRAS = 'E'")
+                                       _RecordCurrent \
+                                       FROM {ADS_DATABASE_STAGE}.{source_object}")
                                    
 display(df_cleansed)
 print(f'Number of rows: {df_cleansed.count()}')

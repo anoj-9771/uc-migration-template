@@ -181,7 +181,7 @@ df_cleansed = spark.sql(f"SELECT \
                                        _RecordStart, \
                                        _RecordEnd, \
                                        _RecordDeleted, \
-                                       _RecordCurrent \                                       
+                                       _RecordCurrent \
                                        FROM {ADS_DATABASE_STAGE}.{source_object}")
                                    
 display(df_cleansed)
