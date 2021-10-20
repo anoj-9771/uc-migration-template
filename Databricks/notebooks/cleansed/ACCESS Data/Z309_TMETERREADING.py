@@ -219,12 +219,12 @@ df_cleansed = spark.sql("SELECT cast(N_PROP as int) AS propertyNumber, \
 		a._RecordDeleted, \
 		a._RecordCurrent \
 	FROM CLEANSED.STG_ACCESS_Z309_TMETERREADING a \
-         left outer join CLEANSED.t_access_Z309_TMETEREADTOLE d on a.C_METE_READ_TOLE = d.meterReadingToleranceCode \
-         left outer join CLEANSED.t_access_Z309_TMETEREADTYPE e on a.C_METE_READ_TYPE = e.meterReadingTypeCode \
-         left outer join CLEANSED.t_access_Z309_TMETEREADCONTYP f on a.C_METE_READ_CONS = f.consumptionTypeCode \
-         left outer join CLEANSED.t_access_Z309_TMRSTATUSTYPE g on a.C_METE_READ_STAT = g.meterReadingStatusCode \
-         left outer join CLEANSED.t_access_Z309_TMETERCANTREAD h on coalesce(a.C_METE_CANT_READ,'') = h.cannotReadCode \
-         left outer join CLEANSED.t_access_Z309_TPDEREADMETH i on a.C_PDE_READ_METH = i.PDEReadingMethodCode \
+         left outer join CLEANSED.access_Z309_TMETEREADTOLE d on a.C_METE_READ_TOLE = d.meterReadingToleranceCode \
+         left outer join CLEANSED.access_Z309_TMETEREADTYPE e on a.C_METE_READ_TYPE = e.meterReadingTypeCode \
+         left outer join CLEANSED.access_Z309_TMETEREADCONTYP f on a.C_METE_READ_CONS = f.consumptionTypeCode \
+         left outer join CLEANSED.access_Z309_TMRSTATUSTYPE g on a.C_METE_READ_STAT = g.meterReadingStatusCode \
+         left outer join CLEANSED.access_Z309_TMETERCANTREAD h on coalesce(a.C_METE_CANT_READ,'') = h.cannotReadCode \
+         left outer join CLEANSED.access_Z309_TPDEREADMETH i on a.C_PDE_READ_METH = i.PDEReadingMethodCode \
          ")
 
 
