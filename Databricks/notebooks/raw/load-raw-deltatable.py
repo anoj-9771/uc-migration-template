@@ -141,9 +141,13 @@ if Debug:
 # DBTITLE 1,If there are no records then Exit the Notebook
 if current_record_count == 0:
   print("Exiting Notebook as no records to process")
+  output["TargetTableRecordCount"] = 0
+  print(output) 
   dbutils.notebook.exit("0")
 else:
   print("Processing " + str(current_record_count) + " records")
+
+  
 
 
 # COMMAND ----------
