@@ -176,7 +176,6 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT \
-	case when LANGU = 'na' then '' else LANGU end as language, \
 	case when ISTYPE = 'na' then '' else ISTYPE end as industrySystem, \
 	BEZ30 as industry, \
 	_RecordStart, \
@@ -191,7 +190,6 @@ print(f'Number of rows: {df_cleansed.count()}')
 # COMMAND ----------
 
 newSchema = StructType([
-	StructField('language',StringType(),False),
 	StructField('industrySystem',StringType(),False),
 	StructField('industry',StringType(),True),
 	StructField('_RecordStart',TimestampType(),False),

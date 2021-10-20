@@ -177,7 +177,6 @@ DeltaSaveToDeltaTable (
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT \
 	case when PROFILE = 'na' then '' else PROFILE end as profileCode, \
-	case when SPRAS = 'na' then '' else SPRAS end as language, \
 	PROFTEXT as profile, \
 	_RecordStart, \
 	_RecordEnd, \
@@ -192,7 +191,6 @@ print(f'Number of rows: {df_cleansed.count()}')
 
 newSchema = StructType([
 	StructField('profileCode',StringType(),False),
-	StructField('language',StringType(),False),
 	StructField('profile',StringType(),True),
 	StructField('_RecordStart',TimestampType(),False),
 	StructField('_RecordEnd',TimestampType(),False),

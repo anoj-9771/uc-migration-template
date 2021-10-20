@@ -176,8 +176,8 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT  \
-                                  COUNTRY  as COUNTRY, \
-                                  REGPOLIT  as REGPOLIT, \
+                                  case when COUNTRY = 'na' then '' else COUNTRY end as COUNTRY, \
+                                  case when REGPOLIT = 'na' then '' else REGPOLIT end as REGPOLIT, \
                                   REGNAME  as REGNAME, \
                                   _RecordStart, \
                                   _RecordEnd, \
@@ -193,8 +193,8 @@ print(f'Number of rows: {df_cleansed.count()}')
 # Create schema for the cleanse table
 newSchema = StructType(
                             [
-                            StructField("COUNTRY", StringType(), True),
-                            StructField("REGPOLIT", StringType(), True),
+                            StructField("COUNTRY", StringType(), False),
+                            StructField("REGPOLIT", StringType(), False),
                             StructField("REGNAME", StringType(), True),
                             StructField('_RecordStart',TimestampType(),False),
                             StructField('_RecordEnd',TimestampType(),False),

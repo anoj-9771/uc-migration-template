@@ -176,7 +176,7 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT \
-                                       BAUKLAS as constructionClassCode,\
+                                       case when BAUKLAS = 'na' then '' else BAUKLAS end as constructionClassCode,\
                                        BAUKLTXT as constructionClass, \
                                        _RecordStart, \
                                        _RecordEnd, \

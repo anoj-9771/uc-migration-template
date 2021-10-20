@@ -176,7 +176,7 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT  \
-                                INFERIOR_PROP_TYPE as inferiorPropertyTypeCode , \
+                                case when INFERIOR_PROP_TYPE = 'na' then '' else INFERIOR_PROP_TYPE end as inferiorPropertyTypeCode , \
                                 DESCRIPTION as inferiorPropertyType , \
                                 _RecordStart, \
                                 _RecordEnd, \

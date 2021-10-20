@@ -176,7 +176,7 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT \
-                            cast(ORDSTATE as int) as confirmationStatusCode, \
+                            case when ORDSTATE = 'na' then '' else ORDSTATE end as confirmationStatusCode, \
                             DESCRIPT as confirmationStatus, \
                             _RecordStart, \
                             _RecordEnd, \
@@ -190,7 +190,7 @@ print(f'Number of rows: {df_cleansed.count()}')
 # COMMAND ----------
 
 newSchema = StructType([
-                        StructField('confirmationStatusCode',IntegerType(),False),
+                        StructField('confirmationStatusCode',StringType(),False),
                         StructField('confirmationStatus',StringType(),True),
                         StructField('_RecordStart',TimestampType(),False),
                         StructField('_RecordEnd',TimestampType(),False),

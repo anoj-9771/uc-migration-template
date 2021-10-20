@@ -176,8 +176,8 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT  \
-                                  PROCESS_TYPE as PROCESS_TYPE , \
-                                  PROCESS_MODE as PROCESS_MODE , \
+                                  case when PROCESS_TYPE = 'na' then '' else PROCESS_TYPE end as PROCESS_TYPE , \
+                                  case when PROCESS_MODE = 'na' then '' else PROCESS_MODE end as PROCESS_MODE , \
                                   DESCRIPTION as DESCRIPTION , \
                                   _RecordStart, \
                                   _RecordEnd, \

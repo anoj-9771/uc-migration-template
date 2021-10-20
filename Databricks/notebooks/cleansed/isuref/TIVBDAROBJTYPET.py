@@ -176,7 +176,7 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT  \
-                                  AOTYPE as AOTYPE, \
+                                  case when AOTYPE = 'na' then '' else AOTYPE end as AOTYPE, \
                                   XMAOTYPE as XMAOTYPE , \
                                   _RecordStart, \
                                   _RecordEnd, \

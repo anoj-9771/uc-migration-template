@@ -176,7 +176,7 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT \
-	TERMSCHL as portion, \
+	case when TERMSCHL = 'na' then '' else TERMSCHL end as portion, \
 	TERMTEXT as scheduleMasterRecord, \
 	_RecordStart, \
 	_RecordEnd, \

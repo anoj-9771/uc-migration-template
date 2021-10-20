@@ -177,7 +177,6 @@ DeltaSaveToDeltaTable (
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT \
 	case when POINT = 'na' then '' else POINT end as measuringPointId, \
-	case when MLANG = 'na' then '' else MLANG end as language, \
 	PTTXT as measuringPoint, \
 	to_date(ERDAT) as createdDate, \
 	to_date(AEDAT) as lastChangedDate, \
@@ -195,7 +194,6 @@ print(f'Number of rows: {df_cleansed.count()}')
 
 newSchema = StructType([
 	StructField('measuringPointId',StringType(),False),
-	StructField('language',StringType(),False),
 	StructField('measuringPoint',StringType(),True),
 	StructField('createdDate',DateType(),True),
 	StructField('lastChangedDate',DateType(),True),

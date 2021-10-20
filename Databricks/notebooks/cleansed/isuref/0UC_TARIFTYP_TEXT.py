@@ -176,8 +176,7 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT  \
-                                  SPRAS as SPRAS , \
-                                  TARIFTYP as TARIFTYP , \
+                                  case when TARIFTYP = 'na' then '' else TARIFTYP end as TARIFTYP , \
                                   TTYPBEZ as TTYPBEZ , \
                                   _RecordStart, \
                                   _RecordEnd, \
@@ -193,7 +192,6 @@ print(f'Number of rows: {df_cleansed.count()}')
 # Create schema for the cleanse table
 newSchema = StructType(
                             [
-                            StructField("SPRAS", StringType(), False),
                             StructField("TARIFTYP", StringType(), False),
                             StructField("TTYPBEZ", StringType(), True),
                             StructField('_RecordStart',TimestampType(),False),
