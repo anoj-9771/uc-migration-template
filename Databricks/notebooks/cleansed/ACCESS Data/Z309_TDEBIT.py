@@ -223,9 +223,9 @@ df_cleansed = spark.sql("SELECT C_LGA AS LGACode, \
 		a._RecordDeleted, \
 		a._RecordCurrent \
 	FROM CLEANSED.STG_ACCESS_Z309_TDEBIT a \
-         left outer join CLEANSED.t_access_z309_tlocalgovt b on a.c_lga = b.LGACode \
-         left outer join CLEANSED.t_access_z309_tdebittype c on a.c_debi_type = c.debitTypeCode \
-         left outer join CLEANSED.t_access_z309_tdebitreason d on a.c_debi_type = d.debitTypeCode and a.c_debi_reas = d.debitReasonCode \
+         left outer join CLEANSED.access_z309_tlocalgovt b on a.c_lga = b.LGACode \
+         left outer join CLEANSED.access_z309_tdebittype c on a.c_debi_type = c.debitTypeCode \
+         left outer join CLEANSED.access_z309_tdebitreason d on a.c_debi_type = d.debitTypeCode and a.c_debi_reas = d.debitReasonCode \
          ")
 
 display(df_cleansed)
