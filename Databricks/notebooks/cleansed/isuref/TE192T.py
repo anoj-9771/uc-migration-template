@@ -177,7 +177,6 @@ DeltaSaveToDeltaTable (
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT \
 	case when MANDT = 'na' then '' else MANDT end as clientId, \
-	case when SPRAS = 'na' then '' else SPRAS end as language, \
 	case when AUSGRUP_IN = 'na' then '' else AUSGRUP_IN end as outsortingCheckGroupCode, \
 	TEXT30 as outsortingCheckGroup, \
 	_RecordStart, \
@@ -193,7 +192,6 @@ print(f'Number of rows: {df_cleansed.count()}')
 
 newSchema = StructType([
 	StructField('clientId',StringType(),False),
-	StructField('language',StringType(),False),
 	StructField('outsortingCheckGroupCode',StringType(),False),
 	StructField('outsortingCheckGroup',StringType(),True),
 	StructField('_RecordStart',TimestampType(),False),

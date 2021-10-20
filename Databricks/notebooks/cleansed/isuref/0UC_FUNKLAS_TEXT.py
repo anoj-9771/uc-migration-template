@@ -176,7 +176,7 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT \
-                                       FUNKLAS as functionClassCode,\
+                                       case when FUNKLAS = 'na' then '' else FUNKLAS end as functionClassCode,\
                                        FUNKTXT as functionClass, \
                                        _RecordStart, \
                                        _RecordEnd, \

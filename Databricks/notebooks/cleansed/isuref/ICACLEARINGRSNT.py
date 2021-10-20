@@ -176,8 +176,7 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT \
-	CACLEARINGREASON as clearingReasonCode, \
-	LANGUAGE as language, \
+	case when CACLEARINGREASON = 'na' then '' else CACLEARINGREASON end as clearingReasonCode, \
 	CACLEARINGREASONNAME as clearingReason, \
 	_RecordStart, \
 	_RecordEnd, \
@@ -192,7 +191,6 @@ print(f'Number of rows: {df_cleansed.count()}')
 
 newSchema = StructType([
 	StructField('clearingReasonCode',StringType(),False),
-	StructField('language',StringType(),False),
 	StructField('clearingReason',StringType(),True),
 	StructField('_RecordStart',TimestampType(),False),
 	StructField('_RecordEnd',TimestampType(),False),

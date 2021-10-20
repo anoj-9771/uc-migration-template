@@ -178,8 +178,7 @@ DeltaSaveToDeltaTable (
 
 df_cleansed = spark.sql(f"SELECT  \
                                   AOID as AOID , \
-                                  OBJNR as OBJNR , \
-                                  LANGU as LANGU , \
+                                  case when OBJNR = 'na' then '' else OBJNR end as OBJNR, \
                                   DOORPLT as DOORPLT , \
                                   _RecordStart, \
                                   _RecordEnd, \
@@ -197,7 +196,6 @@ newSchema = StructType(
                             [
                             StructField("AOID", StringType(), True),
                             StructField("OBJNR", StringType(), False),
-                            StructField("LANGU", StringType(), True),
                             StructField("DOORPLT", StringType(), True),
                             StructField('_RecordStart',TimestampType(),False),
                             StructField('_RecordEnd',TimestampType(),False),

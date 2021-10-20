@@ -176,7 +176,7 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT \
-                          DELI_SERV_TYPE as deliveryServiceTypeCode, \
+                          case when DELI_SERV_TYPE = 'na' then '' else DELI_SERV_TYPE end as deliveryServiceTypeCode, \
                           DELI_SERV_DSCR as deliveryServiceDescription, \
                           _RecordStart, \
                           _RecordEnd, \

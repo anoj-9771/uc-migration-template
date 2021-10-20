@@ -176,8 +176,7 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT \
-	LANGU as language, \
-	TPLNR as functionalLocationNumber, \
+	case when TPLNR = 'na' then '' else TPLNR end as functionalLocationNumber, \
 	TXTMD as functionalLocationDescription, \
 	to_date(ERDAT) as createdDate, \
 	to_date(AEDAT) as lastChangedDate, \
@@ -193,7 +192,6 @@ print(f'Number of rows: {df_cleansed.count()}')
 # COMMAND ----------
 
 newSchema = StructType([
-	StructField('language',StringType(),False),
 	StructField('functionalLocationNumber',StringType(),False),
 	StructField('functionalLocationDescription',StringType(),True),
 	StructField('createdDate',DateType(),True),

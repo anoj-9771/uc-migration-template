@@ -191,7 +191,6 @@ print(f'Number of rows: {df_cleansed.count()}')
 # COMMAND ----------
 
 newSchema = StructType([
-	StructField('language',StringType(),False),
 	StructField('applicationArea',StringType(),False),
 	StructField('mainTransactionLineItemCode',StringType(),False),
 	StructField('mainTransaction',StringType(),True),

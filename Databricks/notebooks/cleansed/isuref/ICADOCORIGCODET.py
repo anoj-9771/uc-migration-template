@@ -177,7 +177,6 @@ DeltaSaveToDeltaTable (
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT \
 	case when CADOCUMENTORIGINCODE = 'na' then '' else CADOCUMENTORIGINCODE end as documentOriginCode, \
-	case when LANGUAGE = 'na' then '' else LANGUAGE end as language, \
 	CADOCUMENTORIGINCODENAME as documentOrigin, \
 	_RecordStart, \
 	_RecordEnd, \
@@ -192,7 +191,6 @@ print(f'Number of rows: {df_cleansed.count()}')
 
 newSchema = StructType([
 	StructField('documentOriginCode',StringType(),False),
-	StructField('language',StringType(),False),
 	StructField('documentOrigin',StringType(),True),
 	StructField('_RecordStart',TimestampType(),False),
 	StructField('_RecordEnd',TimestampType(),False),

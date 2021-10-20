@@ -176,8 +176,7 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT \
-	LANGU as language, \
-	KEY1 as disconnecionReasonCode, \
+	case when KEY1 = 'na' then '' else KEY1 end as disconnecionReasonCode, \
 	TXTLG as disconnecionReason, \
 	_RecordStart, \
 	_RecordEnd, \
@@ -191,7 +190,6 @@ print(f'Number of rows: {df_cleansed.count()}')
 # COMMAND ----------
 
 newSchema = StructType([
-	StructField('language',StringType(),False),
 	StructField('disconnecionReasonCode',StringType(),False),
 	StructField('disconnecionReason',StringType(),True),
 	StructField('_RecordStart',TimestampType(),False),

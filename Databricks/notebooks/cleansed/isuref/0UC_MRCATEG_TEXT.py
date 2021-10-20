@@ -190,7 +190,6 @@ print(f'Number of rows: {df_cleansed.count()}')
 # COMMAND ----------
 
 newSchema = StructType([
-	StructField('language',StringType(),False),
 	StructField('meterReadingControlCode',StringType(),False),
 	StructField('meterReadingCategory',StringType(),True),
 	StructField('_RecordStart',TimestampType(),False),

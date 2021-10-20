@@ -176,14 +176,13 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT  \
-                                  FIXFITCHARACT as fixtureAndFittingCharacteristicCode, \
+                                  case when FIXFITCHARACT = 'na' then '' else FIXFITCHARACT end as fixtureAndFittingCharacteristicCode, \
                                   XFIXFITCHARACT as fixtureAndFittingCharacteristic, \
                                   _RecordStart, \
                                   _RecordEnd, \
                                   _RecordDeleted, \
                                   _RecordCurrent \
-                               FROM {ADS_DATABASE_STAGE}.{source_object} \
-                                 where SPRAS = 'E'")
+                               FROM {ADS_DATABASE_STAGE}.{source_object}")
 display(df_cleansed)
 print(f'Number of rows: {df_cleansed.count()}')
 

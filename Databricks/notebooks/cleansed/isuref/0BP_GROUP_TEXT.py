@@ -176,7 +176,7 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT \
-                                       BU_GROUP as businessPartnerGroupCode,\
+                                       case when BU_GROUP = 'na' then '' else BU_GROUP end as businessPartnerGroupCode,\
                                        TXT40 as businessPartnerGroup, \
                                        _RecordStart, \
                                        _RecordEnd, \
