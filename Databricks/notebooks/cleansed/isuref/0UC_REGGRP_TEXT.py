@@ -177,7 +177,11 @@ DeltaSaveToDeltaTable (
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT \
                                        ZWGRUPPE as registerGroupCode,\
-                                       EZWG_INFO as registerGroup \
+                                       EZWG_INFO as registerGroup, \
+                                       _RecordStart, \
+                                       _RecordEnd, \
+                                       _RecordDeleted, \
+                                       _RecordCurrent \                                       
                                        FROM {ADS_DATABASE_STAGE}.{source_object}")
                                    
 display(df_cleansed)

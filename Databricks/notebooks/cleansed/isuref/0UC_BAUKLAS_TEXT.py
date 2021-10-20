@@ -177,7 +177,11 @@ DeltaSaveToDeltaTable (
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT \
                                        BAUKLAS as constructionClassCode,\
-                                       BAUKLTXT as constructionClass \
+                                       BAUKLTXT as constructionClass, \
+                                       _RecordStart, \
+                                       _RecordEnd, \
+                                       _RecordDeleted, \
+                                       _RecordCurrent \                                       
                                        FROM {ADS_DATABASE_STAGE}.{source_object} \
                                        WHERE SPRAS = 'E'")
                                    

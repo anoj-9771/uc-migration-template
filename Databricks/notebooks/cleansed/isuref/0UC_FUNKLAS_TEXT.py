@@ -177,7 +177,11 @@ DeltaSaveToDeltaTable (
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT \
                                        FUNKLAS as functionClassCode,\
-                                       FUNKTXT as functionClass \
+                                       FUNKTXT as functionClass, \
+                                       _RecordStart, \
+                                       _RecordEnd, \
+                                       _RecordDeleted, \
+                                       _RecordCurrent \                                       
                                        FROM {ADS_DATABASE_STAGE}.{source_object}")
                                    
 display(df_cleansed)
