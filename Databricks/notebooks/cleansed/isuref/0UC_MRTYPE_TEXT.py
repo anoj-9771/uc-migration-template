@@ -176,7 +176,6 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT \
-	case when SPRAS = 'na' then '' else SPRAS end as language, \
 	case when ISTABLART = 'na' then '' else ISTABLART end as meterReadingTypeCode, \
 	TEXT40 as meterReadingType, \
 	_RecordStart, \

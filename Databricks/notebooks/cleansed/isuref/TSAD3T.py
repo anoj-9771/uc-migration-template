@@ -177,7 +177,11 @@ DeltaSaveToDeltaTable (
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT \
                                        TITLE as titlecode,\
-                                       TITLE_MEDI as title \
+                                       TITLE_MEDI as title, \
+                                      _RecordStart, \
+                                      _RecordEnd, \
+                                      _RecordDeleted, \
+                                      _RecordCurrent \                                       
                                        FROM {ADS_DATABASE_STAGE}.{source_object}")
                                    
 display(df_cleansed)
