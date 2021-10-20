@@ -138,6 +138,11 @@ if Debug:
 
 # COMMAND ----------
 
+output = {"DataFileRecordCount" : -1, "TargetTableRecordCount": -1} 
+print(output)
+
+# COMMAND ----------
+
 # DBTITLE 1,If there are no records then Exit the Notebook
 if current_record_count == 0:
   print("Exiting Notebook as no records to process")
@@ -194,7 +199,8 @@ DeltaSaveDataframeDirect(df_updated, source_group, raw_table, ADS_DATABASE_RAW, 
 
 # COMMAND ----------
 
-output = {"DataFileRecordCount" : -1, "TargetTableRecordCount": -1} 
+#Below code commented as part of ADF Folder Structure Change
+#output = {"DataFileRecordCount" : -1, "TargetTableRecordCount": -1} 
 output["DataFileRecordCount"] = df_updated.count()
 print(output)
 
