@@ -45,6 +45,16 @@ stages:
         azureSubscription: ${{ variables.azdoresourceconnection }}
         keyVaultName: $(AZUREKEYVAULTNAME)
         secretsFilter: 'daf-syn-d-sqlpoo-synapseadmin-password'
+  
+    - task: SynapseSqlDacpacDeployment@1
+      displayName: 'Synapse SQL DacpacTask'
+      inputs:
+        azureSubscription: ${{ variables.azdoresourceconnection }}
+        ServerName: '$(AZURESQLSERVERNAME).database.windows.net'
+        DatabaseName: ControlDB
+        SqlUsername: $(AZURESQLSERVERUN)
+        SqlPassword: '$(azuresqlserverpw)'
+        DacpacFile: '$(Pipeline.Workspace)/sql_Controldb/CntrlDb.dacpac'
 
     # - task: SynapseSqlDacpacDeployment@1
     #   displayName: 'Synapse SQL DacpacTask'
