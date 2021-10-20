@@ -148,7 +148,7 @@ if current_record_count == 0:
   print("Exiting Notebook as no records to process")
   output["TargetTableRecordCount"] = 0
   print(output) 
-  dbutils.notebook.exit("0")
+  dbutils.notebook.exit(json.dumps(output))
 else:
   print("Processing " + str(current_record_count) + " records")
 
