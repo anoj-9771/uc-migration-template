@@ -177,7 +177,11 @@ DeltaSaveToDeltaTable (
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT \
                                        BPKIND as businessPartnerTypeCode,\
-                                       TEXT40 as businessPartnerType \
+                                       TEXT40 as businessPartnerType, \
+                                       _RecordStart, \
+                                       _RecordEnd, \
+                                       _RecordDeleted, \
+                                       _RecordCurrent \                                       
                                        FROM {ADS_DATABASE_STAGE}.{source_object} \
                               WHERE SPRAS = 'E'")
                                    

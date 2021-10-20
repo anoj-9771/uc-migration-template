@@ -178,7 +178,11 @@ DeltaSaveToDeltaTable (
 df_cleansed = spark.sql(f"SELECT \
                                        PARTNER as businessPartnerNumber,\
                                        TYPE as businessPartnerCategoryCode, \
-                                       TXTMD as businessPartnerCategory \
+                                       TXTMD as businessPartnerCategory, \
+                                       _RecordStart, \
+                                       _RecordEnd, \
+                                       _RecordDeleted, \
+                                       _RecordCurrent \                                       
                                        FROM {ADS_DATABASE_STAGE}.{source_object}")
                                    
 display(df_cleansed)
