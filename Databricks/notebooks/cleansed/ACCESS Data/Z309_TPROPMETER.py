@@ -219,10 +219,10 @@ df_cleansed = spark.sql("SELECT cast(N_PROP as int) AS propertyNumber, \
 		a._RecordDeleted, \
 		a._RecordCurrent \
 	FROM CLEANSED.STG_ACCESS_Z309_TPROPMETER a \
-         left outer join CLEANSED.t_access_Z309_TMeterType b on b.meterTypeCode = a.C_METE_TYPE \
-         left outer join CLEANSED.t_access_Z309_TMeterClass c on c.meterClassCode = a.C_METE_CLAS \
-         left outer join CLEANSED.t_access_Z309_TMeterCategory d on d.meterCategoryCode = a.C_METE_CATE \
-         left outer join CLEANSED.t_access_Z309_TMeterGroup e on e.meterGroupCode = a.C_METE_GROU \
+         left outer join CLEANSED.access_Z309_TMeterType b on b.meterTypeCode = a.C_METE_TYPE \
+         left outer join CLEANSED.access_Z309_TMeterClass c on c.meterClassCode = a.C_METE_CLAS \
+         left outer join CLEANSED.access_Z309_TMeterCategory d on d.meterCategoryCode = a.C_METE_CATE \
+         left outer join CLEANSED.access_Z309_TMeterGroup e on e.meterGroupCode = a.C_METE_GROU \
          ")
 
 display(df_cleansed)
