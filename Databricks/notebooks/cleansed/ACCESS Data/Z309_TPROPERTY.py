@@ -256,10 +256,10 @@ df_cleansed = spark.sql("SELECT cast(N_PROP as int) AS propertyNumber, \
         a._RecordDeleted, \
         a._RecordCurrent \
 	FROM CLEANSED.STG_ACCESS_Z309_TPROPERTY a \
-         left outer join cleansed.t_access_Z309_TLocalGovt b on b.LGACode = a.c_lga \
-         left outer join cleansed.t_access_Z309_TPropType e on e.propertyTypeCode = a.c_prop_type \
-         left outer join cleansed.t_access_Z309_TPropType f on e.superiorPropertyTypeCode = f.propertyTypeCode \
-         left outer join cleansed.t_access_Z309_TRataType h on h.rateabilityTypeCode = a.c_rata_type \
+         left outer join cleansed.access_Z309_TLocalGovt b on b.LGACode = a.c_lga \
+         left outer join cleansed.access_Z309_TPropType e on e.propertyTypeCode = a.c_prop_type \
+         left outer join cleansed.access_Z309_TPropType f on e.superiorPropertyTypeCode = f.propertyTypeCode \
+         left outer join cleansed.access_Z309_TRataType h on h.rateabilityTypeCode = a.c_rata_type \
 ")
 
 display(df_cleansed)
