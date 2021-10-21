@@ -138,6 +138,7 @@ print("delta_column: " + delta_column)
 #Get the Data Load Mode using the params
 data_load_mode = GeneralGetDataLoadMode(Params[PARAMS_TRUNCATE_TARGET], Params[PARAMS_UPSERT_TARGET], Params[PARAMS_APPEND_TARGET])
 print("data_load_mode: " + data_load_mode)
+
 # COMMAND ----------
 
 # DBTITLE 1,9. Set raw and cleansed table name
@@ -175,95 +176,103 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_cleansed_column = spark.sql("SELECT  \
-                                BELNR as billingDocumentNumber, \
-                                BELZEILE as billingDocumentLineItemID, \
-                                EQUNR as equipmentNumber, \
-                                GERAET as deviceNumber, \
-                                MATNR as materialNumber, \
-                                ZWNUMMER as registerNumber, \
-                                INDEXNR as registerRelationshipConsecutiveNumber, \
-                                ABLESGR as meterReadingReasonCode, \
-                                ABLESGRV as previousMeterReadingReasonCode, \
-                                ATIM as billingMeterReadingTime, \
-                                ATIMVA as previousMeterReadingTime, \
-                                to_date(ADATMAX, 'yyyyMMdd') as maxMeterReadingDate, \
-                                ATIMMAX as maxMeterReadingTime, \
-                                to_date(THGDATUM, 'yyyyMMdd') as serviceAllocationDate, \
-                                to_date(ZUORDDAT, 'yyyyMMdd') as meterReadingAllocationDate, \
-                                ABLBELNR as suppressedMeterReadingDocumentID, \
-                                LOGIKNR as logicalDeviceNumber, \
-                                LOGIKZW as logicalRegisterNumber, \
-                                ISTABLART as meterReadingTypeCode, \
-                                ISTABLARTVA as previousMeterReadingTypeCode, \
-                                EXTPKZ as meterReadingResultsSimulationIndicator, \
-                                to_date(BEGPROG, 'yyyyMMdd') as forecastPeriodStartDate, \
-                                to_date(ENDEPROG, 'yyyyMMdd') as forecastPeriodEndDate, \
-                                ABLHINW as meterReaderNoteText, \
-                                cast(V_ZWSTAND as dec(17)) as meterReadingBeforeDecimalPoint, \
-                                cast(N_ZWSTAND as dec(14,14)) as meterReadingAfterDecimalPoint, \
-                                cast(V_ZWSTNDAB as dec(17)) as billedMeterReadingBeforeDecimalPlaces, \
-                                cast(N_ZWSTNDAB as dec(14,14)) as billedMeterReadingAfterDecimalPlaces, \
-                                cast(V_ZWSTVOR as dec(17)) as prevousMeterReadingBeforeDecimalPlaces, \
-                                cast(N_ZWSTVOR as dec(14,14)) as previousMeterReadingAfterDecimalPlaces, \
-                                cast(V_ZWSTDIFF as dec(17)) as meterReadingDifferenceBeforeDecimalPlaces, \
-                                cast(N_ZWSTDIFF as dec(14,14)) as meterReadingDifferenceAfterDecimalPlaces, \
-                                _RecordStart, \
-                                _RecordEnd, \
-                                _RecordDeleted, \
-                                _RecordCurrent \
-                               FROM CLEANSED.STG_isu_DBERCHZ2")
+                                    BELNR as billingDocumentNumber, \
+                                    BELZEILE as billingDocumentLineItemId, \
+                                    MWSKZ as taxSalesCode, \
+                                    ERMWSKZ as texDeterminationCode, \
+                                    cast(NETTOBTR as double) as billingLineItemNetAmount, \
+                                    TWAERS as transactionCurrency, \
+                                    PREISTUF as priceLevel, \
+                                    PREISTYP as priceCategory, \
+                                    PREIS as price, \
+                                    PREISZUS as priceSummaryIndicator, \
+                                    VONZONE as fromBlock, \
+                                    BISZONE as toBlock, \
+                                    ZONENNR as numberOfPriceBlock, \
+                                    cast(PREISBTR as dec(17,8)) as priceAmount, \
+                                    cast(MNGBASIS as dec(9,7)) as amountLongQuantityBase, \
+                                    PREIGKL as priceAdjustemntClause, \
+                                    cast(URPREIS as dec(17)) as priceAdjustemntClauseBasePrice, \
+                                    cast(PREIADD as dec(17)) as addedAdjustmentPrice, \
+                                    cast(PREIFAKT as dec(12)) as priceAdjustmentFactor, \
+                                    OPMULT as additionFirst, \
+                                    to_date(TXDAT_KK, 'yyyyMMdd') as taxDecisiveDate, \
+                                    PRCTR as profitCenter, \
+                                    KOSTL as costCenter, \
+                                    PS_PSP_PNR as wbsElement, \
+                                    AUFNR as orderNumber, \
+                                    PAOBJNR as profitabilitySegmentNumber, \
+                                    PAOBJNR_S as profitabilitySegmentNumberForPost, \
+                                    GSBER as businessArea, \
+                                    APERIODIC as nonPeriodicPosting, \
+                                    GROSSGROUP as grossGroup, \
+                                    BRUTTOZEILE as grossBillingLineItem, \
+                                    BUPLA as businessPlace, \
+                                    LINE_CLASS as billingLineClassificationIndicator, \
+                                    PREISART as priceType, \
+                                    cast(V_NETTOBTR_L as dec(17)) as longNetAmountPredecimalPlaces, \
+                                    cast(N_NETTOBTR_L as dec(14,14))as longNetAmountDecimalPlaces, \
+                                    _RecordStart, \
+                                    _RecordEnd, \
+                                    _RecordDeleted, \
+                                    _RecordCurrent \
+                               FROM CLEANSED.STG_isu_DBERCHZ3")
 display(df_cleansed_column)
 
 # COMMAND ----------
 
 newSchema = StructType([
-                          StructField('billingDocumentNumber', StringType(), True),
-                          StructField('billingDocumentLineItemID', StringType(), True),
-                          StructField('equipmentNumber', StringType(), True),
-                          StructField('deviceNumber', StringType(), True),
-                          StructField('materialNumber', StringType(), True),
-                          StructField('registerNumber', StringType(), True),
-                          StructField('registerRelationshipConsecutiveNumber', StringType(), True),
-                          StructField('meterReadingReasonCode', StringType(), True),
-                          StructField('previousMeterReadingReasonCode', StringType(), True),
-                          StructField('billingMeterReadingTime', StringType(), True),
-                          StructField('previousMeterReadingTime', StringType(), True),
-                          StructField('maxMeterReadingDate', DateType(), True),
-                          StructField('maxMeterReadingTime', StringType(), True),
-                          StructField('serviceAllocationDate', DateType(), True),
-                          StructField('meterReadingAllocationDate', DateType(), True),
-                          StructField('suppressedMeterReadingDocumentID', StringType(), True),
-                          StructField('logicalDeviceNumber', StringType(), True),
-                          StructField('logicalRegisterNumber', StringType(), True),
-                          StructField('meterReadingTypeCode', StringType(), True),
-                          StructField('previousMeterReadingTypeCode', StringType(), True),
-                          StructField('meterReadingResultsSimulationIndicator', StringType(), True),
-                          StructField('forecastPeriodStartDate', DateType(), True),
-                          StructField('forecastPeriodEndDate', DateType(), True),
-                          StructField('meterReaderNoteText', StringType(), True),
-                          StructField('meterReadingBeforeDecimalPoint', DecimalType(17), True),
-                          StructField('meterReadingAfterDecimalPoint', DecimalType(14,14), True),
-                          StructField('billedMeterReadingBeforeDecimalPlaces', DecimalType(17), True),
-                          StructField('billedMeterReadingAfterDecimalPlaces', DecimalType(14,14), True),
-                          StructField('previousMeterReadingBeforeDecimalPlaces', DecimalType(17), True),
-                          StructField('previousMeterReadingAfterDecimalPlaces', DecimalType(14,14), True),
-                          StructField('meterReadingDifferenceBeforeDecimalPlaces', DecimalType(17), True),
-                          StructField('meterReadingDifferenceAfterDecimalPlaces', DecimalType(14,14), True),
-                          StructField('_RecordStart', TimestampType(), False),
-                          StructField('_RecordEnd', TimestampType(), False),
-                          StructField('_RecordDeleted', IntegerType(), False),
-                          StructField('_RecordCurrent', IntegerType(), False)
-                      ])
+                        StructField('billingDocumentNumber', StringType(), False),
+                        StructField('billingDocumentLineItemId', StringType(), False),
+                        StructField('taxSalesCode', StringType(), True),
+                        StructField('texDeterminationCode', StringType(), True),
+                        StructField('billingLineItemNetAmount', DoubleType(), True),
+                        StructField('transactionCurrency', StringType(), True),
+                        StructField('priceLevel', StringType(), True),
+                        StructField('priceCategory', StringType(), True),
+                        StructField('price', StringType(), True),
+                        StructField('priceSummaryIndicator', StringType(), True),
+                        StructField('fromBlock', StringType(), True),
+                        StructField('toBlock', StringType(), True),
+                        StructField('numberOfPriceBlock', StringType(), True),
+                        StructField('priceAmount', DecimalType(17,8), True),
+                        StructField('amountLongQuantityBase', DecimalType(9,7), True),
+                        StructField('priceAdjustemntClause', StringType(), True),
+                        StructField('priceAdjustemntClauseBasePrice', DecimalType(17), True),
+                        StructField('addedAdjustmentPrice', DecimalType(17), True),
+                        StructField('priceAdjustmentFactor', DecimalType(12), True),
+                        StructField('additionFirst', StringType(), True),
+                        StructField('taxDecisiveDate', DateType(), True),
+                        StructField('profitCenter', StringType(), True),
+                        StructField('costCenter', StringType(), True),
+                        StructField('wbsElement', StringType(), True),
+                        StructField('orderNumber', StringType(), True),
+                        StructField('profitabilitySegmentNumber', StringType(), True),
+                        StructField('profitabilitySegmentNumberForPost', StringType(), True),
+                        StructField('businessArea', StringType(), True),
+                        StructField('nonPeriodicPosting', StringType(), True),
+                        StructField('grossGroup', StringType(), True),
+                        StructField('grossBillingLineItem', StringType(), True),
+                        StructField('businessPlace', StringType(), True),
+                        StructField('billingLineClassificationIndicator', StringType(), True),
+                        StructField('priceType', StringType(), True),
+                        StructField('longNetAmountPredecimalPlaces', DecimalType(17), True),
+                        StructField('longNetAmountDecimalPlaces', DecimalType(14,14), True),
+                        StructField('_RecordStart',TimestampType(),False),
+                        StructField('_RecordEnd',TimestampType(),False),
+                        StructField('_RecordDeleted',IntegerType(),False),
+                        StructField('_RecordCurrent',IntegerType(),False)
+                    ])
 
 df_updated_column = spark.createDataFrame(df_cleansed_column.rdd, schema=newSchema)
 display(df_updated_column)
-
 
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
 DeltaSaveDataframeDirect(df_updated_column, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
+
 # COMMAND ----------
 
 # DBTITLE 1,13. Exit Notebook
