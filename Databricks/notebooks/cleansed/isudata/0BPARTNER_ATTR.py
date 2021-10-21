@@ -138,6 +138,7 @@ print("delta_column: " + delta_column)
 #Get the Data Load Mode using the params
 data_load_mode = GeneralGetDataLoadMode(Params[PARAMS_TRUNCATE_TARGET], Params[PARAMS_UPSERT_TARGET], Params[PARAMS_APPEND_TARGET])
 print("data_load_mode: " + data_load_mode)
+
 # COMMAND ----------
 
 # DBTITLE 1,9. Set raw and cleansed table name
@@ -174,7 +175,7 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_updated_column_temp = spark.sql("SELECT \
+df_cleansed = spark.sql(f"SELECT \
                                 BP.PARTNER as businessPartnerNumber,\
                                 BP.TYPE as businessPartnerCategoryCode,\
                                 BP_TXT.businessPartnerCategory as businessPartnerCategory,\
@@ -231,19 +232,20 @@ df_updated_column_temp = spark.sql("SELECT \
                                 BP._RecordEnd, \
                                 BP._RecordDeleted, \
                                 BP._RecordCurrent \
-                               FROM CLEANSED.STG_isu_0BPARTNER_ATTR BP \
-                               LEFT OUTER JOIN CLEANSED.T_isu_0BPARTNER_TEXT BP_TXT \
+                               FROM {ADS_DATABASE_STAGE}.{source_object} BP \
+                               LEFT OUTER JOIN CLEANSED.isu_0BPARTNER_TEXT BP_TXT \
                                  ON BP.PARTNER = BP_TXT.businessPartnerNumber AND BP.TYPE =BP_TXT.businessPartnerCategoryCode \
-                               LEFT OUTER JOIN CLEANSED.T_isu_0BPTYPE_TEXT BPTYPE ON BP.BPKIND = BPTYPE.businessPartnerTypeCode \
-                               LEFT OUTER JOIN CLEANSED.T_isu_0BP_GROUP_TEXT BPGRP ON BP.BU_GROUP = BPGRP.businessPartnerGroupCode \
-                               LEFT OUTER JOIN CLEANSED.T_isu_TSAD3T TITLE ON BP.TITLE = TITLE.titlecode")
+                               LEFT OUTER JOIN CLEANSED.isu_0BPTYPE_TEXT BPTYPE ON BP.BPKIND = BPTYPE.businessPartnerTypeCode \
+                               LEFT OUTER JOIN CLEANSED.isu_0BP_GROUP_TEXT BPGRP ON BP.BU_GROUP = BPGRP.businessPartnerGroupCode \
+                               LEFT OUTER JOIN CLEANSED.isu_TSAD3T TITLE ON BP.TITLE = TITLE.titlecode")
 
-display(df_updated_column_temp)
+display(df_cleansed)
+print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
 
 # Create schema for the cleanse table
-cleanse_Schema = StructType(
+newSchema = StructType(
   [
     StructField("businessPartnerNumber", StringType(), False),
     StructField("businessPartnerCategoryCode", StringType(), True),
@@ -304,7 +306,7 @@ cleanse_Schema = StructType(
   ]
 )
 # Apply the new schema to cleanse Data Frame
-df_updated_column = spark.createDataFrame(df_updated_column_temp.rdd, schema=cleanse_Schema)
+df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
 display(df_updated_column)
 
 # COMMAND ----------
@@ -312,6 +314,7 @@ display(df_updated_column)
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
 DeltaSaveDataframeDirect(df_updated_column, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
+
 # COMMAND ----------
 
 # DBTITLE 1,13. Exit Notebook

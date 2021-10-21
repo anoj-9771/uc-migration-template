@@ -1,3 +1,3 @@
 ﻿CREATE SCHEMA [curated]
-    AUTHORIZATION [svc_synapse1];
+    AUTHORIZATION [dbo];
 

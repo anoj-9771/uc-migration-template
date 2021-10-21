@@ -18,15 +18,19 @@ EXECUTE sp_addrolemember @rolename = N'db_owner', @membername = N'e3y@sydneywate
 
 
 GO
-EXECUTE sp_addrolemember @rolename = N'db_owner', @membername = N'svc_synapse1';
+EXECUTE sp_addrolemember @rolename = N'db_owner', @membername = N'oydm@sydneywater.com.au';
 
 
 GO
-EXECUTE sp_addrolemember @rolename = N'db_datareader', @membername = N'y2o@sydneywater.com.au';
+EXECUTE sp_addrolemember @rolename = N'db_owner', @membername = N'opd4@sydneywater.com.au';
 
 
 GO
-EXECUTE sp_addrolemember @rolename = N'db_datareader', @membername = N'A-Azure-DAF Databricks and Synapse Users DEV';
+EXECUTE sp_addrolemember @rolename = N'db_owner', @membername = N'oyae@sydneywater.com.au';
+
+
+GO
+EXECUTE sp_addrolemember @rolename = N'db_owner', @membername = N'otob@sydneywater.com.au';
 
 
 GO
@@ -39,6 +43,18 @@ EXECUTE sp_addrolemember @rolename = N'db_datareader', @membername = N'yce@sydne
 
 GO
 EXECUTE sp_addrolemember @rolename = N'db_datareader', @membername = N'enl@sydneywater.com.au';
+
+
+GO
+EXECUTE sp_addrolemember @rolename = N'db_datareader', @membername = N'svc_collibra';
+
+
+GO
+EXECUTE sp_addrolemember @rolename = N'db_owner', @membername = N'svc_synapse';
+
+
+GO
+EXECUTE sp_addrolemember @rolename = N'db_owner', @membername = N'svc_synapse1';
 
 
 GO
@@ -58,5 +74,9 @@ EXECUTE sp_addrolemember @rolename = N'db_datawriter', @membername = N'enl@sydne
 
 
 GO
-EXECUTE sp_addrolemember @rolename = N'db_owner', @membername = N'svc_synapse';
+EXECUTE sp_addrolemember @rolename = N'db_datareader', @membername = N'y2o@sydneywater.com.au';
+
+
+GO
+EXECUTE sp_addrolemember @rolename = N'db_datareader', @membername = N'A-Azure-DAF Databricks and Synapse Users DEV';
 

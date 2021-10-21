@@ -6,7 +6,7 @@
     <Name>Synapse_Databases</Name>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectVersion>4.1</ProjectVersion>
-    <ProjectGuid>{321585bd-b9dc-4ac1-8bd6-264af5b13bba}</ProjectGuid>
+    <ProjectGuid>{44872dd2-c097-43ad-b4c0-8fe1ee8be7ee}</ProjectGuid>
     <DSP>Microsoft.Data.Tools.Schema.Sql.SqlDwDatabaseSchemaProvider</DSP>
     <OutputType>Database</OutputType>
     <RootPath>
@@ -125,6 +125,8 @@
     <Folder Include="stage\Tables\" />
     <Folder Include="default\" />
     <Folder Include="default\Tables\" />
+    <Folder Include="Billing\" />
+    <Folder Include="Billing\Views\" />
     <Folder Include="Security\" />
   </ItemGroup>
   <ItemGroup>
@@ -152,13 +154,26 @@
     <Build Include="stage\Tables\Dimproperty.sql" />
     <Build Include="stage\Tables\Factdailyapportionedconsumption.sql" />
     <Build Include="dbo\Tables\Test1.sql" />
+    <Build Include="Billing\Views\dimlocation.sql" />
+    <Build Include="Billing\Views\factbilledwaterconsumption.sql" />
+    <Build Include="Billing\Views\dimdate.sql" />
+    <Build Include="Billing\Views\dimbillingdocument.sql" />
+    <Build Include="Billing\Views\factdailyapportionedconsumption.sql" />
+    <Build Include="Billing\Views\dimmeter.sql" />
+    <Build Include="Billing\Views\dimproperty.sql" />
     <Build Include="Security\synws-swcnonprod01-daf-dev-01.sql" />
     <Build Include="Security\o5s5%40sydneywater.com.au.sql" />
+    <Build Include="Security\oydm%40sydneywater.com.au.sql" />
+    <Build Include="Security\opd4%40sydneywater.com.au.sql" />
+    <Build Include="Security\oyae%40sydneywater.com.au.sql" />
+    <Build Include="Security\otob%40sydneywater.com.au.sql" />
+    <Build Include="Security\id-synws-daf-dev-01.sql" />
     <Build Include="Security\svc_synapse1.sql" />
     <Build Include="Security\A-Azure-DAF Databricks and Synapse Users DEV.sql" />
     <Build Include="Security\ub0%40sydneywater.com.au.sql" />
     <Build Include="Security\yce%40sydneywater.com.au.sql" />
     <Build Include="Security\enl%40sydneywater.com.au.sql" />
+    <Build Include="Security\svc_collibra.sql" />
     <Build Include="Security\ozqc%40sydneywater.com.au.sql" />
     <Build Include="Security\oq5s%40sydneywater.com.au.sql" />
     <Build Include="Security\oe3y%40sydneywater.com.au.sql" />
@@ -166,11 +181,10 @@
     <Build Include="Security\y2o%40sydneywater.com.au.sql" />
     <Build Include="Security\svc_synapse.sql" />
     <Build Include="Security\RoleMemberships.sql" />
-    <Build Include="Security\MasterKeys.sql" />
-    <Build Include="Security\edw.sql" />
-    <Build Include="Security\default.sql" />
-    <Build Include="Security\SqlAnalyticsConnector.sql" />
+    <Build Include="Security\Billing.sql" />
     <Build Include="Security\curated.sql" />
     <Build Include="Security\stage.sql" />
+    <Build Include="Security\default.sql" />
+    <Build Include="Security\SqlAnalyticsConnector.sql" />
   </ItemGroup>
 </Project>

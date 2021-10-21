@@ -165,7 +165,7 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_updated_column_temp = spark.sql(f"SELECT \
+df_cleansed = spark.sql(f"SELECT \
                                   DEVCAT.MATNR as materialNumber,\
                                   DEVCAT.KOMBINAT as deviceCategoryCombination,\
                                   DEVCAT.FUNKLAS as functionClassCode,\
@@ -197,12 +197,13 @@ df_updated_column_temp = spark.sql(f"SELECT \
                               LEFT OUTER JOIN CLEANSED.isu_0UC_BAUKLAS_TEXT BKLASTX ON DEVCAT.BAUKLAS = BKLASTX.constructionClassCode \
                               LEFT OUTER JOIN CLEANSED.isu_0UC_REGGRP_TEXT REGGRP ON DEVCAT.ZWGRUPPE = REGGRP.registerGroupCode")
                                    
-display(df_updated_column_temp)
+display(df_cleansed)
+print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
 
 # Create schema for the cleanse table
-cleanse_Schema = StructType(
+newSchema = StructType(
   [
     StructField("materialNumber", StringType(), False),
     StructField("deviceCategoryCombination", StringType(), True),
@@ -233,7 +234,7 @@ cleanse_Schema = StructType(
   ]
 )
 # Apply the new schema to cleanse Data Frame
-df_updated_column = spark.createDataFrame(df_updated_column_temp.rdd, schema=cleanse_Schema)
+df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
 display(df_updated_column)
 
 # COMMAND ----------

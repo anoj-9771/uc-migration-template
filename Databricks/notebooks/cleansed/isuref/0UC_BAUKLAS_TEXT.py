@@ -175,13 +175,30 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_updated_column = spark.sql(f"SELECT \
-                                       BAUKLAS as constructionClassCode,\
-                                       BAUKLTXT as constructionClass \
-                                       FROM {ADS_DATABASE_STAGE}.{source_object} \
-                                       WHERE SPRAS = 'E'")
+df_cleansed = spark.sql(f"SELECT \
+                                       case when BAUKLAS = 'na' then '' else BAUKLAS end as constructionClassCode,\
+                                       BAUKLTXT as constructionClass, \
+                                       _RecordStart, \
+                                       _RecordEnd, \
+                                       _RecordDeleted, \
+                                       _RecordCurrent \
+                                       FROM {ADS_DATABASE_STAGE}.{source_object}")
                                    
-display(df_updated_column)
+display(df_cleansed)
+print(f'Number of rows: {df_cleansed.count()}')
+
+# COMMAND ----------
+
+newSchema = StructType([
+                      StructField('constructionClassCode',StringType(),False),
+                      StructField('constructionClass',StringType(),True),
+                      StructField('_RecordStart',TimestampType(),False),
+                      StructField('_RecordEnd',TimestampType(),False),
+                      StructField('_RecordDeleted',IntegerType(),False),
+                      StructField('_RecordCurrent',IntegerType(),False)
+                      ])
+
+df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
 
 # COMMAND ----------
 

@@ -138,6 +138,7 @@ print("delta_column: " + delta_column)
 #Get the Data Load Mode using the params
 data_load_mode = GeneralGetDataLoadMode(Params[PARAMS_TRUNCATE_TARGET], Params[PARAMS_UPSERT_TARGET], Params[PARAMS_APPEND_TARGET])
 print("data_load_mode: " + data_load_mode)
+
 # COMMAND ----------
 
 # DBTITLE 1,9. Set raw and cleansed table name
@@ -174,7 +175,7 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_cleansed_column = spark.sql("SELECT  \
+df_cleansed = spark.sql(f"SELECT  \
                                   INTRENO as architecturalObjectInternalId, \
                                   FIXFITCHARACT as fixtureAndFittingCharacteristicCode, \
                                   ff.fixtureAndFittingCharacteristic as fixtureAndFittingCharacteristic, \
@@ -191,10 +192,11 @@ df_cleansed_column = spark.sql("SELECT  \
                                   stg._RecordEnd, \
                                   stg._RecordDeleted, \
                                   stg._RecordCurrent \
-                               FROM CLEANSED.STG_isu_VIBDCHARACT stg\
-                                 left outer join cleansed.t_isu_0df_refixfi_text ff on ff.fixtureAndFittingCharacteristicCode = stg.FIXFITCHARACT"
+                               FROM {ADS_DATABASE_STAGE}.{source_object} stg\
+                                 left outer join cleansed.isu_0df_refixfi_text ff on ff.fixtureAndFittingCharacteristicCode = stg.FIXFITCHARACT"
                               )
-display(df_cleansed_column)
+display(df_cleansed)
+print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
 
@@ -217,7 +219,7 @@ newSchema = StructType([
                           StructField('_RecordCurrent',IntegerType(),False)
 ])
 
-df_updated_column = spark.createDataFrame(df_cleansed_column.rdd, schema=newSchema)
+df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
 display(df_updated_column)
 
 # COMMAND ----------
@@ -225,6 +227,7 @@ display(df_updated_column)
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
 DeltaSaveDataframeDirect(df_updated_column, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
+
 # COMMAND ----------
 
 # DBTITLE 1,13. Exit Notebook

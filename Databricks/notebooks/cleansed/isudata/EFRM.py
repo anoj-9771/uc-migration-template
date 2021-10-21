@@ -1,20 +1,12 @@
 # Databricks notebook source
 # DBTITLE 1,Generate parameter and source object name for unit testing
 import json
-hydraTable = 'TLOTPARCEL'
+#For unit testing...
+#Use this string in the Param widget: 
+#{"SourceType": "BLOB Storage (json)", "SourceServer": "daf-sa-lake-sastoken", "SourceGroup": "isu", "SourceName": "isu_EFRM", "SourceLocation": "isu/EFRM", "AdditionalProperty": "", "Processor": "databricks-token|0711-011053-turfs581|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive", "IsAuditTable": false, "SoftDeleteSource": "", "ProjectName": "SAP REF", "ProjectId": 2, "TargetType": "BLOB Storage (json)", "TargetName": "isu_EFRM", "TargetLocation": "isu/EFRM", "TargetServer": "daf-sa-lake-sastoken", "DataLoadMode": "FULL-EXTRACT", "DeltaExtract": false, "CDCSource": false, "TruncateTarget": false, "UpsertTarget": true, "AppendTarget": null, "TrackChanges": false, "LoadToSqlEDW": true, "TaskName": "isu_EFRM", "ControlStageId": 2, "TaskId": 46, "StageSequence": 200, "StageName": "Raw to Cleansed", "SourceId": 46, "TargetId": 46, "ObjectGrain": "Day", "CommandTypeId": 8, "Watermarks": "", "WatermarksDT": null, "WatermarkColumn": "", "BusinessKeyColumn": "FORMKEY", "UpdateMetaData": null, "SourceTimeStampFormat": "", "Command": "", "LastLoadedFile": null}
 
-runParm = '{"SourceType":"Flat File","SourceServer":"saswcnonprod01landingdev-sastoken","SourceGroup":"hydra","SourceName":"hydra_hydra/####_csv","SourceLocation":"hydra/####.csv","AdditionalProperty":"","Processor":"databricks-token|0705-044124-gored835|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive","IsAuditTable":false,"SoftDeleteSource":"","ProjectName":"hydra Data","ProjectId":2,"TargetType":"BLOB Storage (csv)","TargetName":"hydra_hydra/####_csv","TargetLocation":"hydra/####","TargetServer":"daf-sa-lake-sastoken","DataLoadMode":"TRUNCATE-LOAD","DeltaExtract":false,"CDCSource":false,"TruncateTarget":true,"UpsertTarget":false,"AppendTarget":null,"TrackChanges":false,"LoadToSqlEDW":true,"TaskName":"hydra_hydra/####_csv","ControlStageId":1,"TaskId":4,"StageSequence":100,"StageName":"Source to Raw","SourceId":4,"TargetId":4,"ObjectGrain":"Day","CommandTypeId":5,"Watermarks":"","WatermarksDT":null,"WatermarkColumn":"","BusinessKeyColumn":"","UpdateMetaData":null,"SourceTimeStampFormat":"","Command":"","LastLoadedFile":null}'
-
-s = json.loads(runParm)
-for parm in ['SourceName','SourceLocation','TargetName','TargetLocation','TaskName']:
-    s[parm] = s[parm].replace('####',hydraTable)
-runParm = json.dumps(s)
-
-# COMMAND ----------
-
-print('Use the following as parameters for unit testing:')
-print(f'hydra_{hydraTable.lower()}')
-print(runParm)
+#Use this string in the Source Object widget
+#isu_EFRM
 
 # COMMAND ----------
 
@@ -146,6 +138,7 @@ print("delta_column: " + delta_column)
 #Get the Data Load Mode using the params
 data_load_mode = GeneralGetDataLoadMode(Params[PARAMS_TRUNCATE_TARGET], Params[PARAMS_UPSERT_TARGET], Params[PARAMS_APPEND_TARGET])
 print("data_load_mode: " + data_load_mode)
+
 # COMMAND ----------
 
 # DBTITLE 1,9. Set raw and cleansed table name
@@ -182,78 +175,88 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_cleansed = spark.sql("SELECT cast(System_Key as int) AS systemKey, \
-        cast(Property_Number as int) AS propertyNumber, \
-		case when LGA = 'N/A' then null else initcap(LGA) end as LGA, \
-		case when Address = ' ' then null else " + 
-        ("initcap(Address) " if ADS_ENVIRONMENT not in ['dev','test'] else "'1 Mumble St, Somewhere NSW 2000'") + " end as propertyAddress, \
-		case when Suburb = 'N/A' then null else initcap(Suburb) end AS suburb, \
-        case when Land_Use = 'N/A' then null else initcap(Land_Use) end as landUse, \
-        case when Superior_Land_Use = 'N/A' then null else initcap(Superior_Land_Use) end as superiorLandUse, \
-        cast(Area_m2 as int) as areaSize, \
-        'm2' as areaSizeUnit, " + 
-        ("cast(Lon as dec(9,6)) as longitude, cast(Lat as dec(9,6)) as latitude, cast(MGA56_X as long) as x_coordinate_MGA56, cast(MGA56_Y as long) as y_coordinate_MGA56, " if ADS_ENVIRONMENT not in ['dev','test'] else "\
-          cast(Lon as dec(9,6))+0.17 as longitude, cast(Lat as dec(9,6))+0.23 as latitude, cast(MGA56_X as long)+112 as x_coordinate_MGA56, cast(MGA56_Y as long)+332 as y_coordinate_MGA56, ") + "\
-		case when Water_Delivery_System = 'N/A' then null else Water_Delivery_System end as waterDeliverySystem, \
-		case when Water_Distribution_System = 'N/A' then null else Water_Distribution_System end as waterDistributionSystem, \
-		case when Water_Supply_Zone = 'N/A' then null else Water_Supply_Zone end as waterSupplyZone, \
-        case when Water_Pressure_Zone = 'N/A' then null else Water_Pressure_Zone end as waterPressureZone, \
-        case when Sewer_Network = 'N/A' then null else Sewer_Network end as sewerNetwork, \
-        case when Sewer_Catchment = 'N/A' then null else Sewer_Catchment end as sewerCatchment, \
-        case when Sewer_SCAMP = 'N/A' then null else Sewer_SCAMP end as sewerScamp, \
-        case when Recycled_Delivery_System = 'N/A' then null else Recycled_Delivery_System end as recycledDeliverySystem, \
-        case when Recycled_Distribution_System = 'N/A' then null else Recycled_Distribution_System end as recycledDistributionSystem, \
-        case when Recycled_Supply_Zone = 'N/A' then null else Recycled_Supply_Zone end as recycledSupplyZone, \
-        case when Stormwater_Catchment = 'N/A' then null else Stormwater_Catchment end as stormwaterCatchment, \
-		_RecordStart, \
-		_RecordEnd, \
-		_RecordDeleted, \
-		_RecordCurrent \
-	FROM CLEANSED.STG_" + source_object)
+df_cleansed = spark.sql(f"SELECT \
+                            FORMKEY as applicationForm, \
+                            FORMCLASS as formClass, \
+                            TDFORM as formName, \
+                            EXIT_BIBL as userExitInclude, \
+                            USER_TOP as userTopInclude, \
+                            ORIG_SYST as originalSystem, \
+                            to_date(ERDAT, 'yyyy-MM-dd') as createdDate, \
+                            ERNAM as createdBy, \
+                            ERSAP as createdBySAPAction, \
+                            to_date(AEDAT, 'yyyy-MM-dd') as lastChangedDate, \
+                            AENAM as lastChangedBy, \
+                            AEUZEIT as lastChangedTime, \
+                            AESAP as lastChangedBySAPAction, \
+                            DESCRIPT as applicationFormDescription, \
+                            EXIT_INIT as userExitBeforeHierarchyInterpretation, \
+                            EXIT_CLOSE as userExitAfterHierarchyInterpretation, \
+                            EXIT_DISPATCH as userExitForDataDispatch, \
+                            FORMTYPE as formType, \
+                            SMARTFORM as smartForm, \
+                            GENGUID as genFormGUID, \
+                            FORMGUID as applicationFormGUID, \
+                            FUNC_NAME as functionName, \
+                            FUNC_POOL as functionGroup, \
+                            CROSSFCLASS as crossFormClassCollection, \
+                            ADFORM as PDFFormName, \
+                            DATADISPATCH_MOD as dataDispatchMode, \
+                            PDF_DYNAMIC as dynamicPDFForm, \
+                            _RecordStart, \
+                            _RecordEnd, \
+                            _RecordDeleted, \
+                            _RecordCurrent \
+                            FROM {ADS_DATABASE_STAGE}.{source_object}")
 
 display(df_cleansed)
+print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
 
 newSchema = StructType([
-	StructField('systemKey',IntegerType(),False),
-    StructField('propertyNumber',IntegerType(),True),
-    StructField('LGA',StringType(),True),
-	StructField('propertyAddress',StringType(),True),
-    StructField('suburb',StringType(),True),
-    StructField('landUse',StringType(),True),
-    StructField('superiorLandUse',StringType(),True),
-    StructField('areaSize',IntegerType(),True),
-    StructField('areaSizeUnit',StringType(),True),
-    StructField('longitude',DecimalType(9,6),False),
-    StructField('latitude',DecimalType(9,6),False),
-    StructField('x_coordinate_MGA56',LongType(),False),
-    StructField('y_coordinate_MGA56',LongType(),False),
-    StructField('waterDeliverySystem',StringType(),True),
-    StructField('waterDistributionSystem',StringType(),True),
-    StructField('waterSupplyZone',StringType(),True),
-    StructField('waterPressureZone',StringType(),True),
-    StructField('sewerNetwork',StringType(),True),
-    StructField('sewerCatchment',StringType(),True),
-    StructField('sewerScamp',StringType(),True),
-    StructField('recycledDeliverySystem',StringType(),True),
-    StructField('recycledDistributionSystem',StringType(),True),
-    StructField('recycledSupplyZone',StringType(),True),
-    StructField('stormwaterCatchment',StringType(),True),
-    StructField('_RecordStart',TimestampType(),False),
-    StructField('_RecordEnd',TimestampType(),False),
-    StructField('_RecordDeleted',IntegerType(),False),
-    StructField('_RecordCurrent',IntegerType(),False)
-])
+                        StructField('applicationForm',StringType(),False),
+                        StructField('formClass',StringType(),True),
+                        StructField('formName',StringType(),True),
+                        StructField('userExitInclude',StringType(),True),
+                        StructField('userTopInclude',StringType(),True),
+                        StructField('originalSystem',StringType(),True),
+                        StructField('createdDate',DateType(),True),
+                        StructField('createdBy',StringType(),True),
+                        StructField('createdBySAPAction',StringType(),True),
+                        StructField('lastChangedDate',DateType(),True),
+                        StructField('lastChangedBy',StringType(),True),
+                        StructField('lastChangedTime',StringType(),True),
+                        StructField('lastChangedBySAPAction',StringType(),True),
+                        StructField('applicationFormDescription',StringType(),True),
+                        StructField('userExitBeforeHierarchyInterpretation',StringType(),True),
+                        StructField('userExitAfterHierarchyInterpretation',StringType(),True),
+                        StructField('userExitForDataDispatch',StringType(),True),
+                        StructField('formType',StringType(),True),
+                        StructField('smartForm',StringType(),True),
+                        StructField('genFormGUID',StringType(),True),
+                        StructField('applicationFormGUID',StringType(),True),
+                        StructField('functionName',StringType(),True),
+                        StructField('functionGroup',StringType(),True),
+                        StructField('crossFormClassCollection',StringType(),True),
+                        StructField('PDFFormName',StringType(),True),
+                        StructField('dataDispatchMode',StringType(),True),
+                        StructField('dynamicPDFForm',StringType(),True),
+                        StructField('_RecordStart',TimestampType(),False),
+                        StructField('_RecordEnd',TimestampType(),False),
+                        StructField('_RecordDeleted',IntegerType(),False),
+                        StructField('_RecordCurrent',IntegerType(),False)
+                      ])
 
 df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
-display(df_updated_column)
+
 
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
 DeltaSaveDataframeDirect(df_updated_column, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
+
 # COMMAND ----------
 
 # DBTITLE 1,13. Exit Notebook

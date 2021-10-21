@@ -12,7 +12,7 @@
 		</CustomData>
 		<CustomData Category="Reference" Type="Assembly">
 			<Metadata Name="LogicalName" Value="Synapse_Databases.dll" />
-			<Metadata Name="FileName" Value="C:\USERS\FHASAN\SOURCE\REPOS\DAF_POC_REPO1\SYNAPSE-DATABASES\SYNAPSE-DATABASES\OBJ\DEBUG\SYNAPSE_DATABASES.DLL" />
+			<Metadata Name="FileName" Value="C:\USERS\FHASAN\SOURCE\REPOS\SYN_DATA\SYNAPSE-DATABASES\SYNAPSE-DATABASES\OBJ\DEBUG\SYNAPSE_DATABASES.DLL" />
 			<Metadata Name="AssemblyName" Value="Synapse_Databases" />
 			<Metadata Name="PermissionSet" Value="SAFE" />
 			<Metadata Name="Owner" Value="" />
@@ -20,7 +20,7 @@
 			<Metadata Name="IsVisible" Value="True" />
 			<Metadata Name="IsModelAware" Value="True" />
 			<Metadata Name="SkipCreationIfEmpty" Value="True" />
-			<Metadata Name="AssemblySymbolsName" Value="C:\Users\fhasan\Source\Repos\DAF_POC_REPO1\Synapse-Databases\Synapse-Databases\obj\Debug\Synapse_Databases.pdb" />
+			<Metadata Name="AssemblySymbolsName" Value="C:\Users\fhasan\source\repos\syn_data\Synapse-Databases\Synapse-Databases\obj\Debug\Synapse_Databases.pdb" />
 		</CustomData>
 		<CustomData Category="SqlCmdVariables" Type="SqlCmdVariable" />
 	</Header>
@@ -61,7 +61,6 @@
 				</Entry>
 			</Relationship>
 		</Element>
-		<Element Type="SqlMasterKey" />
 		<Element Type="SqlRoleMembership">
 			<Relationship Name="Member">
 				<Entry>
@@ -125,12 +124,168 @@
 		<Element Type="SqlRoleMembership">
 			<Relationship Name="Member">
 				<Entry>
+					<References Name="[oydm@sydneywater.com.au]" />
+				</Entry>
+			</Relationship>
+			<Relationship Name="Role">
+				<Entry>
+					<References ExternalSource="BuiltIns" Name="[db_owner]" />
+				</Entry>
+			</Relationship>
+		</Element>
+		<Element Type="SqlRoleMembership">
+			<Relationship Name="Member">
+				<Entry>
+					<References Name="[opd4@sydneywater.com.au]" />
+				</Entry>
+			</Relationship>
+			<Relationship Name="Role">
+				<Entry>
+					<References ExternalSource="BuiltIns" Name="[db_owner]" />
+				</Entry>
+			</Relationship>
+		</Element>
+		<Element Type="SqlRoleMembership">
+			<Relationship Name="Member">
+				<Entry>
+					<References Name="[oyae@sydneywater.com.au]" />
+				</Entry>
+			</Relationship>
+			<Relationship Name="Role">
+				<Entry>
+					<References ExternalSource="BuiltIns" Name="[db_owner]" />
+				</Entry>
+			</Relationship>
+		</Element>
+		<Element Type="SqlRoleMembership">
+			<Relationship Name="Member">
+				<Entry>
+					<References Name="[otob@sydneywater.com.au]" />
+				</Entry>
+			</Relationship>
+			<Relationship Name="Role">
+				<Entry>
+					<References ExternalSource="BuiltIns" Name="[db_owner]" />
+				</Entry>
+			</Relationship>
+		</Element>
+		<Element Type="SqlRoleMembership">
+			<Relationship Name="Member">
+				<Entry>
+					<References Name="[ub0@sydneywater.com.au]" />
+				</Entry>
+			</Relationship>
+			<Relationship Name="Role">
+				<Entry>
+					<References ExternalSource="BuiltIns" Name="[db_datareader]" />
+				</Entry>
+			</Relationship>
+		</Element>
+		<Element Type="SqlRoleMembership">
+			<Relationship Name="Member">
+				<Entry>
+					<References Name="[yce@sydneywater.com.au]" />
+				</Entry>
+			</Relationship>
+			<Relationship Name="Role">
+				<Entry>
+					<References ExternalSource="BuiltIns" Name="[db_datareader]" />
+				</Entry>
+			</Relationship>
+		</Element>
+		<Element Type="SqlRoleMembership">
+			<Relationship Name="Member">
+				<Entry>
+					<References Name="[enl@sydneywater.com.au]" />
+				</Entry>
+			</Relationship>
+			<Relationship Name="Role">
+				<Entry>
+					<References ExternalSource="BuiltIns" Name="[db_datareader]" />
+				</Entry>
+			</Relationship>
+		</Element>
+		<Element Type="SqlRoleMembership">
+			<Relationship Name="Member">
+				<Entry>
+					<References Name="[svc_collibra]" />
+				</Entry>
+			</Relationship>
+			<Relationship Name="Role">
+				<Entry>
+					<References ExternalSource="BuiltIns" Name="[db_datareader]" />
+				</Entry>
+			</Relationship>
+		</Element>
+		<Element Type="SqlRoleMembership">
+			<Relationship Name="Member">
+				<Entry>
+					<References Name="[svc_synapse]" />
+				</Entry>
+			</Relationship>
+			<Relationship Name="Role">
+				<Entry>
+					<References ExternalSource="BuiltIns" Name="[db_owner]" />
+				</Entry>
+			</Relationship>
+		</Element>
+		<Element Type="SqlRoleMembership">
+			<Relationship Name="Member">
+				<Entry>
 					<References Name="[svc_synapse1]" />
 				</Entry>
 			</Relationship>
 			<Relationship Name="Role">
 				<Entry>
 					<References ExternalSource="BuiltIns" Name="[db_owner]" />
+				</Entry>
+			</Relationship>
+		</Element>
+		<Element Type="SqlRoleMembership">
+			<Relationship Name="Member">
+				<Entry>
+					<References Name="[A-Azure-DAF Databricks and Synapse Users DEV]" />
+				</Entry>
+			</Relationship>
+			<Relationship Name="Role">
+				<Entry>
+					<References ExternalSource="BuiltIns" Name="[db_datawriter]" />
+				</Entry>
+			</Relationship>
+		</Element>
+		<Element Type="SqlRoleMembership">
+			<Relationship Name="Member">
+				<Entry>
+					<References Name="[ub0@sydneywater.com.au]" />
+				</Entry>
+			</Relationship>
+			<Relationship Name="Role">
+				<Entry>
+					<References ExternalSource="BuiltIns" Name="[db_datawriter]" />
+				</Entry>
+			</Relationship>
+		</Element>
+		<Element Type="SqlRoleMembership">
+			<Relationship Name="Member">
+				<Entry>
+					<References Name="[yce@sydneywater.com.au]" />
+				</Entry>
+			</Relationship>
+			<Relationship Name="Role">
+				<Entry>
+					<References ExternalSource="BuiltIns" Name="[db_datawriter]" />
+				</Entry>
+			</Relationship>
+		</Element>
+		<Element Type="SqlRoleMembership">
+			<Relationship Name="Member">
+				<Entry>
+					<References Name="[enl@sydneywater.com.au]" />
+				</Entry>
+			</Relationship>
+			<Relationship Name="Role">
+				<Entry>
+					<References ExternalSource="BuiltIns" Name="[db_datawriter]" />
 				</Entry>
 			</Relationship>
 		</Element>
@@ -158,110 +313,1139 @@
 				</Entry>
 			</Relationship>
 		</Element>
-		<Element Type="SqlRoleMembership">
-			<Relationship Name="Member">
-				<Entry>
-					<References Name="[ub0@sydneywater.com.au]" />
-				</Entry>
-			</Relationship>
-			<Relationship Name="Role">
-				<Entry>
-					<References ExternalSource="BuiltIns" Name="[db_datareader]" />
-				</Entry>
-			</Relationship>
-		</Element>
-		<Element Type="SqlRoleMembership">
-			<Relationship Name="Member">
-				<Entry>
-					<References Name="[yce@sydneywater.com.au]" />
-				</Entry>
-			</Relationship>
-			<Relationship Name="Role">
-				<Entry>
-					<References ExternalSource="BuiltIns" Name="[db_datareader]" />
-				</Entry>
-			</Relationship>
-		</Element>
-		<Element Type="SqlRoleMembership">
-			<Relationship Name="Member">
-				<Entry>
-					<References Name="[enl@sydneywater.com.au]" />
-				</Entry>
-			</Relationship>
-			<Relationship Name="Role">
-				<Entry>
-					<References ExternalSource="BuiltIns" Name="[db_datareader]" />
-				</Entry>
-			</Relationship>
-		</Element>
-		<Element Type="SqlRoleMembership">
-			<Relationship Name="Member">
-				<Entry>
-					<References Name="[A-Azure-DAF Databricks and Synapse Users DEV]" />
-				</Entry>
-			</Relationship>
-			<Relationship Name="Role">
-				<Entry>
-					<References ExternalSource="BuiltIns" Name="[db_datawriter]" />
-				</Entry>
-			</Relationship>
-		</Element>
-		<Element Type="SqlRoleMembership">
-			<Relationship Name="Member">
-				<Entry>
-					<References Name="[ub0@sydneywater.com.au]" />
-				</Entry>
-			</Relationship>
-			<Relationship Name="Role">
-				<Entry>
-					<References ExternalSource="BuiltIns" Name="[db_datawriter]" />
-				</Entry>
-			</Relationship>
-		</Element>
-		<Element Type="SqlRoleMembership">
-			<Relationship Name="Member">
-				<Entry>
-					<References Name="[yce@sydneywater.com.au]" />
-				</Entry>
-			</Relationship>
-			<Relationship Name="Role">
-				<Entry>
-					<References ExternalSource="BuiltIns" Name="[db_datawriter]" />
-				</Entry>
-			</Relationship>
-		</Element>
-		<Element Type="SqlRoleMembership">
-			<Relationship Name="Member">
-				<Entry>
-					<References Name="[enl@sydneywater.com.au]" />
-				</Entry>
-			</Relationship>
-			<Relationship Name="Role">
-				<Entry>
-					<References ExternalSource="BuiltIns" Name="[db_datawriter]" />
-				</Entry>
-			</Relationship>
-		</Element>
-		<Element Type="SqlRoleMembership">
-			<Relationship Name="Member">
-				<Entry>
-					<References Name="[svc_synapse]" />
-				</Entry>
-			</Relationship>
-			<Relationship Name="Role">
-				<Entry>
-					<References ExternalSource="BuiltIns" Name="[db_owner]" />
-				</Entry>
-			</Relationship>
-		</Element>
 		<Element Type="SqlUser" Name="[A-Azure-DAF Databricks and Synapse Users DEV]">
 			<Property Name="AuthenticationType" Value="4" />
 			<Property Name="UserType" Value="1" />
 		</Element>
+		<Element Type="SqlSchema" Name="[Billing]">
+			<Relationship Name="Authorizer">
+				<Entry>
+					<References ExternalSource="BuiltIns" Name="[dbo]" />
+				</Entry>
+			</Relationship>
+		</Element>
+		<Element Type="SqlView" Name="[billing].[dimbillingdocument]">
+			<Property Name="QueryScript">
+				<Value><![CDATA[ select
+dimbillingDocumentSK as dimbillingDocumentSK
+, sourceSystemCode as "Source System Code"
+, billingDocumentNumber as "Billing Document Number"
+, billingPeriodStartDate as "Billing Period Start Date"
+, billingPeriodEndDate as "Billing Period End Date"
+, billCreatedDate as "Bill Created Date"
+, isOutsortedFlag as "Outsorted Flag"
+, isReversedFlag as "Reversed Flag"
+, reversalDate as "Reversal Date"
+from dbo.dimbillingdocument]]></Value>
+			</Property>
+			<Property Name="IsAnsiNullsOn" Value="True" />
+			<Relationship Name="Columns">
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[billing].[dimbillingdocument].[dimbillingDocumentSK]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[dbo].[Dimbillingdocument].[dimbillingDocumentSK]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[billing].[dimbillingdocument].[Source System Code]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[dbo].[Dimbillingdocument].[sourceSystemCode]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[billing].[dimbillingdocument].[Billing Document Number]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[dbo].[Dimbillingdocument].[billingDocumentNumber]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[billing].[dimbillingdocument].[Billing Period Start Date]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[dbo].[Dimbillingdocument].[billingPeriodStartDate]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[billing].[dimbillingdocument].[Billing Period End Date]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[dbo].[Dimbillingdocument].[billingPeriodEndDate]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[billing].[dimbillingdocument].[Bill Created Date]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[dbo].[Dimbillingdocument].[billCreatedDate]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[billing].[dimbillingdocument].[Outsorted Flag]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[dbo].[Dimbillingdocument].[isOutsortedFlag]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[billing].[dimbillingdocument].[Reversed Flag]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[dbo].[Dimbillingdocument].[isReversedFlag]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[billing].[dimbillingdocument].[Reversal Date]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[dbo].[Dimbillingdocument].[reversalDate]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+			</Relationship>
+			<Relationship Name="QueryDependencies">
+				<Entry>
+					<References Name="[dbo].[Dimbillingdocument]" />
+				</Entry>
+				<Entry>
+					<References Name="[dbo].[Dimbillingdocument].[dimbillingDocumentSK]" />
+				</Entry>
+				<Entry>
+					<References Name="[dbo].[Dimbillingdocument].[sourceSystemCode]" />
+				</Entry>
+				<Entry>
+					<References Name="[dbo].[Dimbillingdocument].[billingDocumentNumber]" />
+				</Entry>
+				<Entry>
+					<References Name="[dbo].[Dimbillingdocument].[billingPeriodStartDate]" />
+				</Entry>
+				<Entry>
+					<References Name="[dbo].[Dimbillingdocument].[billingPeriodEndDate]" />
+				</Entry>
+				<Entry>
+					<References Name="[dbo].[Dimbillingdocument].[billCreatedDate]" />
+				</Entry>
+				<Entry>
+					<References Name="[dbo].[Dimbillingdocument].[isOutsortedFlag]" />
+				</Entry>
+				<Entry>
+					<References Name="[dbo].[Dimbillingdocument].[isReversedFlag]" />
+				</Entry>
+				<Entry>
+					<References Name="[dbo].[Dimbillingdocument].[reversalDate]" />
+				</Entry>
+			</Relationship>
+			<Relationship Name="Schema">
+				<Entry>
+					<References Name="[Billing]" />
+				</Entry>
+			</Relationship>
+			<Annotation Type="SysCommentsObjectAnnotation">
+				<Property Name="Length" Value="490" />
+				<Property Name="StartLine" Value="1" />
+				<Property Name="StartColumn" Value="1" />
+				<Property Name="HeaderContents" Value="CREATE VIEW [billing].[dimbillingdocument]&#xD;&#xA;AS" />
+				<Property Name="FooterContents" Value=";" />
+			</Annotation>
+		</Element>
+		<Element Type="SqlView" Name="[billing].[dimdate]">
+			<Property Name="QueryScript">
+				<Value><![CDATA[ select
+DimDateSK as DimDateSK
+, calendarDate as "Calendar Date"
+, dayOfWeek as "Day Of Week"
+, dayName as "Day Name"
+, dayOfMonth as "Day Of Month"
+, dayOfYear as "Day Of Year"
+, monthOfYear as "Month Of Year"
+, monthName as "Month Name"
+, quarterOfYear as "Quarter Of Year"
+, halfOfYear as "Half Of Year"
+, monthStartDate as "Month Start Date"
+, monthEndDate as "Month End Date"
+, yearStartDate as "Year Start Date"
+, yearEndDate as "Year End Date"
+, financialYear as "Financial Year"
+, financialYearStartDate as "Financial Year Start Date"
+, financialYearEndDate as "Financial Year End Date"
+, monthOfFinancialYear as "Month Of Financial Year"
+, quarterOfFinancialYear as "Quarter Of Financial Year"
+, halfOfFinancialYear as "Half Of Financial Year"
+from dbo.dimdate]]></Value>
+			</Property>
+			<Property Name="IsAnsiNullsOn" Value="True" />
+			<Relationship Name="Columns">
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[billing].[dimdate].[DimDateSK]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[dbo].[Dimdate].[DimDateSK]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[billing].[dimdate].[Calendar Date]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[dbo].[Dimdate].[calendarDate]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[billing].[dimdate].[Day Of Week]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[dbo].[Dimdate].[dayOfWeek]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[billing].[dimdate].[Day Name]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[dbo].[Dimdate].[dayName]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[billing].[dimdate].[Day Of Month]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[dbo].[Dimdate].[dayOfMonth]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[billing].[dimdate].[Day Of Year]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[dbo].[Dimdate].[dayOfYear]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[billing].[dimdate].[Month Of Year]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[dbo].[Dimdate].[monthOfYear]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[billing].[dimdate].[Month Name]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[dbo].[Dimdate].[monthName]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[billing].[dimdate].[Quarter Of Year]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[dbo].[Dimdate].[quarterOfYear]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[billing].[dimdate].[Half Of Year]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[dbo].[Dimdate].[halfOfYear]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[billing].[dimdate].[Month Start Date]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[dbo].[Dimdate].[monthStartDate]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[billing].[dimdate].[Month End Date]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[dbo].[Dimdate].[monthEndDate]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[billing].[dimdate].[Year Start Date]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[dbo].[Dimdate].[yearStartDate]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[billing].[dimdate].[Year End Date]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[dbo].[Dimdate].[yearEndDate]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[billing].[dimdate].[Financial Year]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[dbo].[Dimdate].[financialYear]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[billing].[dimdate].[Financial Year Start Date]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[dbo].[Dimdate].[financialYearStartDate]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[billing].[dimdate].[Financial Year End Date]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[dbo].[Dimdate].[financialYearEndDate]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[billing].[dimdate].[Month Of Financial Year]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[dbo].[Dimdate].[monthOfFinancialYear]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[billing].[dimdate].[Quarter Of Financial Year]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[dbo].[Dimdate].[quarterOfFinancialYear]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[billing].[dimdate].[Half Of Financial Year]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[dbo].[Dimdate].[halfOfFinancialYear]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+			</Relationship>
+			<Relationship Name="QueryDependencies">
+				<Entry>
+					<References Name="[dbo].[Dimdate]" />
+				</Entry>
+				<Entry>
+					<References Name="[dbo].[Dimdate].[DimDateSK]" />
+				</Entry>
+				<Entry>
+					<References Name="[dbo].[Dimdate].[calendarDate]" />
+				</Entry>
+				<Entry>
+					<References Name="[dbo].[Dimdate].[dayOfWeek]" />
+				</Entry>
+				<Entry>
+					<References Name="[dbo].[Dimdate].[dayName]" />
+				</Entry>
+				<Entry>
+					<References Name="[dbo].[Dimdate].[dayOfMonth]" />
+				</Entry>
+				<Entry>
+					<References Name="[dbo].[Dimdate].[dayOfYear]" />
+				</Entry>
+				<Entry>
+					<References Name="[dbo].[Dimdate].[monthOfYear]" />
+				</Entry>
+				<Entry>
+					<References Name="[dbo].[Dimdate].[monthName]" />
+				</Entry>
+				<Entry>
+					<References Name="[dbo].[Dimdate].[quarterOfYear]" />
+				</Entry>
+				<Entry>
+					<References Name="[dbo].[Dimdate].[halfOfYear]" />
+				</Entry>
+				<Entry>
+					<References Name="[dbo].[Dimdate].[monthStartDate]" />
+				</Entry>
+				<Entry>
+					<References Name="[dbo].[Dimdate].[monthEndDate]" />
+				</Entry>
+				<Entry>
+					<References Name="[dbo].[Dimdate].[yearStartDate]" />
+				</Entry>
+				<Entry>
+					<References Name="[dbo].[Dimdate].[yearEndDate]" />
+				</Entry>
+				<Entry>
+					<References Name="[dbo].[Dimdate].[financialYear]" />
+				</Entry>
+				<Entry>
+					<References Name="[dbo].[Dimdate].[financialYearStartDate]" />
+				</Entry>
+				<Entry>
+					<References Name="[dbo].[Dimdate].[financialYearEndDate]" />
+				</Entry>
+				<Entry>
+					<References Name="[dbo].[Dimdate].[monthOfFinancialYear]" />
+				</Entry>
+				<Entry>
+					<References Name="[dbo].[Dimdate].[quarterOfFinancialYear]" />
+				</Entry>
+				<Entry>
+					<References Name="[dbo].[Dimdate].[halfOfFinancialYear]" />
+				</Entry>
+			</Relationship>
+			<Relationship Name="Schema">
+				<Entry>
+					<References Name="[Billing]" />
+				</Entry>
+			</Relationship>
+			<Annotation Type="SysCommentsObjectAnnotation">
+				<Property Name="Length" Value="826" />
+				<Property Name="StartLine" Value="1" />
+				<Property Name="StartColumn" Value="1" />
+				<Property Name="HeaderContents" Value="CREATE VIEW [billing].[dimdate]&#xD;&#xA;AS" />
+				<Property Name="FooterContents" Value=";" />
+			</Annotation>
+		</Element>
+		<Element Type="SqlView" Name="[billing].[dimlocation]">
+			<Property Name="QueryScript">
+				<Value><![CDATA[ select
+DimLocationSK as DimLocationSK
+, LocationID as "Location ID"
+, formattedAddress as "Formatted Address"
+, streetName as "Street Name"
+, StreetType as "Street Type"
+, LGA as "LGA"
+, suburb as "Suburb"
+, state as "State"
+, latitude as "Latitude"
+, longitude as "Longitude"
+from dbo.dimlocation]]></Value>
+			</Property>
+			<Property Name="IsAnsiNullsOn" Value="True" />
+			<Relationship Name="Columns">
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[billing].[dimlocation].[DimLocationSK]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[dbo].[Dimlocation].[DimLocationSK]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[billing].[dimlocation].[Location ID]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[dbo].[Dimlocation].[LocationID]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[billing].[dimlocation].[Formatted Address]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[dbo].[Dimlocation].[formattedAddress]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[billing].[dimlocation].[Street Name]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[dbo].[Dimlocation].[streetName]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[billing].[dimlocation].[Street Type]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[dbo].[Dimlocation].[StreetType]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[billing].[dimlocation].[LGA]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[dbo].[Dimlocation].[LGA]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[billing].[dimlocation].[Suburb]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[dbo].[Dimlocation].[suburb]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[billing].[dimlocation].[State]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[dbo].[Dimlocation].[state]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[billing].[dimlocation].[Latitude]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[dbo].[Dimlocation].[latitude]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[billing].[dimlocation].[Longitude]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[dbo].[Dimlocation].[longitude]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+			</Relationship>
+			<Relationship Name="QueryDependencies">
+				<Entry>
+					<References Name="[dbo].[Dimlocation]" />
+				</Entry>
+				<Entry>
+					<References Name="[dbo].[Dimlocation].[DimLocationSK]" />
+				</Entry>
+				<Entry>
+					<References Name="[dbo].[Dimlocation].[LocationID]" />
+				</Entry>
+				<Entry>
+					<References Name="[dbo].[Dimlocation].[formattedAddress]" />
+				</Entry>
+				<Entry>
+					<References Name="[dbo].[Dimlocation].[streetName]" />
+				</Entry>
+				<Entry>
+					<References Name="[dbo].[Dimlocation].[StreetType]" />
+				</Entry>
+				<Entry>
+					<References Name="[dbo].[Dimlocation].[LGA]" />
+				</Entry>
+				<Entry>
+					<References Name="[dbo].[Dimlocation].[suburb]" />
+				</Entry>
+				<Entry>
+					<References Name="[dbo].[Dimlocation].[state]" />
+				</Entry>
+				<Entry>
+					<References Name="[dbo].[Dimlocation].[latitude]" />
+				</Entry>
+				<Entry>
+					<References Name="[dbo].[Dimlocation].[longitude]" />
+				</Entry>
+			</Relationship>
+			<Relationship Name="Schema">
+				<Entry>
+					<References Name="[Billing]" />
+				</Entry>
+			</Relationship>
+			<Annotation Type="SysCommentsObjectAnnotation">
+				<Property Name="Length" Value="349" />
+				<Property Name="StartLine" Value="1" />
+				<Property Name="StartColumn" Value="1" />
+				<Property Name="HeaderContents" Value="CREATE VIEW [billing].[dimlocation]&#xD;&#xA;AS" />
+				<Property Name="FooterContents" Value=";" />
+			</Annotation>
+		</Element>
+		<Element Type="SqlView" Name="[billing].[dimmeter]">
+			<Property Name="QueryScript">
+				<Value><![CDATA[ select
+DimMeterSK as DimMeterSK
+, sourceSystemCode as "Source System Code"
+, meterId as "Meter Number"
+, meterSize as "Meter Size"
+, waterMeterType as "Water Meter Type"
+from dbo.dimmeter]]></Value>
+			</Property>
+			<Property Name="IsAnsiNullsOn" Value="True" />
+			<Relationship Name="Columns">
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[billing].[dimmeter].[DimMeterSK]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[dbo].[Dimmeter].[DimMeterSK]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[billing].[dimmeter].[Source System Code]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[dbo].[Dimmeter].[sourceSystemCode]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[billing].[dimmeter].[Meter Number]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[dbo].[Dimmeter].[meterId]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[billing].[dimmeter].[Meter Size]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[dbo].[Dimmeter].[meterSize]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[billing].[dimmeter].[Water Meter Type]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[dbo].[Dimmeter].[waterMeterType]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+			</Relationship>
+			<Relationship Name="QueryDependencies">
+				<Entry>
+					<References Name="[dbo].[Dimmeter]" />
+				</Entry>
+				<Entry>
+					<References Name="[dbo].[Dimmeter].[DimMeterSK]" />
+				</Entry>
+				<Entry>
+					<References Name="[dbo].[Dimmeter].[sourceSystemCode]" />
+				</Entry>
+				<Entry>
+					<References Name="[dbo].[Dimmeter].[meterId]" />
+				</Entry>
+				<Entry>
+					<References Name="[dbo].[Dimmeter].[meterSize]" />
+				</Entry>
+				<Entry>
+					<References Name="[dbo].[Dimmeter].[waterMeterType]" />
+				</Entry>
+			</Relationship>
+			<Relationship Name="Schema">
+				<Entry>
+					<References Name="[Billing]" />
+				</Entry>
+			</Relationship>
+			<Annotation Type="SysCommentsObjectAnnotation">
+				<Property Name="Length" Value="231" />
+				<Property Name="StartLine" Value="1" />
+				<Property Name="StartColumn" Value="1" />
+				<Property Name="HeaderContents" Value="CREATE VIEW [billing].[dimmeter]&#xD;&#xA;AS" />
+				<Property Name="FooterContents" Value=";" />
+			</Annotation>
+		</Element>
+		<Element Type="SqlView" Name="[billing].[dimproperty]">
+			<Property Name="QueryScript">
+				<Value><![CDATA[ select
+DimPropertySK as DimPropertySK
+, propertyId as "Property Number"
+, sourceSystemCode as "Source System Code"
+, propertyStartDate as "Property Start Date"
+, propertyEndDate as "Property End Date"
+, propertyType as "Property Type"
+, superiorPropertyType as "Superior Property Type"
+, areaSize as "Area Size"
+, LGA as "LGA"
+from dbo.dimproperty]]></Value>
+			</Property>
+			<Property Name="IsAnsiNullsOn" Value="True" />
+			<Relationship Name="Columns">
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[billing].[dimproperty].[DimPropertySK]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[dbo].[DimProperty].[DimPropertySK]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[billing].[dimproperty].[Property Number]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[dbo].[DimProperty].[propertyId]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[billing].[dimproperty].[Source System Code]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[dbo].[DimProperty].[sourceSystemCode]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[billing].[dimproperty].[Property Start Date]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[dbo].[DimProperty].[propertyStartDate]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[billing].[dimproperty].[Property End Date]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[dbo].[DimProperty].[propertyEndDate]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[billing].[dimproperty].[Property Type]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[dbo].[DimProperty].[propertyType]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[billing].[dimproperty].[Superior Property Type]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[dbo].[DimProperty].[superiorPropertyType]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[billing].[dimproperty].[Area Size]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[dbo].[DimProperty].[areaSize]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[billing].[dimproperty].[LGA]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[dbo].[DimProperty].[LGA]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+			</Relationship>
+			<Relationship Name="QueryDependencies">
+				<Entry>
+					<References Name="[dbo].[DimProperty]" />
+				</Entry>
+				<Entry>
+					<References Name="[dbo].[DimProperty].[DimPropertySK]" />
+				</Entry>
+				<Entry>
+					<References Name="[dbo].[DimProperty].[propertyId]" />
+				</Entry>
+				<Entry>
+					<References Name="[dbo].[DimProperty].[sourceSystemCode]" />
+				</Entry>
+				<Entry>
+					<References Name="[dbo].[DimProperty].[propertyStartDate]" />
+				</Entry>
+				<Entry>
+					<References Name="[dbo].[DimProperty].[propertyEndDate]" />
+				</Entry>
+				<Entry>
+					<References Name="[dbo].[DimProperty].[propertyType]" />
+				</Entry>
+				<Entry>
+					<References Name="[dbo].[DimProperty].[superiorPropertyType]" />
+				</Entry>
+				<Entry>
+					<References Name="[dbo].[DimProperty].[areaSize]" />
+				</Entry>
+				<Entry>
+					<References Name="[dbo].[DimProperty].[LGA]" />
+				</Entry>
+			</Relationship>
+			<Relationship Name="Schema">
+				<Entry>
+					<References Name="[Billing]" />
+				</Entry>
+			</Relationship>
+			<Annotation Type="SysCommentsObjectAnnotation">
+				<Property Name="Length" Value="398" />
+				<Property Name="StartLine" Value="1" />
+				<Property Name="StartColumn" Value="1" />
+				<Property Name="HeaderContents" Value="CREATE VIEW [billing].[dimproperty]&#xD;&#xA;AS" />
+				<Property Name="FooterContents" Value=";" />
+			</Annotation>
+		</Element>
+		<Element Type="SqlView" Name="[billing].[factbilledwaterconsumption]">
+			<Property Name="QueryScript">
+				<Value><![CDATA[ select
+factBilledWaterConsumptionSK as factBilledWaterConsumptionSK
+, sourceSystemCode as "Source System Code"
+, dimBillingDocumentSK as dimBillingDocumentSK
+, dimPropertySK as dimPropertySK
+, dimMeterSK as dimMeterSK
+, dimLocationSK as dimLocationSK
+, dimWaterNetworkSK as dimWaterNetworkSK
+, billingPeriodStartDateSK as billingPeriodStartDateSK
+, billingPeriodEndDateSK as billingPeriodEndDateSK
+, meteredWaterConsumption as "Metered Water Consumption"
+from dbo.factbilledwaterconsumption]]></Value>
+			</Property>
+			<Property Name="IsAnsiNullsOn" Value="True" />
+			<Relationship Name="Columns">
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[billing].[factbilledwaterconsumption].[factBilledWaterConsumptionSK]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[dbo].[Factbilledwaterconsumption].[factBilledWaterConsumptionSK]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[billing].[factbilledwaterconsumption].[Source System Code]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[dbo].[Factbilledwaterconsumption].[sourceSystemCode]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[billing].[factbilledwaterconsumption].[dimBillingDocumentSK]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[dbo].[Factbilledwaterconsumption].[dimBillingDocumentSK]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[billing].[factbilledwaterconsumption].[dimPropertySK]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[dbo].[Factbilledwaterconsumption].[dimPropertySK]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[billing].[factbilledwaterconsumption].[dimMeterSK]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[dbo].[Factbilledwaterconsumption].[dimMeterSK]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[billing].[factbilledwaterconsumption].[dimLocationSK]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[dbo].[Factbilledwaterconsumption].[dimLocationSK]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[billing].[factbilledwaterconsumption].[dimWaterNetworkSK]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[dbo].[Factbilledwaterconsumption].[dimWaterNetworkSK]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[billing].[factbilledwaterconsumption].[billingPeriodStartDateSK]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[dbo].[Factbilledwaterconsumption].[billingPeriodStartDateSK]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[billing].[factbilledwaterconsumption].[billingPeriodEndDateSK]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[dbo].[Factbilledwaterconsumption].[billingPeriodEndDateSK]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[billing].[factbilledwaterconsumption].[Metered Water Consumption]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[dbo].[Factbilledwaterconsumption].[meteredWaterConsumption]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+			</Relationship>
+			<Relationship Name="QueryDependencies">
+				<Entry>
+					<References Name="[dbo].[Factbilledwaterconsumption]" />
+				</Entry>
+				<Entry>
+					<References Name="[dbo].[Factbilledwaterconsumption].[factBilledWaterConsumptionSK]" />
+				</Entry>
+				<Entry>
+					<References Name="[dbo].[Factbilledwaterconsumption].[sourceSystemCode]" />
+				</Entry>
+				<Entry>
+					<References Name="[dbo].[Factbilledwaterconsumption].[dimBillingDocumentSK]" />
+				</Entry>
+				<Entry>
+					<References Name="[dbo].[Factbilledwaterconsumption].[dimPropertySK]" />
+				</Entry>
+				<Entry>
+					<References Name="[dbo].[Factbilledwaterconsumption].[dimMeterSK]" />
+				</Entry>
+				<Entry>
+					<References Name="[dbo].[Factbilledwaterconsumption].[dimLocationSK]" />
+				</Entry>
+				<Entry>
+					<References Name="[dbo].[Factbilledwaterconsumption].[dimWaterNetworkSK]" />
+				</Entry>
+				<Entry>
+					<References Name="[dbo].[Factbilledwaterconsumption].[billingPeriodStartDateSK]" />
+				</Entry>
+				<Entry>
+					<References Name="[dbo].[Factbilledwaterconsumption].[billingPeriodEndDateSK]" />
+				</Entry>
+				<Entry>
+					<References Name="[dbo].[Factbilledwaterconsumption].[meteredWaterConsumption]" />
+				</Entry>
+			</Relationship>
+			<Relationship Name="Schema">
+				<Entry>
+					<References Name="[Billing]" />
+				</Entry>
+			</Relationship>
+			<Annotation Type="SysCommentsObjectAnnotation">
+				<Property Name="Length" Value="557" />
+				<Property Name="StartLine" Value="1" />
+				<Property Name="StartColumn" Value="1" />
+				<Property Name="HeaderContents" Value="CREATE VIEW [billing].[factbilledwaterconsumption]&#xD;&#xA;AS" />
+				<Property Name="FooterContents" Value=";" />
+			</Annotation>
+		</Element>
+		<Element Type="SqlView" Name="[billing].[factdailyapportionedconsumption]">
+			<Property Name="QueryScript">
+				<Value><![CDATA[ select
+factDailyApportionedConsumptionSK as factDailyApportionedConsumptionSK
+, sourceSystemCode as "Source System Code"
+, consumptionDateSK as consumptionDateSK
+, dimBillingDocumentSK as dimBillingDocumentSK
+, dimPropertySK as dimPropertySK
+, dimMeterSK as dimMeterSK
+, dimLocationSK as dimLocationSK
+, dimWaterNetworkSK as dimWaterNetworkSK
+, dailyApportionedConsumption as "Daily Apportioned Consumption"
+from dbo.factdailyapportionedconsumption]]></Value>
+			</Property>
+			<Property Name="IsAnsiNullsOn" Value="True" />
+			<Relationship Name="Columns">
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[billing].[factdailyapportionedconsumption].[factDailyApportionedConsumptionSK]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[dbo].[Factdailyapportionedconsumption].[factDailyApportionedConsumptionSK]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[billing].[factdailyapportionedconsumption].[Source System Code]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[dbo].[Factdailyapportionedconsumption].[sourceSystemCode]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[billing].[factdailyapportionedconsumption].[consumptionDateSK]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[dbo].[Factdailyapportionedconsumption].[consumptionDateSK]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[billing].[factdailyapportionedconsumption].[dimBillingDocumentSK]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[dbo].[Factdailyapportionedconsumption].[dimBillingDocumentSK]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[billing].[factdailyapportionedconsumption].[dimPropertySK]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[dbo].[Factdailyapportionedconsumption].[dimPropertySK]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[billing].[factdailyapportionedconsumption].[dimMeterSK]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[dbo].[Factdailyapportionedconsumption].[dimMeterSK]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[billing].[factdailyapportionedconsumption].[dimLocationSK]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[dbo].[Factdailyapportionedconsumption].[dimLocationSK]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[billing].[factdailyapportionedconsumption].[dimWaterNetworkSK]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[dbo].[Factdailyapportionedconsumption].[dimWaterNetworkSK]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[billing].[factdailyapportionedconsumption].[Daily Apportioned Consumption]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[dbo].[Factdailyapportionedconsumption].[dailyApportionedConsumption]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+			</Relationship>
+			<Relationship Name="QueryDependencies">
+				<Entry>
+					<References Name="[dbo].[Factdailyapportionedconsumption]" />
+				</Entry>
+				<Entry>
+					<References Name="[dbo].[Factdailyapportionedconsumption].[factDailyApportionedConsumptionSK]" />
+				</Entry>
+				<Entry>
+					<References Name="[dbo].[Factdailyapportionedconsumption].[sourceSystemCode]" />
+				</Entry>
+				<Entry>
+					<References Name="[dbo].[Factdailyapportionedconsumption].[consumptionDateSK]" />
+				</Entry>
+				<Entry>
+					<References Name="[dbo].[Factdailyapportionedconsumption].[dimBillingDocumentSK]" />
+				</Entry>
+				<Entry>
+					<References Name="[dbo].[Factdailyapportionedconsumption].[dimPropertySK]" />
+				</Entry>
+				<Entry>
+					<References Name="[dbo].[Factdailyapportionedconsumption].[dimMeterSK]" />
+				</Entry>
+				<Entry>
+					<References Name="[dbo].[Factdailyapportionedconsumption].[dimLocationSK]" />
+				</Entry>
+				<Entry>
+					<References Name="[dbo].[Factdailyapportionedconsumption].[dimWaterNetworkSK]" />
+				</Entry>
+				<Entry>
+					<References Name="[dbo].[Factdailyapportionedconsumption].[dailyApportionedConsumption]" />
+				</Entry>
+			</Relationship>
+			<Relationship Name="Schema">
+				<Entry>
+					<References Name="[Billing]" />
+				</Entry>
+			</Relationship>
+			<Annotation Type="SysCommentsObjectAnnotation">
+				<Property Name="Length" Value="519" />
+				<Property Name="StartLine" Value="1" />
+				<Property Name="StartColumn" Value="1" />
+				<Property Name="HeaderContents" Value="CREATE VIEW [billing].[factdailyapportionedconsumption]&#xD;&#xA;AS" />
+				<Property Name="FooterContents" Value=";" />
+			</Annotation>
+		</Element>
 		<Element Type="SqlSchema" Name="[curated]">
 			<Relationship Name="Authorizer">
 				<Entry>
-					<References Name="[svc_synapse1]" />
+					<References ExternalSource="BuiltIns" Name="[dbo]" />
 				</Entry>
 			</Relationship>
 		</Element>
@@ -7441,14 +8625,11 @@
 			<Property Name="AuthenticationType" Value="4" />
 			<Property Name="UserType" Value="1" />
 		</Element>
-		<Element Type="SqlSchema" Name="[edw]">
-			<Relationship Name="Authorizer">
-				<Entry>
-					<References ExternalSource="BuiltIns" Name="[dbo]" />
-				</Entry>
-			</Relationship>
-		</Element>
 		<Element Type="SqlUser" Name="[enl@sydneywater.com.au]">
+			<Property Name="AuthenticationType" Value="4" />
+			<Property Name="UserType" Value="1" />
+		</Element>
+		<Element Type="SqlUser" Name="[id-synws-daf-dev-01]">
 			<Property Name="AuthenticationType" Value="4" />
 			<Property Name="UserType" Value="1" />
 		</Element>
@@ -7460,7 +8641,23 @@
 			<Property Name="AuthenticationType" Value="4" />
 			<Property Name="UserType" Value="1" />
 		</Element>
+		<Element Type="SqlUser" Name="[opd4@sydneywater.com.au]">
+			<Property Name="AuthenticationType" Value="4" />
+			<Property Name="UserType" Value="1" />
+		</Element>
 		<Element Type="SqlUser" Name="[oq5s@sydneywater.com.au]">
+			<Property Name="AuthenticationType" Value="4" />
+			<Property Name="UserType" Value="1" />
+		</Element>
+		<Element Type="SqlUser" Name="[otob@sydneywater.com.au]">
+			<Property Name="AuthenticationType" Value="4" />
+			<Property Name="UserType" Value="1" />
+		</Element>
+		<Element Type="SqlUser" Name="[oyae@sydneywater.com.au]">
+			<Property Name="AuthenticationType" Value="4" />
+			<Property Name="UserType" Value="1" />
+		</Element>
+		<Element Type="SqlUser" Name="[oydm@sydneywater.com.au]">
 			<Property Name="AuthenticationType" Value="4" />
 			<Property Name="UserType" Value="1" />
 		</Element>
@@ -7478,7 +8675,7 @@
 		<Element Type="SqlSchema" Name="[stage]">
 			<Relationship Name="Authorizer">
 				<Entry>
-					<References Name="[svc_synapse1]" />
+					<References ExternalSource="BuiltIns" Name="[dbo]" />
 				</Entry>
 			</Relationship>
 		</Element>
@@ -10296,6 +11493,9 @@
 				</Entry>
 			</Relationship>
 			<AttachedAnnotation Disambiguator="28" />
+		</Element>
+		<Element Type="SqlUser" Name="[svc_collibra]">
+			<Property Name="IsWithoutLogin" Value="True" />
 		</Element>
 		<Element Type="SqlUser" Name="[svc_synapse]">
 			<Property Name="IsWithoutLogin" Value="True" />

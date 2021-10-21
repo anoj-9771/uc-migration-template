@@ -138,6 +138,7 @@ print("delta_column: " + delta_column)
 #Get the Data Load Mode using the params
 data_load_mode = GeneralGetDataLoadMode(Params[PARAMS_TRUNCATE_TARGET], Params[PARAMS_UPSERT_TARGET], Params[PARAMS_APPEND_TARGET])
 print("data_load_mode: " + data_load_mode)
+
 # COMMAND ----------
 
 # DBTITLE 1,9. Set raw and cleansed table name
@@ -174,21 +175,25 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_cleansed = spark.sql("SELECT \
-	EQUNR as equipmentNumber, \
-	to_date(DATETO) as validToDate, \
-	to_date(DATEFROM) as validFromDate, \
+df_cleansed = spark.sql(f"SELECT \
+	case when EQUNR = 'na' then '' else EQUNR end as equipmentNumber, \
+	case when DATETO = 'na' then '' else (to_date('19000101','yyyyMMdd')) end as validToDate, \
+	to_date(DATEFROM,'yyyyMMdd') as validFromDate, \
 	TXTMD as equipmentDescription, \
-	to_date(AEDAT) as lastChangedDate, \
+	to_date(AEDAT,'yyyyMMdd') as lastChangedDate, \
 	_RecordStart, \
 	_RecordEnd, \
 	_RecordDeleted, \
 	_RecordCurrent \
-	FROM CLEANSED.STG_isu_0EQUIPMENT_TEXT \
-    ")
+	FROM {ADS_DATABASE_STAGE}.{source_object}")
 
 display(df_cleansed)
 print(f'Number of rows: {df_cleansed.count()}')
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC select to_date('19000301','yyyymmdd') from raw.isu_0archobject_text
 
 # COMMAND ----------
 
@@ -213,6 +218,7 @@ df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
 DeltaSaveDataframeDirect(df_updated_column, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
+
 # COMMAND ----------
 
 # DBTITLE 1,13. Exit Notebook
