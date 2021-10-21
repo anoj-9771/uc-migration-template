@@ -182,7 +182,7 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_cleansed = spark.sql("SELECT C_METE_READ_TYPE AS meterReadingTypeCode, \
+df_cleansed = spark.sql(f"SELECT C_METE_READ_TYPE AS meterReadingTypeCode, \
 		T_READ_TYPE_ABBR AS readingTypeAbbreviation, \
 		initcap(T_METE_READ_TYPE) AS meterReadingType, \
 		case when F_GENE_DEBI = 'Y' then true else false end AS isGenericDebit, \

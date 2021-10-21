@@ -182,7 +182,7 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_cleansed = spark.sql("SELECT C_PROP_TYPE AS propertyTypeCode, \
+df_cleansed = spark.sql(f"SELECT C_PROP_TYPE AS propertyTypeCode, \
 		C_SUPE_PROP_TYPE AS superiorPropertyTypeCode, \
 		T_PROP_TYPE_ABBR AS propertyTypeAbbreviation, \
 		T_SUPE_OR_PROP AS propertyType, \

@@ -182,7 +182,7 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_cleansed = spark.sql("SELECT C_METE_TYPE AS meterTypeCode, \
+df_cleansed = spark.sql(f"SELECT C_METE_TYPE AS meterTypeCode, \
 		cast(Q_METE_SIZE as decimal(5,2)) AS meterSize, \
 		lower(T_METE_TYPE_ABBR) AS meterSizeUnit, \
 		initcap(T_METE_TYPE) AS meterType, \

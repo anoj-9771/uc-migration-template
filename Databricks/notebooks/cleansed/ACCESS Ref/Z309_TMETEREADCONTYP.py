@@ -182,7 +182,7 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_cleansed = spark.sql("SELECT C_METE_READ_CONS AS consumptionTypeCode, \
+df_cleansed = spark.sql(f"SELECT C_METE_READ_CONS AS consumptionTypeCode, \
 		initcap(T_METE_READ_CONS) AS consumptionType, \
 		to_date(D_READ_CONS_EFFE, 'yyyyMMdd') AS consumptionTypeEffectiveDate, \
 		to_date(D_READ_CONS_CANC, 'yyyyMMdd') AS consumptionTypeCancelledDate, \

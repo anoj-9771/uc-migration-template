@@ -182,7 +182,7 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_rata_type = spark.sql("SELECT C_RATA_TYPE AS rateabilityTypeCode, \
+df_rata_type = spark.sql(f"SELECT C_RATA_TYPE AS rateabilityTypeCode, \
 		initcap(T_RATA_TYPE) AS rateabilityType, \
         to_date(D_RATA_TYPE_EFFE, 'yyyyMMdd') AS rateabilityTypeEffectiveDate, \
 		to_date(D_RATA_TYPE_CANC, 'yyyyMMdd') AS rateabilityTypeCancelledDate, \
