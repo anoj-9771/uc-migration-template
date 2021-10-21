@@ -176,8 +176,8 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT  \
-                                      ABLBELNR as meterReadingId , \
-                                      EQUNR as equipmentNumber , \
+                                      case when ABLBELNR = 'na' then '' else ABLBELNR end as meterReadingId , \
+                                      case when EQUNR = 'na' then '' else EQUNR end as equipmentNumber , \
                                       ZWNUMMER as registerNumber , \
                                       to_date(ADAT) as meterReadingDate , \
                                       MRESULT as meterReadingTaken , \
@@ -224,8 +224,8 @@ print(f'Number of rows: {df_cleansed.count()}')
 # Create schema for the cleanse table
 newSchema = StructType(
                              [
-                              StructField("meterReadingId", StringType(), True),
-                              StructField("equipmentNumber", StringType(), True),
+                              StructField("meterReadingId", StringType(), False),
+                              StructField("equipmentNumber", StringType(), False),
                               StructField("registerNumber", LongType(), True),
                               StructField("meterReadingDate", DateType(), True),
                               StructField("meterReadingTaken",DoubleType(), True),

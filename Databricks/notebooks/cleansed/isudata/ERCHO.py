@@ -176,8 +176,8 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT  \
-                                  BELNR as billingDocumentNumber, \
-                                  cast(OUTCNSO as int) as outsortingNumber, \
+                                  case when BELNR = 'na' then '' else BELNR end as billingDocumentNumber, \
+                                  case when OUTCNSO = 'na' then '' else OUTCNSO end as outsortingNumber, \
                                   VALIDATION as billingValidationName, \
                                   MANOUTSORT as manualOutsortingReasonCode, \
                                   to_date(FREI_AM, 'yyyy-MM-dd') as documentReleasedDate, \
@@ -197,7 +197,7 @@ print(f'Number of rows: {df_cleansed.count()}')
 
 newSchema = StructType([
                         StructField('billingDocumentNumber', StringType(), False),
-                        StructField('outsortingNumber', IntegerType(), False),
+                        StructField('outsortingNumber', StringType(), False),
                         StructField('billingValidationName', StringType(), True),
                         StructField('manualOutsortingReasonCode', StringType(), True),
                         StructField('documentReleasedDate', DateType(), True),

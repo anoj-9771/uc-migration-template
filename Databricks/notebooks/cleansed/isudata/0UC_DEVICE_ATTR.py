@@ -166,7 +166,7 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT  \
-                                  EQUNR as equipmentNumber,\
+                                  case when EQUNR = 'na' then '' else EQUNR end as equipmentNumber,\
                                   MATNR as materialNumber,\
                                   GERAET as deviceNumber,\
                                   BESITZ as inspectionRelevanceIndicator,\
