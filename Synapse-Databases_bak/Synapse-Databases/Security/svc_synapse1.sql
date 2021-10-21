@@ -1,2 +1,0 @@
-﻿CREATE USER [svc_synapse1] WITHOUT LOGIN;
-
