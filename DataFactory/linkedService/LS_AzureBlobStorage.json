@@ -4,7 +4,7 @@
 		"annotations": [],
 		"type": "AzureBlobStorage",
 		"typeProperties": {
-			"serviceEndpoint": "https://saswcnonprod01landingdev.blob.core.windows.net",
+			"serviceEndpoint": "https://sablobdaftest01.blob.core.windows.net",
 			"accountKind": "StorageV2"
 		},
 		"connectVia": {
