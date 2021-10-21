@@ -186,7 +186,7 @@ DeltaSaveToDeltaTable (
                 #T_HOUS_1_SUFX, \
                 #cast(N_HOUS_2 as int) as N_HOUS_2, \
                 #T_HOUS_2_SUFX, \
-df_cleansed = spark.sql("SELECT C_LGA AS LGACode, \
+df_cleansed = spark.sql(f"SELECT C_LGA AS LGACode, \
 		cast(N_PROP as int) AS propertyNumber, \
 		C_STRE_GUID AS streetGuideCode, " + 
         ("C_DPID as DPID, " if ADS_ENVIRONMENT not in ['dev','test'] else "'00000000' as DPID, ") + " \

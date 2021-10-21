@@ -198,7 +198,7 @@ df_cleansed = spark.sql("SELECT C_LGA AS LGACode, \
 		cast(0 as decimal(15,2)) AS debitOutstandingAmount, \
 		cast(0 as decimal(15,2)) AS waterAmount, \
 		cast(0 as decimal(15,2)) AS sewerAmount, \
-		cast(0 as decimal(15,2)) AS drainAmount, ") + " \
+		cast(0 as decimal(15,2)) AS drainAmount, ") + f" \
         to_date(D_DEFE_FROM, 'yyyyMMdd') AS debitDeferredFrom, \
 		to_date(D_DEFE_TO, 'yyyyMMdd') AS debitDeferredTo, \
 		to_date(D_DISP, 'yyyyMMdd') AS dateDebitDisputed, \
