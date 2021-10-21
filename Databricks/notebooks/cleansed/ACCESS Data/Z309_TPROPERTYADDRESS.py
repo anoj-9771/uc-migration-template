@@ -146,6 +146,7 @@ print("delta_column: " + delta_column)
 #Get the Data Load Mode using the params
 data_load_mode = GeneralGetDataLoadMode(Params[PARAMS_TRUNCATE_TARGET], Params[PARAMS_UPSERT_TARGET], Params[PARAMS_APPEND_TARGET])
 print("data_load_mode: " + data_load_mode)
+
 # COMMAND ----------
 
 # DBTITLE 1,9. Set raw and cleansed table name
@@ -186,7 +187,7 @@ DeltaSaveToDeltaTable (
                 #T_HOUS_1_SUFX, \
                 #cast(N_HOUS_2 as int) as N_HOUS_2, \
                 #T_HOUS_2_SUFX, \
-df_cleansed = spark.sql(f"SELECT C_LGA AS LGACode, \
+df_cleansed = spark.sql("SELECT C_LGA AS LGACode, \
 		cast(N_PROP as int) AS propertyNumber, \
 		C_STRE_GUID AS streetGuideCode, " + 
         ("C_DPID as DPID, " if ADS_ENVIRONMENT not in ['dev','test'] else "'00000000' as DPID, ") + " \
@@ -195,7 +196,7 @@ df_cleansed = spark.sql(f"SELECT C_LGA AS LGACode, \
 		C_FLAT_UNIT AS flatUnitType, \
 		N_FLAT_UNIT AS flatUnitNumber, " + 
         ("N_HOUS_1 as houseNumber1, T_HOUS_1_SUFX AS houseNumber1Suffix, N_HOUS_2 as houseNumber2, T_HOUS_2_SUFX AS houseNumber2Suffix, N_LOT AS lotNumber, N_RMB AS roadSideMailbox, " if ADS_ENVIRONMENT not in ['dev','test'] else " \
-        cast(1 as int) as houseNumber1, T_HOUS_1_SUFX AS houseNumber1Suffix, cast(0 as int) AS houseNumber2, ' ' AS houseNumber2Suffix, ' ' AS lotNumber, ' ' AS roadSideMailbox, ") + " \
+        cast(1 as int) as houseNumber1, T_HOUS_1_SUFX AS houseNumber1Suffix, cast(0 as int) AS houseNumber2, ' ' AS houseNumber2Suffix, ' ' AS lotNumber, ' ' AS roadSideMailbox, ") + f" \
 		T_OTHE_ADDR_INFO AS otherAddressInformation, \
 		T_SPEC_DESC AS specialDescription, \
 		M_BUIL_1 AS buildingName1, \
@@ -254,6 +255,7 @@ display(df_updated_column)
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
 DeltaSaveDataframeDirect(df_updated_column, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
+
 # COMMAND ----------
 
 # DBTITLE 1,13. Exit Notebook
