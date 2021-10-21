@@ -151,8 +151,8 @@ print("data_load_mode: " + data_load_mode)
 # DBTITLE 1,9. Set raw and cleansed table name
 #Set raw and cleansed table name
 #Delta and SQL tables are case Insensitive. Seems Delta table are always lower case
-delta_cleansed_tbl_name = "{0}.{1}".format(ADS_DATABASE_CLEANSED, target_table)
-delta_raw_tbl_name = "{0}.{1}".format(ADS_DATABASE_RAW, source_object)
+delta_cleansed_tbl_name = f'{ADS_DATABASE_CLEANSED}.{target_table}'
+delta_raw_tbl_name = f'{ADS_DATABASE_RAW}.{ source_object}'
 
 #Destination
 print(delta_cleansed_tbl_name)
@@ -182,7 +182,7 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_cleansed = spark.sql("SELECT C_METE_CATE AS meterCategoryCode, \
+df_cleansed = spark.sql(f"SELECT C_METE_CATE AS meterCategoryCode, \
 		initcap(T_METE_CATE) AS meterCategory, \
 		initcap(T_METE_CATE_ABBR) AS meterCategoryAbbreviation, \
 		to_date(D_METE_CATE_EFFE, 'yyyyMMdd') AS meterCategoryEffectiveDate, \
@@ -191,7 +191,7 @@ df_cleansed = spark.sql("SELECT C_METE_CATE AS meterCategoryCode, \
 		_RecordEnd, \
 		_RecordDeleted, \
 		_RecordCurrent \
-	FROM CLEANSED.STG_ACCESS_Z309_TMETERCATEGORY \
+	FROM {ADS_DATABASE_STAGE}.{source_object} \
          ")
 
 display(df_cleansed)

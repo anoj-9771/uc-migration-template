@@ -1,23 +1,4 @@
 # Databricks notebook source
-# DBTITLE 1,Generate parameter and source object name for unit testing
-import json
-accessTable = 'Z309_TDEBITTYPE'
-
-runParm = '{"SourceType":"Flat File","SourceServer":"saswcnonprod01landingdev-sastoken","SourceGroup":"access","SourceName":"access_access/####_csv","SourceLocation":"access/####.csv","AdditionalProperty":"","Processor":"databricks-token|0705-044124-gored835|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive","IsAuditTable":false,"SoftDeleteSource":"","ProjectName":"Access Data","ProjectId":2,"TargetType":"BLOB Storage (csv)","TargetName":"access_access/####_csv","TargetLocation":"access/####","TargetServer":"daf-sa-lake-sastoken","DataLoadMode":"TRUNCATE-LOAD","DeltaExtract":false,"CDCSource":false,"TruncateTarget":true,"UpsertTarget":false,"AppendTarget":null,"TrackChanges":false,"LoadToSqlEDW":true,"TaskName":"access_access/####_csv","ControlStageId":1,"TaskId":4,"StageSequence":100,"StageName":"Source to Raw","SourceId":4,"TargetId":4,"ObjectGrain":"Day","CommandTypeId":5,"Watermarks":"","WatermarksDT":null,"WatermarkColumn":"","BusinessKeyColumn":"","UpdateMetaData":null,"SourceTimeStampFormat":"","Command":"","LastLoadedFile":null}'
-
-s = json.loads(runParm)
-for parm in ['SourceName','SourceLocation','TargetName','TargetLocation','TaskName']:
-    s[parm] = s[parm].replace('####',accessTable)
-runParm = json.dumps(s)
-
-# COMMAND ----------
-
-print('Use the following as parameters for unit testing:')
-print(f'access_{accessTable.lower()}')
-print(runParm)
-
-# COMMAND ----------
-
 # DBTITLE 1,Notebook Structure/Method 
 #Notebook structure/Method 
 #1.Import libraries/functions -- Generic
@@ -69,7 +50,7 @@ spark = SparkSession.builder.getOrCreate()
 
 # DBTITLE 1,3. Define Widgets (Parameters) at the start
 #3.Define Widgets/Parameters
-#Initialise the Entity source_object to be passed to the Notebook
+#Initialize the Entity source_object to be passed to the Notebook
 dbutils.widgets.text("source_object", "", "Source Object")
 dbutils.widgets.text("start_counter", "", "Start Counter")
 dbutils.widgets.text("end_counter", "", "End Counter")
@@ -114,7 +95,7 @@ print(json.dumps(Params, indent=4, sort_keys=True))
 
 # COMMAND ----------
 
-# DBTITLE 1,8. Initialise/update parameter values
+# DBTITLE 1,8. Initilize/update parameter values
 #Get and Align Source Group (replace '[-@ ,;{}()]' character by '_')
 source_group = Params[PARAMS_SOURCE_GROUP]
 source_group = GeneralAlignTableName(source_group)
@@ -135,9 +116,9 @@ target_object = Params["TargetName"]
 target_object = GeneralAlignTableName(target_object)
 
 if target_object != "":
-    target_table = target_object
+  target_table = target_object
 else:
-    target_table = source_object
+  target_table = source_object
 print("target_table: "+target_table)
 #Get delta columns form the delta_columnn parameter
 delta_column = GeneralGetUpdatedDeltaColumn(delta_column)
@@ -146,13 +127,15 @@ print("delta_column: " + delta_column)
 #Get the Data Load Mode using the params
 data_load_mode = GeneralGetDataLoadMode(Params[PARAMS_TRUNCATE_TARGET], Params[PARAMS_UPSERT_TARGET], Params[PARAMS_APPEND_TARGET])
 print("data_load_mode: " + data_load_mode)
+
 # COMMAND ----------
 
 # DBTITLE 1,9. Set raw and cleansed table name
 #Set raw and cleansed table name
 #Delta and SQL tables are case Insensitive. Seems Delta table are always lower case
-delta_cleansed_tbl_name = f'{ADS_DATABASE_CLEANSED}.{target_table}'
-delta_raw_tbl_name = f'{ADS_DATABASE_RAW}.{ source_object}'
+delta_cleansed_tbl_name = "{0}.{1}".format(ADS_DATABASE_CLEANSED, source_object)
+delta_raw_tbl_name = "{0}.{1}".format(ADS_DATABASE_RAW, source_object)
+#delta_raw_tbl_name = "raw.sap_0uc_devcat_attr"
 
 #Destination
 print(delta_cleansed_tbl_name)
@@ -182,32 +165,75 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_cleansed = spark.sql(f"SELECT C_DEBI_TYPE AS debitTypeCode, \
-		T_DEBI_TYPE_ABBR AS debitTypeAbbreviation, \
-		initcap(T_DEBI_TYPE_FULL) AS debitType, \
-		to_date(D_DEBI_TYPE_EFFE, 'yyyyMMdd') AS debitTypeEffectiveDate, \
-		to_date(D_DEBI_TYPE_CANC, 'yyyyMMdd') AS debitTypeCancelledDate, \
-		_RecordStart, \
-		_RecordEnd, \
-		_RecordDeleted, \
-		_RecordCurrent \
-	FROM {ADS_DATABASE_STAGE}.{source_object}")
+df_cleansed = spark.sql(f"SELECT \
+                                  case when DEVCAT.MATNR = 'na' then '' else DEVCAT.MATNR end as materialNumber,\
+                                  DEVCAT.KOMBINAT as deviceCategoryCombination,\
+                                  DEVCAT.FUNKLAS as functionClassCode,\
+                                  FKLASTX.functionClass as functionClass,\
+                                  DEVCAT.BAUKLAS as constructionClassCode,\
+                                  BKLASTX.constructionClass as constructionClass,\
+                                  DEVCAT.BAUFORM as deviceCategoryDescription,\
+                                  DEVCAT.BAUTXT as deviceCategoryName,\
+                                  DEVCAT.PTBNUM as ptiNumber,\
+                                  DEVCAT.DVGWNUM as ggwaNumber,\
+                                  DEVCAT.BGLKZ as certificationRequirementType,\
+                                  DEVCAT.ZWGRUPPE as registerGroupCode,\
+                                  REGGRP.registerGroup as registerGroup,\
+                                  cast(DEVCAT.UEBERVER as decimal (10,3)) as transformationRatio,\
+                                  DEVCAT.AENAM as changedBy,\
+                                  to_date(DEVCAT.AEDAT) as lastChangedDate,\
+                                  DEVCAT.SPARTE as division,\
+                                  cast(DEVCAT.NENNBEL as decimal(10,4)) as nominalLoad,\
+                                  DEVCAT.STELLPLATZ as containerSpaceCount,\
+                                  cast(DEVCAT.HOEHEBEH as decimal(7,2)) as containerCategoryHeight,\
+                                  cast(DEVCAT.BREITEBEH as decimal(7,2)) as containerCategoryWidth,\
+                                  cast(DEVCAT.TIEFEBEH as decimal(7,2)) as containerCategoryDepth,\
+                                  DEVCAT._RecordStart, \
+                                  DEVCAT._RecordEnd, \
+                                  DEVCAT._RecordDeleted, \
+                                  DEVCAT._RecordCurrent \
+                              FROM {ADS_DATABASE_STAGE}.{source_object} DEVCAT \
+                              LEFT OUTER JOIN CLEANSED.isu_0UC_FUNKLAS_TEXT FKLASTX ON DEVCAT.FUNKLAS = FKLASTX.functionClassCode \
+                              LEFT OUTER JOIN CLEANSED.isu_0UC_BAUKLAS_TEXT BKLASTX ON DEVCAT.BAUKLAS = BKLASTX.constructionClassCode \
+                              LEFT OUTER JOIN CLEANSED.isu_0UC_REGGRP_TEXT REGGRP ON DEVCAT.ZWGRUPPE = REGGRP.registerGroupCode")
+                                   
 display(df_cleansed)
+print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
 
-newSchema = StructType([
-	StructField('debitTypeCode',StringType(),True),
-    StructField('debitTypeAbbreviation',StringType(),False),
-	StructField('debitType',StringType(),False),
-    StructField('debitTypeEffectiveDate',DateType(),True),
-	StructField('debitTypeCancelledDate',DateType(),True),
+# Create schema for the cleanse table
+newSchema = StructType(
+  [
+    StructField("materialNumber", StringType(), False),
+    StructField("deviceCategoryCombination", StringType(), True),
+    StructField("functionClassCode", StringType(), True),
+    StructField("functionClass", StringType(), True),
+    StructField("constructionClassCode", StringType(), True),
+    StructField("constructionClass", StringType(), True),
+    StructField("deviceCategoryDescription", StringType(), True),
+    StructField("deviceCategoryName", StringType(), True),
+    StructField("ptiNumber", StringType(), True),
+    StructField("ggwaNumber", StringType(), True),
+    StructField("certificationRequirementType", StringType(), True),
+    StructField("registerGroupCode", StringType(), True),
+    StructField("registerGroup", StringType(), True),
+    StructField("transformationRatio", DecimalType(10,3), True),  
+    StructField("changedBy", StringType(), True),
+    StructField("lastChangedDate", DateType(), True),
+    StructField("division", StringType(), True),
+    StructField("nominalLoad", DecimalType(10,4), True),
+    StructField("containerSpaceCount", StringType(), True),
+    StructField("containerCategoryHeight", DecimalType(7,2), True),
+    StructField("containerCategoryWidth", DecimalType(7,2), True),
+    StructField("containerCategoryDepth", DecimalType(7,2), True),   
     StructField('_RecordStart',TimestampType(),False),
     StructField('_RecordEnd',TimestampType(),False),
     StructField('_RecordDeleted',IntegerType(),False),
     StructField('_RecordCurrent',IntegerType(),False)
-])
-
+  ]
+)
+# Apply the new schema to cleanse Data Frame
 df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
 display(df_updated_column)
 
@@ -216,6 +242,7 @@ display(df_updated_column)
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
 DeltaSaveDataframeDirect(df_updated_column, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
+
 # COMMAND ----------
 
 # DBTITLE 1,13. Exit Notebook

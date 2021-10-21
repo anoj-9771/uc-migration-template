@@ -1,20 +1,12 @@
 # Databricks notebook source
 # DBTITLE 1,Generate parameter and source object name for unit testing
 import json
-accessTable = 'Z309_TDEBITTYPE'
+#For unit testing...
+#Use this string in the Param widget: 
+#{"SourceType": "BLOB Storage (json)", "SourceServer": "daf-sa-lake-sastoken", "SourceGroup": "crm", "SourceName": "crm_0BP_ID_TYPE_TEXT", "SourceLocation": "crm/0BP_ID_TYPE_TEXT", "AdditionalProperty": "", "Processor": "databricks-token|0711-011053-turfs581|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive", "IsAuditTable": false, "SoftDeleteSource": "", "ProjectName": "CRM REF", "ProjectId": 2, "TargetType": "BLOB Storage (json)", "TargetName": "crm_0BP_ID_TYPE_TEXT", "TargetLocation": "crm/0BP_ID_TYPE_TEXT", "TargetServer": "daf-sa-lake-sastoken", "DataLoadMode": "FULL-EXTRACT", "DeltaExtract": false, "CDCSource": false, "TruncateTarget": false, "UpsertTarget": true, "AppendTarget": null, "TrackChanges": false, "LoadToSqlEDW": true, "TaskName": "crm_0BP_ID_TYPE_TEXT", "ControlStageId": 2, "TaskId": 46, "StageSequence": 200, "StageName": "Raw to Cleansed", "SourceId": 46, "TargetId": 46, "ObjectGrain": "Day", "CommandTypeId": 8, "Watermarks": "", "WatermarksDT": null, "WatermarkColumn": "", "BusinessKeyColumn": "language,identificationTypeCode", "UpdateMetaData": null, "SourceTimeStampFormat": "", "Command": "", "LastLoadedFile": null}
 
-runParm = '{"SourceType":"Flat File","SourceServer":"saswcnonprod01landingdev-sastoken","SourceGroup":"access","SourceName":"access_access/####_csv","SourceLocation":"access/####.csv","AdditionalProperty":"","Processor":"databricks-token|0705-044124-gored835|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive","IsAuditTable":false,"SoftDeleteSource":"","ProjectName":"Access Data","ProjectId":2,"TargetType":"BLOB Storage (csv)","TargetName":"access_access/####_csv","TargetLocation":"access/####","TargetServer":"daf-sa-lake-sastoken","DataLoadMode":"TRUNCATE-LOAD","DeltaExtract":false,"CDCSource":false,"TruncateTarget":true,"UpsertTarget":false,"AppendTarget":null,"TrackChanges":false,"LoadToSqlEDW":true,"TaskName":"access_access/####_csv","ControlStageId":1,"TaskId":4,"StageSequence":100,"StageName":"Source to Raw","SourceId":4,"TargetId":4,"ObjectGrain":"Day","CommandTypeId":5,"Watermarks":"","WatermarksDT":null,"WatermarkColumn":"","BusinessKeyColumn":"","UpdateMetaData":null,"SourceTimeStampFormat":"","Command":"","LastLoadedFile":null}'
-
-s = json.loads(runParm)
-for parm in ['SourceName','SourceLocation','TargetName','TargetLocation','TaskName']:
-    s[parm] = s[parm].replace('####',accessTable)
-runParm = json.dumps(s)
-
-# COMMAND ----------
-
-print('Use the following as parameters for unit testing:')
-print(f'access_{accessTable.lower()}')
-print(runParm)
+#Use this string in the Source Object widget
+#crm_0BP_ID_TYPE_TEXT
 
 # COMMAND ----------
 
@@ -146,13 +138,14 @@ print("delta_column: " + delta_column)
 #Get the Data Load Mode using the params
 data_load_mode = GeneralGetDataLoadMode(Params[PARAMS_TRUNCATE_TARGET], Params[PARAMS_UPSERT_TARGET], Params[PARAMS_APPEND_TARGET])
 print("data_load_mode: " + data_load_mode)
+
 # COMMAND ----------
 
 # DBTITLE 1,9. Set raw and cleansed table name
 #Set raw and cleansed table name
 #Delta and SQL tables are case Insensitive. Seems Delta table are always lower case
-delta_cleansed_tbl_name = f'{ADS_DATABASE_CLEANSED}.{target_table}'
-delta_raw_tbl_name = f'{ADS_DATABASE_RAW}.{ source_object}'
+delta_cleansed_tbl_name = "{0}.{1}".format(ADS_DATABASE_CLEANSED, target_table)
+delta_raw_tbl_name = "{0}.{1}".format(ADS_DATABASE_RAW, source_object)
 
 #Destination
 print(delta_cleansed_tbl_name)
@@ -182,40 +175,41 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_cleansed = spark.sql(f"SELECT C_DEBI_TYPE AS debitTypeCode, \
-		T_DEBI_TYPE_ABBR AS debitTypeAbbreviation, \
-		initcap(T_DEBI_TYPE_FULL) AS debitType, \
-		to_date(D_DEBI_TYPE_EFFE, 'yyyyMMdd') AS debitTypeEffectiveDate, \
-		to_date(D_DEBI_TYPE_CANC, 'yyyyMMdd') AS debitTypeCancelledDate, \
-		_RecordStart, \
-		_RecordEnd, \
-		_RecordDeleted, \
-		_RecordCurrent \
-	FROM {ADS_DATABASE_STAGE}.{source_object}")
+df_cleansed = spark.sql("SELECT \
+	SPRAS as language, \
+	TYPE as identificationTypeCode, \
+	TEXT as identificationType, \
+	_RecordStart, \
+	_RecordEnd, \
+	_RecordDeleted, \
+	_RecordCurrent \
+	FROM CLEANSED.STG_" + source_object \
+         )
+
 display(df_cleansed)
+print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
 
 newSchema = StructType([
-	StructField('debitTypeCode',StringType(),True),
-    StructField('debitTypeAbbreviation',StringType(),False),
-	StructField('debitType',StringType(),False),
-    StructField('debitTypeEffectiveDate',DateType(),True),
-	StructField('debitTypeCancelledDate',DateType(),True),
-    StructField('_RecordStart',TimestampType(),False),
-    StructField('_RecordEnd',TimestampType(),False),
-    StructField('_RecordDeleted',IntegerType(),False),
-    StructField('_RecordCurrent',IntegerType(),False)
+	StructField('language',StringType(),False),
+	StructField('identificationTypeCode',StringType(),False),
+	StructField('identificationType',StringType(),True),
+	StructField('_RecordStart',TimestampType(),False),
+	StructField('_RecordEnd',TimestampType(),False),
+	StructField('_RecordDeleted',IntegerType(),False),
+	StructField('_RecordCurrent',IntegerType(),False)
 ])
 
 df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
-display(df_updated_column)
+
 
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
 DeltaSaveDataframeDirect(df_updated_column, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
+
 # COMMAND ----------
 
 # DBTITLE 1,13. Exit Notebook
