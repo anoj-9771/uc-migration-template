@@ -3,10 +3,10 @@
 import json
 #For unit testing...
 #Use this string in the Param widget: 
-#{"SourceType": "BLOB Storage (json)", "SourceServer": "daf-sa-lake-sastoken", "SourceGroup": "crm", "SourceName": "crm_0BP_RELTYPES_TEXT", "SourceLocation": "crm/0BP_RELTYPES_TEXT", "AdditionalProperty": "", "Processor": "databricks-token|0711-011053-turfs581|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive", "IsAuditTable": false, "SoftDeleteSource": "", "ProjectName": "CRM REF", "ProjectId": 2, "TargetType": "BLOB Storage (json)", "TargetName": "crm_0BP_RELTYPES_TEXT", "TargetLocation": "crm/0BP_RELTYPES_TEXT", "TargetServer": "daf-sa-lake-sastoken", "DataLoadMode": "FULL-EXTRACT", "DeltaExtract": false, "CDCSource": false, "TruncateTarget": false, "UpsertTarget": true, "AppendTarget": null, "TrackChanges": false, "LoadToSqlEDW": true, "TaskName": "crm_0BP_RELTYPES_TEXT", "ControlStageId": 2, "TaskId": 46, "StageSequence": 200, "StageName": "Raw to Cleansed", "SourceId": 46, "TargetId": 46, "ObjectGrain": "Day", "CommandTypeId": 8, "Watermarks": "", "WatermarksDT": null, "WatermarkColumn": "", "BusinessKeyColumn": "language,relationshipDirection,relationshipTypeCode", "UpdateMetaData": null, "SourceTimeStampFormat": "", "Command": "", "LastLoadedFile": null}
+#{"SourceType": "BLOB Storage (json)", "SourceServer": "daf-sa-lake-sastoken", "SourceGroup": "crm", "SourceName": "crm_0BP_ID_ATTR", "SourceLocation": "crm/0BP_ID_ATTR", "AdditionalProperty": "", "Processor": "databricks-token|0711-011053-turfs581|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive", "IsAuditTable": false, "SoftDeleteSource": "", "ProjectName": "CRM DATA", "ProjectId": 2, "TargetType": "BLOB Storage (json)", "TargetName": "crm_0BP_ID_ATTR", "TargetLocation": "crm/0BP_ID_ATTR", "TargetServer": "daf-sa-lake-sastoken", "DataLoadMode": "FULL-EXTRACT", "DeltaExtract": false, "CDCSource": false, "TruncateTarget": false, "UpsertTarget": true, "AppendTarget": null, "TrackChanges": false, "LoadToSqlEDW": true, "TaskName": "crm_0BP_ID_ATTR", "ControlStageId": 2, "TaskId": 46, "StageSequence": 200, "StageName": "Raw to Cleansed", "SourceId": 46, "TargetId": 46, "ObjectGrain": "Day", "CommandTypeId": 8, "Watermarks": "", "WatermarksDT": null, "WatermarkColumn": "", "BusinessKeyColumn": "businessPartnerNumber,identificationTypeCode,businessPartnerIdNumber", "UpdateMetaData": null, "SourceTimeStampFormat": "", "Command": "", "LastLoadedFile": null}
 
 #Use this string in the Source Object widget
-#crm_0BP_RELTYPES_TEXT
+#crm_0BP_ID_ATTR
 
 # COMMAND ----------
 
@@ -138,6 +138,7 @@ print("delta_column: " + delta_column)
 #Get the Data Load Mode using the params
 data_load_mode = GeneralGetDataLoadMode(Params[PARAMS_TRUNCATE_TARGET], Params[PARAMS_UPSERT_TARGET], Params[PARAMS_APPEND_TARGET])
 print("data_load_mode: " + data_load_mode)
+
 # COMMAND ----------
 
 # DBTITLE 1,9. Set raw and cleansed table name
@@ -175,10 +176,18 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_cleansed = spark.sql("SELECT \
-	LANGU as language, \
-	RELDIR as relationshipDirection, \
-	RELTYP as relationshipTypeCode, \
-	TXTLG as relationshipType, \
+	PARTNER as businessPartnerNumber, \
+	TYPE as identificationTypeCode, \
+	TEXT as identificationType, \
+	IDNUMBER as businessPartnerIdNumber, \
+	INSTITUTE as institute, \
+	to_date(ENTRY_DATE) as entryDate, \
+	to_date(VALID_DATE_FROM) as validFromDate, \
+	to_date(VALID_DATE_TO) as validToDate, \
+	COUNTRY as countryShortName, \
+	REGION as stateCode, \
+	PARTNER_GUID as businessPartnerGUID, \
+	FLG_DEL_BW as deletedIndicator, \
 	_RecordStart, \
 	_RecordEnd, \
 	_RecordDeleted, \
@@ -192,10 +201,18 @@ print(f'Number of rows: {df_cleansed.count()}')
 # COMMAND ----------
 
 newSchema = StructType([
-	StructField('language',StringType(),False),
-	StructField('relationshipDirection',StringType(),False),
-	StructField('relationshipTypeCode',StringType(),False),
-	StructField('relationshipType',StringType(),True),
+	StructField('businessPartnerNumber',StringType(),False),
+	StructField('identificationTypeCode',StringType(),False),
+	StructField('identificationType',StringType(),True),
+	StructField('businessPartnerIdNumber',StringType(),False),
+	StructField('institute',StringType(),True),
+	StructField('entryDate',DateType(),True),
+	StructField('validFromDate',DateType(),True),
+	StructField('validToDate',DateType(),True),
+	StructField('countryShortName',StringType(),True),
+	StructField('stateCode',StringType(),True),
+	StructField('businessPartnerGUID',StringType(),True),
+	StructField('deletedIndicator',StringType(),True),
 	StructField('_RecordStart',TimestampType(),False),
 	StructField('_RecordEnd',TimestampType(),False),
 	StructField('_RecordDeleted',IntegerType(),False),
@@ -210,6 +227,7 @@ df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
 DeltaSaveDataframeDirect(df_updated_column, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
+
 # COMMAND ----------
 
 # DBTITLE 1,13. Exit Notebook
