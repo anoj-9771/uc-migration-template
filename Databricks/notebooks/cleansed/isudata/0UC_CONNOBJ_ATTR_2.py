@@ -176,8 +176,8 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT \
-                                      HAUS as propertyNumber, \
-                                      con.COUNTRY as countryShortName, \
+                                      case when con.HAUS = 'na' then '' else con.HAUS end as propertyNumber, \
+                                      case when con.COUNTRY = 'na' then '' else con.COUNTRY end  as countryShortName, \
                                       con.CITY_CODE as cityCode, \
                                       con.STREETCODE as streetCode, \
                                       stc.STREET as streetName, \
@@ -257,8 +257,8 @@ print(f'Number of rows: {df_cleansed.count()}')
 # Create schema for the cleanse table
 newSchema = StructType(
                             [
-                            StructField("propertyNumber", StringType(), True),
-                            StructField("countryShortName", StringType(), True),
+                            StructField("propertyNumber", StringType(), False),
+                            StructField("countryShortName", StringType(), False),
                             StructField("cityCode", StringType(), True),
                             StructField("streetCode", StringType(), True),
                             StructField("streetName", StringType(), True),

@@ -176,7 +176,7 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT  \
-                                  TPLNR as functionalLocationNumber, \
+                                  case when TPLNR = 'na' then '' else TPLNR end as functionalLocationNumber, \
                                   FLTYP as functionalLocationCategory, \
                                   IWERK as maintenancePlanningPlant, \
                                   SWERK as maintenancePlant, \

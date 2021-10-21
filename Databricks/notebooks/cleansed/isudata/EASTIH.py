@@ -176,7 +176,7 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT \
-                                  INDEXNR as consecutiveNumberOfRegisterRelationship, \
+                                  case when INDEXNR = 'na' then '' else INDEXNR end as consecutiveNumberOfRegisterRelationship, \
                                   PRUEFGR as validationGroupForDependentValidations, \
                                   ZWZUART as registerRelationshipType, \
                                   to_date(ERDAT) as createdDate, \

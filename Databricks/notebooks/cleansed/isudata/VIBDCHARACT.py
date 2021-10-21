@@ -176,8 +176,8 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT  \
-                                  INTRENO as architecturalObjectInternalId, \
-                                  FIXFITCHARACT as fixtureAndFittingCharacteristicCode, \
+                                  case when INTRENO = 'na' then '' else INTRENO end as architecturalObjectInternalId, \
+                                  case when FIXFITCHARACT = 'na' then '' else FIXFITCHARACT end as fixtureAndFittingCharacteristicCode, \
                                   ff.fixtureAndFittingCharacteristic as fixtureAndFittingCharacteristic, \
                                   to_date(VALIDTO, 'yyyy-MM-dd') as validToDate, \
                                   to_date(VALIDFROM, 'yyyy-MM-dd') as validFromDate, \
