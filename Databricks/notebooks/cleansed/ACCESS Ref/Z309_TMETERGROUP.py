@@ -182,7 +182,7 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_cleansed = spark.sql("SELECT C_METE_GROU AS meterGroupCode, \
+df_cleansed = spark.sql(f"SELECT C_METE_GROU AS meterGroupCode, \
 		initcap(T_METE_GROU) AS meterGroup, \
 		to_date(D_METE_GROU_EFFE, 'yyyyMMdd') AS meterGroupEffectiveDate, \
 		to_date(D_METE_GROU_CANC, 'yyyyMMdd') AS meterGroupCancelledDate, \

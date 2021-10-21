@@ -182,7 +182,7 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_cleansed = spark.sql("SELECT C_PDE_READ_METH AS PDEReadingMethodCode, \
+df_cleansed = spark.sql(f"SELECT C_PDE_READ_METH AS PDEReadingMethodCode, \
         case when c_pde_read_meth = 'N' then 'Can\\'t Read' \
 		                                else initcap(T_PDE_READ_METH) \
         end AS PDEReadingMethod, \

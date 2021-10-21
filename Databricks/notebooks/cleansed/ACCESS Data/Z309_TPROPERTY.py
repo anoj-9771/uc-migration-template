@@ -146,6 +146,7 @@ print("delta_column: " + delta_column)
 #Get the Data Load Mode using the params
 data_load_mode = GeneralGetDataLoadMode(Params[PARAMS_TRUNCATE_TARGET], Params[PARAMS_UPSERT_TARGET], Params[PARAMS_APPEND_TARGET])
 print("data_load_mode: " + data_load_mode)
+
 # COMMAND ----------
 
 # DBTITLE 1,9. Set raw and cleansed table name
@@ -182,7 +183,7 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_cleansed = spark.sql("SELECT cast(N_PROP as int) AS propertyNumber, \
+df_cleansed = spark.sql(f"SELECT cast(N_PROP as int) AS propertyNumber, \
 		C_LGA AS LGACode, \
         b.LGA, \
 		C_PROP_TYPE AS propertyTypeCode, \
@@ -256,10 +257,10 @@ df_cleansed = spark.sql("SELECT cast(N_PROP as int) AS propertyNumber, \
         a._RecordDeleted, \
         a._RecordCurrent \
 	FROM {ADS_DATABASE_STAGE}.{source_object} a \
-         left outer join cleansed.t_access_Z309_TLocalGovt b on b.LGACode = a.c_lga \
-         left outer join cleansed.t_access_Z309_TPropType e on e.propertyTypeCode = a.c_prop_type \
-         left outer join cleansed.t_access_Z309_TPropType f on e.superiorPropertyTypeCode = f.propertyTypeCode \
-         left outer join cleansed.t_access_Z309_TRataType h on h.rateabilityTypeCode = a.c_rata_type \
+         left outer join cleansed.access_Z309_TLocalGovt b on b.LGACode = a.c_lga \
+         left outer join cleansed.access_Z309_TPropType e on e.propertyTypeCode = a.c_prop_type \
+         left outer join cleansed.access_Z309_TPropType f on e.superiorPropertyTypeCode = f.propertyTypeCode \
+         left outer join cleansed.access_Z309_TRataType h on h.rateabilityTypeCode = a.c_rata_type \
 ")
 
 display(df_cleansed)
@@ -321,6 +322,7 @@ df.printSchema()
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
 DeltaSaveDataframeDirect(df_updated_column, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
+
 # COMMAND ----------
 
 # DBTITLE 1,13. Exit Notebook

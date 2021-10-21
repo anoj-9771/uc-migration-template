@@ -182,7 +182,7 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_cleansed = spark.sql("SELECT C_DEBI_TYPE AS debitTypeCode, \
+df_cleansed = spark.sql(f"SELECT C_DEBI_TYPE AS debitTypeCode, \
 		C_DEBI_REAS AS debitReasonCode, \
 		initcap(T_DEBI_REAS) AS debitReason, \
 		T_DEBI_REAS_ABBR AS debitReasonAbbreviation, \

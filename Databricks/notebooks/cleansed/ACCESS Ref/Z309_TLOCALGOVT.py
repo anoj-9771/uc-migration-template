@@ -182,7 +182,7 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_local_govt = spark.sql("SELECT C_LGA AS LGACode, \
+df_local_govt = spark.sql(f"SELECT C_LGA AS LGACode, \
                 case when T_LGA = 'KURING-GAI' then 'Ku-Ring-Gai' \
                     else initcap(T_LGA) \
                 end as LGA, \

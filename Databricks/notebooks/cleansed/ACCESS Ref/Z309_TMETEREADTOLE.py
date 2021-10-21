@@ -182,7 +182,7 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_cleansed = spark.sql("SELECT C_METE_READ_TOLE AS meterReadingToleranceCode, \
+df_cleansed = spark.sql(f"SELECT C_METE_READ_TOLE AS meterReadingToleranceCode, \
 		initcap(T_METE_READ_TOLE) AS meterReadingTolerance, \
 		to_date(D_READ_TOLE_EFFE, 'yyyyMMdd') AS readingToleranceEffectiveDate, \
 		to_date(D_READ_TOLE_CANC, 'yyyyMMdd') AS readingToleranceCancelledDate, \

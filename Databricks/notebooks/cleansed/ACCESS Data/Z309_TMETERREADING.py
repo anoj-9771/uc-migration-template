@@ -182,7 +182,7 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_cleansed = spark.sql("SELECT cast(N_PROP as int) AS propertyNumber, \
+df_cleansed = spark.sql(f"SELECT cast(N_PROP as int) AS propertyNumber, \
 		cast(N_PROP_METE as int) AS propertyMeterNumber, \
 		cast(N_METE_READ as int) AS meterReadingNumber, \
 		C_METE_READ_TOLE AS meterReadingToleranceCode, \

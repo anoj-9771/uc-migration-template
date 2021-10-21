@@ -182,7 +182,7 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_cleansed = spark.sql("SELECT C_STRE_GUID AS streetGuideCode, \
+df_cleansed = spark.sql(f"SELECT C_STRE_GUID AS streetGuideCode, \
 		C_LGA AS LGACode, \
 		M_STRE AS streetName, \
 		C_VALI_STRE_TYPE AS streetType, \

@@ -182,7 +182,7 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_cleansed = spark.sql("SELECT coalesce(C_METE_CANT_READ,'') AS cannotReadCode, \
+df_cleansed = spark.sql(f"SELECT coalesce(C_METE_CANT_READ,'') AS cannotReadCode, \
 		initcap(T_METE_CANT_READ) AS cannotReadReason, \
 		T_CANT_READ_ABBR AS cannotReadAbbreviation, \
 		to_date(D_CANT_READ_EFFE, 'yyyyMMdd') AS cannotReadEffectiveDate, \
