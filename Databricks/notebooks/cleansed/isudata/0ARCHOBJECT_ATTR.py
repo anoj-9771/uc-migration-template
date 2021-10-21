@@ -176,7 +176,7 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT  \
-                                  vib.INTRENO as architecturalObjectInternalId , \
+                                  case when vib.INTRENO = 'na' then '' else vib.INTRENO end as architecturalObjectInternalId , \
                                   vib.AOID as architecturalObjectId , \
                                   vib.AOTYPE as architecturalObjectTypeCode , \
                                   tiv.XMAOTYPE as architecturalObjectType , \
