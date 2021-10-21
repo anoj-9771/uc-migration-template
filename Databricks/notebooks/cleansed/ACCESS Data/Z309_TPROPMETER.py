@@ -151,8 +151,8 @@ print("data_load_mode: " + data_load_mode)
 # DBTITLE 1,9. Set raw and cleansed table name
 #Set raw and cleansed table name
 #Delta and SQL tables are case Insensitive. Seems Delta table are always lower case
-delta_cleansed_tbl_name = "{0}.{1}".format(ADS_DATABASE_CLEANSED, target_table)
-delta_raw_tbl_name = "{0}.{1}".format(ADS_DATABASE_RAW, source_object)
+delta_cleansed_tbl_name = f'{ADS_DATABASE_CLEANSED}.{target_table}'
+delta_raw_tbl_name = f'{ADS_DATABASE_RAW}.{ source_object}'
 
 #Destination
 print(delta_cleansed_tbl_name)
@@ -218,7 +218,7 @@ df_cleansed = spark.sql("SELECT cast(N_PROP as int) AS propertyNumber, \
 		a._RecordEnd, \
 		a._RecordDeleted, \
 		a._RecordCurrent \
-	FROM CLEANSED.STG_ACCESS_Z309_TPROPMETER a \
+	FROM {ADS_DATABASE_STAGE}.{source_object} a \
          left outer join CLEANSED.access_Z309_TMeterType b on b.meterTypeCode = a.C_METE_TYPE \
          left outer join CLEANSED.access_Z309_TMeterClass c on c.meterClassCode = a.C_METE_CLAS \
          left outer join CLEANSED.access_Z309_TMeterCategory d on d.meterCategoryCode = a.C_METE_CATE \
