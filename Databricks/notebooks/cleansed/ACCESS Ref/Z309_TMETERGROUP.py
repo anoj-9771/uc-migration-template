@@ -3,7 +3,7 @@
 import json
 accessTable = 'Z309_TMETERGROUP'
 
-runParm = '{"SourceType":"BLOB Storage (csv)","SourceServer":"daf-sa-lake-sastoken","SourceGroup":"accessref","SourceName":"access_Z309_TMETERGROUP","SourceLocation":"accessref/Z309_TMETERGROUP","AdditionalProperty":"","Processor":"databricks-token|0705-044124-gored835|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive","IsAuditTable":false,"SoftDeleteSource":"","ProjectName":"ACCESSREF","ProjectId":4,"TargetType":"BLOB Storage (csv)","TargetName":"access_Z309_TMETERGROUP","TargetLocation":"accessref/Z309_TMETERGROUP","TargetServer":"daf-sa-lake-sastoken","DataLoadMode":"TRUNCATE-LOAD","DeltaExtract":false,"CDCSource":false,"TruncateTarget":true,"UpsertTarget":false,"AppendTarget":null,"TrackChanges":false,"LoadToSqlEDW":true,"TaskName":"access_Z309_TMETERGROUP","ControlStageId":2,"TaskId":792,"StageSequence":200,"StageName":"Raw to Cleansed","SourceId":792,"TargetId":792,"ObjectGrain":"Day","CommandTypeId":8,"Watermarks":"","WatermarksDT":null,"WatermarkColumn":"","BusinessKeyColumn":"C_METE_GROU","UpdateMetaData":null,"SourceTimeStampFormat":"","Command":"/build/cleansed/ACCESS Ref/Z309_TMETERGROUP","LastLoadedFile":null}'
+runParm = '{"SourceType":"Flat File","SourceServer":"saswcnonprod01landingdev-sastoken","SourceGroup":"access","SourceName":"access_access/####_csv","SourceLocation":"access/####.csv","AdditionalProperty":"","Processor":"databricks-token|0705-044124-gored835|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive","IsAuditTable":false,"SoftDeleteSource":"","ProjectName":"Access Data","ProjectId":2,"TargetType":"BLOB Storage (csv)","TargetName":"access_access/####_csv","TargetLocation":"access/####","TargetServer":"daf-sa-lake-sastoken","DataLoadMode":"TRUNCATE-LOAD","DeltaExtract":false,"CDCSource":false,"TruncateTarget":true,"UpsertTarget":false,"AppendTarget":null,"TrackChanges":false,"LoadToSqlEDW":true,"TaskName":"access_access/####_csv","ControlStageId":1,"TaskId":4,"StageSequence":100,"StageName":"Source to Raw","SourceId":4,"TargetId":4,"ObjectGrain":"Day","CommandTypeId":5,"Watermarks":"","WatermarksDT":null,"WatermarkColumn":"","BusinessKeyColumn":"","UpdateMetaData":null,"SourceTimeStampFormat":"","Command":"","LastLoadedFile":null}'
 
 s = json.loads(runParm)
 for parm in ['SourceName','SourceLocation','TargetName','TargetLocation','TaskName']:
@@ -146,14 +146,13 @@ print("delta_column: " + delta_column)
 #Get the Data Load Mode using the params
 data_load_mode = GeneralGetDataLoadMode(Params[PARAMS_TRUNCATE_TARGET], Params[PARAMS_UPSERT_TARGET], Params[PARAMS_APPEND_TARGET])
 print("data_load_mode: " + data_load_mode)
-
 # COMMAND ----------
 
 # DBTITLE 1,9. Set raw and cleansed table name
 #Set raw and cleansed table name
 #Delta and SQL tables are case Insensitive. Seems Delta table are always lower case
-delta_cleansed_tbl_name = "{0}.{1}".format(ADS_DATABASE_CLEANSED, target_table)
-delta_raw_tbl_name = "{0}.{1}".format(ADS_DATABASE_RAW, source_object)
+delta_cleansed_tbl_name = f'{ADS_DATABASE_CLEANSED}.{target_table}'
+delta_raw_tbl_name = f'{ADS_DATABASE_RAW}.{ source_object}'
 
 #Destination
 print(delta_cleansed_tbl_name)
@@ -191,7 +190,7 @@ df_cleansed = spark.sql("SELECT C_METE_GROU AS meterGroupCode, \
 		_RecordEnd, \
 		_RecordDeleted, \
 		_RecordCurrent \
-	FROM CLEANSED.STG_ACCESS_Z309_TMETERGROUP \
+	FROM {ADS_DATABASE_STAGE}.{source_object} \
          ")
 
 display(df_cleansed)
@@ -218,7 +217,6 @@ print(f'Number of rows: {df_updated_column.count()}')
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
 DeltaSaveDataframeDirect(df_updated_column, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
-
 # COMMAND ----------
 
 # DBTITLE 1,13. Exit Notebook
