@@ -50,8 +50,7 @@ stages:
       displayName: 'Synapse SQL DacpacTask'
       inputs:
         azureSubscription: ${{ variables.azdoresourceconnection }}
-        #ServerName: '$(SYNAPSESQLSERVERNAME).sql.azuresynapse.net'
-        ServerName: 'pe-sql-synws-swcnonprod01-daf-test-01'
+        ServerName: '$(SYNAPSESQLSERVERNAME).sql.azuresynapse.net'
         DatabaseName: $(SYNAPSEDWDBNAME)
         SqlUsername: $(SYNSQLPOOLRUN)
         SqlPassword: '$(daf-syn-d-sqlpoo-synapseadmin-password)'
