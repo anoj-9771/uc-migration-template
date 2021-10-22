@@ -51,7 +51,7 @@ stages:
       inputs:
         azureSubscription: ${{ variables.azdoresourceconnection }}
         #ServerName: '$(SYNAPSESQLSERVERNAME).sql.azuresynapse.net'
-        ServerName: 'pe-sql-synws-swcnonprod01-daf-test-01.sql.azuresynapse.net'
+        ServerName: 'pe-sql-synws-swcnonprod01-daf-test-01.nic.0e384a14-7eb8-49ad-9ec3-3926307e3c85'
         DatabaseName: $(SYNAPSEDWDBNAME)
         SqlUsername: $(SYNSQLPOOLRUN)
         SqlPassword: '$(daf-syn-d-sqlpoo-synapseadmin-password)'
