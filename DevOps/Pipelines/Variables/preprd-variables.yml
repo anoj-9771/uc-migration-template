@@ -60,24 +60,24 @@ variables:
     value: EDW
   # Name of key vault for this environment.
   - name: azurekeyvaultname
-    value: kv-$(PREFIX)-$(ENVIRONMENT)-$(INCREMENT)
+    value: kv-$(SUBSCRIPTION)-$(PREFIX)-$(ENVIRONMENT)-$(INCREMENT)
   # Setup secret rotation interval in days
   - name: secretrotationinterval 
     value: 30
   # Name of Log Analytics workspace name
   - name: loganalyticsworkspacename
-    value: law-$(PREFIX)-$(ENVIRONMENT)
+    value: log-$(SUBSCRIPTION)-$(PREFIX)-$(ENVIRONMENT)
   - name: logstorageaccountname
-    value: salogs$(PREFIX)$(ENVIRONMENT)$(INCREMENT)
+    value: salogs$(SUBSCRIPTION)$(PREFIX)$(ENVIRONMENT)
   # Name of Azure SQL Server and catalog name
   # Data Lake storage account names, commonly split
   # into zones. Ensure it is a comma delimited list
   # as it is split into an array within the ARM 
   # template.
   - name: blobstorageaccountnames
-    value: sablob$(PREFIX)$(ENVIRONMENT)$(INCREMENT)
+    value: sablob$(SUBSCRIPTION)$(PREFIX)$(ENVIRONMENT)$(INCREMENT)
   - name: datalakestorageaccountnames
-    value: sa$(PREFIX)$(ENVIRONMENT)$(INCREMENT)
+    value: sa$(SUBSCRIPTION)$(PREFIX)$(ENVIRONMENT)$(INCREMENT)
   # Container or file system names within storage account
   # Used to iterate in ARM template
   - name: logzonename
@@ -150,7 +150,7 @@ variables:
   - name: synapsesqlAdministratorLogin
     value: sqladminuser
   - name: synapsesqlPoolName
-    value: syndw$(ENVIRONMENT)$(INCREMENT)
+    value: syndw-$(SUBSCRIPTION)-$(PREFIX)-$(ENVIRONMENT)-$(INCREMENT)
   - name: defaultAdlsGen2AccountResourceId
     value: /subscriptions/$(subscriptionId)/resourcegroups/$(resourcegroupname)/providers/Microsoft.Storage/storageAccounts/$(defaultDataLakeStorageAccountName)
   #------------------------------------------------
