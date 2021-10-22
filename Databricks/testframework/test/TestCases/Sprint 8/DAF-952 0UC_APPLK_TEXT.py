@@ -1,6 +1,7 @@
 # Databricks notebook source
-table = '0DF_REFIXFI_ATTR'
+table = '0UC_APPLK_TEXT'
 table1 = table.lower()
+print(table1)
 
 # COMMAND ----------
 
@@ -101,18 +102,19 @@ sourcedf.createOrReplaceTempView("Source")
 
 # DBTITLE 1,[Source with mapping]
 # MAGIC %sql
-# MAGIC select 
-# MAGIC columnname1,
-# MAGIC columnname2,
-# MAGIC row_number() over (partition by colname order by EXTRACT_DATETIME desc) as rn 
-# MAGIC from source
-# MAGIC where rn = 1
+# MAGIC select
+# MAGIC LANGU as language
+# MAGIC ,KEY1 as applicationAreaCode
+# MAGIC ,TXTLG as  applicationArea
+# MAGIC ,row_number() over (partition by colname order by EXTRACT_DATETIME desc) as rn
+# MAGIC from source  WHERE LANGU = 'E'
+# MAGIC and  rn = 1
 
 # COMMAND ----------
 
 # DBTITLE 1,[Verification] count
 # MAGIC %sql
-# MAGIC select count (*) as RecordCount, 'Target' as TableName from cleansed.t_sapisu_zcd_tpropty_hist
+# MAGIC select count (*) as RecordCount, 'Target' as TableName from cleansed.tablename
 # MAGIC union all
 # MAGIC select count (*) as RecordCount, 'Source' as TableName from Source
 
@@ -123,16 +125,47 @@ sourcedf.createOrReplaceTempView("Source")
 # MAGIC SELECT * FROM (
 # MAGIC SELECT
 # MAGIC *,
-# MAGIC row_number() OVER(PARTITION BY propertyNumber,superiorPropertyTypeCode,inferiorPropertyTypeCode,validFromDate order by validFromDate) as rn
-# MAGIC FROM  cleansed.t_sapisu_zcd_tpropty_hist
+# MAGIC row_number() OVER(PARTITION BY colName order by validFromDate) as rn
+# MAGIC FROM  cleansed.tablename
 # MAGIC )a where a.rn > 1
 
 # COMMAND ----------
 
 # DBTITLE 1,[Verification] Compare Source and Target Data
-
+# MAGIC %sql
+# MAGIC select
+# MAGIC select
+# MAGIC LANGU as language
+# MAGIC ,KEY1 as applicationAreaCode
+# MAGIC ,TXTLG as  applicationArea
+# MAGIC ,row_number() over (partition by colname order by EXTRACT_DATETIME desc) as rn
+# MAGIC from source  WHERE LANGU = 'E'
+# MAGIC and  rn = 1
+# MAGIC except
+# MAGIC select
+# MAGIC select
+# MAGIC language 
+# MAGIC ,applicationAreaCode 
+# MAGIC ,applicationArea
+# MAGIC from
+# MAGIC cleansed.tablename
 
 # COMMAND ----------
 
 # DBTITLE 1,[Verification] Compare Target and Source Data
-
+# MAGIC %sql
+# MAGIC select
+# MAGIC language 
+# MAGIC ,applicationAreaCode 
+# MAGIC ,applicationArea
+# MAGIC from
+# MAGIC cleansed.tablename
+# MAGIC except
+# MAGIC select
+# MAGIC select
+# MAGIC LANGU as language
+# MAGIC ,KEY1 as applicationAreaCode
+# MAGIC ,TXTLG as  applicationArea
+# MAGIC ,row_number() over (partition by colname order by EXTRACT_DATETIME desc) as rn
+# MAGIC from source  WHERE LANGU = 'E'
+# MAGIC and  rn = 1
