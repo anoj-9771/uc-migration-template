@@ -29,19 +29,18 @@ val ADS_DATA_LAKE_ACCOUNT = "sadaf"+ ADS_ENVIRONMENT + "01" //f"{ADS_COMPANY_INI
 
 // COMMAND ----------
 
-val ADS_DATABASE_NAME = "syndwdev01"
+val ADS_DATABASE_NAME = "syndw"+ ADS_ENVIRONMENT + "01"
 val ADS_DATABASE_USERNAME = "svc_synapse1"
 val ADS_KV_DB_PWD_SECRET_KEY = "daf-syn-d-sqlpool-password"
 
 // COMMAND ----------
 
 //Synapse settings
-val ADS_SYN_DATABASE_NAME = "syndwdev01"
+val ADS_SYN_DATABASE_NAME = "syndw"+ ADS_ENVIRONMENT + "01"
 val ADS_SYN_DATABASE_USERNAME = "svc_synapse1"
 val ADS_KV_SYN_DB_PWD_SECRET_KEY = "daf-syn-d-sqlpool-password"
 
-
-val ADS_SYNAPSE_DB_SERVER = "synws-swcnonprod01-daf-dev-01" 
+val ADS_SYNAPSE_DB_SERVER = "synws-swcnonprod01-daf-"+ ADS_ENVIRONMENT + "-01" 
 
 // COMMAND ----------
 
