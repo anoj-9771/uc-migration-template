@@ -65,7 +65,7 @@ variables:
   # as it is split into an array within the ARM 
   # template.
   - name: blobstorageaccountnames
-    value: sa$(SUBSCRIPTION)landing$(ENVIRONMENT)
+    value: sablob$(PREFIX)$(ENVIRONMENT)$(INCREMENT)
   - name: datalakestorageaccountnames
     value: sa$(PREFIX)$(ENVIRONMENT)$(INCREMENT)
   # Container or file system names within storage account

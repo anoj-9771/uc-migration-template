@@ -34,9 +34,20 @@ variables:
   # Use to set Synapse Analytics worksspace deployability...
   - name: synapseanalyticsworkspace
     value: true
-  # Use to set Synapse Analytics worksspace deployability...
+  # Use to deploy private endpoints
   - name: privateendpoints
     value: true
+  # Use to deploy SQL VM for SLT server
+  - name: vm_sqlslt
+    value: true
+  # Use to deploy VM for DevOps Build Agent 
+  - name: vm_devops
+    value: true
+  # Use to deploy VM for ADF Self-Hosted Integration Runtime 
+  - name: vm_adfruntime
+    value: true
+
+
 
   #---------------------------------------------
   # Not used for the DAF Platform
