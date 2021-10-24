@@ -6,7 +6,7 @@ parameters:
 
 steps:
 
- - task: AzureKeyVault@1
+  - task: AzureKeyVault@1
     displayName: 'Get secrets'
     inputs:
       azureSubscription: ${{ parameters.AzDoServiceConnection }}
