@@ -137,7 +137,6 @@ variables:
     value: 2
   - name: databricksautotermination
     value: 10
-
   # ------------------------------------------------
   # Synapse Analytics related
   # ------------------------------------------------
@@ -153,4 +152,15 @@ variables:
     value: syndw-$(SUBSCRIPTION)-$(PREFIX)-$(ENVIRONMENT)-$(INCREMENT)
   - name: defaultAdlsGen2AccountResourceId
     value: /subscriptions/$(subscriptionId)/resourcegroups/$(resourcegroupname)/providers/Microsoft.Storage/storageAccounts/$(defaultDataLakeStorageAccountName)
-  #------------------------------------------------
+  # ------------------------------------------------
+  # Azure Devops Self-hosted VM related
+  # ------------------------------------------------
+  - name: adminUsername
+    value: synws-$(SUBSCRIPTION)-$(PREFIX)-$(ENVIRONMENT)-$(INCREMENT)
+  - name: OSVersion
+    value: synws-$(SUBSCRIPTION)-$(PREFIX)-$(ENVIRONMENT)-$(INCREMENT)
+  - name: vmSize
+    value: synws-$(SUBSCRIPTION)-$(PREFIX)-$(ENVIRONMENT)-$(INCREMENT)
+  - name: vmName
+    value: synws-$(SUBSCRIPTION)-$(PREFIX)-$(ENVIRONMENT)-$(INCREMENT)
+    
