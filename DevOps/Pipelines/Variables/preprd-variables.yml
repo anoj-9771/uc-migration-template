@@ -156,10 +156,10 @@ variables:
   # Azure Devops Self-hosted VM related
   # ------------------------------------------------
   - name: adminUsername
-    value: synws-$(SUBSCRIPTION)-$(PREFIX)-$(ENVIRONMENT)-$(INCREMENT)
+    value: azureadmin
   - name: OSVersion
-    value: synws-$(SUBSCRIPTION)-$(PREFIX)-$(ENVIRONMENT)-$(INCREMENT)
+    value: 2019-Datacenter
   - name: vmSize
-    value: synws-$(SUBSCRIPTION)-$(PREFIX)-$(ENVIRONMENT)-$(INCREMENT)
+    value: Standard_D2s_v3
   - name: vmName
-    value: synws-$(SUBSCRIPTION)-$(PREFIX)-$(ENVIRONMENT)-$(INCREMENT)
+    value: nt097ddevops01
