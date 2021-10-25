@@ -24,4 +24,4 @@ steps:
       overrideParameters: '-location $(LOCATION) -adminUsername $(adminUsername) -adminPassword $(AzureSQLServerPw) -OSVersion $(OSVersion) -vmSize $(vmSize) -vmName $(vmName) -subnetId $(vnetId)'
       deploymentMode: 'Incremental'
       deploymentOutputs: 'armOutputs'
-    displayName: 'Deploy Private Endpoints'
+    displayName: 'Deploy VM Az Devops'
