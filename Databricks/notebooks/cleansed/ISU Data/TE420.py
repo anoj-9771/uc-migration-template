@@ -176,16 +176,16 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT \
-                            TERMSCHL as portion, \
+                            case when TERMSCHL = 'na' then '' else TERMSCHL end as portion, \
                             TERMTEXT as scheduleMasterRecord, \
-                            to_date(TERMERST) as billingPeriodEndDate, \
+                            to_date(TERMERST, 'yyyy-MM-dd') as billingPeriodEndDate, \
                             cast(PERIODEW as int) as periodLengthMonths, \
                             PERIODET as periodCategory, \
-                            to_date(ZUORDDAT) as meterReadingAllocationDate, \
+                            to_date(ZUORDDAT, 'yyyy-MM-dd') as meterReadingAllocationDate, \
                             ABSZYK as allowableBudgetBillingCycles, \
-                            to_date(EROEDAT) as createdDate, \
+                            to_date(EROEDAT, 'yyyy-MM-dd') as createdDate, \
                             ERNAM as createdBy, \
-                            to_date(AENDDATE) as lastChangedDate, \
+                            to_date(AENDDATE, 'yyyy-MM-dd') as lastChangedDate, \
                             AENDNAM as lastChangedBy, \
                             cast(SPARTENTY1 as int) as divisionCategory1, \
                             cast(SPARTENTY2 as int) as divisionCategory2, \
@@ -217,40 +217,40 @@ print(f'Number of rows: {df_cleansed.count()}')
 # COMMAND ----------
 
 newSchema = StructType([
-	StructField('portion',StringType(),False),
-	StructField('scheduleMasterRecord',StringType(),True),
-	StructField('billingPeriodEndDate',DateType(),True),
-	StructField('periodLengthMonths',IntegerType(),True),
-	StructField('periodCategory',StringType(),True),
-	StructField('meterReadingAllocationDate',DateType(),True),
-	StructField('allowableBudgetBillingCycles',StringType(),True),
-	StructField('createdDate',DateType(),True),
-	StructField('createdBy',StringType(),True),
-	StructField('lastChangedDate',DateType(),True),
-	StructField('lastChangedBy',StringType(),True),
-	StructField('divisionCategory1',IntegerType(),True),
-	StructField('divisionCategory2',IntegerType(),True),
-	StructField('divisionCategory3',IntegerType(),True),
-	StructField('divisionCategory4',IntegerType(),True),
-	StructField('divisionCategory5',IntegerType(),True),
-	StructField('budgetBillingCycle1',IntegerType(),True),
-	StructField('budgetBillingCycle2',IntegerType(),True),
-	StructField('budgetBillingCycle3',IntegerType(),True),
-	StructField('budgetBillingCycle4',IntegerType(),True),
-	StructField('budgetBillingCycle5',IntegerType(),True),
-	StructField('parameterRecord',StringType(),True),
-	StructField('factoryCalendar',StringType(),True),
-	StructField('correctHolidayToWorkDay',StringType(),True),
-	StructField('lowerLimitBillingPeriod',IntegerType(),True),
-	StructField('upperLimitBillingPeriod',IntegerType(),True),
-	StructField('periodLengthDays',IntegerType(),True),
-	StructField('isWorkDay',StringType(),True),
-	StructField('extrapolationCategory',StringType(),True),
-	StructField('_RecordStart',TimestampType(),False),
-	StructField('_RecordEnd',TimestampType(),False),
-	StructField('_RecordDeleted',IntegerType(),False),
-	StructField('_RecordCurrent',IntegerType(),False)
-])
+                        StructField('portion',StringType(),False),
+                        StructField('scheduleMasterRecord',StringType(),True),
+                        StructField('billingPeriodEndDate',DateType(),True),
+                        StructField('periodLengthMonths',IntegerType(),True),
+                        StructField('periodCategory',StringType(),True),
+                        StructField('meterReadingAllocationDate',DateType(),True),
+                        StructField('allowableBudgetBillingCycles',StringType(),True),
+                        StructField('createdDate',DateType(),True),
+                        StructField('createdBy',StringType(),True),
+                        StructField('lastChangedDate',DateType(),True),
+                        StructField('lastChangedBy',StringType(),True),
+                        StructField('divisionCategory1',IntegerType(),True),
+                        StructField('divisionCategory2',IntegerType(),True),
+                        StructField('divisionCategory3',IntegerType(),True),
+                        StructField('divisionCategory4',IntegerType(),True),
+                        StructField('divisionCategory5',IntegerType(),True),
+                        StructField('budgetBillingCycle1',IntegerType(),True),
+                        StructField('budgetBillingCycle2',IntegerType(),True),
+                        StructField('budgetBillingCycle3',IntegerType(),True),
+                        StructField('budgetBillingCycle4',IntegerType(),True),
+                        StructField('budgetBillingCycle5',IntegerType(),True),
+                        StructField('parameterRecord',StringType(),True),
+                        StructField('factoryCalendar',StringType(),True),
+                        StructField('correctHolidayToWorkDay',StringType(),True),
+                        StructField('lowerLimitBillingPeriod',IntegerType(),True),
+                        StructField('upperLimitBillingPeriod',IntegerType(),True),
+                        StructField('periodLengthDays',IntegerType(),True),
+                        StructField('isWorkDay',StringType(),True),
+                        StructField('extrapolationCategory',StringType(),True),
+                        StructField('_RecordStart',TimestampType(),False),
+                        StructField('_RecordEnd',TimestampType(),False),
+                        StructField('_RecordDeleted',IntegerType(),False),
+                        StructField('_RecordCurrent',IntegerType(),False)
+                      ])
 
 df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
 
