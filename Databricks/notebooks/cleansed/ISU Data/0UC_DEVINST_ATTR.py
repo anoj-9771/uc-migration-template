@@ -176,9 +176,9 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT \
-	ANLAGE as installationId, \
-	LOGIKNR as logicalDeviceNumber, \
-	to_date(BIS) as validToDate, \
+	case when ANLAGE = 'na' then '' else ANLAGE end as installationId, \
+	case when LOGIKNR = 'na' then '' else LOGIKNR end as logicalDeviceNumber, \
+	case when BIS = 'na' then to_date('19000101','yyyyMMdd') else to_date(BIS) end as validToDate, \
 	to_date(AB) as validFromDate, \
 	PREISKLA as priceClassCode, \
 	PREISKLABEZ as priceClass, \
@@ -202,7 +202,7 @@ print(f'Number of rows: {df_cleansed.count()}')
 newSchema = StructType([
 	StructField('installationId',StringType(),False),
 	StructField('logicalDeviceNumber',StringType(),False),
-	StructField('validToDate',DateType(),True),
+	StructField('validToDate',DateType(),False),
 	StructField('validFromDate',DateType(),True),
 	StructField('priceClassCode',StringType(),True),
 	StructField('priceClass',StringType(),True),

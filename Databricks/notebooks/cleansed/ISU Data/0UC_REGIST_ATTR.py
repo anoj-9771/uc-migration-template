@@ -176,9 +176,9 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT \
-	EQUNR as equipmentNumber, \
-	cast(ZWNUMMER as int) as registerNumber, \
-	to_date(BIS) as validToDate, \
+	case when EQUNR = 'na' then '' else EQUNR end as equipmentNumber, \
+	case when ZWNUMMER = 'na' then '' else (cast(ZWNUMMER as int)) end  as registerNumber, \
+	case when BIS = 'na' then to_date('19000101','yyyyMMdd') else to_date(BIS) end as validToDate, \
 	to_date(AB) as validFromDate, \
 	cast(LOGIKZW as long) as logicalRegisterNumber, \
 	cast(SPARTYP as int) as divisionCategory, \

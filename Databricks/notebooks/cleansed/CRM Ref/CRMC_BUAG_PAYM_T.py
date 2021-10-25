@@ -3,10 +3,10 @@
 import json
 #For unit testing...
 #Use this string in the Param widget: 
-#{"SourceType": "BLOB Storage (json)", "SourceServer": "daf-sa-lake-sastoken", "SourceGroup": "isu", "SourceName": "isu_0DF_REFIXFI_ATTR", "SourceLocation": "isu/0DF_REFIXFI_ATTR", "AdditionalProperty": "", "Processor": "databricks-token|0711-011053-turfs581|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive", "IsAuditTable": false, "SoftDeleteSource": "", "ProjectName": "SAP DATA", "ProjectId": 2, "TargetType": "BLOB Storage (json)", "TargetName": "isu_0DF_REFIXFI_ATTR", "TargetLocation": "isu/0DF_REFIXFI_ATTR", "TargetServer": "daf-sa-lake-sastoken", "DataLoadMode": "FULL-EXTRACT", "DeltaExtract": false, "CDCSource": false, "TruncateTarget": false, "UpsertTarget": true, "AppendTarget": null, "TrackChanges": false, "LoadToSqlEDW": true, "TaskName": "isu_0DF_REFIXFI_ATTR", "ControlStageId": 2, "TaskId": 46, "StageSequence": 200, "StageName": "Raw to Cleansed", "SourceId": 46, "TargetId": 46, "ObjectGrain": "Day", "CommandTypeId": 8, "Watermarks": "", "WatermarksDT": null, "WatermarkColumn": "", "BusinessKeyColumn": "INTRENO,FIXFITCHARACT,VALIDTO", "UpdateMetaData": null, "SourceTimeStampFormat": "", "Command": "", "LastLoadedFile": null}
+#$PARAM
 
 #Use this string in the Source Object widget
-#isu_0DF_REFIXFI_ATTR
+#$GROUP_$SOURCE
 
 # COMMAND ----------
 
@@ -176,18 +176,9 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT \
-	case when INTRENO = 'na' then '' else INTRENO end as architecturalObjectInternalId, \
-	case when FIXFITCHARACT = 'na' then '' else FIXFITCHARACT end as fixtureAndFittingCharacteristicCode, \
-	case when VALIDTO = 'na' then to_date('19000101','yyyyMMdd') else to_date(VALIDTO) end as validToDate, \
-	to_date(VALIDFROM) as validFromDate, \
-	WEIGHT as weightingValue, \
-	cast(RESULTVAL as int) as resultValue, \
-	cast(ADDITIONALINFO as int) as characteristicAdditionalValue, \
-    cast(AMOUNTPERAREA as dec(18,6)) as amountPerAreaUnit, \
-	FFCTACCURATE as applicableIndicator, \
-	cast(CHARACTAMTAREA as int) as characteristicAmountArea, \
-	CHARACTPERCENT as characteristicPercentage, \
-	cast(CHARACTAMTABS as dec(18,6)) as characteristicPriceAmount, \
+	case when PAYM_METH = 'na' then '' else PAYM_METH end as paymentMethodCode, \
+	COUNTRY as countryShortName, \
+	TEXT as paymentMethodDescription, \
 	_RecordStart, \
 	_RecordEnd, \
 	_RecordDeleted, \
@@ -199,25 +190,19 @@ print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
 
-newSchema = StructType([
-	StructField('architecturalObjectInternalId',StringType(),False),
-	StructField('fixtureAndFittingCharacteristicCode',StringType(),False),
-	StructField('validToDate',DateType(),False),
-	StructField('validFromDate',DateType(),True),
-	StructField('weightingValue',StringType(),True),
-	StructField('resultValue',IntegerType(),True),
-	StructField('characteristicAdditionalValue',IntegerType(),True),
-	StructField('amountPerAreaUnit',DecimalType(18,6),True),
-	StructField('applicableIndicator',StringType(),True),
-	StructField('characteristicAmountArea',IntegerType(),True),
-	StructField('characteristicPercentage',StringType(),True),
-	StructField('characteristicPriceAmount',DecimalType(18,6),True),
-	StructField('_RecordStart',TimestampType(),False),
-	StructField('_RecordEnd',TimestampType(),False),
-	StructField('_RecordDeleted',IntegerType(),False),
-	StructField('_RecordCurrent',IntegerType(),False)
-])
-
+# Create schema for the cleanse table
+newSchema = StructType(
+                            [
+                            StructField("paymentMethodCode", StringType(), False),
+                            StructField("countryShortName", StringType(), True),
+                            StructField("paymentMethodDescription", StringType(), True),
+                            StructField('_RecordStart',TimestampType(),False),
+                            StructField('_RecordEnd',TimestampType(),False),
+                            StructField('_RecordDeleted',IntegerType(),False),
+                            StructField('_RecordCurrent',IntegerType(),False)
+                            ]
+                        )
+# Apply the new schema to cleanse Data Frame
 df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
 display(df_updated_column)
 

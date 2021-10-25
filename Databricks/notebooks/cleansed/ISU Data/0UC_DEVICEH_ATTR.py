@@ -178,7 +178,7 @@ DeltaSaveToDeltaTable (
 df_cleansed = spark.sql(f"SELECT \
 	case when dev.EQUNR = 'na' then '' else dev.EQUNR end as equipmentNumber, \
 	equi.TXTMD as equipmentDescription, \
-	case when dev.BIS = 'na' then '19000101' else to_date(dev.BIS, 'yyyyMMdd') end as validToDate, \
+	case when dev.BIS = 'na' then to_date('19000101','yyyyMMdd') else to_date(dev.BIS, 'yyyyMMdd') end as validToDate, \
 	to_date(dev.AB, 'yyyyMMdd') as validFromDate, \
 	dev.KOMBINAT as deviceCategoryCombination, \
 	cast(dev.LOGIKNR as long) as logicalDeviceNumber, \
