@@ -176,10 +176,9 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT \
-    ATINN as internalcharacteristic, \
-    ATZHL as internalCounter, \
-    ADZHL as internalCounterforArchivingObjectsbyECM, \
-	ATWTB as characteristicValueDescription, \
+    ATINN as internalcharacteristic \
+    ADZHL as internalCounterforArchivingObjectsbyECM \
+	ATNAM as characteristicName, \
 	_RecordStart, \
 	_RecordEnd, \
 	_RecordDeleted, \
@@ -195,9 +194,8 @@ print(f'Number of rows: {df_cleansed.count()}')
 newSchema = StructType(
                            [
                             StructField("internalcharacteristic", StringType(), False),
-                            StructField("internalCounter", StringType(), False),
                             StructField("internalCounterforArchivingObjectsbyECM", StringType(), False),
-                            StructField("characteristicValueDescription", StringType(), True),
+                            StructField("characteristicName", StringType(), False),
                             StructField('_RecordStart',TimestampType(),False),
                             StructField('_RecordEnd',TimestampType(),False),
                             StructField('_RecordDeleted',IntegerType(),False),
