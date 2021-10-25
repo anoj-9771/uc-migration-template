@@ -176,9 +176,14 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT \
-    ATINN as internalcharacteristic, \
-    ADZHL as internalCounterforArchivingObjectsbyECM, \
-	ATNAM as characteristicName, \
+    CLASSIFICATIONOBJECTINTERNALID as classificationObjectInternalId, \
+    CHARACTERISTICINTERNALID as characteristicInternalId, \
+    CHARACTERISTICVALUEINTERNALID as characteristicvalueInternalId, \
+    CLASSTYPE as classType, \
+    CHARCARCHIVINGOBJECTINTERNALID as archivingObjectsInternalId, \
+    CHARACTERISTICVALUE as characteristicValueCode, \
+    to_date(CHARCVALIDITYSTARTDATE, 'yyyy-MM-dd') as validFromDate, \
+    to_date(CHARCVALIDITYENDDATE, 'yyyy-MM-dd') as validToDate, \
 	_RecordStart, \
 	_RecordEnd, \
 	_RecordDeleted, \
@@ -193,9 +198,14 @@ print(f'Number of rows: {df_cleansed.count()}')
 # Create schema for the cleanse table
 newSchema = StructType(
                            [
-                            StructField("internalcharacteristic", StringType(), False),
-                            StructField("internalCounterforArchivingObjectsbyECM", StringType(), False),
-                            StructField("characteristicName", StringType(), False),
+                            StructField("classificationObjectInternalId", StringType(), False),
+                            StructField("characteristicInternalId", StringType(), True),
+                            StructField("characteristicvalueInternalId", StringType(), True),
+                            StructField("classType", StringType(), True),
+                            StructField("archivingObjectsInternalId", StringType(), True),     
+                            StructField("characteristicValueCode", StringType(), True),
+                            StructField("validFromDate", DateType(), True),  
+                            StructField("validToDate", DateType(), True),                                                   
                             StructField('_RecordStart',TimestampType(),False),
                             StructField('_RecordEnd',TimestampType(),False),
                             StructField('_RecordDeleted',IntegerType(),False),

@@ -229,11 +229,11 @@ df_cleansed = spark.sql(f"SELECT  \
                                   vib._RecordDeleted, \
                                   vib._RecordCurrent \
                               FROM {ADS_DATABASE_STAGE}.{source_object} vib \
-                                    LEFT OUTER JOIN CLEANSED.isu_ZCD_TINFPRTY_TX ip ON vib.ZCD_INF_PROP_TYPE = ip.inferiorPropertyTypeCode \
-                                    LEFT OUTER JOIN CLEANSED.isu_ZCD_TSUPPRTYP_TX sp ON vib.ZCD_SUP_PROP_TYPE = sp.superiorPropertyTypeCode \
-                                    LEFT OUTER JOIN CLEANSED.isu_ZCD_TPLANTYPE_TX plt ON vib.ZCD_PLAN_TYPE = plt.PLAN_TYPE \
-                                    LEFT OUTER JOIN CLEANSED.isu_TIVBDAROBJTYPET tiv ON vib.AOTYPE = tiv.AOTYPE \
-                                    LEFT OUTER JOIN CLEANSED.isu_ZCD_TPROCTYPE_TX prt ON vib.ZCD_PROCESS_TYPE = prt.PROCESS_TYPE \
+                                    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_ZCD_TINFPRTY_TX ip ON vib.ZCD_INF_PROP_TYPE = ip.inferiorPropertyTypeCode \
+                                    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_ZCD_TSUPPRTYP_TX sp ON vib.ZCD_SUP_PROP_TYPE = sp.superiorPropertyTypeCode \
+                                    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_ZCD_TPLANTYPE_TX plt ON vib.ZCD_PLAN_TYPE = plt.PLAN_TYPE \
+                                    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_TIVBDAROBJTYPET tiv ON vib.AOTYPE = tiv.AOTYPE \
+                                    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_ZCD_TPROCTYPE_TX prt ON vib.ZCD_PROCESS_TYPE = prt.PROCESS_TYPE \
                               ")
 
 display(df_cleansed)
