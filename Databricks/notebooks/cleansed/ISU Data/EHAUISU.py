@@ -175,20 +175,6 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_cleansed = spark.sql(f"SELECT \
-    ATINN as internalcharacteristic, \
-    ADZHL as internalCounterforArchivingObjectsbyECM, \
-	ATNAM as characteristicName, \
-	_RecordStart, \
-	_RecordEnd, \
-	_RecordDeleted, \
-	_RecordCurrent \
-	FROM {ADS_DATABASE_STAGE}.{source_object}")
-
-display(df_cleansed)
-print(f'Number of rows: {df_cleansed.count()}')     
-
-#Update/rename Column
 df_cleansed = spark.sql("SELECT \
 	eh.HAUS as propertyNumber, \
 	case when eh.INTRENO = 'na' then '' else eh.INTRENO end as architecturalObjectInternalId, \

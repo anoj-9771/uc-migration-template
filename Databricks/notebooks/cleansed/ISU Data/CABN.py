@@ -176,8 +176,8 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT \
-    ATINN as internalcharacteristic, \
-    ADZHL as internalCounterforArchivingObjectsbyECM, \
+    case when ATINN = 'na' then '' else ATINN end as internalcharacteristic, \
+    case when ADZHL = 'na' then '' else ADZHL end as internalCounterforArchivingObjectsbyECM, \
 	ATNAM as characteristicName, \
 	_RecordStart, \
 	_RecordEnd, \

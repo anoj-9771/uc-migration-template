@@ -205,14 +205,14 @@ df_cleansed = spark.sql(f"SELECT \
 	dev.ZZ_POLICE_EVENT as policeEventNumber, \
 	dev.ZAUFNR as orderNumber, \
 	dev.ZERNAM as createdBy, \
-	_RecordStart, \
-	_RecordEnd, \
-	_RecordDeleted, \
-	_RecordCurrent \
+	dev._RecordStart, \
+	dev._RecordEnd, \
+	dev._RecordDeleted, \
+	dev._RecordCurrent \
 	FROM {ADS_DATABASE_STAGE}.{source_object} dev \
-    LEFT OUTER JOIN CLEANSED.isu_0EQUIPMENT_TEXT equi ON dev.EQUNR = equi.EQUNR \
-    LEFT OUTER JOIN CLEANSED.isu_0UC_REGGRP_TEXT reg sp ON dev.ZWGRUPPE = reg.ZWGRUPPE \
-    LEFT OUTER JOIN CLEANSED.isu_0UC_GERWECHS_TEXT ger ON dev.GERWECHS = ger.GERWECHS \")
+    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0EQUIPMENT_TEXT equi ON dev.EQUNR = equi.EQUNR and equi._RecordDeleted = 0 and equi._RecordCurrent = 1 \
+    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UC_REGGRP_TEXT reg ON dev.ZWGRUPPE = reg.ZWGRUPPE and reg._RecordDeleted = 0 and reg._RecordCurrent = 1 \
+    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UC_GERWECHS_TEXT ger ON dev.GERWECHS = ger.GERWECHS and ger._RecordDeleted = 0 and ger._RecordCurrent = 1")
 
 display(df_cleansed)
 print(f'Number of rows: {df_cleansed.count()}')

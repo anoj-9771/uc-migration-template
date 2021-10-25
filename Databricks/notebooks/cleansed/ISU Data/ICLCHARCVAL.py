@@ -176,7 +176,7 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT \
-    CLASSIFICATIONOBJECTINTERNALID as classificationObjectInternalId, \
+    case when CLASSIFICATIONOBJECTINTERNALID = 'na' then '' else CLASSIFICATIONOBJECTINTERNALID end as classificationObjectInternalId, \
     CHARACTERISTICINTERNALID as characteristicInternalId, \
     CHARACTERISTICVALUEINTERNALID as characteristicvalueInternalId, \
     CLASSTYPE as classType, \
