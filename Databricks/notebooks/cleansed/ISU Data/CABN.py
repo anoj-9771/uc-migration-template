@@ -195,7 +195,7 @@ newSchema = StructType(
                            [
                             StructField("internalcharacteristic", StringType(), False),
                             StructField("internalCounterforArchivingObjectsbyECM", StringType(), False),
-                            StructField("characteristicName", StringType(), False),
+                            StructField("characteristicName", StringType(), True),
                             StructField('_RecordStart',TimestampType(),False),
                             StructField('_RecordEnd',TimestampType(),False),
                             StructField('_RecordDeleted',IntegerType(),False),
