@@ -176,46 +176,43 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT \
-	EQUNR as equipmentNumber, \
-	select TXTMD
-Join using EQUNR / EQUNR
-Filter SPRAS=E as equipmentDescription, \
-	to_date(BIS, 'yyyyMMdd') as validToDate, \
-	to_date(AB, 'yyyyMMdd') as validFromDate, \
-	KOMBINAT as deviceCategoryCombination, \
-	cast(LOGIKNR as long) as logicalDeviceNumber, \
-	ZWGRUPPE as registerGroupCode, \
-	select EZWG_INFO
-Join using ZWGRUPPE
-Filter none as registerGroup, \
-	to_date(EINBDAT, 'yyyyMMdd') as installationDate, \
-	to_date(AUSBDAT, 'yyyyMMdd') as deviceRemovalDate, \
-	GERWECHS as activityReasonCode, \
-	select GERWETXT
-join using GERWECHS / GERWECHS
-where SPRAS=E as activityReason, \
-	DEVLOC as deviceLocation, \
-	WGRUPPE as windingGroup, \
-	LOEVM as deletedIndicator, \
-	UPDMOD as bwDeltaProcess, \
-	cast(AMCG_CAP_GRP as int) as advancedMeterCapabilityGroup, \
-	cast(MSG_ATTR_ID as int) as messageAttributeId, \
-	MATNR as materialNumber, \
-	ZANLAGE as installationId, \
-	ZADDRNUMBER as addressNumber, \
-	CITY1 as cityName, \
-	HOUSE_NUM1 as houseNumber, \
-	STREET as streetName, \
-	POST_CODE1 as postalCode, \
-	TPLMA as superiorFunctionalLocationNumber, \
-	ZZ_POLICE_EVENT as policeEventNumber, \
-	ZAUFNR as orderNumber, \
-	ERNAM as createdBy, \
+	case when dev.EQUNR = 'na' then '' else dev.EQUNR end as equipmentNumber, \
+	equi.TXTMD as equipmentDescription, \
+	case when dev.BIS = 'na' then '19000101' else to_date(dev.BIS, 'yyyyMMdd') end as validToDate, \
+	to_date(dev.AB, 'yyyyMMdd') as validFromDate, \
+	dev.KOMBINAT as deviceCategoryCombination, \
+	cast(dev.LOGIKNR as long) as logicalDeviceNumber, \
+	dev.ZWGRUPPE as registerGroupCode, \
+	reg.EZWG_INFO as registerGroup, \
+	to_date(dev.EINBDAT, 'yyyyMMdd') as installationDate, \
+	to_date(dev.AUSBDAT, 'yyyyMMdd') as deviceRemovalDate, \
+	dev.GERWECHS as activityReasonCode, \
+	ger.GERWETXT as activityReason, \
+	dev.DEVLOC as deviceLocation, \
+	dev.WGRUPPE as windingGroup, \
+	dev.LOEVM as deletedIndicator, \
+	dev.UPDMOD as bwDeltaProcess, \
+	cast(dev.AMCG_CAP_GRP as int) as advancedMeterCapabilityGroup, \
+	cast(dev.MSG_ATTR_ID as int) as messageAttributeId, \
+	dev.ZZMATNR as materialNumber, \
+	dev.ZANLAGE as installationId, \
+	dev.ZADDRNUMBER as addressNumber, \
+	dev.CITY1 as cityName, \
+	dev.HOUSE_NUM1 as houseNumber, \
+	dev.ZSTREET as streetName, \
+	dev.ZPOST_CODE1 as postalCode, \
+	dev.ZTPLMA as superiorFunctionalLocationNumber, \
+	dev.ZZ_POLICE_EVENT as policeEventNumber, \
+	dev.ZAUFNR as orderNumber, \
+	dev.ZERNAM as createdBy, \
 	_RecordStart, \
 	_RecordEnd, \
 	_RecordDeleted, \
 	_RecordCurrent \
-	FROM {ADS_DATABASE_STAGE}.{source_object}")
+	FROM {ADS_DATABASE_STAGE}.{source_object} dev \
+    LEFT OUTER JOIN CLEANSED.isu_0EQUIPMENT_TEXT equi ON dev.EQUNR = equi.EQUNR \
+    LEFT OUTER JOIN CLEANSED.isu_0UC_REGGRP_TEXT reg sp ON dev.ZWGRUPPE = reg.ZWGRUPPE \
+    LEFT OUTER JOIN CLEANSED.isu_0UC_GERWECHS_TEXT ger ON dev.GERWECHS = ger.GERWECHS \")
 
 display(df_cleansed)
 print(f'Number of rows: {df_cleansed.count()}')
