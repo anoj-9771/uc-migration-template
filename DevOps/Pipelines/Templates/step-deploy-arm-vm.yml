@@ -6,6 +6,16 @@ parameters:
 
 steps:
 
+  - task: AzureCLI@2
+    displayName: 'Add sp to ACL policy'
+    name: add_sp_to_acl_policy_sql
+    inputs:
+      azureSubscription: ${{ parameters.AzDoServiceConnection }}
+      scriptType: bash
+      scriptLocation: inlineScript
+      inlineScript: |
+        az keyvault set-policy --name "$(AZUREKEYVAULTNAME)" --secret-permissions set delete list get --object-id "$(SPOBJECTID)"
+
   - task: AzureKeyVault@1
     displayName: 'Get secrets'
     inputs:
