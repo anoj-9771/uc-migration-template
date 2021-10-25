@@ -176,21 +176,23 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT  \
-                                  case when PROPERTY_NO = 'na' then '' else PROPERTY_NO end as propertyNumber , \
-                                  SUP_PROP_TYPE as superiorPropertyTypeCode , \
-                                  sup_typ.superiorPropertyType  as superiorPropertyType , \
-                                  INF_PROP_TYPE as inferiorPropertyTypeCode , \
-                                  inf_typ.inferiorPropertyType  as inferiorPropertyType , \
-                                  to_date(DATE_FROM) as validFromDate , \
-                                  to_date(DATE_TO) as validToDate  , \
-                                  prop_hist._RecordStart, \
-                                  prop_hist._RecordEnd, \
-                                  prop_hist._RecordDeleted, \
-                                  prop_hist._RecordCurrent \
-                              FROM {ADS_DATABASE_STAGE}.{source_object} prop_hist \
-                                left outer join CLEANSED.isu_zcd_tinfprty_tx inf_typ on prop_hist.INF_PROP_TYPE = inf_typ.inferiorPropertyTypecode \
-                                left outer join CLEANSED.isu_zcd_tsupprtyp_tx sup_typ on prop_hist.SUP_PROP_TYPE = sup_typ.superiorPropertyTypecode \
-                              ")
+                            case when stg.PROPERTY_NO = 'na' then '' else stg.PROPERTY_NO end as propertyNumber , \
+                            sup_typ.SUP_PROP_TYPE as superiorPropertyTypeCode , \
+                            sup_typ.superiorPropertyType  as superiorPropertyType , \
+                            inf_typ.INF_PROP_TYPE as inferiorPropertyTypeCode , \
+                            inf_typ.inferiorPropertyType  as inferiorPropertyType , \
+                            to_date((case when stg.DATE_FROM = 'na' then '1900-01-01' else stg.DATE_FROM end), 'yyyy-MM-dd') as validFromDate , \
+                            to_date(stg.DATE_TO, 'yyyy-MM-dd') as validToDate  , \
+                            stg._RecordStart, \
+                            stg._RecordEnd, \
+                            stg._RecordDeleted, \
+                            stg._RecordCurrent \
+                          FROM {ADS_DATABASE_STAGE}.{source_object} stg \
+                          left outer join {ADS_DATABASE_CLEANSED}.isu_zcd_tinfprty_tx inf_typ on stg.INF_PROP_TYPE = inf_typ.inferiorPropertyTypecode \
+                                                                                  and inf_typ._RecordCurrent = 1 and inf_typ._RecordDeleted = 0  \
+                          left outer join {ADS_DATABASE_CLEANSED}.isu_zcd_tsupprtyp_tx sup_typ on stg.SUP_PROP_TYPE = sup_typ.superiorPropertyTypecode \
+                                                                                  and sup_typ._RecordCurrent = 1 and sup_typ._RecordDeleted = 0  \
+                        ")
 
 display(df_cleansed)
 print(f'Number of rows: {df_cleansed.count()}')
@@ -198,21 +200,19 @@ print(f'Number of rows: {df_cleansed.count()}')
 # COMMAND ----------
 
 # Create schema for the cleanse table
-newSchema = StructType(
-[
-StructField("propertyNumber", StringType(), False),
-StructField("superiorPropertyTypeCode", StringType(), True),
-StructField("superiorPropertyType", StringType(), True),
-StructField("inferiorPropertyTypeCode", StringType(), True),
-StructField("inferiorPropertyType", StringType(), True),
-StructField("validFromDate", DateType(), True),
-StructField("validToDate", DateType(), True),
-StructField('_RecordStart',TimestampType(),False),
-StructField('_RecordEnd',TimestampType(),False),
-StructField('_RecordDeleted',IntegerType(),False),
-StructField('_RecordCurrent',IntegerType(),False)
-]
-)
+newSchema = StructType([
+                        StructField("propertyNumber", StringType(), False),
+                        StructField("superiorPropertyTypeCode", StringType(), True),
+                        StructField("superiorPropertyType", StringType(), True),
+                        StructField("inferiorPropertyTypeCode", StringType(), True),
+                        StructField("inferiorPropertyType", StringType(), True),
+                        StructField("validFromDate", DateType(), False),
+                        StructField("validToDate", DateType(), True),
+                        StructField('_RecordStart',TimestampType(),False),
+                        StructField('_RecordEnd',TimestampType(),False),
+                        StructField('_RecordDeleted',IntegerType(),False),
+                        StructField('_RecordCurrent',IntegerType(),False)
+                      ])
 # Apply the new schema to cleanse Data Frame
 df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
 display(df_updated_column)

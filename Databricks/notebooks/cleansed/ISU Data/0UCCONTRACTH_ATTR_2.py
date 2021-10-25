@@ -3,7 +3,7 @@
 import json
 #For unit testing...
 #Use this string in the Param widget: 
-#{"SourceType": "BLOB Storage (json)", "SourceServer": "daf-sa-lake-sastoken", "SourceGroup": "isu", "SourceName": "isu_0UCCONTRACTH_ATTR_2", "SourceLocation": "isu/0UCCONTRACTH_ATTR_2", "AdditionalProperty": "", "Processor": "databricks-token|0711-011053-turfs581|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive", "IsAuditTable": false, "SoftDeleteSource": "", "ProjectName": "ISU DATA", "ProjectId": 2, "TargetType": "BLOB Storage (json)", "TargetName": "isu_0UCCONTRACTH_ATTR_2", "TargetLocation": "isu/0UCCONTRACTH_ATTR_2", "TargetServer": "daf-sa-lake-sastoken", "DataLoadMode": "FULL-EXTRACT", "DeltaExtract": false, "CDCSource": false, "TruncateTarget": false, "UpsertTarget": true, "AppendTarget": null, "TrackChanges": false, "LoadToSqlEDW": true, "TaskName": "isu_0UCCONTRACTH_ATTR_2", "ControlStageId": 2, "TaskId": 46, "StageSequence": 200, "StageName": "Raw to Cleansed", "SourceId": 46, "TargetId": 46, "ObjectGrain": "Day", "CommandTypeId": 8, "Watermarks": "", "WatermarksDT": null, "WatermarkColumn": "", "BusinessKeyColumn": "contractId,validToDate", "UpdateMetaData": null, "SourceTimeStampFormat": "", "Command": "", "LastLoadedFile": null}
+#{"SourceType": "BLOB Storage (json)", "SourceServer": "daf-sa-lake-sastoken", "SourceGroup": "isu", "SourceName": "isu_0UCCONTRACTH_ATTR_2", "SourceLocation": "isu/0UCCONTRACTH_ATTR_2", "AdditionalProperty": "", "Processor": "databricks-token|0711-011053-turfs581|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive", "IsAuditTable": false, "SoftDeleteSource": "", "ProjectName": "ISU DATA", "ProjectId": 2, "TargetType": "BLOB Storage (json)", "TargetName": "isu_0UCCONTRACTH_ATTR_2", "TargetLocation": "isu/0UCCONTRACTH_ATTR_2", "TargetServer": "daf-sa-lake-sastoken", "DataLoadMode": "FULL-EXTRACT", "DeltaExtract": false, "CDCSource": false, "TruncateTarget": false, "UpsertTarget": true, "AppendTarget": null, "TrackChanges": false, "LoadToSqlEDW": true, "TaskName": "isu_0UCCONTRACTH_ATTR_2", "ControlStageId": 2, "TaskId": 46, "StageSequence": 200, "StageName": "Raw to Cleansed", "SourceId": 46, "TargetId": 46, "ObjectGrain": "Day", "CommandTypeId": 8, "Watermarks": "", "WatermarksDT": null, "WatermarkColumn": "", "BusinessKeyColumn": "VERTRAG,BIS", "UpdateMetaData": null, "SourceTimeStampFormat": "", "Command": "", "LastLoadedFile": null}
 
 #Use this string in the Source Object widget
 #isu_0UCCONTRACTH_ATTR_2
@@ -176,29 +176,29 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT \
-	VERTRAG as contractId, \
-	to_date(BIS) as validToDate, \
-	to_date(AB) as validFromDate, \
-	ANLAGE as installationId, \
-	CONTRACTHEAD as contractHeadGUID, \
-	CONTRACTPOS as contractPosGUID, \
-	PRODID as productId, \
-	PRODUCT_GUID as productGUID, \
-	CAMPAIGN as marketingCampaign, \
-	LOEVM as deletedIndicator, \
-	PRODCH_BEG as productBeginIndicator, \
-	PRODCH_END as productChangeIndicator, \
-	XREPLCNTL as replicationControls, \
-	to_date(ERDAT) as createdDate, \
-	ERNAM as createdBy, \
-	to_date(AEDAT) as lastChangedDate, \
-	OUCONTRACT as individualContractID, \
-	AENAM as lastChangedBy, \
-	_RecordStart, \
-	_RecordEnd, \
-	_RecordDeleted, \
-	_RecordCurrent \
-	FROM {ADS_DATABASE_STAGE}.{source_object}")
+                            case when VERTRAG = 'na' then '' else VERTRAG end as contractId, \
+                            to_date((case when BIS = 'na' then '1900-01-01' else BIS end), 'yyyy-MM-dd') as validToDate, \
+                            to_date(AB, 'yyyy-MM-dd') as validFromDate, \
+                            ANLAGE as installationId, \
+                            CONTRACTHEAD as contractHeadGUID, \
+                            CONTRACTPOS as contractPosGUID, \
+                            PRODID as productId, \
+                            PRODUCT_GUID as productGUID, \
+                            CAMPAIGN as marketingCampaign, \
+                            LOEVM as deletedIndicator, \
+                            PRODCH_BEG as productBeginIndicator, \
+                            PRODCH_END as productChangeIndicator, \
+                            XREPLCNTL as replicationControls, \
+                            to_date(ERDAT, 'yyyy-MM-dd') as createdDate, \
+                            ERNAM as createdBy, \
+                            to_date(AEDAT, 'yyyy-MM-dd') as lastChangedDate, \
+                            OUCONTRACT as individualContractID, \
+                            AENAM as lastChangedBy, \
+                            _RecordStart, \
+                            _RecordEnd, \
+                            _RecordDeleted, \
+                            _RecordCurrent \
+                          FROM {ADS_DATABASE_STAGE}.{source_object}")
 
 display(df_cleansed)
 print(f'Number of rows: {df_cleansed.count()}')
@@ -206,29 +206,29 @@ print(f'Number of rows: {df_cleansed.count()}')
 # COMMAND ----------
 
 newSchema = StructType([
-	StructField('contractId',StringType(),False),
-	StructField('validToDate',DateType(),True),
-	StructField('validFromDate',DateType(),True),
-	StructField('installationId',StringType(),True),
-	StructField('contractHeadGUID',StringType(),True),
-	StructField('contractPosGUID',StringType(),True),
-	StructField('productId',StringType(),True),
-	StructField('productGUID',StringType(),True),
-	StructField('marketingCampaign',StringType(),True),
-	StructField('deletedIndicator',StringType(),True),
-	StructField('productBeginIndicator',StringType(),True),
-	StructField('productChangeIndicator',StringType(),True),
-	StructField('replicationControls',StringType(),True),
-	StructField('createdDate',DateType(),True),
-	StructField('createdBy',StringType(),True),
-	StructField('lastChangedDate',DateType(),True),
-	StructField('individualContractID',StringType(),True),
-	StructField('lastChangedBy',StringType(),True),
-	StructField('_RecordStart',TimestampType(),False),
-	StructField('_RecordEnd',TimestampType(),False),
-	StructField('_RecordDeleted',IntegerType(),False),
-	StructField('_RecordCurrent',IntegerType(),False)
-])
+                        StructField('contractId',StringType(),False),
+                        StructField('validToDate',DateType(),False),
+                        StructField('validFromDate',DateType(),True),
+                        StructField('installationId',StringType(),True),
+                        StructField('contractHeadGUID',StringType(),True),
+                        StructField('contractPosGUID',StringType(),True),
+                        StructField('productId',StringType(),True),
+                        StructField('productGUID',StringType(),True),
+                        StructField('marketingCampaign',StringType(),True),
+                        StructField('deletedIndicator',StringType(),True),
+                        StructField('productBeginIndicator',StringType(),True),
+                        StructField('productChangeIndicator',StringType(),True),
+                        StructField('replicationControls',StringType(),True),
+                        StructField('createdDate',DateType(),True),
+                        StructField('createdBy',StringType(),True),
+                        StructField('lastChangedDate',DateType(),True),
+                        StructField('individualContractID',StringType(),True),
+                        StructField('lastChangedBy',StringType(),True),
+                        StructField('_RecordStart',TimestampType(),False),
+                        StructField('_RecordEnd',TimestampType(),False),
+                        StructField('_RecordDeleted',IntegerType(),False),
+                        StructField('_RecordCurrent',IntegerType(),False)
+                      ])
 
 df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
 

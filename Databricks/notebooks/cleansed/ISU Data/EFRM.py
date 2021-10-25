@@ -176,7 +176,7 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT \
-                            FORMKEY as applicationForm, \
+                            case when FORMKEY = 'na' then '' else FORMKEY end as applicationForm, \
                             FORMCLASS as formClass, \
                             TDFORM as formName, \
                             EXIT_BIBL as userExitInclude, \
