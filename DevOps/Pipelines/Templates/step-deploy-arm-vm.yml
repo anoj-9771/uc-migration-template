@@ -1,0 +1,37 @@
+parameters:
+- name: AzDoServiceConnection # name of the parameter; required
+  type: string # data type of the parameter; required
+- name: resource_group
+  type: string
+
+steps:
+
+  - task: AzureCLI@2
+    displayName: 'Add sp to ACL policy'
+    name: add_sp_to_acl_policy_sql
+    inputs:
+      azureSubscription: ${{ parameters.AzDoServiceConnection }}
+      scriptType: bash
+      scriptLocation: inlineScript
+      inlineScript: |
+        az keyvault set-policy --name "$(AZUREKEYVAULTNAME)" --secret-permissions set delete list get --object-id "$(SPOBJECTID)"
+
+  - task: AzureKeyVault@1
+    displayName: 'Get secrets'
+    inputs:
+      azureSubscription: ${{ parameters.AzDoServiceConnection }}
+      keyVaultName: $(AZUREKEYVAULTNAME)
+      secretsFilter: 'AzureSQLServerPw'
+
+  - task: AzureResourceGroupDeployment@2
+    inputs:
+      azureSubscription: ${{ parameters.AzDoServiceConnection }}
+      action: 'Create Or Update Resource Group'
+      resourceGroupName: ${{ parameters.resource_group }}
+      location: $(LOCATION)
+      templateLocation: 'Linked artifact'
+      csmFile: '$(Pipeline.Workspace)/arm_templates/arm-vm-devops.json'
+      overrideParameters: '-location $(LOCATION) -adminUsername $(adminUsername) -adminPassword $(AzureSQLServerPw) -OSVersion $(OSVersion) -vmSize $(vmSize) -vmName $(vmName) -subnetId $(internalSubnetId)'
+      deploymentMode: 'Incremental'
+      deploymentOutputs: 'armOutputs'
+    displayName: 'Deploy VM Az Devops'

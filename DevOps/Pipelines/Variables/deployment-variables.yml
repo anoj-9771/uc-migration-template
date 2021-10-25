@@ -57,4 +57,13 @@ variables:
   # Avoid issues with Arm Templates when Deploying to Existing Environments
   - name: firstRun
     value: true
+  # Use to set Azure Devops Self-Hosted Agent VM deployability
+  - name: devopsvm
+    value: true
+  # Use to set Integration Runtime Self-Hosted VM deployability
+  - name: irvm
+    value: false
+  # Use to set Collibra VM deployability
+  - name: collibravm
+    value: false
   

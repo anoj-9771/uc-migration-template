@@ -221,7 +221,6 @@ stages:
     - template: job-deploy-controldb.yml
       parameters:
         AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
-
  
   
   
