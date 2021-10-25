@@ -233,11 +233,15 @@ df_cleansed = spark.sql(f"SELECT \
                                 BP._RecordDeleted, \
                                 BP._RecordCurrent \
                                FROM {ADS_DATABASE_STAGE}.{source_object} BP \
-                               LEFT OUTER JOIN CLEANSED.isu_0BPARTNER_TEXT BP_TXT \
+                               LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0BPARTNER_TEXT BP_TXT \
                                  ON BP.PARTNER = BP_TXT.businessPartnerNumber AND BP.TYPE =BP_TXT.businessPartnerCategoryCode \
-                               LEFT OUTER JOIN CLEANSED.isu_0BPTYPE_TEXT BPTYPE ON BP.BPKIND = BPTYPE.businessPartnerTypeCode \
-                               LEFT OUTER JOIN CLEANSED.isu_0BP_GROUP_TEXT BPGRP ON BP.BU_GROUP = BPGRP.businessPartnerGroupCode \
-                               LEFT OUTER JOIN CLEANSED.isu_TSAD3T TITLE ON BP.TITLE = TITLE.titlecode")
+                                                                              AND BP_TXT._RecordDeleted = 0 AND BP_TXT._RecordCurrent = 1 \
+                               LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0BPTYPE_TEXT BPTYPE ON BP.BPKIND = BPTYPE.businessPartnerTypeCode \
+                                                                              AND BPTYPE._RecordDeleted = 0 AND BPTYPE._RecordCurrent = 1 \
+                               LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0BP_GROUP_TEXT BPGRP ON BP.BU_GROUP = BPGRP.businessPartnerGroupCode \
+                                                                              AND BPGRP._RecordDeleted = 0 AND BPGRP._RecordCurrent = 1 \
+                               LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_TSAD3T TITLE ON BP.TITLE = TITLE.titlecode \
+                                                                              AND TITLE._RecordDeleted = 0 AND TITLE._RecordCurrent = 1")
 
 display(df_cleansed)
 print(f'Number of rows: {df_cleansed.count()}')
