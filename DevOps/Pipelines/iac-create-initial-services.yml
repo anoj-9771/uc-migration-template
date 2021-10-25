@@ -133,7 +133,7 @@ stages:
 # Release to Pre-Prod
 - stage: deploy_to_preprd
   dependsOn: 'build'
-  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/bruno-sandbox'))
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
   variables:
   - template: Variables/preprd-variables.yml
   jobs:
