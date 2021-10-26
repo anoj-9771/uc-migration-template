@@ -164,7 +164,7 @@ DeltaSaveToDeltaTable (
 # COMMAND ----------
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
-#Update/rename Column
+{ADS_DATABASE_CLEANSED}#Update/rename Column
 df_cleansed = spark.sql(f"SELECT \
                                   case when DEVCAT.MATNR = 'na' then '' else DEVCAT.MATNR end as materialNumber,\
                                   DEVCAT.KOMBINAT as deviceCategoryCombination,\
@@ -193,9 +193,12 @@ df_cleansed = spark.sql(f"SELECT \
                                   DEVCAT._RecordDeleted, \
                                   DEVCAT._RecordCurrent \
                               FROM {ADS_DATABASE_STAGE}.{source_object} DEVCAT \
-                              LEFT OUTER JOIN CLEANSED.isu_0UC_FUNKLAS_TEXT FKLASTX ON DEVCAT.FUNKLAS = FKLASTX.functionClassCode \
-                              LEFT OUTER JOIN CLEANSED.isu_0UC_BAUKLAS_TEXT BKLASTX ON DEVCAT.BAUKLAS = BKLASTX.constructionClassCode \
-                              LEFT OUTER JOIN CLEANSED.isu_0UC_REGGRP_TEXT REGGRP ON DEVCAT.ZWGRUPPE = REGGRP.registerGroupCode")
+                              LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UC_FUNKLAS_TEXT FKLASTX ON DEVCAT.FUNKLAS = FKLASTX.functionClassCode \
+                                                                                                    and FKLASTX._RecordDeleted = 0 and FKLASTX._RecordCurrent = 1 \
+                              LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UC_BAUKLAS_TEXT BKLASTX ON DEVCAT.BAUKLAS = BKLASTX.constructionClassCode \
+                                                                                                    and BKLASTX._RecordDeleted = 0 and BKLASTX._RecordCurrent = 1 \
+                              LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UC_REGGRP_TEXT REGGRP ON DEVCAT.ZWGRUPPE = REGGRP.registerGroupCode \
+                                                                                                    and REGGRP._RecordDeleted = 0 and REGGRP._RecordCurrent = 1")
                                    
 display(df_cleansed)
 print(f'Number of rows: {df_cleansed.count()}')

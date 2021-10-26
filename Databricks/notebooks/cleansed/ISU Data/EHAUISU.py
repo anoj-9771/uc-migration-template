@@ -3,10 +3,10 @@
 import json
 #For unit testing...
 #Use this string in the Param widget: 
-#{"SourceType": "BLOB Storage (json)", "SourceServer": "daf-sa-lake-sastoken", "SourceGroup": "isu", "SourceName": "isu_0DF_REFIXFI_ATTR", "SourceLocation": "isu/0DF_REFIXFI_ATTR", "AdditionalProperty": "", "Processor": "databricks-token|0711-011053-turfs581|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive", "IsAuditTable": false, "SoftDeleteSource": "", "ProjectName": "SAP DATA", "ProjectId": 2, "TargetType": "BLOB Storage (json)", "TargetName": "isu_0DF_REFIXFI_ATTR", "TargetLocation": "isu/0DF_REFIXFI_ATTR", "TargetServer": "daf-sa-lake-sastoken", "DataLoadMode": "FULL-EXTRACT", "DeltaExtract": false, "CDCSource": false, "TruncateTarget": false, "UpsertTarget": true, "AppendTarget": null, "TrackChanges": false, "LoadToSqlEDW": true, "TaskName": "isu_0DF_REFIXFI_ATTR", "ControlStageId": 2, "TaskId": 46, "StageSequence": 200, "StageName": "Raw to Cleansed", "SourceId": 46, "TargetId": 46, "ObjectGrain": "Day", "CommandTypeId": 8, "Watermarks": "", "WatermarksDT": null, "WatermarkColumn": "", "BusinessKeyColumn": "INTRENO,FIXFITCHARACT,VALIDTO", "UpdateMetaData": null, "SourceTimeStampFormat": "", "Command": "", "LastLoadedFile": null}
+#$PARAM
 
 #Use this string in the Source Object widget
-#isu_0DF_REFIXFI_ATTR
+#$GROUP_$SOURCE
 
 # COMMAND ----------
 
@@ -175,51 +175,53 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_cleansed = spark.sql(f"SELECT \
-	case when INTRENO = 'na' then '' else INTRENO end as architecturalObjectInternalId, \
-	case when FIXFITCHARACT = 'na' then '' else FIXFITCHARACT end as fixtureAndFittingCharacteristicCode, \
-	case when VALIDTO = 'na' then to_date('19000101','yyyyMMdd') else to_date(VALIDTO) end as validToDate, \
-	to_date(VALIDFROM) as validFromDate, \
-	WEIGHT as weightingValue, \
-	cast(RESULTVAL as int) as resultValue, \
-	cast(ADDITIONALINFO as int) as characteristicAdditionalValue, \
-    cast(AMOUNTPERAREA as dec(18,6)) as amountPerAreaUnit, \
-	FFCTACCURATE as applicableIndicator, \
-	cast(CHARACTAMTAREA as int) as characteristicAmountArea, \
-	CHARACTPERCENT as characteristicPercentage, \
-	cast(CHARACTAMTABS as dec(18,6)) as characteristicPriceAmount, \
+df_cleansed = spark.sql("SELECT \
+	eh.HAUS as propertyNumber, \
+	case when eh.INTRENO = 'na' then '' else eh.INTRENO end as architecturalObjectInternalId, \
+	eh.AOTYPE_AO as architecturalObjectTypeCode, \
+	ob.XMAOTYPE as architecturalObjectType, \
+	eh.AONR_AO as architecturalObjectNumber, \
+	eh.PARENT as parentArchitecturalObjectInternalId, \
+	eh.AOTYPE_PA as parentArchitecturalObjectTypeCode, \
+	pa.XMAOTYPE as as parentArchitecturalObjectType, \
+	eh.AONR_PA as parentArchitecturalObjectNumber, \
+	eh.PARENT_PROPERTY as parentPropertyNumber, \
 	_RecordStart, \
 	_RecordEnd, \
 	_RecordDeleted, \
 	_RecordCurrent \
-	FROM {ADS_DATABASE_STAGE}.{source_object}")
+	FROM {ADS_DATABASE_STAGE}.{source_object} eh \
+    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_TIVBDAROBJTYPET ob ON eh.AOTYPE_AO = ob.AOTYPE and ob._RecordDeleted = 0 and ob._RecordCurrent = 1 \
+    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_TIVBDAROBJTYPET pa ON eh.AOTYPE_PA = pa.AOTYPE and pa._RecordDeleted = 0 and pa._RecordCurrent = 1")
 
 display(df_cleansed)
 print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
 
-newSchema = StructType([
-	StructField('architecturalObjectInternalId',StringType(),False),
-	StructField('fixtureAndFittingCharacteristicCode',StringType(),False),
-	StructField('validToDate',DateType(),False),
-	StructField('validFromDate',DateType(),True),
-	StructField('weightingValue',StringType(),True),
-	StructField('resultValue',IntegerType(),True),
-	StructField('characteristicAdditionalValue',IntegerType(),True),
-	StructField('amountPerAreaUnit',DecimalType(18,6),True),
-	StructField('applicableIndicator',StringType(),True),
-	StructField('characteristicAmountArea',IntegerType(),True),
-	StructField('characteristicPercentage',StringType(),True),
-	StructField('characteristicPriceAmount',DecimalType(18,6),True),
-	StructField('_RecordStart',TimestampType(),False),
-	StructField('_RecordEnd',TimestampType(),False),
-	StructField('_RecordDeleted',IntegerType(),False),
-	StructField('_RecordCurrent',IntegerType(),False)
-])
+# Create schema for the cleanse table
+newSchema = StructType(
+                           [
+                            StructField("propertyNumber", StringType(), True),
+                            StructField("architecturalObjectInternalId", StringType(), False),
+                            StructField("architecturalObjectTypeCode", StringType(), True),
+                            StructField("architecturalObjectType", StringType(), True),
+                            StructField("architecturalObjectNumber", StringType(), True),
+                            StructField("parentArchitecturalObjectInternalId", StringType(), True),
+                            StructField("parentArchitecturalObjectTypeCode", StringType(), True),
+                            StructField("parentArchitecturalObjectType", StringType(), True),
+                            StructField("parentArchitecturalObjectNumber", StringType(), True),
+                            StructField("parentPropertyNumber", StringType(), True),                             
+                            StructField('_RecordStart',TimestampType(),False),
+                            StructField('_RecordEnd',TimestampType(),False),
+                            StructField('_RecordDeleted',IntegerType(),False),
+                            StructField('_RecordCurrent',IntegerType(),False)
+                            ]
+                        )
 
+# Apply the new schema to cleanse Data Frame
 df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
-display(df_updated_column)
+characteristicName
 
 # COMMAND ----------
 
