@@ -146,6 +146,7 @@ print("delta_column: " + delta_column)
 #Get the Data Load Mode using the params
 data_load_mode = GeneralGetDataLoadMode(Params[PARAMS_TRUNCATE_TARGET], Params[PARAMS_UPSERT_TARGET], Params[PARAMS_APPEND_TARGET])
 print("data_load_mode: " + data_load_mode)
+
 # COMMAND ----------
 
 # DBTITLE 1,9. Set raw and cleansed table name
@@ -193,7 +194,7 @@ df_cleansed = spark.sql(f"SELECT cast(N_PROP as int) AS propertyNumber, \
         initcap(f.consumptionType) as consumptionType, \
 		C_METE_READ_STAT AS meterReadingStatusCode, \
         initcap(g.meterReadingStatus) as meterReadingStatus, \
-		coalesce(C_METE_CANT_READ,'') AS cannotReadCode, \
+		case when C_METE_CANT_READ = 'na' then '' else c_mete_cant_read end AS cannotReadCode, \
         initcap(h.cannotReadReason) as cannotReadReason, \
 		C_PDE_READ_METH AS PDEReadingMethodCode, \
         initcap(i.PDEReadingMethod) as PDEReadingMethod, \
@@ -223,7 +224,7 @@ df_cleansed = spark.sql(f"SELECT cast(N_PROP as int) AS propertyNumber, \
          left outer join CLEANSED.access_Z309_TMETEREADTYPE e on a.C_METE_READ_TYPE = e.meterReadingTypeCode \
          left outer join CLEANSED.access_Z309_TMETEREADCONTYP f on a.C_METE_READ_CONS = f.consumptionTypeCode \
          left outer join CLEANSED.access_Z309_TMRSTATUSTYPE g on a.C_METE_READ_STAT = g.meterReadingStatusCode \
-         left outer join CLEANSED.access_Z309_TMETERCANTREAD h on coalesce(a.C_METE_CANT_READ,'') = h.cannotReadCode \
+         left outer join CLEANSED.access_Z309_TMETERCANTREAD h on coalesce(a.C_METE_CANT_READ,'na') = h.cannotReadCode \
          left outer join CLEANSED.access_Z309_TPDEREADMETH i on a.C_PDE_READ_METH = i.PDEReadingMethodCode \
          ")
 
@@ -274,6 +275,7 @@ print(f'Number of rows: {df_updated_column.count()}')
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
 DeltaSaveDataframeDirect(df_updated_column, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
+
 # COMMAND ----------
 
 # DBTITLE 1,13. Exit Notebook
