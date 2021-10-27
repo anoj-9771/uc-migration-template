@@ -149,7 +149,7 @@ variables:
   - name: synapsesqlAdministratorLogin
     value: sqladminuser
   - name: synapsesqlPoolName
-    value: syndw-$(SUBSCRIPTION)-$(PREFIX)-$(ENVIRONMENT)-$(INCREMENT)
+    value: syndw$(ENVIRONMENT)$(INCREMENT)
   - name: defaultAdlsGen2AccountResourceId
     value: /subscriptions/$(subscriptionId)/resourcegroups/$(resourcegroupname)/providers/Microsoft.Storage/storageAccounts/$(defaultDataLakeStorageAccountName)
   # ------------------------------------------------
