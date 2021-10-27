@@ -3,7 +3,8 @@
 import json
 accessTable = 'Z309_TMETERCANTREAD'
 
-runParm = '{"SourceType":"Flat File","SourceServer":"saswcnonprod01landingdev-sastoken","SourceGroup":"access","SourceName":"access_access/####_csv","SourceLocation":"access/####.csv","AdditionalProperty":"","Processor":"databricks-token|0705-044124-gored835|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive","IsAuditTable":false,"SoftDeleteSource":"","ProjectName":"Access Data","ProjectId":2,"TargetType":"BLOB Storage (csv)","TargetName":"access_access/####_csv","TargetLocation":"access/####","TargetServer":"daf-sa-lake-sastoken","DataLoadMode":"TRUNCATE-LOAD","DeltaExtract":false,"CDCSource":false,"TruncateTarget":true,"UpsertTarget":false,"AppendTarget":null,"TrackChanges":false,"LoadToSqlEDW":true,"TaskName":"access_access/####_csv","ControlStageId":1,"TaskId":4,"StageSequence":100,"StageName":"Source to Raw","SourceId":4,"TargetId":4,"ObjectGrain":"Day","CommandTypeId":5,"Watermarks":"","WatermarksDT":null,"WatermarkColumn":"","BusinessKeyColumn":"","UpdateMetaData":null,"SourceTimeStampFormat":"","Command":"","LastLoadedFile":null}'
+runParm = "{\"SourceType\":\"BLOB Storage (csv)\",\"SourceServer\":\"daf-sa-lake-sastoken\",\"SourceGroup\":\"accessdata\",\"SourceName\":\"access_Z309_TMETERCANTREAD\",\"SourceLocation\":\"accessdata/Z309_TMETERCANTREAD\",\"AdditionalProperty\":\"\",\"Processor\":\"databricks-token|0705-044124-gored835|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive\",\"IsAuditTable\":false,\"SoftDeleteSource\":\"\",\"ProjectName\":\"ACCESSDATA\",\"ProjectId\":3,\"TargetType\":\"BLOB Storage (csv)\",\"TargetName\":\"access_Z309_TMETERCANTREAD\",\"TargetLocation\":\"accessdata/Z309_TMETERCANTREAD\",\"TargetServer\":\"daf-sa-lake-sastoken\",\"DataLoadMode\":\"TRUNCATE-LOAD\",\"DeltaExtract\":false,\"CDCSource\":false,\"TruncateTarget\":true,\"UpsertTarget\":false,\"AppendTarget\":null,\"TrackChanges\":false,\"LoadToSqlEDW\":true,\"TaskName\":\"access_Z309_TMETERCANTREAD\",\"ControlStageId\":2,\"TaskId\":808,\"StageSequence\":200,\"StageName\":\"Raw to Cleansed\",\"SourceId\":808,\"TargetId\":808,\"ObjectGrain\":\"Day\",\"CommandTypeId\":8,\"Watermarks\":\"\",\"WatermarksDT\":null,\"WatermarkColumn\":\"\",\"BusinessKeyColumn\":\"C_METE_CANT_READ\",\"UpdateMetaData\":null,\"SourceTimeStampFormat\":\"\",\"Command\":\"/build/cleansed/ACCESS Data/Z309_TMETERCANTREAD\",\"LastLoadedFile\":null}"
+
 
 s = json.loads(runParm)
 for parm in ['SourceName','SourceLocation','TargetName','TargetLocation','TaskName']:
@@ -146,6 +147,7 @@ print("delta_column: " + delta_column)
 #Get the Data Load Mode using the params
 data_load_mode = GeneralGetDataLoadMode(Params[PARAMS_TRUNCATE_TARGET], Params[PARAMS_UPSERT_TARGET], Params[PARAMS_APPEND_TARGET])
 print("data_load_mode: " + data_load_mode)
+
 # COMMAND ----------
 
 # DBTITLE 1,9. Set raw and cleansed table name
@@ -182,7 +184,7 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_cleansed = spark.sql(f"SELECT coalesce(C_METE_CANT_READ,'') AS cannotReadCode, \
+df_cleansed = spark.sql(f"SELECT case when C_METE_CANT_READ = 'na' then '' else C_METE_CANT_READ end AS cannotReadCode, \
 		initcap(T_METE_CANT_READ) AS cannotReadReason, \
 		T_CANT_READ_ABBR AS cannotReadAbbreviation, \
 		to_date(D_CANT_READ_EFFE, 'yyyyMMdd') AS cannotReadEffectiveDate, \
@@ -220,6 +222,7 @@ print(f'Number of rows: {df_updated_column.count()}')
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
 DeltaSaveDataframeDirect(df_updated_column, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
+
 # COMMAND ----------
 
 # DBTITLE 1,13. Exit Notebook
