@@ -49,7 +49,7 @@ stages:
         secretsFilter: 'databricks-token'
         
     # Authenticate with Databricks CLI
-    - bash: |
+    - script: |
         databricks configure --token <<EOF
         https://${{ variables.location }}.azuredatabricks.net
         $(DATABRICKS-TOKEN)
