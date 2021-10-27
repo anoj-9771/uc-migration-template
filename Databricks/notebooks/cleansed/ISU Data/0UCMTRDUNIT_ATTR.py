@@ -201,7 +201,7 @@ df_cleansed = spark.sql(f"SELECT \
 	SPARTENTY5 as divisionCategory5, \
 	IDENT as factoryCalendar, \
 	SAPKAL as correctHolidayToWorkDay, \
-	STICHTAG as billingKeyDate, \
+	to_date(STICHTAG) as billingKeyDate, \
 	TAGE as numberOfDays, \
 	AUF_KAL as intervalBetweenOrderAndPlanned, \
 	ABL_Z as meterReadingCenter, \
@@ -242,7 +242,7 @@ newSchema = StructType([
 	StructField('divisionCategory5',StringType(),True),
 	StructField('factoryCalendar',StringType(),True),
 	StructField('correctHolidayToWorkDay',StringType(),True),
-	StructField('billingKeyDate',StringType(),True),
+	StructField('billingKeyDate',DateType(),True),
 	StructField('numberOfDays',StringType(),True),
 	StructField('intervalBetweenOrderAndPlanned',StringType(),True),
 	StructField('meterReadingCenter',StringType(),True),
