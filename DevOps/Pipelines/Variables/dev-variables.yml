@@ -137,7 +137,6 @@ variables:
     value: 2
   - name: databricksautotermination
     value: 10
-
   # ------------------------------------------------
   # Synapse Analytics related
   # ------------------------------------------------
