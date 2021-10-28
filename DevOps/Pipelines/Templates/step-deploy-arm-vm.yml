@@ -3,6 +3,16 @@ parameters:
   type: string # data type of the parameter; required
 - name: resource_group
   type: string
+- name: vmSize
+  type: string
+- name: vmName
+  type: string
+- name: publisher
+  type: string
+- name: OSVersion
+  type: string
+- name: offer
+  type: string
 
 steps:
 
