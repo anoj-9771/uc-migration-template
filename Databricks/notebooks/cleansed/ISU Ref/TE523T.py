@@ -177,7 +177,7 @@ DeltaSaveToDeltaTable (
 #Update/rename Column
 
 df_cleansed = spark.sql(f"SELECT  \
-                                  ZWART as registerTypeCode , \
+                                  case when ZWART = 'na' then '' else ZWART end as registerTypeCode , \
                                   ZWARTTXT as registerType , \
                                   _RecordStart, \
                                   _RecordEnd, \

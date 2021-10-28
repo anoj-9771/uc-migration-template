@@ -177,7 +177,7 @@ DeltaSaveToDeltaTable (
 #Update/rename Column
 
 df_cleansed = spark.sql(f"SELECT  \
-                                  MANOUTS_IN as manualOutsortingReasonCode , \
+                                  case when MANOUTS_IN = 'na' then '' else MANOUTS_IN end as manualOutsortingReasonCode , \
                                   TEXT30 as manualOutsortingReasonDescription , \
                                   _RecordStart, \
                                   _RecordEnd, \
