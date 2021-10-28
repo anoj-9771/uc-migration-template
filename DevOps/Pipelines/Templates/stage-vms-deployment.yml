@@ -63,6 +63,9 @@ stages:
           resource_group: ${{ variables.resourcegroupname }}
           vmSize: ${{ variables.vmSizeIR }}
           vmName: ${{ variables.vmNameIR }}
+          OSVersion: ${{ variables.OSVersion }}
+          publisher: ${{ variables.publisher }}
+          offer: ${{ variables.offer }}
     
     # Deploy Collibra VM
     - ${{ if eq(variables['collibravm'], true) }}:
@@ -72,7 +75,10 @@ stages:
           resource_group: ${{ variables.resourcegroupname }}
           vmSize: ${{ variables.vmSizeCollibra }}
           vmName: ${{ variables.vmNameCollibra }}
-  
+          OSVersion: ${{ variables.OSVersion }}
+          publisher: ${{ variables.publisher }}
+          offer: ${{ variables.offer }}
+
     # Deploy SLT
     - ${{ if eq(variables['sltvm'], true) }}:
       - template: step-deploy-arm-vm.yml
@@ -81,6 +87,9 @@ stages:
           resource_group: ${{ variables.resourcegroupname }}
           vmSize: ${{ variables.vmSizeSlt }}
           vmName: ${{ variables.vmNameSlt }}
+          OSVersion: ${{ variables.OSVersion }}
+          publisher: ${{ variables.publisher }}
+          offer: ${{ variables.offer }}
 
     
  
