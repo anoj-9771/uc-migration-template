@@ -17,8 +17,8 @@ parameters:
 steps:
 
   - task: AzureCLI@2
-    displayName: 'Add sp to ACL policy'
-    name: add_sp_to_acl_policy_sql
+    displayName: 'Add sp to ACL policy $(vmname)'
+    name: add_sp_to_acl_policy_sql_$(vmname)
     inputs:
       azureSubscription: ${{ parameters.AzDoServiceConnection }}
       scriptType: bash
