@@ -176,29 +176,27 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT \
-	MANDT as clientId, \
-	VSTELLE as premise, \
-	HAUS as propertyNumber, \
-	VBSART as typeOfPremise, \
-	EIGENT as owner, \
-	OBJNR as objectNumber, \
-	TPLNUMMER as functionalLocationNumber, \
-	to_date(ERDAT, 'yyyyMMdd') as createdDate, \
-	ERNAM as createdBy, \
-	to_date(AEDAT, 'yyyyMMdd') as lastChangedDate, \
-	AENAM as lastChangedBy, \
-	LOEVM as deletedIndicator, \
-	cast(ANZPERS as int) as numberOfPersons, \
-	FLOOR as floorNumber, \
-	ROOMNUMBER as appartmentNumber, \
-	HPTWOHNSITZ as mainResidence, \
-	STR_ERG4 as street5, \
-	UPDMOD as bwDeltaProcess, \
-	_RecordStart, \
-	_RecordEnd, \
-	_RecordDeleted, \
-	_RecordCurrent \
-	FROM {ADS_DATABASE_STAGE}.{source_object}")
+                            case when VSTELLE = 'na' then '' else VSTELLE end as premise, \
+                            HAUS as propertyNumber, \
+                            VBSART as typeOfPremise, \
+                            EIGENT as owner, \
+                            OBJNR as objectNumber, \
+                            TPLNUMMER as functionalLocationNumber, \
+                            to_date(ERDAT, 'yyyy-MM-dd') as createdDate, \
+                            ERNAM as createdBy, \
+                            to_date(AEDAT, 'yyyy-MM-dd') as lastChangedDate, \
+                            AENAM as lastChangedBy, \
+                            LOEVM as deletedIndicator, \
+                            cast(ANZPERS as int) as numberOfPersons, \
+                            FLOOR as floorNumber, \
+                            ROOMNUMBER as appartmentNumber, \
+                            HPTWOHNSITZ as mainResidence, \
+                            STR_ERG4 as street5, \
+                            _RecordStart, \
+                            _RecordEnd, \
+                            _RecordDeleted, \
+                            _RecordCurrent \
+                          FROM {ADS_DATABASE_STAGE}.{source_object}")
 
 display(df_cleansed)
 print(f'Number of rows: {df_cleansed.count()}')
@@ -206,29 +204,28 @@ print(f'Number of rows: {df_cleansed.count()}')
 # COMMAND ----------
 
 newSchema = StructType([
-	StructField('clientId',StringType(),False,
-	StructField('premise',StringType(),False,
-	StructField('propertyNumber',StringType(),True,
-	StructField('typeOfPremise',StringType(),True,
-	StructField('owner',StringType(),True,
-	StructField('objectNumber',StringType(),True,
-	StructField('functionalLocationNumber',StringType(),True,
-	StructField('createdDate',DateType(),True,
-	StructField('createdBy',StringType(),True,
-	StructField('lastChangedDate',DateType(),True,
-	StructField('lastChangedBy',StringType(),True,
-	StructField('deletedIndicator',StringType(),True,
-	StructField('numberOfPersons',IntegerType(),True,
-	StructField('floorNumber',StringType(),True,
-	StructField('appartmentNumber',StringType(),True,
-	StructField('mainResidence',StringType(),True,
-	StructField('street5',StringType(),True,
-	StructField('bwDeltaProcess',StringType(),True,
-	StructField('_RecordStart',TimestampType(),False),
-	StructField('_RecordEnd',TimestampType(),False),
-	StructField('_RecordDeleted',IntegerType(),False),
-	StructField('_RecordCurrent',IntegerType(),False)
-])
+                          StructField('premise',StringType(),False),
+                          StructField('propertyNumber',StringType(),True),
+                          StructField('typeOfPremise',StringType(),True),
+                          StructField('owner',StringType(),True),
+                          StructField('objectNumber',StringType(),True),
+                          StructField('functionalLocationNumber',StringType(),True),
+                          StructField('createdDate',DateType(),True),
+                          StructField('createdBy',StringType(),True),
+                          StructField('lastChangedDate',DateType(),True),
+                          StructField('lastChangedBy',StringType(),True),
+                          StructField('deletedIndicator',StringType(),True),
+                          StructField('numberOfPersons',StringType(),True),
+                          StructField('floorNumber',StringType(),True),
+                          StructField('appartmentNumber',StringType(),True),
+                          StructField('mainResidence',StringType(),True),
+                          StructField('street5',StringType(),True),
+                          StructField('bwDeltaProcess',StringType(),True),
+                          StructField('_RecordStart',TimestampType(),False),
+                          StructField('_RecordEnd',TimestampType(),False),
+                          StructField('_RecordDeleted',IntegerType(),False),
+                          StructField('_RecordCurrent',IntegerType(),False)
+                      ])
 
 df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
 

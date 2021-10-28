@@ -176,25 +176,26 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT  \
-                                  ANLAGE as installationId, \
-                                  to_date(BIS, 'yyyy-MM-dd') as validToDate, \
-                                  to_date(AB, 'yyyy-MM-dd') as validFromDate, \
+                                  case when stg.ANLAGE = 'na' then '' else stg.ANLAGE end as installationId, \
+                                  case when stg.BIS = 'na' then '19000101' else to_date(stg.BIS, 'yyyy-MM-dd') end as validToDate, \
+                                  to_date(stg.AB, 'yyyy-MM-dd') as validFromDate, \
                                   stg.TARIFTYP as rateCategoryCode, \
                                   tt.TTYPBEZ as rateCategory, \
-                                  BRANCHE as industry, \
-                                  AKLASSE as billingClassCode, \
+                                  stg.BRANCHE as industry, \
+                                  stg.AKLASSE as billingClassCode, \
                                   bc.billingClass as billingClass, \
-                                  ABLEINH as meterReadingUnit, \
-                                  UPDMOD as deltaProcessRecordMode, \
-                                  ZLOGIKNR as logicalDeviceNumber, \
+                                  stg.ABLEINH as meterReadingUnit, \
+                                  stg.UPDMOD as deltaProcessRecordMode, \
+                                  stg.ZLOGIKNR as logicalDeviceNumber, \
                                   stg._RecordStart, \
                                   stg._RecordEnd, \
                                   stg._RecordDeleted, \
                                   stg._RecordCurrent \
                                FROM {ADS_DATABASE_STAGE}.{source_object} stg \
-                                 left outer join cleansed.isu_0uc_aklasse_text bc on bc.billingClass = stg.AKLASSE \
-                                 left outer join cleansed.isu_0uc_tariftyp_text tt on tt.TARIFTYP = stg.TARIFTYP \
-                              ")
+                                 left outer join {ADS_DATABASE_CLEANSED}.isu_0uc_aklasse_text bc on bc.billingClass = stg.AKLASSE \
+                                                                                                    and bc._RecordDeleted = 0 and bc._RecordCurrent = 1 \
+                                 left outer join {ADS_DATABASE_CLEANSED}.isu_0uc_tariftyp_text tt on tt.TARIFTYP = stg.TARIFTYP \
+                                                                                                    and tt._RecordDeleted = 0 and tt._RecordCurrent = 1")
 display(df_cleansed)
 print(f'Number of rows: {df_cleansed.count()}')
 

@@ -314,11 +314,6 @@ display(df_updated_column)
 
 # COMMAND ----------
 
-df = spark.table('cleansed.t_access_z309_tproperty')
-df.printSchema()
-
-# COMMAND ----------
-
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
 DeltaSaveDataframeDirect(df_updated_column, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")

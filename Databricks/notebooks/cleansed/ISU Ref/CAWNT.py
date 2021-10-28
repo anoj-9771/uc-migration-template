@@ -1,21 +1,12 @@
 # Databricks notebook source
 # DBTITLE 1,Generate parameter and source object name for unit testing
 import json
-accessTable = 'Z309_TMETERCANTREAD'
+#For unit testing...
+#Use this string in the Param widget: 
+#$PARAM
 
-runParm = "{\"SourceType\":\"BLOB Storage (csv)\",\"SourceServer\":\"daf-sa-lake-sastoken\",\"SourceGroup\":\"accessdata\",\"SourceName\":\"access_Z309_TMETERCANTREAD\",\"SourceLocation\":\"accessdata/Z309_TMETERCANTREAD\",\"AdditionalProperty\":\"\",\"Processor\":\"databricks-token|0705-044124-gored835|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive\",\"IsAuditTable\":false,\"SoftDeleteSource\":\"\",\"ProjectName\":\"ACCESSDATA\",\"ProjectId\":3,\"TargetType\":\"BLOB Storage (csv)\",\"TargetName\":\"access_Z309_TMETERCANTREAD\",\"TargetLocation\":\"accessdata/Z309_TMETERCANTREAD\",\"TargetServer\":\"daf-sa-lake-sastoken\",\"DataLoadMode\":\"TRUNCATE-LOAD\",\"DeltaExtract\":false,\"CDCSource\":false,\"TruncateTarget\":true,\"UpsertTarget\":false,\"AppendTarget\":null,\"TrackChanges\":false,\"LoadToSqlEDW\":true,\"TaskName\":\"access_Z309_TMETERCANTREAD\",\"ControlStageId\":2,\"TaskId\":808,\"StageSequence\":200,\"StageName\":\"Raw to Cleansed\",\"SourceId\":808,\"TargetId\":808,\"ObjectGrain\":\"Day\",\"CommandTypeId\":8,\"Watermarks\":\"\",\"WatermarksDT\":null,\"WatermarkColumn\":\"\",\"BusinessKeyColumn\":\"C_METE_CANT_READ\",\"UpdateMetaData\":null,\"SourceTimeStampFormat\":\"\",\"Command\":\"/build/cleansed/ACCESS Data/Z309_TMETERCANTREAD\",\"LastLoadedFile\":null}"
-
-
-s = json.loads(runParm)
-for parm in ['SourceName','SourceLocation','TargetName','TargetLocation','TaskName']:
-    s[parm] = s[parm].replace('####',accessTable)
-runParm = json.dumps(s)
-
-# COMMAND ----------
-
-print('Use the following as parameters for unit testing:')
-print(f'access_{accessTable.lower()}')
-print(runParm)
+#Use this string in the Source Object widget
+#$GROUP_$SOURCE
 
 # COMMAND ----------
 
@@ -153,8 +144,8 @@ print("data_load_mode: " + data_load_mode)
 # DBTITLE 1,9. Set raw and cleansed table name
 #Set raw and cleansed table name
 #Delta and SQL tables are case Insensitive. Seems Delta table are always lower case
-delta_cleansed_tbl_name = f'{ADS_DATABASE_CLEANSED}.{target_table}'
-delta_raw_tbl_name = f'{ADS_DATABASE_RAW}.{ source_object}'
+delta_cleansed_tbl_name = "{0}.{1}".format(ADS_DATABASE_CLEANSED, target_table)
+delta_raw_tbl_name = "{0}.{1}".format(ADS_DATABASE_RAW, source_object)
 
 #Destination
 print(delta_cleansed_tbl_name)
@@ -184,38 +175,39 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_cleansed = spark.sql(f"SELECT case when C_METE_CANT_READ = 'na' then '' else C_METE_CANT_READ end AS cannotReadCode, \
-		initcap(T_METE_CANT_READ) AS cannotReadReason, \
-		T_CANT_READ_ABBR AS cannotReadAbbreviation, \
-		to_date(D_CANT_READ_EFFE, 'yyyyMMdd') AS cannotReadEffectiveDate, \
-		to_date(D_CANT_READ_CANC, 'yyyyMMdd') AS cannotReadCancelledDate, \
-		_RecordStart, \
-		_RecordEnd, \
-		_RecordDeleted, \
-		_RecordCurrent \
-	FROM {ADS_DATABASE_STAGE}.{source_object} \
-         ")
+df_cleansed = spark.sql(f"SELECT \
+    ATINN as internalcharacteristic, \
+    ATZHL as internalCounter, \
+    ADZHL as internalCounterforArchivingObjectsbyECM, \
+	ATWTB as characteristicValueDescription, \
+	_RecordStart, \
+	_RecordEnd, \
+	_RecordDeleted, \
+	_RecordCurrent \
+	FROM {ADS_DATABASE_STAGE}.{source_object}")
 
 display(df_cleansed)
-print(f'Number of rows: {df_cleansed.count()}')                        
+print(f'Number of rows: {df_cleansed.count()}')                     
 
 # COMMAND ----------
 
-newSchema = StructType([
-	StructField('cannotReadCode',StringType(),False),
-	StructField('cannotReadReason',StringType(),False),
-	StructField('cannotReadAbbreviation',StringType(),False),
-	StructField('cannotReadEffectiveDate',DateType(),True),
-	StructField('cannotReadCancelledDate',DateType(),True),
-	StructField('_RecordStart',TimestampType(),False),
-	StructField('_RecordEnd',TimestampType(),False),
-	StructField('_RecordDeleted',IntegerType(),False),
-	StructField('_RecordCurrent',IntegerType(),False)
-])
+# Create schema for the cleanse table
+newSchema = StructType(
+                           [
+                            StructField("internalcharacteristic", StringType(), False),
+                            StructField("internalCounter", StringType(), False),
+                            StructField("internalCounterforArchivingObjectsbyECM", StringType(), False),
+                            StructField("characteristicValueDescription", StringType(), True),
+                            StructField('_RecordStart',TimestampType(),False),
+                            StructField('_RecordEnd',TimestampType(),False),
+                            StructField('_RecordDeleted',IntegerType(),False),
+                            StructField('_RecordCurrent',IntegerType(),False)
+                            ]
+                        )
 
+# Apply the new schema to cleanse Data Frame
 df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
-display(df_updated_column)
-print(f'Number of rows: {df_updated_column.count()}')
+characteristicName
 
 # COMMAND ----------
 

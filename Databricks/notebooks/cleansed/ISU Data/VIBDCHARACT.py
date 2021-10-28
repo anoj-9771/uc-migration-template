@@ -193,8 +193,8 @@ df_cleansed = spark.sql(f"SELECT  \
                                   stg._RecordDeleted, \
                                   stg._RecordCurrent \
                                FROM {ADS_DATABASE_STAGE}.{source_object} stg\
-                                 left outer join cleansed.isu_0df_refixfi_text ff on ff.fixtureAndFittingCharacteristicCode = stg.FIXFITCHARACT"
-                              )
+                                 left outer join {ADS_DATABASE_CLEANSED}.isu_0df_refixfi_text ff on ff.fixtureAndFittingCharacteristicCode = stg.FIXFITCHARACT \
+                                                                                                   and ff._RecordDeleted = 0 and ff._RecordCurrent = 1")
 display(df_cleansed)
 print(f'Number of rows: {df_cleansed.count()}')
 

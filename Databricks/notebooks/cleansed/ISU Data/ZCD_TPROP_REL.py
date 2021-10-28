@@ -176,21 +176,23 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT \
-                            stg.PROPERTY1 as property1Number, \
-                            stg.PROPERTY2 as property2Number, \
-                            stg.REL_TYPE1 as relationshipTypeCode1, \
+                            case when stg.PROPERTY1 = 'na' then '' else stg.PROPERTY1 end as property1Number, \
+                            case when stg.PROPERTY2 = 'na' then '' else stg.PROPERTY2 end as property2Number, \
+                            case when stg.REL_TYPE1 = 'na' then '' else stg.REL_TYPE1 end as relationshipTypeCode1, \
                             rtyp1.relationshipTypeDescription as relationshipDescription1, \
-                            stg.REL_TYPE2 as relationshipTypeCode2, \
+                            case when stg.REL_TYPE2 = 'na' then '' else stg.REL_TYPE2 end  as relationshipTypeCode2, \
                             rtyp2.relationshipTypeDescription as relationshipDescription2, \
-                            to_date(stg.DATE_FROM) as validFromDate, \
-                            to_date(stg.DATE_TO) as validToDate, \
+                            to_date((case when stg.DATE_FROM = 'na' then '1900-01-01' else stg.DATE_FROM end), 'yyyy-MM-dd') as validFromDate, \
+                            to_date(stg.DATE_TO, 'yyyy-MM-dd') as validToDate, \
                             stg._RecordStart, \
                             stg._RecordEnd, \
                             stg._RecordDeleted, \
                             stg._RecordCurrent \
                             FROM {ADS_DATABASE_STAGE}.{source_object} stg\
-                            left outer join cleansed.isu_zcd_vireltyptx rtyp1 on stg.REL_TYPE1 = rtyp1.relationshipTypeCode and rtyp1._RecordCurrent = 1 and rtyp1._RecordDeleted = 0 \
-                            left outer join cleansed.isu_zcd_vireltyp2tx rtyp2 on stg.REL_TYPE2 = rtyp2.relationshipTypeCode and rtyp2._RecordCurrent = 1 and rtyp2._RecordDeleted = 0\
+                            left outer join {ADS_DATABASE_CLEANSED}.isu_zcd_vireltyptx rtyp1 on stg.REL_TYPE1 = rtyp1.relationshipTypeCode \
+                                                                                    and rtyp1._RecordCurrent = 1 and rtyp1._RecordDeleted = 0 \
+                            left outer join {ADS_DATABASE_CLEANSED}.isu_zcd_vireltyp2tx rtyp2 on stg.REL_TYPE2 = rtyp2.relationshipTypeCode \
+                                                                                    and rtyp2._RecordCurrent = 1 and rtyp2._RecordDeleted = 0 \
                        ")
 
 display(df_cleansed)

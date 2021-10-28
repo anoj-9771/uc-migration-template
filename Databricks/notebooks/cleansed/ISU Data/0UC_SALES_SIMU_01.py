@@ -176,36 +176,36 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT \
-	SIMRUNID as simulationPeriodID, \
-	BELNR as billingDocumentNumber, \
+	case when SIMRUNID = 'na' then '' else SIMRUNID end as simulationPeriodID, \
+	case when BELNR = 'na' then '' else BELNR end as billingDocumentNumber, \
 	BUKRS as companyCode, \
 	SPARTE as divisonCode, \
 	VKONT as contractAccountNumber, \
 	VERTRAG as contractId, \
 	ABRVORG as billingTransactionCode, \
 	HVORG as mainTransactionLineItemCode, \
-	KOFIZ as contractAccountDeterminationID, \
+	KOFIZ as accountDeterminationID, \
 	PORTION as portionNumber, \
 	cast(ANZTAGE as int) as numberOfContractDaysBilled, \
 	cast(ANZVERTR as int) as numberOfBilledContracts, \
 	cast(CNTBILLDOC as int) as numberOfBillingDocuments, \
-	cast(BELZEILE as int) as billingDocumentLineItemID, \
+	case when BELZEILE = 'na' then '' else BELZEILE end as billingDocumentLineItemID, \
 	BELZART as lineItemTypeCode, \
 	AKLASSE as billingClassCode, \
-	TVORG as subtransactionForDocumentItem, \
+	TVORG as subtransactionLineItemCode, \
 	TARIFTYP as rateTypeCode, \
 	STATTART as statisticalAnalysisRateType, \
 	STTARIF as statisticalRate, \
 	VBRMONAT as consumptionMonth, \
 	to_date(AB, 'yyyyMMdd') as validFromDate, \
-	to_date(BIS, 'yyyyMMdd') as validToDate, \
+	case when BELZEILE = 'na' then to_date('19000101','yyyyMMdd') else to_date(BIS, 'yyyyMMdd') end as validToDate, \
 	BUCHREL as billingLineItemReleventPostingIndicator, \
 	STGRQNT as quantityStatisticsGroupCode, \
 	STGRAMT as amountStatisticsGroupCode, \
 	ARTMENGE as billedQuantityStatisticsCode, \
 	KOKRS as controllingArea, \
 	PRCTR as profitCenter, \
-	cast(PS_PSP_PNR as int) as wbsElement, \
+	PS_PSP_PNR as wbsElement, \
 	WAERS as currencyKey, \
 	MASSBILL as billingMeasurementUnitCode, \
 	cast(BETRAG as dec(18,6)) as billingLineItemNetAmount, \
@@ -214,30 +214,13 @@ df_cleansed = spark.sql(f"SELECT \
 	cast(PREISBTR as dec(18,6)) as price, \
 	CRM_PRODUCT as crmProduct, \
 	BELZART_NAME as lineItemType, \
-	cast(PRINTDOCLINE as int) as printDocumentLineItemId, \
+	PRINTDOCLINE as printDocumentLineItemId, \
 	ANLAGE as installationId, \
 	CITY_CODE as cityCode, \
 	COUNTRY as countryShortName, \
 	REGION as stateCode, \
 	REGPOLIT as politicalRegionCode, \
-	cast(SALESEMPLOYEE as int) as salesEmployee, \
-	to_date(BELEGDAT, 'yyyyMMdd') as billingDocumentCreateDate, \
-	to_date(BUDAT, 'yyyyMMdd') as postingDate, \
-	cast(CNTINVDOC as int) as numberofInvoicingDocuments, \
-	to_date(CPUDT, 'yyyyMMdd') as documentEnteredDate, \
-	FIKEY as reconciliationKeyForGeneralLedger, \
-	INT_UI_BW as internalPointDeliveryKeyBW, \
-	ITEMTYPE as invoiceItemType, \
-	PERIOD as fiscalYear, \
-	PERIV as fiscalYearVariant, \
-	RULEGR as ruleGroup, \
-	cast(SBASW as dec(18,6)) as taxBaseAmount, \
-	cast(SBETW as dec(18,6)) as taxAmount, \
-	SRCDOCCAT as sourceDocumentCategory, \
-	SRCDOCNO as numberOfSourceDocuments, \
-	STPRZ as taxRate, \
-	to_date(TXDAT, 'yyyyMMdd') as taxCalculationDate, \
-	TXJCD as taxJurisdictionDescription, \
+	SALESEMPLOYEE as salesEmployee, \
 	_RecordStart, \
 	_RecordEnd, \
 	_RecordDeleted, \
@@ -258,15 +241,15 @@ newSchema = StructType([
 	StructField('contractId',StringType(),True,
 	StructField('billingTransactionCode',StringType(),True,
 	StructField('mainTransactionLineItemCode',StringType(),True,
-	StructField('contractAccountDeterminationID',StringType(),True,
+	StructField('accountDeterminationID',StringType(),True,
 	StructField('portionNumber',StringType(),True,
 	StructField('numberOfContractDaysBilled',IntegerType(),True,
 	StructField('numberOfBilledContracts',IntegerType(),True,
 	StructField('numberOfBillingDocuments',IntegerType(),True,
-	StructField('billingDocumentLineItemID',IntegerType(),False,
+	StructField('billingDocumentLineItemID',StringType(),False,
 	StructField('lineItemTypeCode',StringType(),True,
 	StructField('billingClassCode',StringType(),True,
-	StructField('subtransactionForDocumentItem',StringType(),True,
+	StructField('subtransactionLineItemCode',StringType(),True,
 	StructField('rateTypeCode',StringType(),True,
 	StructField('statisticalAnalysisRateType',StringType(),True,
 	StructField('statisticalRate',StringType(),True,
@@ -279,39 +262,22 @@ newSchema = StructType([
 	StructField('billedQuantityStatisticsCode',StringType(),True,
 	StructField('controllingArea',StringType(),True,
 	StructField('profitCenter',StringType(),True,
-	StructField('wbsElement',IntegerType(),True,
+	StructField('wbsElement',StringType(),True,
 	StructField('currencyKey',StringType(),True,
 	StructField('billingMeasurementUnitCode',StringType(),True,
 	StructField('billingLineItemNetAmount',DecimalType(18,6),True,
 	StructField('billingQuantity',DecimalType(18,6),True,
 	StructField('agreementNumber',StringType(),True,
-	StructField('price',DecimalType(18,6),True,
+	StructField('priceAmount',DecimalType(18,6),True,
 	StructField('crmProduct',StringType(),True,
 	StructField('lineItemType',StringType(),True,
-	StructField('printDocumentLineItemId',IntegerType(),True,
+	StructField('printDocumentLineItemId',StringType(),True,
 	StructField('installationId',StringType(),True,
 	StructField('cityCode',StringType(),True,
 	StructField('countryShortName',StringType(),True,
 	StructField('stateCode',StringType(),True,
 	StructField('politicalRegionCode',StringType(),True,
 	StructField('salesEmployee',IntegerType(),True,
-	StructField('billingDocumentCreateDate',DateType(),True,
-	StructField('postingDate',DateType(),True,
-	StructField('numberofInvoicingDocuments',IntegerType(),True,
-	StructField('documentEnteredDate',DateType(),True,
-	StructField('reconciliationKeyForGeneralLedger',StringType(),True,
-	StructField('internalPointDeliveryKeyBW',StringType(),True,
-	StructField('invoiceItemType',StringType(),True,
-	StructField('fiscalYear',StringType(),True,
-	StructField('fiscalYearVariant',StringType(),True,
-	StructField('ruleGroup',StringType(),True,
-	StructField('taxBaseAmount',DecimalType(18,6),True,
-	StructField('taxAmount',DecimalType(18,6),True,
-	StructField('sourceDocumentCategory',StringType(),True,
-	StructField('numberOfSourceDocuments',StringType(),True,
-	StructField('taxRate',StringType(),True,
-	StructField('taxCalculationDate',DateType(),True,
-	StructField('taxJurisdictionDescription',StringType(),True,
 	StructField('_RecordStart',TimestampType(),False),
 	StructField('_RecordEnd',TimestampType(),False),
 	StructField('_RecordDeleted',IntegerType(),False),

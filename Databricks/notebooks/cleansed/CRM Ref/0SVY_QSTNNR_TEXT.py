@@ -175,8 +175,7 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_cleansed = spark.sql("SELECT \
-	case when LANGUAGE = 'na' then '' else LANGUAGE end as language, \
+df_cleansed = spark.sql(f"SELECT \
 	case when APPLICATION = 'na' then '' else APPLICATION end as bwApplication, \
 	case when QSTNNR = 'na' then '' else QSTNNR end as questionnaireId, \
 	TXTSH as questionnaireShort, \
@@ -186,8 +185,7 @@ df_cleansed = spark.sql("SELECT \
 	_RecordEnd, \
 	_RecordDeleted, \
 	_RecordCurrent \
-	FROM CLEANSED.STG_" + source_object \
-         )
+	FROM {ADS_DATABASE_STAGE}.{source_object}")
 
 display(df_cleansed)
 print(f'Number of rows: {df_cleansed.count()}')
@@ -195,9 +193,8 @@ print(f'Number of rows: {df_cleansed.count()}')
 # COMMAND ----------
 
 newSchema = StructType([
-	StructField('language',StringType(),True),
-	StructField('bwApplication',StringType(),True),
-	StructField('questionnaireId',StringType(),True),
+	StructField('bwApplication',StringType(),False),
+	StructField('questionnaireId',StringType(),False),
 	StructField('questionnaireShort',StringType(),True),
 	StructField('questionnaireMedium',StringType(),True),
 	StructField('questionnaireLong',StringType(),True),

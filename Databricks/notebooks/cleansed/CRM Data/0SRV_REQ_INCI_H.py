@@ -176,122 +176,122 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_cleansed = spark.sql("SELECT \
-	nan as headerUUID, \
-	case when nan = 'na' then '' else nan end as utilitiesStructuredContract, \
-	nan as headerType, \
-	to_date(nan) as postingDate, \
-	nan as transactionDescription, \
-	nan as logicalSystem, \
-	nan as headerCategory, \
-	to_date(nan) as creationDate, \
-	nan as createdBy, \
-	to_date(nan) as lastChangedDate, \
-	nan as changedBy, \
-	cast(nan as int) as requestHeaderNumber, \
-	nan as scenarioId, \
-	nan as templateType, \
-	cast(nan as long) as MERGE INTO DATE??, \
-	cast(nan as long) as MERGE INTO DATE??, \
-	cast(nan as int) as recommendedPriority, \
-	cast(nan as int) as urgency, \
-	cast(nan as int) as impact, \
-	cast(nan as int) as escalation, \
-	cast(nan as int) as risk, \
-	cast(nan as long) as lastUpdatedAt, \
-	nan as activityCategory, \
-	cast(nan as int) as activityPriority, \
-	nan as activityDirection, \
-	nan as soldToParty, \
-	nan as salesEmployee, \
-	nan as responsibleEmployee, \
-	nan as contactPerson, \
-	cast(nan as int) as salesOrgResponsible, \
-	cast(nan as int) as salesOrg, \
-	cast(nan as int) as salesOffice, \
-	cast(nan as int) as salesGroup, \
-	cast(nan as int) as serviceOrgResponsible, \
-	cast(nan as int) as serviceOrg, \
-	nan as serviceTeam, \
-	to_date(nan) as calendarDay, \
-	cast(to_unix_timestamp(nan, 'yyyy-MM-dd hh:mm:ss a') as timestamp) as calendarDatetime, \
-	nan as precedingTransactionGUID, \
-	nan as precedingDocumentObjectType, \
-	nan as precedingActivityGUID, \
-	nan as processCategory, \
-	nan as processCatalog, \
-	nan as processCodeGroup, \
-	nan as processCode, \
-	nan as precedingObjectType, \
-	cast(nan as long) as validTimestamp, \
-	nan as catalogCategoryC, \
-	nan as catalogC, \
-	nan as codeGroupC, \
-	nan as codeC, \
-	cast(nan as int) as defectCountC, \
-	cast(nan as int) as numberOfActivitiesC, \
-	nan as coherentAspectIdC, \
-	nan as coherentCategoryIdC, \
-	nan as dataElementGUIDC, \
-	nan as catalogCategoryD, \
-	nan as catalogD, \
-	nan as codeGroupD, \
-	nan as codeD, \
-	cast(nan as int) as defectCountD, \
-	cast(nan as int) as numberOfActivitiesD, \
-	nan as coherentAspectIdD, \
-	nan as coherentCategoryIdD, \
-	nan as dataElementGUIDD, \
-	cast(nan as int) as defectCountE, \
-	cast(nan as int) as numberOfActivitiesE, \
-	nan as dataElementGUIDE, \
-	cast(nan as int) as defectCountT, \
-	cast(nan as int) as numberOfActivitiesT, \
-	nan as dataElementGUIDT, \
-	cast(nan as int) as defectCountW, \
-	cast(nan as int) as numberOfActivitiesW, \
-	nan as dataElementGUIDW, \
-	nan as subjectProfileCategory, \
-	nan as dataElementGUID, \
-	cast(nan as long) as serviceLifeCycle, \
-	nan as serviceLifeCycleUnit, \
-	cast(nan as long) as workDuration, \
-	nan as workDurationUnit, \
-	cast(nan as long) as totalDuration, \
-	nan as totalDurationUnit, \
-	to_date(nan) as requestStartDate, \
-	to_date(nan) as requestEndDate, \
-	cast(to_unix_timestamp(nan, 'yyyy-MM-dd hh:mm:ss a') as timestamp) as dueDateTime, \
-	cast(to_unix_timestamp(nan, 'yyyy-MM-dd hh:mm:ss a') as timestamp) as completionDateTime, \
-	cast(to_unix_timestamp(nan, 'yyyy-MM-dd hh:mm:ss a') as timestamp) as firstEscalateDateTime, \
-	cast(to_unix_timestamp(nan, 'yyyy-MM-dd hh:mm:ss a') as timestamp) as secondEscalateDateTime, \
-	nan as activityReasonCode, \
-	cast(nan as int) as numberOfInteractionRecords, \
-	nan as completedBeforeIndicator, \
-	nan as problemGUID, \
-	nan as notificationNumber, \
-	nan as contractiId, \
-	nan as podStatus, \
-	nan as statusProfile, \
-	nan as maximoWorkOrderNumber, \
-	nan as source, \
-	nan as projectId, \
-	nan as issueResponsibility, \
-	nan as businessPartnerNumber, \
-	nan as agreementNumber, \
-	nan as propertyNumber, \
-	nan as serviceArea, \
-	nan as serviceSubArea, \
-	nan as resolutionCode, \
-	nan as serviceCategoryCode, \
-	nan as rootCauseCode, \
-	nan as facilityNameCode, \
-	nan as secondaryAnalysisCode, \
+	GUID as headerUUID, \
+	case when OBJECT_ID = 'na' then '' else OBJECT_ID end as utilitiesStructuredContract, \
+	PROCESS_TYPE as headerType, \
+	to_date(POSTING_DATE) as postingDate, \
+	DESCRIPTION_UC as transactionDescription, \
+	LOGICAL_SYSTEM as logicalSystem, \
+	OBJECT_TYPE as headerCategory, \
+	to_date(CREATED_AT) as creationDate, \
+	CREATED_BY as createdBy, \
+	to_date(CHANGED_AT) as lastChangedDate, \
+	CHANGED_BY as changedBy, \
+	cast(NUM_OF_HEAD as int) as requestHeaderNumber, \
+	SCENARIO as scenarioId, \
+	TEMPLATE_TYPE as templateType, \
+	cast(CREATED_TS as long) as createdAt, \
+	cast(CHANGED_TS as long) as ChangedAt, \
+	cast(REC_PRIORITY as int) as recommendedPriority, \
+	cast(URGENCY as int) as urgency, \
+	cast(IMPACT as int) as impact, \
+	cast(ESCALATION as int) as escalation, \
+	cast(RISK as int) as risk, \
+	cast(LAST_UPDATED_AT as long) as lastUpdatedAt, \
+	CATEGORY as activityCategory, \
+	cast(PRIORITY as int) as activityPriority, \
+	DIRECTION as activityDirection, \
+	SOLD_TO_PARTY as soldToParty, \
+	SALES_EMPLOYEE as salesEmployee, \
+	PERSON_RESP as responsibleEmployee, \
+	CONTACT_PERSON as contactPerson, \
+	cast(SALES_ORG_RESP as int) as salesOrgResponsible, \
+	cast(SALES_ORG as int) as salesOrg, \
+	cast(SALES_OFFICE as int) as salesOffice, \
+	cast(SALES_GROUP as int) as salesGroup, \
+	cast(SERVICE_ORG_RESP as int) as serviceOrgResponsible, \
+	cast(SERVICE_ORG as int) as serviceOrg, \
+	SERVICE_TEAM as serviceTeam, \
+	to_date(CALDAY) as calendarDay, \
+	cast(to_unix_timestamp(CALDAY_TS, 'yyyy-MM-dd hh:mm:ss a') as timestamp) as calendarDatetime, \
+	PREDEC_OBJKEY as precedingTransactionGUID, \
+	PREDEC_OBJTYPE as precedingDocumentObjectType, \
+	PRED_ACT_GUID as precedingActivityGUID, \
+	PROCESS_CATEGORY as processCategory, \
+	PROCESS_CATALOG as processCatalog, \
+	PROCESS_CODEGR as processCodeGroup, \
+	PROCESS_CODE as processCode, \
+	PROCESS_OBJTYPE as precedingObjectType, \
+	cast(QUOT_VALID_TS as long) as validTimestamp, \
+	CATALOG_TYPE_C as catalogCategoryC, \
+	KATALOGART_C as catalogC, \
+	CODEGRUPPE_C as codeGroupC, \
+	CODE_C as codeC, \
+	cast(DEFQUANTITY_C as int) as defectCountC, \
+	cast(COUNTER_C as int) as numberOfActivitiesC, \
+	ASP_ID_C as coherentAspectIdC, \
+	CAT_ID_C as coherentCategoryIdC, \
+	CC_CAT_SUBJECT_C as dataElementGUIDC, \
+	CATALOG_TYPE_D as catalogCategoryD, \
+	KATALOGART_D as catalogD, \
+	CODEGRUPPE_D as codeGroupD, \
+	CODE_D as codeD, \
+	cast(DEFQUANTITY_D as int) as defectCountD, \
+	cast(COUNTER_D as int) as numberOfActivitiesD, \
+	ASP_ID_D as coherentAspectIdD, \
+	CAT_ID_D as coherentCategoryIdD, \
+	CC_CAT_SUBJECT_D as dataElementGUIDD, \
+	cast(DEFQUANTITY_E as int) as defectCountE, \
+	cast(COUNTER_E as int) as numberOfActivitiesE, \
+	CC_CAT_SUBJECT_E as dataElementGUIDE, \
+	cast(DEFQUANTITY_T as int) as defectCountT, \
+	cast(COUNTER_T as int) as numberOfActivitiesT, \
+	CC_CAT_SUBJECT_T as dataElementGUIDT, \
+	cast(DEFQUANTITY_W as int) as defectCountW, \
+	cast(COUNTER_W as int) as numberOfActivitiesW, \
+	CC_CAT_SUBJECT_W as dataElementGUIDW, \
+	PROFILE_TYPE as subjectProfileCategory, \
+	CC_CAT_SUBJECT as dataElementGUID, \
+	cast(LC_SRV_DURATION as long) as serviceLifeCycle, \
+	LC_SRV_DUR_UNIT as serviceLifeCycleUnit, \
+	cast(WORK_DURATION as long) as workDuration, \
+	WORK_DURA_UNIT as workDurationUnit, \
+	cast(TOTAL_DURATION as long) as totalDuration, \
+	TOTAL_DURA_UNIT as totalDurationUnit, \
+	to_date(REQ_START_DATE) as requestStartDate, \
+	to_date(REQ_END_DATE) as requestEndDate, \
+	cast(to_unix_timestamp(DUE_DATE, 'yyyy-MM-dd hh:mm:ss a') as timestamp) as dueDateTime, \
+	cast(to_unix_timestamp(COMPLETION_TS, 'yyyy-MM-dd hh:mm:ss a') as timestamp) as completionDateTime, \
+	cast(to_unix_timestamp(ESCALATE_1_TS, 'yyyy-MM-dd hh:mm:ss a') as timestamp) as firstEscalateDateTime, \
+	cast(to_unix_timestamp(ESCALATE_2_TS, 'yyyy-MM-dd hh:mm:ss a') as timestamp) as secondEscalateDateTime, \
+	CC_CAT_ACTREASON as activityReasonCode, \
+	cast(NO_OF_IR as int) as numberOfInteractionRecords, \
+	IN_COMPL_BEFORE as completedBeforeIndicator, \
+	PROBLEM_GUID as problemGUID, \
+	NOTIFICATION_NO as notificationNumber, \
+	CRM_ISU_CONTRACT as contractiId, \
+	STATUS as podStatus, \
+	USER_STAT_PROC as statusProfile, \
+	ZZ_MAX_REQ_NO as maximoWorkOrderNumber, \
+	ZZAFLD000026 as source, \
+	ZZAFLD000027 as projectId, \
+	ZZAFLD000028 as issueResponsibility, \
+	ZZREPORTED_BY as businessPartnerNumber, \
+	ZZAGREEMENT_N as agreementNumber, \
+	ZZ_PROPERTY_NO as propertyNumber, \
+	ZZ_SR_AREA as serviceArea, \
+	ZZ_SR_SUB_AREA as serviceSubArea, \
+	ZZ_RESOLUTION_CD as resolutionCode, \
+	ZZ_SR_CATEGORY_CD as serviceCategoryCode, \
+	ZZ_ROOT_CAUSE_CD as rootCauseCode, \
+	ZZ_X_FACILITY_NAME_CD as facilityNameCode, \
+	ZZ_X_SECONDARY_ANALYSIS_CD as secondaryAnalysisCode, \
 	_RecordStart, \
 	_RecordEnd, \
 	_RecordDeleted, \
 	_RecordCurrent \
-	FROM CLEANSED.STG_" + source_object \
-         )
+	FROM {ADS_DATABASE_STAGE}.{source_object} \
+        ")
 
 display(df_cleansed)
 print(f'Number of rows: {df_cleansed.count()}')

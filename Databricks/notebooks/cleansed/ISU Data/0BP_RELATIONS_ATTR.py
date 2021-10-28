@@ -209,7 +209,10 @@ df_cleansed = spark.sql(f"SELECT \
 	_RecordEnd, \
 	_RecordDeleted, \
 	_RecordCurrent \
-	FROM {ADS_DATABASE_STAGE}.{source_object}")
+	FROM {ADS_DATABASE_STAGE}.{source_object} BP \
+LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0BPARTNER_RELATIONS_TEXT BP_TXT \
+ON BP.RELDIR = BP_TXT.businessPartnerNumber AND BP.RELTYP =BP_TXT.businessPartnerCategoryCode \
+AND BP_TXT._RecordDeleted = 0 AND BP_TXT._RecordCurrent = 1 \")
 
 display(df_cleansed)
 print(f'Number of rows: {df_cleansed.count()}')

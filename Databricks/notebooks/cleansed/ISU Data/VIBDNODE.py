@@ -190,8 +190,10 @@ df_cleansed = spark.sql(f"SELECT  \
                                 VIB._RecordDeleted, \
                                 VIB._RecordCurrent \
                                FROM {ADS_DATABASE_STAGE}.{source_object} vib \
-                               LEFT OUTER JOIN CLEANSED.isu_tivbdarobjtypet arch ON vib.aotype_ao = arch.aotype \
-                               LEFT OUTER JOIN CLEANSED.isu_tivbdarobjtypet archobj ON vib.aotype_pa = archobj.aotype")
+                               LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_tivbdarobjtypet arch ON vib.aotype_ao = arch.aotype \
+                                                                                                    and arch._RecordDeleted = 0 and arch._RecordCurrent = 1 \
+                               LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_tivbdarobjtypet archobj ON vib.aotype_pa = archobj.aotype \
+                                                                                                    and archobj._RecordDeleted = 0 and archobj._RecordCurrent = 1")
 
 display(df_cleansed)
 print(f'Number of rows: {df_cleansed.count()}')
