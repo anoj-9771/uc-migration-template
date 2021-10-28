@@ -177,7 +177,7 @@ DeltaSaveToDeltaTable (
 #Update/rename Column
 
 df_cleansed = spark.sql(f"SELECT  \
-                                  ABLESARTST as activationStatus , \
+                                  case when ABLESARTST = 'na' then '' else ABLESARTST end as activationStatus , \
                                   TEXT30 as domainValueKey , \
                                   _RecordStart, \
                                   _RecordEnd, \

@@ -177,7 +177,7 @@ DeltaSaveToDeltaTable (
 #Update/rename Column
 
 df_cleansed = spark.sql(f"SELECT  \
-                                  OPCODE as operationCode , \
+                                  case when OPCODE = 'na' then '' else OPCODE end as operationCode , \
                                   OPCODETXT as operationDescription , \
                                   _RecordStart, \
                                   _RecordEnd, \

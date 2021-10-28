@@ -177,7 +177,7 @@ DeltaSaveToDeltaTable (
 #Update/rename Column
 
 df_cleansed = spark.sql(f"SELECT  \
-                                  TOGRU as toleranceGroupCode , \
+                                  case when TOGRU = 'na' then '' else TOGRU end as toleranceGroupCode , \
                                   TXT40 as toleranceGroupDescription , \
                                   _RecordStart, \
                                   _RecordEnd, \

@@ -177,10 +177,10 @@ DeltaSaveToDeltaTable (
 #Update/rename Column
 
 df_cleansed = spark.sql(f"SELECT  \
-                                  DOMNAME as domainName , \
+                                  case when DOMNAME = 'na' then '' else DOMNAME end as domainName , \
                                   DOMVALUE_L as domainValueSingleUpperLimit , \
                                   DDTEXT as domainValueText , \
-                                  VALPOS as domainValueKey , \
+                                  case when VALPOS = 'na' then '' else VALPOS end as domainValueKey , \
                                   _RecordStart, \
                                   _RecordEnd, \
                                   _RecordDeleted, \
