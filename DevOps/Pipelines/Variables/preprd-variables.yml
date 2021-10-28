@@ -153,13 +153,47 @@ variables:
   - name: defaultAdlsGen2AccountResourceId
     value: /subscriptions/$(subscriptionId)/resourcegroups/$(resourcegroupname)/providers/Microsoft.Storage/storageAccounts/$(defaultDataLakeStorageAccountName)
   # ------------------------------------------------
-  # Azure Devops Self-hosted VM related
+  # Azure VMs Common related
   # ------------------------------------------------
   - name: adminUsername
     value: azureadmin
+  - name: publisher
+    value: MicrosoftWindowsServer
+  - name: offer
+    value: WindowsServer
   - name: OSVersion
     value: 2019-Datacenter
-  - name: vmSize
+  # ------------------------------------------------
+  # Azure Devops Self-hosted VM related
+  # ------------------------------------------------
+  - name: vmSizeDevops
     value: Standard_D2s_v3
-  - name: vmName
-    value: nt097ddevops01
+  - name: vmNameDevops
+    value: ln097ddevops02
+  - name: publisherDevops
+    value: Canonical
+  - name: offerDevops
+    value: UbuntuServer
+  - name: OSVersionDevops
+    value: 20.04-LTS
+  # ------------------------------------------------
+  # Azure IR Self-hosted VM related
+  # ------------------------------------------------
+  - name: vmSizeIR
+    value: Standard_Ds1_v2
+  - name: vmNameIR
+    value: nt097ddaf02
+  # ------------------------------------------------
+  # Azure Collibra VM related
+  # ------------------------------------------------
+  - name: vmSizeCollibra
+    value: Standard_D2s_v4
+  - name: vmNameCollibra
+    value: nt097dcolibra01
+  # ------------------------------------------------
+  # Azure SLT VM related
+  # ------------------------------------------------
+  - name: vmSizeSlt
+    value: Standard_D2s_v4
+  - name: vmNameSlt
+    value: nt097dslt01
