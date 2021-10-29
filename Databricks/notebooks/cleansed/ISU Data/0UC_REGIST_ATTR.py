@@ -176,19 +176,22 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT \
-	EQUNR as equipmentNumber, \
-	cast(ZWNUMMER as int) as registerNumber, \
-	to_date(BIS) as validToDate, \
+	case when EQUNR = 'na' then '' else EQUNR end as equipmentNumber, \
+	case when ZWNUMMER = 'na' then '' else (cast(ZWNUMMER as int)) end  as registerNumber, \
+	case when BIS = 'na' then to_date('19000101','yyyyMMdd') else to_date(BIS) end as validToDate, \
 	to_date(AB) as validFromDate, \
-	cast(LOGIKZW as long) as logicalRegisterNumber, \
-	cast(SPARTYP as int) as divisionCategory, \
-	ZWKENN as registerId, \
+	LOGIKZW as logicalRegisterNumber, \
+	SPARTYP as divisionCategoryCode, \
+    di.sectorCategory as divisionCategory, \
+	ZWKENN as registerIdCode, \
+    id.registerId as registerId, \
 	ZWART as registerTypeCode, \
-	ZWARTTXT as registerTypeDescription, \
-	cast(ZWTYP as int) as registerCategory, \
-	cast(BLIWIRK as int) as reactiveApparentOrActiveRegister, \
+	ZWARTTXT as registerType, \
+	ZWTYP as registerCategoryCode, \
+    dd.domainValueText as registerCategory, \
+	BLIWIRK as reactiveApparentOrActiveRegister, \
 	MASSREAD as unitOfMeasurementMeterReading, \
-	NABLESEN as nan, \
+	NABLESEN as doNotReadIndicator, \
 	cast(HOEKORR as int) as altitudeCorrectionPressure, \
 	cast(KZAHLE as int) as setGasLawDeviationFactor, \
 	cast(KZAHLT as int) as actualGasLawDeviationFactor, \
@@ -199,7 +202,17 @@ df_cleansed = spark.sql(f"SELECT \
 	_RecordEnd, \
 	_RecordDeleted, \
 	_RecordCurrent \
-	FROM {ADS_DATABASE_STAGE}.{source_object}")
+	FROM {ADS_DATABASE_STAGE}.{source_object} re \
+    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UCDIVISCAT_TEXT di ON re.SPARTYP = di.sectorCategoryCode \
+                                                                      and di._RecordDeleted = 0 and di._RecordCurrent = 1 \
+    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_TE065T id ON re.SPARTYP = id.divisionCategoryCode and re.ZWKENN = id.registerIdCode \
+                                                                      and id._RecordDeleted = 0 and id._RecordCurrent = 1 \
+    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_DD07T dd ON re.ZWTYP = dd.domainValueSingleUpperLimit and  dd.domainName = 'L_ZWTYP' \
+                                                                      and dd._RecordDeleted = 0 and dd._RecordCurrent = 1 \")
+
+
+registerIdCode
+registerId
 
 display(df_cleansed)
 print(f'Number of rows: {df_cleansed.count()}')
@@ -208,18 +221,21 @@ print(f'Number of rows: {df_cleansed.count()}')
 
 newSchema = StructType([
 	StructField('equipmentNumber',StringType(),False),
-	StructField('registerNumber',IntegerType(),True),
-	StructField('validToDate',DateType(),True),
+	StructField('registerNumber',StringType(),False),
+	StructField('validToDate',DateType(),False),
 	StructField('validFromDate',DateType(),True),
-	StructField('logicalRegisterNumber',LongType(),True),
-	StructField('divisionCategory',IntegerType(),True),
-	StructField('registerId',StringType(),True),
+	StructField('logicalRegisterNumber',StringType(),True),
+	StructField('divisionCategoryCode',StringType(),True),
+    StructField('divisionCategory',StringType(),True),
+	StructField('registerIdCode',StringType(),True),
+    StructField('registerId',StringType(),True),
 	StructField('registerTypeCode',StringType(),True),
-	StructField('registerTypeDescription',StringType(),True),
-	StructField('registerCategory',IntegerType(),True),
-	StructField('reactiveApparentOrActiveRegister',IntegerType(),True),
+	StructField('registerType',StringType(),True),
+	StructField('registerCategoryCode',StringType(),True),
+    StructField('registerCategory',StringType(),True),
+	StructField('reactiveApparentOrActiveRegister',StringType(),True),
 	StructField('unitOfMeasurementMeterReading',StringType(),True),
-	StructField('nan',StringType(),True),
+	StructField('doNotReadIndicator',StringType(),True),
 	StructField('altitudeCorrectionPressure',IntegerType(),True),
 	StructField('setGasLawDeviationFactor',IntegerType(),True),
 	StructField('actualGasLawDeviationFactor',IntegerType(),True),

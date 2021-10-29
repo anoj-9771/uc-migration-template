@@ -175,34 +175,33 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_cleansed = spark.sql("SELECT \
+df_cleansed = spark.sql(f"SELECT \
 	GPART as businessPartnerGroupNumber, \
 	VKONT as contractAccountNumber, \
-	cast(ABSANFAB as int) as budgetBillingRequestForDebtor, \
-	cast(ABSANFBZ as int) as budgetBillingRequestForCashPayer, \
+	ABSANFAB as budgetBillingRequestForDebtor, \
+	ABSANFBZ as budgetBillingRequestForCashPayer, \
 	KEINZAHL as noPaymentFormIndicator, \
-	cast(EINZUGSZ as int) as numberOfSuccessfulDirectDebits, \
-	cast(RUECKLZ as int) as numberOfDirectDebitReturns, \
+	EINZUGSZ as numberOfSuccessfulDirectDebits, \
+	RUECKLZ as numberOfDirectDebitReturns, \
 	MAHNUNG_Z as sendAdditionalDunningNoticeIndicator, \
 	RECHNUNG_Z as sendAdditionalBillIndicator, \
 	FORMKEY as applicationForm, \
-	LANGU as language, \
-	AUSGRUP_IN as outsortingCheckGroupForInvoicing, \
-	cast(OUTCOUNT as int) as manualOutsortingCount, \
+	AUSGRUP_IN as outsortingCheckGroupCode, \
+	OUTCOUNT as manualOutsortingCount, \
 	MANOUTS_IN as manualOutsortingReasonCode, \
 	SENDCONTROL_MA as shippingControlForAlternativeDunningRecipient, \
 	SENDCONTROL_RH as dispatchControlForAlternativeBillRecipient, \
 	SENDCONTROL_GP as dispatchControl, \
 	KZABSVER as billingProcedureActivationIndicator, \
-	cast(JVLTE as int) as participationInYearlyAdvancePayment, \
+	JVLTE as participationInYearlyAdvancePayment, \
 	to_date(ERDAT) as createdDate, \
 	ERNAM as createdBy, \
 	to_date(AEDATP) as lastChangedDate, \
 	AENAMP as changedBy, \
-	cast(FDZTG as int) as additionalDaysForCashManagement, \
+	FDZTG as additionalDaysForCashManagement, \
 	GUID as headerUUID, \
 	cast(DDLAM as dec(13,0)) as directDebitLimit, \
-	cast(DDLNM as int) as numberOfMonthsForDirectDebitLimit, \
+	DDLNM as numberOfMonthsForDirectDebitLimit, \
 	EXVKO as businessPartnerReferenceNumber, \
 	OPBUK as companyCodeGroup, \
 	STDBK as standardCompanyCode, \
@@ -238,31 +237,30 @@ print(f'Number of rows: {df_cleansed.count()}')
 newSchema = StructType([
 	StructField('businessPartnerGroupNumber',StringType(),False),
 	StructField('contractAccountNumber',StringType(),False),
-	StructField('budgetBillingRequestForDebtor',IntegerType(),True),
-	StructField('budgetBillingRequestForCashPayer',IntegerType(),True),
+	StructField('budgetBillingRequestForDebtor',StringType(),True),
+	StructField('budgetBillingRequestForCashPayer',StringType(),True),
 	StructField('noPaymentFormIndicator',StringType(),True),
-	StructField('numberOfSuccessfulDirectDebits',IntegerType(),True),
-	StructField('numberOfDirectDebitReturns',IntegerType(),True),
+	StructField('numberOfSuccessfulDirectDebits',StringType(),True),
+	StructField('numberOfDirectDebitReturns',StringType(),True),
 	StructField('sendAdditionalDunningNoticeIndicator',StringType(),True),
 	StructField('sendAdditionalBillIndicator',StringType(),True),
 	StructField('applicationForm',StringType(),True),
-	StructField('language',StringType(),True),
-	StructField('outsortingCheckGroupForInvoicing',StringType(),True),
-	StructField('manualOutsortingCount',IntegerType(),True),
+	StructField('outsortingCheckGroupCode',StringType(),True),
+	StructField('manualOutsortingCount',StringType(),True),
 	StructField('manualOutsortingReasonCode',StringType(),True),
 	StructField('shippingControlForAlternativeDunningRecipient',StringType(),True),
 	StructField('dispatchControlForAlternativeBillRecipient',StringType(),True),
 	StructField('dispatchControl',StringType(),True),
 	StructField('billingProcedureActivationIndicator',StringType(),True),
-	StructField('participationInYearlyAdvancePayment',IntegerType(),True),
+	StructField('participationInYearlyAdvancePayment',StringType(),True),
 	StructField('createdDate',DateType(),True),
 	StructField('createdBy',StringType(),True),
 	StructField('lastChangedDate',DateType(),True),
 	StructField('changedBy',StringType(),True),
-	StructField('additionalDaysForCashManagement',IntegerType(),True),
+	StructField('additionalDaysForCashManagement',StringType(),True),
 	StructField('headerUUID',StringType(),True),
 	StructField('directDebitLimit',DecimalType(13,0),True),
-	StructField('numberOfMonthsForDirectDebitLimit',IntegerType(),True),
+	StructField('numberOfMonthsForDirectDebitLimit',StringType(),True),
 	StructField('businessPartnerReferenceNumber',StringType(),True),
 	StructField('companyCodeGroup',StringType(),True),
 	StructField('standardCompanyCode',StringType(),True),

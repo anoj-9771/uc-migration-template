@@ -240,14 +240,20 @@ df_cleansed = spark.sql(f"SELECT \
                                       con._RecordDeleted, \
                                       con._RecordCurrent \
                                     FROM {ADS_DATABASE_STAGE}.{source_object} con \
-                                    LEFT OUTER JOIN CLEANSED.isu_ZCD_TINFPRTY_TX ip ON con.ZCD_INF_PROP_TYPE = ip.inferiorPropertyTypeCode \
-                                    LEFT OUTER JOIN CLEANSED.isu_ZCD_TSUPPRTYP_TX sp ON con.ZCD_SUP_PROP_TYPE = sp.superiorPropertyTypeCode \
-                                    LEFT OUTER JOIN CLEANSED.isu_ZCD_TPLANTYPE_TX plt ON con.ZCD_PLAN_TYPE = plt.PLAN_TYPE \
-                                    LEFT OUTER JOIN CLEANSED.isu_TIVBDAROBJTYPET tiv ON con.ZCD_AOTYPE = tiv.AOTYPE \
-                                    LEFT OUTER JOIN CLEANSED.isu_ZCD_TPROCTYPE_TX prt ON con.ZCD_PROCESS_TYPE = prt.PROCESS_TYPE \
-                                    LEFT OUTER JOIN CLEANSED.isu_0CAM_STREETCODE_TEXT stc ON con.STREETCODE = stc.streetCode and con.COUNTRY = stc.COUNTRY\
-                                    LEFT OUTER JOIN CLEANSED.isu_TE227T reg ON con.REGPOLIT = reg.REGPOLIT and con.COUNTRY = reg.COUNTRY\
-                                ")
+                                    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_ZCD_TINFPRTY_TX ip ON con.ZCD_INF_PROP_TYPE = ip.inferiorPropertyTypeCode \
+                                                                                                    and ip._RecordDeleted = 0 and ip._RecordCurrent = 1 \
+                                    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_ZCD_TSUPPRTYP_TX sp ON con.ZCD_SUP_PROP_TYPE = sp.superiorPropertyTypeCode \
+                                                                                                    and sp._RecordDeleted = 0 and sp._RecordCurrent = 1 \
+                                    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_ZCD_TPLANTYPE_TX plt ON con.ZCD_PLAN_TYPE = plt.PLAN_TYPE \
+                                                                                                    and plt._RecordDeleted = 0 and plt._RecordCurrent = 1 \
+                                    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_TIVBDAROBJTYPET tiv ON con.ZCD_AOTYPE = tiv.AOTYPE \
+                                                                                                    and tiv._RecordDeleted = 0 and tiv._RecordCurrent = 1 \
+                                    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_ZCD_TPROCTYPE_TX prt ON con.ZCD_PROCESS_TYPE = prt.PROCESS_TYPE \
+                                                                                                    and prt._RecordDeleted = 0 and prt._RecordCurrent = 1 \
+                                    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0CAM_STREETCODE_TEXT stc ON con.STREETCODE = stc.streetCode and con.COUNTRY = stc.COUNTRY \
+                                                                                                    and stc._RecordDeleted = 0 and stc._RecordCurrent = 1 \
+                                    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_TE227T reg ON con.REGPOLIT = reg.REGPOLIT and con.COUNTRY = reg.COUNTRY\
+                                                                                                    and reg._RecordDeleted = 0 and reg._RecordCurrent = 1")
 
 display(df_cleansed)
 print(f'Number of rows: {df_cleansed.count()}')

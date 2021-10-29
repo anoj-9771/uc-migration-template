@@ -176,22 +176,21 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT \
-	MANDT as clientId, \
-	VKONT as contractAccountNumber, \
-	to_date(ERDAT) as createdDate, \
-	ERNAM as createdBy, \
-	to_date(AEDAT) as lastChangedDate, \
-	AENAM as lastChangedBy, \
-	LOEVM as deletedIndicator, \
-	APPLK as applicationArea, \
-	VKTYP as contractAccountCategoryCode, \
-	TEXT as contractAccountCategory, \
-	VKONA as legacyContractAccountNumber, \
-	_RecordStart, \
-	_RecordEnd, \
-	_RecordDeleted, \
-	_RecordCurrent \
-	FROM {ADS_DATABASE_STAGE}.{source_object}")
+                            case when VKONT = 'na' then '' else VKONT end as contractAccountNumber, \
+                            to_date(ERDAT, 'yyyy-MM-dd') as createdDate, \
+                            ERNAM as createdBy, \
+                            to_date(AEDAT, 'yyyy-MM-dd') as lastChangedDate, \
+                            AENAM as lastChangedBy, \
+                            LOEVM as deletedIndicator, \
+                            APPLK as applicationArea, \
+                            VKTYP as contractAccountCategoryCode, \
+                            TEXT as contractAccountCategory, \
+                            VKONA as legacyContractAccountNumber, \
+                            _RecordStart, \
+                            _RecordEnd, \
+                            _RecordDeleted, \
+                            _RecordCurrent \
+                          FROM {ADS_DATABASE_STAGE}.{source_object}")
 
 display(df_cleansed)
 print(f'Number of rows: {df_cleansed.count()}')
@@ -199,22 +198,21 @@ print(f'Number of rows: {df_cleansed.count()}')
 # COMMAND ----------
 
 newSchema = StructType([
-	StructField('clientId',StringType(),False),
-	StructField('contractAccountNumber',StringType(),False),
-	StructField('createdDate',DateType(),True),
-	StructField('createdBy',StringType(),True),
-	StructField('lastChangedDate',DateType(),True),
-	StructField('lastChangedBy',StringType(),True),
-	StructField('deletedIndicator',StringType(),True),
-	StructField('applicationArea',StringType(),True),
-	StructField('contractAccountCategoryCode',StringType(),True),
-	StructField('contractAccountCategory',StringType(),True),
-	StructField('legacyContractAccountNumber',StringType(),True),
-	StructField('_RecordStart',TimestampType(),False),
-	StructField('_RecordEnd',TimestampType(),False),
-	StructField('_RecordDeleted',IntegerType(),False),
-	StructField('_RecordCurrent',IntegerType(),False)
-])
+                        StructField('contractAccountNumber',StringType(),False),
+                        StructField('createdDate',DateType(),True),
+                        StructField('createdBy',StringType(),True),
+                        StructField('lastChangedDate',DateType(),True),
+                        StructField('lastChangedBy',StringType(),True),
+                        StructField('deletedIndicator',StringType(),True),
+                        StructField('applicationArea',StringType(),True),
+                        StructField('contractAccountCategoryCode',StringType(),True),
+                        StructField('contractAccountCategory',StringType(),True),
+                        StructField('legacyContractAccountNumber',StringType(),True),
+                        StructField('_RecordStart',TimestampType(),False),
+                        StructField('_RecordEnd',TimestampType(),False),
+                        StructField('_RecordDeleted',IntegerType(),False),
+                        StructField('_RecordCurrent',IntegerType(),False)
+                    ])
 
 df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
 display(df_updated_column)

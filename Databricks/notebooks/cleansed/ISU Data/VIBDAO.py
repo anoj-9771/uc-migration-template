@@ -243,17 +243,16 @@ df_cleansed = spark.sql(f"SELECT  \
                                   _RecordDeleted, \
                                   _RecordCurrent \
                               FROM {ADS_DATABASE_STAGE}.{source_object} vib \
-                                    LEFT OUTER JOIN CLEANSED.isu_ZCD_TINFPRTY_TX ip ON \
-                                   vib.ZCD_INF_PROP_TYPE = ip.INFERIOR_PROP_TYPE \
-                                    LEFT OUTER JOIN CLEANSED.isu_ZCD_TSUPPRTYP_TX sp ON \
-                                   vib.ZCD_SUP_PROP_TYPE = sp.SUPERIOR_PROP_TYPE \
-                                    LEFT OUTER JOIN CLEANSED.isu_ZCD_TPLANTYPE_TX plt ON \
-                                   vib.ZCD_PLAN_TYPE = plt.PLAN_TYPE \
-                                    LEFT OUTER JOIN CLEANSED.isu_TIVBDAROBJTYPET tiv ON \
-                                   vib.ZCD_AOTYPE = tiv.AOTYPE \
-                                    LEFT OUTER JOIN CLEANSED.isu_ZCD_TPROCTYPE_TX prt ON \
-                                   vib.ZCD_PROCESS_TYPE = prt.PROCESS_TYPE \
-                              ")
+                                    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_ZCD_TINFPRTY_TX ip ON \
+                                   vib.ZCD_INF_PROP_TYPE = ip.INFERIOR_PROP_TYPE and ip._RecordDeleted = 0 and ip._RecordCurrent = 1 \
+                                    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_ZCD_TSUPPRTYP_TX sp ON \
+                                   vib.ZCD_SUP_PROP_TYPE = sp.SUPERIOR_PROP_TYPE and sp._RecordDeleted = 0 and sp._RecordCurrent = 1 \
+                                    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_ZCD_TPLANTYPE_TX plt ON \
+                                   vib.ZCD_PLAN_TYPE = plt.PLAN_TYPE and plt._RecordDeleted = 0 and plt._RecordCurrent = 1 \
+                                    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_TIVBDAROBJTYPET tiv ON \
+                                   vib.ZCD_AOTYPE = tiv.AOTYPE and tiv._RecordDeleted = 0 and tiv._RecordCurrent = 1 \
+                                    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_ZCD_TPROCTYPE_TX prt ON \
+                                   vib.ZCD_PROCESS_TYPE = prt.PROCESS_TYPE and prt._RecordDeleted = 0 and prt._RecordCurrent = 1")
 
 display(df_cleansed)
 print(f'Number of rows: {df_cleansed.count()}')

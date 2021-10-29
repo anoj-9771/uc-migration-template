@@ -1,6 +1,6 @@
 # Databricks notebook source
-table = 'ZCD_TPROPTY_HIST'
-
+table = '0DF_REFIXFI_ATTR'
+table1 = table.lower()
 
 # COMMAND ----------
 
@@ -11,7 +11,7 @@ table = 'ZCD_TPROPTY_HIST'
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC drop table if exists test.table
+# MAGIC drop table if exists test.table1
 
 # COMMAND ----------
 
@@ -80,28 +80,33 @@ for myFile in fileNames:
 
 # COMMAND ----------
 
-# MAGIC %sql
-# MAGIC 
-# MAGIC select * from test.zcd_tpropty_hist
+sourcedf = spark.sql(f"select * from test.{table1}")
+display(sourcedf)
+
+# COMMAND ----------
+
+# DBTITLE 1,Source schema check
+sourcedf.printSchema()
+
+# COMMAND ----------
+
+sourcedf.createOrReplaceTempView("Source")
 
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC select distinct EXTRACT_DATETIME from test.zcd_tpropty_hist order by EXTRACT_DATETIME desc
+# MAGIC select distinct EXTRACT_DATETIME from Source order by EXTRACT_DATETIME desc
 
 # COMMAND ----------
 
 # DBTITLE 1,[Source with mapping]
-
-
-# COMMAND ----------
-
-lakedf = spark.sql("select * from cleansed.t_sapisu_zcd_tpropty_hist")
-
-# COMMAND ----------
-
-# DBTITLE 1,[Target] Schema Check
-lakedf.printSchema()
+# MAGIC %sql
+# MAGIC select 
+# MAGIC columnname1,
+# MAGIC columnname2,
+# MAGIC row_number() over (partition by colname order by EXTRACT_DATETIME desc) as rn 
+# MAGIC from source
+# MAGIC where rn = 1
 
 # COMMAND ----------
 
@@ -109,7 +114,7 @@ lakedf.printSchema()
 # MAGIC %sql
 # MAGIC select count (*) as RecordCount, 'Target' as TableName from cleansed.t_sapisu_zcd_tpropty_hist
 # MAGIC union all
-# MAGIC select count (*) as RecordCount, 'Source' as TableName from test.zcd_tpropty_hist
+# MAGIC select count (*) as RecordCount, 'Source' as TableName from Source
 
 # COMMAND ----------
 
