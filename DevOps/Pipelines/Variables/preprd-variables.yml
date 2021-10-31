@@ -167,7 +167,7 @@ variables:
   # Azure Devops Self-hosted VM related
   # ------------------------------------------------
   - name: vmSizeDevops
-    value: Standard_D2s_v3
+    value: Standard_D2as_v4
   - name: vmNameDevops
     value: ln097ddevops02
   - name: publisherDevops
@@ -180,7 +180,7 @@ variables:
   # Azure IR Self-hosted VM related
   # ------------------------------------------------
   - name: vmSizeIR
-    value: Standard_Ds1_v2
+    value: Standard_D2as_v4
   - name: vmNameIR
     value: nt097ddaf02
   # ------------------------------------------------
@@ -190,3 +190,9 @@ variables:
     value: Standard_D2s_v4
   - name: vmNameSlt
     value: nt097dslt01
+  - name: publisherSlt
+    value: MicrosoftSQLServer
+  - name: offerSlt
+    value: sql2019-ws2019
+  - name: OSVersionSlt
+    value: Standard
