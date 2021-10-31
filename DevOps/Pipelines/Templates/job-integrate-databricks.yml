@@ -18,7 +18,7 @@ steps:
   inputs:
     versionSpec: '3.x'
 
-# Install required Python modules eg. databricks-connect
+# Install required Python modules eg. databricks-connect.
 - script: |
   pip install --upgrade pip setuptools wheel databricks-cli
 
@@ -39,30 +39,21 @@ steps:
 
 # Remove Current Notebooks
 - script: |
-  databricks workspace mkdirs /build/Util;
-  databricks workspace mkdirs /build/DataProcessing;
-  databricks workspace rm -r /build/Util;
-  databricks workspace rm -r /build/DataProcessing;
+  databricks workspace mkdirs /build;
+  databricks workspace rm -r /build;
 
 # Update Notebooks to Databricks workspace
 - script: |
-  databricks workspace mkdirs /build/Util;
-  databricks workspace mkdirs /build/DataProcessing;
-  for filename in _Databricks/notebook/*-dp.py; 
+# Update Notebooks to Databricks workspace.
+- script: |
+  databricks workspace mkdirs /build/;
+  for filename in _Databricks/*-dp.py; 
   do
-      databricks workspace import --language PYTHON --format SOURCE --overwrite "${filename}" "/build/DataProcessing/${filename##*/}"
+      databricks workspace import --language PYTHON --format SOURCE --overwrite "${filename}" "/build/${filename##*/}"
   done;
-  for filename in _Databricks/notebook/*-dp.scala; 
+  for filename in _Databricks/*-dp.scala; 
   do
-      databricks workspace import --language SCALA --format SOURCE --overwrite "${filename}" "/build/DataProcessing/${filename##*/}"
-  done;
-  for filename in _Databricks/notebook/*-ut.py; 
-  do
-      databricks workspace import --language PYTHON --format SOURCE --overwrite "${filename}" "/build/Util/${filename##*/}"
-  done;
-  for filename in _Databricks/notebook/*-ut.scala; 
-  do
-      databricks workspace import --language SCALA --format SOURCE --overwrite "${filename}" "/build/Util/${filename##*/}"
+      databricks workspace import --language SCALA --format SOURCE --overwrite "${filename}" "/build/${filename##*/}"
   done;
   echo
 
