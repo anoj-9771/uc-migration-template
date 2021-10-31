@@ -8,6 +8,12 @@
       "adminPassword": {
         "type": "secureString"
       },
+      "publisher": {
+        "type": "string"
+      },
+      "offer": {
+        "type": "string"
+      },
       "OSVersion": {
         "type": "string",
         "defaultValue": "2019-Datacenter"
@@ -65,8 +71,8 @@
           },
           "storageProfile": {
             "imageReference": {
-              "publisher": "MicrosoftWindowsServer",
-              "offer": "WindowsServer",
+              "publisher": "[parameters('publisher')]",
+              "offer": "[parameters('offer')]",
               "sku": "[parameters('OSVersion')]",
               "version": "latest"
             },

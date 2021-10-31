@@ -62,8 +62,8 @@ variables:
     value: true
   # Use to set Integration Runtime Self-Hosted VM deployability
   - name: irvm
-    value: false
-  # Use to set Collibra VM deployability
-  - name: collibravm
-    value: false
+    value: true
+  # Use to set Slt VM deployability
+  - name: sltvm
+    value: true
   

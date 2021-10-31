@@ -3,18 +3,28 @@ parameters:
   type: string # data type of the parameter; required
 - name: resource_group
   type: string
+- name: vmSize
+  type: string
+- name: vmName
+  type: string
+- name: publisher
+  type: string
+- name: OSVersion
+  type: string
+- name: offer
+  type: string
 
 steps:
 
-  - task: AzureCLI@2
-    displayName: 'Add sp to ACL policy'
-    name: add_sp_to_acl_policy_sql
-    inputs:
-      azureSubscription: ${{ parameters.AzDoServiceConnection }}
-      scriptType: bash
-      scriptLocation: inlineScript
-      inlineScript: |
-        az keyvault set-policy --name "$(AZUREKEYVAULTNAME)" --secret-permissions set delete list get --object-id "$(SPOBJECTID)"
+  # - task: AzureCLI@2
+  #   displayName: 'Add sp to ACL policy $(vmname)'
+  #   name: add_sp_to_acl_policy_sql_$(vmname)
+  #   inputs:
+  #     azureSubscription: ${{ parameters.AzDoServiceConnection }}
+  #     scriptType: bash
+  #     scriptLocation: inlineScript
+  #     inlineScript: |
+  #       az keyvault set-policy --name "$(AZUREKEYVAULTNAME)" --secret-permissions set delete list get --object-id "$(SPOBJECTID)"
 
   - task: AzureKeyVault@1
     displayName: 'Get secrets'
@@ -30,8 +40,9 @@ steps:
       resourceGroupName: ${{ parameters.resource_group }}
       location: $(LOCATION)
       templateLocation: 'Linked artifact'
-      csmFile: '$(Pipeline.Workspace)/arm_templates/arm-vm-devops.json'
-      overrideParameters: '-location $(LOCATION) -adminUsername $(adminUsername) -adminPassword $(AzureSQLServerPw) -OSVersion $(OSVersion) -vmSize $(vmSize) -vmName $(vmName) -subnetId $(internalSubnetId)'
+      csmFile: '$(Pipeline.Workspace)/arm_templates/arm-vm.json'
+      overrideParameters: '-location $(LOCATION) -adminUsername $(adminUsername) -adminPassword $(AzureSQLServerPw) -publisher ${{parameters.publisher}} -offer ${{parameters.offer}} -OSVersion ${{parameters.OSVersion}} -vmSize ${{parameters.vmSize}} -vmName ${{parameters.vmName}} -subnetId $(internalSubnetId)'
       deploymentMode: 'Incremental'
       deploymentOutputs: 'armOutputs'
-    displayName: 'Deploy VM Az Devops'
+    displayName: 'Deploy VM ${{parameters.vmName}}'
+
