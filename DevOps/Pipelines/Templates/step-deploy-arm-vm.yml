@@ -41,8 +41,8 @@ steps:
       location: $(LOCATION)
       templateLocation: 'Linked artifact'
       csmFile: '$(Pipeline.Workspace)/arm_templates/arm-vm.json'
-      overrideParameters: '-location $(LOCATION) -adminUsername $(adminUsername) -adminPassword $(AzureSQLServerPw) -publisher $(publisher) -offer $(offer) -OSVersion $(OSVersion) -vmSize $(vmSize) -vmName $(vmName) -subnetId $(internalSubnetId)'
+      overrideParameters: '-location $(LOCATION) -adminUsername $(adminUsername) -adminPassword $(AzureSQLServerPw) -publisher ${{parameters.publisher}} -offer ${{parameters.offer}} -OSVersion ${{parameters.OSVersion}} -vmSize ${{parameters.vmSize}} -vmName ${{parameters.vmName}} -subnetId $(internalSubnetId)'
       deploymentMode: 'Incremental'
       deploymentOutputs: 'armOutputs'
-    displayName: 'Deploy VM $(vmName)'
+    displayName: 'Deploy VM ${{parameters.vmName}}'
 

@@ -184,13 +184,6 @@ variables:
   - name: vmNameIR
     value: nt097ddaf02
   # ------------------------------------------------
-  # Azure Collibra VM related
-  # ------------------------------------------------
-  - name: vmSizeCollibra
-    value: Standard_D2s_v4
-  - name: vmNameCollibra
-    value: nt097dcolibra01
-  # ------------------------------------------------
   # Azure SLT VM related
   # ------------------------------------------------
   - name: vmSizeSlt
