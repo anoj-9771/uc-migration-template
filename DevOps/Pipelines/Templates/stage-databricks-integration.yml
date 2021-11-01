@@ -88,12 +88,14 @@ stages:
 
     # Remove Current Notebooks - continue on error is required for first run as there will be no build folders
     - script: |
-        databricks workspace rm -r /build;
+        databricks workspace mkdirs /build2;
+        databricks workspace rm -r /build2;
       displayName: 'Remove Current Notebooks'
       continueOnError: true
 
     # Update Notebooks to Databricks workspace
     - script: |
-        databricks workspace import_dir -o -e $(Pipeline.Workspace)/databricks_notebooks "/build"
+        databricks workspace mkdirs /build2;
+        databricks workspace import_dir -o -e $(Pipeline.Workspace)/databricks_notebooks "/build2"
         echo
       displayName: 'Add updated notbooks to workspace'
