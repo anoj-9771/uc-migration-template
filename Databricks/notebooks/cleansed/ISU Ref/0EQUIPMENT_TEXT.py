@@ -176,38 +176,33 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT \
-	case when EQUNR = 'na' then '' else EQUNR end as equipmentNumber, \
-	case when DATETO = 'na' then '' else (to_date('19000101','yyyyMMdd')) end as validToDate, \
-	to_date(DATEFROM,'yyyyMMdd') as validFromDate, \
-	TXTMD as equipmentDescription, \
-	to_date(AEDAT,'yyyyMMdd') as lastChangedDate, \
-	_RecordStart, \
-	_RecordEnd, \
-	_RecordDeleted, \
-	_RecordCurrent \
-	FROM {ADS_DATABASE_STAGE}.{source_object}")
+                            case when EQUNR = 'na' then '' else EQUNR end as equipmentNumber, \
+                            case when DATETO = 'na' then to_date('1900-01-01','yyyy-MM-dd') else to_date(DATETO,'yyyy-MM-dd') end as validToDate, \
+                            to_date(DATEFROM,'yyyy-MM-dd') as validFromDate, \
+                            TXTMD as equipmentDescription, \
+                            to_date(AEDAT,'yyyy-MM-dd') as lastChangedDate, \
+                            _RecordStart, \
+                            _RecordEnd, \
+                            _RecordDeleted, \
+                            _RecordCurrent \
+                          FROM {ADS_DATABASE_STAGE}.{source_object}")
 
 display(df_cleansed)
 print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
 
-# MAGIC %sql
-# MAGIC select to_date('19000301','yyyymmdd') from raw.isu_0archobject_text
-
-# COMMAND ----------
-
 newSchema = StructType([
-	StructField('equipmentNumber',StringType(),False),
-	StructField('validToDate',DateType(),False),
-	StructField('validFromDate',DateType(),True),
-	StructField('equipmentDescription',StringType(),True),
-	StructField('lastChangedDate',DateType(),True),
-	StructField('_RecordStart',TimestampType(),False),
-	StructField('_RecordEnd',TimestampType(),False),
-	StructField('_RecordDeleted',IntegerType(),False),
-	StructField('_RecordCurrent',IntegerType(),False)
-])              
+                        StructField('equipmentNumber',StringType(),False),
+                        StructField('validToDate',DateType(),False),
+                        StructField('validFromDate',DateType(),True),
+                        StructField('equipmentDescription',StringType(),True),
+                        StructField('lastChangedDate',DateType(),True),
+                        StructField('_RecordStart',TimestampType(),False),
+                        StructField('_RecordEnd',TimestampType(),False),
+                        StructField('_RecordDeleted',IntegerType(),False),
+                        StructField('_RecordCurrent',IntegerType(),False)
+                      ])              
                 
 
 df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
