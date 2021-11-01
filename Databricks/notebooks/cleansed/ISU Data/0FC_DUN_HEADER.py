@@ -181,8 +181,8 @@ df_cleansed = spark.sql(f"SELECT \
 	case when GPART = 'na' then '' else GPART end as businessPartnerGroupNumber, \
 	case when VKONT = 'na' then '' else VKONT end as contractAccountNumber, \
 	case when MAZAE = 'na' then '' else MAZAE end as dunningNoticeCounter, \
-	to_date(AUSDT) as dateOfIssue, \
-	to_date(MDRKD) as noticeExecutionDate, \
+	to_date(AUSDT, 'yyyy-MM-dd') as dateOfIssue, \
+	to_date(MDRKD, 'yyyy-MM-dd') as noticeExecutionDate, \
 	VKONTGRP as contractAccountGroup, \
 	cast(ITEMGRP as dec(15,0)) as dunningClosedItemGroup, \
 	STRAT as collectionStrategyCode, \

@@ -179,11 +179,11 @@ df_cleansed = spark.sql(f"SELECT  \
                                       case when ABLBELNR = 'na' then '' else ABLBELNR end as meterReadingId , \
                                       case when EQUNR = 'na' then '' else EQUNR end as equipmentNumber , \
                                       ZWNUMMER as registerNumber , \
-                                      to_date(ADAT) as meterReadingDate , \
+                                      to_date(ADAT, 'yyyy-MM-dd') as meterReadingDate , \
                                       MRESULT as meterReadingTaken , \
                                       MR_BILL as duplicate , \
                                       AKTIV as meterReadingActive , \
-                                      to_date(ADATSOLL) as scheduledMeterReadingDate , \
+                                      to_date(ADATSOLL, 'yyyy-MM-dd') as scheduledMeterReadingDate , \
                                       ABLSTAT as meterReadingStatus , \
                                       ABLHINW as notefromMeterReader , \
                                       ABLESART as scheduledMeterReadingCategory , \
@@ -200,16 +200,16 @@ df_cleansed = spark.sql(f"SELECT  \
                                       TRANSSTAT as transferStatusCode , \
                                       TRANSTSTAMP as timeStamp , \
                                       SOURCESYST as sourceSystemOrigin , \
-                                      to_date(ZPREV_ADT) as actualmeterReadingDate , \
+                                      to_date(ZPREV_ADT, 'yyyy-MM-dd') as actualmeterReadingDate , \
                                       ZPREV_MRESULT as meterReadingTaken2 , \
                                       ZZ_PHOTO_IND as meterPhotoIndicator , \
                                       ZZ_FREE_TEXT as freeText , \
                                       ZZ_COMM_CODE as meterReadingCommentCode , \
                                       ZZ_NO_READ_CODE as noReadCode , \
                                       ZGERNR as DeviceNumber , \
-                                      to_date(ZADATTATS) as actualMeterReadingDate2 , \
+                                      to_date(ZADATTATS, 'yyyy-MM-dd') as actualMeterReadingDate2 , \
                                       ZWNABR as registerNotRelevantToBilling , \
-                                      to_date(AEDAT) as lastChangedDate , \
+                                      to_date(AEDAT, 'yyyy-MM-dd') as lastChangedDate , \
                                       _RecordStart, \
                                       _RecordEnd, \
                                       _RecordDeleted, \

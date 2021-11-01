@@ -178,8 +178,8 @@ DeltaSaveToDeltaTable (
 df_cleansed = spark.sql(f"SELECT \
 	ANLAGE as installationId, \
 	OPERAND as operandCode, \
-	to_date(AB) as validFromDate, \
-	to_date(BIS) as validToDate, \
+	to_date(AB, 'yyyy-MM-dd') as validFromDate, \
+	to_date(BIS, 'yyyy-MM-dd') as validToDate, \
 	cast(WERT1 as dec(16,7)) as entryValue, \
 	cast(WERT2 as dec(16,7)) as valueToBeBilled, \
 	STRING3 as operandValue, \

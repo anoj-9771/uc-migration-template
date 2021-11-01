@@ -177,13 +177,13 @@ DeltaSaveToDeltaTable (
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT \
 	case when PPKEY = 'na' then '' else PPKEY end as propmiseToPayId, \
-	to_date(PRDAT) as paymentDatePromised, \
+	to_date(PRDAT, 'yyyy-MM-dd') as paymentDatePromised, \
 	cast(PRAMT as dec(13,2)) as paymentAmountPromised, \
 	cast(PRAMO as dec(13,2)) as promisedAmountOpen, \
 	PRCUR as currency, \
 	cast(FDDBT as dec(13,2)) as amount2, \
 	cast(FDDBO as dec(13,2)) as amount1, \
-	to_date(ERDAT) as createdDate, \
+	to_date(ERDAT, 'yyyy-MM-dd') as createdDate, \
 	_RecordStart, \
 	_RecordEnd, \
 	_RecordDeleted, \

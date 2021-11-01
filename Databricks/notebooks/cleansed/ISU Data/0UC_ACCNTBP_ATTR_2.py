@@ -194,9 +194,9 @@ df_cleansed = spark.sql(f"SELECT \
 	SENDCONTROL_GP as dispatchControl, \
 	KZABSVER as billingProcedureActivationIndicator, \
 	JVLTE as participationInYearlyAdvancePayment, \
-	to_date(ERDAT) as createdDate, \
+	to_date(ERDAT, 'yyyy-MM-dd') as createdDate, \
 	ERNAM as createdBy, \
-	to_date(AEDATP) as lastChangedDate, \
+	to_date(AEDATP, 'yyyy-MM-dd') as lastChangedDate, \
 	AENAMP as changedBy, \
 	FDZTG as additionalDaysForCashManagement, \
 	GUID as headerUUID, \
