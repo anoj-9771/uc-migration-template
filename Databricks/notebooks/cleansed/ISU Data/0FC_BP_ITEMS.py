@@ -200,29 +200,29 @@ df_cleansed = spark.sql(f"SELECT \
 	MWSKZ as taxSalesCode, \
 	XANZA as downPaymentIndicator, \
 	STAKZ as statisticalItemType, \
-	to_date(C4EYP) as documentDate, \
-	to_date(CPUDT) as documentEnteredDate, \
+	to_date(C4EYP, 'yyyy-MM-dd') as documentDate, \
+	to_date(CPUDT, 'yyyy-MM-dd') as documentEnteredDate, \
 	WAERS as currencyKey, \
-	to_date(FAEDN) as paymentDueDate, \
-	to_date(FAEDS) as cashDiscountDueDate, \
-	to_date(STUDT) as deferralToDate, \
+	to_date(FAEDN, 'yyyy-MM-dd') as paymentDueDate, \
+	to_date(FAEDS, 'yyyy-MM-dd') as cashDiscountDueDate, \
+	to_date(STUDT, 'yyyy-MM-dd') as deferralToDate, \
 	cast(SKTPZ as dec(5,2)) as cashDiscountPercentageRate, \
 	cast(BETRH as dec(13,2)) as amountLocalCurrency, \
 	BLART as documentTypeCode, \
 	cast(SKFBT as dec(13,2)) as amountEligibleCashDiscount, \
 	cast(SBETH as dec(13,2)) as taxAmountLocalCurrency, \
 	cast(SBETW as dec(13,2)) as taxAmount, \
-	to_date(AUGDT) as clearingDate, \
+	to_date(AUGDT, 'yyyy-MM-dd') as clearingDate, \
 	AUGBL as clearingDocument, \
-	to_date(AUGBD) as clearingDocumentPostingDate, \
+	to_date(AUGBD, 'yyyy-MM-dd') as clearingDocumentPostingDate, \
 	AUGRD as clearingReason, \
 	AUGWA as clearingCurrency, \
 	cast(AUGBT as dec(13,2)) as clearingAmount, \
 	cast(AUGBS as dec(13,2)) as taxAmount, \
 	cast(AUGSK as dec(13,2)) as cashDiscount, \
-	to_date(AUGVD) as clearingValueDate, \
-	to_date(ABWTP) as settlementPeriodLowerLimit, \
-	to_date(ABWBL) as billingPeriodUpperLimit, \
+	to_date(AUGVD, 'yyyy-MM-dd') as clearingValueDate, \
+	to_date(ABWTP, 'yyyy-MM-dd') as settlementPeriodLowerLimit, \
+	to_date(ABWBL, 'yyyy-MM-dd') as billingPeriodUpperLimit, \
 	AUGRS as clearingRestriction, \
 	INFOZ as valueAdjustment, \
 	BLART as documentTypeCode, \
@@ -234,7 +234,7 @@ df_cleansed = spark.sql(f"SELECT \
 	cast(STTAX as dec(13,2)) as taxAmountDocument, \
 	ABGRD as writeOffReasonCode, \
 	HERKF as documentOriginCode, \
-	to_date(CPUDT) as documentEnteredDate, \
+	to_date(CPUDT, 'yyyy-MM-dd') as documentEnteredDate, \
 	AWTYP as referenceProcedure, \
 	AWKEY as objectKey, \
 	STORB as reversalDocumentNumber, \

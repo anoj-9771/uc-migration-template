@@ -180,14 +180,14 @@ df_cleansed = spark.sql(f"SELECT \
 	MPOBJ as measuringPointObjectNumber, \
 	PSORT as positionNumber, \
 	MPTYP as measuringPointCategory, \
-	to_date(ERDAT) as createdDate, \
+	to_date(ERDAT, 'yyyy-MM-dd') as createdDate, \
 	INACT as inactiveIndicator, \
 	ATINN as internalcharacteristic, \
 	MRNGU as measurementRangeUnit, \
 	CODCT as measurementReadingCatalogCode, \
 	CODGR as measurementReadingGroupCode, \
-	to_date(AEDAT) as lastChangedDate, \
-	to_date(CDATS) as deltaDate, \
+	to_date(AEDAT, 'yyyy-MM-dd') as lastChangedDate, \
+	to_date(CDATS, 'yyyy-MM-dd') as deltaDate, \
 	_RecordStart, \
 	_RecordEnd, \
 	_RecordDeleted, \

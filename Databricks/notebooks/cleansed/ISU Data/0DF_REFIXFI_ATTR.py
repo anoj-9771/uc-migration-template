@@ -178,8 +178,8 @@ DeltaSaveToDeltaTable (
 df_cleansed = spark.sql(f"SELECT \
 	case when INTRENO = 'na' then '' else INTRENO end as architecturalObjectInternalId, \
 	case when FIXFITCHARACT = 'na' then '' else FIXFITCHARACT end as fixtureAndFittingCharacteristicCode, \
-	case when VALIDTO = 'na' then to_date('19000101','yyyyMMdd') else to_date(VALIDTO) end as validToDate, \
-	to_date(VALIDFROM) as validFromDate, \
+	case when VALIDTO = 'na' then to_date('1900-01-01','yyyy-MM-dd') else to_date(VALIDTO, 'yyyy-MM-dd') end as validToDate, \
+	to_date(VALIDFROM, 'yyyy-MM-dd') as validFromDate, \
 	WEIGHT as weightingValue, \
 	cast(RESULTVAL as int) as resultValue, \
 	cast(ADDITIONALINFO as int) as characteristicAdditionalValue, \

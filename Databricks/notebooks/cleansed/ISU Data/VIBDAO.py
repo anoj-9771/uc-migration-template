@@ -173,6 +173,10 @@ DeltaSaveToDeltaTable (
 
 # COMMAND ----------
 
+
+
+# COMMAND ----------
+
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT  \
@@ -181,28 +185,28 @@ df_cleansed = spark.sql(f"SELECT  \
                                   AOTYPE as architecturalObjectTypeCode , \
                                   tiv.XMAOTYPE as architecturalObjectType , \
                                   AONR as architecturalObjectNumber , \
-                                  VALIDFROM as validFromDate , \
-                                  VALIDTO as validToDate , \
+                                  to_date(VALIDFROM,'yyyy-MM-dd') as validFromDate , \
+                                  to_date(VALIDTO,'yyyy-MM-dd') as validToDate , \
                                   PARTAOID as partArchitecturalObjectId , \
                                   OBJNR as objectNumber , \
                                   RERF as firstEnteredBy , \
-                                  DERF as firstEnteredOnDate , \
+                                  to_date(DERF,'yyyy-MM-dd') as firstEnteredOnDate , \
                                   TERF as firstEnteredTime , \
                                   REHER as firstEnteredSource , \
                                   RBEAR as employeeId , \
-                                  DBEAR as lastEdittedOnDate , \
+                                  to_date(DBEAR,'yyyy-MM-dd') as lastEdittedOnDate , \
                                   TBEAR as lastEdittedTime , \
                                   RBHER as lastEdittedSource , \
                                   RESPONSIBLE as responsiblePerson , \
                                   USEREXCLUSIVE as exclusiveUser , \
-                                  LASTRENO as lastRelocationDate , \
+                                  to_date(LASTRENO,'yyyy-MM-dd') as lastRelocationDate , \
                                   MEASSTRC as measurementStructure , \
                                   DOORPLT as shortDescription , \
                                   RSAREA as reservationArea , \
                                   SINSTBEZ as maintenanceDistrict , \
                                   SVERKEHR as businessEntityTransportConnectionsIndicator , \
                                   ZCD_PROPERTY_NO as propertyNumber , \
-                                  ZCD_PROP_CR_DATE as propertyCreatedDate , \
+                                  to_date(ZCD_PROP_CR_DATE,'yyyy-MM-dd') as propertyCreatedDate , \
                                   ZCD_PROP_LOT_NO as propertyLotNumber , \
                                   ZCD_REQUEST_NO as propertyRequestNumber , \
                                   ZCD_PLAN_TYPE as planTypeCode , \

@@ -181,9 +181,9 @@ df_cleansed = spark.sql(f"SELECT \
 	TEXT as identificationType, \
 	IDNUMBER as businessPartnerIdNumber, \
 	INSTITUTE as institute, \
-	to_date(ENTRY_DATE) as entryDate, \
-	to_date(VALID_DATE_FROM) as validFromDate, \
-	to_date(VALID_DATE_TO) as validToDate, \
+	to_date(ENTRY_DATE, 'yyyy-MM-dd') as entryDate, \
+	to_date(VALID_DATE_FROM, 'yyyy-MM-dd') as validFromDate, \
+	to_date(VALID_DATE_TO, 'yyyy-MM-dd') as validToDate, \
 	COUNTRY as countryShortName, \
 	REGION as stateCode, \
 	PARTNER_GUID as businessPartnerGUID, \

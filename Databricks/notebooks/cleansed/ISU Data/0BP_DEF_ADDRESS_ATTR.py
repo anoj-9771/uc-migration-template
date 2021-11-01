@@ -179,8 +179,8 @@ df_cleansed = spark.sql(f"SELECT \
 	PARTNER as businessPartnerNumber, \
 	PARTNER_GUID as businessPartnerGUID, \
 	ADDRNUMBER as addressNumber, \
-	to_date(DATE_FROM) as validFromDate, \
-	to_date(DATE_TO) as validToDate, \
+	to_date(DATE_FROM ,'yyyy-MM-dd') as validFromDate, \
+	to_date(DATE_TO ,'yyyy-MM-dd') as validToDate, \
 	TITLE as titleCode, \
 	NAME1 as businessPartnerName1, \
 	NAME2 as businessPartnerName2, \
