@@ -176,14 +176,14 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT \
-    case when ATINN = 'na' then '' else ATINN end as internalcharacteristic, \
-    case when ADZHL = 'na' then '' else ADZHL end as internalCounterforArchivingObjectsbyECM, \
-	ATNAM as characteristicName, \
-	_RecordStart, \
-	_RecordEnd, \
-	_RecordDeleted, \
-	_RecordCurrent \
-	FROM {ADS_DATABASE_STAGE}.{source_object}")
+                            case when ATINN = 'na' then '' else ATINN end as internalcharacteristic, \
+                            case when ADZHL = 'na' then '' else ADZHL end as internalCounterforArchivingObjectsbyECM, \
+                            ATNAM as characteristicName, \
+                            _RecordStart, \
+                            _RecordEnd, \
+                            _RecordDeleted, \
+                            _RecordCurrent \
+                          FROM {ADS_DATABASE_STAGE}.{source_object}")
 
 display(df_cleansed)
 print(f'Number of rows: {df_cleansed.count()}')                     
@@ -191,21 +191,18 @@ print(f'Number of rows: {df_cleansed.count()}')
 # COMMAND ----------
 
 # Create schema for the cleanse table
-newSchema = StructType(
-                           [
-                            StructField("internalcharacteristic", StringType(), False),
-                            StructField("internalCounterforArchivingObjectsbyECM", StringType(), False),
-                            StructField("characteristicName", StringType(), True),
-                            StructField('_RecordStart',TimestampType(),False),
-                            StructField('_RecordEnd',TimestampType(),False),
-                            StructField('_RecordDeleted',IntegerType(),False),
-                            StructField('_RecordCurrent',IntegerType(),False)
-                            ]
-                        )
+newSchema = StructType([
+                        StructField("internalcharacteristic", StringType(), False),
+                        StructField("internalCounterforArchivingObjectsbyECM", StringType(), False),
+                        StructField("characteristicName", StringType(), True),
+                        StructField('_RecordStart',TimestampType(),False),
+                        StructField('_RecordEnd',TimestampType(),False),
+                        StructField('_RecordDeleted',IntegerType(),False),
+                        StructField('_RecordCurrent',IntegerType(),False)
+                      ])
 
 # Apply the new schema to cleanse Data Frame
 df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
-characteristicName
 
 # COMMAND ----------
 
