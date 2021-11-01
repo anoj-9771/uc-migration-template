@@ -178,16 +178,12 @@ DeltaSaveToDeltaTable (
 df_cleansed = spark.sql(f"SELECT \
                             case when stg.VERTRAG = 'na' then '' else stg.VERTRAG end as contractId, \
                             stg.BUKRS as companyCode, \
-                            cd.companyDescription, \
                             stg.SPARTE as divisonCode, \
                             stg.KOFIZ as accountDeterminationCode, \
-                            cad.contractAccountDetermination, \
                             stg.ABSZYK as allowableBudgetBillingCycles, \
                             stg.GEMFAKT as invoiceContractsJointly, \
                             stg.ABRSPERR as billBlockingReasonCode, \
-                            bbr.billBlockingReason, \
                             stg.ABRFREIG as billReleasingReasonCode, \
-                            brr.billReleasingReason, \
                             stg.VBEZ as contractText, \
                             to_date(stg.EINZDAT_ALT, 'yyyy-MM-dd') as legacyMoveInDate, \
                             stg.KFRIST as numberOfCancellations, \
@@ -227,17 +223,11 @@ df_cleansed = spark.sql(f"SELECT \
                             stg.ZZ_ADRNR as addressNumber, \
                             stg.ZZ_OWNER as objectReferenceId, \
                             stg.ZZ_OBJNR as objectNumber, \
-                            stg.CPERS as collectionsContactPerson, \
                             stg._RecordStart, \
                             stg._RecordEnd, \
                             stg._RecordDeleted, \
                             stg._RecordCurrent \
-                        FROM {ADS_DATABASE_STAGE}.{source_object} as stg \
-                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0COMP_CODE_TEXT cd ON cd.companyCode = stg.BUKRS and cd._RecordCurrent = 1 and cd._RecordDeleted = 0 \
-                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0FCACTDETID_TEXT cad ON cad.accountDeterminationCode = stg.KOFIZ and cad._RecordCurrent = 1 and cad._RecordDeleted = 0 \
-                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UC_ABRSPERR_TEXT bbr ON bbr.billBlockingReasonCode = stg.ABRSPERR and bbr._RecordCurrent = 1 and bbr._RecordDeleted = 0 \
-                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UC_ABRFREIG_TEXT brr ON brr.billReleasingReasonCode = stg.ABRFREIG and brr._RecordCurrent = 1 and brr._RecordDeleted = 0 \
-                        ")
+                        FROM {ADS_DATABASE_STAGE}.{source_object} stg")
 
 display(df_cleansed)
 print(f'Number of rows: {df_cleansed.count()}')
@@ -249,16 +239,12 @@ newSchema = StructType(
                         [
                           StructField("contractId", StringType(), False),
                           StructField("companyCode", StringType(), True),
-                          StructField("companyDescription", StringType(), True),
                           StructField("divisonCode", StringType(), True),
                           StructField("accountDeterminationCode", StringType(), True),
-                          StructField("accountDetermination", StringType(), True),
                           StructField("allowableBudgetBillingCycles", StringType(), True),
                           StructField("invoiceContractsJointly", StringType(), True),
                           StructField("billBlockingReasonCode", StringType(), True),
-                          StructField("billBlockingReason", StringType(), True),
                           StructField("billReleasingReasonCode", StringType(), True),
-                          StructField("billReleasingReason", StringType(), True),
                           StructField("contractText", StringType(), True),
                           StructField("legacyMoveInDate", DateType(), True),
                           StructField("numberOfCancellations", StringType(), True),
@@ -298,7 +284,6 @@ newSchema = StructType(
                           StructField("addressNumber", StringType(), True),
                           StructField("objectReferenceId", StringType(), True),
                           StructField("objectNumber", StringType(), True),
-                          StructField("collectionsContactPerson", StringType(), True),
                           StructField('_RecordStart',TimestampType(),False),
                           StructField('_RecordEnd',TimestampType(),False),
                           StructField('_RecordDeleted',IntegerType(),False),
