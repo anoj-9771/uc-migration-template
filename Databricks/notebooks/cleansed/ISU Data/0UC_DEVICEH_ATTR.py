@@ -178,14 +178,14 @@ DeltaSaveToDeltaTable (
 df_cleansed = spark.sql(f"SELECT \
 	case when dev.EQUNR = 'na' then '' else dev.EQUNR end as equipmentNumber, \
 	equi.TXTMD as equipmentDescription, \
-	case when dev.BIS = 'na' then to_date('19000101','yyyyMMdd') else to_date(dev.BIS, 'yyyyMMdd') end as validToDate, \
-	to_date(dev.AB, 'yyyyMMdd') as validFromDate, \
+	case when dev.BIS = 'na' then to_date('1900-01-01','yyyy-MM-dd') else to_date(dev.BIS, 'yyyy-MM-dd') end as validToDate, \
+	to_date(dev.AB, 'yyyy-MM-dd') as validFromDate, \
 	dev.KOMBINAT as deviceCategoryCombination, \
 	cast(dev.LOGIKNR as long) as logicalDeviceNumber, \
 	dev.ZWGRUPPE as registerGroupCode, \
 	reg.EZWG_INFO as registerGroup, \
-	to_date(dev.EINBDAT, 'yyyyMMdd') as installationDate, \
-	to_date(dev.AUSBDAT, 'yyyyMMdd') as deviceRemovalDate, \
+	to_date(dev.EINBDAT, 'yyyy-MM-dd') as installationDate, \
+	to_date(dev.AUSBDAT, 'yyyy-MM-dd') as deviceRemovalDate, \
 	dev.GERWECHS as activityReasonCode, \
 	ger.GERWETXT as activityReason, \
 	dev.DEVLOC as deviceLocation, \

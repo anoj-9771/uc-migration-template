@@ -193,11 +193,11 @@ df_cleansed = spark.sql(f"SELECT \
                                 BP.ZZUSER as userId,\
                                 BP.ZZPAS_INDICATOR as paymentAssistSchemeIndicator,\
                                 BP.ZZBA_INDICATOR as billAssistIndicator,\
-                                to_date(BP.ZZAFLD00001Z) as createdOn,\
+                                to_date(BP.ZZAFLD00001Z, 'yyyy-MM-dd') as createdOn,\
                                 BP.NAME_ORG1 as organizationName1,\
                                 BP.NAME_ORG2 as organizationName2,\
                                 BP.NAME_ORG3 as organizationName3,\
-                                to_date(BP.FOUND_DAT) as organizationFoundedDate,\
+                                to_date(BP.FOUND_DAT, 'yyyy-MM-dd') as organizationFoundedDate,\
                                 BP.LOCATION_1 as internationalLocationNumber1,\
                                 BP.LOCATION_2 as internationalLocationNumber2,\
                                 BP.LOCATION_3 as internationalLocationNumber3,\
@@ -214,8 +214,8 @@ df_cleansed = spark.sql(f"SELECT \
                                 BP.PERSNUMBER as personNumber,\
                                 BP.XSEXU as unknownGenderIndicator,\
                                 BP.BU_LANGU as language,\
-                                to_date(BP.BIRTHDT) as dateOfBirth,\
-                                to_date(BP.DEATHDT) as dateOfDeath,\
+                                to_date(BP.BIRTHDT, 'yyyy-MM-dd') as dateOfBirth,\
+                                to_date(BP.DEATHDT, 'yyyy-MM-dd') as dateOfDeath,\
                                 BP.PERNO as personnelNumber,\
                                 BP.NAME_GRP1 as nameGroup1,\
                                 BP.NAME_GRP2 as nameGroup2,\
@@ -225,8 +225,8 @@ df_cleansed = spark.sql(f"SELECT \
                                 cast(concat(BP.CHDAT,' ',(case WHEN BP.CHTIM is null then  '00:00:00' else BP.CHTIM END)) as timestamp)  as changedDateTime,\
                                 BP.PARTNER_GUID as businessPartnerGUID,\
                                 BP.ADDRCOMM as addressNumber,\
-                                Case WHEN BP.VALID_FROM = '10101000000' then to_date('19000101', 'yyyyMMdd') else to_date(substr(BP.VALID_FROM,0,8),'yyyyMMdd') END as validFromDate,\
-                                to_date(substr(BP.VALID_TO,0,8),'yyyyMMdd') as validToDate,\
+                                Case WHEN BP.VALID_FROM = '10101000000' then to_date('1900-01-01', 'yyyy-MM-dd') else to_date(substr(BP.VALID_FROM,0,8),'yyyy-MM-dd') END as validFromDate,\
+                                to_date(substr(BP.VALID_TO,0,8),'yyyy-MM-dd') as validToDate,\
                                 BP.NATPERS as naturalPersonIndicator,\
                                 BP._RecordStart, \
                                 BP._RecordEnd, \

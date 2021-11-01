@@ -191,13 +191,13 @@ df_cleansed = spark.sql(f"SELECT \
 	cast(RDAMT as dec(13,2)) as amountCleared, \
 	ERNAM as createdBy, \
 	cast(to_unix_timestamp(ERDAT + ERTIM, 'yyyy-MM-dd hh:mm:ss a') as timestamp) as createdDateTime, \
-	to_date(CHDAT) as changedDate, \
+	to_date(CHDAT, 'yyyy-MM-dd') as changedDate, \
 	PPSTA as propmiseToPayStatus, \
 	XSTCH as statusChangedIndicator, \
 	PPKEY_NEW as replacementPropmiseToPayId, \
 	XINDR as installmentsAgreed, \
-	to_date(FTDAT) as firstDueDate, \
-	to_date(LTDAT) as finalDueDate, \
+	to_date(FTDAT, 'yyyy-MM-dd') as firstDueDate, \
+	to_date(LTDAT, 'yyyy-MM-dd') as finalDueDate, \
 	NRRTS as numberOfPayments, \
 	cast(PPDUE as dec(13,2)) as paymentPromised, \
 	cast(PPPAY as dec(13,2)) as amountPaidByToday, \

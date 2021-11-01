@@ -184,8 +184,8 @@ df_cleansed = spark.sql(f"SELECT \
 	RELDIR as relationshipDirection, \
 	RELTYP as relationshipTypeCode, \
 	TXTLG as relationshipType, \
-	to_date(DATE_TO) as validToDate, \
-	to_date(DATE_FROM) as validFromDate, \
+	to_date(DATE_TO, 'yyyy-MM-dd') as validToDate, \
+	to_date(DATE_FROM, 'yyyy-MM-dd') as validFromDate, \
 	COUNTRY as countryShortName, \
 	POST_CODE1 as postalCode, \
 	CITY1 as cityName, \
