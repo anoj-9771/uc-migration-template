@@ -175,7 +175,7 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_cleansed = spark.sql("SELECT \
+df_cleansed = spark.sql(f"SELECT \
                           case when GERWECHS = 'na' then '' else GERWECHS end as activityReasonCode, \
                           GERWETXT as activityReason, \
                           _RecordStart, \
