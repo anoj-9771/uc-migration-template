@@ -176,23 +176,20 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT  \
-                            case when stg.PROPERTY_NO = 'na' then '' else stg.PROPERTY_NO end as propertyNumber , \
-                            sup_typ.SUP_PROP_TYPE as superiorPropertyTypeCode , \
-                            sup_typ.superiorPropertyType  as superiorPropertyType , \
-                            inf_typ.INF_PROP_TYPE as inferiorPropertyTypeCode , \
-                            inf_typ.inferiorPropertyType  as inferiorPropertyType , \
-                            to_date((case when stg.DATE_FROM = 'na' then '1900-01-01' else stg.DATE_FROM end), 'yyyy-MM-dd') as validFromDate , \
-                            to_date(stg.DATE_TO, 'yyyy-MM-dd') as validToDate  , \
+                            case when stg.PROPERTY_NO = 'na' then '' else stg.PROPERTY_NO end as propertyNumber, \
+                            sup_typ.SUP_PROP_TYPE as superiorPropertyTypeCode, \
+                            inf_typ.INF_PROP_TYPE as inferiorPropertyTypeCode, \
+                            to_date((case when stg.DATE_FROM = 'na' then '1900-01-01' else stg.DATE_FROM end), 'yyyy-MM-dd') as validFromDate, \
+                            to_date(stg.DATE_TO, 'yyyy-MM-dd') as validToDate, \
+                            to_date(stg.CREATED_ON, 'yyyy-MM-dd') as createdDate, \
+                            stg.CREATED_BY as createdBy, \
+                            to_date(stg.CHANGED_ON, 'yyyy-MM-dd') as changedDate, \
+                            stg.CHANGED_BY as changedBy, \
                             stg._RecordStart, \
                             stg._RecordEnd, \
                             stg._RecordDeleted, \
                             stg._RecordCurrent \
-                          FROM {ADS_DATABASE_STAGE}.{source_object} stg \
-                          left outer join {ADS_DATABASE_CLEANSED}.isu_zcd_tinfprty_tx inf_typ on stg.INF_PROP_TYPE = inf_typ.inferiorPropertyTypecode \
-                                                                                  and inf_typ._RecordCurrent = 1 and inf_typ._RecordDeleted = 0  \
-                          left outer join {ADS_DATABASE_CLEANSED}.isu_zcd_tsupprtyp_tx sup_typ on stg.SUP_PROP_TYPE = sup_typ.superiorPropertyTypecode \
-                                                                                  and sup_typ._RecordCurrent = 1 and sup_typ._RecordDeleted = 0  \
-                        ")
+                          FROM {ADS_DATABASE_STAGE}.{source_object} stg")
 
 display(df_cleansed)
 print(f'Number of rows: {df_cleansed.count()}')
@@ -203,11 +200,13 @@ print(f'Number of rows: {df_cleansed.count()}')
 newSchema = StructType([
                         StructField("propertyNumber", StringType(), False),
                         StructField("superiorPropertyTypeCode", StringType(), True),
-                        StructField("superiorPropertyType", StringType(), True),
                         StructField("inferiorPropertyTypeCode", StringType(), True),
-                        StructField("inferiorPropertyType", StringType(), True),
                         StructField("validFromDate", DateType(), False),
                         StructField("validToDate", DateType(), True),
+                        StructField("createdDate", DateType(), True),
+                        StructField("createdBy", StringType(), True),
+                        StructField("changedDate", DateType(), True),
+                        StructField("changedBy", StringType(), True),
                         StructField('_RecordStart',TimestampType(),False),
                         StructField('_RecordEnd',TimestampType(),False),
                         StructField('_RecordDeleted',IntegerType(),False),
