@@ -198,7 +198,7 @@ df_cleansed = spark.sql(f"SELECT \
 	STTARIF as statisticalRate, \
 	VBRMONAT as consumptionMonth, \
 	to_date(AB, 'yyyy-MM-dd') as validFromDate, \
-	case when BELZEILE = 'na' then to_date('1900-01-01','yyyyMMdd') else to_date(BIS, 'yyyy-MM-dd') end as validToDate, \
+	case when BELZEILE = 'na' then to_date('1900-01-01','yyyy-MM-dd') else to_date(BIS, 'yyyy-MM-dd') end as validToDate, \
 	BUCHREL as billingLineItemReleventPostingIndicator, \
 	STGRQNT as quantityStatisticsGroupCode, \
 	STGRAMT as amountStatisticsGroupCode, \
