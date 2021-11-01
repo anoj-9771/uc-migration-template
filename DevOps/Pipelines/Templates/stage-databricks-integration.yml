@@ -94,6 +94,6 @@ stages:
 
     # Update Notebooks to Databricks workspace
     - script: |
-        databricks workspace import_dir $(Pipeline.Workspace)/databricks_notebooks "/build"
+        databricks workspace import_dir -o -e $(Pipeline.Workspace)/databricks_notebooks "/build"
         echo
       displayName: 'Add updated notbooks to workspace'
