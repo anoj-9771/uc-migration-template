@@ -181,7 +181,7 @@ df_cleansed = spark.sql(f"SELECT \
                                   REGGRP.registerGroup as registerGroup,\
                                   cast(DEVCAT.UEBERVER as decimal (10,3)) as transformationRatio,\
                                   DEVCAT.AENAM as changedBy,\
-                                  to_date(DEVCAT.AEDAT) as lastChangedDate,\
+                                  to_date(DEVCAT.AEDAT, 'yyyy-MM-dd') as lastChangedDate,\
                                   DEVCAT.SPARTE as division,\
                                   cast(DEVCAT.NENNBEL as decimal(10,4)) as nominalLoad,\
                                   DEVCAT.STELLPLATZ as containerSpaceCount,\

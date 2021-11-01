@@ -3,10 +3,10 @@
 import json
 #For unit testing...
 #Use this string in the Param widget: 
-#{"SourceType": "BLOB Storage (json)", "SourceServer": "daf-sa-lake-sastoken", "SourceGroup": "ISU", "SourceName": "ISU_0UC_INSTFACTS", "SourceLocation": "ISU/0UC_INSTFACTS", "AdditionalProperty": "", "Processor": "databricks-token|0711-011053-turfs581|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive", "IsAuditTable": false, "SoftDeleteSource": "", "ProjectName": "ISUDATA", "ProjectId": 2, "TargetType": "BLOB Storage (json)", "TargetName": "ISU_0UC_INSTFACTS", "TargetLocation": "ISU/0UC_INSTFACTS", "TargetServer": "daf-sa-lake-sastoken", "DataLoadMode": "FULL-EXTRACT", "DeltaExtract": false, "CDCSource": false, "TruncateTarget": false, "UpsertTarget": true, "AppendTarget": null, "TrackChanges": false, "LoadToSqlEDW": true, "TaskName": "ISU_0UC_INSTFACTS", "ControlStageId": 2, "TaskId": 46, "StageSequence": 200, "StageName": "Raw to Cleansed", "SourceId": 46, "TargetId": 46, "ObjectGrain": "Day", "CommandTypeId": 8, "Watermarks": "", "WatermarksDT": null, "WatermarkColumn": "", "BusinessKeyColumn": "", "UpdateMetaData": null, "SourceTimeStampFormat": "", "Command": "", "LastLoadedFile": null}
+#{"SourceType": "BLOB Storage (json)", "SourceServer": "daf-sa-lake-sastoken", "SourceGroup": "ISU", "SourceName": "ISU_0UC_GERWECHS_TEXT", "SourceLocation": "ISU/0UC_GERWECHS_TEXT", "AdditionalProperty": "", "Processor": "databricks-token|0711-011053-turfs581|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive", "IsAuditTable": false, "SoftDeleteSource": "", "ProjectName": "ISUREF", "ProjectId": 2, "TargetType": "BLOB Storage (json)", "TargetName": "ISU_0UC_GERWECHS_TEXT", "TargetLocation": "ISU/0UC_GERWECHS_TEXT", "TargetServer": "daf-sa-lake-sastoken", "DataLoadMode": "FULL-EXTRACT", "DeltaExtract": false, "CDCSource": false, "TruncateTarget": false, "UpsertTarget": true, "AppendTarget": null, "TrackChanges": false, "LoadToSqlEDW": true, "TaskName": "ISU_0UC_GERWECHS_TEXT", "ControlStageId": 2, "TaskId": 46, "StageSequence": 200, "StageName": "Raw to Cleansed", "SourceId": 46, "TargetId": 46, "ObjectGrain": "Day", "CommandTypeId": 8, "Watermarks": "", "WatermarksDT": null, "WatermarkColumn": "", "BusinessKeyColumn": "activityReasonCode", "UpdateMetaData": null, "SourceTimeStampFormat": "", "Command": "", "LastLoadedFile": null}
 
 #Use this string in the Source Object widget
-#ISU_0UC_INSTFACTS
+#ISU_0UC_GERWECHS_TEXT
 
 # COMMAND ----------
 
@@ -175,22 +175,15 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_cleansed = spark.sql(f"SELECT \
-	ANLAGE as installationId, \
-	OPERAND as operandCode, \
-	to_date(AB, 'yyyy-MM-dd') as validFromDate, \
-	to_date(BIS, 'yyyy-MM-dd') as validToDate, \
-	cast(WERT1 as dec(16,7)) as entryValue, \
-	cast(WERT2 as dec(16,7)) as valueToBeBilled, \
-	STRING3 as operandValue, \
-	cast(BETRAG as dec(13,2)) as amount, \
-	UPDMOD as bwDeltaProcess, \
-	MASS as measurementUnit, \
-	_RecordStart, \
-	_RecordEnd, \
-	_RecordDeleted, \
-	_RecordCurrent \
-	FROM {ADS_DATABASE_STAGE}.{source_object}")
+df_cleansed = spark.sql("SELECT \
+                          case when GERWECHS = 'na' then '' else GERWECHS end as activityReasonCode, \
+                          GERWETXT as activityReason, \
+                          _RecordStart, \
+                          _RecordEnd, \
+                          _RecordDeleted, \
+                          _RecordCurrent \
+                          FROM {ADS_DATABASE_STAGE}.{source_object} \
+                        ")
 
 display(df_cleansed)
 print(f'Number of rows: {df_cleansed.count()}')
@@ -198,24 +191,16 @@ print(f'Number of rows: {df_cleansed.count()}')
 # COMMAND ----------
 
 newSchema = StructType([
-	StructField('installationId',StringType(),True),
-	StructField('operandCode',StringType(),True),
-	StructField('validFromDate',DateType(),True),
-	StructField('validToDate',DateType(),True),
-	StructField('entryValue',DecimalType(16,7),True),
-	StructField('valueToBeBilled',DecimalType(16,7),True),
-	StructField('operandValue',StringType(),True),
-	StructField('amount',DecimalType(13,2),True),
-	StructField('bwDeltaProcess',StringType(),True),
-	StructField('measurementUnit',StringType(),True),
-	StructField('_RecordStart',TimestampType(),False),
-	StructField('_RecordEnd',TimestampType(),False),
-	StructField('_RecordDeleted',IntegerType(),False),
-	StructField('_RecordCurrent',IntegerType(),False)
-])
+                        StructField('activityReasonCode',StringType(),False),
+                        StructField('activityReason',StringType(),True),
+                        StructField('_RecordStart',TimestampType(),False),
+                        StructField('_RecordEnd',TimestampType(),False),
+                        StructField('_RecordDeleted',IntegerType(),False),
+                        StructField('_RecordCurrent',IntegerType(),False)
+                      ])
 
 df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
-display(df_updated_column)
+
 
 # COMMAND ----------
 

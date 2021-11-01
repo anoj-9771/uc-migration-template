@@ -179,8 +179,8 @@ df_cleansed = spark.sql(f"SELECT \
 	case when LOGIKZW = 'na' then '' else LOGIKZW end as logicalRegisterNumber, \
 	ZWNABR as registerNotRelevantToBilling, \
 	case when ANLAGE = 'na' then '' else ANLAGE end as installationId, \
-	case when BIS = 'na' then to_date('19000101','yyyyMMdd') else to_date(BIS) end as validToDate, \
-	to_date(AB) as validFromDate, \
+	case when BIS = 'na' then to_date('1900-01-01','yyyy-MM-dd') else to_date(BIS, 'yyyy-MM-dd') end as validToDate, \
+	to_date(AB, 'yyyy-MM-dd') as validFromDate, \
 	GVERRECH as payRentalPrice, \
 	TARIFART as rateTypeCode, \
 	KONDIGR as rateFactGroupCode, \

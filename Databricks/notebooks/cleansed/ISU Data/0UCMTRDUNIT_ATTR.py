@@ -190,9 +190,9 @@ df_cleansed = spark.sql(f"SELECT \
 	MDENR as numberOFMobileDataEntry, \
 	cast(ABLKAR as dec(Integer,0)) as meterReadingInterval, \
 	cast(STANDKAR as dec(Integer,0)) as entryInterval, \
-	to_date(EROEDAT) as createdDate, \
+	to_date(EROEDAT, 'yyyy-MM-dd') as createdDate, \
 	ERNAM as createdBy, \
-	to_date(AENDDATE) as lastChangedDate, \
+	to_date(AENDDATE, 'yyyy-MM-dd') as lastChangedDate, \
 	AENDNAM as lastChangedBy, \
 	SPARTENTY1 as divisionCategory1, \
 	SPARTENTY2 as divisionCategory2, \
@@ -201,7 +201,7 @@ df_cleansed = spark.sql(f"SELECT \
 	SPARTENTY5 as divisionCategory5, \
 	IDENT as factoryCalendar, \
 	SAPKAL as correctHolidayToWorkDay, \
-	to_date(STICHTAG) as billingKeyDate, \
+	to_date(STICHTAG, 'yyyy-MM-dd') as billingKeyDate, \
 	TAGE as numberOfDays, \
 	AUF_KAL as intervalBetweenOrderAndPlanned, \
 	ABL_Z as meterReadingCenter, \

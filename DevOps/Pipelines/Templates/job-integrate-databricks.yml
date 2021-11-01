@@ -1,59 +1,58 @@
-parameters:
-- name: AzDoServiceConnection # name of the parameter; required
-  type: string # data type of the parameter; required
+# parameters:
+# - name: AzDoServiceConnection # name of the parameter; required
+#   type: string # data type of the parameter; required
 
-# jobs:
-# - job: 'integrate_databricks'
-  # dependsOn: deploy_arm
+# # jobs:
+# # - job: 'integrate_databricks'
+#   # dependsOn: deploy_arm
 
-# Specify the OS for agent
+# # Specify the OS for agent
 
-# Import the batabricks_notbook artifact
-steps:
-- download: current
-  artifact: databricks_notebooks
+# # Import the batabricks_notbook artifact
+# steps:
+# - download: current
+#   artifact: databricks_notebooks
 
-# Install latest version of Python. If specified, this must match the version on the Databricks cluster 
-- task: UsePythonVersion@0
-  inputs:
-    versionSpec: '3.x'
+# # Install latest version of Python. If specified, this must match the version on the Databricks cluster 
+# - task: UsePythonVersion@0
+#   inputs:
+#     versionSpec: '3.x'
 
-# Install required Python modules eg. databricks-connect
-- script: |
-  pip install --upgrade pip setuptools wheel databricks-cli
+# # Install required Python modules eg. databricks-connect.
+# - script: |
+#   pip install --upgrade pip setuptools wheel databricks-cli
 
-# Import Key Vault secret for databricks token
-- task: AzureKeyVault@1
-  displayName: 'Get Secrets'
-  inputs:
-    azureSubscription: ${{ parameters.AzDoServiceConnection }}
-    keyVaultName: $(AZUREKEYVAULTNAME)
-    secretsFilter: 'databricks-token'
+# # Import Key Vault secret for databricks token
+# - task: AzureKeyVault@1
+#   displayName: 'Get Secrets'
+#   inputs:
+#     azureSubscription: ${{ parameters.AzDoServiceConnection }}
+#     keyVaultName: $(AZUREKEYVAULTNAME)
+#     secretsFilter: 'databricks-token'
     
-# Authenticate with Databricks CLI
-- script: |
-  databricks configure --token <<EOF
-  https://${{ location }}.azuredatabricks.net
-  $(DATABRICKS-TOKEN)
-  EOF
+# # Authenticate with Databricks CLI
+# - script: |
+#   databricks configure --token <<EOF
+#   https://${{ location }}.azuredatabricks.net
+#   $(DATABRICKS-TOKEN)
+#   EOF
 
-# Remove Current Notebooks.
-- script: |
-  databricks workspace mkdirs /build/*;
-  databricks workspace rm -r /build/*;
+# # Remove Current Notebooks
+# - script: |
+#   databricks workspace mkdirs /build;
+#   databricks workspace rm -r /build;
 
-# Update Notebooks to Databricks workspace.
-- script: |
-  databricks workspace mkdirs /build/;
-  databricks workspace mkdirs /build/;
-  for filename in _Databricks/notebook/*-dp.py; 
-  do
-      databricks workspace import --language PYTHON --format SOURCE --overwrite "${filename}" "/build/${filename##*/}"
-  done;
-  for filename in _Databricks/notebook/*-dp.scala; 
-  do
-      databricks workspace import --language SCALA --format SOURCE --overwrite "${filename}" "/build/${filename##*/}"
-  done;
-  echo
+# # Update Notebooks to Databricks workspace.
+# - script: |
+#   databricks workspace mkdirs /build/;
+#   for filename in _Databricks/*-dp.py; 
+#   do
+#       databricks workspace import --language PYTHON --format SOURCE --overwrite "${filename}" "/build/${filename##*/}"
+#   done;
+#   for filename in _Databricks/*-dp.scala; 
+#   do
+#       databricks workspace import --language SCALA --format SOURCE --overwrite "${filename}" "/build/${filename##*/}"
+#   done;
+#   echo
 
  

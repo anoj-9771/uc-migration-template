@@ -178,9 +178,9 @@ DeltaSaveToDeltaTable (
 df_cleansed = spark.sql(f"SELECT \
 	case when POINT = 'na' then '' else POINT end as measuringPointId, \
 	PTTXT as measuringPoint, \
-	to_date(ERDAT) as createdDate, \
-	to_date(AEDAT) as lastChangedDate, \
-	to_date(DELTADATE) as deltaDate, \
+	to_date(ERDAT, 'yyyy-MM-dd') as createdDate, \
+	to_date(AEDAT, 'yyyy-MM-dd') as lastChangedDate, \
+	to_date(DELTADATE, 'yyyy-MM-dd') as deltaDate, \
 	_RecordStart, \
 	_RecordEnd, \
 	_RecordDeleted, \

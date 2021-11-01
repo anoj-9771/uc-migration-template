@@ -178,8 +178,8 @@ DeltaSaveToDeltaTable (
 df_cleansed = spark.sql(f"SELECT \
 	case when EQUNR = 'na' then '' else EQUNR end as equipmentNumber, \
 	case when ZWNUMMER = 'na' then '' else (cast(ZWNUMMER as int)) end  as registerNumber, \
-	case when BIS = 'na' then to_date('19000101','yyyyMMdd') else to_date(BIS) end as validToDate, \
-	to_date(AB) as validFromDate, \
+	case when BIS = 'na' then to_date('1900-01-01','yyyy-MM-dd') else to_date(BIS, 'yyyy-MM-dd') end as validToDate, \
+	to_date(AB, 'yyyy-MM-dd') as validFromDate, \
 	LOGIKZW as logicalRegisterNumber, \
 	SPARTYP as divisionCategoryCode, \
     di.sectorCategory as divisionCategory, \
