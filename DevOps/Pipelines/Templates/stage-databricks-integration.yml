@@ -49,7 +49,7 @@ stages:
         secretsFilter: 'databricks-token'
         
     # Authenticate with Databricks CLI
-    - script: |
+    - bash: |
         databricks configure --token <<EOF
         https://${{ variables.location }}.azuredatabricks.net
         $(DATABRICKS-TOKEN)
@@ -88,13 +88,12 @@ stages:
 
     # Remove Current Notebooks - continue on error is required for first run as there will be no build folders
     - script: |
-        databricks workspace rm -r /build/newbuild;
+        databricks workspace rm -r /build;
       displayName: 'Remove Current Notebooks'
       continueOnError: true
 
     # Update Notebooks to Databricks workspace
     - script: |
-        databricks workspace mkdirs /build/Utnewbuildil;
-        databricks workspace import_dir $(Pipeline.Workspace)/databricks_notebooks "/build/newbuild"
+        databricks workspace import_dir $(Pipeline.Workspace)/databricks_notebooks "/build"
         echo
       displayName: 'Add updated notbooks to workspace'
