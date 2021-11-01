@@ -174,7 +174,7 @@ DeltaSaveToDeltaTable (
 # COMMAND ----------
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
-{ADS_DATABASE_STAGE}.{source_object}")#Update/rename Column
+#Update/rename Column
 df_cleansed = spark.sql(f"SELECT \
 	case when ABRFREIG = 'na' then '' else ABRFREIG end as billReleasingReasonCode, \
 	TEXT30 as billReleasingReason, \

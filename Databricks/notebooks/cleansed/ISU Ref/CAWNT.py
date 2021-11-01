@@ -207,7 +207,7 @@ newSchema = StructType(
 
 # Apply the new schema to cleanse Data Frame
 df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
-characteristicName
+
 
 # COMMAND ----------
 
