@@ -179,9 +179,9 @@ df_cleansed = spark.sql(f"SELECT \
                                   case when INDEXNR = 'na' then '' else INDEXNR end as consecutiveNumberOfRegisterRelationship, \
                                   PRUEFGR as validationGroupForDependentValidations, \
                                   ZWZUART as registerRelationshipType, \
-                                  to_date(ERDAT) as createdDate, \
+                                  to_date(ERDAT, 'yyyy-MM-dd') as createdDate, \
                                   ERNAM as createdBy, \
-                                  to_date(AEDAT) as lastChangedDate,\
+                                  to_date(AEDAT, 'yyyy-MM-dd') as lastChangedDate,\
                                   AENAM as changedBy, \
                                   _RecordStart, \
                                   _RecordEnd, \

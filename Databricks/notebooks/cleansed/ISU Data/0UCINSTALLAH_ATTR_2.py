@@ -177,7 +177,7 @@ DeltaSaveToDeltaTable (
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT  \
                                   case when stg.ANLAGE = 'na' then '' else stg.ANLAGE end as installationId, \
-                                  case when stg.BIS = 'na' then '19000101' else to_date(stg.BIS, 'yyyy-MM-dd') end as validToDate, \
+                                  case when stg.BIS = 'na' then '1900-01-01' else to_date(stg.BIS, 'yyyy-MM-dd') end as validToDate, \
                                   to_date(stg.AB, 'yyyy-MM-dd') as validFromDate, \
                                   stg.TARIFTYP as rateCategoryCode, \
                                   tt.TTYPBEZ as rateCategory, \
