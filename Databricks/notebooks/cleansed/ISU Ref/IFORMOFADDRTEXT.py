@@ -3,10 +3,10 @@
 import json
 #For unit testing...
 #Use this string in the Param widget: 
-#{"SourceType": "BLOB Storage (json)", "SourceServer": "daf-sa-lake-sastoken", "SourceGroup": "ISU", "SourceName": "ISU_0UC_ZAHLKOND_TEXT", "SourceLocation": "ISU/0UC_ZAHLKOND_TEXT", "AdditionalProperty": "", "Processor": "databricks-token|0711-011053-turfs581|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive", "IsAuditTable": false, "SoftDeleteSource": "", "ProjectName": "ISUREF", "ProjectId": 2, "TargetType": "BLOB Storage (json)", "TargetName": "ISU_0UC_ZAHLKOND_TEXT", "TargetLocation": "ISU/0UC_ZAHLKOND_TEXT", "TargetServer": "daf-sa-lake-sastoken", "DataLoadMode": "FULL-EXTRACT", "DeltaExtract": false, "CDCSource": false, "TruncateTarget": false, "UpsertTarget": true, "AppendTarget": null, "TrackChanges": false, "LoadToSqlEDW": true, "TaskName": "ISU_0UC_ZAHLKOND_TEXT", "ControlStageId": 2, "TaskId": 46, "StageSequence": 200, "StageName": "Raw to Cleansed", "SourceId": 46, "TargetId": 46, "ObjectGrain": "Day", "CommandTypeId": 8, "Watermarks": "", "WatermarksDT": null, "WatermarkColumn": "", "BusinessKeyColumn": "language,paymentConditionCode", "UpdateMetaData": null, "SourceTimeStampFormat": "", "Command": "", "LastLoadedFile": null}
+#$PARAM
 
 #Use this string in the Source Object widget
-#ISU_0UC_ZAHLKOND_TEXT
+#$GROUP_$SOURCE
 
 # COMMAND ----------
 
@@ -144,8 +144,8 @@ print("data_load_mode: " + data_load_mode)
 # DBTITLE 1,9. Set raw and cleansed table name
 #Set raw and cleansed table name
 #Delta and SQL tables are case Insensitive. Seems Delta table are always lower case
-delta_cleansed_tbl_name = f'{ADS_DATABASE_CLEANSED}.{target_table}'
-delta_raw_tbl_name = f'{ADS_DATABASE_RAW}.{ source_object}'
+delta_cleansed_tbl_name = "{0}.{1}".format(ADS_DATABASE_CLEANSED, target_table)
+delta_raw_tbl_name = "{0}.{1}".format(ADS_DATABASE_RAW, source_object)
 
 #Destination
 print(delta_cleansed_tbl_name)
@@ -175,36 +175,41 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_cleansed = spark.sql(f"SELECT \
-                            case when ZAHLKOND = 'na' then '' else ZAHLKOND end as paymentConditionCode, \
-                            TEXT as paymentCondition, \
-                            _RecordStart, \
-                            _RecordEnd, \
-                            _RecordDeleted, \
-                            _RecordCurrent \
-                          FROM {ADS_DATABASE_STAGE}.{source_object}")
+
+df_cleansed = spark.sql(f"SELECT  \
+                                  case when FORMOFADDRESS = 'na' then '' else FORMOFADDRESS end as formOfAddressCode , \
+                                  FORMOFADDRESSNAME as formOfAddress , \
+                                  _RecordStart, \
+                                  _RecordEnd, \
+                                  _RecordDeleted, \
+                                  _RecordCurrent \
+                              FROM {ADS_DATABASE_STAGE}.{source_object}")
 
 display(df_cleansed)
 print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
 
-newSchema = StructType([
-                        StructField('paymentConditionCode',StringType(),False),
-                        StructField('paymentCondition',StringType(),True),
-                        StructField('_RecordStart',TimestampType(),False),
-                        StructField('_RecordEnd',TimestampType(),False),
-                        StructField('_RecordDeleted',IntegerType(),False),
-                        StructField('_RecordCurrent',IntegerType(),False)
-                      ])
-
+# Create schema for the cleanse table
+newSchema = StructType(
+                            [
+                              StructField("formOfAddressCode", StringType(), False),
+                              StructField("formOfAddress", StringType(), True),
+                              StructField('_RecordStart',TimestampType(),False),
+                              StructField('_RecordEnd',TimestampType(),False),
+                              StructField('_RecordDeleted',IntegerType(),False),
+                              StructField('_RecordCurrent',IntegerType(),False)
+                            ]
+                        )
+# Apply the new schema to cleanse Data Frame
 df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
-
+display(df_updated_column)
 
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
+
 DeltaSaveDataframeDirect(df_updated_column, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
 
 # COMMAND ----------

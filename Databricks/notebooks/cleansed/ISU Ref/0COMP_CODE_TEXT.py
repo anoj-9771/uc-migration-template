@@ -176,15 +176,14 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT  \
-                                  case when BUKRS = 'na' then '' else BUKRS end as companyCode, \
-                                  TXTMD as companyName, \
-                                  _RecordStart, \
-                                  _RecordEnd, \
-                                  _RecordDeleted, \
-                                  _RecordCurrent \
-                               FROM {ADS_DATABASE_STAGE}.{source_object} \
-                                 where LANGU = 'E'"
-                              )
+                            case when BUKRS = 'na' then '' else BUKRS end as companyCode, \
+                            TXTMD as companyName, \
+                            _RecordStart, \
+                            _RecordEnd, \
+                            _RecordDeleted, \
+                            _RecordCurrent \
+                         FROM {ADS_DATABASE_STAGE}.{source_object}")
+
 display(df_cleansed)
 print(f'Number of rows: {df_cleansed.count()}')
 
@@ -197,7 +196,7 @@ newSchema = StructType([
                           StructField('_RecordEnd', TimestampType(), False),
                           StructField('_RecordDeleted', IntegerType(), False),
                           StructField('_RecordCurrent', IntegerType(), False)
-])
+                      ])
 
 df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
 display(df_updated_column)
