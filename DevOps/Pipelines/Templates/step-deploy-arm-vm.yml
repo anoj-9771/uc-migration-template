@@ -47,7 +47,7 @@ steps:
     displayName: 'Deploy VM ${{parameters.vmName}}'
 
   - task: AzureCLI@2
-    displayName: 'Configure Data Disks for SLT'
+    displayName: 'Configure Data Disks for VM'
     condition: contains('${{parameters.vmName}}', 'sql')
     inputs:
       azureSubscription: ${{ parameters.AzDoServiceConnection }}
