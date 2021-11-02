@@ -48,7 +48,7 @@ steps:
 
   - task: AzureCLI@2
     displayName: 'Configure Data Disks for SLT'
-    condition: contains(${{parameters.vmName}}, 'sql')
+    condition: contains('${{parameters.vmName}}', 'sql')
     inputs:
       azureSubscription: ${{ parameters.AzDoServiceConnection }}
       scriptType: pscore
@@ -57,7 +57,7 @@ steps:
         $ErrorActionPreference = "Stop"
 
         az vm disk attach -g ${{ parameters.resource_group }} --vm-name ${{ parameters.vmName }} --name ${{ parameters.vmName }}-datadisk0 --new --sku Premium_LRS --size-gb 1024
-        
+
         az vm disk attach -g ${{ parameters.resource_group }} --vm-name ${{ parameters.vmName }} --name ${{ parameters.vmName }}-datadisk1 --new --sku Premium_LRS --size-gb 1024
 
       

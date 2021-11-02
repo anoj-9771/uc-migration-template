@@ -67,11 +67,7 @@
           "osProfile": {
             "computerName": "[parameters('vmName')]",
             "adminUsername": "[parameters('adminUsername')]",
-            "adminPassword": "[parameters('adminPassword')]",
-            "windowsConfiguration": {
-                "provisionVMAgent": true,
-                "timeZone": "AUS Eastern Standard Time"
-            }
+            "adminPassword": "[parameters('adminPassword')]"
           },
           "storageProfile": {
             "imageReference": {
