@@ -156,7 +156,7 @@ variables:
   # Azure VMs Common related
   # ------------------------------------------------
   - name: adminUsername
-    value: azureadmin
+    value: nt_sup
   - name: publisher
     value: MicrosoftWindowsServer
   - name: offer
@@ -169,7 +169,7 @@ variables:
   - name: vmSizeDevops
     value: Standard_D2as_v4
   - name: vmNameDevops
-    value: ln097ddevops02
+    value: ln097pdevops01
   - name: publisherDevops
     value: canonical
   - name: offerDevops
@@ -182,14 +182,14 @@ variables:
   - name: vmSizeIR
     value: Standard_D2as_v4
   - name: vmNameIR
-    value: nt097ddaf02
+    value: nt097padf01
   # ------------------------------------------------
   # Azure SLT VM related
   # ------------------------------------------------
   - name: vmSizeSlt
     value: Standard_D2ds_v4 #d type = more temp storage. optimal for tempdb
   - name: vmNameSlt
-    value: nt097dslt01
+    value: nt097psql01
   - name: publisherSlt
     value: MicrosoftSQLServer
   - name: offerSlt
