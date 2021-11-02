@@ -192,6 +192,7 @@ df_cleansed = spark.sql(f"SELECT \
                             ROOMNUMBER as appartmentNumber, \
                             HPTWOHNSITZ as mainResidence, \
                             STR_ERG4 as street5, \
+                            UPDMOD as bwDeltaProcess, \
                             _RecordStart, \
                             _RecordEnd, \
                             _RecordDeleted, \
