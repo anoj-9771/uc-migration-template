@@ -156,7 +156,7 @@ variables:
   # Azure VMs Common related
   # ------------------------------------------------
   - name: adminUsername
-    value: azureadmin
+    value: nt_sup
   - name: publisher
     value: MicrosoftWindowsServer
   - name: offer
@@ -167,33 +167,32 @@ variables:
   # Azure Devops Self-hosted VM related
   # ------------------------------------------------
   - name: vmSizeDevops
-    value: Standard_D2s_v3
+    value: Standard_D2as_v4
   - name: vmNameDevops
-    value: ln097ddevops02
+    value: ln097ddevops01
   - name: publisherDevops
-    value: Canonical
+    value: canonical
   - name: offerDevops
-    value: UbuntuServer
+    value: 0001-com-ubuntu-server-focal
   - name: OSVersionDevops
-    value: 20.04-LTS
+    value: 20_04-lts
   # ------------------------------------------------
   # Azure IR Self-hosted VM related
   # ------------------------------------------------
   - name: vmSizeIR
-    value: Standard_Ds1_v2
+    value: Standard_D2as_v4
   - name: vmNameIR
-    value: nt097ddaf02
-  # ------------------------------------------------
-  # Azure Collibra VM related
-  # ------------------------------------------------
-  - name: vmSizeCollibra
-    value: Standard_D2s_v4
-  - name: vmNameCollibra
-    value: nt097dcolibra01
+    value: nt097ddaf01
   # ------------------------------------------------
   # Azure SLT VM related
   # ------------------------------------------------
   - name: vmSizeSlt
-    value: Standard_D2s_v4
+    value: Standard_D2ds_v4 #d type = more temp storage. optimal for tempdb
   - name: vmNameSlt
     value: nt097dslt01
+  - name: publisherSlt
+    value: MicrosoftSQLServer
+  - name: offerSlt
+    value: sql2019-ws2019
+  - name: OSVersionSlt
+    value: Standard
