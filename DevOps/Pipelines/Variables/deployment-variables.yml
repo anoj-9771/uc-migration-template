@@ -47,7 +47,7 @@ variables:
     value: true
   # Use to set Synapse Analytics worksspace deployability...
   - name: synapseanalyticsworkspace
-    value: true
+    value: false
   # Use to set Private Endpoints deployaility - Deploy Private Endpoints and Private Links
   - name: privateendpoints
     value: true
