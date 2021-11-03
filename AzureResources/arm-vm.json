@@ -80,7 +80,8 @@
               "createOption": "FromImage",
               "managedDisk": {
                 "storageAccountType": "StandardSSD_LRS"
-              }
+              },
+              "name": "[concat(parameters('vmName'), 'OSdisk')]"
             }
           },
           "networkProfile": {
