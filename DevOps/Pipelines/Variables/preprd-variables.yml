@@ -169,7 +169,7 @@ variables:
   - name: vmSizeDevops
     value: Standard_D2as_v4
   - name: vmNameDevops
-    value: ln097pdevops01
+    value: ln097qdevops01
   - name: publisherDevops
     value: canonical
   - name: offerDevops
@@ -182,14 +182,14 @@ variables:
   - name: vmSizeIR
     value: Standard_D2as_v4
   - name: vmNameIR
-    value: nt097padf01
+    value: nt097qadf01
   # ------------------------------------------------
   # Azure SLT VM related
   # ------------------------------------------------
   - name: vmSizeSlt
     value: Standard_D2ds_v4 #d type = more temp storage. optimal for tempdb
   - name: vmNameSlt
-    value: nt097psql01
+    value: nt097qsql01
   - name: publisherSlt
     value: MicrosoftSQLServer
   - name: offerSlt
