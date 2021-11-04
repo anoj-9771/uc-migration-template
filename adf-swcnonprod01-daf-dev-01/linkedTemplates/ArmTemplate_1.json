@@ -582,14 +582,13 @@
 						"userProperties": [],
 						"typeProperties": {
 							"dataset": {
-								"referenceName": "SRC_BLOB_CSV",
+								"referenceName": "SRC_BLOB_JSON_copy1",
 								"type": "DatasetReference",
 								"parameters": {
-									"BlobContainer": {
-										"value": "@variables('SourceContainer')",
+									"BlobName": {
+										"value": "@concat(variables('SourceFileName'),'*')",
 										"type": "Expression"
-									},
-									"BlobName": "@concat(variables('SourceFileName'),'*')"
+									}
 								}
 							},
 							"fieldList": [
@@ -601,7 +600,7 @@
 								"enablePartitionDiscovery": false
 							},
 							"formatSettings": {
-								"type": "DelimitedTextReadSettings"
+								"type": "JsonReadSettings"
 							}
 						}
 					},
@@ -1817,9 +1816,9 @@
 				"lastPublishTime": "2021-06-30T08:46:15Z"
 			},
 			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/SRC_BLOB_JSON_copy1')]",
 				"[concat(variables('factoryId'), '/datasets/SRC_BLOB_CSV')]",
-				"[concat(variables('factoryId'), '/datasets/RAW_ADLS_JSON_v2')]",
-				"[concat(variables('factoryId'), '/datasets/SRC_BLOB_JSON_copy1')]"
+				"[concat(variables('factoryId'), '/datasets/RAW_ADLS_JSON_v2')]"
 			]
 		},
 		{
