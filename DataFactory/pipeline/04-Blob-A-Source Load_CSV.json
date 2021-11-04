@@ -36,13 +36,14 @@
 				"userProperties": [],
 				"typeProperties": {
 					"dataset": {
-						"referenceName": "SRC_BLOB_JSON_copy1",
+						"referenceName": "SRC_BLOB_CSV",
 						"type": "DatasetReference",
 						"parameters": {
-							"BlobName": {
-								"value": "@concat(variables('SourceFileName'),'*')",
+							"BlobContainer": {
+								"value": "@variables('SourceContainer')",
 								"type": "Expression"
-							}
+							},
+							"BlobName": "@concat(variables('SourceFileName'),'*')"
 						}
 					},
 					"fieldList": [
@@ -54,7 +55,7 @@
 						"enablePartitionDiscovery": false
 					},
 					"formatSettings": {
-						"type": "JsonReadSettings"
+						"type": "DelimitedTextReadSettings"
 					}
 				}
 			},
