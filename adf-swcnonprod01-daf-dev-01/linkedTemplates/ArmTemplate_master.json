@@ -25,7 +25,7 @@
 		},
 		"LS_AzureBlobStorage_properties_typeProperties_serviceEndpoint": {
 			"type": "string",
-			"defaultValue": "https://saswcnonprod01landingdev.blob.core.windows.net"
+			"defaultValue": "https://sablobdafdev01.blob.core.windows.net/"
 		},
 		"LS_AzureDatalake_properties_typeProperties_url": {
 			"type": "string",

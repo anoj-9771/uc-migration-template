@@ -25,7 +25,7 @@
 		},
 		"LS_AzureBlobStorage_properties_typeProperties_serviceEndpoint": {
 			"type": "string",
-			"defaultValue": "https://saswcnonprod01landingdev.blob.core.windows.net"
+			"defaultValue": "https://sablobdafdev01.blob.core.windows.net/"
 		},
 		"LS_AzureDatalake_properties_typeProperties_url": {
 			"type": "string",
@@ -975,13 +975,14 @@
 						"userProperties": [],
 						"typeProperties": {
 							"dataset": {
-								"referenceName": "SRC_BLOB_JSON_copy1",
+								"referenceName": "SRC_BLOB_CSV",
 								"type": "DatasetReference",
 								"parameters": {
-									"BlobName": {
-										"value": "@concat(variables('SourceFileName'),'*')",
+									"BlobContainer": {
+										"value": "@variables('SourceContainer')",
 										"type": "Expression"
-									}
+									},
+									"BlobName": "@concat(variables('SourceFileName'),'*')"
 								}
 							},
 							"fieldList": [
@@ -993,7 +994,7 @@
 								"enablePartitionDiscovery": false
 							},
 							"formatSettings": {
-								"type": "JsonReadSettings"
+								"type": "DelimitedTextReadSettings"
 							}
 						}
 					},
@@ -2209,13 +2210,13 @@
 				"lastPublishTime": "2021-06-30T08:46:15Z"
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/SRC_BLOB_JSON_copy1')]",
+				"[concat(variables('factoryId'), '/datasets/SRC_BLOB_CSV')]",
 				"[concat(variables('factoryId'), '/linkedServices/LS-AzureSqlDatabase_Ctrldb')]",
 				"[concat(variables('factoryId'), '/datasets/AzureSqlDatabase_Ctrldb')]",
-				"[concat(variables('factoryId'), '/datasets/SRC_BLOB_CSV')]",
 				"[concat(variables('factoryId'), '/datasets/RAW_ADLS_JSON_v2')]",
 				"[concat(variables('factoryId'), '/pipelines/04-DL-Load-Raw-to-Delta-Table')]",
 				"[concat(variables('factoryId'), '/datasets/ARCHIVE_BLOB_JSON')]",
+				"[concat(variables('factoryId'), '/datasets/SRC_BLOB_JSON_copy1')]",
 				"[concat(variables('factoryId'), '/linkedServices/LS-AzureDatabricks_DefinedCluster')]",
 				"[concat(variables('factoryId'), '/linkedServices/LS_AzureDatalake')]"
 			]
@@ -12897,12 +12898,7 @@
 			"apiVersion": "2018-06-01",
 			"properties": {
 				"type": "SelfHosted",
-				"typeProperties": {
-					"linkedInfo": {
-                        "resourceId": "/subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourcegroups/rg-swcnonprod01-daf-dev-01/providers/Microsoft.DataFactory/factories/adf-swcnonprod01-daf-dev-01/integrationruntimes/IntegrationRuntime-SelfHosted",
-                        "authorizationType": "Rbac"
-					}
-				}
+				"typeProperties": {}
 			},
 			"dependsOn": []
 		},
