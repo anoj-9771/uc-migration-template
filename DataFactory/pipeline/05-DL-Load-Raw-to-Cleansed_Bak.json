@@ -226,7 +226,7 @@
 					],
 					"ifTrueActivities": [
 						{
-							"name": "Load-To-Cleansed-Zone-Interactive",
+							"name": "LoadToCleansed-Zone-Interactive",
 							"type": "DatabricksNotebook",
 							"dependsOn": [],
 							"policy": {
