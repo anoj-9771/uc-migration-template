@@ -105,7 +105,7 @@ variables:
   - name: nsgid
     value: 
   - name: databricks_base_url #Get this after databricks environment has been deployed
-    value: https://adb-6510910994889.9.azuredatabricks.net
+    value: https://adb-7004525605760210.10.azuredatabricks.net/?o=7004525605760210#
   - name: vnetresourcegroupname
     value: rg-swcnonprod01-network-01
   - name: vnetName
