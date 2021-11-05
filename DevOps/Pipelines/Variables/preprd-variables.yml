@@ -36,9 +36,8 @@ variables:
   - name: applytags
     value: false
   - name: tags
-    value: CostCenter=DataAndAI \
-          Environment=NonProduction \
-          Owner=jackson.staub@insight.com
+    value: Environment=PREPROD
+
   # ------------------------------------------------
   # Vnet Related
   # -------------------------------------------------
