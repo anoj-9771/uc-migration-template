@@ -16,7 +16,7 @@ variables:
     value: preprod
   # Resource group name
   - name: resourcegroupname
-    value: rg-swcnonprod01-daf-preprod-01
+    value: rg-swcprod01-preprod-daf-01
   # username for SQL Server Control DB
   - name: azuresqlserverun
     value: sqladmin
