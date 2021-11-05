@@ -1,7 +1,7 @@
 # Databricks notebook source
 # DBTITLE 1,[Config] Connection Setup
 storage_account_name = "sadaftest01"
-storage_account_access_key = dbutils.secrets.get(scope="Test-Access",key="test-datalake-key")
+storage_account_access_key = dbutils.secrets.get(scope="TestScope",key="test-sadaf-key")
 container_name = "raw"
 file_location = "wasbs://raw@sadaftest01.blob.core.windows.net/landing/accessarchive/Z309_TMETERCANTREAD.csv"
 file_type = "csv"

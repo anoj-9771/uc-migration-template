@@ -1,5 +1,5 @@
 # Databricks notebook source
-table = '0UC_APPLK_TEXT'
+table = '0FUNCT_LOC_TEXT'
 table1 = table.lower()
 print(table1)
 
@@ -21,10 +21,10 @@ from datetime import datetime
 
 global fileCount
 
-storage_account_name = "saswcnonprod01landingtst"
-storage_account_access_key = dbutils.secrets.get(scope="Test-Access",key="test-blob-key")
-container_name = "archive"
-fileLocation = "wasbs://archive@saswcnonprod01landingtst.blob.core.windows.net/sapisu/"
+storage_account_name = "sablobdaftest01"
+storage_account_access_key = dbutils.secrets.get(scope="TestScope",key="test-sablob-key")
+container_name = "isuref"
+fileLocation = "wasbs://isuref@sablobdaftest01.blob.core.windows.net/"
 fileType = 'json'
 print(storage_account_name)
 spark.conf.set("fs.azure.account.key."+storage_account_name+".blob.core.windows.net",storage_account_access_key) 
@@ -103,12 +103,25 @@ sourcedf.createOrReplaceTempView("Source")
 # DBTITLE 1,[Source with mapping]
 # MAGIC %sql
 # MAGIC select
-# MAGIC LANGU as language
-# MAGIC ,KEY1 as applicationAreaCode
-# MAGIC ,TXTLG as  applicationArea
-# MAGIC ,row_number() over (partition by colname order by EXTRACT_DATETIME desc) as rn
-# MAGIC from source  WHERE LANGU = 'E'
-# MAGIC and  rn = 1
+# MAGIC paymentMethodCode
+# MAGIC ,countryShortName
+# MAGIC ,paymentMethodDescription
+# MAGIC from
+# MAGIC (SELECT
+# MAGIC PAYM_METH as paymentMethodCode
+# MAGIC COUNTRY as countryShortName
+# MAGIC TEXT as paymentMethodDescription
+# MAGIC ,row_number() over (partition by paymentMethodCode order by EXTRACT_DATETIME desc) as rn
+# MAGIC from source WHERE LANGU = 'E') a where a.rn = 1
+
+# COMMAND ----------
+
+lakedf = spark.sql("select * from cleansed.tablename")
+
+# COMMAND ----------
+
+# DBTITLE 1,[Target] Schema Check
+lakedf.printSchema()
 
 # COMMAND ----------
 
@@ -116,7 +129,17 @@ sourcedf.createOrReplaceTempView("Source")
 # MAGIC %sql
 # MAGIC select count (*) as RecordCount, 'Target' as TableName from cleansed.tablename
 # MAGIC union all
-# MAGIC select count (*) as RecordCount, 'Source' as TableName from Source
+# MAGIC select count (*) as RecordCount, 'Source' as TableName from (select
+# MAGIC paymentMethodCode
+# MAGIC ,countryShortName
+# MAGIC ,paymentMethodDescription
+# MAGIC from
+# MAGIC (SELECT
+# MAGIC PAYM_METH as paymentMethodCode
+# MAGIC COUNTRY as countryShortName
+# MAGIC TEXT as paymentMethodDescription
+# MAGIC ,row_number() over (partition by paymentMethodCode order by EXTRACT_DATETIME desc) as rn
+# MAGIC from source WHERE LANGU = 'E') a where a.rn = 1)
 
 # COMMAND ----------
 
@@ -125,7 +148,7 @@ sourcedf.createOrReplaceTempView("Source")
 # MAGIC SELECT * FROM (
 # MAGIC SELECT
 # MAGIC *,
-# MAGIC row_number() OVER(PARTITION BY colName order by validFromDate) as rn
+# MAGIC row_number() OVER(PARTITION BY paymentMethodCode order by validFromDate) as rn
 # MAGIC FROM  cleansed.tablename
 # MAGIC )a where a.rn > 1
 
@@ -134,19 +157,21 @@ sourcedf.createOrReplaceTempView("Source")
 # DBTITLE 1,[Verification] Compare Source and Target Data
 # MAGIC %sql
 # MAGIC select
-# MAGIC select
-# MAGIC LANGU as language
-# MAGIC ,KEY1 as applicationAreaCode
-# MAGIC ,TXTLG as  applicationArea
-# MAGIC ,row_number() over (partition by colname order by EXTRACT_DATETIME desc) as rn
-# MAGIC from source  WHERE LANGU = 'E'
-# MAGIC and  rn = 1
+# MAGIC paymentMethodCode
+# MAGIC ,countryShortName
+# MAGIC ,paymentMethodDescription
+# MAGIC from
+# MAGIC (SELECT
+# MAGIC PAYM_METH as paymentMethodCode
+# MAGIC COUNTRY as countryShortName
+# MAGIC TEXT as paymentMethodDescription
+# MAGIC ,row_number() over (partition by paymentMethodCode order by EXTRACT_DATETIME desc) as rn
+# MAGIC from source WHERE LANGU = 'E') a where a.rn = 1
 # MAGIC except
 # MAGIC select
-# MAGIC select
-# MAGIC language 
-# MAGIC ,applicationAreaCode 
-# MAGIC ,applicationArea
+# MAGIC paymentMethodCode
+# MAGIC ,countryShortName
+# MAGIC ,paymentMethodDescription
 # MAGIC from
 # MAGIC cleansed.tablename
 
@@ -155,17 +180,20 @@ sourcedf.createOrReplaceTempView("Source")
 # DBTITLE 1,[Verification] Compare Target and Source Data
 # MAGIC %sql
 # MAGIC select
-# MAGIC language 
-# MAGIC ,applicationAreaCode 
-# MAGIC ,applicationArea
+# MAGIC paymentMethodCode
+# MAGIC ,countryShortName
+# MAGIC ,paymentMethodDescription
 # MAGIC from
 # MAGIC cleansed.tablename
 # MAGIC except
 # MAGIC select
-# MAGIC select
-# MAGIC LANGU as language
-# MAGIC ,KEY1 as applicationAreaCode
-# MAGIC ,TXTLG as  applicationArea
-# MAGIC ,row_number() over (partition by colname order by EXTRACT_DATETIME desc) as rn
-# MAGIC from source  WHERE LANGU = 'E'
-# MAGIC and  rn = 1
+# MAGIC paymentMethodCode
+# MAGIC ,countryShortName
+# MAGIC ,paymentMethodDescription
+# MAGIC from
+# MAGIC (SELECT
+# MAGIC PAYM_METH as paymentMethodCode
+# MAGIC COUNTRY as countryShortName
+# MAGIC TEXT as paymentMethodDescription
+# MAGIC ,row_number() over (partition by paymentMethodCode order by EXTRACT_DATETIME desc) as rn
+# MAGIC from source WHERE LANGU = 'E') a where a.rn = 1

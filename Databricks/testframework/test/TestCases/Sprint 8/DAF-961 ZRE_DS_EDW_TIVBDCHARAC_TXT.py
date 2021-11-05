@@ -21,8 +21,8 @@ from datetime import datetime
 
 global fileCount
 
-storage_account_name = "saswcnonprod01landingtst"
-storage_account_access_key = dbutils.secrets.get(scope="Test-Access",key="test-blob-key")
+storage_account_name = "sablobdaftest01"
+storage_account_access_key = dbutils.secrets.get(scope="TestScope",key="test-sablob-key")
 container_name = "archive"
 fileLocation = "wasbs://archive@saswcnonprod01landingtst.blob.core.windows.net/sapisu/"
 fileType = 'json'
@@ -102,13 +102,25 @@ sourcedf.createOrReplaceTempView("Source")
 
 # DBTITLE 1,[Source with mapping]
 # MAGIC %sql
-# MAGIC SELECT
+# MAGIC select
+# MAGIC fixtureAndFittingCharacteristicCode
+# MAGIC ,fixtureAndFittingCharacteristicName
+# MAGIC from(select
 # MAGIC FIXFITCHARACT as fixtureAndFittingCharacteristicCode
 # MAGIC ,XFIXFITCHARACT as fixtureAndFittingCharacteristicName
-# MAGIC ,row_number() over (partition by colname order by EXTRACT_DATETIME desc) as rn
+# MAGIC ,row_number() over (partition by fixtureAndFittingCharacteristicCode order by EXTRACT_DATETIME desc) as rn
 # MAGIC FROM
-# MAGIC Source
-# MAGIC WHERE rn = 1
+# MAGIC Source)
+# MAGIC a where a.rn = 1
+
+# COMMAND ----------
+
+lakedf = spark.sql("select * from cleansed.tablename")
+
+# COMMAND ----------
+
+# DBTITLE 1,[Target] Schema Check
+lakedf.printSchema()
 
 # COMMAND ----------
 
@@ -116,7 +128,16 @@ sourcedf.createOrReplaceTempView("Source")
 # MAGIC %sql
 # MAGIC select count (*) as RecordCount, 'Target' as TableName from cleansed.tablename
 # MAGIC union all
-# MAGIC select count (*) as RecordCount, 'Source' as TableName from Source
+# MAGIC select count (*) as RecordCount, 'Source' as TableName from (select
+# MAGIC fixtureAndFittingCharacteristicCode
+# MAGIC ,fixtureAndFittingCharacteristicName
+# MAGIC from(select
+# MAGIC FIXFITCHARACT as fixtureAndFittingCharacteristicCode
+# MAGIC ,XFIXFITCHARACT as fixtureAndFittingCharacteristicName
+# MAGIC ,row_number() over (partition by fixtureAndFittingCharacteristicCode order by EXTRACT_DATETIME desc) as rn
+# MAGIC FROM
+# MAGIC Source)
+# MAGIC a where a.rn = 1)
 
 # COMMAND ----------
 
@@ -125,7 +146,7 @@ sourcedf.createOrReplaceTempView("Source")
 # MAGIC SELECT * FROM (
 # MAGIC SELECT
 # MAGIC *,
-# MAGIC row_number() OVER(PARTITION BY colName order by validFromDate) as rn
+# MAGIC row_number() OVER(PARTITION BY fixtureAndFittingCharacteristicCode order by validFromDate) as rn
 # MAGIC FROM  cleansed.tablename
 # MAGIC )a where a.rn > 1
 
@@ -133,13 +154,16 @@ sourcedf.createOrReplaceTempView("Source")
 
 # DBTITLE 1,[Verification] Compare Source and Target Data
 # MAGIC %sql
-# MAGIC SELECT
+# MAGIC select
+# MAGIC fixtureAndFittingCharacteristicCode
+# MAGIC ,fixtureAndFittingCharacteristicName
+# MAGIC from(select
 # MAGIC FIXFITCHARACT as fixtureAndFittingCharacteristicCode
 # MAGIC ,XFIXFITCHARACT as fixtureAndFittingCharacteristicName
-# MAGIC ,row_number() over (partition by colname order by EXTRACT_DATETIME desc) as rn
+# MAGIC ,row_number() over (partition by fixtureAndFittingCharacteristicCode order by EXTRACT_DATETIME desc) as rn
 # MAGIC FROM
-# MAGIC Source
-# MAGIC WHERE rn = 1
+# MAGIC Source)
+# MAGIC a where a.rn = 1
 # MAGIC except
 # MAGIC select
 # MAGIC fixtureAndFittingCharacteristicCode
@@ -157,11 +181,13 @@ sourcedf.createOrReplaceTempView("Source")
 # MAGIC from
 # MAGIC cleansed.tablename
 # MAGIC except
-# MAGIC %sql
-# MAGIC SELECT
+# MAGIC select
+# MAGIC fixtureAndFittingCharacteristicCode
+# MAGIC ,fixtureAndFittingCharacteristicName
+# MAGIC from(select
 # MAGIC FIXFITCHARACT as fixtureAndFittingCharacteristicCode
 # MAGIC ,XFIXFITCHARACT as fixtureAndFittingCharacteristicName
-# MAGIC ,row_number() over (partition by colname order by EXTRACT_DATETIME desc) as rn
+# MAGIC ,row_number() over (partition by fixtureAndFittingCharacteristicCode order by EXTRACT_DATETIME desc) as rn
 # MAGIC FROM
-# MAGIC Source
-# MAGIC WHERE rn = 1
+# MAGIC Source)
+# MAGIC a where a.rn = 1

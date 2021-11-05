@@ -1,5 +1,5 @@
 # Databricks notebook source
-table = 'ZDSDELTYPET  '
+table = 'ZDSMRCTRL'
 table1 = table.lower()
 print(table1)
 
@@ -21,8 +21,8 @@ from datetime import datetime
 
 global fileCount
 
-storage_account_name = "saswcnonprod01landingtst"
-storage_account_access_key = dbutils.secrets.get(scope="Test-Access",key="test-blob-key")
+storage_account_name = "sablobdaftest01"
+storage_account_access_key = dbutils.secrets.get(scope="TestScope",key="test-sablob-key")
 container_name = "archive"
 fileLocation = "wasbs://archive@saswcnonprod01landingtst.blob.core.windows.net/sapisu/"
 fileType = 'json'
@@ -102,19 +102,31 @@ sourcedf.createOrReplaceTempView("Source")
 
 # DBTITLE 1,[Source with mapping]
 # MAGIC %sql
-# MAGIC SELECT
-# MAGIC DELI_SERV_TYPE as deliveryServiceTypeCode
-# MAGIC ,DELI_SERV_DSCR as deliveryServiceDescription
-# MAGIC ,row_number() over (partition by colname order by EXTRACT_DATETIME desc) as rn
-# MAGIC FROM
-# MAGIC Source
-# MAGIC WHERE LANGU = 'E'  and rn = 1
+# MAGIC select
+# MAGIC meterReadingControlCode
+# MAGIC ,meterReadingControl
+# MAGIC from(SELECT
+# MAGIC SPRAS as language
+# MAGIC ,ABLESARTST as meterReadingControlCode
+# MAGIC ,TEXT30 as meterReadingControl
+# MAGIC ,row_number() over (partition by clientId, language, meterReadingControlCode order by EXTRACT_DATETIME desc) as rn
+# MAGIC from source
+# MAGIC WHERE SPRAS = 'E') a where a.rn = 1
+
+# COMMAND ----------
+
+lakedf = spark.sql("select * from cleansed.t_sapisu_ZDSMRCTRL")
+
+# COMMAND ----------
+
+# DBTITLE 1,[Target] Schema Check
+lakedf.printSchema()
 
 # COMMAND ----------
 
 # DBTITLE 1,[Verification] count
 # MAGIC %sql
-# MAGIC select count (*) as RecordCount, 'Target' as TableName from cleansed.tablename
+# MAGIC select count (*) as RecordCount, 'Target' as TableName from cleansed.t_sapisu_ZDSMRCTRL
 # MAGIC union all
 # MAGIC select count (*) as RecordCount, 'Source' as TableName from Source
 
@@ -125,43 +137,48 @@ sourcedf.createOrReplaceTempView("Source")
 # MAGIC SELECT * FROM (
 # MAGIC SELECT
 # MAGIC *,
-# MAGIC row_number() OVER(PARTITION BY colName order by validFromDate) as rn
-# MAGIC FROM  cleansed.tablename
+# MAGIC row_number() OVER(PARTITION BY clientId, language, meterReadingControlCode order by validFromDate) as rn
+# MAGIC FROM  cleansed.t_sapisu_ZDSMRCTRL
 # MAGIC )a where a.rn > 1
 
 # COMMAND ----------
 
 # DBTITLE 1,[Verification] Compare Source and Target Data
 # MAGIC %sql
-# MAGIC SELECT
-# MAGIC DELI_SERV_TYPE as deliveryServiceTypeCode
-# MAGIC ,DELI_SERV_DSCR as deliveryServiceDescription
-# MAGIC ,row_number() over (partition by colname order by EXTRACT_DATETIME desc) as rn
-# MAGIC FROM
-# MAGIC Source
-# MAGIC WHERE LANGU = 'E'  and rn = 1
+# MAGIC select
+# MAGIC meterReadingControlCode
+# MAGIC ,meterReadingControl
+# MAGIC from(SELECT
+# MAGIC SPRAS as language
+# MAGIC ,ABLESARTST as meterReadingControlCode
+# MAGIC ,TEXT30 as meterReadingControl
+# MAGIC ,row_number() over (partition by clientId, language, meterReadingControlCode order by EXTRACT_DATETIME desc) as rn
+# MAGIC from source
+# MAGIC WHERE SPRAS = 'E') a where a.rn = 1
 # MAGIC except
 # MAGIC select
-# MAGIC deliveryServiceTypeCode
-# MAGIC ,deliveryServiceDescription
+# MAGIC meterReadingControlCode
+# MAGIC ,meterReadingControl
 # MAGIC from
-# MAGIC cleansed.tablename
+# MAGIC cleansed.t_sapisu_ZDSMRCTRL
 
 # COMMAND ----------
 
 # DBTITLE 1,[Verification] Compare Target and Source Data
 # MAGIC %sql
 # MAGIC select
-# MAGIC deliveryServiceTypeCode
-# MAGIC ,deliveryServiceDescription
+# MAGIC meterReadingControlCode
+# MAGIC ,meterReadingControl
 # MAGIC from
-# MAGIC cleansed.tablename
+# MAGIC cleansed.t_sapisu_ZDSMRCTRL
 # MAGIC except
-# MAGIC %sql
-# MAGIC SELECT
-# MAGIC DELI_SERV_TYPE as deliveryServiceTypeCode
-# MAGIC ,DELI_SERV_DSCR as deliveryServiceDescription
-# MAGIC ,row_number() over (partition by colname order by EXTRACT_DATETIME desc) as rn
-# MAGIC FROM
-# MAGIC Source
-# MAGIC WHERE LANGU = 'E'  and rn = 1
+# MAGIC select
+# MAGIC meterReadingControlCode
+# MAGIC ,meterReadingControl
+# MAGIC from(SELECT
+# MAGIC SPRAS as language
+# MAGIC ,ABLESARTST as meterReadingControlCode
+# MAGIC ,TEXT30 as meterReadingControl
+# MAGIC ,row_number() over (partition by clientId, language, meterReadingControlCode order by EXTRACT_DATETIME desc) as rn
+# MAGIC from source
+# MAGIC WHERE SPRAS = 'E') a where a.rn = 1

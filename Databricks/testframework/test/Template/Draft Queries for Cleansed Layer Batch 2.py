@@ -114,9 +114,9 @@
 # DBTITLE 1,0IND_SECTOR_TEXT
 # MAGIC %sql
 # MAGIC SELECT
-# MAGIC SPRAS as language
-# MAGIC ,ISTYPE as industrySystem
+# MAGIC ISTYPE as industrySystem
 # MAGIC ,IND_SECTOR as industryCode
+# MAGIC ,TEXT as industry
 # MAGIC FROM
 # MAGIC Source
 
@@ -126,6 +126,7 @@
 # MAGIC %sql
 # MAGIC select
 # MAGIC TERMSCHL as portion
+# MAGIC ,TERMTEXT as scheduleMasterRecord
 # MAGIC from
 # MAGIC Source
 
@@ -134,7 +135,9 @@
 # DBTITLE 1,0DIVISION_TEXT
 # MAGIC %sql
 # MAGIC select
-# MAGIC TERMSCHL as portion
+# MAGIC SPRAS as language
+# MAGIC ,SPART as divisionCode
+# MAGIC ,VTEXT as division
 # MAGIC from
 # MAGIC Source
 
@@ -143,18 +146,31 @@
 # DBTITLE 1,0UC_DEVINST_ATTR
 # MAGIC %sql
 # MAGIC select
-# MAGIC ANLAGE as installationId
-# MAGIC ,LOGIKNR as logicalDeviceNumber
-# MAGIC ,BIS as validToDate
-# MAGIC from Source
+# MAGIC ANLAGE	as	installationId
+# MAGIC ,LOGIKNR as	logicalDeviceNumber
+# MAGIC ,BIS as	validToDate
+# MAGIC ,AB	as	validFromDate
+# MAGIC ,PREISKLA as priceClassCode
+# MAGIC ,b.PREISKLA as	priceClass
+# MAGIC ,GVERRECH as payRentalPrice
+# MAGIC ,TARIFART as rateTypeCode
+# MAGIC ,c.TARIFART as	rateType
+# MAGIC ,LOEVM	as deletedIndicator
+# MAGIC ,UPDMOD	as bwDeltaProcess
+# MAGIC ,ZOPCODE as	operationCode
+# MAGIC from Source a
+# MAGIC left join 0UC_PRICCLA_TEXT b
+# MAGIC on a.PREISKLA = b.PREISKLA and b.SPRAS='E'
+# MAGIC left join 0UC_STATTART_TEXT c
+# MAGIC on a.TARIFART = c.TARIFART  and b.SPRAS='E'
 
 # COMMAND ----------
 
 # DBTITLE 1,0UC_DISCREAS_TEXT
 # MAGIC %sql
 # MAGIC select
-# MAGIC LANGU as language
-# MAGIC ,KEY1 as sectorCategoryCode
+# MAGIC KEY1 as disconnecionReasonCode
+# MAGIC ,TXTLG as disconnecionReason
 # MAGIC from 
 # MAGIC source
 
@@ -202,7 +218,7 @@
 # MAGIC %sql
 # MAGIC select
 # MAGIC SERVICE  serviceTypeCode
-# MAGIC ,SPRAS as language
+# MAGIC ,SERVICETEXT as serviceType
 # MAGIC from
 # MAGIC Source
 
@@ -211,8 +227,8 @@
 # DBTITLE 1,0UC_STATTART_TEXT 
 # MAGIC %sql
 # MAGIC select
-# MAGIC SPRAS language
-# MAGIC ,TARIFART as rateTypeCode
+# MAGIC TARIFART as rateTypeCode
+# MAGIC ,TEXT30 as rateType
 # MAGIC from source
 
 # COMMAND ----------
@@ -220,8 +236,8 @@
 # DBTITLE 1,0UC_TARIFNR_TEXT
 # MAGIC %sql
 # MAGIC select
-# MAGIC SPRAS as language
-# MAGIC ,TARIFNR as rateId
+# MAGIC TARIFNR as rateId
+# MAGIC ,TARIFBEZ as rateDescription
 # MAGIC from source
 
 # COMMAND ----------
