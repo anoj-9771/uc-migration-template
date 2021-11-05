@@ -437,15 +437,8 @@
 # DBTITLE 1,ZPDMMTRGRIDCHAR
 # MAGIC %sql
 # MAGIC SELECT
-# MAGIC CLASSIFICATIONOBJECTINTERNALID as classificationObjectInternalId --must be nullable = false
-# MAGIC ,CHARACTERISTICINTERNALID as characteristicInternalId
-# MAGIC ,CHARACTERISTICVALUEINTERNALID as characteristicvalueInternalId
-# MAGIC ,CLASSTYPE as classType
-# MAGIC ,CHARCARCHIVINGOBJECTINTERNALID as archivingObjectsInternalId
-# MAGIC ,CHARACTERISTICVALUE as characteristicValueCode
-# MAGIC ,ATWTB as characteristicValueDescription
-# MAGIC ,CHARCVALIDITYSTARTDATE as validFromDate
-# MAGIC ,CHARCVALIDITYENDDATE as validToDate
+# MAGIC INTERNALCHAR as internalcharacteristic
+# MAGIC ,INTERNALCOUNTER as internalCounterforArchivingObjectsbyECM
 # MAGIC ,ATNAM as characteristicName
 # MAGIC from Source
 
@@ -475,9 +468,6 @@
 # MAGIC ,DATE_FROM as validFromDate
 # MAGIC ,REL_TYPE2 as relationshipTypeCode2
 # MAGIC ,DATE_TO as validToDate
-# MAGIC ,DESCRIPTION as relationshipDescription1
-# MAGIC ,REL2DESCRIPTION as relationshipDescription2
-# MAGIC ,DELTADATETIME as deltaDateTime
 # MAGIC FROM
 # MAGIC Source
 

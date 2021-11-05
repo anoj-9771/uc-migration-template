@@ -1,5 +1,5 @@
 # Databricks notebook source
-table = '0EQUIPMENT_TEXT'
+table = '0UC_GERWECHS_TEXT'
 table1 = table.lower()
 print(table1)
 
@@ -20,9 +20,8 @@ print(table1)
 from datetime import datetime
 
 global fileCount
-
-storage_account_name = "saswcnonprod01landingtst"
-storage_account_access_key = dbutils.secrets.get(scope="Test-Access",key="test-blob-key")
+storage_account_name = "sablobdaftest01"
+storage_account_access_key = dbutils.secrets.get(scope="TestScope",key="test-sablob-key")
 container_name = "archive"
 fileLocation = "wasbs://archive@saswcnonprod01landingtst.blob.core.windows.net/sapisu/"
 fileType = 'json'
@@ -103,14 +102,29 @@ sourcedf.createOrReplaceTempView("Source")
 # DBTITLE 1,[Source with mapping]
 # MAGIC %sql
 # MAGIC select
-# MAGIC EQUNR as equipmentNumber
-# MAGIC ,DATETO as validToDate
-# MAGIC ,DATEFROM as validFromDate
-# MAGIC ,TXTMD as equipmentDescription
-# MAGIC ,AEDAT as lastChangedDate
-# MAGIC ,row_number() over (partition by colname order by EXTRACT_DATETIME desc) as rn
-# MAGIC from source  WHERE LANGU = 'E'
-# MAGIC and  rn = 1
+# MAGIC  applicationArea
+# MAGIC ,documentTypeCode
+# MAGIC ,documentType
+# MAGIC ,language
+# MAGIC from(
+# MAGIC select
+# MAGIC APPLK as applicationArea
+# MAGIC ,BLART as documentTypeCode
+# MAGIC ,LTEXT as documentType
+# MAGIC ,SPRAS as language
+# MAGIC from source
+# MAGIC ,row_number() over (partition by applicationArea,documentTypeCode,language order by EXTRACT_DATETIME desc) as rn
+# MAGIC from source) a
+# MAGIC where a.rn = 1
+
+# COMMAND ----------
+
+lakedf = spark.sql("select * from cleansed.tablename")
+
+# COMMAND ----------
+
+# DBTITLE 1,Target schema check
+lakedf.printSchema()
 
 # COMMAND ----------
 
@@ -118,7 +132,23 @@ sourcedf.createOrReplaceTempView("Source")
 # MAGIC %sql
 # MAGIC select count (*) as RecordCount, 'Target' as TableName from cleansed.tablename
 # MAGIC union all
-# MAGIC select count (*) as RecordCount, 'Source' as TableName from Source
+# MAGIC select count (*) as RecordCount, 'Source' as TableName from (
+# MAGIC select
+# MAGIC  applicationArea
+# MAGIC ,documentTypeCode
+# MAGIC ,documentType
+# MAGIC ,language
+# MAGIC from(
+# MAGIC select
+# MAGIC APPLK as applicationArea
+# MAGIC ,BLART as documentTypeCode
+# MAGIC ,LTEXT as documentType
+# MAGIC ,SPRAS as language
+# MAGIC from source
+# MAGIC ,row_number() over (partition by applicationArea,documentTypeCode,language order by EXTRACT_DATETIME desc) as rn
+# MAGIC from source) a
+# MAGIC where a.rn = 1
+# MAGIC )
 
 # COMMAND ----------
 
@@ -127,7 +157,7 @@ sourcedf.createOrReplaceTempView("Source")
 # MAGIC SELECT * FROM (
 # MAGIC SELECT
 # MAGIC *,
-# MAGIC row_number() OVER(PARTITION BY colName order by validFromDate) as rn
+# MAGIC row_number() OVER(PARTITION BY  applicationArea,documentTypeCode,language order by validFromDate) as rn
 # MAGIC FROM  cleansed.tablename
 # MAGIC )a where a.rn > 1
 
@@ -136,22 +166,26 @@ sourcedf.createOrReplaceTempView("Source")
 # DBTITLE 1,[Verification] Compare Source and Target Data
 # MAGIC %sql
 # MAGIC select
-# MAGIC EQUNR as equipmentNumber
-# MAGIC ,DATETO as validToDate
-# MAGIC ,DATEFROM as validFromDate
-# MAGIC ,TXTMD as equipmentDescription
-# MAGIC ,AEDAT as lastChangedDate
-# MAGIC ,row_number() over (partition by colname order by EXTRACT_DATETIME desc) as rn
-# MAGIC from source  WHERE LANGU = 'E'
-# MAGIC and  rn = 1
+# MAGIC  applicationArea
+# MAGIC ,documentTypeCode
+# MAGIC ,documentType
+# MAGIC ,language
+# MAGIC from(
+# MAGIC select
+# MAGIC APPLK as applicationArea
+# MAGIC ,BLART as documentTypeCode
+# MAGIC ,LTEXT as documentType
+# MAGIC ,SPRAS as language
+# MAGIC from source
+# MAGIC ,row_number() over (partition by applicationArea,documentTypeCode,language order by EXTRACT_DATETIME desc) as rn
+# MAGIC from source) a
+# MAGIC where a.rn = 1
 # MAGIC except
 # MAGIC select
-# MAGIC select
-# MAGIC equipmentNumber 
-# MAGIC ,validToDate 
-# MAGIC ,validFromDate
-# MAGIC ,equipmentDescription
-# MAGIC ,lastChangedDate
+# MAGIC applicationArea
+# MAGIC ,documentTypeCode
+# MAGIC ,documentType
+# MAGIC ,language
 # MAGIC from
 # MAGIC cleansed.tablename
 
@@ -160,20 +194,25 @@ sourcedf.createOrReplaceTempView("Source")
 # DBTITLE 1,[Verification] Compare Target and Source Data
 # MAGIC %sql
 # MAGIC select
-# MAGIC equipmentNumber 
-# MAGIC ,validToDate 
-# MAGIC ,validFromDate
-# MAGIC ,equipmentDescription
-# MAGIC ,lastChangedDate 
+# MAGIC applicationArea
+# MAGIC ,documentTypeCode
+# MAGIC ,documentType
+# MAGIC ,language
 # MAGIC from
 # MAGIC cleansed.tablename
 # MAGIC except
 # MAGIC select
-# MAGIC EQUNR as equipmentNumber
-# MAGIC ,DATETO as validToDate
-# MAGIC ,DATEFROM as validFromDate
-# MAGIC ,TXTMD as equipmentDescription
-# MAGIC ,AEDAT as lastChangedDate
-# MAGIC ,row_number() over (partition by colname order by EXTRACT_DATETIME desc) as rn
-# MAGIC from source  WHERE LANGU = 'E'
-# MAGIC and  rn = 1
+# MAGIC  applicationArea
+# MAGIC ,documentTypeCode
+# MAGIC ,documentType
+# MAGIC ,language
+# MAGIC from(
+# MAGIC select
+# MAGIC APPLK as applicationArea
+# MAGIC ,BLART as documentTypeCode
+# MAGIC ,LTEXT as documentType
+# MAGIC ,SPRAS as language
+# MAGIC from source
+# MAGIC ,row_number() over (partition by applicationArea,documentTypeCode,language order by EXTRACT_DATETIME desc) as rn
+# MAGIC from source) a
+# MAGIC where a.rn = 1

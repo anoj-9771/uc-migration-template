@@ -327,13 +327,13 @@
 
 # COMMAND ----------
 
-# DBTITLE 1,0UC_HVORG_TEXT
+# DBTITLE 1,0UC_TVORG_TEXT
 # MAGIC %sql
 # MAGIC select
-# MAGIC SPRAS as language
 # MAGIC ,APPLK as applicationArea
 # MAGIC ,HVORG as mainTransactionLineItemCode
-# MAGIC ,TXT30 as mainTransaction
+# MAGIC ,TVORG as subtransactionLineItemCode
+# MAGIC ,TXT30 as subtransaction
 # MAGIC from source
 
 # COMMAND ----------
@@ -390,8 +390,7 @@
 # DBTITLE 1,0UC_MRTYPE_TEXT
 # MAGIC %sql
 # MAGIC select
-# MAGIC SPRAS as language
-# MAGIC ,ISTABLART as meterReadingTypeCode
+# MAGIC ISTABLART as meterReadingTypeCode
 # MAGIC ,TEXT40 as meterReadingType
 # MAGIC from source
 
@@ -430,9 +429,7 @@
 # DBTITLE 1,TE192T
 # MAGIC %sql
 # MAGIC select
-# MAGIC MANDT as clientId
-# MAGIC ,SPRAS as language
-# MAGIC ,AUSGRUP_IN as outsortingCheckGroupCode
+# MAGIC AUSGRUP_IN as outsortingCheckGroupCode
 # MAGIC ,TEXT30 as outsortingCheckGroup
 # MAGIC from source
 

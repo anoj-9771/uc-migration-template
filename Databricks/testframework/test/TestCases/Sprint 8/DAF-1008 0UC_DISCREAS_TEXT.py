@@ -1,5 +1,5 @@
 # Databricks notebook source
-table = 'ZDSCOUTRYT '
+table = '0UC_DISCREAS_TEXT'
 table1 = table.lower()
 print(table1)
 
@@ -20,9 +20,8 @@ print(table1)
 from datetime import datetime
 
 global fileCount
-
-storage_account_name = "saswcnonprod01landingtst"
-storage_account_access_key = dbutils.secrets.get(scope="Test-Access",key="test-blob-key")
+storage_account_name = "sablobdaftest01"
+storage_account_access_key = dbutils.secrets.get(scope="TestScope",key="test-sablob-key")
 container_name = "archive"
 fileLocation = "wasbs://archive@saswcnonprod01landingtst.blob.core.windows.net/sapisu/"
 fileType = 'json'
@@ -102,16 +101,25 @@ sourcedf.createOrReplaceTempView("Source")
 
 # DBTITLE 1,[Source with mapping]
 # MAGIC %sql
-# MAGIC SELECT
-# MAGIC LAND1 as countryCode
-# MAGIC ,LANDX as countryShortName
-# MAGIC ,NATIO as nationality
-# MAGIC ,LANDX50 as countryName
-# MAGIC ,NATIO50 as nationalityLong
-# MAGIC ,row_number() over (partition by colname order by EXTRACT_DATETIME desc) as rn
-# MAGIC FROM
-# MAGIC Source
-# MAGIC WHERE SPRAS = 'E'  and rn = 1
+# MAGIC select
+# MAGIC disconnecionReasonCode
+# MAGIC ,disconnecionReason
+# MAGIC from(
+# MAGIC select
+# MAGIC KEY1 as disconnecionReasonCode
+# MAGIC ,TXTLG as disconnecionReason
+# MAGIC ,row_number() over (partition by disconnecionReasonCode order by EXTRACT_DATETIME desc) as rn
+# MAGIC from source) a
+# MAGIC where a.rn = 1
+
+# COMMAND ----------
+
+lakedf = spark.sql("select * from cleansed.tablename")
+
+# COMMAND ----------
+
+# DBTITLE 1,Target schema check
+lakedf.printSchema()
 
 # COMMAND ----------
 
@@ -119,7 +127,18 @@ sourcedf.createOrReplaceTempView("Source")
 # MAGIC %sql
 # MAGIC select count (*) as RecordCount, 'Target' as TableName from cleansed.tablename
 # MAGIC union all
-# MAGIC select count (*) as RecordCount, 'Source' as TableName from Source
+# MAGIC select count (*) as RecordCount, 'Source' as TableName from (
+# MAGIC select
+# MAGIC disconnecionReasonCode
+# MAGIC ,disconnecionReason
+# MAGIC from(
+# MAGIC select
+# MAGIC KEY1 as disconnecionReasonCode
+# MAGIC ,TXTLG as disconnecionReason
+# MAGIC ,row_number() over (partition by disconnecionReasonCode order by EXTRACT_DATETIME desc) as rn
+# MAGIC from source) a
+# MAGIC where a.rn = 1
+# MAGIC )
 
 # COMMAND ----------
 
@@ -128,7 +147,7 @@ sourcedf.createOrReplaceTempView("Source")
 # MAGIC SELECT * FROM (
 # MAGIC SELECT
 # MAGIC *,
-# MAGIC row_number() OVER(PARTITION BY colName order by validFromDate) as rn
+# MAGIC row_number() OVER(PARTITION BY disconnecionReasonCode order by validFromDate) as rn
 # MAGIC FROM  cleansed.tablename
 # MAGIC )a where a.rn > 1
 
@@ -137,22 +156,19 @@ sourcedf.createOrReplaceTempView("Source")
 # DBTITLE 1,[Verification] Compare Source and Target Data
 # MAGIC %sql
 # MAGIC select
-# MAGIC LAND1 as countryCode
-# MAGIC ,LANDX as countryShortName
-# MAGIC ,NATIO as nationality
-# MAGIC ,LANDX50 as countryName
-# MAGIC ,NATIO50 as nationalityLong
-# MAGIC ,row_number() over (partition by colname order by EXTRACT_DATETIME desc) as rn
-# MAGIC FROM
-# MAGIC Source
-# MAGIC WHERE SPRAS = 'E'  and rn = 1
+# MAGIC disconnecionReasonCode
+# MAGIC ,disconnecionReason
+# MAGIC from(
+# MAGIC select
+# MAGIC KEY1 as disconnecionReasonCode
+# MAGIC ,TXTLG as disconnecionReason
+# MAGIC ,row_number() over (partition by disconnecionReasonCode order by EXTRACT_DATETIME desc) as rn
+# MAGIC from source) a
+# MAGIC where a.rn = 1
 # MAGIC except
 # MAGIC select
-# MAGIC countryCode
-# MAGIC ,countryShortName
-# MAGIC ,nationality
-# MAGIC ,countryName
-# MAGIC ,nationalityLong
+# MAGIC disconnecionReasonCode
+# MAGIC ,disconnecionReason
 # MAGIC from
 # MAGIC cleansed.tablename
 
@@ -160,23 +176,19 @@ sourcedf.createOrReplaceTempView("Source")
 
 # DBTITLE 1,[Verification] Compare Target and Source Data
 # MAGIC %sql
-# MAGIC except
 # MAGIC select
-# MAGIC countryCode
-# MAGIC ,countryShortName
-# MAGIC ,nationality
-# MAGIC ,countryName
-# MAGIC ,nationalityLong
+# MAGIC disconnecionReasonCode
+# MAGIC ,disconnecionReason
 # MAGIC from
 # MAGIC cleansed.tablename
 # MAGIC except
 # MAGIC select
-# MAGIC LAND1 as countryCode
-# MAGIC ,LANDX as countryShortName
-# MAGIC ,NATIO as nationality
-# MAGIC ,LANDX50 as countryName
-# MAGIC ,NATIO50 as nationalityLong
-# MAGIC ,row_number() over (partition by colname order by EXTRACT_DATETIME desc) as rn
-# MAGIC FROM
-# MAGIC Source
-# MAGIC WHERE SPRAS = 'E'  and rn = 1
+# MAGIC disconnecionReasonCode
+# MAGIC ,disconnecionReason
+# MAGIC from(
+# MAGIC select
+# MAGIC KEY1 as disconnecionReasonCode
+# MAGIC ,TXTLG as disconnecionReason
+# MAGIC ,row_number() over (partition by disconnecionReasonCode order by EXTRACT_DATETIME desc) as rn
+# MAGIC from source) a
+# MAGIC where a.rn = 1
