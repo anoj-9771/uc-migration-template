@@ -64,6 +64,27 @@
         },
         {
             "apiVersion": "2019-04-01",
+            "name": "[concat('pe-blob-', parameters('dataLakeName'))]",
+            "type": "Microsoft.Network/privateEndpoints",
+            "location": "[parameters('location')]",
+            "properties": {
+                "privateLinkServiceConnections": [
+                    {
+                        "name": "[concat('pe-dfs-conn-', parameters('dataLakeName'))]",
+                        "properties": {
+                            "privateLinkServiceId": "[resourceId('Microsoft.Storage/storageAccounts', parameters('dataLakeName'))]",
+                            "groupIds": ["blob"]
+                        }
+                    }
+                ],
+                "manualPrivateLinkServiceConnections": [],
+                "subnet": {
+                    "id": "[parameters('subnetId')]"
+                }
+            }
+        },
+        {
+            "apiVersion": "2019-04-01",
             "name": "[concat('pe-blob-', parameters('blobStorageName'))]",
             "type": "Microsoft.Network/privateEndpoints",
             "location": "[parameters('location')]",
@@ -200,34 +221,6 @@
                         "properties": {
                             "privateLinkServiceId": "[resourceId('Microsoft.Synapse/workspaces', parameters('synapseWorkspaceName'))]",
                             "groupIds": ["dev"]
-                        }
-                    }
-                ],
-                "manualPrivateLinkServiceConnections": [],
-                "subnet": {
-                    "id": "[parameters('subnetId')]"
-                }
-            }
-        },
-        {
-            "type": "Microsoft.Synapse/privateLinkHubs",
-            "apiVersion": "2021-06-01-preview",
-            "name": "[variables('synapsePrivateLinkName')]",
-            "location": "[parameters('location')]",
-            "properties": {}
-        },
-        {
-            "apiVersion": "2019-04-01",
-            "name": "[concat('pe-web-', parameters('synapseWorkspaceName'))]",
-            "type": "Microsoft.Network/privateEndpoints",
-            "location": "[parameters('location')]",
-            "properties": {
-                "privateLinkServiceConnections": [
-                    {
-                        "name": "[concat('pe-web-conn-', parameters('synapseWorkspaceName'))]",
-                        "properties": {
-                            "privateLinkServiceId": "[resourceId('Microsoft.Synapse/privateLinkHubs', variables('synapsePrivateLinkName'))]",
-                            "groupIds": ["Web"]
                         }
                     }
                 ],
