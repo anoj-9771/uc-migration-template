@@ -168,7 +168,11 @@
 												"outputs": [
 													{
 														"referenceName": "RAW_ADLS_CSV",
-														"type": "DatasetReference"
+														"type": "DatasetReference",
+														"parameters": {
+															"BlobPath": "@activity('Get Full File Name').output.firstrow.StorageFolder",
+															"BlobName": "@activity('Get Full File Name').output.firstrow.StorageFile"
+														}
 													}
 												]
 											},
