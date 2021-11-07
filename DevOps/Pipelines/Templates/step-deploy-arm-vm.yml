@@ -26,12 +26,12 @@ steps:
   #     inlineScript: |
   #       az keyvault set-policy --name "$(AZUREKEYVAULTNAME)" --secret-permissions set delete list get --object-id "$(SPOBJECTID)"
 
-  - task: AzureKeyVault@1
-    displayName: 'Get secrets'
-    inputs:
-      azureSubscription: ${{ parameters.AzDoServiceConnection }}
-      keyVaultName: $(AZUREKEYVAULTNAME)
-      secretsFilter: 'AzureSQLServerPw'
+  # - task: AzureKeyVault@1
+  #   displayName: 'Get secrets'
+  #   inputs:
+  #     azureSubscription: ${{ parameters.AzDoServiceConnection }}
+  #     keyVaultName: $(AZUREKEYVAULTNAME)
+  #     secretsFilter: 'AzureSQLServerPw'
 
   - task: AzureResourceGroupDeployment@2
     inputs:
