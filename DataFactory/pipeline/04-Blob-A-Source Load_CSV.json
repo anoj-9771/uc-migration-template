@@ -137,12 +137,14 @@
 														}
 													},
 													"sink": {
-														"type": "JsonSink",
+														"type": "DelimitedTextSink",
 														"storeSettings": {
 															"type": "AzureBlobFSWriteSettings"
 														},
 														"formatSettings": {
-															"type": "JsonWriteSettings"
+															"type": "DelimitedTextWriteSettings",
+															"quoteAllText": true,
+															"fileExtension": ".txt"
 														}
 													},
 													"enableStaging": false
@@ -165,17 +167,11 @@
 												],
 												"outputs": [
 													{
-														"referenceName": "RAW_ADLS_JSON_v2",
+														"referenceName": "RAW_ADLS_CSV",
 														"type": "DatasetReference",
 														"parameters": {
-															"BlobPath": {
-																"value": "@activity('Get Full File Name').output.firstrow.StorageFolder",
-																"type": "Expression"
-															},
-															"BlobName": {
-																"value": "@activity('Get Full File Name').output.firstrow.StorageFile",
-																"type": "Expression"
-															}
+															"BlobPath": "@activity('Get Full File Name').output.firstrow.StorageFolder",
+															"BlobName": "@activity('Get Full File Name').output.firstrow.StorageFile"
 														}
 													}
 												]
