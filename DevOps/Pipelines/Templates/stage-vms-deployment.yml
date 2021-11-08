@@ -56,15 +56,15 @@ stages:
     #       offer: ${{ variables.offerDevops }}
 
     # Deploy Self-hosted Azure Devops Agent (Win)
-      - template: step-deploy-arm-vm.yml
-        parameters:
-          AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
-          resource_group: ${{ variables.resourcegroupname }}
-          vmSize: ${{ variables.vmSizeDevops }}
-          vmName: ${{ variables.vmNameDevops2 }}
-          OSVersion: ${{ variables.OSVersion }}
-          publisher: ${{ variables.publisher }}
-          offer: ${{ variables.offer }}
+    - template: step-deploy-arm-vm.yml
+      parameters:
+        AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
+        resource_group: ${{ variables.resourcegroupname }}
+        vmSize: ${{ variables.vmSizeDevops }}
+        vmName: ${{ variables.vmNameDevops2 }}
+        OSVersion: ${{ variables.OSVersion }}
+        publisher: ${{ variables.publisher }}
+        offer: ${{ variables.offer }}
     
     # Deploy Self-hosted Integration Runtime
     # - ${{ if eq(variables['irvm'], true) }}:
