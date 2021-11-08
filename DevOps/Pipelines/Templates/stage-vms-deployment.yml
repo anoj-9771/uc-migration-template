@@ -44,16 +44,16 @@ stages:
     # Deploy Azure resources
     # ------------------------------------------------------------------------
     # Deploy Self-hosted Azure Devops Agent (Linux)
-    # - ${{ if eq(variables['devopsvm'], true) }}:
-    #   - template: step-deploy-arm-vm.yml
-    #     parameters:
-    #       AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
-    #       resource_group: ${{ variables.resourcegroupname }}
-    #       vmSize: ${{ variables.vmSizeDevops }}
-    #       vmName: ${{ variables.vmNameDevops }}
-    #       OSVersion: ${{ variables.OSVersionDevops }}
-    #       publisher: ${{ variables.publisherDevops }}
-    #       offer: ${{ variables.offerDevops }}
+    - ${{ if eq(variables['devopsvm'], true) }}:
+      - template: step-deploy-arm-vm.yml
+        parameters:
+          AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
+          resource_group: ${{ variables.resourcegroupname }}
+          vmSize: ${{ variables.vmSizeDevops }}
+          vmName: ${{ variables.vmNameDevops }}
+          OSVersion: ${{ variables.OSVersionDevops }}
+          publisher: ${{ variables.publisherDevops }}
+          offer: ${{ variables.offerDevops }}
 
     # Deploy Self-hosted Azure Devops Agent (Win)
     - template: step-deploy-arm-vm.yml
@@ -67,28 +67,28 @@ stages:
         offer: ${{ variables.offer }}
     
     # Deploy Self-hosted Integration Runtime
-    # - ${{ if eq(variables['irvm'], true) }}:
-    #   - template: step-deploy-arm-vm.yml
-    #     parameters:
-    #       AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
-    #       resource_group: ${{ variables.resourcegroupname }}
-    #       vmSize: ${{ variables.vmSizeIR }}
-    #       vmName: ${{ variables.vmNameIR }}
-    #       OSVersion: ${{ variables.OSVersion }}
-    #       publisher: ${{ variables.publisher }}
-    #       offer: ${{ variables.offer }}
+    - ${{ if eq(variables['irvm'], true) }}:
+      - template: step-deploy-arm-vm.yml
+        parameters:
+          AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
+          resource_group: ${{ variables.resourcegroupname }}
+          vmSize: ${{ variables.vmSizeIR }}
+          vmName: ${{ variables.vmNameIR }}
+          OSVersion: ${{ variables.OSVersion }}
+          publisher: ${{ variables.publisher }}
+          offer: ${{ variables.offer }}
     
     # Deploy SLT
-    # - ${{ if eq(variables['sltvm'], true) }}:
-    #   - template: step-deploy-arm-vm.yml
-    #     parameters:
-    #       AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
-    #       resource_group: ${{ variables.resourcegroupname }}
-    #       vmSize: ${{ variables.vmSizeSlt }}
-    #       vmName: ${{ variables.vmNameSlt }}
-    #       OSVersion: ${{ variables.OSVersionSlt }}
-    #       publisher: ${{ variables.publisherSlt }}
-    #       offer: ${{ variables.offerSlt }}
+    - ${{ if eq(variables['sltvm'], true) }}:
+      - template: step-deploy-arm-vm.yml
+        parameters:
+          AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
+          resource_group: ${{ variables.resourcegroupname }}
+          vmSize: ${{ variables.vmSizeSlt }}
+          vmName: ${{ variables.vmNameSlt }}
+          OSVersion: ${{ variables.OSVersionSlt }}
+          publisher: ${{ variables.publisherSlt }}
+          offer: ${{ variables.offerSlt }}
 
     
  
