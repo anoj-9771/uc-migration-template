@@ -175,9 +175,9 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_cleansed_column = spark.sql("SELECT  \
-                                BELNR as billingDocumentNumber, \
-                                BELZEILE as billingDocumentLineItemID, \
+df_cleansed_column = spark.sql(f"SELECT  \
+                                case when BELNR = 'na' then '' else BELNR end as billingDocumentNumber, \
+                                case when BELZEILE = 'na' then '' else BELZEILE end as billingDocumentLineItemId, \
                                 EQUNR as equipmentNumber, \
                                 GERAET as deviceNumber, \
                                 MATNR as materialNumber, \
@@ -212,14 +212,14 @@ df_cleansed_column = spark.sql("SELECT  \
                                 _RecordEnd, \
                                 _RecordDeleted, \
                                 _RecordCurrent \
-                               FROM CLEANSED.STG_isu_DBERCHZ2")
+                               FROM {ADS_DATABASE_STAGE}.{source_object}")
 display(df_cleansed_column)
 
 # COMMAND ----------
 
 newSchema = StructType([
-                          StructField('billingDocumentNumber', StringType(), True),
-                          StructField('billingDocumentLineItemID', StringType(), True),
+                          StructField('billingDocumentNumber', StringType(), False),
+                          StructField('billingDocumentLineItemID', StringType(), False),
                           StructField('equipmentNumber', StringType(), True),
                           StructField('deviceNumber', StringType(), True),
                           StructField('materialNumber', StringType(), True),
