@@ -192,7 +192,6 @@ print("raw_table: " + raw_table)
 print("ADS_DATABASE_RAW: " + ADS_DATABASE_RAW)
 print("ADS_CONTAINER_RAW: " + ADS_CONTAINER_RAW)
 print("write_mode: " + write_mode)
-print("partition_keys: " + partition_keys)
 
 #DeltaSaveDataframeDirect(df_updated, source_system, raw_table, ADS_DATABASE_RAW, ADS_CONTAINER_RAW, write_mode, partition_keys)
 DeltaSaveDataframeDirect(df_updated, source_group, raw_table, ADS_DATABASE_RAW, ADS_CONTAINER_RAW, write_mode, partition_keys)

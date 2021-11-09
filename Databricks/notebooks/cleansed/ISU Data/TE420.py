@@ -187,16 +187,16 @@ df_cleansed = spark.sql(f"SELECT \
                             ERNAM as createdBy, \
                             to_date(AENDDATE, 'yyyy-MM-dd') as lastChangedDate, \
                             AENDNAM as lastChangedBy, \
-                            cast(SPARTENTY1 as int) as divisionCategory1, \
-                            cast(SPARTENTY2 as int) as divisionCategory2, \
-                            cast(SPARTENTY3 as int) as divisionCategory3, \
-                            cast(SPARTENTY4 as int) as divisionCategory4, \
-                            cast(SPARTENTY5 as int) as divisionCategory5, \
-                            cast(ABSZYKTER1 as int) as budgetBillingCycle1, \
-                            cast(ABSZYKTER2 as int) as budgetBillingCycle2, \
-                            cast(ABSZYKTER3 as int) as budgetBillingCycle3, \
-                            cast(ABSZYKTER4 as int) as budgetBillingCycle4, \
-                            cast(ABSZYKTER5 as int) as budgetBillingCycle5, \
+                            cast(SPARTENTY1 as string) as divisionCategory1, \
+                            cast(SPARTENTY2 as string) as divisionCategory2, \
+                            cast(SPARTENTY3 as string) as divisionCategory3, \
+                            cast(SPARTENTY4 as string) as divisionCategory4, \
+                            cast(SPARTENTY5 as string) as divisionCategory5, \
+                            cast(ABSZYKTER1 as string) as budgetBillingCycle1, \
+                            cast(ABSZYKTER2 as string) as budgetBillingCycle2, \
+                            cast(ABSZYKTER3 as string) as budgetBillingCycle3, \
+                            cast(ABSZYKTER4 as string) as budgetBillingCycle4, \
+                            cast(ABSZYKTER5 as string) as budgetBillingCycle5, \
                             PARASATZ as parameterRecord, \
                             IDENT as factoryCalendar, \
                             SAPKAL as correctHolidayToWorkDay, \
@@ -216,6 +216,10 @@ print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
 
+
+
+# COMMAND ----------
+
 newSchema = StructType([
                         StructField('portion',StringType(),False),
                         StructField('scheduleMasterRecord',StringType(),True),
@@ -228,16 +232,16 @@ newSchema = StructType([
                         StructField('createdBy',StringType(),True),
                         StructField('lastChangedDate',DateType(),True),
                         StructField('lastChangedBy',StringType(),True),
-                        StructField('divisionCategory1',IntegerType(),True),
-                        StructField('divisionCategory2',IntegerType(),True),
-                        StructField('divisionCategory3',IntegerType(),True),
-                        StructField('divisionCategory4',IntegerType(),True),
-                        StructField('divisionCategory5',IntegerType(),True),
-                        StructField('budgetBillingCycle1',IntegerType(),True),
-                        StructField('budgetBillingCycle2',IntegerType(),True),
-                        StructField('budgetBillingCycle3',IntegerType(),True),
-                        StructField('budgetBillingCycle4',IntegerType(),True),
-                        StructField('budgetBillingCycle5',IntegerType(),True),
+                        StructField('divisionCategory1',StringType(),True),
+                        StructField('divisionCategory2',StringType(),True),
+                        StructField('divisionCategory3',StringType(),True),
+                        StructField('divisionCategory4',StringType(),True),
+                        StructField('divisionCategory5',StringType(),True),
+                        StructField('budgetBillingCycle1',StringType(),True),
+                        StructField('budgetBillingCycle2',StringType(),True),
+                        StructField('budgetBillingCycle3',StringType(),True),
+                        StructField('budgetBillingCycle4',StringType(),True),
+                        StructField('budgetBillingCycle5',StringType(),True),
                         StructField('parameterRecord',StringType(),True),
                         StructField('factoryCalendar',StringType(),True),
                         StructField('correctHolidayToWorkDay',StringType(),True),
