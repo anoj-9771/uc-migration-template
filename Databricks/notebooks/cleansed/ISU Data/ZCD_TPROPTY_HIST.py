@@ -183,9 +183,9 @@ df_cleansed = spark.sql(f"SELECT  \
                             infty.inferiorPropertyType, \
                             to_date((case when stg.DATE_FROM = 'na' then '1900-01-01' else stg.DATE_FROM end), 'yyyy-MM-dd') as validFromDate, \
                             to_date(stg.DATE_TO, 'yyyy-MM-dd') as validToDate, \
-                            to_date(stg.CREATED_ON, 'yyyy-MM-dd') as createdDate, \
+                            to_timestamp(cast(stg.CREATED_ON as String), 'yyyyMMddHHmmss') as createdDate, \
                             stg.CREATED_BY as createdBy, \
-                            to_date(cast(stg.CHANGED_ON as String), to_timestamp('yyyyMMddHHmmss')) as changedDate, \
+                            to_timestamp(cast(stg.CHANGED_ON as String), 'yyyyMMddHHmmss') as changedDate, \
                             stg.CHANGED_BY as changedBy, \
                             stg._RecordStart, \
                             stg._RecordEnd, \
@@ -211,9 +211,9 @@ newSchema = StructType([
                         StructField("inferiorPropertyType", StringType(), True),
                         StructField("validFromDate", DateType(), False),
                         StructField("validToDate", DateType(), True),
-                        StructField("createdDate", DateType(), True),
+                        StructField("createdDate", TimestampType(), True),
                         StructField("createdBy", StringType(), True),
-                        StructField("changedDate", DateType(), True),
+                        StructField("changedDate", TimestampType(), True),
                         StructField("changedBy", StringType(), True),
                         StructField('_RecordStart',TimestampType(),False),
                         StructField('_RecordEnd',TimestampType(),False),
