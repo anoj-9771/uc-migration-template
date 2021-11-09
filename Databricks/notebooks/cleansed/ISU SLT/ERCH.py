@@ -175,8 +175,8 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_cleansed_column = spark.sql("SELECT  \
-                                  BELNR as billingDocumentNumber, \
+df_cleansed_column = spark.sql(f"SELECT  \
+                                  case when BELNR = 'na' then '' else BELNR end as billingDocumentNumber, \
                                   BUKRS as companyCode, \
                                   cc.companyName as companyName, \
                                   SPARTE as divisonCode, \
@@ -262,15 +262,10 @@ df_cleansed_column = spark.sql("SELECT  \
                                   stg._RecordEnd, \
                                   stg._RecordDeleted, \
                                   stg._RecordCurrent \
-                              FROM CLEANSED.STG_isu_ERCH stg \
-                               left outer join cleansed.t_isu_0comp_code_text cc on cc.companyCode = stg.BUKRS"
+                              FROM {ADS_DATABASE_STAGE}.{source_object} stg \
+                               left outer join {ADS_DATABASE_CLEANSED}.isu_0comp_code_text cc on cc.companyCode = stg.BUKRS"
                               )
 display(df_cleansed_column)
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC select distinct length(erdat), length(aedat) from raw.sapisu_erch
 
 # COMMAND ----------
 

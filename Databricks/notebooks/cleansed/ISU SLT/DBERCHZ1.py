@@ -175,9 +175,9 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_cleansed_column = spark.sql("SELECT  \
-                                  BELNR as billingDocumentNumber, \
-                                  BELZEILE as billingDocumentLineItemId, \
+df_cleansed_column = spark.sql(f"SELECT  \
+                                  case when BELNR = 'na' then '' else BELNR end as billingDocumentNumber, \
+                                  case when BELZEILE = 'na' then '' else BELZEILE end as billingDocumentLineItemId, \
                                   CSNO as billingSequenceNumber, \
                                   BELZART as lineItemTypeCode, \
                                   ABSLKZ as billingLineItemBudgetBillingIndicator, \
@@ -239,8 +239,8 @@ df_cleansed_column = spark.sql("SELECT  \
                                   stg._RecordEnd, \
                                   stg._RecordDeleted, \
                                   stg._RecordCurrent \
-                               FROM CLEANSED.STG_isu_DBERCHZ1 stg \
-                                 left outer join cleansed.t_isu_0uc_aklasse_text bc on bc.billingClassCode = stg.AKLASSE"
+                               FROM {ADS_DATABASE_STAGE}.{source_object} stg \
+                                 left outer join {ADS_DATABASE_CLEANSED}.isu_0uc_aklasse_text bc on bc.billingClassCode = stg.AKLASSE"
                              )
 display(df_cleansed_column)
 
