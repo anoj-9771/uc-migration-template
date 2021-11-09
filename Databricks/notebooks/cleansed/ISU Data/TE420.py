@@ -216,10 +216,6 @@ print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
 
-
-
-# COMMAND ----------
-
 newSchema = StructType([
                         StructField('portion',StringType(),False),
                         StructField('scheduleMasterRecord',StringType(),True),
