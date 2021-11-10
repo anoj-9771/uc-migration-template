@@ -12,7 +12,7 @@ trigger: none
   #   exclude:
   #   - '*' 
 
-pool: Daf-Self-Pool01
+pool: Daf-Self-Hosted-Preprod-Linux
 # vmImage: ubuntu-latest
 
 stages:
