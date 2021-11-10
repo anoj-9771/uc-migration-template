@@ -119,9 +119,9 @@ variables:
   - name: privatesubnetcidr
     value: 10.97.46.128/26
   - name: custompublicsubnetname
-    value: snet-$(SUBSCRIPTION)-ae-daf-$(environment)-dbwpublic-01
+    value: snet-$(SUBSCRIPTION)-ae-$(environment)-daf-dbwpublic-01
   - name: customprivatesubnetname
-    value: snet-$(SUBSCRIPTION)-ae-daf-$(environment)-dbwprivate-01
+    value: snet-$(SUBSCRIPTION)-ae-$(environment)-daf-dbwprivate-01
   - name: databrickspricingtier
     value: premium
   - name: databricksclustername
@@ -170,16 +170,11 @@ variables:
   - name: vmNameDevops
     value: ln097qdevops01
   - name: publisherDevops
-    value: RedHat
+    value: canonical
   - name: offerDevops
-    value: RHEL
+    value: 0001-com-ubuntu-server-focal
   - name: OSVersionDevops
-    value: 8.2
-  # ------------------------------------------------
-  # Azure Devops Self-hosted Win related
-  # ------------------------------------------------
-  - name: vmNameDevops2
-    value: nt097qdevops01
+    value: 20_04-lts
   # ------------------------------------------------
   # Azure IR Self-hosted VM related
   # ------------------------------------------------
