@@ -115,5 +115,3 @@ steps:
       databricks_workers : ${{ parameters.databricks_workers }}
       databricks_autotermination : ${{ parameters.databricks_autotermination }}
 
-
-# Create or update diagnostic settings to stream to even hub **This has yet to be built...
