@@ -169,13 +169,13 @@ variables:
   - name: vmSizeDevops
     value: Standard_D2as_v4
   - name: vmNameDevops
-    value: ln097ddevops02
+    value: ln097qdevops01
   - name: publisherDevops
-    value: canonical
+    value: RedHat
   - name: offerDevops
-    value: 0001-com-ubuntu-server-focal
+    value: RHEL
   - name: OSVersionDevops
-    value: 20_04-lts
+    value: 8.2
   # ------------------------------------------------
   # Azure IR Self-hosted VM related
   # ------------------------------------------------
