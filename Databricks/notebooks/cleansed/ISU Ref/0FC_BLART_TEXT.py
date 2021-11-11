@@ -3,10 +3,10 @@
 import json
 #For unit testing...
 #Use this string in the Param widget: 
-#{"SourceType": "BLOB Storage (json)", "SourceServer": "daf-sa-lake-sastoken", "SourceGroup": "isu", "SourceName": "isu_0BP_RELATIONS_ATTR", "SourceLocation": "isu/0BP_RELATIONS_ATTR", "AdditionalProperty": "", "Processor": "databricks-token|0711-011053-turfs581|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive", "IsAuditTable": false, "SoftDeleteSource": "", "ProjectName": "ISU DATA", "ProjectId": 2, "TargetType": "BLOB Storage (json)", "TargetName": "isu_0BP_RELATIONS_ATTR", "TargetLocation": "isu/0BP_RELATIONS_ATTR", "TargetServer": "daf-sa-lake-sastoken", "DataLoadMode": "FULL-EXTRACT", "DeltaExtract": false, "CDCSource": false, "TruncateTarget": false, "UpsertTarget": true, "AppendTarget": null, "TrackChanges": false, "LoadToSqlEDW": true, "TaskName": "isu_0BP_RELATIONS_ATTR", "ControlStageId": 2, "TaskId": 46, "StageSequence": 200, "StageName": "Raw to Cleansed", "SourceId": 46, "TargetId": 46, "ObjectGrain": "Day", "CommandTypeId": 8, "Watermarks": "", "WatermarksDT": null, "WatermarkColumn": "", "BusinessKeyColumn": "businessPartnerRelationshipNumber,businessPartnerNumber1,businessPartnerNumber2,validToDate", "UpdateMetaData": null, "SourceTimeStampFormat": "", "Command": "", "LastLoadedFile": null}
+#{"SourceType": "BLOB Storage (json)", "SourceServer": "daf-sa-lake-sastoken", "SourceGroup": "isu", "SourceName": "isu_0FC_BLART_TEXT", "SourceLocation": "isu/0FC_BLART_TEXT", "AdditionalProperty": "", "Processor": "databricks-token|0711-011053-turfs581|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive", "IsAuditTable": false, "SoftDeleteSource": "", "ProjectName": "ISU REF", "ProjectId": 2, "TargetType": "BLOB Storage (json)", "TargetName": "isu_0FC_BLART_TEXT", "TargetLocation": "isu/0FC_BLART_TEXT", "TargetServer": "daf-sa-lake-sastoken", "DataLoadMode": "FULL-EXTRACT", "DeltaExtract": false, "CDCSource": false, "TruncateTarget": false, "UpsertTarget": true, "AppendTarget": null, "TrackChanges": false, "LoadToSqlEDW": true, "TaskName": "isu_0FC_BLART_TEXT", "ControlStageId": 2, "TaskId": 46, "StageSequence": 200, "StageName": "Raw to Cleansed", "SourceId": 46, "TargetId": 46, "ObjectGrain": "Day", "CommandTypeId": 8, "Watermarks": "", "WatermarksDT": null, "WatermarkColumn": "", "BusinessKeyColumn": "APPLK,BLART", "UpdateMetaData": null, "SourceTimeStampFormat": "", "Command": "", "LastLoadedFile": null}
 
 #Use this string in the Source Object widget
-#isu_0BP_RELATIONS_ATTR
+#isu_0FC_BLART_TEXT
 
 # COMMAND ----------
 
@@ -176,43 +176,14 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT \
-                                case when RELNR = 'na' then '' else RELNR end as businessPartnerRelationshipNumber, \
-                                case when PARTNER1 = 'na' then '' else PARTNER1 end as businessPartnerNumber1, \
-                                case when PARTNER2 = 'na' then '' else PARTNER2 end as businessPartnerNumber2, \
-                                PARTNER1_GUID as businessPartnerGUID1, \
-                                PARTNER2_GUID as businessPartnerGUID2, \
-                                RELDIR as relationshipDirection, \
-                                RELTYP as relationshipTypeCode, \
-                                BP_TXT.relationshipType as relationshipType, \
-                                case when DATE_TO = 'na' then to_date('1900-01-01', 'yyyy-MM-dd') else to_date(DATE_TO, 'yyyy-MM-dd') end as validToDate, \
-                                case when DATE_FROM < '1900-01-01' then to_date('1900-01-01', 'yyyy-MM-dd') else to_date(DATE_FROM, 'yyyy-MM-dd') end as validFromDate, \
-                                COUNTRY as countryShortName, \
-                                POST_CODE1 as postalCode, \
-                                CITY1 as cityName, \
-                                STREET as streetName, \
-                                HOUSE_NUM1 as houseNumber, \
-                                TEL_NUMBER as phoneNumber, \
-                                SMTP_ADDR as emailAddress, \
-                                cast(CMPY_PART_PER as long) as capitalInterestPercentage, \
-                                cast(CMPY_PART_AMO as dec(13,0)) as capitalInterestAmount, \
-                                ADDR_SHORT as shortFormattedAddress, \
-                                ADDR_SHORT_S as shortFormattedAddress2, \
-                                LINE0 as addressLine0, \
-                                LINE1 as addressLine1, \
-                                LINE2 as addressLine2, \
-                                LINE3 as addressLine3, \
-                                LINE4 as addressLine4, \
-                                LINE5 as addressLine5, \
-                                LINE6 as addressLine6, \
-                                FLG_DELETED as deletedIndicator, \
-                                BP._RecordStart, \
-                                BP._RecordEnd, \
-                                BP._RecordDeleted, \
-                                BP._RecordCurrent \
-                          FROM {ADS_DATABASE_STAGE}.{source_object} BP \
-                          LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0BP_RELTYPES_TEXT BP_TXT \
-                                ON BP.RELDIR = BP_TXT.relationshipDirection AND BP.RELTYP =BP_TXT.relationshipTypeCode \
-                                AND BP_TXT._RecordDeleted = 0 AND BP_TXT._RecordCurrent = 1")
+	case when APPLK = 'na' then '' else APPLK end as applicationArea, \
+    case when BLART = 'na' then '' else BLART end as documentTypeCode, \
+	LTEXT as documentType, \
+	_RecordStart, \
+	_RecordEnd, \
+	_RecordDeleted, \
+	_RecordCurrent \
+	FROM {ADS_DATABASE_STAGE}.{source_object}")
 
 display(df_cleansed)
 print(f'Number of rows: {df_cleansed.count()}')
@@ -220,35 +191,8 @@ print(f'Number of rows: {df_cleansed.count()}')
 # COMMAND ----------
 
 newSchema = StructType([
-	StructField('businessPartnerRelationshipNumber',StringType(),False),
-	StructField('businessPartnerNumber1',StringType(),False),
-	StructField('businessPartnerNumber2',StringType(),False),
-	StructField('businessPartnerGUID1',StringType(),True),
-	StructField('businessPartnerGUID2',StringType(),True),
-	StructField('relationshipDirection',StringType(),True),
-	StructField('relationshipTypeCode',StringType(),True),
-	StructField('relationshipType',StringType(),True),
-	StructField('validToDate',DateType(),False),
-	StructField('validFromDate',DateType(),True),
-	StructField('countryShortName',StringType(),True),
-	StructField('postalCode',StringType(),True),
-	StructField('cityName',StringType(),True),
-	StructField('streetName',StringType(),True),
-	StructField('houseNumber',StringType(),True),
-	StructField('phoneNumber',StringType(),True),
-	StructField('emailAddress',StringType(),True),
-	StructField('capitalInterestPercentage',LongType(),True),
-	StructField('capitalInterestAmount',DecimalType(13,0),True),
-	StructField('shortFormattedAddress',StringType(),True),
-	StructField('shortFormattedAddress2',StringType(),True),
-	StructField('addressLine0',StringType(),True),
-	StructField('addressLine1',StringType(),True),
-	StructField('addressLine2',StringType(),True),
-	StructField('addressLine3',StringType(),True),
-	StructField('addressLine4',StringType(),True),
-	StructField('addressLine5',StringType(),True),
-	StructField('addressLine6',StringType(),True),
-	StructField('deletedIndicator',StringType(),True),
+	StructField('divisionCode',StringType(),False),
+	StructField('division',StringType(),True),
 	StructField('_RecordStart',TimestampType(),False),
 	StructField('_RecordEnd',TimestampType(),False),
 	StructField('_RecordDeleted',IntegerType(),False),
@@ -256,7 +200,7 @@ newSchema = StructType([
 ])
 
 df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
-display(df_updated_column)
+
 
 # COMMAND ----------
 
