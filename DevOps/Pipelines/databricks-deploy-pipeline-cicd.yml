@@ -19,7 +19,7 @@ trigger:
     include:
     - Databricks/notebooks/*
 
-pool: Daf-Self-Hosted-Preprod-Win
+pool: Daf-Self-Hosted-Preprod-Linux
 # vmImage: ubuntu-latest
 
 stages:
