@@ -3,10 +3,10 @@
 import json
 #For unit testing...
 #Use this string in the Param widget: 
-#$PARAM
+#{"SourceType": "BLOB Storage (json)", "SourceServer": "daf-sa-lake-sastoken", "SourceGroup": "isu", "SourceName": "isu_0FC_BLART_TEXT", "SourceLocation": "isu/0FC_BLART_TEXT", "AdditionalProperty": "", "Processor": "databricks-token|0711-011053-turfs581|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive", "IsAuditTable": false, "SoftDeleteSource": "", "ProjectName": "ISU REF", "ProjectId": 2, "TargetType": "BLOB Storage (json)", "TargetName": "isu_0FC_BLART_TEXT", "TargetLocation": "isu/0FC_BLART_TEXT", "TargetServer": "daf-sa-lake-sastoken", "DataLoadMode": "FULL-EXTRACT", "DeltaExtract": false, "CDCSource": false, "TruncateTarget": false, "UpsertTarget": true, "AppendTarget": null, "TrackChanges": false, "LoadToSqlEDW": true, "TaskName": "isu_0FC_BLART_TEXT", "ControlStageId": 2, "TaskId": 46, "StageSequence": 200, "StageName": "Raw to Cleansed", "SourceId": 46, "TargetId": 46, "ObjectGrain": "Day", "CommandTypeId": 8, "Watermarks": "", "WatermarksDT": null, "WatermarkColumn": "", "BusinessKeyColumn": "APPLK,BLART", "UpdateMetaData": null, "SourceTimeStampFormat": "", "Command": "", "LastLoadedFile": null}
 
 #Use this string in the Source Object widget
-#$GROUP_$SOURCE
+#isu_0FC_BLART_TEXT
 
 # COMMAND ----------
 
@@ -175,50 +175,37 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-
-df_cleansed = spark.sql(f"SELECT  \
-                                  case when DOMNAME = 'na' then '' else DOMNAME end as domainName , \
-                                  DOMVALUE_L as domainValueSingleUpperLimit , \
-                                  DDTEXT as domainValueText , \
-                                  case when AS4LOCAL = 'na' then '' else AS4LOCAL end as activationStatus , \
-                                  case when VALPOS = 'na' then '' else VALPOS end as domainValueKey , \
-                                  _RecordStart, \
-                                  _RecordEnd, \
-                                  _RecordDeleted, \
-                                  _RecordCurrent \
-                              FROM {ADS_DATABASE_STAGE}.{source_object}")
+df_cleansed = spark.sql(f"SELECT \
+	case when APPLK = 'na' then '' else APPLK end as applicationArea, \
+    case when BLART = 'na' then '' else BLART end as documentTypeCode, \
+	LTEXT as documentType, \
+	_RecordStart, \
+	_RecordEnd, \
+	_RecordDeleted, \
+	_RecordCurrent \
+	FROM {ADS_DATABASE_STAGE}.{source_object}")
 
 display(df_cleansed)
 print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
 
-# Create schema for the cleanse table
-newSchema = StructType(
-                            [
-                              StructField("domainName", StringType(), False),
-                              StructField("domainValueSingleUpperLimit", StringType(), True),
-                              StructField("domainValueText", StringType(), True),
-                              StructField("activationStatus", StringType(), False),
-                              StructField("domainValueKey", StringType(), False),
-                              StructField('_RecordStart',TimestampType(),False),
-                              StructField('_RecordEnd',TimestampType(),False),
-                              StructField('_RecordDeleted',IntegerType(),False),
-                              StructField('_RecordCurrent',IntegerType(),False)
-                            ]
-                        )
-# Apply the new schema to cleanse Data Frame
+newSchema = StructType([
+	StructField('divisionCode',StringType(),False),
+	StructField('division',StringType(),True),
+	StructField('_RecordStart',TimestampType(),False),
+	StructField('_RecordEnd',TimestampType(),False),
+	StructField('_RecordDeleted',IntegerType(),False),
+	StructField('_RecordCurrent',IntegerType(),False)
+])
+
 df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
-display(df_updated_column)
+
 
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
-
-#Start of fix to restructure framework folders 
-#Commented the below lines as part of the fix
-#DeltaSaveDataframeDirect(df_updated_column, "t", source_object, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
 DeltaSaveDataframeDirect(df_updated_column, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
 
 # COMMAND ----------
