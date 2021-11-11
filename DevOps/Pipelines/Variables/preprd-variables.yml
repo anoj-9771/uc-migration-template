@@ -23,9 +23,9 @@ variables:
   # Name of the service connection in Azure Devops.
   - name: azdoresourceconnection
     value: azure-rg-preprod-serviceconnection
-  # The service principal object ID (Not App ID)... Use 'az ad sp show --id dbab60f5-44d5-450c-aef1-0b62b0790524 --query "objectId" -o tsv'
+  # The service principal object ID (Not App ID)... Use 'az ad sp show --id 3012901b-9b8c-4100-a6bf-a1a2ec010def --query "objectId" -o tsv'
   - name: spobjectid
-    value: 1446e530-7f47-441e-9024-653abceaf66f
+    value: 0024a5c0-6a2f-42ab-a872-6036bc8bb255
   # Store account type for BLOB Storage e.g. Standard_LRS)
   - name: storageAccountType
     value: Standard_LRS
