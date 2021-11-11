@@ -1,0 +1,74 @@
+{
+	"name": "SqlPoolTable1",
+	"properties": {
+		"annotations": [],
+		"type": "SqlPoolTable",
+		"schema": [
+			{
+				"name": "DimPropertySK",
+				"type": "nvarchar"
+			},
+			{
+				"name": "propertyId",
+				"type": "nvarchar"
+			},
+			{
+				"name": "sourceSystemCode",
+				"type": "nvarchar"
+			},
+			{
+				"name": "propertyStartDate",
+				"type": "nvarchar"
+			},
+			{
+				"name": "propertyEndDate",
+				"type": "nvarchar"
+			},
+			{
+				"name": "propertyType",
+				"type": "nvarchar"
+			},
+			{
+				"name": "superiorPropertyType",
+				"type": "nvarchar"
+			},
+			{
+				"name": "areaSize",
+				"type": "nvarchar"
+			},
+			{
+				"name": "LGA",
+				"type": "nvarchar"
+			},
+			{
+				"name": "_DLCuratedZoneTimeStamp",
+				"type": "nvarchar"
+			},
+			{
+				"name": "_RecordStart",
+				"type": "nvarchar"
+			},
+			{
+				"name": "_RecordEnd",
+				"type": "nvarchar"
+			},
+			{
+				"name": "_RecordDeleted",
+				"type": "nvarchar"
+			},
+			{
+				"name": "_RecordCurrent",
+				"type": "nvarchar"
+			}
+		],
+		"typeProperties": {
+			"schema": "default",
+			"table": "dproperty"
+		},
+		"sqlPool": {
+			"referenceName": "syndwdev01",
+			"type": "SqlPoolReference"
+		}
+	},
+	"type": "Microsoft.Synapse/workspaces/datasets"
+}

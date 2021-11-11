@@ -15,7 +15,7 @@ ADS_KV_DB_PWD_SECRET_KEY = "AzureSQLServerPw"
 
 # COMMAND ----------
 
-ADS_LOAD_SYNAPSE = False
+ADS_LOAD_SYNAPSE = True
 ADS_LOAD_SQLDB = True
 
 # COMMAND ----------
@@ -30,13 +30,21 @@ ADS_RESOURCE_GROUP =  "rg-swcnonprod01-daf-" + ADS_ENVIRONMENT + "-01" #f"RG-{AD
 
 # COMMAND ----------
 
+#Synapse settings
+ADS_SYN_DATABASE_NAME = "syndw" + ADS_ENVIRONMENT + "01"
+ADS_SYN_DATABASE_USERNAME = "svc_synapse1"
+ADS_KV_SYN_DB_PWD_SECRET_KEY = "daf-syn-d-sqlpool-password"
+
+ADS_SYNAPSE_DB_SERVER = "synws-swcnonprod01-daf-" + ADS_ENVIRONMENT + "-01" 
+
+# COMMAND ----------
+
 #Data Lake Containers
 ADS_CONTAINER_RAW = "raw"
 ADS_CONTAINER_CLEANSED = "cleansed"
 ADS_CONTAINER_STAGE = "stage"
 ADS_CONTAINER_CURATED = "curated"
 ADS_CONTAINER_EXTERNAL = "external"
-ADS_CONTAINER_STAGE = "stage"
 
 
 # COMMAND ----------
@@ -55,7 +63,7 @@ ADS_DATALAKE_ZONE_CURATED = "curated"
 
 #SQL Schema
 ADS_SQL_SCHEMA_RAW = "raw"
-ADS_SQL_SCHEMA_CLEANSED = "edw"
+ADS_SQL_SCHEMA_CLEANSED = "dw"
 ADS_SQL_SCHEMA_STAGE = "stage"
 
 ADS_TARGET_DELTA_TABLE = "DELTA"

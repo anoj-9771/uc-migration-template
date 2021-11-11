@@ -6,24 +6,16 @@
   # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
 
 variables: 
-  # Secret rotation
-  - name: secretrotation
-    value: false
+
   # Used to set Log Analytics deployability
   - name: loganalytics
     value: true
-  # Used to set Log Blob Storage deployability.
-  - name: logstorage
-    value: false
   # Used to set Azure SQL Server deployability
   - name: azuresqlserver
     value: true
   # Used to add Control DB to Azure SQL server 
   - name: controldb
-    value: false
-  # Used to add EDW DB to Azure SQL server 
-  - name: edw
-    value: false
+    value: true
   # Used to set Blob Storage deployability..
   - name: azureblobstorage
     value: true
@@ -33,37 +25,44 @@ variables:
   # Used to set Databricks Workspace deployability - With Vnet injection
   - name: databricksvnet
     value: true
-  # Used to set Databricks Workspace deployability - Deploy Subnets
-  - name: databricksvnetsubnets
-    value: false
   # Used to set Databricks Workspace deployability - Deploy NSG.
   - name: databricksvnetnsg
-    value: false
-  # Used to set Databricks Workspace deployability - No vnet integration
-  - name: databricksnovnet
-    value: false
+    value: true
   # Used to set DataFactory deployability
   - name: datafactory
     value: true
   # Use to set Synapse Analytics worksspace deployability...
   - name: synapseanalyticsworkspace
-    value: false
-  # Use to set Private Endpoints deployaility - Deploy Private Endpoints and Private Links
+    value: true
+  # Use to deploy private endpoints
   - name: privateendpoints
     value: true
-  # Use to set logging deployaility - Deploy Diagnostic Settings and Auditing configuration
-  - name: auditsettings
+  # Use to deploy SQL VM for SLT server
+  - name: vm_sqlslt
     value: true
-  # Avoid issues with Arm Templates when Deploying to Existing Environments
-  - name: firstRun
+  # Use to deploy VM for DevOps Build Agent 
+  - name: vm_devops
     value: true
-  # Use to set Azure Devops Self-Hosted Agent VM deployability
-  - name: devopsvm
+  # Use to deploy VM for ADF Self-Hosted Integration Runtime 
+  - name: vm_adfruntime
     value: true
-  # Use to set Integration Runtime Self-Hosted VM deployability
-  - name: irvm
-    value: true
-  # Use to set Slt VM deployability
-  - name: sltvm
-    value: true
-  
+
+
+
+  #---------------------------------------------
+  # Not used for the DAF Platform
+    # Secret rotation
+  - name: secretrotation
+    value: false
+  # Used to set Log Blob Storage deployability.
+  - name: logstorage
+    value: false
+  # Used to add EDW DB to Azure SQL serve.r 
+  - name: edw
+    value: false
+  # Used to set Databricks Workspace deployability - Deploy Subnets
+  - name: databricksvnetsubnets
+    value: false
+  # Used to set Databricks Workspace deployability - No vnet integration
+  - name: databricksnovnet
+    value: false

@@ -3,4 +3,4 @@
 
 # COMMAND ----------
 
-# MAGIC %run ./util-sql-merge-sqledw
+# MAGIC %run ./util-sql-merge-sqldw

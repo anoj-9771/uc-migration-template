@@ -23,13 +23,13 @@ def getBilledWaterConsumptionAccess():
   
   #reusable query to derive the base billed consumption from Access Meter Reading dataset
   #2.Load Cleansed layer table data into dataframe
-  billedConsDf = spark.sql("select 'Access' as sourceSystemCode, mr.propertyNumber, mr.propertyMeterNumber, \
+  billedConsDf = spark.sql(f"select 'Access' as sourceSystemCode, mr.propertyNumber, mr.propertyMeterNumber, \
                                    mr.readingFromDate, mr.readingToDate, mr.meterReadingDays, \
                                    mr.meterReadingConsumption, \
                                    row_number() over (partition by mr.propertyNumber, mr.propertyMeterNumber, mr.readingFromDate, mr.readingToDate \
                                                        order by mr.meterReadingNumber desc) meterReadRecNum \
-                              from cleansed.t_access_z309_tmeterreading mr \
-                                   inner join cleansed.t_access_z309_tpropmeter pm on pm.propertyNumber = mr.propertyNumber \
+                              from {ADS_DATABASE_CLEANSED}.access_z309_tmeterreading mr \
+                                   inner join {ADS_DATABASE_CLEANSED}.access_z309_tpropmeter pm on pm.propertyNumber = mr.propertyNumber \
                                                                                      and pm.propertyMeterNumber = mr.propertyMeterNumber \
                               where mr.meterReadingTimestamp >= to_timestamp(to_date('20171001','yyyymmdd')) \
                                     and mr.meterReadingStatusCode IN ('A','B','P','V') \
@@ -38,7 +38,7 @@ def getBilledWaterConsumptionAccess():
                                     and mr._RecordCurrent = 1 and mr._RecordDeleted = 0 \
                                     and pm._RecordCurrent = 1 and pm._RecordDeleted = 0 \
                                     and not exists (select 1 \
-                                                    from cleansed.t_access_z309_tdebit dr \
+                                                    from {ADS_DATABASE_CLEANSED}.access_z309_tdebit dr \
                                                     where mr.propertyNumber = dr.propertyNumber \
                                                     and dr.debitTypeCode = '10' \
                                                     and dr.debitReasonCode IN ('360','367')) \

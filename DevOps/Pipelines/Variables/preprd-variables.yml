@@ -29,9 +29,6 @@ variables:
   # Store account type for BLOB Storage e.g. Standard_LRS)
   - name: storageAccountType
     value: Standard_LRS
-  # Name of the service connection in Devops
-  - name: devops-service-connection
-    value: azure-rg-preprod-serviceconnection
   # Tagging.
   - name: applytags
     value: false
@@ -80,7 +77,7 @@ variables:
   # Container or file system names within storage account
   # Used to iterate in ARM template
   - name: logzonename
-    value: daflogs
+    value: container1
   - name: zonenames
     value: raw, cleansed, curated, datalab, synapsestaging
     # value: raw, stage, sandbox
@@ -112,6 +109,8 @@ variables:
     value: nsg-$(SUBSCRIPTION)-$(PREFIX)-$(ENVIRONMENT)-$(INCREMENT)
   - name: nsgid
     value: 
+  - name: databricks_base_url 
+    value: #Get this after databricks environment has been deployed
   - name: vnetresourcegroupname
     value: rg-swcprod01-preprod-network-01
   - name: publicsubnetcidr

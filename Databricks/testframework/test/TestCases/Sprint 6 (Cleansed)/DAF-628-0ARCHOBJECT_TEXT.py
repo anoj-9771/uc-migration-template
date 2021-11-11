@@ -1,0 +1,376 @@
+# Databricks notebook source
+# DBTITLE 1,[Config] Connection Setup
+storage_account_name = "saswcnonprod01landingtst"
+storage_account_access_key = dbutils.secrets.get(scope="Test-Access",key="test-blob-key")
+container_name = "archive"
+file_location = "wasbs://archive@saswcnonprod01landingtst.blob.core.windows.net/sapisu/20210920/20210920_16:52:37/0ARCHOBJECT_TEXT_20210920162737.json"
+#file_location = "wasbs://archive@saswcnonprod01landingtst.blob.core.windows.net/sapisu/20210902/20210902_00:23:52/0ARCHOBJECT_TEXT_20210831104548.json"
+#file_location2 = "wasbs://archive@saswcnonprod01landingtst.blob.core.windows.net/sapisu/20210902/20210902_00:23:52/0ARCHOBJECT_TEXT_20210831110701.json"
+file_type = "json"
+print(storage_account_name)
+
+# COMMAND ----------
+
+spark.conf.set(
+  "fs.azure.account.key."+storage_account_name+".blob.core.windows.net",
+  storage_account_access_key)
+
+
+# COMMAND ----------
+
+# DBTITLE 1,[Source] Loading data into Dataframe
+df = spark.read.format(file_type).option("inferSchema", "true").load(file_location)
+#df2 = spark.read.format(file_type).option("inferSchema", "true").load(file_location2)
+
+# COMMAND ----------
+
+# DBTITLE 1,[Source] Schema Check - Refer to Raw2Cleansed Mapping
+df.printSchema()
+#df2.printSchema()
+
+# COMMAND ----------
+
+lakedf = spark.sql("select * from cleansed.t_sapisu_0ARCHOBJECT_TEXT")
+display(lakedf)
+
+# COMMAND ----------
+
+# DBTITLE 1,[Target] Schema Check
+lakedf.printSchema()
+
+# COMMAND ----------
+
+# DBTITLE 1,[Source] Creating Temporary Table
+df.createOrReplaceTempView("Source1")
+#df2.createOrReplaceTempView("Source2")
+
+# COMMAND ----------
+
+df = spark.sql("select * from Source1")
+#df2 = spark.sql("select * from Source2")
+
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC SELECT
+# MAGIC AOID,
+# MAGIC OBJNR,
+# MAGIC LANGU,
+# MAGIC DOORPLT
+# MAGIC from
+# MAGIC (
+# MAGIC SELECT
+# MAGIC AOID
+# MAGIC ,DOORPLT
+# MAGIC ,EXTRACT_DATETIME
+# MAGIC ,EXTRACT_RUN_ID
+# MAGIC ,IDENT
+# MAGIC ,LANGU
+# MAGIC ,OBJNR
+# MAGIC ,ODQ_CHANGEMODE
+# MAGIC ,ODQ_ENTITYCNTR
+# MAGIC ,XAO
+# MAGIC --,ROW_NUMBER () OVER(PARTITION BY AOID ORDER BY FILETIME DESC) AS RN
+# MAGIC FROM (
+# MAGIC select 
+# MAGIC AOID
+# MAGIC ,DOORPLT
+# MAGIC ,EXTRACT_DATETIME
+# MAGIC ,EXTRACT_RUN_ID
+# MAGIC ,IDENT
+# MAGIC ,LANGU
+# MAGIC ,OBJNR
+# MAGIC ,ODQ_CHANGEMODE
+# MAGIC ,ODQ_ENTITYCNTR
+# MAGIC ,XAO
+# MAGIC --,'20210831104548' AS FILETIME
+# MAGIC from Source1 WHERE LANGU = 'E'
+# MAGIC )a)
+# MAGIC /**union all
+# MAGIC SELECT 
+# MAGIC AOID
+# MAGIC ,DOORPLT
+# MAGIC ,EXTRACT_DATETIME
+# MAGIC ,EXTRACT_RUN_ID
+# MAGIC ,IDENT
+# MAGIC ,LANGU
+# MAGIC ,OBJNR
+# MAGIC ,ODQ_CHANGEMODE
+# MAGIC ,ODQ_ENTITYCNTR
+# MAGIC ,XAO
+# MAGIC ,'20210831110701' AS FILETIME
+# MAGIC from Source2 WHERE LANGU = 'E')A) where rn = 1**/
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC select * from cleansed.t_sapisu_0ARCHOBJECT_TEXT
+
+# COMMAND ----------
+
+# DBTITLE 1,[Source] with mapping
+# MAGIC %sql
+# MAGIC SELECT
+# MAGIC AOID,
+# MAGIC OBJNR,
+# MAGIC LANGU,
+# MAGIC DOORPLT
+# MAGIC from
+# MAGIC (
+# MAGIC SELECT
+# MAGIC AOID
+# MAGIC ,DOORPLT
+# MAGIC ,EXTRACT_DATETIME
+# MAGIC ,EXTRACT_RUN_ID
+# MAGIC ,IDENT
+# MAGIC ,LANGU
+# MAGIC ,OBJNR
+# MAGIC ,ODQ_CHANGEMODE
+# MAGIC ,ODQ_ENTITYCNTR
+# MAGIC ,XAO
+# MAGIC --,ROW_NUMBER () OVER(PARTITION BY AOID ORDER BY FILETIME DESC) AS RN
+# MAGIC FROM (
+# MAGIC select 
+# MAGIC AOID
+# MAGIC ,DOORPLT
+# MAGIC ,EXTRACT_DATETIME
+# MAGIC ,EXTRACT_RUN_ID
+# MAGIC ,IDENT
+# MAGIC ,LANGU
+# MAGIC ,OBJNR
+# MAGIC ,ODQ_CHANGEMODE
+# MAGIC ,ODQ_ENTITYCNTR
+# MAGIC ,XAO
+# MAGIC --,'20210831104548' AS FILETIME
+# MAGIC from Source1 WHERE LANGU = 'E'
+# MAGIC )a)
+# MAGIC /**union all
+# MAGIC SELECT 
+# MAGIC AOID
+# MAGIC ,DOORPLT
+# MAGIC ,EXTRACT_DATETIME
+# MAGIC ,EXTRACT_RUN_ID
+# MAGIC ,IDENT
+# MAGIC ,LANGU
+# MAGIC ,OBJNR
+# MAGIC ,ODQ_CHANGEMODE
+# MAGIC ,ODQ_ENTITYCNTR
+# MAGIC ,XAO
+# MAGIC ,'20210831110701' AS FILETIME
+# MAGIC from Source2 WHERE LANGU = 'E')A) where rn = 1**/
+
+# COMMAND ----------
+
+lakedf.createOrReplaceTempView("Target")
+
+# COMMAND ----------
+
+# DBTITLE 1,[Verification] Count Checks
+# MAGIC %sql
+# MAGIC select count (*) as RecordCount, 'Target' as TableName from cleansed.t_sapisu_0ARCHOBJECT_TEXT
+# MAGIC union all
+# MAGIC select count (*) as RecordCount, 'Source' as TableName from (
+# MAGIC 
+# MAGIC SELECT
+# MAGIC AOID,
+# MAGIC OBJNR,
+# MAGIC LANGU,
+# MAGIC DOORPLT
+# MAGIC from
+# MAGIC (
+# MAGIC SELECT
+# MAGIC AOID
+# MAGIC ,DOORPLT
+# MAGIC ,EXTRACT_DATETIME
+# MAGIC ,EXTRACT_RUN_ID
+# MAGIC ,IDENT
+# MAGIC ,LANGU
+# MAGIC ,OBJNR
+# MAGIC ,ODQ_CHANGEMODE
+# MAGIC ,ODQ_ENTITYCNTR
+# MAGIC ,XAO
+# MAGIC --,ROW_NUMBER () OVER(PARTITION BY AOID ORDER BY FILETIME DESC) AS RN
+# MAGIC FROM (
+# MAGIC select 
+# MAGIC AOID
+# MAGIC ,DOORPLT
+# MAGIC ,EXTRACT_DATETIME
+# MAGIC ,EXTRACT_RUN_ID
+# MAGIC ,IDENT
+# MAGIC ,LANGU
+# MAGIC ,OBJNR
+# MAGIC ,ODQ_CHANGEMODE
+# MAGIC ,ODQ_ENTITYCNTR
+# MAGIC ,XAO
+# MAGIC --,'20210831104548' AS FILETIME
+# MAGIC from Source1 WHERE LANGU = 'E'
+# MAGIC )a)
+# MAGIC /**union all
+# MAGIC SELECT 
+# MAGIC AOID
+# MAGIC ,DOORPLT
+# MAGIC ,EXTRACT_DATETIME
+# MAGIC ,EXTRACT_RUN_ID
+# MAGIC ,IDENT
+# MAGIC ,LANGU
+# MAGIC ,OBJNR
+# MAGIC ,ODQ_CHANGEMODE
+# MAGIC ,ODQ_ENTITYCNTR
+# MAGIC ,XAO
+# MAGIC ,'20210831110701' AS FILETIME
+# MAGIC from Source2 WHERE LANGU = 'E')A) where rn = 1**/
+# MAGIC 
+# MAGIC )
+
+# COMMAND ----------
+
+# DBTITLE 1,[Verification] Duplicate Checks
+# MAGIC %sql
+# MAGIC SELECT AOID, OBJNR, COUNT (*) as count
+# MAGIC FROM cleansed.t_sapisu_0ARCHOBJECT_TEXT
+# MAGIC GROUP BY AOID, OBJNR
+# MAGIC HAVING COUNT (*) > 1
+
+# COMMAND ----------
+
+# DBTITLE 1,[Verification] Duplicate Checks
+# MAGIC %sql
+# MAGIC SELECT * FROM (
+# MAGIC SELECT
+# MAGIC *,
+# MAGIC row_number() OVER(PARTITION BY AOID, OBJNR order by AOID desc) as rn
+# MAGIC FROM cleansed.t_sapisu_0ARCHOBJECT_text
+# MAGIC )a where a.rn > 1
+
+# COMMAND ----------
+
+# DBTITLE 1,[Verification] Compare Source and Target Data
+# MAGIC %sql
+# MAGIC SELECT
+# MAGIC AOID,
+# MAGIC OBJNR,
+# MAGIC LANGU,
+# MAGIC DOORPLT
+# MAGIC from
+# MAGIC (
+# MAGIC SELECT
+# MAGIC AOID
+# MAGIC ,DOORPLT
+# MAGIC ,EXTRACT_DATETIME
+# MAGIC ,EXTRACT_RUN_ID
+# MAGIC ,IDENT
+# MAGIC ,LANGU
+# MAGIC ,OBJNR
+# MAGIC ,ODQ_CHANGEMODE
+# MAGIC ,ODQ_ENTITYCNTR
+# MAGIC ,XAO
+# MAGIC --,ROW_NUMBER () OVER(PARTITION BY AOID ORDER BY FILETIME DESC) AS RN
+# MAGIC FROM (
+# MAGIC select 
+# MAGIC AOID
+# MAGIC ,DOORPLT
+# MAGIC ,EXTRACT_DATETIME
+# MAGIC ,EXTRACT_RUN_ID
+# MAGIC ,IDENT
+# MAGIC ,LANGU
+# MAGIC ,OBJNR
+# MAGIC ,ODQ_CHANGEMODE
+# MAGIC ,ODQ_ENTITYCNTR
+# MAGIC ,XAO
+# MAGIC --,'20210831104548' AS FILETIME
+# MAGIC from Source1 WHERE LANGU = 'E'
+# MAGIC )a)
+# MAGIC /**union all
+# MAGIC SELECT 
+# MAGIC AOID
+# MAGIC ,DOORPLT
+# MAGIC ,EXTRACT_DATETIME
+# MAGIC ,EXTRACT_RUN_ID
+# MAGIC ,IDENT
+# MAGIC ,LANGU
+# MAGIC ,OBJNR
+# MAGIC ,ODQ_CHANGEMODE
+# MAGIC ,ODQ_ENTITYCNTR
+# MAGIC ,XAO
+# MAGIC ,'20210831110701' AS FILETIME
+# MAGIC from Source2 WHERE LANGU = 'E')A) where rn = 1**/
+# MAGIC 
+# MAGIC 
+# MAGIC EXCEPT
+# MAGIC 
+# MAGIC SELECT
+# MAGIC AOID,
+# MAGIC OBJNR,
+# MAGIC LANGU,
+# MAGIC DOORPLT
+# MAGIC FROM
+# MAGIC cleansed.t_sapisu_0ARCHOBJECT_TEXT
+
+# COMMAND ----------
+
+# DBTITLE 1,[Verification] Compare Target and Source Data
+# MAGIC %sql
+# MAGIC SELECT
+# MAGIC AOID,
+# MAGIC OBJNR,
+# MAGIC LANGU,
+# MAGIC DOORPLT
+# MAGIC FROM
+# MAGIC cleansed.t_sapisu_0ARCHOBJECT_TEXT
+# MAGIC 
+# MAGIC EXCEPT
+# MAGIC 
+# MAGIC SELECT
+# MAGIC AOID,
+# MAGIC OBJNR,
+# MAGIC LANGU,
+# MAGIC DOORPLT
+# MAGIC from
+# MAGIC (
+# MAGIC SELECT
+# MAGIC AOID
+# MAGIC ,DOORPLT
+# MAGIC ,EXTRACT_DATETIME
+# MAGIC ,EXTRACT_RUN_ID
+# MAGIC ,IDENT
+# MAGIC ,LANGU
+# MAGIC ,OBJNR
+# MAGIC ,ODQ_CHANGEMODE
+# MAGIC ,ODQ_ENTITYCNTR
+# MAGIC ,XAO
+# MAGIC --,ROW_NUMBER () OVER(PARTITION BY AOID ORDER BY FILETIME DESC) AS RN
+# MAGIC FROM (
+# MAGIC select 
+# MAGIC AOID
+# MAGIC ,DOORPLT
+# MAGIC ,EXTRACT_DATETIME
+# MAGIC ,EXTRACT_RUN_ID
+# MAGIC ,IDENT
+# MAGIC ,LANGU
+# MAGIC ,OBJNR
+# MAGIC ,ODQ_CHANGEMODE
+# MAGIC ,ODQ_ENTITYCNTR
+# MAGIC ,XAO
+# MAGIC --,'20210831104548' AS FILETIME
+# MAGIC from Source1 WHERE LANGU = 'E'
+# MAGIC )a)
+# MAGIC /**union all
+# MAGIC SELECT 
+# MAGIC AOID
+# MAGIC ,DOORPLT
+# MAGIC ,EXTRACT_DATETIME
+# MAGIC ,EXTRACT_RUN_ID
+# MAGIC ,IDENT
+# MAGIC ,LANGU
+# MAGIC ,OBJNR
+# MAGIC ,ODQ_CHANGEMODE
+# MAGIC ,ODQ_ENTITYCNTR
+# MAGIC ,XAO
+# MAGIC ,'20210831110701' AS FILETIME
+# MAGIC from Source2 WHERE LANGU = 'E')A) where rn = 1**/
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC select * from cleansed.t_sapisu_0archobject_text where aoid = '6237188' and objnr = 'I000000000000008731471'

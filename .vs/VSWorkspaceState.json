@@ -1,11 +1,7 @@
 {
   "ExpandedNodes": [
-    "",
-    "\\ADS-Databases",
-    "\\ADS-Databases\\CntrlDb",
-    "\\DataFactory",
-    "\\DataFactory\\pipeline"
+    ""
   ],
-  "SelectedNode": "\\ADS-Databases\\ADS-Database.sln",
+  "SelectedNode": "\\Synapse-Databases.sln",
   "PreviewInSolutionExplorer": false
 }

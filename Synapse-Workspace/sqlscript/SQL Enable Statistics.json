@@ -1,0 +1,17 @@
+{
+	"name": "SQL Enable Statistics",
+	"properties": {
+		"content": {
+			"query": "\n-- You can check if your data warehouse has AUTO_CREATE_STATISTICS configured by running the following command:\nSELECT name, is_auto_create_stats_on\nFROM sys.databases\n\n--it is recommended that you enable this property by running the following command:\nALTER DATABASE syndwdev01 \nSET AUTO_CREATE_STATISTICS ON",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "syndwdev01",
+				"poolName": "syndwdev01"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

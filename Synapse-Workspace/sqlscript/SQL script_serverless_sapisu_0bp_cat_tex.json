@@ -1,0 +1,17 @@
+{
+	"name": "SQL script_serverless_sapisu_0bp_cat_tex",
+	"properties": {
+		"content": {
+			"query": "IF NOT EXISTS (SELECT * FROM sys.external_file_formats WHERE name = 'SynapseParquetFormat') \n\tCREATE EXTERNAL FILE FORMAT [SynapseParquetFormat] \n\tWITH ( FORMAT_TYPE = PARQUET)\nGO\n\nIF NOT EXISTS (SELECT * FROM sys.external_data_sources WHERE name = 'raw_sadafdev01_dfs_core_windows_net') \n\tCREATE EXTERNAL DATA SOURCE [raw_sadafdev01_dfs_core_windows_net] \n\tWITH (\n\t\tLOCATION   = 'https://sadafdev01.dfs.core.windows.net/raw', \n\t)\nGo\n\nCREATE EXTERNAL TABLE sapisu_0bp_cat_text (\n\t[EXTRACT_DATETIME] varchar(100),\n\t[EXTRACT_RUN_ID] bigint,\n\t[KEY1] varchar(100),\n\t[LANGU] varchar(100),\n\t[ODQ_CHANGEMODE] varchar(100),\n\t[ODQ_ENTITYCNTR] bigint,\n\t[TXTLG] varchar(100),\n\t[_DLRawZoneTimeStamp] datetime2(7),\n\t[year] varchar(100),\n\t[month] varchar(100),\n\t[day] varchar(100)\n\t)\n\tWITH (\n\tLOCATION = 'sapisu/0bp_cat_text/delta/*.parquet',\n\tDATA_SOURCE = [raw_sadafdev01_dfs_core_windows_net],\n\tFILE_FORMAT = [SynapseParquetFormat]\n\t)\nGO\n\nSELECT TOP 100 * FROM sapisu_0bp_cat_text\nGO\n\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "Test",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

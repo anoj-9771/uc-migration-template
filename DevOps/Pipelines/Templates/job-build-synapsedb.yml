@@ -1,0 +1,14 @@
+  jobs:
+  - job: 'Synpase_db'
+    pool:
+      demands: msbuild
+      vmImage: 'windows-2019'
+    steps:
+    - task: MSBuild@1
+      displayName: 'Build SynapseDB'
+      continueOnError: 'true'
+      inputs:
+        solution: Synapse-Databases/Synapse-Databases/Synapse-Databases.sqlproj
+
+    - publish: Synapse-Databases/Synapse-Databases/bin/Debug
+      artifact: sql_Synapsedb

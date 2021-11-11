@@ -1,6 +1,5 @@
 {
 	"name": "LS_Oracle",
-	"type": "Microsoft.DataFactory/factories/linkedservices",
 	"properties": {
 		"parameters": {
 			"kvSecret": {
@@ -22,6 +21,11 @@
 					"type": "Expression"
 				}
 			}
+		},
+		"connectVia": {
+			"referenceName": "IntegrationRuntime-SelfHosted",
+			"type": "IntegrationRuntimeReference"
 		}
-	}
+	},
+	"type": "Microsoft.DataFactory/factories/linkedservices"
 }

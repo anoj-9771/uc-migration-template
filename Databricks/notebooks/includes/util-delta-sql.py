@@ -54,27 +54,37 @@ def DeltaGetDataLakePath(data_lake_zone, data_lake_folder, object):
   
   mount_point = DataLakeGetMountPoint(data_lake_zone)
   
-  data_lake_path = f"dbfs:{mount_point}/{data_lake_folder.lower()}/{object.lower()}/delta"
+  if data_lake_zone == ADS_DATALAKE_ZONE_CURATED:
+    data_lake_path = f"dbfs:{mount_point}/{object.lower()}/delta"
+  else:
+    data_lake_path = f"dbfs:{mount_point}/{data_lake_folder.lower()}/{object.lower()}/delta"
   LogEtl(data_lake_path)
   
   return data_lake_path
 
 # COMMAND ----------
 
-def DeltaSaveDataframeDirect(dataframe, source_system, table_name, database_name, container, write_mode, partition_keys = ""):
+def DeltaSaveDataframeDirect(dataframe, source_group, table_name, database_name, container, write_mode, partition_keys = ""):
 
   #Mount the Data Lake 
   data_lake_mount_point = DataLakeGetMountPoint(container)
   
-  delta_path = "dbfs:{mount}/{folder}/{sourceobject}/delta".format(mount=data_lake_mount_point, folder = source_system.lower(), sourceobject = table_name.lower())
-  LogEtl ("Saving delta lake file : " + delta_path + " with mode " + write_mode)
+  print("table_name: "+table_name)
+  print(table_name.split("_",1)[-1].lower())
 
   query = "CREATE DATABASE IF NOT EXISTS {0}".format(database_name)
   spark.sql(query)
   
+  #Start of fix to restructure framework folders 
+  
   if database_name == ADS_DATABASE_RAW or database_name == ADS_DATABASE_CLEANSED or database_name == ADS_DATABASE_CURATED:
-    table_name = "{0}_{1}".format(source_system, table_name)
+    #Commented the below lines as part of the fix   
+    #table_name = "{0}_{1}".format(source_system, table_name)
+    delta_path = "dbfs:{mount}/{folder}/{sourceobject}/delta".format(mount=data_lake_mount_point, folder = source_group.lower(), sourceobject = table_name.split("_",1)[-1].lower())
     
+  LogEtl ("Saving delta lake file : " + delta_path + " with mode " + write_mode)
+  #End of fix to restructure framework folders 
+  
   table_name_fq = "{0}.{1}".format(database_name, table_name)
   
   if write_mode == ADS_WRITE_MODE_OVERWRITE:
@@ -261,9 +271,13 @@ def DeltaSaveToDeltaTable(
   It can also track history with SCD columns
   '''
   
-  spark.conf.set("spark.sql.autoBroadcastJoinThreshold", -1)
-
-  target_table_fqn = f"{target_database}.{target_table}"
+  spark.conf.set("spark.sql.autoBroadcastJoinThreshold", -1)  
+  
+  target_table_fqn = f"{target_database}.{target_table}" 
+  # Start of Fix for Framework Folder Restructure
+  if target_data_lake_zone != ADS_DATALAKE_ZONE_CURATED:
+    target_table = target_table.split("_",1)[-1] 
+  # End of Fix for Framework Folder Restructure
   data_lake_path = DeltaGetDataLakePath(target_data_lake_zone, data_lake_folder, target_table)
   
   #Ensure we have a table before we start the data load.
@@ -458,29 +472,28 @@ def DeltaSaveDataFrameToCurated(df, database_name, data_lake_folder, table_name,
     delta_table_name = database_name + "." + table_name
     azure_table_name = table_name
     
-    DeltaSyncToSQLEDWOverwrite (delta_table_name, azure_schema_name, azure_table_name)
+    DeltaSyncToSQLDWOverwrite (delta_table_name, azure_schema_name, azure_table_name)
 
   
 
 # COMMAND ----------
 
-def DeltaSyncToSQLEDW(delta_table, target_schema, target_table, business_key, delta_column, start_counter, data_load_mode, track_changes, is_delta_extract, schema_file_url = "", additional_property = ""):
+def DeltaSyncToSQLDW(delta_table, target_schema, target_table, business_key, start_counter, data_load_mode, additional_property = ""):
   '''
-  This function sync's Delta Table to SQL EDW
+  This function sync's Delta Table to SQL DW
   '''
   
   sql_stg_tbl_name = f"{ADS_SQL_SCHEMA_STAGE}.{target_table}"
   sql_main_tbl_name = f"{target_schema}.{target_table}"
+  stage_schema = f"{ADS_SQL_SCHEMA_STAGE}"
   
   if data_load_mode != ADS_WRITE_MODE_OVERWRITE:
     LogEtl("Generating SQL Query")
-    sql_merge_query = SQLMerge_SQLEDW_GenerateSQL(
+    sql_merge_query = SQLMerge_SQLDW_GenerateSQL(
       source_table_name = sql_stg_tbl_name, 
       target_table_name = sql_main_tbl_name, 
       business_key = business_key, 
-      delta_column = delta_column, 
       data_load_mode = data_load_mode,
-      track_changes = track_changes, 
       datalake_source_table =  delta_table)
 
     LogEtl("Saving the query to a temp table from Python so that it can be used by Scala later.")
@@ -490,25 +503,23 @@ def DeltaSyncToSQLEDW(delta_table, target_schema, target_table, business_key, de
   else:
     LogEtl("SQL query not needed for OVERWRITE. Will write directly to table")
   
-  #Call the Scala notebook to sync the SQL EDW from Data Lake
-  dbutils.notebook.run("/build/includes/scala-executors/exec-sync-sqledw", 0, {"p_delta_table":delta_table, "p_sql_schema_name":target_schema, "p_sql_edw_table":target_table, "p_data_load_mode":data_load_mode, "p_schema_file_url":schema_file_url, "p_delta_column":delta_column, "p_start_counter":start_counter, "p_is_delta_extract":str(is_delta_extract), "p_track_changes":str(track_changes), "p_additional_property":additional_property})
+  # Call the Scala notebook to sync the SQL DW from Data Lake
+  dbutils.notebook.run("/build/includes/scala-executors/exec-sync-sqldw", 0, {"p_delta_table":delta_table, "p_sql_schema_name":stage_schema, "p_sql_dw_table":target_table, "p_data_load_mode":data_load_mode, "p_start_counter":start_counter, "p_additional_property":additional_property})
   
 
 
 # COMMAND ----------
 
-def DeltaSyncToSQLEDWOverwrite(delta_table, target_schema, target_table):
+def DeltaSyncToSQLDWOverwrite(delta_table, target_schema, target_table):
   '''
-  This function sync's Delta Table to SQL EDW using the OVERWRITE/TRUNCATE mode
-  It calls the same function DeltaSyncToSQLEDW but passes the default params to make it TRUNCATE write
+  This function sync's Delta Table to SQL DW using the OVERWRITE/TRUNCATE mode
+  It calls the same function DeltaSyncToSQLDW but passes the default params to make it TRUNCATE write
   '''
   
   #Defaults
   business_key = ""
   delta_column = ""
   start_counter = ""
-  track_changes = False
-  is_delta_extract = False
   
-  DeltaSyncToSQLEDW (delta_table, target_schema, target_table, business_key, delta_column, start_counter, ADS_WRITE_MODE_OVERWRITE, track_changes, is_delta_extract)
+  DeltaSyncToSQLDW (delta_table, target_schema, target_table, business_key, start_counter, ADS_WRITE_MODE_OVERWRITE)
     

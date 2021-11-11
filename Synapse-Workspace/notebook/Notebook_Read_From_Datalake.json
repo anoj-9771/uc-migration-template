@@ -1,0 +1,94 @@
+{
+	"name": "Notebook_Read_From_Datalake",
+	"properties": {
+		"nbformat": 4,
+		"nbformat_minor": 2,
+		"bigDataPool": {
+			"referenceName": "syndwaspdev01",
+			"type": "BigDataPoolReference"
+		},
+		"sessionProperties": {
+			"driverMemory": "28g",
+			"driverCores": 4,
+			"executorMemory": "28g",
+			"executorCores": 4,
+			"numExecutors": 2,
+			"conf": {
+				"spark.dynamicAllocation.enabled": "false",
+				"spark.dynamicAllocation.minExecutors": "2",
+				"spark.dynamicAllocation.maxExecutors": "2"
+			}
+		},
+		"metadata": {
+			"saveOutput": true,
+			"language_info": {
+				"name": "python"
+			},
+			"a365ComputeOptions": {
+				"id": "/subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-daf-dev-01/providers/Microsoft.Synapse/workspaces/synws-swcnonprod01-daf-dev-01/bigDataPools/syndwaspdev01",
+				"name": "syndwaspdev01",
+				"type": "Spark",
+				"endpoint": "https://synws-swcnonprod01-daf-dev-01.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/syndwaspdev01",
+				"auth": {
+					"type": "AAD",
+					"authResource": "https://dev.azuresynapse.net"
+				},
+				"sparkVersion": "2.4",
+				"nodeCount": 10,
+				"cores": 4,
+				"memory": 28,
+				"extraHeader": null
+			}
+		},
+		"cells": [
+			{
+				"cell_type": "markdown",
+				"source": [
+					"## Read data from datalake\n",
+					""
+				]
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"diagram": {
+						"activateDiagramType": 1,
+						"chartConfig": {
+							"category": "bar",
+							"keys": [
+								"AOID"
+							],
+							"values": [
+								"EXTRACT_RUN_ID"
+							],
+							"yLabel": "EXTRACT_RUN_ID",
+							"xLabel": "AOID",
+							"aggregation": "SUM",
+							"aggByBackend": false
+						},
+						"aggData": "{\"EXTRACT_RUN_ID\":{\"3403789\":1609,\"6186364\":1609,\"6186365\":1609,\"6189826\":1609,\"0006177214\":1609,\"6101000538\":1609,\"RG_001\":1609,\"RG_001_01\":1609,\"ZBM_02_02\":1609,\"ZBM_02_02_01\":1609}}",
+						"isSummary": false,
+						"previewData": {
+							"filter": null
+						},
+						"isSql": false
+					}
+				},
+				"source": [
+					"%%pyspark\r\n",
+					"df = spark.read.load('abfss://raw@sadafdev01.dfs.core.windows.net/sapisu/0archobject_text/delta/part-00000-86ebc9ba-dc2d-426f-bfec-1b327262689d-c000.snappy.parquet', format='parquet')\r\n",
+					"display(df.limit(10))"
+				],
+				"attachments": null,
+				"execution_count": null
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"df.count()"
+				],
+				"execution_count": null
+			}
+		]
+	}
+}
