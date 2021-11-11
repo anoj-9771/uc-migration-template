@@ -180,6 +180,7 @@ df_cleansed = spark.sql(f"SELECT  \
                                   case when DOMNAME = 'na' then '' else DOMNAME end as domainName , \
                                   DOMVALUE_L as domainValueSingleUpperLimit , \
                                   DDTEXT as domainValueText , \
+                                  case when AS4LOCAL = 'na' then '' else AS4LOCAL end as activationStatus , \
                                   case when VALPOS = 'na' then '' else VALPOS end as domainValueKey , \
                                   _RecordStart, \
                                   _RecordEnd, \
@@ -198,6 +199,7 @@ newSchema = StructType(
                               StructField("domainName", StringType(), False),
                               StructField("domainValueSingleUpperLimit", StringType(), True),
                               StructField("domainValueText", StringType(), True),
+                              StructField("activationStatus", StringType(), False),
                               StructField("domainValueKey", StringType(), False),
                               StructField('_RecordStart',TimestampType(),False),
                               StructField('_RecordEnd',TimestampType(),False),
