@@ -24,7 +24,7 @@ trigger: none
 
 pool:
   vmImage: ubuntu-latest
-#Daf-Self-Pool01
+#Daf-Self-Hosted-Preprod-Linux
 # vmImage: ubuntu-latest
 
 stages:
