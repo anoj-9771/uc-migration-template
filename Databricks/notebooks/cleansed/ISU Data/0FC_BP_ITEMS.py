@@ -176,76 +176,84 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT \
-	case when OPBEL = 'na' then '' else OPBEL end as contractAccountNumber, \
-	case when OPUPW = 'na' then '' else OPUPW end as repetitionItem, \
-	case when OPUPK = 'na' then '' else OPUPK end as itemNumber, \
-	case when OPUPZ = 'na' then '' else OPUPZ end as partialClearingSubitem, \
-	BUKRS as companyCode, \
-	TXTMD as company, \
-	AUGST as clearingStatus, \
-	GPART as businessPartnerGroupNumber, \
-	VTREF as contractReferenceSpecification, \
-	VKONT as contractAccountNumber, \
-	ABWBL as ficaDocumentNumber, \
-	ABWTP as ficaDocumentCategory, \
-	APPLK as applicationArea, \
-	HVORG as mainTransactionLineItemCode, \
-	TXT30 as mainTransactionLineItem, \
-	HVORG, TVORG as subtransactionLineItemCode, \
-	TXT30 as subtransactionLineItem, \
-	KOFIZ as accountDeterminationCode, \
-	TXT50 as accountDetermination, \
-	SPART as divisionCode, \
-	HKONT as accountGeneralLedger, \
-	MWSKZ as taxSalesCode, \
-	XANZA as downPaymentIndicator, \
-	STAKZ as statisticalItemType, \
-	to_date(C4EYP, 'yyyy-MM-dd') as documentDate, \
-	to_date(CPUDT, 'yyyy-MM-dd') as documentEnteredDate, \
-	WAERS as currencyKey, \
-	to_date(FAEDN, 'yyyy-MM-dd') as paymentDueDate, \
-	to_date(FAEDS, 'yyyy-MM-dd') as cashDiscountDueDate, \
-	to_date(STUDT, 'yyyy-MM-dd') as deferralToDate, \
-	cast(SKTPZ as dec(5,2)) as cashDiscountPercentageRate, \
-	cast(BETRH as dec(13,2)) as amountLocalCurrency, \
-	BLART as documentTypeCode, \
-	cast(SKFBT as dec(13,2)) as amountEligibleCashDiscount, \
-	cast(SBETH as dec(13,2)) as taxAmountLocalCurrency, \
-	cast(SBETW as dec(13,2)) as taxAmount, \
-	to_date(AUGDT, 'yyyy-MM-dd') as clearingDate, \
-	AUGBL as clearingDocument, \
-	to_date(AUGBD, 'yyyy-MM-dd') as clearingDocumentPostingDate, \
-	AUGRD as clearingReason, \
-	AUGWA as clearingCurrency, \
-	cast(AUGBT as dec(13,2)) as clearingAmount, \
-	cast(AUGBS as dec(13,2)) as taxAmount, \
-	cast(AUGSK as dec(13,2)) as cashDiscount, \
-	to_date(AUGVD, 'yyyy-MM-dd') as clearingValueDate, \
-	to_date(ABWTP, 'yyyy-MM-dd') as settlementPeriodLowerLimit, \
-	to_date(ABWBL, 'yyyy-MM-dd') as billingPeriodUpperLimit, \
-	AUGRS as clearingRestriction, \
-	INFOZ as valueAdjustment, \
-	BLART as documentTypeCode, \
-	LTEXT as documentType, \
-	XPYOR as referenceDocumentNumber, \
-	INKPS as collectionItem, \
-	C4EYE as checkReason, \
-	cast(SCTAX as dec(13,2)) as taxPortion, \
-	cast(STTAX as dec(13,2)) as taxAmountDocument, \
-	ABGRD as writeOffReasonCode, \
-	HERKF as documentOriginCode, \
-	to_date(CPUDT, 'yyyy-MM-dd') as documentEnteredDate, \
-	AWTYP as referenceProcedure, \
-	AWKEY as objectKey, \
-	STORB as reversalDocumentNumber, \
-	FIKEY as reconciliationKeyForGeneralLedger, \
-	XCLOS as furtherPostingIndicator, \
-	_RecordStart, \
-	_RecordEnd, \
-	_RecordDeleted, \
-	_RecordCurrent \
-	FROM {ADS_DATABASE_STAGE}.{source_object}")
-
+                                case when OPBEL = 'na' then '' else OPBEL end as contractAccountNumber, \
+                                case when OPUPW = 'na' then '' else OPUPW end as repetitionItem, \
+                                case when OPUPK = 'na' then '' else OPUPK end as itemNumber, \
+                                case when OPUPZ = 'na' then '' else OPUPZ end as partialClearingSubitem, \
+                                BUKRS as companyCode, \
+                                cc.companyName as company, \
+                                AUGST as clearingStatus, \
+                                GPART as businessPartnerGroupNumber, \
+                                VTREF as contractReferenceSpecification, \
+                                VKONT as contractAccountNumber, \
+                                ABWBL as ficaDocumentNumber, \
+                                ABWTP as ficaDocumentCategory, \
+                                APPLK as applicationArea, \
+                                HVORG as mainTransactionLineItemCode, \
+                                ho.mainTransaction as mainTransactionLineItem, \
+                                TVORG as subtransactionLineItemCode, \
+                                to.subtransaction as subtransactionLineItem, \
+                                KOFIZ as accountDeterminationCode, \
+                                fc.accountDetermination as accountDetermination, \
+                                SPART as divisionCode, \
+                                HKONT as accountGeneralLedger, \
+                                MWSKZ as taxSalesCode, \
+                                XANZA as downPaymentIndicator, \
+                                STAKZ as statisticalItemType, \
+                                to_date(C4EYP, 'yyyy-MM-dd') as documentDate, \
+                                to_date(CPUDT, 'yyyy-MM-dd') as documentEnteredDate, \
+                                WAERS as currencyKey, \
+                                to_date(FAEDN, 'yyyy-MM-dd') as paymentDueDate, \
+                                to_date(FAEDS, 'yyyy-MM-dd') as cashDiscountDueDate, \
+                                to_date(STUDT, 'yyyy-MM-dd') as deferralToDate, \
+                                cast(SKTPZ as dec(5,2)) as cashDiscountPercentageRate, \
+                                cast(BETRH as dec(13,2)) as amountLocalCurrency, \
+                                BLART as documentTypeCode, \
+                                cast(SKFBT as dec(13,2)) as amountEligibleCashDiscount, \
+                                cast(SBETH as dec(13,2)) as taxAmountLocalCurrency, \
+                                cast(SBETW as dec(13,2)) as taxAmount, \
+                                to_date(AUGDT, 'yyyy-MM-dd') as clearingDate, \
+                                AUGBL as clearingDocument, \
+                                to_date(AUGBD, 'yyyy-MM-dd') as clearingDocumentPostingDate, \
+                                AUGRD as clearingReason, \
+                                AUGWA as clearingCurrency, \
+                                cast(AUGBT as dec(13,2)) as clearingAmount, \
+                                cast(AUGBS as dec(13,2)) as taxAmount, \
+                                cast(AUGSK as dec(13,2)) as cashDiscount, \
+                                to_date(AUGVD, 'yyyy-MM-dd') as clearingValueDate, \
+                                to_date(ABWTP, 'yyyy-MM-dd') as settlementPeriodLowerLimit, \
+                                to_date(ABWBL, 'yyyy-MM-dd') as billingPeriodUpperLimit, \
+                                AUGRS as clearingRestriction, \
+                                INFOZ as valueAdjustment, \
+                                BLART as documentTypeCode, \
+                                bl.documentType as documentType, \
+                                XPYOR as referenceDocumentNumber, \
+                                INKPS as collectionItem, \
+                                C4EYE as checkReason, \
+                                cast(SCTAX as dec(13,2)) as taxPortion, \
+                                cast(STTAX as dec(13,2)) as taxAmountDocument, \
+                                ABGRD as writeOffReasonCode, \
+                                HERKF as documentOriginCode, \
+                                to_date(CPUDT, 'yyyy-MM-dd') as documentEnteredDate, \
+                                AWTYP as referenceProcedure, \
+                                AWKEY as objectKey, \
+                                STORB as reversalDocumentNumber, \
+                                FIKEY as reconciliationKeyForGeneralLedger, \
+                                XCLOS as furtherPostingIndicator, \
+                                bp._RecordStart, \
+                                bp._RecordEnd, \
+                                bp._RecordDeleted, \
+                                bp._RecordCurrent \
+                        FROM {ADS_DATABASE_STAGE}.{source_object} bp \
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0COMP_CODE_TEXT cc ON bp.BUKRS = cc.companyCode and cc._RecordDeleted = 0 and cc._RecordCurrent = 1 \
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UC_HVORG_TEXT ho ON bp.APPLK = ho.applicationArea and bp.HVORG = ho.mainTransactionLineItemCode \
+                                                                                         and ho._RecordDeleted = 0 and ho._RecordCurrent = 1 \
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UC_TVORG_TEXT to ON bp.APPLK = to.applicationArea and bp.HVORG = to.mainTransactionLineItemCode \
+                                                                                         and bp.TVORG = to.subtransactionLineItemCode and to._RecordDeleted = 0 and to._RecordCurrent = 1 \
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0FC_BLART_TEXT bl ON bp.APPLK = bl.applicationArea and bp.BLART = bl.documentTypeCode \
+                                                                                         and bl._RecordDeleted = 0 and bl._RecordCurrent = 1 \
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0FCACTDETID_TEXT fc ON bp.KOFIZ = fc.accountDeterminationCode and fc._RecordDeleted = 0 and fc._RecordCurrent = 1")
+                        
 display(df_cleansed)
 print(f'Number of rows: {df_cleansed.count()}')
 
