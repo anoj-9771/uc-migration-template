@@ -12943,7 +12943,7 @@
 				"type": "SelfHosted",
 				"typeProperties": {
 					"linkedInfo": {
-						"resourceId": "/subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourcegroups/rg-swcnonprod01-daf-dev-01/providers/Microsoft.DataFactory/factories/adf-swcnonprod01-daf-dev-01/integrationruntimes/IntegrationRuntime-SelfHosted",
+						"resourceId": "/subscriptions/769a62b3-7481-44ae-878e-a466593f50ac/resourcegroups/rg-swcprod01-preprod-daf-01/providers/Microsoft.DataFactory/factories/adf-swcprod01-daf-preprod-01/integrationruntimes/IntegrationRuntime-SelfHosted",
 						"authorizationType": "Rbac"
 					}
 				}
