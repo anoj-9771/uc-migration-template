@@ -23,8 +23,7 @@ trigger: none
 #     - DevOps/Pipelines/stage-datafactory-integration.yml
 
 pool:
-  vmImage: ubuntu-latest
-#Daf-Self-Hosted-Preprod-Linux
+  vmImage: Daf-Self-Hosted-Preprod-Linux
 # vmImage: ubuntu-latest
 
 stages:
