@@ -9,6 +9,6 @@
         solution: ADS-Databases/CntrlDB/CntrlDB.sqlproj
 
     - publish: ADS-Databases/CntrlDB/bin/Debug
-      fileSharePath: $(System.DefaultWorkingDirectory)
-      artifactType: filepath
+      artifactType: filepath 
+      fileSharePath: \nt097qdevops01\shared
       artifact: sql_Controldb
