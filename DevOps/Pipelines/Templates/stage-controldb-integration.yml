@@ -52,4 +52,4 @@ stages:
         DatabaseName: ControlDB
         SqlUsername: $(AZURESQLSERVERUN)
         SqlPassword: '$(azuresqlserverpw)'
-        DacpacFile: '$(Pipeline.Workspace)/sql_Controldb/CntrlDb.dacpac'
+        DacpacFile: '$(System.DefaultWorkingDirectory)/sql_Controldb/CntrlDb.dacpac'
