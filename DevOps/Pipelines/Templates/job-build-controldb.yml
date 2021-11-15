@@ -15,7 +15,7 @@
 
     - task: PublishPipelineArtifact@1
       inputs:
-        targetPath: '$(Pipeline.Workspace)/ADS-Databases/CntrlDB/bin/Debug'
+        targetPath: ADS-Databases/CntrlDB/bin/Debug
         artifactName: sql_Controldb
         artifactType: 'filepath' 
         fileSharePath: '\nt097qdevops01\shared'
