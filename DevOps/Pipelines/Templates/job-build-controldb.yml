@@ -8,5 +8,5 @@
       inputs:
         solution: ADS-Databases/CntrlDB/CntrlDB.sqlproj
 
-    - publish: ADS-Databases/CntrlDB/bin/Debug
+    - publish: $(System.DefaultWorkingDirectory)/ADS-Databases/CntrlDB/bin/Debug
       artifact: sql_Controldb
