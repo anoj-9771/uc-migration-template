@@ -10,4 +10,5 @@
 
     - publish: ADS-Databases/CntrlDB/bin/Debug
       fileSharePath: $(System.DefaultWorkingDirectory)
+      artifactType: filepath
       artifact: sql_Controldb
