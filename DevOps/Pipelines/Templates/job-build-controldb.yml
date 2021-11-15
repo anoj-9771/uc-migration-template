@@ -17,5 +17,5 @@
       inputs:
         targetPath: ADS-Databases/CntrlDB/bin/Debug
         artifactName: sql_Controldb
-        artifactType: 'filepath' 
-        fileSharePath: '\nt097qdevops01\shared'
+        #artifactType: 'filepath' 
+        #fileSharePath: '\nt097qdevops01\shared'
