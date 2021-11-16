@@ -187,7 +187,7 @@ df_cleansed = spark.sql(f"SELECT \
 	PREISKLA as priceClassCode, \
 	LOEVM as deletedIndicator, \
 	UPDMOD as bwDeltaProcess, \
-	ZWNABR as registerNotRelevantToBilling, \
+	ZOPCODE as operationCode, \
 	_RecordStart, \
 	_RecordEnd, \
 	_RecordDeleted, \
@@ -211,7 +211,7 @@ newSchema = StructType([
 	StructField('priceClassCode',StringType(),True),
 	StructField('deletedIndicator',StringType(),True),
 	StructField('bwDeltaProcess',StringType(),True),
-	StructField('registerNotRelevantToBilling',StringType(),True),
+	StructField('operationCode',StringType(),True),
 	StructField('_RecordStart',TimestampType(),False),
 	StructField('_RecordEnd',TimestampType(),False),
 	StructField('_RecordDeleted',IntegerType(),False),
