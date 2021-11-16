@@ -5,16 +5,12 @@ parameters:
 jobs:
 - job: 'deploy_control_db'
   dependsOn: deploy_arm
-  pool: Daf-Self-Hosted-Preprod-Win
-    
+  pool:
+    demands: msbuild
+    vmImage: 'windows-2019'
   steps:
-  # - download: current
-  #   artifact: sql_Controldb
-
-  - task: DownloadFileshareArtifacts@1
-    inputs:
-      artifactName: sql_Controldb
-      fileSharePath: '\nt097qdevops01\shared'
+  - download: current
+    artifact: sql_Controldb
 
   - task: AzureKeyVault@1
     displayName: 'Get Secrets'
