@@ -1,9 +1,9 @@
 # Databricks notebook source
 # DBTITLE 1,[Config] Connection Setup
-storage_account_name = "sablobdaftest01"
-storage_account_access_key = dbutils.secrets.get(scope="TestScope",key="test-sablob-key")
-container_name = "accessdata"
-file_location = "wasbs://accessdata@sablobdaftest01.blob.core.windows.net/Z309_TPROPERTYADDRESS.csv"
+storage_account_name = "sadaftest01"
+storage_account_access_key = dbutils.secrets.get(scope="Test-Access",key="test-datalake-key")
+container_name = "raw"
+file_location = "wasbs://raw@sadaftest01.blob.core.windows.net/landing/accessarchive/Z309_TPROPERTYADDRESS.csv"
 file_type = "csv"
 print(storage_account_name)
 
@@ -17,7 +17,7 @@ spark.conf.set(
 # COMMAND ----------
 
 # DBTITLE 1,[Source] loading to a dataframe
- df = spark.read.format("csv").option('delimiter','|').option('header','true').load("wasbs://accessdata@sablobdaftest01.blob.core.windows.net/Z309_TPROPERTYADDRESS.csv")
+ df = spark.read.format("csv").option('delimiter','|').option('header','true').load("wasbs://raw@sadaftest01.blob.core.windows.net/landing/accessarchive/Z309_TPROPERTYADDRESS.csv")
 
 # COMMAND ----------
 
@@ -29,7 +29,7 @@ df.createOrReplaceTempView("Source")
 
 # COMMAND ----------
 
-cleansedf = spark.sql("select * from cleansed.access_z309_tpropertyaddress")
+cleansedf = spark.sql("select * from cleansed.t_access_z309_tpropertyaddress")
 
 # COMMAND ----------
 
@@ -88,7 +88,7 @@ cleansedf.createOrReplaceTempView("Target")
 
 # DBTITLE 1,Check for hex values
 # MAGIC %sql
-# MAGIC select  modifiedByUserID from cleansed.access_z309_tpropertyaddress where  substr(hex(modifiedByUserID),1,2) = '00'
+# MAGIC select  modifiedByUserID from cleansed.t_access_z309_tpropertyaddress where  substr(hex(modifiedByUserID),1,2) = '00'
 
 # COMMAND ----------
 
@@ -96,14 +96,14 @@ cleansedf.createOrReplaceTempView("Target")
 # MAGIC %sql
 # MAGIC select 
 # MAGIC *
-# MAGIC from cleansed.access_z309_tpropertyaddress
+# MAGIC from cleansed.t_access_z309_tpropertyaddress
 
 # COMMAND ----------
 
 # DBTITLE 1,[Verification]Duplicate checks
 # MAGIC %sql
 # MAGIC SELECT propertyNumber, COUNT (*) as count
-# MAGIC FROM cleansed.access_z309_tpropertyaddress
+# MAGIC FROM cleansed.t_access_z309_tpropertyaddress
 # MAGIC GROUP BY propertyNumber
 # MAGIC HAVING COUNT (*) > 1
 
@@ -111,7 +111,7 @@ cleansedf.createOrReplaceTempView("Target")
 
 # DBTITLE 1,[Verification] Records count check
 # MAGIC %sql
-# MAGIC select count (*) as RecordCount, 'Target' as TableName from cleansed.access_z309_tpropertyaddress
+# MAGIC select count (*) as RecordCount, 'Target' as TableName from cleansed.t_access_z309_tpropertyaddress
 # MAGIC union all
 # MAGIC select count (*) as RecordCount, 'Source' as TableName from Source
 
@@ -179,7 +179,7 @@ cleansedf.createOrReplaceTempView("Target")
 # MAGIC ,modifiedByUserID
 # MAGIC ,modifiedByPlan
 # MAGIC ,modifiedTimestamp
-# MAGIC from cleansed.access_z309_tpropertyaddress
+# MAGIC from cleansed.t_access_z309_tpropertyaddress
 
 # COMMAND ----------
 
@@ -210,7 +210,7 @@ cleansedf.createOrReplaceTempView("Target")
 # MAGIC ,modifiedByUserID
 # MAGIC ,modifiedByPlan
 # MAGIC ,modifiedTimestamp
-# MAGIC from cleansed.access_z309_tpropertyaddress
+# MAGIC from cleansed.t_access_z309_tpropertyaddress
 # MAGIC except
 # MAGIC select
 # MAGIC C_LGA as LGACode
@@ -264,7 +264,7 @@ cleansedf.createOrReplaceTempView("Target")
 # MAGIC --,N_HOUS_1 as houseNumber1
 # MAGIC ,T_HOUS_1_SUFX as houseNumber1Suffix
 # MAGIC ,'0' as houseNumber2
-# MAGIC ,N_HOUS_2 as houseNumber2
+# MAGIC --,N_HOUS_2 as houseNumber2
 # MAGIC ,' ' as houseNumber2Suffix
 # MAGIC --,T_HOUS_2_SUFX as houseNumber2Suffix
 # MAGIC ,' ' as lotNumber
@@ -314,7 +314,7 @@ cleansedf.createOrReplaceTempView("Target")
 # MAGIC ,modifiedByUserID
 # MAGIC ,modifiedByPlan
 # MAGIC ,modifiedTimestamp
-# MAGIC from cleansed.access_z309_tpropertyaddress
+# MAGIC from cleansed.t_access_z309_tpropertyaddress
 # MAGIC where propertyNumber ='3100172'
 
 # COMMAND ----------
