@@ -32,7 +32,9 @@ stages:
   jobs:
   # ---------------------------------------------------------------------------
   - job: 'deploy_control_db'
-    pool: Daf-Self-Hosted-Dev-Win
+    pool:
+      demands: msbuild
+      vmImage: 'windows-2019'
     steps:
     - download: current
       artifact: sql_Controldb
@@ -52,4 +54,4 @@ stages:
         DatabaseName: ControlDB
         SqlUsername: $(AZURESQLSERVERUN)
         SqlPassword: '$(azuresqlserverpw)'
-        DacpacFile: '$(System.DefaultWorkingDirectory)/sql_Controldb/CntrlDb.dacpac'
+        DacpacFile: '$(Pipeline.Workspace)/sql_Controldb/CntrlDb.dacpac'

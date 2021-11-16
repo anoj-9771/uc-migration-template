@@ -1,8 +1,7 @@
 # Databricks notebook source
 #config parameters
 source = 'ISU' #either CRM or ISU
-table = 'CAWNT'
-
+table = 'CABN'
 environment = 'test'
 storage_account_name = "sablobdaftest01"
 storage_account_access_key = dbutils.secrets.get(scope="TestScope",key="test-sablob-key")
@@ -18,17 +17,14 @@ containerName = "archive"
 # DBTITLE 1,[Source] with mapping
 # MAGIC %sql
 # MAGIC select
-# MAGIC internalcharacteristic,
-# MAGIC internalCounter,
-# MAGIC internalCounterforArchivingObjectsbyECM,
-# MAGIC characteristicValueDescription
+# MAGIC internalcharacteristic
+# MAGIC ,internalCounterforArchivingObjectsbyECM
 # MAGIC from
 # MAGIC (select
 # MAGIC ATINN as internalcharacteristic
-# MAGIC ,ATZHL as internalCounter
 # MAGIC ,ADZHL as internalCounterforArchivingObjectsbyECM
-# MAGIC ,ATWTB as characteristicValueDescription
-# MAGIC ,row_number() over (partition by ATINN,ATZHL,ADZHL order by EXTRACT_DATETIME desc) as rn
+# MAGIC ,ATNAM as characteristicName
+# MAGIC ,row_number() over (partition by ATINN,ADZHL  order by EXTRACT_DATETIME desc) as rn
 # MAGIC from test.${vars.table}
 # MAGIC )a where  a.rn = 1
 
@@ -40,26 +36,23 @@ containerName = "archive"
 # MAGIC union all
 # MAGIC select count (*) as RecordCount, 'Source' as TableName from (select
 # MAGIC internalcharacteristic
-# MAGIC ,internalCounter
 # MAGIC ,internalCounterforArchivingObjectsbyECM
-# MAGIC ,characteristicValueDescription
 # MAGIC from
 # MAGIC (select
 # MAGIC ATINN as internalcharacteristic
-# MAGIC ,ATZHL as internalCounter
 # MAGIC ,ADZHL as internalCounterforArchivingObjectsbyECM
-# MAGIC ,ATWTB as characteristicValueDescription
-# MAGIC ,row_number() over (partition by ATINN,ATZHL,ADZHL order by EXTRACT_DATETIME desc) as rn
-# MAGIC from test.${vars.table} 
+# MAGIC ,ATNAM as characteristicName
+# MAGIC ,row_number() over (partition by ATINN,ADZHL  order by EXTRACT_DATETIME desc) as rn
+# MAGIC from test.${vars.table}
 # MAGIC )a where  a.rn = 1)
 
 # COMMAND ----------
 
 # DBTITLE 1,[Verification] Duplicate Checks
 # MAGIC %sql
-# MAGIC SELECT internalcharacteristic,internalCounter,internalCounterforArchivingObjectsbyECM,characteristicValueDescription, COUNT (*) as count
+# MAGIC SELECT internalcharacteristic,internalCounterforArchivingObjectsbyECM , COUNT (*) as count
 # MAGIC FROM cleansed.${vars.table}
-# MAGIC GROUP BY internalcharacteristic,internalCounter,internalCounterforArchivingObjectsbyECM,characteristicValueDescription
+# MAGIC GROUP BY internalcharacteristic,internalCounterforArchivingObjectsbyECM 
 # MAGIC HAVING COUNT (*) > 1
 
 # COMMAND ----------
@@ -69,8 +62,7 @@ containerName = "archive"
 # MAGIC SELECT * FROM (
 # MAGIC SELECT
 # MAGIC *,
-# MAGIC row_number() OVER(PARTITION BY internalcharacteristic,internalCounter,internalCounterforArchivingObjectsbyECM 
-# MAGIC order by internalcharacteristic,internalCounter,internalCounterforArchivingObjectsbyECM) as rn
+# MAGIC row_number() OVER(PARTITION BY internalcharacteristic,internalCounterforArchivingObjectsbyECM order by internalcharacteristic,internalCounterforArchivingObjectsbyECM ) as rn
 # MAGIC FROM  cleansed.${vars.table}
 # MAGIC )a where a.rn > 1
 
@@ -80,24 +72,19 @@ containerName = "archive"
 # MAGIC %sql
 # MAGIC select
 # MAGIC internalcharacteristic
-# MAGIC ,internalCounter
 # MAGIC ,internalCounterforArchivingObjectsbyECM
-# MAGIC ,characteristicValueDescription
 # MAGIC from
 # MAGIC (select
 # MAGIC ATINN as internalcharacteristic
-# MAGIC ,ATZHL as internalCounter
 # MAGIC ,ADZHL as internalCounterforArchivingObjectsbyECM
-# MAGIC ,ATWTB as characteristicValueDescription
-# MAGIC ,row_number() over (partition by ATINN,ATZHL,ADZHL order by EXTRACT_DATETIME desc) as rn
-# MAGIC from test.${vars.table} -- WHERE LANGU = 'E'
+# MAGIC ,ATNAM as characteristicName
+# MAGIC ,row_number() over (partition by ATINN,ADZHL   order by EXTRACT_DATETIME desc) as rn
+# MAGIC from test.${vars.table}
 # MAGIC )a where  a.rn = 1
 # MAGIC except
 # MAGIC select
 # MAGIC internalcharacteristic
-# MAGIC ,internalCounter
 # MAGIC ,internalCounterforArchivingObjectsbyECM
-# MAGIC ,characteristicValueDescription
 # MAGIC from
 # MAGIC cleansed.${vars.table}
 
@@ -107,23 +94,18 @@ containerName = "archive"
 # MAGIC %sql
 # MAGIC select
 # MAGIC internalcharacteristic
-# MAGIC ,internalCounter
 # MAGIC ,internalCounterforArchivingObjectsbyECM
-# MAGIC ,characteristicValueDescription
 # MAGIC from
 # MAGIC cleansed.${vars.table}
 # MAGIC except
 # MAGIC select
 # MAGIC internalcharacteristic
-# MAGIC ,internalCounter
 # MAGIC ,internalCounterforArchivingObjectsbyECM
-# MAGIC ,characteristicValueDescription
 # MAGIC from
 # MAGIC (select
 # MAGIC ATINN as internalcharacteristic
-# MAGIC ,ATZHL as internalCounter
 # MAGIC ,ADZHL as internalCounterforArchivingObjectsbyECM
-# MAGIC ,ATWTB as characteristicValueDescription
-# MAGIC ,row_number() over (partition by ATINN,ATZHL,ADZHL order by EXTRACT_DATETIME desc) as rn
-# MAGIC from test.${vars.table} -- WHERE LANGU = 'E'
+# MAGIC ,ATNAM as characteristicName
+# MAGIC ,row_number() over (partition by ATINN,ADZHL   order by EXTRACT_DATETIME desc) as rn
+# MAGIC from test.${vars.table}
 # MAGIC )a where  a.rn = 1

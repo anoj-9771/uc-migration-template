@@ -5,8 +5,9 @@ parameters:
 jobs:
 - job: 'deploy_control_db'
   dependsOn: deploy_arm
-  pool: Daf-Self-Hosted-Dev-Win
-    
+  pool:
+    demands: msbuild
+    vmImage: 'windows-2019'
   steps:
   - download: current
     artifact: sql_Controldb
