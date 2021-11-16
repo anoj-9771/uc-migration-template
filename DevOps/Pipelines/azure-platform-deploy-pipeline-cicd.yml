@@ -24,7 +24,7 @@ trigger: none
   #   exclude:
   #   - DevOps/Pipelines/iac-create-keyvaults.yml..
 
-pool: Daf-Self-Pool01
+pool: Daf-Self-Hosted-Preprod-Linux
 # vmImage: ubuntu-latest.
 
 stages:
