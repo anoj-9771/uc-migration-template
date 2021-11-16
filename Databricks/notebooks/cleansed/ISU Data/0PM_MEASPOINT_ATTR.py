@@ -176,7 +176,7 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT \
-	case when ATNAM = 'na' then '' else ATNAM end as measuringPointId, \
+	case when POINT = 'na' then '' else POINT end as measuringPointId, \
 	MPOBJ as measuringPointObjectNumber, \
 	PSORT as positionNumber, \
 	MPTYP as measuringPointCategory, \
@@ -187,7 +187,7 @@ df_cleansed = spark.sql(f"SELECT \
 	CODCT as measurementReadingCatalogCode, \
 	CODGR as measurementReadingGroupCode, \
 	to_date(AEDAT, 'yyyy-MM-dd') as lastChangedDate, \
-	to_date(CDATS, 'yyyy-MM-dd') as deltaDate, \
+	to_date(DELTADATE, 'yyyy-MM-dd') as deltaDate, \
 	_RecordStart, \
 	_RecordEnd, \
 	_RecordDeleted, \
