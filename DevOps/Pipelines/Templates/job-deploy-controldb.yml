@@ -5,7 +5,7 @@ parameters:
 jobs:
 - job: 'deploy_control_db'
   dependsOn: deploy_arm
-  pool: Daf-Self-Hosted-Dev-Win
+  pool: Daf-Self-Hosted-Preprod-Win
     
   steps:
   # - download: current

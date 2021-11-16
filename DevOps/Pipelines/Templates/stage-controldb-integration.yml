@@ -32,7 +32,7 @@ stages:
   jobs:
   # ---------------------------------------------------------------------------
   - job: 'deploy_control_db'
-    pool: Daf-Self-Hosted-Dev-Win
+    pool: Daf-Self-Hosted-Preprod-Win
     steps:
     - download: current
       artifact: sql_Controldb

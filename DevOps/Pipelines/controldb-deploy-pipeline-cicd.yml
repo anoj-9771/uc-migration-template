@@ -20,7 +20,7 @@ trigger: none
 #     include:
 #     - ADS-Databases/ADS-Database.sln
 
-pool: Daf-Self-Hosted-Dev-Win
+pool: Daf-Self-Hosted-Preprod-Win
 
 stages:
 # ---------------------------------------------------------------------------
