@@ -30,15 +30,9 @@ df.createOrReplaceTempView("Source")
 
 # COMMAND ----------
 
-# MAGIC %sql
-# MAGIC select * from Source
-
-# COMMAND ----------
-
 # DBTITLE 1,[Source] displaying records
 # MAGIC %sql
-# MAGIC select * from Source where 
-# MAGIC `Property Number`='4858656'
+# MAGIC select * from Source
 
 # COMMAND ----------
 

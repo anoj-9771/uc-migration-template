@@ -1,5 +1,5 @@
 # Databricks notebook source
-table = 'VIBDCHARACT'
+table = '0UC_DEVCAT_ATTR'
 
 # COMMAND ----------
 

@@ -12,7 +12,7 @@ trigger: none
   #   exclude:
   #   - '*' 
 
-pool: Daf-Self-Hosted-Preprod-Linux
+pool: Daf-Self-Pool01
 # vmImage: ubuntu-latest
 
 stages:
@@ -24,7 +24,7 @@ stages:
 # Release to Non-Prod - Dev.
 - stage: deploy_to_dev
   dependsOn: 'build'
-  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/develop'))
   variables:
   - template: Variables/dev-variables.yml
   jobs:
@@ -42,7 +42,7 @@ stages:
         location: ${{ variables.location }}
         templateLocation: 'Linked artifact'
         csmFile: '$(Pipeline.Workspace)/arm_templates/arm-initial-keyvault.json'
-        overrideParameters: '-location ${{ variables.location }} -keyVaultName ${{ variables.azurekeyvaultname }} -subnetId $(internalSubnetId)'
+        overrideParameters: '-location ${{ variables.location }} -keyVaultName ${{ variables.azurekeyvaultname }}'
         deploymentMode: 'Incremental'
       displayName: 'Deploy AKV to non prod'
 
@@ -79,7 +79,7 @@ stages:
 # Release to Non-Prod - Test
 - stage: deploy_to_test
   dependsOn: 'build'
-  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/test'))
   variables:
   - template: Variables/test-variables.yml
   jobs:
@@ -96,7 +96,7 @@ stages:
         location: ${{ variables.location }}
         templateLocation: 'Linked artifact'
         csmFile: '$(Pipeline.Workspace)/arm_templates/arm-initial-keyvault.json'
-        overrideParameters: '-location ${{ variables.location }} -keyVaultName ${{ variables.azurekeyvaultname }} -subnetId $(internalSubnetId)'
+        overrideParameters: '-location ${{ variables.location }} -keyVaultName ${{ variables.azurekeyvaultname }}'
         deploymentMode: 'Incremental'
       displayName: 'Deploy AKV to non prod'
 
@@ -151,7 +151,7 @@ stages:
         location: ${{ variables.location }}
         templateLocation: 'Linked artifact'
         csmFile: '$(Pipeline.Workspace)/arm_templates/arm-initial-keyvault.json'
-        overrideParameters: '-location ${{ variables.location }} -keyVaultName ${{ variables.azurekeyvaultname }} -subnetId $(internalSubnetId)'
+        overrideParameters: '-location ${{ variables.location }} -keyVaultName ${{ variables.azurekeyvaultname }}'
         deploymentMode: 'Incremental'
       displayName: 'Deploy AKV to prod'
 

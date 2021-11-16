@@ -1,9 +1,9 @@
 # Databricks notebook source
 # DBTITLE 1,[Config] Connection Setup
-storage_account_name = "sablobdaftest01"
-storage_account_access_key = dbutils.secrets.get(scope="TestScope",key="test-sablob-key")
-container_name = "accessdata"
-file_location = "wasbs://accessdata@sablobdaftest01.blob.core.windows.net/Z309_TPROPERTY.csv"
+storage_account_name = "sadaftest01"
+storage_account_access_key = dbutils.secrets.get(scope="Test-Access",key="test-datalake-key")
+container_name = "raw"
+file_location = "wasbs://raw@sadaftest01.blob.core.windows.net/landing/accessarchive/Z309_TPROPERTY.csv"
 file_type = "csv"
 print(storage_account_name)
 
@@ -17,7 +17,7 @@ spark.conf.set(
 # COMMAND ----------
 
 # DBTITLE 1,[Source] loading to a dataframe
- df = spark.read.format("csv").option('delimiter','|').option('header','true').load("wasbs://accessdata@sablobdaftest01.blob.core.windows.net/Z309_TPROPERTY.csv")
+ df = spark.read.format("csv").option('delimiter','|').option('header','true').load("wasbs://raw@sadaftest01.blob.core.windows.net/landing/accessarchive/Z309_TPROPERTY.csv")
 
 # COMMAND ----------
 
@@ -29,7 +29,7 @@ df.createOrReplaceTempView("Source")
 
 # COMMAND ----------
 
-cleansedf = spark.sql("select * from cleansed.access_z309_tproperty")
+cleansedf = spark.sql("select * from cleansed.t_access_z309_tproperty")
 
 # COMMAND ----------
 
@@ -129,35 +129,34 @@ cleansedf.createOrReplaceTempView("Target")
 # MAGIC --2008-05-17T07:00:00.000+0000 2008-05-17 07:00:00 AM
 # MAGIC --case when D_RATA_TYPE_EFFE <> 'null' then CONCAT(LEFT(D_RATA_TYPE_EFFE,4),'-',SUBSTRING(D_RATA_TYPE_EFFE,5,2),'-',RIGHT(D_RATA_TYPE_EFFE,2)) else D_RATA_TYPE_EFFE end as rateabilityTypeEffectiveDate,
 # MAGIC from source a
-# MAGIC left join cleansed.access_z309_tlocalgovt b
+# MAGIC left join cleansed.t_access_z309_tlocalgovt b
 # MAGIC on b.LGAcode = a.c_lga
-# MAGIC left join cleansed.access_z309_tproptype d
+# MAGIC left join cleansed.t_access_z309_tproptype d
 # MAGIC on d.propertytypecode = a.c_prop_type
-# MAGIC left join cleansed.access_z309_tproptype e
+# MAGIC left join cleansed.t_access_z309_tproptype e
 # MAGIC on e.propertytypecode = d.superiorpropertytypecode
-# MAGIC left join cleansed.access_z309_TRataType f
+# MAGIC left join cleansed.t_access_z309_TRataType f
 # MAGIC on f.rateabilityTypeCode = a.c_rata_type )a
 # MAGIC where a.propertynumber = '5620366'
 
 # COMMAND ----------
 
-# DBTITLE 1,Check for hex values
 # MAGIC %sql
-# MAGIC select  modifiedByUserID from cleansed.access_z309_tproperty where  substr(hex(modifiedByUserID),1,2) = '00'
+# MAGIC select  modifiedByUserID from cleansed.t_access_z309_tproperty where  substr(hex(modifiedByUserID),1,2) = '00'
 
 # COMMAND ----------
 
 # DBTITLE 1,[Target] displaying records
 # MAGIC %sql
 # MAGIC select *
-# MAGIC from cleansed.access_z309_tproperty where propertynumber = '5620366'
+# MAGIC from cleansed.t_access_z309_tproperty where propertynumber = '5620366'
 
 # COMMAND ----------
 
 # DBTITLE 1,[Verification]Duplicate checks
 # MAGIC %sql
 # MAGIC SELECT propertynumber, COUNT (*) as count
-# MAGIC FROM cleansed.access_z309_tproperty
+# MAGIC FROM cleansed.t_access_z309_tproperty
 # MAGIC GROUP BY propertynumber
 # MAGIC HAVING COUNT (*) > 1
 
@@ -165,7 +164,7 @@ cleansedf.createOrReplaceTempView("Target")
 
 # DBTITLE 1,[Verification] Records count check
 # MAGIC %sql
-# MAGIC select count (*) as RecordCount, 'Target' as TableName from cleansed.access_z309_tproperty
+# MAGIC select count (*) as RecordCount, 'Target' as TableName from cleansed.t_access_z309_tproperty
 # MAGIC union all
 # MAGIC select count (*) as RecordCount, 'Source' as TableName from Source
 
@@ -255,13 +254,13 @@ cleansedf.createOrReplaceTempView("Target")
 # MAGIC --2008-05-17T07:00:00.000+0000 2008-05-17 07:00:00 AM
 # MAGIC --case when D_RATA_TYPE_EFFE <> 'null' then CONCAT(LEFT(D_RATA_TYPE_EFFE,4),'-',SUBSTRING(D_RATA_TYPE_EFFE,5,2),'-',RIGHT(D_RATA_TYPE_EFFE,2)) else D_RATA_TYPE_EFFE end as rateabilityTypeEffectiveDate,
 # MAGIC from source a
-# MAGIC left join cleansed.access_z309_tlocalgovt b
+# MAGIC left join cleansed.t_access_z309_tlocalgovt b
 # MAGIC on b.LGAcode = a.c_lga
-# MAGIC left join cleansed.access_z309_tproptype d
+# MAGIC left join cleansed.t_access_z309_tproptype d
 # MAGIC on d.propertytypecode = a.c_prop_type
-# MAGIC left join cleansed.access_z309_tproptype e
+# MAGIC left join cleansed.t_access_z309_tproptype e
 # MAGIC on e.propertytypecode = d.superiorpropertytypecode
-# MAGIC left join cleansed.access_z309_TRataType f
+# MAGIC left join cleansed.t_access_z309_TRataType f
 # MAGIC on f.rateabilityTypeCode = a.c_rata_type )a
 # MAGIC 
 # MAGIC except
@@ -304,7 +303,7 @@ cleansedf.createOrReplaceTempView("Target")
 # MAGIC ,modifiedByUserID
 # MAGIC ,modifiedByPlan
 # MAGIC ,modifiedTimestamp
-# MAGIC from cleansed.access_z309_tproperty
+# MAGIC from cleansed.t_access_z309_tproperty
 
 # COMMAND ----------
 
@@ -349,7 +348,7 @@ cleansedf.createOrReplaceTempView("Target")
 # MAGIC ,modifiedByUserID
 # MAGIC ,modifiedByPlan
 # MAGIC ,modifiedTimestamp
-# MAGIC from cleansed.access_z309_tproperty
+# MAGIC from cleansed.t_access_z309_tproperty
 # MAGIC 
 # MAGIC except 
 # MAGIC 
@@ -435,11 +434,11 @@ cleansedf.createOrReplaceTempView("Target")
 # MAGIC --2008-05-17T07:00:00.000+0000 2008-05-17 07:00:00 AM
 # MAGIC --case when D_RATA_TYPE_EFFE <> 'null' then CONCAT(LEFT(D_RATA_TYPE_EFFE,4),'-',SUBSTRING(D_RATA_TYPE_EFFE,5,2),'-',RIGHT(D_RATA_TYPE_EFFE,2)) else D_RATA_TYPE_EFFE end as rateabilityTypeEffectiveDate,
 # MAGIC from source a
-# MAGIC left join cleansed.access_z309_tlocalgovt b
+# MAGIC left join cleansed.t_access_z309_tlocalgovt b
 # MAGIC on b.LGAcode = a.c_lga
-# MAGIC left join cleansed.access_z309_tproptype d
+# MAGIC left join cleansed.t_access_z309_tproptype d
 # MAGIC on d.propertytypecode = a.c_prop_type
-# MAGIC left join cleansed.access_z309_tproptype e
+# MAGIC left join cleansed.t_access_z309_tproptype e
 # MAGIC on e.propertytypecode = d.superiorpropertytypecode
-# MAGIC left join cleansed.access_z309_TRataType f
+# MAGIC left join cleansed.t_access_z309_TRataType f
 # MAGIC on f.rateabilityTypeCode = a.c_rata_type )a
