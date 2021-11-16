@@ -2,7 +2,14 @@
 # MAGIC %sql
 # MAGIC select 
 # MAGIC * from 
-# MAGIC cleansed.t_hydra_tlotparcel
+# MAGIC cleansed.t_hydra_tlotparcel where propertynumber = '4858656'
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC select * from (
+# MAGIC select propertyNumber, count(propertyNumber) as testcount from
+# MAGIC cleansed.t_hydra_tlotparcel group by propertyNumber)a  where a.testcount > 1 
 
 # COMMAND ----------
 
@@ -72,11 +79,12 @@
 # MAGIC suburb as suburb,
 # MAGIC 'NSW' as state,
 # MAGIC latitude,
-# MAGIC longitude,
-# MAGIC row_number() over (partition by propertyNumber order by systemKey desc) rn
+# MAGIC longitude
+# MAGIC --row_number() over (partition by propertyNumber order by systemKey desc) rn
 # MAGIC from 
-# MAGIC cleansed.t_hydra_tlotparcel 
-# MAGIC where propertyNumber is not null and propertyNumber='-1' )a where a.rn = 1
+# MAGIC cleansed.t_hydra_tlotparcel group by propertyNumber
+# MAGIC where propertyNumber is not null )a
+# MAGIC --where propertyNumber is not null and propertyNumber='-1' )a where a.rn = 1
 # MAGIC union all
 # MAGIC 
 # MAGIC select * from(
@@ -107,6 +115,13 @@
 # MAGIC %sql
 # MAGIC select * from
 # MAGIC curated.dimlocation
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC select * from (
+# MAGIC select locationid, count(locationid) as testcount from
+# MAGIC curated.dimlocation group by LocationID)a  where a.testcount > 1 
 
 # COMMAND ----------
 
@@ -192,10 +207,6 @@ lakedftarget.printSchema()
 
 # COMMAND ----------
 
-
-
-# COMMAND ----------
-
 # DBTITLE 1,[Source vs Target check]
 # MAGIC %sql
 # MAGIC select * from(
@@ -204,7 +215,7 @@ lakedftarget.printSchema()
 # MAGIC formattedAddress,
 # MAGIC streetName,
 # MAGIC streetType,
-# MAGIC --LGA,
+# MAGIC LGA,
 # MAGIC --suburb,
 # MAGIC state
 # MAGIC --latitude,
@@ -233,7 +244,7 @@ lakedftarget.printSchema()
 # MAGIC ,'Unknown' as formattedAddress
 # MAGIC ,'null' as streetName
 # MAGIC ,'null' as streetType
-# MAGIC --,'null' as LGA
+# MAGIC ,'null' as LGA
 # MAGIC --,'null' as suburb
 # MAGIC ,'null' as state
 # MAGIC --,'null' as latitude
@@ -247,7 +258,7 @@ lakedftarget.printSchema()
 # MAGIC formattedAddress,
 # MAGIC streetName,
 # MAGIC streetType,
-# MAGIC --LGA,
+# MAGIC LGA,
 # MAGIC --suburb,
 # MAGIC state
 # MAGIC --latitude

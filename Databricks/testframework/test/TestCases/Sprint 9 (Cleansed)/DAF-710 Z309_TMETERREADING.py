@@ -1,9 +1,9 @@
 # Databricks notebook source
 # DBTITLE 1,[Config] Connection Setup
-storage_account_name = "sadaftest01"
-storage_account_access_key = dbutils.secrets.get(scope="Test-Access",key="test-datalake-key")
-container_name = "raw"
-file_location = "wasbs://raw@sadaftest01.blob.core.windows.net/landing/accessarchive/Z309_TMETERREADING.csv"
+storage_account_name = "sablobdaftest01"
+storage_account_access_key = dbutils.secrets.get(scope="TestScope",key="test-sablob-key")
+container_name = "accessdata"
+file_location = "wasbs://accessdata@sablobdaftest01.blob.core.windows.net/Z309_TMETERREADING.csv"
 file_type = "csv"
 print(storage_account_name)
 
@@ -17,7 +17,7 @@ spark.conf.set(
 # COMMAND ----------
 
 # DBTITLE 1,[Source] loading to a dataframe
- df = spark.read.format("csv").option('delimiter','|').option('header','true').load("wasbs://raw@sadaftest01.blob.core.windows.net/landing/accessarchive/Z309_TMETERREADING.csv")
+ df = spark.read.format("csv").option('delimiter','|').option('header','true').load("wasbs://accessdata@sablobdaftest01.blob.core.windows.net/Z309_TMETERREADING.csv")
 
 # COMMAND ----------
 
@@ -29,13 +29,26 @@ df.createOrReplaceTempView("Source")
 
 # COMMAND ----------
 
-# DBTITLE 1,[Source] displaying records
+cleansedf = spark.sql("select * from cleansed.access_z309_tmeterreading")
+
+# COMMAND ----------
+
+# DBTITLE 1,[Target] Schema Check
+cleansedf.printSchema()
+
+# COMMAND ----------
+
+cleansedf.createOrReplaceTempView("Target")
+
+# COMMAND ----------
+
+# DBTITLE 1,[Source] Displaying Records
 # MAGIC %sql
 # MAGIC select * from Source
 
 # COMMAND ----------
 
-# DBTITLE 1,[Source] displaying records after mapping
+# DBTITLE 1,[Source] After applying mapping
 # MAGIC %sql
 # MAGIC select
 # MAGIC cast(N_PROP as int) AS propertyNumber,
@@ -70,54 +83,65 @@ df.createOrReplaceTempView("Source")
 # MAGIC to_date(D_METE_READ_UPDA, 'yyyyMMdd') AS meterReadingUpdatedDate
 # MAGIC from
 # MAGIC Source a
-# MAGIC left join cleansed.t_access_z309_tmetereadtole d
+# MAGIC left join cleansed.access_z309_tmetereadtole d
 # MAGIC on d.meterReadingToleranceCode = a.C_METE_READ_TOLE
-# MAGIC left join cleansed.t_access_z309_tmetereadtype e
+# MAGIC left join cleansed.access_z309_tmetereadtype e
 # MAGIC on e.meterReadingTypeCode = a.C_METE_READ_TYPE
-# MAGIC left join cleansed.t_access_z309_tmetereadcontyp f
+# MAGIC left join cleansed.access_z309_tmetereadcontyp f
 # MAGIC on f.consumptionTypeCode = a.C_METE_READ_CONS
-# MAGIC left join cleansed.t_access_z309_tmrstatustype g
+# MAGIC left join cleansed.access_z309_tmrstatustype g
 # MAGIC on g.meterReadingStatusCode = a.C_METE_READ_STAT
-# MAGIC left join cleansed.t_access_z309_tmetercantread h 
+# MAGIC left join cleansed.access_z309_tmetercantread h 
 # MAGIC on h.cannotReadCode = coalesce(a.C_METE_CANT_READ,'')
-# MAGIC left join cleansed.t_access_z309_tpdereadmeth i
+# MAGIC left join cleansed.access_z309_tpdereadmeth i
 # MAGIC on i.PDEReadingMethodCode = a.C_PDE_READ_METH
 
 # COMMAND ----------
 
-# DBTITLE 1,[Target] displaying records
+# DBTITLE 1,[Target] Displaying records
 # MAGIC %sql
-# MAGIC select * from cleansed.t_access_z309_tmeterreading
-
-# COMMAND ----------
-
-# DBTITLE 0,[Result] Load Count Result into DataFrame
-cleansedf = spark.sql("select * from cleansed.t_access_z309_tmeterreading")
-
-# COMMAND ----------
-
-# DBTITLE 1,[Target] Schema Check
-cleansedf.printSchema()
-
-# COMMAND ----------
-
-cleansedf.createOrReplaceTempView("Target")
+# MAGIC select
+# MAGIC propertyNumber,
+# MAGIC propertyMeterNumber,
+# MAGIC meterReadingNumber,
+# MAGIC meterReadingToleranceCode,
+# MAGIC meterReadingTypeCode,
+# MAGIC meterReadingType,
+# MAGIC consumptionTypeCode,
+# MAGIC meterReadingStatusCode,
+# MAGIC meterReadingStatus,
+# MAGIC cannotReadReason,
+# MAGIC cannotReadCode,
+# MAGIC PDEReadingMethodCode,
+# MAGIC PDEReadingMethod,
+# MAGIC meterReading,
+# MAGIC meterReadingTimestamp,
+# MAGIC meterReadingConsumption,
+# MAGIC readingFromDate,
+# MAGIC readingToDate,
+# MAGIC meterReadingDays,
+# MAGIC hasReadingCommentCode,
+# MAGIC hasReadingCommentFreeFormat,
+# MAGIC PDEHighLow,
+# MAGIC PDEReenteredCount,
+# MAGIC isPDEAuxilaryReading,
+# MAGIC meterReadingUpdatedDate
+# MAGIC from cleansed.access_z309_tmeterreading
 
 # COMMAND ----------
 
 # DBTITLE 1,[Verification] Duplicate checks
 # MAGIC %sql
-# MAGIC SELECT 
-# MAGIC propertyNumber,propertyMeterNumber, meterReadingNumber,COUNT (*) as count
-# MAGIC FROM cleansed.t_access_z309_tmeterreading
-# MAGIC GROUP BY propertyNumber,propertyMeterNumber,meterReadingNumber
+# MAGIC SELECT propertyNumber,propertyMeterNumber,meterReadingNumber, COUNT (*) as count
+# MAGIC FROM cleansed.access_z309_tmeterreading
+# MAGIC GROUP BY propertyNumber, propertyMeterNumber,meterReadingNumber
 # MAGIC HAVING COUNT (*) > 1
 
 # COMMAND ----------
 
 # DBTITLE 1,[Verification] Records count check
 # MAGIC %sql
-# MAGIC select count (*) as RecordCount, 'Target' as TableName from cleansed.t_access_z309_tmeterreading
+# MAGIC select count (*) as RecordCount, 'Target' as TableName from cleansed.access_z309_tmeterreading
 # MAGIC union all
 # MAGIC select count (*) as RecordCount, 'Source' as TableName from Source
 
@@ -158,19 +182,18 @@ cleansedf.createOrReplaceTempView("Target")
 # MAGIC to_date(D_METE_READ_UPDA, 'yyyyMMdd') AS meterReadingUpdatedDate
 # MAGIC from
 # MAGIC Source a
-# MAGIC left join cleansed.t_access_z309_tmetereadtole d
+# MAGIC left join cleansed.access_z309_tmetereadtole d
 # MAGIC on d.meterReadingToleranceCode = a.C_METE_READ_TOLE
-# MAGIC left join cleansed.t_access_z309_tmetereadtype e
+# MAGIC left join cleansed.access_z309_tmetereadtype e
 # MAGIC on e.meterReadingTypeCode = a.C_METE_READ_TYPE
-# MAGIC left join cleansed.t_access_z309_tmetereadcontyp f
+# MAGIC left join cleansed.access_z309_tmetereadcontyp f
 # MAGIC on f.consumptionTypeCode = a.C_METE_READ_CONS
-# MAGIC left join cleansed.t_access_z309_tmrstatustype g
+# MAGIC left join cleansed.access_z309_tmrstatustype g
 # MAGIC on g.meterReadingStatusCode = a.C_METE_READ_STAT
-# MAGIC left join cleansed.t_access_z309_tmetercantread h 
+# MAGIC left join cleansed.access_z309_tmetercantread h 
 # MAGIC on h.cannotReadCode = coalesce(a.C_METE_CANT_READ,'')
-# MAGIC left join cleansed.t_access_z309_tpdereadmeth i
+# MAGIC left join cleansed.access_z309_tpdereadmeth i
 # MAGIC on i.PDEReadingMethodCode = a.C_PDE_READ_METH
-# MAGIC 
 # MAGIC except
 # MAGIC select
 # MAGIC propertyNumber,
@@ -198,7 +221,7 @@ cleansedf.createOrReplaceTempView("Target")
 # MAGIC PDEReenteredCount,
 # MAGIC isPDEAuxilaryReading,
 # MAGIC meterReadingUpdatedDate
-# MAGIC FROM cleansed.t_access_z309_tmeterreading
+# MAGIC from cleansed.access_z309_tmeterreading
 
 # COMMAND ----------
 
@@ -230,7 +253,7 @@ cleansedf.createOrReplaceTempView("Target")
 # MAGIC PDEReenteredCount,
 # MAGIC isPDEAuxilaryReading,
 # MAGIC meterReadingUpdatedDate
-# MAGIC FROM cleansed.t_access_z309_tmeterreading
+# MAGIC from cleansed.access_z309_tmeterreading
 # MAGIC except
 # MAGIC select
 # MAGIC cast(N_PROP as int) AS propertyNumber,
@@ -265,15 +288,15 @@ cleansedf.createOrReplaceTempView("Target")
 # MAGIC to_date(D_METE_READ_UPDA, 'yyyyMMdd') AS meterReadingUpdatedDate
 # MAGIC from
 # MAGIC Source a
-# MAGIC left join cleansed.t_access_z309_tmetereadtole d
+# MAGIC left join cleansed.access_z309_tmetereadtole d
 # MAGIC on d.meterReadingToleranceCode = a.C_METE_READ_TOLE
-# MAGIC left join cleansed.t_access_z309_tmetereadtype e
+# MAGIC left join cleansed.access_z309_tmetereadtype e
 # MAGIC on e.meterReadingTypeCode = a.C_METE_READ_TYPE
-# MAGIC left join cleansed.t_access_z309_tmetereadcontyp f
+# MAGIC left join cleansed.access_z309_tmetereadcontyp f
 # MAGIC on f.consumptionTypeCode = a.C_METE_READ_CONS
-# MAGIC left join cleansed.t_access_z309_tmrstatustype g
+# MAGIC left join cleansed.access_z309_tmrstatustype g
 # MAGIC on g.meterReadingStatusCode = a.C_METE_READ_STAT
-# MAGIC left join cleansed.t_access_z309_tmetercantread h 
+# MAGIC left join cleansed.access_z309_tmetercantread h 
 # MAGIC on h.cannotReadCode = coalesce(a.C_METE_CANT_READ,'')
-# MAGIC left join cleansed.t_access_z309_tpdereadmeth i
+# MAGIC left join cleansed.access_z309_tpdereadmeth i
 # MAGIC on i.PDEReadingMethodCode = a.C_PDE_READ_METH
