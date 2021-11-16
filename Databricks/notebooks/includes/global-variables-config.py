@@ -17,5 +17,5 @@ ADS_BUSINESS_UNIT = "daf"
 # MAGIC val ADS_SUFFIX = "01"
 # MAGIC val ADS_BUSINESS_UNIT = "daf"
 
-# COMMAND ----------
+# COMMAND ----------.
 
