@@ -5,7 +5,9 @@ variables:
   - name: increment
     value: 01
   - name: subscription
-    value: swcnonprod01
+    value: swcprod01
+  - name: subscriptionId
+    value: 769a62b3-7481-44ae-878e-a466593f50ac
   # The default resource group region name
   - name: location
     value: australiaeast
@@ -14,16 +16,16 @@ variables:
     value: preprod
   # Resource group name
   - name: resourcegroupname
-    value: rg-swcnonprod01-daf-preprod-01
+    value: rg-swcprod01-preprod-daf-01
   # username for SQL Server Control DB
   - name: azuresqlserverun
     value: sqladmin
   # Name of the service connection in Azure Devops.
   - name: azdoresourceconnection
     value: azure-rg-preprod-serviceconnection
-  # The service principal object ID (Not App ID)... Use 'az ad sp show --id dbab60f5-44d5-450c-aef1-0b62b0790524 --query "objectId" -o tsv'
+  # The service principal object ID (Not App ID)... Use 'az ad sp show --id 3012901b-9b8c-4100-a6bf-a1a2ec010def --query "objectId" -o tsv'
   - name: spobjectid
-    value: 1ce42c3e-88e5-464a-b45e-efb2500856c2
+    value: 0024a5c0-6a2f-42ab-a872-6036bc8bb255
   # Store account type for BLOB Storage e.g. Standard_LRS)
   - name: storageAccountType
     value: Standard_LRS
@@ -31,19 +33,20 @@ variables:
   - name: applytags
     value: false
   - name: tags
-    value: CostCenter=DataAndAI \
-          Environment=NonProduction \
-          Owner=jackson.staub@insight.com
+    value: Environment=PREPROD
+
   # ------------------------------------------------
   # Vnet Related
   # -------------------------------------------------
   - name: vnetName
-    value: vnet-swcnonprod01-ae-01
+    value: vnet-swcprod01-ae-preprod-01
   - name: vnetid
-    value: /subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-network-01/providers/Microsoft.Network/virtualNetworks/vnet-swcnonprod01-ae-01
+    value: /subscriptions/$(subscriptionId)/resourceGroups/rg-swcprod01-preprod-network-01/providers/Microsoft.Network/virtualNetworks/vnet-swcprod01-ae-preprod-01
   - name: internalSubnetId
-    value: /subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-network-01/providers/Microsoft.Network/virtualNetworks/vnet-swcnonprod01-ae-01/subnets/snet-swcnonprod01-ae-01
-  # ------------------------------------------------
+    value: /subscriptions/$(subscriptionId)/resourceGroups/rg-swcprod01-preprod-network-01/providers/Microsoft.Network/virtualNetworks/vnet-swcprod01-ae-preprod-01/subnets/snet-swcprod01-ae-preprod-daf-01
+  - name: databricksPrivateSubnetId
+    value: /subscriptions/$(subscriptionId)/resourceGroups/rg-swcprod01-preprod-network-01/providers/Microsoft.Network/virtualNetworks/vnet-swcprod01-ae-preprod-01/subnets/snet-swcprod01-ae-preprod-daf-dbwprivate-01
+  # -------------------------------------------------
   # Service names for environment
   # -------------------------------------------------
   # Name of Azure SQL Server and EDW Database
@@ -53,17 +56,17 @@ variables:
     value: EDW
   # Name of key vault for this environment.
   - name: azurekeyvaultname
-    value: akv-$(PREFIX)-$(ENVIRONMENT)-$(INCREMENT)
+    value: kv-$(PREFIX)-$(ENVIRONMENT)-$(INCREMENT)
   # Setup secret rotation interval in days
   - name: secretrotationinterval 
     value: 30
   # Name of Log Analytics workspace name
   - name: loganalyticsworkspacename
-    value: logws-$(PREFIX)-$(ENVIRONMENT)
+    value: log-$(SUBSCRIPTION)-$(PREFIX)-$(ENVIRONMENT)
   - name: logstorageaccountname
-    value: salogs$(PREFIX)$(ENVIRONMENT)$(INCREMENT)
+    value: salogs$(SUBSCRIPTION)$(PREFIX)$(ENVIRONMENT)
   # Name of Azure SQL Server and catalog name
-  # Data Lake storage account names, commonly split.
+  # Data Lake storage account names, commonly split
   # into zones. Ensure it is a comma delimited list
   # as it is split into an array within the ARM 
   # template.
@@ -96,7 +99,9 @@ variables:
   - name: loganalyticssku
     value: PerGB2018
   - name: loganalyticsretention
-    value: 30  
+    value: 30 
+  - name: diagnosticSettingsWorkspaceID
+    value: /subscriptions/$(subscriptionId)/resourcegroups/$(resourcegroupname)/providers/microsoft.operationalinsights/workspaces/$(loganalyticsworkspacename)
   # ------------------------------------------------
   # Databricks related
   # ------------------------------------------------
@@ -107,15 +112,15 @@ variables:
   - name: databricks_base_url 
     value: #Get this after databricks environment has been deployed
   - name: vnetresourcegroupname
-    value: rg-swcnonprod01-network-01
+    value: rg-swcprod01-preprod-network-01
   - name: publicsubnetcidr
     value: 10.97.46.192/26
   - name: privatesubnetcidr
     value: 10.97.46.128/26
   - name: custompublicsubnetname
-    value: snet-swcnonprod01-ae-daf-preprod-dbwpublic-01
+    value: snet-$(SUBSCRIPTION)-ae-daf-$(environment)-dbwpublic-01
   - name: customprivatesubnetname
-    value: snet-swcnonprod01-ae-daf-preprod-dbwprivate-01
+    value: snet-$(SUBSCRIPTION)-ae-daf-$(environment)-dbwprivate-01
   - name: databrickspricingtier
     value: premium
   - name: databricksclustername
@@ -130,7 +135,6 @@ variables:
     value: 2
   - name: databricksautotermination
     value: 10
-
   # ------------------------------------------------
   # Synapse Analytics related
   # ------------------------------------------------
@@ -144,4 +148,54 @@ variables:
     value: sqladminuser
   - name: synapsesqlPoolName
     value: syndw$(ENVIRONMENT)$(INCREMENT)
-  #------------------------------------------------
+  - name: defaultAdlsGen2AccountResourceId
+    value: /subscriptions/$(subscriptionId)/resourcegroups/$(resourcegroupname)/providers/Microsoft.Storage/storageAccounts/$(defaultDataLakeStorageAccountName)
+  # ------------------------------------------------
+  # Azure VMs Common related
+  # ------------------------------------------------
+  - name: adminUsername
+    value: nt_sup
+  - name: publisher
+    value: MicrosoftWindowsServer
+  - name: offer
+    value: WindowsServer
+  - name: OSVersion
+    value: 2019-Datacenter
+  # ------------------------------------------------
+  # Azure Devops Self-hosted VM related
+  # ------------------------------------------------
+  - name: vmSizeDevops
+    value: Standard_D2as_v4
+  - name: vmNameDevops
+    value: ln097qdevops01
+  - name: publisherDevops
+    value: RedHat
+  - name: offerDevops
+    value: RHEL
+  - name: OSVersionDevops
+    value: 8.2
+  # ------------------------------------------------
+  # Azure Devops Self-hosted Win related
+  # ------------------------------------------------
+  - name: vmNameDevops2
+    value: nt097qdevops01
+  # ------------------------------------------------
+  # Azure IR Self-hosted VM related
+  # ------------------------------------------------
+  - name: vmSizeIR
+    value: Standard_D2as_v4
+  - name: vmNameIR
+    value: nt097qadf01
+  # ------------------------------------------------
+  # Azure SLT VM related
+  # ------------------------------------------------
+  - name: vmSizeSlt
+    value: Standard_D2ds_v4 #d type = more temp storage. optimal for tempdb
+  - name: vmNameSlt
+    value: nt097qsql01
+  - name: publisherSlt
+    value: MicrosoftSQLServer
+  - name: offerSlt
+    value: sql2019-ws2019
+  - name: OSVersionSlt
+    value: Standard
