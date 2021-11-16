@@ -176,47 +176,50 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT \
-	case when LAUFD = 'na' then to_date('1900-01-01') else to_date(LAUFD) end as dateId, \
-	case when LAUFI = 'na' then '' else LAUFI end as additionalIdentificationCharacteristic, \
-	case when GPART = 'na' then '' else GPART end as businessPartnerGroupNumber, \
-	case when VKONT = 'na' then '' else VKONT end as contractAccountNumber, \
-	case when MAZAE = 'na' then '' else MAZAE end as dunningNoticeCounter, \
-	to_date(AUSDT, 'yyyy-MM-dd') as dateOfIssue, \
-	to_date(MDRKD, 'yyyy-MM-dd') as noticeExecutionDate, \
-	VKONTGRP as contractAccountGroup, \
-	cast(ITEMGRP as dec(15,0)) as dunningClosedItemGroup, \
-	STRAT as collectionStrategyCode, \
-	STEP as collectionStepCode, \
-	STEP_LAST as collectionStepLastDunning, \
-	OPBUK as companyCodeGroup, \
-	STDBK as standardCompanyCode, \
-	SPART as divisionCode, \
-	VTREF as contractReferenceSpecification, \
-	VKNT1 as leadingContractAccount, \
-	ABWMA as alternativeDunningRecipient, \
-	MAHNS as dunningLevel, \
-	WAERS as currencyKey, \
-	cast(MSALM as dec(13,2)) as dunningBalance, \
-	cast(RSALM as dec(13,2)) as totalDuningReductions, \
-	CHGID as chargesSchedule, \
-	cast(MGE1M as dec(13,2)) as dunningCharge1, \
-	MG1BL as documentNumber, \
-	MG1TY as chargeType, \
-	cast(MGE2M as dec(13,2)) as dunningCharge2, \
-	cast(MGE3M as dec(13,2)) as dunningCharge3, \
-	cast(MINTM as dec(13,2)) as dunningInterest, \
-	MIBEL as interestPostingDocument, \
-	BONIT as creditWorthiness, \
-	XMSTO as noticeReversedIndicator, \
-	NRZAS as paymentFormNumber, \
-	XCOLL as submittedIndicator, \
-	STAKZ as statisticalItemType, \
-	cast(SUCPC as dec(5,0)) as successRate, \
-	_RecordStart, \
-	_RecordEnd, \
-	_RecordDeleted, \
-	_RecordCurrent \
-	FROM {ADS_DATABASE_STAGE}.{source_object}")
+                            case when LAUFD = 'na' then to_date('1900-01-01') else to_date(LAUFD) end as dateId, \
+                            case when LAUFI = 'na' then '' else LAUFI end as additionalIdentificationCharacteristic, \
+                            case when GPART = 'na' then '' else GPART end as businessPartnerGroupNumber, \
+                            case when VKONT = 'na' then '' else VKONT end as contractAccountNumber, \
+                            case when MAZAE = 'na' then '' else MAZAE end as dunningNoticeCounter, \
+                            ABWBL as ficaDocumentNumber, \
+                            ABWTP as ficaDocumentCategory, \
+                            GSBER as businessArea, \
+                            to_date(AUSDT, 'yyyy-MM-dd') as dateOfIssue, \
+                            to_date(MDRKD, 'yyyy-MM-dd') as noticeExecutionDate, \
+                            VKONTGRP as contractAccountGroup, \
+                            cast(ITEMGRP as dec(15,0)) as dunningClosedItemGroup, \
+                            STRAT as collectionStrategyCode, \
+                            STEP as collectionStepCode, \
+                            STEP_LAST as collectionStepLastDunning, \
+                            OPBUK as companyCodeGroup, \
+                            STDBK as standardCompanyCode, \
+                            SPART as divisionCode, \
+                            VTREF as contractReferenceSpecification, \
+                            VKNT1 as leadingContractAccount, \
+                            ABWMA as alternativeDunningRecipient, \
+                            MAHNS as dunningLevel, \
+                            WAERS as currencyKey, \
+                            cast(MSALM as dec(13,2)) as dunningBalance, \
+                            cast(RSALM as dec(13,2)) as totalDuningReductions, \
+                            CHGID as chargesSchedule, \
+                            cast(MGE1M as dec(13,2)) as dunningCharge1, \
+                            MG1BL as documentNumber, \
+                            MG1TY as chargeType, \
+                            cast(MGE2M as dec(13,2)) as dunningCharge2, \
+                            cast(MGE3M as dec(13,2)) as dunningCharge3, \
+                            cast(MINTM as dec(13,2)) as dunningInterest, \
+                            MIBEL as interestPostingDocument, \
+                            BONIT as creditWorthiness, \
+                            XMSTO as noticeReversedIndicator, \
+                            NRZAS as paymentFormNumber, \
+                            XCOLL as submittedIndicator, \
+                            STAKZ as statisticalItemType, \
+                            cast(SUCPC as dec(5,0)) as successRate, \
+                            _RecordStart, \
+                            _RecordEnd, \
+                            _RecordDeleted, \
+                            _RecordCurrent \
+                            FROM {ADS_DATABASE_STAGE}.{source_object}")
 
 display(df_cleansed)
 print(f'Number of rows: {df_cleansed.count()}')
@@ -224,47 +227,50 @@ print(f'Number of rows: {df_cleansed.count()}')
 # COMMAND ----------
 
 newSchema = StructType([
-	StructField('dateId',DateType(),True),
-	StructField('additionalIdentificationCharacteristic',StringType(),False),
-	StructField('businessPartnerGroupNumber',StringType(),False),
-	StructField('contractAccountNumber',StringType(),False),
-	StructField('dunningNoticeCounter',StringType(),False),
-	StructField('dateOfIssue',DateType(),True),
-	StructField('noticeExecutionDate',DateType(),True),
-	StructField('contractAccountGroup',StringType(),True),
-	StructField('dunningClosedItemGroup',DecimalType(15,0),True),
-	StructField('collectionStrategyCode',StringType(),True),
-	StructField('collectionStepCode',StringType(),True),
-	StructField('collectionStepLastDunning',StringType(),True),
-	StructField('companyCodeGroup',StringType(),True),
-	StructField('standardCompanyCode',StringType(),True),
-	StructField('divisionCode',StringType(),True),
-	StructField('contractReferenceSpecification',StringType(),True),
-	StructField('leadingContractAccount',StringType(),True),
-	StructField('alternativeDunningRecipient',StringType(),True),
-	StructField('dunningLevel',StringType(),True),
-	StructField('currencyKey',StringType(),True),
-	StructField('dunningBalance',DecimalType(13,2),True),
-	StructField('totalDuningReductions',DecimalType(13,2),True),
-	StructField('chargesSchedule',StringType(),True),
-	StructField('dunningCharge1',DecimalType(13,2),True),
-	StructField('documentNumber',StringType(),True),
-	StructField('chargeType',StringType(),True),
-	StructField('dunningCharge2',DecimalType(13,2),True),
-	StructField('dunningCharge3',DecimalType(13,2),True),
-	StructField('dunningInterest',DecimalType(13,2),True),
-	StructField('interestPostingDocument',StringType(),True),
-	StructField('creditWorthiness',StringType(),True),
-	StructField('noticeReversedIndicator',StringType(),True),
-	StructField('paymentFormNumber',StringType(),True),
-	StructField('submittedIndicator',StringType(),True),
-	StructField('statisticalItemType',StringType(),True),
-	StructField('successRate',DecimalType(5,0),True),
-	StructField('_RecordStart',TimestampType(),False),
-	StructField('_RecordEnd',TimestampType(),False),
-	StructField('_RecordDeleted',IntegerType(),False),
-	StructField('_RecordCurrent',IntegerType(),False)
-])
+                        StructField('dateId',DateType(),True),
+                        StructField('additionalIdentificationCharacteristic',StringType(),False),
+                        StructField('businessPartnerGroupNumber',StringType(),False),
+                        StructField('contractAccountNumber',StringType(),False),
+                        StructField('dunningNoticeCounter',StringType(),False),
+                        StructField('ficaDocumentNumber',StringType(),False),
+                        StructField('ficaDocumentCategory',StringType(),False),
+                        StructField('businessArea',StringType(),False),
+                        StructField('dateOfIssue',DateType(),True),
+                        StructField('noticeExecutionDate',DateType(),True),
+                        StructField('contractAccountGroup',StringType(),True),
+                        StructField('dunningClosedItemGroup',DecimalType(15,0),True),
+                        StructField('collectionStrategyCode',StringType(),True),
+                        StructField('collectionStepCode',StringType(),True),
+                        StructField('collectionStepLastDunning',StringType(),True),
+                        StructField('companyCodeGroup',StringType(),True),
+                        StructField('standardCompanyCode',StringType(),True),
+                        StructField('divisionCode',StringType(),True),
+                        StructField('contractReferenceSpecification',StringType(),True),
+                        StructField('leadingContractAccount',StringType(),True),
+                        StructField('alternativeDunningRecipient',StringType(),True),
+                        StructField('dunningLevel',StringType(),True),
+                        StructField('currencyKey',StringType(),True),
+                        StructField('dunningBalance',DecimalType(13,2),True),
+                        StructField('totalDuningReductions',DecimalType(13,2),True),
+                        StructField('chargesSchedule',StringType(),True),
+                        StructField('dunningCharge1',DecimalType(13,2),True),
+                        StructField('documentNumber',StringType(),True),
+                        StructField('chargeType',StringType(),True),
+                        StructField('dunningCharge2',DecimalType(13,2),True),
+                        StructField('dunningCharge3',DecimalType(13,2),True),
+                        StructField('dunningInterest',DecimalType(13,2),True),
+                        StructField('interestPostingDocument',StringType(),True),
+                        StructField('creditWorthiness',StringType(),True),
+                        StructField('noticeReversedIndicator',StringType(),True),
+                        StructField('paymentFormNumber',StringType(),True),
+                        StructField('submittedIndicator',StringType(),True),
+                        StructField('statisticalItemType',StringType(),True),
+                        StructField('successRate',DecimalType(5,0),True),
+                        StructField('_RecordStart',TimestampType(),False),
+                        StructField('_RecordEnd',TimestampType(),False),
+                        StructField('_RecordDeleted',IntegerType(),False),
+                        StructField('_RecordCurrent',IntegerType(),False)
+                      ])
 
 df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
 display(df_updated_column)
