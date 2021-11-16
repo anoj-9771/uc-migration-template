@@ -1,8 +1,6 @@
   jobs:
   - job: 'control_db'
-    pool:
-      demands: msbuild
-      vmImage: 'vs2017-win2016'
+    pool: Daf-Self-Hosted-Dev-Win
     steps:
     - task: MSBuild@1
       displayName: 'Build ControlDB'
@@ -10,5 +8,15 @@
       inputs:
         solution: ADS-Databases/CntrlDB/CntrlDB.sqlproj
 
-    - publish: ADS-Databases/CntrlDB/bin/Debug
-      artifact: sql_Controldb
+    # - publish: ADS-Databases/CntrlDB/bin/Debug
+    #   artifactType: filepath 
+    #   fileSharePath: \nt097qdevops01\shared
+    #   artifact: sql_Controldb
+
+    - task: PublishPipelineArtifact@1
+      inputs:
+        targetPath: ADS-Databases/CntrlDB/bin/Debug
+        artifactName: sql_Controldb
+        artifactType: 'filepath' 
+        fileSharePath: '\nt097qdevops01\shared'
+

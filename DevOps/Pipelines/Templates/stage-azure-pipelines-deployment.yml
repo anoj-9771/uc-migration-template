@@ -187,10 +187,18 @@ stages:
           defaultDataLakeStorageAccountName: ${{ variables.defaultDataLakeStorageAccountName }}
           defaultDataLakeStorageFilesystemName: ${{ variables.defaultDataLakeStorageFilesystemName }}
           synapsesqlPoolName: ${{ variables.synapsesqlPoolName }}
+          defaultAdlsGen2AccountResourceId: ${{ variables.defaultAdlsGen2AccountResourceId }}
 
     # Deploy Private Endpoints
     - ${{ if eq(variables['privateendpoints'], true) }}:
       - template: step-deploy-arm-private-endpoints.yml
+        parameters:
+          AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
+          resource_group: ${{ variables.resourcegroupname }}
+
+    # Deploy Azure Monitor Audit Settings
+    - ${{ if eq(variables['auditsettings'], true) }}:
+      - template: step-deploy-arm-audit-settings.yml
         parameters:
           AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
           resource_group: ${{ variables.resourcegroupname }}
@@ -213,7 +221,6 @@ stages:
     - template: job-deploy-controldb.yml
       parameters:
         AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
-
  
   
   

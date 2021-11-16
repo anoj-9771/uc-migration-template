@@ -5,9 +5,9 @@ variables:
   - name: increment
     value: 01
   - name: subscription
-    value: swcprod01
+    value: swcnonprod01
   - name: subscriptionId
-    value: 769a62b3-7481-44ae-878e-a466593f50ac
+    value: e59a4313-66c3-4db6-842d-6154c5e08205
   # The default resource group region name
   - name: location
     value: australiaeast
@@ -16,36 +16,40 @@ variables:
     value: preprod
   # Resource group name
   - name: resourcegroupname
-    value: rg-swcprod01-preprod-daf-01
+    value: rg-swcnonprod01-daf-preprod-01
   # username for SQL Server Control DB
   - name: azuresqlserverun
     value: sqladmin
   # Name of the service connection in Azure Devops.
   - name: azdoresourceconnection
     value: azure-rg-preprod-serviceconnection
-  # The service principal object ID (Not App ID)... Use 'az ad sp show --id 3012901b-9b8c-4100-a6bf-a1a2ec010def --query "objectId" -o tsv'
+  # The service principal object ID (Not App ID)... Use 'az ad sp show --id dbab60f5-44d5-450c-aef1-0b62b0790524 --query "objectId" -o tsv'
   - name: spobjectid
-    value: 0024a5c0-6a2f-42ab-a872-6036bc8bb255
+    value: 1ce42c3e-88e5-464a-b45e-efb2500856c2
   # Store account type for BLOB Storage e.g. Standard_LRS)
   - name: storageAccountType
     value: Standard_LRS
+  # Name of the service connection in Devops
+  - name: devops-service-connection
+    value: azure-rg-preprod-serviceconnection
   # Tagging.
   - name: applytags
     value: false
   - name: tags
-    value: Environment=PREPROD
-
+    value: CostCenter=DataAndAI \
+          Environment=NonProduction \
+          Owner=jackson.staub@insight.com
   # ------------------------------------------------
   # Vnet Related
   # -------------------------------------------------
   - name: vnetName
-    value: vnet-swcprod01-ae-preprod-01
+    value: vnet-swcnonprod01-ae-01
   - name: vnetid
-    value: /subscriptions/$(subscriptionId)/resourceGroups/rg-swcprod01-preprod-network-01/providers/Microsoft.Network/virtualNetworks/vnet-swcprod01-ae-preprod-01
+    value: /subscriptions/$(subscriptionId)/resourceGroups/rg-swcnonprod01-network-01/providers/Microsoft.Network/virtualNetworks/vnet-swcnonprod01-ae-01
   - name: internalSubnetId
-    value: /subscriptions/$(subscriptionId)/resourceGroups/rg-swcprod01-preprod-network-01/providers/Microsoft.Network/virtualNetworks/vnet-swcprod01-ae-preprod-01/subnets/snet-swcprod01-ae-preprod-daf-01
+    value: /subscriptions/$(subscriptionId)/resourceGroups/rg-swcnonprod01-network-01/providers/Microsoft.Network/virtualNetworks/vnet-swcnonprod01-ae-01/subnets/snet-swcnonprod01-ae-01
   - name: databricksPrivateSubnetId
-    value: /subscriptions/$(subscriptionId)/resourceGroups/rg-swcprod01-preprod-network-01/providers/Microsoft.Network/virtualNetworks/vnet-swcprod01-ae-preprod-01/subnets/snet-swcprod01-ae-preprod-daf-dbwprivate-01
+    value: /subscriptions/$(subscriptionId)/resourceGroups/rg-swcnonprod01-network-01/providers/Microsoft.Network/virtualNetworks/vnet-swcnonprod01-ae-01/subnets/snet-swcnonprod01-ae-daf-$(environment)-dbwprivate-01
   # -------------------------------------------------
   # Service names for environment
   # -------------------------------------------------
@@ -77,7 +81,7 @@ variables:
   # Container or file system names within storage account
   # Used to iterate in ARM template
   - name: logzonename
-    value: container1
+    value: daflogs
   - name: zonenames
     value: raw, cleansed, curated, datalab, synapsestaging
     # value: raw, stage, sandbox
@@ -109,18 +113,16 @@ variables:
     value: nsg-$(SUBSCRIPTION)-$(PREFIX)-$(ENVIRONMENT)-$(INCREMENT)
   - name: nsgid
     value: 
-  - name: databricks_base_url 
-    value: #Get this after databricks environment has been deployed
   - name: vnetresourcegroupname
-    value: rg-swcprod01-preprod-network-01
+    value: rg-swcnonprod01-network-01
   - name: publicsubnetcidr
     value: 10.97.46.192/26
   - name: privatesubnetcidr
     value: 10.97.46.128/26
   - name: custompublicsubnetname
-    value: snet-$(SUBSCRIPTION)-ae-daf-$(environment)-dbwpublic-01
+    value: snet-swcnonprod01-ae-daf-$(environment)-dbwpublic-01
   - name: customprivatesubnetname
-    value: snet-$(SUBSCRIPTION)-ae-daf-$(environment)-dbwprivate-01
+    value: snet-swcnonprod01-ae-daf-$(environment)-dbwprivate-01
   - name: databrickspricingtier
     value: premium
   - name: databricksclustername
@@ -154,7 +156,7 @@ variables:
   # Azure VMs Common related
   # ------------------------------------------------
   - name: adminUsername
-    value: nt_sup
+    value: azureadmin
   - name: publisher
     value: MicrosoftWindowsServer
   - name: offer
@@ -167,32 +169,27 @@ variables:
   - name: vmSizeDevops
     value: Standard_D2as_v4
   - name: vmNameDevops
-    value: ln097qdevops01
+    value: ln097ddevops02
   - name: publisherDevops
-    value: RedHat
+    value: canonical
   - name: offerDevops
-    value: RHEL
+    value: 0001-com-ubuntu-server-focal
   - name: OSVersionDevops
-    value: 8.2
-  # ------------------------------------------------
-  # Azure Devops Self-hosted Win related
-  # ------------------------------------------------
-  - name: vmNameDevops2
-    value: nt097qdevops01
+    value: 20_04-lts
   # ------------------------------------------------
   # Azure IR Self-hosted VM related
   # ------------------------------------------------
   - name: vmSizeIR
     value: Standard_D2as_v4
   - name: vmNameIR
-    value: nt097qadf01
+    value: nt097ddaf02
   # ------------------------------------------------
   # Azure SLT VM related
   # ------------------------------------------------
   - name: vmSizeSlt
-    value: Standard_D2ds_v4 #d type = more temp storage. optimal for tempdb
+    value: Standard_D2s_v4
   - name: vmNameSlt
-    value: nt097qsql01
+    value: nt097dslt01
   - name: publisherSlt
     value: MicrosoftSQLServer
   - name: offerSlt

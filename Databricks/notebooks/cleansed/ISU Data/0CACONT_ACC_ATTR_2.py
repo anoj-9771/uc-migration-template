@@ -184,13 +184,16 @@ df_cleansed = spark.sql(f"SELECT \
                             LOEVM as deletedIndicator, \
                             APPLK as applicationArea, \
                             VKTYP as contractAccountCategoryCode, \
-                            TEXT as contractAccountCategory, \
+                            ty.contractAccountCategory as contractAccountCategory, \
                             VKONA as legacyContractAccountNumber, \
-                            _RecordStart, \
-                            _RecordEnd, \
-                            _RecordDeleted, \
-                            _RecordCurrent \
-                          FROM {ADS_DATABASE_STAGE}.{source_object}")
+                            con._RecordStart, \
+                            con._RecordEnd, \
+                            con._RecordDeleted, \
+                            con._RecordCurrent \
+                          FROM {ADS_DATABASE_STAGE}.{source_object} con \
+                          LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UC_VKTYP_TEXT ty ON con.VKTYP = ty.contractAccountCategoryCode and  con.APPLK = ty.applicationArea\
+                                                                                                    and ty._RecordDeleted = 0 and ty._RecordCurrent = 1")
+
 
 display(df_cleansed)
 print(f'Number of rows: {df_cleansed.count()}')
