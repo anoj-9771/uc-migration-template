@@ -1,9 +1,9 @@
 # Databricks notebook source
 # DBTITLE 1,[Config] Connection Setup
-storage_account_name = "sadaftest01"
-storage_account_access_key = dbutils.secrets.get(scope="Test-Access",key="test-datalake-key")
-container_name = "raw"
-file_location = "wasbs://raw@sadaftest01.blob.core.windows.net/landing/accessarchive/Z309_TPROPMETER.csv"
+storage_account_name = "sablobdaftest01"
+storage_account_access_key = dbutils.secrets.get(scope="TestScope",key="test-sablob-key")
+container_name = "accessdata"
+file_location = "wasbs://accessdata@sablobdaftest01.blob.core.windows.net/Z309_TPROPMETER.csv"
 file_type = "csv"
 print(storage_account_name)
 
@@ -17,7 +17,7 @@ spark.conf.set(
 # COMMAND ----------
 
 # DBTITLE 1,[Source] loading to a dataframe
- df = spark.read.format("csv").option('delimiter','|').option('header','true').load("wasbs://raw@sadaftest01.blob.core.windows.net/landing/accessarchive/Z309_TPROPMETER.csv")
+ df = spark.read.format("csv").option('delimiter','|').option('header','true').load("wasbs://accessdata@sablobdaftest01.blob.core.windows.net/Z309_TPROPMETER.csv")
 
 # COMMAND ----------
 
@@ -29,7 +29,7 @@ df.createOrReplaceTempView("Source")
 
 # COMMAND ----------
 
-cleansedf = spark.sql("select * from cleansed.t_access_z309_tpropmeter")
+cleansedf = spark.sql("select * from cleansed.access_z309_tpropmeter")
 
 # COMMAND ----------
 
@@ -86,13 +86,13 @@ cleansedf.createOrReplaceTempView("Target")
 # MAGIC case when D_METE_REMO <> 'null' then CONCAT(LEFT(D_METE_REMO,4),'-',SUBSTRING(D_METE_REMO,5,2),'-',RIGHT(D_METE_REMO,2)) else D_METE_REMO end as meterRemovedDate,
 # MAGIC case when D_PROP_METE_UPDA <> 'null' then CONCAT(LEFT(D_PROP_METE_UPDA,4),'-',SUBSTRING(D_PROP_METE_UPDA,5,2),'-',RIGHT(D_PROP_METE_UPDA,2)) else D_PROP_METE_UPDA end as propertyMeterUpdatedDate
 # MAGIC from source a
-# MAGIC left join cleansed.t_access_z309_tmetertype b
+# MAGIC left join cleansed.access_z309_tmetertype b
 # MAGIC on a.C_METE_TYPE = b.metertypecode
-# MAGIC left join cleansed.t_access_z309_tmeterclass c
+# MAGIC left join cleansed.access_z309_tmeterclass c
 # MAGIC on a.c_mete_clas = c.meterClassCode 
-# MAGIC left join cleansed.t_access_z309_tmetercategory d
+# MAGIC left join cleansed.access_z309_tmetercategory d
 # MAGIC on d.metercategorycode = a.c_mete_cate
-# MAGIC left join cleansed.t_access_z309_tmeterGroup e
+# MAGIC left join cleansed.access_z309_tmeterGroup e
 # MAGIC on e.metergroupcode = a.c_mete_grou
 # MAGIC where N_PROP = '5789968'
 # MAGIC 
@@ -106,20 +106,20 @@ cleansedf.createOrReplaceTempView("Target")
 # MAGIC %sql
 # MAGIC select 
 # MAGIC *
-# MAGIC from cleansed.t_access_z309_tpropmeter where propertyNumber = '5789968'
+# MAGIC from cleansed.access_z309_tpropmeter where propertyNumber = '5789968'
 
 # COMMAND ----------
 
 # MAGIC %sql
 # MAGIC select * from 
-# MAGIC cleansed.t_access_z309_tmeterGroup
+# MAGIC cleansed.access_z309_tmeterGroup
 
 # COMMAND ----------
 
 # DBTITLE 1,[Verification]Duplicate checks
 # MAGIC %sql
 # MAGIC SELECT propertyNumber,propertyMeterNumber, COUNT (*) as count
-# MAGIC FROM cleansed.t_access_z309_tpropmeter
+# MAGIC FROM cleansed.access_z309_tpropmeter
 # MAGIC GROUP BY propertyNumber, propertyMeterNumber
 # MAGIC HAVING COUNT (*) > 1
 
@@ -127,7 +127,7 @@ cleansedf.createOrReplaceTempView("Target")
 
 # DBTITLE 1,[Verification] Records count check
 # MAGIC %sql
-# MAGIC select count (*) as RecordCount, 'Target' as TableName from cleansed.t_access_z309_tpropmeter
+# MAGIC select count (*) as RecordCount, 'Target' as TableName from cleansed.access_z309_tpropmeter
 # MAGIC union all
 # MAGIC select count (*) as RecordCount, 'Source' as TableName from Source
 
@@ -171,13 +171,13 @@ cleansedf.createOrReplaceTempView("Target")
 # MAGIC case when D_METE_REMO <> 'null' then CONCAT(LEFT(D_METE_REMO,4),'-',SUBSTRING(D_METE_REMO,5,2),'-',RIGHT(D_METE_REMO,2)) else D_METE_REMO end as meterRemovedDate,
 # MAGIC case when D_PROP_METE_UPDA <> 'null' then CONCAT(LEFT(D_PROP_METE_UPDA,4),'-',SUBSTRING(D_PROP_METE_UPDA,5,2),'-',RIGHT(D_PROP_METE_UPDA,2)) else D_PROP_METE_UPDA end as propertyMeterUpdatedDate
 # MAGIC from source a
-# MAGIC left join cleansed.t_access_z309_tmetertype b
+# MAGIC left join cleansed.access_z309_tmetertype b
 # MAGIC on a.C_METE_TYPE = b.metertypecode
-# MAGIC left join cleansed.t_access_z309_tmeterclass c
+# MAGIC left join cleansed.access_z309_tmeterclass c
 # MAGIC on a.c_mete_clas = c.meterClassCode 
-# MAGIC left join cleansed.t_access_z309_tmetercategory d
+# MAGIC left join cleansed.access_z309_tmetercategory d
 # MAGIC on d.metercategorycode = a.c_mete_cate
-# MAGIC left join cleansed.t_access_z309_tmeterGroup e
+# MAGIC left join cleansed.access_z309_tmeterGroup e
 # MAGIC on e.metergroupcode = a.c_mete_grou
 # MAGIC 
 # MAGIC except
@@ -214,7 +214,7 @@ cleansedf.createOrReplaceTempView("Target")
 # MAGIC ,meterChangeAdviceNumber
 # MAGIC ,meterRemovedDate
 # MAGIC ,propertyMeterUpdatedDate
-# MAGIC from cleansed.t_access_z309_tpropmeter
+# MAGIC from cleansed.access_z309_tpropmeter
 
 # COMMAND ----------
 
@@ -253,7 +253,7 @@ cleansedf.createOrReplaceTempView("Target")
 # MAGIC ,meterChangeAdviceNumber
 # MAGIC ,meterRemovedDate
 # MAGIC ,propertyMeterUpdatedDate
-# MAGIC from cleansed.t_access_z309_tpropmeter
+# MAGIC from cleansed.access_z309_tpropmeter
 # MAGIC except
 # MAGIC select
 # MAGIC N_PROP as propertyNumber,
@@ -291,11 +291,11 @@ cleansedf.createOrReplaceTempView("Target")
 # MAGIC case when D_METE_REMO <> 'null' then CONCAT(LEFT(D_METE_REMO,4),'-',SUBSTRING(D_METE_REMO,5,2),'-',RIGHT(D_METE_REMO,2)) else D_METE_REMO end as meterRemovedDate,
 # MAGIC case when D_PROP_METE_UPDA <> 'null' then CONCAT(LEFT(D_PROP_METE_UPDA,4),'-',SUBSTRING(D_PROP_METE_UPDA,5,2),'-',RIGHT(D_PROP_METE_UPDA,2)) else D_PROP_METE_UPDA end as propertyMeterUpdatedDate
 # MAGIC from source a
-# MAGIC left join cleansed.t_access_z309_tmetertype b
+# MAGIC left join cleansed.access_z309_tmetertype b
 # MAGIC on a.C_METE_TYPE = b.metertypecode
-# MAGIC left join cleansed.t_access_z309_tmeterclass c
+# MAGIC left join cleansed.access_z309_tmeterclass c
 # MAGIC on a.c_mete_clas = c.meterClassCode 
-# MAGIC left join cleansed.t_access_z309_tmetercategory d
+# MAGIC left join cleansed.access_z309_tmetercategory d
 # MAGIC on d.metercategorycode = a.c_mete_cate
-# MAGIC left join cleansed.t_access_z309_tmeterGroup e
+# MAGIC left join cleansed.access_z309_tmeterGroup e
 # MAGIC on e.metergroupcode = a.c_mete_grou

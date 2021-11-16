@@ -191,9 +191,8 @@ print(f'Number of rows: {df_cleansed.count()}')
 # COMMAND ----------
 
 newSchema = StructType([
-	StructField('applicationArea',StringType(),False),
-	StructField('documentTypeCode',StringType(),False),
-    StructField('documentType',StringType(),True),
+	StructField('divisionCode',StringType(),False),
+	StructField('division',StringType(),True),
 	StructField('_RecordStart',TimestampType(),False),
 	StructField('_RecordEnd',TimestampType(),False),
 	StructField('_RecordDeleted',IntegerType(),False),
@@ -201,6 +200,7 @@ newSchema = StructType([
 ])
 
 df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
+
 
 # COMMAND ----------
 
