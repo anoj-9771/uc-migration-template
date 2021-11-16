@@ -17,39 +17,20 @@
         "keyVaultName": {
             "type": "string"
         },
-        "synapseWorkspaceName": {
-            "type": "string"
-        },
         "subnetId": {
             "type": "string"
-        },
-        "location": {
-            "type": "string",
-            "defaultValue": "Australia East",
-            "allowedValues": [
-                "Australia East",
-                "Australia Southeast",
-                "australiaeast",
-                "australiasoutheast"
-            ],
-            "metadata": {
-                "description": "Specifies the location for the resource"
-            }
         }
-    },
-    "variables": {
-        "synapsePrivateLinkName": "[concat('ph', toLower(replace(parameters('synapseWorkspaceName'),'-','')))]"
     },
     "resources": [
         {
             "apiVersion": "2019-04-01",
-            "name": "[concat('pe-dfs-', parameters('dataLakeName'))]",
+            "name": "[concat(parameters('dataLakeName'), '-pe')]",
             "type": "Microsoft.Network/privateEndpoints",
-            "location": "[parameters('location')]",
+            "location": "[resourceGroup().Location]",
             "properties": {
                 "privateLinkServiceConnections": [
                     {
-                        "name": "[concat('pe-dfs-conn-', parameters('dataLakeName'))]",
+                        "name": "[concat(parameters('dataLakeName'), '-pe-conn')]",
                         "properties": {
                             "privateLinkServiceId": "[resourceId('Microsoft.Storage/storageAccounts', parameters('dataLakeName'))]",
                             "groupIds": ["dfs"]
@@ -64,34 +45,13 @@
         },
         {
             "apiVersion": "2019-04-01",
-            "name": "[concat('pe-blob-', parameters('dataLakeName'))]",
+            "name": "[concat(parameters('blobStorageName'), '-pe')]",
             "type": "Microsoft.Network/privateEndpoints",
-            "location": "[parameters('location')]",
+            "location": "[resourceGroup().Location]",
             "properties": {
                 "privateLinkServiceConnections": [
                     {
-                        "name": "[concat('pe-dfs-conn-', parameters('dataLakeName'))]",
-                        "properties": {
-                            "privateLinkServiceId": "[resourceId('Microsoft.Storage/storageAccounts', parameters('dataLakeName'))]",
-                            "groupIds": ["blob"]
-                        }
-                    }
-                ],
-                "manualPrivateLinkServiceConnections": [],
-                "subnet": {
-                    "id": "[parameters('subnetId')]"
-                }
-            }
-        },
-        {
-            "apiVersion": "2019-04-01",
-            "name": "[concat('pe-blob-', parameters('blobStorageName'))]",
-            "type": "Microsoft.Network/privateEndpoints",
-            "location": "[parameters('location')]",
-            "properties": {
-                "privateLinkServiceConnections": [
-                    {
-                        "name": "[concat('pe-conn-', parameters('blobStorageName'))]",
+                        "name": "[concat(parameters('blobStorageName'), '-pe-conn')]",
                         "properties": {
                             "privateLinkServiceId": "[resourceId('Microsoft.Storage/storageAccounts', parameters('blobStorageName'))]",
                             "groupIds": ["blob"]
@@ -106,13 +66,13 @@
         },
         {
             "apiVersion": "2019-04-01",
-            "name": "[concat('pe-sqlserver-', parameters('sqlServerName'))]",
+            "name": "[concat(parameters('sqlServerName'), '-pe')]",
             "type": "Microsoft.Network/privateEndpoints",
-            "location": "[parameters('location')]",
+            "location": "[resourceGroup().Location]",
             "properties": {
                 "privateLinkServiceConnections": [
                     {
-                        "name": "[concat('pe-conn-', parameters('sqlServerName'))]",
+                        "name": "[concat(parameters('sqlServerName'), '-pe-conn')]",
                         "properties": {
                             "privateLinkServiceId": "[resourceId('Microsoft.Sql/servers', parameters('sqlServerName'))]",
                             "groupIds": ["sqlServer"]
@@ -127,13 +87,13 @@
         },
         {
             "apiVersion": "2019-04-01",
-            "name": "[concat('pe-datafactory-', parameters('dataFactoryName'))]",
+            "name": "[concat(parameters('dataFactoryName'), '-pe')]",
             "type": "Microsoft.Network/privateEndpoints",
-            "location": "[parameters('location')]",
+            "location": "[resourceGroup().Location]",
             "properties": {
                 "privateLinkServiceConnections": [
                     {
-                        "name": "[concat('pe-conn-', parameters('dataFactoryName'))]",
+                        "name": "[concat(parameters('dataFactoryName'), '-pe-conn')]",
                         "properties": {
                             "privateLinkServiceId": "[resourceId('Microsoft.DataFactory/factories', parameters('dataFactoryName'))]",
                             "groupIds": ["dataFactory"]
@@ -148,79 +108,16 @@
         },
         {
             "apiVersion": "2019-04-01",
-            "name": "[concat('pe-vault-', parameters('keyVaultName'))]",
+            "name": "[concat(parameters('keyVaultName'), '-pe')]",
             "type": "Microsoft.Network/privateEndpoints",
-            "location": "[parameters('location')]",
+            "location": "[resourceGroup().Location]",
             "properties": {
                 "privateLinkServiceConnections": [
                     {
-                        "name": "[concat('pe-conn-', parameters('keyVaultName'))]",
+                        "name": "[concat(parameters('keyVaultName'), '-pe-conn')]",
                         "properties": {
                             "privateLinkServiceId": "[resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName'))]",
                             "groupIds": ["vault"]
-                        }
-                    }
-                ],
-                "manualPrivateLinkServiceConnections": [],
-                "subnet": {
-                    "id": "[parameters('subnetId')]"
-                }
-            }
-        },
-        {
-            "apiVersion": "2019-04-01",
-            "name": "[concat('pe-sql-', parameters('synapseWorkspaceName'))]",
-            "type": "Microsoft.Network/privateEndpoints",
-            "location": "[parameters('location')]",
-            "properties": {
-                "privateLinkServiceConnections": [
-                    {
-                        "name": "[concat('pe-sql-conn-', parameters('synapseWorkspaceName'))]",
-                        "properties": {
-                            "privateLinkServiceId": "[resourceId('Microsoft.Synapse/workspaces', parameters('synapseWorkspaceName'))]",
-                            "groupIds": ["sql"]
-                        }
-                    }
-                ],
-                "manualPrivateLinkServiceConnections": [],
-                "subnet": {
-                    "id": "[parameters('subnetId')]"
-                }
-            }
-        },
-        {
-            "apiVersion": "2019-04-01",
-            "name": "[concat('pe-sqlondemand-', parameters('synapseWorkspaceName'))]",
-            "type": "Microsoft.Network/privateEndpoints",
-            "location": "[parameters('location')]",
-            "properties": {
-                "privateLinkServiceConnections": [
-                    {
-                        "name": "[concat('pe-sqlondemand-conn-', parameters('synapseWorkspaceName'))]",
-                        "properties": {
-                            "privateLinkServiceId": "[resourceId('Microsoft.Synapse/workspaces', parameters('synapseWorkspaceName'))]",
-                            "groupIds": ["sqlondemand"]
-                        }
-                    }
-                ],
-                "manualPrivateLinkServiceConnections": [],
-                "subnet": {
-                    "id": "[parameters('subnetId')]"
-                }
-            }
-        },
-        {
-            "apiVersion": "2019-04-01",
-            "name": "[concat('pe-dev-', parameters('synapseWorkspaceName'))]",
-            "type": "Microsoft.Network/privateEndpoints",
-            "location": "[parameters('location')]",
-            "properties": {
-                "privateLinkServiceConnections": [
-                    {
-                        "name": "[concat('pe-dev-conn-', parameters('synapseWorkspaceName'))]",
-                        "properties": {
-                            "privateLinkServiceId": "[resourceId('Microsoft.Synapse/workspaces', parameters('synapseWorkspaceName'))]",
-                            "groupIds": ["dev"]
                         }
                     }
                 ],

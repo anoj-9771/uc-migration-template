@@ -174,10 +174,10 @@ DeltaSaveToDeltaTable (
 # COMMAND ----------
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
-#Update/rename Column
+{ADS_DATABASE_CLEANSED}#Update/rename Column
 df_cleansed = spark.sql(f"SELECT \
                                   case when EQUI.EQUNR = 'na' then '' else EQUI.EQUNR end as equipmentNumber,\
-                                  case when EQUI.DATETO = 'na' then to_date('1900-01-01', 'yyyy-MM-dd') else to_date(EQUI.DATETO, 'yyyy-MM-dd') end as validToDate,\
+                                  to_date(EQUI.DATETO, 'yyyy-MM-dd') as validToDate,\
                                   case when EQUI.DATEFROM < '1900-01-01' then to_date('1900-01-01', 'yyyy-MM-dd') else to_date(EQUI.DATEFROM, 'yyyy-MM-dd') end as validFromDate,\
                                   EQUI.EQART as technicalObjectTypeCode,\
                                   EQUI.INVNR as inventoryNumber,\
@@ -200,7 +200,7 @@ df_cleansed = spark.sql(f"SELECT \
                                   EQUI._RecordEnd,\
                                   EQUI._RecordDeleted,\
                                   EQUI._RecordCurrent \
-                                FROM {ADS_DATABASE_STAGE}.{source_object} EQUI \
+                                FROM {ADS_DATABASE_STAGE}.{source_object} \
                                 LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0COMP_CODE_TEXT COMP ON EQUI.BUKRS = COMP.companyCode \
                                                                                                     and COMP._RecordDeleted = 0 and COMP._RecordCurrent = 1")
 display(df_cleansed)

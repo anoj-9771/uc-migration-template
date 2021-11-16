@@ -176,59 +176,58 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT \
-                                GPART as businessPartnerGroupNumber, \
-                                VKONT as contractAccountNumber, \
-                                ABSANFAB as budgetBillingRequestForDebtor, \
-                                ABSANFBZ as budgetBillingRequestForCashPayer, \
-                                KEINZAHL as noPaymentFormIndicator, \
-                                EINZUGSZ as numberOfSuccessfulDirectDebits, \
-                                RUECKLZ as numberOfDirectDebitReturns, \
-                                MAHNUNG_Z as sendAdditionalDunningNoticeIndicator, \
-                                RECHNUNG_Z as sendAdditionalBillIndicator, \
-                                FORMKEY as applicationForm, \
-                                AUSGRUP_IN as outsortingCheckGroupCode, \
-                                OUTCOUNT as manualOutsortingCount, \
-                                MANOUTS_IN as manualOutsortingReasonCode, \
-                                SENDCONTROL_MA as shippingControlForAlternativeDunningRecipient, \
-                                SENDCONTROL_RH as dispatchControlForAlternativeBillRecipient, \
-                                SENDCONTROL_GP as dispatchControl, \
-                                KZABSVER as billingProcedureActivationIndicator, \
-                                JVLTE as participationInYearlyAdvancePayment, \
-                                to_date(ERDAT, 'yyyy-MM-dd') as createdDate, \
-                                ERNAM as createdBy, \
-                                to_date(AEDATP, 'yyyy-MM-dd') as lastChangedDate, \
-                                AENAMP as changedBy, \
-                                FDZTG as additionalDaysForCashManagement, \
-                                GUID as headerUUID, \
-                                cast(DDLAM as dec(13,0)) as directDebitLimit, \
-                                DDLNM as numberOfMonthsForDirectDebitLimit, \
-                                EXVKO as businessPartnerReferenceNumber, \
-                                OPBUK as companyCodeGroup, \
-                                STDBK as standardCompanyCode, \
-                                ABWMA as alternativeDunningRecipient, \
-                                EBVTY as bankDetailsId, \
-                                EZAWE as incomingPaymentMethodCode, \
-                                LOEVM as deletedIndicator, \
-                                ABWVK as alternativeContractAccountForCollectiveBills, \
-                                VKPBZ as accountRelationshipCode, \
-                                acc_txt.accountRelationship as accountRelationship, \
-                                ADRNB as addressNumber, \
-                                ADRMA as addressNumberForAlternativeDunningRecipient, \
-                                ABWRH as alternativeInvoiceRecipient, \
-                                ADRRH as addressNumberForAlternativeBillRecipient, \
-                                TOGRU as toleranceGroupCode, \
-                                CCARD_ID as paymentCardId, \
-                                VERTYP as clearingCategory, \
-                                CMGRP as collectionManagementMasterDataGroup, \
-                                STRAT as collectionStrategyCode, \
-                                ZAHLKOND as paymentCondition, \
-                                KOFIZ_SD as accountDeterminationId, \
-                                acc._RecordStart, \
-                                acc._RecordEnd, \
-                                acc._RecordDeleted, \
-                                acc._RecordCurrent \
-                        FROM {ADS_DATABASE_STAGE}.{source_object} acc \
-                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0FC_ACCTREL_TEXT acc_txt ON acc.VKPBZ = acc_txt.accountRelationshipCode and acc_txt._RecordDeleted = 0 and acc_txt._RecordCurrent = 1")
+	GPART as businessPartnerGroupNumber, \
+	VKONT as contractAccountNumber, \
+	ABSANFAB as budgetBillingRequestForDebtor, \
+	ABSANFBZ as budgetBillingRequestForCashPayer, \
+	KEINZAHL as noPaymentFormIndicator, \
+	EINZUGSZ as numberOfSuccessfulDirectDebits, \
+	RUECKLZ as numberOfDirectDebitReturns, \
+	MAHNUNG_Z as sendAdditionalDunningNoticeIndicator, \
+	RECHNUNG_Z as sendAdditionalBillIndicator, \
+	FORMKEY as applicationForm, \
+	AUSGRUP_IN as outsortingCheckGroupCode, \
+	OUTCOUNT as manualOutsortingCount, \
+	MANOUTS_IN as manualOutsortingReasonCode, \
+	SENDCONTROL_MA as shippingControlForAlternativeDunningRecipient, \
+	SENDCONTROL_RH as dispatchControlForAlternativeBillRecipient, \
+	SENDCONTROL_GP as dispatchControl, \
+	KZABSVER as billingProcedureActivationIndicator, \
+	JVLTE as participationInYearlyAdvancePayment, \
+	to_date(ERDAT, 'yyyy-MM-dd') as createdDate, \
+	ERNAM as createdBy, \
+	to_date(AEDATP, 'yyyy-MM-dd') as lastChangedDate, \
+	AENAMP as changedBy, \
+	FDZTG as additionalDaysForCashManagement, \
+	GUID as headerUUID, \
+	cast(DDLAM as dec(13,0)) as directDebitLimit, \
+	DDLNM as numberOfMonthsForDirectDebitLimit, \
+	EXVKO as businessPartnerReferenceNumber, \
+	OPBUK as companyCodeGroup, \
+	STDBK as standardCompanyCode, \
+	ABWMA as alternativeDunningRecipient, \
+	EBVTY as bankDetailsId, \
+	EZAWE as incomingPaymentMethodCode, \
+	LOEVM as deletedIndicator, \
+	ABWVK as alternativeContractAccountForCollectiveBills, \
+	VKPBZ as accountRelationshipCode, \
+	TXTSH as accountRelationship, \
+	ADRNB as addressNumber, \
+	ADRMA as addressNumberForAlternativeDunningRecipient, \
+	ABWRH as alternativeInvoiceRecipient, \
+	ADRRH as addressNumberForAlternativeBillRecipient, \
+	TOGRU as toleranceGroupCode, \
+	CCARD_ID as paymentCardId, \
+	VERTYP as clearingCategory, \
+	CMGRP as collectionManagementMasterDataGroup, \
+	STRAT as collectionStrategyCode, \
+	ZAHLKOND as paymentCondition, \
+	KOFIZ_SD as accountDeterminationId, \
+	_RecordStart, \
+	_RecordEnd, \
+	_RecordDeleted, \
+	_RecordCurrent \
+	FROM {ADS_DATABASE_STAGE}.{source_object}")
 
 display(df_cleansed)
 print(f'Number of rows: {df_cleansed.count()}')

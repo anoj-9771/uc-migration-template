@@ -1,6 +1,6 @@
 # ---------------------------------------------------------------------------
 # This template is called by databricks-deploy-pipeline-cicd.yml
-# for each deployment stage..
+# for each deployment stage.
 
 parameters:
 - name: dependencies
