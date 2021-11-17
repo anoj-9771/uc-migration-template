@@ -181,6 +181,9 @@ df_cleansed = spark.sql(f"SELECT \
 	case when GPART = 'na' then '' else GPART end as businessPartnerGroupNumber, \
 	case when VKONT = 'na' then '' else VKONT end as contractAccountNumber, \
 	case when MAZAE = 'na' then '' else MAZAE end as dunningNoticeCounter, \
+    ABWBL as ficaDocumentNumber, \
+    ABWTP as ficaDocumentCategory, \
+    GSBER as businessArea, \
 	to_date(AUSDT, 'yyyy-MM-dd') as dateOfIssue, \
 	to_date(MDRKD, 'yyyy-MM-dd') as noticeExecutionDate, \
 	VKONTGRP as contractAccountGroup, \
@@ -229,6 +232,9 @@ newSchema = StructType([
 	StructField('businessPartnerGroupNumber',StringType(),False),
 	StructField('contractAccountNumber',StringType(),False),
 	StructField('dunningNoticeCounter',StringType(),False),
+    StructField('ficaDocumentNumber',StringType(),False),
+    StructField('ficaDocumentCategory',StringType(),False),
+    StructField('businessArea',StringType(),False),
 	StructField('dateOfIssue',DateType(),True),
 	StructField('noticeExecutionDate',DateType(),True),
 	StructField('contractAccountGroup',StringType(),True),
