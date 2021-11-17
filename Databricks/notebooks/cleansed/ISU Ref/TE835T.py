@@ -175,18 +175,15 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_cleansed = spark.sql(f"SELECT \
-                            case when HAUS = 'na' then '' else HAUS end as propertyNumber, \
-                            COUNC as countryCode, \
-                            REGIOGROUP as regionalStructureGrouping, \
-                            REGPOLIT as politicalRegionCode, \
-                            REGIOGROUP_PERM as permitRegionalStructureGrouping, \
-                            CRM_GUID as crmConnectionObjectGuid, \
-                            _RecordStart, \
-                            _RecordEnd, \
-                            _RecordDeleted, \
-                            _RecordCurrent \
-                          FROM {ADS_DATABASE_STAGE}.{source_object}")
+
+df_cleansed = spark.sql(f"SELECT  \
+                                  case when BELZART = 'na' then '' else BELZART end as lineItemTypeCode , \
+                                  TEXT30 as lineItemType , \
+                                  _RecordStart, \
+                                  _RecordEnd, \
+                                  _RecordDeleted, \
+                                  _RecordCurrent \
+                              FROM {ADS_DATABASE_STAGE}.{source_object}")
 
 display(df_cleansed)
 print(f'Number of rows: {df_cleansed.count()}')
@@ -194,21 +191,19 @@ print(f'Number of rows: {df_cleansed.count()}')
 # COMMAND ----------
 
 # Create schema for the cleanse table
-newSchema = StructType([
-                        StructField("propertyNumber", StringType(), False),
-                        StructField("countryCode", StringType(), True),
-                        StructField("regionalStructureGrouping", StringType(), True),
-                        StructField("politicalRegionCode", StringType(), True),
-                        StructField("permitRegionalStructureGrouping", StringType(), True),
-                        StructField("crmConnectionObjectGuid", StringType(), True),
-                        StructField('_RecordStart',TimestampType(),False),
-                        StructField('_RecordEnd',TimestampType(),False),
-                        StructField('_RecordDeleted',IntegerType(),False),
-                        StructField('_RecordCurrent',IntegerType(),False)
-                      ])
-
+newSchema = StructType(
+                            [
+                            StructField("lineItemTypeCode", StringType(), False),
+                            StructField("lineItemType", StringType(), True),
+                            StructField('_RecordStart',TimestampType(),False),
+                            StructField('_RecordEnd',TimestampType(),False),
+                            StructField('_RecordDeleted',IntegerType(),False),
+                            StructField('_RecordCurrent',IntegerType(),False)
+                            ]
+                        )
 # Apply the new schema to cleanse Data Frame
 df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
+display(df_updated_column)
 
 # COMMAND ----------
 
