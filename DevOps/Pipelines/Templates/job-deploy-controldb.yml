@@ -11,10 +11,10 @@ jobs:
   # - download: current
   #   artifact: sql_Controldb
 
-  # - task: DownloadFileshareArtifacts@1
-  #   inputs:
-  #     artifactName: sql_Controldb
-  #     fileSharePath: '\nt097qdevops01\shared'
+  - task: DownloadFileshareArtifacts@1
+    inputs:
+      artifactName: sql_Controldb
+      fileSharePath: '\nt097qdevops01\shared'
 
   - task: AzureKeyVault@1
     displayName: 'Get Secrets'
