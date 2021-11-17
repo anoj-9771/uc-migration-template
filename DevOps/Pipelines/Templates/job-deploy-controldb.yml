@@ -16,10 +16,10 @@ jobs:
       artifactName: sql_Controldb
       fileSharePath: '\nt097qdevops01\shared'
 
-  - task: AzureKeyVault@1
+  - task: AzureKeyVault@2
     displayName: 'Get Secrets'
     inputs:
-      azureSubscription: ${{ parameters.AzDoServiceConnection }}
+      connectedServiceName: ${{ parameters.AzDoServiceConnection }}
       keyVaultName: $(AZUREKEYVAULTNAME)
       secretsFilter: 'AzureSQLServerPw'
 
