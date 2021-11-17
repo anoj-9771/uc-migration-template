@@ -2,16 +2,12 @@
   - job: 'control_db'
     pool: Daf-Self-Hosted-Preprod-Win
     steps:
+
     - task: MSBuild@1
       displayName: 'Build ControlDB'
       continueOnError: 'true'
       inputs:
         solution: ADS-Databases/CntrlDB/CntrlDB.sqlproj
-
-    # - publish: ADS-Databases/CntrlDB/bin/Debug
-    #   artifactType: filepath 
-    #   fileSharePath: \nt097qdevops01\shared
-    #   artifact: sql_Controldb
 
     - task: PublishPipelineArtifact@1
       inputs:
