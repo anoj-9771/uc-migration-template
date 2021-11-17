@@ -177,8 +177,8 @@ DeltaSaveToDeltaTable (
 #Update/rename Column
 
 df_cleansed = spark.sql(f"SELECT  \
-                                  case when OPCODE = 'na' then '' else OPCODE end as operationCode , \
-                                  OPCODETXT as operationDescription , \
+                                  case when BELZART = 'na' then '' else BELZART end as lineItemTypeCode , \
+                                  TEXT30 as lineItemType , \
                                   _RecordStart, \
                                   _RecordEnd, \
                                   _RecordDeleted, \
@@ -193,8 +193,8 @@ print(f'Number of rows: {df_cleansed.count()}')
 # Create schema for the cleanse table
 newSchema = StructType(
                             [
-                            StructField("operationCode", StringType(), False),
-                            StructField("operationDescription", StringType(), True),
+                            StructField("lineItemTypeCode", StringType(), False),
+                            StructField("lineItemType", StringType(), True),
                             StructField('_RecordStart',TimestampType(),False),
                             StructField('_RecordEnd',TimestampType(),False),
                             StructField('_RecordDeleted',IntegerType(),False),
