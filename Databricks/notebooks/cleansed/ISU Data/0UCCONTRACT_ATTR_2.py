@@ -185,14 +185,14 @@ df_cleansed = spark.sql(f"SELECT \
                             ABRSPERR as billBlockingReasonCode, \
                             ABRFREIG as billReleasingReasonCode, \
                             VBEZ as contractText, \
-                            to_date(EINZDAT_ALT, 'yyyy-MM-dd') as legacyMoveInDate, \
+                            case when EINZDAT_ALT < '1900-01-01' then to_date('1900-01-01', 'yyyy-MM-dd') else to_date(EINZDAT_ALT, 'yyyy-MM-dd') end as legacyMoveInDate, \
                             KFRIST as numberOfCancellations, \
                             VERLAENG as numberOfRenewals, \
                             PERSNR as personnelNumber, \
                             VREFER as contractNumberLegacy, \
-                            to_date(ERDAT, 'yyyy-MM-dd') as createdDate, \
+                            case when ERDAT < '1900-01-01' then to_date('1900-01-01', 'yyyy-MM-dd') else to_date(ERDAT, 'yyyy-MM-dd') end as createdDate, \
                             ERNAM as createdBy, \
-                            to_date(AEDAT, 'yyyy-MM-dd') as lastChangedDate, \
+                            case when AEDAT < '1900-01-01' then to_date('1900-01-01', 'yyyy-MM-dd') else to_date(AEDAT, 'yyyy-MM-dd') end as lastChangedDate, \
                             AENAM as lastChangedBy, \
                             LOEVM as deletedIndicator, \
                             FAKTURIERT as isContractInvoiced, \
@@ -209,12 +209,12 @@ df_cleansed = spark.sql(f"SELECT \
                             ANLAGE as installationId, \
                             VKONTO as contractAccountNumber, \
                             KZSONDAUSZ as specialMoveOutCase, \
-                            to_date(EINZDAT, 'yyyy-MM-dd') as moveInDate, \
-                            to_date(AUSZDAT, 'yyyy-MM-dd') as moveOutDate, \
-                            to_date(ABSSTOPDAT, 'yyyy-MM-dd') as budgetBillingStopDate, \
+                            case when EINZDAT < '1900-01-01' then to_date('1900-01-01', 'yyyy-MM-dd') else to_date(EINZDAT, 'yyyy-MM-dd') end as moveInDate, \
+                            case when AUSZDAT < '1900-01-01' then to_date('1900-01-01', 'yyyy-MM-dd') else to_date(AUSZDAT, 'yyyy-MM-dd') end as moveOutDate, \
+                            case when ABSSTOPDAT < '1900-01-01' then to_date('1900-01-01', 'yyyy-MM-dd') else to_date(ABSSTOPDAT, 'yyyy-MM-dd') end as budgetBillingStopDate, \
                             XVERA as isContractTransferred, \
                             ZGPART as businessPartnerGroupNumber, \
-                            to_date(ZDATE_FROM, 'yyyy-MM-dd') as validFromDate, \
+                            case when ZDATE_FROM < '1900-01-01' then to_date('1900-01-01', 'yyyy-MM-dd') else to_date(ZDATE_FROM, 'yyyy-MM-dd') end as validFromDate, \
                             ZZAGREEMENT_NUM as agreementNumber, \
                             VSTELLE as premise, \
                             HAUS as propertyNumber, \
