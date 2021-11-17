@@ -176,11 +176,11 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT \
-                            case when HAUS = 'na' then '' else HAUS end as functionalLocationId, \
+                            case when HAUS = 'na' then '' else HAUS end as propertyNumber, \
                             COUNC as countryCode, \
-                            REGIOGROUP as regionalStructureGroup, \
-                            REGPOLIT as politicalReginalStructure, \
-                            REGIOGROUP_PERM as regionalStructureGroup, \
+                            REGIOGROUP as regionalStructureGrouping, \
+                            REGPOLIT as politicalRegionCode, \
+                            REGIOGROUP_PERM as permitRegionalStructureGrouping, \
                             CRM_GUID as crmConnectionObjectGuid, \
                             _RecordStart, \
                             _RecordEnd, \
@@ -195,11 +195,11 @@ print(f'Number of rows: {df_cleansed.count()}')
 
 # Create schema for the cleanse table
 newSchema = StructType([
-                        StructField("functionalLocationId", StringType(), False),
+                        StructField("propertyNumber", StringType(), False),
                         StructField("countryCode", StringType(), True),
-                        StructField("regionalStructureGroup", StringType(), True),
-                        StructField("politicalReginalStructure", StringType(), True),
-                        StructField("regionalStructureGroup", StringType(), True),
+                        StructField("regionalStructureGrouping", StringType(), True),
+                        StructField("politicalRegionCode", StringType(), True),
+                        StructField("permitRegionalStructureGrouping", StringType(), True),
                         StructField("crmConnectionObjectGuid", StringType(), True),
                         StructField('_RecordStart',TimestampType(),False),
                         StructField('_RecordEnd',TimestampType(),False),
