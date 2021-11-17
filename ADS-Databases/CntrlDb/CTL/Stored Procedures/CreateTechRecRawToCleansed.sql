@@ -11,35 +11,40 @@ AS
 BEGIN
 
 	--Get Total Number of records of the source object from the latest processed manifest file
-	DECLARE @SourceFileDateStamp char(14), @ManifestTotalNoRecords bigint
+	DECLARE @SourceFileDateStamp char(14), @ManifestTotalNoRecords bigint, @ManifestId bigint
 	
-	SELECT @SourceFileDateStamp = SourceFileDateStamp, @ManifestTotalNoRecords = M_TotalNoRows
+	SELECT @SourceFileDateStamp = SourceFileDateStamp, @ManifestTotalNoRecords = M_TotalNoRows, @ManifestId = ManifestID
 	FROM(
-		SELECT TOP 1 SourceFileDateStamp, M_TotalNoRows
+		SELECT TOP 1 SourceFileDateStamp, M_TotalNoRows, ManifestID
 		FROM CTL.ControlManifest M
 		WHERE SourceObject = @SourceObject
 			AND [ProcessedToCleansedZone] = 1
 		ORDER BY SourceFileDateStamp DESC
 	)T
 
-	INSERT INTO CTL.TechRecRawToCleansed(
-		BatchExecutionId,
-		TaskExecutionLogId,
-		TaskId,
-		SourceObject,
-		TargetName,
-		ManifestTotalNoRecords,
-		TargetTableRowCount,
-		SourceFileDateStamp
-	)
-	VALUES(
-		@BatchExecutionId,
-		@TaskExecutionLogId,
-		@TaskId,
-		@SourceObject,
-		@TargetName,
-		@ManifestTotalNoRecords,
-		@TotalNoRecords,
-		@SourceFileDateStamp
-	)
+	IF @ManifestId IS NOT NULL
+	BEGIN
+		INSERT INTO CTL.TechRecRawToCleansed(
+			BatchExecutionId,
+			TaskExecutionLogId,
+			TaskId,
+			SourceObject,
+			TargetName,
+			ManifestId,
+			ManifestTotalNoRecords,
+			TargetTableRowCount,
+			SourceFileDateStamp
+		)
+		VALUES(
+			@BatchExecutionId,
+			@TaskExecutionLogId,
+			@TaskId,
+			@SourceObject,
+			@TargetName,
+			@ManifestId,
+			@ManifestTotalNoRecords,
+			@TotalNoRecords,
+			@SourceFileDateStamp
+		)
+	END
 END

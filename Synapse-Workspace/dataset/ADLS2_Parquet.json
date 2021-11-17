@@ -1,0 +1,83 @@
+{
+	"name": "ADLS2_Parquet",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureDataLakeStorage1",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Parquet",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": "part-00000-10577210-c5f0-4d51-b931-349fad12c33e-c000.snappy.parquet",
+				"folderPath": "sapisu/eastih/delta",
+				"fileSystem": "raw"
+			},
+			"compressionCodec": "snappy"
+		},
+		"schema": [
+			{
+				"name": "AEDAT",
+				"type": "UTF8"
+			},
+			{
+				"name": "AENAM",
+				"type": "UTF8"
+			},
+			{
+				"name": "AUTOEND",
+				"type": "UTF8"
+			},
+			{
+				"name": "ERDAT",
+				"type": "UTF8"
+			},
+			{
+				"name": "ERNAM",
+				"type": "UTF8"
+			},
+			{
+				"name": "EXTRACT_DATETIME",
+				"type": "UTF8"
+			},
+			{
+				"name": "EXTRACT_RUN_ID",
+				"type": "INT64"
+			},
+			{
+				"name": "INDEXNR",
+				"type": "INT64"
+			},
+			{
+				"name": "MANDT",
+				"type": "UTF8"
+			},
+			{
+				"name": "PRUEFGR",
+				"type": "UTF8"
+			},
+			{
+				"name": "ZWZUART",
+				"type": "INT64"
+			},
+			{
+				"name": "_DLRawZoneTimeStamp",
+				"type": "INT96"
+			},
+			{
+				"name": "year",
+				"type": "UTF8"
+			},
+			{
+				"name": "month",
+				"type": "UTF8"
+			},
+			{
+				"name": "day",
+				"type": "UTF8"
+			}
+		]
+	},
+	"type": "Microsoft.Synapse/workspaces/datasets"
+}

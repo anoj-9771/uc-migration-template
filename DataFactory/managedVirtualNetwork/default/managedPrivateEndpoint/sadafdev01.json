@@ -1,7 +1,0 @@
-{
-	"name": "sadafdev01",
-	"properties": {
-		"privateLinkResourceId": "/subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-daf-dev-01/providers/Microsoft.Storage/storageAccounts/sadafdev01",
-		"groupId": "dfs"
-	}
-}

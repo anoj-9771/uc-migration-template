@@ -1,0 +1,17 @@
+{
+	"name": "SQL script Test",
+	"properties": {
+		"content": {
+			"query": "SELECT TOP (100) [N_PROP]\n,[N_PROP_METE]\n,[N_METE_READ]\n,[C_METE_READ_TOLE]\n,[C_METE_READ_TYPE]\n,[C_METE_READ_CONS]\n,[C_METE_READ_STAT]\n,[C_METE_CANT_READ]\n,[C_PDE_READ_METH]\n,[Q_METE_READ]\n,[D_METE_READ]\n,[T_METE_READ_TIME]\n,[Q_METE_READ_CONS]\n,[Q_METE_READ_DAYS]\n,[F_READ_COMM_CODE]\n,[F_READ_COMM_FREE]\n,[Q_PDE_HIGH_LOW]\n,[Q_PDE_REEN_COUN]\n,[F_PDE_AUXI_READ]\n,[D_METE_READ_UPDA]\n,[_DLRawZoneTimeStamp]\n,[year]\n,[month]\n,[day]\n FROM [dbo].[access_z309_tmeterreading]",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "syndwdev01",
+				"poolName": "syndwdev01"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

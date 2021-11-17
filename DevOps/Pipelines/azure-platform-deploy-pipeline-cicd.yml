@@ -25,7 +25,7 @@ trigger: none
   #   - DevOps/Pipelines/iac-create-keyvaults.yml..
 
 pool: Daf-Self-Hosted-Preprod-Linux
-# vmImage: ubuntu-latest
+# vmImage: ubuntu-latest.
 
 stages:
 # ---------------------------------------------------------------------------
@@ -46,7 +46,7 @@ stages:
     variable_template_name: dev-variables
     run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
 
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 # Release to Non-Production - Test Environment
 - template: Templates/stage-azure-pipelines-deployment.yml
   parameters:
@@ -54,8 +54,8 @@ stages:
     variable_template_name: test-variables
     run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
 
-# ---------------------------------------------------------------------------
-# Release to Production - PreProd Environment
+# ----------------------------------------------------------------------------
+# Release to Non-Production - PreProd Environment
 - template: Templates/stage-azure-pipelines-deployment.yml
   parameters:
     #dependencies: ['non_prod'] # Used to define any stage dependencies

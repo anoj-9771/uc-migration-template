@@ -14,7 +14,7 @@
 		"annotations": [],
 		"type": "AzureDatabricks",
 		"typeProperties": {
-			"domain": "https://adb-6510910994889.9.azuredatabricks.net/",
+			"domain": "https://adb-6510910994889.9.azuredatabricks.net",
 			"accessToken": {
 				"type": "AzureKeyVaultSecret",
 				"store": {
@@ -28,6 +28,10 @@
 				"secretVersion": ""
 			},
 			"existingClusterId": "@linkedService().clusterId"
+		},
+		"connectVia": {
+			"referenceName": "IntegrationRuntime-SelfHosted",
+			"type": "IntegrationRuntimeReference"
 		}
 	},
 	"type": "Microsoft.DataFactory/factories/linkedservices"

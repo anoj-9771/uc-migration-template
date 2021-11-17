@@ -5,6 +5,7 @@ SELECT [TechRecID]
 	,S.SourceLocation	
 	,[SourceFileDateStamp]
 	,[TargetName]
+	,ManifestId
 	,[ManifestTotalNoRecords]
 	,[TargetTableRowCount]
 	,CASE WHEN ManifestTotalNoRecords = TargetTableRowCount THEN 'Passed' ELSE 'Failed' END AS TechRecRawToCleansed

@@ -1,0 +1,344 @@
+{
+	"name": "CopyData-ADLS-To-Synapse",
+	"properties": {
+		"activities": [
+			{
+				"name": "Copy Data - ADLS2 To Synapse_0bp_cat_text",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "ParquetSource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": true,
+							"wildcardFolderPath": "sapisu/0bp_cat_text/delta",
+							"wildcardFileName": "*.parquet",
+							"enablePartitionDiscovery": false
+						}
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"preCopyScript": "truncate TABLE sapisu_0bp_cat_text",
+						"tableOption": "autoCreate",
+						"sqlWriterUseTableLock": false
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "synws-swcnonprod01-daf-dev-01-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "synapsestaging"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "ADLS2_Parquet",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "SqlPoolTable",
+						"type": "DatasetReference",
+						"parameters": {
+							"Table": "sapisu_0bp_cat_text"
+						}
+					}
+				]
+			},
+			{
+				"name": "Copy Data - ADLS2 To Synapse_z309_tpropmeter",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Copy Data - ADLS2 To Synapse_ehauisu",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "ParquetSource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": true,
+							"wildcardFolderPath": "access/z309_tpropmeter/delta",
+							"wildcardFileName": "*.parquet",
+							"enablePartitionDiscovery": false
+						}
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"preCopyScript": "truncate TABLE access_z309_tpropmeter",
+						"tableOption": "autoCreate",
+						"sqlWriterUseTableLock": false
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "synws-swcnonprod01-daf-dev-01-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "synapsestaging"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "ADLS2_Parquet",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "SqlPoolTable",
+						"type": "DatasetReference",
+						"parameters": {
+							"Table": "access_z309_tpropmeter"
+						}
+					}
+				]
+			},
+			{
+				"name": "Copy Data - ADLS2 To Synapse_z309_tmeterreading",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Copy Data - ADLS2 To Synapse_z309_tpropmeter",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "ParquetSource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": true,
+							"wildcardFolderPath": "access/z309_tmeterreading/delta",
+							"wildcardFileName": "*.parquet",
+							"enablePartitionDiscovery": false
+						}
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"preCopyScript": "truncate TABLE access_z309_tmeterreading",
+						"allowPolyBase": true,
+						"polyBaseSettings": {
+							"rejectValue": 0,
+							"rejectType": "value",
+							"useTypeDefault": true
+						},
+						"tableOption": "autoCreate",
+						"sqlWriterUseTableLock": false
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "synws-swcnonprod01-daf-dev-01-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "synapsestaging"
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "ADLS2_Parquet",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "SqlPoolTable",
+						"type": "DatasetReference",
+						"parameters": {
+							"Table": "access_z309_tmeterreading"
+						}
+					}
+				]
+			},
+			{
+				"name": "Copy Data - ADLS2 To Synapse_ehauisu",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Copy Data - ADLS2 To Synapse_0bp_cat_text",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "ParquetSource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": true,
+							"wildcardFolderPath": "sapisu/ehauisu/delta",
+							"wildcardFileName": "*.parquet",
+							"enablePartitionDiscovery": false
+						}
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"preCopyScript": "truncate TABLE sapisu_ehauisu",
+						"tableOption": "autoCreate",
+						"sqlWriterUseTableLock": false
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "synws-swcnonprod01-daf-dev-01-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "synapsestaging"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "ADLS2_Parquet",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "SqlPoolTable",
+						"type": "DatasetReference",
+						"parameters": {
+							"Table": "sapisu_ehauisu"
+						}
+					}
+				]
+			},
+			{
+				"name": "Copy Data - ADLS2 To Synapse_z309_tmeterreading_hash",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Copy Data - ADLS2 To Synapse_z309_tmeterreading",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "ParquetSource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": true,
+							"wildcardFolderPath": "access/z309_tmeterreading/delta",
+							"wildcardFileName": "*.parquet",
+							"enablePartitionDiscovery": false
+						}
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"preCopyScript": "truncate TABLE access_z309_tmeterreading",
+						"allowPolyBase": true,
+						"polyBaseSettings": {
+							"rejectValue": 0,
+							"rejectType": "value",
+							"useTypeDefault": true
+						},
+						"tableOption": "autoCreate",
+						"sqlWriterUseTableLock": false
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "synws-swcnonprod01-daf-dev-01-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "synapsestaging"
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "ADLS2_Parquet",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "SqlPoolTable",
+						"type": "DatasetReference",
+						"parameters": {
+							"Table": "access_z309_tmeterreading_hash"
+						}
+					}
+				]
+			}
+		],
+		"annotations": [],
+		"lastPublishTime": "2021-09-16T05:32:50Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

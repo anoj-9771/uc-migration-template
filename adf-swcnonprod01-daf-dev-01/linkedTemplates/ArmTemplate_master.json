@@ -7,6 +7,14 @@
 			"metadata": "Data Factory name",
 			"defaultValue": "adf-swcnonprod01-daf-dev-01"
 		},
+		"LS-AzureDatabricks_DefinedCluster_properties_typeProperties_domain": {
+			"type": "string",
+			"defaultValue": "https://adb-6510910994889.9.azuredatabricks.net"
+		},
+		"LS-AzureDatabricks_JobCluster_properties_typeProperties_domain": {
+			"type": "string",
+			"defaultValue": "https://australiaeast.azuredatabricks.net"
+		},
 		"LS-AzureKeyVault_properties_typeProperties_baseUrl": {
 			"type": "string",
 			"defaultValue": "https://kv-daf-dev-01.vault.azure.net/"
@@ -17,15 +25,7 @@
 		},
 		"LS_AzureBlobStorage_properties_typeProperties_serviceEndpoint": {
 			"type": "string",
-			"defaultValue": "https://saswcnonprod01landingdev.blob.core.windows.net"
-		},
-		"LS_AzureBlobStorage_properties_typeProperties_tenant": {
-			"type": "string",
-			"defaultValue": "8351bb5c-749d-4ee4-b1c4-71a3971acbe9"
-		},
-		"LS_AzureBlobStorage_properties_typeProperties_servicePrincipalId": {
-			"type": "string",
-			"defaultValue": "acff96db-8630-433b-bbb1-35a3813fa036"
+			"defaultValue": "https://sablobdafdev01.blob.core.windows.net/"
 		},
 		"LS_AzureDatalake_properties_typeProperties_url": {
 			"type": "string",
@@ -46,52 +46,6 @@
 		"Emrvisaf_properties_01-Main_parameters_TriggerName": {
 			"type": "string",
 			"defaultValue": "Emrvisaf"
-		},
-		"PrivateLinkService1_properties_privateLinkResourceId": {
-			"type": "string",
-			"defaultValue": "/subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-daf-dev-01/providers/Microsoft.Network/privateLinkServices/pe-link-daf-dev-01"
-		},
-		"PrivateLinkService1_properties_groupId": {
-			"type": "string",
-			"defaultValue": ""
-		},
-		"PrivateLinkService1_properties_fqdns": {
-			"type": "array",
-			"defaultValue": [
-				"nt097dslt01.adsdev.swcdev"
-			]
-		},
-		"kv-daf-dev-01_properties_privateLinkResourceId": {
-			"type": "string",
-			"defaultValue": "/subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-daf-dev-01/providers/Microsoft.KeyVault/vaults/kv-daf-dev-01"
-		},
-		"kv-daf-dev-01_properties_groupId": {
-			"type": "string",
-			"defaultValue": "vault"
-		},
-		"pe-saswcnonprod01landingdev_properties_privateLinkResourceId": {
-			"type": "string",
-			"defaultValue": "/subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-daf-dev-01/providers/Microsoft.Storage/storageAccounts/saswcnonprod01landingdev"
-		},
-		"pe-saswcnonprod01landingdev_properties_groupId": {
-			"type": "string",
-			"defaultValue": "blob"
-		},
-		"sadafdev01_properties_privateLinkResourceId": {
-			"type": "string",
-			"defaultValue": "/subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-daf-dev-01/providers/Microsoft.Storage/storageAccounts/sadafdev01"
-		},
-		"sadafdev01_properties_groupId": {
-			"type": "string",
-			"defaultValue": "dfs"
-		},
-		"sql-swcnonprod01-daf-dev-01_properties_privateLinkResourceId": {
-			"type": "string",
-			"defaultValue": "/subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-daf-dev-01/providers/Microsoft.Sql/servers/sql-swcnonprod01-daf-dev-01"
-		},
-		"sql-swcnonprod01-daf-dev-01_properties_groupId": {
-			"type": "string",
-			"defaultValue": "sqlServer"
 		},
 		"containerUri": {
 			"type": "string",
@@ -123,44 +77,11 @@
 					"LS-AzureKeyVault_properties_typeProperties_baseUrl": {
 						"value": "[parameters('LS-AzureKeyVault_properties_typeProperties_baseUrl')]"
 					},
-					"LS_Oracle_properties_typeProperties_connectionString_secretName": {
-						"value": "[parameters('LS_Oracle_properties_typeProperties_connectionString_secretName')]"
+					"LS-AzureDatabricks_DefinedCluster_properties_typeProperties_domain": {
+						"value": "[parameters('LS-AzureDatabricks_DefinedCluster_properties_typeProperties_domain')]"
 					},
-					"LS_SQLServer_properties_typeProperties_connectionString_secretName": {
-						"value": "[parameters('LS_SQLServer_properties_typeProperties_connectionString_secretName')]"
-					},
-					"PrivateLinkService1_properties_privateLinkResourceId": {
-						"value": "[parameters('PrivateLinkService1_properties_privateLinkResourceId')]"
-					},
-					"PrivateLinkService1_properties_groupId": {
-						"value": "[parameters('PrivateLinkService1_properties_groupId')]"
-					},
-					"PrivateLinkService1_properties_fqdns": {
-						"value": "[parameters('PrivateLinkService1_properties_fqdns')]"
-					},
-					"kv-daf-dev-01_properties_privateLinkResourceId": {
-						"value": "[parameters('kv-daf-dev-01_properties_privateLinkResourceId')]"
-					},
-					"kv-daf-dev-01_properties_groupId": {
-						"value": "[parameters('kv-daf-dev-01_properties_groupId')]"
-					},
-					"pe-saswcnonprod01landingdev_properties_privateLinkResourceId": {
-						"value": "[parameters('pe-saswcnonprod01landingdev_properties_privateLinkResourceId')]"
-					},
-					"pe-saswcnonprod01landingdev_properties_groupId": {
-						"value": "[parameters('pe-saswcnonprod01landingdev_properties_groupId')]"
-					},
-					"sadafdev01_properties_privateLinkResourceId": {
-						"value": "[parameters('sadafdev01_properties_privateLinkResourceId')]"
-					},
-					"sadafdev01_properties_groupId": {
-						"value": "[parameters('sadafdev01_properties_groupId')]"
-					},
-					"sql-swcnonprod01-daf-dev-01_properties_privateLinkResourceId": {
-						"value": "[parameters('sql-swcnonprod01-daf-dev-01_properties_privateLinkResourceId')]"
-					},
-					"sql-swcnonprod01-daf-dev-01_properties_groupId": {
-						"value": "[parameters('sql-swcnonprod01-daf-dev-01_properties_groupId')]"
+					"LS-AzureDatabricks_JobCluster_properties_typeProperties_domain": {
+						"value": "[parameters('LS-AzureDatabricks_JobCluster_properties_typeProperties_domain')]"
 					},
 					"LS-AzureSqlDatabase_Ctrldb_properties_typeProperties_connectionString_secretName": {
 						"value": "[parameters('LS-AzureSqlDatabase_Ctrldb_properties_typeProperties_connectionString_secretName')]"
@@ -168,14 +89,14 @@
 					"LS_AzureBlobStorage_properties_typeProperties_serviceEndpoint": {
 						"value": "[parameters('LS_AzureBlobStorage_properties_typeProperties_serviceEndpoint')]"
 					},
-					"LS_AzureBlobStorage_properties_typeProperties_tenant": {
-						"value": "[parameters('LS_AzureBlobStorage_properties_typeProperties_tenant')]"
-					},
-					"LS_AzureBlobStorage_properties_typeProperties_servicePrincipalId": {
-						"value": "[parameters('LS_AzureBlobStorage_properties_typeProperties_servicePrincipalId')]"
-					},
 					"LS_AzureDatalake_properties_typeProperties_url": {
 						"value": "[parameters('LS_AzureDatalake_properties_typeProperties_url')]"
+					},
+					"LS_Oracle_properties_typeProperties_connectionString_secretName": {
+						"value": "[parameters('LS_Oracle_properties_typeProperties_connectionString_secretName')]"
+					},
+					"LS_SQLServer_properties_typeProperties_connectionString_secretName": {
+						"value": "[parameters('LS_SQLServer_properties_typeProperties_connectionString_secretName')]"
 					}
 				}
 			},

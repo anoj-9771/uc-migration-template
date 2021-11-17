@@ -1,0 +1,31 @@
+21/10/2021 9:39:47 AM	This log contains information about the import schema operation into project 'Synapse-Databases' on computer 'AUSYDNB21172' by user 'fhasan'.
+21/10/2021 9:39:48 AM	Import of database schema has started.
+21/10/2021 9:39:55 AM	Gathering database credentials
+21/10/2021 9:39:55 AM	Gathering database options
+21/10/2021 9:39:55 AM	Gathering users
+21/10/2021 9:39:55 AM	Gathering roles
+21/10/2021 9:39:55 AM	Gathering role memberships
+21/10/2021 9:39:56 AM	Gathering symmetric keys
+21/10/2021 9:39:56 AM	Gathering schemas
+21/10/2021 9:39:56 AM	Gathering functions
+21/10/2021 9:39:56 AM	Gathering procedures
+21/10/2021 9:39:56 AM	Gathering partition table specification
+21/10/2021 9:39:56 AM	Gathering tables
+21/10/2021 9:39:58 AM	Gathering primary keys
+21/10/2021 9:39:58 AM	Gathering unique constraints
+21/10/2021 9:39:58 AM	Gathering default constraints
+21/10/2021 9:39:58 AM	Gathering views
+21/10/2021 9:39:58 AM	Gathering indexes
+21/10/2021 9:39:59 AM	Gathering statistics
+21/10/2021 9:39:59 AM	Gathering column store indexes
+21/10/2021 9:39:59 AM	Gathering security policies
+21/10/2021 9:39:59 AM	Gathering external data sources
+21/10/2021 9:39:59 AM	Gathering external file formats
+21/10/2021 9:40:00 AM	Gathering external tables
+21/10/2021 9:40:00 AM	Gathering Workload Groups
+21/10/2021 9:40:00 AM	Gathering Workload Classifiers
+21/10/2021 9:40:03 AM	Scanning project for duplicate elements
+21/10/2021 9:40:04 AM	Finished duplicate element processing
+21/10/2021 9:40:04 AM	Finished importing database.
+21/10/2021 9:40:04 AM	A summary of the import was saved to the following location: C:\Users\fhasan\source\repos\syn_data\Synapse-Databases\Synapse-Databases\Import Schema Logs\Synapse-Databases_20211020103947.log
+21/10/2021 9:40:04 AM	Click Finish to continue...

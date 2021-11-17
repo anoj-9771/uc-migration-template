@@ -1,0 +1,27 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31321.278
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{00D1A9C2-B5F0-4AF3-8072-F6C62B433612}") = "Synapse-Databases", "Synapse-Databases\Synapse-Databases.sqlproj", "{44872DD2-C097-43AD-B4C0-8FE1EE8BE7EE}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{44872DD2-C097-43AD-B4C0-8FE1EE8BE7EE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{44872DD2-C097-43AD-B4C0-8FE1EE8BE7EE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{44872DD2-C097-43AD-B4C0-8FE1EE8BE7EE}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{44872DD2-C097-43AD-B4C0-8FE1EE8BE7EE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{44872DD2-C097-43AD-B4C0-8FE1EE8BE7EE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{44872DD2-C097-43AD-B4C0-8FE1EE8BE7EE}.Release|Any CPU.Deploy.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {8E9DA2F7-6A79-49DB-A320-1C53FEFF8F33}
+	EndGlobalSection
+EndGlobal

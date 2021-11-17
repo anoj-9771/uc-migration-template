@@ -23,7 +23,7 @@ pool: Daf-Self-Hosted-Preprod-Linux
 # vmImage: ubuntu-latest
 
 stages:
-# --------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
 # Build artifacts
 - stage: 'build'
   jobs:

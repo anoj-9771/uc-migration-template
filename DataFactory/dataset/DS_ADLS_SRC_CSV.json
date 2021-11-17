@@ -4,10 +4,7 @@
 		"description": "Dataset for access reference data",
 		"linkedServiceName": {
 			"referenceName": "LS_AzureDatalake",
-			"type": "LinkedServiceReference",
-			"parameters": {
-				"kvSecret": "swcdafdevadls-sastoken"
-			}
+			"type": "LinkedServiceReference"
 		},
 		"parameters": {
 			"LakeContainer": {
