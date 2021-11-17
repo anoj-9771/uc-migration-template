@@ -47,9 +47,9 @@ stages:
 
 
 # ---------------------------------------------------------------------------
-# Release to Non-Production - Dev Environment
+# Release to Production - PreProd Environment
 - template: Templates/stage-databricks-integration.yml
   parameters:
     stage_name: 'preprod'
     variable_template_name: preprd-variables
-    run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+    run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/preprod'))
