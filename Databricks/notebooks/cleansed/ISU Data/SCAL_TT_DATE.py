@@ -177,7 +177,7 @@ DeltaSaveToDeltaTable (
 #Update/rename Column
     
 df_cleansed = spark.sql(f"SELECT \
-                                to_date(CALENDARDATE,'yyyy-MM-dd') as calendarDate , \
+                                case when CALENDARDATE = 'na' then to_date('1900-01-01', 'yyyy-MM-dd') else to_date(CALENDARDATE, 'yyyy-MM-dd') end as calendarDate , \
                                 CALENDARDAY as dayOfMonth , \
                                 CALENDARDAYOFYEAR as dayOfYear  , \
                                 WEEKDAY as dayOfWeek  , \
