@@ -175,6 +175,7 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
+
 df_cleansed = spark.sql(f"SELECT \
                             case when VKONT = 'na' then '' else VKONT end as contractAccountNumber, \
                             to_date(ERDAT, 'yyyy-MM-dd') as createdDate, \
@@ -191,6 +192,7 @@ df_cleansed = spark.sql(f"SELECT \
                             _RecordDeleted, \
                             _RecordCurrent \
                           FROM {ADS_DATABASE_STAGE}.{source_object}")
+
 
 display(df_cleansed)
 print(f'Number of rows: {df_cleansed.count()}')

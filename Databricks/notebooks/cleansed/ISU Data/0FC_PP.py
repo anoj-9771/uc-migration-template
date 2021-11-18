@@ -175,6 +175,7 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
+
 df_cleansed = spark.sql(f"SELECT \
 	case when PPKEY = 'na' then '' else PPKEY end as propmiseToPayId, \
 	GPART as businessPartnerGroupNumber, \

@@ -175,24 +175,29 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
+
 df_cleansed = spark.sql(f"SELECT \
-	case when ANLAGE = 'na' then '' else ANLAGE end as installationId, \
-	case when LOGIKNR = 'na' then '' else LOGIKNR end as logicalDeviceNumber, \
-	case when BIS = 'na' then to_date('1900-01-01','yyyy-MM-dd') else to_date(BIS, 'yyyy-MM-dd') end as validToDate, \
-	to_date(AB, 'yyyy-MM-dd') as validFromDate, \
-	PREISKLA as priceClassCode, \
-	PREISKLABEZ as priceClass, \
-	GVERRECH as payRentalPrice, \
-	TARIFART as rateTypeCode, \
-	TEXT30 as rateType, \
-	LOEVM as deletedIndicator, \
-	UPDMOD as bwDeltaProcess, \
-	ZOPCODE as operationCode, \
-	_RecordStart, \
-	_RecordEnd, \
-	_RecordDeleted, \
-	_RecordCurrent \
-	FROM {ADS_DATABASE_STAGE}.{source_object}")
+                                case when ANLAGE = 'na' then '' else ANLAGE end as installationId, \
+                                case when LOGIKNR = 'na' then '' else LOGIKNR end as logicalDeviceNumber, \
+                                case when BIS = 'na' then to_date('2099'-12-31','yyyy-MM-dd') else to_date(BIS, 'yyyy-MM-dd') end as validToDate, \
+                                to_date(AB, 'yyyy-MM-dd') as validFromDate, \
+                                PREISKLA as priceClassCode, \
+                                ip.priceClass as priceClass, \
+                                GVERRECH as payRentalPrice, \
+                                TARIFART as rateTypeCode, \
+                                sp.rateType as rateType, \
+                                LOEVM as deletedIndicator, \
+                                UPDMOD as bwDeltaProcess, \
+                                ZOPCODE as operationCode, \
+                                dev._RecordStart, \
+                                dev._RecordEnd, \
+                                dev._RecordDeleted, \
+                                dev._RecordCurrent \
+                           FROM {ADS_DATABASE_STAGE}.{source_object} dev \
+                           LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UC_PRICCLA_TEXT ip ON dev.PREISKLA = ip.priceClassCode \
+                                                                                                    and ip._RecordDeleted = 0 and ip._RecordCurrent = 1 \
+                           LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UC_STATTART_TEXT sp ON dev.TARIFART = sp.rateTypeCode \
+                                                                                                    and sp._RecordDeleted = 0 and sp._RecordCurrent = 1")
 
 display(df_cleansed)
 print(f'Number of rows: {df_cleansed.count()}')

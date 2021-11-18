@@ -175,6 +175,7 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
+
 df_cleansed = spark.sql(f"SELECT \
                                        case when ZWGRUPPE = 'na' then '' else ZWGRUPPE end as registerGroupCode,\
                                        EZWG_INFO as registerGroup, \
