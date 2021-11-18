@@ -177,37 +177,37 @@ DeltaSaveToDeltaTable (
 #Update/rename Column
 
 df_cleansed = spark.sql(f"SELECT \
-	case when PPKEY = 'na' then '' else PPKEY end as propmiseToPayId, \
-	GPART as businessPartnerGroupNumber, \
-	VKONT as contractAccountNumber, \
-	BUKRS as companyCode, \
-	PPRSC as promiseToPayReasonCode, \
-	PPRSW as withdrawalReasonCode, \
-	PPCAT as propmiseToPayCategoryCode, \
-	C4LEV as numberOfChecks, \
-	PRCUR as currency, \
-	cast(PRAMT as dec(13,2)) as paymentAmountPromised, \
-	cast(PRAMT_CHR as dec(13,2)) as promiseToPayCharges, \
-	cast(PRAMT_INT as dec(13,2)) as promiseToPayInterest, \
-	cast(RDAMT as dec(13,2)) as amountCleared, \
-	ERNAM as createdBy, \
-    to_timestamp(concat(erdat,' ',ertim)) as  createdDateTime, \
-	to_date(CHDAT, 'yyyy-MM-dd') as changedDate, \
-	PPSTA as propmiseToPayStatus, \
-	XSTCH as statusChangedIndicator, \
-	PPKEY_NEW as replacementPropmiseToPayId, \
-	XINDR as installmentsAgreed, \
-	to_date(FTDAT, 'yyyy-MM-dd') as firstDueDate, \
-	to_date(LTDAT, 'yyyy-MM-dd') as finalDueDate, \
-	NRRTS as numberOfPayments, \
-	cast(PPDUE as dec(13,2)) as paymentPromised, \
-	cast(PPPAY as dec(13,2)) as amountPaidByToday, \
-	cast(DEGFA as dec(5,0)) as currentLevelOfFulfillment, \
-	_RecordStart, \
-	_RecordEnd, \
-	_RecordDeleted, \
-	_RecordCurrent \
-	FROM {ADS_DATABASE_STAGE}.{source_object}")
+                              case when PPKEY = 'na' then '' else PPKEY end as propmiseToPayId, \
+                              GPART as businessPartnerGroupNumber, \
+                              VKONT as contractAccountNumber, \
+                              BUKRS as companyCode, \
+                              PPRSC as promiseToPayReasonCode, \
+                              PPRSW as withdrawalReasonCode, \
+                              PPCAT as propmiseToPayCategoryCode, \
+                              C4LEV as numberOfChecks, \
+                              PRCUR as currency, \
+                              cast(PRAMT as dec(13,2)) as paymentAmountPromised, \
+                              cast(PRAMT_CHR as dec(13,2)) as promiseToPayCharges, \
+                              cast(PRAMT_INT as dec(13,2)) as promiseToPayInterest, \
+                              cast(RDAMT as dec(13,2)) as amountCleared, \
+                              ERNAM as createdBy, \
+                              to_timestamp(concat(erdat,' ',ertim)) as  createdDateTime, \
+                              to_date(CHDAT, 'yyyy-MM-dd') as changedDate, \
+                              PPSTA as propmiseToPayStatus, \
+                              XSTCH as statusChangedIndicator, \
+                              PPKEY_NEW as replacementPropmiseToPayId, \
+                              XINDR as installmentsAgreed, \
+                              to_date(FTDAT, 'yyyy-MM-dd') as firstDueDate, \
+                              to_date(LTDAT, 'yyyy-MM-dd') as finalDueDate, \
+                              NRRTS as numberOfPayments, \
+                              cast(PPDUE as dec(13,2)) as paymentPromised, \
+                              cast(PPPAY as dec(13,2)) as amountPaidByToday, \
+                              cast(DEGFA as dec(5,0)) as currentLevelOfFulfillment, \
+                              _RecordStart, \
+                              _RecordEnd, \
+                              _RecordDeleted, \
+                              _RecordCurrent \
+                              FROM {ADS_DATABASE_STAGE}.{source_object}")
 
 display(df_cleansed)
 print(f'Number of rows: {df_cleansed.count()}')
@@ -215,36 +215,36 @@ print(f'Number of rows: {df_cleansed.count()}')
 # COMMAND ----------
 
 newSchema = StructType([
-	StructField('propmiseToPayId',StringType(),False),
-	StructField('businessPartnerGroupNumber',StringType(),True),
-	StructField('contractAccountNumber',StringType(),True),
-	StructField('companyCode',StringType(),True),
-	StructField('promiseToPayReasonCode',StringType(),True),
-	StructField('withdrawalReasonCode',StringType(),True),
-	StructField('propmiseToPayCategoryCode',StringType(),True),
-	StructField('numberOfChecks',StringType(),True),
-	StructField('currency',StringType(),True),
-	StructField('paymentAmountPromised',DecimalType(13,2),True),
-	StructField('promiseToPayCharges',DecimalType(13,2),True),
-	StructField('promiseToPayInterest',DecimalType(13,2),True),
-	StructField('amountCleared',DecimalType(13,2),True),
-	StructField('createdBy',StringType(),True),
-	StructField('createdDateTime',TimestampType(),True),
-	StructField('changedDate',DateType(),True),
-	StructField('propmiseToPayStatus',StringType(),True),
-	StructField('statusChangedIndicator',StringType(),True),
-	StructField('replacementPropmiseToPayId',StringType(),True),
-	StructField('installmentsAgreed',StringType(),True),
-	StructField('firstDueDate',DateType(),True),
-	StructField('finalDueDate',DateType(),True),
-	StructField('numberOfPayments',StringType(),True),
-	StructField('paymentPromised',DecimalType(13,2),True),
-	StructField('amountPaidByToday',DecimalType(13,2),True),
-	StructField('currentLevelOfFulfillment',DecimalType(5,0),True),
-	StructField('_RecordStart',TimestampType(),False),
-	StructField('_RecordEnd',TimestampType(),False),
-	StructField('_RecordDeleted',IntegerType(),False),
-	StructField('_RecordCurrent',IntegerType(),False)
+                      StructField('propmiseToPayId',StringType(),False),
+                      StructField('businessPartnerGroupNumber',StringType(),True),
+                      StructField('contractAccountNumber',StringType(),True),
+                      StructField('companyCode',StringType(),True),
+                      StructField('promiseToPayReasonCode',StringType(),True),
+                      StructField('withdrawalReasonCode',StringType(),True),
+                      StructField('propmiseToPayCategoryCode',StringType(),True),
+                      StructField('numberOfChecks',StringType(),True),
+                      StructField('currency',StringType(),True),
+                      StructField('paymentAmountPromised',DecimalType(13,2),True),
+                      StructField('promiseToPayCharges',DecimalType(13,2),True),
+                      StructField('promiseToPayInterest',DecimalType(13,2),True),
+                      StructField('amountCleared',DecimalType(13,2),True),
+                      StructField('createdBy',StringType(),True),
+                      StructField('createdDateTime',TimestampType(),True),
+                      StructField('changedDate',DateType(),True),
+                      StructField('propmiseToPayStatus',StringType(),True),
+                      StructField('statusChangedIndicator',StringType(),True),
+                      StructField('replacementPropmiseToPayId',StringType(),True),
+                      StructField('installmentsAgreed',StringType(),True),
+                      StructField('firstDueDate',DateType(),True),
+                      StructField('finalDueDate',DateType(),True),
+                      StructField('numberOfPayments',StringType(),True),
+                      StructField('paymentPromised',DecimalType(13,2),True),
+                      StructField('amountPaidByToday',DecimalType(13,2),True),
+                      StructField('currentLevelOfFulfillment',DecimalType(5,0),True),
+                      StructField('_RecordStart',TimestampType(),False),
+                      StructField('_RecordEnd',TimestampType(),False),
+                      StructField('_RecordDeleted',IntegerType(),False),
+                      StructField('_RecordCurrent',IntegerType(),False)
 ])
 
 df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
