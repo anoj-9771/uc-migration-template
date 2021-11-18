@@ -294,8 +294,6 @@ newSchema = StructType(
 df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
 display(df_updated_column)
 
-
-
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
