@@ -177,7 +177,7 @@ DeltaSaveToDeltaTable (
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT \
                                   case when EQUI.EQUNR = 'na' then '' else EQUI.EQUNR end as equipmentNumber,\
-                                  case when EQUI.DATETO = 'na' then to_date('1900-01-01', 'yyyy-MM-dd') else to_date(EQUI.DATETO, 'yyyy-MM-dd') end as validToDate,\
+                                  case when EQUI.DATETO = 'na' then to_date('2099-12-31', 'yyyy-MM-dd') else to_date(EQUI.DATETO, 'yyyy-MM-dd') end as validToDate,\
                                   case when EQUI.DATEFROM < '1900-01-01' then to_date('1900-01-01', 'yyyy-MM-dd') else to_date(EQUI.DATEFROM, 'yyyy-MM-dd') end as validFromDate,\
                                   EQUI.EQART as technicalObjectTypeCode,\
                                   EQUI.INVNR as inventoryNumber,\
