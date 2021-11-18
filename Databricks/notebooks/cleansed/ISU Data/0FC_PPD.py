@@ -177,7 +177,7 @@ DeltaSaveToDeltaTable (
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT \
 	case when PPKEY = 'na' then '' else PPKEY end as propmiseToPayId, \
-	to_date(PRDAT, 'yyyy-MM-dd') as paymentDatePromised, \
+	case when PRDAT = 'na' then to_date('1900-01-01', 'yyyy-MM-dd') else to_date(PRDAT, 'yyyy-MM-dd') end as paymentDatePromised, \
 	cast(PRAMT as dec(13,2)) as paymentAmountPromised, \
 	cast(PRAMO as dec(13,2)) as promisedAmountOpen, \
 	PRCUR as currency, \
@@ -197,7 +197,7 @@ print(f'Number of rows: {df_cleansed.count()}')
 
 newSchema = StructType([
 	StructField('propmiseToPayId',StringType(),False),
-	StructField('paymentDatePromised',DateType(),True),
+	StructField('paymentDatePromised',DateType(),False),
 	StructField('paymentAmountPromised',DecimalType(13,2),True),
 	StructField('promisedAmountOpen',DecimalType(13,2),True),
 	StructField('currency',StringType(),True),
