@@ -176,23 +176,23 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT \
-                                case when VKONT = 'na' then '' else VKONT end as contractAccountNumber, \
-                                to_date(ERDAT, 'yyyy-MM-dd') as createdDate, \
-                                ERNAM as createdBy, \
-                                to_date(AEDAT, 'yyyy-MM-dd') as lastChangedDate, \
-                                AENAM as lastChangedBy, \
-                                LOEVM as deletedIndicator, \
-                                APPLK as applicationArea, \
-                                VKTYP as contractAccountCategoryCode, \
-                                ty.contractAccountCategory as contractAccountCategory, \
-                                VKONA as legacyContractAccountNumber, \
-                                con._RecordStart, \
-                                con._RecordEnd, \
-                                con._RecordDeleted, \
-                                con._RecordCurrent \
-                              FROM {ADS_DATABASE_STAGE}.{source_object} con \
-                              LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UC_VKTYP_TEXT ty ON con.VKTYP = ty.contractAccountCategoryCode and  con.APPLK = ty.applicationArea\
-                                                                                                        and ty._RecordDeleted = 0 and ty._RecordCurrent = 1")
+                                case when VKONT = 'na' then '' else  VKONT end as contractAccountNumber, \
+                                to_date(ERDAT, 'yyyy-MM-dd') as  createdDate, \
+                                ERNAM as  createdBy, \
+                                to_date(AEDAT, 'yyyy-MM-dd') as  lastChangedDate, \
+                                AENAM as  lastChangedBy, \
+                                LOEVM as  deletedIndicator, \
+                                APPLK as  applicationArea, \
+                                VKTYP as  contractAccountCategoryCode, \
+                                ty.contractAccountCategory as  contractAccountCategory, \
+                                VKONA as  legacyContractAccountNumber, \
+                                con._RecordStart,  \
+                                con._RecordEnd,  \
+                                con._RecordDeleted,  \
+                                con._RecordCurrent  \
+                              FROM {ADS_DATABASE_STAGE}.{source_object}  con \
+                              LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UC_VKTYP_TEXT  ty ON con.VKTYP = ty.contractAccountCategoryCode and  con.APPLK = ty.applicationArea\
+                                                                                                        and ty._RecordDeleted = 0  and ty._RecordCurrent = 1")
 
 display(df_cleansed)
 print(f'Number of rows: {df_cleansed.count()}')
