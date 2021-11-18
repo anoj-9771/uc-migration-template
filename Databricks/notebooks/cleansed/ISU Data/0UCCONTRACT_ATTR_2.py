@@ -176,58 +176,58 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT \
-                            case when stg.VERTRAG = 'na' then '' else stg.VERTRAG end as contractId, \
-                            stg.BUKRS as companyCode, \
-                            stg.SPARTE as divisonCode, \
-                            stg.KOFIZ as accountDeterminationCode, \
-                            stg.ABSZYK as allowableBudgetBillingCycles, \
-                            stg.GEMFAKT as invoiceContractsJointly, \
-                            stg.ABRSPERR as billBlockingReasonCode, \
-                            stg.ABRFREIG as billReleasingReasonCode, \
-                            stg.VBEZ as contractText, \
-                            to_date(stg.EINZDAT_ALT, 'yyyy-MM-dd') as legacyMoveInDate, \
-                            stg.KFRIST as numberOfCancellations, \
-                            stg.VERLAENG as numberOfRenewals, \
-                            stg.PERSNR as personnelNumber, \
-                            stg.VREFER as contractNumberLegacy, \
-                            to_date(stg.ERDAT, 'yyyy-MM-dd') as createdDate, \
-                            stg.ERNAM as createdBy, \
-                            to_date(stg.AEDAT, 'yyyy-MM-dd') as lastChangedDate, \
-                            stg.AENAM as lastChangedBy, \
-                            stg.LOEVM as deletedIndicator, \
-                            stg.FAKTURIERT as isContractInvoiced, \
-                            stg.PS_PSP_PNR as wbsElement, \
-                            stg.AUSGRUP as outsortingCheckGroupForBilling, \
-                            stg.OUTCOUNT as manualOutsortingCount, \
-                            stg.PYPLS as paymentPlanStartMonth, \
-                            stg.SERVICEID as serviceProvider, \
-                            stg.PYPLA as alternativePaymentStartMonth, \
-                            stg.BILLFINIT as contractTerminatedForBilling, \
-                            stg.SALESEMPLOYEE as salesEmployee, \
-                            stg.INVOICING_PARTY as invoicingParty, \
-                            stg.CANCREASON_NEW as cancellationReasonCRM, \
-                            stg.ANLAGE as installationId, \
-                            stg.VKONTO as contractAccountNumber, \
-                            stg.KZSONDAUSZ as specialMoveOutCase, \
-                            to_date(stg.EINZDAT, 'yyyy-MM-dd') as moveInDate, \
-                            to_date(stg.AUSZDAT, 'yyyy-MM-dd') as moveOutDate, \
-                            to_date(stg.ABSSTOPDAT, 'yyyy-MM-dd') as budgetBillingStopDate, \
-                            stg.XVERA as isContractTransferred, \
-                            stg.ZGPART as businessPartnerGroupNumber, \
-                            to_date(stg.ZDATE_FROM, 'yyyy-MM-dd') as validFromDate, \
-                            stg.ZZAGREEMENT_NUM as agreementNumber, \
-                            stg.VSTELLE as premise, \
-                            stg.HAUS as propertyNumber, \
-                            stg.ZZZ_ADRMA as alternativeAddressNumber, \
-                            stg.ZZZ_IDNUMBER as identificationNumber, \
-                            stg.ZZ_ADRNR as addressNumber, \
-                            stg.ZZ_OWNER as objectReferenceId, \
-                            stg.ZZ_OBJNR as objectNumber, \
-                            stg._RecordStart, \
-                            stg._RecordEnd, \
-                            stg._RecordDeleted, \
-                            stg._RecordCurrent \
-                        FROM {ADS_DATABASE_STAGE}.{source_object} stg")
+                            case when VERTRAG = 'na' then '' else VERTRAG end as contractId, \
+                            BUKRS as companyCode, \
+                            SPARTE as divisonCode, \
+                            KOFIZ as accountDeterminationCode, \
+                            ABSZYK as allowableBudgetBillingCycles, \
+                            GEMFAKT as invoiceContractsJointly, \
+                            ABRSPERR as billBlockingReasonCode, \
+                            ABRFREIG as billReleasingReasonCode, \
+                            VBEZ as contractText, \
+                            case when EINZDAT_ALT < '1900-01-01' then to_date('1900-01-01', 'yyyy-MM-dd') else to_date(EINZDAT_ALT, 'yyyy-MM-dd') end as legacyMoveInDate, \
+                            KFRIST as numberOfCancellations, \
+                            VERLAENG as numberOfRenewals, \
+                            PERSNR as personnelNumber, \
+                            VREFER as contractNumberLegacy, \
+                            case when ERDAT < '1900-01-01' then to_date('1900-01-01', 'yyyy-MM-dd') else to_date(ERDAT, 'yyyy-MM-dd') end as createdDate, \
+                            ERNAM as createdBy, \
+                            case when AEDAT < '1900-01-01' then to_date('1900-01-01', 'yyyy-MM-dd') else to_date(AEDAT, 'yyyy-MM-dd') end as lastChangedDate, \
+                            AENAM as lastChangedBy, \
+                            LOEVM as deletedIndicator, \
+                            FAKTURIERT as isContractInvoiced, \
+                            PS_PSP_PNR as wbsElement, \
+                            AUSGRUP as outsortingCheckGroupForBilling, \
+                            OUTCOUNT as manualOutsortingCount, \
+                            PYPLS as paymentPlanStartMonth, \
+                            SERVICEID as serviceProvider, \
+                            PYPLA as alternativePaymentStartMonth, \
+                            BILLFINIT as contractTerminatedForBilling, \
+                            SALESEMPLOYEE as salesEmployee, \
+                            INVOICING_PARTY as invoicingParty, \
+                            CANCREASON_NEW as cancellationReasonCRM, \
+                            ANLAGE as installationId, \
+                            VKONTO as contractAccountNumber, \
+                            KZSONDAUSZ as specialMoveOutCase, \
+                            case when EINZDAT < '1900-01-01' then to_date('1900-01-01', 'yyyy-MM-dd') else to_date(EINZDAT, 'yyyy-MM-dd') end as moveInDate, \
+                            case when AUSZDAT < '1900-01-01' then to_date('1900-01-01', 'yyyy-MM-dd') else to_date(AUSZDAT, 'yyyy-MM-dd') end as moveOutDate, \
+                            case when ABSSTOPDAT < '1900-01-01' then to_date('1900-01-01', 'yyyy-MM-dd') else to_date(ABSSTOPDAT, 'yyyy-MM-dd') end as budgetBillingStopDate, \
+                            XVERA as isContractTransferred, \
+                            ZGPART as businessPartnerGroupNumber, \
+                            case when ZDATE_FROM < '1900-01-01' then to_date('1900-01-01', 'yyyy-MM-dd') else to_date(ZDATE_FROM, 'yyyy-MM-dd') end as validFromDate, \
+                            ZZAGREEMENT_NUM as agreementNumber, \
+                            VSTELLE as premise, \
+                            HAUS as propertyNumber, \
+                            ZZZ_ADRMA as alternativeAddressNumber, \
+                            ZZZ_IDNUMBER as identificationNumber, \
+                            ZZ_ADRNR as addressNumber, \
+                            ZZ_OWNER as objectReferenceId, \
+                            ZZ_OBJNR as objectNumber, \
+                            _RecordStart, \
+                            _RecordEnd, \
+                            _RecordDeleted, \
+                            _RecordCurrent \
+                        FROM {ADS_DATABASE_STAGE}.{source_object}")
 
 display(df_cleansed)
 print(f'Number of rows: {df_cleansed.count()}')
@@ -293,8 +293,6 @@ newSchema = StructType(
 # Apply the new schema to cleanse Data Frame
 df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
 display(df_updated_column)
-
-
 
 # COMMAND ----------
 
