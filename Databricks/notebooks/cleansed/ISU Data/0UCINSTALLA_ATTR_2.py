@@ -175,6 +175,7 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
+
 df_cleansed = spark.sql(f"SELECT  \
                             case when ANLAGE = 'na' then '' else ANLAGE end as installationId, \
                             SPARTE as divisonCode, \

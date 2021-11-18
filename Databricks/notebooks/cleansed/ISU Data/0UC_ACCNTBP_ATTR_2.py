@@ -175,6 +175,7 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
+
 df_cleansed = spark.sql(f"SELECT \
                                 GPART as businessPartnerGroupNumber, \
                                 VKONT as contractAccountNumber, \
