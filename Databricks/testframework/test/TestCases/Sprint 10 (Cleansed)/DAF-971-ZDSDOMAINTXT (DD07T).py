@@ -27,8 +27,9 @@ containerName = "archive"
 # MAGIC DOMNAME as domainName
 # MAGIC ,DOMVALUE_L as domainValueSingleUpperLimit
 # MAGIC ,DDTEXT as domainValueText
+# MAGIC ,AS4LOCAL as activationStatus
 # MAGIC ,VALPOS as domainValueKey
-# MAGIC ,row_number() over (partition by DOMNAME,VALPOS order by EXTRACT_DATETIME desc) as rn
+# MAGIC ,row_number() over (partition by DOMNAME,AS4LOCAL,VALPOS order by EXTRACT_DATETIME desc) as rn
 # MAGIC from test.${vars.table} -- WHERE LANGU = 'E'
 # MAGIC )a where  a.rn = 1
 
@@ -42,14 +43,16 @@ containerName = "archive"
 # MAGIC domainName
 # MAGIC ,domainValueSingleUpperLimit
 # MAGIC ,domainValueText
+# MAGIC ,activationStatus
 # MAGIC ,domainValueKey
 # MAGIC from
 # MAGIC (select
 # MAGIC DOMNAME as domainName
 # MAGIC ,DOMVALUE_L as domainValueSingleUpperLimit
 # MAGIC ,DDTEXT as domainValueText
+# MAGIC ,AS4LOCAL as activationStatus
 # MAGIC ,VALPOS as domainValueKey
-# MAGIC ,row_number() over (partition by DOMNAME,VALPOS order by EXTRACT_DATETIME desc) as rn
+# MAGIC ,row_number() over (partition by DOMNAME,AS4LOCAL,VALPOS order by EXTRACT_DATETIME desc) as rn
 # MAGIC from test.${vars.table} -- WHERE LANGU = 'E'
 # MAGIC )a where  a.rn = 1)
 
@@ -60,9 +63,10 @@ containerName = "archive"
 # MAGIC SELECT domainName
 # MAGIC ,domainValueSingleUpperLimit
 # MAGIC ,domainValueText
+# MAGIC ,activationStatus
 # MAGIC ,domainValueKey, COUNT (*) as count
 # MAGIC FROM cleansed.${vars.table}
-# MAGIC GROUP BY domainName,domainValueSingleUpperLimit,domainValueText,domainValueKey
+# MAGIC GROUP BY domainName,domainValueSingleUpperLimit,domainValueText,activationStatus,domainValueKey
 # MAGIC HAVING COUNT (*) > 1
 
 # COMMAND ----------
@@ -72,7 +76,7 @@ containerName = "archive"
 # MAGIC SELECT * FROM (
 # MAGIC SELECT
 # MAGIC *,
-# MAGIC row_number() OVER(PARTITION BY domainName,domainValueKey  order by domainName,domainValueKey) as rn
+# MAGIC row_number() OVER(PARTITION BY domainName,activationStatus,domainValueKey  order by domainName,activationStatus,domainValueKey) as rn
 # MAGIC FROM  cleansed.${vars.table}
 # MAGIC )a where a.rn > 1
 
@@ -84,14 +88,16 @@ containerName = "archive"
 # MAGIC domainName
 # MAGIC ,domainValueSingleUpperLimit
 # MAGIC ,domainValueText
+# MAGIC ,activationStatus
 # MAGIC ,domainValueKey
 # MAGIC from
 # MAGIC (select
 # MAGIC DOMNAME as domainName
 # MAGIC ,DOMVALUE_L as domainValueSingleUpperLimit
 # MAGIC ,DDTEXT as domainValueText
+# MAGIC ,AS4LOCAL as activationStatus
 # MAGIC ,VALPOS as domainValueKey
-# MAGIC ,row_number() over (partition by DOMNAME,VALPOS order by EXTRACT_DATETIME desc) as rn
+# MAGIC ,row_number() over (partition by DOMNAME,AS4LOCAL,VALPOS order by EXTRACT_DATETIME desc) as rn
 # MAGIC from test.${vars.table} -- WHERE LANGU = 'E'
 # MAGIC )a where  a.rn = 1
 # MAGIC except
@@ -99,6 +105,7 @@ containerName = "archive"
 # MAGIC domainName
 # MAGIC ,domainValueSingleUpperLimit
 # MAGIC ,domainValueText
+# MAGIC ,activationStatus
 # MAGIC ,domainValueKey
 # MAGIC from
 # MAGIC cleansed.${vars.table}
@@ -111,6 +118,7 @@ containerName = "archive"
 # MAGIC domainName
 # MAGIC ,domainValueSingleUpperLimit
 # MAGIC ,domainValueText
+# MAGIC ,activationStatus
 # MAGIC ,domainValueKey
 # MAGIC from
 # MAGIC cleansed.${vars.table}
@@ -119,13 +127,15 @@ containerName = "archive"
 # MAGIC domainName
 # MAGIC ,domainValueSingleUpperLimit
 # MAGIC ,domainValueText
+# MAGIC ,activationStatus
 # MAGIC ,domainValueKey
 # MAGIC from
 # MAGIC (select
 # MAGIC DOMNAME as domainName
 # MAGIC ,DOMVALUE_L as domainValueSingleUpperLimit
 # MAGIC ,DDTEXT as domainValueText
+# MAGIC ,AS4LOCAL as activationStatus
 # MAGIC ,VALPOS as domainValueKey
-# MAGIC ,row_number() over (partition by DOMNAME,VALPOS order by EXTRACT_DATETIME desc) as rn
+# MAGIC ,row_number() over (partition by DOMNAME,AS4LOCAL,VALPOS order by EXTRACT_DATETIME desc) as rn
 # MAGIC from test.${vars.table} -- WHERE LANGU = 'E'
 # MAGIC )a where  a.rn = 1

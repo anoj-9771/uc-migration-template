@@ -16,6 +16,32 @@ spark.conf.set(
 
 # COMMAND ----------
 
+hostName = 'nt097dslt01.adsdev.swcdev'
+databaseName = 'SLT_EQ1CLNT100'
+port = 1433
+dbURL = f'jdbc:sqlserver://{hostName}:{port};database={databaseName};user=SLTADMIN;password=Edpgroup01#!'
+qry = '(select * from EQ1.DBERCHZ1 where BELNR = 193006781302) myTable'
+df = spark.read.jdbc(url=dbURL, table=qry, lowerBound=1, upperBound=100000, numPartitions=10)
+display(df)
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC select  *, billingQuantityPlaceBeforeDecimalPoint,billingQuantityPlaceAfterDecimalPoint from cleansed.isu_dberchz1 where billingQuantityPlaceAfterDecimalPoint in (0.42465753424660,0.80273972602731,0.88767123287665)
+# MAGIC --cast(N_ZWSTVOR as decimal(15,5)) as num from test.isu_dberchz2
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC DROP TABLE test.isu_dberchz1
+# MAGIC dbfs:/user/hive/warehouse/test.db/isu_dberchz1
+
+# COMMAND ----------
+
+df.write.format("json").saveAsTable ("test" + "." + "isu_dberchz1a")
+
+# COMMAND ----------
+
 # DBTITLE 1,[Source] Loading data into Dataframe
 df = spark.read.format(file_type).option("inferSchema", "true").load(file_location)
 #df2 = spark.read.format(file_type).option("inferSchema", "true").load(file_location2)
@@ -29,7 +55,7 @@ df.printSchema()
 # COMMAND ----------
 
 # DBTITLE 0,[Result] Load Count Result into DataFrame
-lakedf = spark.sql("select * from cleansed.t_sapisu_dberchz1")
+lakedf = spark.sql("select * from cleansed.isu_dberchz1")
 
 # COMMAND ----------
 
@@ -55,12 +81,7 @@ df = spark.sql("select * from Source")
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC select * from cleansed.t_sapisu_dberchz1
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC select * from cleansed.t_sapisu_0UC_AKLASSE_TEXT
+# MAGIC select * from cleansed.isu_0UC_AKLASSE_TEXT
 
 # COMMAND ----------
 
@@ -127,18 +148,14 @@ df = spark.sql("select * from Source")
 # MAGIC ,V_ABRMENGE as billingQuantityPlaceBeforeDecimalPoint
 # MAGIC ,N_ABRMENGE as billingQuantityPlaceAfterDecimalPoint
 # MAGIC from Source a
-# MAGIC left join cleansed.t_sapisu_0UC_AKLASSE_TEXT b
+# MAGIC left join cleansed.isu_0UC_AKLASSE_TEXT b
 # MAGIC on a.AKLASSE = b.billingClassCode --and b.SPRAS ='E'
-
-# COMMAND ----------
-
-lakedf.createOrReplaceTempView("Target")
 
 # COMMAND ----------
 
 # DBTITLE 1,[Verification] Count Checks
 # MAGIC %sql
-# MAGIC select count (*) as RecordCount, 'Target' as TableName from cleansed.t_sapisu_dberchz1
+# MAGIC select count (*) as RecordCount, 'Target' as TableName from cleansed.isu_dberchz1
 # MAGIC union all
 # MAGIC select count (*) as RecordCount, 'Source' as TableName from (
 # MAGIC SELECT
@@ -202,15 +219,15 @@ lakedf.createOrReplaceTempView("Target")
 # MAGIC ,V_ABRMENGE as billingQuantityPlaceBeforeDecimalPoint
 # MAGIC ,N_ABRMENGE as billingQuantityPlaceAfterDecimalPoint
 # MAGIC from Source a
-# MAGIC left join cleansed.t_sapisu_0UC_AKLASSE_TEXT b
-# MAGIC on a.AKLASSE = b.billingClassCode )--and b.SPRAS ='E' 
+# MAGIC left join cleansed.isu_0UC_AKLASSE_TEXT b
+# MAGIC on a.AKLASSE = b.billingClassCode and DELTA_TS < '20211117055649' )--and b.SPRAS ='E' 
 
 # COMMAND ----------
 
 # DBTITLE 1,[Verification] Duplicate Checks
 # MAGIC %sql
 # MAGIC SELECT billingDocumentNumber,billingDocumentLineItemId, COUNT (*) as count
-# MAGIC FROM cleansed.t_sapisu_dberchz1
+# MAGIC FROM cleansed.isu_dberchz1
 # MAGIC GROUP BY billingDocumentNumber, billingDocumentLineItemId
 # MAGIC HAVING COUNT (*) > 1
 
@@ -222,7 +239,7 @@ lakedf.createOrReplaceTempView("Target")
 # MAGIC SELECT
 # MAGIC *,
 # MAGIC row_number() OVER(PARTITION BY billingDocumentNumber, billingDocumentLineItemId order by billingDocumentNumber) as rn
-# MAGIC FROM cleansed.t_sapisu_dberchz1
+# MAGIC FROM cleansed.isu_dberchz1
 # MAGIC )a where a.rn > 1
 
 # COMMAND ----------
@@ -248,8 +265,8 @@ lakedf.createOrReplaceTempView("Target")
 # MAGIC ,TVORG as subtransactionForDocumentItem
 # MAGIC ,GEGEN_TVORG as offsettingTransactionSubtransactionForDocumentItem
 # MAGIC ,LINESORT as poresortingBillingLineItems
-# MAGIC --,AB as validFromDate
-# MAGIC --,BIS as validToDate
+# MAGIC ,AB as validFromDate
+# MAGIC ,BIS as validToDate
 # MAGIC ,TIMTYPZA as billingLineItemTimeCategoryCode
 # MAGIC ,SCHEMANR as billingSchemaNumber
 # MAGIC ,SNO as billingSchemaStepSequenceNumber
@@ -288,10 +305,10 @@ lakedf.createOrReplaceTempView("Target")
 # MAGIC ,PERTYP as billingPeriodInternalCategoryCode
 # MAGIC ,OUCONTRACT as individualContractID
 # MAGIC ,V_ABRMENGE as billingQuantityPlaceBeforeDecimalPoint
-# MAGIC --,N_ABRMENGE as billingQuantityPlaceAfterDecimalPoint
+# MAGIC ,N_ABRMENGE as billingQuantityPlaceAfterDecimalPoint
 # MAGIC from Source a
-# MAGIC left join cleansed.t_sapisu_0UC_AKLASSE_TEXT b
-# MAGIC on a.AKLASSE = b.billingClassCode 
+# MAGIC left join cleansed.isu_0UC_AKLASSE_TEXT b
+# MAGIC on a.AKLASSE = b.billingClassCode  and DELTA_TS < '20211117055649'
 # MAGIC 
 # MAGIC EXCEPT
 # MAGIC select
@@ -313,8 +330,8 @@ lakedf.createOrReplaceTempView("Target")
 # MAGIC ,subtransactionForDocumentItem
 # MAGIC ,offsettingTransactionSubtransactionForDocumentItem
 # MAGIC ,poresortingBillingLineItems
-# MAGIC --,validFromDate
-# MAGIC --,validToDate
+# MAGIC ,validFromDate
+# MAGIC ,validToDate
 # MAGIC ,billingLineItemTimeCategoryCode
 # MAGIC ,billingSchemaNumber
 # MAGIC ,billingSchemaStepSequenceNumber
@@ -353,11 +370,11 @@ lakedf.createOrReplaceTempView("Target")
 # MAGIC ,billingPeriodInternalCategoryCode
 # MAGIC ,individualContractID
 # MAGIC ,billingQuantityPlaceBeforeDecimalPoint
-# MAGIC --,billingQuantityPlaceAfterDecimalPoint
+# MAGIC ,billingQuantityPlaceAfterDecimalPoint
 # MAGIC 
 # MAGIC 
 # MAGIC FROM
-# MAGIC cleansed.t_sapisu_dberchz1
+# MAGIC cleansed.isu_dberchz1
 
 # COMMAND ----------
 
@@ -382,8 +399,8 @@ lakedf.createOrReplaceTempView("Target")
 # MAGIC ,subtransactionForDocumentItem
 # MAGIC ,offsettingTransactionSubtransactionForDocumentItem
 # MAGIC ,poresortingBillingLineItems
-# MAGIC --,validFromDate
-# MAGIC ---,validToDate
+# MAGIC ,validFromDate
+# MAGIC ,validToDate
 # MAGIC ,billingLineItemTimeCategoryCode
 # MAGIC ,billingSchemaNumber
 # MAGIC ,billingSchemaStepSequenceNumber
@@ -422,11 +439,11 @@ lakedf.createOrReplaceTempView("Target")
 # MAGIC ,billingPeriodInternalCategoryCode
 # MAGIC ,individualContractID
 # MAGIC ,billingQuantityPlaceBeforeDecimalPoint
-# MAGIC --,billingQuantityPlaceAfterDecimalPoint
+# MAGIC ,billingQuantityPlaceAfterDecimalPoint
 # MAGIC 
 # MAGIC 
 # MAGIC FROM
-# MAGIC cleansed.t_sapisu_dberchz1
+# MAGIC cleansed.isu_dberchz1
 # MAGIC EXCEPT
 # MAGIC SELECT
 # MAGIC BELNR as billingDocumentNumber
@@ -447,8 +464,8 @@ lakedf.createOrReplaceTempView("Target")
 # MAGIC ,TVORG as subtransactionForDocumentItem
 # MAGIC ,GEGEN_TVORG as offsettingTransactionSubtransactionForDocumentItem
 # MAGIC ,LINESORT as poresortingBillingLineItems
-# MAGIC --,AB as validFromDate
-# MAGIC --,BIS as validToDate
+# MAGIC ,AB as validFromDate
+# MAGIC ,BIS as validToDate
 # MAGIC ,TIMTYPZA as billingLineItemTimeCategoryCode
 # MAGIC ,SCHEMANR as billingSchemaNumber
 # MAGIC ,SNO as billingSchemaStepSequenceNumber
@@ -487,10 +504,10 @@ lakedf.createOrReplaceTempView("Target")
 # MAGIC ,PERTYP as billingPeriodInternalCategoryCode
 # MAGIC ,OUCONTRACT as individualContractID
 # MAGIC ,V_ABRMENGE as billingQuantityPlaceBeforeDecimalPoint
-# MAGIC --,N_ABRMENGE as billingQuantityPlaceAfterDecimalPoint
+# MAGIC ,N_ABRMENGE as billingQuantityPlaceAfterDecimalPoint
 # MAGIC from Source a
-# MAGIC left join cleansed.t_sapisu_0UC_AKLASSE_TEXT b
-# MAGIC on a.AKLASSE = b.billingClassCode 
+# MAGIC left join cleansed.isu_0UC_AKLASSE_TEXT b
+# MAGIC on a.AKLASSE = b.billingClassCode and DELTA_TS < '20211117055649'
 
 # COMMAND ----------
 
@@ -556,11 +573,11 @@ lakedf.createOrReplaceTempView("Target")
 # MAGIC ,V_ABRMENGE as billingQuantityPlaceBeforeDecimalPoint
 # MAGIC ,N_ABRMENGE as billingQuantityPlaceAfterDecimalPoint
 # MAGIC from Source a
-# MAGIC left join cleansed.t_sapisu_0UC_AKLASSE_TEXT b
-# MAGIC on a.AKLASSE = b.billingClassCode   where BELNR = '300000002646' and BELZEILE = '000009'
+# MAGIC left join cleansed.isu_0UC_AKLASSE_TEXT b
+# MAGIC on a.AKLASSE = b.billingClassCode   where BELNR = '010000004111' and BELZEILE = '000696'
 # MAGIC --billingdocumentnumber = '616000659963' and billingDocumentLineItemId = '000001'-- 
 
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC select * from cleansed.t_sapisu_dberchz1 where billingdocumentnumber = '616000659963' and billingDocumentLineItemId = '000001'
+# MAGIC select * from cleansed.isu_dberchz1 where billingdocumentnumber = '010000004111' and billingDocumentLineItemId = '000696'
