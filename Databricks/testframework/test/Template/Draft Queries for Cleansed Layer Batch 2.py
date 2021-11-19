@@ -13,20 +13,9 @@
 # MAGIC SELECT
 # MAGIC PARTNER AS businessPartnerNumber
 # MAGIC ,TYPE AS identificationTypeCode
-# MAGIC ,b.TEXT as identificationType
 # MAGIC ,IDNUMBER AS businessPartnerIdNumber
-# MAGIC ,INSTITUTE   as institute
-# MAGIC ENTRY_DATE as entryDate
-# MAGIC VALID_DATE_FROM as validFromDate
-# MAGIC VALID_DATE_TO as validToDate
-# MAGIC COUNTRY as countryShortName
-# MAGIC REGION as stateCode
-# MAGIC PARTNER_GUID as businessPartnerGUID
-# MAGIC FLG_DEL_BW as deletedIndicator
 # MAGIC FROM
-# MAGIC SOURCE a
-# MAGIC left join 0BP_ID_TYPE_TEXT b
-# MAGIC on a.TYPE = b.TYPE
+# MAGIC SOURCE
 
 # COMMAND ----------
 
@@ -46,35 +35,9 @@
 # MAGIC RELNR as businessPartnerRelationshipNumber
 # MAGIC ,PARTNER1 as businessPartnerNumber1
 # MAGIC ,PARTNER2 as businessPartnerNumber2
-# MAGIC ,PARTNER1_GUID as businessPartnerGUID1
-# MAGIC ,PARTNER2_GUID as businessPartnerGUID2
-# MAGIC ,RELDIR as relationshipDirection
-# MAGIC ,RELTYP as relationshipTypeCode
-# MAGIC ,b.relationshipType as relationshipType
 # MAGIC ,DATE_TO as validToDate
-# MAGIC ,DATE_FROM as validFromDate
-# MAGIC ,COUNTRY as countryShortName
-# MAGIC ,POST_CODE1 as postalCode
-# MAGIC ,CITY1 as cityName
-# MAGIC ,STREET as streetName
-# MAGIC ,HOUSE_NUM1 as houseNumber
-# MAGIC ,TEL_NUMBER as phoneNumber
-# MAGIC ,SMTP_ADDR as emailAddress
-# MAGIC ,CMPY_PART_PER as capitalInterestPercentage
-# MAGIC ,CMPY_PART_AMO as capitalInterestAmount
-# MAGIC ,ADDR_SHORT as shortFormattedAddress
-# MAGIC ,ADDR_SHORT_S as shortFormattedAddress2
-# MAGIC ,LINE0 as addressLine0
-# MAGIC ,LINE1 as addressLine1
-# MAGIC ,LINE2 as addressLine2
-# MAGIC ,LINE3 as addressLine3
-# MAGIC ,LINE4 as addressLine4
-# MAGIC ,LINE5 as addressLine5
-# MAGIC ,LINE6 as addressLine6
-# MAGIC ,FLG_DELETED as deletedIndicator
-# MAGIC from Source a
-# MAGIC left join 0BP_RELTYPES_TEXT b
-# MAGIC on a.RELDIR = b.RELDIR and a.RELTYP = b.RELTYP 
+# MAGIC FROM
+# MAGIC SOURCE
 
 # COMMAND ----------
 
@@ -131,10 +94,8 @@
 # DBTITLE 1,0FUNCT_LOC_TEXT
 # MAGIC %sql
 # MAGIC SELECT
-# MAGIC TPLNR as functionalLocationNumber
-# MAGIC ,TXTMD as functionalLocationDescription
-# MAGIC ,ERDAT as createdDate
-# MAGIC ,AEDAT as lastChangedDate
+# MAGIC LANGU as language
+# MAGIC ,TPLNR as functionalLocationNumber
 # MAGIC FROM
 # MAGIC Source
 

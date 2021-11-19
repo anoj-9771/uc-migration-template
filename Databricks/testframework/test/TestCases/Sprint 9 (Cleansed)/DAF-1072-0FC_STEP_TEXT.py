@@ -1,6 +1,8 @@
 # Databricks notebook source
-table = 'TE192T'
+table = '0FC_STEP_TEXT'
 source = 'ISU' #either CRM or ISU
+table1 = table.lower()
+print(table1)
 
 # COMMAND ----------
 
@@ -11,7 +13,7 @@ source = 'ISU' #either CRM or ISU
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC drop table if exists test.isu_te192t
+# MAGIC drop table if exists test.isu_0FC_STEP_TEXT
 
 # COMMAND ----------
 
@@ -90,7 +92,7 @@ for folder in folders:
 
                         print(f'\t\t{myFile.name.strip("/")}\t{myFile.size}')
 
-                        if myFile.size > 2:
+                        if myFile.size > 0:
                             fileNames.append(myFile)
     except:
         print(f'Invalid folder name: {folder.name.strip("/")}')
@@ -110,11 +112,6 @@ display(targetdf)
 
 # COMMAND ----------
 
-# MAGIC %sql
-# MAGIC select * from cleansed.isu_te192t
-
-# COMMAND ----------
-
 # DBTITLE 1,[Source] Schema check
 sourcedf.printSchema()
 
@@ -126,37 +123,46 @@ targetdf.printSchema()
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC select distinct EXTRACT_DATETIME from test.isu_te192t order by EXTRACT_DATETIME desc
+# MAGIC select distinct EXTRACT_DATETIME from test.isu_0fc_step_text order by EXTRACT_DATETIME desc
 
 # COMMAND ----------
 
-# DBTITLE 1,Source with mapping
+# DBTITLE 1,[Source] with mapping
 # MAGIC %sql
 # MAGIC select
-# MAGIC  outsortingCheckGroupCode
-# MAGIC ,outsortingCheckGroup
-# MAGIC  from (select
-# MAGIC  AUSGRUP_IN as outsortingCheckGroupCode
-# MAGIC ,TEXT30 as outsortingCheckGroup
-# MAGIC ,row_number() over (partition by AUSGRUP_IN order by EXTRACT_DATETIME desc) as rn
-# MAGIC from test.isu_te192t)
-# MAGIC where rn = 1
+# MAGIC collectionStepCode
+# MAGIC ,collectionStep
+# MAGIC from (
+# MAGIC select
+# MAGIC STEP as collectionStepCode
+# MAGIC ,STEPT as collectionStep
+# MAGIC ,row_number() over (partition by STEPT order by extract_datetime) rn
+# MAGIC from test.isu_0fc_step_text) where rn=1
 
 # COMMAND ----------
 
-# DBTITLE 1,[Verification] Count
+# DBTITLE 1,[Verification] Count Check
 # MAGIC %sql
-# MAGIC select count (*) as RecordCount, 'Target' as TableName from cleansed.isu_te192t
+# MAGIC select count (*) as RecordCount, 'Target' as TableName from cleansed.isu_0fc_step_text
 # MAGIC union all
 # MAGIC select count (*) as RecordCount, 'Source' as TableName from (select
-# MAGIC  outsortingCheckGroupCode
-# MAGIC ,outsortingCheckGroup
-# MAGIC  from (select
-# MAGIC  AUSGRUP_IN as outsortingCheckGroupCode
-# MAGIC ,TEXT30 as outsortingCheckGroup
-# MAGIC ,row_number() over (partition by AUSGRUP_IN order by EXTRACT_DATETIME desc) as rn
-# MAGIC from test.isu_te192t)
-# MAGIC where rn = 1)
+# MAGIC collectionStepCode
+# MAGIC ,collectionStep
+# MAGIC from (
+# MAGIC select
+# MAGIC STEP as collectionStepCode
+# MAGIC ,STEPT as collectionStep
+# MAGIC ,row_number() over (partition by STEPT order by extract_datetime) rn
+# MAGIC from test.isu_0fc_step_text) where rn=1)
+
+# COMMAND ----------
+
+# DBTITLE 1,[Verification] Duplicate Checks
+# MAGIC %sql
+# MAGIC SELECT collectionStepCode, COUNT (*) as count
+# MAGIC FROM cleansed.isu_0fc_step_text
+# MAGIC GROUP BY collectionStepCode
+# MAGIC HAVING COUNT (*) > 1
 
 # COMMAND ----------
 
@@ -165,55 +171,46 @@ targetdf.printSchema()
 # MAGIC SELECT * FROM (
 # MAGIC SELECT
 # MAGIC *,
-# MAGIC row_number() OVER(PARTITION BY outsortingCheckGroupCode order by outsortingCheckGroupCode) as rn
-# MAGIC FROM  cleansed.isu_te192t
-# MAGIC ) where rn > 1
-
-# COMMAND ----------
-
-# DBTITLE 1,[Verification] Duplicate Checks
-# MAGIC %sql
-# MAGIC SELECT outsortingCheckGroupCode, COUNT (*) as count
-# MAGIC FROM cleansed.isu_te192t
-# MAGIC GROUP BY outsortingCheckGroupCode
-# MAGIC HAVING COUNT (*) > 1
+# MAGIC row_number() OVER(PARTITION BY collectionStepCode order by collectionStepCode) as rn
+# MAGIC FROM  cleansed.isu_0fc_step_text
+# MAGIC )a where a.rn > 1
 
 # COMMAND ----------
 
 # DBTITLE 1,[Verification] Compare Source and Target Data
 # MAGIC %sql
 # MAGIC select
-# MAGIC  outsortingCheckGroupCode
-# MAGIC ,outsortingCheckGroup
-# MAGIC  from (select
-# MAGIC  AUSGRUP_IN as outsortingCheckGroupCode
-# MAGIC ,TEXT30 as outsortingCheckGroup
-# MAGIC ,row_number() over (partition by AUSGRUP_IN order by EXTRACT_DATETIME desc) as rn
-# MAGIC from test.isu_te192t)
-# MAGIC where rn = 1
+# MAGIC collectionStepCode
+# MAGIC ,collectionStep
+# MAGIC from (
+# MAGIC select
+# MAGIC STEP as collectionStepCode
+# MAGIC ,STEPT as collectionStep
+# MAGIC ,row_number() over (partition by STEPT order by extract_datetime) rn
+# MAGIC from test.isu_0fc_step_text) where rn=1
 # MAGIC except
 # MAGIC select
-# MAGIC  outsortingCheckGroupCode
-# MAGIC ,outsortingCheckGroup
+# MAGIC collectionStepCode
+# MAGIC ,collectionStep
 # MAGIC from
-# MAGIC cleansed.isu_te192t
+# MAGIC cleansed.isu_0fc_step_text
 
 # COMMAND ----------
 
 # DBTITLE 1,[Verification] Compare Target and Source Data
 # MAGIC %sql
 # MAGIC select
-# MAGIC  outsortingCheckGroupCode
-# MAGIC ,outsortingCheckGroup
+# MAGIC collectionStepCode
+# MAGIC ,collectionStep
 # MAGIC from
-# MAGIC cleansed.isu_te192t
+# MAGIC cleansed.isu_0fc_step_text
 # MAGIC except
 # MAGIC select
-# MAGIC  outsortingCheckGroupCode
-# MAGIC ,outsortingCheckGroup
-# MAGIC  from (select
-# MAGIC  AUSGRUP_IN as outsortingCheckGroupCode
-# MAGIC ,TEXT30 as outsortingCheckGroup
-# MAGIC ,row_number() over (partition by AUSGRUP_IN order by EXTRACT_DATETIME desc) as rn
-# MAGIC from test.isu_te192t)
-# MAGIC where rn = 1
+# MAGIC collectionStepCode
+# MAGIC ,collectionStep
+# MAGIC from (
+# MAGIC select
+# MAGIC STEP as collectionStepCode
+# MAGIC ,STEPT as collectionStep
+# MAGIC ,row_number() over (partition by STEPT order by extract_datetime) rn
+# MAGIC from test.isu_0fc_step_text) where rn=1
