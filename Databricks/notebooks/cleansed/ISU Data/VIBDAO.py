@@ -173,16 +173,12 @@ DeltaSaveToDeltaTable (
 
 # COMMAND ----------
 
-
-
-# COMMAND ----------
-
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_cleansed = spark.sql(f"SELECT  \
-                                  case when INTRENO = 'na' then '' else INTRENO end as architecturalObjectInternalId , \
-                                  AOID as architecturalObjectId , \
-                                  AOTYPE as architecturalObjectTypeCode , \
+df_cleansed = spark.sql(f"SELECT \
+                                  case when vib.INTRENO = 'na' then '' else vib.INTRENO end as architecturalObjectInternalId , \
+                                  vib.AOID as architecturalObjectId , \
+                                  vib.AOTYPE as architecturalObjectTypeCode , \
                                   tiv.XMAOTYPE as architecturalObjectType , \
                                   AONR as architecturalObjectNumber , \
                                   to_date(VALIDFROM,'yyyy-MM-dd') as validFromDate , \
@@ -219,9 +215,9 @@ df_cleansed = spark.sql(f"SELECT  \
                                   ZCD_UNIT_ENTITLEMENT as unitEntitlement , \
                                   ZCD_NO_OF_FLATS as flatCount , \
                                   ZCD_SUP_PROP_TYPE as superiorPropertyTypeCode , \
-                                  sp.DESCRIPTION as superiorPropertyType , \
+                                  sp.superiorPropertyType as superiorPropertyType , \
                                   ZCD_INF_PROP_TYPE as inferiorPropertyTypeCode , \
-                                  ip.DESCRIPTION as inferiorPropertyType , \
+                                  ip.inferiorPropertyType as inferiorPropertyType , \
                                   ZCD_STORM_WATER_ASSESS as stormWaterAssesmentIndicator , \
                                   ZCD_IND_MLIM as mlimIndicator , \
                                   ZCD_IND_WICA as wicaIndicator , \
@@ -234,27 +230,23 @@ df_cleansed = spark.sql(f"SELECT  \
                                   ZCD_CASENO_FLAG as caseNumberIndicator , \
                                   ZCD_OVERRIDE_AREA as overrideArea , \
                                   ZCD_OVERRIDE_AREA_UNIT as overrideAreaUnit , \
-                                  ZCD_CANCELLATION_DATE as cancellationDate , \
+                                  to_date(ZCD_CANCELLATION_DATE,'yyyy-MM-dd') as cancellationDate , \
                                   ZCD_CANC_REASON as cancellationReasonCode , \
                                   ZCD_COMMENTS as comments , \
                                   ZCD_PROPERTY_INFO as propertyInfo , \
-                                  OBJNRTRG as targetObjectNumber , \
-                                  DIAGRAM_NO as diagramNumber , \
-                                  FIXFITCHARACT as fixtureAndFittingCharacteristicCode , \
-                                  XFIXFITCHARACT as fixtureAndFittingCharacteristic , \
-                                  _RecordStart, \
-                                  _RecordEnd, \
-                                  _RecordDeleted, \
-                                  _RecordCurrent \
+                                  vib._RecordStart, \
+                                  vib._RecordEnd, \
+                                  vib._RecordDeleted, \
+                                  vib._RecordCurrent \
                               FROM {ADS_DATABASE_STAGE}.{source_object} vib \
                                     LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_ZCD_TINFPRTY_TX ip ON \
-                                   vib.ZCD_INF_PROP_TYPE = ip.INFERIOR_PROP_TYPE and ip._RecordDeleted = 0 and ip._RecordCurrent = 1 \
+                                   vib.ZCD_INF_PROP_TYPE = ip.inferiorPropertyTypeCode and ip._RecordDeleted = 0 and ip._RecordCurrent = 1 \
                                     LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_ZCD_TSUPPRTYP_TX sp ON \
-                                   vib.ZCD_SUP_PROP_TYPE = sp.SUPERIOR_PROP_TYPE and sp._RecordDeleted = 0 and sp._RecordCurrent = 1 \
+                                   vib.ZCD_SUP_PROP_TYPE = sp.superiorPropertyTypeCode and sp._RecordDeleted = 0 and sp._RecordCurrent = 1 \
                                     LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_ZCD_TPLANTYPE_TX plt ON \
                                    vib.ZCD_PLAN_TYPE = plt.PLAN_TYPE and plt._RecordDeleted = 0 and plt._RecordCurrent = 1 \
                                     LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_TIVBDAROBJTYPET tiv ON \
-                                   vib.ZCD_AOTYPE = tiv.AOTYPE and tiv._RecordDeleted = 0 and tiv._RecordCurrent = 1 \
+                                   vib.AOTYPE = tiv.AOTYPE and tiv._RecordDeleted = 0 and tiv._RecordCurrent = 1 \
                                     LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_ZCD_TPROCTYPE_TX prt ON \
                                    vib.ZCD_PROCESS_TYPE = prt.PROCESS_TYPE and prt._RecordDeleted = 0 and prt._RecordCurrent = 1")
 
@@ -263,8 +255,7 @@ print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
 
-
-# Create schema for the cleanse table
+#Create schema for the cleanse table
 newSchema = StructType(
                             [
                             StructField("architecturalObjectInternalId", StringType(), False),
@@ -278,11 +269,11 @@ newSchema = StructType(
                             StructField("objectNumber", StringType(), True),
                             StructField("firstEnteredBy", StringType(), True),
                             StructField("firstEnteredOnDate", DateType(), True),
-                            StructField("firstEnteredTime", DateType(), True),
+                            StructField("firstEnteredTime", StringType(), True),
                             StructField("firstEnteredSource", StringType(), True),
                             StructField("employeeId", StringType(), True),
                             StructField("lastEdittedOnDate", DateType(), True),
-                            StructField("lastEdittedTime", DateType(), True),
+                            StructField("lastEdittedTime", StringType(), True),
                             StructField("lastEdittedSource", StringType(), True),
                             StructField("responsiblePerson", StringType(), True),
                             StructField("exclusiveUser", StringType(), True),
@@ -290,15 +281,15 @@ newSchema = StructType(
                             StructField("measurementStructure", StringType(), True),
                             StructField("shortDescription", StringType(), True),
                             StructField("reservationArea", StringType(), True),
-                            StructField("maintenanceDistrict", LongType(), True),
+                            StructField("maintenanceDistrict", StringType(), True),
                             StructField("businessEntityTransportConnectionsIndicator", StringType(), True),
                             StructField("propertyNumber", StringType(), True),
                             StructField("propertyCreatedDate", DateType(), True),
-                            StructField("propertyLotNumber", LongType(), True),
-                            StructField("propertyRequestNumber", LongType(), True),
+                            StructField("propertyLotNumber", StringType(), True),
+                            StructField("propertyRequestNumber", StringType(), True),
                             StructField("planTypeCode", StringType(), True),
                             StructField("planType", StringType(), True),
-                            StructField("planNumber", LongType(), True),
+                            StructField("planNumber", StringType(), True),
                             StructField("processTypeCode", StringType(), True),
                             StructField("processType", StringType(), True),
                             StructField("addressLotNumber", StringType(), True),
@@ -325,10 +316,6 @@ newSchema = StructType(
                             StructField("cancellationReasonCode", StringType(), True),
                             StructField("comments", StringType(), True),
                             StructField("propertyInfo", StringType(), True),
-                            StructField("targetObjectNumber", StringType(), True),
-                            StructField("diagramNumber", LongType(), True),
-                            StructField("fixtureAndFittingCharacteristicCode", StringType(), True),
-                            StructField("fixtureAndFittingCharacteristic", StringType(), True),
                             StructField('_RecordStart',TimestampType(),False),
                             StructField('_RecordEnd',TimestampType(),False),
                             StructField('_RecordDeleted',IntegerType(),False),
