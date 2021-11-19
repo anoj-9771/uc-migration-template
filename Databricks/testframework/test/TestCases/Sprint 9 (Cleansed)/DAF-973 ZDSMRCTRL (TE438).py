@@ -1,8 +1,6 @@
 # Databricks notebook source
-table = '0FC_STEP_TEXT'
-source = 'ISU' #either CRM or ISU
-table1 = table.lower()
-print(table1)
+table = 'TE438'
+source = 'ISU' 
 
 # COMMAND ----------
 
@@ -13,7 +11,7 @@ print(table1)
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC drop table if exists test.isu_0FC_STEP_TEXT
+# MAGIC drop table if exists test.isu_te438
 
 # COMMAND ----------
 
@@ -42,7 +40,6 @@ def listDetails(inFile):
     display(spark.sql(f'select * from {tmpTable}'))
     testdf = spark.sql(f'select * from {tmpTable}')
     testdf.write.format(fileType).mode("append").saveAsTable("test" + "." + source + "_" + table)
-   
 
 # COMMAND ----------
 
@@ -92,7 +89,7 @@ for folder in folders:
 
                         print(f'\t\t{myFile.name.strip("/")}\t{myFile.size}')
 
-                        if myFile.size > 0:
+                        if myFile.size > 2:
                             fileNames.append(myFile)
     except:
         print(f'Invalid folder name: {folder.name.strip("/")}')
@@ -107,110 +104,144 @@ display(sourcedf)
 
 # COMMAND ----------
 
+# DBTITLE 1,Source schema check
+sourcedf.printSchema()
+
+# COMMAND ----------
+
 targetdf = spark.sql(f"select * from cleansed." + "isu_" + table)
 display(targetdf)
 
 # COMMAND ----------
 
-# DBTITLE 1,[Source] Schema check
-sourcedf.printSchema()
-
-# COMMAND ----------
-
-# DBTITLE 1,[Target] Schema Check
 targetdf.printSchema()
 
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC select distinct EXTRACT_DATETIME from test.isu_0fc_step_text order by EXTRACT_DATETIME desc
+# MAGIC select distinct EXTRACT_DATETIME from test.isu_te438 order by EXTRACT_DATETIME desc
 
 # COMMAND ----------
 
-# DBTITLE 1,[Source] with mapping
 # MAGIC %sql
-# MAGIC select
-# MAGIC collectionStepCode
-# MAGIC ,collectionStep
-# MAGIC from (
-# MAGIC select
-# MAGIC STEP as collectionStepCode
-# MAGIC ,STEPT as collectionStep
-# MAGIC ,row_number() over (partition by STEP order by extract_datetime) rn
-# MAGIC from test.isu_0fc_step_text) where rn=1
+# MAGIC select * from test.isu_te438
 
 # COMMAND ----------
 
-# DBTITLE 1,[Verification] Count Check
 # MAGIC %sql
-# MAGIC select count (*) as RecordCount, 'Target' as TableName from cleansed.isu_0fc_step_text
+# MAGIC select * from cleansed.isu_te438
+
+# COMMAND ----------
+
+# DBTITLE 1,Source with mapping
+# MAGIC %sql
+# MAGIC select
+# MAGIC  meterReadingControlCode
+# MAGIC ,numberOfCustomerReadings
+# MAGIC ,numberOfAutomaticEstimations
+# MAGIC ,numberOfEstimationsAndCustomerReadings from (select
+# MAGIC ABLESARTST as meterReadingControlCode
+# MAGIC ,MAXANZKSA as numberOfCustomerReadings
+# MAGIC ,MAXANZSCH as numberOfAutomaticEstimations
+# MAGIC ,MAXANZABL as numberOfEstimationsAndCustomerReadings 
+# MAGIC ,row_number() over (partition by ABLESARTST order by EXTRACT_DATETIME desc) as rn
+# MAGIC from test.isu_te438)
+# MAGIC where rn = 1
+
+# COMMAND ----------
+
+lakedf = spark.sql("select * from cleansed.isu_te438")
+
+# COMMAND ----------
+
+# DBTITLE 1,[Target] Schema Check
+lakedf.printSchema()
+
+# COMMAND ----------
+
+# DBTITLE 1,[Verification] count
+# MAGIC %sql
+# MAGIC select count (*) as RecordCount, 'Target' as TableName from cleansed.isu_te438
 # MAGIC union all
-# MAGIC select count (*) as RecordCount, 'Source' as TableName from (select
-# MAGIC collectionStepCode
-# MAGIC ,collectionStep
-# MAGIC from (
+# MAGIC select count (*) as RecordCount, 'Source' as TableName from (
 # MAGIC select
-# MAGIC STEP as collectionStepCode
-# MAGIC ,STEPT as collectionStep
-# MAGIC ,row_number() over (partition by STEP order by extract_datetime) rn
-# MAGIC from test.isu_0fc_step_text) where rn=1)
+# MAGIC  meterReadingControlCode
+# MAGIC ,numberOfCustomerReadings
+# MAGIC ,numberOfAutomaticEstimations
+# MAGIC ,numberOfEstimationsAndCustomerReadings from (select
+# MAGIC ABLESARTST as meterReadingControlCode
+# MAGIC ,MAXANZKSA as numberOfCustomerReadings
+# MAGIC ,MAXANZSCH as numberOfAutomaticEstimations
+# MAGIC ,MAXANZABL as numberOfEstimationsAndCustomerReadings 
+# MAGIC ,row_number() over (partition by ABLESARTST order by EXTRACT_DATETIME desc) as rn
+# MAGIC from test.isu_te438)
+# MAGIC where rn = 1)
 
 # COMMAND ----------
 
-# DBTITLE 1,[Verification] Duplicate Checks
-# MAGIC %sql
-# MAGIC SELECT collectionStepCode, COUNT (*) as count
-# MAGIC FROM cleansed.isu_0fc_step_text
-# MAGIC GROUP BY collectionStepCode
-# MAGIC HAVING COUNT (*) > 1
-
-# COMMAND ----------
-
-# DBTITLE 1,[Verification] Duplicate Checks
+# DBTITLE 1,[Duplicate checks]
 # MAGIC %sql
 # MAGIC SELECT * FROM (
 # MAGIC SELECT
 # MAGIC *,
-# MAGIC row_number() OVER(PARTITION BY collectionStepCode order by collectionStepCode) as rn
-# MAGIC FROM  cleansed.isu_0fc_step_text
+# MAGIC row_number() OVER(PARTITION BY meterReadingControlCode order by meterReadingControlCode) as rn
+# MAGIC FROM  cleansed.isu_te438
 # MAGIC )a where a.rn > 1
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC SELECT meterReadingControlCode, COUNT (*) as count
+# MAGIC FROM cleansed.isu_te438
+# MAGIC GROUP BY meterReadingControlCode
+# MAGIC HAVING COUNT (*) > 1
 
 # COMMAND ----------
 
 # DBTITLE 1,[Verification] Compare Source and Target Data
 # MAGIC %sql
 # MAGIC select
-# MAGIC collectionStepCode
-# MAGIC ,collectionStep
-# MAGIC from (
-# MAGIC select
-# MAGIC STEP as collectionStepCode
-# MAGIC ,STEPT as collectionStep
-# MAGIC ,row_number() over (partition by STEP order by extract_datetime) rn
-# MAGIC from test.isu_0fc_step_text) where rn=1
+# MAGIC  meterReadingControlCode
+# MAGIC ,numberOfCustomerReadings
+# MAGIC ,numberOfAutomaticEstimations
+# MAGIC ,numberOfEstimationsAndCustomerReadings from (select
+# MAGIC ABLESARTST as meterReadingControlCode
+# MAGIC ,MAXANZKSA as numberOfCustomerReadings
+# MAGIC ,MAXANZSCH as numberOfAutomaticEstimations
+# MAGIC ,MAXANZABL as numberOfEstimationsAndCustomerReadings 
+# MAGIC ,row_number() over (partition by ABLESARTST order by EXTRACT_DATETIME desc) as rn
+# MAGIC from test.isu_te438)
+# MAGIC where rn = 1
 # MAGIC except
 # MAGIC select
-# MAGIC collectionStepCode
-# MAGIC ,collectionStep
+# MAGIC meterReadingControlCode
+# MAGIC ,numberOfCustomerReadings
+# MAGIC ,numberOfAutomaticEstimations
+# MAGIC ,numberOfEstimationsAndCustomerReadings
 # MAGIC from
-# MAGIC cleansed.isu_0fc_step_text
+# MAGIC cleansed.isu_te438
 
 # COMMAND ----------
 
 # DBTITLE 1,[Verification] Compare Target and Source Data
 # MAGIC %sql
 # MAGIC select
-# MAGIC collectionStepCode
-# MAGIC ,collectionStep
+# MAGIC meterReadingControlCode
+# MAGIC ,numberOfCustomerReadings
+# MAGIC ,numberOfAutomaticEstimations
+# MAGIC ,numberOfEstimationsAndCustomerReadings
 # MAGIC from
-# MAGIC cleansed.isu_0fc_step_text
+# MAGIC cleansed.isu_te438
 # MAGIC except
 # MAGIC select
-# MAGIC collectionStepCode
-# MAGIC ,collectionStep
-# MAGIC from (
-# MAGIC select
-# MAGIC STEP as collectionStepCode
-# MAGIC ,STEPT as collectionStep
-# MAGIC ,row_number() over (partition by STEP order by extract_datetime) rn
-# MAGIC from test.isu_0fc_step_text) where rn=1
+# MAGIC  meterReadingControlCode
+# MAGIC ,numberOfCustomerReadings
+# MAGIC ,numberOfAutomaticEstimations
+# MAGIC ,numberOfEstimationsAndCustomerReadings from (select
+# MAGIC ABLESARTST as meterReadingControlCode
+# MAGIC ,MAXANZKSA as numberOfCustomerReadings
+# MAGIC ,MAXANZSCH as numberOfAutomaticEstimations
+# MAGIC ,MAXANZABL as numberOfEstimationsAndCustomerReadings 
+# MAGIC ,row_number() over (partition by ABLESARTST order by EXTRACT_DATETIME desc) as rn
+# MAGIC from test.isu_te438)
+# MAGIC where rn = 1

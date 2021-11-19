@@ -1,7 +1,7 @@
 # Databricks notebook source
 #config parameters
 source = 'ISU' #either CRM or ISU
-table = 'IFORMOFADDRTEXT'
+table = 'PTAXCATEGORYTU'
 
 environment = 'test'
 storage_account_name = "sablobdaftest01"
@@ -18,13 +18,15 @@ containerName = "archive"
 # DBTITLE 1,[Source] with mapping
 # MAGIC %sql
 # MAGIC select
-# MAGIC formOfAddressCode
-# MAGIC ,formOfAddress
+# MAGIC procedure
+# MAGIC ,taxSalesCode
+# MAGIC ,taxName
 # MAGIC from
 # MAGIC (select
-# MAGIC FORMOFADDRESS as formOfAddressCode
-# MAGIC ,FORMOFADDRESSNAME as formOfAddress
-# MAGIC ,row_number() over (partition by FORMOFADDRESS order by EXTRACT_DATETIME desc) as rn
+# MAGIC KALSM as procedure
+# MAGIC ,MWSKZ as taxSalesCode
+# MAGIC ,TEXT as taxName
+# MAGIC ,row_number() over (partition by KALSM, MWSKZ order by EXTRACT_DATETIME desc) as rn
 # MAGIC from test.${vars.table}
 # MAGIC )a where  a.rn = 1
 
@@ -35,24 +37,25 @@ containerName = "archive"
 # MAGIC select count (*) as RecordCount, 'Target' as TableName from cleansed.${vars.table}
 # MAGIC union all
 # MAGIC select count (*) as RecordCount, 'Source' as TableName from (select
-# MAGIC formOfAddressCode
-# MAGIC ,formOfAddress
+# MAGIC procedure
+# MAGIC ,taxSalesCode
+# MAGIC ,taxName
 # MAGIC from
 # MAGIC (select
-# MAGIC FORMOFADDRESS as formOfAddressCode
-# MAGIC ,FORMOFADDRESSNAME as formOfAddress
-# MAGIC ,row_number() over (partition by FORMOFADDRESS order by EXTRACT_DATETIME desc) as rn
-# MAGIC from test.${vars.table}
+# MAGIC KALSM as procedure
+# MAGIC ,MWSKZ as taxSalesCode
+# MAGIC ,TEXT as taxName
+# MAGIC ,row_number() over (partition by KALSM, MWSKZ order by EXTRACT_DATETIME desc) as rn
+# MAGIC from test.${vars.table} 
 # MAGIC )a where  a.rn = 1)
 
 # COMMAND ----------
 
 # DBTITLE 1,[Verification] Duplicate Checks
 # MAGIC %sql
-# MAGIC SELECT formOfAddressCode
-# MAGIC , COUNT (*) as count
+# MAGIC SELECT procedure,taxSalesCode,taxName, COUNT (*) as count
 # MAGIC FROM cleansed.${vars.table}
-# MAGIC GROUP BY formOfAddressCode
+# MAGIC GROUP BY procedure,taxSalesCode,taxName
 # MAGIC HAVING COUNT (*) > 1
 
 # COMMAND ----------
@@ -62,7 +65,7 @@ containerName = "archive"
 # MAGIC SELECT * FROM (
 # MAGIC SELECT
 # MAGIC *,
-# MAGIC row_number() OVER(PARTITION BY formOfAddressCode  order by formOfAddressCode) as rn
+# MAGIC row_number() OVER(PARTITION BY procedure,taxSalesCode order by procedure,taxSalesCode) as rn
 # MAGIC FROM  cleansed.${vars.table}
 # MAGIC )a where a.rn > 1
 
@@ -70,20 +73,17 @@ containerName = "archive"
 
 # DBTITLE 1,[Verification] Compare Source and Target Data
 # MAGIC %sql
-# MAGIC select
-# MAGIC formOfAddressCode
-# MAGIC ,formOfAddress
+# MAGIC select procedure ,taxSalesCode ,taxName 
 # MAGIC from
 # MAGIC (select
-# MAGIC FORMOFADDRESS as formOfAddressCode
-# MAGIC ,FORMOFADDRESSNAME as formOfAddress
-# MAGIC ,row_number() over (partition by FORMOFADDRESS order by EXTRACT_DATETIME desc) as rn
-# MAGIC from test.${vars.table}
+# MAGIC KALSM as procedure
+# MAGIC ,MWSKZ as taxSalesCode
+# MAGIC ,TEXT as taxName
+# MAGIC ,row_number() over (partition by KALSM, MWSKZ order by EXTRACT_DATETIME desc) as rn
+# MAGIC from test.${vars.table} -- WHERE LANGU = 'E'
 # MAGIC )a where  a.rn = 1
 # MAGIC except
-# MAGIC select
-# MAGIC formOfAddressCode
-# MAGIC ,formOfAddress
+# MAGIC select procedure ,taxSalesCode ,taxName
 # MAGIC from
 # MAGIC cleansed.${vars.table}
 
@@ -91,19 +91,20 @@ containerName = "archive"
 
 # DBTITLE 1,[Verification] Compare Target and Source Data
 # MAGIC %sql
-# MAGIC select
-# MAGIC formOfAddressCode
-# MAGIC ,formOfAddress
+# MAGIC select procedure ,taxSalesCode,taxName
 # MAGIC from
 # MAGIC cleansed.${vars.table}
 # MAGIC except
-# MAGIC select
-# MAGIC formOfAddressCode
-# MAGIC ,formOfAddress
+# MAGIC select procedure,taxSalesCode,taxName
 # MAGIC from
-# MAGIC (select
-# MAGIC FORMOFADDRESS as formOfAddressCode
-# MAGIC ,FORMOFADDRESSNAME as formOfAddress
-# MAGIC ,row_number() over (partition by FORMOFADDRESS order by EXTRACT_DATETIME desc) as rn
-# MAGIC from test.${vars.table}
+# MAGIC (select KALSM as procedure
+# MAGIC ,MWSKZ as taxSalesCode
+# MAGIC ,TEXT as taxName
+# MAGIC ,row_number() over (partition by KALSM, MWSKZ order by EXTRACT_DATETIME desc) as rn
+# MAGIC from test.${vars.table} -- WHERE LANGU = 'E'
 # MAGIC )a where  a.rn = 1
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC select * from cleansed.isu_PTAXCATEGORYTU where procedure = ''
