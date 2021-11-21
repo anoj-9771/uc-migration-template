@@ -227,14 +227,14 @@ print(f'Number of rows: {df_cleansed.count()}')
 # COMMAND ----------
 
 newSchema = StructType([
-	StructField('dateId',DateType(),True),
+	StructField('dateId',DateType(),False),
 	StructField('additionalIdentificationCharacteristic',StringType(),False),
 	StructField('businessPartnerGroupNumber',StringType(),False),
 	StructField('contractAccountNumber',StringType(),False),
 	StructField('dunningNoticeCounter',StringType(),False),
-    StructField('ficaDocumentNumber',StringType(),False),
-    StructField('ficaDocumentCategory',StringType(),False),
-    StructField('businessArea',StringType(),False),
+    StructField('ficaDocumentNumber',StringType(),True),
+    StructField('ficaDocumentCategory',StringType(),True),
+    StructField('businessArea',StringType(),True),
 	StructField('dateOfIssue',DateType(),True),
 	StructField('noticeExecutionDate',DateType(),True),
 	StructField('contractAccountGroup',StringType(),True),
