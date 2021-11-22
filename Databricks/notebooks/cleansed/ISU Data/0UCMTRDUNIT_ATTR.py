@@ -185,7 +185,7 @@ df_cleansed = spark.sql(f"SELECT \
 	cast(AUKSA_AUF as Integer) as intervalBetweenPrintoutAndOrder, \
 	PORTION as portionNumber, \
 	ABLESER as meterReaderNumber, \
-	cast(ABLZEIT as Integer) as meterReadingTime, \
+	cast(ABLZEIT as dec(5,1)) as meterReadingTime, \
 	cast(AZVORABL as Integer) as numberOfPreviousReadings, \
 	MDENR as numberOFMobileDataEntry, \
 	cast(ABLKAR as Integer) as meterReadingInterval, \
@@ -226,7 +226,7 @@ newSchema = StructType([
 	StructField('intervalBetweenPrintoutAndOrder',IntegerType(),True),
 	StructField('portionNumber',StringType(),True),
 	StructField('meterReaderNumber',StringType(),True),
-	StructField('meterReadingTime',IntegerType(),True),
+	StructField('meterReadingTime',DecimalType(5,1),True),
 	StructField('numberOfPreviousReadings',IntegerType(),True),
 	StructField('numberOFMobileDataEntry',StringType(),True),
 	StructField('meterReadingInterval',IntegerType(),True),
