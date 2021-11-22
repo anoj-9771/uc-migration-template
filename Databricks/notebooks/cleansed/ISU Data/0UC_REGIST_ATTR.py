@@ -175,7 +175,6 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-
 df_cleansed = spark.sql(f"SELECT \
 	case when EQUNR = 'na' then '' else EQUNR end as equipmentNumber, \
 	case when ZWNUMMER = 'na' then '' else (cast(ZWNUMMER as int)) end  as registerNumber, \
@@ -187,7 +186,7 @@ df_cleansed = spark.sql(f"SELECT \
 	ZWKENN as registerIdCode, \
     id.registerId as registerId, \
 	ZWART as registerTypeCode, \
-	ZWARTTXT as registerType, \
+	te.registerType as registerType, \
 	ZWTYP as registerCategoryCode, \
     dd.domainValueText as registerCategory, \
 	BLIWIRK as reactiveApparentOrActiveRegister, \
@@ -199,21 +198,20 @@ df_cleansed = spark.sql(f"SELECT \
 	cast(CRGPRESS as int) as gasCorrectionPressure, \
 	INTSIZEID as intervalLengthId, \
 	LOEVM as deletedIndicator, \
-	_RecordStart, \
-	_RecordEnd, \
-	_RecordDeleted, \
-	_RecordCurrent \
+	re._RecordStart, \
+	re._RecordEnd, \
+	re._RecordDeleted, \
+	re._RecordCurrent \
 	FROM {ADS_DATABASE_STAGE}.{source_object} re \
     LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UCDIVISCAT_TEXT di ON re.SPARTYP = di.sectorCategoryCode \
                                                                       and di._RecordDeleted = 0 and di._RecordCurrent = 1 \
     LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_TE065T id ON re.SPARTYP = id.divisionCategoryCode and re.ZWKENN = id.registerIdCode \
                                                                       and id._RecordDeleted = 0 and id._RecordCurrent = 1 \
+    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_TE523T te ON re.ZWART = te.registerTypeCode \
+                                                                      and te._RecordDeleted = 0 and te._RecordCurrent = 1 \
     LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_DD07T dd ON re.ZWTYP = dd.domainValueSingleUpperLimit and  dd.domainName = 'L_ZWTYP' \
-                                                                      and dd._RecordDeleted = 0 and dd._RecordCurrent = 1 \")
+                                                                      and dd._RecordDeleted = 0 and dd._RecordCurrent = 1")
 
-
-registerIdCode
-registerId
 
 display(df_cleansed)
 print(f'Number of rows: {df_cleansed.count()}')
