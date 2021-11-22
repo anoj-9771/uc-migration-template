@@ -175,7 +175,6 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-
 df_cleansed = spark.sql(f"SELECT \
 	case when LOGIKZW = 'na' then '' else LOGIKZW end as logicalRegisterNumber, \
 	ZWNABR as registerNotRelevantToBilling, \
@@ -188,7 +187,7 @@ df_cleansed = spark.sql(f"SELECT \
 	PREISKLA as priceClassCode, \
 	LOEVM as deletedIndicator, \
 	UPDMOD as bwDeltaProcess, \
-	ZWNABR as registerNotRelevantToBilling, \
+	ZOPCODE as operationCode, \
 	_RecordStart, \
 	_RecordEnd, \
 	_RecordDeleted, \
@@ -204,7 +203,7 @@ newSchema = StructType([
 	StructField('logicalRegisterNumber',StringType(),False),
 	StructField('registerNotRelevantToBilling',StringType(),True),
 	StructField('installationId',StringType(),False),
-	StructField('validToDate',DateType(),False),
+	StructField('validToDate',DateType(),True),
 	StructField('validFromDate',DateType(),True),
 	StructField('payRentalPrice',StringType(),True),
 	StructField('rateTypeCode',StringType(),True),
@@ -212,7 +211,7 @@ newSchema = StructType([
 	StructField('priceClassCode',StringType(),True),
 	StructField('deletedIndicator',StringType(),True),
 	StructField('bwDeltaProcess',StringType(),True),
-	StructField('registerNotRelevantToBilling',StringType(),True),
+	StructField('operationCode',StringType(),True),
 	StructField('_RecordStart',TimestampType(),False),
 	StructField('_RecordEnd',TimestampType(),False),
 	StructField('_RecordDeleted',IntegerType(),False),
