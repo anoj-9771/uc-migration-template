@@ -177,14 +177,13 @@ DeltaSaveToDeltaTable (
 #Update/rename Column
 
 df_cleansed = spark.sql(f"SELECT  \
-                                  case when ABLESARTST = 'na' then '' else ABLESARTST end as activationStatus , \
-                                  TEXT30 as domainValueKey , \
+                                  case when ABLESARTST = 'na' then '' else ABLESARTST end as meterReadingControlCode, \
+                                  TEXT30 as meterReadingControl, \
                                   _RecordStart, \
                                   _RecordEnd, \
                                   _RecordDeleted, \
                                   _RecordCurrent \
                               FROM {ADS_DATABASE_STAGE}.{source_object}")
-
 
 display(df_cleansed)
 print(f'Number of rows: {df_cleansed.count()}')
@@ -194,8 +193,8 @@ print(f'Number of rows: {df_cleansed.count()}')
 # Create schema for the cleanse table
 newSchema = StructType(
                             [
-                            StructField("activationStatus", StringType(), False),
-                            StructField("domainValueKey", StringType(), True),
+                            StructField("meterReadingControlCode", StringType(), False),
+                            StructField("meterReadingControl", StringType(), True),
                             StructField('_RecordStart',TimestampType(),False),
                             StructField('_RecordEnd',TimestampType(),False),
                             StructField('_RecordDeleted',IntegerType(),False),
