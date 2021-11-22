@@ -176,10 +176,10 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT \
-	PARTNER as businessPartnerNumber, \
+	case when PARTNER = 'na' then '' else PARTNER end as businessPartnerNumber, \
 	PARTNER_GUID as businessPartnerGUID, \
-	ADDRNUMBER as addressNumber, \
-	to_date(DATE_FROM ,'yyyy-MM-dd') as validFromDate, \
+    case when ADDRNUMBER = 'na' then '' else ADDRNUMBER end as addressNumber, \
+    to_date(DATE_FROM ,'yyyy-MM-dd') as validFromDate, \
 	to_date(DATE_TO ,'yyyy-MM-dd') as validToDate, \
 	TITLE as titleCode, \
 	NAME1 as businessPartnerName1, \
@@ -194,7 +194,7 @@ df_cleansed = spark.sql(f"SELECT \
 	PO_BOX as poBoxCode, \
 	PO_BOX_NUM as poBoxWithoutNumberIndicator, \
 	PO_BOX_LOC as poBoxCity, \
-	CITY_CODE2 as poBoxCode, \
+	CITY_CODE2 as cityPoBoxCode, \
 	STREET as streetName, \
 	STREETCODE as streetCode, \
 	HOUSE_NUM1 as houseNumber, \
@@ -271,7 +271,7 @@ newSchema = StructType([
 	StructField('poBoxCode',StringType(),True),
 	StructField('poBoxWithoutNumberIndicator',StringType(),True),
 	StructField('poBoxCity',StringType(),True),
-	StructField('poBoxCode',StringType(),True),
+	StructField('cityPoBoxCode',StringType(),True),
 	StructField('streetName',StringType(),True),
 	StructField('streetCode',StringType(),True),
 	StructField('houseNumber',StringType(),True),
