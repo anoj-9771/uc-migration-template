@@ -175,7 +175,6 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-
 df_cleansed = spark.sql(f"SELECT \
                                        case when ZWGRUPPE = 'na' then '' else ZWGRUPPE end as registerGroupCode,\
                                        EZWG_INFO as registerGroup, \
@@ -191,8 +190,8 @@ print(f'Number of rows: {df_cleansed.count()}')
 # COMMAND ----------
 
 newSchema = StructType([
-                      StructField('relationshipTypeCode',StringType(),False),
-                      StructField('relationshipTypeDescription',StringType(),True),
+                      StructField('registerGroupCode',StringType(),False),
+                      StructField('registerGroup',StringType(),True),
                       StructField('_RecordStart',TimestampType(),False),
                       StructField('_RecordEnd',TimestampType(),False),
                       StructField('_RecordDeleted',IntegerType(),False),
