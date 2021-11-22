@@ -175,14 +175,13 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-
 df_cleansed = spark.sql(f"SELECT  \
                             case when ANLAGE = 'na' then '' else ANLAGE end as installationId, \
                             SPARTE as divisonCode, \
                             VSTELLE as premise, \
                             BEZUG as reference, \
                             ABLESARTST as meterReadingControlCode, \
-                            Derived as meterReadingControl, \
+                            txt.meterReadingControl as meterReadingControl, \
                             SERVICE as serviceTypeCode, \
                             ETIMEZONE as timeZone, \
                             to_date(ERDAT, 'yyyy-MM-dd') as createdDate, \
@@ -195,11 +194,13 @@ df_cleansed = spark.sql(f"SELECT  \
                             ZZ_PROPTYPE as industry, \
                             ZZ_ADRNR as addressNumber, \
                             ZZ_OBJNR as objectNumber, \
-                            _RecordStart, \
-                            _RecordEnd, \
-                            _RecordDeleted, \
-                            _RecordCurrent \
-                        FROM {ADS_DATABASE_STAGE}.{source_object}")
+                            inst._RecordStart, \
+                            inst._RecordEnd, \
+                            inst._RecordDeleted, \
+                            inst._RecordCurrent \
+                        FROM {ADS_DATABASE_STAGE}.{source_object} inst \
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_TE438T txt ON inst.ABLESARTST = txt.meterReadingControlCode \
+                                                                                                    and txt._RecordDeleted = 0 and txt._RecordCurrent = 1")
 
 display(df_cleansed)
 print(f'Number of rows: {df_cleansed.count()}')
