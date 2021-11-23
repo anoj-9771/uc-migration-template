@@ -1,0 +1,44 @@
+name: $(Build.BuildId).$(date:yyyyMMdd)
+
+pr:
+  branches:
+    include:
+    - main        
+    - vms-template
+
+  paths:
+    include:
+    - AzureResources/*
+    - DevOps/Pipelines/*
+
+trigger: none
+
+pool: 
+  vmImage: ubuntu-latest
+
+stages:
+# ---------------------------------------------------------------------------
+# Build artifacts
+- stage: 'build' # leave main artifact build stage as 'build'
+  variables:
+  - template: Variables/deployment-variables.yml
+  jobs:
+  # Use this section to pull in or out build jobs
+  - template: Templates/job-copy-arm.yml
+
+# ---------------------------------------------------------------------------
+# Release to Non-Production - Develop
+- template: Templates/stage-vms-deployment.yml
+  parameters:
+    stage_name: 'develop'
+    variable_template_name: dev-variables
+    run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+
+# ---------------------------------------------------------------------------
+# Release to Production - PreProd Environment
+- template: Templates/stage-vms-deployment.yml
+  parameters:
+    stage_name: 'preprod'
+    variable_template_name: preprd-variables
+    run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/preprod'))
+    
