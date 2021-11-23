@@ -176,43 +176,37 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT \
-	case when dev.EQUNR = 'na' then '' else dev.EQUNR end as equipmentNumber, \
-	equi.equipmentDescription as equipmentDescription, \
-	case when dev.BIS = 'na' then to_date('1900-01-01','yyyy-MM-dd') else to_date(dev.BIS, 'yyyy-MM-dd') end as validToDate, \
-	to_date(dev.AB, 'yyyy-MM-dd') as validFromDate, \
-	dev.KOMBINAT as deviceCategoryCombination, \
-	cast(dev.LOGIKNR as long) as logicalDeviceNumber, \
-	dev.ZWGRUPPE as registerGroupCode, \
-	reg.registerGroup as registerGroup, \
-	to_date(dev.EINBDAT, 'yyyy-MM-dd') as installationDate, \
-	to_date(dev.AUSBDAT, 'yyyy-MM-dd') as deviceRemovalDate, \
-	dev.GERWECHS as activityReasonCode, \
-	ger.activityReason as activityReason, \
-	dev.DEVLOC as deviceLocation, \
-	dev.WGRUPPE as windingGroup, \
-	dev.LOEVM as deletedIndicator, \
-	dev.UPDMOD as bwDeltaProcess, \
-	cast(dev.AMCG_CAP_GRP as int) as advancedMeterCapabilityGroup, \
-	cast(dev.MSG_ATTR_ID as int) as messageAttributeId, \
-	dev.ZZMATNR as materialNumber, \
-	dev.ZANLAGE as installationId, \
-	dev.ZADDRNUMBER as addressNumber, \
-	dev.ZCITY1 as cityName, \
-	dev.ZHOUSE_NUM1 as houseNumber, \
-	dev.ZSTREET as streetName, \
-	dev.ZPOST_CODE1 as postalCode, \
-	dev.ZTPLMA as superiorFunctionalLocationNumber, \
-	dev.ZZ_POLICE_EVENT as policeEventNumber, \
-	dev.ZAUFNR as orderNumber, \
-	dev.ZERNAM as createdBy, \
-	dev._RecordStart, \
-	dev._RecordEnd, \
-	dev._RecordDeleted, \
-	dev._RecordCurrent \
-	FROM {ADS_DATABASE_STAGE}.{source_object} dev \
-    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0EQUIPMENT_TEXT equi ON dev.EQUNR = equi.equipmentNumber and equi._RecordDeleted = 0 and equi._RecordCurrent = 1 \
-    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UC_REGGRP_TEXT reg ON dev.ZWGRUPPE = reg.registerGroupCode and reg._RecordDeleted = 0 and reg._RecordCurrent = 1 \
-    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UC_GERWECHS_TEXT ger ON dev.GERWECHS = ger.activityReasonCode and ger._RecordDeleted = 0 and ger._RecordCurrent = 1")
+                            case when dev.EQUNR = 'na' then '' else dev.EQUNR end as equipmentNumber, \
+                            case when dev.BIS = 'na' then to_date('1900-01-01','yyyy-MM-dd') else to_date(dev.BIS, 'yyyy-MM-dd') end as validToDate, \
+                            to_date(dev.AB, 'yyyy-MM-dd') as validFromDate, \
+                            dev.KOMBINAT as deviceCategoryCombination, \
+                            cast(dev.LOGIKNR as long) as logicalDeviceNumber, \
+                            dev.ZWGRUPPE as registerGroupCode, \
+                            to_date(dev.EINBDAT, 'yyyy-MM-dd') as installationDate, \
+                            to_date(dev.AUSBDAT, 'yyyy-MM-dd') as deviceRemovalDate, \
+                            dev.GERWECHS as activityReasonCode, \
+                            dev.DEVLOC as deviceLocation, \
+                            dev.WGRUPPE as windingGroup, \
+                            dev.LOEVM as deletedIndicator, \
+                            dev.UPDMOD as bwDeltaProcess, \
+                            cast(dev.AMCG_CAP_GRP as int) as advancedMeterCapabilityGroup, \
+                            cast(dev.MSG_ATTR_ID as int) as messageAttributeId, \
+                            dev.ZZMATNR as materialNumber, \
+                            dev.ZANLAGE as installationId, \
+                            dev.ZADDRNUMBER as addressNumber, \
+                            dev.ZCITY1 as cityName, \
+                            dev.ZHOUSE_NUM1 as houseNumber, \
+                            dev.ZSTREET as streetName, \
+                            dev.ZPOST_CODE1 as postalCode, \
+                            dev.ZTPLMA as superiorFunctionalLocationNumber, \
+                            dev.ZZ_POLICE_EVENT as policeEventNumber, \
+                            dev.ZAUFNR as orderNumber, \
+                            dev.ZERNAM as createdBy, \
+                            dev._RecordStart, \
+                            dev._RecordEnd, \
+                            dev._RecordDeleted, \
+                            dev._RecordCurrent \
+                        FROM {ADS_DATABASE_STAGE}.{source_object} dev")
 
 display(df_cleansed)
 print(f'Number of rows: {df_cleansed.count()}')
@@ -221,17 +215,14 @@ print(f'Number of rows: {df_cleansed.count()}')
 
 newSchema = StructType([
                           StructField('equipmentNumber',StringType(),False),
-                          StructField('equipmentDescription',StringType(),True),
                           StructField('validToDate',DateType(),False),
                           StructField('validFromDate',DateType(),True),
                           StructField('deviceCategoryCombination',StringType(),True),
                           StructField('logicalDeviceNumber',LongType(),True),                                      
                           StructField('registerGroupCode',StringType(),True),
-                          StructField('registerGroup',StringType(),True),
                           StructField('installationDate',DateType(),True),
                           StructField('deviceRemovalDate',DateType(),True),
                           StructField('activityReasonCode',StringType(),True),
-                          StructField('activityReason',StringType(),True),
                           StructField('deviceLocation',StringType(),True),
                           StructField('windingGroup',StringType(),True),
                           StructField('deletedIndicator',StringType(),True),

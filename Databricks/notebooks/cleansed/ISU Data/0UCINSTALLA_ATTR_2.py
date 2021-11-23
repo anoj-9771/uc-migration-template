@@ -178,11 +178,13 @@ DeltaSaveToDeltaTable (
 df_cleansed = spark.sql(f"SELECT  \
                             case when ANLAGE = 'na' then '' else ANLAGE end as installationId, \
                             SPARTE as divisonCode, \
+                            div.division, \
                             VSTELLE as premise, \
                             BEZUG as reference, \
                             ABLESARTST as meterReadingControlCode, \
                             txt.meterReadingControl as meterReadingControl, \
                             SERVICE as serviceTypeCode, \
+                            ser.serviceType, \
                             ETIMEZONE as timeZone, \
                             to_date(ERDAT, 'yyyy-MM-dd') as createdDate, \
                             ERNAM as createdBy, \
@@ -198,7 +200,9 @@ df_cleansed = spark.sql(f"SELECT  \
                             inst._RecordEnd, \
                             inst._RecordDeleted, \
                             inst._RecordCurrent \
-                        FROM {ADS_DATABASE_STAGE}.{source_object} inst \
+                        FROM {ADS_DATABASE_STAGE}.{source_object} stg \
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0DIVISION_TEXT div on div.divisionCode = stg.SPARTE \
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UC_SERTYPE_TEXT ser on ser.serviceTypeCode = stg.SERVICE \
                         LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_TE438T txt ON inst.ABLESARTST = txt.meterReadingControlCode \
                                                                                                     and txt._RecordDeleted = 0 and txt._RecordCurrent = 1")
 
@@ -211,11 +215,13 @@ print(f'Number of rows: {df_cleansed.count()}')
 newSchema = StructType([
                         StructField("installationId", StringType(), False),
                         StructField("divisonCode", StringType(), True),
+                        StructField("divison", StringType(), True),
                         StructField("premise", StringType(), True),
                         StructField("reference", StringType(), True),
                         StructField("meterReadingControlCode", StringType(), True),
                         StructField("meterReadingControl", StringType(), True),
                         StructField("serviceTypeCode", StringType(), True),
+                        StructField("serviceType", StringType(), True),
                         StructField("timeZone", StringType(), True),
                         StructField("createdDate", DateType(), True),
                         StructField("createdBy", StringType(), True),
