@@ -28,19 +28,9 @@ def getBilledWaterConsumptionIsu():
                              case when endBillingPeriod is null then to_date('19000101', 'yyyymmdd') else endBillingPeriod end as endBillingPeriod, \
                              billingDocumentCreateDate, documentNotReleasedIndicator, reversalDate \
                          from {ADS_DATABASE_CLEANSED}.isu_erch \
-                         where billingSimulationIndicator = '' \
+                         where trim(billingSimulationIndicator) = '' \
                            and _RecordCurrent = 1 and _RecordDeleted = 0")
 
-#   erchDf = spark.sql("select 'ISU' as sourceSystemCode, billingDocumentNumber, \
-#                              case when ltrim('0', businessPartnerNumber) is null then 'Unknown' else ltrim('0', businessPartnerNumber) end as businessPartnerNumber, \
-#                              case when startBillingPeriod is null then to_date('19000101', 'yyyymmdd') else startBillingPeriod end as startBillingPeriod, \
-#                              case when endBillingPeriod is null then to_date('19000101', 'yyyymmdd') else endBillingPeriod end as endBillingPeriod, \
-#                              billingDocumentCreateDate, documentNotReleasedIndicator, reversalDate \
-#                          from {ADS_DATABASE_CLEANSED}.slt_erch \
-#                          where trim(billingSimulationIndicator) = '' \
-#                            and _RecordCurrent = 1 and _RecordDeleted = 0")
- 
-  
   dberchz1Df = spark.sql(f"select billingDocumentNumber, billingDocumentLineItemId \
                                 ,validFromDate, validToDate \
                                 ,billingQuantityPlaceBeforeDecimalPoint \
@@ -52,7 +42,7 @@ def getBilledWaterConsumptionIsu():
   dberchz2Df = spark.sql(f"select billingDocumentNumber, billingDocumentLineItemId \
                                 ,equipmentNumber \
                              from {ADS_DATABASE_CLEANSED}.isu_dberchz2 \
-                             where suppressedMeterReadingDocumentId <> '' \
+                             where trim(suppressedMeterReadingDocumentId) <> '' \
                                and _RecordCurrent = 1 and _RecordDeleted = 0")
   
   #3.JOIN TABLES  
