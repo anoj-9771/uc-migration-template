@@ -178,7 +178,7 @@ DeltaSaveToDeltaTable (
 df_cleansed = spark.sql(f"SELECT \
                             case when VERTRAG = 'na' then '' else VERTRAG end as contractId, \
                             BUKRS as companyCode, \
-                            SPARTE as divisonCode, \
+                            SPARTE as divisionCode, \
                             KOFIZ as accountDeterminationCode, \
                             ABSZYK as allowableBudgetBillingCycles, \
                             GEMFAKT as invoiceContractsJointly, \
@@ -239,7 +239,7 @@ newSchema = StructType(
                         [
                           StructField("contractId", StringType(), False),
                           StructField("companyCode", StringType(), True),
-                          StructField("divisonCode", StringType(), True),
+                          StructField("divisionCode", StringType(), True),
                           StructField("accountDeterminationCode", StringType(), True),
                           StructField("allowableBudgetBillingCycles", StringType(), True),
                           StructField("invoiceContractsJointly", StringType(), True),
