@@ -176,35 +176,37 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT  \
-                            case when ANLAGE = 'na' then '' else ANLAGE end as installationId, \
-                            SPARTE as divisonCode, \
+                            case when stg.ANLAGE = 'na' then '' else stg.ANLAGE end as installationId, \
+                            stg.SPARTE as divisonCode, \
                             div.division, \
-                            VSTELLE as premise, \
-                            BEZUG as reference, \
-                            ABLESARTST as meterReadingControlCode, \
-                            txt.meterReadingControl as meterReadingControl, \
-                            SERVICE as serviceTypeCode, \
+                            stg.VSTELLE as premise, \
+                            stg.BEZUG as reference, \
+                            stg.ABLESARTST as meterReadingControlCode, \
+                            mrc.meterReadingControl as meterReadingControl, \
+                            stg.SERVICE as serviceTypeCode, \
                             ser.serviceType, \
-                            ETIMEZONE as timeZone, \
-                            to_date(ERDAT, 'yyyy-MM-dd') as createdDate, \
-                            ERNAM as createdBy, \
-                            to_date(AEDAT, 'yyyy-MM-dd') as lastChangedDate, \
-                            AENAM as lastChangedBy, \
-                            BEGRU as authorizationGroupCode, \
-                            LOEVM as deletedIndicator, \
-                            ZZ_HAUS as propertyNumber, \
-                            ZZ_PROPTYPE as industry, \
-                            ZZ_ADRNR as addressNumber, \
-                            ZZ_OBJNR as objectNumber, \
-                            inst._RecordStart, \
-                            inst._RecordEnd, \
-                            inst._RecordDeleted, \
-                            inst._RecordCurrent \
+                            stg.ETIMEZONE as timeZone, \
+                            to_date(stg.ERDAT, 'yyyy-MM-dd') as createdDate, \
+                            stg.ERNAM as createdBy, \
+                            to_date(stg.AEDAT, 'yyyy-MM-dd') as lastChangedDate, \
+                            stg.AENAM as lastChangedBy, \
+                            stg.BEGRU as authorizationGroupCode, \
+                            stg.LOEVM as deletedIndicator, \
+                            stg.ZZ_HAUS as propertyNumber, \
+                            stg.ZZ_PROPTYPE as industry, \
+                            stg.ZZ_ADRNR as addressNumber, \
+                            stg.ZZ_OBJNR as objectNumber, \
+                            stg._RecordStart, \
+                            stg._RecordEnd, \
+                            stg._RecordDeleted, \
+                            stg._RecordCurrent \
                         FROM {ADS_DATABASE_STAGE}.{source_object} stg \
                         LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0DIVISION_TEXT div on div.divisionCode = stg.SPARTE \
+                                                                                                    and dic._RecordDeleted = 0 and div._RecordCurrent = 1 \
                         LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UC_SERTYPE_TEXT ser on ser.serviceTypeCode = stg.SERVICE \
-                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_TE438T txt ON inst.ABLESARTST = txt.meterReadingControlCode \
-                                                                                                    and txt._RecordDeleted = 0 and txt._RecordCurrent = 1")
+                                                                                                    and ser._RecordDeleted = 0 and ser._RecordCurrent = 1 \
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_TE438T mrc ON mrc.meterReadingControlCode = inst.ABLESARTST \
+                                                                                                    and mrc._RecordDeleted = 0 and mrc._RecordCurrent = 1")
 
 display(df_cleansed)
 print(f'Number of rows: {df_cleansed.count()}')
