@@ -53,7 +53,7 @@ def getBillingDocumentIsu():
                                   ,"isOutsortedFlag" \
                                   ,"isReversedFlag" \
                                   ,"reversalDate" \
-                                )
+                                ).dropDuplicates()
   #6.Apply schema definition
   newSchema = StructType([
                             StructField("sourceSystemCode", StringType(), False),
