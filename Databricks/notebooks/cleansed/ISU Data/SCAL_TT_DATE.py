@@ -195,7 +195,7 @@ df_cleansed = spark.sql(f"SELECT \
                                 _RecordDeleted, \
                                 _RecordCurrent \
                                FROM {ADS_DATABASE_STAGE}.{source_object} \
-                               where calendardate <> 'na' \
+                               where calendardate <> 'na' and calendardate <= '2099-12-31' \
                                order by 1")
 
 display(df_cleansed)
