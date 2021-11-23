@@ -200,14 +200,14 @@ df_cleansed = spark.sql(f"SELECT  \
                                       TRANSSTAT as transferStatusCode , \
                                       TRANSTSTAMP as timeStamp , \
                                       SOURCESYST as sourceSystemOrigin , \
-                                      to_date(ZPREV_ADT, 'yyyy-MM-dd') as actualmeterReadingDate , \
-                                      ZPREV_MRESULT as meterReadingTaken2 , \
+                                      to_date(ZPREV_ADT, 'yyyy-MM-dd') as actualPreviousmeterReadingDate , \
+                                      ZPREV_MRESULT as meterPreviousReadingTaken , \
                                       ZZ_PHOTO_IND as meterPhotoIndicator , \
                                       ZZ_FREE_TEXT as freeText , \
                                       ZZ_COMM_CODE as meterReadingCommentCode , \
                                       ZZ_NO_READ_CODE as noReadCode , \
                                       ZGERNR as DeviceNumber , \
-                                      to_date(ZADATTATS, 'yyyy-MM-dd') as actualMeterReadingDate2 , \
+                                      to_date(ZADATTATS, 'yyyy-MM-dd') as actualMeterReadingDate , \
                                       ZWNABR as registerNotRelevantToBilling , \
                                       to_date(AEDAT, 'yyyy-MM-dd') as lastChangedDate , \
                                       _RecordStart, \
@@ -248,14 +248,14 @@ newSchema = StructType(
                               StructField("transferStatusCode", StringType(), True),
                               StructField("timeStamp",DoubleType(), True),
                               StructField("sourceSystemOrigin", LongType(), True),
-                              StructField("actualmeterReadingDate", DateType(), True),
-                              StructField("meterReadingTaken2",DoubleType(), True),
+                              StructField("actualPreviousmeterReadingDate", DateType(), True),
+                              StructField("meterPreviousReadingTaken",DoubleType(), True),
                               StructField("meterPhotoIndicator", StringType(), True),
                               StructField("freeText", StringType(), True),
                               StructField("meterReadingCommentCode", StringType(), True),
                               StructField("noReadCode", StringType(), True),
                               StructField("DeviceNumber", StringType(), True),
-                              StructField("actualMeterReadingDate2", DateType(), True),
+                              StructField("actualMeterReadingDate", DateType(), True),
                               StructField("registerNotRelevantToBilling", StringType(), True),
                               StructField("lastChangedDate", DateType(), True),
                               StructField('_RecordStart',TimestampType(),False),
