@@ -3,10 +3,10 @@
 import json
 #For unit testing...
 #Use this string in the Param widget: 
-#{"SourceType": "BLOB Storage (json)", "SourceServer": "daf-sa-lake-sastoken", "SourceGroup": "ISU", "SourceName": "ISU_0FC_PP", "SourceLocation": "ISU/0FC_PP", "AdditionalProperty": "", "Processor": "databricks-token|0711-011053-turfs581|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive", "IsAuditTable": false, "SoftDeleteSource": "", "ProjectName": "ISUDATA", "ProjectId": 2, "TargetType": "BLOB Storage (json)", "TargetName": "ISU_0FC_PP", "TargetLocation": "ISU/0FC_PP", "TargetServer": "daf-sa-lake-sastoken", "DataLoadMode": "FULL-EXTRACT", "DeltaExtract": false, "CDCSource": false, "TruncateTarget": false, "UpsertTarget": true, "AppendTarget": null, "TrackChanges": false, "LoadToSqlEDW": true, "TaskName": "ISU_0FC_PP", "ControlStageId": 2, "TaskId": 46, "StageSequence": 200, "StageName": "Raw to Cleansed", "SourceId": 46, "TargetId": 46, "ObjectGrain": "Day", "CommandTypeId": 8, "Watermarks": "", "WatermarksDT": null, "WatermarkColumn": "", "BusinessKeyColumn": "propmiseToPayId", "UpdateMetaData": null, "SourceTimeStampFormat": "", "Command": "", "LastLoadedFile": null}
+#{"SourceType": "BLOB Storage (json)", "SourceServer": "daf-sa-lake-sastoken", "SourceGroup": "ISU", "SourceName": "ISU_0UC_ISU_32", "SourceLocation": "ISU/0UC_ISU_32", "AdditionalProperty": "", "Processor": "databricks-token|0711-011053-turfs581|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive", "IsAuditTable": false, "SoftDeleteSource": "", "ProjectName": "ISU DATA", "ProjectId": 2, "TargetType": "BLOB Storage (json)", "TargetName": "ISU_0UC_ISU_32", "TargetLocation": "ISU/0UC_ISU_32", "TargetServer": "daf-sa-lake-sastoken", "DataLoadMode": "FULL-EXTRACT", "DeltaExtract": false, "CDCSource": false, "TruncateTarget": false, "UpsertTarget": true, "AppendTarget": null, "TrackChanges": false, "LoadToSqlEDW": true, "TaskName": "ISU_0UC_ISU_32", "ControlStageId": 2, "TaskId": 46, "StageSequence": 200, "StageName": "Raw to Cleansed", "SourceId": 46, "TargetId": 46, "ObjectGrain": "Day", "CommandTypeId": 8, "Watermarks": "", "WatermarksDT": null, "WatermarkColumn": "", "BusinessKeyColumn": "validToDatetime,disconnectionActivityPeriod,disconnectionDocumentNumber,disconnectionObjectNumber", "UpdateMetaData": null, "SourceTimeStampFormat": "", "Command": "", "LastLoadedFile": null}
 
 #Use this string in the Source Object widget
-#ISU_0FC_PP
+#ISU_0UC_ISU_32
 
 # COMMAND ----------
 
@@ -138,7 +138,6 @@ print("delta_column: " + delta_column)
 #Get the Data Load Mode using the params
 data_load_mode = GeneralGetDataLoadMode(Params[PARAMS_TRUNCATE_TARGET], Params[PARAMS_UPSERT_TARGET], Params[PARAMS_APPEND_TARGET])
 print("data_load_mode: " + data_load_mode)
-
 # COMMAND ----------
 
 # DBTITLE 1,9. Set raw and cleansed table name
@@ -175,38 +174,56 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_cleansed = spark.sql(f"SELECT \
-                            case when PPKEY = 'na' then '' else PPKEY end as promiseToPayId, \
-                            GPART as businessPartnerGroupNumber, \
-                            VKONT as contractAccountNumber, \
-                            BUKRS as companyCode, \
-                            PPRSC as promiseToPayReasonCode, \
-                            PPRSW as withdrawalReasonCode, \
-                            PPCAT as promiseToPayCategoryCode, \
-                            C4LEV as numberOfChecks, \
-                            PRCUR as currency, \
-                            cast(PRAMT as dec(13,2)) as paymentAmountPromised, \
-                            cast(PRAMT_CHR as dec(13,2)) as promiseToPayCharges, \
-                            cast(PRAMT_INT as dec(13,2)) as promiseToPayInterest, \
-                            cast(RDAMT as dec(13,2)) as amountCleared, \
-                            ERNAM as createdBy, \
-                            to_timestamp(concat(erdat,' ',ertim)) as  createdDateTime, \
-                            to_date(CHDAT, 'yyyy-MM-dd') as changedDate, \
-                            PPSTA as promiseToPayStatus, \
-                            XSTCH as statusChangedIndicator, \
-                            PPKEY_NEW as replacementPromiseToPayId, \
-                            XINDR as installmentsAgreed, \
-                            to_date(FTDAT, 'yyyy-MM-dd') as firstDueDate, \
-                            to_date(LTDAT, 'yyyy-MM-dd') as finalDueDate, \
-                            NRRTS as numberOfPayments, \
-                            cast(PPDUE as dec(13,2)) as paymentPromised, \
-                            cast(PPPAY as dec(13,2)) as amountPaidByToday, \
-                            cast(DEGFA as dec(5,0)) as currentLevelOfFulfillment, \
-                            _RecordStart, \
-                            _RecordEnd, \
-                            _RecordDeleted, \
-                            _RecordCurrent \
-                        FROM {ADS_DATABASE_STAGE}.{source_object}")
+df_cleansed = spark.sql("SELECT \
+	cast(to_unix_timestamp(AB
+AB_TIME, 'yyyy-MM-dd hh:mm:ss a') as timestamp) as validFromDatetime, \
+	to_date(ACTDATE) as disconnectiondate, \
+	ANLAGE as installationId, \
+	case when BIS
+BIS_TIME = 'na' then cast(to_unix_timestamp('1900-01-01 12:00:00', 'yyyy-MM-dd HH:mm:ss'))                                                                      else cast(to_unix_timestamp(BIS
+BIS_TIME, 'yyyy-MM-dd hh:mm:ss a') as timestamp) end as validToDatetime, \
+	CON_CARDTYP as concessionCardTypeCode, \
+	CONNOBJ as propertyNumber, \
+	CONTRACT as currentInstallationContract, \
+	cast(COUNTER as dec(16,0)) as billedValueCounter, \
+	case when DISCACT_BEGIN = 'na' then '' else DISCACT_BEGIN end as disconnectionActivityPeriod, \
+	DISCACTTYP as disconnectionActivityTypeCode, \
+	Derived as disconnectionActivityType, \
+	case when DISCNO = 'na' then '' else DISCNO end as disconnectionDocumentNumber, \
+	case when DISCOBJ = 'na' then '' else DISCOBJ end as disconnectionObjectNumber, \
+	DISCOBJTYP as disconnectionObjectTypeCode, \
+	DISCPROCV as processingVariantCode, \
+	Derived as processingVariant, \
+	DISCREASON as disconnectionReasonCode, \
+	Derived as disconnectionReason, \
+	EQUINR as equipmentNumber, \
+	FAILED_ATTEMPTS as documentItemNumber, \
+	to_date(FPD) as documentPostingDate, \
+	INSTLN as installationId, \
+	LADEMODUS as loadMode, \
+	MATXT as activityText, \
+	MNCOD as activityCode, \
+	cast(N_ZWSTAND as dec(14,0)) as meterReadingAfterDecimalPoint, \
+	ORDSTATE as disconnectionReconnectionStatusCode, \
+	Derived as disconnectionReconnectionStatus, \
+	PARTNER as businessPartnerNumber, \
+	PREMISE as premise, \
+	RECORDMODE as recordMode, \
+	REFOBJKEY as referenceObjectKey, \
+	REFOBJTYPE as referenceObjectTypeCode, \
+	cast(V_ZWSTAND as dec(17,0)) as meterReadingBeforeDecimalPoint, \
+	VKONT as contractAccountNumber, \
+	to_date(ZACTDATE) as disconnectiondate, \
+	ZILART as maintenanceTypeCode, \
+	ZSTATUS as disconnectionDocumentStatusCode, \
+	Derived as disconnectionDocumentStatus, \
+	ZZORDERNUM as orderNumber, \
+	_RecordStart, \
+	_RecordEnd, \
+	_RecordDeleted, \
+	_RecordCurrent \
+	FROM {ADS_DATABASE_STAGE}.{source_object} \
+        ")
 
 display(df_cleansed)
 print(f'Number of rows: {df_cleansed.count()}')
@@ -214,47 +231,60 @@ print(f'Number of rows: {df_cleansed.count()}')
 # COMMAND ----------
 
 newSchema = StructType([
-                        StructField('promiseToPayId',StringType(),False),
-                        StructField('businessPartnerGroupNumber',StringType(),True),
-                        StructField('contractAccountNumber',StringType(),True),
-                        StructField('companyCode',StringType(),True),
-                        StructField('promiseToPayReasonCode',StringType(),True),
-                        StructField('withdrawalReasonCode',StringType(),True),
-                        StructField('promiseToPayCategoryCode',StringType(),True),
-                        StructField('numberOfChecks',StringType(),True),
-                        StructField('currency',StringType(),True),
-                        StructField('paymentAmountPromised',DecimalType(13,2),True),
-                        StructField('promiseToPayCharges',DecimalType(13,2),True),
-                        StructField('promiseToPayInterest',DecimalType(13,2),True),
-                        StructField('amountCleared',DecimalType(13,2),True),
-                        StructField('createdBy',StringType(),True),
-                        StructField('createdDateTime',TimestampType(),True),
-                        StructField('changedDate',DateType(),True),
-                        StructField('promiseToPayStatus',StringType(),True),
-                        StructField('statusChangedIndicator',StringType(),True),
-                        StructField('replacementPromiseToPayId',StringType(),True),
-                        StructField('installmentsAgreed',StringType(),True),
-                        StructField('firstDueDate',DateType(),True),
-                        StructField('finalDueDate',DateType(),True),
-                        StructField('numberOfPayments',StringType(),True),
-                        StructField('paymentPromised',DecimalType(13,2),True),
-                        StructField('amountPaidByToday',DecimalType(13,2),True),
-                        StructField('currentLevelOfFulfillment',DecimalType(5,0),True),
-                        StructField('_RecordStart',TimestampType(),False),
-                        StructField('_RecordEnd',TimestampType(),False),
-                        StructField('_RecordDeleted',IntegerType(),False),
-                        StructField('_RecordCurrent',IntegerType(),False)
-                      ])
+	StructField('validFromDatetime',TimestampType(),True),
+	StructField('disconnectiondate',DateType(),True),
+	StructField('installationId',StringType(),True),
+	StructField('validToDatetime',TimestampType(),False),
+	StructField('concessionCardTypeCode',StringType(),True),
+	StructField('propertyNumber',StringType(),True),
+	StructField('currentInstallationContract',StringType(),True),
+	StructField('billedValueCounter',DecimalType(16,0),'True'),
+	StructField('disconnectionActivityPeriod',StringType(),False),
+	StructField('disconnectionActivityTypeCode',StringType(),True),
+	StructField('disconnectionActivityType',StringType(),True),
+	StructField('disconnectionDocumentNumber',StringType(),False),
+	StructField('disconnectionObjectNumber',StringType(),False),
+	StructField('disconnectionObjectTypeCode',StringType(),True),
+	StructField('processingVariantCode',StringType(),True),
+	StructField('processingVariant',StringType(),True),
+	StructField('disconnectionReasonCode',StringType(),True),
+	StructField('disconnectionReason',StringType(),True),
+	StructField('equipmentNumber',StringType(),True),
+	StructField('documentItemNumber',StringType(),True),
+	StructField('documentPostingDate',DateType(),True),
+	StructField('installationId',StringType(),True),
+	StructField('loadMode',StringType(),True),
+	StructField('activityText',StringType(),True),
+	StructField('activityCode',StringType(),True),
+	StructField('meterReadingAfterDecimalPoint',DecimalType(14,0),'True'),
+	StructField('disconnectionReconnectionStatusCode',StringType(),True),
+	StructField('disconnectionReconnectionStatus',StringType(),True),
+	StructField('businessPartnerNumber',StringType(),True),
+	StructField('premise',StringType(),True),
+	StructField('recordMode',StringType(),True),
+	StructField('referenceObjectKey',StringType(),True),
+	StructField('referenceObjectTypeCode',StringType(),True),
+	StructField('meterReadingBeforeDecimalPoint',DecimalType(17,0),'True'),
+	StructField('contractAccountNumber',StringType(),True),
+	StructField('disconnectiondate',DateType(),True),
+	StructField('maintenanceTypeCode',StringType(),True),
+	StructField('disconnectionDocumentStatusCode',StringType(),True),
+	StructField('disconnectionDocumentStatus',StringType(),True),
+	StructField('orderNumber',StringType(),True),
+	StructField('_RecordStart',TimestampType(),False),
+	StructField('_RecordEnd',TimestampType(),False),
+	StructField('_RecordDeleted',IntegerType(),False),
+	StructField('_RecordCurrent',IntegerType(),False)
+])
 
 df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
-display(df_updated_column)
+
 
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
 DeltaSaveDataframeDirect(df_updated_column, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
-
 # COMMAND ----------
 
 # DBTITLE 1,13. Exit Notebook
