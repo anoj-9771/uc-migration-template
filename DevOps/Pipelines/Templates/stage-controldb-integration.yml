@@ -34,11 +34,16 @@ stages:
   - job: 'deploy_control_db'
     steps:
   
-    - task: DownloadFileshareArtifacts@1
+    # - task: DownloadFileshareArtifacts@1
+    #   inputs:
+    #     filesharePath: '\nt097qdevops01\shared'
+    #     artifactName: sql_Controldb
+    #     downloadPath: '$(System.ArtifactsDirectory)' 
+
+    - task: DownloadPipelineArtifact@2
       inputs:
-        filesharePath: '\nt097qdevops01\shared'
-        artifactName: sql_Controldb
-        downloadPath: '$(System.ArtifactsDirectory)' 
+        artifact: sql_Controldb
+        path: $(Build.ArtifactStagingDirectory)    
 
     - task: AzureKeyVault@2
       displayName: 'Get Secrets'
