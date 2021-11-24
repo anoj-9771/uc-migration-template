@@ -5,9 +5,8 @@ parameters:
 jobs:
 - job: 'deploy_databricks'
   dependsOn: deploy_arm
-  pool:
-    demands: msbuild
-    vmImage: 'ubuntu-18.04'
+  pool: 
+  
   steps:
   - download: current
     artifact: databricks
