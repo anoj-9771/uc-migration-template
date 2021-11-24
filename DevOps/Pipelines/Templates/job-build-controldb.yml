@@ -1,5 +1,6 @@
   jobs:
   - job: 'cont'
+    pool: Daf-Self-Hosted-Preprod-Win
     steps:
 
     - task: MSBuild@1
