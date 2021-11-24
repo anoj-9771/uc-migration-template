@@ -110,7 +110,7 @@ variables:
   - name: nsgid
     value: 
   - name: databricks_base_url 
-    value: #Get this after databricks environment has been deployed
+    value: https://adb-2717485385283200.0.azuredatabricks.net
   - name: vnetresourcegroupname
     value: rg-swcprod01-preprod-network-01
   - name: publicsubnetcidr
