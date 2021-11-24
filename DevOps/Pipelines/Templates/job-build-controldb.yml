@@ -1,5 +1,5 @@
   jobs:
-  - job: 'cont'
+  - job: 'control_db'
     steps:
 
     - task: MSBuild@1
@@ -8,10 +8,13 @@
       inputs:
         solution: ADS-Databases/CntrlDB/CntrlDB.sqlproj
 
-    - task: PublishPipelineArtifact@1
-      inputs:
-        targetPath: ADS-Databases/CntrlDB/bin/Debug
-        artifactName: sql_Controldb
-        artifactType: 'filepath' 
-        fileSharePath: '\nt097qdevops01\shared'
+    # - task: PublishPipelineArtifact@1
+    #   inputs:
+    #     targetPath: ADS-Databases/CntrlDB/bin/Debug
+    #     artifactName: sql_Controldb
+    #     artifactType: 'filepath' 
+    #     fileSharePath: '\nt097qdevops01\shared'
+
+    - publish: $(Build.ArtifactStagingDirectory) 
+      artifact: sql_Controldb
 

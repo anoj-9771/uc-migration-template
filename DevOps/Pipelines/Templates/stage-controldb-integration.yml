@@ -20,10 +20,8 @@ stages:
   - job: 'deploy_control_db'
     steps:
 
-    - task: DownloadPipelineArtifact@2
-      inputs:
-        artifact: sql_Controldb
-        path: $(Build.ArtifactStagingDirectory)    
+    - download: current
+      artifact: sql_Controldb 
 
     - task: AzureKeyVault@2
       displayName: 'Get Secrets'
