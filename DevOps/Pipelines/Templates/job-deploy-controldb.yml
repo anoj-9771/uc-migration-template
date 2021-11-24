@@ -11,7 +11,6 @@ jobs:
   - task: DownloadFileshareArtifacts@1
     inputs:
       artifactName: sql_Controldb
-      artifactType: 'filepath' 
       fileSharePath: '\nt097qdevops01\shared'
     
   - task: AzureKeyVault@2
