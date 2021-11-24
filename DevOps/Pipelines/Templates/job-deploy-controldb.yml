@@ -4,7 +4,6 @@ parameters:
 
 jobs:
 - job: 'deploy_control_db'
-  pool: Daf-Self-Hosted-Preprod-Win
   dependsOn: deploy_arm
   steps:
 

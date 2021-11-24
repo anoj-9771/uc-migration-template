@@ -32,17 +32,18 @@ stages:
   jobs:
   # ---------------------------------------------------------------------------
   - job: 'deploy_control_db'
-    pool:
-      demands: msbuild
-      vmImage: 'windows-2019'
     steps:
-    - download: current
-      artifact: sql_Controldb
+  
+    - task: DownloadFileshareArtifacts@1
+      inputs:
+        filesharePath: '\nt097qdevops01\shared'
+        artifactName: sql_Controldb
+        downloadPath: '$(System.ArtifactsDirectory)' 
 
-    - task: AzureKeyVault@1
+    - task: AzureKeyVault@2
       displayName: 'Get Secrets'
       inputs:
-        azureSubscription: ${{ variables.azdoresourceconnection }}
+        connectedServiceName: ${{ parameters.AzDoServiceConnection }}
         keyVaultName: $(AZUREKEYVAULTNAME)
         secretsFilter: 'AzureSQLServerPw'
 
