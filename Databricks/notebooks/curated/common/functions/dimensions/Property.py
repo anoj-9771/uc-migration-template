@@ -35,7 +35,7 @@ def getProperty():
                                      from {ADS_DATABASE_CLEANSED}.isu_0uc_connobj_attr_2 \
                                      where _RecordCurrent = 1 and _RecordDeleted = 0")
   
-  isuVibdaoDf = spark.sql(f"select cast(architecturalObjectInternalId as int), \
+  isuVibdaoDf = spark.sql(f"select architecturalObjectInternalId, \
                                    CASE WHEN hydraAreaUnit == 'HAR' THEN  hydraCalculatedArea * 10000 \
                                         WHEN hydraAreaUnit == 'M2' THEN  hydraCalculatedArea \
                                         ELSE null END AS propertyArea \
