@@ -7,10 +7,8 @@ jobs:
   dependsOn: deploy_arm
   steps:
 
-  - task: DownloadPipelineArtifact@2
-    inputs:
-      artifact: sql_Controldb
-      path: $(Build.ArtifactStagingDirectory)    
+  - download: current
+    artifact: sql_Controldb 
 
   - task: AzureKeyVault@2
     displayName: 'Get Secrets'
