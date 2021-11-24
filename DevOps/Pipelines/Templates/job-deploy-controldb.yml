@@ -13,6 +13,8 @@ jobs:
       artifactName: sql_Controldb
       path: $(Build.ArtifactStagingDirectory)
       runVersion: latest
+      source: specific
+      project: 'DAF POC REPO1' 
 
   - task: AzureKeyVault@2
     displayName: 'Get Secrets'
