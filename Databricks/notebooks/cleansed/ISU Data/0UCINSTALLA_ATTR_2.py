@@ -202,10 +202,10 @@ df_cleansed = spark.sql(f"SELECT  \
                             stg._RecordCurrent \
                         FROM {ADS_DATABASE_STAGE}.{source_object} stg \
                         LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0DIVISION_TEXT div on div.divisionCode = stg.SPARTE \
-                                                                                                    and dic._RecordDeleted = 0 and div._RecordCurrent = 1 \
+                                                                                                    and div._RecordDeleted = 0 and div._RecordCurrent = 1 \
                         LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UC_SERTYPE_TEXT ser on ser.serviceTypeCode = stg.SERVICE \
                                                                                                     and ser._RecordDeleted = 0 and ser._RecordCurrent = 1 \
-                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_TE438T mrc ON mrc.meterReadingControlCode = inst.ABLESARTST \
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_TE438T mrc ON mrc.meterReadingControlCode = stg.ABLESARTST \
                                                                                                     and mrc._RecordDeleted = 0 and mrc._RecordCurrent = 1")
 
 display(df_cleansed)
