@@ -65,7 +65,7 @@ def getBilledWaterConsumptionDaily():
                                   "billingPeriodDays", \
                                   "meteredWaterConsumption") \
   
-  billedConsDf = isuConsDf#.union(accessConsDf)
+  billedConsDf = isuConsDf.union(accessConsDf)
   
   billedConsDf = billedConsDf.withColumn("avgMeteredWaterConsumption", F.col("meteredWaterConsumption")/F.col("totalMeterActiveDays"))
 
