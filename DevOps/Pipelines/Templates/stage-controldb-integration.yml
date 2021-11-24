@@ -43,7 +43,7 @@ stages:
     - task: AzureKeyVault@2
       displayName: 'Get Secrets'
       inputs:
-        connectedServiceName: ${{ parameters.AzDoServiceConnection }}
+        connectedServiceName: ${{ variables.azdoresourceconnection }}
         keyVaultName: $(AZUREKEYVAULTNAME)
         secretsFilter: 'AzureSQLServerPw'
 
