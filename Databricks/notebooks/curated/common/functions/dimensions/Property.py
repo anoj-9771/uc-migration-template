@@ -19,7 +19,7 @@ def getProperty():
   
   #dimProperty
   #2.Load Cleansed layer table data into dataframe
-  accessZ309TpropertyDf = spark.sql(f"select propertyNumber, 'Access' as sourceSystemCode, propertyTypeEffectiveFrom as propertyStartDate, \
+  accessZ309TpropertyDf = spark.sql(f"select cast(propertyNumber as string), 'Access' as sourceSystemCode, propertyTypeEffectiveFrom as propertyStartDate, \
                                             coalesce(lead(propertyTypeEffectiveFrom) over (partition by propertyNumber order by propertyTypeEffectiveFrom)-1, \
                                             to_date('9999-12-31', 'yyyy-mm-dd'))  as propertyEndDate, \
                                             propertyType, superiorPropertyType, LGA, \
@@ -28,14 +28,14 @@ def getProperty():
                                      from {ADS_DATABASE_CLEANSED}.access_z309_tproperty \
                                      where _RecordCurrent = 1 and _RecordDeleted = 0")
   
-  isu0ucConbjAttr2Df = spark.sql(f"select cast(propertyNumber as int), 'ISU' as sourceSystemCode,inferiorPropertyType as PropertyType, superiorPropertyType, \
+  isu0ucConbjAttr2Df = spark.sql(f"select propertyNumber, 'ISU' as sourceSystemCode,inferiorPropertyType as PropertyType, superiorPropertyType, \
                                             architecturalObjectInternalId, validFromDate as propertyStartDate, LGA,\
                                             coalesce(lead(validFromDate) over (partition by propertyNumber order by validFromDate)-1, \
                                             to_date('9999-12-31', 'yyyy-mm-dd'))  as propertyEndDate \
                                      from {ADS_DATABASE_CLEANSED}.isu_0uc_connobj_attr_2 \
                                      where _RecordCurrent = 1 and _RecordDeleted = 0")
   
-  isuVibdaoDf = spark.sql(f"select cast(architecturalObjectInternalId as int), \
+  isuVibdaoDf = spark.sql(f"select architecturalObjectInternalId, \
                                    CASE WHEN hydraAreaUnit == 'HAR' THEN  hydraCalculatedArea * 10000 \
                                         WHEN hydraAreaUnit == 'M2' THEN  hydraCalculatedArea \
                                         ELSE null END AS propertyArea \
