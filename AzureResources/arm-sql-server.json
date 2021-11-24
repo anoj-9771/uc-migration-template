@@ -2,23 +2,35 @@
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
   
-    "parameters": 
-    {    
+    "parameters": {    
       "location": {
         "type": "string",
-        "defaultValue": "[resourceGroup().location]"
+        "defaultValue": "[resourceGroup().location]",
+        "metadata": {
+          "description": "Specifies the Azure location where the key vault should be created."
+        }
       },  
       "azureSqlServerName": {
-        "type": "string"
+        "type": "string",
+        "metadata": {
+          "description": "Azure SQL Server Name"
+        }
       },  
       "AzureSqlServerUn": {
         "type": "string",
-        "defaultValue": "azuresqladmin"
+        "metadata": {
+          "description": "SQL Server User Name"
+        },
+        "defaultValue": "azureadmin"
       },
       "AzureSqlServerPw": {
-        "type": "string"
+        "type": "string",
+        "metadata": {
+          "description": "SQL Server Password"
+        }
       }
     },
+    "variables": {},
     "resources": [
       {
           "name": "[parameters('azureSqlServerName')]",
@@ -34,9 +46,22 @@
             "administratorLoginPassword": "[parameters('AzureSqlServerPw')]",
             "version": "12.0",
             "minimalTlsVersion": "1.2",
-            "publicNetworkAccess": "disabled"
+            "publicNetworkAccess": "Enabled"
           },
           "resources": [
+            {
+              "name": "AllowAllWindowsAzureIps",
+              "type": "firewallrules",
+              "location": "[parameters('location')]",
+              "apiVersion": "2014-04-01-preview",
+              "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', parameters('azureSqlServerName'))]"
+                ],
+              "properties": {
+                "startIpAddress": "0.0.0.0",
+                "endIpAddress": "0.0.0.0"
+              }
+            },
             {
               "type": "databases",
               "apiVersion": "2017-03-01-preview",
@@ -47,7 +72,7 @@
               "name": "master",
               "properties": {}
             }
-        ]
+         ]
       }
     ],
   "outputs": {}

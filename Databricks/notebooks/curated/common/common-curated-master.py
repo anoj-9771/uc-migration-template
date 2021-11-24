@@ -62,7 +62,8 @@ spark.conf.set("spark.sql.inMemoryColumnarStorage.compressed",True)
 #spark.conf.set("spark.driver.maxResultSize",0)
 
 #Configures the maximum size in bytes for a table that will be broadcast to all worker nodes when performing a join. By setting this value to -1 broadcasting can be disabled.
-spark.conf.set("spark.sql.autoBroadcastJoinThreshold", -1)
+# spark.conf.set("spark.sql.autoBroadcastJoinThreshold", -1)
+spark.conf.set("spark.sql.autoBroadcastJoinThreshold", 0)
 
 # COMMAND ----------
 
@@ -118,7 +119,7 @@ def TemplateEtl(df : object, entity, businessKey, AddSK = True):
   dw_table = f"{v_COMMON_SQL_SCHEMA}.{rawEntity}"
   print(dw_table)
 
-  maxDate = SynapseExecuteSQLRead("SELECT cast(max([_RecordStart]) as varchar(50)) as maxval FROM " + dw_table + " ").first()["maxval"]
+  maxDate = SynapseExecuteSQLRead("SELECT isnull(cast(max([_RecordStart]) as varchar(50)),'2000-01-01') as maxval FROM " + dw_table + " ").first()["maxval"]
   print(maxDate)
   
   DeltaSyncToSQLDW(delta_table, v_COMMON_SQL_SCHEMA, entity, businessKey, start_counter = maxDate, data_load_mode = ADS_WRITE_MODE_MERGE, additional_property = "")

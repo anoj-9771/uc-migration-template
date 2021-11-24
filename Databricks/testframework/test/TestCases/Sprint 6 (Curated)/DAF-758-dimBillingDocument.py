@@ -194,4 +194,3 @@ union all
 ,'Unknown' as waterMeterType
 
 )
-

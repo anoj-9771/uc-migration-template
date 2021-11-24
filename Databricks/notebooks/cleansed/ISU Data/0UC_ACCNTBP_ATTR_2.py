@@ -221,8 +221,8 @@ df_cleansed = spark.sql(f"SELECT \
                                 VERTYP as clearingCategory, \
                                 CMGRP as collectionManagementMasterDataGroup, \
                                 STRAT as collectionStrategyCode, \
-                                ZAHLKOND as paymentCondition, \
-                                KOFIZ_SD as accountDeterminationId, \
+                                ZAHLKOND as paymentConditionCode, \
+                                KOFIZ_SD as accountDeterminationCode, \
                                 acc._RecordStart, \
                                 acc._RecordEnd, \
                                 acc._RecordDeleted, \
@@ -281,8 +281,8 @@ newSchema = StructType([
 	StructField('clearingCategory',StringType(),True),
 	StructField('collectionManagementMasterDataGroup',StringType(),True),
 	StructField('collectionStrategyCode',StringType(),True),
-	StructField('paymentCondition',StringType(),True),
-	StructField('accountDeterminationId',StringType(),True),
+	StructField('paymentConditionCode',StringType(),True),
+	StructField('accountDeterminationCode',StringType(),True),
 	StructField('_RecordStart',TimestampType(),False),
 	StructField('_RecordEnd',TimestampType(),False),
 	StructField('_RecordDeleted',IntegerType(),False),

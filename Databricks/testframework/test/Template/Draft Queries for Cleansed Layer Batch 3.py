@@ -98,7 +98,7 @@
 # MAGIC ,PARTNER2_GUID as businessPartnerGUID2
 # MAGIC ,RELDIR as relationshipDirection
 # MAGIC ,RELTYP as relationshipTypeCode
-# MAGIC ,Derived as relationshipType
+# MAGIC ,b.relationshipType as relationshipType
 # MAGIC ,DATE_TO as validToDate
 # MAGIC ,DATE_FROM as validFromDate
 # MAGIC ,COUNTRY as countryShortName
@@ -121,8 +121,8 @@
 # MAGIC ,LINE6 as addressLine6
 # MAGIC ,FLG_DELETED as deletedIndicator
 # MAGIC from source a
-# MAGIC left join 0BP_RELATIONS_TEXT b
-# MAGIC on a.RELDIR = b.RELDIR and a.RELTYP = b.RELTYP where b.LANGU = 'E'
+# MAGIC left join 0BP_RELTYPES_TEXT b
+# MAGIC on a.RELDIR = b.RELDIR and a.RELTYP = b.RELTYP
 
 # COMMAND ----------
 

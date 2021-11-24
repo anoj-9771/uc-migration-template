@@ -180,7 +180,7 @@ df_cleansed = spark.sql(f"SELECT \
                                       case when con.COUNTRY = 'na' then '' else con.COUNTRY end  as countryShortName, \
                                       con.CITY_CODE as cityCode, \
                                       con.STREETCODE as streetCode, \
-                                      stc.STREET as streetName, \
+                                      stc.streetName as streetName, \
                                       con.POSTALCODE as postCode, \
                                       con.REGION as stateCode, \
                                       con.REGIO_GRP as regionGroup, \
@@ -208,7 +208,7 @@ df_cleansed = spark.sql(f"SELECT \
                                       con.ZCD_AOTYPE as architecturalObjectTypeCode, \
                                       con.ZCD_CASE_NO as caseNumber, \
                                       tiv.XMAOTYPE as architecturalObjectType, \
-                                      con.ZCD_BLD_FEE_DATE as buildingFeeDate, \
+                                      case when con.ZCD_BLD_FEE_DATE < '1900-01-01' then to_date('1900-01-01', 'yyyy-MM-dd') else to_date(con.ZCD_BLD_FEE_DATE, 'yyyy-MM-dd') end as buildingFeeDate, \
                                       con.ZCD_CAD_ID as cadID, \
                                       con.ZZPUMP_WW as pumpWateWaterIndicator, \
                                       con.ZZFIRE_SERVICE as fireServiceIndicator, \
@@ -250,7 +250,7 @@ df_cleansed = spark.sql(f"SELECT \
                                                                                                     and tiv._RecordDeleted = 0 and tiv._RecordCurrent = 1 \
                                     LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_ZCD_TPROCTYPE_TX prt ON con.ZCD_PROCESS_TYPE = prt.PROCESS_TYPE \
                                                                                                     and prt._RecordDeleted = 0 and prt._RecordCurrent = 1 \
-                                    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0CAM_STREETCODE_TEXT stc ON con.STREETCODE = stc.streetCode and con.COUNTRY = stc.COUNTRY \
+                                    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0CAM_STREETCODE_TEXT stc ON con.STREETCODE = stc.streetCode and con.COUNTRY = stc.countryShortName \
                                                                                                     and stc._RecordDeleted = 0 and stc._RecordCurrent = 1 \
                                     LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_TE227T reg ON con.REGPOLIT = reg.REGPOLIT and con.COUNTRY = reg.COUNTRY\
                                                                                                     and reg._RecordDeleted = 0 and reg._RecordCurrent = 1")

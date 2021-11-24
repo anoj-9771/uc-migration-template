@@ -174,8 +174,7 @@ DeltaSaveToDeltaTable (
 # COMMAND ----------
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
-#Update/rename Column
-    
+#Update/rename Column    
 df_cleansed = spark.sql(f"SELECT \
                                 to_date(CALENDARDATE,'yyyy-MM-dd') as calendarDate , \
                                 CALENDARDAY as dayOfMonth , \
@@ -196,9 +195,8 @@ df_cleansed = spark.sql(f"SELECT \
                                 _RecordDeleted, \
                                 _RecordCurrent \
                                FROM {ADS_DATABASE_STAGE}.{source_object} \
-                               where calendardate is not null \
-                               order by 1 \
-                               ")
+                               where calendardate <> 'na' \
+                               order by 1")
 
 display(df_cleansed)
 print(f'Number of rows: {df_cleansed.count()}')
@@ -207,19 +205,19 @@ print(f'Number of rows: {df_cleansed.count()}')
 
 newSchema = StructType([
                             StructField("calendarDate", DateType(), False),
-                            StructField("dayOfMonth", LongType(), False),
-                            StructField("dayOfYear", LongType(), False),
-                            StructField("dayOfWeek", LongType(), False),
-                            StructField("weekOfYear", LongType(), False),
-                            StructField("monthOfYear", LongType(), False),
-                            StructField("quarterOfYear", LongType(), False),
-                            StructField("halfOfYear", LongType(), False),
-                            StructField("calendarYear", LongType(), False),
-                            StructField("calendarYearWeek", LongType(), False),
-                            StructField("calendarYearMonth", LongType(), False),
-                            StructField("calendarYearQuarter", LongType(), False),
-                            StructField("monthStartDate", DateType(), False),
-                            StructField("monthEndDate", DateType(), False),
+                            StructField("dayOfMonth", LongType(), True),
+                            StructField("dayOfYear", LongType(), True),
+                            StructField("dayOfWeek", LongType(), True),
+                            StructField("weekOfYear", LongType(), True),
+                            StructField("monthOfYear", LongType(), True),
+                            StructField("quarterOfYear", LongType(), True),
+                            StructField("halfOfYear", LongType(), True),
+                            StructField("calendarYear", LongType(), True),
+                            StructField("calendarYearWeek", LongType(), True),
+                            StructField("calendarYearMonth", LongType(), True),
+                            StructField("calendarYearQuarter", LongType(), True),
+                            StructField("monthStartDate", DateType(), True),
+                            StructField("monthEndDate", DateType(), True),
                             StructField('_RecordStart', TimestampType(), False),
                             StructField('_RecordEnd', TimestampType(), False),
                             StructField('_RecordDeleted', IntegerType(), False),

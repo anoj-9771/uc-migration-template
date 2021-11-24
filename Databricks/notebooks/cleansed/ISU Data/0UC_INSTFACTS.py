@@ -176,9 +176,10 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT \
-	ANLAGE as installationId, \
-	OPERAND as operandCode, \
-	to_date(AB, 'yyyy-MM-dd') as validFromDate, \
+    case when SAISON = 'na' then '' else SAISON end as seasonNumber, \
+	case when ANLAGE = 'na' then '' else ANLAGE end as installationId, \
+	case when OPERAND = 'na' then '' else OPERAND end as operandCode, \
+	case when AB = 'na' then to_date('1900-01-01', 'yyyy-MM-dd') else to_date(AB, 'yyyy-MM-dd') end as validFromDate, \
 	to_date(BIS, 'yyyy-MM-dd') as validToDate, \
 	cast(WERT1 as dec(16,7)) as entryValue, \
 	cast(WERT2 as dec(16,7)) as valueToBeBilled, \
@@ -198,9 +199,10 @@ print(f'Number of rows: {df_cleansed.count()}')
 # COMMAND ----------
 
 newSchema = StructType([
-	StructField('installationId',StringType(),True),
-	StructField('operandCode',StringType(),True),
-	StructField('validFromDate',DateType(),True),
+    StructField('seasonNumber',StringType(),False),
+	StructField('installationId',StringType(),False),
+	StructField('operandCode',StringType(),False),
+	StructField('validFromDate',DateType(),False),
 	StructField('validToDate',DateType(),True),
 	StructField('entryValue',DecimalType(16,7),True),
 	StructField('valueToBeBilled',DecimalType(16,7),True),

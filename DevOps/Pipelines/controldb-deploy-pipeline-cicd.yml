@@ -20,7 +20,8 @@ trigger: none
 #     include:
 #     - ADS-Databases/ADS-Database.sln
 
-pool: Daf-Self-Hosted-Preprod-Win
+pool: Daf-Self-Pool01
+# vmImage: ubuntu-latest
 
 stages:
 # ---------------------------------------------------------------------------
@@ -46,9 +47,9 @@ stages:
     run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/test'))
 
 # ---------------------------------------------------------------------------
-# Release to Production
+# Release to Production - PreProd Environment
 - template: Templates/stage-controldb-integration.yml
   parameters:
     stage_name: 'preprod'
     variable_template_name: preprd-variables
-    run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+    run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/preprod'))

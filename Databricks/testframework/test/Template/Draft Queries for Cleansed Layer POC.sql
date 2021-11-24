@@ -936,4 +936,3 @@ union
 select distinct Q_PDE_HIGH_LOW from TMETERREADING where Q_PDE_HIGH_LOW = null
 union
 select distinct Q_PDE_REEN_COUN from TMETERREADING where Q_PDE_REEN_COUN = null
-

@@ -24,8 +24,8 @@ trigger: none
   #   exclude:
   #   - DevOps/Pipelines/iac-create-keyvaults.yml..
 
-pool: Daf-Self-Hosted-Preprod-Linux
-# vmImage: ubuntu-latest.
+pool: Daf-Self-Pool01
+# vmImage: ubuntu-latest
 
 stages:
 # ---------------------------------------------------------------------------
@@ -44,7 +44,7 @@ stages:
   parameters:
     stage_name: 'develop'
     variable_template_name: dev-variables
-    run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+    run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/develop'))
 
 # ----------------------------------------------------------------------------
 # Release to Non-Production - Test Environment
@@ -52,7 +52,7 @@ stages:
   parameters:
     stage_name: 'test'
     variable_template_name: test-variables
-    run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+    run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/test'))
 
 # ----------------------------------------------------------------------------
 # Release to Non-Production - PreProd Environment
@@ -61,5 +61,5 @@ stages:
     #dependencies: ['non_prod'] # Used to define any stage dependencies
     stage_name: 'preprod'
     variable_template_name: preprd-variables
-    run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+    run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/preprod'))
     

@@ -148,4 +148,54 @@ variables:
     value: sqladminuser
   - name: synapsesqlPoolName
     value: syndw$(ENVIRONMENT)$(INCREMENT)
-  #------------------------------------------------
+  - name: defaultAdlsGen2AccountResourceId
+    value: /subscriptions/$(subscriptionId)/resourcegroups/$(resourcegroupname)/providers/Microsoft.Storage/storageAccounts/$(defaultDataLakeStorageAccountName)
+  # ------------------------------------------------
+  # Azure VMs Common related
+  # ------------------------------------------------
+  - name: adminUsername
+    value: nt_sup
+  - name: publisher
+    value: MicrosoftWindowsServer
+  - name: offer
+    value: WindowsServer
+  - name: OSVersion
+    value: 2019-Datacenter
+  # ------------------------------------------------
+  # Azure Devops Self-hosted Linux related
+  # ------------------------------------------------
+  - name: vmSizeDevops
+    value: Standard_D2as_v4
+  - name: vmNameDevops
+    value: ln097ddevops01
+  - name: publisherDevops
+    value: RedHat
+  - name: offerDevops
+    value: RHEL
+  - name: OSVersionDevops
+    value: 8.2
+  # ------------------------------------------------
+  # Azure Devops Self-hosted Win related
+  # ------------------------------------------------
+  - name: vmNameDevops2
+    value: nt097ddevops01
+  # ------------------------------------------------
+  # Azure IR Self-hosted VM related
+  # ------------------------------------------------
+  - name: vmSizeIR
+    value: Standard_D2as_v4
+  - name: vmNameIR
+    value: nt097ddaf01
+  # ------------------------------------------------
+  # Azure SLT VM related
+  # ------------------------------------------------
+  - name: vmSizeSlt
+    value: Standard_D2ds_v4 #d type = more temp storage. optimal for tempdb
+  - name: vmNameSlt
+    value: nt097dslt01
+  - name: publisherSlt
+    value: MicrosoftSQLServer
+  - name: offerSlt
+    value: sql2019-ws2019
+  - name: OSVersionSlt
+    value: Standard

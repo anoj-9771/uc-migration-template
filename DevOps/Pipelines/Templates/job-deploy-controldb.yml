@@ -5,30 +5,26 @@ parameters:
 jobs:
 - job: 'deploy_control_db'
   dependsOn: deploy_arm
-  pool: Daf-Self-Hosted-Preprod-Win
-    
+  pool:
+    demands: msbuild
+    vmImage: 'windows-2019'
   steps:
-  # - download: current
-  #   artifact: sql_Controldb
+  - download: current
+    artifact: sql_Controldb
 
-  - task: DownloadFileshareArtifacts@1
-    inputs:
-      artifactName: sql_Controldb
-      fileSharePath: '\nt097qdevops01\shared'
-
-  - task: AzureKeyVault@1
+  - task: AzureKeyVault@2
     displayName: 'Get Secrets'
     inputs:
-      azureSubscription: ${{ parameters.AzDoServiceConnection }}
+      connectedServiceName: ${{ parameters.AzDoServiceConnection }}
       keyVaultName: $(AZUREKEYVAULTNAME)
       secretsFilter: 'AzureSQLServerPw'
 
-  - task: SqlAzureDacpacDeployment@1
-    displayName: 'Azure SQL DacpacTask'
-    inputs:
-      azureSubscription: ${{ parameters.AzDoServiceConnection }}
-      ServerName: '$(AZURESQLSERVERNAME).database.windows.net'
-      DatabaseName: ControlDB
-      SqlUsername: $(AZURESQLSERVERUN)
-      SqlPassword: '$(azuresqlserverpw)'
-      DacpacFile: '$(Pipeline.Workspace)/sql_Controldb/CntrlDb.dacpac'
+  # - task: SqlAzureDacpacDeployment@1
+  #   displayName: 'Azure SQL DacpacTask'
+  #   inputs:
+  #     azureSubscription: ${{ parameters.AzDoServiceConnection }}
+  #     ServerName: '$(AZURESQLSERVERNAME).database.windows.net'
+  #     DatabaseName: ControlDB
+  #     SqlUsername: $(AZURESQLSERVERUN)
+  #     SqlPassword: '$(azuresqlserverpw)'
+  #     DacpacFile: '$(Pipeline.Workspace)/sql_Controldb/CntrlDb.dacpac'

@@ -177,19 +177,19 @@ DeltaSaveToDeltaTable (
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT \
 	case when TERMSCHL = 'na' then '' else TERMSCHL end as portion, \
-	cast(EPER_ABL as dec(Integer,0)) as intervalBetweenReadingAndEnd, \
-	cast(AUF_ABL as dec(Integer,0)) as intervalBetweenOrderAndReading, \
-	cast(DOWNL_ABL as dec(Integer,0)) as intervalBetweenDownloadAndReading, \
-	cast(DRUCK_ABL as dec(Integer,0)) as intervalBetweenPrintoutAndReading, \
-	cast(ANSCH_AUF as dec(Integer,0)) as intervalBetweenAnnouncementAndOrder, \
-	cast(AUKSA_AUF as dec(Integer,0)) as intervalBetweenPrintoutAndOrder, \
+	cast(EPER_ABL as Integer) as intervalBetweenReadingAndEnd, \
+	cast(AUF_ABL as Integer) as intervalBetweenOrderAndReading, \
+	cast(DOWNL_ABL as Integer) as intervalBetweenDownloadAndReading, \
+	cast(DRUCK_ABL as Integer) as intervalBetweenPrintoutAndReading, \
+	cast(ANSCH_AUF as Integer) as intervalBetweenAnnouncementAndOrder, \
+	cast(AUKSA_AUF as Integer) as intervalBetweenPrintoutAndOrder, \
 	PORTION as portionNumber, \
 	ABLESER as meterReaderNumber, \
-	cast(ABLZEIT as dec(Integer,0)) as meterReadingTime, \
-	cast(AZVORABL as dec(Integer,0)) as numberOfPreviousReadings, \
+	cast(ABLZEIT as dec(5,1)) as meterReadingTime, \
+	cast(AZVORABL as Integer) as numberOfPreviousReadings, \
 	MDENR as numberOFMobileDataEntry, \
-	cast(ABLKAR as dec(Integer,0)) as meterReadingInterval, \
-	cast(STANDKAR as dec(Integer,0)) as entryInterval, \
+	cast(ABLKAR as Integer) as meterReadingInterval, \
+	cast(STANDKAR as Integer) as entryInterval, \
 	to_date(EROEDAT, 'yyyy-MM-dd') as createdDate, \
 	ERNAM as createdBy, \
 	to_date(AENDDATE, 'yyyy-MM-dd') as lastChangedDate, \
@@ -201,7 +201,7 @@ df_cleansed = spark.sql(f"SELECT \
 	SPARTENTY5 as divisionCategory5, \
 	IDENT as factoryCalendar, \
 	SAPKAL as correctHolidayToWorkDay, \
-	to_date(STICHTAG, 'yyyy-MM-dd') as billingKeyDate, \
+    to_date(cast(STICHTAG as string), 'yyyy-MM-dd') as billingKeyDate, \
 	TAGE as numberOfDays, \
 	AUF_KAL as intervalBetweenOrderAndPlanned, \
 	ABL_Z as meterReadingCenter, \
@@ -218,19 +218,19 @@ print(f'Number of rows: {df_cleansed.count()}')
 
 newSchema = StructType([
 	StructField('portion',StringType(),False),
-	StructField('intervalBetweenReadingAndEnd',DecimalType(Integer,0),True),
-	StructField('intervalBetweenOrderAndReading',DecimalType(Integer,0),True),
-	StructField('intervalBetweenDownloadAndReading',DecimalType(Integer,0),True),
-	StructField('intervalBetweenPrintoutAndReading',DecimalType(Integer,0),True),
-	StructField('intervalBetweenAnnouncementAndOrder',DecimalType(Integer,0),True),
-	StructField('intervalBetweenPrintoutAndOrder',DecimalType(Integer,0),True),
+	StructField('intervalBetweenReadingAndEnd',IntegerType(),True),
+	StructField('intervalBetweenOrderAndReading',IntegerType(),True),
+	StructField('intervalBetweenDownloadAndReading',IntegerType(),True),
+	StructField('intervalBetweenPrintoutAndReading',IntegerType(),True),
+	StructField('intervalBetweenAnnouncementAndOrder',IntegerType(),True),
+	StructField('intervalBetweenPrintoutAndOrder',IntegerType(),True),
 	StructField('portionNumber',StringType(),True),
 	StructField('meterReaderNumber',StringType(),True),
-	StructField('meterReadingTime',DecimalType(Integer,0),True),
-	StructField('numberOfPreviousReadings',DecimalType(Integer,0),True),
+	StructField('meterReadingTime',DecimalType(5,1),True),
+	StructField('numberOfPreviousReadings',IntegerType(),True),
 	StructField('numberOFMobileDataEntry',StringType(),True),
-	StructField('meterReadingInterval',DecimalType(Integer,0),True),
-	StructField('entryInterval',DecimalType(Integer,0),True),
+	StructField('meterReadingInterval',IntegerType(),True),
+	StructField('entryInterval',IntegerType(),True),
 	StructField('createdDate',DateType(),True),
 	StructField('createdBy',StringType(),True),
 	StructField('lastChangedDate',DateType(),True),
@@ -253,7 +253,6 @@ newSchema = StructType([
 ])
 
 df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
-
 
 # COMMAND ----------
 

@@ -176,7 +176,7 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT \
-                                case when OPBEL = 'na' then '' else OPBEL end as contractAccountNumber, \
+                                case when OPBEL = 'na' then '' else OPBEL end as contractDocumentNumber, \
                                 case when OPUPW = 'na' then '' else OPUPW end as repetitionItem, \
                                 case when OPUPK = 'na' then '' else OPUPK end as itemNumber, \
                                 case when OPUPZ = 'na' then '' else OPUPZ end as partialClearingSubitem, \
@@ -200,34 +200,34 @@ df_cleansed = spark.sql(f"SELECT \
                                 MWSKZ as taxSalesCode, \
                                 XANZA as downPaymentIndicator, \
                                 STAKZ as statisticalItemType, \
-                                to_date(C4EYP, 'yyyy-MM-dd') as documentDate, \
-                                to_date(CPUDT, 'yyyy-MM-dd') as documentEnteredDate, \
+                                to_date(BLDAT, 'yyyy-MM-dd') as documentDate, \
+                                to_date(BUDAT, 'yyyy-MM-dd') as postingDate, \
                                 WAERS as currencyKey, \
                                 to_date(FAEDN, 'yyyy-MM-dd') as paymentDueDate, \
                                 to_date(FAEDS, 'yyyy-MM-dd') as cashDiscountDueDate, \
                                 to_date(STUDT, 'yyyy-MM-dd') as deferralToDate, \
                                 cast(SKTPZ as dec(5,2)) as cashDiscountPercentageRate, \
                                 cast(BETRH as dec(13,2)) as amountLocalCurrency, \
-                                BLART as documentTypeCode, \
+                                BETRW as amountTransactionCurrency, \
                                 cast(SKFBT as dec(13,2)) as amountEligibleCashDiscount, \
                                 cast(SBETH as dec(13,2)) as taxAmountLocalCurrency, \
-                                cast(SBETW as dec(13,2)) as taxAmount, \
+                                cast(SBETW as dec(13,2)) as taxAmountTransactionCurrency, \
                                 to_date(AUGDT, 'yyyy-MM-dd') as clearingDate, \
                                 AUGBL as clearingDocument, \
                                 to_date(AUGBD, 'yyyy-MM-dd') as clearingDocumentPostingDate, \
                                 AUGRD as clearingReason, \
                                 AUGWA as clearingCurrency, \
                                 cast(AUGBT as dec(13,2)) as clearingAmount, \
-                                cast(AUGBS as dec(13,2)) as taxAmount, \
+                                cast(AUGBS as dec(13,2)) as taxAmountClearingCurrency, \
                                 cast(AUGSK as dec(13,2)) as cashDiscount, \
                                 to_date(AUGVD, 'yyyy-MM-dd') as clearingValueDate, \
-                                to_date(ABWTP, 'yyyy-MM-dd') as settlementPeriodLowerLimit, \
-                                to_date(ABWBL, 'yyyy-MM-dd') as billingPeriodUpperLimit, \
+                                to_date(ABRZU, 'yyyy-MM-dd') as settlementPeriodLowerLimit, \
+                                to_date(ABRZO, 'yyyy-MM-dd') as billingPeriodUpperLimit, \
                                 AUGRS as clearingRestriction, \
                                 INFOZ as valueAdjustment, \
                                 BLART as documentTypeCode, \
                                 bl.documentType as documentType, \
-                                XPYOR as referenceDocumentNumber, \
+                                XBLNR as referenceDocumentNumber, \
                                 INKPS as collectionItem, \
                                 C4EYE as checkReason, \
                                 cast(SCTAX as dec(13,2)) as taxPortion, \
@@ -260,7 +260,7 @@ print(f'Number of rows: {df_cleansed.count()}')
 # COMMAND ----------
 
 newSchema = StructType([
-	StructField('contractAccountNumber',StringType(),False),
+	StructField('contractDocumentNumber',StringType(),False),
 	StructField('repetitionItem',StringType(),False),
 	StructField('itemNumber',StringType(),False),
 	StructField('partialClearingSubitem',StringType(),False),
@@ -285,17 +285,17 @@ newSchema = StructType([
 	StructField('downPaymentIndicator',StringType(),True),
 	StructField('statisticalItemType',StringType(),True),
 	StructField('documentDate',DateType(),True),
-	StructField('documentEnteredDate',DateType(),True),
+	StructField('postingDate',DateType(),True),
 	StructField('currencyKey',StringType(),True),
 	StructField('paymentDueDate',DateType(),True),
 	StructField('cashDiscountDueDate',DateType(),True),
 	StructField('deferralToDate',DateType(),True),
 	StructField('cashDiscountPercentageRate',DecimalType(5,2),True),
 	StructField('amountLocalCurrency',DecimalType(13,2),True),
-	StructField('documentTypeCode',StringType(),True),
+	StructField('amountTransactionCurrency',StringType(),True),
 	StructField('amountEligibleCashDiscount',DecimalType(13,2),True),
 	StructField('taxAmountLocalCurrency',DecimalType(13,2),True),
-	StructField('taxAmount',DecimalType(13,2),True),
+	StructField('taxAmountTransactionCurrency',DecimalType(13,2),True),
 	StructField('clearingDate',DateType(),True),
 	StructField('clearingDocument',StringType(),True),
 	StructField('clearingDocumentPostingDate',DateType(),True),

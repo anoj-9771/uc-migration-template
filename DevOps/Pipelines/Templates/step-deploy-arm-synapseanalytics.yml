@@ -11,8 +11,6 @@ parameters:
       type: string
     - name: synapsesqlPoolName
       type: string
-    - name: defaultAdlsGen2AccountResourceId
-      type: string
     
 #Deploy Synapse Workspace (Synapse Analytics)
 steps:
@@ -25,11 +23,11 @@ steps:
      templateLocation: 'Linked artifact'
      csmFile: '$(Pipeline.Workspace)/arm_templates/arm-synapseanalytics.json'
      overrideParameters: |
-      -location $(LOCATION) -synapseworkspacename ${{ parameters.synapseworkspacename }} -defaultDataLakeStorageAccountName ${{ parameters.defaultDataLakeStorageAccountName }} -defaultDataLakeStorageFilesystemName ${{ parameters.defaultDataLakeStorageFilesystemName }} -defaultAdlsGen2AccountResourceId ${{ parameters.defaultAdlsGen2AccountResourceId}}
+      -location $(LOCATION) -synapseworkspacename ${{ parameters.synapseworkspacename }} -defaultDataLakeStorageAccountName ${{ parameters.defaultDataLakeStorageAccountName }} -defaultDataLakeStorageFilesystemName ${{ parameters.defaultDataLakeStorageFilesystemName }}
      deploymentMode: 'Incremental'
      deploymentOutputs: 'armOutputs'
     displayName: 'Deploy Synapse Analytics Workspace' 
-  
+
 # #Deploy Synapse analytics workspace SQL Pools
   - task: AzureResourceGroupDeployment@2
     inputs:

@@ -35,10 +35,10 @@ stages:
     run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
 
 # ---------------------------------------------------------------------------
-# Release to Production - PreProd
+# Release to Production - PreProd Environment
 - template: Templates/stage-vms-deployment.yml
   parameters:
     stage_name: 'preprod'
     variable_template_name: preprd-variables
-    run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+    run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/preprod'))
     

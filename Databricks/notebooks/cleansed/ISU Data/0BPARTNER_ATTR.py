@@ -193,11 +193,11 @@ df_cleansed = spark.sql(f"SELECT \
                                 BP.ZZUSER as userId,\
                                 BP.ZZPAS_INDICATOR as paymentAssistSchemeIndicator,\
                                 BP.ZZBA_INDICATOR as billAssistIndicator,\
-                                to_date(BP.ZZAFLD00001Z, 'yyyy-MM-dd') as createdOn,\
+                                case when BP.ZZAFLD00001Z < '1900-01-01' then to_date('1900-01-01', 'yyyy-MM-dd') else to_date(BP.ZZAFLD00001Z, 'yyyy-MM-dd') end as createdOn,\
                                 BP.NAME_ORG1 as organizationName1,\
                                 BP.NAME_ORG2 as organizationName2,\
                                 BP.NAME_ORG3 as organizationName3,\
-                                to_date(BP.FOUND_DAT, 'yyyy-MM-dd') as organizationFoundedDate,\
+                                case when BP.FOUND_DAT < '1900-01-01' then to_date('1900-01-01', 'yyyy-MM-dd') else to_date(BP.FOUND_DAT, 'yyyy-MM-dd') end as organizationFoundedDate,\
                                 BP.LOCATION_1 as internationalLocationNumber1,\
                                 BP.LOCATION_2 as internationalLocationNumber2,\
                                 BP.LOCATION_3 as internationalLocationNumber3,\
@@ -214,8 +214,8 @@ df_cleansed = spark.sql(f"SELECT \
                                 BP.PERSNUMBER as personNumber,\
                                 BP.XSEXU as unknownGenderIndicator,\
                                 BP.BU_LANGU as language,\
-                                to_date(BP.BIRTHDT, 'yyyy-MM-dd') as dateOfBirth,\
-                                to_date(BP.DEATHDT, 'yyyy-MM-dd') as dateOfDeath,\
+                                case when BP.BIRTHDT < '1900-01-01' then to_date('1900-01-01', 'yyyy-MM-dd') else to_date(BP.BIRTHDT, 'yyyy-MM-dd') end as dateOfBirth,\
+                                case when BP.DEATHDT < '1900-01-01' then to_date('1900-01-01', 'yyyy-MM-dd') else to_date(BP.DEATHDT, 'yyyy-MM-dd') end as dateOfDeath,\
                                 BP.PERNO as personnelNumber,\
                                 BP.NAME_GRP1 as nameGroup1,\
                                 BP.NAME_GRP2 as nameGroup2,\
