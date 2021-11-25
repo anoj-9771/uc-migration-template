@@ -89,8 +89,17 @@ def getBilledWaterConsumptionDaily():
   dimBillDocDf = spark.sql(f"select dimBillingDocumentSK, sourceSystemCode, billingDocumentNumber \
                                   from {ADS_DATABASE_CURATED}.dimBillingDocument \
                                   where _RecordCurrent = 1 and _RecordDeleted = 0")
+    
+  dummyDimRecDf = spark.sql(f"select dimPropertySk as dummyDimSK, sourceSystemCode, 'dimProperty' as dimension from {ADS_DATABASE_CURATED}.dimProperty where propertyId = '-1' \
+                            union select dimLocationSk as dummyDimSK, 'null' as sourceSystemCode, 'dimLocation' as dimension from {ADS_DATABASE_CURATED}.dimLocation where LocationId = '-1' \
+                            union select dimMeterSK as dummyDimSK, sourceSystemCode, 'dimMeter' as dimension from {ADS_DATABASE_CURATED}.dimMeter where meterId = '-1' \
+                            union select dimBillingDocumentSK as dummyDimSK, sourceSystemCode, 'dimBillingDocument' as dimension from {ADS_DATABASE_CURATED}.dimBillingDocument \
+                                                                                                                                  where billingDocumentNumber in ('-1', '-2') \
+                            union select dimDateSK as dummyDimSK, 'null' as sourceSystemCode, 'dimDate' as dimension from {ADS_DATABASE_CURATED}.dimDate \
+                                                                                                                                  where calendarDate = ('1900-01-01') \
+                            ")    
 
-#4.JOIN TABLES
+#5.JOIN TABLES
   billedConsDf = billedConsDf.join(dimPropertyDf, (billedConsDf.businessPartnerNumber == dimPropertyDf.propertyId) \
                                & (billedConsDf.sourceSystemCode == dimPropertyDf.sourceSystemCode) \
                                & (billedConsDf.meterActiveEndDate >= dimPropertyDf.propertyStartDate) \
@@ -112,17 +121,35 @@ def getBilledWaterConsumptionDaily():
                                & (billedConsDf.meterActiveEndDate >= dimDateDf.calendarDate), how="left") \
                     .select(billedConsDf['*'], dimDateDf['dimDateSK'], dimDateDf['calendarDate'])
 
- #5.UNION TABLES
+#6.Joins to derive SKs of dummy dimension(-1) records, to be used when the lookup fails for dimensionSk
   
-#6.SELECT / TRANSFORM
+  billedConsDf = billedConsDf.join(dummyDimRecDf, (dummyDimRecDf.dimension == 'dimProperty') \
+                               & (billedConsDf.sourceSystemCode == dummyDimRecDf.sourceSystemCode), how="left") \
+                    .select(billedConsDf['*'], dummyDimRecDf['dummyDimSK'].alias('dummyPropertySK'))
+  
+  billedConsDf = billedConsDf.join(dummyDimRecDf, (dummyDimRecDf.dimension == 'dimLocation'), how="left") \
+                    .select(billedConsDf['*'], dummyDimRecDf['dummyDimSK'].alias('dummyLocationSK'))
+
+  billedConsDf = billedConsDf.join(dummyDimRecDf, (dummyDimRecDf.dimension == 'dimMeter') \
+                               & (billedConsDf.sourceSystemCode == dummyDimRecDf.sourceSystemCode), how="left") \
+                    .select(billedConsDf['*'], dummyDimRecDf['dummyDimSK'].alias('dummyMeterSK'))
+
+  billedConsDf = billedConsDf.join(dummyDimRecDf, (dummyDimRecDf.dimension == 'dimBillingDocument') \
+                                 & (billedConsDf.sourceSystemCode == dummyDimRecDf.sourceSystemCode), how="left") \
+                    .select(billedConsDf['*'], dummyDimRecDf['dummyDimSK'].alias('dummyBillingDocumentSK'))
+  
+  billedConsDf = billedConsDf.join(dummyDimRecDf, (dummyDimRecDf.dimension == 'dimDate'), how="left") \
+                    .select(billedConsDf['*'], dummyDimRecDf['dummyDimSK'].alias('dummyDateSK'))
+  
+#7.SELECT / TRANSFORM
   billedConsDf = billedConsDf.selectExpr \
                               ( \
                                "sourceSystemCode" \
-                              ,"dimDateSK as consumptionDateSK"
-                              ,"dimBillingDocumentSK" \
-                              ,"dimPropertySK" \
-                              ,"dimMeterSK" \
-                              ,"dimLocationSK" \
+                              ,"coalesce(dimDateSK, dummyDateSK) as consumptionDateSK"
+                              ,"coalesce(dimBillingDocumentSK, dummyBillingDocumentSK) as dimBillingDocumentSK" \
+                              ,"coalesce(dimPropertySK, dummyPropertySK) as dimPropertySK" \
+                              ,"coalesce(dimMeterSK, dummyMeterSK) as dimMeterSK" \
+                              ,"coalesce(dimLocationSk, dummyLocationSK) as dimLocationSK" \
                               ,"-1 as dimWaterNetworkSK" \
                               ,"cast(avgMeteredWaterConsumption as decimal(18,6)) as dailyApportionedConsumption" \
                               )

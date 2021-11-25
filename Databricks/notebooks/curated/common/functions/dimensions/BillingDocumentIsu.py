@@ -34,7 +34,7 @@ def getBillingDocumentIsu():
 
   billedConsIsuDf = getBilledWaterConsumptionIsu()
 
-  dummyDimRecDf = spark.createDataFrame([("ISU", "-1", "1900-01-01", "9999-12-31"), ("Access", "-2", "1900-01-01", "9999-12-31")], ["sourceSystemCode", "billingDocumentNumber", "billingPeriodStartDate", "billingPeriodEndDate"])
+  dummyDimRecDf = spark.createDataFrame([("ISU", "-1", "1900-01-01", "2099-12-31"), ("Access", "-2", "1900-01-01", "2099-12-31")], ["sourceSystemCode", "billingDocumentNumber", "billingPeriodStartDate", "billingPeriodEndDate"])
   dummyDimRecDf = dummyDimRecDf.withColumn("billingPeriodStartDate",(col("billingPeriodStartDate").cast("date"))).withColumn("billingPeriodEndDate",(col("billingPeriodEndDate").cast("date")))  
     
   #3.JOIN TABLES  
@@ -53,16 +53,16 @@ def getBillingDocumentIsu():
                                   ,"isOutsortedFlag" \
                                   ,"isReversedFlag" \
                                   ,"reversalDate" \
-                                )
+                                ).dropDuplicates()
   #6.Apply schema definition
   newSchema = StructType([
                             StructField("sourceSystemCode", StringType(), False),
                             StructField("billingDocumentNumber", StringType(), False),
                             StructField("billingPeriodStartDate", DateType(), False),
                             StructField("billingPeriodEndDate", DateType(), True),
-                            StructField("billCreatedDate", StringType(), True),
+                            StructField("billCreatedDate", DateType(), True),
                             StructField("isOutsortedFlag", StringType(), True),
-                            StructField("isReversedFlag", DecimalType(18,6), True),
+                            StructField("isReversedFlag", StringType(), True),
                             StructField("reversalDate", DateType(), True)
                       ])
   

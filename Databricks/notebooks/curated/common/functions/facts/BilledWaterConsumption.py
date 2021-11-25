@@ -80,7 +80,10 @@ def getBilledWaterConsumption():
                                   from {ADS_DATABASE_CURATED}.dimBillingDocument \
                                   where _RecordCurrent = 1 and _RecordDeleted = 0")
 
-  dimDateDf = spark.sql(f"select dimDateSK, calendarDate \
+  dimStartDateDf = spark.sql(f"select dimDateSK, calendarDate \
+                                  from {ADS_DATABASE_CURATED}.dimDate \
+                                  where _RecordCurrent = 1 and _RecordDeleted = 0")
+  dimEndDateDf = spark.sql(f"select dimDateSK, calendarDate \
                                   from {ADS_DATABASE_CURATED}.dimDate \
                                   where _RecordCurrent = 1 and _RecordDeleted = 0")
 
@@ -113,12 +116,14 @@ def getBilledWaterConsumption():
                                & (billedConsDf.sourceSystemCode == dimBillDocDf.sourceSystemCode), how="left") \
                     .select(billedConsDf['*'], dimBillDocDf['dimBillingDocumentSK'])
 
-  billedConsDf = billedConsDf.join(dimDateDf, billedConsDf.billingPeriodStartDate == dimDateDf.calendarDate, how="left") \
-                    .select(billedConsDf['*'], dimDateDf['dimDateSK'].alias('billingPeriodStartDateSK'))
+  billedConsDf = billedConsDf.join(dimStartDateDf, billedConsDf.billingPeriodStartDate == dimStartDateDf.calendarDate, how="left") \
+                    .select(billedConsDf['*'], dimStartDateDf['dimDateSK'].alias('billingPeriodStartDateSK'))
 
-  billedConsDf = billedConsDf.join(dimDateDf, billedConsDf.billingPeriodEndDate == dimDateDf.calendarDate, how="left") \
-                    .select(billedConsDf['*'], dimDateDf['dimDateSK'].alias('billingPeriodEndDateSK'))
+  #billedConsDf = billedConsDf.join(dimDateDf, billedConsDf.billingPeriodEndDate == dimDateDf.calendarDate, how="left") \
+  #                  .select(billedConsDf['*'], dimDateDf['dimDateSK'].alias('billingPeriodEndDateSK'))
 
+  billedConsDf = billedConsDf.join(dimEndDateDf, billedConsDf.billingPeriodEndDate == dimEndDateDf.calendarDate, how="left") \
+                    .select(billedConsDf['*'], dimEndDateDf['dimDateSK'].alias('billingPeriodEndDateSK'))    
   
 #6.Joins to derive SKs of dummy dimension(-1) records, to be used when the lookup fails for dimensionSk
   
@@ -140,8 +145,7 @@ def getBilledWaterConsumption():
   billedConsDf = billedConsDf.join(dummyDimRecDf, (dummyDimRecDf.dimension == 'dimDate'), how="left") \
                     .select(billedConsDf['*'], dummyDimRecDf['dummyDimSK'].alias('dummyBillingPeriodStartSK'))
 
-    
-#6.SELECT / TRANSFORM
+#7.SELECT / TRANSFORM
   #aggregating to address any duplicates due to failed SK lookups and dummy SKs being assigned in those cases
   billedConsDf = billedConsDf.selectExpr ( \
                                            "sourceSystemCode" \
@@ -160,4 +164,3 @@ def getBilledWaterConsumption():
                                 ,sum("meteredWaterConsumption").alias("meteredWaterConsumption"))
   
   return billedConsDf
-
