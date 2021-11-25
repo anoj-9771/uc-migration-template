@@ -10,5 +10,7 @@ jobs:
       cp -r ${{ parameters.data_factory_name }}/. "$(Build.ArtifactStagingDirectory)/adf_arm_templates/"
     displayName: 'Prepare Azure Resource Manager template Build Artifacts'
 
-  - publish: $(Build.ArtifactStagingDirectory)
-    artifact: adf_arm_templates
+  - task: PublishBuildArtifacts@1
+    inputs:
+      pathToPublish: '$(Build.ArtifactStagingDirectory)'
+      artifact: adf_arm_templates
