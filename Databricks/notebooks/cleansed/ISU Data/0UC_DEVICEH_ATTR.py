@@ -180,7 +180,7 @@ df_cleansed = spark.sql(f"SELECT \
                             case when dev.BIS = 'na' then to_date('1900-01-01','yyyy-MM-dd') else to_date(dev.BIS, 'yyyy-MM-dd') end as validToDate, \
                             to_date(dev.AB, 'yyyy-MM-dd') as validFromDate, \
                             dev.KOMBINAT as deviceCategoryCombination, \
-                            cast(dev.LOGIKNR as long) as logicalDeviceNumber, \
+                            dev.LOGIKNR as logicalDeviceNumber, \
                             dev.ZWGRUPPE as registerGroupCode, \
                             to_date(dev.EINBDAT, 'yyyy-MM-dd') as installationDate, \
                             to_date(dev.AUSBDAT, 'yyyy-MM-dd') as deviceRemovalDate, \
@@ -189,8 +189,8 @@ df_cleansed = spark.sql(f"SELECT \
                             dev.WGRUPPE as windingGroup, \
                             dev.LOEVM as deletedIndicator, \
                             dev.UPDMOD as bwDeltaProcess, \
-                            cast(dev.AMCG_CAP_GRP as int) as advancedMeterCapabilityGroup, \
-                            cast(dev.MSG_ATTR_ID as int) as messageAttributeId, \
+                            dev.AMCG_CAP_GRP as advancedMeterCapabilityGroup, \
+                            dev.MSG_ATTR_ID as messageAttributeId, \
                             dev.ZZMATNR as materialNumber, \
                             dev.ZANLAGE as installationId, \
                             dev.ZADDRNUMBER as addressNumber, \
@@ -218,7 +218,7 @@ newSchema = StructType([
                           StructField('validToDate',DateType(),False),
                           StructField('validFromDate',DateType(),True),
                           StructField('deviceCategoryCombination',StringType(),True),
-                          StructField('logicalDeviceNumber',LongType(),True),                                      
+                          StructField('logicalDeviceNumber',StringType(),True),                                      
                           StructField('registerGroupCode',StringType(),True),
                           StructField('installationDate',DateType(),True),
                           StructField('deviceRemovalDate',DateType(),True),
@@ -227,8 +227,8 @@ newSchema = StructType([
                           StructField('windingGroup',StringType(),True),
                           StructField('deletedIndicator',StringType(),True),
                           StructField('bwDeltaProcess',StringType(),True),
-                          StructField('advancedMeterCapabilityGroup',IntegerType(),True),
-                          StructField('messageAttributeId',IntegerType(),True),
+                          StructField('advancedMeterCapabilityGroup',StringType(),True),
+                          StructField('messageAttributeId',StringType(),True),
                           StructField('materialNumber',StringType(),True),
                           StructField('installationId',StringType(),True),
                           StructField('addressNumber',StringType(),True),

@@ -179,9 +179,9 @@ df_cleansed = spark.sql(f"SELECT \
                             case when stg.PROPERTY1 = 'na' then '' else stg.PROPERTY1 end as property1Number, \
                             case when stg.PROPERTY2 = 'na' then '' else stg.PROPERTY2 end as property2Number, \
                             case when stg.REL_TYPE1 = 'na' then '' else stg.REL_TYPE1 end as relationshipTypeCode1, \
-                            rtyp1.relationshipTypeDescription as relationshipType1, \
+                            rtyp1.relationshipType as relationshipType1, \
                             case when stg.REL_TYPE2 = 'na' then '' else stg.REL_TYPE2 end  as relationshipTypeCode2, \
-                            rtyp2.relationshipTypeDescription as relationshipType2, \
+                            rtyp2.relationshipType as relationshipType2, \
                             to_date((case when stg.DATE_FROM = 'na' then '1900-01-01' else stg.DATE_FROM end), 'yyyy-MM-dd') as validFromDate, \
                             to_date(stg.DATE_TO, 'yyyy-MM-dd') as validToDate, \
                             stg._RecordStart, \
