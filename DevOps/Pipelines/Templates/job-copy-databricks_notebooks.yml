@@ -7,7 +7,7 @@ jobs:
     displayName: 'Prepare Databricks Notebook Build Artifacts'
 
 
-  - task: PublishBuildArtifacts 
+  - task: PublishBuildArtifacts@1
     inputs:
       pathToPublish: '$(Build.ArtifactStagingDirectory)'
       artifactName: 'databricks_notebooks'
