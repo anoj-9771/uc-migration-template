@@ -138,6 +138,7 @@ print("delta_column: " + delta_column)
 #Get the Data Load Mode using the params
 data_load_mode = GeneralGetDataLoadMode(Params[PARAMS_TRUNCATE_TARGET], Params[PARAMS_UPSERT_TARGET], Params[PARAMS_APPEND_TARGET])
 print("data_load_mode: " + data_load_mode)
+
 # COMMAND ----------
 
 # DBTITLE 1,9. Set raw and cleansed table name
@@ -174,14 +175,11 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_cleansed = spark.sql("SELECT \
-	cast(to_unix_timestamp(AB
-AB_TIME, 'yyyy-MM-dd hh:mm:ss a') as timestamp) as validFromDatetime, \
+df_cleansed = spark.sql(f"SELECT \
+    to_timestamp(concat(AB,' ',AB_TIME)) as  validFromDatetime, \
 	to_date(ACTDATE) as disconnectiondate, \
 	ANLAGE as installationId, \
-	case when BIS
-BIS_TIME = 'na' then cast(to_unix_timestamp('1900-01-01 12:00:00', 'yyyy-MM-dd HH:mm:ss'))                                                                      else cast(to_unix_timestamp(BIS
-BIS_TIME, 'yyyy-MM-dd hh:mm:ss a') as timestamp) end as validToDatetime, \
+	to_timestamp(concat(BIS,' ',BIS_TIME)) as validToDatetime, \
 	CON_CARDTYP as concessionCardTypeCode, \
 	CONNOBJ as propertyNumber, \
 	CONTRACT as currentInstallationContract, \
@@ -285,6 +283,7 @@ df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
 DeltaSaveDataframeDirect(df_updated_column, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
+
 # COMMAND ----------
 
 # DBTITLE 1,13. Exit Notebook
