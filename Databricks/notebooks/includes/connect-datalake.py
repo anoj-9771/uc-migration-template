@@ -79,8 +79,8 @@ def BlobGetMountPoint(blobcontainer):
     container = blobcontainer
   
     #Create the path for the Data Lake along with the Container
-    BLOB_SOURCE = "wasbs://{container}@{blobaccount}.blob.core.windows.net/".format(container = blobcontainer, blobaccount = ADS_BLOB_STORAGE_ACCOUNT)
-    EXTRA_CONFIG = {"fs.azure.sas.$container.$storageAccount.blob.core.windows.net":dbutils.secrets.get(scope = ADS_KV_ACCOUNT_SCOPE, key = "daf-sa-blob-sastoken")}
+    BLOB_SOURCE = f"wasbs://{container}@{storageAccount}.blob.core.windows.net/"
+    EXTRA_CONFIG = {f"fs.azure.sas.{container}.{storageAccount}.blob.core.windows.net":dbutils.secrets.get(scope = ADS_KV_ACCOUNT_SCOPE, key = "daf-sa-blob-sastoken")}
     
     #Mount the blob container
     #Log(configs)
