@@ -22,8 +22,8 @@ stages:
 
     - task: DownloadBuildArtifacts@0
       inputs:
-        downloadPath: $(Agent.BuildDirectory)
-        artifactName: sql_Controldb 
+        downloadPath: '$(Agent.BuildDirectory)'
+        artifactName: 'sql_Controldb' 
 
     - task: AzureKeyVault@2
       displayName: 'Get Secrets'
