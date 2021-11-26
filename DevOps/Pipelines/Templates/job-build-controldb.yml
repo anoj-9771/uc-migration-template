@@ -7,10 +7,9 @@
       continueOnError: 'true'
       inputs:
         solution: ADS-Databases/CntrlDB/CntrlDB.sqlproj
-        msbuildLocation: $(Build.ArtifactStagingDirectory)
 
     - task: PublishBuildArtifacts@1
       inputs:
-        pathToPublish: $(Build.ArtifactStagingDirectory)
+        pathToPublish: $(Agent.BuildDirectory)
         artifactName: sql_Controldb
 
