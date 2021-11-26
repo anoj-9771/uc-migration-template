@@ -9,7 +9,7 @@ jobs:
 
 - task: DownloadBuildArtifacts@0
   inputs:
-    downloadPath: '$(Build.ArtifactStagingDirectory)'
+    downloadPath: $(Build.ArtifactStagingDirectory)
     artifactName: sql_Controldb 
     buildType: 'current'
     #downloadPath: '$(System.ArtifactsDirectory)' 
