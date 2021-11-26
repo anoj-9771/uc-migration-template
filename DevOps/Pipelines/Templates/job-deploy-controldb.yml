@@ -8,7 +8,7 @@ jobs:
   steps:
 
   - download: current
-    artifact: sql_Controldb
+    artifact: sql_Controldb 
 
   - task: AzureKeyVault@2
     displayName: 'Get Secrets'
