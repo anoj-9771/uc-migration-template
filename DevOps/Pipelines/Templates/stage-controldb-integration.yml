@@ -20,10 +20,9 @@ stages:
   - job: 'deploy_control_db'
     steps:
 
-    - task: DownloadPipelineArtifact@2
+    - task: DownloadBuildArtifacts@0
       inputs:
-        artifact: sql_Controldb
-        path: $(Build.ArtifactStagingDirectory)    
+        artifactName: 'sql_Controldb' 
 
     - task: AzureKeyVault@2
       displayName: 'Get Secrets'
@@ -41,4 +40,4 @@ stages:
         DatabaseName: ControlDB
         SqlUsername: $(AZURESQLSERVERUN)
         SqlPassword: '$(azuresqlserverpw)'
-        DacpacFile: '$(Pipeline.Workspace)/sql_Controldb/CntrlDb.dacpac'
+        DacpacFile: '$(Build.ArtifactStagingDirectory)/sql_Controldb/CntrlDb.dacpac'
