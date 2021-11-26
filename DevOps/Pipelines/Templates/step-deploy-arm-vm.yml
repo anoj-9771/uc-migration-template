@@ -16,22 +16,12 @@ parameters:
 
 steps:
 
-  # - task: AzureCLI@2
-  #   displayName: 'Add sp to ACL policy $(vmname)'
-  #   name: add_sp_to_acl_policy_sql_$(vmname)
-  #   inputs:
-  #     azureSubscription: ${{ parameters.AzDoServiceConnection }}
-  #     scriptType: bash
-  #     scriptLocation: inlineScript
-  #     inlineScript: |
-  #       az keyvault set-policy --name "$(AZUREKEYVAULTNAME)" --secret-permissions set delete list get --object-id "$(SPOBJECTID)"
-
-  # - task: AzureKeyVault@1
-  #   displayName: 'Get secrets'
-  #   inputs:
-  #     azureSubscription: ${{ parameters.AzDoServiceConnection }}
-  #     keyVaultName: $(AZUREKEYVAULTNAME)
-  #     secretsFilter: 'AzureWindowsServerPw'
+  - task: AzureKeyVault@1
+    displayName: 'Get secrets'
+    inputs:
+      azureSubscription: ${{ parameters.AzDoServiceConnection }}
+      keyVaultName: $(AZUREKEYVAULTNAME)
+      secretsFilter: 'AzureWindowsServerPw'
 
   - task: AzureResourceGroupDeployment@2
     inputs:
@@ -41,7 +31,7 @@ steps:
       location: $(LOCATION)
       templateLocation: 'Linked artifact'
       csmFile: '$(Pipeline.Workspace)/arm_templates/arm-vm.json'
-      overrideParameters: '-location $(LOCATION) -adminUsername $(adminUsername) -adminPassword "nt_sup@123!" -publisher ${{parameters.publisher}} -offer ${{parameters.offer}} -OSVersion ${{parameters.OSVersion}} -vmSize ${{parameters.vmSize}} -vmName ${{parameters.vmName}} -subnetId $(internalSubnetId)'
+      overrideParameters: '-location $(LOCATION) -adminUsername $(adminUsername) -adminPassword $(AzureWindowsServerPw) -publisher ${{parameters.publisher}} -offer ${{parameters.offer}} -OSVersion ${{parameters.OSVersion}} -vmSize ${{parameters.vmSize}} -vmName ${{parameters.vmName}} -subnetId $(internalSubnetId)'
       deploymentMode: 'Incremental'
       deploymentOutputs: 'armOutputs'
     displayName: 'Deploy VM ${{parameters.vmName}}'
@@ -56,9 +46,13 @@ steps:
       inlineScript: |
         $ErrorActionPreference = "Stop"
 
-        az vm disk attach -g ${{ parameters.resource_group }} --vm-name ${{ parameters.vmName }} --name ${{ parameters.vmName }}-datadisk0 --new --sku Premium_LRS --size-gb 1024
-
-        az vm disk attach -g ${{ parameters.resource_group }} --vm-name ${{ parameters.vmName }} --name ${{ parameters.vmName }}-datadisk1 --new --sku Premium_LRS --size-gb 1024
+        ndisks=$(az vm show -g ${{ parameters.resource_group }} -n ${{ parameters.vmName }} --query "storageProfile.dataDisks | length(@)")
+        if [ $ndisks -ne 2 ]; 
+          then 
+            az vm disk attach -g ${{ parameters.resource_group }} --vm-name ${{ parameters.vmName }} --name ${{ parameters.vmName }}-datadisk0 --new --sku Premium_LRS --size-gb 1024
+            az vm disk attach -g ${{ parameters.resource_group }} --vm-name ${{ parameters.vmName }} --name ${{ parameters.vmName }}-datadisk1 --new --sku Premium_LRS --size-gb 1024
+        fi
+        
 
       
 
