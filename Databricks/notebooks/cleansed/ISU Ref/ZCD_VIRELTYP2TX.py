@@ -191,7 +191,7 @@ print(f'Number of rows: {df_cleansed.count()}')
 
 newSchema = StructType([
                       StructField('relationshipTypeCode',StringType(),False),
-                      StructField('relationshipTypeDescription',StringType(),True),
+                      StructField('relationshipType',StringType(),True),
                       StructField('_RecordStart',TimestampType(),False),
                       StructField('_RecordEnd',TimestampType(),False),
                       StructField('_RecordDeleted',IntegerType(),False),

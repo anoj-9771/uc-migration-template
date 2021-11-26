@@ -209,7 +209,7 @@ df_cleansed = spark.sql(f"SELECT \
                                                                       and id._RecordDeleted = 0 and id._RecordCurrent = 1 \
     LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_TE523T te ON re.ZWART = te.registerTypeCode \
                                                                       and te._RecordDeleted = 0 and te._RecordCurrent = 1 \
-    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_DD07T dd ON re.ZWTYP = dd.domainValueSingleUpperLimit and  dd.domainName = 'L_ZWTYP' \
+    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_DD07T dd ON re.ZWTYP = dd.domainValueSingleUpperLimit and  dd.domainName = 'E_ZWTYP' \
                                                                       and dd._RecordDeleted = 0 and dd._RecordCurrent = 1")
 
 
