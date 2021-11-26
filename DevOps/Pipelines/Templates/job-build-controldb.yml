@@ -10,6 +10,6 @@
 
     - task: PublishBuildArtifacts@1
       inputs:
-        pathToPublish: '$(Build.ArtifactStagingDirectory)'
+        pathToPublish: '$(System.ArtifactStagingDirectory)'
         artifact: sql_Controldb
 
