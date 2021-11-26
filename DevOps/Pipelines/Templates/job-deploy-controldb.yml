@@ -7,7 +7,9 @@ jobs:
   dependsOn: deploy_arm
   steps:
 
-  - download: current
+- task: DownloadBuildArtifacts@1
+  inputs:
+    downloadPath: '$(Build.ArtifactStagingDirectory)'
     artifact: sql_Controldb 
 
   - task: AzureKeyVault@2
