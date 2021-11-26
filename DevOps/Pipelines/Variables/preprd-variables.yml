@@ -151,7 +151,7 @@ variables:
   # Azure VMs Common related
   # ------------------------------------------------
   - name: adminUsername
-    value: nt_supp
+    value: nt_sup
   - name: publisher
     value: MicrosoftWindowsServer
   - name: offer
