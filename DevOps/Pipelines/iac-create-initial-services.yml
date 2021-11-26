@@ -12,8 +12,8 @@ trigger: none
   #   exclude:
   #   - '*' 
 
-pool: Daf-Self-Pool01
-# vmImage: ubuntu-latest
+pool: 
+  vmImage: ubuntu-latest
 
 stages:
 - stage: 'build'
