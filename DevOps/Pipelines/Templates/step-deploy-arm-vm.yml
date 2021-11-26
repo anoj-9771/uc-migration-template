@@ -41,7 +41,7 @@ steps:
     condition: contains('${{parameters.vmName}}', 'sql')
     inputs:
       azureSubscription: ${{ parameters.AzDoServiceConnection }}
-      scriptType: pscore
+      scriptType: bash
       scriptLocation: inlineScript
       inlineScript: |
         $ErrorActionPreference = "Stop"
