@@ -22,7 +22,7 @@ stages:
 
     - task: DownloadBuildArtifacts@0
       inputs:
-        downloadPath: '$(Agent.BuildDirectory)'
+        downloadPath: ADS-Databases/CntrlDB/bin/Debug
         artifactName: 'sql_Controldb' 
 
     - task: AzureKeyVault@2
