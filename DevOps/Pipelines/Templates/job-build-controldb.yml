@@ -8,7 +8,8 @@
       inputs:
         solution: ADS-Databases/CntrlDB/CntrlDB.sqlproj
 
-    - publish: $(Build.ArtifactStagingDirectory) 
-      artifact: sql_Controldb
-
+    - task: PublishBuildArtifacts@1
+      inputs:
+        pathToPublish: '$(Build.ArtifactStagingDirectory)'
+        artifact: sql_Controldb
 
