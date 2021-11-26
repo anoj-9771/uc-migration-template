@@ -24,7 +24,6 @@ stages:
       inputs:
         downloadPath: $(Build.ArtifactStagingDirectory)
         artifactName: sql_Controldb 
-        buildType: 'current'
         #downloadPath: '$(System.ArtifactsDirectory)' 
 
     - task: AzureKeyVault@2
