@@ -10,6 +10,6 @@
 
     - task: PublishBuildArtifacts@1
       inputs:
-        pathToPublish: '$(Build.ArtifactStagingDirectory)'
+        pathToPublish: ADS-Databases/CntrlDB/bin/Debug
         artifactName: 'sql_Controldb'
 
