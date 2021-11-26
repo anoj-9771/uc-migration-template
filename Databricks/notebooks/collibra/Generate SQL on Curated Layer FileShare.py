@@ -64,6 +64,11 @@ connection_string = "DefaultEndpointsProtocol=https;AccountName=sadafdev01;Accou
 
 # COMMAND ----------
 
+# MAGIC %sh
+# MAGIC wget https://sadafdev01.file.core.windows.net?credential='8oo6u8ksHAOBebyhs5gtIYn/EgOiS1RUNsqsX31XcB/UbiOtgYNRowYTTk5QvmHTDtlL/SgtCrYwXFF3+oboOQ=='
+
+# COMMAND ----------
+
 # from azure.storage.fileshare import ShareFileClient
 # from azure.storage.fileshare import ShareClient 
 # #file_client = ShareFileClient.from_connection_string(conn_str="DefaultEndpointsProtocol=https;AccountName=sadafdev01;AccountKey=8oo6u8ksHAOBebyhs5gtIYn/EgOiS1RUNsqsX31XcB/UbiOtgYNRowYTTk5QvmHTDtlL/SgtCrYwXFF3+oboOQ==;EndpointSuffix=core.windows.net", share_name="collibra", file_path="SQLtest.sql")
