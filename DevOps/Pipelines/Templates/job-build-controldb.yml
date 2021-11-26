@@ -11,5 +11,5 @@
     - task: PublishBuildArtifacts@1
       inputs:
         pathToPublish: $(Build.ArtifactStagingDirectory)
-        artifact: sql_Controldb
+        artifactName: sql_Controldb
 
