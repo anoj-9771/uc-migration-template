@@ -175,25 +175,26 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_cleansed = spark.sql("SELECT \
-	PARTNER as businessPartnerNumber, \
-	TYPE as identificationTypeCode, \
-	TEXT as identificationType, \
-	IDNUMBER as businessPartnerIdNumber, \
-	INSTITUTE as institute, \
-	to_date(ENTRY_DATE) as entryDate, \
-	to_date(VALID_DATE_FROM) as validFromDate, \
-	to_date(VALID_DATE_TO) as validToDate, \
-	COUNTRY as countryShortName, \
-	REGION as stateCode, \
-	PARTNER_GUID as businessPartnerGUID, \
-	FLG_DEL_BW as deletedIndicator, \
-	_RecordStart, \
-	_RecordEnd, \
-	_RecordDeleted, \
-	_RecordCurrent \
-	FROM CLEANSED.STG_" + source_object \
-         )
+df_cleansed = spark.sql(f"SELECT \
+                                case when BP.PARTNER = 'na' then '' else BP.PARTNER end as businessPartnerNumber, \
+                                case when BP.TYPE = 'na' then '' else BP.TYPE end as identificationTypeCode, \
+                                BP_TXT.identificationType as identificationType, \
+                                case when BP.IDNUMBER = 'na' then '' else BP.IDNUMBER end as businessPartnerIdNumber, \
+                                BP.INSTITUTE as institute, \
+                                to_date(BP.ENTRY_DATE, 'yyyy-MM-dd') as entryDate, \
+                                to_date(BP.VALID_DATE_FROM, 'yyyy-MM-dd') as validFromDate, \
+                                to_date(BP.VALID_DATE_TO, 'yyyy-MM-dd') as validToDate, \
+                                BP.COUNTRY as countryShortName, \
+                                BP.REGION as stateCode, \
+                                BP.PARTNER_GUID as businessPartnerGUID, \
+                                BP.FLG_DEL_BW as deletedIndicator, \
+                                BP._RecordStart, \
+                                BP._RecordEnd, \
+                                BP._RecordDeleted, \
+                                BP._RecordCurrent \
+                           FROM {ADS_DATABASE_STAGE}.{source_object}  BP \
+                           LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.crm_0BP_ID_TYPE_TEXT BP_TXT \
+                                    ON BP.TYPE = BP_TXT.identificationTypeCode AND BP_TXT._RecordDeleted = 0 AND BP_TXT._RecordCurrent = 1")
 
 display(df_cleansed)
 print(f'Number of rows: {df_cleansed.count()}')
