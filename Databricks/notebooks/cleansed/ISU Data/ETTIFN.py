@@ -138,6 +138,7 @@ print("delta_column: " + delta_column)
 #Get the Data Load Mode using the params
 data_load_mode = GeneralGetDataLoadMode(Params[PARAMS_TRUNCATE_TARGET], Params[PARAMS_UPSERT_TARGET], Params[PARAMS_APPEND_TARGET])
 print("data_load_mode: " + data_load_mode)
+
 # COMMAND ----------
 
 # DBTITLE 1,9. Set raw and cleansed table name
@@ -174,33 +175,34 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_cleansed = spark.sql("SELECT \
-	case when ANLAGE = 'na' then '' else ANLAGE end as installationId, \
-	case when OPERAND = 'na' then '' else OPERAND end as operandCode, \
-	case when AB = 'na' then to_date('1900-01-01') else to_date(AB) end as validFromDate, \
-	case when ABLFDNR = 'na' then '' else ABLFDNR end as consecutiveDaysFromDate, \
-	to_date(BIS) as validToDate, \
-	BELNR as billingDocumentNumber, \
-	MBELNR as mBillingDocumentNumber, \
-	MAUSZUG as moveOutIndicator, \
-	to_date(ALTBIS) as expiryDate, \
-	INAKTIV as inactiveIndicator, \
-	MANAEND as manualChangeIndicator, \
-	TARIFART as rateTypeCode, \
-	TEXT30 as rateType, \
-	KONDIGR as rateFactGroupCode, \
-	cast(WERT1 as dec(167,0)) as entryValue, \
-	cast(WERT2 as dec(167,0)) as valueToBeBilled, \
-	STRING1 as operandValue, \
-	STRING3 as operandValue, \
-	cast(BETRAG as dec(132,0)) as amount, \
-	WAERS as currencyKey, \
-	_RecordStart, \
-	_RecordEnd, \
-	_RecordDeleted, \
-	_RecordCurrent \
-	FROM {ADS_DATABASE_STAGE}.{source_object} \
-        ")
+df_cleansed = spark.sql(f"SELECT \
+                                case when ANLAGE = 'na' then '' else ANLAGE end as installationId, \
+                                case when OPERAND = 'na' then '' else OPERAND end as operandCode, \
+                                case when AB = 'na' then to_date('1900-01-01','yyyy-MM-dd') else to_date(AB,'yyyy-MM-dd') end as validFromDate, \
+                                case when ABLFDNR = 'na' then '' else ABLFDNR end as consecutiveDaysFromDate, \
+                                to_date(BIS,'yyyy-MM-dd') as validToDate, \
+                                BELNR as billingDocumentNumber, \
+                                MBELNR as mBillingDocumentNumber, \
+                                MAUSZUG as moveOutIndicator, \
+                                to_date(ALTBIS,'yyyy-MM-dd') as expiryDate, \
+                                INAKTIV as inactiveIndicator, \
+                                MANAEND as manualChangeIndicator, \
+                                TARIFART as rateTypeCode, \
+                                te.rateType as rateType, \
+                                KONDIGR as rateFactGroupCode, \
+                                cast(WERT1 as dec(16,7)) as entryValue, \
+                                cast(WERT2 as dec(16,7)) as valueToBeBilled, \
+                                STRING1 as operandValue1, \
+                                STRING3 as operandValue3, \
+                                cast(BETRAG as dec(13,2)) as amount, \
+                                WAERS as currencyKey, \
+                                ef._RecordStart, \
+                                ef._RecordEnd, \
+                                ef._RecordDeleted, \
+                                ef._RecordCurrent \
+                         FROM {ADS_DATABASE_STAGE}.{source_object} ef \
+                         LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UC_STATTART_TEXT te ON ef.TARIFART = te.rateTypeCode \
+                                                                                                    and te._RecordDeleted = 0 and te._RecordCurrent = 1")
 
 display(df_cleansed)
 print(f'Number of rows: {df_cleansed.count()}')
@@ -208,30 +210,30 @@ print(f'Number of rows: {df_cleansed.count()}')
 # COMMAND ----------
 
 newSchema = StructType([
-	StructField('installationId',StringType(),False),
-	StructField('operandCode',StringType(),False),
-	StructField('validFromDate',DateType(),False),
-	StructField('consecutiveDaysFromDate',StringType(),False),
-	StructField('validToDate',DateType(),True),
-	StructField('billingDocumentNumber',StringType(),True),
-	StructField('mBillingDocumentNumber',StringType(),True),
-	StructField('moveOutIndicator',StringType(),True),
-	StructField('expiryDate',DateType(),True),
-	StructField('inactiveIndicator',StringType(),True),
-	StructField('manualChangeIndicator',StringType(),True),
-	StructField('rateTypeCode',StringType(),True),
-	StructField('rateType',StringType(),True),
-	StructField('rateFactGroupCode',StringType(),True),
-	StructField('entryValue',DecimalType(167,0),'True'),
-	StructField('valueToBeBilled',DecimalType(167,0),'True'),
-	StructField('operandValue',StringType(),True),
-	StructField('operandValue',StringType(),True),
-	StructField('amount',DecimalType(132,0),'True'),
-	StructField('currencyKey',StringType(),True),
-	StructField('_RecordStart',TimestampType(),False),
-	StructField('_RecordEnd',TimestampType(),False),
-	StructField('_RecordDeleted',IntegerType(),False),
-	StructField('_RecordCurrent',IntegerType(),False)
+                        StructField('installationId',StringType(),False),
+                        StructField('operandCode',StringType(),False),
+                        StructField('validFromDate',DateType(),False),
+                        StructField('consecutiveDaysFromDate',StringType(),False),
+                        StructField('validToDate',DateType(),True),
+                        StructField('billingDocumentNumber',StringType(),True),
+                        StructField('mBillingDocumentNumber',StringType(),True),
+                        StructField('moveOutIndicator',StringType(),True),
+                        StructField('expiryDate',DateType(),True),
+                        StructField('inactiveIndicator',StringType(),True),
+                        StructField('manualChangeIndicator',StringType(),True),
+                        StructField('rateTypeCode',StringType(),True),
+                        StructField('rateType',StringType(),True),
+                        StructField('rateFactGroupCode',StringType(),True),
+                        StructField('entryValue',DecimalType(16,7),True),
+                        StructField('valueToBeBilled',DecimalType(16,7),True),
+                        StructField('operandValue1',StringType(),True),
+                        StructField('operandValue3',StringType(),True),
+                        StructField('amount',DecimalType(13,2),True),
+                        StructField('currencyKey',StringType(),True),
+                        StructField('_RecordStart',TimestampType(),False),
+                        StructField('_RecordEnd',TimestampType(),False),
+                        StructField('_RecordDeleted',IntegerType(),False),
+                        StructField('_RecordCurrent',IntegerType(),False)
 ])
 
 df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
@@ -242,6 +244,7 @@ df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
 DeltaSaveDataframeDirect(df_updated_column, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
+
 # COMMAND ----------
 
 # DBTITLE 1,13. Exit Notebook

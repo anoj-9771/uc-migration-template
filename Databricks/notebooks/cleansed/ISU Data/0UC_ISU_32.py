@@ -138,6 +138,7 @@ print("delta_column: " + delta_column)
 #Get the Data Load Mode using the params
 data_load_mode = GeneralGetDataLoadMode(Params[PARAMS_TRUNCATE_TARGET], Params[PARAMS_UPSERT_TARGET], Params[PARAMS_APPEND_TARGET])
 print("data_load_mode: " + data_load_mode)
+
 # COMMAND ----------
 
 # DBTITLE 1,9. Set raw and cleansed table name
@@ -174,56 +175,57 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_cleansed = spark.sql("SELECT \
-	cast(to_unix_timestamp(AB
-AB_TIME, 'yyyy-MM-dd hh:mm:ss a') as timestamp) as validFromDatetime, \
-	to_date(ACTDATE) as disconnectiondate, \
-	ANLAGE as installationId, \
-	case when BIS
-BIS_TIME = 'na' then cast(to_unix_timestamp('1900-01-01 12:00:00', 'yyyy-MM-dd HH:mm:ss'))                                                                      else cast(to_unix_timestamp(BIS
-BIS_TIME, 'yyyy-MM-dd hh:mm:ss a') as timestamp) end as validToDatetime, \
-	CON_CARDTYP as concessionCardTypeCode, \
-	CONNOBJ as propertyNumber, \
-	CONTRACT as currentInstallationContract, \
-	cast(COUNTER as dec(16,0)) as billedValueCounter, \
-	case when DISCACT_BEGIN = 'na' then '' else DISCACT_BEGIN end as disconnectionActivityPeriod, \
-	DISCACTTYP as disconnectionActivityTypeCode, \
-	Derived as disconnectionActivityType, \
-	case when DISCNO = 'na' then '' else DISCNO end as disconnectionDocumentNumber, \
-	case when DISCOBJ = 'na' then '' else DISCOBJ end as disconnectionObjectNumber, \
-	DISCOBJTYP as disconnectionObjectTypeCode, \
-	DISCPROCV as processingVariantCode, \
-	Derived as processingVariant, \
-	DISCREASON as disconnectionReasonCode, \
-	Derived as disconnectionReason, \
-	EQUINR as equipmentNumber, \
-	FAILED_ATTEMPTS as documentItemNumber, \
-	to_date(FPD) as documentPostingDate, \
-	INSTLN as installationId, \
-	LADEMODUS as loadMode, \
-	MATXT as activityText, \
-	MNCOD as activityCode, \
-	cast(N_ZWSTAND as dec(14,0)) as meterReadingAfterDecimalPoint, \
-	ORDSTATE as disconnectionReconnectionStatusCode, \
-	Derived as disconnectionReconnectionStatus, \
-	PARTNER as businessPartnerNumber, \
-	PREMISE as premise, \
-	RECORDMODE as recordMode, \
-	REFOBJKEY as referenceObjectKey, \
-	REFOBJTYPE as referenceObjectTypeCode, \
-	cast(V_ZWSTAND as dec(17,0)) as meterReadingBeforeDecimalPoint, \
-	VKONT as contractAccountNumber, \
-	to_date(ZACTDATE) as disconnectiondate, \
-	ZILART as maintenanceTypeCode, \
-	ZSTATUS as disconnectionDocumentStatusCode, \
-	Derived as disconnectionDocumentStatus, \
-	ZZORDERNUM as orderNumber, \
-	_RecordStart, \
-	_RecordEnd, \
-	_RecordDeleted, \
-	_RecordCurrent \
-	FROM {ADS_DATABASE_STAGE}.{source_object} \
-        ")
+df_cleansed = spark.sql(f"SELECT \
+                            to_date(AB,'yyyy-MM-dd') as  validFromDate, \
+                            to_date(ACTDATE) as disconnectiondate, \
+                            ANLAGE as installationId, \
+                            to_date(BIS,'yyyy-MM-dd') as validToDate, \
+                            CON_CARDTYP as concessionCardTypeCode, \
+                            CONNOBJ as propertyNumber, \
+                            CONTRACT as currentInstallationContract, \
+                            cast(COUNTER as dec(16,0)) as billedValueCounter, \
+                            case when DISCACT_BEGIN = 'na' then '' else DISCACT_BEGIN end as disconnectionActivityPeriod, \
+                            DISCACTTYP as disconnectionActivityTypeCode, \
+                            dd.domainValueText as disconnectionActivityType, \
+                            case when DISCNO = 'na' then '' else DISCNO end as disconnectionDocumentNumber, \
+                            case when DISCOBJ = 'na' then '' else DISCOBJ end as disconnectionObjectNumber, \
+                            DISCOBJTYP as disconnectionObjectTypeCode, \
+                            DISCPROCV as processingVariantCode, \
+                            di.applicationFormDescription as processingVariant, \
+                            DISCREASON as disconnectionReasonCode, \
+                            dis.disconnecionReason as disconnectionReason, \
+                            EQUINR as equipmentNumber, \
+                            FAILED_ATTEMPTS as documentItemNumber, \
+                            to_date(FPD,'yyyy-MM-dd') as documentPostingDate, \
+                            INSTLN as installationId, \
+                            LADEMODUS as loadMode, \
+                            MATXT as activityText, \
+                            MNCOD as activityCode, \
+                            cast(N_ZWSTAND as dec(14,0)) as meterReadingAfterDecimalPoint, \
+                            ORDSTATE as disconnectionReconnectionStatusCode, \
+                            edi.confirmationStatus as disconnectionReconnectionStatus, \
+                            PARTNER as businessPartnerNumber, \
+                            PREMISE as premise, \
+                            RECORDMODE as recordMode, \
+                            REFOBJKEY as referenceObjectKey, \
+                            REFOBJTYPE as referenceObjectTypeCode, \
+                            cast(V_ZWSTAND as dec(17,0)) as meterReadingBeforeDecimalPoint, \
+                            VKONT as contractAccountNumber, \
+                            to_date(ZACTDATE,'yyyy-MM-dd') as disconnectiondate, \
+                            ZILART as maintenanceTypeCode, \
+                            ZSTATUS as disconnectionDocumentStatusCode, \
+                            dd1.domainValueText as disconnectionDocumentStatus, \
+                            ZZORDERNUM as orderNumber, \
+                            isu._RecordStart, \
+                            isu._RecordEnd, \
+                            isu._RecordDeleted, \
+                            isu._RecordCurrent \
+                          FROM {ADS_DATABASE_STAGE}.{source_object} isu \
+                          LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_DD07T dd ON isu.DISCACTTYP = dd.domainValueSingleUpperLimit and dd.domainName ='DISCACTTYP' and dd._RecordDeleted = 0 and dd._RecordCurrent = 1 \
+                          LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UC_DISCPRV_TEXT di ON isu.DISCPROCV = di.processingVariantCode and di._RecordDeleted = 0 and di._RecordCurrent = 1 \
+                          LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UC_DISCREAS_TEXT dis ON isu.DISCREASON = dis.disconnecionReasonCode and dis._RecordDeleted = 0 and dis._RecordCurrent = 1 \
+                          LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_EDISCORDSTATET edi ON isu.ORDSTATE = edi.confirmationStatusCode and edi._RecordDeleted = 0 and edi._RecordCurrent = 1 \
+                          LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_DD07T dd1 ON isu.ZSTATUS = dd1.domainValueSingleUpperLimit and dd1.domainName ='EDCDOCSTAT' and dd1._RecordDeleted = 0 and dd1._RecordCurrent = 1")
 
 display(df_cleansed)
 print(f'Number of rows: {df_cleansed.count()}')
@@ -231,60 +233,60 @@ print(f'Number of rows: {df_cleansed.count()}')
 # COMMAND ----------
 
 newSchema = StructType([
-	StructField('validFromDatetime',TimestampType(),True),
-	StructField('disconnectiondate',DateType(),True),
-	StructField('installationId',StringType(),True),
-	StructField('validToDatetime',TimestampType(),False),
-	StructField('concessionCardTypeCode',StringType(),True),
-	StructField('propertyNumber',StringType(),True),
-	StructField('currentInstallationContract',StringType(),True),
-	StructField('billedValueCounter',DecimalType(16,0),'True'),
-	StructField('disconnectionActivityPeriod',StringType(),False),
-	StructField('disconnectionActivityTypeCode',StringType(),True),
-	StructField('disconnectionActivityType',StringType(),True),
-	StructField('disconnectionDocumentNumber',StringType(),False),
-	StructField('disconnectionObjectNumber',StringType(),False),
-	StructField('disconnectionObjectTypeCode',StringType(),True),
-	StructField('processingVariantCode',StringType(),True),
-	StructField('processingVariant',StringType(),True),
-	StructField('disconnectionReasonCode',StringType(),True),
-	StructField('disconnectionReason',StringType(),True),
-	StructField('equipmentNumber',StringType(),True),
-	StructField('documentItemNumber',StringType(),True),
-	StructField('documentPostingDate',DateType(),True),
-	StructField('installationId',StringType(),True),
-	StructField('loadMode',StringType(),True),
-	StructField('activityText',StringType(),True),
-	StructField('activityCode',StringType(),True),
-	StructField('meterReadingAfterDecimalPoint',DecimalType(14,0),'True'),
-	StructField('disconnectionReconnectionStatusCode',StringType(),True),
-	StructField('disconnectionReconnectionStatus',StringType(),True),
-	StructField('businessPartnerNumber',StringType(),True),
-	StructField('premise',StringType(),True),
-	StructField('recordMode',StringType(),True),
-	StructField('referenceObjectKey',StringType(),True),
-	StructField('referenceObjectTypeCode',StringType(),True),
-	StructField('meterReadingBeforeDecimalPoint',DecimalType(17,0),'True'),
-	StructField('contractAccountNumber',StringType(),True),
-	StructField('disconnectiondate',DateType(),True),
-	StructField('maintenanceTypeCode',StringType(),True),
-	StructField('disconnectionDocumentStatusCode',StringType(),True),
-	StructField('disconnectionDocumentStatus',StringType(),True),
-	StructField('orderNumber',StringType(),True),
-	StructField('_RecordStart',TimestampType(),False),
-	StructField('_RecordEnd',TimestampType(),False),
-	StructField('_RecordDeleted',IntegerType(),False),
-	StructField('_RecordCurrent',IntegerType(),False)
-])
+                      StructField('validFromDatetime',TimestampType(),True),
+                      StructField('disconnectiondate',DateType(),True),
+                      StructField('installationId',StringType(),True),
+                      StructField('validToDatetime',TimestampType(),False),
+                      StructField('concessionCardTypeCode',StringType(),True),
+                      StructField('propertyNumber',StringType(),True),
+                      StructField('currentInstallationContract',StringType(),True),
+                      StructField('billedValueCounter',DecimalType(16,0),True),
+                      StructField('disconnectionActivityPeriod',StringType(),False),
+                      StructField('disconnectionActivityTypeCode',StringType(),True),
+                      StructField('disconnectionActivityType',StringType(),True),
+                      StructField('disconnectionDocumentNumber',StringType(),False),
+                      StructField('disconnectionObjectNumber',StringType(),False),
+                      StructField('disconnectionObjectTypeCode',StringType(),True),
+                      StructField('processingVariantCode',StringType(),True),
+                      StructField('processingVariant',StringType(),True),
+                      StructField('disconnectionReasonCode',StringType(),True),
+                      StructField('disconnectionReason',StringType(),True),
+                      StructField('equipmentNumber',StringType(),True),
+                      StructField('documentItemNumber',StringType(),True),
+                      StructField('documentPostingDate',DateType(),True),
+                      StructField('installationId',StringType(),True),
+                      StructField('loadMode',StringType(),True),
+                      StructField('activityText',StringType(),True),
+                      StructField('activityCode',StringType(),True),
+                      StructField('meterReadingAfterDecimalPoint',DecimalType(14,0),True),
+                      StructField('disconnectionReconnectionStatusCode',StringType(),True),
+                      StructField('disconnectionReconnectionStatus',StringType(),True),
+                      StructField('businessPartnerNumber',StringType(),True),
+                      StructField('premise',StringType(),True),
+                      StructField('recordMode',StringType(),True),
+                      StructField('referenceObjectKey',StringType(),True),
+                      StructField('referenceObjectTypeCode',StringType(),True),
+                      StructField('meterReadingBeforeDecimalPoint',DecimalType(17,0),True),
+                      StructField('contractAccountNumber',StringType(),True),
+                      StructField('disconnectiondate',DateType(),True),
+                      StructField('maintenanceTypeCode',StringType(),True),
+                      StructField('disconnectionDocumentStatusCode',StringType(),True),
+                      StructField('disconnectionDocumentStatus',StringType(),True),
+                      StructField('orderNumber',StringType(),True),
+                      StructField('_RecordStart',TimestampType(),False),
+                      StructField('_RecordEnd',TimestampType(),False),
+                      StructField('_RecordDeleted',IntegerType(),False),
+                      StructField('_RecordCurrent',IntegerType(),False)
+                  ])
 
 df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
-
 
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
 DeltaSaveDataframeDirect(df_updated_column, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
+
 # COMMAND ----------
 
 # DBTITLE 1,13. Exit Notebook
