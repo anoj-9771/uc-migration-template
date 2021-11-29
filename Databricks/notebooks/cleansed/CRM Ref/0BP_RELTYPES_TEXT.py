@@ -175,7 +175,7 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_cleansed = spark.sql("SELECT \
+df_cleansed = spark.sql(f"SELECT \
 	case when RELDIR = 'na' then '' else RELDIR end as relationshipDirection, \
 	case when RELTYP = 'na' then '' else RELTYP end as relationshipTypeCode, \
 	TXTLG as relationshipType, \
@@ -183,8 +183,7 @@ df_cleansed = spark.sql("SELECT \
 	_RecordEnd, \
 	_RecordDeleted, \
 	_RecordCurrent \
-	FROM CLEANSED.STG_" + source_object \
-         )
+	FRO{ADS_DATABASE_STAGE}.{source_object}")
 
 display(df_cleansed)
 print(f'Number of rows: {df_cleansed.count()}')
