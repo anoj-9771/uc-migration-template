@@ -28,22 +28,19 @@ def getBilledWaterConsumptionIsu():
                              case when endBillingPeriod is null then to_date('19000101', 'yyyymmdd') else endBillingPeriod end as endBillingPeriod, \
                              billingDocumentCreateDate, documentNotReleasedIndicator, reversalDate \
                          from {ADS_DATABASE_CLEANSED}.isu_erch \
-                         where trim(billingSimulationIndicator) = '' \
-                           and _RecordCurrent = 1 and _RecordDeleted = 0")
+                         where trim(billingSimulationIndicator) = ''")
 
   dberchz1Df = spark.sql(f"select billingDocumentNumber, billingDocumentLineItemId \
                                 ,validFromDate, validToDate \
                                 ,billingQuantityPlaceBeforeDecimalPoint \
                              from {ADS_DATABASE_CLEANSED}.isu_dberchz1 \
                              where lineItemTypeCode in ('ZDQUAN', 'ZRQUAN') \
-                             and trim(billingLineItemBudgetBillingIndicator) = '' \
-                               and _RecordCurrent = 1 and _RecordDeleted = 0")
+                             and trim(billingLineItemBudgetBillingIndicator) = ''")
   
   dberchz2Df = spark.sql(f"select billingDocumentNumber, billingDocumentLineItemId \
                                 ,equipmentNumber \
                              from {ADS_DATABASE_CLEANSED}.isu_dberchz2 \
-                             where trim(suppressedMeterReadingDocumentId) <> '' \
-                               and _RecordCurrent = 1 and _RecordDeleted = 0")
+                             where trim(suppressedMeterReadingDocumentId) <> ''")
   
   #3.JOIN TABLES  
   billedConsDf = erchDf.join(dberchz1Df, erchDf.billingDocumentNumber == dberchz1Df.billingDocumentNumber, how="inner") \
