@@ -175,25 +175,25 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_cleansed = spark.sql("SELECT \
+df_cleansed = spark.sql(f"SELECT \
 	case when PARTNER = 'na' then '' else PARTNER end as businessPartnerNumber, \
 	TYPE as businessPartnerCategoryCode, \
-	TXTMD as businessPartnerCategory, \
+	BP_TXT.businessPartnerCategory as businessPartnerCategory, \
 	BPKIND as businessPartnerTypeCode, \
-	TEXT40 as businessPartnerType, \
-	BU_GROUP as businessPartnerGroupCode, \
-	TEXT40 as businessPartnerGroup, \
+	BPTYPE.businessPartnerType as businessPartnerType,\
+    BP.BU_GROUP as businessPartnerGroupCode,\
+    BPGRP.businessPartnerGroup as businessPartnerGroup,\
 	BPEXT as externalBusinessPartnerNumber, \
 	BU_SORT1 as searchTerm1, \
 	BU_SORT2 as searchTerm2, \
-	TITLE as titleCode, \
-	TITLE_MEDI as title, \
+	BP.TITLE as titleCode, \
+	TITLE.TITLE as title, \
 	XDELE as deletedIndicator, \
 	XBLCK as centralBlockBusinessPartner, \
 	ZZUSER as userId, \
 	ZZPAS_INDICATOR as paymentAssistSchemeIndicator, \
 	ZZBA_INDICATOR as billAssistIndicator, \
-	to_date(ZZAFLD00001Z) as createdDate, \
+	case when BP.ZZAFLD00001Z < '1900-01-01' then to_date('1900-01-01', 'yyyy-MM-dd') else to_date(BP.ZZAFLD00001Z, 'yyyy-MM-dd') end as createdDate, \
 	ZZ_CONSENT1 as consent1Indicator, \
 	ZZWAR_WID as warWidowIndicator, \
 	ZZDISABILITY as disabilityIndicator, \
@@ -208,7 +208,7 @@ df_cleansed = spark.sql("SELECT \
 	NAME_ORG1 as organizationName1, \
 	NAME_ORG2 as organizationName2, \
 	NAME_ORG3 as organizationName3, \
-	to_date(FOUND_DAT) as organizationFoundedDate, \
+	case when BP.FOUND_DAT < '1900-01-01' then to_date('1900-01-01', 'yyyy-MM-dd') else to_date(BP.FOUND_DAT, 'yyyy-MM-dd') end as organizationFoundedDate, \
 	cast(LOCATION_1 as long) as internationalLocationNumber1, \
 	cast(LOCATION_2 as long) as internationalLocationNumber2, \
 	cast(LOCATION_3 as long) as internationalLocationNumber3, \
@@ -216,7 +216,7 @@ df_cleansed = spark.sql("SELECT \
 	NAME_FIRST as firstName, \
 	NAMEMIDDLE as middleName, \
 	TITLE_ACA1 as academicTitleCode, \
-	TITLE_MEDI as academicTitle, \
+	TITLE_ACA1.TITLE as academicTitle, \
 	NICKNAME as nickName, \
 	INITIALS as nameInitials, \
 	NAMCOUNTRY as countryName, \
@@ -224,45 +224,54 @@ df_cleansed = spark.sql("SELECT \
 	NATIO as nationality, \
 	PERSNUMBER as personNumber, \
 	XSEXU as unknownGenderIndicator, \
-	BU_LANGU as language, \
-	to_date(BIRTHDT) as dateOfBirth, \
-	to_date(DEATHDT) as dateOfDeath, \
+	case when BP.BIRTHDT < '1900-01-01' then to_date('1900-01-01', 'yyyy-MM-dd') else to_date(BP.BIRTHDT, 'yyyy-MM-dd') end as dateOfBirth,\
+    case when BP.DEATHDT < '1900-01-01' then to_date('1900-01-01', 'yyyy-MM-dd') else to_date(BP.DEATHDT, 'yyyy-MM-dd') end as dateOfDeath,\
 	cast(PERNO as long) as personnelNumber, \
 	NAME_GRP1 as nameGroup1, \
 	NAME_GRP2 as nameGroup2, \
 	MC_NAME1 as searchHelpLastName, \
 	MC_NAME2 as searchHelpFirstName, \
 	CRUSR as createdBy, \
-	to_date(CRDAT) as createdDate, \
-	to_date(CRTIM) as createdTime, \
-	CHUSR as changedBy, \
-	to_date(CHDAT) as changedDate, \
-	to_date(CHTIM) as changedTime, \
+    cast(concat(BP.CRDAT,' ',(case WHEN BP.CRTIM is null then  '00:00:00' else BP.CRTIM END)) as timestamp)  as createdDateTime,\
+    BP.CHUSR as changedBy,\
+    cast(concat(BP.CHDAT,' ',(case WHEN BP.CHTIM is null then  '00:00:00' else BP.CHTIM END)) as timestamp)  as changedDateTime,\
 	PARTNER_GUID as businessPartnerGUID, \
 	ADDRCOMM as communicationAddressNumber, \
 	TD_SWITCH as plannedChangeDocument, \
-	to_date(VALID_FROM) as validFromDate, \
-	to_date(VALID_TO) as validToDate, \
+	Case WHEN BP.VALID_FROM = '10101000000' then to_date('1900-01-01', 'yyyy-MM-dd') else to_date(substr(BP.VALID_FROM,0,8),'yyyy-MM-dd') END as validFromDate,\
+    to_date(substr(BP.VALID_TO,0,8),'yyyy-MM-dd') as validToDate,\
 	NATPERS as naturalPersonIndicator, \
 	ZZAFLD00000M as kidneyDialysisIndicator, \
 	ZZUNIT as patientUnit, \
 	ZZTITLE as patientTitleCode, \
-	TITLE_MEDI as patientTitle, \
+	ZZTITLE.TITLE as patientTitle, \
 	ZZF_NAME as patientFirstName, \
 	ZZSURNAME as patientSurname, \
 	ZZAREACODE as patientAreaCode, \
 	ZZPHONE as patientPhoneNumber, \
 	ZZHOSP_NAME as hospitalName, \
 	ZZMACH_TYPE as patientMachineType, \
-	to_date(ZZON_DATE) as machineTypeValidFromDate, \
+    case when BP.ZZON_DATE < '1900-01-01' then to_date('1900-01-01', 'yyyy-MM-dd') else to_date(BP.ZZON_DATE, 'yyyy-MM-dd') end as machineTypeValidFromDate, \
 	ZZOFF_REAS as offReason, \
-	to_date(ZZOFF_DATE) as machineTypeValidToDate, \
-	_RecordStart, \
-	_RecordEnd, \
-	_RecordDeleted, \
-	_RecordCurrent \
-	FROM CLEANSED.STG_" + source_object \
-         )
+	case when BP.ZZOFF_DATE < '1900-01-01' then to_date('1900-01-01', 'yyyy-MM-dd') else to_date(BP.ZZOFF_DATE, 'yyyy-MM-dd') end as machineTypeValidToDate, \
+	BP._RecordStart, \
+	BP._RecordEnd, \
+	BP._RecordDeleted, \
+	BP._RecordCurrent \
+	FROM {ADS_DATABASE_STAGE}.{source_object} BP \
+                               LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0BPARTNER_TEXT BP_TXT \
+                                 ON BP.PARTNER = BP_TXT.businessPartnerNumber AND BP.TYPE =BP_TXT.businessPartnerCategoryCode \
+                                                                              AND BP_TXT._RecordDeleted = 0 AND BP_TXT._RecordCurrent = 1 \
+                               LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.crm_0BPTYPE_TEXT BPTYPE ON BP.BPKIND = BPTYPE.businessPartnerTypeCode \
+                                                                              AND BPTYPE._RecordDeleted = 0 AND BPTYPE._RecordCurrent = 1 \
+                               LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0BP_GROUP_TEXT BPGRP ON BP.BU_GROUP = BPGRP.businessPartnerGroupCode \
+                                                                              AND BPGRP._RecordDeleted = 0 AND BPGRP._RecordCurrent = 1 \
+                               LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_TSAD3T TITLE ON BP.TITLE = TITLE.titlecode \
+                                                                              AND TITLE._RecordDeleted = 0 AND TITLE._RecordCurrent = 1 \
+                               LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_TSAD3T ZZTITLE ON BP.ZZTITLE = ZZTITLE.titlecode \
+                                                                              AND ZZTITLE._RecordDeleted = 0 AND ZZTITLE._RecordCurrent = 1 \
+                               LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_TSAD3T TITLE_ACA1 ON BP.TITLE_ACA1 = TITLE_ACA1.titlecode \
+                                                                              AND TITLE_ACA1._RecordDeleted = 0 AND TITLE_ACA1._RecordCurrent = 1")
 
 display(df_cleansed)
 print(f'Number of rows: {df_cleansed.count()}')
@@ -318,7 +327,6 @@ newSchema = StructType([
 	StructField('nationality',StringType(),True),
 	StructField('personNumber',StringType(),True),
 	StructField('unknownGenderIndicator',StringType(),True),
-	StructField('language',StringType(),True),
 	StructField('dateOfBirth',DateType(),True),
 	StructField('dateOfDeath',DateType(),True),
 	StructField('personnelNumber',LongType(),True),
@@ -327,11 +335,9 @@ newSchema = StructType([
 	StructField('searchHelpLastName',StringType(),True),
 	StructField('searchHelpFirstName',StringType(),True),
 	StructField('createdBy',StringType(),True),
-	StructField('createdDate',DateType(),True),
-	StructField('createdTime',DateType(),True),
+	StructField('createdDateTime',DateType(),True),
 	StructField('changedBy',StringType(),True),
-	StructField('changedDate',DateType(),True),
-	StructField('changedTime',DateType(),True),
+	StructField('changedDateTime',DateType(),True),
 	StructField('businessPartnerGUID',StringType(),True),
 	StructField('communicationAddressNumber',StringType(),True),
 	StructField('plannedChangeDocument',StringType(),True),

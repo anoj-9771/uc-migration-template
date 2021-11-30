@@ -179,7 +179,7 @@ df_cleansed = spark.sql(f"SELECT \
                             to_date(AB,'yyyy-MM-dd') as  validFromDate, \
                             to_date(ACTDATE) as disconnectiondate, \
                             ANLAGE as installationId, \
-                            to_date(BIS,'yyyy-MM-dd') as validToDate, \
+                            case when BIS = 'na' then to_date('2099-12-31','yyyy-MM-dd') else to_date(BIS,'yyyy-MM-dd') end as validToDate, \
                             CON_CARDTYP as concessionCardTypeCode, \
                             CONNOBJ as propertyNumber, \
                             CONTRACT as currentInstallationContract, \
@@ -197,7 +197,6 @@ df_cleansed = spark.sql(f"SELECT \
                             EQUINR as equipmentNumber, \
                             FAILED_ATTEMPTS as documentItemNumber, \
                             to_date(FPD,'yyyy-MM-dd') as documentPostingDate, \
-                            INSTLN as installationId, \
                             LADEMODUS as loadMode, \
                             MATXT as activityText, \
                             MNCOD as activityCode, \
@@ -211,7 +210,7 @@ df_cleansed = spark.sql(f"SELECT \
                             REFOBJTYPE as referenceObjectTypeCode, \
                             cast(V_ZWSTAND as dec(17,0)) as meterReadingBeforeDecimalPoint, \
                             VKONT as contractAccountNumber, \
-                            to_date(ZACTDATE,'yyyy-MM-dd') as disconnectiondate, \
+                            to_date(ZACTDATE,'yyyy-MM-dd') as zDisconnectionDate, \
                             ZILART as maintenanceTypeCode, \
                             ZSTATUS as disconnectionDocumentStatusCode, \
                             dd1.domainValueText as disconnectionDocumentStatus, \
@@ -233,10 +232,10 @@ print(f'Number of rows: {df_cleansed.count()}')
 # COMMAND ----------
 
 newSchema = StructType([
-                      StructField('validFromDatetime',TimestampType(),True),
+                      StructField('validFromDate',DateType(),True),
                       StructField('disconnectiondate',DateType(),True),
                       StructField('installationId',StringType(),True),
-                      StructField('validToDatetime',TimestampType(),False),
+                      StructField('validToDate',DateType(),False),
                       StructField('concessionCardTypeCode',StringType(),True),
                       StructField('propertyNumber',StringType(),True),
                       StructField('currentInstallationContract',StringType(),True),
@@ -254,7 +253,6 @@ newSchema = StructType([
                       StructField('equipmentNumber',StringType(),True),
                       StructField('documentItemNumber',StringType(),True),
                       StructField('documentPostingDate',DateType(),True),
-                      StructField('installationId',StringType(),True),
                       StructField('loadMode',StringType(),True),
                       StructField('activityText',StringType(),True),
                       StructField('activityCode',StringType(),True),
@@ -268,7 +266,7 @@ newSchema = StructType([
                       StructField('referenceObjectTypeCode',StringType(),True),
                       StructField('meterReadingBeforeDecimalPoint',DecimalType(17,0),True),
                       StructField('contractAccountNumber',StringType(),True),
-                      StructField('disconnectiondate',DateType(),True),
+                      StructField('zDisconnectionDate',DateType(),True),
                       StructField('maintenanceTypeCode',StringType(),True),
                       StructField('disconnectionDocumentStatusCode',StringType(),True),
                       StructField('disconnectionDocumentStatus',StringType(),True),

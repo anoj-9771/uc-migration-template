@@ -183,7 +183,7 @@ df_cleansed = spark.sql(f"SELECT \
 	_RecordEnd, \
 	_RecordDeleted, \
 	_RecordCurrent \
-	FRO{ADS_DATABASE_STAGE}.{source_object}")
+	FROM {ADS_DATABASE_STAGE}.{source_object}")
 
 display(df_cleansed)
 print(f'Number of rows: {df_cleansed.count()}')
@@ -191,7 +191,6 @@ print(f'Number of rows: {df_cleansed.count()}')
 # COMMAND ----------
 
 newSchema = StructType([
-	StructField('language',StringType(),False),
 	StructField('relationshipDirection',StringType(),False),
 	StructField('relationshipTypeCode',StringType(),False),
 	StructField('relationshipType',StringType(),True),
