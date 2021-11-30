@@ -4,9 +4,7 @@ pr:
   branches:
     include:
     - main        
-    - test
-    - develop
-    - preprod
+    - vms-template
 
   paths:
     include:
@@ -24,30 +22,23 @@ stages:
 - stage: 'build' # leave main artifact build stage as 'build'
   variables:
   - template: Variables/deployment-variables.yml
-  
+  jobs:
+  # Use this section to pull in or out build jobs
+  - template: Templates/job-copy-arm.yml
+
 # ---------------------------------------------------------------------------
 # Release to Non-Production - Develop
-- template: Templates/stage-azure-pipelines-deployment.yml
+- template: Templates/stage-vms-deployment.yml
   parameters:
     stage_name: 'develop'
     variable_template_name: dev-variables
-    run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/develop'))
+    run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
 
-# ----------------------------------------------------------------------------
-# Release to Non-Production - Test Environment
-- template: Templates/stage-azure-pipelines-deployment.yml
+# ---------------------------------------------------------------------------
+# Release to Production - PreProd Environment
+- template: Templates/stage-vms-deployment.yml
   parameters:
-    stage_name: 'test'
-    variable_template_name: test-variables
-    run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/test'))
-
-# ----------------------------------------------------------------------------
-# Release to Non-Production - PreProd Environment
-- template: Templates/stage-azure-pipelines-deployment.yml
-  parameters:
-    #dependencies: ['non_prod'] # Used to define any stage dependencies
     stage_name: 'preprod'
     variable_template_name: preprd-variables
     run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/preprod'))
-    
     

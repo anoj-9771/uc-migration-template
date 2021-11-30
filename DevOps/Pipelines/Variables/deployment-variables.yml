@@ -46,23 +46,3 @@ variables:
   # Use to deploy VM for ADF Self-Hosted Integration Runtime 
   - name: vm_adfruntime
     value: true
-
-
-
-  #---------------------------------------------
-  # Not used for the DAF Platform
-    # Secret rotation
-  - name: secretrotation
-    value: false
-  # Used to set Log Blob Storage deployability.
-  - name: logstorage
-    value: false
-  # Used to add EDW DB to Azure SQL serve.r 
-  - name: edw
-    value: false
-  # Used to set Databricks Workspace deployability - Deploy Subnets
-  - name: databricksvnetsubnets
-    value: false
-  # Used to set Databricks Workspace deployability - No vnet integration
-  - name: databricksnovnet
-    value: false

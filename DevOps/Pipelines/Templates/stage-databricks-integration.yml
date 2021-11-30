@@ -26,6 +26,7 @@ stages:
   # ---------------------------------------------------------------------------
   # Attach Databricks artifact and assign reference "databricks_notebooks"
   - job: 'integrate_databricks'
+    pool: Daf-Self-Hosted-Preprod-Linux
     steps:
     - download: current
       artifact: databricks_notebooks
@@ -37,7 +38,7 @@ stages:
 
     # Install required Python modules eg. databricks-connect
     - script: |
-        pip install --upgrade pip setuptools wheel databricks-cli
+        pip install pip setuptools wheel databricks-cli
       displayName: 'Install required Python modules'
 
     # Import Key Vault secret for databricks token

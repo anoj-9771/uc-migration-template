@@ -22,10 +22,7 @@ trigger: none
 #     - DevOps/Pipelines/datafactory-deploy-pipeline-cicd.yml
 #     - DevOps/Pipelines/stage-datafactory-integration.yml
 
-pool:
-  vmImage: ubuntu-latest
-#Daf-Self-Pool01
-# vmImage: ubuntu-latest
+pool: Daf-Self-Hosted-Preprod-Linux
 
 stages:
 # ---------------------------------------------------------------------------
@@ -56,11 +53,11 @@ stages:
     run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/test'))
 
 # ---------------------------------------------------------------------------
-# Release to Non-Prod - PreProd Environment.
+# Release to Production - PreProd Environment
 - template: Templates/stage-datafactory-integration.yml
   parameters:
     #dependencies: ['uat'] # Used to define any stage dependencies
     stage_name: 'deploy_adf_preprod'
     variable_template_name: preprd-variables
-    run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+    run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/preprod'))
 

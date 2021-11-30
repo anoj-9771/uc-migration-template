@@ -13,10 +13,10 @@ variables:
     value: australiaeast
   # environment name used in service naming
   - name: environment
-    value: test
+    value: prod
   # Resource group name
   - name: resourcegroupname
-    value: rg-swcnonprod01-daf-test-01
+    value: rg-swcnonprod01-daf-preprod-01
   # username for SQL Server Control DB
   - name: azuresqlserverun
     value: sqladmin
@@ -25,10 +25,10 @@ variables:
     value: synapseadmin
   # Name of the service connection in Azure Devops
   - name: azdoresourceconnection
-    value: azure-rg-test-serviceconnection
+    value: azure-rg-dev-serviceconnection
   # The service principal object ID (Not App ID)... Use 'az ad sp show --id <<app-id>> --query "objectId" -o tsv'
   - name: spobjectid
-    value: 71beb4c2-8b21-458b-8a58-eda46894efe8
+    value: 5f94952e-aed6-47c0-8db3-a5e464f71e30
   # Store account type for BLOB Storage e.g. Standard_LRS)
   - name: storageAccountType
     value: Standard_LRS
@@ -36,7 +36,7 @@ variables:
   - name: applytags
     value: false
   - name: tags
-    value: Environment=Test
+    value: Environment=Prod
 
   # ------------------------------------------------
   # Vnet Related
@@ -77,16 +77,16 @@ variables:
   # Container or file system names within storage account
   # Used to iterate in ARM template
   - name: logzonename
-    value: container1
+    value: daflogs
   - name: zonenames
     value: raw, cleansed, curated, datalab, synapsestaging
     # value: raw, stage, sandbox
   # Databricks workspace name for this enironment
   - name: databricksworkspacename
     value: dbw-$(SUBSCRIPTION)-$(PREFIX)-$(ENVIRONMENT)-$(INCREMENT)
-   # Data Factory service name for this environment
+  # Data Factory service name for this environment
   - name: datafactoryname
-    value: adf-$(SUBSCRIPTION)-$(PREFIX)-$(ENVIRONMENT)-$(INCREMENT)  
+    value: adf-$(SUBSCRIPTION)-$(PREFIX)-$(ENVIRONMENT)-$(INCREMENT)
   # Data Factory self hosted integrated runtime name
   - name: datafactoryshirname
     value: $(PREFIX)-SHIR
@@ -99,7 +99,7 @@ variables:
   - name: loganalyticssku
     value: PerGB2018
   - name: loganalyticsretention
-    value: 30
+    value: 30 
   - name: diagnosticSettingsWorkspaceID
     value: /subscriptions/$(subscriptionId)/resourcegroups/$(resourcegroupname)/providers/microsoft.operationalinsights/workspaces/$(loganalyticsworkspacename)
   # ------------------------------------------------
@@ -114,9 +114,9 @@ variables:
   - name: vnetresourcegroupname
     value: rg-swcnonprod01-network-01
   - name: publicsubnetcidr
-    value: 10.97.47.64/26
+    value: 10.97.47.192/26
   - name: privatesubnetcidr
-    value: 10.97.47.0/26
+    value: 10.97.47.128/26 
   - name: custompublicsubnetname
     value: snet-$(SUBSCRIPTION)-ae-daf-$(environment)-dbwpublic-01
   - name: customprivatesubnetname
@@ -167,7 +167,7 @@ variables:
   - name: vmSizeDevops
     value: Standard_D2as_v4
   - name: vmNameDevops
-    value: ln097tdevops01
+    value: ln097pdevops01
   - name: publisherDevops
     value: RedHat
   - name: offerDevops
@@ -178,21 +178,21 @@ variables:
   # Azure Devops Self-hosted Win related
   # ------------------------------------------------
   - name: vmNameDevops2
-    value: nt097tdevops01
+    value: nt097pdevops01
   # ------------------------------------------------
   # Azure IR Self-hosted VM related
   # ------------------------------------------------
   - name: vmSizeIR
     value: Standard_D2as_v4
   - name: vmNameIR
-    value: nt097tdaf01
+    value: nt097pdaf01
   # ------------------------------------------------
   # Azure SLT VM related
   # ------------------------------------------------
   - name: vmSizeSlt
     value: Standard_D2ds_v4 #d type = more temp storage. optimal for tempdb
   - name: vmNameSlt
-    value: nt097tslt01
+    value: nt097pslt01
   - name: publisherSlt
     value: MicrosoftSQLServer
   - name: offerSlt
