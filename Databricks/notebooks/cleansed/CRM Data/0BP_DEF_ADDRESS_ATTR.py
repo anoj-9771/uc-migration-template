@@ -175,12 +175,12 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_cleansed = spark.sql("SELECT \
-	PARTNER as businessPartnerNumber, \
+df_cleansed = spark.sql(f"SELECT \
+	case when PARTNER = 'na' then '' else PARTNER end as businessPartnerNumber, \
 	PARTNER_GUID as businessPartnerGUID, \
-	ADDRNUMBER as addressNumber, \
-	to_date(DATE_FROM) as validFromDate, \
-	to_date(DATE_TO) as validToDate, \
+    case when ADDRNUMBER = 'na' then '' else ADDRNUMBER end as addressNumber, \
+    to_date(DATE_FROM ,'yyyy-MM-dd') as validFromDate, \
+	to_date(DATE_TO ,'yyyy-MM-dd') as validToDate, \
 	TITLE as titleCode, \
 	NAME1 as businessPartnerName1, \
 	NAME2 as businessPartnerName2, \
@@ -194,7 +194,7 @@ df_cleansed = spark.sql("SELECT \
 	PO_BOX as poBoxCode, \
 	PO_BOX_NUM as poBoxWithoutNumberIndicator, \
 	PO_BOX_LOC as poBoxCity, \
-	CITY_CODE2 as poBoxCode, \
+	CITY_CODE2 as cityPoBoxCode, \
 	STREET as streetName, \
 	STREETCODE as streetCode, \
 	HOUSE_NUM1 as houseNumber, \
@@ -207,7 +207,6 @@ df_cleansed = spark.sql("SELECT \
 	FLOOR as floorNumber, \
 	ROOMNUMBER as appartmentNumber, \
 	COUNTRY as countryShortName, \
-	LANGU as language, \
 	REGION as stateCode, \
 	PERS_ADDR as personalAddressIndicator, \
 	SORT1 as searchTerm1, \
@@ -235,18 +234,11 @@ df_cleansed = spark.sql("SELECT \
 	LINE6 as addressLine6, \
 	LINE7 as addressLine7, \
 	LINE8 as addressLine8, \
-	ZZMOBILENO as mobileNumber, \
-	ZZTELNO as phoneNumberWithExtension, \
-	PCODE1_EXT as postalCodeExtension, \
-	PCODE2_EXT as poBoxExtension, \
-	DELI_SERV_TYPE as deliveryServiceTypeCode, \
-	DELI_SERV_NUMBER as deliveryServiceNumber, \
 	_RecordStart, \
 	_RecordEnd, \
 	_RecordDeleted, \
 	_RecordCurrent \
-	FROM CLEANSED.STG_" + source_object \
-         )
+	FROM {ADS_DATABASE_STAGE}.{source_object}")
 
 display(df_cleansed)
 print(f'Number of rows: {df_cleansed.count()}')
@@ -272,7 +264,7 @@ newSchema = StructType([
 	StructField('poBoxCode',StringType(),True),
 	StructField('poBoxWithoutNumberIndicator',StringType(),True),
 	StructField('poBoxCity',StringType(),True),
-	StructField('poBoxCode',StringType(),True),
+	StructField('cityPoBoxCode',StringType(),True),
 	StructField('streetName',StringType(),True),
 	StructField('streetCode',StringType(),True),
 	StructField('houseNumber',StringType(),True),
@@ -285,7 +277,6 @@ newSchema = StructType([
 	StructField('floorNumber',StringType(),True),
 	StructField('appartmentNumber',StringType(),True),
 	StructField('countryShortName',StringType(),True),
-	StructField('language',StringType(),True),
 	StructField('stateCode',StringType(),True),
 	StructField('personalAddressIndicator',StringType(),True),
 	StructField('searchTerm1',StringType(),True),
@@ -313,12 +304,6 @@ newSchema = StructType([
 	StructField('addressLine6',StringType(),True),
 	StructField('addressLine7',StringType(),True),
 	StructField('addressLine8',StringType(),True),
-	StructField('mobileNumber',StringType(),True),
-	StructField('phoneNumberWithExtension',StringType(),True),
-	StructField('postalCodeExtension',StringType(),True),
-	StructField('poBoxExtension',StringType(),True),
-	StructField('deliveryServiceTypeCode',StringType(),True),
-	StructField('deliveryServiceNumber',StringType(),True),
 	StructField('_RecordStart',TimestampType(),False),
 	StructField('_RecordEnd',TimestampType(),False),
 	StructField('_RecordDeleted',IntegerType(),False),
