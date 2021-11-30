@@ -343,7 +343,7 @@ def DeltaInjectSurrogateKeyToDataFrame(df, table_name):
   dfSK = df.withColumn(skColumn, lit(None).cast(LongType()))
   df = dfSK.select(skColumn, *cols)
   #the surrogate key should never be null
-  df.schema[skColumn].nullable = False
+  #df.schema[skColumn].nullable = False
   
   return df
 

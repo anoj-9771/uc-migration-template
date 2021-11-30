@@ -25,22 +25,19 @@ def getProperty():
                                             propertyType, superiorPropertyType, LGA, \
                                             CASE WHEN propertyAreaTypeCode == 'H' THEN  propertyArea * 10000 \
                                             ELSE propertyArea END AS propertyArea \
-                                     from {ADS_DATABASE_CLEANSED}.access_z309_tproperty \
-                                     where _RecordCurrent = 1 and _RecordDeleted = 0")
+                                     from {ADS_DATABASE_CLEANSED}.access_z309_tproperty")
   
   isu0ucConbjAttr2Df = spark.sql(f"select propertyNumber, 'ISU' as sourceSystemCode,inferiorPropertyType as PropertyType, superiorPropertyType, \
                                             architecturalObjectInternalId, validFromDate as propertyStartDate, LGA,\
                                             coalesce(lead(validFromDate) over (partition by propertyNumber order by validFromDate)-1, \
                                             to_date('9999-12-31', 'yyyy-mm-dd'))  as propertyEndDate \
-                                     from {ADS_DATABASE_CLEANSED}.isu_0uc_connobj_attr_2 \
-                                     where _RecordCurrent = 1 and _RecordDeleted = 0")
+                                     from {ADS_DATABASE_CLEANSED}.isu_0uc_connobj_attr_2")
   
   isuVibdaoDf = spark.sql(f"select architecturalObjectInternalId, \
                                    CASE WHEN hydraAreaUnit == 'HAR' THEN  hydraCalculatedArea * 10000 \
                                         WHEN hydraAreaUnit == 'M2' THEN  hydraCalculatedArea \
                                         ELSE null END AS propertyArea \
-                            from {ADS_DATABASE_CLEANSED}.isu_vibdao \
-                            where _RecordCurrent = 1 and _RecordDeleted = 0")
+                            from {ADS_DATABASE_CLEANSED}.isu_vibdao")
   
   dummyDimRecDf = spark.createDataFrame([(-1, "ISU", "9999-12-31"), (-1, "Access", "9999-12-31")], ["propertyNumber", "sourceSystemCode", "propertyEndDate"])
   dummyDimRecDf = dummyDimRecDf.withColumn("propertyEndDate",dummyDimRecDf['propertyEndDate'].cast(DateType()))
