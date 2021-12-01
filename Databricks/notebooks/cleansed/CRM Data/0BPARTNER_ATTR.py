@@ -209,9 +209,9 @@ df_cleansed = spark.sql(f"SELECT \
 	NAME_ORG2 as organizationName2, \
 	NAME_ORG3 as organizationName3, \
 	case when BP.FOUND_DAT < '1900-01-01' then to_date('1900-01-01', 'yyyy-MM-dd') else to_date(BP.FOUND_DAT, 'yyyy-MM-dd') end as organizationFoundedDate, \
-	cast(LOCATION_1 as long) as internationalLocationNumber1, \
-	cast(LOCATION_2 as long) as internationalLocationNumber2, \
-	cast(LOCATION_3 as long) as internationalLocationNumber3, \
+	LOCATION_1 as internationalLocationNumber1, \
+	LOCATION_2 as internationalLocationNumber2, \
+	LOCATION_3 as internationalLocationNumber3, \
 	NAME_LAST as lastName, \
 	NAME_FIRST as firstName, \
 	NAMEMIDDLE as middleName, \
@@ -226,7 +226,7 @@ df_cleansed = spark.sql(f"SELECT \
 	XSEXU as unknownGenderIndicator, \
 	case when BP.BIRTHDT < '1900-01-01' then to_date('1900-01-01', 'yyyy-MM-dd') else to_date(BP.BIRTHDT, 'yyyy-MM-dd') end as dateOfBirth,\
     case when BP.DEATHDT < '1900-01-01' then to_date('1900-01-01', 'yyyy-MM-dd') else to_date(BP.DEATHDT, 'yyyy-MM-dd') end as dateOfDeath,\
-	cast(PERNO as long) as personnelNumber, \
+	PERNO as personnelNumber, \
 	NAME_GRP1 as nameGroup1, \
 	NAME_GRP2 as nameGroup2, \
 	MC_NAME1 as searchHelpLastName, \
@@ -234,7 +234,7 @@ df_cleansed = spark.sql(f"SELECT \
 	CRUSR as createdBy, \
     cast(concat(BP.CRDAT,' ',(case WHEN BP.CRTIM is null then  '00:00:00' else BP.CRTIM END)) as timestamp)  as createdDateTime,\
     BP.CHUSR as changedBy,\
-    cast(concat(BP.CHDAT,' ',(case WHEN BP.CHTIM is null then  '00:00:00' else BP.CHTIM END)) as timestamp)  as changedDateTime,\
+    cast(concat(BP.CHDAT,' ',(case WHEN BP.CHTIM is null then  '00:00:00' else BP.CHTIM END)) as timestamp)  as lastChangedDateTime,\
 	PARTNER_GUID as businessPartnerGUID, \
 	ADDRCOMM as communicationAddressNumber, \
 	TD_SWITCH as plannedChangeDocument, \
@@ -312,9 +312,9 @@ newSchema = StructType([
 	StructField('organizationName2',StringType(),True),
 	StructField('organizationName3',StringType(),True),
 	StructField('organizationFoundedDate',DateType(),True),
-	StructField('internationalLocationNumber1',LongType(),True),
-	StructField('internationalLocationNumber2',LongType(),True),
-	StructField('internationalLocationNumber3',LongType(),True),
+	StructField('internationalLocationNumber1',StringType(),True),
+	StructField('internationalLocationNumber2',StringType(),True),
+	StructField('internationalLocationNumber3',StringType(),True),
 	StructField('lastName',StringType(),True),
 	StructField('firstName',StringType(),True),
 	StructField('middleName',StringType(),True),
@@ -329,15 +329,15 @@ newSchema = StructType([
 	StructField('unknownGenderIndicator',StringType(),True),
 	StructField('dateOfBirth',DateType(),True),
 	StructField('dateOfDeath',DateType(),True),
-	StructField('personnelNumber',LongType(),True),
+	StructField('personnelNumber',StringType(),True),
 	StructField('nameGroup1',StringType(),True),
 	StructField('nameGroup2',StringType(),True),
 	StructField('searchHelpLastName',StringType(),True),
 	StructField('searchHelpFirstName',StringType(),True),
 	StructField('createdBy',StringType(),True),
-	StructField('createdDateTime',DateType(),True),
+	StructField('createdDateTime',TimestampType(),True),
 	StructField('changedBy',StringType(),True),
-	StructField('changedDateTime',DateType(),True),
+	StructField('lastChangedDateTime',TimestampType(),True),
 	StructField('businessPartnerGUID',StringType(),True),
 	StructField('communicationAddressNumber',StringType(),True),
 	StructField('plannedChangeDocument',StringType(),True),
