@@ -9,7 +9,7 @@
 		},
 		"LS-AzureDatabricks_DefinedCluster_properties_typeProperties_domain": {
 			"type": "string",
-			"defaultValue": "https://adb-6510910994889.9.azuredatabricks.net"
+			"defaultValue": "https://adb-7004525605760210.10.azuredatabricks.net/"
 		},
 		"LS-AzureDatabricks_JobCluster_properties_typeProperties_domain": {
 			"type": "string",
@@ -933,6 +933,206 @@
 				"[concat(variables('factoryId'), '/pipelines/04-LakeLanding-FlatFile-A-Source-Copy')]",
 				"[concat(variables('factoryId'), '/pipelines/04-SQLServer-A-Source Load')]",
 				"[concat(variables('factoryId'), '/pipelines/04-Blob-A-Source Load_CSV')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/04-Blob-A-Pre-Process_JSON')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Set-ClusterType",
+						"type": "SetVariable",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"variableName": "ClusterType",
+							"value": {
+								"value": "@toLower(last(split(pipeline().parameters.TaskDetails.Processor,'|')))",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "If-ClusterType",
+						"type": "IfCondition",
+						"dependsOn": [
+							{
+								"activity": "Set-ClusterType",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"expression": {
+								"value": "@equals(variables('ClusterType'), 'interactive')",
+								"type": "Expression"
+							},
+							"ifFalseActivities": [
+								{
+									"name": "Notebook-preprocess-bods-json",
+									"type": "DatabricksNotebook",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "7.00:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"notebookPath": {
+											"value": "@variables('NoteBookURL')",
+											"type": "Expression"
+										},
+										"baseParameters": {
+											"file_object": {
+												"value": "@pipeline().parameters.SourceFileName",
+												"type": "Expression"
+											},
+											"source_param": {
+												"value": "@string(pipeline().parameters.TaskDetails)",
+												"type": "Expression"
+											},
+											"source_container": {
+												"value": "@pipeline().parameters.SourceContainer",
+												"type": "Expression"
+											}
+										}
+									},
+									"linkedServiceName": {
+										"referenceName": "LS-AzureDatabricks_JobCluster",
+										"type": "LinkedServiceReference",
+										"parameters": {
+											"kvSecret": {
+												"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[0]",
+												"type": "Expression"
+											},
+											"DataBricksClusterType": {
+												"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[2]",
+												"type": "Expression"
+											},
+											"DataBricksClusterVersion": {
+												"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[3]",
+												"type": "Expression"
+											},
+											"DataBricksWorkerNodes": {
+												"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[4]",
+												"type": "Expression"
+											}
+										}
+									}
+								}
+							],
+							"ifTrueActivities": [
+								{
+									"name": "Notebook-preprocess-bods-json Interactive",
+									"type": "DatabricksNotebook",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "7.00:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"notebookPath": {
+											"value": "@variables('NoteBookURL')",
+											"type": "Expression"
+										},
+										"baseParameters": {
+											"file_object": {
+												"value": "@pipeline().parameters.SourceFileName",
+												"type": "Expression"
+											},
+											"source_param": {
+												"value": "@string(pipeline().parameters.TaskDetails)",
+												"type": "Expression"
+											},
+											"source_container": {
+												"value": "@pipeline().parameters.SourceContainer",
+												"type": "Expression"
+											}
+										}
+									},
+									"linkedServiceName": {
+										"referenceName": "LS-AzureDatabricks_DefinedCluster",
+										"type": "LinkedServiceReference",
+										"parameters": {
+											"kvSecret": {
+												"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[0]",
+												"type": "Expression"
+											},
+											"clusterId": {
+												"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[1]",
+												"type": "Expression"
+											}
+										}
+									}
+								}
+							]
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"parameters": {
+					"BatchLogID": {
+						"type": "int",
+						"defaultValue": 1
+					},
+					"TaskExecutionLogId": {
+						"type": "int",
+						"defaultValue": 1
+					},
+					"TaskDetails": {
+						"type": "object"
+					},
+					"SourceContainer": {
+						"type": "string",
+						"defaultValue": "test"
+					},
+					"ProjectRunID": {
+						"type": "string"
+					},
+					"SourceFileName": {
+						"type": "string",
+						"defaultValue": "0UC_DEVICEH_ATTR_20211025142337.json"
+					}
+				},
+				"variables": {
+					"TargetTableRecordCount": {
+						"type": "String"
+					},
+					"ClusterType": {
+						"type": "String",
+						"defaultValue": "interactive"
+					},
+					"NoteBookURL": {
+						"type": "String",
+						"defaultValue": "/build/raw/preprocess-bods-json"
+					},
+					"DataFileRecordCount": {
+						"type": "String"
+					}
+				},
+				"folder": {
+					"name": "Pre-Process"
+				},
+				"annotations": [],
+				"lastPublishTime": "2021-06-30T03:14:35Z"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS-AzureDatabricks_JobCluster')]",
+				"[concat(variables('factoryId'), '/linkedServices/LS-AzureDatabricks_DefinedCluster')]"
 			]
 		},
 		{
@@ -2337,7 +2537,14 @@
 													{
 														"name": "Copy-Blob-to-DataLake-Raw",
 														"type": "Copy",
-														"dependsOn": [],
+														"dependsOn": [
+															{
+																"activity": "Execute-DP-Blob-A-Pre-Process_JSON",
+																"dependencyConditions": [
+																	"Succeeded"
+																]
+															}
+														],
 														"policy": {
 															"timeout": "7.00:00:00",
 															"retry": 0,
@@ -2689,6 +2896,45 @@
 															"type": "LinkedServiceReference",
 															"parameters": {
 																"kvSecret": "daf-sql-controldb-connectionstring"
+															}
+														}
+													},
+													{
+														"name": "Execute-DP-Blob-A-Pre-Process_JSON",
+														"type": "ExecutePipeline",
+														"dependsOn": [],
+														"userProperties": [],
+														"typeProperties": {
+															"pipeline": {
+																"referenceName": "04-Blob-A-Pre-Process_JSON",
+																"type": "PipelineReference"
+															},
+															"waitOnCompletion": true,
+															"parameters": {
+																"BatchLogID": {
+																	"value": "@pipeline().parameters.BatchLogId",
+																	"type": "Expression"
+																},
+																"TaskExecutionLogId": {
+																	"value": "@pipeline().parameters.TaskExecutionLogId",
+																	"type": "Expression"
+																},
+																"TaskDetails": {
+																	"value": "@pipeline().parameters.TaskDetails",
+																	"type": "Expression"
+																},
+																"SourceContainer": {
+																	"value": "@variables('SourceContainer')",
+																	"type": "Expression"
+																},
+																"ProjectRunID": {
+																	"value": "@pipeline().parameters.ProjectRunID",
+																	"type": "Expression"
+																},
+																"SourceFileName": {
+																	"value": "@variables('FileName')",
+																	"type": "Expression"
+																}
 															}
 														}
 													}
@@ -3493,6 +3739,7 @@
 				"[concat(variables('factoryId'), '/datasets/RAW_ADLS_JSON_v2')]",
 				"[concat(variables('factoryId'), '/pipelines/04-DL-Load-Raw-to-Delta-Table')]",
 				"[concat(variables('factoryId'), '/datasets/ARCHIVE_BLOB_JSON')]",
+				"[concat(variables('factoryId'), '/pipelines/04-Blob-A-Pre-Process_JSON')]",
 				"[concat(variables('factoryId'), '/linkedServices/LS-AzureDatabricks_DefinedCluster')]",
 				"[concat(variables('factoryId'), '/linkedServices/LS_AzureDatalake')]"
 			]
@@ -12554,7 +12801,7 @@
 					},
 					"clusterId": {
 						"type": "string",
-						"defaultValue": "0705-044124-gored835"
+						"defaultValue": "1103-023442-me8nqcm9"
 					}
 				},
 				"annotations": [],

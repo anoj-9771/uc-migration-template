@@ -9,7 +9,7 @@
 		},
 		"LS-AzureDatabricks_DefinedCluster_properties_typeProperties_domain": {
 			"type": "string",
-			"defaultValue": "https://adb-6510910994889.9.azuredatabricks.net"
+			"defaultValue": "https://adb-7004525605760210.10.azuredatabricks.net/"
 		},
 		"LS-AzureDatabricks_JobCluster_properties_typeProperties_domain": {
 			"type": "string",
