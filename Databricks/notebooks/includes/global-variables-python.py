@@ -6,7 +6,6 @@
 #Please ensure the name of the scope matches with the scope name created in the environment
 ADS_KV_ACCOUNT_SCOPE = "ADS"
 
-
 # COMMAND ----------
 
 ADS_DATABASE_NAME = "ControlDB"
@@ -21,12 +20,10 @@ ADS_LOAD_SQLDB = True
 # COMMAND ----------
 
 #The resource names are automatically built based on Project Prefix and Environment
-ADS_DATA_LAKE_ACCOUNT = "sadaf"+ ADS_ENVIRONMENT + "01" #f"{ADS_COMPANY_INITIAL.replace('-', '')}dlsdp{ADS_ENVIRONMENT.lower()}{ADS_SUFFIX.replace('-', '')}"
-# ADS_BLOB_STORAGE_ACCOUNT = "saswcnonprod01landingtst" #ADS_COMPANY_INITIAL + "stor" + ADS_BUSINESS_UNIT + ADS_ENVIRONMENT + ".blob.core.windows.net"
-ADS_BLOB_STORAGE_ACCOUNT = "sablobdaf"+ ADS_ENVIRONMENT + "01" #ADS_COMPANY_INITIAL + "stor" + ADS_BUSINESS_UNIT + ADS_ENVIRONMENT + ".blob.core.windows.net"
-ADS_DB_SERVER = "sql-swcnonprod01-daf-" + ADS_ENVIRONMENT + "-01.database.windows.net" #ADS_COMPANY_INITIAL + "-sql-dp-" + ADS_ENVIRONMENT + "-" + ADS_SUFFIX + ".database.windows.net"
-
-ADS_RESOURCE_GROUP =  "rg-swcnonprod01-daf-" + ADS_ENVIRONMENT + "-01" #f"RG-{ADS_ENVIRONMENT.upper()}-SYD-AMA-PANEL-BI"
+ADS_DATA_LAKE_ACCOUNT = "sadaf"+ ADS_ENVIRONMENT + "01"
+ADS_BLOB_STORAGE_ACCOUNT = "sablobdaf" + ADS_ENVIRONMENT + "01"
+ADS_DB_SERVER = "sql-" + ADS_SUBSCRIPTION + "-daf-" + ADS_ENVIRONMENT + "-01.database.windows.net" 
+ADS_RESOURCE_GROUP =  "rg-" + ADS_SUBSCRIPTION + "-" + ADS_ENVIRONMENT "-daf-" + "-01"
 
 # COMMAND ----------
 
@@ -34,7 +31,6 @@ ADS_RESOURCE_GROUP =  "rg-swcnonprod01-daf-" + ADS_ENVIRONMENT + "-01" #f"RG-{AD
 ADS_SYN_DATABASE_NAME = "syndw" + ADS_ENVIRONMENT + "01"
 ADS_SYN_DATABASE_USERNAME = "svc_synapse1"
 ADS_KV_SYN_DB_PWD_SECRET_KEY = "daf-syn-d-sqlpool-password"
-
 ADS_SYNAPSE_DB_SERVER = "synws-swcnonprod01-daf-" + ADS_ENVIRONMENT + "-01" 
 
 # COMMAND ----------
