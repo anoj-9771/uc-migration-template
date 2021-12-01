@@ -177,7 +177,7 @@ DeltaSaveToDeltaTable (
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT  \
                             case when stg.ANLAGE = 'na' then '' else stg.ANLAGE end as installationId, \
-                            stg.SPARTE as divisonCode, \
+                            stg.SPARTE as divisionCode, \
                             div.division, \
                             stg.VSTELLE as premise, \
                             stg.BEZUG as reference, \
@@ -216,8 +216,8 @@ print(f'Number of rows: {df_cleansed.count()}')
 # Create schema for the cleanse table
 newSchema = StructType([
                         StructField("installationId", StringType(), False),
-                        StructField("divisonCode", StringType(), True),
-                        StructField("divison", StringType(), True),
+                        StructField("divisionCode", StringType(), True),
+                        StructField("division", StringType(), True),
                         StructField("premise", StringType(), True),
                         StructField("reference", StringType(), True),
                         StructField("meterReadingControlCode", StringType(), True),
