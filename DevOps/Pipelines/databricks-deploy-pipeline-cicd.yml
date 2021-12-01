@@ -20,7 +20,6 @@ trigger:
     - Databricks/notebooks/*
 
 pool: Daf-Self-Pool01
-# vmImage: ubuntu-latest
 
 stages:
 # ---------------------------------------------------------------------------
@@ -44,7 +43,6 @@ stages:
     stage_name: 'test'
     variable_template_name: test-variables
     run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/test'))
-
 
 # ---------------------------------------------------------------------------
 # Release to Production - PreProd Environment

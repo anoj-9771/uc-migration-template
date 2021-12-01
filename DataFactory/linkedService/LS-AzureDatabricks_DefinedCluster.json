@@ -8,13 +8,13 @@
 			},
 			"clusterId": {
 				"type": "string",
-				"defaultValue": "0705-044124-gored835"
+				"defaultValue": "1103-023442-me8nqcm9"
 			}
 		},
 		"annotations": [],
 		"type": "AzureDatabricks",
 		"typeProperties": {
-			"domain": "https://adb-6510910994889.9.azuredatabricks.net",
+			"domain": "https://adb-7004525605760210.10.azuredatabricks.net/",
 			"accessToken": {
 				"type": "AzureKeyVaultSecret",
 				"store": {

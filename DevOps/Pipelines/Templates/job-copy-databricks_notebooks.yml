@@ -3,8 +3,12 @@ jobs:
   steps:
   - bash: |
       mkdir -p "$(Build.ArtifactStagingDirectory)/databricks_notebooks"
-      cp -r Databricks/notebooks/. "$(Build.ArtifactStagingDirectory)/databricks_notebooks/"
+      cp -r Databricks/notebooks/. "$(Build.ArtifactStagingDirectory)/"
     displayName: 'Prepare Databricks Notebook Build Artifacts'
 
-  - publish: '$(Build.ArtifactStagingDirectory)/databricks_notebooks'
-    artifact: databricks_notebooks
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      pathToPublish: '$(Build.ArtifactStagingDirectory)'
+      artifactName: 'databricks_notebooks'
+

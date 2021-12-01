@@ -3,9 +3,10 @@ name: $(Build.BuildId).$(date:yyyyMMdd)
 pr:
   branches:
     include:
-    - main        #
+    - main        
     - test
     - develop
+    - preprod
 
   paths:
     include:
@@ -13,19 +14,9 @@ pr:
     - DevOps/Pipelines/*
 
 trigger: none
-  # branches:
-  #   include:
-  #   - main
-  #   - develop
-  # paths:
-  #   include:
-  #   - AzureResources/arm-*
-  #   - DevOps/Pipelines/azure-platform-deploy-pipeline-cicd.yml
-  #   exclude:
-  #   - DevOps/Pipelines/iac-create-keyvaults.yml..
 
-pool: Daf-Self-Pool01
-# vmImage: ubuntu-latest
+pool: 
+  vmImage: ubuntu-latest
 
 stages:
 # ---------------------------------------------------------------------------
@@ -33,11 +24,7 @@ stages:
 - stage: 'build' # leave main artifact build stage as 'build'
   variables:
   - template: Variables/deployment-variables.yml
-  jobs:
-  # Use this section to pull in or out build jobs
-  - template: Templates/job-copy-arm.yml
-  - ${{ if eq(variables['controldb'], true) }}:  
-    - template: Templates/job-build-controldb.yml
+  
 # ---------------------------------------------------------------------------
 # Release to Non-Production - Develop
 - template: Templates/stage-azure-pipelines-deployment.yml
@@ -62,4 +49,5 @@ stages:
     stage_name: 'preprod'
     variable_template_name: preprd-variables
     run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/preprod'))
+    
     

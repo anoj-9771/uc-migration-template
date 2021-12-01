@@ -5,12 +5,11 @@ parameters:
 jobs:
 - job: 'deploy_control_db'
   dependsOn: deploy_arm
-  pool:
-    demands: msbuild
-    vmImage: 'windows-2019'
   steps:
-  - download: current
-    artifact: sql_Controldb
+  
+  - task: DownloadBuildArtifacts@0
+    inputs:
+      artifactName: 'sql_Controldb' 
 
   - task: AzureKeyVault@2
     displayName: 'Get Secrets'

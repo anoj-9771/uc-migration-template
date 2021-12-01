@@ -20,7 +20,7 @@ variables:
   # username for SQL Server Control DB
   - name: azuresqlserverun
     value: sqladmin
-  # Name of the service connection in Azure Devops.
+  # Name of the service connection in Azure Devops
   - name: azdoresourceconnection
     value: azure-rg-preprod-serviceconnection
   # The service principal object ID (Not App ID)... Use 'az ad sp show --id 3012901b-9b8c-4100-a6bf-a1a2ec010def --query "objectId" -o tsv'
@@ -57,9 +57,6 @@ variables:
   # Name of key vault for this environment.
   - name: azurekeyvaultname
     value: kv-$(PREFIX)-$(ENVIRONMENT)-$(INCREMENT)
-  # Setup secret rotation interval in days
-  - name: secretrotationinterval 
-    value: 30
   # Name of Log Analytics workspace name
   - name: loganalyticsworkspacename
     value: log-$(SUBSCRIPTION)-$(PREFIX)-$(ENVIRONMENT)
@@ -90,11 +87,11 @@ variables:
   # Data Factory self hosted integrated runtime name
   - name: datafactoryshirname
     value: $(PREFIX)-SHIR
-  # Flag to specify whether Data Factory requires Git Integration..
+  # Flag to specify whether Data Factory requires Git Integration.
   - name: isRepoEnabled
     value: false  
   # ------------------------------------------------
-  # Log Analytics related.
+  # Log Analytics related
   # ------------------------------------------------
   - name: loganalyticssku
     value: PerGB2018
@@ -110,7 +107,7 @@ variables:
   - name: nsgid
     value: 
   - name: databricks_base_url 
-    value: #Get this after databricks environment has been deployed
+    value: https://adb-2717485385283200.0.azuredatabricks.net
   - name: vnetresourcegroupname
     value: rg-swcprod01-preprod-network-01
   - name: publicsubnetcidr
@@ -154,7 +151,7 @@ variables:
   # Azure VMs Common related
   # ------------------------------------------------
   - name: adminUsername
-    value: nt_sup
+    value: nt_supp
   - name: publisher
     value: MicrosoftWindowsServer
   - name: offer

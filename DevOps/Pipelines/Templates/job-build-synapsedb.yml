@@ -10,5 +10,7 @@
       inputs:
         solution: Synapse-Databases/Synapse-Databases/Synapse-Databases.sqlproj
 
-    - publish: Synapse-Databases/Synapse-Databases/bin/Debug
-      artifact: sql_Synapsedb
+    - task: PublishBuildArtifacts@1
+      inputs:
+        pathToPublish: '$(Build.ArtifactStagingDirectory)'
+        artifact: sql_Synapsedb

@@ -29,8 +29,7 @@ def getMeter():
                                               meterRemovedDate, \
                                               row_number() over (partition by metermakernumber order by meterFittedDate desc) rownum \
                                       from {ADS_DATABASE_CLEANSED}.access_z309_tpropmeter \
-                                      where (meterFittedDate <> meterRemovedDate or meterRemovedDate is null) \
-                                             and _RecordCurrent = 1 and _RecordDeleted = 0 ")
+                                      where (meterFittedDate <> meterRemovedDate or meterRemovedDate is null)")
   #Filter for active meter
   accessZ309TpropmeterDf = accessZ309TpropmeterDf.filter(col("rownum") == "1")
   
@@ -42,12 +41,10 @@ def getMeter():
     
   #Meter Data from SAP ISU
   isu0ucDeviceAttrDf  = spark.sql(f"select 'ISU' as sourceSystemCode, materialNumber, equipmentNumber as meterId \
-                                      from {ADS_DATABASE_CLEANSED}.isu_0uc_device_attr \
-                                      where _RecordCurrent = 1 and _RecordDeleted = 0")
+                                      from {ADS_DATABASE_CLEANSED}.isu_0uc_device_attr")
       
   isu0ucDevcatAttrDf  = spark.sql(f"select materialNumber, deviceCategoryDescription as meterSize, functionClass as waterMeterType \
-                                      from {ADS_DATABASE_CLEANSED}.isu_0uc_devcat_attr \
-                                      where _RecordCurrent = 1 and _RecordDeleted = 0")
+                                      from {ADS_DATABASE_CLEANSED}.isu_0uc_devcat_attr")
 
   #Dummy Record to be added to Meter Dimension
   dummyDimRecDf = spark.createDataFrame([("ISU", "-1", "Unknown", "Unknown"), ("Access", "-1", "Unknown", "Unknown")], ["sourceSystemCode", "meterId", "meterSize", "waterMeterType"])
