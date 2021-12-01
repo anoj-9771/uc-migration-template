@@ -195,7 +195,7 @@ df_cleansed = spark.sql(f"SELECT \
 	IMPACT as impact, \
 	ESCALATION as escalation, \
 	RISK as risk, \
-	---cast(LAST_UPDATED_AT as long) as lastUpdatedAt, \
+	to_timestamp(cast(last_updated_at as string), 'yyyyMMddHHmmss') as lastUpdatedAt, \
 	CATEGORY as activityCategory, \
 	PRIORITY as activityPriority, \
 	DIRECTION as activityDirection, \
@@ -211,7 +211,7 @@ df_cleansed = spark.sql(f"SELECT \
 	SERVICE_ORG as serviceOrg, \
 	SERVICE_TEAM as serviceTeam, \
 	to_date(CALDAY,'yyyy-MM-dd') as calendarDay, \
-	---cast(to_unix_timestamp(CALDAY_TS, 'yyyy-MM-dd hh:mm:ss a') as timestamp) as calendarDatetime, \
+	to_timestamp(cast(CALDAY_TS as string), 'yyyyMMddHHmmss') as calendarDatetime, \
 	PREDEC_OBJKEY as precedingTransactionGUID, \
 	PREDEC_OBJTYPE as precedingDocumentObjectType, \
 	PRED_ACT_GUID as precedingActivityGUID, \
@@ -220,7 +220,7 @@ df_cleansed = spark.sql(f"SELECT \
 	PROCESS_CODEGR as processCodeGroup, \
 	PROCESS_CODE as processCode, \
 	PROCESS_OBJTYPE as precedingObjectType, \
-	---cast(QUOT_VALID_TS as long) as validTimestamp, \
+	to_timestamp(cast(QUOT_VALID_TS as string), 'yyyyMMddHHmmss') as validTimestamp, \
 	CATALOG_TYPE_C as catalogCategoryC, \
 	KATALOGART_C as catalogC, \
 	CODEGRUPPE_C as codeGroupC, \
@@ -250,18 +250,18 @@ df_cleansed = spark.sql(f"SELECT \
 	CC_CAT_SUBJECT_W as dataElementGUIDW, \
 	PROFILE_TYPE as subjectProfileCategory, \
 	CC_CAT_SUBJECT as dataElementGUID, \
-	---cast(LC_SRV_DURATION as long) as serviceLifeCycle, \
+	cast(LC_SRV_DURATION as long) as serviceLifeCycle, \
 	LC_SRV_DUR_UNIT as serviceLifeCycleUnit, \
-	---cast(WORK_DURATION as long) as workDuration, \
+	cast(WORK_DURATION as long) as workDuration, \
 	WORK_DURA_UNIT as workDurationUnit, \
-	---cast(TOTAL_DURATION as long) as totalDuration, \
+	cast(TOTAL_DURATION as long) as totalDuration, \
 	TOTAL_DURA_UNIT as totalDurationUnit, \
-	to_date(REQ_START_DATE,'yyyy-MM-dd') as requestStartDate, \
-	to_date(REQ_END_DATE,'yyyy-MM-dd') as requestEndDate, \
-	---cast(to_unix_timestamp(DUE_DATE, 'yyyy-MM-dd hh:mm:ss a') as timestamp) as dueDateTime, \
-	---cast(to_unix_timestamp(COMPLETION_TS, 'yyyy-MM-dd hh:mm:ss a') as timestamp) as completionDateTime, \
-	---cast(to_unix_timestamp(ESCALATE_1_TS, 'yyyy-MM-dd hh:mm:ss a') as timestamp) as firstEscalateDateTime, \
-	---cast(to_unix_timestamp(ESCALATE_2_TS, 'yyyy-MM-dd hh:mm:ss a') as timestamp) as secondEscalateDateTime, \
+	to_timestamp(cast(REQ_START_DATE as string), 'yyyyMMddHHmmss') as requestStartDate, \
+	to_timestamp(cast(REQ_END_DATE as string), 'yyyyMMddHHmmss') as requestEndDate, \
+	to_timestamp(cast(DUE_DATE as string), 'yyyyMMddHHmmss') as dueDateTime, \
+	to_timestamp(cast(COMPLETION_TS as string), 'yyyyMMddHHmmss') as completionDateTime, \
+	to_timestamp(cast(ESCALATE_1_TS as string), 'yyyyMMddHHmmss') as firstEscalateDateTime, \
+	to_timestamp(cast(ESCALATE_2_TS as string), 'yyyyMMddHHmmss') as secondEscalateDateTime, \
 	CC_CAT_ACTREASON as activityReasonCode, \
 	cast(NO_OF_IR as int) as numberOfInteractionRecords, \
 	IN_COMPL_BEFORE as completedBeforeIndicator, \
@@ -310,25 +310,25 @@ newSchema = StructType([
 	StructField('requestHeaderNumber',IntegerType(),True),
 	StructField('scenarioId',StringType(),True),
 	StructField('templateType',StringType(),True),
-	StructField('recommendedPriority',StringType(),True),
-	StructField('urgency',StringType(),True),
-	StructField('impact',StringType(),True),
-	StructField('escalation',StringType(),True),
-	StructField('risk',StringType(),True),
-	StructField('lastUpdatedAt',LongType(),True),
+	StructField('recommendedPriority',IntegerType(),True),
+	StructField('urgency',IntegerType(),True),
+	StructField('impact',IntegerType(),True),
+	StructField('escalation',IntegerType(),True),
+	StructField('risk',IntegerType(),True),
+	StructField('lastUpdatedAt',TimestampType(),True),
 	StructField('activityCategory',StringType(),True),
-	StructField('activityPriority',StringType(),True),
+	StructField('activityPriority',IntegerType(),True),
 	StructField('activityDirection',StringType(),True),
 	StructField('soldToParty',StringType(),True),
 	StructField('salesEmployee',StringType(),True),
 	StructField('responsibleEmployee',StringType(),True),
 	StructField('contactPerson',StringType(),True),
-	StructField('salesOrgResponsible',StringType(),True),
-	StructField('salesOrg',StringType(),True),
-	StructField('salesOffice',StringType(),True),
-	StructField('salesGroup',StringType(),True),
-	StructField('serviceOrgResponsible',StringType(),True),
-	StructField('serviceOrg',StringType(),True),
+	StructField('salesOrgResponsible',IntegerType(),True),
+	StructField('salesOrg',IntegerType(),True),
+	StructField('salesOffice',IntegerType(),True),
+	StructField('salesGroup',IntegerType(),True),
+	StructField('serviceOrgResponsible',IntegerType(),True),
+	StructField('serviceOrg',IntegerType(),True),
 	StructField('serviceTeam',StringType(),True),
 	StructField('calendarDay',DateType(),True),
 	StructField('calendarDatetime',TimestampType(),True),
@@ -340,13 +340,13 @@ newSchema = StructType([
 	StructField('processCodeGroup',StringType(),True),
 	StructField('processCode',StringType(),True),
 	StructField('precedingObjectType',StringType(),True),
-	StructField('validTimestamp',LongType(),True),
+	StructField('validTimestamp',TimestampType(),True),
 	StructField('catalogCategoryC',StringType(),True),
 	StructField('catalogC',StringType(),True),
 	StructField('codeGroupC',StringType(),True),
 	StructField('codeC',StringType(),True),
 	StructField('defectCountC',IntegerType(),True),
-	StructField('numberOfActivitiesC',StringType(),True),
+	StructField('numberOfActivitiesC',IntegerType(),True),
 	StructField('coherentAspectIdC',StringType(),True),
 	StructField('coherentCategoryIdC',StringType(),True),
 	StructField('dataElementGUIDC',StringType(),True),
@@ -355,17 +355,17 @@ newSchema = StructType([
 	StructField('codeGroupD',StringType(),True),
 	StructField('codeD',StringType(),True),
 	StructField('defectCountD',IntegerType(),True),
-	StructField('numberOfActivitiesD',StringType(),True),
+	StructField('numberOfActivitiesD',IntegerType(),True),
 	StructField('coherentAspectIdD',StringType(),True),
 	StructField('coherentCategoryIdD',StringType(),True),
 	StructField('dataElementGUIDD',StringType(),True),
-	StructField('defectCountE',StringType(),True),
+	StructField('defectCountE',IntegerType(),True),
 	StructField('numberOfActivitiesE',IntegerType(),True),
 	StructField('dataElementGUIDE',StringType(),True),
-	StructField('defectCountT',StringType(),True),
+	StructField('defectCountT',IntegerType(),True),
 	StructField('numberOfActivitiesT',IntegerType(),True),
 	StructField('dataElementGUIDT',StringType(),True),
-	StructField('defectCountW',StringType(),True),
+	StructField('defectCountW',IntegerType(),True),
 	StructField('numberOfActivitiesW',IntegerType(),True),
 	StructField('dataElementGUIDW',StringType(),True),
 	StructField('subjectProfileCategory',StringType(),True),
@@ -376,8 +376,8 @@ newSchema = StructType([
 	StructField('workDurationUnit',StringType(),True),
 	StructField('totalDuration',LongType(),True),
 	StructField('totalDurationUnit',StringType(),True),
-	StructField('requestStartDate',DateType(),True),
-	StructField('requestEndDate',DateType(),True),
+	StructField('requestStartDate',TimestampType(),True),
+	StructField('requestEndDate',TimestampType(),True),
 	StructField('dueDateTime',TimestampType(),True),
 	StructField('completionDateTime',TimestampType(),True),
 	StructField('firstEscalateDateTime',TimestampType(),True),
