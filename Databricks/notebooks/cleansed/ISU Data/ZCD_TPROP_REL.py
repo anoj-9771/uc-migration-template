@@ -205,7 +205,7 @@ newSchema = StructType([
                         StructField('property2Number',StringType(),False),
                         StructField('relationshipTypeCode1',StringType(),False),
                         StructField('relationshipType1',StringType(),True),
-                        StructField('relationshipTypeCode2',StringType(),False),
+                        StructField('relationshipTypeCode2',StringType(),True),
                         StructField('relationshipType2',StringType(),True),
                         StructField('validFromDate',DateType(),False),
                         StructField('validToDate',DateType(),True),
@@ -228,3 +228,8 @@ DeltaSaveDataframeDirect(df_updated_column, source_group, target_table, ADS_DATA
 
 # DBTITLE 1,13. Exit Notebook
 dbutils.notebook.exit("1")
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC describe cleansed.isu_zcd_tprop_rel
