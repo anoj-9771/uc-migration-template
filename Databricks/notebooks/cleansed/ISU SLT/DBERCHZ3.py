@@ -180,7 +180,7 @@ df_cleansed_column = spark.sql(f"SELECT  \
                                     case when BELZEILE = 'na' then '' else BELZEILE end as billingDocumentLineItemId, \
                                     MWSKZ as taxSalesCode, \
                                     ERMWSKZ as texDeterminationCode, \
-                                    cast(NETTOBTR as double) as billingLineItemNetAmount, \
+                                    cast(NETTOBTR as dec(13,2)) as billingLineItemNetAmount, \
                                     TWAERS as transactionCurrency, \
                                     PREISTUF as priceLevel, \
                                     PREISTYP as priceCategory, \
@@ -190,11 +190,11 @@ df_cleansed_column = spark.sql(f"SELECT  \
                                     BISZONE as toBlock, \
                                     ZONENNR as numberOfPriceBlock, \
                                     cast(PREISBTR as dec(17,8)) as priceAmount, \
-                                    cast(MNGBASIS as dec(9,7)) as amountLongQuantityBase, \
+                                    cast(MNGBASIS as dec(9,2)) as amountLongQuantityBase, \
                                     PREIGKL as priceAdjustemntClause, \
-                                    cast(URPREIS as dec(17)) as priceAdjustemntClauseBasePrice, \
-                                    cast(PREIADD as dec(17)) as addedAdjustmentPrice, \
-                                    cast(PREIFAKT as dec(12)) as priceAdjustmentFactor, \
+                                    cast(URPREIS as dec(17,8)) as priceAdjustemntClauseBasePrice, \
+                                    cast(PREIADD as dec(17,8)) as addedAdjustmentPrice, \
+                                    cast(PREIFAKT as dec(12,7)) as priceAdjustmentFactor, \
                                     OPMULT as additionFirst, \
                                     to_date(TXDAT_KK, 'yyyyMMdd') as taxDecisiveDate, \
                                     PRCTR as profitCenter, \
@@ -226,7 +226,7 @@ newSchema = StructType([
                         StructField('billingDocumentLineItemId', StringType(), False),
                         StructField('taxSalesCode', StringType(), True),
                         StructField('texDeterminationCode', StringType(), True),
-                        StructField('billingLineItemNetAmount', DoubleType(), True),
+                        StructField('billingLineItemNetAmount', DecimalType(13,2), True),
                         StructField('transactionCurrency', StringType(), True),
                         StructField('priceLevel', StringType(), True),
                         StructField('priceCategory', StringType(), True),
@@ -236,11 +236,11 @@ newSchema = StructType([
                         StructField('toBlock', StringType(), True),
                         StructField('numberOfPriceBlock', StringType(), True),
                         StructField('priceAmount', DecimalType(17,8), True),
-                        StructField('amountLongQuantityBase', DecimalType(9,7), True),
+                        StructField('amountLongQuantityBase', DecimalType(9,2), True),
                         StructField('priceAdjustemntClause', StringType(), True),
-                        StructField('priceAdjustemntClauseBasePrice', DecimalType(17), True),
-                        StructField('addedAdjustmentPrice', DecimalType(17), True),
-                        StructField('priceAdjustmentFactor', DecimalType(12), True),
+                        StructField('priceAdjustemntClauseBasePrice', DecimalType(17,8), True),
+                        StructField('addedAdjustmentPrice', DecimalType(17,8), True),
+                        StructField('priceAdjustmentFactor', DecimalType(12,7), True),
                         StructField('additionFirst', StringType(), True),
                         StructField('taxDecisiveDate', DateType(), True),
                         StructField('profitCenter', StringType(), True),
