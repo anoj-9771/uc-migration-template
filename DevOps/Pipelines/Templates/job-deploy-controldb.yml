@@ -18,12 +18,12 @@ jobs:
       keyVaultName: $(AZUREKEYVAULTNAME)
       secretsFilter: 'AzureSQLServerPw'
 
-  - task: SqlAzureDacpacDeployment@1
-    displayName: 'Azure SQL DacpacTask'
-    inputs:
-      azureSubscription: ${{ parameters.AzDoServiceConnection }}
-      ServerName: '$(AZURESQLSERVERNAME).database.windows.net'
-      DatabaseName: ControlDB
-      SqlUsername: $(AZURESQLSERVERUN)
-      SqlPassword: '$(azuresqlserverpw)'
-      DacpacFile: '$(Pipeline.Workspace)/sql_Controldb/CntrlDb.dacpac'
+  # - task: SqlAzureDacpacDeployment@1
+  #   displayName: 'Azure SQL DacpacTask'
+  #   inputs:
+  #     azureSubscription: ${{ parameters.AzDoServiceConnection }}
+  #     ServerName: '$(AZURESQLSERVERNAME).database.windows.net'
+  #     DatabaseName: ControlDB
+  #     SqlUsername: $(AZURESQLSERVERUN)
+  #     SqlPassword: '$(azuresqlserverpw)'
+  #     DacpacFile: '$(Pipeline.Workspace)/sql_Controldb/CntrlDb.dacpac'
