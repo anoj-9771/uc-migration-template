@@ -302,7 +302,7 @@ newSchema = StructType([
 	StructField('clearingReason',StringType(),True),
 	StructField('clearingCurrency',StringType(),True),
 	StructField('clearingAmount',DecimalType(13,2),True),
-	StructField('taxAmount',DecimalType(13,2),True),
+	StructField('taxAmountClearingCurrency',DecimalType(13,2),True),
 	StructField('cashDiscount',DecimalType(13,2),True),
 	StructField('clearingValueDate',DateType(),True),
 	StructField('settlementPeriodLowerLimit',DateType(),True),
