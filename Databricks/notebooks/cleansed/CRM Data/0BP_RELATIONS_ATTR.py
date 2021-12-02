@@ -194,7 +194,7 @@ df_cleansed = spark.sql(f"SELECT \
                                 TEL_NUMBER as phoneNumber, \
                                 SMTP_ADDR as emailAddress, \
                                 cast(CMPY_PART_PER as dec(13,2)) as capitalInterestPercentage, \
-                                cast(CMPY_PART_AMO as dec(13,0)) as capitalInterestAmount, \
+                                cast(CMPY_PART_AMO as dec(13,2)) as capitalInterestAmount, \
                                 ADDR_SHORT as shortFormattedAddress, \
                                 ADDR_SHORT_S as shortFormattedAddress2, \
                                 LINE0 as addressLine0, \
@@ -238,7 +238,7 @@ newSchema = StructType([
 	StructField('phoneNumber',StringType(),True),
 	StructField('emailAddress',StringType(),True),
 	StructField('capitalInterestPercentage',DecimalType(13,2),True),
-	StructField('capitalInterestAmount',DecimalType(13,0),True),
+	StructField('capitalInterestAmount',DecimalType(13,2),True),
 	StructField('shortFormattedAddress',StringType(),True),
 	StructField('shortFormattedAddress2',StringType(),True),
 	StructField('addressLine0',StringType(),True),
