@@ -146,6 +146,7 @@ print("delta_column: " + delta_column)
 #Get the Data Load Mode using the params
 data_load_mode = GeneralGetDataLoadMode(Params[PARAMS_TRUNCATE_TARGET], Params[PARAMS_UPSERT_TARGET], Params[PARAMS_APPEND_TARGET])
 print("data_load_mode: " + data_load_mode)
+
 # COMMAND ----------
 
 # DBTITLE 1,9. Set raw and cleansed table name
@@ -186,7 +187,9 @@ df_cleansed = spark.sql(f"SELECT cast(N_PROP as int) AS propertyNumber, \
 		cast(N_PROP_METE as int) AS propertyMeterNumber, \
 		N_METE_MAKE AS meterMakerNumber, \
 		C_METE_TYPE AS meterSizeCode, \
-        cast(b.meterSize as string)||lower(b.meterSizeUnit) as meterSize, \
+        case when b.meterSizeUnit = 'mm' then \
+            cast(cast(b.meterSize as int) as string)||' '||lower(b.meterSizeUnit) \
+            else cast(cast(b.meterSize as decimal(5,2)) as string)||' '||lower(b.meterSizeUnit) end as meterSize, \
 		case when C_METE_POSI_STAT = 'M' then true else false end as isMasterMeter, \
         case when C_METE_POSI_STAT = 'C' then true else false end as isCheckMeter, \
         case when C_METE_POSI_STAT = 'A' then true else false end as allowAlso, \
@@ -278,6 +281,7 @@ print(f'Number of rows: {df_updated_column.count()}')
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
 DeltaSaveDataframeDirect(df_updated_column, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
+
 # COMMAND ----------
 
 # DBTITLE 1,13. Exit Notebook
