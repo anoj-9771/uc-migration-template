@@ -228,8 +228,3 @@ DeltaSaveDataframeDirect(df_updated_column, source_group, target_table, ADS_DATA
 
 # DBTITLE 1,13. Exit Notebook
 dbutils.notebook.exit("1")
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC describe cleansed.isu_zcd_tprop_rel
