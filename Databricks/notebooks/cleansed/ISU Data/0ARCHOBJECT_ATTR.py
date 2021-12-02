@@ -176,17 +176,17 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT  \
-                            case when stg.AOID = 'na' then '' else stg.AOID end as architecturalObjectId , \
-                            stg.AOFUNCTION as architecturalObjectFunction , \
-                            stg.AONR as architecturalObjectNumber , \
-                            stg.AOTYPE as architecturalObjectTypeCode , \
+                            case when stg.AOID = 'na' then '' else stg.AOID end as architecturalObjectId, \
+                            stg.AOFUNCTION as architecturalObjectFunction, \
+                            stg.AONR as architecturalObjectNumber, \
+                            stg.AOTYPE as architecturalObjectTypeCode, \
                             stg.AUTHGRP as authorizationGroup, \
                             stg.CITY1 as cityName, \
                             stg.CITY2 as district, \
                             stg.COUNTRY as countryShortName, \
                             stg.HOUSE_NUM1 as houseNumber, \
                             stg.HOUSE_NUM2 as houseNumber2, \
-                            stg.OBJNR as objectNumber , \
+                            stg.OBJNR as objectNumber, \
                             stg.PARENTAOID as parentArchitecturalObjectId, \
                             stg.PARENTAOTYPE as parentArchitecturalObjectTypeCode, \
                             stg.PO_BOX as poBoxCode, \
@@ -201,7 +201,7 @@ df_cleansed = spark.sql(f"SELECT  \
                             stg.SVERKEHR as businessEntityTransportConnectionsIndicator, \
                             stg.USAGECOMMON as commonUsage, \
                             to_date(stg.VALIDFROM, 'yyyy-MM-dd') as validFromDate, \
-                            to_date(stg.VALIDTO, 'yyyy-MM-dd') as validToDate, \
+                            to_date(stg.VALIDTO, 'yyyy-MM-dd') as validToDate \
                           FROM {ADS_DATABASE_STAGE}.{source_object} stg")
 
 display(df_cleansed)
@@ -236,7 +236,7 @@ newSchema = StructType([
                         StructField("businessEntityTransportConnectionsIndicator", StringType(), True),
                         StructField("commonUsage", StringType(), True),
                         StructField("validFromDate", DateType(), True),
-                        StructField("validToDate", DateType(), True),
+                        StructField("validToDate", DateType(), True)
                       ])
 # Apply the new schema to cleanse Data Frame
 df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
