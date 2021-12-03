@@ -184,8 +184,10 @@ df_cleansed = spark.sql(f"SELECT \
 	LOGICAL_SYSTEM as logicalSystem, \
 	OBJECT_TYPE as headerCategory, \
 	to_date(CREATED_AT,'yyyy-MM-dd') as creationDate, \
+    to_timestamp(cast(CREATED_TS as string), 'yyyyMMddHHmmss') as creationDateTime, \
 	CREATED_BY as createdBy, \
 	to_date(CHANGED_AT,'yyyy-MM-dd') as lastChangedDate, \
+    to_timestamp(cast(CHANGED_TS as string), 'yyyyMMddHHmmss') as lastChangedDateTime, \
 	CHANGED_BY as changedBy, \
 	cast(NUM_OF_HEAD as int) as requestHeaderNumber, \
 	SCENARIO as scenarioId, \
@@ -304,8 +306,10 @@ newSchema = StructType([
 	StructField('logicalSystem',StringType(),True),
 	StructField('headerCategory',StringType(),True),
 	StructField('creationDate',DateType(),True),
+    StructField('creationDateTime',TimestampType(),True),
 	StructField('createdBy',StringType(),True),
 	StructField('lastChangedDate',DateType(),True),
+    StructField('lastChangedDateTime',TimestampType(),True),
 	StructField('changedBy',StringType(),True),
 	StructField('requestHeaderNumber',IntegerType(),True),
 	StructField('scenarioId',StringType(),True),
