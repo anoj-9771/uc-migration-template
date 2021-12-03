@@ -1,7 +1,7 @@
 # Databricks notebook source
 #Please udpate the environment varibale
 #This is a test line
-ADS_ENVIRONMENT = "preprod"
+ADS_ENVIRONMENT = "test"
 ADS_SUBSCRIPTION = "swcprod01"
 #Project Prefix
 ADS_COMPANY_INITIAL = "swcdaf"
