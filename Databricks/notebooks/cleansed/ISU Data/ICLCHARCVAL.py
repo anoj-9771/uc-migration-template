@@ -177,10 +177,10 @@ DeltaSaveToDeltaTable (
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT \
     case when CLASSIFICATIONOBJECTINTERNALID = 'na' then '' else CLASSIFICATIONOBJECTINTERNALID end as classificationObjectInternalId, \
-    CHARACTERISTICINTERNALID as characteristicInternalId, \
-    CHARACTERISTICVALUEINTERNALID as characteristicvalueInternalId, \
-    CLASSTYPE as classType, \
-    CHARCARCHIVINGOBJECTINTERNALID as archivingObjectsInternalId, \
+    case when CHARACTERISTICINTERNALID = 'na' then '' else CHARACTERISTICINTERNALID end as characteristicInternalId, \
+    case when CHARACTERISTICVALUEINTERNALID = 'na' then '' else CHARACTERISTICVALUEINTERNALID end as characteristicvalueInternalId, \
+    case when CLASSTYPE = 'na' then '' else CLASSTYPE end as classType, \
+    case when CHARCARCHIVINGOBJECTINTERNALID = 'na' then '' else CHARCARCHIVINGOBJECTINTERNALID end  as archivingObjectsInternalId, \
     CHARACTERISTICVALUE as characteristicValueCode, \
     to_date(CHARCVALIDITYSTARTDATE, 'yyyy-MM-dd') as validFromDate, \
     to_date(CHARCVALIDITYENDDATE, 'yyyy-MM-dd') as validToDate, \
@@ -199,10 +199,10 @@ print(f'Number of rows: {df_cleansed.count()}')
 newSchema = StructType(
                            [
                             StructField("classificationObjectInternalId", StringType(), False),
-                            StructField("characteristicInternalId", StringType(), True),
-                            StructField("characteristicvalueInternalId", StringType(), True),
-                            StructField("classType", StringType(), True),
-                            StructField("archivingObjectsInternalId", StringType(), True),     
+                            StructField("characteristicInternalId", StringType(), False),
+                            StructField("characteristicvalueInternalId", StringType(), False),
+                            StructField("classType", StringType(), False),
+                            StructField("archivingObjectsInternalId", StringType(), False),     
                             StructField("characteristicValueCode", StringType(), True),
                             StructField("validFromDate", DateType(), True),  
                             StructField("validToDate", DateType(), True),                                                   
