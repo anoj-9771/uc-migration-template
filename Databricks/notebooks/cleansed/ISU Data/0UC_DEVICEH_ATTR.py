@@ -182,9 +182,11 @@ df_cleansed = spark.sql(f"SELECT \
                             dev.KOMBINAT as deviceCategoryCombination, \
                             cast(dev.LOGIKNR as Long) as logicalDeviceNumber, \
                             dev.ZWGRUPPE as registerGroupCode, \
+                            c.registerGroup, \
                             to_date(dev.EINBDAT, 'yyyy-MM-dd') as installationDate, \
                             to_date(dev.AUSBDAT, 'yyyy-MM-dd') as deviceRemovalDate, \
                             dev.GERWECHS as activityReasonCode, \
+                            b.activityReason, \
                             dev.DEVLOC as deviceLocation, \
                             dev.WGRUPPE as windingGroup, \
                             dev.LOEVM as deletedIndicator, \
@@ -206,7 +208,9 @@ df_cleansed = spark.sql(f"SELECT \
                             dev._RecordEnd, \
                             dev._RecordDeleted, \
                             dev._RecordCurrent \
-                        FROM {ADS_DATABASE_STAGE}.{source_object} dev")
+                        FROM {ADS_DATABASE_STAGE}.{source_object} dev \
+                            left outer join cleansed.isu_0UC_GERWECHS_TEXT b on dev.GERWECHS = b.activityReasonCode \
+                            left outer join cleansed.isu_0UC_REGGRP_TEXT c on dev.ZWGRUPPE = c.registerGroupCode")
 
 display(df_cleansed)
 print(f'Number of rows: {df_cleansed.count()}')
@@ -220,9 +224,11 @@ newSchema = StructType([
                           StructField('deviceCategoryCombination',StringType(),True),
                           StructField('logicalDeviceNumber',LongType(),True),                                      
                           StructField('registerGroupCode',StringType(),True),
+                          StructField('registerGroup',StringType(),True),
                           StructField('installationDate',DateType(),True),
                           StructField('deviceRemovalDate',DateType(),True),
                           StructField('activityReasonCode',StringType(),True),
+                          StructField('activityReason',StringType(),True),
                           StructField('deviceLocation',StringType(),True),
                           StructField('windingGroup',StringType(),True),
                           StructField('deletedIndicator',StringType(),True),
