@@ -2,7 +2,7 @@
 #Please udpate the environment varibale
 #This is a test line
 ADS_ENVIRONMENT = "test"
-ADS_SUBSCRIPTION = "swcprod01"
+ADS_SUBSCRIPTION = "swcnonprod01"
 #Project Prefix
 ADS_COMPANY_INITIAL = "swcdaf"
 ADS_SUFFIX = "01"
