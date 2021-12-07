@@ -345,7 +345,7 @@ lakedf.printSchema()
 # MAGIC FROM test.erch a
 # MAGIC LEFT JOIN cleansed.isu_0comp_code_text b
 # MAGIC ON a.BUKRS = b.companyCode 
-# MAGIC WHERE DELTA_TS < '20211115042244'
+# MAGIC --WHERE DELTA_TS < '20211115042244'
 # MAGIC )
 
 # COMMAND ----------
