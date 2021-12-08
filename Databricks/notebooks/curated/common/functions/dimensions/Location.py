@@ -48,26 +48,29 @@ def getLocation():
                                      and b.architecturalObjectNumber = c.functionalLocationNumber \
                                      and d.propertyNumber = b.architecturalObjectNumber")
 
-    dummyDimRecDf = spark.createDataFrame([(-1, "Unknown")],["locationID", "formattedAddress"])
+    
     HydraLocationDf.createOrReplaceTempView('allLocations')
     #3.JOIN TABLES  
 
     #4.UNION TABLES
+    #Create dummy record
+    dummyRec = tuple([-1] + ['Unknown'] * (len(HydraLocationDf.columns) - 3) + [0,0]) 
+    dummyDimRecDf = spark.createDataFrame([dummyRec],HydraLocationDf.columns)
     HydraLocationDf = HydraLocationDf.unionByName(dummyDimRecDf, allowMissingColumns = True)
 
     #5.SELECT / TRANSFORM
     HydraLocationDf = HydraLocationDf.selectExpr( \
-                                         "LocationID" \
-                                        ,"formattedAddress" \
-                                        ,"streetName" \
-                                        ,"StreetType" \
-                                        ,"LGA" \
-                                        ,"suburb" \
-                                        ,"state" \
-                                        ,"postCode"
-                                        ,"CAST(latitude AS DECIMAL(9,6)) as latitude" \
-                                        ,"CAST(longitude AS DECIMAL(9,6)) as longitude"                   
-                                        )
+     "LocationID" \
+    ,"formattedAddress" \
+    ,"streetName" \
+    ,"StreetType" \
+    ,"LGA" \
+    ,"suburb" \
+    ,"state" \
+    ,"postCode"
+    ,"CAST(latitude AS DECIMAL(9,6)) as latitude" \
+    ,"CAST(longitude AS DECIMAL(9,6)) as longitude"                   
+    )
 
     #6.Apply schema definition
     newSchema = StructType([
