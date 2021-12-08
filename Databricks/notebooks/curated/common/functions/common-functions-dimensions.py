@@ -20,3 +20,7 @@
 # COMMAND ----------
 
 # MAGIC %run ./dimensions/BillingDocumentIsu
+
+# COMMAND ----------
+
+# MAGIC %run ./dimensions/BusinessPartnerGroup
