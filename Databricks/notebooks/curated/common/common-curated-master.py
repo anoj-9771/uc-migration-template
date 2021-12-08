@@ -169,6 +169,13 @@ def billingDocumentIsu():
              AddSK=True
             )
 
+#Call BusinessPartnerGroup function to load DimBusinessPartnerGroup
+def businessPartnerGroup():
+  TemplateEtl(df=getBusinessPartnerGroup(), 
+             entity="dimBusinessPartnerGroup", 
+             businessKey="businessPartnerGroupNumber,sourceSystemCode",
+             AddSK=True
+            )    
 # Add New Dim here
 # def Dim2_Example():
 #   TemplateEtl(df=GetDim2Example(), 
@@ -237,7 +244,8 @@ def Main():
     location()
     meter()
     billingDocumentIsu()
-
+    businessPartnerGroup()
+    
     #Add new Dim here()
     LogEtl("End Dimensions")
 
