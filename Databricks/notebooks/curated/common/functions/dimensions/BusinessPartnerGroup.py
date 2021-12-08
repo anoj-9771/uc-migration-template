@@ -3,10 +3,6 @@
 
 # COMMAND ----------
 
-#%run ../commonBilledWaterConsumptionIsu
-
-# COMMAND ----------
-
 # Run the above commands only when running this notebook independently, otherwise the curated master notebook would take care of calling the above notebooks
 
 # COMMAND ----------
@@ -52,7 +48,8 @@ def getBusinessPartnerGroup():
     print(f'{isu0bpartnerAttrDf.count():,} rows in isu0bpartnerAttrDf')
     display(isu0bpartnerAttrDf)
     
-    crm0bpartnerAttrDf  = spark.sql(f"select b.paymentAssistSchemeIndicator as paymentAssistSchemeFlag, \
+    crm0bpartnerAttrDf  = spark.sql(f"select b.businessPartnerNumber as businessPartnerGroupNumber, \
+                                      b.paymentAssistSchemeIndicator as paymentAssistSchemeFlag, \
                                       b.billAssistIndicator as billAssistFlag, \
                                       b.kidneyDialysisIndicator as kidneyDialysisFlag \
                                       FROM {ADS_DATABASE_CLEANSED}.crm_0bpartner_attr b \
@@ -64,17 +61,20 @@ def getBusinessPartnerGroup():
     display(crm0bpartnerAttrDf)
     
     #Dummy Record to be added to Business Partner Group Dimension
-    dummyDimRecDf = spark.createDataFrame([("ISU", "-1")], ["sourceSystemCode", "businessPartnerNumber"])
+    dummyDimRecDf = spark.createDataFrame([("ISU", "-1")], ["sourceSystemCode", "businessPartnerGroupNumber"])
     
     #3.JOIN TABLES
-    df = isu0bpartnerAttrDf.join(crm0bpartnerAttrDf, isu0bpartnerAttrDf.businessPartnerNumber == crm0bpartnerAttrDf.businessPartnerNumber, how="left")\
-                            .drop(crm0bpartnerAttrDf.businessPartnerNumber)
+    df = isu0bpartnerAttrDf.join(crm0bpartnerAttrDf, isu0bpartnerAttrDf.businessPartnerGroupNumber == crm0bpartnerAttrDf.businessPartnerGroupNumber, how="left")\
+                            .drop(crm0bpartnerAttrDf.businessPartnerGroupNumber)
     df = df.select("sourceSystemCode","businessPartnerGroupNumber","validFromDate","validToDate", \
-                                                "businessPartnerGroupCode","businessPartnerGroup","businessPartnerGroupName1","businessPartnerGroupName2","externalNumber" \
+                                                "businessPartnerGroupCode","businessPartnerGroup","businessPartnerGroupName1","businessPartnerGroupName2","externalNumber", \
                                                 "paymentAssistSchemeFlag","billAssistFlag","kidneyDialysisFlag","createdDateTime","createdBy","lastUpdatedDateTime","lastUpdatedBy") 
+    print(f'{df.count():,} rows in df')
+    display(df)
+    
     #4.UNION TABLES
     df = df.unionByName(dummyDimRecDf, allowMissingColumns = True)
-
+    
     #5.Apply schema definition
     newSchema = StructType([
                             StructField('sourceSystemCode', StringType(), True),
@@ -89,23 +89,14 @@ def getBusinessPartnerGroup():
                             StructField('paymentAssistSchemeFlag', StringType(), True),
                             StructField('billAssistFlag', StringType(), True),
                             StructField('kidneyDialysisFlag', StringType(), True),
-                            StructField('createdDateTime', StringType(), True),
+                            StructField('createdDateTime', TimestampType(), True),
                             StructField('createdBy', StringType(), True),
-                            StructField('lastUpdatedDateTime', TimeStampType(), True),
+                            StructField('lastUpdatedDateTime', TimestampType(), True),
                             StructField('lastUpdatedBy', StringType(), True)                        
                       ])
 
     df = spark.createDataFrame(df.rdd, schema=newSchema)
     #5.SELECT / TRANSFORM
-    #df = df.selectExpr( \
-     #"meterId", \
-     #"sourceSystemCode", \
-     #"meterSize", \
-     #"waterType"
-    #)  
-    return df
-  
-
-# COMMAND ----------
-
-
+    
+    
+    return df  
