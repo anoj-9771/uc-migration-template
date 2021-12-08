@@ -183,8 +183,8 @@ df_cleansed = spark.sql(f"SELECT \
 	DESCRIPTION_UC as transactionDescription, \
 	LOGICAL_SYSTEM as logicalSystem, \
 	OBJECT_TYPE as headerCategory, \
-	to_date(CREATED_AT,'yyyy-MM-dd') as creationDate, \
-    to_timestamp(cast(CREATED_TS as string), 'yyyyMMddHHmmss') as creationDateTime, \
+	to_date(CREATED_AT,'yyyy-MM-dd') as createdDate, \
+    to_timestamp(cast(CREATED_TS as string), 'yyyyMMddHHmmss') as createdDateTime, \
 	CREATED_BY as createdBy, \
 	to_date(CHANGED_AT,'yyyy-MM-dd') as lastChangedDate, \
     to_timestamp(cast(CHANGED_TS as string), 'yyyyMMddHHmmss') as lastChangedDateTime, \
@@ -305,8 +305,8 @@ newSchema = StructType([
 	StructField('transactionDescription',StringType(),True),
 	StructField('logicalSystem',StringType(),True),
 	StructField('headerCategory',StringType(),True),
-	StructField('creationDate',DateType(),True),
-    StructField('creationDateTime',TimestampType(),True),
+	StructField('createdDate',DateType(),True),
+    StructField('createdDateTime',TimestampType(),True),
 	StructField('createdBy',StringType(),True),
 	StructField('lastChangedDate',DateType(),True),
     StructField('lastChangedDateTime',TimestampType(),True),
