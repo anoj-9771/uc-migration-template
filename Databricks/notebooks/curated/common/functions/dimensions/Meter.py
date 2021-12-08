@@ -68,7 +68,7 @@ def getMeter():
     accessZ309TpropmeterDf = accessZ309TpropmeterDf.drop(accessZ309TpropmeterDf.rownum)
 
     print(f'{accessZ309TpropmeterDf.count():,} rows in accessZ309TpropmeterDf')
-    display(accessZ309TpropmeterDf)
+#     display(accessZ309TpropmeterDf)
     #Meter Data from SAP ISU
     isu0ucDeviceAttrDf  = spark.sql(f"select 'ISU' as sourceSystemCode, \
                                       equipmentNumber as meterNumber, \
@@ -89,7 +89,7 @@ def getMeter():
                                       and b._RecordDeleted = 0")
     
     print(f'{isu0ucDeviceAttrDf.count():,} rows in isu0ucDeviceAttrDf')
-    display(isu0ucDeviceAttrDf)
+#     display(isu0ucDeviceAttrDf)
     #save to table for use in subsequent queries
     isu0ucDeviceAttrDf.createOrReplaceTempView('allMeters')
 
@@ -105,7 +105,7 @@ def getMeter():
                                       and _RecordDeleted = 0")
     
     print(f'{isu0ucDeviceHAttrDf.count():,} rows in isu0ucDeviceHAttrDf')
-    display(isu0ucDeviceHAttrDf)
+#     display(isu0ucDeviceHAttrDf)
     isu0ucDevCatAttrDf  = spark.sql(f"select distinct a.materialNumber, \
                                         case when functionClassCode = '9000' then 'Customer Standpipe' else 'Water Meter' end as usageDeviceType, \
                                         case when functionClassCode = '1000' then 'Drinking Water' \
@@ -120,7 +120,7 @@ def getMeter():
                                       and _RecordDeleted = 0")
     
     print(f'{isu0ucDevCatAttrDf.count():,} rows in isu0ucDevCatAttrDf')
-    display(isu0ucDevCatAttrDf)
+#     display(isu0ucDevCatAttrDf)
     isu0ucRegistAttrDf  = spark.sql(f"select equipmentNumber as meterNumber, \
                                         unitOfMeasurementMeterReading as measurementUnit, \
                                         min(registerNumber) as registerNumber, \
@@ -139,9 +139,7 @@ def getMeter():
                                       group by equipmentNumber, unitOfMeasurementMeterReading, registerTypeCode, registerType, registerCategoryCode, registerCategory, registerIdCode, registerId, divisionCategoryCode, divisionCategory")
 	 
     print(f'{isu0ucRegistAttrDf.count():,} rows in isu0ucRegistAttrDf')
-    display(isu0ucRegistAttrDf)
-    #Dummy Record to be added to Meter Dimension
-    dummyDimRecDf = spark.createDataFrame([("ISU", "-1", "Unknown", "Unknown"), ("Access", "-1", "Unknown", "Unknown")], ["sourceSystemCode", "meterId", "meterSize", "waterMeterType"])
+#     display(isu0ucRegistAttrDf)
     
     #3.JOIN TABLES
     df = isu0ucDeviceAttrDf.join(isu0ucDeviceHAttrDf, isu0ucDeviceHAttrDf.meterNumber == isu0ucDeviceAttrDf.meterNumber, 
@@ -169,8 +167,13 @@ def getMeter():
     
     #4.UNION TABLES
     df = accessZ309TpropmeterDf.union(df)
+    #Dummy Record to be added to Meter Dimension
+    ISUDummy = tuple(['ISU','-1'] + ['Unknown'] * (len(df.columns) - 2)) #this only works as long as all output columns are string
+    ACCESSDummy = tuple(['ACCESS','-1'] + ['Unknown'] * (len(df.columns) -2)) #this only works as long as all output columns are string
+    dummyDimRecDf = spark.createDataFrame([ISUDummy, ACCESSDummy], df.columns)
+    
     df = df.unionByName(dummyDimRecDf, allowMissingColumns = True)
-
+    display(df)
     #5.Apply schema definition
     newSchema = StructType([
                             StructField('sourceSystemCode', StringType(), True),
