@@ -35,7 +35,7 @@ ADS_SYN_DATABASE_NAME = "syndw" + ADS_ENVIRONMENT + "01"
 ADS_SYN_DATABASE_USERNAME = "svc_synapse1"
 ADS_KV_SYN_DB_PWD_SECRET_KEY = "daf-syn-d-sqlpool-password"
 
-ADS_SYNAPSE_DB_SERVER = "synws-swcnonprod01-daf-" + ADS_ENVIRONMENT + "-01" 
+ADS_SYNAPSE_DB_SERVER = "synws-" + ADS_SUBSCRIPTION + "-daf-" + ADS_ENVIRONMENT + "-01" 
 
 # COMMAND ----------
 
