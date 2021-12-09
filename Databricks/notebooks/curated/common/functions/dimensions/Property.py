@@ -14,70 +14,137 @@
 #############################################################################################################################
 #1.Create Function
 def getProperty():
-  
-  spark.udf.register("TidyCase", GeneralToTidyCase)  
-  
-  #dimProperty
-  #2.Load Cleansed layer table data into dataframe
-  accessZ309TpropertyDf = spark.sql(f"select cast(propertyNumber as string), 'Access' as sourceSystemCode, propertyTypeEffectiveFrom as propertyStartDate, \
+
+#     spark.udf.register("TidyCase", GeneralToTidyCase)  
+
+    #dimProperty
+    #2.Load Cleansed layer table data into dataframe
+    accessZ309TpropertyDf = spark.sql(f"select cast(propertyNumber as string), \
+                                            'ACCESS' as sourceSystemCode, \
+                                            propertyTypeEffectiveFrom as propertyStartDate, \
                                             coalesce(lead(propertyTypeEffectiveFrom) over (partition by propertyNumber order by propertyTypeEffectiveFrom)-1, \
-                                            to_date('9999-12-31', 'yyyy-mm-dd'))  as propertyEndDate, \
-                                            propertyType, superiorPropertyType, LGA, \
+                                                        to_date('2099-12-31', 'yyyy-mm-dd'))  as propertyEndDate, \
+                                            propertyTypeCode, \
+                                            propertyType, \
+                                            superiorPropertyTypeCode, \
+                                            superiorPropertyType, \
                                             CASE WHEN propertyAreaTypeCode == 'H' THEN  propertyArea * 10000 \
-                                            ELSE propertyArea END AS propertyArea \
-                                     from {ADS_DATABASE_CLEANSED}.access_z309_tproperty")
-  
-  isu0ucConbjAttr2Df = spark.sql(f"select propertyNumber, 'ISU' as sourceSystemCode,inferiorPropertyType as PropertyType, superiorPropertyType, \
-                                            architecturalObjectInternalId, validFromDate as propertyStartDate, LGA,\
-                                            coalesce(lead(validFromDate) over (partition by propertyNumber order by validFromDate)-1, \
-                                            to_date('9999-12-31', 'yyyy-mm-dd'))  as propertyEndDate \
-                                     from {ADS_DATABASE_CLEANSED}.isu_0uc_connobj_attr_2")
-  
-  isuVibdaoDf = spark.sql(f"select architecturalObjectInternalId, \
-                                   CASE WHEN hydraAreaUnit == 'HAR' THEN  hydraCalculatedArea * 10000 \
-                                        WHEN hydraAreaUnit == 'M2' THEN  hydraCalculatedArea \
-                                        ELSE null END AS propertyArea \
-                            from {ADS_DATABASE_CLEANSED}.isu_vibdao")
-  
-  dummyDimRecDf = spark.createDataFrame([(-1, "ISU", "9999-12-31"), (-1, "Access", "9999-12-31")], ["propertyNumber", "sourceSystemCode", "propertyEndDate"])
-  dummyDimRecDf = dummyDimRecDf.withColumn("propertyEndDate",dummyDimRecDf['propertyEndDate'].cast(DateType()))
-  
-  #3.JOIN TABLES  
-  df = isu0ucConbjAttr2Df.join(isuVibdaoDf, isu0ucConbjAttr2Df.architecturalObjectInternalId == isuVibdaoDf.architecturalObjectInternalId, how="inner")\
-                            .drop(isuVibdaoDf.architecturalObjectInternalId).drop(isu0ucConbjAttr2Df.architecturalObjectInternalId)
-  df = df.select("propertyNumber","sourceSystemCode","propertyStartDate","propertyEndDate", \
-                                                "propertyType","superiorPropertyType","propertyArea","LGA")
-  
-  #4.UNION TABLES
-  df = accessZ309TpropertyDf.union(df)
-  df = df.unionByName(dummyDimRecDf, allowMissingColumns = True)
-  
-  #5.SELECT / TRANSFORM
-  df = df.selectExpr( \
-	 "propertyNumber as propertyId" \
+                                                                                  ELSE propertyArea END AS areaSize, \
+                                            LGA, \
+                                            '0' as parentPropertyNumber, \
+                                            null as parentPropertyTypeCode, \
+                                            null as parentPropertyType, \
+                                            null as parentsuperiorPropertyTypeCode, \
+                                            null as parentsuperiorPropertyType, \
+                                            null as planTypeCode, \
+                                            null as planType, \
+                                            null as lotTypeCode, \
+                                            null as lotType, \
+                                            null as sectionNumber, \
+                                            null as architecturalTypeCode, \
+                                            null as architecturalType \
+                                     from {ADS_DATABASE_CLEANSED}.access_z309_tproperty \
+                                     ")
+
+    sapisuDf = spark.sql(f"select co.propertyNumber, \
+                                'SAPISU' as sourceSystemCode, \
+                                ph.validFromDate as propertyStartDate, \
+                                coalesce(lead(ph.validFromDate) over (partition by ph.propertyNumber order by ph.validFromDate)-1, \
+                                                        to_date('2099-12-31', 'yyyy-mm-dd'))  as propertyEndDate, \
+                                ph.inferiorPropertyTypeCode as propertyTypeCode, \
+                                ph.inferiorPropertyType as propertyType, \
+                                ph.superiorPropertyTypeCode, \
+                                ph.superiorPropertyType, \
+                                CASE WHEN vd.hydraAreaUnit == 'HAR' THEN cast(vd.hydraCalculatedArea * 10000 as dec(18,6)) \
+                                     WHEN vd.hydraAreaUnit == 'M2'  THEN cast(vd.hydraCalculatedArea as dec(18,6)) \
+                                                                    ELSE null END AS areaSize, \
+                                co.LGA, \
+                                vn.parentArchitecturalObjectNumber as parentPropertyNumber, \
+                                pa.inferiorPropertyTypeCode as parentPropertyTypeCode, \
+                                pa.inferiorPropertyType as parentPropertyType, \
+                                pa.superiorPropertyTypeCode as parentsuperiorPropertyTypeCode, \
+                                pa.superiorPropertyType as parentsuperiorPropertyType, \
+                                co.planTypeCode, \
+                                co.planType, \
+                                co.lotTypeCode, \
+                                dt.domainValueText as lotType, \
+                                co.sectionNumber, \
+                                co.architecturalObjectTypeCode as architecturalTypeCode, \
+                                co.architecturalObjectType as architecturalType \
+                         from {ADS_DATABASE_CLEANSED}.isu_0uc_connobj_attr_2 co left outer join \
+                              {ADS_DATABASE_CLEANSED}.isu_vibdao vd on co.architecturalObjectInternalId = vd.architecturalObjectInternalId left outer join \
+                              {ADS_DATABASE_CLEANSED}.isu_zcd_tpropty_hist ph on co.propertyNumber = ph.propertyNumber left outer join \
+                              {ADS_DATABASE_CLEANSED}.isu_vibdnode vn on co.architecturalObjectInternalId = vn.architecturalObjectInternalId left outer join \
+                              {ADS_DATABASE_CLEANSED}.isu_0uc_connobj_attr_2 pa on vn.parentArchitecturalObjectInternalId = pa.architecturalObjectInternalId left outer join \
+                              {ADS_DATABASE_CLEANSED}.isu_dd07t dt on co.lotTypeCode = dt.domainValueSingleUpperLimit and domainName = 'ZCD_DO_ADDR_LOT_TYPE' \
+                        ")
+
+    #Dummy Record to be added to Meter Dimension
+    ISUDummy = tuple(['-1','ISU','1900-01-01','2099-12-31'] + ['Unknown'] * 4 + [0] + ['Unknown'] * (len(sapisuDf.columns) - 9)) #this only works as long as all output columns are string
+    ACCESSDummy = tuple(['-1','ACCESS','1900-01-01','2099-12-31'] + ['Unknown'] * 4 + [0] + ['Unknown'] * (len(sapisuDf.columns) - 9)) #this only works as long as all output columns are string
+    dummyDimRecDf = spark.createDataFrame([ISUDummy, ACCESSDummy], sapisuDf.columns)
+    dummyDimRecDf = dummyDimRecDf.withColumn("propertyStartDate",dummyDimRecDf['propertyStartDate'].cast(DateType())).withColumn("propertyEndDate",dummyDimRecDf['propertyEndDate'].cast(DateType()))
+
+    #3.JOIN TABLES  
+    #4.UNION TABLES
+    df = accessZ309TpropertyDf.union(sapisuDf)
+    df = df.unionByName(dummyDimRecDf, allowMissingColumns = True)
+
+    #5.SELECT / TRANSFORM
+    df = df.selectExpr( \
+     "propertyNumber" \
     ,"sourceSystemCode" \
     ,"propertyStartDate" \
     ,"propertyEndDate" \
+    ,"propertyTypeCode" \
     ,"propertyType" \
+    ,"superiorPropertyTypeCode" \
     ,"superiorPropertyType" \
-    ,"CAST(propertyArea AS DECIMAL(18,6)) as areaSize" \
+    ,"areaSize" \
     ,"LGA" \
-  )
-  
-  #6.Apply schema definition
-  newSchema = StructType([
-                            StructField("propertyId", StringType(), False),
+    ,'parentPropertyNumber' \
+    ,'parentPropertyTypeCode' \
+    ,'parentPropertyType' \
+    ,'parentsuperiorPropertyTypeCode' \
+    ,'parentsuperiorPropertyType' \
+    ,'planTypeCode' \
+    ,'planType' \
+    ,'lotTypeCode' \
+    ,'lotType' \
+    ,'sectionNumber' \
+    ,'architecturalTypeCode' \
+    ,'architecturalType' \
+    )
+                                            
+    df.createOrReplaceTempView('allproperties')
+    #6.Apply schema definition
+    newSchema = StructType([
+                            StructField("propertyNumber", StringType(), False),
                             StructField("sourceSystemCode", StringType(), False),
                             StructField("propertyStartDate", DateType(), True),
                             StructField("propertyEndDate", DateType(), True),
+                            StructField("propertyTypeCode", StringType(), True),
                             StructField("propertyType", StringType(), True),
+                            StructField("superiorPropertyTypeCode", StringType(), True),
                             StructField("superiorPropertyType", StringType(), True),
                             StructField("areaSize", DecimalType(18,6), True),
-                            StructField("LGA", StringType(), True)
+                            StructField("LGA", StringType(), True),
+                            StructField('parentPropertyNumber', StringType(), True),
+                            StructField('parentPropertyTypeCode', StringType(), True),
+                            StructField('parentPropertyType', StringType(), True),
+                            StructField('parentsuperiorPropertyTypeCode', StringType(), True),
+                            StructField('parentsuperiorPropertyType', StringType(), True),
+                            StructField('planTypeCode', StringType(), True),
+                            StructField('planType', StringType(), True),
+                            StructField('lotTypeCode', StringType(), True),
+                            StructField('lotType', StringType(), True),
+                            StructField('sectionNumber', StringType(), True),
+                            StructField('architecturalTypeCode', StringType(), True),
+                            StructField('architecturalType', StringType(), True),
                       ])
-  
-  df = spark.createDataFrame(df.rdd, schema=newSchema)
-  return df
+
+    df = spark.createDataFrame(df.rdd, schema=newSchema)
+    return df
 
 
 # COMMAND ----------
