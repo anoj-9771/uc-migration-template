@@ -43,9 +43,9 @@
 			"type": "string",
 			"defaultValue": "DLY1300"
 		},
-		"Emrvisaf_properties_01-Main_parameters_TriggerName": {
+		"Trigger_Daily_11pm_ISU REF_properties_01-Main_parameters_TriggerName": {
 			"type": "string",
-			"defaultValue": "Emrvisaf"
+			"defaultValue": "ISU REF"
 		},
 		"containerUri": {
 			"type": "string",
@@ -139,8 +139,8 @@
 					"DLY1300_properties_01-Main_parameters_TriggerName": {
 						"value": "[parameters('DLY1300_properties_01-Main_parameters_TriggerName')]"
 					},
-					"Emrvisaf_properties_01-Main_parameters_TriggerName": {
-						"value": "[parameters('Emrvisaf_properties_01-Main_parameters_TriggerName')]"
+					"Trigger_Daily_11pm_ISU REF_properties_01-Main_parameters_TriggerName": {
+						"value": "[parameters('Trigger_Daily_11pm_ISU REF_properties_01-Main_parameters_TriggerName')]"
 					}
 				}
 			},

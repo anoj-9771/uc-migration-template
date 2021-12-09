@@ -11,9 +11,9 @@
 			"type": "string",
 			"defaultValue": "DLY1300"
 		},
-		"Emrvisaf_properties_01-Main_parameters_TriggerName": {
+		"Trigger_Daily_11pm_ISU REF_properties_01-Main_parameters_TriggerName": {
 			"type": "string",
-			"defaultValue": "Emrvisaf"
+			"defaultValue": "ISU REF"
 		}
 	},
 	"variables": {
@@ -5188,12 +5188,12 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/Emrvisaf')]",
+			"name": "[concat(parameters('factoryName'), '/Trigger_Daily_11pm_ISU REF')]",
 			"type": "Microsoft.DataFactory/factories/triggers",
 			"apiVersion": "2018-06-01",
 			"properties": {
 				"annotations": [],
-				"runtimeState": "Stopped",
+				"runtimeState": "Started",
 				"pipelines": [
 					{
 						"pipelineReference": {
@@ -5201,7 +5201,7 @@
 							"type": "PipelineReference"
 						},
 						"parameters": {
-							"TriggerName": "[parameters('Emrvisaf_properties_01-Main_parameters_TriggerName')]"
+							"TriggerName": "[parameters('Trigger_Daily_11pm_ISU REF_properties_01-Main_parameters_TriggerName')]"
 						}
 					}
 				],
@@ -5209,9 +5209,9 @@
 				"typeProperties": {
 					"recurrence": {
 						"frequency": "Minute",
-						"interval": 20,
-						"startTime": "2021-06-02T00:11:00",
-						"timeZone": "AUS Eastern Standard Time"
+						"interval": 1,
+						"startTime": "2021-12-09T11:18:00",
+						"timeZone": "UTC-11"
 					}
 				}
 			},

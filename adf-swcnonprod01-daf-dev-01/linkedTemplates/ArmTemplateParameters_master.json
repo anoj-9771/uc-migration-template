@@ -32,8 +32,8 @@
 		"DLY1300_properties_01-Main_parameters_TriggerName": {
 			"value": "DLY1300"
 		},
-		"Emrvisaf_properties_01-Main_parameters_TriggerName": {
-			"value": "Emrvisaf"
+		"Trigger_Daily_11pm_ISU REF_properties_01-Main_parameters_TriggerName": {
+			"value": "ISU REF"
 		},
 		"containerUri": {
 			"value": ""
