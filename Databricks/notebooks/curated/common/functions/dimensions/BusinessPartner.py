@@ -50,7 +50,7 @@ def getBusinessPartner():
                                       personnelNumber, \
                                       case when businessPartnerCategoryCode = '2' then \
                                                       concat(coalesce(organizationName1, ''), ' ', coalesce(organizationName2, ''), ' ',coalesce(organizationName3, '')) else organizationName1 end as organizationName, \
-                                      case when businessPartnerCategoryCode = '2' then organizationFoundedDate else '' end as organizationFoundedDate, \
+                                      case when businessPartnerCategoryCode = '2' then organizationFoundedDate else null end as organizationFoundedDate, \
                                       createdDateTime, \
                                       createdBy, \
                                       changedDateTime, \
@@ -60,6 +60,7 @@ def getBusinessPartner():
                                       and _RecordCurrent = 1 \
                                       and _RecordDeleted = 0")
     
+    #Business Partner Data from SAP CRM
     crm0bpartnerAttrDf  = spark.sql(f"select businessPartnerNumber, \
                                       case when warWidowIndicator = 'X' then 'Y' else 'N' end as warWidowFlag, \
                                       case when deceasedIndicator = 'X' then 'Y' else 'N' end as deceasedFlag, \
