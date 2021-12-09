@@ -40,6 +40,8 @@ def getProperty():
                                             null as planType, \
                                             null as lotTypeCode, \
                                             null as lotType, \
+                                            null as planNumber, \
+                                            null as lotNumber, \
                                             null as sectionNumber, \
                                             null as architecturalTypeCode, \
                                             null as architecturalType \
@@ -68,6 +70,8 @@ def getProperty():
                                 co.planType, \
                                 co.lotTypeCode, \
                                 dt.domainValueText as lotType, \
+                                co.planNumber, \
+                                co.lotNumber, \
                                 co.sectionNumber, \
                                 co.architecturalObjectTypeCode as architecturalTypeCode, \
                                 co.architecturalObjectType as architecturalType \
@@ -111,6 +115,8 @@ def getProperty():
     ,'planType' \
     ,'lotTypeCode' \
     ,'lotType' \
+    ,'planNumber' \
+    ,'lotNumber' \
     ,'sectionNumber' \
     ,'architecturalTypeCode' \
     ,'architecturalType' \
@@ -138,6 +144,8 @@ def getProperty():
                             StructField('planType', StringType(), True),
                             StructField('lotTypeCode', StringType(), True),
                             StructField('lotType', StringType(), True),
+                            StructField('planNumber', StringType(), True),
+                            StructField('lotNumber', StringType(), True),
                             StructField('sectionNumber', StringType(), True),
                             StructField('architecturalTypeCode', StringType(), True),
                             StructField('architecturalType', StringType(), True),
