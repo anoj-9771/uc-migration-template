@@ -1,0 +1,27 @@
+{
+	"name": "Trigger_Daily_11pm_ISU REF",
+	"properties": {
+		"annotations": [],
+		"runtimeState": "Started",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "01-Main",
+					"type": "PipelineReference"
+				},
+				"parameters": {
+					"TriggerName": "ISU REF"
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Minute",
+				"interval": 1,
+				"startTime": "2021-12-09T10:15:00",
+				"timeZone": "AUS Eastern Standard Time"
+			}
+		}
+	}
+}
