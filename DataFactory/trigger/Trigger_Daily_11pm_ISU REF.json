@@ -19,8 +19,8 @@
 			"recurrence": {
 				"frequency": "Minute",
 				"interval": 1,
-				"startTime": "2021-12-09T10:15:00",
-				"timeZone": "AUS Eastern Standard Time"
+				"startTime": "2021-12-09T11:18:00",
+				"timeZone": "UTC-11"
 			}
 		}
 	}
