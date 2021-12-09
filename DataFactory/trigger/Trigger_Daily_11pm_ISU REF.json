@@ -2,7 +2,7 @@
 	"name": "Trigger_Daily_11pm_ISU REF",
 	"properties": {
 		"annotations": [],
-		"runtimeState": "Started",
+		"runtimeState": "Stopped",
 		"pipelines": [
 			{
 				"pipelineReference": {
