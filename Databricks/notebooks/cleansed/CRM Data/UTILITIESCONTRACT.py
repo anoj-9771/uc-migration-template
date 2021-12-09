@@ -138,6 +138,7 @@ print("delta_column: " + delta_column)
 #Get the Data Load Mode using the params
 data_load_mode = GeneralGetDataLoadMode(Params[PARAMS_TRUNCATE_TARGET], Params[PARAMS_UPSERT_TARGET], Params[PARAMS_APPEND_TARGET])
 print("data_load_mode: " + data_load_mode)
+
 # COMMAND ----------
 
 # DBTITLE 1,9. Set raw and cleansed table name
@@ -175,7 +176,6 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_cleansed = spark.sql("SELECT \
-	SAPClient as sapClient, \
 	ItemUUID as headerUUID, \
 	PodUUID as podUUID, \
 	HeaderUUID as headerUUID, \
@@ -251,13 +251,12 @@ df_cleansed = spark.sql("SELECT \
 	to_date(CreationDate_E) as creationDateE, \
 	to_date(LastChangeDate_E) as lastChangedDateE, \
 	to_date(ContractStartDate_E) as contractStartDateE, \
-	case when ContractEndDate_E = 'na' then to_date('1900-01-01') else to_date(ContractEndDate_E) end as contractEndDateE, \
+	case when ContractEndDate_E = 'na' then to_date('1900-01-01','yyyy-MM-dd') else to_date(ContractEndDate_E,'yyyy-MM-dd') end as contractEndDateE, \
 	_RecordStart, \
 	_RecordEnd, \
 	_RecordDeleted, \
 	_RecordCurrent \
-	FROM {ADS_DATABASE_STAGE}.{source_object} \
-        ")
+	FROM {ADS_DATABASE_STAGE}.{source_object}")
 
 display(df_cleansed)
 print(f'Number of rows: {df_cleansed.count()}')
@@ -265,7 +264,6 @@ print(f'Number of rows: {df_cleansed.count()}')
 # COMMAND ----------
 
 newSchema = StructType([
-	StructField('sapClient',StringType(),True),
 	StructField('headerUUID',StringType(),True),
 	StructField('podUUID',StringType(),True),
 	StructField('headerUUID',StringType(),True),
@@ -356,6 +354,7 @@ df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
 DeltaSaveDataframeDirect(df_updated_column, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
+
 # COMMAND ----------
 
 # DBTITLE 1,13. Exit Notebook
