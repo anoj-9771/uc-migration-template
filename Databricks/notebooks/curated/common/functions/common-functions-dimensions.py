@@ -24,3 +24,7 @@
 # COMMAND ----------
 
 # MAGIC %run ./dimensions/BusinessPartnerGroup
+
+# COMMAND ----------
+
+# MAGIC %run ./dimensions/BusinessPartner
