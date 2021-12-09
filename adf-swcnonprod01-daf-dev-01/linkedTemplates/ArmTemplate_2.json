@@ -10,10 +10,6 @@
 		"DLY1300_properties_01-Main_parameters_TriggerName": {
 			"type": "string",
 			"defaultValue": "DLY1300"
-		},
-		"Trigger_Daily_11pm_ISU REF_properties_01-Main_parameters_TriggerName": {
-			"type": "string",
-			"defaultValue": "ISU REF"
 		}
 	},
 	"variables": {
@@ -5180,38 +5176,6 @@
 								13
 							]
 						}
-					}
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/pipelines/01-Main')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/Trigger_Daily_11pm_ISU REF')]",
-			"type": "Microsoft.DataFactory/factories/triggers",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"annotations": [],
-				"runtimeState": "Started",
-				"pipelines": [
-					{
-						"pipelineReference": {
-							"referenceName": "01-Main",
-							"type": "PipelineReference"
-						},
-						"parameters": {
-							"TriggerName": "[parameters('Trigger_Daily_11pm_ISU REF_properties_01-Main_parameters_TriggerName')]"
-						}
-					}
-				],
-				"type": "ScheduleTrigger",
-				"typeProperties": {
-					"recurrence": {
-						"frequency": "Minute",
-						"interval": 1,
-						"startTime": "2021-12-09T11:18:00",
-						"timeZone": "UTC-11"
 					}
 				}
 			},
