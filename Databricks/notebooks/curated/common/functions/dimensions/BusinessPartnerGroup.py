@@ -44,10 +44,7 @@ def getBusinessPartnerGroup():
                                       where a.businessPartnerCategoryCode = '3' \
                                       and a._RecordCurrent = 1 \
                                       and a._RecordDeleted = 0")
-
-    print(f'{isu0bpartnerAttrDf.count():,} rows in isu0bpartnerAttrDf')
-    display(isu0bpartnerAttrDf)
-    
+   
     crm0bpartnerAttrDf  = spark.sql(f"select b.businessPartnerNumber as businessPartnerGroupNumber, \
                                       b.paymentAssistSchemeIndicator as paymentAssistSchemeFlag, \
                                       b.billAssistIndicator as billAssistFlag, \
@@ -55,10 +52,7 @@ def getBusinessPartnerGroup():
                                       FROM {ADS_DATABASE_CLEANSED}.crm_0bpartner_attr b \
                                       where b.businessPartnerCategoryCode = '3' \
                                       and b._RecordCurrent = 1 \
-                                      and b._RecordDeleted = 0")                                    
-
-    print(f'{crm0bpartnerAttrDf.count():,} rows in crm0bpartnerAttrDf')
-    display(crm0bpartnerAttrDf)
+                                      and b._RecordDeleted = 0")      
     
     #Dummy Record to be added to Business Partner Group Dimension
     dummyDimRecDf = spark.createDataFrame([("ISU", "-1")], ["sourceSystemCode", "businessPartnerGroupNumber"])
@@ -69,8 +63,6 @@ def getBusinessPartnerGroup():
     df = df.select("sourceSystemCode","businessPartnerGroupNumber","validFromDate","validToDate", \
                                                 "businessPartnerGroupCode","businessPartnerGroup","businessPartnerGroupName1","businessPartnerGroupName2","externalNumber", \
                                                 "paymentAssistSchemeFlag","billAssistFlag","kidneyDialysisFlag","createdDateTime","createdBy","lastUpdatedDateTime","lastUpdatedBy") 
-    print(f'{df.count():,} rows in df')
-    display(df)
     
     #4.UNION TABLES
     df = df.unionByName(dummyDimRecDf, allowMissingColumns = True)

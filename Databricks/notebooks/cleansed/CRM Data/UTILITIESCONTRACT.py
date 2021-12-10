@@ -138,6 +138,7 @@ print("delta_column: " + delta_column)
 #Get the Data Load Mode using the params
 data_load_mode = GeneralGetDataLoadMode(Params[PARAMS_TRUNCATE_TARGET], Params[PARAMS_UPSERT_TARGET], Params[PARAMS_APPEND_TARGET])
 print("data_load_mode: " + data_load_mode)
+
 # COMMAND ----------
 
 # DBTITLE 1,9. Set raw and cleansed table name
@@ -174,9 +175,8 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_cleansed = spark.sql("SELECT \
-	SAPClient as sapClient, \
-	ItemUUID as headerUUID, \
+df_cleansed = spark.sql(f"SELECT \
+	ItemUUID as itemUUID, \
 	PodUUID as podUUID, \
 	HeaderUUID as headerUUID, \
 	case when UtilitiesContract = 'na' then '' else UtilitiesContract end as utilitiesContract, \
@@ -190,16 +190,16 @@ df_cleansed = spark.sql("SELECT \
 	PaymentTermsName as paymentTermsName, \
 	SoldToParty as soldToParty, \
 	SoldToPartyName as businessPartnerFullName, \
-	Division as division, \
+	Division as divisionCode, \
 	DivisionName as division, \
-	to_date(ContractStartDate) as contractStartDate, \
-	to_date(ContractEndDate) as contractEndDate, \
-	to_date(CreationDate) as creationDate, \
-	CreatedByUser as changedBy, \
-	to_date(LastChangeDate) as lastChangedDate, \
+	to_date(ContractStartDate,'yyyy-MM-dd') as contractStartDate, \
+	to_date(ContractEndDate,'yyyy-MM-dd') as contractEndDate, \
+	to_timestamp(cast(CreationDate as string), 'yyyyMMddHHmmss') as creationDate, \
+	CreatedByUser as createdBy, \
+	to_timestamp(cast(LastChangeDate as string), 'yyyyMMddHHmmss') as lastChangedDate, \
 	LastChangedByUser as changedBy, \
-	ItemCategory as headerCategory, \
-	ItemCategoryName as headerCategoryName, \
+	ItemCategory as itemCategory, \
+	ItemCategoryName as itemCategoryName, \
 	Product as product, \
 	ProductDescription as productDescription, \
 	ItemType as itemType, \
@@ -251,13 +251,12 @@ df_cleansed = spark.sql("SELECT \
 	to_date(CreationDate_E) as creationDateE, \
 	to_date(LastChangeDate_E) as lastChangedDateE, \
 	to_date(ContractStartDate_E) as contractStartDateE, \
-	case when ContractEndDate_E = 'na' then to_date('1900-01-01') else to_date(ContractEndDate_E) end as contractEndDateE, \
+	case when ContractEndDate_E = 'na' then to_date('1900-01-01','yyyy-MM-dd') else to_date(ContractEndDate_E,'yyyy-MM-dd') end as contractEndDateE, \
 	_RecordStart, \
 	_RecordEnd, \
 	_RecordDeleted, \
 	_RecordCurrent \
-	FROM {ADS_DATABASE_STAGE}.{source_object} \
-        ")
+	FROM {ADS_DATABASE_STAGE}.{source_object}")
 
 display(df_cleansed)
 print(f'Number of rows: {df_cleansed.count()}')
@@ -265,8 +264,7 @@ print(f'Number of rows: {df_cleansed.count()}')
 # COMMAND ----------
 
 newSchema = StructType([
-	StructField('sapClient',StringType(),True),
-	StructField('headerUUID',StringType(),True),
+	StructField('itemUUID',StringType(),True),
 	StructField('podUUID',StringType(),True),
 	StructField('headerUUID',StringType(),True),
 	StructField('utilitiesContract',StringType(),False),
@@ -280,16 +278,16 @@ newSchema = StructType([
 	StructField('paymentTermsName',StringType(),True),
 	StructField('soldToParty',StringType(),True),
 	StructField('businessPartnerFullName',StringType(),True),
-	StructField('division',StringType(),True),
+	StructField('divisionCode',StringType(),True),
 	StructField('division',StringType(),True),
 	StructField('contractStartDate',DateType(),True),
 	StructField('contractEndDate',DateType(),True),
-	StructField('creationDate',DateType(),True),
+	StructField('creationDate',TimestampType(),True),
+	StructField('createdBy',StringType(),True),
+	StructField('lastChangedDate',TimestampType(),True),
 	StructField('changedBy',StringType(),True),
-	StructField('lastChangedDate',DateType(),True),
-	StructField('changedBy',StringType(),True),
-	StructField('headerCategory',StringType(),True),
-	StructField('headerCategoryName',StringType(),True),
+	StructField('itemCategory',StringType(),True),
+	StructField('itemCategoryName',StringType(),True),
 	StructField('product',StringType(),True),
 	StructField('productDescription',StringType(),True),
 	StructField('itemType',StringType(),True),
@@ -356,6 +354,7 @@ df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
 DeltaSaveDataframeDirect(df_updated_column, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
+
 # COMMAND ----------
 
 # DBTITLE 1,13. Exit Notebook
