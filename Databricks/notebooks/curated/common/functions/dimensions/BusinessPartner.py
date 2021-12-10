@@ -128,7 +128,7 @@ def getBusinessPartner():
                             StructField('createdDateTime', TimestampType(), True),   
                             StructField('createdBy', StringType(), True), 
                             StructField('changedDateTime', TimestampType(), True), 
-                            StructField('changedBy', StringType(), True),        
+                            StructField('changedBy', StringType(), True)       
                       ]) 
 
     df = spark.createDataFrame(df.rdd, schema=newSchema)

@@ -51,47 +51,58 @@ def getBusinessPartnerGroupRelation():
                                       from {ADS_DATABASE_CURATED}.dimBusinessPartnerGroup \
                                       where _RecordCurrent = 1 and _RecordDeleted = 0")   
     
-    #4.Joins to derive SKs
-
+    dummyDimRecDf = spark.sql(f"select dimBusinessPartnerSK as dummyDimSK, sourceSystemCode, 'dimBusinessPartner' as dimension from {ADS_DATABASE_CURATED}.dimBusinessPartner where businessPartnerNumber = '-1' \
+                            union select dimBusinessPartnerGroupSK as dummyDimSK, sourceSystemCode, 'dimBusinessPartnerGroup' as dimension from {ADS_DATABASE_CURATED}.dimBusinessPartnerGroup \
+                                                                                                                                            where businessPartnerGroupNumber = '-1'")
     
-    #5.UNION TABLES
-    df = df.unionByName(dummyDimRecDf, allowMissingColumns = True)
+    
+    #4.Joins to derive SKs
+    isu0bpRelationsAttrDf = isu0bpRelationsAttrDf.join(dim0bpartnerDf, (isu0bpRelationsAttrDf.businessPartnerNumber == dim0bpartnerDf.businessPartnerNumber) \
+                               & (isu0bpRelationsAttrDf.sourceSystemCode == dim0bpartnerDf.sourceSystemCode) \
+                               & (isu0bpRelationsAttrDf.validFromDate >= dim0bpartnerDf.validFromDate) \
+                               & (isu0bpRelationsAttrDf.validToDate <= dim0bpartnerDf.validToDate), how="left") \
+                    .select(isu0bpRelationsAttrDf['*'], dim0bpartnerDf['dimPropertySK'])
+    
+    isu0bpRelationsAttrDf = isu0bpRelationsAttrDf.join(dim0bpGroupDf, (isu0bpRelationsAttrDf.businessPartnerGroupNumber == dim0bpGroupDf.businessPartnerGroupNumber) \
+                               & (isu0bpRelationsAttrDf.sourceSystemCode == dim0bpGroupDf.sourceSystemCode) \
+                               & (isu0bpRelationsAttrDf.validFromDate >= dim0bpGroupDf.validFromDate) \
+                               & (isu0bpRelationsAttrDf.validToDate <= dim0bpGroupDf.validToDate), how="left") \
+                    .select(isu0bpRelationsAttrDf['*'], dim0bpGroupDf['dimPropertySK'])
+    
+    #6.Joins to derive SKs of dummy dimension(-1) records, to be used when the lookup fails for dimensionSk
+  
+    isu0bpRelationsAttrDf = isu0bpRelationsAttrDf.join(dummyDimRecDf, (dummyDimRecDf.dimension == 'dimBusinessPartner') \
+                               & (isu0bpRelationsAttrDf.sourceSystemCode == dummyDimRecDf.sourceSystemCode), how="left") \
+                    .select(isu0bpRelationsAttrDf['*'], dummyDimRecDf['dummyDimSK'].alias('dummyBusinessPartnerSK'))
+    
+    isu0bpRelationsAttrDf = isu0bpRelationsAttrDf.join(dummyDimRecDf, (dummyDimRecDf.dimension == 'dimBusinessPartnerGroup') \
+                               & (isu0bpRelationsAttrDf.sourceSystemCode == dummyDimRecDf.sourceSystemCode), how="left") \
+                    .select(isu0bpRelationsAttrDf['*'], dummyDimRecDf['dummyDimSK'].alias('dummyBusinessPartnerGroupSK'))
+    
+    #7.SELECT / TRANSFORM
+    #aggregating to address any duplicates due to failed SK lookups and dummy SKs being assigned in those cases
+    isu0bpRelationsAttrDf = billedConsDf.selectExpr ( \
+                                           "sourceSystemCode" \
+                                          ,"coalesce(businessPartnerGroupNumber, dummyBusinessPartnerGroupSK) as businessPartnerGroupSK" \
+                                          ,"coalesce(businessPartnerNumber, dummyBusinessPartnerSK) as businessPartnerSK" \
+                                          ,"validFromDate" \
+                                          ,"validToDate" \
+                                          ,"relationshipNumber" \
+                                          ,"relationshipTypeCode" \
+                                          ,"relationshipType" \
+                                         ) 
+                            
     
     #6.Apply schema definition
     newSchema = StructType([
                             StructField('sourceSystemCode', StringType(), True),
-                            StructField('businessPartnerNumber', StringType(), True),
+                            StructField('businessPartnerGroupSK', StringType(), True),
+                            StructField('businessPartnerSK', StringType(), True),
                             StructField('validFromDate', DateType(), True),
                             StructField('validToDate', DateType(), True),
-                            StructField('businessPartnerCategoryCode', StringType(), True),
-                            StructField('businessPartnerCategory', StringType(), True),
-                            StructField('businessPartnerTypeCode', StringType(), True),
-                            StructField('businessPartnerType', StringType(), True),
-                            StructField('externalNumber', StringType(), True),       
-                            StructField('businessPartnerGUID', StringType(), True),
-                            StructField('firstName', StringType(), True),
-                            StructField('lastName', StringType(), True),
-                            StructField('middleName', StringType(), True),
-                            StructField('nickName', StringType(), True),
-                            StructField('titleCode', StringType(), True),
-                            StructField('title', StringType(), True),
-                            StructField('dateOfBirth', DateType(), True),                        
-                            StructField('dateOfDeath', DateType(), True), 
-                            StructField('warWidowFlag', StringType(), True), 
-                            StructField('deceasedFlag', StringType(), True), 
-                            StructField('disabilityFlag', StringType(), True), 
-                            StructField('goldCardHolderFlag', StringType(), True), 
-                            StructField('naturalPersonFlag', StringType(), True), 
-                            StructField('pensionCardFlag', StringType(), True), 
-                            StructField('pensionType', StringType(), True),        
-                            StructField('personNumber', StringType(), True), 
-                            StructField('personnelNumber', StringType(), True), 
-                            StructField('organizationName', StringType(), True), 
-                            StructField('organizationFoundedDate', DateType(), True), 
-                            StructField('createdDateTime', TimestampType(), True),   
-                            StructField('createdBy', StringType(), True), 
-                            StructField('changedDateTime', TimestampType(), True), 
-                            StructField('changedBy', StringType(), True),        
+                            StructField('relationshipNumber', StringType(), True),
+                            StructField('relationshipTypeCode', StringType(), True),
+                            StructField('relationshipType', StringType(), True)
                       ]) 
 
     df = spark.createDataFrame(df.rdd, schema=newSchema)
