@@ -50,7 +50,7 @@ def getBusinessPartner():
                                       personnelNumber, \
                                       case when businessPartnerCategoryCode = '2' then \
                                                       concat(coalesce(organizationName1, ''), ' ', coalesce(organizationName2, ''), ' ',coalesce(organizationName3, '')) else organizationName1 end as organizationName, \
-                                      case when businessPartnerCategoryCode = '2' then organizationFoundedDate else '' end as organizationFoundedDate, \
+                                      case when businessPartnerCategoryCode = '2' then organizationFoundedDate else null end as organizationFoundedDate, \
                                       createdDateTime, \
                                       createdBy, \
                                       changedDateTime, \
@@ -59,10 +59,8 @@ def getBusinessPartner():
                                       where businessPartnerCategoryCode in ('1','2') \
                                       and _RecordCurrent = 1 \
                                       and _RecordDeleted = 0")
-
-    print(f'{isu0bpartnerAttrDf.count():,} rows in isu0bpartnerAttrDf')
-    display(isu0bpartnerAttrDf)
     
+    #Business Partner Data from SAP CRM
     crm0bpartnerAttrDf  = spark.sql(f"select businessPartnerNumber, \
                                       case when warWidowIndicator = 'X' then 'Y' else 'N' end as warWidowFlag, \
                                       case when deceasedIndicator = 'X' then 'Y' else 'N' end as deceasedFlag, \
@@ -74,10 +72,7 @@ def getBusinessPartner():
                                       FROM {ADS_DATABASE_CLEANSED}.crm_0bpartner_attr \
                                       where businessPartnerCategoryCode in ('1','2') \
                                       and _RecordCurrent = 1 \
-                                      and _RecordDeleted = 0")                                    
-
-    print(f'{crm0bpartnerAttrDf.count():,} rows in crm0bpartnerAttrDf')
-    display(crm0bpartnerAttrDf)
+                                      and _RecordDeleted = 0")  
     
     #Dummy Record to be added to Business Partner Group Dimension
     dummyDimRecDf = spark.createDataFrame([("ISU", "-1")], ["sourceSystemCode", "businessPartnerNumber"])
@@ -95,8 +90,6 @@ def getBusinessPartner():
                    "businessPartnerGUID", "firstName", "lastName", "middleName", "nickName", "titleCode", "title", "dateOfBirth", "dateOfDeath", \
                    "warWidowFlag", "deceasedFlag", "disabilityFlag", "goldCardHolderFlag", "naturalPersonFlag", "pensionCardFlag", "pensionType", \
                    "personNumber","personnelNumber","organizationName","organizationFoundedDate","createdDateTime","createdBy","changedDateTime", "changedBy") 
-    print(f'{df.count():,} rows in df')
-    display(df)
     
     #4.UNION TABLES
     df = df.unionByName(dummyDimRecDf, allowMissingColumns = True)
