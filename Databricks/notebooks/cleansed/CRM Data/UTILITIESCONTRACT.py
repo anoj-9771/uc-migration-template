@@ -175,8 +175,8 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_cleansed = spark.sql("SELECT \
-	ItemUUID as headerUUID, \
+df_cleansed = spark.sql(f"SELECT \
+	ItemUUID as itemUUID, \
 	PodUUID as podUUID, \
 	HeaderUUID as headerUUID, \
 	case when UtilitiesContract = 'na' then '' else UtilitiesContract end as utilitiesContract, \
@@ -190,16 +190,16 @@ df_cleansed = spark.sql("SELECT \
 	PaymentTermsName as paymentTermsName, \
 	SoldToParty as soldToParty, \
 	SoldToPartyName as businessPartnerFullName, \
-	Division as division, \
+	Division as divisionCode, \
 	DivisionName as division, \
-	to_date(ContractStartDate) as contractStartDate, \
-	to_date(ContractEndDate) as contractEndDate, \
-	to_date(CreationDate) as creationDate, \
-	CreatedByUser as changedBy, \
-	to_date(LastChangeDate) as lastChangedDate, \
+	to_date(ContractStartDate,'yyyy-MM-dd') as contractStartDate, \
+	to_date(ContractEndDate,'yyyy-MM-dd') as contractEndDate, \
+	to_timestamp(cast(CreationDate as string), 'yyyyMMddHHmmss') as creationDate, \
+	CreatedByUser as createdBy, \
+	to_timestamp(cast(LastChangeDate as string), 'yyyyMMddHHmmss') as lastChangedDate, \
 	LastChangedByUser as changedBy, \
-	ItemCategory as headerCategory, \
-	ItemCategoryName as headerCategoryName, \
+	ItemCategory as itemCategory, \
+	ItemCategoryName as itemCategoryName, \
 	Product as product, \
 	ProductDescription as productDescription, \
 	ItemType as itemType, \
@@ -264,7 +264,7 @@ print(f'Number of rows: {df_cleansed.count()}')
 # COMMAND ----------
 
 newSchema = StructType([
-	StructField('headerUUID',StringType(),True),
+	StructField('itemUUID',StringType(),True),
 	StructField('podUUID',StringType(),True),
 	StructField('headerUUID',StringType(),True),
 	StructField('utilitiesContract',StringType(),False),
@@ -278,16 +278,16 @@ newSchema = StructType([
 	StructField('paymentTermsName',StringType(),True),
 	StructField('soldToParty',StringType(),True),
 	StructField('businessPartnerFullName',StringType(),True),
-	StructField('division',StringType(),True),
+	StructField('divisionCode',StringType(),True),
 	StructField('division',StringType(),True),
 	StructField('contractStartDate',DateType(),True),
 	StructField('contractEndDate',DateType(),True),
-	StructField('creationDate',DateType(),True),
+	StructField('creationDate',TimestampType(),True),
+	StructField('createdBy',StringType(),True),
+	StructField('lastChangedDate',TimestampType(),True),
 	StructField('changedBy',StringType(),True),
-	StructField('lastChangedDate',DateType(),True),
-	StructField('changedBy',StringType(),True),
-	StructField('headerCategory',StringType(),True),
-	StructField('headerCategoryName',StringType(),True),
+	StructField('itemCategory',StringType(),True),
+	StructField('itemCategoryName',StringType(),True),
 	StructField('product',StringType(),True),
 	StructField('productDescription',StringType(),True),
 	StructField('itemType',StringType(),True),
