@@ -1,9 +1,4 @@
 # Databricks notebook source
-# MAGIC %sql
-# MAGIC select * from cleansed.hydra_tlotparcel
-
-# COMMAND ----------
-
 ###########################################################################################################################
 # Function: getLocation
 #  GETS Location DIMENSION 
@@ -60,10 +55,10 @@ def getLocation():
 
     #5.SELECT / TRANSFORM
     HydraLocationDf = HydraLocationDf.selectExpr( \
-     "LocationID" \
+     "locationID" \
     ,"formattedAddress" \
     ,"streetName" \
-    ,"StreetType" \
+    ,"streetType" \
     ,"LGA" \
     ,"suburb" \
     ,"state" \
@@ -74,10 +69,10 @@ def getLocation():
 
     #6.Apply schema definition
     newSchema = StructType([
-                            StructField("LocationID", IntegerType(), False),
+                            StructField("locationID", StringType(), False),
                             StructField("formattedAddress", StringType(), True),
                             StructField("streetName", StringType(), True),
-                            StructField("StreetType", StringType(), True),
+                            StructField("streetType", StringType(), True),
                             StructField("LGA", StringType(), True),
                             StructField("suburb", StringType(), True),
                             StructField("state", StringType(), True),

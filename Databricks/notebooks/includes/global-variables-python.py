@@ -6,6 +6,7 @@
 #Please ensure the name of the scope matches with the scope name created in the environment
 ADS_KV_ACCOUNT_SCOPE = "ADS"
 
+
 # COMMAND ----------
 
 ADS_DATABASE_NAME = "ControlDB"
@@ -31,7 +32,8 @@ ADS_RESOURCE_GROUP =  "rg-" + ADS_SUBSCRIPTION + "-daf-" + ADS_ENVIRONMENT + "-0
 ADS_SYN_DATABASE_NAME = "syndw" + ADS_ENVIRONMENT + "01"
 ADS_SYN_DATABASE_USERNAME = "svc_synapse1"
 ADS_KV_SYN_DB_PWD_SECRET_KEY = "daf-syn-d-sqlpool-password"
-ADS_SYNAPSE_DB_SERVER = "synws-swcnonprod01-daf-" + ADS_ENVIRONMENT + "-01" 
+
+ADS_SYNAPSE_DB_SERVER = "synws-" + ADS_SUBSCRIPTION + "-daf-" + ADS_ENVIRONMENT + "-01" 
 
 # COMMAND ----------
 

@@ -3,7 +3,7 @@
 import json
 #For unit testing...
 #Use this string in the Param widget: 
-#{"SourceType": "BLOB Storage (json)", "SourceServer": "daf-sa-lake-sastoken", "SourceGroup": "CRM", "SourceName": "CRM_UTILITIESCONTRACT", "SourceLocation": "CRM/UTILITIESCONTRACT", "AdditionalProperty": "", "Processor": "databricks-token|0711-011053-turfs581|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive", "IsAuditTable": false, "SoftDeleteSource": "", "ProjectName": "CRM DATA", "ProjectId": 2, "TargetType": "BLOB Storage (json)", "TargetName": "CRM_UTILITIESCONTRACT", "TargetLocation": "CRM/UTILITIESCONTRACT", "TargetServer": "daf-sa-lake-sastoken", "DataLoadMode": "FULL-EXTRACT", "DeltaExtract": false, "CDCSource": false, "TruncateTarget": false, "UpsertTarget": true, "AppendTarget": null, "TrackChanges": false, "LoadToSqlEDW": true, "TaskName": "CRM_UTILITIESCONTRACT", "ControlStageId": 2, "TaskId": 46, "StageSequence": 200, "StageName": "Raw to Cleansed", "SourceId": 46, "TargetId": 46, "ObjectGrain": "Day", "CommandTypeId": 8, "Watermarks": "", "WatermarksDT": null, "WatermarkColumn": "", "BusinessKeyColumn": "", "UpdateMetaData": null, "SourceTimeStampFormat": "", "Command": "", "LastLoadedFile": null}
+#{"SourceType": "BLOB Storage (json)", "SourceServer": "daf-sa-lake-sastoken", "SourceGroup": "CRM", "SourceName": "CRM_UTILITIESCONTRACT", "SourceLocation": "CRM/UTILITIESCONTRACT", "AdditionalProperty": "", "Processor": "databricks-token|0711-011053-turfs581|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive", "IsAuditTable": false, "SoftDeleteSource": "", "ProjectName": "CRM DATA", "ProjectId": 2, "TargetType": "BLOB Storage (json)", "TargetName": "CRM_UTILITIESCONTRACT", "TargetLocation": "CRM/UTILITIESCONTRACT", "TargetServer": "daf-sa-lake-sastoken", "DataLoadMode": "FULL-EXTRACT", "DeltaExtract": false, "CDCSource": false, "TruncateTarget": false, "UpsertTarget": true, "AppendTarget": null, "TrackChanges": false, "LoadToSqlEDW": true, "TaskName": "CRM_UTILITIESCONTRACT", "ControlStageId": 2, "TaskId": 46, "StageSequence": 200, "StageName": "Raw to Cleansed", "SourceId": 46, "TargetId": 46, "ObjectGrain": "Day", "CommandTypeId": 8, "Watermarks": "", "WatermarksDT": null, "WatermarkColumn": "", "BusinessKeyColumn": "utilitiesContract,contractEndDateE", "UpdateMetaData": null, "SourceTimeStampFormat": "", "Command": "", "LastLoadedFile": null}
 
 #Use this string in the Source Object widget
 #CRM_UTILITIESCONTRACT
@@ -175,10 +175,53 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_cleansed = spark.sql("SELECT \
+	SAPClient as sapClient, \
+	ItemUUID as headerUUID, \
+	PodUUID as podUUID, \
 	HeaderUUID as headerUUID, \
+	case when UtilitiesContract = 'na' then '' else UtilitiesContract end as utilitiesContract, \
+	BusinessPartner as businessPartnerGroupNumber, \
+	BusinessPartnerFullName as businessPartnerGroupName, \
+	BusinessAgreement as businessAgreement, \
+	BusinessAgreementUUID as businessAgreementUUID, \
+	IncomingPaymentMethod as incomingPaymentMethod, \
+	IncomingPaymentMethodName as incomingPaymentMethodName, \
+	PaymentTerms as paymentTerms, \
+	PaymentTermsName as paymentTermsName, \
+	SoldToParty as soldToParty, \
+	SoldToPartyName as businessPartnerFullName, \
+	Division as division, \
+	DivisionName as division, \
+	to_date(ContractStartDate) as contractStartDate, \
+	to_date(ContractEndDate) as contractEndDate, \
+	to_date(CreationDate) as creationDate, \
+	CreatedByUser as changedBy, \
+	to_date(LastChangeDate) as lastChangedDate, \
+	LastChangedByUser as changedBy, \
+	ItemCategory as headerCategory, \
+	ItemCategoryName as headerCategoryName, \
+	Product as product, \
+	ProductDescription as productDescription, \
+	ItemType as itemType, \
+	ItemTypeName as itemTypeName, \
+	ProductType as productType, \
 	HeaderType as headerType, \
+	HeaderTypeName as headerTypeName, \
 	HeaderCategory as headerCategory, \
+	HeaderCategoryName as headerCategoryName, \
 	HeaderDescription as headerDescription, \
+	IsDeregulationPod as isDeregulationPod, \
+	UtilitiesPremise as premise, \
+	NumberOfPersons as numberOfPersons, \
+	CityName as cityName, \
+	StreetName as streetName, \
+	HouseNumber as houseNumber, \
+	PostalCode as postalCode, \
+	Building as building, \
+	AddressTimeZone as addressTimeZone, \
+	CountryName as countryName, \
+	RegionName as regionName, \
+	NumberOfContractChanges as numberOfContractChanges, \
 	IsOpen as isOpen, \
 	IsDistributed as isDistributed, \
 	HasError as hasError, \
@@ -187,10 +230,28 @@ df_cleansed = spark.sql("SELECT \
 	IsStartedDueToProductChange as isStartedDueToProductChange, \
 	IsInActivation as isInActivation, \
 	IsInDeactivation as isInDeactivation, \
+	IsCancelled as isCancelled, \
 	CancellationMessageIsCreated as cancellationMessageIsCreated, \
 	SupplyEndCanclnMsgIsCreated as supplyEndCanclInMsgIsCreated, \
 	ActivationIsRejected as activationIsRejected, \
 	DeactivationIsRejected as deactivationIsRejected, \
+	cast(NumberOfContracts as int) as numberOfContracts, \
+	cast(NumberOfActiveContracts as int) as numberOfActiveContracts, \
+	cast(NumberOfIncompleteContracts as int) as numberOfIncompleteContracts, \
+	cast(NumberOfDistributedContracts as int) as numberOfDistributedContracts, \
+	cast(NmbrOfContractsToBeDistributed as int) as numberOfContractsToBeDistributed, \
+	cast(NumberOfBlockedContracts as int) as numberOfBlockedContracts, \
+	cast(NumberOfCancelledContracts as int) as numberOfCancelledContracts, \
+	cast(NumberOfProductChanges as int) as numberOfProductChanges, \
+	cast(NmbrOfContractsWProductChanges as int) as numberOfContractsWProductChanges, \
+	cast(NmbrOfContrWthEndOfSupRjctd as int) as numberOfContrWthEndOfSupRjctd, \
+	cast(NmbrOfContrWthStartOfSupRjctd as int) as numberOfContrWthStartOfSupRjctd, \
+	cast(NmbrOfContrWaitingForEndOfSup as int) as numberOfContrWaitingForEndOfSup, \
+	cast(NmbrOfContrWaitingForStrtOfSup as int) as numberOfContrWaitingForStrtOfSup, \
+	to_date(CreationDate_E) as creationDateE, \
+	to_date(LastChangeDate_E) as lastChangedDateE, \
+	to_date(ContractStartDate_E) as contractStartDateE, \
+	case when ContractEndDate_E = 'na' then to_date('1900-01-01') else to_date(ContractEndDate_E) end as contractEndDateE, \
 	_RecordStart, \
 	_RecordEnd, \
 	_RecordDeleted, \
@@ -204,10 +265,53 @@ print(f'Number of rows: {df_cleansed.count()}')
 # COMMAND ----------
 
 newSchema = StructType([
+	StructField('sapClient',StringType(),True),
 	StructField('headerUUID',StringType(),True),
-	StructField('headerType',StringType(),True),
+	StructField('podUUID',StringType(),True),
+	StructField('headerUUID',StringType(),True),
+	StructField('utilitiesContract',StringType(),False),
+	StructField('businessPartnerGroupNumber',StringType(),True),
+	StructField('businessPartnerGroupName',StringType(),True),
+	StructField('businessAgreement',StringType(),True),
+	StructField('businessAgreementUUID',StringType(),True),
+	StructField('incomingPaymentMethod',StringType(),True),
+	StructField('incomingPaymentMethodName',StringType(),True),
+	StructField('paymentTerms',StringType(),True),
+	StructField('paymentTermsName',StringType(),True),
+	StructField('soldToParty',StringType(),True),
+	StructField('businessPartnerFullName',StringType(),True),
+	StructField('division',StringType(),True),
+	StructField('division',StringType(),True),
+	StructField('contractStartDate',DateType(),True),
+	StructField('contractEndDate',DateType(),True),
+	StructField('creationDate',DateType(),True),
+	StructField('changedBy',StringType(),True),
+	StructField('lastChangedDate',DateType(),True),
+	StructField('changedBy',StringType(),True),
 	StructField('headerCategory',StringType(),True),
+	StructField('headerCategoryName',StringType(),True),
+	StructField('product',StringType(),True),
+	StructField('productDescription',StringType(),True),
+	StructField('itemType',StringType(),True),
+	StructField('itemTypeName',StringType(),True),
+	StructField('productType',StringType(),True),
+	StructField('headerType',StringType(),True),
+	StructField('headerTypeName',StringType(),True),
+	StructField('headerCategory',StringType(),True),
+	StructField('headerCategoryName',StringType(),True),
 	StructField('headerDescription',StringType(),True),
+	StructField('isDeregulationPod',StringType(),True),
+	StructField('premise',StringType(),True),
+	StructField('numberOfPersons',StringType(),True),
+	StructField('cityName',StringType(),True),
+	StructField('streetName',StringType(),True),
+	StructField('houseNumber',StringType(),True),
+	StructField('postalCode',StringType(),True),
+	StructField('building',StringType(),True),
+	StructField('addressTimeZone',StringType(),True),
+	StructField('countryName',StringType(),True),
+	StructField('regionName',StringType(),True),
+	StructField('numberOfContractChanges',StringType(),True),
 	StructField('isOpen',StringType(),True),
 	StructField('isDistributed',StringType(),True),
 	StructField('hasError',StringType(),True),
@@ -216,10 +320,28 @@ newSchema = StructType([
 	StructField('isStartedDueToProductChange',StringType(),True),
 	StructField('isInActivation',StringType(),True),
 	StructField('isInDeactivation',StringType(),True),
+	StructField('isCancelled',StringType(),True),
 	StructField('cancellationMessageIsCreated',StringType(),True),
 	StructField('supplyEndCanclInMsgIsCreated',StringType(),True),
 	StructField('activationIsRejected',StringType(),True),
 	StructField('deactivationIsRejected',StringType(),True),
+	StructField('numberOfContracts',IntegerType(),True),
+	StructField('numberOfActiveContracts',IntegerType(),True),
+	StructField('numberOfIncompleteContracts',IntegerType(),True),
+	StructField('numberOfDistributedContracts',IntegerType(),True),
+	StructField('numberOfContractsToBeDistributed',IntegerType(),True),
+	StructField('numberOfBlockedContracts',IntegerType(),True),
+	StructField('numberOfCancelledContracts',IntegerType(),True),
+	StructField('numberOfProductChanges',IntegerType(),True),
+	StructField('numberOfContractsWProductChanges',IntegerType(),True),
+	StructField('numberOfContrWthEndOfSupRjctd',IntegerType(),True),
+	StructField('numberOfContrWthStartOfSupRjctd',IntegerType(),True),
+	StructField('numberOfContrWaitingForEndOfSup',IntegerType(),True),
+	StructField('numberOfContrWaitingForStrtOfSup',IntegerType(),True),
+	StructField('creationDateE',DateType(),True),
+	StructField('lastChangedDateE',DateType(),True),
+	StructField('contractStartDateE',DateType(),True),
+	StructField('contractEndDateE',DateType(),False),
 	StructField('_RecordStart',TimestampType(),False),
 	StructField('_RecordEnd',TimestampType(),False),
 	StructField('_RecordDeleted',IntegerType(),False),

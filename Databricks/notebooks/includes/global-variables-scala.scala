@@ -21,7 +21,7 @@ val ADS_DATABASE_CURATED = "curated"
 
 // COMMAND ----------
 
-val ADS_DB_SERVER = "sql-swcnonprod01-daf-dev-01.database.windows.net" //ADS_COMPANY_INITIAL + "-sql-dp-" + ADS_ENVIRONMENT + "-" + ADS_SUFFIX + ".database.windows.net"
+val ADS_DB_SERVER = "sql-" + ADS_SUBSCRIPTION + "-daf-"+ ADS_ENVIRONMENT + "-01.database.windows.net" //ADS_COMPANY_INITIAL + "-sql-dp-" + ADS_ENVIRONMENT + "-" + ADS_SUFFIX + ".database.windows.net"
 
 // COMMAND ----------
 
@@ -40,7 +40,7 @@ val ADS_SYN_DATABASE_NAME = "syndw"+ ADS_ENVIRONMENT + "01"
 val ADS_SYN_DATABASE_USERNAME = "svc_synapse1"
 val ADS_KV_SYN_DB_PWD_SECRET_KEY = "daf-syn-d-sqlpool-password"
 
-val ADS_SYNAPSE_DB_SERVER = "synws-swcnonprod01-daf-"+ ADS_ENVIRONMENT + "-01" 
+val ADS_SYNAPSE_DB_SERVER = "synws-" + ADS_SUBSCRIPTION + "-daf-" + ADS_ENVIRONMENT + "-01"
 
 // COMMAND ----------
 
