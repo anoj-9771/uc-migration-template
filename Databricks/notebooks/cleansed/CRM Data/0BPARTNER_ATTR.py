@@ -259,18 +259,18 @@ df_cleansed = spark.sql(f"SELECT \
 	BP._RecordDeleted, \
 	BP._RecordCurrent \
 	FROM {ADS_DATABASE_STAGE}.{source_object} BP \
-                               LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0BPARTNER_TEXT BP_TXT \
+                               LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.crm_0BPARTNER_TEXT BP_TXT \
                                  ON BP.PARTNER = BP_TXT.businessPartnerNumber AND BP.TYPE =BP_TXT.businessPartnerCategoryCode \
                                                                               AND BP_TXT._RecordDeleted = 0 AND BP_TXT._RecordCurrent = 1 \
                                LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.crm_0BPTYPE_TEXT BPTYPE ON BP.BPKIND = BPTYPE.businessPartnerTypeCode \
                                                                               AND BPTYPE._RecordDeleted = 0 AND BPTYPE._RecordCurrent = 1 \
-                               LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0BP_GROUP_TEXT BPGRP ON BP.BU_GROUP = BPGRP.businessPartnerGroupCode \
+                               LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.crm_0BP_GROUP_TEXT BPGRP ON BP.BU_GROUP = BPGRP.businessPartnerGroupCode \
                                                                               AND BPGRP._RecordDeleted = 0 AND BPGRP._RecordCurrent = 1 \
-                               LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_TSAD3T TITLE ON BP.TITLE = TITLE.titlecode \
+                               LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.crm_TSAD3T TITLE ON BP.TITLE = TITLE.titlecode \
                                                                               AND TITLE._RecordDeleted = 0 AND TITLE._RecordCurrent = 1 \
-                               LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_TSAD3T ZZTITLE ON BP.ZZTITLE = ZZTITLE.titlecode \
+                               LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.crm_TSAD3T ZZTITLE ON BP.ZZTITLE = ZZTITLE.titlecode \
                                                                               AND ZZTITLE._RecordDeleted = 0 AND ZZTITLE._RecordCurrent = 1 \
-                               LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_TSAD3T TITLE_ACA1 ON BP.TITLE_ACA1 = TITLE_ACA1.titlecode \
+                               LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.crm_TSAD3T TITLE_ACA1 ON BP.TITLE_ACA1 = TITLE_ACA1.titlecode \
                                                                               AND TITLE_ACA1._RecordDeleted = 0 AND TITLE_ACA1._RecordCurrent = 1")
 
 display(df_cleansed)
