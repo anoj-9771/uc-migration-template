@@ -258,7 +258,7 @@ df_cleansed = spark.sql(f"SELECT \
 	BP._RecordEnd, \
 	BP._RecordDeleted, \
 	BP._RecordCurrent \
-	FROM {ADS_DATABASE_STAGE}.{source_object} BP \
+	FROM {ADS_DATABASE_STAGE}.{source_object}  BP \
                                LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.crm_0BPARTNER_TEXT BP_TXT \
                                  ON BP.PARTNER = BP_TXT.businessPartnerNumber AND BP.TYPE =BP_TXT.businessPartnerCategoryCode \
                                                                               AND BP_TXT._RecordDeleted = 0 AND BP_TXT._RecordCurrent = 1 \
