@@ -27,6 +27,11 @@
 
 # COMMAND ----------
 
+# DBTITLE 1,2. Include all bridge tables related user function for the notebook
+# MAGIC %run ./functions/common-functions-bridgeTables
+
+# COMMAND ----------
+
 # DBTITLE 1,3. Include all fact related user function for the notebook
 # MAGIC %run ./functions/common-functions-facts
 
