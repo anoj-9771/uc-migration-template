@@ -2,17 +2,16 @@
 ##################################################################
 #Master Notebook
 #1.Include all util user function for the notebook
-#2.Include all dimension user function for the notebook
-#3.Include all fact related user function for the notebook
-#4.Define and get Widgets/Parameters
-#5.Spark Config
-#6.Function: Load data into Curated delta table
-#7.Function: Load Dimensions
-#8.Function: Create stage and curated database if not exist
-#9.Flag Dimension/Fact load
-#10.Function: Main - ETL
-#11.Call Main function
-#12.Exit Notebook
+#2.Include all dimension/bridge/fact user function for the notebook
+#3.Define and get Widgets/Parameters
+#4.Spark Config
+#5.Function: Load data into Curated delta table
+#6.Function: Load Dimensions/Bridge/Facts
+#7.Function: Create stage and curated database if not exist
+#8.Flag Dimension/Bridge/Fact load
+#9.Function: Main - ETL
+#10.Call Main function
+#11.Exit Notebook
 ##################################################################
 
 # COMMAND ----------
@@ -97,62 +96,86 @@ spark.conf.set("spark.sql.autoBroadcastJoinThreshold", 0)
 
 # DBTITLE 1,5. Function: Load data into Curated delta table
 def TemplateEtl(df : object, entity, businessKey, AddSK = True):
-  rawEntity = entity
-  entity = GeneralToPascalCase(rawEntity)
-  LogEtl(f"Starting {entity}.")
-  
-  v_COMMON_SQL_SCHEMA = "dbo"
-  v_COMMON_CURATED_DATABASE = "curated"
-  v_COMMON_DATALAKE_FOLDER = "curated"
-  
-  DeltaSaveDataFrameToDeltaTable(df, 
-                                 rawEntity, 
-                                 ADS_DATALAKE_ZONE_CURATED, 
-                                 v_COMMON_CURATED_DATABASE, 
-                                 v_COMMON_DATALAKE_FOLDER, 
-                                 ADS_WRITE_MODE_MERGE, 
-                                 track_changes = True, 
-                                 is_delta_extract = False, 
-                                 business_key = businessKey, 
-                                 AddSKColumn = AddSK, 
-                                 delta_column = "", 
-                                 start_counter = "0", 
-                                 end_counter = "0")
+    rawEntity = entity
+    entity = GeneralToPascalCase(rawEntity)
+    LogEtl(f"Starting {entity}.")
 
-  delta_table = f"{v_COMMON_CURATED_DATABASE}.{rawEntity}"
-  print(delta_table)
-  dw_table = f"{v_COMMON_SQL_SCHEMA}.{rawEntity}"
-  print(dw_table)
+    v_COMMON_SQL_SCHEMA = "dbo"
+    v_COMMON_CURATED_DATABASE = "curated"
+    v_COMMON_DATALAKE_FOLDER = "curated"
 
-  maxDate = SynapseExecuteSQLRead("SELECT isnull(cast(max([_RecordStart]) as varchar(50)),'2000-01-01') as maxval FROM " + dw_table + " ").first()["maxval"]
-  print(maxDate)
-  
-  DeltaSyncToSQLDW(delta_table, v_COMMON_SQL_SCHEMA, entity, businessKey, start_counter = maxDate, data_load_mode = ADS_WRITE_MODE_MERGE, additional_property = "")
-    
-  LogEtl(f"Finished {entity}.")
+    DeltaSaveDataFrameToDeltaTable(df, 
+                                   rawEntity, 
+                                   ADS_DATALAKE_ZONE_CURATED, 
+                                   v_COMMON_CURATED_DATABASE, 
+                                   v_COMMON_DATALAKE_FOLDER, 
+                                   ADS_WRITE_MODE_MERGE, 
+                                   track_changes = True, 
+                                   is_delta_extract = False, 
+                                   business_key = businessKey, 
+                                   AddSKColumn = AddSK, 
+                                   delta_column = "", 
+                                   start_counter = "0", 
+                                   end_counter = "0")
+
+    delta_table = f"{v_COMMON_CURATED_DATABASE}.{rawEntity}"
+    print(delta_table)
+    dw_table = f"{v_COMMON_SQL_SCHEMA}.{rawEntity}"
+    print(dw_table)
+
+    maxDate = SynapseExecuteSQLRead("SELECT isnull(cast(max([_RecordStart]) as varchar(50)),'2000-01-01') as maxval FROM " + dw_table + " ").first()["maxval"]
+    print(maxDate)
+
+    DeltaSyncToSQLDW(delta_table, v_COMMON_SQL_SCHEMA, entity, businessKey, start_counter = maxDate, data_load_mode = ADS_WRITE_MODE_MERGE, additional_property = "")
+
+    LogEtl(f"Finished {entity}.")
 
 # COMMAND ----------
 
 # DBTITLE 1,6.1 Function: Load Dimensions
+#Call BusinessPartner function to load DimBusinessPartnerGroup
+def businessPartner():
+    TemplateEtl(df=getBusinessPartner(), 
+             entity="dimBusinessPartner", 
+             businessKey="businessPartnerNumber,sourceSystemCode",
+             AddSK=True
+            )  
+
+#Call BusinessPartnerGroup function to load DimBusinessPartnerGroup
+def businessPartnerGroup():
+    TemplateEtl(df=getBusinessPartnerGroup(), 
+             entity="dimBusinessPartnerGroup", 
+             businessKey="businessPartnerGroupNumber,sourceSystemCode",
+             AddSK=True
+            )    
+
+#Call BillingDocumentSapisu function to load DimBillingDocument
+def billingDocumentIsu():
+    TemplateEtl(df=getBillingDocumentIsu(), 
+             entity="dimBillingDocument", 
+             businessKey="sourceSystemCode,billingDocumentNumber",
+             AddSK=True
+            )
+
+#Call Contract function to load DimContract
+def contract():
+    TemplateEtl(df=getContract(), 
+             entity="dimContract", 
+             businessKey="contractId,validFromDate",
+             AddSK=True
+            )  
+
 #Call Date function to load DimDate
 def date():
-  TemplateEtl(df=getDate(), 
+    TemplateEtl(df=getDate(), 
              entity="dimDate", 
              businessKey="calendarDate",
              AddSK=True
             )
 
-#Call Property function to load DimProperty
-def property():
-  TemplateEtl(df=getProperty(), 
-             entity="dimProperty", 
-             businessKey="propertyId,sourceSystemCode,propertyEndDate",
-             AddSK=True
-            )
-
 #Call Location function to load DimLocation
 def location():
-  TemplateEtl(df=getLocation(), 
+    TemplateEtl(df=getLocation(), 
              entity="dimLocation", 
              businessKey="locationId",
              AddSK=True
@@ -160,37 +183,13 @@ def location():
 
 #Call Meter function to load DimMeter
 def meter():
-  TemplateEtl(df=getMeter(), 
+    TemplateEtl(df=getMeter(), 
              entity="dimMeter", 
              businessKey="meterNumber,sourceSystemCode",
              AddSK=True
             )
 
-#Call BillingDocumentSapisu function to load DimBillingDocument
-def billingDocumentIsu():
-  TemplateEtl(df=getBillingDocumentIsu(), 
-             entity="dimBillingDocument", 
-             businessKey="sourceSystemCode,billingDocumentNumber",
-             AddSK=True
-            )
-
-#Call BusinessPartnerGroup function to load DimBusinessPartnerGroup
-def businessPartnerGroup():
-  TemplateEtl(df=getBusinessPartnerGroup(), 
-             entity="dimBusinessPartnerGroup", 
-             businessKey="businessPartnerGroupNumber,sourceSystemCode",
-             AddSK=True
-            )    
-  
-#Call BusinessPartner function to load DimBusinessPartnerGroup
-def businessPartner():
-  TemplateEtl(df=getBusinessPartner(), 
-             entity="dimBusinessPartner", 
-             businessKey="businessPartnerNumber,sourceSystemCode",
-             AddSK=True
-            )  
-
-# Add New Dim here
+# Add New Dim in alphabetical order
 # def Dim2_Example():
 #   TemplateEtl(df=GetDim2Example(), 
 #              entity="Dim2Example",
@@ -204,13 +203,13 @@ def businessPartner():
 # DBTITLE 1,6.2 Function: Load Bridge Tables
 #Call Business Partner Group Relation function to load brgBusinessPartnerGroupRelation
 def businessPartnerGroupRelation():
-  TemplateEtl(df=getBusinessPartnerGroupRelation(), 
+    TemplateEtl(df=getBusinessPartnerGroupRelation(), 
              entity="brgBusinessPartnerGroupRelation", 
              businessKey="businessPartnerGroupSK,businessPartnerSK,validFromDate",
              AddSK=False
             ) 
 
-# Add New Dim here
+# Add New bridge tables in alphabetical order
 # def Dim2_Example():
 #   TemplateEtl(df=GetDim2Example(), 
 #              entity="Dim2Example",
@@ -220,24 +219,24 @@ def businessPartnerGroupRelation():
 
 # COMMAND ----------
 
-# DBTITLE 1,6.3 Function: Load Facts
+# DBTITLE 1,6.3. Function: Load Facts
 
 def billedWaterConsumption():
-  TemplateEtl(df=getBilledWaterConsumption(),
+    TemplateEtl(df=getBilledWaterConsumption(),
              entity="factBilledWaterConsumption", 
              businessKey="sourceSystemCode,dimBillingDocumentSK,dimPropertySK,dimMeterSK,billingPeriodStartDateSK,billingPeriodEndDateSK,dimWaterNetworkSK",
              AddSK=True
             )
 
 def billedWaterConsumptionDaily():
-  TemplateEtl(df=getBilledWaterConsumptionDaily(), 
+    TemplateEtl(df=getBilledWaterConsumptionDaily(), 
              entity="factDailyApportionedConsumption", 
              businessKey="sourceSystemCode,consumptionDateSK,dimBillingDocumentSK,dimPropertySK,dimMeterSK",
              AddSK=True
             )
-  
 
-# Add New Fact here
+
+# Add New Fact in alphabetical order
 # def Fact2_Example():
 #   TemplateEtl(df=GetFact2Example(), 
 #              entity="Fact2Example",
@@ -257,7 +256,7 @@ def DatabaseChanges():
 
 # COMMAND ----------
 
-# DBTITLE 1,8. Flag Dimension/Fact load
+# DBTITLE 1,8. Flag Dimension/Bridge/Fact load
 LoadDimensions = True
 LoadBridgeTables = True
 LoadFacts = True
@@ -266,45 +265,52 @@ LoadFacts = True
 
 # DBTITLE 1,9. Function: Main - ETL
 def Main():
-  DatabaseChanges()
-  #==============
-  # DIMENSIONS
-  #==============
-  
-  if LoadDimensions:
-    LogEtl("Start Dimensions")
-    date()
-    property()
-    location()
-    meter()
-    billingDocumentIsu()
-    businessPartnerGroup()
-    businessPartner()
+    DatabaseChanges()
     
-    #Add new Dim here()
-    LogEtl("End Dimensions")
+    #==============
+    # DIMENSIONS
+    #==============
+
+    if LoadDimensions:
+        LogEtl("Start Dimensions")
+        billingDocumentIsu()
+        businessPartnerGroup()
+        businessPartner()
+        contract()
+        date()
+        location()
+        meter()
+        property()
+        #Add new Dim in alphabetical position
+        
+        LogEtl("End Dimensions")
+    else:
+        LogEtl("Dimension table load not requested")
+
+    #==============
+    # BRIDGE TABLES
+    #==============    
+    if LoadBridgeTables:
+        LogEtl("Start Bridge Tables")
+        businessPartnerGroupRelation()
+
+        LogEtl("End Bridge Tables")
+    else:
+        LogEtl("Bridge table load not requested")
     
-  #==============
-  # BRIDGE TABLES
-  #==============    
-  if LoadBridgeTables:
-    LogEtl("Start Bridge Tables")
-    businessPartnerGroupRelation()
+    #==============
+    # FACTS
+    #==============
+    if LoadFacts:
+        LogEtl("Start Facts")
+        billedWaterConsumption()
+        billedWaterConsumptionDaily()
 
-    
-    LogEtl("End Bridge Tables")   
+        #fact2()
+        LogEtl("End Facts")
+    else:
+        LogEtl("Fact table load not requested")
 
-  #==============
-  # FACTS
-  #==============
-  if LoadFacts:
-    LogEtl("Start Facts")
-    billedWaterConsumption()
-    billedWaterConsumptionDaily()
-
-    #fact2()
-    LogEtl("End Facts")   
-  
 
 # COMMAND ----------
 
