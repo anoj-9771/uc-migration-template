@@ -18,7 +18,7 @@ def getContract():
     #2.Load Cleansed layer table data into dataframe
 
     df = spark.sql(f"select  co.contractId, \
-                             coh.validFromDate, \
+                             coalesce(coh.validFromDate,to_date('1900-01-01','yyyy-MM-dd')), \
                              coh.validToDate, \
                              'SAPISU' as sourceSystemCode, \
                              least(coh.validFromDate, co.createdDate) as contractStartDate, \
@@ -73,8 +73,7 @@ def getContract():
                             StructField('moveOutDate', DateType(), True),
                             StructField('contractAccountNumber', StringType(), True),
                             StructField('contractAccountCategory', StringType(), True),
-                            StructField('applicationArea', StringType(), True),
-
+                            StructField('applicationArea', StringType(), True)
                       ])
 
     df = spark.createDataFrame(df.rdd, schema=newSchema)
