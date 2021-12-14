@@ -196,7 +196,26 @@ def businessPartner():
 
 # COMMAND ----------
 
-# DBTITLE 1,8. Function: Load Facts
+# DBTITLE 1,8. Function: Load Bridge Tables
+#Call Business Partner Group Relation function to load brgBusinessPartnerGroupRelation
+def businessPartnerGroupRelation():
+  TemplateEtl(df=getBusinessPartnerGroupRelation(), 
+             entity="brgBusinessPartnerGroupRelation", 
+             businessKey="businessPartnerGroupSK,businessPartnerSK,validFromDate",
+             AddSK=False
+            ) 
+
+# Add New Dim here
+# def Dim2_Example():
+#   TemplateEtl(df=GetDim2Example(), 
+#              entity="Dim2Example",
+#              businessKey="col1",
+#              AddSK=True
+#             )
+
+# COMMAND ----------
+
+# DBTITLE 1,9. Function: Load Facts
 
 def billedWaterConsumption():
   TemplateEtl(df=getBilledWaterConsumption(),
@@ -224,7 +243,7 @@ def billedWaterConsumptionDaily():
 
 # COMMAND ----------
 
-# DBTITLE 1,9. Function: Create stage and curated database if not exist
+# DBTITLE 1,10. Function: Create stage and curated database if not exist
 def DatabaseChanges():
   #CREATE stage AND curated DATABASES IS NOT PRESENT
   spark.sql("CREATE DATABASE IF NOT EXISTS stage")
@@ -233,13 +252,14 @@ def DatabaseChanges():
 
 # COMMAND ----------
 
-# DBTITLE 1,10. Flag Dimension/Fact load
+# DBTITLE 1,11. Flag Dimension/Fact load
 LoadDimensions = True
+LoadBridgeTables = True
 LoadFacts = True
 
 # COMMAND ----------
 
-# DBTITLE 1,11. Function: Main - ETL
+# DBTITLE 1,12. Function: Main - ETL
 def Main():
   DatabaseChanges()
   #==============
@@ -258,6 +278,16 @@ def Main():
     
     #Add new Dim here()
     LogEtl("End Dimensions")
+    
+  #==============
+  # BRIDGE TABLES
+  #==============    
+  if LoadBridgeTables:
+    LogEtl("Start Bridge Tables")
+    businessPartnerGroupRelation()
+
+    
+    LogEtl("End Bridge Tables")   
 
   #==============
   # FACTS
@@ -273,10 +303,10 @@ def Main():
 
 # COMMAND ----------
 
-# DBTITLE 1,12. Call Main function
+# DBTITLE 1,13. Call Main function
 Main()
 
 # COMMAND ----------
 
-# DBTITLE 1,13. Exit Notebook
+# DBTITLE 1,14. Exit Notebook
 dbutils.notebook.exit("1")
