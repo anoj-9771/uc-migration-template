@@ -94,9 +94,9 @@ def getBusinessPartnerGroupRelation():
     #6.Apply schema definition
     newSchema = StructType([
                             StructField('sourceSystemCode', StringType(), True),
-                            StructField('businessPartnerGroupSK', StringType(), True),
-                            StructField('businessPartnerSK', StringType(), True),
-                            StructField('validFromDate', DateType(), True),
+                            StructField('businessPartnerGroupSK', StringType(), False),
+                            StructField('businessPartnerSK', StringType(), False),
+                            StructField('validFromDate', DateType(), False),
                             StructField('validToDate', DateType(), True),
                             StructField('relationshipNumber', StringType(), True),
                             StructField('relationshipTypeCode', StringType(), True),
