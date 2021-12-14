@@ -2,17 +2,16 @@
 ##################################################################
 #Master Notebook
 #1.Include all util user function for the notebook
-#2.Include all dimension user function for the notebook
-#3.Include all fact related user function for the notebook
-#4.Define and get Widgets/Parameters
-#5.Spark Config
-#6.Function: Load data into Curated delta table
-#7.Function: Load Dimensions
-#8.Function: Create stage and curated database if not exist
-#9.Flag Dimension/Fact load
-#10.Function: Main - ETL
-#11.Call Main function
-#12.Exit Notebook
+#2.Include all dimension/bridge/fact user function for the notebook
+#3.Define and get Widgets/Parameters
+#4.Spark Config
+#5.Function: Load data into Curated delta table
+#6.Function: Load Dimensions/Bridge/Facts
+#7.Function: Create stage and curated database if not exist
+#8.Flag Dimension/Bridge/Fact load
+#9.Function: Main - ETL
+#10.Call Main function
+#11.Exit Notebook
 ##################################################################
 
 # COMMAND ----------
@@ -22,17 +21,22 @@
 
 # COMMAND ----------
 
-# DBTITLE 1,2. Include all dimension related user function for the notebook
+# DBTITLE 1,2.1 Include all dimension related user function for the notebook
 # MAGIC %run ./functions/common-functions-dimensions
 
 # COMMAND ----------
 
-# DBTITLE 1,3. Include all fact related user function for the notebook
+# DBTITLE 1,2.2 Include all bridge tables related user function for the notebook
+# MAGIC %run ./functions/common-functions-bridgeTables
+
+# COMMAND ----------
+
+# DBTITLE 1,2.3 Include all fact related user function for the notebook
 # MAGIC %run ./functions/common-functions-facts
 
 # COMMAND ----------
 
-# DBTITLE 1,4. Define and get Widgets/Parameters
+# DBTITLE 1,3. Define and get Widgets/Parameters
 #Set Parameters
 dbutils.widgets.removeAll()
 
@@ -54,7 +58,7 @@ print(f"Start_Date = {start_date}| End_Date = {end_date}")
 
 # COMMAND ----------
 
-# DBTITLE 1,5. Spark Config
+# DBTITLE 1,4. Spark Config
 # When set to true Spark SQL will automatically select a compression codec for each column based on statistics of the data.
 spark.conf.set("spark.sql.inMemoryColumnarStorage.compressed",True)
 
@@ -90,7 +94,7 @@ spark.conf.set("spark.sql.autoBroadcastJoinThreshold", 0)
 
 # COMMAND ----------
 
-# DBTITLE 1,6. Function: Load data into Curated delta table
+# DBTITLE 1,5. Function: Load data into Curated delta table
 def TemplateEtl(df : object, entity, businessKey, AddSK = True):
     rawEntity = entity
     entity = GeneralToPascalCase(rawEntity)
@@ -128,7 +132,7 @@ def TemplateEtl(df : object, entity, businessKey, AddSK = True):
 
 # COMMAND ----------
 
-# DBTITLE 1,7. Function: Load Dimensions
+# DBTITLE 1,6.1 Function: Load Dimensions
 #Call BusinessPartner function to load DimBusinessPartnerGroup
 def businessPartner():
     TemplateEtl(df=getBusinessPartner(), 
@@ -185,10 +189,7 @@ def meter():
              AddSK=True
             )
 
-
-  
-
-# Add New Dim here
+# Add New Dim in alphabetical order
 # def Dim2_Example():
 #   TemplateEtl(df=GetDim2Example(), 
 #              entity="Dim2Example",
@@ -199,7 +200,26 @@ def meter():
 
 # COMMAND ----------
 
-# DBTITLE 1,8. Function: Load Facts
+# DBTITLE 1,6.2 Function: Load Bridge Tables
+#Call Business Partner Group Relation function to load brgBusinessPartnerGroupRelation
+def businessPartnerGroupRelation():
+    TemplateEtl(df=getBusinessPartnerGroupRelation(), 
+             entity="brgBusinessPartnerGroupRelation", 
+             businessKey="businessPartnerGroupSK,businessPartnerSK,validFromDate",
+             AddSK=False
+            ) 
+
+# Add New bridge tables in alphabetical order
+# def Dim2_Example():
+#   TemplateEtl(df=GetDim2Example(), 
+#              entity="Dim2Example",
+#              businessKey="col1",
+#              AddSK=True
+#             )
+
+# COMMAND ----------
+
+# DBTITLE 1,6.3. Function: Load Facts
 
 def billedWaterConsumption():
     TemplateEtl(df=getBilledWaterConsumption(),
@@ -216,7 +236,7 @@ def billedWaterConsumptionDaily():
             )
 
 
-# Add New Fact here
+# Add New Fact in alphabetical order
 # def Fact2_Example():
 #   TemplateEtl(df=GetFact2Example(), 
 #              entity="Fact2Example",
@@ -227,7 +247,7 @@ def billedWaterConsumptionDaily():
 
 # COMMAND ----------
 
-# DBTITLE 1,9. Function: Create stage and curated database if not exist
+# DBTITLE 1,7. Function: Create stage and curated database if not exist
 def DatabaseChanges():
   #CREATE stage AND curated DATABASES IS NOT PRESENT
   spark.sql("CREATE DATABASE IF NOT EXISTS stage")
@@ -236,50 +256,68 @@ def DatabaseChanges():
 
 # COMMAND ----------
 
-# DBTITLE 1,10. Flag Dimension/Fact load
+# DBTITLE 1,8. Flag Dimension/Bridge/Fact load
 LoadDimensions = True
+LoadBridgeTables = True
 LoadFacts = True
 
 # COMMAND ----------
 
-# DBTITLE 1,11. Function: Main - ETL
+# DBTITLE 1,9. Function: Main - ETL
 def Main():
     DatabaseChanges()
+    
     #==============
     # DIMENSIONS
     #==============
 
     if LoadDimensions:
-    LogEtl("Start Dimensions")
-    billingDocumentIsu()
-    businessPartnerGroup()
-    businessPartner()
-    contract()
-    date()
-    location()
-    meter()
-    property()
-    #Add new Dim in alphabetical position
-    LogEtl("End Dimensions")
+        LogEtl("Start Dimensions")
+        billingDocumentIsu()
+        businessPartnerGroup()
+        businessPartner()
+        contract()
+        date()
+        location()
+        meter()
+        property()
+        #Add new Dim in alphabetical position
+        
+        LogEtl("End Dimensions")
+    else:
+        LogEtl("Dimension table load not requested")
 
+    #==============
+    # BRIDGE TABLES
+    #==============    
+    if LoadBridgeTables:
+        LogEtl("Start Bridge Tables")
+        businessPartnerGroupRelation()
+
+        LogEtl("End Bridge Tables")
+    else:
+        LogEtl("Bridge table load not requested")
+    
     #==============
     # FACTS
     #==============
     if LoadFacts:
-    LogEtl("Start Facts")
-    billedWaterConsumption()
-    billedWaterConsumptionDaily()
+        LogEtl("Start Facts")
+        billedWaterConsumption()
+        billedWaterConsumptionDaily()
 
-    #fact2()
-    LogEtl("End Facts")   
+        #fact2()
+        LogEtl("End Facts")
+    else:
+        LogEtl("Fact table load not requested")
 
 
 # COMMAND ----------
 
-# DBTITLE 1,12. Call Main function
+# DBTITLE 1,10. Call Main function
 Main()
 
 # COMMAND ----------
 
-# DBTITLE 1,13. Exit Notebook
+# DBTITLE 1,11. Exit Notebook
 dbutils.notebook.exit("1")
