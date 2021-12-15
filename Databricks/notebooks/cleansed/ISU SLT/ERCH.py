@@ -205,6 +205,14 @@ df_cleansed_column = spark.sql(f"SELECT  \
                                   TXJCD as taxJurisdictionDescription, \
                                   KONZVER as franchiseContractCode, \
                                   EROETIM as billingDocumentCreateTime, \
+                                  ERCHO_V as ERCHO_Exist_IND, \
+                                  ERCHZ_V as ERCHZ_Exist_IND, \
+                                  ERCHU_V as ERCHU_Exist_IND, \
+                                  ERCHR_V as ERCHR_Exist_IND, \
+                                  ERCHC_V as ERCHC_Exist_IND, \
+                                  ERCHV_V as ERCHV_Exist_IND, \
+                                  ERCHT_V as ERCHT_Exist_IND, \
+                                  ERCHP_V as ERCHP_Exist_IND, \
                                   ABRVORG2 as periodEndBillingTransactionCode, \
                                   ABLEINH as meterReadingUnit, \
                                   ENDPRIO as billingEndingPriorityCodfe, \
@@ -299,6 +307,14 @@ newSchema = StructType([
                           StructField('taxJurisdictionDescription', StringType(), True),
                           StructField('franchiseContractCode', StringType(), True),
                           StructField('billingDocumentCreateTime', StringType(), True),
+                          StructField('ERCHO_Exist_IND', StringType(), True),
+                          StructField('ERCHZ_Exist_IND', StringType(), True),
+                          StructField('ERCHU_Exist_IND', StringType(), True),
+                          StructField('ERCHR_Exist_IND', StringType(), True),
+                          StructField('ERCHC_Exist_IND', StringType(), True),
+                          StructField('ERCHV_Exist_IND', StringType(), True),
+                          StructField('ERCHT_Exist_IND', StringType(), True),
+                          StructField('ERCHP_Exist_IND', StringType(), True), 
                           StructField('periodEndBillingTransactionCode', StringType(), True),
                           StructField('meterReadingUnit', StringType(), True),
                           StructField('billingEndingPriorityCodfe', StringType(), True),

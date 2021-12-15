@@ -226,9 +226,9 @@ df_cleansed_column = spark.sql(f"SELECT  \
                                   ARTMENGE as billedQuantityStatisticsCode, \
                                   STATTART as statisticalAnalysisRateType, \
                                   TIMECONTRL as periodControlCode, \
-                                  cast(TCNUMTOR as dec(8)) as timesliceNumeratorTimePortion, \
-                                  cast(TCDENOMTOR as dec(8)) as timesliceDenominatorTimePortion, \
-                                  TIMTYPQUOT as timesliceTimeCatogoryTimePortion, \
+                                  cast(TCNUMTOR as dec(8,4)) as timesliceNumeratorTimePortion, \
+                                  cast(TCDENOMTOR as dec(8,4)) as timesliceDenominatorTimePortion, \
+                                  TIMTYPQUOT as timesliceTimeCategoryTimePortion, \
                                   AKTIV as meterReadingActiveIndicator, \
                                   KONZVER as franchiseContractIndicator, \
                                   PERTYP as billingPeriodInternalCategoryCode, \
@@ -297,9 +297,9 @@ newSchema = StructType([
                             StructField('billedQuantityStatisticsCode', StringType(), True),
                             StructField('statisticalAnalysisRateType', StringType(), True),
                             StructField('periodControlCode', StringType(), True),
-                            StructField('timesliceNumeratorTimePortion', DecimalType(), True),
-                            StructField('timesliceDenominatorTimePortion', DecimalType(), True),
-                            StructField('timesliceTimeCatogoryTimePortion', StringType(), True),
+                            StructField('timesliceNumeratorTimePortion', DecimalType(8,4), True),
+                            StructField('timesliceDenominatorTimePortion', DecimalType(8,4), True),
+                            StructField('timesliceTimeCategoryTimePortion', StringType(), True),
                             StructField('meterReadingActiveIndicator', StringType(), True),
                             StructField('franchiseContractIndicator', StringType(), True),
                             StructField('billingPeriodInternalCategoryCode', StringType(), True),
