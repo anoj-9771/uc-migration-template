@@ -21,7 +21,7 @@ def getLocation():
     HydraLocationDf = spark.sql(f"select distinct b.architecturalObjectNumber as locationID, upper(trim(trim(coalesce(c.houseNumber2,'')||' '||coalesce(c.houseNumber1,''))||' '||trim(c.streetName||' '||coalesce(c.streetLine1,''))||' '||coalesce(c.streetLine2,''))|| \
                                      ', '||c.cityName||' NSW '||c.postCode)  as formattedAddress, upper(c.streetName) as streetName, upper(trim(coalesce(streetLine1,'')||' '||coalesce(streetLine2,''))) as streetType, d.LGA as LGA, \
                                      upper(c.cityName) as suburb, c.stateCode as state, c.postCode, a.latitude, a.longitude \
-                                     from (select propertyNumber, first(latitude) as latitude, first(longitude) as longitude from {ADS_DATABASE_CLEANSED}.hydra_tlotparcel group by propertyNumber) a, \
+                                     from (select propertyNumber, first(latitude) as latitude, first(longitude) as longitude from {ADS_DATABASE_CLEANSED}.hydra_tlotparcel where _RecordDeleted = 0 and _RecordCurrent = 1 group by propertyNumber) a, \
                                           {ADS_DATABASE_CLEANSED}.isu_vibdnode b, \
                                           {ADS_DATABASE_CLEANSED}.isu_0funct_loc_attr c, \
                                           {ADS_DATABASE_CLEANSED}.isu_0uc_connobj_attr_2 d \
@@ -30,18 +30,31 @@ def getLocation():
                                      and b.architecturalObjectNumber = c.functionalLocationNumber \
                                      and b.parentArchitecturalObjectNumber is null \
                                      and d.propertyNumber = b.architecturalObjectNumber \
+                                     and b._RecordDeleted = 0 \
+                                     and b._RecordCurrent = 1 \
+                                     and c._RecordDeleted = 0 \
+                                     and c._RecordCurrent = 1 \
+                                     and d._RecordDeleted = 0 \
+                                     and d._RecordCurrent = 1 \
                                      union all \
                                      select distinct b.architecturalObjectNumber as locationID, upper(trim(trim(coalesce(c.houseNumber2,'')||' '||coalesce(c.houseNumber1,''))||' '||trim(c.streetName||' '||coalesce(c.streetLine1,''))||' '||coalesce(c.streetLine2,''))|| \
                                      ', '||c.cityName||' NSW '||c.postCode)  as formattedAddress, upper(c.streetName) as streetName, upper(trim(coalesce(streetLine1,'')||' '||coalesce(streetLine2,''))) as streetType, d.LGA as LGA, \
                                      upper(c.cityName) as suburb, c.stateCode as state, c.postCode, a.latitude, a.longitude \
-                                     from (select propertyNumber, first(latitude) as latitude, first(longitude) as longitude from {ADS_DATABASE_CLEANSED}.hydra_tlotparcel group by propertyNumber) a, \
+                                     from (select propertyNumber, first(latitude) as latitude, first(longitude) as longitude from {ADS_DATABASE_CLEANSED}.hydra_tlotparcel where _RecordDeleted = 0 and _RecordCurrent = 1 group by propertyNumber) a, \
                                           {ADS_DATABASE_CLEANSED}.isu_vibdnode b, \
                                           {ADS_DATABASE_CLEANSED}.isu_0funct_loc_attr c, \
                                           {ADS_DATABASE_CLEANSED}.isu_0uc_connobj_attr_2 d \
                                      where a.propertyNumber is not null \
                                      and a.propertyNumber = b.parentArchitecturalObjectNumber \
                                      and b.architecturalObjectNumber = c.functionalLocationNumber \
-                                     and d.propertyNumber = b.architecturalObjectNumber")
+                                     and d.propertyNumber = b.architecturalObjectNumber \
+                                     and b._RecordDeleted = 0 \
+                                     and b._RecordCurrent = 1 \
+                                     and c._RecordDeleted = 0 \
+                                     and c._RecordCurrent = 1 \
+                                     and d._RecordDeleted = 0 \
+                                     and d._RecordCurrent = 1 \
+                                ")
 
     
     HydraLocationDf.createOrReplaceTempView('allLocations')
