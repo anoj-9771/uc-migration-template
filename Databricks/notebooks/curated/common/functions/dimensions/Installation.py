@@ -43,9 +43,7 @@ def getInstallation():
                                       FROM {ADS_DATABASE_CLEANSED}.isu_0ucinstalla_attr_2 \
                                       WHERE _RecordCurrent = 1 \
                                       AND _RecordDeleted = 0")
-    print(f'{isu0ucinstallaAttrDf.count():,} rows in isu0ucinstallaAttrDf')
-    display(isu0ucinstallaAttrDf)
-
+    
     isu0ucinstallahAttr2Df  = spark.sql(f"select \
                                            installationId, \
                                            validFromDate, \
@@ -62,8 +60,6 @@ def getInstallation():
                                       WHERE validToDate in (to_date('9999-12-31'),to_date('2099-12-31')) \
                                       AND _RecordCurrent = 1 \
                                       AND _RecordDeleted = 0")
-    print(f'{isu0ucinstallahAttr2Df.count():,} rows in isu0ucinstallahAttr2Df')
-    display(isu0ucinstallahAttr2Df)
     
     isu0ucIsu32  = spark.sql(f"select \
                                   installationId, \
@@ -87,8 +83,6 @@ def getInstallation():
                                 AND validToDate in (to_date('9999-12-31'),to_date('2099-12-31')) \
                                 AND _RecordCurrent = 1 \
                                 AND _RecordDeleted = 0")
-    print(f'{isu0ucIsu32.count():,} rows in isu0ucIsu32')
-    display(isu0ucIsu32)
     
     #Dummy Record to be added to Installation Dimension
     dummyDimRecDf = spark.createDataFrame([("ISU", "-1","2099-12-31")], ["sourceSystemCode", "installationId","validToDate"])
@@ -97,14 +91,10 @@ def getInstallation():
     #3.JOIN TABLES
     df = isu0ucinstallaAttrDf.join(isu0ucinstallahAttr2Df, isu0ucinstallaAttrDf.installationId == isu0ucinstallahAttr2Df.installationId, how="inner") \
                              .drop(isu0ucinstallahAttr2Df.installationId)
-    
-    print(f'{df.count():,} rows in df1')
-    display(df)    
+  
     df = df.join(isu0ucIsu32, df.installationId == isu0ucIsu32.installationId, how="left") \
            .drop(isu0ucIsu32.installationId)    
-    print(f'{df.count():,} rows in df2')
-    display(df)    
-       
+    
     df = df.select("sourceSystemCode", \
                     "installationId", \
                     "validFromDate", \
@@ -190,8 +180,7 @@ def getInstallation():
                       ])
 
     df = spark.createDataFrame(df.rdd, schema=newSchema)
-    print(f'{df.count():,} rows in df3')
-    display(df)        
+       
     #5.SELECT / TRANSFORM
 
     
