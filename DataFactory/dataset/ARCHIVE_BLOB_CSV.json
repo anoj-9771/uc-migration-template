@@ -1,5 +1,5 @@
 {
-	"name": "SRC_BLOB_CSV",
+	"name": "ARCHIVE_BLOB_CSV",
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "LS_AzureBlobStorage",
@@ -7,9 +7,6 @@
 		},
 		"parameters": {
 			"BlobContainer": {
-				"type": "string"
-			},
-			"BlobName": {
 				"type": "string"
 			}
 		},
@@ -21,14 +18,11 @@
 		"typeProperties": {
 			"location": {
 				"type": "AzureBlobStorageLocation",
-				"fileName": {
-					"value": "@dataset().BlobName",
-					"type": "Expression"
-				},
-				"container": {
+				"folderPath": {
 					"value": "@dataset().BlobContainer",
 					"type": "Expression"
-				}
+				},
+				"container": "archive"
 			},
 			"columnDelimiter": "|",
 			"escapeChar": "\\",
