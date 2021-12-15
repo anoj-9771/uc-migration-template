@@ -1,0 +1,32 @@
+{
+	"name": "ARCHIVE_BINARY",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_AzureBlobStorage",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"BlobContainer": {
+				"type": "string"
+			},
+			"BlobName": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "Binary",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": {
+					"value": "@dataset().BlobName",
+					"type": "Expression"
+				},
+				"container": {
+					"value": "@dataset().BlobContainer",
+					"type": "Expression"
+				}
+			}
+		}
+	}
+}
