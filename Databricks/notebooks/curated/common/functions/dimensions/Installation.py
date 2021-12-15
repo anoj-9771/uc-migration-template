@@ -85,7 +85,8 @@ def getInstallation():
                                 AND _RecordDeleted = 0")
     
     #Dummy Record to be added to Installation Dimension
-    dummyDimRecDf = spark.createDataFrame([("ISU", "-1","2099-12-31")], ["sourceSystemCode", "installationId","validToDate"])
+    dummyDimRecDf = spark.createDataFrame([("ISU", "-1","2099-12-31","-1","-1","-1")], 
+                                          ["sourceSystemCode", "installationId","validToDate","disconnectionDocumentNumber","disconnectionActivityPeriod","disconnectionObjectNumber"])
     dummyDimRecDf = dummyDimRecDf.withColumn("validToDate",dummyDimRecDf['validToDate'].cast(DateType()))
     
     #3.JOIN TABLES
