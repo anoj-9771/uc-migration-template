@@ -173,6 +173,14 @@ def date():
              AddSK=True
             )
 
+#Call Installation function to load DimLocation
+def installation():
+    TemplateEtl(df=getInstallation(), 
+             entity="dimInstallation", 
+             businessKey="installationId,validToDate",
+             AddSK=True
+            )
+    
 #Call Location function to load DimLocation
 def location():
     TemplateEtl(df=getLocation(), 
@@ -278,6 +286,7 @@ def Main():
         businessPartner()
         contract()
         date()
+        installation()
         location()
         meter()
         property()

@@ -19,6 +19,10 @@
 
 # COMMAND ----------
 
+# MAGIC %run ./dimensions/Installation
+
+# COMMAND ----------
+
 # MAGIC %run ./dimensions/Location
 
 # COMMAND ----------
