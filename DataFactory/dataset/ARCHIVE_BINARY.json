@@ -8,9 +8,6 @@
 		"parameters": {
 			"BlobContainer": {
 				"type": "string"
-			},
-			"BlobName": {
-				"type": "string"
 			}
 		},
 		"annotations": [],
@@ -18,14 +15,11 @@
 		"typeProperties": {
 			"location": {
 				"type": "AzureBlobStorageLocation",
-				"fileName": {
-					"value": "@dataset().BlobName",
-					"type": "Expression"
-				},
-				"container": {
+				"folderPath": {
 					"value": "@dataset().BlobContainer",
 					"type": "Expression"
-				}
+				},
+				"container": "archive"
 			}
 		}
 	}
