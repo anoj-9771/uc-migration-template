@@ -15,12 +15,12 @@
 #1.Create Function
 def getContract():
     #DimContract
-    #2.Load Cleansed layer table data into dataframe
+    #2.Load current Cleansed layer table data into dataframe
 
     df = spark.sql(f"select  co.contractId, \
-                             coalesce(coh.validFromDate,to_date('1900-01-01','yyyy-MM-dd')), \
+                             coalesce(coh.validFromDate,to_date('1900-01-01','yyyy-MM-dd')) as validFromDate, \
                              coh.validToDate, \
-                             'SAPISU' as sourceSystemCode, \
+                             'ISU' as sourceSystemCode, \
                              least(coh.validFromDate, co.createdDate) as contractStartDate, \
                              coh.validToDate as contractEndDate, \
                              case when co.invoiceContractsJointly = 'X' then 'Y' else 'N' end as invoiceJointlyFlag, \
@@ -32,9 +32,14 @@ def getContract():
                              from {ADS_DATABASE_CLEANSED}.isu_0UCCONTRACT_ATTR_2 co left outer join \
                                   {ADS_DATABASE_CLEANSED}.isu_0UCCONTRACTH_ATTR_2 coh on co.contractId = coh.contractId left outer join \
                                   {ADS_DATABASE_CLEANSED}.isu_0CACONT_ACC_ATTR_2 ca on co.contractAccountNumber = ca.contractAccountNumber \
+                             where co._RecordDeleted = 0 \
+                             and   co._RecordCurrent = 1 \
+                             and   coh._RecordDeleted = 0 \
+                             and   coh._RecordCurrent = 1 \
+                             and   ca._RecordDeleted = 0 \
+                             and   ca._RecordCurrent = 1 \
                      ")
 
-    
     df.createOrReplaceTempView('allcontracts')
     #3.JOIN TABLES  
 

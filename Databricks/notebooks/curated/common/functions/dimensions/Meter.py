@@ -86,7 +86,8 @@ def getMeter():
                                       and a._RecordCurrent = 1 \
                                       and a._RecordDeleted = 0 \
                                       and b._RecordCurrent = 1 \
-                                      and b._RecordDeleted = 0")
+                                      and b._RecordDeleted = 0 \
+                                     ")
     
     print(f'{isu0ucDeviceAttrDf.count():,} rows in isu0ucDeviceAttrDf')
 #     display(isu0ucDeviceAttrDf)
@@ -176,8 +177,8 @@ def getMeter():
     display(df)
     #5.Apply schema definition
     newSchema = StructType([
-                            StructField('sourceSystemCode', StringType(), True),
-                            StructField('meterNumber', StringType(), True),
+                            StructField('sourceSystemCode', StringType(), False),
+                            StructField('meterNumber', StringType(), False),
                             StructField('meterSerialNumber', StringType(), True),
                             StructField('logicalDeviceNumber', StringType(), True),
                             StructField('materialNumber', StringType(), True),

@@ -36,14 +36,15 @@ def getInstallation():
                                           authorizationGroupCode, \
                                           serviceTypeCode, \
                                           serviceType, \
-                                          createdDatetime, \
+                                          createdDate, \
                                           createdBy, \
-                                          changedDatetime, \
-                                          changedBy \
+                                          lastChangedDate as changedDate, \
+                                          lastChangedBy as changedBy\
                                       FROM {ADS_DATABASE_CLEANSED}.isu_0ucinstalla_attr_2 \
-                                      and _RecordCurrent = 1 \
-                                      and _RecordDeleted = 0")
-    
+                                      WHERE _RecordCurrent = 1 \
+                                      AND _RecordDeleted = 0")
+    print(f'{isu0ucinstallaAttrDf.count():,} rows in isu0ucinstallaAttrDf')
+    display(isu0ucinstallaAttrDf)
 
     isu0ucinstallahAttr2Df  = spark.sql(f"select \
                                            installationId, \
@@ -51,16 +52,18 @@ def getInstallation():
                                            validToDate, \
                                            rateCategoryCode, \
                                            rateCategory, \
-                                           industryCode, \
+                                           'TBD' as industryCode, \
                                            industry, \
                                            billingClassCode, \
                                            billingClass, \
-                                           industrySystemCode, \
-                                           industrySystem \
+                                           'TBD' as industrySystemCode, \
+                                           'TBD' as industrySystem \
                                       FROM {ADS_DATABASE_CLEANSED}.isu_0ucinstallah_attr_2 \
-                                      and validToDate in (to_date('9999-12-31'),to_date('2099-12-31')) \
-                                      and _RecordCurrent = 1 \
-                                      and _RecordDeleted = 0")
+                                      WHERE validToDate in (to_date('9999-12-31'),to_date('2099-12-31')) \
+                                      AND _RecordCurrent = 1 \
+                                      AND _RecordDeleted = 0")
+    print(f'{isu0ucinstallahAttr2Df.count():,} rows in isu0ucinstallahAttr2Df')
+    display(isu0ucinstallahAttr2Df)
     
     isu0ucIsu32  = spark.sql(f"select \
                                   installationId, \
@@ -77,26 +80,33 @@ def getInstallation():
                                   disconnectionReconnectionStatus, \
                                   disconnectionDocumentStatusCode, \
                                   disconnectionDocumentStatus, \
-                                  disconnectionProcessingVariantCode, \
-                                  disconnectionProcessingVariant \
-                                FROM {ADS_DATABASE_CLEANSED}.isu_0ucisu_32 \
-                                and referenceObjectTypeCode = 'INSTLN' \
-                                and validToDate in (to_date('9999-12-31'),to_date('2099-12-31')) \
-                                and _RecordCurrent = 1 \
-                                and _RecordDeleted = 0")
+                                  ProcessingVariantCode as disconnectionProcessingVariantCode, \
+                                  ProcessingVariant as disconnectionProcessingVariant \
+                                FROM {ADS_DATABASE_CLEANSED}.isu_0uc_isu_32 \
+                                WHERE referenceObjectTypeCode = 'INSTLN' \
+                                AND validToDate in (to_date('9999-12-31'),to_date('2099-12-31')) \
+                                AND _RecordCurrent = 1 \
+                                AND _RecordDeleted = 0")
+    print(f'{isu0ucIsu32.count():,} rows in isu0ucIsu32')
+    display(isu0ucIsu32)
     
     #Dummy Record to be added to Installation Dimension
-    dummyDimRecDf = spark.createDataFrame([("ISU", "-1")], ["sourceSystemCode", "installationId"])
+    dummyDimRecDf = spark.createDataFrame([("ISU", "-1","2099-12-31")], ["sourceSystemCode", "installationId","validToDate"])
+    dummyDimRecDf = dummyDimRecDf.withColumn("validToDate",dummyDimRecDf['validToDate'].cast(DateType()))
     
     #3.JOIN TABLES
     df = isu0ucinstallaAttrDf.join(isu0ucinstallahAttr2Df, isu0ucinstallaAttrDf.installationId == isu0ucinstallahAttr2Df.installationId, how="inner") \
                              .drop(isu0ucinstallahAttr2Df.installationId)
     
-    df = df.join(isu0ucIsu32, df.installationId == isu0ucIsu32.installationId, how="left outer") \
+    print(f'{df.count():,} rows in df1')
+    display(df)    
+    df = df.join(isu0ucIsu32, df.installationId == isu0ucIsu32.installationId, how="left") \
            .drop(isu0ucIsu32.installationId)    
-    
+    print(f'{df.count():,} rows in df2')
+    display(df)    
        
-    df = df.select("installationId", \
+    df = df.select("sourceSystemCode", \
+                    "installationId", \
                     "validFromDate", \
                     "validToDate", \
                     "divisionCode", \
@@ -129,14 +139,14 @@ def getInstallation():
                     "disconnectionDocumentStatus", \
                     "disconnectionProcessingVariantCode", \
                     "disconnectionProcessingVariant", \
-                    "createdDatetime", \
+                    "createdDate", \
                     "createdBy", \
-                    "changedDatetime", \
+                    "changedDate", \
                     "changedBy") 
     
     #4.UNION TABLES
     df = df.unionByName(dummyDimRecDf, allowMissingColumns = True)
-    
+   
     #5.Apply schema definition
     newSchema = StructType([
                             StructField('sourceSystemCode', StringType(), True),
@@ -159,8 +169,8 @@ def getInstallation():
                             StructField('serviceTypeCode', StringType(), True),
                             StructField('serviceType', StringType(), True),
                             StructField('disconnectionDocumentNumber', StringType(), True),
-                            StructField('disconnectionActivityPeriod', IntegerType(), True),
-                            StructField('disconnectionObjectNumber', IntegerType(), True),
+                            StructField('disconnectionActivityPeriod', StringType(), True),
+                            StructField('disconnectionObjectNumber', StringType(), True),
                             StructField('disconnectionDate', DateType(), True),
                             StructField('disconnectionActivityTypeCode', StringType(), True),
                             StructField('disconnectionActivityType', StringType(), True),
@@ -173,14 +183,16 @@ def getInstallation():
                             StructField('disconnectionDocumentStatus', StringType(), True),
                             StructField('disconnectionProcessingVariantCode', StringType(), True),
                             StructField('disconnectionProcessingVariant', StringType(), True),
-                            StructField('createdDatetime', TimestampType(), True),
+                            StructField('createdDate', DateType(), True),
                             StructField('createdBy', StringType(), True),
-                            StructField('changedDatetime', StringType(), True),
+                            StructField('changedDate', DateType(), True),
                             StructField('changedBy', StringType(), True)
                       ])
 
     df = spark.createDataFrame(df.rdd, schema=newSchema)
+    print(f'{df.count():,} rows in df3')
+    display(df)        
     #5.SELECT / TRANSFORM
-    
+
     
     return df  

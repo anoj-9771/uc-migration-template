@@ -30,12 +30,11 @@ def getProperty():
                                             superiorPropertyType, \
                                             CASE WHEN propertyAreaTypeCode == 'H' THEN  propertyArea * 10000 \
                                                                                   ELSE propertyArea END AS areaSize, \
-                                            LGA, \
                                             '0' as parentPropertyNumber, \
                                             null as parentPropertyTypeCode, \
                                             null as parentPropertyType, \
-                                            null as parentsuperiorPropertyTypeCode, \
-                                            null as parentsuperiorPropertyType, \
+                                            null as parentSuperiorTypeCode, \
+                                            null as parentSuperiorType, \
                                             null as planTypeCode, \
                                             null as planType, \
                                             null as lotTypeCode, \
@@ -49,7 +48,7 @@ def getProperty():
                                      ")
 
     sapisuDf = spark.sql(f"select co.propertyNumber, \
-                                'SAPISU' as sourceSystemCode, \
+                                'ISU' as sourceSystemCode, \
                                 ph.validFromDate as propertyStartDate, \
                                 coalesce(lead(ph.validFromDate) over (partition by ph.propertyNumber order by ph.validFromDate)-1, \
                                                         to_date('2099-12-31', 'yyyy-mm-dd'))  as propertyEndDate, \
@@ -60,12 +59,11 @@ def getProperty():
                                 CASE WHEN vd.hydraAreaUnit == 'HAR' THEN cast(vd.hydraCalculatedArea * 10000 as dec(18,6)) \
                                      WHEN vd.hydraAreaUnit == 'M2'  THEN cast(vd.hydraCalculatedArea as dec(18,6)) \
                                                                     ELSE null END AS areaSize, \
-                                co.LGA, \
                                 vn.parentArchitecturalObjectNumber as parentPropertyNumber, \
                                 pa.inferiorPropertyTypeCode as parentPropertyTypeCode, \
                                 pa.inferiorPropertyType as parentPropertyType, \
-                                pa.superiorPropertyTypeCode as parentsuperiorPropertyTypeCode, \
-                                pa.superiorPropertyType as parentsuperiorPropertyType, \
+                                pa.superiorPropertyTypeCode as parentSuperiorTypeCode, \
+                                pa.superiorPropertyType as parentSuperiorType, \
                                 co.planTypeCode, \
                                 co.planType, \
                                 co.lotTypeCode, \
@@ -81,6 +79,18 @@ def getProperty():
                               {ADS_DATABASE_CLEANSED}.isu_vibdnode vn on co.architecturalObjectInternalId = vn.architecturalObjectInternalId left outer join \
                               {ADS_DATABASE_CLEANSED}.isu_0uc_connobj_attr_2 pa on vn.parentArchitecturalObjectInternalId = pa.architecturalObjectInternalId left outer join \
                               {ADS_DATABASE_CLEANSED}.isu_dd07t dt on co.lotTypeCode = dt.domainValueSingleUpperLimit and domainName = 'ZCD_DO_ADDR_LOT_TYPE' \
+                         where co._RecordDeleted = 0 \
+                         and   co._RecordCurrent = 1 \
+                         and   vd._RecordDeleted = 0 \
+                         and   vd._RecordCurrent = 1 \
+                         and   ph._RecordDeleted = 0 \
+                         and   ph._RecordCurrent = 1 \
+                         and   vn._RecordDeleted = 0 \
+                         and   vn._RecordCurrent = 1 \
+                         and   pa._RecordDeleted = 0 \
+                         and   pa._RecordCurrent = 1 \
+                         and   dt._RecordDeleted = 0 \
+                         and   dt._RecordCurrent = 1 \
                         ")
 
     #Dummy Record to be added to Meter Dimension
@@ -105,12 +115,11 @@ def getProperty():
     ,"superiorPropertyTypeCode" \
     ,"superiorPropertyType" \
     ,"areaSize" \
-    ,"LGA" \
     ,'parentPropertyNumber' \
     ,'parentPropertyTypeCode' \
     ,'parentPropertyType' \
-    ,'parentsuperiorPropertyTypeCode' \
-    ,'parentsuperiorPropertyType' \
+    ,'parentSuperiorTypeCode' \
+    ,'parentSuperiorType' \
     ,'planTypeCode' \
     ,'planType' \
     ,'lotTypeCode' \
@@ -134,12 +143,11 @@ def getProperty():
                             StructField("superiorPropertyTypeCode", StringType(), True),
                             StructField("superiorPropertyType", StringType(), True),
                             StructField("areaSize", DecimalType(18,6), True),
-                            StructField("LGA", StringType(), True),
                             StructField('parentPropertyNumber', StringType(), True),
                             StructField('parentPropertyTypeCode', StringType(), True),
                             StructField('parentPropertyType', StringType(), True),
-                            StructField('parentsuperiorPropertyTypeCode', StringType(), True),
-                            StructField('parentsuperiorPropertyType', StringType(), True),
+                            StructField('parentSuperiorTypeCode', StringType(), True),
+                            StructField('parentSuperiorType', StringType(), True),
                             StructField('planTypeCode', StringType(), True),
                             StructField('planType', StringType(), True),
                             StructField('lotTypeCode', StringType(), True),
