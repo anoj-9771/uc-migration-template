@@ -181,10 +181,13 @@ df_cleansed = spark.sql(f"SELECT  \
                                   to_date(stg.AB, 'yyyy-MM-dd') as validFromDate, \
                                   stg.TARIFTYP as rateCategoryCode, \
                                   tt.TTYPBEZ as rateCategory, \
-                                  stg.BRANCHE as industry, \
+                                  stg.BRANCHE as industryCode, \
+                                  st.industry, \
                                   stg.AKLASSE as billingClassCode, \
                                   bc.billingClass as billingClass, \
                                   stg.ABLEINH as meterReadingUnit, \
+                                  stg.ISTYPE as industrySystemCode, \
+                                  nt.industry as industrySystem, \
                                   stg.UPDMOD as deltaProcessRecordMode, \
                                   stg.ZLOGIKNR as logicalDeviceNumber, \
                                   stg._RecordStart, \
@@ -195,7 +198,11 @@ df_cleansed = spark.sql(f"SELECT  \
                                  left outer join {ADS_DATABASE_CLEANSED}.isu_0uc_aklasse_text bc on bc.billingClass = stg.AKLASSE \
                                                                                                     and bc._RecordDeleted = 0 and bc._RecordCurrent = 1 \
                                  left outer join {ADS_DATABASE_CLEANSED}.isu_0uc_tariftyp_text tt on tt.TARIFTYP = stg.TARIFTYP \
-                                                                                                    and tt._RecordDeleted = 0 and tt._RecordCurrent = 1")
+                                                                                                    and tt._RecordDeleted = 0 and tt._RecordCurrent = 1 \
+                                 left outer join {ADS_DATABASE_CLEANSED}.isu_0ind_sector_text st on st.industrySystem = stg.ISTYPE and st.industryCode = stg.BRANCHE \
+                                                                                                    and st._RecordDeleted = 0 and st._RecordCurrent = 1 \
+                                 left outer join {ADS_DATABASE_CLEANSED}.isu_0ind_numsys_text nt on nt.industrySystem = stg.ISTYPE \
+                                                                                                    and nt._RecordDeleted = 0 and nt._RecordCurrent = 1")
 display(df_cleansed)
 print(f'Number of rows: {df_cleansed.count()}')
 
@@ -207,10 +214,13 @@ newSchema = StructType([
                           StructField('validFromDate', DateType(), True),
                           StructField('rateCategoryCode', StringType(), True),
                           StructField('rateCategory', StringType(), True),
+                          StructField('industryCode', StringType(), True),
                           StructField('industry', StringType(), True),
                           StructField('billingClassCode', StringType(), True),
                           StructField('billingClass', StringType(), True),
                           StructField('meterReadingUnit', StringType(), True),
+                          StructField('industrySystemCode', StringType(), True),
+                          StructField('industrySystem', StringType(), True),
                           StructField('deltaProcessRecordMode', StringType(), True),
                           StructField('logicalDeviceNumber', StringType(), True),
                           StructField('_RecordStart',TimestampType(),False),
