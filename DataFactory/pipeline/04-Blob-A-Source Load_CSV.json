@@ -269,12 +269,14 @@
 														}
 													},
 													"sink": {
-														"type": "JsonSink",
+														"type": "DelimitedTextSink",
 														"storeSettings": {
 															"type": "AzureBlobStorageWriteSettings"
 														},
 														"formatSettings": {
-															"type": "JsonWriteSettings"
+															"type": "DelimitedTextWriteSettings",
+															"quoteAllText": true,
+															"fileExtension": ".txt"
 														}
 													},
 													"enableStaging": false
@@ -297,7 +299,7 @@
 												],
 												"outputs": [
 													{
-														"referenceName": "ARCHIVE_BLOB_JSON",
+														"referenceName": "ARCHIVE_BLOB_CSV",
 														"type": "DatasetReference",
 														"parameters": {
 															"BlobContainer": {
@@ -507,6 +509,18 @@
 														},
 														"SourceFileName": {
 															"value": "@variables('FileName')",
+															"type": "Expression"
+														},
+														"ProjectName": {
+															"value": "@variables('ProjectName')",
+															"type": "Expression"
+														},
+														"RunDate": {
+															"value": "@pipeline().parameters.RunDate",
+															"type": "Expression"
+														},
+														"RunTime": {
+															"value": "@pipeline().parameters.RunTime",
 															"type": "Expression"
 														}
 													}
