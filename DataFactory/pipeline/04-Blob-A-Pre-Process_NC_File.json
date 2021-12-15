@@ -139,6 +139,122 @@
 						}
 					]
 				}
+			},
+			{
+				"name": "Copy Blob File to ArchiveContainer",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "If-ClusterType",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "BinarySource",
+						"storeSettings": {
+							"type": "AzureBlobStorageReadSettings",
+							"recursive": true
+						},
+						"formatSettings": {
+							"type": "BinaryReadSettings"
+						}
+					},
+					"sink": {
+						"type": "BinarySink",
+						"storeSettings": {
+							"type": "AzureBlobStorageWriteSettings"
+						}
+					},
+					"enableStaging": false
+				},
+				"inputs": [
+					{
+						"referenceName": "SC_BLOB_BINARY",
+						"type": "DatasetReference",
+						"parameters": {
+							"BlobContainer": {
+								"value": "@pipeline().parameters.SourceContainer",
+								"type": "Expression"
+							},
+							"BlobName": {
+								"value": "@pipeline().parameters.SourceFileName",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ARCHIVE_BINARY",
+						"type": "DatasetReference",
+						"parameters": {
+							"BlobContainer": {
+								"value": "@concat(pipeline().parameters.ProjectName,'/',pipeline().parameters.RunDate,'/',pipeline().parameters.RunTime)",
+								"type": "Expression"
+							}
+						}
+					}
+				]
+			},
+			{
+				"name": "Delete File from LandingBlob",
+				"type": "Delete",
+				"dependsOn": [
+					{
+						"activity": "Copy Blob File to ArchiveContainer",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "SC_BLOB_BINARY",
+						"type": "DatasetReference",
+						"parameters": {
+							"BlobContainer": {
+								"value": "@pipeline().parameters.SourceContainer",
+								"type": "Expression"
+							},
+							"BlobName": {
+								"value": "@pipeline().parameters.SourceFileName",
+								"type": "Expression"
+							}
+						}
+					},
+					"logStorageSettings": {
+						"linkedServiceName": {
+							"referenceName": "LS_AzureDatalake",
+							"type": "LinkedServiceReference"
+						},
+						"path": "assurance"
+					},
+					"enableLogging": true,
+					"storeSettings": {
+						"type": "AzureBlobStorageReadSettings",
+						"recursive": true,
+						"enablePartitionDiscovery": false
+					}
+				}
 			}
 		],
 		"parameters": {
@@ -163,6 +279,15 @@
 			"SourceFileName": {
 				"type": "string",
 				"defaultValue": "0UC_DEVICEH_ATTR_20211025142337.json"
+			},
+			"ProjectName": {
+				"type": "string"
+			},
+			"RunDate": {
+				"type": "string"
+			},
+			"RunTime": {
+				"type": "string"
 			}
 		},
 		"variables": {
