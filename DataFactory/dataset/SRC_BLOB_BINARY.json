@@ -1,5 +1,5 @@
 {
-	"name": "SC_BLOB_BINARY",
+	"name": "SRC_BLOB_BINARY",
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "LS_AzureBlobStorage",

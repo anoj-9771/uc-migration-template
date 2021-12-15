@@ -180,7 +180,7 @@
 				},
 				"inputs": [
 					{
-						"referenceName": "SC_BLOB_BINARY",
+						"referenceName": "SRC_BLOB_BINARY",
 						"type": "DatasetReference",
 						"parameters": {
 							"BlobContainer": {
@@ -196,7 +196,7 @@
 				],
 				"outputs": [
 					{
-						"referenceName": "ARCHIVE_BINARY",
+						"referenceName": "ARCHIVE_BLOB_BINARY",
 						"type": "DatasetReference",
 						"parameters": {
 							"BlobContainer": {
@@ -228,7 +228,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"dataset": {
-						"referenceName": "SC_BLOB_BINARY",
+						"referenceName": "SRC_BLOB_BINARY",
 						"type": "DatasetReference",
 						"parameters": {
 							"BlobContainer": {
