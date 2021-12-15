@@ -34,7 +34,7 @@
 					},
 					"ifFalseActivities": [
 						{
-							"name": "Notebook-preprocess-bods-json",
+							"name": "Notebook-preprocess-iot-bom-nc",
 							"type": "DatabricksNotebook",
 							"dependsOn": [],
 							"policy": {
@@ -91,7 +91,7 @@
 					],
 					"ifTrueActivities": [
 						{
-							"name": "Notebook-preprocess-bods-json Interactive",
+							"name": "Notebook-preprocess-iot-bom-nc Interactive",
 							"type": "DatabricksNotebook",
 							"dependsOn": [],
 							"policy": {
@@ -175,7 +175,7 @@
 			},
 			"NoteBookURL": {
 				"type": "String",
-				"defaultValue": "/build/raw/preprocess-bods-json"
+				"defaultValue": "/build/raw/preprocess-iot-bom-nc"
 			},
 			"DataFileRecordCount": {
 				"type": "String"

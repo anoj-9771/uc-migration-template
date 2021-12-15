@@ -43,7 +43,7 @@
 								"value": "@variables('SourceContainer')",
 								"type": "Expression"
 							},
-							"BlobName": "@concat('*',variables('SourceFileName'),'*.csv')"
+							"BlobName": "@concat('*',variables('SourceFileName'),'*.nc')"
 						}
 					},
 					"fieldList": [
