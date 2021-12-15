@@ -166,7 +166,7 @@
 																"type": "Expression"
 															},
 															"BlobName": {
-																"value": "@variables('FileName')",
+																"value": "@concat(variables('FileName'),'.csv')",
 																"type": "Expression"
 															}
 														}
@@ -227,7 +227,7 @@
 															"type": "Expression"
 														},
 														"SourceFileName": {
-															"value": "@variables('FileName')",
+															"value": "@concat(variables('FileName'),'.csv')",
 															"type": "Expression"
 														},
 														"SourceFileDateTimeStamp": {
@@ -291,7 +291,7 @@
 																"type": "Expression"
 															},
 															"BlobName": {
-																"value": "@variables('FileName')",
+																"value": "@concat(variables('FileName'),'.csv')",
 																"type": "Expression"
 															}
 														}
@@ -339,7 +339,7 @@
 																"type": "Expression"
 															},
 															"BlobName": {
-																"value": "@variables('FileName')",
+																"value": "@concat(variables('FileName'),'.csv')",
 																"type": "Expression"
 															}
 														}
