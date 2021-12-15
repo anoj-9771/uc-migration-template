@@ -50,12 +50,12 @@ def getInstallation():
                                            validToDate, \
                                            rateCategoryCode, \
                                            rateCategory, \
-                                           'TBD' as industryCode, \
+                                           industryCode, \
                                            industry, \
                                            billingClassCode, \
                                            billingClass, \
-                                           'TBD' as industrySystemCode, \
-                                           'TBD' as industrySystem \
+                                           industrySystemCode, \
+                                           industrySystem \
                                       FROM {ADS_DATABASE_CLEANSED}.isu_0ucinstallah_attr_2 \
                                       WHERE validToDate in (to_date('9999-12-31'),to_date('2099-12-31')) \
                                       AND _RecordCurrent = 1 \
@@ -158,9 +158,9 @@ def getInstallation():
                             StructField('authorizationGroupCode', StringType(), True),
                             StructField('serviceTypeCode', StringType(), True),
                             StructField('serviceType', StringType(), True),
-                            StructField('disconnectionDocumentNumber', StringType(), True),
-                            StructField('disconnectionActivityPeriod', StringType(), True),
-                            StructField('disconnectionObjectNumber', StringType(), True),
+                            StructField('disconnectionDocumentNumber', StringType(), False),
+                            StructField('disconnectionActivityPeriod', StringType(), False),
+                            StructField('disconnectionObjectNumber', StringType(), False),
                             StructField('disconnectionDate', DateType(), True),
                             StructField('disconnectionActivityTypeCode', StringType(), True),
                             StructField('disconnectionActivityType', StringType(), True),

@@ -177,7 +177,7 @@ def date():
 def installation():
     TemplateEtl(df=getInstallation(), 
              entity="dimInstallation", 
-             businessKey="installationId,validToDate",
+             businessKey="installationId,validToDate,disconnectionDocumentNumber,disconnectionActivityPeriod,disconnectionObjectNumber",
              AddSK=True
             )
     
