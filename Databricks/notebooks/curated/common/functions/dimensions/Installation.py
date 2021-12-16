@@ -57,12 +57,12 @@ def getInstallation():
                                            industrySystemCode, \
                                            industrySystem \
                                       FROM {ADS_DATABASE_CLEANSED}.isu_0ucinstallah_attr_2 \
-                                      WHERE validToDate in (to_date('9999-12-31'),to_date('2099-12-31')) \
-                                      AND _RecordCurrent = 1 \
+                                      WHERE _RecordCurrent = 1 \
                                       AND _RecordDeleted = 0")
     
     isu0ucIsu32  = spark.sql(f"select \
                                   installationId, \
+                                  validToDate, \
                                   disconnectionDocumentNumber, \
                                   disconnectionActivityPeriod, \
                                   disconnectionObjectNumber, \
@@ -92,10 +92,14 @@ def getInstallation():
     #3.JOIN TABLES
     df = isu0ucinstallaAttrDf.join(isu0ucinstallahAttr2Df, isu0ucinstallaAttrDf.installationId == isu0ucinstallahAttr2Df.installationId, how="inner") \
                              .drop(isu0ucinstallahAttr2Df.installationId)
-  
-    df = df.join(isu0ucIsu32, df.installationId == isu0ucIsu32.installationId, how="left") \
-           .drop(isu0ucIsu32.installationId)    
-    
+   
+    df = df.join(isu0ucIsu32, (df.installationId == isu0ucIsu32.installationId) & (df.validToDate == isu0ucIsu32.validToDate), how="left") \
+           .drop(isu0ucIsu32.installationId).drop(isu0ucIsu32.validToDate)    
+
+    df = df.withColumn("disconnectionDocumentNumber", when(df.disconnectionDocumentNumber.isNull(), '-1').otherwise(df.disconnectionDocumentNumber)) \
+           .withColumn("disconnectionActivityPeriod", when(df.disconnectionActivityPeriod.isNull(), '-1').otherwise(df.disconnectionActivityPeriod)) \
+           .withColumn("disconnectionObjectNumber", when(df.disconnectionObjectNumber.isNull(), '-1').otherwise(df.disconnectionObjectNumber))
+
     df = df.select("sourceSystemCode", \
                     "installationId", \
                     "validFromDate", \
@@ -137,7 +141,7 @@ def getInstallation():
     
     #4.UNION TABLES
     df = df.unionByName(dummyDimRecDf, allowMissingColumns = True)
-   
+
     #5.Apply schema definition
     newSchema = StructType([
                             StructField('sourceSystemCode', StringType(), True),
@@ -181,7 +185,7 @@ def getInstallation():
                       ])
 
     df = spark.createDataFrame(df.rdd, schema=newSchema)
-       
+
     #5.SELECT / TRANSFORM
 
     
