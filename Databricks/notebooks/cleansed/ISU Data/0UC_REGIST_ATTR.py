@@ -198,6 +198,7 @@ df_cleansed = spark.sql(f"SELECT \
 	cast(CRGPRESS as int) as gasCorrectionPressure, \
 	INTSIZEID as intervalLengthId, \
 	LOEVM as deletedIndicator, \
+    ZANLAGE as installationId, \
 	re._RecordStart, \
 	re._RecordEnd, \
 	re._RecordDeleted, \
@@ -241,6 +242,7 @@ newSchema = StructType([
 	StructField('gasCorrectionPressure',IntegerType(),True),
 	StructField('intervalLengthId',StringType(),True),
 	StructField('deletedIndicator',StringType(),True),
+    StructField('installationId',StringType(),True),
 	StructField('_RecordStart',TimestampType(),False),
 	StructField('_RecordEnd',TimestampType(),False),
 	StructField('_RecordDeleted',IntegerType(),False),
