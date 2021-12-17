@@ -8,10 +8,10 @@
 # COMMAND ----------
 
 ###########################################################################################################################
-# Function: getBusinessPartnerGroupRelation
-#  Get Business Partner Group Relation Dimension
+# Function: getInstallationPropertyMeterCon
+#  Gets Installation and it's associated Contract, Meter and Property SK value
 # Returns:
-#  Dataframe of transfomred Business Partner Group Relation
+#  Dataframe of Installation and it's associated Contract, Meter and Property SK value
 #############################################################################################################################
 # Method
 # 1.Create Function
@@ -22,7 +22,7 @@
 #############################################################################################################################
 #1.Create Function
 
-def getBusinessPartnerGroupRelation():
+def getInstallationPropertyMeterCon():
     #spark.udf.register("TidyCase", GeneralToTidyCase) 
 
     #2.Load Cleansed layer table data into dataframe
