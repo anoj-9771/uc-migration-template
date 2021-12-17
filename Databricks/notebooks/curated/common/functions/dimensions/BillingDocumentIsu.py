@@ -53,6 +53,11 @@ def getBillingDocumentIsu():
                                   ,"isOutsortedFlag" \
                                   ,"isReversedFlag" \
                                   ,"reversalDate" \
+                                  ,"portionNumber" \
+                                  ,"documentTypeCode" \
+                                  ,"meterReadingUnit" \
+                                  ,"billingTransactionCode"
+                                
                                 ).dropDuplicates()
   #6.Apply schema definition
   newSchema = StructType([
@@ -63,7 +68,11 @@ def getBillingDocumentIsu():
                             StructField("billCreatedDate", DateType(), True),
                             StructField("isOutsortedFlag", StringType(), True),
                             StructField("isReversedFlag", StringType(), True),
-                            StructField("reversalDate", DateType(), True)
+                            StructField("reversalDate", DateType(), True),
+                            StructField("portionNumber", StringType(), True),
+                            StructField("documentTypeCode", StringType(), True),
+                            StructField("meterReadingUnit", StringType(), True),
+                            StructField("billingTransactionCode", StringType(), True)
                       ])
   
   billDocDf = spark.createDataFrame(billDocDf.rdd, schema=newSchema)
