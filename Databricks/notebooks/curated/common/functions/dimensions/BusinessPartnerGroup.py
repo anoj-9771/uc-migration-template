@@ -46,9 +46,9 @@ def getBusinessPartnerGroup():
                                       and a._RecordDeleted = 0")
    
     crm0bpartnerAttrDf  = spark.sql(f"select b.businessPartnerNumber as businessPartnerGroupNumber, \
-                                      case when b.paymentAssistSchemeIndicator = 'X' then 'Y' else 'N' end as paymentAssistSchemeFlag, \
-                                      case when b.billAssistIndicator = 'X' then 'Y' else 'N' end as billAssistFlag, \
-                                      case when b.kidneyDialysisIndicator = 'X' then 'Y' else 'N' end as kidneyDialysisFlag \
+                                      b.paymentAssistSchemeIndicator as paymentAssistSchemeFlag, \
+                                      b.billAssistIndicator as billAssistFlag, \
+                                      b.kidneyDialysisIndicator as kidneyDialysisFlag \
                                       FROM {ADS_DATABASE_CLEANSED}.crm_0bpartner_attr b \
                                       where b.businessPartnerCategoryCode = '3' \
                                       and b._RecordCurrent = 1 \
@@ -60,6 +60,11 @@ def getBusinessPartnerGroup():
     #3.JOIN TABLES
     df = isu0bpartnerAttrDf.join(crm0bpartnerAttrDf, isu0bpartnerAttrDf.businessPartnerGroupNumber == crm0bpartnerAttrDf.businessPartnerGroupNumber, how="left")\
                             .drop(crm0bpartnerAttrDf.businessPartnerGroupNumber)
+    
+    df = df.withColumn('paymentAssistSchemeFlag', when ((col("paymentAssistSchemeFlag") == 'X'),'Y').otherwise('N')) \
+           .withColumn('billAssistFlag', when ((col("billAssistFlag") == 'X'),'Y').otherwise('N')) \
+           .withColumn('kidneyDialysisFlag', when ((col("kidneyDialysisFlag") == 'X'),'Y').otherwise('N'))
+    
     df = df.select("sourceSystemCode","businessPartnerGroupNumber","validFromDate","validToDate", \
                                                 "businessPartnerGroupCode","businessPartnerGroup","businessPartnerGroupName1","businessPartnerGroupName2","externalNumber", \
                                                 "paymentAssistSchemeFlag","billAssistFlag","kidneyDialysisFlag","createdDateTime","createdBy","lastUpdatedDateTime","lastUpdatedBy") 
@@ -89,6 +94,5 @@ def getBusinessPartnerGroup():
 
     df = spark.createDataFrame(df.rdd, schema=newSchema)
     #5.SELECT / TRANSFORM
-    
-    
+  
     return df  
