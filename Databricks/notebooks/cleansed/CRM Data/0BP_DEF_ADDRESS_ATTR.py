@@ -221,7 +221,7 @@ df_cleansed = spark.sql(f"SELECT \
 	cast(LONGITUDE as dec(15,12)) as longitude, \
 	cast(LATITUDE as dec(15,12)) as latitude, \
 	cast(ALTITUDE as dec(9,3)) as altitude, \
-	cast(PRECISID as int) as precision, \
+	PRECISID as precision, \
 	ADDRCOMM as communicationAddressNumber, \
 	ADDR_SHORT as shortFormattedAddress, \
 	ADDR_SHORT_S as shortFormattedAddress2, \
@@ -291,7 +291,7 @@ newSchema = StructType([
 	StructField('longitude',DecimalType(15,12),True),
 	StructField('latitude',DecimalType(15,12),True),
 	StructField('altitude',DecimalType(9,3),True),
-	StructField('precision',IntegerType(),True),
+	StructField('precision',StringType(),True),
 	StructField('communicationAddressNumber',StringType(),True),
 	StructField('shortFormattedAddress',StringType(),True),
 	StructField('shortFormattedAddress2',StringType(),True),
