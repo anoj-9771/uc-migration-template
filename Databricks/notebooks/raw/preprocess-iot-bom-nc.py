@@ -92,6 +92,11 @@ print (file_type)
 # mount_point = "/mnt/datalake-cleansed",
 # extra_configs = {"fs.azure.account.key.sadafdev01.blob.core.windows.net":dbutils.secrets.get(scope = "ADS_KV_ACCOUNT_SCOPE", key = "daf-sa-lake-key1")})
 
+# dbutils.fs.mount(
+# source = "wasbs://raw@sadafdev01.blob.core.windows.net",
+# mount_point = "/mnt/datalake-raw",
+# extra_configs = {"fs.azure.account.key.sadafdev01.blob.core.windows.net":dbutils.secrets.get(scope = "ADS_KV_ACCOUNT_SCOPE", key = "daf-sa-lake-key1")})
+
 # COMMAND ----------
 
 # DBTITLE 1,Connect and mount azure blob storage 

@@ -1,5 +1,5 @@
 {
-	"name": "SRC_BLOB_CSV",
+	"name": "ARCHIVE_BLOB_BINARY",
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "LS_AzureBlobStorage",
@@ -8,33 +8,22 @@
 		"parameters": {
 			"BlobContainer": {
 				"type": "string"
-			},
-			"BlobName": {
-				"type": "string"
 			}
 		},
 		"folder": {
 			"name": "Source - Blob"
 		},
 		"annotations": [],
-		"type": "DelimitedText",
+		"type": "Binary",
 		"typeProperties": {
 			"location": {
 				"type": "AzureBlobStorageLocation",
-				"fileName": {
-					"value": "@dataset().BlobName",
-					"type": "Expression"
-				},
-				"container": {
+				"folderPath": {
 					"value": "@dataset().BlobContainer",
 					"type": "Expression"
-				}
-			},
-			"columnDelimiter": "|",
-			"escapeChar": "\\",
-			"firstRowAsHeader": true,
-			"quoteChar": ""
-		},
-		"schema": []
+				},
+				"container": "archive"
+			}
+		}
 	}
 }
