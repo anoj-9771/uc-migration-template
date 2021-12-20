@@ -132,6 +132,6 @@ def getBusinessPartner():
 
     df = spark.createDataFrame(df.rdd, schema=newSchema)
     #5.SELECT / TRANSFORM
-    df.write.saveAsTable('curated.test2')
+    
     
     return df  
