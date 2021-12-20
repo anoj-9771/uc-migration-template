@@ -96,7 +96,7 @@ def getBusinessPartner():
     #5.Apply schema definition
     newSchema = StructType([
                             StructField('sourceSystemCode', StringType(), True),
-                            StructField('businessPartnerNumber', StringType(), True),
+                            StructField('businessPartnerNumber', StringType(), False),
                             StructField('validFromDate', DateType(), True),
                             StructField('validToDate', DateType(), True),
                             StructField('businessPartnerCategoryCode', StringType(), True),
