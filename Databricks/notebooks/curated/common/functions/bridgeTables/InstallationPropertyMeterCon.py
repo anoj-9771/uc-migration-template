@@ -25,72 +25,59 @@
 def getInstallationPropertyMeterCon():
     #spark.udf.register("TidyCase", GeneralToTidyCase) 
 
-    #2.Load Cleansed layer table data into dataframe
-    #Business Partner Group Relations Data from SAP ISU
-    isu0bpRelationsAttrDf  = spark.sql(f"select 'ISU' as sourceSystemCode, \
-                                      businessPartnerNumber1 as businessPartnerGroupNumber, \
-                                      businessPartnerNumber2 as businessPartnerNumber, \
-                                      validFromDate, \
-                                      validToDate, \
-                                      businessPartnerRelationshipNumber as relationshipNumber, \
-                                      relationshipTypeCode, \
-                                      relationshipType \
-                                      FROM {ADS_DATABASE_CLEANSED}.isu_0bp_relations_attr \
-                                      where relationshipTypeCode = 'ZSW009' \
-                                      and relationshipDirection = '1'\
-                                      and _RecordCurrent = 1 \
-                                      and _RecordDeleted = 0")
+    #2.Load Cleansed layer table data into dataframe   
+    df  = spark.sql(f"select distinct \
+                           coalesce(inst.installationID,'-1') as installationID, \
+                           coalesce(cont.contractID,'-1') as contractID, \
+                           coalesce(prop.propertyNumber,'-1') as propertyNumber, \
+                           coalesce(reg.equipmentNumber,'-1') as equipmentNumber \
+                           from cleansed.ISU_0UCINSTALLA_ATTR_2 inst \
+                           left join {ADS_DATABASE_CLEANSED}.ISU_0UCINSTALLAH_ATTR_2 insth on inst.installationId = insth.installationId and insth._RecordCurrent = 1 and insth._RecordDeleted = 0 \
+                           left join {ADS_DATABASE_CLEANSED}.ISU_0UCCONTRACT_ATTR_2 cont on inst.installationId = cont.installationId and cont._RecordCurrent = 1 and cont._RecordDeleted = 0 \
+                           left join {ADS_DATABASE_CLEANSED}.ISU_0UC_CONNOBJ_ATTR_2 prop on inst.propertyNumber = prop.propertyNumber and prop._RecordCurrent = 1 and prop._RecordDeleted = 0 \
+                           left join {ADS_DATABASE_CLEANSED}.ISU_0UC_REGIST_ATTR reg on inst.installationId = reg.installationId and reg._RecordCurrent = 1 and reg._RecordDeleted = 0 \
+                           where inst._RecordCurrent = 1 and inst._RecordDeleted = 0")
     
+    print(f'{df.count():,} rows in df -1')
+    display(df)    
      
     #3.Load dimension tables into dataframe
 
-    dim0bpartnerDf = spark.sql(f"select sourceSystemCode, dimBusinessPartnerSK, businessPartnerNumber, validFromDate,validToDate \
-                                      from {ADS_DATABASE_CURATED}.dimBusinessPartner \
-                                      where _RecordCurrent = 1 and _RecordDeleted = 0")    
-       
-    dim0bpGroupDf = spark.sql(f"select sourceSystemCode, dimBusinessPartnerGroupSK, businessPartnerGroupNumber,validFromDate,validToDate \
-                                      from {ADS_DATABASE_CURATED}.dimBusinessPartnerGroup \
-                                      where _RecordCurrent = 1 and _RecordDeleted = 0") 
-    
-    dummyDimRecDf = spark.sql(f"select dimBusinessPartnerSK as dummyDimSK, sourceSystemCode, 'dimBusinessPartner' as dimension from {ADS_DATABASE_CURATED}.dimBusinessPartner where businessPartnerNumber = '-1' \
-                            union select dimBusinessPartnerGroupSK as dummyDimSK, sourceSystemCode, 'dimBusinessPartnerGroup' as dimension from {ADS_DATABASE_CURATED}.dimBusinessPartnerGroup \
-                                                                                                                                            where businessPartnerGroupNumber = '-1'")
+    dimInstallationDf = spark.sql(f"select dimInstallationSK, from {ADS_DATABASE_CURATED}.dimInstallation where _RecordCurrent = 1 and _RecordDeleted = 0") 
+    dimContractDf = spark.sql(f"select dimContractSK from {ADS_DATABASE_CURATED}.dimContract where _RecordCurrent = 1 and _RecordDeleted = 0")
+    dimPropertyDf = spark.sql(f"select dimPropertySK from {ADS_DATABASE_CURATED}.dimProperty where _RecordCurrent = 1 and _RecordDeleted = 0")
+    dimMeterDf = spark.sql(f"select dimMeterSK,meterNumber from {ADS_DATABASE_CURATED}.dimMeter where sourceSystemCode = 'ISU' and _RecordCurrent = 1 and _RecordDeleted = 0")
+
     
     
     #4.Joins to derive SKs
-    isu0bpRelationsAttrDf = isu0bpRelationsAttrDf.join(dim0bpartnerDf, (isu0bpRelationsAttrDf.businessPartnerNumber == dim0bpartnerDf.businessPartnerNumber) \
-                               & (isu0bpRelationsAttrDf.sourceSystemCode == dim0bpartnerDf.sourceSystemCode), how="left") \
-                    .select(isu0bpRelationsAttrDf['*'], dim0bpartnerDf['dimBusinessPartnerSK'])    
-    
-    isu0bpRelationsAttrDf = isu0bpRelationsAttrDf.join(dim0bpGroupDf, (isu0bpRelationsAttrDf.businessPartnerGroupNumber == dim0bpGroupDf.businessPartnerGroupNumber) \
-                               & (isu0bpRelationsAttrDf.sourceSystemCode == dim0bpGroupDf.sourceSystemCode), how="left") \
-                    .select(isu0bpRelationsAttrDf['*'], dim0bpGroupDf['dimBusinessPartnerGroupSK'])
-    
-    #6.Joins to derive SKs of dummy dimension(-1) records, to be used when the lookup fails for dimensionSk
-  
-    isu0bpRelationsAttrDf = isu0bpRelationsAttrDf.join(dummyDimRecDf, (dummyDimRecDf.dimension == 'dimBusinessPartner') \
-                               & (isu0bpRelationsAttrDf.sourceSystemCode == dummyDimRecDf.sourceSystemCode), how="left") \
-                    .select(isu0bpRelationsAttrDf['*'], dummyDimRecDf['dummyDimSK'].alias('dummyBusinessPartnerSK'))
-    
-    isu0bpRelationsAttrDf = isu0bpRelationsAttrDf.join(dummyDimRecDf, (dummyDimRecDf.dimension == 'dimBusinessPartnerGroup') \
-                               & (isu0bpRelationsAttrDf.sourceSystemCode == dummyDimRecDf.sourceSystemCode), how="left") \
-                    .select(isu0bpRelationsAttrDf['*'], dummyDimRecDf['dummyDimSK'].alias('dummyBusinessPartnerGroupSK'))
+    df = df.join(dimInstallationDf, (df.installationID == dimInstallationDf.installationID), how="left") \
+            .select(df['*'], dimInstallationDf['dimInstallationSK'])    
+    print(f'{df.count():,} rows in df -2')
+    display(df)    
+    df = df.join(dimContractDf, (df.contractID == dimContractDf.contractID), how="left") \
+            .select(df['*'], dimContractDf['dimContractSK']) 
+    print(f'{df.count():,} rows in df -3')
+    display(df)  
+    df = df.join(dimPropertyDf, (df.propertyNumber == dimPropertyDf.propertyNumber), how="left") \
+            .select(df['*'], dimPropertyDf['dimPropertySK']) 
+    print(f'{df.count():,} rows in df -4')
+    display(df)    
+    df = df.join(dimMeterDf, (df.equipmentNumber == dimMeterDf.equipmentNumber), how="left") \
+            .select(df['*'], dimMeterDf['dimMeterSK'])     
     
     
-    #7.SELECT / TRANSFORM
+    #5.SELECT / TRANSFORM
     #aggregating to address any duplicates due to failed SK lookups and dummy SKs being assigned in those cases
-    isu0bpRelationsAttrDf = isu0bpRelationsAttrDf.selectExpr ( \
-                                           "sourceSystemCode" \
-                                          ,"coalesce(dimBusinessPartnerGroupSK, dummyBusinessPartnerGroupSK) as businessPartnerGroupSK" \
-                                          ,"coalesce(dimBusinessPartnerSK, dummyBusinessPartnerSK) as businessPartnerSK" \
-                                          ,"validFromDate" \
-                                          ,"validToDate" \
-                                          ,"relationshipNumber" \
-                                          ,"relationshipTypeCode" \
-                                          ,"relationshipType" \
-                                         ) 
+    df = df.selectExpr ( \
+                       "dimInstallationSK" \
+                      ,"dimContractSK" \
+                      ,"dimPropertySK" \
+                      ,"dimMeterSK" \
+                      ) 
                             
-    
+    print(f'{df.count():,} rows in df -5')
+    display(df)    
     #6.Apply schema definition
     newSchema = StructType([
                             StructField('sourceSystemCode', StringType(), True),
@@ -104,5 +91,6 @@ def getInstallationPropertyMeterCon():
                       ]) 
 
     df = spark.createDataFrame(isu0bpRelationsAttrDf.rdd, schema=newSchema)
-   
+    print(f'{df.count():,} rows in df -6')
+    display(df)   
     return df  
