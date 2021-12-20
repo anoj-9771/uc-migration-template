@@ -46,9 +46,9 @@ def getBusinessPartnerGroup():
                                       and a._RecordDeleted = 0")
    
     crm0bpartnerAttrDf  = spark.sql(f"select b.businessPartnerNumber as businessPartnerGroupNumber, \
-                                      case when b.paymentAssistSchemeIndicator is 'X' then 'Y' else 'N' as paymentAssistSchemeFlag, \
-                                      case when b.billAssistIndicator is 'X' then 'Y' else 'N' as billAssistFlag, \
-                                      case when b.kidneyDialysisIndicator is 'X' then 'Y' else 'N' as kidneyDialysisFlag \
+                                      case when b.paymentAssistSchemeIndicator = 'X' then 'Y' else 'N' end as paymentAssistSchemeFlag, \
+                                      case when b.billAssistIndicator = 'X' then 'Y' else 'N' end as billAssistFlag, \
+                                      case when b.kidneyDialysisIndicator = 'X' then 'Y' else 'N' end as kidneyDialysisFlag \
                                       FROM {ADS_DATABASE_CLEANSED}.crm_0bpartner_attr b \
                                       where b.businessPartnerCategoryCode = '3' \
                                       and b._RecordCurrent = 1 \
