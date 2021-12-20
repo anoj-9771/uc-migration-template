@@ -1,19 +1,4 @@
 # Databricks notebook source
-###########################################################################################################################
-# Function: getMeter
-#  GETS Meter DIMENSION 
-# Returns:
-#  Dataframe of transformed Metery
-#############################################################################################################################
-# Method
-# 1.Create Function
-# 2.Load Cleansed layer table data into dataframe and transform
-# 3.JOIN TABLES
-# 4.UNION TABLES
-# 5.SELECT / TRANSFORM
-#############################################################################################################################
-#1.Create Function
-
 def getMeter():
     meterFunctionClasses = ['1000','2000','9000']
     #spark.udf.register("TidyCase", GeneralToTidyCase) 
@@ -22,7 +7,7 @@ def getMeter():
     #Meter Data from Access
     #notes for future: a number of column values can be derived with aditional code/queries. LastActivity reason code can only be mapped from meter change reason code/reason after conversion of values. The text is the same but the codes differ
     accessZ309TpropmeterDf = spark.sql(f"select 'Access' as sourceSystemCode, \
-                                              null as meterNumber, \
+                                              row_number() over (order by metermakernumber) as meterNumber, \
                                               coalesce(meterMakerNumber,'') as meterSerialNumber, \
                                               null as logicalDeviceNumber, \
                                               null as materialNumber, \
