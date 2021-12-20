@@ -62,10 +62,10 @@ def getBusinessPartner():
     
     #Business Partner Data from SAP CRM
     crm0bpartnerAttrDf  = spark.sql(f"select businessPartnerNumber, \
-                                      case when warWidowIndicator = 'X' then 'Y' else 'N' end as warWidowFlag, \
-                                      case when deceasedIndicator = 'X' then 'Y' else 'N' end as deceasedFlag, \
-                                      case when disabilityIndicator = 'X' then 'Y' else 'N' end as disabilityFlag, \
-                                      case when goldCardHolderIndicator = 'X' then 'Y' else 'N' end as goldCardHolderFlag, \
+                                      warWidowIndicator as warWidowFlag, \
+                                      deceasedIndicator as deceasedFlag, \
+                                      disabilityIndicator as disabilityFlag, \
+                                      goldCardHolderIndicator as goldCardHolderFlag, \
                                       naturalPersonIndicator as crmnaturalPersonFlag, \
                                       pensionConcessionCardIndicator as pensionCardFlag, \
                                       pensionType as pensionType \
@@ -81,8 +81,7 @@ def getBusinessPartner():
     df = isu0bpartnerAttrDf.join(crm0bpartnerAttrDf, isu0bpartnerAttrDf.businessPartnerNumber == crm0bpartnerAttrDf.businessPartnerNumber, how="left")\
                             .drop(crm0bpartnerAttrDf.businessPartnerNumber)
     
-    #Check and transfrom values for naturalPersonFlag from ISU/CRM
-    df = df.withColumn('naturalPersonFlag', when ((col("isunaturalPersonFlag") == 'X') | (col("crmnaturalPersonFlag") == 'X'),'Yes').otherwise('No')) \
+    df = df.withColumn('naturalPersonFlag', when ((col("isunaturalPersonFlag") == 'X') | (col("crmnaturalPersonFlag") == 'X'),'Y').otherwise('N')) \
            .drop("isunaturalPersonFlag").drop("crmnaturalPersonFlag")
         
     df = df.select("sourceSystemCode","businessPartnerNumber","validFromDate","validToDate", \
@@ -97,7 +96,7 @@ def getBusinessPartner():
     #5.Apply schema definition
     newSchema = StructType([
                             StructField('sourceSystemCode', StringType(), True),
-                            StructField('businessPartnerNumber', StringType(), True),
+                            StructField('businessPartnerNumber', StringType(), False),
                             StructField('validFromDate', DateType(), True),
                             StructField('validToDate', DateType(), True),
                             StructField('businessPartnerCategoryCode', StringType(), True),
