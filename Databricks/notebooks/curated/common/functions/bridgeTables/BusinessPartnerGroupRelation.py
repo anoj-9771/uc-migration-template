@@ -9,9 +9,9 @@
 
 ###########################################################################################################################
 # Function: getBusinessPartnerGroupRelation
-#  GETS Business Partner DIMENSION 
+#  Get Business Partner Group Relation Dimension
 # Returns:
-#  Dataframe of transformed Metery
+#  Dataframe of transfomred Business Partner Group Relation
 #############################################################################################################################
 # Method
 # 1.Create Function
