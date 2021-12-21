@@ -16,6 +16,10 @@
 
 # COMMAND ----------
 
+# MAGIC %pip install fiscalyear
+
+# COMMAND ----------
+
 # DBTITLE 1,1. Include all util user functions for this notebook
 # MAGIC %run ./includes/util-common
 
@@ -197,6 +201,13 @@ def meter():
              AddSK=True
             )
 
+#Call Property function to load DimProperty
+def property():
+    TemplateEtl(df=getProperty(), 
+             entity="dimProperty", 
+             businessKey="propertyNumber,sourceSystemCode,propertyStartDate",
+             AddSK=True
+            )
 # Add New Dim in alphabetical order
 # def Dim2_Example():
 #   TemplateEtl(df=GetDim2Example(), 
