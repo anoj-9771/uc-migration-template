@@ -215,7 +215,7 @@ df_cleansed_column = spark.sql(f"SELECT  \
                                   ERCHP_V as ERCHP_Exist_IND, \
                                   ABRVORG2 as periodEndBillingTransactionCode, \
                                   ABLEINH as meterReadingUnit, \
-                                  ENDPRIO as billingEndingPriorityCodfe, \
+                                  ENDPRIO as billingEndingPriorityCode, \
                                   to_date(ERDAT, 'yyyyMMdd') as createdDate, \
                                   ERNAM as createdBy, \
                                   to_date(AEDAT, 'yyyyMMdd') as lastChangedDate, \
@@ -235,7 +235,7 @@ df_cleansed_column = spark.sql(f"SELECT  \
                                   ENDOFPEB as billingPeriodEndIndicator, \
                                   cast(NUMPERPEB as integer) as billingPeriodEndCount, \
                                   SC_BELNR_H as billingDoumentAdjustmentReversalCount, \
-                                  SC_BELNR_N as billingDocumentNumberForAdjustmentReverssal, \
+                                  SC_BELNR_N as billingDocumentNumberForAdjustmentReversal, \
                                   to_date(ZUORDDAA, 'yyyyMMdd') as billingAllocationDate, \
                                   BILLINGRUNNO as billingRunNumber, \
                                   SIMRUNID as simulationPeriodID, \
@@ -317,7 +317,7 @@ newSchema = StructType([
                           StructField('ERCHP_Exist_IND', StringType(), True), 
                           StructField('periodEndBillingTransactionCode', StringType(), True),
                           StructField('meterReadingUnit', StringType(), True),
-                          StructField('billingEndingPriorityCodfe', StringType(), True),
+                          StructField('billingEndingPriorityCode', StringType(), True),
                           StructField('createdDate', DateType(), True),
                           StructField('createdBy', StringType(), True),
                           StructField('lastChangedDate', DateType(), True),
@@ -337,7 +337,7 @@ newSchema = StructType([
                           StructField('billingPeriodEndIndicator', StringType(), True),
                           StructField('billingPeriodEndCount', IntegerType(), True),
                           StructField('billingDoumentAdjustmentReversalCount', StringType(), True),
-                          StructField('billingDocumentNumberForAdjustmentReverssal', StringType(), True),
+                          StructField('billingDocumentNumberForAdjustmentReversal', StringType(), True),
                           StructField('billingAllocationDate', DateType(), True),
                           StructField('billingRunNumber', StringType(), True),
                           StructField('simulationPeriodID', StringType(), True),
