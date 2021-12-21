@@ -188,10 +188,12 @@ df_cleansed = spark.sql(f"SELECT \
                                   RERF as firstEnteredBy , \
                                   to_date(DERF,'yyyy-MM-dd') as firstEnteredOnDate , \
                                   TERF as firstEnteredTime , \
+                                  cast(DERF||' '||TERF as timestamp) as firstEnteredDateTime , \
                                   REHER as firstEnteredSource , \
                                   RBEAR as employeeId , \
                                   to_date(DBEAR,'yyyy-MM-dd') as lastEdittedOnDate , \
                                   TBEAR as lastEdittedTime , \
+                                  cast(DBEAR||' '||TBEAR as timestamp) as lastEditedDateTime , \
                                   RBHER as lastEdittedSource , \
                                   RESPONSIBLE as responsiblePerson , \
                                   USEREXCLUSIVE as exclusiveUser , \
@@ -270,10 +272,12 @@ newSchema = StructType(
                             StructField("firstEnteredBy", StringType(), True),
                             StructField("firstEnteredOnDate", DateType(), True),
                             StructField("firstEnteredTime", StringType(), True),
+                            StructField("firstEnteredDateTime", TimestampType(), True),  
                             StructField("firstEnteredSource", StringType(), True),
                             StructField("employeeId", StringType(), True),
                             StructField("lastEdittedOnDate", DateType(), True),
                             StructField("lastEdittedTime", StringType(), True),
+                            StructField("lastEditedDateTime", TimestampType(), True),    
                             StructField("lastEdittedSource", StringType(), True),
                             StructField("responsiblePerson", StringType(), True),
                             StructField("exclusiveUser", StringType(), True),
