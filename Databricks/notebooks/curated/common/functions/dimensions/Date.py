@@ -1,8 +1,4 @@
 # Databricks notebook source
-# MAGIC %pip install fiscalyear
-
-# COMMAND ----------
-
 ###########################################################################################################################
 # Function: getDate
 #  GETS Date DIMENSION 
@@ -131,10 +127,10 @@ def getDate():
                           ,dayOfMonth \
                           ,dayOfYear \
                           ,weekOfMonth(calendarDate) as weekOfMonth \
-                          ,weekOfYear \
-                          ,monthOfYear \
                           ,quarterDates_Int(calendarDate,'week') as weekOfQuarter \
+                          ,weekOfYear \
                           ,monthOfQuarter(calendarDate) as monthOfQuarter \
+                          ,monthOfYear \
                           ,quarterOfYear \
                           ,halfOfYear \
                           ,weekDates(calendarDate,'start') as weekStartDate \
@@ -167,10 +163,10 @@ def getDate():
                             StructField("dayOfMonth", IntegerType(), False),
                             StructField("dayOfYear", IntegerType(), False),
                             StructField("weekOfMonth", IntegerType(), False),
-                            StructField("weekOfYear", IntegerType(), False),
-                            StructField("monthOfYear", IntegerType(), False),
                             StructField("weekOfQuarter", IntegerType(), False),
+                            StructField("weekOfYear", IntegerType(), False),
                             StructField("monthOfQuarter", IntegerType(), False),
+                            StructField("monthOfYear", IntegerType(), False),
                             StructField("quarterOfYear", IntegerType(), False),
                             StructField("halfOfYear", IntegerType(), False),
                             StructField("weekStartDate", DateType(), False),
@@ -184,7 +180,7 @@ def getDate():
                             StructField("isWeekDayFlag", BooleanType(), False),
                             StructField("financialYear", IntegerType(), False),
                             StructField("financialYearStartDate", DateType(), False),
-                            StructField("financialYearEndDate", DateType(), True),
+                            StructField("financialYearEndDate", DateType(), False),
                             StructField("dayOfFinancialYear", IntegerType(), False),
                             StructField("weekOfFinancialYear", IntegerType(), False),
                             StructField("monthOfFinancialYear", IntegerType(), False),
