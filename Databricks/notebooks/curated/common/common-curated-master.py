@@ -170,7 +170,7 @@ def contract():
             )  
 
 #Call Date function to load DimDate
-def date():
+def makeDate(): #renamed because date() gets overloaded elsewhere
     TemplateEtl(df=getDate(), 
              entity="dimDate", 
              businessKey="calendarDate",
@@ -202,7 +202,7 @@ def meter():
             )
 
 #Call Property function to load DimProperty
-def property():
+def makeProperty(): #renamed because property is a keyword
     TemplateEtl(df=getProperty(), 
              entity="dimProperty", 
              businessKey="propertyNumber,sourceSystemCode,propertyStartDate",
@@ -296,11 +296,11 @@ def Main():
         businessPartnerGroup()
         businessPartner()
         contract()
-        date()
+        makeDate()
         installation()
         location()
         meter()
-        property()
+        makeProperty()
         #Add new Dim in alphabetical position
         
         LogEtl("End Dimensions")
