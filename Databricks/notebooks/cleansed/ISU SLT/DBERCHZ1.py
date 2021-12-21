@@ -182,18 +182,18 @@ df_cleansed_column = spark.sql(f"SELECT  \
                                   BELZART as lineItemTypeCode, \
                                   ABSLKZ as billingLineItemBudgetBillingIndicator, \
                                   DIFFKZ as lineItemDiscountStatisticsIndicator, \
-                                  BUCHREL as billingLineItemReleventPostingIndicator, \
-                                  MENGESTREL as billedValueStatisticallyReleventIndicator, \
-                                  BETRSTREL as billingLineItemStatisticallyReleventAmount, \
+                                  BUCHREL as billingLineItemRelevantPostingIndicator, \
+                                  MENGESTREL as billedValueStatisticallyRelevantIndicator, \
+                                  BETRSTREL as billingLineItemStatisticallyRelevantAmount, \
                                   STGRQNT as quantityStatisticsGroupCode, \
-                                  STGRAMT as amountStatisticsGroupCoide, \
+                                  STGRAMT as amountStatisticsGroupCode, \
                                   PRINTREL as billingLinePrintReleventIndicator, \
                                   AKLASSE as billingClassCode, \
                                   bc.billingClass as billingClass, \
                                   BRANCHE as industryText, \
                                   TVORG as subtransactionForDocumentItem, \
                                   GEGEN_TVORG as offsettingTransactionSubtransactionForDocumentItem, \
-                                  LINESORT as poresortingBillingLineItems, \
+                                  LINESORT as presortingBillingLineItems, \
                                   to_date(AB, 'yyyyMMdd') as validFromDate, \
                                   to_date(BIS, 'yyyyMMdd') as validToDate, \
                                   TIMTYPZA as billingLineItemTimeCategoryCode, \
@@ -220,7 +220,7 @@ df_cleansed_column = spark.sql(f"SELECT  \
                                   DYNCANC05 as reversalDynamicPeriodControl5, \
                                   DYNCANC as reverseBackbillingIndicator, \
                                   DYNEXEC as allocateBackbillingIndicator, \
-                                  LRATESTEP as eateStepLogicalNumber, \
+                                  LRATESTEP as rateStepLogicalNumber, \
                                   PEB as periodEndBillingIndicator, \
                                   STAFO as statististicsUpdateGroupCode, \
                                   ARTMENGE as billedQuantityStatisticsCode, \
@@ -253,18 +253,18 @@ newSchema = StructType([
                             StructField('lineItemTypeCode', StringType(), True),
                             StructField('billingLineItemBudgetBillingIndicator', StringType(), True),
                             StructField('lineItemDiscountStatisticsIndicator', StringType(), True),
-                            StructField('billingLineItemReleventPostingIndicator', StringType(), True),
-                            StructField('billedValueStatisticallyReleventIndicator', StringType(), True),
-                            StructField('billingLineItemStatisticallyReleventAmount', StringType(), True),
+                            StructField('billingLineItemRelevantPostingIndicator', StringType(), True),
+                            StructField('billedValueStatisticallyRelevantIndicator', StringType(), True),
+                            StructField('billingLineItemStatisticallyRelevantAmount', StringType(), True),
                             StructField('quantityStatisticsGroupCode', StringType(), True),
-                            StructField('amountStatisticsGroupCoide', StringType(), True),
+                            StructField('amountStatisticsGroupCode', StringType(), True),
                             StructField('billingLinePrintReleventIndicator', StringType(), True),
                             StructField('billingClassCode', StringType(), True),
                             StructField('billingClass', StringType(), True),
                             StructField('industryText', StringType(), True),
                             StructField('subtransactionForDocumentItem', StringType(), True),
                             StructField('offsettingTransactionSubtransactionForDocumentItem', StringType(), True),
-                            StructField('poresortingBillingLineItems', StringType(), True),
+                            StructField('presortingBillingLineItems', StringType(), True),
                             StructField('validFromDate', DateType(), True),
                             StructField('validToDate', DateType(), True),
                             StructField('billingLineItemTimeCategoryCode', StringType(), True),
@@ -291,7 +291,7 @@ newSchema = StructType([
                             StructField('reversalDynamicPeriodControl5', StringType(), True),
                             StructField('reverseBackbillingIndicator', StringType(), True),
                             StructField('allocateBackbillingIndicator', StringType(), True),
-                            StructField('eateStepLogicalNumber', StringType(), True),
+                            StructField('rateStepLogicalNumber', StringType(), True),
                             StructField('periodEndBillingIndicator', StringType(), True),
                             StructField('statististicsUpdateGroupCode', StringType(), True),
                             StructField('billedQuantityStatisticsCode', StringType(), True),
