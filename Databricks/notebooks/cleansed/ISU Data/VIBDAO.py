@@ -173,11 +173,6 @@ DeltaSaveToDeltaTable (
 
 # COMMAND ----------
 
-# MAGIC %sql
-# MAGIC select distinct derf,terf,dbear,tbear from raw.isu_vibdao
-
-# COMMAND ----------
-
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT \
