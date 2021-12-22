@@ -19,7 +19,7 @@ variables:
   # Used to set Blob Storage deployability..
   - name: azureblobstorage
     value: true
-  # Used to set Data Lake Storage deployability
+  # Used to set Data Lake Storage deployability...
   - name: azuredatalakestorage
     value: true
   # Used to set Databricks Workspace deployability - With Vnet injection
