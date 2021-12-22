@@ -9,11 +9,6 @@ display(df)
 
 # COMMAND ----------
 
-# MAGIC %sql 
-# MAGIC select distinct DELTA_TS from test.erch
-
-# COMMAND ----------
-
 df.printSchema()
 
 # COMMAND ----------
@@ -176,7 +171,7 @@ df.write.format("json").saveAsTable("test" + "." + "erch")
 # MAGIC FROM test.erch a
 # MAGIC LEFT JOIN cleansed.isu_0comp_code_text b
 # MAGIC ON a.BUKRS = b.companyCode
-# MAGIC where DELTA_TS <= '20211115042244'
+# MAGIC --where DELTA_TS <= '20211115042244'
 
 # COMMAND ----------
 
@@ -186,6 +181,17 @@ display(lakedf)
 # COMMAND ----------
 
 lakedf.printSchema()
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC select portionNumber from cleansed.isu_erch
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC select 
+# MAGIC distinct formName from cleansed.isu_erch
 
 # COMMAND ----------
 

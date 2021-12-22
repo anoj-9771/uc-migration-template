@@ -191,10 +191,10 @@ df_cleansed = spark.sql(f"SELECT \
                                   cast(DERF||' '||TERF as timestamp) as firstEnteredDateTime , \
                                   REHER as firstEnteredSource , \
                                   RBEAR as employeeId , \
-                                  to_date(DBEAR,'yyyy-MM-dd') as lastEdittedOnDate , \
-                                  TBEAR as lastEdittedTime , \
+                                  to_date(DBEAR,'yyyy-MM-dd') as lastEditedOnDate , \
+                                  TBEAR as lastEditedTime , \
                                   cast(DBEAR||' '||TBEAR as timestamp) as lastEditedDateTime , \
-                                  RBHER as lastEdittedSource , \
+                                  RBHER as lastEditedSource , \
                                   RESPONSIBLE as responsiblePerson , \
                                   USEREXCLUSIVE as exclusiveUser , \
                                   to_date(LASTRENO,'yyyy-MM-dd') as lastRelocationDate , \
@@ -275,10 +275,10 @@ newSchema = StructType(
                             StructField("firstEnteredDateTime", TimestampType(), True),  
                             StructField("firstEnteredSource", StringType(), True),
                             StructField("employeeId", StringType(), True),
-                            StructField("lastEdittedOnDate", DateType(), True),
-                            StructField("lastEdittedTime", StringType(), True),
+                            StructField("lastEditedOnDate", DateType(), True),
+                            StructField("lastEditedTime", StringType(), True),
                             StructField("lastEditedDateTime", TimestampType(), True),    
-                            StructField("lastEdittedSource", StringType(), True),
+                            StructField("lastEditedSource", StringType(), True),
                             StructField("responsiblePerson", StringType(), True),
                             StructField("exclusiveUser", StringType(), True),
                             StructField("lastRelocationDate", DateType(), True),
