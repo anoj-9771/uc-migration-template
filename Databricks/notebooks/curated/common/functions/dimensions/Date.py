@@ -141,7 +141,7 @@ def getDate():
                           ,quarterDates_Date(calendarDate,'end') as quarterEndDate \
                           ,cast(cast(calendarYear as string)||'-01-01' as date) as yearStartDate \
                           ,cast(cast(calendarYear as string)||'-12-31' as date) as yearEndDate \
-                          ,case when dayOfWeek < 6 then True else False end as isWeekDayFlag \
+                          ,case when dayOfWeek < 6 then 'Y' else 'N' end as isWeekDayFlag \
                           ,fiscalDates_Int(calendarDate,'year') as financialYear \
                           ,fiscalDates_Date(calendarDate,'start') as financialYearStartDate \
                           ,fiscalDates_Date(calendarDate,'end') as financialYearEndDate \
@@ -149,7 +149,7 @@ def getDate():
                           ,fiscalDates_Int(calendarDate,'week') as weekOfFinancialYear \
                           ,fiscalDates_Int(calendarDate,'month') as monthOfFinancialYear \
                           ,fiscalDates_Int(calendarDate,'quarter') as quarterOfFinacialYear \
-                          ,case when fiscalDates_Int(calendarDate,'quarter') < 3 then 2 else 1 end as halfOfFinacialYear \
+                          ,case when fiscalDates_Int(calendarDate,'quarter') < 3 then 1 else 2 end as halfOfFinacialYear \
                           from {ADS_DATABASE_CLEANSED}.isu_scal_tt_date \
                        ")
     
@@ -177,7 +177,7 @@ def getDate():
                             StructField("quarterEndDate", DateType(), False),
                             StructField("yearStartDate", DateType(), False),
                             StructField("yearEndDate", DateType(), False),
-                            StructField("isWeekDayFlag", BooleanType(), False),
+                            StructField("isWeekDayFlag", StringType(), False),
                             StructField("financialYear", IntegerType(), False),
                             StructField("financialYearStartDate", DateType(), False),
                             StructField("financialYearEndDate", DateType(), False),

@@ -33,8 +33,8 @@ def getProperty():
                                             '0' as parentPropertyNumber, \
                                             null as parentPropertyTypeCode, \
                                             null as parentPropertyType, \
-                                            null as parentSuperiorTypeCode, \
-                                            null as parentSuperiorType, \
+                                            null as parentSuperiorPropertyTypeCode, \
+                                            null as parentSuperiorPropertyType, \
                                             null as planTypeCode, \
                                             null as planType, \
                                             null as lotTypeCode, \
@@ -62,8 +62,8 @@ def getProperty():
                                 vn.parentArchitecturalObjectNumber as parentPropertyNumber, \
                                 pa.inferiorPropertyTypeCode as parentPropertyTypeCode, \
                                 pa.inferiorPropertyType as parentPropertyType, \
-                                pa.superiorPropertyTypeCode as parentSuperiorTypeCode, \
-                                pa.superiorPropertyType as parentSuperiorType, \
+                                pa.superiorPropertyTypeCode as parentSuperiorPropertyTypeCode, \
+                                pa.superiorPropertyType as parentSuperiorPropertyType, \
                                 co.planTypeCode, \
                                 co.planType, \
                                 co.lotTypeCode, \
@@ -118,8 +118,8 @@ def getProperty():
     ,'parentPropertyNumber' \
     ,'parentPropertyTypeCode' \
     ,'parentPropertyType' \
-    ,'parentSuperiorTypeCode' \
-    ,'parentSuperiorType' \
+    ,'parentSuperiorPropertyTypeCode' \
+    ,'parentSuperiorPropertyType' \
     ,'planTypeCode' \
     ,'planType' \
     ,'lotTypeCode' \
@@ -146,8 +146,8 @@ def getProperty():
                             StructField('parentPropertyNumber', StringType(), True),
                             StructField('parentPropertyTypeCode', StringType(), True),
                             StructField('parentPropertyType', StringType(), True),
-                            StructField('parentSuperiorTypeCode', StringType(), True),
-                            StructField('parentSuperiorType', StringType(), True),
+                            StructField('parentSuperiorPropertyTypeCode', StringType(), True),
+                            StructField('parentSuperiorPropertyType', StringType(), True),
                             StructField('planTypeCode', StringType(), True),
                             StructField('planType', StringType(), True),
                             StructField('lotTypeCode', StringType(), True),
