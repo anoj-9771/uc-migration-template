@@ -1,8 +1,8 @@
 # Databricks notebook source
 # DBTITLE 0,Table
-table1 = 't_sapisu_ERCH'
-table2 = 't_sapisu_DBERCHZ1'
-table3 = 't_sapisu_DBERCHZ2'
+table1 = 'isu_ERCH'
+table2 = 'isu_DBERCHZ1'
+table3 = 'isu_DBERCHZ2'
 
 # COMMAND ----------
 
@@ -42,23 +42,32 @@ lakedf1.printSchema()
 
 # COMMAND ----------
 
+# MAGIC %sql
+# MAGIC select meterreadingunit, * from cleansed.isu_erch
+
+# COMMAND ----------
+
 # DBTITLE 1,[Source] Applying Transformation
 # MAGIC %sql
-# MAGIC select
-# MAGIC 'SAPISU' as sourceSystemCode
-# MAGIC ,billingDocumentNumber
-# MAGIC ,a.startBillingPeriod as billingPeriodStartDate
-# MAGIC ,a.endBillingPeriod as billingPeriodEndDate
-# MAGIC ,a.billingDocumentCreateDate as billCreatedDate
-# MAGIC ,case when a.DocumentNotReleasedIndicator = 'X' then 'Y' else 'N' end as isOutsortedFlag
-# MAGIC ,case when reversalDate is null then 'N' else 'Y' end as isReversedFlag
-# MAGIC ,reversalDate
-# MAGIC 
-# MAGIC FROM ERCH a
-# MAGIC join DBERCHZ1 bl1 
+# MAGIC select distinct
+# MAGIC 'ISU' as sourceSystemCode
+# MAGIC ,bl2.billingDocumentNumber
+# MAGIC ,b.startBillingPeriod as billingPeriodStartDate
+# MAGIC ,b.endBillingPeriod as billingPeriodEndDate
+# MAGIC ,b.billingDocumentCreateDate as billCreatedDate
+# MAGIC ,case when b.DocumentNotReleasedIndicator = 'X' then 'Y' else 'N' end as isOutsortedFlag
+# MAGIC ,case when b.reversalDate is null then 'N' else 'Y' end as isReversedFlag
+# MAGIC ,b.reversalDate
+# MAGIC ,b.portionNumber
+# MAGIC ,b.documentTypeCode
+# MAGIC ,b.meterReadingUnit
+# MAGIC ,b.billingTransactionCode
+# MAGIC FROM cleansed.isu_ERCH b
+# MAGIC join cleansed.isu_DBERCHZ1 bl1 
 # MAGIC on bl1.billingDocumentNumber = b.billingDocumentNumber and bl1.lineItemTypeCode in ('ZDQUAN', 'ZRQUAN')
-# MAGIC join DBERCHZ2 bl2 
+# MAGIC join cleansed.isu_DBERCHZ2 bl2 
 # MAGIC on bl1.billingDocumentNumber = bl2.billingDocumentNumber and bl1.billingDocumentLineItemId = bl2.billingDocumentLineItemId and bl2.suppressedMeterReadingDocumentID <> ''
+# MAGIC where b.billingSimulationIndicator <> '' and bl1.billingLineItemBudgetBillingIndicator is not NULL
 
 # COMMAND ----------
 
