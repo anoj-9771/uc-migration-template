@@ -179,7 +179,7 @@ df_cleansed = spark.sql(f"SELECT \
 	case when PARTNER = 'na' then '' else PARTNER end as businessPartnerNumber, \
 	PARTNER_GUID as businessPartnerGUID, \
     case when ADDRNUMBER = 'na' then '' else ADDRNUMBER end as addressNumber, \
-    to_date(DATE_FROM ,'yyyy-MM-dd') as validFromDate, \
+    case when DATE_FROM < '1900-01-01' then to_date('1900-01-01','yyyy-MM-dd') else to_date(DATE_FROM ,'yyyy-MM-dd') end as validFromDate, \
 	to_date(DATE_TO ,'yyyy-MM-dd') as validToDate, \
 	TITLE as titleCode, \
 	NAME1 as businessPartnerName1, \
