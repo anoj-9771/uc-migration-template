@@ -85,7 +85,7 @@ def getInstallation():
                                 AND _RecordDeleted = 0")
     
     #Dummy Record to be added to Installation Dimension
-    dummyDimRecDf = spark.createDataFrame([("ISU", "-1","2099-12-31","-1","-1","-1")], 
+    dummyDimRecDf = spark.createDataFrame([("ISU", "-1","2099-12-31","","","")], 
                                           ["sourceSystemCode", "installationId","validToDate","disconnectionDocumentNumber","disconnectionActivityPeriod","disconnectionObjectNumber"])
     dummyDimRecDf = dummyDimRecDf.withColumn("validToDate",dummyDimRecDf['validToDate'].cast(DateType()))
     
@@ -96,9 +96,9 @@ def getInstallation():
     df = df.join(isu0ucIsu32, (df.installationId == isu0ucIsu32.installationId) & (df.validToDate == isu0ucIsu32.validToDate), how="left") \
            .drop(isu0ucIsu32.installationId).drop(isu0ucIsu32.validToDate)    
 
-    df = df.withColumn("disconnectionDocumentNumber", when(df.disconnectionDocumentNumber.isNull(), '-1').otherwise(df.disconnectionDocumentNumber)) \
-           .withColumn("disconnectionActivityPeriod", when(df.disconnectionActivityPeriod.isNull(), '-1').otherwise(df.disconnectionActivityPeriod)) \
-           .withColumn("disconnectionObjectNumber", when(df.disconnectionObjectNumber.isNull(), '-1').otherwise(df.disconnectionObjectNumber))
+    df = df.withColumn("disconnectionDocumentNumber", when(df.disconnectionDocumentNumber.isNull(), '').otherwise(df.disconnectionDocumentNumber)) \
+           .withColumn("disconnectionActivityPeriod", when(df.disconnectionActivityPeriod.isNull(), '').otherwise(df.disconnectionActivityPeriod)) \
+           .withColumn("disconnectionObjectNumber", when(df.disconnectionObjectNumber.isNull(), '').otherwise(df.disconnectionObjectNumber))
 
     df = df.select("sourceSystemCode", \
                     "installationId", \
