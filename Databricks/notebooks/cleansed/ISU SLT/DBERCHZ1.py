@@ -187,7 +187,7 @@ df_cleansed_column = spark.sql(f"SELECT  \
                                   BETRSTREL as billingLineItemStatisticallyRelevantAmount, \
                                   STGRQNT as quantityStatisticsGroupCode, \
                                   STGRAMT as amountStatisticsGroupCode, \
-                                  PRINTREL as billingLinePrintReleventIndicator, \
+                                  PRINTREL as billingLinePrintRelevantIndicator, \
                                   AKLASSE as billingClassCode, \
                                   bc.billingClass as billingClass, \
                                   BRANCHE as industryText, \
@@ -212,7 +212,7 @@ df_cleansed_column = spark.sql(f"SELECT  \
                                   STTARIF as statisticalRate, \
                                   GEWKEY as weightingKeyId, \
                                   WDHFAKT as referenceValuesForRepetitionFactor, \
-                                  TEMP_AREA as tempratureArea, \
+                                  TEMP_AREA as temperatureArea, \
                                   DYNCANC01 as reversalDynamicPeriodControl1, \
                                   DYNCANC02 as reversalDynamicPeriodControl2, \
                                   DYNCANC03 as reversalDynamicPeriodControl3, \
@@ -222,7 +222,7 @@ df_cleansed_column = spark.sql(f"SELECT  \
                                   DYNEXEC as allocateBackbillingIndicator, \
                                   LRATESTEP as rateStepLogicalNumber, \
                                   PEB as periodEndBillingIndicator, \
-                                  STAFO as statististicsUpdateGroupCode, \
+                                  STAFO as statisticsUpdateGroupCode, \
                                   ARTMENGE as billedQuantityStatisticsCode, \
                                   STATTART as statisticalAnalysisRateType, \
                                   TIMECONTRL as periodControlCode, \
@@ -258,7 +258,7 @@ newSchema = StructType([
                             StructField('billingLineItemStatisticallyRelevantAmount', StringType(), True),
                             StructField('quantityStatisticsGroupCode', StringType(), True),
                             StructField('amountStatisticsGroupCode', StringType(), True),
-                            StructField('billingLinePrintReleventIndicator', StringType(), True),
+                            StructField('billingLinePrintRelevantIndicator', StringType(), True),
                             StructField('billingClassCode', StringType(), True),
                             StructField('billingClass', StringType(), True),
                             StructField('industryText', StringType(), True),
@@ -283,7 +283,7 @@ newSchema = StructType([
                             StructField('statisticalRate', StringType(), True),
                             StructField('weightingKeyId', StringType(), True),
                             StructField('referenceValuesForRepetitionFactor', IntegerType(), True),
-                            StructField('tempratureArea', StringType(), True),
+                            StructField('temperatureArea', StringType(), True),
                             StructField('reversalDynamicPeriodControl1', StringType(), True),
                             StructField('reversalDynamicPeriodControl2', StringType(), True),
                             StructField('reversalDynamicPeriodControl3', StringType(), True),
@@ -293,7 +293,7 @@ newSchema = StructType([
                             StructField('allocateBackbillingIndicator', StringType(), True),
                             StructField('rateStepLogicalNumber', StringType(), True),
                             StructField('periodEndBillingIndicator', StringType(), True),
-                            StructField('statististicsUpdateGroupCode', StringType(), True),
+                            StructField('statisticsUpdateGroupCode', StringType(), True),
                             StructField('billedQuantityStatisticsCode', StringType(), True),
                             StructField('statisticalAnalysisRateType', StringType(), True),
                             StructField('periodControlCode', StringType(), True),
