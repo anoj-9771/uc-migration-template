@@ -3,10 +3,10 @@
 import json
 #For unit testing...
 #Use this string in the Param widget: 
-#{"SourceType": "BLOB Storage (json)", "SourceServer": "daf-sa-lake-sastoken", "SourceGroup": "isu", "SourceName": "isu_0FUNCT_LOC_TEXT", "SourceLocation": "isu/0FUNCT_LOC_TEXT", "AdditionalProperty": "", "Processor": "databricks-token|0711-011053-turfs581|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive", "IsAuditTable": false, "SoftDeleteSource": "", "ProjectName": "ISU REF", "ProjectId": 2, "TargetType": "BLOB Storage (json)", "TargetName": "isu_0FUNCT_LOC_TEXT", "TargetLocation": "isu/0FUNCT_LOC_TEXT", "TargetServer": "daf-sa-lake-sastoken", "DataLoadMode": "FULL-EXTRACT", "DeltaExtract": false, "CDCSource": false, "TruncateTarget": false, "UpsertTarget": true, "AppendTarget": null, "TrackChanges": false, "LoadToSqlEDW": true, "TaskName": "isu_0FUNCT_LOC_TEXT", "ControlStageId": 2, "TaskId": 46, "StageSequence": 200, "StageName": "Raw to Cleansed", "SourceId": 46, "TargetId": 46, "ObjectGrain": "Day", "CommandTypeId": 8, "Watermarks": "", "WatermarksDT": null, "WatermarkColumn": "", "BusinessKeyColumn": "language,functionalLocationNumber", "UpdateMetaData": null, "SourceTimeStampFormat": "", "Command": "", "LastLoadedFile": null}
+#{"SourceType": "BLOB Storage (json)", "SourceServer": "daf-sa-lake-sastoken", "SourceGroup": "isu", "SourceName": "isu_EFRM", "SourceLocation": "isu/EFRM", "AdditionalProperty": "", "Processor": "databricks-token|0711-011053-turfs581|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive", "IsAuditTable": false, "SoftDeleteSource": "", "ProjectName": "SAP REF", "ProjectId": 2, "TargetType": "BLOB Storage (json)", "TargetName": "isu_EFRM", "TargetLocation": "isu/EFRM", "TargetServer": "daf-sa-lake-sastoken", "DataLoadMode": "FULL-EXTRACT", "DeltaExtract": false, "CDCSource": false, "TruncateTarget": false, "UpsertTarget": true, "AppendTarget": null, "TrackChanges": false, "LoadToSqlEDW": true, "TaskName": "isu_EFRM", "ControlStageId": 2, "TaskId": 46, "StageSequence": 200, "StageName": "Raw to Cleansed", "SourceId": 46, "TargetId": 46, "ObjectGrain": "Day", "CommandTypeId": 8, "Watermarks": "", "WatermarksDT": null, "WatermarkColumn": "", "BusinessKeyColumn": "FORMKEY", "UpdateMetaData": null, "SourceTimeStampFormat": "", "Command": "", "LastLoadedFile": null}
 
 #Use this string in the Source Object widget
-#isu_0FUNCT_LOC_TEXT
+#isu_EFRM
 
 # COMMAND ----------
 
@@ -175,17 +175,39 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT \
-	LANGU as language, \
-	TPLNR as functionalLocationNumber, \
-	TXTMD as functionalLocationDescription, \
-	ToValidDate(ERDAT) as createdDate, \
-	ToValidDate(AEDAT) as lastChangedDate, \
-	_RecordStart, \
-	_RecordEnd, \
-	_RecordDeleted, \
-	_RecordCurrent \
-	FROM {ADS_DATABASE_STAGE}.{source_object} + source_object \
-         )
+                            FORMKEY as applicationForm, \
+                            FORMCLASS as formClass, \
+                            TDFORM as formName, \
+                            EXIT_BIBL as userExitInclude, \
+                            USER_TOP as userTopInclude, \
+                            ORIG_SYST as originalSystem, \
+                            ToValidDate(ERDAT) as createdDate, \
+                            ERNAM as createdBy, \
+                            ERSAP as createdBySAPAction, \
+                            ToValidDate(AEDAT) as lastChangedDate, \
+                            AENAM as lastChangedBy, \
+                            AEUZEIT as lastChangedTime, \
+                            AESAP as lastChangedBySAPAction, \
+                            DESCRIPT as applicationFormDescription, \
+                            EXIT_INIT as userExitBeforeHierarchyInterpretation, \
+                            EXIT_CLOSE as userExitAfterHierarchyInterpretation, \
+                            EXIT_DISPATCH as userExitForDataDispatch, \
+                            FORMTYPE as formType, \
+                            SMARTFORM as smartForm, \
+                            GENGUID as genFormGUID, \
+                            FORMGUID as applicationFormGUID, \
+                            FUNC_NAME as functionName, \
+                            FUNC_POOL as functionGroup, \
+                            CROSSFCLASS as crossFormClassCollection, \
+                            ADFORM as PDFFormName, \
+                            DATADISPATCH_MOD as dataDispatchMode, \
+                            PDF_DYNAMIC as dynamicPDFForm, \
+                            _RecordStart, \
+                            _RecordEnd, \
+                            _RecordDeleted, \
+                            _RecordCurrent \
+                            FROM {ADS_DATABASE_STAGE}.{source_object} \
+                       ")
 
 display(df_cleansed)
 print(f'Number of rows: {df_cleansed.count()}')
@@ -193,16 +215,38 @@ print(f'Number of rows: {df_cleansed.count()}')
 # COMMAND ----------
 
 newSchema = StructType([
-	StructField('language',StringType(),False),
-	StructField('functionalLocationNumber',StringType(),False),
-	StructField('functionalLocationDescription',StringType(),True),
-	StructField('createdDate',DateType(),True),
-	StructField('lastChangedDate',DateType(),True),
-	StructField('_RecordStart',TimestampType(),False),
-	StructField('_RecordEnd',TimestampType(),False),
-	StructField('_RecordDeleted',IntegerType(),False),
-	StructField('_RecordCurrent',IntegerType(),False)
-])
+                        StructField('applicationForm',StringType(),False),
+                        StructField('formClass',StringType(),True),
+                        StructField('formName',StringType(),True),
+                        StructField('userExitInclude',StringType(),True),
+                        StructField('userTopInclude',StringType(),True),
+                        StructField('originalSystem',StringType(),True),
+                        StructField('createdDate',DateType(),True),
+                        StructField('createdBy',StringType(),True),
+                        StructField('createdBySAPAction',StringType(),True),
+                        StructField('lastChangedDate',DateType(),True),
+                        StructField('lastChangedBy',StringType(),True),
+                        StructField('lastChangedTime',StringType(),True),
+                        StructField('lastChangedBySAPAction',StringType(),True),
+                        StructField('applicationFormDescription',StringType(),True),
+                        StructField('userExitBeforeHierarchyInterpretation',StringType(),True),
+                        StructField('userExitAfterHierarchyInterpretation',StringType(),True),
+                        StructField('userExitForDataDispatch',StringType(),True),
+                        StructField('formType',StringType(),True),
+                        StructField('smartForm',StringType(),True),
+                        StructField('genFormGUID',StringType(),True),
+                        StructField('applicationFormGUID',StringType(),True),
+                        StructField('functionName',StringType(),True),
+                        StructField('functionGroup',StringType(),True),
+                        StructField('crossFormClassCollection',StringType(),True),
+                        StructField('PDFFormName',StringType(),True),
+                        StructField('dataDispatchMode',StringType(),True),
+                        StructField('dynamicPDFForm',StringType(),True),
+                        StructField('_RecordStart',TimestampType(),False),
+                        StructField('_RecordEnd',TimestampType(),False),
+                        StructField('_RecordDeleted',IntegerType(),False),
+                        StructField('_RecordCurrent',IntegerType(),False)
+                      ])
 
 df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
 
