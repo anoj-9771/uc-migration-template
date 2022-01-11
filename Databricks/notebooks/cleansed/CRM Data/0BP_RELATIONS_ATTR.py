@@ -138,14 +138,13 @@ print("delta_column: " + delta_column)
 #Get the Data Load Mode using the params
 data_load_mode = GeneralGetDataLoadMode(Params[PARAMS_TRUNCATE_TARGET], Params[PARAMS_UPSERT_TARGET], Params[PARAMS_APPEND_TARGET])
 print("data_load_mode: " + data_load_mode)
-
 # COMMAND ----------
 
 # DBTITLE 1,9. Set raw and cleansed table name
 #Set raw and cleansed table name
 #Delta and SQL tables are case Insensitive. Seems Delta table are always lower case
-delta_cleansed_tbl_name = "{0}.{1}".format(ADS_DATABASE_CLEANSED, target_table)
-delta_raw_tbl_name = "{0}.{1}".format(ADS_DATABASE_RAW, source_object)
+delta_cleansed_tbl_name = f'{ADS_DATABASE_CLEANSED}.{target_table}'
+delta_raw_tbl_name = f'{ADS_DATABASE_RAW}.{ source_object}'
 
 #Destination
 print(delta_cleansed_tbl_name)
@@ -176,43 +175,41 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT \
-                                case when RELNR = 'na' then '' else RELNR end as businessPartnerRelationshipNumber, \
+	case when RELNR = 'na' then '' else RELNR end as businessPartnerRelationshipNumber, \
                                 case when PARTNER1 = 'na' then '' else PARTNER1 end as businessPartnerNumber1, \
                                 case when PARTNER2 = 'na' then '' else PARTNER2 end as businessPartnerNumber2, \
-                                PARTNER1_GUID as businessPartnerGUID1, \
-                                PARTNER2_GUID as businessPartnerGUID2, \
-                                RELDIR as relationshipDirection, \
-                                RELTYP as relationshipTypeCode, \
-                                BP_TXT.relationshipType as relationshipType, \
-                                ToValidDate(DATE_TO) as validToDate, \
-                                ToValidDate(DATE_FROM) as validFromDate, \
-                                COUNTRY as countryShortName, \
-                                POST_CODE1 as postalCode, \
-                                CITY1 as cityName, \
-                                STREET as streetName, \
-                                HOUSE_NUM1 as houseNumber, \
-                                TEL_NUMBER as phoneNumber, \
-                                SMTP_ADDR as emailAddress, \
-                                cast(CMPY_PART_PER as dec(13,2)) as capitalInterestPercentage, \
-                                cast(CMPY_PART_AMO as dec(13,2)) as capitalInterestAmount, \
-                                ADDR_SHORT as shortFormattedAddress, \
-                                ADDR_SHORT_S as shortFormattedAddress2, \
-                                LINE0 as addressLine0, \
-                                LINE1 as addressLine1, \
-                                LINE2 as addressLine2, \
-                                LINE3 as addressLine3, \
-                                LINE4 as addressLine4, \
-                                LINE5 as addressLine5, \
-                                LINE6 as addressLine6, \
-                                FLG_DELETED as deletedIndicator, \
-                                BP._RecordStart, \
-                                BP._RecordEnd, \
-                                BP._RecordDeleted, \
-                                BP._RecordCurrent \
-                          FROM {ADS_DATABASE_STAGE}.{source_object} BP \
-                          LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.crm_0BP_RELTYPES_TEXT BP_TXT \
-                                ON BP.RELDIR = BP_TXT.relationshipDirection AND BP.RELTYP =BP_TXT.relationshipTypeCode \
-                                AND BP_TXT._RecordDeleted = 0 AND BP_TXT._RecordCurrent = 1")
+	PARTNER1_GUID as businessPartnerGUID1, \
+	PARTNER2_GUID as businessPartnerGUID2, \
+	RELDIR as relationshipDirection, \
+	RELTYP as relationshipTypeCode, \
+    BP_TXT.relationshipType as relationshipType, \
+    ToValidDate(DATE_TO) as validToDate, \
+    ToValidDate(DATE_FROM) as validFromDate, \
+	COUNTRY as countryShortName, \
+	POST_CODE1 as postalCode, \
+	CITY1 as cityName, \
+	STREET as streetName, \
+	HOUSE_NUM1 as houseNumber, \
+	TEL_NUMBER as phoneNumber, \
+	SMTP_ADDR as emailAddress, \
+	cast(CMPY_PART_PER as long) as capitalInterestPercentage, \
+	cast(CMPY_PART_AMO as dec(13,0)) as capitalInterestAmount, \
+	ADDR_SHORT as shortFormattedAddress, \
+	ADDR_SHORT_S as shortFormattedAddress2, \
+	LINE0 as addressLine0, \
+	LINE1 as addressLine1, \
+	LINE2 as addressLine2, \
+	LINE3 as addressLine3, \
+	LINE4 as addressLine4, \
+	LINE5 as addressLine5, \
+	LINE6 as addressLine6, \
+	FLG_DELETED as deletedIndicator, \
+	_RecordStart, \
+	_RecordEnd, \
+	_RecordDeleted, \
+	_RecordCurrent \
+	FROM {ADS_DATABASE_STAGE}.{source_object} + source_object \
+         )
 
 display(df_cleansed)
 print(f'Number of rows: {df_cleansed.count()}')
@@ -228,7 +225,7 @@ newSchema = StructType([
 	StructField('relationshipDirection',StringType(),True),
 	StructField('relationshipTypeCode',StringType(),True),
 	StructField('relationshipType',StringType(),True),
-	StructField('validToDate',DateType(),False),
+	StructField('validToDate',DateType(),True),
 	StructField('validFromDate',DateType(),True),
 	StructField('countryShortName',StringType(),True),
 	StructField('postalCode',StringType(),True),
@@ -237,8 +234,8 @@ newSchema = StructType([
 	StructField('houseNumber',StringType(),True),
 	StructField('phoneNumber',StringType(),True),
 	StructField('emailAddress',StringType(),True),
-	StructField('capitalInterestPercentage',DecimalType(13,2),True),
-	StructField('capitalInterestAmount',DecimalType(13,2),True),
+	StructField('capitalInterestPercentage',LongType(),True),
+	StructField('capitalInterestAmount',DecimalType(13,0),True),
 	StructField('shortFormattedAddress',StringType(),True),
 	StructField('shortFormattedAddress2',StringType(),True),
 	StructField('addressLine0',StringType(),True),
@@ -263,7 +260,6 @@ df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
 DeltaSaveDataframeDirect(df_updated_column, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
-
 # COMMAND ----------
 
 # DBTITLE 1,13. Exit Notebook

@@ -138,14 +138,13 @@ print("delta_column: " + delta_column)
 #Get the Data Load Mode using the params
 data_load_mode = GeneralGetDataLoadMode(Params[PARAMS_TRUNCATE_TARGET], Params[PARAMS_UPSERT_TARGET], Params[PARAMS_APPEND_TARGET])
 print("data_load_mode: " + data_load_mode)
-
 # COMMAND ----------
 
 # DBTITLE 1,9. Set raw and cleansed table name
 #Set raw and cleansed table name
 #Delta and SQL tables are case Insensitive. Seems Delta table are always lower case
-delta_cleansed_tbl_name = "{0}.{1}".format(ADS_DATABASE_CLEANSED, target_table)
-delta_raw_tbl_name = "{0}.{1}".format(ADS_DATABASE_RAW, source_object)
+delta_cleansed_tbl_name = f'{ADS_DATABASE_CLEANSED}.{target_table}'
+delta_raw_tbl_name = f'{ADS_DATABASE_RAW}.{ source_object}'
 
 #Destination
 print(delta_cleansed_tbl_name)
@@ -175,12 +174,12 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_cleansed = spark.sql(f"SELECT  \
-                                  case when BELNR = 'na' then '' else BELNR end as billingDocumentNumber, \
-                                  case when OUTCNSO = 'na' then '' else OUTCNSO end as outsortingNumber, \
+df_cleansed_column = spark.sql(f"SELECT  \
+                                  BELNR as billingDocumentNumber, \
+                                  cast(OUTCNSO as int) as outsortingNumber, \
                                   VALIDATION as billingValidationName, \
                                   MANOUTSORT as manualOutsortingReasonCode, \
-                                  to_date(FREI_AM, 'yyyy-MM-dd') as documentReleasedDate, \
+                                  ToValidDate(FREI_AM) as documentReleasedDate, \
                                   FREI_VON as documentReleasedUserName, \
                                   cast(DEVIATION as double) as deviation, \
                                   SIMULATION as billingSimulationIndicator, \
@@ -189,15 +188,13 @@ df_cleansed = spark.sql(f"SELECT  \
                                   _RecordEnd, \
                                   _RecordDeleted, \
                                   _RecordCurrent \
-                               FROM {ADS_DATABASE_STAGE}.{source_object}")
-display(df_cleansed)
-print(f'Number of rows: {df_cleansed.count()}')
+                               FROM {ADS_DATABASE_STAGE}.{source_object}")display(df_cleansed_column)
 
 # COMMAND ----------
 
 newSchema = StructType([
                         StructField('billingDocumentNumber', StringType(), False),
-                        StructField('outsortingNumber', StringType(), False),
+                        StructField('outsortingNumber', IntegerType(), False),
                         StructField('billingValidationName', StringType(), True),
                         StructField('manualOutsortingReasonCode', StringType(), True),
                         StructField('documentReleasedDate', DateType(), True),
@@ -211,7 +208,7 @@ newSchema = StructType([
                         StructField('_RecordCurrent', IntegerType(), False),
                     ])
 
-df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
+df_updated_column = spark.createDataFrame(df_cleansed_column.rdd, schema=newSchema)
 display(df_updated_column)
 
 # COMMAND ----------
@@ -219,7 +216,6 @@ display(df_updated_column)
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
 DeltaSaveDataframeDirect(df_updated_column, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
-
 # COMMAND ----------
 
 # DBTITLE 1,13. Exit Notebook

@@ -138,14 +138,13 @@ print("delta_column: " + delta_column)
 #Get the Data Load Mode using the params
 data_load_mode = GeneralGetDataLoadMode(Params[PARAMS_TRUNCATE_TARGET], Params[PARAMS_UPSERT_TARGET], Params[PARAMS_APPEND_TARGET])
 print("data_load_mode: " + data_load_mode)
-
 # COMMAND ----------
 
 # DBTITLE 1,9. Set raw and cleansed table name
 #Set raw and cleansed table name
 #Delta and SQL tables are case Insensitive. Seems Delta table are always lower case
-delta_cleansed_tbl_name = "{0}.{1}".format(ADS_DATABASE_CLEANSED, target_table)
-delta_raw_tbl_name = "{0}.{1}".format(ADS_DATABASE_RAW, source_object)
+delta_cleansed_tbl_name = f'{ADS_DATABASE_CLEANSED}.{target_table}'
+delta_raw_tbl_name = f'{ADS_DATABASE_RAW}.{ source_object}'
 
 #Destination
 print(delta_cleansed_tbl_name)
@@ -175,81 +174,76 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_cleansed = spark.sql(f"SELECT \
-                                case when BP.PARTNER = 'na' then '' else BP.PARTNER end as businessPartnerNumber,\
-                                BP.TYPE as businessPartnerCategoryCode,\
-                                BP_TXT.businessPartnerCategory as businessPartnerCategory,\
-                                BP.BPKIND as businessPartnerTypeCode,\
-                                BPTYPE.businessPartnerType as businessPartnerType,\
-                                BP.BU_GROUP as businessPartnerGroupCode,\
-                                BPGRP.businessPartnerGroup as businessPartnerGroup,\
-                                BP.BPEXT as externalBusinessPartnerNumber,\
-                                BP.BU_SORT1 as searchTerm1,\
-                                BP.BU_SORT2 as searchTerm2,\
-                                BP.TITLE as titleCode,\
-                                TITLE.TITLE as title,\
-                                BP.XDELE as deletedIndicator,\
-                                BP.XBLCK as centralBlockBusinessPartner,\
-                                BP.ZZUSER as userId,\
-                                BP.ZZPAS_INDICATOR as paymentAssistSchemeIndicator,\
-                                BP.ZZBA_INDICATOR as billAssistIndicator,\
-                                case when BP.ZZAFLD00001Z < '1900-01-01' then to_date('1900-01-01', 'yyyy-MM-dd') else to_date(BP.ZZAFLD00001Z, 'yyyy-MM-dd') end as createdOn,\
-                                BP.NAME_ORG1 as organizationName1,\
-                                BP.NAME_ORG2 as organizationName2,\
-                                BP.NAME_ORG3 as organizationName3,\
-                                case when BP.FOUND_DAT < '1900-01-01' then to_date('1900-01-01', 'yyyy-MM-dd') else to_date(BP.FOUND_DAT, 'yyyy-MM-dd') end as organizationFoundedDate,\
-                                BP.LOCATION_1 as internationalLocationNumber1,\
-                                BP.LOCATION_2 as internationalLocationNumber2,\
-                                BP.LOCATION_3 as internationalLocationNumber3,\
-                                BP.NAME_LAST as lastName,\
-                                BP.NAME_FIRST as firstName,\
-                                BP.NAME_LAST2 as atBirthName,\
-                                BP.NAMEMIDDLE as middleName,\
-                                BP.TITLE_ACA1 as academicTitle,\
-                                BP.NICKNAME as nickName,\
-                                BP.INITIALS as nameInitials,\
-                                BP.NAMCOUNTRY as countryName,\
-                                BP.LANGU_CORR as correspondanceLanguage,\
-                                BP.NATIO as nationality,\
-                                BP.PERSNUMBER as personNumber,\
-                                BP.XSEXU as unknownGenderIndicator,\
-                                BP.BU_LANGU as language,\
-                                case when BP.BIRTHDT < '1900-01-01' then to_date('1900-01-01', 'yyyy-MM-dd') else to_date(BP.BIRTHDT, 'yyyy-MM-dd') end as dateOfBirth,\
-                                case when BP.DEATHDT < '1900-01-01' then to_date('1900-01-01', 'yyyy-MM-dd') else to_date(BP.DEATHDT, 'yyyy-MM-dd') end as dateOfDeath,\
-                                BP.PERNO as personnelNumber,\
-                                BP.NAME_GRP1 as nameGroup1,\
-                                BP.NAME_GRP2 as nameGroup2,\
-                                BP.CRUSR as createdBy,\
-                                cast(concat(BP.CRDAT,' ',(case WHEN BP.CRTIM is null then  '00:00:00' else BP.CRTIM END)) as timestamp)  as createdDateTime,\
-                                BP.CHUSR as changedBy,\
-                                cast(concat(BP.CHDAT,' ',(case WHEN BP.CHTIM is null then  '00:00:00' else BP.CHTIM END)) as timestamp)  as changedDateTime,\
-                                BP.PARTNER_GUID as businessPartnerGUID,\
-                                BP.ADDRCOMM as addressNumber,\
-                                Case WHEN BP.VALID_FROM = '10101000000' then to_date('1900-01-01', 'yyyy-MM-dd') else to_date(substr(BP.VALID_FROM,0,8),'yyyy-MM-dd') END as validFromDate,\
-                                to_date(substr(BP.VALID_TO,0,8),'yyyy-MM-dd') as validToDate,\
-                                BP.NATPERS as naturalPersonIndicator,\
+df_updated_column_temp = spark.sql(f"SELECT \
+                                BP.PARTNER as businessPartnerNumber, \
+                                BP.TYPE as businessPartnerCategoryCode, \
+                                BP_TXT.businessPartnerCategory as businessPartnerCategory, \
+                                BP.BPKIND as businessPartnerTypeCode, \
+                                BPTYPE.businessPartnerType as businessPartnerType, \
+                                BP.BU_GROUP as businessPartnerGroupCode, \
+                                BPGRP.businessPartnerGroup as businessPartnerGroup, \
+                                BP.BPEXT as externalBusinessPartnerNumber, \
+                                BP.BU_SORT1 as searchTerm1, \
+                                BP.BU_SORT2 as searchTerm2, \
+                                BP.TITLE as titleCode, \
+                                TITLE.TITLE as title, \
+                                BP.XDELE as deletedIndicator, \
+                                BP.XBLCK as centralBlockBusinessPartner, \
+                                BP.ZZUSER as userId, \
+                                BP.ZZPAS_INDICATOR as paymentAssistSchemeIndicator, \
+                                BP.ZZBA_INDICATOR as billAssistIndicator, \
+                                ToValidDate(BP.ZZAFLD00001Z) as createdOn, \
+                                BP.NAME_ORG1 as organizationName1, \
+                                BP.NAME_ORG2 as organizationName2, \
+                                BP.NAME_ORG3 as organizationName3, \
+                                ToValidDate(BP.FOUND_DAT) as organizationFoundedDate, \
+                                BP.LOCATION_1 as internationalLocationNumber1, \
+                                BP.LOCATION_2 as internationalLocationNumber2, \
+                                BP.LOCATION_3 as internationalLocationNumber3, \
+                                BP.NAME_LAST as lastName, \
+                                BP.NAME_FIRST as firstName, \
+                                BP.NAME_LAST2 as atBirthName, \
+                                BP.NAMEMIDDLE as middleName, \
+                                BP.TITLE_ACA1 as academicTitle, \
+                                BP.NICKNAME as nickName, \
+                                BP.INITIALS as nameInitials, \
+                                BP.NAMCOUNTRY as countryName, \
+                                BP.LANGU_CORR as correspondanceLanguage, \
+                                BP.NATIO as nationality, \
+                                BP.PERSNUMBER as personNumber, \
+                                BP.XSEXU as unknownGenderIndicator, \
+                                BP.BU_LANGU as language, \
+                                ToValidDate(BP.BIRTHDT) as dateOfBirth, \
+                                ToValidDate(BP.DEATHDT) as dateOfDeath, \
+                                BP.PERNO as personnelNumber, \
+                                BP.NAME_GRP1 as nameGroup1, \
+                                BP.NAME_GRP2 as nameGroup2, \
+                                BP.CRUSR as createdBy, \
+                                cast(concat(BP.CRDAT,' ',(case WHEN BP.CRTIM is null then  '00:00:00' else BP.CRTIM END)) as timestamp)  as createdDateTime, \
+                                BP.CHUSR as changedBy, \
+                                cast(concat(BP.CHDAT,' ',(case WHEN BP.CHTIM is null then  '00:00:00' else BP.CHTIM END)) as timestamp)  as changedDateTime, \
+                                BP.PARTNER_GUID as businessPartnerGUID, \
+                                BP.ADDRCOMM as addressNumber, \
+                                Case WHEN BP.VALID_FROM = '10101000000' then ToValidDate('19000101') else ToValidDate(substr(BP.VALID_FROM,0,8)) END as validFromDate, \
+                                ToValidDate(substr(BP.VALID_TO,0,8)) as validToDate, \
+                                BP.NATPERS as naturalPersonIndicator, \
                                 BP._RecordStart, \
                                 BP._RecordEnd, \
                                 BP._RecordDeleted, \
                                 BP._RecordCurrent \
                                FROM {ADS_DATABASE_STAGE}.{source_object} BP \
-                               LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0BPARTNER_TEXT BP_TXT \
+                               LEFT OUTER JOIN CLEANSED.T_isu_0BPARTNER_TEXT BP_TXT \
                                  ON BP.PARTNER = BP_TXT.businessPartnerNumber AND BP.TYPE =BP_TXT.businessPartnerCategoryCode \
-                                                                              AND BP_TXT._RecordDeleted = 0 AND BP_TXT._RecordCurrent = 1 \
-                               LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0BPTYPE_TEXT BPTYPE ON BP.BPKIND = BPTYPE.businessPartnerTypeCode \
-                                                                              AND BPTYPE._RecordDeleted = 0 AND BPTYPE._RecordCurrent = 1 \
-                               LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0BP_GROUP_TEXT BPGRP ON BP.BU_GROUP = BPGRP.businessPartnerGroupCode \
-                                                                              AND BPGRP._RecordDeleted = 0 AND BPGRP._RecordCurrent = 1 \
-                               LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_TSAD3T TITLE ON BP.TITLE = TITLE.titlecode \
-                                                                              AND TITLE._RecordDeleted = 0 AND TITLE._RecordCurrent = 1")
+                               LEFT OUTER JOIN CLEANSED.T_isu_0BPTYPE_TEXT BPTYPE ON BP.BPKIND = BPTYPE.businessPartnerTypeCode \
+                               LEFT OUTER JOIN CLEANSED.T_isu_0BP_GROUP_TEXT BPGRP ON BP.BU_GROUP = BPGRP.businessPartnerGroupCode \
+                               LEFT OUTER JOIN CLEANSED.T_isu_TSAD3T TITLE ON BP.TITLE = TITLE.titlecode")
 
-display(df_cleansed)
-print(f'Number of rows: {df_cleansed.count()}')
+display(df_updated_column_temp)
 
 # COMMAND ----------
 
 # Create schema for the cleanse table
-newSchema = StructType(
+cleanse_Schema = StructType(
   [
     StructField("businessPartnerNumber", StringType(), False),
     StructField("businessPartnerCategoryCode", StringType(), True),
@@ -310,7 +304,7 @@ newSchema = StructType(
   ]
 )
 # Apply the new schema to cleanse Data Frame
-df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
+df_updated_column = spark.createDataFrame(df_updated_column_temp.rdd, schema=cleanse_Schema)
 display(df_updated_column)
 
 # COMMAND ----------
@@ -318,7 +312,6 @@ display(df_updated_column)
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
 DeltaSaveDataframeDirect(df_updated_column, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
-
 # COMMAND ----------
 
 # DBTITLE 1,13. Exit Notebook

@@ -138,14 +138,13 @@ print("delta_column: " + delta_column)
 #Get the Data Load Mode using the params
 data_load_mode = GeneralGetDataLoadMode(Params[PARAMS_TRUNCATE_TARGET], Params[PARAMS_UPSERT_TARGET], Params[PARAMS_APPEND_TARGET])
 print("data_load_mode: " + data_load_mode)
-
 # COMMAND ----------
 
 # DBTITLE 1,9. Set raw and cleansed table name
 #Set raw and cleansed table name
 #Delta and SQL tables are case Insensitive. Seems Delta table are always lower case
-delta_cleansed_tbl_name = "{0}.{1}".format(ADS_DATABASE_CLEANSED, target_table)
-delta_raw_tbl_name = "{0}.{1}".format(ADS_DATABASE_RAW, source_object)
+delta_cleansed_tbl_name = f'{ADS_DATABASE_CLEANSED}.{target_table}'
+delta_raw_tbl_name = f'{ADS_DATABASE_RAW}.{ source_object}'
 
 #Destination
 print(delta_cleansed_tbl_name)
@@ -176,39 +175,40 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT \
-                            case when VKONT = 'na' then '' else VKONT end as contractAccountNumber, \
-                            case when GPART = 'na' then '' else GPART end as businessPartnerGroupNumber, \
-                            to_date(ERDAT, 'yyyy-MM-dd') as createdDate, \
-                            ERNAM as createdBy, \
-                            to_date(AEDATP, 'yyyy-MM-dd') as lastChangedDate, \
-                            AENAMP as changedBy, \
-                            cast(FDZTG as int) as additionalDaysForCashManagement, \
-                            GUID as headerUUID, \
-                            cast(DDLAM as dec(13,0)) as directDebitLimit, \
-                            cast(DDLNM as int) as numberOfMonthsForDirectDebitLimit, \
-                            EXVKO as businessPartnerReferenceNumber, \
-                            OPBUK as companyCodeGroup, \
-                            STDBK as standardCompanyCode, \
-                            ABWMA as alternativeDunningRecipient, \
-                            EBVTY as bankDetailsId, \
-                            EZAWE as incomingPaymentMethodCode, \
-                            LOEVM as deletedIndicator, \
-                            ABWVK as alternativeContractAccountForCollectiveBills, \
-                            VKPBZ as accountRelationshipCode, \
-                            ADRNB as addressNumber, \
-                            ADRMA as addressNumberForAlternativeDunningRecipient, \
-                            ABWRH as alternativeInvoiceRecipient, \
-                            ADRRH as addressNumberForAlternativeBillRecipient, \
-                            TOGRU as toleranceGroupCode, \
-                            CCARD_ID as paymentCardId, \
-                            VERTYP as clearingCategory, \
-                            CMGRP as collectionManagementMasterDataGroup, \
-                            STRAT as collectionStrategyCode, \
-                            _RecordStart, \
-                            _RecordEnd, \
-                            _RecordDeleted, \
-                            _RecordCurrent \
-                          FROM {ADS_DATABASE_STAGE}.{source_object}")
+	VKONT as contractAccountNumber, \
+	GPART as businessPartnerGroupNumber, \
+	ToValidDate(ERDAT) as createdDate, \
+	ERNAM as createdBy, \
+	ToValidDate(AEDATP) as lastChangedDate, \
+	AENAMP as changedBy, \
+	cast(FDZTG as int) as additionalDaysForCashManagement, \
+	GUID as headerUUID, \
+	cast(DDLAM as dec(13,0)) as directDebitLimit, \
+	cast(DDLNM as int) as numberOfMonthsForDirectDebitLimit, \
+	EXVKO as businessPartnerReferenceNumber, \
+	OPBUK as companyCodeGroup, \
+	STDBK as standardCompanyCode, \
+	ABWMA as alternativeDunningRecipient, \
+	EBVTY as bankDetailsId, \
+	EZAWE as incomingPaymentMethodCode, \
+	LOEVM as deletedIndicator, \
+	ABWVK as alternativeContractAccountForCollectiveBills, \
+	VKPBZ as accountRelationshipCode, \
+	ADRNB as addressNumber, \
+	ADRMA as addressNumberForAlternativeDunningRecipient, \
+	ABWRH as alternativeInvoiceRecipient, \
+	ADRRH as addressNumberForAlternativeBillRecipient, \
+	TOGRU as toleranceGroupCode, \
+	CCARD_ID as paymentCardId, \
+	VERTYP as clearingCategory, \
+	CMGRP as collectionManagementMasterDataGroup, \
+	STRAT as collectionStrategyCode, \
+	_RecordStart, \
+	_RecordEnd, \
+	_RecordDeleted, \
+	_RecordCurrent \
+	FROM {ADS_DATABASE_STAGE}.{source_object} + source_object \
+         )
 
 display(df_cleansed)
 print(f'Number of rows: {df_cleansed.count()}')
@@ -216,49 +216,48 @@ print(f'Number of rows: {df_cleansed.count()}')
 # COMMAND ----------
 
 newSchema = StructType([
-                        StructField('contractAccountNumber',StringType(),False),
-                        StructField('businessPartnerGroupNumber',StringType(),False),
-                        StructField('createdDate',DateType(),True),
-                        StructField('createdBy',StringType(),True),
-                        StructField('lastChangedDate',DateType(),True),
-                        StructField('changedBy',StringType(),True),
-                        StructField('additionalDaysForCashManagement',IntegerType(),True),
-                        StructField('headerUUID',StringType(),True),
-                        StructField('directDebitLimit',DecimalType(13,0),True),
-                        StructField('numberOfMonthsForDirectDebitLimit',IntegerType(),True),
-                        StructField('businessPartnerReferenceNumber',StringType(),True),
-                        StructField('companyCodeGroup',StringType(),True),
-                        StructField('standardCompanyCode',StringType(),True),
-                        StructField('alternativeDunningRecipient',StringType(),True),
-                        StructField('bankDetailsId',StringType(),True),
-                        StructField('incomingPaymentMethodCode',StringType(),True),
-                        StructField('deletedIndicator',StringType(),True),
-                        StructField('alternativeContractAccountForCollectiveBills',StringType(),True),
-                        StructField('accountRelationshipCode',StringType(),True),
-                        StructField('addressNumber',StringType(),True),
-                        StructField('addressNumberForAlternativeDunningRecipient',StringType(),True),
-                        StructField('alternativeInvoiceRecipient',StringType(),True),
-                        StructField('addressNumberForAlternativeBillRecipient',StringType(),True),
-                        StructField('toleranceGroupCode',StringType(),True),
-                        StructField('paymentCardId',StringType(),True),
-                        StructField('clearingCategory',StringType(),True),
-                        StructField('collectionManagementMasterDataGroup',StringType(),True),
-                        StructField('collectionStrategyCode',StringType(),True),
-                        StructField('_RecordStart',TimestampType(),False),
-                        StructField('_RecordEnd',TimestampType(),False),
-                        StructField('_RecordDeleted',IntegerType(),False),
-                        StructField('_RecordCurrent',IntegerType(),False)
-                      ])
+	StructField('contractAccountNumber',StringType(),False),
+	StructField('businessPartnerGroupNumber',StringType(),False),
+	StructField('createdDate',DateType(),True),
+	StructField('createdBy',StringType(),True),
+	StructField('lastChangedDate',DateType(),True),
+	StructField('changedBy',StringType(),True),
+	StructField('additionalDaysForCashManagement',IntegerType(),True),
+	StructField('headerUUID',StringType(),True),
+	StructField('directDebitLimit',DecimalType(13,0),True),
+	StructField('numberOfMonthsForDirectDebitLimit',IntegerType(),True),
+	StructField('businessPartnerReferenceNumber',StringType(),True),
+	StructField('companyCodeGroup',StringType(),True),
+	StructField('standardCompanyCode',StringType(),True),
+	StructField('alternativeDunningRecipient',StringType(),True),
+	StructField('bankDetailsId',StringType(),True),
+	StructField('incomingPaymentMethodCode',StringType(),True),
+	StructField('deletedIndicator',StringType(),True),
+	StructField('alternativeContractAccountForCollectiveBills',StringType(),True),
+	StructField('accountRelationshipCode',StringType(),True),
+	StructField('addressNumber',StringType(),True),
+	StructField('addressNumberForAlternativeDunningRecipient',StringType(),True),
+	StructField('alternativeInvoiceRecipient',StringType(),True),
+	StructField('addressNumberForAlternativeBillRecipient',StringType(),True),
+	StructField('toleranceGroupCode',StringType(),True),
+	StructField('paymentCardId',StringType(),True),
+	StructField('clearingCategory',StringType(),True),
+	StructField('collectionManagementMasterDataGroup',StringType(),True),
+	StructField('collectionStrategyCode',StringType(),True),
+	StructField('_RecordStart',TimestampType(),False),
+	StructField('_RecordEnd',TimestampType(),False),
+	StructField('_RecordDeleted',IntegerType(),False),
+	StructField('_RecordCurrent',IntegerType(),False)
+])
 
 df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
-display(df_updated_column)
+
 
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
 DeltaSaveDataframeDirect(df_updated_column, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
-
 # COMMAND ----------
 
 # DBTITLE 1,13. Exit Notebook
