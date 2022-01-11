@@ -138,14 +138,13 @@ print("delta_column: " + delta_column)
 #Get the Data Load Mode using the params
 data_load_mode = GeneralGetDataLoadMode(Params[PARAMS_TRUNCATE_TARGET], Params[PARAMS_UPSERT_TARGET], Params[PARAMS_APPEND_TARGET])
 print("data_load_mode: " + data_load_mode)
-
 # COMMAND ----------
 
 # DBTITLE 1,9. Set raw and cleansed table name
 #Set raw and cleansed table name
 #Delta and SQL tables are case Insensitive. Seems Delta table are always lower case
-delta_cleansed_tbl_name = "{0}.{1}".format(ADS_DATABASE_CLEANSED, target_table)
-delta_raw_tbl_name = "{0}.{1}".format(ADS_DATABASE_RAW, source_object)
+delta_cleansed_tbl_name = f'{ADS_DATABASE_CLEANSED}.{target_table}'
+delta_raw_tbl_name = f'{ADS_DATABASE_RAW}.{ source_object}'
 
 #Destination
 print(delta_cleansed_tbl_name)
@@ -175,70 +174,68 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_cleansed = spark.sql(f"SELECT \
-                            case when EQUI.EQUNR = 'na' then '' else EQUI.EQUNR end as equipmentNumber,\
-                            case when EQUI.DATETO = 'na' then to_date('2099-12-31', 'yyyy-MM-dd') else to_date(EQUI.DATETO, 'yyyy-MM-dd') end as validToDate,\
-                            case when EQUI.DATEFROM < '1900-01-01' then to_date('1900-01-01', 'yyyy-MM-dd') else to_date(EQUI.DATEFROM, 'yyyy-MM-dd') end as validFromDate,\
-                            EQUI.EQART as technicalObjectTypeCode,\
-                            EQUI.INVNR as inventoryNumber,\
-                            EQUI.IWERK as maintenancePlanningPlant,\
-                            EQUI.KOKRS as controllingArea,\
-                            EQUI.TPLNR as functionalLocationNumber,\
-                            EQUI.SWERK as maintenancePlant,\
-                            EQUI.ADRNR as addressNumber,\
-                            EQUI.BUKRS as companyCode,\
-                            COMP.companyName as companyName,\
-                            EQUI.MATNR as materialNumber,\
-                            EQUI.ANSWT as acquisitionValue,\
-                            to_date(EQUI.ANSDT, 'yyyy-MM-dd') as acquisitionDate,\
-                            to_date(EQUI.ERDAT, 'yyyy-MM-dd') as createdDate,\
-                            to_date(EQUI.AEDAT, 'yyyy-MM-dd') as lastChangedDate,\
-                            to_date(EQUI.INBDT, 'yyyy-MM-dd') as startUpDate,\
-                            cast(EQUI.PROID as int) as workBreakdownStructureElement,\
-                            EQUI.EQTYP as equipmentCategoryCode, \
-                            EQUI._RecordStart,\
-                            EQUI._RecordEnd,\
-                            EQUI._RecordDeleted,\
-                            EQUI._RecordCurrent \
-                          FROM {ADS_DATABASE_STAGE}.{source_object} EQUI \
-                          LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0COMP_CODE_TEXT COMP ON EQUI.BUKRS = COMP.companyCode \
-                                                                                              and COMP._RecordDeleted = 0 and COMP._RecordCurrent = 1")
-display(df_cleansed)
-print(f'Number of rows: {df_cleansed.count()}')
+df_updated_column_temp = spark.sql(f"SELECT \
+                                  EQUI.EQUNR as equipmentNumber, \
+                                  ToValidDate(EQUI.DATETO) as validToDate, \
+                                  ToValidDate(EQUI.DATEFROM) as validFromDate, \
+                                  EQUI.EQART as technicalObjectTypeCode, \
+                                  EQUI.INVNR as inventoryNumber, \
+                                  EQUI.IWERK as maintenancePlanningPlant, \
+                                  EQUI.KOKRS as controllingArea, \
+                                  EQUI.TPLNR as functionalLocationNumber, \
+                                  EQUI.SWERK as maintenancePlant, \
+                                  EQUI.ADRNR as addressNumber, \
+                                  EQUI.BUKRS as companyCode, \
+                                  COMP.companyName as companyName, \
+                                  EQUI.MATNR as materialNumber, \
+                                  EQUI.ANSWT as acquisitionValue, \
+                                  ToValidDate(EQUI.ANSDT) as acquisitionDate, \
+                                  ToValidDate(EQUI.ERDAT) as createdDate, \
+                                  ToValidDate(EQUI.AEDAT) as lastChangedDate, \
+                                  ToValidDate(EQUI.INBDT) as startUpDate, \
+                                  cast(EQUI.PROID as int) as workBreakdownStructureElement, \
+                                  EQUI.EQTYP as equipmentCategoryCode, \
+                                  EQUI._RecordStart, \
+                                  EQUI._RecordEnd, \
+                                  EQUI._RecordDeleted, \
+                                  EQUI._RecordCurrent \
+                                FROM {ADS_DATABASE_STAGE}.{source_object} EQUI \
+                                LEFT OUTER JOIN CLEANSED.T_isu_0COMP_CODE_TEXT COMP ON EQUI.BUKRS = COMP.companyCode")
+display(df_updated_column_temp)
 
 # COMMAND ----------
 
 # Create schema for the cleanse table
-newSchema = StructType(
+cleanse_Schema = StructType(
   [
-                  StructField("equipmentNumber", StringType(), False),
-                  StructField("validToDate", DateType(), False),
-                  StructField("validFromDate", DateType(), True),
-                  StructField("technicalObjectTypeCode", StringType(), True),
-                  StructField("inventoryNumber", StringType(), True),
-                  StructField("maintenancePlanningPlant", StringType(), True),
-                  StructField("controllingArea", StringType(), True),
-                  StructField("functionalLocationNumber", StringType(), True),
-                  StructField("maintenancePlant", StringType(), True),
-                  StructField("addressNumber", StringType(), True),
-                  StructField("companyCode", StringType(), True),
-                  StructField("companyName", StringType(), True),
-                  StructField("materialNumber", StringType(), True),
-                  StructField("acquisitionValue", DoubleType(), True),
-                  StructField("acquisitionDate", DateType(), True),
-                  StructField("createdDate", DateType(), True),
-                  StructField("lastChangedDate", DateType(), True),
-                  StructField("startUpDate", DateType(), True),
-                  StructField("workBreakdownStructureElement", IntegerType(), True),
-                  StructField("equipmentCategoryCode", StringType(), True),    
-                  StructField('_RecordStart',TimestampType(),False),
-                  StructField('_RecordEnd',TimestampType(),False),
-                  StructField('_RecordDeleted',IntegerType(),False),
-                  StructField('_RecordCurrent',IntegerType(),False)
+    StructField("equipmentNumber", StringType(), False),
+    StructField("validToDate", DateType(), False),
+    StructField("validFromDate", DateType(), True),
+    StructField("technicalObjectTypeCode", StringType(), True),
+    StructField("inventoryNumber", StringType(), True),
+    StructField("maintenancePlanningPlant", StringType(), True),
+    StructField("controllingArea", StringType(), True),
+    StructField("functionalLocationNumber", StringType(), True),
+    StructField("maintenancePlant", StringType(), True),
+    StructField("addressNumber", StringType(), True),
+    StructField("companyCode", StringType(), True),
+    StructField("companyName", StringType(), True),
+    StructField("materialNumber", StringType(), True),
+    StructField("acquisitionValue", DoubleType(), True),
+    StructField("acquisitionDate", DateType(), True),
+    StructField("createdDate", DateType(), True),
+    StructField("lastChangedDate", DateType(), True),
+    StructField("startUpDate", DateType(), True),
+    StructField("workBreakdownStructureElement", IntegerType(), True),
+    StructField("equipmentCategoryCode", StringType(), True),    
+    StructField('_RecordStart',TimestampType(),False),
+    StructField('_RecordEnd',TimestampType(),False),
+    StructField('_RecordDeleted',IntegerType(),False),
+    StructField('_RecordCurrent',IntegerType(),False)
   ]
 )
 # Apply the new schema to cleanse Data Frame
-df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
+df_updated_column = spark.createDataFrame(df_updated_column_temp.rdd, schema=cleanse_Schema)
 display(df_updated_column)
 
 # COMMAND ----------
@@ -246,7 +243,6 @@ display(df_updated_column)
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
 DeltaSaveDataframeDirect(df_updated_column, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
-
 # COMMAND ----------
 
 # DBTITLE 1,13. Exit Notebook

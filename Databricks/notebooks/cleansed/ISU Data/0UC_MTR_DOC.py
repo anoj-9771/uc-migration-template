@@ -138,14 +138,13 @@ print("delta_column: " + delta_column)
 #Get the Data Load Mode using the params
 data_load_mode = GeneralGetDataLoadMode(Params[PARAMS_TRUNCATE_TARGET], Params[PARAMS_UPSERT_TARGET], Params[PARAMS_APPEND_TARGET])
 print("data_load_mode: " + data_load_mode)
-
 # COMMAND ----------
 
 # DBTITLE 1,9. Set raw and cleansed table name
 #Set raw and cleansed table name
 #Delta and SQL tables are case Insensitive. Seems Delta table are always lower case
-delta_cleansed_tbl_name = "{0}.{1}".format(ADS_DATABASE_CLEANSED, target_table)
-delta_raw_tbl_name = "{0}.{1}".format(ADS_DATABASE_RAW, source_object)
+delta_cleansed_tbl_name = f'{ADS_DATABASE_CLEANSED}.{target_table}'
+delta_raw_tbl_name = f'{ADS_DATABASE_RAW}.{ source_object}'
 
 #Destination
 print(delta_cleansed_tbl_name)
@@ -175,15 +174,15 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_cleansed = spark.sql(f"SELECT  \
-                                      case when ABLBELNR = 'na' then '' else ABLBELNR end as meterReadingId , \
-                                      case when EQUNR = 'na' then '' else EQUNR end as equipmentNumber , \
+df_updated_column_temp = spark.sql(f"SELECT  \
+                                      ABLBELNR as meterReadingId , \
+                                      EQUNR as equipmentNumber , \
                                       ZWNUMMER as registerNumber , \
-                                      to_date(ADAT, 'yyyy-MM-dd') as meterReadingDate , \
+                                      ToValidDate(ADAT) as meterReadingDate , \
                                       MRESULT as meterReadingTaken , \
                                       MR_BILL as duplicate , \
                                       AKTIV as meterReadingActive , \
-                                      to_date(ADATSOLL, 'yyyy-MM-dd') as scheduledMeterReadingDate , \
+                                      ToValidDate(ADATSOLL) as scheduledMeterReadingDate , \
                                       ABLSTAT as meterReadingStatus , \
                                       ABLHINW as notefromMeterReader , \
                                       ABLESART as scheduledMeterReadingCategory , \
@@ -200,32 +199,30 @@ df_cleansed = spark.sql(f"SELECT  \
                                       TRANSSTAT as transferStatusCode , \
                                       TRANSTSTAMP as timeStamp , \
                                       SOURCESYST as sourceSystemOrigin , \
-                                      to_date(ZPREV_ADT, 'yyyy-MM-dd') as actualPreviousmeterReadingDate , \
-                                      ZPREV_MRESULT as meterPreviousReadingTaken , \
+                                      ToValidDate(ZPREV_ADT) as actualmeterReadingDate , \
+                                      ZPREV_MRESULT as meterReadingTaken2 , \
                                       ZZ_PHOTO_IND as meterPhotoIndicator , \
                                       ZZ_FREE_TEXT as freeText , \
                                       ZZ_COMM_CODE as meterReadingCommentCode , \
                                       ZZ_NO_READ_CODE as noReadCode , \
                                       ZGERNR as DeviceNumber , \
-                                      to_date(ZADATTATS, 'yyyy-MM-dd') as actualMeterReadingDate , \
+                                      ToValidDate(ZADATTATS) as actualMeterReadingDate2 , \
                                       ZWNABR as registerNotRelevantToBilling , \
-                                      to_date(AEDAT, 'yyyy-MM-dd') as lastChangedDate , \
+                                      ToValidDate(AEDAT) as lastChangedDate , \
                                       _RecordStart, \
                                       _RecordEnd, \
                                       _RecordDeleted, \
                                       _RecordCurrent \
                               FROM {ADS_DATABASE_STAGE}.{source_object}")
-
-display(df_cleansed)
-print(f'Number of rows: {df_cleansed.count()}')
+display(df_updated_column_temp)
 
 # COMMAND ----------
 
 # Create schema for the cleanse table
-newSchema = StructType(
+cleanse_Schema = StructType(
                              [
-                              StructField("meterReadingId", StringType(), False),
-                              StructField("equipmentNumber", StringType(), False),
+                              StructField("meterReadingId", StringType(), True),
+                              StructField("equipmentNumber", StringType(), True),
                               StructField("registerNumber", LongType(), True),
                               StructField("meterReadingDate", DateType(), True),
                               StructField("meterReadingTaken",DoubleType(), True),
@@ -248,14 +245,14 @@ newSchema = StructType(
                               StructField("transferStatusCode", StringType(), True),
                               StructField("timeStamp",DoubleType(), True),
                               StructField("sourceSystemOrigin", LongType(), True),
-                              StructField("actualPreviousmeterReadingDate", DateType(), True),
-                              StructField("meterPreviousReadingTaken",DoubleType(), True),
+                              StructField("actualmeterReadingDate", DateType(), True),
+                              StructField("meterReadingTaken2",DoubleType(), True),
                               StructField("meterPhotoIndicator", StringType(), True),
                               StructField("freeText", StringType(), True),
                               StructField("meterReadingCommentCode", StringType(), True),
                               StructField("noReadCode", StringType(), True),
                               StructField("DeviceNumber", StringType(), True),
-                              StructField("actualMeterReadingDate", DateType(), True),
+                              StructField("actualMeterReadingDate2", DateType(), True),
                               StructField("registerNotRelevantToBilling", StringType(), True),
                               StructField("lastChangedDate", DateType(), True),
                               StructField('_RecordStart',TimestampType(),False),
@@ -265,7 +262,7 @@ newSchema = StructType(
                             ]
                           )
 # Apply the new schema to cleanse Data Frame
-df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
+df_updated_column = spark.createDataFrame(df_updated_column_temp.rdd, schema=cleanse_Schema)
 display(df_updated_column)
 
 # COMMAND ----------
@@ -273,7 +270,6 @@ display(df_updated_column)
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
 DeltaSaveDataframeDirect(df_updated_column, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
-
 # COMMAND ----------
 
 # DBTITLE 1,13. Exit Notebook

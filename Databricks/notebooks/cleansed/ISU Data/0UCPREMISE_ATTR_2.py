@@ -138,14 +138,13 @@ print("delta_column: " + delta_column)
 #Get the Data Load Mode using the params
 data_load_mode = GeneralGetDataLoadMode(Params[PARAMS_TRUNCATE_TARGET], Params[PARAMS_UPSERT_TARGET], Params[PARAMS_APPEND_TARGET])
 print("data_load_mode: " + data_load_mode)
-
 # COMMAND ----------
 
 # DBTITLE 1,9. Set raw and cleansed table name
 #Set raw and cleansed table name
 #Delta and SQL tables are case Insensitive. Seems Delta table are always lower case
-delta_cleansed_tbl_name = "{0}.{1}".format(ADS_DATABASE_CLEANSED, target_table)
-delta_raw_tbl_name = "{0}.{1}".format(ADS_DATABASE_RAW, source_object)
+delta_cleansed_tbl_name = f'{ADS_DATABASE_CLEANSED}.{target_table}'
+delta_raw_tbl_name = f'{ADS_DATABASE_RAW}.{ source_object}'
 
 #Destination
 print(delta_cleansed_tbl_name)
@@ -176,28 +175,30 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT \
-                            case when VSTELLE = 'na' then '' else VSTELLE end as premise, \
-                            HAUS as propertyNumber, \
-                            VBSART as typeOfPremise, \
-                            EIGENT as owner, \
-                            OBJNR as objectNumber, \
-                            TPLNUMMER as functionalLocationNumber, \
-                            to_date(ERDAT, 'yyyy-MM-dd') as createdDate, \
-                            ERNAM as createdBy, \
-                            to_date(AEDAT, 'yyyy-MM-dd') as lastChangedDate, \
-                            AENAM as lastChangedBy, \
-                            LOEVM as deletedIndicator, \
-                            cast(ANZPERS as int) as numberOfPersons, \
-                            FLOOR as floorNumber, \
-                            ROOMNUMBER as appartmentNumber, \
-                            HPTWOHNSITZ as mainResidence, \
-                            STR_ERG4 as street5, \
-                            UPDMOD as bwDeltaProcess, \
-                            _RecordStart, \
-                            _RecordEnd, \
-                            _RecordDeleted, \
-                            _RecordCurrent \
-                          FROM {ADS_DATABASE_STAGE}.{source_object}")
+	MANDT as clientId, \
+	VSTELLE as premise, \
+	HAUS as propertyNumber, \
+	VBSART as typeOfPremise, \
+	EIGENT as owner, \
+	OBJNR as objectNumber, \
+	TPLNUMMER as functionalLocationNumber, \
+	ToValidDate(ERDAT) as createdDate, \
+	ERNAM as createdBy, \
+	ToValidDate(AEDAT) as lastChangedDate, \
+	AENAM as lastChangedBy, \
+	LOEVM as deletedIndicator, \
+	cast(ANZPERS as int) as numberOfPersons, \
+	FLOOR as floorNumber, \
+	ROOMNUMBER as appartmentNumber, \
+	HPTWOHNSITZ as mainResidence, \
+	STR_ERG4 as street5, \
+	UPDMOD as bwDeltaProcess, \
+	_RecordStart, \
+	_RecordEnd, \
+	_RecordDeleted, \
+	_RecordCurrent \
+	FROM {ADS_DATABASE_STAGE}.{source_object} \
+         ")
 
 display(df_cleansed)
 print(f'Number of rows: {df_cleansed.count()}')
@@ -205,28 +206,29 @@ print(f'Number of rows: {df_cleansed.count()}')
 # COMMAND ----------
 
 newSchema = StructType([
-                          StructField('premise',StringType(),False),
-                          StructField('propertyNumber',StringType(),True),
-                          StructField('typeOfPremise',StringType(),True),
-                          StructField('owner',StringType(),True),
-                          StructField('objectNumber',StringType(),True),
-                          StructField('functionalLocationNumber',StringType(),True),
-                          StructField('createdDate',DateType(),True),
-                          StructField('createdBy',StringType(),True),
-                          StructField('lastChangedDate',DateType(),True),
-                          StructField('lastChangedBy',StringType(),True),
-                          StructField('deletedIndicator',StringType(),True),
-                          StructField('numberOfPersons',StringType(),True),
-                          StructField('floorNumber',StringType(),True),
-                          StructField('appartmentNumber',StringType(),True),
-                          StructField('mainResidence',StringType(),True),
-                          StructField('street5',StringType(),True),
-                          StructField('bwDeltaProcess',StringType(),True),
-                          StructField('_RecordStart',TimestampType(),False),
-                          StructField('_RecordEnd',TimestampType(),False),
-                          StructField('_RecordDeleted',IntegerType(),False),
-                          StructField('_RecordCurrent',IntegerType(),False)
-                      ])
+	StructField('clientId',StringType(),False,
+	StructField('premise',StringType(),False,
+	StructField('propertyNumber',StringType(),True,
+	StructField('typeOfPremise',StringType(),True,
+	StructField('owner',StringType(),True,
+	StructField('objectNumber',StringType(),True,
+	StructField('functionalLocationNumber',StringType(),True,
+	StructField('createdDate',DateType(),True,
+	StructField('createdBy',StringType(),True,
+	StructField('lastChangedDate',DateType(),True,
+	StructField('lastChangedBy',StringType(),True,
+	StructField('deletedIndicator',StringType(),True,
+	StructField('numberOfPersons',IntegerType(),True,
+	StructField('floorNumber',StringType(),True,
+	StructField('appartmentNumber',StringType(),True,
+	StructField('mainResidence',StringType(),True,
+	StructField('street5',StringType(),True,
+	StructField('bwDeltaProcess',StringType(),True,
+	StructField('_RecordStart',TimestampType(),False),
+	StructField('_RecordEnd',TimestampType(),False),
+	StructField('_RecordDeleted',IntegerType(),False),
+	StructField('_RecordCurrent',IntegerType(),False)
+])
 
 df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
 
@@ -236,7 +238,6 @@ df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
 DeltaSaveDataframeDirect(df_updated_column, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
-
 # COMMAND ----------
 
 # DBTITLE 1,13. Exit Notebook

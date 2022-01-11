@@ -138,14 +138,13 @@ print("delta_column: " + delta_column)
 #Get the Data Load Mode using the params
 data_load_mode = GeneralGetDataLoadMode(Params[PARAMS_TRUNCATE_TARGET], Params[PARAMS_UPSERT_TARGET], Params[PARAMS_APPEND_TARGET])
 print("data_load_mode: " + data_load_mode)
-
 # COMMAND ----------
 
 # DBTITLE 1,9. Set raw and cleansed table name
 #Set raw and cleansed table name
 #Delta and SQL tables are case Insensitive. Seems Delta table are always lower case
-delta_cleansed_tbl_name = "{0}.{1}".format(ADS_DATABASE_CLEANSED, target_table)
-delta_raw_tbl_name = "{0}.{1}".format(ADS_DATABASE_RAW, source_object)
+delta_cleansed_tbl_name = f'{ADS_DATABASE_CLEANSED}.{target_table}'
+delta_raw_tbl_name = f'{ADS_DATABASE_RAW}.{ source_object}'
 
 #Destination
 print(delta_cleansed_tbl_name)
@@ -176,11 +175,11 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_cleansed_column = spark.sql(f"SELECT  \
-                                    case when BELNR = 'na' then '' else BELNR end as billingDocumentNumber, \
-                                    case when BELZEILE = 'na' then '' else BELZEILE end as billingDocumentLineItemId, \
+                                    BELNR as billingDocumentNumber, \
+                                    BELZEILE as billingDocumentLineItemId, \
                                     MWSKZ as taxSalesCode, \
                                     ERMWSKZ as texDeterminationCode, \
-                                    cast(NETTOBTR as dec(13,2)) as billingLineItemNetAmount, \
+                                    cast(NETTOBTR as double) as billingLineItemNetAmount, \
                                     TWAERS as transactionCurrency, \
                                     PREISTUF as priceLevel, \
                                     PREISTYP as priceCategory, \
@@ -190,13 +189,13 @@ df_cleansed_column = spark.sql(f"SELECT  \
                                     BISZONE as toBlock, \
                                     ZONENNR as numberOfPriceBlock, \
                                     cast(PREISBTR as dec(17,8)) as priceAmount, \
-                                    cast(MNGBASIS as dec(9,2)) as amountLongQuantityBase, \
+                                    cast(MNGBASIS as dec(9,7)) as amountLongQuantityBase, \
                                     PREIGKL as priceAdjustemntClause, \
-                                    cast(URPREIS as dec(17,8)) as priceAdjustemntClauseBasePrice, \
-                                    cast(PREIADD as dec(17,8)) as addedAdjustmentPrice, \
-                                    cast(PREIFAKT as dec(12,7)) as priceAdjustmentFactor, \
+                                    cast(URPREIS as dec(17)) as priceAdjustemntClauseBasePrice, \
+                                    cast(PREIADD as dec(17)) as addedAdjustmentPrice, \
+                                    cast(PREIFAKT as dec(12)) as priceAdjustmentFactor, \
                                     OPMULT as additionFirst, \
-                                    to_date(TXDAT_KK, 'yyyyMMdd') as taxDecisiveDate, \
+                                    ToValidDate(TXDAT_KK) as taxDecisiveDate, \
                                     PRCTR as profitCenter, \
                                     KOSTL as costCenter, \
                                     PS_PSP_PNR as wbsElement, \
@@ -216,8 +215,7 @@ df_cleansed_column = spark.sql(f"SELECT  \
                                     _RecordEnd, \
                                     _RecordDeleted, \
                                     _RecordCurrent \
-                               FROM {ADS_DATABASE_STAGE}.{source_object}")
-display(df_cleansed_column)
+                               FROM {ADS_DATABASE_STAGE}.{source_object}")display(df_cleansed_column)
 
 # COMMAND ----------
 
@@ -226,7 +224,7 @@ newSchema = StructType([
                         StructField('billingDocumentLineItemId', StringType(), False),
                         StructField('taxSalesCode', StringType(), True),
                         StructField('texDeterminationCode', StringType(), True),
-                        StructField('billingLineItemNetAmount', DecimalType(13,2), True),
+                        StructField('billingLineItemNetAmount', DoubleType(), True),
                         StructField('transactionCurrency', StringType(), True),
                         StructField('priceLevel', StringType(), True),
                         StructField('priceCategory', StringType(), True),
@@ -236,11 +234,11 @@ newSchema = StructType([
                         StructField('toBlock', StringType(), True),
                         StructField('numberOfPriceBlock', StringType(), True),
                         StructField('priceAmount', DecimalType(17,8), True),
-                        StructField('amountLongQuantityBase', DecimalType(9,2), True),
+                        StructField('amountLongQuantityBase', DecimalType(9,7), True),
                         StructField('priceAdjustemntClause', StringType(), True),
-                        StructField('priceAdjustemntClauseBasePrice', DecimalType(17,8), True),
-                        StructField('addedAdjustmentPrice', DecimalType(17,8), True),
-                        StructField('priceAdjustmentFactor', DecimalType(12,7), True),
+                        StructField('priceAdjustemntClauseBasePrice', DecimalType(17), True),
+                        StructField('addedAdjustmentPrice', DecimalType(17), True),
+                        StructField('priceAdjustmentFactor', DecimalType(12), True),
                         StructField('additionFirst', StringType(), True),
                         StructField('taxDecisiveDate', DateType(), True),
                         StructField('profitCenter', StringType(), True),
@@ -272,7 +270,6 @@ display(df_updated_column)
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
 DeltaSaveDataframeDirect(df_updated_column, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
-
 # COMMAND ----------
 
 # DBTITLE 1,13. Exit Notebook
