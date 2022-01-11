@@ -138,14 +138,13 @@ print("delta_column: " + delta_column)
 #Get the Data Load Mode using the params
 data_load_mode = GeneralGetDataLoadMode(Params[PARAMS_TRUNCATE_TARGET], Params[PARAMS_UPSERT_TARGET], Params[PARAMS_APPEND_TARGET])
 print("data_load_mode: " + data_load_mode)
-
 # COMMAND ----------
 
 # DBTITLE 1,9. Set raw and cleansed table name
 #Set raw and cleansed table name
 #Delta and SQL tables are case Insensitive. Seems Delta table are always lower case
-delta_cleansed_tbl_name = "{0}.{1}".format(ADS_DATABASE_CLEANSED, target_table)
-delta_raw_tbl_name = "{0}.{1}".format(ADS_DATABASE_RAW, source_object)
+delta_cleansed_tbl_name = f'{ADS_DATABASE_CLEANSED}.{target_table}'
+delta_raw_tbl_name = f'{ADS_DATABASE_RAW}.{ source_object}'
 
 #Destination
 print(delta_cleansed_tbl_name)
@@ -176,8 +175,8 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_cleansed_column = spark.sql(f"SELECT  \
-                                case when BELNR = 'na' then '' else BELNR end as billingDocumentNumber, \
-                                case when BELZEILE = 'na' then '' else BELZEILE end as billingDocumentLineItemId, \
+                                BELNR as billingDocumentNumber, \
+                                BELZEILE as billingDocumentLineItemID, \
                                 EQUNR as equipmentNumber, \
                                 GERAET as deviceNumber, \
                                 MATNR as materialNumber, \
@@ -187,18 +186,18 @@ df_cleansed_column = spark.sql(f"SELECT  \
                                 ABLESGRV as previousMeterReadingReasonCode, \
                                 ATIM as billingMeterReadingTime, \
                                 ATIMVA as previousMeterReadingTime, \
-                                to_date(ADATMAX, 'yyyyMMdd') as maxMeterReadingDate, \
+                                ToValidDate(ADATMAX) as maxMeterReadingDate, \
                                 ATIMMAX as maxMeterReadingTime, \
-                                to_date(THGDATUM, 'yyyyMMdd') as serviceAllocationDate, \
-                                to_date(ZUORDDAT, 'yyyyMMdd') as meterReadingAllocationDate, \
+                                ToValidDate(THGDATUM) as serviceAllocationDate, \
+                                ToValidDate(ZUORDDAT) as meterReadingAllocationDate, \
                                 ABLBELNR as suppressedMeterReadingDocumentID, \
                                 LOGIKNR as logicalDeviceNumber, \
                                 LOGIKZW as logicalRegisterNumber, \
                                 ISTABLART as meterReadingTypeCode, \
                                 ISTABLARTVA as previousMeterReadingTypeCode, \
                                 EXTPKZ as meterReadingResultsSimulationIndicator, \
-                                to_date(BEGPROG, 'yyyyMMdd') as forecastPeriodStartDate, \
-                                to_date(ENDEPROG, 'yyyyMMdd') as forecastPeriodEndDate, \
+                                ToValidDate(BEGPROG) as forecastPeriodStartDate, \
+                                ToValidDate(ENDEPROG) as forecastPeriodEndDate, \
                                 ABLHINW as meterReaderNoteText, \
                                 cast(V_ZWSTAND as dec(17)) as meterReadingBeforeDecimalPoint, \
                                 cast(N_ZWSTAND as dec(14,14)) as meterReadingAfterDecimalPoint, \
@@ -212,14 +211,13 @@ df_cleansed_column = spark.sql(f"SELECT  \
                                 _RecordEnd, \
                                 _RecordDeleted, \
                                 _RecordCurrent \
-                               FROM {ADS_DATABASE_STAGE}.{source_object}")
-display(df_cleansed_column)
+                               FROM {ADS_DATABASE_STAGE}.{source_object}")display(df_cleansed_column)
 
 # COMMAND ----------
 
 newSchema = StructType([
-                          StructField('billingDocumentNumber', StringType(), False),
-                          StructField('billingDocumentLineItemID', StringType(), False),
+                          StructField('billingDocumentNumber', StringType(), True),
+                          StructField('billingDocumentLineItemID', StringType(), True),
                           StructField('equipmentNumber', StringType(), True),
                           StructField('deviceNumber', StringType(), True),
                           StructField('materialNumber', StringType(), True),
@@ -265,7 +263,6 @@ display(df_updated_column)
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
 DeltaSaveDataframeDirect(df_updated_column, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
-
 # COMMAND ----------
 
 # DBTITLE 1,13. Exit Notebook
