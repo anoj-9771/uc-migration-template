@@ -138,14 +138,13 @@ print("delta_column: " + delta_column)
 #Get the Data Load Mode using the params
 data_load_mode = GeneralGetDataLoadMode(Params[PARAMS_TRUNCATE_TARGET], Params[PARAMS_UPSERT_TARGET], Params[PARAMS_APPEND_TARGET])
 print("data_load_mode: " + data_load_mode)
-
 # COMMAND ----------
 
 # DBTITLE 1,9. Set raw and cleansed table name
 #Set raw and cleansed table name
 #Delta and SQL tables are case Insensitive. Seems Delta table are always lower case
-delta_cleansed_tbl_name = "{0}.{1}".format(ADS_DATABASE_CLEANSED, target_table)
-delta_raw_tbl_name = "{0}.{1}".format(ADS_DATABASE_RAW, source_object)
+delta_cleansed_tbl_name = f'{ADS_DATABASE_CLEANSED}.{target_table}'
+delta_raw_tbl_name = f'{ADS_DATABASE_RAW}.{ source_object}'
 
 #Destination
 print(delta_cleansed_tbl_name)
@@ -176,59 +175,61 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT \
-                                GPART as businessPartnerGroupNumber, \
-                                VKONT as contractAccountNumber, \
-                                ABSANFAB as budgetBillingRequestForDebtor, \
-                                ABSANFBZ as budgetBillingRequestForCashPayer, \
-                                KEINZAHL as noPaymentFormIndicator, \
-                                EINZUGSZ as numberOfSuccessfulDirectDebits, \
-                                RUECKLZ as numberOfDirectDebitReturns, \
-                                MAHNUNG_Z as sendAdditionalDunningNoticeIndicator, \
-                                RECHNUNG_Z as sendAdditionalBillIndicator, \
-                                FORMKEY as applicationForm, \
-                                AUSGRUP_IN as outsortingCheckGroupCode, \
-                                OUTCOUNT as manualOutsortingCount, \
-                                MANOUTS_IN as manualOutsortingReasonCode, \
-                                SENDCONTROL_MA as shippingControlForAlternativeDunningRecipient, \
-                                SENDCONTROL_RH as dispatchControlForAlternativeBillRecipient, \
-                                SENDCONTROL_GP as dispatchControl, \
-                                KZABSVER as billingProcedureActivationIndicator, \
-                                JVLTE as participationInYearlyAdvancePayment, \
-                                to_date(ERDAT, 'yyyy-MM-dd') as createdDate, \
-                                ERNAM as createdBy, \
-                                to_date(AEDATP, 'yyyy-MM-dd') as lastChangedDate, \
-                                AENAMP as changedBy, \
-                                FDZTG as additionalDaysForCashManagement, \
-                                GUID as headerUUID, \
-                                cast(DDLAM as dec(13,0)) as directDebitLimit, \
-                                DDLNM as numberOfMonthsForDirectDebitLimit, \
-                                EXVKO as businessPartnerReferenceNumber, \
-                                OPBUK as companyCodeGroup, \
-                                STDBK as standardCompanyCode, \
-                                ABWMA as alternativeDunningRecipient, \
-                                EBVTY as bankDetailsId, \
-                                EZAWE as incomingPaymentMethodCode, \
-                                LOEVM as deletedIndicator, \
-                                ABWVK as alternativeContractAccountForCollectiveBills, \
-                                VKPBZ as accountRelationshipCode, \
-                                acc_txt.accountRelationship as accountRelationship, \
-                                ADRNB as addressNumber, \
-                                ADRMA as addressNumberForAlternativeDunningRecipient, \
-                                ABWRH as alternativeInvoiceRecipient, \
-                                ADRRH as addressNumberForAlternativeBillRecipient, \
-                                TOGRU as toleranceGroupCode, \
-                                CCARD_ID as paymentCardId, \
-                                VERTYP as clearingCategory, \
-                                CMGRP as collectionManagementMasterDataGroup, \
-                                STRAT as collectionStrategyCode, \
-                                ZAHLKOND as paymentConditionCode, \
-                                KOFIZ_SD as accountDeterminationCode, \
-                                acc._RecordStart, \
-                                acc._RecordEnd, \
-                                acc._RecordDeleted, \
-                                acc._RecordCurrent \
-                        FROM {ADS_DATABASE_STAGE}.{source_object} acc \
-                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0FC_ACCTREL_TEXT acc_txt ON acc.VKPBZ = acc_txt.accountRelationshipCode and acc_txt._RecordDeleted = 0 and acc_txt._RecordCurrent = 1")
+	GPART as businessPartnerGroupNumber, \
+	VKONT as contractAccountNumber, \
+	cast(ABSANFAB as int) as budgetBillingRequestForDebtor, \
+	cast(ABSANFBZ as int) as budgetBillingRequestForCashPayer, \
+	KEINZAHL as noPaymentFormIndicator, \
+	cast(EINZUGSZ as int) as numberOfSuccessfulDirectDebits, \
+	cast(RUECKLZ as int) as numberOfDirectDebitReturns, \
+	MAHNUNG_Z as sendAdditionalDunningNoticeIndicator, \
+	RECHNUNG_Z as sendAdditionalBillIndicator, \
+	FORMKEY as applicationForm, \
+	LANGU as language, \
+	AUSGRUP_IN as outsortingCheckGroupForInvoicing, \
+	cast(OUTCOUNT as int) as manualOutsortingCount, \
+	MANOUTS_IN as manualOutsortingReasonCode, \
+	SENDCONTROL_MA as shippingControlForAlternativeDunningRecipient, \
+	SENDCONTROL_RH as dispatchControlForAlternativeBillRecipient, \
+	SENDCONTROL_GP as dispatchControl, \
+	KZABSVER as billingProcedureActivationIndicator, \
+	cast(JVLTE as int) as participationInYearlyAdvancePayment, \
+	ToValidDate(ERDAT) as createdDate, \
+	ERNAM as createdBy, \
+	ToValidDate(AEDATP) as lastChangedDate, \
+	AENAMP as changedBy, \
+	cast(FDZTG as int) as additionalDaysForCashManagement, \
+	GUID as headerUUID, \
+	cast(DDLAM as dec(13,0)) as directDebitLimit, \
+	cast(DDLNM as int) as numberOfMonthsForDirectDebitLimit, \
+	EXVKO as businessPartnerReferenceNumber, \
+	OPBUK as companyCodeGroup, \
+	STDBK as standardCompanyCode, \
+	ABWMA as alternativeDunningRecipient, \
+	EBVTY as bankDetailsId, \
+	EZAWE as incomingPaymentMethodCode, \
+	LOEVM as deletedIndicator, \
+	ABWVK as alternativeContractAccountForCollectiveBills, \
+	VKPBZ as accountRelationshipCode, \
+	TXTSH
+ as accountRelationship, \
+	ADRNB as addressNumber, \
+	ADRMA as addressNumberForAlternativeDunningRecipient, \
+	ABWRH as alternativeInvoiceRecipient, \
+	ADRRH as addressNumberForAlternativeBillRecipient, \
+	TOGRU as toleranceGroupCode, \
+	CCARD_ID as paymentCardId, \
+	VERTYP as clearingCategory, \
+	CMGRP as collectionManagementMasterDataGroup, \
+	STRAT as collectionStrategyCode, \
+	ZAHLKOND as paymentCondition, \
+	KOFIZ_SD as accountDeterminationId, \
+	_RecordStart, \
+	_RecordEnd, \
+	_RecordDeleted, \
+	_RecordCurrent \
+	FROM {ADS_DATABASE_STAGE}.{source_object} + source_object \
+         )
 
 display(df_cleansed)
 print(f'Number of rows: {df_cleansed.count()}')
@@ -238,30 +239,31 @@ print(f'Number of rows: {df_cleansed.count()}')
 newSchema = StructType([
 	StructField('businessPartnerGroupNumber',StringType(),False),
 	StructField('contractAccountNumber',StringType(),False),
-	StructField('budgetBillingRequestForDebtor',StringType(),True),
-	StructField('budgetBillingRequestForCashPayer',StringType(),True),
+	StructField('budgetBillingRequestForDebtor',IntegerType(),True),
+	StructField('budgetBillingRequestForCashPayer',IntegerType(),True),
 	StructField('noPaymentFormIndicator',StringType(),True),
-	StructField('numberOfSuccessfulDirectDebits',StringType(),True),
-	StructField('numberOfDirectDebitReturns',StringType(),True),
+	StructField('numberOfSuccessfulDirectDebits',IntegerType(),True),
+	StructField('numberOfDirectDebitReturns',IntegerType(),True),
 	StructField('sendAdditionalDunningNoticeIndicator',StringType(),True),
 	StructField('sendAdditionalBillIndicator',StringType(),True),
 	StructField('applicationForm',StringType(),True),
-	StructField('outsortingCheckGroupCode',StringType(),True),
-	StructField('manualOutsortingCount',StringType(),True),
+	StructField('language',StringType(),True),
+	StructField('outsortingCheckGroupForInvoicing',StringType(),True),
+	StructField('manualOutsortingCount',IntegerType(),True),
 	StructField('manualOutsortingReasonCode',StringType(),True),
 	StructField('shippingControlForAlternativeDunningRecipient',StringType(),True),
 	StructField('dispatchControlForAlternativeBillRecipient',StringType(),True),
 	StructField('dispatchControl',StringType(),True),
 	StructField('billingProcedureActivationIndicator',StringType(),True),
-	StructField('participationInYearlyAdvancePayment',StringType(),True),
+	StructField('participationInYearlyAdvancePayment',IntegerType(),True),
 	StructField('createdDate',DateType(),True),
 	StructField('createdBy',StringType(),True),
 	StructField('lastChangedDate',DateType(),True),
 	StructField('changedBy',StringType(),True),
-	StructField('additionalDaysForCashManagement',StringType(),True),
+	StructField('additionalDaysForCashManagement',IntegerType(),True),
 	StructField('headerUUID',StringType(),True),
 	StructField('directDebitLimit',DecimalType(13,0),True),
-	StructField('numberOfMonthsForDirectDebitLimit',StringType(),True),
+	StructField('numberOfMonthsForDirectDebitLimit',IntegerType(),True),
 	StructField('businessPartnerReferenceNumber',StringType(),True),
 	StructField('companyCodeGroup',StringType(),True),
 	StructField('standardCompanyCode',StringType(),True),
@@ -281,8 +283,8 @@ newSchema = StructType([
 	StructField('clearingCategory',StringType(),True),
 	StructField('collectionManagementMasterDataGroup',StringType(),True),
 	StructField('collectionStrategyCode',StringType(),True),
-	StructField('paymentConditionCode',StringType(),True),
-	StructField('accountDeterminationCode',StringType(),True),
+	StructField('paymentCondition',StringType(),True),
+	StructField('accountDeterminationId',StringType(),True),
 	StructField('_RecordStart',TimestampType(),False),
 	StructField('_RecordEnd',TimestampType(),False),
 	StructField('_RecordDeleted',IntegerType(),False),
@@ -290,14 +292,13 @@ newSchema = StructType([
 ])
 
 df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
-display(df_updated_column)
+
 
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
 DeltaSaveDataframeDirect(df_updated_column, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
-
 # COMMAND ----------
 
 # DBTITLE 1,13. Exit Notebook

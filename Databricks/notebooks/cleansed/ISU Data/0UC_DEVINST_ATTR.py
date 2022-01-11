@@ -138,14 +138,13 @@ print("delta_column: " + delta_column)
 #Get the Data Load Mode using the params
 data_load_mode = GeneralGetDataLoadMode(Params[PARAMS_TRUNCATE_TARGET], Params[PARAMS_UPSERT_TARGET], Params[PARAMS_APPEND_TARGET])
 print("data_load_mode: " + data_load_mode)
-
 # COMMAND ----------
 
 # DBTITLE 1,9. Set raw and cleansed table name
 #Set raw and cleansed table name
 #Delta and SQL tables are case Insensitive. Seems Delta table are always lower case
-delta_cleansed_tbl_name = "{0}.{1}".format(ADS_DATABASE_CLEANSED, target_table)
-delta_raw_tbl_name = "{0}.{1}".format(ADS_DATABASE_RAW, source_object)
+delta_cleansed_tbl_name = f'{ADS_DATABASE_CLEANSED}.{target_table}'
+delta_raw_tbl_name = f'{ADS_DATABASE_RAW}.{ source_object}'
 
 #Destination
 print(delta_cleansed_tbl_name)
@@ -176,27 +175,24 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT \
-                                case when ANLAGE = 'na' then '' else ANLAGE end as installationId, \
-                                case when LOGIKNR = 'na' then '' else LOGIKNR end as logicalDeviceNumber, \
-                                case when BIS = 'na' then to_date('1900-01-01','yyyy-MM-dd') else to_date(BIS, 'yyyy-MM-dd') end as validToDate, \
-                                to_date(AB, 'yyyy-MM-dd') as validFromDate, \
-                                PREISKLA as priceClassCode, \
-                                ip.priceClass as priceClass, \
-                                GVERRECH as payRentalPrice, \
-                                TARIFART as rateTypeCode, \
-                                sp.rateType as rateType, \
-                                LOEVM as deletedIndicator, \
-                                UPDMOD as bwDeltaProcess, \
-                                ZOPCODE as operationCode, \
-                                dev._RecordStart, \
-                                dev._RecordEnd, \
-                                dev._RecordDeleted, \
-                                dev._RecordCurrent \
-                           FROM {ADS_DATABASE_STAGE}.{source_object} dev \
-                           LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UC_PRICCLA_TEXT ip ON dev.PREISKLA = ip.priceClassCode \
-                                                                                                    and ip._RecordDeleted = 0 and ip._RecordCurrent = 1 \
-                           LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UC_STATTART_TEXT sp ON dev.TARIFART = sp.rateTypeCode \
-                                                                                                    and sp._RecordDeleted = 0 and sp._RecordCurrent = 1")
+	ANLAGE as installationId, \
+	LOGIKNR as logicalDeviceNumber, \
+	ToValidDate(BIS) as validToDate, \
+	ToValidDate(AB) as validFromDate, \
+	PREISKLA as priceClassCode, \
+	PREISKLABEZ as priceClass, \
+	GVERRECH as payRentalPrice, \
+	TARIFART as rateTypeCode, \
+	TEXT30 as rateType, \
+	LOEVM as deletedIndicator, \
+	UPDMOD as bwDeltaProcess, \
+	ZOPCODE as operationCode, \
+	_RecordStart, \
+	_RecordEnd, \
+	_RecordDeleted, \
+	_RecordCurrent \
+	FROM {ADS_DATABASE_STAGE}.{source_object} + source_object \
+         )
 
 display(df_cleansed)
 print(f'Number of rows: {df_cleansed.count()}')
@@ -206,7 +202,7 @@ print(f'Number of rows: {df_cleansed.count()}')
 newSchema = StructType([
 	StructField('installationId',StringType(),False),
 	StructField('logicalDeviceNumber',StringType(),False),
-	StructField('validToDate',DateType(),False),
+	StructField('validToDate',DateType(),True),
 	StructField('validFromDate',DateType(),True),
 	StructField('priceClassCode',StringType(),True),
 	StructField('priceClass',StringType(),True),
@@ -223,14 +219,13 @@ newSchema = StructType([
 ])
 
 df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
-display(df_updated_column)
+
 
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
 DeltaSaveDataframeDirect(df_updated_column, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
-
 # COMMAND ----------
 
 # DBTITLE 1,13. Exit Notebook

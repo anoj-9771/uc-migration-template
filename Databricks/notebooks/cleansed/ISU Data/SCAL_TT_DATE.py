@@ -138,14 +138,13 @@ print("delta_column: " + delta_column)
 #Get the Data Load Mode using the params
 data_load_mode = GeneralGetDataLoadMode(Params[PARAMS_TRUNCATE_TARGET], Params[PARAMS_UPSERT_TARGET], Params[PARAMS_APPEND_TARGET])
 print("data_load_mode: " + data_load_mode)
-
 # COMMAND ----------
 
 # DBTITLE 1,9. Set raw and cleansed table name
 #Set raw and cleansed table name
 #Delta and SQL tables are case Insensitive. Seems Delta table are always lower case
-delta_cleansed_tbl_name = "{0}.{1}".format(ADS_DATABASE_CLEANSED, target_table)
-delta_raw_tbl_name = "{0}.{1}".format(ADS_DATABASE_RAW, source_object)
+delta_cleansed_tbl_name = f'{ADS_DATABASE_CLEANSED}.{target_table}'
+delta_raw_tbl_name = f'{ADS_DATABASE_RAW}.{ source_object}'
 
 #Destination
 print(delta_cleansed_tbl_name)
@@ -174,9 +173,10 @@ DeltaSaveToDeltaTable (
 # COMMAND ----------
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
-#Update/rename Column    
-df_cleansed = spark.sql(f"SELECT \
-                                to_date(CALENDARDATE,'yyyy-MM-dd') as calendarDate , \
+#Update/rename Column
+    
+df_calendar_column = spark.sql(f"SELECT \
+                                ToValidDate(CALENDARDATE) as calendarDate , \
                                 CALENDARDAY as dayOfMonth , \
                                 CALENDARDAYOFYEAR as dayOfYear  , \
                                 WEEKDAY as dayOfWeek  , \
@@ -188,43 +188,44 @@ df_cleansed = spark.sql(f"SELECT \
                                 YEARWEEK as calendarYearWeek  , \
                                 YEARMONTH as calendarYearMonth  , \
                                 YEARQUARTER as calendarYearQuarter  , \
-                                to_date(FIRSTDAYOFMONTHDATE,'yyyy-MM-dd')  as monthStartDate  , \
-                                to_date(LASTDAYOFMONTHDATE,'yyyy-MM-dd') as monthEndDate  , \
+                                ToValidDate(FIRSTDAYOFMONTHDATE)  as monthStartDate  , \
+                                ToValidDate(LASTDAYOFMONTHDATE) as monthEndDate  , \
                                 _RecordStart, \
                                 _RecordEnd, \
                                 _RecordDeleted, \
                                 _RecordCurrent \
                                FROM {ADS_DATABASE_STAGE}.{source_object} \
-                               where calendardate <> 'na' and calendardate <= '2099-12-31' \
-                               order by 1")
+                               where calendardate is not null \
+                               order by 1 \
+                               ")
 
-display(df_cleansed)
-print(f'Number of rows: {df_cleansed.count()}')
+display(df_calendar_column)
+
 
 # COMMAND ----------
 
 newSchema = StructType([
                             StructField("calendarDate", DateType(), False),
-                            StructField("dayOfMonth", LongType(), True),
-                            StructField("dayOfYear", LongType(), True),
-                            StructField("dayOfWeek", LongType(), True),
-                            StructField("weekOfYear", LongType(), True),
-                            StructField("monthOfYear", LongType(), True),
-                            StructField("quarterOfYear", LongType(), True),
-                            StructField("halfOfYear", LongType(), True),
-                            StructField("calendarYear", LongType(), True),
-                            StructField("calendarYearWeek", LongType(), True),
-                            StructField("calendarYearMonth", LongType(), True),
-                            StructField("calendarYearQuarter", LongType(), True),
-                            StructField("monthStartDate", DateType(), True),
-                            StructField("monthEndDate", DateType(), True),
+                            StructField("dayOfMonth", LongType(), False),
+                            StructField("dayOfYear", LongType(), False),
+                            StructField("dayOfWeek", LongType(), False),
+                            StructField("weekOfYear", LongType(), False),
+                            StructField("monthOfYear", LongType(), False),
+                            StructField("quarterOfYear", LongType(), False),
+                            StructField("halfOfYear", LongType(), False),
+                            StructField("calendarYear", LongType(), False),
+                            StructField("calendarYearWeek", LongType(), False),
+                            StructField("calendarYearMonth", LongType(), False),
+                            StructField("calendarYearQuarter", LongType(), False),
+                            StructField("monthStartDate", DateType(), False),
+                            StructField("monthEndDate", DateType(), False),
                             StructField('_RecordStart', TimestampType(), False),
                             StructField('_RecordEnd', TimestampType(), False),
                             StructField('_RecordDeleted', IntegerType(), False),
                             StructField('_RecordCurrent', IntegerType(), False),
                     ])
-df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
-display(df_updated_column)
+df_cleansed_column = spark.createDataFrame(df_calendar_column.rdd, schema=newSchema)
+display(df_cleansed_column)
 
 
 # COMMAND ----------
@@ -232,7 +233,6 @@ display(df_updated_column)
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
 DeltaSaveDataframeDirect(df_updated_column, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
-
 # COMMAND ----------
 
 # DBTITLE 1,13. Exit Notebook

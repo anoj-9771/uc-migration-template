@@ -138,14 +138,13 @@ print("delta_column: " + delta_column)
 #Get the Data Load Mode using the params
 data_load_mode = GeneralGetDataLoadMode(Params[PARAMS_TRUNCATE_TARGET], Params[PARAMS_UPSERT_TARGET], Params[PARAMS_APPEND_TARGET])
 print("data_load_mode: " + data_load_mode)
-
 # COMMAND ----------
 
 # DBTITLE 1,9. Set raw and cleansed table name
 #Set raw and cleansed table name
 #Delta and SQL tables are case Insensitive. Seems Delta table are always lower case
-delta_cleansed_tbl_name = "{0}.{1}".format(ADS_DATABASE_CLEANSED, target_table)
-delta_raw_tbl_name = "{0}.{1}".format(ADS_DATABASE_RAW, source_object)
+delta_cleansed_tbl_name = f'{ADS_DATABASE_CLEANSED}.{target_table}'
+delta_raw_tbl_name = f'{ADS_DATABASE_RAW}.{ source_object}'
 
 #Destination
 print(delta_cleansed_tbl_name)
@@ -176,24 +175,23 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT \
-                            case when VKONT = 'na' then '' else VKONT end as contractAccountNumber, \
-                            to_date(ERDAT, 'yyyy-MM-dd') as createdDate, \
-                            ERNAM as createdBy, \
-                            to_date(AEDAT, 'yyyy-MM-dd') as lastChangedDate, \
-                            AENAM as lastChangedBy, \
-                            LOEVM as deletedIndicator, \
-                            APPLK as applicationArea, \
-                            VKTYP as contractAccountCategoryCode, \
-                            ty.contractAccountCategory as contractAccountCategory, \
-                            VKONA as legacyContractAccountNumber, \
-                            con._RecordStart, \
-                            con._RecordEnd, \
-                            con._RecordDeleted, \
-                            con._RecordCurrent \
-                          FROM {ADS_DATABASE_STAGE}.{source_object} con \
-                          LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UC_VKTYP_TEXT ty ON con.VKTYP = ty.contractAccountCategoryCode and  con.APPLK = ty.applicationArea\
-                                                                                                    and ty._RecordDeleted = 0 and ty._RecordCurrent = 1")
-
+	MANDT as clientId, \
+	VKONT as contractAccountNumber, \
+	ToValidDate(ERDAT) as createdDate, \
+	ERNAM as createdBy, \
+	ToValidDate(AEDAT) as lastChangedDate, \
+	AENAM as lastChangedBy, \
+	LOEVM as deletedIndicator, \
+	APPLK as applicationArea, \
+	VKTYP as contractAccountCategoryCode, \
+	TEXT as contractAccountCategory, \
+	VKONA as legacyContractAccountNumber, \
+	_RecordStart, \
+	_RecordEnd, \
+	_RecordDeleted, \
+	_RecordCurrent \
+	FROM {ADS_DATABASE_STAGE}.{source_object} + source_object \
+         )
 
 display(df_cleansed)
 print(f'Number of rows: {df_cleansed.count()}')
@@ -201,31 +199,31 @@ print(f'Number of rows: {df_cleansed.count()}')
 # COMMAND ----------
 
 newSchema = StructType([
-                        StructField('contractAccountNumber',StringType(),False),
-                        StructField('createdDate',DateType(),True),
-                        StructField('createdBy',StringType(),True),
-                        StructField('lastChangedDate',DateType(),True),
-                        StructField('lastChangedBy',StringType(),True),
-                        StructField('deletedIndicator',StringType(),True),
-                        StructField('applicationArea',StringType(),True),
-                        StructField('contractAccountCategoryCode',StringType(),True),
-                        StructField('contractAccountCategory',StringType(),True),
-                        StructField('legacyContractAccountNumber',StringType(),True),
-                        StructField('_RecordStart',TimestampType(),False),
-                        StructField('_RecordEnd',TimestampType(),False),
-                        StructField('_RecordDeleted',IntegerType(),False),
-                        StructField('_RecordCurrent',IntegerType(),False)
-                    ])
+	StructField('clientId',StringType(),False),
+	StructField('contractAccountNumber',StringType(),False),
+	StructField('createdDate',DateType(),True),
+	StructField('createdBy',StringType(),True),
+	StructField('lastChangedDate',DateType(),True),
+	StructField('lastChangedBy',StringType(),True),
+	StructField('deletedIndicator',StringType(),True),
+	StructField('applicationArea',StringType(),True),
+	StructField('contractAccountCategoryCode',StringType(),True),
+	StructField('contractAccountCategory',StringType(),True),
+	StructField('legacyContractAccountNumber',StringType(),True),
+	StructField('_RecordStart',TimestampType(),False),
+	StructField('_RecordEnd',TimestampType(),False),
+	StructField('_RecordDeleted',IntegerType(),False),
+	StructField('_RecordCurrent',IntegerType(),False)
+])
 
 df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
-display(df_updated_column)
+
 
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
 DeltaSaveDataframeDirect(df_updated_column, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
-
 # COMMAND ----------
 
 # DBTITLE 1,13. Exit Notebook
