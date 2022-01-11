@@ -248,7 +248,7 @@ df_cleansed_column = spark.sql(f"SELECT  \
                                   EXBILLDOCNO as externalDocumentNumber, \
                                   BCREASON as reversalReasonCode, \
                                   NINVOICE as billingDocumentWithoutInvoicingCode, \
-                                  NBILLREL as billingRelavancyIndicator, \
+                                  NBILLREL as billingRelevancyIndicator, \
                                   to_date(CORRECTION_DATE, 'yyyyMMdd') as errorDetectedDate, \
                                   BASDYPER as basicCategoryDynamicPeriodControlCode, \
                                   ESTINBILL as meterReadingResultEstimatedBillingIndicator, \
@@ -350,7 +350,7 @@ newSchema = StructType([
                           StructField('externalDocumentNumber', StringType(), True),
                           StructField('reversalReasonCode', StringType(), True),
                           StructField('billingDocumentWithoutInvoicingCode', StringType(), True),
-                          StructField('billingRelavancyIndicator', StringType(), True),
+                          StructField('billingRelevancyIndicator', StringType(), True),
                           StructField('errorDetectedDate', DateType(), True),
                           StructField('basicCategoryDynamicPeriodControlCode', StringType(), True),
                           StructField('meterReadingResultEstimatedBillingIndicator', StringType(), True),
