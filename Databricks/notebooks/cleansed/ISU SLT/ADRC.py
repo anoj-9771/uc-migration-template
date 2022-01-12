@@ -215,7 +215,7 @@ df_cleansed = spark.sql(f"SELECT \
 	POST_CODE2 as poBoxPostalCode, \
 	POST_CODE3 as companyPostalCode, \
 	REGION as stateCode, \
-	ROOMNUMBER as appartmentNumber, \
+	ROOMNUMBER as apartmentNumber, \
 	SORT1 as searchTerm1, \
 	SORT2 as searchTerm2, \
 	STR_SUPPL1 as streetType, \
@@ -280,7 +280,7 @@ newSchema = StructType([
 	StructField('poBoxPostalCode',StringType(),True),
 	StructField('companyPostalCode',StringType(),True),
 	StructField('stateCode',StringType(),True),
-	StructField('appartmentNumber',StringType(),True),
+	StructField('apartmentNumber',StringType(),True),
 	StructField('searchTerm1',StringType(),True),
 	StructField('searchTerm2',StringType(),True),
 	StructField('streetType',StringType(),True),
