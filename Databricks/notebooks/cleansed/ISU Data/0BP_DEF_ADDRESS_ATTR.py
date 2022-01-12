@@ -138,6 +138,7 @@ print("delta_column: " + delta_column)
 #Get the Data Load Mode using the params
 data_load_mode = GeneralGetDataLoadMode(Params[PARAMS_TRUNCATE_TARGET], Params[PARAMS_UPSERT_TARGET], Params[PARAMS_APPEND_TARGET])
 print("data_load_mode: " + data_load_mode)
+
 # COMMAND ----------
 
 # DBTITLE 1,9. Set raw and cleansed table name
@@ -204,7 +205,7 @@ df_cleansed = spark.sql(f"SELECT \
 	LOCATION as streetLine5, \
 	BUILDING as building, \
 	FLOOR as floorNumber, \
-	ROOMNUMBER as appartmentNumber, \
+	ROOMNUMBER as apartmentNumber, \
 	COUNTRY as countryShortName, \
 	LANGU as language, \
 	REGION as stateCode, \
@@ -282,7 +283,7 @@ newSchema = StructType([
 	StructField('streetLine5',StringType(),True),
 	StructField('building',StringType(),True),
 	StructField('floorNumber',StringType(),True),
-	StructField('appartmentNumber',StringType(),True),
+	StructField('apartmentNumber',StringType(),True),
 	StructField('countryShortName',StringType(),True),
 	StructField('language',StringType(),True),
 	StructField('stateCode',StringType(),True),
@@ -332,6 +333,7 @@ df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
 DeltaSaveDataframeDirect(df_updated_column, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
+
 # COMMAND ----------
 
 # DBTITLE 1,13. Exit Notebook
