@@ -1,2 +1,2 @@
 # Databricks notebook source
-# MAGIC %run ./bridgeTables/BusinessPartnerGroupRelation
+# MAGIC %run ./bridgeTables/BusinessPartnerGroupRelationship
