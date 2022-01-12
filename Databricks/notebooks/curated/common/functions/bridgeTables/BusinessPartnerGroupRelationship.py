@@ -8,7 +8,7 @@
 # COMMAND ----------
 
 ###########################################################################################################################
-# Function: getBusinessPartnerGroupRelation
+# Function: getBusinessPartnerGroupRelationship
 #  Get Business Partner Group Relation Dimension
 # Returns:
 #  Dataframe of transfomred Business Partner Group Relation
@@ -22,7 +22,7 @@
 #############################################################################################################################
 #1.Create Function
 
-def getBusinessPartnerGroupRelation():
+def getBusinessPartnerGroupRelationship():
     #spark.udf.register("TidyCase", GeneralToTidyCase) 
 
     #2.Load Cleansed layer table data into dataframe
