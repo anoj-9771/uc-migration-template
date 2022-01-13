@@ -138,6 +138,7 @@ print("delta_column: " + delta_column)
 #Get the Data Load Mode using the params
 data_load_mode = GeneralGetDataLoadMode(Params[PARAMS_TRUNCATE_TARGET], Params[PARAMS_UPSERT_TARGET], Params[PARAMS_APPEND_TARGET])
 print("data_load_mode: " + data_load_mode)
+
 # COMMAND ----------
 
 # DBTITLE 1,9. Set raw and cleansed table name
@@ -219,13 +220,13 @@ df_updated_column_temp = spark.sql(f"SELECT \
                                 BP.NAME_GRP1 as nameGroup1, \
                                 BP.NAME_GRP2 as nameGroup2, \
                                 BP.CRUSR as createdBy, \
-                                cast(concat(BP.CRDAT,' ',(case WHEN BP.CRTIM is null then  '00:00:00' else BP.CRTIM END)) as timestamp)  as createdDateTime, \
+                                ToValidDateTime(concat(BP.CRDAT, coalesce(BP.CRTIM,'00:00:00'))) as createdDateTime, \
                                 BP.CHUSR as changedBy, \
-                                cast(concat(BP.CHDAT,' ',(case WHEN BP.CHTIM is null then  '00:00:00' else BP.CHTIM END)) as timestamp)  as changedDateTime, \
+                                ToValidDateTime(concat(BP.CHDAT, coalesce(BP.CHTIM,'00:00:00'))) as changedDateTime, \
                                 BP.PARTNER_GUID as businessPartnerGUID, \
                                 BP.ADDRCOMM as addressNumber, \
-                                Case WHEN BP.VALID_FROM = '10101000000' then ToValidDate('19000101') else ToValidDate(substr(BP.VALID_FROM,0,8)) END as validFromDate, \
-                                ToValidDate(substr(BP.VALID_TO,0,8)) as validToDate, \
+                                ToValidDate(BP.VALID_FROM) as validFromDate, \
+                                ToValidDate(BP.VALID_TO) as validToDate, \
                                 BP.NATPERS as naturalPersonIndicator, \
                                 BP._RecordStart, \
                                 BP._RecordEnd, \
@@ -312,6 +313,7 @@ display(df_updated_column)
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
 DeltaSaveDataframeDirect(df_updated_column, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
+
 # COMMAND ----------
 
 # DBTITLE 1,13. Exit Notebook

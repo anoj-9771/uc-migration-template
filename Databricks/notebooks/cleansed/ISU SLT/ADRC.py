@@ -229,7 +229,7 @@ df_cleansed = spark.sql(f"SELECT \
 	TEL_NUMBER as phoneNumber, \
 	TIME_ZONE as addressTimeZone, \
 	TITLE as titleCode, \
-	_RecordStart, \
+    _RecordStart, \
 	_RecordEnd, \
 	_RecordDeleted, \
 	_RecordCurrent \
