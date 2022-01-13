@@ -175,7 +175,7 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-# Pass "MANDATORY" as the second argument for function ToValidDate() to validate key/mandatory columns
+#Pass "MANDATORY" as the second argument for function ToValidDate() to validate key/mandatory columns
 df_cleansed = spark.sql(f"SELECT \
 	ADDR_GROUP as addressGroup, \
 	case when ADDRNUMBER = 'na' then '' else ADDRNUMBER end as addressNumber, \
