@@ -175,6 +175,7 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
+#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
 df_cleansed = spark.sql(f"SELECT \
 	case when TERMSCHL = 'na' then '' else TERMSCHL end as portion, \
 	cast(EPER_ABL as Integer) as intervalBetweenReadingAndEnd, \
@@ -190,9 +191,9 @@ df_cleansed = spark.sql(f"SELECT \
 	MDENR as numberOFMobileDataEntry, \
 	cast(ABLKAR as Integer) as meterReadingInterval, \
 	cast(STANDKAR as Integer) as entryInterval, \
-	to_date(EROEDAT, 'yyyy-MM-dd') as createdDate, \
+	ToValidDate(EROEDAT) as createdDate, \
 	ERNAM as createdBy, \
-	to_date(AENDDATE, 'yyyy-MM-dd') as lastChangedDate, \
+	ToValidDate(AENDDATE) as lastChangedDate, \
 	AENDNAM as lastChangedBy, \
 	SPARTENTY1 as divisionCategory1, \
 	SPARTENTY2 as divisionCategory2, \
@@ -201,7 +202,7 @@ df_cleansed = spark.sql(f"SELECT \
 	SPARTENTY5 as divisionCategory5, \
 	IDENT as factoryCalendar, \
 	SAPKAL as correctHolidayToWorkDay, \
-    to_date(cast(STICHTAG as string), 'yyyy-MM-dd') as billingKeyDate, \
+    ToValidDate(cast(STICHTAG as string)) as billingKeyDate, \
 	TAGE as numberOfDays, \
 	AUF_KAL as intervalBetweenOrderAndPlanned, \
 	ABL_Z as meterReadingCenter, \

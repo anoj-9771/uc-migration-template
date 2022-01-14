@@ -175,59 +175,60 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
+#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
 df_cleansed = spark.sql(f"SELECT \
-                                case when BP.PARTNER = 'na' then '' else BP.PARTNER end as businessPartnerNumber,\
-                                BP.TYPE as businessPartnerCategoryCode,\
-                                BP_TXT.businessPartnerCategory as businessPartnerCategory,\
-                                BP.BPKIND as businessPartnerTypeCode,\
-                                BPTYPE.businessPartnerType as businessPartnerType,\
-                                BP.BU_GROUP as businessPartnerGroupCode,\
-                                BPGRP.businessPartnerGroup as businessPartnerGroup,\
-                                BP.BPEXT as externalBusinessPartnerNumber,\
-                                BP.BU_SORT1 as searchTerm1,\
-                                BP.BU_SORT2 as searchTerm2,\
-                                BP.TITLE as titleCode,\
-                                TITLE.TITLE as title,\
-                                BP.XDELE as deletedIndicator,\
-                                BP.XBLCK as centralBlockBusinessPartner,\
-                                BP.ZZUSER as userId,\
-                                BP.ZZPAS_INDICATOR as paymentAssistSchemeIndicator,\
-                                BP.ZZBA_INDICATOR as billAssistIndicator,\
-                                case when BP.ZZAFLD00001Z < '1900-01-01' then to_date('1900-01-01', 'yyyy-MM-dd') else to_date(BP.ZZAFLD00001Z, 'yyyy-MM-dd') end as createdOn,\
-                                BP.NAME_ORG1 as organizationName1,\
-                                BP.NAME_ORG2 as organizationName2,\
-                                BP.NAME_ORG3 as organizationName3,\
-                                case when BP.FOUND_DAT < '1900-01-01' then to_date('1900-01-01', 'yyyy-MM-dd') else to_date(BP.FOUND_DAT, 'yyyy-MM-dd') end as organizationFoundedDate,\
-                                BP.LOCATION_1 as internationalLocationNumber1,\
-                                BP.LOCATION_2 as internationalLocationNumber2,\
-                                BP.LOCATION_3 as internationalLocationNumber3,\
-                                BP.NAME_LAST as lastName,\
-                                BP.NAME_FIRST as firstName,\
-                                BP.NAME_LAST2 as atBirthName,\
-                                BP.NAMEMIDDLE as middleName,\
-                                BP.TITLE_ACA1 as academicTitle,\
-                                BP.NICKNAME as nickName,\
-                                BP.INITIALS as nameInitials,\
-                                BP.NAMCOUNTRY as countryName,\
-                                BP.LANGU_CORR as correspondanceLanguage,\
-                                BP.NATIO as nationality,\
-                                BP.PERSNUMBER as personNumber,\
-                                BP.XSEXU as unknownGenderIndicator,\
-                                BP.BU_LANGU as language,\
-                                case when BP.BIRTHDT < '1900-01-01' then to_date('1900-01-01', 'yyyy-MM-dd') else to_date(BP.BIRTHDT, 'yyyy-MM-dd') end as dateOfBirth,\
-                                case when BP.DEATHDT < '1900-01-01' then to_date('1900-01-01', 'yyyy-MM-dd') else to_date(BP.DEATHDT, 'yyyy-MM-dd') end as dateOfDeath,\
-                                BP.PERNO as personnelNumber,\
-                                BP.NAME_GRP1 as nameGroup1,\
-                                BP.NAME_GRP2 as nameGroup2,\
-                                BP.CRUSR as createdBy,\
-                                cast(concat(BP.CRDAT,' ',(case WHEN BP.CRTIM is null then  '00:00:00' else BP.CRTIM END)) as timestamp)  as createdDateTime,\
-                                BP.CHUSR as changedBy,\
-                                cast(concat(BP.CHDAT,' ',(case WHEN BP.CHTIM is null then  '00:00:00' else BP.CHTIM END)) as timestamp)  as changedDateTime,\
-                                BP.PARTNER_GUID as businessPartnerGUID,\
-                                BP.ADDRCOMM as addressNumber,\
-                                Case WHEN BP.VALID_FROM = '10101000000' then to_date('1900-01-01', 'yyyy-MM-dd') else to_date(substr(BP.VALID_FROM,0,8),'yyyy-MM-dd') END as validFromDate,\
-                                to_date(substr(BP.VALID_TO,0,8),'yyyy-MM-dd') as validToDate,\
-                                BP.NATPERS as naturalPersonIndicator,\
+                                case when BP.PARTNER = 'na' then '' else BP.PARTNER end as businessPartnerNumber, \
+                                BP.TYPE as businessPartnerCategoryCode, \
+                                BP_TXT.businessPartnerCategory as businessPartnerCategory, \
+                                BP.BPKIND as businessPartnerTypeCode, \
+                                BPTYPE.businessPartnerType as businessPartnerType, \
+                                BP.BU_GROUP as businessPartnerGroupCode, \
+                                BPGRP.businessPartnerGroup as businessPartnerGroup, \
+                                BP.BPEXT as externalBusinessPartnerNumber, \
+                                BP.BU_SORT1 as searchTerm1, \
+                                BP.BU_SORT2 as searchTerm2, \
+                                BP.TITLE as titleCode, \
+                                TITLE.TITLE as title, \
+                                BP.XDELE as deletedIndicator, \
+                                BP.XBLCK as centralBlockBusinessPartner, \
+                                BP.ZZUSER as userId, \
+                                BP.ZZPAS_INDICATOR as paymentAssistSchemeIndicator, \
+                                BP.ZZBA_INDICATOR as billAssistIndicator, \
+                                ToValidDate(BP.ZZAFLD00001Z) as createdOn, \
+                                BP.NAME_ORG1 as organizationName1, \
+                                BP.NAME_ORG2 as organizationName2, \
+                                BP.NAME_ORG3 as organizationName3, \
+                                ToValidDate(BP.FOUND_DAT) as organizationFoundedDate, \
+                                BP.LOCATION_1 as internationalLocationNumber1, \
+                                BP.LOCATION_2 as internationalLocationNumber2, \
+                                BP.LOCATION_3 as internationalLocationNumber3, \
+                                BP.NAME_LAST as lastName, \
+                                BP.NAME_FIRST as firstName, \
+                                BP.NAME_LAST2 as atBirthName, \
+                                BP.NAMEMIDDLE as middleName, \
+                                BP.TITLE_ACA1 as academicTitle, \
+                                BP.NICKNAME as nickName, \
+                                BP.INITIALS as nameInitials, \
+                                BP.NAMCOUNTRY as countryName, \
+                                BP.LANGU_CORR as correspondanceLanguage, \
+                                BP.NATIO as nationality, \
+                                BP.PERSNUMBER as personNumber, \
+                                BP.XSEXU as unknownGenderIndicator, \
+                                BP.BU_LANGU as language, \
+                                ToValidDate(BP.BIRTHDT) as dateOfBirth, \
+                                ToValidDate(BP.DEATHDT) as dateOfDeath, \
+                                BP.PERNO as personnelNumber, \
+                                BP.NAME_GRP1 as nameGroup1, \
+                                BP.NAME_GRP2 as nameGroup2, \
+                                BP.CRUSR as createdBy, \
+                                cast(concat(BP.CRDAT,' ',(case WHEN BP.CRTIM is null then  '00:00:00' else BP.CRTIM END)) as timestamp)  as createdDateTime, \
+                                BP.CHUSR as changedBy, \
+                                cast(concat(BP.CHDAT,' ',(case WHEN BP.CHTIM is null then  '00:00:00' else BP.CHTIM END)) as timestamp)  as changedDateTime, \
+                                BP.PARTNER_GUID as businessPartnerGUID, \
+                                BP.ADDRCOMM as addressNumber, \
+                                ToValidDate(substr(BP.VALID_FROM,0,8)) as validFromDate, \
+                                ToValidDate(substr(BP.VALID_TO,0,8)) as validToDate, \
+                                BP.NATPERS as naturalPersonIndicator, \
                                 BP._RecordStart, \
                                 BP._RecordEnd, \
                                 BP._RecordDeleted, \

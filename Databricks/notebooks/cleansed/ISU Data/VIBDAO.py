@@ -175,36 +175,37 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
+#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
 df_cleansed = spark.sql(f"SELECT \
                                   case when vib.INTRENO = 'na' then '' else vib.INTRENO end as architecturalObjectInternalId , \
                                   vib.AOID as architecturalObjectId , \
                                   vib.AOTYPE as architecturalObjectTypeCode , \
                                   tiv.XMAOTYPE as architecturalObjectType , \
                                   AONR as architecturalObjectNumber , \
-                                  to_date(VALIDFROM,'yyyy-MM-dd') as validFromDate , \
-                                  to_date(VALIDTO,'yyyy-MM-dd') as validToDate , \
+                                  ToValidDate(VALIDFROM) as validFromDate , \
+                                  ToValidDate(VALIDTO) as validToDate , \
                                   PARTAOID as partArchitecturalObjectId , \
                                   OBJNR as objectNumber , \
                                   RERF as firstEnteredBy , \
-                                  to_date(DERF,'yyyy-MM-dd') as firstEnteredOnDate , \
+                                  ToValidDate(DERF) as firstEnteredOnDate , \
                                   TERF as firstEnteredTime , \
                                   cast(DERF||' '||TERF as timestamp) as firstEnteredDateTime , \
                                   REHER as firstEnteredSource , \
                                   RBEAR as employeeId , \
-                                  to_date(DBEAR,'yyyy-MM-dd') as lastEditedOnDate , \
+                                  ToValidDate(DBEAR) as lastEditedOnDate , \
                                   TBEAR as lastEditedTime , \
                                   cast(DBEAR||' '||TBEAR as timestamp) as lastEditedDateTime , \
                                   RBHER as lastEditedSource , \
                                   RESPONSIBLE as responsiblePerson , \
                                   USEREXCLUSIVE as exclusiveUser , \
-                                  to_date(LASTRENO,'yyyy-MM-dd') as lastRelocationDate , \
+                                  ToValidDate(LASTRENO) as lastRelocationDate , \
                                   MEASSTRC as measurementStructure , \
                                   DOORPLT as shortDescription , \
                                   RSAREA as reservationArea , \
                                   SINSTBEZ as maintenanceDistrict , \
                                   SVERKEHR as businessEntityTransportConnectionsIndicator , \
                                   ZCD_PROPERTY_NO as propertyNumber , \
-                                  to_date(ZCD_PROP_CR_DATE,'yyyy-MM-dd') as propertyCreatedDate , \
+                                  ToValidDate(ZCD_PROP_CR_DATE) as propertyCreatedDate , \
                                   ZCD_PROP_LOT_NO as propertyLotNumber , \
                                   ZCD_REQUEST_NO as propertyRequestNumber , \
                                   ZCD_PLAN_TYPE as planTypeCode , \
@@ -232,7 +233,7 @@ df_cleansed = spark.sql(f"SELECT \
                                   ZCD_CASENO_FLAG as caseNumberIndicator , \
                                   ZCD_OVERRIDE_AREA as overrideArea , \
                                   ZCD_OVERRIDE_AREA_UNIT as overrideAreaUnit , \
-                                  to_date(ZCD_CANCELLATION_DATE,'yyyy-MM-dd') as cancellationDate , \
+                                  ToValidDate(ZCD_CANCELLATION_DATE) as cancellationDate , \
                                   ZCD_CANC_REASON as cancellationReasonCode , \
                                   ZCD_COMMENTS as comments , \
                                   ZCD_PROPERTY_INFO as propertyInfo , \

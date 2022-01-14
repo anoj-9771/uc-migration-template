@@ -175,6 +175,7 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
+#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
 df_cleansed = spark.sql(f"SELECT \
                             case when VSTELLE = 'na' then '' else VSTELLE end as premise, \
                             HAUS as propertyNumber, \
@@ -182,9 +183,9 @@ df_cleansed = spark.sql(f"SELECT \
                             EIGENT as owner, \
                             OBJNR as objectNumber, \
                             TPLNUMMER as functionalLocationNumber, \
-                            to_date(ERDAT, 'yyyy-MM-dd') as createdDate, \
+                            ToValidDate(ERDAT) as createdDate, \
                             ERNAM as createdBy, \
-                            to_date(AEDAT, 'yyyy-MM-dd') as lastChangedDate, \
+                            ToValidDate(AEDAT) as lastChangedDate, \
                             AENAM as lastChangedBy, \
                             LOEVM as deletedIndicator, \
                             cast(ANZPERS as int) as numberOfPersons, \

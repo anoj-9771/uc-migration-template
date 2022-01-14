@@ -175,6 +175,7 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
+#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
 df_cleansed = spark.sql(f"SELECT \
                             case when PPKEY = 'na' then '' else PPKEY end as promiseToPayId, \
                             GPART as businessPartnerGroupNumber, \
@@ -191,13 +192,13 @@ df_cleansed = spark.sql(f"SELECT \
                             cast(RDAMT as dec(13,2)) as amountCleared, \
                             ERNAM as createdBy, \
                             to_timestamp(concat(erdat,' ',ertim)) as  createdDateTime, \
-                            to_date(CHDAT, 'yyyy-MM-dd') as changedDate, \
+                            ToValidDate(CHDAT) as changedDate, \
                             PPSTA as promiseToPayStatus, \
                             XSTCH as statusChangedIndicator, \
                             PPKEY_NEW as replacementPromiseToPayId, \
                             XINDR as installmentsAgreed, \
-                            to_date(FTDAT, 'yyyy-MM-dd') as firstDueDate, \
-                            to_date(LTDAT, 'yyyy-MM-dd') as finalDueDate, \
+                            ToValidDate(FTDAT) as firstDueDate, \
+                            ToValidDate(LTDAT) as finalDueDate, \
                             NRRTS as numberOfPayments, \
                             cast(PPDUE as dec(13,2)) as paymentPromised, \
                             cast(PPPAY as dec(13,2)) as amountPaidByToday, \

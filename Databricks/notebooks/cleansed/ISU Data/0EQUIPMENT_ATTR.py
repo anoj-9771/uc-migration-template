@@ -175,30 +175,31 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
+#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
 df_cleansed = spark.sql(f"SELECT \
-                            case when EQUI.EQUNR = 'na' then '' else EQUI.EQUNR end as equipmentNumber,\
-                            case when EQUI.DATETO = 'na' then to_date('2099-12-31', 'yyyy-MM-dd') else to_date(EQUI.DATETO, 'yyyy-MM-dd') end as validToDate,\
-                            case when EQUI.DATEFROM < '1900-01-01' then to_date('1900-01-01', 'yyyy-MM-dd') else to_date(EQUI.DATEFROM, 'yyyy-MM-dd') end as validFromDate,\
-                            EQUI.EQART as technicalObjectTypeCode,\
-                            EQUI.INVNR as inventoryNumber,\
-                            EQUI.IWERK as maintenancePlanningPlant,\
-                            EQUI.KOKRS as controllingArea,\
-                            EQUI.TPLNR as functionalLocationNumber,\
-                            EQUI.SWERK as maintenancePlant,\
-                            EQUI.ADRNR as addressNumber,\
-                            EQUI.BUKRS as companyCode,\
-                            COMP.companyName as companyName,\
-                            EQUI.MATNR as materialNumber,\
-                            EQUI.ANSWT as acquisitionValue,\
-                            to_date(EQUI.ANSDT, 'yyyy-MM-dd') as acquisitionDate,\
-                            to_date(EQUI.ERDAT, 'yyyy-MM-dd') as createdDate,\
-                            to_date(EQUI.AEDAT, 'yyyy-MM-dd') as lastChangedDate,\
-                            to_date(EQUI.INBDT, 'yyyy-MM-dd') as startUpDate,\
-                            cast(EQUI.PROID as int) as workBreakdownStructureElement,\
+                            case when EQUI.EQUNR = 'na' then '' else EQUI.EQUNR end as equipmentNumber, \
+                            case when EQUI.DATETO = 'na' then ToValidDate('2099-12-31','MANDATORY') else ToValidDate(EQUI.DATETO,'MANDATORY') end as validToDate, \
+                            ToValidDate(EQUI.DATEFROM) as validFromDate, \
+                            EQUI.EQART as technicalObjectTypeCode, \
+                            EQUI.INVNR as inventoryNumber, \
+                            EQUI.IWERK as maintenancePlanningPlant, \
+                            EQUI.KOKRS as controllingArea, \
+                            EQUI.TPLNR as functionalLocationNumber, \
+                            EQUI.SWERK as maintenancePlant, \
+                            EQUI.ADRNR as addressNumber, \
+                            EQUI.BUKRS as companyCode, \
+                            COMP.companyName as companyName, \
+                            EQUI.MATNR as materialNumber, \
+                            EQUI.ANSWT as acquisitionValue, \
+                            ToValidDate(EQUI.ANSDT) as acquisitionDate, \
+                            ToValidDate(EQUI.ERDAT) as createdDate, \
+                            ToValidDate(EQUI.AEDAT) as lastChangedDate, \
+                            ToValidDate(EQUI.INBDT) as startUpDate, \
+                            cast(EQUI.PROID as int) as workBreakdownStructureElement, \
                             EQUI.EQTYP as equipmentCategoryCode, \
-                            EQUI._RecordStart,\
-                            EQUI._RecordEnd,\
-                            EQUI._RecordDeleted,\
+                            EQUI._RecordStart, \
+                            EQUI._RecordEnd, \
+                            EQUI._RecordDeleted, \
                             EQUI._RecordCurrent \
                           FROM {ADS_DATABASE_STAGE}.{source_object} EQUI \
                           LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0COMP_CODE_TEXT COMP ON EQUI.BUKRS = COMP.companyCode \

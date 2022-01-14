@@ -175,11 +175,12 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
+#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
 df_cleansed = spark.sql(f"SELECT \
-                            to_date(AB,'yyyy-MM-dd') as  validFromDate, \
-                            to_date(ACTDATE) as disconnectiondate, \
+                            ToValidDate(AB) as  validFromDate, \
+                            ToValidDate(ACTDATE) as disconnectiondate, \
                             ANLAGE as installationId, \
-                            case when BIS = 'na' then to_date('2099-12-31','yyyy-MM-dd') else to_date(BIS,'yyyy-MM-dd') end as validToDate, \
+                            case when BIS = 'na' then ToValidDate('2099-12-31','MANDATORY') else ToValidDate(BIS,'MANDATORY') end as validToDate, \
                             CON_CARDTYP as concessionCardTypeCode, \
                             CONNOBJ as propertyNumber, \
                             CONTRACT as currentInstallationContract, \
@@ -196,7 +197,7 @@ df_cleansed = spark.sql(f"SELECT \
                             dis.disconnecionReason as disconnectionReason, \
                             EQUINR as equipmentNumber, \
                             FAILED_ATTEMPTS as documentItemNumber, \
-                            to_date(FPD,'yyyy-MM-dd') as documentPostingDate, \
+                            ToValidDate(FPD) as documentPostingDate, \
                             LADEMODUS as loadMode, \
                             MATXT as activityText, \
                             MNCOD as activityCode, \
@@ -210,7 +211,7 @@ df_cleansed = spark.sql(f"SELECT \
                             REFOBJTYPE as referenceObjectTypeCode, \
                             cast(V_ZWSTAND as dec(17,0)) as meterReadingBeforeDecimalPoint, \
                             VKONT as contractAccountNumber, \
-                            to_date(ZACTDATE,'yyyy-MM-dd') as zDisconnectionDate, \
+                            ToValidDate(ZACTDATE) as zDisconnectionDate, \
                             ZILART as maintenanceTypeCode, \
                             ZSTATUS as disconnectionDocumentStatusCode, \
                             dd1.domainValueText as disconnectionDocumentStatus, \

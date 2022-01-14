@@ -175,16 +175,17 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
+#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
 df_cleansed = spark.sql(f"SELECT \
                             case when dev.EQUNR = 'na' then '' else dev.EQUNR end as equipmentNumber, \
-                            case when dev.BIS = 'na' then to_date('1900-01-01','yyyy-MM-dd') else to_date(dev.BIS, 'yyyy-MM-dd') end as validToDate, \
-                            to_date(dev.AB, 'yyyy-MM-dd') as validFromDate, \
+                            ToValidDate(dev.BIS,'MANDATORY') as validToDate, \
+                            ToValidDate(dev.AB) as validFromDate, \
                             dev.KOMBINAT as deviceCategoryCombination, \
                             cast(dev.LOGIKNR as Long) as logicalDeviceNumber, \
                             dev.ZWGRUPPE as registerGroupCode, \
                             c.registerGroup, \
-                            to_date(dev.EINBDAT, 'yyyy-MM-dd') as installationDate, \
-                            to_date(dev.AUSBDAT, 'yyyy-MM-dd') as deviceRemovalDate, \
+                            ToValidDate(dev.EINBDAT) as installationDate, \
+                            ToValidDate(dev.AUSBDAT) as deviceRemovalDate, \
                             dev.GERWECHS as activityReasonCode, \
                             b.activityReason, \
                             dev.DEVLOC as deviceLocation, \
