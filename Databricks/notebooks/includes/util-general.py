@@ -318,20 +318,17 @@ def GeneralGetDataLoadMode(truncate, upsert, append):
 
 # COMMAND ----------
 
-def GeneralToValidDateTime(dateIn, colType ="Optional", fmt = "" ):
+def GeneralToValidDateTime(dateIn, fmt = ""):
   
   #This function validates the date
   from datetime import datetime
   
+  if dateIn is None: return
+
   dateStr = str(dateIn)
   lowDate = str('19000101000000')
-  highDate = str('20991231000000')    
+  highDate = str('20991231000000')
     
-  if colType.upper() == "MANDATORY" and dateIn is None:
-    return datetime.strptime(lowDate, "%Y%m%d%H%M%S")    
-  elif colType.upper() != "MANDATORY" and dateIn is None:
-    return 
-   
   date_formats = ["%Y-%m-%dT%H:%M:%S", "%Y%m%d%I%M%S %p", "%Y%m%d%H%M%S","%d%y%m", "%d%m%Y", "%Y%m%d", "%d-%m-%Y", "%Y-%m-%d"]
 
   if fmt != "" : 
