@@ -175,6 +175,7 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
+#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
 df_cleansed = spark.sql(f"SELECT \
 	ItemUUID as itemUUID, \
 	PodUUID as podUUID, \
@@ -192,8 +193,8 @@ df_cleansed = spark.sql(f"SELECT \
 	SoldToPartyName as businessPartnerFullName, \
 	Division as divisionCode, \
 	DivisionName as division, \
-	to_date(ContractStartDate,'yyyy-MM-dd') as contractStartDate, \
-	to_date(ContractEndDate,'yyyy-MM-dd') as contractEndDate, \
+	ToValidDate(ContractStartDate) as contractStartDate, \
+	ToValidDate(ContractEndDate) as contractEndDate, \
 	to_timestamp(cast(CreationDate as string), 'yyyyMMddHHmmss') as creationDate, \
 	CreatedByUser as createdBy, \
 	to_timestamp(cast(LastChangeDate as string), 'yyyyMMddHHmmss') as lastChangedDate, \
@@ -248,10 +249,10 @@ df_cleansed = spark.sql(f"SELECT \
 	cast(NmbrOfContrWthStartOfSupRjctd as int) as numberOfContrWthStartOfSupRjctd, \
 	cast(NmbrOfContrWaitingForEndOfSup as int) as numberOfContrWaitingForEndOfSup, \
 	cast(NmbrOfContrWaitingForStrtOfSup as int) as numberOfContrWaitingForStrtOfSup, \
-	to_date(CreationDate_E) as creationDateE, \
-	to_date(LastChangeDate_E) as lastChangedDateE, \
-	to_date(ContractStartDate_E) as contractStartDateE, \
-	case when ContractEndDate_E = 'na' then to_date('1900-01-01','yyyy-MM-dd') else to_date(ContractEndDate_E,'yyyy-MM-dd') end as contractEndDateE, \
+	ToValidDate(CreationDate_E) as creationDateE, \
+	ToValidDate(LastChangeDate_E) as lastChangedDateE, \
+	ToValidDate(ContractStartDate_E) as contractStartDateE, \
+	ToValidDate(ContractEndDate_E,'MANDATORY') as contractEndDateE, \
 	_RecordStart, \
 	_RecordEnd, \
 	_RecordDeleted, \

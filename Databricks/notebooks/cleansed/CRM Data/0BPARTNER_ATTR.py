@@ -175,14 +175,15 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
+#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
 df_cleansed = spark.sql(f"SELECT \
 	case when PARTNER = 'na' then '' else PARTNER end as businessPartnerNumber, \
 	TYPE as businessPartnerCategoryCode, \
 	BP_TXT.businessPartnerCategory as businessPartnerCategory, \
 	BPKIND as businessPartnerTypeCode, \
-	BPTYPE.businessPartnerType as businessPartnerType,\
-    BP.BU_GROUP as businessPartnerGroupCode,\
-    BPGRP.businessPartnerGroup as businessPartnerGroup,\
+	BPTYPE.businessPartnerType as businessPartnerType, \
+    BP.BU_GROUP as businessPartnerGroupCode, \
+    BPGRP.businessPartnerGroup as businessPartnerGroup, \
 	BPEXT as externalBusinessPartnerNumber, \
 	BU_SORT1 as searchTerm1, \
 	BU_SORT2 as searchTerm2, \
@@ -193,7 +194,7 @@ df_cleansed = spark.sql(f"SELECT \
 	ZZUSER as userId, \
 	ZZPAS_INDICATOR as paymentAssistSchemeIndicator, \
 	ZZBA_INDICATOR as billAssistIndicator, \
-	case when BP.ZZAFLD00001Z < '1900-01-01' then to_date('1900-01-01', 'yyyy-MM-dd') else to_date(BP.ZZAFLD00001Z, 'yyyy-MM-dd') end as createdDate, \
+	ToValidDate(BP.ZZAFLD00001Z) as createdDate, \
 	ZZ_CONSENT1 as consent1Indicator, \
 	ZZWAR_WID as warWidowIndicator, \
 	ZZDISABILITY as disabilityIndicator, \
@@ -201,14 +202,14 @@ df_cleansed = spark.sql(f"SELECT \
 	ZZDECEASED as deceasedIndicator, \
 	ZZPCC as pensionConcessionCardIndicator, \
 	ZZELIGIBILITY as eligibilityIndicator, \
-	to_date(ZZDT_CHK) as dateOfCheck, \
-	to_date(ZZPAY_ST_DT) as paymentStartDate, \
+	ToValidDate(ZZDT_CHK) as dateOfCheck, \
+	ToValidDate(ZZPAY_ST_DT) as paymentStartDate, \
 	ZZPEN_TY as pensionType, \
 	ZZ_CONSENT2 as consent2Indicator, \
 	NAME_ORG1 as organizationName1, \
 	NAME_ORG2 as organizationName2, \
 	NAME_ORG3 as organizationName3, \
-	case when BP.FOUND_DAT < '1900-01-01' then to_date('1900-01-01', 'yyyy-MM-dd') else to_date(BP.FOUND_DAT, 'yyyy-MM-dd') end as organizationFoundedDate, \
+	ToValidDate(BP.FOUND_DAT) as organizationFoundedDate, \
 	LOCATION_1 as internationalLocationNumber1, \
 	LOCATION_2 as internationalLocationNumber2, \
 	LOCATION_3 as internationalLocationNumber3, \
@@ -224,22 +225,22 @@ df_cleansed = spark.sql(f"SELECT \
 	NATIO as nationality, \
 	PERSNUMBER as personNumber, \
 	XSEXU as unknownGenderIndicator, \
-	case when BP.BIRTHDT < '1900-01-01' then to_date('1900-01-01', 'yyyy-MM-dd') else to_date(BP.BIRTHDT, 'yyyy-MM-dd') end as dateOfBirth,\
-    case when BP.DEATHDT < '1900-01-01' then to_date('1900-01-01', 'yyyy-MM-dd') else to_date(BP.DEATHDT, 'yyyy-MM-dd') end as dateOfDeath,\
+	ToValidDate(BP.BIRTHDT) as dateOfBirth, \
+    ToValidDate(BP.DEATHDT) as dateOfDeath, \
 	PERNO as personnelNumber, \
 	NAME_GRP1 as nameGroup1, \
 	NAME_GRP2 as nameGroup2, \
 	MC_NAME1 as searchHelpLastName, \
 	MC_NAME2 as searchHelpFirstName, \
 	CRUSR as createdBy, \
-    cast(concat(BP.CRDAT,' ',(case WHEN BP.CRTIM is null then  '00:00:00' else BP.CRTIM END)) as timestamp)  as createdDateTime,\
-    BP.CHUSR as changedBy,\
-    cast(concat(BP.CHDAT,' ',(case WHEN BP.CHTIM is null then  '00:00:00' else BP.CHTIM END)) as timestamp)  as lastChangedDateTime,\
+    cast(concat(BP.CRDAT,' ',(case WHEN BP.CRTIM is null then  '00:00:00' else BP.CRTIM END)) as timestamp)  as createdDateTime, \
+    BP.CHUSR as changedBy, \
+    cast(concat(BP.CHDAT,' ',(case WHEN BP.CHTIM is null then  '00:00:00' else BP.CHTIM END)) as timestamp)  as lastChangedDateTime, \
 	PARTNER_GUID as businessPartnerGUID, \
 	ADDRCOMM as communicationAddressNumber, \
 	TD_SWITCH as plannedChangeDocument, \
-	Case WHEN BP.VALID_FROM = '10101000000' then to_date('1900-01-01', 'yyyy-MM-dd') else to_date(substr(BP.VALID_FROM,0,8),'yyyy-MM-dd') END as validFromDate,\
-    to_date(substr(BP.VALID_TO,0,8),'yyyy-MM-dd') as validToDate,\
+	ToValidDate(substr(BP.VALID_FROM,0,8)) as validFromDate, \
+    ToValidDate(substr(BP.VALID_TO,0,8)) as validToDate, \
 	NATPERS as naturalPersonIndicator, \
 	ZZAFLD00000M as kidneyDialysisIndicator, \
 	ZZUNIT as patientUnit, \
@@ -251,9 +252,9 @@ df_cleansed = spark.sql(f"SELECT \
 	ZZPHONE as patientPhoneNumber, \
 	ZZHOSP_NAME as hospitalName, \
 	ZZMACH_TYPE as patientMachineType, \
-    case when BP.ZZON_DATE < '1900-01-01' then to_date('1900-01-01', 'yyyy-MM-dd') else to_date(BP.ZZON_DATE, 'yyyy-MM-dd') end as machineTypeValidFromDate, \
+    ToValidDate(BP.ZZON_DATE) as machineTypeValidFromDate, \
 	ZZOFF_REAS as offReason, \
-	case when BP.ZZOFF_DATE < '1900-01-01' then to_date('1900-01-01', 'yyyy-MM-dd') else to_date(BP.ZZOFF_DATE, 'yyyy-MM-dd') end as machineTypeValidToDate, \
+	ToValidDate(BP.ZZOFF_DATE) as machineTypeValidToDate, \
 	BP._RecordStart, \
 	BP._RecordEnd, \
 	BP._RecordDeleted, \

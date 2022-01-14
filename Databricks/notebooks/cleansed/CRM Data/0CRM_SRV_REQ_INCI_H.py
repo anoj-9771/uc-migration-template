@@ -175,18 +175,19 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
+#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
 df_cleansed = spark.sql(f"SELECT \
 	case when GUID = 'na' then '' else GUID end as headerUUID, \
 	OBJECT_ID as utilitiesStructuredContract, \
 	PROCESS_TYPE as headerType, \
-	to_date(POSTING_DATE,'yyyy-MM-dd') as postingDate, \
+	ToValidDate(POSTING_DATE) as postingDate, \
 	DESCRIPTION_UC as transactionDescription, \
 	LOGICAL_SYSTEM as logicalSystem, \
 	OBJECT_TYPE as headerCategory, \
-	to_date(CREATED_AT,'yyyy-MM-dd') as createdDate, \
+	ToValidDate(CREATED_AT) as createdDate, \
     to_timestamp(cast(CREATED_TS as string), 'yyyyMMddHHmmss') as createdDateTime, \
 	CREATED_BY as createdBy, \
-	to_date(CHANGED_AT,'yyyy-MM-dd') as lastChangedDate, \
+	ToValidDate(CHANGED_AT) as lastChangedDate, \
     to_timestamp(cast(CHANGED_TS as string), 'yyyyMMddHHmmss') as lastChangedDateTime, \
 	CHANGED_BY as changedBy, \
 	cast(NUM_OF_HEAD as int) as requestHeaderNumber, \
@@ -212,7 +213,7 @@ df_cleansed = spark.sql(f"SELECT \
 	SERVICE_ORG_RESP as serviceOrgResponsible, \
 	SERVICE_ORG as serviceOrg, \
 	SERVICE_TEAM as serviceTeam, \
-	to_date(CALDAY,'yyyy-MM-dd') as calendarDay, \
+	ToValidDate(CALDAY) as calendarDay, \
 	to_timestamp(cast(CALDAY_TS as string), 'yyyyMMddHHmmss') as calendarDatetime, \
 	PREDEC_OBJKEY as precedingTransactionGUID, \
 	PREDEC_OBJTYPE as precedingDocumentObjectType, \
