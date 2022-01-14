@@ -221,9 +221,9 @@ def makeProperty(): #renamed because property is a keyword
 
 # DBTITLE 1,6.2 Function: Load Bridge Tables
 #Call Business Partner Group Relation function to load brgBusinessPartnerGroupRelation
-def businessPartnerGroupRelationship():
-    TemplateEtl(df=getBusinessPartnerGroupRelationship(), 
-             entity="brgBusinessPartnerGroupRelationship", 
+def businessPartnerGroupRelation():
+    TemplateEtl(df=getBusinessPartnerGroupRelation(), 
+             entity="brgBusinessPartnerGroupRelation", 
              businessKey="businessPartnerGroupSK,businessPartnerSK,validFromDate",
              AddSK=False
             ) 
@@ -312,7 +312,7 @@ def Main():
     #==============    
     if LoadBridgeTables:
         LogEtl("Start Bridge Tables")
-        businessPartnerGroupRelationship()
+        businessPartnerGroupRelation()
 
         LogEtl("End Bridge Tables")
     else:
