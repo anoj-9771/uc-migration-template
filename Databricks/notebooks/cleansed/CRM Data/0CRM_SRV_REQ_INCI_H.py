@@ -269,7 +269,7 @@ df_cleansed = spark.sql(f"SELECT \
 	IN_COMPL_BEFORE as completedBeforeIndicator, \
 	PROBLEM_GUID as problemGUID, \
 	NOTIFICATION_NO as notificationNumber, \
-	CRM_ISU_CONTRACT as contractId, \
+	CRM_ISU_CONTRACT as contractiId, \
 	STATUS as podStatus, \
 	USER_STAT_PROC as statusProfile, \
 	ZZ_MAX_REQ_NO as maximoWorkOrderNumber, \
@@ -391,7 +391,7 @@ newSchema = StructType([
 	StructField('completedBeforeIndicator',StringType(),True),
 	StructField('problemGUID',StringType(),True),
 	StructField('notificationNumber',StringType(),True),
-	StructField('contractId',StringType(),True),
+	StructField('contractiId',StringType(),True),
 	StructField('podStatus',StringType(),True),
 	StructField('statusProfile',StringType(),True),
 	StructField('maximoWorkOrderNumber',StringType(),True),
