@@ -138,13 +138,14 @@ print("delta_column: " + delta_column)
 #Get the Data Load Mode using the params
 data_load_mode = GeneralGetDataLoadMode(Params[PARAMS_TRUNCATE_TARGET], Params[PARAMS_UPSERT_TARGET], Params[PARAMS_APPEND_TARGET])
 print("data_load_mode: " + data_load_mode)
+
 # COMMAND ----------
 
 # DBTITLE 1,9. Set raw and cleansed table name
 #Set raw and cleansed table name
 #Delta and SQL tables are case Insensitive. Seems Delta table are always lower case
-delta_cleansed_tbl_name = f'{ADS_DATABASE_CLEANSED}.{target_table}'
-delta_raw_tbl_name = f'{ADS_DATABASE_RAW}.{ source_object}'
+delta_cleansed_tbl_name = "{0}.{1}".format(ADS_DATABASE_CLEANSED, target_table)
+delta_raw_tbl_name = "{0}.{1}".format(ADS_DATABASE_RAW, source_object)
 
 #Destination
 print(delta_cleansed_tbl_name)
@@ -193,8 +194,8 @@ df_cleansed_column = spark.sql(f"SELECT  \
                                   TVORG as subtransactionForDocumentItem, \
                                   GEGEN_TVORG as offsettingTransactionSubtransactionForDocumentItem, \
                                   LINESORT as presortingBillingLineItems, \
-                                  ToValidDate(AB) as validFromDate, \
-                                  ToValidDate(BIS) as validToDate, \
+                                  to_date(AB, 'yyyyMMdd') as validFromDate, \
+                                  to_date(BIS, 'yyyyMMdd') as validToDate, \
                                   TIMTYPZA as billingLineItemTimeCategoryCode, \
                                   SCHEMANR as billingSchemaNumber, \
                                   SNO as billingSchemaStepSequenceNumber, \
@@ -225,9 +226,9 @@ df_cleansed_column = spark.sql(f"SELECT  \
                                   ARTMENGE as billedQuantityStatisticsCode, \
                                   STATTART as statisticalAnalysisRateType, \
                                   TIMECONTRL as periodControlCode, \
-                                  cast(TCNUMTOR as dec(8)) as timesliceNumeratorTimePortion, \
-                                  cast(TCDENOMTOR as dec(8)) as timesliceDenominatorTimePortion, \
-                                  TIMTYPQUOT as timesliceTimeCatogoryTimePortion, \
+                                  cast(TCNUMTOR as dec(8,4)) as timesliceNumeratorTimePortion, \
+                                  cast(TCDENOMTOR as dec(8,4)) as timesliceDenominatorTimePortion, \
+                                  TIMTYPQUOT as timesliceTimeCategoryTimePortion, \
                                   AKTIV as meterReadingActiveIndicator, \
                                   KONZVER as franchiseContractIndicator, \
                                   PERTYP as billingPeriodInternalCategoryCode, \
@@ -239,7 +240,7 @@ df_cleansed_column = spark.sql(f"SELECT  \
                                   stg._RecordDeleted, \
                                   stg._RecordCurrent \
                                FROM {ADS_DATABASE_STAGE}.{source_object} stg \
-                                 left outer join cleansed.t_isu_0uc_aklasse_text bc on bc.billingClassCode = stg.AKLASSE"
+                                 left outer join {ADS_DATABASE_CLEANSED}.isu_0uc_aklasse_text bc on bc.billingClassCode = stg.AKLASSE"
                              )
 display(df_cleansed_column)
 
@@ -296,9 +297,9 @@ newSchema = StructType([
                             StructField('billedQuantityStatisticsCode', StringType(), True),
                             StructField('statisticalAnalysisRateType', StringType(), True),
                             StructField('periodControlCode', StringType(), True),
-                            StructField('timesliceNumeratorTimePortion', DecimalType(), True),
-                            StructField('timesliceDenominatorTimePortion', DecimalType(), True),
-                            StructField('timesliceTimeCatogoryTimePortion', StringType(), True),
+                            StructField('timesliceNumeratorTimePortion', DecimalType(8,4), True),
+                            StructField('timesliceDenominatorTimePortion', DecimalType(8,4), True),
+                            StructField('timesliceTimeCategoryTimePortion', StringType(), True),
                             StructField('meterReadingActiveIndicator', StringType(), True),
                             StructField('franchiseContractIndicator', StringType(), True),
                             StructField('billingPeriodInternalCategoryCode', StringType(), True),
@@ -319,6 +320,7 @@ display(df_updated_column)
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
 DeltaSaveDataframeDirect(df_updated_column, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
+
 # COMMAND ----------
 
 # DBTITLE 1,13. Exit Notebook
