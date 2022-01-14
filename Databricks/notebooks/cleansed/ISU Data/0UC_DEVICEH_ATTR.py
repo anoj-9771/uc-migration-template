@@ -138,13 +138,14 @@ print("delta_column: " + delta_column)
 #Get the Data Load Mode using the params
 data_load_mode = GeneralGetDataLoadMode(Params[PARAMS_TRUNCATE_TARGET], Params[PARAMS_UPSERT_TARGET], Params[PARAMS_APPEND_TARGET])
 print("data_load_mode: " + data_load_mode)
+
 # COMMAND ----------
 
 # DBTITLE 1,9. Set raw and cleansed table name
 #Set raw and cleansed table name
 #Delta and SQL tables are case Insensitive. Seems Delta table are always lower case
-delta_cleansed_tbl_name = f'{ADS_DATABASE_CLEANSED}.{target_table}'
-delta_raw_tbl_name = f'{ADS_DATABASE_RAW}.{ source_object}'
+delta_cleansed_tbl_name = "{0}.{1}".format(ADS_DATABASE_CLEANSED, target_table)
+delta_raw_tbl_name = "{0}.{1}".format(ADS_DATABASE_RAW, source_object)
 
 #Destination
 print(delta_cleansed_tbl_name)
@@ -175,47 +176,41 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT \
-	EQUNR as equipmentNumber, \
-	select TXTMD
-Join using EQUNR / EQUNR
-Filter SPRAS=E as equipmentDescription, \
-	ToValidDate(BIS) as validToDate, \
-	ToValidDate(AB) as validFromDate, \
-	KOMBINAT as deviceCategoryCombination, \
-	cast(LOGIKNR as long) as logicalDeviceNumber, \
-	ZWGRUPPE as registerGroupCode, \
-	select EZWG_INFO
-Join using ZWGRUPPE
-Filter none as registerGroup, \
-	ToValidDate(EINBDAT) as installationDate, \
-	ToValidDate(AUSBDAT) as deviceRemovalDate, \
-	GERWECHS as activityReasonCode, \
-	select GERWETXT
-join using GERWECHS / GERWECHS
-where SPRAS=E as activityReason, \
-	DEVLOC as deviceLocation, \
-	WGRUPPE as windingGroup, \
-	LOEVM as deletedIndicator, \
-	UPDMOD as bwDeltaProcess, \
-	cast(AMCG_CAP_GRP as int) as advancedMeterCapabilityGroup, \
-	cast(MSG_ATTR_ID as int) as messageAttributeId, \
-	MATNR as materialNumber, \
-	ZANLAGE as installationId, \
-	ZADDRNUMBER as addressNumber, \
-	CITY1 as cityName, \
-	HOUSE_NUM1 as houseNumber, \
-	STREET as streetName, \
-	POST_CODE1 as postalCode, \
-	TPLMA as superiorFunctionalLocationNumber, \
-	ZZ_POLICE_EVENT as policeEventNumber, \
-	ZAUFNR as orderNumber, \
-	ERNAM as createdBy, \
-	_RecordStart, \
-	_RecordEnd, \
-	_RecordDeleted, \
-	_RecordCurrent \
-	FROM {ADS_DATABASE_STAGE}.{source_object} \
-         ")
+                            case when dev.EQUNR = 'na' then '' else dev.EQUNR end as equipmentNumber, \
+                            case when dev.BIS = 'na' then to_date('1900-01-01','yyyy-MM-dd') else to_date(dev.BIS, 'yyyy-MM-dd') end as validToDate, \
+                            to_date(dev.AB, 'yyyy-MM-dd') as validFromDate, \
+                            dev.KOMBINAT as deviceCategoryCombination, \
+                            cast(dev.LOGIKNR as Long) as logicalDeviceNumber, \
+                            dev.ZWGRUPPE as registerGroupCode, \
+                            c.registerGroup, \
+                            to_date(dev.EINBDAT, 'yyyy-MM-dd') as installationDate, \
+                            to_date(dev.AUSBDAT, 'yyyy-MM-dd') as deviceRemovalDate, \
+                            dev.GERWECHS as activityReasonCode, \
+                            b.activityReason, \
+                            dev.DEVLOC as deviceLocation, \
+                            dev.WGRUPPE as windingGroup, \
+                            dev.LOEVM as deletedIndicator, \
+                            dev.UPDMOD as bwDeltaProcess, \
+                            cast(dev.AMCG_CAP_GRP as Integer) as advancedMeterCapabilityGroup, \
+                            cast(dev.MSG_ATTR_ID as Integer) as messageAttributeId, \
+                            dev.ZZMATNR as materialNumber, \
+                            dev.ZANLAGE as installationId, \
+                            dev.ZADDRNUMBER as addressNumber, \
+                            dev.ZCITY1 as cityName, \
+                            dev.ZHOUSE_NUM1 as houseNumber, \
+                            dev.ZSTREET as streetName, \
+                            dev.ZPOST_CODE1 as postalCode, \
+                            dev.ZTPLMA as superiorFunctionalLocationNumber, \
+                            dev.ZZ_POLICE_EVENT as policeEventNumber, \
+                            dev.ZAUFNR as orderNumber, \
+                            dev.ZERNAM as createdBy, \
+                            dev._RecordStart, \
+                            dev._RecordEnd, \
+                            dev._RecordDeleted, \
+                            dev._RecordCurrent \
+                        FROM {ADS_DATABASE_STAGE}.{source_object} dev \
+                            left outer join cleansed.isu_0UC_GERWECHS_TEXT b on dev.GERWECHS = b.activityReasonCode \
+                            left outer join cleansed.isu_0UC_REGGRP_TEXT c on dev.ZWGRUPPE = c.registerGroupCode")
 
 display(df_cleansed)
 print(f'Number of rows: {df_cleansed.count()}')
@@ -223,49 +218,49 @@ print(f'Number of rows: {df_cleansed.count()}')
 # COMMAND ----------
 
 newSchema = StructType([
-	StructField('equipmentNumber',StringType(),False,
-	StructField('equipmentDescription',StringType(),True,
-	StructField('validToDate',DateType(),False,
-	StructField('validFromDate',DateType(),True,
-	StructField('deviceCategoryCombination',StringType(),True,
-	StructField('logicalDeviceNumber',LongType(),True,
-	StructField('registerGroupCode',StringType(),True,
-	StructField('registerGroup',StringType(),True,
-	StructField('installationDate',DateType(),True,
-	StructField('deviceRemovalDate',DateType(),True,
-	StructField('activityReasonCode',StringType(),True,
-	StructField('activityReason',StringType(),True,
-	StructField('deviceLocation',StringType(),True,
-	StructField('windingGroup',StringType(),True,
-	StructField('deletedIndicator',StringType(),True,
-	StructField('bwDeltaProcess',StringType(),True,
-	StructField('advancedMeterCapabilityGroup',IntegerType(),True,
-	StructField('messageAttributeId',IntegerType(),True,
-	StructField('materialNumber',StringType(),True,
-	StructField('installationId',StringType(),True,
-	StructField('addressNumber',StringType(),True,
-	StructField('cityName',StringType(),True,
-	StructField('houseNumber',StringType(),True,
-	StructField('streetName',StringType(),True,
-	StructField('postalCode',StringType(),True,
-	StructField('superiorFunctionalLocationNumber',StringType(),True,
-	StructField('policeEventNumber',StringType(),True,
-	StructField('orderNumber',StringType(),True,
-	StructField('createdBy',StringType(),True,
-	StructField('_RecordStart',TimestampType(),False),
-	StructField('_RecordEnd',TimestampType(),False),
-	StructField('_RecordDeleted',IntegerType(),False),
-	StructField('_RecordCurrent',IntegerType(),False)
-])
-
+                          StructField('equipmentNumber',StringType(),False),
+                          StructField('validToDate',DateType(),False),
+                          StructField('validFromDate',DateType(),True),
+                          StructField('deviceCategoryCombination',StringType(),True),
+                          StructField('logicalDeviceNumber',LongType(),True),                                      
+                          StructField('registerGroupCode',StringType(),True),
+                          StructField('registerGroup',StringType(),True),
+                          StructField('installationDate',DateType(),True),
+                          StructField('deviceRemovalDate',DateType(),True),
+                          StructField('activityReasonCode',StringType(),True),
+                          StructField('activityReason',StringType(),True),
+                          StructField('deviceLocation',StringType(),True),
+                          StructField('windingGroup',StringType(),True),
+                          StructField('deletedIndicator',StringType(),True),
+                          StructField('bwDeltaProcess',StringType(),True),
+                          StructField('advancedMeterCapabilityGroup',IntegerType(),True),
+                          StructField('messageAttributeId',IntegerType(),True),
+                          StructField('materialNumber',StringType(),True),
+                          StructField('installationId',StringType(),True),
+                          StructField('addressNumber',StringType(),True),
+                          StructField('cityName',StringType(),True),
+                          StructField('houseNumber',StringType(),True),
+                          StructField('streetName',StringType(),True),
+                          StructField('postalCode',StringType(),True),
+                          StructField('superiorFunctionalLocationNumber',StringType(),True),
+                          StructField('policeEventNumber',StringType(),True),
+                          StructField('orderNumber',StringType(),True),
+                          StructField('createdBy',StringType(),True),
+                          StructField('_RecordStart',TimestampType(),False),
+                          StructField('_RecordEnd',TimestampType(),False),
+                          StructField('_RecordDeleted',IntegerType(),False),
+                          StructField('_RecordCurrent',IntegerType(),False)
+                        ])
+                                      
 df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
-
+display(df_updated_column)
 
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
 DeltaSaveDataframeDirect(df_updated_column, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
+
 # COMMAND ----------
 
 # DBTITLE 1,13. Exit Notebook

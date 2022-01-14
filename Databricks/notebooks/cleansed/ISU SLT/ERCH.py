@@ -138,13 +138,14 @@ print("delta_column: " + delta_column)
 #Get the Data Load Mode using the params
 data_load_mode = GeneralGetDataLoadMode(Params[PARAMS_TRUNCATE_TARGET], Params[PARAMS_UPSERT_TARGET], Params[PARAMS_APPEND_TARGET])
 print("data_load_mode: " + data_load_mode)
+
 # COMMAND ----------
 
 # DBTITLE 1,9. Set raw and cleansed table name
 #Set raw and cleansed table name
 #Delta and SQL tables are case Insensitive. Seems Delta table are always lower case
-delta_cleansed_tbl_name = f'{ADS_DATABASE_CLEANSED}.{target_table}'
-delta_raw_tbl_name = f'{ADS_DATABASE_RAW}.{ source_object}'
+delta_cleansed_tbl_name = "{0}.{1}".format(ADS_DATABASE_CLEANSED, target_table)
+delta_raw_tbl_name = "{0}.{1}".format(ADS_DATABASE_RAW, source_object)
 
 #Destination
 print(delta_cleansed_tbl_name)
@@ -182,15 +183,15 @@ df_cleansed_column = spark.sql(f"SELECT  \
                                   GPARTNER as businessPartnerNumber, \
                                   VKONT as contractAccountNumber, \
                                   VERTRAG as contractID, \
-                                  ToValidDate(BEGABRPE) as startBillingPeriod, \
-                                  ToValidDate(ENDABRPE) as endBillingPeriod, \
-                                  ToValidDate(ABRDATS) as billingScheduleDate, \
-                                  ToValidDate(ADATSOLL) as meterReadingScheduleDate, \
-                                  ToValidDate(PTERMTDAT) as billingPeriodEndDate, \
-                                  ToValidDate(BELEGDAT) as billingDocumentCreateDate, \
+                                  to_date(BEGABRPE, 'yyyyMMdd') as startBillingPeriod, \
+                                  to_date(ENDABRPE, 'yyyyMMdd') as endBillingPeriod, \
+                                  to_date(ABRDATS, 'yyyyMMdd') as billingScheduleDate, \
+                                  to_date(ADATSOLL, 'yyyyMMdd') as meterReadingScheduleDate, \
+                                  to_date(PTERMTDAT, 'yyyyMMdd') as billingPeriodEndDate, \
+                                  to_date(BELEGDAT, 'yyyyMMdd') as billingDocumentCreateDate, \
                                   ABWVK as alternativeContractAccountForCollectiveBills, \
                                   BELNRALT as previousDocumentNumber, \
-                                  ToValidDate(STORNODAT) as reversalDate, \
+                                  to_date(STORNODAT, 'yyyyMMdd') as reversalDate, \
                                   ABRVORG as billingTransactionCode, \
                                   HVORG as mainTransactionLineItemCode, \
                                   KOFIZ as contractAccountDeterminationID, \
@@ -199,21 +200,29 @@ df_cleansed_column = spark.sql(f"SELECT  \
                                   SIMULATION as billingSimulationIndicator, \
                                   BELEGART as documentTypeCode, \
                                   BERGRUND as backbillingCreditReasonCode, \
-                                  ToValidDate(BEGNACH) as backbillingStartPeriod, \
+                                  to_date(BEGNACH, 'yyyyMMdd') as backbillingStartPeriod, \
                                   TOBRELEASD as DocumentNotReleasedIndicator, \
                                   TXJCD as taxJurisdictionDescription, \
                                   KONZVER as franchiseContractCode, \
                                   EROETIM as billingDocumentCreateTime, \
+                                  ERCHO_V as ERCHO_Exist_IND, \
+                                  ERCHZ_V as ERCHZ_Exist_IND, \
+                                  ERCHU_V as ERCHU_Exist_IND, \
+                                  ERCHR_V as ERCHR_Exist_IND, \
+                                  ERCHC_V as ERCHC_Exist_IND, \
+                                  ERCHV_V as ERCHV_Exist_IND, \
+                                  ERCHT_V as ERCHT_Exist_IND, \
+                                  ERCHP_V as ERCHP_Exist_IND, \
                                   ABRVORG2 as periodEndBillingTransactionCode, \
                                   ABLEINH as meterReadingUnit, \
                                   ENDPRIO as billingEndingPriorityCode, \
-                                  ToValidDate(ERDAT) as createdDate, \
+                                  to_date(ERDAT, 'yyyyMMdd') as createdDate, \
                                   ERNAM as createdBy, \
-                                  ToValidDate(AEDAT) as lastChangedDate, \
+                                  to_date(AEDAT, 'yyyyMMdd') as lastChangedDate, \
                                   AENAM as changedBy, \
                                   BEGRU as authorizationGroupCode, \
                                   LOEVM as deletedIndicator, \
-                                  ToValidDate(ABRDATSU) as suppressedBillingOrderScheduleDate, \
+                                  to_date(ABRDATSU, 'yyyyMMdd') as suppressedBillingOrderScheduleDate, \
                                   ABRVORGU as suppressedBillingOrderTransactionCode, \
                                   N_INVSEP as jointInvoiceAutomaticDocumentIndicator, \
                                   ABPOPBEL as BudgetBillingPlanCode, \
@@ -221,13 +230,13 @@ df_cleansed_column = spark.sql(f"SELECT  \
                                   BACKBI as backbillingTypeCode, \
                                   PERENDBI as billingPeriodEndType, \
                                   cast(NUMPERBB as integer) as backbillingPeriodNumber, \
-                                  ToValidDate(BEGEND) as periodEndBillingStartDate, \
+                                  to_date(BEGEND, 'yyyyMMdd') as periodEndBillingStartDate, \
                                   ENDOFBB as backbillingPeriodEndIndicator, \
                                   ENDOFPEB as billingPeriodEndIndicator, \
                                   cast(NUMPERPEB as integer) as billingPeriodEndCount, \
                                   SC_BELNR_H as billingDoumentAdjustmentReversalCount, \
                                   SC_BELNR_N as billingDocumentNumberForAdjustmentReversal, \
-                                  ToValidDate(ZUORDDAA) as billingAllocationDate, \
+                                  to_date(ZUORDDAA, 'yyyyMMdd') as billingAllocationDate, \
                                   BILLINGRUNNO as billingRunNumber, \
                                   SIMRUNID as simulationPeriodID, \
                                   KTOKLASSE as accountClassCode, \
@@ -235,12 +244,12 @@ df_cleansed_column = spark.sql(f"SELECT  \
                                   NOCANC as billingDonotExecuteIndicator, \
                                   ABSCHLPAN as billingPlanAdjustIndicator, \
                                   MEM_OPBEL as newBillingDocumentNumberForReversedInvoicing, \
-                                  ToValidDate(MEM_BUDAT) as billingPostingDateInDocument, \
+                                  to_date(MEM_BUDAT, 'yyyyMMdd') as billingPostingDateInDocument, \
                                   EXBILLDOCNO as externalDocumentNumber, \
                                   BCREASON as reversalReasonCode, \
                                   NINVOICE as billingDocumentWithoutInvoicingCode, \
                                   NBILLREL as billingRelevancyIndicator, \
-                                  ToValidDate(CORRECTION_DATE) as errorDetectedDate, \
+                                  to_date(CORRECTION_DATE, 'yyyyMMdd') as errorDetectedDate, \
                                   BASDYPER as basicCategoryDynamicPeriodControlCode, \
                                   ESTINBILL as meterReadingResultEstimatedBillingIndicator, \
                                   ESTINBILLU as SuppressedOrderEstimateBillingIndicator, \
@@ -262,14 +271,9 @@ df_cleansed_column = spark.sql(f"SELECT  \
                                   stg._RecordDeleted, \
                                   stg._RecordCurrent \
                               FROM {ADS_DATABASE_STAGE}.{source_object} stg \
-                               left outer join cleansed.t_isu_0comp_code_text cc on cc.companyCode = stg.BUKRS"
+                               left outer join {ADS_DATABASE_CLEANSED}.isu_0comp_code_text cc on cc.companyCode = stg.BUKRS"
                               )
 display(df_cleansed_column)
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC select distinct length(erdat), length(aedat) from raw.sapisu_erch
 
 # COMMAND ----------
 
@@ -303,6 +307,14 @@ newSchema = StructType([
                           StructField('taxJurisdictionDescription', StringType(), True),
                           StructField('franchiseContractCode', StringType(), True),
                           StructField('billingDocumentCreateTime', StringType(), True),
+                          StructField('ERCHO_Exist_IND', StringType(), True),
+                          StructField('ERCHZ_Exist_IND', StringType(), True),
+                          StructField('ERCHU_Exist_IND', StringType(), True),
+                          StructField('ERCHR_Exist_IND', StringType(), True),
+                          StructField('ERCHC_Exist_IND', StringType(), True),
+                          StructField('ERCHV_Exist_IND', StringType(), True),
+                          StructField('ERCHT_Exist_IND', StringType(), True),
+                          StructField('ERCHP_Exist_IND', StringType(), True), 
                           StructField('periodEndBillingTransactionCode', StringType(), True),
                           StructField('meterReadingUnit', StringType(), True),
                           StructField('billingEndingPriorityCode', StringType(), True),
@@ -370,6 +382,7 @@ display(df_updated_column)
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
 DeltaSaveDataframeDirect(df_updated_column, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
+
 # COMMAND ----------
 
 # DBTITLE 1,13. Exit Notebook
