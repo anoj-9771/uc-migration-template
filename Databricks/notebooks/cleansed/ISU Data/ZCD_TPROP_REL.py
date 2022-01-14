@@ -138,13 +138,14 @@ print("delta_column: " + delta_column)
 #Get the Data Load Mode using the params
 data_load_mode = GeneralGetDataLoadMode(Params[PARAMS_TRUNCATE_TARGET], Params[PARAMS_UPSERT_TARGET], Params[PARAMS_APPEND_TARGET])
 print("data_load_mode: " + data_load_mode)
+
 # COMMAND ----------
 
 # DBTITLE 1,9. Set raw and cleansed table name
 #Set raw and cleansed table name
 #Delta and SQL tables are case Insensitive. Seems Delta table are always lower case
-delta_cleansed_tbl_name = f'{ADS_DATABASE_CLEANSED}.{target_table}'
-delta_raw_tbl_name = f'{ADS_DATABASE_RAW}.{ source_object}'
+delta_cleansed_tbl_name = "{0}.{1}".format(ADS_DATABASE_CLEANSED, target_table)
+delta_raw_tbl_name = "{0}.{1}".format(ADS_DATABASE_RAW, source_object)
 
 #Destination
 print(delta_cleansed_tbl_name)
@@ -175,21 +176,23 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT \
-                            stg.PROPERTY1 as property1Number, \
-                            stg.PROPERTY2 as property2Number, \
-                            stg.REL_TYPE1 as relationshipTypeCode1, \
-                            rtyp1.relationshipTypeDescription as relationshipDescription1, \
-                            stg.REL_TYPE2 as relationshipTypeCode2, \
-                            rtyp2.relationshipTypeDescription as relationshipDescription2, \
-                            ToValidDate(stg.DATE_FROM) as validFromDate, \
-                            ToValidDate(stg.DATE_TO) as validToDate, \
+                            case when stg.PROPERTY1 = 'na' then '' else stg.PROPERTY1 end as property1Number, \
+                            case when stg.PROPERTY2 = 'na' then '' else stg.PROPERTY2 end as property2Number, \
+                            case when stg.REL_TYPE1 = 'na' then '' else stg.REL_TYPE1 end as relationshipTypeCode1, \
+                            rtyp1.relationshipType as relationshipType1, \
+                            case when stg.REL_TYPE2 = 'na' then '' else stg.REL_TYPE2 end  as relationshipTypeCode2, \
+                            rtyp2.relationshipType as relationshipType2, \
+                            to_date((case when stg.DATE_FROM = 'na' then '1900-01-01' else stg.DATE_FROM end), 'yyyy-MM-dd') as validFromDate, \
+                            to_date(stg.DATE_TO, 'yyyy-MM-dd') as validToDate, \
                             stg._RecordStart, \
                             stg._RecordEnd, \
                             stg._RecordDeleted, \
                             stg._RecordCurrent \
                             FROM {ADS_DATABASE_STAGE}.{source_object} stg\
-                            left outer join cleansed.t_isu_zcd_vireltyptx rtyp1 on stg.REL_TYPE1 = rtyp1.relationshipTypeCode and rtyp1._RecordCurrent = 1 and rtyp1._RecordDeleted = 0 \
-                            left outer join cleansed.t_isu_zcd_vireltyp2tx rtyp2 on stg.REL_TYPE2 = rtyp2.relationshipTypeCode and rtyp2._RecordCurrent = 1 and rtyp2._RecordDeleted = 0\
+                            left outer join {ADS_DATABASE_CLEANSED}.isu_zcd_vireltyptx rtyp1 on stg.REL_TYPE1 = rtyp1.relationshipTypeCode \
+                                                                                    and rtyp1._RecordCurrent = 1 and rtyp1._RecordDeleted = 0 \
+                            left outer join {ADS_DATABASE_CLEANSED}.isu_zcd_vireltyp2tx rtyp2 on stg.REL_TYPE2 = rtyp2.relationshipTypeCode \
+                                                                                    and rtyp2._RecordCurrent = 1 and rtyp2._RecordDeleted = 0 \
                        ")
 
 display(df_cleansed)
@@ -201,11 +204,11 @@ newSchema = StructType([
                         StructField('property1Number',StringType(),False),
                         StructField('property2Number',StringType(),False),
                         StructField('relationshipTypeCode1',StringType(),False),
-                        StructField('relationshipDescription1',StringType(),True),
+                        StructField('relationshipType1',StringType(),True),
                         StructField('relationshipTypeCode2',StringType(),True),
-                        StructField('relationshipDescription2',StringType(),True),
-                        StructField('validFromDate',DateType(),True),
-                        StructField('validToDate',DateType(),False),
+                        StructField('relationshipType2',StringType(),True),
+                        StructField('validFromDate',DateType(),False),
+                        StructField('validToDate',DateType(),True),
                         StructField('_RecordStart',TimestampType(),False),
                         StructField('_RecordEnd',TimestampType(),False),
                         StructField('_RecordDeleted',IntegerType(),False),
@@ -220,6 +223,7 @@ df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
 DeltaSaveDataframeDirect(df_updated_column, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
+
 # COMMAND ----------
 
 # DBTITLE 1,13. Exit Notebook

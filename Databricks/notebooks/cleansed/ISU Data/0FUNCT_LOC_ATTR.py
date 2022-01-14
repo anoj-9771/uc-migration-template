@@ -138,13 +138,14 @@ print("delta_column: " + delta_column)
 #Get the Data Load Mode using the params
 data_load_mode = GeneralGetDataLoadMode(Params[PARAMS_TRUNCATE_TARGET], Params[PARAMS_UPSERT_TARGET], Params[PARAMS_APPEND_TARGET])
 print("data_load_mode: " + data_load_mode)
+
 # COMMAND ----------
 
 # DBTITLE 1,9. Set raw and cleansed table name
 #Set raw and cleansed table name
 #Delta and SQL tables are case Insensitive. Seems Delta table are always lower case
-delta_cleansed_tbl_name = f'{ADS_DATABASE_CLEANSED}.{target_table}'
-delta_raw_tbl_name = f'{ADS_DATABASE_RAW}.{ source_object}'
+delta_cleansed_tbl_name = "{0}.{1}".format(ADS_DATABASE_CLEANSED, target_table)
+delta_raw_tbl_name = "{0}.{1}".format(ADS_DATABASE_RAW, source_object)
 
 #Destination
 print(delta_cleansed_tbl_name)
@@ -174,8 +175,8 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_cleansed_column = spark.sql(f"SELECT  \
-                                  TPLNR as functionalLocationNumber, \
+df_cleansed = spark.sql(f"SELECT  \
+                                  case when TPLNR = 'na' then '' else TPLNR end as functionalLocationNumber, \
                                   FLTYP as functionalLocationCategory, \
                                   IWERK as maintenancePlanningPlant, \
                                   SWERK as maintenancePlant, \
@@ -184,8 +185,8 @@ df_cleansed_column = spark.sql(f"SELECT  \
                                   BUKRS as companyCode, \
                                   cc.companyName as companyName, \
                                   PROID as workBreakdownStructureElement, \
-                                  ToValidDate(ERDAT) as createdDate, \
-                                  ToValidDate(AEDAT) as lastChangedDate, \
+                                  to_date(ERDAT, 'yyyy-MM-dd') as createdDate, \
+                                  to_date(AEDAT, 'yyyy-MM-dd') as lastChangedDate, \
                                   ZZ_ZCD_AONR as architecturalObjectCount, \
                                   ZZ_ADRNR as zzaddressNumber, \
                                   ZZ_OWNER as objectReferenceIndicator, \
@@ -227,9 +228,11 @@ df_cleansed_column = spark.sql(f"SELECT  \
                                   stg._RecordDeleted, \
                                   stg._RecordCurrent \
                                FROM {ADS_DATABASE_STAGE}.{source_object} stg \
-                                 left outer join cleansed.t_isu_0comp_code_text cc on cc.companyCode = stg.BUKRS"
+                                 left outer join {ADS_DATABASE_CLEANSED}.isu_0comp_code_text cc on cc.companyCode = stg.BUKRS \
+                                                                                                    and cc._RecordDeleted = 0 and cc._RecordCurrent = 1"
                               )
-display(df_cleansed_column)
+display(df_cleansed)
+print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
 
@@ -287,7 +290,7 @@ newSchema = StructType([
                           StructField('_RecordCurrent',IntegerType(),False)
 ])
 
-df_updated_column = spark.createDataFrame(df_cleansed_column.rdd, schema=newSchema)
+df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
 display(df_updated_column)
 
 # COMMAND ----------
@@ -295,6 +298,7 @@ display(df_updated_column)
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
 DeltaSaveDataframeDirect(df_updated_column, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
+
 # COMMAND ----------
 
 # DBTITLE 1,13. Exit Notebook

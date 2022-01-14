@@ -138,13 +138,14 @@ print("delta_column: " + delta_column)
 #Get the Data Load Mode using the params
 data_load_mode = GeneralGetDataLoadMode(Params[PARAMS_TRUNCATE_TARGET], Params[PARAMS_UPSERT_TARGET], Params[PARAMS_APPEND_TARGET])
 print("data_load_mode: " + data_load_mode)
+
 # COMMAND ----------
 
 # DBTITLE 1,9. Set raw and cleansed table name
 #Set raw and cleansed table name
 #Delta and SQL tables are case Insensitive. Seems Delta table are always lower case
-delta_cleansed_tbl_name = f'{ADS_DATABASE_CLEANSED}.{target_table}'
-delta_raw_tbl_name = f'{ADS_DATABASE_RAW}.{ source_object}'
+delta_cleansed_tbl_name = "{0}.{1}".format(ADS_DATABASE_CLEANSED, target_table)
+delta_raw_tbl_name = "{0}.{1}".format(ADS_DATABASE_RAW, source_object)
 
 #Destination
 print(delta_cleansed_tbl_name)
@@ -175,27 +176,27 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT \
-                            TERMSCHL as portion, \
+                            case when TERMSCHL = 'na' then '' else TERMSCHL end as portion, \
                             TERMTEXT as scheduleMasterRecord, \
-                            ToValidDate(TERMERST) as billingPeriodEndDate, \
+                            to_date(TERMERST, 'yyyy-MM-dd') as billingPeriodEndDate, \
                             cast(PERIODEW as int) as periodLengthMonths, \
                             PERIODET as periodCategory, \
-                            ToValidDate(ZUORDDAT) as meterReadingAllocationDate, \
+                            to_date(ZUORDDAT, 'yyyy-MM-dd') as meterReadingAllocationDate, \
                             ABSZYK as allowableBudgetBillingCycles, \
-                            ToValidDate(EROEDAT) as createdDate, \
+                            to_date(EROEDAT, 'yyyy-MM-dd') as createdDate, \
                             ERNAM as createdBy, \
-                            ToValidDate(AENDDATE) as lastChangedDate, \
+                            to_date(AENDDATE, 'yyyy-MM-dd') as lastChangedDate, \
                             AENDNAM as lastChangedBy, \
-                            cast(SPARTENTY1 as int) as divisionCategory1, \
-                            cast(SPARTENTY2 as int) as divisionCategory2, \
-                            cast(SPARTENTY3 as int) as divisionCategory3, \
-                            cast(SPARTENTY4 as int) as divisionCategory4, \
-                            cast(SPARTENTY5 as int) as divisionCategory5, \
-                            cast(ABSZYKTER1 as int) as budgetBillingCycle1, \
-                            cast(ABSZYKTER2 as int) as budgetBillingCycle2, \
-                            cast(ABSZYKTER3 as int) as budgetBillingCycle3, \
-                            cast(ABSZYKTER4 as int) as budgetBillingCycle4, \
-                            cast(ABSZYKTER5 as int) as budgetBillingCycle5, \
+                            cast(SPARTENTY1 as string) as divisionCategory1, \
+                            cast(SPARTENTY2 as string) as divisionCategory2, \
+                            cast(SPARTENTY3 as string) as divisionCategory3, \
+                            cast(SPARTENTY4 as string) as divisionCategory4, \
+                            cast(SPARTENTY5 as string) as divisionCategory5, \
+                            cast(ABSZYKTER1 as string) as budgetBillingCycle1, \
+                            cast(ABSZYKTER2 as string) as budgetBillingCycle2, \
+                            cast(ABSZYKTER3 as string) as budgetBillingCycle3, \
+                            cast(ABSZYKTER4 as string) as budgetBillingCycle4, \
+                            cast(ABSZYKTER5 as string) as budgetBillingCycle5, \
                             PARASATZ as parameterRecord, \
                             IDENT as factoryCalendar, \
                             SAPKAL as correctHolidayToWorkDay, \
@@ -208,8 +209,7 @@ df_cleansed = spark.sql(f"SELECT \
                             _RecordEnd, \
                             _RecordDeleted, \
                             _RecordCurrent \
-                            FROM {ADS_DATABASE_STAGE}.{source_object} \
-                       ")
+                            FROM {ADS_DATABASE_STAGE}.{source_object}")
 
 display(df_cleansed)
 print(f'Number of rows: {df_cleansed.count()}')
@@ -217,40 +217,40 @@ print(f'Number of rows: {df_cleansed.count()}')
 # COMMAND ----------
 
 newSchema = StructType([
-	StructField('portion',StringType(),False),
-	StructField('scheduleMasterRecord',StringType(),True),
-	StructField('billingPeriodEndDate',DateType(),True),
-	StructField('periodLengthMonths',IntegerType(),True),
-	StructField('periodCategory',StringType(),True),
-	StructField('meterReadingAllocationDate',DateType(),True),
-	StructField('allowableBudgetBillingCycles',StringType(),True),
-	StructField('createdDate',DateType(),True),
-	StructField('createdBy',StringType(),True),
-	StructField('lastChangedDate',DateType(),True),
-	StructField('lastChangedBy',StringType(),True),
-	StructField('divisionCategory1',IntegerType(),True),
-	StructField('divisionCategory2',IntegerType(),True),
-	StructField('divisionCategory3',IntegerType(),True),
-	StructField('divisionCategory4',IntegerType(),True),
-	StructField('divisionCategory5',IntegerType(),True),
-	StructField('budgetBillingCycle1',IntegerType(),True),
-	StructField('budgetBillingCycle2',IntegerType(),True),
-	StructField('budgetBillingCycle3',IntegerType(),True),
-	StructField('budgetBillingCycle4',IntegerType(),True),
-	StructField('budgetBillingCycle5',IntegerType(),True),
-	StructField('parameterRecord',StringType(),True),
-	StructField('factoryCalendar',StringType(),True),
-	StructField('correctHolidayToWorkDay',StringType(),True),
-	StructField('lowerLimitBillingPeriod',IntegerType(),True),
-	StructField('upperLimitBillingPeriod',IntegerType(),True),
-	StructField('periodLengthDays',IntegerType(),True),
-	StructField('isWorkDay',StringType(),True),
-	StructField('extrapolationCategory',StringType(),True),
-	StructField('_RecordStart',TimestampType(),False),
-	StructField('_RecordEnd',TimestampType(),False),
-	StructField('_RecordDeleted',IntegerType(),False),
-	StructField('_RecordCurrent',IntegerType(),False)
-])
+                        StructField('portion',StringType(),False),
+                        StructField('scheduleMasterRecord',StringType(),True),
+                        StructField('billingPeriodEndDate',DateType(),True),
+                        StructField('periodLengthMonths',IntegerType(),True),
+                        StructField('periodCategory',StringType(),True),
+                        StructField('meterReadingAllocationDate',DateType(),True),
+                        StructField('allowableBudgetBillingCycles',StringType(),True),
+                        StructField('createdDate',DateType(),True),
+                        StructField('createdBy',StringType(),True),
+                        StructField('lastChangedDate',DateType(),True),
+                        StructField('lastChangedBy',StringType(),True),
+                        StructField('divisionCategory1',StringType(),True),
+                        StructField('divisionCategory2',StringType(),True),
+                        StructField('divisionCategory3',StringType(),True),
+                        StructField('divisionCategory4',StringType(),True),
+                        StructField('divisionCategory5',StringType(),True),
+                        StructField('budgetBillingCycle1',StringType(),True),
+                        StructField('budgetBillingCycle2',StringType(),True),
+                        StructField('budgetBillingCycle3',StringType(),True),
+                        StructField('budgetBillingCycle4',StringType(),True),
+                        StructField('budgetBillingCycle5',StringType(),True),
+                        StructField('parameterRecord',StringType(),True),
+                        StructField('factoryCalendar',StringType(),True),
+                        StructField('correctHolidayToWorkDay',StringType(),True),
+                        StructField('lowerLimitBillingPeriod',IntegerType(),True),
+                        StructField('upperLimitBillingPeriod',IntegerType(),True),
+                        StructField('periodLengthDays',IntegerType(),True),
+                        StructField('isWorkDay',StringType(),True),
+                        StructField('extrapolationCategory',StringType(),True),
+                        StructField('_RecordStart',TimestampType(),False),
+                        StructField('_RecordEnd',TimestampType(),False),
+                        StructField('_RecordDeleted',IntegerType(),False),
+                        StructField('_RecordCurrent',IntegerType(),False)
+                      ])
 
 df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
 
@@ -260,6 +260,7 @@ df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
 DeltaSaveDataframeDirect(df_updated_column, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
+
 # COMMAND ----------
 
 # DBTITLE 1,13. Exit Notebook
