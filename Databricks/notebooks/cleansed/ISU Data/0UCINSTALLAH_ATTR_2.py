@@ -138,13 +138,14 @@ print("delta_column: " + delta_column)
 #Get the Data Load Mode using the params
 data_load_mode = GeneralGetDataLoadMode(Params[PARAMS_TRUNCATE_TARGET], Params[PARAMS_UPSERT_TARGET], Params[PARAMS_APPEND_TARGET])
 print("data_load_mode: " + data_load_mode)
+
 # COMMAND ----------
 
 # DBTITLE 1,9. Set raw and cleansed table name
 #Set raw and cleansed table name
 #Delta and SQL tables are case Insensitive. Seems Delta table are always lower case
-delta_cleansed_tbl_name = f'{ADS_DATABASE_CLEANSED}.{target_table}'
-delta_raw_tbl_name = f'{ADS_DATABASE_RAW}.{ source_object}'
+delta_cleansed_tbl_name = "{0}.{1}".format(ADS_DATABASE_CLEANSED, target_table)
+delta_raw_tbl_name = "{0}.{1}".format(ADS_DATABASE_RAW, source_object)
 
 #Destination
 print(delta_cleansed_tbl_name)
@@ -174,27 +175,36 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_cleansed_column = spark.sql(f"SELECT  \
-                                  ANLAGE as installationId, \
-                                  ToValidDate(BIS) as validToDate, \
-                                  ToValidDate(AB) as validFromDate, \
+df_cleansed = spark.sql(f"SELECT  \
+                                  case when stg.ANLAGE = 'na' then '' else stg.ANLAGE end as installationId, \
+                                  to_date((case when stg.BIS = 'na' or stg.BIS = '9999-12-31' then '2099-12-31' else stg.BIS end), 'yyyy-MM-dd') as validToDate, \
+                                  to_date(stg.AB, 'yyyy-MM-dd') as validFromDate, \
                                   stg.TARIFTYP as rateCategoryCode, \
                                   tt.TTYPBEZ as rateCategory, \
-                                  BRANCHE as industry, \
-                                  AKLASSE as billingClassCode, \
+                                  stg.BRANCHE as industryCode, \
+                                  st.industry, \
+                                  stg.AKLASSE as billingClassCode, \
                                   bc.billingClass as billingClass, \
-                                  ABLEINH as meterReadingUnit, \
-                                  UPDMOD as deltaProcessRecordMode, \
-                                  ZLOGIKNR as logicalDeviceNumber, \
+                                  stg.ABLEINH as meterReadingUnit, \
+                                  stg.ISTYPE as industrySystemCode, \
+                                  nt.industry as industrySystem, \
+                                  stg.UPDMOD as deltaProcessRecordMode, \
+                                  stg.ZLOGIKNR as logicalDeviceNumber, \
                                   stg._RecordStart, \
                                   stg._RecordEnd, \
                                   stg._RecordDeleted, \
                                   stg._RecordCurrent \
                                FROM {ADS_DATABASE_STAGE}.{source_object} stg \
-                                 left outer join cleansed.t_isu_0uc_aklasse_text bc on bc.billingClass = stg.AKLASSE \
-                                 left outer join cleansed.t_isu_0uc_tariftyp_text tt on tt.TARIFTYP = stg.TARIFTYP \
-                              ")
-display(df_cleansed_column)
+                                 left outer join {ADS_DATABASE_CLEANSED}.isu_0uc_aklasse_text bc on bc.billingClass = stg.AKLASSE \
+                                                                                                    and bc._RecordDeleted = 0 and bc._RecordCurrent = 1 \
+                                 left outer join {ADS_DATABASE_CLEANSED}.isu_0uc_tariftyp_text tt on tt.TARIFTYP = stg.TARIFTYP \
+                                                                                                    and tt._RecordDeleted = 0 and tt._RecordCurrent = 1 \
+                                 left outer join {ADS_DATABASE_CLEANSED}.isu_0ind_sector_text st on st.industrySystem = stg.ISTYPE and st.industryCode = stg.BRANCHE \
+                                                                                                    and st._RecordDeleted = 0 and st._RecordCurrent = 1 \
+                                 left outer join {ADS_DATABASE_CLEANSED}.isu_0ind_numsys_text nt on nt.industrySystem = stg.ISTYPE \
+                                                                                                    and nt._RecordDeleted = 0 and nt._RecordCurrent = 1")
+display(df_cleansed)
+print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
 
@@ -204,10 +214,13 @@ newSchema = StructType([
                           StructField('validFromDate', DateType(), True),
                           StructField('rateCategoryCode', StringType(), True),
                           StructField('rateCategory', StringType(), True),
+                          StructField('industryCode', StringType(), True),
                           StructField('industry', StringType(), True),
                           StructField('billingClassCode', StringType(), True),
                           StructField('billingClass', StringType(), True),
                           StructField('meterReadingUnit', StringType(), True),
+                          StructField('industrySystemCode', StringType(), True),
+                          StructField('industrySystem', StringType(), True),
                           StructField('deltaProcessRecordMode', StringType(), True),
                           StructField('logicalDeviceNumber', StringType(), True),
                           StructField('_RecordStart',TimestampType(),False),
@@ -216,7 +229,7 @@ newSchema = StructType([
                           StructField('_RecordCurrent',IntegerType(),False)
 ])
 
-df_updated_column = spark.createDataFrame(df_cleansed_column.rdd, schema=newSchema)
+df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
 display(df_updated_column)
 
 # COMMAND ----------
@@ -224,6 +237,7 @@ display(df_updated_column)
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
 DeltaSaveDataframeDirect(df_updated_column, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
+
 # COMMAND ----------
 
 # DBTITLE 1,13. Exit Notebook

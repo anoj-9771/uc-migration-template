@@ -138,13 +138,14 @@ print("delta_column: " + delta_column)
 #Get the Data Load Mode using the params
 data_load_mode = GeneralGetDataLoadMode(Params[PARAMS_TRUNCATE_TARGET], Params[PARAMS_UPSERT_TARGET], Params[PARAMS_APPEND_TARGET])
 print("data_load_mode: " + data_load_mode)
+
 # COMMAND ----------
 
 # DBTITLE 1,9. Set raw and cleansed table name
 #Set raw and cleansed table name
 #Delta and SQL tables are case Insensitive. Seems Delta table are always lower case
-delta_cleansed_tbl_name = f'{ADS_DATABASE_CLEANSED}.{target_table}'
-delta_raw_tbl_name = f'{ADS_DATABASE_RAW}.{ source_object}'
+delta_cleansed_tbl_name = "{0}.{1}".format(ADS_DATABASE_CLEANSED, target_table)
+delta_raw_tbl_name = "{0}.{1}".format(ADS_DATABASE_RAW, source_object)
 
 #Destination
 print(delta_cleansed_tbl_name)
@@ -174,132 +175,72 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_updated_column_temp = spark.sql(f"SELECT  \
-                                  vib.INTRENO as architecturalObjectInternalId , \
-                                  vib.AOID as architecturalObjectId , \
-                                  vib.AOTYPE as architecturalObjectTypeCode , \
-                                  tiv.XMAOTYPE as architecturalObjectType , \
-                                  vib.AONR as architecturalObjectNumber , \
-                                  ToValidDate(vib.VALIDFROM) as validFromDate , \
-                                  ToValidDate(vib.VALIDTO) as validToDate , \
-                                  vib.OBJNR as objectNumber , \
-                                  vib.RESPONSIBLE as responsiblePerson , \
-                                  vib.SINSTBEZ as maintenanceDistrict , \
-                                  vib.SVERKEHR as businessEntityTransportConnectionsIndicator , \
-                                  vib.ZCD_PROPERTY_NO as propertyNumber , \
-                                  ToValidDate(vib.ZCD_PROP_CR_DATE) as propertyCreatedDate , \
-                                  cast(vib.ZCD_PROP_LOT_NO as long) as propertyLotNumber , \
-                                  cast(vib.ZCD_REQUEST_NO as long) as propertyRequestNumber , \
-                                  vib.ZCD_PLAN_TYPE as planTypeCode , \
-                                  plt.DESCRIPTION as planType , \
-                                  cast(vib.ZCD_PLAN_NUMBER as long) as planNumber , \
-                                  vib.ZCD_PROCESS_TYPE as processTypeCode , \
-                                  prt.DESCRIPTION as processType , \
-                                  vib.ZCD_ADDR_LOT_NO as addressLotNumber , \
-                                  vib.ZCD_LOT_TYPE as lotTypeCode , \
-                                  vib.ZCD_UNIT_ENTITLEMENT as unitEntitlement , \
-                                  vib.ZCD_NO_OF_FLATS as flatCount , \
-                                  vib.ZCD_SUP_PROP_TYPE as superiorPropertyTypeCode , \
-                                  sp.superiorPropertyType as superiorPropertyType , \
-                                  vib.ZCD_INF_PROP_TYPE as inferiorPropertyTypeCode , \
-                                  ip.inferiorPropertyType as inferiorPropertyType , \
-                                  vib.ZCD_STORM_WATER_ASSESS as stormWaterAssesmentIndicator , \
-                                  vib.ZCD_IND_MLIM as mlimIndicator , \
-                                  vib.ZCD_IND_WICA as wicaIndicator , \
-                                  vib.ZCD_IND_SOPA as sopaIndicator , \
-                                  vib.ZCD_IND_COMMUNITY_TITLE as communityTitleIndicator , \
-                                  vib.ZCD_SECTION_NUMBER as sectionNumber , \
-                                  vib.ZCD_HYDRA_CALC_AREA as hydraCalculatedArea , \
-                                  vib.ZCD_HYDRA_AREA_UNIT as hydraAreaUnit , \
-                                  vib.ZCD_HYDRA_AREA_FLAG as hydraAreaIndicator , \
-                                  vib.ZCD_CASENO_FLAG as caseNumberIndicator , \
-                                  vib.ZCD_OVERRIDE_AREA as overrideArea , \
-                                  vib.ZCD_OVERRIDE_AREA_UNIT as overrideAreaUnit , \
-                                  ToValidDate(vib.ZCD_CANCELLATION_DATE) as cancellationDate , \
-                                  vib.ZCD_CANC_REASON as cancellationReasonCode , \
-                                  vib.ZCD_COMMENTS as comments , \
-                                  vib.ZCD_PROPERTY_INFO as propertyInfo , \
-                                  'OBJNRTRG - not in source' as targetObjectNumber , \
-                                  'DIAGRAM_NO - not in source' as diagramNumber , \
-                                  'FIXFITCHARACT - not in source' as fixtureAndFittingCharacteristicCode , \
-                                  'Could not be derived' as fixtureAndFittingCharacteristic , \
-                                  vib._RecordStart, \
-                                  vib._RecordEnd, \
-                                  vib._RecordDeleted, \
-                                  vib._RecordCurrent \
-                              FROM {ADS_DATABASE_STAGE}.{source_object} vib \
-                                    LEFT OUTER JOIN CLEANSED.t_isu_ZCD_TINFPRTY_TX ip ON vib.ZCD_INF_PROP_TYPE = ip.inferiorPropertyTypeCode \
-                                    LEFT OUTER JOIN CLEANSED.t_isu_ZCD_TSUPPRTYP_TX sp ON vib.ZCD_SUP_PROP_TYPE = sp.superiorPropertyTypeCode \
-                                    LEFT OUTER JOIN CLEANSED.t_isu_ZCD_TPLANTYPE_TX plt ON vib.ZCD_PLAN_TYPE = plt.PLAN_TYPE \
-                                    LEFT OUTER JOIN CLEANSED.t_isu_TIVBDAROBJTYPET tiv ON vib.AOTYPE = tiv.AOTYPE \
-                                    LEFT OUTER JOIN CLEANSED.t_isu_ZCD_TPROCTYPE_TX prt ON vib.ZCD_PROCESS_TYPE = prt.PROCESS_TYPE \
-                              ")
+df_cleansed = spark.sql(f"SELECT  \
+                            case when stg.AOID = 'na' then '' else stg.AOID end as architecturalObjectId, \
+                            stg.AOFUNCTION as architecturalObjectFunction, \
+                            stg.AONR as architecturalObjectNumber, \
+                            stg.AOTYPE as architecturalObjectTypeCode, \
+                            stg.AUTHGRP as authorizationGroup, \
+                            stg.CITY1 as cityName, \
+                            stg.CITY2 as district, \
+                            stg.COUNTRY as countryShortName, \
+                            stg.HOUSE_NUM1 as houseNumber, \
+                            stg.HOUSE_NUM2 as houseNumber2, \
+                            stg.OBJNR as objectNumber, \
+                            stg.PARENTAOID as parentArchitecturalObjectId, \
+                            stg.PARENTAOTYPE as parentArchitecturalObjectTypeCode, \
+                            stg.PO_BOX as poBoxCode, \
+                            stg.POST_CODE1 as postalCode, \
+                            stg.POST_CODE2 as poBoxPostalCode, \
+                            stg.REGION as stateCode, \
+                            stg.RESPONSIBLE as responsiblePerson, \
+                            stg.SINSTBEZ as maintenanceDistrict, \
+                            stg.SLAGEWE as entityLocationNumber, \
+                            stg.SOBJLAGE as districtLocationIndicator, \
+                            stg.STREET as streetName, \
+                            stg.SVERKEHR as businessEntityTransportConnectionsIndicator, \
+                            stg.USAGECOMMON as commonUsage, \
+                            to_date(stg.VALIDFROM, 'yyyy-MM-dd') as validFromDate, \
+                            to_date(stg.VALIDTO, 'yyyy-MM-dd') as validToDate \
+                          FROM {ADS_DATABASE_STAGE}.{source_object} stg")
 
-display(df_updated_column_temp)
+display(df_cleansed)
+print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
 
 # Create schema for the cleanse table
-cleanse_Schema = StructType(
-                           [
-                            StructField("architecturalObjectInternalId", StringType(), True),
-                            StructField("architecturalObjectId", StringType(), True),
-                            StructField("architecturalObjectTypeCode", StringType(), True),
-                            StructField("architecturalObjectType", StringType(), True),
-                            StructField("architecturalObjectNumber", StringType(), True),
-                            StructField("validFromDate", DateType(), True),
-                            StructField("validToDate", DateType(), True),
-                            StructField("objectNumber", StringType(), True),
-                            StructField("responsiblePerson", StringType(), True),
-                            StructField("maintenanceDistrict", LongType(), True),
-                            StructField("businessEntityTransportConnectionsIndicator", StringType(), True),
-                            StructField("propertyNumber", StringType(), True),
-                            StructField("propertyCreatedDate", DateType(), True),
-                            StructField("propertyLotNumber", LongType(), True),
-                            StructField("propertyRequestNumber", LongType(), True),
-                            StructField("planTypeCode", StringType(), True),
-                            StructField("planType", StringType(), True),
-                            StructField("planNumber", LongType(), True),
-                            StructField("processTypeCode", StringType(), True),
-                            StructField("processType", StringType(), True),
-                            StructField("addressLotNumber", StringType(), True),
-                            StructField("lotTypeCode", StringType(), True),
-                            StructField("unitEntitlement", StringType(), True),
-                            StructField("flatCount", StringType(), True),
-                            StructField("superiorPropertyTypeCode", StringType(), True),
-                            StructField("superiorPropertyType", StringType(), True),
-                            StructField("inferiorPropertyTypeCode", StringType(), True),
-                            StructField("inferiorPropertyType", StringType(), True),
-                            StructField("stormWaterAssesmentIndicator", StringType(), True),
-                            StructField("mlimIndicator", StringType(), True),
-                            StructField("wicaIndicator", StringType(), True),
-                            StructField("sopaIndicator", StringType(), True),
-                            StructField("communityTitleIndicator", StringType(), True),
-                            StructField("sectionNumber", StringType(), True),
-                            StructField("hydraCalculatedArea", StringType(), True),
-                            StructField("hydraAreaUnit", StringType(), True),
-                            StructField("hydraAreaIndicator", StringType(), True),
-                            StructField("caseNumberIndicator", StringType(), True),
-                            StructField("overrideArea", StringType(), True),
-                            StructField("overrideAreaUnit", StringType(), True),
-                            StructField("cancellationDate", DateType(), True),
-                            StructField("cancellationReasonCode", StringType(), True),
-                            StructField("comments", StringType(), True),
-                            StructField("propertyInfo", StringType(), True),
-                            StructField("targetObjectNumber", StringType(), True),
-                            StructField("diagramNumber", StringType(), True),
-                            StructField("fixtureAndFittingCharacteristicCode", StringType(), True),
-                            StructField("fixtureAndFittingCharacteristic", StringType(), True),
-                            StructField('_RecordStart',TimestampType(),False),
-                            StructField('_RecordEnd',TimestampType(),False),
-                            StructField('_RecordDeleted',IntegerType(),False),
-                            StructField('_RecordCurrent',IntegerType(),False)
-                            ]
-                        )
+newSchema = StructType([
+                        StructField("architecturalObjectId", StringType(), False),
+                        StructField("architecturalObjectFunction", StringType(), False),
+                        StructField("architecturalObjectNumber", StringType(), True),
+                        StructField("architecturalObjectTypeCode", StringType(), True),
+                        StructField("authorizationGroup", StringType(), True),
+                        StructField("cityName", StringType(), True),
+                        StructField("district", StringType(), True),
+                        StructField("countryShortName", StringType(), True),
+                        StructField("houseNumber", StringType(), True),
+                        StructField("houseNumber2", StringType(), True),
+                        StructField("objectNumber", StringType(), True),
+                        StructField("parentArchitecturalObjectId", StringType(), True),
+                        StructField("parentArchitecturalObjectTypeCode", StringType(), True),
+                        StructField("poBoxCode", StringType(), True),
+                        StructField("postalCode", StringType(), True),
+                        StructField("poBoxPostalCode", StringType(), True),
+                        StructField("stateCode", StringType(), True),
+                        StructField("responsiblePerson", StringType(), True),
+                        StructField("maintenanceDistrict", StringType(), True),
+                        StructField("entityLocationNumber", StringType(), True),
+                        StructField("districtLocationIndicator", StringType(), True),
+                        StructField("streetName", StringType(), True),
+                        StructField("businessEntityTransportConnectionsIndicator", StringType(), True),
+                        StructField("commonUsage", StringType(), True),
+                        StructField("validFromDate", DateType(), True),
+                        StructField("validToDate", DateType(), True)
+                      ])
 # Apply the new schema to cleanse Data Frame
-df_updated_column = spark.createDataFrame(df_updated_column_temp.rdd, schema=cleanse_Schema)
+df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
 display(df_updated_column)
-
 
 
 # COMMAND ----------
@@ -307,6 +248,7 @@ display(df_updated_column)
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
 DeltaSaveDataframeDirect(df_updated_column, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
+
 # COMMAND ----------
 
 # DBTITLE 1,13. Exit Notebook
