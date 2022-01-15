@@ -182,11 +182,11 @@ df_cleansed = spark.sql(f"SELECT  \
                             supty.superiorPropertyType, \
                             stg.INF_PROP_TYPE as inferiorPropertyTypeCode, \
                             infty.inferiorPropertyType, \
-                            ToValidDate((case when stg.DATE_FROM = 'na' then '1900-01-01' else stg.DATE_FROM end,'MANDATORY')) as validFromDate, \
+                            ToValidDate(stg.DATE_FROM,'MANDATORY') as validFromDate, \
                             ToValidDate(stg.DATE_TO) as validToDate, \
-                            to_timestamp(cast(stg.CREATED_ON as String), 'yyyyMMddHHmmss') as createdDate, \
+                            ToValidDateTime(stg.CREATED_ON) as createdDate, \
                             stg.CREATED_BY as createdBy, \
-                            to_timestamp(cast(stg.CHANGED_ON as String), 'yyyyMMddHHmmss') as changedDate, \
+                            ToValidDateTime(stg.CHANGED_ON) as changedDate, \
                             stg.CHANGED_BY as changedBy, \
                             stg._RecordStart, \
                             stg._RecordEnd, \

@@ -179,7 +179,7 @@ DeltaSaveToDeltaTable (
 df_cleansed = spark.sql(f"SELECT \
                                 case when ANLAGE = 'na' then '' else ANLAGE end as installationId, \
                                 case when LOGIKNR = 'na' then '' else LOGIKNR end as logicalDeviceNumber, \
-                                ToValidDate(BIS,'MANDATORY') as validToDate, \
+                                ToValidDate((case when BIS = 'na' then '2099-12-31' else BIS end),'MANDATORY') as validToDate, \
                                 ToValidDate(AB) as validFromDate, \
                                 PREISKLA as priceClassCode, \
                                 ip.priceClass as priceClass, \

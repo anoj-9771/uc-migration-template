@@ -189,12 +189,12 @@ df_cleansed = spark.sql(f"SELECT \
                                   RERF as firstEnteredBy , \
                                   ToValidDate(DERF) as firstEnteredOnDate , \
                                   TERF as firstEnteredTime , \
-                                  cast(DERF||' '||TERF as timestamp) as firstEnteredDateTime , \
+                                  ToValidDateTime(concat(DERF, coalesce(TERF,'00:00:00'))) as firstEnteredDateTime , \
                                   REHER as firstEnteredSource , \
                                   RBEAR as employeeId , \
                                   ToValidDate(DBEAR) as lastEditedOnDate , \
                                   TBEAR as lastEditedTime , \
-                                  cast(DBEAR||' '||TBEAR as timestamp) as lastEditedDateTime , \
+                                  ToValidDateTime(concat(DBEAR, coalesce(TBEAR,'00:00:00'))) as lastEditedDateTime , \
                                   RBHER as lastEditedSource , \
                                   RESPONSIBLE as responsiblePerson , \
                                   USEREXCLUSIVE as exclusiveUser , \

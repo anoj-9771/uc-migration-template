@@ -178,7 +178,7 @@ DeltaSaveToDeltaTable (
 #Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
 df_cleansed = spark.sql(f"SELECT  \
                                   case when stg.ANLAGE = 'na' then '' else stg.ANLAGE end as installationId, \
-                                  ToValidDate((case when stg.BIS = 'na' or stg.BIS = '9999-12-31' then '2099-12-31' else stg.BIS end,'MANDATORY')) as validToDate, \
+                                  ToValidDate((case when stg.BIS = 'na' then '2099-12-31' else stg.BIS end),'MANDATORY') as validToDate, \
                                   ToValidDate(stg.AB) as validFromDate, \
                                   stg.TARIFTYP as rateCategoryCode, \
                                   tt.TTYPBEZ as rateCategory, \

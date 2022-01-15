@@ -184,10 +184,8 @@ df_cleansed = spark.sql("SELECT \
 	CITY_CODE2 as cityPoBoxCode, \
 	CITY1 as cityName, \
 	COUNTRY as countryShortName, \
-	case when DATE_FROM is null then ToValidDateTime('1900-01-01') \
-					else ToValidDateTime(DATE_FROM) \
-	end as validFromDate, \
-	ToValidDateTime(DATE_TO) as validToDate, \
+    ToValidateDate(DATE_FROM,'MANDATORY') as validFromDate, \
+	ToValidDate(DATE_TO) as validToDate, \
 	DEFLT_COMM as communicationMethod, \
 	FAX_NUMBER as faxNumber, \
 	FLAGCOMM12 as ftpAddressFlag, \

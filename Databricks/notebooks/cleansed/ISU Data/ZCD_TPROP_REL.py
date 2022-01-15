@@ -183,7 +183,7 @@ df_cleansed = spark.sql(f"SELECT \
                             rtyp1.relationshipType as relationshipType1, \
                             case when stg.REL_TYPE2 = 'na' then '' else stg.REL_TYPE2 end  as relationshipTypeCode2, \
                             rtyp2.relationshipType as relationshipType2, \
-                            ToValidDate((case when stg.DATE_FROM = 'na' then '1900-01-01' else stg.DATE_FROM end,'MANDATORY')) as validFromDate, \
+                            ToValidDate(stg.DATE_FROM,'MANDATORY') as validFromDate, \
                             ToValidDate(stg.DATE_TO) as validToDate, \
                             stg._RecordStart, \
                             stg._RecordEnd, \

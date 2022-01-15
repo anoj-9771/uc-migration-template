@@ -191,7 +191,7 @@ df_cleansed = spark.sql(f"SELECT \
                             cast(PRAMT_INT as dec(13,2)) as promiseToPayInterest, \
                             cast(RDAMT as dec(13,2)) as amountCleared, \
                             ERNAM as createdBy, \
-                            to_timestamp(concat(erdat,' ',ertim)) as  createdDateTime, \
+                            ToValidDateTime(concat(erdat,' ',ertim)) as createdDateTime, \
                             ToValidDate(CHDAT) as changedDate, \
                             PPSTA as promiseToPayStatus, \
                             XSTCH as statusChangedIndicator, \

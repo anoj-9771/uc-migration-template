@@ -180,7 +180,7 @@ df_cleansed = spark.sql(f"SELECT \
                             ToValidDate(AB) as  validFromDate, \
                             ToValidDate(ACTDATE) as disconnectiondate, \
                             ANLAGE as installationId, \
-                            case when BIS = 'na' then ToValidDate('2099-12-31','MANDATORY') else ToValidDate(BIS,'MANDATORY') end as validToDate, \
+                            ToValidDate((case when BIS = 'na' then '2099-12-31' else BIS end),'MANDATORY') as validToDate, \
                             CON_CARDTYP as concessionCardTypeCode, \
                             CONNOBJ as propertyNumber, \
                             CONTRACT as currentInstallationContract, \

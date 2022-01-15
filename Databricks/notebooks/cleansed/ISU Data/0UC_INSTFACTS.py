@@ -181,7 +181,7 @@ df_cleansed = spark.sql(f"SELECT \
 	case when ANLAGE = 'na' then '' else ANLAGE end as installationId, \
 	case when OPERAND = 'na' then '' else OPERAND end as operandCode, \
 	ToValidDate(AB,'MANDATORY') as validFromDate, \
-	ToValidDate(BIS) as validToDate, \
+    ToValidDate((case when BIS = 'na' then '2099-12-31' else BIS end)) as validToDate, \
 	cast(WERT1 as dec(16,7)) as entryValue, \
 	cast(WERT2 as dec(16,7)) as valueToBeBilled, \
 	STRING3 as operandValue, \

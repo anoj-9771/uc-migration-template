@@ -221,9 +221,9 @@ df_cleansed = spark.sql(f"SELECT \
                                 BP.NAME_GRP1 as nameGroup1, \
                                 BP.NAME_GRP2 as nameGroup2, \
                                 BP.CRUSR as createdBy, \
-                                cast(concat(BP.CRDAT,' ',(case WHEN BP.CRTIM is null then  '00:00:00' else BP.CRTIM END)) as timestamp)  as createdDateTime, \
+                                ToValidDateTime(concat(BP.CRDAT, coalesce(BP.CRTIM,'00:00:00'))) as createdDateTime, \
                                 BP.CHUSR as changedBy, \
-                                cast(concat(BP.CHDAT,' ',(case WHEN BP.CHTIM is null then  '00:00:00' else BP.CHTIM END)) as timestamp)  as changedDateTime, \
+                                ToValidDateTime(concat(BP.CHDAT, coalesce(BP.CHTIM,'00:00:00'))) as changedDateTime, \
                                 BP.PARTNER_GUID as businessPartnerGUID, \
                                 BP.ADDRCOMM as addressNumber, \
                                 ToValidDate(substr(BP.VALID_FROM,0,8)) as validFromDate, \

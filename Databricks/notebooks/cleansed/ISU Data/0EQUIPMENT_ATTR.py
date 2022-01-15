@@ -178,7 +178,7 @@ DeltaSaveToDeltaTable (
 #Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
 df_cleansed = spark.sql(f"SELECT \
                             case when EQUI.EQUNR = 'na' then '' else EQUI.EQUNR end as equipmentNumber, \
-                            case when EQUI.DATETO = 'na' then ToValidDate('2099-12-31','MANDATORY') else ToValidDate(EQUI.DATETO,'MANDATORY') end as validToDate, \
+                            ToValidDate((case when EQUI.DATETO = 'na' then '2099-12-31' else EQUI.DATETO end),'MANDATORY') as validToDate, \
                             ToValidDate(EQUI.DATEFROM) as validFromDate, \
                             EQUI.EQART as technicalObjectTypeCode, \
                             EQUI.INVNR as inventoryNumber, \
