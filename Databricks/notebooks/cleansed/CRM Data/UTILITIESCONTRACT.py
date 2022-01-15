@@ -195,9 +195,9 @@ df_cleansed = spark.sql(f"SELECT \
 	DivisionName as division, \
 	ToValidDate(ContractStartDate) as contractStartDate, \
 	ToValidDate(ContractEndDate) as contractEndDate, \
-	to_timestamp(cast(CreationDate as string), 'yyyyMMddHHmmss') as creationDate, \
+	ToValidDateTime(CreationDate) as creationDate, \
 	CreatedByUser as createdBy, \
-	to_timestamp(cast(LastChangeDate as string), 'yyyyMMddHHmmss') as lastChangedDate, \
+	ToValidDateTime(LastChangeDate) as lastChangedDate, \
 	LastChangedByUser as changedBy, \
 	ItemCategory as itemCategory, \
 	ItemCategoryName as itemCategoryName, \
