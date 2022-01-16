@@ -30,8 +30,7 @@ lakedf.printSchema()
 # DBTITLE 1,[Source] with mapping
 # MAGIC %sql
 # MAGIC select
-# MAGIC sapClient
-# MAGIC ,ItemUUID
+# MAGIC ItemUUID
 # MAGIC ,podUUID
 # MAGIC ,headerUUID
 # MAGIC ,utilitiesContract
@@ -87,7 +86,7 @@ lakedf.printSchema()
 # MAGIC ,isInDeactivation
 # MAGIC ,isCancelled
 # MAGIC ,cancellationMessageIsCreated
-# MAGIC ,supplyEndCanclInMsgIsCreated
+# MAGIC ,supplyEndCanclnMsgIsCreated
 # MAGIC ,activationIsRejected
 # MAGIC ,deactivationIsRejected
 # MAGIC ,numberOfContracts
@@ -109,8 +108,7 @@ lakedf.printSchema()
 # MAGIC ,contractEndDateE
 # MAGIC from
 # MAGIC (select
-# MAGIC SAPClient as sapClient
-# MAGIC ,ItemUUID as ItemUUID
+# MAGIC ItemUUID as ItemUUID
 # MAGIC ,PodUUID as podUUID
 # MAGIC ,HeaderUUID as headerUUID
 # MAGIC ,UtilitiesContract as utilitiesContract
@@ -126,11 +124,11 @@ lakedf.printSchema()
 # MAGIC ,SoldToPartyName as businessPartnerFullName
 # MAGIC ,Division as divisionCode
 # MAGIC ,DivisionName as division
-# MAGIC ,ContractStartDate as contractStartDate
-# MAGIC ,ContractEndDate as contractEndDate
-# MAGIC ,CreationDate as creationDate
+# MAGIC ,to_date(ContractStartDate,'yyyy-MM-dd') as contractStartDate
+# MAGIC ,to_date(ContractEndDate,'yyyy-MM-dd') as contractEndDate
+# MAGIC ,to_timestamp(cast(CreationDate as string), 'yyyyMMddHHmmss') as creationDate
 # MAGIC ,CreatedByUser as createdBy
-# MAGIC ,LastChangeDate as lastChangedDate
+# MAGIC ,to_timestamp(cast(LastChangeDate as string), 'yyyyMMddHHmmss') as lastChangedDate
 # MAGIC ,LastChangedByUser as changedBy
 # MAGIC ,ItemCategory as itemCategory
 # MAGIC ,ItemCategoryName as itemCategoryName
@@ -166,7 +164,7 @@ lakedf.printSchema()
 # MAGIC ,IsInDeactivation as isInDeactivation
 # MAGIC ,IsCancelled as isCancelled
 # MAGIC ,CancellationMessageIsCreated as cancellationMessageIsCreated
-# MAGIC ,SupplyEndCanclnMsgIsCreated as supplyEndCanclInMsgIsCreated
+# MAGIC ,SupplyEndCanclnMsgIsCreated as supplyEndCanclnMsgIsCreated
 # MAGIC ,ActivationIsRejected as activationIsRejected
 # MAGIC ,DeactivationIsRejected as deactivationIsRejected
 # MAGIC ,NumberOfContracts as numberOfContracts
@@ -186,12 +184,8 @@ lakedf.printSchema()
 # MAGIC ,LastChangeDate_E as lastChangedDateE
 # MAGIC ,ContractStartDate_E as contractStartDateE
 # MAGIC ,ContractEndDate_E as contractEndDateE
-# MAGIC 
 # MAGIC ,row_number() over (partition by UtilitiesContract,ContractEndDate_E order by EXTRACT_DATETIME desc) as rn
-# MAGIC from test.${vars.table}
-# MAGIC 
-# MAGIC --and f.DDLANGUAGE ='E' 
-# MAGIC )a where  a.rn = 1
+# MAGIC from test.${vars.table} )a where  a.rn = 1
 
 # COMMAND ----------
 
@@ -200,8 +194,7 @@ lakedf.printSchema()
 # MAGIC select count (*) as RecordCount, 'Target' as TableName from cleansed.${vars.table}
 # MAGIC union all
 # MAGIC select count (*) as RecordCount, 'Source' as TableName from (select
-# MAGIC sapClient
-# MAGIC ,ItemUUID
+# MAGIC ItemUUID
 # MAGIC ,podUUID
 # MAGIC ,headerUUID
 # MAGIC ,utilitiesContract
@@ -257,7 +250,7 @@ lakedf.printSchema()
 # MAGIC ,isInDeactivation
 # MAGIC ,isCancelled
 # MAGIC ,cancellationMessageIsCreated
-# MAGIC ,supplyEndCanclInMsgIsCreated
+# MAGIC ,supplyEndCanclnMsgIsCreated
 # MAGIC ,activationIsRejected
 # MAGIC ,deactivationIsRejected
 # MAGIC ,numberOfContracts
@@ -279,8 +272,7 @@ lakedf.printSchema()
 # MAGIC ,contractEndDateE
 # MAGIC from
 # MAGIC (select
-# MAGIC SAPClient as sapClient
-# MAGIC ,ItemUUID as ItemUUID
+# MAGIC ItemUUID as ItemUUID
 # MAGIC ,PodUUID as podUUID
 # MAGIC ,HeaderUUID as headerUUID
 # MAGIC ,UtilitiesContract as utilitiesContract
@@ -296,11 +288,11 @@ lakedf.printSchema()
 # MAGIC ,SoldToPartyName as businessPartnerFullName
 # MAGIC ,Division as divisionCode
 # MAGIC ,DivisionName as division
-# MAGIC ,ContractStartDate as contractStartDate
-# MAGIC ,ContractEndDate as contractEndDate
-# MAGIC ,CreationDate as creationDate
+# MAGIC ,to_date(ContractStartDate,'yyyy-MM-dd') as contractStartDate
+# MAGIC ,to_date(ContractEndDate,'yyyy-MM-dd') as contractEndDate
+# MAGIC ,to_timestamp(cast(CreationDate as string), 'yyyyMMddHHmmss') as creationDate
 # MAGIC ,CreatedByUser as createdBy
-# MAGIC ,LastChangeDate as lastChangedDate
+# MAGIC ,to_timestamp(cast(LastChangeDate as string), 'yyyyMMddHHmmss') as lastChangedDate
 # MAGIC ,LastChangedByUser as changedBy
 # MAGIC ,ItemCategory as itemCategory
 # MAGIC ,ItemCategoryName as itemCategoryName
@@ -336,7 +328,7 @@ lakedf.printSchema()
 # MAGIC ,IsInDeactivation as isInDeactivation
 # MAGIC ,IsCancelled as isCancelled
 # MAGIC ,CancellationMessageIsCreated as cancellationMessageIsCreated
-# MAGIC ,SupplyEndCanclnMsgIsCreated as supplyEndCanclInMsgIsCreated
+# MAGIC ,SupplyEndCanclnMsgIsCreated as supplyEndCanclnMsgIsCreated
 # MAGIC ,ActivationIsRejected as activationIsRejected
 # MAGIC ,DeactivationIsRejected as deactivationIsRejected
 # MAGIC ,NumberOfContracts as numberOfContracts
@@ -356,12 +348,8 @@ lakedf.printSchema()
 # MAGIC ,LastChangeDate_E as lastChangedDateE
 # MAGIC ,ContractStartDate_E as contractStartDateE
 # MAGIC ,ContractEndDate_E as contractEndDateE
-# MAGIC 
 # MAGIC ,row_number() over (partition by UtilitiesContract,ContractEndDate_E order by EXTRACT_DATETIME desc) as rn
-# MAGIC from test.${vars.table}
-# MAGIC 
-# MAGIC --and f.DDLANGUAGE ='E' 
-# MAGIC )a where  a.rn = 1)
+# MAGIC from test.${vars.table} )a where  a.rn = 1)
 
 # COMMAND ----------
 
@@ -389,7 +377,6 @@ lakedf.printSchema()
 # DBTITLE 1,[Verification] Compare Source and Target Data
 # MAGIC %sql
 # MAGIC select
-# MAGIC --sapClient
 # MAGIC ItemUUID
 # MAGIC ,podUUID
 # MAGIC ,headerUUID
@@ -408,9 +395,9 @@ lakedf.printSchema()
 # MAGIC ,division
 # MAGIC ,contractStartDate
 # MAGIC ,contractEndDate
-# MAGIC --,creationDate
+# MAGIC ,creationDate
 # MAGIC ,createdBy
-# MAGIC --,lastChangedDate
+# MAGIC ,lastChangedDate
 # MAGIC ,changedBy
 # MAGIC ,itemCategory
 # MAGIC ,itemCategoryName
@@ -446,7 +433,7 @@ lakedf.printSchema()
 # MAGIC ,isInDeactivation
 # MAGIC ,isCancelled
 # MAGIC ,cancellationMessageIsCreated
-# MAGIC ,supplyEndCanclInMsgIsCreated
+# MAGIC ,supplyEndCanclnMsgIsCreated
 # MAGIC ,activationIsRejected
 # MAGIC ,deactivationIsRejected
 # MAGIC ,numberOfContracts
@@ -468,8 +455,7 @@ lakedf.printSchema()
 # MAGIC ,contractEndDateE
 # MAGIC from
 # MAGIC (select
-# MAGIC SAPClient as sapClient
-# MAGIC ,ItemUUID as ItemUUID
+# MAGIC ItemUUID as ItemUUID
 # MAGIC ,PodUUID as podUUID
 # MAGIC ,HeaderUUID as headerUUID
 # MAGIC ,UtilitiesContract as utilitiesContract
@@ -485,11 +471,11 @@ lakedf.printSchema()
 # MAGIC ,SoldToPartyName as businessPartnerFullName
 # MAGIC ,Division as divisionCode
 # MAGIC ,DivisionName as division
-# MAGIC ,ContractStartDate as contractStartDate
-# MAGIC ,ContractEndDate as contractEndDate
-# MAGIC ,CreationDate as creationDate
+# MAGIC ,to_date(ContractStartDate,'yyyy-MM-dd') as contractStartDate
+# MAGIC ,to_date(ContractEndDate,'yyyy-MM-dd') as contractEndDate
+# MAGIC ,to_timestamp(cast(CreationDate as string), 'yyyyMMddHHmmss') as creationDate
 # MAGIC ,CreatedByUser as createdBy
-# MAGIC ,LastChangeDate as lastChangedDate
+# MAGIC ,to_timestamp(cast(LastChangeDate as string), 'yyyyMMddHHmmss') as lastChangedDate
 # MAGIC ,LastChangedByUser as changedBy
 # MAGIC ,ItemCategory as itemCategory
 # MAGIC ,ItemCategoryName as itemCategoryName
@@ -525,7 +511,7 @@ lakedf.printSchema()
 # MAGIC ,IsInDeactivation as isInDeactivation
 # MAGIC ,IsCancelled as isCancelled
 # MAGIC ,CancellationMessageIsCreated as cancellationMessageIsCreated
-# MAGIC ,SupplyEndCanclnMsgIsCreated as supplyEndCanclInMsgIsCreated
+# MAGIC ,SupplyEndCanclnMsgIsCreated as supplyEndCanclnMsgIsCreated
 # MAGIC ,ActivationIsRejected as activationIsRejected
 # MAGIC ,DeactivationIsRejected as deactivationIsRejected
 # MAGIC ,NumberOfContracts as numberOfContracts
@@ -545,15 +531,10 @@ lakedf.printSchema()
 # MAGIC ,LastChangeDate_E as lastChangedDateE
 # MAGIC ,ContractStartDate_E as contractStartDateE
 # MAGIC ,ContractEndDate_E as contractEndDateE
-# MAGIC 
 # MAGIC ,row_number() over (partition by UtilitiesContract,ContractEndDate_E order by EXTRACT_DATETIME desc) as rn
-# MAGIC from test.${vars.table}
-# MAGIC 
-# MAGIC --and f.DDLANGUAGE ='E' 
-# MAGIC )a where  a.rn = 1
+# MAGIC from test.${vars.table} )a where  a.rn = 1
 # MAGIC except
 # MAGIC select
-# MAGIC --sapClient
 # MAGIC ItemUUID
 # MAGIC ,podUUID
 # MAGIC ,headerUUID
@@ -572,9 +553,9 @@ lakedf.printSchema()
 # MAGIC ,division
 # MAGIC ,contractStartDate
 # MAGIC ,contractEndDate
-# MAGIC --,creationDate
+# MAGIC ,creationDate
 # MAGIC ,createdBy
-# MAGIC --,lastChangedDate
+# MAGIC ,lastChangedDate
 # MAGIC ,changedBy
 # MAGIC ,itemCategory
 # MAGIC ,itemCategoryName
@@ -610,7 +591,7 @@ lakedf.printSchema()
 # MAGIC ,isInDeactivation
 # MAGIC ,isCancelled
 # MAGIC ,cancellationMessageIsCreated
-# MAGIC ,supplyEndCanclInMsgIsCreated
+# MAGIC ,supplyEndCanclnMsgIsCreated
 # MAGIC ,activationIsRejected
 # MAGIC ,deactivationIsRejected
 # MAGIC ,numberOfContracts
@@ -638,8 +619,7 @@ lakedf.printSchema()
 # DBTITLE 1,[Verification] Compare Target and Source Data
 # MAGIC %sql
 # MAGIC select
-# MAGIC sapClient
-# MAGIC ,ItemUUID
+# MAGIC ItemUUID
 # MAGIC ,podUUID
 # MAGIC ,headerUUID
 # MAGIC ,utilitiesContract
@@ -695,7 +675,7 @@ lakedf.printSchema()
 # MAGIC ,isInDeactivation
 # MAGIC ,isCancelled
 # MAGIC ,cancellationMessageIsCreated
-# MAGIC ,supplyEndCanclInMsgIsCreated
+# MAGIC ,supplyEndCanclnMsgIsCreated
 # MAGIC ,activationIsRejected
 # MAGIC ,deactivationIsRejected
 # MAGIC ,numberOfContracts
@@ -719,8 +699,7 @@ lakedf.printSchema()
 # MAGIC cleansed.${vars.table}
 # MAGIC except
 # MAGIC select
-# MAGIC sapClient
-# MAGIC ,ItemUUID
+# MAGIC ItemUUID
 # MAGIC ,podUUID
 # MAGIC ,headerUUID
 # MAGIC ,utilitiesContract
@@ -776,7 +755,7 @@ lakedf.printSchema()
 # MAGIC ,isInDeactivation
 # MAGIC ,isCancelled
 # MAGIC ,cancellationMessageIsCreated
-# MAGIC ,supplyEndCanclInMsgIsCreated
+# MAGIC ,supplyEndCanclnMsgIsCreated
 # MAGIC ,activationIsRejected
 # MAGIC ,deactivationIsRejected
 # MAGIC ,numberOfContracts
@@ -798,8 +777,7 @@ lakedf.printSchema()
 # MAGIC ,contractEndDateE
 # MAGIC from
 # MAGIC (select
-# MAGIC SAPClient as sapClient
-# MAGIC ,ItemUUID as ItemUUID
+# MAGIC ItemUUID as ItemUUID
 # MAGIC ,PodUUID as podUUID
 # MAGIC ,HeaderUUID as headerUUID
 # MAGIC ,UtilitiesContract as utilitiesContract
@@ -815,11 +793,11 @@ lakedf.printSchema()
 # MAGIC ,SoldToPartyName as businessPartnerFullName
 # MAGIC ,Division as divisionCode
 # MAGIC ,DivisionName as division
-# MAGIC ,ContractStartDate as contractStartDate
-# MAGIC ,ContractEndDate as contractEndDate
-# MAGIC ,CreationDate as creationDate
+# MAGIC ,to_date(ContractStartDate,'yyyy-MM-dd') as contractStartDate
+# MAGIC ,to_date(ContractEndDate,'yyyy-MM-dd') as contractEndDate
+# MAGIC ,to_timestamp(cast(CreationDate as string), 'yyyyMMddHHmmss') as creationDate
 # MAGIC ,CreatedByUser as createdBy
-# MAGIC ,LastChangeDate as lastChangedDate
+# MAGIC ,to_timestamp(cast(LastChangeDate as string), 'yyyyMMddHHmmss') as lastChangedDate
 # MAGIC ,LastChangedByUser as changedBy
 # MAGIC ,ItemCategory as itemCategory
 # MAGIC ,ItemCategoryName as itemCategoryName
@@ -855,7 +833,7 @@ lakedf.printSchema()
 # MAGIC ,IsInDeactivation as isInDeactivation
 # MAGIC ,IsCancelled as isCancelled
 # MAGIC ,CancellationMessageIsCreated as cancellationMessageIsCreated
-# MAGIC ,SupplyEndCanclnMsgIsCreated as supplyEndCanclInMsgIsCreated
+# MAGIC ,SupplyEndCanclnMsgIsCreated as supplyEndCanclnMsgIsCreated
 # MAGIC ,ActivationIsRejected as activationIsRejected
 # MAGIC ,DeactivationIsRejected as deactivationIsRejected
 # MAGIC ,NumberOfContracts as numberOfContracts
@@ -875,25 +853,5 @@ lakedf.printSchema()
 # MAGIC ,LastChangeDate_E as lastChangedDateE
 # MAGIC ,ContractStartDate_E as contractStartDateE
 # MAGIC ,ContractEndDate_E as contractEndDateE
-# MAGIC 
 # MAGIC ,row_number() over (partition by UtilitiesContract,ContractEndDate_E order by EXTRACT_DATETIME desc) as rn
-# MAGIC from test.${vars.table}
-# MAGIC 
-# MAGIC --and f.DDLANGUAGE ='E' 
-# MAGIC )a where  a.rn = 1
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC select
-# MAGIC SAPClient
-# MAGIC from 
-# MAGIC cleansed.${vars.table}
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC select
-# MAGIC sapClient
-# MAGIC from 
-# MAGIC cleansed.${vars.table}
+# MAGIC from test.${vars.table} )a where  a.rn = 1

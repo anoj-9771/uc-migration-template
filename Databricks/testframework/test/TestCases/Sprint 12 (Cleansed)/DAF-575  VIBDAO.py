@@ -28,11 +28,15 @@ containerName = "archive"
 # MAGIC partArchitecturalObjectId,
 # MAGIC objectNumber,
 # MAGIC firstEnteredBy,
+# MAGIC firstEnteredOnDate,
+# MAGIC firstEnteredTime,
 # MAGIC firstEnteredDateTime,
 # MAGIC firstEnteredSource,
 # MAGIC employeeId,
+# MAGIC lastEditedOnDate,
+# MAGIC lastEditedTime,
 # MAGIC lastEditedDateTime,
-# MAGIC lastEdittedSource,
+# MAGIC lastEditedSource,
 # MAGIC responsiblePerson,
 # MAGIC exclusiveUser,
 # MAGIC lastRelocationDate,
@@ -86,11 +90,15 @@ containerName = "archive"
 # MAGIC ,PARTAOID	as	partArchitecturalObjectId
 # MAGIC ,OBJNR	as	objectNumber
 # MAGIC ,RERF	as	firstEnteredBy
+# MAGIC ,DERF as firstEnteredOnDate
+# MAGIC ,TERF as firstEnteredTime
 # MAGIC ,cast((concat(DERF,TERF)) as timestamp) as firstEnteredDateTime
 # MAGIC ,REHER	as	firstEnteredSource
 # MAGIC ,RBEAR	as	employeeId
+# MAGIC ,DBEAR as lastEditedOnDate
+# MAGIC ,TBEAR as lastEditedTime
 # MAGIC ,cast((concat(DBEAR,TBEAR))as timestamp) as lastEditedDateTime
-# MAGIC ,RBHER	as	lastEdittedSource
+# MAGIC ,RBHER	as	lastEditedSource
 # MAGIC ,RESPONSIBLE	as	responsiblePerson
 # MAGIC ,USEREXCLUSIVE	as	exclusiveUser
 # MAGIC ,LASTRENO	as	lastRelocationDate
@@ -162,11 +170,15 @@ containerName = "archive"
 # MAGIC partArchitecturalObjectId,
 # MAGIC objectNumber,
 # MAGIC firstEnteredBy,
+# MAGIC firstEnteredOnDate,
+# MAGIC firstEnteredTime,
 # MAGIC firstEnteredDateTime,
 # MAGIC firstEnteredSource,
 # MAGIC employeeId,
+# MAGIC lastEditedOnDate,
+# MAGIC lastEditedTime,
 # MAGIC lastEditedDateTime,
-# MAGIC lastEdittedSource,
+# MAGIC lastEditedSource,
 # MAGIC responsiblePerson,
 # MAGIC exclusiveUser,
 # MAGIC lastRelocationDate,
@@ -220,11 +232,15 @@ containerName = "archive"
 # MAGIC ,PARTAOID	as	partArchitecturalObjectId
 # MAGIC ,OBJNR	as	objectNumber
 # MAGIC ,RERF	as	firstEnteredBy
+# MAGIC ,DERF as firstEnteredOnDate
+# MAGIC ,TERF as firstEnteredTime
 # MAGIC ,cast((concat(DERF,TERF)) as timestamp) as firstEnteredDateTime
 # MAGIC ,REHER	as	firstEnteredSource
 # MAGIC ,RBEAR	as	employeeId
+# MAGIC ,DBEAR as lastEditedOnDate
+# MAGIC ,TBEAR as lastEditedTime
 # MAGIC ,cast((concat(DBEAR,TBEAR))as timestamp) as lastEditedDateTime
-# MAGIC ,RBHER	as	lastEdittedSource
+# MAGIC ,RBHER	as	lastEditedSource
 # MAGIC ,RESPONSIBLE	as	responsiblePerson
 # MAGIC ,USEREXCLUSIVE	as	exclusiveUser
 # MAGIC ,LASTRENO	as	lastRelocationDate
@@ -285,25 +301,23 @@ containerName = "archive"
 # MAGIC %sql
 # MAGIC SELECT architecturalObjectInternalId,architecturalObjectId,architecturalObjectTypeCode,architecturalObjectType,
 # MAGIC architecturalObjectNumber,validFromDate,validToDate,partArchitecturalObjectId,objectNumber,firstEnteredBy,
-# MAGIC firstEnteredDateTime,firstEnteredSource,employeeId,lastEditedDateTime,lastEdittedSource,responsiblePerson,
-# MAGIC exclusiveUser,lastRelocationDate,measurementStructure,shortDescription,reservationArea,maintenanceDistrict,
-# MAGIC businessEntityTransportConnectionsIndicator,propertyNumber,propertyCreatedDate,propertyLotNumber,propertyRequestNumber,
-# MAGIC planTypeCode,planType,planNumber,processTypeCode,processType,addressLotNumber,lotTypeCode,unitEntitlement,flatCount,
-# MAGIC superiorPropertyTypeCode,superiorPropertyType,inferiorPropertyTypeCode,inferiorPropertyType,stormWaterAssesmentIndicator,
-# MAGIC mlimIndicator,wicaIndicator,sopaIndicator,communityTitleIndicator,sectionNumber,hydraCalculatedArea,hydraAreaUnit,
-# MAGIC hydraAreaIndicator,caseNumberIndicator,overrideArea,overrideAreaUnit,cancellationDate,cancellationReasonCode,
-# MAGIC comments,propertyInfo, COUNT (*) as count
+# MAGIC firstEnteredOnDate,firstEnteredTime,firstEnteredDateTime,firstEnteredSource,employeeId,lastEditedOnDate,
+# MAGIC lastEditedTime,lastEditedDateTime,lastEditedSource,responsiblePerson,exclusiveUser,lastRelocationDate,measurementStructure,
+# MAGIC shortDescription,reservationArea,maintenanceDistrict,businessEntityTransportConnectionsIndicator,propertyNumber,propertyCreatedDate,
+# MAGIC propertyLotNumber,propertyRequestNumber,planTypeCode,planType,planNumber,processTypeCode,processType,addressLotNumber,lotTypeCode,
+# MAGIC unitEntitlement,flatCount,superiorPropertyTypeCode,superiorPropertyType,inferiorPropertyTypeCode,inferiorPropertyType,stormWaterAssesmentIndicator,
+# MAGIC mlimIndicator,wicaIndicator,sopaIndicator,communityTitleIndicator,sectionNumber,hydraCalculatedArea,hydraAreaUnit,hydraAreaIndicator,caseNumberIndicator,
+# MAGIC overrideArea,overrideAreaUnit,cancellationDate,cancellationReasonCode,comments,propertyInfo, COUNT (*) as count
 # MAGIC FROM cleansed.${vars.table}
 # MAGIC GROUP BY architecturalObjectInternalId,architecturalObjectId,architecturalObjectTypeCode,architecturalObjectType,
 # MAGIC architecturalObjectNumber,validFromDate,validToDate,partArchitecturalObjectId,objectNumber,firstEnteredBy,
-# MAGIC firstEnteredDateTime,firstEnteredSource,employeeId,lastEditedDateTime,lastEdittedSource,responsiblePerson,
-# MAGIC exclusiveUser,lastRelocationDate,measurementStructure,shortDescription,reservationArea,maintenanceDistrict,
-# MAGIC businessEntityTransportConnectionsIndicator,propertyNumber,propertyCreatedDate,propertyLotNumber,propertyRequestNumber,
-# MAGIC planTypeCode,planType,planNumber,processTypeCode,processType,addressLotNumber,lotTypeCode,unitEntitlement,flatCount,
-# MAGIC superiorPropertyTypeCode,superiorPropertyType,inferiorPropertyTypeCode,inferiorPropertyType,stormWaterAssesmentIndicator,
-# MAGIC mlimIndicator,wicaIndicator,sopaIndicator,communityTitleIndicator,sectionNumber,hydraCalculatedArea,hydraAreaUnit,
-# MAGIC hydraAreaIndicator,caseNumberIndicator,overrideArea,overrideAreaUnit,cancellationDate,cancellationReasonCode,
-# MAGIC comments,propertyInfo
+# MAGIC firstEnteredOnDate,firstEnteredTime,firstEnteredDateTime,firstEnteredSource,employeeId,lastEditedOnDate,
+# MAGIC lastEditedTime,lastEditedDateTime,lastEditedSource,responsiblePerson,exclusiveUser,lastRelocationDate,measurementStructure,
+# MAGIC shortDescription,reservationArea,maintenanceDistrict,businessEntityTransportConnectionsIndicator,propertyNumber,propertyCreatedDate,
+# MAGIC propertyLotNumber,propertyRequestNumber,planTypeCode,planType,planNumber,processTypeCode,processType,addressLotNumber,lotTypeCode,
+# MAGIC unitEntitlement,flatCount,superiorPropertyTypeCode,superiorPropertyType,inferiorPropertyTypeCode,inferiorPropertyType,stormWaterAssesmentIndicator,
+# MAGIC mlimIndicator,wicaIndicator,sopaIndicator,communityTitleIndicator,sectionNumber,hydraCalculatedArea,hydraAreaUnit,hydraAreaIndicator,caseNumberIndicator,
+# MAGIC overrideArea,overrideAreaUnit,cancellationDate,cancellationReasonCode,comments,propertyInfo
 # MAGIC HAVING COUNT (*) > 1
 
 # COMMAND ----------
@@ -333,11 +347,15 @@ containerName = "archive"
 # MAGIC partArchitecturalObjectId,
 # MAGIC objectNumber,
 # MAGIC firstEnteredBy,
+# MAGIC firstEnteredOnDate,
+# MAGIC firstEnteredTime,
 # MAGIC firstEnteredDateTime,
 # MAGIC firstEnteredSource,
 # MAGIC employeeId,
+# MAGIC lastEditedOnDate,
+# MAGIC lastEditedTime,
 # MAGIC lastEditedDateTime,
-# MAGIC lastEdittedSource,
+# MAGIC lastEditedSource,
 # MAGIC responsiblePerson,
 # MAGIC exclusiveUser,
 # MAGIC lastRelocationDate,
@@ -391,11 +409,15 @@ containerName = "archive"
 # MAGIC ,PARTAOID	as	partArchitecturalObjectId
 # MAGIC ,OBJNR	as	objectNumber
 # MAGIC ,RERF	as	firstEnteredBy
-# MAGIC ,cast((concat(DERF,TERF)) as timestamp) as firstEnteredDateTime
+# MAGIC ,DERF as firstEnteredOnDate
+# MAGIC ,TERF as firstEnteredTime
+# MAGIC ,cast(to_unix_timestamp(concat(DERF,' ',TERF), 'yyyy-MM-dd HH:mm:ss') as timestamp) as firstEnteredDateTime
 # MAGIC ,REHER	as	firstEnteredSource
 # MAGIC ,RBEAR	as	employeeId
-# MAGIC ,cast((concat(DBEAR,TBEAR))as timestamp) as lastEditedDateTime
-# MAGIC ,RBHER	as	lastEdittedSource
+# MAGIC ,DBEAR as lastEditedOnDate
+# MAGIC ,TBEAR as lastEditedTime
+# MAGIC ,cast(to_unix_timestamp(concat(DBEAR,' ',TBEAR), 'yyyy-MM-dd HH:mm:ss') as timestamp) as lastEditedDateTime
+# MAGIC ,RBHER	as	lastEditedSource
 # MAGIC ,RESPONSIBLE	as	responsiblePerson
 # MAGIC ,USEREXCLUSIVE	as	exclusiveUser
 # MAGIC ,LASTRENO	as	lastRelocationDate
@@ -461,11 +483,15 @@ containerName = "archive"
 # MAGIC partArchitecturalObjectId,
 # MAGIC objectNumber,
 # MAGIC firstEnteredBy,
+# MAGIC firstEnteredOnDate,
+# MAGIC firstEnteredTime,
 # MAGIC firstEnteredDateTime,
 # MAGIC firstEnteredSource,
 # MAGIC employeeId,
+# MAGIC lastEditedOnDate,
+# MAGIC lastEditedTime,
 # MAGIC lastEditedDateTime,
-# MAGIC lastEdittedSource,
+# MAGIC lastEditedSource,
 # MAGIC responsiblePerson,
 # MAGIC exclusiveUser,
 # MAGIC lastRelocationDate,
@@ -512,6 +538,12 @@ containerName = "archive"
 
 # COMMAND ----------
 
+# MAGIC %sql
+# MAGIC select * from cleansed.isu_vibdao
+# MAGIC where  architecturalObjectInternalId = 'I000101357581'
+
+# COMMAND ----------
+
 # DBTITLE 1,[Verification] Compare Target and Source Data
 # MAGIC %sql
 # MAGIC select
@@ -525,11 +557,15 @@ containerName = "archive"
 # MAGIC partArchitecturalObjectId,
 # MAGIC objectNumber,
 # MAGIC firstEnteredBy,
+# MAGIC firstEnteredOnDate,
+# MAGIC firstEnteredTime,
 # MAGIC firstEnteredDateTime,
 # MAGIC firstEnteredSource,
 # MAGIC employeeId,
+# MAGIC lastEditedOnDate,
+# MAGIC lastEditedTime,
 # MAGIC lastEditedDateTime,
-# MAGIC lastEdittedSource,
+# MAGIC lastEditedSource,
 # MAGIC responsiblePerson,
 # MAGIC exclusiveUser,
 # MAGIC lastRelocationDate,
@@ -573,7 +609,7 @@ containerName = "archive"
 # MAGIC propertyInfo
 # MAGIC from
 # MAGIC cleansed.${vars.table}
-# MAGIC except
+# MAGIC except 
 # MAGIC select 
 # MAGIC architecturalObjectInternalId,
 # MAGIC architecturalObjectId,
@@ -585,11 +621,15 @@ containerName = "archive"
 # MAGIC partArchitecturalObjectId,
 # MAGIC objectNumber,
 # MAGIC firstEnteredBy,
+# MAGIC firstEnteredOnDate,
+# MAGIC firstEnteredTime,
 # MAGIC firstEnteredDateTime,
 # MAGIC firstEnteredSource,
 # MAGIC employeeId,
+# MAGIC lastEditedOnDate,
+# MAGIC lastEditedTime,
 # MAGIC lastEditedDateTime,
-# MAGIC lastEdittedSource,
+# MAGIC lastEditedSource,
 # MAGIC responsiblePerson,
 # MAGIC exclusiveUser,
 # MAGIC lastRelocationDate,
@@ -643,11 +683,15 @@ containerName = "archive"
 # MAGIC ,PARTAOID	as	partArchitecturalObjectId
 # MAGIC ,OBJNR	as	objectNumber
 # MAGIC ,RERF	as	firstEnteredBy
-# MAGIC ,cast((concat(DERF,TERF)) as timestamp) as firstEnteredDateTime
+# MAGIC ,DERF as firstEnteredOnDate
+# MAGIC ,TERF as firstEnteredTime
+# MAGIC ,cast(to_unix_timestamp(concat(DERF,' ',TERF), 'yyyy-MM-dd HH:mm:ss') as timestamp) as firstEnteredDateTime
 # MAGIC ,REHER	as	firstEnteredSource
 # MAGIC ,RBEAR	as	employeeId
-# MAGIC ,cast((concat(DBEAR,TBEAR))as timestamp) as lastEditedDateTime
-# MAGIC ,RBHER	as	lastEdittedSource
+# MAGIC ,DBEAR as lastEditedOnDate
+# MAGIC ,TBEAR as lastEditedTime
+# MAGIC ,cast(to_unix_timestamp(concat(DBEAR,' ',TBEAR), 'yyyy-MM-dd HH:mm:ss') as timestamp) as lastEditedDateTime
+# MAGIC ,RBHER	as	lastEditedSource
 # MAGIC ,RESPONSIBLE	as	responsiblePerson
 # MAGIC ,USEREXCLUSIVE	as	exclusiveUser
 # MAGIC ,LASTRENO	as	lastRelocationDate

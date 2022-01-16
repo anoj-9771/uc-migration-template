@@ -58,7 +58,7 @@ lakedf1.printSchema()
 # MAGIC ,case when b.DocumentNotReleasedIndicator = 'X' then 'Y' else 'N' end as isOutsortedFlag
 # MAGIC ,case when b.reversalDate is null then 'N' else 'Y' end as isReversedFlag
 # MAGIC ,b.reversalDate
-# MAGIC ,b.portionNumber
+# MAGIC ,b.portionNumber as portion
 # MAGIC ,b.documentTypeCode
 # MAGIC ,b.meterReadingUnit
 # MAGIC ,b.billingTransactionCode
@@ -87,10 +87,6 @@ lakedf1.printSchema()
 # COMMAND ----------
 
 # MAGIC %sql
-
-# COMMAND ----------
-
-# MAGIC %sql
 # MAGIC 
 # MAGIC select * from curated.dimmeter order by meterid asc
 
@@ -98,31 +94,28 @@ lakedf1.printSchema()
 
 # DBTITLE 1,[Verification] Count Check
 # MAGIC %sql
-# MAGIC select count (*) as RecordCount, 'Target' as TableName from curated.dimmeter
+# MAGIC select count (*) as RecordCount, 'Target' as TableName from curated.dimbillingdocument
 # MAGIC union all
 # MAGIC select count (*) as RecordCount, 'Source' as TableName from (
-# MAGIC 
-# MAGIC select * from (
-# MAGIC select 
-# MAGIC 'Access' as sourceSystemCode
-# MAGIC ,meterMakerNumber as meterId
-# MAGIC ,meterSize
-# MAGIC ,waterMeterType
-# MAGIC from Access 
-# MAGIC 
-# MAGIC union all
-# MAGIC 
-# MAGIC select 
-# MAGIC 'SAP' as sourceSystemCode
-# MAGIC ,a.equipmentNumber as meterId
-# MAGIC ,b.deviceCategoryDescription as meterSize
-# MAGIC ,b.functionClass as waterType
-# MAGIC from cleansed.t_sapisu_0UC_DEVICE_ATTR a
-# MAGIC left join cleansed.t_sapisu_0UC_DEVCAT_ATTR b
-# MAGIC on a.materialNumber = b.materialNumber
-# MAGIC 
-# MAGIC 
-# MAGIC )
+# MAGIC select distinct
+# MAGIC 'ISU' as sourceSystemCode
+# MAGIC ,bl2.billingDocumentNumber
+# MAGIC ,b.startBillingPeriod as billingPeriodStartDate
+# MAGIC ,b.endBillingPeriod as billingPeriodEndDate
+# MAGIC ,b.billingDocumentCreateDate as billCreatedDate
+# MAGIC ,case when b.DocumentNotReleasedIndicator = 'X' then 'Y' else 'N' end as isOutsortedFlag
+# MAGIC ,case when b.reversalDate is null then 'N' else 'Y' end as isReversedFlag
+# MAGIC ,b.reversalDate
+# MAGIC ,b.portionNumber as portion
+# MAGIC ,b.documentTypeCode
+# MAGIC ,b.meterReadingUnit
+# MAGIC ,b.billingTransactionCode
+# MAGIC FROM cleansed.isu_ERCH b
+# MAGIC join cleansed.isu_DBERCHZ1 bl1 
+# MAGIC on bl1.billingDocumentNumber = b.billingDocumentNumber and bl1.lineItemTypeCode in ('ZDQUAN', 'ZRQUAN')
+# MAGIC join cleansed.isu_DBERCHZ2 bl2 
+# MAGIC on bl1.billingDocumentNumber = bl2.billingDocumentNumber and bl1.billingDocumentLineItemId = bl2.billingDocumentLineItemId and bl2.suppressedMeterReadingDocumentID <> ''
+# MAGIC where b.billingSimulationIndicator <> '' and bl1.billingLineItemBudgetBillingIndicator is not NULL
 # MAGIC 
 # MAGIC )
 
@@ -131,31 +124,56 @@ lakedf1.printSchema()
 # DBTITLE 1,[Verify] Source to Target Comparison
 # MAGIC %sql
 # MAGIC select * from (
-# MAGIC select 
-# MAGIC 'Access' as sourceSystemCode
-# MAGIC ,meterMakerNumber as meterId
-# MAGIC ,meterSize
-# MAGIC ,waterMeterType
-# MAGIC from Access 
-# MAGIC 
+# MAGIC select distinct
+# MAGIC 'ISU' as sourceSystemCode
+# MAGIC ,bl2.billingDocumentNumber
+# MAGIC ,b.startBillingPeriod as billingPeriodStartDate
+# MAGIC ,b.endBillingPeriod as billingPeriodEndDate
+# MAGIC ,b.billingDocumentCreateDate as billCreatedDate
+# MAGIC ,case when b.DocumentNotReleasedIndicator = 'X' then 'Y' else 'N' end as isOutsortedFlag
+# MAGIC ,case when b.reversalDate is null then 'N' else 'Y' end as isReversedFlag
+# MAGIC ,b.reversalDate
+# MAGIC ,b.portionNumber as portion
+# MAGIC ,b.documentTypeCode
+# MAGIC ,b.meterReadingUnit
+# MAGIC ,b.billingTransactionCode
+# MAGIC FROM cleansed.isu_ERCH b
+# MAGIC join cleansed.isu_DBERCHZ1 bl1 
+# MAGIC on bl1.billingDocumentNumber = b.billingDocumentNumber and bl1.lineItemTypeCode in ('ZDQUAN', 'ZRQUAN')
+# MAGIC join cleansed.isu_DBERCHZ2 bl2 
+# MAGIC on bl1.billingDocumentNumber = bl2.billingDocumentNumber and bl1.billingDocumentLineItemId = bl2.billingDocumentLineItemId and bl2.suppressedMeterReadingDocumentID <> ''
+# MAGIC where b.billingSimulationIndicator <> '' and bl1.billingLineItemBudgetBillingIndicator is not NULL
 # MAGIC union all
-# MAGIC 
-# MAGIC select 
-# MAGIC 'SAPISU' as sourceSystemCode
-# MAGIC ,a.equipmentNumber as meterId
-# MAGIC ,b.deviceCategoryDescription as meterSize
-# MAGIC ,b.functionClass as waterType
-# MAGIC from cleansed.t_sapisu_0UC_DEVICE_ATTR a
-# MAGIC left join cleansed.t_sapisu_0UC_DEVCAT_ATTR b
-# MAGIC on a.materialNumber = b.materialNumber
+# MAGIC select
+# MAGIC 'ISU' as sourceSystemCode
+# MAGIC ,'-1' as billingDocumentNumber
+# MAGIC ,'1900-01-01' as billingPeriodStartDate
+# MAGIC ,'2099-12-31' as billingPeriodEndDate
+# MAGIC ,'Unknown' as billCreatedDate
+# MAGIC ,'Unknown' as outsortedFlag
+# MAGIC ,'Unknown' as reversedFlag
+# MAGIC ,'Unknown' as reversalDate
+# MAGIC ,'Unknown' as portionNumber
+# MAGIC ,'Unknown' as documentTypeCode
+# MAGIC ,'Unknown' as meterReadingUnit
+# MAGIC ,'Unknown' as billingTransactionCode
 # MAGIC )
 # MAGIC except
 # MAGIC 
-# MAGIC select sourceSystemCode,
-# MAGIC meterId,
-# MAGIC meterSize,
-# MAGIC waterMeterType
-# MAGIC from curated.dimmeter
+# MAGIC select 
+# MAGIC sourceSystemCode
+# MAGIC ,billingDocumentNumber
+# MAGIC ,billingPeriodStartDate
+# MAGIC ,billingPeriodEndDate
+# MAGIC ,billCreatedDate
+# MAGIC ,outsortedFlag
+# MAGIC ,reversedFlag
+# MAGIC ,reversalDate
+# MAGIC ,portionNumber
+# MAGIC ,documentTypeCode
+# MAGIC ,meterReadingUnit
+# MAGIC ,billingTransactionCode
+# MAGIC from curated.dimbillingdocument
 
 # COMMAND ----------
 
