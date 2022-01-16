@@ -32,9 +32,6 @@
 		"DLY1300_properties_01-Main_parameters_TriggerName": {
 			"value": "DLY1300"
 		},
-		"Emrvisaf_properties_01-Main_parameters_TriggerName": {
-			"value": "Emrvisaf"
-		},
 		"containerUri": {
 			"value": ""
 		},
