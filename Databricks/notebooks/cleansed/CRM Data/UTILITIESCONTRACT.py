@@ -233,7 +233,7 @@ df_cleansed = spark.sql(f"SELECT \
 	IsInDeactivation as isInDeactivation, \
 	IsCancelled as isCancelled, \
 	CancellationMessageIsCreated as cancellationMessageIsCreated, \
-	SupplyEndCanclnMsgIsCreated as supplyEndCanclInMsgIsCreated, \
+	SupplyEndCanclnMsgIsCreated as supplyEndCanclnMsgIsCreated, \
 	ActivationIsRejected as activationIsRejected, \
 	DeactivationIsRejected as deactivationIsRejected, \
 	cast(NumberOfContracts as int) as numberOfContracts, \
@@ -321,7 +321,7 @@ newSchema = StructType([
 	StructField('isInDeactivation',StringType(),True),
 	StructField('isCancelled',StringType(),True),
 	StructField('cancellationMessageIsCreated',StringType(),True),
-	StructField('supplyEndCanclInMsgIsCreated',StringType(),True),
+	StructField('supplyEndCanclnMsgIsCreated',StringType(),True),
 	StructField('activationIsRejected',StringType(),True),
 	StructField('deactivationIsRejected',StringType(),True),
 	StructField('numberOfContracts',IntegerType(),True),
