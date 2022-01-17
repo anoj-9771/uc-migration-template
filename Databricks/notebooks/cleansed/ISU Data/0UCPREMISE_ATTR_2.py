@@ -190,7 +190,7 @@ df_cleansed = spark.sql(f"SELECT \
                             LOEVM as deletedIndicator, \
                             cast(ANZPERS as int) as numberOfPersons, \
                             FLOOR as floorNumber, \
-                            ROOMNUMBER as appartmentNumber, \
+                            ROOMNUMBER as apartmentNumber, \
                             HPTWOHNSITZ as mainResidence, \
                             STR_ERG4 as street5, \
                             UPDMOD as bwDeltaProcess, \
@@ -219,7 +219,7 @@ newSchema = StructType([
                           StructField('deletedIndicator',StringType(),True),
                           StructField('numberOfPersons',StringType(),True),
                           StructField('floorNumber',StringType(),True),
-                          StructField('appartmentNumber',StringType(),True),
+                          StructField('apartmentNumber',StringType(),True),
                           StructField('mainResidence',StringType(),True),
                           StructField('street5',StringType(),True),
                           StructField('bwDeltaProcess',StringType(),True),

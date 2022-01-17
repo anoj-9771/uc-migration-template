@@ -207,7 +207,7 @@ df_cleansed = spark.sql(f"SELECT \
                               tiv.XMAOTYPE as architecturalObjectType, \
                               ToValidDate(con.ZCD_BLD_FEE_DATE) as buildingFeeDate, \
                               con.ZCD_CAD_ID as cadID, \
-                              con.ZZPUMP_WW as pumpWateWaterIndicator, \
+                              con.ZZPUMP_WW as pumpWasteWaterIndicator, \
                               con.ZZFIRE_SERVICE as fireServiceIndicator, \
                               con.ZINTRENO as architecturalObjectInternalId, \
                               con.ZAOID as architecturalObjectId, \
@@ -289,7 +289,7 @@ newSchema = StructType([
                         StructField("architecturalObjectType", StringType(), True),
                         StructField("buildingFeeDate", DateType(), True),
                         StructField("cadID", StringType(), True),
-                        StructField("pumpWateWaterIndicator", StringType(), True),
+                        StructField("pumpWasteWaterIndicator", StringType(), True),
                         StructField("fireServiceIndicator", StringType(), True),
                         StructField("architecturalObjectInternalId", StringType(), True),
                         StructField("architecturalObjectId", StringType(), True),
