@@ -138,6 +138,7 @@ print("delta_column: " + delta_column)
 #Get the Data Load Mode using the params
 data_load_mode = GeneralGetDataLoadMode(Params[PARAMS_TRUNCATE_TARGET], Params[PARAMS_UPSERT_TARGET], Params[PARAMS_APPEND_TARGET])
 print("data_load_mode: " + data_load_mode)
+
 # COMMAND ----------
 
 # DBTITLE 1,9. Set raw and cleansed table name
@@ -175,7 +176,7 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 #Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
-df_cleansed = spark.sql("SELECT \
+df_cleansed = spark.sql(f"SELECT \
 	ADDR_GROUP as addressGroup, \
 	case when ADDRNUMBER = 'na' then '' else ADDRNUMBER end as addressNumber, \
 	BUILDING as building, \
@@ -184,7 +185,7 @@ df_cleansed = spark.sql("SELECT \
 	CITY_CODE2 as cityPoBoxCode, \
 	CITY1 as cityName, \
 	COUNTRY as countryShortName, \
-    ToValidateDate(DATE_FROM,'MANDATORY') as validFromDate, \
+	ToValidDate(DATE_FROM,'MANDATORY') as validFromDate, \
 	ToValidDate(DATE_TO) as validToDate, \
 	DEFLT_COMM as communicationMethod, \
 	FAX_NUMBER as faxNumber, \
@@ -215,7 +216,7 @@ df_cleansed = spark.sql("SELECT \
 	POST_CODE2 as poBoxPostalCode, \
 	POST_CODE3 as companyPostalCode, \
 	REGION as stateCode, \
-	ROOMNUMBER as appartmentNumber, \
+	ROOMNUMBER as apartmentNumber, \
 	SORT1 as searchTerm1, \
 	SORT2 as searchTerm2, \
 	STR_SUPPL1 as streetType, \
@@ -228,7 +229,7 @@ df_cleansed = spark.sql("SELECT \
 	TEL_NUMBER as phoneNumber, \
 	TIME_ZONE as addressTimeZone, \
 	TITLE as titleCode, \
-	_RecordStart, \
+    _RecordStart, \
 	_RecordEnd, \
 	_RecordDeleted, \
 	_RecordCurrent \
@@ -280,7 +281,7 @@ newSchema = StructType([
 	StructField('poBoxPostalCode',StringType(),True),
 	StructField('companyPostalCode',StringType(),True),
 	StructField('stateCode',StringType(),True),
-	StructField('appartmentNumber',StringType(),True),
+	StructField('apartmentNumber',StringType(),True),
 	StructField('searchTerm1',StringType(),True),
 	StructField('searchTerm2',StringType(),True),
 	StructField('streetType',StringType(),True),
@@ -301,12 +302,12 @@ newSchema = StructType([
 
 df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
 
-
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
 DeltaSaveDataframeDirect(df_updated_column, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
+
 # COMMAND ----------
 
 # DBTITLE 1,13. Exit Notebook
