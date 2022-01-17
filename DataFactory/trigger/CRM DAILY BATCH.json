@@ -1,0 +1,28 @@
+{
+	"name": "CRM DAILY BATCH",
+	"properties": {
+		"description": "Invokes CRM daily loads pipeline on the blob creation even of 'trigger_crm_dailybatch.json' in 'triggers' container",
+		"annotations": [],
+		"runtimeState": "Started",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "01-Main",
+					"type": "PipelineReference"
+				},
+				"parameters": {
+					"TriggerName": "BATCH_DAILY_SAPCRM"
+				}
+			}
+		],
+		"type": "BlobEventsTrigger",
+		"typeProperties": {
+			"blobPathBeginsWith": "/triggers/blobs/trigger_crm_dailybatch.json",
+			"ignoreEmptyBlobs": false,
+			"scope": "/subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-daf-dev-01/providers/Microsoft.Storage/storageAccounts/sadafdev01",
+			"events": [
+				"Microsoft.Storage.BlobCreated"
+			]
+		}
+	}
+}
