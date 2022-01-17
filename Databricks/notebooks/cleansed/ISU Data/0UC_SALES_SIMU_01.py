@@ -175,6 +175,7 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
+#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
 df_cleansed = spark.sql(f"SELECT \
 	case when SIMRUNID = 'na' then '' else SIMRUNID end as simulationPeriodID, \
 	case when BELNR = 'na' then '' else BELNR end as billingDocumentNumber, \
@@ -197,8 +198,8 @@ df_cleansed = spark.sql(f"SELECT \
 	STATTART as statisticalAnalysisRateType, \
 	STTARIF as statisticalRate, \
 	VBRMONAT as consumptionMonth, \
-	to_date(AB, 'yyyy-MM-dd') as validFromDate, \
-	case when BELZEILE = 'na' then to_date('1900-01-01','yyyy-MM-dd') else to_date(BIS, 'yyyy-MM-dd') end as validToDate, \
+	ToValidDate(AB) as validFromDate, \
+	ToValidDate(BIS,'MANDATORY') as validToDate, \
 	BUCHREL as billingLineItemReleventPostingIndicator, \
 	STGRQNT as quantityStatisticsGroupCode, \
 	STGRAMT as amountStatisticsGroupCode, \

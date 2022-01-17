@@ -175,6 +175,7 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
+#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
 df_cleansed_column = spark.sql(f"SELECT  \
                                   case when BELNR = 'na' then '' else BELNR end as billingDocumentNumber, \
                                   case when BELZEILE = 'na' then '' else BELZEILE end as billingDocumentLineItemId, \

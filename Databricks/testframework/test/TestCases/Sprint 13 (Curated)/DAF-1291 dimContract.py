@@ -13,7 +13,6 @@ lakedftarget.printSchema()
 # MAGIC %sql
 # MAGIC select
 # MAGIC c.contractId as contractId
-# MAGIC --,ch.validFromDate as validFromDate
 # MAGIC ,case when ch.validFromDate is null then '1900-01-01' else ch.validFromDate end as validFromDate
 # MAGIC ,ch.validToDate as validToDate
 # MAGIC ,'ISU' as sourceSystemCode
@@ -34,6 +33,12 @@ lakedftarget.printSchema()
 # MAGIC on c.contractId = ch.contractId
 # MAGIC Left join cleansed.isu_0CACONT_ACC_ATTR_2 ca
 # MAGIC on c.contractAccountNumber = ca.contractAccountNumber
+# MAGIC where c._RecordDeleted = 0
+# MAGIC and c._RecordCurrent = 1
+# MAGIC and ch._RecordDeleted = 0
+# MAGIC and ch._RecordCurrent = 1
+# MAGIC and ca._RecordDeleted = 0
+# MAGIC and ca._RecordCurrent = 1
 
 # COMMAND ----------
 
@@ -53,12 +58,26 @@ lakedftarget.printSchema()
 
 # COMMAND ----------
 
+# DBTITLE 1,version 1.1.1
 # MAGIC %sql
 # MAGIC --duplicate check of Surrogate key
+# MAGIC SELECT dimInstallationSK,COUNT (*) as count
+# MAGIC FROM curated.dimContract
+# MAGIC GROUP BY dimInstallationSK
+# MAGIC HAVING COUNT (*) > 1
+
+# COMMAND ----------
+
+# MAGIC %sql
 # MAGIC SELECT contractId,validFromDate,COUNT (*) as count
 # MAGIC FROM curated.dimContract
 # MAGIC GROUP BY contractId,validFromDate
 # MAGIC HAVING COUNT (*) > 1
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC select * from curated.dimContract where contractId = -1
 
 # COMMAND ----------
 
@@ -89,7 +108,13 @@ lakedftarget.printSchema()
 # MAGIC Left join cleansed.isu_0UCCONTRACTH_ATTR_2 ch 
 # MAGIC on c.contractId = ch.contractId
 # MAGIC Left join cleansed.isu_0CACONT_ACC_ATTR_2 ca
-# MAGIC on c.contractAccountNumber = ca.contractAccountNumber)
+# MAGIC on c.contractAccountNumber = ca.contractAccountNumber
+# MAGIC where c._RecordDeleted = 0
+# MAGIC and c._RecordCurrent = 1
+# MAGIC and ch._RecordDeleted = 0
+# MAGIC and ch._RecordCurrent = 1
+# MAGIC and ca._RecordDeleted = 0
+# MAGIC and ca._RecordCurrent = 1)
 # MAGIC --where c.createdDate is not null and ch.validFromDate is not null)--c where c.rn =1
 
 # COMMAND ----------
@@ -101,20 +126,14 @@ lakedftarget.printSchema()
 # MAGIC ,case when ch.validFromDate is null then '1900-01-01' else ch.validFromDate end as validFromDate
 # MAGIC ,ch.validToDate as validToDate
 # MAGIC ,'ISU' as sourceSystemCode
-# MAGIC --,c.createdDate
 # MAGIC ,case
 # MAGIC when (ch.validFromDate < c.createdDate and ch.validFromDate is not null) then ch.validFromDate
-# MAGIC --when (ch.validFromDate is null and  c.createdDate is not null) then c.createdDate
-# MAGIC --when (c.createdDate < ch.validFromDate and c.createdDate is not null) then c.createdDate
-# MAGIC --when c.createdDate = ch.validFromDate then c.createdDate
-# MAGIC --else '1900-01-01' end as contractStartDate
 # MAGIC else c.createdDate end as contractStartDate
 # MAGIC ,ch.validToDate as contractEndDate
 # MAGIC ,case
 # MAGIC when c.invoiceContractsJointly = 'X' then 'Y'
 # MAGIC else 'N' end as invoiceJointlyFlag
 # MAGIC ,c.moveInDate as moveInDate
-# MAGIC --,case when c.moveOutDate = '2099-12-31' then '9999-12-31' else moveOutDate end as moveOutDate
 # MAGIC ,c.moveOutDate as moveOutDate
 # MAGIC ,ca.contractAccountNumber as contractAccountNumber
 # MAGIC ,ca.contractAccountCategory as contractAccountCategory
@@ -124,6 +143,12 @@ lakedftarget.printSchema()
 # MAGIC on c.contractId = ch.contractId
 # MAGIC Left join cleansed.isu_0CACONT_ACC_ATTR_2 ca
 # MAGIC on c.contractAccountNumber = ca.contractAccountNumber
+# MAGIC where c._RecordDeleted = 0
+# MAGIC and c._RecordCurrent = 1
+# MAGIC and ch._RecordDeleted = 0
+# MAGIC and ch._RecordCurrent = 1
+# MAGIC and ca._RecordDeleted = 0
+# MAGIC and ca._RecordCurrent = 1
 # MAGIC except
 # MAGIC select
 # MAGIC contractId,
@@ -139,12 +164,6 @@ lakedftarget.printSchema()
 # MAGIC contractAccountCategory,
 # MAGIC applicationArea
 # MAGIC from curated.dimContract
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC select * from curated.dimContract
-# MAGIC where contractId = 5000034234
 
 # COMMAND ----------
 
@@ -170,20 +189,14 @@ lakedftarget.printSchema()
 # MAGIC ,case when ch.validFromDate is null then '1900-01-01' else ch.validFromDate end as validFromDate
 # MAGIC ,ch.validToDate as validToDate
 # MAGIC ,'ISU' as sourceSystemCode
-# MAGIC --,c.createdDate
 # MAGIC ,case
 # MAGIC when (ch.validFromDate < c.createdDate and ch.validFromDate is not null) then ch.validFromDate
-# MAGIC --when (ch.validFromDate is null and  c.createdDate is not null) then c.createdDate
-# MAGIC --when (c.createdDate < ch.validFromDate and c.createdDate is not null) then c.createdDate
-# MAGIC --when c.createdDate = ch.validFromDate then c.createdDate
-# MAGIC --else '1900-01-01' end as contractStartDate
 # MAGIC else c.createdDate end as contractStartDate
 # MAGIC ,ch.validToDate as contractEndDate
 # MAGIC ,case
 # MAGIC when c.invoiceContractsJointly = 'X' then 'Y'
 # MAGIC else 'N' end as invoiceJointlyFlag
 # MAGIC ,c.moveInDate as moveInDate
-# MAGIC --,case when c.moveOutDate = '2099-12-31' then '9999-12-31' else moveOutDate end as moveOutDate
 # MAGIC ,c.moveOutDate as moveOutDate
 # MAGIC ,ca.contractAccountNumber as contractAccountNumber
 # MAGIC ,ca.contractAccountCategory as contractAccountCategory
@@ -193,3 +206,73 @@ lakedftarget.printSchema()
 # MAGIC on c.contractId = ch.contractId
 # MAGIC Left join cleansed.isu_0CACONT_ACC_ATTR_2 ca
 # MAGIC on c.contractAccountNumber = ca.contractAccountNumber
+# MAGIC where c._RecordDeleted = 0
+# MAGIC and c._RecordCurrent = 1
+# MAGIC and ch._RecordDeleted = 0
+# MAGIC and ch._RecordCurrent = 1
+# MAGIC and ca._RecordDeleted = 0
+# MAGIC and ca._RecordCurrent = 1
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC select
+# MAGIC contractId,
+# MAGIC validFromDate,
+# MAGIC validToDate,
+# MAGIC sourceSystemCode,
+# MAGIC contractStartDate,
+# MAGIC contractEndDate,
+# MAGIC invoiceJointlyFlag,
+# MAGIC moveInDate,
+# MAGIC moveOutDate,
+# MAGIC contractAccountNumber,
+# MAGIC contractAccountCategory,
+# MAGIC applicationArea
+# MAGIC from curated.dimContract
+# MAGIC except
+# MAGIC select * from(
+# MAGIC select
+# MAGIC c.contractId as contractId
+# MAGIC ,case when ch.validFromDate is null then '1900-01-01' else ch.validFromDate end as validFromDate
+# MAGIC ,ch.validToDate as validToDate
+# MAGIC ,'ISU' as sourceSystemCode
+# MAGIC ,case
+# MAGIC when (ch.validFromDate < c.createdDate and ch.validFromDate is not null) then ch.validFromDate
+# MAGIC else c.createdDate end as contractStartDate
+# MAGIC ,ch.validToDate as contractEndDate
+# MAGIC ,case
+# MAGIC when c.invoiceContractsJointly = 'X' then 'Y'
+# MAGIC else 'N' end as invoiceJointlyFlag
+# MAGIC ,c.moveInDate as moveInDate
+# MAGIC ,c.moveOutDate as moveOutDate
+# MAGIC ,ca.contractAccountNumber as contractAccountNumber
+# MAGIC ,ca.contractAccountCategory as contractAccountCategory
+# MAGIC ,ca.applicationArea as applicationArea
+# MAGIC from cleansed.isu_0UCCONTRACT_ATTR_2 c
+# MAGIC Left join cleansed.isu_0UCCONTRACTH_ATTR_2 ch 
+# MAGIC on c.contractId = ch.contractId
+# MAGIC Left join cleansed.isu_0CACONT_ACC_ATTR_2 ca
+# MAGIC on c.contractAccountNumber = ca.contractAccountNumber
+# MAGIC where c._RecordDeleted = 0
+# MAGIC and c._RecordCurrent = 1
+# MAGIC and ch._RecordDeleted = 0
+# MAGIC and ch._RecordCurrent = 1
+# MAGIC and ca._RecordDeleted = 0
+# MAGIC and ca._RecordCurrent = 1
+# MAGIC union all
+# MAGIC select * from (
+# MAGIC select 
+# MAGIC '-1' as contractId,
+# MAGIC null as validFromDate,
+# MAGIC null as validToDate,
+# MAGIC 'ISU' as sourceSystemCode,
+# MAGIC null as contractStartDate,
+# MAGIC null as contractEndDate,
+# MAGIC null as invoiceJointlyFlag,
+# MAGIC null as moveInDate,
+# MAGIC null as moveOutDate,
+# MAGIC null as contractAccountNumber,
+# MAGIC null as contractAccountCategory,
+# MAGIC null as applicationArea
+# MAGIC  from  cleansed.isu_0UCCONTRACT_ATTR_2  limit 1)d)e

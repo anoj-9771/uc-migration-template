@@ -175,15 +175,16 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
+#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
 df_cleansed = spark.sql(f"SELECT  \
                                       case when ABLBELNR = 'na' then '' else ABLBELNR end as meterReadingId , \
                                       case when EQUNR = 'na' then '' else EQUNR end as equipmentNumber , \
                                       ZWNUMMER as registerNumber , \
-                                      to_date(ADAT, 'yyyy-MM-dd') as meterReadingDate , \
+                                      ToValidDate(ADAT) as meterReadingDate , \
                                       MRESULT as meterReadingTaken , \
                                       MR_BILL as duplicate , \
                                       AKTIV as meterReadingActive , \
-                                      to_date(ADATSOLL, 'yyyy-MM-dd') as scheduledMeterReadingDate , \
+                                      ToValidDate(ADATSOLL) as scheduledMeterReadingDate , \
                                       ABLSTAT as meterReadingStatus , \
                                       ABLHINW as notefromMeterReader , \
                                       ABLESART as scheduledMeterReadingCategory , \
@@ -200,16 +201,16 @@ df_cleansed = spark.sql(f"SELECT  \
                                       TRANSSTAT as transferStatusCode , \
                                       TRANSTSTAMP as timeStamp , \
                                       SOURCESYST as sourceSystemOrigin , \
-                                      to_date(ZPREV_ADT, 'yyyy-MM-dd') as actualPreviousmeterReadingDate , \
+                                      ToValidDate(ZPREV_ADT) as actualPreviousmeterReadingDate , \
                                       ZPREV_MRESULT as meterPreviousReadingTaken , \
                                       ZZ_PHOTO_IND as meterPhotoIndicator , \
                                       ZZ_FREE_TEXT as freeText , \
                                       ZZ_COMM_CODE as meterReadingCommentCode , \
                                       ZZ_NO_READ_CODE as noReadCode , \
                                       ZGERNR as DeviceNumber , \
-                                      to_date(ZADATTATS, 'yyyy-MM-dd') as actualMeterReadingDate , \
+                                      ToValidDate(ZADATTATS) as actualMeterReadingDate , \
                                       ZWNABR as registerNotRelevantToBilling , \
-                                      to_date(AEDAT, 'yyyy-MM-dd') as lastChangedDate , \
+                                      ToValidDate(AEDAT) as lastChangedDate , \
                                       _RecordStart, \
                                       _RecordEnd, \
                                       _RecordDeleted, \

@@ -164,30 +164,31 @@ DeltaSaveToDeltaTable (
 # COMMAND ----------
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
-{ADS_DATABASE_CLEANSED}#Update/rename Column
+#Update/rename Column
+#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
 df_cleansed = spark.sql(f"SELECT \
-                                  case when DEVCAT.MATNR = 'na' then '' else DEVCAT.MATNR end as materialNumber,\
-                                  DEVCAT.KOMBINAT as deviceCategoryCombination,\
-                                  DEVCAT.FUNKLAS as functionClassCode,\
-                                  FKLASTX.functionClass as functionClass,\
-                                  DEVCAT.BAUKLAS as constructionClassCode,\
-                                  BKLASTX.constructionClass as constructionClass,\
-                                  DEVCAT.BAUFORM as deviceCategoryDescription,\
-                                  DEVCAT.BAUTXT as deviceCategoryName,\
-                                  DEVCAT.PTBNUM as ptiNumber,\
-                                  DEVCAT.DVGWNUM as ggwaNumber,\
-                                  DEVCAT.BGLKZ as certificationRequirementType,\
-                                  DEVCAT.ZWGRUPPE as registerGroupCode,\
-                                  REGGRP.registerGroup as registerGroup,\
-                                  cast(DEVCAT.UEBERVER as decimal (10,3)) as transformationRatio,\
-                                  DEVCAT.AENAM as changedBy,\
-                                  to_date(DEVCAT.AEDAT, 'yyyy-MM-dd') as lastChangedDate,\
-                                  DEVCAT.SPARTE as division,\
-                                  cast(DEVCAT.NENNBEL as decimal(10,4)) as nominalLoad,\
-                                  DEVCAT.STELLPLATZ as containerSpaceCount,\
-                                  cast(DEVCAT.HOEHEBEH as decimal(7,2)) as containerCategoryHeight,\
-                                  cast(DEVCAT.BREITEBEH as decimal(7,2)) as containerCategoryWidth,\
-                                  cast(DEVCAT.TIEFEBEH as decimal(7,2)) as containerCategoryDepth,\
+                                  case when DEVCAT.MATNR = 'na' then '' else DEVCAT.MATNR end as materialNumber, \
+                                  DEVCAT.KOMBINAT as deviceCategoryCombination, \
+                                  DEVCAT.FUNKLAS as functionClassCode, \
+                                  FKLASTX.functionClass as functionClass, \
+                                  DEVCAT.BAUKLAS as constructionClassCode, \
+                                  BKLASTX.constructionClass as constructionClass, \
+                                  DEVCAT.BAUFORM as deviceCategoryDescription, \
+                                  DEVCAT.BAUTXT as deviceCategoryName, \
+                                  DEVCAT.PTBNUM as ptiNumber, \
+                                  DEVCAT.DVGWNUM as ggwaNumber, \
+                                  DEVCAT.BGLKZ as certificationRequirementType, \
+                                  DEVCAT.ZWGRUPPE as registerGroupCode, \
+                                  REGGRP.registerGroup as registerGroup, \
+                                  cast(DEVCAT.UEBERVER as decimal (10,3)) as transformationRatio, \
+                                  DEVCAT.AENAM as changedBy, \
+                                  ToValidDate(DEVCAT.AEDAT) as lastChangedDate, \
+                                  DEVCAT.SPARTE as division, \
+                                  cast(DEVCAT.NENNBEL as decimal(10,4)) as nominalLoad, \
+                                  DEVCAT.STELLPLATZ as containerSpaceCount, \
+                                  cast(DEVCAT.HOEHEBEH as decimal(7,2)) as containerCategoryHeight, \
+                                  cast(DEVCAT.BREITEBEH as decimal(7,2)) as containerCategoryWidth, \
+                                  cast(DEVCAT.TIEFEBEH as decimal(7,2)) as containerCategoryDepth, \
                                   DEVCAT._RecordStart, \
                                   DEVCAT._RecordEnd, \
                                   DEVCAT._RecordDeleted, \

@@ -175,12 +175,13 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
+#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
 df_cleansed = spark.sql(f"SELECT \
                             case when EQUNR = 'na' then '' else EQUNR end as equipmentNumber, \
-                            case when DATETO = 'na' then to_date('1900-01-01','yyyy-MM-dd') else to_date(DATETO,'yyyy-MM-dd') end as validToDate, \
-                            to_date(DATEFROM,'yyyy-MM-dd') as validFromDate, \
+                            ToValidDate(DATETO,'MANDATORY') as validToDate, \
+                            ToValidDate(DATEFROM) as validFromDate, \
                             TXTMD as equipmentDescription, \
-                            to_date(AEDAT,'yyyy-MM-dd') as lastChangedDate, \
+                            ToValidDate(AEDAT) as lastChangedDate, \
                             _RecordStart, \
                             _RecordEnd, \
                             _RecordDeleted, \

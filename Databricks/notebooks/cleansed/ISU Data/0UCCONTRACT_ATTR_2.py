@@ -175,6 +175,7 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
+#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
 df_cleansed = spark.sql(f"SELECT \
                             case when VERTRAG = 'na' then '' else VERTRAG end as contractId, \
                             BUKRS as companyCode, \
@@ -185,14 +186,14 @@ df_cleansed = spark.sql(f"SELECT \
                             ABRSPERR as billBlockingReasonCode, \
                             ABRFREIG as billReleasingReasonCode, \
                             VBEZ as contractText, \
-                            case when EINZDAT_ALT < '1900-01-01' then to_date('1900-01-01', 'yyyy-MM-dd') else to_date(EINZDAT_ALT, 'yyyy-MM-dd') end as legacyMoveInDate, \
+                            ToValidDate(EINZDAT_ALT) as legacyMoveInDate, \
                             KFRIST as numberOfCancellations, \
                             VERLAENG as numberOfRenewals, \
                             PERSNR as personnelNumber, \
                             VREFER as contractNumberLegacy, \
-                            case when ERDAT < '1900-01-01' then to_date('1900-01-01', 'yyyy-MM-dd') else to_date(ERDAT, 'yyyy-MM-dd') end as createdDate, \
+                            ToValidDate(ERDAT) as createdDate, \
                             ERNAM as createdBy, \
-                            case when AEDAT < '1900-01-01' then to_date('1900-01-01', 'yyyy-MM-dd') else to_date(AEDAT, 'yyyy-MM-dd') end as lastChangedDate, \
+                            ToValidDate(AEDAT) as lastChangedDate, \
                             AENAM as lastChangedBy, \
                             LOEVM as deletedIndicator, \
                             FAKTURIERT as isContractInvoiced, \
@@ -209,12 +210,12 @@ df_cleansed = spark.sql(f"SELECT \
                             ANLAGE as installationId, \
                             VKONTO as contractAccountNumber, \
                             KZSONDAUSZ as specialMoveOutCase, \
-                            case when EINZDAT < '1900-01-01' then to_date('1900-01-01', 'yyyy-MM-dd') else to_date(EINZDAT, 'yyyy-MM-dd') end as moveInDate, \
-                            case when AUSZDAT < '1900-01-01' then to_date('1900-01-01', 'yyyy-MM-dd') else to_date(AUSZDAT, 'yyyy-MM-dd') end as moveOutDate, \
-                            case when ABSSTOPDAT < '1900-01-01' then to_date('1900-01-01', 'yyyy-MM-dd') else to_date(ABSSTOPDAT, 'yyyy-MM-dd') end as budgetBillingStopDate, \
+                            ToValidDate(EINZDAT) as moveInDate, \
+                            ToValidDate(AUSZDAT) as moveOutDate, \
+                            ToValidDate(ABSSTOPDAT) as budgetBillingStopDate, \
                             XVERA as isContractTransferred, \
                             ZGPART as businessPartnerGroupNumber, \
-                            case when ZDATE_FROM < '1900-01-01' then to_date('1900-01-01', 'yyyy-MM-dd') else to_date(ZDATE_FROM, 'yyyy-MM-dd') end as validFromDate, \
+                            ToValidDate(ZDATE_FROM) as validFromDate, \
                             ZZAGREEMENT_NUM as agreementNumber, \
                             VSTELLE as premise, \
                             HAUS as propertyNumber, \

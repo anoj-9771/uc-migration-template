@@ -175,11 +175,12 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
+#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
 df_cleansed = spark.sql(f"SELECT \
                             case when ABLBELNR = 'na' then '' else ABLBELNR end as suppressedMeterReadingDocumentID, \
                             ABLEINH as meterReadingUnit, \
                             case when ABLESGR = 'na' then '' else ABLESGR end as meterReadingReasonCode, \
-                            to_date(ADATSOLL,'yyyy-MM-dd') as meterReadingScheduleDate, \
+                            ToValidDate(ADATSOLL) as meterReadingScheduleDate, \
                             case when ANLAGE = 'na' then '' else ANLAGE end as installationId, \
                             LOEVM as deletedIndicator, \
                             UPDMOD as bwDeltaProcess, \

@@ -175,6 +175,7 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
+#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
 df_cleansed = spark.sql(f"SELECT \
 	case when PARTNER = 'na' then '' else PARTNER end as businessPartnerNumber, \
 	PARTNER_GUID as businessPartnerGUID, \

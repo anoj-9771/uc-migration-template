@@ -175,19 +175,20 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
+#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
 df_cleansed = spark.sql(f"SELECT \
 	case when GUID = 'na' then '' else GUID end as headerUUID, \
 	OBJECT_ID as utilitiesStructuredContract, \
 	PROCESS_TYPE as headerType, \
-	to_date(POSTING_DATE,'yyyy-MM-dd') as postingDate, \
+	ToValidDate(POSTING_DATE) as postingDate, \
 	DESCRIPTION_UC as transactionDescription, \
 	LOGICAL_SYSTEM as logicalSystem, \
 	OBJECT_TYPE as headerCategory, \
-	to_date(CREATED_AT,'yyyy-MM-dd') as createdDate, \
-    to_timestamp(cast(CREATED_TS as string), 'yyyyMMddHHmmss') as createdDateTime, \
+	ToValidDate(CREATED_AT) as createdDate, \
+    ToValidDateTime(CREATED_TS) as createdDateTime, \
 	CREATED_BY as createdBy, \
-	to_date(CHANGED_AT,'yyyy-MM-dd') as lastChangedDate, \
-    to_timestamp(cast(CHANGED_TS as string), 'yyyyMMddHHmmss') as lastChangedDateTime, \
+	ToValidDate(CHANGED_AT) as lastChangedDate, \
+    ToValidDateTime(CHANGED_TS) as lastChangedDateTime, \
 	CHANGED_BY as changedBy, \
 	cast(NUM_OF_HEAD as int) as requestHeaderNumber, \
 	SCENARIO as scenarioId, \
@@ -197,7 +198,7 @@ df_cleansed = spark.sql(f"SELECT \
 	IMPACT as impact, \
 	ESCALATION as escalation, \
 	RISK as risk, \
-	to_timestamp(cast(last_updated_at as string), 'yyyyMMddHHmmss') as lastUpdatedAt, \
+	ToValidDateTime(last_updated_at) as lastUpdatedAt, \
 	CATEGORY as activityCategory, \
 	PRIORITY as activityPriority, \
 	DIRECTION as activityDirection, \
@@ -212,8 +213,8 @@ df_cleansed = spark.sql(f"SELECT \
 	SERVICE_ORG_RESP as serviceOrgResponsible, \
 	SERVICE_ORG as serviceOrg, \
 	SERVICE_TEAM as serviceTeam, \
-	to_date(CALDAY,'yyyy-MM-dd') as calendarDay, \
-	to_timestamp(cast(CALDAY_TS as string), 'yyyyMMddHHmmss') as calendarDatetime, \
+	ToValidDate(CALDAY) as calendarDay, \
+	ToValidDateTime(CALDAY_TS) as calendarDatetime, \
 	PREDEC_OBJKEY as precedingTransactionGUID, \
 	PREDEC_OBJTYPE as precedingDocumentObjectType, \
 	PRED_ACT_GUID as precedingActivityGUID, \
@@ -222,7 +223,7 @@ df_cleansed = spark.sql(f"SELECT \
 	PROCESS_CODEGR as processCodeGroup, \
 	PROCESS_CODE as processCode, \
 	PROCESS_OBJTYPE as precedingObjectType, \
-	to_timestamp(cast(QUOT_VALID_TS as string), 'yyyyMMddHHmmss') as validTimestamp, \
+	ToValidDateTime(QUOT_VALID_TS) as validTimestamp, \
 	CATALOG_TYPE_C as catalogCategoryC, \
 	KATALOGART_C as catalogC, \
 	CODEGRUPPE_C as codeGroupC, \
@@ -258,12 +259,12 @@ df_cleansed = spark.sql(f"SELECT \
 	WORK_DURA_UNIT as workDurationUnit, \
 	cast(TOTAL_DURATION as long) as totalDuration, \
 	TOTAL_DURA_UNIT as totalDurationUnit, \
-	to_timestamp(cast(REQ_START_DATE as string), 'yyyyMMddHHmmss') as requestStartDate, \
-	to_timestamp(cast(REQ_END_DATE as string), 'yyyyMMddHHmmss') as requestEndDate, \
-	to_timestamp(cast(DUE_DATE as string), 'yyyyMMddHHmmss') as dueDateTime, \
-	to_timestamp(cast(COMPLETION_TS as string), 'yyyyMMddHHmmss') as completionDateTime, \
-	to_timestamp(cast(ESCALATE_1_TS as string), 'yyyyMMddHHmmss') as firstEscalateDateTime, \
-	to_timestamp(cast(ESCALATE_2_TS as string), 'yyyyMMddHHmmss') as secondEscalateDateTime, \
+	ToValidDateTime(REQ_START_DATE) as requestStartDate, \
+	ToValidDateTime(REQ_END_DATE) as requestEndDate, \
+	ToValidDateTime(DUE_DATE) as dueDateTime, \
+	ToValidDateTime(COMPLETION_TS) as completionDateTime, \
+	ToValidDateTime(ESCALATE_1_TS) as firstEscalateDateTime, \
+	ToValidDateTime(ESCALATE_2_TS) as secondEscalateDateTime, \
 	CC_CAT_ACTREASON as activityReasonCode, \
 	cast(NO_OF_IR as int) as numberOfInteractionRecords, \
 	IN_COMPL_BEFORE as completedBeforeIndicator, \

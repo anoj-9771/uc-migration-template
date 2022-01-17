@@ -175,6 +175,7 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
+#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
 df_cleansed = spark.sql(f"SELECT \
                               case when con.HAUS = 'na' then '' else con.HAUS end as propertyNumber, \
                               case when con.COUNTRY = 'na' then '' else con.COUNTRY end  as countryShortName, \
@@ -186,8 +187,7 @@ df_cleansed = spark.sql(f"SELECT \
                               con.REGIO_GRP as regionGroup, \
                               con.REGPOLIT as politicalRegionCode, \
                               reg.REGNAME as politicalRegion, \
-                              case when con.DATE_FROM is null or year(to_date(con.DATE_FROM, 'yyyy-MM-dd')) < 1900 \
-                                          then to_date('1900-01-01', 'yyyy-MM-dd') else to_date(con.DATE_FROM, 'yyyy-MM-dd') end as validFromDate, \
+                              ToValidDate(con.DATE_FROM) as validFromDate, \
                               con.WWTP as connectionObjectGUID, \
                               con.REGIOGROUP_PERM as regionGroupPermit, \
                               con.ZCD_PLAN_TYPE as planTypeCode, \
@@ -205,8 +205,7 @@ df_cleansed = spark.sql(f"SELECT \
                               con.ZCD_AONR as architecturalObjectNumber, \
                               con.ZCD_AOTYPE as architecturalObjectTypeCode, \
                               tiv.XMAOTYPE as architecturalObjectType, \
-                              case when con.ZCD_BLD_FEE_DATE < '1900-01-01' then to_date('1900-01-01', 'yyyy-MM-dd') \
-                                                            else to_date(con.ZCD_BLD_FEE_DATE, 'yyyy-MM-dd') end as buildingFeeDate, \
+                              ToValidDate(con.ZCD_BLD_FEE_DATE) as buildingFeeDate, \
                               con.ZCD_CAD_ID as cadID, \
                               con.ZZPUMP_WW as pumpWateWaterIndicator, \
                               con.ZZFIRE_SERVICE as fireServiceIndicator, \
