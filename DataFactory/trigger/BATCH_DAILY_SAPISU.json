@@ -1,7 +1,7 @@
 {
 	"name": "BATCH_DAILY_SAPISU",
 	"properties": {
-		"description": "Triggers Main pipeline to kick-off SAP ISU daily loads on the blob-creation event of 'trigger_batch_daily_sapcrm.json' in 'triggers' container",
+		"description": "Triggers Main pipeline to kick off SAP ISU daily loads on the blob-creation event of 'trigger_batch_daily_sapcrm.json' in 'triggers' container",
 		"annotations": [],
 		"runtimeState": "Started",
 		"pipelines": [
