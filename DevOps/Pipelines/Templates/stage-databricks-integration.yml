@@ -26,7 +26,7 @@ stages:
   # ---------------------------------------------------------------------------
   # Attach Databricks artifact and assign reference "databricks_notebooks"
   - job: 'integrate_databricks'
-    pool: Daf-Self-Pool01
+    pool: Daf-Self-Hosted-Preprod-Linux
     steps:
     - download: current
       artifact: databricks_notebooks
