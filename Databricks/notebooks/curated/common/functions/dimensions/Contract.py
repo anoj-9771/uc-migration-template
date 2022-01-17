@@ -45,9 +45,20 @@ def getContract():
 
     #4.UNION TABLES
     #Create dummy record
-#     dummyRec = tuple([-1] + ['Unknown'] * (len(HydraLocationDf.columns) - 3) + [0,0]) 
-#     dummyDimRecDf = spark.createDataFrame([dummyRec],HydraLocationDf.columns)
-#     HydraLocationDf = HydraLocationDf.unionByName(dummyDimRecDf, allowMissingColumns = True)
+    dummyDimRecDf = spark.sql("select '-1' as contractId, \
+                                     to_date('1900-01-01','yyyy-MM-dd') as validFromDate, \
+                                     to_date('2099-12-31','yyyy-MM-dd') as validToDate, \
+                                     'ISU' as sourceSystemCode, \
+                                     to_date('1900-01-01','yyyy-MM-dd') as contractStartDate, \
+                                     to_date('2099-12-31','yyyy-MM-dd') as contractEndDate, \
+                                     'N' as invoiceJointlyFlag, \
+                                     to_date('1900-01-01','yyyy-MM-dd') as moveInDate, \
+                                     to_date('2099-12-31','yyyy-MM-dd') as moveOutDate, \
+                                     'Unknown' as contractAccountNumber, \
+                                     'Unknown' as contractAccountCategory, \
+                                     'Unknown' as applicationArea")
+                                     
+    df = df.unionByName(dummyDimRecDf)
 
     #5.SELECT / TRANSFORM
     df = df.selectExpr( \
