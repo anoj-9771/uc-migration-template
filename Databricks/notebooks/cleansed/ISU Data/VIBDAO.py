@@ -188,11 +188,13 @@ df_cleansed = spark.sql(f"SELECT \
                                   RERF as firstEnteredBy , \
                                   to_date(DERF,'yyyy-MM-dd') as firstEnteredOnDate , \
                                   TERF as firstEnteredTime , \
+                                  cast(DERF||' '||TERF as timestamp) as firstEnteredDateTime , \
                                   REHER as firstEnteredSource , \
                                   RBEAR as employeeId , \
-                                  to_date(DBEAR,'yyyy-MM-dd') as lastEdittedOnDate , \
-                                  TBEAR as lastEdittedTime , \
-                                  RBHER as lastEdittedSource , \
+                                  to_date(DBEAR,'yyyy-MM-dd') as lastEditedOnDate , \
+                                  TBEAR as lastEditedTime , \
+                                  cast(DBEAR||' '||TBEAR as timestamp) as lastEditedDateTime , \
+                                  RBHER as lastEditedSource , \
                                   RESPONSIBLE as responsiblePerson , \
                                   USEREXCLUSIVE as exclusiveUser , \
                                   to_date(LASTRENO,'yyyy-MM-dd') as lastRelocationDate , \
@@ -270,11 +272,13 @@ newSchema = StructType(
                             StructField("firstEnteredBy", StringType(), True),
                             StructField("firstEnteredOnDate", DateType(), True),
                             StructField("firstEnteredTime", StringType(), True),
+                            StructField("firstEnteredDateTime", TimestampType(), True),  
                             StructField("firstEnteredSource", StringType(), True),
                             StructField("employeeId", StringType(), True),
-                            StructField("lastEdittedOnDate", DateType(), True),
-                            StructField("lastEdittedTime", StringType(), True),
-                            StructField("lastEdittedSource", StringType(), True),
+                            StructField("lastEditedOnDate", DateType(), True),
+                            StructField("lastEditedTime", StringType(), True),
+                            StructField("lastEditedDateTime", TimestampType(), True),    
+                            StructField("lastEditedSource", StringType(), True),
                             StructField("responsiblePerson", StringType(), True),
                             StructField("exclusiveUser", StringType(), True),
                             StructField("lastRelocationDate", DateType(), True),

@@ -16,19 +16,18 @@ spark.conf.set(
 
 # COMMAND ----------
 
-hostName = 'nt097dslt01.adsdev.swcdev'
-databaseName = 'SLT_EQ1CLNT100'
-port = 1433
-dbURL = f'jdbc:sqlserver://{hostName}:{port};database={databaseName};user=SLTADMIN;password=Edpgroup01#!'
-qry = '(select * from EQ1.DBERCHZ1 where BELNR = 193006781302) myTable'
-df = spark.read.jdbc(url=dbURL, table=qry, lowerBound=1, upperBound=100000, numPartitions=10)
-display(df)
+# MAGIC %sql
+# MAGIC select * From cleansed.isu_dberchz1 where billingdocumentnumber = '193006781302'
 
 # COMMAND ----------
 
-# MAGIC %sql
-# MAGIC select  *, billingQuantityPlaceBeforeDecimalPoint,billingQuantityPlaceAfterDecimalPoint from cleansed.isu_dberchz1 where billingQuantityPlaceAfterDecimalPoint in (0.42465753424660,0.80273972602731,0.88767123287665)
-# MAGIC --cast(N_ZWSTVOR as decimal(15,5)) as num from test.isu_dberchz2
+hostName = 'nt097dslt01.adsdev.swcdev'
+databaseName = 'SLT_EQ1CLNT100'
+port = 1433
+dbURL =
+qry = '(select * from EQ1.DBERCHZ1 where BELNR = 193006781302) myTable'
+df = spark.read.jdbc(url=dbURL, table=qry, lowerBound=1, upperBound=100000, numPartitions=10)
+display(df)
 
 # COMMAND ----------
 
@@ -581,3 +580,88 @@ df = spark.sql("select * from Source")
 
 # MAGIC %sql
 # MAGIC select * from cleansed.isu_dberchz1 where billingdocumentnumber = '010000004111' and billingDocumentLineItemId = '000696'
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC SELECT
+# MAGIC BELNR as billingDocumentNumber
+# MAGIC ,BELZEILE as billingDocumentLineItemId
+# MAGIC ,CSNO as billingSequenceNumber
+# MAGIC ,BELZART as lineItemTypeCode
+# MAGIC ,ABSLKZ as billingLineItemBudgetBillingIndicator
+# MAGIC ,DIFFKZ as lineItemDiscountStatisticsIndicator
+# MAGIC ,BUCHREL as billingLineItemReleventPostingIndicator
+# MAGIC ,MENGESTREL as billedValueStatisticallyReleventIndicator
+# MAGIC ,BETRSTREL as billingLineItemStatisticallyReleventAmount
+# MAGIC ,STGRQNT as quantityStatisticsGroupCode
+# MAGIC ,STGRAMT as amountStatisticsGroupCoide
+# MAGIC ,PRINTREL as billingLinePrintReleventIndicator
+# MAGIC ,AKLASSE as billingClassCode
+# MAGIC ,b.billingClass as billingClass
+# MAGIC ,BRANCHE as industryText
+# MAGIC ,TVORG as subtransactionForDocumentItem
+# MAGIC ,GEGEN_TVORG as offsettingTransactionSubtransactionForDocumentItem
+# MAGIC ,LINESORT as poresortingBillingLineItems
+# MAGIC ,AB as validFromDate
+# MAGIC ,BIS as validToDate
+# MAGIC ,TIMTYPZA as billingLineItemTimeCategoryCode
+# MAGIC ,SCHEMANR as billingSchemaNumber
+# MAGIC ,SNO as billingSchemaStepSequenceNumber
+# MAGIC ,PROGRAMM as variantProgramNumber
+# MAGIC ,MASSBILL as billingMeasurementUnitCode
+# MAGIC ,SAISON as seasonNumber
+# MAGIC ,TIMBASIS as timeBasisCode
+# MAGIC ,TIMTYP as timeCategoryCode
+# MAGIC ,FRAN_TYPE as franchiseFeeTypeCode
+# MAGIC ,KONZIGR as franchiseFeeGroupNumber
+# MAGIC ,TARIFTYP as rateTypeCode
+# MAGIC ,TARIFNR as rateId
+# MAGIC ,KONDIGR as rateFactGroupNumber
+# MAGIC ,STTARIF as statisticalRate
+# MAGIC ,GEWKEY as weightingKeyId
+# MAGIC ,WDHFAKT as referenceValuesForRepetitionFactor
+# MAGIC ,TEMP_AREA as tempratureArea
+# MAGIC ,DYNCANC01 as reversalDynamicPeriodControl1
+# MAGIC ,DYNCANC02 as reversalDynamicPeriodControl2
+# MAGIC ,DYNCANC03 as reversalDynamicPeriodControl3
+# MAGIC ,DYNCANC04 as reversalDynamicPeriodControl4
+# MAGIC ,DYNCANC05 as reversalDynamicPeriodControl5
+# MAGIC ,DYNCANC as reverseBackbillingIndicator
+# MAGIC ,DYNEXEC as allocateBackbillingIndicator
+# MAGIC ,LRATESTEP as eateStepLogicalNumber
+# MAGIC ,PEB as periodEndBillingIndicator
+# MAGIC ,STAFO as statististicsUpdateGroupCode
+# MAGIC ,ARTMENGE as billedQuantityStatisticsCode
+# MAGIC ,STATTART as statisticalAnalysisRateType
+# MAGIC ,TIMECONTRL as periodControlCode
+# MAGIC ,TCNUMTOR as timesliceNumeratorTimePortion
+# MAGIC ,TCDENOMTOR as timesliceDenominatorTimePortion
+# MAGIC ,TIMTYPQUOT as timesliceTimeCatogoryTimePortion
+# MAGIC ,AKTIV as meterReadingActiveIndicator
+# MAGIC ,KONZVER as franchiseContractIndicator
+# MAGIC ,PERTYP as billingPeriodInternalCategoryCode
+# MAGIC ,OUCONTRACT as individualContractID
+# MAGIC ,V_ABRMENGE as billingQuantityPlaceBeforeDecimalPoint
+# MAGIC ,N_ABRMENGE as billingQuantityPlaceAfterDecimalPoint
+# MAGIC from Source a
+# MAGIC left join cleansed.isu_0UC_AKLASSE_TEXT b
+# MAGIC on a.AKLASSE = b.billingClassCode   --where BELNR = '010000004111' and BELZEILE = '000696'
+# MAGIC --billingdocumentnumber = '616000659963' and billingDocumentLineItemId = '000001'-- 
+# MAGIC --select * from source 
+# MAGIC where BELNR ='193006781302'
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC select billingdocumentnumber from cleansed.isu_dberchz1 where billingdocumentnumber = '193006781302'--billingQuantityPlaceAfterDecimalPoint in ('0.02191780821927' )
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC select distinct billingQuantityPlaceBeforeDecimalPoint, billingQuantityPlaceAfterDecimalPoint  from cleansed.isu_dberchz1 where billingQuantityPlaceBeforeDecimalPoint > 1 and  billingQuantityPlaceAfterDecimalPoint <> 0E-14
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC select distinct billingQuantityPlaceAfterDecimalPoint from cleansed.isu_dberchz1 --where billingQuantityPlaceAfterDecimalPoint > 1

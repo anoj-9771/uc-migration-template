@@ -184,8 +184,8 @@ df_cleansed = spark.sql(f"SELECT \
                                 RELDIR as relationshipDirection, \
                                 RELTYP as relationshipTypeCode, \
                                 BP_TXT.relationshipType as relationshipType, \
-                                case when DATE_TO = 'na' then to_date('2099-12-31', 'yyyy-MM-dd') else to_date(DATE_TO, 'yyyy-MM-dd') end as validToDate, \
-                                case when DATE_FROM < '1900-01-01' then to_date('1900-01-01', 'yyyy-MM-dd') else to_date(DATE_FROM, 'yyyy-MM-dd') end as validFromDate, \
+                                ToValidDate(DATE_TO) as validToDate, \
+                                ToValidDate(DATE_FROM) as validFromDate, \
                                 COUNTRY as countryShortName, \
                                 POST_CODE1 as postalCode, \
                                 CITY1 as cityName, \
@@ -193,8 +193,8 @@ df_cleansed = spark.sql(f"SELECT \
                                 HOUSE_NUM1 as houseNumber, \
                                 TEL_NUMBER as phoneNumber, \
                                 SMTP_ADDR as emailAddress, \
-                                cast(CMPY_PART_PER as long) as capitalInterestPercentage, \
-                                cast(CMPY_PART_AMO as dec(13,0)) as capitalInterestAmount, \
+                                cast(CMPY_PART_PER as dec(13,2)) as capitalInterestPercentage, \
+                                cast(CMPY_PART_AMO as dec(13,2)) as capitalInterestAmount, \
                                 ADDR_SHORT as shortFormattedAddress, \
                                 ADDR_SHORT_S as shortFormattedAddress2, \
                                 LINE0 as addressLine0, \
@@ -237,8 +237,8 @@ newSchema = StructType([
 	StructField('houseNumber',StringType(),True),
 	StructField('phoneNumber',StringType(),True),
 	StructField('emailAddress',StringType(),True),
-	StructField('capitalInterestPercentage',LongType(),True),
-	StructField('capitalInterestAmount',DecimalType(13,0),True),
+	StructField('capitalInterestPercentage',DecimalType(13,2),True),
+	StructField('capitalInterestAmount',DecimalType(13,2),True),
 	StructField('shortFormattedAddress',StringType(),True),
 	StructField('shortFormattedAddress2',StringType(),True),
 	StructField('addressLine0',StringType(),True),

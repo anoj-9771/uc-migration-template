@@ -1,9 +1,25 @@
 # Databricks notebook source
+# MAGIC %run ./dimensions/BillingDocumentIsu
+
+# COMMAND ----------
+
+# MAGIC %run ./dimensions/BusinessPartner
+
+# COMMAND ----------
+
+# MAGIC %run ./dimensions/BusinessPartnerGroup
+
+# COMMAND ----------
+
+# MAGIC %run ./dimensions/Contract
+
+# COMMAND ----------
+
 # MAGIC %run ./dimensions/Date
 
 # COMMAND ----------
 
-# MAGIC %run ./dimensions/Property
+# MAGIC %run ./dimensions/Installation
 
 # COMMAND ----------
 
@@ -15,8 +31,8 @@
 
 # COMMAND ----------
 
-# MAGIC %run ./commonBilledWaterConsumptionIsu
+# MAGIC %run ./dimensions/Property
 
 # COMMAND ----------
 
-# MAGIC %run ./dimensions/BillingDocumentIsu
+# MAGIC %run ./commonBilledWaterConsumptionIsu

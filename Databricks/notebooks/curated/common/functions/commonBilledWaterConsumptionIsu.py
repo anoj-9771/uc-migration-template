@@ -3,6 +3,7 @@
 
 # COMMAND ----------
 
+
 ###########################################################################################################################
 # Function: getBilledWaterConsumptionisu
 #  GETS ISU Billed Water Consumption from cleansed layer
@@ -26,7 +27,11 @@ def getBilledWaterConsumptionIsu():
                              case when ltrim('0', businessPartnerNumber) is null then 'Unknown' else ltrim('0', businessPartnerNumber) end as businessPartnerNumber, \
                              case when startBillingPeriod is null then to_date('19000101', 'yyyymmdd') else startBillingPeriod end as startBillingPeriod, \
                              case when endBillingPeriod is null then to_date('19000101', 'yyyymmdd') else endBillingPeriod end as endBillingPeriod, \
-                             billingDocumentCreateDate, documentNotReleasedIndicator, reversalDate \
+                             billingDocumentCreateDate, documentNotReleasedIndicator, reversalDate, \
+                             portionNumber, \
+                             documentTypeCode, \
+                             meterReadingUnit, \
+                             billingTransactionCode \
                          from {ADS_DATABASE_CLEANSED}.isu_erch \
                          where trim(billingSimulationIndicator) = ''")
 
@@ -54,10 +59,12 @@ def getBilledWaterConsumptionIsu():
   billedConsDf = billedConsDf.select("sourceSystemCode", "billingDocumentNumber", "businessPartnerNumber", "equipmentNumber", \
                     "startBillingPeriod", "endBillingPeriod", "validFromDate", "validToDate", \
                     "billingDocumentCreateDate", "documentNotReleasedIndicator", "reversalDate", \
+                    "portionNumber","documentTypeCode","meterReadingUnit","billingTransactionCode", \
                     "billingQuantityPlaceBeforeDecimalPoint") \
                   .groupby("sourceSystemCode", "billingDocumentNumber", "businessPartnerNumber", "equipmentNumber", \
                              "startBillingPeriod", "endBillingPeriod", "billingDocumentCreateDate", \
-                             "documentNotReleasedIndicator", "reversalDate") \
+                             "documentNotReleasedIndicator", "reversalDate", \
+                    "portionNumber","documentTypeCode","meterReadingUnit","billingTransactionCode") \
                   .agg(min("validFromDate").alias("meterActiveStartDate") \
                       ,max("validToDate").alias("meterActiveEndDate") \
                       ,sum("billingQuantityPlaceBeforeDecimalPoint").alias("meteredWaterConsumption"))
@@ -75,11 +82,15 @@ def getBilledWaterConsumptionIsu():
                     ,"endBillingPeriod as billingPeriodEndDate" \
                     ,"billingDocumentCreateDate as billCreatedDate" \
                     ,"reversalDate" \
+                    ,"portionNumber" \
+                    ,"documentTypeCode" \
+                    ,"meterReadingUnit" \
+                    ,"billingTransactionCode" \
                     ,"case when reversalDate is null then 'N' else 'Y' end as isReversedFlag" \
                     ,"case when documentNotReleasedIndicator == 'X' then 'Y' else 'N' end as isOutsortedFlag" \
                     ,"meterActiveStartDate" \
                     ,"meterActiveEndDate" \
                     ,"cast(meteredWaterConsumption as decimal(18,6)) as meteredWaterConsumption" \
                   )
-
+  
   return billedConsDf

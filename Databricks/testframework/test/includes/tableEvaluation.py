@@ -94,9 +94,16 @@ for folder in folders:
     except:
         print(f'Invalid folder name: {folder.name.strip("/")}')
 
-for myFile in fileNames: 
-    print(f'Processing {myFile.name}')
-    listDetails(myFile)
+if len(fileNames) > 0:
+    for myFile in fileNames: 
+        print(f'Processing {myFile.name}')
+        listDetails(myFile)
+else:
+    #there are no files to create a table with, so create a dummy one
+    targetDF = spark.sql(f"select * from cleansed.{tableName} limit(0)")
+    emptyDF = spark.createDataFrame(spark.sparkContext.emptyRDD(), targetDF.schema)
+    emptyDF.createOrReplaceTempView("emptyTable")
+    spark.sql(f'create table {environment}.{tableName} as select * from emptyTable')
 
 # COMMAND ----------
 

@@ -459,7 +459,10 @@ def _SQLInsertSyntax_DeltaTable_Generate(dataframe, is_delta_extract, delta_colu
   if not is_delta_extract and target_data_lake_zone == ADS_DATABASE_CLEANSED and only_insert:
     sql = f"INSERT INTO {target_table} ({sql_col}) SELECT {sql_values} FROM {source_table}" 
   else:
-    sql = f"INSERT ({sql_col}) {NEW_LINE}VALUES ({sql_values})" 
+    sql = f"INSERT ({sql_col}) {NEW_LINE}VALUES ({sql_values})"
+    
+#   sql = f"INSERT INTO {target_table} ({sql_col}) SELECT {sql_values} FROM {source_table}" 
+
 #End of Fix for Handling Null in Key Columns  
       
   return sql

@@ -5,32 +5,92 @@
 -- COMMAND ----------
 
 -- DBTITLE 1,FactBilledWaterConsumption
---ACCESS
-
---SAP
-select 
-	b.billingDocumentSK,
-	b.propertySK,
-	db2.meterSK,
-	b.billingPeriodStartDateSK,
-	b.billingPeriodEndDateSK,
-	b.locationSK,
-	-1 as waterNetworkSK,
-	sum(db1.billingQuantityPlaceBeforeDecimalPoint) as meteredWaterConsumption
-  	
-from cleansed.t_sapisu_erch b
-join cleansed.t_sapisu_dberchz1 db1 
-  on db1.billingDocumentNumber = b.billingDocumentNumber
-join cleansed.t_sapisu_dberchz2 db2 
-  on db2.billingDocumentNumber = b.billingDocumentNumber and db2.billingDocumentLineItemId = db1.billingDocumentLineItemId
-join dimBillingDocument db on db.billingDocumentNumber = b.billingDocumentNumber
-join dimProperty dp on dp.propertyNumber=  trim(leading '0', businesspartnerNumber)
-join dimMeter dm on dm.meterId = db2.equipmentNumber
-join dimDate dd on dd.calendarDate = b.startBillingPeriod
-join dimDate dd on dd.calendarDate = b.endBillingPeriod
-join dimLocation dl on dl.locationId = b.businesspartnerNumber
-and  billingSimulationIndicator='' 
-and db1.lineItemTypeCode in ('ZDQUAN', 'ZRQUAN')
-and db2.suppressedMeterReadingDocumentID <> ''
-and db2.billingLineItemBudgetBillingIndicator is NULL
-and b.endbillingPeriod between dp.propertyStartDate and dp.propertyEndDate
+-- MAGIC %sql
+-- MAGIC --ACCESS
+-- MAGIC select
+-- MAGIC   -1 as billingDocumentNumber,
+-- MAGIC   e.propertySK,
+-- MAGIC   c.meterSK,
+-- MAGIC   a.billingPeriodStartDateSK,
+-- MAGIC   a.billingPeriodEndDateSK,
+-- MAGIC   e.locationSK,
+-- MAGIC   -1 as waterNetworkSK,
+-- MAGIC   sum(a.consumption) as billedWaterConsumption
+-- MAGIC from
+-- MAGIC   cleansed.t_access_z309_tmetereading a
+-- MAGIC   JOIN cleansed.t_access_z309_tpropmeter c ON a.propertyNumber = c.propertyNumber
+-- MAGIC   and a.propertyMeterNumber = c.propertyMeterNumber
+-- MAGIC   JOIN cleansed.t_access_z309_tproperty e ON a.propertyNumber = e.propertyNumber
+-- MAGIC   AND A.meterReadingStatusCode IN ('A', 'B', 'P', 'V') -- BILLED, PROCESSED & AMENDED METER READINGS
+-- MAGIC   c.meterClassCode IN ('01','04','05','06','07','08','17','19','20','21') -- POTABLE WATER ONLY
+-- MAGIC   AND not c.isCheckMeter -- EXCLUDE CHECK METERS
+-- MAGIC   a.meterReadingDays > 0 -- 9 out of ten times initial reads, else manual error
+-- MAGIC   AND a.meterReadingNumber = (
+-- MAGIC     SELECT
+-- MAGIC       max(b.meterReadingNumber) -- MAXIMUM METER READING
+-- MAGIC     FROM
+-- MAGIC       cleansed.t_access_z309_tmetereading b
+-- MAGIC     WHERE
+-- MAGIC       a.propertyNumber = b.propertyNumber
+-- MAGIC       AND a.propertyMeterNumber = b.propertyMeterNumber
+-- MAGIC       AND b.meterreadingStatusCode IN ('A', 'B', 'P', 'V') -- BILLED, PROCESSED & AMENDED METER READINGS
+-- MAGIC       AND a.readingFromDate = b.readingFromDate
+-- MAGIC   )
+-- MAGIC   AND a.meterReadingNumber = (
+-- MAGIC     SELECT
+-- MAGIC       max(b.meterReadingNumber) -- MAXIMUM METER READING
+-- MAGIC     FROM
+-- MAGIC       cleansed.t_access_z309_tmetereading b
+-- MAGIC     WHERE
+-- MAGIC       a.propertyNumber = b.propertyNumber
+-- MAGIC       AND a.propertyMeterNumber = b.propertyMeterNumber
+-- MAGIC       AND b.meterReadingStatusCode IN ('A', 'B', 'P', 'V') -- BILLED, PROCESSED & AMENDED METER READINGS
+-- MAGIC       AND a.readingToDate = b.readingToDate
+-- MAGIC   )
+-- MAGIC   AND NOT EXISTS (
+-- MAGIC     SELECT 1 -- EXCLUDE DEBIT TYPE AND
+-- MAGIC     FROM
+-- MAGIC       cleansed.t_access_z309_tdebit H --REASONS FOR RE-USE WATER
+-- MAGIC     WHERE
+-- MAGIC       A.propertyNumber = H.propertyNumber -- AND SYDNEY CATCHMENT AUTHORITY PROPERTIES
+-- MAGIC       AND H.debitTypeCode = '10'
+-- MAGIC       AND H.debitReasonCode IN ('360', '367')
+-- MAGIC   ) 
+-- MAGIC   --JOIN dimBillingDocument db on db.billingDocumentNumber = b.billingDocumentNumber ---No source attribute mentioned in the mapping doc. do we need this????
+-- MAGIC   join dimProperty dp on dp.propertyNumber = e.propertyNumber 
+-- MAGIC   --AND b.endbillingPeriod between dp.propertyStartDate and dp.propertyEndDate --shouldn't we include this condition as mentioned by Gulsen????
+-- MAGIC   JOIN dimMeter dm ON dm.meterId = c.meterMakerNumber
+-- MAGIC   JOIN dimDate dd ON on dd.calendarDate = b.readingFromDate
+-- MAGIC   and dd.calendarDate = b.readingToDate
+-- MAGIC   join dimLocation dl on dl.locationId = e.propertyNumber 
+-- MAGIC   --AND   c.meterMakerNumber NOT IN ('00256','94015676','00071650','6HD07195')   -- EXCLUDE UNFILTERED METERS WITH  A POTABLE METER CLASS
+-- MAGIC   -- and   a.meterReadingTimestamp >= to_timestamp(to_date('20171001','yyyymmdd'))
+-- MAGIC   --group by a.readingFromDate,ca.readingToDate,cc.meterMakerNumber,e.propertyNumber
+-- MAGIC UNION ALL
+-- MAGIC  --SAP
+-- MAGIC select
+-- MAGIC   b.billingDocumentSK,
+-- MAGIC   b.propertySK,
+-- MAGIC   db2.meterSK,
+-- MAGIC   b.billingPeriodStartDateSK,
+-- MAGIC   b.billingPeriodEndDateSK,
+-- MAGIC   b.locationSK,
+-- MAGIC   -1 as waterNetworkSK,
+-- MAGIC   sum(db1.billingQuantityPlaceBeforeDecimalPoint) as meteredWaterConsumption
+-- MAGIC from
+-- MAGIC   cleansed.t_sapisu_erch b
+-- MAGIC   join cleansed.t_sapisu_dberchz1 db1 on db1.billingDocumentNumber = b.billingDocumentNumber
+-- MAGIC   and db1.lineItemTypeCode in ('ZDQUAN', 'ZRQUAN')
+-- MAGIC   join cleansed.t_sapisu_dberchz2 db2 on db2.billingDocumentNumber = b.billingDocumentNumber
+-- MAGIC   and db2.billingDocumentLineItemId = db1.billingDocumentLineItemId
+-- MAGIC   and db2.suppressedMeterReadingDocumentID <> ''
+-- MAGIC   and db2.billingLineItemBudgetBillingIndicator is NULL
+-- MAGIC   join dimBillingDocument db on db.billingDocumentNumber = b.billingDocumentNumber
+-- MAGIC   join dimProperty dp on dp.propertyNumber = trim(leading '0', b.businesspartnerNumber)
+-- MAGIC   and b.endbillingPeriod between dp.propertyStartDate
+-- MAGIC   and dp.propertyEndDate
+-- MAGIC   join dimMeter dm on dm.meterId = db2.equipmentNumber
+-- MAGIC   join dimDate dd on dd.calendarDate = b.startBillingPeriod
+-- MAGIC   and dd.calendarDate = b.endBillingPeriod
+-- MAGIC   join dimLocation dl on dl.locationId = b.businesspartnerNumber
+-- MAGIC   and b.billingSimulationIndicator = ''

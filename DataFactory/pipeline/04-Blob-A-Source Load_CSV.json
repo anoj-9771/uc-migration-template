@@ -43,7 +43,7 @@
 								"value": "@variables('SourceContainer')",
 								"type": "Expression"
 							},
-							"BlobName": "@concat(variables('SourceFileName'),'*')"
+							"BlobName": "@concat('*',variables('SourceFileName'),'*.nc')"
 						}
 					},
 					"fieldList": [
@@ -115,7 +115,14 @@
 											{
 												"name": "Copy-Blob-to-DataLake-Raw",
 												"type": "Copy",
-												"dependsOn": [],
+												"dependsOn": [
+													{
+														"activity": "Execute-DP-Blob-A-Pre-Process_NC_File",
+														"dependencyConditions": [
+															"Succeeded"
+														]
+													}
+												],
 												"policy": {
 													"timeout": "7.00:00:00",
 													"retry": 0,
@@ -159,7 +166,7 @@
 																"type": "Expression"
 															},
 															"BlobName": {
-																"value": "@variables('FileName')",
+																"value": "@concat(variables('FileName'),'.csv')",
 																"type": "Expression"
 															}
 														}
@@ -220,7 +227,7 @@
 															"type": "Expression"
 														},
 														"SourceFileName": {
-															"value": "@variables('FileName')",
+															"value": "@concat(variables('FileName'),'.csv')",
 															"type": "Expression"
 														},
 														"SourceFileDateTimeStamp": {
@@ -262,12 +269,14 @@
 														}
 													},
 													"sink": {
-														"type": "JsonSink",
+														"type": "DelimitedTextSink",
 														"storeSettings": {
 															"type": "AzureBlobStorageWriteSettings"
 														},
 														"formatSettings": {
-															"type": "JsonWriteSettings"
+															"type": "DelimitedTextWriteSettings",
+															"quoteAllText": true,
+															"fileExtension": ".txt"
 														}
 													},
 													"enableStaging": false
@@ -282,7 +291,7 @@
 																"type": "Expression"
 															},
 															"BlobName": {
-																"value": "@variables('FileName')",
+																"value": "@concat(variables('FileName'),'.csv')",
 																"type": "Expression"
 															}
 														}
@@ -290,7 +299,7 @@
 												],
 												"outputs": [
 													{
-														"referenceName": "ARCHIVE_BLOB_JSON",
+														"referenceName": "ARCHIVE_BLOB_CSV",
 														"type": "DatasetReference",
 														"parameters": {
 															"BlobContainer": {
@@ -330,7 +339,7 @@
 																"type": "Expression"
 															},
 															"BlobName": {
-																"value": "@variables('FileName')",
+																"value": "@concat(variables('FileName'),'.csv')",
 																"type": "Expression"
 															}
 														}
@@ -463,6 +472,57 @@
 													"type": "LinkedServiceReference",
 													"parameters": {
 														"kvSecret": "daf-sql-controldb-connectionstring"
+													}
+												}
+											},
+											{
+												"name": "Execute-DP-Blob-A-Pre-Process_NC_File",
+												"type": "ExecutePipeline",
+												"dependsOn": [],
+												"userProperties": [],
+												"typeProperties": {
+													"pipeline": {
+														"referenceName": "04-Blob-A-Pre-Process_NC_File",
+														"type": "PipelineReference"
+													},
+													"waitOnCompletion": true,
+													"parameters": {
+														"BatchLogID": {
+															"value": "@pipeline().parameters.BatchLogId",
+															"type": "Expression"
+														},
+														"TaskExecutionLogId": {
+															"value": "@pipeline().parameters.TaskExecutionLogId",
+															"type": "Expression"
+														},
+														"TaskDetails": {
+															"value": "@pipeline().parameters.TaskDetails",
+															"type": "Expression"
+														},
+														"SourceContainer": {
+															"value": "@variables('SourceContainer')",
+															"type": "Expression"
+														},
+														"ProjectRunID": {
+															"value": "@pipeline().parameters.ProjectRunID",
+															"type": "Expression"
+														},
+														"SourceFileName": {
+															"value": "@variables('FileName')",
+															"type": "Expression"
+														},
+														"ProjectName": {
+															"value": "@variables('ProjectName')",
+															"type": "Expression"
+														},
+														"RunDate": {
+															"value": "@pipeline().parameters.RunDate",
+															"type": "Expression"
+														},
+														"RunTime": {
+															"value": "@pipeline().parameters.RunTime",
+															"type": "Expression"
+														}
 													}
 												}
 											}

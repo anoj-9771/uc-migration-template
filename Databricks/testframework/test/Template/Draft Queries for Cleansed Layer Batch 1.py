@@ -592,8 +592,7 @@
 # DBTITLE 1,0UCPREMISE_ATTR_2
 # MAGIC %sql
 # MAGIC select
-# MAGIC MANDT as clientId
-# MAGIC ,VSTELLE as premise
+# MAGIC VSTELLE as premise
 # MAGIC ,HAUS as propertyNumber
 # MAGIC ,VBSART as typeOfPremise
 # MAGIC ,EIGENT as owner
