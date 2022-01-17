@@ -174,9 +174,10 @@ DeltaSaveToDeltaTable (
 # COMMAND ----------
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
-#Update/rename Column    
+#Update/rename Column
+#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns    
 df_cleansed = spark.sql(f"SELECT \
-                                to_date(CALENDARDATE,'yyyy-MM-dd') as calendarDate , \
+                                ToValidDate(CALENDARDATE,'MANDATORY') as calendarDate , \
                                 CALENDARDAY as dayOfMonth , \
                                 CALENDARDAYOFYEAR as dayOfYear  , \
                                 WEEKDAY as dayOfWeek  , \
@@ -188,8 +189,8 @@ df_cleansed = spark.sql(f"SELECT \
                                 YEARWEEK as calendarYearWeek  , \
                                 YEARMONTH as calendarYearMonth  , \
                                 YEARQUARTER as calendarYearQuarter  , \
-                                to_date(FIRSTDAYOFMONTHDATE,'yyyy-MM-dd')  as monthStartDate  , \
-                                to_date(LASTDAYOFMONTHDATE,'yyyy-MM-dd') as monthEndDate  , \
+                                ToValidDate(FIRSTDAYOFMONTHDATE)  as monthStartDate  , \
+                                ToValidDate(LASTDAYOFMONTHDATE) as monthEndDate  , \
                                 _RecordStart, \
                                 _RecordEnd, \
                                 _RecordDeleted, \

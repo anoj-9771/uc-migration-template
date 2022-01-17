@@ -175,11 +175,12 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
+#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
 df_cleansed = spark.sql(f"SELECT \
 	case when INTRENO = 'na' then '' else INTRENO end as architecturalObjectInternalId, \
 	case when FIXFITCHARACT = 'na' then '' else FIXFITCHARACT end as fixtureAndFittingCharacteristicCode, \
-	case when VALIDTO = 'na' then to_date('1900-01-01','yyyy-MM-dd') else to_date(VALIDTO, 'yyyy-MM-dd') end as validToDate, \
-	to_date(VALIDFROM, 'yyyy-MM-dd') as validFromDate, \
+	ToValidDate(VALIDTO,'MANDATORY') as validToDate, \
+	ToValidDate(VALIDFROM) as validFromDate, \
 	WEIGHT as weightingValue, \
 	cast(RESULTVAL as int) as resultValue, \
 	cast(ADDITIONALINFO as int) as characteristicAdditionalValue, \

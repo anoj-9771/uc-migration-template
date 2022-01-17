@@ -175,10 +175,11 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
+#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
 df_cleansed = spark.sql(f"SELECT \
                             case when VERTRAG = 'na' then '' else VERTRAG end as contractId, \
-                            to_date((case when BIS = 'na' then '1900-01-01' else BIS end), 'yyyy-MM-dd') as validToDate, \
-                            to_date(AB, 'yyyy-MM-dd') as validFromDate, \
+                            ToValidDate((case when BIS = 'na' then '2099-12-31' else BIS end),'MANDATORY') as validToDate, \
+                            ToValidDate(AB) as validFromDate, \
                             ANLAGE as installationId, \
                             CONTRACTHEAD as contractHeadGUID, \
                             CONTRACTPOS as contractPosGUID, \
@@ -189,9 +190,9 @@ df_cleansed = spark.sql(f"SELECT \
                             PRODCH_BEG as productBeginIndicator, \
                             PRODCH_END as productChangeIndicator, \
                             XREPLCNTL as replicationControls, \
-                            to_date(ERDAT, 'yyyy-MM-dd') as createdDate, \
+                            ToValidDate(ERDAT) as createdDate, \
                             ERNAM as createdBy, \
-                            to_date(AEDAT, 'yyyy-MM-dd') as lastChangedDate, \
+                            ToValidDate(AEDAT) as lastChangedDate, \
                             OUCONTRACT as individualContractID, \
                             AENAM as lastChangedBy, \
                             _RecordStart, \

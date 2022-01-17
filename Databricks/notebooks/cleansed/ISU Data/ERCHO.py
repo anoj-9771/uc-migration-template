@@ -175,12 +175,13 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
+#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
 df_cleansed = spark.sql(f"SELECT  \
                                   case when BELNR = 'na' then '' else BELNR end as billingDocumentNumber, \
                                   case when OUTCNSO = 'na' then '' else OUTCNSO end as outsortingNumber, \
                                   VALIDATION as billingValidationName, \
                                   MANOUTSORT as manualOutsortingReasonCode, \
-                                  to_date(FREI_AM, 'yyyy-MM-dd') as documentReleasedDate, \
+                                  ToValidDate(FREI_AM) as documentReleasedDate, \
                                   FREI_VON as documentReleasedUserName, \
                                   cast(DEVIATION as double) as deviation, \
                                   SIMULATION as billingSimulationIndicator, \

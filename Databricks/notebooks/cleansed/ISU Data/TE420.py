@@ -175,17 +175,18 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
+#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
 df_cleansed = spark.sql(f"SELECT \
                             case when TERMSCHL = 'na' then '' else TERMSCHL end as portion, \
                             TERMTEXT as scheduleMasterRecord, \
-                            to_date(TERMERST, 'yyyy-MM-dd') as billingPeriodEndDate, \
+                            ToValidDate(TERMERST) as billingPeriodEndDate, \
                             cast(PERIODEW as int) as periodLengthMonths, \
                             PERIODET as periodCategory, \
-                            to_date(ZUORDDAT, 'yyyy-MM-dd') as meterReadingAllocationDate, \
+                            ToValidDate(ZUORDDAT) as meterReadingAllocationDate, \
                             ABSZYK as allowableBudgetBillingCycles, \
-                            to_date(EROEDAT, 'yyyy-MM-dd') as createdDate, \
+                            ToValidDate(EROEDAT) as createdDate, \
                             ERNAM as createdBy, \
-                            to_date(AENDDATE, 'yyyy-MM-dd') as lastChangedDate, \
+                            ToValidDate(AENDDATE) as lastChangedDate, \
                             AENDNAM as lastChangedBy, \
                             cast(SPARTENTY1 as string) as divisionCategory1, \
                             cast(SPARTENTY2 as string) as divisionCategory2, \
