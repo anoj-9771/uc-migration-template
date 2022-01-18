@@ -188,18 +188,18 @@ df_cleansed_column = spark.sql(f"SELECT  \
                                 ABLESGRV as previousMeterReadingReasonCode, \
                                 ATIM as billingMeterReadingTime, \
                                 ATIMVA as previousMeterReadingTime, \
-                                to_date(ADATMAX, 'yyyyMMdd') as maxMeterReadingDate, \
+                                ToValidDate(ADATMAX) as  maxMeterReadingDate, \
                                 ATIMMAX as maxMeterReadingTime, \
-                                to_date(THGDATUM, 'yyyyMMdd') as serviceAllocationDate, \
-                                to_date(ZUORDDAT, 'yyyyMMdd') as meterReadingAllocationDate, \
+                                ToValidDate(THGDATUM) as  serviceAllocationDate, \
+                                ToValidDate(ZUORDDAT) as  meterReadingAllocationDate, \
                                 ABLBELNR as suppressedMeterReadingDocumentID, \
                                 LOGIKNR as logicalDeviceNumber, \
                                 LOGIKZW as logicalRegisterNumber, \
                                 ISTABLART as meterReadingTypeCode, \
                                 ISTABLARTVA as previousMeterReadingTypeCode, \
                                 EXTPKZ as meterReadingResultsSimulationIndicator, \
-                                to_date(BEGPROG, 'yyyyMMdd') as forecastPeriodStartDate, \
-                                to_date(ENDEPROG, 'yyyyMMdd') as forecastPeriodEndDate, \
+                                ToValidDate(BEGPROG) as  forecastPeriodStartDate, \
+                                ToValidDate(ENDEPROG) as  forecastPeriodEndDate, \
                                 ABLHINW as meterReaderNoteText, \
                                 cast(V_ZWSTAND as dec(17)) as meterReadingBeforeDecimalPoint, \
                                 cast(N_ZWSTAND as dec(14,14)) as meterReadingAfterDecimalPoint, \

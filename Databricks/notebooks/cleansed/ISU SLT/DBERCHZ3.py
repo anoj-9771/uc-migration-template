@@ -197,7 +197,7 @@ df_cleansed_column = spark.sql(f"SELECT  \
                                     cast(PREIADD as dec(17,8)) as addedAdjustmentPrice, \
                                     cast(PREIFAKT as dec(12,7)) as priceAdjustmentFactor, \
                                     OPMULT as additionFirst, \
-                                    to_date(TXDAT_KK, 'yyyyMMdd') as taxDecisiveDate, \
+                                    ToValidDate(TXDAT_KK) as  taxDecisiveDate, \
                                     PRCTR as profitCenter, \
                                     KOSTL as costCenter, \
                                     PS_PSP_PNR as wbsElement, \
