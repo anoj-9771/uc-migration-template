@@ -39,13 +39,33 @@
 			"type": "string",
 			"defaultValue": "@linkedService().kvSecret"
 		},
+		"BATCH_DAILY_HYDRA_properties_01-Main_parameters_TriggerName": {
+			"type": "string",
+			"defaultValue": "BATCH_DAILY_HYDRA"
+		},
+		"BATCH_DAILY_HYDRA_properties_typeProperties_scope": {
+			"type": "string",
+			"defaultValue": "/subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-daf-dev-01/providers/Microsoft.Storage/storageAccounts/sadafdev01"
+		},
+		"BATCH_DAILY_SAPCRM_properties_01-Main_parameters_TriggerName": {
+			"type": "string",
+			"defaultValue": "BATCH_DAILY_SAPCRM"
+		},
+		"BATCH_DAILY_SAPCRM_properties_typeProperties_scope": {
+			"type": "string",
+			"defaultValue": "/subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-daf-dev-01/providers/Microsoft.Storage/storageAccounts/sadafdev01"
+		},
+		"BATCH_DAILY_SAPISU_properties_01-Main_parameters_TriggerName": {
+			"type": "string",
+			"defaultValue": "BATCH_DAILY_SAPISU"
+		},
+		"BATCH_DAILY_SAPISU_properties_typeProperties_scope": {
+			"type": "string",
+			"defaultValue": "/subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-daf-dev-01/providers/Microsoft.Storage/storageAccounts/sadafdev01"
+		},
 		"DLY1300_properties_01-Main_parameters_TriggerName": {
 			"type": "string",
 			"defaultValue": "DLY1300"
-		},
-		"Emrvisaf_properties_01-Main_parameters_TriggerName": {
-			"type": "string",
-			"defaultValue": "Emrvisaf"
 		},
 		"containerUri": {
 			"type": "string",
@@ -136,16 +156,51 @@
 					"factoryName": {
 						"value": "[parameters('factoryName')]"
 					},
-					"DLY1300_properties_01-Main_parameters_TriggerName": {
-						"value": "[parameters('DLY1300_properties_01-Main_parameters_TriggerName')]"
+					"BATCH_DAILY_HYDRA_properties_01-Main_parameters_TriggerName": {
+						"value": "[parameters('BATCH_DAILY_HYDRA_properties_01-Main_parameters_TriggerName')]"
 					},
-					"Emrvisaf_properties_01-Main_parameters_TriggerName": {
-						"value": "[parameters('Emrvisaf_properties_01-Main_parameters_TriggerName')]"
+					"BATCH_DAILY_HYDRA_properties_typeProperties_scope": {
+						"value": "[parameters('BATCH_DAILY_HYDRA_properties_typeProperties_scope')]"
+					},
+					"BATCH_DAILY_SAPCRM_properties_01-Main_parameters_TriggerName": {
+						"value": "[parameters('BATCH_DAILY_SAPCRM_properties_01-Main_parameters_TriggerName')]"
+					},
+					"BATCH_DAILY_SAPCRM_properties_typeProperties_scope": {
+						"value": "[parameters('BATCH_DAILY_SAPCRM_properties_typeProperties_scope')]"
 					}
 				}
 			},
 			"dependsOn": [
 				"[resourceId('Microsoft.Resources/deployments', 'adf-swcnonprod01-daf-dev-01_ArmTemplate_1')]"
+			]
+		},
+		{
+			"name": "adf-swcnonprod01-daf-dev-01_ArmTemplate_3",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2018-02-01",
+			"properties": {
+				"mode": "incremental",
+				"templateLink": {
+					"uri": "[concat(parameters('containerUri'), '/ArmTemplate_3.json', parameters('containerSasToken'))]",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"factoryName": {
+						"value": "[parameters('factoryName')]"
+					},
+					"BATCH_DAILY_SAPISU_properties_01-Main_parameters_TriggerName": {
+						"value": "[parameters('BATCH_DAILY_SAPISU_properties_01-Main_parameters_TriggerName')]"
+					},
+					"BATCH_DAILY_SAPISU_properties_typeProperties_scope": {
+						"value": "[parameters('BATCH_DAILY_SAPISU_properties_typeProperties_scope')]"
+					},
+					"DLY1300_properties_01-Main_parameters_TriggerName": {
+						"value": "[parameters('DLY1300_properties_01-Main_parameters_TriggerName')]"
+					}
+				}
+			},
+			"dependsOn": [
+				"[resourceId('Microsoft.Resources/deployments', 'adf-swcnonprod01-daf-dev-01_ArmTemplate_2')]"
 			]
 		}
 	]
