@@ -27,8 +27,7 @@ stages:
 
   jobs:
   - job:
-    pool:
-      vmImage: ubuntu-latest
+    pool: Daf-Self-Pool01
     steps:
     - download: current
       artifact: adf_arm_templates
