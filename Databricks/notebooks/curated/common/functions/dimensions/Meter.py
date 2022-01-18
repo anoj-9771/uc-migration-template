@@ -1,4 +1,12 @@
 # Databricks notebook source
+#%run ../../includes/util-common
+
+# COMMAND ----------
+
+# Run the above commands only when running this notebook independently, otherwise the curated master notebook would take care of calling the above notebooks
+
+# COMMAND ----------
+
 def getMeter():
     meterFunctionClasses = ['1000','2000','9000']
     #spark.udf.register("TidyCase", GeneralToTidyCase) 
@@ -8,8 +16,11 @@ def getMeter():
     #notes for future: a number of column values can be derived with aditional code/queries. LastActivity reason code can only be mapped from meter change reason code/reason after conversion of values. The text is the same but the codes differ
     accessZ309TpropmeterDf = spark.sql(f"select 'Access' as sourceSystemCode, \
                                               row_number() over (order by metermakernumber) as meterNumber, \
+                                              '2099-12-31' as validToDate, \
+                                              '2099-12-31' as registerToDate, \
                                               coalesce(meterMakerNumber,'') as meterSerialNumber, \
                                               null as logicalDeviceNumber, \
+                                              null as validFromDate, \
                                               null as materialNumber, \
                                               case when meterClass = 'Standpipe' then 'Customer Standpipe' else 'Water Meter' end as usageDeviceType, \
                                               meterSize, \
@@ -26,6 +37,7 @@ def getMeter():
                                               null as manufacturerSerialNumber, \
                                               null as manufacturerModelNumber, \
                                               case when right(meterSize,2) = 'mm' then 'KL' else 'IN' end as measurementUnit, \
+                                              null as registerFromDate, \
                                               null as latestActivityReasonCode, \
                                               null as latestActivityReason, \
                                               null as inspectionRelevanceFlag, \
@@ -52,8 +64,8 @@ def getMeter():
     #Drop unwanted columns
     accessZ309TpropmeterDf = accessZ309TpropmeterDf.drop(accessZ309TpropmeterDf.rownum)
 
-    print(f'{accessZ309TpropmeterDf.count():,} rows in accessZ309TpropmeterDf')
-#     display(accessZ309TpropmeterDf)
+    #print(f'{accessZ309TpropmeterDf.count():,} rows in accessZ309TpropmeterDf')
+    #display(accessZ309TpropmeterDf)
     #Meter Data from SAP ISU
     isu0ucDeviceAttrDf  = spark.sql(f"select 'ISU' as sourceSystemCode, \
                                       equipmentNumber as meterNumber, \
@@ -74,8 +86,8 @@ def getMeter():
                                       and b._RecordDeleted = 0 \
                                      ")
     
-    print(f'{isu0ucDeviceAttrDf.count():,} rows in isu0ucDeviceAttrDf')
-#     display(isu0ucDeviceAttrDf)
+    #print(f'{isu0ucDeviceAttrDf.count():,} rows in isu0ucDeviceAttrDf')
+    #display(isu0ucDeviceAttrDf)
     #save to table for use in subsequent queries
     isu0ucDeviceAttrDf.createOrReplaceTempView('allMeters')
 
@@ -84,14 +96,16 @@ def getMeter():
                                         activityReasonCode as latestActivityReasonCode, \
                                         activityReason as latestActivityReason, \
                                         registerGroupCode, \
-                                        registerGroup \
+                                        registerGroup, \
+                                        ToValidDate(validFromDate)as validFromDate, \
+                                        ToValidDate(validToDate,'Mandatory') as validToDate \
                                       from {ADS_DATABASE_CLEANSED}.isu_0uc_deviceh_attr a \
                                       join allmeters b on a.equipmentNumber = b.meterNumber and current_date between a.validFromDate and a.validToDate \
                                       where _RecordCurrent = 1 \
                                       and _RecordDeleted = 0")
     
-    print(f'{isu0ucDeviceHAttrDf.count():,} rows in isu0ucDeviceHAttrDf')
-#     display(isu0ucDeviceHAttrDf)
+    #print(f'{isu0ucDeviceHAttrDf.count():,} rows in isu0ucDeviceHAttrDf')
+    #display(isu0ucDeviceHAttrDf)
     isu0ucDevCatAttrDf  = spark.sql(f"select distinct a.materialNumber, \
                                         case when functionClassCode = '9000' then 'Customer Standpipe' else 'Water Meter' end as usageDeviceType, \
                                         case when functionClassCode = '1000' then 'Drinking Water' \
@@ -105,8 +119,8 @@ def getMeter():
                                       where _RecordCurrent = 1 \
                                       and _RecordDeleted = 0")
     
-    print(f'{isu0ucDevCatAttrDf.count():,} rows in isu0ucDevCatAttrDf')
-#     display(isu0ucDevCatAttrDf)
+    #print(f'{isu0ucDevCatAttrDf.count():,} rows in isu0ucDevCatAttrDf')
+    #display(isu0ucDevCatAttrDf)
     isu0ucRegistAttrDf  = spark.sql(f"select equipmentNumber as meterNumber, \
                                         unitOfMeasurementMeterReading as measurementUnit, \
                                         min(registerNumber) as registerNumber, \
@@ -117,55 +131,70 @@ def getMeter():
                                         registerIdCode, \
                                         registerId, \
                                         divisionCategoryCode, \
-                                        divisionCategory \
+                                        divisionCategory, \
+                                        ToValidDate(validFromDate) as registerFromDate, \
+                                        ToValidDate(validToDate,'MANDATORY') as registerToDate \
                                       from {ADS_DATABASE_CLEANSED}.isu_0uc_regist_attr a \
                                       join allmeters b on a.equipmentNumber = b.meterNumber and current_date between a.validFromDate and a.validToDate \
                                       where _RecordCurrent = 1 \
                                       and _RecordDeleted = 0 \
-                                      group by equipmentNumber, unitOfMeasurementMeterReading, registerTypeCode, registerType, registerCategoryCode, registerCategory, registerIdCode, registerId, divisionCategoryCode, divisionCategory")
+                                      group by equipmentNumber, unitOfMeasurementMeterReading, registerTypeCode, registerType, registerCategoryCode, registerCategory, registerIdCode, registerId, divisionCategoryCode, divisionCategory,validFromDate,validToDate")
 	 
-    print(f'{isu0ucRegistAttrDf.count():,} rows in isu0ucRegistAttrDf')
-#     display(isu0ucRegistAttrDf)
+    #print(f'{isu0ucRegistAttrDf.count():,} rows in isu0ucRegistAttrDf')
+    #display(isu0ucRegistAttrDf)
     
     #3.JOIN TABLES
     df = isu0ucDeviceAttrDf.join(isu0ucDeviceHAttrDf, isu0ucDeviceHAttrDf.meterNumber == isu0ucDeviceAttrDf.meterNumber, 
                                   how="leftouter") \
                             .drop(isu0ucDeviceHAttrDf.meterNumber)
-    print(f'{df.count():,} rows after merge 1')
+    #print(f'{df.count():,} rows after merge 1')
     
     df = df.join(isu0ucDevCatAttrDf, isu0ucDevCatAttrDf.materialNumber == df.materialNumber, 
                                   how="leftouter") \
                             .drop(isu0ucDevCatAttrDf.materialNumber)
-    print(f'{df.count():,} rows after merge 2')
+    #print(f'{df.count():,} rows after merge 2')
     df = df.join(isu0ucRegistAttrDf, isu0ucRegistAttrDf.meterNumber == df.meterNumber, 
                                   how="leftouter") \
                             .drop(isu0ucRegistAttrDf.meterNumber)
-    print(f'{df.count():,} rows after merge 3')
+    #print(f'{df.count():,} rows after merge 3')
     
     #re-order columns
-    df = df.select('sourceSystemCode','meterNumber','meterSerialNumber','logicalDeviceNumber','materialNumber',
-                    'usageDeviceType','meterSize','waterType','meterCategoryCode','meterCategory',
+    df = df.select('sourceSystemCode','meterNumber','validToDate','registerToDate','meterSerialNumber','logicalDeviceNumber','validFromDate',
+                    'materialNumber','usageDeviceType','meterSize','waterType','meterCategoryCode','meterCategory',
                     'meterReadingType','meterDescription','manufacturerName','manufacturerSerialNumber','manufacturerModelNumber',
-                    'measurementUnit','latestActivityReasonCode','latestActivityReason','inspectionRelevanceFlag','registerNumber',
+                    'measurementUnit','registerFromDate','latestActivityReasonCode','latestActivityReason','inspectionRelevanceFlag','registerNumber',
                     'registerGroupCode','registerGroup','registerTypeCode','registerType','registerCategoryCode',
                     'registerCategory','registerIdCode','registerId','divisionCategoryCode','divisionCategory'
                   )
     
-    #4.UNION TABLES
-    df = accessZ309TpropmeterDf.union(df)
-    #Dummy Record to be added to Meter Dimension
-    ISUDummy = tuple(['ISU','-1'] + ['Unknown'] * (len(df.columns) - 2)) #this only works as long as all output columns are string
-    ACCESSDummy = tuple(['ACCESS','-1'] + ['Unknown'] * (len(df.columns) -2)) #this only works as long as all output columns are string
-    dummyDimRecDf = spark.createDataFrame([ISUDummy, ACCESSDummy], df.columns)
     
+    #check date column (key) for null    
+    df = df.withColumn("registerToDate", when(df.registerToDate.isNull(), "2099-12-31").otherwise(df.registerToDate))
+    
+    df = accessZ309TpropmeterDf.union(df)
+    #print(f'{df.count():,} rows after Union 1')
+    #display(df)    
+    
+    #Dummy Record to be added to Meter Dimension
+    ISUDummy = tuple(['ISU','-1',"2099-12-31","2099-12-31"] + ['Unknown'] * (len(df.columns) - 4)) #this only works as long as all output columns are string
+    ACCESSDummy = tuple(['ACCESS','-1',"2099-12-31","2099-12-31"] + ['Unknown'] * (len(df.columns) -4)) #this only works as long as all output columns are string
+    dummyDimRecDf = spark.createDataFrame([ISUDummy, ACCESSDummy], df.columns)
+                                    
     df = df.unionByName(dummyDimRecDf, allowMissingColumns = True)
-    display(df)
+    df = df.withColumn("validToDate",df['validToDate'].cast(DateType())) \
+           .withColumn("registerToDate",df['registerToDate'].cast(DateType())) 
+    #print(f'{df.count():,} rows after Union 2')
+    #display(df)
+    
     #5.Apply schema definition
     newSchema = StructType([
                             StructField('sourceSystemCode', StringType(), False),
                             StructField('meterNumber', StringType(), False),
+                            StructField('validToDate', DateType(), False),
+                            StructField('registerToDate', DateType(), False),
                             StructField('meterSerialNumber', StringType(), True),
                             StructField('logicalDeviceNumber', StringType(), True),
+                            StructField('validFromDate', DateType(), True),
                             StructField('materialNumber', StringType(), True),
                             StructField('usageDeviceType', StringType(), True),
                             StructField('meterSize', StringType(), True),
@@ -178,6 +207,7 @@ def getMeter():
                             StructField('manufacturerSerialNumber', StringType(), True),
                             StructField('manufacturerModelNumber', StringType(), True),
                             StructField('measurementUnit', StringType(), True),
+                            StructField('registerFromDate', DateType(), True),                                    
                             StructField('latestActivityReasonCode', StringType(), True),
                             StructField('latestActivityReason', StringType(), True),
                             StructField('inspectionRelevanceFlag', StringType(), True),
@@ -195,16 +225,44 @@ def getMeter():
                       ])
 
     df = spark.createDataFrame(df.rdd, schema=newSchema)
-    #5.SELECT / TRANSFORM
-    #df = df.selectExpr( \
-     #"meterId", \
-     #"sourceSystemCode", \
-     #"meterSize", \
-     #"waterType"
-    #)  
+    #display(df)
+    #6.SELECT / TRANSFORM
+    df = df.selectExpr( \
+     "sourceSystemCode", \
+     "meterNumber", \
+     "meterSerialNumber", \
+     "logicalDeviceNumber", \
+     "validFromDate", \
+     "validToDate", \
+     "materialNumber", \
+     "usageDeviceType", \
+     "meterSize", \
+     "waterType", \
+     "meterCategoryCode", \
+     "meterCategory", \
+     "meterReadingType", \
+     "meterDescription", \
+     "manufacturerName", \
+     "manufacturerSerialNumber", \
+     "manufacturerModelNumber", \
+     "measurementUnit", \
+     "registerFromDate", \
+     "registerToDate", \
+     "latestActivityReasonCode", \
+     "latestActivityReason", \
+     "inspectionRelevanceFlag", \
+     "registerNumber", \
+     "registerGroupCode", \
+     "registerGroup", \
+     "registerTypeCode", \
+     "registerType", \
+     "registerCategoryCode", \
+     "registerCategory", \
+     "registerIdCode", \
+     "registerId", \
+     "divisionCategoryCode", \
+     "divisionCategory"
+    )  
+    #display(df)
     return df
   
-
-# COMMAND ----------
-
-
