@@ -27,6 +27,7 @@ stages:
 
   jobs:
   - job:
+    pool: Daf-Self-Hosted-Preprod-Linux
     steps:
     - download: current
       artifact: adf_arm_templates
