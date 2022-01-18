@@ -195,8 +195,8 @@ df_cleansed_column = spark.sql(f"SELECT  \
                                   TVORG as subtransactionForDocumentItem, \
                                   GEGEN_TVORG as offsettingTransactionSubtransactionForDocumentItem, \
                                   LINESORT as presortingBillingLineItems, \
-                                  ToValidDate(AB) as validFromDate, \
-                                  ToValidDate(BIS) as validToDate, \
+                                  ToValidDate(AB) as  validFromDate, \
+                                  ToValidDate(BIS) as  validToDate, \
                                   TIMTYPZA as billingLineItemTimeCategoryCode, \
                                   SCHEMANR as billingSchemaNumber, \
                                   SNO as billingSchemaStepSequenceNumber, \
