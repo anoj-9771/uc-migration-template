@@ -55,7 +55,7 @@
 						"value": "@activity('Get Projects to Execute').output.value",
 						"type": "Expression"
 					},
-					"isSequential": false,
+					"isSequential": true,
 					"activities": [
 						{
 							"name": "Execute Projects",
