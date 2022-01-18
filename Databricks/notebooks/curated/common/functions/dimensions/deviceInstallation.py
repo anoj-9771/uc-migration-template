@@ -39,10 +39,12 @@ def getdeviceInstallation():
 
     #4.UNION TABLES
     #Create dummy record
-#     dummyRec = tuple([-1] + ['Unknown'] * (len(HydraLocationDf.columns) - 3) + [0,0]) 
-#     dummyDimRecDf = spark.createDataFrame([dummyRec],HydraLocationDf.columns)
-#     HydraLocationDf = HydraLocationDf.unionByName(dummyDimRecDf, allowMissingColumns = True)
-
+#     dummyRec = tuple([-1] + ['Unknown'] * (len(Df.columns) - 2))
+#     dummyDimRecDf = spark.createDataFrame([dummyRec],Df.columns)
+    
+#     Df = Df.unionByName(dummyDimRecDf, allowMissingColumns = True)
+#     Display(Df)
+    
     #5.SELECT / TRANSFORM
     df = df.selectExpr( \
                   'installationId' \
