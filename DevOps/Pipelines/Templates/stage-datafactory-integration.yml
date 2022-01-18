@@ -27,6 +27,8 @@ stages:
 
   jobs:
   - job:
+    pool:
+      vmImage: ubuntu-latest
     steps:
     - download: current
       artifact: adf_arm_templates
