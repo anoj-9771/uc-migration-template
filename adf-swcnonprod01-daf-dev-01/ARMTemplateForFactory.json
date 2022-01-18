@@ -39,6 +39,30 @@
 			"type": "string",
 			"defaultValue": "@linkedService().kvSecret"
 		},
+		"BATCH_DAILY_HYDRA_properties_01-Main_parameters_TriggerName": {
+			"type": "string",
+			"defaultValue": "BATCH_DAILY_HYDRA"
+		},
+		"BATCH_DAILY_HYDRA_properties_typeProperties_scope": {
+			"type": "string",
+			"defaultValue": "/subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-daf-dev-01/providers/Microsoft.Storage/storageAccounts/sadafdev01"
+		},
+		"BATCH_DAILY_SAPCRM_properties_01-Main_parameters_TriggerName": {
+			"type": "string",
+			"defaultValue": "BATCH_DAILY_SAPCRM"
+		},
+		"BATCH_DAILY_SAPCRM_properties_typeProperties_scope": {
+			"type": "string",
+			"defaultValue": "/subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-daf-dev-01/providers/Microsoft.Storage/storageAccounts/sadafdev01"
+		},
+		"BATCH_DAILY_SAPISU_properties_01-Main_parameters_TriggerName": {
+			"type": "string",
+			"defaultValue": "BATCH_DAILY_SAPISU"
+		},
+		"BATCH_DAILY_SAPISU_properties_typeProperties_scope": {
+			"type": "string",
+			"defaultValue": "/subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-daf-dev-01/providers/Microsoft.Storage/storageAccounts/sadafdev01"
+		},
 		"DLY1300_properties_01-Main_parameters_TriggerName": {
 			"type": "string",
 			"defaultValue": "DLY1300"
@@ -13583,6 +13607,105 @@
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/integrationRuntimes/IntegrationRuntime-SelfHosted')]",
 				"[concat(variables('factoryId'), '/linkedServices/LS-AzureKeyVault')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/BATCH_DAILY_HYDRA')]",
+			"type": "Microsoft.DataFactory/factories/triggers",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Triggers Main pipeline to kick off Hydra daily loads on the blob-creation event of 'trigger_batch_daily_hydra.json' in 'triggers' container. This pipeline invocation runs multiple HYDRA data load Projects.",
+				"annotations": [],
+				"runtimeState": "Started",
+				"pipelines": [
+					{
+						"pipelineReference": {
+							"referenceName": "01-Main",
+							"type": "PipelineReference"
+						},
+						"parameters": {
+							"TriggerName": "[parameters('BATCH_DAILY_HYDRA_properties_01-Main_parameters_TriggerName')]"
+						}
+					}
+				],
+				"type": "BlobEventsTrigger",
+				"typeProperties": {
+					"blobPathBeginsWith": "/triggers/blobs/trigger_batch_daily_hydra.json",
+					"ignoreEmptyBlobs": false,
+					"scope": "[parameters('BATCH_DAILY_HYDRA_properties_typeProperties_scope')]",
+					"events": [
+						"Microsoft.Storage.BlobCreated"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/pipelines/01-Main')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/BATCH_DAILY_SAPCRM')]",
+			"type": "Microsoft.DataFactory/factories/triggers",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Triggers Main pipeline to kick off SAP CRM daily loads on the blob-creation event of 'trigger_batch_daily_sapcrm.json' in 'triggers' container. This pipeline invocation runs multiple SAPCRM data load Projects.",
+				"annotations": [],
+				"runtimeState": "Started",
+				"pipelines": [
+					{
+						"pipelineReference": {
+							"referenceName": "01-Main",
+							"type": "PipelineReference"
+						},
+						"parameters": {
+							"TriggerName": "[parameters('BATCH_DAILY_SAPCRM_properties_01-Main_parameters_TriggerName')]"
+						}
+					}
+				],
+				"type": "BlobEventsTrigger",
+				"typeProperties": {
+					"blobPathBeginsWith": "/triggers/blobs/trigger_batch_daily_sapcrm.json",
+					"ignoreEmptyBlobs": false,
+					"scope": "[parameters('BATCH_DAILY_SAPCRM_properties_typeProperties_scope')]",
+					"events": [
+						"Microsoft.Storage.BlobCreated"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/pipelines/01-Main')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/BATCH_DAILY_SAPISU')]",
+			"type": "Microsoft.DataFactory/factories/triggers",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Triggers Main pipeline to kick off SAP ISU daily loads on the blob-creation event of 'trigger_batch_daily_sapisu.json' in 'triggers' container. This pipeline invocation runs multiple SAPISU data load Projects.",
+				"annotations": [],
+				"runtimeState": "Started",
+				"pipelines": [
+					{
+						"pipelineReference": {
+							"referenceName": "01-Main",
+							"type": "PipelineReference"
+						},
+						"parameters": {
+							"TriggerName": "[parameters('BATCH_DAILY_SAPISU_properties_01-Main_parameters_TriggerName')]"
+						}
+					}
+				],
+				"type": "BlobEventsTrigger",
+				"typeProperties": {
+					"blobPathBeginsWith": "/triggers/blobs/trigger_batch_daily_sapisu.json",
+					"ignoreEmptyBlobs": false,
+					"scope": "[parameters('BATCH_DAILY_SAPISU_properties_typeProperties_scope')]",
+					"events": [
+						"Microsoft.Storage.BlobCreated"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/pipelines/01-Main')]"
 			]
 		},
 		{
