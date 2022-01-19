@@ -18,6 +18,7 @@ def getMeter():
                                               row_number() over (order by metermakernumber) as meterNumber, \
                                               '2099-12-31' as validToDate, \
                                               '2099-12-31' as registerToDate, \
+                                              '' as registerNumber, \
                                               coalesce(meterMakerNumber,'') as meterSerialNumber, \
                                               null as logicalDeviceNumber, \
                                               null as validFromDate, \
@@ -41,7 +42,6 @@ def getMeter():
                                               null as latestActivityReasonCode, \
                                               null as latestActivityReason, \
                                               null as inspectionRelevanceFlag, \
-                                              null as registerNumber, \
                                               null as registerGroupCode, \
                                               null as registerGroup, \
                                               null as registerTypeCode, \
@@ -159,30 +159,35 @@ def getMeter():
     #print(f'{df.count():,} rows after merge 3')
     
     #re-order columns
-    df = df.select('sourceSystemCode','meterNumber','validToDate','registerToDate','meterSerialNumber','logicalDeviceNumber','validFromDate',
+    df = df.select('sourceSystemCode','meterNumber','validToDate','registerToDate','registerNumber','meterSerialNumber','logicalDeviceNumber','validFromDate',
                     'materialNumber','usageDeviceType','meterSize','waterType','meterCategoryCode','meterCategory',
                     'meterReadingType','meterDescription','manufacturerName','manufacturerSerialNumber','manufacturerModelNumber',
-                    'measurementUnit','registerFromDate','latestActivityReasonCode','latestActivityReason','inspectionRelevanceFlag','registerNumber',
+                    'measurementUnit','registerFromDate','latestActivityReasonCode','latestActivityReason','inspectionRelevanceFlag',
                     'registerGroupCode','registerGroup','registerTypeCode','registerType','registerCategoryCode',
                     'registerCategory','registerIdCode','registerId','divisionCategoryCode','divisionCategory'
                   )
     
-    
-    #check date column (key) for null    
-    df = df.withColumn("registerToDate", when(df.registerToDate.isNull(), "2099-12-31").otherwise(df.registerToDate))
     
     df = accessZ309TpropmeterDf.union(df)
     #print(f'{df.count():,} rows after Union 1')
     #display(df)    
     
     #Dummy Record to be added to Meter Dimension
-    ISUDummy = tuple(['ISU','-1',"2099-12-31","2099-12-31"] + ['Unknown'] * (len(df.columns) - 4)) #this only works as long as all output columns are string
-    ACCESSDummy = tuple(['ACCESS','-1',"2099-12-31","2099-12-31"] + ['Unknown'] * (len(df.columns) -4)) #this only works as long as all output columns are string
+    ISUDummy = tuple(['ISU','-1',"2099-12-31","2099-12-31",""] + ['Unknown'] * (len(df.columns) - 5)) #this only works as long as all output columns are string
+    ACCESSDummy = tuple(['ACCESS','-1',"2099-12-31","2099-12-31",""] + ['Unknown'] * (len(df.columns) -5)) #this only works as long as all output columns are string
     dummyDimRecDf = spark.createDataFrame([ISUDummy, ACCESSDummy], df.columns)
-                                    
+
+    #check key columns for null    
+    df = df.withColumn("validToDate", when(df.validToDate.isNull(), "2199-12-31").otherwise(df.validToDate)) \
+           .withColumn("registerToDate", when(df.registerToDate.isNull(), "2099-12-31").otherwise(df.registerToDate)) \
+           .withColumn("registerNumber", when(df.registerNumber.isNull(), " ").otherwise(df.registerNumber))
+        
     df = df.unionByName(dummyDimRecDf, allowMissingColumns = True)
+    
     df = df.withColumn("validToDate",df['validToDate'].cast(DateType())) \
-           .withColumn("registerToDate",df['registerToDate'].cast(DateType())) 
+           .withColumn("registerToDate",df['registerToDate'].cast(DateType())) \
+           .withColumn("validFromDate",df['validFromDate'].cast(DateType())) \
+           .withColumn("registerFromDate",df['registerFromDate'].cast(DateType())) 
     #print(f'{df.count():,} rows after Union 2')
     #display(df)
     
@@ -192,6 +197,7 @@ def getMeter():
                             StructField('meterNumber', StringType(), False),
                             StructField('validToDate', DateType(), False),
                             StructField('registerToDate', DateType(), False),
+                            StructField('registerNumber', StringType(), False),
                             StructField('meterSerialNumber', StringType(), True),
                             StructField('logicalDeviceNumber', StringType(), True),
                             StructField('validFromDate', DateType(), True),
@@ -211,7 +217,6 @@ def getMeter():
                             StructField('latestActivityReasonCode', StringType(), True),
                             StructField('latestActivityReason', StringType(), True),
                             StructField('inspectionRelevanceFlag', StringType(), True),
-                            StructField('registerNumber', StringType(), True),
                             StructField('registerGroupCode', StringType(), True),
                             StructField('registerGroup', StringType(), True),
                             StructField('registerTypeCode', StringType(), True),
@@ -264,5 +269,6 @@ def getMeter():
      "divisionCategory"
     )  
     #display(df)
+    
     return df
   
