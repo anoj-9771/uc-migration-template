@@ -13,41 +13,45 @@
 # 5.SELECT / TRANSFORM
 #############################################################################################################################
 #1.Create Function
-def getdeviceTimeslice():
-    #deviceTimeslice
+def getmeterTimeslice():
+    #meterTimeslice
     #2.Load current Cleansed layer table data into dataframe
 
-    df = spark.sql(f"select equipmentNumber as equipmentNumber , \
-                            validToDate as validToDate , \
-                            validFromDate as validFromDate , \
-                            deviceCategoryCombination as deviceCategoryCombination , \
-                            logicalDeviceNumber as logicalDeviceNumber , \
-                            registerGroupCode as registerGroupCode , \
-                            registerGroup as registerGroup , \
-                            to_date(installationDate) as installationDate , \
-                            to_date(deviceRemovalDate) as deviceRemovalDate , \
-                            activityReasonCode as activityReasonCode , \
-                            activityReason as activityReason , \
-                            deviceLocation as deviceLocation , \
-                            windingGroup as windingGroup , \
-                            deletedIndicator as deletedIndicator , \
-                            bwDeltaProcess as bwDeltaProcess , \
-                            advancedMeterCapabilityGroup as advancedMeterCapabilityGroup , \
-                            messageAttributeId as messageAttributeId , \
-                            materialNumber as materialNumber , \
-                            installationId as installationId , \
-                            addressNumber as addressNumber , \
-                            cityName as cityName , \
-                            houseNumber as houseNumber , \
-                            streetName as streetName , \
-                            postalCode as postalCode , \
-                            superiorFunctionalLocationNumber as superiorFunctionalLocationNumber , \
-                            policeEventNumber as policeEventNumber , \
-                            orderNumber as orderNumber , \
-                            createdBy as createdBy  \
-                            from {ADS_DATABASE_CLEANSED}.isu_0UC_DEVICEH_ATTR \
-                             where _RecordDeleted = 0 \
-                             and   _RecordCurrent = 1 \
+    df = spark.sql(f"select dm.meterSK as meterSK , \
+                            devh.equipmentNumber as equipmentNumber , \
+                            devh.validToDate as validToDate , \
+                            devh.validFromDate as validFromDate , \
+                            devh.deviceCategoryCombination as deviceCategoryCombination , \
+                            devh.logicalDeviceNumber as logicalDeviceNumber , \
+                            devh.registerGroupCode as registerGroupCode , \
+                            devh.registerGroup as registerGroup , \
+                            devh.to_date(installationDate) as installationDate , \
+                            devh.to_date(deviceRemovalDate) as deviceRemovalDate , \
+                            devh.activityReasonCode as activityReasonCode , \
+                            devh.activityReason as activityReason , \
+                            devh.deviceLocation as deviceLocation , \
+                            devh.windingGroup as windingGroup , \
+                            devh.deletedIndicator as deletedIndicator , \
+                            devh.bwDeltaProcess as bwDeltaProcess , \
+                            devh.advancedMeterCapabilityGroup as advancedMeterCapabilityGroup , \
+                            devh.messageAttributeId as messageAttributeId , \
+                            devh.materialNumber as materialNumber , \
+                            devh.installationId as installationId , \
+                            devh.addressNumber as addressNumber , \
+                            devh.cityName as cityName , \
+                            devh.houseNumber as houseNumber , \
+                            devh.streetName as streetName , \
+                            devh.postalCode as postalCode , \
+                            devh.superiorFunctionalLocationNumber as superiorFunctionalLocationNumber , \
+                            devh.policeEventNumber as policeEventNumber , \
+                            devh.orderNumber as orderNumber , \
+                            devh.createdBy as createdBy  \
+                            from {ADS_DATABASE_CLEANSED}.isu_0UC_DEVICEH_ATTR devh left outer join {ADS_DATABASE_CURATED}.dimMeter dm \
+                             on devh.equipmentNumber = dimMeter.equipmentNumber
+                             where devh._RecordDeleted = 0 \
+                             and   devh._RecordCurrent = 1 \ 
+                             and   dm._RecordDeleted = 0 \
+                             and   dm._RecordCurrent = 1 \
                      ")
 
     df.createOrReplaceTempView('alldeviceTimeslice')
@@ -61,7 +65,8 @@ def getdeviceTimeslice():
 
     #5.SELECT / TRANSFORM
     df = df.selectExpr( \
-                  'equipmentNumber' \
+                  'meterSK' \
+                , 'equipmentNumber' \
                 , 'validToDate' \
                 , 'validFromDate' \
                 , 'deviceCategoryCombination' \
@@ -93,6 +98,7 @@ def getdeviceTimeslice():
 
     #6.Apply schema definition
     newSchema = StructType([
+                            StructField("meterSK", BigintType(), False),
                             StructField("equipmentNumber", StringType(), False),
                             StructField("validToDate", DateType(), False),
                             StructField("validFromDate", DateType(), True),

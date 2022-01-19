@@ -1,7 +1,7 @@
 # Databricks notebook source
 ###########################################################################################################################
-# Function: getdeviceInstallation
-#  GETS deviceInstallation
+# Function: getmeterInstallation
+#  GETS meterInstallation
 # Returns:
 #  Dataframe of transformed Location
 #############################################################################################################################
@@ -13,25 +13,29 @@
 # 5.SELECT / TRANSFORM
 #############################################################################################################################
 #1.Create Function
-def getdeviceInstallation():
-    #deviceInstallation
+def getmeterInstallation():
+    #meterInstallation
     #2.Load current Cleansed layer table data into dataframe
 
-    df = spark.sql(f"select installationId as installationId, \
-                            logicalDeviceNumber as logicalDeviceNumber, \
-                            validToDate as validToDate, \
-                            validFromDate as validFromDate, \
-                            priceClassCode as priceClassCode, \
-                            priceClass as priceClass, \
-                            payRentalPrice as payRentalPrice, \
-                            rateTypeCode as rateTypeCode, \
-                            rateType as rateType, \
-                            deletedIndicator as deletedIndicator, \
-                            bwDeltaProcess as bwDeltaProcess, \
-                            operationCode as operationCode \
-                            from {ADS_DATABASE_CLEANSED}.isu_0UC_DEVINST_ATTR \
-                            where _RecordDeleted = 0 \
-                            and   _RecordCurrent = 1 \
+    df = spark.sql(f"select din.installationSK, \
+                            devin.installationId as installationId, \
+                            devin.logicalDeviceNumber as logicalDeviceNumber, \
+                            devin.validToDate as validToDate, \
+                            devin.validFromDate as validFromDate, \
+                            devin.priceClassCode as priceClassCode, \
+                            devin.priceClass as priceClass, \
+                            devin.payRentalPrice as payRentalPrice, \
+                            devin.rateTypeCode as rateTypeCode, \
+                            devin.rateType as rateType, \
+                            devin.deletedIndicator as deletedIndicator, \
+                            devin.bwDeltaProcess as bwDeltaProcess, \
+                            devin.operationCode as operationCode \
+                            from {ADS_DATABASE_CLEANSED}.isu_0UC_DEVINST_ATTR devin left outer join {ADS_DATABASE_CURATED}.dimInstallation din \
+                                                                                        on devin.installationId = dimin.installationId \
+                            where devin._RecordDeleted = 0 \
+                            and   devin._RecordCurrent = 1 \ 
+                            and   din._RecordDeleted = 0 \
+                            and   din._RecordCurrent = 1 \
                      ")
 
     df.createOrReplaceTempView('alldeviceInstallation')
@@ -47,7 +51,8 @@ def getdeviceInstallation():
     
     #5.SELECT / TRANSFORM
     df = df.selectExpr( \
-                  'installationId' \
+                 'installationSK' \
+                , 'installationId' \
                 , 'logicalDeviceNumber' \
                 , 'validToDate' \
                 , 'validFromDate' \
@@ -63,6 +68,7 @@ def getdeviceInstallation():
 
     #6.Apply schema definition
     newSchema = StructType([
+                            StructField("installationSK", BigintType(), False),
                             StructField("installationId", StringType(), False),
                             StructField("logicalDeviceNumber", StringType(), False),
                             StructField("validToDate", DateType(), False),
