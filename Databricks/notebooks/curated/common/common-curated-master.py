@@ -209,6 +209,7 @@ def makeProperty(): #renamed because property is a keyword
              businessKey="propertyNumber,sourceSystemCode,propertyStartDate",
              AddSK=True
             )
+
 # Add New Dim in alphabetical order
 # def Dim2_Example():
 #   TemplateEtl(df=GetDim2Example(), 
@@ -220,7 +221,27 @@ def makeProperty(): #renamed because property is a keyword
 
 # COMMAND ----------
 
-# DBTITLE 1,6.2 Function: Load Bridge Tables
+# DBTITLE 1,6.2 Function: Load Relationship Tables
+#Call meterTimeslice function to load meterTimeslice
+def meterTimeslice(): 
+    TemplateEtl(df=getmeterTimeslice(), 
+             entity="meterTimeslice", 
+             businessKey="meterSK, equipmentNumber,validToDate",
+             AddSK=True
+            )
+    
+def meterInstallation():
+    TemplateEtl(df=getmeterInstallation(), 
+             entity="meterInstallation", 
+             businessKey="installationSK, installationId, logicalDeviceNumber, validToDate",
+             AddSK=True
+            )
+    
+
+
+# COMMAND ----------
+
+# DBTITLE 1,6.3 Function: Load Bridge Tables
 #Call Business Partner Group Relation function to load brgBusinessPartnerGroupRelation
 def businessPartnerGroupRelation():
     TemplateEtl(df=getBusinessPartnerGroupRelation(), 
@@ -239,7 +260,7 @@ def businessPartnerGroupRelation():
 
 # COMMAND ----------
 
-# DBTITLE 1,6.3. Function: Load Facts
+# DBTITLE 1,6.4. Function: Load Facts
 
 def billedWaterConsumption():
     TemplateEtl(df=getBilledWaterConsumption(),
@@ -280,6 +301,7 @@ def DatabaseChanges():
 LoadDimensions = True
 LoadBridgeTables = True
 LoadFacts = True
+LoadRelationships = True
 
 # COMMAND ----------
 
@@ -309,6 +331,17 @@ def Main():
         LogEtl("Dimension table load not requested")
 
     #==============
+    # RELATIONSHIP TABLES
+    #==============    
+    if LoadRelationshipTables:
+        LogEtl("Start Relationship Tables")
+        meterTimeslice()
+        meterInstallation()
+
+        LogEtl("End Relatioship Tables")
+    else:
+        LogEtl("Relationship table load not requested")
+        #==============
     # BRIDGE TABLES
     #==============    
     if LoadBridgeTables:
