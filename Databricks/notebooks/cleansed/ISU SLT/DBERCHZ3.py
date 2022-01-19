@@ -192,8 +192,8 @@ df_cleansed_column = spark.sql(f"SELECT  \
                                     ZONENNR as numberOfPriceBlock, \
                                     cast(PREISBTR as dec(17,8)) as priceAmount, \
                                     cast(MNGBASIS as dec(9,2)) as amountLongQuantityBase, \
-                                    PREIGKL as priceAdjustemntClause, \
-                                    cast(URPREIS as dec(17,8)) as priceAdjustemntClauseBasePrice, \
+                                    PREIGKL as priceAdjustmentClause, \
+                                    cast(URPREIS as dec(17,8)) as priceAdjustmentClauseBasePrice, \
                                     cast(PREIADD as dec(17,8)) as addedAdjustmentPrice, \
                                     cast(PREIFAKT as dec(12,7)) as priceAdjustmentFactor, \
                                     OPMULT as additionFirst, \
@@ -238,8 +238,8 @@ newSchema = StructType([
                         StructField('numberOfPriceBlock', StringType(), True),
                         StructField('priceAmount', DecimalType(17,8), True),
                         StructField('amountLongQuantityBase', DecimalType(9,2), True),
-                        StructField('priceAdjustemntClause', StringType(), True),
-                        StructField('priceAdjustemntClauseBasePrice', DecimalType(17,8), True),
+                        StructField('priceAdjustmentClause', StringType(), True),
+                        StructField('priceAdjustmentClauseBasePrice', DecimalType(17,8), True),
                         StructField('addedAdjustmentPrice', DecimalType(17,8), True),
                         StructField('priceAdjustmentFactor', DecimalType(12,7), True),
                         StructField('additionFirst', StringType(), True),
