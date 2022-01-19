@@ -32,6 +32,7 @@ def getBilledWaterConsumptionIsu():
                              documentTypeCode, \
                              meterReadingUnit, \
                              billingTransactionCode \
+                             contractID \
                          from {ADS_DATABASE_CLEANSED}.isu_erch \
                          where trim(billingSimulationIndicator) = ''")
 
@@ -59,12 +60,12 @@ def getBilledWaterConsumptionIsu():
   billedConsDf = billedConsDf.select("sourceSystemCode", "billingDocumentNumber", "businessPartnerNumber", "equipmentNumber", \
                     "startBillingPeriod", "endBillingPeriod", "validFromDate", "validToDate", \
                     "billingDocumentCreateDate", "documentNotReleasedIndicator", "reversalDate", \
-                    "portionNumber","documentTypeCode","meterReadingUnit","billingTransactionCode", \
+                    "portionNumber","documentTypeCode","meterReadingUnit","billingTransactionCode", "contractID", \
                     "billingQuantityPlaceBeforeDecimalPoint") \
                   .groupby("sourceSystemCode", "billingDocumentNumber", "businessPartnerNumber", "equipmentNumber", \
                              "startBillingPeriod", "endBillingPeriod", "billingDocumentCreateDate", \
                              "documentNotReleasedIndicator", "reversalDate", \
-                    "portionNumber","documentTypeCode","meterReadingUnit","billingTransactionCode") \
+                    "portionNumber","documentTypeCode","meterReadingUnit","billingTransactionCode", "contractID") \
                   .agg(min("validFromDate").alias("meterActiveStartDate") \
                       ,max("validToDate").alias("meterActiveEndDate") \
                       ,sum("billingQuantityPlaceBeforeDecimalPoint").alias("meteredWaterConsumption"))
@@ -86,6 +87,7 @@ def getBilledWaterConsumptionIsu():
                     ,"documentTypeCode" \
                     ,"meterReadingUnit" \
                     ,"billingTransactionCode" \
+                    ,"contractID" \
                     ,"case when reversalDate is null then 'N' else 'Y' end as isReversedFlag" \
                     ,"case when documentNotReleasedIndicator == 'X' then 'Y' else 'N' end as isOutsortedFlag" \
                     ,"meterActiveStartDate" \

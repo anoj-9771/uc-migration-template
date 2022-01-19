@@ -122,15 +122,16 @@ def TemplateEtl(df : object, entity, businessKey, AddSK = True):
                                    start_counter = "0", 
                                    end_counter = "0")
 
-    delta_table = f"{v_COMMON_CURATED_DATABASE}.{rawEntity}"
-    print(delta_table)
-    dw_table = f"{v_COMMON_SQL_SCHEMA}.{rawEntity}"
-    print(dw_table)
+    #Commenting the below code, pending decision on Synapse
+#     delta_table = f"{v_COMMON_CURATED_DATABASE}.{rawEntity}"
+#     print(delta_table)
+#     dw_table = f"{v_COMMON_SQL_SCHEMA}.{rawEntity}"
+#     print(dw_table)
 
-    maxDate = SynapseExecuteSQLRead("SELECT isnull(cast(max([_RecordStart]) as varchar(50)),'2000-01-01') as maxval FROM " + dw_table + " ").first()["maxval"]
-    print(maxDate)
+#     maxDate = SynapseExecuteSQLRead("SELECT isnull(cast(max([_RecordStart]) as varchar(50)),'2000-01-01') as maxval FROM " + dw_table + " ").first()["maxval"]
+#     print(maxDate)
 
-    DeltaSyncToSQLDW(delta_table, v_COMMON_SQL_SCHEMA, entity, businessKey, start_counter = maxDate, data_load_mode = ADS_WRITE_MODE_MERGE, additional_property = "")
+#     DeltaSyncToSQLDW(delta_table, v_COMMON_SQL_SCHEMA, entity, businessKey, start_counter = maxDate, data_load_mode = ADS_WRITE_MODE_MERGE, additional_property = "")
 
     LogEtl(f"Finished {entity}.")
 
@@ -197,7 +198,7 @@ def location():
 def meter():
     TemplateEtl(df=getMeter(), 
              entity="dimMeter", 
-             businessKey="meterNumber,sourceSystemCode",
+             businessKey="meterNumber,sourceSystemCode,validToDate,registerToDate,registerNumber",
              AddSK=True
             )
 
