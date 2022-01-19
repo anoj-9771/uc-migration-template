@@ -30,6 +30,11 @@
 
 # COMMAND ----------
 
+# DBTITLE 1,2.2 Include all relationship related user function for the notebook
+# MAGIC %run ./functions/common-functions-relationships
+
+# COMMAND ----------
+
 # DBTITLE 1,2.2 Include all bridge tables related user function for the notebook
 # MAGIC %run ./functions/common-functions-bridgeTables
 
@@ -265,7 +270,7 @@ def businessPartnerGroupRelation():
 def billedWaterConsumption():
     TemplateEtl(df=getBilledWaterConsumption(),
              entity="factBilledWaterConsumption", 
-             businessKey="sourceSystemCode,dimBillingDocumentSK,dimPropertySK,dimMeterSK,billingPeriodStartDateSK,billingPeriodEndDateSK,dimWaterNetworkSK",
+             businessKey="sourceSystemCode,dimBillingDocumentSK,dimPropertySK,dimMeterSK,billingPeriodStartDate",
              AddSK=True
             )
 
