@@ -22,15 +22,21 @@ DELETE FROM CTL.ControlProjectSchedule
 DBCC CHECKIDENT ('CTL.ControlProjects',Reseed,0)
 DBCC CHECKIDENT ('CTL.ControlProjectSchedule',Reseed,0)
 
-INSERT INTO [CTL].[ControlProjects]([ProjectName],[Enabled]) VALUES ('SAP ISU',1)
-INSERT INTO [CTL].[ControlProjects]([ProjectName],[Enabled]) VALUES ('SAP REF',1)
-INSERT INTO [CTL].[ControlProjects]([ProjectName],[Enabled]) VALUES ('Access Data',1)
-INSERT INTO [CTL].[ControlProjects]([ProjectName],[Enabled]) VALUES ('Access REF',1)
-INSERT INTO [CTL].[ControlProjects]([ProjectName],[Enabled]) VALUES ('HYRDA',1)
-INSERT INTO [CTL].[ControlProjects]([ProjectName],[Enabled]) VALUES ('Common',1)
-INSERT INTO [CTL].[ControlProjects]([ProjectName],[Enabled]) VALUES ('SAP SLT',1)
-INSERT INTO [CTL].[ControlProjects]([ProjectName],[Enabled]) VALUES ('TEST BP',1)
-INSERT INTO [CTL].[ControlProjects]([ProjectName],[Enabled]) VALUES ('TEST1',1)
+insert into [CTL].[ControlProjects]([ProjectName],[Enabled],[RunSequence]) values('RAW REF ACCESS',1,10);
+insert into [CTL].[ControlProjects]([ProjectName],[Enabled],[RunSequence]) values('RAW DATA ACCESS',1,20);
+insert into [CTL].[ControlProjects]([ProjectName],[Enabled],[RunSequence]) values('CLEANSED REF ACCESS',1,30);
+insert into [CTL].[ControlProjects]([ProjectName],[Enabled],[RunSequence]) values('CLEANSED DATA ACCESS',1,40);
+insert into [CTL].[ControlProjects]([ProjectName],[Enabled],[RunSequence]) values('HYDRA DATA',1,10);
+insert into [CTL].[ControlProjects]([ProjectName],[Enabled],[RunSequence]) values('RAW REF CRM',1,10);
+insert into [CTL].[ControlProjects]([ProjectName],[Enabled],[RunSequence]) values('RAW DATA CRM',1,20);
+insert into [CTL].[ControlProjects]([ProjectName],[Enabled],[RunSequence]) values('CLEANSED REF CRM',1,30);
+insert into [CTL].[ControlProjects]([ProjectName],[Enabled],[RunSequence]) values('CLEANSED DATA CRM',1,40);
+insert into [CTL].[ControlProjects]([ProjectName],[Enabled],[RunSequence]) values('RAW REF ISU',1,10);
+insert into [CTL].[ControlProjects]([ProjectName],[Enabled],[RunSequence]) values('RAW DATA ISU',1,20);
+insert into [CTL].[ControlProjects]([ProjectName],[Enabled],[RunSequence]) values('CLEANSED REF ISU',1,30);
+insert into [CTL].[ControlProjects]([ProjectName],[Enabled],[RunSequence]) values('CLEANSED DATA ISU',1,40);
+insert into [CTL].[ControlProjects]([ProjectName],[Enabled],[RunSequence]) values('CURATED MASTER',1,50);
+insert into [CTL].[ControlProjects]([ProjectName],[Enabled],[RunSequence]) values('CURATED BRIDGE',1,60);
 
 INSERT INTO [CTL].[ControlStages] ([StageSequence], [StageName]) SELECT 100, N'Source to Raw'
 WHERE NOT EXISTS (SELECT 1 FROM [CTL].[ControlStages] WHERE [StageName] = N'Source to Raw')

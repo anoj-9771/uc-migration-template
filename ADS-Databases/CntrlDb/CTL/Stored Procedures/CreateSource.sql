@@ -1,7 +1,7 @@
 ﻿
-
 CREATE PROC [CTL].[CreateSource] 
         @ProjectName		 varchar(100),
+		@TriggerName		 varchar(100),
 		@StartStageName		 varchar(100),
 		@EndStageName		 varchar(100),
 		@SourceGroup		 varchar(100),
@@ -158,6 +158,7 @@ begin
 			,@DLRawSecret
 			,@counter
 			,@project
+			,@TriggerName
 			,@sourceTypeId
 			,@SourceCommand
 			,@DataLoadMode
@@ -188,6 +189,7 @@ begin
 			,@DLStagedSecret
 			,@counter
 			,@project
+			,@TriggerName
 			,@databricksTypeId
 			,@DLRawtoStageCommand
 			,@DataLoadMode
@@ -220,6 +222,7 @@ begin
 			,@StageDBSecret
 			,@counter
 			,@project
+			,@TriggerName
 			,@databricksTypeId
 			,@DLStagetoDBCommand
 			,0
@@ -252,6 +255,7 @@ begin
 			,@SourceSecretName
 			,@counter
 			,@project
+			,@TriggerName
 			,@sourceTypeId
 			,@SourceCommand
 			,@DataLoadMode

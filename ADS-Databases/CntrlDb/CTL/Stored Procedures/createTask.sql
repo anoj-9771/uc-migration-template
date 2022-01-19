@@ -1,8 +1,4 @@
-﻿
-
-
-
-CREATE Procedure [CTL].[CreateTask] 
+﻿CREATE Procedure [CTL].[CreateTask] 
 	@SourceGroup varchar(255) = '',
 	@SourceName Varchar(255) = '',
     @SourceLocation Varchar(255) = '',
@@ -15,6 +11,7 @@ CREATE Procedure [CTL].[CreateTask]
 	@TargetServer varchar(255)= '',
 	@StageId BigInt = 2,
 	@ProjectId BigInt = 1,
+	@TriggerName varchar(100) = '',
 	@CommandType int = 1,
 	@Command varchar(max)= '',
 	@DataLoadMode varchar(100) = '',
@@ -96,12 +93,11 @@ BEGIN
 
 		IF NOT EXISTS(SELECT 1 FROM CTL.ControlProjectSchedule WHERE ControlProjectId = @ProjectId AND ControlStageID = @StageId)
 		BEGIN
-			DECLARE @ProjectName varchar(100)
-			SELECT @ProjectName = ProjectName FROM CTL.ControlProjects WHERE ProjectId = @ProjectId
+			IF @TriggerName is null or @TriggerName = ''
+				SELECT @TriggerName = ProjectName FROM CTL.ControlProjects WHERE ProjectId = @ProjectId
 			--If the Project Schedule does not exist, add a default schedule entry
-			INSERT INTO CTL.ControlProjectSchedule (ControlProjectId, ControlStageID, TriggerName, StageEnabled) VALUES (@ProjectId, @StageId, @ProjectName, 1)
+			INSERT INTO CTL.ControlProjectSchedule (ControlProjectId, ControlStageID, TriggerName, StageEnabled) VALUES (@ProjectId, @StageId, @TriggerName, 1)
 		END
-
 
 	Commit
 	End Try
