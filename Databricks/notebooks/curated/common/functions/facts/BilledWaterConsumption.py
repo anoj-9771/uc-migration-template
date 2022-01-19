@@ -144,14 +144,13 @@ dummyDimRecDf = spark.sql(f"select dimPropertySk as dummyDimSK, sourceSystemCode
                                & (billedConsDf.sourceSystemCode == dimBillDocDf.sourceSystemCode), how="left") \
                     .select(billedConsDf['*'], dimBillDocDf['dimBillingDocumentSK'])
 
-  billedConsDf = billedConsDf.join(dimStartDateDf, billedConsDf.billingPeriodStartDate == dimStartDateDf.calendarDate, how="left") \
-                    .select(billedConsDf['*'], dimStartDateDf['dimDateSK'].alias('billingPeriodStartDateSK'))
+#   billedConsDf = billedConsDf.join(dimStartDateDf, billedConsDf.billingPeriodStartDate == dimStartDateDf.calendarDate, how="left") \
+#                     .select(billedConsDf['*'], dimStartDateDf['dimDateSK'].alias('billingPeriodStartDateSK'))
 
   #billedConsDf = billedConsDf.join(dimDateDf, billedConsDf.billingPeriodEndDate == dimDateDf.calendarDate, how="left") \
   #                  .select(billedConsDf['*'], dimDateDf['dimDateSK'].alias('billingPeriodEndDateSK'))
 
-  billedConsDf = billedConsDf.join(dimEndDateDf, billedConsDf.billingPeriodEndDate == dimEndDateDf.calendarDate, how="left") \
-                    .select(billedConsDf['*'], dimEndDateDf['dimDateSK'].alias('billingPeriodEndDateSK'))
+# `
 #------------new sks
  
   billedConsDf = billedConsDf.join(deviceTimesliceDf, (billedConsDf.equipmentNumber == deviceTimesliceDf.equipmentNumber), how="left") \
@@ -183,8 +182,16 @@ dummyDimRecDf = spark.sql(f"select dimPropertySk as dummyDimSK, sourceSystemCode
                                  & (billedConsDf.sourceSystemCode == dummyDimRecDf.sourceSystemCode), how="left") \
                     .select(billedConsDf['*'], dummyDimRecDf['dummyDimSK'].alias('dummyBillingDocumentSK'))
   
-  billedConsDf = billedConsDf.join(dummyDimRecDf, (dummyDimRecDf.dimension == 'dimDate'), how="left") \
-                    .select(billedConsDf['*'], dummyDimRecDf['dummyDimSK'].alias('dummyBillingPeriodStartSK'))
+#   billedConsDf = billedConsDf.join(dummyDimRecDf, (dummyDimRecDf.dimension == 'dimDate'), how="left") \
+#                     .select(billedConsDf['*'], dummyDimRecDf['dummyDimSK'].alias('dummyBillingPeriodStartSK'))
+                                 
+  billedConsDf = billedConsDf.join(dummyDimRecDf, (dummyDimRecDf.dimension == 'dimContract'), how="left") \
+                    .select(billedConsDf['*'], dummyDimRecDf['dummyDimSK'].alias('dummyContractSK'))
+
+                                 
+  billedConsDf = billedConsDf.join(dummyDimRecDf, (dummyDimRecDf.dimension == 'dimBusinessPartnerGroup'), how="left") \
+                    .select(billedConsDf['*'], dummyDimRecDf['dummyDimSK'].alias('dummyBusinessPartnerGroupSK'))
+
                                  
   billedConsDf = billedConsDf.join(dummyDimRecDf, (dummyDimRecDf.dimension == 'dimInstallation'), how="left") \
                     .select(billedConsDf['*'], dummyDimRecDf['dummyDimSK'].alias('dummyInstallationSK'))
@@ -198,16 +205,16 @@ dummyDimRecDf = spark.sql(f"select dimPropertySk as dummyDimSK, sourceSystemCode
                                           ,"coalesce(dimMeterSK, dummyMeterSK) as dimMeterSK" \
                                           ,"coalesce(dimLocationSk, dummyLocationSK) as dimLocationSK" \
                                           ,"-1 as dimWaterNetworkSK" \
-                                          ,"coalesce(billingPeriodStartDateSK, dummyBillingPeriodStartSK) as billingPeriodStartDateSK" \
+                                          ,"startBillingPeriod as billingPeriodStartDate" \
                                           ,"coalesce(businessPartnerGroupSK, dummyBusinessPartnerGroupSK) as businessPartnerGroupSK" \
                                           ,"coalesce(contractSK, dummyContractSK) as contractSK" \
                                           ,"coalesce(installationSK, dummyInstallationSK) as installationSK" \
-                                          ,"billingPeriodEndDateSK" \
+                                          ,"endBillingPeriod as billingPeriodEndDate" \
                                           ,"meteredWaterConsumption" \
                                          ) \
                             .groupby("sourceSystemCode", "dimBillingDocumentSK", "dimPropertySK", "dimMeterSK", \
-                                     "dimLocationSK", "dimWaterNetworkSK", "billingPeriodStartDateSK", "businessPartnerGroupSK", "contractSK", "installationSK") \
-                            .agg(max("billingPeriodEndDateSK").alias("billingPeriodEndDateSK") \
+                                     "dimLocationSK", "dimWaterNetworkSK", "billingPeriodStartDate", "businessPartnerGroupSK", "contractSK", "installationSK") \
+                            .agg(max("billingPeriodEndDate").alias("billingPeriodEndDate") \
                                 ,sum("meteredWaterConsumption").alias("meteredWaterConsumption"))
   
   return billedConsDf
