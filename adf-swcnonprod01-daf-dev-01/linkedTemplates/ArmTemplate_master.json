@@ -161,12 +161,6 @@
 					},
 					"BATCH_DAILY_HYDRA_properties_typeProperties_scope": {
 						"value": "[parameters('BATCH_DAILY_HYDRA_properties_typeProperties_scope')]"
-					},
-					"BATCH_DAILY_SAPCRM_properties_01-Main_parameters_TriggerName": {
-						"value": "[parameters('BATCH_DAILY_SAPCRM_properties_01-Main_parameters_TriggerName')]"
-					},
-					"BATCH_DAILY_SAPCRM_properties_typeProperties_scope": {
-						"value": "[parameters('BATCH_DAILY_SAPCRM_properties_typeProperties_scope')]"
 					}
 				}
 			},
@@ -187,6 +181,12 @@
 				"parameters": {
 					"factoryName": {
 						"value": "[parameters('factoryName')]"
+					},
+					"BATCH_DAILY_SAPCRM_properties_01-Main_parameters_TriggerName": {
+						"value": "[parameters('BATCH_DAILY_SAPCRM_properties_01-Main_parameters_TriggerName')]"
+					},
+					"BATCH_DAILY_SAPCRM_properties_typeProperties_scope": {
+						"value": "[parameters('BATCH_DAILY_SAPCRM_properties_typeProperties_scope')]"
 					},
 					"BATCH_DAILY_SAPISU_properties_01-Main_parameters_TriggerName": {
 						"value": "[parameters('BATCH_DAILY_SAPISU_properties_01-Main_parameters_TriggerName')]"
