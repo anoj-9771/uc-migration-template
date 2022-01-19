@@ -1,6 +1,23 @@
 {
 	"name": "pipeline1",
 	"properties": {
+		"activities": [
+			{
+				"name": "Set variable1",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "a",
+					"value": "a"
+				}
+			}
+		],
+		"variables": {
+			"a": {
+				"type": "String"
+			}
+		},
 		"folder": {
 			"name": "z_Archive"
 		},
