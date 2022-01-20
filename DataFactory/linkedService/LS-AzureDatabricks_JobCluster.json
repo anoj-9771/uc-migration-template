@@ -29,7 +29,7 @@
 					"value": "@linkedService().kvSecret",
 					"type": "Expression"
 				},
-				"secretVersion": "synapseadmin"
+				"secretVersion": "Latest version"
 			},
 			"newClusterNodeType": "@linkedService().DataBricksClusterType",
 			"newClusterNumOfWorker": "@linkedService().DataBricksWorkerNodes",
