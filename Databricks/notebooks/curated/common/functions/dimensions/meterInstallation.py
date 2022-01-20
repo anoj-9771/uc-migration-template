@@ -17,7 +17,7 @@ def getmeterInstallation():
     #meterInstallation
     #2.Load current Cleansed layer table data into dataframe
 
-    df = spark.sql(f"select din.installationSK, \
+    df = spark.sql(f"select din.dimInstallationSK as installationSK, \
                             devin.installationId as installationId, \
                             devin.logicalDeviceNumber as logicalDeviceNumber, \
                             devin.validToDate as validToDate, \
@@ -31,9 +31,9 @@ def getmeterInstallation():
                             devin.bwDeltaProcess as bwDeltaProcess, \
                             devin.operationCode as operationCode \
                             from {ADS_DATABASE_CLEANSED}.isu_0UC_DEVINST_ATTR devin left outer join {ADS_DATABASE_CURATED}.dimInstallation din \
-                                                                                        on devin.installationId = dimin.installationId \
+                                                                                        on devin.installationId = din.installationId \
                             where devin._RecordDeleted = 0 \
-                            and   devin._RecordCurrent = 1 \ 
+                            and   devin._RecordCurrent = 1 \
                             and   din._RecordDeleted = 0 \
                             and   din._RecordCurrent = 1 \
                      ")
@@ -68,7 +68,7 @@ def getmeterInstallation():
 
     #6.Apply schema definition
     newSchema = StructType([
-                            StructField("installationSK", BigintType(), False),
+                            StructField("installationSK", LongType(), False),
                             StructField("installationId", StringType(), False),
                             StructField("logicalDeviceNumber", StringType(), False),
                             StructField("validToDate", DateType(), False),
