@@ -43,7 +43,7 @@ def getInstallation():
                                       FROM {ADS_DATABASE_CLEANSED}.isu_0ucinstalla_attr_2 \
                                       WHERE _RecordCurrent = 1 \
                                       AND _RecordDeleted = 0")
-    
+    #print(f'Rows in isu0ucinstallaAttrDf:',isu0ucinstallaAttrDf.count())
     isu0ucinstallahAttr2Df  = spark.sql(f"select \
                                            installationId, \
                                            validFromDate, \
@@ -59,7 +59,7 @@ def getInstallation():
                                       FROM {ADS_DATABASE_CLEANSED}.isu_0ucinstallah_attr_2 \
                                       WHERE _RecordCurrent = 1 \
                                       AND _RecordDeleted = 0")
-    
+    #print(f'Rows in isu0ucinstallahAttr2Df:',isu0ucinstallahAttr2Df.count())
     isu0ucIsu32  = spark.sql(f"select \
                                   installationId, \
                                   validToDate, \
@@ -83,23 +83,22 @@ def getInstallation():
                                 AND validToDate in (to_date('9999-12-31'),to_date('2099-12-31')) \
                                 AND _RecordCurrent = 1 \
                                 AND _RecordDeleted = 0")
-    
+    #print(f'Rows in isu0ucIsu32:',isu0ucIsu32.count())
     #Dummy Record to be added to Installation Dimension
     dummyDimRecDf = spark.createDataFrame([("ISU", "-1","2099-12-31","","","")], 
                                           ["sourceSystemCode", "installationId","validToDate","disconnectionDocumentNumber","disconnectionActivityPeriod","disconnectionObjectNumber"])
-    dummyDimRecDf = dummyDimRecDf.withColumn("validToDate",dummyDimRecDf['validToDate'].cast(DateType()))
-    
+        
     #3.JOIN TABLES
-    df = isu0ucinstallaAttrDf.join(isu0ucinstallahAttr2Df, isu0ucinstallaAttrDf.installationId == isu0ucinstallahAttr2Df.installationId, how="inner") \
+    df = isu0ucinstallaAttrDf.join(isu0ucinstallahAttr2Df, isu0ucinstallaAttrDf.installationId == isu0ucinstallahAttr2Df.installationId, how="left") \
                              .drop(isu0ucinstallahAttr2Df.installationId)
    
     df = df.join(isu0ucIsu32, (df.installationId == isu0ucIsu32.installationId) & (df.validToDate == isu0ucIsu32.validToDate), how="left") \
-           .drop(isu0ucIsu32.installationId).drop(isu0ucIsu32.validToDate)    
+           .drop(isu0ucIsu32.installationId).drop(isu0ucIsu32.validToDate) 
+    
+    #4.UNION TABLES
+    df = df.unionByName(dummyDimRecDf, allowMissingColumns = True)    
 
-    df = df.withColumn("disconnectionDocumentNumber", when(df.disconnectionDocumentNumber.isNull(), '').otherwise(df.disconnectionDocumentNumber)) \
-           .withColumn("disconnectionActivityPeriod", when(df.disconnectionActivityPeriod.isNull(), '').otherwise(df.disconnectionActivityPeriod)) \
-           .withColumn("disconnectionObjectNumber", when(df.disconnectionObjectNumber.isNull(), '').otherwise(df.disconnectionObjectNumber))
-
+    #5.SELECT / TRANSFORM
     df = df.select("sourceSystemCode", \
                     "installationId", \
                     "validFromDate", \
@@ -137,12 +136,17 @@ def getInstallation():
                     "createdDate", \
                     "createdBy", \
                     "changedDate", \
-                    "changedBy") 
+                    "changedBy")
     
-    #4.UNION TABLES
-    df = df.unionByName(dummyDimRecDf, allowMissingColumns = True)
-
-    #5.Apply schema definition
+    #check key columns for null 
+    df = df.withColumn("disconnectionDocumentNumber", when(df.disconnectionDocumentNumber.isNull(), '').otherwise(df.disconnectionDocumentNumber)) \
+           .withColumn("disconnectionActivityPeriod", when(df.disconnectionActivityPeriod.isNull(), '').otherwise(df.disconnectionActivityPeriod)) \
+           .withColumn("disconnectionObjectNumber", when(df.disconnectionObjectNumber.isNull(), '').otherwise(df.disconnectionObjectNumber)) \
+           .withColumn("validToDate", when(df.validToDate.isNull(), '2099-12-31').otherwise(df.validToDate))    
+    
+    df = df.withColumn("validToDate",df['validToDate'].cast(DateType()))
+    
+    #6.Apply schema definition
     newSchema = StructType([
                             StructField('sourceSystemCode', StringType(), True),
                             StructField('installationId', StringType(), False),
@@ -185,8 +189,5 @@ def getInstallation():
                       ])
 
     df = spark.createDataFrame(df.rdd, schema=newSchema)
-
-    #5.SELECT / TRANSFORM
-
-    
+    #print(df.count())
     return df  

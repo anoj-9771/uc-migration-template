@@ -328,7 +328,7 @@ def GeneralToValidDateTime(dateIn, colType ="Optional", fmt = "" ):
   highDate = str('20991231000000')    
    
 #   date_formats = ["%Y-%m-%dT%H:%M:%S", "%Y%m%d%I%M%S %p", "%Y%m%d%H%M%S","%d%y%m", "%d%m%Y", "%Y%m%d", "%d-%m-%Y", "%Y-%m-%d"]
-date_formats = ["%Y%m%d", "%Y-%m-%d", "%d%m%Y", "%d-%m-%Y", "%Y-%m-%dT%H:%M:%S", "%Y%m%d%H%M%S", "%Y%m%d %H%M%S", "%Y-%m-%d %H:%M:%S", "%Y%m%d%I%M%S %p", "%Y-%m-%d %I:%M:%S %p"]
+  date_formats = ["%Y%m%d", "%Y-%m-%d", "%d%m%Y", "%d-%m-%Y", "%Y-%m-%dT%H:%M:%S", "%Y%m%d%H%M%S", "%Y%m%d %H%M%S", "%Y-%m-%d %H:%M:%S", "%Y%m%d%I%M%S %p", "%Y-%m-%d %I:%M:%S %p"]
 
   if fmt != "" : 
     date_formats = list(eval(fmt))
