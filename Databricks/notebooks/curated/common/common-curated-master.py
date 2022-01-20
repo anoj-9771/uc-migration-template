@@ -231,14 +231,14 @@ def makeProperty(): #renamed because property is a keyword
 def meterTimeslice(): 
     TemplateEtl(df=getmeterTimeslice(), 
              entity="meterTimeslice", 
-             businessKey="meterSK, equipmentNumber,validToDate",
+             businessKey="meterSK,equipmentNumber,validToDate",
              AddSK=True
             )
     
 def meterInstallation():
     TemplateEtl(df=getmeterInstallation(), 
              entity="meterInstallation", 
-             businessKey="installationSK, installationId, logicalDeviceNumber, validToDate",
+             businessKey="installationSK,installationId,logicalDeviceNumber,validToDate",
              AddSK=True
             )
     

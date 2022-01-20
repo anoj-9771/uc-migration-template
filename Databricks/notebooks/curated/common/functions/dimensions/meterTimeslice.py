@@ -1,7 +1,7 @@
 # Databricks notebook source
 ###########################################################################################################################
-# Function: getdeviceTimeslice
-#  GETS deviceTimeslice
+# Function: getmeterTimeslice
+#  GETS meterTimeslice
 # Returns:
 #  Dataframe of transformed Location
 #############################################################################################################################
@@ -17,7 +17,7 @@ def getmeterTimeslice():
     #meterTimeslice
     #2.Load current Cleansed layer table data into dataframe
 
-    df = spark.sql(f"select dm.meterSK as meterSK , \
+    df = spark.sql(f"select dm.dimMeterSK as meterSK , \
                             devh.equipmentNumber as equipmentNumber , \
                             devh.validToDate as validToDate , \
                             devh.validFromDate as validFromDate , \
@@ -25,8 +25,8 @@ def getmeterTimeslice():
                             devh.logicalDeviceNumber as logicalDeviceNumber , \
                             devh.registerGroupCode as registerGroupCode , \
                             devh.registerGroup as registerGroup , \
-                            devh.to_date(installationDate) as installationDate , \
-                            devh.to_date(deviceRemovalDate) as deviceRemovalDate , \
+                            ToValidDate(devh.installationDate) as installationDate , \
+                            ToValidDate(devh.deviceRemovalDate) as deviceRemovalDate , \
                             devh.activityReasonCode as activityReasonCode , \
                             devh.activityReason as activityReason , \
                             devh.deviceLocation as deviceLocation , \
@@ -47,9 +47,9 @@ def getmeterTimeslice():
                             devh.orderNumber as orderNumber , \
                             devh.createdBy as createdBy  \
                             from {ADS_DATABASE_CLEANSED}.isu_0UC_DEVICEH_ATTR devh left outer join {ADS_DATABASE_CURATED}.dimMeter dm \
-                             on devh.equipmentNumber = dimMeter.equipmentNumber
+                             on devh.equipmentNumber = dm.meterNumber \
                              where devh._RecordDeleted = 0 \
-                             and   devh._RecordCurrent = 1 \ 
+                             and   devh._RecordCurrent = 1 \
                              and   dm._RecordDeleted = 0 \
                              and   dm._RecordCurrent = 1 \
                      ")
@@ -98,7 +98,7 @@ def getmeterTimeslice():
 
     #6.Apply schema definition
     newSchema = StructType([
-                            StructField("meterSK", BigintType(), False),
+                            StructField("meterSK", LongType(), False),
                             StructField("equipmentNumber", StringType(), False),
                             StructField("validToDate", DateType(), False),
                             StructField("validFromDate", DateType(), True),
