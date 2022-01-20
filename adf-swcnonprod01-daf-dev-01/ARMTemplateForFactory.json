@@ -13780,7 +13780,7 @@
 			"apiVersion": "2018-06-01",
 			"properties": {
 				"type": "SelfHosted",
-				"typeProperties": 
+				"typeProperties": {
 					"linkedInfo": {
 						"resourceId": "/subscriptions/769a62b3-7481-44ae-878e-a466593f50ac/resourcegroups/rg-swcprod01-preprod-daf-01/providers/Microsoft.DataFactory/factories/adf-swcprod01-daf-preprod-01/integrationruntimes/IntegrationRuntime-SelfHosted",
 						"authorizationType": "Rbac"
