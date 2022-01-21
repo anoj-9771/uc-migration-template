@@ -1,6 +1,20 @@
 {
 	"name": "LS_AzureDatabricks_InstancePool",
 	"properties": {
+		"parameters": {
+			"kvSecret": {
+				"type": "string",
+				"defaultValue": "databricks-token"
+			},
+			"clusterId": {
+				"type": "string",
+				"defaultValue": "0121-060302-next337-pool-owblzzx4"
+			},
+			"DatabricksClusterVersion": {
+				"type": "string",
+				"defaultValue": "9.1.x-scala2.12"
+			}
+		},
 		"annotations": [],
 		"type": "AzureDatabricks",
 		"typeProperties": {
@@ -11,7 +25,10 @@
 					"referenceName": "LS-AzureKeyVault",
 					"type": "LinkedServiceReference"
 				},
-				"secretName": "@linkedService().kvSecret"
+				"secretName": {
+					"value": "@linkedService().kvSecret",
+					"type": "Expression"
+				}
 			},
 			"instancePoolId": "@linkedService().clusterId",
 			"newClusterNumOfWorker": "1:8",
