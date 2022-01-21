@@ -3,7 +3,7 @@
 	"properties": {
 		"description": "Triggers Main pipeline to kick off SAP CRM daily loads on the blob-creation event of 'trigger_batch_daily_sapcrm.json' in 'triggers' container. This pipeline invocation runs multiple SAPCRM data load Projects.",
 		"annotations": [],
-		"runtimeState": "Started",
+		"runtimeState": "Stopped",
 		"pipelines": [
 			{
 				"pipelineReference": {
