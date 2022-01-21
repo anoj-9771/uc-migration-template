@@ -27,6 +27,10 @@
 			"type": "string",
 			"defaultValue": "https://sablobdafdev01.blob.core.windows.net/"
 		},
+		"LS_AzureDatabricks_InstancePool_properties_typeProperties_domain": {
+			"type": "string",
+			"defaultValue": "https://adb-7004525605760210.10.azuredatabricks.net"
+		},
 		"LS_AzureDatalake_properties_typeProperties_url": {
 			"type": "string",
 			"defaultValue": "https://sadafdev01.dfs.core.windows.net"
@@ -109,6 +113,9 @@
 					"LS_AzureBlobStorage_properties_typeProperties_serviceEndpoint": {
 						"value": "[parameters('LS_AzureBlobStorage_properties_typeProperties_serviceEndpoint')]"
 					},
+					"LS_AzureDatabricks_InstancePool_properties_typeProperties_domain": {
+						"value": "[parameters('LS_AzureDatabricks_InstancePool_properties_typeProperties_domain')]"
+					},
 					"LS_AzureDatalake_properties_typeProperties_url": {
 						"value": "[parameters('LS_AzureDatalake_properties_typeProperties_url')]"
 					},
@@ -155,12 +162,6 @@
 				"parameters": {
 					"factoryName": {
 						"value": "[parameters('factoryName')]"
-					},
-					"BATCH_DAILY_HYDRA_properties_01-Main_parameters_TriggerName": {
-						"value": "[parameters('BATCH_DAILY_HYDRA_properties_01-Main_parameters_TriggerName')]"
-					},
-					"BATCH_DAILY_HYDRA_properties_typeProperties_scope": {
-						"value": "[parameters('BATCH_DAILY_HYDRA_properties_typeProperties_scope')]"
 					}
 				}
 			},
@@ -181,6 +182,12 @@
 				"parameters": {
 					"factoryName": {
 						"value": "[parameters('factoryName')]"
+					},
+					"BATCH_DAILY_HYDRA_properties_01-Main_parameters_TriggerName": {
+						"value": "[parameters('BATCH_DAILY_HYDRA_properties_01-Main_parameters_TriggerName')]"
+					},
+					"BATCH_DAILY_HYDRA_properties_typeProperties_scope": {
+						"value": "[parameters('BATCH_DAILY_HYDRA_properties_typeProperties_scope')]"
 					},
 					"BATCH_DAILY_SAPCRM_properties_01-Main_parameters_TriggerName": {
 						"value": "[parameters('BATCH_DAILY_SAPCRM_properties_01-Main_parameters_TriggerName')]"
