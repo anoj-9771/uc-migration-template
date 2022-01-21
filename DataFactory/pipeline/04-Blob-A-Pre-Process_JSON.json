@@ -149,7 +149,7 @@
 							"value": "instance-pool",
 							"activities": [
 								{
-									"name": "Notebook-preprocess-bods-json",
+									"name": "Notebook-preprocess-bods-json InstancePool",
 									"type": "DatabricksNotebook",
 									"dependsOn": [],
 									"policy": {
