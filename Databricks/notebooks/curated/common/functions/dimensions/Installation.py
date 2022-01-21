@@ -39,7 +39,8 @@ def getInstallation():
                                           createdDate, \
                                           createdBy, \
                                           lastChangedDate as changedDate, \
-                                          lastChangedBy as changedBy\
+                                          lastChangedBy as changedBy, \
+                                          propertyNumber \
                                       FROM {ADS_DATABASE_CLEANSED}.isu_0ucinstalla_attr_2 \
                                       WHERE _RecordCurrent = 1 \
                                       AND _RecordDeleted = 0")
@@ -136,7 +137,8 @@ def getInstallation():
                     "createdDate", \
                     "createdBy", \
                     "changedDate", \
-                    "changedBy")
+                    "changedBy", \
+                    "propertyNumber")
     
     #check key columns for null 
     df = df.withColumn("disconnectionDocumentNumber", when(df.disconnectionDocumentNumber.isNull(), '').otherwise(df.disconnectionDocumentNumber)) \
@@ -185,7 +187,8 @@ def getInstallation():
                             StructField('createdDate', DateType(), True),
                             StructField('createdBy', StringType(), True),
                             StructField('changedDate', DateType(), True),
-                            StructField('changedBy', StringType(), True)
+                            StructField('changedBy', StringType(), True),
+                            StructField('propertyNumber', StringType(), True)
                       ])
 
     df = spark.createDataFrame(df.rdd, schema=newSchema)
