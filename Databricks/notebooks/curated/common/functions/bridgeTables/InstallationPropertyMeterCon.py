@@ -24,35 +24,61 @@
 
 def getInstallationPropertyMeterCon():
     #spark.udf.register("TidyCase", GeneralToTidyCase) 
-
-    #2.Load Cleansed layer table data into dataframe   
-    df  = spark.sql(f"select distinct \
-                           coalesce(inst.installationID,'-1') as installationID, \
-                           coalesce(cont.contractID,'-1') as contractID, \
-                           coalesce(prop.propertyNumber,'-1') as propertyNumber, \
-                           coalesce(reg.equipmentNumber,'-1') as equipmentNumber \
-                           from cleansed.ISU_0UCINSTALLA_ATTR_2 inst \
-                           left join {ADS_DATABASE_CLEANSED}.ISU_0UCINSTALLAH_ATTR_2 insth on inst.installationId = insth.installationId and insth._RecordCurrent = 1 and insth._RecordDeleted = 0 \
-                           left join {ADS_DATABASE_CLEANSED}.ISU_0UCCONTRACT_ATTR_2 cont on inst.installationId = cont.installationId and cont._RecordCurrent = 1 and cont._RecordDeleted = 0 \
-                           left join {ADS_DATABASE_CLEANSED}.ISU_0UC_CONNOBJ_ATTR_2 prop on inst.propertyNumber = prop.propertyNumber and prop._RecordCurrent = 1 and prop._RecordDeleted = 0 \
-                           left join {ADS_DATABASE_CLEANSED}.ISU_0UC_REGIST_ATTR reg on inst.installationId = reg.installationId and reg._RecordCurrent = 1 and reg._RecordDeleted = 0 \
-                           where inst._RecordCurrent = 1 and inst._RecordDeleted = 0")
+         
+    #2.Load dimension/relationship tables into dataframe
+    dimInstallationDf = spark.sql(f"select \
+                                      sourceSystemCode, \
+                                      dimInstallationSK, \
+                                      installationId, \
+                                      propertyNumber \
+                                      from {ADS_DATABASE_CURATED}.dimInstallation \
+                                      where sourceSystemCode = 'ISU' and _RecordCurrent = 1 and _RecordDeleted = 0")     
+    print(f"Number of rows in dimInstallationDf: ", dimInstallationDf.count())
+    display(dimInstallationDf)
     
-    print(f'{df.count():,} rows in df -1')
-    display(df)    
-     
-    #3.Load dimension tables into dataframe
-
-    dimInstallationDf = spark.sql(f"select dimInstallationSK, from {ADS_DATABASE_CURATED}.dimInstallation where _RecordCurrent = 1 and _RecordDeleted = 0") 
-    dimContractDf = spark.sql(f"select dimContractSK from {ADS_DATABASE_CURATED}.dimContract where _RecordCurrent = 1 and _RecordDeleted = 0")
-    dimPropertyDf = spark.sql(f"select dimPropertySK from {ADS_DATABASE_CURATED}.dimProperty where _RecordCurrent = 1 and _RecordDeleted = 0")
-    dimMeterDf = spark.sql(f"select dimMeterSK,meterNumber from {ADS_DATABASE_CURATED}.dimMeter where sourceSystemCode = 'ISU' and _RecordCurrent = 1 and _RecordDeleted = 0")
-
+    dimContractDf = spark.sql(f"select \
+                                    sourceSystemCode, \
+                                    dimContractSK, \
+                                    contractId, \
+                                    installationId \
+                                    from {ADS_DATABASE_CURATED}.dimContract \
+                                    where sourceSystemCode = 'ISU' and _RecordCurrent = 1 and _RecordDeleted = 0")
+    print(f"Number of rows in dimContractDf: ", dimContractDf.count())
+    display(dimContractDf)
+    
+    dimPropertyDf = spark.sql(f"select \
+                                    sourceSystemCode, \
+                                    propertyNumber, \
+                                    dimPropertySK \
+                                    from {ADS_DATABASE_CURATED}.dimProperty \
+                                    where sourceSystemCode = 'ISU' and _RecordCurrent = 1 and _RecordDeleted = 0")
+    print(f"Number of rows in dimInstallationDf: ", dimPropertyDf.count())
+    display(dimPropertyDf)
+    
+    dimMeterDf = spark.sql(f"select \
+                                sourceSystemCode, \
+                                dimMeterSK, \
+                                meterNumber, \
+                                logicalDeviceNumber \
+                                from {ADS_DATABASE_CURATED}.dimMeter \
+                                where sourceSystemCode = 'ISU' and _RecordCurrent = 1 and _RecordDeleted = 0")
+    print(f"Number of rows in dimMeterDf: ", dimMeterDf.count())
+    display(dimMeterDf)
+    
+    meterInstallationDf = spark.sql(f"select \
+                                meterInstallationSK, \
+                                installationSK, \
+                                installationId, \
+                                logicalDeviceNumber \
+                                from {ADS_DATABASE_CURATED}.meterInstallation \
+                                where _RecordCurrent = 1 and _RecordDeleted = 0")    
+    print(f"Number of rows in meterInstallationDf: ", meterInstallationDfmeterInstallationDf.count())
+    display(meterInstallationDf)
     
     
-    #4.Joins to derive SKs
-    df = df.join(dimInstallationDf, (df.installationID == dimInstallationDf.installationID), how="left") \
-            .select(df['*'], dimInstallationDf['dimInstallationSK'])    
+    #3.Joins Tables
+    df = dimInstallationDf.join(dimContractDf, (dimInstallationDf.installationID == dimContractDf.installationID), how="left") \
+            .select(dimInstallationDf['*'], dimContractDf['*'])    
     print(f'{df.count():,} rows in df -2')
     display(df)    
     df = df.join(dimContractDf, (df.contractID == dimContractDf.contractID), how="left") \
