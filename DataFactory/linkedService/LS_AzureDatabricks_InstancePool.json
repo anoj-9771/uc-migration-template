@@ -1,24 +1,24 @@
 {
-	"name": "LS-AzureDatabricks_JobCluster",
+	"name": "LS_AzureDatabricks_InstancePool",
 	"properties": {
 		"parameters": {
 			"kvSecret": {
-				"type": "String"
+				"type": "string",
+				"defaultValue": "databricks-token"
 			},
-			"DataBricksClusterType": {
-				"type": "String"
+			"clusterId": {
+				"type": "string",
+				"defaultValue": "0121-060302-next337-pool-owblzzx4"
 			},
-			"DataBricksClusterVersion": {
-				"type": "String"
-			},
-			"DataBricksWorkerNodes": {
-				"type": "String"
+			"DatabricksClusterVersion": {
+				"type": "string",
+				"defaultValue": "9.1.x-scala2.12"
 			}
 		},
 		"annotations": [],
 		"type": "AzureDatabricks",
 		"typeProperties": {
-			"domain": "https://australiaeast.azuredatabricks.net",
+			"domain": "https://adb-7004525605760210.10.azuredatabricks.net",
 			"accessToken": {
 				"type": "AzureKeyVaultSecret",
 				"store": {
@@ -28,17 +28,15 @@
 				"secretName": {
 					"value": "@linkedService().kvSecret",
 					"type": "Expression"
-				},
-				"secretVersion": "Latest version"
+				}
 			},
-			"newClusterNodeType": "@linkedService().DataBricksClusterType",
-			"newClusterNumOfWorker": "@linkedService().DataBricksWorkerNodes",
+			"instancePoolId": "@linkedService().clusterId",
+			"newClusterNumOfWorker": "1:8",
 			"newClusterSparkEnvVars": {
 				"PYSPARK_PYTHON": "/databricks/python3/bin/python3"
 			},
 			"newClusterVersion": "@linkedService().DataBricksClusterVersion",
 			"newClusterInitScripts": []
 		}
-	},
-	"type": "Microsoft.DataFactory/factories/linkedservices"
+	}
 }

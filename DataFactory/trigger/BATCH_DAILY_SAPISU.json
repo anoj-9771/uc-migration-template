@@ -18,7 +18,7 @@
 		"type": "BlobEventsTrigger",
 		"typeProperties": {
 			"blobPathBeginsWith": "/triggers/blobs/trigger_batch_daily_sapisu.json",
-			"ignoreEmptyBlobs": false,
+			"ignoreEmptyBlobs": true,
 			"scope": "/subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-daf-dev-01/providers/Microsoft.Storage/storageAccounts/sadafdev01",
 			"events": [
 				"Microsoft.Storage.BlobCreated"

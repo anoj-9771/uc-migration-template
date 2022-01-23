@@ -18,3 +18,13 @@ C:\Repos\DAF POC REPO1\ADS-Databases\CntrlDb\obj\Debug\CntrlDb.dll
 C:\Repos\DAF POC REPO1\ADS-Databases\CntrlDb\obj\Debug\CntrlDb.pdb
 C:\Repos\DAF POC REPO1\ADS-Databases\CntrlDb\bin\Debug\CntrlDb.dll
 C:\Repos\DAF POC REPO1\ADS-Databases\CntrlDb\bin\Debug\CntrlDb.pdb
+c:\Users\jstaub\OneDrive - Insight\DAF Project\6. Implementation Documentation\DAF Repo\DAF POC REPO1\ADS-Databases\CntrlDb\bin\Debug\CntrlDb.dacpac
+c:\Users\jstaub\OneDrive - Insight\DAF Project\6. Implementation Documentation\DAF Repo\DAF POC REPO1\ADS-Databases\CntrlDb\bin\Debug\CntrlDb.dll
+c:\Users\jstaub\OneDrive - Insight\DAF Project\6. Implementation Documentation\DAF Repo\DAF POC REPO1\ADS-Databases\CntrlDb\bin\Debug\CntrlDb.pdb
+c:\Users\jstaub\OneDrive - Insight\DAF Project\6. Implementation Documentation\DAF Repo\DAF POC REPO1\ADS-Databases\CntrlDb\obj\Debug\CntrlDb.sqlproj.AssemblyReference.cache
+c:\Users\jstaub\OneDrive - Insight\DAF Project\6. Implementation Documentation\DAF Repo\DAF POC REPO1\ADS-Databases\CntrlDb\obj\Debug\Model.xml
+c:\Users\jstaub\OneDrive - Insight\DAF Project\6. Implementation Documentation\DAF Repo\DAF POC REPO1\ADS-Databases\CntrlDb\obj\Debug\refactor.xml
+c:\Users\jstaub\OneDrive - Insight\DAF Project\6. Implementation Documentation\DAF Repo\DAF POC REPO1\ADS-Databases\CntrlDb\obj\Debug\postdeploy.sql
+c:\Users\jstaub\OneDrive - Insight\DAF Project\6. Implementation Documentation\DAF Repo\DAF POC REPO1\ADS-Databases\CntrlDb\obj\Debug\predeploy.sql
+c:\Users\jstaub\OneDrive - Insight\DAF Project\6. Implementation Documentation\DAF Repo\DAF POC REPO1\ADS-Databases\CntrlDb\obj\Debug\CntrlDb.dll
+c:\Users\jstaub\OneDrive - Insight\DAF Project\6. Implementation Documentation\DAF Repo\DAF POC REPO1\ADS-Databases\CntrlDb\obj\Debug\CntrlDb.pdb
