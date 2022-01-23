@@ -20,6 +20,9 @@
 		"LS_AzureBlobStorage_properties_typeProperties_serviceEndpoint": {
 			"value": "https://sablobdafdev01.blob.core.windows.net/"
 		},
+		"LS_AzureDatabricks_InstancePool_properties_typeProperties_domain": {
+			"value": "https://adb-7004525605760210.10.azuredatabricks.net"
+		},
 		"LS_AzureDatalake_properties_typeProperties_url": {
 			"value": "https://sadafdev01.dfs.core.windows.net"
 		},
@@ -29,11 +32,26 @@
 		"LS_SQLServer_properties_typeProperties_connectionString_secretName": {
 			"value": "@linkedService().kvSecret"
 		},
+		"BATCH_DAILY_HYDRA_properties_01-Main_parameters_TriggerName": {
+			"value": "BATCH_DAILY_HYDRA"
+		},
+		"BATCH_DAILY_HYDRA_properties_typeProperties_scope": {
+			"value": "/subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-daf-dev-01/providers/Microsoft.Storage/storageAccounts/sadafdev01"
+		},
+		"BATCH_DAILY_SAPCRM_properties_01-Main_parameters_TriggerName": {
+			"value": "BATCH_DAILY_SAPCRM"
+		},
+		"BATCH_DAILY_SAPCRM_properties_typeProperties_scope": {
+			"value": "/subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-daf-dev-01/providers/Microsoft.Storage/storageAccounts/sadafdev01"
+		},
+		"BATCH_DAILY_SAPISU_properties_01-Main_parameters_TriggerName": {
+			"value": "BATCH_DAILY_SAPISU"
+		},
+		"BATCH_DAILY_SAPISU_properties_typeProperties_scope": {
+			"value": "/subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-daf-dev-01/providers/Microsoft.Storage/storageAccounts/sadafdev01"
+		},
 		"DLY1300_properties_01-Main_parameters_TriggerName": {
 			"value": "DLY1300"
-		},
-		"Emrvisaf_properties_01-Main_parameters_TriggerName": {
-			"value": "Emrvisaf"
 		}
 	}
 }
