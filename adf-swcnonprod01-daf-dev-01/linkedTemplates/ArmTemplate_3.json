@@ -62,7 +62,7 @@
 				"type": "BlobEventsTrigger",
 				"typeProperties": {
 					"blobPathBeginsWith": "/triggers/blobs/trigger_batch_daily_hydra.json",
-					"ignoreEmptyBlobs": false,
+					"ignoreEmptyBlobs": true,
 					"scope": "[parameters('BATCH_DAILY_HYDRA_properties_typeProperties_scope')]",
 					"events": [
 						"Microsoft.Storage.BlobCreated"
@@ -93,7 +93,7 @@
 				"type": "BlobEventsTrigger",
 				"typeProperties": {
 					"blobPathBeginsWith": "/triggers/blobs/trigger_batch_daily_sapcrm.json",
-					"ignoreEmptyBlobs": false,
+					"ignoreEmptyBlobs": true,
 					"scope": "[parameters('BATCH_DAILY_SAPCRM_properties_typeProperties_scope')]",
 					"events": [
 						"Microsoft.Storage.BlobCreated"
@@ -124,7 +124,7 @@
 				"type": "BlobEventsTrigger",
 				"typeProperties": {
 					"blobPathBeginsWith": "/triggers/blobs/trigger_batch_daily_sapisu.json",
-					"ignoreEmptyBlobs": false,
+					"ignoreEmptyBlobs": true,
 					"scope": "[parameters('BATCH_DAILY_SAPISU_properties_typeProperties_scope')]",
 					"events": [
 						"Microsoft.Storage.BlobCreated"
