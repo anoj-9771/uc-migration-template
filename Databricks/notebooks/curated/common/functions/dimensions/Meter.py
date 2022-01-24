@@ -173,9 +173,13 @@ def getMeter():
     #display(df)    
     
     #Dummy Record to be added to Meter Dimension
-    ISUDummy = tuple(['ISU','-1',"2099-12-31","2099-12-31",""] + ['Unknown'] * (len(df.columns) - 5)) #this only works as long as all output columns are string
-    ACCESSDummy = tuple(['ACCESS','-1',"2099-12-31","2099-12-31",""] + ['Unknown'] * (len(df.columns) -5)) #this only works as long as all output columns are string
-    dummyDimRecDf = spark.createDataFrame([ISUDummy, ACCESSDummy], df.columns)
+#     ISUDummy = tuple(['ISU','-1',"2099-12-31","2099-12-31",""] + ['Unknown'] * (len(df.columns) - 5)) #this only works as long as all output columns are string
+#     ACCESSDummy = tuple(['ACCESS','-2',"2099-12-31","2099-12-31",""] + ['Unknown'] * (len(df.columns) -5)) #this only works as long as all output columns are string
+#     dummyDimRecDf = spark.createDataFrame([ISUDummy, ACCESSDummy], df.columns)
+
+    dummyDimRecDf = spark.createDataFrame([("ISU","-1","2099-12-31","2099-12-31","","1900-01-01"),("ACCESS","-2","2099-12-31","2099-12-31","","1900-01-01")], 
+                                          ["sourceSystemCode", "meterNumber","validToDate","registerToDate","registerNumber","validFromDate"])    
+    
 
     #check key columns for null    
     df = df.withColumn("validToDate", when(df.validToDate.isNull(), "2099-12-31").otherwise(df.validToDate)) \
