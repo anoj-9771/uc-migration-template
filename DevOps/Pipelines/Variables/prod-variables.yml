@@ -97,12 +97,12 @@ variables:
   - name: isRepoEnabled
     value: false 
   # Environment Parameterisation of Trigger Variables
-  - name: BATCH_DAILY_HYDRA_properties_typeProperties_scope
-    value: /subscriptions/$(subscriptionId)/resourcegroups/$(resourcegroupname)/providers/Microsoft.Storage/storageAccounts/$(datalakestorageaccountnames)
+- name: BATCH_DAILY_HYDRA_properties_typeProperties_scope
+    value: /subscriptions/769a62b3-7481-44ae-878e-a466593f50ac/resourcegroups/rg-swcprod01-prod-daf-01/providers/Microsoft.Storage/storageAccounts/sadafprod01
   - name: BATCH_DAILY_SAPCRM_properties_typeProperties_scope
-    value: /subscriptions/$(subscriptionId)/resourcegroups/$(resourcegroupname)/providers/Microsoft.Storage/storageAccounts/$(datalakestorageaccountnames) 
+    value: /subscriptions/769a62b3-7481-44ae-878e-a466593f50ac/resourcegroups/rg-swcprod01-prod-daf-01/providers/Microsoft.Storage/storageAccounts/sadafprod01
   - name: BATCH_DAILY_SAPISU_properties_typeProperties_scope
-    value: /subscriptions/$(subscriptionId)/resourcegroups/$(resourcegroupname)/providers/Microsoft.Storage/storageAccounts/$(datalakestorageaccountnames) 
+    value: /subscriptions/769a62b3-7481-44ae-878e-a466593f50ac/resourcegroups/rg-swcprod01-prod-daf-01/providers/Microsoft.Storage/storageAccounts/sadafprod01
   # ------------------------------------------------
   # Log Analytics related
   # ------------------------------------------------
