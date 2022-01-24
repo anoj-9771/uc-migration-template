@@ -27,7 +27,6 @@ def getInstallationPropertyMeterCon():
          
     #2.Load dimension/relationship tables into dataframe
     dimInstallationDf = spark.sql(f"select \
-                                      sourceSystemCode, \
                                       dimInstallationSK, \
                                       installationId, \
                                       propertyNumber \
@@ -37,7 +36,6 @@ def getInstallationPropertyMeterCon():
     display(dimInstallationDf)
     
     dimContractDf = spark.sql(f"select \
-                                    sourceSystemCode, \
                                     dimContractSK, \
                                     contractId, \
                                     installationId \
@@ -47,7 +45,6 @@ def getInstallationPropertyMeterCon():
     display(dimContractDf)
     
     dimPropertyDf = spark.sql(f"select \
-                                    sourceSystemCode, \
                                     propertyNumber, \
                                     dimPropertySK \
                                     from {ADS_DATABASE_CURATED}.dimProperty \
@@ -56,7 +53,6 @@ def getInstallationPropertyMeterCon():
     display(dimPropertyDf)
     
     dimMeterDf = spark.sql(f"select \
-                                sourceSystemCode, \
                                 dimMeterSK, \
                                 meterNumber, \
                                 logicalDeviceNumber \
