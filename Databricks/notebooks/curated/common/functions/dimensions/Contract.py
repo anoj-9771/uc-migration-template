@@ -1,4 +1,12 @@
 # Databricks notebook source
+#%run ../../includes/util-common
+
+# COMMAND ----------
+
+# Run the above commands only when running this notebook independently, otherwise the curated master notebook would take care of calling the above notebooks
+
+# COMMAND ----------
+
 ###########################################################################################################################
 # Function: getContract
 #  GETS Contract DIMENSION 
@@ -28,7 +36,8 @@ def getContract():
                              co.moveOutDate, \
                              ca.contractAccountNumber, \
                              ca.contractAccountCategory, \
-                             ca.applicationArea \
+                             ca.applicationArea, \
+                             co.installationId \
                              from {ADS_DATABASE_CLEANSED}.isu_0UCCONTRACT_ATTR_2 co left outer join \
                                   {ADS_DATABASE_CLEANSED}.isu_0UCCONTRACTH_ATTR_2 coh on co.contractId = coh.contractId left outer join \
                                   {ADS_DATABASE_CLEANSED}.isu_0CACONT_ACC_ATTR_2 ca on co.contractAccountNumber = ca.contractAccountNumber \
@@ -56,7 +65,8 @@ def getContract():
                                      to_date('2099-12-31','yyyy-MM-dd') as moveOutDate, \
                                      'Unknown' as contractAccountNumber, \
                                      'Unknown' as contractAccountCategory, \
-                                     'Unknown' as applicationArea")
+                                     'Unknown' as applicationArea, \
+                                     'Unknown' as installationId")
                                      
     df = df.unionByName(dummyDimRecDf)
 
@@ -73,8 +83,8 @@ def getContract():
                 , 'moveOutDate' \
                 , 'contractAccountNumber' \
                 , 'contractAccountCategory' \
-                , 'applicationArea' 
-            )
+                , 'applicationArea' \
+                , 'installationId')
 
     #6.Apply schema definition
     newSchema = StructType([
@@ -89,12 +99,9 @@ def getContract():
                             StructField('moveOutDate', DateType(), True),
                             StructField('contractAccountNumber', StringType(), True),
                             StructField('contractAccountCategory', StringType(), True),
-                            StructField('applicationArea', StringType(), True)
+                            StructField('applicationArea', StringType(), True),
+                            StructField('installationId', StringType(), True)
                       ])
 
     df = spark.createDataFrame(df.rdd, schema=newSchema)
     return df
-
-# COMMAND ----------
-
-
