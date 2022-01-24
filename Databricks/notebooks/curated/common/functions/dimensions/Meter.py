@@ -14,14 +14,14 @@ def getMeter():
     #2.Load Cleansed layer table data into dataframe
     #Meter Data from Access
     #notes for future: a number of column values can be derived with aditional code/queries. LastActivity reason code can only be mapped from meter change reason code/reason after conversion of values. The text is the same but the codes differ
-    accessZ309TpropmeterDf = spark.sql(f"select 'Access' as sourceSystemCode, \
+    accessZ309TpropmeterDf = spark.sql(f"select 'ACCESS' as sourceSystemCode, \
                                               row_number() over (order by metermakernumber) as meterNumber, \
-                                              '2099-12-31' as validToDate, \
-                                              '2099-12-31' as registerToDate, \
+                                              meterRemovedDate as validToDate, \
+                                              meterRemovedDate as registerToDate, \
                                               '' as registerNumber, \
                                               coalesce(meterMakerNumber,'') as meterSerialNumber, \
                                               null as logicalDeviceNumber, \
-                                              null as validFromDate, \
+                                              meterFittedDate as validFromDate, \
                                               null as materialNumber, \
                                               case when meterClass = 'Standpipe' then 'Customer Standpipe' else 'Water Meter' end as usageDeviceType, \
                                               meterSize, \
@@ -178,7 +178,7 @@ def getMeter():
     dummyDimRecDf = spark.createDataFrame([ISUDummy, ACCESSDummy], df.columns)
 
     #check key columns for null    
-    df = df.withColumn("validToDate", when(df.validToDate.isNull(), "2199-12-31").otherwise(df.validToDate)) \
+    df = df.withColumn("validToDate", when(df.validToDate.isNull(), "2099-12-31").otherwise(df.validToDate)) \
            .withColumn("registerToDate", when(df.registerToDate.isNull(), "2099-12-31").otherwise(df.registerToDate)) \
            .withColumn("registerNumber", when(df.registerNumber.isNull(), " ").otherwise(df.registerNumber))
         
