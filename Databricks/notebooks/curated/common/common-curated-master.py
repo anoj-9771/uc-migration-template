@@ -248,9 +248,9 @@ def meterInstallation():
 
 # DBTITLE 1,6.3 Function: Load Bridge Tables
 #Call Business Partner Group Relation function to load brgBusinessPartnerGroupRelation
-def businessPartnerGroupRelation():
-    TemplateEtl(df=getBusinessPartnerGroupRelation(), 
-             entity="brgBusinessPartnerGroupRelation", 
+def businessPartnerGroupRelationship():
+    TemplateEtl(df=getBusinessPartnerGroupRelationship(), 
+             entity="brgBusinessPartnerGroupRelationship", 
              businessKey="businessPartnerGroupSK,businessPartnerSK,validFromDate",
              AddSK=False
             ) 
@@ -351,7 +351,7 @@ def Main():
     #==============    
     if LoadBridgeTables:
         LogEtl("Start Bridge Tables")
-        businessPartnerGroupRelation()
+        businessPartnerGroupRelationship()
 
         LogEtl("End Bridge Tables")
     else:

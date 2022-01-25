@@ -44,13 +44,13 @@ def getInstallationPropertyMeterCon():
     print(f"Number of rows in dimContractDf: ", dimContractDf.count())
     display(dimContractDf)
     
-    dimPropertyDf = spark.sql(f"select \
-                                    propertyNumber, \
-                                    dimPropertySK \
-                                    from {ADS_DATABASE_CURATED}.dimProperty \
-                                    where sourceSystemCode = 'ISU' and _RecordCurrent = 1 and _RecordDeleted = 0")
-    print(f"Number of rows in dimInstallationDf: ", dimPropertyDf.count())
-    display(dimPropertyDf)
+#     dimPropertyDf = spark.sql(f"select \
+#                                     propertyNumber, \
+#                                     dimPropertySK \
+#                                     from {ADS_DATABASE_CURATED}.dimProperty \
+#                                     where sourceSystemCode = 'ISU' and _RecordCurrent = 1 and _RecordDeleted = 0")
+#     print(f"Number of rows in dimInstallationDf: ", dimPropertyDf.count())
+#     display(dimPropertyDf)
     
     dimMeterDf = spark.sql(f"select \
                                 dimMeterSK, \
@@ -68,22 +68,22 @@ def getInstallationPropertyMeterCon():
                                 logicalDeviceNumber \
                                 from {ADS_DATABASE_CURATED}.meterInstallation \
                                 where _RecordCurrent = 1 and _RecordDeleted = 0")    
-    print(f"Number of rows in meterInstallationDf: ", meterInstallationDfmeterInstallationDf.count())
+    print(f"Number of rows in meterInstallationDf: ", meterInstallationDf.count())
     display(meterInstallationDf)
     
     
     #3.Joins Tables
-    df = dimInstallationDf.join(dimContractDf, (dimInstallationDf.installationID == dimContractDf.installationID), how="left") \
-            .select(dimInstallationDf['*'], dimContractDf['*'])    
-    print(f'{df.count():,} rows in df -2')
+    df = dimInstallationDf.join(dimContractDf, (dimInstallationDf.installationId == dimContractDf.installationId), how="left") \
+            .select(dimInstallationDf['*'], dimContractDf['dimContractSK'], dimContractDf['contractId'])    
+    print(f'{df.count():,} rows in df -1')
     display(df)    
-    df = df.join(dimContractDf, (df.contractID == dimContractDf.contractID), how="left") \
+    df = df.join(dimContractDf, (df.contractId == dimContractDf.contractId), how="left") \
             .select(df['*'], dimContractDf['dimContractSK']) 
-    print(f'{df.count():,} rows in df -3')
+    print(f'{df.count():,} rows in df -2')
     display(df)  
     df = df.join(dimPropertyDf, (df.propertyNumber == dimPropertyDf.propertyNumber), how="left") \
             .select(df['*'], dimPropertyDf['dimPropertySK']) 
-    print(f'{df.count():,} rows in df -4')
+    print(f'{df.count():,} rows in df -3')
     display(df)    
     df = df.join(dimMeterDf, (df.equipmentNumber == dimMeterDf.equipmentNumber), how="left") \
             .select(df['*'], dimMeterDf['dimMeterSK'])     
