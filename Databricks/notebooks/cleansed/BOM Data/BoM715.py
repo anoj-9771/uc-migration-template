@@ -29,7 +29,7 @@ import json
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC #Load data to Trusted Zone from Raw Zone
+# MAGIC #Load data to Cleansed Zone from Raw Zone
 
 # COMMAND ----------
 
@@ -175,8 +175,24 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_cleansed = spark.sql(f"SELECT * FROM {ADS_DATABASE_STAGE}.{source_object}")
-# display(df_cleansed)
+# df_cleansed = spark.sql(f"SELECT * FROM {ADS_DATABASE_STAGE}.{source_object}")
+df_cleansed = spark.sql(f"select cast(y as double) as y, \
+                                  cast(n2 as integer) as n2,\
+                                  cast(x as double) as x,\
+                                  to_timestamp(start_time) as start_time,\
+                                  to_timestamp(valid_time) as valid_time,\
+                                  proj,\
+                                  cast(y_bounds as double) as y_bounds,\
+                                  cast(x_bounds as double) as x_bounds,\
+                                  cast(replace(precipitation, 'na', '') as double) as precipitation, \
+                                  _DLCleansedZoneTimeStamp, \
+                                  _RecordStart,\
+                                  _RecordEnd, \
+                                  _RecordDeleted, \
+                                  _RecordCurrent \
+                                  from {ADS_DATABASE_STAGE}.{source_object}")
+# df_cleansed = df_cleansed.na.fill(value='0',subset=["precipitation"])
+display(df_cleansed)
 # print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
@@ -186,24 +202,105 @@ df_cleansed.printSchema()
 # COMMAND ----------
 
 # DBTITLE 1,12. Update dataframe - extract IoT hub data
+newSchema = StructType([
+                          StructField('x',DoubleType(),True),
+                          StructField('n2',IntegerType(),True),
+                          StructField('x',DoubleType(),True),
+                          StructField('start_time',TimestampType(),True),
+                          StructField('valid_time',TimestampType(),True),
+                          StructField('proj',StringType(),True),                                      
+                          StructField('y_bounds',DoubleType(),True),
+                          StructField('x_bounds',DoubleType(),True),
+                          StructField('precipitation',DoubleType(),True),
+                          StructField('_DLCleansedZoneTimeStamp',TimestampType(),True),
+                          StructField('_RecordStart',TimestampType(),True),
+                          StructField('_RecordEnd',TimestampType(),True),
+                          StructField('_RecordDeleted',IntegerType(),True),
+                          StructField('_RecordCurrent',IntegerType(),True)
+                        ])
+                                      
+df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
 df_cleansed_updated = df_cleansed
-# df_cleansed_updated = df_cleansed.withColumn("ConnectionDeviceGenerationId", col("IoTHub.ConnectionDeviceGenerationId"))\
-#                  .withColumn("ConnectionDeviceId", col("IoTHub.ConnectionDeviceId"))\
-#                  .withColumn("CorrelationId", col("IoTHub.CorrelationId"))\
-#                  .withColumn("EnqueuedTime", col("IoTHub.EnqueuedTime"))\
-#                  .withColumn("MessageId", col("IoTHub.MessageId")).drop(col("IoTHub"))
-# df_cleansed_updated = df_cleansed_updated.select("ConnectionDeviceGenerationId","ConnectionDeviceId","CorrelationId","EnqueuedTime","MessageId","EventEnqueuedUtcTime",\
-#                                                  "EventProcessedUtcTime","PartitionId","event","l002","l003","l011","l060","l060_1","l060_2","l060_3",\
-#                                                  "l174","l175","l177","l210","m_sent","m_stored","rsrp","rsrq","sinr","tamper","_DLRawZoneTimeStamp",\
-#                                                  "_FileDateTimeStamp","year","month","day","_DLCleansedZoneTimeStamp","_RecordStart"\
-#                                                  ,"_RecordEnd","_RecordDeleted","_RecordCurrent")
 # display(df_cleansed_updated)
+
+
+# COMMAND ----------
+
+# #Generating sample data for testig. Remove it
+# from functools import reduce
+# df_d1t1 = df_cleansed_updated
+# df_d1t1 = df_d1t1.withColumn("start_time", lit('2020-12-13T09:10:00.000+0000')).withColumn("valid_time", lit('2020-12-13T10:10:00.000+0000'))
+# df_d1t2 = df_d1t1.withColumn("start_time", lit('2020-12-13T10:10:00.000+0000')).withColumn("valid_time", lit('2020-12-13T11:10:00.000+0000'))
+# df_d1t3 = df_d1t2.withColumn("start_time", lit('2020-12-13T11:10:00.000+0000')).withColumn("valid_time", lit('2020-12-13T12:10:00.000+0000'))
+# # df_d1t4 = df_d1t3.withColumn("start_time", lit('2020-12-13T12:10:00.000+0000')).withColumn("valid_time", lit('2020-12-13T13:10:00.000+0000'))\
+# # df_d1t5 = df_d1t4.withColumn("start_time", lit('2020-12-13T13:10:00.000+0000')).withColumn("valid_time", lit('2020-12-13T14:10:00.000+0000'))\
+# # df_d1t6 = df_d1t5.withColumn("start_time", lit('2020-12-13T14:10:00.000+0000')).withColumn("valid_time", lit('2020-12-15T23:10:00.000+0000'))\
+# # df_d1t7 = df_d1t6.withColumn("start_time", lit('2020-12-13T15:10:00.000+0000')).withColumn("valid_time", lit('2020-12-16T16:10:00.000+0000'))\
+# # df_d1t8 = df_d1t7.withColumn("start_time", lit('2020-12-13T16:10:00.000+0000')).withColumn("valid_time", lit('2020-12-13T17:10:00.000+0000'))\
+# # df_d1t9 = df_d1t8.withColumn("start_time", lit('2020-12-13T17:10:00.000+0000')).withColumn("valid_time", lit('2020-12-13T18:10:00.000+0000'))\
+# # df_d1t10 = df_d1t9.withColumn("start_time", lit('2020-12-13T18:10:00.000+0000')).withColumn("valid_time", lit('2020-12-13T19:10:00.000+0000'))\
+# # df_d1t11 = df_d1t10.withColumn("start_time", lit('2020-12-13T19:10:00.000+0000')).withColumn("valid_time", lit('2020-12-13T20:10:00.000+0000'))\
+# # df_d1t12 = df_d1t11.withColumn("start_time", lit('2020-12-13T20:10:00.000+0000')).withColumn("valid_time", lit('2020-12-13T21:10:00.000+0000'))
+
+# df_d2t1 = df_cleansed_updated
+# df_d2t1 = df_d2t1.withColumn("start_time", lit('2020-12-14T09:10:00.000+0000')).withColumn("valid_time", lit('2020-12-14T10:10:00.000+0000'))
+# df_d2t2 = df_d2t1.withColumn("start_time", lit('2020-12-14T10:10:00.000+0000')).withColumn("valid_time", lit('2020-12-14T11:10:00.000+0000'))
+# df_d2t3 = df_d2t2.withColumn("start_time", lit('2020-12-14T11:10:00.000+0000')).withColumn("valid_time", lit('2020-12-14T12:10:00.000+0000'))
+# # df_d2t4 = df_d2t3.withColumn("start_time", lit('2020-12-14T12:10:00.000+0000')).withColumn("valid_time", lit('2020-12-14T13:10:00.000+0000'))\
+# # df_d2t5 = df_d2t4.withColumn("start_time", lit('2020-12-14T13:10:00.000+0000')).withColumn("valid_time", lit('2020-12-14T14:10:00.000+0000'))\
+# # df_d2t6 = df_d2t5.withColumn("start_time", lit('2020-12-14T14:10:00.000+0000')).withColumn("valid_time", lit('2020-12-15T23:10:00.000+0000'))\
+# # df_d2t7 = df_d2t6.withColumn("start_time", lit('2020-12-14T15:10:00.000+0000')).withColumn("valid_time", lit('2020-12-16T16:10:00.000+0000'))\
+# # df_d2t8 = df_d2t7.withColumn("start_time", lit('2020-12-14T16:10:00.000+0000')).withColumn("valid_time", lit('2020-12-14T17:10:00.000+0000'))\
+# # df_d2t9 = df_d2t8.withColumn("start_time", lit('2020-12-14T17:10:00.000+0000')).withColumn("valid_time", lit('2020-12-14T18:10:00.000+0000'))\
+# # df_d2t10 = df_d2t9.withColumn("start_time", lit('2020-12-14T18:10:00.000+0000')).withColumn("valid_time", lit('2020-12-14T19:10:00.000+0000'))\
+# # df_d2t11 = df_d2t10.withColumn("start_time", lit('2020-12-14T19:10:00.000+0000')).withColumn("valid_time", lit('2020-12-14T20:10:00.000+0000'))\
+# # df_d2t12 = df_d2t11.withColumn("start_time", lit('2020-12-14T20:10:00.000+0000')).withColumn("valid_time", lit('2020-12-14T21:10:00.000+0000'))
+
+# dfs = [df_cleansed_updated,df_d1t1,df_d1t2,df_d1t3,df_d2t1,df_d2t2,df_d2t3]
+# df = reduce(DataFrame.unionAll, dfs)
+# df_cleansed_updated = df
+# # df_combine = df_day1.union(df_day2)               
+# # df_final = df_updated_column.union(df_combine)
+# # df_cleansed_updated.count()
+
+
+# COMMAND ----------
+
+# display(df.filter(df.start_time > '2020-12-13T21:10:00.000+0000'))
+# df = df_updated_column
 
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
 DeltaSaveDataframeDirect(df_cleansed_updated, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
+
+# COMMAND ----------
+
+# dfcount = spark.sql("select count(*) from cleansed.bom_bom715")
+# dfcount.show()
+
+# COMMAND ----------
+
+df_bom = spark.sql("select * from cleansed.bom_bom715")
+df_bom = df_cleansed_updated.withColumn("date_only", to_date(col("start_time")))\
+                                         .withColumn("hour_only", hour(col("start_time")))
+df_bom = df_bom.filter(df_bom.hour_only.between(9,23))
+display(df_bom)
+# df_bom = df_cleansed_updated.withColumn("date_only", to_date(col("start_time")))
+# display(df_bom.filter(df_bom.hour_only !=21))
+
+# COMMAND ----------
+
+# gdf = df_bom.groupBy("y", "n2", "x", "proj", "y_bounds", "x_bounds", "date_only","hour_only")  
+# df_sum = gdf.agg(sum(col("precipitation")).alias("sum_precipitation")).where(col("hour_only").between(9,23))
+gdf = df_bom.groupBy("y", "n2", "x", "proj", "y_bounds", "x_bounds", "date_only")  
+df_sum = gdf.agg(sum(col("precipitation")).alias("sum_precipitation"))
+df_sum = df_sum.withColumn("is_wet_weather", when((col("sum_precipitation") >= 10),True).otherwise(False))
+# df.groupBy(someExpr).agg(somAgg).where(somePredicate) 
+# display(df_sum.filter(df_sum.sum_precipitation > 10))
+display(df_sum)
+# df_sum.count()
 
 # COMMAND ----------
 

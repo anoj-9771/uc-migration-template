@@ -80,7 +80,7 @@ print(Debug)
 
 # COMMAND ----------
 
-if DeltaExtract or DataLoadMode == "FULL-EXTRACT" :
+if DeltaExtract or DataLoadMode == "FULL-EXTRACT" or DataLoadMode == "APPEND" :
   write_mode = ADS_WRITE_MODE_APPEND
 else:
   write_mode = ADS_WRITE_MODE_OVERWRITE
