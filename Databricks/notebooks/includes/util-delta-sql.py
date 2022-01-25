@@ -358,11 +358,13 @@ def DeltaSaveDataFrameToDeltaTable(
   
   if AddSKColumn:
     dataframe = DeltaInjectSurrogateKeyToDataFrame(dataframe, target_table)
-  
+      
   #Drop the stage table if it exists
   spark.sql(f"DROP TABLE IF EXISTS {stage_table_name}")
   #Save the dataframe temporarily to Stage database
+  LogEtl(f"write to stg table1")
   dataframe.write.saveAsTable(stage_table_name)
+  LogEtl(f"write to stg table2")
   
   #Use our generic method to save the dataframe now to Delta Table
   DeltaSaveToDeltaTable(
