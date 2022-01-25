@@ -23,7 +23,7 @@ def getBilledWaterConsumptionAccess():
   
   #reusable query to derive the base billed consumption from Access Meter Reading dataset
   #2.Load Cleansed layer table data into dataframe
-  billedConsDf = spark.sql(f"select 'Access' as sourceSystemCode, mr.propertyNumber, mr.propertyMeterNumber, \
+  billedConsDf = spark.sql(f"select 'ACCESS' as sourceSystemCode, mr.propertyNumber, mr.propertyMeterNumber, \
                                    mr.readingFromDate, mr.readingToDate, mr.meterReadingDays, \
                                    mr.meterReadingConsumption, \
                                    row_number() over (partition by mr.propertyNumber, mr.propertyMeterNumber, mr.readingFromDate, mr.readingToDate \
