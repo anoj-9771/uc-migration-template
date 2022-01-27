@@ -255,13 +255,13 @@ def businessPartnerGroupRelationship():
              AddSK=False
             ) 
 
-# Add New bridge tables in alphabetical order
-# def Dim2_Example():
-#   TemplateEtl(df=GetDim2Example(), 
-#              entity="Dim2Example",
-#              businessKey="col1",
-#              AddSK=True
-#             )
+#Call InstallationPropertyMeterCon function to load brgInstallationPropertyMeterCon
+def InstallationPropertyMeterCon():
+    TemplateEtl(df=getInstallationPropertyMeterCon(), 
+             entity="brgInstallationPropertyMeterCon", 
+             businessKey="dimInstallationSK",
+             AddSK=False
+            ) 
 
 # COMMAND ----------
 
@@ -352,7 +352,8 @@ def Main():
     if LoadBridgeTables:
         LogEtl("Start Bridge Tables")
         businessPartnerGroupRelationship()
-
+        InstallationPropertyMeterCon()
+        
         LogEtl("End Bridge Tables")
     else:
         LogEtl("Bridge table load not requested")
