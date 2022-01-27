@@ -177,9 +177,9 @@ DeltaSaveToDeltaTable (
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT \
 	case when TPLNR = 'na' then '' else TPLNR end as functionalLocationNumber, \
-	PLTXT as functionalLocationdDescription, \
+	PLTXT as functionalLocationDescription, \
 	KZMLA as primaryLanguageIndicator, \
-	PLTXU as functionalLocationdDescriptionCapital, \
+	PLTXU as functionalLocationDescriptionCapital, \
 	_RecordStart, \
 	_RecordEnd, \
 	_RecordDeleted, \
@@ -193,9 +193,9 @@ print(f'Number of rows: {df_cleansed.count()}')
 
 newSchema = StructType([
 	StructField('functionalLocationNumber',StringType(),False),
-	StructField('functionalLocationdDescription',StringType(),True),
+	StructField('functionalLocationDescription',StringType(),True),
 	StructField('primaryLanguageIndicator',StringType(),True),
-	StructField('functionalLocationdDescriptionCapital',StringType(),True),
+	StructField('functionalLocationDescriptionCapital',StringType(),True),
 	StructField('_RecordStart',TimestampType(),False),
 	StructField('_RecordEnd',TimestampType(),False),
 	StructField('_RecordDeleted',IntegerType(),False),

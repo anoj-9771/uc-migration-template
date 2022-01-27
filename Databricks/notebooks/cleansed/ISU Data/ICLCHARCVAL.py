@@ -175,15 +175,16 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
+#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
 df_cleansed = spark.sql(f"SELECT \
     case when CLASSIFICATIONOBJECTINTERNALID = 'na' then '' else CLASSIFICATIONOBJECTINTERNALID end as classificationObjectInternalId, \
     case when CHARACTERISTICINTERNALID = 'na' then '' else CHARACTERISTICINTERNALID end as characteristicInternalId, \
-    case when CHARACTERISTICVALUEINTERNALID = 'na' then '' else CHARACTERISTICVALUEINTERNALID end as characteristicvalueInternalId, \
+    case when CHARACTERISTICVALUEINTERNALID = 'na' then '' else CHARACTERISTICVALUEINTERNALID end as characteristicValueInternalId, \
     case when CLASSTYPE = 'na' then '' else CLASSTYPE end as classType, \
     case when CHARCARCHIVINGOBJECTINTERNALID = 'na' then '' else CHARCARCHIVINGOBJECTINTERNALID end  as archivingObjectsInternalId, \
     CHARACTERISTICVALUE as characteristicValueCode, \
-    to_date(CHARCVALIDITYSTARTDATE, 'yyyy-MM-dd') as validFromDate, \
-    to_date(CHARCVALIDITYENDDATE, 'yyyy-MM-dd') as validToDate, \
+    ToValidDate(CHARCVALIDITYSTARTDATE) as validFromDate, \
+    ToValidDate(CHARCVALIDITYENDDATE) as validToDate, \
 	_RecordStart, \
 	_RecordEnd, \
 	_RecordDeleted, \
@@ -200,7 +201,7 @@ newSchema = StructType(
                            [
                             StructField("classificationObjectInternalId", StringType(), False),
                             StructField("characteristicInternalId", StringType(), False),
-                            StructField("characteristicvalueInternalId", StringType(), False),
+                            StructField("characteristicValueInternalId", StringType(), False),
                             StructField("classType", StringType(), False),
                             StructField("archivingObjectsInternalId", StringType(), False),     
                             StructField("characteristicValueCode", StringType(), True),

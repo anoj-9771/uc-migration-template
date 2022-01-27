@@ -1,2 +1,6 @@
 # Databricks notebook source
-# MAGIC %run ./bridgeTables/BusinessPartnerGroupRelation
+# MAGIC %run ./bridgeTables/BusinessPartnerGroupRelationship
+
+# COMMAND ----------
+
+# MAGIC %run ./bridgeTables/InstallationPropertyMeterCon

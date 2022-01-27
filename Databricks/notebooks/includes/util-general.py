@@ -318,18 +318,17 @@ def GeneralGetDataLoadMode(truncate, upsert, append):
 
 # COMMAND ----------
 
-def GeneralToValidDateTime(dateIn, fmt = ""):
+def GeneralToValidDateTime(dateIn, colType ="Optional", fmt = "" ):
   
   #This function validates the date
   from datetime import datetime
   
-  if dateIn is None: return
-
   dateStr = str(dateIn)
   lowDate = str('19000101000000')
-  highDate = str('20991231000000')
-    
-  date_formats = ["%Y-%m-%dT%H:%M:%S", "%Y%m%d%I%M%S %p", "%Y%m%d%H%M%S","%d%y%m", "%d%m%Y", "%Y%m%d", "%d-%m-%Y", "%Y-%m-%d"]
+  highDate = str('20991231000000')    
+   
+#   date_formats = ["%Y-%m-%dT%H:%M:%S", "%Y%m%d%I%M%S %p", "%Y%m%d%H%M%S","%d%y%m", "%d%m%Y", "%Y%m%d", "%d-%m-%Y", "%Y-%m-%d"]
+  date_formats = ["%Y%m%d", "%Y-%m-%d", "%d%m%Y", "%d-%m-%Y", "%Y-%m-%dT%H:%M:%S", "%Y%m%d%H%M%S", "%Y%m%d %H%M%S", "%Y-%m-%d %H:%M:%S", "%Y%m%d%I%M%S %p", "%Y-%m-%d %I:%M:%S %p"]
 
   if fmt != "" : 
     date_formats = list(eval(fmt))
@@ -345,8 +344,12 @@ def GeneralToValidDateTime(dateIn, fmt = ""):
             return datetime.strptime(highDate, "%Y%m%d%H%M%S")
         return dateOut
     except ValueError:
+        dateOut = None
         pass
-  return datetime.strptime(lowDate, "%Y%m%d%H%M%S")
+  if colType.upper() == "MANDATORY" and (dateIn is None or dateOut is None):
+    return datetime.strptime(lowDate, "%Y%m%d%H%M%S")    
+  elif colType.upper() != "MANDATORY" and (dateIn is None or dateOut is None):
+    return
 
 from pyspark.sql.types import TimestampType, DateType
 
@@ -361,4 +364,3 @@ spark.udf.register("ToValidDateTime", GeneralToValidDateTime,TimestampType())
 ToValidDate_udf = udf(GeneralToValidDateTime, DateType())
 #DateTimeCol = df.ToValidDateTime_udf(df["StartDateTime"]))
 ToValidDateTime_udf = udf(GeneralToValidDateTime, TimestampType())
-

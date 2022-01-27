@@ -175,12 +175,13 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
+#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
 df_cleansed = spark.sql(f"SELECT \
 	case when POINT = 'na' then '' else POINT end as measuringPointId, \
 	PTTXT as measuringPoint, \
-	to_date(ERDAT, 'yyyy-MM-dd') as createdDate, \
-	to_date(AEDAT, 'yyyy-MM-dd') as lastChangedDate, \
-	to_date(DELTADATE, 'yyyy-MM-dd') as deltaDate, \
+	ToValidDate(ERDAT) as createdDate, \
+	ToValidDate(AEDAT) as lastChangedDate, \
+	ToValidDate(DELTADATE) as deltaDate, \
 	_RecordStart, \
 	_RecordEnd, \
 	_RecordDeleted, \

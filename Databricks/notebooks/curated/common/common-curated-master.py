@@ -30,6 +30,11 @@
 
 # COMMAND ----------
 
+# DBTITLE 1,2.2 Include all relationship related user function for the notebook
+# MAGIC %run ./functions/common-functions-relationships
+
+# COMMAND ----------
+
 # DBTITLE 1,2.2 Include all bridge tables related user function for the notebook
 # MAGIC %run ./functions/common-functions-bridgeTables
 
@@ -122,15 +127,16 @@ def TemplateEtl(df : object, entity, businessKey, AddSK = True):
                                    start_counter = "0", 
                                    end_counter = "0")
 
-    delta_table = f"{v_COMMON_CURATED_DATABASE}.{rawEntity}"
-    print(delta_table)
-    dw_table = f"{v_COMMON_SQL_SCHEMA}.{rawEntity}"
-    print(dw_table)
+    #Commenting the below code, pending decision on Synapse
+#     delta_table = f"{v_COMMON_CURATED_DATABASE}.{rawEntity}"
+#     print(delta_table)
+#     dw_table = f"{v_COMMON_SQL_SCHEMA}.{rawEntity}"
+#     print(dw_table)
 
-    maxDate = SynapseExecuteSQLRead("SELECT isnull(cast(max([_RecordStart]) as varchar(50)),'2000-01-01') as maxval FROM " + dw_table + " ").first()["maxval"]
-    print(maxDate)
+#     maxDate = SynapseExecuteSQLRead("SELECT isnull(cast(max([_RecordStart]) as varchar(50)),'2000-01-01') as maxval FROM " + dw_table + " ").first()["maxval"]
+#     print(maxDate)
 
-    DeltaSyncToSQLDW(delta_table, v_COMMON_SQL_SCHEMA, entity, businessKey, start_counter = maxDate, data_load_mode = ADS_WRITE_MODE_MERGE, additional_property = "")
+#     DeltaSyncToSQLDW(delta_table, v_COMMON_SQL_SCHEMA, entity, businessKey, start_counter = maxDate, data_load_mode = ADS_WRITE_MODE_MERGE, additional_property = "")
 
     LogEtl(f"Finished {entity}.")
 
@@ -197,7 +203,7 @@ def location():
 def meter():
     TemplateEtl(df=getMeter(), 
              entity="dimMeter", 
-             businessKey="meterNumber,sourceSystemCode",
+             businessKey="meterNumber,sourceSystemCode,validToDate,registerToDate,registerNumber",
              AddSK=True
             )
 
@@ -208,6 +214,7 @@ def makeProperty(): #renamed because property is a keyword
              businessKey="propertyNumber,sourceSystemCode,propertyStartDate",
              AddSK=True
             )
+
 # Add New Dim in alphabetical order
 # def Dim2_Example():
 #   TemplateEtl(df=GetDim2Example(), 
@@ -219,31 +226,51 @@ def makeProperty(): #renamed because property is a keyword
 
 # COMMAND ----------
 
-# DBTITLE 1,6.2 Function: Load Bridge Tables
+# DBTITLE 1,6.2 Function: Load Relationship Tables
+#Call meterTimeslice function to load meterTimeslice
+def meterTimeslice(): 
+    TemplateEtl(df=getmeterTimeslice(), 
+             entity="meterTimeslice", 
+             businessKey="meterSK,equipmentNumber,validToDate",
+             AddSK=True
+            )
+    
+def meterInstallation():
+    TemplateEtl(df=getmeterInstallation(), 
+             entity="meterInstallation", 
+             businessKey="installationSK,installationId,logicalDeviceNumber,validToDate",
+             AddSK=True
+            )
+    
+
+
+# COMMAND ----------
+
+# DBTITLE 1,6.3 Function: Load Bridge Tables
 #Call Business Partner Group Relation function to load brgBusinessPartnerGroupRelation
-def businessPartnerGroupRelation():
-    TemplateEtl(df=getBusinessPartnerGroupRelation(), 
-             entity="brgBusinessPartnerGroupRelation", 
+def businessPartnerGroupRelationship():
+    TemplateEtl(df=getBusinessPartnerGroupRelationship(), 
+             entity="brgBusinessPartnerGroupRelationship", 
              businessKey="businessPartnerGroupSK,businessPartnerSK,validFromDate",
              AddSK=False
             ) 
 
-# Add New bridge tables in alphabetical order
-# def Dim2_Example():
-#   TemplateEtl(df=GetDim2Example(), 
-#              entity="Dim2Example",
-#              businessKey="col1",
-#              AddSK=True
-#             )
+#Call InstallationPropertyMeterCon function to load brgInstallationPropertyMeterCon
+def InstallationPropertyMeterCon():
+    TemplateEtl(df=getInstallationPropertyMeterCon(), 
+             entity="brgInstallationPropertyMeterCon", 
+             businessKey="dimInstallationSK",
+             AddSK=False
+            ) 
 
 # COMMAND ----------
 
-# DBTITLE 1,6.3. Function: Load Facts
+# DBTITLE 1,6.4. Function: Load Facts
 
 def billedWaterConsumption():
     TemplateEtl(df=getBilledWaterConsumption(),
              entity="factBilledWaterConsumption", 
-             businessKey="sourceSystemCode,dimBillingDocumentSK,dimPropertySK,dimMeterSK,billingPeriodStartDateSK,billingPeriodEndDateSK,dimWaterNetworkSK",
+             businessKey="sourceSystemCode,dimBillingDocumentSK,dimPropertySK,dimMeterSK,billingPeriodStartDate",
              AddSK=True
             )
 
@@ -279,6 +306,7 @@ def DatabaseChanges():
 LoadDimensions = True
 LoadBridgeTables = True
 LoadFacts = True
+LoadRelationships = True
 
 # COMMAND ----------
 
@@ -308,12 +336,24 @@ def Main():
         LogEtl("Dimension table load not requested")
 
     #==============
+    # RELATIONSHIP TABLES
+    #==============    
+    if LoadRelationshipTables:
+        LogEtl("Start Relationship Tables")
+        meterTimeslice()
+        meterInstallation()
+
+        LogEtl("End Relatioship Tables")
+    else:
+        LogEtl("Relationship table load not requested")
+        #==============
     # BRIDGE TABLES
     #==============    
     if LoadBridgeTables:
         LogEtl("Start Bridge Tables")
-        businessPartnerGroupRelation()
-
+        businessPartnerGroupRelationship()
+        InstallationPropertyMeterCon()
+        
         LogEtl("End Bridge Tables")
     else:
         LogEtl("Bridge table load not requested")

@@ -175,12 +175,13 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
+#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
 df_cleansed = spark.sql(f"SELECT \
                             case when PARTNER = 'na' then '' else PARTNER end as businessPartnerNumber, \
                             PARTNER_GUID as businessPartnerGUID, \
                             case when ADDRNUMBER = 'na' then '' else ADDRNUMBER end as addressNumber, \
-                            to_date(DATE_FROM ,'yyyy-MM-dd') as validFromDate, \
-                            to_date(DATE_TO ,'yyyy-MM-dd') as validToDate, \
+                            ToValidDate(DATE_FROM) as validFromDate, \
+                            ToValidDate(DATE_TO) as validToDate, \
                             TITLE as titleCode, \
                             NAME1 as businessPartnerName1, \
                             NAME2 as businessPartnerName2, \
@@ -205,7 +206,7 @@ df_cleansed = spark.sql(f"SELECT \
                             LOCATION as streetLine5, \
                             BUILDING as building, \
                             FLOOR as floorNumber, \
-                            ROOMNUMBER as appartmentNumber, \
+                            ROOMNUMBER as apartmentNumber, \
                             COUNTRY as countryShortName, \
                             REGION as stateCode, \
                             PERS_ADDR as personalAddressIndicator, \
@@ -281,7 +282,7 @@ newSchema = StructType([
                         StructField('streetLine5', StringType(), True),
                         StructField('building', StringType(), True),
                         StructField('floorNumber', StringType(), True),
-                        StructField('appartmentNumber', StringType(), True),
+                        StructField('apartmentNumber', StringType(), True),
                         StructField('countryShortName', StringType(), True),
                         StructField('stateCode', StringType(), True),
                         StructField('personalAddressIndicator', StringType(), True),

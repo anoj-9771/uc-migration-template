@@ -9,7 +9,7 @@ curateddf.printSchema()
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC select propertyNumber from curated.dimProperty
+# MAGIC select LGA from curated.dimProperty
 
 # COMMAND ----------
 

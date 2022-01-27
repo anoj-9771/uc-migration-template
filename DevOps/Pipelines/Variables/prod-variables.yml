@@ -84,15 +84,25 @@ variables:
   # Databricks workspace name for this enironment
   - name: databricksworkspacename
     value: dbw-$(SUBSCRIPTION)-$(PREFIX)-$(ENVIRONMENT)-$(INCREMENT)
-  # Data Factory service name for this environment
+# ------------------------------------------------
+  # Datafactory related
+  # ------------------------------------------------
+    # Data Factory service name for this environment
   - name: datafactoryname
-    value: adf-$(SUBSCRIPTION)-$(PREFIX)-$(ENVIRONMENT)-$(INCREMENT)
+    value: adf-$(SUBSCRIPTION)-$(PREFIX)-$(ENVIRONMENT)-$(INCREMENT)  
   # Data Factory self hosted integrated runtime name
   - name: datafactoryshirname
     value: $(PREFIX)-SHIR
   # Flag to specify whether Data Factory requires Git Integration.
   - name: isRepoEnabled
-    value: true  
+    value: false 
+  # Environment Parameterisation of Trigger Variables
+- name: BATCH_DAILY_HYDRA_properties_typeProperties_scope
+    value: /subscriptions/769a62b3-7481-44ae-878e-a466593f50ac/resourcegroups/rg-swcprod01-prod-daf-01/providers/Microsoft.Storage/storageAccounts/sadafprod01
+  - name: BATCH_DAILY_SAPCRM_properties_typeProperties_scope
+    value: /subscriptions/769a62b3-7481-44ae-878e-a466593f50ac/resourcegroups/rg-swcprod01-prod-daf-01/providers/Microsoft.Storage/storageAccounts/sadafprod01
+  - name: BATCH_DAILY_SAPISU_properties_typeProperties_scope
+    value: /subscriptions/769a62b3-7481-44ae-878e-a466593f50ac/resourcegroups/rg-swcprod01-prod-daf-01/providers/Microsoft.Storage/storageAccounts/sadafprod01
   # ------------------------------------------------
   # Log Analytics related
   # ------------------------------------------------

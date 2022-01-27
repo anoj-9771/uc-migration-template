@@ -175,6 +175,7 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
+#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
 df_cleansed = spark.sql(f"SELECT \
                                 case when RELNR = 'na' then '' else RELNR end as businessPartnerRelationshipNumber, \
                                 case when PARTNER1 = 'na' then '' else PARTNER1 end as businessPartnerNumber1, \
@@ -184,8 +185,8 @@ df_cleansed = spark.sql(f"SELECT \
                                 RELDIR as relationshipDirection, \
                                 RELTYP as relationshipTypeCode, \
                                 BP_TXT.relationshipType as relationshipType, \
-                                case when DATE_TO = 'na' then to_date('2099-12-31', 'yyyy-MM-dd') else to_date(DATE_TO, 'yyyy-MM-dd') end as validToDate, \
-                                case when DATE_FROM < '1900-01-01' then to_date('1900-01-01', 'yyyy-MM-dd') else to_date(DATE_FROM, 'yyyy-MM-dd') end as validFromDate, \
+                                ToValidDate((case when DATE_TO = 'na' then '2099-12-31' else DATE_TO end),'MANDATORY') as validToDate, \
+                                ToValidDate(DATE_FROM) as validFromDate, \
                                 COUNTRY as countryShortName, \
                                 POST_CODE1 as postalCode, \
                                 CITY1 as cityName, \

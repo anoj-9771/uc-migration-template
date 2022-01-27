@@ -175,6 +175,7 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
+#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
 df_cleansed = spark.sql(f"SELECT \
                             case when VSTELLE = 'na' then '' else VSTELLE end as premise, \
                             HAUS as propertyNumber, \
@@ -182,14 +183,14 @@ df_cleansed = spark.sql(f"SELECT \
                             EIGENT as owner, \
                             OBJNR as objectNumber, \
                             TPLNUMMER as functionalLocationNumber, \
-                            to_date(ERDAT, 'yyyy-MM-dd') as createdDate, \
+                            ToValidDate(ERDAT) as createdDate, \
                             ERNAM as createdBy, \
-                            to_date(AEDAT, 'yyyy-MM-dd') as lastChangedDate, \
+                            ToValidDate(AEDAT) as lastChangedDate, \
                             AENAM as lastChangedBy, \
                             LOEVM as deletedIndicator, \
                             cast(ANZPERS as int) as numberOfPersons, \
                             FLOOR as floorNumber, \
-                            ROOMNUMBER as appartmentNumber, \
+                            ROOMNUMBER as apartmentNumber, \
                             HPTWOHNSITZ as mainResidence, \
                             STR_ERG4 as street5, \
                             UPDMOD as bwDeltaProcess, \
@@ -218,7 +219,7 @@ newSchema = StructType([
                           StructField('deletedIndicator',StringType(),True),
                           StructField('numberOfPersons',StringType(),True),
                           StructField('floorNumber',StringType(),True),
-                          StructField('appartmentNumber',StringType(),True),
+                          StructField('apartmentNumber',StringType(),True),
                           StructField('mainResidence',StringType(),True),
                           StructField('street5',StringType(),True),
                           StructField('bwDeltaProcess',StringType(),True),

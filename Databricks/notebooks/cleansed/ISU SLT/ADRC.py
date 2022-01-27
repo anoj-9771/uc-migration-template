@@ -3,10 +3,10 @@
 import json
 #For unit testing...
 #Use this string in the Param widget: 
-#$PARAM
+#{"SourceType": "BLOB Storage (json)", "SourceServer": "daf-sa-lake-sastoken", "SourceGroup": "ISU", "SourceName": "ISU_ADRC", "SourceLocation": "ISU/ADRC", "AdditionalProperty": "", "Processor": "databricks-token|0711-011053-turfs581|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive", "IsAuditTable": false, "SoftDeleteSource": "", "ProjectName": "ISU DATA", "ProjectId": 2, "TargetType": "BLOB Storage (json)", "TargetName": "ISU_ADRC", "TargetLocation": "ISU/ADRC", "TargetServer": "daf-sa-lake-sastoken", "DataLoadMode": "FULL-EXTRACT", "DeltaExtract": false, "CDCSource": false, "TruncateTarget": false, "UpsertTarget": true, "AppendTarget": null, "TrackChanges": false, "LoadToSqlEDW": true, "TaskName": "ISU_ADRC", "ControlStageId": 2, "TaskId": 46, "StageSequence": 200, "StageName": "Raw to Cleansed", "SourceId": 46, "TargetId": 46, "ObjectGrain": "Day", "CommandTypeId": 8, "Watermarks": "", "WatermarksDT": null, "WatermarkColumn": "", "BusinessKeyColumn": "addressNumber,validFromDate", "UpdateMetaData": null, "SourceTimeStampFormat": "", "Command": "", "LastLoadedFile": null}
 
 #Use this string in the Source Object widget
-#$GROUP_$SOURCE
+#ISU_ADRC
 
 # COMMAND ----------
 
@@ -144,8 +144,8 @@ print("data_load_mode: " + data_load_mode)
 # DBTITLE 1,9. Set raw and cleansed table name
 #Set raw and cleansed table name
 #Delta and SQL tables are case Insensitive. Seems Delta table are always lower case
-delta_cleansed_tbl_name = "{0}.{1}".format(ADS_DATABASE_CLEANSED, target_table)
-delta_raw_tbl_name = "{0}.{1}".format(ADS_DATABASE_RAW, source_object)
+delta_cleansed_tbl_name = f'{ADS_DATABASE_CLEANSED}.{target_table}'
+delta_raw_tbl_name = f'{ADS_DATABASE_RAW}.{ source_object}'
 
 #Destination
 print(delta_cleansed_tbl_name)
@@ -175,73 +175,132 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_cleansed = spark.sql(f"SELECT  \
-                            case when stg.AOID = 'na' then '' else stg.AOID end as architecturalObjectId, \
-                            stg.AOFUNCTION as architecturalObjectFunction, \
-                            stg.AONR as architecturalObjectNumber, \
-                            stg.AOTYPE as architecturalObjectTypeCode, \
-                            stg.AUTHGRP as authorizationGroup, \
-                            stg.CITY1 as cityName, \
-                            stg.CITY2 as district, \
-                            stg.COUNTRY as countryShortName, \
-                            stg.HOUSE_NUM1 as houseNumber, \
-                            stg.HOUSE_NUM2 as houseNumber2, \
-                            stg.OBJNR as objectNumber, \
-                            stg.PARENTAOID as parentArchitecturalObjectId, \
-                            stg.PARENTAOTYPE as parentArchitecturalObjectTypeCode, \
-                            stg.PO_BOX as poBoxCode, \
-                            stg.POST_CODE1 as postalCode, \
-                            stg.POST_CODE2 as poBoxPostalCode, \
-                            stg.REGION as stateCode, \
-                            stg.RESPONSIBLE as responsiblePerson, \
-                            stg.SINSTBEZ as maintenanceDistrict, \
-                            stg.SLAGEWE as entityLocationNumber, \
-                            stg.SOBJLAGE as districtLocationIndicator, \
-                            stg.STREET as streetName, \
-                            stg.SVERKEHR as businessEntityTransportConnectionsIndicator, \
-                            stg.USAGECOMMON as commonUsage, \
-                            to_date(stg.VALIDFROM, 'yyyy-MM-dd') as validFromDate, \
-                            to_date(stg.VALIDTO, 'yyyy-MM-dd') as validToDate \
-                          FROM {ADS_DATABASE_STAGE}.{source_object} stg")
+#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
+df_cleansed = spark.sql(f"SELECT \
+	ADDR_GROUP as addressGroup, \
+	case when ADDRNUMBER = 'na' then '' else ADDRNUMBER end as addressNumber, \
+	BUILDING as building, \
+	CHCKSTATUS as regionalStructureGrouping, \
+	CITY_CODE as cityCode, \
+	CITY_CODE2 as cityPoBoxCode, \
+	CITY1 as cityName, \
+	COUNTRY as countryShortName, \
+	ToValidDate(DATE_FROM,'MANDATORY') as validFromDate, \
+	ToValidDate(DATE_TO) as validToDate, \
+	DEFLT_COMM as communicationMethod, \
+	FAX_NUMBER as faxNumber, \
+	FLAGCOMM12 as ftpAddressFlag, \
+	FLAGCOMM13 as pagerAddressFlag, \
+	FLAGCOMM2 as telephoneNumberFlag, \
+	FLAGCOMM3 as faxNumberFlag, \
+	FLAGCOMM6 as emailAddressFlag, \
+	FLOOR as floorNumber, \
+	HOUSE_NUM1 as houseNumber, \
+	HOUSE_NUM2 as houseNumber2, \
+	HOUSE_NUM3 as houseNumber3, \
+	LANGU_CREA as originalAddressRecordCreation, \
+	LOCATION as streetLine5, \
+	MC_CITY1 as searchHelpCityName, \
+	MC_NAME1 as searchHelpLastName, \
+	MC_STREET as searchHelpStreetName, \
+	NAME_CO as coName, \
+	NAME1 as name1, \
+	NAME2 as name2, \
+	NAME3 as name3, \
+	PCODE1_EXT as postalCodeExtension, \
+	PCODE2_EXT as poBoxExtension, \
+	PERS_ADDR as personalAddressIndicator, \
+	PO_BOX as poBoxCode, \
+	PO_BOX_LOC as poBoxCity, \
+	POST_CODE1 as postalCode, \
+	POST_CODE2 as poBoxPostalCode, \
+	POST_CODE3 as companyPostalCode, \
+	REGION as stateCode, \
+	ROOMNUMBER as apartmentNumber, \
+	SORT1 as searchTerm1, \
+	SORT2 as searchTerm2, \
+	STR_SUPPL1 as streetType, \
+	STR_SUPPL2 as streetLine3, \
+	STR_SUPPL3 as streetLine4, \
+	STREET as streetName, \
+	STREETABBR as streetAbbreviation, \
+	STREETCODE as streetCode, \
+	TEL_EXTENS as telephoneExtension, \
+	TEL_NUMBER as phoneNumber, \
+	TIME_ZONE as addressTimeZone, \
+	TITLE as titleCode, \
+    _RecordStart, \
+	_RecordEnd, \
+	_RecordDeleted, \
+	_RecordCurrent \
+	FROM {ADS_DATABASE_STAGE}.{source_object} \
+        ")
 
 display(df_cleansed)
 print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
 
-# Create schema for the cleanse table
 newSchema = StructType([
-                        StructField("architecturalObjectId", StringType(), False),
-                        StructField("architecturalObjectFunction", StringType(), False),
-                        StructField("architecturalObjectNumber", StringType(), True),
-                        StructField("architecturalObjectTypeCode", StringType(), True),
-                        StructField("authorizationGroup", StringType(), True),
-                        StructField("cityName", StringType(), True),
-                        StructField("district", StringType(), True),
-                        StructField("countryShortName", StringType(), True),
-                        StructField("houseNumber", StringType(), True),
-                        StructField("houseNumber2", StringType(), True),
-                        StructField("objectNumber", StringType(), True),
-                        StructField("parentArchitecturalObjectId", StringType(), True),
-                        StructField("parentArchitecturalObjectTypeCode", StringType(), True),
-                        StructField("poBoxCode", StringType(), True),
-                        StructField("postalCode", StringType(), True),
-                        StructField("poBoxPostalCode", StringType(), True),
-                        StructField("stateCode", StringType(), True),
-                        StructField("responsiblePerson", StringType(), True),
-                        StructField("maintenanceDistrict", StringType(), True),
-                        StructField("entityLocationNumber", StringType(), True),
-                        StructField("districtLocationIndicator", StringType(), True),
-                        StructField("streetName", StringType(), True),
-                        StructField("businessEntityTransportConnectionsIndicator", StringType(), True),
-                        StructField("commonUsage", StringType(), True),
-                        StructField("validFromDate", DateType(), True),
-                        StructField("validToDate", DateType(), True)
-                      ])
-# Apply the new schema to cleanse Data Frame
-df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
-display(df_updated_column)
+	StructField('addressGroup',StringType(),True),
+	StructField('addressNumber',StringType(),False),
+	StructField('building',StringType(),True),
+	StructField('regionalStructureGrouping',StringType(),True),
+	StructField('cityCode',StringType(),True),
+	StructField('cityPoBoxCode',StringType(),True),
+	StructField('cityName',StringType(),True),
+	StructField('countryShortName',StringType(),True),
+	StructField('validFromDate',DateType(),False),
+	StructField('validToDate',DateType(),True),
+	StructField('communicationMethod',StringType(),True),
+	StructField('faxNumber',StringType(),True),
+	StructField('ftpAddressFlag',StringType(),True),
+	StructField('pagerAddressFlag',StringType(),True),
+	StructField('telephoneNumberFlag',StringType(),True),
+	StructField('faxNumberFlag',StringType(),True),
+	StructField('emailAddressFlag',StringType(),True),
+	StructField('floorNumber',StringType(),True),
+	StructField('houseNumber',StringType(),True),
+	StructField('houseNumber2',StringType(),True),
+	StructField('houseNumber3',StringType(),True),
+	StructField('originalAddressRecordCreation',StringType(),True),
+	StructField('streetLine5',StringType(),True),
+	StructField('searchHelpCityName',StringType(),True),
+	StructField('searchHelpLastName',StringType(),True),
+	StructField('searchHelpStreetName',StringType(),True),
+	StructField('coName',StringType(),True),
+	StructField('name1',StringType(),True),
+	StructField('name2',StringType(),True),
+	StructField('name3',StringType(),True),
+	StructField('postalCodeExtension',StringType(),True),
+	StructField('poBoxExtension',StringType(),True),
+	StructField('personalAddressIndicator',StringType(),True),
+	StructField('poBoxCode',StringType(),True),
+	StructField('poBoxCity',StringType(),True),
+	StructField('postalCode',StringType(),True),
+	StructField('poBoxPostalCode',StringType(),True),
+	StructField('companyPostalCode',StringType(),True),
+	StructField('stateCode',StringType(),True),
+	StructField('apartmentNumber',StringType(),True),
+	StructField('searchTerm1',StringType(),True),
+	StructField('searchTerm2',StringType(),True),
+	StructField('streetType',StringType(),True),
+	StructField('streetLine3',StringType(),True),
+	StructField('streetLine4',StringType(),True),
+	StructField('streetName',StringType(),True),
+	StructField('streetAbbreviation',StringType(),True),
+	StructField('streetCode',StringType(),True),
+	StructField('telephoneExtension',StringType(),True),
+	StructField('phoneNumber',StringType(),True),
+	StructField('addressTimeZone',StringType(),True),
+	StructField('titleCode',StringType(),True),
+	StructField('_RecordStart',TimestampType(),False),
+	StructField('_RecordEnd',TimestampType(),False),
+	StructField('_RecordDeleted',IntegerType(),False),
+	StructField('_RecordCurrent',IntegerType(),False)
+])
 
+df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
 
 # COMMAND ----------
 

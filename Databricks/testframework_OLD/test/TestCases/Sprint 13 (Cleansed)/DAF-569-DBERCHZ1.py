@@ -228,18 +228,18 @@ lakedf.printSchema()
 # MAGIC ,BELZART as lineItemTypeCode
 # MAGIC ,ABSLKZ as billingLineItemBudgetBillingIndicator
 # MAGIC ,DIFFKZ as lineItemDiscountStatisticsIndicator
-# MAGIC ,BUCHREL as billingLineItemReleventPostingIndicator
-# MAGIC ,MENGESTREL as billedValueStatisticallyReleventIndicator
-# MAGIC ,BETRSTREL as billingLineItemStatisticallyReleventAmount
+# MAGIC ,BUCHREL as billingLineItemRelevantPostingIndicator
+# MAGIC ,MENGESTREL as billedValueStatisticallyRelevantIndicator
+# MAGIC ,BETRSTREL as billingLineItemStatisticallyRelevantAmount
 # MAGIC ,STGRQNT as quantityStatisticsGroupCode
-# MAGIC ,STGRAMT as amountStatisticsGroupCoide
-# MAGIC ,PRINTREL as billingLinePrintReleventIndicator
+# MAGIC ,STGRAMT as amountStatisticsGroupCode
+# MAGIC ,PRINTREL as billingLinePrintRelevantIndicator
 # MAGIC ,AKLASSE as billingClassCode
 # MAGIC ,b.billingClass as billingClass
 # MAGIC ,BRANCHE as industryText
 # MAGIC ,TVORG as subtransactionForDocumentItem
 # MAGIC ,GEGEN_TVORG as offsettingTransactionSubtransactionForDocumentItem
-# MAGIC ,LINESORT as poresortingBillingLineItems
+# MAGIC ,LINESORT as presortingBillingLineItems
 # MAGIC ,case when (CONCAT(LEFT(AB,4),'-',SUBSTRING(AB,5,2),'-',SUBSTRING(AB,7,2))) < '1900-01-01' then '1900-01-01'
 # MAGIC else CONCAT(LEFT(AB,4),'-',SUBSTRING(AB,5,2),'-',SUBSTRING(AB,7,2)) end as validFromDate
 # MAGIC ,CONCAT(LEFT(BIS,4),'-',SUBSTRING(BIS,5,2),'-',SUBSTRING(BIS,7,2)) as validToDate
@@ -295,18 +295,18 @@ lakedf.printSchema()
 # MAGIC ,lineItemTypeCode
 # MAGIC ,billingLineItemBudgetBillingIndicator
 # MAGIC ,lineItemDiscountStatisticsIndicator
-# MAGIC ,billingLineItemReleventPostingIndicator
-# MAGIC ,billedValueStatisticallyReleventIndicator
-# MAGIC ,billingLineItemStatisticallyReleventAmount
+# MAGIC ,billingLineItemRelevantPostingIndicator
+# MAGIC ,billedValueStatisticallyRelevantIndicator
+# MAGIC ,billingLineItemStatisticallyRelevantAmount
 # MAGIC ,quantityStatisticsGroupCode
-# MAGIC ,amountStatisticsGroupCoide
-# MAGIC ,billingLinePrintReleventIndicator
+# MAGIC ,amountStatisticsGroupCode
+# MAGIC ,billingLinePrintRelevantIndicator
 # MAGIC ,billingClassCode
 # MAGIC ,billingClass
 # MAGIC ,industryText
 # MAGIC ,subtransactionForDocumentItem
 # MAGIC ,offsettingTransactionSubtransactionForDocumentItem
-# MAGIC ,poresortingBillingLineItems
+# MAGIC ,presortingBillingLineItems
 # MAGIC ,validFromDate
 # MAGIC ,validToDate
 # MAGIC ,billingLineItemTimeCategoryCode
@@ -325,7 +325,7 @@ lakedf.printSchema()
 # MAGIC ,statisticalRate
 # MAGIC ,weightingKeyId
 # MAGIC ,referenceValuesForRepetitionFactor
-# MAGIC ,tempratureArea
+# MAGIC ,temperatureArea
 # MAGIC ,reversalDynamicPeriodControl1
 # MAGIC ,reversalDynamicPeriodControl2
 # MAGIC ,reversalDynamicPeriodControl3
@@ -333,9 +333,9 @@ lakedf.printSchema()
 # MAGIC ,reversalDynamicPeriodControl5
 # MAGIC ,reverseBackbillingIndicator
 # MAGIC ,allocateBackbillingIndicator
-# MAGIC ,eateStepLogicalNumber
+# MAGIC ,rateStepLogicalNumber
 # MAGIC ,periodEndBillingIndicator
-# MAGIC ,statististicsUpdateGroupCode
+# MAGIC ,statisticsUpdateGroupCode
 # MAGIC ,billedQuantityStatisticsCode
 # MAGIC ,statisticalAnalysisRateType
 # MAGIC ,periodControlCode
@@ -362,18 +362,18 @@ lakedf.printSchema()
 # MAGIC ,lineItemTypeCode
 # MAGIC ,billingLineItemBudgetBillingIndicator
 # MAGIC ,lineItemDiscountStatisticsIndicator
-# MAGIC ,billingLineItemReleventPostingIndicator
-# MAGIC ,billedValueStatisticallyReleventIndicator
-# MAGIC ,billingLineItemStatisticallyReleventAmount
+# MAGIC ,billingLineItemRelevantPostingIndicator
+# MAGIC ,billedValueStatisticallyRelevantIndicator
+# MAGIC ,billingLineItemStatisticallyRelevantAmount
 # MAGIC ,quantityStatisticsGroupCode
-# MAGIC ,amountStatisticsGroupCoide
-# MAGIC ,billingLinePrintReleventIndicator
+# MAGIC ,amountStatisticsGroupCode
+# MAGIC ,billingLinePrintRelevantIndicator
 # MAGIC ,billingClassCode
 # MAGIC ,billingClass
 # MAGIC ,industryText
 # MAGIC ,subtransactionForDocumentItem
 # MAGIC ,offsettingTransactionSubtransactionForDocumentItem
-# MAGIC ,poresortingBillingLineItems
+# MAGIC ,presortingBillingLineItems
 # MAGIC ,validFromDate
 # MAGIC ,validToDate
 # MAGIC ,billingLineItemTimeCategoryCode
@@ -392,7 +392,7 @@ lakedf.printSchema()
 # MAGIC ,statisticalRate
 # MAGIC ,weightingKeyId
 # MAGIC ,referenceValuesForRepetitionFactor
-# MAGIC ,tempratureArea
+# MAGIC ,temperatureArea
 # MAGIC ,reversalDynamicPeriodControl1
 # MAGIC ,reversalDynamicPeriodControl2
 # MAGIC ,reversalDynamicPeriodControl3
@@ -400,9 +400,9 @@ lakedf.printSchema()
 # MAGIC ,reversalDynamicPeriodControl5
 # MAGIC ,reverseBackbillingIndicator
 # MAGIC ,allocateBackbillingIndicator
-# MAGIC ,eateStepLogicalNumber
+# MAGIC ,rateStepLogicalNumber
 # MAGIC ,periodEndBillingIndicator
-# MAGIC ,statististicsUpdateGroupCode
+# MAGIC ,statisticsUpdateGroupCode
 # MAGIC ,billedQuantityStatisticsCode
 # MAGIC ,statisticalAnalysisRateType
 # MAGIC ,periodControlCode
@@ -417,7 +417,7 @@ lakedf.printSchema()
 # MAGIC ,billingQuantityPlaceAfterDecimalPoint
 # MAGIC FROM
 # MAGIC cleansed.isu_dberchz1 where billingDocumentNumber = '010000000169' order by billingDocumentLineItemId)
-# MAGIC EXCEPT
+# MAGIC except
 # MAGIC (SELECT
 # MAGIC BELNR as billingDocumentNumber
 # MAGIC ,BELZEILE as billingDocumentLineItemId
@@ -425,21 +425,20 @@ lakedf.printSchema()
 # MAGIC ,BELZART as lineItemTypeCode
 # MAGIC ,ABSLKZ as billingLineItemBudgetBillingIndicator
 # MAGIC ,DIFFKZ as lineItemDiscountStatisticsIndicator
-# MAGIC ,BUCHREL as billingLineItemReleventPostingIndicator
-# MAGIC ,MENGESTREL as billedValueStatisticallyReleventIndicator
-# MAGIC ,BETRSTREL as billingLineItemStatisticallyReleventAmount
+# MAGIC ,BUCHREL as billingLineItemRelevantPostingIndicator
+# MAGIC ,MENGESTREL as billedValueStatisticallyRelevantIndicator
+# MAGIC ,BETRSTREL as billingLineItemStatisticallyRelevantAmount
 # MAGIC ,STGRQNT as quantityStatisticsGroupCode
-# MAGIC ,STGRAMT as amountStatisticsGroupCoide
-# MAGIC ,PRINTREL as billingLinePrintReleventIndicator
+# MAGIC ,STGRAMT as amountStatisticsGroupCode
+# MAGIC ,PRINTREL as billingLinePrintRelevantIndicator
 # MAGIC ,AKLASSE as billingClassCode
 # MAGIC ,b.billingClass as billingClass
 # MAGIC ,BRANCHE as industryText
 # MAGIC ,TVORG as subtransactionForDocumentItem
 # MAGIC ,GEGEN_TVORG as offsettingTransactionSubtransactionForDocumentItem
-# MAGIC ,LINESORT as poresortingBillingLineItems
+# MAGIC ,LINESORT as presortingBillingLineItems
 # MAGIC ,case when (CONCAT(LEFT(AB,4),'-',SUBSTRING(AB,5,2),'-',SUBSTRING(AB,7,2))) < '1900-01-01' then '1900-01-01'
 # MAGIC else CONCAT(LEFT(AB,4),'-',SUBSTRING(AB,5,2),'-',SUBSTRING(AB,7,2)) end as validFromDate
-# MAGIC --,AB as validFromDate
 # MAGIC ,CONCAT(LEFT(BIS,4),'-',SUBSTRING(BIS,5,2),'-',SUBSTRING(BIS,7,2)) as validToDate
 # MAGIC ,TIMTYPZA as billingLineItemTimeCategoryCode
 # MAGIC ,SCHEMANR as billingSchemaNumber
@@ -457,7 +456,7 @@ lakedf.printSchema()
 # MAGIC ,STTARIF as statisticalRate
 # MAGIC ,GEWKEY as weightingKeyId
 # MAGIC ,WDHFAKT as referenceValuesForRepetitionFactor
-# MAGIC ,TEMP_AREA as tempratureArea
+# MAGIC ,TEMP_AREA as temperatureArea
 # MAGIC ,DYNCANC01 as reversalDynamicPeriodControl1
 # MAGIC ,DYNCANC02 as reversalDynamicPeriodControl2
 # MAGIC ,DYNCANC03 as reversalDynamicPeriodControl3
@@ -467,7 +466,7 @@ lakedf.printSchema()
 # MAGIC ,DYNEXEC as allocateBackbillingIndicator
 # MAGIC ,LRATESTEP as eateStepLogicalNumber
 # MAGIC ,PEB as periodEndBillingIndicator
-# MAGIC ,STAFO as statististicsUpdateGroupCode
+# MAGIC ,STAFO as statisticsUpdateGroupCode
 # MAGIC ,ARTMENGE as billedQuantityStatisticsCode
 # MAGIC ,STATTART as statisticalAnalysisRateType
 # MAGIC ,TIMECONTRL as periodControlCode
@@ -492,6 +491,8 @@ lakedf.printSchema()
 # MAGIC select count (*) from (
 # MAGIC select distinct billingDocumentNumber from
 # MAGIC cleansed.isu_dberchz1)a
+# MAGIC 
+# MAGIC --select count (*) from (select distinct BELNR from SLT_EQ1CLNT100.EQ1.DBERCHZ1)a
 
 # COMMAND ----------
 
@@ -500,14 +501,18 @@ lakedf.printSchema()
 # MAGIC select count (*) from (
 # MAGIC select distinct billingDocumentLineItemId from
 # MAGIC cleansed.isu_dberchz1)a
+# MAGIC 
+# MAGIC --select count (*) from (select distinct BELZEILE from SLT_EQ1CLNT100.EQ1.DBERCHZ1)a
 
 # COMMAND ----------
 
 # DBTITLE 1,Additional Test #3
 # MAGIC %sql
 # MAGIC select count (*) from (
-# MAGIC select distinct amountStatisticsGroupCoide from
+# MAGIC select distinct amountStatisticsGroupCode from
 # MAGIC cleansed.isu_dberchz1)a
+# MAGIC 
+# MAGIC --select count (*) from (select distinct STGRAMT from SLT_EQ1CLNT100.EQ1.DBERCHZ1)a
 
 # COMMAND ----------
 
@@ -515,6 +520,18 @@ lakedf.printSchema()
 # MAGIC %sql
 # MAGIC select distinct billingClassCode from
 # MAGIC cleansed.isu_dberchz1
+# MAGIC 
+# MAGIC --select distinct AKLASSE from SLT_EQ1CLNT100.EQ1.DBERCHZ1
+
+# COMMAND ----------
+
+# DBTITLE 1,Additional Test #4.5
+# MAGIC %sql
+# MAGIC select billingClassCode, count(*) from
+# MAGIC cleansed.isu_dberchz1
+# MAGIC group by billingClassCode
+# MAGIC 
+# MAGIC --select distinct AKLASSE from SLT_EQ1CLNT100.EQ1.DBERCHZ1
 
 # COMMAND ----------
 
@@ -524,6 +541,8 @@ lakedf.printSchema()
 # MAGIC cleansed.isu_dberchz1 
 # MAGIC where validtodate < validfromdate
 # MAGIC order by validfromdate asc
+# MAGIC 
+# MAGIC --select AB,BIS from SLT_EQ1CLNT100.EQ1.DBERCHZ1 where BIS < AB order by AB
 
 # COMMAND ----------
 
@@ -540,3 +559,21 @@ lakedf.printSchema()
 # MAGIC select billingDocumentLineItemId
 # MAGIC from cleansed.isu_dberchz1
 # MAGIC where billingDocumentLineItemId in ('', 'null') or billingdocumentnumber is null
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC select max(billingDocumentNumber) from cleansed.isu_dberchz1
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC select max(billingDocumentLineItemId) from cleansed.isu_dberchz1
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC select validFromDate, validToDate, * from
+# MAGIC cleansed.isu_dberchz1
+# MAGIC where 
+# MAGIC billingDocumentNumber = '010000002929' and billingDocumentLineItemId = '000005'

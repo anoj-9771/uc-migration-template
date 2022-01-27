@@ -175,8 +175,9 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
+#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
 df_cleansed = spark.sql(f"SELECT \
-	case when SIMRUNID = 'na' then '' else SIMRUNID end as simulationPeriodID, \
+	case when SIMRUNID = 'na' then '' else SIMRUNID end as simulationPeriodId, \
 	case when BELNR = 'na' then '' else BELNR end as billingDocumentNumber, \
 	BUKRS as companyCode, \
 	SPARTE as divisonCode, \
@@ -184,12 +185,12 @@ df_cleansed = spark.sql(f"SELECT \
 	VERTRAG as contractId, \
 	ABRVORG as billingTransactionCode, \
 	HVORG as mainTransactionLineItemCode, \
-	KOFIZ as accountDeterminationID, \
+	KOFIZ as accountDeterminationId, \
 	PORTION as portionNumber, \
 	cast(ANZTAGE as int) as numberOfContractDaysBilled, \
 	cast(ANZVERTR as int) as numberOfBilledContracts, \
 	cast(CNTBILLDOC as int) as numberOfBillingDocuments, \
-	case when BELZEILE = 'na' then '' else BELZEILE end as billingDocumentLineItemID, \
+	case when BELZEILE = 'na' then '' else BELZEILE end as billingDocumentLineItemId, \
 	BELZART as lineItemTypeCode, \
 	AKLASSE as billingClassCode, \
 	TVORG as subtransactionLineItemCode, \
@@ -197,8 +198,8 @@ df_cleansed = spark.sql(f"SELECT \
 	STATTART as statisticalAnalysisRateType, \
 	STTARIF as statisticalRate, \
 	VBRMONAT as consumptionMonth, \
-	to_date(AB, 'yyyy-MM-dd') as validFromDate, \
-	case when BELZEILE = 'na' then to_date('1900-01-01','yyyy-MM-dd') else to_date(BIS, 'yyyy-MM-dd') end as validToDate, \
+	ToValidDate(AB) as validFromDate, \
+	ToValidDate(BIS,'MANDATORY') as validToDate, \
 	BUCHREL as billingLineItemReleventPostingIndicator, \
 	STGRQNT as quantityStatisticsGroupCode, \
 	STGRAMT as amountStatisticsGroupCode, \
@@ -233,7 +234,7 @@ print(f'Number of rows: {df_cleansed.count()}')
 # COMMAND ----------
 
 newSchema = StructType([
-	StructField('simulationPeriodID',StringType(),False,
+	StructField('simulationPeriodId',StringType(),False,
 	StructField('billingDocumentNumber',StringType(),False,
 	StructField('companyCode',StringType(),True,
 	StructField('divisonCode',StringType(),True,
@@ -241,12 +242,12 @@ newSchema = StructType([
 	StructField('contractId',StringType(),True,
 	StructField('billingTransactionCode',StringType(),True,
 	StructField('mainTransactionLineItemCode',StringType(),True,
-	StructField('accountDeterminationID',StringType(),True,
+	StructField('accountDeterminationId',StringType(),True,
 	StructField('portionNumber',StringType(),True,
 	StructField('numberOfContractDaysBilled',IntegerType(),True,
 	StructField('numberOfBilledContracts',IntegerType(),True,
 	StructField('numberOfBillingDocuments',IntegerType(),True,
-	StructField('billingDocumentLineItemID',StringType(),False,
+	StructField('billingDocumentLineItemId',StringType(),False,
 	StructField('lineItemTypeCode',StringType(),True,
 	StructField('billingClassCode',StringType(),True,
 	StructField('subtransactionLineItemCode',StringType(),True,

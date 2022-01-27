@@ -37,11 +37,6 @@ lakedftarget.printSchema()
 
 # COMMAND ----------
 
-# MAGIC %sql
-# MAGIC select * from curated.dimContract where businesspartnergroupnumber ='-1' --7837792, 7837815
-
-# COMMAND ----------
-
 # DBTITLE 1,[Verification] Auto Generate field check
 # MAGIC %sql
 # MAGIC select * from curated.dimContract where dimcontractSK is null or dimcontractSK = '' or dimcontractSK = ' '
@@ -149,7 +144,7 @@ lakedftarget.printSchema()
 
 # MAGIC %sql
 # MAGIC select * from curated.dimContract
-# MAGIC where contractId = 3010025616
+# MAGIC where contractId = 5000034234
 
 # COMMAND ----------
 
@@ -174,7 +169,7 @@ lakedftarget.printSchema()
 # MAGIC c.contractId as contractId
 # MAGIC ,case when ch.validFromDate is null then '1900-01-01' else ch.validFromDate end as validFromDate
 # MAGIC ,ch.validToDate as validToDate
-# MAGIC ,'SAPISU' as sourceSystemCode
+# MAGIC ,'ISU' as sourceSystemCode
 # MAGIC --,c.createdDate
 # MAGIC ,case
 # MAGIC when (ch.validFromDate < c.createdDate and ch.validFromDate is not null) then ch.validFromDate
@@ -188,7 +183,8 @@ lakedftarget.printSchema()
 # MAGIC when c.invoiceContractsJointly = 'X' then 'Y'
 # MAGIC else 'N' end as invoiceJointlyFlag
 # MAGIC ,c.moveInDate as moveInDate
-# MAGIC ,case when c.moveOutDate = '2099-12-31' then '9999-12-31' else moveOutDate end as moveOutDate
+# MAGIC --,case when c.moveOutDate = '2099-12-31' then '9999-12-31' else moveOutDate end as moveOutDate
+# MAGIC ,c.moveOutDate as moveOutDate
 # MAGIC ,ca.contractAccountNumber as contractAccountNumber
 # MAGIC ,ca.contractAccountCategory as contractAccountCategory
 # MAGIC ,ca.applicationArea as applicationArea

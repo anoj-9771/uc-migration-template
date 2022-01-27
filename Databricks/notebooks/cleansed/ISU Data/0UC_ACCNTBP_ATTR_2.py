@@ -175,6 +175,7 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
+#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
 df_cleansed = spark.sql(f"SELECT \
                                 GPART as businessPartnerGroupNumber, \
                                 VKONT as contractAccountNumber, \
@@ -194,9 +195,9 @@ df_cleansed = spark.sql(f"SELECT \
                                 SENDCONTROL_GP as dispatchControl, \
                                 KZABSVER as billingProcedureActivationIndicator, \
                                 JVLTE as participationInYearlyAdvancePayment, \
-                                to_date(ERDAT, 'yyyy-MM-dd') as createdDate, \
+                                ToValidDate(ERDAT) as createdDate, \
                                 ERNAM as createdBy, \
-                                to_date(AEDATP, 'yyyy-MM-dd') as lastChangedDate, \
+                                ToValidDate(AEDATP) as lastChangedDate, \
                                 AENAMP as changedBy, \
                                 FDZTG as additionalDaysForCashManagement, \
                                 GUID as headerUUID, \

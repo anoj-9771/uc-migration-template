@@ -95,7 +95,7 @@ def getProperty():
 
     #Dummy Record to be added to Meter Dimension
     ISUDummy = tuple(['-1','ISU','1900-01-01','2099-12-31'] + ['Unknown'] * 4 + [0] + ['Unknown'] * (len(sapisuDf.columns) - 9)) #this only works as long as all output columns are string
-    ACCESSDummy = tuple(['-1','ACCESS','1900-01-01','2099-12-31'] + ['Unknown'] * 4 + [0] + ['Unknown'] * (len(sapisuDf.columns) - 9)) #this only works as long as all output columns are string
+    ACCESSDummy = tuple(['-2','ACCESS','1900-01-01','2099-12-31'] + ['Unknown'] * 4 + [0] + ['Unknown'] * (len(sapisuDf.columns) - 9)) #this only works as long as all output columns are string
     dummyDimRecDf = spark.createDataFrame([ISUDummy, ACCESSDummy], sapisuDf.columns)
     dummyDimRecDf = dummyDimRecDf.withColumn("propertyStartDate",dummyDimRecDf['propertyStartDate'].cast(DateType())).withColumn("propertyEndDate",dummyDimRecDf['propertyEndDate'].cast(DateType()))
 
@@ -136,7 +136,7 @@ def getProperty():
     newSchema = StructType([
                             StructField("propertyNumber", StringType(), False),
                             StructField("sourceSystemCode", StringType(), False),
-                            StructField("propertyStartDate", DateType(), True),
+                            StructField("propertyStartDate", DateType(), False),
                             StructField("propertyEndDate", DateType(), True),
                             StructField("propertyTypeCode", StringType(), True),
                             StructField("propertyType", StringType(), True),

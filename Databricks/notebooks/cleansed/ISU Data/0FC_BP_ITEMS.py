@@ -175,6 +175,7 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
+#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
 df_cleansed = spark.sql(f"SELECT \
                                 case when OPBEL = 'na' then '' else OPBEL end as contractDocumentNumber, \
                                 case when OPUPW = 'na' then '' else OPUPW end as repetitionItem, \
@@ -200,29 +201,29 @@ df_cleansed = spark.sql(f"SELECT \
                                 MWSKZ as taxSalesCode, \
                                 XANZA as downPaymentIndicator, \
                                 STAKZ as statisticalItemType, \
-                                to_date(BLDAT, 'yyyy-MM-dd') as documentDate, \
-                                to_date(BUDAT, 'yyyy-MM-dd') as postingDate, \
+                                ToValidDate(BLDAT) as documentDate, \
+                                ToValidDate(BUDAT) as postingDate, \
                                 WAERS as currencyKey, \
-                                to_date(FAEDN, 'yyyy-MM-dd') as paymentDueDate, \
-                                to_date(FAEDS, 'yyyy-MM-dd') as cashDiscountDueDate, \
-                                to_date(STUDT, 'yyyy-MM-dd') as deferralToDate, \
+                                ToValidDate(FAEDN) as paymentDueDate, \
+                                ToValidDate(FAEDS) as cashDiscountDueDate, \
+                                ToValidDate(STUDT) as deferralToDate, \
                                 cast(SKTPZ as dec(5,2)) as cashDiscountPercentageRate, \
                                 cast(BETRH as dec(13,2)) as amountLocalCurrency, \
                                 BETRW as amountTransactionCurrency, \
                                 cast(SKFBT as dec(13,2)) as amountEligibleCashDiscount, \
                                 cast(SBETH as dec(13,2)) as taxAmountLocalCurrency, \
                                 cast(SBETW as dec(13,2)) as taxAmountTransactionCurrency, \
-                                to_date(AUGDT, 'yyyy-MM-dd') as clearingDate, \
+                                ToValidDate(AUGDT) as clearingDate, \
                                 AUGBL as clearingDocument, \
-                                to_date(AUGBD, 'yyyy-MM-dd') as clearingDocumentPostingDate, \
+                                ToValidDate(AUGBD) as clearingDocumentPostingDate, \
                                 AUGRD as clearingReason, \
                                 AUGWA as clearingCurrency, \
                                 cast(AUGBT as dec(13,2)) as clearingAmount, \
                                 cast(AUGBS as dec(13,2)) as taxAmountClearingCurrency, \
                                 cast(AUGSK as dec(13,2)) as cashDiscount, \
-                                to_date(AUGVD, 'yyyy-MM-dd') as clearingValueDate, \
-                                to_date(ABRZU, 'yyyy-MM-dd') as settlementPeriodLowerLimit, \
-                                to_date(ABRZO, 'yyyy-MM-dd') as billingPeriodUpperLimit, \
+                                ToValidDate(AUGVD) as clearingValueDate, \
+                                ToValidDate(ABRZU) as settlementPeriodLowerLimit, \
+                                ToValidDate(ABRZO) as billingPeriodUpperLimit, \
                                 AUGRS as clearingRestriction, \
                                 INFOZ as valueAdjustment, \
                                 BLART as documentTypeCode, \
@@ -234,7 +235,7 @@ df_cleansed = spark.sql(f"SELECT \
                                 cast(STTAX as dec(13,2)) as taxAmountDocument, \
                                 ABGRD as writeOffReasonCode, \
                                 HERKF as documentOriginCode, \
-                                to_date(CPUDT, 'yyyy-MM-dd') as documentEnteredDate, \
+                                ToValidDate(CPUDT) as documentEnteredDate, \
                                 AWTYP as referenceProcedure, \
                                 AWKEY as objectKey, \
                                 STORB as reversalDocumentNumber, \

@@ -175,15 +175,16 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
+#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
 df_cleansed = spark.sql(f"SELECT \
                                 case when BP.PARTNER = 'na' then '' else BP.PARTNER end as businessPartnerNumber, \
                                 case when BP.TYPE = 'na' then '' else BP.TYPE end as identificationTypeCode, \
                                 BP_TXT.identificationType as identificationType, \
                                 case when BP.IDNUMBER = 'na' then '' else BP.IDNUMBER end as businessPartnerIdNumber, \
                                 BP.INSTITUTE as institute, \
-                                to_date(BP.ENTRY_DATE, 'yyyy-MM-dd') as entryDate, \
-                                to_date(BP.VALID_DATE_FROM, 'yyyy-MM-dd') as validFromDate, \
-                                to_date(BP.VALID_DATE_TO, 'yyyy-MM-dd') as validToDate, \
+                                ToValidDate(BP.ENTRY_DATE) as entryDate, \
+                                ToValidDate(BP.VALID_DATE_FROM) as validFromDate, \
+                                ToValidDate(BP.VALID_DATE_TO) as validToDate, \
                                 BP.COUNTRY as countryShortName, \
                                 BP.REGION as stateCode, \
                                 BP.PARTNER_GUID as businessPartnerGUID, \
