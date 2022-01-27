@@ -136,7 +136,7 @@ def getProperty():
     newSchema = StructType([
                             StructField("propertyNumber", StringType(), False),
                             StructField("sourceSystemCode", StringType(), False),
-                            StructField("propertyStartDate", DateType(), True),
+                            StructField("propertyStartDate", DateType(), False),
                             StructField("propertyEndDate", DateType(), True),
                             StructField("propertyTypeCode", StringType(), True),
                             StructField("propertyType", StringType(), True),
