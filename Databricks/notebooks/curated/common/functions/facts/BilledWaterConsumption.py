@@ -107,17 +107,15 @@ def getBilledWaterConsumption():
                                     where _RecordCurrent = 1 and _RecordDeleted = 0")
 
     dummyDimRecDf = spark.sql(f"select dimPropertySk as dummyDimSK, sourceSystemCode, 'dimProperty' as dimension from {ADS_DATABASE_CURATED}.dimProperty \
-                                                                                                                                where propertyNumber in ('-1', '-2') \
-                          union select dimLocationSk as dummyDimSK, 'ISU' as sourceSystemCode, 'dimLocation' as dimension from {ADS_DATABASE_CURATED}.dimLocation \
+                                                                                                                                where propertyNumber = '-1' \
+                          union select dimLocationSk as dummyDimSK, 'null' as sourceSystemCode, 'dimLocation' as dimension from {ADS_DATABASE_CURATED}.dimLocation \
                                                                                                                                 where LocationId = '-1' \
-                          union select dimMeterSK as dummyDimSK, sourceSystemCode, 'dimMeter' as dimension from {ADS_DATABASE_CURATED}.dimMeter where meterNumber in ('-1', '-2') \
+                          union select dimMeterSK as dummyDimSK, sourceSystemCode, 'dimMeter' as dimension from {ADS_DATABASE_CURATED}.dimMeter where meterNumber = '-1' \
                           union select dimBillingDocumentSK as dummyDimSK, sourceSystemCode, 'dimBillingDocument' as dimension from {ADS_DATABASE_CURATED}.dimBillingDocument \
-                                                                                                                                where billingDocumentNumber in ('-1', '-2') \
-                          union select dimDateSK as dummyDimSK, 'ISU' as sourceSystemCode, 'dimDate' as dimension from {ADS_DATABASE_CURATED}.dimDate \
-                                                                                                                                where calendarDate = ('1900-01-01') \
+                                                                                                                                where billingDocumentNumber = '-1' \
                           union select dimBusinessPartnerGroupSK as dummyDimSK, 'ISU' as sourceSystemCode, 'dimBusinessPartnerGroup' as dimension from \
                                                                                                                               {ADS_DATABASE_CURATED}.dimBusinessPartnerGroup \
-                                                                                                                                  where BusinessPartnerGroupNumber = '-1' \
+                                                                                                                                  where BusinessPartnerGroupNumber ='-1' \
                           union select dimContractSK as dummyDimSK, 'ISU' as sourceSystemCode, 'dimContract' as dimension from {ADS_DATABASE_CURATED}.dimContract where contractId = '-1' \
                           union select dimInstallationSK as dummyDimSK, 'ISU' as sourceSystemCode, 'dimInstallation' as dimension from {ADS_DATABASE_CURATED}.dimInstallation \
                                                                                                                                   where installationId = '-1' \
