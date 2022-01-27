@@ -32,8 +32,8 @@ def getInstallationPropertyMeterCon():
                                       propertyNumber \
                                       from {ADS_DATABASE_CURATED}.dimInstallation \
                                       where sourceSystemCode = 'ISU' and _RecordCurrent = 1 and _RecordDeleted = 0")     
-    print(f"Number of rows in dimInstallationDf: ", dimInstallationDf.count())
-    display(dimInstallationDf)
+    #print(f"Number of rows in dimInstallationDf: ", dimInstallationDf.count())
+    #display(dimInstallationDf)
     
     dimContractDf = spark.sql(f"select \
                                     dimContractSK, \
@@ -41,16 +41,16 @@ def getInstallationPropertyMeterCon():
                                     installationId \
                                     from {ADS_DATABASE_CURATED}.dimContract \
                                     where sourceSystemCode = 'ISU' and _RecordCurrent = 1 and _RecordDeleted = 0")
-    print(f"Number of rows in dimContractDf: ", dimContractDf.count())
-    display(dimContractDf)
+    #print(f"Number of rows in dimContractDf: ", dimContractDf.count())
+    #display(dimContractDf)
     
-#     dimPropertyDf = spark.sql(f"select \
-#                                     propertyNumber, \
-#                                     dimPropertySK \
-#                                     from {ADS_DATABASE_CURATED}.dimProperty \
-#                                     where sourceSystemCode = 'ISU' and _RecordCurrent = 1 and _RecordDeleted = 0")
-#     print(f"Number of rows in dimInstallationDf: ", dimPropertyDf.count())
-#     display(dimPropertyDf)
+    dimPropertyDf = spark.sql(f"select \
+                                    propertyNumber, \
+                                    dimPropertySK \
+                                    from {ADS_DATABASE_CURATED}.dimProperty \
+                                    where sourceSystemCode = 'ISU' and _RecordCurrent = 1 and _RecordDeleted = 0")
+    #print(f"Number of rows in dimInstallationDf: ", dimPropertyDf.count())
+    #display(dimPropertyDf)
     
     dimMeterDf = spark.sql(f"select \
                                 dimMeterSK, \
@@ -58,8 +58,8 @@ def getInstallationPropertyMeterCon():
                                 logicalDeviceNumber \
                                 from {ADS_DATABASE_CURATED}.dimMeter \
                                 where sourceSystemCode = 'ISU' and _RecordCurrent = 1 and _RecordDeleted = 0")
-    print(f"Number of rows in dimMeterDf: ", dimMeterDf.count())
-    display(dimMeterDf)
+    #print(f"Number of rows in dimMeterDf: ", dimMeterDf.count())
+    #display(dimMeterDf)
     
     meterInstallationDf = spark.sql(f"select \
                                 meterInstallationSK, \
@@ -68,51 +68,57 @@ def getInstallationPropertyMeterCon():
                                 logicalDeviceNumber \
                                 from {ADS_DATABASE_CURATED}.meterInstallation \
                                 where _RecordCurrent = 1 and _RecordDeleted = 0")    
-    print(f"Number of rows in meterInstallationDf: ", meterInstallationDf.count())
-    display(meterInstallationDf)
+    #print(f"Number of rows in meterInstallationDf: ", meterInstallationDf.count())
+    #display(meterInstallationDf)
     
     
     #3.Joins Tables
     df = dimInstallationDf.join(dimContractDf, (dimInstallationDf.installationId == dimContractDf.installationId), how="left") \
             .select(dimInstallationDf['*'], dimContractDf['dimContractSK'], dimContractDf['contractId'])    
-    print(f'{df.count():,} rows in df -1')
-    display(df)    
-    df = df.join(dimContractDf, (df.contractId == dimContractDf.contractId), how="left") \
-            .select(df['*'], dimContractDf['dimContractSK']) 
-    print(f'{df.count():,} rows in df -2')
-    display(df)  
+    #print(f'{df.count():,} rows in df -1')
+    #display(df)    
+    
+    df = df.join(meterInstallationDf, (df.installationId == meterInstallationDf.installationId), how="left") \
+            .select(df['*'], meterInstallationDf['logicalDeviceNumber']) 
+    #print(f'{df.count():,} rows in df -2')
+    #display(df)    
+    
+    df = df.join(dimMeterDf, (df.logicalDeviceNumber == dimMeterDf.logicalDeviceNumber), how="left") \
+            .select(df['*'], dimMeterDf['dimMeterSK'], dimMeterDf['meterNumber'])     
+    #print(f'{df.count():,} rows in df -3')
+    #display(df)   
+    
     df = df.join(dimPropertyDf, (df.propertyNumber == dimPropertyDf.propertyNumber), how="left") \
             .select(df['*'], dimPropertyDf['dimPropertySK']) 
-    print(f'{df.count():,} rows in df -3')
-    display(df)    
-    df = df.join(dimMeterDf, (df.equipmentNumber == dimMeterDf.equipmentNumber), how="left") \
-            .select(df['*'], dimMeterDf['dimMeterSK'])     
-    
+    #print(f'{df.count():,} rows in df -4')
+    #display(df) 
     
     #5.SELECT / TRANSFORM
     #aggregating to address any duplicates due to failed SK lookups and dummy SKs being assigned in those cases
     df = df.selectExpr ( \
                        "dimInstallationSK" \
+                      ,"installationId" \
                       ,"dimContractSK" \
-                      ,"dimPropertySK" \
+                      ,"contractId" \
                       ,"dimMeterSK" \
+                      ,"meterNumber" \
+                      ,"dimPropertySK" \
+                      ,"propertyNumber" \
                       ) 
                             
-    print(f'{df.count():,} rows in df -5')
-    display(df)    
     #6.Apply schema definition
     newSchema = StructType([
-                            StructField('sourceSystemCode', StringType(), True),
-                            StructField('businessPartnerGroupSK', StringType(), False),
-                            StructField('businessPartnerSK', StringType(), False),
-                            StructField('validFromDate', DateType(), False),
-                            StructField('validToDate', DateType(), True),
-                            StructField('relationshipNumber', StringType(), True),
-                            StructField('relationshipTypeCode', StringType(), True),
-                            StructField('relationshipType', StringType(), True)
+                            StructField('dimInstallationSK', LongType(), False),
+                            StructField('installationId', StringType(), True),
+                            StructField('dimContractSK', LongType(), True),
+                            StructField('contractId', StringType(), True),
+                            StructField('dimMeterSK', LongType(), True),
+                            StructField('meterNumber', StringType(), True),
+                            StructField('dimPropertySK', LongType(), True),
+                            StructField('propertyNumber', StringType(), True)
                       ]) 
 
-    df = spark.createDataFrame(isu0bpRelationsAttrDf.rdd, schema=newSchema)
-    print(f'{df.count():,} rows in df -6')
-    display(df)   
+    df = spark.createDataFrame(df.rdd, schema=newSchema)  
+    #print(f'{df.count():,} rows in df -5')
+    #display(df)    
     return df  
