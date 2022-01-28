@@ -266,7 +266,7 @@ df_cleansed_column = spark.sql(f"SELECT  \
                                   BP_BILL as resultingBillingPeriodIndicator, \
                                   MAINDOCNO as billingDocumentPrimaryInstallationNumber, \
                                   INSTGRTYPE as instalGroupTypeCode, \
-                                  INSTROLE as instalGroupRoleCode, \
+                                  INSTROLE as instalGroupRoleCode,  \
                                   stg._RecordStart, \
                                   stg._RecordEnd, \
                                   stg._RecordDeleted, \
