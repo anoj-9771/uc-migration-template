@@ -177,7 +177,7 @@ DeltaSaveToDeltaTable (
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT \
 	case when REL_TYPE = 'na' then '' else REL_TYPE end as relationshipTypeCode, \
-	DESCRIPTION as relationshipType
+	DESCRIPTION as relationshipType, \
 	_RecordStart, \
 	_RecordEnd, \
 	_RecordDeleted, \
