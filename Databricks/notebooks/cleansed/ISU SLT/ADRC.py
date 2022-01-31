@@ -234,7 +234,7 @@ df_cleansed = spark.sql(f"SELECT \
 	_RecordDeleted, \
 	_RecordCurrent \
 	FROM {ADS_DATABASE_STAGE}.{source_object} \
-        ")
+    WHERE CLIENT = '100'")
 
 display(df_cleansed)
 print(f'Number of rows: {df_cleansed.count()}')
