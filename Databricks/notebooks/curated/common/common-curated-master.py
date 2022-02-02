@@ -203,7 +203,7 @@ def location():
 def meter():
     TemplateEtl(df=getMeter(), 
              entity="dimMeter", 
-             businessKey="meterNumber,sourceSystemCode,validToDate,registerToDate,registerNumber",
+             businessKey="meterNumber,installationId,sourceSystemCode,validToDate,registerToDate,registerNumber",
              AddSK=True
             )
 
