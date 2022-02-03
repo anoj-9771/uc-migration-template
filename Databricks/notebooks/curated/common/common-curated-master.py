@@ -203,7 +203,7 @@ def location():
 def meter():
     TemplateEtl(df=getMeter(), 
              entity="dimMeter", 
-             businessKey="meterNumber,installationId",
+             businessKey="sourceSystemCode,meterNumber",
              AddSK=True
             )
 
@@ -211,7 +211,7 @@ def meter():
 def makeProperty(): #renamed because property is a keyword
     TemplateEtl(df=getProperty(), 
              entity="dimProperty", 
-             businessKey="propertyNumber,sourceSystemCode,propertyStartDate",
+             businessKey="sourceSystemCode,propertyNumber,propertyStartDate",
              AddSK=True
             )
 
