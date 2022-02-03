@@ -107,10 +107,10 @@ def getBilledWaterConsumption():
                                     where _RecordCurrent = 1 and _RecordDeleted = 0")
 
     dummyDimRecDf = spark.sql(f"select dimPropertySk as dummyDimSK, sourceSystemCode, 'dimProperty' as dimension from {ADS_DATABASE_CURATED}.dimProperty \
-                                                                                                                                where propertyNumber in ('-1, '-2) \
+                                                                                                                                where propertyNumber in ('-1', '-2') \
                           union select dimLocationSk as dummyDimSK, 'null' as sourceSystemCode, 'dimLocation' as dimension from {ADS_DATABASE_CURATED}.dimLocation \
                                                                                                                                 where LocationId = '-1' \
-                          union select dimMeterSK as dummyDimSK, sourceSystemCode, 'dimMeter' as dimension from {ADS_DATABASE_CURATED}.dimMeter where meterNumber in ('-1,'-2)\
+                          union select dimMeterSK as dummyDimSK, sourceSystemCode, 'dimMeter' as dimension from {ADS_DATABASE_CURATED}.dimMeter where meterNumber in ('-1','-2')\
                           union select dimBillingDocumentSK as dummyDimSK, sourceSystemCode, 'dimBillingDocument' as dimension from {ADS_DATABASE_CURATED}.dimBillingDocument \
                                                                                                                                 where billingDocumentNumber = '-1' \
                           union select dimBusinessPartnerGroupSK as dummyDimSK, 'ISU' as sourceSystemCode, 'dimBusinessPartnerGroup' as dimension from \
