@@ -64,7 +64,7 @@ def DeltaGetDataLakePath(data_lake_zone, data_lake_folder, object):
 
 # COMMAND ----------
 
-def DeltaSaveDataframeDirect(dataframe, source_group, table_name, database_name, container, write_mode, partition_keys = ""):
+def DeltaSaveDataframeDirect(dataframe, source_group, table_name, database_name, container, write_mode, schema, partition_keys = ""):
 
   #Mount the Data Lake 
   data_lake_mount_point = DataLakeGetMountPoint(container)
@@ -115,7 +115,7 @@ def DeltaSaveDataframeDirect(dataframe, source_group, table_name, database_name,
   query = "CREATE TABLE IF NOT EXISTS {0}.{1}  USING DELTA LOCATION \'{2}\'".format(database_name, table_name, delta_path)
   spark.sql(query)
   
-  verifyTableSchema(f"{database_name}.{table_name}", dataframe.schema)
+  verifyTableSchema(f"{database_name}.{table_name}", schema)
   
   LogEtl ("Finishing : DeltaSaveDataframeToTable")
   
