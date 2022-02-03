@@ -233,9 +233,9 @@ df_cleansed = spark.sql(f"SELECT \
 	MC_NAME1 as searchHelpLastName, \
 	MC_NAME2 as searchHelpFirstName, \
 	CRUSR as createdBy, \
-    ToValidDateTime(concat(BP.CRDAT, coalesce(BP.CRTIM,'00:00:00'))) as createdDateTime, \
+    ToValidDateTime(concat(BP.CRDAT, 'T', coalesce(BP.CRTIM,'00:00:00'))) as createdDateTime, \
     BP.CHUSR as changedBy, \
-    ToValidDateTime(concat(BP.CHDAT, coalesce(BP.CHTIM,'00:00:00'))) as lastChangedDateTime, \
+    ToValidDateTime(concat(BP.CHDAT, 'T', coalesce(BP.CHTIM,'00:00:00'))) as lastChangedDateTime, \
 	PARTNER_GUID as businessPartnerGUID, \
 	ADDRCOMM as communicationAddressNumber, \
 	TD_SWITCH as plannedChangeDocument, \
