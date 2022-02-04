@@ -83,7 +83,7 @@ BEGIN
 			VALUES (@TaskId, '__$start_lsn', '', @StartLSN, @SourceName)
 		END
 
-		IF @DataLoadMode IN ('INCREMENTAL', 'APPEND') AND @StageId = 1
+		IF @DataLoadMode IN ('INCREMENTAL', 'APPEND') AND @StageId in (1, 2)
 		BEGIN
 			PRINT 'Inserting initial watermark column'
 

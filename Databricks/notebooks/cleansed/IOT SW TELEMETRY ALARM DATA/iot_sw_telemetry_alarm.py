@@ -3,10 +3,10 @@
 import json
 #For unit testing...
 #Use this string in the Param widget: 
-#$PARAM
+#{"SourceType":"BLOB Storage (json)","SourceServer":"daf-sa-lake-sastoken","SourceGroup":"iotswtelemetryalarmdata","SourceName":"iot_iot_sw_telemetry_alarm","SourceLocation":"iotswtelemetryalarmdata/iot_sw_telemetry_alarm","AdditionalProperty":"","Processor":"databricks-token|1103-023442-me8nqcm9|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive","IsAuditTable":false,"SoftDeleteSource":"","ProjectName":"IOT SW TELEMETRY ALARM DATA","ProjectId":19,"TargetType":"BLOB Storage (json)","TargetName":"iot_iot_sw_telemetry_alarm","TargetLocation":"iotswtelemetryalarmdata/iot_sw_telemetry_alarm","TargetServer":"daf-sa-lake-sastoken","DataLoadMode":"APPEND","DeltaExtract":false,"CDCSource":false,"TruncateTarget":false,"UpsertTarget":false,"AppendTarget":true,"TrackChanges":false,"LoadToSqlEDW":true,"TaskName":"iot_iot_sw_telemetry_alarm","ControlStageId":2,"TaskId":874,"StageSequence":200,"StageName":"Raw to Cleansed","SourceId":874,"TargetId":874,"ObjectGrain":"Day","CommandTypeId":8,"Watermarks":null,"WatermarksDT":null,"WatermarkColumn":"","BusinessKeyColumn":"_lsn","UpdateMetaData":null,"SourceTimeStampFormat":"","Command":"/build/cleansed/IOT SW TELEMETRY ALARM DATA/iot_sw_telemetry_alarm","LastLoadedFile":null}
 
 #Use this string in the Source Object widget
-#$GROUP_$SOURCE
+#iot_iot_sw_telemetry_alarm
 
 # COMMAND ----------
 
@@ -29,7 +29,7 @@ import json
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC #Load data to Trusted Zone from Raw Zone
+# MAGIC #Load data to Cleansed Zone from Raw Zone
 
 # COMMAND ----------
 
@@ -135,6 +135,16 @@ print("target_table: "+target_table)
 delta_column = GeneralGetUpdatedDeltaColumn(delta_column)
 print("delta_column: " + delta_column)
 
+#Get max date from staging table assign it to start_counter
+row_count = spark.sql(f"SELECT count(*) as cnt FROM stage.iot_iot_sw_telemetry_alarm ")
+row_count = row_count.select('cnt').distinct().count()
+if row_count > 0:
+    start_counter = spark.sql(f"SELECT cast(max(_DLRawZoneTimeStamp) as varchar(50)) as max_date FROM stage.iot_iot_sw_telemetry_alarm ")
+    start_counter = start_counter.first()["max_date"]
+else:
+    start_counter = "2000-01-01"
+print(start_counter)
+
 #Get the Data Load Mode using the params
 data_load_mode = GeneralGetDataLoadMode(Params[PARAMS_TRUNCATE_TARGET], Params[PARAMS_UPSERT_TARGET], Params[PARAMS_APPEND_TARGET])
 print("data_load_mode: " + data_load_mode)
@@ -175,38 +185,55 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
+# df_cleansed = spark.sql(f"SELECT * FROM {ADS_DATABASE_STAGE}.{source_object}")
 
-df_cleansed = spark.sql(f"SELECT  \
-                                  case when FORMOFADDRESS = 'na' then '' else FORMOFADDRESS end as formOfAddressCode , \
-                                  FORMOFADDRESSNAME as formOfAddress , \
-                                  _RecordStart, \
-                                  _RecordEnd, \
-                                  _RecordDeleted, \
-                                  _RecordCurrent \
-                              FROM {ADS_DATABASE_STAGE}.{source_object}")
-
-print(f'Number of rows: {df_cleansed.count()}')
+df_cleansed = spark.sql(f"SELECT \
+                            _etag, \
+                            _lsn, \
+                            _rid, \
+                            _self, \
+                            _ts, \
+                            alarmPriority, \
+                            alarmSeverity, \
+                            deviceRawId, \
+                            groupDVId, \
+                            groupLevel2, \
+                            id, \
+                            isAlarmActive, \
+                            isPointActive, \
+                            lat, \
+                            long, \
+                            pointDVId, \
+                            pointName, \
+                            pointRawId, \
+                            pointVal, \
+                            recordTime, \
+                            scamp, \
+                            sitecode, \
+                            _DLRawZoneTimeStamp, \
+                            _FileDateTimeStamp, \
+                            year, \
+                            month, \
+                            day, \
+                            _DLCleansedZoneTimeStamp, \
+                            _RecordStart, \
+                            _RecordEnd, \
+                            _RecordDeleted, \
+                            _RecordCurrent \
+                        FROM {ADS_DATABASE_STAGE}.{source_object}"
+                       )
+# display(df_cleansed)
+# print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
 
-# Create schema for the cleanse table
-newSchema = StructType(
-                            [
-                              StructField("formOfAddressCode", StringType(), False),
-                              StructField("formOfAddress", StringType(), True),
-                              StructField('_RecordStart',TimestampType(),False),
-                              StructField('_RecordEnd',TimestampType(),False),
-                              StructField('_RecordDeleted',IntegerType(),False),
-                              StructField('_RecordCurrent',IntegerType(),False)
-                            ]
-                        )
-
+df_cleansed.printSchema()
 
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
-DeltaSaveDataframeDirect(df_cleansed, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", newSchema, "")
+DeltaSaveDataframeDirect(df_cleansed, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
 
 # COMMAND ----------
 

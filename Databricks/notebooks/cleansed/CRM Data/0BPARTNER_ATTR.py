@@ -233,9 +233,9 @@ df_cleansed = spark.sql(f"SELECT \
 	MC_NAME1 as searchHelpLastName, \
 	MC_NAME2 as searchHelpFirstName, \
 	CRUSR as createdBy, \
-    ToValidDateTime(concat(BP.CRDAT, coalesce(BP.CRTIM,'00:00:00'))) as createdDateTime, \
+    ToValidDateTime(concat(BP.CRDAT, 'T', coalesce(BP.CRTIM,'00:00:00'))) as createdDateTime, \
     BP.CHUSR as changedBy, \
-    ToValidDateTime(concat(BP.CHDAT, coalesce(BP.CHTIM,'00:00:00'))) as lastChangedDateTime, \
+    ToValidDateTime(concat(BP.CHDAT, 'T', coalesce(BP.CHTIM,'00:00:00'))) as lastChangedDateTime, \
 	PARTNER_GUID as businessPartnerGUID, \
 	ADDRCOMM as communicationAddressNumber, \
 	TD_SWITCH as plannedChangeDocument, \
@@ -274,7 +274,6 @@ df_cleansed = spark.sql(f"SELECT \
                                LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.crm_TSAD3T TITLE_ACA1 ON BP.TITLE_ACA1 = TITLE_ACA1.titlecode \
                                                                               AND TITLE_ACA1._RecordDeleted = 0 AND TITLE_ACA1._RecordCurrent = 1")
 
-display(df_cleansed)
 print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
@@ -364,14 +363,11 @@ newSchema = StructType([
 	StructField('_RecordCurrent',IntegerType(),False)
 ])
 
-df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
-
-
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
-DeltaSaveDataframeDirect(df_updated_column, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
+DeltaSaveDataframeDirect(df_cleansed, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", newSchema, "")
 
 # COMMAND ----------
 

@@ -221,9 +221,9 @@ df_cleansed = spark.sql(f"SELECT \
                                 BP.NAME_GRP1 as nameGroup1, \
                                 BP.NAME_GRP2 as nameGroup2, \
                                 BP.CRUSR as createdBy, \
-                                ToValidDateTime(concat(BP.CRDAT, coalesce(BP.CRTIM,'00:00:00'))) as createdDateTime, \
+                                ToValidDateTime(concat(BP.CRDAT, 'T', coalesce(BP.CRTIM,'00:00:00'))) as createdDateTime, \
                                 BP.CHUSR as changedBy, \
-                                ToValidDateTime(concat(BP.CHDAT, coalesce(BP.CHTIM,'00:00:00'))) as changedDateTime, \
+                                ToValidDateTime(concat(BP.CHDAT, 'T', coalesce(BP.CHTIM,'00:00:00'))) as changedDateTime, \
                                 BP.PARTNER_GUID as businessPartnerGUID, \
                                 BP.ADDRCOMM as addressNumber, \
                                 ToValidDate(substr(BP.VALID_FROM,0,8)) as validFromDate, \
@@ -244,7 +244,6 @@ df_cleansed = spark.sql(f"SELECT \
                                LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_TSAD3T TITLE ON BP.TITLE = TITLE.titlecode \
                                                                               AND TITLE._RecordDeleted = 0 AND TITLE._RecordCurrent = 1")
 
-display(df_cleansed)
 print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
@@ -310,15 +309,13 @@ newSchema = StructType(
     StructField('_RecordCurrent',IntegerType(),False)
   ]
 )
-# Apply the new schema to cleanse Data Frame
-df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
-display(df_updated_column)
+
 
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
-DeltaSaveDataframeDirect(df_updated_column, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
+DeltaSaveDataframeDirect(df_cleansed, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", newSchema, "")
 
 # COMMAND ----------
 
