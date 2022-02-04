@@ -44,146 +44,44 @@ def getInstallation():
                                       FROM {ADS_DATABASE_CLEANSED}.isu_0ucinstalla_attr_2 \
                                       WHERE _RecordCurrent = 1 \
                                       AND _RecordDeleted = 0")
-    #print(f'Rows in isu0ucinstallaAttrDf:',isu0ucinstallaAttrDf.count())
-    isu0ucinstallahAttr2Df  = spark.sql(f"select \
-                                           installationId, \
-                                           validFromDate, \
-                                           validToDate, \
-                                           rateCategoryCode, \
-                                           rateCategory, \
-                                           industryCode, \
-                                           industry, \
-                                           billingClassCode, \
-                                           billingClass, \
-                                           industrySystemCode, \
-                                           industrySystem \
-                                      FROM {ADS_DATABASE_CLEANSED}.isu_0ucinstallah_attr_2 \
-                                      WHERE _RecordCurrent = 1 \
-                                      AND _RecordDeleted = 0")
-    #print(f'Rows in isu0ucinstallahAttr2Df:',isu0ucinstallahAttr2Df.count())
-    isu0ucIsu32  = spark.sql(f"select \
-                                  installationId, \
-                                  validToDate, \
-                                  disconnectionDocumentNumber, \
-                                  disconnectionActivityPeriod, \
-                                  disconnectionObjectNumber, \
-                                  disconnectionDate, \
-                                  disconnectionActivityTypeCode, \
-                                  disconnectionActivityType, \
-                                  disconnectionObjectTypeCode, \
-                                  disconnectionReasonCode, \
-                                  disconnectionReason, \
-                                  disconnectionReconnectionStatusCode, \
-                                  disconnectionReconnectionStatus, \
-                                  disconnectionDocumentStatusCode, \
-                                  disconnectionDocumentStatus, \
-                                  ProcessingVariantCode as disconnectionProcessingVariantCode, \
-                                  ProcessingVariant as disconnectionProcessingVariant \
-                                FROM {ADS_DATABASE_CLEANSED}.isu_0uc_isu_32 \
-                                WHERE referenceObjectTypeCode = 'INSTLN' \
-                                AND validToDate in (to_date('9999-12-31'),to_date('2099-12-31')) \
-                                AND _RecordCurrent = 1 \
-                                AND _RecordDeleted = 0")
-    #print(f'Rows in isu0ucIsu32:',isu0ucIsu32.count())
+    print(f'Rows in isu0ucinstallaAttrDf:',isu0ucinstallaAttrDf.count())
+    
     #Dummy Record to be added to Installation Dimension
-    dummyDimRecDf = spark.createDataFrame([("ISU", "-1","2099-12-31","","","")], 
-                                          ["sourceSystemCode", "installationId","validToDate","disconnectionDocumentNumber","disconnectionActivityPeriod","disconnectionObjectNumber"])
+    dummyDimRecDf = spark.createDataFrame([("ISU", "-1"),("ACCESS","-2")],["sourceSystemCode", "installationId"])
         
     #3.JOIN TABLES
-    df = isu0ucinstallaAttrDf.join(isu0ucinstallahAttr2Df, isu0ucinstallaAttrDf.installationId == isu0ucinstallahAttr2Df.installationId, how="left") \
-                             .drop(isu0ucinstallahAttr2Df.installationId)
-   
-    df = df.join(isu0ucIsu32, (df.installationId == isu0ucIsu32.installationId) & (df.validToDate == isu0ucIsu32.validToDate), how="left") \
-           .drop(isu0ucIsu32.installationId).drop(isu0ucIsu32.validToDate) 
+
     
     #4.UNION TABLES
-    df = df.unionByName(dummyDimRecDf, allowMissingColumns = True)    
+    df = isu0ucinstallaAttrDf.unionByName(dummyDimRecDf, allowMissingColumns = True)    
 
     #5.SELECT / TRANSFORM
     df = df.select("sourceSystemCode", \
                     "installationId", \
-                    "validFromDate", \
-                    "validToDate", \
                     "divisionCode", \
                     "division", \
-                    "rateCategoryCode", \
-                    "rateCategory", \
-                    "industryCode", \
-                    "industry", \
-                    "billingClassCode", \
-                    "billingClass", \
-                    "industrySystemCode", \
-                    "industrySystem", \
                     "meterReadingControlCode", \
                     "meterReadingControl", \
                     "authorizationGroupCode", \
                     "serviceTypeCode", \
                     "serviceType", \
-                    "disconnectionDocumentNumber", \
-                    "disconnectionActivityPeriod", \
-                    "disconnectionObjectNumber", \
-                    "disconnectionDate", \
-                    "disconnectionActivityTypeCode", \
-                    "disconnectionActivityType", \
-                    "disconnectionObjectTypeCode", \
-                    "disconnectionReasonCode", \
-                    "disconnectionReason", \
-                    "disconnectionReconnectionStatusCode", \
-                    "disconnectionReconnectionStatus", \
-                    "disconnectionDocumentStatusCode", \
-                    "disconnectionDocumentStatus", \
-                    "disconnectionProcessingVariantCode", \
-                    "disconnectionProcessingVariant", \
                     "createdDate", \
                     "createdBy", \
                     "changedDate", \
                     "changedBy", \
                     "propertyNumber")
-    
-    #check key columns for null 
-    df = df.withColumn("disconnectionDocumentNumber", when(df.disconnectionDocumentNumber.isNull(), '').otherwise(df.disconnectionDocumentNumber)) \
-           .withColumn("disconnectionActivityPeriod", when(df.disconnectionActivityPeriod.isNull(), '').otherwise(df.disconnectionActivityPeriod)) \
-           .withColumn("disconnectionObjectNumber", when(df.disconnectionObjectNumber.isNull(), '').otherwise(df.disconnectionObjectNumber)) \
-           .withColumn("validToDate", when(df.validToDate.isNull(), '2099-12-31').otherwise(df.validToDate))    
-    
-    df = df.withColumn("validToDate",df['validToDate'].cast(DateType()))
-    
+       
     #6.Apply schema definition
     newSchema = StructType([
                             StructField('sourceSystemCode', StringType(), True),
                             StructField('installationId', StringType(), False),
-                            StructField('validFromDate', DateType(), True),
-                            StructField('validToDate', DateType(), False),
                             StructField('divisionCode', StringType(), True),
                             StructField('division', StringType(), True),
-                            StructField('rateCategoryCode', StringType(), True),
-                            StructField('rateCategory', StringType(), True),
-                            StructField('industryCode', StringType(), True),
-                            StructField('industry', StringType(), True),
-                            StructField('billingClassCode', StringType(), True),
-                            StructField('billingClass', StringType(), True),
-                            StructField('industrySystemCode', StringType(), True),
-                            StructField('industrySystem', StringType(), True),
                             StructField('meterReadingControlCode', StringType(), True),
                             StructField('meterReadingControl', StringType(), True),
                             StructField('authorizationGroupCode', StringType(), True),
                             StructField('serviceTypeCode', StringType(), True),
                             StructField('serviceType', StringType(), True),
-                            StructField('disconnectionDocumentNumber', StringType(), False),
-                            StructField('disconnectionActivityPeriod', StringType(), False),
-                            StructField('disconnectionObjectNumber', StringType(), False),
-                            StructField('disconnectionDate', DateType(), True),
-                            StructField('disconnectionActivityTypeCode', StringType(), True),
-                            StructField('disconnectionActivityType', StringType(), True),
-                            StructField('disconnectionObjectTypeCode', StringType(), True),
-                            StructField('disconnectionReasonCode', StringType(), True),
-                            StructField('disconnectionReason', StringType(), True),
-                            StructField('disconnectionReconnectionStatusCode', StringType(), True),
-                            StructField('disconnectionReconnectionStatus', StringType(), True),
-                            StructField('disconnectionDocumentStatusCode', StringType(), True),
-                            StructField('disconnectionDocumentStatus', StringType(), True),
-                            StructField('disconnectionProcessingVariantCode', StringType(), True),
-                            StructField('disconnectionProcessingVariant', StringType(), True),
                             StructField('createdDate', DateType(), True),
                             StructField('createdBy', StringType(), True),
                             StructField('changedDate', DateType(), True),
@@ -192,5 +90,4 @@ def getInstallation():
                       ])
 
     df = spark.createDataFrame(df.rdd, schema=newSchema)
-    #print(df.count())
     return df  
