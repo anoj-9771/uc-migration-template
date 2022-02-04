@@ -162,7 +162,9 @@ def _GenerateMergeSQL_DeltaTable(source_table_name, target_table_name, business_
 
   #################PART 4 INSERT DATA ####################################
   #If not matched, then this is the new version of the record. Insert the new row
-  sql_insert = _SQLInsertSyntax_DeltaTable_Merge(df_col_list, is_delta_extract, delta_column, curr_time_stamp, target_data_lake_zone, delete_data)
+  #sql_insert = _SQLInsertSyntax_DeltaTable_Merge(df_col_list, is_delta_extract, delta_column, curr_time_stamp, target_data_lake_zone, delete_data)
+  sql_insert = _SQLInsertSyntax_DeltaTable_Merge(df_col_list, is_delta_extract, delta_column, curr_time_stamp, target_data_lake_zone,source_table_name,target_table_name, delete_data)
+
   sql += "WHEN NOT MATCHED THEN " + NEW_LINE
   sql += sql_insert
   #################PART 4 INSERT DATA ####################################
@@ -373,10 +375,10 @@ def _SQLUpdateSetValue_SCD_DeltaTable(is_delta_extract, delta_column, table_alia
 
 # COMMAND ----------
 
-def _SQLInsertSyntax_DeltaTable_Merge(dataframe, is_delta_extract, delta_column, curr_time_stamp, target_data_lake_zone, delete_data):
+def _SQLInsertSyntax_DeltaTable_Merge(dataframe, is_delta_extract, delta_column, curr_time_stamp, target_data_lake_zone,source_table_name,target_table_name,delete_data):
   #Generate SQL for INSERT
   
-  insert_merge_sql = _SQLInsertSyntax_DeltaTable_Generate(dataframe, is_delta_extract, delta_column, curr_time_stamp, target_data_lake_zone, "", "", False, delete_data)
+  insert_merge_sql = _SQLInsertSyntax_DeltaTable_Generate(dataframe, is_delta_extract, delta_column, curr_time_stamp, target_data_lake_zone,source_table_name,target_table_name, False, delete_data)
 
   return insert_merge_sql
 
@@ -463,8 +465,6 @@ def _SQLInsertSyntax_DeltaTable_Generate(dataframe, is_delta_extract, delta_colu
     sql = f"INSERT INTO {target_table} ({sql_col}) SELECT {sql_values} FROM {source_table}" 
   else:
     sql = f"INSERT ({sql_col}) {NEW_LINE}VALUES ({sql_values})"
-    
-#   sql = f"INSERT INTO {target_table} ({sql_col}) SELECT {sql_values} FROM {source_table}" 
 
 #End of Fix for Handling Null in Key Columns  
       
