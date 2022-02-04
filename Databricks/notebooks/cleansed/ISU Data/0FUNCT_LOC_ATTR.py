@@ -232,7 +232,7 @@ df_cleansed = spark.sql(f"SELECT  \
                                  left outer join {ADS_DATABASE_CLEANSED}.isu_0comp_code_text cc on cc.companyCode = stg.BUKRS \
                                                                                                     and cc._RecordDeleted = 0 and cc._RecordCurrent = 1"
                               )
-display(df_cleansed)
+
 print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
@@ -291,14 +291,13 @@ newSchema = StructType([
                           StructField('_RecordCurrent',IntegerType(),False)
 ])
 
-df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
-display(df_updated_column)
+
 
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
-DeltaSaveDataframeDirect(df_updated_column, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
+DeltaSaveDataframeDirect(df_cleansed, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", newSchema, "")
 
 # COMMAND ----------
 
