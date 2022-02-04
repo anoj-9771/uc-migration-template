@@ -20,7 +20,8 @@ def getMeter():
                                               null as materialNumber, \
                                               case when meterClass = 'Standpipe' then 'Customer Standpipe' else 'Water Meter' end as usageMeterType, \
                                               meterSize, \
-                                              case when waterMeterType in ('Potable','Recycled') then waterMeterType else null end as waterType, \
+                                              case when waterMeterType = 'Potable' then 'Drinking Water' \
+                                                   when waterMeterType = 'Recycled' then 'Recycled Water' else null end as waterType, \
                                               null as meterCategoryCode, \
                                               null as meterCategory, \
                                               case when meterClass = 'Standpipe' then 'STANDPIPE' \

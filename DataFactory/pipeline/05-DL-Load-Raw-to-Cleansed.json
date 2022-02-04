@@ -291,7 +291,7 @@
 													"type": "Expression"
 												},
 												"delta_column": {
-													"value": "@item().DeltaColumn",
+													"value": "@pipeline().parameters.TaskDetails.WatermarkColumn",
 													"type": "Expression"
 												},
 												"source_param": {
