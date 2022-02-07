@@ -63,7 +63,7 @@ def getBillingDocumentIsu():
   newSchema = StructType([
                             StructField("sourceSystemCode", StringType(), False),
                             StructField("billingDocumentNumber", StringType(), False),
-                            StructField("billingPeriodStartDate", DateType(), False),
+                            StructField("billingPeriodStartDate", DateType(), True),
                             StructField("billingPeriodEndDate", DateType(), True),
                             StructField("billCreatedDate", DateType(), True),
                             StructField("isOutsortedFlag", StringType(), True),
@@ -78,7 +78,3 @@ def getBillingDocumentIsu():
   billDocDf = spark.createDataFrame(billDocDf.rdd, schema=newSchema)
   
   return billDocDf
-
-# COMMAND ----------
-
-
