@@ -121,18 +121,6 @@ print ("source_file_path: " + source_file_path)
 
 # COMMAND ----------
 
-# df = spark.read \
-#       .format(file_type) \
-#       .option("header", True) \
-#       .option("inferSchema", True) \
-#       .option("delimiter", ",") \
-#       .load(source_file_path) 
-
-# current_record_count = df.count()
-# print("Records read from file : " + str(current_record_count))
-
-# COMMAND ----------
-
 #Reading the file without Multiline, if it fails reading it once again with Multiline option set to True in the exception block
 try:
   df = spark.read\
