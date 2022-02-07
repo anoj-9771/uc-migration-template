@@ -121,15 +121,46 @@ print ("source_file_path: " + source_file_path)
 
 # COMMAND ----------
 
-df = spark.read \
-      .format(file_type) \
-      .option("header", True) \
-      .option("inferSchema", False) \
-      .option("delimiter", "|") \
-      .load(source_file_path) 
+# df = spark.read \
+#       .format(file_type) \
+#       .option("header", True) \
+#       .option("inferSchema", True) \
+#       .option("delimiter", ",") \
+#       .load(source_file_path) 
 
-current_record_count = df.count()
-print("Records read from file : " + str(current_record_count))
+# current_record_count = df.count()
+# print("Records read from file : " + str(current_record_count))
+
+# COMMAND ----------
+
+#Reading the file without Multiline, if it fails reading it once again with Multiline option set to True in the exception block
+try:
+  df = spark.read\
+  .format(file_type) \
+  .option("inferSchema","true")\
+  .option("allowUnquotedFieldNames","true")\
+  .option("allowSingleQuotes","true")\
+  .option("allowBackslashEscapingAnyCharacter","true")\
+  .option("allowUnquotedControlChars","true")\
+  .option("mode","FAILFAST")\
+  .load(source_file_path)
+except Exception:
+  print('problem - trying multiline = true')
+  df = spark.read\
+  .format(file_type) \
+  .option("multiline", "true")\
+  .option("inferSchema","true")\
+  .option("allowUnquotedFieldNames","true")\
+  .option("allowSingleQuotes","true")\
+  .option("allowBackslashEscapingAnyCharacter","true")\
+  .option("allowUnquotedControlChars","true")\
+  .option("mode","PERMISSIVE")\
+  .option("columnNameOfCorruptRecord","corrupt_record")\
+  .load(source_file_path)
+finally:
+  current_record_count = df.count()
+  print("Records read from file : " + str(current_record_count))
+  df.printSchema()
 
 # COMMAND ----------
 
@@ -144,7 +175,7 @@ print(output)
 # COMMAND ----------
 
 # DBTITLE 1,If there are no records then Exit the Notebook
-if current_record_count == 0:
+if current_record_count == 0 or len(df.columns) <= 1:
   print("Exiting Notebook as no records to process")
   output["TargetTableRecordCount"] = 0
   print(output) 
