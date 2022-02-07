@@ -187,7 +187,7 @@ def makeDate(): #renamed because date() gets overloaded elsewhere
 def installation():
     TemplateEtl(df=getInstallation(), 
              entity="dimInstallation", 
-             businessKey="installationId,validToDate,disconnectionDocumentNumber,disconnectionActivityPeriod,disconnectionObjectNumber",
+             businessKey="installationId",
              AddSK=True
             )
     
