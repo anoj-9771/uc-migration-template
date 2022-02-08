@@ -13537,12 +13537,6 @@
 			"apiVersion": "2018-06-01",
 			"properties": {
 				"description": "ETL Control database linked service",
-				"parameters": {
-					"kvSecret": {
-						"type": "string",
-						"defaultValue": "daf-sql-controldb-connectionstring"
-					}
-				},
 				"annotations": [],
 				"type": "AzureSqlDatabase",
 				"typeProperties": {

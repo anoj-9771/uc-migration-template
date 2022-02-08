@@ -134,8 +134,14 @@
 					"LS-AzureDatabricks_JobCluster_properties_typeProperties_domain": {
 						"value": "[parameters('LS-AzureDatabricks_JobCluster_properties_typeProperties_domain')]"
 					},
+					"LS_AzureBlobStorage_properties_typeProperties_serviceEndpoint": {
+						"value": "[parameters('LS_AzureBlobStorage_properties_typeProperties_serviceEndpoint')]"
+					},
 					"LS_AzureDatabricks_InstancePool_properties_typeProperties_domain": {
 						"value": "[parameters('LS_AzureDatabricks_InstancePool_properties_typeProperties_domain')]"
+					},
+					"LS_AzureDatalake_properties_typeProperties_url": {
+						"value": "[parameters('LS_AzureDatalake_properties_typeProperties_url')]"
 					},
 					"LS_Oracle_properties_typeProperties_connectionString_secretName": {
 						"value": "[parameters('LS_Oracle_properties_typeProperties_connectionString_secretName')]"
@@ -160,12 +166,6 @@
 					},
 					"mpe_sql_swcnonprod01_daf_dev_01_properties_groupId": {
 						"value": "[parameters('mpe_sql_swcnonprod01_daf_dev_01_properties_groupId')]"
-					},
-					"LS_AzureBlobStorage_properties_typeProperties_serviceEndpoint": {
-						"value": "[parameters('LS_AzureBlobStorage_properties_typeProperties_serviceEndpoint')]"
-					},
-					"LS_AzureDatalake_properties_typeProperties_url": {
-						"value": "[parameters('LS_AzureDatalake_properties_typeProperties_url')]"
 					}
 				}
 			},
