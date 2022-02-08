@@ -13546,7 +13546,15 @@
 				"annotations": [],
 				"type": "AzureSqlDatabase",
 				"typeProperties": {
-					"connectionString": "[parameters('LS-AzureSqlDatabase_Ctrldb_connectionString')]"
+					"connectionString": "[parameters('LS-AzureSqlDatabase_Ctrldb_connectionString')]",
+					"password": {
+						"type": "AzureKeyVaultSecret",
+						"store": {
+							"referenceName": "LS-AzureKeyVault",
+							"type": "LinkedServiceReference"
+						},
+						"secretName": "daf-sql-controldb-password"
+					}
 				},
 				"connectVia": {
 					"referenceName": "IntegrationRuntime-Azure-ManagedVnet-01",
@@ -13554,7 +13562,8 @@
 				}
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/integrationRuntimes/IntegrationRuntime-Azure-ManagedVnet-01')]"
+				"[concat(variables('factoryId'), '/integrationRuntimes/IntegrationRuntime-Azure-ManagedVnet-01')]",
+				"[concat(variables('factoryId'), '/linkedServices/LS-AzureKeyVault')]"
 			]
 		},
 		{
