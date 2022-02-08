@@ -5,6 +5,9 @@
 		"factoryName": {
 			"value": "adf-swcnonprod01-daf-dev-01"
 		},
+		"LS-AzureSqlDatabase_Ctrldb_connectionString": {
+			"value": ""
+		},
 		"LS-AzureDatabricks_DefinedCluster_properties_typeProperties_domain": {
 			"value": "https://adb-7004525605760210.10.azuredatabricks.net/"
 		},
@@ -13,9 +16,6 @@
 		},
 		"LS-AzureKeyVault_properties_typeProperties_baseUrl": {
 			"value": "https://kv-daf-dev-01.vault.azure.net/"
-		},
-		"LS-AzureSqlDatabase_Ctrldb_properties_typeProperties_connectionString_secretName": {
-			"value": "@linkedService().kvSecret"
 		},
 		"LS_AzureBlobStorage_properties_typeProperties_serviceEndpoint": {
 			"value": "https://sablobdafdev01.blob.core.windows.net/"

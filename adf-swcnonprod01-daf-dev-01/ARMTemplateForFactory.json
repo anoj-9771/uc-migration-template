@@ -7,6 +7,10 @@
 			"metadata": "Data Factory name",
 			"defaultValue": "adf-swcnonprod01-daf-dev-01"
 		},
+		"LS-AzureSqlDatabase_Ctrldb_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'LS-AzureSqlDatabase_Ctrldb'"
+		},
 		"LS-AzureDatabricks_DefinedCluster_properties_typeProperties_domain": {
 			"type": "string",
 			"defaultValue": "https://adb-7004525605760210.10.azuredatabricks.net/"
@@ -18,10 +22,6 @@
 		"LS-AzureKeyVault_properties_typeProperties_baseUrl": {
 			"type": "string",
 			"defaultValue": "https://kv-daf-dev-01.vault.azure.net/"
-		},
-		"LS-AzureSqlDatabase_Ctrldb_properties_typeProperties_connectionString_secretName": {
-			"type": "string",
-			"defaultValue": "@linkedService().kvSecret"
 		},
 		"LS_AzureBlobStorage_properties_typeProperties_serviceEndpoint": {
 			"type": "string",
@@ -3377,32 +3377,7 @@
 																"type": "PipelineReference"
 															},
 															"waitOnCompletion": true,
-															"parameters": {
-																"BatchLogID": {
-																	"value": "@pipeline().parameters.BatchLogId",
-																	"type": "Expression"
-																},
-																"TaskExecutionLogId": {
-																	"value": "@pipeline().parameters.TaskExecutionLogId",
-																	"type": "Expression"
-																},
-																"TaskDetails": {
-																	"value": "@pipeline().parameters.TaskDetails",
-																	"type": "Expression"
-																},
-																"SourceContainer": {
-																	"value": "@variables('SourceContainer')",
-																	"type": "Expression"
-																},
-																"ProjectRunID": {
-																	"value": "@pipeline().parameters.ProjectRunID",
-																	"type": "Expression"
-																},
-																"SourceFileName": {
-																	"value": "@variables('FileName')",
-																	"type": "Expression"
-																}
-															}
+															"parameters": {}
 														}
 													}
 												]
@@ -13569,26 +13544,15 @@
 				"annotations": [],
 				"type": "AzureSqlDatabase",
 				"typeProperties": {
-					"connectionString": {
-						"type": "AzureKeyVaultSecret",
-						"store": {
-							"referenceName": "LS-AzureKeyVault",
-							"type": "LinkedServiceReference"
-						},
-						"secretName": {
-							"value": "[parameters('LS-AzureSqlDatabase_Ctrldb_properties_typeProperties_connectionString_secretName')]",
-							"type": "Expression"
-						}
-					}
+					"connectionString": "[parameters('LS-AzureSqlDatabase_Ctrldb_connectionString')]"
 				},
 				"connectVia": {
-					"referenceName": "IntegrationRuntime-SelfHosted",
+					"referenceName": "IntegrationRuntime-Azure-ManagedVnet-01",
 					"type": "IntegrationRuntimeReference"
 				}
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/integrationRuntimes/IntegrationRuntime-SelfHosted')]",
-				"[concat(variables('factoryId'), '/linkedServices/LS-AzureKeyVault')]"
+				"[concat(variables('factoryId'), '/integrationRuntimes/IntegrationRuntime-Azure-ManagedVnet-01')]"
 			]
 		},
 		{
