@@ -110,7 +110,7 @@
 										"value": "DataFile",
 										"activities": [
 											{
-												"name": "Copy-Blob-to-DataLake-Raw",
+												"name": "Copy-Blob-to-DataLake-Ra",
 												"type": "Copy",
 												"dependsOn": [],
 												"policy": {
@@ -356,7 +356,7 @@
 												"type": "SqlServerStoredProcedure",
 												"dependsOn": [
 													{
-														"activity": "Copy-Blob-to-DataLake-Raw",
+														"activity": "Copy-Blob-to-DataLake-Ra",
 														"dependencyConditions": [
 															"Succeeded"
 														]
