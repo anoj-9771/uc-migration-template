@@ -18,7 +18,7 @@
 			"value": "https://kv-daf-dev-01.vault.azure.net/"
 		},
 		"LS_AzureBlobStorage_properties_typeProperties_serviceEndpoint": {
-			"value": "https://sablobdafdev01.blob.core.windows.net/"
+			"value": "https://sablobdafdev01.blob.core.windows.net"
 		},
 		"LS_AzureDatabricks_InstancePool_properties_typeProperties_domain": {
 			"value": "https://adb-7004525605760210.10.azuredatabricks.net"
@@ -52,6 +52,24 @@
 		},
 		"DLY1300_properties_01-Main_parameters_TriggerName": {
 			"value": "DLY1300"
+		},
+		"mpe_sabloddafdev01_properties_privateLinkResourceId": {
+			"value": "/subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-daf-dev-01/providers/Microsoft.Storage/storageAccounts/sablobdafdev01"
+		},
+		"mpe_sabloddafdev01_properties_groupId": {
+			"value": "blob"
+		},
+		"mpe_sadafdev01_properties_privateLinkResourceId": {
+			"value": "/subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-daf-dev-01/providers/Microsoft.Storage/storageAccounts/sadafdev01"
+		},
+		"mpe_sadafdev01_properties_groupId": {
+			"value": "dfs"
+		},
+		"mpe_sql_swcnonprod01_daf_dev_01_properties_privateLinkResourceId": {
+			"value": "/subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-daf-dev-01/providers/Microsoft.Sql/servers/sql-swcnonprod01-daf-dev-01"
+		},
+		"mpe_sql_swcnonprod01_daf_dev_01_properties_groupId": {
+			"value": "sqlServer"
 		}
 	}
 }

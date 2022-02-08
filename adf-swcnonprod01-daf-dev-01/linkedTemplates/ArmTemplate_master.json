@@ -25,7 +25,7 @@
 		},
 		"LS_AzureBlobStorage_properties_typeProperties_serviceEndpoint": {
 			"type": "string",
-			"defaultValue": "https://sablobdafdev01.blob.core.windows.net/"
+			"defaultValue": "https://sablobdafdev01.blob.core.windows.net"
 		},
 		"LS_AzureDatabricks_InstancePool_properties_typeProperties_domain": {
 			"type": "string",
@@ -71,6 +71,30 @@
 			"type": "string",
 			"defaultValue": "DLY1300"
 		},
+		"mpe_sabloddafdev01_properties_privateLinkResourceId": {
+			"type": "string",
+			"defaultValue": "/subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-daf-dev-01/providers/Microsoft.Storage/storageAccounts/sablobdafdev01"
+		},
+		"mpe_sabloddafdev01_properties_groupId": {
+			"type": "string",
+			"defaultValue": "blob"
+		},
+		"mpe_sadafdev01_properties_privateLinkResourceId": {
+			"type": "string",
+			"defaultValue": "/subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-daf-dev-01/providers/Microsoft.Storage/storageAccounts/sadafdev01"
+		},
+		"mpe_sadafdev01_properties_groupId": {
+			"type": "string",
+			"defaultValue": "dfs"
+		},
+		"mpe_sql_swcnonprod01_daf_dev_01_properties_privateLinkResourceId": {
+			"type": "string",
+			"defaultValue": "/subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-daf-dev-01/providers/Microsoft.Sql/servers/sql-swcnonprod01-daf-dev-01"
+		},
+		"mpe_sql_swcnonprod01_daf_dev_01_properties_groupId": {
+			"type": "string",
+			"defaultValue": "sqlServer"
+		},
 		"containerUri": {
 			"type": "string",
 			"metadata": "URI to storage account containing linked ARM templates"
@@ -98,6 +122,9 @@
 					"factoryName": {
 						"value": "[parameters('factoryName')]"
 					},
+					"LS-AzureSqlDatabase_Ctrldb_connectionString": {
+						"value": "[parameters('LS-AzureSqlDatabase_Ctrldb_connectionString')]"
+					},
 					"LS-AzureKeyVault_properties_typeProperties_baseUrl": {
 						"value": "[parameters('LS-AzureKeyVault_properties_typeProperties_baseUrl')]"
 					},
@@ -107,20 +134,38 @@
 					"LS-AzureDatabricks_JobCluster_properties_typeProperties_domain": {
 						"value": "[parameters('LS-AzureDatabricks_JobCluster_properties_typeProperties_domain')]"
 					},
-					"LS_AzureBlobStorage_properties_typeProperties_serviceEndpoint": {
-						"value": "[parameters('LS_AzureBlobStorage_properties_typeProperties_serviceEndpoint')]"
-					},
 					"LS_AzureDatabricks_InstancePool_properties_typeProperties_domain": {
 						"value": "[parameters('LS_AzureDatabricks_InstancePool_properties_typeProperties_domain')]"
-					},
-					"LS_AzureDatalake_properties_typeProperties_url": {
-						"value": "[parameters('LS_AzureDatalake_properties_typeProperties_url')]"
 					},
 					"LS_Oracle_properties_typeProperties_connectionString_secretName": {
 						"value": "[parameters('LS_Oracle_properties_typeProperties_connectionString_secretName')]"
 					},
 					"LS_SQLServer_properties_typeProperties_connectionString_secretName": {
 						"value": "[parameters('LS_SQLServer_properties_typeProperties_connectionString_secretName')]"
+					},
+					"mpe_sabloddafdev01_properties_privateLinkResourceId": {
+						"value": "[parameters('mpe_sabloddafdev01_properties_privateLinkResourceId')]"
+					},
+					"mpe_sabloddafdev01_properties_groupId": {
+						"value": "[parameters('mpe_sabloddafdev01_properties_groupId')]"
+					},
+					"mpe_sadafdev01_properties_privateLinkResourceId": {
+						"value": "[parameters('mpe_sadafdev01_properties_privateLinkResourceId')]"
+					},
+					"mpe_sadafdev01_properties_groupId": {
+						"value": "[parameters('mpe_sadafdev01_properties_groupId')]"
+					},
+					"mpe_sql_swcnonprod01_daf_dev_01_properties_privateLinkResourceId": {
+						"value": "[parameters('mpe_sql_swcnonprod01_daf_dev_01_properties_privateLinkResourceId')]"
+					},
+					"mpe_sql_swcnonprod01_daf_dev_01_properties_groupId": {
+						"value": "[parameters('mpe_sql_swcnonprod01_daf_dev_01_properties_groupId')]"
+					},
+					"LS_AzureBlobStorage_properties_typeProperties_serviceEndpoint": {
+						"value": "[parameters('LS_AzureBlobStorage_properties_typeProperties_serviceEndpoint')]"
+					},
+					"LS_AzureDatalake_properties_typeProperties_url": {
+						"value": "[parameters('LS_AzureDatalake_properties_typeProperties_url')]"
 					}
 				}
 			},
@@ -139,9 +184,6 @@
 				"parameters": {
 					"factoryName": {
 						"value": "[parameters('factoryName')]"
-					},
-					"LS-AzureSqlDatabase_Ctrldb_connectionString": {
-						"value": "[parameters('LS-AzureSqlDatabase_Ctrldb_connectionString')]"
 					}
 				}
 			},
