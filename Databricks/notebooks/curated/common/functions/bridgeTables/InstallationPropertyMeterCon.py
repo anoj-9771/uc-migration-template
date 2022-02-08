@@ -27,82 +27,114 @@ def getInstallationPropertyMeterCon():
          
     #2.Load dimension/relationship tables into dataframe
     dimInstallationDf = spark.sql(f"select \
-                                      dimInstallationSK, \
+                                      dimInstallationSK as installationSK, \
                                       installationId, \
                                       propertyNumber \
                                       from {ADS_DATABASE_CURATED}.dimInstallation \
                                       where sourceSystemCode = 'ISU' and _RecordCurrent = 1 and _RecordDeleted = 0")     
-    #print(f"Number of rows in dimInstallationDf: ", dimInstallationDf.count())
+    print(f"Number of rows in dimInstallationDf: ", dimInstallationDf.count())
     #display(dimInstallationDf)
     
     dimContractDf = spark.sql(f"select \
-                                    dimContractSK, \
+                                    dimContractSK as contractSK, \
                                     contractId, \
-                                    installationId \
+                                    installationId, \
+                                    validFromDate, \
+                                    validToDate \
                                     from {ADS_DATABASE_CURATED}.dimContract \
                                     where sourceSystemCode = 'ISU' and _RecordCurrent = 1 and _RecordDeleted = 0")
-    #print(f"Number of rows in dimContractDf: ", dimContractDf.count())
+    print(f"Number of rows in dimContractDf: ", dimContractDf.count())
     #display(dimContractDf)
     
     dimPropertyDf = spark.sql(f"select \
                                     propertyNumber, \
-                                    dimPropertySK \
+                                    dimPropertySK as propertySK, \
+                                    propertyStartDate, \
+                                    propertyEndDate \
                                     from {ADS_DATABASE_CURATED}.dimProperty \
                                     where sourceSystemCode = 'ISU' and _RecordCurrent = 1 and _RecordDeleted = 0")
-    #print(f"Number of rows in dimInstallationDf: ", dimPropertyDf.count())
+    print(f"Number of rows in dimInstallationDf: ", dimPropertyDf.count())
     #display(dimPropertyDf)
     
-    dimMeterDf = spark.sql(f"select \
-                                dimMeterSK, \
-                                meterNumber, \
-                                logicalDeviceNumber \
-                                from {ADS_DATABASE_CURATED}.dimMeter \
-                                where sourceSystemCode = 'ISU' and _RecordCurrent = 1 and _RecordDeleted = 0")
-    #print(f"Number of rows in dimMeterDf: ", dimMeterDf.count())
-    #display(dimMeterDf)
+#     dimMeterDf = spark.sql(f"select \
+#                                 dimMeterSK, \
+#                                 meterNumber \
+#                                 from {ADS_DATABASE_CURATED}.dimMeter \
+#                                 where sourceSystemCode = 'ISU' and _RecordCurrent = 1 and _RecordDeleted = 0")
+#     #print(f"Number of rows in dimMeterDf: ", dimMeterDf.count())
+#     #display(dimMeterDf)
     
     meterInstallationDf = spark.sql(f"select \
                                 meterInstallationSK, \
                                 installationSK, \
                                 installationId, \
-                                logicalDeviceNumber \
+                                logicalDeviceNumber, \
+                                validFromDate, \
+                                validToDate \
                                 from {ADS_DATABASE_CURATED}.meterInstallation \
                                 where _RecordCurrent = 1 and _RecordDeleted = 0")    
-    #print(f"Number of rows in meterInstallationDf: ", meterInstallationDf.count())
+    print(f"Number of rows in meterInstallationDf: ", meterInstallationDf.count())
     #display(meterInstallationDf)
+    
+    meterTimesliceDf = spark.sql(f"select \
+                                meterSK, \
+                                equipmentNumber as meterNumber, \
+                                logicalDeviceNumber, \
+                                validFromDate, \
+                                validToDate \
+                                from {ADS_DATABASE_CURATED}.meterTimeslice \
+                                where _RecordCurrent = 1 and _RecordDeleted = 0")    
+    print(f"Number of rows in meterTimesliceDf: ", meterTimesliceDf.count())
+    #display(meterTimesliceDf)    
     
     
     #3.Joins Tables
-    df = dimInstallationDf.join(dimContractDf, (dimInstallationDf.installationId == dimContractDf.installationId), how="left") \
-            .select(dimInstallationDf['*'], dimContractDf['dimContractSK'], dimContractDf['contractId'])    
-    #print(f'{df.count():,} rows in df -1')
+    df = dimInstallationDf.join(dimContractDf, (dimInstallationDf.installationId == dimContractDf.installationId) \
+                                             & (current_date() >= dimContractDf.validFromDate) \
+                                             & (current_date() <= dimContractDf.validToDate) \
+                                             , how="left") \
+                           .select(dimInstallationDf['*'], dimContractDf['contractSK'], dimContractDf['contractId'])    
+    print(f'{df.count():,} rows in df -1')
     #display(df)    
     
-    df = df.join(meterInstallationDf, (df.installationId == meterInstallationDf.installationId), how="left") \
+    df = df.join(meterInstallationDf, (df.installationId == meterInstallationDf.installationId) \
+                                    & (current_date() >= meterInstallationDf.validFromDate) \
+                                    & (current_date() <= meterInstallationDf.validToDate) \
+                                    , how="left") \
             .select(df['*'], meterInstallationDf['logicalDeviceNumber']) 
-    #print(f'{df.count():,} rows in df -2')
+    print(f'{df.count():,} rows in df -2')
     #display(df)    
+            
+#     df = df.join(dimMeterDf, (df.logicalDeviceNumber == dimMeterDf.logicalDeviceNumber), how="left") \
+#             .select(df['*'], dimMeterDf['dimMeterSK'], dimMeterDf['meterNumber'])     
+#     #print(f'{df.count():,} rows in df -3')
+#     #display(df)   
     
-    df = df.join(dimMeterDf, (df.logicalDeviceNumber == dimMeterDf.logicalDeviceNumber), how="left") \
-            .select(df['*'], dimMeterDf['dimMeterSK'], dimMeterDf['meterNumber'])     
-    #print(f'{df.count():,} rows in df -3')
-    #display(df)   
-    
-    df = df.join(dimPropertyDf, (df.propertyNumber == dimPropertyDf.propertyNumber), how="left") \
-            .select(df['*'], dimPropertyDf['dimPropertySK']) 
-    #print(f'{df.count():,} rows in df -4')
+    df = df.join(meterTimesliceDf, (df.logicalDeviceNumber == meterTimesliceDf.logicalDeviceNumber) \
+                                 & (current_date() >= meterTimesliceDf.validFromDate) \
+                                 & (current_date() <= meterTimesliceDf.validToDate) \
+                                 , how="left") \
+            .select(df['*'], meterTimesliceDf['meterSK'], meterTimesliceDf['meterNumber'])     
+    print(f'{df.count():,} rows in df -3')
+    #display(df)  
+
+    df = df.join(dimPropertyDf, (df.propertyNumber == dimPropertyDf.propertyNumber) \
+                 & (current_date() >= dimPropertyDf.propertyStartDate) \
+                 & (current_date() <= dimPropertyDf.propertyEndDate) \
+                 , how="left") \
+            .select(df['*'], dimPropertyDf['propertySK']) 
+    print(f'{df.count():,} rows in df -4')
     #display(df) 
     
     #5.SELECT / TRANSFORM
-    #aggregating to address any duplicates due to failed SK lookups and dummy SKs being assigned in those cases
     df = df.selectExpr ( \
-                       "dimInstallationSK" \
+                       "installationSK" \
                       ,"installationId" \
-                      ,"dimContractSK" \
+                      ,"contractSK" \
                       ,"contractId" \
-                      ,"dimMeterSK" \
+                      ,"meterSK" \
                       ,"meterNumber" \
-                      ,"dimPropertySK" \
+                      ,"propertySK" \
                       ,"propertyNumber" \
                       ) 
                             
@@ -120,5 +152,6 @@ def getInstallationPropertyMeterCon():
 
     df = spark.createDataFrame(df.rdd, schema=newSchema)  
     #print(f'{df.count():,} rows in df -5')
-    #display(df)    
+    #display(df)
+    
     return df  
