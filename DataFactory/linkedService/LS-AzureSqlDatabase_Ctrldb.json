@@ -2,12 +2,6 @@
 	"name": "LS-AzureSqlDatabase_Ctrldb",
 	"properties": {
 		"description": "ETL Control database linked service",
-		"parameters": {
-			"kvSecret": {
-				"type": "string",
-				"defaultValue": "daf-sql-controldb-connectionstring"
-			}
-		},
 		"annotations": [],
 		"type": "AzureSqlDatabase",
 		"typeProperties": {
