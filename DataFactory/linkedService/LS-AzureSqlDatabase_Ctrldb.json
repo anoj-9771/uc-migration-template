@@ -18,7 +18,10 @@
 					"referenceName": "LS-AzureKeyVault",
 					"type": "LinkedServiceReference"
 				},
-				"secretName": "ADF-LS-AzureSql-ControlDB"
+				"secretName": {
+					"value": "@linkedService().kvSecret",
+					"type": "Expression"
+				}
 			}
 		},
 		"connectVia": {
