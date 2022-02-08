@@ -2593,14 +2593,7 @@
 													{
 														"name": "Copy-Blob-to-DataLake-Raw",
 														"type": "Copy",
-														"dependsOn": [
-															{
-																"activity": "Execute-DP-Blob-A-Pre-Process_JSON",
-																"dependencyConditions": [
-																	"Succeeded"
-																]
-															}
-														],
+														"dependsOn": [],
 														"policy": {
 															"timeout": "7.00:00:00",
 															"retry": 0,
@@ -2953,20 +2946,6 @@
 															"parameters": {
 																"kvSecret": "daf-sql-controldb-connectionstring"
 															}
-														}
-													},
-													{
-														"name": "Execute-DP-Blob-A-Pre-Process_JSON",
-														"type": "ExecutePipeline",
-														"dependsOn": [],
-														"userProperties": [],
-														"typeProperties": {
-															"pipeline": {
-																"referenceName": "04-Blob-A-Pre-Process_JSON",
-																"type": "PipelineReference"
-															},
-															"waitOnCompletion": true,
-															"parameters": {}
 														}
 													}
 												]

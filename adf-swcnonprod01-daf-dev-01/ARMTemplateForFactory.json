@@ -3004,14 +3004,7 @@
 													{
 														"name": "Copy-Blob-to-DataLake-Raw",
 														"type": "Copy",
-														"dependsOn": [
-															{
-																"activity": "Execute-DP-Blob-A-Pre-Process_JSON",
-																"dependencyConditions": [
-																	"Succeeded"
-																]
-															}
-														],
+														"dependsOn": [],
 														"policy": {
 															"timeout": "7.00:00:00",
 															"retry": 0,
@@ -3364,20 +3357,6 @@
 															"parameters": {
 																"kvSecret": "daf-sql-controldb-connectionstring"
 															}
-														}
-													},
-													{
-														"name": "Execute-DP-Blob-A-Pre-Process_JSON",
-														"type": "ExecutePipeline",
-														"dependsOn": [],
-														"userProperties": [],
-														"typeProperties": {
-															"pipeline": {
-																"referenceName": "04-Blob-A-Pre-Process_JSON",
-																"type": "PipelineReference"
-															},
-															"waitOnCompletion": true,
-															"parameters": {}
 														}
 													}
 												]
@@ -4181,7 +4160,6 @@
 				"[concat(variables('factoryId'), '/datasets/RAW_ADLS_JSON_v2')]",
 				"[concat(variables('factoryId'), '/pipelines/04-DL-Load-Raw-to-Delta-Table')]",
 				"[concat(variables('factoryId'), '/datasets/ARCHIVE_BLOB_JSON')]",
-				"[concat(variables('factoryId'), '/pipelines/04-Blob-A-Pre-Process_JSON')]",
 				"[concat(variables('factoryId'), '/linkedServices/LS-AzureDatabricks_DefinedCluster')]",
 				"[concat(variables('factoryId'), '/linkedServices/LS_AzureDatalake')]"
 			]
