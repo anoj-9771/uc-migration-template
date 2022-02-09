@@ -74,23 +74,15 @@ def getProperty():
                                 co.architecturalObjectTypeCode as architecturalTypeCode, \
                                 co.architecturalObjectType as architecturalType \
                          from {ADS_DATABASE_CLEANSED}.isu_0uc_connobj_attr_2 co left outer join \
-                              {ADS_DATABASE_CLEANSED}.isu_vibdao vd on co.architecturalObjectInternalId = vd.architecturalObjectInternalId left outer join \
-                              {ADS_DATABASE_CLEANSED}.isu_zcd_tpropty_hist ph on co.propertyNumber = ph.propertyNumber left outer join \
-                              {ADS_DATABASE_CLEANSED}.isu_vibdnode vn on co.architecturalObjectInternalId = vn.architecturalObjectInternalId left outer join \
-                              {ADS_DATABASE_CLEANSED}.isu_0uc_connobj_attr_2 pa on vn.parentArchitecturalObjectInternalId = pa.architecturalObjectInternalId left outer join \
-                              {ADS_DATABASE_CLEANSED}.isu_dd07t dt on co.lotTypeCode = dt.domainValueSingleUpperLimit and domainName = 'ZCD_DO_ADDR_LOT_TYPE' \
+                              {ADS_DATABASE_CLEANSED}.isu_vibdao vd on co.architecturalObjectInternalId = vd.architecturalObjectInternalId and vd._RecordDeleted = 0  \                                       and vd._RecordCurrent = 1 left outer join \
+                              {ADS_DATABASE_CLEANSED}.isu_zcd_tpropty_hist ph on co.propertyNumber = ph.propertyNumber and   ph._RecordDeleted = 0 \
+                              and   ph._RecordCurrent = 1 left outer join \
+                              {ADS_DATABASE_CLEANSED}.isu_vibdnode vn on co.architecturalObjectInternalId = vn.architecturalObjectInternalId and vn._RecordDeleted = 0 \
+                              and   vn._RecordCurrent = 1 left outer join \
+                              {ADS_DATABASE_CLEANSED}.isu_0uc_connobj_attr_2 pa on vn.parentArchitecturalObjectInternalId = pa.architecturalObjectInternalId  \                                               and   pa._RecordCurrent = 1 and pa._RecordDeleted = 0 left outer join \
+                              {ADS_DATABASE_CLEANSED}.isu_dd07t dt on co.lotTypeCode = dt.domainValueSingleUpperLimit and domainName = 'ZCD_DO_ADDR_LOT_TYPE' \                                               and dt._RecordDeleted = 0 and   dt._RecordCurrent = 1 \
                          where co._RecordDeleted = 0 \
                          and   co._RecordCurrent = 1 \
-                         and   vd._RecordDeleted = 0 \
-                         and   vd._RecordCurrent = 1 \
-                         and   ph._RecordDeleted = 0 \
-                         and   ph._RecordCurrent = 1 \
-                         and   vn._RecordDeleted = 0 \
-                         and   vn._RecordCurrent = 1 \
-                         and   pa._RecordDeleted = 0 \
-                         and   pa._RecordCurrent = 1 \
-                         and   dt._RecordDeleted = 0 \
-                         and   dt._RecordCurrent = 1 \
                         ")
 
     #Dummy Record to be added to Meter Dimension
