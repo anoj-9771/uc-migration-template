@@ -256,7 +256,7 @@ def businessPartnerGroupRelationship():
             ) 
 
 #Call InstallationPropertyMeterContract function to load brgInstallationPropertyMeterCon
-def InstallationPropertyMeterContract():
+def installationPropertyMeterContract():
     TemplateEtl(df=getInstallationPropertyMeterContract(), 
              entity="brgInstallationPropertyMeterContract", 
              businessKey="dimInstallationSK",
@@ -352,7 +352,7 @@ def Main():
     if LoadBridgeTables:
         LogEtl("Start Bridge Tables")
         businessPartnerGroupRelationship()
-        InstallationPropertyMeterCon()
+        installationPropertyMeterContract()
         
         LogEtl("End Bridge Tables")
     else:
