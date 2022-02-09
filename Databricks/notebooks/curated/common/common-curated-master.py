@@ -187,7 +187,7 @@ def makeDate(): #renamed because date() gets overloaded elsewhere
 def installation():
     TemplateEtl(df=getInstallation(), 
              entity="dimInstallation", 
-             businessKey="installationId,validToDate,disconnectionDocumentNumber,disconnectionActivityPeriod,disconnectionObjectNumber",
+             businessKey="installationId",
              AddSK=True
             )
     
@@ -255,10 +255,10 @@ def businessPartnerGroupRelationship():
              AddSK=False
             ) 
 
-#Call InstallationPropertyMeterCon function to load brgInstallationPropertyMeterCon
-def InstallationPropertyMeterCon():
-    TemplateEtl(df=getInstallationPropertyMeterCon(), 
-             entity="brgInstallationPropertyMeterCon", 
+#Call InstallationPropertyMeterContract function to load brgInstallationPropertyMeterCon
+def InstallationPropertyMeterContract():
+    TemplateEtl(df=getInstallationPropertyMeterContract(), 
+             entity="brgInstallationPropertyMeterContract", 
              businessKey="dimInstallationSK",
              AddSK=False
             ) 
