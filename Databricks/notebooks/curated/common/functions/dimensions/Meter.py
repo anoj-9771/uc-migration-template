@@ -73,7 +73,7 @@ def getMeter():
     isu0ucDevCatAttrDf  = spark.sql(f"select distinct a.materialNumber, \
                                         case when functionClassCode = '9000' then 'Customer Standpipe' else 'Water Meter' end as usageMeterType, \
                                         case when functionClassCode = '1000' then 'Drinking Water' \
-                                             when functionClassCode = '2000' then 'Recycled Water' else functionClassCode end as waterType, \
+                                             when functionClassCode = '2000' then 'Recycled Water' else null end as waterType, \
                                         constructionClassCode as meterCategoryCode, \
                                         constructionClass as meterCategory, \
                                         deviceCategoryName as meterReadingType, \
