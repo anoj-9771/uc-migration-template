@@ -255,10 +255,10 @@ def businessPartnerGroupRelationship():
              AddSK=False
             ) 
 
-#Call InstallationPropertyMeterCon function to load brgInstallationPropertyMeterCon
-def InstallationPropertyMeterCon():
-    TemplateEtl(df=getInstallationPropertyMeterCon(), 
-             entity="brgInstallationPropertyMeterCon", 
+#Call InstallationPropertyMeterContract function to load brgInstallationPropertyMeterCon
+def InstallationPropertyMeterContract():
+    TemplateEtl(df=getInstallationPropertyMeterContract(), 
+             entity="brgInstallationPropertyMeterContract", 
              businessKey="dimInstallationSK",
              AddSK=False
             ) 

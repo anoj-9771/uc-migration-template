@@ -22,7 +22,7 @@
 #############################################################################################################################
 #1.Create Function
 
-def getInstallationPropertyMeterCon():
+def getInstallationPropertyMeterContract():
     #spark.udf.register("TidyCase", GeneralToTidyCase) 
          
     #2.Load dimension/relationship tables into dataframe
@@ -140,7 +140,7 @@ def getInstallationPropertyMeterCon():
                             
     #6.Apply schema definition
     newSchema = StructType([
-                            StructField('dimInstallationSK', LongType(), False),
+                            StructField('dimInstallationSK', LongType(), True),
                             StructField('installationId', StringType(), True),
                             StructField('dimContractSK', LongType(), True),
                             StructField('contractId', StringType(), True),
