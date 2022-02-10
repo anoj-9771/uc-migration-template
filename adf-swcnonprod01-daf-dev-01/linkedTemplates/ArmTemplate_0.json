@@ -21,11 +21,11 @@
 		},
 		"LS-AzureSqlDatabase_Ctrldb_properties_typeProperties_connectionString_secretName": {
 			"type": "string",
-			"defaultValue": "@linkedService().kvSecret"
+			"defaultValue": "daf-sql-controldb-connectionstring"
 		},
 		"LS_AzureBlobStorage_properties_typeProperties_serviceEndpoint": {
 			"type": "string",
-			"defaultValue": "https://sablobdafdev01.blob.core.windows.net/"
+			"defaultValue": "https://sablobdafdev01.blob.core.windows.net"
 		},
 		"LS_AzureDatabricks_InstancePool_properties_typeProperties_domain": {
 			"type": "string",
@@ -42,6 +42,30 @@
 		"LS_SQLServer_properties_typeProperties_connectionString_secretName": {
 			"type": "string",
 			"defaultValue": "@linkedService().kvSecret"
+		},
+		"mpe_sabloddafdev01_properties_privateLinkResourceId": {
+			"type": "string",
+			"defaultValue": "/subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-daf-dev-01/providers/Microsoft.Storage/storageAccounts/sablobdafdev01"
+		},
+		"mpe_sabloddafdev01_properties_groupId": {
+			"type": "string",
+			"defaultValue": "blob"
+		},
+		"mpe_sadafdev01_properties_privateLinkResourceId": {
+			"type": "string",
+			"defaultValue": "/subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-daf-dev-01/providers/Microsoft.Storage/storageAccounts/sadafdev01"
+		},
+		"mpe_sadafdev01_properties_groupId": {
+			"type": "string",
+			"defaultValue": "dfs"
+		},
+		"mpe_sql_swcnonprod01_daf_dev_01_properties_privateLinkResourceId": {
+			"type": "string",
+			"defaultValue": "/subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-daf-dev-01/providers/Microsoft.Sql/servers/sql-swcnonprod01-daf-dev-01"
+		},
+		"mpe_sql_swcnonprod01_daf_dev_01_properties_groupId": {
+			"type": "string",
+			"defaultValue": "sqlServer"
 		}
 	},
 	"variables": {
@@ -93,6 +117,32 @@
 				}
 			},
 			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/IntegrationRuntime-Azure-ManagedVnet-01')]",
+			"type": "Microsoft.DataFactory/factories/integrationRuntimes",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "Managed",
+				"typeProperties": {
+					"computeProperties": {
+						"location": "Australia East",
+						"dataFlowProperties": {
+							"computeType": "General",
+							"coreCount": 8,
+							"timeToLive": 10,
+							"cleanup": false
+						}
+					}
+				},
+				"managedVirtualNetwork": {
+					"type": "ManagedVirtualNetworkReference",
+					"referenceName": "default"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/managedVirtualNetworks/default')]"
+			]
 		},
 		{
 			"name": "[concat(parameters('factoryName'), '/IntegrationRuntime-SelfHosted')]",
@@ -208,12 +258,6 @@
 			"apiVersion": "2018-06-01",
 			"properties": {
 				"description": "ETL Control database linked service",
-				"parameters": {
-					"kvSecret": {
-						"type": "string",
-						"defaultValue": "daf-sql-controldb-connectionstring"
-					}
-				},
 				"annotations": [],
 				"type": "AzureSqlDatabase",
 				"typeProperties": {
@@ -223,19 +267,16 @@
 							"referenceName": "LS-AzureKeyVault",
 							"type": "LinkedServiceReference"
 						},
-						"secretName": {
-							"value": "[parameters('LS-AzureSqlDatabase_Ctrldb_properties_typeProperties_connectionString_secretName')]",
-							"type": "Expression"
-						}
+						"secretName": "[parameters('LS-AzureSqlDatabase_Ctrldb_properties_typeProperties_connectionString_secretName')]"
 					}
 				},
 				"connectVia": {
-					"referenceName": "IntegrationRuntime-SelfHosted",
+					"referenceName": "IntegrationRuntime-Azure-ManagedVnet-01",
 					"type": "IntegrationRuntimeReference"
 				}
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/integrationRuntimes/IntegrationRuntime-SelfHosted')]",
+				"[concat(variables('factoryId'), '/integrationRuntimes/IntegrationRuntime-Azure-ManagedVnet-01')]",
 				"[concat(variables('factoryId'), '/linkedServices/LS-AzureKeyVault')]"
 			]
 		},
@@ -251,12 +292,12 @@
 					"accountKind": "StorageV2"
 				},
 				"connectVia": {
-					"referenceName": "IntegrationRuntime-SelfHosted",
+					"referenceName": "IntegrationRuntime-Azure-ManagedVnet-01",
 					"type": "IntegrationRuntimeReference"
 				}
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/integrationRuntimes/IntegrationRuntime-SelfHosted')]"
+				"[concat(variables('factoryId'), '/integrationRuntimes/IntegrationRuntime-Azure-ManagedVnet-01')]"
 			]
 		},
 		{
@@ -317,12 +358,12 @@
 					"url": "[parameters('LS_AzureDatalake_properties_typeProperties_url')]"
 				},
 				"connectVia": {
-					"referenceName": "IntegrationRuntime-SelfHosted",
+					"referenceName": "IntegrationRuntime-Azure-ManagedVnet-01",
 					"type": "IntegrationRuntimeReference"
 				}
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/integrationRuntimes/IntegrationRuntime-SelfHosted')]"
+				"[concat(variables('factoryId'), '/integrationRuntimes/IntegrationRuntime-Azure-ManagedVnet-01')]"
 			]
 		},
 		{
@@ -398,26 +439,36 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/IntegrationRuntime-Azure-ManagedVnet-01')]",
-			"type": "Microsoft.DataFactory/factories/integrationRuntimes",
+			"name": "[concat(parameters('factoryName'), '/default/mpe_sabloddafdev01')]",
+			"type": "Microsoft.DataFactory/factories/managedVirtualNetworks/managedPrivateEndpoints",
 			"apiVersion": "2018-06-01",
 			"properties": {
-				"type": "Managed",
-				"typeProperties": {
-					"computeProperties": {
-						"location": "Australia East",
-						"dataFlowProperties": {
-							"computeType": "General",
-							"coreCount": 8,
-							"timeToLive": 10,
-							"cleanup": false
-						}
-					}
-				},
-				"managedVirtualNetwork": {
-					"type": "ManagedVirtualNetworkReference",
-					"referenceName": "default"
-				}
+				"privateLinkResourceId": "[parameters('mpe_sabloddafdev01_properties_privateLinkResourceId')]",
+				"groupId": "[parameters('mpe_sabloddafdev01_properties_groupId')]"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/managedVirtualNetworks/default')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/default/mpe_sadafdev01')]",
+			"type": "Microsoft.DataFactory/factories/managedVirtualNetworks/managedPrivateEndpoints",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"privateLinkResourceId": "[parameters('mpe_sadafdev01_properties_privateLinkResourceId')]",
+				"groupId": "[parameters('mpe_sadafdev01_properties_groupId')]"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/managedVirtualNetworks/default')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/default/mpe_sql_swcnonprod01_daf_dev_01')]",
+			"type": "Microsoft.DataFactory/factories/managedVirtualNetworks/managedPrivateEndpoints",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"privateLinkResourceId": "[parameters('mpe_sql_swcnonprod01_daf_dev_01_properties_privateLinkResourceId')]",
+				"groupId": "[parameters('mpe_sql_swcnonprod01_daf_dev_01_properties_groupId')]"
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/managedVirtualNetworks/default')]"
@@ -1685,230 +1736,6 @@
 				"[concat(variables('factoryId'), '/linkedServices/LS-AzureSqlDatabase_Ctrldb')]",
 				"[concat(variables('factoryId'), '/linkedServices/LS-AzureDatabricks_JobCluster')]",
 				"[concat(variables('factoryId'), '/linkedServices/LS-AzureDatabricks_DefinedCluster')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/Technical-Reconciliation')]",
-			"type": "Microsoft.DataFactory/factories/pipelines",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"activities": [
-					{
-						"name": "Notebook-GetDeltaTableRecordCount",
-						"type": "DatabricksNotebook",
-						"dependsOn": [],
-						"policy": {
-							"timeout": "7.00:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"notebookPath": {
-								"value": "@variables('NotbookURL')",
-								"type": "Expression"
-							},
-							"baseParameters": {
-								"target_table": {
-									"value": "@pipeline().parameters.TaskDetails.TargetName",
-									"type": "Expression"
-								}
-							}
-						},
-						"linkedServiceName": {
-							"referenceName": "LS-AzureDatabricks_DefinedCluster",
-							"type": "LinkedServiceReference",
-							"parameters": {
-								"kvSecret": {
-									"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[0]",
-									"type": "Expression"
-								},
-								"clusterId": {
-									"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[1]",
-									"type": "Expression"
-								}
-							}
-						}
-					},
-					{
-						"name": "SP-CreateTechRecRawToCleansed",
-						"type": "SqlServerStoredProcedure",
-						"dependsOn": [
-							{
-								"activity": "Notebook-GetDeltaTableRecordCount",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"policy": {
-							"timeout": "7.00:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"storedProcedureName": "CTL.CreateTechRecRawToCleansed",
-							"storedProcedureParameters": {
-								"BatchExecutionId": {
-									"value": {
-										"value": "@pipeline().parameters.BatchLogId",
-										"type": "Expression"
-									},
-									"type": "Int64"
-								},
-								"TaskExecutionLogId": {
-									"value": {
-										"value": "@pipeline().parameters.TaskExecutionLogId",
-										"type": "Expression"
-									},
-									"type": "Int64"
-								},
-								"TaskId": {
-									"value": {
-										"value": "@pipeline().parameters.TaskDetails.TaskId",
-										"type": "Expression"
-									},
-									"type": "Int64"
-								},
-								"SourceObject": {
-									"value": {
-										"value": "@pipeline().parameters.TaskDetails.SourceName",
-										"type": "Expression"
-									},
-									"type": "String"
-								},
-								"TargetName": {
-									"value": {
-										"value": "@pipeline().parameters.TaskDetails.TargetName",
-										"type": "Expression"
-									},
-									"type": "String"
-								},
-								"TotalNoRecords": {
-									"value": {
-										"value": "@activity('Notebook-GetDeltaTableRecordCount').output.runOutput",
-										"type": "Expression"
-									},
-									"type": "Int64"
-								}
-							}
-						},
-						"linkedServiceName": {
-							"referenceName": "LS-AzureSqlDatabase_Ctrldb",
-							"type": "LinkedServiceReference",
-							"parameters": {
-								"kvSecret": "daf-sql-controldb-connectionstring"
-							}
-						}
-					}
-				],
-				"policy": {
-					"elapsedTimeMetric": {},
-					"cancelAfter": {}
-				},
-				"parameters": {
-					"TaskDetails": {
-						"type": "object"
-					},
-					"BatchLogId": {
-						"type": "int"
-					},
-					"TaskExecutionLogId": {
-						"type": "int"
-					}
-				},
-				"variables": {
-					"NotbookURL": {
-						"type": "String",
-						"defaultValue": "/build/cleansed/utility/getDeltaTableRecordCount"
-					}
-				},
-				"folder": {
-					"name": "Validation"
-				},
-				"annotations": []
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/LS-AzureDatabricks_DefinedCluster')]",
-				"[concat(variables('factoryId'), '/linkedServices/LS-AzureSqlDatabase_Ctrldb')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/ARCHIVE_BLOB_BINARY')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "LS_AzureBlobStorage",
-					"type": "LinkedServiceReference"
-				},
-				"parameters": {
-					"BlobContainer": {
-						"type": "string"
-					}
-				},
-				"folder": {
-					"name": "Source - Blob"
-				},
-				"annotations": [],
-				"type": "Binary",
-				"typeProperties": {
-					"location": {
-						"type": "AzureBlobStorageLocation",
-						"folderPath": {
-							"value": "@dataset().BlobContainer",
-							"type": "Expression"
-						},
-						"container": "archive"
-					}
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/LS_AzureBlobStorage')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/ARCHIVE_BLOB_CSV')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "LS_AzureBlobStorage",
-					"type": "LinkedServiceReference"
-				},
-				"parameters": {
-					"BlobContainer": {
-						"type": "string"
-					}
-				},
-				"folder": {
-					"name": "Source - Blob"
-				},
-				"annotations": [],
-				"type": "DelimitedText",
-				"typeProperties": {
-					"location": {
-						"type": "AzureBlobStorageLocation",
-						"folderPath": {
-							"value": "@dataset().BlobContainer",
-							"type": "Expression"
-						},
-						"container": "archive"
-					},
-					"columnDelimiter": "|",
-					"escapeChar": "\\",
-					"firstRowAsHeader": true,
-					"quoteChar": ""
-				},
-				"schema": []
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/LS_AzureBlobStorage')]"
 			]
 		}
 	]
