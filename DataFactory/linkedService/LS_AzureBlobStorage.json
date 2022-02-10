@@ -4,11 +4,11 @@
 		"annotations": [],
 		"type": "AzureBlobStorage",
 		"typeProperties": {
-			"serviceEndpoint": "https://sablobdafdev01.blob.core.windows.net/",
+			"serviceEndpoint": "https://sablobdafdev01.blob.core.windows.net",
 			"accountKind": "StorageV2"
 		},
 		"connectVia": {
-			"referenceName": "IntegrationRuntime-SelfHosted",
+			"referenceName": "IntegrationRuntime-Azure-ManagedVnet-01",
 			"type": "IntegrationRuntimeReference"
 		}
 	},
