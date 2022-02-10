@@ -115,7 +115,7 @@ def _GenerateMergeSQL_DeltaTable(source_table_name, target_table_name, business_
     #Added di_sequence_number to the order by clause  to pickup the right record from SAP delta extracts
     if is_delta_extract:
       if di_sequence_number_exist:
-        sql += TAB + ",ROW_NUMBER() OVER (PARTITION BY " + business_key_updated + " ORDER BY " + delta_column + " DESC, " + di_sequence_number + " DESC, " + COL_DL_RAW_LOAD + " DESC) AS " + COL_RECORD_VERSION + NEW_LINE
+        sql += TAB + ",ROW_NUMBER() OVER (PARTITION BY " + business_key_updated + " ORDER BY " + delta_column + " DESC, DI_SEQUENCE_NUMBER DESC, " + COL_DL_RAW_LOAD + " DESC) AS " + COL_RECORD_VERSION + NEW_LINE
       else:
         sql += TAB + ",ROW_NUMBER() OVER (PARTITION BY " + business_key_updated + " ORDER BY " + delta_column + " DESC, " + COL_DL_RAW_LOAD + " DESC) AS " + COL_RECORD_VERSION + NEW_LINE
     
