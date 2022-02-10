@@ -211,7 +211,7 @@ def meter():
 def makeProperty(): #renamed because property is a keyword
     TemplateEtl(df=getProperty(), 
              entity="dimProperty", 
-             businessKey="sourceSystemCode,propertyNumber,propertyStartDate",
+             businessKey="sourceSystemCode,propertyNumber,
              AddSK=True
             )
 

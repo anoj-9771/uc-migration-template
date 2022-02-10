@@ -48,9 +48,7 @@ def getInstallationPropertyMeterContract():
     
     dimPropertyDf = spark.sql(f"select \
                                     propertyNumber, \
-                                    dimPropertySK as propertySK, \
-                                    propertyStartDate, \
-                                    propertyEndDate \
+                                    dimPropertySK as propertySK \
                                     from {ADS_DATABASE_CURATED}.dimProperty \
                                     where sourceSystemCode = 'ISU' and _RecordCurrent = 1 and _RecordDeleted = 0")
     print(f"Number of rows in dimInstallationDf: ", dimPropertyDf.count())
@@ -119,8 +117,6 @@ def getInstallationPropertyMeterContract():
     #display(df)  
 
     df = df.join(dimPropertyDf, (df.propertyNumber == dimPropertyDf.propertyNumber) \
-                 & (current_date() >= dimPropertyDf.propertyStartDate) \
-                 & (current_date() <= dimPropertyDf.propertyEndDate) \
                  , how="left") \
             .select(df['*'], dimPropertyDf['propertySK']) 
     print(f'{df.count():,} rows in df -4')
@@ -151,7 +147,7 @@ def getInstallationPropertyMeterContract():
                       ]) 
 
     df = spark.createDataFrame(df.rdd, schema=newSchema)  
-    #print(f'{df.count():,} rows in df -5')
+    #print(f'{df.count():,} rows in df')
     #display(df)
     
     return df  
