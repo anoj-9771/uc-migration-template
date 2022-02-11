@@ -71,29 +71,29 @@
 			"type": "string",
 			"defaultValue": "DLY1300"
 		},
-		"mpe_sabloddafdev01_properties_privateLinkResourceId": {
-			"type": "string",
-			"defaultValue": "/subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-daf-dev-01/providers/Microsoft.Storage/storageAccounts/sablobdafdev01"
-		},
-		"mpe_sabloddafdev01_properties_groupId": {
-			"type": "string",
-			"defaultValue": "blob"
-		},
-		"mpe_sadafdev01_properties_privateLinkResourceId": {
+		"mpe_salake01_properties_privateLinkResourceId": {
 			"type": "string",
 			"defaultValue": "/subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-daf-dev-01/providers/Microsoft.Storage/storageAccounts/sadafdev01"
 		},
-		"mpe_sadafdev01_properties_groupId": {
+		"mpe_salake01_properties_groupId": {
 			"type": "string",
 			"defaultValue": "dfs"
 		},
-		"mpe_sql_swcnonprod01_daf_dev_01_properties_privateLinkResourceId": {
+		"mpe_sqlserver_01_properties_privateLinkResourceId": {
 			"type": "string",
 			"defaultValue": "/subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-daf-dev-01/providers/Microsoft.Sql/servers/sql-swcnonprod01-daf-dev-01"
 		},
-		"mpe_sql_swcnonprod01_daf_dev_01_properties_groupId": {
+		"mpe_sqlserver_01_properties_groupId": {
 			"type": "string",
 			"defaultValue": "sqlServer"
+		},
+		"mpe_sablob01_properties_privateLinkResourceId": {
+			"type": "string",
+			"defaultValue": "/subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-daf-dev-01/providers/Microsoft.Storage/storageAccounts/sablobdafdev01"
+		},
+		"mpe_sablob01_properties_groupId": {
+			"type": "string",
+			"defaultValue": "blob"
 		},
 		"containerUri": {
 			"type": "string",
@@ -149,23 +149,23 @@
 					"LS_SQLServer_properties_typeProperties_connectionString_secretName": {
 						"value": "[parameters('LS_SQLServer_properties_typeProperties_connectionString_secretName')]"
 					},
-					"mpe_sabloddafdev01_properties_privateLinkResourceId": {
-						"value": "[parameters('mpe_sabloddafdev01_properties_privateLinkResourceId')]"
+					"mpe_salake01_properties_privateLinkResourceId": {
+						"value": "[parameters('mpe_salake01_properties_privateLinkResourceId')]"
 					},
-					"mpe_sabloddafdev01_properties_groupId": {
-						"value": "[parameters('mpe_sabloddafdev01_properties_groupId')]"
+					"mpe_salake01_properties_groupId": {
+						"value": "[parameters('mpe_salake01_properties_groupId')]"
 					},
-					"mpe_sadafdev01_properties_privateLinkResourceId": {
-						"value": "[parameters('mpe_sadafdev01_properties_privateLinkResourceId')]"
+					"mpe_sqlserver_01_properties_privateLinkResourceId": {
+						"value": "[parameters('mpe_sqlserver_01_properties_privateLinkResourceId')]"
 					},
-					"mpe_sadafdev01_properties_groupId": {
-						"value": "[parameters('mpe_sadafdev01_properties_groupId')]"
+					"mpe_sqlserver_01_properties_groupId": {
+						"value": "[parameters('mpe_sqlserver_01_properties_groupId')]"
 					},
-					"mpe_sql_swcnonprod01_daf_dev_01_properties_privateLinkResourceId": {
-						"value": "[parameters('mpe_sql_swcnonprod01_daf_dev_01_properties_privateLinkResourceId')]"
+					"mpe_sablob01_properties_privateLinkResourceId": {
+						"value": "[parameters('mpe_sablob01_properties_privateLinkResourceId')]"
 					},
-					"mpe_sql_swcnonprod01_daf_dev_01_properties_groupId": {
-						"value": "[parameters('mpe_sql_swcnonprod01_daf_dev_01_properties_groupId')]"
+					"mpe_sablob01_properties_groupId": {
+						"value": "[parameters('mpe_sablob01_properties_groupId')]"
 					}
 				}
 			},
