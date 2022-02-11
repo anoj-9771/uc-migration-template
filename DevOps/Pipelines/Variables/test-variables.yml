@@ -106,12 +106,11 @@ variables:
   
   # Environment Parameterisation of Managed Private Endpoints
   - name: mpe_sablob01_properties_privateLinkResourceId
-    value: /subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-daf-dev-01/providers/Microsoft.Storage/storageAccounts/sablobdafdev01
+    value: /subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-daf-test-01/providers/Microsoft.Storage/storageAccounts/sablobdaftest01
   - name: mpe_salake01_properties_privateLinkResourceId
-    value: /subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-daf-dev-01/providers/Microsoft.Storage/storageAccounts/sadafdev01
+    value: /subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-daf-test-01/providers/Microsoft.Storage/storageAccounts/sadaftest01
   - name: mpe_sqlserver_01_properties_groupId
-    value: /subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-daf-dev-01/providers/Microsoft.Sql/servers/sql-swcnonprod01-daf-dev-01
-  
+    value: /subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-daf-test-01/providers/Microsoft.Sql/servers/sql-swcnonprod01-daf-test-01
   
   # ------------------------------------------------
   # Log Analytics related
