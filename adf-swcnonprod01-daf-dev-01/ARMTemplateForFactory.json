@@ -71,22 +71,6 @@
 			"type": "string",
 			"defaultValue": "DLY1300"
 		},
-		"mpe_sabloddafdev01_properties_privateLinkResourceId": {
-			"type": "string",
-			"defaultValue": "/subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-daf-dev-01/providers/Microsoft.Storage/storageAccounts/sablobdafdev01"
-		},
-		"mpe_sabloddafdev01_properties_groupId": {
-			"type": "string",
-			"defaultValue": "blob"
-		},
-		"mpe_sql_swcnonprod01_daf_dev_01_properties_privateLinkResourceId": {
-			"type": "string",
-			"defaultValue": "/subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-daf-dev-01/providers/Microsoft.Sql/servers/sql-swcnonprod01-daf-dev-01"
-		},
-		"mpe_sql_swcnonprod01_daf_dev_01_properties_groupId": {
-			"type": "string",
-			"defaultValue": "sqlServer"
-		},
 		"mpe_salake01_properties_privateLinkResourceId": {
 			"type": "string",
 			"defaultValue": "/subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-daf-dev-01/providers/Microsoft.Storage/storageAccounts/sadafdev01"
@@ -94,6 +78,22 @@
 		"mpe_salake01_properties_groupId": {
 			"type": "string",
 			"defaultValue": "dfs"
+		},
+		"mpe_sqlserver_01_properties_privateLinkResourceId": {
+			"type": "string",
+			"defaultValue": "/subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-daf-dev-01/providers/Microsoft.Sql/servers/sql-swcnonprod01-daf-dev-01"
+		},
+		"mpe_sqlserver_01_properties_groupId": {
+			"type": "string",
+			"defaultValue": "sqlServer"
+		},
+		"mpe_sablob01_properties_privateLinkResourceId": {
+			"type": "string",
+			"defaultValue": "/subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-daf-dev-01/providers/Microsoft.Storage/storageAccounts/sablobdafdev01"
+		},
+		"mpe_sablob01_properties_groupId": {
+			"type": "string",
+			"defaultValue": "blob"
 		}
 	},
 	"variables": {
@@ -13798,30 +13798,6 @@
 			"dependsOn": []
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/default/mpe_sabloddafdev01')]",
-			"type": "Microsoft.DataFactory/factories/managedVirtualNetworks/managedPrivateEndpoints",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"privateLinkResourceId": "[parameters('mpe_sabloddafdev01_properties_privateLinkResourceId')]",
-				"groupId": "[parameters('mpe_sabloddafdev01_properties_groupId')]"
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/managedVirtualNetworks/default')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/default/mpe_sql_swcnonprod01_daf_dev_01')]",
-			"type": "Microsoft.DataFactory/factories/managedVirtualNetworks/managedPrivateEndpoints",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"privateLinkResourceId": "[parameters('mpe_sql_swcnonprod01_daf_dev_01_properties_privateLinkResourceId')]",
-				"groupId": "[parameters('mpe_sql_swcnonprod01_daf_dev_01_properties_groupId')]"
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/managedVirtualNetworks/default')]"
-			]
-		},
-		{
 			"name": "[concat(parameters('factoryName'), '/default/mpe_salake01')]",
 			"type": "Microsoft.DataFactory/factories/managedVirtualNetworks/managedPrivateEndpoints",
 			"apiVersion": "2018-06-01",
@@ -13834,31 +13810,27 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/DelimitedText1')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
+			"name": "[concat(parameters('factoryName'), '/default/mpe_sqlserver_01')]",
+			"type": "Microsoft.DataFactory/factories/managedVirtualNetworks/managedPrivateEndpoints",
 			"apiVersion": "2018-06-01",
 			"properties": {
-				"linkedServiceName": {
-					"referenceName": "LS_AzureDatalake",
-					"type": "LinkedServiceReference"
-				},
-				"folder": {
-					"name": "z_Archive"
-				},
-				"annotations": [],
-				"type": "DelimitedText",
-				"typeProperties": {
-					"location": {
-						"type": "AzureBlobFSLocation"
-					},
-					"columnDelimiter": ",",
-					"escapeChar": "\\",
-					"quoteChar": "\""
-				},
-				"schema": []
+				"privateLinkResourceId": "[parameters('mpe_sqlserver_01_properties_privateLinkResourceId')]",
+				"groupId": "[parameters('mpe_sqlserver_01_properties_groupId')]"
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/LS_AzureDatalake')]"
+				"[concat(variables('factoryId'), '/managedVirtualNetworks/default')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/default/mpe_sablob01')]",
+			"type": "Microsoft.DataFactory/factories/managedVirtualNetworks/managedPrivateEndpoints",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"privateLinkResourceId": "[parameters('mpe_sablob01_properties_privateLinkResourceId')]",
+				"groupId": "[parameters('mpe_sablob01_properties_groupId')]"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/managedVirtualNetworks/default')]"
 			]
 		}
 	]

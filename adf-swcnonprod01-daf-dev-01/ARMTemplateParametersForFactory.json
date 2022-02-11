@@ -53,23 +53,23 @@
 		"DLY1300_properties_01-Main_parameters_TriggerName": {
 			"value": "DLY1300"
 		},
-		"mpe_sabloddafdev01_properties_privateLinkResourceId": {
-			"value": "/subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-daf-dev-01/providers/Microsoft.Storage/storageAccounts/sablobdafdev01"
-		},
-		"mpe_sabloddafdev01_properties_groupId": {
-			"value": "blob"
-		},
-		"mpe_sql_swcnonprod01_daf_dev_01_properties_privateLinkResourceId": {
-			"value": "/subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-daf-dev-01/providers/Microsoft.Sql/servers/sql-swcnonprod01-daf-dev-01"
-		},
-		"mpe_sql_swcnonprod01_daf_dev_01_properties_groupId": {
-			"value": "sqlServer"
-		},
 		"mpe_salake01_properties_privateLinkResourceId": {
 			"value": "/subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-daf-dev-01/providers/Microsoft.Storage/storageAccounts/sadafdev01"
 		},
 		"mpe_salake01_properties_groupId": {
 			"value": "dfs"
+		},
+		"mpe_sqlserver_01_properties_privateLinkResourceId": {
+			"value": "/subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-daf-dev-01/providers/Microsoft.Sql/servers/sql-swcnonprod01-daf-dev-01"
+		},
+		"mpe_sqlserver_01_properties_groupId": {
+			"value": "sqlServer"
+		},
+		"mpe_sablob01_properties_privateLinkResourceId": {
+			"value": "/subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-daf-dev-01/providers/Microsoft.Storage/storageAccounts/sablobdafdev01"
+		},
+		"mpe_sablob01_properties_groupId": {
+			"value": "blob"
 		}
 	}
 }
