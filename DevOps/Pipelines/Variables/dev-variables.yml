@@ -86,7 +86,7 @@ variables:
     value: dbw-$(SUBSCRIPTION)-$(PREFIX)-$(ENVIRONMENT)-$(INCREMENT)
  # ------------------------------------------------
   # Datafactory related
-  # ------------------------------------------------
+ # ------------------------------------------------
     # Data Factory service name for this environment
   - name: datafactoryname
     value: adf-$(SUBSCRIPTION)-$(PREFIX)-$(ENVIRONMENT)-$(INCREMENT)  
@@ -103,6 +103,15 @@ variables:
     value: /subscriptions/$(subscriptionId)/resourcegroups/$(resourcegroupname)/providers/Microsoft.Storage/storageAccounts/$(datalakestorageaccountnames) 
   - name: BATCH_DAILY_SAPISU_properties_typeProperties_scope
     value: /subscriptions/$(subscriptionId)/resourcegroups/$(resourcegroupname)/providers/Microsoft.Storage/storageAccounts/$(datalakestorageaccountnames) 
+ 
+  # Environment Parameterisation of Managed Private Endpoints
+  - name: mpe_sablob01_properties_privateLinkResourceId
+    value: /subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-daf-dev-01/providers/Microsoft.Storage/storageAccounts/sablobdafdev01
+  - name: mpe_salake01_properties_privateLinkResourceId
+    value: /subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-daf-dev-01/providers/Microsoft.Storage/storageAccounts/sadafdev01
+  - name: mpe_sqlserver_01_properties_groupId
+    value: /subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-daf-dev-01/providers/Microsoft.Sql/servers/sql-swcnonprod01-daf-dev-01
+  
   # ------------------------------------------------
   # Log Analytics related
   # ------------------------------------------------
