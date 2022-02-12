@@ -130,15 +130,16 @@ if Debug:
 # DBTITLE 1,Read the record count fields
 col_name_DELTA_RECORD_COUNT = "DELTA_RECORD_COUNT" 
 col_name_TOTAL_NO_OF_ROWS = "TOTAL_NO_OF_ROWS"
+col_name_FULL_RECORD_COUNT = "FULL_RECORD_COUNT"
 
 output = {col_name_DELTA_RECORD_COUNT: -1, col_name_TOTAL_NO_OF_ROWS: -1, "message" : ""}
 
 if current_record_count == 0:
   output["message"] = "No records in manifest file"
   print("Exiting Notebook as there are no records to process")
-elif all(x in df.columns for x in [col_name_DELTA_RECORD_COUNT, col_name_TOTAL_NO_OF_ROWS]):
+elif all(x in df.columns for x in [col_name_DELTA_RECORD_COUNT, col_name_FULL_RECORD_COUNT]):
   output[col_name_DELTA_RECORD_COUNT] = df.collect()[0][col_name_DELTA_RECORD_COUNT]
-  output[col_name_TOTAL_NO_OF_ROWS] = df.collect()[0][col_name_TOTAL_NO_OF_ROWS]
+  output[col_name_TOTAL_NO_OF_ROWS] = df.collect()[0][col_name_FULL_RECORD_COUNT]
   print("Manifest file is read successfully")
 else:
   output["message"] = "record count columns were not found in the manifest file"
