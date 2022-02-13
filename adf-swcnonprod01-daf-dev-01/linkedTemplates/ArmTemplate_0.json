@@ -7,6 +7,10 @@
 			"metadata": "Data Factory name",
 			"defaultValue": "adf-swcnonprod01-daf-dev-01"
 		},
+		"LS-AzureSqlDatabase_Ctrldb_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'LS-AzureSqlDatabase_Ctrldb'"
+		},
 		"LS-AzureKeyVault_properties_typeProperties_baseUrl": {
 			"type": "string",
 			"defaultValue": "https://kv-daf-dev-01.vault.azure.net/"
@@ -18,10 +22,6 @@
 		"LS-AzureDatabricks_JobCluster_properties_typeProperties_domain": {
 			"type": "string",
 			"defaultValue": "https://australiaeast.azuredatabricks.net"
-		},
-		"LS-AzureSqlDatabase_Ctrldb_properties_typeProperties_connectionString_secretName": {
-			"type": "string",
-			"defaultValue": "daf-sql-controldb-connectionstring"
 		},
 		"LS_AzureBlobStorage_properties_typeProperties_serviceEndpoint": {
 			"type": "string",
@@ -278,13 +278,14 @@
 				"annotations": [],
 				"type": "AzureSqlDatabase",
 				"typeProperties": {
-					"connectionString": {
+					"connectionString": "[parameters('LS-AzureSqlDatabase_Ctrldb_connectionString')]",
+					"password": {
 						"type": "AzureKeyVaultSecret",
 						"store": {
 							"referenceName": "LS-AzureKeyVault",
 							"type": "LinkedServiceReference"
 						},
-						"secretName": "[parameters('LS-AzureSqlDatabase_Ctrldb_properties_typeProperties_connectionString_secretName')]"
+						"secretName": "daf-sql-controldb-password"
 					}
 				},
 				"connectVia": {
