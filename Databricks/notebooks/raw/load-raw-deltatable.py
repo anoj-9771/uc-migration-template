@@ -122,33 +122,45 @@ print ("source_file_path: " + source_file_path)
 # COMMAND ----------
 
 #Reading the file without Multiline, if it fails reading it once again with Multiline option set to True in the exception block
-try:
-  df = spark.read\
-  .format(file_type) \
-  .option("inferSchema","true")\
-  .option("allowUnquotedFieldNames","true")\
-  .option("allowSingleQuotes","true")\
-  .option("allowBackslashEscapingAnyCharacter","true")\
-  .option("allowUnquotedControlChars","true")\
-  .option("mode","FAILFAST")\
-  .load(source_file_path)
-except Exception:
-  print('problem - trying multiline = true')
-  df = spark.read\
-  .format(file_type) \
-  .option("multiline", "true")\
-  .option("inferSchema","true")\
-  .option("allowUnquotedFieldNames","true")\
-  .option("allowSingleQuotes","true")\
-  .option("allowBackslashEscapingAnyCharacter","true")\
-  .option("allowUnquotedControlChars","true")\
-  .option("mode","PERMISSIVE")\
-  .option("columnNameOfCorruptRecord","corrupt_record")\
-  .load(source_file_path)
-finally:
-  current_record_count = df.count()
-  print("Records read from file : " + str(current_record_count))
-  df.printSchema()
+if file_type.upper() == "CSV":
+    df = spark.read \
+          .format(file_type) \
+          .option("header", True) \
+          .option("inferSchema", False) \
+          .option("delimiter", "|") \
+          .load(source_file_path) 
+
+    current_record_count = df.count()
+    print("Records read from file : " + str(current_record_count))
+    df.printSchema()
+else:
+    try:
+      df = spark.read\
+      .format(file_type) \
+      .option("inferSchema","true")\
+      .option("allowUnquotedFieldNames","true")\
+      .option("allowSingleQuotes","true")\
+      .option("allowBackslashEscapingAnyCharacter","true")\
+      .option("allowUnquotedControlChars","true")\
+      .option("mode","FAILFAST")\
+      .load(source_file_path)
+    except Exception:
+      print('problem - trying multiline = true')
+      df = spark.read\
+      .format(file_type) \
+      .option("multiline", "true")\
+      .option("inferSchema","true")\
+      .option("allowUnquotedFieldNames","true")\
+      .option("allowSingleQuotes","true")\
+      .option("allowBackslashEscapingAnyCharacter","true")\
+      .option("allowUnquotedControlChars","true")\
+      .option("mode","PERMISSIVE")\
+      .option("columnNameOfCorruptRecord","corrupt_record")\
+      .load(source_file_path)
+    finally:
+      current_record_count = df.count()
+      print("Records read from file : " + str(current_record_count))
+      df.printSchema()   
 
 # COMMAND ----------
 
