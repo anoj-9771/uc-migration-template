@@ -52,7 +52,7 @@ def getBilledWaterConsumptionDaily():
 
     #3.Union Access and isu billed consumption datasets
     isuConsDf = isuConsDf.select("sourceSystemCode", "billingDocumentNumber", \
-                                  "businessPartnerNumber", "equipmentNumber", "contractId", \
+                                  "businessPartnerNumber", "equipmentNumber", "contractID", \
                                   "billingPeriodStartDate", "billingPeriodEndDate", \
                                   "meterActiveStartDate", "meterActiveEndDate", \
                                   (datediff("meterActiveEndDate", "meterActiveStartDate") + 1).alias("totalMeterActiveDays"), \
@@ -60,9 +60,9 @@ def getBilledWaterConsumptionDaily():
                                   .where((isuConsDf.isReversedFlag == 'N') & (isuConsDf.isOutsortedFlag == 'N'))
 
     accessConsDf = accessConsDf.selectExpr("sourceSystemCode", "-1 as billingDocumentNumber", \
-                                  "PropertyNumber", "propertyMeterNumber", "-1 as contractId", \
+                                  "PropertyNumber", "propertyMeterNumber", "-1 as contractID", \
                                   "billingPeriodStartDate", "billingPeriodEndDate", \
-                                  "Null as meterActiveStartDate", "Null as meterActiveEndDate", \
+                                  "billingPeriodStartDate as meterActiveStartDate", "billingPeriodEndDate as meterActiveEndDate", \
                                   "billingPeriodDays", \
                                   "meteredWaterConsumption") \
 
@@ -132,7 +132,7 @@ def getBilledWaterConsumptionDaily():
                                & (billedConsDf.meterActiveEndDate >= dimDateDf.calendarDate), how="left") \
                     .select(billedConsDf['*'], dimDateDf['calendarDate'].alias('consumptionDate'))
 					
-    billedConsDf = billedConsDf.join(dimContractDf, (billedConsDf.contractId == dimContractDf.contractId) \
+    billedConsDf = billedConsDf.join(dimContractDf, (billedConsDf.contractID == dimContractDf.contractId) \
                              & (billedConsDf.billingPeriodEndDate >= dimContractDf.validFromDate) \
                              & (billedConsDf.billingPeriodEndDate <= dimContractDf.validToDate), how="left") \
                   .select(billedConsDf['*'], dimContractDf['dimContractSK'])
