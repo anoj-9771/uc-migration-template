@@ -63,7 +63,7 @@ def getBilledWaterConsumption():
 
     #4.Load dimension tables into dataframe
 
-    dimPropertyDf = spark.sql(f"select sourceSystemCode, dimPropertySK, propertyNumber, propertyStartDate, propertyEndDate \
+    dimPropertyDf = spark.sql(f"select sourceSystemCode, dimPropertySK, propertyNumber \
                                 from {ADS_DATABASE_CURATED}.dimProperty \
                                 where _RecordCurrent = 1 and _RecordDeleted = 0")
 
@@ -104,9 +104,7 @@ def getBilledWaterConsumption():
     #5.Joins to derive SKs for Fact load
 
     billedConsDf = billedConsDf.join(dimPropertyDf, (billedConsDf.businessPartnerNumber == dimPropertyDf.propertyNumber) \
-                             & (billedConsDf.sourceSystemCode == dimPropertyDf.sourceSystemCode) \
-                             & (billedConsDf.billingPeriodStartDate >= dimPropertyDf.propertyStartDate) \
-                             & (billedConsDf.billingPeriodEndDate <= dimPropertyDf.propertyEndDate), how="left") \
+                             & (billedConsDf.sourceSystemCode == dimPropertyDf.sourceSystemCode), how="left") \
                   .select(billedConsDf['*'], dimPropertyDf['dimPropertySK'])
 
     billedConsDf = billedConsDf.join(dimLocationDf, (billedConsDf.businessPartnerNumber == dimLocationDf.locationId), how="left") \

@@ -7,7 +7,7 @@
 			"url": "https://sadafdev01.dfs.core.windows.net"
 		},
 		"connectVia": {
-			"referenceName": "IntegrationRuntime-SelfHosted",
+			"referenceName": "IntegrationRuntime-Azure-ManagedVnet-01",
 			"type": "IntegrationRuntimeReference"
 		}
 	},

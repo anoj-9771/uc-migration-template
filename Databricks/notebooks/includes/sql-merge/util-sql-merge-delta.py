@@ -79,6 +79,7 @@ def _GenerateMergeSQL_DeltaTable(source_table_name, target_table_name, business_
 #   #For SQL Server, this would have already been resolved
 
   raw_file_timestamp_exist = False
+  di_sequence_number_exist = False
   query = f"SELECT * FROM {source_table_name} LIMIT 0"
   src_col_list = spark.sql(query)
   lst = src_col_list.columns
@@ -86,7 +87,8 @@ def _GenerateMergeSQL_DeltaTable(source_table_name, target_table_name, business_
 
   if len(col_lst) > 0:
     raw_file_timestamp_exist = any(COL_DL_RAW_FILE_TIMESTAMP in col for col in col_lst)
-    
+    di_sequence_number_exist = any("DI_SEQUENCE_NUMBER" in col for col in col_lst)
+
 #Start of Arman's Fix
 #   isSAPISU = False
 #   if source_table_name != None and "sapisu" in source_table_name:
@@ -109,9 +111,13 @@ def _GenerateMergeSQL_DeltaTable(source_table_name, target_table_name, business_
 
     if not is_delta_extract and not raw_file_timestamp_exist:
       sql += TAB + ",ROW_NUMBER() OVER (PARTITION BY " + business_key_updated + " ORDER BY " + COL_DL_RAW_LOAD + " DESC) AS " + COL_RECORD_VERSION + NEW_LINE    
-
+    
+    #Added di_sequence_number to the order by clause  to pickup the right record from SAP delta extracts
     if is_delta_extract:
-      sql += TAB + ",ROW_NUMBER() OVER (PARTITION BY " + business_key_updated + " ORDER BY " + delta_column + " DESC, " + COL_DL_RAW_LOAD + " DESC) AS " + COL_RECORD_VERSION + NEW_LINE
+      if di_sequence_number_exist:
+        sql += TAB + ",ROW_NUMBER() OVER (PARTITION BY " + business_key_updated + " ORDER BY " + delta_column + " DESC, DI_SEQUENCE_NUMBER DESC, " + COL_DL_RAW_LOAD + " DESC) AS " + COL_RECORD_VERSION + NEW_LINE
+      else:
+        sql += TAB + ",ROW_NUMBER() OVER (PARTITION BY " + business_key_updated + " ORDER BY " + delta_column + " DESC, " + COL_DL_RAW_LOAD + " DESC) AS " + COL_RECORD_VERSION + NEW_LINE
     
     sql += TAB +  f"FROM {ALIAS_TABLE_SOURCE} ) WHERE {COL_RECORD_VERSION} = 1" + NEW_LINE
   else:
