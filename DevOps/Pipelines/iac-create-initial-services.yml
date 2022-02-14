@@ -6,6 +6,7 @@ pr:
     - main
     - develop
     - test
+    - preprod
 
 trigger: none
   # branches:
