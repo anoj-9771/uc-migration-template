@@ -277,7 +277,7 @@ def billedWaterConsumption():
 def billedWaterConsumptionDaily():
     TemplateEtl(df=getBilledWaterConsumptionDaily(), 
              entity="factDailyApportionedConsumption", 
-             businessKey="sourceSystemCode,consumptionDateSK,dimBillingDocumentSK,dimPropertySK,dimMeterSK",
+             businessKey="sourceSystemCode,consumptionDate,dimBillingDocumentSK,dimPropertySK,dimMeterSK",
              AddSK=True
             )
 
