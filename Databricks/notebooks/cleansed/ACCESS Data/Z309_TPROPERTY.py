@@ -188,7 +188,7 @@ df_cleansed = spark.sql(f"SELECT cast(N_PROP as int) AS propertyNumber, \
         b.LGA, \
 		C_PROP_TYPE AS propertyTypeCode, \
         e.propertyType, \
-        f.propertyTypeCode as superiorPropertyTypecode, \
+        f.propertyTypeCode as superiorPropertyTypeCode, \
         f.propertyType as superiorPropertyType, \
         case when D_PROP_TYPE_EFFE is not null \
                   then to_date(D_PROP_TYPE_EFFE,'yyyyMMdd') \

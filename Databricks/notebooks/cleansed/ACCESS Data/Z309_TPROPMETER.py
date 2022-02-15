@@ -208,7 +208,7 @@ df_cleansed = spark.sql(f"SELECT cast(N_PROP as int) AS propertyNumber, \
 		C_METE_GRID_LOCA AS meterGridLocationCode, \
 		C_READ_INST_NUM1 AS readingInstructionCode1, \
 		C_READ_INST_NUM2 AS readingInstructionCode2, \
-		case when F_METE_ADDI_DESC = '1' then true else false end AS hasdditionalDescription, \
+		case when F_METE_ADDI_DESC = '1' then true else false end AS hasAdditionalDescription, \
 		case when F_METE_ROUT_PREP = '1' then true else false end AS hasMeterRoutePreparation, \
 		case when F_METE_WARN_NOTE = '1' then true else false end AS hasMeterWarningNote, \
 		to_date(D_METE_FIT, 'yyyyMMdd') AS meterFittedDate, \
