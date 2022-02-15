@@ -281,7 +281,7 @@ newSchema = StructType([
     StructField('hasIncludedRatings',BooleanType(),False),
     StructField('isIncludedInOtherRating',BooleanType(),False),
     StructField('meterServesOtherProperties',BooleanType(),False),
-    StructField('hasMeterOnOtherPropery',BooleanType(),False),
+    StructField('hasMeterOnOtherProperty',BooleanType(),False),
     StructField('hasSpecialMeterAllocation',BooleanType(),False),
     StructField('hasKidneyFreeSupply',BooleanType(),False),
     StructField('hasNonKidneyFreeSupply',BooleanType(),False),
