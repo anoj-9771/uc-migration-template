@@ -228,7 +228,6 @@ df_cleansed = spark.sql(f"SELECT cast(N_PROP as int) AS propertyNumber, \
          left outer join CLEANSED.access_Z309_TMeterGroup e on e.meterGroupCode = a.C_METE_GROU \
          ")
 
-display(df_cleansed)
 print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
@@ -272,15 +271,15 @@ newSchema = StructType([
 	StructField('_RecordCurrent',IntegerType(),False)
 ])
 
-df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
-display(df_updated_column)
-print(f'Number of rows: {df_updated_column.count()}')
+# df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
+# display(df_updated_column)
+# print(f'Number of rows: {df_updated_column.count()}')
 
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
-DeltaSaveDataframeDirect(df_updated_column, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
+DeltaSaveDataframeDirect(df_cleansed, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", newSchema, "")
 
 # COMMAND ----------
 
