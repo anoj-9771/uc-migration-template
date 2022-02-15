@@ -194,7 +194,6 @@ df_cleansed = spark.sql(f"SELECT C_METE_READ_TOLE AS meterReadingToleranceCode, 
 	FROM {ADS_DATABASE_STAGE}.{source_object} \
          ")
 
-display(df_cleansed)
 print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
@@ -210,8 +209,6 @@ newSchema = StructType([
 	StructField('_RecordDeleted',IntegerType(),False),
 	StructField('_RecordCurrent',IntegerType(),False)
 ])
-
-print(f'Number of rows: {df_updated_column.count()}')
 
 # COMMAND ----------
 
