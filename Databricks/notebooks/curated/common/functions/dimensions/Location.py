@@ -83,6 +83,7 @@ def getLocation():
     ,"formattedAddress" \
     ,"houseNumber2" \
     ,"houseNumber1" \
+    ,"streetName" \
     ,"streetType" \
     ,"LGA" \
     ,"suburb" \
