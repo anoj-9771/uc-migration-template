@@ -93,7 +93,6 @@ stages:
               "minCapacity": 0.5
             }
           log_analytics: ${{ variables.loganalytics }}
-          log_storage: ${{ variables.logstorage }}
     # Deploy S0 EDW DB. Update parameters here if different to required.
     - ${{ if eq(variables['edw'], true) }}:
       - template: step-deploy-arm-azuresqldb.yml
@@ -119,7 +118,6 @@ stages:
               "autoPauseDelay": ""
             } 
           log_analytics: ${{ variables.loganalytics }}
-          log_storage: ${{ variables.logstorage }}
     # Deploy BLOB Storage accounts for Data Lake
     - ${{ if eq(variables['azureblobstorage'], true) }}:
       - template: step-deploy-arm-blobstoragev2.yml
@@ -152,7 +150,6 @@ stages:
           databricks_workers : ${{ variables.databricksworkers }}
           databricks_autotermination : ${{ variables.databricksautotermination }}
           log_analytics: ${{ variables.loganalytics }}
-          log_storage: ${{ variables.logstorage }}
           
     # Deploy Databricks Workspace without v-net integration
     - ${{ if eq(variables['databricksnovnet'], true) }}:
@@ -167,7 +164,6 @@ stages:
           databricks_workers : ${{ variables.databricksworkers }}
           databricks_autotermination : ${{ variables.databricksautotermination }}
           log_analytics: ${{ variables.loganalytics }}
-          log_storage: ${{ variables.logstorage }}
     # Deploy Data Factory with access policies for AKV
     - ${{ if eq(variables['datafactory'], true) }}:
       - template: step-deploy-arm-datafactory-w-access-policies.yml
@@ -175,7 +171,6 @@ stages:
           AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
           resource_group: ${{ variables.resourcegroupname }}
           log_analytics: ${{ variables.loganalytics }}
-          log_storage: ${{ variables.logstorage }}
 
     # Deploy Synapse Analytics Workspace.
     - ${{ if eq(variables['synapseanalyticsworkspace'], true) }}:
