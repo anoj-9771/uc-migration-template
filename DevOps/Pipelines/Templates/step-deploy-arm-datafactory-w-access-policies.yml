@@ -5,8 +5,6 @@ parameters:
   type: string
 - name: log_analytics
   type: boolean
-- name: log_storage
-  type: boolean
 
 steps:
   - task: AzureResourceGroupDeployment@2
