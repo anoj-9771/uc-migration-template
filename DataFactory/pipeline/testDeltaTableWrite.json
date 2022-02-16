@@ -24,6 +24,7 @@
 						"queryTimeout": "02:00:00",
 						"partitionOption": "DynamicRange",
 						"partitionSettings": {
+							"partitionColumnName": "BELNR",
 							"partitionUpperBound": "",
 							"partitionLowerBound": ""
 						}
@@ -43,7 +44,8 @@
 						"path": "raw/landing/isu_data/erch",
 						"enableCompression": true
 					},
-					"parallelCopies": 20
+					"parallelCopies": 24,
+					"dataIntegrationUnits": 8
 				},
 				"inputs": [
 					{
