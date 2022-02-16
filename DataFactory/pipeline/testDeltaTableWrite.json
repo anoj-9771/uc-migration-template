@@ -18,13 +18,13 @@
 					"source": {
 						"type": "SqlServerSource",
 						"sqlReaderQuery": {
-							"value": "SELECT * FROM eq1.ERCH\nWHERE ?AdfDynamicRangePartitionCondition",
+							"value": "SELECT * FROM eq1.vw_ERCH\nWHERE ?AdfDynamicRangePartitionCondition",
 							"type": "Expression"
 						},
 						"queryTimeout": "02:00:00",
 						"partitionOption": "DynamicRange",
 						"partitionSettings": {
-							"partitionColumnName": "DELTA_TS",
+							"partitionColumnName": "DELTA_TS_DT",
 							"partitionUpperBound": "",
 							"partitionLowerBound": ""
 						}
