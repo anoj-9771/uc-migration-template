@@ -83,7 +83,8 @@
                 "networkAcls": {
                     "bypass": "AzureServices",
                     "defaultAction": "Deny"
-                }
+                },
+                "minimumTlsVersion": "TLS1_2"
             },
             "resources": []
         },
