@@ -18,7 +18,7 @@
 					"source": {
 						"type": "SqlServerSource",
 						"sqlReaderQuery": {
-							"value": "SELECT * FROM eq1.vw_ERCH\nWHERE ?AdfDynamicRangePartitionCondition",
+							"value": "SELECT * FROM dbo.vw_ERCH\nWHERE ?AdfDynamicRangePartitionCondition",
 							"type": "Expression"
 						},
 						"queryTimeout": "02:00:00",
