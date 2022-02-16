@@ -18,11 +18,15 @@
 					"source": {
 						"type": "SqlServerSource",
 						"sqlReaderQuery": {
-							"value": "SELECT * FROM eq1.ERCH",
+							"value": "SELECT * FROM eq1.ERCH\nWHERE ?AdfDynamicRangePartitionCondition",
 							"type": "Expression"
 						},
 						"queryTimeout": "02:00:00",
-						"partitionOption": "None"
+						"partitionOption": "DynamicRange",
+						"partitionSettings": {
+							"partitionUpperBound": "",
+							"partitionLowerBound": ""
+						}
 					},
 					"sink": {
 						"type": "AzureDatabricksDeltaLakeSink",
