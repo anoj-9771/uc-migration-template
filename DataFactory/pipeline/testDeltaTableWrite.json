@@ -18,16 +18,11 @@
 					"source": {
 						"type": "SqlServerSource",
 						"sqlReaderQuery": {
-							"value": "SELECT * FROM dbo.vw_ERCH\nWHERE ?AdfDynamicRangePartitionCondition",
+							"value": "SELECT * FROM EQ1.ERCH_TEST1",
 							"type": "Expression"
 						},
 						"queryTimeout": "02:00:00",
-						"partitionOption": "DynamicRange",
-						"partitionSettings": {
-							"partitionColumnName": "DELTA_TS_DT",
-							"partitionUpperBound": "",
-							"partitionLowerBound": ""
-						}
+						"partitionOption": "None"
 					},
 					"sink": {
 						"type": "AzureDatabricksDeltaLakeSink",
@@ -44,8 +39,7 @@
 						"path": "raw/landing/isu_data/erch",
 						"enableCompression": true
 					},
-					"parallelCopies": 24,
-					"dataIntegrationUnits": 8
+					"parallelCopies": 20
 				},
 				"inputs": [
 					{
@@ -53,7 +47,7 @@
 						"type": "DatasetReference",
 						"parameters": {
 							"kvSecret": {
-								"value": "daf-sql-slt-test-connectionstring",
+								"value": "daf-sql-slt-connectionstring",
 								"type": "Expression"
 							}
 						}
