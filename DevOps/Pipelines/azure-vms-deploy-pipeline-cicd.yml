@@ -47,6 +47,6 @@ stages:
 - template: Templates/stage-vms-deployment.yml
   parameters:
     stage_name: 'prod'
-    variable_template_name: preprd-variables
+    variable_template_name: prod-variables
     run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
     
