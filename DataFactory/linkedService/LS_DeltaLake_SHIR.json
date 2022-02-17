@@ -6,7 +6,7 @@
 		"type": "AzureDatabricksDeltaLake",
 		"typeProperties": {
 			"domain": "https://adb-7004525605760210.10.azuredatabricks.net",
-			"clusterId": "0216-023322-gejhoxce",
+			"clusterId": "0119-040452-w250kl9e",
 			"workspaceResourceId": "/subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-daf-dev-01/providers/Microsoft.Databricks/workspaces/dbw-swcnonprod01-daf-dev-01"
 		},
 		"connectVia": {
