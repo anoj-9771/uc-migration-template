@@ -14,6 +14,9 @@
 		"parameters": {
 			"kvSecret": {
 				"type": "string"
+			},
+			"tableName": {
+				"type": "string"
 			}
 		},
 		"folder": {
@@ -21,6 +24,12 @@
 		},
 		"annotations": [],
 		"type": "SqlServerTable",
-		"schema": []
+		"schema": [],
+		"typeProperties": {
+			"schema": {
+				"value": "@dataset().tableName",
+				"type": "Expression"
+			}
+		}
 	}
 }
