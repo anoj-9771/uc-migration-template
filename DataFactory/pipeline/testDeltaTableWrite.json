@@ -52,7 +52,7 @@
 						"type": "DatasetReference",
 						"parameters": {
 							"kvSecret": {
-								"value": "daf-sql-slt-connectionstring",
+								"value": "daf-sql-slt-test-connectionstring",
 								"type": "Expression"
 							},
 							"tableName": "ERCH_INT",
