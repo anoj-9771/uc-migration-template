@@ -5,13 +5,22 @@
 			"referenceName": "LS_DeltaLake_SHIR",
 			"type": "LinkedServiceReference"
 		},
+		"parameters": {
+			"TableName": {
+				"type": "string"
+			}
+		},
 		"folder": {
 			"name": "Data Lake"
 		},
 		"annotations": [],
 		"type": "AzureDatabricksDeltaLakeDataset",
 		"typeProperties": {
-			"database": "raw"
+			"database": "raw",
+			"table": {
+				"value": "@dataset().TableName",
+				"type": "Expression"
+			}
 		},
 		"schema": []
 	}
