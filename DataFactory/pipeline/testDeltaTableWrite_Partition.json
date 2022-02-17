@@ -47,7 +47,7 @@
 								"type": "Expression"
 							},
 							"tableName": "ERCH_TEST1",
-							"schemaName": "EQ1"
+							"schemaName": "eq1"
 						}
 					}
 				],
