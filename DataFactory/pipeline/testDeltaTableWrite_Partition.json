@@ -46,7 +46,7 @@
 								"value": "daf-sql-slt-connectionstring",
 								"type": "Expression"
 							},
-							"tableName": "ERCH_TEST1",
+							"tableName": "erch_test1",
 							"schemaName": "eq1"
 						}
 					}
