@@ -18,7 +18,7 @@
 					"source": {
 						"type": "SqlServerSource",
 						"sqlReaderQuery": {
-							"value": "SELECT * FROM EQ1.ERCH_TEST_INT WHERE ?AdfDynamicRangePartitionCondition",
+							"value": "SELECT * FROM EQ1.ERCH_INT WHERE ?AdfDynamicRangePartitionCondition",
 							"type": "Expression"
 						},
 						"queryTimeout": "02:00:00",
@@ -55,7 +55,7 @@
 								"value": "daf-sql-slt-connectionstring",
 								"type": "Expression"
 							},
-							"tableName": "ERCH_TEST_INT",
+							"tableName": "ERCH_INT",
 							"schemaName": "EQ1"
 						}
 					}
