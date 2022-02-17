@@ -1,0 +1,69 @@
+{
+	"name": "testDeltaTableWrite_Partition",
+	"properties": {
+		"activities": [
+			{
+				"name": "Copy-Source-DataLake",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "PhysicalPartitionsOfTable"
+					},
+					"sink": {
+						"type": "AzureDatabricksDeltaLakeSink",
+						"importSettings": {
+							"type": "AzureDatabricksDeltaLakeImportCommand"
+						}
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "LS_AzureDatalake",
+							"type": "LinkedServiceReference"
+						},
+						"path": "raw/landing/isu_data/erch",
+						"enableCompression": true
+					},
+					"parallelCopies": 20
+				},
+				"inputs": [
+					{
+						"referenceName": "SRC_SQLSERVER",
+						"type": "DatasetReference",
+						"parameters": {
+							"kvSecret": {
+								"value": "daf-sql-slt-connectionstring",
+								"type": "Expression"
+							},
+							"tableName": "EQ1.ERCH_TEST1"
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "DS_RAW_ADLS_DELTALAKE",
+						"type": "DatasetReference",
+						"parameters": {
+							"TableName": "isu_erch"
+						}
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "z_Archive/Test"
+		},
+		"annotations": []
+	}
+}
