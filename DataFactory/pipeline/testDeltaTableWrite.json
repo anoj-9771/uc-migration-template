@@ -54,7 +54,9 @@
 							"kvSecret": {
 								"value": "daf-sql-slt-connectionstring",
 								"type": "Expression"
-							}
+							},
+							"tableName": "ERCH_TEST_INT",
+							"schemaName": "EQ1"
 						}
 					}
 				],
