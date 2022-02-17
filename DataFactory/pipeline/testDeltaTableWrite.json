@@ -44,7 +44,8 @@
 						"path": "raw/landing/isu_data/erch",
 						"enableCompression": true
 					},
-					"parallelCopies": 20
+					"parallelCopies": 32,
+					"dataIntegrationUnits": 8
 				},
 				"inputs": [
 					{
