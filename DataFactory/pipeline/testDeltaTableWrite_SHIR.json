@@ -58,7 +58,7 @@
 						"referenceName": "DS_RAW_ADLS_DELTALAKE_SHIR",
 						"type": "DatasetReference",
 						"parameters": {
-							"TableName": "erch"
+							"TableName": "erch_alt01"
 						}
 					}
 				]
