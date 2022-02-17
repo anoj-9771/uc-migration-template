@@ -18,11 +18,16 @@
 					"source": {
 						"type": "SqlServerSource",
 						"sqlReaderQuery": {
-							"value": "SELECT * FROM EQ1.ERCH_TEST1",
+							"value": "SELECT * FROM EQ1.ERCH_TEST_INT WHERE ?AdfDynamicRangePartitionCondition",
 							"type": "Expression"
 						},
 						"queryTimeout": "02:00:00",
-						"partitionOption": "None"
+						"partitionOption": "DynamicRange",
+						"partitionSettings": {
+							"partitionColumnName": "DELTA_TS_INT",
+							"partitionUpperBound": "",
+							"partitionLowerBound": ""
+						}
 					},
 					"sink": {
 						"type": "AzureDatabricksDeltaLakeSink",
