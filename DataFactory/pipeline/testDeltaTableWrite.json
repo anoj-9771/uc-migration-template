@@ -42,7 +42,7 @@
 							"type": "LinkedServiceReference"
 						},
 						"path": "raw/landing/isu_data/erch",
-						"enableCompression": true
+						"enableCompression": false
 					},
 					"parallelCopies": 32,
 					"dataIntegrationUnits": 8
