@@ -137,6 +137,7 @@ else:
     try:
       df = spark.read\
       .format(file_type) \
+      .option("samplingRatio","0.3") \
       .option("inferSchema","true")\
       .option("allowUnquotedFieldNames","true")\
       .option("allowSingleQuotes","true")\
@@ -149,6 +150,7 @@ else:
       df = spark.read\
       .format(file_type) \
       .option("multiline", "true")\
+      .option("samplingRatio","0.3") \
       .option("inferSchema","true")\
       .option("allowUnquotedFieldNames","true")\
       .option("allowSingleQuotes","true")\
@@ -160,7 +162,7 @@ else:
     finally:
       current_record_count = df.count()
       print("Records read from file : " + str(current_record_count))
-      df.printSchema()   
+      df.printSchema()
 
 # COMMAND ----------
 
