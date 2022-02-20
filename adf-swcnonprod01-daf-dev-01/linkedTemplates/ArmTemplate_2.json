@@ -13,28 +13,74 @@
 	},
 	"resources": [
 		{
-			"name": "[concat(parameters('factoryName'), '/SRC_Oracle')]",
+			"name": "[concat(parameters('factoryName'), '/SRC_BLOB_JSON_copy1')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
 			"properties": {
 				"linkedServiceName": {
-					"referenceName": "LS_Oracle",
-					"type": "LinkedServiceReference",
-					"parameters": {
-						"kvSecret": "OracleDB-PAS"
-					}
+					"referenceName": "LS_AzureBlobStorage",
+					"type": "LinkedServiceReference"
 				},
 				"parameters": {
-					"kvSecret": {
+					"BlobName": {
 						"type": "string"
 					}
 				},
 				"folder": {
-					"name": "z_Archive"
+					"name": "Source - Blob"
 				},
 				"annotations": [],
-				"type": "OracleTable",
-				"typeProperties": {}
+				"type": "Json",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": {
+							"value": "@dataset().BlobName",
+							"type": "Expression"
+						},
+						"container": "bods"
+					}
+				},
+				"schema": {}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/SRC_BLOB_JSON_v2')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_AzureBlobStorage",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"BlobContainer": {
+						"type": "string"
+					},
+					"BlobName": {
+						"type": "string"
+					}
+				},
+				"folder": {
+					"name": "Source - Blob"
+				},
+				"annotations": [],
+				"type": "Json",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": {
+							"value": "@dataset().BlobName",
+							"type": "Expression"
+						},
+						"container": {
+							"value": "@dataset().BlobContainer",
+							"type": "Expression"
+						}
+					}
+				},
+				"schema": {}
 			},
 			"dependsOn": []
 		},
@@ -79,36 +125,6 @@
 					"quoteChar": ""
 				},
 				"schema": []
-			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/SRC_SQLSERVER')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "LS_SQLServer",
-					"type": "LinkedServiceReference",
-					"parameters": {
-						"kvSecret": {
-							"value": "@dataset().kvSecret",
-							"type": "Expression"
-						}
-					}
-				},
-				"parameters": {
-					"kvSecret": {
-						"type": "string"
-					}
-				},
-				"folder": {
-					"name": "SQL Server"
-				},
-				"annotations": [],
-				"type": "SqlServerTable",
-				"schema": [],
-				"typeProperties": {}
 			},
 			"dependsOn": []
 		},
@@ -478,7 +494,7 @@
 								"type": "DatasetReference",
 								"parameters": {
 									"BlobContainer": "@variables('SourceContainer')",
-									"BlobName": "@concat(variables('SourceFileName'),'*')"
+									"BlobName": "@concat(variables('SourceFileName'),'_*')"
 								}
 							},
 							"fieldList": [
@@ -1689,7 +1705,9 @@
 				"annotations": [],
 				"lastPublishTime": "2021-06-30T08:46:15Z"
 			},
-			"dependsOn": []
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/SRC_BLOB_JSON_v2')]"
+			]
 		},
 		{
 			"name": "[concat(parameters('factoryName'), '/04-Blob-A-Source Load_Old')]",
@@ -2943,7 +2961,9 @@
 				"annotations": [],
 				"lastPublishTime": "2021-06-30T08:46:15Z"
 			},
-			"dependsOn": []
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/SRC_BLOB_JSON_copy1')]"
+			]
 		},
 		{
 			"name": "[concat(parameters('factoryName'), '/04-Blob-Json-A-Source-Copy')]",
@@ -4911,9 +4931,7 @@
 				"annotations": [],
 				"lastPublishTime": "2021-06-24T00:21:44Z"
 			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/SRC_Oracle')]"
-			]
+			"dependsOn": []
 		},
 		{
 			"name": "[concat(parameters('factoryName'), '/04-Oracle-Generate-Source-Schema')]",
@@ -5244,9 +5262,7 @@
 				"annotations": [],
 				"lastPublishTime": "2021-06-21T11:09:16Z"
 			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/SRC_Oracle')]"
-			]
+			"dependsOn": []
 		},
 		{
 			"name": "[concat(parameters('factoryName'), '/04-SQLServer-Generate-Source-Schema')]",
@@ -5572,9 +5588,7 @@
 				},
 				"annotations": []
 			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/SRC_SQLSERVER')]"
-			]
+			"dependsOn": []
 		},
 		{
 			"name": "[concat(parameters('factoryName'), '/05-DL-Load-Raw-to-Cleansed')]",
@@ -6277,7 +6291,9 @@
 				},
 				"annotations": []
 			},
-			"dependsOn": []
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/SRC_BLOB_JSON_copy1')]"
+			]
 		},
 		{
 			"name": "[concat(parameters('factoryName'), '/recon-record-validation')]",
@@ -8009,7 +8025,8 @@
 				"lastPublishTime": "2021-06-30T08:46:15Z"
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/pipelines/04-Blob-A-Pre-Process_NC_File')]"
+				"[concat(variables('factoryId'), '/pipelines/04-Blob-A-Pre-Process_NC_File')]",
+				"[concat(variables('factoryId'), '/datasets/SRC_BLOB_JSON_copy1')]"
 			]
 		},
 		{
@@ -8803,7 +8820,6 @@
 				"annotations": []
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/SRC_SQLSERVER')]",
 				"[concat(variables('factoryId'), '/pipelines/recon-record-validation')]"
 			]
 		},
@@ -8999,7 +9015,6 @@
 				"annotations": []
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/SRC_SQLSERVER')]",
 				"[concat(variables('factoryId'), '/pipelines/recon-record-validation')]"
 			]
 		},
@@ -10015,7 +10030,6 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/pipelines/04-SQLServer-Generate-Source-Schema')]",
-				"[concat(variables('factoryId'), '/datasets/SRC_SQLSERVER')]",
 				"[concat(variables('factoryId'), '/pipelines/04-SQLServer-B-Source-Copy')]"
 			]
 		}

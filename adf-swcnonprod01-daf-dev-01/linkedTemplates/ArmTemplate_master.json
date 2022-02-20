@@ -7,10 +7,6 @@
 			"metadata": "Data Factory name",
 			"defaultValue": "adf-swcnonprod01-daf-dev-01"
 		},
-		"LS-AzureSqlDatabase_Ctrldb_connectionString": {
-			"type": "secureString",
-			"metadata": "Secure string for 'connectionString' of 'LS-AzureSqlDatabase_Ctrldb'"
-		},
 		"LS-AzureDatabricks_DefinedCluster_properties_typeProperties_domain": {
 			"type": "string",
 			"defaultValue": "https://adb-7004525605760210.10.azuredatabricks.net/"
@@ -22,6 +18,10 @@
 		"LS-AzureKeyVault_properties_typeProperties_baseUrl": {
 			"type": "string",
 			"defaultValue": "https://kv-daf-dev-01.vault.azure.net/"
+		},
+		"LS-AzureSqlDatabase_Ctrldb_properties_typeProperties_connectionString_secretName": {
+			"type": "string",
+			"defaultValue": "daf-sql-controldb-connectionstring"
 		},
 		"LS_AzureBlobStorage_properties_typeProperties_serviceEndpoint": {
 			"type": "string",
@@ -138,9 +138,6 @@
 					"factoryName": {
 						"value": "[parameters('factoryName')]"
 					},
-					"LS-AzureSqlDatabase_Ctrldb_connectionString": {
-						"value": "[parameters('LS-AzureSqlDatabase_Ctrldb_connectionString')]"
-					},
 					"LS-AzureKeyVault_properties_typeProperties_baseUrl": {
 						"value": "[parameters('LS-AzureKeyVault_properties_typeProperties_baseUrl')]"
 					},
@@ -150,26 +147,8 @@
 					"LS-AzureDatabricks_JobCluster_properties_typeProperties_domain": {
 						"value": "[parameters('LS-AzureDatabricks_JobCluster_properties_typeProperties_domain')]"
 					},
-					"LS_AzureBlobStorage_properties_typeProperties_serviceEndpoint": {
-						"value": "[parameters('LS_AzureBlobStorage_properties_typeProperties_serviceEndpoint')]"
-					},
-					"LS_AzureBlobStorage_properties_typeProperties_tenant": {
-						"value": "[parameters('LS_AzureBlobStorage_properties_typeProperties_tenant')]"
-					},
-					"LS_AzureBlobStorage_properties_typeProperties_servicePrincipalId": {
-						"value": "[parameters('LS_AzureBlobStorage_properties_typeProperties_servicePrincipalId')]"
-					},
 					"LS_AzureDatabricks_InstancePool_properties_typeProperties_domain": {
 						"value": "[parameters('LS_AzureDatabricks_InstancePool_properties_typeProperties_domain')]"
-					},
-					"LS_AzureDatalake_properties_typeProperties_url": {
-						"value": "[parameters('LS_AzureDatalake_properties_typeProperties_url')]"
-					},
-					"LS_AzureDatalake_properties_typeProperties_tenant": {
-						"value": "[parameters('LS_AzureDatalake_properties_typeProperties_tenant')]"
-					},
-					"LS_AzureDatalake_properties_typeProperties_servicePrincipalId": {
-						"value": "[parameters('LS_AzureDatalake_properties_typeProperties_servicePrincipalId')]"
 					},
 					"LS_Oracle_properties_typeProperties_connectionString_secretName": {
 						"value": "[parameters('LS_Oracle_properties_typeProperties_connectionString_secretName')]"
@@ -194,6 +173,27 @@
 					},
 					"mpe_sqlserver_01_properties_groupId": {
 						"value": "[parameters('mpe_sqlserver_01_properties_groupId')]"
+					},
+					"LS-AzureSqlDatabase_Ctrldb_properties_typeProperties_connectionString_secretName": {
+						"value": "[parameters('LS-AzureSqlDatabase_Ctrldb_properties_typeProperties_connectionString_secretName')]"
+					},
+					"LS_AzureBlobStorage_properties_typeProperties_serviceEndpoint": {
+						"value": "[parameters('LS_AzureBlobStorage_properties_typeProperties_serviceEndpoint')]"
+					},
+					"LS_AzureBlobStorage_properties_typeProperties_tenant": {
+						"value": "[parameters('LS_AzureBlobStorage_properties_typeProperties_tenant')]"
+					},
+					"LS_AzureBlobStorage_properties_typeProperties_servicePrincipalId": {
+						"value": "[parameters('LS_AzureBlobStorage_properties_typeProperties_servicePrincipalId')]"
+					},
+					"LS_AzureDatalake_properties_typeProperties_url": {
+						"value": "[parameters('LS_AzureDatalake_properties_typeProperties_url')]"
+					},
+					"LS_AzureDatalake_properties_typeProperties_tenant": {
+						"value": "[parameters('LS_AzureDatalake_properties_typeProperties_tenant')]"
+					},
+					"LS_AzureDatalake_properties_typeProperties_servicePrincipalId": {
+						"value": "[parameters('LS_AzureDatalake_properties_typeProperties_servicePrincipalId')]"
 					}
 				}
 			},
