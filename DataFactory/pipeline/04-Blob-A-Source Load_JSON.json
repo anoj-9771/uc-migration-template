@@ -40,7 +40,7 @@
 						"type": "DatasetReference",
 						"parameters": {
 							"BlobContainer": "@variables('SourceContainer')",
-							"BlobName": "@concat(variables('SourceFileName'),'*')"
+							"BlobName": "@concat(variables('SourceFileName'),'_*')"
 						}
 					},
 					"fieldList": [
@@ -461,10 +461,7 @@
 												},
 												"linkedServiceName": {
 													"referenceName": "LS-AzureSqlDatabase_Ctrldb",
-													"type": "LinkedServiceReference",
-													"parameters": {
-														"kvSecret": "daf-sql-controldb-connectionstring"
-													}
+													"type": "LinkedServiceReference"
 												}
 											}
 										]
@@ -752,10 +749,7 @@
 												},
 												"linkedServiceName": {
 													"referenceName": "LS-AzureSqlDatabase_Ctrldb",
-													"type": "LinkedServiceReference",
-													"parameters": {
-														"kvSecret": "daf-sql-controldb-connectionstring"
-													}
+													"type": "LinkedServiceReference"
 												}
 											},
 											{
@@ -872,10 +866,7 @@
 												},
 												"linkedServiceName": {
 													"referenceName": "LS-AzureSqlDatabase_Ctrldb",
-													"type": "LinkedServiceReference",
-													"parameters": {
-														"kvSecret": "daf-sql-controldb-connectionstring"
-													}
+													"type": "LinkedServiceReference"
 												}
 											}
 										]
@@ -1091,10 +1082,7 @@
 				},
 				"linkedServiceName": {
 					"referenceName": "LS-AzureSqlDatabase_Ctrldb",
-					"type": "LinkedServiceReference",
-					"parameters": {
-						"kvSecret": "daf-sql-controldb-connectionstring"
-					}
+					"type": "LinkedServiceReference"
 				}
 			},
 			{
@@ -1162,10 +1150,7 @@
 				},
 				"linkedServiceName": {
 					"referenceName": "LS-AzureSqlDatabase_Ctrldb",
-					"type": "LinkedServiceReference",
-					"parameters": {
-						"kvSecret": "daf-sql-controldb-connectionstring"
-					}
+					"type": "LinkedServiceReference"
 				}
 			},
 			{
