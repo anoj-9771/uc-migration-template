@@ -25,7 +25,11 @@ def getLocation():
                                      upper(c.streetName) as streetName, \
                                      upper(trim(coalesce(streetLine1,'')||' '||coalesce(streetLine2,''))) as streetType, d.LGA as LGA, \
                                      upper(c.cityName) as suburb, c.stateCode as state, c.postCode, a.latitude, a.longitude \
-                                     from (select propertyNumber, first(latitude) as latitude, first(longitude) as longitude from {ADS_DATABASE_CLEANSED}.hydra_tlotparcel where _RecordDeleted = 0 and _RecordCurrent = 1 group by propertyNumber) a, \
+                                     from (select propertyNumber, latitude, longitude from \
+                                              (select propertyNumber, latitude, longitude, \
+                                                row_number() over (partition by propertyNumber order by areaSize desc) recNum \
+                                                from cleansed.hydra_tlotparcel where _RecordDeleted = 0 and _RecordCurrent = 1 ) \
+                                                where recNum = 1) a, \
                                           {ADS_DATABASE_CLEANSED}.isu_vibdnode b, \
                                           {ADS_DATABASE_CLEANSED}.isu_0funct_loc_attr c, \
                                           {ADS_DATABASE_CLEANSED}.isu_0uc_connobj_attr_2 d \
@@ -48,7 +52,11 @@ def getLocation():
                                      upper(c.streetName) as streetName, \
                                      upper(trim(coalesce(c.streetLine1,'')||' '||coalesce(c.streetLine2,''))) as streetType, d.LGA as LGA, \
                                      upper(c.cityName) as suburb, c.stateCode as state, c.postCode, a.latitude, a.longitude \
-                                     from (select propertyNumber, first(latitude) as latitude, first(longitude) as longitude from {ADS_DATABASE_CLEANSED}.hydra_tlotparcel where _RecordDeleted = 0 and _RecordCurrent = 1 group by propertyNumber) a, \
+                                     from (select propertyNumber, latitude, longitude from \
+                                              (select propertyNumber, latitude, longitude, \
+                                                row_number() over (partition by propertyNumber order by areaSize desc) recNum \
+                                                from cleansed.hydra_tlotparcel where _RecordDeleted = 0 and _RecordCurrent = 1 ) \
+                                                where recNum = 1) a, \
                                           {ADS_DATABASE_CLEANSED}.isu_vibdnode b, \
                                           {ADS_DATABASE_CLEANSED}.isu_0funct_loc_attr c, \
                                           {ADS_DATABASE_CLEANSED}.isu_0funct_loc_attr c1, \
