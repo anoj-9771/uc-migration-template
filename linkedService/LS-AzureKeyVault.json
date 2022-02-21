@@ -1,0 +1,11 @@
+{
+	"name": "LS-AzureKeyVault",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "AzureKeyVault",
+		"typeProperties": {
+			"baseUrl": "https://kv-daf-preprod-01.vault.azure.net/"
+		}
+	}
+}

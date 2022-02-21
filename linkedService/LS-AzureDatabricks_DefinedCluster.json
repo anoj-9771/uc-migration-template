@@ -1,0 +1,38 @@
+{
+	"name": "LS-AzureDatabricks_DefinedCluster",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"parameters": {
+			"kvSecret": {
+				"type": "string",
+				"defaultValue": "databricks-token"
+			},
+			"clusterId": {
+				"type": "string",
+				"defaultValue": "1103-023442-me8nqcm9"
+			}
+		},
+		"annotations": [],
+		"type": "AzureDatabricks",
+		"typeProperties": {
+			"domain": "https://adb-2717485385283200.0.azuredatabricks.net",
+			"accessToken": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "LS-AzureKeyVault",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": {
+					"value": "@linkedService().kvSecret",
+					"type": "Expression"
+				},
+				"secretVersion": ""
+			},
+			"existingClusterId": "@linkedService().clusterId"
+		},
+		"connectVia": {
+			"referenceName": "IntegrationRuntime-SelfHosted",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}
