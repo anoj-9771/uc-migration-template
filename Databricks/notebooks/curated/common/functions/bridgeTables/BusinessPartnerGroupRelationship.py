@@ -52,9 +52,9 @@ def getBusinessPartnerGroupRelationship():
                                       from {ADS_DATABASE_CURATED}.dimBusinessPartnerGroup \
                                       where _RecordCurrent = 1 and _RecordDeleted = 0") 
     
-#     dummyDimRecDf = spark.sql(f"select dimBusinessPartnerSK as dummyDimSK, sourceSystemCode, 'dimBusinessPartner' as dimension from {ADS_DATABASE_CURATED}.dimBusinessPartner where businessPartnerNumber = '-1' \
-#                             union select dimBusinessPartnerGroupSK as dummyDimSK, sourceSystemCode, 'dimBusinessPartnerGroup' as dimension from {ADS_DATABASE_CURATED}.dimBusinessPartnerGroup \
-#                                                                                                                                             where businessPartnerGroupNumber = '-1'")
+    dummyDimRecDf = spark.sql(f"select dimBusinessPartnerSK as dummyDimSK, sourceSystemCode, 'dimBusinessPartner' as dimension from {ADS_DATABASE_CURATED}.dimBusinessPartner where businessPartnerNumber = '-1' \
+                            union select dimBusinessPartnerGroupSK as dummyDimSK, sourceSystemCode, 'dimBusinessPartnerGroup' as dimension from {ADS_DATABASE_CURATED}.dimBusinessPartnerGroup \
+                                                                                                                                            where businessPartnerGroupNumber = '-1'")
     
     
     #4.Joins to derive SKs
