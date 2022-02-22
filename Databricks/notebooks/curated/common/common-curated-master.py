@@ -119,7 +119,7 @@ def TemplateEtl(df : object, entity, businessKey, AddSK = True):
                                    v_COMMON_CURATED_DATABASE, 
                                    v_COMMON_DATALAKE_FOLDER, 
                                    ADS_WRITE_MODE_MERGE, 
-                                   track_changes = True, 
+                                   track_changes = False, 
                                    is_delta_extract = False, 
                                    business_key = businessKey, 
                                    AddSKColumn = AddSK, 

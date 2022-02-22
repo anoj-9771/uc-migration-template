@@ -201,7 +201,7 @@ df_cleansed = spark.sql(f"SELECT \
 	MAHNS as dunningLevel, \
 	WAERS as currencyKey, \
 	cast(MSALM as dec(13,2)) as dunningBalance, \
-	cast(RSALM as dec(13,2)) as totalDuningReductions, \
+	cast(RSALM as dec(13,2)) as totalDunningReductions, \
 	CHGID as chargesSchedule, \
 	cast(MGE1M as dec(13,2)) as dunningCharge1, \
 	MG1BL as documentNumber, \
@@ -251,7 +251,7 @@ newSchema = StructType([
 	StructField('dunningLevel',StringType(),True),
 	StructField('currencyKey',StringType(),True),
 	StructField('dunningBalance',DecimalType(13,2),True),
-	StructField('totalDuningReductions',DecimalType(13,2),True),
+	StructField('totalDunningReductions',DecimalType(13,2),True),
 	StructField('chargesSchedule',StringType(),True),
 	StructField('dunningCharge1',DecimalType(13,2),True),
 	StructField('documentNumber',StringType(),True),

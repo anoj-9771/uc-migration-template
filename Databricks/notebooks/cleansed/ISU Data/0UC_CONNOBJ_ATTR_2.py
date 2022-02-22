@@ -222,8 +222,8 @@ df_cleansed = spark.sql(f"SELECT \
                               con.WATER_DELIVERY_SYSTEM as waterDeliverySystem, \
                               con.WATER_DISTRIBUTION_SYSTEM_WATE as waterDistributionSystem, \
                               con.WATER_SUPPLY_ZONE as waterSupplyZone, \
-                              con.RECYCLE_WATER_DELIVERY_SYSTEM as receycleWaterDeliverySystem, \
-                              con.RECYCLE_WATER_DISTRIBUTION_SYS as receycleWaterDistributionSystem, \
+                              con.RECYCLE_WATER_DELIVERY_SYSTEM as recycleWaterDeliverySystem, \
+                              con.RECYCLE_WATER_DISTRIBUTION_SYS as recycleWaterDistributionSystem, \
                               con.RECYCLE_WATER_SUPPLY_ZONE as recycleWaterSupplyZone, \
                               con.ZCD_SUP_PROP_TYPE as superiorPropertyTypeCode, \
                               sp.superiorPropertyType as superiorPropertyType, \
@@ -304,8 +304,8 @@ newSchema = StructType([
                         StructField("waterDeliverySystem", StringType(), True),
                         StructField("waterDistributionSystem", StringType(), True),
                         StructField("waterSupplyZone", StringType(), True),
-                        StructField("receycleWaterDeliverySystem", StringType(), True),
-                        StructField("receycleWaterDistributionSystem", StringType(), True),
+                        StructField("recycleWaterDeliverySystem", StringType(), True),
+                        StructField("recycleWaterDistributionSystem", StringType(), True),
                         StructField("recycleWaterSupplyZone", StringType(), True),
                         StructField("superiorPropertyTypeCode", StringType(), True),
                         StructField("superiorPropertyType", StringType(), True),
