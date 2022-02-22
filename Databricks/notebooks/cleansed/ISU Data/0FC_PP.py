@@ -196,7 +196,7 @@ df_cleansed = spark.sql(f"SELECT \
                             PPSTA as promiseToPayStatus, \
                             XSTCH as statusChangedIndicator, \
                             PPKEY_NEW as replacementPromiseToPayId, \
-                            XINDR as installmentsAgreed, \
+                            XINDR as instalmentsAgreed, \
                             ToValidDate(FTDAT) as firstDueDate, \
                             ToValidDate(LTDAT) as finalDueDate, \
                             NRRTS as numberOfPayments, \
@@ -234,7 +234,7 @@ newSchema = StructType([
                         StructField('promiseToPayStatus',StringType(),True),
                         StructField('statusChangedIndicator',StringType(),True),
                         StructField('replacementPromiseToPayId',StringType(),True),
-                        StructField('installmentsAgreed',StringType(),True),
+                        StructField('instalmentsAgreed',StringType(),True),
                         StructField('firstDueDate',DateType(),True),
                         StructField('finalDueDate',DateType(),True),
                         StructField('numberOfPayments',StringType(),True),

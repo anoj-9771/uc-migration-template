@@ -177,7 +177,7 @@ DeltaSaveToDeltaTable (
 #Update/rename Column
 #Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
 df_cleansed = spark.sql(f"SELECT \
-                            case when ABLBELNR = 'na' then '' else ABLBELNR end as suppressedMeterReadingDocumentID, \
+                            case when ABLBELNR = 'na' then '' else ABLBELNR end as suppressedMeterReadingDocumentId, \
                             ABLEINH as meterReadingUnit, \
                             case when ABLESGR = 'na' then '' else ABLESGR end as meterReadingReasonCode, \
                             ToValidDate(ADATSOLL) as meterReadingScheduleDate, \
@@ -195,7 +195,7 @@ print(f'Number of rows: {df_cleansed.count()}')
 # COMMAND ----------
 
 newSchema = StructType([
-                  StructField('suppressedMeterReadingDocumentID',StringType(),False),
+                  StructField('suppressedMeterReadingDocumentId',StringType(),False),
                   StructField('meterReadingUnit',StringType(),True),
                   StructField('meterReadingReasonCode',StringType(),False),
                   StructField('meterReadingScheduleDate',DateType(),True),

@@ -186,7 +186,7 @@ df_cleansed = spark.sql(f"SELECT  \
                                       AKTIV as meterReadingActive , \
                                       ToValidDate(ADATSOLL) as scheduledMeterReadingDate , \
                                       ABLSTAT as meterReadingStatus , \
-                                      ABLHINW as notefromMeterReader , \
+                                      ABLHINW as noteFromMeterReader , \
                                       ABLESART as scheduledMeterReadingCategory , \
                                       ABLESER as meterReaderNumber , \
                                       MDEUPL as orderHasBeenOutput , \
@@ -201,13 +201,13 @@ df_cleansed = spark.sql(f"SELECT  \
                                       TRANSSTAT as transferStatusCode , \
                                       TRANSTSTAMP as timeStamp , \
                                       SOURCESYST as sourceSystemOrigin , \
-                                      ToValidDate(ZPREV_ADT) as actualPreviousmeterReadingDate , \
+                                      ToValidDate(ZPREV_ADT) as actualPreviousMeterReadingDate , \
                                       ZPREV_MRESULT as meterPreviousReadingTaken , \
                                       ZZ_PHOTO_IND as meterPhotoIndicator , \
                                       ZZ_FREE_TEXT as freeText , \
                                       ZZ_COMM_CODE as meterReadingCommentCode , \
                                       ZZ_NO_READ_CODE as noReadCode , \
-                                      ZGERNR as DeviceNumber , \
+                                      ZGERNR as deviceNumber , \
                                       ToValidDate(ZADATTATS) as actualMeterReadingDate , \
                                       ZWNABR as registerNotRelevantToBilling , \
                                       ToValidDate(AEDAT) as lastChangedDate , \
@@ -234,7 +234,7 @@ newSchema = StructType(
                               StructField("meterReadingActive", StringType(), True),
                               StructField("scheduledMeterReadingDate", DateType(), True),
                               StructField("meterReadingStatus", StringType(), True),
-                              StructField("notefromMeterReader", StringType(), True),
+                              StructField("noteFromMeterReader", StringType(), True),
                               StructField("scheduledMeterReadingCategory", StringType(), True),
                               StructField("meterReaderNumber", StringType(), True),
                               StructField("orderHasBeenOutput", StringType(), True),
@@ -249,13 +249,13 @@ newSchema = StructType(
                               StructField("transferStatusCode", StringType(), True),
                               StructField("timeStamp",DoubleType(), True),
                               StructField("sourceSystemOrigin", LongType(), True),
-                              StructField("actualPreviousmeterReadingDate", DateType(), True),
+                              StructField("actualPreviousMeterReadingDate", DateType(), True),
                               StructField("meterPreviousReadingTaken",DoubleType(), True),
                               StructField("meterPhotoIndicator", StringType(), True),
                               StructField("freeText", StringType(), True),
                               StructField("meterReadingCommentCode", StringType(), True),
                               StructField("noReadCode", StringType(), True),
-                              StructField("DeviceNumber", StringType(), True),
+                              StructField("deviceNumber", StringType(), True),
                               StructField("actualMeterReadingDate", DateType(), True),
                               StructField("registerNotRelevantToBilling", StringType(), True),
                               StructField("lastChangedDate", DateType(), True),
