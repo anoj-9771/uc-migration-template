@@ -18,7 +18,7 @@
 					"source": {
 						"type": "SqlServerSource",
 						"sqlReaderQuery": {
-							"value": "SELECT * FROM EQ1.ERCH_TEST1 WHERE ?AdfDynamicRangePartitionCondition",
+							"value": "SELECT * FROM EQ1.ERCHO WHERE ?AdfDynamicRangePartitionCondition",
 							"type": "Expression"
 						},
 						"queryTimeout": "02:00:00",
@@ -41,7 +41,7 @@
 							"referenceName": "LS_AzureDatalake",
 							"type": "LinkedServiceReference"
 						},
-						"path": "raw/landing/isu_data/erch",
+						"path": "raw/landing/isu_data/ercho",
 						"enableCompression": false
 					},
 					"parallelCopies": 32,
@@ -56,7 +56,7 @@
 								"value": "daf-sql-slt-test-connectionstring",
 								"type": "Expression"
 							},
-							"tableName": "ERCH_INT",
+							"tableName": "ERCHO",
 							"schemaName": "EQ1"
 						}
 					}
@@ -66,12 +66,60 @@
 						"referenceName": "DS_RAW_ADLS_DELTALAKE",
 						"type": "DatasetReference",
 						"parameters": {
-							"TableName": "isu_erch"
+							"TableName": "isu_ercho"
 						}
 					}
 				]
+			},
+			{
+				"name": "Set variable1",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "Copy-Source-DataLake",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "RecordsRead",
+					"value": {
+						"value": "@activity('Copy-Source-DataLake').output.rowsRead",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Set variable2",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "Copy-Source-DataLake",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "RecordsWritten",
+					"value": {
+						"value": "@activity('Copy-Source-DataLake').output.rowsCopied",
+						"type": "Expression"
+					}
+				}
 			}
 		],
+		"variables": {
+			"RecordsWritten": {
+				"type": "String"
+			},
+			"RecordsRead": {
+				"type": "String"
+			}
+		},
 		"folder": {
 			"name": "z_Archive/Test"
 		},
