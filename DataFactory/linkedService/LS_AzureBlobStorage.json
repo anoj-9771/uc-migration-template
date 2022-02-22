@@ -4,11 +4,21 @@
 		"annotations": [],
 		"type": "AzureBlobStorage",
 		"typeProperties": {
-			"serviceEndpoint": "https://sablobdafdev01.blob.core.windows.net/",
+			"serviceEndpoint": "https://sablobdafdev01.blob.core.windows.net",
+			"tenant": "8351bb5c-749d-4ee4-b1c4-71a3971acbe9",
+			"servicePrincipalId": "acff96db-8630-433b-bbb1-35a3813fa036",
+			"servicePrincipalKey": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "LS-AzureKeyVault",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "SERVICE-PRINCIPAL-SECRET"
+			},
 			"accountKind": "StorageV2"
 		},
 		"connectVia": {
-			"referenceName": "IntegrationRuntime-SelfHosted",
+			"referenceName": "IntegrationRuntime-Azure-ManagedVnet-01",
 			"type": "IntegrationRuntimeReference"
 		}
 	},

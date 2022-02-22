@@ -176,7 +176,7 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 #Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
-df_cleansed_column = spark.sql(f"SELECT  \
+df_cleansed = spark.sql(f"SELECT  \
                                   case when BELNR = 'na' then '' else BELNR end as billingDocumentNumber, \
                                   case when BELZEILE = 'na' then '' else BELZEILE end as billingDocumentLineItemId, \
                                   CSNO as billingSequenceNumber, \
@@ -233,7 +233,7 @@ df_cleansed_column = spark.sql(f"SELECT  \
                                   AKTIV as meterReadingActiveIndicator, \
                                   KONZVER as franchiseContractIndicator, \
                                   PERTYP as billingPeriodInternalCategoryCode, \
-                                  OUCONTRACT as individualContractID, \
+                                  OUCONTRACT as individualContractId, \
                                   cast(V_ABRMENGE as dec(17)) as billingQuantityPlaceBeforeDecimalPoint, \
                                   cast(N_ABRMENGE as dec(14,14)) as billingQuantityPlaceAfterDecimalPoint, \
                                   stg._RecordStart, \
@@ -243,7 +243,8 @@ df_cleansed_column = spark.sql(f"SELECT  \
                                FROM {ADS_DATABASE_STAGE}.{source_object} stg \
                                  left outer join {ADS_DATABASE_CLEANSED}.isu_0uc_aklasse_text bc on bc.billingClassCode = stg.AKLASSE"
                              )
-display(df_cleansed_column)
+
+print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
 
@@ -304,7 +305,7 @@ newSchema = StructType([
                             StructField('meterReadingActiveIndicator', StringType(), True),
                             StructField('franchiseContractIndicator', StringType(), True),
                             StructField('billingPeriodInternalCategoryCode', StringType(), True),
-                            StructField('individualContractID', StringType(), True),
+                            StructField('individualContractId', StringType(), True),
                             StructField('billingQuantityPlaceBeforeDecimalPoint', DecimalType(17), True),
                             StructField('billingQuantityPlaceAfterDecimalPoint', DecimalType(14,14), True),
                             StructField('_RecordStart', DateType(), False),
@@ -313,14 +314,12 @@ newSchema = StructType([
                             StructField('_RecordCurrent', IntegerType(), False),
                     ])
 
-df_updated_column = spark.createDataFrame(df_cleansed_column.rdd, schema=newSchema)
-display(df_updated_column)
 
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
-DeltaSaveDataframeDirect(df_updated_column, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
+DeltaSaveDataframeDirect(df_cleansed, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", newSchema, "")
 
 # COMMAND ----------
 

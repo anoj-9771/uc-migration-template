@@ -21,9 +21,6 @@ def getProperty():
     #2.Load Cleansed layer table data into dataframe
     accessZ309TpropertyDf = spark.sql(f"select cast(propertyNumber as string), \
                                             'ACCESS' as sourceSystemCode, \
-                                            propertyTypeEffectiveFrom as propertyStartDate, \
-                                            coalesce(lead(propertyTypeEffectiveFrom) over (partition by propertyNumber order by propertyTypeEffectiveFrom)-1, \
-                                                        to_date('2099-12-31', 'yyyy-mm-dd'))  as propertyEndDate, \
                                             propertyTypeCode, \
                                             propertyType, \
                                             superiorPropertyTypeCode, \
@@ -49,13 +46,10 @@ def getProperty():
 
     sapisuDf = spark.sql(f"select co.propertyNumber, \
                                 'ISU' as sourceSystemCode, \
-                                ph.validFromDate as propertyStartDate, \
-                                coalesce(lead(ph.validFromDate) over (partition by ph.propertyNumber order by ph.validFromDate)-1, \
-                                                        to_date('2099-12-31', 'yyyy-mm-dd'))  as propertyEndDate, \
-                                ph.inferiorPropertyTypeCode as propertyTypeCode, \
-                                ph.inferiorPropertyType as propertyType, \
-                                ph.superiorPropertyTypeCode, \
-                                ph.superiorPropertyType, \
+                                null as propertyTypeCode, \
+                                null as propertyType, \
+                                null as superiorPropertyTypeCode, \
+                                null as superiorPropertyType, \
                                 CASE WHEN vd.hydraAreaUnit == 'HAR' THEN cast(vd.hydraCalculatedArea * 10000 as dec(18,6)) \
                                      WHEN vd.hydraAreaUnit == 'M2'  THEN cast(vd.hydraCalculatedArea as dec(18,6)) \
                                                                     ELSE null END AS areaSize, \
@@ -73,43 +67,32 @@ def getProperty():
                                 co.sectionNumber, \
                                 co.architecturalObjectTypeCode as architecturalTypeCode, \
                                 co.architecturalObjectType as architecturalType \
-                         from {ADS_DATABASE_CLEANSED}.isu_0uc_connobj_attr_2 co left outer join \
-                              {ADS_DATABASE_CLEANSED}.isu_vibdao vd on co.architecturalObjectInternalId = vd.architecturalObjectInternalId left outer join \
-                              {ADS_DATABASE_CLEANSED}.isu_zcd_tpropty_hist ph on co.propertyNumber = ph.propertyNumber left outer join \
-                              {ADS_DATABASE_CLEANSED}.isu_vibdnode vn on co.architecturalObjectInternalId = vn.architecturalObjectInternalId left outer join \
-                              {ADS_DATABASE_CLEANSED}.isu_0uc_connobj_attr_2 pa on vn.parentArchitecturalObjectInternalId = pa.architecturalObjectInternalId left outer join \
-                              {ADS_DATABASE_CLEANSED}.isu_dd07t dt on co.lotTypeCode = dt.domainValueSingleUpperLimit and domainName = 'ZCD_DO_ADDR_LOT_TYPE' \
+                        from {ADS_DATABASE_CLEANSED}.isu_0uc_connobj_attr_2 co left outer join \
+                             {ADS_DATABASE_CLEANSED}.isu_vibdao vd on co.architecturalObjectInternalId = vd.architecturalObjectInternalId and vd._RecordDeleted = 0 \
+                              and vd._RecordCurrent = 1 left outer join \
+                             {ADS_DATABASE_CLEANSED}.isu_vibdnode vn on co.architecturalObjectInternalId = vn.architecturalObjectInternalId and vn._RecordDeleted = 0 \
+                              and   vn._RecordCurrent = 1 left outer join \
+                             {ADS_DATABASE_CLEANSED}.isu_0uc_connobj_attr_2 pa on vn.parentArchitecturalObjectInternalId = pa.architecturalObjectInternalId  \
+                              and   pa._RecordCurrent = 1 and pa._RecordDeleted = 0 left outer join \
+                             {ADS_DATABASE_CLEANSED}.isu_dd07t dt on co.lotTypeCode = dt.domainValueSingleUpperLimit and domainName = 'ZCD_DO_ADDR_LOT_TYPE' \
+                              and dt._RecordDeleted = 0 and   dt._RecordCurrent = 1 \
                          where co._RecordDeleted = 0 \
                          and   co._RecordCurrent = 1 \
-                         and   vd._RecordDeleted = 0 \
-                         and   vd._RecordCurrent = 1 \
-                         and   ph._RecordDeleted = 0 \
-                         and   ph._RecordCurrent = 1 \
-                         and   vn._RecordDeleted = 0 \
-                         and   vn._RecordCurrent = 1 \
-                         and   pa._RecordDeleted = 0 \
-                         and   pa._RecordCurrent = 1 \
-                         and   dt._RecordDeleted = 0 \
-                         and   dt._RecordCurrent = 1 \
                         ")
 
-    #Dummy Record to be added to Meter Dimension
-    ISUDummy = tuple(['-1','ISU','1900-01-01','2099-12-31'] + ['Unknown'] * 4 + [0] + ['Unknown'] * (len(sapisuDf.columns) - 9)) #this only works as long as all output columns are string
-    ACCESSDummy = tuple(['-2','ACCESS','1900-01-01','2099-12-31'] + ['Unknown'] * 4 + [0] + ['Unknown'] * (len(sapisuDf.columns) - 9)) #this only works as long as all output columns are string
-    dummyDimRecDf = spark.createDataFrame([ISUDummy, ACCESSDummy], sapisuDf.columns)
-    dummyDimRecDf = dummyDimRecDf.withColumn("propertyStartDate",dummyDimRecDf['propertyStartDate'].cast(DateType())).withColumn("propertyEndDate",dummyDimRecDf['propertyEndDate'].cast(DateType()))
+    #Dummy Record to be added to Property Dimension
+    dummyDimRecDf = spark.createDataFrame([("ISU","-1"),("ACCESS","-2")], ["sourceSystemCode", "propertyNumber"])
 
     #3.JOIN TABLES  
     #4.UNION TABLES
     df = accessZ309TpropertyDf.union(sapisuDf)
     df = df.unionByName(dummyDimRecDf, allowMissingColumns = True)
+    print(f'{df.count():,} rows after Union 2')
 
     #5.SELECT / TRANSFORM
     df = df.selectExpr( \
      "propertyNumber" \
     ,"sourceSystemCode" \
-    ,"propertyStartDate" \
-    ,"propertyEndDate" \
     ,"propertyTypeCode" \
     ,"propertyType" \
     ,"superiorPropertyTypeCode" \
@@ -136,8 +119,6 @@ def getProperty():
     newSchema = StructType([
                             StructField("propertyNumber", StringType(), False),
                             StructField("sourceSystemCode", StringType(), False),
-                            StructField("propertyStartDate", DateType(), False),
-                            StructField("propertyEndDate", DateType(), True),
                             StructField("propertyTypeCode", StringType(), True),
                             StructField("propertyType", StringType(), True),
                             StructField("superiorPropertyTypeCode", StringType(), True),
@@ -165,4 +146,7 @@ def getProperty():
 
 # COMMAND ----------
 
-
+# ISUDummy = tuple(['-1','ISU','1900-01-01','2099-12-31'] + ['Unknown'] * 4 + [0] + ['Unknown'] * (len(sapisuDf.columns) - 9)) #this only works as long as all output columns are string
+#     ACCESSDummy = tuple(['-2','ACCESS','1900-01-01','2099-12-31'] + ['Unknown'] * 4 + [0] + ['Unknown'] * (len(sapisuDf.columns) - 9)) #this only works as long as all output columns are string
+#     dummyDimRecDf = spark.createDataFrame([ISUDummy, ACCESSDummy], sapisuDf.columns)
+#     dummyDimRecDf = dummyDimRecDf.withColumn("propertyStartDate",dummyDimRecDf['propertyStartDate'].cast(DateType())).withColumn("propertyEndDate",dummyDimRecDf['propertyEndDate'].cast(DateType()))

@@ -18,15 +18,15 @@
 #############################################################################################################################
 #1.Create Function
 def getBilledWaterConsumptionAccess():
-  
-  spark.udf.register("TidyCase", GeneralToTidyCase)  
-  
-  #reusable query to derive the base billed consumption from Access Meter Reading dataset
-  #2.Load Cleansed layer table data into dataframe
-  billedConsDf = spark.sql(f"select 'ACCESS' as sourceSystemCode, mr.propertyNumber, mr.propertyMeterNumber, \
+
+    spark.udf.register("TidyCase", GeneralToTidyCase)  
+
+    #reusable query to derive the base billed consumption from Access Meter Reading dataset
+    #2.Load Cleansed layer table data into dataframe
+    billedConsDf = spark.sql(f"select 'ACCESS' as sourceSystemCode, mr.propertyNumber, mr.propertyMeterNumber, \
                                    mr.readingFromDate, mr.readingToDate, mr.meterReadingDays, \
                                    mr.meterReadingConsumption, \
-                                   row_number() over (partition by mr.propertyNumber, mr.propertyMeterNumber, mr.readingFromDate, mr.readingToDate \
+                                   row_number() over (partition by mr.propertyNumber, mr.propertyMeterNumber, mr.readingFromDate \
                                                        order by mr.meterReadingNumber desc) meterReadRecNum \
                               from {ADS_DATABASE_CLEANSED}.access_z309_tmeterreading mr \
                                    inner join {ADS_DATABASE_CLEANSED}.access_z309_tpropmeter pm on pm.propertyNumber = mr.propertyNumber \
@@ -44,15 +44,15 @@ def getBilledWaterConsumptionAccess():
                                                     and dr.debitReasonCode IN ('360','367')) \
                                                     --and mr.propertyNumber = '3692184' \
                                    ")
-  
-  billedConsDf = billedConsDf.where("meterReadRecNum = 1")
-  
-  #3.JOIN TABLES  
-  
-  #4.UNION TABLES
-  
-  #5.SELECT / TRANSFORM
-  billedConsDf = billedConsDf.selectExpr \
+
+    billedConsDf = billedConsDf.where("meterReadRecNum = 1")
+
+    #3.JOIN TABLES  
+
+    #4.UNION TABLES
+
+    #5.SELECT / TRANSFORM
+    billedConsDf = billedConsDf.selectExpr \
                               ( \
                                  "sourceSystemCode" \
                                 ,"propertyNumber" \
@@ -63,4 +63,4 @@ def getBilledWaterConsumptionAccess():
                                 ,"meterReadingConsumption as meteredWaterConsumption" \
                               )
 
-  return billedConsDf
+    return billedConsDf

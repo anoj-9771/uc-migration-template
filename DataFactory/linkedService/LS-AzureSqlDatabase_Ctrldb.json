@@ -2,12 +2,6 @@
 	"name": "LS-AzureSqlDatabase_Ctrldb",
 	"properties": {
 		"description": "ETL Control database linked service",
-		"parameters": {
-			"kvSecret": {
-				"type": "string",
-				"defaultValue": "daf-sql-controldb-connectionstring"
-			}
-		},
 		"annotations": [],
 		"type": "AzureSqlDatabase",
 		"typeProperties": {
@@ -17,14 +11,11 @@
 					"referenceName": "LS-AzureKeyVault",
 					"type": "LinkedServiceReference"
 				},
-				"secretName": {
-					"value": "@linkedService().kvSecret",
-					"type": "Expression"
-				}
+				"secretName": "daf-sql-controldb-connectionstring"
 			}
 		},
 		"connectVia": {
-			"referenceName": "IntegrationRuntime-SelfHosted",
+			"referenceName": "IntegrationRuntime-Azure-ManagedVnet-01",
 			"type": "IntegrationRuntimeReference"
 		}
 	},

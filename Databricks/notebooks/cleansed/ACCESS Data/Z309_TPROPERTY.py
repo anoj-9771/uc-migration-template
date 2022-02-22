@@ -188,7 +188,7 @@ df_cleansed = spark.sql(f"SELECT cast(N_PROP as int) AS propertyNumber, \
         b.LGA, \
 		C_PROP_TYPE AS propertyTypeCode, \
         e.propertyType, \
-        f.propertyTypeCode as superiorPropertyTypecode, \
+        f.propertyTypeCode as superiorPropertyTypeCode, \
         f.propertyType as superiorPropertyType, \
         case when D_PROP_TYPE_EFFE is not null \
                   then to_date(D_PROP_TYPE_EFFE,'yyyyMMdd') \
@@ -262,8 +262,7 @@ df_cleansed = spark.sql(f"SELECT cast(N_PROP as int) AS propertyNumber, \
          left outer join cleansed.access_Z309_TPropType f on e.superiorPropertyTypeCode = f.propertyTypeCode \
          left outer join cleansed.access_Z309_TRataType h on h.rateabilityTypeCode = a.c_rata_type \
 ")
-
-display(df_cleansed)
+print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
 
@@ -282,7 +281,7 @@ newSchema = StructType([
     StructField('hasIncludedRatings',BooleanType(),False),
     StructField('isIncludedInOtherRating',BooleanType(),False),
     StructField('meterServesOtherProperties',BooleanType(),False),
-    StructField('hasMeterOnOtherPropery',BooleanType(),False),
+    StructField('hasMeterOnOtherProperty',BooleanType(),False),
     StructField('hasSpecialMeterAllocation',BooleanType(),False),
     StructField('hasKidneyFreeSupply',BooleanType(),False),
     StructField('hasNonKidneyFreeSupply',BooleanType(),False),
@@ -309,14 +308,14 @@ newSchema = StructType([
     StructField('_RecordCurrent',IntegerType(),False)
 ])
 
-df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
-display(df_updated_column)
+# df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
+# display(df_updated_column)
 
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
-DeltaSaveDataframeDirect(df_updated_column, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
+DeltaSaveDataframeDirect(df_cleansed, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", newSchema, "")
 
 # COMMAND ----------
 

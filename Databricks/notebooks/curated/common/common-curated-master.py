@@ -119,7 +119,7 @@ def TemplateEtl(df : object, entity, businessKey, AddSK = True):
                                    v_COMMON_CURATED_DATABASE, 
                                    v_COMMON_DATALAKE_FOLDER, 
                                    ADS_WRITE_MODE_MERGE, 
-                                   track_changes = True, 
+                                   track_changes = False, 
                                    is_delta_extract = False, 
                                    business_key = businessKey, 
                                    AddSKColumn = AddSK, 
@@ -187,7 +187,7 @@ def makeDate(): #renamed because date() gets overloaded elsewhere
 def installation():
     TemplateEtl(df=getInstallation(), 
              entity="dimInstallation", 
-             businessKey="installationId,validToDate,disconnectionDocumentNumber,disconnectionActivityPeriod,disconnectionObjectNumber",
+             businessKey="installationId",
              AddSK=True
             )
     
@@ -211,7 +211,7 @@ def meter():
 def makeProperty(): #renamed because property is a keyword
     TemplateEtl(df=getProperty(), 
              entity="dimProperty", 
-             businessKey="sourceSystemCode,propertyNumber,propertyStartDate",
+             businessKey="sourceSystemCode,propertyNumber",
              AddSK=True
             )
 
@@ -255,10 +255,10 @@ def businessPartnerGroupRelationship():
              AddSK=False
             ) 
 
-#Call InstallationPropertyMeterCon function to load brgInstallationPropertyMeterCon
-def InstallationPropertyMeterCon():
-    TemplateEtl(df=getInstallationPropertyMeterCon(), 
-             entity="brgInstallationPropertyMeterCon", 
+#Call InstallationPropertyMeterContract function to load brgInstallationPropertyMeterCon
+def installationPropertyMeterContract():
+    TemplateEtl(df=getInstallationPropertyMeterContract(), 
+             entity="brgInstallationPropertyMeterContract", 
              businessKey="dimInstallationSK",
              AddSK=False
             ) 
@@ -271,14 +271,14 @@ def billedWaterConsumption():
     TemplateEtl(df=getBilledWaterConsumption(),
              entity="factBilledWaterConsumption", 
              businessKey="sourceSystemCode,dimBillingDocumentSK,dimPropertySK,dimMeterSK,billingPeriodStartDate",
-             AddSK=True
+             AddSK=False
             )
 
 def billedWaterConsumptionDaily():
     TemplateEtl(df=getBilledWaterConsumptionDaily(), 
              entity="factDailyApportionedConsumption", 
-             businessKey="sourceSystemCode,consumptionDateSK,dimBillingDocumentSK,dimPropertySK,dimMeterSK",
-             AddSK=True
+             businessKey="sourceSystemCode,consumptionDate,dimBillingDocumentSK,dimPropertySK,dimMeterSK",
+             AddSK=False
             )
 
 
@@ -352,7 +352,7 @@ def Main():
     if LoadBridgeTables:
         LogEtl("Start Bridge Tables")
         businessPartnerGroupRelationship()
-        InstallationPropertyMeterCon()
+        installationPropertyMeterContract()
         
         LogEtl("End Bridge Tables")
     else:

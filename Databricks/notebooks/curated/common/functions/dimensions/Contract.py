@@ -39,14 +39,12 @@ def getContract():
                              ca.applicationArea, \
                              co.installationId \
                              from {ADS_DATABASE_CLEANSED}.isu_0UCCONTRACT_ATTR_2 co left outer join \
-                                  {ADS_DATABASE_CLEANSED}.isu_0UCCONTRACTH_ATTR_2 coh on co.contractId = coh.contractId left outer join \
+                                  {ADS_DATABASE_CLEANSED}.isu_0UCCONTRACTH_ATTR_2 coh on co.contractId = coh.contractId \
+                                                           and coh.deletedIndicator is null and coh._RecordDeleted = 0 and coh._RecordCurrent = 1 left outer join \
                                   {ADS_DATABASE_CLEANSED}.isu_0CACONT_ACC_ATTR_2 ca on co.contractAccountNumber = ca.contractAccountNumber \
+                                                           and ca._RecordDeleted = 0 and ca._RecordCurrent = 1 \
                              where co._RecordDeleted = 0 \
                              and   co._RecordCurrent = 1 \
-                             and   coh._RecordDeleted = 0 \
-                             and   coh._RecordCurrent = 1 \
-                             and   ca._RecordDeleted = 0 \
-                             and   ca._RecordCurrent = 1 \
                      ")
 
     df.createOrReplaceTempView('allcontracts')
@@ -54,22 +52,12 @@ def getContract():
 
     #4.UNION TABLES
     #Create dummy record
-    dummyDimRecDf = spark.sql("select '-1' as contractId, \
-                                     to_date('1900-01-01','yyyy-MM-dd') as validFromDate, \
-                                     to_date('2099-12-31','yyyy-MM-dd') as validToDate, \
-                                     'ISU' as sourceSystemCode, \
-                                     to_date('1900-01-01','yyyy-MM-dd') as contractStartDate, \
-                                     to_date('2099-12-31','yyyy-MM-dd') as contractEndDate, \
-                                     'N' as invoiceJointlyFlag, \
-                                     to_date('1900-01-01','yyyy-MM-dd') as moveInDate, \
-                                     to_date('2099-12-31','yyyy-MM-dd') as moveOutDate, \
-                                     'Unknown' as contractAccountNumber, \
-                                     'Unknown' as contractAccountCategory, \
-                                     'Unknown' as applicationArea, \
-                                     'Unknown' as installationId")
+    
+    dummyDimRecDf = spark.createDataFrame([("ISU","-1","1900-01-01")], ["sourceSystemCode", "contractId", "validFromDate"])
                                      
-    df = df.unionByName(dummyDimRecDf)
-
+    df = df.unionByName(dummyDimRecDf,allowMissingColumns = True)
+    df = df.withColumn("validFromDate",col("validFromDate").cast("date"))
+    
     #5.SELECT / TRANSFORM
     df = df.selectExpr( \
                   'contractId' \
@@ -104,4 +92,5 @@ def getContract():
                       ])
 
     df = spark.createDataFrame(df.rdd, schema=newSchema)
+    display(df)
     return df

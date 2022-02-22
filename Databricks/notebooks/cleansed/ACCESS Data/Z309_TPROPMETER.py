@@ -208,7 +208,7 @@ df_cleansed = spark.sql(f"SELECT cast(N_PROP as int) AS propertyNumber, \
 		C_METE_GRID_LOCA AS meterGridLocationCode, \
 		C_READ_INST_NUM1 AS readingInstructionCode1, \
 		C_READ_INST_NUM2 AS readingInstructionCode2, \
-		case when F_METE_ADDI_DESC = '1' then true else false end AS hasdditionalDescription, \
+		case when F_METE_ADDI_DESC = '1' then true else false end AS hasAdditionalDescription, \
 		case when F_METE_ROUT_PREP = '1' then true else false end AS hasMeterRoutePreparation, \
 		case when F_METE_WARN_NOTE = '1' then true else false end AS hasMeterWarningNote, \
 		to_date(D_METE_FIT, 'yyyyMMdd') AS meterFittedDate, \
@@ -228,7 +228,6 @@ df_cleansed = spark.sql(f"SELECT cast(N_PROP as int) AS propertyNumber, \
          left outer join CLEANSED.access_Z309_TMeterGroup e on e.meterGroupCode = a.C_METE_GROU \
          ")
 
-display(df_cleansed)
 print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
@@ -272,15 +271,15 @@ newSchema = StructType([
 	StructField('_RecordCurrent',IntegerType(),False)
 ])
 
-df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
-display(df_updated_column)
-print(f'Number of rows: {df_updated_column.count()}')
+# df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
+# display(df_updated_column)
+# print(f'Number of rows: {df_updated_column.count()}')
 
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
-DeltaSaveDataframeDirect(df_updated_column, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
+DeltaSaveDataframeDirect(df_cleansed, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", newSchema, "")
 
 # COMMAND ----------
 

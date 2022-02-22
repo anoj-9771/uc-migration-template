@@ -3,4 +3,4 @@
 
 # COMMAND ----------
 
-# MAGIC %run ./bridgeTables/InstallationPropertyMeterCon
+# MAGIC %run ./bridgeTables/InstallationPropertyMeterContract

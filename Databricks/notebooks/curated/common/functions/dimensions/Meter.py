@@ -20,7 +20,8 @@ def getMeter():
                                               null as materialNumber, \
                                               case when meterClass = 'Standpipe' then 'Customer Standpipe' else 'Water Meter' end as usageMeterType, \
                                               meterSize, \
-                                              case when waterMeterType in ('Potable','Recycled') then waterMeterType else null end as waterType, \
+                                              case when waterMeterType = 'Potable' then 'Drinking Water' \
+                                                   when waterMeterType = 'Recycled' then 'Recycled Water' else waterMeterType end as waterType, \
                                               null as meterCategoryCode, \
                                               null as meterCategory, \
                                               case when meterClass = 'Standpipe' then 'STANDPIPE' \
@@ -39,7 +40,7 @@ def getMeter():
                                       from {ADS_DATABASE_CLEANSED}.access_z309_tpropmeter \
                                       where (meterFittedDate <> meterRemovedDate or meterRemovedDate is null) \
                                       and _RecordCurrent = 1 \
-                                      and _RecordDeleted = 0 ")
+                                      and _RecordDeleted = 0")
      
     #Filter for active meter
     accessZ309TpropmeterDf = accessZ309TpropmeterDf.filter(col("rownum") == "1")
