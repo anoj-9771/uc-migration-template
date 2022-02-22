@@ -233,7 +233,7 @@ df_cleansed = spark.sql(f"SELECT  \
                                   AKTIV as meterReadingActiveIndicator, \
                                   KONZVER as franchiseContractIndicator, \
                                   PERTYP as billingPeriodInternalCategoryCode, \
-                                  OUCONTRACT as individualContractID, \
+                                  OUCONTRACT as individualContractId, \
                                   cast(V_ABRMENGE as dec(17)) as billingQuantityPlaceBeforeDecimalPoint, \
                                   cast(N_ABRMENGE as dec(14,14)) as billingQuantityPlaceAfterDecimalPoint, \
                                   stg._RecordStart, \
@@ -305,7 +305,7 @@ newSchema = StructType([
                             StructField('meterReadingActiveIndicator', StringType(), True),
                             StructField('franchiseContractIndicator', StringType(), True),
                             StructField('billingPeriodInternalCategoryCode', StringType(), True),
-                            StructField('individualContractID', StringType(), True),
+                            StructField('individualContractId', StringType(), True),
                             StructField('billingQuantityPlaceBeforeDecimalPoint', DecimalType(17), True),
                             StructField('billingQuantityPlaceAfterDecimalPoint', DecimalType(14,14), True),
                             StructField('_RecordStart', DateType(), False),
