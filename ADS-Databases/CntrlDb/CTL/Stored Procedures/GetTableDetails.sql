@@ -80,7 +80,10 @@ ELSE
 
 		SET @SQL = @SQL + '''' + @SourceColumn + ''' AS SourceColumn, '
 		SET @SQL = @SQL + @SQLMax + ' As ReturnValue, '
-		SET @SQL = @SQL + 'COUNT(1) AS RecordCount'
+		/* change recordcount due to performance impact of COUNT(1)
+			SET @SQL = @SQL + 'COUNT(1) AS RecordCount'
+		*/
+		SET @SQL = @SQL + '0 AS RecordCount'
 
 		IF @ValidationColumn <> ''
 		BEGIN

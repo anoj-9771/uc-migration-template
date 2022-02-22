@@ -12,7 +12,7 @@
 		</CustomData>
 		<CustomData Category="Reference" Type="Assembly">
 			<Metadata Name="LogicalName" Value="CntrlDb.dll" />
-			<Metadata Name="FileName" Value="c:\Users\jstaub\OneDrive - Insight\DAF Project\6. Implementation Documentation\DAF Repo\DAF POC REPO1\ADS-Databases\CntrlDb\obj\Debug\CntrlDb.dll" />
+			<Metadata Name="FileName" Value="c:\Users\oq5s\repos\DAF POC REPO1\ADS-Databases\CntrlDb\obj\Debug\CntrlDb.dll" />
 			<Metadata Name="AssemblyName" Value="CntrlDb" />
 			<Metadata Name="PermissionSet" Value="SAFE" />
 			<Metadata Name="Owner" Value="" />
@@ -20,7 +20,7 @@
 			<Metadata Name="IsVisible" Value="True" />
 			<Metadata Name="IsModelAware" Value="True" />
 			<Metadata Name="SkipCreationIfEmpty" Value="True" />
-			<Metadata Name="AssemblySymbolsName" Value="c:\Users\jstaub\OneDrive - Insight\DAF Project\6. Implementation Documentation\DAF Repo\DAF POC REPO1\ADS-Databases\CntrlDb\obj\Debug\CntrlDb.pdb" />
+			<Metadata Name="AssemblySymbolsName" Value="c:\Users\oq5s\repos\DAF POC REPO1\ADS-Databases\CntrlDb\obj\Debug\CntrlDb.pdb" />
 		</CustomData>
 		<CustomData Category="SqlCmdVariables" Type="SqlCmdVariable" />
 	</Header>
@@ -8543,7 +8543,10 @@ ELSE
 
 		SET @SQL = @SQL + '''' + @SourceColumn + ''' AS SourceColumn, '
 		SET @SQL = @SQL + @SQLMax + ' As ReturnValue, '
-		SET @SQL = @SQL + 'COUNT(1) AS RecordCount'
+		/* change recordcount due to performance impact of COUNT(1)
+			SET @SQL = @SQL + 'COUNT(1) AS RecordCount'
+		*/
+		SET @SQL = @SQL + '0 AS RecordCount'
 
 		IF @ValidationColumn <> ''
 		BEGIN
@@ -8734,7 +8737,7 @@ END]]></Value>
 				</Entry>
 			</Relationship>
 			<Annotation Type="SysCommentsObjectAnnotation">
-				<Property Name="Length" Value="4597" />
+				<Property Name="Length" Value="4707" />
 				<Property Name="StartLine" Value="1" />
 				<Property Name="StartColumn" Value="1" />
 				<Property Name="HeaderContents" Value="CREATE Procedure [CTL].[GetTableDetails] (&#xD;&#xA;&#x9;@SourceId BigInt&#xD;&#xA;&#x9;,@ValidationType varchar(10) = 'SOURCE'&#xD;&#xA;)&#xD;&#xA;As" />
@@ -15332,10 +15335,10 @@ RETURN 0]]></Value>
 				</Entry>
 			</Relationship>
 			<Annotation Type="SysCommentsObjectAnnotation">
-				<Property Name="Length" Value="111" />
+				<Property Name="Length" Value="116" />
 				<Property Name="StartLine" Value="1" />
 				<Property Name="StartColumn" Value="1" />
-				<Property Name="HeaderContents" Value="CREATE PROCEDURE [dbo].[JACKSONTESTPROC]&#xA;  @param1 int = 0,&#xA;  @param2 int&#xA;AS" />
+				<Property Name="HeaderContents" Value="CREATE PROCEDURE [dbo].[JACKSONTESTPROC]&#xD;&#xA;  @param1 int = 0,&#xD;&#xA;  @param2 int&#xD;&#xA;AS" />
 			</Annotation>
 		</Element>
 	</Model>
