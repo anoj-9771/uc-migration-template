@@ -86,7 +86,7 @@
 				"typeProperties": {
 					"variableName": "RecordsRead",
 					"value": {
-						"value": "@activity('Copy-Source-DataLake').output.rowsRead",
+						"value": "string(@activity('Copy-Source-DataLake').output.rowsRead)",
 						"type": "Expression"
 					}
 				}
@@ -106,7 +106,7 @@
 				"typeProperties": {
 					"variableName": "RecordsWritten",
 					"value": {
-						"value": "@activity('Copy-Source-DataLake').output.rowsCopied",
+						"value": "string(@activity('Copy-Source-DataLake').output.rowsCopied)",
 						"type": "Expression"
 					}
 				}
