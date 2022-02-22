@@ -181,7 +181,7 @@ df_cleansed = spark.sql(f"SELECT \
                             REGIOGROUP as regionalStructureGrouping, \
                             REGPOLIT as politicalRegionCode, \
                             REGIOGROUP_PERM as permitRegionalStructureGrouping, \
-                            CRM_GUID as crmConnectionObjectGuid, \
+                            CRM_GUID as CRMConnectionObjectGUID, \
                             _RecordStart, \
                             _RecordEnd, \
                             _RecordDeleted, \
@@ -199,7 +199,7 @@ newSchema = StructType([
                         StructField("regionalStructureGrouping", StringType(), True),
                         StructField("politicalRegionCode", StringType(), True),
                         StructField("permitRegionalStructureGrouping", StringType(), True),
-                        StructField("crmConnectionObjectGuid", StringType(), True),
+                        StructField("CRMConnectionObjectGUID", StringType(), True),
                         StructField('_RecordStart',TimestampType(),False),
                         StructField('_RecordEnd',TimestampType(),False),
                         StructField('_RecordDeleted',IntegerType(),False),

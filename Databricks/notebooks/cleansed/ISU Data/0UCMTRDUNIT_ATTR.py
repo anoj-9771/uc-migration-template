@@ -188,7 +188,7 @@ df_cleansed = spark.sql(f"SELECT \
 	ABLESER as meterReaderNumber, \
 	cast(ABLZEIT as dec(5,1)) as meterReadingTime, \
 	cast(AZVORABL as Integer) as numberOfPreviousReadings, \
-	MDENR as numberOFMobileDataEntry, \
+	MDENR as numberOfMobileDataEntry, \
 	cast(ABLKAR as Integer) as meterReadingInterval, \
 	cast(STANDKAR as Integer) as entryInterval, \
 	ToValidDate(EROEDAT) as createdDate, \
@@ -228,7 +228,7 @@ newSchema = StructType([
 	StructField('meterReaderNumber',StringType(),True),
 	StructField('meterReadingTime',DecimalType(5,1),True),
 	StructField('numberOfPreviousReadings',IntegerType(),True),
-	StructField('numberOFMobileDataEntry',StringType(),True),
+	StructField('numberOfMobileDataEntry',StringType(),True),
 	StructField('meterReadingInterval',IntegerType(),True),
 	StructField('entryInterval',IntegerType(),True),
 	StructField('createdDate',DateType(),True),

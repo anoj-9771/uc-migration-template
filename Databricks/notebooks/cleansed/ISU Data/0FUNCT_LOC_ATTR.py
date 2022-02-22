@@ -184,6 +184,7 @@ df_cleansed = spark.sql(f"SELECT  \
                                   ADRNR as addressNumber, \
                                   KOKRS as controllingArea, \
                                   BUKRS as companyCode, \
+                                  ALKEY as labellingSystem, \
                                   cc.companyName as companyName, \
                                   PROID as workBreakdownStructureElement, \
                                   ToValidDate(ERDAT) as createdDate, \
