@@ -68,7 +68,7 @@ stages:
           offer: ${{ variables.offer }}
     
     # Deploy Self-hosted Integration Runtime (Win VM1)
-    - ${{ if and(eq(variables['vm_adfruntime'], true), eq(variables['environment'], 'prod'))}}:  
+    - ${{ if eq(variables['vm_adfruntime'], true) }}:
       - template: step-deploy-arm-vm.yml
         parameters:
           AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
