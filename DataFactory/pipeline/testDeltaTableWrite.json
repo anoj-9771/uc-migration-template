@@ -24,7 +24,7 @@
 						"queryTimeout": "02:00:00",
 						"partitionOption": "DynamicRange",
 						"partitionSettings": {
-							"partitionColumnName": "delta_ts_int",
+							"partitionColumnName": "BELNR_INT",
 							"partitionUpperBound": "",
 							"partitionLowerBound": ""
 						}
