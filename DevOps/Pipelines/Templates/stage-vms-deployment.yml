@@ -44,16 +44,16 @@ stages:
     # Deploy Azure resources
     # ------------------------------------------------------------------------
     # Deploy Self-hosted Azure Devops Agent (Linux)
-    # - ${{ if eq(variables['vm_devops'], true) }}:
-    #   - template: step-deploy-arm-vm.yml
-    #     parameters:
-    #       AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
-    #       resource_group: ${{ variables.resourcegroupname }}
-    #       vmSize: ${{ variables.vmSizeDevops }}
-    #       vmName: ${{ variables.vmNameDevops }}
-    #       OSVersion: ${{ variables.OSVersionDevops }}
-    #       publisher: ${{ variables.publisherDevops }}
-    #       offer: ${{ variables.offerDevops }}
+    - ${{ if eq(variables['vm_devops'], true) }}:
+      - template: step-deploy-arm-vm.yml
+        parameters:
+          AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
+          resource_group: ${{ variables.resourcegroupname }}
+          vmSize: ${{ variables.vmSizeDevops }}
+          vmName: ${{ variables.vmNameDevops }}
+          OSVersion: ${{ variables.OSVersionDevops }}
+          publisher: ${{ variables.publisherDevops }}
+          offer: ${{ variables.offerDevops }}
 
     # Deploy Self-hosted Azure Devops Agent (Win)
     - ${{ if eq(variables['vm_devops'], true) }}:
@@ -67,14 +67,50 @@ stages:
           publisher: ${{ variables.publisher }}
           offer: ${{ variables.offer }}
     
-    # Deploy Self-hosted Integration Runtime
-    - ${{ if eq(variables['vm_adfruntime'], true) }}:
+    # Deploy Self-hosted Integration Runtime (Win VM1)
+    - ${{ if and(eq(variables['vm_adfruntime'], true), eq(variables['environment'], 'prod'))}}:  
       - template: step-deploy-arm-vm.yml
         parameters:
           AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
           resource_group: ${{ variables.resourcegroupname }}
           vmSize: ${{ variables.vmSizeIR }}
-          vmName: ${{ variables.vmNameIR }}
+          vmName: '${{ variables.vmNameIR }}01'
+          OSVersion: ${{ variables.OSVersion }}
+          publisher: ${{ variables.publisher }}
+          offer: ${{ variables.offer }}
+    
+    # Deploy Self-hosted Integration Runtime (Win VM2)
+    - ${{ if and(eq(variables['vm_adfruntime'], true), eq(variables['environment'], 'prod'))}}:  
+      - template: step-deploy-arm-vm.yml
+        parameters:
+          AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
+          resource_group: ${{ variables.resourcegroupname }}
+          vmSize: ${{ variables.vmSizeIR }}
+          vmName: '${{ variables.vmNameIR }}02'
+          OSVersion: ${{ variables.OSVersion }}
+          publisher: ${{ variables.publisher }}
+          offer: ${{ variables.offer }}
+
+    # Deploy Self-hosted Integration Runtime (Win VM3)
+    - ${{ if and(eq(variables['vm_adfruntime'], true), eq(variables['environment'], 'prod'))}}:  
+      - template: step-deploy-arm-vm.yml
+        parameters:
+          AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
+          resource_group: ${{ variables.resourcegroupname }}
+          vmSize: ${{ variables.vmSizeIR }}
+          vmName: '${{ variables.vmNameIR }}03'
+          OSVersion: ${{ variables.OSVersion }}
+          publisher: ${{ variables.publisher }}
+          offer: ${{ variables.offer }}
+
+    # Deploy Self-hosted Integration Runtime (Win VM4)
+    - ${{ if and(eq(variables['vm_adfruntime'], true), eq(variables['environment'], 'prod'))}}:  
+      - template: step-deploy-arm-vm.yml
+        parameters:
+          AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
+          resource_group: ${{ variables.resourcegroupname }}
+          vmSize: ${{ variables.vmSizeIR }}
+          vmName: '${{ variables.vmNameIR }}04'
           OSVersion: ${{ variables.OSVersion }}
           publisher: ${{ variables.publisher }}
           offer: ${{ variables.offer }}

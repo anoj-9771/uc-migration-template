@@ -199,9 +199,9 @@ variables:
   # Azure IR Self-hosted VM related
   # ------------------------------------------------
   - name: vmSizeIR
-    value: Standard_D2as_v4
+    value: Standard_D8ds_v5
   - name: vmNameIR
-    value: nt097padf01
+    value: nt097padf
   # ------------------------------------------------
   # Azure SLT VM related
   # ------------------------------------------------
