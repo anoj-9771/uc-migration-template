@@ -15,7 +15,7 @@ pr:
 
 trigger: none
 
-pool: Daf-Self-Hosted-Prod-Win
+pool: Daf-Self-Hosted-Prod-Linux
 
 stages:
 # ---------------------------------------------------------------------------
