@@ -5,6 +5,11 @@ parameters:
   type: string
 
 steps:
+
+  - task: DownloadBuildArtifacts@0
+    inputs:
+      artifactName: 'arm_templates' 
+
   - task: AzureResourceGroupDeployment@2
     inputs:
       azureSubscription: ${{ parameters.AzDoServiceConnection }}
