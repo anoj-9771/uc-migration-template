@@ -319,7 +319,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"pipeline": {
-						"referenceName": "04-SqlServer-Src-to-Delta-Table",
+						"referenceName": "04-SqlServer-Src-to-Delta-Table-Copy",
 						"type": "PipelineReference"
 					},
 					"waitOnCompletion": true
