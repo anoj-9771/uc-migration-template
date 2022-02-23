@@ -112,6 +112,11 @@
 				}
 			}
 		],
+		"parameters": {
+			"DeltaSql": {
+				"type": "string"
+			}
+		},
 		"variables": {
 			"RecordsWritten": {
 				"type": "String"
