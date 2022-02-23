@@ -318,6 +318,10 @@
 				],
 				"userProperties": [],
 				"typeProperties": {
+					"pipeline": {
+						"referenceName": "04-SQLServer-Src-Copy-to-Delta-Table",
+						"type": "PipelineReference"
+					},
 					"waitOnCompletion": true
 				}
 			},
