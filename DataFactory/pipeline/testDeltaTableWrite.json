@@ -245,6 +245,40 @@
 					"referenceName": "LS-AzureSqlDatabase_Ctrldb",
 					"type": "LinkedServiceReference"
 				}
+			},
+			{
+				"name": "EP-Record-Validation",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "SP-Update-Manifest-Delta-Records",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "recon-record-validation",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"ProjectRunID": {
+							"value": "@pipeline().parameters.ProjectRunID",
+							"type": "Expression"
+						},
+						"ValidationDetails": {
+							"value": "@pipeline().parameters.ValidationDetails",
+							"type": "Expression"
+						},
+						"SourceID": {
+							"value": "@pipeline().parameters.TaskDetails.SourceID",
+							"type": "Expression"
+						}
+					}
+				}
 			}
 		],
 		"parameters": {
