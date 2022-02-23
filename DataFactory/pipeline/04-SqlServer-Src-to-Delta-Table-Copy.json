@@ -433,6 +433,9 @@
 		"parameters": {
 			"WatermarkValue": {
 				"type": "string"
+			},
+			"TaskDetails": {
+				"type": "object"
 			}
 		},
 		"variables": {
