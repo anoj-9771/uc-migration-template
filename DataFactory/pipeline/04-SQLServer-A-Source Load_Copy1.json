@@ -282,6 +282,10 @@
 						"WatermarkValue": {
 							"value": "@activity('Get-Table-Values').output.firstRow.ReturnValue",
 							"type": "Expression"
+						},
+						"TaskDetails": {
+							"value": "@pipeline().parameters.TaskDetails",
+							"type": "Expression"
 						}
 					}
 				}
