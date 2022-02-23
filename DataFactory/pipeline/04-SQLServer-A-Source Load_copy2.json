@@ -581,45 +581,6 @@
 									"SourceFileDateStamp": "1"
 								}
 							}
-						},
-						{
-							"name": "EP-SQLSrc-DeltaTable-Write-Delta_copy1",
-							"type": "ExecutePipeline",
-							"dependsOn": [],
-							"userProperties": [],
-							"typeProperties": {
-								"pipeline": {
-									"referenceName": "testDeltaTableWrite",
-									"type": "PipelineReference"
-								},
-								"waitOnCompletion": true,
-								"parameters": {
-									"BatchExecutionLogID": {
-										"value": "@pipeline().parameters.BatchLogId",
-										"type": "Expression"
-									},
-									"TaskExecutionLogID": {
-										"value": "@pipeline().parameters.TaskExecutionLogId",
-										"type": "Expression"
-									},
-									"WatermarkColumn": {
-										"value": "@variables('WatermarkValue')",
-										"type": "Expression"
-									},
-									"TargetBLOBName": "null",
-									"TargetBLOBFolder": "null",
-									"TaskDetails": {
-										"value": "@pipeline().parameters.TaskDetails",
-										"type": "Expression"
-									},
-									"ValidationDetails": "@activity('Get-Table-Values').output.firstRow",
-									"ProjectRunID": {
-										"value": "@pipeline().parameters.ProjectRunID",
-										"type": "Expression"
-									},
-									"SourceFileDateStamp": "1"
-								}
-							}
 						}
 					]
 				}
