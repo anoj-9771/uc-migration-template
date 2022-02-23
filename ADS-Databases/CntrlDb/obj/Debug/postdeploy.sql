@@ -37,6 +37,8 @@ insert into [CTL].[ControlProjects]([ProjectName],[Enabled],[RunSequence]) value
 insert into [CTL].[ControlProjects]([ProjectName],[Enabled],[RunSequence]) values('CLEANSED DATA ISU',1,40);
 insert into [CTL].[ControlProjects]([ProjectName],[Enabled],[RunSequence]) values('CURATED MASTER',1,50);
 insert into [CTL].[ControlProjects]([ProjectName],[Enabled],[RunSequence]) values('CURATED BRIDGE',1,60);
+insert into [CTL].[ControlProjects]([ProjectName],[Enabled],[RunSequence]) values('BOM715 DATA',1,10);
+insert into [CTL].[ControlProjects]([ProjectName],[Enabled],[RunSequence]) values('IOT SW TELEMETRY ALARM DATA',1,10);
 
 INSERT INTO [CTL].[ControlStages] ([StageSequence], [StageName]) SELECT 100, N'Source to Raw'
 WHERE NOT EXISTS (SELECT 1 FROM [CTL].[ControlStages] WHERE [StageName] = N'Source to Raw')
@@ -70,6 +72,7 @@ IF (
 		INSERT [CTL].[ControlTypes] ([TypeId], [ControlType]) VALUES (11, N'OData-Basic')
 		INSERT [CTL].[ControlTypes] ([TypeId], [ControlType]) VALUES (12, N'OData-AADServicePrincipal')
 		INSERT [CTL].[ControlTypes] ([TypeId], [ControlType]) VALUES (13, N'SharePoint')
+		INSERT [CTL].[ControlTypes] ([TypeId], [ControlType]) VALUES (14, N'BLOB Storage (nc)')
 		SET IDENTITY_INSERT [CTL].[ControlTypes] OFF
 	END
 
@@ -83,11 +86,11 @@ IF (
 ) = 0
 	BEGIN
 		SET IDENTITY_INSERT [CTL].[ControlDataLoadTypes] ON
-		INSERT [CTL].[ControlDataLoadTypes] (DataLoadTypeID, [DataLoadType], [DeltaExtract], [CDCSource], TruncateTarget, UpsertTarget) VALUES (1, N'TRUNCATE-LOAD', 0, 0, 1, 0)
-		INSERT [CTL].[ControlDataLoadTypes] (DataLoadTypeID, [DataLoadType], [DeltaExtract], [CDCSource], TruncateTarget, UpsertTarget) VALUES (2, N'FULL-EXTRACT', 0, 0, 0, 1)
-		INSERT [CTL].[ControlDataLoadTypes] (DataLoadTypeID, [DataLoadType], [DeltaExtract], [CDCSource], TruncateTarget, UpsertTarget) VALUES (3, N'INCREMENTAL', 1, 0, 0, 1)
-		INSERT [CTL].[ControlDataLoadTypes] (DataLoadTypeID, [DataLoadType], [DeltaExtract], [CDCSource], TruncateTarget, UpsertTarget) VALUES (4, N'APPEND', 1, 0, 0, 0)
-		INSERT [CTL].[ControlDataLoadTypes] (DataLoadTypeID, [DataLoadType], [DeltaExtract], [CDCSource], TruncateTarget, UpsertTarget) VALUES (5, N'CDC', 1, 1, 0, 0)
+			INSERT [CTL].[ControlDataLoadTypes] (DataLoadTypeID, [DataLoadType], [DeltaExtract], [CDCSource], TruncateTarget, UpsertTarget) VALUES (1, N'TRUNCATE-LOAD', 0, 0, 1, 0, 0)
+			INSERT [CTL].[ControlDataLoadTypes] (DataLoadTypeID, [DataLoadType], [DeltaExtract], [CDCSource], TruncateTarget, UpsertTarget) VALUES (2, N'FULL-EXTRACT', 0, 0, 0, 1, 0)
+			INSERT [CTL].[ControlDataLoadTypes] (DataLoadTypeID, [DataLoadType], [DeltaExtract], [CDCSource], TruncateTarget, UpsertTarget) VALUES (3, N'INCREMENTAL', 1, 0, 0, 1, 0)
+			INSERT [CTL].[ControlDataLoadTypes] (DataLoadTypeID, [DataLoadType], [DeltaExtract], [CDCSource], TruncateTarget, UpsertTarget) VALUES (4, N'APPEND', 0, 0, 0, 0, 1)
+			INSERT [CTL].[ControlDataLoadTypes] (DataLoadTypeID, [DataLoadType], [DeltaExtract], [CDCSource], TruncateTarget, UpsertTarget) VALUES (5, N'CDC', 1, 1, 0, 0, 0)
 		SET IDENTITY_INSERT [CTL].[ControlDataLoadTypes] OFF
 	END
 
