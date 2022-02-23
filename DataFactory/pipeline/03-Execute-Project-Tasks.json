@@ -357,7 +357,7 @@
 										"userProperties": [],
 										"typeProperties": {
 											"pipeline": {
-												"referenceName": "04-SQLServer-A-Source Load",
+												"referenceName": "04-SQLServer-A-Source Load_copy2",
 												"type": "PipelineReference"
 											},
 											"waitOnCompletion": true,
@@ -488,10 +488,7 @@
 				},
 				"linkedServiceName": {
 					"referenceName": "LS-AzureSqlDatabase_Ctrldb",
-					"type": "LinkedServiceReference",
-					"parameters": {
-						"kvSecret": "daf-sql-controldb-connectionstring"
-					}
+					"type": "LinkedServiceReference"
 				}
 			},
 			{
@@ -535,10 +532,7 @@
 				},
 				"linkedServiceName": {
 					"referenceName": "LS-AzureSqlDatabase_Ctrldb",
-					"type": "LinkedServiceReference",
-					"parameters": {
-						"kvSecret": "daf-sql-controldb-connectionstring"
-					}
+					"type": "LinkedServiceReference"
 				}
 			},
 			{
