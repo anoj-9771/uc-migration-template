@@ -861,64 +861,6 @@
 				}
 			},
 			{
-				"name": "Task Log Failure FileName",
-				"type": "SqlServerStoredProcedure",
-				"dependsOn": [],
-				"policy": {
-					"timeout": "7.00:00:00",
-					"retry": 0,
-					"retryIntervalInSeconds": 30,
-					"secureOutput": false,
-					"secureInput": false
-				},
-				"userProperties": [],
-				"typeProperties": {
-					"storedProcedureName": "[CTL].[UpdateTaskLog]",
-					"storedProcedureParameters": {
-						"BatchLogId": {
-							"value": {
-								"value": "@pipeline().parameters.BatchLogId",
-								"type": "Expression"
-							},
-							"type": "Int64"
-						},
-						"ErrorMessage": {
-							"value": {
-								"value": "An Error Occurred while getting file name",
-								"type": "Expression"
-							},
-							"type": "String"
-						},
-						"ExecutionLogId": {
-							"value": {
-								"value": "@pipeline().parameters.TaskExecutionLogId",
-								"type": "Expression"
-							},
-							"type": "Int64"
-						},
-						"Status": {
-							"value": "Failure",
-							"type": "String"
-						},
-						"TaskId": {
-							"value": {
-								"value": "@pipeline().parameters.TaskDetails.TaskId",
-								"type": "Expression"
-							},
-							"type": "Int64"
-						},
-						"Output": {
-							"value": null,
-							"type": "String"
-						}
-					}
-				},
-				"linkedServiceName": {
-					"referenceName": "LS-AzureSqlDatabase_Ctrldb",
-					"type": "LinkedServiceReference"
-				}
-			},
-			{
 				"name": "Get-Table-SQL",
 				"type": "Lookup",
 				"dependsOn": [],
