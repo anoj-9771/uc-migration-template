@@ -275,7 +275,7 @@
 				"typeProperties": {
 					"variableName": "WatermarkValue",
 					"value": {
-						"value": "@pipeline().parameters.WatermarkValuereplace(activity('Get-Table-Values').output.firstRow.ReturnValue, '\\', ' ')",
+						"value": "replace(@pipeline().parameters.WatermarkValue, '\\', ' ')",
 						"type": "Expression"
 					}
 				}
