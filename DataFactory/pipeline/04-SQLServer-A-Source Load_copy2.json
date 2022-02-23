@@ -574,7 +574,13 @@
 									"TaskDetails": {
 										"value": "@pipeline().parameters.TaskDetails",
 										"type": "Expression"
-									}
+									},
+									"ValidationDetails": "@activity('Get-Table-Values').output.firstRow",
+									"ProjectRunID": {
+										"value": "@pipeline().parameters.ProjectRunID",
+										"type": "Expression"
+									},
+									"SourceFileDateStamp": "1"
 								}
 							}
 						}
