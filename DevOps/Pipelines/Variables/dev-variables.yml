@@ -165,7 +165,7 @@ variables:
   # Azure Devops Self-hosted Linux related
   # ------------------------------------------------
   - name: vmSizeDevops
-    value: Standard_D2as_v4
+    value: Standard_D2ds_v5
   - name: vmNameDevops
     value: ln097ddevops01
   - name: publisherDevops
@@ -183,7 +183,7 @@ variables:
   # Azure IR Self-hosted VM related
   # ------------------------------------------------
   - name: vmSizeIR
-    value: Standard_D2as_v4
+    value: Standard_D2ds_v5
   - name: vmNameIR
     value: nt097ddaf01
   # ------------------------------------------------

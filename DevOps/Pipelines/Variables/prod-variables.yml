@@ -181,7 +181,7 @@ variables:
   # Azure Devops Self-hosted VM related
   # ------------------------------------------------
   - name: vmSizeDevops
-    value: Standard_D2as_v4
+    value: Standard_D2ds_v4
   - name: vmNameDevops
     value: ln097pdevops01
   - name: publisherDevops
