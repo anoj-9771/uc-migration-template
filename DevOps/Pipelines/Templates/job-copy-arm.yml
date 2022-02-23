@@ -6,5 +6,8 @@ jobs:
       cp -r AzureResources/. "$(Build.ArtifactStagingDirectory)/arm_templates/"
     displayName: 'Prepare Azure Resource Manager template Build Artifacts'
 
-  - publish: '$(Build.ArtifactStagingDirectory)/arm_templates'
-    artifact: arm_templates
+  - task: PublishBuildArtifacts@1
+    inputs:
+      pathToPublish: '$(Build.ArtifactStagingDirectory)'
+      artifactName: 'arm_templates'
+

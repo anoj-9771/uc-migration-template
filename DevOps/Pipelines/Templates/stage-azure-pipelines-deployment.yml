@@ -36,6 +36,7 @@ stages:
   # through templates. Introduce or remove templates from this build script
   # as needed for your deployment
   - job: 'deploy_arm'
+    pool: Daf-Self-Hosted-Prod-Linux
     steps:
     - download: current
       artifact: arm_templates
