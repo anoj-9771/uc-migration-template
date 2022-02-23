@@ -246,10 +246,10 @@ df_cleansed = spark.sql(f"SELECT cast(N_PROP as int) AS propertyNumber, \
 		C_EXTR_LOT AS extraLotCode, \
         to_date(D_PROP_UPDA, 'yyyyMMdd') AS propertyUpdatedDate, \
 		T_PROP_LOT AS lotDescription, \
-		C_USER_CREA AS createdByUserID, \
+		C_USER_CREA AS createdByUserId, \
 		C_PLAN_CREA AS createdByPlan, \
 		cast(to_unix_timestamp(H_CREA, 'yyyy-MM-dd hh:mm:ss a') as timestamp) as createdTimestamp, \
-        case when substr(hex(c_user_modi),1,2) = '00' then ' ' else C_USER_MODI end AS modifiedByUserID, \
+        case when substr(hex(c_user_modi),1,2) = '00' then ' ' else C_USER_MODI end AS modifiedByUserId, \
 		C_PLAN_MODI AS modifiedByPlan, \
 		cast(to_unix_timestamp(H_MODI, 'yyyy-MM-dd hh:mm:ss a') as timestamp) as modifiedTimestamp, \
         a._RecordStart, \
@@ -296,10 +296,10 @@ newSchema = StructType([
 	StructField('extraLotCode',StringType(),True),
 	StructField('propertyUpdatedDate',DateType(),True),
     StructField('lotDescription',StringType(),True),
-	StructField('createdByUserID',StringType(),True),
+	StructField('createdByUserId',StringType(),True),
 	StructField('createdByPlan',StringType(),True),
 	StructField('createdTimestamp',TimestampType(),True),
-	StructField('modifiedByUserID',StringType(),True),
+	StructField('modifiedByUserId',StringType(),True),
 	StructField('modifiedByPlan',StringType(),True),
 	StructField('modifiedTimestamp',TimestampType(),True),
     StructField('_RecordStart',TimestampType(),False),
