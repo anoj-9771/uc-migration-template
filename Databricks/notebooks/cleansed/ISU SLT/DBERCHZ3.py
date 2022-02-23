@@ -180,7 +180,7 @@ df_cleansed = spark.sql(f"SELECT  \
                                     case when BELNR = 'na' then '' else BELNR end as billingDocumentNumber, \
                                     case when BELZEILE = 'na' then '' else BELZEILE end as billingDocumentLineItemId, \
                                     MWSKZ as taxSalesCode, \
-                                    ERMWSKZ as texDeterminationCode, \
+                                    ERMWSKZ as taxDeterminationCode, \
                                     cast(NETTOBTR as dec(13,2)) as billingLineItemNetAmount, \
                                     TWAERS as transactionCurrency, \
                                     PREISTUF as priceLevel, \
@@ -227,7 +227,7 @@ newSchema = StructType([
                         StructField('billingDocumentNumber', StringType(), False),
                         StructField('billingDocumentLineItemId', StringType(), False),
                         StructField('taxSalesCode', StringType(), True),
-                        StructField('texDeterminationCode', StringType(), True),
+                        StructField('taxDeterminationCode', StringType(), True),
                         StructField('billingLineItemNetAmount', DecimalType(13,2), True),
                         StructField('transactionCurrency', StringType(), True),
                         StructField('priceLevel', StringType(), True),

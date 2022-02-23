@@ -201,10 +201,10 @@ df_cleansed = spark.sql("SELECT C_LGA AS LGACode, \
 		T_SPEC_DESC AS specialDescription, \
 		M_BUIL_1 AS buildingName1, \
 		M_BUIL_2 AS buildingName2, \
-		C_USER_CREA AS createdByUserID, \
+		C_USER_CREA AS createdByUserId, \
 		C_PLAN_CREA AS createdByPlan, \
         cast(to_unix_timestamp(H_CREA, 'yyyy-MM-dd hh:mm:ss a') as timestamp) as createdTimestamp, \
-        C_USER_MODI AS modifiedByUserID, \
+        C_USER_MODI AS modifiedByUserId, \
 		C_PLAN_MODI AS modifiedByPlan, \
         cast(to_unix_timestamp(H_MODI, 'yyyy-MM-dd hh:mm:ss a') as timestamp) as modifiedTimestamp, \
         _RecordStart, \
@@ -236,10 +236,10 @@ newSchema = StructType([
 	StructField('specialDescription',StringType(),True),
 	StructField('buildingName1',StringType(),True),
 	StructField('buildingName2',StringType(),True),
-	StructField('createdByUserID',StringType(),True),
+	StructField('createdByUserId',StringType(),True),
 	StructField('createdByPlan',StringType(),True),
 	StructField('createdTimestamp',TimestampType(),False),
-	StructField('modifiedByUserID',StringType(),True),
+	StructField('modifiedByUserId',StringType(),True),
 	StructField('modifiedByPlan',StringType(),True),
 	StructField('modifiedTimestamp',TimestampType(),False),
     StructField('_RecordStart',TimestampType(),False),
