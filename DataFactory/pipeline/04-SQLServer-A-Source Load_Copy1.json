@@ -573,8 +573,14 @@
 										"value": "@variables('WatermarkValue')",
 										"type": "Expression"
 									},
+									"TargetBLOBName": "null",
+									"TargetBLOBFolder": "null",
 									"TaskDetails": "@pipeline().parameters.TaskDetails",
-									"ValidationDetails": "@activity('Get-Table-Values').output.firstRow"
+									"ValidationDetails": "@activity('Get-Table-Values').output.firstRow",
+									"ProjectRunID": {
+										"value": "@pipeline().parameters.ProjectRunID",
+										"type": "Expression"
+									}
 								}
 							}
 						},
