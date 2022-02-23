@@ -271,6 +271,9 @@
 			},
 			"TaskDetails": {
 				"type": "object"
+			},
+			"ValidationDetails": {
+				"type": "object"
 			}
 		},
 		"variables": {
