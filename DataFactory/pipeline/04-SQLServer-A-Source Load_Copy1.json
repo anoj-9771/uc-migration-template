@@ -7,12 +7,6 @@
 				"type": "IfCondition",
 				"dependsOn": [
 					{
-						"activity": "Get Full File Name",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					},
-					{
 						"activity": "Get-Table-Values",
 						"dependencyConditions": [
 							"Succeeded"
@@ -213,7 +207,7 @@
 							"type": "SqlServerStoredProcedure",
 							"dependsOn": [
 								{
-									"activity": "EP-SQL-Copy-Delta",
+									"activity": "testDeltaTableWrite",
 									"dependencyConditions": [
 										"Failed"
 									]
@@ -404,60 +398,6 @@
 							}
 						},
 						{
-							"name": "EP-SQL-Copy-Delta",
-							"type": "ExecutePipeline",
-							"dependsOn": [
-								{
-									"activity": "SET-Delta-SQL",
-									"dependencyConditions": [
-										"Succeeded"
-									]
-								}
-							],
-							"userProperties": [],
-							"typeProperties": {
-								"pipeline": {
-									"referenceName": "04-SQLServer-B-Source-Copy",
-									"type": "PipelineReference"
-								},
-								"waitOnCompletion": true,
-								"parameters": {
-									"BatchLogId": {
-										"value": "@pipeline().parameters.BatchLogId",
-										"type": "Expression"
-									},
-									"TaskDetails": {
-										"value": "@pipeline().parameters.TaskDetails",
-										"type": "Expression"
-									},
-									"TaskExecutionLogId": {
-										"value": "@pipeline().parameters.TaskExecutionLogId",
-										"type": "Expression"
-									},
-									"SourceSQL": {
-										"value": "@variables('DeltaSQL')",
-										"type": "Expression"
-									},
-									"TargetBLOBFolder": {
-										"value": "@activity('Get Full File Name').output.firstrow.StorageFolder",
-										"type": "Expression"
-									},
-									"TargetBLOBName": {
-										"value": "@activity('Get Full File Name').output.firstrow.StorageFile",
-										"type": "Expression"
-									},
-									"ValidationDetails": {
-										"value": "@activity('Get-Table-Values').output.firstRow",
-										"type": "Expression"
-									},
-									"ProjectRunID": {
-										"value": "@pipeline().parameters.ProjectRunID",
-										"type": "Expression"
-									}
-								}
-							}
-						},
-						{
 							"name": "SET-Delta-SQL",
 							"type": "SetVariable",
 							"dependsOn": [
@@ -482,7 +422,7 @@
 							"type": "SqlServerStoredProcedure",
 							"dependsOn": [
 								{
-									"activity": "EP-SQL-Copy-Delta",
+									"activity": "testDeltaTableWrite",
 									"dependencyConditions": [
 										"Succeeded"
 									]
@@ -597,77 +537,28 @@
 								"referenceName": "LS-AzureSqlDatabase_Ctrldb",
 								"type": "LinkedServiceReference"
 							}
+						},
+						{
+							"name": "testDeltaTableWrite",
+							"type": "ExecutePipeline",
+							"dependsOn": [
+								{
+									"activity": "SET-Delta-SQL",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "testDeltaTableWrite",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true
+							}
 						}
 					]
-				}
-			},
-			{
-				"name": "Get Full File Name",
-				"type": "Lookup",
-				"dependsOn": [],
-				"policy": {
-					"timeout": "7.00:00:00",
-					"retry": 0,
-					"retryIntervalInSeconds": 30,
-					"secureOutput": false,
-					"secureInput": false
-				},
-				"userProperties": [],
-				"typeProperties": {
-					"source": {
-						"type": "AzureSqlSource",
-						"sqlReaderStoredProcedureName": "[CTL].[GetStorageFileName]",
-						"storedProcedureParameters": {
-							"DeltaExtract": {
-								"type": "Boolean",
-								"value": {
-									"value": "@pipeline().parameters.TaskDetails.DeltaExtract",
-									"type": "Expression"
-								}
-							},
-							"FileName": {
-								"type": "String",
-								"value": {
-									"value": "@pipeline().parameters.TaskDetails.SourceLocation",
-									"type": "Expression"
-								}
-							},
-							"FolderName": {
-								"type": "String",
-								"value": {
-									"value": "@pipeline().parameters.TaskDetails.TargetLocation",
-									"type": "Expression"
-								}
-							},
-							"Grain": {
-								"type": "String",
-								"value": {
-									"value": "@pipeline().parameters.TaskDetails.ObjectGrain",
-									"type": "Expression"
-								}
-							},
-							"Compressed": {
-								"type": "Boolean",
-								"value": {
-									"value": "true",
-									"type": "Expression"
-								}
-							},
-							"TargetType": {
-								"type": "String",
-								"value": {
-									"value": "@pipeline().parameters.TaskDetails.TargetType",
-									"type": "Expression"
-								}
-							}
-						},
-						"partitionOption": "None"
-					},
-					"dataset": {
-						"referenceName": "AzureSqlDatabase_Ctrldb",
-						"type": "DatasetReference"
-					},
-					"firstRowOnly": true
 				}
 			},
 			{
@@ -757,14 +648,7 @@
 			{
 				"name": "Task Log Failure FileName",
 				"type": "SqlServerStoredProcedure",
-				"dependsOn": [
-					{
-						"activity": "Get Full File Name",
-						"dependencyConditions": [
-							"Failed"
-						]
-					}
-				],
+				"dependsOn": [],
 				"policy": {
 					"timeout": "7.00:00:00",
 					"retry": 0,
