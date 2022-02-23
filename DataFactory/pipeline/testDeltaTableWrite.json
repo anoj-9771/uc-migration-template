@@ -250,6 +250,15 @@
 		"parameters": {
 			"DeltaSql": {
 				"type": "string"
+			},
+			"BatchExecutionLogID": {
+				"type": "int"
+			},
+			"TaskExecutionLogID": {
+				"type": "int"
+			},
+			"SourceFileDateStamp": {
+				"type": "string"
 			}
 		},
 		"variables": {
