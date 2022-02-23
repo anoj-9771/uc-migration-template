@@ -271,6 +271,12 @@
 			},
 			"ValidationDetails": {
 				"type": "object"
+			},
+			"ProjectRunID": {
+				"type": "string"
+			},
+			"SourceFileDateStamp": {
+				"type": "string"
 			}
 		},
 		"variables": {
