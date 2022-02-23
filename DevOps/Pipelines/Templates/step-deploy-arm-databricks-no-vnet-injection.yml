@@ -26,7 +26,7 @@ steps:
       resourceGroupName: ${{ parameters.resource_group }}
       location: $(LOCATION)
       templateLocation: 'Linked artifact'
-      csmFile: '$(Pipeline.Workspace)/arm_templates/arm-databricks-no-vnet-injection.json'
+      csmFile: '$(Build.ArtifactStagingDirectory)/arm_templates/arm-databricks-no-vnet-injection.json'
       overrideParameters: '-location $(LOCATION) -workspaceName $(DATABRICKSWORKSPACENAME)-prefix $(PREFIX) -environment $(ENVIRONMENT) -pricingTier $(DATABRICKSPRICINGTIER)'
       deploymentMode: 'Incremental'
       deploymentOutputs: 'databricksOutput'

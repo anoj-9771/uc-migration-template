@@ -42,7 +42,7 @@ steps:
       resourceGroupName: ${{ parameters.resource_group }}
       location: $(LOCATION)
       templateLocation: 'Linked artifact'
-      csmFile: '$(Pipeline.Workspace)/arm_templates/arm-sql-db.json'
+      csmFile: '$(Build.ArtifactStagingDirectory)/arm_templates/arm-sql-db.json'
       overrideParameters: |
         -location $(LOCATION) -databaseName ${{ parameters.database_name }} -databaseKind ${{ parameters.database_kind }} -databaseSku ${{ parameters.database_sku }} -databaseProperties ${{ parameters.database_properties }}
       deploymentMode: 'Incremental'

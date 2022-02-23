@@ -30,7 +30,7 @@ steps:
       resourceGroupName: ${{ parameters.resource_group }}
       location: $(LOCATION)
       templateLocation: 'Linked artifact'
-      csmFile: '$(Pipeline.Workspace)/arm_templates/arm-databricks-nsg.json'
+      csmFile: '$(Build.ArtifactStagingDirectory)/arm_templates/arm-databricks-nsg.json'
       overrideParameters: '-location $(LOCATION) -nsgName $(NSGNAME)'
       deploymentMode: 'Incremental'
       deploymentOutputs: 'nsgOutput'
@@ -55,7 +55,7 @@ steps:
       resourceGroupName: ${{ parameters.vnet_resource_group }}
       location: $(LOCATION)
       templateLocation: 'Linked artifact'
-      csmFile: '$(Pipeline.Workspace)/arm_templates/arm-databricks-vnet.json'
+      csmFile: '$(Build.ArtifactStagingDirectory)/arm_templates/arm-databricks-vnet.json'
       overrideParameters: '-location $(LOCAITON) -vnetName $(VNETNAME) -privateSubnetName $(CUSTOMPRIVATESUBNETNAME) -publicSubnetName $(CUSTOMPUBLICSUBNETNAME) -nsgId $(NSGID) -privateSubnetCidr $(PRIVATESUBNETCIDR) -publicSubnetCidr $(PUBLICSUBNETCIDR)'
       deploymentMode: 'Incremental'
       deploymentOutputs: 'vnetOutput'
@@ -79,7 +79,7 @@ steps:
       resourceGroupName: ${{ parameters.resource_group }}
       location: $(LOCATION)
       templateLocation: 'Linked artifact'
-      csmFile: '$(Pipeline.Workspace)/arm_templates/arm-databricks-vnet-injection.json'
+      csmFile: '$(Build.ArtifactStagingDirectory)/arm_templates/arm-databricks-vnet-injection.json'
       overrideParameters: '-workspaceName $(DATABRICKSWORKSPACENAME) -pricingTier $(DATABRICKSPRICINGTIER) -customVirtualNetworkId $(VNETID) -customPublicSubnetName $(CUSTOMPUBLICSUBNETNAME) -customPrivateSubnetName $(CUSTOMPRIVATESUBNETNAME) -location $(LOCATION)'
       deploymentMode: 'Incremental'
       deploymentOutputs: 'databricksOutput'
