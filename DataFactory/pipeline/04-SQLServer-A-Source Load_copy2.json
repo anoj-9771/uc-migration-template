@@ -31,7 +31,7 @@
 							"type": "SqlServerStoredProcedure",
 							"dependsOn": [
 								{
-									"activity": "EP-SQL-Copy-Full",
+									"activity": "EP-SQLSrc-DeltaTable-Write-Full",
 									"dependencyConditions": [
 										"Succeeded"
 									]
@@ -96,7 +96,7 @@
 							"type": "SqlServerStoredProcedure",
 							"dependsOn": [
 								{
-									"activity": "EP-SQL-Copy-Full",
+									"activity": "EP-SQLSrc-DeltaTable-Write-Full",
 									"dependencyConditions": [
 										"Failed"
 									]
@@ -154,39 +154,27 @@
 							}
 						},
 						{
-							"name": "EP-SQL-Copy-Full",
+							"name": "EP-SQLSrc-DeltaTable-Write-Full",
 							"type": "ExecutePipeline",
 							"dependsOn": [],
 							"userProperties": [],
 							"typeProperties": {
 								"pipeline": {
-									"referenceName": "04-SQLServer-B-Source-Copy",
+									"referenceName": "testDeltaTableWrite",
 									"type": "PipelineReference"
 								},
 								"waitOnCompletion": true,
 								"parameters": {
-									"BatchLogId": {
-										"value": "@pipeline().parameters.BatchLogId",
-										"type": "Expression"
-									},
-									"TaskDetails": {
-										"value": "@pipeline().parameters.TaskDetails",
-										"type": "Expression"
-									},
-									"TaskExecutionLogId": {
-										"value": "@pipeline().parameters.TaskExecutionLogId",
-										"type": "Expression"
-									},
-									"SourceSQL": {
-										"value": "@pipeline().parameters.TaskDetails.Command",
+									"TargetBLOBName": {
+										"value": "null",
 										"type": "Expression"
 									},
 									"TargetBLOBFolder": {
 										"value": "null",
 										"type": "Expression"
 									},
-									"TargetBLOBName": {
-										"value": "null",
+									"TaskDetails": {
+										"value": "@pipeline().parameters.TaskDetails",
 										"type": "Expression"
 									},
 									"ValidationDetails": {
@@ -207,7 +195,7 @@
 							"type": "SqlServerStoredProcedure",
 							"dependsOn": [
 								{
-									"activity": "EP-SQLSrc-DeltaTable-Write",
+									"activity": "EP-SQLSrc-DeltaTable-Write-Delta",
 									"dependencyConditions": [
 										"Failed"
 									]
@@ -422,7 +410,7 @@
 							"type": "SqlServerStoredProcedure",
 							"dependsOn": [
 								{
-									"activity": "EP-SQLSrc-DeltaTable-Write",
+									"activity": "EP-SQLSrc-DeltaTable-Write-Delta",
 									"dependencyConditions": [
 										"Succeeded"
 									]
@@ -539,7 +527,7 @@
 							}
 						},
 						{
-							"name": "EP-SQLSrc-DeltaTable-Write",
+							"name": "EP-SQLSrc-DeltaTable-Write-Delta",
 							"type": "ExecutePipeline",
 							"dependsOn": [
 								{
