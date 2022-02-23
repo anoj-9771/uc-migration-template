@@ -383,7 +383,7 @@
 									},
 									"Output": {
 										"value": {
-											"value": "@activity('Get Full File Name').output.firstrow.StorageFile",
+											"value": "null",
 											"type": "Expression"
 										},
 										"type": "String"
