@@ -21,55 +21,55 @@ parameters:
   type: boolean
 
 steps:
-  # Create or update NSG.
-  - task: AzureResourceGroupDeployment@2
-    condition: eq(variables['databricksvnetnsg'], true)
-    inputs:
-      azureSubscription: ${{ parameters.AzDoServiceConnection }}
-      action: 'Create Or Update Resource Group'
-      resourceGroupName: ${{ parameters.resource_group }}
-      location: $(LOCATION)
-      templateLocation: 'Linked artifact'
-      csmFile: '$(Build.ArtifactStagingDirectory)/arm_templates/arm-databricks-nsg.json'
-      overrideParameters: '-location $(LOCATION) -nsgName $(NSGNAME)'
-      deploymentMode: 'Incremental'
-      deploymentOutputs: 'nsgOutput'
-    displayName: 'Create or update NSG'
-  # Extract ARM NSG ID output.
-  - powershell: |
-      Write-Host '$(nsgOutput)'
-      $json = '$(nsgOutput)' | convertfrom-json
-      #Parse nsgId
-      $nsgId = $json.nsgOutput.value
-      Write-host "##vso[task.setvariable variable=nsgId;]$nsgId"
-    condition: and(eq(variables['databricksvnetnsg'], true), eq(variables['nsgid'], ''))
-    name: getNsgId
-    displayName: 'Extract NSG ID from ARM outputs'
+  # # Create or update NSG.
+  # - task: AzureResourceGroupDeployment@2
+  #   condition: eq(variables['databricksvnetnsg'], true)
+  #   inputs:
+  #     azureSubscription: ${{ parameters.AzDoServiceConnection }}
+  #     action: 'Create Or Update Resource Group'
+  #     resourceGroupName: ${{ parameters.resource_group }}
+  #     location: $(LOCATION)
+  #     templateLocation: 'Linked artifact'
+  #     csmFile: '$(Build.ArtifactStagingDirectory)/arm_templates/arm-databricks-nsg.json'
+  #     overrideParameters: '-location $(LOCATION) -nsgName $(NSGNAME)'
+  #     deploymentMode: 'Incremental'
+  #     deploymentOutputs: 'nsgOutput'
+  #   displayName: 'Create or update NSG'
+  # # Extract ARM NSG ID output.
+  # - powershell: |
+  #     Write-Host '$(nsgOutput)'
+  #     $json = '$(nsgOutput)' | convertfrom-json
+  #     #Parse nsgId
+  #     $nsgId = $json.nsgOutput.value
+  #     Write-host "##vso[task.setvariable variable=nsgId;]$nsgId"
+  #   condition: and(eq(variables['databricksvnetnsg'], true), eq(variables['nsgid'], ''))
+  #   name: getNsgId
+  #   displayName: 'Extract NSG ID from ARM outputs'
 
-  # Create or update Vnet Subnets
-  - task: AzureResourceGroupDeployment@2
-    condition: eq(variables['databricksvnetsubnets'], true)
-    inputs:
-      azureSubscription: ${{ parameters.AzDoServiceConnection }}
-      action: 'Create Or Update Resource Group'
-      resourceGroupName: ${{ parameters.vnet_resource_group }}
-      location: $(LOCATION)
-      templateLocation: 'Linked artifact'
-      csmFile: '$(Build.ArtifactStagingDirectory)/arm_templates/arm-databricks-vnet.json'
-      overrideParameters: '-location $(LOCAITON) -vnetName $(VNETNAME) -privateSubnetName $(CUSTOMPRIVATESUBNETNAME) -publicSubnetName $(CUSTOMPUBLICSUBNETNAME) -nsgId $(NSGID) -privateSubnetCidr $(PRIVATESUBNETCIDR) -publicSubnetCidr $(PUBLICSUBNETCIDR)'
-      deploymentMode: 'Incremental'
-      deploymentOutputs: 'vnetOutput'
-    displayName: 'Create or update Sub Nets'
-  # Extract ARM Vnet ID output
-  - powershell: | 
-      Write-Host '$(vnetOutput)'
-      $json = '$(vnetOutput)' | convertfrom-json
-      #Parse vnetId
-      $vnetId= $json.vnetOutput.value
-      Write-host "##vso[task.setvariable variable=vnetId;]$vnetId"
-    condition: and(eq(variables['databricksvnetsubnets'], true), eq(variables['vnetid'], ''))
-    name: getVnetId
-    displayName: 'Extract Vnet ID from ARM outputs'
+  # # Create or update Vnet Subnets
+  # - task: AzureResourceGroupDeployment@2
+  #   condition: eq(variables['databricksvnetsubnets'], true)
+  #   inputs:
+  #     azureSubscription: ${{ parameters.AzDoServiceConnection }}
+  #     action: 'Create Or Update Resource Group'
+  #     resourceGroupName: ${{ parameters.vnet_resource_group }}
+  #     location: $(LOCATION)
+  #     templateLocation: 'Linked artifact'
+  #     csmFile: '$(Build.ArtifactStagingDirectory)/arm_templates/arm-databricks-vnet.json'
+  #     overrideParameters: '-location $(LOCAITON) -vnetName $(VNETNAME) -privateSubnetName $(CUSTOMPRIVATESUBNETNAME) -publicSubnetName $(CUSTOMPUBLICSUBNETNAME) -nsgId $(NSGID) -privateSubnetCidr $(PRIVATESUBNETCIDR) -publicSubnetCidr $(PUBLICSUBNETCIDR)'
+  #     deploymentMode: 'Incremental'
+  #     deploymentOutputs: 'vnetOutput'
+  #   displayName: 'Create or update Sub Nets'
+  # # Extract ARM Vnet ID output
+  # - powershell: | 
+  #     Write-Host '$(vnetOutput)'
+  #     $json = '$(vnetOutput)' | convertfrom-json
+  #     #Parse vnetId
+  #     $vnetId= $json.vnetOutput.value
+  #     Write-host "##vso[task.setvariable variable=vnetId;]$vnetId"
+  #   condition: and(eq(variables['databricksvnetsubnets'], true), eq(variables['vnetid'], ''))
+  #   name: getVnetId
+  #   displayName: 'Extract Vnet ID from ARM outputs'
 
   # Create Databricks Workspace (Vnet Injection)
   - task: AzureResourceGroupDeployment@2
