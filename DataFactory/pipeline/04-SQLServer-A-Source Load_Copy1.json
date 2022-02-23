@@ -3,51 +3,6 @@
 	"properties": {
 		"activities": [
 			{
-				"name": "Check Delta Load",
-				"type": "IfCondition",
-				"dependsOn": [
-					{
-						"activity": "Get-Table-Values",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					},
-					{
-						"activity": "Execute-Generate-Schema",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
-				"userProperties": [],
-				"typeProperties": {
-					"expression": {
-						"value": "@equals(pipeline().parameters.TaskDetails.DeltaExtract,true)",
-						"type": "Expression"
-					},
-					"ifFalseActivities": [
-						{
-							"name": "Set variable2",
-							"type": "SetVariable",
-							"dependsOn": [],
-							"userProperties": []
-						}
-					],
-					"ifTrueActivities": [
-						{
-							"name": "Set-DeltaSql-DeltaLoad",
-							"type": "SetVariable",
-							"dependsOn": [],
-							"userProperties": [],
-							"typeProperties": {
-								"variableName": "DeltaSQL",
-								"value": ""
-							}
-						}
-					]
-				}
-			},
-			{
 				"name": "Execute-Generate-Schema",
 				"type": "ExecutePipeline",
 				"dependsOn": [],
@@ -310,7 +265,7 @@
 				"type": "ExecutePipeline",
 				"dependsOn": [
 					{
-						"activity": "Check Delta Load",
+						"activity": "Get-Table-Values",
 						"dependencyConditions": [
 							"Succeeded"
 						]
