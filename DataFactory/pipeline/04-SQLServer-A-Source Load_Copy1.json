@@ -25,12 +25,24 @@
 						"value": "@equals(pipeline().parameters.TaskDetails.DeltaExtract,true)",
 						"type": "Expression"
 					},
-					"ifTrueActivities": [
+					"ifFalseActivities": [
 						{
-							"name": "Set variable1",
+							"name": "Set variable2",
 							"type": "SetVariable",
 							"dependsOn": [],
 							"userProperties": []
+						}
+					],
+					"ifTrueActivities": [
+						{
+							"name": "Set-DeltaSql-DeltaLoad",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "DeltaSQL",
+								"value": ""
+							}
 						}
 					]
 				}
@@ -296,7 +308,14 @@
 			{
 				"name": "EP-Copy-SQLServer-Src-To-Delta",
 				"type": "ExecutePipeline",
-				"dependsOn": [],
+				"dependsOn": [
+					{
+						"activity": "Check Delta Load",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
 				"userProperties": [],
 				"typeProperties": {
 					"waitOnCompletion": true
