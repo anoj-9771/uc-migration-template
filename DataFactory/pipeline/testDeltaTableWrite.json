@@ -206,7 +206,7 @@
 					"storedProcedureParameters": {
 						"BatchExecutionLogID": {
 							"value": {
-								"value": "@pipeline().parameters.BatchLogId",
+								"value": "@pipeline().parameters.BatchExecutionLogID",
 								"type": "Expression"
 							},
 							"type": "Int64"
@@ -220,21 +220,21 @@
 						},
 						"RecordsDeltaTable": {
 							"value": {
-								"value": "@variables('DataFileRecordCount')",
+								"value": "@activity('Copy-Source-DataLake').output.rowsCopied",
 								"type": "Expression"
 							},
 							"type": "Int64"
 						},
 						"SourceFileDateStamp": {
 							"value": {
-								"value": "@pipeline().parameters.SourceFileDateTimeStamp",
+								"value": "@pipeline().parameters.SourceFileDateStamp",
 								"type": "Expression"
 							},
 							"type": "String"
 						},
 						"RecordsTargetTable": {
 							"value": {
-								"value": "@variables('TargetTableRecordCount')",
+								"value": "@activity('Copy-Source-DataLake').output.rowsCopied",
 								"type": "Expression"
 							},
 							"type": "Int64"
