@@ -560,7 +560,21 @@
 									"DeltaSql": {
 										"value": "@variables('DeltaSQL')",
 										"type": "Expression"
-									}
+									},
+									"BatchExecutionLogID": {
+										"value": "@pipeline().parameters.BatchLogId",
+										"type": "Expression"
+									},
+									"TaskExecutionLogID": {
+										"value": "@pipeline().parameters.TaskExecutionLogId",
+										"type": "Expression"
+									},
+									"WatermarkColumn": {
+										"value": "@variables('WatermarkValue')",
+										"type": "Expression"
+									},
+									"TaskDetails": "@pipeline().parameters.TaskDetails",
+									"ValidationDetails": "@activity('Get-Table-Values').output.firstRow"
 								}
 							}
 						},
