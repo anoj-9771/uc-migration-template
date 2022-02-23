@@ -1,5 +1,5 @@
 {
-	"name": "04-SqlServer-Src-to-Delta-Table",
+	"name": "04-SqlServer-Src-to-Delta-Table-Copy",
 	"properties": {
 		"activities": [
 			{
