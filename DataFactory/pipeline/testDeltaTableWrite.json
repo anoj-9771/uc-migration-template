@@ -95,7 +95,7 @@
 					"storedProcedureParameters": {
 						"BatchExecutionLogID": {
 							"value": {
-								"value": "@pipeline().parameters.BatchLogId",
+								"value": "@pipeline().parameters.BatchExecutionLogID",
 								"type": "Expression"
 							},
 							"type": "Int64"
@@ -258,6 +258,18 @@
 				"type": "int"
 			},
 			"SourceFileDateStamp": {
+				"type": "string"
+			},
+			"WatermarkColumn": {
+				"type": "string"
+			},
+			"TargetBLOBName": {
+				"type": "string"
+			},
+			"TargetBLOBFolder": {
+				"type": "string"
+			},
+			"TaskDetails": {
 				"type": "string"
 			}
 		},
