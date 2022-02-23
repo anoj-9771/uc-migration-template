@@ -165,6 +165,15 @@
 								},
 								"waitOnCompletion": true,
 								"parameters": {
+									"BatchExecutionLogID": {
+										"value": "@pipeline().parameters.BatchLogId",
+										"type": "Expression"
+									},
+									"TaskExecutionLogID": {
+										"value": "@pipeline().parameters.TaskExecutionLogId",
+										"type": "Expression"
+									},
+									"WatermarkColumn": "null",
 									"TargetBLOBName": {
 										"value": "null",
 										"type": "Expression"
@@ -184,7 +193,8 @@
 									"ProjectRunID": {
 										"value": "@pipeline().parameters.ProjectRunID",
 										"type": "Expression"
-									}
+									},
+									"SourceFileDateStamp": "1"
 								}
 							}
 						}
