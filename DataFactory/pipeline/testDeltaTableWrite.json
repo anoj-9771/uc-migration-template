@@ -127,7 +127,7 @@
 						},
 						"Records": {
 							"value": {
-								"value": "@string(activity('testDeltaTableWrite').output.rowsCopied)",
+								"value": "null",
 								"type": "Expression"
 							},
 							"type": "Int64"
@@ -270,7 +270,7 @@
 				"type": "string"
 			},
 			"TaskDetails": {
-				"type": "string"
+				"type": "object"
 			}
 		},
 		"variables": {
