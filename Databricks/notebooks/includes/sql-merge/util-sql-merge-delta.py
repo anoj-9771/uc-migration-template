@@ -87,7 +87,9 @@ def _GenerateMergeSQL_DeltaTable(source_table_name, target_table_name, business_
 
   if len(col_lst) > 0:
     raw_file_timestamp_exist = any(COL_DL_RAW_FILE_TIMESTAMP in col for col in col_lst)
+    col_dl_raw_load_exist = any(COL_DL_RAW_LOAD in col for col in col_lst)    
     di_sequence_number_exist = any("DI_SEQUENCE_NUMBER" in col for col in col_lst)
+
 
 #Start of Arman's Fix
 #   isSAPISU = False
@@ -111,14 +113,20 @@ def _GenerateMergeSQL_DeltaTable(source_table_name, target_table_name, business_
 
     if not is_delta_extract and not raw_file_timestamp_exist:
       sql += TAB + ",ROW_NUMBER() OVER (PARTITION BY " + business_key_updated + " ORDER BY " + COL_DL_RAW_LOAD + " DESC) AS " + COL_RECORD_VERSION + NEW_LINE    
-    
+      
     #Added di_sequence_number to the order by clause  to pickup the right record from SAP delta extracts
     if is_delta_extract:
       if di_sequence_number_exist:
         sql += TAB + ",ROW_NUMBER() OVER (PARTITION BY " + business_key_updated + " ORDER BY " + delta_column + " DESC, DI_SEQUENCE_NUMBER DESC, " + COL_DL_RAW_LOAD + " DESC) AS " + COL_RECORD_VERSION + NEW_LINE
-      else:
+      elif col_dl_raw_load_exist:
         sql += TAB + ",ROW_NUMBER() OVER (PARTITION BY " + business_key_updated + " ORDER BY " + delta_column + " DESC, " + COL_DL_RAW_LOAD + " DESC) AS " + COL_RECORD_VERSION + NEW_LINE
+        
+      else:
+        sql += TAB + ",ROW_NUMBER() OVER (PARTITION BY " + business_key_updated + " ORDER BY " + delta_column + " DESC) AS " + COL_RECORD_VERSION + NEW_LINE
     
+#       else:
+#         sql += TAB + ",ROW_NUMBER() OVER (PARTITION BY " + business_key_updated + " ORDER BY " + delta_column + " DESC, " + COL_DL_RAW_LOAD + " DESC) AS " + COL_RECORD_VERSION + NEW_LINE
+
     sql += TAB +  f"FROM {ALIAS_TABLE_SOURCE} ) WHERE {COL_RECORD_VERSION} = 1" + NEW_LINE
   else:
     business_key_updated = _GetSQLCollectiveColumnsFromColumnNames(business_key, ALIAS_TABLE_STAGE, "CONCAT", DELTA_COL_QUALIFER)
@@ -462,7 +470,7 @@ def _SQLInsertSyntax_DeltaTable_Generate(dataframe, is_delta_extract, delta_colu
   #sql_values += f"{col_record_start}, to_timestamp('9999-12-31 00:00:00'), {delete_flag}, 1"
   sql_col += f"{COL_RECORD_START}, {COL_RECORD_END}, {COL_RECORD_DELETED}, {COL_RECORD_CURRENT}"
   if is_delta_extract:
-    sql_values += f"to_timestamp({col_record_start}, 'yyyyMMddHHmmss'), "
+    sql_values += f"to_timestamp(cast ({col_record_start} as string), 'yyyyMMddHHmmss'), "
   else:
     sql_values += f"{col_record_start}, "
   sql_values += f"to_timestamp('2099-12-31 00:00:00'), {delete_flag}, 1"
