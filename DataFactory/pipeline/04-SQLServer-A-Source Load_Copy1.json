@@ -575,44 +575,16 @@
 									},
 									"TargetBLOBName": "null",
 									"TargetBLOBFolder": "null",
-									"TaskDetails": "@pipeline().parameters.TaskDetails",
-									"ValidationDetails": "@activity('Get-Table-Values').output.firstRow",
-									"ProjectRunID": {
-										"value": "@pipeline().parameters.ProjectRunID",
-										"type": "Expression"
-									}
-								}
-							}
-						},
-						{
-							"name": "EP-Record-Validation_copy1",
-							"type": "ExecutePipeline",
-							"dependsOn": [
-								{
-									"activity": "testDeltaTableWrite",
-									"dependencyConditions": [
-										"Succeeded"
-									]
-								}
-							],
-							"userProperties": [],
-							"typeProperties": {
-								"pipeline": {
-									"referenceName": "recon-record-validation",
-									"type": "PipelineReference"
-								},
-								"waitOnCompletion": true,
-								"parameters": {
-									"ProjectRunID": {
-										"value": "@pipeline().parameters.ProjectRunID",
+									"TaskDetails": {
+										"value": "@pipeline().parameters.TaskDetails",
 										"type": "Expression"
 									},
 									"ValidationDetails": {
-										"value": "@pipeline().parameters.ValidationDetails",
+										"value": "@activity('Get-Table-Values').output.firstRow",
 										"type": "Expression"
 									},
-									"SourceID": {
-										"value": "@pipeline().parameters.TaskDetails.SourceID",
+									"ProjectRunID": {
+										"value": "@pipeline().parameters.ProjectRunID",
 										"type": "Expression"
 									}
 								}
@@ -843,6 +815,40 @@
 				"linkedServiceName": {
 					"referenceName": "LS-AzureSqlDatabase_Ctrldb",
 					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "EP-Record-Validation_copy1",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Check Delta Load",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "recon-record-validation",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"ProjectRunID": {
+							"value": "@pipeline().parameters.ProjectRunID",
+							"type": "Expression"
+						},
+						"ValidationDetails": {
+							"value": "@pipeline().parameters.ValidationDetails",
+							"type": "Expression"
+						},
+						"SourceID": {
+							"value": "@pipeline().parameters.TaskDetails.SourceID",
+							"type": "Expression"
+						}
+					}
 				}
 			}
 		],
