@@ -257,9 +257,6 @@
 			"TaskExecutionLogID": {
 				"type": "int"
 			},
-			"SourceFileDateStamp": {
-				"type": "string"
-			},
 			"WatermarkColumn": {
 				"type": "string"
 			},
