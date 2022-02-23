@@ -7,12 +7,6 @@
 				"type": "IfCondition",
 				"dependsOn": [
 					{
-						"activity": "Get Full File Name",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					},
-					{
 						"activity": "Get-Table-Values",
 						"dependencyConditions": [
 							"Succeeded"
@@ -602,75 +596,6 @@
 				}
 			},
 			{
-				"name": "Get Full File Name",
-				"type": "Lookup",
-				"dependsOn": [],
-				"policy": {
-					"timeout": "7.00:00:00",
-					"retry": 0,
-					"retryIntervalInSeconds": 30,
-					"secureOutput": false,
-					"secureInput": false
-				},
-				"userProperties": [],
-				"typeProperties": {
-					"source": {
-						"type": "AzureSqlSource",
-						"sqlReaderStoredProcedureName": "[CTL].[GetStorageFileName]",
-						"storedProcedureParameters": {
-							"DeltaExtract": {
-								"type": "Boolean",
-								"value": {
-									"value": "@pipeline().parameters.TaskDetails.DeltaExtract",
-									"type": "Expression"
-								}
-							},
-							"FileName": {
-								"type": "String",
-								"value": {
-									"value": "@pipeline().parameters.TaskDetails.SourceLocation",
-									"type": "Expression"
-								}
-							},
-							"FolderName": {
-								"type": "String",
-								"value": {
-									"value": "@pipeline().parameters.TaskDetails.TargetLocation",
-									"type": "Expression"
-								}
-							},
-							"Grain": {
-								"type": "String",
-								"value": {
-									"value": "@pipeline().parameters.TaskDetails.ObjectGrain",
-									"type": "Expression"
-								}
-							},
-							"Compressed": {
-								"type": "Boolean",
-								"value": {
-									"value": "true",
-									"type": "Expression"
-								}
-							},
-							"TargetType": {
-								"type": "String",
-								"value": {
-									"value": "@pipeline().parameters.TaskDetails.TargetType",
-									"type": "Expression"
-								}
-							}
-						},
-						"partitionOption": "None"
-					},
-					"dataset": {
-						"referenceName": "AzureSqlDatabase_Ctrldb",
-						"type": "DatasetReference"
-					},
-					"firstRowOnly": true
-				}
-			},
-			{
 				"name": "Execute-Generate-Schema",
 				"type": "ExecutePipeline",
 				"dependsOn": [],
@@ -721,71 +646,6 @@
 						"ErrorMessage": {
 							"value": {
 								"value": "An Error Occurred while generating schema",
-								"type": "Expression"
-							},
-							"type": "String"
-						},
-						"ExecutionLogId": {
-							"value": {
-								"value": "@pipeline().parameters.TaskExecutionLogId",
-								"type": "Expression"
-							},
-							"type": "Int64"
-						},
-						"Status": {
-							"value": "Failure",
-							"type": "String"
-						},
-						"TaskId": {
-							"value": {
-								"value": "@pipeline().parameters.TaskDetails.TaskId",
-								"type": "Expression"
-							},
-							"type": "Int64"
-						},
-						"Output": {
-							"value": null,
-							"type": "String"
-						}
-					}
-				},
-				"linkedServiceName": {
-					"referenceName": "LS-AzureSqlDatabase_Ctrldb",
-					"type": "LinkedServiceReference"
-				}
-			},
-			{
-				"name": "Task Log Failure FileName",
-				"type": "SqlServerStoredProcedure",
-				"dependsOn": [
-					{
-						"activity": "Get Full File Name",
-						"dependencyConditions": [
-							"Failed"
-						]
-					}
-				],
-				"policy": {
-					"timeout": "7.00:00:00",
-					"retry": 0,
-					"retryIntervalInSeconds": 30,
-					"secureOutput": false,
-					"secureInput": false
-				},
-				"userProperties": [],
-				"typeProperties": {
-					"storedProcedureName": "[CTL].[UpdateTaskLog]",
-					"storedProcedureParameters": {
-						"BatchLogId": {
-							"value": {
-								"value": "@pipeline().parameters.BatchLogId",
-								"type": "Expression"
-							},
-							"type": "Int64"
-						},
-						"ErrorMessage": {
-							"value": {
-								"value": "An Error Occurred while getting file name",
 								"type": "Expression"
 							},
 							"type": "String"
