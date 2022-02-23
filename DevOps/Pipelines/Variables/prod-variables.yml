@@ -183,7 +183,7 @@ variables:
   - name: vmSizeDevops
     value: Standard_D2ds_v4
   - name: vmNameDevops
-    value: ln097pdevops01
+    value: ln097pdevops02
   - name: publisherDevops
     value: RedHat
   - name: offerDevops
