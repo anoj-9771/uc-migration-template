@@ -190,7 +190,7 @@ df_cleansed = spark.sql(f"SELECT  \
                                   ToValidDate(ERDAT) as createdDate, \
                                   ToValidDate(AEDAT) as lastChangedDate, \
                                   ZZ_ZCD_AONR as architecturalObjectCount, \
-                                  ZZ_ADRNR as zzaddressNumber, \
+                                  ZZ_ADRNR as zzAddressNumber, \
                                   ZZ_OWNER as objectReferenceIndicator, \
                                   ZZ_VSTELLE as premiseId, \
                                   ZZ_ANLAGE as installationId, \
@@ -211,7 +211,7 @@ df_cleansed = spark.sql(f"SELECT  \
                                   ZZ_STR_SUPPL2 as streetLine2, \
                                   ZZ_CITY1 as cityName, \
                                   ZZ_REGION as stateCode, \
-                                  ZZ_POST_CODE1 as postCode, \
+                                  ZZ_POST_CODE1 as postcode, \
                                   ZZZ_LOCATION as locationDescriptionSecondary, \
                                   ZZZ_BUILDING as buildingNumberSecondary, \
                                   ZZZ_FLOOR as floorNumberSecondary, \
@@ -223,7 +223,7 @@ df_cleansed = spark.sql(f"SELECT  \
                                   ZZZ_STR_SUPPL2 as streetLine2Secondary, \
                                   ZZZ_CITY1 as cityNameSecondary, \
                                   ZZZ_REGION as stateCodeSecondary, \
-                                  ZZZ_POST_CODE1 as postCodeSecondary, \
+                                  ZZZ_POST_CODE1 as postcodeSecondary, \
                                   ZCD_BLD_FEE_DATE as buildingFeeDate, \
                                   stg._RecordStart, \
                                   stg._RecordEnd, \
@@ -251,7 +251,7 @@ newSchema = StructType([
                           StructField('createdDate', DateType(), True),
                           StructField('lastChangedDate', DateType(), True),
                           StructField('architecturalObjectCount', StringType(), True),
-                          StructField('zzaddressNumber', StringType(), True),
+                          StructField('zzAddressNumber', StringType(), True),
                           StructField('objectReferenceIndicator', StringType(), True),
                           StructField('premiseId', StringType(), True),
                           StructField('installationId', StringType(), True),
@@ -272,7 +272,7 @@ newSchema = StructType([
                           StructField('streetLine2', StringType(), True),
                           StructField('cityName', StringType(), True),
                           StructField('stateCode', StringType(), True),
-                          StructField('postCode', StringType(), True),
+                          StructField('postcode', StringType(), True),
                           StructField('locationDescriptionSecondary', StringType(), True),
                           StructField('buildingNumberSecondary', StringType(), True),
                           StructField('floorNumberSecondary', StringType(), True),
@@ -284,7 +284,7 @@ newSchema = StructType([
                           StructField('streetLine2Secondary', StringType(), True),
                           StructField('cityNameSecondary', StringType(), True),
                           StructField('stateCodeSecondary', StringType(), True),
-                          StructField('postCodeSecondary', StringType(), True),
+                          StructField('postcodeSecondary', StringType(), True),
                           StructField('buildingFeeDate', StringType(), True),
                           StructField('_RecordStart',TimestampType(),False),
                           StructField('_RecordEnd',TimestampType(),False),

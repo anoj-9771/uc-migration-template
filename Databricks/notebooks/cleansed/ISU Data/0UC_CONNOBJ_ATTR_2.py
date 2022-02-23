@@ -182,7 +182,7 @@ df_cleansed = spark.sql(f"SELECT \
                               con.CITY_CODE as cityCode, \
                               con.STREETCODE as streetCode, \
                               stc.streetName as streetName, \
-                              con.POSTALCODE as postCode, \
+                              con.POSTALCODE as postcode, \
                               con.REGION as stateCode, \
                               con.REGIO_GRP as regionGroup, \
                               con.REGPOLIT as politicalRegionCode, \
@@ -264,7 +264,7 @@ newSchema = StructType([
                         StructField("cityCode", StringType(), True),
                         StructField("streetCode", StringType(), True),
                         StructField("streetName", StringType(), True),
-                        StructField("postCode", StringType(), True),
+                        StructField("postcode", StringType(), True),
                         StructField("stateCode", StringType(), True),
                         StructField("regionGroup", StringType(), True),
                         StructField("politicalRegionCode", StringType(), True),
