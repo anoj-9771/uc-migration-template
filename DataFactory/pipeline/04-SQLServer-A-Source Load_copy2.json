@@ -182,11 +182,11 @@
 										"type": "Expression"
 									},
 									"TargetBLOBFolder": {
-										"value": "@activity('Get Full File Name').output.firstrow.StorageFolder",
+										"value": "null",
 										"type": "Expression"
 									},
 									"TargetBLOBName": {
-										"value": "@activity('Get Full File Name').output.firstrow.StorageFile",
+										"value": "null",
 										"type": "Expression"
 									},
 									"ValidationDetails": {
