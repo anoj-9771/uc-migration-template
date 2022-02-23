@@ -6,7 +6,7 @@
     [LoadSource]            BIT            NOT NULL,
     [SourceServer]          VARCHAR (255)  NULL,
     [Processor]             VARCHAR (255)  NULL,
-    [BusinessKeyColumn]     VARCHAR (100)  NULL,
+    [BusinessKeyColumn]     VARCHAR (255)  NULL,
     [AdditionalProperty]    VARCHAR (MAX)  NULL,
     [IsAuditTable]          BIT            NULL,
     [SoftDeleteSource]      VARCHAR (255)  NULL,
