@@ -277,7 +277,13 @@
 						"referenceName": "04-SqlServer-Src-to-Delta-Table-Copy",
 						"type": "PipelineReference"
 					},
-					"waitOnCompletion": true
+					"waitOnCompletion": true,
+					"parameters": {
+						"WatermarkValue": {
+							"value": "@activity('Get-Table-Values').output.firstRow.ReturnValue",
+							"type": "Expression"
+						}
+					}
 				}
 			},
 			{
