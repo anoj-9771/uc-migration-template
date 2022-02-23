@@ -7,7 +7,7 @@
 				"type": "SqlServerStoredProcedure",
 				"dependsOn": [
 					{
-						"activity": "EP-SQL-Copy-Delta",
+						"activity": "EP-SQL-Src-Copy-to-Delta",
 						"dependencyConditions": [
 							"Failed"
 						]
@@ -198,7 +198,7 @@
 				}
 			},
 			{
-				"name": "EP-SQL-Copy-Delta",
+				"name": "EP-SQL-Src-Copy-to-Delta",
 				"type": "ExecutePipeline",
 				"dependsOn": [
 					{
@@ -211,33 +211,21 @@
 				"userProperties": [],
 				"typeProperties": {
 					"pipeline": {
-						"referenceName": "04-SQLServer-B-Source-Copy",
+						"referenceName": "testDeltaTableWrite",
 						"type": "PipelineReference"
 					},
 					"waitOnCompletion": true,
 					"parameters": {
-						"BatchLogId": {
-							"value": "@pipeline().parameters.BatchLogId",
-							"type": "Expression"
-						},
-						"TaskDetails": {
-							"value": "@pipeline().parameters.TaskDetails",
-							"type": "Expression"
-						},
-						"TaskExecutionLogId": {
-							"value": "@pipeline().parameters.TaskExecutionLogId",
-							"type": "Expression"
-						},
-						"SourceSQL": {
-							"value": "@variables('DeltaSQL')",
+						"TargetBLOBName": {
+							"value": "@activity('Get Full File Name').output.firstrow.StorageFile",
 							"type": "Expression"
 						},
 						"TargetBLOBFolder": {
 							"value": "@activity('Get Full File Name').output.firstrow.StorageFolder",
 							"type": "Expression"
 						},
-						"TargetBLOBName": {
-							"value": "@activity('Get Full File Name').output.firstrow.StorageFile",
+						"TaskDetails": {
+							"value": "@pipeline().parameters.TaskDetails",
 							"type": "Expression"
 						},
 						"ValidationDetails": {
@@ -276,7 +264,7 @@
 				"type": "SqlServerStoredProcedure",
 				"dependsOn": [
 					{
-						"activity": "EP-SQL-Copy-Delta",
+						"activity": "EP-SQL-Src-Copy-to-Delta",
 						"dependencyConditions": [
 							"Succeeded"
 						]
