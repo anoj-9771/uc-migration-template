@@ -18,7 +18,7 @@
 					"source": {
 						"type": "SqlServerSource",
 						"sqlReaderQuery": {
-							"value": "SELECT * FROM EQ1.ERCHO WHERE ?AdfDynamicRangePartitionCondition",
+							"value": "@concat(pipeline().parameters.DeltaSql,' WHERE ?AdfDynamicRangePartitionCondition')",
 							"type": "Expression"
 						},
 						"queryTimeout": "02:00:00",
