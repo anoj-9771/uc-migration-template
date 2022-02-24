@@ -27,11 +27,11 @@
 					},
 					"ifFalseActivities": [
 						{
-							"name": "SET-Delta-SQL_copy1",
+							"name": "SET-Full-SQL",
 							"type": "SetVariable",
 							"dependsOn": [
 								{
-									"activity": "SET-Watermark-Value_copy1",
+									"activity": "SET-Watermark-Value-Full",
 									"dependencyConditions": [
 										"Succeeded"
 									]
@@ -47,7 +47,7 @@
 							}
 						},
 						{
-							"name": "SET-Watermark-Value_copy1",
+							"name": "SET-Watermark-Value-Full",
 							"type": "SetVariable",
 							"dependsOn": [],
 							"userProperties": [],
@@ -64,7 +64,7 @@
 							"type": "SqlServerStoredProcedure",
 							"dependsOn": [
 								{
-									"activity": "SET-Watermark-Value_copy1",
+									"activity": "SET-Watermark-Value-Full",
 									"dependencyConditions": [
 										"Failed"
 									]
@@ -131,7 +131,7 @@
 							"type": "SetVariable",
 							"dependsOn": [
 								{
-									"activity": "SET-Watermark-Value",
+									"activity": "SET-Watermark-Value-Delta",
 									"dependencyConditions": [
 										"Succeeded"
 									]
@@ -147,7 +147,7 @@
 							}
 						},
 						{
-							"name": "SET-Watermark-Value",
+							"name": "SET-Watermark-Value-Delta",
 							"type": "SetVariable",
 							"dependsOn": [],
 							"userProperties": [],
@@ -164,7 +164,7 @@
 							"type": "SqlServerStoredProcedure",
 							"dependsOn": [
 								{
-									"activity": "SET-Watermark-Value",
+									"activity": "SET-Watermark-Value-Delta",
 									"dependencyConditions": [
 										"Failed"
 									]
