@@ -27,185 +27,44 @@
 					},
 					"ifFalseActivities": [
 						{
-							"name": "Log Success",
-							"type": "SqlServerStoredProcedure",
+							"name": "SET-Delta-SQL_copy1",
+							"type": "SetVariable",
 							"dependsOn": [
 								{
-									"activity": "EP-SQLSrc-DeltaTable-Write-Full",
+									"activity": "SET-Watermark-Value_copy1",
 									"dependencyConditions": [
 										"Succeeded"
 									]
 								}
 							],
-							"policy": {
-								"timeout": "7.00:00:00",
-								"retry": 0,
-								"retryIntervalInSeconds": 30,
-								"secureOutput": false,
-								"secureInput": false
-							},
 							"userProperties": [],
 							"typeProperties": {
-								"storedProcedureName": "[CTL].[UpdateTaskLog]",
-								"storedProcedureParameters": {
-									"BatchLogId": {
-										"value": {
-											"value": "@pipeline().parameters.BatchLogId",
-											"type": "Expression"
-										},
-										"type": "Int64"
-									},
-									"ErrorMessage": {
-										"value": "",
-										"type": "String"
-									},
-									"ExecutionLogId": {
-										"value": {
-											"value": "@pipeline().parameters.TaskExecutionLogId",
-											"type": "Expression"
-										},
-										"type": "Int64"
-									},
-									"Status": {
-										"value": "Success",
-										"type": "String"
-									},
-									"TaskId": {
-										"value": {
-											"value": "@pipeline().parameters.TaskDetails.TaskId",
-											"type": "Expression"
-										},
-										"type": "Int64"
-									},
-									"Output": {
-										"value": {
-											"value": "null",
-											"type": "Expression"
-										},
-										"type": "String"
-									}
+								"variableName": "DeltaSQL",
+								"value": {
+									"value": "@replace(pipeline().parameters.TaskDetails.Command, '<<ENDDATE>>', variables('WatermarkValue'))",
+									"type": "Expression"
 								}
-							},
-							"linkedServiceName": {
-								"referenceName": "LS-AzureSqlDatabase_Ctrldb",
-								"type": "LinkedServiceReference"
 							}
 						},
 						{
-							"name": "Log Failure",
-							"type": "SqlServerStoredProcedure",
-							"dependsOn": [
-								{
-									"activity": "EP-SQLSrc-DeltaTable-Write-Full",
-									"dependencyConditions": [
-										"Failed"
-									]
-								}
-							],
-							"policy": {
-								"timeout": "7.00:00:00",
-								"retry": 0,
-								"retryIntervalInSeconds": 30,
-								"secureOutput": false,
-								"secureInput": false
-							},
-							"userProperties": [],
-							"typeProperties": {
-								"storedProcedureName": "[CTL].[UpdateTaskLog]",
-								"storedProcedureParameters": {
-									"BatchLogId": {
-										"value": {
-											"value": "@pipeline().parameters.BatchLogId",
-											"type": "Expression"
-										},
-										"type": "Int64"
-									},
-									"ErrorMessage": {
-										"value": "Some error occured",
-										"type": "String"
-									},
-									"ExecutionLogId": {
-										"value": {
-											"value": "@pipeline().parameters.TaskExecutionLogId",
-											"type": "Expression"
-										},
-										"type": "Int64"
-									},
-									"Status": {
-										"value": "Failure",
-										"type": "String"
-									},
-									"TaskId": {
-										"value": {
-											"value": "@pipeline().parameters.TaskDetails.TaskId",
-											"type": "Expression"
-										},
-										"type": "Int64"
-									},
-									"Output": {
-										"value": null,
-										"type": "String"
-									}
-								}
-							},
-							"linkedServiceName": {
-								"referenceName": "LS-AzureSqlDatabase_Ctrldb",
-								"type": "LinkedServiceReference"
-							}
-						},
-						{
-							"name": "EP-SQLSrc-DeltaTable-Write-Full",
-							"type": "ExecutePipeline",
+							"name": "SET-Watermark-Value_copy1",
+							"type": "SetVariable",
 							"dependsOn": [],
 							"userProperties": [],
 							"typeProperties": {
-								"pipeline": {
-									"referenceName": "testDeltaTableWrite",
-									"type": "PipelineReference"
-								},
-								"waitOnCompletion": true,
-								"parameters": {
-									"BatchExecutionLogID": {
-										"value": "@pipeline().parameters.BatchLogId",
-										"type": "Expression"
-									},
-									"TaskExecutionLogID": {
-										"value": "@pipeline().parameters.TaskExecutionLogId",
-										"type": "Expression"
-									},
-									"WatermarkColumn": "null",
-									"TargetBLOBName": {
-										"value": "null",
-										"type": "Expression"
-									},
-									"TargetBLOBFolder": {
-										"value": "null",
-										"type": "Expression"
-									},
-									"TaskDetails": {
-										"value": "@pipeline().parameters.TaskDetails",
-										"type": "Expression"
-									},
-									"ValidationDetails": {
-										"value": "@activity('Get-Table-Values').output.firstRow",
-										"type": "Expression"
-									},
-									"ProjectRunID": {
-										"value": "@pipeline().parameters.ProjectRunID",
-										"type": "Expression"
-									},
-									"SourceFileDateStamp": "1"
+								"variableName": "WatermarkValue",
+								"value": {
+									"value": "@replace(activity('Get-Table-Values').output.firstRow.ReturnValue, '\\', ' ')",
+									"type": "Expression"
 								}
 							}
-						}
-					],
-					"ifTrueActivities": [
+						},
 						{
-							"name": "Task Log Failure Copy",
+							"name": "Task Log Failure-Watermark Value SET_copy1",
 							"type": "SqlServerStoredProcedure",
 							"dependsOn": [
 								{
-									"activity": "EP-SQLSrc-DeltaTable-Write-Delta",
+									"activity": "SET-Watermark-Value_copy1",
 									"dependencyConditions": [
 										"Failed"
 									]
@@ -264,137 +123,9 @@
 								"referenceName": "LS-AzureSqlDatabase_Ctrldb",
 								"type": "LinkedServiceReference"
 							}
-						},
-						{
-							"name": "Watermark Task Failure",
-							"type": "SqlServerStoredProcedure",
-							"dependsOn": [
-								{
-									"activity": "SP-Update-Watermark",
-									"dependencyConditions": [
-										"Failed"
-									]
-								}
-							],
-							"policy": {
-								"timeout": "7.00:00:00",
-								"retry": 0,
-								"retryIntervalInSeconds": 30,
-								"secureOutput": false,
-								"secureInput": false
-							},
-							"userProperties": [],
-							"typeProperties": {
-								"storedProcedureName": "[CTL].[UpdateTaskLog]",
-								"storedProcedureParameters": {
-									"BatchLogId": {
-										"value": {
-											"value": "@pipeline().parameters.BatchLogId",
-											"type": "Expression"
-										},
-										"type": "Int64"
-									},
-									"ErrorMessage": {
-										"value": {
-											"value": "An Error Occurred while updating Watermark",
-											"type": "Expression"
-										},
-										"type": "String"
-									},
-									"ExecutionLogId": {
-										"value": {
-											"value": "@pipeline().parameters.TaskExecutionLogId",
-											"type": "Expression"
-										},
-										"type": "Int64"
-									},
-									"Status": {
-										"value": "Failure",
-										"type": "String"
-									},
-									"TaskId": {
-										"value": {
-											"value": "@pipeline().parameters.TaskDetails.TaskId",
-											"type": "Expression"
-										},
-										"type": "Int64"
-									},
-									"Output": {
-										"value": null,
-										"type": "String"
-									}
-								}
-							},
-							"linkedServiceName": {
-								"referenceName": "LS-AzureSqlDatabase_Ctrldb",
-								"type": "LinkedServiceReference"
-							}
-						},
-						{
-							"name": "Task Success",
-							"type": "SqlServerStoredProcedure",
-							"dependsOn": [
-								{
-									"activity": "SP-Update-Watermark",
-									"dependencyConditions": [
-										"Succeeded"
-									]
-								}
-							],
-							"policy": {
-								"timeout": "7.00:00:00",
-								"retry": 0,
-								"retryIntervalInSeconds": 30,
-								"secureOutput": false,
-								"secureInput": false
-							},
-							"userProperties": [],
-							"typeProperties": {
-								"storedProcedureName": "[CTL].[UpdateTaskLog]",
-								"storedProcedureParameters": {
-									"BatchLogId": {
-										"value": {
-											"value": "@pipeline().parameters.BatchLogId",
-											"type": "Expression"
-										},
-										"type": "Int64"
-									},
-									"ErrorMessage": {
-										"value": "",
-										"type": "String"
-									},
-									"ExecutionLogId": {
-										"value": {
-											"value": "@pipeline().parameters.TaskExecutionLogId",
-											"type": "Expression"
-										},
-										"type": "Int64"
-									},
-									"Status": {
-										"value": "Success",
-										"type": "String"
-									},
-									"TaskId": {
-										"value": {
-											"value": "@pipeline().parameters.TaskDetails.TaskId",
-											"type": "Expression"
-										},
-										"type": "Int64"
-									},
-									"Output": {
-										"value": {
-											"value": "null",
-											"type": "Expression"
-										},
-										"type": "String"
-									}
-								}
-							},
-							"linkedServiceName": {
-								"referenceName": "LS-AzureSqlDatabase_Ctrldb",
-								"type": "LinkedServiceReference"
-							}
-						},
+						}
+					],
+					"ifTrueActivities": [
 						{
 							"name": "SET-Delta-SQL",
 							"type": "SetVariable",
@@ -413,49 +144,6 @@
 									"value": "@replace(pipeline().parameters.TaskDetails.Command, '<<ENDDATE>>', variables('WatermarkValue'))",
 									"type": "Expression"
 								}
-							}
-						},
-						{
-							"name": "SP-Update-Watermark",
-							"type": "SqlServerStoredProcedure",
-							"dependsOn": [
-								{
-									"activity": "EP-SQLSrc-DeltaTable-Write-Delta",
-									"dependencyConditions": [
-										"Succeeded"
-									]
-								}
-							],
-							"policy": {
-								"timeout": "7.00:00:00",
-								"retry": 0,
-								"retryIntervalInSeconds": 30,
-								"secureOutput": false,
-								"secureInput": false
-							},
-							"userProperties": [],
-							"typeProperties": {
-								"storedProcedureName": "[CTL].[updateWatermarks]",
-								"storedProcedureParameters": {
-									"SourceId": {
-										"value": {
-											"value": "@pipeline().parameters.TaskDetails.SourceId",
-											"type": "Expression"
-										},
-										"type": "Int64"
-									},
-									"Watermark": {
-										"value": {
-											"value": "@variables('WatermarkValue')",
-											"type": "Expression"
-										},
-										"type": "String"
-									}
-								}
-							},
-							"linkedServiceName": {
-								"referenceName": "LS-AzureSqlDatabase_Ctrldb",
-								"type": "LinkedServiceReference"
 							}
 						},
 						{
@@ -534,55 +222,6 @@
 							"linkedServiceName": {
 								"referenceName": "LS-AzureSqlDatabase_Ctrldb",
 								"type": "LinkedServiceReference"
-							}
-						},
-						{
-							"name": "EP-SQLSrc-DeltaTable-Write-Delta",
-							"type": "ExecutePipeline",
-							"dependsOn": [
-								{
-									"activity": "SET-Delta-SQL",
-									"dependencyConditions": [
-										"Succeeded"
-									]
-								}
-							],
-							"userProperties": [],
-							"typeProperties": {
-								"pipeline": {
-									"referenceName": "testDeltaTableWrite",
-									"type": "PipelineReference"
-								},
-								"waitOnCompletion": true,
-								"parameters": {
-									"BatchExecutionLogID": {
-										"value": "@pipeline().parameters.BatchLogId",
-										"type": "Expression"
-									},
-									"TaskExecutionLogID": {
-										"value": "@pipeline().parameters.TaskExecutionLogId",
-										"type": "Expression"
-									},
-									"WatermarkColumn": {
-										"value": "@variables('WatermarkValue')",
-										"type": "Expression"
-									},
-									"TargetBLOBName": "null",
-									"TargetBLOBFolder": "null",
-									"TaskDetails": {
-										"value": "@pipeline().parameters.TaskDetails",
-										"type": "Expression"
-									},
-									"ValidationDetails": {
-										"value": "@activity('Get-Table-Values').output.firstRow",
-										"type": "Expression"
-									},
-									"ProjectRunID": {
-										"value": "@pipeline().parameters.ProjectRunID",
-										"type": "Expression"
-									},
-									"SourceFileDateStamp": "1"
-								}
 							}
 						}
 					]
@@ -810,6 +449,258 @@
 				"linkedServiceName": {
 					"referenceName": "LS-AzureSqlDatabase_Ctrldb",
 					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "Task Log Failure Copy",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[CTL].[UpdateTaskLog]",
+					"storedProcedureParameters": {
+						"BatchLogId": {
+							"value": {
+								"value": "@pipeline().parameters.BatchLogId",
+								"type": "Expression"
+							},
+							"type": "Int64"
+						},
+						"ErrorMessage": {
+							"value": {
+								"value": "An Error Occurred",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"ExecutionLogId": {
+							"value": {
+								"value": "@pipeline().parameters.TaskExecutionLogId",
+								"type": "Expression"
+							},
+							"type": "Int64"
+						},
+						"Status": {
+							"value": "Failure",
+							"type": "String"
+						},
+						"TaskId": {
+							"value": {
+								"value": "@pipeline().parameters.TaskDetails.TaskId",
+								"type": "Expression"
+							},
+							"type": "Int64"
+						},
+						"Output": {
+							"value": null,
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "LS-AzureSqlDatabase_Ctrldb",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "Watermark Task Failure",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[CTL].[UpdateTaskLog]",
+					"storedProcedureParameters": {
+						"BatchLogId": {
+							"value": {
+								"value": "@pipeline().parameters.BatchLogId",
+								"type": "Expression"
+							},
+							"type": "Int64"
+						},
+						"ErrorMessage": {
+							"value": {
+								"value": "An Error Occurred while updating Watermark",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"ExecutionLogId": {
+							"value": {
+								"value": "@pipeline().parameters.TaskExecutionLogId",
+								"type": "Expression"
+							},
+							"type": "Int64"
+						},
+						"Status": {
+							"value": "Failure",
+							"type": "String"
+						},
+						"TaskId": {
+							"value": {
+								"value": "@pipeline().parameters.TaskDetails.TaskId",
+								"type": "Expression"
+							},
+							"type": "Int64"
+						},
+						"Output": {
+							"value": null,
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "LS-AzureSqlDatabase_Ctrldb",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "Task Success",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[CTL].[UpdateTaskLog]",
+					"storedProcedureParameters": {
+						"BatchLogId": {
+							"value": {
+								"value": "@pipeline().parameters.BatchLogId",
+								"type": "Expression"
+							},
+							"type": "Int64"
+						},
+						"ErrorMessage": {
+							"value": "",
+							"type": "String"
+						},
+						"ExecutionLogId": {
+							"value": {
+								"value": "@pipeline().parameters.TaskExecutionLogId",
+								"type": "Expression"
+							},
+							"type": "Int64"
+						},
+						"Status": {
+							"value": "Success",
+							"type": "String"
+						},
+						"TaskId": {
+							"value": {
+								"value": "@pipeline().parameters.TaskDetails.TaskId",
+								"type": "Expression"
+							},
+							"type": "Int64"
+						},
+						"Output": {
+							"value": {
+								"value": "null",
+								"type": "Expression"
+							},
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "LS-AzureSqlDatabase_Ctrldb",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "SP-Update-Watermark",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[CTL].[updateWatermarks]",
+					"storedProcedureParameters": {
+						"SourceId": {
+							"value": {
+								"value": "@pipeline().parameters.TaskDetails.SourceId",
+								"type": "Expression"
+							},
+							"type": "Int64"
+						},
+						"Watermark": {
+							"value": {
+								"value": "@variables('WatermarkValue')",
+								"type": "Expression"
+							},
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "LS-AzureSqlDatabase_Ctrldb",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "EP-SQLSrc-DeltaTable-Write-Delta",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "testDeltaTableWrite",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"BatchExecutionLogID": {
+							"value": "@pipeline().parameters.BatchLogId",
+							"type": "Expression"
+						},
+						"TaskExecutionLogID": {
+							"value": "@pipeline().parameters.TaskExecutionLogId",
+							"type": "Expression"
+						},
+						"WatermarkColumn": {
+							"value": "@variables('WatermarkValue')",
+							"type": "Expression"
+						},
+						"TargetBLOBName": "null",
+						"TargetBLOBFolder": "null",
+						"TaskDetails": {
+							"value": "@pipeline().parameters.TaskDetails",
+							"type": "Expression"
+						},
+						"ValidationDetails": {
+							"value": "@activity('Get-Table-Values').output.firstRow",
+							"type": "Expression"
+						},
+						"ProjectRunID": {
+							"value": "@pipeline().parameters.ProjectRunID",
+							"type": "Expression"
+						},
+						"SourceFileDateStamp": "1"
+					}
 				}
 			}
 		],
