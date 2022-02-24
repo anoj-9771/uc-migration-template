@@ -8529,7 +8529,7 @@ ELSE
 				SELECT @SQLMax = 'FROM_UNIXTIME(MAX(COALESCE(' + @COL + ', 0)))'
 			--ELSE IF @DBType = 'SQL Server'
 			--	SELECT @SQLMax = 'FORMAT(MAX(' + @COL + '), ''yyyy-MM-dd HH:mm:ss'')'
-			ELSE IF @DBType = 'SQL Server' AND @TaskName LIKE 'sapisu%'
+			ELSE IF @DBType = 'SQL Server' AND @TaskName LIKE 'isu%'
 				SELECT @SQLMax = 'FORMAT(MAX(convert(datetime,(CONVERT(VARCHAR(25) , CAST(LEFT(' +@COL +', 8) AS DATETIME), 23) + '' '' +  LEFT(RIGHT(' + @COL + ' , 6) ,2) + '':'' + SUBSTRING(RIGHT(' +@COL + ' , 6) , 3,2) + '':''    + RIGHT(' + @COL + ' , 2) ),120)), ''yyyy-MM-dd HH:mm:ss'')'
 			ELSE
 				SELECT @SQLMax = 'FORMAT(MAX(' + @COL + '), ''yyyy-MM-dd HH:mm:ss'')'
@@ -8543,10 +8543,7 @@ ELSE
 
 		SET @SQL = @SQL + '''' + @SourceColumn + ''' AS SourceColumn, '
 		SET @SQL = @SQL + @SQLMax + ' As ReturnValue, '
-		/* change recordcount due to performance impact of COUNT(1)
-			SET @SQL = @SQL + 'COUNT(1) AS RecordCount'
-		*/
-		SET @SQL = @SQL + '0 AS RecordCount'
+		SET @SQL = @SQL + 'COUNT(1) AS RecordCount'
 
 		IF @ValidationColumn <> ''
 		BEGIN
@@ -8737,7 +8734,7 @@ END]]></Value>
 				</Entry>
 			</Relationship>
 			<Annotation Type="SysCommentsObjectAnnotation">
-				<Property Name="Length" Value="4707" />
+				<Property Name="Length" Value="4594" />
 				<Property Name="StartLine" Value="1" />
 				<Property Name="StartColumn" Value="1" />
 				<Property Name="HeaderContents" Value="CREATE Procedure [CTL].[GetTableDetails] (&#xD;&#xA;&#x9;@SourceId BigInt&#xD;&#xA;&#x9;,@ValidationType varchar(10) = 'SOURCE'&#xD;&#xA;)&#xD;&#xA;As" />
