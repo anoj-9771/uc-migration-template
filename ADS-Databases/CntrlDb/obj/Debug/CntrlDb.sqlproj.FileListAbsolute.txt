@@ -48,3 +48,13 @@ c:\Users\fhasan\source\repos\SW_Repo\DAF POC REPO1\ADS-Databases\CntrlDb\obj\Deb
 c:\Users\fhasan\source\repos\SW_Repo\DAF POC REPO1\ADS-Databases\CntrlDb\obj\Debug\predeploy.sql
 c:\Users\fhasan\source\repos\SW_Repo\DAF POC REPO1\ADS-Databases\CntrlDb\obj\Debug\CntrlDb.dll
 c:\Users\fhasan\source\repos\SW_Repo\DAF POC REPO1\ADS-Databases\CntrlDb\obj\Debug\CntrlDb.pdb
+c:\Users\o3hz\Documents\Repos\DAF POC REPO1\ADS-Databases\CntrlDb\bin\Debug\CntrlDb.dacpac
+c:\Users\o3hz\Documents\Repos\DAF POC REPO1\ADS-Databases\CntrlDb\bin\Debug\CntrlDb.dll
+c:\Users\o3hz\Documents\Repos\DAF POC REPO1\ADS-Databases\CntrlDb\bin\Debug\CntrlDb.pdb
+c:\Users\o3hz\Documents\Repos\DAF POC REPO1\ADS-Databases\CntrlDb\obj\Debug\CntrlDb.sqlprojAssemblyReference.cache
+c:\Users\o3hz\Documents\Repos\DAF POC REPO1\ADS-Databases\CntrlDb\obj\Debug\Model.xml
+c:\Users\o3hz\Documents\Repos\DAF POC REPO1\ADS-Databases\CntrlDb\obj\Debug\refactor.xml
+c:\Users\o3hz\Documents\Repos\DAF POC REPO1\ADS-Databases\CntrlDb\obj\Debug\postdeploy.sql
+c:\Users\o3hz\Documents\Repos\DAF POC REPO1\ADS-Databases\CntrlDb\obj\Debug\predeploy.sql
+c:\Users\o3hz\Documents\Repos\DAF POC REPO1\ADS-Databases\CntrlDb\obj\Debug\CntrlDb.dll
+c:\Users\o3hz\Documents\Repos\DAF POC REPO1\ADS-Databases\CntrlDb\obj\Debug\CntrlDb.pdb
