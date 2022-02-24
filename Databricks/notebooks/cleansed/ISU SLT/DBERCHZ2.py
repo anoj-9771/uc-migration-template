@@ -205,7 +205,7 @@ df_cleansed = spark.sql(f"SELECT  \
                                 cast(N_ZWSTAND as dec(14,14)) as meterReadingAfterDecimalPoint, \
                                 cast(V_ZWSTNDAB as dec(17)) as billedMeterReadingBeforeDecimalPlaces, \
                                 cast(N_ZWSTNDAB as dec(14,14)) as billedMeterReadingAfterDecimalPlaces, \
-                                cast(V_ZWSTVOR as dec(17)) as prevousMeterReadingBeforeDecimalPlaces, \
+                                cast(V_ZWSTVOR as dec(17)) as previousMeterReadingBeforeDecimalPlaces, \
                                 cast(N_ZWSTVOR as dec(14,14)) as previousMeterReadingAfterDecimalPlaces, \
                                 cast(V_ZWSTDIFF as dec(17)) as meterReadingDifferenceBeforeDecimalPlaces, \
                                 cast(N_ZWSTDIFF as dec(14,14)) as meterReadingDifferenceAfterDecimalPlaces, \

@@ -78,11 +78,11 @@ def getBilledWaterConsumption():
                                 from {ADS_DATABASE_CURATED}.dimBillingDocument \
                                 where _RecordCurrent = 1 and _RecordDeleted = 0")
 
-    dimBusinessPartnerGroupDf = spark.sql(f"select dimBusinessPartnerGroupSK, businessPartnerGroupNumber \
+    dimBusinessPartnerGroupDf = spark.sql(f"select dimBusinessPartnerGroupSK, ltrim('0', businessPartnerGroupNumber) as businessPartnerGroupNumber \
                                 from {ADS_DATABASE_CURATED}.dimBusinessPartnerGroup \
                                 where _RecordCurrent = 1 and _RecordDeleted = 0")
 
-    dimContractDf = spark.sql(f"select dimContractSK, contractId \
+    dimContractDf = spark.sql(f"select dimContractSK, contractId, validFromDate, validToDate \
                                 from {ADS_DATABASE_CURATED}.dimContract \
                                 where _RecordCurrent = 1 and _RecordDeleted = 0")
 
@@ -117,7 +117,9 @@ def getBilledWaterConsumption():
     billedConsDf = billedConsDf.join(dimBillDocDf, (billedConsDf.billingDocumentNumber == dimBillDocDf.billingDocumentNumber), how="left") \
                   .select(billedConsDf['*'], dimBillDocDf['dimBillingDocumentSK'])
 
-    billedConsDf = billedConsDf.join(dimContractDf, (billedConsDf.contractId == dimContractDf.contractId), how="left") \
+    billedConsDf = billedConsDf.join(dimContractDf, (billedConsDf.contractId == dimContractDf.contractId) \
+                             & (billedConsDf.billingPeriodEndDate >= dimContractDf.validFromDate) \
+                             & (billedConsDf.billingPeriodEndDate <= dimContractDf.validToDate) , how="left") \
                   .select(billedConsDf['*'], dimContractDf['dimContractSK'])
 
     billedConsDf = billedConsDf.join(dimBusinessPartnerGroupDf, (billedConsDf.businessPartnerNumber == dimBusinessPartnerGroupDf.businessPartnerGroupNumber), how="left") \
@@ -154,9 +156,9 @@ def getBilledWaterConsumption():
                                         ,"coalesce(dimMeterSK, dummyMeterSK) as dimMeterSK" \
                                         ,"coalesce(dimLocationSk, dummyLocationSK) as dimLocationSK" \
                                         ,"-1 as dimWaterNetworkSK" \
-                                        ,"billingPeriodStartDate" \
                                         ,"coalesce(dimBusinessPartnerGroupSK, dummyBusinessPartnerGroupSK) as dimBusinessPartnerGroupSK" \
                                         ,"coalesce(dimContractSK, dummyContractSK) as dimContractSK" \
+                                        ,"billingPeriodStartDate" \
                                         ,"billingPeriodEndDate" \
                                         ,"meteredWaterConsumption" \
                                        ) \
