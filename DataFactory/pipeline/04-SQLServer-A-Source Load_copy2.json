@@ -41,7 +41,7 @@
 							"typeProperties": {
 								"variableName": "DeltaSQL",
 								"value": {
-									"value": "@replace(pipeline().parameters.TaskDetails.Command, '<<ENDDATE>>', variables('WatermarkValue'))",
+									"value": "@pipeline().parameters.TaskDetails.Command",
 									"type": "Expression"
 								}
 							}
@@ -54,7 +54,7 @@
 							"typeProperties": {
 								"variableName": "WatermarkValue",
 								"value": {
-									"value": "@replace(activity('Get-Table-Values').output.firstRow.ReturnValue, '\\', ' ')",
+									"value": "'2000-01-01 00:00:01'",
 									"type": "Expression"
 								}
 							}
