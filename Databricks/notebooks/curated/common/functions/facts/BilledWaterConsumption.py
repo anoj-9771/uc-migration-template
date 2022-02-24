@@ -118,8 +118,8 @@ def getBilledWaterConsumption():
                   .select(billedConsDf['*'], dimBillDocDf['dimBillingDocumentSK'])
 
     billedConsDf = billedConsDf.join(dimContractDf, (billedConsDf.contractId == dimContractDf.contractId) \
-                             & (billedConsDf.billingPeriodEndDate >= dimContractDf.validFromDate) \
-                             & (billedConsDf.billingPeriodEndDate <= dimContractDf.validToDate) , how="left") \
+                             & (billedConsDf.billingPeriodStartDate >= dimContractDf.validFromDate) \
+                             & (billedConsDf.billingPeriodStartDate <= dimContractDf.validToDate) , how="left") \
                   .select(billedConsDf['*'], dimContractDf['dimContractSK'])
 
     billedConsDf = billedConsDf.join(dimBusinessPartnerGroupDf, (billedConsDf.businessPartnerNumber == dimBusinessPartnerGroupDf.businessPartnerGroupNumber), how="left") \
