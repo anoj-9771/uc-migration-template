@@ -1,5 +1,5 @@
 {
-    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.1",
     "parameters": {
         "synapseworkspacename": {
@@ -35,10 +35,6 @@
         "setWorkspaceIdentityRbacOnStorageAccount": {
             "type": "bool",
             "defaultValue": true
-        },
-        "allowAllConnections": {
-            "type": "bool",
-            "defaultValue": false
         },
         "grantWorkspaceIdentityControlForSql": {
             "type": "string",
@@ -147,23 +143,10 @@
                 "sqlAdministratorLoginPassword": "[parameters('synapsesqlAdministratorLoginPassword')]",
                 "adlaResourceId": "[parameters('adlaResourceId')]",
                 "managedVirtualNetwork": "[parameters('managedVirtualNetwork')]",
-                "managedResourceGroupName": "[parameters('synapsemanagedResourceGroupName')]"
+                "managedResourceGroupName": "[parameters('synapsemanagedResourceGroupName')]",
+                "publicNetworkAccess": "Disabled"
             },
             "resources": [
-                {
-                    "condition": "[parameters('allowAllConnections')]",
-                    "apiVersion": "2019-06-01-preview",
-                    "dependsOn": [
-                        "[concat('Microsoft.Synapse/workspaces/', parameters('synapseworkspacename'))]"
-                    ],
-                    "location": "[parameters('location')]",
-                    "name": "allowAll",
-                    "properties": {
-                        "startIpAddress": "0.0.0.0",
-                        "endIpAddress": "255.255.255.255"
-                    },
-                    "type": "firewallrules"
-                },
                 {
                     "apiVersion": "2019-06-01-preview",
                     "dependsOn": [
