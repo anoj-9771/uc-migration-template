@@ -573,7 +573,10 @@
 										"value": "@pipeline().parameters.TaskDetails",
 										"type": "Expression"
 									},
-									"ValidationDetails": "@activity('Get-Table-Values').output.firstRow",
+									"ValidationDetails": {
+										"value": "@activity('Get-Table-Values').output.firstRow",
+										"type": "Expression"
+									},
 									"ProjectRunID": {
 										"value": "@pipeline().parameters.ProjectRunID",
 										"type": "Expression"
