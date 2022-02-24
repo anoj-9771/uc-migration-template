@@ -741,7 +741,8 @@
 		],
 		"parameters": {
 			"BatchLogId": {
-				"type": "int"
+				"type": "int",
+				"defaultValue": 1
 			},
 			"TaskDetails": {
 				"type": "object"
