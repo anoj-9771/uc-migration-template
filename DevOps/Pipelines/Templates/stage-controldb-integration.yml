@@ -30,7 +30,7 @@ stages:
         connectedServiceName: ${{ variables.azdoresourceconnection }}
         keyVaultName: $(AZUREKEYVAULTNAME)
         secretsFilter: 'AzureSQLServerPw'
-        fileSharePath: '\nt097qdevops01\shared'
+        fileSharePath: '\nt097pdevops01\shared'
 
     - task: SqlAzureDacpacDeployment@1
       displayName: 'Azure SQL DacpacTask'
