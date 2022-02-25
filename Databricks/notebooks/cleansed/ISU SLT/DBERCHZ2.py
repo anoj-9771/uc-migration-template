@@ -192,7 +192,7 @@ df_cleansed = spark.sql(f"SELECT  \
                                 ATIMMAX as maxMeterReadingTime, \
                                 ToValidDate(THGDATUM) as  serviceAllocationDate, \
                                 ToValidDate(ZUORDDAT) as  meterReadingAllocationDate, \
-                                ABLBELNR as suppressedMeterReadingDocumentID, \
+                                ABLBELNR as suppressedMeterReadingDocumentId, \
                                 LOGIKNR as logicalDeviceNumber, \
                                 LOGIKZW as logicalRegisterNumber, \
                                 ISTABLART as meterReadingTypeCode, \
@@ -205,7 +205,7 @@ df_cleansed = spark.sql(f"SELECT  \
                                 cast(N_ZWSTAND as dec(14,14)) as meterReadingAfterDecimalPoint, \
                                 cast(V_ZWSTNDAB as dec(17)) as billedMeterReadingBeforeDecimalPlaces, \
                                 cast(N_ZWSTNDAB as dec(14,14)) as billedMeterReadingAfterDecimalPlaces, \
-                                cast(V_ZWSTVOR as dec(17)) as prevousMeterReadingBeforeDecimalPlaces, \
+                                cast(V_ZWSTVOR as dec(17)) as previousMeterReadingBeforeDecimalPlaces, \
                                 cast(N_ZWSTVOR as dec(14,14)) as previousMeterReadingAfterDecimalPlaces, \
                                 cast(V_ZWSTDIFF as dec(17)) as meterReadingDifferenceBeforeDecimalPlaces, \
                                 cast(N_ZWSTDIFF as dec(14,14)) as meterReadingDifferenceAfterDecimalPlaces, \
@@ -221,7 +221,7 @@ print(f'Number of rows: {df_cleansed.count()}')
 
 newSchema = StructType([
                           StructField('billingDocumentNumber', StringType(), False),
-                          StructField('billingDocumentLineItemID', StringType(), False),
+                          StructField('billingDocumentLineItemId', StringType(), False),
                           StructField('equipmentNumber', StringType(), True),
                           StructField('deviceNumber', StringType(), True),
                           StructField('materialNumber', StringType(), True),
@@ -235,7 +235,7 @@ newSchema = StructType([
                           StructField('maxMeterReadingTime', StringType(), True),
                           StructField('serviceAllocationDate', DateType(), True),
                           StructField('meterReadingAllocationDate', DateType(), True),
-                          StructField('suppressedMeterReadingDocumentID', StringType(), True),
+                          StructField('suppressedMeterReadingDocumentId', StringType(), True),
                           StructField('logicalDeviceNumber', StringType(), True),
                           StructField('logicalRegisterNumber', StringType(), True),
                           StructField('meterReadingTypeCode', StringType(), True),

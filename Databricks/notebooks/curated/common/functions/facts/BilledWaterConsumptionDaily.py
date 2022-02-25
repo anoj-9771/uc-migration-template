@@ -91,7 +91,7 @@ def getBilledWaterConsumptionDaily():
                                 from {ADS_DATABASE_CURATED}.dimDate \
                                 where _RecordCurrent = 1 and _RecordDeleted = 0")
 
-    dimBusinessPartnerGroupDf = spark.sql(f"select dimBusinessPartnerGroupSK, businessPartnerGroupNumber \
+    dimBusinessPartnerGroupDf = spark.sql(f"select dimBusinessPartnerGroupSK, ltrim('0', businessPartnerGroupNumber) as businessPartnerGroupNumber \
                                 from {ADS_DATABASE_CURATED}.dimBusinessPartnerGroup \
                                 where _RecordCurrent = 1 and _RecordDeleted = 0")
 
@@ -133,8 +133,8 @@ def getBilledWaterConsumptionDaily():
                     .select(billedConsDf['*'], dimDateDf['calendarDate'].alias('consumptionDate'))
 					
     billedConsDf = billedConsDf.join(dimContractDf, (billedConsDf.contractID == dimContractDf.contractId) \
-                             & (billedConsDf.billingPeriodEndDate >= dimContractDf.validFromDate) \
-                             & (billedConsDf.billingPeriodEndDate <= dimContractDf.validToDate), how="left") \
+                             & (billedConsDf.billingPeriodStartDate >= dimContractDf.validFromDate) \
+                             & (billedConsDf.billingPeriodStartDate <= dimContractDf.validToDate), how="left") \
                   .select(billedConsDf['*'], dimContractDf['dimContractSK'])
 
     billedConsDf = billedConsDf.join(dimBusinessPartnerGroupDf, (billedConsDf.businessPartnerNumber == dimBusinessPartnerGroupDf.businessPartnerGroupNumber), how="left") \
@@ -191,8 +191,9 @@ def getBilledWaterConsumptionDaily():
                               ,"coalesce(dimPropertySK, dummyPropertySK) as dimPropertySK" \
                               ,"coalesce(dimMeterSK, dummyMeterSK) as dimMeterSK" \
                               ,"coalesce(dimLocationSk, dummyLocationSK) as dimLocationSK" \
+                              ,"coalesce(dimBusinessPartnerGroupSk, dummyBusinessPartnerGroupSK) as dimBusinessPartnerGroupSK" \
                               ,"-1 as dimWaterNetworkSK" \
-                              ,"-1 as dimInstallationSK" \
+                              ,"coalesce(dimContractSK, dummyContractSK) as dimContractSK" \
                               ,"cast(avgMeteredWaterConsumption as decimal(18,6)) as dailyApportionedConsumption" \
                               )
 

@@ -193,7 +193,7 @@ df_cleansed = spark.sql(f"SELECT \
                             ToValidDate(ERDAT) as createdDate, \
                             ERNAM as createdBy, \
                             ToValidDate(AEDAT) as lastChangedDate, \
-                            OUCONTRACT as individualContractID, \
+                            OUCONTRACT as individualContractId, \
                             AENAM as lastChangedBy, \
                             _RecordStart, \
                             _RecordEnd, \
@@ -222,7 +222,7 @@ newSchema = StructType([
                         StructField('createdDate',DateType(),True),
                         StructField('createdBy',StringType(),True),
                         StructField('lastChangedDate',DateType(),True),
-                        StructField('individualContractID',StringType(),True),
+                        StructField('individualContractId',StringType(),True),
                         StructField('lastChangedBy',StringType(),True),
                         StructField('_RecordStart',TimestampType(),False),
                         StructField('_RecordEnd',TimestampType(),False),

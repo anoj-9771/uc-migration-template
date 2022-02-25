@@ -221,7 +221,7 @@ df_cleansed = spark.sql(f"SELECT \
                                   sp.superiorPropertyType as superiorPropertyType , \
                                   ZCD_INF_PROP_TYPE as inferiorPropertyTypeCode , \
                                   ip.inferiorPropertyType as inferiorPropertyType , \
-                                  ZCD_STORM_WATER_ASSESS as stormWaterAssesmentIndicator , \
+                                  ZCD_STORM_WATER_ASSESS as stormWaterAssessmentIndicator , \
                                   ZCD_IND_MLIM as mlimIndicator , \
                                   ZCD_IND_WICA as wicaIndicator , \
                                   ZCD_IND_SOPA as sopaIndicator , \
@@ -304,7 +304,7 @@ newSchema = StructType(
                             StructField("superiorPropertyType", StringType(), True),
                             StructField("inferiorPropertyTypeCode", StringType(), True),
                             StructField("inferiorPropertyType", StringType(), True),
-                            StructField("stormWaterAssesmentIndicator", StringType(), True),
+                            StructField("stormWaterAssessmentIndicator", StringType(), True),
                             StructField("mlimIndicator", StringType(), True),
                             StructField("wicaIndicator", StringType(), True),
                             StructField("sopaIndicator", StringType(), True),

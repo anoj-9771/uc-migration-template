@@ -213,7 +213,7 @@ df_cleansed = spark.sql(f"SELECT cast(N_PROP as int) AS propertyNumber, \
 		case when F_READ_COMM_FREE = '1' then true else false end AS hasReadingCommentFreeFormat, \
 		cast(Q_PDE_HIGH_LOW as int) AS PDEHighLow, \
 		cast(Q_PDE_REEN_COUN as int) AS PDEReenteredCount, \
-		case when F_PDE_AUXI_READ = 'M' then true else false end AS isPDEAuxilaryReading, \
+		case when F_PDE_AUXI_READ = 'M' then true else false end AS isPDEAuxiliaryReading, \
 		to_date(D_METE_READ_UPDA, 'yyyyMMdd') AS meterReadingUpdatedDate, \
 		a._RecordStart, \
 		a._RecordEnd, \
@@ -258,7 +258,7 @@ newSchema = StructType([
 	StructField('hasReadingCommentFreeFormat',BooleanType(),False),
 	StructField('PDEHighLow',IntegerType(),False),
 	StructField('PDEReenteredCount',IntegerType(),False),
-	StructField('isPDEAuxilaryReading',BooleanType(),False),
+	StructField('isPDEAuxiliaryReading',BooleanType(),False),
 	StructField('meterReadingUpdatedDate',DateType(),True),
 	StructField('_RecordStart',TimestampType(),False),
 	StructField('_RecordEnd',TimestampType(),False),
