@@ -39,7 +39,7 @@
 							],
 							"userProperties": [],
 							"typeProperties": {
-								"variableName": "DeltaSQL",
+								"variableName": "SQLCommand",
 								"value": {
 									"value": "@concat(pipeline().parameters.TaskDetails.Command, ' WHERE ?AdfDynamicRangePartitionCondition')",
 									"type": "Expression"
@@ -139,7 +139,7 @@
 							],
 							"userProperties": [],
 							"typeProperties": {
-								"variableName": "DeltaSQL",
+								"variableName": "SQLCommand",
 								"value": {
 									"value": "@replace(pipeline().parameters.TaskDetails.Command, '<<ENDDATE>>', variables('WatermarkValue'))",
 									"type": "Expression"
@@ -757,7 +757,7 @@
 			"OutputFileName": {
 				"type": "String"
 			},
-			"DeltaSQL": {
+			"SQLCommand": {
 				"type": "String"
 			},
 			"WatermarkValue": {
