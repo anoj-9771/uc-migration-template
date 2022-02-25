@@ -44,7 +44,7 @@ stages:
       inputs:
         azureSubscription: ${{ variables.azdoresourceconnection }}
         keyVaultName: $(AZUREKEYVAULTNAME)
-        secretsFilter: 'daf-syn-d-sqlpoo-synapseadmin-password'
+        secretsFilter: 'daf-syn-d-sqlpool-synapseadmin-password'
   
     - task: SqlAzureDacpacDeployment@1
       displayName: 'Synapse SQL DacpacTask'
