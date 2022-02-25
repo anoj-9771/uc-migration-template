@@ -37,8 +37,10 @@ stages:
   # as needed for your deployment
   - job: 'deploy_arm'
     steps:
-    - download: current
-      artifact: arm_templates
+    
+    - task: DownloadBuildArtifacts@0
+      inputs:
+        artifactName: 'arm_templates' 
 
     # ------------------------------------------------------------------------
     # Deploy Azure Log related resources
