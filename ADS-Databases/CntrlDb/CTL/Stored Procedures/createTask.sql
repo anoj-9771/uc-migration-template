@@ -18,6 +18,7 @@
 	@Grain varchar(30) = '',
 	@BusinessKeyColumn varchar(100) = '',
 	@WatermarkColumn varchar(100) = '',
+	@PartitionColumn varchar(100) = '',  --useful for dynamic partitioning of SQL source data while copying to Delta Table in ADF's Copy Activity
 	@TrackChangeFlag bit = 0,
 	@AdditionalProperty	varchar(max) = '', 
 	@LoadToSqlEDW BIT = 0,
@@ -53,8 +54,8 @@ BEGIN
 		END
 
 		PRINT 'Adding record to ControlSource'
-		Insert Into CTL.ControlSource (SourceGroup, SourceName, SourceTypeId, SourceLocation, LoadSource, SourceServer, Processor, BusinessKeyColumn, AdditionalProperty, IsAuditTable, SoftDeleteSource, UseAuditTable, SourceTimeStampFormat) 
-		Values(@SourceGroup, @SourceName, @SourceTypeId, @SourceLocation, 1, @SourceServer, @Processor, @BusinessKeyColumn, @AdditionalProperty, @IsAuditTable, @SoftDeleteSource, @UseAuditTable, @SourceTSFormat)
+		Insert Into CTL.ControlSource (SourceGroup, SourceName, SourceTypeId, SourceLocation, LoadSource, SourceServer, Processor, BusinessKeyColumn, PartitionColumn, AdditionalProperty, IsAuditTable, SoftDeleteSource, UseAuditTable, SourceTimeStampFormat) 
+		Values(@SourceGroup, @SourceName, @SourceTypeId, @SourceLocation, 1, @SourceServer, @Processor, @BusinessKeyColumn, @PartitionColumn, @AdditionalProperty, @IsAuditTable, @SoftDeleteSource, @UseAuditTable, @SourceTSFormat)
 		Select @SourceId = @@IDENTITY
 
 		PRINT 'Adding record to ControlTarget'
