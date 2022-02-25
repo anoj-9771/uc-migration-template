@@ -380,7 +380,9 @@
 							"kvSecret": {
 								"value": "@pipeline().parameters.TaskDetails.SourceServer",
 								"type": "Expression"
-							}
+							},
+							"tableName": "ercho",
+							"schemaName": "eq1"
 						}
 					},
 					"firstRowOnly": true
