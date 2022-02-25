@@ -1,0 +1,47 @@
+{
+  "format": 1,
+  "restore": {
+    "c:\\Users\\fhasan\\source\\repos\\SW_Repo\\DAF POC REPO1\\Synapse-Databases\\Synapse-Databases\\Synapse-Databases.sqlproj": {}
+  },
+  "projects": {
+    "c:\\Users\\fhasan\\source\\repos\\SW_Repo\\DAF POC REPO1\\Synapse-Databases\\Synapse-Databases\\Synapse-Databases.sqlproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "c:\\Users\\fhasan\\source\\repos\\SW_Repo\\DAF POC REPO1\\Synapse-Databases\\Synapse-Databases\\Synapse-Databases.sqlproj",
+        "projectName": "Synapse_Databases",
+        "projectPath": "c:\\Users\\fhasan\\source\\repos\\SW_Repo\\DAF POC REPO1\\Synapse-Databases\\Synapse-Databases\\Synapse-Databases.sqlproj",
+        "packagesPath": "C:\\Users\\fhasan\\.nuget\\packages\\",
+        "outputPath": "c:\\Users\\fhasan\\source\\repos\\SW_Repo\\DAF POC REPO1\\Synapse-Databases\\Synapse-Databases\\obj\\",
+        "projectStyle": "PackageReference",
+        "skipContentFileWrite": true,
+        "configFilePaths": [
+          "C:\\Users\\fhasan\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "net46"
+        ],
+        "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net46": {
+            "projectReferences": {}
+          }
+        }
+      },
+      "frameworks": {
+        "net46": {
+          "dependencies": {
+            "Microsoft.NETFramework.ReferenceAssemblies": {
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[1.0.0, )"
+            }
+          }
+        }
+      }
+    }
+  }
+}
