@@ -708,6 +708,10 @@
 					},
 					"waitOnCompletion": true,
 					"parameters": {
+						"SQLCommand": {
+							"value": "@variables('SQLCommand')",
+							"type": "Expression"
+						},
 						"BatchExecutionLogID": {
 							"value": "@pipeline().parameters.BatchLogId",
 							"type": "Expression"
