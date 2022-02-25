@@ -18,9 +18,9 @@ This checks if the record does not exists on the table then inserts it
 /************* ControlStages ***********************************/
 
 DELETE FROM CTL.ControlProjects
-DELETE FROM CTL.ControlProjectSchedule
+--DELETE FROM CTL.ControlProjectSchedule
 DBCC CHECKIDENT ('CTL.ControlProjects',Reseed,0)
-DBCC CHECKIDENT ('CTL.ControlProjectSchedule',Reseed,0)
+--DBCC CHECKIDENT ('CTL.ControlProjectSchedule',Reseed,0)
 
 insert into [CTL].[ControlProjects]([ProjectName],[Enabled],[RunSequence]) values('RAW REF ACCESS',1,10);
 insert into [CTL].[ControlProjects]([ProjectName],[Enabled],[RunSequence]) values('RAW DATA ACCESS',1,20);
