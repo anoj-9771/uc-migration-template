@@ -53,5 +53,5 @@ stages:
         ServerName: '$(SYNAPSESQLSERVERNAME).sql.azuresynapse.net'
         DatabaseName: $(SYNAPSEDWDBNAME)
         SqlUsername: $(SYNSQLPOOLRUN)
-        SqlPassword: '$(daf-syn-d-sqlpoo-synapseadmin-password)'
+        SqlPassword: '$(daf-syn-d-sqlpool-synapseadmin-password)'
         DacpacFile: '$(Pipeline.Workspace)/sql_Synapsedb/Synapse-Databases.dacpac'
