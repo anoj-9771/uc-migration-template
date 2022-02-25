@@ -74,16 +74,16 @@ stages:
             file.write(filecontent)
             file.close()
 
-          globalConfigFile = "$(Build.ArtifactStagingDirectory)/databricks_notebooks/includes/global-variables-config.py"
+          globalConfigFile = "$(Pipeline.Workspace)/databricks_notebooks/includes/global-variables-config.py"
           globalConfigSubs = [('<ADS_ENVIRONMENT>', '$(environment)')]
           apply_substitutions(globalConfigFile, globalConfigSubs)
 
           
-          globalVarsPython = "$(Build.ArtifactStagingDirectory)/databricks_notebooks/includes/global-variables-python.py"
+          globalVarsPython = "$(Pipeline.Workspace)/databricks_notebooks/includes/global-variables-python.py"
           globalVarsPythonSubs = [('<EDW>', '$(azureedwdbname)')]
           apply_substitutions(globalVarsPython, globalVarsPythonSubs)
 
-          globalVarsScala = "$(Build.ArtifactStagingDirectory)/databricks_notebooks/includes/global-variables-scala.scala"
+          globalVarsScala = "$(Pipeline.Workspace)/databricks_notebooks/includes/global-variables-scala.scala"
           globalVarsScalaSubs = [('<EDW>', '$(azureedwdbname)')]
           apply_substitutions(globalVarsScala, globalVarsScalaSubs)
 
@@ -97,6 +97,6 @@ stages:
     # Update Notebooks to Databricks workspace
     - script: |
         databricks workspace mkdirs /build;
-        databricks workspace import_dir -o -e $(Build.ArtifactStagingDirectory)/databricks_notebooks "/build"
+        databricks workspace import_dir -o -e $(Pipeline.Workspace)/databricks_notebooks "/build"
         echo
       displayName: 'Add updated notbooks to workspace'
