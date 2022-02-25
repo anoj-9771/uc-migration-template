@@ -25,13 +25,16 @@
 					"source": {
 						"type": "SqlServerSource",
 						"sqlReaderQuery": {
-							"value": "@concat(pipeline().parameters.DeltaSql,' WHERE ?AdfDynamicRangePartitionCondition')",
+							"value": "@pipeline().parameters.DeltaSql",
 							"type": "Expression"
 						},
 						"queryTimeout": "02:00:00",
 						"partitionOption": "DynamicRange",
 						"partitionSettings": {
-							"partitionColumnName": "BELNR_INT",
+							"partitionColumnName": {
+								"value": "@{pipeline().parameters.TaskDetails.PartitionColumn}",
+								"type": "Expression"
+							},
 							"partitionUpperBound": "",
 							"partitionLowerBound": ""
 						}
@@ -48,7 +51,10 @@
 							"referenceName": "LS_AzureDatalake",
 							"type": "LinkedServiceReference"
 						},
-						"path": "raw/landing/isu_data/ercho",
+						"path": {
+							"value": "@concat('raw/landing/isu_data/', pipeline().parameters.TaskDetails.TargetName)",
+							"type": "Expression"
+						},
 						"enableCompression": false
 					},
 					"parallelCopies": 32,
@@ -62,9 +68,7 @@
 							"kvSecret": {
 								"value": "daf-sql-slt-test-connectionstring",
 								"type": "Expression"
-							},
-							"tableName": "ERCHO",
-							"schemaName": "EQ1"
+							}
 						}
 					}
 				],
@@ -73,7 +77,10 @@
 						"referenceName": "DS_RAW_ADLS_DELTALAKE",
 						"type": "DatasetReference",
 						"parameters": {
-							"TableName": "isu_ercho"
+							"TableName": {
+								"value": "@pipeline().parameters.TaskDetails.TargetName",
+								"type": "Expression"
+							}
 						}
 					}
 				]
