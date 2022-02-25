@@ -13,7 +13,7 @@ steps:
       location: $(LOCATION)
       templateLocation: 'Linked artifact'
       csmFile: '$(Build.ArtifactStagingDirectory)/arm_templates/arm-private-endpoints.json'
-      overrideParameters: '-location $(LOCATION) -dataLakeName $(datalakestorageaccountnames) -blobStorageName $(blobstorageaccountnames) -sqlServerName $(azuresqlservername) -dataFactoryName $(datafactoryname) -keyVaultName $(azurekeyvaultname) -subnetId $(internalSubnetId)'
+      overrideParameters: '-location $(LOCATION) -dataLakeName $(datalakestorageaccountnames) -blobStorageName $(blobstorageaccountnames) -sqlServerName $(azuresqlservername) -dataFactoryName $(datafactoryname) -keyVaultName $(azurekeyvaultname) -subnetId $(internalSubnetId) -synapseWorkspaceName $(synapseworkspacename)'
       deploymentMode: 'Incremental'
       deploymentOutputs: 'armOutputs'
     displayName: 'Deploy Private Endpoints'
