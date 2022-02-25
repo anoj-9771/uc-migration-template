@@ -136,7 +136,7 @@
 						},
 						"Records": {
 							"value": {
-								"value": "null",
+								"value": "pipeline().parameters.ValidationDetails.RecordCount",
 								"type": "Expression"
 							},
 							"type": "Int64"
