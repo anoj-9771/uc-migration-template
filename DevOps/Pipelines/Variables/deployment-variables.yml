@@ -24,10 +24,7 @@ variables:
     value: false
   # Used to set Databricks Workspace deployability - With Vnet injection
   - name: databricksvnet
-    value: false
-  # Used to set Databricks Workspace deployability - Deploy NSG.
-  - name: databricksvnetnsg
-    value: false
+    value: true
   # Used to set DataFactory deployability
   - name: datafactory
     value: false

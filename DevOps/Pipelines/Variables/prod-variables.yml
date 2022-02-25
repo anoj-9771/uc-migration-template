@@ -125,6 +125,10 @@ variables:
     value: https://adb-5148661409353183.3.azuredatabricks.net/ #Get this after databricks environment has been deployed
   - name: vnetresourcegroupname
     value: rg-swcprod01-prod-network-01
+  - name: custompublicsubnetname
+    value: snet-$(SUBSCRIPTION)-ae-$(environment)-daf-dbwpublic-01
+  - name: customprivatesubnetname
+    value: snet-$(SUBSCRIPTION)-ae-$(environment)-daf-dbwprivate-01
   - name: databrickspricingtier
     value: premium
   - name: databricksclustername
