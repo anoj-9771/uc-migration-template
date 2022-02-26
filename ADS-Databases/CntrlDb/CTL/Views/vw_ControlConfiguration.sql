@@ -14,6 +14,8 @@ AS
 SELECT 
 	TSK.TaskName 
 	,PRJ.ProjectName
+	,PRJ.RunSequence
+	,CPS.TriggerName
 	,SRC.SourceGroup
 	,TSK.DataLoadMode
 	,SRC.BusinessKeyColumn 
@@ -42,7 +44,9 @@ FROM CTL.ControlTasks TSK
 INNER JOIN CTL.ControlSource SRC ON TSK.SourceId = SRC.SourceId
 INNER JOIN CTL.ControlTarget TGT ON TSK.TargetId = TGT.TargetId
 INNER JOIN CTL.ControlProjects PRJ ON TSK.ProjectId = PRJ.ProjectId
+INNER JOIN CTL.ControlProjectSchedule CPS ON PRJ.ProjectId = CPS.ControlProjectId
 INNER JOIN CTL.ControlTypes TYP ON SRC.SourceTypeId = TYP.TypeId
 LEFT JOIN CTL.ControlTaskCommand CTC ON TSK.TaskId = CTC.ControlTaskId
 LEFT JOIN CTL.ControlWatermark WMK ON WMK.ControlSourceId = SRC.SourceId
 LEFT JOIN CTL.ControlSource AUD ON SRC.SoftDeleteSource = AUD.SourceLocation
+ORDER BY CPS.TriggerName, PRJ.RunSequence, TSK.TaskName

@@ -1589,6 +1589,22 @@ DBCC CHECKIDENT ('CTL.ControlWatermark',Reseed,0)]]></Value>
 					</Element>
 				</Entry>
 				<Entry>
+					<Element Type="SqlSimpleColumn" Name="[CTL].[ControlSource].[PartitionColumn]">
+						<Relationship Name="TypeSpecifier">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Property Name="Length" Value="255" />
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[varchar]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
 					<Element Type="SqlSimpleColumn" Name="[CTL].[ControlSource].[AdditionalProperty]">
 						<Relationship Name="TypeSpecifier">
 							<Entry>
@@ -3281,6 +3297,7 @@ begin
 			,@DLObjectGrain
 			,@BusinessKeyColumn
 			,@WatermarkColumn
+			,@PartitionColumn
 			,@TrackChangeFlag
 			,@AdditionalProperty
 			,@LoadToSqlEDW
@@ -3312,6 +3329,7 @@ begin
 			,@DLObjectGrain
 			,@BusinessKeyColumn
 			,@WatermarkColumn
+			,NULL --PartitionColumn relevant  only for Source to Raw load
 			,@TrackChangeFlag
 			,@AdditionalProperty
 			,@LoadToSqlEDW
@@ -3345,6 +3363,7 @@ begin
 			,@DLObjectGrain
 			,@BusinessKeyColumn
 			,@WatermarkColumn
+			,NULL --PartitionColumn relevant  only for Source to Raw load
 			,@TrackChangeFlag
 			,@AdditionalProperty
 			,@LoadToSqlEDW
@@ -3378,6 +3397,7 @@ begin
 			,@DLObjectGrain
 			,@BusinessKeyColumn
 			,@WatermarkColumn
+			,NULL --PartitionColumn relevant  only for Source to Raw load
 			,@TrackChangeFlag
 			,@AdditionalProperty
 			,@LoadToSqlEDW
@@ -3549,6 +3569,9 @@ end]]></Value>
 				</Entry>
 				<Entry>
 					<References Name="[CTL].[CreateSource].[@DLObjectGrain]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[CreateSource].[@PartitionColumn]" />
 				</Entry>
 				<Entry>
 					<References Name="[CTL].[CreateSource].[@SourceTSFormat]" />
@@ -4000,6 +4023,22 @@ end]]></Value>
 					</Element>
 				</Entry>
 				<Entry>
+					<Element Type="SqlSubroutineParameter" Name="[CTL].[CreateSource].[@PartitionColumn]">
+						<Relationship Name="Type">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Property Name="Length" Value="150" />
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[varchar]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
 					<Element Type="SqlSubroutineParameter" Name="[CTL].[CreateSource].[@TrackChanges]">
 						<Relationship Name="Type">
 							<Entry>
@@ -4096,10 +4135,10 @@ end]]></Value>
 			</Relationship>
 			<Annotation Type="SysCommentsObjectAnnotation">
 				<Property Name="CreateOffset" Value="2" />
-				<Property Name="Length" Value="7520" />
+				<Property Name="Length" Value="7775" />
 				<Property Name="StartLine" Value="1" />
 				<Property Name="StartColumn" Value="1" />
-				<Property Name="HeaderContents" Value="&#xD;&#xA;CREATE PROC [CTL].[CreateSource] &#xD;&#xA;        @ProjectName&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@TriggerName&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@StartStageName&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@EndStageName&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@SourceGroup&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@SourceName&#x9;&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@SourceObjectName&#x9; varchar(500),&#xD;&#xA;&#x9;&#x9;@SourceType&#x9;&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@DataLoadMode&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@SourceSecretName&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@DLRawSecret&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@DLStagedSecret&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@DBProcessor&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@StageDBSecret&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@DLRawSubFolder&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@DLRawType&#x9;&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@DLStagedMainFolder&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@DLStagedSubFolder&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@DLStagedType&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@DLObjectGrain&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@SourceCommand&#x9;&#x9; varchar(5000),&#xD;&#xA;&#x9;&#x9;@DLRawtoStageCommand varchar(5000),&#xD;&#xA;&#x9;&#x9;@DLStagetoDBCommand  varchar(5000),&#xD;&#xA;&#x9;&#x9;@TargetObjectType&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@TargetOverride&#x9;&#x9; varchar(150),&#xD;&#xA;&#x9;&#x9;@BusinessKeyColumn&#x9; varchar(150),&#xD;&#xA;&#x9;&#x9;@WatermarkColumn&#x9; varchar(150),&#xD;&#xA;&#x9;&#x9;@TrackChanges&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@AdditionalProperty&#x9; varchar(max),&#xD;&#xA;&#x9;&#x9;@IsAuditTable&#x9;&#x9; varchar(100) = '', --Add column to track if the table is a Audit Table&#xD;&#xA;&#x9;&#x9;@SoftDeleteSource&#x9; varchar(100) = '', --Name of the source to be used for Soft Delete&#xD;&#xA;&#x9;&#x9;@SourceTSFormat&#x9;&#x9; varchar(100) = ''  --Format for the Source Delta Column Time&#xD;&#xA;as" />
+				<Property Name="HeaderContents" Value="&#xD;&#xA;CREATE PROC [CTL].[CreateSource] &#xD;&#xA;        @ProjectName&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@TriggerName&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@StartStageName&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@EndStageName&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@SourceGroup&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@SourceName&#x9;&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@SourceObjectName&#x9; varchar(500),&#xD;&#xA;&#x9;&#x9;@SourceType&#x9;&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@DataLoadMode&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@SourceSecretName&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@DLRawSecret&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@DLStagedSecret&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@DBProcessor&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@StageDBSecret&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@DLRawSubFolder&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@DLRawType&#x9;&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@DLStagedMainFolder&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@DLStagedSubFolder&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@DLStagedType&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@DLObjectGrain&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@SourceCommand&#x9;&#x9; varchar(5000),&#xD;&#xA;&#x9;&#x9;@DLRawtoStageCommand varchar(5000),&#xD;&#xA;&#x9;&#x9;@DLStagetoDBCommand  varchar(5000),&#xD;&#xA;&#x9;&#x9;@TargetObjectType&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@TargetOverride&#x9;&#x9; varchar(150),&#xD;&#xA;&#x9;&#x9;@BusinessKeyColumn&#x9; varchar(150),&#xD;&#xA;&#x9;&#x9;@WatermarkColumn&#x9; varchar(150),&#xD;&#xA;&#x9;&#x9;@PartitionColumn&#x9; varchar(150),&#xD;&#xA;&#x9;&#x9;@TrackChanges&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@AdditionalProperty&#x9; varchar(max),&#xD;&#xA;&#x9;&#x9;@IsAuditTable&#x9;&#x9; varchar(100) = '', --Add column to track if the table is a Audit Table&#xD;&#xA;&#x9;&#x9;@SoftDeleteSource&#x9; varchar(100) = '', --Name of the source to be used for Soft Delete&#xD;&#xA;&#x9;&#x9;@SourceTSFormat&#x9;&#x9; varchar(100) = ''  --Format for the Source Delta Column Time&#xD;&#xA;as" />
 			</Annotation>
 		</Element>
 		<Element Type="SqlProcedure" Name="[CTL].[CreateTask]">
@@ -4132,8 +4171,8 @@ BEGIN
 		END
 
 		PRINT 'Adding record to ControlSource'
-		Insert Into CTL.ControlSource (SourceGroup, SourceName, SourceTypeId, SourceLocation, LoadSource, SourceServer, Processor, BusinessKeyColumn, AdditionalProperty, IsAuditTable, SoftDeleteSource, UseAuditTable, SourceTimeStampFormat) 
-		Values(@SourceGroup, @SourceName, @SourceTypeId, @SourceLocation, 1, @SourceServer, @Processor, @BusinessKeyColumn, @AdditionalProperty, @IsAuditTable, @SoftDeleteSource, @UseAuditTable, @SourceTSFormat)
+		Insert Into CTL.ControlSource (SourceGroup, SourceName, SourceTypeId, SourceLocation, LoadSource, SourceServer, Processor, BusinessKeyColumn, PartitionColumn, AdditionalProperty, IsAuditTable, SoftDeleteSource, UseAuditTable, SourceTimeStampFormat) 
+		Values(@SourceGroup, @SourceName, @SourceTypeId, @SourceLocation, 1, @SourceServer, @Processor, @BusinessKeyColumn, @PartitionColumn, @AdditionalProperty, @IsAuditTable, @SoftDeleteSource, @UseAuditTable, @SourceTSFormat)
 		Select @SourceId = @@IDENTITY
 
 		PRINT 'Adding record to ControlTarget'
@@ -4269,6 +4308,9 @@ END]]></Value>
 					<References Name="[CTL].[ControlSource].[BusinessKeyColumn]" />
 				</Entry>
 				<Entry>
+					<References Name="[CTL].[ControlSource].[PartitionColumn]" />
+				</Entry>
+				<Entry>
 					<References Name="[CTL].[ControlSource].[AdditionalProperty]" />
 				</Entry>
 				<Entry>
@@ -4297,6 +4339,9 @@ END]]></Value>
 				</Entry>
 				<Entry>
 					<References Name="[CTL].[CreateTask].[@Processor]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[CreateTask].[@PartitionColumn]" />
 				</Entry>
 				<Entry>
 					<References Name="[CTL].[CreateTask].[@AdditionalProperty]" />
@@ -4812,6 +4857,25 @@ END]]></Value>
 					</Element>
 				</Entry>
 				<Entry>
+					<Element Type="SqlSubroutineParameter" Name="[CTL].[CreateTask].[@PartitionColumn]">
+						<Property Name="DefaultExpressionScript">
+							<Value><![CDATA['']]></Value>
+						</Property>
+						<Relationship Name="Type">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Property Name="Length" Value="100" />
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[varchar]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
 					<Element Type="SqlSubroutineParameter" Name="[CTL].[CreateTask].[@TrackChangeFlag]">
 						<Property Name="DefaultExpressionScript">
 							<Value><![CDATA[0]]></Value>
@@ -4929,10 +4993,10 @@ END]]></Value>
 				</Entry>
 			</Relationship>
 			<Annotation Type="SysCommentsObjectAnnotation">
-				<Property Name="Length" Value="4635" />
+				<Property Name="Length" Value="4814" />
 				<Property Name="StartLine" Value="1" />
 				<Property Name="StartColumn" Value="1" />
-				<Property Name="HeaderContents" Value="CREATE Procedure [CTL].[CreateTask] &#xD;&#xA;&#x9;@SourceGroup varchar(255) = '',&#xD;&#xA;&#x9;@SourceName Varchar(255) = '',&#xD;&#xA;    @SourceLocation Varchar(255) = '',&#xD;&#xA;&#x9;@SourceTypeId BigInt = 2,  &#xD;&#xA;&#x9;@SourceServer varchar(255) = '',&#xD;&#xA;&#x9;@Processor varchar(255) = '',&#xD;&#xA;&#x9;@TargetName Varchar(255) = '',&#xD;&#xA;&#x9;@TargetLocation Varchar(255) = '',&#xD;&#xA;&#x9;@TargetTypeId BigInt = 4,&#xD;&#xA;&#x9;@TargetServer varchar(255)= '',&#xD;&#xA;&#x9;@StageId BigInt = 2,&#xD;&#xA;&#x9;@ProjectId BigInt = 1,&#xD;&#xA;&#x9;@TriggerName varchar(100) = '',&#xD;&#xA;&#x9;@CommandType int = 1,&#xD;&#xA;&#x9;@Command varchar(max)= '',&#xD;&#xA;&#x9;@DataLoadMode varchar(100) = '',&#xD;&#xA;&#x9;@Grain varchar(30) = '',&#xD;&#xA;&#x9;@BusinessKeyColumn varchar(100) = '',&#xD;&#xA;&#x9;@WatermarkColumn varchar(100) = '',&#xD;&#xA;&#x9;@TrackChangeFlag bit = 0,&#xD;&#xA;&#x9;@AdditionalProperty&#x9;varchar(max) = '', &#xD;&#xA;&#x9;@LoadToSqlEDW BIT = 0,&#xD;&#xA;&#x9;@IsAuditTable BIT = 0,&#xD;&#xA;&#x9;@SoftDeleteSource varchar(100) = '',&#xD;&#xA;&#x9;@SourceTSFormat varchar(20) = ''&#xD;&#xA;&#xD;&#xA;As" />
+				<Property Name="HeaderContents" Value="CREATE Procedure [CTL].[CreateTask] &#xD;&#xA;&#x9;@SourceGroup varchar(255) = '',&#xD;&#xA;&#x9;@SourceName Varchar(255) = '',&#xD;&#xA;    @SourceLocation Varchar(255) = '',&#xD;&#xA;&#x9;@SourceTypeId BigInt = 2,  &#xD;&#xA;&#x9;@SourceServer varchar(255) = '',&#xD;&#xA;&#x9;@Processor varchar(255) = '',&#xD;&#xA;&#x9;@TargetName Varchar(255) = '',&#xD;&#xA;&#x9;@TargetLocation Varchar(255) = '',&#xD;&#xA;&#x9;@TargetTypeId BigInt = 4,&#xD;&#xA;&#x9;@TargetServer varchar(255)= '',&#xD;&#xA;&#x9;@StageId BigInt = 2,&#xD;&#xA;&#x9;@ProjectId BigInt = 1,&#xD;&#xA;&#x9;@TriggerName varchar(100) = '',&#xD;&#xA;&#x9;@CommandType int = 1,&#xD;&#xA;&#x9;@Command varchar(max)= '',&#xD;&#xA;&#x9;@DataLoadMode varchar(100) = '',&#xD;&#xA;&#x9;@Grain varchar(30) = '',&#xD;&#xA;&#x9;@BusinessKeyColumn varchar(100) = '',&#xD;&#xA;&#x9;@WatermarkColumn varchar(100) = '',&#xD;&#xA;&#x9;@PartitionColumn varchar(100) = '',  --useful for dynamic partitioning of SQL source data while copying to Delta Table in ADF's Copy Activity&#xD;&#xA;&#x9;@TrackChangeFlag bit = 0,&#xD;&#xA;&#x9;@AdditionalProperty&#x9;varchar(max) = '', &#xD;&#xA;&#x9;@LoadToSqlEDW BIT = 0,&#xD;&#xA;&#x9;@IsAuditTable BIT = 0,&#xD;&#xA;&#x9;@SoftDeleteSource varchar(100) = '',&#xD;&#xA;&#x9;@SourceTSFormat varchar(20) = ''&#xD;&#xA;&#xD;&#xA;As" />
 			</Annotation>
 		</Element>
 		<Element Type="SqlProcedure" Name="[CTL].[CreateTaskLog]">
@@ -6804,6 +6868,7 @@ Select
 	FORMAT(TRY_CONVERT(DATETIME, CW.Watermarks), 'yyyy-MM-ddTHH:mm:ss') WatermarksDT,
 	ISNULL(CW.SourceColumn, '') AS WatermarkColumn,
 	src.BusinessKeyColumn,
+	src.PartitionColumn, --useful for dynamic partitioning of SQL source data while copying to Delta Table in ADF's Copy Activity
 	ct.UpdateMetaData,
 	src.SourceTimeStampFormat,
 	CASE 
@@ -7074,6 +7139,9 @@ SELECT * FROM allTasks t
 				</Entry>
 				<Entry>
 					<References Name="[CTL].[ControlSource].[BusinessKeyColumn]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlSource].[PartitionColumn]" />
 				</Entry>
 				<Entry>
 					<References Name="[CTL].[ControlTasks].[UpdateMetaData]" />
@@ -7453,6 +7521,15 @@ SELECT * FROM allTasks t
 								</Element>
 							</Entry>
 							<Entry>
+								<Element Type="SqlComputedColumn" Name="[CTL].[GetExecutionTasks].[CTE1].[allTasks].[PartitionColumn]">
+									<Relationship Name="ExpressionDependencies">
+										<Entry>
+											<References Name="[CTL].[ControlSource].[PartitionColumn]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+							<Entry>
 								<Element Type="SqlComputedColumn" Name="[CTL].[GetExecutionTasks].[CTE1].[allTasks].[UpdateMetaData]">
 									<Relationship Name="ExpressionDependencies">
 										<Entry>
@@ -7558,7 +7635,7 @@ SELECT * FROM allTasks t
 			</Relationship>
 			<Annotation Type="SysCommentsObjectAnnotation">
 				<Property Name="CreateOffset" Value="45" />
-				<Property Name="Length" Value="3501" />
+				<Property Name="Length" Value="3629" />
 				<Property Name="StartLine" Value="1" />
 				<Property Name="StartColumn" Value="1" />
 				<Property Name="HeaderContents" Value="&#xD;&#xA;&#xD;&#xA;&#xD;&#xA;&#xD;&#xA;&#xD;&#xA;--[CTL].[getExecutionTasks] 1,1&#xD;&#xA;&#xD;&#xA;CREATE Procedure [CTL].[GetExecutionTasks] (@StageId BigInt, @ProjectId BigInt)&#xD;&#xA;As" />
