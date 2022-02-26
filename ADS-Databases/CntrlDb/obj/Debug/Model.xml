@@ -13912,6 +13912,8 @@ SELECT B.[BatchExecutionLogId]
 SELECT 
 	TSK.TaskName 
 	,PRJ.ProjectName
+	,PRJ.RunSequence
+	,CPS.TriggerName
 	,SRC.SourceGroup
 	,TSK.DataLoadMode
 	,SRC.BusinessKeyColumn 
@@ -13940,6 +13942,7 @@ FROM CTL.ControlTasks TSK
 INNER JOIN CTL.ControlSource SRC ON TSK.SourceId = SRC.SourceId
 INNER JOIN CTL.ControlTarget TGT ON TSK.TargetId = TGT.TargetId
 INNER JOIN CTL.ControlProjects PRJ ON TSK.ProjectId = PRJ.ProjectId
+INNER JOIN CTL.ControlProjectSchedule CPS ON PRJ.ProjectId = CPS.ControlProjectId
 INNER JOIN CTL.ControlTypes TYP ON SRC.SourceTypeId = TYP.TypeId
 LEFT JOIN CTL.ControlTaskCommand CTC ON TSK.TaskId = CTC.ControlTaskId
 LEFT JOIN CTL.ControlWatermark WMK ON WMK.ControlSourceId = SRC.SourceId
@@ -13961,6 +13964,24 @@ LEFT JOIN CTL.ControlSource AUD ON SRC.SoftDeleteSource = AUD.SourceLocation]]><
 						<Relationship Name="ExpressionDependencies">
 							<Entry>
 								<References Name="[CTL].[ControlProjects].[ProjectName]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_ControlConfiguration].[RunSequence]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[ControlProjects].[RunSequence]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_ControlConfiguration].[TriggerName]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[ControlProjectSchedule].[TriggerName]" />
 							</Entry>
 						</Relationship>
 					</Element>
@@ -14196,6 +14217,15 @@ LEFT JOIN CTL.ControlSource AUD ON SRC.SoftDeleteSource = AUD.SourceLocation]]><
 					<References Name="[CTL].[ControlProjects].[ProjectId]" />
 				</Entry>
 				<Entry>
+					<References Name="[CTL].[ControlProjectSchedule]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlProjects].[ProjectId]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlProjectSchedule].[ControlProjectId]" />
+				</Entry>
+				<Entry>
 					<References Name="[CTL].[ControlTypes]" />
 				</Entry>
 				<Entry>
@@ -14233,6 +14263,12 @@ LEFT JOIN CTL.ControlSource AUD ON SRC.SoftDeleteSource = AUD.SourceLocation]]><
 				</Entry>
 				<Entry>
 					<References Name="[CTL].[ControlProjects].[ProjectName]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlProjects].[RunSequence]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlProjectSchedule].[TriggerName]" />
 				</Entry>
 				<Entry>
 					<References Name="[CTL].[ControlSource].[SourceGroup]" />
@@ -14308,7 +14344,7 @@ LEFT JOIN CTL.ControlSource AUD ON SRC.SoftDeleteSource = AUD.SourceLocation]]><
 			</Relationship>
 			<Annotation Type="SysCommentsObjectAnnotation">
 				<Property Name="CreateOffset" Value="22" />
-				<Property Name="Length" Value="1193" />
+				<Property Name="Length" Value="1314" />
 				<Property Name="StartLine" Value="1" />
 				<Property Name="StartColumn" Value="1" />
 				<Property Name="HeaderContents" Value="&#xD;&#xA;&#xD;&#xA;&#xD;&#xA;&#xD;&#xA;&#xD;&#xA;&#xD;&#xA;&#xD;&#xA;&#xD;&#xA;&#xD;&#xA;&#xD;&#xA;&#xD;&#xA;CREATE VIEW [CTL].[vw_ControlConfiguration]&#xD;&#xA;AS" />

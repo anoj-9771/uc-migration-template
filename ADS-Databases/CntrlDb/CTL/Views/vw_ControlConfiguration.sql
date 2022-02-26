@@ -49,4 +49,3 @@ INNER JOIN CTL.ControlTypes TYP ON SRC.SourceTypeId = TYP.TypeId
 LEFT JOIN CTL.ControlTaskCommand CTC ON TSK.TaskId = CTC.ControlTaskId
 LEFT JOIN CTL.ControlWatermark WMK ON WMK.ControlSourceId = SRC.SourceId
 LEFT JOIN CTL.ControlSource AUD ON SRC.SoftDeleteSource = AUD.SourceLocation
-ORDER BY CPS.TriggerName, PRJ.RunSequence, TSK.TaskName
