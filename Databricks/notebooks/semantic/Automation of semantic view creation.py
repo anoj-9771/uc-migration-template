@@ -26,9 +26,9 @@ for table in spark.catalog.listTables("curated"):
     for column in spark.catalog.listColumns(table.name, "curated"):
         #formatting column names ignoring metadata columns and SK column
       if "_" not in column.name and "SK" not in column.name and "LGA" not in column.name:
-        col_name = column.name.replace("ID","Id")
+        col_name = column.name.replace("GUID","Guid").replace("ID","Id")
         col_name_seperated = ' '.join(re.sub( r"([A-Z])", r" \1", col_name).split())
-        col_name_formatted = col_name_seperated[0:1].capitalize() + col_name_seperated[1:100].replace(" Id"," ID")
+        col_name_formatted = col_name_seperated[0:1].capitalize() + col_name_seperated[1:100].replace(" Guid"," GUID").replace(" Id"," ID")
         #constructing the sql statement
         sql_statement = sql_statement + "  , " + column.name + " as `" + col_name_formatted + "`"
       elif "_" not in column.name and "SK" in column.name:
@@ -54,9 +54,9 @@ for table in spark.catalog.listTables("curated"):
                
         #formatting column names ignoring metadata columns and SK column
         if "_" not in column.name and "SK" not in column.name:
-            col_name = column.name.replace("ID","Id")
+            col_name = column.name.replace("GUID","Guid").replace("ID","Id")
             col_name_seperated = ' '.join(re.sub( r"([A-Z])", r" \1", col_name).split())
-            col_name_formatted = col_name_seperated[0:1].capitalize() + col_name_seperated[1:100].replace(" Id"," ID")
+            col_name_formatted = col_name_seperated[0:1].capitalize() + col_name_seperated[1:100].replace(" Guid"," GUID").replace(" Id"," ID")
             if curr_column == 1:
                 sql_statement = sql_statement + " " + column.name + " as `" + col_name_formatted + "`" 
             elif curr_column != 1:
