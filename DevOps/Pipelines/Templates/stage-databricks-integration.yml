@@ -29,9 +29,7 @@ stages:
 
     steps:
     - task: DownloadBuildArtifacts@0
-      inputs:
-        artifactName: 'databricks_notebooks' 
-
+  
     # Install latest version of Python. If specified, this must match the version on the Databricks cluster 
     - task: UsePythonVersion@0
       inputs:
