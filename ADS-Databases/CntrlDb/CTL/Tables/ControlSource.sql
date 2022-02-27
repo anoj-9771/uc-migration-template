@@ -7,6 +7,7 @@
     [SourceServer]          VARCHAR (255)  NULL,
     [Processor]             VARCHAR (255)  NULL,
     [BusinessKeyColumn]     VARCHAR (255)  NULL,
+    [PartitionColumn]       VARCHAR (255)  NULL, --useful for dynamic partitioning of SQL source data while copying to Delta Table in ADF's  Copy Activity
     [AdditionalProperty]    VARCHAR (MAX)  NULL,
     [IsAuditTable]          BIT            NULL,
     [SoftDeleteSource]      VARCHAR (255)  NULL,

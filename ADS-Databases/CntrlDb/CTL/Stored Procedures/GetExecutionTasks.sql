@@ -49,6 +49,7 @@ Select
 	FORMAT(TRY_CONVERT(DATETIME, CW.Watermarks), 'yyyy-MM-ddTHH:mm:ss') WatermarksDT,
 	ISNULL(CW.SourceColumn, '') AS WatermarkColumn,
 	src.BusinessKeyColumn,
+	src.PartitionColumn, --useful for dynamic partitioning of SQL source data while copying to Delta Table in ADF's Copy Activity
 	ct.UpdateMetaData,
 	src.SourceTimeStampFormat,
 	CASE 
