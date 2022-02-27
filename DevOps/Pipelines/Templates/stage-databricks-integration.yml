@@ -28,9 +28,10 @@ stages:
   - job: 'integrate_databricks'
 
     steps:
-    - task: DownloadBuildArtifacts@2
+    - task: DownloadPipelineArtifact@2
       inputs:
         artifactName: 'databricks_notebooks' 
+        path: '$(Pipeline.Workspace)/databricks_notebooks'
 
     # Install latest version of Python. If specified, this must match the version on the Databricks cluster 
     - task: UsePythonVersion@0
