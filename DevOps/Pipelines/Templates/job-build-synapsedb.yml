@@ -1,8 +1,5 @@
   jobs:
   - job: 'Synpase_db'
-    pool:
-      demands: msbuild
-      vmImage: 'windows-2019'
     steps:
     - task: MSBuild@1
       displayName: 'Build SynapseDB'
@@ -12,5 +9,6 @@
 
     - task: PublishBuildArtifacts@1
       inputs:
-        pathToPublish: '$(Build.ArtifactStagingDirectory)'
+        pathToPublish: Synapse-Databases/Synapse-Databases/bin/Debug
         artifact: sql_Synapsedb
+
