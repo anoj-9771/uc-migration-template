@@ -705,7 +705,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"pipeline": {
-						"referenceName": "testDeltaTableWrite",
+						"referenceName": "04-SQLServer-B-Source-Copy",
 						"type": "PipelineReference"
 					},
 					"waitOnCompletion": true,
