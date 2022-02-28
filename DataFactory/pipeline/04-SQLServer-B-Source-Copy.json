@@ -1,5 +1,5 @@
 {
-	"name": "testDeltaTableWrite",
+	"name": "04-SQLServer-B-Source-Copy",
 	"properties": {
 		"activities": [
 			{
@@ -331,7 +331,7 @@
 			}
 		},
 		"folder": {
-			"name": "z_Archive/Test"
+			"name": "SQL Server"
 		},
 		"annotations": []
 	}
