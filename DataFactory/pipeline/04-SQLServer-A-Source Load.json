@@ -1,5 +1,5 @@
 {
-	"name": "04-SQLServer-A-Source Load_copy2",
+	"name": "04-SQLServer-A-Source Load",
 	"properties": {
 		"activities": [
 			{
@@ -771,7 +771,7 @@
 			}
 		},
 		"folder": {
-			"name": "z_Archive/Test"
+			"name": "SQL Server"
 		},
 		"annotations": []
 	},
