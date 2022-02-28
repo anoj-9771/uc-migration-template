@@ -33,7 +33,7 @@ stages:
   # ---------------------------------------------------------------------------
   - job: 'deploy_synapse_db'
     steps:
-   - task: DownloadBuildArtifacts@0
+    - task: DownloadBuildArtifacts@0
       inputs:
         artifactName: 'sql_Synapsedb'   
 
