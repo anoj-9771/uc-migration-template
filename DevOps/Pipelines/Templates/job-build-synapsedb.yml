@@ -10,5 +10,5 @@
     - task: PublishBuildArtifacts@1
       inputs:
         pathToPublish: Synapse-Databases/Synapse-Databases/bin/Debug
-        artifact: sql_Synapsedb
+        artifactName: sql_Synapsedb
 
