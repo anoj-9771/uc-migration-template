@@ -37,17 +37,12 @@ stages:
       inputs:
         artifactName: 'sql_Synapsedb'   
 
-    - task: AzureKeyVault@1
+    - task: AzureKeyVault@2
       displayName: 'Get Secrets'
       inputs:
         azureSubscription: ${{ variables.azdoresourceconnection }}
         keyVaultName: $(AZUREKEYVAULTNAME)
         secretsFilter: 'daf-syn-d-sqlpool-synapseadmin-password'
-
-    - task: PublishBuildArtifacts@1
-      inputs:
-        pathToPublish: '$(Build.ArtifactStagingDirectory)'
-        artifactName: sql_Synapsedb
 
     - task: SqlAzureDacpacDeployment@1
       displayName: 'Synapse SQL DacpacTask'
