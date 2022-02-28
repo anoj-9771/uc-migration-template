@@ -43,7 +43,9 @@
 							"kvSecret": {
 								"value": "@pipeline().parameters.TaskDetails.SourceServer",
 								"type": "Expression"
-							}
+							},
+							"tableName": "erch",
+							"schemaName": "dbo"
 						}
 					}
 				],
