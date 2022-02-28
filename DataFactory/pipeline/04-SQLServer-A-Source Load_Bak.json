@@ -165,6 +165,10 @@
 							"dependsOn": [],
 							"userProperties": [],
 							"typeProperties": {
+								"pipeline": {
+									"referenceName": "04-SQLServer-B-Source-Copy_Bak",
+									"type": "PipelineReference"
+								},
 								"waitOnCompletion": true,
 								"parameters": {
 									"BatchLogId": {
@@ -884,7 +888,9 @@
 							"kvSecret": {
 								"value": "@pipeline().parameters.TaskDetails.SourceServer",
 								"type": "Expression"
-							}
+							},
+							"tableName": "erch",
+							"schemaName": "dbo"
 						}
 					},
 					"firstRowOnly": true
