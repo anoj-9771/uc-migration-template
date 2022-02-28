@@ -359,7 +359,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"pipeline": {
-						"referenceName": "testDeltaTableWrite",
+						"referenceName": "04-SQLServer-B-Source-Copy",
 						"type": "PipelineReference"
 					},
 					"waitOnCompletion": true,
@@ -412,7 +412,10 @@
 							"name": "Set variable2",
 							"type": "SetVariable",
 							"dependsOn": [],
-							"userProperties": []
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": ""
+							}
 						}
 					],
 					"ifTrueActivities": [
