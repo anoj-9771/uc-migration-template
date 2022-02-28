@@ -165,10 +165,6 @@
 							"dependsOn": [],
 							"userProperties": [],
 							"typeProperties": {
-								"pipeline": {
-									"referenceName": "04-SQLServer-B-Source-Copy",
-									"type": "PipelineReference"
-								},
 								"waitOnCompletion": true,
 								"parameters": {
 									"BatchLogId": {
@@ -416,10 +412,6 @@
 							],
 							"userProperties": [],
 							"typeProperties": {
-								"pipeline": {
-									"referenceName": "04-SQLServer-B-Source-Copy",
-									"type": "PipelineReference"
-								},
 								"waitOnCompletion": true,
 								"parameters": {
 									"BatchLogId": {
