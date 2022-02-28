@@ -24,9 +24,11 @@ stages:
 - stage: 'build' # leave main artifact build stage as 'build'
   variables:
   - template: Variables/deployment-variables.yml
-    jobs:
+  jobs:
   # Use this section to pull in or out build jobs
     - template: Templates/job-copy-arm.yml
+  # - ${{ if eq(variables['controldb'], true) }}:  
+  #   - template: Templates/job-build-controldb.yml
   
 # ---------------------------------------------------------------------------
 # Release to Non-Production - Develop
