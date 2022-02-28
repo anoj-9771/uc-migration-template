@@ -70,7 +70,9 @@
 							"kvSecret": {
 								"value": "@pipeline().parameters.TaskDetails.SourceServer",
 								"type": "Expression"
-							}
+							},
+							"tableName": "erch",
+							"schemaName": "dbo"
 						}
 					}
 				],
@@ -144,7 +146,9 @@
 							"kvSecret": {
 								"value": "@pipeline().parameters.TaskDetails.SourceServer",
 								"type": "Expression"
-							}
+							},
+							"tableName": "erch",
+							"schemaName": "dbo"
 						}
 					}
 				],
