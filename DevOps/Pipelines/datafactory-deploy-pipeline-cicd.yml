@@ -53,11 +53,20 @@ stages:
     run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/test'))
 
 # ---------------------------------------------------------------------------
-# Release to Production - PreProd Environment
+# Release to PreProduction - PreProd Environment
 - template: Templates/stage-datafactory-integration.yml
   parameters:
     #dependencies: ['uat'] # Used to define any stage dependencies
     stage_name: 'deploy_adf_preprod'
     variable_template_name: preprd-variables
     run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/preprod'))
+
+# ---------------------------------------------------------------------------
+# Release to Production - Prod Environment
+- template: Templates/stage-datafactory-integration.yml
+  parameters:
+    #dependencies: ['uat'] # Used to define any stage dependencies
+    stage_name: 'deploy_adf_prod'
+    variable_template_name: prod-variables
+    run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
 
