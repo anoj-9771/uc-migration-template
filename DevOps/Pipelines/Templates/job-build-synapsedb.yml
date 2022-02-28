@@ -10,5 +10,5 @@
 
     - task: PublishBuildArtifacts@1
       inputs:
-        pathToPublish: '$(Build.ArtifactStagingDirectory)/Synapse-Databases'
+        pathToPublish: '$(Build.ArtifactStagingDirectory)'
         artifact: sql_Synapsedb
