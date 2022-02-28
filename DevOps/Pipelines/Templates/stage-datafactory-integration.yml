@@ -28,8 +28,10 @@ stages:
   jobs:
   - job:
     steps:
-    - download: current
-      artifact: adf_arm_templates
+    
+    - task: DownloadBuildArtifacts@0
+      inputs:
+        artifactName: 'adf_arm_templates' 
 
     - task: AzureResourceGroupDeployment@2
       inputs:
