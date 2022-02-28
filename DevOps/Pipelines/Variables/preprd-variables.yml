@@ -130,13 +130,13 @@ variables:
   - name: vnetresourcegroupname
     value: rg-swcprod01-preprod-network-01
   - name: publicsubnetcidr
-    value: 10.97.46.192/26
+    value: 10.97.64.128/26
   - name: privatesubnetcidr
-    value: 10.97.46.128/26
+    value:  10.97.64.64/26
   - name: custompublicsubnetname
-    value: snet-$(SUBSCRIPTION)-ae-$(environment)-daf-dbwpublic-01
+    value: snet-swcprod01-ae-preprod-daf-dbwpublic-01
   - name: customprivatesubnetname
-    value: snet-$(SUBSCRIPTION)-ae-$(environment)-daf-dbwprivate-01
+    value: snet-swcprod01-ae-preprod-daf-dbwprivate-01
   - name: databrickspricingtier
     value: premium
   - name: databricksclustername
