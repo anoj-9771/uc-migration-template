@@ -51,6 +51,10 @@
 			"type": "string",
 			"defaultValue": "acff96db-8630-433b-bbb1-35a3813fa036"
 		},
+		"LS_DeltaLake_properties_typeProperties_domain": {
+			"type": "string",
+			"defaultValue": "https://adb-7004525605760210.10.azuredatabricks.net"
+		},
 		"LS_Oracle_properties_typeProperties_connectionString_secretName": {
 			"type": "string",
 			"defaultValue": "@linkedService().kvSecret"
@@ -194,6 +198,9 @@
 					},
 					"LS_AzureDatalake_properties_typeProperties_servicePrincipalId": {
 						"value": "[parameters('LS_AzureDatalake_properties_typeProperties_servicePrincipalId')]"
+					},
+					"LS_DeltaLake_properties_typeProperties_domain": {
+						"value": "[parameters('LS_DeltaLake_properties_typeProperties_domain')]"
 					}
 				}
 			},
