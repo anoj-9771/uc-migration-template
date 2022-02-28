@@ -1,5 +1,5 @@
 {
-	"name": "04-SQLServer-Generate-Source-Schema",
+	"name": "04-SQLServer-Generate-Source-Schema_Bak",
 	"properties": {
 		"activities": [
 			{
@@ -70,9 +70,7 @@
 							"kvSecret": {
 								"value": "@pipeline().parameters.TaskDetails.SourceServer",
 								"type": "Expression"
-							},
-							"tableName": "ercho",
-							"schemaName": "eq1"
+							}
 						}
 					}
 				],
@@ -146,9 +144,7 @@
 							"kvSecret": {
 								"value": "@pipeline().parameters.TaskDetails.SourceServer",
 								"type": "Expression"
-							},
-							"tableName": "ercho",
-							"schemaName": "eq1"
+							}
 						}
 					}
 				],
@@ -316,7 +312,7 @@
 			}
 		},
 		"folder": {
-			"name": "SQL Server"
+			"name": "z_Archive"
 		},
 		"annotations": []
 	},

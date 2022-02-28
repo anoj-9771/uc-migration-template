@@ -1,0 +1,27 @@
+{
+	"name": "DS_RAW_ADLS_DELTALAKE",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_DeltaLake",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"TableName": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "Data Lake"
+		},
+		"annotations": [],
+		"type": "AzureDatabricksDeltaLakeDataset",
+		"typeProperties": {
+			"database": "raw",
+			"table": {
+				"value": "@dataset().TableName",
+				"type": "Expression"
+			}
+		},
+		"schema": []
+	}
+}
