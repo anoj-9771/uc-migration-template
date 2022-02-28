@@ -19,8 +19,6 @@ parameters:
   type: number
 - name: log_analytics
   type: boolean
-- name: log_storage
-  type: boolean
 
 steps:
   # Create or update NSG.
