@@ -49,7 +49,7 @@ stages:
         pathToPublish: '$(Build.ArtifactStagingDirectory)'
         artifactName: sql_Synapsedb
 
-    - task: SqlAzureDacpacDeployment@2
+    - task: SqlAzureDacpacDeployment@1
       displayName: 'Synapse SQL DacpacTask'
       inputs:
         azureSubscription: ${{ variables.azdoresourceconnection }}
