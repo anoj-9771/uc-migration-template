@@ -7,4 +7,4 @@ jobs:
     displayName: 'Prepare Azure Resource Manager template Build Artifacts'
 
   - publish: '$(Build.ArtifactStagingDirectory)/arm_templates'
-    artifact: arm_templates
+    artifactName: arm_templates
