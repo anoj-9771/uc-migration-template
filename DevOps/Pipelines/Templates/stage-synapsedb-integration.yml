@@ -52,4 +52,4 @@ stages:
         DatabaseName: $(SYNAPSEDWDBNAME)
         SqlUsername: $(SYNSQLPOOLRUN)
         SqlPassword: '$(daf-syn-d-sqlpool-synapseadmin-password)'
-        DacpacFile: '$(Build.ArtifactStagingDirectory)/sql_Synapsedb/Synapse-Databases.dacpac'
+        DacpacFile: '$(Pipeline.Workspace)/sql_Synapsedb/Synapse-Databases.dacpac'
