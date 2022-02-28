@@ -32,12 +32,11 @@ stages:
   jobs:
   # ---------------------------------------------------------------------------
   - job: 'deploy_synapse_db'
-    pool:
-      demands: msbuild
-      vmImage: 'windows-2019'
     steps:
-    - download: current
-      artifact: sql_Synapsedb
+    
+    - task: DownloadBuildArtifacts@0
+      inputs:
+        artifactName: 'sql_Synapsedb' 
 
     - task: AzureKeyVault@1
       displayName: 'Get Secrets'

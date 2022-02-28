@@ -20,7 +20,7 @@ trigger: none
 #     include:
 #     - Synapse-Databases/Synapse-Database.sln
 
-pool: Daf-Self-Hosted-Preprod-Linux
+pool: Daf-Self-Hosted-Prod-Windows
 
 stages:
 # ---------------------------------------------------------------------------
@@ -46,9 +46,17 @@ stages:
     run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/test'))
 
 # ---------------------------------------------------------------------------
-# Release to Production
+# Release to Pre-Production
 - template: Templates/stage-synapsedb-integration.yml
   parameters:
     stage_name: 'preprod'
     variable_template_name: preprd-variables
+    run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/preprod'))
+
+# ---------------------------------------------------------------------------
+# Release to Production
+- template: Templates/stage-synapsedb-integration.yml
+  parameters:
+    stage_name: 'prod'
+    variable_template_name: prod-variables
     run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
