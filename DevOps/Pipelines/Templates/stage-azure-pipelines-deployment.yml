@@ -151,7 +151,6 @@ stages:
           databricks_spark_version : ${{ variables.sparkClusterVersion }}
           databricks_workers : ${{ variables.databricksworkers }}
           databricks_autotermination : ${{ variables.databricksautotermination }}
-          log_analytics: ${{ variables.loganalytics }}
           log_storage: ${{ variables.logstorage }}
           
     # Deploy Databricks Workspace without v-net integration
