@@ -71,8 +71,8 @@
 								"value": "@pipeline().parameters.TaskDetails.SourceServer",
 								"type": "Expression"
 							},
-							"tableName": "ercho",
-							"schemaName": "eq1"
+							"tableName": "erch",
+							"schemaName": "dbo"
 						}
 					}
 				],
@@ -147,8 +147,8 @@
 								"value": "@pipeline().parameters.TaskDetails.SourceServer",
 								"type": "Expression"
 							},
-							"tableName": "ercho",
-							"schemaName": "eq1"
+							"tableName": "erch",
+							"schemaName": "dbo"
 						}
 					}
 				],
