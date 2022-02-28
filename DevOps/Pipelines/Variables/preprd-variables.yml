@@ -3,7 +3,7 @@ variables:
   - name: prefix
     value: daf
   - name: increment
-    value: 02
+    value: 01
   - name: subscription
     value: swcprod01
   - name: subscriptionId
