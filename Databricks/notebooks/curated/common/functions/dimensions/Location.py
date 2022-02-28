@@ -117,7 +117,7 @@ def getLocation():
                             StructField("longitude", DecimalType(9,6), True)
                       ])
 
-#     HydraLocationDf = spark.createDataFrame(HydraLocationDf.rdd, schema=newSchema)
+    HydraLocationDf = spark.createDataFrame(HydraLocationDf.rdd, schema=newSchema)
     return HydraLocationDf
 
 # COMMAND ----------
