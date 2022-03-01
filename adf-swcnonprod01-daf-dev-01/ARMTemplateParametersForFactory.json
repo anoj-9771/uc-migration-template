@@ -38,6 +38,9 @@
 		"LS_AzureDatalake_properties_typeProperties_servicePrincipalId": {
 			"value": "acff96db-8630-433b-bbb1-35a3813fa036"
 		},
+		"LS_DeltaLake_properties_typeProperties_domain": {
+			"value": "https://adb-7004525605760210.10.azuredatabricks.net"
+		},
 		"LS_Oracle_properties_typeProperties_connectionString_secretName": {
 			"value": "@linkedService().kvSecret"
 		},
