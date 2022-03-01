@@ -12,7 +12,7 @@
 		</CustomData>
 		<CustomData Category="Reference" Type="Assembly">
 			<Metadata Name="LogicalName" Value="Synapse_Databases.dll" />
-			<Metadata Name="FileName" Value="C:\USERS\FHASAN\SOURCE\REPOS\SYN_DATA\SYNAPSE-DATABASES\SYNAPSE-DATABASES\OBJ\DEBUG\SYNAPSE_DATABASES.DLL" />
+			<Metadata Name="FileName" Value="c:\Users\fhasan\source\repos\SW_Repo\DAF POC REPO1\Synapse-Databases\Synapse-Databases\obj\Debug\Synapse_Databases.dll" />
 			<Metadata Name="AssemblyName" Value="Synapse_Databases" />
 			<Metadata Name="PermissionSet" Value="SAFE" />
 			<Metadata Name="Owner" Value="" />
@@ -20,7 +20,7 @@
 			<Metadata Name="IsVisible" Value="True" />
 			<Metadata Name="IsModelAware" Value="True" />
 			<Metadata Name="SkipCreationIfEmpty" Value="True" />
-			<Metadata Name="AssemblySymbolsName" Value="C:\Users\fhasan\source\repos\syn_data\Synapse-Databases\Synapse-Databases\obj\Debug\Synapse_Databases.pdb" />
+			<Metadata Name="AssemblySymbolsName" Value="c:\Users\fhasan\source\repos\SW_Repo\DAF POC REPO1\Synapse-Databases\Synapse-Databases\obj\Debug\Synapse_Databases.pdb" />
 		</CustomData>
 		<CustomData Category="SqlCmdVariables" Type="SqlCmdVariable" />
 	</Header>
@@ -64,6 +64,114 @@
 		<Element Type="SqlRoleMembership">
 			<Relationship Name="Member">
 				<Entry>
+					<References Name="[ub0@sydneywater.com.au]" />
+				</Entry>
+			</Relationship>
+			<Relationship Name="Role">
+				<Entry>
+					<References ExternalSource="BuiltIns" Name="[db_datawriter]" />
+				</Entry>
+			</Relationship>
+		</Element>
+		<Element Type="SqlRoleMembership">
+			<Relationship Name="Member">
+				<Entry>
+					<References Name="[enl@sydneywater.com.au]" />
+				</Entry>
+			</Relationship>
+			<Relationship Name="Role">
+				<Entry>
+					<References ExternalSource="BuiltIns" Name="[db_datawriter]" />
+				</Entry>
+			</Relationship>
+		</Element>
+		<Element Type="SqlRoleMembership">
+			<Relationship Name="Member">
+				<Entry>
+					<References Name="[svc_synapse1]" />
+				</Entry>
+			</Relationship>
+			<Relationship Name="Role">
+				<Entry>
+					<References ExternalSource="BuiltIns" Name="[db_owner]" />
+				</Entry>
+			</Relationship>
+		</Element>
+		<Element Type="SqlRoleMembership">
+			<Relationship Name="Member">
+				<Entry>
+					<References Name="[A-Azure-DAF Databricks and Synapse Users DEV]" />
+				</Entry>
+			</Relationship>
+			<Relationship Name="Role">
+				<Entry>
+					<References ExternalSource="BuiltIns" Name="[db_datareader]" />
+				</Entry>
+			</Relationship>
+		</Element>
+		<Element Type="SqlRoleMembership">
+			<Relationship Name="Member">
+				<Entry>
+					<References Name="[enl@sydneywater.com.au]" />
+				</Entry>
+			</Relationship>
+			<Relationship Name="Role">
+				<Entry>
+					<References ExternalSource="BuiltIns" Name="[db_datareader]" />
+				</Entry>
+			</Relationship>
+		</Element>
+		<Element Type="SqlRoleMembership">
+			<Relationship Name="Member">
+				<Entry>
+					<References Name="[oyae@sydneywater.com.au]" />
+				</Entry>
+			</Relationship>
+			<Relationship Name="Role">
+				<Entry>
+					<References ExternalSource="BuiltIns" Name="[db_owner]" />
+				</Entry>
+			</Relationship>
+		</Element>
+		<Element Type="SqlRoleMembership">
+			<Relationship Name="Member">
+				<Entry>
+					<References Name="[otob@sydneywater.com.au]" />
+				</Entry>
+			</Relationship>
+			<Relationship Name="Role">
+				<Entry>
+					<References ExternalSource="BuiltIns" Name="[db_owner]" />
+				</Entry>
+			</Relationship>
+		</Element>
+		<Element Type="SqlRoleMembership">
+			<Relationship Name="Member">
+				<Entry>
+					<References Name="[svc_collibra]" />
+				</Entry>
+			</Relationship>
+			<Relationship Name="Role">
+				<Entry>
+					<References ExternalSource="BuiltIns" Name="[db_datareader]" />
+				</Entry>
+			</Relationship>
+		</Element>
+		<Element Type="SqlRoleMembership">
+			<Relationship Name="Member">
+				<Entry>
+					<References Name="[ozqc@sydneywater.com.au]" />
+				</Entry>
+			</Relationship>
+			<Relationship Name="Role">
+				<Entry>
+					<References ExternalSource="BuiltIns" Name="[db_owner]" />
+				</Entry>
+			</Relationship>
+		</Element>
+		<Element Type="SqlRoleMembership">
+			<Relationship Name="Member">
+				<Entry>
 					<References Name="[o5s5@sydneywater.com.au]" />
 				</Entry>
 			</Relationship>
@@ -76,7 +184,31 @@
 		<Element Type="SqlRoleMembership">
 			<Relationship Name="Member">
 				<Entry>
-					<References Name="[ozqc@sydneywater.com.au]" />
+					<References Name="[A-Azure-DAF Databricks and Synapse Users DEV]" />
+				</Entry>
+			</Relationship>
+			<Relationship Name="Role">
+				<Entry>
+					<References ExternalSource="BuiltIns" Name="[db_datawriter]" />
+				</Entry>
+			</Relationship>
+		</Element>
+		<Element Type="SqlRoleMembership">
+			<Relationship Name="Member">
+				<Entry>
+					<References Name="[ub0@sydneywater.com.au]" />
+				</Entry>
+			</Relationship>
+			<Relationship Name="Role">
+				<Entry>
+					<References ExternalSource="BuiltIns" Name="[db_datareader]" />
+				</Entry>
+			</Relationship>
+		</Element>
+		<Element Type="SqlRoleMembership">
+			<Relationship Name="Member">
+				<Entry>
+					<References Name="[oe3y@sydneywater.com.au]" />
 				</Entry>
 			</Relationship>
 			<Relationship Name="Role">
@@ -100,7 +232,31 @@
 		<Element Type="SqlRoleMembership">
 			<Relationship Name="Member">
 				<Entry>
-					<References Name="[oe3y@sydneywater.com.au]" />
+					<References Name="[yce@sydneywater.com.au]" />
+				</Entry>
+			</Relationship>
+			<Relationship Name="Role">
+				<Entry>
+					<References ExternalSource="BuiltIns" Name="[db_datawriter]" />
+				</Entry>
+			</Relationship>
+		</Element>
+		<Element Type="SqlRoleMembership">
+			<Relationship Name="Member">
+				<Entry>
+					<References Name="[y2o@sydneywater.com.au]" />
+				</Entry>
+			</Relationship>
+			<Relationship Name="Role">
+				<Entry>
+					<References ExternalSource="BuiltIns" Name="[db_datareader]" />
+				</Entry>
+			</Relationship>
+		</Element>
+		<Element Type="SqlRoleMembership">
+			<Relationship Name="Member">
+				<Entry>
+					<References Name="[e3y@sydneywater.com.au]" />
 				</Entry>
 			</Relationship>
 			<Relationship Name="Role">
@@ -112,7 +268,7 @@
 		<Element Type="SqlRoleMembership">
 			<Relationship Name="Member">
 				<Entry>
-					<References Name="[e3y@sydneywater.com.au]" />
+					<References Name="[svc_synapse]" />
 				</Entry>
 			</Relationship>
 			<Relationship Name="Role">
@@ -148,163 +304,7 @@
 		<Element Type="SqlRoleMembership">
 			<Relationship Name="Member">
 				<Entry>
-					<References Name="[oyae@sydneywater.com.au]" />
-				</Entry>
-			</Relationship>
-			<Relationship Name="Role">
-				<Entry>
-					<References ExternalSource="BuiltIns" Name="[db_owner]" />
-				</Entry>
-			</Relationship>
-		</Element>
-		<Element Type="SqlRoleMembership">
-			<Relationship Name="Member">
-				<Entry>
-					<References Name="[otob@sydneywater.com.au]" />
-				</Entry>
-			</Relationship>
-			<Relationship Name="Role">
-				<Entry>
-					<References ExternalSource="BuiltIns" Name="[db_owner]" />
-				</Entry>
-			</Relationship>
-		</Element>
-		<Element Type="SqlRoleMembership">
-			<Relationship Name="Member">
-				<Entry>
-					<References Name="[ub0@sydneywater.com.au]" />
-				</Entry>
-			</Relationship>
-			<Relationship Name="Role">
-				<Entry>
-					<References ExternalSource="BuiltIns" Name="[db_datareader]" />
-				</Entry>
-			</Relationship>
-		</Element>
-		<Element Type="SqlRoleMembership">
-			<Relationship Name="Member">
-				<Entry>
 					<References Name="[yce@sydneywater.com.au]" />
-				</Entry>
-			</Relationship>
-			<Relationship Name="Role">
-				<Entry>
-					<References ExternalSource="BuiltIns" Name="[db_datareader]" />
-				</Entry>
-			</Relationship>
-		</Element>
-		<Element Type="SqlRoleMembership">
-			<Relationship Name="Member">
-				<Entry>
-					<References Name="[enl@sydneywater.com.au]" />
-				</Entry>
-			</Relationship>
-			<Relationship Name="Role">
-				<Entry>
-					<References ExternalSource="BuiltIns" Name="[db_datareader]" />
-				</Entry>
-			</Relationship>
-		</Element>
-		<Element Type="SqlRoleMembership">
-			<Relationship Name="Member">
-				<Entry>
-					<References Name="[svc_collibra]" />
-				</Entry>
-			</Relationship>
-			<Relationship Name="Role">
-				<Entry>
-					<References ExternalSource="BuiltIns" Name="[db_datareader]" />
-				</Entry>
-			</Relationship>
-		</Element>
-		<Element Type="SqlRoleMembership">
-			<Relationship Name="Member">
-				<Entry>
-					<References Name="[svc_synapse]" />
-				</Entry>
-			</Relationship>
-			<Relationship Name="Role">
-				<Entry>
-					<References ExternalSource="BuiltIns" Name="[db_owner]" />
-				</Entry>
-			</Relationship>
-		</Element>
-		<Element Type="SqlRoleMembership">
-			<Relationship Name="Member">
-				<Entry>
-					<References Name="[svc_synapse1]" />
-				</Entry>
-			</Relationship>
-			<Relationship Name="Role">
-				<Entry>
-					<References ExternalSource="BuiltIns" Name="[db_owner]" />
-				</Entry>
-			</Relationship>
-		</Element>
-		<Element Type="SqlRoleMembership">
-			<Relationship Name="Member">
-				<Entry>
-					<References Name="[A-Azure-DAF Databricks and Synapse Users DEV]" />
-				</Entry>
-			</Relationship>
-			<Relationship Name="Role">
-				<Entry>
-					<References ExternalSource="BuiltIns" Name="[db_datawriter]" />
-				</Entry>
-			</Relationship>
-		</Element>
-		<Element Type="SqlRoleMembership">
-			<Relationship Name="Member">
-				<Entry>
-					<References Name="[ub0@sydneywater.com.au]" />
-				</Entry>
-			</Relationship>
-			<Relationship Name="Role">
-				<Entry>
-					<References ExternalSource="BuiltIns" Name="[db_datawriter]" />
-				</Entry>
-			</Relationship>
-		</Element>
-		<Element Type="SqlRoleMembership">
-			<Relationship Name="Member">
-				<Entry>
-					<References Name="[yce@sydneywater.com.au]" />
-				</Entry>
-			</Relationship>
-			<Relationship Name="Role">
-				<Entry>
-					<References ExternalSource="BuiltIns" Name="[db_datawriter]" />
-				</Entry>
-			</Relationship>
-		</Element>
-		<Element Type="SqlRoleMembership">
-			<Relationship Name="Member">
-				<Entry>
-					<References Name="[enl@sydneywater.com.au]" />
-				</Entry>
-			</Relationship>
-			<Relationship Name="Role">
-				<Entry>
-					<References ExternalSource="BuiltIns" Name="[db_datawriter]" />
-				</Entry>
-			</Relationship>
-		</Element>
-		<Element Type="SqlRoleMembership">
-			<Relationship Name="Member">
-				<Entry>
-					<References Name="[y2o@sydneywater.com.au]" />
-				</Entry>
-			</Relationship>
-			<Relationship Name="Role">
-				<Entry>
-					<References ExternalSource="BuiltIns" Name="[db_datareader]" />
-				</Entry>
-			</Relationship>
-		</Element>
-		<Element Type="SqlRoleMembership">
-			<Relationship Name="Member">
-				<Entry>
-					<References Name="[A-Azure-DAF Databricks and Synapse Users DEV]" />
 				</Entry>
 			</Relationship>
 			<Relationship Name="Role">
@@ -2075,7 +2075,7 @@ from dbo.factdailyapportionedconsumption]]></Value>
 			<Property Name="IsAnsiNullsOn" Value="True" />
 			<Relationship Name="Columns">
 				<Entry>
-					<Element Type="SqlSimpleColumn" Name="[dbo].[access_z309_tmeterreading_hash].[N_PROP]">
+					<Element Type="SqlSimpleColumn" Name="[dbo].[access_z309_tmeterreading_hash].[N_PROP]" Disambiguator="3">
 						<Relationship Name="TypeSpecifier">
 							<Entry>
 								<Element Type="SqlTypeSpecifier">
@@ -2460,7 +2460,7 @@ from dbo.factdailyapportionedconsumption]]></Value>
 			</Relationship>
 			<Relationship Name="DistributionColumn">
 				<Entry>
-					<References Name="[dbo].[access_z309_tmeterreading_hash].[N_PROP]" />
+					<References Name="[dbo].[access_z309_tmeterreading_hash].[N_PROP]" Disambiguator="3" />
 				</Entry>
 			</Relationship>
 			<Relationship Name="Schema">
@@ -2477,7 +2477,7 @@ from dbo.factdailyapportionedconsumption]]></Value>
 					<Element Type="SqlIndexedColumnSpecification">
 						<Relationship Name="Column">
 							<Entry>
-								<References Name="[dbo].[access_z309_tmeterreading_hash].[N_PROP]" />
+								<References Name="[dbo].[access_z309_tmeterreading_hash].[N_PROP]" Disambiguator="3" />
 							</Entry>
 						</Relationship>
 					</Element>
@@ -2697,10 +2697,10 @@ from dbo.factdailyapportionedconsumption]]></Value>
 			</Relationship>
 			<AttachedAnnotation Disambiguator="7" />
 		</Element>
-		<Element Type="SqlStatistic" Name="[dbo].[access_z309_tmeterreading_hash].[N_PROP]" Disambiguator="5">
+		<Element Type="SqlStatistic" Name="[dbo].[access_z309_tmeterreading_hash].[N_PROP]">
 			<Relationship Name="Columns">
 				<Entry>
-					<References Name="[dbo].[access_z309_tmeterreading_hash].[N_PROP]" />
+					<References Name="[dbo].[access_z309_tmeterreading_hash].[N_PROP]" Disambiguator="3" />
 				</Entry>
 			</Relationship>
 			<Relationship Name="Subject">

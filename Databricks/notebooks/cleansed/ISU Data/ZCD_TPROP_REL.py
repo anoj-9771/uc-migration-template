@@ -181,7 +181,7 @@ df_cleansed = spark.sql(f"SELECT \
                             case when stg.PROPERTY2 = 'na' then '' else stg.PROPERTY2 end as property2Number, \
                             case when stg.REL_TYPE1 = 'na' then '' else stg.REL_TYPE1 end as relationshipTypeCode1, \
                             rtyp1.relationshipType as relationshipType1, \
-                            case when stg.REL_TYPE2 = 'na' then '' else stg.REL_TYPE2 end  as relationshipTypeCode2, \
+                            stg.REL_TYPE2 as relationshipTypeCode2, \
                             rtyp2.relationshipType as relationshipType2, \
                             ToValidDate(stg.DATE_FROM,'MANDATORY') as validFromDate, \
                             ToValidDate(stg.DATE_TO) as validToDate, \

@@ -1,5 +1,5 @@
 {
-	"name": "04-SQLServer-Generate-Source-Schema",
+	"name": "04-SQLServer-Generate-Source-Schema_Bak",
 	"properties": {
 		"activities": [
 			{
@@ -316,7 +316,7 @@
 			}
 		},
 		"folder": {
-			"name": "SQL Server"
+			"name": "z_Archive"
 		},
 		"annotations": []
 	},
