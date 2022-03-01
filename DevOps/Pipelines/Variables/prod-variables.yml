@@ -95,20 +95,20 @@ variables:
     value: false 
   # Environment Parameterisation of Trigger Variables
   - name: BATCH_DAILY_HYDRA_properties_typeProperties_scope
-    value: /subscriptions/$(subscriptionId)/resourcegroups/$(resourcegroupname)/providers/Microsoft.Storage/storageAccounts/$(datalakestorageaccountnames)
+    value: /subscriptions/769a62b3-7481-44ae-878e-a466593f50ac/resourceGroups/rg-swcprod01-prod-daf-01/providers/Microsoft.Storage/storageAccounts/sadafprod01
   - name: BATCH_DAILY_SAPCRM_properties_typeProperties_scope
-    value: /subscriptions/$(subscriptionId)/resourcegroups/$(resourcegroupname)/providers/Microsoft.Storage/storageAccounts/$(datalakestorageaccountnames) 
+    value: /subscriptions/769a62b3-7481-44ae-878e-a466593f50ac/resourceGroups/rg-swcprod01-prod-daf-01/providers/Microsoft.Storage/storageAccounts/sadafprod01
   - name: BATCH_DAILY_SAPISU_properties_typeProperties_scope
-    value: /subscriptions/$(subscriptionId)/resourcegroups/$(resourcegroupname)/providers/Microsoft.Storage/storageAccounts/$(datalakestorageaccountnames) 
-  
+    value: /subscriptions/769a62b3-7481-44ae-878e-a466593f50ac/resourceGroups/rg-swcprod01-prod-daf-01/providers/Microsoft.Storage/storageAccounts/sadafprod01
+   
   # Environment Parameterisation of Managed Private Endpoints
   - name: mpe_sablob01_properties_privateLinkResourceId
-    value: /subscriptions/$(subscriptionId)/resourceGroups/$(resourcegroupname)/providers/Microsoft.Storage/storageAccounts/$(blobstorageaccountnames)
+    value: /subscriptions/769a62b3-7481-44ae-878e-a466593f50ac/resourceGroups/rg-swcprod01-prod-daf-01/providers/Microsoft.Storage/storageAccounts/sablobdafprod01
   - name: mpe_salake01_properties_privateLinkResourceId
-    value: /subscriptions/$(subscriptionId)/resourceGroups/$(resourcegroupname)/providers/Microsoft.Storage/storageAccounts/$(datalakestorageaccountnames)
-  - name: mpe_sqlserver_01_properties_groupId
-    value: /subscriptions/$(subscriptionId)/resourceGroups/$(resourcegroupname)/providers/Microsoft.Sql/servers/sql-swcprod01-daf-prod-01
-
+    value: /subscriptions/769a62b3-7481-44ae-878e-a466593f50ac/resourceGroups/rg-swcprod01-prod-daf-01/providers/Microsoft.Storage/storageAccounts/sadafprod01
+  - name: mpe_sqlserver_01_properties_privateLinkResourceId
+    value: /subscriptions/769a62b3-7481-44ae-878e-a466593f50ac/resourceGroups/rg-swcprod01-prod-daf-01/providers/Microsoft.Sql/servers/sql-swcprod01-daf-prod-01
+  
   # ------------------------------------------------
   # Log Analytics related
   # ------------------------------------------------
