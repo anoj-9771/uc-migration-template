@@ -116,8 +116,10 @@ BEGIN
 			SET @WaterMarkCol = 'FROM_UNIXTIME(' + @WaterMarkCol + ')'
 		ELSE IF @SourceType = 'SQL Server' AND @TaskName LIKE 'isu%'
 		BEGIN
-		    SET @SQL = 'SELECT *, FORMAT(CONVERT(datetime, (CONVERT(varchar(25), CAST(LEFT(DELTA_TS, 8) AS datetime), 23) + '' '' + LEFT(RIGHT(DELTA_TS, 6), 2) + '':'' + SUBSTRING(RIGHT(DELTA_TS, 6), 3, 2) + '':'' + RIGHT(DELTA_TS, 2)), 120), ''yyyy-MM-dd HH:mm:ss'') AS DELTA_TS_DT '
+		    SET @SQL = 'SELECT * '
  			SET @WaterMarkCol = 'FORMAT(convert(datetime,(CONVERT(VARCHAR(25) , CAST(LEFT(' +@WaterMarkCol +', 8) AS DATETIME), 23) + '' '' +  LEFT(RIGHT(' + @WaterMarkCol + ' , 6) ,2) + '':'' + SUBSTRING(RIGHT(' +@WaterMarkCol + ' , 6) , 3,2) + '':''    + RIGHT(' + @WaterMarkCol + ' , 2) ),120), ''yyyy-MM-dd HH:mm:ss'')'
+			/* added the following where clause to get dynamic partitioning working when reading from SQL server through ADF Copy activity */
+			SET @WHERE = ' WHERE ?AdfDynamicRangePartitionCondition'
 		END
 		ELSE
 			SET @WaterMarkCol = 'FORMAT(' + @WaterMarkCol + ', ''yyyy-MM-dd HH:mm:ss'')'

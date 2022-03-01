@@ -32,20 +32,18 @@ stages:
   jobs:
   # ---------------------------------------------------------------------------
   - job: 'deploy_synapse_db'
-    pool:
-      demands: msbuild
-      vmImage: 'windows-2019'
     steps:
-    - download: current
-      artifact: sql_Synapsedb
+    - task: DownloadBuildArtifacts@0
+      inputs:
+        artifactName: 'sql_Synapsedb'   
 
-    - task: AzureKeyVault@1
+    - task: AzureKeyVault@2
       displayName: 'Get Secrets'
       inputs:
         azureSubscription: ${{ variables.azdoresourceconnection }}
         keyVaultName: $(AZUREKEYVAULTNAME)
-        secretsFilter: 'daf-syn-d-sqlpoo-synapseadmin-password'
-  
+        secretsFilter: 'daf-syn-d-sqlpool-synapseadmin-password'
+
     - task: SqlAzureDacpacDeployment@1
       displayName: 'Synapse SQL DacpacTask'
       inputs:
@@ -53,5 +51,5 @@ stages:
         ServerName: '$(SYNAPSESQLSERVERNAME).sql.azuresynapse.net'
         DatabaseName: $(SYNAPSEDWDBNAME)
         SqlUsername: $(SYNSQLPOOLRUN)
-        SqlPassword: '$(daf-syn-d-sqlpoo-synapseadmin-password)'
-        DacpacFile: '$(Pipeline.Workspace)/sql_Synapsedb/Synapse-Databases.dacpac'
+        SqlPassword: '$(daf-syn-d-sqlpool-synapseadmin-password)'
+        DacpacFile: '$(Build.ArtifactStagingDirectory)/sql_Synapsedb/Synapse-Databases.dacpac'

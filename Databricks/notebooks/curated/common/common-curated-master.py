@@ -338,7 +338,7 @@ def Main():
     #==============
     # RELATIONSHIP TABLES
     #==============    
-    if LoadRelationshipTables:
+    if LoadRelationships:
         LogEtl("Start Relationship Tables")
         meterTimeslice()
         meterInstallation()
