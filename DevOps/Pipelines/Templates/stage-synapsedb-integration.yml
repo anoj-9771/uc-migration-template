@@ -53,4 +53,4 @@ stages:
         SqlUsername: $(SYNSQLPOOLRUN)
         SqlPassword: '$(daf-syn-d-sqlpool-synapseadmin-password)'
         DacpacFile: '$(Build.ArtifactStagingDirectory)/sql_Synapsedb/Synapse-Databases.dacpac'
-        AdditionalArguments: '/p:BlockOnPossibleDataLoss=False' 
+        AdditionalArguments: '/p: BlockOnPossibleDataLoss=False' 
