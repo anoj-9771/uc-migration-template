@@ -194,7 +194,7 @@ df_cleansed = spark.sql(f"SELECT \
                             DISCPROCV as processingVariantCode, \
                             di.applicationFormDescription as processingVariant, \
                             DISCREASON as disconnectionReasonCode, \
-                            dis.disconnecionReason as disconnectionReason, \
+                            dis.disconnectionReason as disconnectionReason, \
                             EQUINR as equipmentNumber, \
                             FAILED_ATTEMPTS as documentItemNumber, \
                             ToValidDate(FPD) as documentPostingDate, \
@@ -223,7 +223,7 @@ df_cleansed = spark.sql(f"SELECT \
                           FROM {ADS_DATABASE_STAGE}.{source_object} isu \
                           LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_DD07T dd ON isu.DISCACTTYP = dd.domainValueSingleUpperLimit and dd.domainName ='DISCACTTYP' and dd._RecordDeleted = 0 and dd._RecordCurrent = 1 \
                           LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UC_DISCPRV_TEXT di ON isu.DISCPROCV = di.processingVariantCode and di._RecordDeleted = 0 and di._RecordCurrent = 1 \
-                          LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UC_DISCREAS_TEXT dis ON isu.DISCREASON = dis.disconnecionReasonCode and dis._RecordDeleted = 0 and dis._RecordCurrent = 1 \
+                          LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UC_DISCREAS_TEXT dis ON isu.DISCREASON = dis.disconnectionReasonCode and dis._RecordDeleted = 0 and dis._RecordCurrent = 1 \
                           LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_EDISCORDSTATET edi ON isu.ORDSTATE = edi.confirmationStatusCode and edi._RecordDeleted = 0 and edi._RecordCurrent = 1 \
                           LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_DD07T dd1 ON isu.ZSTATUS = dd1.domainValueSingleUpperLimit and dd1.domainName ='EDCDOCSTAT' and dd1._RecordDeleted = 0 and dd1._RecordCurrent = 1")
 
