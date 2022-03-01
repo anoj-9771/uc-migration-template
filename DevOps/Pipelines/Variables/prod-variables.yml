@@ -106,7 +106,7 @@ variables:
     value: /subscriptions/$(subscriptionId)/resourceGroups/$(resourcegroupname)/providers/Microsoft.Storage/storageAccounts/$(blobstorageaccountnames)
   - name: mpe_salake01_properties_privateLinkResourceId
     value: /subscriptions/$(subscriptionId)/resourceGroups/$(resourcegroupname)/providers/Microsoft.Storage/storageAccounts/$(datalakestorageaccountnames)
-  - name: mpe_sqlserver_01_properties_groupId
+  - name: mpe_sqlserver_01_properties_privateLinkResourceId
     value: /subscriptions/$(subscriptionId)/resourceGroups/$(resourcegroupname)/providers/Microsoft.Sql/servers/sql-swcprod01-daf-prod-01
 
   # ------------------------------------------------
