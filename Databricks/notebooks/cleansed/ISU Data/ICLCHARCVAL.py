@@ -175,22 +175,22 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
+#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
 df_cleansed = spark.sql(f"SELECT \
     case when CLASSIFICATIONOBJECTINTERNALID = 'na' then '' else CLASSIFICATIONOBJECTINTERNALID end as classificationObjectInternalId, \
-    CHARACTERISTICINTERNALID as characteristicInternalId, \
-    CHARACTERISTICVALUEINTERNALID as characteristicvalueInternalId, \
-    CLASSTYPE as classType, \
-    CHARCARCHIVINGOBJECTINTERNALID as archivingObjectsInternalId, \
+    case when CHARACTERISTICINTERNALID = 'na' then '' else CHARACTERISTICINTERNALID end as characteristicInternalId, \
+    case when CHARACTERISTICVALUEINTERNALID = 'na' then '' else CHARACTERISTICVALUEINTERNALID end as characteristicValueInternalId, \
+    case when CLASSTYPE = 'na' then '' else CLASSTYPE end as classType, \
+    case when CHARCARCHIVINGOBJECTINTERNALID = 'na' then '' else CHARCARCHIVINGOBJECTINTERNALID end  as archivingObjectsInternalId, \
     CHARACTERISTICVALUE as characteristicValueCode, \
-    to_date(CHARCVALIDITYSTARTDATE, 'yyyy-MM-dd') as validFromDate, \
-    to_date(CHARCVALIDITYENDDATE, 'yyyy-MM-dd') as validToDate, \
+    ToValidDate(CHARCVALIDITYSTARTDATE) as validFromDate, \
+    ToValidDate(CHARCVALIDITYENDDATE) as validToDate, \
 	_RecordStart, \
 	_RecordEnd, \
 	_RecordDeleted, \
 	_RecordCurrent \
 	FROM {ADS_DATABASE_STAGE}.{source_object}")
 
-display(df_cleansed)
 print(f'Number of rows: {df_cleansed.count()}')                     
 
 # COMMAND ----------
@@ -199,10 +199,10 @@ print(f'Number of rows: {df_cleansed.count()}')
 newSchema = StructType(
                            [
                             StructField("classificationObjectInternalId", StringType(), False),
-                            StructField("characteristicInternalId", StringType(), True),
-                            StructField("characteristicvalueInternalId", StringType(), True),
-                            StructField("classType", StringType(), True),
-                            StructField("archivingObjectsInternalId", StringType(), True),     
+                            StructField("characteristicInternalId", StringType(), False),
+                            StructField("characteristicValueInternalId", StringType(), False),
+                            StructField("classType", StringType(), False),
+                            StructField("archivingObjectsInternalId", StringType(), False),     
                             StructField("characteristicValueCode", StringType(), True),
                             StructField("validFromDate", DateType(), True),  
                             StructField("validToDate", DateType(), True),                                                   
@@ -213,15 +213,12 @@ newSchema = StructType(
                             ]
                         )
 
-# Apply the new schema to cleanse Data Frame
-df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
-
 
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
-DeltaSaveDataframeDirect(df_updated_column, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
+DeltaSaveDataframeDirect(df_cleansed, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", newSchema, "")
 
 # COMMAND ----------
 

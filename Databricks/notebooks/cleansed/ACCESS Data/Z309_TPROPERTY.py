@@ -188,7 +188,7 @@ df_cleansed = spark.sql(f"SELECT cast(N_PROP as int) AS propertyNumber, \
         b.LGA, \
 		C_PROP_TYPE AS propertyTypeCode, \
         e.propertyType, \
-        f.propertyTypeCode as superiorPropertyTypecode, \
+        f.propertyTypeCode as superiorPropertyTypeCode, \
         f.propertyType as superiorPropertyType, \
         case when D_PROP_TYPE_EFFE is not null \
                   then to_date(D_PROP_TYPE_EFFE,'yyyyMMdd') \
@@ -246,10 +246,10 @@ df_cleansed = spark.sql(f"SELECT cast(N_PROP as int) AS propertyNumber, \
 		C_EXTR_LOT AS extraLotCode, \
         to_date(D_PROP_UPDA, 'yyyyMMdd') AS propertyUpdatedDate, \
 		T_PROP_LOT AS lotDescription, \
-		C_USER_CREA AS createdByUserID, \
+		C_USER_CREA AS createdByUserId, \
 		C_PLAN_CREA AS createdByPlan, \
 		cast(to_unix_timestamp(H_CREA, 'yyyy-MM-dd hh:mm:ss a') as timestamp) as createdTimestamp, \
-        case when substr(hex(c_user_modi),1,2) = '00' then ' ' else C_USER_MODI end AS modifiedByUserID, \
+        case when substr(hex(c_user_modi),1,2) = '00' then ' ' else C_USER_MODI end AS modifiedByUserId, \
 		C_PLAN_MODI AS modifiedByPlan, \
 		cast(to_unix_timestamp(H_MODI, 'yyyy-MM-dd hh:mm:ss a') as timestamp) as modifiedTimestamp, \
         a._RecordStart, \
@@ -262,8 +262,7 @@ df_cleansed = spark.sql(f"SELECT cast(N_PROP as int) AS propertyNumber, \
          left outer join cleansed.access_Z309_TPropType f on e.superiorPropertyTypeCode = f.propertyTypeCode \
          left outer join cleansed.access_Z309_TRataType h on h.rateabilityTypeCode = a.c_rata_type \
 ")
-
-display(df_cleansed)
+print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
 
@@ -282,7 +281,7 @@ newSchema = StructType([
     StructField('hasIncludedRatings',BooleanType(),False),
     StructField('isIncludedInOtherRating',BooleanType(),False),
     StructField('meterServesOtherProperties',BooleanType(),False),
-    StructField('hasMeterOnOtherPropery',BooleanType(),False),
+    StructField('hasMeterOnOtherProperty',BooleanType(),False),
     StructField('hasSpecialMeterAllocation',BooleanType(),False),
     StructField('hasKidneyFreeSupply',BooleanType(),False),
     StructField('hasNonKidneyFreeSupply',BooleanType(),False),
@@ -297,10 +296,10 @@ newSchema = StructType([
 	StructField('extraLotCode',StringType(),True),
 	StructField('propertyUpdatedDate',DateType(),True),
     StructField('lotDescription',StringType(),True),
-	StructField('createdByUserID',StringType(),True),
+	StructField('createdByUserId',StringType(),True),
 	StructField('createdByPlan',StringType(),True),
 	StructField('createdTimestamp',TimestampType(),True),
-	StructField('modifiedByUserID',StringType(),True),
+	StructField('modifiedByUserId',StringType(),True),
 	StructField('modifiedByPlan',StringType(),True),
 	StructField('modifiedTimestamp',TimestampType(),True),
     StructField('_RecordStart',TimestampType(),False),
@@ -309,14 +308,14 @@ newSchema = StructType([
     StructField('_RecordCurrent',IntegerType(),False)
 ])
 
-df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
-display(df_updated_column)
+# df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
+# display(df_updated_column)
 
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
-DeltaSaveDataframeDirect(df_updated_column, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
+DeltaSaveDataframeDirect(df_cleansed, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", newSchema, "")
 
 # COMMAND ----------
 

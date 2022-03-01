@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "x+vhF7FXz6oevLUpewi2iBdUZ9QgPgy00QSZ/2Vvml1iFcbwFDNUhOhdXk/nCu5AO7IQprXgZsFUGtkKK9PUVA==",
+  "success": true,
+  "projectFilePath": "c:\\Users\\fhasan\\source\\repos\\SW_Repo\\DAF POC REPO1\\ADS-Databases\\CntrlDb\\CntrlDb.sqlproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\fhasan\\.nuget\\packages\\microsoft.netframework.referenceassemblies\\1.0.0\\microsoft.netframework.referenceassemblies.1.0.0.nupkg.sha512",
+    "C:\\Users\\fhasan\\.nuget\\packages\\microsoft.netframework.referenceassemblies.net46\\1.0.0\\microsoft.netframework.referenceassemblies.net46.1.0.0.nupkg.sha512"
+  ],
+  "logs": []
+}

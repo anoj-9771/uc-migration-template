@@ -1,0 +1,42 @@
+{
+	"name": "LS_AzureDatabricks_InstancePool",
+	"properties": {
+		"parameters": {
+			"kvSecret": {
+				"type": "string",
+				"defaultValue": "databricks-token"
+			},
+			"clusterId": {
+				"type": "string",
+				"defaultValue": "0121-060302-next337-pool-owblzzx4"
+			},
+			"DatabricksClusterVersion": {
+				"type": "string",
+				"defaultValue": "9.1.x-scala2.12"
+			}
+		},
+		"annotations": [],
+		"type": "AzureDatabricks",
+		"typeProperties": {
+			"domain": "https://adb-7004525605760210.10.azuredatabricks.net",
+			"accessToken": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "LS-AzureKeyVault",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": {
+					"value": "@linkedService().kvSecret",
+					"type": "Expression"
+				}
+			},
+			"instancePoolId": "@linkedService().clusterId",
+			"newClusterNumOfWorker": "1:8",
+			"newClusterSparkEnvVars": {
+				"PYSPARK_PYTHON": "/databricks/python3/bin/python3"
+			},
+			"newClusterVersion": "@linkedService().DataBricksClusterVersion",
+			"newClusterInitScripts": []
+		}
+	}
+}

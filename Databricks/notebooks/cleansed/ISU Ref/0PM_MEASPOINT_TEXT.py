@@ -175,19 +175,19 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
+#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
 df_cleansed = spark.sql(f"SELECT \
 	case when POINT = 'na' then '' else POINT end as measuringPointId, \
 	PTTXT as measuringPoint, \
-	to_date(ERDAT, 'yyyy-MM-dd') as createdDate, \
-	to_date(AEDAT, 'yyyy-MM-dd') as lastChangedDate, \
-	to_date(DELTADATE, 'yyyy-MM-dd') as deltaDate, \
+	ToValidDate(ERDAT) as createdDate, \
+	ToValidDate(AEDAT) as lastChangedDate, \
+	ToValidDate(DELTADATE) as deltaDate, \
 	_RecordStart, \
 	_RecordEnd, \
 	_RecordDeleted, \
 	_RecordCurrent \
 	FROM {ADS_DATABASE_STAGE}.{source_object}")
 
-display(df_cleansed)
 print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
@@ -204,14 +204,11 @@ newSchema = StructType([
 	StructField('_RecordCurrent',IntegerType(),False)
 ])
 
-df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
-
-
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
-DeltaSaveDataframeDirect(df_updated_column, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
+DeltaSaveDataframeDirect(df_cleansed, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", newSchema, "")
 
 # COMMAND ----------
 

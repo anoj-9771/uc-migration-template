@@ -175,6 +175,7 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
+#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
 df_cleansed = spark.sql(f"SELECT \
                                 case when OPBEL = 'na' then '' else OPBEL end as contractDocumentNumber, \
                                 case when OPUPW = 'na' then '' else OPUPW end as repetitionItem, \
@@ -200,29 +201,29 @@ df_cleansed = spark.sql(f"SELECT \
                                 MWSKZ as taxSalesCode, \
                                 XANZA as downPaymentIndicator, \
                                 STAKZ as statisticalItemType, \
-                                to_date(BLDAT, 'yyyy-MM-dd') as documentDate, \
-                                to_date(BUDAT, 'yyyy-MM-dd') as postingDate, \
+                                ToValidDate(BLDAT) as documentDate, \
+                                ToValidDate(BUDAT) as postingDate, \
                                 WAERS as currencyKey, \
-                                to_date(FAEDN, 'yyyy-MM-dd') as paymentDueDate, \
-                                to_date(FAEDS, 'yyyy-MM-dd') as cashDiscountDueDate, \
-                                to_date(STUDT, 'yyyy-MM-dd') as deferralToDate, \
+                                ToValidDate(FAEDN) as paymentDueDate, \
+                                ToValidDate(FAEDS) as cashDiscountDueDate, \
+                                ToValidDate(STUDT) as deferralToDate, \
                                 cast(SKTPZ as dec(5,2)) as cashDiscountPercentageRate, \
                                 cast(BETRH as dec(13,2)) as amountLocalCurrency, \
                                 BETRW as amountTransactionCurrency, \
                                 cast(SKFBT as dec(13,2)) as amountEligibleCashDiscount, \
                                 cast(SBETH as dec(13,2)) as taxAmountLocalCurrency, \
                                 cast(SBETW as dec(13,2)) as taxAmountTransactionCurrency, \
-                                to_date(AUGDT, 'yyyy-MM-dd') as clearingDate, \
+                                ToValidDate(AUGDT) as clearingDate, \
                                 AUGBL as clearingDocument, \
-                                to_date(AUGBD, 'yyyy-MM-dd') as clearingDocumentPostingDate, \
+                                ToValidDate(AUGBD) as clearingDocumentPostingDate, \
                                 AUGRD as clearingReason, \
                                 AUGWA as clearingCurrency, \
                                 cast(AUGBT as dec(13,2)) as clearingAmount, \
                                 cast(AUGBS as dec(13,2)) as taxAmountClearingCurrency, \
                                 cast(AUGSK as dec(13,2)) as cashDiscount, \
-                                to_date(AUGVD, 'yyyy-MM-dd') as clearingValueDate, \
-                                to_date(ABRZU, 'yyyy-MM-dd') as settlementPeriodLowerLimit, \
-                                to_date(ABRZO, 'yyyy-MM-dd') as billingPeriodUpperLimit, \
+                                ToValidDate(AUGVD) as clearingValueDate, \
+                                ToValidDate(ABRZU) as settlementPeriodLowerLimit, \
+                                ToValidDate(ABRZO) as billingPeriodUpperLimit, \
                                 AUGRS as clearingRestriction, \
                                 INFOZ as valueAdjustment, \
                                 BLART as documentTypeCode, \
@@ -234,7 +235,7 @@ df_cleansed = spark.sql(f"SELECT \
                                 cast(STTAX as dec(13,2)) as taxAmountDocument, \
                                 ABGRD as writeOffReasonCode, \
                                 HERKF as documentOriginCode, \
-                                to_date(CPUDT, 'yyyy-MM-dd') as documentEnteredDate, \
+                                ToValidDate(CPUDT) as documentEnteredDate, \
                                 AWTYP as referenceProcedure, \
                                 AWKEY as objectKey, \
                                 STORB as reversalDocumentNumber, \
@@ -254,7 +255,6 @@ df_cleansed = spark.sql(f"SELECT \
                                                                                          and bl._RecordDeleted = 0 and bl._RecordCurrent = 1 \
                         LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0FCACTDETID_TEXT fc ON bp.KOFIZ = fc.accountDeterminationCode and fc._RecordDeleted = 0 and fc._RecordCurrent = 1")
                         
-display(df_cleansed)
 print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
@@ -302,7 +302,7 @@ newSchema = StructType([
 	StructField('clearingReason',StringType(),True),
 	StructField('clearingCurrency',StringType(),True),
 	StructField('clearingAmount',DecimalType(13,2),True),
-	StructField('taxAmount',DecimalType(13,2),True),
+	StructField('taxAmountClearingCurrency',DecimalType(13,2),True),
 	StructField('cashDiscount',DecimalType(13,2),True),
 	StructField('clearingValueDate',DateType(),True),
 	StructField('settlementPeriodLowerLimit',DateType(),True),
@@ -330,14 +330,12 @@ newSchema = StructType([
 	StructField('_RecordCurrent',IntegerType(),False)
 ])
 
-df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
-display(df_updated_column)
 
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
-DeltaSaveDataframeDirect(df_updated_column, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
+DeltaSaveDataframeDirect(df_cleansed, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", newSchema, "")
 
 # COMMAND ----------
 

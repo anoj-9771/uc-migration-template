@@ -175,6 +175,7 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
+#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
 df_cleansed = spark.sql(f"SELECT \
                             case when PPKEY = 'na' then '' else PPKEY end as promiseToPayId, \
                             GPART as businessPartnerGroupNumber, \
@@ -190,14 +191,14 @@ df_cleansed = spark.sql(f"SELECT \
                             cast(PRAMT_INT as dec(13,2)) as promiseToPayInterest, \
                             cast(RDAMT as dec(13,2)) as amountCleared, \
                             ERNAM as createdBy, \
-                            to_timestamp(concat(erdat,' ',ertim)) as  createdDateTime, \
-                            to_date(CHDAT, 'yyyy-MM-dd') as changedDate, \
+                            ToValidDateTime(concat(erdat,' ',ertim)) as createdDateTime, \
+                            ToValidDate(CHDAT) as changedDate, \
                             PPSTA as promiseToPayStatus, \
                             XSTCH as statusChangedIndicator, \
-                            PPKEY_NEW as replacementPropmiseToPayId, \
-                            XINDR as installmentsAgreed, \
-                            to_date(FTDAT, 'yyyy-MM-dd') as firstDueDate, \
-                            to_date(LTDAT, 'yyyy-MM-dd') as finalDueDate, \
+                            PPKEY_NEW as replacementPromiseToPayId, \
+                            XINDR as instalmentsAgreed, \
+                            ToValidDate(FTDAT) as firstDueDate, \
+                            ToValidDate(LTDAT) as finalDueDate, \
                             NRRTS as numberOfPayments, \
                             cast(PPDUE as dec(13,2)) as paymentPromised, \
                             cast(PPPAY as dec(13,2)) as amountPaidByToday, \
@@ -208,7 +209,7 @@ df_cleansed = spark.sql(f"SELECT \
                             _RecordCurrent \
                         FROM {ADS_DATABASE_STAGE}.{source_object}")
 
-display(df_cleansed)
+
 print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
@@ -232,8 +233,8 @@ newSchema = StructType([
                         StructField('changedDate',DateType(),True),
                         StructField('promiseToPayStatus',StringType(),True),
                         StructField('statusChangedIndicator',StringType(),True),
-                        StructField('replacementPropmiseToPayId',StringType(),True),
-                        StructField('installmentsAgreed',StringType(),True),
+                        StructField('replacementPromiseToPayId',StringType(),True),
+                        StructField('instalmentsAgreed',StringType(),True),
                         StructField('firstDueDate',DateType(),True),
                         StructField('finalDueDate',DateType(),True),
                         StructField('numberOfPayments',StringType(),True),
@@ -246,14 +247,13 @@ newSchema = StructType([
                         StructField('_RecordCurrent',IntegerType(),False)
                       ])
 
-df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
-display(df_updated_column)
+
 
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
-DeltaSaveDataframeDirect(df_updated_column, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
+DeltaSaveDataframeDirect(df_cleansed, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", newSchema, "")
 
 # COMMAND ----------
 

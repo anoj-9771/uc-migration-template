@@ -175,12 +175,13 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_cleansed = spark.sql("SELECT \
-	PARTNER as businessPartnerNumber, \
+#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
+df_cleansed = spark.sql(f"SELECT \
+	case when PARTNER = 'na' then '' else PARTNER end as businessPartnerNumber, \
 	PARTNER_GUID as businessPartnerGUID, \
-	ADDRNUMBER as addressNumber, \
-	to_date(DATE_FROM) as validFromDate, \
-	to_date(DATE_TO) as validToDate, \
+    case when ADDRNUMBER = 'na' then '' else ADDRNUMBER end as addressNumber, \
+    case when DATE_FROM < '1900-01-01' then to_date('1900-01-01','yyyy-MM-dd') else to_date(DATE_FROM ,'yyyy-MM-dd') end as validFromDate, \
+	to_date(DATE_TO ,'yyyy-MM-dd') as validToDate, \
 	TITLE as titleCode, \
 	NAME1 as businessPartnerName1, \
 	NAME2 as businessPartnerName2, \
@@ -194,7 +195,7 @@ df_cleansed = spark.sql("SELECT \
 	PO_BOX as poBoxCode, \
 	PO_BOX_NUM as poBoxWithoutNumberIndicator, \
 	PO_BOX_LOC as poBoxCity, \
-	CITY_CODE2 as poBoxCode, \
+	CITY_CODE2 as cityPoBoxCode, \
 	STREET as streetName, \
 	STREETCODE as streetCode, \
 	HOUSE_NUM1 as houseNumber, \
@@ -205,9 +206,8 @@ df_cleansed = spark.sql("SELECT \
 	LOCATION as streetLine5, \
 	BUILDING as building, \
 	FLOOR as floorNumber, \
-	ROOMNUMBER as appartmentNumber, \
+	ROOMNUMBER as apartmentNumber, \
 	COUNTRY as countryShortName, \
-	LANGU as language, \
 	REGION as stateCode, \
 	PERS_ADDR as personalAddressIndicator, \
 	SORT1 as searchTerm1, \
@@ -222,7 +222,7 @@ df_cleansed = spark.sql("SELECT \
 	cast(LONGITUDE as dec(15,12)) as longitude, \
 	cast(LATITUDE as dec(15,12)) as latitude, \
 	cast(ALTITUDE as dec(9,3)) as altitude, \
-	cast(PRECISID as int) as precision, \
+	PRECISID as precision, \
 	ADDRCOMM as communicationAddressNumber, \
 	ADDR_SHORT as shortFormattedAddress, \
 	ADDR_SHORT_S as shortFormattedAddress2, \
@@ -235,20 +235,12 @@ df_cleansed = spark.sql("SELECT \
 	LINE6 as addressLine6, \
 	LINE7 as addressLine7, \
 	LINE8 as addressLine8, \
-	ZZMOBILENO as mobileNumber, \
-	ZZTELNO as phoneNumberWithExtension, \
-	PCODE1_EXT as postalCodeExtension, \
-	PCODE2_EXT as poBoxExtension, \
-	DELI_SERV_TYPE as deliveryServiceTypeCode, \
-	DELI_SERV_NUMBER as deliveryServiceNumber, \
 	_RecordStart, \
 	_RecordEnd, \
 	_RecordDeleted, \
 	_RecordCurrent \
-	FROM CLEANSED.STG_" + source_object \
-         )
+	FROM {ADS_DATABASE_STAGE}.{source_object}")
 
-display(df_cleansed)
 print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
@@ -272,7 +264,7 @@ newSchema = StructType([
 	StructField('poBoxCode',StringType(),True),
 	StructField('poBoxWithoutNumberIndicator',StringType(),True),
 	StructField('poBoxCity',StringType(),True),
-	StructField('poBoxCode',StringType(),True),
+	StructField('cityPoBoxCode',StringType(),True),
 	StructField('streetName',StringType(),True),
 	StructField('streetCode',StringType(),True),
 	StructField('houseNumber',StringType(),True),
@@ -283,9 +275,8 @@ newSchema = StructType([
 	StructField('streetLine5',StringType(),True),
 	StructField('building',StringType(),True),
 	StructField('floorNumber',StringType(),True),
-	StructField('appartmentNumber',StringType(),True),
+	StructField('apartmentNumber',StringType(),True),
 	StructField('countryShortName',StringType(),True),
-	StructField('language',StringType(),True),
 	StructField('stateCode',StringType(),True),
 	StructField('personalAddressIndicator',StringType(),True),
 	StructField('searchTerm1',StringType(),True),
@@ -300,7 +291,7 @@ newSchema = StructType([
 	StructField('longitude',DecimalType(15,12),True),
 	StructField('latitude',DecimalType(15,12),True),
 	StructField('altitude',DecimalType(9,3),True),
-	StructField('precision',IntegerType(),True),
+	StructField('precision',StringType(),True),
 	StructField('communicationAddressNumber',StringType(),True),
 	StructField('shortFormattedAddress',StringType(),True),
 	StructField('shortFormattedAddress2',StringType(),True),
@@ -313,26 +304,17 @@ newSchema = StructType([
 	StructField('addressLine6',StringType(),True),
 	StructField('addressLine7',StringType(),True),
 	StructField('addressLine8',StringType(),True),
-	StructField('mobileNumber',StringType(),True),
-	StructField('phoneNumberWithExtension',StringType(),True),
-	StructField('postalCodeExtension',StringType(),True),
-	StructField('poBoxExtension',StringType(),True),
-	StructField('deliveryServiceTypeCode',StringType(),True),
-	StructField('deliveryServiceNumber',StringType(),True),
 	StructField('_RecordStart',TimestampType(),False),
 	StructField('_RecordEnd',TimestampType(),False),
 	StructField('_RecordDeleted',IntegerType(),False),
 	StructField('_RecordCurrent',IntegerType(),False)
 ])
 
-df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
-
-
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
-DeltaSaveDataframeDirect(df_updated_column, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
+DeltaSaveDataframeDirect(df_cleansed, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", newSchema, "")
 
 # COMMAND ----------
 

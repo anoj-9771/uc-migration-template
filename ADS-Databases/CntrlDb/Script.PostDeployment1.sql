@@ -18,24 +18,27 @@ This checks if the record does not exists on the table then inserts it
 /************* ControlStages ***********************************/
 
 DELETE FROM CTL.ControlProjects
-DELETE FROM CTL.ControlProjectSchedule
+--DELETE FROM CTL.ControlProjectSchedule
 DBCC CHECKIDENT ('CTL.ControlProjects',Reseed,0)
-DBCC CHECKIDENT ('CTL.ControlProjectSchedule',Reseed,0)
+--DBCC CHECKIDENT ('CTL.ControlProjectSchedule',Reseed,0)
 
-INSERT INTO [CTL].[ControlProjects]([ProjectName],[Enabled]) VALUES ('ACCESS DATA',1)
-INSERT INTO [CTL].[ControlProjects]([ProjectName],[Enabled]) VALUES ('ACCESS REF',1)
-INSERT INTO [CTL].[ControlProjects]([ProjectName],[Enabled]) VALUES ('COMMON',1)
-INSERT INTO [CTL].[ControlProjects]([ProjectName],[Enabled]) VALUES ('HYDRA DATA',1)
-INSERT INTO [CTL].[ControlProjects]([ProjectName],[Enabled]) VALUES ('ISU BATCH1',1)
-INSERT INTO [CTL].[ControlProjects]([ProjectName],[Enabled]) VALUES ('ISU BATCH2',1)
-INSERT INTO [CTL].[ControlProjects]([ProjectName],[Enabled]) VALUES ('ISU BATCH3',1)
-INSERT INTO [CTL].[ControlProjects]([ProjectName],[Enabled]) VALUES ('ISU BATCH4',1)
-INSERT INTO [CTL].[ControlProjects]([ProjectName],[Enabled]) VALUES ('ISU DATA',1)
-INSERT INTO [CTL].[ControlProjects]([ProjectName],[Enabled]) VALUES ('ISU POC',1)
-INSERT INTO [CTL].[ControlProjects]([ProjectName],[Enabled]) VALUES ('ISU REF',1)
-INSERT INTO [CTL].[ControlProjects]([ProjectName],[Enabled]) VALUES ('KING',1)
-INSERT INTO [CTL].[ControlProjects]([ProjectName],[Enabled]) VALUES ('TEST DATA',1)
-INSERT INTO [CTL].[ControlProjects]([ProjectName],[Enabled]) VALUES ('TEST REF',1)
+insert into [CTL].[ControlProjects]([ProjectName],[Enabled],[RunSequence]) values('RAW REF ACCESS',1,10);
+insert into [CTL].[ControlProjects]([ProjectName],[Enabled],[RunSequence]) values('RAW DATA ACCESS',1,20);
+insert into [CTL].[ControlProjects]([ProjectName],[Enabled],[RunSequence]) values('CLEANSED REF ACCESS',1,30);
+insert into [CTL].[ControlProjects]([ProjectName],[Enabled],[RunSequence]) values('CLEANSED DATA ACCESS',1,40);
+insert into [CTL].[ControlProjects]([ProjectName],[Enabled],[RunSequence]) values('HYDRA DATA',1,10);
+insert into [CTL].[ControlProjects]([ProjectName],[Enabled],[RunSequence]) values('RAW REF CRM',1,10);
+insert into [CTL].[ControlProjects]([ProjectName],[Enabled],[RunSequence]) values('RAW DATA CRM',1,20);
+insert into [CTL].[ControlProjects]([ProjectName],[Enabled],[RunSequence]) values('CLEANSED REF CRM',1,30);
+insert into [CTL].[ControlProjects]([ProjectName],[Enabled],[RunSequence]) values('CLEANSED DATA CRM',1,40);
+insert into [CTL].[ControlProjects]([ProjectName],[Enabled],[RunSequence]) values('RAW REF ISU',1,10);
+insert into [CTL].[ControlProjects]([ProjectName],[Enabled],[RunSequence]) values('RAW DATA ISU',1,20);
+insert into [CTL].[ControlProjects]([ProjectName],[Enabled],[RunSequence]) values('CLEANSED REF ISU',1,30);
+insert into [CTL].[ControlProjects]([ProjectName],[Enabled],[RunSequence]) values('CLEANSED DATA ISU',1,40);
+insert into [CTL].[ControlProjects]([ProjectName],[Enabled],[RunSequence]) values('CURATED MASTER',1,50);
+insert into [CTL].[ControlProjects]([ProjectName],[Enabled],[RunSequence]) values('CURATED BRIDGE',1,60);
+insert into [CTL].[ControlProjects]([ProjectName],[Enabled],[RunSequence]) values('BOM715 DATA',1,10);
+insert into [CTL].[ControlProjects]([ProjectName],[Enabled],[RunSequence]) values('IOT SW TELEMETRY ALARM DATA',1,10);
 
 INSERT INTO [CTL].[ControlStages] ([StageSequence], [StageName]) SELECT 100, N'Source to Raw'
 WHERE NOT EXISTS (SELECT 1 FROM [CTL].[ControlStages] WHERE [StageName] = N'Source to Raw')
@@ -69,6 +72,7 @@ IF (
 		INSERT [CTL].[ControlTypes] ([TypeId], [ControlType]) VALUES (11, N'OData-Basic')
 		INSERT [CTL].[ControlTypes] ([TypeId], [ControlType]) VALUES (12, N'OData-AADServicePrincipal')
 		INSERT [CTL].[ControlTypes] ([TypeId], [ControlType]) VALUES (13, N'SharePoint')
+		INSERT [CTL].[ControlTypes] ([TypeId], [ControlType]) VALUES (14, N'BLOB Storage (nc)')
 		SET IDENTITY_INSERT [CTL].[ControlTypes] OFF
 	END
 
@@ -82,11 +86,11 @@ IF (
 ) = 0
 	BEGIN
 		SET IDENTITY_INSERT [CTL].[ControlDataLoadTypes] ON
-		INSERT [CTL].[ControlDataLoadTypes] (DataLoadTypeID, [DataLoadType], [DeltaExtract], [CDCSource], TruncateTarget, UpsertTarget) VALUES (1, N'TRUNCATE-LOAD', 0, 0, 1, 0)
-		INSERT [CTL].[ControlDataLoadTypes] (DataLoadTypeID, [DataLoadType], [DeltaExtract], [CDCSource], TruncateTarget, UpsertTarget) VALUES (2, N'FULL-EXTRACT', 0, 0, 0, 1)
-		INSERT [CTL].[ControlDataLoadTypes] (DataLoadTypeID, [DataLoadType], [DeltaExtract], [CDCSource], TruncateTarget, UpsertTarget) VALUES (3, N'INCREMENTAL', 1, 0, 0, 1)
-		INSERT [CTL].[ControlDataLoadTypes] (DataLoadTypeID, [DataLoadType], [DeltaExtract], [CDCSource], TruncateTarget, UpsertTarget) VALUES (4, N'APPEND', 1, 0, 0, 0)
-		INSERT [CTL].[ControlDataLoadTypes] (DataLoadTypeID, [DataLoadType], [DeltaExtract], [CDCSource], TruncateTarget, UpsertTarget) VALUES (5, N'CDC', 1, 1, 0, 0)
+			INSERT [CTL].[ControlDataLoadTypes] (DataLoadTypeID, [DataLoadType], [DeltaExtract], [CDCSource], TruncateTarget, UpsertTarget, AppendTarget) VALUES (1, N'TRUNCATE-LOAD', 0, 0, 1, 0, 0)
+			INSERT [CTL].[ControlDataLoadTypes] (DataLoadTypeID, [DataLoadType], [DeltaExtract], [CDCSource], TruncateTarget, UpsertTarget, AppendTarget) VALUES (2, N'FULL-EXTRACT', 0, 0, 0, 1, 0)
+			INSERT [CTL].[ControlDataLoadTypes] (DataLoadTypeID, [DataLoadType], [DeltaExtract], [CDCSource], TruncateTarget, UpsertTarget, AppendTarget) VALUES (3, N'INCREMENTAL', 1, 0, 0, 1, 0)
+			INSERT [CTL].[ControlDataLoadTypes] (DataLoadTypeID, [DataLoadType], [DeltaExtract], [CDCSource], TruncateTarget, UpsertTarget, AppendTarget) VALUES (4, N'APPEND', 0, 0, 0, 0, 1)
+			INSERT [CTL].[ControlDataLoadTypes] (DataLoadTypeID, [DataLoadType], [DeltaExtract], [CDCSource], TruncateTarget, UpsertTarget, AppendTarget) VALUES (5, N'CDC', 1, 1, 0, 0, 0)
 		SET IDENTITY_INSERT [CTL].[ControlDataLoadTypes] OFF
 	END
 

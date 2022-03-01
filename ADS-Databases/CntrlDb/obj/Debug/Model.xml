@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<DataSchemaModel FileFormatVersion="1.2" SchemaVersion="3.3" DspName="Microsoft.Data.Tools.Schema.Sql.SqlAzureV12DatabaseSchemaProvider" CollationLcid="1033" CollationCaseSensitive="False" xmlns="http://schemas.microsoft.com/sqlserver/dac/Serialization/2012/02">
+<DataSchemaModel FileFormatVersion="1.2" SchemaVersion="2.4" DspName="Microsoft.Data.Tools.Schema.Sql.SqlAzureV12DatabaseSchemaProvider" CollationLcid="1033" CollationCaseSensitive="False" xmlns="http://schemas.microsoft.com/sqlserver/dac/Serialization/2012/02">
 	<Header>
 		<CustomData Category="AnsiNulls">
 			<Metadata Name="AnsiNulls" Value="True" />
@@ -12,7 +12,7 @@
 		</CustomData>
 		<CustomData Category="Reference" Type="Assembly">
 			<Metadata Name="LogicalName" Value="CntrlDb.dll" />
-			<Metadata Name="FileName" Value="C:\REPOS\DAF POC REPO1\ADS-DATABASES\CNTRLDB\OBJ\DEBUG\CNTRLDB.DLL" />
+			<Metadata Name="FileName" Value="c:\Users\fhasan\source\repos\SW_Repo\DAF POC REPO1\ADS-Databases\CntrlDb\obj\Debug\CntrlDb.dll" />
 			<Metadata Name="AssemblyName" Value="CntrlDb" />
 			<Metadata Name="PermissionSet" Value="SAFE" />
 			<Metadata Name="Owner" Value="" />
@@ -20,7 +20,7 @@
 			<Metadata Name="IsVisible" Value="True" />
 			<Metadata Name="IsModelAware" Value="True" />
 			<Metadata Name="SkipCreationIfEmpty" Value="True" />
-			<Metadata Name="AssemblySymbolsName" Value="C:\Repos\DAF POC REPO1\ADS-Databases\CntrlDb\obj\Debug\CntrlDb.pdb" />
+			<Metadata Name="AssemblySymbolsName" Value="c:\Users\fhasan\source\repos\SW_Repo\DAF POC REPO1\ADS-Databases\CntrlDb\obj\Debug\CntrlDb.pdb" />
 		</CustomData>
 		<CustomData Category="SqlCmdVariables" Type="SqlCmdVariable" />
 	</Header>
@@ -37,10 +37,6 @@
 			<Property Name="PageVerifyMode" Value="3" />
 			<Property Name="DefaultLanguage" Value="" />
 			<Property Name="DefaultFullTextLanguage" Value="" />
-			<Property Name="QueryStoreDesiredState" Value="0" />
-			<Property Name="QueryStoreCaptureMode" Value="1" />
-			<Property Name="QueryStoreStaleQueryThreshold" Value="367" />
-			<Property Name="MaxDop" Value="0" />
 		</Element>
 		<Element Type="SqlSchema" Name="[CTL]">
 			<Relationship Name="Authorizer">
@@ -1291,6 +1287,22 @@ DBCC CHECKIDENT ('CTL.ControlWatermark',Reseed,0)]]></Value>
 						</Relationship>
 					</Element>
 				</Entry>
+				<Entry>
+					<Element Type="SqlSimpleColumn" Name="[CTL].[ControlProjects].[RunSequence]">
+						<Property Name="IsNullable" Value="False" />
+						<Relationship Name="TypeSpecifier">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[bigint]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
 			</Relationship>
 			<Relationship Name="Schema">
 				<Entry>
@@ -1565,7 +1577,7 @@ DBCC CHECKIDENT ('CTL.ControlWatermark',Reseed,0)]]></Value>
 						<Relationship Name="TypeSpecifier">
 							<Entry>
 								<Element Type="SqlTypeSpecifier">
-									<Property Name="Length" Value="100" />
+									<Property Name="Length" Value="255" />
 									<Relationship Name="Type">
 										<Entry>
 											<References ExternalSource="BuiltIns" Name="[varchar]" />
@@ -3262,6 +3274,7 @@ begin
 			,@DLRawSecret
 			,@counter
 			,@project
+			,@TriggerName
 			,@sourceTypeId
 			,@SourceCommand
 			,@DataLoadMode
@@ -3292,6 +3305,7 @@ begin
 			,@DLStagedSecret
 			,@counter
 			,@project
+			,@TriggerName
 			,@databricksTypeId
 			,@DLRawtoStageCommand
 			,@DataLoadMode
@@ -3324,6 +3338,7 @@ begin
 			,@StageDBSecret
 			,@counter
 			,@project
+			,@TriggerName
 			,@databricksTypeId
 			,@DLStagetoDBCommand
 			,0
@@ -3356,6 +3371,7 @@ begin
 			,@SourceSecretName
 			,@counter
 			,@project
+			,@TriggerName
 			,@sourceTypeId
 			,@SourceCommand
 			,@DataLoadMode
@@ -3526,6 +3542,9 @@ end]]></Value>
 					<References Name="[CTL].[CreateSource].[@DLRawSecret]" />
 				</Entry>
 				<Entry>
+					<References Name="[CTL].[CreateSource].[@TriggerName]" />
+				</Entry>
+				<Entry>
 					<References Name="[CTL].[CreateSource].[@SourceCommand]" />
 				</Entry>
 				<Entry>
@@ -3550,6 +3569,22 @@ end]]></Value>
 			<Relationship Name="Parameters">
 				<Entry>
 					<Element Type="SqlSubroutineParameter" Name="[CTL].[CreateSource].[@ProjectName]">
+						<Relationship Name="Type">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Property Name="Length" Value="100" />
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[varchar]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlSubroutineParameter" Name="[CTL].[CreateSource].[@TriggerName]">
 						<Relationship Name="Type">
 							<Entry>
 								<Element Type="SqlTypeSpecifier">
@@ -4060,11 +4095,11 @@ end]]></Value>
 				</Entry>
 			</Relationship>
 			<Annotation Type="SysCommentsObjectAnnotation">
-				<Property Name="CreateOffset" Value="4" />
-				<Property Name="Length" Value="7418" />
+				<Property Name="CreateOffset" Value="2" />
+				<Property Name="Length" Value="7520" />
 				<Property Name="StartLine" Value="1" />
 				<Property Name="StartColumn" Value="1" />
-				<Property Name="HeaderContents" Value="&#xD;&#xA;&#xD;&#xA;CREATE PROC [CTL].[CreateSource] &#xD;&#xA;        @ProjectName&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@StartStageName&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@EndStageName&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@SourceGroup&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@SourceName&#x9;&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@SourceObjectName&#x9; varchar(500),&#xD;&#xA;&#x9;&#x9;@SourceType&#x9;&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@DataLoadMode&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@SourceSecretName&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@DLRawSecret&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@DLStagedSecret&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@DBProcessor&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@StageDBSecret&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@DLRawSubFolder&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@DLRawType&#x9;&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@DLStagedMainFolder&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@DLStagedSubFolder&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@DLStagedType&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@DLObjectGrain&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@SourceCommand&#x9;&#x9; varchar(5000),&#xD;&#xA;&#x9;&#x9;@DLRawtoStageCommand varchar(5000),&#xD;&#xA;&#x9;&#x9;@DLStagetoDBCommand  varchar(5000),&#xD;&#xA;&#x9;&#x9;@TargetObjectType&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@TargetOverride&#x9;&#x9; varchar(150),&#xD;&#xA;&#x9;&#x9;@BusinessKeyColumn&#x9; varchar(150),&#xD;&#xA;&#x9;&#x9;@WatermarkColumn&#x9; varchar(150),&#xD;&#xA;&#x9;&#x9;@TrackChanges&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@AdditionalProperty&#x9; varchar(max),&#xD;&#xA;&#x9;&#x9;@IsAuditTable&#x9;&#x9; varchar(100) = '', --Add column to track if the table is a Audit Table&#xD;&#xA;&#x9;&#x9;@SoftDeleteSource&#x9; varchar(100) = '', --Name of the source to be used for Soft Delete&#xD;&#xA;&#x9;&#x9;@SourceTSFormat&#x9;&#x9; varchar(100) = ''  --Format for the Source Delta Column Time&#xD;&#xA;as" />
+				<Property Name="HeaderContents" Value="&#xD;&#xA;CREATE PROC [CTL].[CreateSource] &#xD;&#xA;        @ProjectName&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@TriggerName&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@StartStageName&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@EndStageName&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@SourceGroup&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@SourceName&#x9;&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@SourceObjectName&#x9; varchar(500),&#xD;&#xA;&#x9;&#x9;@SourceType&#x9;&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@DataLoadMode&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@SourceSecretName&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@DLRawSecret&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@DLStagedSecret&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@DBProcessor&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@StageDBSecret&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@DLRawSubFolder&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@DLRawType&#x9;&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@DLStagedMainFolder&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@DLStagedSubFolder&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@DLStagedType&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@DLObjectGrain&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@SourceCommand&#x9;&#x9; varchar(5000),&#xD;&#xA;&#x9;&#x9;@DLRawtoStageCommand varchar(5000),&#xD;&#xA;&#x9;&#x9;@DLStagetoDBCommand  varchar(5000),&#xD;&#xA;&#x9;&#x9;@TargetObjectType&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@TargetOverride&#x9;&#x9; varchar(150),&#xD;&#xA;&#x9;&#x9;@BusinessKeyColumn&#x9; varchar(150),&#xD;&#xA;&#x9;&#x9;@WatermarkColumn&#x9; varchar(150),&#xD;&#xA;&#x9;&#x9;@TrackChanges&#x9;&#x9; varchar(100),&#xD;&#xA;&#x9;&#x9;@AdditionalProperty&#x9; varchar(max),&#xD;&#xA;&#x9;&#x9;@IsAuditTable&#x9;&#x9; varchar(100) = '', --Add column to track if the table is a Audit Table&#xD;&#xA;&#x9;&#x9;@SoftDeleteSource&#x9; varchar(100) = '', --Name of the source to be used for Soft Delete&#xD;&#xA;&#x9;&#x9;@SourceTSFormat&#x9;&#x9; varchar(100) = ''  --Format for the Source Delta Column Time&#xD;&#xA;as" />
 			</Annotation>
 		</Element>
 		<Element Type="SqlProcedure" Name="[CTL].[CreateTask]">
@@ -4127,7 +4162,7 @@ BEGIN
 			VALUES (@TaskId, '__$start_lsn', '', @StartLSN, @SourceName)
 		END
 
-		IF @DataLoadMode IN ('INCREMENTAL', 'APPEND') AND @StageId = 1
+		IF @DataLoadMode IN ('INCREMENTAL', 'APPEND') AND @StageId in (1, 2)
 		BEGIN
 			PRINT 'Inserting initial watermark column'
 
@@ -4137,12 +4172,11 @@ BEGIN
 
 		IF NOT EXISTS(SELECT 1 FROM CTL.ControlProjectSchedule WHERE ControlProjectId = @ProjectId AND ControlStageID = @StageId)
 		BEGIN
-			DECLARE @ProjectName varchar(100)
-			SELECT @ProjectName = ProjectName FROM CTL.ControlProjects WHERE ProjectId = @ProjectId
+			IF @TriggerName is null or @TriggerName = ''
+				SELECT @TriggerName = ProjectName FROM CTL.ControlProjects WHERE ProjectId = @ProjectId
 			--If the Project Schedule does not exist, add a default schedule entry
-			INSERT INTO CTL.ControlProjectSchedule (ControlProjectId, ControlStageID, TriggerName, StageEnabled) VALUES (@ProjectId, @StageId, @ProjectName, 1)
+			INSERT INTO CTL.ControlProjectSchedule (ControlProjectId, ControlStageID, TriggerName, StageEnabled) VALUES (@ProjectId, @StageId, @TriggerName, 1)
 		END
-
 
 	Commit
 	End Try
@@ -4170,9 +4204,6 @@ END]]></Value>
 				</Entry>
 				<Entry>
 					<References ExternalSource="BuiltIns" Name="[int]" />
-				</Entry>
-				<Entry>
-					<References ExternalSource="BuiltIns" Name="[varchar]" />
 				</Entry>
 				<Entry>
 					<References ExternalSource="BuiltIns" Name="[varchar]" />
@@ -4397,6 +4428,9 @@ END]]></Value>
 				</Entry>
 				<Entry>
 					<References Name="[CTL].[ControlProjectSchedule].[ControlStageID]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[CreateTask].[@TriggerName]" />
 				</Entry>
 				<Entry>
 					<References Name="[CTL].[ControlProjects]" />
@@ -4646,6 +4680,25 @@ END]]></Value>
 					</Element>
 				</Entry>
 				<Entry>
+					<Element Type="SqlSubroutineParameter" Name="[CTL].[CreateTask].[@TriggerName]">
+						<Property Name="DefaultExpressionScript">
+							<Value><![CDATA['']]></Value>
+						</Property>
+						<Relationship Name="Type">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Property Name="Length" Value="100" />
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[varchar]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
 					<Element Type="SqlSubroutineParameter" Name="[CTL].[CreateTask].[@CommandType]">
 						<Property Name="DefaultExpressionScript">
 							<Value><![CDATA[1]]></Value>
@@ -4876,11 +4929,10 @@ END]]></Value>
 				</Entry>
 			</Relationship>
 			<Annotation Type="SysCommentsObjectAnnotation">
-				<Property Name="CreateOffset" Value="8" />
-				<Property Name="Length" Value="4593" />
+				<Property Name="Length" Value="4635" />
 				<Property Name="StartLine" Value="1" />
 				<Property Name="StartColumn" Value="1" />
-				<Property Name="HeaderContents" Value="&#xD;&#xA;&#xD;&#xA;&#xD;&#xA;&#xD;&#xA;CREATE Procedure [CTL].[CreateTask] &#xD;&#xA;&#x9;@SourceGroup varchar(255) = '',&#xD;&#xA;&#x9;@SourceName Varchar(255) = '',&#xD;&#xA;    @SourceLocation Varchar(255) = '',&#xD;&#xA;&#x9;@SourceTypeId BigInt = 2,  &#xD;&#xA;&#x9;@SourceServer varchar(255) = '',&#xD;&#xA;&#x9;@Processor varchar(255) = '',&#xD;&#xA;&#x9;@TargetName Varchar(255) = '',&#xD;&#xA;&#x9;@TargetLocation Varchar(255) = '',&#xD;&#xA;&#x9;@TargetTypeId BigInt = 4,&#xD;&#xA;&#x9;@TargetServer varchar(255)= '',&#xD;&#xA;&#x9;@StageId BigInt = 2,&#xD;&#xA;&#x9;@ProjectId BigInt = 1,&#xD;&#xA;&#x9;@CommandType int = 1,&#xD;&#xA;&#x9;@Command varchar(max)= '',&#xD;&#xA;&#x9;@DataLoadMode varchar(100) = '',&#xD;&#xA;&#x9;@Grain varchar(30) = '',&#xD;&#xA;&#x9;@BusinessKeyColumn varchar(100) = '',&#xD;&#xA;&#x9;@WatermarkColumn varchar(100) = '',&#xD;&#xA;&#x9;@TrackChangeFlag bit = 0,&#xD;&#xA;&#x9;@AdditionalProperty&#x9;varchar(max) = '', &#xD;&#xA;&#x9;@LoadToSqlEDW BIT = 0,&#xD;&#xA;&#x9;@IsAuditTable BIT = 0,&#xD;&#xA;&#x9;@SoftDeleteSource varchar(100) = '',&#xD;&#xA;&#x9;@SourceTSFormat varchar(20) = ''&#xD;&#xA;&#xD;&#xA;As" />
+				<Property Name="HeaderContents" Value="CREATE Procedure [CTL].[CreateTask] &#xD;&#xA;&#x9;@SourceGroup varchar(255) = '',&#xD;&#xA;&#x9;@SourceName Varchar(255) = '',&#xD;&#xA;    @SourceLocation Varchar(255) = '',&#xD;&#xA;&#x9;@SourceTypeId BigInt = 2,  &#xD;&#xA;&#x9;@SourceServer varchar(255) = '',&#xD;&#xA;&#x9;@Processor varchar(255) = '',&#xD;&#xA;&#x9;@TargetName Varchar(255) = '',&#xD;&#xA;&#x9;@TargetLocation Varchar(255) = '',&#xD;&#xA;&#x9;@TargetTypeId BigInt = 4,&#xD;&#xA;&#x9;@TargetServer varchar(255)= '',&#xD;&#xA;&#x9;@StageId BigInt = 2,&#xD;&#xA;&#x9;@ProjectId BigInt = 1,&#xD;&#xA;&#x9;@TriggerName varchar(100) = '',&#xD;&#xA;&#x9;@CommandType int = 1,&#xD;&#xA;&#x9;@Command varchar(max)= '',&#xD;&#xA;&#x9;@DataLoadMode varchar(100) = '',&#xD;&#xA;&#x9;@Grain varchar(30) = '',&#xD;&#xA;&#x9;@BusinessKeyColumn varchar(100) = '',&#xD;&#xA;&#x9;@WatermarkColumn varchar(100) = '',&#xD;&#xA;&#x9;@TrackChangeFlag bit = 0,&#xD;&#xA;&#x9;@AdditionalProperty&#x9;varchar(max) = '', &#xD;&#xA;&#x9;@LoadToSqlEDW BIT = 0,&#xD;&#xA;&#x9;@IsAuditTable BIT = 0,&#xD;&#xA;&#x9;@SoftDeleteSource varchar(100) = '',&#xD;&#xA;&#x9;@SourceTSFormat varchar(20) = ''&#xD;&#xA;&#xD;&#xA;As" />
 			</Annotation>
 		</Element>
 		<Element Type="SqlProcedure" Name="[CTL].[CreateTaskLog]">
@@ -8477,7 +8529,7 @@ ELSE
 				SELECT @SQLMax = 'FROM_UNIXTIME(MAX(COALESCE(' + @COL + ', 0)))'
 			--ELSE IF @DBType = 'SQL Server'
 			--	SELECT @SQLMax = 'FORMAT(MAX(' + @COL + '), ''yyyy-MM-dd HH:mm:ss'')'
-			ELSE IF @DBType = 'SQL Server' AND @TaskName LIKE 'sapisu%'
+			ELSE IF @DBType = 'SQL Server' AND @TaskName LIKE 'isu%'
 				SELECT @SQLMax = 'FORMAT(MAX(convert(datetime,(CONVERT(VARCHAR(25) , CAST(LEFT(' +@COL +', 8) AS DATETIME), 23) + '' '' +  LEFT(RIGHT(' + @COL + ' , 6) ,2) + '':'' + SUBSTRING(RIGHT(' +@COL + ' , 6) , 3,2) + '':''    + RIGHT(' + @COL + ' , 2) ),120)), ''yyyy-MM-dd HH:mm:ss'')'
 			ELSE
 				SELECT @SQLMax = 'FORMAT(MAX(' + @COL + '), ''yyyy-MM-dd HH:mm:ss'')'
@@ -8682,7 +8734,7 @@ END]]></Value>
 				</Entry>
 			</Relationship>
 			<Annotation Type="SysCommentsObjectAnnotation">
-				<Property Name="Length" Value="4597" />
+				<Property Name="Length" Value="4594" />
 				<Property Name="StartLine" Value="1" />
 				<Property Name="StartColumn" Value="1" />
 				<Property Name="HeaderContents" Value="CREATE Procedure [CTL].[GetTableDetails] (&#xD;&#xA;&#x9;@SourceId BigInt&#xD;&#xA;&#x9;,@ValidationType varchar(10) = 'SOURCE'&#xD;&#xA;)&#xD;&#xA;As" />
@@ -10939,7 +10991,7 @@ BEGIN
 			SET @WaterMarkCol = 'TO_CHAR(' + @WaterMarkCol + ', ''YYYY-MM-DD HH24:MI:SS'')'
 		ELSE IF @SourceType = 'MySQL'
 			SET @WaterMarkCol = 'FROM_UNIXTIME(' + @WaterMarkCol + ')'
-		ELSE IF @SourceType = 'SQL Server' AND @TaskName LIKE 'sapisu%'
+		ELSE IF @SourceType = 'SQL Server' AND @TaskName LIKE 'isu%'
 		BEGIN
 		    SET @SQL = 'SELECT *, FORMAT(CONVERT(datetime, (CONVERT(varchar(25), CAST(LEFT(DELTA_TS, 8) AS datetime), 23) + '' '' + LEFT(RIGHT(DELTA_TS, 6), 2) + '':'' + SUBSTRING(RIGHT(DELTA_TS, 6), 3, 2) + '':'' + RIGHT(DELTA_TS, 2)), 120), ''yyyy-MM-dd HH:mm:ss'') AS DELTA_TS_DT '
  			SET @WaterMarkCol = 'FORMAT(convert(datetime,(CONVERT(VARCHAR(25) , CAST(LEFT(' +@WaterMarkCol +', 8) AS DATETIME), 23) + '' '' +  LEFT(RIGHT(' + @WaterMarkCol + ' , 6) ,2) + '':'' + SUBSTRING(RIGHT(' +@WaterMarkCol + ' , 6) , 3,2) + '':''    + RIGHT(' + @WaterMarkCol + ' , 2) ),120), ''yyyy-MM-dd HH:mm:ss'')'
@@ -10974,7 +11026,7 @@ BEGIN
 END]]></Value>
 						</Property>
 						<Annotation Type="SysCommentsObjectAnnotation">
-							<Property Name="Length" Value="6828" />
+							<Property Name="Length" Value="6825" />
 							<Property Name="StartLine" Value="1" />
 							<Property Name="StartColumn" Value="1" />
 							<Property Name="HeaderContents" Value="CREATE FUNCTION [CTL].[udf_GetDeltaSQL] (@TaskId BigInt)&#xD;&#xA;Returns Varchar(MAX)&#xD;&#xA;AS" />

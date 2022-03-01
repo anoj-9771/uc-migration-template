@@ -175,17 +175,18 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
+#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
 df_cleansed = spark.sql(f"SELECT  \
                             case when stg.PROPERTY_NO = 'na' then '' else stg.PROPERTY_NO end as propertyNumber, \
                             stg.SUP_PROP_TYPE as superiorPropertyTypeCode, \
                             supty.superiorPropertyType, \
                             stg.INF_PROP_TYPE as inferiorPropertyTypeCode, \
                             infty.inferiorPropertyType, \
-                            to_date((case when stg.DATE_FROM = 'na' then '1900-01-01' else stg.DATE_FROM end), 'yyyy-MM-dd') as validFromDate, \
-                            to_date(stg.DATE_TO, 'yyyy-MM-dd') as validToDate, \
-                            to_timestamp(cast(stg.CREATED_ON as String), 'yyyyMMddHHmmss') as createdDate, \
+                            ToValidDate(stg.DATE_FROM,'MANDATORY') as validFromDate, \
+                            ToValidDate(stg.DATE_TO) as validToDate, \
+                            ToValidDateTime(stg.CREATED_ON) as createdDate, \
                             stg.CREATED_BY as createdBy, \
-                            to_timestamp(cast(stg.CHANGED_ON as String), 'yyyyMMddHHmmss') as changedDate, \
+                            ToValidDateTime(stg.CHANGED_ON) as changedDate, \
                             stg.CHANGED_BY as changedBy, \
                             stg._RecordStart, \
                             stg._RecordEnd, \
@@ -197,7 +198,6 @@ df_cleansed = spark.sql(f"SELECT  \
                           LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_zcd_tinfprty_tx infty on infty.inferiorPropertyTypeCode = stg.INF_PROP_TYPE \
                                                                                                     and infty._RecordDeleted = 0 and infty._RecordCurrent = 1")
 
-display(df_cleansed)
 print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
@@ -220,15 +220,13 @@ newSchema = StructType([
                         StructField('_RecordDeleted',IntegerType(),False),
                         StructField('_RecordCurrent',IntegerType(),False)
                       ])
-# Apply the new schema to cleanse Data Frame
-df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
-display(df_updated_column)
+
 
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
-DeltaSaveDataframeDirect(df_updated_column, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
+DeltaSaveDataframeDirect(df_cleansed, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", newSchema, "")
 
 # COMMAND ----------
 

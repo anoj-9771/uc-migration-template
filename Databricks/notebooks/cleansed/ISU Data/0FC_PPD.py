@@ -175,22 +175,23 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
+#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
 df_cleansed = spark.sql(f"SELECT \
 	case when PPKEY = 'na' then '' else PPKEY end as promiseToPayId, \
-	case when PRDAT = 'na' then to_date('1900-01-01', 'yyyy-MM-dd') else to_date(PRDAT, 'yyyy-MM-dd') end as paymentDatePromised, \
+	ToValidDate(PRDAT,'MANDATORY') as paymentDatePromised, \
 	cast(PRAMT as dec(13,2)) as paymentAmountPromised, \
 	cast(PRAMO as dec(13,2)) as promisedAmountOpen, \
 	PRCUR as currency, \
 	cast(FDDBT as dec(13,2)) as amount2, \
 	cast(FDDBO as dec(13,2)) as amount1, \
-	to_date(ERDAT, 'yyyy-MM-dd') as createdDate, \
+	ToValidDate(ERDAT) as createdDate, \
 	_RecordStart, \
 	_RecordEnd, \
 	_RecordDeleted, \
 	_RecordCurrent \
 	FROM {ADS_DATABASE_STAGE}.{source_object}")
 
-display(df_cleansed)
+
 print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
@@ -210,14 +211,13 @@ newSchema = StructType([
 	StructField('_RecordCurrent',IntegerType(),False)
 ])
 
-df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
-display(df_updated_column)
+
 
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
-DeltaSaveDataframeDirect(df_updated_column, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
+DeltaSaveDataframeDirect(df_cleansed, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", newSchema, "")
 
 # COMMAND ----------
 

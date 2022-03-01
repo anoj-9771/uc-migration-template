@@ -175,15 +175,16 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
+#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
 df_cleansed = spark.sql(f"SELECT \
                             case when stg.PROPERTY1 = 'na' then '' else stg.PROPERTY1 end as property1Number, \
                             case when stg.PROPERTY2 = 'na' then '' else stg.PROPERTY2 end as property2Number, \
                             case when stg.REL_TYPE1 = 'na' then '' else stg.REL_TYPE1 end as relationshipTypeCode1, \
-                            rtyp1.relationshipTypeDescription as relationshipDescription1, \
+                            rtyp1.relationshipType as relationshipType1, \
                             case when stg.REL_TYPE2 = 'na' then '' else stg.REL_TYPE2 end  as relationshipTypeCode2, \
-                            rtyp2.relationshipTypeDescription as relationshipDescription2, \
-                            to_date((case when stg.DATE_FROM = 'na' then '1900-01-01' else stg.DATE_FROM end), 'yyyy-MM-dd') as validFromDate, \
-                            to_date(stg.DATE_TO, 'yyyy-MM-dd') as validToDate, \
+                            rtyp2.relationshipType as relationshipType2, \
+                            ToValidDate(stg.DATE_FROM,'MANDATORY') as validFromDate, \
+                            ToValidDate(stg.DATE_TO) as validToDate, \
                             stg._RecordStart, \
                             stg._RecordEnd, \
                             stg._RecordDeleted, \
@@ -195,7 +196,6 @@ df_cleansed = spark.sql(f"SELECT \
                                                                                     and rtyp2._RecordCurrent = 1 and rtyp2._RecordDeleted = 0 \
                        ")
 
-display(df_cleansed)
 print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
@@ -204,25 +204,23 @@ newSchema = StructType([
                         StructField('property1Number',StringType(),False),
                         StructField('property2Number',StringType(),False),
                         StructField('relationshipTypeCode1',StringType(),False),
-                        StructField('relationshipDescription1',StringType(),True),
+                        StructField('relationshipType1',StringType(),True),
                         StructField('relationshipTypeCode2',StringType(),True),
-                        StructField('relationshipDescription2',StringType(),True),
-                        StructField('validFromDate',DateType(),True),
-                        StructField('validToDate',DateType(),False),
+                        StructField('relationshipType2',StringType(),True),
+                        StructField('validFromDate',DateType(),False),
+                        StructField('validToDate',DateType(),True),
                         StructField('_RecordStart',TimestampType(),False),
                         StructField('_RecordEnd',TimestampType(),False),
                         StructField('_RecordDeleted',IntegerType(),False),
                         StructField('_RecordCurrent',IntegerType(),False)
                       ])
 
-df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
-
 
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
-DeltaSaveDataframeDirect(df_updated_column, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
+DeltaSaveDataframeDirect(df_cleansed, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", newSchema, "")
 
 # COMMAND ----------
 

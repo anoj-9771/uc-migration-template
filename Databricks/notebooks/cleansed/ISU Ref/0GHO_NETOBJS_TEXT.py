@@ -177,39 +177,35 @@ DeltaSaveToDeltaTable (
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT \
 	case when TPLNR = 'na' then '' else TPLNR end as functionalLocationNumber, \
-	PLTXT as functionalLocationdDescription, \
+	PLTXT as functionalLocationDescription, \
 	KZMLA as primaryLanguageIndicator, \
-	PLTXU as functionalLocationdDescriptionCapital, \
+	PLTXU as functionalLocationDescriptionCapital, \
 	_RecordStart, \
 	_RecordEnd, \
 	_RecordDeleted, \
 	_RecordCurrent \
 	FROM {ADS_DATABASE_STAGE}.{source_object}")
 
-display(df_cleansed)
 print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
 
 newSchema = StructType([
 	StructField('functionalLocationNumber',StringType(),False),
-	StructField('functionalLocationdDescription',StringType(),True),
+	StructField('functionalLocationDescription',StringType(),True),
 	StructField('primaryLanguageIndicator',StringType(),True),
-	StructField('functionalLocationdDescriptionCapital',StringType(),True),
+	StructField('functionalLocationDescriptionCapital',StringType(),True),
 	StructField('_RecordStart',TimestampType(),False),
 	StructField('_RecordEnd',TimestampType(),False),
 	StructField('_RecordDeleted',IntegerType(),False),
 	StructField('_RecordCurrent',IntegerType(),False)
 ])
 
-df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
-
-
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
-DeltaSaveDataframeDirect(df_updated_column, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
+DeltaSaveDataframeDirect(df_cleansed, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", newSchema, "")
 
 # COMMAND ----------
 

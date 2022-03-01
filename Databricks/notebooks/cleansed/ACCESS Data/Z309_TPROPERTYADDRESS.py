@@ -201,10 +201,10 @@ df_cleansed = spark.sql("SELECT C_LGA AS LGACode, \
 		T_SPEC_DESC AS specialDescription, \
 		M_BUIL_1 AS buildingName1, \
 		M_BUIL_2 AS buildingName2, \
-		C_USER_CREA AS createdByUserID, \
+		C_USER_CREA AS createdByUserId, \
 		C_PLAN_CREA AS createdByPlan, \
         cast(to_unix_timestamp(H_CREA, 'yyyy-MM-dd hh:mm:ss a') as timestamp) as createdTimestamp, \
-        C_USER_MODI AS modifiedByUserID, \
+        C_USER_MODI AS modifiedByUserId, \
 		C_PLAN_MODI AS modifiedByPlan, \
         cast(to_unix_timestamp(H_MODI, 'yyyy-MM-dd hh:mm:ss a') as timestamp) as modifiedTimestamp, \
         _RecordStart, \
@@ -212,7 +212,8 @@ df_cleansed = spark.sql("SELECT C_LGA AS LGACode, \
         _RecordDeleted, \
         _RecordCurrent \
 	FROM {ADS_DATABASE_STAGE}.{source_object}") 
-display(df_cleansed)
+
+print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
 
@@ -235,10 +236,10 @@ newSchema = StructType([
 	StructField('specialDescription',StringType(),True),
 	StructField('buildingName1',StringType(),True),
 	StructField('buildingName2',StringType(),True),
-	StructField('createdByUserID',StringType(),True),
+	StructField('createdByUserId',StringType(),True),
 	StructField('createdByPlan',StringType(),True),
 	StructField('createdTimestamp',TimestampType(),False),
-	StructField('modifiedByUserID',StringType(),True),
+	StructField('modifiedByUserId',StringType(),True),
 	StructField('modifiedByPlan',StringType(),True),
 	StructField('modifiedTimestamp',TimestampType(),False),
     StructField('_RecordStart',TimestampType(),False),
@@ -247,14 +248,14 @@ newSchema = StructType([
     StructField('_RecordCurrent',IntegerType(),False)
 ])
 
-df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
-display(df_updated_column)
+# df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
+# display(df_updated_column)
 
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
-DeltaSaveDataframeDirect(df_updated_column, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
+DeltaSaveDataframeDirect(df_cleansed, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", newSchema, "")
 
 # COMMAND ----------
 

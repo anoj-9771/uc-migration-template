@@ -175,12 +175,13 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
+#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
 df_cleansed = spark.sql(f"SELECT  \
                                   case when INTRENO = 'na' then '' else INTRENO end as architecturalObjectInternalId, \
                                   case when FIXFITCHARACT = 'na' then '' else FIXFITCHARACT end as fixtureAndFittingCharacteristicCode, \
                                   ff.fixtureAndFittingCharacteristic as fixtureAndFittingCharacteristic, \
-                                  to_date(VALIDTO, 'yyyy-MM-dd') as validToDate, \
-                                  to_date(VALIDFROM, 'yyyy-MM-dd') as validFromDate, \
+                                  ToValidDate(VALIDTO,'MANDATORY') as validToDate, \
+                                  ToValidDate(VALIDFROM) as validFromDate, \
                                   AMOUNTPERAREA as amountPerAreaUnit, \
                                   FFCTACCURATE as applicableIndicator, \
                                   CHARACTAMTAREA as characteristicAmountArea, \
@@ -195,7 +196,7 @@ df_cleansed = spark.sql(f"SELECT  \
                                FROM {ADS_DATABASE_STAGE}.{source_object} stg\
                                  left outer join {ADS_DATABASE_CLEANSED}.isu_0df_refixfi_text ff on ff.fixtureAndFittingCharacteristicCode = stg.FIXFITCHARACT \
                                                                                                    and ff._RecordDeleted = 0 and ff._RecordCurrent = 1")
-display(df_cleansed)
+
 print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
@@ -219,14 +220,12 @@ newSchema = StructType([
                           StructField('_RecordCurrent',IntegerType(),False)
 ])
 
-df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
-display(df_updated_column)
 
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
-DeltaSaveDataframeDirect(df_updated_column, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
+DeltaSaveDataframeDirect(df_cleansed, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", newSchema, "")
 
 # COMMAND ----------
 

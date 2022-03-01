@@ -175,6 +175,7 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
+#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
 df_cleansed = spark.sql(f"SELECT \
 	case when TERMSCHL = 'na' then '' else TERMSCHL end as portion, \
 	cast(EPER_ABL as Integer) as intervalBetweenReadingAndEnd, \
@@ -187,12 +188,12 @@ df_cleansed = spark.sql(f"SELECT \
 	ABLESER as meterReaderNumber, \
 	cast(ABLZEIT as dec(5,1)) as meterReadingTime, \
 	cast(AZVORABL as Integer) as numberOfPreviousReadings, \
-	MDENR as numberOFMobileDataEntry, \
+	MDENR as numberOfMobileDataEntry, \
 	cast(ABLKAR as Integer) as meterReadingInterval, \
 	cast(STANDKAR as Integer) as entryInterval, \
-	to_date(EROEDAT, 'yyyy-MM-dd') as createdDate, \
+	ToValidDate(EROEDAT) as createdDate, \
 	ERNAM as createdBy, \
-	to_date(AENDDATE, 'yyyy-MM-dd') as lastChangedDate, \
+	ToValidDate(AENDDATE) as lastChangedDate, \
 	AENDNAM as lastChangedBy, \
 	SPARTENTY1 as divisionCategory1, \
 	SPARTENTY2 as divisionCategory2, \
@@ -201,7 +202,7 @@ df_cleansed = spark.sql(f"SELECT \
 	SPARTENTY5 as divisionCategory5, \
 	IDENT as factoryCalendar, \
 	SAPKAL as correctHolidayToWorkDay, \
-    to_date(cast(STICHTAG as string), 'yyyy-MM-dd') as billingKeyDate, \
+    ToValidDate(cast(STICHTAG as string)) as billingKeyDate, \
 	TAGE as numberOfDays, \
 	AUF_KAL as intervalBetweenOrderAndPlanned, \
 	ABL_Z as meterReadingCenter, \
@@ -211,7 +212,6 @@ df_cleansed = spark.sql(f"SELECT \
 	_RecordCurrent \
 	FROM {ADS_DATABASE_STAGE}.{source_object}")
 
-display(df_cleansed)
 print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
@@ -228,7 +228,7 @@ newSchema = StructType([
 	StructField('meterReaderNumber',StringType(),True),
 	StructField('meterReadingTime',DecimalType(5,1),True),
 	StructField('numberOfPreviousReadings',IntegerType(),True),
-	StructField('numberOFMobileDataEntry',StringType(),True),
+	StructField('numberOfMobileDataEntry',StringType(),True),
 	StructField('meterReadingInterval',IntegerType(),True),
 	StructField('entryInterval',IntegerType(),True),
 	StructField('createdDate',DateType(),True),
@@ -252,13 +252,12 @@ newSchema = StructType([
 	StructField('_RecordCurrent',IntegerType(),False)
 ])
 
-df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
 
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
-DeltaSaveDataframeDirect(df_updated_column, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
+DeltaSaveDataframeDirect(df_cleansed, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", newSchema, "")
 
 # COMMAND ----------
 

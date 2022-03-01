@@ -175,10 +175,11 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
+#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
 df_cleansed = spark.sql(f"SELECT \
                             case when VERTRAG = 'na' then '' else VERTRAG end as contractId, \
-                            to_date((case when BIS = 'na' then '1900-01-01' else BIS end), 'yyyy-MM-dd') as validToDate, \
-                            to_date(AB, 'yyyy-MM-dd') as validFromDate, \
+                            ToValidDate((case when BIS = 'na' then '2099-12-31' else BIS end),'MANDATORY') as validToDate, \
+                            ToValidDate(AB) as validFromDate, \
                             ANLAGE as installationId, \
                             CONTRACTHEAD as contractHeadGUID, \
                             CONTRACTPOS as contractPosGUID, \
@@ -189,10 +190,10 @@ df_cleansed = spark.sql(f"SELECT \
                             PRODCH_BEG as productBeginIndicator, \
                             PRODCH_END as productChangeIndicator, \
                             XREPLCNTL as replicationControls, \
-                            to_date(ERDAT, 'yyyy-MM-dd') as createdDate, \
+                            ToValidDate(ERDAT) as createdDate, \
                             ERNAM as createdBy, \
-                            to_date(AEDAT, 'yyyy-MM-dd') as lastChangedDate, \
-                            OUCONTRACT as individualContractID, \
+                            ToValidDate(AEDAT) as lastChangedDate, \
+                            OUCONTRACT as individualContractId, \
                             AENAM as lastChangedBy, \
                             _RecordStart, \
                             _RecordEnd, \
@@ -200,7 +201,6 @@ df_cleansed = spark.sql(f"SELECT \
                             _RecordCurrent \
                           FROM {ADS_DATABASE_STAGE}.{source_object}")
 
-display(df_cleansed)
 print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
@@ -222,7 +222,7 @@ newSchema = StructType([
                         StructField('createdDate',DateType(),True),
                         StructField('createdBy',StringType(),True),
                         StructField('lastChangedDate',DateType(),True),
-                        StructField('individualContractID',StringType(),True),
+                        StructField('individualContractId',StringType(),True),
                         StructField('lastChangedBy',StringType(),True),
                         StructField('_RecordStart',TimestampType(),False),
                         StructField('_RecordEnd',TimestampType(),False),
@@ -230,14 +230,12 @@ newSchema = StructType([
                         StructField('_RecordCurrent',IntegerType(),False)
                       ])
 
-df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
-
 
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
-DeltaSaveDataframeDirect(df_updated_column, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
+DeltaSaveDataframeDirect(df_cleansed, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", newSchema, "")
 
 # COMMAND ----------
 

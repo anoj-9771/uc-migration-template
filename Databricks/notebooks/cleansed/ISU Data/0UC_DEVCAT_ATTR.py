@@ -164,30 +164,31 @@ DeltaSaveToDeltaTable (
 # COMMAND ----------
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
-{ADS_DATABASE_CLEANSED}#Update/rename Column
+#Update/rename Column
+#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
 df_cleansed = spark.sql(f"SELECT \
-                                  case when DEVCAT.MATNR = 'na' then '' else DEVCAT.MATNR end as materialNumber,\
-                                  DEVCAT.KOMBINAT as deviceCategoryCombination,\
-                                  DEVCAT.FUNKLAS as functionClassCode,\
-                                  FKLASTX.functionClass as functionClass,\
-                                  DEVCAT.BAUKLAS as constructionClassCode,\
-                                  BKLASTX.constructionClass as constructionClass,\
-                                  DEVCAT.BAUFORM as deviceCategoryDescription,\
-                                  DEVCAT.BAUTXT as deviceCategoryName,\
-                                  DEVCAT.PTBNUM as ptiNumber,\
-                                  DEVCAT.DVGWNUM as ggwaNumber,\
-                                  DEVCAT.BGLKZ as certificationRequirementType,\
-                                  DEVCAT.ZWGRUPPE as registerGroupCode,\
-                                  REGGRP.registerGroup as registerGroup,\
-                                  cast(DEVCAT.UEBERVER as decimal (10,3)) as transformationRatio,\
-                                  DEVCAT.AENAM as changedBy,\
-                                  to_date(DEVCAT.AEDAT, 'yyyy-MM-dd') as lastChangedDate,\
-                                  DEVCAT.SPARTE as division,\
-                                  cast(DEVCAT.NENNBEL as decimal(10,4)) as nominalLoad,\
-                                  DEVCAT.STELLPLATZ as containerSpaceCount,\
-                                  cast(DEVCAT.HOEHEBEH as decimal(7,2)) as containerCategoryHeight,\
-                                  cast(DEVCAT.BREITEBEH as decimal(7,2)) as containerCategoryWidth,\
-                                  cast(DEVCAT.TIEFEBEH as decimal(7,2)) as containerCategoryDepth,\
+                                  case when DEVCAT.MATNR = 'na' then '' else DEVCAT.MATNR end as materialNumber, \
+                                  DEVCAT.KOMBINAT as deviceCategoryCombination, \
+                                  DEVCAT.FUNKLAS as functionClassCode, \
+                                  FKLASTX.functionClass as functionClass, \
+                                  DEVCAT.BAUKLAS as constructionClassCode, \
+                                  BKLASTX.constructionClass as constructionClass, \
+                                  DEVCAT.BAUFORM as deviceCategoryDescription, \
+                                  DEVCAT.BAUTXT as deviceCategoryName, \
+                                  DEVCAT.PTBNUM as ptiNumber, \
+                                  DEVCAT.DVGWNUM as ggwaNumber, \
+                                  DEVCAT.BGLKZ as certificationRequirementType, \
+                                  DEVCAT.ZWGRUPPE as registerGroupCode, \
+                                  REGGRP.registerGroup as registerGroup, \
+                                  cast(DEVCAT.UEBERVER as decimal (10,3)) as transformationRatio, \
+                                  DEVCAT.AENAM as changedBy, \
+                                  ToValidDate(DEVCAT.AEDAT) as lastChangedDate, \
+                                  DEVCAT.SPARTE as division, \
+                                  cast(DEVCAT.NENNBEL as decimal(10,4)) as nominalLoad, \
+                                  DEVCAT.STELLPLATZ as containerSpaceCount, \
+                                  cast(DEVCAT.HOEHEBEH as decimal(7,2)) as containerCategoryHeight, \
+                                  cast(DEVCAT.BREITEBEH as decimal(7,2)) as containerCategoryWidth, \
+                                  cast(DEVCAT.TIEFEBEH as decimal(7,2)) as containerCategoryDepth, \
                                   DEVCAT._RecordStart, \
                                   DEVCAT._RecordEnd, \
                                   DEVCAT._RecordDeleted, \
@@ -200,7 +201,7 @@ df_cleansed = spark.sql(f"SELECT \
                               LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UC_REGGRP_TEXT REGGRP ON DEVCAT.ZWGRUPPE = REGGRP.registerGroupCode \
                                                                                                     and REGGRP._RecordDeleted = 0 and REGGRP._RecordCurrent = 1")
                                    
-display(df_cleansed)
+
 print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
@@ -236,15 +237,13 @@ newSchema = StructType(
     StructField('_RecordCurrent',IntegerType(),False)
   ]
 )
-# Apply the new schema to cleanse Data Frame
-df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
-display(df_updated_column)
+
 
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
-DeltaSaveDataframeDirect(df_updated_column, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
+DeltaSaveDataframeDirect(df_cleansed, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", newSchema, "")
 
 # COMMAND ----------
 

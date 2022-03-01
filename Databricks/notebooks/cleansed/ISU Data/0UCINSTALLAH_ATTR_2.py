@@ -175,16 +175,20 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
+#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
 df_cleansed = spark.sql(f"SELECT  \
                                   case when stg.ANLAGE = 'na' then '' else stg.ANLAGE end as installationId, \
-                                  to_date((case when stg.BIS = 'na' or stg.BIS = '9999-12-31' then '2099-12-31' else stg.BIS end), 'yyyy-MM-dd') as validToDate, \
-                                  to_date(stg.AB, 'yyyy-MM-dd') as validFromDate, \
+                                  ToValidDate((case when stg.BIS = 'na' then '2099-12-31' else stg.BIS end),'MANDATORY') as validToDate, \
+                                  ToValidDate(stg.AB) as validFromDate, \
                                   stg.TARIFTYP as rateCategoryCode, \
                                   tt.TTYPBEZ as rateCategory, \
-                                  stg.BRANCHE as industry, \
+                                  stg.BRANCHE as industryCode, \
+                                  st.industry, \
                                   stg.AKLASSE as billingClassCode, \
                                   bc.billingClass as billingClass, \
                                   stg.ABLEINH as meterReadingUnit, \
+                                  stg.ISTYPE as industrySystemCode, \
+                                  nt.industry as industrySystem, \
                                   stg.UPDMOD as deltaProcessRecordMode, \
                                   stg.ZLOGIKNR as logicalDeviceNumber, \
                                   stg._RecordStart, \
@@ -195,8 +199,12 @@ df_cleansed = spark.sql(f"SELECT  \
                                  left outer join {ADS_DATABASE_CLEANSED}.isu_0uc_aklasse_text bc on bc.billingClass = stg.AKLASSE \
                                                                                                     and bc._RecordDeleted = 0 and bc._RecordCurrent = 1 \
                                  left outer join {ADS_DATABASE_CLEANSED}.isu_0uc_tariftyp_text tt on tt.TARIFTYP = stg.TARIFTYP \
-                                                                                                    and tt._RecordDeleted = 0 and tt._RecordCurrent = 1")
-display(df_cleansed)
+                                                                                                    and tt._RecordDeleted = 0 and tt._RecordCurrent = 1 \
+                                 left outer join {ADS_DATABASE_CLEANSED}.isu_0ind_sector_text st on st.industrySystem = stg.ISTYPE and st.industryCode = stg.BRANCHE \
+                                                                                                    and st._RecordDeleted = 0 and st._RecordCurrent = 1 \
+                                 left outer join {ADS_DATABASE_CLEANSED}.isu_0ind_numsys_text nt on nt.industrySystem = stg.ISTYPE \
+                                                                                                    and nt._RecordDeleted = 0 and nt._RecordCurrent = 1")
+
 print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
@@ -207,10 +215,13 @@ newSchema = StructType([
                           StructField('validFromDate', DateType(), True),
                           StructField('rateCategoryCode', StringType(), True),
                           StructField('rateCategory', StringType(), True),
+                          StructField('industryCode', StringType(), True),
                           StructField('industry', StringType(), True),
                           StructField('billingClassCode', StringType(), True),
                           StructField('billingClass', StringType(), True),
                           StructField('meterReadingUnit', StringType(), True),
+                          StructField('industrySystemCode', StringType(), True),
+                          StructField('industrySystem', StringType(), True),
                           StructField('deltaProcessRecordMode', StringType(), True),
                           StructField('logicalDeviceNumber', StringType(), True),
                           StructField('_RecordStart',TimestampType(),False),
@@ -219,14 +230,12 @@ newSchema = StructType([
                           StructField('_RecordCurrent',IntegerType(),False)
 ])
 
-df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
-display(df_updated_column)
 
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
-DeltaSaveDataframeDirect(df_updated_column, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
+DeltaSaveDataframeDirect(df_cleansed, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", newSchema, "")
 
 # COMMAND ----------
 

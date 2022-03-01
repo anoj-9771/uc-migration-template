@@ -6,6 +6,7 @@
 #Please ensure the name of the scope matches with the scope name created in the environment
 ADS_KV_ACCOUNT_SCOPE = "ADS"
 
+
 # COMMAND ----------
 
 ADS_DATABASE_NAME = "ControlDB"
@@ -23,7 +24,7 @@ ADS_LOAD_SQLDB = True
 ADS_DATA_LAKE_ACCOUNT = "sadaf"+ ADS_ENVIRONMENT + "01"
 ADS_BLOB_STORAGE_ACCOUNT = "sablobdaf" + ADS_ENVIRONMENT + "01"
 ADS_DB_SERVER = "sql-" + ADS_SUBSCRIPTION + "-daf-" + ADS_ENVIRONMENT + "-01.database.windows.net" 
-ADS_RESOURCE_GROUP =  "rg-" + ADS_SUBSCRIPTION + "-" + ADS_ENVIRONMENT "-daf-" + "-01"
+ADS_RESOURCE_GROUP =  "rg-" + ADS_SUBSCRIPTION + "-daf-" + ADS_ENVIRONMENT + "-01"
 
 # COMMAND ----------
 
@@ -31,7 +32,8 @@ ADS_RESOURCE_GROUP =  "rg-" + ADS_SUBSCRIPTION + "-" + ADS_ENVIRONMENT "-daf-" +
 ADS_SYN_DATABASE_NAME = "syndw" + ADS_ENVIRONMENT + "01"
 ADS_SYN_DATABASE_USERNAME = "svc_synapse1"
 ADS_KV_SYN_DB_PWD_SECRET_KEY = "daf-syn-d-sqlpool-password"
-ADS_SYNAPSE_DB_SERVER = "synws-swcnonprod01-daf-" + ADS_ENVIRONMENT + "-01" 
+
+ADS_SYNAPSE_DB_SERVER = "synws-" + ADS_SUBSCRIPTION + "-daf-" + ADS_ENVIRONMENT + "-01" 
 
 # COMMAND ----------
 

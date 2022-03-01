@@ -175,76 +175,85 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_cleansed_column = spark.sql(f"SELECT  \
+#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
+df_cleansed = spark.sql(f"SELECT  \
                                   case when BELNR = 'na' then '' else BELNR end as billingDocumentNumber, \
                                   BUKRS as companyCode, \
                                   cc.companyName as companyName, \
                                   SPARTE as divisonCode, \
                                   GPARTNER as businessPartnerNumber, \
                                   VKONT as contractAccountNumber, \
-                                  VERTRAG as contractID, \
-                                  to_date(BEGABRPE, 'yyyyMMdd') as startBillingPeriod, \
-                                  to_date(ENDABRPE, 'yyyyMMdd') as endBillingPeriod, \
-                                  to_date(ABRDATS, 'yyyyMMdd') as billingScheduleDate, \
-                                  to_date(ADATSOLL, 'yyyyMMdd') as meterReadingScheduleDate, \
-                                  to_date(PTERMTDAT, 'yyyyMMdd') as billingPeriodEndDate, \
-                                  to_date(BELEGDAT, 'yyyyMMdd') as billingDocumentCreateDate, \
+                                  VERTRAG as contractId, \
+                                  ToValidDate(BEGABRPE) as  startBillingPeriod, \
+                                  ToValidDate(ENDABRPE) as  endBillingPeriod, \
+                                  ToValidDate(ABRDATS) as  billingScheduleDate, \
+                                  ToValidDate(ADATSOLL) as  meterReadingScheduleDate, \
+                                  ToValidDate(PTERMTDAT) as  billingPeriodEndDate, \
+                                  ToValidDate(BELEGDAT) as  billingDocumentCreateDate, \
                                   ABWVK as alternativeContractAccountForCollectiveBills, \
                                   BELNRALT as previousDocumentNumber, \
-                                  to_date(STORNODAT, 'yyyyMMdd') as reversalDate, \
+                                  ToValidDate(STORNODAT) as  reversalDate, \
                                   ABRVORG as billingTransactionCode, \
                                   HVORG as mainTransactionLineItemCode, \
-                                  KOFIZ as contractAccountDeterminationID, \
+                                  KOFIZ as contractAccountDeterminationId, \
                                   PORTION as portionNumber, \
                                   FORMULAR as formName, \
                                   SIMULATION as billingSimulationIndicator, \
                                   BELEGART as documentTypeCode, \
                                   BERGRUND as backbillingCreditReasonCode, \
-                                  to_date(BEGNACH, 'yyyyMMdd') as backbillingStartPeriod, \
-                                  TOBRELEASD as DocumentNotReleasedIndicator, \
+                                  ToValidDate(BEGNACH) as  backbillingStartPeriod, \
+                                  TOBRELEASD as documentNotReleasedIndicator, \
                                   TXJCD as taxJurisdictionDescription, \
                                   KONZVER as franchiseContractCode, \
                                   EROETIM as billingDocumentCreateTime, \
+                                  ERCHO_V as erchoExistIndicator, \
+                                  ERCHZ_V as erchzExistIndicator, \
+                                  ERCHU_V as erchuExistIndicator, \
+                                  ERCHR_V as erchrExistIndicator, \
+                                  ERCHC_V as erchcExistIndicator, \
+                                  ERCHV_V as erchvExistIndicator, \
+                                  ERCHT_V as erchtExistIndicator, \
+                                  ERCHP_V as erchpExistIndicator, \
                                   ABRVORG2 as periodEndBillingTransactionCode, \
                                   ABLEINH as meterReadingUnit, \
-                                  ENDPRIO as billingEndingPriorityCodfe, \
-                                  to_date(ERDAT, 'yyyyMMdd') as createdDate, \
+                                  ENDPRIO as billingEndingPriorityCode, \
+                                  ToValidDate(ERDAT) as  createdDate, \
                                   ERNAM as createdBy, \
-                                  to_date(AEDAT, 'yyyyMMdd') as lastChangedDate, \
+                                  ToValidDate(AEDAT) as  lastChangedDate, \
                                   AENAM as changedBy, \
                                   BEGRU as authorizationGroupCode, \
                                   LOEVM as deletedIndicator, \
-                                  to_date(ABRDATSU, 'yyyyMMdd') as suppressedBillingOrderScheduleDate, \
+                                  ToValidDate(ABRDATSU) as  suppressedBillingOrderScheduleDate, \
                                   ABRVORGU as suppressedBillingOrderTransactionCode, \
                                   N_INVSEP as jointInvoiceAutomaticDocumentIndicator, \
-                                  ABPOPBEL as BudgetBillingPlanCode, \
+                                  ABPOPBEL as budgetBillingPlanCode, \
                                   MANBILLREL as manualDocumentReleasedInvoicingIndicator, \
                                   BACKBI as backbillingTypeCode, \
                                   PERENDBI as billingPeriodEndType, \
                                   cast(NUMPERBB as integer) as backbillingPeriodNumber, \
-                                  to_date(BEGEND, 'yyyyMMdd') as periodEndBillingStartDate, \
+                                  ToValidDate(BEGEND) as  periodEndBillingStartDate, \
                                   ENDOFBB as backbillingPeriodEndIndicator, \
                                   ENDOFPEB as billingPeriodEndIndicator, \
                                   cast(NUMPERPEB as integer) as billingPeriodEndCount, \
-                                  SC_BELNR_H as billingDoumentAdjustmentReversalCount, \
-                                  SC_BELNR_N as billingDocumentNumberForAdjustmentReverssal, \
-                                  to_date(ZUORDDAA, 'yyyyMMdd') as billingAllocationDate, \
+                                  SC_BELNR_H as billingDocumentAdjustmentReversalCount, \
+                                  SC_BELNR_N as billingDocumentNumberForAdjustmentReversal, \
+                                  ToValidDate(ZUORDDAA) as  billingAllocationDate, \
                                   BILLINGRUNNO as billingRunNumber, \
-                                  SIMRUNID as simulationPeriodID, \
+                                  SIMRUNID as simulationPeriodId, \
                                   KTOKLASSE as accountClassCode, \
                                   ORIGDOC as billingDocumentOriginCode, \
                                   NOCANC as billingDonotExecuteIndicator, \
                                   ABSCHLPAN as billingPlanAdjustIndicator, \
                                   MEM_OPBEL as newBillingDocumentNumberForReversedInvoicing, \
-                                  to_date(MEM_BUDAT, 'yyyyMMdd') as billingPostingDateInDocument, \
+                                  ToValidDate(MEM_BUDAT) as  billingPostingDateInDocument, \
                                   EXBILLDOCNO as externalDocumentNumber, \
                                   BCREASON as reversalReasonCode, \
                                   NINVOICE as billingDocumentWithoutInvoicingCode, \
-                                  NBILLREL as billingRelavancyIndicator, \
-                                  to_date(CORRECTION_DATE, 'yyyyMMdd') as errorDetectedDate, \
+                                  NBILLREL as billingRelevancyIndicator, \
+                                  ToValidDate(CORRECTION_DATE) as  errorDetectedDate, \
                                   BASDYPER as basicCategoryDynamicPeriodControlCode, \
                                   ESTINBILL as meterReadingResultEstimatedBillingIndicator, \
-                                  ESTINBILLU as SuppressedOrderEstimateBillingIndicator, \
+                                  ESTINBILLU as suppressedOrderEstimateBillingIndicator, \
                                   ESTINBILL_SAV as originalValueEstimateBillingIndicator, \
                                   ESTINBILL_USAV as suppressedOrderBillingIndicator, \
                                   ACTPERIOD as currentBillingPeriodCategoryCode, \
@@ -257,7 +266,7 @@ df_cleansed_column = spark.sql(f"SELECT  \
                                   BP_BILL as resultingBillingPeriodIndicator, \
                                   MAINDOCNO as billingDocumentPrimaryInstallationNumber, \
                                   INSTGRTYPE as instalGroupTypeCode, \
-                                  INSTROLE as instalGroupRoleCode, \
+                                  INSTROLE as instalGroupRoleCode,  \
                                   stg._RecordStart, \
                                   stg._RecordEnd, \
                                   stg._RecordDeleted, \
@@ -265,7 +274,7 @@ df_cleansed_column = spark.sql(f"SELECT  \
                               FROM {ADS_DATABASE_STAGE}.{source_object} stg \
                                left outer join {ADS_DATABASE_CLEANSED}.isu_0comp_code_text cc on cc.companyCode = stg.BUKRS"
                               )
-display(df_cleansed_column)
+print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
 
@@ -276,7 +285,7 @@ newSchema = StructType([
                           StructField('divisonCode', StringType(), True),
                           StructField('businessPartnerNumber', StringType(), True),
                           StructField('contractAccountNumber', StringType(), True),
-                          StructField('contractID', StringType(), True),
+                          StructField('contractId', StringType(), True),
                           StructField('startBillingPeriod', DateType(), True),
                           StructField('endBillingPeriod', DateType(), True),
                           StructField('billingScheduleDate', DateType(), True),
@@ -288,20 +297,28 @@ newSchema = StructType([
                           StructField('reversalDate', DateType(), True),
                           StructField('billingTransactionCode', StringType(), True),
                           StructField('mainTransactionLineItemCode', StringType(), True),
-                          StructField('contractAccountDeterminationID', StringType(), True),
+                          StructField('contractAccountDeterminationId', StringType(), True),
                           StructField('portionNumber', StringType(), True),
                           StructField('formName', StringType(), True),
                           StructField('billingSimulationIndicator', StringType(), True),
                           StructField('documentTypeCode', StringType(), True),
                           StructField('backbillingCreditReasonCode', StringType(), True),
                           StructField('backbillingStartPeriod', DateType(), True),
-                          StructField('DocumentNotReleasedIndicator', StringType(), True),
+                          StructField('documentNotReleasedIndicator', StringType(), True),
                           StructField('taxJurisdictionDescription', StringType(), True),
                           StructField('franchiseContractCode', StringType(), True),
                           StructField('billingDocumentCreateTime', StringType(), True),
+                          StructField('erchoExistIndicator', StringType(), True),
+                          StructField('erchzExistIndicator', StringType(), True),
+                          StructField('erchuExistIndicator', StringType(), True),
+                          StructField('erchrExistIndicator', StringType(), True),
+                          StructField('erchcExistIndicator', StringType(), True),
+                          StructField('erchvExistIndicator', StringType(), True),
+                          StructField('erchtExistIndicator', StringType(), True),
+                          StructField('erchpExistIndicator', StringType(), True), 
                           StructField('periodEndBillingTransactionCode', StringType(), True),
                           StructField('meterReadingUnit', StringType(), True),
-                          StructField('billingEndingPriorityCodfe', StringType(), True),
+                          StructField('billingEndingPriorityCode', StringType(), True),
                           StructField('createdDate', DateType(), True),
                           StructField('createdBy', StringType(), True),
                           StructField('lastChangedDate', DateType(), True),
@@ -311,7 +328,7 @@ newSchema = StructType([
                           StructField('suppressedBillingOrderScheduleDate', DateType(), True),
                           StructField('suppressedBillingOrderTransactionCode', StringType(), True),
                           StructField('jointInvoiceAutomaticDocumentIndicator', StringType(), True),
-                          StructField('BudgetBillingPlanCode', StringType(), True),
+                          StructField('budgetBillingPlanCode', StringType(), True),
                           StructField('manualDocumentReleasedInvoicingIndicator', StringType(), True),
                           StructField('backbillingTypeCode', StringType(), True),
                           StructField('billingPeriodEndType', StringType(), True),
@@ -320,11 +337,11 @@ newSchema = StructType([
                           StructField('backbillingPeriodEndIndicator', StringType(), True),
                           StructField('billingPeriodEndIndicator', StringType(), True),
                           StructField('billingPeriodEndCount', IntegerType(), True),
-                          StructField('billingDoumentAdjustmentReversalCount', StringType(), True),
-                          StructField('billingDocumentNumberForAdjustmentReverssal', StringType(), True),
+                          StructField('billingDocumentAdjustmentReversalCount', StringType(), True),
+                          StructField('billingDocumentNumberForAdjustmentReversal', StringType(), True),
                           StructField('billingAllocationDate', DateType(), True),
                           StructField('billingRunNumber', StringType(), True),
-                          StructField('simulationPeriodID', StringType(), True),
+                          StructField('simulationPeriodId', StringType(), True),
                           StructField('accountClassCode', StringType(), True),
                           StructField('billingDocumentOriginCode', StringType(), True),
                           StructField('billingDonotExecuteIndicator', StringType(), True),
@@ -334,11 +351,11 @@ newSchema = StructType([
                           StructField('externalDocumentNumber', StringType(), True),
                           StructField('reversalReasonCode', StringType(), True),
                           StructField('billingDocumentWithoutInvoicingCode', StringType(), True),
-                          StructField('billingRelavancyIndicator', StringType(), True),
+                          StructField('billingRelevancyIndicator', StringType(), True),
                           StructField('errorDetectedDate', DateType(), True),
                           StructField('basicCategoryDynamicPeriodControlCode', StringType(), True),
                           StructField('meterReadingResultEstimatedBillingIndicator', StringType(), True),
-                          StructField('SuppressedOrderEstimateBillingIndicator', StringType(), True),
+                          StructField('suppressedOrderEstimateBillingIndicator', StringType(), True),
                           StructField('originalValueEstimateBillingIndicator', StringType(), True),
                           StructField('suppressedOrderBillingIndicator', StringType(), True),
                           StructField('currentBillingPeriodCategoryCode', StringType(), True),
@@ -358,14 +375,12 @@ newSchema = StructType([
                           StructField('_RecordCurrent', IntegerType(), False)
 ])
 
-df_updated_column = spark.createDataFrame(df_cleansed_column.rdd, schema=newSchema)
-display(df_updated_column)
 
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
-DeltaSaveDataframeDirect(df_updated_column, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
+DeltaSaveDataframeDirect(df_cleansed, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", newSchema, "")
 
 # COMMAND ----------
 

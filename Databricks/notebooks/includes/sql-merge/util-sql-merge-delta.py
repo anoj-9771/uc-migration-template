@@ -79,6 +79,7 @@ def _GenerateMergeSQL_DeltaTable(source_table_name, target_table_name, business_
 #   #For SQL Server, this would have already been resolved
 
   raw_file_timestamp_exist = False
+  di_sequence_number_exist = False
   query = f"SELECT * FROM {source_table_name} LIMIT 0"
   src_col_list = spark.sql(query)
   lst = src_col_list.columns
@@ -86,7 +87,10 @@ def _GenerateMergeSQL_DeltaTable(source_table_name, target_table_name, business_
 
   if len(col_lst) > 0:
     raw_file_timestamp_exist = any(COL_DL_RAW_FILE_TIMESTAMP in col for col in col_lst)
-    
+    col_dl_raw_load_exist = any(COL_DL_RAW_LOAD in col for col in col_lst)    
+    di_sequence_number_exist = any("DI_SEQUENCE_NUMBER" in col for col in col_lst)
+
+
 #Start of Arman's Fix
 #   isSAPISU = False
 #   if source_table_name != None and "sapisu" in source_table_name:
@@ -109,10 +113,20 @@ def _GenerateMergeSQL_DeltaTable(source_table_name, target_table_name, business_
 
     if not is_delta_extract and not raw_file_timestamp_exist:
       sql += TAB + ",ROW_NUMBER() OVER (PARTITION BY " + business_key_updated + " ORDER BY " + COL_DL_RAW_LOAD + " DESC) AS " + COL_RECORD_VERSION + NEW_LINE    
-
+      
+    #Added di_sequence_number to the order by clause  to pickup the right record from SAP delta extracts
     if is_delta_extract:
-      sql += TAB + ",ROW_NUMBER() OVER (PARTITION BY " + business_key_updated + " ORDER BY " + delta_column + " DESC, " + COL_DL_RAW_LOAD + " DESC) AS " + COL_RECORD_VERSION + NEW_LINE
+      if di_sequence_number_exist:
+        sql += TAB + ",ROW_NUMBER() OVER (PARTITION BY " + business_key_updated + " ORDER BY " + delta_column + " DESC, DI_SEQUENCE_NUMBER DESC, " + COL_DL_RAW_LOAD + " DESC) AS " + COL_RECORD_VERSION + NEW_LINE
+      elif col_dl_raw_load_exist:
+        sql += TAB + ",ROW_NUMBER() OVER (PARTITION BY " + business_key_updated + " ORDER BY " + delta_column + " DESC, " + COL_DL_RAW_LOAD + " DESC) AS " + COL_RECORD_VERSION + NEW_LINE
+        
+      else:
+        sql += TAB + ",ROW_NUMBER() OVER (PARTITION BY " + business_key_updated + " ORDER BY " + delta_column + " DESC) AS " + COL_RECORD_VERSION + NEW_LINE
     
+#       else:
+#         sql += TAB + ",ROW_NUMBER() OVER (PARTITION BY " + business_key_updated + " ORDER BY " + delta_column + " DESC, " + COL_DL_RAW_LOAD + " DESC) AS " + COL_RECORD_VERSION + NEW_LINE
+
     sql += TAB +  f"FROM {ALIAS_TABLE_SOURCE} ) WHERE {COL_RECORD_VERSION} = 1" + NEW_LINE
   else:
     business_key_updated = _GetSQLCollectiveColumnsFromColumnNames(business_key, ALIAS_TABLE_STAGE, "CONCAT", DELTA_COL_QUALIFER)
@@ -162,7 +176,9 @@ def _GenerateMergeSQL_DeltaTable(source_table_name, target_table_name, business_
 
   #################PART 4 INSERT DATA ####################################
   #If not matched, then this is the new version of the record. Insert the new row
-  sql_insert = _SQLInsertSyntax_DeltaTable_Merge(df_col_list, is_delta_extract, delta_column, curr_time_stamp, target_data_lake_zone, delete_data)
+  #sql_insert = _SQLInsertSyntax_DeltaTable_Merge(df_col_list, is_delta_extract, delta_column, curr_time_stamp, target_data_lake_zone, delete_data)
+  sql_insert = _SQLInsertSyntax_DeltaTable_Merge(df_col_list, is_delta_extract, delta_column, curr_time_stamp, target_data_lake_zone,source_table_name,target_table_name, delete_data)
+
   sql += "WHEN NOT MATCHED THEN " + NEW_LINE
   sql += sql_insert
   #################PART 4 INSERT DATA ####################################
@@ -373,10 +389,10 @@ def _SQLUpdateSetValue_SCD_DeltaTable(is_delta_extract, delta_column, table_alia
 
 # COMMAND ----------
 
-def _SQLInsertSyntax_DeltaTable_Merge(dataframe, is_delta_extract, delta_column, curr_time_stamp, target_data_lake_zone, delete_data):
+def _SQLInsertSyntax_DeltaTable_Merge(dataframe, is_delta_extract, delta_column, curr_time_stamp, target_data_lake_zone,source_table_name,target_table_name,delete_data):
   #Generate SQL for INSERT
   
-  insert_merge_sql = _SQLInsertSyntax_DeltaTable_Generate(dataframe, is_delta_extract, delta_column, curr_time_stamp, target_data_lake_zone, "", "", False, delete_data)
+  insert_merge_sql = _SQLInsertSyntax_DeltaTable_Generate(dataframe, is_delta_extract, delta_column, curr_time_stamp, target_data_lake_zone,source_table_name,target_table_name, False, delete_data)
 
   return insert_merge_sql
 
@@ -452,14 +468,18 @@ def _SQLInsertSyntax_DeltaTable_Generate(dataframe, is_delta_extract, delta_colu
   col_record_start = delta_column if is_delta_extract else f"'{curr_time_stamp}'"
   #sql_col += f"{COL_RECORD_START}, {COL_RECORD_END}, {COL_RECORD_DELETED}, {COL_RECORD_CURRENT}"
   #sql_values += f"{col_record_start}, to_timestamp('9999-12-31 00:00:00'), {delete_flag}, 1"
-  sql_col += f" {COL_RECORD_START}, {COL_RECORD_END}, {COL_RECORD_DELETED}, {COL_RECORD_CURRENT}"
-  sql_values += f"{col_record_start}, to_timestamp('2199-12-31 00:00:00'), {delete_flag}, 1"
-
+  sql_col += f"{COL_RECORD_START}, {COL_RECORD_END}, {COL_RECORD_DELETED}, {COL_RECORD_CURRENT}"
+  if is_delta_extract:
+    sql_values += f"to_timestamp(cast ({col_record_start} as string), 'yyyyMMddHHmmss'), "
+  else:
+    sql_values += f"{col_record_start}, "
+  sql_values += f"to_timestamp('2099-12-31 00:00:00'), {delete_flag}, 1"
   #Build the INSERT SQL with column list and values list
   if not is_delta_extract and target_data_lake_zone == ADS_DATABASE_CLEANSED and only_insert:
     sql = f"INSERT INTO {target_table} ({sql_col}) SELECT {sql_values} FROM {source_table}" 
   else:
-    sql = f"INSERT ({sql_col}) {NEW_LINE}VALUES ({sql_values})" 
+    sql = f"INSERT ({sql_col}) {NEW_LINE}VALUES ({sql_values})"
+
 #End of Fix for Handling Null in Key Columns  
       
   return sql

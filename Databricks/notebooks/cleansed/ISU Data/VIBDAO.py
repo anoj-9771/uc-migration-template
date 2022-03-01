@@ -175,34 +175,37 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
+#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
 df_cleansed = spark.sql(f"SELECT \
                                   case when vib.INTRENO = 'na' then '' else vib.INTRENO end as architecturalObjectInternalId , \
                                   vib.AOID as architecturalObjectId , \
                                   vib.AOTYPE as architecturalObjectTypeCode , \
                                   tiv.XMAOTYPE as architecturalObjectType , \
                                   AONR as architecturalObjectNumber , \
-                                  to_date(VALIDFROM,'yyyy-MM-dd') as validFromDate , \
-                                  to_date(VALIDTO,'yyyy-MM-dd') as validToDate , \
+                                  ToValidDate(VALIDFROM) as validFromDate , \
+                                  ToValidDate(VALIDTO) as validToDate , \
                                   PARTAOID as partArchitecturalObjectId , \
                                   OBJNR as objectNumber , \
                                   RERF as firstEnteredBy , \
-                                  to_date(DERF,'yyyy-MM-dd') as firstEnteredOnDate , \
+                                  ToValidDate(DERF) as firstEnteredOnDate , \
                                   TERF as firstEnteredTime , \
+                                  ToValidDateTime(concat(DERF, coalesce(TERF,'00:00:00'))) as firstEnteredDateTime , \
                                   REHER as firstEnteredSource , \
                                   RBEAR as employeeId , \
-                                  to_date(DBEAR,'yyyy-MM-dd') as lastEdittedOnDate , \
-                                  TBEAR as lastEdittedTime , \
-                                  RBHER as lastEdittedSource , \
+                                  ToValidDate(DBEAR) as lastEditedOnDate , \
+                                  TBEAR as lastEditedTime , \
+                                  ToValidDateTime(concat(DBEAR, coalesce(TBEAR,'00:00:00'))) as lastEditedDateTime , \
+                                  RBHER as lastEditedSource , \
                                   RESPONSIBLE as responsiblePerson , \
                                   USEREXCLUSIVE as exclusiveUser , \
-                                  to_date(LASTRENO,'yyyy-MM-dd') as lastRelocationDate , \
+                                  ToValidDate(LASTRENO) as lastRelocationDate , \
                                   MEASSTRC as measurementStructure , \
                                   DOORPLT as shortDescription , \
                                   RSAREA as reservationArea , \
                                   SINSTBEZ as maintenanceDistrict , \
                                   SVERKEHR as businessEntityTransportConnectionsIndicator , \
                                   ZCD_PROPERTY_NO as propertyNumber , \
-                                  to_date(ZCD_PROP_CR_DATE,'yyyy-MM-dd') as propertyCreatedDate , \
+                                  ToValidDate(ZCD_PROP_CR_DATE) as propertyCreatedDate , \
                                   ZCD_PROP_LOT_NO as propertyLotNumber , \
                                   ZCD_REQUEST_NO as propertyRequestNumber , \
                                   ZCD_PLAN_TYPE as planTypeCode , \
@@ -218,7 +221,7 @@ df_cleansed = spark.sql(f"SELECT \
                                   sp.superiorPropertyType as superiorPropertyType , \
                                   ZCD_INF_PROP_TYPE as inferiorPropertyTypeCode , \
                                   ip.inferiorPropertyType as inferiorPropertyType , \
-                                  ZCD_STORM_WATER_ASSESS as stormWaterAssesmentIndicator , \
+                                  ZCD_STORM_WATER_ASSESS as stormWaterAssessmentIndicator , \
                                   ZCD_IND_MLIM as mlimIndicator , \
                                   ZCD_IND_WICA as wicaIndicator , \
                                   ZCD_IND_SOPA as sopaIndicator , \
@@ -230,7 +233,7 @@ df_cleansed = spark.sql(f"SELECT \
                                   ZCD_CASENO_FLAG as caseNumberIndicator , \
                                   ZCD_OVERRIDE_AREA as overrideArea , \
                                   ZCD_OVERRIDE_AREA_UNIT as overrideAreaUnit , \
-                                  to_date(ZCD_CANCELLATION_DATE,'yyyy-MM-dd') as cancellationDate , \
+                                  ToValidDate(ZCD_CANCELLATION_DATE) as cancellationDate , \
                                   ZCD_CANC_REASON as cancellationReasonCode , \
                                   ZCD_COMMENTS as comments , \
                                   ZCD_PROPERTY_INFO as propertyInfo , \
@@ -250,7 +253,6 @@ df_cleansed = spark.sql(f"SELECT \
                                     LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_ZCD_TPROCTYPE_TX prt ON \
                                    vib.ZCD_PROCESS_TYPE = prt.PROCESS_TYPE and prt._RecordDeleted = 0 and prt._RecordCurrent = 1")
 
-display(df_cleansed)
 print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
@@ -270,11 +272,13 @@ newSchema = StructType(
                             StructField("firstEnteredBy", StringType(), True),
                             StructField("firstEnteredOnDate", DateType(), True),
                             StructField("firstEnteredTime", StringType(), True),
+                            StructField("firstEnteredDateTime", TimestampType(), True),  
                             StructField("firstEnteredSource", StringType(), True),
                             StructField("employeeId", StringType(), True),
-                            StructField("lastEdittedOnDate", DateType(), True),
-                            StructField("lastEdittedTime", StringType(), True),
-                            StructField("lastEdittedSource", StringType(), True),
+                            StructField("lastEditedOnDate", DateType(), True),
+                            StructField("lastEditedTime", StringType(), True),
+                            StructField("lastEditedDateTime", TimestampType(), True),    
+                            StructField("lastEditedSource", StringType(), True),
                             StructField("responsiblePerson", StringType(), True),
                             StructField("exclusiveUser", StringType(), True),
                             StructField("lastRelocationDate", DateType(), True),
@@ -300,7 +304,7 @@ newSchema = StructType(
                             StructField("superiorPropertyType", StringType(), True),
                             StructField("inferiorPropertyTypeCode", StringType(), True),
                             StructField("inferiorPropertyType", StringType(), True),
-                            StructField("stormWaterAssesmentIndicator", StringType(), True),
+                            StructField("stormWaterAssessmentIndicator", StringType(), True),
                             StructField("mlimIndicator", StringType(), True),
                             StructField("wicaIndicator", StringType(), True),
                             StructField("sopaIndicator", StringType(), True),
@@ -322,15 +326,13 @@ newSchema = StructType(
                             StructField('_RecordCurrent',IntegerType(),False)
                             ]
                         )
-# Apply the new schema to cleanse Data Frame
-df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
-display(df_updated_column)
+
 
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
-DeltaSaveDataframeDirect(df_updated_column, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
+DeltaSaveDataframeDirect(df_cleansed, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", newSchema, "")
 
 # COMMAND ----------
 

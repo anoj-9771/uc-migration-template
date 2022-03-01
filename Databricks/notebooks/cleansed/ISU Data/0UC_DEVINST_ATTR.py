@@ -175,11 +175,12 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
+#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
 df_cleansed = spark.sql(f"SELECT \
                                 case when ANLAGE = 'na' then '' else ANLAGE end as installationId, \
                                 case when LOGIKNR = 'na' then '' else LOGIKNR end as logicalDeviceNumber, \
-                                case when BIS = 'na' then to_date('1900-01-01','yyyy-MM-dd') else to_date(BIS, 'yyyy-MM-dd') end as validToDate, \
-                                to_date(AB, 'yyyy-MM-dd') as validFromDate, \
+                                ToValidDate((case when BIS = 'na' then '2099-12-31' else BIS end),'MANDATORY') as validToDate, \
+                                ToValidDate(AB) as validFromDate, \
                                 PREISKLA as priceClassCode, \
                                 ip.priceClass as priceClass, \
                                 GVERRECH as payRentalPrice, \
@@ -198,7 +199,7 @@ df_cleansed = spark.sql(f"SELECT \
                            LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UC_STATTART_TEXT sp ON dev.TARIFART = sp.rateTypeCode \
                                                                                                     and sp._RecordDeleted = 0 and sp._RecordCurrent = 1")
 
-display(df_cleansed)
+
 print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
@@ -222,14 +223,13 @@ newSchema = StructType([
 	StructField('_RecordCurrent',IntegerType(),False)
 ])
 
-df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
-display(df_updated_column)
+
 
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
-DeltaSaveDataframeDirect(df_updated_column, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
+DeltaSaveDataframeDirect(df_cleansed, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", newSchema, "")
 
 # COMMAND ----------
 

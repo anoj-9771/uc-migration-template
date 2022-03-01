@@ -175,9 +175,10 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
+#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
 df_cleansed = spark.sql(f"SELECT  \
                             case when stg.ANLAGE = 'na' then '' else stg.ANLAGE end as installationId, \
-                            stg.SPARTE as divisonCode, \
+                            stg.SPARTE as divisionCode, \
                             div.division, \
                             stg.VSTELLE as premise, \
                             stg.BEZUG as reference, \
@@ -186,9 +187,9 @@ df_cleansed = spark.sql(f"SELECT  \
                             stg.SERVICE as serviceTypeCode, \
                             ser.serviceType, \
                             stg.ETIMEZONE as timeZone, \
-                            to_date(stg.ERDAT, 'yyyy-MM-dd') as createdDate, \
+                            ToValidDate(stg.ERDAT) as createdDate, \
                             stg.ERNAM as createdBy, \
-                            to_date(stg.AEDAT, 'yyyy-MM-dd') as lastChangedDate, \
+                            ToValidDate(stg.AEDAT) as lastChangedDate, \
                             stg.AENAM as lastChangedBy, \
                             stg.BEGRU as authorizationGroupCode, \
                             stg.LOEVM as deletedIndicator, \
@@ -202,13 +203,12 @@ df_cleansed = spark.sql(f"SELECT  \
                             stg._RecordCurrent \
                         FROM {ADS_DATABASE_STAGE}.{source_object} stg \
                         LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0DIVISION_TEXT div on div.divisionCode = stg.SPARTE \
-                                                                                                    and dic._RecordDeleted = 0 and div._RecordCurrent = 1 \
+                                                                                                    and div._RecordDeleted = 0 and div._RecordCurrent = 1 \
                         LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UC_SERTYPE_TEXT ser on ser.serviceTypeCode = stg.SERVICE \
                                                                                                     and ser._RecordDeleted = 0 and ser._RecordCurrent = 1 \
-                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_TE438T mrc ON mrc.meterReadingControlCode = inst.ABLESARTST \
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_TE438T mrc ON mrc.meterReadingControlCode = stg.ABLESARTST \
                                                                                                     and mrc._RecordDeleted = 0 and mrc._RecordCurrent = 1")
 
-display(df_cleansed)
 print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
@@ -216,8 +216,8 @@ print(f'Number of rows: {df_cleansed.count()}')
 # Create schema for the cleanse table
 newSchema = StructType([
                         StructField("installationId", StringType(), False),
-                        StructField("divisonCode", StringType(), True),
-                        StructField("divison", StringType(), True),
+                        StructField("divisionCode", StringType(), True),
+                        StructField("division", StringType(), True),
                         StructField("premise", StringType(), True),
                         StructField("reference", StringType(), True),
                         StructField("meterReadingControlCode", StringType(), True),
@@ -241,17 +241,12 @@ newSchema = StructType([
                         StructField('_RecordCurrent',IntegerType(),False)
                       ])
 
-# Apply the new schema to cleanse Data Frame
-df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
-display(df_updated_column)
-
-
 
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
-DeltaSaveDataframeDirect(df_updated_column, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
+DeltaSaveDataframeDirect(df_cleansed, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", newSchema, "")
 
 # COMMAND ----------
 

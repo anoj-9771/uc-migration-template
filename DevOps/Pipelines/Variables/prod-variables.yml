@@ -93,23 +93,22 @@ variables:
   # Flag to specify whether Data Factory requires Git Integration.
   - name: isRepoEnabled
     value: false 
-  
   # Environment Parameterisation of Trigger Variables
   - name: BATCH_DAILY_HYDRA_properties_typeProperties_scope
-    value: /subscriptions/769a62b3-7481-44ae-878e-a466593f50ac/resourcegroups/rg-swcprod01-prod-daf-01/providers/Microsoft.Storage/storageAccounts/sadafprod01
+    value: /subscriptions/$(subscriptionId)/resourcegroups/$(resourcegroupname)/providers/Microsoft.Storage/storageAccounts/$(datalakestorageaccountnames)
   - name: BATCH_DAILY_SAPCRM_properties_typeProperties_scope
-    value: /subscriptions/769a62b3-7481-44ae-878e-a466593f50ac/resourcegroups/rg-swcprod01-prod-daf-01/providers/Microsoft.Storage/storageAccounts/sadafprod01
+    value: /subscriptions/$(subscriptionId)/resourcegroups/$(resourcegroupname)/providers/Microsoft.Storage/storageAccounts/$(datalakestorageaccountnames) 
   - name: BATCH_DAILY_SAPISU_properties_typeProperties_scope
-    value: /subscriptions/769a62b3-7481-44ae-878e-a466593f50ac/resourcegroups/rg-swcprod01-prod-daf-01/providers/Microsoft.Storage/storageAccounts/sadafprod01
-   
+    value: /subscriptions/$(subscriptionId)/resourcegroups/$(resourcegroupname)/providers/Microsoft.Storage/storageAccounts/$(datalakestorageaccountnames) 
+  
   # Environment Parameterisation of Managed Private Endpoints
   - name: mpe_sablob01_properties_privateLinkResourceId
-    value: /subscriptions/769a62b3-7481-44ae-878e-a466593f50ac/resourceGroups/rg-swcprod01-daf-prod-01/providers/Microsoft.Storage/storageAccounts/sablobdafprod01
+    value: /subscriptions/$(subscriptionId)/resourceGroups/$(resourcegroupname)/providers/Microsoft.Storage/storageAccounts/$(blobstorageaccountnames)
   - name: mpe_salake01_properties_privateLinkResourceId
-    value: /subscriptions/769a62b3-7481-44ae-878e-a466593f50ac/resourceGroups/rg-swcprod01-daf-prod-01/providers/Microsoft.Storage/storageAccounts/sadafprod01
+    value: /subscriptions/$(subscriptionId)/resourceGroups/$(resourcegroupname)/providers/Microsoft.Storage/storageAccounts/$(datalakestorageaccountnames)
   - name: mpe_sqlserver_01_properties_groupId
-    value: /subscriptions/769a62b3-7481-44ae-878e-a466593f50ac/resourceGroups/rg-swcprod01-daf-prod-01/providers/Microsoft.Sql/servers/sql-swcprod01-daf-prod-01
-  
+    value: /subscriptions/$(subscriptionId)/resourceGroups/$(resourcegroupname)/providers/Microsoft.Sql/servers/sql-swcprod01-daf-prod-01
+
   # ------------------------------------------------
   # Log Analytics related
   # ------------------------------------------------
@@ -122,10 +121,18 @@ variables:
   # ------------------------------------------------
   # Databricks related
   # ------------------------------------------------
+  - name: nsgname
+    value: nsg-$(SUBSCRIPTION)-$(PREFIX)-$(ENVIRONMENT)-$(INCREMENT)
+  - name: nsgid
+    value: 
   - name: databricks_base_url 
-    value: https://adb-5148661409353183.3.azuredatabricks.net/ #Get this after databricks environment has been deployed
+    value: https://adb-1108007146617792.12.azuredatabricks.net/ #Get this after databricks environment has been deployed
   - name: vnetresourcegroupname
     value: rg-swcprod01-prod-network-01
+  - name: publicsubnetcidr
+    value: 10.97.47.192/26
+  - name: privatesubnetcidr
+    value: 10.97.47.128/26 
   - name: custompublicsubnetname
     value: snet-$(SUBSCRIPTION)-ae-$(environment)-daf-dbwpublic-01
   - name: customprivatesubnetname
@@ -174,9 +181,9 @@ variables:
   # Azure Devops Self-hosted VM related
   # ------------------------------------------------
   - name: vmSizeDevops
-    value: Standard_D2ds_v4
+    value: Standard_D2as_v4
   - name: vmNameDevops
-    value: ln097pdevops02
+    value: ln097pdevops01
   - name: publisherDevops
     value: RedHat
   - name: offerDevops
@@ -192,9 +199,9 @@ variables:
   # Azure IR Self-hosted VM related
   # ------------------------------------------------
   - name: vmSizeIR
-    value: Standard_D8ds_v5
+    value: Standard_D2as_v4
   - name: vmNameIR
-    value: nt097padf
+    value: nt097padf01
   # ------------------------------------------------
   # Azure SLT VM related
   # ------------------------------------------------

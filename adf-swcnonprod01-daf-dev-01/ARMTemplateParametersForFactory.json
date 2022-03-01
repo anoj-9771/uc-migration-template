@@ -51,19 +51,19 @@
 			"value": "BATCH_DAILY_HYDRA"
 		},
 		"BATCH_DAILY_HYDRA_properties_typeProperties_scope": {
-			"value": "/subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-daf-dev-01/providers/Microsoft.Storage/storageAccounts/sadafdev01"
+			"value": "/subscriptions/769a62b3-7481-44ae-878e-a466593f50ac/resourcegroups/rg-swcprod01-preprod-daf-01/providers/Microsoft.Storage/storageAccounts/sadafpreprod01"
 		},
 		"BATCH_DAILY_SAPCRM_properties_01-Main_parameters_TriggerName": {
 			"value": "BATCH_DAILY_SAPCRM"
 		},
 		"BATCH_DAILY_SAPCRM_properties_typeProperties_scope": {
-			"value": "/subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-daf-dev-01/providers/Microsoft.Storage/storageAccounts/sadafdev01"
+			"value": "/subscriptions/769a62b3-7481-44ae-878e-a466593f50ac/resourcegroups/rg-swcprod01-preprod-daf-01/providers/Microsoft.Storage/storageAccounts/sadafpreprod01"
 		},
 		"BATCH_DAILY_SAPISU_properties_01-Main_parameters_TriggerName": {
 			"value": "BATCH_DAILY_SAPISU"
 		},
 		"BATCH_DAILY_SAPISU_properties_typeProperties_scope": {
-			"value": "/subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-daf-dev-01/providers/Microsoft.Storage/storageAccounts/sadafdev01"
+			"value": "/subscriptions/769a62b3-7481-44ae-878e-a466593f50ac/resourcegroups/rg-swcprod01-preprod-daf-01/providers/Microsoft.Storage/storageAccounts/sadafpreprod01"
 		},
 		"DLY1300_properties_01-Main_parameters_TriggerName": {
 			"value": "DLY1300"

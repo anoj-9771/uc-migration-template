@@ -175,12 +175,13 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
+#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
 df_cleansed = spark.sql(f"SELECT  \
                                   case when BELNR = 'na' then '' else BELNR end as billingDocumentNumber, \
                                   case when OUTCNSO = 'na' then '' else OUTCNSO end as outsortingNumber, \
                                   VALIDATION as billingValidationName, \
                                   MANOUTSORT as manualOutsortingReasonCode, \
-                                  to_date(FREI_AM, 'yyyy-MM-dd') as documentReleasedDate, \
+                                  ToValidDate(FREI_AM) as documentReleasedDate, \
                                   FREI_VON as documentReleasedUserName, \
                                   cast(DEVIATION as double) as deviation, \
                                   SIMULATION as billingSimulationIndicator, \
@@ -190,7 +191,7 @@ df_cleansed = spark.sql(f"SELECT  \
                                   _RecordDeleted, \
                                   _RecordCurrent \
                                FROM {ADS_DATABASE_STAGE}.{source_object}")
-display(df_cleansed)
+
 print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
@@ -211,14 +212,12 @@ newSchema = StructType([
                         StructField('_RecordCurrent', IntegerType(), False),
                     ])
 
-df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
-display(df_updated_column)
 
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
-DeltaSaveDataframeDirect(df_updated_column, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
+DeltaSaveDataframeDirect(df_cleansed, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", newSchema, "")
 
 # COMMAND ----------
 

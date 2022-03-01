@@ -4,10 +4,21 @@
 		"annotations": [],
 		"type": "AzureBlobFS",
 		"typeProperties": {
-			"url": "https://sadafdev01.dfs.core.windows.net"
+			"url": "https://sadafdev01.dfs.core.windows.net",
+			"tenant": "8351bb5c-749d-4ee4-b1c4-71a3971acbe9",
+			"servicePrincipalId": "acff96db-8630-433b-bbb1-35a3813fa036",
+			"servicePrincipalCredentialType": "ServicePrincipalKey",
+			"servicePrincipalCredential": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "LS-AzureKeyVault",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "SERVICE-PRINCIPAL-SECRET"
+			}
 		},
 		"connectVia": {
-			"referenceName": "IntegrationRuntime-SelfHosted",
+			"referenceName": "IntegrationRuntime-Azure-ManagedVnet-01",
 			"type": "IntegrationRuntimeReference"
 		}
 	},

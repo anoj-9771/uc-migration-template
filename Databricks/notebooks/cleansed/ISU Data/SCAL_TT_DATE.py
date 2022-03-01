@@ -174,9 +174,10 @@ DeltaSaveToDeltaTable (
 # COMMAND ----------
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
-#Update/rename Column    
+#Update/rename Column
+#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns    
 df_cleansed = spark.sql(f"SELECT \
-                                to_date(CALENDARDATE,'yyyy-MM-dd') as calendarDate , \
+                                ToValidDate(CALENDARDATE,'MANDATORY') as calendarDate , \
                                 CALENDARDAY as dayOfMonth , \
                                 CALENDARDAYOFYEAR as dayOfYear  , \
                                 WEEKDAY as dayOfWeek  , \
@@ -188,17 +189,16 @@ df_cleansed = spark.sql(f"SELECT \
                                 YEARWEEK as calendarYearWeek  , \
                                 YEARMONTH as calendarYearMonth  , \
                                 YEARQUARTER as calendarYearQuarter  , \
-                                to_date(FIRSTDAYOFMONTHDATE,'yyyy-MM-dd')  as monthStartDate  , \
-                                to_date(LASTDAYOFMONTHDATE,'yyyy-MM-dd') as monthEndDate  , \
+                                ToValidDate(FIRSTDAYOFMONTHDATE)  as monthStartDate  , \
+                                ToValidDate(LASTDAYOFMONTHDATE) as monthEndDate  , \
                                 _RecordStart, \
                                 _RecordEnd, \
                                 _RecordDeleted, \
                                 _RecordCurrent \
                                FROM {ADS_DATABASE_STAGE}.{source_object} \
-                               where calendardate <> 'na' \
+                               where calendardate <> 'na' and calendardate <= '2099-12-31' \
                                order by 1")
 
-display(df_cleansed)
 print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
@@ -223,15 +223,13 @@ newSchema = StructType([
                             StructField('_RecordDeleted', IntegerType(), False),
                             StructField('_RecordCurrent', IntegerType(), False),
                     ])
-df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
-display(df_updated_column)
 
 
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
-DeltaSaveDataframeDirect(df_updated_column, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
+DeltaSaveDataframeDirect(df_cleansed, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", newSchema, "")
 
 # COMMAND ----------
 

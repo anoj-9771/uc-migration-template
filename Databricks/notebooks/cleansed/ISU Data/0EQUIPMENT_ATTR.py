@@ -175,35 +175,36 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
+#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
 df_cleansed = spark.sql(f"SELECT \
-                            case when EQUI.EQUNR = 'na' then '' else EQUI.EQUNR end as equipmentNumber,\
-                            case when EQUI.DATETO = 'na' then to_date('2099-12-31', 'yyyy-MM-dd') else to_date(EQUI.DATETO, 'yyyy-MM-dd') end as validToDate,\
-                            case when EQUI.DATEFROM < '1900-01-01' then to_date('1900-01-01', 'yyyy-MM-dd') else to_date(EQUI.DATEFROM, 'yyyy-MM-dd') end as validFromDate,\
-                            EQUI.EQART as technicalObjectTypeCode,\
-                            EQUI.INVNR as inventoryNumber,\
-                            EQUI.IWERK as maintenancePlanningPlant,\
-                            EQUI.KOKRS as controllingArea,\
-                            EQUI.TPLNR as functionalLocationNumber,\
-                            EQUI.SWERK as maintenancePlant,\
-                            EQUI.ADRNR as addressNumber,\
-                            EQUI.BUKRS as companyCode,\
-                            COMP.companyName as companyName,\
-                            EQUI.MATNR as materialNumber,\
-                            EQUI.ANSWT as acquisitionValue,\
-                            to_date(EQUI.ANSDT, 'yyyy-MM-dd') as acquisitionDate,\
-                            to_date(EQUI.ERDAT, 'yyyy-MM-dd') as createdDate,\
-                            to_date(EQUI.AEDAT, 'yyyy-MM-dd') as lastChangedDate,\
-                            to_date(EQUI.INBDT, 'yyyy-MM-dd') as startUpDate,\
-                            cast(EQUI.PROID as int) as workBreakdownStructureElement,\
+                            case when EQUI.EQUNR = 'na' then '' else EQUI.EQUNR end as equipmentNumber, \
+                            ToValidDate((case when EQUI.DATETO = 'na' then '2099-12-31' else EQUI.DATETO end),'MANDATORY') as validToDate, \
+                            ToValidDate(EQUI.DATEFROM) as validFromDate, \
+                            EQUI.EQART as technicalObjectTypeCode, \
+                            EQUI.INVNR as inventoryNumber, \
+                            EQUI.IWERK as maintenancePlanningPlant, \
+                            EQUI.KOKRS as controllingArea, \
+                            EQUI.TPLNR as functionalLocationNumber, \
+                            EQUI.SWERK as maintenancePlant, \
+                            EQUI.ADRNR as addressNumber, \
+                            EQUI.BUKRS as companyCode, \
+                            COMP.companyName as companyName, \
+                            EQUI.MATNR as materialNumber, \
+                            EQUI.ANSWT as acquisitionValue, \
+                            ToValidDate(EQUI.ANSDT) as acquisitionDate, \
+                            ToValidDate(EQUI.ERDAT) as createdDate, \
+                            ToValidDate(EQUI.AEDAT) as lastChangedDate, \
+                            ToValidDate(EQUI.INBDT) as startUpDate, \
+                            cast(EQUI.PROID as int) as workBreakdownStructureElement, \
                             EQUI.EQTYP as equipmentCategoryCode, \
-                            EQUI._RecordStart,\
-                            EQUI._RecordEnd,\
-                            EQUI._RecordDeleted,\
+                            EQUI._RecordStart, \
+                            EQUI._RecordEnd, \
+                            EQUI._RecordDeleted, \
                             EQUI._RecordCurrent \
                           FROM {ADS_DATABASE_STAGE}.{source_object} EQUI \
                           LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0COMP_CODE_TEXT COMP ON EQUI.BUKRS = COMP.companyCode \
                                                                                               and COMP._RecordDeleted = 0 and COMP._RecordCurrent = 1")
-display(df_cleansed)
+
 print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
@@ -237,15 +238,13 @@ newSchema = StructType(
                   StructField('_RecordCurrent',IntegerType(),False)
   ]
 )
-# Apply the new schema to cleanse Data Frame
-df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
-display(df_updated_column)
+
 
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
-DeltaSaveDataframeDirect(df_updated_column, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
+DeltaSaveDataframeDirect(df_cleansed, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", newSchema, "")
 
 # COMMAND ----------
 

@@ -175,6 +175,7 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
+#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
 df_cleansed = spark.sql(f"SELECT \
                                 GPART as businessPartnerGroupNumber, \
                                 VKONT as contractAccountNumber, \
@@ -194,9 +195,9 @@ df_cleansed = spark.sql(f"SELECT \
                                 SENDCONTROL_GP as dispatchControl, \
                                 KZABSVER as billingProcedureActivationIndicator, \
                                 JVLTE as participationInYearlyAdvancePayment, \
-                                to_date(ERDAT, 'yyyy-MM-dd') as createdDate, \
+                                ToValidDate(ERDAT) as createdDate, \
                                 ERNAM as createdBy, \
-                                to_date(AEDATP, 'yyyy-MM-dd') as lastChangedDate, \
+                                ToValidDate(AEDATP) as lastChangedDate, \
                                 AENAMP as changedBy, \
                                 FDZTG as additionalDaysForCashManagement, \
                                 GUID as headerUUID, \
@@ -230,7 +231,7 @@ df_cleansed = spark.sql(f"SELECT \
                         FROM {ADS_DATABASE_STAGE}.{source_object} acc \
                         LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0FC_ACCTREL_TEXT acc_txt ON acc.VKPBZ = acc_txt.accountRelationshipCode and acc_txt._RecordDeleted = 0 and acc_txt._RecordCurrent = 1")
 
-display(df_cleansed)
+
 print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
@@ -289,14 +290,13 @@ newSchema = StructType([
 	StructField('_RecordCurrent',IntegerType(),False)
 ])
 
-df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
-display(df_updated_column)
+
 
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
-DeltaSaveDataframeDirect(df_updated_column, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
+DeltaSaveDataframeDirect(df_cleansed, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", newSchema, "")
 
 # COMMAND ----------
 

@@ -175,12 +175,13 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_cleansed_column = spark.sql(f"SELECT  \
+#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
+df_cleansed = spark.sql(f"SELECT  \
                                     case when BELNR = 'na' then '' else BELNR end as billingDocumentNumber, \
                                     case when BELZEILE = 'na' then '' else BELZEILE end as billingDocumentLineItemId, \
                                     MWSKZ as taxSalesCode, \
-                                    ERMWSKZ as texDeterminationCode, \
-                                    cast(NETTOBTR as double) as billingLineItemNetAmount, \
+                                    ERMWSKZ as taxDeterminationCode, \
+                                    cast(NETTOBTR as dec(13,2)) as billingLineItemNetAmount, \
                                     TWAERS as transactionCurrency, \
                                     PREISTUF as priceLevel, \
                                     PREISTYP as priceCategory, \
@@ -190,13 +191,13 @@ df_cleansed_column = spark.sql(f"SELECT  \
                                     BISZONE as toBlock, \
                                     ZONENNR as numberOfPriceBlock, \
                                     cast(PREISBTR as dec(17,8)) as priceAmount, \
-                                    cast(MNGBASIS as dec(9,7)) as amountLongQuantityBase, \
-                                    PREIGKL as priceAdjustemntClause, \
-                                    cast(URPREIS as dec(17)) as priceAdjustemntClauseBasePrice, \
-                                    cast(PREIADD as dec(17)) as addedAdjustmentPrice, \
-                                    cast(PREIFAKT as dec(12)) as priceAdjustmentFactor, \
+                                    cast(MNGBASIS as dec(9,2)) as amountLongQuantityBase, \
+                                    PREIGKL as priceAdjustmentClause, \
+                                    cast(URPREIS as dec(17,8)) as priceAdjustmentClauseBasePrice, \
+                                    cast(PREIADD as dec(17,8)) as addedAdjustmentPrice, \
+                                    cast(PREIFAKT as dec(12,7)) as priceAdjustmentFactor, \
                                     OPMULT as additionFirst, \
-                                    to_date(TXDAT_KK, 'yyyyMMdd') as taxDecisiveDate, \
+                                    ToValidDate(TXDAT_KK) as  taxDecisiveDate, \
                                     PRCTR as profitCenter, \
                                     KOSTL as costCenter, \
                                     PS_PSP_PNR as wbsElement, \
@@ -217,7 +218,8 @@ df_cleansed_column = spark.sql(f"SELECT  \
                                     _RecordDeleted, \
                                     _RecordCurrent \
                                FROM {ADS_DATABASE_STAGE}.{source_object}")
-display(df_cleansed_column)
+
+print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
 
@@ -225,8 +227,8 @@ newSchema = StructType([
                         StructField('billingDocumentNumber', StringType(), False),
                         StructField('billingDocumentLineItemId', StringType(), False),
                         StructField('taxSalesCode', StringType(), True),
-                        StructField('texDeterminationCode', StringType(), True),
-                        StructField('billingLineItemNetAmount', DoubleType(), True),
+                        StructField('taxDeterminationCode', StringType(), True),
+                        StructField('billingLineItemNetAmount', DecimalType(13,2), True),
                         StructField('transactionCurrency', StringType(), True),
                         StructField('priceLevel', StringType(), True),
                         StructField('priceCategory', StringType(), True),
@@ -236,11 +238,11 @@ newSchema = StructType([
                         StructField('toBlock', StringType(), True),
                         StructField('numberOfPriceBlock', StringType(), True),
                         StructField('priceAmount', DecimalType(17,8), True),
-                        StructField('amountLongQuantityBase', DecimalType(9,7), True),
-                        StructField('priceAdjustemntClause', StringType(), True),
-                        StructField('priceAdjustemntClauseBasePrice', DecimalType(17), True),
-                        StructField('addedAdjustmentPrice', DecimalType(17), True),
-                        StructField('priceAdjustmentFactor', DecimalType(12), True),
+                        StructField('amountLongQuantityBase', DecimalType(9,2), True),
+                        StructField('priceAdjustmentClause', StringType(), True),
+                        StructField('priceAdjustmentClauseBasePrice', DecimalType(17,8), True),
+                        StructField('addedAdjustmentPrice', DecimalType(17,8), True),
+                        StructField('priceAdjustmentFactor', DecimalType(12,7), True),
                         StructField('additionFirst', StringType(), True),
                         StructField('taxDecisiveDate', DateType(), True),
                         StructField('profitCenter', StringType(), True),
@@ -264,14 +266,12 @@ newSchema = StructType([
                         StructField('_RecordCurrent',IntegerType(),False)
                     ])
 
-df_updated_column = spark.createDataFrame(df_cleansed_column.rdd, schema=newSchema)
-display(df_updated_column)
 
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
-DeltaSaveDataframeDirect(df_updated_column, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
+DeltaSaveDataframeDirect(df_cleansed, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", newSchema, "")
 
 # COMMAND ----------
 

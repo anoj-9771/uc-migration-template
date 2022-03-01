@@ -81,15 +81,34 @@ variables:
   # Databricks workspace name for this enironment
   - name: databricksworkspacename
     value: dbw-$(SUBSCRIPTION)-$(PREFIX)-$(ENVIRONMENT)-$(INCREMENT)
-  # Data Factory service name for this environment
+# ------------------------------------------------
+  # Datafactory related
+  # ------------------------------------------------
+    # Data Factory service name for this environment
   - name: datafactoryname
-    value: adf-$(SUBSCRIPTION)-$(PREFIX)-$(ENVIRONMENT)-$(INCREMENT)
+    value: adf-$(SUBSCRIPTION)-$(PREFIX)-$(ENVIRONMENT)-$(INCREMENT)  
   # Data Factory self hosted integrated runtime name
   - name: datafactoryshirname
     value: $(PREFIX)-SHIR
   # Flag to specify whether Data Factory requires Git Integration.
   - name: isRepoEnabled
-    value: false  
+    value: false 
+  # Environment Parameterisation of Trigger Variables
+  - name: BATCH_DAILY_HYDRA_properties_typeProperties_scope
+    value: /subscriptions/769a62b3-7481-44ae-878e-a466593f50ac/resourcegroups/rg-swcprod01-preprod-daf-01/providers/Microsoft.Storage/storageAccounts/sadafpreprod01
+  - name: BATCH_DAILY_SAPCRM_properties_typeProperties_scope
+    value: /subscriptions/769a62b3-7481-44ae-878e-a466593f50ac/resourcegroups/rg-swcprod01-preprod-daf-01/providers/Microsoft.Storage/storageAccounts/sadafpreprod01
+  - name: BATCH_DAILY_SAPISU_properties_typeProperties_scope
+    value: /subscriptions/769a62b3-7481-44ae-878e-a466593f50ac/resourcegroups/rg-swcprod01-preprod-daf-01/providers/Microsoft.Storage/storageAccounts/sadafpreprod01
+   
+  # Environment Parameterisation of Managed Private Endpoints
+  - name: mpe_sablob01_properties_privateLinkResourceId
+    value: /subscriptions/769a62b3-7481-44ae-878e-a466593f50ac/resourceGroups/rg-swcprod01-daf-preprod-01/providers/Microsoft.Storage/storageAccounts/sablobdafpreprod01
+  - name: mpe_salake01_properties_privateLinkResourceId
+    value: /subscriptions/769a62b3-7481-44ae-878e-a466593f50ac/resourceGroups/rg-swcprod01-daf-preprod-01/providers/Microsoft.Storage/storageAccounts/sadafpreprod01
+  - name: mpe_sqlserver_01_properties_groupId
+    value: /subscriptions/769a62b3-7481-44ae-878e-a466593f50ac/resourceGroups/rg-swcprod01-daf-preprod-01/providers/Microsoft.Sql/servers/sql-swcprod01-daf-preprod-01
+  
   # ------------------------------------------------
   # Log Analytics related
   # ------------------------------------------------
@@ -111,13 +130,13 @@ variables:
   - name: vnetresourcegroupname
     value: rg-swcprod01-preprod-network-01
   - name: publicsubnetcidr
-    value: 10.97.46.192/26
+    value: 10.97.64.128/26
   - name: privatesubnetcidr
-    value: 10.97.46.128/26
+    value:  10.97.64.64/26
   - name: custompublicsubnetname
-    value: snet-$(SUBSCRIPTION)-ae-$(environment)-daf-dbwpublic-01
+    value: snet-swcprod01-ae-preprod-daf-dbwpublic-01
   - name: customprivatesubnetname
-    value: snet-$(SUBSCRIPTION)-ae-$(environment)-daf-dbwprivate-01
+    value: snet-swcprod01-ae-preprod-daf-dbwprivate-01
   - name: databrickspricingtier
     value: premium
   - name: databricksclustername
@@ -151,7 +170,7 @@ variables:
   # Azure VMs Common related
   # ------------------------------------------------
   - name: adminUsername
-    value: nt_sup
+    value: nt_supp
   - name: publisher
     value: MicrosoftWindowsServer
   - name: offer
@@ -162,7 +181,7 @@ variables:
   # Azure Devops Self-hosted VM related
   # ------------------------------------------------
   - name: vmSizeDevops
-    value: Standard_D2ds_v5
+    value: Standard_D2as_v4
   - name: vmNameDevops
     value: ln097qdevops01
   - name: publisherDevops
@@ -180,7 +199,7 @@ variables:
   # Azure IR Self-hosted VM related
   # ------------------------------------------------
   - name: vmSizeIR
-    value: Standard_D2ds_v5
+    value: Standard_D2as_v4
   - name: vmNameIR
     value: nt097qadf01
   # ------------------------------------------------

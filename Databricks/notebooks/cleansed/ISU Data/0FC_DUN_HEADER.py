@@ -175,8 +175,9 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
+#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
 df_cleansed = spark.sql(f"SELECT \
-	case when LAUFD = 'na' then to_date('1900-01-01') else to_date(LAUFD) end as dateId, \
+	ToValidDate(LAUFD,'MANDATORY') as dateId, \
 	case when LAUFI = 'na' then '' else LAUFI end as additionalIdentificationCharacteristic, \
 	case when GPART = 'na' then '' else GPART end as businessPartnerGroupNumber, \
 	case when VKONT = 'na' then '' else VKONT end as contractAccountNumber, \
@@ -184,8 +185,8 @@ df_cleansed = spark.sql(f"SELECT \
     ABWBL as ficaDocumentNumber, \
     ABWTP as ficaDocumentCategory, \
     GSBER as businessArea, \
-	to_date(AUSDT, 'yyyy-MM-dd') as dateOfIssue, \
-	to_date(MDRKD, 'yyyy-MM-dd') as noticeExecutionDate, \
+	ToValidDate(AUSDT) as dateOfIssue, \
+	ToValidDate(MDRKD) as noticeExecutionDate, \
 	VKONTGRP as contractAccountGroup, \
 	cast(ITEMGRP as dec(15,0)) as dunningClosedItemGroup, \
 	STRAT as collectionStrategyCode, \
@@ -200,7 +201,7 @@ df_cleansed = spark.sql(f"SELECT \
 	MAHNS as dunningLevel, \
 	WAERS as currencyKey, \
 	cast(MSALM as dec(13,2)) as dunningBalance, \
-	cast(RSALM as dec(13,2)) as totalDuningReductions, \
+	cast(RSALM as dec(13,2)) as totalDunningReductions, \
 	CHGID as chargesSchedule, \
 	cast(MGE1M as dec(13,2)) as dunningCharge1, \
 	MG1BL as documentNumber, \
@@ -221,7 +222,6 @@ df_cleansed = spark.sql(f"SELECT \
 	_RecordCurrent \
 	FROM {ADS_DATABASE_STAGE}.{source_object}")
 
-display(df_cleansed)
 print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
@@ -251,7 +251,7 @@ newSchema = StructType([
 	StructField('dunningLevel',StringType(),True),
 	StructField('currencyKey',StringType(),True),
 	StructField('dunningBalance',DecimalType(13,2),True),
-	StructField('totalDuningReductions',DecimalType(13,2),True),
+	StructField('totalDunningReductions',DecimalType(13,2),True),
 	StructField('chargesSchedule',StringType(),True),
 	StructField('dunningCharge1',DecimalType(13,2),True),
 	StructField('documentNumber',StringType(),True),
@@ -272,14 +272,12 @@ newSchema = StructType([
 	StructField('_RecordCurrent',IntegerType(),False)
 ])
 
-df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
-display(df_updated_column)
 
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
-DeltaSaveDataframeDirect(df_updated_column, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
+DeltaSaveDataframeDirect(df_cleansed, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", newSchema, "")
 
 # COMMAND ----------
 

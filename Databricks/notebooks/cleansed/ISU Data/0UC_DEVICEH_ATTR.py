@@ -175,22 +175,25 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
+#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
 df_cleansed = spark.sql(f"SELECT \
                             case when dev.EQUNR = 'na' then '' else dev.EQUNR end as equipmentNumber, \
-                            case when dev.BIS = 'na' then to_date('1900-01-01','yyyy-MM-dd') else to_date(dev.BIS, 'yyyy-MM-dd') end as validToDate, \
-                            to_date(dev.AB, 'yyyy-MM-dd') as validFromDate, \
+                            ToValidDate((case when dev.BIS = 'na' then '2099-12-31' else dev.BIS end),'MANDATORY') as validToDate, \
+                            ToValidDate(dev.AB) as validFromDate, \
                             dev.KOMBINAT as deviceCategoryCombination, \
-                            cast(dev.LOGIKNR as long) as logicalDeviceNumber, \
+                            cast(dev.LOGIKNR as Long) as logicalDeviceNumber, \
                             dev.ZWGRUPPE as registerGroupCode, \
-                            to_date(dev.EINBDAT, 'yyyy-MM-dd') as installationDate, \
-                            to_date(dev.AUSBDAT, 'yyyy-MM-dd') as deviceRemovalDate, \
+                            c.registerGroup, \
+                            ToValidDate(dev.EINBDAT) as installationDate, \
+                            ToValidDate(dev.AUSBDAT) as deviceRemovalDate, \
                             dev.GERWECHS as activityReasonCode, \
+                            b.activityReason, \
                             dev.DEVLOC as deviceLocation, \
                             dev.WGRUPPE as windingGroup, \
                             dev.LOEVM as deletedIndicator, \
                             dev.UPDMOD as bwDeltaProcess, \
-                            cast(dev.AMCG_CAP_GRP as int) as advancedMeterCapabilityGroup, \
-                            cast(dev.MSG_ATTR_ID as int) as messageAttributeId, \
+                            cast(dev.AMCG_CAP_GRP as Integer) as advancedMeterCapabilityGroup, \
+                            cast(dev.MSG_ATTR_ID as Integer) as messageAttributeId, \
                             dev.ZZMATNR as materialNumber, \
                             dev.ZANLAGE as installationId, \
                             dev.ZADDRNUMBER as addressNumber, \
@@ -206,9 +209,11 @@ df_cleansed = spark.sql(f"SELECT \
                             dev._RecordEnd, \
                             dev._RecordDeleted, \
                             dev._RecordCurrent \
-                        FROM {ADS_DATABASE_STAGE}.{source_object} dev")
+                        FROM {ADS_DATABASE_STAGE}.{source_object} dev \
+                            left outer join cleansed.isu_0UC_GERWECHS_TEXT b on dev.GERWECHS = b.activityReasonCode \
+                            left outer join cleansed.isu_0UC_REGGRP_TEXT c on dev.ZWGRUPPE = c.registerGroupCode")
 
-display(df_cleansed)
+
 print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
@@ -220,9 +225,11 @@ newSchema = StructType([
                           StructField('deviceCategoryCombination',StringType(),True),
                           StructField('logicalDeviceNumber',LongType(),True),                                      
                           StructField('registerGroupCode',StringType(),True),
+                          StructField('registerGroup',StringType(),True),
                           StructField('installationDate',DateType(),True),
                           StructField('deviceRemovalDate',DateType(),True),
                           StructField('activityReasonCode',StringType(),True),
+                          StructField('activityReason',StringType(),True),
                           StructField('deviceLocation',StringType(),True),
                           StructField('windingGroup',StringType(),True),
                           StructField('deletedIndicator',StringType(),True),
@@ -246,14 +253,13 @@ newSchema = StructType([
                           StructField('_RecordCurrent',IntegerType(),False)
                         ])
                                       
-df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
-display(df_updated_column)
+
 
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
-DeltaSaveDataframeDirect(df_updated_column, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
+DeltaSaveDataframeDirect(df_cleansed, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", newSchema, "")
 
 # COMMAND ----------
 

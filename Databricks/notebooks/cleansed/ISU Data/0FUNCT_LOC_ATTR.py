@@ -175,6 +175,7 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
+#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
 df_cleansed = spark.sql(f"SELECT  \
                                   case when TPLNR = 'na' then '' else TPLNR end as functionalLocationNumber, \
                                   FLTYP as functionalLocationCategory, \
@@ -185,10 +186,10 @@ df_cleansed = spark.sql(f"SELECT  \
                                   BUKRS as companyCode, \
                                   cc.companyName as companyName, \
                                   PROID as workBreakdownStructureElement, \
-                                  to_date(ERDAT, 'yyyy-MM-dd') as createdDate, \
-                                  to_date(AEDAT, 'yyyy-MM-dd') as lastChangedDate, \
+                                  ToValidDate(ERDAT) as createdDate, \
+                                  ToValidDate(AEDAT) as lastChangedDate, \
                                   ZZ_ZCD_AONR as architecturalObjectCount, \
-                                  ZZ_ADRNR as zzaddressNumber, \
+                                  ZZ_ADRNR as zzAddressNumber, \
                                   ZZ_OWNER as objectReferenceIndicator, \
                                   ZZ_VSTELLE as premiseId, \
                                   ZZ_ANLAGE as installationId, \
@@ -209,7 +210,7 @@ df_cleansed = spark.sql(f"SELECT  \
                                   ZZ_STR_SUPPL2 as streetLine2, \
                                   ZZ_CITY1 as cityName, \
                                   ZZ_REGION as stateCode, \
-                                  ZZ_POST_CODE1 as postCode, \
+                                  ZZ_POST_CODE1 as postcode, \
                                   ZZZ_LOCATION as locationDescriptionSecondary, \
                                   ZZZ_BUILDING as buildingNumberSecondary, \
                                   ZZZ_FLOOR as floorNumberSecondary, \
@@ -221,7 +222,7 @@ df_cleansed = spark.sql(f"SELECT  \
                                   ZZZ_STR_SUPPL2 as streetLine2Secondary, \
                                   ZZZ_CITY1 as cityNameSecondary, \
                                   ZZZ_REGION as stateCodeSecondary, \
-                                  ZZZ_POST_CODE1 as postCodeSecondary, \
+                                  ZZZ_POST_CODE1 as postcodeSecondary, \
                                   ZCD_BLD_FEE_DATE as buildingFeeDate, \
                                   stg._RecordStart, \
                                   stg._RecordEnd, \
@@ -231,7 +232,7 @@ df_cleansed = spark.sql(f"SELECT  \
                                  left outer join {ADS_DATABASE_CLEANSED}.isu_0comp_code_text cc on cc.companyCode = stg.BUKRS \
                                                                                                     and cc._RecordDeleted = 0 and cc._RecordCurrent = 1"
                               )
-display(df_cleansed)
+
 print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
@@ -249,7 +250,7 @@ newSchema = StructType([
                           StructField('createdDate', DateType(), True),
                           StructField('lastChangedDate', DateType(), True),
                           StructField('architecturalObjectCount', StringType(), True),
-                          StructField('zzaddressNumber', StringType(), True),
+                          StructField('zzAddressNumber', StringType(), True),
                           StructField('objectReferenceIndicator', StringType(), True),
                           StructField('premiseId', StringType(), True),
                           StructField('installationId', StringType(), True),
@@ -270,7 +271,7 @@ newSchema = StructType([
                           StructField('streetLine2', StringType(), True),
                           StructField('cityName', StringType(), True),
                           StructField('stateCode', StringType(), True),
-                          StructField('postCode', StringType(), True),
+                          StructField('postcode', StringType(), True),
                           StructField('locationDescriptionSecondary', StringType(), True),
                           StructField('buildingNumberSecondary', StringType(), True),
                           StructField('floorNumberSecondary', StringType(), True),
@@ -282,7 +283,7 @@ newSchema = StructType([
                           StructField('streetLine2Secondary', StringType(), True),
                           StructField('cityNameSecondary', StringType(), True),
                           StructField('stateCodeSecondary', StringType(), True),
-                          StructField('postCodeSecondary', StringType(), True),
+                          StructField('postcodeSecondary', StringType(), True),
                           StructField('buildingFeeDate', StringType(), True),
                           StructField('_RecordStart',TimestampType(),False),
                           StructField('_RecordEnd',TimestampType(),False),
@@ -290,14 +291,13 @@ newSchema = StructType([
                           StructField('_RecordCurrent',IntegerType(),False)
 ])
 
-df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
-display(df_updated_column)
+
 
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
-DeltaSaveDataframeDirect(df_updated_column, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
+DeltaSaveDataframeDirect(df_cleansed, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", newSchema, "")
 
 # COMMAND ----------
 

@@ -213,7 +213,7 @@ df_cleansed = spark.sql(f"SELECT cast(N_PROP as int) AS propertyNumber, \
 		case when F_READ_COMM_FREE = '1' then true else false end AS hasReadingCommentFreeFormat, \
 		cast(Q_PDE_HIGH_LOW as int) AS PDEHighLow, \
 		cast(Q_PDE_REEN_COUN as int) AS PDEReenteredCount, \
-		case when F_PDE_AUXI_READ = 'M' then true else false end AS isPDEAuxilaryReading, \
+		case when F_PDE_AUXI_READ = 'M' then true else false end AS isPDEAuxiliaryReading, \
 		to_date(D_METE_READ_UPDA, 'yyyyMMdd') AS meterReadingUpdatedDate, \
 		a._RecordStart, \
 		a._RecordEnd, \
@@ -228,7 +228,6 @@ df_cleansed = spark.sql(f"SELECT cast(N_PROP as int) AS propertyNumber, \
          left outer join CLEANSED.access_Z309_TPDEREADMETH i on a.C_PDE_READ_METH = i.PDEReadingMethodCode \
          ")
 
-display(df_cleansed)
 print(f'Number of rows: {df_cleansed.count()}')   
 
 # COMMAND ----------
@@ -259,7 +258,7 @@ newSchema = StructType([
 	StructField('hasReadingCommentFreeFormat',BooleanType(),False),
 	StructField('PDEHighLow',IntegerType(),False),
 	StructField('PDEReenteredCount',IntegerType(),False),
-	StructField('isPDEAuxilaryReading',BooleanType(),False),
+	StructField('isPDEAuxiliaryReading',BooleanType(),False),
 	StructField('meterReadingUpdatedDate',DateType(),True),
 	StructField('_RecordStart',TimestampType(),False),
 	StructField('_RecordEnd',TimestampType(),False),
@@ -267,15 +266,15 @@ newSchema = StructType([
 	StructField('_RecordCurrent',IntegerType(),False)
 ])
 
-df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
-display(df_updated_column)
-print(f'Number of rows: {df_updated_column.count()}')
+# df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
+# display(df_updated_column)
+# print(f'Number of rows: {df_updated_column.count()}')
 
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
-DeltaSaveDataframeDirect(df_updated_column, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
+DeltaSaveDataframeDirect(df_cleansed, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", newSchema, "")
 
 # COMMAND ----------
 

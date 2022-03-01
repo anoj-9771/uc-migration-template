@@ -175,27 +175,28 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_cleansed_column = spark.sql(f"SELECT  \
+#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
+df_cleansed = spark.sql(f"SELECT  \
                                   case when BELNR = 'na' then '' else BELNR end as billingDocumentNumber, \
                                   case when BELZEILE = 'na' then '' else BELZEILE end as billingDocumentLineItemId, \
                                   CSNO as billingSequenceNumber, \
                                   BELZART as lineItemTypeCode, \
                                   ABSLKZ as billingLineItemBudgetBillingIndicator, \
                                   DIFFKZ as lineItemDiscountStatisticsIndicator, \
-                                  BUCHREL as billingLineItemReleventPostingIndicator, \
-                                  MENGESTREL as billedValueStatisticallyReleventIndicator, \
-                                  BETRSTREL as billingLineItemStatisticallyReleventAmount, \
+                                  BUCHREL as billingLineItemRelevantPostingIndicator, \
+                                  MENGESTREL as billedValueStatisticallyRelevantIndicator, \
+                                  BETRSTREL as billingLineItemStatisticallyRelevantAmount, \
                                   STGRQNT as quantityStatisticsGroupCode, \
-                                  STGRAMT as amountStatisticsGroupCoide, \
-                                  PRINTREL as billingLinePrintReleventIndicator, \
+                                  STGRAMT as amountStatisticsGroupCode, \
+                                  PRINTREL as billingLinePrintRelevantIndicator, \
                                   AKLASSE as billingClassCode, \
                                   bc.billingClass as billingClass, \
                                   BRANCHE as industryText, \
                                   TVORG as subtransactionForDocumentItem, \
                                   GEGEN_TVORG as offsettingTransactionSubtransactionForDocumentItem, \
-                                  LINESORT as poresortingBillingLineItems, \
-                                  to_date(AB, 'yyyyMMdd') as validFromDate, \
-                                  to_date(BIS, 'yyyyMMdd') as validToDate, \
+                                  LINESORT as presortingBillingLineItems, \
+                                  ToValidDate(AB) as  validFromDate, \
+                                  ToValidDate(BIS) as  validToDate, \
                                   TIMTYPZA as billingLineItemTimeCategoryCode, \
                                   SCHEMANR as billingSchemaNumber, \
                                   SNO as billingSchemaStepSequenceNumber, \
@@ -212,7 +213,7 @@ df_cleansed_column = spark.sql(f"SELECT  \
                                   STTARIF as statisticalRate, \
                                   GEWKEY as weightingKeyId, \
                                   WDHFAKT as referenceValuesForRepetitionFactor, \
-                                  TEMP_AREA as tempratureArea, \
+                                  TEMP_AREA as temperatureArea, \
                                   DYNCANC01 as reversalDynamicPeriodControl1, \
                                   DYNCANC02 as reversalDynamicPeriodControl2, \
                                   DYNCANC03 as reversalDynamicPeriodControl3, \
@@ -220,19 +221,19 @@ df_cleansed_column = spark.sql(f"SELECT  \
                                   DYNCANC05 as reversalDynamicPeriodControl5, \
                                   DYNCANC as reverseBackbillingIndicator, \
                                   DYNEXEC as allocateBackbillingIndicator, \
-                                  LRATESTEP as eateStepLogicalNumber, \
+                                  LRATESTEP as rateStepLogicalNumber, \
                                   PEB as periodEndBillingIndicator, \
-                                  STAFO as statististicsUpdateGroupCode, \
+                                  STAFO as statisticsUpdateGroupCode, \
                                   ARTMENGE as billedQuantityStatisticsCode, \
                                   STATTART as statisticalAnalysisRateType, \
                                   TIMECONTRL as periodControlCode, \
-                                  cast(TCNUMTOR as dec(8)) as timesliceNumeratorTimePortion, \
-                                  cast(TCDENOMTOR as dec(8)) as timesliceDenominatorTimePortion, \
-                                  TIMTYPQUOT as timesliceTimeCatogoryTimePortion, \
+                                  cast(TCNUMTOR as dec(8,4)) as timesliceNumeratorTimePortion, \
+                                  cast(TCDENOMTOR as dec(8,4)) as timesliceDenominatorTimePortion, \
+                                  TIMTYPQUOT as timesliceTimeCategoryTimePortion, \
                                   AKTIV as meterReadingActiveIndicator, \
                                   KONZVER as franchiseContractIndicator, \
                                   PERTYP as billingPeriodInternalCategoryCode, \
-                                  OUCONTRACT as individualContractID, \
+                                  OUCONTRACT as individualContractId, \
                                   cast(V_ABRMENGE as dec(17)) as billingQuantityPlaceBeforeDecimalPoint, \
                                   cast(N_ABRMENGE as dec(14,14)) as billingQuantityPlaceAfterDecimalPoint, \
                                   stg._RecordStart, \
@@ -242,7 +243,8 @@ df_cleansed_column = spark.sql(f"SELECT  \
                                FROM {ADS_DATABASE_STAGE}.{source_object} stg \
                                  left outer join {ADS_DATABASE_CLEANSED}.isu_0uc_aklasse_text bc on bc.billingClassCode = stg.AKLASSE"
                              )
-display(df_cleansed_column)
+
+print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
 
@@ -253,18 +255,18 @@ newSchema = StructType([
                             StructField('lineItemTypeCode', StringType(), True),
                             StructField('billingLineItemBudgetBillingIndicator', StringType(), True),
                             StructField('lineItemDiscountStatisticsIndicator', StringType(), True),
-                            StructField('billingLineItemReleventPostingIndicator', StringType(), True),
-                            StructField('billedValueStatisticallyReleventIndicator', StringType(), True),
-                            StructField('billingLineItemStatisticallyReleventAmount', StringType(), True),
+                            StructField('billingLineItemRelevantPostingIndicator', StringType(), True),
+                            StructField('billedValueStatisticallyRelevantIndicator', StringType(), True),
+                            StructField('billingLineItemStatisticallyRelevantAmount', StringType(), True),
                             StructField('quantityStatisticsGroupCode', StringType(), True),
-                            StructField('amountStatisticsGroupCoide', StringType(), True),
-                            StructField('billingLinePrintReleventIndicator', StringType(), True),
+                            StructField('amountStatisticsGroupCode', StringType(), True),
+                            StructField('billingLinePrintRelevantIndicator', StringType(), True),
                             StructField('billingClassCode', StringType(), True),
                             StructField('billingClass', StringType(), True),
                             StructField('industryText', StringType(), True),
                             StructField('subtransactionForDocumentItem', StringType(), True),
                             StructField('offsettingTransactionSubtransactionForDocumentItem', StringType(), True),
-                            StructField('poresortingBillingLineItems', StringType(), True),
+                            StructField('presortingBillingLineItems', StringType(), True),
                             StructField('validFromDate', DateType(), True),
                             StructField('validToDate', DateType(), True),
                             StructField('billingLineItemTimeCategoryCode', StringType(), True),
@@ -283,7 +285,7 @@ newSchema = StructType([
                             StructField('statisticalRate', StringType(), True),
                             StructField('weightingKeyId', StringType(), True),
                             StructField('referenceValuesForRepetitionFactor', IntegerType(), True),
-                            StructField('tempratureArea', StringType(), True),
+                            StructField('temperatureArea', StringType(), True),
                             StructField('reversalDynamicPeriodControl1', StringType(), True),
                             StructField('reversalDynamicPeriodControl2', StringType(), True),
                             StructField('reversalDynamicPeriodControl3', StringType(), True),
@@ -291,19 +293,19 @@ newSchema = StructType([
                             StructField('reversalDynamicPeriodControl5', StringType(), True),
                             StructField('reverseBackbillingIndicator', StringType(), True),
                             StructField('allocateBackbillingIndicator', StringType(), True),
-                            StructField('eateStepLogicalNumber', StringType(), True),
+                            StructField('rateStepLogicalNumber', StringType(), True),
                             StructField('periodEndBillingIndicator', StringType(), True),
-                            StructField('statististicsUpdateGroupCode', StringType(), True),
+                            StructField('statisticsUpdateGroupCode', StringType(), True),
                             StructField('billedQuantityStatisticsCode', StringType(), True),
                             StructField('statisticalAnalysisRateType', StringType(), True),
                             StructField('periodControlCode', StringType(), True),
-                            StructField('timesliceNumeratorTimePortion', DecimalType(), True),
-                            StructField('timesliceDenominatorTimePortion', DecimalType(), True),
-                            StructField('timesliceTimeCatogoryTimePortion', StringType(), True),
+                            StructField('timesliceNumeratorTimePortion', DecimalType(8,4), True),
+                            StructField('timesliceDenominatorTimePortion', DecimalType(8,4), True),
+                            StructField('timesliceTimeCategoryTimePortion', StringType(), True),
                             StructField('meterReadingActiveIndicator', StringType(), True),
                             StructField('franchiseContractIndicator', StringType(), True),
                             StructField('billingPeriodInternalCategoryCode', StringType(), True),
-                            StructField('individualContractID', StringType(), True),
+                            StructField('individualContractId', StringType(), True),
                             StructField('billingQuantityPlaceBeforeDecimalPoint', DecimalType(17), True),
                             StructField('billingQuantityPlaceAfterDecimalPoint', DecimalType(14,14), True),
                             StructField('_RecordStart', DateType(), False),
@@ -312,14 +314,12 @@ newSchema = StructType([
                             StructField('_RecordCurrent', IntegerType(), False),
                     ])
 
-df_updated_column = spark.createDataFrame(df_cleansed_column.rdd, schema=newSchema)
-display(df_updated_column)
 
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
-DeltaSaveDataframeDirect(df_updated_column, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
+DeltaSaveDataframeDirect(df_cleansed, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", newSchema, "")
 
 # COMMAND ----------
 

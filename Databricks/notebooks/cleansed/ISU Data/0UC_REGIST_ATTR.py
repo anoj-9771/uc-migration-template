@@ -175,11 +175,12 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
+#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
 df_cleansed = spark.sql(f"SELECT \
 	case when EQUNR = 'na' then '' else EQUNR end as equipmentNumber, \
 	case when ZWNUMMER = 'na' then '' else (cast(ZWNUMMER as int)) end  as registerNumber, \
-	case when BIS = 'na' then to_date('1900-01-01','yyyy-MM-dd') else to_date(BIS, 'yyyy-MM-dd') end as validToDate, \
-	to_date(AB, 'yyyy-MM-dd') as validFromDate, \
+	ToValidDate(BIS,'MANDATORY') as validToDate, \
+	ToValidDate(AB) as validFromDate, \
 	LOGIKZW as logicalRegisterNumber, \
 	SPARTYP as divisionCategoryCode, \
     di.sectorCategory as divisionCategory, \
@@ -198,6 +199,7 @@ df_cleansed = spark.sql(f"SELECT \
 	cast(CRGPRESS as int) as gasCorrectionPressure, \
 	INTSIZEID as intervalLengthId, \
 	LOEVM as deletedIndicator, \
+    ZANLAGE as installationId, \
 	re._RecordStart, \
 	re._RecordEnd, \
 	re._RecordDeleted, \
@@ -209,11 +211,9 @@ df_cleansed = spark.sql(f"SELECT \
                                                                       and id._RecordDeleted = 0 and id._RecordCurrent = 1 \
     LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_TE523T te ON re.ZWART = te.registerTypeCode \
                                                                       and te._RecordDeleted = 0 and te._RecordCurrent = 1 \
-    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_DD07T dd ON re.ZWTYP = dd.domainValueSingleUpperLimit and  dd.domainName = 'L_ZWTYP' \
+    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_DD07T dd ON re.ZWTYP = dd.domainValueSingleUpperLimit and  dd.domainName = 'E_ZWTYP' \
                                                                       and dd._RecordDeleted = 0 and dd._RecordCurrent = 1")
 
-
-display(df_cleansed)
 print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
@@ -241,20 +241,19 @@ newSchema = StructType([
 	StructField('gasCorrectionPressure',IntegerType(),True),
 	StructField('intervalLengthId',StringType(),True),
 	StructField('deletedIndicator',StringType(),True),
+    StructField('installationId',StringType(),True),
 	StructField('_RecordStart',TimestampType(),False),
 	StructField('_RecordEnd',TimestampType(),False),
 	StructField('_RecordDeleted',IntegerType(),False),
 	StructField('_RecordCurrent',IntegerType(),False)
 ])
 
-df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
-display(df_updated_column)
 
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
-DeltaSaveDataframeDirect(df_updated_column, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
+DeltaSaveDataframeDirect(df_cleansed, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", newSchema, "")
 
 # COMMAND ----------
 
