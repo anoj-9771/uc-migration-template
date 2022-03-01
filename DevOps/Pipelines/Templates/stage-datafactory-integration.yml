@@ -35,7 +35,7 @@ stages:
 
     - task: AzureResourceGroupDeployment@2
       inputs:
-        azureSubscription: ${{ parameters.AzDoServiceConnection }}
+        azureSubscription: ${{ variables.azdoresourceconnection }}
         action: 'Create Or Update Resource Group'
         resourceGroupName: ${{ variables.resourcegroupname }}
         location: $(LOCATION)
