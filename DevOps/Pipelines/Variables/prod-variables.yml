@@ -93,7 +93,7 @@ variables:
   # Flag to specify whether Data Factory requires Git Integration.
   - name: isRepoEnabled
     value: false 
-    
+
   # Environment Parameterisation of Trigger Variables
   - name: BATCH_DAILY_HYDRA_properties_typeProperties_scope
     value: /subscriptions/769a62b3-7481-44ae-878e-a466593f50ac/resourcegroups/rg-swcprod01-prod-daf-01/providers/Microsoft.Storage/storageAccounts/sadafprod01
@@ -127,7 +127,7 @@ variables:
   - name: nsgid
     value: 
   - name: databricks_base_url 
-    value: https://adb-1108007146617792.12.azuredatabricks.net/ #Get this after databricks environment has been deployed
+    value: https://adb-5148661409353183.3.azuredatabricks.net #Get this after databricks environment has been deployed
   - name: vnetresourcegroupname
     value: rg-swcprod01-prod-network-01
   - name: publicsubnetcidr
