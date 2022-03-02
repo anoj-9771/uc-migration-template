@@ -116,7 +116,7 @@
                     "connectionString": "|:-connectionString:secureString",
                     "hostKeyFingerprint": "=",
                     "mlWorkspaceName": "=",
-                    "domain": "="                    
+                    "domain": "="
                 }
             }
         },
