@@ -87,7 +87,7 @@
                     "userName": "=",
                     "accessKeyId": "=",
                     "endpoint": "=",
-                    "servicePrincipalId": "=",
+                    "servicePrincipalId": "*",
                     "userId": "=",
                     "host": "=",
                     "clientId": "=",
@@ -116,7 +116,7 @@
                     "connectionString": "|:-connectionString:secureString",
                     "hostKeyFingerprint": "=",
                     "mlWorkspaceName": "=",
-                    "domain": "="                    
+                    "domain": "="
                 }
             }
         },
