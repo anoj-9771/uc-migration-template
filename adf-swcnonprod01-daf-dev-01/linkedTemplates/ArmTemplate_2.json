@@ -8932,7 +8932,7 @@
 								"type": "DatasetReference",
 								"parameters": {
 									"kvSecret": {
-										"value": "daf-sql-slt-test-connectionstring",
+										"value": "@pipeline().parameters.TaskDetails.SourceServer",
 										"type": "Expression"
 									},
 									"tableName": "erch",
