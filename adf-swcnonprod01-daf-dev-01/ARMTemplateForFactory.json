@@ -31,6 +31,10 @@
 			"type": "string",
 			"defaultValue": "8351bb5c-749d-4ee4-b1c4-71a3971acbe9"
 		},
+		"LS_AzureBlobStorage_properties_typeProperties_servicePrincipalId": {
+			"type": "string",
+			"defaultValue": "acff96db-8630-433b-bbb1-35a3813fa036"
+		},
 		"LS_AzureDatabricks_InstancePool_properties_typeProperties_domain": {
 			"type": "string",
 			"defaultValue": "https://adb-7004525605760210.10.azuredatabricks.net"
@@ -42,6 +46,10 @@
 		"LS_AzureDatalake_properties_typeProperties_tenant": {
 			"type": "string",
 			"defaultValue": "8351bb5c-749d-4ee4-b1c4-71a3971acbe9"
+		},
+		"LS_AzureDatalake_properties_typeProperties_servicePrincipalId": {
+			"type": "string",
+			"defaultValue": "acff96db-8630-433b-bbb1-35a3813fa036"
 		},
 		"LS_DeltaLake_properties_typeProperties_domain": {
 			"type": "string",
@@ -14961,7 +14969,7 @@
 				"typeProperties": {
 					"serviceEndpoint": "[parameters('LS_AzureBlobStorage_properties_typeProperties_serviceEndpoint')]",
 					"tenant": "[parameters('LS_AzureBlobStorage_properties_typeProperties_tenant')]",
-					"servicePrincipalId": "acff96db-8630-433b-bbb1-35a3813fa036",
+					"servicePrincipalId": "[parameters('LS_AzureBlobStorage_properties_typeProperties_servicePrincipalId')]",
 					"servicePrincipalKey": {
 						"type": "AzureKeyVaultSecret",
 						"store": {
@@ -15040,7 +15048,7 @@
 				"typeProperties": {
 					"url": "[parameters('LS_AzureDatalake_properties_typeProperties_url')]",
 					"tenant": "[parameters('LS_AzureDatalake_properties_typeProperties_tenant')]",
-					"servicePrincipalId": "acff96db-8630-433b-bbb1-35a3813fa036",
+					"servicePrincipalId": "[parameters('LS_AzureDatalake_properties_typeProperties_servicePrincipalId')]",
 					"servicePrincipalCredentialType": "ServicePrincipalKey",
 					"servicePrincipalCredential": {
 						"type": "AzureKeyVaultSecret",
