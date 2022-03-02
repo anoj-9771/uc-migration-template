@@ -15,16 +15,31 @@
 			"value": "https://kv-daf-dev-01.vault.azure.net/"
 		},
 		"LS-AzureSqlDatabase_Ctrldb_properties_typeProperties_connectionString_secretName": {
-			"value": "@linkedService().kvSecret"
+			"value": "daf-sql-controldb-connectionstring"
 		},
 		"LS_AzureBlobStorage_properties_typeProperties_serviceEndpoint": {
-			"value": "https://sablobdafdev01.blob.core.windows.net/"
+			"value": "https://sablobdafdev01.blob.core.windows.net"
+		},
+		"LS_AzureBlobStorage_properties_typeProperties_tenant": {
+			"value": "8351bb5c-749d-4ee4-b1c4-71a3971acbe9"
+		},
+		"LS_AzureBlobStorage_properties_typeProperties_servicePrincipalId": {
+			"value": "acff96db-8630-433b-bbb1-35a3813fa036"
 		},
 		"LS_AzureDatabricks_InstancePool_properties_typeProperties_domain": {
 			"value": "https://adb-7004525605760210.10.azuredatabricks.net"
 		},
 		"LS_AzureDatalake_properties_typeProperties_url": {
 			"value": "https://sadafdev01.dfs.core.windows.net"
+		},
+		"LS_AzureDatalake_properties_typeProperties_tenant": {
+			"value": "8351bb5c-749d-4ee4-b1c4-71a3971acbe9"
+		},
+		"LS_AzureDatalake_properties_typeProperties_servicePrincipalId": {
+			"value": "acff96db-8630-433b-bbb1-35a3813fa036"
+		},
+		"LS_DeltaLake_properties_typeProperties_domain": {
+			"value": "https://adb-7004525605760210.10.azuredatabricks.net"
 		},
 		"LS_Oracle_properties_typeProperties_connectionString_secretName": {
 			"value": "@linkedService().kvSecret"
@@ -52,6 +67,24 @@
 		},
 		"DLY1300_properties_01-Main_parameters_TriggerName": {
 			"value": "DLY1300"
+		},
+		"mpe_sablob01_properties_privateLinkResourceId": {
+			"value": "/subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-daf-dev-01/providers/Microsoft.Storage/storageAccounts/sablobdafdev01"
+		},
+		"mpe_sablob01_properties_groupId": {
+			"value": "blob"
+		},
+		"mpe_salake01_properties_privateLinkResourceId": {
+			"value": "/subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-daf-dev-01/providers/Microsoft.Storage/storageAccounts/sadafdev01"
+		},
+		"mpe_salake01_properties_groupId": {
+			"value": "dfs"
+		},
+		"mpe_sqlserver_01_properties_privateLinkResourceId": {
+			"value": "/subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-daf-dev-01/providers/Microsoft.Sql/servers/sql-swcnonprod01-daf-dev-01"
+		},
+		"mpe_sqlserver_01_properties_groupId": {
+			"value": "sqlServer"
 		}
 	}
 }

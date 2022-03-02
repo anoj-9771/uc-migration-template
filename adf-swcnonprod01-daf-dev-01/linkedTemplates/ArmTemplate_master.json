@@ -21,11 +21,19 @@
 		},
 		"LS-AzureSqlDatabase_Ctrldb_properties_typeProperties_connectionString_secretName": {
 			"type": "string",
-			"defaultValue": "@linkedService().kvSecret"
+			"defaultValue": "daf-sql-controldb-connectionstring"
 		},
 		"LS_AzureBlobStorage_properties_typeProperties_serviceEndpoint": {
 			"type": "string",
-			"defaultValue": "https://sablobdafdev01.blob.core.windows.net/"
+			"defaultValue": "https://sablobdafdev01.blob.core.windows.net"
+		},
+		"LS_AzureBlobStorage_properties_typeProperties_tenant": {
+			"type": "string",
+			"defaultValue": "8351bb5c-749d-4ee4-b1c4-71a3971acbe9"
+		},
+		"LS_AzureBlobStorage_properties_typeProperties_servicePrincipalId": {
+			"type": "string",
+			"defaultValue": "acff96db-8630-433b-bbb1-35a3813fa036"
 		},
 		"LS_AzureDatabricks_InstancePool_properties_typeProperties_domain": {
 			"type": "string",
@@ -34,6 +42,18 @@
 		"LS_AzureDatalake_properties_typeProperties_url": {
 			"type": "string",
 			"defaultValue": "https://sadafdev01.dfs.core.windows.net"
+		},
+		"LS_AzureDatalake_properties_typeProperties_tenant": {
+			"type": "string",
+			"defaultValue": "8351bb5c-749d-4ee4-b1c4-71a3971acbe9"
+		},
+		"LS_AzureDatalake_properties_typeProperties_servicePrincipalId": {
+			"type": "string",
+			"defaultValue": "acff96db-8630-433b-bbb1-35a3813fa036"
+		},
+		"LS_DeltaLake_properties_typeProperties_domain": {
+			"type": "string",
+			"defaultValue": "https://adb-7004525605760210.10.azuredatabricks.net"
 		},
 		"LS_Oracle_properties_typeProperties_connectionString_secretName": {
 			"type": "string",
@@ -71,6 +91,30 @@
 			"type": "string",
 			"defaultValue": "DLY1300"
 		},
+		"mpe_sablob01_properties_privateLinkResourceId": {
+			"type": "string",
+			"defaultValue": "/subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-daf-dev-01/providers/Microsoft.Storage/storageAccounts/sablobdafdev01"
+		},
+		"mpe_sablob01_properties_groupId": {
+			"type": "string",
+			"defaultValue": "blob"
+		},
+		"mpe_salake01_properties_privateLinkResourceId": {
+			"type": "string",
+			"defaultValue": "/subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-daf-dev-01/providers/Microsoft.Storage/storageAccounts/sadafdev01"
+		},
+		"mpe_salake01_properties_groupId": {
+			"type": "string",
+			"defaultValue": "dfs"
+		},
+		"mpe_sqlserver_01_properties_privateLinkResourceId": {
+			"type": "string",
+			"defaultValue": "/subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-daf-dev-01/providers/Microsoft.Sql/servers/sql-swcnonprod01-daf-dev-01"
+		},
+		"mpe_sqlserver_01_properties_groupId": {
+			"type": "string",
+			"defaultValue": "sqlServer"
+		},
 		"containerUri": {
 			"type": "string",
 			"metadata": "URI to storage account containing linked ARM templates"
@@ -107,23 +151,56 @@
 					"LS-AzureDatabricks_JobCluster_properties_typeProperties_domain": {
 						"value": "[parameters('LS-AzureDatabricks_JobCluster_properties_typeProperties_domain')]"
 					},
-					"LS-AzureSqlDatabase_Ctrldb_properties_typeProperties_connectionString_secretName": {
-						"value": "[parameters('LS-AzureSqlDatabase_Ctrldb_properties_typeProperties_connectionString_secretName')]"
-					},
-					"LS_AzureBlobStorage_properties_typeProperties_serviceEndpoint": {
-						"value": "[parameters('LS_AzureBlobStorage_properties_typeProperties_serviceEndpoint')]"
-					},
 					"LS_AzureDatabricks_InstancePool_properties_typeProperties_domain": {
 						"value": "[parameters('LS_AzureDatabricks_InstancePool_properties_typeProperties_domain')]"
-					},
-					"LS_AzureDatalake_properties_typeProperties_url": {
-						"value": "[parameters('LS_AzureDatalake_properties_typeProperties_url')]"
 					},
 					"LS_Oracle_properties_typeProperties_connectionString_secretName": {
 						"value": "[parameters('LS_Oracle_properties_typeProperties_connectionString_secretName')]"
 					},
 					"LS_SQLServer_properties_typeProperties_connectionString_secretName": {
 						"value": "[parameters('LS_SQLServer_properties_typeProperties_connectionString_secretName')]"
+					},
+					"mpe_sablob01_properties_privateLinkResourceId": {
+						"value": "[parameters('mpe_sablob01_properties_privateLinkResourceId')]"
+					},
+					"mpe_sablob01_properties_groupId": {
+						"value": "[parameters('mpe_sablob01_properties_groupId')]"
+					},
+					"mpe_salake01_properties_privateLinkResourceId": {
+						"value": "[parameters('mpe_salake01_properties_privateLinkResourceId')]"
+					},
+					"mpe_salake01_properties_groupId": {
+						"value": "[parameters('mpe_salake01_properties_groupId')]"
+					},
+					"mpe_sqlserver_01_properties_privateLinkResourceId": {
+						"value": "[parameters('mpe_sqlserver_01_properties_privateLinkResourceId')]"
+					},
+					"mpe_sqlserver_01_properties_groupId": {
+						"value": "[parameters('mpe_sqlserver_01_properties_groupId')]"
+					},
+					"LS-AzureSqlDatabase_Ctrldb_properties_typeProperties_connectionString_secretName": {
+						"value": "[parameters('LS-AzureSqlDatabase_Ctrldb_properties_typeProperties_connectionString_secretName')]"
+					},
+					"LS_AzureBlobStorage_properties_typeProperties_serviceEndpoint": {
+						"value": "[parameters('LS_AzureBlobStorage_properties_typeProperties_serviceEndpoint')]"
+					},
+					"LS_AzureBlobStorage_properties_typeProperties_tenant": {
+						"value": "[parameters('LS_AzureBlobStorage_properties_typeProperties_tenant')]"
+					},
+					"LS_AzureBlobStorage_properties_typeProperties_servicePrincipalId": {
+						"value": "[parameters('LS_AzureBlobStorage_properties_typeProperties_servicePrincipalId')]"
+					},
+					"LS_AzureDatalake_properties_typeProperties_url": {
+						"value": "[parameters('LS_AzureDatalake_properties_typeProperties_url')]"
+					},
+					"LS_AzureDatalake_properties_typeProperties_tenant": {
+						"value": "[parameters('LS_AzureDatalake_properties_typeProperties_tenant')]"
+					},
+					"LS_AzureDatalake_properties_typeProperties_servicePrincipalId": {
+						"value": "[parameters('LS_AzureDatalake_properties_typeProperties_servicePrincipalId')]"
+					},
+					"LS_DeltaLake_properties_typeProperties_domain": {
+						"value": "[parameters('LS_DeltaLake_properties_typeProperties_domain')]"
 					}
 				}
 			},
