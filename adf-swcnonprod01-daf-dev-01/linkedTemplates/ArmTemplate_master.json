@@ -31,10 +31,6 @@
 			"type": "string",
 			"defaultValue": "8351bb5c-749d-4ee4-b1c4-71a3971acbe9"
 		},
-		"LS_AzureBlobStorage_properties_typeProperties_servicePrincipalId": {
-			"type": "string",
-			"defaultValue": "acff96db-8630-433b-bbb1-35a3813fa036"
-		},
 		"LS_AzureDatabricks_InstancePool_properties_typeProperties_domain": {
 			"type": "string",
 			"defaultValue": "https://adb-7004525605760210.10.azuredatabricks.net"
@@ -46,10 +42,6 @@
 		"LS_AzureDatalake_properties_typeProperties_tenant": {
 			"type": "string",
 			"defaultValue": "8351bb5c-749d-4ee4-b1c4-71a3971acbe9"
-		},
-		"LS_AzureDatalake_properties_typeProperties_servicePrincipalId": {
-			"type": "string",
-			"defaultValue": "acff96db-8630-433b-bbb1-35a3813fa036"
 		},
 		"LS_DeltaLake_properties_typeProperties_domain": {
 			"type": "string",
@@ -187,17 +179,11 @@
 					"LS_AzureBlobStorage_properties_typeProperties_tenant": {
 						"value": "[parameters('LS_AzureBlobStorage_properties_typeProperties_tenant')]"
 					},
-					"LS_AzureBlobStorage_properties_typeProperties_servicePrincipalId": {
-						"value": "[parameters('LS_AzureBlobStorage_properties_typeProperties_servicePrincipalId')]"
-					},
 					"LS_AzureDatalake_properties_typeProperties_url": {
 						"value": "[parameters('LS_AzureDatalake_properties_typeProperties_url')]"
 					},
 					"LS_AzureDatalake_properties_typeProperties_tenant": {
 						"value": "[parameters('LS_AzureDatalake_properties_typeProperties_tenant')]"
-					},
-					"LS_AzureDatalake_properties_typeProperties_servicePrincipalId": {
-						"value": "[parameters('LS_AzureDatalake_properties_typeProperties_servicePrincipalId')]"
 					},
 					"LS_DeltaLake_properties_typeProperties_domain": {
 						"value": "[parameters('LS_DeltaLake_properties_typeProperties_domain')]"
