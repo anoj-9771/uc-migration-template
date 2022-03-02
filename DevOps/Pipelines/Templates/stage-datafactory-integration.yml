@@ -27,11 +27,10 @@ stages:
 
   jobs:
   - job:
+    pool: Daf-Self-Pool01
     steps:
-    
-    - task: DownloadBuildArtifacts@0
-      inputs:
-        artifactName: 'adf_arm_templates' 
+    - download: current
+      artifact: adf_arm_templates
 
     - task: AzureResourceGroupDeployment@2
       inputs:
@@ -40,8 +39,8 @@ stages:
         resourceGroupName: ${{ variables.resourcegroupname }}
         location: $(LOCATION)
         templateLocation: 'Linked artifact'
-        csmFile: '$(Build.ArtifactStagingDirectory)/adf_arm_templates/ARMTemplateForFactory.json'
-        overrideParameters: '-factoryName $(DATAFACTORYNAME) -BATCH_DAILY_HYDRA_properties_typeProperties_scope $(BATCH_DAILY_HYDRA_properties_typeProperties_scope) -BATCH_DAILY_SAPCRM_properties_typeProperties_scope $(BATCH_DAILY_SAPCRM_properties_typeProperties_scope) -BATCH_DAILY_SAPISU_properties_typeProperties_scope $(BATCH_DAILY_SAPISU_properties_typeProperties_scope) -LS-AzureKeyVault_properties_typeProperties_baseUrl ${{ variables.kv_base_url }} -LS_AzureDatalake_properties_typeProperties_url ${{ variables.datalake_base_url }} -LS_AzureBlobStorage_properties_typeProperties_serviceEndpoint ${{ variables.blob_base_url }} -LS-AzureDatabricks_DefinedCluster_properties_typeProperties_domain $(databricks_base_url) -mpe_sablob01_properties_privateLinkResourceId $(mpe_sablob01_properties_privateLinkResourceId) -mpe_salake01_properties_privateLinkResourceId $(mpe_salake01_properties_privateLinkResourceId) -mpe_sqlserver_01_properties_privateLinkResourceId $(mpe_sqlserver_01_properties_privateLinkResourceId)'  
+        csmFile: '$(Pipeline.Workspace)/adf_arm_templates/ARMTemplateForFactory.json'
+        overrideParameters: '-factoryName $(DATAFACTORYNAME) -BATCH_DAILY_HYDRA_properties_typeProperties_scope $(BATCH_DAILY_HYDRA_properties_typeProperties_scope) -BATCH_DAILY_SAPCRM_properties_typeProperties_scope $(BATCH_DAILY_SAPCRM_properties_typeProperties_scope) -BATCH_DAILY_SAPISU_properties_typeProperties_scope $(BATCH_DAILY_SAPISU_properties_typeProperties_scope) -LS-AzureKeyVault_properties_typeProperties_baseUrl ${{ variables.kv_base_url }} -LS_AzureDatalake_properties_typeProperties_url ${{ variables.datalake_base_url }} -LS_AzureBlobStorage_properties_typeProperties_serviceEndpoint ${{ variables.blob_base_url }} -LS-AzureDatabricks_DefinedCluster_properties_typeProperties_domain $(databricks_base_url) -mpe_sablob01_properties_privateLinkResourceId $(mpe_sablob01_properties_privateLinkResourceId) -mpe_salake01_properties_privateLinkResourceId $(mpe_salake01_properties_privateLinkResourceId) -mpe_sqlserver_01_properties_privateLinkResourceId $(mpe_sqlserver_01_properties_privateLinkResourceId)' 
         deploymentMode: 'Incremental'
       displayName: 'Deploy Datafactory with Access Policies'
 

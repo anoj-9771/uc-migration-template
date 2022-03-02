@@ -90,7 +90,9 @@
 									"referenceName": "SRC_SQLSERVER",
 									"type": "DatasetReference",
 									"parameters": {
-										"kvSecret": "daf-sql-slt-connectionstring"
+										"kvSecret": "daf-sql-slt-connectionstring",
+										"tableName": "erch",
+										"schemaName": "dbo"
 									}
 								},
 								"firstRowOnly": true

@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "Sl/VwYcLX27c8BAu4dXuWkTwKrWes4jGPpsfOjbkSRya4pVQ5BPLDHXPM6YzuCef9Uw/j72lFeeOofxkinjn9g==",
+  "success": true,
+  "projectFilePath": "c:\\Users\\fhasan\\source\\repos\\SW_Repo\\DAF POC REPO1\\Synapse-Databases\\Synapse-Databases\\Synapse-Databases.sqlproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\fhasan\\.nuget\\packages\\microsoft.netframework.referenceassemblies\\1.0.0\\microsoft.netframework.referenceassemblies.1.0.0.nupkg.sha512",
+    "C:\\Users\\fhasan\\.nuget\\packages\\microsoft.netframework.referenceassemblies.net46\\1.0.0\\microsoft.netframework.referenceassemblies.net46.1.0.0.nupkg.sha512"
+  ],
+  "logs": []
+}

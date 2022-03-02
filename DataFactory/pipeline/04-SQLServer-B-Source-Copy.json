@@ -5,7 +5,14 @@
 			{
 				"name": "Copy-Source-DataLake",
 				"type": "Copy",
-				"dependsOn": [],
+				"dependsOn": [
+					{
+						"activity": "SP-Record-Manifest_copy1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
 				"policy": {
 					"timeout": "7.00:00:00",
 					"retry": 0,
@@ -18,22 +25,40 @@
 					"source": {
 						"type": "SqlServerSource",
 						"sqlReaderQuery": {
-							"value": "@pipeline().parameters.SourceSQL",
+							"value": "@pipeline().parameters.SQLCommand",
 							"type": "Expression"
 						},
 						"queryTimeout": "02:00:00",
-						"partitionOption": "None"
-					},
-					"sink": {
-						"type": "JsonSink",
-						"storeSettings": {
-							"type": "AzureBlobFSWriteSettings"
-						},
-						"formatSettings": {
-							"type": "JsonWriteSettings"
+						"partitionOption": "DynamicRange",
+						"partitionSettings": {
+							"partitionColumnName": {
+								"value": "@{pipeline().parameters.TaskDetails.PartitionColumn}",
+								"type": "Expression"
+							},
+							"partitionUpperBound": "",
+							"partitionLowerBound": ""
 						}
 					},
-					"enableStaging": false
+					"sink": {
+						"type": "AzureDatabricksDeltaLakeSink",
+						"importSettings": {
+							"type": "AzureDatabricksDeltaLakeImportCommand"
+						}
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "LS_AzureDatalake",
+							"type": "LinkedServiceReference"
+						},
+						"path": {
+							"value": "@concat('raw/landing/isu_data/', pipeline().parameters.TaskDetails.TargetName)",
+							"type": "Expression"
+						},
+						"enableCompression": false
+					},
+					"parallelCopies": 32,
+					"dataIntegrationUnits": 8
 				},
 				"inputs": [
 					{
@@ -41,23 +66,21 @@
 						"type": "DatasetReference",
 						"parameters": {
 							"kvSecret": {
-								"value": "@pipeline().parameters.TaskDetails.SourceServer",
+								"value": "daf-sql-slt-test-connectionstring",
 								"type": "Expression"
-							}
+							},
+							"tableName": "erch",
+							"schemaName": "eq1"
 						}
 					}
 				],
 				"outputs": [
 					{
-						"referenceName": "RAW_ADLS_JSON_v2",
+						"referenceName": "DS_RAW_ADLS_DELTALAKE",
 						"type": "DatasetReference",
 						"parameters": {
-							"BlobPath": {
-								"value": "@pipeline().parameters.TargetBLOBFolder",
-								"type": "Expression"
-							},
-							"BlobName": {
-								"value": "@pipeline().parameters.TargetBLOBName",
+							"TableName": {
+								"value": "@pipeline().parameters.TaskDetails.TargetName",
 								"type": "Expression"
 							}
 						}
@@ -65,8 +88,112 @@
 				]
 			},
 			{
-				"name": "If-RecordCount",
-				"type": "IfCondition",
+				"name": "SP-Record-Manifest_copy1",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[CTL].[CreateManifestRecord]",
+					"storedProcedureParameters": {
+						"BatchExecutionLogID": {
+							"value": {
+								"value": "@pipeline().parameters.BatchExecutionLogID",
+								"type": "Expression"
+							},
+							"type": "Int64"
+						},
+						"Container": {
+							"value": "raw",
+							"type": "String"
+						},
+						"EndCounter": {
+							"value": {
+								"value": "@json(string(pipeline().parameters.ValidationDetails)).ReturnValue",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"FileName": {
+							"value": {
+								"value": "@pipeline().parameters.TargetBLOBName",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"FolderName": {
+							"value": {
+								"value": "@pipeline().parameters.TargetBLOBFolder",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"Records": {
+							"value": {
+								"value": "@pipeline().parameters.ValidationDetails.RecordCount",
+								"type": "Expression"
+							},
+							"type": "Int64"
+						},
+						"SourceObject": {
+							"value": {
+								"value": "@pipeline().parameters.TaskDetails.SourceName",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"StartCounter": {
+							"value": {
+								"value": "@pipeline().parameters.TaskDetails.Watermarks",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"TaskExecutionLogID": {
+							"value": {
+								"value": "@pipeline().parameters.TaskExecutionLogId",
+								"type": "Expression"
+							},
+							"type": "Int64"
+						},
+						"DeltaColumn": {
+							"value": {
+								"value": "@pipeline().parameters.TaskDetails.WatermarkColumn",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"PipelineRunID": {
+							"value": {
+								"value": "@pipeline().RunId",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"SourceFileName": {
+							"value": "SQL",
+							"type": "String"
+						},
+						"SourceFileDateStamp": {
+							"value": "1",
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "LS-AzureSqlDatabase_Ctrldb",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "SP-Update-Manifest-Delta-Records",
+				"type": "SqlServerStoredProcedure",
 				"dependsOn": [
 					{
 						"activity": "Copy-Source-DataLake",
@@ -75,236 +202,137 @@
 						]
 					}
 				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
 				"userProperties": [],
 				"typeProperties": {
-					"expression": {
-						"value": "@greater(activity('Copy-Source-DataLake').output.rowsCopied, 0)",
-						"type": "Expression"
-					},
-					"ifTrueActivities": [
-						{
-							"name": "SP-Record-Manifest",
-							"type": "SqlServerStoredProcedure",
-							"dependsOn": [],
-							"policy": {
-								"timeout": "7.00:00:00",
-								"retry": 0,
-								"retryIntervalInSeconds": 30,
-								"secureOutput": false,
-								"secureInput": false
+					"storedProcedureName": "[CTL].[UpdateManifestDeltaRecords]",
+					"storedProcedureParameters": {
+						"BatchExecutionLogID": {
+							"value": {
+								"value": "@pipeline().parameters.BatchExecutionLogID",
+								"type": "Expression"
 							},
-							"userProperties": [],
-							"typeProperties": {
-								"storedProcedureName": "[CTL].[CreateManifestRecord]",
-								"storedProcedureParameters": {
-									"BatchExecutionLogID": {
-										"value": {
-											"value": "@pipeline().parameters.BatchLogId",
-											"type": "Expression"
-										},
-										"type": "Int64"
-									},
-									"Container": {
-										"value": "raw",
-										"type": "String"
-									},
-									"EndCounter": {
-										"value": {
-											"value": "@json(string(pipeline().parameters.ValidationDetails)).ReturnValue",
-											"type": "Expression"
-										},
-										"type": "String"
-									},
-									"FileName": {
-										"value": {
-											"value": "@pipeline().parameters.TargetBLOBName",
-											"type": "Expression"
-										},
-										"type": "String"
-									},
-									"FolderName": {
-										"value": {
-											"value": "@pipeline().parameters.TargetBLOBFolder",
-											"type": "Expression"
-										},
-										"type": "String"
-									},
-									"Records": {
-										"value": {
-											"value": "@string(activity('Copy-Source-DataLake').output.rowsCopied)",
-											"type": "Expression"
-										},
-										"type": "Int64"
-									},
-									"SourceObject": {
-										"value": {
-											"value": "@pipeline().parameters.TaskDetails.SourceName",
-											"type": "Expression"
-										},
-										"type": "String"
-									},
-									"StartCounter": {
-										"value": {
-											"value": "@pipeline().parameters.TaskDetails.Watermarks",
-											"type": "Expression"
-										},
-										"type": "String"
-									},
-									"TaskExecutionLogID": {
-										"value": {
-											"value": "@pipeline().parameters.TaskExecutionLogId",
-											"type": "Expression"
-										},
-										"type": "Int64"
-									},
-									"DeltaColumn": {
-										"value": {
-											"value": "@pipeline().parameters.TaskDetails.WatermarkColumn",
-											"type": "Expression"
-										},
-										"type": "String"
-									},
-									"PipelineRunID": {
-										"value": {
-											"value": "@pipeline().RunId",
-											"type": "Expression"
-										},
-										"type": "String"
-									},
-									"SourceFileName": {
-										"value": "SQL",
-										"type": "String"
-									},
-									"SourceFileDateStamp": {
-										"value": "1",
-										"type": "String"
-									}
-								}
+							"type": "Int64"
+						},
+						"TaskExecutionLogID": {
+							"value": {
+								"value": "@pipeline().parameters.TaskExecutionLogId",
+								"type": "Expression"
 							},
-							"linkedServiceName": {
-								"referenceName": "LS-AzureSqlDatabase_Ctrldb",
-								"type": "LinkedServiceReference",
-								"parameters": {
-									"kvSecret": "daf-sql-controldb-connectionstring"
-								}
-							}
+							"type": "Int64"
 						},
-						{
-							"name": "Execute-DB-Load-Delta-Table",
-							"type": "ExecutePipeline",
-							"dependsOn": [
-								{
-									"activity": "SP-Record-Manifest",
-									"dependencyConditions": [
-										"Succeeded"
-									]
-								}
-							],
-							"userProperties": [],
-							"typeProperties": {
-								"pipeline": {
-									"referenceName": "04-DL-Load-Raw-to-Delta-Table",
-									"type": "PipelineReference"
-								},
-								"waitOnCompletion": true,
-								"parameters": {
-									"BatchLogID": {
-										"value": "@pipeline().parameters.BatchLogId",
-										"type": "Expression"
-									},
-									"TaskExecutionLogId": {
-										"value": "@pipeline().parameters.TaskExecutionLogId",
-										"type": "Expression"
-									},
-									"TaskDetails": {
-										"value": "@pipeline().parameters.TaskDetails",
-										"type": "Expression"
-									},
-									"TargetBLOBFolder": {
-										"value": "@pipeline().parameters.TargetBLOBFolder",
-										"type": "Expression"
-									},
-									"TargetBLOBName": {
-										"value": "@pipeline().parameters.TargetBLOBName",
-										"type": "Expression"
-									},
-									"ProjectRunID": {
-										"value": "@pipeline().parameters.ProjectRunID",
-										"type": "Expression"
-									},
-									"SourceFileName": "SQL",
-									"SourceFileDateTimeStamp": "1"
-								}
-							}
+						"RecordsDeltaTable": {
+							"value": {
+								"value": "@activity('Copy-Source-DataLake').output.rowsCopied",
+								"type": "Expression"
+							},
+							"type": "Int64"
 						},
-						{
-							"name": "EP-Record-Validation",
-							"type": "ExecutePipeline",
-							"dependsOn": [
-								{
-									"activity": "Execute-DB-Load-Delta-Table",
-									"dependencyConditions": [
-										"Succeeded"
-									]
-								}
-							],
-							"userProperties": [],
-							"typeProperties": {
-								"pipeline": {
-									"referenceName": "recon-record-validation",
-									"type": "PipelineReference"
-								},
-								"waitOnCompletion": true,
-								"parameters": {
-									"ProjectRunID": {
-										"value": "@pipeline().parameters.ProjectRunID",
-										"type": "Expression"
-									},
-									"ValidationDetails": {
-										"value": "@pipeline().parameters.ValidationDetails",
-										"type": "Expression"
-									},
-									"SourceID": {
-										"value": "@pipeline().parameters.TaskDetails.SourceID",
-										"type": "Expression"
-									}
-								}
-							}
+						"SourceFileDateStamp": {
+							"value": {
+								"value": "@pipeline().parameters.SourceFileDateStamp",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"RecordsTargetTable": {
+							"value": {
+								"value": "@activity('Copy-Source-DataLake').output.rowsCopied",
+								"type": "Expression"
+							},
+							"type": "Int64"
 						}
-					]
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "LS-AzureSqlDatabase_Ctrldb",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "EP-Record-Validation",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "SP-Update-Manifest-Delta-Records",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "recon-record-validation",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"ProjectRunID": {
+							"value": "@pipeline().parameters.ProjectRunID",
+							"type": "Expression"
+						},
+						"ValidationDetails": {
+							"value": "@pipeline().parameters.ValidationDetails",
+							"type": "Expression"
+						},
+						"SourceID": {
+							"value": "@pipeline().parameters.TaskDetails.SourceID",
+							"type": "Expression"
+						}
+					}
 				}
 			}
 		],
 		"parameters": {
-			"BatchLogId": {
+			"SQLCommand": {
+				"type": "string"
+			},
+			"BatchExecutionLogID": {
 				"type": "int"
 			},
-			"TaskDetails": {
-				"type": "object"
+			"TaskExecutionLogID": {
+				"type": "int"
 			},
-			"TaskExecutionLogId": {
-				"type": "securestring"
+			"WatermarkColumn": {
+				"type": "string"
 			},
-			"SourceSQL": {
+			"TargetBLOBName": {
 				"type": "string"
 			},
 			"TargetBLOBFolder": {
 				"type": "string"
 			},
-			"TargetBLOBName": {
-				"type": "string"
+			"TaskDetails": {
+				"type": "object"
 			},
 			"ValidationDetails": {
 				"type": "object"
 			},
 			"ProjectRunID": {
 				"type": "string"
+			},
+			"SourceFileDateStamp": {
+				"type": "string"
+			}
+		},
+		"variables": {
+			"RecordsWritten": {
+				"type": "String"
+			},
+			"RecordsRead": {
+				"type": "String"
 			}
 		},
 		"folder": {
 			"name": "SQL Server"
 		},
 		"annotations": []
-	},
-	"type": "Microsoft.DataFactory/factories/pipelines"
+	}
 }

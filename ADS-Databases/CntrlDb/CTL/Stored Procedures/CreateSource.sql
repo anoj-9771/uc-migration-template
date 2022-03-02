@@ -27,6 +27,7 @@ CREATE PROC [CTL].[CreateSource]
 		@TargetOverride		 varchar(150),
 		@BusinessKeyColumn	 varchar(150),
 		@WatermarkColumn	 varchar(150),
+		@PartitionColumn	 varchar(150),
 		@TrackChanges		 varchar(100),
 		@AdditionalProperty	 varchar(max),
 		@IsAuditTable		 varchar(100) = '', --Add column to track if the table is a Audit Table
@@ -165,6 +166,7 @@ begin
 			,@DLObjectGrain
 			,@BusinessKeyColumn
 			,@WatermarkColumn
+			,@PartitionColumn
 			,@TrackChangeFlag
 			,@AdditionalProperty
 			,@LoadToSqlEDW
@@ -196,6 +198,7 @@ begin
 			,@DLObjectGrain
 			,@BusinessKeyColumn
 			,@WatermarkColumn
+			,NULL --PartitionColumn relevant  only for Source to Raw load
 			,@TrackChangeFlag
 			,@AdditionalProperty
 			,@LoadToSqlEDW
@@ -229,6 +232,7 @@ begin
 			,@DLObjectGrain
 			,@BusinessKeyColumn
 			,@WatermarkColumn
+			,NULL --PartitionColumn relevant  only for Source to Raw load
 			,@TrackChangeFlag
 			,@AdditionalProperty
 			,@LoadToSqlEDW
@@ -262,6 +266,7 @@ begin
 			,@DLObjectGrain
 			,@BusinessKeyColumn
 			,@WatermarkColumn
+			,NULL --PartitionColumn relevant  only for Source to Raw load
 			,@TrackChangeFlag
 			,@AdditionalProperty
 			,@LoadToSqlEDW
