@@ -20,6 +20,9 @@ variables:
   # username for SQL Server Control DB
   - name: azuresqlserverun
     value: sqladmin
+  # username for Synapse Dedicated SQL Pool syndwdev01 DB
+  - name: synsqlpoolrun
+    value: sqladminuser
   # Name of the service connection in Azure Devops
   - name: azdoresourceconnection
     value: azure-rg-prod-serviceconnection
