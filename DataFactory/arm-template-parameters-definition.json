@@ -87,7 +87,7 @@
                     "userName": "=",
                     "accessKeyId": "=",
                     "endpoint": "=",
-                    "servicePrincipalId": "*",
+                    "servicePrincipalId": "=",
                     "userId": "=",
                     "host": "=",
                     "clientId": "=",
