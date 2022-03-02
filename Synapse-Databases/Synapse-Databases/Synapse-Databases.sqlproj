@@ -142,7 +142,6 @@
     <Build Include="dbo\Tables\Factbilledwaterconsumption.sql" />
     <Build Include="stage\Tables\Factbilledwaterconsumption.sql" />
     <Build Include="dbo\Tables\Factdailyapportionedconsumption.sql" />
-    <Build Include="default\Tables\dproperty.sql" />
     <Build Include="dbo\Tables\estih.sql" />
     <Build Include="dbo\Tables\sapisu_0bp_cat_text.sql" />
     <Build Include="dbo\Tables\access_z309_tpropmeter.sql" />
@@ -161,31 +160,9 @@
     <Build Include="Billing\Views\factdailyapportionedconsumption.sql" />
     <Build Include="Billing\Views\dimmeter.sql" />
     <Build Include="Billing\Views\dimproperty.sql" />
-    <Build Include="Security\synws-swcnonprod01-daf-dev-01.sql" />
-    <Build Include="Security\o5s5%40sydneywater.com.au.sql" />
-    <Build Include="Security\oydm%40sydneywater.com.au.sql" />
-    <Build Include="Security\opd4%40sydneywater.com.au.sql" />
-    <Build Include="Security\oyae%40sydneywater.com.au.sql" />
-    <Build Include="Security\otob%40sydneywater.com.au.sql" />
-    <Build Include="Security\id-synws-daf-dev-01.sql" />
-    <Build Include="Security\svc_synapse1.sql" />
-    <Build Include="Security\A-Azure-DAF Databricks and Synapse Users DEV.sql" />
-    <Build Include="Security\ub0%40sydneywater.com.au.sql" />
-    <Build Include="Security\yce%40sydneywater.com.au.sql" />
-    <Build Include="Security\enl%40sydneywater.com.au.sql" />
-    <Build Include="Security\svc_collibra.sql" />
-    <Build Include="Security\ozqc%40sydneywater.com.au.sql" />
-    <Build Include="Security\oq5s%40sydneywater.com.au.sql" />
-    <Build Include="Security\oe3y%40sydneywater.com.au.sql" />
-    <Build Include="Security\e3y%40sydneywater.com.au.sql" />
-    <Build Include="Security\y2o%40sydneywater.com.au.sql" />
-    <Build Include="Security\svc_synapse.sql" />
-    <Build Include="Security\RoleMemberships.sql" />
     <Build Include="Security\Billing.sql" />
     <Build Include="Security\curated.sql" />
     <Build Include="Security\stage.sql" />
-    <Build Include="Security\default.sql" />
-    <Build Include="Security\SqlAnalyticsConnector.sql" />
   </ItemGroup>
   <Import Condition="'$(NetCoreBuild)' == 'true'" Project="$(NETCoreTargetsPath)\Microsoft.Data.Tools.Schema.SqlTasks.targets" />
   <ItemGroup>
