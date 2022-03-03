@@ -288,6 +288,62 @@
 						}
 					}
 				}
+			},
+			{
+				"name": "Copy data1",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "JsonSource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": true,
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "JsonReadSettings"
+						}
+					},
+					"sink": {
+						"type": "JsonSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "JsonWriteSettings"
+						}
+					},
+					"enableStaging": false
+				},
+				"inputs": [
+					{
+						"referenceName": "RAW_ADLS_JSON_v2_NOCOMP",
+						"type": "DatasetReference",
+						"parameters": {
+							"BlobPath": "triggers",
+							"BlobName": "trmplate.json"
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "RAW_ADLS_JSON_v2_NOCOMP",
+						"type": "DatasetReference",
+						"parameters": {
+							"BlobPath": "triggers",
+							"BlobName": "trigger_batch_daily_sapslt.json"
+						}
+					}
+				]
 			}
 		],
 		"parameters": {
