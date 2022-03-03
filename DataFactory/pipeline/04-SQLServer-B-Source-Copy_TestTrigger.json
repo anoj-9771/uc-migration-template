@@ -43,7 +43,7 @@
 						"type": "DatasetReference",
 						"parameters": {
 							"BlobPath": "triggers",
-							"BlobName": "trmplate.json"
+							"BlobName": "template.json"
 						}
 					}
 				],
