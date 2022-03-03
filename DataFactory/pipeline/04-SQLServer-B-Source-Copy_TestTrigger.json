@@ -19,28 +19,28 @@
 						"type": "JsonSource",
 						"additionalColumns": [
 							{
-								"name": "col1",
+								"name": "BatchExecutionId",
 								"value": {
 									"value": "@string(pipeline().parameters.BatchExecutionLogID)",
 									"type": "Expression"
 								}
 							},
 							{
-								"name": "col2",
+								"name": "TaskExecutionLogId",
 								"value": {
 									"value": "@string(pipeline().parameters.TaskExecutionLogID)",
 									"type": "Expression"
 								}
 							},
 							{
-								"name": "col3",
+								"name": "RawZonePipelineRunID",
 								"value": {
 									"value": "@pipeline().parameters.ProjectRunID",
 									"type": "Expression"
 								}
 							},
 							{
-								"name": "col4",
+								"name": "WatermarkValue",
 								"value": {
 									"value": "@pipeline().parameters.WatermarkColumn",
 									"type": "Expression"
@@ -65,7 +65,44 @@
 							"type": "JsonWriteSettings"
 						}
 					},
-					"enableStaging": false
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"path": "$['BatchExecutionId']"
+								},
+								"sink": {
+									"path": "BatchExecutionId"
+								}
+							},
+							{
+								"source": {
+									"path": "$['TaskExecutionLogId']"
+								},
+								"sink": {
+									"path": "TaskExecutionLogId"
+								}
+							},
+							{
+								"source": {
+									"path": "$['RawZonePipelineRunID']"
+								},
+								"sink": {
+									"path": "RawZonePipelineRunID"
+								}
+							},
+							{
+								"source": {
+									"path": "$['WatermarkValue']"
+								},
+								"sink": {
+									"path": "WatermarkValue"
+								}
+							}
+						]
+					}
 				},
 				"inputs": [
 					{
