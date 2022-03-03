@@ -24,6 +24,27 @@
 									"value": "@string(pipeline().parameters.BatchExecutionLogID)",
 									"type": "Expression"
 								}
+							},
+							{
+								"name": "col2",
+								"value": {
+									"value": "@string(pipeline().parameters.TaskExecutionLogID)",
+									"type": "Expression"
+								}
+							},
+							{
+								"name": "col3",
+								"value": {
+									"value": "@pipeline().parameters.ProjectRunID",
+									"type": "Expression"
+								}
+							},
+							{
+								"name": "col4",
+								"value": {
+									"value": "@pipeline().parameters.WatermarkColumn",
+									"type": "Expression"
+								}
 							}
 						],
 						"storeSettings": {
