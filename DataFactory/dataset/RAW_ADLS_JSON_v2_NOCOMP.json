@@ -28,8 +28,7 @@
 				"folderPath": {
 					"value": "@dataset().BlobPath",
 					"type": "Expression"
-				},
-				"fileSystem": "raw"
+				}
 			}
 		},
 		"schema": {}
