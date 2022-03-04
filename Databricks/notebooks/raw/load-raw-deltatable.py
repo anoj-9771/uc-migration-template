@@ -117,11 +117,14 @@ print ("target_table:" + target_table)
 print ("source_system: " + source_system)
 print ("raw_table: " + raw_table)
 print ("source_file_path: " + source_file_path)
-
+#Get file size
+file_size =dbutils.fs.ls(source_file_path)[0].size / (1024 * 1024)
+print(f"File Size : ",file_size,"mb")
 
 # COMMAND ----------
 
 #Reading the file without Multiline, if it fails reading it once again with Multiline option set to True in the exception block
+#Reading with SamplingRatio if file size is greater than 250 mb
 if file_type.upper() == "CSV":
     df = spark.read \
           .format(file_type) \
@@ -134,62 +137,66 @@ if file_type.upper() == "CSV":
     print("Records read from file : " + str(current_record_count))
     df.printSchema()
 else:
-#     try:
-#       df = spark.read\
-#       .format(file_type) \
-#       .option("samplingRatio","0.3") \
-#       .option("inferSchema","true")\
-#       .option("allowUnquotedFieldNames","true")\
-#       .option("allowSingleQuotes","true")\
-#       .option("allowBackslashEscapingAnyCharacter","true")\
-#       .option("allowUnquotedControlChars","true")\
-#       .option("mode","FAILFAST")\
-#       .load(source_file_path)
-#     except Exception:
-#       print('problem - trying multiline = true')
-#       df = spark.read\
-#       .format(file_type) \
-#       .option("multiline", "true")\
-#       .option("samplingRatio","0.3") \
-#       .option("inferSchema","true")\
-#       .option("allowUnquotedFieldNames","true")\
-#       .option("allowSingleQuotes","true")\
-#       .option("allowBackslashEscapingAnyCharacter","true")\
-#       .option("allowUnquotedControlChars","true")\
-#       .option("mode","PERMISSIVE")\
-#       .option("columnNameOfCorruptRecord","corrupt_record")\
-#       .load(source_file_path)
-#     finally:
-#       current_record_count = df.count()
-#       print("Records read from file : " + str(current_record_count))
-#       df.printSchema()
-    try:
-      df = spark.read\
-      .format(file_type) \
-      .option("inferSchema","true")\
-      .option("allowUnquotedFieldNames","true")\
-      .option("allowSingleQuotes","true")\
-      .option("allowBackslashEscapingAnyCharacter","true")\
-      .option("allowUnquotedControlChars","true")\
-      .option("mode","FAILFAST")\
-      .load(source_file_path)
-    except Exception:
-      print('problem - trying multiline = true')
-      df = spark.read\
-      .format(file_type) \
-      .option("multiline", "true")\
-      .option("inferSchema","true")\
-      .option("allowUnquotedFieldNames","true")\
-      .option("allowSingleQuotes","true")\
-      .option("allowBackslashEscapingAnyCharacter","true")\
-      .option("allowUnquotedControlChars","true")\
-      .option("mode","PERMISSIVE")\
-      .option("columnNameOfCorruptRecord","corrupt_record")\
-      .load(source_file_path)
-    finally:
-      current_record_count = df.count()
-      print("Records read from file : " + str(current_record_count))
-      df.printSchema()
+    if file_size > 250:
+        print('Reading with SampilingRatio')
+        try:
+          df = spark.read\
+          .format(file_type) \
+          .option("samplingRatio","0.3") \
+          .option("inferSchema","true")\
+          .option("allowUnquotedFieldNames","true")\
+          .option("allowSingleQuotes","true")\
+          .option("allowBackslashEscapingAnyCharacter","true")\
+          .option("allowUnquotedControlChars","true")\
+          .option("mode","FAILFAST")\
+          .load(source_file_path)
+        except Exception:
+          print('problem - trying multiline = true')
+          df = spark.read\
+          .format(file_type) \
+          .option("multiline", "true")\
+          .option("samplingRatio","0.3") \
+          .option("inferSchema","true")\
+          .option("allowUnquotedFieldNames","true")\
+          .option("allowSingleQuotes","true")\
+          .option("allowBackslashEscapingAnyCharacter","true")\
+          .option("allowUnquotedControlChars","true")\
+          .option("mode","PERMISSIVE")\
+          .option("columnNameOfCorruptRecord","corrupt_record")\
+          .load(source_file_path)
+        finally:
+          current_record_count = df.count()
+          print("Records read from file : " + str(current_record_count))
+          df.printSchema()        
+    else:
+        print('Reading without SampilingRatio')
+        try:
+          df = spark.read\
+          .format(file_type) \
+          .option("inferSchema","true")\
+          .option("allowUnquotedFieldNames","true")\
+          .option("allowSingleQuotes","true")\
+          .option("allowBackslashEscapingAnyCharacter","true")\
+          .option("allowUnquotedControlChars","true")\
+          .option("mode","FAILFAST")\
+          .load(source_file_path)
+        except Exception:
+          print('problem - trying multiline = true')
+          df = spark.read\
+          .format(file_type) \
+          .option("multiline", "true")\
+          .option("inferSchema","true")\
+          .option("allowUnquotedFieldNames","true")\
+          .option("allowSingleQuotes","true")\
+          .option("allowBackslashEscapingAnyCharacter","true")\
+          .option("allowUnquotedControlChars","true")\
+          .option("mode","PERMISSIVE")\
+          .option("columnNameOfCorruptRecord","corrupt_record")\
+          .load(source_file_path)
+        finally:
+          current_record_count = df.count()
+          print("Records read from file : " + str(current_record_count))
+          df.printSchema()
 
 # COMMAND ----------
 
