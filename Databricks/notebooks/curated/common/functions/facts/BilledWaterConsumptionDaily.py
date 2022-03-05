@@ -43,7 +43,7 @@ def getBilledWaterConsumptionDaily():
     accessConsDf = getBilledWaterConsumptionAccess()
 
     legacyConsDS = accessConsDf.select('propertyNumber', 'billingPeriodStartDate', 'billingPeriodEndDate') \
-                             .subtract(isuConsDf.select('businessPartnerNumber', 'billingPeriodStartDate', 'billingPeriodEndDate'))
+                             .subtract(isuConsDf.select('businessPartnerGroupNumber', 'billingPeriodStartDate', 'billingPeriodEndDate'))
 
     accessConsDf = accessConsDf.join(legacyConsDS, (legacyConsDS.propertyNumber == accessConsDf.propertyNumber) \
                                              & ((legacyConsDS.billingPeriodStartDate == accessConsDf.billingPeriodStartDate) \
@@ -52,14 +52,14 @@ def getBilledWaterConsumptionDaily():
 
     #3.Union Access and isu billed consumption datasets
     isuConsDf = isuConsDf.select("sourceSystemCode", "billingDocumentNumber", \
-                                  "businessPartnerNumber", "equipmentNumber", "contractID", \
+                                  "businessPartnerGroupNumber", "equipmentNumber", "contractID", \
                                   "billingPeriodStartDate", "billingPeriodEndDate", \
                                   "meterActiveStartDate", "meterActiveEndDate", \
                                   (datediff("meterActiveEndDate", "meterActiveStartDate") + 1).alias("totalMeterActiveDays"), \
                                   "meteredWaterConsumption") \
                                   .where((isuConsDf.isReversedFlag == 'N') & (isuConsDf.isOutsortedFlag == 'N'))
 
-    accessConsDf = accessConsDf.selectExpr("sourceSystemCode", "-1 as billingDocumentNumber", \
+    accessConsDf = accessConsDf.selectExpr("sourceSystemCode", "-3 as billingDocumentNumber", \
                                   "PropertyNumber", "propertyMeterNumber", "-1 as contractID", \
                                   "billingPeriodStartDate", "billingPeriodEndDate", \
                                   "billingPeriodStartDate as meterActiveStartDate", "billingPeriodEndDate as meterActiveEndDate", \
@@ -114,11 +114,11 @@ def getBilledWaterConsumptionDaily():
 
 
     #5.JOIN TABLES
-    billedConsDf = billedConsDf.join(dimPropertyDf, (billedConsDf.businessPartnerNumber == dimPropertyDf.propertyNumber) \
+    billedConsDf = billedConsDf.join(dimPropertyDf, (billedConsDf.businessPartnerGroupNumber == dimPropertyDf.propertyNumber) \
                                & (billedConsDf.sourceSystemCode == dimPropertyDf.sourceSystemCode), how="left") \
                     .select(billedConsDf['*'], dimPropertyDf['dimPropertySK'])
 
-    billedConsDf = billedConsDf.join(dimLocationDf, (billedConsDf.businessPartnerNumber == dimLocationDf.locationID), how="left") \
+    billedConsDf = billedConsDf.join(dimLocationDf, (billedConsDf.businessPartnerGroupNumber == dimLocationDf.locationID), how="left") \
                     .select(billedConsDf['*'], dimLocationDf['dimLocationSK'])
 
     billedConsDf = billedConsDf.join(dimMeterDf, (billedConsDf.equipmentNumber == dimMeterDf.meterNumber) \
@@ -137,7 +137,7 @@ def getBilledWaterConsumptionDaily():
                              & (billedConsDf.billingPeriodStartDate <= dimContractDf.validToDate), how="left") \
                   .select(billedConsDf['*'], dimContractDf['dimContractSK'])
 
-    billedConsDf = billedConsDf.join(dimBusinessPartnerGroupDf, (billedConsDf.businessPartnerNumber == dimBusinessPartnerGroupDf.businessPartnerGroupNumber), how="left") \
+    billedConsDf = billedConsDf.join(dimBusinessPartnerGroupDf, (billedConsDf.businessPartnerGroupNumber == dimBusinessPartnerGroupDf.businessPartnerGroupNumber), how="left") \
                   .select(billedConsDf['*'], dimBusinessPartnerGroupDf['dimBusinessPartnerGroupSK'])
 
 #    billedConsDf = billedConsDf.join(meterTimesliceDf, (billedConsDf.equipmentNumber == meterTimesliceDf.equipmentNumber), how="left") \

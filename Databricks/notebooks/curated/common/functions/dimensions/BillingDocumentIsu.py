@@ -34,7 +34,7 @@ def getBillingDocumentIsu():
 
   billedConsIsuDf = getBilledWaterConsumptionIsu()
 
-  dummyDimRecDf = spark.createDataFrame([("ISU", "-1", "1900-01-01", "2099-12-31"), ("ACCESS", "-2", "1900-01-01", "2099-12-31")], ["sourceSystemCode", "billingDocumentNumber", "billingPeriodStartDate", "billingPeriodEndDate"])
+  dummyDimRecDf = spark.createDataFrame([("ISU", "-1", "1900-01-01", "2099-12-31"), ("ACCESS", "-2", "1900-01-01", "2099-12-31"),("ACCESS", "-3", "1900-01-01", "2099-12-31")], ["sourceSystemCode", "billingDocumentNumber", "billingPeriodStartDate", "billingPeriodEndDate"])
   dummyDimRecDf = dummyDimRecDf.withColumn("billingPeriodStartDate",(col("billingPeriodStartDate").cast("date"))).withColumn("billingPeriodEndDate",(col("billingPeriodEndDate").cast("date")))  
     
   #3.JOIN TABLES  
