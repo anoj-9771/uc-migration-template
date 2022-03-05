@@ -54,7 +54,7 @@
 							"typeProperties": {
 								"variableName": "WatermarkValue",
 								"value": {
-									"value": "@getFutureTime(0, 'Day', 'yyyyMMddhhmmss')",
+									"value": "@getFutureTime(1, 'Day', 'yyyyMMddhhmmss')",
 									"type": "Expression"
 								}
 							}
