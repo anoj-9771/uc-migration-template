@@ -8650,7 +8650,7 @@
 									"typeProperties": {
 										"variableName": "WatermarkValue",
 										"value": {
-											"value": "'2000-01-01 00:00:01'",
+											"value": "@getFutureTime(0, 'Day', 'yyyyMMddhhmmss')",
 											"type": "Expression"
 										}
 									}
@@ -10686,6 +10686,136 @@
 								}
 							}
 						}
+					},
+					{
+						"name": "Copy-TriggerFile-DataLake",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "SP-Record-Manifest_copy1",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "JsonSource",
+								"additionalColumns": [
+									{
+										"name": "BatchExecutionId",
+										"value": {
+											"value": "@string(pipeline().parameters.BatchExecutionLogID)",
+											"type": "Expression"
+										}
+									},
+									{
+										"name": "TaskExecutionLogId",
+										"value": {
+											"value": "@string(pipeline().parameters.TaskExecutionLogID)",
+											"type": "Expression"
+										}
+									},
+									{
+										"name": "RawZonePipelineRunID",
+										"value": {
+											"value": "@pipeline().parameters.ProjectRunID",
+											"type": "Expression"
+										}
+									},
+									{
+										"name": "WatermarkValue",
+										"value": {
+											"value": "@pipeline().parameters.WatermarkColumn",
+											"type": "Expression"
+										}
+									}
+								],
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": true,
+									"enablePartitionDiscovery": false
+								},
+								"formatSettings": {
+									"type": "JsonReadSettings"
+								}
+							},
+							"sink": {
+								"type": "JsonSink",
+								"storeSettings": {
+									"type": "AzureBlobFSWriteSettings"
+								},
+								"formatSettings": {
+									"type": "JsonWriteSettings"
+								}
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"mappings": [
+									{
+										"source": {
+											"path": "$['BatchExecutionId']"
+										},
+										"sink": {
+											"path": "BatchExecutionId"
+										}
+									},
+									{
+										"source": {
+											"path": "$['TaskExecutionLogId']"
+										},
+										"sink": {
+											"path": "TaskExecutionLogId"
+										}
+									},
+									{
+										"source": {
+											"path": "$['RawZonePipelineRunID']"
+										},
+										"sink": {
+											"path": "RawZonePipelineRunID"
+										}
+									},
+									{
+										"source": {
+											"path": "$['WatermarkValue']"
+										},
+										"sink": {
+											"path": "WatermarkValue"
+										}
+									}
+								]
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "RAW_ADLS_JSON_v2_NOCOMP",
+								"type": "DatasetReference",
+								"parameters": {
+									"BlobPath": "triggers",
+									"BlobName": "template.json"
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "RAW_ADLS_JSON_v2_NOCOMP",
+								"type": "DatasetReference",
+								"parameters": {
+									"BlobPath": "triggers",
+									"BlobName": "trigger_batch_daily_sapslt.json"
+								}
+							}
+						]
 					}
 				],
 				"policy": {
@@ -10742,6 +10872,7 @@
 				"[concat(variables('factoryId'), '/datasets/DS_RAW_ADLS_DELTALAKE')]",
 				"[concat(variables('factoryId'), '/linkedServices/LS-AzureSqlDatabase_Ctrldb')]",
 				"[concat(variables('factoryId'), '/pipelines/recon-record-validation')]",
+				"[concat(variables('factoryId'), '/datasets/RAW_ADLS_JSON_v2_NOCOMP')]",
 				"[concat(variables('factoryId'), '/linkedServices/LS_AzureDatalake')]"
 			]
 		},
@@ -14353,6 +14484,47 @@
 					"compression": {
 						"type": "gzip",
 						"level": "Optimal"
+					}
+				},
+				"schema": {}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_AzureDatalake')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/RAW_ADLS_JSON_v2_NOCOMP')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_AzureDatalake",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"BlobPath": {
+						"type": "string"
+					},
+					"BlobName": {
+						"type": "string"
+					}
+				},
+				"folder": {
+					"name": "Data Lake"
+				},
+				"annotations": [],
+				"type": "Json",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": {
+							"value": "@dataset().BlobName",
+							"type": "Expression"
+						},
+						"folderPath": {
+							"value": "@dataset().BlobPath",
+							"type": "Expression"
+						}
 					}
 				},
 				"schema": {}
