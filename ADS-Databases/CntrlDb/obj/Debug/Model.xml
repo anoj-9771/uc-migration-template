@@ -12,7 +12,7 @@
 		</CustomData>
 		<CustomData Category="Reference" Type="Assembly">
 			<Metadata Name="LogicalName" Value="CntrlDb.dll" />
-			<Metadata Name="FileName" Value="c:\Users\fhasan\source\repos\SW_Repo\DAF POC REPO1\ADS-Databases\CntrlDb\obj\Debug\CntrlDb.dll" />
+			<Metadata Name="FileName" Value="c:\Users\o3hz\Documents\Repos\DAF POC REPO1\ADS-Databases\CntrlDb\obj\Debug\CntrlDb.dll" />
 			<Metadata Name="AssemblyName" Value="CntrlDb" />
 			<Metadata Name="PermissionSet" Value="SAFE" />
 			<Metadata Name="Owner" Value="" />
@@ -20,7 +20,7 @@
 			<Metadata Name="IsVisible" Value="True" />
 			<Metadata Name="IsModelAware" Value="True" />
 			<Metadata Name="SkipCreationIfEmpty" Value="True" />
-			<Metadata Name="AssemblySymbolsName" Value="c:\Users\fhasan\source\repos\SW_Repo\DAF POC REPO1\ADS-Databases\CntrlDb\obj\Debug\CntrlDb.pdb" />
+			<Metadata Name="AssemblySymbolsName" Value="c:\Users\o3hz\Documents\Repos\DAF POC REPO1\ADS-Databases\CntrlDb\obj\Debug\CntrlDb.pdb" />
 		</CustomData>
 		<CustomData Category="SqlCmdVariables" Type="SqlCmdVariable" />
 	</Header>
@@ -8607,7 +8607,9 @@ ELSE
 			--ELSE IF @DBType = 'SQL Server'
 			--	SELECT @SQLMax = 'FORMAT(MAX(' + @COL + '), ''yyyy-MM-dd HH:mm:ss'')'
 			ELSE IF @DBType = 'SQL Server' AND @TaskName LIKE 'isu%'
-				SELECT @SQLMax = 'FORMAT(MAX(convert(datetime,(CONVERT(VARCHAR(25) , CAST(LEFT(' +@COL +', 8) AS DATETIME), 23) + '' '' +  LEFT(RIGHT(' + @COL + ' , 6) ,2) + '':'' + SUBSTRING(RIGHT(' +@COL + ' , 6) , 3,2) + '':''    + RIGHT(' + @COL + ' , 2) ),120)), ''yyyy-MM-dd HH:mm:ss'')'
+			/* Commented the @COL(DELTA_TS) conversion to date to improve query performance*/
+				--SELECT @SQLMax = 'FORMAT(MAX(convert(datetime,(CONVERT(VARCHAR(25) , CAST(LEFT(' +@COL +', 8) AS DATETIME), 23) + '' '' +  LEFT(RIGHT(' + @COL + ' , 6) ,2) + '':'' + SUBSTRING(RIGHT(' +@COL + ' , 6) , 3,2) + '':''    + RIGHT(' + @COL + ' , 2) ),120)), ''yyyy-MM-dd HH:mm:ss'')'
+				SELECT @SQLMax = @COL
 			ELSE
 				SELECT @SQLMax = 'FORMAT(MAX(' + @COL + '), ''yyyy-MM-dd HH:mm:ss'')'
 		END
@@ -8811,7 +8813,7 @@ END]]></Value>
 				</Entry>
 			</Relationship>
 			<Annotation Type="SysCommentsObjectAnnotation">
-				<Property Name="Length" Value="4594" />
+				<Property Name="Length" Value="4709" />
 				<Property Name="StartLine" Value="1" />
 				<Property Name="StartColumn" Value="1" />
 				<Property Name="HeaderContents" Value="CREATE Procedure [CTL].[GetTableDetails] (&#xD;&#xA;&#x9;@SourceId BigInt&#xD;&#xA;&#x9;,@ValidationType varchar(10) = 'SOURCE'&#xD;&#xA;)&#xD;&#xA;As" />
@@ -11071,8 +11073,9 @@ BEGIN
 		ELSE IF @SourceType = 'SQL Server' AND @TaskName LIKE 'isu%'
 		BEGIN
 		    SET @SQL = 'SELECT * '
- 			SET @WaterMarkCol = 'FORMAT(convert(datetime,(CONVERT(VARCHAR(25) , CAST(LEFT(' +@WaterMarkCol +', 8) AS DATETIME), 23) + '' '' +  LEFT(RIGHT(' + @WaterMarkCol + ' , 6) ,2) + '':'' + SUBSTRING(RIGHT(' +@WaterMarkCol + ' , 6) , 3,2) + '':''    + RIGHT(' + @WaterMarkCol + ' , 2) ),120), ''yyyy-MM-dd HH:mm:ss'')'
-			/* added the following where clause to get dynamic partitioning working when reading from SQL server through ADF Copy activity */
+ 			/* added the following where clause to get dynamic partitioning working when reading from SQL server through ADF Copy activity;
+				Commented the @WaterMarkCol(DELTA_TS) conversion to date to improve query performance*/
+			--SET @WaterMarkCol = 'FORMAT(convert(datetime,(CONVERT(VARCHAR(25) , CAST(LEFT(' +@WaterMarkCol +', 8) AS DATETIME), 23) + '' '' +  LEFT(RIGHT(' + @WaterMarkCol + ' , 6) ,2) + '':'' + SUBSTRING(RIGHT(' +@WaterMarkCol + ' , 6) , 3,2) + '':''    + RIGHT(' + @WaterMarkCol + ' , 2) ),120), ''yyyy-MM-dd HH:mm:ss'')'
 			SET @WHERE = ' WHERE ?AdfDynamicRangePartitionCondition'
 		END
 		ELSE
@@ -11105,7 +11108,7 @@ BEGIN
 END]]></Value>
 						</Property>
 						<Annotation Type="SysCommentsObjectAnnotation">
-							<Property Name="Length" Value="6770" />
+							<Property Name="Length" Value="6863" />
 							<Property Name="StartLine" Value="1" />
 							<Property Name="StartColumn" Value="1" />
 							<Property Name="HeaderContents" Value="CREATE FUNCTION [CTL].[udf_GetDeltaSQL] (@TaskId BigInt)&#xD;&#xA;Returns Varchar(MAX)&#xD;&#xA;AS" />
