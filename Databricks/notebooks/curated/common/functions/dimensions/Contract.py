@@ -53,7 +53,7 @@ def getContract():
     #4.UNION TABLES
     #Create dummy record
     
-    dummyDimRecDf = spark.createDataFrame([("ISU","-1","1900-01-01"),("ACCESS","-3","1900-01-01")], ["sourceSystemCode", "contractId", "validFromDate"])
+    dummyDimRecDf = spark.createDataFrame([("ISU","-1","1900-01-01"),("ACCESS","-2","1900-01-01"),("ISU","-3","1900-01-01"),("ACCESS","-4","1900-01-01")], ["sourceSystemCode", "contractId", "validFromDate"])
                                      
     df = df.unionByName(dummyDimRecDf,allowMissingColumns = True)
     df = df.withColumn("validFromDate",col("validFromDate").cast("date"))

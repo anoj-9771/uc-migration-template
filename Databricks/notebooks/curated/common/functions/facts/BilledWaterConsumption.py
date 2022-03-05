@@ -93,11 +93,11 @@ def getBilledWaterConsumption():
                                                                                                                                 where LocationId = '-1' \
                           union select dimMeterSK as dummyDimSK, sourceSystemCode, 'dimMeter' as dimension from {ADS_DATABASE_CURATED}.dimMeter where meterNumber in ('-1','-2')\
                           union select dimBillingDocumentSK as dummyDimSK, sourceSystemCode, 'dimBillingDocument' as dimension from {ADS_DATABASE_CURATED}.dimBillingDocument \
-                                                                                                                                where billingDocumentNumber in ('-1','-3') \
+                                                                                                                                where billingDocumentNumber in ('-1','-4') \
                           union select dimBusinessPartnerGroupSK as dummyDimSK, sourceSystemCode, 'dimBusinessPartnerGroup' as dimension from \
                                                                                                                               {ADS_DATABASE_CURATED}.dimBusinessPartnerGroup \
-                                                                                                                                  where BusinessPartnerGroupNumber in ('-1','-3') \
-                          union select dimContractSK as dummyDimSK, sourceSystemCode, 'dimContract' as dimension from {ADS_DATABASE_CURATED}.dimContract where contractId in ('-1','-3') \
+                                                                                                                                  where BusinessPartnerGroupNumber in ('-1','-4') \
+                          union select dimContractSK as dummyDimSK, sourceSystemCode, 'dimContract' as dimension from {ADS_DATABASE_CURATED}.dimContract where contractId in ('-1','-4') \
                           ")
 
 
