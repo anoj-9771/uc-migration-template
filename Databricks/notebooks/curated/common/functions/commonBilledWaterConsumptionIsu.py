@@ -24,7 +24,7 @@ def getBilledWaterConsumptionIsu():
   
     #2.Load Cleansed layer table data into dataframe
     erchDf = spark.sql(f"select 'ISU' as sourceSystemCode, billingDocumentNumber, \
-                             case when ltrim('0', businessPartnerNumber) is null then 'Unknown' else ltrim('0', businessPartnerNumber) end as businessPartnerNumber, \
+                             case when ltrim('0', businessPartnerGroupNumber) is null then 'Unknown' else ltrim('0', businessPartnerGroupNumber) end as businessPartnerGroupNumber, \
                              case when startBillingPeriod is null then to_date('19000101', 'yyyymmdd') else startBillingPeriod end as startBillingPeriod, \
                              case when endBillingPeriod is null then to_date('19000101', 'yyyymmdd') else endBillingPeriod end as endBillingPeriod, \
                              billingDocumentCreateDate, documentNotReleasedIndicator, reversalDate, \
@@ -57,12 +57,12 @@ def getBilledWaterConsumptionIsu():
                     .drop(dberchz2Df.billingDocumentNumber) \
                     .drop(dberchz2Df.billingDocumentLineItemId)
 
-    billedConsDf = billedConsDf.select("sourceSystemCode", "billingDocumentNumber", "businessPartnerNumber", "equipmentNumber", \
+    billedConsDf = billedConsDf.select("sourceSystemCode", "billingDocumentNumber", "businessPartnerGroupNumber", "equipmentNumber", \
                     "startBillingPeriod", "endBillingPeriod", "validFromDate", "validToDate", \
                     "billingDocumentCreateDate", "documentNotReleasedIndicator", "reversalDate", \
                     "portionNumber","documentTypeCode","meterReadingUnit","billingTransactionCode", "contractId", \
                     "billingQuantityPlaceBeforeDecimalPoint") \
-                  .groupby("sourceSystemCode", "billingDocumentNumber", "businessPartnerNumber", "equipmentNumber", \
+                  .groupby("sourceSystemCode", "billingDocumentNumber", "businessPartnerGroupNumber", "equipmentNumber", \
                              "startBillingPeriod", "endBillingPeriod", "billingDocumentCreateDate", \
                              "documentNotReleasedIndicator", "reversalDate", \
                     "portionNumber","documentTypeCode","meterReadingUnit","billingTransactionCode", "contractId") \
@@ -77,7 +77,7 @@ def getBilledWaterConsumptionIsu():
                   ( \
                      "sourceSystemCode" \
                     ,"billingDocumentNumber" \
-                    ,"businessPartnerNumber" \
+                    ,"businessPartnerGroupNumber" \
                     ,"equipmentNumber" \
                     ,"startBillingPeriod as billingPeriodStartDate" \
                     ,"endBillingPeriod as billingPeriodEndDate" \
