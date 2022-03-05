@@ -81,7 +81,7 @@ def getProperty():
                         ")
 
     #Dummy Record to be added to Property Dimension
-    dummyDimRecDf = spark.createDataFrame([("ISU","-1"),("ACCESS","-2")], ["sourceSystemCode", "propertyNumber"])
+    dummyDimRecDf = spark.createDataFrame([("ISU","-1"),("ACCESS","-2"),("ISU","-3"),("ACCESS","-4")], ["sourceSystemCode", "propertyNumber"])
 
     #3.JOIN TABLES  
     #4.UNION TABLES

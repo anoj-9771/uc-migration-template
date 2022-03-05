@@ -75,7 +75,7 @@ def getBusinessPartner():
                                       and _RecordDeleted = 0")  
     
     #Dummy Record to be added to Business Partner Group Dimension
-    dummyDimRecDf = spark.createDataFrame([("ISU", "-1")], ["sourceSystemCode", "businessPartnerNumber"])
+    dummyDimRecDf = spark.createDataFrame([("ISU", "-1", "Unknown"),("ACCESS", "-2", "Unknown"),("ISU", "-3", "NA"),("ACCESS", "-4", "NA")], ["sourceSystemCode", "businessPartnerNumber","firstName"])
     
     #3.JOIN TABLES
     df = isu0bpartnerAttrDf.join(crm0bpartnerAttrDf, isu0bpartnerAttrDf.businessPartnerNumber == crm0bpartnerAttrDf.businessPartnerNumber, how="left")\
