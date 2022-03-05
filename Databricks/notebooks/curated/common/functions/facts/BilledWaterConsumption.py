@@ -53,8 +53,8 @@ def getBilledWaterConsumption():
                                 "meteredWaterConsumption") \
                                 .where((isuConsDf.isReversedFlag == 'N') & (isuConsDf.isOutsortedFlag == 'N'))
 
-    accessConsDf = accessConsDf.selectExpr("sourceSystemCode", "-3 as billingDocumentNumber", \
-                                "PropertyNumber", "propertyMeterNumber", "-3 as contractId", \
+    accessConsDf = accessConsDf.selectExpr("sourceSystemCode", "-4 as billingDocumentNumber", \
+                                "PropertyNumber", "propertyMeterNumber", "-4 as contractId", \
                                 "billingPeriodStartDate", "billingPeriodEndDate", \
                                 "meteredWaterConsumption") \
 
