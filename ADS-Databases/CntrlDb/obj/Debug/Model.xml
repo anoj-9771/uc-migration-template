@@ -8609,7 +8609,7 @@ ELSE
 			ELSE IF @DBType = 'SQL Server' AND @TaskName LIKE 'isu%'
 			/* Commented the @COL(DELTA_TS) conversion to date to improve query performance*/
 				--SELECT @SQLMax = 'FORMAT(MAX(convert(datetime,(CONVERT(VARCHAR(25) , CAST(LEFT(' +@COL +', 8) AS DATETIME), 23) + '' '' +  LEFT(RIGHT(' + @COL + ' , 6) ,2) + '':'' + SUBSTRING(RIGHT(' +@COL + ' , 6) , 3,2) + '':''    + RIGHT(' + @COL + ' , 2) ),120)), ''yyyy-MM-dd HH:mm:ss'')'
-				SELECT @SQLMax = @COL
+				SELECT @SQLMax = 'MAX(' + @COL + ')'
 			ELSE
 				SELECT @SQLMax = 'FORMAT(MAX(' + @COL + '), ''yyyy-MM-dd HH:mm:ss'')'
 		END
@@ -8813,7 +8813,7 @@ END]]></Value>
 				</Entry>
 			</Relationship>
 			<Annotation Type="SysCommentsObjectAnnotation">
-				<Property Name="Length" Value="4709" />
+				<Property Name="Length" Value="4724" />
 				<Property Name="StartLine" Value="1" />
 				<Property Name="StartColumn" Value="1" />
 				<Property Name="HeaderContents" Value="CREATE Procedure [CTL].[GetTableDetails] (&#xD;&#xA;&#x9;@SourceId BigInt&#xD;&#xA;&#x9;,@ValidationType varchar(10) = 'SOURCE'&#xD;&#xA;)&#xD;&#xA;As" />
