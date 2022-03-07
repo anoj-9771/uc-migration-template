@@ -325,7 +325,9 @@ def _SQLUpdateCompareCondition_DeltaTable(dataframe, business_key, source_alias,
       sql += TAB + "-- If it is delta extract we can find new records checking if the source delta column value is higher than the target table" + NEW_LINE
       sql += TAB + f"AND {source_alias}.{delta_column} > {target_alias}.{delta_column}"
     else:
-      join_condition = _GetSQLJoinConditionFromColumnNames(updated_col_list, source_alias, target_alias, "<>", " OR ", DELTA_COL_QUALIFER)
+      # Calling the new Compare function that would handle nulls while comparing source and target columns in delta merge
+      #join_condition = _GetSQLJoinConditionFromColumnNames(updated_col_list, source_alias, target_alias, "<>", " OR ", DELTA_COL_QUALIFER)
+      join_condition = _GetSQLJoinConditionFromColumnNamesCompare(updated_col_list, source_alias, target_alias, "<>", " OR ", DELTA_COL_QUALIFER)
       sql += TAB + "-- If it full extract we have to do compare on all columns to find records that have changed" + NEW_LINE
       sql += TAB + f"AND ( ({join_condition}) OR ({target_alias}.{COL_RECORD_DELETED} = 1) )"
   
