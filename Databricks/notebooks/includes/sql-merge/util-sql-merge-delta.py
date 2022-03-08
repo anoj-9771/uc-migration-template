@@ -44,7 +44,8 @@ def _GenerateMergeSQL_DeltaTable(source_table_name, target_table_name, business_
   ALIAS_TABLE_SOURCE = "SRC"
   ALIAS_TABLE_TARGET = "TGT"
   ALIAS_TABLE_STAGE = "STG"
-  ALIAS_TABLE_MAIN = "MN"
+  #ALIAS_TABLE_MAIN = "MN"
+  ALIAS_TABLE_MAIN = target_table_name.split(".",1)[1]
   
   #If Delta Column is a combination of Created and Upated Date then use the _transaction_date as delta column
   delta_column = GeneralGetUpdatedDeltaColumn(delta_column)
@@ -306,9 +307,10 @@ def _SQLUpdateCompareCondition_DeltaTable(dataframe, business_key, source_alias,
   #Exclude the following columns from Update
   #Start of Fix for Handling Null in Key Columns
 #   col_exception_list = [business_key, COL_RECORD_VERSION, COL_RECORD_START, COL_RECORD_END, COL_RECORD_CURRENT, COL_RECORD_DELETED, COL_DL_RAW_LOAD, COL_DL_CLEANSED_LOAD, COL_DL_CURATED_LOAD]
-  
+  #Adding SK column if any to the exception list 
+  col_SK = target_alias + "SK"
   buskey_col_list = business_key.split(",")
-  col_exception_list = [COL_RECORD_VERSION, COL_RECORD_START, COL_RECORD_END, COL_RECORD_CURRENT, COL_RECORD_DELETED, COL_DL_RAW_LOAD, COL_DL_CLEANSED_LOAD, COL_DL_CURATED_LOAD]
+  col_exception_list = [COL_RECORD_VERSION, COL_RECORD_START, COL_RECORD_END, COL_RECORD_CURRENT, COL_RECORD_DELETED, COL_DL_RAW_LOAD, COL_DL_CLEANSED_LOAD, COL_DL_CURATED_LOAD, col_SK]
   col_exception_list.extend(buskey_col_list)
   #End of Fix for Handling Null in Key Columns
   #Get the list of columns which does not include the exception list 
@@ -345,8 +347,10 @@ def _SQLUpdateSetValue_DeltaTable(dataframe, business_key, source_alias, target_
  #Start of Fix for Handling Null in Key Columns
  #Exclude the following columns from Update
 #   col_exception_list = [business_key, COL_RECORD_VERSION, COL_RECORD_START, COL_RECORD_END, COL_RECORD_CURRENT, COL_RECORD_DELETED] 
+  #Adding SK column if any to the exception list
+  col_SK = source_alias+"SK"  
   buskey_col_list = business_key.split(",")
-  col_exception_list = [COL_RECORD_VERSION, COL_RECORD_START, COL_RECORD_END, COL_RECORD_CURRENT, COL_RECORD_DELETED]
+  col_exception_list = [COL_RECORD_VERSION, COL_RECORD_START, COL_RECORD_END, COL_RECORD_CURRENT, COL_RECORD_DELETED, col_SK]
   col_exception_list.extend(buskey_col_list) 
   #End of Fix for Handling Null in Key Columns
   
