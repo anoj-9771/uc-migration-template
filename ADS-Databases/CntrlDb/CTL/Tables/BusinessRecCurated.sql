@@ -1,4 +1,4 @@
-CREATE TABLE [dbo].[BusinessRecCurated]
+CREATE TABLE [CTL].[BusinessRecCurated]
 (
   BusinessRecID			bigint IDENTITY(1,1) NOT NULL,
 	CreatedDateTime			bigint NOT NULL,
