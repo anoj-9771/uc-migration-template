@@ -46,7 +46,7 @@
 				],
 				"outputs": [
 					{
-						"referenceName": "AzureSqlDatabase_Ctrldb",
+						"referenceName": "AzureSqlDatabase_dummy",
 						"type": "DatasetReference"
 					}
 				]

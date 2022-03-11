@@ -1,0 +1,16 @@
+{
+	"name": "AzureSqlDatabase_dummy",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS-AzureSqlDatabase_Ctrldb",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": "ctl",
+			"table": "dummy"
+		}
+	}
+}
