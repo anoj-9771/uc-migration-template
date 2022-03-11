@@ -379,5 +379,43 @@ Main()
 
 # COMMAND ----------
 
-# DBTITLE 1,11. Exit Notebook
+# DBTITLE 1,11.View Generation
+# MAGIC %sql
+# MAGIC --View to get property history for Billed Water Consumption.
+# MAGIC Create or replace view curated.viewBilledWaterConsumption as
+# MAGIC select prop.propertyNumber,
+# MAGIC prophist.inferiorPropertyTypeCode,
+# MAGIC prophist.inferiorPropertyType,
+# MAGIC prophist.superiorPropertyTypeCode,
+# MAGIC prophist.superiorPropertyType,
+# MAGIC fact.*
+# MAGIC from curated.factbilledwaterconsumption fact
+# MAGIC inner join curated.dimproperty prop
+# MAGIC on fact.dimPropertySK = prop.dimPropertySK
+# MAGIC inner join cleansed.isu_zcd_tpropty_hist prophist
+# MAGIC on prop.propertyNumber = prophist.propertyNumber
+# MAGIC where prophist.validFromDate <= fact.billingPeriodEndDate
+# MAGIC and prophist.validToDate >= fact.billingPeriodEndDate
+# MAGIC ;
+# MAGIC 
+# MAGIC --View to get property history for Apportioned Water Consumption.
+# MAGIC Create or replace view curated.viewApportionedWaterConsumption as
+# MAGIC select prop.propertyNumber,
+# MAGIC prophist.inferiorPropertyTypeCode,
+# MAGIC prophist.inferiorPropertyType,
+# MAGIC prophist.superiorPropertyTypeCode,
+# MAGIC prophist.superiorPropertyType,
+# MAGIC fact.*
+# MAGIC from curated.factDailyApportionedConsumption fact
+# MAGIC inner join curated.dimproperty prop
+# MAGIC on fact.dimPropertySK = prop.dimPropertySK
+# MAGIC inner join cleansed.isu_zcd_tpropty_hist prophist
+# MAGIC on prop.propertyNumber = prophist.propertyNumber
+# MAGIC where prophist.validFromDate <= fact.consumptionDate
+# MAGIC and prophist.validToDate >= fact.consumptionDate
+# MAGIC ;
+
+# COMMAND ----------
+
+# DBTITLE 1,12. Exit Notebook
 dbutils.notebook.exit("1")
