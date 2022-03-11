@@ -1,0 +1,16 @@
+{
+	"name": "DS_CURATED_ADLS_DELTALAKE",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_DeltaLake",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureDatabricksDeltaLakeDataset",
+		"typeProperties": {
+			"database": "CURATED",
+			"table": "dimdate"
+		},
+		"schema": []
+	}
+}
