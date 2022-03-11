@@ -23,20 +23,15 @@
 						}
 					},
 					"sink": {
-						"type": "AzureDatabricksDeltaLakeSink",
-						"importSettings": {
-							"type": "AzureDatabricksDeltaLakeImportCommand"
-						}
+						"type": "AzureSqlSink",
+						"writeBehavior": "insert",
+						"sqlWriterUseTableLock": false
 					},
 					"enableStaging": true,
 					"stagingSettings": {
 						"linkedServiceName": {
 							"referenceName": "LS_AzureDatalake",
 							"type": "LinkedServiceReference"
-						},
-						"path": {
-							"value": "@concat('raw/landing/isu_data/', pipeline().parameters.TaskDetails.TargetName)",
-							"type": "Expression"
 						},
 						"enableCompression": false
 					},
@@ -51,50 +46,12 @@
 				],
 				"outputs": [
 					{
-						"referenceName": "DS_RAW_ADLS_DELTALAKE",
-						"type": "DatasetReference",
-						"parameters": {
-							"TableName": {
-								"value": "@pipeline().parameters.TaskDetails.TargetName",
-								"type": "Expression"
-							}
-						}
+						"referenceName": "AzureSqlDatabase_Ctrldb",
+						"type": "DatasetReference"
 					}
 				]
 			}
 		],
-		"parameters": {
-			"SQLCommand": {
-				"type": "string"
-			},
-			"BatchExecutionLogID": {
-				"type": "int"
-			},
-			"TaskExecutionLogID": {
-				"type": "int"
-			},
-			"WatermarkColumn": {
-				"type": "string"
-			},
-			"TargetBLOBName": {
-				"type": "string"
-			},
-			"TargetBLOBFolder": {
-				"type": "string"
-			},
-			"TaskDetails": {
-				"type": "object"
-			},
-			"ValidationDetails": {
-				"type": "object"
-			},
-			"ProjectRunID": {
-				"type": "string"
-			},
-			"SourceFileDateStamp": {
-				"type": "string"
-			}
-		},
 		"variables": {
 			"RecordsWritten": {
 				"type": "String"
