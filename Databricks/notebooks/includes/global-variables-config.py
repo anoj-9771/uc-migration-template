@@ -1,7 +1,7 @@
 # Databricks notebook source
 #Please udpate the environment varibale
 #This is a test line
-ADS_ENVIRONMENT = "preprod"
+ADS_ENVIRONMENT = "prod"
 ADS_SUBSCRIPTION = "swcprod01"
 #Project Prefix
 ADS_COMPANY_INITIAL = "swcdaf"
@@ -12,7 +12,7 @@ ADS_BUSINESS_UNIT = "daf"
 
 # MAGIC %scala
 # MAGIC //Please udpate the environment varibale
-# MAGIC val ADS_ENVIRONMENT = "preprod"
+# MAGIC val ADS_ENVIRONMENT = "prod"
 # MAGIC val ADS_SUBSCRIPTION = "swcprod01"
 # MAGIC //Project Prefix
 # MAGIC val ADS_COMPANY_INITIAL = "swcdaf"
