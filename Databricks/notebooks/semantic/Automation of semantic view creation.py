@@ -21,7 +21,7 @@ for table in spark.catalog.listTables("curated"):
   if table.name != '' and "dim" in table.name and not table.name.startswith("vw"):
     table_name_seperated = ' '.join(re.sub( r"([A-Z])", r" \1", table.name).split())
     table_name_formatted = table_name_seperated[0:1].capitalize() + table_name_seperated[1:100]
-    sql_statement = "create or replace view semantic." + table.name + " as select "
+    sql_statement = "create or replace view " + database_name + "." + table.name + " as select "
     #list columns of the table selected
     for column in spark.catalog.listColumns(table.name, "curated"):
         #formatting column names ignoring metadata columns and SK column
@@ -45,7 +45,7 @@ for table in spark.catalog.listTables("curated"):
   elif table.name != '' and "fact" in table.name:
     table_name_seperated = ' '.join(re.sub( r"([A-Z])", r" \1", table.name).split())
     table_name_formatted = table_name_seperated[0:1].capitalize() + table_name_seperated[1:100]
-    sql_statement = "create or replace view semantic." + table.name + " as select "
+    sql_statement = "create or replace view " + database_name + "." + table.name + " as select "
     #indexing the column
     curr_column = 0
     #list columns of the table selected
@@ -68,6 +68,30 @@ for table in spark.catalog.listTables("curated"):
         elif "_" not in column.name:
             s = column.name 
             sql_statement = sql_statement + "  , " + s + " as " + s
+    sql_statement = sql_statement + "  from curated." + table.name + ";"
+    print(table.name)
+    #executing the sql statement on spark creating the semantic view
+    df = sqlContext.sql(sql_statement)
+    #for bridge tables and creating semantic views
+  elif table.name.startswith(("brg", "meter")):
+    table_name_seperated = ' '.join(re.sub( r"([A-Z])", r" \1", table.name).split())
+    table_name_formatted = table_name_seperated[0:1].capitalize() + table_name_seperated[1:100]
+    sql_statement = "create or replace view " + database_name + "." + table.name + " as select "
+    #indexing the column
+    curr_column = 0
+    for column in spark.catalog.listColumns(table.name, "curated"):        
+        if not column.name.startswith("_"):
+            curr_column = curr_column + 1
+            if "SK" in column.name:
+                col_name_formatted = column.name
+            else:
+                col_name = column.name.replace("GUID","Guid").replace("ID","Id")
+                col_name_seperated = ' '.join(re.sub( r"([A-Z])", r" \1", col_name).split())
+                col_name_formatted = col_name_seperated[0:1].capitalize() + col_name_seperated[1:100].replace(" Guid"," GUID").replace(" Id"," ID")
+            if curr_column == 1:
+                sql_statement = sql_statement + " " + column.name + " as `" + col_name_formatted + "`" 
+            elif curr_column != 1:
+                sql_statement = sql_statement + " , " + column.name + " as `" + col_name_formatted + "`"
     sql_statement = sql_statement + "  from curated." + table.name + ";"
     print(table.name)
     #executing the sql statement on spark creating the semantic view

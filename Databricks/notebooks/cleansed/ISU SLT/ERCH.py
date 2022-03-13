@@ -181,7 +181,7 @@ df_cleansed = spark.sql(f"SELECT  \
                                   BUKRS as companyCode, \
                                   cc.companyName as companyName, \
                                   SPARTE as divisonCode, \
-                                  GPARTNER as businessPartnerNumber, \
+                                  GPARTNER as businessPartnerGroupNumber, \
                                   VKONT as contractAccountNumber, \
                                   VERTRAG as contractId, \
                                   ToValidDate(BEGABRPE) as  startBillingPeriod, \
@@ -283,7 +283,7 @@ newSchema = StructType([
                           StructField('companyCode', StringType(), True),
                           StructField('companyName', StringType(), True),
                           StructField('divisonCode', StringType(), True),
-                          StructField('businessPartnerNumber', StringType(), True),
+                          StructField('businessPartnerGroupNumber', StringType(), True),
                           StructField('contractAccountNumber', StringType(), True),
                           StructField('contractId', StringType(), True),
                           StructField('startBillingPeriod', DateType(), True),

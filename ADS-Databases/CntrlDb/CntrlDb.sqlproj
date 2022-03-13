@@ -147,6 +147,9 @@
     <Build Include="CTL\Stored Procedures\CreateTechRecRawToCleansed.sql" />
     <Build Include="CTL\Views\vw_TechRecSrcToRaw.sql" />
     <Build Include="CTL\Views\vw_TechRecRawToCleansed.sql" />
+    <Build Include="CTL\Tables\BusinessRecCurated.sql" />
+    <Build Include="CTL\Views\vw_TechRecRawToCleansedRpt.sql" />
+    <Build Include="CTL\Views\vw_TechRecSrcToRawRpt.sql" />
   </ItemGroup>
   <ItemGroup>
     <PostDeploy Include="Script.PostDeployment1.sql" />

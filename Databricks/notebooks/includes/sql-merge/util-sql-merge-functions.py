@@ -87,6 +87,48 @@ def _GetSQLJoinConditionFromColumnNames(columns, src_alias, tgt_alias, join_type
 
 # COMMAND ----------
 
+def _GetSQLJoinConditionFromColumnNamesCompare(columns, src_alias, tgt_alias, join_type, seperator, column_qualifer = "`"):
+
+  '''
+  The function gets the SQL join conditions using the columns string
+  The column names can be either string or a list
+  The source and target alias needs to be specified
+  The join_type is the join condition. Either = or <>
+  Optionally, you can pass the table alias name as second argument
+  The separator can have values like , or AND depending on join conditions
+  '''
+  
+  #If a list is passed as argument, convert the list to comma separated string
+  if type(columns) is list:
+    columns_str = ", ".join(columns)
+  else:
+    columns_str = columns
+  
+  #Remove blank spaces
+  columns_str = columns_str.replace(" ", "")
+
+  #Convert the string to a list
+  col_list = columns_str.split(',')
+  
+  #Add quotes to quality the column names
+  col_list = [column_qualifer + item + column_qualifer for item in col_list]
+
+  #Add Alias Names to columns
+  src_col_list = [src_alias + "." + item for item in col_list]
+  tgt_col_list = [tgt_alias + "." + item for item in col_list]
+  
+  #Add the join conditions (= <>)
+  #Added COALESCE to address the null comparison issue in delta merge statement
+  #final_col_list = [src + " " + join_type + " " + tgt for src, tgt in zip(src_col_list, tgt_col_list)]
+  final_col_list = ["coalesce(" + src + ", \'\')" + " " + join_type + " " + "coalesce(" + tgt + ", \'\')" for src, tgt in zip(src_col_list, tgt_col_list)]  
+  #Add the seperator. e.g. AND OR ,
+  sql = seperator.join(final_col_list)
+
+  return sql
+
+
+# COMMAND ----------
+
 def _GetExclusiveList(main_lst, exception_lst):
   updated_col_list = [item for item in main_lst if item not in exception_lst]
   

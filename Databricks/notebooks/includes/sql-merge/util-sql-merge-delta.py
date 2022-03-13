@@ -44,7 +44,8 @@ def _GenerateMergeSQL_DeltaTable(source_table_name, target_table_name, business_
   ALIAS_TABLE_SOURCE = "SRC"
   ALIAS_TABLE_TARGET = "TGT"
   ALIAS_TABLE_STAGE = "STG"
-  ALIAS_TABLE_MAIN = "MN"
+  #ALIAS_TABLE_MAIN = "MN"
+  ALIAS_TABLE_MAIN = target_table_name.split(".",1)[1]
   
   #If Delta Column is a combination of Created and Upated Date then use the _transaction_date as delta column
   delta_column = GeneralGetUpdatedDeltaColumn(delta_column)
@@ -306,9 +307,10 @@ def _SQLUpdateCompareCondition_DeltaTable(dataframe, business_key, source_alias,
   #Exclude the following columns from Update
   #Start of Fix for Handling Null in Key Columns
 #   col_exception_list = [business_key, COL_RECORD_VERSION, COL_RECORD_START, COL_RECORD_END, COL_RECORD_CURRENT, COL_RECORD_DELETED, COL_DL_RAW_LOAD, COL_DL_CLEANSED_LOAD, COL_DL_CURATED_LOAD]
-  
+  #Adding SK column if any to the exception list 
+  col_SK = target_alias + "SK"
   buskey_col_list = business_key.split(",")
-  col_exception_list = [COL_RECORD_VERSION, COL_RECORD_START, COL_RECORD_END, COL_RECORD_CURRENT, COL_RECORD_DELETED, COL_DL_RAW_LOAD, COL_DL_CLEANSED_LOAD, COL_DL_CURATED_LOAD]
+  col_exception_list = [COL_RECORD_VERSION, COL_RECORD_START, COL_RECORD_END, COL_RECORD_CURRENT, COL_RECORD_DELETED, COL_DL_RAW_LOAD, COL_DL_CLEANSED_LOAD, COL_DL_CURATED_LOAD, col_SK]
   col_exception_list.extend(buskey_col_list)
   #End of Fix for Handling Null in Key Columns
   #Get the list of columns which does not include the exception list 
@@ -325,7 +327,9 @@ def _SQLUpdateCompareCondition_DeltaTable(dataframe, business_key, source_alias,
       sql += TAB + "-- If it is delta extract we can find new records checking if the source delta column value is higher than the target table" + NEW_LINE
       sql += TAB + f"AND {source_alias}.{delta_column} > {target_alias}.{delta_column}"
     else:
-      join_condition = _GetSQLJoinConditionFromColumnNames(updated_col_list, source_alias, target_alias, "<>", " OR ", DELTA_COL_QUALIFER)
+      # Calling the new Compare function that would handle nulls while comparing source and target columns in delta merge
+      #join_condition = _GetSQLJoinConditionFromColumnNames(updated_col_list, source_alias, target_alias, "<>", " OR ", DELTA_COL_QUALIFER)
+      join_condition = _GetSQLJoinConditionFromColumnNamesCompare(updated_col_list, source_alias, target_alias, "<>", " OR ", DELTA_COL_QUALIFER)
       sql += TAB + "-- If it full extract we have to do compare on all columns to find records that have changed" + NEW_LINE
       sql += TAB + f"AND ( ({join_condition}) OR ({target_alias}.{COL_RECORD_DELETED} = 1) )"
   
@@ -343,8 +347,10 @@ def _SQLUpdateSetValue_DeltaTable(dataframe, business_key, source_alias, target_
  #Start of Fix for Handling Null in Key Columns
  #Exclude the following columns from Update
 #   col_exception_list = [business_key, COL_RECORD_VERSION, COL_RECORD_START, COL_RECORD_END, COL_RECORD_CURRENT, COL_RECORD_DELETED] 
+  #Adding SK column if any to the exception list
+  col_SK = source_alias+"SK"  
   buskey_col_list = business_key.split(",")
-  col_exception_list = [COL_RECORD_VERSION, COL_RECORD_START, COL_RECORD_END, COL_RECORD_CURRENT, COL_RECORD_DELETED]
+  col_exception_list = [COL_RECORD_VERSION, COL_RECORD_START, COL_RECORD_END, COL_RECORD_CURRENT, COL_RECORD_DELETED, col_SK]
   col_exception_list.extend(buskey_col_list) 
   #End of Fix for Handling Null in Key Columns
   

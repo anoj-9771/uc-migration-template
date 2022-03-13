@@ -117,9 +117,11 @@ BEGIN
 		ELSE IF @SourceType = 'SQL Server' AND @TaskName LIKE 'isu%'
 		BEGIN
 		    SET @SQL = 'SELECT * '
- 			SET @WaterMarkCol = 'FORMAT(convert(datetime,(CONVERT(VARCHAR(25) , CAST(LEFT(' +@WaterMarkCol +', 8) AS DATETIME), 23) + '' '' +  LEFT(RIGHT(' + @WaterMarkCol + ' , 6) ,2) + '':'' + SUBSTRING(RIGHT(' +@WaterMarkCol + ' , 6) , 3,2) + '':''    + RIGHT(' + @WaterMarkCol + ' , 2) ),120), ''yyyy-MM-dd HH:mm:ss'')'
-			/* added the following where clause to get dynamic partitioning working when reading from SQL server through ADF Copy activity */
+ 			/* added the following where clause to get dynamic partitioning working when reading from SQL server through ADF Copy activity;
+				Commented the @WaterMarkCol(DELTA_TS) conversion to date to improve query performance*/
+			--SET @WaterMarkCol = 'FORMAT(convert(datetime,(CONVERT(VARCHAR(25) , CAST(LEFT(' +@WaterMarkCol +', 8) AS DATETIME), 23) + '' '' +  LEFT(RIGHT(' + @WaterMarkCol + ' , 6) ,2) + '':'' + SUBSTRING(RIGHT(' +@WaterMarkCol + ' , 6) , 3,2) + '':''    + RIGHT(' + @WaterMarkCol + ' , 2) ),120), ''yyyy-MM-dd HH:mm:ss'')'
 			SET @WHERE = ' WHERE ?AdfDynamicRangePartitionCondition'
+			SET @WatermarkVal = REPLACE(REPLACE(REPLACE(@WatermarkVal, '-', ''), ':', ''), ' ', '')
 		END
 		ELSE
 			SET @WaterMarkCol = 'FORMAT(' + @WaterMarkCol + ', ''yyyy-MM-dd HH:mm:ss'')'
