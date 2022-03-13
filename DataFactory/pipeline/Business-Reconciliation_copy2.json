@@ -1,0 +1,120 @@
+{
+	"name": "Business-Reconciliation_copy2",
+	"properties": {
+		"activities": [
+			{
+				"name": "Notebook-getDeltaTableAggregateMeasure",
+				"type": "DatabricksNotebook",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"notebookPath": {
+						"value": "@variables('NotbookURL')",
+						"type": "Expression"
+					},
+					"baseParameters": {
+						"target_table": "dimdate"
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "LS-AzureDatabricks_DefinedCluster",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"kvSecret": {
+							"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[0]",
+							"type": "Expression"
+						},
+						"clusterId": {
+							"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[1]",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "SP-CreateTechRecRawToCleansed",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "Notebook-getDeltaTableAggregateMeasure",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "CTL.CreateTechRecRawToCleansed",
+					"storedProcedureParameters": {
+						"BatchExecutionId": {
+							"value": "999",
+							"type": "Int64"
+						},
+						"TaskExecutionLogId": {
+							"value": "999",
+							"type": "Int64"
+						},
+						"TaskId": {
+							"value": "999",
+							"type": "Int64"
+						},
+						"SourceObject": {
+							"value": "temp",
+							"type": "String"
+						},
+						"TargetName": {
+							"value": "temp",
+							"type": "String"
+						},
+						"TotalNoRecords": {
+							"value": {
+								"value": "@activity('Notebook-getDeltaTableAggregateMeasure').output.runOutput",
+								"type": "Expression"
+							},
+							"type": "Int64"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "LS-AzureSqlDatabase_Ctrldb",
+					"type": "LinkedServiceReference"
+				}
+			}
+		],
+		"parameters": {
+			"TaskDetails": {
+				"type": "object"
+			},
+			"BatchLogId": {
+				"type": "int"
+			},
+			"TaskExecutionLogId": {
+				"type": "int"
+			}
+		},
+		"variables": {
+			"NotbookURL": {
+				"type": "String",
+				"defaultValue": "/build/curated/utility/getDeltaTableAggregateMeasure"
+			}
+		},
+		"folder": {
+			"name": "Validation"
+		},
+		"annotations": []
+	}
+}
