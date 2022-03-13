@@ -195,15 +195,8 @@ df_cleansed = spark.sql("SELECT cast(System_Key as int) AS systemKey, \
         'm2' as areaSizeUnit, " + 
         ("cast(Lon as dec(9,6)) as longitude, cast(Lat as dec(9,6)) as latitude, cast(MGA56_X as long) as x_coordinate_MGA56, cast(MGA56_Y as long) as y_coordinate_MGA56, " if ADS_ENVIRONMENT not in ['dev','test'] else "\
           cast(Lon as dec(9,6))+0.17 as longitude, cast(Lat as dec(9,6))+0.23 as latitude, cast(MGA56_X as long)+112 as x_coordinate_MGA56, cast(MGA56_Y as long)+332 as y_coordinate_MGA56, ") + f"\
-		case when Water_Delivery_System = 'N/A' then null else Water_Delivery_System end as waterDeliverySystem, \
-		case when Water_Distribution_System = 'N/A' then null else Water_Distribution_System end as waterDistributionSystem, \
-		case when Water_Supply_Zone = 'N/A' then null else Water_Supply_Zone end as waterSupplyZone, \
-        case when Water_Pressure_Zone = 'N/A' then null else Water_Pressure_Zone end as waterPressureZone, \
-        case when Sewer_Network = 'N/A' then null else Sewer_Network end as sewerNetwork, \
-        case when Sewer_Catchment = 'N/A' then null else Sewer_Catchment end as sewerCatchment, \
+		case when Water_Pressure_Zone = 'N/A' then null else Water_Pressure_Zone end as waterPressureZone, \
         case when Sewer_SCAMP = 'N/A' then null else Sewer_SCAMP end as sewerScamp, \
-        case when Recycled_Delivery_System = 'N/A' then null else Recycled_Delivery_System end as recycledDeliverySystem, \
-        case when Recycled_Distribution_System = 'N/A' then null else Recycled_Distribution_System end as recycledDistributionSystem, \
         case when Recycled_Supply_Zone = 'N/A' then null else Recycled_Supply_Zone end as recycledSupplyZone, \
         case when Stormwater_Catchment = 'N/A' then null else Stormwater_Catchment end as stormwaterCatchment, \
 		_RecordStart, \
@@ -230,15 +223,8 @@ newSchema = StructType([
     StructField('latitude',DecimalType(9,6),False),
     StructField('x_coordinate_MGA56',LongType(),False),
     StructField('y_coordinate_MGA56',LongType(),False),
-    StructField('waterDeliverySystem',StringType(),True),
-    StructField('waterDistributionSystem',StringType(),True),
-    StructField('waterSupplyZone',StringType(),True),
     StructField('waterPressureZone',StringType(),True),
-    StructField('sewerNetwork',StringType(),True),
-    StructField('sewerCatchment',StringType(),True),
     StructField('sewerScamp',StringType(),True),
-    StructField('recycledDeliverySystem',StringType(),True),
-    StructField('recycledDistributionSystem',StringType(),True),
     StructField('recycledSupplyZone',StringType(),True),
     StructField('stormwaterCatchment',StringType(),True),
     StructField('_RecordStart',TimestampType(),False),
