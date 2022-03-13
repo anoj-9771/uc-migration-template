@@ -185,6 +185,7 @@ df_cleansed = spark.sql(f"SELECT  \
                                   KOKRS as controllingArea, \
                                   BUKRS as companyCode, \
                                   cc.companyName as companyName, \
+                                  ALKEY as labellingSystem, \
                                   PROID as workBreakdownStructureElement, \
                                   ToValidDate(ERDAT) as createdDate, \
                                   ToValidDate(AEDAT) as lastChangedDate, \
@@ -246,6 +247,7 @@ newSchema = StructType([
                           StructField('controllingArea', StringType(), True),
                           StructField('companyCode', StringType(), True),
                           StructField('companyName', StringType(), True),
+                          StructField('labellingSystem', StringType(), True),
                           StructField('workBreakdownStructureElement', StringType(), True),
                           StructField('createdDate', DateType(), True),
                           StructField('lastChangedDate', DateType(), True),

@@ -221,7 +221,7 @@ df_cleansed = spark.sql(f"SELECT \
 	NICKNAME as nickName, \
 	INITIALS as nameInitials, \
 	NAMCOUNTRY as countryName, \
-	LANGU_CORR as correspondanceLanguage, \
+	LANGU_CORR as correspondenceLanguage, \
 	NATIO as nationality, \
 	PERSNUMBER as personNumber, \
 	XSEXU as unknownGenderIndicator, \
@@ -323,7 +323,7 @@ newSchema = StructType([
 	StructField('nickName',StringType(),True),
 	StructField('nameInitials',StringType(),True),
 	StructField('countryName',StringType(),True),
-	StructField('correspondanceLanguage',StringType(),True),
+	StructField('correspondenceLanguage',StringType(),True),
 	StructField('nationality',StringType(),True),
 	StructField('personNumber',StringType(),True),
 	StructField('unknownGenderIndicator',StringType(),True),
