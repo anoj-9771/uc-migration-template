@@ -246,26 +246,7 @@ def meterInstallation():
 
 # COMMAND ----------
 
-# DBTITLE 1,6.3 Function: Load Bridge Tables
-#Call Business Partner Group Relation function to load brgBusinessPartnerGroupRelation
-def businessPartnerGroupRelationship():
-    TemplateEtl(df=getBusinessPartnerGroupRelationship(), 
-             entity="brgBusinessPartnerGroupRelationship", 
-             businessKey="businessPartnerGroupSK,businessPartnerSK,validFromDate",
-             AddSK=False
-            ) 
-
-#Call InstallationPropertyMeterContract function to load brgInstallationPropertyMeterCon
-def installationPropertyMeterContract():
-    TemplateEtl(df=getInstallationPropertyMeterContract(), 
-             entity="brgInstallationPropertyMeterContract", 
-             businessKey="dimInstallationSK",
-             AddSK=False
-            ) 
-
-# COMMAND ----------
-
-# DBTITLE 1,6.4. Function: Load Facts
+# DBTITLE 1,6.3. Function: Load Facts
 
 def billedWaterConsumption():
     TemplateEtl(df=getBilledWaterConsumption(),
@@ -304,7 +285,6 @@ def DatabaseChanges():
 
 # DBTITLE 1,8. Flag Dimension/Bridge/Fact load
 LoadDimensions = True
-LoadBridgeTables = True
 LoadFacts = True
 LoadRelationships = True
 
@@ -346,18 +326,6 @@ def Main():
         LogEtl("End Relatioship Tables")
     else:
         LogEtl("Relationship table load not requested")
-        #==============
-    # BRIDGE TABLES
-    #==============    
-    if LoadBridgeTables:
-        LogEtl("Start Bridge Tables")
-        businessPartnerGroupRelationship()
-        installationPropertyMeterContract()
-        
-        LogEtl("End Bridge Tables")
-    else:
-        LogEtl("Bridge table load not requested")
-    
     #==============
     # FACTS
     #==============
