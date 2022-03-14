@@ -73,7 +73,7 @@ for table in spark.catalog.listTables("curated"):
     #executing the sql statement on spark creating the semantic view
     df = sqlContext.sql(sql_statement)
     #for bridge tables and creating semantic views
-  elif table.name.startswith(("brg", "meter")):
+  elif table.name.startswith(("brg", "meter", "view")):
     table_name_seperated = ' '.join(re.sub( r"([A-Z])", r" \1", table.name).split())
     table_name_formatted = table_name_seperated[0:1].capitalize() + table_name_seperated[1:100]
     sql_statement = "create or replace view " + database_name + "." + table.name + " as select "
