@@ -17,7 +17,7 @@
 				"typeProperties": {
 					"source": {
 						"type": "AzureDatabricksDeltaLakeSource",
-						"query": "select max(calendaryear) from curated.dimdate",
+						"query": "select max(calendaryear) as maxyear from curated.dimdate",
 						"exportSettings": {
 							"type": "AzureDatabricksDeltaLakeExportCommand"
 						}
@@ -33,6 +33,7 @@
 							"referenceName": "LS_AzureDatalake",
 							"type": "LinkedServiceReference"
 						},
+						"path": "raw/landing/isu_data",
 						"enableCompression": false
 					},
 					"parallelCopies": 32,
@@ -41,12 +42,15 @@
 				"inputs": [
 					{
 						"referenceName": "DS_CURATED_ADLS_DELTALAKE",
-						"type": "DatasetReference"
+						"type": "DatasetReference",
+						"parameters": {
+							"TableName": "curated.dimdate"
+						}
 					}
 				],
 				"outputs": [
 					{
-						"referenceName": "AzureSqlDatabase_dummy",
+						"referenceName": "AzureSqlDatabase_Ctrl_db_dummy",
 						"type": "DatasetReference"
 					}
 				]
