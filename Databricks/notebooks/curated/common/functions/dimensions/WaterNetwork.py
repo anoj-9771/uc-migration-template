@@ -27,7 +27,8 @@ def getWaterNetwork():
                                 level40 as distributionSystem, \
                                 level50 as reservoirZone, \
                                 level60 as pressureArea, \
-                                case when product = 'Water' then 'N' else 'Y' end as isRecycled \
+                                case when product = 'Water' then 'Y' else 'N' end as isPotableWaterSystem, \
+                                case when product = 'RecycledWater' then 'Y' else 'N' end as isRecycledWaterSystem \
                         from {ADS_DATABASE_CLEANSED}.hydra_TSYSTEMAREA \
                         where product in ('Water','RecycledWater') \
                         and   _RecordDeleted = 0 \
@@ -35,20 +36,21 @@ def getWaterNetwork():
                         ")
 
     #Dummy Record to be added to Property Dimension
-    dummyDimRecDf = spark.createDataFrame([("Unknown","Unknown","Unknown","-1","Unknown"),("Unknown","Unknown","-1",None,"Unknown")], ["deliverySystem", "distributionSystem","reservoirZone","pressureArea","isRecycled"])
+   # dummyDimRecDf = spark.createDataFrame([("Unknown","Unknown","Unknown","-1","Unknown"),("Unknown","Unknown","-1",None,"Unknown")], ["deliverySystem", "distributionSystem","reservoirZone","pressureArea","isRecycled"])
 
     #3.JOIN TABLES  
     #4.UNION TABLES
-    df = baseDf.unionByName(dummyDimRecDf, allowMissingColumns = True)
-    print(f'{df.count():,} rows after Union 2')
+   # df = baseDf.unionByName(dummyDimRecDf, allowMissingColumns = True)
+    #print(f'{df.count():,} rows after Union 2')
 
     #5.SELECT / TRANSFORM
-    df = df.selectExpr( \
+    df = baseDf.selectExpr( \
      "deliverySystem" \
     ,"distributionSystem" \
     ,"reservoirZone" \
     ,"pressureArea" \
-    ,"isRecycled" \
+    ,"isPotableWaterSystem" \
+    ,"isRecycledWaterSystem" \
     )
                                             
     #6.Apply schema definition
@@ -57,7 +59,8 @@ def getWaterNetwork():
                             StructField("distributionSystem", StringType(), False),
                             StructField("reservoirZone", StringType(), False),
                             StructField("pressureArea", StringType(), True),
-                            StructField("isRecycled", StringType(), False)
+                            StructField("isPotableWaterSystem", StringType(), False),
+                            StructField("isRecycledWaterSystem", StringType(), False)
                       ])
 
     df = spark.createDataFrame(df.rdd, schema=newSchema)
@@ -69,7 +72,3 @@ def getWaterNetwork():
 # ADS_DATABASE_CLEANSED = 'cleansed'
 # df = getWaterNetwork()
 # display(df)
-
-# COMMAND ----------
-
-

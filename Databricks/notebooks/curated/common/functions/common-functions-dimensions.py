@@ -35,4 +35,16 @@
 
 # COMMAND ----------
 
+# MAGIC %run ./dimensions/WaterNetwork
+
+# COMMAND ----------
+
+# MAGIC %run ./dimensions/SewerNetwork
+
+# COMMAND ----------
+
+# MAGIC %run ./dimensions/StormWaterNetwork
+
+# COMMAND ----------
+
 # MAGIC %run ./commonBilledWaterConsumptionIsu

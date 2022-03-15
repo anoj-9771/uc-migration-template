@@ -32,15 +32,15 @@ def getStormWaterNetwork():
                         ")
 
     #Dummy Record to be added to Property Dimension
-    dummyDimRecDf = spark.createDataFrame([("Unknown","-1")], ["stormWaterNetwork", "stormWaterCatchment"])
+   # dummyDimRecDf = spark.createDataFrame([("Unknown","-1")], ["stormWaterNetwork", "stormWaterCatchment"])
 
     #3.JOIN TABLES  
     #4.UNION TABLES
-    df = baseDf.unionByName(dummyDimRecDf, allowMissingColumns = True)
-    print(f'{df.count():,} rows after Union 2')
+   # df = baseDf.unionByName(dummyDimRecDf, allowMissingColumns = True)
+    #print(f'{df.count():,} rows after Union 2')
 
     #5.SELECT / TRANSFORM
-    df = df.selectExpr( \
+    df = baseDf.selectExpr( \
      "stormWaterNetwork" \
     ,"stormWaterCatchment" \
     )

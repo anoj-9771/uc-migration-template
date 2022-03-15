@@ -175,14 +175,6 @@ def contract():
              AddSK=True
             )  
 
-#Call Date function to load DimDate
-def makeDate(): #renamed because date() gets overloaded elsewhere
-    TemplateEtl(df=getDate(), 
-             entity="dimDate", 
-             businessKey="calendarDate",
-             AddSK=True
-            )
-
 #Call Installation function to load DimLocation
 def installation():
     TemplateEtl(df=getInstallation(), 
@@ -199,11 +191,11 @@ def location():
              AddSK=True
             )
 
-#Call Meter function to load DimMeter
-def meter():
-    TemplateEtl(df=getMeter(), 
-             entity="dimMeter", 
-             businessKey="sourceSystemCode,meterNumber",
+#Call Date function to load DimDate
+def makeDate(): #renamed because date() gets overloaded elsewhere
+    TemplateEtl(df=getDate(), 
+             entity="dimDate", 
+             businessKey="calendarDate",
              AddSK=True
             )
 
@@ -212,6 +204,38 @@ def makeProperty(): #renamed because property is a keyword
     TemplateEtl(df=getProperty(), 
              entity="dimProperty", 
              businessKey="sourceSystemCode,propertyNumber",
+             AddSK=True
+            )
+
+#Call Meter function to load DimMeter
+def meter():
+    TemplateEtl(df=getMeter(), 
+             entity="dimMeter", 
+             businessKey="sourceSystemCode,meterNumber",
+             AddSK=True
+            )
+
+#Call SewerNetwork function to load dimSewerNetwork
+def sewerNetwork():
+    TemplateEtl(df=getSewerNetwork(), 
+             entity="dimSewerNetwork", 
+             businessKey="SCAMP",
+             AddSK=True
+            )
+
+#Call StormWater function to load dimStormWaterNetwork
+def stormWaterNetwork():
+    TemplateEtl(df=getStormWaterNetwork(), 
+             entity="dimStormWaterNetwork", 
+             businessKey="stormWaterCatchment",
+             AddSK=True
+            )
+
+#Call StormWater function to load dimStormWaterNetwork
+def waterNetwork():
+    TemplateEtl(df=getWaterNetwork(), 
+             entity="dimWaterNetwork", 
+             businessKey="reservoirZone,pressureArea",
              AddSK=True
             )
 
@@ -329,6 +353,9 @@ def Main():
         location()
         meter()
         makeProperty()
+        sewerNetwork()
+        stormWaterNetwork()
+        waterNetwork()
         #Add new Dim in alphabetical position
         
         LogEtl("End Dimensions")
@@ -371,6 +398,16 @@ def Main():
     else:
         LogEtl("Fact table load not requested")
 
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC select * from curated.dimwaternetwork
+
+# COMMAND ----------
+
+
+waterNetwork()
 
 # COMMAND ----------
 
