@@ -1,0 +1,378 @@
+{
+	"name": "Business-Reconciliation_temp",
+	"properties": {
+		"activities": [
+			{
+				"name": "Copy-DeltaLake-RecordCount",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "SP-Get-Business-Rec-Config",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureDatabricksDeltaLakeSource",
+						"query": "select max(calendaryear) as RecordCount from curated.dimdate",
+						"exportSettings": {
+							"type": "AzureDatabricksDeltaLakeExportCommand"
+						}
+					},
+					"sink": {
+						"type": "AzureSqlSink",
+						"preCopyScript": "truncate table ctl.Dummy",
+						"writeBehavior": "insert",
+						"sqlWriterUseTableLock": false,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "LS_AzureDatalake",
+							"type": "LinkedServiceReference"
+						},
+						"path": "raw/landing/isu_data",
+						"enableCompression": false
+					},
+					"parallelCopies": 32,
+					"dataIntegrationUnits": 8
+				},
+				"inputs": [
+					{
+						"referenceName": "DS_CURATED_ADLS_DELTALAKE",
+						"type": "DatasetReference",
+						"parameters": {
+							"TableName": "curated.dimdate"
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "AzureSqlDatabase_Ctrl_db_dummy",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "Lookup1",
+				"type": "Lookup",
+				"dependsOn": [
+					{
+						"activity": "Copy-DeltaLake-RecordCount",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "AzureSqlDatabase_Ctrl_db_dummy",
+						"type": "DatasetReference"
+					}
+				}
+			},
+			{
+				"name": "Set variable1",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "Lookup1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "RecordsRead",
+					"value": {
+						"value": "@string(activity('Lookup1').output.firstRow.RecordCount)",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "SP-Record-Business-Rec",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[CTL].[CreateBusinessRecRawToCurated]",
+					"storedProcedureParameters": {
+						"BatchLogID": {
+							"value": {
+								"value": "@pipeline().parameters.BatchLogId",
+								"type": "Expression"
+							},
+							"type": "Int64"
+						},
+						"TaskExecutionLogID": {
+							"value": {
+								"value": "@pipeline().parameters.TaskExecutionLogId",
+								"type": "Expression"
+							},
+							"type": "Int64"
+						},
+						"PipelineRunID": {
+							"value": {
+								"value": "@pipeline().RunId",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"ProjectRunID": {
+							"value": {
+								"value": "@pipeline().parameters.ProjectRunId",
+								"type": "Expression"
+							},
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "LS-AzureSqlDatabase_Ctrldb",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "Copy-TriggerFile-DataLake",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "SP-Record-Business-Rec",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "JsonSource",
+						"additionalColumns": [
+							{
+								"name": "BatchExecutionId",
+								"value": {
+									"value": "@string(pipeline().parameters.BatchLogId)",
+									"type": "Expression"
+								}
+							},
+							{
+								"name": "TaskExecutionLogId",
+								"value": {
+									"value": "@string(pipeline().parameters.TaskExecutionLogID)",
+									"type": "Expression"
+								}
+							},
+							{
+								"name": "RawZonePipelineRunID",
+								"value": {
+									"value": "@pipeline().parameters.ProjectRunID",
+									"type": "Expression"
+								}
+							},
+							{
+								"name": "WatermarkValue",
+								"value": {
+									"value": "@pipeline().parameters.WatermarkValue",
+									"type": "Expression"
+								}
+							}
+						],
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": true,
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "JsonReadSettings"
+						}
+					},
+					"sink": {
+						"type": "JsonSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "JsonWriteSettings"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"path": "$['BatchExecutionId']"
+								},
+								"sink": {
+									"path": "BatchExecutionId"
+								}
+							},
+							{
+								"source": {
+									"path": "$['TaskExecutionLogId']"
+								},
+								"sink": {
+									"path": "TaskExecutionLogId"
+								}
+							},
+							{
+								"source": {
+									"path": "$['RawZonePipelineRunID']"
+								},
+								"sink": {
+									"path": "RawZonePipelineRunID"
+								}
+							},
+							{
+								"source": {
+									"path": "$['WatermarkValue']"
+								},
+								"sink": {
+									"path": "WatermarkValue"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "RAW_ADLS_JSON_v2_NOCOMP",
+						"type": "DatasetReference",
+						"parameters": {
+							"BlobPath": "triggers",
+							"BlobName": "template.json"
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "RAW_ADLS_JSON_v2_NOCOMP",
+						"type": "DatasetReference",
+						"parameters": {
+							"BlobPath": "triggers",
+							"BlobName": "trigger_batch_daily_busrec.json"
+						}
+					}
+				]
+			},
+			{
+				"name": "SP-Get-Business-Rec-Config",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "SP-Record-Business-Rec",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[CTL].[GetBusinessRecConfig]",
+					"storedProcedureParameters": {
+						"BusinessReconGroup": {
+							"value": {
+								"value": "@pipeline().parameters.BusinessReconGroup",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"MeasureName": {
+							"value": {
+								"value": "@pipeline().parameters.MeasureName",
+								"type": "Expression"
+							},
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "LS-AzureSqlDatabase_Ctrldb",
+					"type": "LinkedServiceReference"
+				}
+			}
+		],
+		"parameters": {
+			"BatchLogId": {
+				"type": "int"
+			},
+			"TaskExecutionLogId": {
+				"type": "int"
+			},
+			"ProjectRunId": {
+				"type": "string"
+			},
+			"WatermarkValue": {
+				"type": "string"
+			},
+			"BusinessReconGroup": {
+				"type": "string"
+			},
+			"MeasureName": {
+				"type": "string"
+			}
+		},
+		"variables": {
+			"RecordsWritten": {
+				"type": "String"
+			},
+			"RecordsRead": {
+				"type": "String"
+			},
+			"RecordMeasure": {
+				"type": "Array"
+			}
+		},
+		"folder": {
+			"name": "Validation"
+		},
+		"annotations": []
+	}
+}
