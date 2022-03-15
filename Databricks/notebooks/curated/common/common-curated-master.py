@@ -246,26 +246,7 @@ def meterInstallation():
 
 # COMMAND ----------
 
-# DBTITLE 1,6.3 Function: Load Bridge Tables
-#Call Business Partner Group Relation function to load brgBusinessPartnerGroupRelation
-def businessPartnerGroupRelationship():
-    TemplateEtl(df=getBusinessPartnerGroupRelationship(), 
-             entity="brgBusinessPartnerGroupRelationship", 
-             businessKey="businessPartnerGroupSK,businessPartnerSK,validFromDate",
-             AddSK=False
-            ) 
-
-#Call InstallationPropertyMeterContract function to load brgInstallationPropertyMeterCon
-def installationPropertyMeterContract():
-    TemplateEtl(df=getInstallationPropertyMeterContract(), 
-             entity="brgInstallationPropertyMeterContract", 
-             businessKey="dimInstallationSK",
-             AddSK=False
-            ) 
-
-# COMMAND ----------
-
-# DBTITLE 1,6.4. Function: Load Facts
+# DBTITLE 1,6.3. Function: Load Facts
 
 def billedWaterConsumption():
     TemplateEtl(df=getBilledWaterConsumption(),
@@ -304,7 +285,6 @@ def DatabaseChanges():
 
 # DBTITLE 1,8. Flag Dimension/Bridge/Fact load
 LoadDimensions = True
-LoadBridgeTables = True
 LoadFacts = True
 LoadRelationships = True
 
@@ -346,18 +326,6 @@ def Main():
         LogEtl("End Relatioship Tables")
     else:
         LogEtl("Relationship table load not requested")
-        #==============
-    # BRIDGE TABLES
-    #==============    
-    if LoadBridgeTables:
-        LogEtl("Start Bridge Tables")
-        businessPartnerGroupRelationship()
-        installationPropertyMeterContract()
-        
-        LogEtl("End Bridge Tables")
-    else:
-        LogEtl("Bridge table load not requested")
-    
     #==============
     # FACTS
     #==============
@@ -379,5 +347,43 @@ Main()
 
 # COMMAND ----------
 
-# DBTITLE 1,11. Exit Notebook
+# DBTITLE 1,11.View Generation
+# MAGIC %sql
+# MAGIC --View to get property history for Billed Water Consumption.
+# MAGIC Create or replace view curated.viewBilledWaterConsumption as
+# MAGIC select prop.propertyNumber,
+# MAGIC prophist.inferiorPropertyTypeCode,
+# MAGIC prophist.inferiorPropertyType,
+# MAGIC prophist.superiorPropertyTypeCode,
+# MAGIC prophist.superiorPropertyType,
+# MAGIC fact.*
+# MAGIC from curated.factbilledwaterconsumption fact
+# MAGIC inner join curated.dimproperty prop
+# MAGIC on fact.dimPropertySK = prop.dimPropertySK
+# MAGIC inner join cleansed.isu_zcd_tpropty_hist prophist
+# MAGIC on prop.propertyNumber = prophist.propertyNumber
+# MAGIC where prophist.validFromDate <= fact.billingPeriodEndDate
+# MAGIC and prophist.validToDate >= fact.billingPeriodEndDate
+# MAGIC ;
+# MAGIC 
+# MAGIC --View to get property history for Apportioned Water Consumption.
+# MAGIC Create or replace view curated.viewApportionedWaterConsumption as
+# MAGIC select prop.propertyNumber,
+# MAGIC prophist.inferiorPropertyTypeCode,
+# MAGIC prophist.inferiorPropertyType,
+# MAGIC prophist.superiorPropertyTypeCode,
+# MAGIC prophist.superiorPropertyType,
+# MAGIC fact.*
+# MAGIC from curated.factDailyApportionedConsumption fact
+# MAGIC inner join curated.dimproperty prop
+# MAGIC on fact.dimPropertySK = prop.dimPropertySK
+# MAGIC inner join cleansed.isu_zcd_tpropty_hist prophist
+# MAGIC on prop.propertyNumber = prophist.propertyNumber
+# MAGIC where prophist.validFromDate <= fact.consumptionDate
+# MAGIC and prophist.validToDate >= fact.consumptionDate
+# MAGIC ;
+
+# COMMAND ----------
+
+# DBTITLE 1,12. Exit Notebook
 dbutils.notebook.exit("1")
