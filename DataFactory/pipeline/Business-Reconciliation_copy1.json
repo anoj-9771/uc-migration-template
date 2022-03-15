@@ -33,7 +33,10 @@
 							"referenceName": "LS_AzureDatalake",
 							"type": "LinkedServiceReference"
 						},
-						"path": "raw/landing/isu_data",
+						"path": {
+							"value": "@variables('RecordsRead')",
+							"type": "Expression"
+						},
 						"enableCompression": false
 					},
 					"parallelCopies": 32,
