@@ -87,6 +87,26 @@
 						"type": "DatasetReference"
 					}
 				}
+			},
+			{
+				"name": "Set variable1",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "Lookup1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "RecordsRead",
+					"value": {
+						"value": "@activity('Copy-DeltaLake-RecordCount').output",
+						"type": "Expression"
+					}
+				}
 			}
 		],
 		"variables": {
