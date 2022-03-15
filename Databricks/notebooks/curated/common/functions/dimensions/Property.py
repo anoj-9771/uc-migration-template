@@ -1,4 +1,11 @@
 # Databricks notebook source
+# MAGIC %sql
+# MAGIC select pr.propertynumber, hy.waterpressurezone
+# MAGIC from   cleansed.access_z309_tproperty pr left outer join cleansed.hydra_tlotparcel hy on pr.propertynumber = hy.propertynumber
+# MAGIC where pr.propertynumber = 5000109
+
+# COMMAND ----------
+
 ###########################################################################################################################
 # Function: getProperty
 #  GETS Property DIMENSION 
@@ -16,11 +23,14 @@
 def getProperty():
 
 #     spark.udf.register("TidyCase", GeneralToTidyCase)  
-
+    
     #dimProperty
     #2.Load Cleansed layer table data into dataframe
     accessZ309TpropertyDf = spark.sql(f"select cast(propertyNumber as string), \
                                             'ACCESS' as sourceSystemCode, \
+                                            waterNetworkSK, \
+                                            sewerNetworkSK, \
+                                            stormWaterNetworkSK, \
                                             propertyTypeCode, \
                                             propertyType, \
                                             superiorPropertyTypeCode, \

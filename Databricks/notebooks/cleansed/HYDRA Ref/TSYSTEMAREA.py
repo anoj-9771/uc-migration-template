@@ -3,7 +3,7 @@
 import json
 hydraTable = 'TSYSTEMAREA'
 delta = 'PRODUCT,LEVEL30,LEVEL40,LEVEL50,LEVEL60'
-runParm = '{"SourceType":"BLOB Storage (csv)","SourceServer":"daf-sa-lake-sastoken","SourceGroup":"hydraref","SourceName":"hydra_TSYSTEMAREA","SourceLocation":"hydraref/TSYSTEMAREA","AdditionalProperty":"","Processor":"databricks-token|1103-023442-me8nqcm9|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive","IsAuditTable":false,"SoftDeleteSource":"","ProjectName":"CLEANSED HYDRA REF","ProjectId":27,"TargetType":"BLOB Storage (csv)","TargetName":"hydra_TSYSTEMAREA","TargetLocation":"hydraref/TSYSTEMAREA","TargetServer":"daf-sa-lake-sastoken","DataLoadMode":"TRUNCATE-LOAD","DeltaExtract":false,"CDCSource":false,"TruncateTarget":true,"UpsertTarget":false,"AppendTarget":false,"TrackChanges":false,"LoadToSqlEDW":true,"TaskName":"hydra_TSYSTEMAREA","ControlStageId":2,"TaskId":12,"StageSequence":200,"StageName":"Raw to Cleansed","SourceId":12,"TargetId":12,"ObjectGrain":"Day","CommandTypeId":8,"Watermarks":"","WatermarksDT":null,"WatermarkColumn":"","BusinessKeyColumn":"20,30,40,50,60","PartitionColumn":null,"UpdateMetaData":null,"SourceTimeStampFormat":"","Command":"/build/cleansed/HYDRA Ref/TSYSTEMAREA","LastLoadedFile":null}'
+runParm = '{"SourceType":"BLOB Storage (csv)","SourceServer":"daf-sa-lake-sastoken","SourceGroup":"hydraref","SourceName":"hydra_TSYSTEMAREA","SourceLocation":"hydraref/TSYSTEMAREA","AdditionalProperty":"","Processor":"databricks-token|1103-023442-me8nqcm9|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive","IsAuditTable":false,"SoftDeleteSource":"","ProjectName":"CLEANSED HYDRA REF","ProjectId":27,"TargetType":"BLOB Storage (csv)","TargetName":"hydra_TSYSTEMAREA","TargetLocation":"hydraref/TSYSTEMAREA","TargetServer":"daf-sa-lake-sastoken","DataLoadMode":"TRUNCATE-LOAD","DeltaExtract":false,"CDCSource":false,"TruncateTarget":true,"UpsertTarget":false,"AppendTarget":false,"TrackChanges":false,"LoadToSqlEDW":true,"TaskName":"hydra_TSYSTEMAREA","ControlStageId":2,"TaskId":16,"StageSequence":200,"StageName":"Raw to Cleansed","SourceId":16,"TargetId":16,"ObjectGrain":"Day","CommandTypeId":8,"Watermarks":"","WatermarksDT":null,"WatermarkColumn":"","BusinessKeyColumn":"20,30,40,50,60","PartitionColumn":null,"UpdateMetaData":null,"SourceTimeStampFormat":"","Command":"/build/cleansed/HYDRA Ref/TSYSTEMAREA","LastLoadedFile":null}'
 
 s = json.loads(runParm)
 for parm in ['SourceName','SourceLocation','TargetName','TargetLocation','TaskName']:
@@ -188,8 +188,8 @@ DeltaSaveToDeltaTable (
 df_cleansed = spark.sql(f"SELECT `20` as product, \
         `30` as level30, \
 		`40` as level40, \
-		`50` as level50, \
-        `60` as level60, \
+		case when `50` = 'na' then null else `50` end as level50, \
+        case when `60` = 'na' then null else `60` end as level60, \
 		_RecordStart, \
 		_RecordEnd, \
 		_RecordDeleted, \
