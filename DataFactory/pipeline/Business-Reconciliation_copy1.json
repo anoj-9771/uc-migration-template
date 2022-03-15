@@ -17,7 +17,7 @@
 				"typeProperties": {
 					"source": {
 						"type": "AzureDatabricksDeltaLakeSource",
-						"query": "select max(calendaryear) as maxyear from curated.dimdate",
+						"query": "select max(calendaryear) as RecordCount from curated.dimdate",
 						"exportSettings": {
 							"type": "AzureDatabricksDeltaLakeExportCommand"
 						}
