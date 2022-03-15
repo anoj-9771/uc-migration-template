@@ -24,8 +24,10 @@
 					},
 					"sink": {
 						"type": "AzureSqlSink",
+						"preCopyScript": "truncate table ctl.Dummy",
 						"writeBehavior": "insert",
-						"sqlWriterUseTableLock": false
+						"sqlWriterUseTableLock": false,
+						"disableMetricsCollection": false
 					},
 					"enableStaging": true,
 					"stagingSettings": {
@@ -33,10 +35,7 @@
 							"referenceName": "LS_AzureDatalake",
 							"type": "LinkedServiceReference"
 						},
-						"path": {
-							"value": "@variables('RecordsRead')",
-							"type": "Expression"
-						},
+						"path": "raw/landing/isu_data",
 						"enableCompression": false
 					},
 					"parallelCopies": 32,
