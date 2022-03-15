@@ -103,7 +103,7 @@
 				"typeProperties": {
 					"variableName": "RecordsRead",
 					"value": {
-						"value": "@activity('Copy-DeltaLake-RecordCount').output.Value",
+						"value": "@activity('Copy-DeltaLake-RecordCount').output.rowsRead",
 						"type": "Expression"
 					}
 				}
