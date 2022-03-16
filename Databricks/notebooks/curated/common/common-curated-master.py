@@ -352,10 +352,14 @@ def Main():
         installation()
         location()
         meter()
-        makeProperty()
         sewerNetwork()
         stormWaterNetwork()
         waterNetwork()
+        #-----------------------------------------------------------------------------------------------
+        # Note: Due to the fact that dimProperty relies on the system area tables having been populated,
+        # makeProperty() must run after these three have been loaded
+        #-----------------------------------------------------------------------------------------------
+        makeProperty()
         #Add new Dim in alphabetical position
         
         LogEtl("End Dimensions")
