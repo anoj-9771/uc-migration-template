@@ -220,6 +220,13 @@
 											"type": "Expression"
 										},
 										"type": "String"
+									},
+									"UpdatedDateTime": {
+										"value": {
+											"value": "getFutureTime(0,'Day')",
+											"type": "Expression"
+										},
+										"type": "Datetime"
 									}
 								}
 							},
