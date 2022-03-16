@@ -69,9 +69,9 @@ def getBilledWaterConsumptionDaily():
     billedConsDf = isuConsDf.union(accessConsDf)
 
     billedConsDf = billedConsDf.withColumn("avgMeteredWaterConsumption", F.col("meteredWaterConsumption")/F.col("totalMeterActiveDays"))
-
+    #billedConsDf = billedConsDf.withColumn("avgMeteredWaterConsumption",col("avgMeteredWaterConsumption").cast("decimal(18,6)"))
     #4.Load Dmension tables into dataframe
-
+    
     dimPropertyDf = spark.sql(f"select sourceSystemCode, dimPropertySK, propertyNumber \
                                 from {ADS_DATABASE_CURATED}.dimProperty \
                                 where _RecordCurrent = 1 and _RecordDeleted = 0")
@@ -198,7 +198,10 @@ def getBilledWaterConsumptionDaily():
                               ,"coalesce(dimBusinessPartnerGroupSk, dummyBusinessPartnerGroupSK) as dimBusinessPartnerGroupSK" \
                               ,"-1 as dimWaterNetworkSK" \
                               ,"coalesce(dimContractSK, dummyContractSK) as dimContractSK" \
-                              ,"cast(avgMeteredWaterConsumption as decimal(18,6)) as dailyApportionedConsumption" \
-                              )
-
+                              ,"cast(avgMeteredWaterConsumption as decimal(18,6))" \
+                              ) \
+                          .groupby("sourceSystemCode", "consumptionDate", "dimBillingDocumentSK", "dimPropertySK", "dimMeterSK", \
+                                   "dimLocationSK", "dimBusinessPartnerGroupSK", "dimWaterNetworkSK", "dimContractSK") \
+                          .agg(sum("avgMeteredWaterConsumption").alias("dailyApportionedConsumption"))  
+    
     return billedConsDf
