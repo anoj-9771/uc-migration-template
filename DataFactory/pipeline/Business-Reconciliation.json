@@ -201,15 +201,24 @@
 										"type": "Int64"
 									},
 									"UpdatedBatchExecutionId": {
-										"value": "",
+										"value": {
+											"value": "@pipeline().parameters.BatchLogId",
+											"type": "Expression"
+										},
 										"type": "Int64"
 									},
 									"UpdatedTaskExecutionLogId": {
-										"value": "",
+										"value": {
+											"value": "@pipeline().parameters.TaskExecutionLogId",
+											"type": "Expression"
+										},
 										"type": "Int64"
 									},
 									"CuratedPipelineRunID": {
-										"value": "",
+										"value": {
+											"value": "@pipeline().RunId",
+											"type": "Expression"
+										},
 										"type": "String"
 									}
 								}
