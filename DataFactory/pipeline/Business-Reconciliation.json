@@ -223,7 +223,7 @@
 									},
 									"UpdatedDateTime": {
 										"value": {
-											"value": "getFutureTime(0,'Day')",
+											"value": "@convertFromUtc(getFutureTime(0,'Day'),'AUS Eastern Standard Time')",
 											"type": "Expression"
 										},
 										"type": "Datetime"
