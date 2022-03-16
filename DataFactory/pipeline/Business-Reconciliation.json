@@ -199,6 +199,25 @@
 											"type": "Expression"
 										},
 										"type": "Int64"
+									},
+									"BusinessRecId": {
+										"value": {
+											"value": "@item().BusinessRecId",
+											"type": "Expression"
+										},
+										"type": "Int64"
+									},
+									"UpdatedBatchExecutionId": {
+										"value": "",
+										"type": "Int64"
+									},
+									"UpdatedTaskExecutionLogId": {
+										"value": "",
+										"type": "Int64"
+									},
+									"CuratedPipelineRunID": {
+										"value": "",
+										"type": "String"
 									}
 								}
 							},
@@ -236,15 +255,6 @@
 			}
 		},
 		"variables": {
-			"RecordsWritten": {
-				"type": "String"
-			},
-			"RecordsRead": {
-				"type": "String"
-			},
-			"RecordMeasure": {
-				"type": "Array"
-			},
 			"TargetQuery": {
 				"type": "String"
 			}
