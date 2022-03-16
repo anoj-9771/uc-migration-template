@@ -25,13 +25,6 @@
 									"value": "@pipeline().parameters.BusinessReconGroup",
 									"type": "Expression"
 								}
-							},
-							"MeasureName": {
-								"type": "String",
-								"value": {
-									"value": "@pipeline().parameters.MeasureName",
-									"type": "Expression"
-								}
 							}
 						},
 						"partitionOption": "None"
