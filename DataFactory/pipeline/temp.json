@@ -1,0 +1,62 @@
+{
+	"name": "temp",
+	"properties": {
+		"activities": [
+			{
+				"name": "Set variable1",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "UpdateDate",
+					"value": {
+						"value": "@getFutureTime(,'Day')",
+						"type": "Expression"
+					}
+				}
+			}
+		],
+		"parameters": {
+			"BatchLogId": {
+				"type": "int",
+				"defaultValue": 1
+			},
+			"TaskExecutionLogId": {
+				"type": "int",
+				"defaultValue": 2
+			},
+			"ProjectRunId": {
+				"type": "string"
+			},
+			"WatermarkValue": {
+				"type": "string"
+			},
+			"BusinessReconGroup": {
+				"type": "string",
+				"defaultValue": "Water Consumption Reconciliation"
+			},
+			"MeasureName": {
+				"type": "string",
+				"defaultValue": "Billing Document Count"
+			}
+		},
+		"variables": {
+			"UpdateDate": {
+				"type": "String"
+			},
+			"RecordsRead": {
+				"type": "String"
+			},
+			"RecordMeasure": {
+				"type": "Array"
+			},
+			"TargetQuery": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "Validation"
+		},
+		"annotations": []
+	}
+}
