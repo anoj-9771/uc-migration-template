@@ -186,7 +186,7 @@
 							"typeProperties": {
 								"storedProcedureName": "[CTL].[UpdateBusinessRecCurated]",
 								"storedProcedureParameters": {
-									"RecordsTargetTable": {
+									"TargetMeasureValue": {
 										"value": {
 											"value": "@activity('Lookup_copy_rec').output.firstRow.RecordCount",
 											"type": "Expression"
