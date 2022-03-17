@@ -358,16 +358,16 @@ Main()
 # MAGIC prophist.superiorPropertyType,
 # MAGIC fact.*
 # MAGIC from curated.factbilledwaterconsumption fact
-# MAGIC inner join curated.dimproperty prop
+# MAGIC left outer join curated.dimproperty prop
 # MAGIC on fact.dimPropertySK = prop.dimPropertySK
-# MAGIC inner join cleansed.isu_zcd_tpropty_hist prophist
+# MAGIC left outer join cleansed.isu_zcd_tpropty_hist prophist
 # MAGIC on prop.propertyNumber = prophist.propertyNumber
-# MAGIC where prophist.validFromDate <= fact.billingPeriodEndDate
+# MAGIC and prophist.validFromDate <= fact.billingPeriodEndDate
 # MAGIC and prophist.validToDate >= fact.billingPeriodEndDate
 # MAGIC ;
 # MAGIC 
 # MAGIC --View to get property history for Apportioned Water Consumption.
-# MAGIC Create or replace view curated.viewApportionedWaterConsumption as
+# MAGIC Create or replace view curated.viewDailyApportionedConsumption as
 # MAGIC select prop.propertyNumber,
 # MAGIC prophist.inferiorPropertyTypeCode,
 # MAGIC prophist.inferiorPropertyType,
@@ -375,11 +375,11 @@ Main()
 # MAGIC prophist.superiorPropertyType,
 # MAGIC fact.*
 # MAGIC from curated.factDailyApportionedConsumption fact
-# MAGIC inner join curated.dimproperty prop
+# MAGIC left outer join curated.dimproperty prop
 # MAGIC on fact.dimPropertySK = prop.dimPropertySK
-# MAGIC inner join cleansed.isu_zcd_tpropty_hist prophist
+# MAGIC left outer join cleansed.isu_zcd_tpropty_hist prophist
 # MAGIC on prop.propertyNumber = prophist.propertyNumber
-# MAGIC where prophist.validFromDate <= fact.consumptionDate
+# MAGIC and prophist.validFromDate <= fact.consumptionDate
 # MAGIC and prophist.validToDate >= fact.consumptionDate
 # MAGIC ;
 
