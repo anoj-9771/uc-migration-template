@@ -1,4 +1,9 @@
 # Databricks notebook source
+# MAGIC %sql
+# MAGIC select * from cleansed.access_z309_tlot
+
+# COMMAND ----------
+
 ###########################################################################################################################
 # Function: getProperty
 #  GETS Property DIMENSION 
