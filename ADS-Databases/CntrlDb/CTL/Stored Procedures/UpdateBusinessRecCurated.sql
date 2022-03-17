@@ -1,5 +1,6 @@
-CREATE PROCEDURE [CTL].[UpdateBusinessRecCurated] (
-	@TargetMeasureValue decimal(28,7),
+CREATE PROCEDURE [CTL].[UpdateBusinessRecCurated]
+(
+  @TargetMeasureValue decimal(28,7),
 	@BusinessRecId bigint,
 	@UpdatedBatchExecutionId bigint,
 	@UpdatedTaskExecutionLogId bigint,
@@ -10,11 +11,16 @@ AS
 
 BEGIN
 
-DECLARE @vsourcemeasurevalue bigint
+DECLARE 
+	@vsourcemeasurevalue decimal(28,7),
+	@vBusinessReconGroup varchar(255),
+	@vMeasureId varchar(255)	
 
 	SELECT 
-	@vsourcemeasurevalue = bc.SourceMeasureValue 
-	FROM CTL.BusinessRecCurated bc 
+	@vsourcemeasurevalue = bc.SourceMeasureValue,
+	@vBusinessReconGroup = bc.BusinessReconGroup,
+	@vMeasureId = bc.MeasureId
+	FROM CTL.BusinessRecCurated bc
 	WHERE bc.BusinessRecId = @BusinessRecId
 
 	IF @vsourcemeasurevalue = @TargetMeasureValue
@@ -40,4 +46,15 @@ DECLARE @vsourcemeasurevalue bigint
 		WHERE  [BusinessRecId] = @BusinessRecId
 	END
 
-END
+	UPDATE CTL.BusinessRecCurated
+		SET	   BusinessRecResult = 'FAIL',
+			   UpdatedBatchExecutionId = @UpdatedBatchExecutionId,
+			   UpdatedTaskExecutionLogId = @UpdatedTaskExecutionLogId,
+			   CuratedPipelineRunID = @CuratedPipelineRunID,
+			   UpdatedDateTime = @UpdatedDateTime
+		WHERE BusinessReconGroup = @vBusinessReconGroup
+		  AND MeasureId = @vMeasureId
+		  AND BusinessRecResult is null
+		  AND UpdatedDateTime < @UpdatedDateTime
+
+END      
