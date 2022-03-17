@@ -726,6 +726,12 @@
 			},
 			"TargetBLOBName": {
 				"type": "string"
+			},
+			"RunDate": {
+				"type": "string"
+			},
+			"RunTime": {
+				"type": "string"
 			}
 		},
 		"variables": {
