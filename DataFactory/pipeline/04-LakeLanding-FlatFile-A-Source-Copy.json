@@ -594,7 +594,10 @@
 									"referenceName": "ARCHIVE_BLOB_CSV",
 									"type": "DatasetReference",
 									"parameters": {
-										"BlobContainer": "@variables('SourceContainer')"
+										"BlobContainer": {
+											"value": "@concat(variables('SourceContainer'),'/',pipeline().parameters.RunDate,'/',pipeline().parameters.RunTime)",
+											"type": "Expression"
+										}
 									}
 								}
 							]
