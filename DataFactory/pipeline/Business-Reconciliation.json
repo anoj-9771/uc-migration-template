@@ -237,6 +237,42 @@
 						}
 					]
 				}
+			},
+			{
+				"name": "Delete-Trigger-File",
+				"type": "Delete",
+				"dependsOn": [
+					{
+						"activity": "ForEach Business Rec",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "RAW_ADLS_JSON_v2_NOCOMP",
+						"type": "DatasetReference",
+						"parameters": {
+							"BlobPath": "triggers",
+							"BlobName": "trigger_batch_daily_sapslt.json"
+						}
+					},
+					"enableLogging": false,
+					"storeSettings": {
+						"type": "AzureBlobFSReadSettings",
+						"recursive": true,
+						"enablePartitionDiscovery": false
+					}
+				}
 			}
 		],
 		"parameters": {
