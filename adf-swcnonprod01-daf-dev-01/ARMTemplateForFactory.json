@@ -6784,8 +6784,7 @@
 									},
 									"linkedServiceName": {
 										"referenceName": "LS-AzureSqlDatabase_Ctrldb",
-										"type": "LinkedServiceReference",
-										"parameters": {}
+										"type": "LinkedServiceReference"
 									}
 								}
 							],
@@ -6851,8 +6850,7 @@
 									},
 									"linkedServiceName": {
 										"referenceName": "LS-AzureSqlDatabase_Ctrldb",
-										"type": "LinkedServiceReference",
-										"parameters": {}
+										"type": "LinkedServiceReference"
 									}
 								},
 								{
@@ -6920,8 +6918,7 @@
 									},
 									"linkedServiceName": {
 										"referenceName": "LS-AzureSqlDatabase_Ctrldb",
-										"type": "LinkedServiceReference",
-										"parameters": {}
+										"type": "LinkedServiceReference"
 									}
 								},
 								{
@@ -7066,17 +7063,11 @@
 									"userProperties": [],
 									"typeProperties": {
 										"dataset": {
-											"referenceName": "SRC_RAW_LANDING_ADLS_CSV",
+											"referenceName": "SRC_BLOB_CSV_NO_QUOTE_CHAR",
 											"type": "DatasetReference",
 											"parameters": {
-												"BlobPath": {
-													"value": "@variables('SourceContainer')",
-													"type": "Expression"
-												},
-												"BlobName": {
-													"value": "@variables('SourceFileName')",
-													"type": "Expression"
-												}
+												"BlobContainer": "@variables('SourceContainer')",
+												"BlobName": "@variables('SourceFileName')"
 											}
 										},
 										"logStorageSettings": {
@@ -7088,7 +7079,7 @@
 										},
 										"enableLogging": true,
 										"storeSettings": {
-											"type": "AzureBlobFSReadSettings",
+											"type": "AzureBlobStorageReadSettings",
 											"recursive": true,
 											"enablePartitionDiscovery": false
 										}
@@ -7128,7 +7119,7 @@
 										"sink": {
 											"type": "DelimitedTextSink",
 											"storeSettings": {
-												"type": "AzureBlobFSWriteSettings"
+												"type": "AzureBlobStorageWriteSettings"
 											},
 											"formatSettings": {
 												"type": "DelimitedTextWriteSettings",
@@ -7156,17 +7147,10 @@
 									],
 									"outputs": [
 										{
-											"referenceName": "SRC_RAW_LANDING_ADLS_CSV",
+											"referenceName": "ARCHIVE_BLOB_CSV",
 											"type": "DatasetReference",
 											"parameters": {
-												"BlobPath": {
-													"value": "@concat(variables('SourceContainer'),'archive/')",
-													"type": "Expression"
-												},
-												"BlobName": {
-													"value": "@variables('SourceFileName')",
-													"type": "Expression"
-												}
+												"BlobContainer": "@variables('SourceContainer')"
 											}
 										}
 									]
@@ -7273,8 +7257,7 @@
 									},
 									"linkedServiceName": {
 										"referenceName": "LS-AzureSqlDatabase_Ctrldb",
-										"type": "LinkedServiceReference",
-										"parameters": {}
+										"type": "LinkedServiceReference"
 									}
 								}
 							]
@@ -7331,7 +7314,7 @@
 				"[concat(variables('factoryId'), '/linkedServices/LS-AzureSqlDatabase_Ctrldb')]",
 				"[concat(variables('factoryId'), '/datasets/DST_RAW_ADLS_CSV')]",
 				"[concat(variables('factoryId'), '/pipelines/04-DL-Load-Raw-to-Delta-Table')]",
-				"[concat(variables('factoryId'), '/datasets/SRC_RAW_LANDING_ADLS_CSV')]",
+				"[concat(variables('factoryId'), '/datasets/ARCHIVE_BLOB_CSV')]",
 				"[concat(variables('factoryId'), '/linkedServices/LS_AzureDatalake')]"
 			]
 		},
