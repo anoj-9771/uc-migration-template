@@ -115,7 +115,7 @@
 							],
 							"outputs": [
 								{
-									"referenceName": "AzureSqlDatabase_Ctrl_db_dummy",
+									"referenceName": "AzureSqlDatabase_Ctrl_db_businessrecstage",
 									"type": "DatasetReference"
 								}
 							]
@@ -159,7 +159,7 @@
 									"partitionOption": "None"
 								},
 								"dataset": {
-									"referenceName": "AzureSqlDatabase_Ctrl_db_dummy",
+									"referenceName": "AzureSqlDatabase_Ctrl_db_businessrecstage",
 									"type": "DatasetReference"
 								}
 							}
