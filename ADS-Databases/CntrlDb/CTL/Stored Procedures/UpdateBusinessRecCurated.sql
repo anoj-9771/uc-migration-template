@@ -57,4 +57,5 @@ DECLARE
 		  AND BusinessRecResult is null
 		  AND UpdatedDateTime < @UpdatedDateTime
 
-END      
+END
+
