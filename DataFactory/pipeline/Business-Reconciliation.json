@@ -87,7 +87,7 @@
 								},
 								"sink": {
 									"type": "AzureSqlSink",
-									"preCopyScript": "truncate table ctl.Dummy",
+									"preCopyScript": "truncate table ctl.BusinessRecStage",
 									"writeBehavior": "insert",
 									"sqlWriterUseTableLock": false,
 									"disableMetricsCollection": false
