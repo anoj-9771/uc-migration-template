@@ -7275,10 +7275,10 @@ SELECT
 				</Entry>
 			</Relationship>
 			<Annotation Type="SysCommentsObjectAnnotation">
-				<Property Name="Length" Value="740" />
+				<Property Name="Length" Value="759" />
 				<Property Name="StartLine" Value="1" />
 				<Property Name="StartColumn" Value="1" />
-				<Property Name="HeaderContents" Value="CREATE PROCEDURE [CTL].[GetBusinessRecCurated] &#xA;  (&#xA;&#x9;  @BusinessReconGroup varchar(255)&#xA;  )&#xA;AS" />
+				<Property Name="HeaderContents" Value="CREATE PROCEDURE [CTL].[GetBusinessRecCurated] &#xD;&#xA;  (&#xD;&#xA;&#x9;  @BusinessReconGroup varchar(255)&#xD;&#xA;  )&#xD;&#xA;AS" />
 			</Annotation>
 		</Element>
 		<Element Type="SqlProcedure" Name="[CTL].[GetExecutionStages]">
@@ -12967,11 +12967,16 @@ END]]></Value>
 
 BEGIN
 
-DECLARE @vsourcemeasurevalue bigint
+DECLARE 
+	@vsourcemeasurevalue decimal(28,7),
+	@vBusinessReconGroup varchar(255),
+	@vMeasureId varchar(255)	
 
 	SELECT 
-	@vsourcemeasurevalue = bc.SourceMeasureValue 
-	FROM CTL.BusinessRecCurated bc 
+	@vsourcemeasurevalue = bc.SourceMeasureValue,
+	@vBusinessReconGroup = bc.BusinessReconGroup,
+	@vMeasureId = bc.MeasureId
+	FROM CTL.BusinessRecCurated bc
 	WHERE bc.BusinessRecId = @BusinessRecId
 
 	IF @vsourcemeasurevalue = @TargetMeasureValue
@@ -12997,18 +13002,41 @@ DECLARE @vsourcemeasurevalue bigint
 		WHERE  [BusinessRecId] = @BusinessRecId
 	END
 
+	UPDATE CTL.BusinessRecCurated
+		SET	   BusinessRecResult = 'FAIL',
+			   UpdatedBatchExecutionId = @UpdatedBatchExecutionId,
+			   UpdatedTaskExecutionLogId = @UpdatedTaskExecutionLogId,
+			   CuratedPipelineRunID = @CuratedPipelineRunID,
+			   UpdatedDateTime = @UpdatedDateTime
+		WHERE BusinessReconGroup = @vBusinessReconGroup
+		  AND MeasureId = @vMeasureId
+		  AND BusinessRecResult is null
+		  AND UpdatedDateTime < @UpdatedDateTime
+
 END]]></Value>
 			</Property>
 			<Property Name="IsAnsiNullsOn" Value="True" />
 			<Relationship Name="BodyDependencies">
 				<Entry>
-					<References ExternalSource="BuiltIns" Name="[bigint]" />
+					<References ExternalSource="BuiltIns" Name="[decimal]" />
+				</Entry>
+				<Entry>
+					<References ExternalSource="BuiltIns" Name="[varchar]" />
+				</Entry>
+				<Entry>
+					<References ExternalSource="BuiltIns" Name="[varchar]" />
 				</Entry>
 				<Entry>
 					<References Name="[CTL].[BusinessRecCurated]" />
 				</Entry>
 				<Entry>
 					<References Name="[CTL].[BusinessRecCurated].[SourceMeasureValue]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[BusinessRecCurated].[BusinessReconGroup]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[BusinessRecCurated].[MeasureId]" />
 				</Entry>
 				<Entry>
 					<References Name="[CTL].[BusinessRecCurated].[BusinessRecId]" />
@@ -13051,6 +13079,12 @@ END]]></Value>
 				</Entry>
 				<Entry>
 					<References Name="[CTL].[BusinessRecCurated].[BusinessRecId]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[BusinessRecCurated].[BusinessReconGroup]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[BusinessRecCurated].[MeasureId]" />
 				</Entry>
 			</Relationship>
 			<Relationship Name="Parameters">
@@ -13154,10 +13188,10 @@ END]]></Value>
 				</Entry>
 			</Relationship>
 			<Annotation Type="SysCommentsObjectAnnotation">
-				<Property Name="Length" Value="1252" />
+				<Property Name="Length" Value="1900" />
 				<Property Name="StartLine" Value="1" />
 				<Property Name="StartColumn" Value="1" />
-				<Property Name="HeaderContents" Value="CREATE PROCEDURE [CTL].[UpdateBusinessRecCurated] (&#xA;&#x9;@TargetMeasureValue decimal(28,7),&#xA;&#x9;@BusinessRecId bigint,&#xA;&#x9;@UpdatedBatchExecutionId bigint,&#xA;&#x9;@UpdatedTaskExecutionLogId bigint,&#xA;&#x9;@CuratedPipelineRunID varchar(255),&#xA;&#x9;@UpdatedDateTime datetime&#xA;)&#xA;AS" />
+				<Property Name="HeaderContents" Value="CREATE PROCEDURE [CTL].[UpdateBusinessRecCurated]&#xD;&#xA;(&#xD;&#xA;  @TargetMeasureValue decimal(28,7),&#xD;&#xA;&#x9;@BusinessRecId bigint,&#xD;&#xA;&#x9;@UpdatedBatchExecutionId bigint,&#xD;&#xA;&#x9;@UpdatedTaskExecutionLogId bigint,&#xD;&#xA;&#x9;@CuratedPipelineRunID varchar(255),&#xD;&#xA;&#x9;@UpdatedDateTime datetime&#xD;&#xA;)&#xD;&#xA;AS" />
 			</Annotation>
 		</Element>
 		<Element Type="SqlProcedure" Name="[CTL].[UpdateCustomDataLoad]">
