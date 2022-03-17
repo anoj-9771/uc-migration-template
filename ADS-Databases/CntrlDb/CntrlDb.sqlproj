@@ -150,6 +150,7 @@
     <Build Include="CTL\Tables\BusinessRecCurated.sql" />
     <Build Include="CTL\Views\vw_TechRecRawToCleansedRpt.sql" />
     <Build Include="CTL\Views\vw_TechRecSrcToRawRpt.sql" />
+    <Build Include="CTL\Stored Procedures\UpdateBusinessRecCurated.sql" />
   </ItemGroup>
   <ItemGroup>
     <PostDeploy Include="Script.PostDeployment1.sql" />

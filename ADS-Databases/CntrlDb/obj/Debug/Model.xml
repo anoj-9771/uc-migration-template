@@ -12268,6 +12268,211 @@ END]]></Value>
 				<Property Name="HeaderContents" Value="CREATE Procedure [CTL].[UpdateBatchLog] (@BatchLogId BigInt, @Status Varchar(50), @ErrorMessage Varchar(2000))&#xD;&#xA;As" />
 			</Annotation>
 		</Element>
+		<Element Type="SqlProcedure" Name="[CTL].[UpdateBusinessRecCurated]">
+			<Property Name="BodyScript">
+				<Value><![CDATA[
+
+BEGIN
+
+DECLARE 
+	@vsourcemeasurevalue decimal(28,7),
+	@vBusinessReconGroup varchar(255),
+	@vMeasureId varchar(255)	
+
+	SELECT 
+	@vsourcemeasurevalue = bc.SourceMeasureValue,
+	@vBusinessReconGroup = bc.BusinessReconGroup,
+	@vMeasureId = bc.MeasureId
+	FROM CTL.BusinessRecCurated bc
+	WHERE bc.BusinessRecId = @BusinessRecId
+
+	IF @vsourcemeasurevalue = @TargetMeasureValue
+	BEGIN
+		UPDATE CTL.BusinessRecCurated
+		SET	   TargetMeasureValue = @TargetMeasureValue,
+			   BusinessRecResult = 'PASS',
+			   UpdatedBatchExecutionId = @UpdatedBatchExecutionId,
+			   UpdatedTaskExecutionLogId = @UpdatedTaskExecutionLogId,
+			   CuratedPipelineRunID = @CuratedPipelineRunID,
+			   UpdatedDateTime = @UpdatedDateTime
+		WHERE  [BusinessRecId] = @BusinessRecId
+	END
+	ELSE
+	BEGIN
+		UPDATE CTL.BusinessRecCurated
+		SET	   TargetMeasureValue = @TargetMeasureValue,
+			   BusinessRecResult = 'FAIL',
+			   UpdatedBatchExecutionId = @UpdatedBatchExecutionId,
+			   UpdatedTaskExecutionLogId = @UpdatedTaskExecutionLogId,
+			   CuratedPipelineRunID = @CuratedPipelineRunID,
+			   UpdatedDateTime = @UpdatedDateTime
+		WHERE  [BusinessRecId] = @BusinessRecId
+	END
+
+	UPDATE CTL.BusinessRecCurated
+		SET	   BusinessRecResult = 'FAIL',
+			   UpdatedBatchExecutionId = @UpdatedBatchExecutionId,
+			   UpdatedTaskExecutionLogId = @UpdatedTaskExecutionLogId,
+			   CuratedPipelineRunID = @CuratedPipelineRunID,
+			   UpdatedDateTime = @UpdatedDateTime
+		WHERE BusinessReconGroup = @vBusinessReconGroup
+		  AND MeasureId = @vMeasureId
+		  AND BusinessRecResult is null
+		  AND UpdatedDateTime < @UpdatedDateTime
+
+END]]></Value>
+			</Property>
+			<Property Name="IsAnsiNullsOn" Value="True" />
+			<Relationship Name="BodyDependencies">
+				<Entry>
+					<References ExternalSource="BuiltIns" Name="[decimal]" />
+				</Entry>
+				<Entry>
+					<References ExternalSource="BuiltIns" Name="[varchar]" />
+				</Entry>
+				<Entry>
+					<References ExternalSource="BuiltIns" Name="[varchar]" />
+				</Entry>
+				<Entry />
+				<Entry />
+				<Entry />
+				<Entry />
+				<Entry />
+				<Entry>
+					<References Name="[CTL].[UpdateBusinessRecCurated].[@BusinessRecId]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[UpdateBusinessRecCurated].[@TargetMeasureValue]" />
+				</Entry>
+				<Entry />
+				<Entry />
+				<Entry />
+				<Entry>
+					<References Name="[CTL].[UpdateBusinessRecCurated].[@UpdatedBatchExecutionId]" />
+				</Entry>
+				<Entry />
+				<Entry>
+					<References Name="[CTL].[UpdateBusinessRecCurated].[@UpdatedTaskExecutionLogId]" />
+				</Entry>
+				<Entry />
+				<Entry>
+					<References Name="[CTL].[UpdateBusinessRecCurated].[@CuratedPipelineRunID]" />
+				</Entry>
+				<Entry />
+				<Entry>
+					<References Name="[CTL].[UpdateBusinessRecCurated].[@UpdatedDateTime]" />
+				</Entry>
+				<Entry />
+				<Entry />
+				<Entry />
+			</Relationship>
+			<Relationship Name="Parameters">
+				<Entry>
+					<Element Type="SqlSubroutineParameter" Name="[CTL].[UpdateBusinessRecCurated].[@TargetMeasureValue]">
+						<Relationship Name="Type">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Property Name="Scale" Value="7" />
+									<Property Name="Precision" Value="28" />
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[decimal]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlSubroutineParameter" Name="[CTL].[UpdateBusinessRecCurated].[@BusinessRecId]">
+						<Relationship Name="Type">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[bigint]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlSubroutineParameter" Name="[CTL].[UpdateBusinessRecCurated].[@UpdatedBatchExecutionId]">
+						<Relationship Name="Type">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[bigint]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlSubroutineParameter" Name="[CTL].[UpdateBusinessRecCurated].[@UpdatedTaskExecutionLogId]">
+						<Relationship Name="Type">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[bigint]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlSubroutineParameter" Name="[CTL].[UpdateBusinessRecCurated].[@CuratedPipelineRunID]">
+						<Relationship Name="Type">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Property Name="Length" Value="255" />
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[varchar]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlSubroutineParameter" Name="[CTL].[UpdateBusinessRecCurated].[@UpdatedDateTime]">
+						<Relationship Name="Type">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[datetime]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+			</Relationship>
+			<Relationship Name="Schema">
+				<Entry>
+					<References Name="[CTL]" />
+				</Entry>
+			</Relationship>
+			<Annotation Type="SysCommentsObjectAnnotation">
+				<Property Name="Length" Value="1841" />
+				<Property Name="StartLine" Value="1" />
+				<Property Name="StartColumn" Value="1" />
+				<Property Name="HeaderContents" Value="CREATE PROCEDURE [CTL].[UpdateBusinessRecCurated]&#xA;(&#xA;  @TargetMeasureValue decimal(28,7),&#xA;&#x9;@BusinessRecId bigint,&#xA;&#x9;@UpdatedBatchExecutionId bigint,&#xA;&#x9;@UpdatedTaskExecutionLogId bigint,&#xA;&#x9;@CuratedPipelineRunID varchar(255),&#xA;&#x9;@UpdatedDateTime datetime&#xA;)&#xA;AS" />
+			</Annotation>
+		</Element>
 		<Element Type="SqlProcedure" Name="[CTL].[UpdateCustomDataLoad]">
 			<Property Name="BodyScript">
 				<Value><![CDATA[
@@ -15420,7 +15625,7 @@ SELECT * FROM
 				</Entry>
 			</Relationship>
 			<Annotation Type="SysCommentsObjectAnnotation">
-				<Property Name="Length" Value="1075" />
+				<Property Name="Length" Value="1101" />
 				<Property Name="StartLine" Value="1" />
 				<Property Name="StartColumn" Value="1" />
 				<Property Name="HeaderContents" Value="CREATE VIEW [CTL].[vw_TechRecRawToCleansedRpt] AS" />
@@ -16235,7 +16440,7 @@ SELECT * FROM
 				</Entry>
 			</Relationship>
 			<Annotation Type="SysCommentsObjectAnnotation">
-				<Property Name="Length" Value="1224" />
+				<Property Name="Length" Value="1250" />
 				<Property Name="StartLine" Value="1" />
 				<Property Name="StartColumn" Value="1" />
 				<Property Name="HeaderContents" Value="CREATE VIEW [dbo].[vw_TechRecSrcToRawRpt] AS" />
