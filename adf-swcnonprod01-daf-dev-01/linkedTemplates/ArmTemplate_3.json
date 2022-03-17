@@ -3309,7 +3309,7 @@
 									"typeProperties": {
 										"variableName": "SQLCommand",
 										"value": {
-											"value": "@replace(pipeline().parameters.TaskDetails.Command, '<<ENDDATE>>', variables('WatermarkValue'))",
+											"value": "@replace(pipeline().parameters.TaskDetails.Command, '<<ENDDATE>>', replace(replace(replace(variables('WatermarkValue'), '-', ''), ':', ''), ' ', ''))",
 											"type": "Expression"
 										}
 									}
@@ -3322,7 +3322,7 @@
 									"typeProperties": {
 										"variableName": "WatermarkValue",
 										"value": {
-											"value": "@replace(activity('Get-Table-Values').output.firstRow.ReturnValue, '\\', ' ')",
+											"value": "@string(activity('Get-Table-Values').output.firstRow.ReturnValue)",
 											"type": "Expression"
 										}
 									}
