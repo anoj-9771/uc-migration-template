@@ -63,10 +63,7 @@
 				},
 				"linkedServiceName": {
 					"referenceName": "LS-AzureSqlDatabase_Ctrldb",
-					"type": "LinkedServiceReference",
-					"parameters": {
-						"kvSecret": "daf-sql-controldb-connectionstring"
-					}
+					"type": "LinkedServiceReference"
 				}
 			},
 			{
@@ -134,10 +131,7 @@
 				},
 				"linkedServiceName": {
 					"referenceName": "LS-AzureSqlDatabase_Ctrldb",
-					"type": "LinkedServiceReference",
-					"parameters": {
-						"kvSecret": "daf-sql-controldb-connectionstring"
-					}
+					"type": "LinkedServiceReference"
 				}
 			},
 			{
@@ -249,6 +243,41 @@
 							}
 						}
 					]
+				}
+			},
+			{
+				"name": "Business-Reconciliation",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Log Success",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "Business-Reconciliation",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"BatchLogId": {
+							"value": "@pipeline().parameters.BatchLogId",
+							"type": "Expression"
+						},
+						"TaskExecutionLogId": {
+							"value": "@pipeline().parameters.TaskExecutionLogId",
+							"type": "Expression"
+						},
+						"ProjectRunId": {
+							"value": "@pipeline().parameters.ProjectRunID",
+							"type": "Expression"
+						},
+						"BusinessReconGroup": "Water Consumption Reconciliation"
+					}
 				}
 			}
 		],
