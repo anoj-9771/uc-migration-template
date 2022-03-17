@@ -5289,6 +5289,14 @@
 														"ProjectRunID": {
 															"value": "@pipeline().parameters.ProjectRunID",
 															"type": "Expression"
+														},
+														"RunDate": {
+															"value": "@variables('RunDate')",
+															"type": "Expression"
+														},
+														"RunTime": {
+															"value": "@variables('RunTime')",
+															"type": "Expression"
 														}
 													}
 												}

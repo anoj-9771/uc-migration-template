@@ -682,6 +682,14 @@
 														"ProjectRunID": {
 															"value": "@pipeline().parameters.ProjectRunID",
 															"type": "Expression"
+														},
+														"RunDate": {
+															"value": "@variables('RunDate')",
+															"type": "Expression"
+														},
+														"RunTime": {
+															"value": "@variables('RunTime')",
+															"type": "Expression"
 														}
 													}
 												}
@@ -7150,7 +7158,10 @@
 											"referenceName": "ARCHIVE_BLOB_CSV",
 											"type": "DatasetReference",
 											"parameters": {
-												"BlobContainer": "@variables('SourceContainer')"
+												"BlobContainer": {
+													"value": "@concat(variables('SourceContainer'),'/',pipeline().parameters.RunDate,'/',pipeline().parameters.RunTime)",
+													"type": "Expression"
+												}
 											}
 										}
 									]
@@ -7285,6 +7296,12 @@
 						"type": "string"
 					},
 					"TargetBLOBName": {
+						"type": "string"
+					},
+					"RunDate": {
+						"type": "string"
+					},
+					"RunTime": {
 						"type": "string"
 					}
 				},
