@@ -1,5 +1,5 @@
 {
-	"name": "AzureSqlDatabase_Ctrl_db_dummy",
+	"name": "AzureSqlDatabase_Ctrl_db_businessrecstage",
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "LS-AzureSqlDatabase_Ctrldb",
