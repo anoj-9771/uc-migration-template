@@ -188,7 +188,7 @@
 								"storedProcedureParameters": {
 									"TargetMeasureValue": {
 										"value": {
-											"value": "@activity('Lookup_copy_rec').output.firstRow.RecordCount",
+											"value": "@activity('Lookup_copy_rec').output.firstRow.TargetMeasure",
 											"type": "Expression"
 										},
 										"type": "Int64"
