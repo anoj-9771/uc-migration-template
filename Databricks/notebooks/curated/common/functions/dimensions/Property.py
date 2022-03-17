@@ -16,11 +16,14 @@
 def getProperty():
 
 #     spark.udf.register("TidyCase", GeneralToTidyCase)  
-
+    
     #dimProperty
     #2.Load Cleansed layer table data into dataframe
     accessZ309TpropertyDf = spark.sql(f"select cast(propertyNumber as string), \
                                             'ACCESS' as sourceSystemCode, \
+                                            waterNetworkSK, \
+                                            sewerNetworkSK, \
+                                            stormWaterNetworkSK, \
                                             propertyTypeCode, \
                                             propertyType, \
                                             superiorPropertyTypeCode, \
@@ -41,23 +44,24 @@ def getProperty():
                                             null as sectionNumber, \
                                             null as architecturalTypeCode, \
                                             null as architecturalType \
-                                     from {ADS_DATABASE_CLEANSED}.access_z309_tproperty \
+                                     from {ADS_DATABASE_CLEANSED}.access_z309_tproperty pr left outer join \
+                                          {ADS_DATABASE_CLEANSED}.access_z309_tstraproperty pr, \
                                      ")
 
     sapisuDf = spark.sql(f"select co.propertyNumber, \
                                 'ISU' as sourceSystemCode, \
-                                null as propertyTypeCode, \
-                                null as propertyType, \
-                                null as superiorPropertyTypeCode, \
-                                null as superiorPropertyType, \
+                                co.inferiorPropertyTypecode as propertyTypeCode, \
+                                initcap(co.inferiorPropertyType) as propertyType, \
+                                co.superiorPropertyTypecode as superiorPropertyTypeCode, \
+                                initcap(co.superiorPropertyType) as superiorPropertyType, \
                                 CASE WHEN vd.hydraAreaUnit == 'HAR' THEN cast(vd.hydraCalculatedArea * 10000 as dec(18,6)) \
                                      WHEN vd.hydraAreaUnit == 'M2'  THEN cast(vd.hydraCalculatedArea as dec(18,6)) \
                                                                     ELSE null END AS areaSize, \
                                 vn.parentArchitecturalObjectNumber as parentPropertyNumber, \
                                 pa.inferiorPropertyTypeCode as parentPropertyTypeCode, \
-                                pa.inferiorPropertyType as parentPropertyType, \
+                                initcap(pa.inferiorPropertyType) as parentPropertyType, \
                                 pa.superiorPropertyTypeCode as parentSuperiorPropertyTypeCode, \
-                                pa.superiorPropertyType as parentSuperiorPropertyType, \
+                                initcap(pa.superiorPropertyType) as parentSuperiorPropertyType, \
                                 co.planTypeCode, \
                                 co.planType, \
                                 co.lotTypeCode, \

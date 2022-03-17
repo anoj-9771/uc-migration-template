@@ -148,6 +148,7 @@
 					],
 					"storeSettings": {
 						"type": "AzureBlobStorageReadSettings",
+						"recursive": true,
 						"enablePartitionDiscovery": false
 					},
 					"formatSettings": {
@@ -227,10 +228,7 @@
 							},
 							"linkedServiceName": {
 								"referenceName": "LS-AzureSqlDatabase_Ctrldb",
-								"type": "LinkedServiceReference",
-								"parameters": {
-									"kvSecret": "daf-sql-controldb-connectionstring"
-								}
+								"type": "LinkedServiceReference"
 							}
 						}
 					],
@@ -296,10 +294,7 @@
 							},
 							"linkedServiceName": {
 								"referenceName": "LS-AzureSqlDatabase_Ctrldb",
-								"type": "LinkedServiceReference",
-								"parameters": {
-									"kvSecret": "daf-sql-controldb-connectionstring"
-								}
+								"type": "LinkedServiceReference"
 							}
 						},
 						{
@@ -367,10 +362,7 @@
 							},
 							"linkedServiceName": {
 								"referenceName": "LS-AzureSqlDatabase_Ctrldb",
-								"type": "LinkedServiceReference",
-								"parameters": {
-									"kvSecret": "daf-sql-controldb-connectionstring"
-								}
+								"type": "LinkedServiceReference"
 							}
 						},
 						{
@@ -515,17 +507,11 @@
 							"userProperties": [],
 							"typeProperties": {
 								"dataset": {
-									"referenceName": "SRC_RAW_LANDING_ADLS_CSV",
+									"referenceName": "SRC_BLOB_CSV_NO_QUOTE_CHAR",
 									"type": "DatasetReference",
 									"parameters": {
-										"BlobPath": {
-											"value": "@variables('SourceContainer')",
-											"type": "Expression"
-										},
-										"BlobName": {
-											"value": "@variables('SourceFileName')",
-											"type": "Expression"
-										}
+										"BlobContainer": "@variables('SourceContainer')",
+										"BlobName": "@variables('SourceFileName')"
 									}
 								},
 								"logStorageSettings": {
@@ -537,7 +523,7 @@
 								},
 								"enableLogging": true,
 								"storeSettings": {
-									"type": "AzureBlobFSReadSettings",
+									"type": "AzureBlobStorageReadSettings",
 									"recursive": true,
 									"enablePartitionDiscovery": false
 								}
@@ -577,7 +563,7 @@
 								"sink": {
 									"type": "DelimitedTextSink",
 									"storeSettings": {
-										"type": "AzureBlobFSWriteSettings"
+										"type": "AzureBlobStorageWriteSettings"
 									},
 									"formatSettings": {
 										"type": "DelimitedTextWriteSettings",
@@ -605,15 +591,11 @@
 							],
 							"outputs": [
 								{
-									"referenceName": "SRC_RAW_LANDING_ADLS_CSV",
+									"referenceName": "ARCHIVE_BLOB_CSV",
 									"type": "DatasetReference",
 									"parameters": {
-										"BlobPath": {
-											"value": "@concat(variables('SourceContainer'),'archive/')",
-											"type": "Expression"
-										},
-										"BlobName": {
-											"value": "@variables('SourceFileName')",
+										"BlobContainer": {
+											"value": "@concat(variables('SourceContainer'),'/',pipeline().parameters.RunDate,'/',pipeline().parameters.RunTime)",
 											"type": "Expression"
 										}
 									}
@@ -722,10 +704,7 @@
 							},
 							"linkedServiceName": {
 								"referenceName": "LS-AzureSqlDatabase_Ctrldb",
-								"type": "LinkedServiceReference",
-								"parameters": {
-									"kvSecret": "daf-sql-controldb-connectionstring"
-								}
+								"type": "LinkedServiceReference"
 							}
 						}
 					]
@@ -749,6 +728,12 @@
 				"type": "string"
 			},
 			"TargetBLOBName": {
+				"type": "string"
+			},
+			"RunDate": {
+				"type": "string"
+			},
+			"RunTime": {
 				"type": "string"
 			}
 		},

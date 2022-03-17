@@ -175,14 +175,6 @@ def contract():
              AddSK=True
             )  
 
-#Call Date function to load DimDate
-def makeDate(): #renamed because date() gets overloaded elsewhere
-    TemplateEtl(df=getDate(), 
-             entity="dimDate", 
-             businessKey="calendarDate",
-             AddSK=True
-            )
-
 #Call Installation function to load DimLocation
 def installation():
     TemplateEtl(df=getInstallation(), 
@@ -199,11 +191,11 @@ def location():
              AddSK=True
             )
 
-#Call Meter function to load DimMeter
-def meter():
-    TemplateEtl(df=getMeter(), 
-             entity="dimMeter", 
-             businessKey="sourceSystemCode,meterNumber",
+#Call Date function to load DimDate
+def makeDate(): #renamed because date() gets overloaded elsewhere
+    TemplateEtl(df=getDate(), 
+             entity="dimDate", 
+             businessKey="calendarDate",
              AddSK=True
             )
 
@@ -212,6 +204,38 @@ def makeProperty(): #renamed because property is a keyword
     TemplateEtl(df=getProperty(), 
              entity="dimProperty", 
              businessKey="sourceSystemCode,propertyNumber",
+             AddSK=True
+            )
+
+#Call Meter function to load DimMeter
+def meter():
+    TemplateEtl(df=getMeter(), 
+             entity="dimMeter", 
+             businessKey="sourceSystemCode,meterNumber",
+             AddSK=True
+            )
+
+#Call SewerNetwork function to load dimSewerNetwork
+def sewerNetwork():
+    TemplateEtl(df=getSewerNetwork(), 
+             entity="dimSewerNetwork", 
+             businessKey="SCAMP",
+             AddSK=True
+            )
+
+#Call StormWater function to load dimStormWaterNetwork
+def stormWaterNetwork():
+    TemplateEtl(df=getStormWaterNetwork(), 
+             entity="dimStormWaterNetwork", 
+             businessKey="stormWaterCatchment",
+             AddSK=True
+            )
+
+#Call StormWater function to load dimStormWaterNetwork
+def waterNetwork():
+    TemplateEtl(df=getWaterNetwork(), 
+             entity="dimWaterNetwork", 
+             businessKey="reservoirZone,pressureArea",
              AddSK=True
             )
 
@@ -308,6 +332,13 @@ def Main():
         installation()
         location()
         meter()
+        sewerNetwork()
+        stormWaterNetwork()
+        waterNetwork()
+        #-----------------------------------------------------------------------------------------------
+        # Note: Due to the fact that dimProperty relies on the system area tables having been populated,
+        # makeProperty() must run after these three have been loaded
+        #-----------------------------------------------------------------------------------------------
         makeProperty()
         #Add new Dim in alphabetical position
         
@@ -342,6 +373,16 @@ def Main():
 
 # COMMAND ----------
 
+# MAGIC %sql
+# MAGIC select * from curated.dimwaternetwork
+
+# COMMAND ----------
+
+
+waterNetwork()
+
+# COMMAND ----------
+
 # DBTITLE 1,10. Call Main function
 Main()
 
@@ -358,16 +399,16 @@ Main()
 # MAGIC prophist.superiorPropertyType,
 # MAGIC fact.*
 # MAGIC from curated.factbilledwaterconsumption fact
-# MAGIC inner join curated.dimproperty prop
+# MAGIC left outer join curated.dimproperty prop
 # MAGIC on fact.dimPropertySK = prop.dimPropertySK
-# MAGIC inner join cleansed.isu_zcd_tpropty_hist prophist
+# MAGIC left outer join cleansed.isu_zcd_tpropty_hist prophist
 # MAGIC on prop.propertyNumber = prophist.propertyNumber
-# MAGIC where prophist.validFromDate <= fact.billingPeriodEndDate
+# MAGIC and prophist.validFromDate <= fact.billingPeriodEndDate
 # MAGIC and prophist.validToDate >= fact.billingPeriodEndDate
 # MAGIC ;
 # MAGIC 
 # MAGIC --View to get property history for Apportioned Water Consumption.
-# MAGIC Create or replace view curated.viewApportionedWaterConsumption as
+# MAGIC Create or replace view curated.viewDailyApportionedConsumption as
 # MAGIC select prop.propertyNumber,
 # MAGIC prophist.inferiorPropertyTypeCode,
 # MAGIC prophist.inferiorPropertyType,
@@ -375,11 +416,11 @@ Main()
 # MAGIC prophist.superiorPropertyType,
 # MAGIC fact.*
 # MAGIC from curated.factDailyApportionedConsumption fact
-# MAGIC inner join curated.dimproperty prop
+# MAGIC left outer join curated.dimproperty prop
 # MAGIC on fact.dimPropertySK = prop.dimPropertySK
-# MAGIC inner join cleansed.isu_zcd_tpropty_hist prophist
+# MAGIC left outer join cleansed.isu_zcd_tpropty_hist prophist
 # MAGIC on prop.propertyNumber = prophist.propertyNumber
-# MAGIC where prophist.validFromDate <= fact.consumptionDate
+# MAGIC and prophist.validFromDate <= fact.consumptionDate
 # MAGIC and prophist.validToDate >= fact.consumptionDate
 # MAGIC ;
 

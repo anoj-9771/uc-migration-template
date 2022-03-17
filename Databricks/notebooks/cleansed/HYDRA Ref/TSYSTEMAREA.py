@@ -1,20 +1,22 @@
 # Databricks notebook source
 # DBTITLE 1,Generate parameter and source object name for unit testing
 import json
-hydraTable = 'TLOTPARCEL'
-
-runParm = '{"SourceType":"Flat File","SourceServer":"saswcnonprod01landingdev-sastoken","SourceGroup":"hydra","SourceName":"hydra_hydra/####_csv","SourceLocation":"hydra/####.csv","AdditionalProperty":"","Processor":"databricks-token|0705-044124-gored835|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive","IsAuditTable":false,"SoftDeleteSource":"","ProjectName":"hydra Data","ProjectId":2,"TargetType":"BLOB Storage (csv)","TargetName":"hydra_hydra/####_csv","TargetLocation":"hydra/####","TargetServer":"daf-sa-lake-sastoken","DataLoadMode":"TRUNCATE-LOAD","DeltaExtract":false,"CDCSource":false,"TruncateTarget":true,"UpsertTarget":false,"AppendTarget":null,"TrackChanges":false,"LoadToSqlEDW":true,"TaskName":"hydra_hydra/####_csv","ControlStageId":1,"TaskId":4,"StageSequence":100,"StageName":"Source to Raw","SourceId":4,"TargetId":4,"ObjectGrain":"Day","CommandTypeId":5,"Watermarks":"","WatermarksDT":null,"WatermarkColumn":"","BusinessKeyColumn":"","UpdateMetaData":null,"SourceTimeStampFormat":"","Command":"","LastLoadedFile":null}'
+hydraTable = 'TSYSTEMAREA'
+delta = 'PRODUCT,LEVEL30,LEVEL40,LEVEL50,LEVEL60'
+runParm = '{"SourceType":"BLOB Storage (csv)","SourceServer":"daf-sa-lake-sastoken","SourceGroup":"hydraref","SourceName":"hydra_TSYSTEMAREA","SourceLocation":"hydraref/TSYSTEMAREA","AdditionalProperty":"","Processor":"databricks-token|1103-023442-me8nqcm9|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive","IsAuditTable":false,"SoftDeleteSource":"","ProjectName":"CLEANSED HYDRA REF","ProjectId":27,"TargetType":"BLOB Storage (csv)","TargetName":"hydra_TSYSTEMAREA","TargetLocation":"hydraref/TSYSTEMAREA","TargetServer":"daf-sa-lake-sastoken","DataLoadMode":"TRUNCATE-LOAD","DeltaExtract":false,"CDCSource":false,"TruncateTarget":true,"UpsertTarget":false,"AppendTarget":false,"TrackChanges":false,"LoadToSqlEDW":true,"TaskName":"hydra_TSYSTEMAREA","ControlStageId":2,"TaskId":16,"StageSequence":200,"StageName":"Raw to Cleansed","SourceId":16,"TargetId":16,"ObjectGrain":"Day","CommandTypeId":8,"Watermarks":"","WatermarksDT":null,"WatermarkColumn":"","BusinessKeyColumn":"20,30,40,50,60","PartitionColumn":null,"UpdateMetaData":null,"SourceTimeStampFormat":"","Command":"/build/cleansed/HYDRA Ref/TSYSTEMAREA","LastLoadedFile":null}'
 
 s = json.loads(runParm)
 for parm in ['SourceName','SourceLocation','TargetName','TargetLocation','TaskName']:
     s[parm] = s[parm].replace('####',hydraTable)
 runParm = json.dumps(s)
 
+
 # COMMAND ----------
 
 print('Use the following as parameters for unit testing:')
-print(f'hydra_{hydraTable.lower()}')
+print(delta)
 print(runParm)
+print(f'hydra_{hydraTable.lower()}')
 
 # COMMAND ----------
 
@@ -183,22 +185,11 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_cleansed = spark.sql("SELECT cast(System_Key as int) AS systemKey, \
-        cast(Property_Number as int) AS propertyNumber, \
-		case when LGA = 'N/A' then null else initcap(LGA) end as LGA, \
-		case when Address = ' ' then null else " + 
-        ("initcap(Address) " if ADS_ENVIRONMENT not in ['dev','test'] else "'1 Mumble St, Somewhere NSW 2000'") + " end as propertyAddress, \
-		case when Suburb = 'N/A' then null else initcap(Suburb) end AS suburb, \
-        case when Land_Use = 'N/A' then null else initcap(Land_Use) end as landUse, \
-        case when Superior_Land_Use = 'N/A' then null else initcap(Superior_Land_Use) end as superiorLandUse, \
-        cast(Area_m2 as int) as areaSize, \
-        'm2' as areaSizeUnit, " + 
-        ("cast(Lon as dec(9,6)) as longitude, cast(Lat as dec(9,6)) as latitude, cast(MGA56_X as long) as x_coordinate_MGA56, cast(MGA56_Y as long) as y_coordinate_MGA56, " if ADS_ENVIRONMENT not in ['dev','test'] else "\
-          cast(Lon as dec(9,6))+0.17 as longitude, cast(Lat as dec(9,6))+0.23 as latitude, cast(MGA56_X as long)+112 as x_coordinate_MGA56, cast(MGA56_Y as long)+332 as y_coordinate_MGA56, ") + f"\
-		case when Water_Pressure_Zone = 'N/A' then null else Water_Pressure_Zone end as waterPressureZone, \
-        case when Sewer_SCAMP = 'N/A' then null else Sewer_SCAMP end as sewerScamp, \
-        case when Recycled_Supply_Zone = 'N/A' then null else Recycled_Supply_Zone end as recycledSupplyZone, \
-        case when Stormwater_Catchment = 'N/A' then null else Stormwater_Catchment end as stormwaterCatchment, \
+df_cleansed = spark.sql(f"SELECT `20` as product, \
+        `30` as level30, \
+		`40` as level40, \
+		case when `50` = 'na' then null else `50` end as level50, \
+        case when `60` = 'na' then null else `60` end as level60, \
 		_RecordStart, \
 		_RecordEnd, \
 		_RecordDeleted, \
@@ -206,27 +197,16 @@ df_cleansed = spark.sql("SELECT cast(System_Key as int) AS systemKey, \
 	FROM {ADS_DATABASE_STAGE}.{source_object}")
 
 print(f'Number of rows: {df_cleansed.count()}')
+display(df_cleansed)
 
 # COMMAND ----------
 
 newSchema = StructType([
-	StructField('systemKey',IntegerType(),False),
-    StructField('propertyNumber',IntegerType(),True),
-    StructField('LGA',StringType(),True),
-	StructField('propertyAddress',StringType(),True),
-    StructField('suburb',StringType(),True),
-    StructField('landUse',StringType(),True),
-    StructField('superiorLandUse',StringType(),True),
-    StructField('areaSize',IntegerType(),True),
-    StructField('areaSizeUnit',StringType(),True),
-    StructField('longitude',DecimalType(9,6),False),
-    StructField('latitude',DecimalType(9,6),False),
-    StructField('x_coordinate_MGA56',LongType(),False),
-    StructField('y_coordinate_MGA56',LongType(),False),
-    StructField('waterPressureZone',StringType(),True),
-    StructField('sewerScamp',StringType(),True),
-    StructField('recycledSupplyZone',StringType(),True),
-    StructField('stormwaterCatchment',StringType(),True),
+	StructField('product',StringType(),False),
+    StructField('level30',StringType(),False),
+    StructField('level40',StringType(),False),
+	StructField('level50',StringType(),True),
+    StructField('level60',StringType(),True),
     StructField('_RecordStart',TimestampType(),False),
     StructField('_RecordEnd',TimestampType(),False),
     StructField('_RecordDeleted',IntegerType(),False),
