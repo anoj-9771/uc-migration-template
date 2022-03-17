@@ -128,4 +128,14 @@ IF (
 
   UPDATE CTL.ControlProjectSchedule SET StageEnabled = 1 WHERE StageEnabled IS NULL
 
-  GO
+DELETE FROM CTL.BusinessRecConfig;
+
+INSERT INTO [CTL].[BusinessRecConfig]([BusinessReconGroup], [MeasureID], [MeasureName], [TargetObject], [TargetQuery], [Enabled])
+     VALUES ('Water Consumption Reconciliation', 'BELNR', 'Billing Document Count', 'factBilledWaterConsumption', 'select count(BELNR) as TargetMeasure from curated.factBilledWaterConsumption', 1)
+;
+
+INSERT INTO [CTL].[BusinessRecConfig] ([BusinessReconGroup], [MeasureID], [MeasureName], [TargetObject], [TargetQuery], [Enabled])
+     VALUES ('Water Consumption Reconciliation', 'ABRMENGE', 'Billed Water Consumption Total', 'factBilledWaterConsumption', 'select sum(ABRMENGE) as TargetMeasure from curated.factBilledWaterConsumption', 1)
+;
+
+GO
