@@ -7212,6 +7212,7 @@ SELECT
        CTL.BusinessRecConfig recMstr
  where recLog.BusinessReconGroup = recMstr.BusinessReconGroup
    AND recLog.MeasureId = recMstr.MeasureId
+   AND recMstr.Enabled = 1
    AND recLog.CurrentRec = 1
    AND recMstr.BusinessReconGroup = @BusinessReconGroup]]></Value>
 			</Property>
@@ -7263,6 +7264,9 @@ SELECT
 					<References Name="[CTL].[BusinessRecConfig].[MeasureId]" />
 				</Entry>
 				<Entry>
+					<References Name="[CTL].[BusinessRecConfig].[Enabled]" />
+				</Entry>
+				<Entry>
 					<References Name="[CTL].[GetBusinessRecCurated].[@BusinessReconGroup]" />
 				</Entry>
 			</Relationship>
@@ -7290,7 +7294,7 @@ SELECT
 				</Entry>
 			</Relationship>
 			<Annotation Type="SysCommentsObjectAnnotation">
-				<Property Name="Length" Value="713" />
+				<Property Name="Length" Value="740" />
 				<Property Name="StartLine" Value="1" />
 				<Property Name="StartColumn" Value="1" />
 				<Property Name="HeaderContents" Value="CREATE PROCEDURE [CTL].[GetBusinessRecCurated] &#xA;  (&#xA;&#x9;  @BusinessReconGroup varchar(255)&#xA;  )&#xA;AS" />

@@ -15,6 +15,7 @@ SELECT
        CTL.BusinessRecConfig recMstr
  where recLog.BusinessReconGroup = recMstr.BusinessReconGroup
    AND recLog.MeasureId = recMstr.MeasureId
+   AND recMstr.Enabled = 1
    AND recLog.CurrentRec = 1
    AND recMstr.BusinessReconGroup = @BusinessReconGroup
 
