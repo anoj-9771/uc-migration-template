@@ -240,84 +240,6 @@
 			"dependsOn": []
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/dataflow1')]",
-			"type": "Microsoft.DataFactory/factories/dataflows",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"type": "MappingDataFlow",
-				"typeProperties": {
-					"sources": [
-						{
-							"linkedService": {
-								"referenceName": "LS_AzureDatalake",
-								"type": "LinkedServiceReference"
-							},
-							"name": "source1"
-						}
-					],
-					"sinks": [
-						{
-							"linkedService": {
-								"referenceName": "LS_AzureDatalake",
-								"type": "LinkedServiceReference"
-							},
-							"name": "sink1"
-						}
-					],
-					"transformations": [
-						{
-							"name": "aggregate1"
-						}
-					],
-					"scriptLines": [
-						"source(output(",
-						"          dimMeterSK as long,",
-						"          sourceSystemCode as string,",
-						"          meterId as string,",
-						"          meterSize as string,",
-						"          waterMeterType as string,",
-						"          {_DLCuratedZoneTimeStamp} as timestamp,",
-						"          {_RecordStart} as timestamp,",
-						"          {_RecordEnd} as timestamp,",
-						"          {_RecordDeleted} as integer,",
-						"          {_RecordCurrent} as integer",
-						"     ),",
-						"     allowSchemaDrift: true,",
-						"     validateSchema: false,",
-						"     limit: 100,",
-						"     ignoreNoFilesFound: true,",
-						"     format: 'delta',",
-						"     fileSystem: 'curated',",
-						"     folderPath: 'dimmeter/delta') ~> source1",
-						"source1 aggregate(meterId = count(1)) ~> aggregate1",
-						"aggregate1 sink(allowSchemaDrift: true,",
-						"     validateSchema: false,",
-						"     format: 'delta',",
-						"     fileSystem: 'curated',",
-						"     folderPath: 'test1',",
-						"     overwrite:true,",
-						"     mergeSchema: false,",
-						"     autoCompact: false,",
-						"     optimizedWrite: false,",
-						"     vacuum: 0,",
-						"     deletable:false,",
-						"     insertable:true,",
-						"     updateable:false,",
-						"     upsertable:false,",
-						"     umask: 0022,",
-						"     preCommands: [],",
-						"     postCommands: [],",
-						"     skipDuplicateMapInputs: true,",
-						"     skipDuplicateMapOutputs: true,",
-						"     mapColumn(",
-						"          MeterCount = meterId",
-						"     )) ~> sink1"
-					]
-				}
-			},
-			"dependsOn": []
-		},
-		{
 			"name": "[concat(parameters('factoryName'), '/04-Blob-A-Pre-Process_NC_File')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
 			"apiVersion": "2018-06-01",
@@ -5452,96 +5374,6 @@
 			"dependsOn": []
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/04-SQLServer-B-Source-Copy_Dataflow')]",
-			"type": "Microsoft.DataFactory/factories/pipelines",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"activities": [
-					{
-						"name": "Data flow1",
-						"type": "ExecuteDataFlow",
-						"dependsOn": [],
-						"policy": {
-							"timeout": "1.00:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"dataflow": {
-								"referenceName": "dataflow1",
-								"type": "DataFlowReference",
-								"parameters": {},
-								"datasetParameters": {
-									"source1": {},
-									"sink1": {}
-								}
-							},
-							"staging": {},
-							"compute": {
-								"coreCount": 8,
-								"computeType": "General"
-							},
-							"traceLevel": "Fine"
-						}
-					}
-				],
-				"policy": {
-					"elapsedTimeMetric": {},
-					"cancelAfter": {}
-				},
-				"parameters": {
-					"SQLCommand": {
-						"type": "string"
-					},
-					"BatchExecutionLogID": {
-						"type": "int"
-					},
-					"TaskExecutionLogID": {
-						"type": "int"
-					},
-					"WatermarkColumn": {
-						"type": "string"
-					},
-					"TargetBLOBName": {
-						"type": "string"
-					},
-					"TargetBLOBFolder": {
-						"type": "string"
-					},
-					"TaskDetails": {
-						"type": "object"
-					},
-					"ValidationDetails": {
-						"type": "object"
-					},
-					"ProjectRunID": {
-						"type": "string"
-					},
-					"SourceFileDateStamp": {
-						"type": "string"
-					}
-				},
-				"variables": {
-					"RecordsWritten": {
-						"type": "String"
-					},
-					"RecordsRead": {
-						"type": "String"
-					}
-				},
-				"folder": {
-					"name": "z_Archive/Test"
-				},
-				"annotations": []
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/dataflows/dataflow1')]"
-			]
-		},
-		{
 			"name": "[concat(parameters('factoryName'), '/04-SQLServer-Generate-Source-Schema')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
 			"apiVersion": "2018-06-01",
@@ -7227,6 +7059,415 @@
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/SRC_BLOB_JSON_copy1')]"
 			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/recon-record-validation')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "If-Check",
+						"type": "IfCondition",
+						"dependsOn": [
+							{
+								"activity": "LU-Source",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"expression": {
+								"value": "@equals(activity('LU-Source').output.firstRow.IsAuditTable,false)",
+								"type": "Expression"
+							},
+							"ifTrueActivities": [
+								{
+									"name": "SP-Update-Validation",
+									"type": "SqlServerStoredProcedure",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "7.00:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"storedProcedureName": "[[CTL].[RecordDataValidation]",
+										"storedProcedureParameters": {
+											"HighWatermark": {
+												"value": {
+													"value": "@json(string(pipeline().parameters.ValidationDetails)).ReturnValue",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"MaxValue": {
+												"value": {
+													"value": "@json(string(pipeline().parameters.ValidationDetails)).MaximumValue",
+													"type": "Expression"
+												},
+												"type": "Int64"
+											},
+											"MinValue": {
+												"value": {
+													"value": "@json(string(pipeline().parameters.ValidationDetails)).MinimumValue",
+													"type": "Expression"
+												},
+												"type": "Int64"
+											},
+											"RecordCount": {
+												"value": {
+													"value": "@json(string(pipeline().parameters.ValidationDetails)).RecordCount",
+													"type": "Expression"
+												},
+												"type": "Int64"
+											},
+											"TotalValue": {
+												"value": {
+													"value": "@json(string(pipeline().parameters.ValidationDetails)).TotalValue",
+													"type": "Expression"
+												},
+												"type": "Int64"
+											},
+											"ValidationType": {
+												"value": {
+													"value": "@json(string(pipeline().parameters.ValidationDetails)).ValidationType",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"ProjectRunID": {
+												"value": {
+													"value": "@pipeline().parameters.ProjectRunID",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"SourceID": {
+												"value": {
+													"value": "@pipeline().parameters.SourceID",
+													"type": "Expression"
+												},
+												"type": "Int64"
+											}
+										}
+									},
+									"linkedServiceName": {
+										"referenceName": "LS-AzureSqlDatabase_Ctrldb",
+										"type": "LinkedServiceReference",
+										"parameters": {}
+									}
+								}
+							]
+						}
+					},
+					{
+						"name": "LU-Source",
+						"type": "Lookup",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"sqlReaderQuery": {
+									"value": "@concat('SELECT * FROM CTL.vw_ControlConfiguration WHERE SourceID = ', string(pipeline().parameters.SourceID))",
+									"type": "Expression"
+								},
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"dataset": {
+								"referenceName": "AzureSqlDatabase_Ctrldb",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"parameters": {
+					"ProjectRunID": {
+						"type": "string",
+						"defaultValue": "0b6110e9-8d68-4a0a-8ee8-0182a03289ef"
+					},
+					"ValidationDetails": {
+						"type": "object",
+						"defaultValue": {
+							"SOURCECOLUMN": "COALESCE (UPDATED_DATE, CREATED_DATE)",
+							"RETURNVALUE": "2020-11-08 17:58:04",
+							"RECORDCOUNT": 52254,
+							"TOTALVALUE": 3361637939,
+							"MAXVALUE": 133557,
+							"MINVALUE": 2,
+							"VALIDATIONTYPE": "SOURCE"
+						}
+					},
+					"SourceID": {
+						"type": "int"
+					}
+				},
+				"folder": {
+					"name": "Validation"
+				},
+				"annotations": []
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/util-datalake-move-file')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Get File Metadata",
+						"type": "GetMetadata",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataset": {
+								"referenceName": "BINARY_ADLS",
+								"type": "DatasetReference",
+								"parameters": {
+									"File": {
+										"value": "@pipeline().parameters.SourceFile",
+										"type": "Expression"
+									},
+									"Container": {
+										"value": "@pipeline().parameters.SourceContainer",
+										"type": "Expression"
+									},
+									"Folder": {
+										"value": "@pipeline().parameters.SourceFolder",
+										"type": "Expression"
+									}
+								}
+							},
+							"fieldList": [
+								"exists"
+							],
+							"storeSettings": {
+								"type": "AzureBlobStorageReadSettings",
+								"recursive": true
+							},
+							"formatSettings": {
+								"type": "BinaryReadSettings"
+							}
+						}
+					},
+					{
+						"name": "If-File-Exists",
+						"type": "IfCondition",
+						"dependsOn": [
+							{
+								"activity": "Get File Metadata",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"expression": {
+								"value": "@activity('Get File Metadata').output.exists",
+								"type": "Expression"
+							},
+							"ifTrueActivities": [
+								{
+									"name": "Move File",
+									"type": "Copy",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "7.00:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "BinarySource",
+											"storeSettings": {
+												"type": "AzureBlobStorageReadSettings",
+												"recursive": true,
+												"deleteFilesAfterCompletion": {
+													"value": "@pipeline().parameters.DeleteFile",
+													"type": "Expression"
+												}
+											},
+											"formatSettings": {
+												"type": "BinaryReadSettings"
+											}
+										},
+										"sink": {
+											"type": "BinarySink",
+											"storeSettings": {
+												"type": "AzureBlobStorageWriteSettings"
+											}
+										},
+										"enableStaging": false
+									},
+									"inputs": [
+										{
+											"referenceName": "BINARY_ADLS",
+											"type": "DatasetReference",
+											"parameters": {
+												"File": {
+													"value": "@pipeline().parameters.SourceFile",
+													"type": "Expression"
+												},
+												"Container": {
+													"value": "@pipeline().parameters.SourceContainer",
+													"type": "Expression"
+												},
+												"Folder": {
+													"value": "@pipeline().parameters.SourceFolder",
+													"type": "Expression"
+												}
+											}
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "BINARY_ADLS",
+											"type": "DatasetReference",
+											"parameters": {
+												"File": {
+													"value": "@pipeline().parameters.TargetFile",
+													"type": "Expression"
+												},
+												"Container": {
+													"value": "@pipeline().parameters.TargetContainer",
+													"type": "Expression"
+												},
+												"Folder": {
+													"value": "@pipeline().parameters.TargetFolder",
+													"type": "Expression"
+												}
+											}
+										}
+									]
+								}
+							]
+						}
+					},
+					{
+						"name": "If-DeleteFile",
+						"type": "IfCondition",
+						"dependsOn": [
+							{
+								"activity": "If-File-Exists",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"expression": {
+								"value": "@pipeline().parameters.DeleteFile",
+								"type": "Expression"
+							},
+							"ifTrueActivities": [
+								{
+									"name": "Delete-File",
+									"type": "Delete",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "7.00:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"dataset": {
+											"referenceName": "BINARY_ADLS",
+											"type": "DatasetReference",
+											"parameters": {
+												"File": {
+													"value": "@pipeline().parameters.SourceFile",
+													"type": "Expression"
+												},
+												"Container": {
+													"value": "@pipeline().parameters.SourceContainer",
+													"type": "Expression"
+												},
+												"Folder": {
+													"value": "@pipeline().parameters.SourceFolder",
+													"type": "Expression"
+												}
+											}
+										},
+										"enableLogging": false,
+										"storeSettings": {
+											"type": "AzureBlobStorageReadSettings",
+											"recursive": true
+										}
+									}
+								}
+							]
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"parameters": {
+					"SourceFolder": {
+						"type": "string"
+					},
+					"SourceFile": {
+						"type": "string"
+					},
+					"SourceContainer": {
+						"type": "string"
+					},
+					"TargetContainer": {
+						"type": "string"
+					},
+					"DeleteFile": {
+						"type": "bool",
+						"defaultValue": true
+					},
+					"TargetFolder": {
+						"type": "string"
+					},
+					"TargetFile": {
+						"type": "string"
+					}
+				},
+				"folder": {
+					"name": "Utility"
+				},
+				"annotations": []
+			},
+			"dependsOn": []
 		}
 	]
 }
