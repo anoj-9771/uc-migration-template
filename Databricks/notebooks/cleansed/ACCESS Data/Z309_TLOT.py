@@ -4,11 +4,11 @@ import json
 accessTable = 'Z309_TLOT'
 businessKeys = 'N_PROP,N_LOT_SEQU'
 
-runParm = '{"SourceType":"BLOB Storage (csv)","SourceServer":"daf-sa-lake-sastoken","SourceGroup":"accessdata","SourceName":"access_####","SourceLocation":"accessdata/####","AdditionalProperty":"","Processor":"databricks-token|1103-023442-me8nqcm9|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive","IsAuditTable":false,"SoftDeleteSource":"","ProjectName":"CLEANSED DATA ACCESS","ProjectId":2,"TargetType":"BLOB Storage (csv)","TargetName":"access_####","TargetLocation":"accessdata/####","TargetServer":"daf-sa-lake-sastoken","DataLoadMode":"TRUNCATE-LOAD","DeltaExtract":false,"CDCSource":false,"TruncateTarget":true,"UpsertTarget":false,"AppendTarget":false,"TrackChanges":false,"LoadToSqlEDW":true,"TaskName":"access_####","ControlStageId":2,"TaskId":40,"StageSequence":200,"StageName":"Raw to Cleansed","SourceId":40,"TargetId":40,"ObjectGrain":"Day","CommandTypeId":8,"Watermarks":"","WatermarksDT":null,"WatermarkColumn":"","BusinessKeyColumn":"$$$$","PartitionColumn":null,"UpdateMetaData":null,"SourceTimeStampFormat":"","Command":"/build/cleansed/ACCESS Ref/####","LastLoadedFile":null}'
+runParm = '{"SourceType":"BLOB Storage (csv)","SourceServer":"daf-sa-lake-sastoken","SourceGroup":"accessdata","SourceName":"access_####","SourceLocation":"accessdata/####","AdditionalProperty":"","Processor":"databricks-token|1103-023442-me8nqcm9|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive","IsAuditTable":false,"SoftDeleteSource":"","ProjectName":"CLEANSED DATA ACCESS","ProjectId":2,"TargetType":"BLOB Storage (csv)","TargetName":"access_####","TargetLocation":"accessdata/####","TargetServer":"daf-sa-lake-sastoken","DataLoadMode":"TRUNCATE-LOAD","DeltaExtract":false,"CDCSource":false,"TruncateTarget":true,"UpsertTarget":false,"AppendTarget":false,"TrackChanges":false,"LoadToSqlEDW":true,"TaskName":"access_####","ControlStageId":2,"TaskId":40,"StageSequence":200,"StageName":"Raw to Cleansed","SourceId":40,"TargetId":40,"ObjectGrain":"Day","CommandTypeId":8,"Watermarks":"","WatermarksDT":null,"WatermarkColumn":"","BusinessKeyColumn":"yyyy","PartitionColumn":null,"UpdateMetaData":null,"SourceTimeStampFormat":"","Command":"/build/cleansed/ACCESS Data/####","LastLoadedFile":null}'
 
 s = json.loads(runParm)
-for parm in ['SourceName','SourceLocation','TargetName','TargetLocation','TaskName']:
-    s[parm] = s[parm].replace('####',accessTable).replace('$$$$',businessKeys)
+for parm in ['SourceName','SourceLocation','TargetName','TargetLocation','TaskName','BusinessKeyColumn','Command']:
+    s[parm] = s[parm].replace('####',accessTable).replace('yyyy',businessKeys)
 runParm = json.dumps(s)
 
 # COMMAND ----------
@@ -184,24 +184,25 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_cleansed = spark.sql("SELECT \
-		cast(N_PROP as int) AS propertyNumber, \
-		cast(N_LOT_SEQU as int) AS lotSequenceNumber, \
-		C_PLAN_TYPE AS planTypeCode, \
-        N_PLAN AS planNumber, \
-        N_LOT AS lotNumber, \
-        N_PLAN_SECT AS sectionNumber, \
-		C_PORT_LOT_TYPE as lotPortionType, \
-		N_PORT AS portionNumber, \
-        N_SUBD as subdivisionNumber, \
-		cast(Q_LOT_AREA as decimal(9,3)) AS areaSize, \
-		C_LOT_AREA_TYPE AS lotAreaType, \
-		M_PARI AS parishName, \
-        to_date(D_LOT_UPDA, 'yyyyMMdd') AS lotUpdatedDate, \
-		_RecordStart, \
-		_RecordEnd, \
-		_RecordDeleted, \
-		_RecordCurrent \
+df_cleansed = spark.sql(f"SELECT \
+            cast(N_PROP as int) AS propertyNumber, \
+            cast(N_LOT_SEQU as int) AS lotSequenceNumber, \
+            C_PLAN_TYPE AS planTypeCode, \
+            N_PLAN AS planNumber, \
+            N_LOT AS lotNumber, \
+            N_PLAN_SECT AS sectionNumber, \
+            C_PORT_LOT_TYPE as lotPortionType, \
+            N_PORT AS portionNumber, \
+            N_SUBD as subdivisionNumber, \
+            cast(Q_LOT_AREA as decimal(9,3)) AS areaSize, \
+            C_LOT_AREA_TYPE AS lotAreaType, \
+            M_PARI AS parishName, \
+            to_date(D_LOT_UPDA, 'yyyyMMdd') AS lotUpdatedDate, \
+            _RecordStart, \
+            _RecordEnd, \
+            _RecordDeleted, \
+            _RecordCurrent \
+        FROM {ADS_DATABASE_STAGE}.{source_object} \
         ")
 
 print(f'Number of rows: {df_cleansed.count()}')

@@ -1,6 +1,12 @@
 # Databricks notebook source
 # MAGIC %sql
-# MAGIC select * from cleansed.access_z309_tlot
+# MAGIC select * from cleansed.isu_0uc_connobj_attr_2 
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC select 'SP' as planTypeCode, strataPlanNumber as planNumber, strataPlanLot as lotNumber, null as sectionNumber
+# MAGIC from cleansed.access_z309_tstrataunits
 
 # COMMAND ----------
 
@@ -21,7 +27,23 @@
 def getProperty():
 
 #     spark.udf.register("TidyCase", GeneralToTidyCase)  
-    
+    #build a dataframe with unique properties and lot details
+    lotDf = spark.sql("elect first(planTypeCode) as planTypeCode, \
+                                first(planNumber) as planNumber, \
+                                first(lotNumber)  as lotNumber, \
+                                first(lotPortionType) as lotPortionType, \
+                                first(sectionNumber) as sectionNumber \
+                        from cleansed.access_z309_tlot \
+                        group by propertyNumber \
+                        union all \
+                        select 'SP' as planTypeCode, \
+                                strataPlanNumber as planNumber, \
+                                strataPlanLot as lotNumber, \
+                                '01' as lotPortionType,
+                                null as sectionNumber \
+                        from cleansed.access_z309_tstrataunits \
+                        ")
+    lotDf.createOrReplaceTempView('lots')
     #dimProperty
     #2.Load Cleansed layer table data into dataframe
     accessZ309TpropertyDf = spark.sql(f"select cast(propertyNumber as string), \
@@ -40,9 +62,9 @@ def getProperty():
                                             null as parentPropertyType, \
                                             null as parentSuperiorPropertyTypeCode, \
                                             null as parentSuperiorPropertyType, \
-                                            null as planTypeCode, \
-                                            null as planType, \
-                                            null as lotTypeCode, \
+                                            lo.planTypeCode, \
+                                            lo.planType, \
+                                            lo.lotPortionType as lotTypeCode, \
                                             null as lotType, \
                                             null as planNumber, \
                                             null as lotNumber, \
@@ -50,7 +72,7 @@ def getProperty():
                                             null as architecturalTypeCode, \
                                             null as architecturalType \
                                      from {ADS_DATABASE_CLEANSED}.access_z309_tproperty pr left outer join \
-                                          {ADS_DATABASE_CLEANSED}.access_z309_tstraproperty pr, \
+                                          lots lo, \
                                      ")
 
     sapisuDf = spark.sql(f"select co.propertyNumber, \
