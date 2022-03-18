@@ -1,15 +1,4 @@
 # Databricks notebook source
-# MAGIC %sql
-# MAGIC select * from cleansed.isu_0uc_connobj_attr_2 
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC select 'SP' as planTypeCode, strataPlanNumber as planNumber, strataPlanLot as lotNumber, null as sectionNumber
-# MAGIC from cleansed.access_z309_tstrataunits
-
-# COMMAND ----------
-
 ###########################################################################################################################
 # Function: getProperty
 #  GETS Property DIMENSION 
@@ -28,22 +17,51 @@ def getProperty():
 
 #     spark.udf.register("TidyCase", GeneralToTidyCase)  
     #build a dataframe with unique properties and lot details
-    lotDf = spark.sql("elect first(planTypeCode) as planTypeCode, \
+    lotDf = spark.sql("select propertyNumber, \
+                                first(planTypeCode) as planTypeCode, \
+                                first(planType) as planType, \
                                 first(planNumber) as planNumber, \
                                 first(lotNumber)  as lotNumber, \
-                                first(lotPortionType) as lotPortionType, \
+                                first(lotTypeCode) as lotTypeCode, \
+                                first(lotType) as lotType, \
                                 first(sectionNumber) as sectionNumber \
                         from cleansed.access_z309_tlot \
                         group by propertyNumber \
                         union all \
-                        select 'SP' as planTypeCode, \
+                        select propertyNumber, \
+                                'SP' as planTypeCode, \
+                                'Strata Plan' as planType, \
                                 strataPlanNumber as planNumber, \
                                 strataPlanLot as lotNumber, \
-                                '01' as lotPortionType,
+                                '01' as lotTypeCode, \
+                                'Lot' as lotType, \
                                 null as sectionNumber \
                         from cleansed.access_z309_tstrataunits \
                         ")
     lotDf.createOrReplaceTempView('lots')
+    #build a dataframe with parent properties (strata units with children, 'normal' properties with themselves)
+    parentDf = spark.sql("with t1 as( \
+                                select su.propertyNumber, \
+                                        masterPropertyNumber, \
+                                        propertyTypeCode as parentPropertyTypeCode, \
+                                        propertyType as parentPropertyType, \
+                                        superiorPropertyTypeCode as parentSuperiorPropertyTypeCode, \
+                                        superiorPropertyType as parentSuperiorPropertyType \
+                                from cleansed.access_z309_tstrataunits su, \
+                                      cleansed.access_z309_tmastrataplan ms left outer join cleansed.access_z309_tproperty pr on pr.propertynumber = ms.masterPropertynumber \
+                                where su.strataPlanNumber = ms.strataplannumber) \
+                            select * from t1 \
+                            union all \
+                            select propertyNumber, \
+                                    propertyNumber as parentPropertyNumber, \
+                                    propertyTypeCode as parentPropertyTypeCode, \
+                                    propertyType as parentPropertyType, \
+                                    superiorPropertyTypeCode as parentSuperiorPropertyTypeCode, \
+                                    superiorPropertyType as parentSuperiorPropertyType \
+                            from cleansed.access_z309_tproperty \
+                            where propertyNumber not in (select propertyNumber from t1) \
+                        ")
+    parentDf.createOrReplaceTempView('parents')
     #dimProperty
     #2.Load Cleansed layer table data into dataframe
     accessZ309TpropertyDf = spark.sql(f"select cast(propertyNumber as string), \
@@ -57,22 +75,23 @@ def getProperty():
                                             superiorPropertyType, \
                                             CASE WHEN propertyAreaTypeCode == 'H' THEN  propertyArea * 10000 \
                                                                                   ELSE propertyArea END AS areaSize, \
-                                            '0' as parentPropertyNumber, \
-                                            null as parentPropertyTypeCode, \
-                                            null as parentPropertyType, \
-                                            null as parentSuperiorPropertyTypeCode, \
-                                            null as parentSuperiorPropertyType, \
+                                            pp.parentPropertyNumber as parentPropertyNumber, \
+                                            pp.parentPropertyTypeCode as parentPropertyTypeCode, \
+                                            pp.parentPropertyType as parentPropertyType, \
+                                            pp.parentSuperiorPropertyTypeCode as parentSuperiorPropertyTypeCode, \
+                                            pp.parentSuperiorPropertyType as parentSuperiorPropertyType, \
                                             lo.planTypeCode, \
                                             lo.planType, \
-                                            lo.lotPortionType as lotTypeCode, \
-                                            null as lotType, \
-                                            null as planNumber, \
-                                            null as lotNumber, \
-                                            null as sectionNumber, \
+                                            lo.lotTypeCode as lotTypeCode, \
+                                            lo.lotType as lotType, \
+                                            lo.planNumber as planNumber, \
+                                            lo.lotNumber as lotNumber, \
+                                            lo.sectionNumber as sectionNumber, \
                                             null as architecturalTypeCode, \
                                             null as architecturalType \
                                      from {ADS_DATABASE_CLEANSED}.access_z309_tproperty pr left outer join \
-                                          lots lo, \
+                                          lots lo on lo.propertyNumber = pr.propertyNumber left outer join \
+                                          parents pp on pp.propertyNumber = pr.propertyNumber \
                                      ")
 
     sapisuDf = spark.sql(f"select co.propertyNumber, \
@@ -106,7 +125,7 @@ def getProperty():
                              {ADS_DATABASE_CLEANSED}.isu_0uc_connobj_attr_2 pa on vn.parentArchitecturalObjectInternalId = pa.architecturalObjectInternalId  \
                               and   pa._RecordCurrent = 1 and pa._RecordDeleted = 0 left outer join \
                              {ADS_DATABASE_CLEANSED}.isu_dd07t dt on co.lotTypeCode = dt.domainValueSingleUpperLimit and domainName = 'ZCD_DO_ADDR_LOT_TYPE' \
-                              and dt._RecordDeleted = 0 and   dt._RecordCurrent = 1 \
+                              and dt._RecordDeleted = 0 and dt._RecordCurrent = 1 \
                          where co._RecordDeleted = 0 \
                          and   co._RecordCurrent = 1 \
                         ")
