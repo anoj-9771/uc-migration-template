@@ -187,8 +187,8 @@ DeltaSaveToDeltaTable (
 
 df_cleansed = spark.sql(f"SELECT C_PLAN_TYPE AS planTypeCode, \
 		initcap(T_PLAN_TYPE) AS planType, \
-		to_date(D_DEBI_REAS_EFFE, 'yyyyMMdd') AS planTypeEffectiveDate, \
-		to_date(D_DEBI_REAS_CANC, 'yyyyMMdd') AS planTypeCancelledDate, \
+		to_date(D_PLAN_TYPE_EFFE, 'yyyyMMdd') AS planTypeEffectiveDate, \
+		to_date(D_PLAN_TYPE_CANC, 'yyyyMMdd') AS planTypeCancelledDate, \
 		_RecordStart, \
 		_RecordEnd, \
 		_RecordDeleted, \

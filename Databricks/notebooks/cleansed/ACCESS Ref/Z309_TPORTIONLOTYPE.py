@@ -184,7 +184,6 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-C_PORT_LOT_TYPE, T_PORT_LOT_TYPE, D_PORT_LOT_EFFE, D_PORT_LOT_CANC 
 df_cleansed = spark.sql(f"SELECT C_PORT_LOT_TYPE AS lotTypeCode, \
 		initcap(T_PORT_LOT_TYPE) AS lotType, \
 		to_date(D_PORT_LOT_EFFE, 'yyyyMMdd') AS lotTypeEffectiveDate, \
@@ -200,7 +199,7 @@ print(f'Number of rows: {df_cleansed.count()}')
 # COMMAND ----------
 
 newSchema = StructType([
-	StructField('plaloteCode',StringType(),False),
+	StructField('lotTypeCode',StringType(),False),
     StructField('lotType',StringType(),True),
     StructField('lotTypeEffectiveDate',DateType(),True),
 	StructField('lotTypeCancelledDate',DateType(),True),
