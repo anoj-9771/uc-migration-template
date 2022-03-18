@@ -178,6 +178,21 @@ DeltaSaveToDeltaTable (
     start_counter = start_counter,
     end_counter = end_counter
 )
+#this notebook is exceptional as it merges two tables, so run the above for the second tables as well
+DeltaSaveToDeltaTable (
+    source_table = delta_raw_tbl_name.replace('TMETERREADING','TMETEREADING_HISTORY'),
+    target_table = target_table.replace('TMETERREADING','TMETEREADING_HISTORY'),
+    target_data_lake_zone = ADS_DATALAKE_ZONE_CLEANSED,
+    target_database = ADS_DATABASE_STAGE,
+    data_lake_folder = data_lake_folder,
+    data_load_mode = data_load_mode,
+    track_changes =  Params[PARAMS_TRACK_CHANGES],
+    is_delta_extract =  Params[PARAMS_DELTA_EXTRACT],
+    business_key =  Params[PARAMS_BUSINESS_KEY_COLUMN],
+    delta_column = delta_column,
+    start_counter = start_counter,
+    end_counter = end_counter
+)
 
 # COMMAND ----------
 
@@ -226,7 +241,50 @@ df_cleansed = spark.sql(f"SELECT cast(N_PROP as int) AS propertyNumber, \
          left outer join CLEANSED.access_Z309_TMRSTATUSTYPE g on a.C_METE_READ_STAT = g.meterReadingStatusCode \
          left outer join CLEANSED.access_Z309_TMETERCANTREAD h on coalesce(a.C_METE_CANT_READ,'') = h.cannotReadCode \
          left outer join CLEANSED.access_Z309_TPDEREADMETH i on a.C_PDE_READ_METH = i.PDEReadingMethodCode \
-         ")
+    UNION ALL \
+        SELECT cast(N_PROP as int) AS propertyNumber, \
+		cast(N_PROP_METE as int) AS propertyMeterNumber, \
+		cast(N_METE_READ as int) AS meterReadingNumber, \
+		C_METE_READ_TOLE AS meterReadingToleranceCode, \
+        initcap(d.meterReadingTolerance) as meterReadingTolerance, \
+		C_METE_READ_TYPE AS meterReadingTypeCode, \
+        initcap(e.meterReadingType) as meterReadingType, \
+		C_METE_READ_CONS AS consumptionTypeCode, \
+        initcap(f.consumptionType) as consumptionType, \
+		C_METE_READ_STAT AS meterReadingStatusCode, \
+        initcap(g.meterReadingStatus) as meterReadingStatus, \
+		coalesce(c_mete_cant_read,'') AS cannotReadCode, \
+        initcap(h.cannotReadReason) as cannotReadReason, \
+		C_PDE_READ_METH AS PDEReadingMethodCode, \
+        initcap(i.PDEReadingMethod) as PDEReadingMethod, \
+		cast(Q_METE_READ as decimal(9,0)) AS meterReading, \
+        cast(unix_timestamp(D_METE_READ||case when substr(trim(T_METE_READ_TIME),-1) = '-' then substr(T_METE_READ_TIME,1,5)||'0' \
+                                              when substr(T_METE_READ_TIME,1,2) not between '00' and '23' or \
+                                                   substr(T_METE_READ_TIME,3,2) not between '00' and '59' or \
+                                                   substr(T_METE_READ_TIME,5,2) not between '00' and '59' then '120000' \
+                                              when T_METE_READ_TIME is null then '120000' \
+                                                                            else T_METE_READ_TIME end, 'yyyyMMddHHmmss') as Timestamp) as meterReadingTimestamp, \
+		cast(Q_METE_READ_CONS as decimal(9,0)) AS meterReadingConsumption, \
+        date_sub(to_date(D_METE_READ,'yyyyMMdd'),int(Q_METE_READ_DAYS) - 1) as readingFromDate, \
+        to_date(D_METE_READ,'yyyyMMdd') as readingToDate, \
+		cast(Q_METE_READ_DAYS as decimal(7,0)) AS meterReadingDays, \
+		case when F_READ_COMM_CODE = '1' then true else false end AS hasReadingCommentCode, \
+		case when F_READ_COMM_FREE = '1' then true else false end AS hasReadingCommentFreeFormat, \
+		cast(Q_PDE_HIGH_LOW as int) AS PDEHighLow, \
+		cast(Q_PDE_REEN_COUN as int) AS PDEReenteredCount, \
+		case when F_PDE_AUXI_READ = 'M' then true else false end AS isPDEAuxiliaryReading, \
+		to_date(D_METE_READ_UPDA, 'yyyyMMdd') AS meterReadingUpdatedDate, \
+		a._RecordStart, \
+		a._RecordEnd, \
+		a._RecordDeleted, \
+		a._RecordCurrent \
+	FROM {ADS_DATABASE_STAGE}.{source_object.replace('TMETERREADING','TMETEREADING_HISTORY')} a \
+         left outer join CLEANSED.access_Z309_TMETEREADTOLE d on a.C_METE_READ_TOLE = d.meterReadingToleranceCode \
+         left outer join CLEANSED.access_Z309_TMETEREADTYPE e on a.C_METE_READ_TYPE = e.meterReadingTypeCode \
+         left outer join CLEANSED.access_Z309_TMETEREADCONTYP f on a.C_METE_READ_CONS = f.consumptionTypeCode \
+         left outer join CLEANSED.access_Z309_TMRSTATUSTYPE g on a.C_METE_READ_STAT = g.meterReadingStatusCode \
+         left outer join CLEANSED.access_Z309_TMETERCANTREAD h on coalesce(a.C_METE_CANT_READ,'') = h.cannotReadCode \
+         left outer join CLEANSED.access_Z309_TPDEREADMETH i on a.C_PDE_READ_METH = i.PDEReadingMethodCode \")
 
 print(f'Number of rows: {df_cleansed.count()}')   
 

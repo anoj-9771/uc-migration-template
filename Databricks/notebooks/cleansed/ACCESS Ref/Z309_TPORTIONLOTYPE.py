@@ -1,14 +1,14 @@
 # Databricks notebook source
 # DBTITLE 1,Generate parameter and source object name for unit testing
 import json
-accessTable = 'Z309_TMASTRATAPLAN'
-businessKeys = 'N_MAST_PROP,N_STRA_PLAN'
+accessTable = 'Z309_TPORTIONLOTYPE'
+businessKeys = 'C_PORT_LOT_TYPE'
 
-runParm = '{"SourceType":"BLOB Storage (csv)","SourceServer":"daf-sa-lake-sastoken","SourceGroup":"accessdata","SourceName":"access_####","SourceLocation":"accessdata/####","AdditionalProperty":"","Processor":"databricks-token|1103-023442-me8nqcm9|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive","IsAuditTable":false,"SoftDeleteSource":"","ProjectName":"CLEANSED DATA ACCESS","ProjectId":2,"TargetType":"BLOB Storage (csv)","TargetName":"access_####","TargetLocation":"accessdata/####","TargetServer":"daf-sa-lake-sastoken","DataLoadMode":"TRUNCATE-LOAD","DeltaExtract":false,"CDCSource":false,"TruncateTarget":true,"UpsertTarget":false,"AppendTarget":false,"TrackChanges":false,"LoadToSqlEDW":true,"TaskName":"access_####","ControlStageId":2,"TaskId":40,"StageSequence":200,"StageName":"Raw to Cleansed","SourceId":40,"TargetId":40,"ObjectGrain":"Day","CommandTypeId":8,"Watermarks":"","WatermarksDT":null,"WatermarkColumn":"","BusinessKeyColumn":"$$$$","PartitionColumn":null,"UpdateMetaData":null,"SourceTimeStampFormat":"","Command":"/build/cleansed/ACCESS Ref/####","LastLoadedFile":null}'
+runParm = '{"SourceType":"BLOB Storage (csv)","SourceServer":"daf-sa-lake-sastoken","SourceGroup":"accessdata","SourceName":"access_####","SourceLocation":"accessdata/####","AdditionalProperty":"","Processor":"databricks-token|1103-023442-me8nqcm9|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive","IsAuditTable":false,"SoftDeleteSource":"","ProjectName":"CLEANSED DATA ACCESS","ProjectId":2,"TargetType":"BLOB Storage (csv)","TargetName":"access_####","TargetLocation":"accessdata/####","TargetServer":"daf-sa-lake-sastoken","DataLoadMode":"TRUNCATE-LOAD","DeltaExtract":false,"CDCSource":false,"TruncateTarget":true,"UpsertTarget":false,"AppendTarget":false,"TrackChanges":false,"LoadToSqlEDW":true,"TaskName":"access_####","ControlStageId":2,"TaskId":40,"StageSequence":200,"StageName":"Raw to Cleansed","SourceId":40,"TargetId":40,"ObjectGrain":"Day","CommandTypeId":8,"Watermarks":"","WatermarksDT":null,"WatermarkColumn":"","BusinessKeyColumn":"yyyy","PartitionColumn":null,"UpdateMetaData":null,"SourceTimeStampFormat":"","Command":"/build/cleansed/ACCESS Data/####","LastLoadedFile":null}'
 
 s = json.loads(runParm)
 for parm in ['SourceName','SourceLocation','TargetName','TargetLocation','TaskName','BusinessKeyColumn','Command']:
-    s[parm] = s[parm].replace('####',accessTable).replace('$$$$',businessKeys)
+    s[parm] = s[parm].replace('####',accessTable).replace('yyyy',businessKeys)
 runParm = json.dumps(s)
 
 # COMMAND ----------
@@ -184,38 +184,32 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_cleansed = spark.sql(f"SELECT \
-                                cast(N_MAST_PROP as int) AS masterPropertyNumber, \
-                                N_STRA_PLAN AS strataPlanNumber, \
-                                cast(Q_TOTA_PLAN_LOTS as decimal(9,0)) AS numberOfLots, \
-                                cast(Q_TOTA_UNIT_ENTI as decimal(7,0)) AS totalUnitEntitlement, \
-                                to_date(D_MAST_STRA_UPDA, 'yyyyMMdd') AS masterStrataUpdatedDate, \
-                                _RecordStart, \
-                                _RecordEnd, \
-                                _RecordDeleted, \
-                                _RecordCurrent \
-                        FROM {ADS_DATABASE_STAGE}.{source_object} \
-        ")
+C_PORT_LOT_TYPE, T_PORT_LOT_TYPE, D_PORT_LOT_EFFE, D_PORT_LOT_CANC 
+df_cleansed = spark.sql(f"SELECT C_PORT_LOT_TYPE AS lotTypeCode, \
+		initcap(T_PORT_LOT_TYPE) AS lotType, \
+		to_date(D_PORT_LOT_EFFE, 'yyyyMMdd') AS lotTypeEffectiveDate, \
+		to_date(D_PORT_LOT_CANC, 'yyyyMMdd') AS lotTypeCancelledDate, \
+		_RecordStart, \
+		_RecordEnd, \
+		_RecordDeleted, \
+		_RecordCurrent \
+	FROM {ADS_DATABASE_STAGE}.{source_object}")
 
 print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
 
 newSchema = StructType([
-	StructField('masterPropertyNumber',IntegerType(),False),
-    StructField('strataPlanNumber',StringType(),False),
-    StructField('numberOfLots',DecimalType(9,0),False),
-    StructField('totalUnitEntitlement',DecimalType(7,0),False),
-	StructField('masterStrataUpdatedDate',DateType(),True),
+	StructField('plaloteCode',StringType(),False),
+    StructField('lotType',StringType(),True),
+    StructField('lotTypeEffectiveDate',DateType(),True),
+	StructField('lotTypeCancelledDate',DateType(),True),
     StructField('_RecordStart',TimestampType(),False),
     StructField('_RecordEnd',TimestampType(),False),
     StructField('_RecordDeleted',IntegerType(),False),
     StructField('_RecordCurrent',IntegerType(),False)
 ])
 
-# df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
-# display(df_updated_column)
-# print(f'Number of rows: {df_updated_column.count()}')
 
 # COMMAND ----------
 
