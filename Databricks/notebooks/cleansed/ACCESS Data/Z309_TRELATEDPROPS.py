@@ -189,11 +189,11 @@ df_cleansed = spark.sql(f"SELECT \
             cast(N_RELA_PROP as int) AS relatedPropertyNumber, \
             prt.C_PROP_RELA_TYPE AS relationshipTypeCode, \
             ref.relationshipType, \
-            to_date(D_PROP_RELA_UPDA, 'yyyyMMdd') AS relationshipUpdatedDate, \
-            l._RecordStart, \
-            l._RecordEnd, \
-            l._RecordDeleted, \
-            l._RecordCurrent \
+            to_date(D_RELA_PROP_UPDA, 'yyyyMMdd') AS relationshipUpdatedDate, \
+            prt._RecordStart, \
+            prt._RecordEnd, \
+            prt._RecordDeleted, \
+            prt._RecordCurrent \
         FROM {ADS_DATABASE_STAGE}.{source_object} prt left outer join \
                 cleansed.access_z309_TPROPRELATYPE ref on prt.C_PROP_RELA_TYPE = ref.relationshipTypeCode \
         ")
