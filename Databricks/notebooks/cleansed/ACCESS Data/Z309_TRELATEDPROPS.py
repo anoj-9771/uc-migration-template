@@ -188,7 +188,7 @@ df_cleansed = spark.sql(f"SELECT \
             cast(N_PROP as int) AS propertyNumber, \
             cast(N_RELA_PROP as int) AS relatedPropertyNumber, \
             prt.C_PROP_RELA_TYPE AS relationshipTypeCode, \
-            ref.relationshipType, \
+            initcap(ref.relationshipType), \
             to_date(D_RELA_PROP_UPDA, 'yyyyMMdd') AS relationshipUpdatedDate, \
             prt._RecordStart, \
             prt._RecordEnd, \
@@ -199,6 +199,7 @@ df_cleansed = spark.sql(f"SELECT \
         ")
 
 print(f'Number of rows: {df_cleansed.count()}')
+display(df_cleansed)
 
 # COMMAND ----------
 

@@ -373,18 +373,16 @@ def Main():
 
 # COMMAND ----------
 
-# MAGIC %sql
-# MAGIC select * from curated.dimwaternetwork
-
-# COMMAND ----------
-
-
-waterNetwork()
-
-# COMMAND ----------
-
 # DBTITLE 1,10. Call Main function
 Main()
+
+# COMMAND ----------
+
+# DBTITLE 1,The dimWaterNetwork initially gets created with a value of n/a for pressure area to enable the allocation of the SK. This code sets it back to null
+# MAGIC %sql
+# MAGIC update curated.dimWaterNetwork
+# MAGIC set pressureArea = null
+# MAGIC where pressureArea = 'n/a'
 
 # COMMAND ----------
 
