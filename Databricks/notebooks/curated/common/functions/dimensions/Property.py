@@ -17,7 +17,7 @@ def getProperty():
 
 #     spark.udf.register("TidyCase", GeneralToTidyCase)  
     #build a dataframe with unique properties and lot details
-    lotDf = spark.sql("select propertyNumber, \
+    lotDf = spark.sql(f"select propertyNumber, \
                                 first(planTypeCode) as planTypeCode, \
                                 first(planType) as planType, \
                                 first(planNumber) as planNumber, \
@@ -25,7 +25,7 @@ def getProperty():
                                 first(lotTypeCode) as lotTypeCode, \
                                 first(lotType) as lotType, \
                                 first(sectionNumber) as sectionNumber \
-                        from cleansed.access_z309_tlot \
+                        from {ADS_DATABASE_CLEANSED}.access_z309_tlot \
                         group by propertyNumber \
                         union all \
                         select propertyNumber, \
@@ -36,37 +36,63 @@ def getProperty():
                                 '01' as lotTypeCode, \
                                 'Lot' as lotType, \
                                 null as sectionNumber \
-                        from cleansed.access_z309_tstrataunits \
+                        from {ADS_DATABASE_CLEANSED}.access_z309_tstrataunits \
                         ")
     lotDf.createOrReplaceTempView('lots')
-    #build a dataframe with parent properties (strata units with children, 'normal' properties with themselves)
-    parentDf = spark.sql("with t1 as( \
+    #build a dataframe with parent properties (strata units with children, joint services, super lots and link lots), 'normal' properties with themselves)
+    parentDf = spark.sql(f"with t1 as( \
                                 select su.propertyNumber, \
-                                        masterPropertyNumber, \
-                                        propertyTypeCode as parentPropertyTypeCode, \
-                                        propertyType as parentPropertyType, \
-                                        superiorPropertyTypeCode as parentSuperiorPropertyTypeCode, \
-                                        superiorPropertyType as parentSuperiorPropertyType \
-                                from cleansed.access_z309_tstrataunits su, \
-                                      cleansed.access_z309_tmastrataplan ms left outer join cleansed.access_z309_tproperty pr on pr.propertynumber = ms.masterPropertynumber \
-                                where su.strataPlanNumber = ms.strataplannumber) \
+                                        ms.masterPropertyNumber as parentPropertyNumber, \
+                                        pr.propertyTypeCode as parentPropertyTypeCode, \
+                                        pr.propertyType as parentPropertyType, \
+                                        pr.superiorPropertyTypeCode as parentSuperiorPropertyTypeCode, \
+                                        pr.superiorPropertyType as parentSuperiorPropertyType, \
+                                       'Child of Master Strata' as relationshipType \
+                                from {ADS_DATABASE_CLEANSED}.access_z309_tstrataunits su, \
+                                      {ADS_DATABASE_CLEANSED}.access_z309_tmastrataplan ms left outer join {ADS_DATABASE_CLEANSED}.access_z309_tproperty pr on pr.propertynumber = ms.masterPropertynumber \
+                                where su.strataPlanNumber = ms.strataplannumber), \
+                             t2 as( \
+                                select rp.relatedPropertyNumber as propertyNumber, \
+                                        rp.propertyNumber as parentPropertyNumber, \
+                                        pr.propertyTypeCode as parentPropertyTypeCode, \
+                                        pr.propertyType as parentPropertyType, \
+                                        pr.superiorPropertyTypeCode as parentSuperiorPropertyTypeCode, \
+                                        pr.superiorPropertyType as parentSuperiorPropertyType, \
+                                        rp.relationshipType \
+                                from {ADS_DATABASE_CLEANSED}.access_z309_trelatedProps rp \
+                                       left outer join {ADS_DATABASE_CLEANSED}.access_z309_tproperty pr on pr.propertynumber = rp.propertynumber \
+                                where rp.relationshipTypeCode in ('M','P','U')) \
                             select * from t1 \
+                            union all \
+                            select * from t2 \
                             union all \
                             select propertyNumber, \
                                     propertyNumber as parentPropertyNumber, \
                                     propertyTypeCode as parentPropertyTypeCode, \
                                     propertyType as parentPropertyType, \
                                     superiorPropertyTypeCode as parentSuperiorPropertyTypeCode, \
-                                    superiorPropertyType as parentSuperiorPropertyType \
-                            from cleansed.access_z309_tproperty \
-                            where propertyNumber not in (select propertyNumber from t1) \
+                                    superiorPropertyType as parentSuperiorPropertyType, \
+                                    'Self as Parent' as relationshipType \
+                            from {ADS_DATABASE_CLEANSED}.access_z309_tproperty \
+                            where propertyNumber not in (select propertyNumber from t1 union all select propertyNumber from t2) \
                         ")
     parentDf.createOrReplaceTempView('parents')
+    
+    systemAreaDf = spark.sql(f" \
+                            select propertyNumber, wn.dimWaterNetworkSK as potableSK, wnr.dimWaterNetworkSK as recycledSK, dimSewerNetworkSK as sewerNetworkSK, dimStormWaterNetworkSK as stormWaterNetworkSK \
+                            from {ADS_DATABASE_CLEANSED}.hydra_TLotParcel lp left outer join curated.dimWaterNetwork wn on lp.waterPressureZone = wn.pressureArea \
+                                  left outer join {ADS_DATABASE_CURATED}.dimWaterNetwork wnr on lp.recycledSupplyZone = wnr.reservoirZone \
+                                  left outer join {ADS_DATABASE_CURATED}.dimSewerNetwork on lp.sewerScamp = SCAMP \
+                                  left outer join {ADS_DATABASE_CURATED}.dimStormWaterNetwork sw on lp.stormWaterCatchment = sw.stormWaterCatchment \
+                            where propertyNumber is not null \
+                            ")
+    systemAreaDf.createOrReplaceTempView('systemareas')
     #dimProperty
     #2.Load Cleansed layer table data into dataframe
-    accessZ309TpropertyDf = spark.sql(f"select cast(propertyNumber as string), \
+    accessZ309TpropertyDf = spark.sql(f"select cast(pr.propertyNumber as string), \
                                             'ACCESS' as sourceSystemCode, \
-                                            waterNetworkSK, \
+                                            potableSK as waterNetworkSK_drinkingWater, \
+                                            recycledSK as WaterNetworkSK_recycledWater, \
                                             sewerNetworkSK, \
                                             stormWaterNetworkSK, \
                                             propertyTypeCode, \
@@ -91,11 +117,18 @@ def getProperty():
                                             null as architecturalType \
                                      from {ADS_DATABASE_CLEANSED}.access_z309_tproperty pr left outer join \
                                           lots lo on lo.propertyNumber = pr.propertyNumber left outer join \
-                                          parents pp on pp.propertyNumber = pr.propertyNumber \
+                                          parents pp on pp.propertyNumber = pr.propertyNumber left outer join \
+                                          systemAreas sa on sa.propertyNumber = pp.propertyNumber \
                                      ")
-
+    
+    print(f'{accessZ309TpropertyDf.count():,} rows from ACCESS')
+    
     sapisuDf = spark.sql(f"select co.propertyNumber, \
                                 'ISU' as sourceSystemCode, \
+                                potableSK as waterNetworkSK_drinkingWater, \
+                                recycledSK as waterNetworkSK_recycledWater, \
+                                sewerNetworkSK, \
+                                stormWaterNetworkSK, \
                                 co.inferiorPropertyTypecode as propertyTypeCode, \
                                 initcap(co.inferiorPropertyType) as propertyType, \
                                 co.superiorPropertyTypecode as superiorPropertyTypeCode, \
@@ -125,11 +158,14 @@ def getProperty():
                              {ADS_DATABASE_CLEANSED}.isu_0uc_connobj_attr_2 pa on vn.parentArchitecturalObjectInternalId = pa.architecturalObjectInternalId  \
                               and   pa._RecordCurrent = 1 and pa._RecordDeleted = 0 left outer join \
                              {ADS_DATABASE_CLEANSED}.isu_dd07t dt on co.lotTypeCode = dt.domainValueSingleUpperLimit and domainName = 'ZCD_DO_ADDR_LOT_TYPE' \
-                              and dt._RecordDeleted = 0 and dt._RecordCurrent = 1 \
+                              and dt._RecordDeleted = 0 and dt._RecordCurrent = 1 left outer join \
+                              systemAreas sa on sa.propertyNumber = vn.parentArchitecturalObjectNumber \
                          where co._RecordDeleted = 0 \
                          and   co._RecordCurrent = 1 \
                         ")
-
+    
+    print(f'{sapisuDf.count():,} rows from SAP')
+    print('Creating 4 dummy rows...')
     #Dummy Record to be added to Property Dimension
     dummyDimRecDf = spark.createDataFrame([("ISU","-1"),("ACCESS","-2"),("ISU","-3"),("ACCESS","-4")], ["sourceSystemCode", "propertyNumber"])
 
@@ -137,38 +173,45 @@ def getProperty():
     #4.UNION TABLES
     df = accessZ309TpropertyDf.union(sapisuDf)
     df = df.unionByName(dummyDimRecDf, allowMissingColumns = True)
-    print(f'{df.count():,} rows after Union 2')
+    print(f'{df.count():,} rows after Union')
 
     #5.SELECT / TRANSFORM
     df = df.selectExpr( \
-     "propertyNumber" \
-    ,"sourceSystemCode" \
-    ,"propertyTypeCode" \
-    ,"propertyType" \
-    ,"superiorPropertyTypeCode" \
-    ,"superiorPropertyType" \
-    ,"areaSize" \
-    ,'parentPropertyNumber' \
-    ,'parentPropertyTypeCode' \
-    ,'parentPropertyType' \
-    ,'parentSuperiorPropertyTypeCode' \
-    ,'parentSuperiorPropertyType' \
-    ,'planTypeCode' \
-    ,'planType' \
-    ,'lotTypeCode' \
-    ,'lotType' \
-    ,'planNumber' \
-    ,'lotNumber' \
-    ,'sectionNumber' \
-    ,'architecturalTypeCode' \
-    ,'architecturalType' \
-    )
+                         "propertyNumber" \
+                        ,"sourceSystemCode" \
+                        ,"waterNetworkSK_drinkingWater" \
+                        ,"waterNetworkSK_recycledWater" \
+                        ,"sewerNetworkSK" \
+                        ,"stormWaterNetworkSK" \
+                        ,"propertyTypeCode" \
+                        ,"propertyType" \
+                        ,"superiorPropertyTypeCode" \
+                        ,"superiorPropertyType" \
+                        ,"areaSize" \
+                        ,'parentPropertyNumber' \
+                        ,'parentPropertyTypeCode' \
+                        ,'parentPropertyType' \
+                        ,'parentSuperiorPropertyTypeCode' \
+                        ,'parentSuperiorPropertyType' \
+                        ,'planTypeCode' \
+                        ,'planType' \
+                        ,'lotTypeCode' \
+                        ,'lotType' \
+                        ,'planNumber' \
+                        ,'lotNumber' \
+                        ,'sectionNumber' \
+                        ,'architecturalTypeCode' \
+                        ,'architecturalType' \
+                        )
                                             
-    df.createOrReplaceTempView('allproperties')
     #6.Apply schema definition
     newSchema = StructType([
                             StructField("propertyNumber", StringType(), False),
                             StructField("sourceSystemCode", StringType(), False),
+                            StructField("waterNetworkSK_drinkingWater", StringType(), True),
+                            StructField("waterNetworkSK_recycledWater", StringType(), True),
+                            StructField("sewerNetworkSK", StringType(), True),
+                            StructField("stormWaterNetworkSK", StringType(), True),
                             StructField("propertyTypeCode", StringType(), True),
                             StructField("propertyType", StringType(), True),
                             StructField("superiorPropertyTypeCode", StringType(), True),
