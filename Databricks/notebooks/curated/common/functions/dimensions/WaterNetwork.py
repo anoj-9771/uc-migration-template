@@ -26,7 +26,7 @@ def getWaterNetwork():
     baseDf = spark.sql(f"select level30 as deliverySystem, \
                                 level40 as distributionSystem, \
                                 level50 as reservoirZone, \
-                                level60 as pressureArea, \
+                                coalesce(level60,'n/a') as pressureArea, \
                                 case when product = 'Water' then 'Y' else 'N' end as isPotableWaterSystem, \
                                 case when product = 'RecycledWater' then 'Y' else 'N' end as isRecycledWaterSystem \
                         from {ADS_DATABASE_CLEANSED}.hydra_TSYSTEMAREA \
