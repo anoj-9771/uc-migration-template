@@ -24,6 +24,15 @@
 				"typeProperties": {
 					"source": {
 						"type": "SqlServerSource",
+						"additionalColumns": [
+							{
+								"name": "_DLRawZoneTimestamp",
+								"value": {
+									"value": "@formatDateTime(convertFromUtc(utcnow(),'AUS Eastern Standard Time'),'yyyy-MM-dd HH:mm:ss')",
+									"type": "Expression"
+								}
+							}
+						],
 						"sqlReaderQuery": {
 							"value": "@pipeline().parameters.SQLCommand",
 							"type": "Expression"
