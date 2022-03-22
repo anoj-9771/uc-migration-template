@@ -56,7 +56,7 @@ Select
 	    WHEN (styp.ControlType IN ('SQL Server', 'Oracle', 'MySQL')) AND DLT.DeltaExtract = 1 Then CTL.[udf_GetDeltaSQL](ct.TaskId)
 		ELSE ctc.Command
 	END Command,
-	coalesce(tel.StartTime, '01.01.2000') as LastSuccessfulExecutionTs,
+	coalesce(dateadd(hour, -4, tel.StartTime), '01.01.2000') as LastSuccessfulExecutionTS,
 	CTL.[udf_GetLastLoadedFile](src.SourceName, src.SourceLocation) LastLoadedFile
 
   From CTL.ControlSource src
