@@ -61,21 +61,26 @@ def getProperty():
                                         rp.relationshipType \
                                 from {ADS_DATABASE_CLEANSED}.access_z309_trelatedProps rp \
                                        left outer join {ADS_DATABASE_CLEANSED}.access_z309_tproperty pr on pr.propertynumber = rp.propertynumber \
-                                where rp.relationshipTypeCode in ('M','P','U')) \
-                            select * from t1 \
+                                where rp.relationshipTypeCode in ('M','P','U')), \
+                              t3 as(select * from t1 \
+                                    union \
+                                    select * from t2), \
+                              t4 as(select propertyNumber \
+                                    from {ADS_DATABASE_CLEANSED}.access_z309_tproperty \
+                                    minus \
+                                    select propertyNumber from t3) \
+                            select * from t3 \
                             union all \
-                            select * from t2 \
-                            union all \
-                            select propertyNumber, \
-                                    propertyNumber as parentPropertyNumber, \
+                            select pr.propertyNumber, \
+                                    pr.propertyNumber as parentPropertyNumber, \
                                     propertyTypeCode as parentPropertyTypeCode, \
                                     propertyType as parentPropertyType, \
                                     superiorPropertyTypeCode as parentSuperiorPropertyTypeCode, \
                                     superiorPropertyType as parentSuperiorPropertyType, \
                                     'Self as Parent' as relationshipType \
-                            from {ADS_DATABASE_CLEANSED}.access_z309_tproperty \
-                            where propertyNumber not in (select propertyNumber from t1 union all select propertyNumber from t2) \
-                        ")
+                            from {ADS_DATABASE_CLEANSED}.access_z309_tproperty pr, t4 \
+                            where pr.propertyNumber = t4.propertyNumber \
+                            ")
     parentDf.createOrReplaceTempView('parents')
     
     systemAreaDf = spark.sql(f" \

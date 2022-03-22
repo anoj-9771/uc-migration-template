@@ -188,7 +188,7 @@ df_cleansed = spark.sql(f"SELECT \
             cast(N_PROP as int) AS propertyNumber, \
             cast(N_RELA_PROP as int) AS relatedPropertyNumber, \
             prt.C_PROP_RELA_TYPE AS relationshipTypeCode, \
-            initcap(ref.relationshipType), \
+            ref.relationshipType, \
             to_date(D_RELA_PROP_UPDA, 'yyyyMMdd') AS relationshipUpdatedDate, \
             prt._RecordStart, \
             prt._RecordEnd, \
