@@ -186,8 +186,8 @@ DeltaSaveToDeltaTable (
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT \
             C_PROP_RELA_TYPE AS relationshipTypeCode, \
-            T_PROP_RELA_TYPE AS relationshipType, \
-            T_PROP_RELA_ABBR AS relationshipTypeAbbreviation, \
+            initcap(T_PROP_RELA_TYPE) AS relationshipType, \
+            initcap(T_PROP_RELA_ABBR) AS relationshipTypeAbbreviation, \
             to_date(D_RELA_TYPE_EFFE, 'yyyyMMdd') AS relationshipTypeEffectiveDate, \
             to_date(D_RELA_TYPE_CANC, 'yyyyMMdd') AS relationshipTypeCancelledDate, \
             _RecordStart, \

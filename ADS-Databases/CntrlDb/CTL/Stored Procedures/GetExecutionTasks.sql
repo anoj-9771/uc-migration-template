@@ -56,6 +56,7 @@ Select
 	    WHEN (styp.ControlType IN ('SQL Server', 'Oracle', 'MySQL')) AND DLT.DeltaExtract = 1 Then CTL.[udf_GetDeltaSQL](ct.TaskId)
 		ELSE ctc.Command
 	END Command,
+	coalesce(dateadd(hour, -4, tel.StartTime), '01.01.2000') as LastSuccessfulExecutionTS,
 	CTL.[udf_GetLastLoadedFile](src.SourceName, src.SourceLocation) LastLoadedFile
 
   From CTL.ControlSource src
@@ -70,7 +71,7 @@ Select
 	LEFT JOIN CTL.ControlDataLoadTypes DLT ON CT.DataLoadMode = DLT.DataLoadType
 	LEFT JOIN CTL.ControlSource Audit ON ISNULL(src.SoftDeleteSource, '') = Audit.SourceLocation AND Audit.IsAuditTable = 1
 	LEFT JOIN CTL.TaskExecutionLog tel On ct.TaskId = tel.ControlTaskId
-		   And tel.StartTime = (Select Max(StartTime) From CTL.TaskExecutionLog Where ControlTaskId = ct.TaskId)
+		   And tel.StartTime = (Select Max(StartTime) From CTL.TaskExecutionLog Where ControlTaskId = ct.TaskId and ExecutionStatus in ('Success'))
  Where ct.TaskEnabled = 1
    And ct.ControlStageId = @StageId
    And ct.ProjectId = @ProjectId
