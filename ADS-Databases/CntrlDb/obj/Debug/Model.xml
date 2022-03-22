@@ -7456,7 +7456,7 @@ Select
 	    WHEN (styp.ControlType IN ('SQL Server', 'Oracle', 'MySQL')) AND DLT.DeltaExtract = 1 Then CTL.[udf_GetDeltaSQL](ct.TaskId)
 		ELSE ctc.Command
 	END Command,
-	coalesce(tel.StartTime, '01.01.2000') as LastSuccessfulExecutionTs,
+	coalesce(dateadd(hour, -4, tel.StartTime), '01.01.2000') as LastSuccessfulExecutionTS,
 	CTL.[udf_GetLastLoadedFile](src.SourceName, src.SourceLocation) LastLoadedFile
 
   From CTL.ControlSource src
@@ -8136,7 +8136,7 @@ SELECT * FROM allTasks t
 								<Element Type="SqlComputedColumn" Name="[CTL].[GetExecutionTasks].[CTE1].[allTasks].[Command]" />
 							</Entry>
 							<Entry>
-								<Element Type="SqlComputedColumn" Name="[CTL].[GetExecutionTasks].[CTE1].[allTasks].[LastSuccessfulExecutionTs]" />
+								<Element Type="SqlComputedColumn" Name="[CTL].[GetExecutionTasks].[CTE1].[allTasks].[LastSuccessfulExecutionTS]" />
 							</Entry>
 							<Entry>
 								<Element Type="SqlComputedColumn" Name="[CTL].[GetExecutionTasks].[CTE1].[allTasks].[LastLoadedFile]">
@@ -8223,7 +8223,7 @@ SELECT * FROM allTasks t
 			</Relationship>
 			<Annotation Type="SysCommentsObjectAnnotation">
 				<Property Name="CreateOffset" Value="45" />
-				<Property Name="Length" Value="3734" />
+				<Property Name="Length" Value="3753" />
 				<Property Name="StartLine" Value="1" />
 				<Property Name="StartColumn" Value="1" />
 				<Property Name="HeaderContents" Value="&#xD;&#xA;&#xD;&#xA;&#xD;&#xA;&#xD;&#xA;&#xD;&#xA;--[CTL].[getExecutionTasks] 1,1&#xD;&#xA;&#xD;&#xA;CREATE Procedure [CTL].[GetExecutionTasks] (@StageId BigInt, @ProjectId BigInt)&#xD;&#xA;As" />
