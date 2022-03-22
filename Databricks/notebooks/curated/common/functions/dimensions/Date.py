@@ -150,7 +150,41 @@ def getDate():
                           ,fiscalDates_Int(calendarDate,'month') as monthOfFinancialYear \
                           ,fiscalDates_Int(calendarDate,'quarter') as quarterOfFinacialYear \
                           ,case when fiscalDates_Int(calendarDate,'quarter') < 3 then 1 else 2 end as halfOfFinacialYear \
-                          from {ADS_DATABASE_CLEANSED}.isu_scal_tt_date \
+                          from {ADS_DATABASE_CLEANSED}.isu_scal_tt_date where calendardate <='9999-06-30'\
+                          union \
+                          SELECT  \
+                          calendarDate \
+                          ,date_format(calendarDate, 'EEEE') as dayName \
+                          ,date_format(calendarDate, 'MMMM') as monthName \
+                          ,calendarYear \
+                          ,dayOfWeek \
+                          ,dayOfMonth \
+                          ,dayOfYear \
+                          ,weekOfMonth(calendarDate) as weekOfMonth \
+                          ,quarterDates_Int(calendarDate,'week') as weekOfQuarter \
+                          ,weekOfYear \
+                          ,monthOfQuarter(calendarDate) as monthOfQuarter \
+                          ,monthOfYear \
+                          ,quarterOfYear \
+                          ,halfOfYear \
+                          ,weekDates(calendarDate,'start') as weekStartDate \
+                          ,weekDates(calendarDate,'end') as weekEndDate \
+                          ,monthStartDate \
+                          ,monthEndDate \
+                          ,quarterDates_Date(calendarDate,'start') as quarterStartDate \
+                          ,quarterDates_Date(calendarDate,'end') as quarterEndDate \
+                          ,cast(cast(calendarYear as string)||'-01-01' as date) as yearStartDate \
+                          ,cast(cast(calendarYear as string)||'-12-31' as date) as yearEndDate \
+                          ,case when dayOfWeek < 6 then 'Y' else 'N' end as isWeekDayFlag \
+                          ,'' as financialYear \
+                          ,'' as financialYearStartDate \
+                          ,'' as financialYearEndDate \
+                          ,'' as dayOfFinancialYear \
+                          ,'' as weekOfFinancialYear \
+                          ,'' as monthOfFinancialYear \
+                          ,'' as quarterOfFinacialYear \
+                          ,'' as halfOfFinacialYear \
+                          from {ADS_DATABASE_CLEANSED}.isu_scal_tt_date where calendardate >'9999-06-30'\
                        ")
     
     #6.Apply schema definition
