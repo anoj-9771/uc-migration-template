@@ -7,7 +7,7 @@ businessKeys = 'N_MAST_PROP,N_STRA_PLAN'
 runParm = '{"SourceType":"BLOB Storage (csv)","SourceServer":"daf-sa-lake-sastoken","SourceGroup":"accessdata","SourceName":"access_####","SourceLocation":"accessdata/####","AdditionalProperty":"","Processor":"databricks-token|1103-023442-me8nqcm9|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive","IsAuditTable":false,"SoftDeleteSource":"","ProjectName":"CLEANSED DATA ACCESS","ProjectId":2,"TargetType":"BLOB Storage (csv)","TargetName":"access_####","TargetLocation":"accessdata/####","TargetServer":"daf-sa-lake-sastoken","DataLoadMode":"TRUNCATE-LOAD","DeltaExtract":false,"CDCSource":false,"TruncateTarget":true,"UpsertTarget":false,"AppendTarget":false,"TrackChanges":false,"LoadToSqlEDW":true,"TaskName":"access_####","ControlStageId":2,"TaskId":40,"StageSequence":200,"StageName":"Raw to Cleansed","SourceId":40,"TargetId":40,"ObjectGrain":"Day","CommandTypeId":8,"Watermarks":"","WatermarksDT":null,"WatermarkColumn":"","BusinessKeyColumn":"$$$$","PartitionColumn":null,"UpdateMetaData":null,"SourceTimeStampFormat":"","Command":"/build/cleansed/ACCESS Ref/####","LastLoadedFile":null}'
 
 s = json.loads(runParm)
-for parm in ['SourceName','SourceLocation','TargetName','TargetLocation','TaskName']:
+for parm in ['SourceName','SourceLocation','TargetName','TargetLocation','TaskName','BusinessKeyColumn','Command']:
     s[parm] = s[parm].replace('####',accessTable).replace('$$$$',businessKeys)
 runParm = json.dumps(s)
 
@@ -184,16 +184,17 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_cleansed = spark.sql("SELECT \
-		cast(N_MAST_PROP as int) AS masterPropertyNumber, \
-		N_STRA_PLAN AS strataPlanNumber, \
-        cast(Q_TOTA_PLAN_LOTS as decimal(9,0)) AS numberOfLots, \
-		cast(Q_TOTA_UNIT_ENTI as decimal(7,0)) AS totalUnitEntitlement, \
-		to_date(D_MAST_STRA_UPDA, 'yyyyMMdd') AS masterStrataUpdatedDate, \
-		_RecordStart, \
-		_RecordEnd, \
-		_RecordDeleted, \
-		_RecordCurrent \
+df_cleansed = spark.sql(f"SELECT \
+                                cast(N_MAST_PROP as int) AS masterPropertyNumber, \
+                                N_STRA_PLAN AS strataPlanNumber, \
+                                cast(Q_TOTA_PLAN_LOTS as decimal(9,0)) AS numberOfLots, \
+                                cast(Q_TOTA_UNIT_ENTI as decimal(7,0)) AS totalUnitEntitlement, \
+                                to_date(D_MAST_STRA_UPDA, 'yyyyMMdd') AS masterStrataUpdatedDate, \
+                                _RecordStart, \
+                                _RecordEnd, \
+                                _RecordDeleted, \
+                                _RecordCurrent \
+                        FROM {ADS_DATABASE_STAGE}.{source_object} \
         ")
 
 print(f'Number of rows: {df_cleansed.count()}')

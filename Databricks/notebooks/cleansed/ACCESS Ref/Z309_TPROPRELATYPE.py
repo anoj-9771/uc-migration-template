@@ -1,10 +1,10 @@
 # Databricks notebook source
 # DBTITLE 1,Generate parameter and source object name for unit testing
 import json
-accessTable = 'Z309_TLOT'
-businessKeys = 'N_PROP,N_LOT_SEQU'
+accessTable = 'Z309_TPROPRELATYPE'
+businessKeys = 'C_PROP_RELA_TYPE'
 
-runParm = '{"SourceType":"BLOB Storage (csv)","SourceServer":"daf-sa-lake-sastoken","SourceGroup":"accessdata","SourceName":"access_####","SourceLocation":"accessdata/####","AdditionalProperty":"","Processor":"databricks-token|1103-023442-me8nqcm9|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive","IsAuditTable":false,"SoftDeleteSource":"","ProjectName":"CLEANSED DATA ACCESS","ProjectId":2,"TargetType":"BLOB Storage (csv)","TargetName":"access_####","TargetLocation":"accessdata/####","TargetServer":"daf-sa-lake-sastoken","DataLoadMode":"TRUNCATE-LOAD","DeltaExtract":false,"CDCSource":false,"TruncateTarget":true,"UpsertTarget":false,"AppendTarget":false,"TrackChanges":false,"LoadToSqlEDW":true,"TaskName":"access_####","ControlStageId":2,"TaskId":40,"StageSequence":200,"StageName":"Raw to Cleansed","SourceId":40,"TargetId":40,"ObjectGrain":"Day","CommandTypeId":8,"Watermarks":"","WatermarksDT":null,"WatermarkColumn":"","BusinessKeyColumn":"yyyy","PartitionColumn":null,"UpdateMetaData":null,"SourceTimeStampFormat":"","Command":"/build/cleansed/ACCESS Data/####","LastLoadedFile":null}'
+runParm = '{"SourceType":"BLOB Storage (csv)","SourceServer":"daf-sa-lake-sastoken","SourceGroup":"accessdata","SourceName":"access_####","SourceLocation":"accessdata/####","AdditionalProperty":"","Processor":"databricks-token|1103-023442-me8nqcm9|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive","IsAuditTable":false,"SoftDeleteSource":"","ProjectName":"CLEANSED REF ACCESS","ProjectId":2,"TargetType":"BLOB Storage (csv)","TargetName":"access_####","TargetLocation":"accessdata/####","TargetServer":"daf-sa-lake-sastoken","DataLoadMode":"TRUNCATE-LOAD","DeltaExtract":false,"CDCSource":false,"TruncateTarget":true,"UpsertTarget":false,"AppendTarget":false,"TrackChanges":false,"LoadToSqlEDW":true,"TaskName":"access_####","ControlStageId":2,"TaskId":40,"StageSequence":200,"StageName":"Raw to Cleansed","SourceId":40,"TargetId":40,"ObjectGrain":"Day","CommandTypeId":8,"Watermarks":"","WatermarksDT":null,"WatermarkColumn":"","BusinessKeyColumn":"yyyy","PartitionColumn":null,"UpdateMetaData":null,"SourceTimeStampFormat":"","Command":"/build/cleansed/ACCESS Ref/####","LastLoadedFile":null}'
 
 s = json.loads(runParm)
 for parm in ['SourceName','SourceLocation','TargetName','TargetLocation','TaskName','BusinessKeyColumn','Command']:
@@ -185,54 +185,28 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT \
-            cast(N_PROP as int) AS propertyNumber, \
-            cast(N_LOT_SEQU as int) AS lotSequenceNumber, \
-            l.C_PLAN_TYPE AS planTypeCode, \
-            pt.planType, \
-            N_PLAN AS planNumber, \
-            N_LOT AS lotNumber, \
-            N_PLAN_SECT AS sectionNumber, \
-            l.C_PORT_LOT_TYPE as lotTypeCode, \
-            plt.lotType as lotType, \
-            N_PORT AS portionNumber, \
-            N_SUBD as subdivisionNumber, \
-            cast(Q_LOT_AREA as decimal(9,3)) AS areaSize, \
-            C_LOT_AREA_TYPE AS lotAreaType, \
-            M_PARI AS parishName, \
-            to_date(D_LOT_UPDA, 'yyyyMMdd') AS lotUpdatedDate, \
-            l._RecordStart, \
-            l._RecordEnd, \
-            l._RecordDeleted, \
-            l._RecordCurrent \
-        FROM {ADS_DATABASE_STAGE}.{source_object} l left outer join \
-                cleansed.access_z309_TPLANTYPE pt on l.C_PLAN_TYPE = pt.planTypeCode left outer join \
-                cleansed.access_z309_TPORTIONLOTYPE plt on l.C_PORT_LOT_TYPE = plt.lotTypeCode \
+            C_PROP_RELA_TYPE AS relationshipTypeCode, \
+            initcap(T_PROP_RELA_TYPE) AS relationshipType, \
+            initcap(T_PROP_RELA_ABBR) AS relationshipTypeAbbreviation, \
+            to_date(D_RELA_TYPE_EFFE, 'yyyyMMdd') AS relationshipTypeEffectiveDate, \
+            to_date(D_RELA_TYPE_CANC, 'yyyyMMdd') AS relationshipTypeCancelledDate, \
+            _RecordStart, \
+            _RecordEnd, \
+            _RecordDeleted, \
+            _RecordCurrent \
+        FROM {ADS_DATABASE_STAGE}.{source_object} \
         ")
 
 print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
 
-display(df_cleansed)
-
-# COMMAND ----------
-
 newSchema = StructType([
-	StructField('propertyNumber',IntegerType(),False),
-    StructField('lotSequenceNumber',IntegerType(),False),
-    StructField('planTypeCode',StringType(),True),
-    StructField('planType',StringType(),True),
-    StructField('planNumber',StringType(),True),
-    StructField('lotNumber',StringType(),True),
-    StructField('sectionNumber',StringType(),True),
-    StructField('lotTypeCode',StringType(),True),
-	StructField('lotType',StringType(),True),
-	StructField('portionNumber',StringType(),True),
-    StructField('subdivisionNumber',StringType(),True),
-    StructField('areaSize',DecimalType(9,3),False),
-    StructField('lotAreaType',StringType(),True),
-    StructField('parishName',StringType(),True),
-	StructField('lotUpdatedDate',DateType(),True),
+	StructField('relationshipTypeCode',StringType(),False),
+    StructField('relationshipType',StringType(),True),
+    StructField('relationshipTypeAbbreviation',StringType(),True),
+    StructField('relationshipTypeEffectiveDate',DateType(),True),
+    StructField('relationshipTypeCancelledDate',DateType(),True),
     StructField('_RecordStart',TimestampType(),False),
     StructField('_RecordEnd',TimestampType(),False),
     StructField('_RecordDeleted',IntegerType(),False),
