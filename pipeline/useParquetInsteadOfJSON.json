@@ -1,0 +1,77 @@
+{
+	"name": "useParquetInsteadOfJSON",
+	"properties": {
+		"description": "test the Copy activity with Parquet",
+		"activities": [
+			{
+				"name": "Copy-Blob-to-DataLake-Raw",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "JsonSource",
+						"storeSettings": {
+							"type": "AzureBlobStorageReadSettings",
+							"recursive": true,
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "JsonReadSettings"
+						}
+					},
+					"sink": {
+						"type": "ParquetSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "ParquetWriteSettings"
+						}
+					},
+					"enableStaging": false,
+					"parallelCopies": 32
+				},
+				"inputs": [
+					{
+						"referenceName": "SRC_BLOB_JSON_v2",
+						"type": "DatasetReference",
+						"parameters": {
+							"BlobContainer": {
+								"value": "archive",
+								"type": "Expression"
+							},
+							"BlobName": {
+								"value": "isudata/20220212/20220212_22:58:53/0BP_RELATIONS_ATTR_20220211134849.json",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "RAW_PARQUET",
+						"type": "DatasetReference",
+						"parameters": {
+							"BlobPath": "archive",
+							"BlobName": "isudata/20220212/20220212_22:58:53/0BP_RELATIONS_ATTR_20220211134849"
+						}
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "z_Archive/Test"
+		},
+		"annotations": [],
+		"lastPublishTime": "2022-02-14T04:06:58Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

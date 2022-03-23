@@ -1,0 +1,17 @@
+{
+	"name": "AzureSqlDatabase_Ctrl_db_businessrecstage",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS-AzureSqlDatabase_Ctrldb",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": "CTL",
+			"table": "BusinessRecStage"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

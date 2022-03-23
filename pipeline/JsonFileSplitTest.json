@@ -1,0 +1,68 @@
+{
+	"name": "JsonFileSplitTest",
+	"properties": {
+		"activities": [
+			{
+				"name": "Copy-Blob-Raw-Json-Test",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "JsonSource",
+						"storeSettings": {
+							"type": "AzureBlobStorageReadSettings",
+							"recursive": true,
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "JsonReadSettings"
+						}
+					},
+					"sink": {
+						"type": "JsonSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "JsonWriteSettings"
+						}
+					},
+					"enableStaging": false
+				},
+				"inputs": [
+					{
+						"referenceName": "SRC_BLOB_JSON_copy1",
+						"type": "DatasetReference",
+						"parameters": {
+							"BlobName": "0COMP_CODE_TEXT_20210826164331.json"
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "RAW_ADLS_JSON_v2",
+						"type": "DatasetReference",
+						"parameters": {
+							"BlobPath": "sapisu/0comp_code_text/json/year=2021/month=08/day=26/",
+							"BlobName": "0COMP_CODE_TEXT_2021-08-26_164331_987.json"
+						}
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "z_Archive/Test"
+		},
+		"annotations": [],
+		"lastPublishTime": "2022-03-22T04:55:11Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

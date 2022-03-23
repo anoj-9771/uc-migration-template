@@ -1,0 +1,26 @@
+{
+	"name": "LS_AzureBlobStorage",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "AzureBlobStorage",
+		"typeProperties": {
+			"serviceEndpoint": "https://sablobdafpreprod01.blob.core.windows.net/",
+			"tenant": "8351bb5c-749d-4ee4-b1c4-71a3971acbe9",
+			"servicePrincipalId": "3012901b-9b8c-4100-a6bf-a1a2ec010def",
+			"servicePrincipalKey": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "LS-AzureKeyVault",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "SERVICE-PRINCIPAL-SECRET"
+			},
+			"accountKind": "StorageV2"
+		},
+		"connectVia": {
+			"referenceName": "IntegrationRuntime-Azure-ManagedVnet-01",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

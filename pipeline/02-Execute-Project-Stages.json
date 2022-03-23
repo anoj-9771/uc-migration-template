@@ -1,0 +1,109 @@
+{
+	"name": "02-Execute-Project-Stages",
+	"properties": {
+		"activities": [
+			{
+				"name": "Get Stages",
+				"description": "",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderStoredProcedureName": "[CTL].[GetExecutionStages]",
+						"storedProcedureParameters": {
+							"ProjectId": {
+								"type": "Int64",
+								"value": {
+									"value": "@pipeline().parameters.ProjectId",
+									"type": "Expression"
+								}
+							},
+							"TriggerName": {
+								"type": "String",
+								"value": {
+									"value": "@pipeline().parameters.TriggerName",
+									"type": "Expression"
+								}
+							}
+						},
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "AzureSqlDatabase_Ctrldb",
+						"type": "DatasetReference"
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "Execute Stages",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Get Stages",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Get Stages').output.value",
+						"type": "Expression"
+					},
+					"isSequential": true,
+					"activities": [
+						{
+							"name": "Execute Task Load Pipeline",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "03-Execute-Project-Tasks",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"StageId": {
+										"value": "@item().ControlStageId",
+										"type": "Expression"
+									},
+									"ProjectId": {
+										"value": "@pipeline().parameters.ProjectId",
+										"type": "Expression"
+									},
+									"ProjectRunID": {
+										"value": "@pipeline().RunId",
+										"type": "Expression"
+									}
+								}
+							}
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"ProjectId": {
+				"type": "int"
+			},
+			"TriggerName": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"lastPublishTime": "2022-03-22T04:55:13Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

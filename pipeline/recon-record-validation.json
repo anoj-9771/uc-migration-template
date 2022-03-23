@@ -1,0 +1,161 @@
+{
+	"name": "recon-record-validation",
+	"properties": {
+		"activities": [
+			{
+				"name": "If-Check",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "LU-Source",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@equals(activity('LU-Source').output.firstRow.IsAuditTable,false)",
+						"type": "Expression"
+					},
+					"ifTrueActivities": [
+						{
+							"name": "SP-Update-Validation",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[CTL].[RecordDataValidation]",
+								"storedProcedureParameters": {
+									"HighWatermark": {
+										"value": {
+											"value": "@json(string(pipeline().parameters.ValidationDetails)).ReturnValue",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"MaxValue": {
+										"value": {
+											"value": "@json(string(pipeline().parameters.ValidationDetails)).MaximumValue",
+											"type": "Expression"
+										},
+										"type": "Int64"
+									},
+									"MinValue": {
+										"value": {
+											"value": "@json(string(pipeline().parameters.ValidationDetails)).MinimumValue",
+											"type": "Expression"
+										},
+										"type": "Int64"
+									},
+									"RecordCount": {
+										"value": {
+											"value": "@json(string(pipeline().parameters.ValidationDetails)).RecordCount",
+											"type": "Expression"
+										},
+										"type": "Int64"
+									},
+									"TotalValue": {
+										"value": {
+											"value": "@json(string(pipeline().parameters.ValidationDetails)).TotalValue",
+											"type": "Expression"
+										},
+										"type": "Int64"
+									},
+									"ValidationType": {
+										"value": {
+											"value": "@json(string(pipeline().parameters.ValidationDetails)).ValidationType",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"ProjectRunID": {
+										"value": {
+											"value": "@pipeline().parameters.ProjectRunID",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"SourceID": {
+										"value": {
+											"value": "@pipeline().parameters.SourceID",
+											"type": "Expression"
+										},
+										"type": "Int64"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "LS-AzureSqlDatabase_Ctrldb",
+								"type": "LinkedServiceReference"
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "LU-Source",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": {
+							"value": "@concat('SELECT * FROM CTL.vw_ControlConfiguration WHERE SourceID = ', string(pipeline().parameters.SourceID))",
+							"type": "Expression"
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "AzureSqlDatabase_Ctrldb",
+						"type": "DatasetReference"
+					}
+				}
+			}
+		],
+		"parameters": {
+			"ProjectRunID": {
+				"type": "string",
+				"defaultValue": "0b6110e9-8d68-4a0a-8ee8-0182a03289ef"
+			},
+			"ValidationDetails": {
+				"type": "object",
+				"defaultValue": {
+					"SOURCECOLUMN": "COALESCE (UPDATED_DATE, CREATED_DATE)",
+					"RETURNVALUE": "2020-11-08 17:58:04",
+					"RECORDCOUNT": 52254,
+					"TOTALVALUE": 3361637939,
+					"MAXVALUE": 133557,
+					"MINVALUE": 2,
+					"VALIDATIONTYPE": "SOURCE"
+				}
+			},
+			"SourceID": {
+				"type": "int"
+			}
+		},
+		"folder": {
+			"name": "Validation"
+		},
+		"annotations": [],
+		"lastPublishTime": "2022-03-22T04:55:11Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

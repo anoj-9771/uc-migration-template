@@ -1,0 +1,18 @@
+{
+	"name": "LS_DeltaLake",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"description": "Databricks Delta Lake",
+		"annotations": [],
+		"type": "AzureDatabricksDeltaLake",
+		"typeProperties": {
+			"domain": "https://adb-2717485385283200.0.azuredatabricks.net",
+			"clusterId": "0215-073119-gzhauiye",
+			"workspaceResourceId": "/subscriptions/769a62b3-7481-44ae-878e-a466593f50ac/resourceGroups/rg-swcprod01-preprod-daf-01/providers/Microsoft.Databricks/workspaces/dbw-swcprod01-daf-preprod-01"
+		},
+		"connectVia": {
+			"referenceName": "IntegrationRuntime-Azure-ManagedVnet-01",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

@@ -1,0 +1,44 @@
+{
+	"name": "RAW_ADLS_CSV",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_AzureDatalake",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"BlobPath": {
+				"type": "string"
+			},
+			"BlobName": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "Data Lake"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": {
+					"value": "@dataset().BlobName",
+					"type": "Expression"
+				},
+				"folderPath": {
+					"value": "@dataset().BlobPath",
+					"type": "Expression"
+				},
+				"fileSystem": "raw"
+			},
+			"columnDelimiter": "|",
+			"compressionCodec": "gzip",
+			"compressionLevel": "Optimal",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": ""
+		},
+		"schema": []
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}
