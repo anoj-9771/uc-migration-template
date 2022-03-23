@@ -150,7 +150,41 @@ def getDate():
                           ,fiscalDates_Int(calendarDate,'month') as monthOfFinancialYear \
                           ,fiscalDates_Int(calendarDate,'quarter') as quarterOfFinacialYear \
                           ,case when fiscalDates_Int(calendarDate,'quarter') < 3 then 1 else 2 end as halfOfFinacialYear \
-                          from {ADS_DATABASE_CLEANSED}.isu_scal_tt_date \
+                          from {ADS_DATABASE_CLEANSED}.isu_scal_tt_date where calendardate <='9999-06-30'\
+                          union \
+                          SELECT  \
+                          calendarDate \
+                          ,date_format(calendarDate, 'EEEE') as dayName \
+                          ,date_format(calendarDate, 'MMMM') as monthName \
+                          ,calendarYear \
+                          ,dayOfWeek \
+                          ,dayOfMonth \
+                          ,dayOfYear \
+                          ,weekOfMonth(calendarDate) as weekOfMonth \
+                          ,quarterDates_Int(calendarDate,'week') as weekOfQuarter \
+                          ,weekOfYear \
+                          ,monthOfQuarter(calendarDate) as monthOfQuarter \
+                          ,monthOfYear \
+                          ,quarterOfYear \
+                          ,halfOfYear \
+                          ,weekDates(calendarDate,'start') as weekStartDate \
+                          ,null as weekEndDate \
+                          ,monthStartDate \
+                          ,monthEndDate \
+                          ,quarterDates_Date(calendarDate,'start') as quarterStartDate \
+                          ,quarterDates_Date(calendarDate,'end') as quarterEndDate \
+                          ,cast(cast(calendarYear as string)||'-01-01' as date) as yearStartDate \
+                          ,cast(cast(calendarYear as string)||'-12-31' as date) as yearEndDate \
+                          ,case when dayOfWeek < 6 then 'Y' else 'N' end as isWeekDayFlag \
+                          ,null as financialYear \
+                          ,null as financialYearStartDate \
+                          ,null as financialYearEndDate \
+                          ,null as dayOfFinancialYear \
+                          ,null as weekOfFinancialYear \
+                          ,null as monthOfFinancialYear \
+                          ,null as quarterOfFinacialYear \
+                          ,null as halfOfFinacialYear \
+                          from {ADS_DATABASE_CLEANSED}.isu_scal_tt_date where calendardate >'9999-06-30'\
                        ")
     
     #6.Apply schema definition
@@ -170,7 +204,7 @@ def getDate():
                             StructField("quarterOfYear", IntegerType(), False),
                             StructField("halfOfYear", IntegerType(), False),
                             StructField("weekStartDate", DateType(), False),
-                            StructField("weekEndDate", DateType(), False),
+                            StructField("weekEndDate", DateType(), True),
                             StructField("monthStartDate", DateType(), False),
                             StructField("monthEndDate", DateType(), False),
                             StructField("quarterStartDate", DateType(), False),
@@ -178,14 +212,14 @@ def getDate():
                             StructField("yearStartDate", DateType(), False),
                             StructField("yearEndDate", DateType(), False),
                             StructField("isWeekDayFlag", StringType(), False),
-                            StructField("financialYear", IntegerType(), False),
-                            StructField("financialYearStartDate", DateType(), False),
-                            StructField("financialYearEndDate", DateType(), False),
-                            StructField("dayOfFinancialYear", IntegerType(), False),
-                            StructField("weekOfFinancialYear", IntegerType(), False),
-                            StructField("monthOfFinancialYear", IntegerType(), False),
-                            StructField("quarterOfFinancialYear", IntegerType(), False),
-                            StructField("halfOfFinancialYear", IntegerType(), False)
+                            StructField("financialYear", IntegerType(), True),
+                            StructField("financialYearStartDate", DateType(), True),
+                            StructField("financialYearEndDate", DateType(), True),
+                            StructField("dayOfFinancialYear", IntegerType(), True),
+                            StructField("weekOfFinancialYear", IntegerType(), True),
+                            StructField("monthOfFinancialYear", IntegerType(), True),
+                            StructField("quarterOfFinancialYear", IntegerType(), True),
+                            StructField("halfOfFinancialYear", IntegerType(), True)
                       ])
 
     df = spark.createDataFrame(df.rdd, schema=newSchema)
