@@ -1,0 +1,105 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"value": "adf-swcprod01-daf-preprod-01"
+		},
+		"AzureBlobStorage1_connectionString": {
+			"value": ""
+		},
+		"LS-AzureKeyVault_properties_typeProperties_baseUrl": {
+			"value": "https://kv-daf-preprod-01.vault.azure.net/"
+		},
+		"LS-AzureSqlDatabase_Ctrldb_properties_typeProperties_connectionString_secretName": {
+			"value": "daf-sql-controldb-connectionstring"
+		},
+		"LS_AzureBlobStorage_properties_typeProperties_serviceEndpoint": {
+			"value": "https://sablobdafpreprod01.blob.core.windows.net/"
+		},
+		"LS_AzureBlobStorage_properties_typeProperties_tenant": {
+			"value": "8351bb5c-749d-4ee4-b1c4-71a3971acbe9"
+		},
+		"LS_AzureBlobStorage_properties_typeProperties_servicePrincipalId": {
+			"value": "3012901b-9b8c-4100-a6bf-a1a2ec010def"
+		},
+		"LS_AzureDatalake_properties_typeProperties_url": {
+			"value": "https://sadafpreprod01.dfs.core.windows.net/"
+		},
+		"LS_AzureDatalake_properties_typeProperties_tenant": {
+			"value": "8351bb5c-749d-4ee4-b1c4-71a3971acbe9"
+		},
+		"LS_AzureDatalake_properties_typeProperties_servicePrincipalId": {
+			"value": "3012901b-9b8c-4100-a6bf-a1a2ec010def"
+		},
+		"LS_Oracle_properties_typeProperties_connectionString_secretName": {
+			"value": "@linkedService().kvSecret"
+		},
+		"LS_SQLServer_properties_typeProperties_connectionString_secretName": {
+			"value": "@linkedService().kvSecret"
+		},
+		"BATCH_DAILY_HYDRA_properties_01-Main_parameters_TriggerName": {
+			"value": "BATCH_DAILY_HYDRA"
+		},
+		"BATCH_DAILY_HYDRA_properties_typeProperties_scope": {
+			"value": "/subscriptions/769a62b3-7481-44ae-878e-a466593f50ac/resourceGroups/rg-swcprod01-preprod-daf-01/providers/Microsoft.Storage/storageAccounts/sadafpreprod01"
+		},
+		"BATCH_DAILY_SAPCRM_properties_01-Main_parameters_TriggerName": {
+			"value": "BATCH_DAILY_SAPCRM"
+		},
+		"BATCH_DAILY_SAPCRM_properties_typeProperties_scope": {
+			"value": "/subscriptions/769a62b3-7481-44ae-878e-a466593f50ac/resourceGroups/rg-swcprod01-preprod-daf-01/providers/Microsoft.Storage/storageAccounts/sadafpreprod01"
+		},
+		"BATCH_DAILY_SAPISU_properties_01-Main_parameters_TriggerName": {
+			"value": "BATCH_DAILY_SAPISU"
+		},
+		"BATCH_DAILY_SAPISU_properties_typeProperties_scope": {
+			"value": "/subscriptions/769a62b3-7481-44ae-878e-a466593f50ac/resourceGroups/rg-swcprod01-preprod-daf-01/providers/Microsoft.Storage/storageAccounts/sadafpreprod01"
+		},
+		"DLY1300_properties_01-Main_parameters_TriggerName": {
+			"value": "DLY1300"
+		},
+		"Emrvisaf_properties_01-Main_parameters_TriggerName": {
+			"value": "Emrvisaf"
+		},
+		"mpe_sablob01_properties_privateLinkResourceId": {
+			"value": "/subscriptions/769a62b3-7481-44ae-878e-a466593f50ac/resourceGroups/rg-swcprod01-preprod-daf-01/providers/Microsoft.Storage/storageAccounts/sablobdafpreprod01"
+		},
+		"mpe_sablob01_properties_groupId": {
+			"value": "blob"
+		},
+		"mpe_sablob01_properties_fqdns": {
+			"value": [
+				"sablobdafpreprod01.blob.core.windows.net"
+			]
+		},
+		"mpe_salake01_properties_privateLinkResourceId": {
+			"value": "/subscriptions/769a62b3-7481-44ae-878e-a466593f50ac/resourceGroups/rg-swcprod01-preprod-daf-01/providers/Microsoft.Storage/storageAccounts/sadafpreprod01"
+		},
+		"mpe_salake01_properties_groupId": {
+			"value": "dfs"
+		},
+		"mpe_salake01_properties_fqdns": {
+			"value": [
+				"sadafpreprod01.dfs.core.windows.net"
+			]
+		},
+		"mpe_sqlserver_01_properties_privateLinkResourceId": {
+			"value": "/subscriptions/769a62b3-7481-44ae-878e-a466593f50ac/resourceGroups/rg-swcprod01-preprod-daf-01/providers/Microsoft.Sql/servers/sql-swcprod01-daf-preprod-01"
+		},
+		"mpe_sqlserver_01_properties_groupId": {
+			"value": "sqlServer"
+		},
+		"mpe_sqlserver_01_properties_fqdns": {
+			"value": [
+				"sql-swcprod01-daf-preprod-01.database.windows.net"
+			]
+		},
+		"containerUri": {
+			"value": ""
+		},
+		"containerSasToken": {
+			"value": ""
+		}
+	}
+}
