@@ -284,7 +284,7 @@ df_cleansed = spark.sql(f"SELECT cast(N_PROP as int) AS propertyNumber, \
          left outer join CLEANSED.access_Z309_TMETEREADCONTYP f on a.C_METE_READ_CONS = f.consumptionTypeCode \
          left outer join CLEANSED.access_Z309_TMRSTATUSTYPE g on a.C_METE_READ_STAT = g.meterReadingStatusCode \
          left outer join CLEANSED.access_Z309_TMETERCANTREAD h on coalesce(a.C_METE_CANT_READ,'') = h.cannotReadCode \
-         left outer join CLEANSED.access_Z309_TPDEREADMETH i on a.C_PDE_READ_METH = i.PDEReadingMethodCode \")
+         left outer join CLEANSED.access_Z309_TPDEREADMETH i on a.C_PDE_READ_METH = i.PDEReadingMethodCode")
 
 print(f'Number of rows: {df_cleansed.count()}')   
 
