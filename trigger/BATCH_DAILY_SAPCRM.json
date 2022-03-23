@@ -19,7 +19,7 @@
 		"typeProperties": {
 			"blobPathBeginsWith": "/triggers/blobs/trigger_batch_daily_sapcrm.json",
 			"ignoreEmptyBlobs": true,
-			"scope": "/subscriptions/769a62b3-7481-44ae-878e-a466593f50ac/resourcegroups/rg-swcprod01-preprod-daf-01/providers/Microsoft.Storage/storageAccounts/sadafpreprod01",
+			"scope": "/subscriptions/769a62b3-7481-44ae-878e-a466593f50ac/resourceGroups/rg-swcprod01-preprod-daf-01/providers/Microsoft.Storage/storageAccounts/sadafpreprod01",
 			"events": [
 				"Microsoft.Storage.BlobCreated"
 			]
