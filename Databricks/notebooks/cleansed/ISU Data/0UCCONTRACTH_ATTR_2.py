@@ -178,7 +178,7 @@ DeltaSaveToDeltaTable (
 #Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
 df_cleansed = spark.sql(f"SELECT \
                             case when VERTRAG = 'na' then '' else VERTRAG end as contractId, \
-                            ToValidDate((case when BIS = 'na' then '2099-12-31' else BIS end),'MANDATORY') as validToDate, \
+                            ToValidDate((case when BIS = 'na' then '9999-12-31' else BIS end),'MANDATORY') as validToDate, \
                             ToValidDate(AB) as validFromDate, \
                             ANLAGE as installationId, \
                             CONTRACTHEAD as contractHeadGUID, \

@@ -185,7 +185,7 @@ df_cleansed = spark.sql(f"SELECT \
                                 RELDIR as relationshipDirection, \
                                 RELTYP as relationshipTypeCode, \
                                 BP_TXT.relationshipType as relationshipType, \
-                                ToValidDate((case when DATE_TO = 'na' then '2099-12-31' else DATE_TO end),'MANDATORY') as validToDate, \
+                                ToValidDate((case when DATE_TO = 'na' then '9999-12-31' else DATE_TO end),'MANDATORY') as validToDate, \
                                 ToValidDate(DATE_FROM) as validFromDate, \
                                 COUNTRY as countryShortName, \
                                 POST_CODE1 as postalCode, \
