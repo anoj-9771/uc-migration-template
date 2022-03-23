@@ -137,7 +137,7 @@ def getMeter():
 # COMMAND ----------
 
 #Dummy Record to be added to Meter Dimension
-#     ISUDummy = tuple(['ISU','-1',"2099-12-31","2099-12-31",""] + ['Unknown'] * (len(df.columns) - 5)) #this only works as long as all output columns are string
-#     ACCESSDummy = tuple(['ACCESS','-2',"2099-12-31","2099-12-31",""] + ['Unknown'] * (len(df.columns) -5)) #this only works as long as all output columns are string
+#     ISUDummy = tuple(['ISU','-1',"9999-12-31","9999-12-31",""] + ['Unknown'] * (len(df.columns) - 5)) #this only works as long as all output columns are string
+#     ACCESSDummy = tuple(['ACCESS','-2',"9999-12-31","9999-12-31",""] + ['Unknown'] * (len(df.columns) -5)) #this only works as long as all output columns are string
 #     dummyDimRecDf = spark.createDataFrame([ISUDummy, ACCESSDummy], df.columns)
 #    df.write.saveAsTable('curated.dimMeterTest_new3')
