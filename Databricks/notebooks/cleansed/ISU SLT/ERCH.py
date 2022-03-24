@@ -28,6 +28,11 @@ import json
 
 # COMMAND ----------
 
+# MAGIC %md
+# MAGIC #Load data from Raw Zone to Trusted Zone
+
+# COMMAND ----------
+
 # DBTITLE 1,1. Import libraries/functions
 #1.Import libraries/functions
 from pyspark.sql.functions import mean, min, max, desc, abs, coalesce, when, expr
@@ -134,6 +139,21 @@ print("delta_column: " + delta_column)
 data_load_mode = GeneralGetDataLoadMode(Params[PARAMS_TRUNCATE_TARGET], Params[PARAMS_UPSERT_TARGET], Params[PARAMS_APPEND_TARGET])
 print("data_load_mode: " + data_load_mode)
 
+#Get the start time of the last successful cleansed load execution
+LastSuccessfulExecutionTS = Params["LastSuccessfulExecutionTS"]
+print("LastSuccessfulExecutionTS: " + LastSuccessfulExecutionTS)
+
+#Get current time
+#CurrentTimeStamp = spark.sql("select current_timestamp()").first()[0]
+CurrentTimeStamp = GeneralLocalDateTime()
+CurrentTimeStamp = CurrentTimeStamp.strftime("%Y-%m-%d %H:%M:%S")
+
+#Get business key,track_changes and delta_extract flag
+business_key =  Params[PARAMS_BUSINESS_KEY_COLUMN]
+track_changes =  Params[PARAMS_TRACK_CHANGES]
+is_delta_extract =  Params[PARAMS_DELTA_EXTRACT]
+
+
 # COMMAND ----------
 
 # DBTITLE 1,9. Set raw and cleansed table name
@@ -149,65 +169,14 @@ print(delta_raw_tbl_name)
 
 # COMMAND ----------
 
-#-------------------------------------------------------#
-
-# COMMAND ----------
-
-# DBTITLE 1,NEW PARAMAS
-#Set DeltaSavetoDeltaTable parameters
-source_table = delta_raw_tbl_name
-target_table = target_table
-target_data_lake_zone = ADS_DATALAKE_ZONE_CLEANSED
-target_database = ADS_DATABASE_STAGE
-data_lake_folder = data_lake_folder
-data_load_mode = data_load_mode
-track_changes =  Params[PARAMS_TRACK_CHANGES]
-is_delta_extract =  Params[PARAMS_DELTA_EXTRACT]
-business_key =  'billingDocumentNumber' #Params[PARAMS_BUSINESS_KEY_COLUMN],
-delta_column = delta_column
-start_counter = start_counter
-end_counter = end_counter
-
-source_table = 'raw.isu_ERCH'
-target_table = 'isu_ERCH'
-target_data_lake_zone = 'cleansed'
-target_database = 'cleansed'
-data_lake_folder = 'isudata/stg'
-data_load_mode = 'merge'
-track_changes =  'False'
-is_delta_extract =  'True'
-business_key = 'billingDocumentNumber'
-delta_column = 'DELTA_TS'
-start_counter = '2022-03-02T02:49:1'
-end_counter = '2022-03-06T11:47:04'
-
-print(source_table)
-print(target_table)
-print(target_data_lake_zone)
-print(target_database)
-print(data_lake_folder)
-print(data_load_mode)
-print(track_changes)
-print(is_delta_extract)
-print(business_key)
-print(delta_column)
-print(start_counter)
-print(end_counter)
-
-# COMMAND ----------
-
-# DBTITLE 1,10. (NEW) Load Raw to Dataframe & Do Transformations
-df = spark.sql("WITH latestrecord AS (Select *, ROW_NUMBER() OVER (PARTITION BY BELNR ORDER BY DELTA_TS DESC) AS _RecordVersion FROM raw.isu_erch WHERE DELTA_TS >= '2021-11-18T20:20:00') select \
+# DBTITLE 1,10. Load Raw to Dataframe & Do Transformations
+df = spark.sql(f"WITH stage AS \
+                      (Select *, ROW_NUMBER() OVER (PARTITION BY BELNR ORDER BY _DLRawZoneTimestamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
+                           select \
                                   case when BELNR = 'na' then '' else BELNR end as billingDocumentNumber, \
                                   BUKRS as companyCode, \
-                                  'abc' as companyName, \
+                                  'Sydney Water' as companyName, \
                                   SPARTE as divisonCode, \
-                                  DELTA_TS as _DLRawZoneTimeStamp, \
-                                  DELTA_TS as _DLCleansedZoneTimeStamp, \
-                                  '1' as _RecordCurrent, \
-                                  '0' as _RecordDeleted, \
-                                  '2022-03-06T11:47:04' as _RecordEnd, \
-                                  '2022-03-02T02:49:1' as _RecordStart, \
                                   GPARTNER as businessPartnerGroupNumber, \
                                   VKONT as contractAccountNumber, \
                                   VERTRAG as contractId, \
@@ -293,22 +262,24 @@ df = spark.sql("WITH latestrecord AS (Select *, ROW_NUMBER() OVER (PARTITION BY 
                                   BP_BILL as resultingBillingPeriodIndicator, \
                                   MAINDOCNO as billingDocumentPrimaryInstallationNumber, \
                                   INSTGRTYPE as instalGroupTypeCode, \
-                                  INSTROLE as instalGroupRoleCode  \
-from latestrecord where _RecordVersion = 1 ")
-display (df)
+                                  INSTROLE as instalGroupRoleCode,  \
+                                  cast('1900-01-01' as TimeStamp) as _RecordStart, \
+                                  cast('9999-12-31' as TimeStamp) as _RecordEnd, \
+                                  '0' as _RecordDeleted, \
+                                  '1' as _RecordCurrent, \
+                                  cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
+                        from stage where _RecordVersion = 1 ").cache()
+
+print(f'Number of rows: {df.count()}')
 
 # COMMAND ----------
 
 # DBTITLE 1,11. Save Dataframe to Staged & Cleansed
-DeltaSaveDataFrameToDeltaTable(
-  df, target_table, target_data_lake_zone, target_database, data_lake_folder, data_load_mode, track_changes = False, is_delta_extract = False, business_key = "billingDocumentNumber", AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
+DeltaSaveDataFrameToDeltaTableNew(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
+#clear cache
+df.unpersist()
 
 # COMMAND ----------
 
 # DBTITLE 1,13. Exit Notebook
 dbutils.notebook.exit("1")
-
-# COMMAND ----------
-
-# DBTITLE 1,----- NEW NOTEBOOK FINISHES HERE ----------
-------------------------------------------------------------------
