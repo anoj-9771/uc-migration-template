@@ -139,6 +139,21 @@ print("delta_column: " + delta_column)
 data_load_mode = GeneralGetDataLoadMode(Params[PARAMS_TRUNCATE_TARGET], Params[PARAMS_UPSERT_TARGET], Params[PARAMS_APPEND_TARGET])
 print("data_load_mode: " + data_load_mode)
 
+#Get the start time of the last successful cleansed load execution
+LastSuccessfulExecutionTS = Params["LastSuccessfulExecutionTS"]
+print("LastSuccessfulExecutionTS: " + LastSuccessfulExecutionTS)
+
+#Get current time
+#CurrentTimeStamp = spark.sql("select current_timestamp()").first()[0]
+CurrentTimeStamp = GeneralLocalDateTime()
+CurrentTimeStamp = CurrentTimeStamp.strftime("%Y-%m-%d %H:%M:%S")
+
+#Get business key,track_changes and delta_extract flag
+business_key =  Params[PARAMS_BUSINESS_KEY_COLUMN]
+track_changes =  Params[PARAMS_TRACK_CHANGES]
+is_delta_extract =  Params[PARAMS_DELTA_EXTRACT]
+
+
 # COMMAND ----------
 
 # DBTITLE 1,9. Set raw and cleansed table name
@@ -154,29 +169,10 @@ print(delta_raw_tbl_name)
 
 # COMMAND ----------
 
-# DBTITLE 1,10. Load to Cleanse Delta Table from Raw Delta Table
-#This method uses the source table to load data into target Delta Table
-DeltaSaveToDeltaTable (
-    source_table = delta_raw_tbl_name,
-    target_table = target_table,
-    target_data_lake_zone = ADS_DATALAKE_ZONE_CLEANSED,
-    target_database = ADS_DATABASE_STAGE,
-    data_lake_folder = data_lake_folder,
-    data_load_mode = data_load_mode,
-    track_changes =  Params[PARAMS_TRACK_CHANGES],
-    is_delta_extract =  Params[PARAMS_DELTA_EXTRACT],
-    business_key =  Params[PARAMS_BUSINESS_KEY_COLUMN],
-    delta_column = delta_column,
-    start_counter = start_counter,
-    end_counter = end_counter
-)
-
-# COMMAND ----------
-
-# DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
-#Update/rename Column
-#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
-df_cleansed = spark.sql(f"SELECT  \
+# DBTITLE 1,10. Load Raw to Dataframe & Do Transformations
+df = spark.sql(f"WITH stage AS \
+                      (Select *, ROW_NUMBER() OVER (PARTITION BY BELNR, BELZEILE ORDER BY _DLRawZoneTimestamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
+                           SELECT  \
                                   case when BELNR = 'na' then '' else BELNR end as billingDocumentNumber, \
                                   case when BELZEILE = 'na' then '' else BELZEILE end as billingDocumentLineItemId, \
                                   CSNO as billingSequenceNumber, \
@@ -236,90 +232,21 @@ df_cleansed = spark.sql(f"SELECT  \
                                   OUCONTRACT as individualContractId, \
                                   cast(V_ABRMENGE as dec(17)) as billingQuantityPlaceBeforeDecimalPoint, \
                                   cast(N_ABRMENGE as dec(14,14)) as billingQuantityPlaceAfterDecimalPoint, \
-                                  stg._RecordStart, \
-                                  stg._RecordEnd, \
-                                  stg._RecordDeleted, \
-                                  stg._RecordCurrent \
-                               FROM {ADS_DATABASE_STAGE}.{source_object} stg \
-                                 left outer join {ADS_DATABASE_CLEANSED}.isu_0uc_aklasse_text bc on bc.billingClassCode = stg.AKLASSE"
-                             )
+                                  cast('1900-01-01' as TimeStamp) as _RecordStart, \
+                                  cast('9999-12-31' as TimeStamp) as _RecordEnd, \
+                                  '0' as _RecordDeleted, \
+                                  '1' as _RecordCurrent, \
+                                  cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
+                        from stage where _RecordVersion = 1 ").cache()
 
-print(f'Number of rows: {df_cleansed.count()}')
-
-# COMMAND ----------
-
-newSchema = StructType([
-                            StructField('billingDocumentNumber', StringType(), False),
-                            StructField('billingDocumentLineItemId', StringType(), False),
-                            StructField('billingSequenceNumber', StringType(), True),
-                            StructField('lineItemTypeCode', StringType(), True),
-                            StructField('billingLineItemBudgetBillingIndicator', StringType(), True),
-                            StructField('lineItemDiscountStatisticsIndicator', StringType(), True),
-                            StructField('billingLineItemRelevantPostingIndicator', StringType(), True),
-                            StructField('billedValueStatisticallyRelevantIndicator', StringType(), True),
-                            StructField('billingLineItemStatisticallyRelevantAmount', StringType(), True),
-                            StructField('quantityStatisticsGroupCode', StringType(), True),
-                            StructField('amountStatisticsGroupCode', StringType(), True),
-                            StructField('billingLinePrintRelevantIndicator', StringType(), True),
-                            StructField('billingClassCode', StringType(), True),
-                            StructField('billingClass', StringType(), True),
-                            StructField('industryText', StringType(), True),
-                            StructField('subtransactionForDocumentItem', StringType(), True),
-                            StructField('offsettingTransactionSubtransactionForDocumentItem', StringType(), True),
-                            StructField('presortingBillingLineItems', StringType(), True),
-                            StructField('validFromDate', DateType(), True),
-                            StructField('validToDate', DateType(), True),
-                            StructField('billingLineItemTimeCategoryCode', StringType(), True),
-                            StructField('billingSchemaNumber', StringType(), True),
-                            StructField('billingSchemaStepSequenceNumber', StringType(), True),
-                            StructField('variantProgramNumber', StringType(), True),
-                            StructField('billingMeasurementUnitCode', StringType(), True),
-                            StructField('seasonNumber', StringType(), True),
-                            StructField('timeBasisCode', StringType(), True),
-                            StructField('timeCategoryCode', StringType(), True),
-                            StructField('franchiseFeeTypeCode', StringType(), True),
-                            StructField('franchiseFeeGroupNumber', StringType(), True),
-                            StructField('rateTypeCode', StringType(), True),
-                            StructField('rateId', StringType(), True),
-                            StructField('rateFactGroupNumber', StringType(), True),
-                            StructField('statisticalRate', StringType(), True),
-                            StructField('weightingKeyId', StringType(), True),
-                            StructField('referenceValuesForRepetitionFactor', IntegerType(), True),
-                            StructField('temperatureArea', StringType(), True),
-                            StructField('reversalDynamicPeriodControl1', StringType(), True),
-                            StructField('reversalDynamicPeriodControl2', StringType(), True),
-                            StructField('reversalDynamicPeriodControl3', StringType(), True),
-                            StructField('reversalDynamicPeriodControl4', StringType(), True),
-                            StructField('reversalDynamicPeriodControl5', StringType(), True),
-                            StructField('reverseBackbillingIndicator', StringType(), True),
-                            StructField('allocateBackbillingIndicator', StringType(), True),
-                            StructField('rateStepLogicalNumber', StringType(), True),
-                            StructField('periodEndBillingIndicator', StringType(), True),
-                            StructField('statisticsUpdateGroupCode', StringType(), True),
-                            StructField('billedQuantityStatisticsCode', StringType(), True),
-                            StructField('statisticalAnalysisRateType', StringType(), True),
-                            StructField('periodControlCode', StringType(), True),
-                            StructField('timesliceNumeratorTimePortion', DecimalType(8,4), True),
-                            StructField('timesliceDenominatorTimePortion', DecimalType(8,4), True),
-                            StructField('timesliceTimeCategoryTimePortion', StringType(), True),
-                            StructField('meterReadingActiveIndicator', StringType(), True),
-                            StructField('franchiseContractIndicator', StringType(), True),
-                            StructField('billingPeriodInternalCategoryCode', StringType(), True),
-                            StructField('individualContractId', StringType(), True),
-                            StructField('billingQuantityPlaceBeforeDecimalPoint', DecimalType(17), True),
-                            StructField('billingQuantityPlaceAfterDecimalPoint', DecimalType(14,14), True),
-                            StructField('_RecordStart', DateType(), False),
-                            StructField('_RecordEnd', DateType(), False),
-                            StructField('_RecordDeleted', IntegerType(), False),
-                            StructField('_RecordCurrent', IntegerType(), False),
-                    ])
-
+print(f'Number of rows: {df.count()}')
 
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
-#Save Data frame into Cleansed Delta table (final)
-DeltaSaveDataframeDirect(df_cleansed, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", newSchema, "")
+DeltaSaveDataFrameToDeltaTableNew(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
+#clear cache
+df.unpersist()
 
 # COMMAND ----------
 
