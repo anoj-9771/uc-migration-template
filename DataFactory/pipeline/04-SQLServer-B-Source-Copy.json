@@ -479,12 +479,15 @@
 							"type": "Int64"
 						},
 						"M_TotalNoRows": {
-							"value": "@pipeline().parameters.ValidationDetails.RecordCount",
+							"value": {
+								"value": "@pipeline().parameters.ValidationDetails.RecordCount",
+								"type": "Expression"
+							},
 							"type": "Int64"
 						},
 						"M_Message": {
 							"value": {
-								"value": "null",
+								"value": "Null",
 								"type": "Expression"
 							},
 							"type": "String"
