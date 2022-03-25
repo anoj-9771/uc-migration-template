@@ -1,9 +1,0 @@
-{
-	"name": "adf-swcprod01-daf-preprod-01",
-	"location": "australiaeast",
-	"identity": {
-		"type": "SystemAssigned",
-		"principalId": "7fe390cb-7f0d-4616-91fb-5253851399b7",
-		"tenantId": "8351bb5c-749d-4ee4-b1c4-71a3971acbe9"
-	}
-}
