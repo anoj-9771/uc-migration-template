@@ -141,7 +141,7 @@ def getProperty():
                                 CASE WHEN vd.hydraAreaUnit == 'HAR' THEN cast(vd.hydraCalculatedArea * 10000 as dec(18,6)) \
                                      WHEN vd.hydraAreaUnit == 'M2'  THEN cast(vd.hydraCalculatedArea as dec(18,6)) \
                                                                     ELSE null END AS areaSize, \
-                                vn.parentArchitecturalObjectNumber as parentPropertyNumber, \
+                                coalesce(vn.parentArchitecturalObjectNumber,co.propertyNumber) as parentPropertyNumber, \
                                 pa.inferiorPropertyTypeCode as parentPropertyTypeCode, \
                                 initcap(pa.inferiorPropertyType) as parentPropertyType, \
                                 pa.superiorPropertyTypeCode as parentSuperiorPropertyTypeCode, \
@@ -160,11 +160,11 @@ def getProperty():
                               and vd._RecordCurrent = 1 left outer join \
                              {ADS_DATABASE_CLEANSED}.isu_vibdnode vn on co.architecturalObjectInternalId = vn.architecturalObjectInternalId and vn._RecordDeleted = 0 \
                               and   vn._RecordCurrent = 1 left outer join \
-                             {ADS_DATABASE_CLEANSED}.isu_0uc_connobj_attr_2 pa on vn.parentArchitecturalObjectInternalId = pa.architecturalObjectInternalId  \
+                             {ADS_DATABASE_CLEANSED}.isu_0uc_connobj_attr_2 pa on pa.architecturalObjectId = coalesce(vn.parentArchitecturalObjectNumber,co.propertyNumber) \
                               and   pa._RecordCurrent = 1 and pa._RecordDeleted = 0 left outer join \
                              {ADS_DATABASE_CLEANSED}.isu_dd07t dt on co.lotTypeCode = dt.domainValueSingleUpperLimit and domainName = 'ZCD_DO_ADDR_LOT_TYPE' \
                               and dt._RecordDeleted = 0 and dt._RecordCurrent = 1 left outer join \
-                              systemAreas sa on sa.propertyNumber = vn.parentArchitecturalObjectNumber \
+                              systemAreas sa on sa.propertyNumber = coalesce(vn.parentArchitecturalObjectNumber,co.propertyNumber) \
                          where co._RecordDeleted = 0 \
                          and   co._RecordCurrent = 1 \
                         ")
