@@ -682,6 +682,14 @@
 														"ProjectRunID": {
 															"value": "@pipeline().parameters.ProjectRunID",
 															"type": "Expression"
+														},
+														"RunDate": {
+															"value": "@variables('RunDate')",
+															"type": "Expression"
+														},
+														"RunTime": {
+															"value": "@variables('RunTime')",
+															"type": "Expression"
 														}
 													}
 												}
@@ -6784,8 +6792,7 @@
 									},
 									"linkedServiceName": {
 										"referenceName": "LS-AzureSqlDatabase_Ctrldb",
-										"type": "LinkedServiceReference",
-										"parameters": {}
+										"type": "LinkedServiceReference"
 									}
 								}
 							],
@@ -6851,8 +6858,7 @@
 									},
 									"linkedServiceName": {
 										"referenceName": "LS-AzureSqlDatabase_Ctrldb",
-										"type": "LinkedServiceReference",
-										"parameters": {}
+										"type": "LinkedServiceReference"
 									}
 								},
 								{
@@ -6920,8 +6926,7 @@
 									},
 									"linkedServiceName": {
 										"referenceName": "LS-AzureSqlDatabase_Ctrldb",
-										"type": "LinkedServiceReference",
-										"parameters": {}
+										"type": "LinkedServiceReference"
 									}
 								},
 								{
@@ -7066,17 +7071,11 @@
 									"userProperties": [],
 									"typeProperties": {
 										"dataset": {
-											"referenceName": "SRC_RAW_LANDING_ADLS_CSV",
+											"referenceName": "SRC_BLOB_CSV_NO_QUOTE_CHAR",
 											"type": "DatasetReference",
 											"parameters": {
-												"BlobPath": {
-													"value": "@variables('SourceContainer')",
-													"type": "Expression"
-												},
-												"BlobName": {
-													"value": "@variables('SourceFileName')",
-													"type": "Expression"
-												}
+												"BlobContainer": "@variables('SourceContainer')",
+												"BlobName": "@variables('SourceFileName')"
 											}
 										},
 										"logStorageSettings": {
@@ -7088,7 +7087,7 @@
 										},
 										"enableLogging": true,
 										"storeSettings": {
-											"type": "AzureBlobFSReadSettings",
+											"type": "AzureBlobStorageReadSettings",
 											"recursive": true,
 											"enablePartitionDiscovery": false
 										}
@@ -7128,7 +7127,7 @@
 										"sink": {
 											"type": "DelimitedTextSink",
 											"storeSettings": {
-												"type": "AzureBlobFSWriteSettings"
+												"type": "AzureBlobStorageWriteSettings"
 											},
 											"formatSettings": {
 												"type": "DelimitedTextWriteSettings",
@@ -7156,15 +7155,11 @@
 									],
 									"outputs": [
 										{
-											"referenceName": "SRC_RAW_LANDING_ADLS_CSV",
+											"referenceName": "ARCHIVE_BLOB_CSV",
 											"type": "DatasetReference",
 											"parameters": {
-												"BlobPath": {
-													"value": "@concat(variables('SourceContainer'),'archive/')",
-													"type": "Expression"
-												},
-												"BlobName": {
-													"value": "@variables('SourceFileName')",
+												"BlobContainer": {
+													"value": "@concat(variables('SourceContainer'),'/',pipeline().parameters.RunDate,'/',pipeline().parameters.RunTime)",
 													"type": "Expression"
 												}
 											}
@@ -7273,8 +7268,7 @@
 									},
 									"linkedServiceName": {
 										"referenceName": "LS-AzureSqlDatabase_Ctrldb",
-										"type": "LinkedServiceReference",
-										"parameters": {}
+										"type": "LinkedServiceReference"
 									}
 								}
 							]
@@ -7302,6 +7296,12 @@
 						"type": "string"
 					},
 					"TargetBLOBName": {
+						"type": "string"
+					},
+					"RunDate": {
+						"type": "string"
+					},
+					"RunTime": {
 						"type": "string"
 					}
 				},
@@ -7331,7 +7331,7 @@
 				"[concat(variables('factoryId'), '/linkedServices/LS-AzureSqlDatabase_Ctrldb')]",
 				"[concat(variables('factoryId'), '/datasets/DST_RAW_ADLS_CSV')]",
 				"[concat(variables('factoryId'), '/pipelines/04-DL-Load-Raw-to-Delta-Table')]",
-				"[concat(variables('factoryId'), '/datasets/SRC_RAW_LANDING_ADLS_CSV')]",
+				"[concat(variables('factoryId'), '/datasets/ARCHIVE_BLOB_CSV')]",
 				"[concat(variables('factoryId'), '/linkedServices/LS_AzureDatalake')]"
 			]
 		},
@@ -8650,7 +8650,7 @@
 									"typeProperties": {
 										"variableName": "WatermarkValue",
 										"value": {
-											"value": "'2000-01-01 00:00:01'",
+											"value": "@getFutureTime(0, 'Day', 'yyyyMMddhhmmss')",
 											"type": "Expression"
 										}
 									}
@@ -8737,7 +8737,7 @@
 									"typeProperties": {
 										"variableName": "SQLCommand",
 										"value": {
-											"value": "@replace(pipeline().parameters.TaskDetails.Command, '<<ENDDATE>>', variables('WatermarkValue'))",
+											"value": "@replace(pipeline().parameters.TaskDetails.Command, '<<ENDDATE>>', replace(replace(replace(variables('WatermarkValue'), '-', ''), ':', ''), ' ', ''))",
 											"type": "Expression"
 										}
 									}
@@ -8750,7 +8750,7 @@
 									"typeProperties": {
 										"variableName": "WatermarkValue",
 										"value": {
-											"value": "@replace(activity('Get-Table-Values').output.firstRow.ReturnValue, '\\', ' ')",
+											"value": "@string(activity('Get-Table-Values').output.firstRow.ReturnValue)",
 											"type": "Expression"
 										}
 									}
@@ -10422,6 +10422,15 @@
 						"typeProperties": {
 							"source": {
 								"type": "SqlServerSource",
+								"additionalColumns": [
+									{
+										"name": "_DLRawZoneTimestamp",
+										"value": {
+											"value": "@formatDateTime(convertFromUtc(utcnow(),'AUS Eastern Standard Time'),'yyyy-MM-dd HH:mm:ss')",
+											"type": "Expression"
+										}
+									}
+								],
 								"sqlReaderQuery": {
 									"value": "@pipeline().parameters.SQLCommand",
 									"type": "Expression"
@@ -10464,7 +10473,7 @@
 								"type": "DatasetReference",
 								"parameters": {
 									"kvSecret": {
-										"value": "daf-sql-slt-test-connectionstring",
+										"value": "@pipeline().parameters.TaskDetails.SourceServer",
 										"type": "Expression"
 									},
 									"tableName": "erch",
@@ -10686,6 +10695,136 @@
 								}
 							}
 						}
+					},
+					{
+						"name": "Copy-TriggerFile-DataLake",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "SP-Record-Manifest_copy1",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "JsonSource",
+								"additionalColumns": [
+									{
+										"name": "BatchExecutionId",
+										"value": {
+											"value": "@string(pipeline().parameters.BatchExecutionLogID)",
+											"type": "Expression"
+										}
+									},
+									{
+										"name": "TaskExecutionLogId",
+										"value": {
+											"value": "@string(pipeline().parameters.TaskExecutionLogID)",
+											"type": "Expression"
+										}
+									},
+									{
+										"name": "RawZonePipelineRunID",
+										"value": {
+											"value": "@pipeline().parameters.ProjectRunID",
+											"type": "Expression"
+										}
+									},
+									{
+										"name": "WatermarkValue",
+										"value": {
+											"value": "@pipeline().parameters.WatermarkColumn",
+											"type": "Expression"
+										}
+									}
+								],
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": true,
+									"enablePartitionDiscovery": false
+								},
+								"formatSettings": {
+									"type": "JsonReadSettings"
+								}
+							},
+							"sink": {
+								"type": "JsonSink",
+								"storeSettings": {
+									"type": "AzureBlobFSWriteSettings"
+								},
+								"formatSettings": {
+									"type": "JsonWriteSettings"
+								}
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"mappings": [
+									{
+										"source": {
+											"path": "$['BatchExecutionId']"
+										},
+										"sink": {
+											"path": "BatchExecutionId"
+										}
+									},
+									{
+										"source": {
+											"path": "$['TaskExecutionLogId']"
+										},
+										"sink": {
+											"path": "TaskExecutionLogId"
+										}
+									},
+									{
+										"source": {
+											"path": "$['RawZonePipelineRunID']"
+										},
+										"sink": {
+											"path": "RawZonePipelineRunID"
+										}
+									},
+									{
+										"source": {
+											"path": "$['WatermarkValue']"
+										},
+										"sink": {
+											"path": "WatermarkValue"
+										}
+									}
+								]
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "RAW_ADLS_JSON_v2_NOCOMP",
+								"type": "DatasetReference",
+								"parameters": {
+									"BlobPath": "triggers",
+									"BlobName": "template.json"
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "RAW_ADLS_JSON_v2_NOCOMP",
+								"type": "DatasetReference",
+								"parameters": {
+									"BlobPath": "triggers",
+									"BlobName": "trigger_batch_daily_sapslt.json"
+								}
+							}
+						]
 					}
 				],
 				"policy": {
@@ -10742,6 +10881,7 @@
 				"[concat(variables('factoryId'), '/datasets/DS_RAW_ADLS_DELTALAKE')]",
 				"[concat(variables('factoryId'), '/linkedServices/LS-AzureSqlDatabase_Ctrldb')]",
 				"[concat(variables('factoryId'), '/pipelines/recon-record-validation')]",
+				"[concat(variables('factoryId'), '/datasets/RAW_ADLS_JSON_v2_NOCOMP')]",
 				"[concat(variables('factoryId'), '/linkedServices/LS_AzureDatalake')]"
 			]
 		},
@@ -11803,8 +11943,7 @@
 						},
 						"linkedServiceName": {
 							"referenceName": "LS-AzureSqlDatabase_Ctrldb",
-							"type": "LinkedServiceReference",
-							"parameters": {}
+							"type": "LinkedServiceReference"
 						}
 					},
 					{
@@ -11872,8 +12011,7 @@
 						},
 						"linkedServiceName": {
 							"referenceName": "LS-AzureSqlDatabase_Ctrldb",
-							"type": "LinkedServiceReference",
-							"parameters": {}
+							"type": "LinkedServiceReference"
 						}
 					},
 					{
@@ -11986,6 +12124,41 @@
 								}
 							]
 						}
+					},
+					{
+						"name": "Business-Reconciliation",
+						"type": "ExecutePipeline",
+						"dependsOn": [
+							{
+								"activity": "Log Success",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "Business-Reconciliation",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {
+								"BatchLogId": {
+									"value": "@pipeline().parameters.BatchLogId",
+									"type": "Expression"
+								},
+								"TaskExecutionLogId": {
+									"value": "@pipeline().parameters.TaskExecutionLogId",
+									"type": "Expression"
+								},
+								"ProjectRunId": {
+									"value": "@pipeline().parameters.ProjectRunID",
+									"type": "Expression"
+								},
+								"BusinessReconGroup": "Water Consumption Reconciliation"
+							}
+						}
 					}
 				],
 				"policy": {
@@ -12045,6 +12218,7 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/LS-AzureSqlDatabase_Ctrldb')]",
+				"[concat(variables('factoryId'), '/pipelines/Business-Reconciliation')]",
 				"[concat(variables('factoryId'), '/linkedServices/LS-AzureDatabricks_JobCluster')]",
 				"[concat(variables('factoryId'), '/linkedServices/LS-AzureDatabricks_DefinedCluster')]"
 			]
@@ -13020,6 +13194,335 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/Business-Reconciliation')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Get Business Recon Queries",
+						"type": "Lookup",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"sqlReaderStoredProcedureName": "[[CTL].[GetBusinessRecCurated]",
+								"storedProcedureParameters": {
+									"BusinessReconGroup": {
+										"type": "String",
+										"value": {
+											"value": "@pipeline().parameters.BusinessReconGroup",
+											"type": "Expression"
+										}
+									}
+								},
+								"partitionOption": "None"
+							},
+							"dataset": {
+								"referenceName": "AzureSqlDatabase_Ctrldb",
+								"type": "DatasetReference",
+								"parameters": {}
+							},
+							"firstRowOnly": false
+						}
+					},
+					{
+						"name": "ForEach Business Rec",
+						"type": "ForEach",
+						"dependsOn": [
+							{
+								"activity": "Get Business Recon Queries",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@activity('Get Business Recon Queries').output.value",
+								"type": "Expression"
+							},
+							"isSequential": true,
+							"activities": [
+								{
+									"name": "Copy-DeltaLake-RecordMeasure",
+									"type": "Copy",
+									"dependsOn": [
+										{
+											"activity": "Set Bus Rec Query",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "7.00:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "AzureDatabricksDeltaLakeSource",
+											"query": {
+												"value": "@variables('TargetQuery')",
+												"type": "Expression"
+											},
+											"exportSettings": {
+												"type": "AzureDatabricksDeltaLakeExportCommand"
+											}
+										},
+										"sink": {
+											"type": "AzureSqlSink",
+											"preCopyScript": "truncate table ctl.BusinessRecStage",
+											"writeBehavior": "insert",
+											"sqlWriterUseTableLock": false,
+											"disableMetricsCollection": false
+										},
+										"enableStaging": true,
+										"stagingSettings": {
+											"linkedServiceName": {
+												"referenceName": "LS_AzureDatalake",
+												"type": "LinkedServiceReference"
+											},
+											"path": "raw/landing/isu_data",
+											"enableCompression": false
+										},
+										"parallelCopies": 32,
+										"dataIntegrationUnits": 8
+									},
+									"inputs": [
+										{
+											"referenceName": "DS_CURATED_ADLS_DELTALAKE",
+											"type": "DatasetReference",
+											"parameters": {
+												"TableName": "curated.dimdate"
+											}
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "AzureSqlDatabase_Ctrl_db_businessrecstage",
+											"type": "DatasetReference",
+											"parameters": {}
+										}
+									]
+								},
+								{
+									"name": "Set Bus Rec Query",
+									"type": "SetVariable",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"variableName": "TargetQuery",
+										"value": {
+											"value": "@item().TargetQuery",
+											"type": "Expression"
+										}
+									}
+								},
+								{
+									"name": "Lookup_copy_rec",
+									"type": "Lookup",
+									"dependsOn": [
+										{
+											"activity": "Copy-DeltaLake-RecordMeasure",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "7.00:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "AzureSqlSource",
+											"queryTimeout": "02:00:00",
+											"partitionOption": "None"
+										},
+										"dataset": {
+											"referenceName": "AzureSqlDatabase_Ctrl_db_businessrecstage",
+											"type": "DatasetReference",
+											"parameters": {}
+										}
+									}
+								},
+								{
+									"name": "SP-Update-Business-Rec-Curated",
+									"type": "SqlServerStoredProcedure",
+									"dependsOn": [
+										{
+											"activity": "Lookup_copy_rec",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "7.00:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"storedProcedureName": "[[CTL].[UpdateBusinessRecCurated]",
+										"storedProcedureParameters": {
+											"TargetMeasureValue": {
+												"value": {
+													"value": "@activity('Lookup_copy_rec').output.firstRow.TargetMeasure",
+													"type": "Expression"
+												},
+												"type": "Int64"
+											},
+											"BusinessRecId": {
+												"value": {
+													"value": "@item().BusinessRecId",
+													"type": "Expression"
+												},
+												"type": "Int64"
+											},
+											"UpdatedBatchExecutionId": {
+												"value": {
+													"value": "@pipeline().parameters.BatchLogId",
+													"type": "Expression"
+												},
+												"type": "Int64"
+											},
+											"UpdatedTaskExecutionLogId": {
+												"value": {
+													"value": "@pipeline().parameters.TaskExecutionLogId",
+													"type": "Expression"
+												},
+												"type": "Int64"
+											},
+											"CuratedPipelineRunID": {
+												"value": {
+													"value": "@pipeline().RunId",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"UpdatedDateTime": {
+												"value": {
+													"value": "@convertFromUtc(getFutureTime(0,'Day'),'AUS Eastern Standard Time')",
+													"type": "Expression"
+												},
+												"type": "Datetime"
+											}
+										}
+									},
+									"linkedServiceName": {
+										"referenceName": "LS-AzureSqlDatabase_Ctrldb",
+										"type": "LinkedServiceReference"
+									}
+								}
+							]
+						}
+					},
+					{
+						"name": "Delete-Trigger-File",
+						"type": "Delete",
+						"dependsOn": [
+							{
+								"activity": "ForEach Business Rec",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataset": {
+								"referenceName": "RAW_ADLS_JSON_v2_NOCOMP",
+								"type": "DatasetReference",
+								"parameters": {
+									"BlobPath": "triggers",
+									"BlobName": "trigger_batch_daily_sapslt.json"
+								}
+							},
+							"enableLogging": false,
+							"storeSettings": {
+								"type": "AzureBlobFSReadSettings",
+								"recursive": true,
+								"enablePartitionDiscovery": false
+							}
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"parameters": {
+					"BatchLogId": {
+						"type": "int",
+						"defaultValue": 1
+					},
+					"TaskExecutionLogId": {
+						"type": "int",
+						"defaultValue": 2
+					},
+					"ProjectRunId": {
+						"type": "string"
+					},
+					"WatermarkValue": {
+						"type": "string"
+					},
+					"BusinessReconGroup": {
+						"type": "string",
+						"defaultValue": "Water Consumption Reconciliation"
+					},
+					"MeasureName": {
+						"type": "string",
+						"defaultValue": "Billing Document Count"
+					}
+				},
+				"variables": {
+					"TargetQuery": {
+						"type": "String"
+					}
+				},
+				"folder": {
+					"name": "Validation"
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/AzureSqlDatabase_Ctrldb')]",
+				"[concat(variables('factoryId'), '/datasets/RAW_ADLS_JSON_v2_NOCOMP')]",
+				"[concat(variables('factoryId'), '/datasets/DS_CURATED_ADLS_DELTALAKE')]",
+				"[concat(variables('factoryId'), '/datasets/AzureSqlDatabase_Ctrl_db_businessrecstage')]",
+				"[concat(variables('factoryId'), '/linkedServices/LS-AzureSqlDatabase_Ctrldb')]",
+				"[concat(variables('factoryId'), '/linkedServices/LS_AzureDatalake')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/JsonFileSplitTest')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
 			"apiVersion": "2018-06-01",
@@ -13966,6 +14469,27 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/AzureSqlDatabase_Ctrl_db_businessrecstage')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS-AzureSqlDatabase_Ctrldb",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": "CTL",
+					"table": "BusinessRecStage"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS-AzureSqlDatabase_Ctrldb')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/AzureSqlDatabase_Ctrldb')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -14236,6 +14760,32 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/DS_CURATED_ADLS_DELTALAKE')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_DeltaLake",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"TableName": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "AzureDatabricksDeltaLakeDataset",
+				"typeProperties": {
+					"database": "CURATED",
+					"table": "dimdate"
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_DeltaLake')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/DS_RAW_ADLS_DELTALAKE')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -14353,6 +14903,47 @@
 					"compression": {
 						"type": "gzip",
 						"level": "Optimal"
+					}
+				},
+				"schema": {}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_AzureDatalake')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/RAW_ADLS_JSON_v2_NOCOMP')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_AzureDatalake",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"BlobPath": {
+						"type": "string"
+					},
+					"BlobName": {
+						"type": "string"
+					}
+				},
+				"folder": {
+					"name": "Data Lake"
+				},
+				"annotations": [],
+				"type": "Json",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": {
+							"value": "@dataset().BlobName",
+							"type": "Expression"
+						},
+						"folderPath": {
+							"value": "@dataset().BlobPath",
+							"type": "Expression"
+						}
 					}
 				},
 				"schema": {}
@@ -15170,7 +15761,7 @@
 			"properties": {
 				"description": "Triggers Main pipeline to kick off Hydra daily loads on the blob-creation event of 'trigger_batch_daily_hydra.json' in 'triggers' container. This pipeline invocation runs multiple HYDRA data load Projects.",
 				"annotations": [],
-				"runtimeState": "Started",
+				"runtimeState": "Stopped",
 				"pipelines": [
 					{
 						"pipelineReference": {
@@ -15203,7 +15794,7 @@
 			"properties": {
 				"description": "Triggers Main pipeline to kick off SAP CRM daily loads on the blob-creation event of 'trigger_batch_daily_sapcrm.json' in 'triggers' container. This pipeline invocation runs multiple SAPCRM data load Projects.",
 				"annotations": [],
-				"runtimeState": "Started",
+				"runtimeState": "Stopped",
 				"pipelines": [
 					{
 						"pipelineReference": {
@@ -15236,7 +15827,7 @@
 			"properties": {
 				"description": "Triggers Main pipeline to kick off SAP ISU daily loads on the blob-creation event of 'trigger_batch_daily_sapisu.json' in 'triggers' container. This pipeline invocation runs multiple SAPISU data load Projects.",
 				"annotations": [],
-				"runtimeState": "Started",
+				"runtimeState": "Stopped",
 				"pipelines": [
 					{
 						"pipelineReference": {
