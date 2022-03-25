@@ -480,14 +480,14 @@
 						},
 						"M_TotalNoRows": {
 							"value": {
-								"value": "null",
+								"value": "@string(activity('LU-totalSLTManifestRecords').output.runOutput.RecordCountLoaded)",
 								"type": "Expression"
 							},
 							"type": "Int64"
 						},
 						"M_Message": {
 							"value": {
-								"value": "null",
+								"value": "@string(activity('LU-totalSLTManifestRecords').output.runOutput.message)",
 								"type": "Expression"
 							},
 							"type": "String"
