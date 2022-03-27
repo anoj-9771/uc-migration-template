@@ -459,7 +459,7 @@
 						},
 						"M_DeltaRecordCount": {
 							"value": {
-								"value": "@variables('RecordsWritten')",
+								"value": "@activity('Copy-Source-DataLake').output.rowsCopied",
 								"type": "Expression"
 							},
 							"type": "Int64"
