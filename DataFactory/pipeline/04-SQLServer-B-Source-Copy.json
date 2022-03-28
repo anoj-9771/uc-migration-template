@@ -38,15 +38,7 @@
 							"type": "Expression"
 						},
 						"queryTimeout": "02:00:00",
-						"partitionOption": "DynamicRange",
-						"partitionSettings": {
-							"partitionColumnName": {
-								"value": "@{pipeline().parameters.TaskDetails.PartitionColumn}",
-								"type": "Expression"
-							},
-							"partitionUpperBound": "",
-							"partitionLowerBound": ""
-						}
+						"partitionOption": "None"
 					},
 					"sink": {
 						"type": "AzureDatabricksDeltaLakeSink",
