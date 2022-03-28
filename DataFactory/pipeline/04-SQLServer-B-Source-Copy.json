@@ -60,10 +60,7 @@
 							"referenceName": "LS_AzureDatalake",
 							"type": "LinkedServiceReference"
 						},
-						"path": {
-							"value": "@concat('raw/landing/isu_data/', pipeline().parameters.TaskDetails.TargetName)",
-							"type": "Expression"
-						},
+						"path": "raw/landing/isu_data/isu_ERCH",
 						"enableCompression": false
 					},
 					"parallelCopies": 32,
