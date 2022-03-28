@@ -10863,10 +10863,7 @@
 									"type": "Int64"
 								},
 								"SourceFileDateStamp": {
-									"value": {
-										"value": "null",
-										"type": "Expression"
-									},
+									"value": null,
 									"type": "String"
 								},
 								"TaskExecutionLogID": {
@@ -10884,10 +10881,7 @@
 									"type": "Int64"
 								},
 								"M_Message": {
-									"value": {
-										"value": "null",
-										"type": "Expression"
-									},
+									"value": null,
 									"type": "String"
 								}
 							}
