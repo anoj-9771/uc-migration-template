@@ -427,6 +427,71 @@
 						}
 					}
 				]
+			},
+			{
+				"name": "SP-Update-Manifest-Value",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "Copy-Source-DataLake",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[CTL].[UpdateManifestValue]",
+					"storedProcedureParameters": {
+						"BatchExecutionLogID": {
+							"value": {
+								"value": "@pipeline().parameters.BatchExecutionLogID",
+								"type": "Expression"
+							},
+							"type": "Int64"
+						},
+						"M_DeltaRecordCount": {
+							"value": {
+								"value": "@activity('Copy-Source-DataLake').output.rowsCopied",
+								"type": "Expression"
+							},
+							"type": "Int64"
+						},
+						"SourceFileDateStamp": {
+							"value": null,
+							"type": "String"
+						},
+						"TaskExecutionLogID": {
+							"value": {
+								"value": "@pipeline().parameters.TaskExecutionLogID",
+								"type": "Expression"
+							},
+							"type": "Int64"
+						},
+						"M_TotalNoRows": {
+							"value": {
+								"value": "@pipeline().parameters.ValidationDetails.RecordCount",
+								"type": "Expression"
+							},
+							"type": "Int64"
+						},
+						"M_Message": {
+							"value": null,
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "LS-AzureSqlDatabase_Ctrldb",
+					"type": "LinkedServiceReference"
+				}
 			}
 		],
 		"parameters": {

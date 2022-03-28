@@ -33,7 +33,7 @@ def getBilledWaterConsumptionAccess():
                               from {ADS_DATABASE_CLEANSED}.access_z309_tmeterreading mr \
                                    inner join {ADS_DATABASE_CLEANSED}.access_z309_tpropmeter pm on pm.propertyNumber = mr.propertyNumber \
                                                                                      and pm.propertyMeterNumber = mr.propertyMeterNumber \
-                                   inner join {ADS_DATABASE_CURATED}.dimMeter dm on dm.meterSerialNumber = pm.meterMakerNumber and dm.sourceSystemCode = "ACCESS" \
+                                   inner join {ADS_DATABASE_CURATED}.dimMeter dm on dm.meterSerialNumber = pm.meterMakerNumber and dm.sourceSystemCode = 'ACCESS' \
                               where mr.meterReadingStatusCode IN ('A','B','P','V') \
                                     and mr.meterReadingDays > 0 \
                                     and not(pm.isCheckMeter) \
@@ -66,3 +66,7 @@ def getBilledWaterConsumptionAccess():
                               )
 
     return billedConsDf
+
+# COMMAND ----------
+
+
