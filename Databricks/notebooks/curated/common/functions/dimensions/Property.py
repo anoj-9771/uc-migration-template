@@ -27,7 +27,6 @@ def getProperty():
                                 first(sectionNumber) as sectionNumber \
                         from {ADS_DATABASE_CLEANSED}.access_z309_tlot \
                         where _RecordCurrent = 1 \
-                        and propertyNumber <> 4174119 \
                         group by propertyNumber \
                         union all \
                         select propertyNumber, \
