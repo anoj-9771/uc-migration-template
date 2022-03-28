@@ -199,14 +199,6 @@ def makeDate(): #renamed because date() gets overloaded elsewhere
              AddSK=True
             )
 
-#Call Property function to load DimProperty
-def makeProperty(): #renamed because property is a keyword
-    TemplateEtl(df=getProperty(), 
-             entity="dimProperty", 
-             businessKey="sourceSystemCode,propertyNumber",
-             AddSK=True
-            )
-
 #Call Meter function to load DimMeter
 def meter():
     TemplateEtl(df=getMeter(), 
@@ -235,11 +227,19 @@ def stormWaterNetwork():
 def waterNetwork():
     TemplateEtl(df=getWaterNetwork(), 
              entity="dimWaterNetwork", 
-             businessKey="reservoirZone,pressureArea",
+             businessKey="supplyZone,pressureArea",
              AddSK=True
             )
 
-# Add New Dim in alphabetical order
+# Add New Dim in alphabetical order Except for makeProperty. It MUST run after the network tables have been created
+#Call Property function to load DimProperty
+def makeProperty(): #renamed because property is a keyword
+    TemplateEtl(df=getProperty(), 
+             entity="dimProperty", 
+             businessKey="sourceSystemCode,propertyNumber",
+             AddSK=True
+            )
+
 # def Dim2_Example():
 #   TemplateEtl(df=GetDim2Example(), 
 #              entity="Dim2Example",
