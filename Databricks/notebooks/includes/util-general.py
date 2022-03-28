@@ -354,8 +354,10 @@ def GeneralToValidDateTime(dateIn, colType ="Optional", fmt = "" ):
     try:
         dateOut = parser.parse(dateStr)
         
-        if dateOut >= datetime.strptime(highDate, "%Y%m%d%H%M%S"):
+        if dateOut > datetime.strptime(highDate, "%Y%m%d%H%M%S"):
             return datetime.strptime(highNullDate, "%Y%m%d%H%M%S")
+        elif dateOut < datetime.strptime(lowDate, "%Y%m%d%H%M%S"):
+            return datetime.strptime(lowDate, "%Y%m%d%H%M%S")
         else:
             return dateOut
     except:
@@ -379,3 +381,7 @@ spark.udf.register("ToValidDateTime", GeneralToValidDateTime,TimestampType())
 ToValidDate_udf = udf(GeneralToValidDateTime, DateType())
 #DateTimeCol = df.ToValidDateTime_udf(df["StartDateTime"]))
 ToValidDateTime_udf = udf(GeneralToValidDateTime, TimestampType())
+
+# COMMAND ----------
+
+
