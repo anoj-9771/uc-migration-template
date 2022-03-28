@@ -85,10 +85,7 @@
 						"referenceName": "DS_RAW_ADLS_DELTALAKE",
 						"type": "DatasetReference",
 						"parameters": {
-							"TableName": {
-								"value": "@pipeline().parameters.TaskDetails.TargetName",
-								"type": "Expression"
-							}
+							"TableName": "isu_ERCH"
 						}
 					}
 				]
