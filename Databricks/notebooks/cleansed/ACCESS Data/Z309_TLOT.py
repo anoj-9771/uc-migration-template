@@ -207,13 +207,12 @@ df_cleansed = spark.sql(f"SELECT \
         FROM {ADS_DATABASE_STAGE}.{source_object} l left outer join \
                 cleansed.access_z309_TPLANTYPE pt on l.C_PLAN_TYPE = pt.planTypeCode left outer join \
                 cleansed.access_z309_TPORTIONLOTYPE plt on l.C_PORT_LOT_TYPE = plt.lotTypeCode \
+        WHERE propertyNumber <> 4174119  
         ")
-
+#-----------------------------------------------------------------------------------------
+# Note: property 4174119 is a strata garage and should only exist on the strat units table
+#-----------------------------------------------------------------------------------------                        
 print(f'Number of rows: {df_cleansed.count()}')
-
-# COMMAND ----------
-
-display(df_cleansed)
 
 # COMMAND ----------
 

@@ -19,7 +19,8 @@ def getMeter():
                                               coalesce(meterMakerNumber,'') as meterSerialNumber, \
                                               null as materialNumber, \
                                               case when meterClass = 'Standpipe' then 'Customer Standpipe' else 'Water Meter' end as usageMeterType, \
-                                              meterSize, \
+                                              {meterSize.split()[0]} as meterSize, \
+                                              {meterSize.split()[1]} as meterSizeUnit, \
                                               case when waterMeterType = 'Potable' then 'Drinking Water' \
                                                    when waterMeterType = 'Recycled' then 'Recycled Water' else waterMeterType end as waterType, \
                                               null as meterCategoryCode, \
@@ -55,7 +56,8 @@ def getMeter():
                                       equipmentNumber as meterNumber, \
                                       deviceNumber as meterSerialNumber, \
                                       materialNumber, \
-                                      trim(LEADING '0' FROM deviceSize)||' mm' as meterSize, \
+                                      trim(LEADING '0' FROM deviceSize) as meterSize, \
+                                      'mm' as meterSizeUnit, \
                                       assetManufacturerName as manufacturerName, \
                                       manufacturerSerialNumber, \
                                       manufacturerModelNumber, \
@@ -73,7 +75,7 @@ def getMeter():
     isu0ucDevCatAttrDf  = spark.sql(f"select distinct a.materialNumber, \
                                         case when functionClassCode = '9000' then 'Customer Standpipe' else 'Water Meter' end as usageMeterType, \
                                         case when functionClassCode = '1000' then 'Drinking Water' \
-                                             when functionClassCode = '2000' then 'Recycled Water' else null end as waterType, \
+                                             when functionClassCode = '2000' then 'Recycled Water' else 'Drinking Water' end as waterType, \
                                         constructionClassCode as meterCategoryCode, \
                                         constructionClass as meterCategory, \
                                         deviceCategoryName as meterReadingType, \
@@ -88,13 +90,13 @@ def getMeter():
     
     #3.JOIN TABLES
     df = isu0ucDeviceAttrDf.join(isu0ucDevCatAttrDf, isu0ucDeviceAttrDf.materialNumber == isu0ucDevCatAttrDf.materialNumber, 
-                                  how="leftouter") \
+                                  how="inner") \
                             .drop(isu0ucDevCatAttrDf.materialNumber)
     print(f'{df.count():,} rows after merge 1')
     #display(df)
         
 #     #re-order columns
-    df = df.select('sourceSystemCode','meterNumber','meterSerialNumber','materialNumber','usageMeterType','meterSize','waterType','meterCategoryCode','meterCategory',
+    df = df.select('sourceSystemCode','meterNumber','meterSerialNumber','materialNumber','usageMeterType','meterSize','meterSizeUnit','waterType','meterCategoryCode','meterCategory',
                     'meterReadingType','meterDescription','meterFittedDate','meterRemovedDate','manufacturerName','manufacturerSerialNumber','manufacturerModelNumber','inspectionRelevanceFlag')
     
     #4. UNION
@@ -115,6 +117,7 @@ def getMeter():
                             StructField('materialNumber', StringType(), True),
                             StructField('usageMeterType', StringType(), True),
                             StructField('meterSize', StringType(), True),
+                            StructField('meterSizeUnit', StringType(), True),
                             StructField('waterType', StringType(), True),
                             StructField('meterCategoryCode', StringType(), True),
                             StructField('meterCategory', StringType(), True),
