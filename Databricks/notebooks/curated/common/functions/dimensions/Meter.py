@@ -19,8 +19,8 @@ def getMeter():
                                               coalesce(meterMakerNumber,'') as meterSerialNumber, \
                                               null as materialNumber, \
                                               case when meterClass = 'Standpipe' then 'Customer Standpipe' else 'Water Meter' end as usageMeterType, \
-                                              {meterSize.split()[0]} as meterSize, \
-                                              {meterSize.split()[1]} as meterSizeUnit, \
+                                              SUBSTR(meterSize, 1, INSTR(meterSize, ' ')-1) as meterSize, \
+                                              SUBSTR(meterSize, INSTR(meterSize, ' ')+1) as meterSizeUnit, \
                                               case when waterMeterType = 'Potable' then 'Drinking Water' \
                                                    when waterMeterType = 'Recycled' then 'Recycled Water' else waterMeterType end as waterType, \
                                               null as meterCategoryCode, \

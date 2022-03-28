@@ -100,7 +100,7 @@ def getProperty():
     systemAreaDf = spark.sql(f" \
                             select propertyNumber, first(wn.dimWaterNetworkSK) as potableSK, first(wnr.dimWaterNetworkSK) as recycledSK, first(dimSewerNetworkSK) as sewerNetworkSK, first(dimStormWaterNetworkSK) as stormWaterNetworkSK \
                             from {ADS_DATABASE_CLEANSED}.hydra_TLotParcel lp left outer join curated.dimWaterNetwork wn on lp.waterPressureZone = wn.pressureArea and wn._RecordCurrent = 1 \
-                                  left outer join {ADS_DATABASE_CURATED}.dimWaterNetwork wnr on lp.recycledSupplyZone = wnr.reservoirZone and wnr._RecordCurrent = 1 \
+                                  left outer join {ADS_DATABASE_CURATED}.dimWaterNetwork wnr on lp.recycledSupplyZone = wnr.supplyZone and wnr._RecordCurrent = 1 \
                                   left outer join {ADS_DATABASE_CURATED}.dimSewerNetwork snw on lp.sewerScamp = snw.SCAMP and snw._RecordCurrent = 1 \
                                   left outer join {ADS_DATABASE_CURATED}.dimStormWaterNetwork sw on lp.stormWaterCatchment = sw.stormWaterCatchment and sw._RecordCurrent = 1\
                             where propertyNumber is not null \
@@ -182,7 +182,8 @@ def getProperty():
                              {ADS_DATABASE_CLEANSED}.isu_dd07t dt on co.lotTypeCode = dt.domainValueSingleUpperLimit and domainName = 'ZCD_DO_ADDR_LOT_TYPE' \
                               and dt._RecordDeleted = 0 and dt._RecordCurrent = 1 left outer join \
                               systemAreas sa on sa.propertyNumber = coalesce(vn.parentArchitecturalObjectNumber,co.propertyNumber) \
-                         where co._RecordDeleted = 0 \
+                         where co.propertyNumber <> '' \
+                         and   co._RecordDeleted = 0 \
                          and   co._RecordCurrent = 1 \
                         ")
     
