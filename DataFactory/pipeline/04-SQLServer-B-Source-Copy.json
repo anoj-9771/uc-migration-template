@@ -38,7 +38,15 @@
 							"type": "Expression"
 						},
 						"queryTimeout": "02:00:00",
-						"partitionOption": "None"
+						"partitionOption": "DynamicRange",
+						"partitionSettings": {
+							"partitionColumnName": {
+								"value": "@{pipeline().parameters.TaskDetails.PartitionColumn}",
+								"type": "Expression"
+							},
+							"partitionUpperBound": "",
+							"partitionLowerBound": ""
+						}
 					},
 					"sink": {
 						"type": "AzureDatabricksDeltaLakeSink",
@@ -52,7 +60,10 @@
 							"referenceName": "LS_AzureDatalake",
 							"type": "LinkedServiceReference"
 						},
-						"path": "raw/landing/isu_data/isu_ERCH",
+						"path": {
+							"value": "@concat('raw/landing/isu_data/', pipeline().parameters.TaskDetails.TargetName)",
+							"type": "Expression"
+						},
 						"enableCompression": false
 					},
 					"parallelCopies": 32,
@@ -77,7 +88,10 @@
 						"referenceName": "DS_RAW_ADLS_DELTALAKE",
 						"type": "DatasetReference",
 						"parameters": {
-							"TableName": "isu_ERCH"
+							"TableName": {
+								"value": "@pipeline().parameters.TaskDetails.TargetName",
+								"type": "Expression"
+							}
 						}
 					}
 				]
