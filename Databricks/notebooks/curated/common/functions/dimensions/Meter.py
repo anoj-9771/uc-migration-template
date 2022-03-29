@@ -62,9 +62,18 @@ def getMeter():
                                       manufacturerSerialNumber, \
                                       manufacturerModelNumber, \
                                       case when inspectionRelevanceIndicator = 'X' then 'Y' else 'N' end as inspectionRelevanceFlag, \
-                                      null as meterFittedDate, \
-                                      null as meterRemovedDate \
-                                      from {ADS_DATABASE_CLEANSED}.isu_0uc_device_attr a \
+                                      meterfitteddate.meterFittedDate as meterFittedDate, \
+                                      meterremovedddate.meterRemovedDate as meterRemovedDate \
+                                      from cleansed.isu_0uc_device_attr a \
+                                      left outer join \
+                                      (select equipmentNumber as meterNumber,min(installationDate) as meterFittedDate \
+                                       FROM cleansed.isu_0uc_deviceh_attr \
+                                       group by equipmentNumber \
+                                      )meterfitteddate on a.equipmentNumber=meterfitteddate.meterNumber \
+                                      left outer join \
+                                      (select equipmentNumber as meterNumber,deviceRemovalDate as meterRemovedDate \
+                                       FROM cleansed.isu_0uc_deviceh_attr where validToDate = '9999-12-31' \
+                                      )meterremovedddate on a.equipmentNumber=meterremovedddate.meterNumber  \
                                       where a._RecordCurrent = 1 \
                                       and a._RecordDeleted = 0 \
                                       ")
