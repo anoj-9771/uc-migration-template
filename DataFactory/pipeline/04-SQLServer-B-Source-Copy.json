@@ -465,7 +465,7 @@
 							"type": "Int64"
 						},
 						"SourceFileDateStamp": {
-							"value": null,
+							"value": "1",
 							"type": "String"
 						},
 						"TaskExecutionLogID": {
