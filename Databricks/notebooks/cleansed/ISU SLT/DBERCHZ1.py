@@ -237,18 +237,164 @@ df = spark.sql(f"WITH stage AS \
                                   '0' as _RecordDeleted, \
                                   '1' as _RecordCurrent, \
                                   cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
-                        from stage where _RecordVersion = 1 ").cache()
+                         FROM stage stg \
+                                 left outer join {ADS_DATABASE_CLEANSED}.isu_0uc_aklasse_text bc on bc.billingClassCode = stg.AKLASSE \
+                         where stg._RecordVersion = 1 ").cache()
 
 print(f'Number of rows: {df.count()}')
 
 # COMMAND ----------
 
-# DBTITLE 1,11. Save Data frame into Cleansed Delta table (Final)
+# DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
+#Update/rename Column
+#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
+# df_cleansed = spark.sql(f"SELECT  \
+#                                   case when BELNR = 'na' then '' else BELNR end as billingDocumentNumber, \
+#                                   case when BELZEILE = 'na' then '' else BELZEILE end as billingDocumentLineItemId, \
+#                                   CSNO as billingSequenceNumber, \
+#                                   BELZART as lineItemTypeCode, \
+#                                   ABSLKZ as billingLineItemBudgetBillingIndicator, \
+#                                   DIFFKZ as lineItemDiscountStatisticsIndicator, \
+#                                   BUCHREL as billingLineItemRelevantPostingIndicator, \
+#                                   MENGESTREL as billedValueStatisticallyRelevantIndicator, \
+#                                   BETRSTREL as billingLineItemStatisticallyRelevantAmount, \
+#                                   STGRQNT as quantityStatisticsGroupCode, \
+#                                   STGRAMT as amountStatisticsGroupCode, \
+#                                   PRINTREL as billingLinePrintRelevantIndicator, \
+#                                   AKLASSE as billingClassCode, \
+#                                   bc.billingClass as billingClass, \
+#                                   BRANCHE as industryText, \
+#                                   TVORG as subtransactionForDocumentItem, \
+#                                   GEGEN_TVORG as offsettingTransactionSubtransactionForDocumentItem, \
+#                                   LINESORT as presortingBillingLineItems, \
+#                                   ToValidDate(AB) as  validFromDate, \
+#                                   ToValidDate(BIS) as  validToDate, \
+#                                   TIMTYPZA as billingLineItemTimeCategoryCode, \
+#                                   SCHEMANR as billingSchemaNumber, \
+#                                   SNO as billingSchemaStepSequenceNumber, \
+#                                   PROGRAMM as variantProgramNumber, \
+#                                   MASSBILL as billingMeasurementUnitCode, \
+#                                   SAISON as seasonNumber, \
+#                                   TIMBASIS as timeBasisCode, \
+#                                   TIMTYP as timeCategoryCode, \
+#                                   FRAN_TYPE as franchiseFeeTypeCode, \
+#                                   KONZIGR as franchiseFeeGroupNumber, \
+#                                   TARIFTYP as rateTypeCode, \
+#                                   TARIFNR as rateId, \
+#                                   KONDIGR as rateFactGroupNumber, \
+#                                   STTARIF as statisticalRate, \
+#                                   GEWKEY as weightingKeyId, \
+#                                   WDHFAKT as referenceValuesForRepetitionFactor, \
+#                                   TEMP_AREA as temperatureArea, \
+#                                   DYNCANC01 as reversalDynamicPeriodControl1, \
+#                                   DYNCANC02 as reversalDynamicPeriodControl2, \
+#                                   DYNCANC03 as reversalDynamicPeriodControl3, \
+#                                   DYNCANC04 as reversalDynamicPeriodControl4, \
+#                                   DYNCANC05 as reversalDynamicPeriodControl5, \
+#                                   DYNCANC as reverseBackbillingIndicator, \
+#                                   DYNEXEC as allocateBackbillingIndicator, \
+#                                   LRATESTEP as rateStepLogicalNumber, \
+#                                   PEB as periodEndBillingIndicator, \
+#                                   STAFO as statisticsUpdateGroupCode, \
+#                                   ARTMENGE as billedQuantityStatisticsCode, \
+#                                   STATTART as statisticalAnalysisRateType, \
+#                                   TIMECONTRL as periodControlCode, \
+#                                   cast(TCNUMTOR as dec(8,4)) as timesliceNumeratorTimePortion, \
+#                                   cast(TCDENOMTOR as dec(8,4)) as timesliceDenominatorTimePortion, \
+#                                   TIMTYPQUOT as timesliceTimeCategoryTimePortion, \
+#                                   AKTIV as meterReadingActiveIndicator, \
+#                                   KONZVER as franchiseContractIndicator, \
+#                                   PERTYP as billingPeriodInternalCategoryCode, \
+#                                   OUCONTRACT as individualContractId, \
+#                                   cast(V_ABRMENGE as dec(17)) as billingQuantityPlaceBeforeDecimalPoint, \
+#                                   cast(N_ABRMENGE as dec(14,14)) as billingQuantityPlaceAfterDecimalPoint, \
+#                                   stg._RecordStart, \
+#                                   stg._RecordEnd, \
+#                                   stg._RecordDeleted, \
+#                                   stg._RecordCurrent \
+#                                FROM {ADS_DATABASE_STAGE}.{source_object} stg \
+#                                  left outer join {ADS_DATABASE_CLEANSED}.isu_0uc_aklasse_text bc on bc.billingClassCode = stg.AKLASSE"
+#                              )
+
+# print(f'Number of rows: {df_cleansed.count()}')
+
+# COMMAND ----------
+
+# newSchema = StructType([
+#                             StructField('billingDocumentNumber', StringType(), False),
+#                             StructField('billingDocumentLineItemId', StringType(), False),
+#                             StructField('billingSequenceNumber', StringType(), True),
+#                             StructField('lineItemTypeCode', StringType(), True),
+#                             StructField('billingLineItemBudgetBillingIndicator', StringType(), True),
+#                             StructField('lineItemDiscountStatisticsIndicator', StringType(), True),
+#                             StructField('billingLineItemRelevantPostingIndicator', StringType(), True),
+#                             StructField('billedValueStatisticallyRelevantIndicator', StringType(), True),
+#                             StructField('billingLineItemStatisticallyRelevantAmount', StringType(), True),
+#                             StructField('quantityStatisticsGroupCode', StringType(), True),
+#                             StructField('amountStatisticsGroupCode', StringType(), True),
+#                             StructField('billingLinePrintRelevantIndicator', StringType(), True),
+#                             StructField('billingClassCode', StringType(), True),
+#                             StructField('billingClass', StringType(), True),
+#                             StructField('industryText', StringType(), True),
+#                             StructField('subtransactionForDocumentItem', StringType(), True),
+#                             StructField('offsettingTransactionSubtransactionForDocumentItem', StringType(), True),
+#                             StructField('presortingBillingLineItems', StringType(), True),
+#                             StructField('validFromDate', DateType(), True),
+#                             StructField('validToDate', DateType(), True),
+#                             StructField('billingLineItemTimeCategoryCode', StringType(), True),
+#                             StructField('billingSchemaNumber', StringType(), True),
+#                             StructField('billingSchemaStepSequenceNumber', StringType(), True),
+#                             StructField('variantProgramNumber', StringType(), True),
+#                             StructField('billingMeasurementUnitCode', StringType(), True),
+#                             StructField('seasonNumber', StringType(), True),
+#                             StructField('timeBasisCode', StringType(), True),
+#                             StructField('timeCategoryCode', StringType(), True),
+#                             StructField('franchiseFeeTypeCode', StringType(), True),
+#                             StructField('franchiseFeeGroupNumber', StringType(), True),
+#                             StructField('rateTypeCode', StringType(), True),
+#                             StructField('rateId', StringType(), True),
+#                             StructField('rateFactGroupNumber', StringType(), True),
+#                             StructField('statisticalRate', StringType(), True),
+#                             StructField('weightingKeyId', StringType(), True),
+#                             StructField('referenceValuesForRepetitionFactor', IntegerType(), True),
+#                             StructField('temperatureArea', StringType(), True),
+#                             StructField('reversalDynamicPeriodControl1', StringType(), True),
+#                             StructField('reversalDynamicPeriodControl2', StringType(), True),
+#                             StructField('reversalDynamicPeriodControl3', StringType(), True),
+#                             StructField('reversalDynamicPeriodControl4', StringType(), True),
+#                             StructField('reversalDynamicPeriodControl5', StringType(), True),
+#                             StructField('reverseBackbillingIndicator', StringType(), True),
+#                             StructField('allocateBackbillingIndicator', StringType(), True),
+#                             StructField('rateStepLogicalNumber', StringType(), True),
+#                             StructField('periodEndBillingIndicator', StringType(), True),
+#                             StructField('statisticsUpdateGroupCode', StringType(), True),
+#                             StructField('billedQuantityStatisticsCode', StringType(), True),
+#                             StructField('statisticalAnalysisRateType', StringType(), True),
+#                             StructField('periodControlCode', StringType(), True),
+#                             StructField('timesliceNumeratorTimePortion', DecimalType(8,4), True),
+#                             StructField('timesliceDenominatorTimePortion', DecimalType(8,4), True),
+#                             StructField('timesliceTimeCategoryTimePortion', StringType(), True),
+#                             StructField('meterReadingActiveIndicator', StringType(), True),
+#                             StructField('franchiseContractIndicator', StringType(), True),
+#                             StructField('billingPeriodInternalCategoryCode', StringType(), True),
+#                             StructField('individualContractId', StringType(), True),
+#                             StructField('billingQuantityPlaceBeforeDecimalPoint', DecimalType(17), True),
+#                             StructField('billingQuantityPlaceAfterDecimalPoint', DecimalType(14,14), True),
+#                             StructField('_RecordStart', DateType(), False),
+#                             StructField('_RecordEnd', DateType(), False),
+#                             StructField('_RecordDeleted', IntegerType(), False),
+#                             StructField('_RecordCurrent', IntegerType(), False),
+#                     ])
+
+
+# COMMAND ----------
+
+# DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 DeltaSaveDataFrameToDeltaTableNew(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
 #clear cache
 df.unpersist()
 
 # COMMAND ----------
 
-# DBTITLE 1,12. Exit Notebook
+# DBTITLE 1,13. Exit Notebook
 dbutils.notebook.exit("1")

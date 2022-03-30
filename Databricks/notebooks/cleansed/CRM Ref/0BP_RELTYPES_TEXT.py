@@ -177,7 +177,7 @@ df = spark.sql(f"WITH stage AS \
                                 case when RELTYP = 'na' then '' else RELTYP end as relationshipTypeCode, \
                                 TXTLG as relationshipType, \
                                 cast('1900-01-01' as TimeStamp) as _RecordStart, \
-                                cast('1900-01-01' as TimeStamp) as _RecordEnd, \
+                                cast('9999-12-31' as TimeStamp) as _RecordEnd, \
                                 '0' as _RecordDeleted, \
                                 '1' as _RecordCurrent, \
                                 cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
@@ -187,12 +187,40 @@ print(f'Number of rows: {df.count()}')
 
 # COMMAND ----------
 
-# DBTITLE 1,11. Save Data frame into Cleansed Delta table (Final)
+# DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
+#Update/rename Column
+# df_cleansed = spark.sql(f"SELECT \
+# 	case when RELDIR = 'na' then '' else RELDIR end as relationshipDirection, \
+# 	case when RELTYP = 'na' then '' else RELTYP end as relationshipTypeCode, \
+# 	TXTLG as relationshipType, \
+# 	_RecordStart, \
+# 	_RecordEnd, \
+# 	_RecordDeleted, \
+# 	_RecordCurrent \
+# 	FROM {ADS_DATABASE_STAGE}.{source_object}")
+
+# print(f'Number of rows: {df_cleansed.count()}')
+
+# COMMAND ----------
+
+newSchema = StructType([
+	StructField('relationshipDirection',StringType(),False),
+	StructField('relationshipTypeCode',StringType(),False),
+	StructField('relationshipType',StringType(),True),
+	StructField('_RecordStart',TimestampType(),False),
+	StructField('_RecordEnd',TimestampType(),False),
+	StructField('_RecordDeleted',IntegerType(),False),
+	StructField('_RecordCurrent',IntegerType(),False)
+])
+
+# COMMAND ----------
+
+# DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 DeltaSaveDataFrameToDeltaTableNew(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
 #clear cache
 df.unpersist()
 
 # COMMAND ----------
 
-# DBTITLE 1,12. Exit Notebook
+# DBTITLE 1,13. Exit Notebook
 dbutils.notebook.exit("1")
