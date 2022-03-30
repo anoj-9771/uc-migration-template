@@ -209,11 +209,11 @@ df = spark.sql(f"WITH stage AS \
                                     PREISART as priceType, \
                                     cast(V_NETTOBTR_L as dec(17)) as longNetAmountPredecimalPlaces, \
                                     cast(N_NETTOBTR_L as dec(14,14))as longNetAmountDecimalPlaces, \
-                                  cast('1900-01-01' as TimeStamp) as _RecordStart, \
-                                  cast('1900-01-01' as TimeStamp) as _RecordEnd, \
-                                  '0' as _RecordDeleted, \
-                                  '1' as _RecordCurrent, \
-                                  cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
+                                    cast('1900-01-01' as TimeStamp) as _RecordStart, \
+                                    cast('9999-12-31' as TimeStamp) as _RecordEnd, \
+                                    '0' as _RecordDeleted, \
+                                    '1' as _RecordCurrent, \
+                                    cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
                         from stage where _RecordVersion = 1 ").cache()
 
 print(f'Number of rows: {df.count()}')

@@ -180,7 +180,7 @@ df = spark.sql(f"WITH stage AS \
                                   case when AS4LOCAL = 'na' then '' else AS4LOCAL end as activationStatus , \
                                   case when VALPOS = 'na' then '' else VALPOS end as domainValueKey , \
                                   cast('1900-01-01' as TimeStamp) as _RecordStart, \
-                                  cast('1900-01-01' as TimeStamp) as _RecordEnd, \
+                                  cast('9999-12-31' as TimeStamp) as _RecordEnd, \
                                   '0' as _RecordDeleted, \
                                   '1' as _RecordCurrent, \
                                   cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \

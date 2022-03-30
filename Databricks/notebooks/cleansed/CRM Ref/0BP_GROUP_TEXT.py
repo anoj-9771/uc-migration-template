@@ -176,7 +176,7 @@ df = spark.sql(f"WITH stage AS \
                                   case when BU_GROUP = 'na' then '' else BU_GROUP end as businessPartnerGroupCode,\
                                   TXT40 as businessPartnerGroup, \
                                   cast('1900-01-01' as TimeStamp) as _RecordStart, \
-                                  cast('1900-01-01' as TimeStamp) as _RecordEnd, \
+                                  cast('9999-12-31' as TimeStamp) as _RecordEnd, \
                                   '0' as _RecordDeleted, \
                                   '1' as _RecordCurrent, \
                                   cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
