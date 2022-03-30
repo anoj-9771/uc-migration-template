@@ -113,7 +113,7 @@ source_group = GeneralAlignTableName(source_group)
 print("source_group: " + source_group)
 
 #Get Data Lake Folder
-data_lake_folder = source_group + "/stg"
+data_lake_folder = source_group
 print("data_lake_folder: " + data_lake_folder)
 
 #Get and Align Source Table Name (replace '[-@ ,;{}()]' character by '_')
@@ -139,6 +139,21 @@ print("delta_column: " + delta_column)
 data_load_mode = GeneralGetDataLoadMode(Params[PARAMS_TRUNCATE_TARGET], Params[PARAMS_UPSERT_TARGET], Params[PARAMS_APPEND_TARGET])
 print("data_load_mode: " + data_load_mode)
 
+#Get the start time of the last successful cleansed load execution
+LastSuccessfulExecutionTS = Params["LastSuccessfulExecutionTS"]
+print("LastSuccessfulExecutionTS: " + LastSuccessfulExecutionTS)
+
+#Get current time
+#CurrentTimeStamp = spark.sql("select current_timestamp()").first()[0]
+CurrentTimeStamp = GeneralLocalDateTime()
+CurrentTimeStamp = CurrentTimeStamp.strftime("%Y-%m-%d %H:%M:%S")
+
+#Get business key,track_changes and delta_extract flag
+business_key =  Params[PARAMS_BUSINESS_KEY_COLUMN]
+track_changes =  Params[PARAMS_TRACK_CHANGES]
+is_delta_extract =  Params[PARAMS_DELTA_EXTRACT]
+
+
 # COMMAND ----------
 
 # DBTITLE 1,9. Set raw and cleansed table name
@@ -154,29 +169,11 @@ print(delta_raw_tbl_name)
 
 # COMMAND ----------
 
-# DBTITLE 1,10. Load to Cleanse Delta Table from Raw Delta Table
-#This method uses the source table to load data into target Delta Table
-DeltaSaveToDeltaTable (
-    source_table = delta_raw_tbl_name,
-    target_table = target_table,
-    target_data_lake_zone = ADS_DATALAKE_ZONE_CLEANSED,
-    target_database = ADS_DATABASE_STAGE,
-    data_lake_folder = data_lake_folder,
-    data_load_mode = data_load_mode,
-    track_changes =  Params[PARAMS_TRACK_CHANGES],
-    is_delta_extract =  Params[PARAMS_DELTA_EXTRACT],
-    business_key =  Params[PARAMS_BUSINESS_KEY_COLUMN],
-    delta_column = delta_column,
-    start_counter = start_counter,
-    end_counter = end_counter
-)
-
-# COMMAND ----------
-
-# DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
-#Update/rename Column
-#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
-df_cleansed = spark.sql(f"SELECT \
+# DBTITLE 1,10. Load Raw to Dataframe & Do Transformations
+df = spark.sql(f"WITH stage AS \
+                      (Select *, ROW_NUMBER() OVER (PARTITION BY RELNR,PARTNER1,PARTNER2,RELDIR,RELTYP,DATE_TO ORDER BY _DLRawZoneTimestamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} \
+                                      WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
+                           SELECT \
                                 case when RELNR = 'na' then '' else RELNR end as businessPartnerRelationshipNumber, \
                                 case when PARTNER1 = 'na' then '' else PARTNER1 end as businessPartnerNumber1, \
                                 case when PARTNER2 = 'na' then '' else PARTNER2 end as businessPartnerNumber2, \
@@ -206,60 +203,109 @@ df_cleansed = spark.sql(f"SELECT \
                                 LINE5 as addressLine5, \
                                 LINE6 as addressLine6, \
                                 FLG_DELETED as deletedIndicator, \
-                                BP._RecordStart, \
-                                BP._RecordEnd, \
-                                BP._RecordDeleted, \
-                                BP._RecordCurrent \
-                          FROM {ADS_DATABASE_STAGE}.{source_object} BP \
+                                cast('1900-01-01' as TimeStamp) as _RecordStart, \
+                                cast('9999-12-31' as TimeStamp) as _RecordEnd, \
+                                '0' as _RecordDeleted, \
+                                '1' as _RecordCurrent, \
+                                cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
+                         FROM stage BP \
                           LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.crm_0BP_RELTYPES_TEXT BP_TXT \
                                 ON BP.RELDIR = BP_TXT.relationshipDirection AND BP.RELTYP =BP_TXT.relationshipTypeCode \
-                                AND BP_TXT._RecordDeleted = 0 AND BP_TXT._RecordCurrent = 1")
+                                AND BP_TXT._RecordDeleted = 0 AND BP_TXT._RecordCurrent = 1 \
+                           where BP._RecordVersion = 1 ").cache()
 
-print(f'Number of rows: {df_cleansed.count()}')
+print(f'Number of rows: {df.count()}')
 
 # COMMAND ----------
 
-newSchema = StructType([
-	StructField('businessPartnerRelationshipNumber',StringType(),False),
-	StructField('businessPartnerNumber1',StringType(),False),
-	StructField('businessPartnerNumber2',StringType(),False),
-	StructField('businessPartnerGUID1',StringType(),True),
-	StructField('businessPartnerGUID2',StringType(),True),
-	StructField('relationshipDirection',StringType(),True),
-	StructField('relationshipTypeCode',StringType(),True),
-	StructField('relationshipType',StringType(),True),
-	StructField('validToDate',DateType(),False),
-	StructField('validFromDate',DateType(),True),
-	StructField('countryShortName',StringType(),True),
-	StructField('postalCode',StringType(),True),
-	StructField('cityName',StringType(),True),
-	StructField('streetName',StringType(),True),
-	StructField('houseNumber',StringType(),True),
-	StructField('phoneNumber',StringType(),True),
-	StructField('emailAddress',StringType(),True),
-	StructField('capitalInterestPercentage',DecimalType(13,2),True),
-	StructField('capitalInterestAmount',DecimalType(13,2),True),
-	StructField('shortFormattedAddress',StringType(),True),
-	StructField('shortFormattedAddress2',StringType(),True),
-	StructField('addressLine0',StringType(),True),
-	StructField('addressLine1',StringType(),True),
-	StructField('addressLine2',StringType(),True),
-	StructField('addressLine3',StringType(),True),
-	StructField('addressLine4',StringType(),True),
-	StructField('addressLine5',StringType(),True),
-	StructField('addressLine6',StringType(),True),
-	StructField('deletedIndicator',StringType(),True),
-	StructField('_RecordStart',TimestampType(),False),
-	StructField('_RecordEnd',TimestampType(),False),
-	StructField('_RecordDeleted',IntegerType(),False),
-	StructField('_RecordCurrent',IntegerType(),False)
-])
+# DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
+#Update/rename Column
+#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
+# df_cleansed = spark.sql(f"SELECT \
+#                                 case when RELNR = 'na' then '' else RELNR end as businessPartnerRelationshipNumber, \
+#                                 case when PARTNER1 = 'na' then '' else PARTNER1 end as businessPartnerNumber1, \
+#                                 case when PARTNER2 = 'na' then '' else PARTNER2 end as businessPartnerNumber2, \
+#                                 PARTNER1_GUID as businessPartnerGUID1, \
+#                                 PARTNER2_GUID as businessPartnerGUID2, \
+#                                 RELDIR as relationshipDirection, \
+#                                 RELTYP as relationshipTypeCode, \
+#                                 BP_TXT.relationshipType as relationshipType, \
+#                                 ToValidDate(DATE_TO) as validToDate, \
+#                                 ToValidDate(DATE_FROM) as validFromDate, \
+#                                 COUNTRY as countryShortName, \
+#                                 POST_CODE1 as postalCode, \
+#                                 CITY1 as cityName, \
+#                                 STREET as streetName, \
+#                                 HOUSE_NUM1 as houseNumber, \
+#                                 TEL_NUMBER as phoneNumber, \
+#                                 SMTP_ADDR as emailAddress, \
+#                                 cast(CMPY_PART_PER as dec(13,2)) as capitalInterestPercentage, \
+#                                 cast(CMPY_PART_AMO as dec(13,2)) as capitalInterestAmount, \
+#                                 ADDR_SHORT as shortFormattedAddress, \
+#                                 ADDR_SHORT_S as shortFormattedAddress2, \
+#                                 LINE0 as addressLine0, \
+#                                 LINE1 as addressLine1, \
+#                                 LINE2 as addressLine2, \
+#                                 LINE3 as addressLine3, \
+#                                 LINE4 as addressLine4, \
+#                                 LINE5 as addressLine5, \
+#                                 LINE6 as addressLine6, \
+#                                 FLG_DELETED as deletedIndicator, \
+#                                 BP._RecordStart, \
+#                                 BP._RecordEnd, \
+#                                 BP._RecordDeleted, \
+#                                 BP._RecordCurrent \
+#                           FROM {ADS_DATABASE_STAGE}.{source_object} BP \
+#                           LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.crm_0BP_RELTYPES_TEXT BP_TXT \
+#                                 ON BP.RELDIR = BP_TXT.relationshipDirection AND BP.RELTYP =BP_TXT.relationshipTypeCode \
+#                                 AND BP_TXT._RecordDeleted = 0 AND BP_TXT._RecordCurrent = 1")
+
+# print(f'Number of rows: {df_cleansed.count()}')
+
+# COMMAND ----------
+
+# newSchema = StructType([
+# 	StructField('businessPartnerRelationshipNumber',StringType(),False),
+# 	StructField('businessPartnerNumber1',StringType(),False),
+# 	StructField('businessPartnerNumber2',StringType(),False),
+# 	StructField('businessPartnerGUID1',StringType(),True),
+# 	StructField('businessPartnerGUID2',StringType(),True),
+# 	StructField('relationshipDirection',StringType(),True),
+# 	StructField('relationshipTypeCode',StringType(),True),
+# 	StructField('relationshipType',StringType(),True),
+# 	StructField('validToDate',DateType(),False),
+# 	StructField('validFromDate',DateType(),True),
+# 	StructField('countryShortName',StringType(),True),
+# 	StructField('postalCode',StringType(),True),
+# 	StructField('cityName',StringType(),True),
+# 	StructField('streetName',StringType(),True),
+# 	StructField('houseNumber',StringType(),True),
+# 	StructField('phoneNumber',StringType(),True),
+# 	StructField('emailAddress',StringType(),True),
+# 	StructField('capitalInterestPercentage',DecimalType(13,2),True),
+# 	StructField('capitalInterestAmount',DecimalType(13,2),True),
+# 	StructField('shortFormattedAddress',StringType(),True),
+# 	StructField('shortFormattedAddress2',StringType(),True),
+# 	StructField('addressLine0',StringType(),True),
+# 	StructField('addressLine1',StringType(),True),
+# 	StructField('addressLine2',StringType(),True),
+# 	StructField('addressLine3',StringType(),True),
+# 	StructField('addressLine4',StringType(),True),
+# 	StructField('addressLine5',StringType(),True),
+# 	StructField('addressLine6',StringType(),True),
+# 	StructField('deletedIndicator',StringType(),True),
+# 	StructField('_RecordStart',TimestampType(),False),
+# 	StructField('_RecordEnd',TimestampType(),False),
+# 	StructField('_RecordDeleted',IntegerType(),False),
+# 	StructField('_RecordCurrent',IntegerType(),False)
+# ])
 
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
-#Save Data frame into Cleansed Delta table (final)
-DeltaSaveDataframeDirect(df_cleansed, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", newSchema, "")
+DeltaSaveDataFrameToDeltaTableNew(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
+#clear cache
+df.unpersist()
 
 # COMMAND ----------
 

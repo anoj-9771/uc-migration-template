@@ -177,13 +177,41 @@ df = spark.sql(f"WITH stage AS \
                                   case when STRT_CODE = 'na' then '' else STRT_CODE end as streetCode, \
                                   STREET as streetName, \
                                   cast('1900-01-01' as TimeStamp) as _RecordStart, \
-                                  cast('1900-01-01' as TimeStamp) as _RecordEnd, \
+                                  cast('9999-12-31' as TimeStamp) as _RecordEnd, \
                                   '0' as _RecordDeleted, \
                                   '1' as _RecordCurrent, \
                                   cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
                         from stage where _RecordVersion = 1 ").cache()
 
 print(f'Number of rows: {df.count()}')
+
+# COMMAND ----------
+
+# DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
+#Update/rename Column
+# df_cleansed = spark.sql(f"SELECT \
+# 	COUNTRY as countryShortName, \
+# 	case when STRT_CODE = 'na' then '' else STRT_CODE end as streetCode, \
+# 	STREET as streetName, \
+# 	_RecordStart, \
+# 	_RecordEnd, \
+# 	_RecordDeleted, \
+# 	_RecordCurrent \
+# 	FROM {ADS_DATABASE_STAGE}.{source_object}")
+
+# print(f'Number of rows: {df_cleansed.count()}')
+
+# COMMAND ----------
+
+# newSchema = StructType([
+# 	StructField('countryShortName',StringType(),True),
+# 	StructField('streetCode',StringType(),False),
+# 	StructField('streetName',StringType(),True),
+# 	StructField('_RecordStart',TimestampType(),False),
+# 	StructField('_RecordEnd',TimestampType(),False),
+# 	StructField('_RecordDeleted',IntegerType(),False),
+# 	StructField('_RecordCurrent',IntegerType(),False)
+# ])
 
 # COMMAND ----------
 
