@@ -88,11 +88,11 @@ stages:
           apply_substitutions(globalVarsScala, globalVarsScalaSubs)
 
     # Remove Current Notebooks - continue on error is required for first run as there will be no build folders
-    - script: |
-        databricks workspace mkdirs /build;
-        databricks workspace rm -r /build;
-      displayName: 'Remove Current Notebooks'
-      continueOnError: true
+    #- script: |
+    #    databricks workspace mkdirs /build;
+    #    databricks workspace rm -r /build;
+    #  displayName: 'Remove Current Notebooks'
+    #  continueOnError: true
 
     # Update Notebooks to Databricks workspace
     - script: |
