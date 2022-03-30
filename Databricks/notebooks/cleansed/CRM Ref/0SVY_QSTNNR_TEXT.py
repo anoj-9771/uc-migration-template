@@ -190,12 +190,44 @@ print(f'Number of rows: {df.count()}')
 
 # COMMAND ----------
 
-# DBTITLE 1,11. Save Data frame into Cleansed Delta table (Final)
+# DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
+#Update/rename Column
+# df_cleansed = spark.sql(f"SELECT \
+# 	case when APPLICATION = 'na' then '' else APPLICATION end as bwApplication, \
+# 	case when QSTNNR = 'na' then '' else QSTNNR end as questionnaireId, \
+# 	TXTSH as questionnaireShort, \
+# 	TXTMD as questionnaireMedium, \
+# 	TXTLG as questionnaireLong, \
+# 	_RecordStart, \
+# 	_RecordEnd, \
+# 	_RecordDeleted, \
+# 	_RecordCurrent \
+# 	FROM {ADS_DATABASE_STAGE}.{source_object}")
+
+# print(f'Number of rows: {df_cleansed.count()}')
+
+# COMMAND ----------
+
+# newSchema = StructType([
+# 	StructField('bwApplication',StringType(),False),
+# 	StructField('questionnaireId',StringType(),False),
+# 	StructField('questionnaireShort',StringType(),True),
+# 	StructField('questionnaireMedium',StringType(),True),
+# 	StructField('questionnaireLong',StringType(),True),
+# 	StructField('_RecordStart',TimestampType(),False),
+# 	StructField('_RecordEnd',TimestampType(),False),
+# 	StructField('_RecordDeleted',IntegerType(),False),
+# 	StructField('_RecordCurrent',IntegerType(),False)
+# ])
+
+# COMMAND ----------
+
+# DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 DeltaSaveDataFrameToDeltaTableNew(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
 #clear cache
 df.unpersist()
 
 # COMMAND ----------
 
-# DBTITLE 1,12. Exit Notebook
+# DBTITLE 1,13. Exit Notebook
 dbutils.notebook.exit("1")

@@ -187,6 +187,34 @@ print(f'Number of rows: {df.count()}')
 
 # COMMAND ----------
 
+# DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
+#Update/rename Column
+# df_cleansed = spark.sql(f"SELECT \
+# 	COUNTRY as countryShortName, \
+# 	case when STRT_CODE = 'na' then '' else STRT_CODE end as streetCode, \
+# 	STREET as streetName, \
+# 	_RecordStart, \
+# 	_RecordEnd, \
+# 	_RecordDeleted, \
+# 	_RecordCurrent \
+# 	FROM {ADS_DATABASE_STAGE}.{source_object}")
+
+# print(f'Number of rows: {df_cleansed.count()}')
+
+# COMMAND ----------
+
+# newSchema = StructType([
+# 	StructField('countryShortName',StringType(),True),
+# 	StructField('streetCode',StringType(),False),
+# 	StructField('streetName',StringType(),True),
+# 	StructField('_RecordStart',TimestampType(),False),
+# 	StructField('_RecordEnd',TimestampType(),False),
+# 	StructField('_RecordDeleted',IntegerType(),False),
+# 	StructField('_RecordCurrent',IntegerType(),False)
+# ])
+
+# COMMAND ----------
+
 # DBTITLE 1,11. Save Data frame into Cleansed Delta table (Final)
 DeltaSaveDataFrameToDeltaTableNew(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
 #clear cache

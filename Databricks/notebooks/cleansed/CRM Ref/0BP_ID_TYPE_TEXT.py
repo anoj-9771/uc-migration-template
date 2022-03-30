@@ -186,12 +186,38 @@ print(f'Number of rows: {df.count()}')
 
 # COMMAND ----------
 
-# DBTITLE 1,11. Save Data frame into Cleansed Delta table (Final)
+# DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
+#Update/rename Column
+# df_cleansed = spark.sql(f"SELECT \
+# 	case when TYPE = 'na' then '' else TYPE end as identificationTypeCode, \
+# 	TEXT as identificationType, \
+# 	_RecordStart, \
+# 	_RecordEnd, \
+# 	_RecordDeleted, \
+# 	_RecordCurrent \
+# 	FROM {ADS_DATABASE_STAGE}.{source_object}")
+
+# print(f'Number of rows: {df_cleansed.count()}')
+
+# COMMAND ----------
+
+# newSchema = StructType([
+# 	StructField('identificationTypeCode',StringType(),False),
+# 	StructField('identificationType',StringType(),True),
+# 	StructField('_RecordStart',TimestampType(),False),
+# 	StructField('_RecordEnd',TimestampType(),False),
+# 	StructField('_RecordDeleted',IntegerType(),False),
+# 	StructField('_RecordCurrent',IntegerType(),False)
+# ])
+
+# COMMAND ----------
+
+# DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 DeltaSaveDataFrameToDeltaTableNew(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
 #clear cache
 df.unpersist()
 
 # COMMAND ----------
 
-# DBTITLE 1,12. Exit Notebook
+# DBTITLE 1,13. Exit Notebook
 dbutils.notebook.exit("1")
