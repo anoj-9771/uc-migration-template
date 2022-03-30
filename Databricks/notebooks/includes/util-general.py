@@ -323,13 +323,19 @@ def GeneralToValidDateTime(dateIn, colType ="Optional", fmt = "" ):
     #This function validates the date
     from dateutil import parser
     from datetime import datetime
-#     import pytz
+    from dateutil.tz import gettz
+    import pytz
+    from pytz import timezone, utc
+    
+    SydneyTimes = {'AEDT': gettz('Australia/NSW'), 'AET': 11*60*60}
+    
+    lowDate = parser.parse('1900-01-01 00:00:00 AET', tzinfos=SydneyTimes)
+    lowDatePlain = parser.parse('1900-01-01 00:00:00 AET')
+    highDate = parser.parse('2099-12-31 23:59:59 AEDT', tzinfos=SydneyTimes)
+    highNullDate = parser.parse('9999-12-30 23:00:00 AEDT', tzinfos=SydneyTimes)
     
     dateStr = str(dateIn)
-    lowDate = str('19000101000000')
-    highDate = str('20991231235959')   
-    highNullDate = str('99991231000000')
-
+    
     #   date_formats = ["%Y-%m-%dT%H:%M:%S", "%Y%m%d%I%M%S %p", "%Y%m%d%H%M%S","%d%y%m", "%d%m%Y", "%Y%m%d", "%d-%m-%Y", "%Y-%m-%d"]
 #     date_formats = ["%Y%m%d", "%Y-%m-%d", "%d%m%Y", "%d-%m-%Y", "%Y-%m-%dT%H:%M:%S", "%Y-%m-%d%H:%M:%S", "%Y%m%d%H%M%S", "%Y%m%d %H%M%S", "%Y-%m-%d %H:%M:%S", "%Y%m%d%I%M%S %p", "%Y-%m-%d %I:%M:%S %p"]
 
@@ -352,19 +358,20 @@ def GeneralToValidDateTime(dateIn, colType ="Optional", fmt = "" ):
 #             dateOut = None
 #             pass
     try:
-        dateOut = parser.parse(dateStr)
+        dateOut = parser.parse(dateStr + ' AEDT', tzinfos=SydneyTimes)
         
-        if dateOut > datetime.strptime(highDate, "%Y%m%d%H%M%S"):
-            return datetime.strptime(highNullDate, "%Y%m%d%H%M%S")
-        elif dateOut < datetime.strptime(lowDate, "%Y%m%d%H%M%S"):
-            return datetime.strptime(lowDate, "%Y%m%d%H%M%S")
+        if dateOut > highDate:
+            return highNullDate
+        elif dateOut < lowDate:
+            return lowDatePlain
         else:
             return dateOut
     except:
+        raise
         dateOut = None
         
     if colType.upper() == "MANDATORY" and (dateIn is None or dateOut is None):
-        return datetime.strptime(lowDate, "%Y%m%d%H%M%S")    
+        return lowDate   
     elif colType.upper() != "MANDATORY" and (dateIn is None or dateOut is None):
         return
 
@@ -381,7 +388,3 @@ spark.udf.register("ToValidDateTime", GeneralToValidDateTime,TimestampType())
 ToValidDate_udf = udf(GeneralToValidDateTime, DateType())
 #DateTimeCol = df.ToValidDateTime_udf(df["StartDateTime"]))
 ToValidDateTime_udf = udf(GeneralToValidDateTime, TimestampType())
-
-# COMMAND ----------
-
-
