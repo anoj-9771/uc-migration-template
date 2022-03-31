@@ -10857,16 +10857,13 @@
 								},
 								"M_DeltaRecordCount": {
 									"value": {
-										"value": "@variables('RecordsWritten')",
+										"value": "@activity('Copy-Source-DataLake').output.rowsCopied",
 										"type": "Expression"
 									},
 									"type": "Int64"
 								},
 								"SourceFileDateStamp": {
-									"value": {
-										"value": "null",
-										"type": "Expression"
-									},
+									"value": "1",
 									"type": "String"
 								},
 								"TaskExecutionLogID": {
@@ -10884,10 +10881,7 @@
 									"type": "Int64"
 								},
 								"M_Message": {
-									"value": {
-										"value": "null",
-										"type": "Expression"
-									},
+									"value": null,
 									"type": "String"
 								}
 							}
