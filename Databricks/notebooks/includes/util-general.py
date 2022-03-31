@@ -330,7 +330,7 @@ def GeneralToValidDateTime(dateIn, colType ="Optional", fmt = "" ):
     SydneyTimes = {'AEDT': gettz('Australia/NSW'), 'AET': 11*60*60}
     
     lowDate = parser.parse('1900-01-01 00:00:00 AET', tzinfos=SydneyTimes)
-    lowDatePlain = parser.parse('1900-01-01 00:00:00 AET')
+    lowDatePlain = parser.parse('1900-01-01 01:00:00 AET', tzinfos=SydneyTimes)
     highDate = parser.parse('2099-12-31 23:59:59 AEDT', tzinfos=SydneyTimes)
     highNullDate = parser.parse('9999-12-30 23:00:00 AEDT', tzinfos=SydneyTimes)
     
