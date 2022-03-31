@@ -26,7 +26,7 @@
 						"type": "SqlServerSource",
 						"additionalColumns": [
 							{
-								"name": "_DLRawZoneTimestamp",
+								"name": "_DLRawZoneTimeStamp",
 								"value": {
 									"value": "@formatDateTime(convertFromUtc(utcnow(),'AUS Eastern Standard Time'),'yyyy-MM-dd HH:mm:ss')",
 									"type": "Expression"
@@ -51,7 +51,8 @@
 					"sink": {
 						"type": "AzureDatabricksDeltaLakeSink",
 						"importSettings": {
-							"type": "AzureDatabricksDeltaLakeImportCommand"
+							"type": "AzureDatabricksDeltaLakeImportCommand",
+							"timestampFormat": "yyyy-MM-dd HH:mm:ss"
 						}
 					},
 					"enableStaging": true,
