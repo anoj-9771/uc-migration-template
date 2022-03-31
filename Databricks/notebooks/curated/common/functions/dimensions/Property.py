@@ -1,4 +1,8 @@
 # Databricks notebook source
+#%run ../../includes/util-common
+
+# COMMAND ----------
+
 ###########################################################################################################################
 # Function: getProperty
 #  GETS Property DIMENSION 
@@ -41,7 +45,7 @@ def getProperty():
                         where _RecordCurrent = 1 \
                         ")
     lotDf.createOrReplaceTempView('lots')
-    #build a dataframe with parent properties (strata units with children, joint services, super lots and link lots), 'normal' properties with themselves)
+    #build a dataframe with parent properties (strata units with children, joint services (M), super lots (P) and link lots(U)), 'normal' properties with themselves)
     parentDf = spark.sql(f"with t1 as( \
                                 select su.propertyNumber, \
                                         ms.masterPropertyNumber as parentPropertyNumber, \
@@ -60,23 +64,30 @@ def getProperty():
                                                minus \
                                                select propertyNumber \
                                                from   t1), \
-                             t2 as( \
+                             relatedprops as( \
                                 select rp.propertyNumber as propertyNumber, \
-                                        first(rp.relatedPropertyNumber) as parentPropertyNumber, \
-                                        first(pr.propertyTypeCode) as parentPropertyTypeCode, \
-                                        first(pr.propertyType) as parentPropertyType, \
-                                        first(pr.superiorPropertyTypeCode) as parentSuperiorPropertyTypeCode, \
-                                        first(pr.superiorPropertyType) as parentSuperiorPropertyType, \
-                                        first(rp.relationshipType) as relationshipType \
+                                        rp.relatedPropertyNumber as parentPropertyNumber, \
+                                        pr.propertyTypeCode as parentPropertyTypeCode, \
+                                        pr.propertyType as parentPropertyType, \
+                                        pr.superiorPropertyTypeCode as parentSuperiorPropertyTypeCode, \
+                                        pr.superiorPropertyType as parentSuperiorPropertyType, \
+                                        rp.relationshipType as relationshipType, \
+                                        rank() over (partition by rp.propertyNumber order by relationshipTypecode desc) as rnk \
                                 from {ADS_DATABASE_CLEANSED}.access_z309_trelatedProps rp inner join remainingProps rem on rp.propertyNumber = rem.propertyNumber \
                                        left outer join {ADS_DATABASE_CLEANSED}.access_z309_tproperty pr on pr.propertynumber = rp.relatedPropertynumber \
                                 where rp.relationshipTypeCode in ('M','P','U') \
-                                and   rp._RecordCurrent = 1 \
-                                group by rp.propertyNumber \
-                                order by parentPropertyTypeCode desc), \
+                                and   rp._RecordCurrent = 1), \
                               t3 as(select * from t1 \
                                     union \
-                                    select * from t2), \
+                                    select propertyNumber, \
+                                           parentPropertyNumber, \
+                                           parentPropertyTypeCode, \
+                                           parentPropertyType, \
+                                           parentSuperiorPropertyTypeCode, \
+                                           parentSuperiorPropertyType, \
+                                           relationshipType \
+                                    from relatedprops \
+                                    where rnk = 1), \
                               t4 as(select propertyNumber \
                                     from {ADS_DATABASE_CLEANSED}.access_z309_tproperty \
                                     where _RecordCurrent = 1 \
@@ -142,8 +153,8 @@ def getProperty():
                                           systemAreas sa on sa.propertyNumber = pp.parentPropertyNumber \
                                      where pr._RecordCurrent = 1 \
                                      ")
-    
-    print(f'{accessZ309TpropertyDf.count():,} rows from ACCESS')
+    accessZ309TpropertyDf.createOrReplaceTempView('ACCESS')
+#     print(f'{accessZ309TpropertyDf.count():,} rows from ACCESS')
     
     sapisuDf = spark.sql(f"select co.propertyNumber, \
                                 'ISU' as sourceSystemCode, \
@@ -186,17 +197,30 @@ def getProperty():
                          and   co._RecordDeleted = 0 \
                          and   co._RecordCurrent = 1 \
                         ")
-    
-    print(f'{sapisuDf.count():,} rows from SAP')
-    print('Creating 4 dummy rows...')
+    sapisuDf.createOrReplaceTempView('ISU')
+#     print(f'{sapisuDf.count():,} rows from SAP')
+#     print('Creating 4 dummy rows...')
     #Dummy Record to be added to Property Dimension
     dummyDimRecDf = spark.createDataFrame([("ISU","-1"),("ACCESS","-2"),("ISU","-3"),("ACCESS","-4")], ["sourceSystemCode", "propertyNumber"])
-
+    
     #3.JOIN TABLES  
     #4.UNION TABLES
-    df = accessZ309TpropertyDf.union(sapisuDf)
-    df = df.unionByName(dummyDimRecDf, allowMissingColumns = True)
-    print(f'{df.count():,} rows after Union')
+#     df = accessZ309TpropertyDf.union(sapisuDf)
+#     df = df.unionByName(dummyDimRecDf, allowMissingColumns = True)
+    df = spark.sql("with propsFromACCESS as ( \
+                         select propertyNumber \
+                         from   ACCESS \
+                         minus \
+                         select propertyNumber \
+                         from   ISU) \
+                    select a.* \
+                    from   ACCESS a, \
+                           propsFromACCESS b \
+                    where  a.propertyNumber = b.propertyNumber \
+                    union all \
+                    select * \
+                    from   ISU")
+#     print(f'{df.count():,} rows after Union')
 
     #5.SELECT / TRANSFORM
     df = df.selectExpr( \
@@ -259,6 +283,18 @@ def getProperty():
     df = spark.createDataFrame(df.rdd, schema=newSchema)
     return df
 
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC select * from curated.dimWaterNetwork
+
+# COMMAND ----------
+
+ADS_DATABASE_CLEANSED = 'cleansed'
+ADS_DATABASE_CURATED = 'curated'
+df = getProperty()
+df.createOrReplaceTempView('res')
 
 # COMMAND ----------
 

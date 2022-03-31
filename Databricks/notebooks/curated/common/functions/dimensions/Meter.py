@@ -48,8 +48,8 @@ def getMeter():
 
     #Drop unwanted columns
     accessZ309TpropmeterDf = accessZ309TpropmeterDf.drop(accessZ309TpropmeterDf.rownum)
-
-    print(f'{accessZ309TpropmeterDf.count():,} rows in accessZ309TpropmeterDf')
+    accessZ309TpropmeterDf.createOrReplaceTempView('ACCESS')
+#     print(f'{accessZ309TpropmeterDf.count():,} rows in accessZ309TpropmeterDf')
     #display(accessZ309TpropmeterDf)
     #Meter Data from SAP ISU
     isu0ucDeviceAttrDf  = spark.sql(f"select 'ISU' as sourceSystemCode, \
@@ -69,7 +69,7 @@ def getMeter():
                                       and a._RecordDeleted = 0 \
                                       ")
     
-    print(f'{isu0ucDeviceAttrDf.count():,} rows in isu0ucDeviceAttrDf')
+#     print(f'{isu0ucDeviceAttrDf.count():,} rows in isu0ucDeviceAttrDf')
 #    display(isu0ucDeviceAttrDf)
 
     isu0ucDevCatAttrDf  = spark.sql(f"select distinct a.materialNumber, \
@@ -85,14 +85,14 @@ def getMeter():
                                       and a._RecordCurrent = 1 \
                                       and a._RecordDeleted = 0")
     
-    print(f'{isu0ucDevCatAttrDf.count():,} rows in isu0ucDevCatAttrDf')
+#     print(f'{isu0ucDevCatAttrDf.count():,} rows in isu0ucDevCatAttrDf')
 #     display(isu0ucDevCatAttrDf)  
     
     #3.JOIN TABLES
     df = isu0ucDeviceAttrDf.join(isu0ucDevCatAttrDf, isu0ucDeviceAttrDf.materialNumber == isu0ucDevCatAttrDf.materialNumber, 
                                   how="inner") \
                             .drop(isu0ucDevCatAttrDf.materialNumber)
-    print(f'{df.count():,} rows after merge 1')
+#     print(f'{df.count():,} rows after merge 1')
     #display(df)
         
 #     #re-order columns
@@ -100,13 +100,26 @@ def getMeter():
                     'meterReadingType','meterDescription','meterFittedDate','meterRemovedDate','manufacturerName','manufacturerSerialNumber','manufacturerModelNumber','inspectionRelevanceFlag')
     
     #4. UNION
-    df = accessZ309TpropmeterDf.union(df)
-    print(f'{df.count():,} rows after Union 1')
+    df.createOrReplaceTempView('ISU')
+    dfResult = spark.sql("with ACCESSMtrs as (select meterSerialNumber \
+                                              from   ACCESS \
+                                              minus \
+                                              select meterSerialNumber \
+                                              from   ISU) \
+                          select a.* \
+                          from   ACCESS a, \
+                                 ACCESSMtrs b \
+                          where  a.meterSerialNumber = b.meterSerialNumber \
+                          union all \
+                          select * \
+                          from   ISU")
+#     = accessZ309TpropmeterDf.union(df)
+#     print(f'{df.count():,} rows after Union 1')
 #     display(df)    
     
     dummyDimRecDf = spark.createDataFrame([("ISU","-1","Unknown"),("ACCESS","-2","Unknown"),("ISU","-3","NA"),("ACCESS","-4","NA")], ["sourceSystemCode", "meterNumber","meterDescription"])   
-    df = df.unionByName(dummyDimRecDf, allowMissingColumns = True)    
-    print(f'{df.count():,} rows after Union 2')
+#     df = df.unionByName(dummyDimRecDf, allowMissingColumns = True)    
+#     print(f'{df.count():,} rows after Union 2')
 #     display(df)
     
     #5.Apply schema definition
@@ -131,7 +144,7 @@ def getMeter():
                             StructField('inspectionRelevanceFlag', StringType(), True),   
                       ])    
     
-    df = spark.createDataFrame(df.rdd, schema=newSchema)
+    df = spark.createDataFrame(dfResult.rdd, schema=newSchema)
 #     display(df)    
     
     return df
