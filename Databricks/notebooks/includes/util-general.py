@@ -331,43 +331,25 @@ def GeneralToValidDateTime(dateIn, colType ="Optional", fmt = "" ):
     
     lowDate = parser.parse('1900-01-01 00:00:00 AET', tzinfos=SydneyTimes)
     lowDatePlain = parser.parse('1900-01-01 01:00:00 AET', tzinfos=SydneyTimes)
-    highDate = parser.parse('2099-12-31 23:59:59 AEDT', tzinfos=SydneyTimes)
-    highNullDate = parser.parse('9999-12-30 23:00:00 AEDT', tzinfos=SydneyTimes)
+#     highNullDate = parser.parse('9999-12-30 23:00:00 AEDT', tzinfos=SydneyTimes)
     
     dateStr = str(dateIn)
     
-    #   date_formats = ["%Y-%m-%dT%H:%M:%S", "%Y%m%d%I%M%S %p", "%Y%m%d%H%M%S","%d%y%m", "%d%m%Y", "%Y%m%d", "%d-%m-%Y", "%Y-%m-%d"]
-#     date_formats = ["%Y%m%d", "%Y-%m-%d", "%d%m%Y", "%d-%m-%Y", "%Y-%m-%dT%H:%M:%S", "%Y-%m-%d%H:%M:%S", "%Y%m%d%H%M%S", "%Y%m%d %H%M%S", "%Y-%m-%d %H:%M:%S", "%Y%m%d%I%M%S %p", "%Y-%m-%d %I:%M:%S %p"]
+    #check if length zero and mandatory, else add time to it if not present so the parser works nicely
+    if len(dateStr) == 0 and colType.upper() == "MANDATORY":
+        return lowDatePlain
+    
+    if len(dateStr) <= 10:
+        dateStr += ' 00:00:00'
 
-#     if fmt != "" : 
-#         date_formats = list(eval(fmt))
-#     if len(date_formats[0]) == 1: 
-#         date_formats = list(eval(fmt + ", " + fmt))
-# #     print('before loop')
-#     for format in date_formats:
-#         try:
-#             dateOut = datetime.strptime(dateStr, format)
-# #             print(dateOut)
-#             if dateOut < datetime.strptime(lowDate, "%Y%m%d%H%M%S"):
-#                 return datetime.strptime(lowDate, "%Y%m%d%H%M%S")
-#             elif dateOut >= datetime.strptime(highDate, "%Y%m%d%H%M%S"):
-#                 return datetime.strptime(highNullDate, "%Y%m%d%H%M%S")
-#             return dateOut
-#         except ValueError:
-# #             print('ValueError')
-#             dateOut = None
-#             pass
     try:
         dateOut = parser.parse(dateStr + ' AEDT', tzinfos=SydneyTimes)
         
-        if dateOut > highDate:
-            return highNullDate
-        elif dateOut < lowDate:
+        if dateOut < lowDate:
             return lowDatePlain
         else:
             return dateOut
     except:
-        raise
         dateOut = None
         
     if colType.upper() == "MANDATORY" and (dateIn is None or dateOut is None):
