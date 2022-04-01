@@ -187,34 +187,35 @@ print(f'Number of rows: {df.count()}')
 # COMMAND ----------
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
-#Update/rename Column
-df_cleansed = spark.sql(f"SELECT \
-	case when KEY1 = 'na' then '' else KEY1 end as billingTransactionCode, \
-	TXTLG as billingTransaction, \
-	_RecordStart, \
-	_RecordEnd, \
-	_RecordDeleted, \
-	_RecordCurrent \
-	FROM {ADS_DATABASE_STAGE}.{source_object}")
+# #Update/rename Column
+# df_cleansed = spark.sql(f"SELECT \
+# 	case when KEY1 = 'na' then '' else KEY1 end as billingTransactionCode, \
+# 	TXTLG as billingTransaction, \
+# 	_RecordStart, \
+# 	_RecordEnd, \
+# 	_RecordDeleted, \
+# 	_RecordCurrent \
+# 	FROM {ADS_DATABASE_STAGE}.{source_object}")
 
-print(f'Number of rows: {df_cleansed.count()}')
+# print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
 
-newSchema = StructType([
-	StructField('billingTransactionCode',StringType(),False),
-	StructField('billingTransaction',StringType(),True),
-	StructField('_RecordStart',TimestampType(),False),
-	StructField('_RecordEnd',TimestampType(),False),
-	StructField('_RecordDeleted',IntegerType(),False),
-	StructField('_RecordCurrent',IntegerType(),False)
-])
+# newSchema = StructType([
+# 	StructField('billingTransactionCode',StringType(),False),
+# 	StructField('billingTransaction',StringType(),True),
+# 	StructField('_RecordStart',TimestampType(),False),
+# 	StructField('_RecordEnd',TimestampType(),False),
+# 	StructField('_RecordDeleted',IntegerType(),False),
+# 	StructField('_RecordCurrent',IntegerType(),False)
+# ])
 
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
-#Save Data frame into Cleansed Delta table (final)
-DeltaSaveDataframeDirect(df_cleansed, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", newSchema, "")
+DeltaSaveDataFrameToDeltaTableNew(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
+#clear cache
+df.unpersist()
 
 # COMMAND ----------
 
