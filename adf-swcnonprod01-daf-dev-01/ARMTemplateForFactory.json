@@ -10825,6 +10825,71 @@
 								}
 							}
 						]
+					},
+					{
+						"name": "SP-Update-Manifest-Value",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "Copy-Source-DataLake",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[CTL].[UpdateManifestValue]",
+							"storedProcedureParameters": {
+								"BatchExecutionLogID": {
+									"value": {
+										"value": "@pipeline().parameters.BatchExecutionLogID",
+										"type": "Expression"
+									},
+									"type": "Int64"
+								},
+								"M_DeltaRecordCount": {
+									"value": {
+										"value": "@activity('Copy-Source-DataLake').output.rowsCopied",
+										"type": "Expression"
+									},
+									"type": "Int64"
+								},
+								"SourceFileDateStamp": {
+									"value": "1",
+									"type": "String"
+								},
+								"TaskExecutionLogID": {
+									"value": {
+										"value": "@pipeline().parameters.TaskExecutionLogID",
+										"type": "Expression"
+									},
+									"type": "Int64"
+								},
+								"M_TotalNoRows": {
+									"value": {
+										"value": "@pipeline().parameters.ValidationDetails.RecordCount",
+										"type": "Expression"
+									},
+									"type": "Int64"
+								},
+								"M_Message": {
+									"value": null,
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "LS-AzureSqlDatabase_Ctrldb",
+							"type": "LinkedServiceReference"
+						}
 					}
 				],
 				"policy": {
@@ -15761,7 +15826,7 @@
 			"properties": {
 				"description": "Triggers Main pipeline to kick off Hydra daily loads on the blob-creation event of 'trigger_batch_daily_hydra.json' in 'triggers' container. This pipeline invocation runs multiple HYDRA data load Projects.",
 				"annotations": [],
-				"runtimeState": "Started",
+				"runtimeState": "Stopped",
 				"pipelines": [
 					{
 						"pipelineReference": {
@@ -15794,7 +15859,7 @@
 			"properties": {
 				"description": "Triggers Main pipeline to kick off SAP CRM daily loads on the blob-creation event of 'trigger_batch_daily_sapcrm.json' in 'triggers' container. This pipeline invocation runs multiple SAPCRM data load Projects.",
 				"annotations": [],
-				"runtimeState": "Started",
+				"runtimeState": "Stopped",
 				"pipelines": [
 					{
 						"pipelineReference": {
@@ -15827,7 +15892,7 @@
 			"properties": {
 				"description": "Triggers Main pipeline to kick off SAP ISU daily loads on the blob-creation event of 'trigger_batch_daily_sapisu.json' in 'triggers' container. This pipeline invocation runs multiple SAPISU data load Projects.",
 				"annotations": [],
-				"runtimeState": "Started",
+				"runtimeState": "Stopped",
 				"pipelines": [
 					{
 						"pipelineReference": {
