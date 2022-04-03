@@ -1893,6 +1893,7 @@
 								"type": "AzureDatabricksDeltaLakeSink",
 								"importSettings": {
 									"type": "AzureDatabricksDeltaLakeImportCommand",
+									"dateFormat": "yyyy-MM-dd HH:mm:ss",
 									"timestampFormat": "yyyy-MM-dd HH:mm:ss"
 								}
 							},
