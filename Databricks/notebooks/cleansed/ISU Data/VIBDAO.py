@@ -113,7 +113,7 @@ source_group = GeneralAlignTableName(source_group)
 print("source_group: " + source_group)
 
 #Get Data Lake Folder
-data_lake_folder = source_group + "/stg"
+data_lake_folder = source_group
 print("data_lake_folder: " + data_lake_folder)
 
 #Get and Align Source Table Name (replace '[-@ ,;{}()]' character by '_')
@@ -139,6 +139,21 @@ print("delta_column: " + delta_column)
 data_load_mode = GeneralGetDataLoadMode(Params[PARAMS_TRUNCATE_TARGET], Params[PARAMS_UPSERT_TARGET], Params[PARAMS_APPEND_TARGET])
 print("data_load_mode: " + data_load_mode)
 
+#Get the start time of the last successful cleansed load execution
+LastSuccessfulExecutionTS = Params["LastSuccessfulExecutionTS"]
+print("LastSuccessfulExecutionTS: " + LastSuccessfulExecutionTS)
+
+#Get current time
+#CurrentTimeStamp = spark.sql("select current_timestamp()").first()[0]
+CurrentTimeStamp = GeneralLocalDateTime()
+CurrentTimeStamp = CurrentTimeStamp.strftime("%Y-%m-%d %H:%M:%S")
+
+#Get business key,track_changes and delta_extract flag
+business_key =  Params[PARAMS_BUSINESS_KEY_COLUMN]
+track_changes =  Params[PARAMS_TRACK_CHANGES]
+is_delta_extract =  Params[PARAMS_DELTA_EXTRACT]
+
+
 # COMMAND ----------
 
 # DBTITLE 1,9. Set raw and cleansed table name
@@ -154,29 +169,10 @@ print(delta_raw_tbl_name)
 
 # COMMAND ----------
 
-# DBTITLE 1,10. Load to Cleanse Delta Table from Raw Delta Table
-#This method uses the source table to load data into target Delta Table
-DeltaSaveToDeltaTable (
-    source_table = delta_raw_tbl_name,
-    target_table = target_table,
-    target_data_lake_zone = ADS_DATALAKE_ZONE_CLEANSED,
-    target_database = ADS_DATABASE_STAGE,
-    data_lake_folder = data_lake_folder,
-    data_load_mode = data_load_mode,
-    track_changes =  Params[PARAMS_TRACK_CHANGES],
-    is_delta_extract =  Params[PARAMS_DELTA_EXTRACT],
-    business_key =  Params[PARAMS_BUSINESS_KEY_COLUMN],
-    delta_column = delta_column,
-    start_counter = start_counter,
-    end_counter = end_counter
-)
-
-# COMMAND ----------
-
-# DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
-#Update/rename Column
-#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
-df_cleansed = spark.sql(f"SELECT \
+# DBTITLE 1,10. Load Raw to Dataframe & Do Transformations
+df = spark.sql(f"WITH stage AS \
+                      (Select *, ROW_NUMBER() OVER (PARTITION BY INTRENO ORDER BY _DLRawZoneTimestamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
+                           SELECT \
                                   case when vib.INTRENO = 'na' then '' else vib.INTRENO end as architecturalObjectInternalId , \
                                   vib.AOID as architecturalObjectId , \
                                   vib.AOTYPE as architecturalObjectTypeCode , \
@@ -237,11 +233,12 @@ df_cleansed = spark.sql(f"SELECT \
                                   ZCD_CANC_REASON as cancellationReasonCode , \
                                   ZCD_COMMENTS as comments , \
                                   ZCD_PROPERTY_INFO as propertyInfo , \
-                                  vib._RecordStart, \
-                                  vib._RecordEnd, \
-                                  vib._RecordDeleted, \
-                                  vib._RecordCurrent \
-                              FROM {ADS_DATABASE_STAGE}.{source_object} vib \
+                                  cast('1900-01-01' as TimeStamp) as _RecordStart, \
+                                  cast('9999-12-31' as TimeStamp) as _RecordEnd, \
+                                  '0' as _RecordDeleted, \
+                                  '1' as _RecordCurrent, \
+                                  cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
+                        FROM stage vib \
                                     LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_ZCD_TINFPRTY_TX ip ON \
                                    vib.ZCD_INF_PROP_TYPE = ip.inferiorPropertyTypeCode and ip._RecordDeleted = 0 and ip._RecordCurrent = 1 \
                                     LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_ZCD_TSUPPRTYP_TX sp ON \
@@ -251,88 +248,174 @@ df_cleansed = spark.sql(f"SELECT \
                                     LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_TIVBDAROBJTYPET tiv ON \
                                    vib.AOTYPE = tiv.AOTYPE and tiv._RecordDeleted = 0 and tiv._RecordCurrent = 1 \
                                     LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_ZCD_TPROCTYPE_TX prt ON \
-                                   vib.ZCD_PROCESS_TYPE = prt.PROCESS_TYPE and prt._RecordDeleted = 0 and prt._RecordCurrent = 1")
+                                   vib.ZCD_PROCESS_TYPE = prt.PROCESS_TYPE and prt._RecordDeleted = 0 and prt._RecordCurrent = 1 \
+                        where vib._RecordVersion = 1 ").cache()
 
-print(f'Number of rows: {df_cleansed.count()}')
+print(f'Number of rows: {df.count()}')
 
 # COMMAND ----------
 
-#Create schema for the cleanse table
-newSchema = StructType(
-                            [
-                            StructField("architecturalObjectInternalId", StringType(), False),
-                            StructField("architecturalObjectId", StringType(), True),
-                            StructField("architecturalObjectTypeCode", StringType(), True),
-                            StructField("architecturalObjectType", StringType(), True),
-                            StructField("architecturalObjectNumber", StringType(), True),
-                            StructField("validFromDate", DateType(), True),
-                            StructField("validToDate", DateType(), True),
-                            StructField("partArchitecturalObjectId", StringType(), True),
-                            StructField("objectNumber", StringType(), True),
-                            StructField("firstEnteredBy", StringType(), True),
-                            StructField("firstEnteredOnDate", DateType(), True),
-                            StructField("firstEnteredTime", StringType(), True),
-                            StructField("firstEnteredDateTime", TimestampType(), True),  
-                            StructField("firstEnteredSource", StringType(), True),
-                            StructField("employeeId", StringType(), True),
-                            StructField("lastEditedOnDate", DateType(), True),
-                            StructField("lastEditedTime", StringType(), True),
-                            StructField("lastEditedDateTime", TimestampType(), True),    
-                            StructField("lastEditedSource", StringType(), True),
-                            StructField("responsiblePerson", StringType(), True),
-                            StructField("exclusiveUser", StringType(), True),
-                            StructField("lastRelocationDate", DateType(), True),
-                            StructField("measurementStructure", StringType(), True),
-                            StructField("shortDescription", StringType(), True),
-                            StructField("reservationArea", StringType(), True),
-                            StructField("maintenanceDistrict", StringType(), True),
-                            StructField("businessEntityTransportConnectionsIndicator", StringType(), True),
-                            StructField("propertyNumber", StringType(), True),
-                            StructField("propertyCreatedDate", DateType(), True),
-                            StructField("propertyLotNumber", StringType(), True),
-                            StructField("propertyRequestNumber", StringType(), True),
-                            StructField("planTypeCode", StringType(), True),
-                            StructField("planType", StringType(), True),
-                            StructField("planNumber", StringType(), True),
-                            StructField("processTypeCode", StringType(), True),
-                            StructField("processType", StringType(), True),
-                            StructField("addressLotNumber", StringType(), True),
-                            StructField("lotTypeCode", StringType(), True),
-                            StructField("unitEntitlement", StringType(), True),
-                            StructField("flatCount", StringType(), True),
-                            StructField("superiorPropertyTypeCode", StringType(), True),
-                            StructField("superiorPropertyType", StringType(), True),
-                            StructField("inferiorPropertyTypeCode", StringType(), True),
-                            StructField("inferiorPropertyType", StringType(), True),
-                            StructField("stormWaterAssessmentIndicator", StringType(), True),
-                            StructField("mlimIndicator", StringType(), True),
-                            StructField("wicaIndicator", StringType(), True),
-                            StructField("sopaIndicator", StringType(), True),
-                            StructField("communityTitleIndicator", StringType(), True),
-                            StructField("sectionNumber", StringType(), True),
-                            StructField("hydraCalculatedArea", StringType(), True),
-                            StructField("hydraAreaUnit", StringType(), True),
-                            StructField("hydraAreaIndicator", StringType(), True),
-                            StructField("caseNumberIndicator", StringType(), True),
-                            StructField("overrideArea", StringType(), True),
-                            StructField("overrideAreaUnit", StringType(), True),
-                            StructField("cancellationDate", DateType(), True),
-                            StructField("cancellationReasonCode", StringType(), True),
-                            StructField("comments", StringType(), True),
-                            StructField("propertyInfo", StringType(), True),
-                            StructField('_RecordStart',TimestampType(),False),
-                            StructField('_RecordEnd',TimestampType(),False),
-                            StructField('_RecordDeleted',IntegerType(),False),
-                            StructField('_RecordCurrent',IntegerType(),False)
-                            ]
-                        )
+# DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
+#Update/rename Column
+#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
+# df_cleansed = spark.sql(f"SELECT \
+#                                   case when vib.INTRENO = 'na' then '' else vib.INTRENO end as architecturalObjectInternalId , \
+#                                   vib.AOID as architecturalObjectId , \
+#                                   vib.AOTYPE as architecturalObjectTypeCode , \
+#                                   tiv.XMAOTYPE as architecturalObjectType , \
+#                                   AONR as architecturalObjectNumber , \
+#                                   ToValidDate(VALIDFROM) as validFromDate , \
+#                                   ToValidDate(VALIDTO) as validToDate , \
+#                                   PARTAOID as partArchitecturalObjectId , \
+#                                   OBJNR as objectNumber , \
+#                                   RERF as firstEnteredBy , \
+#                                   ToValidDate(DERF) as firstEnteredOnDate , \
+#                                   TERF as firstEnteredTime , \
+#                                   ToValidDateTime(concat(DERF, coalesce(TERF,'00:00:00'))) as firstEnteredDateTime , \
+#                                   REHER as firstEnteredSource , \
+#                                   RBEAR as employeeId , \
+#                                   ToValidDate(DBEAR) as lastEditedOnDate , \
+#                                   TBEAR as lastEditedTime , \
+#                                   ToValidDateTime(concat(DBEAR, coalesce(TBEAR,'00:00:00'))) as lastEditedDateTime , \
+#                                   RBHER as lastEditedSource , \
+#                                   RESPONSIBLE as responsiblePerson , \
+#                                   USEREXCLUSIVE as exclusiveUser , \
+#                                   ToValidDate(LASTRENO) as lastRelocationDate , \
+#                                   MEASSTRC as measurementStructure , \
+#                                   DOORPLT as shortDescription , \
+#                                   RSAREA as reservationArea , \
+#                                   SINSTBEZ as maintenanceDistrict , \
+#                                   SVERKEHR as businessEntityTransportConnectionsIndicator , \
+#                                   ZCD_PROPERTY_NO as propertyNumber , \
+#                                   ToValidDate(ZCD_PROP_CR_DATE) as propertyCreatedDate , \
+#                                   ZCD_PROP_LOT_NO as propertyLotNumber , \
+#                                   ZCD_REQUEST_NO as propertyRequestNumber , \
+#                                   ZCD_PLAN_TYPE as planTypeCode , \
+#                                   plt.DESCRIPTION as planType , \
+#                                   ZCD_PLAN_NUMBER as planNumber , \
+#                                   ZCD_PROCESS_TYPE as processTypeCode , \
+#                                   prt.DESCRIPTION as processType , \
+#                                   ZCD_ADDR_LOT_NO as addressLotNumber , \
+#                                   ZCD_LOT_TYPE as lotTypeCode , \
+#                                   ZCD_UNIT_ENTITLEMENT as unitEntitlement , \
+#                                   ZCD_NO_OF_FLATS as flatCount , \
+#                                   ZCD_SUP_PROP_TYPE as superiorPropertyTypeCode , \
+#                                   sp.superiorPropertyType as superiorPropertyType , \
+#                                   ZCD_INF_PROP_TYPE as inferiorPropertyTypeCode , \
+#                                   ip.inferiorPropertyType as inferiorPropertyType , \
+#                                   ZCD_STORM_WATER_ASSESS as stormWaterAssessmentIndicator , \
+#                                   ZCD_IND_MLIM as mlimIndicator , \
+#                                   ZCD_IND_WICA as wicaIndicator , \
+#                                   ZCD_IND_SOPA as sopaIndicator , \
+#                                   ZCD_IND_COMMUNITY_TITLE as communityTitleIndicator , \
+#                                   ZCD_SECTION_NUMBER as sectionNumber , \
+#                                   ZCD_HYDRA_CALC_AREA as hydraCalculatedArea , \
+#                                   ZCD_HYDRA_AREA_UNIT as hydraAreaUnit , \
+#                                   ZCD_HYDRA_AREA_FLAG as hydraAreaIndicator , \
+#                                   ZCD_CASENO_FLAG as caseNumberIndicator , \
+#                                   ZCD_OVERRIDE_AREA as overrideArea , \
+#                                   ZCD_OVERRIDE_AREA_UNIT as overrideAreaUnit , \
+#                                   ToValidDate(ZCD_CANCELLATION_DATE) as cancellationDate , \
+#                                   ZCD_CANC_REASON as cancellationReasonCode , \
+#                                   ZCD_COMMENTS as comments , \
+#                                   ZCD_PROPERTY_INFO as propertyInfo , \
+#                                   vib._RecordStart, \
+#                                   vib._RecordEnd, \
+#                                   vib._RecordDeleted, \
+#                                   vib._RecordCurrent \
+#                               FROM {ADS_DATABASE_STAGE}.{source_object} vib \
+#                                     LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_ZCD_TINFPRTY_TX ip ON \
+#                                    vib.ZCD_INF_PROP_TYPE = ip.inferiorPropertyTypeCode and ip._RecordDeleted = 0 and ip._RecordCurrent = 1 \
+#                                     LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_ZCD_TSUPPRTYP_TX sp ON \
+#                                    vib.ZCD_SUP_PROP_TYPE = sp.superiorPropertyTypeCode and sp._RecordDeleted = 0 and sp._RecordCurrent = 1 \
+#                                     LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_ZCD_TPLANTYPE_TX plt ON \
+#                                    vib.ZCD_PLAN_TYPE = plt.PLAN_TYPE and plt._RecordDeleted = 0 and plt._RecordCurrent = 1 \
+#                                     LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_TIVBDAROBJTYPET tiv ON \
+#                                    vib.AOTYPE = tiv.AOTYPE and tiv._RecordDeleted = 0 and tiv._RecordCurrent = 1 \
+#                                     LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_ZCD_TPROCTYPE_TX prt ON \
+#                                    vib.ZCD_PROCESS_TYPE = prt.PROCESS_TYPE and prt._RecordDeleted = 0 and prt._RecordCurrent = 1")
+
+# print(f'Number of rows: {df_cleansed.count()}')
+
+# COMMAND ----------
+
+# #Create schema for the cleanse table
+# newSchema = StructType(
+#                             [
+#                             StructField("architecturalObjectInternalId", StringType(), False),
+#                             StructField("architecturalObjectId", StringType(), True),
+#                             StructField("architecturalObjectTypeCode", StringType(), True),
+#                             StructField("architecturalObjectType", StringType(), True),
+#                             StructField("architecturalObjectNumber", StringType(), True),
+#                             StructField("validFromDate", DateType(), True),
+#                             StructField("validToDate", DateType(), True),
+#                             StructField("partArchitecturalObjectId", StringType(), True),
+#                             StructField("objectNumber", StringType(), True),
+#                             StructField("firstEnteredBy", StringType(), True),
+#                             StructField("firstEnteredOnDate", DateType(), True),
+#                             StructField("firstEnteredTime", StringType(), True),
+#                             StructField("firstEnteredDateTime", TimestampType(), True),  
+#                             StructField("firstEnteredSource", StringType(), True),
+#                             StructField("employeeId", StringType(), True),
+#                             StructField("lastEditedOnDate", DateType(), True),
+#                             StructField("lastEditedTime", StringType(), True),
+#                             StructField("lastEditedDateTime", TimestampType(), True),    
+#                             StructField("lastEditedSource", StringType(), True),
+#                             StructField("responsiblePerson", StringType(), True),
+#                             StructField("exclusiveUser", StringType(), True),
+#                             StructField("lastRelocationDate", DateType(), True),
+#                             StructField("measurementStructure", StringType(), True),
+#                             StructField("shortDescription", StringType(), True),
+#                             StructField("reservationArea", StringType(), True),
+#                             StructField("maintenanceDistrict", StringType(), True),
+#                             StructField("businessEntityTransportConnectionsIndicator", StringType(), True),
+#                             StructField("propertyNumber", StringType(), True),
+#                             StructField("propertyCreatedDate", DateType(), True),
+#                             StructField("propertyLotNumber", StringType(), True),
+#                             StructField("propertyRequestNumber", StringType(), True),
+#                             StructField("planTypeCode", StringType(), True),
+#                             StructField("planType", StringType(), True),
+#                             StructField("planNumber", StringType(), True),
+#                             StructField("processTypeCode", StringType(), True),
+#                             StructField("processType", StringType(), True),
+#                             StructField("addressLotNumber", StringType(), True),
+#                             StructField("lotTypeCode", StringType(), True),
+#                             StructField("unitEntitlement", StringType(), True),
+#                             StructField("flatCount", StringType(), True),
+#                             StructField("superiorPropertyTypeCode", StringType(), True),
+#                             StructField("superiorPropertyType", StringType(), True),
+#                             StructField("inferiorPropertyTypeCode", StringType(), True),
+#                             StructField("inferiorPropertyType", StringType(), True),
+#                             StructField("stormWaterAssessmentIndicator", StringType(), True),
+#                             StructField("mlimIndicator", StringType(), True),
+#                             StructField("wicaIndicator", StringType(), True),
+#                             StructField("sopaIndicator", StringType(), True),
+#                             StructField("communityTitleIndicator", StringType(), True),
+#                             StructField("sectionNumber", StringType(), True),
+#                             StructField("hydraCalculatedArea", StringType(), True),
+#                             StructField("hydraAreaUnit", StringType(), True),
+#                             StructField("hydraAreaIndicator", StringType(), True),
+#                             StructField("caseNumberIndicator", StringType(), True),
+#                             StructField("overrideArea", StringType(), True),
+#                             StructField("overrideAreaUnit", StringType(), True),
+#                             StructField("cancellationDate", DateType(), True),
+#                             StructField("cancellationReasonCode", StringType(), True),
+#                             StructField("comments", StringType(), True),
+#                             StructField("propertyInfo", StringType(), True),
+#                             StructField('_RecordStart',TimestampType(),False),
+#                             StructField('_RecordEnd',TimestampType(),False),
+#                             StructField('_RecordDeleted',IntegerType(),False),
+#                             StructField('_RecordCurrent',IntegerType(),False)
+#                             ]
+#                         )
 
 
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
-#Save Data frame into Cleansed Delta table (final)
-DeltaSaveDataframeDirect(df_cleansed, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", newSchema, "")
+DeltaSaveDataFrameToDeltaTableNew(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
+#clear cache
+df.unpersist()
 
 # COMMAND ----------
 

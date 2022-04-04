@@ -113,7 +113,7 @@ source_group = GeneralAlignTableName(source_group)
 print("source_group: " + source_group)
 
 #Get Data Lake Folder
-data_lake_folder = source_group + "/stg"
+data_lake_folder = source_group
 print("data_lake_folder: " + data_lake_folder)
 
 #Get and Align Source Table Name (replace '[-@ ,;{}()]' character by '_')
@@ -139,6 +139,21 @@ print("delta_column: " + delta_column)
 data_load_mode = GeneralGetDataLoadMode(Params[PARAMS_TRUNCATE_TARGET], Params[PARAMS_UPSERT_TARGET], Params[PARAMS_APPEND_TARGET])
 print("data_load_mode: " + data_load_mode)
 
+#Get the start time of the last successful cleansed load execution
+LastSuccessfulExecutionTS = Params["LastSuccessfulExecutionTS"]
+print("LastSuccessfulExecutionTS: " + LastSuccessfulExecutionTS)
+
+#Get current time
+#CurrentTimeStamp = spark.sql("select current_timestamp()").first()[0]
+CurrentTimeStamp = GeneralLocalDateTime()
+CurrentTimeStamp = CurrentTimeStamp.strftime("%Y-%m-%d %H:%M:%S")
+
+#Get business key,track_changes and delta_extract flag
+business_key =  Params[PARAMS_BUSINESS_KEY_COLUMN]
+track_changes =  Params[PARAMS_TRACK_CHANGES]
+is_delta_extract =  Params[PARAMS_DELTA_EXTRACT]
+
+
 # COMMAND ----------
 
 # DBTITLE 1,9. Set raw and cleansed table name
@@ -154,29 +169,10 @@ print(delta_raw_tbl_name)
 
 # COMMAND ----------
 
-# DBTITLE 1,10. Load to Cleanse Delta Table from Raw Delta Table
-#This method uses the source table to load data into target Delta Table
-DeltaSaveToDeltaTable (
-    source_table = delta_raw_tbl_name,
-    target_table = target_table,
-    target_data_lake_zone = ADS_DATALAKE_ZONE_CLEANSED,
-    target_database = ADS_DATABASE_STAGE,
-    data_lake_folder = data_lake_folder,
-    data_load_mode = data_load_mode,
-    track_changes =  Params[PARAMS_TRACK_CHANGES],
-    is_delta_extract =  Params[PARAMS_DELTA_EXTRACT],
-    business_key =  Params[PARAMS_BUSINESS_KEY_COLUMN],
-    delta_column = delta_column,
-    start_counter = start_counter,
-    end_counter = end_counter
-)
-
-# COMMAND ----------
-
-# DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
-#Update/rename Column
-#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
-df_cleansed = spark.sql(f"SELECT  \
+# DBTITLE 1,10. Load Raw to Dataframe & Do Transformations
+df = spark.sql(f"WITH stage AS \
+                      (Select *, ROW_NUMBER() OVER (PARTITION BY ANLAGE,BIS ORDER BY _DLRawZoneTimestamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
+                           SELECT  \
                                   case when stg.ANLAGE = 'na' then '' else stg.ANLAGE end as installationId, \
                                   ToValidDate((case when stg.BIS = 'na' then '9999-12-31' else stg.BIS end),'MANDATORY') as validToDate, \
                                   ToValidDate(stg.AB) as validFromDate, \
@@ -191,11 +187,12 @@ df_cleansed = spark.sql(f"SELECT  \
                                   nt.industry as industrySystem, \
                                   stg.UPDMOD as deltaProcessRecordMode, \
                                   stg.ZLOGIKNR as logicalDeviceNumber, \
-                                  stg._RecordStart, \
-                                  stg._RecordEnd, \
-                                  stg._RecordDeleted, \
-                                  stg._RecordCurrent \
-                               FROM {ADS_DATABASE_STAGE}.{source_object} stg \
+                                  cast('1900-01-01' as TimeStamp) as _RecordStart, \
+                                  cast('9999-12-31' as TimeStamp) as _RecordEnd, \
+                                  '0' as _RecordDeleted, \
+                                  '1' as _RecordCurrent, \
+                                  cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
+                        FROM stage stg \
                                  left outer join {ADS_DATABASE_CLEANSED}.isu_0uc_aklasse_text bc on bc.billingClass = stg.AKLASSE \
                                                                                                     and bc._RecordDeleted = 0 and bc._RecordCurrent = 1 \
                                  left outer join {ADS_DATABASE_CLEANSED}.isu_0uc_tariftyp_text tt on tt.TARIFTYP = stg.TARIFTYP \
@@ -203,39 +200,77 @@ df_cleansed = spark.sql(f"SELECT  \
                                  left outer join {ADS_DATABASE_CLEANSED}.isu_0ind_sector_text st on st.industrySystem = stg.ISTYPE and st.industryCode = stg.BRANCHE \
                                                                                                     and st._RecordDeleted = 0 and st._RecordCurrent = 1 \
                                  left outer join {ADS_DATABASE_CLEANSED}.isu_0ind_numsys_text nt on nt.industrySystem = stg.ISTYPE \
-                                                                                                    and nt._RecordDeleted = 0 and nt._RecordCurrent = 1")
+                                                                                                    and nt._RecordDeleted = 0 and nt._RecordCurrent = 1 \
+                        where stg._RecordVersion = 1 ").cache()
 
-print(f'Number of rows: {df_cleansed.count()}')
+print(f'Number of rows: {df.count()}')
 
 # COMMAND ----------
 
-newSchema = StructType([
-                          StructField('installationId', StringType(), False),
-                          StructField('validToDate', DateType(), False),
-                          StructField('validFromDate', DateType(), True),
-                          StructField('rateCategoryCode', StringType(), True),
-                          StructField('rateCategory', StringType(), True),
-                          StructField('industryCode', StringType(), True),
-                          StructField('industry', StringType(), True),
-                          StructField('billingClassCode', StringType(), True),
-                          StructField('billingClass', StringType(), True),
-                          StructField('meterReadingUnit', StringType(), True),
-                          StructField('industrySystemCode', StringType(), True),
-                          StructField('industrySystem', StringType(), True),
-                          StructField('deltaProcessRecordMode', StringType(), True),
-                          StructField('logicalDeviceNumber', StringType(), True),
-                          StructField('_RecordStart',TimestampType(),False),
-                          StructField('_RecordEnd',TimestampType(),False),
-                          StructField('_RecordDeleted',IntegerType(),False),
-                          StructField('_RecordCurrent',IntegerType(),False)
-])
+# DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
+#Update/rename Column
+#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
+# df_cleansed = spark.sql(f"SELECT  \
+#                                   case when stg.ANLAGE = 'na' then '' else stg.ANLAGE end as installationId, \
+#                                   ToValidDate((case when stg.BIS = 'na' then '9999-12-31' else stg.BIS end),'MANDATORY') as validToDate, \
+#                                   ToValidDate(stg.AB) as validFromDate, \
+#                                   stg.TARIFTYP as rateCategoryCode, \
+#                                   tt.TTYPBEZ as rateCategory, \
+#                                   stg.BRANCHE as industryCode, \
+#                                   st.industry, \
+#                                   stg.AKLASSE as billingClassCode, \
+#                                   bc.billingClass as billingClass, \
+#                                   stg.ABLEINH as meterReadingUnit, \
+#                                   stg.ISTYPE as industrySystemCode, \
+#                                   nt.industry as industrySystem, \
+#                                   stg.UPDMOD as deltaProcessRecordMode, \
+#                                   stg.ZLOGIKNR as logicalDeviceNumber, \
+#                                   stg._RecordStart, \
+#                                   stg._RecordEnd, \
+#                                   stg._RecordDeleted, \
+#                                   stg._RecordCurrent \
+#                                FROM {ADS_DATABASE_STAGE}.{source_object} stg \
+#                                  left outer join {ADS_DATABASE_CLEANSED}.isu_0uc_aklasse_text bc on bc.billingClass = stg.AKLASSE \
+#                                                                                                     and bc._RecordDeleted = 0 and bc._RecordCurrent = 1 \
+#                                  left outer join {ADS_DATABASE_CLEANSED}.isu_0uc_tariftyp_text tt on tt.TARIFTYP = stg.TARIFTYP \
+#                                                                                                     and tt._RecordDeleted = 0 and tt._RecordCurrent = 1 \
+#                                  left outer join {ADS_DATABASE_CLEANSED}.isu_0ind_sector_text st on st.industrySystem = stg.ISTYPE and st.industryCode = stg.BRANCHE \
+#                                                                                                     and st._RecordDeleted = 0 and st._RecordCurrent = 1 \
+#                                  left outer join {ADS_DATABASE_CLEANSED}.isu_0ind_numsys_text nt on nt.industrySystem = stg.ISTYPE \
+#                                                                                                     and nt._RecordDeleted = 0 and nt._RecordCurrent = 1")
+
+# print(f'Number of rows: {df_cleansed.count()}')
+
+# COMMAND ----------
+
+# newSchema = StructType([
+#                           StructField('installationId', StringType(), False),
+#                           StructField('validToDate', DateType(), False),
+#                           StructField('validFromDate', DateType(), True),
+#                           StructField('rateCategoryCode', StringType(), True),
+#                           StructField('rateCategory', StringType(), True),
+#                           StructField('industryCode', StringType(), True),
+#                           StructField('industry', StringType(), True),
+#                           StructField('billingClassCode', StringType(), True),
+#                           StructField('billingClass', StringType(), True),
+#                           StructField('meterReadingUnit', StringType(), True),
+#                           StructField('industrySystemCode', StringType(), True),
+#                           StructField('industrySystem', StringType(), True),
+#                           StructField('deltaProcessRecordMode', StringType(), True),
+#                           StructField('logicalDeviceNumber', StringType(), True),
+#                           StructField('_RecordStart',TimestampType(),False),
+#                           StructField('_RecordEnd',TimestampType(),False),
+#                           StructField('_RecordDeleted',IntegerType(),False),
+#                           StructField('_RecordCurrent',IntegerType(),False)
+# ])
 
 
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
-#Save Data frame into Cleansed Delta table (final)
-DeltaSaveDataframeDirect(df_cleansed, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", newSchema, "")
+DeltaSaveDataFrameToDeltaTableNew(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
+#clear cache
+df.unpersist()
 
 # COMMAND ----------
 

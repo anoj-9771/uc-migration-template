@@ -113,7 +113,7 @@ source_group = GeneralAlignTableName(source_group)
 print("source_group: " + source_group)
 
 #Get Data Lake Folder
-data_lake_folder = source_group + "/stg"
+data_lake_folder = source_group
 print("data_lake_folder: " + data_lake_folder)
 
 #Get and Align Source Table Name (replace '[-@ ,;{}()]' character by '_')
@@ -139,6 +139,21 @@ print("delta_column: " + delta_column)
 data_load_mode = GeneralGetDataLoadMode(Params[PARAMS_TRUNCATE_TARGET], Params[PARAMS_UPSERT_TARGET], Params[PARAMS_APPEND_TARGET])
 print("data_load_mode: " + data_load_mode)
 
+#Get the start time of the last successful cleansed load execution
+LastSuccessfulExecutionTS = Params["LastSuccessfulExecutionTS"]
+print("LastSuccessfulExecutionTS: " + LastSuccessfulExecutionTS)
+
+#Get current time
+#CurrentTimeStamp = spark.sql("select current_timestamp()").first()[0]
+CurrentTimeStamp = GeneralLocalDateTime()
+CurrentTimeStamp = CurrentTimeStamp.strftime("%Y-%m-%d %H:%M:%S")
+
+#Get business key,track_changes and delta_extract flag
+business_key =  Params[PARAMS_BUSINESS_KEY_COLUMN]
+track_changes =  Params[PARAMS_TRACK_CHANGES]
+is_delta_extract =  Params[PARAMS_DELTA_EXTRACT]
+
+
 # COMMAND ----------
 
 # DBTITLE 1,9. Set raw and cleansed table name
@@ -154,29 +169,10 @@ print(delta_raw_tbl_name)
 
 # COMMAND ----------
 
-# DBTITLE 1,10. Load to Cleanse Delta Table from Raw Delta Table
-#This method uses the source table to load data into target Delta Table
-DeltaSaveToDeltaTable (
-    source_table = delta_raw_tbl_name,
-    target_table = target_table,
-    target_data_lake_zone = ADS_DATALAKE_ZONE_CLEANSED,
-    target_database = ADS_DATABASE_STAGE,
-    data_lake_folder = data_lake_folder,
-    data_load_mode = data_load_mode,
-    track_changes =  Params[PARAMS_TRACK_CHANGES],
-    is_delta_extract =  Params[PARAMS_DELTA_EXTRACT],
-    business_key =  Params[PARAMS_BUSINESS_KEY_COLUMN],
-    delta_column = delta_column,
-    start_counter = start_counter,
-    end_counter = end_counter
-)
-
-# COMMAND ----------
-
-# DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
-#Update/rename Column
-#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
-df_cleansed = spark.sql(f"SELECT  \
+# DBTITLE 1,10. Load Raw to Dataframe & Do Transformations
+df = spark.sql(f"WITH stage AS \
+                      (Select *, ROW_NUMBER() OVER (PARTITION BY TPLNR ORDER BY _DLRawZoneTimestamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
+                           SELECT  \
                                   case when TPLNR = 'na' then '' else TPLNR end as functionalLocationNumber, \
                                   FLTYP as functionalLocationCategory, \
                                   IWERK as maintenancePlanningPlant, \
@@ -185,7 +181,6 @@ df_cleansed = spark.sql(f"SELECT  \
                                   KOKRS as controllingArea, \
                                   BUKRS as companyCode, \
                                   cc.companyName as companyName, \
-                                  ALKEY as labellingSystem, \
                                   PROID as workBreakdownStructureElement, \
                                   ToValidDate(ERDAT) as createdDate, \
                                   ToValidDate(AEDAT) as lastChangedDate, \
@@ -225,81 +220,146 @@ df_cleansed = spark.sql(f"SELECT  \
                                   ZZZ_REGION as stateCodeSecondary, \
                                   ZZZ_POST_CODE1 as postcodeSecondary, \
                                   ZCD_BLD_FEE_DATE as buildingFeeDate, \
-                                  stg._RecordStart, \
-                                  stg._RecordEnd, \
-                                  stg._RecordDeleted, \
-                                  stg._RecordCurrent \
-                               FROM {ADS_DATABASE_STAGE}.{source_object} stg \
+                                  cast('1900-01-01' as TimeStamp) as _RecordStart, \
+                                  cast('9999-12-31' as TimeStamp) as _RecordEnd, \
+                                  '0' as _RecordDeleted, \
+                                  '1' as _RecordCurrent, \
+                                  cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
+                        FROM stage stg \
                                  left outer join {ADS_DATABASE_CLEANSED}.isu_0comp_code_text cc on cc.companyCode = stg.BUKRS \
-                                                                                                    and cc._RecordDeleted = 0 and cc._RecordCurrent = 1"
-                              )
+                                                                                                    and cc._RecordDeleted = 0 and cc._RecordCurrent = 1 \
+                        where stg._RecordVersion = 1 ").cache()
 
-print(f'Number of rows: {df_cleansed.count()}')
+print(f'Number of rows: {df.count()}')
 
 # COMMAND ----------
 
-newSchema = StructType([
-                          StructField('functionalLocationNumber', StringType(), False),
-                          StructField('functionalLocationCategory', StringType(), True),
-                          StructField('maintenancePlanningPlant', StringType(), True),
-                          StructField('maintenancePlant', StringType(), True),
-                          StructField('addressNumber', StringType(), True),
-                          StructField('controllingArea', StringType(), True),
-                          StructField('companyCode', StringType(), True),
-                          StructField('companyName', StringType(), True),
-                          StructField('labellingSystem', StringType(), True),
-                          StructField('workBreakdownStructureElement', StringType(), True),
-                          StructField('createdDate', DateType(), True),
-                          StructField('lastChangedDate', DateType(), True),
-                          StructField('architecturalObjectCount', StringType(), True),
-                          StructField('zzAddressNumber', StringType(), True),
-                          StructField('objectReferenceIndicator', StringType(), True),
-                          StructField('premiseId', StringType(), True),
-                          StructField('installationId', StringType(), True),
-                          StructField('contractAccountNumber', StringType(), True),
-                          StructField('alternativeAddressNumber', StringType(), True),
-                          StructField('objectNumber', StringType(), True),
-                          StructField('identificationNumber', StringType(), True),
-                          StructField('businessPartnerNumber', StringType(), True),
-                          StructField('connectionObjectId', StringType(), True),
-                          StructField('locationDescription', StringType(), True),
-                          StructField('buildingNumber', StringType(), True),
-                          StructField('floorNumber', StringType(), True),
-                          StructField('houseNumber2', StringType(), True),
-                          StructField('houseNumber3', StringType(), True),
-                          StructField('houseNumber1', StringType(), True),
-                          StructField('streetName', StringType(), True),
-                          StructField('streetLine1', StringType(), True),
-                          StructField('streetLine2', StringType(), True),
-                          StructField('cityName', StringType(), True),
-                          StructField('stateCode', StringType(), True),
-                          StructField('postcode', StringType(), True),
-                          StructField('locationDescriptionSecondary', StringType(), True),
-                          StructField('buildingNumberSecondary', StringType(), True),
-                          StructField('floorNumberSecondary', StringType(), True),
-                          StructField('houseNumber2Secondary', StringType(), True),
-                          StructField('houseNumber3Secondary', StringType(), True),
-                          StructField('houseNumber1Secondary', StringType(), True),
-                          StructField('streetNameSecondary', StringType(), True),
-                          StructField('streetLine1Secondary', StringType(), True),
-                          StructField('streetLine2Secondary', StringType(), True),
-                          StructField('cityNameSecondary', StringType(), True),
-                          StructField('stateCodeSecondary', StringType(), True),
-                          StructField('postcodeSecondary', StringType(), True),
-                          StructField('buildingFeeDate', StringType(), True),
-                          StructField('_RecordStart',TimestampType(),False),
-                          StructField('_RecordEnd',TimestampType(),False),
-                          StructField('_RecordDeleted',IntegerType(),False),
-                          StructField('_RecordCurrent',IntegerType(),False)
-])
+# DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
+#Update/rename Column
+#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
+# df_cleansed = spark.sql(f"SELECT  \
+#                                   case when TPLNR = 'na' then '' else TPLNR end as functionalLocationNumber, \
+#                                   FLTYP as functionalLocationCategory, \
+#                                   IWERK as maintenancePlanningPlant, \
+#                                   SWERK as maintenancePlant, \
+#                                   ADRNR as addressNumber, \
+#                                   KOKRS as controllingArea, \
+#                                   BUKRS as companyCode, \
+#                                   cc.companyName as companyName, \
+#                                   PROID as workBreakdownStructureElement, \
+#                                   ToValidDate(ERDAT) as createdDate, \
+#                                   ToValidDate(AEDAT) as lastChangedDate, \
+#                                   ZZ_ZCD_AONR as architecturalObjectCount, \
+#                                   ZZ_ADRNR as zzAddressNumber, \
+#                                   ZZ_OWNER as objectReferenceIndicator, \
+#                                   ZZ_VSTELLE as premiseId, \
+#                                   ZZ_ANLAGE as installationId, \
+#                                   ZZ_VKONTO as contractAccountNumber, \
+#                                   ZZADRMA as alternativeAddressNumber, \
+#                                   ZZ_OBJNR as objectNumber, \
+#                                   ZZ_IDNUMBER as identificationNumber, \
+#                                   ZZ_GPART as businessPartnerNumber, \
+#                                   ZZ_HAUS as connectionObjectId, \
+#                                   ZZ_LOCATION as locationDescription, \
+#                                   ZZ_BUILDING as buildingNumber, \
+#                                   ZZ_FLOOR as floorNumber, \
+#                                   ZZ_HOUSE_NUM2 as houseNumber2, \
+#                                   ZZ_HOUSE_NUM3 as houseNumber3, \
+#                                   ZZ_HOUSE_NUM1 as houseNumber1, \
+#                                   ZZ_STREET as streetName, \
+#                                   ZZ_STR_SUPPL1 as streetLine1, \
+#                                   ZZ_STR_SUPPL2 as streetLine2, \
+#                                   ZZ_CITY1 as cityName, \
+#                                   ZZ_REGION as stateCode, \
+#                                   ZZ_POST_CODE1 as postcode, \
+#                                   ZZZ_LOCATION as locationDescriptionSecondary, \
+#                                   ZZZ_BUILDING as buildingNumberSecondary, \
+#                                   ZZZ_FLOOR as floorNumberSecondary, \
+#                                   ZZZ_HOUSE_NUM2 as houseNumber2Secondary, \
+#                                   ZZZ_HOUSE_NUM3 as houseNumber3Secondary, \
+#                                   ZZZ_HOUSE_NUM1 as houseNumber1Secondary, \
+#                                   ZZZ_STREET as streetNameSecondary, \
+#                                   ZZZ_STR_SUPPL1 as streetLine1Secondary, \
+#                                   ZZZ_STR_SUPPL2 as streetLine2Secondary, \
+#                                   ZZZ_CITY1 as cityNameSecondary, \
+#                                   ZZZ_REGION as stateCodeSecondary, \
+#                                   ZZZ_POST_CODE1 as postcodeSecondary, \
+#                                   ZCD_BLD_FEE_DATE as buildingFeeDate, \
+#                                   stg._RecordStart, \
+#                                   stg._RecordEnd, \
+#                                   stg._RecordDeleted, \
+#                                   stg._RecordCurrent \
+#                                FROM {ADS_DATABASE_STAGE}.{source_object} stg \
+#                                  left outer join {ADS_DATABASE_CLEANSED}.isu_0comp_code_text cc on cc.companyCode = stg.BUKRS \
+#                                                                                                     and cc._RecordDeleted = 0 and cc._RecordCurrent = 1"
+#                               )
+
+# print(f'Number of rows: {df_cleansed.count()}')
+
+# COMMAND ----------
+
+# newSchema = StructType([
+#                           StructField('functionalLocationNumber', StringType(), False),
+#                           StructField('functionalLocationCategory', StringType(), True),
+#                           StructField('maintenancePlanningPlant', StringType(), True),
+#                           StructField('maintenancePlant', StringType(), True),
+#                           StructField('addressNumber', StringType(), True),
+#                           StructField('controllingArea', StringType(), True),
+#                           StructField('companyCode', StringType(), True),
+#                           StructField('companyName', StringType(), True),
+#                           StructField('workBreakdownStructureElement', StringType(), True),
+#                           StructField('createdDate', DateType(), True),
+#                           StructField('lastChangedDate', DateType(), True),
+#                           StructField('architecturalObjectCount', StringType(), True),
+#                           StructField('zzAddressNumber', StringType(), True),
+#                           StructField('objectReferenceIndicator', StringType(), True),
+#                           StructField('premiseId', StringType(), True),
+#                           StructField('installationId', StringType(), True),
+#                           StructField('contractAccountNumber', StringType(), True),
+#                           StructField('alternativeAddressNumber', StringType(), True),
+#                           StructField('objectNumber', StringType(), True),
+#                           StructField('identificationNumber', StringType(), True),
+#                           StructField('businessPartnerNumber', StringType(), True),
+#                           StructField('connectionObjectId', StringType(), True),
+#                           StructField('locationDescription', StringType(), True),
+#                           StructField('buildingNumber', StringType(), True),
+#                           StructField('floorNumber', StringType(), True),
+#                           StructField('houseNumber2', StringType(), True),
+#                           StructField('houseNumber3', StringType(), True),
+#                           StructField('houseNumber1', StringType(), True),
+#                           StructField('streetName', StringType(), True),
+#                           StructField('streetLine1', StringType(), True),
+#                           StructField('streetLine2', StringType(), True),
+#                           StructField('cityName', StringType(), True),
+#                           StructField('stateCode', StringType(), True),
+#                           StructField('postcode', StringType(), True),
+#                           StructField('locationDescriptionSecondary', StringType(), True),
+#                           StructField('buildingNumberSecondary', StringType(), True),
+#                           StructField('floorNumberSecondary', StringType(), True),
+#                           StructField('houseNumber2Secondary', StringType(), True),
+#                           StructField('houseNumber3Secondary', StringType(), True),
+#                           StructField('houseNumber1Secondary', StringType(), True),
+#                           StructField('streetNameSecondary', StringType(), True),
+#                           StructField('streetLine1Secondary', StringType(), True),
+#                           StructField('streetLine2Secondary', StringType(), True),
+#                           StructField('cityNameSecondary', StringType(), True),
+#                           StructField('stateCodeSecondary', StringType(), True),
+#                           StructField('postcodeSecondary', StringType(), True),
+#                           StructField('buildingFeeDate', StringType(), True),
+#                           StructField('_RecordStart',TimestampType(),False),
+#                           StructField('_RecordEnd',TimestampType(),False),
+#                           StructField('_RecordDeleted',IntegerType(),False),
+#                           StructField('_RecordCurrent',IntegerType(),False)
+# ])
 
 
 
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
-#Save Data frame into Cleansed Delta table (final)
-DeltaSaveDataframeDirect(df_cleansed, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", newSchema, "")
+DeltaSaveDataFrameToDeltaTableNew(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
+#clear cache
+df.unpersist()
 
 # COMMAND ----------
 
