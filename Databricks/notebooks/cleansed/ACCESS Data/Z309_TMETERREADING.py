@@ -284,7 +284,7 @@ df_cleansed = spark.sql(f"SELECT cast(N_PROP as int) AS propertyNumber, \
          left outer join CLEANSED.access_Z309_TMETEREADCONTYP f on a.C_METE_READ_CONS = f.consumptionTypeCode \
          left outer join CLEANSED.access_Z309_TMRSTATUSTYPE g on a.C_METE_READ_STAT = g.meterReadingStatusCode \
          left outer join CLEANSED.access_Z309_TMETERCANTREAD h on coalesce(a.C_METE_CANT_READ,'') = h.cannotReadCode \
-         left outer join CLEANSED.access_Z309_TPDEREADMETH i on a.C_PDE_READ_METH = i.PDEReadingMethodCode \")
+         left outer join CLEANSED.access_Z309_TPDEREADMETH i on a.C_PDE_READ_METH = i.PDEReadingMethodCode")
 
 print(f'Number of rows: {df_cleansed.count()}')   
 
@@ -296,14 +296,14 @@ newSchema = StructType([
 	StructField('meterReadingNumber',IntegerType(),False),
 	StructField('meterReadingToleranceCode',StringType(),True),
     StructField('meterReadingTolerance',StringType(),True),
-	StructField('meterReadingTypeCode',StringType(),False),
-    StructField('meterReadingType',StringType(),False),
+	StructField('meterReadingTypeCode',StringType(),True),
+    StructField('meterReadingType',StringType(),True),
 	StructField('consumptionTypeCode',StringType(),True),
     StructField('consumptionType',StringType(),True),
 	StructField('meterReadingStatusCode',StringType(),True),
     StructField('meterReadingStatus',StringType(),True),
-	StructField('cannotReadCode',StringType(),False),
-    StructField('cannotReadReason',StringType(),False),
+	StructField('cannotReadCode',StringType(),True),
+    StructField('cannotReadReason',StringType(),True),
 	StructField('PDEReadingMethodCode',StringType(),True),
     StructField('PDEReadingMethod',StringType(),True),
 	StructField('meterReading',DecimalType(9,0),False),

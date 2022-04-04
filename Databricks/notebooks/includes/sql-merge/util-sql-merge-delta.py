@@ -479,7 +479,7 @@ def _SQLInsertSyntax_DeltaTable_Generate(dataframe, is_delta_extract, delta_colu
     sql_values += f"to_timestamp(cast ({col_record_start} as string), 'yyyyMMddHHmmss'), "
   else:
     sql_values += f"{col_record_start}, "
-  sql_values += f"to_timestamp('2099-12-31 00:00:00'), {delete_flag}, 1"
+  sql_values += f"to_timestamp('9999-12-31 00:00:00'), {delete_flag}, 1"
   #Build the INSERT SQL with column list and values list
   if not is_delta_extract and target_data_lake_zone == ADS_DATABASE_CLEANSED and only_insert:
     sql = f"INSERT INTO {target_table} ({sql_col}) SELECT {sql_values} FROM {source_table}" 

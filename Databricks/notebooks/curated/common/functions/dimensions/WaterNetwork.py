@@ -25,10 +25,10 @@ def getWaterNetwork():
 
     baseDf = spark.sql(f"select level30 as deliverySystem, \
                                 level40 as distributionSystem, \
-                                level50 as reservoirZone, \
+                                level50 as supplyZone, \
                                 coalesce(level60,'n/a') as pressureArea, \
-                                case when product = 'Water' then 'Y' else 'N' end as isPotableWaterSystem, \
-                                case when product = 'RecycledWater' then 'Y' else 'N' end as isRecycledWaterSystem \
+                                case when product = 'Water' then true else false end as isPotableWaterNetwork, \
+                                case when product = 'RecycledWater' then true else false end as isRecycledWaterNetwork \
                         from {ADS_DATABASE_CLEANSED}.hydra_TSYSTEMAREA \
                         where product in ('Water','RecycledWater') \
                         and   _RecordDeleted = 0 \
@@ -47,20 +47,20 @@ def getWaterNetwork():
     df = baseDf.selectExpr( \
      "deliverySystem" \
     ,"distributionSystem" \
-    ,"reservoirZone" \
+    ,"supplyZone" \
     ,"pressureArea" \
-    ,"isPotableWaterSystem" \
-    ,"isRecycledWaterSystem" \
+    ,"isPotableWaterNetwork" \
+    ,"isRecycledWaterNetwork" \
     )
                                             
     #6.Apply schema definition
     newSchema = StructType([
                             StructField("deliverySystem", StringType(), False),
                             StructField("distributionSystem", StringType(), False),
-                            StructField("reservoirZone", StringType(), False),
+                            StructField("supplyZone", StringType(), False),
                             StructField("pressureArea", StringType(), True),
-                            StructField("isPotableWaterSystem", StringType(), False),
-                            StructField("isRecycledWaterSystem", StringType(), False)
+                            StructField("isPotableWaterNetwork", BooleanType(), False),
+                            StructField("isRecycledWaterNetwork", BooleanType(), False)
                       ])
 
     df = spark.createDataFrame(df.rdd, schema=newSchema)
@@ -72,3 +72,7 @@ def getWaterNetwork():
 # ADS_DATABASE_CLEANSED = 'cleansed'
 # df = getWaterNetwork()
 # display(df)
+
+# COMMAND ----------
+
+

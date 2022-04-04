@@ -113,7 +113,7 @@ source_group = GeneralAlignTableName(source_group)
 print("source_group: " + source_group)
 
 #Get Data Lake Folder
-data_lake_folder = source_group + "/stg"
+data_lake_folder = source_group
 print("data_lake_folder: " + data_lake_folder)
 
 #Get and Align Source Table Name (replace '[-@ ,;{}()]' character by '_')
@@ -139,6 +139,21 @@ print("delta_column: " + delta_column)
 data_load_mode = GeneralGetDataLoadMode(Params[PARAMS_TRUNCATE_TARGET], Params[PARAMS_UPSERT_TARGET], Params[PARAMS_APPEND_TARGET])
 print("data_load_mode: " + data_load_mode)
 
+#Get the start time of the last successful cleansed load execution
+LastSuccessfulExecutionTS = Params["LastSuccessfulExecutionTS"]
+print("LastSuccessfulExecutionTS: " + LastSuccessfulExecutionTS)
+
+#Get current time
+#CurrentTimeStamp = spark.sql("select current_timestamp()").first()[0]
+CurrentTimeStamp = GeneralLocalDateTime()
+CurrentTimeStamp = CurrentTimeStamp.strftime("%Y-%m-%d %H:%M:%S")
+
+#Get business key,track_changes and delta_extract flag
+business_key =  Params[PARAMS_BUSINESS_KEY_COLUMN]
+track_changes =  Params[PARAMS_TRACK_CHANGES]
+is_delta_extract =  Params[PARAMS_DELTA_EXTRACT]
+
+
 # COMMAND ----------
 
 # DBTITLE 1,9. Set raw and cleansed table name
@@ -154,29 +169,11 @@ print(delta_raw_tbl_name)
 
 # COMMAND ----------
 
-# DBTITLE 1,10. Load to Cleanse Delta Table from Raw Delta Table
-#This method uses the source table to load data into target Delta Table
-DeltaSaveToDeltaTable (
-    source_table = delta_raw_tbl_name,
-    target_table = target_table,
-    target_data_lake_zone = ADS_DATALAKE_ZONE_CLEANSED,
-    target_database = ADS_DATABASE_STAGE,
-    data_lake_folder = data_lake_folder,
-    data_load_mode = data_load_mode,
-    track_changes =  Params[PARAMS_TRACK_CHANGES],
-    is_delta_extract =  Params[PARAMS_DELTA_EXTRACT],
-    business_key =  Params[PARAMS_BUSINESS_KEY_COLUMN],
-    delta_column = delta_column,
-    start_counter = start_counter,
-    end_counter = end_counter
-)
-
-# COMMAND ----------
-
-# DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
-#Update/rename Column
-#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
-df_cleansed = spark.sql(f"SELECT \
+# DBTITLE 1,10. Load Raw to Dataframe & Do Transformations
+df = spark.sql(f"WITH stage AS \
+                      (Select *, ROW_NUMBER() OVER (PARTITION BY OPBEL,OPUPW,OPUPK,OPUPZ ORDER BY _DLRawZoneTimestamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} \
+                                  WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
+                           SELECT \
                                 case when OPBEL = 'na' then '' else OPBEL end as contractDocumentNumber, \
                                 case when OPUPW = 'na' then '' else OPUPW end as repetitionItem, \
                                 case when OPUPK = 'na' then '' else OPUPK end as itemNumber, \
@@ -241,101 +238,190 @@ df_cleansed = spark.sql(f"SELECT \
                                 STORB as reversalDocumentNumber, \
                                 FIKEY as reconciliationKeyForGeneralLedger, \
                                 XCLOS as furtherPostingIndicator, \
-                                bp._RecordStart, \
-                                bp._RecordEnd, \
-                                bp._RecordDeleted, \
-                                bp._RecordCurrent \
-                        FROM {ADS_DATABASE_STAGE}.{source_object} bp \
-                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0COMP_CODE_TEXT cc ON bp.BUKRS = cc.companyCode and cc._RecordDeleted = 0 and cc._RecordCurrent = 1 \
-                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UC_HVORG_TEXT ho ON bp.APPLK = ho.applicationArea and bp.HVORG = ho.mainTransactionLineItemCode \
-                                                                                         and ho._RecordDeleted = 0 and ho._RecordCurrent = 1 \
-                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UC_TVORG_TEXT to ON bp.APPLK = to.applicationArea and bp.HVORG = to.mainTransactionLineItemCode \
-                                                                                         and bp.TVORG = to.subtransactionLineItemCode and to._RecordDeleted = 0 and to._RecordCurrent = 1 \
-                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0FC_BLART_TEXT bl ON bp.APPLK = bl.applicationArea and bp.BLART = bl.documentTypeCode \
-                                                                                         and bl._RecordDeleted = 0 and bl._RecordCurrent = 1 \
-                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0FCACTDETID_TEXT fc ON bp.KOFIZ = fc.accountDeterminationCode and fc._RecordDeleted = 0 and fc._RecordCurrent = 1")
-                        
-print(f'Number of rows: {df_cleansed.count()}')
+                                cast('1900-01-01' as TimeStamp) as _RecordStart, \
+                                cast('9999-12-31' as TimeStamp) as _RecordEnd, \
+                                '0' as _RecordDeleted, \
+                                '1' as _RecordCurrent, \
+                                cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
+                         FROM stage bp \
+                            LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0COMP_CODE_TEXT cc ON bp.BUKRS = cc.companyCode and cc._RecordDeleted = 0 and cc._RecordCurrent = 1 \
+                            LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UC_HVORG_TEXT ho ON bp.APPLK = ho.applicationArea and bp.HVORG = ho.mainTransactionLineItemCode \
+                                                                                             and ho._RecordDeleted = 0 and ho._RecordCurrent = 1 \
+                            LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UC_TVORG_TEXT to ON bp.APPLK = to.applicationArea and bp.HVORG = to.mainTransactionLineItemCode \
+                                                                                             and bp.TVORG = to.subtransactionLineItemCode and to._RecordDeleted = 0 and to._RecordCurrent = 1 \
+                            LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0FC_BLART_TEXT bl ON bp.APPLK = bl.applicationArea and bp.BLART = bl.documentTypeCode \
+                                                                                             and bl._RecordDeleted = 0 and bl._RecordCurrent = 1 \
+                            LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0FCACTDETID_TEXT fc ON bp.KOFIZ = fc.accountDeterminationCode and fc._RecordDeleted = 0 and fc._RecordCurrent = 1 \
+                         where bp._RecordVersion = 1 ").cache()
+
+print(f'Number of rows: {df.count()}')
 
 # COMMAND ----------
 
-newSchema = StructType([
-	StructField('contractDocumentNumber',StringType(),False),
-	StructField('repetitionItem',StringType(),False),
-	StructField('itemNumber',StringType(),False),
-	StructField('partialClearingSubitem',StringType(),False),
-	StructField('companyCode',StringType(),True),
-	StructField('company',StringType(),True),
-	StructField('clearingStatus',StringType(),True),
-	StructField('businessPartnerGroupNumber',StringType(),True),
-	StructField('contractReferenceSpecification',StringType(),True),
-	StructField('contractAccountNumber',StringType(),True),
-	StructField('ficaDocumentNumber',StringType(),True),
-	StructField('ficaDocumentCategory',StringType(),True),
-	StructField('applicationArea',StringType(),True),
-	StructField('mainTransactionLineItemCode',StringType(),True),
-	StructField('mainTransactionLineItem',StringType(),True),
-	StructField('subtransactionLineItemCode',StringType(),True),
-	StructField('subtransactionLineItem',StringType(),True),
-	StructField('accountDeterminationCode',StringType(),True),
-	StructField('accountDetermination',StringType(),True),
-	StructField('divisionCode',StringType(),True),
-	StructField('accountGeneralLedger',StringType(),True),
-	StructField('taxSalesCode',StringType(),True),
-	StructField('downPaymentIndicator',StringType(),True),
-	StructField('statisticalItemType',StringType(),True),
-	StructField('documentDate',DateType(),True),
-	StructField('postingDate',DateType(),True),
-	StructField('currencyKey',StringType(),True),
-	StructField('paymentDueDate',DateType(),True),
-	StructField('cashDiscountDueDate',DateType(),True),
-	StructField('deferralToDate',DateType(),True),
-	StructField('cashDiscountPercentageRate',DecimalType(5,2),True),
-	StructField('amountLocalCurrency',DecimalType(13,2),True),
-	StructField('amountTransactionCurrency',StringType(),True),
-	StructField('amountEligibleCashDiscount',DecimalType(13,2),True),
-	StructField('taxAmountLocalCurrency',DecimalType(13,2),True),
-	StructField('taxAmountTransactionCurrency',DecimalType(13,2),True),
-	StructField('clearingDate',DateType(),True),
-	StructField('clearingDocument',StringType(),True),
-	StructField('clearingDocumentPostingDate',DateType(),True),
-	StructField('clearingReason',StringType(),True),
-	StructField('clearingCurrency',StringType(),True),
-	StructField('clearingAmount',DecimalType(13,2),True),
-	StructField('taxAmountClearingCurrency',DecimalType(13,2),True),
-	StructField('cashDiscount',DecimalType(13,2),True),
-	StructField('clearingValueDate',DateType(),True),
-	StructField('settlementPeriodLowerLimit',DateType(),True),
-	StructField('billingPeriodUpperLimit',DateType(),True),
-	StructField('clearingRestriction',StringType(),True),
-	StructField('valueAdjustment',StringType(),True),
-	StructField('documentTypeCode',StringType(),True),
-	StructField('documentType',StringType(),True),
-	StructField('referenceDocumentNumber',StringType(),True),
-	StructField('collectionItem',StringType(),True),
-	StructField('checkReason',StringType(),True),
-	StructField('taxPortion',DecimalType(13,2),True),
-	StructField('taxAmountDocument',DecimalType(13,2),True),
-	StructField('writeOffReasonCode',StringType(),True),
-	StructField('documentOriginCode',StringType(),True),
-	StructField('documentEnteredDate',DateType(),True),
-	StructField('referenceProcedure',StringType(),True),
-	StructField('objectKey',StringType(),True),
-	StructField('reversalDocumentNumber',StringType(),True),
-	StructField('reconciliationKeyForGeneralLedger',StringType(),True),
-	StructField('furtherPostingIndicator',StringType(),True),
-	StructField('_RecordStart',TimestampType(),False),
-	StructField('_RecordEnd',TimestampType(),False),
-	StructField('_RecordDeleted',IntegerType(),False),
-	StructField('_RecordCurrent',IntegerType(),False)
-])
+# DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
+#Update/rename Column
+#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
+# df_cleansed = spark.sql(f"SELECT \
+#                                 case when OPBEL = 'na' then '' else OPBEL end as contractDocumentNumber, \
+#                                 case when OPUPW = 'na' then '' else OPUPW end as repetitionItem, \
+#                                 case when OPUPK = 'na' then '' else OPUPK end as itemNumber, \
+#                                 case when OPUPZ = 'na' then '' else OPUPZ end as partialClearingSubitem, \
+#                                 BUKRS as companyCode, \
+#                                 cc.companyName as company, \
+#                                 AUGST as clearingStatus, \
+#                                 GPART as businessPartnerGroupNumber, \
+#                                 VTREF as contractReferenceSpecification, \
+#                                 VKONT as contractAccountNumber, \
+#                                 ABWBL as ficaDocumentNumber, \
+#                                 ABWTP as ficaDocumentCategory, \
+#                                 APPLK as applicationArea, \
+#                                 HVORG as mainTransactionLineItemCode, \
+#                                 ho.mainTransaction as mainTransactionLineItem, \
+#                                 TVORG as subtransactionLineItemCode, \
+#                                 to.subtransaction as subtransactionLineItem, \
+#                                 KOFIZ as accountDeterminationCode, \
+#                                 fc.accountDetermination as accountDetermination, \
+#                                 SPART as divisionCode, \
+#                                 HKONT as accountGeneralLedger, \
+#                                 MWSKZ as taxSalesCode, \
+#                                 XANZA as downPaymentIndicator, \
+#                                 STAKZ as statisticalItemType, \
+#                                 ToValidDate(BLDAT) as documentDate, \
+#                                 ToValidDate(BUDAT) as postingDate, \
+#                                 WAERS as currencyKey, \
+#                                 ToValidDate(FAEDN) as paymentDueDate, \
+#                                 ToValidDate(FAEDS) as cashDiscountDueDate, \
+#                                 ToValidDate(STUDT) as deferralToDate, \
+#                                 cast(SKTPZ as dec(5,2)) as cashDiscountPercentageRate, \
+#                                 cast(BETRH as dec(13,2)) as amountLocalCurrency, \
+#                                 BETRW as amountTransactionCurrency, \
+#                                 cast(SKFBT as dec(13,2)) as amountEligibleCashDiscount, \
+#                                 cast(SBETH as dec(13,2)) as taxAmountLocalCurrency, \
+#                                 cast(SBETW as dec(13,2)) as taxAmountTransactionCurrency, \
+#                                 ToValidDate(AUGDT) as clearingDate, \
+#                                 AUGBL as clearingDocument, \
+#                                 ToValidDate(AUGBD) as clearingDocumentPostingDate, \
+#                                 AUGRD as clearingReason, \
+#                                 AUGWA as clearingCurrency, \
+#                                 cast(AUGBT as dec(13,2)) as clearingAmount, \
+#                                 cast(AUGBS as dec(13,2)) as taxAmountClearingCurrency, \
+#                                 cast(AUGSK as dec(13,2)) as cashDiscount, \
+#                                 ToValidDate(AUGVD) as clearingValueDate, \
+#                                 ToValidDate(ABRZU) as settlementPeriodLowerLimit, \
+#                                 ToValidDate(ABRZO) as billingPeriodUpperLimit, \
+#                                 AUGRS as clearingRestriction, \
+#                                 INFOZ as valueAdjustment, \
+#                                 BLART as documentTypeCode, \
+#                                 bl.documentType as documentType, \
+#                                 XBLNR as referenceDocumentNumber, \
+#                                 INKPS as collectionItem, \
+#                                 C4EYE as checkReason, \
+#                                 cast(SCTAX as dec(13,2)) as taxPortion, \
+#                                 cast(STTAX as dec(13,2)) as taxAmountDocument, \
+#                                 ABGRD as writeOffReasonCode, \
+#                                 HERKF as documentOriginCode, \
+#                                 ToValidDate(CPUDT) as documentEnteredDate, \
+#                                 AWTYP as referenceProcedure, \
+#                                 AWKEY as objectKey, \
+#                                 STORB as reversalDocumentNumber, \
+#                                 FIKEY as reconciliationKeyForGeneralLedger, \
+#                                 XCLOS as furtherPostingIndicator, \
+#                                 bp._RecordStart, \
+#                                 bp._RecordEnd, \
+#                                 bp._RecordDeleted, \
+#                                 bp._RecordCurrent \
+#                         FROM {ADS_DATABASE_STAGE}.{source_object} bp \
+#                         LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0COMP_CODE_TEXT cc ON bp.BUKRS = cc.companyCode and cc._RecordDeleted = 0 and cc._RecordCurrent = 1 \
+#                         LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UC_HVORG_TEXT ho ON bp.APPLK = ho.applicationArea and bp.HVORG = ho.mainTransactionLineItemCode \
+#                                                                                          and ho._RecordDeleted = 0 and ho._RecordCurrent = 1 \
+#                         LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UC_TVORG_TEXT to ON bp.APPLK = to.applicationArea and bp.HVORG = to.mainTransactionLineItemCode \
+#                                                                                          and bp.TVORG = to.subtransactionLineItemCode and to._RecordDeleted = 0 and to._RecordCurrent = 1 \
+#                         LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0FC_BLART_TEXT bl ON bp.APPLK = bl.applicationArea and bp.BLART = bl.documentTypeCode \
+#                                                                                          and bl._RecordDeleted = 0 and bl._RecordCurrent = 1 \
+#                         LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0FCACTDETID_TEXT fc ON bp.KOFIZ = fc.accountDeterminationCode and fc._RecordDeleted = 0 and fc._RecordCurrent = 1")
+                        
+# print(f'Number of rows: {df_cleansed.count()}')
+
+# COMMAND ----------
+
+# newSchema = StructType([
+# 	StructField('contractDocumentNumber',StringType(),False),
+# 	StructField('repetitionItem',StringType(),False),
+# 	StructField('itemNumber',StringType(),False),
+# 	StructField('partialClearingSubitem',StringType(),False),
+# 	StructField('companyCode',StringType(),True),
+# 	StructField('company',StringType(),True),
+# 	StructField('clearingStatus',StringType(),True),
+# 	StructField('businessPartnerGroupNumber',StringType(),True),
+# 	StructField('contractReferenceSpecification',StringType(),True),
+# 	StructField('contractAccountNumber',StringType(),True),
+# 	StructField('ficaDocumentNumber',StringType(),True),
+# 	StructField('ficaDocumentCategory',StringType(),True),
+# 	StructField('applicationArea',StringType(),True),
+# 	StructField('mainTransactionLineItemCode',StringType(),True),
+# 	StructField('mainTransactionLineItem',StringType(),True),
+# 	StructField('subtransactionLineItemCode',StringType(),True),
+# 	StructField('subtransactionLineItem',StringType(),True),
+# 	StructField('accountDeterminationCode',StringType(),True),
+# 	StructField('accountDetermination',StringType(),True),
+# 	StructField('divisionCode',StringType(),True),
+# 	StructField('accountGeneralLedger',StringType(),True),
+# 	StructField('taxSalesCode',StringType(),True),
+# 	StructField('downPaymentIndicator',StringType(),True),
+# 	StructField('statisticalItemType',StringType(),True),
+# 	StructField('documentDate',DateType(),True),
+# 	StructField('postingDate',DateType(),True),
+# 	StructField('currencyKey',StringType(),True),
+# 	StructField('paymentDueDate',DateType(),True),
+# 	StructField('cashDiscountDueDate',DateType(),True),
+# 	StructField('deferralToDate',DateType(),True),
+# 	StructField('cashDiscountPercentageRate',DecimalType(5,2),True),
+# 	StructField('amountLocalCurrency',DecimalType(13,2),True),
+# 	StructField('amountTransactionCurrency',StringType(),True),
+# 	StructField('amountEligibleCashDiscount',DecimalType(13,2),True),
+# 	StructField('taxAmountLocalCurrency',DecimalType(13,2),True),
+# 	StructField('taxAmountTransactionCurrency',DecimalType(13,2),True),
+# 	StructField('clearingDate',DateType(),True),
+# 	StructField('clearingDocument',StringType(),True),
+# 	StructField('clearingDocumentPostingDate',DateType(),True),
+# 	StructField('clearingReason',StringType(),True),
+# 	StructField('clearingCurrency',StringType(),True),
+# 	StructField('clearingAmount',DecimalType(13,2),True),
+# 	StructField('taxAmountClearingCurrency',DecimalType(13,2),True),
+# 	StructField('cashDiscount',DecimalType(13,2),True),
+# 	StructField('clearingValueDate',DateType(),True),
+# 	StructField('settlementPeriodLowerLimit',DateType(),True),
+# 	StructField('billingPeriodUpperLimit',DateType(),True),
+# 	StructField('clearingRestriction',StringType(),True),
+# 	StructField('valueAdjustment',StringType(),True),
+# 	StructField('documentTypeCode',StringType(),True),
+# 	StructField('documentType',StringType(),True),
+# 	StructField('referenceDocumentNumber',StringType(),True),
+# 	StructField('collectionItem',StringType(),True),
+# 	StructField('checkReason',StringType(),True),
+# 	StructField('taxPortion',DecimalType(13,2),True),
+# 	StructField('taxAmountDocument',DecimalType(13,2),True),
+# 	StructField('writeOffReasonCode',StringType(),True),
+# 	StructField('documentOriginCode',StringType(),True),
+# 	StructField('documentEnteredDate',DateType(),True),
+# 	StructField('referenceProcedure',StringType(),True),
+# 	StructField('objectKey',StringType(),True),
+# 	StructField('reversalDocumentNumber',StringType(),True),
+# 	StructField('reconciliationKeyForGeneralLedger',StringType(),True),
+# 	StructField('furtherPostingIndicator',StringType(),True),
+# 	StructField('_RecordStart',TimestampType(),False),
+# 	StructField('_RecordEnd',TimestampType(),False),
+# 	StructField('_RecordDeleted',IntegerType(),False),
+# 	StructField('_RecordCurrent',IntegerType(),False)
+# ])
 
 
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
-#Save Data frame into Cleansed Delta table (final)
-DeltaSaveDataframeDirect(df_cleansed, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", newSchema, "")
+DeltaSaveDataFrameToDeltaTableNew(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
+#clear cache
+df.unpersist()
 
 # COMMAND ----------
 

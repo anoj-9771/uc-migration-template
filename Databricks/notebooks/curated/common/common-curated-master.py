@@ -60,7 +60,7 @@ params = {"start_date": start_date, "end_date": end_date}
 
 #DEFAULT IF ITS BLANK
 start_date = "2000-01-01" if not start_date else start_date
-end_date = "2099-12-31" if not end_date else end_date
+end_date = "9999-12-31" if not end_date else end_date
 
 #Print Date Range
 print(f"Start_Date = {start_date}| End_Date = {end_date}")
@@ -199,14 +199,6 @@ def makeDate(): #renamed because date() gets overloaded elsewhere
              AddSK=True
             )
 
-#Call Property function to load DimProperty
-def makeProperty(): #renamed because property is a keyword
-    TemplateEtl(df=getProperty(), 
-             entity="dimProperty", 
-             businessKey="sourceSystemCode,propertyNumber",
-             AddSK=True
-            )
-
 #Call Meter function to load DimMeter
 def meter():
     TemplateEtl(df=getMeter(), 
@@ -235,11 +227,19 @@ def stormWaterNetwork():
 def waterNetwork():
     TemplateEtl(df=getWaterNetwork(), 
              entity="dimWaterNetwork", 
-             businessKey="reservoirZone,pressureArea",
+             businessKey="supplyZone,pressureArea",
              AddSK=True
             )
 
-# Add New Dim in alphabetical order
+# Add New Dim in alphabetical order Except for makeProperty. It MUST run after the network tables have been created
+#Call Property function to load DimProperty
+def makeProperty(): #renamed because property is a keyword
+    TemplateEtl(df=getProperty(), 
+             entity="dimProperty", 
+             businessKey="sourceSystemCode,propertyNumber",
+             AddSK=True
+            )
+
 # def Dim2_Example():
 #   TemplateEtl(df=GetDim2Example(), 
 #              entity="Dim2Example",
