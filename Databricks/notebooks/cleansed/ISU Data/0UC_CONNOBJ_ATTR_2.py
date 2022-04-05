@@ -171,7 +171,7 @@ print(delta_raw_tbl_name)
 
 # DBTITLE 1,10. Load Raw to Dataframe & Do Transformations
 df = spark.sql(f"WITH stage AS \
-                      (Select *, ROW_NUMBER() OVER (PARTITION BY HAUS,COUNTRY ORDER BY _DLRawZoneTimestamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
+                      (Select *, ROW_NUMBER() OVER (PARTITION BY HAUS,COUNTRY ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
                            SELECT \
                                   case when con.HAUS = 'na' then '' else con.HAUS end as propertyNumber, \
                                   case when con.COUNTRY = 'na' then '' else con.COUNTRY end  as countryShortName, \

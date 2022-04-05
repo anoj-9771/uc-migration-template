@@ -164,7 +164,7 @@ delta_raw_tbl_name = "{0}.{1}".format(ADS_DATABASE_RAW, source_object)
 
 #Destination
 print(delta_cleansed_tbl_name)
-print(delta_raw_tbl_name)SydWater
+print(delta_raw_tbl_name)
 
 
 # COMMAND ----------
