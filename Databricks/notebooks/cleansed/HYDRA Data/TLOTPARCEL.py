@@ -2,12 +2,13 @@
 # DBTITLE 1,Generate parameter and source object name for unit testing
 import json
 hydraTable = 'TLOTPARCEL'
+businessKeys = 'System_Key'
 
-runParm = '{"SourceType":"Flat File","SourceServer":"saswcnonprod01landingdev-sastoken","SourceGroup":"hydra","SourceName":"hydra_hydra/####_csv","SourceLocation":"hydra/####.csv","AdditionalProperty":"","Processor":"databricks-token|0705-044124-gored835|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive","IsAuditTable":false,"SoftDeleteSource":"","ProjectName":"hydra Data","ProjectId":2,"TargetType":"BLOB Storage (csv)","TargetName":"hydra_hydra/####_csv","TargetLocation":"hydra/####","TargetServer":"daf-sa-lake-sastoken","DataLoadMode":"TRUNCATE-LOAD","DeltaExtract":false,"CDCSource":false,"TruncateTarget":true,"UpsertTarget":false,"AppendTarget":null,"TrackChanges":false,"LoadToSqlEDW":true,"TaskName":"hydra_hydra/####_csv","ControlStageId":1,"TaskId":4,"StageSequence":100,"StageName":"Source to Raw","SourceId":4,"TargetId":4,"ObjectGrain":"Day","CommandTypeId":5,"Watermarks":"","WatermarksDT":null,"WatermarkColumn":"","BusinessKeyColumn":"","UpdateMetaData":null,"SourceTimeStampFormat":"","Command":"","LastLoadedFile":null}'
+runParm = '{"SourceType":"BLOB Storage (csv)","SourceServer":"daf-sa-lake-sastoken","SourceGroup":"hydradata","SourceName":"hydra_####","SourceLocation":"hydradata/####","AdditionalProperty":"","Processor":"databricks-token|1103-023442-me8nqcm9|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive","IsAuditTable":false,"SoftDeleteSource":"","ProjectName":"CLEANSED DATA HYDRA","ProjectId":2,"TargetType":"BLOB Storage (csv)","TargetName":"hydra_####","TargetLocation":"hydradata/####","TargetServer":"daf-sa-lake-sastoken","DataLoadMode":"TRUNCATE-LOAD","DeltaExtract":false,"CDCSource":false,"TruncateTarget":true,"UpsertTarget":false,"AppendTarget":false,"TrackChanges":false,"LoadToSqlEDW":true,"TaskName":"hydra_####","ControlStageId":2,"TaskId":40,"StageSequence":200,"StageName":"Raw to Cleansed","SourceId":40,"TargetId":40,"ObjectGrain":"Day","CommandTypeId":8,"Watermarks":"","WatermarksDT":null,"WatermarkColumn":"","BusinessKeyColumn":"yyyy","PartitionColumn":null,"UpdateMetaData":null,"SourceTimeStampFormat":"","Command":"/build/cleansed/HYDRA Data/####","LastLoadedFile":null}'
 
 s = json.loads(runParm)
-for parm in ['SourceName','SourceLocation','TargetName','TargetLocation','TaskName']:
-    s[parm] = s[parm].replace('####',hydraTable)
+for parm in ['SourceName','SourceLocation','TargetName','TargetLocation','TaskName','BusinessKeyColumn','Command']:
+    s[parm] = s[parm].replace('####',hydraTable).replace('yyyy',businessKeys)
 runParm = json.dumps(s)
 
 # COMMAND ----------
@@ -183,18 +184,19 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_cleansed = spark.sql("SELECT cast(System_Key as int) AS systemKey, \
+df_cleansed = spark.sql(f"SELECT cast(System_Key as int) AS systemKey, \
         cast(Property_Number as int) AS propertyNumber, \
 		case when LGA = 'N/A' then null else initcap(LGA) end as LGA, \
-		case when Address = ' ' then null else " + 
-        ("initcap(Address) " if ADS_ENVIRONMENT not in ['dev','test'] else "'1 Mumble St, Somewhere NSW 2000'") + " end as propertyAddress, \
+		case when Address = ' ' then null else initcap(Address) end as propertyAddress, \
 		case when Suburb = 'N/A' then null else initcap(Suburb) end AS suburb, \
         case when Land_Use = 'N/A' then null else initcap(Land_Use) end as landUse, \
         case when Superior_Land_Use = 'N/A' then null else initcap(Superior_Land_Use) end as superiorLandUse, \
         cast(Area_m2 as int) as areaSize, \
-        'm2' as areaSizeUnit, " + 
-        ("cast(Lon as dec(9,6)) as longitude, cast(Lat as dec(9,6)) as latitude, cast(MGA56_X as long) as x_coordinate_MGA56, cast(MGA56_Y as long) as y_coordinate_MGA56, " if ADS_ENVIRONMENT not in ['dev','test'] else "\
-          cast(Lon as dec(9,6))+0.17 as longitude, cast(Lat as dec(9,6))+0.23 as latitude, cast(MGA56_X as long)+112 as x_coordinate_MGA56, cast(MGA56_Y as long)+332 as y_coordinate_MGA56, ") + f"\
+        'm2' as areaSizeUnit, \
+        cast(Lon as dec(9,6)) as longitude, \
+        cast(Lat as dec(9,6)) as latitude, \
+        cast(MGA56_X as long) as x_coordinate_MGA56, \
+        cast(MGA56_Y as long) as y_coordinate_MGA56, \
 		case when Water_Pressure_Zone = 'N/A' then null else Water_Pressure_Zone end as waterPressureZone, \
         case when Sewer_SCAMP = 'N/A' then null else Sewer_SCAMP end as sewerScamp, \
         case when Recycled_Supply_Zone = 'N/A' then null else Recycled_Supply_Zone end as recycledSupplyZone, \
