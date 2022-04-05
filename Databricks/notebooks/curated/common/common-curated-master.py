@@ -60,7 +60,7 @@ params = {"start_date": start_date, "end_date": end_date}
 
 #DEFAULT IF ITS BLANK
 start_date = "2000-01-01" if not start_date else start_date
-end_date = "9999-12-31" if not end_date else end_date
+end_date = "2099-12-31" if not end_date else end_date
 
 #Print Date Range
 print(f"Start_Date = {start_date}| End_Date = {end_date}")
@@ -230,6 +230,10 @@ def waterNetwork():
              businessKey="supplyZone,pressureArea",
              AddSK=True
             )
+    #set n/a to null after the SKs have been generated
+    spark.sql("update curated.dimWaterNetwork \
+               set pressureArea = null \
+               where pressureArea = 'n/a'")
 
 # Add New Dim in alphabetical order Except for makeProperty. It MUST run after the network tables have been created
 #Call Property function to load DimProperty
@@ -270,7 +274,26 @@ def meterInstallation():
 
 # COMMAND ----------
 
-# DBTITLE 1,6.3. Function: Load Facts
+# DBTITLE 1,6.3 Function: Load Bridge Tables
+#Call Business Partner Group Relation function to load brgBusinessPartnerGroupRelation
+def businessPartnerGroupRelationship():
+    TemplateEtl(df=getBusinessPartnerGroupRelationship(), 
+             entity="brgBusinessPartnerGroupRelationship", 
+             businessKey="businessPartnerGroupSK,businessPartnerSK,validFromDate",
+             AddSK=False
+            ) 
+
+#Call InstallationPropertyMeterContract function to load brgInstallationPropertyMeterCon
+def installationPropertyMeterContract():
+    TemplateEtl(df=getInstallationPropertyMeterContract(), 
+             entity="brgInstallationPropertyMeterContract", 
+             businessKey="dimInstallationSK",
+             AddSK=False
+            ) 
+
+# COMMAND ----------
+
+# DBTITLE 1,6.4. Function: Load Facts
 
 def billedWaterConsumption():
     TemplateEtl(df=getBilledWaterConsumption(),
@@ -309,6 +332,7 @@ def DatabaseChanges():
 
 # DBTITLE 1,8. Flag Dimension/Bridge/Fact load
 LoadDimensions = True
+LoadBridgeTables = True
 LoadFacts = True
 LoadRelationships = True
 
@@ -357,6 +381,18 @@ def Main():
         LogEtl("End Relatioship Tables")
     else:
         LogEtl("Relationship table load not requested")
+        #==============
+    # BRIDGE TABLES
+    #==============    
+    if LoadBridgeTables:
+        LogEtl("Start Bridge Tables")
+        businessPartnerGroupRelationship()
+        installationPropertyMeterContract()
+        
+        LogEtl("End Bridge Tables")
+    else:
+        LogEtl("Bridge table load not requested")
+    
     #==============
     # FACTS
     #==============
@@ -378,15 +414,7 @@ Main()
 
 # COMMAND ----------
 
-# DBTITLE 1,The dimWaterNetwork initially gets created with a value of n/a for pressure area to enable the allocation of the SK. This code sets it back to null
-# MAGIC %sql
-# MAGIC update curated.dimWaterNetwork
-# MAGIC set pressureArea = null
-# MAGIC where pressureArea = 'n/a'
-
-# COMMAND ----------
-
-# DBTITLE 1,11.View Generation
+# DBTITLE 1,11. View Generation
 # MAGIC %sql
 # MAGIC --View to get property history for Billed Water Consumption.
 # MAGIC Create or replace view curated.viewBilledWaterConsumption as
