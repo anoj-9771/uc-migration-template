@@ -333,13 +333,19 @@ def GeneralToValidDateTime(dateIn, colType ="Optional", fmt = "" ):
     lowDatePrior1900 = parser.parse('1900-01-01 01:00:00 AET', tzinfos=SydneyTimes)
     lowDateMandatoryNull = parser.parse('1900-01-02 01:00:00 AET', tzinfos=SydneyTimes)
     lowDateInvalidNull = parser.parse('1900-01-03 01:00:00 AET', tzinfos=SydneyTimes)
-    highNullDate = parser.parse('9999-12-30 23:00:00 AEDT', tzinfos=SydneyTimes)
+    highNullDate = parser.parse('9999-12-31 22:59:59 AEDT', tzinfos=SydneyTimes)
     
-    dateStr = str(dateIn)
+    if dateIn is None:
+        dateStr = ''
+    else:
+        dateStr = str(dateIn)
     
     #check if length zero and mandatory, else add time to it if not present so the parser works nicely
     if len(dateStr) == 0 and colType.upper() == "MANDATORY":
-        return lowDatePlain
+        return lowDateMandatoryNull
+    
+    if dateStr == '00000000':
+        return highNullDate
     
     if len(dateStr) <= 10:
         dateStr += ' 00:00:00'
@@ -352,11 +358,6 @@ def GeneralToValidDateTime(dateIn, colType ="Optional", fmt = "" ):
         else:
             return dateOut
     except:
-        dateOut = highNullDate
-        
-    if colType.upper() == "MANDATORY" and (dateIn is None or dateOut is None):
-        return lowDateMandatoryNull   
-    elif colType.upper() != "MANDATORY" and (dateIn is None or dateOut is None):
         return lowDateInvalidNull
 
 from pyspark.sql.types import TimestampType, DateType
@@ -372,11 +373,6 @@ spark.udf.register("ToValidDateTime", GeneralToValidDateTime,TimestampType())
 ToValidDate_udf = udf(GeneralToValidDateTime, DateType())
 #DateTimeCol = df.ToValidDateTime_udf(df["StartDateTime"]))
 ToValidDateTime_udf = udf(GeneralToValidDateTime, TimestampType())
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC select ToValidDate('9999-12-31')
 
 # COMMAND ----------
 
