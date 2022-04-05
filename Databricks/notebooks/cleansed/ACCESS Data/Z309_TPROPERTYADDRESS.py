@@ -2,12 +2,13 @@
 # DBTITLE 1,Generate parameter and source object name for unit testing
 import json
 accessTable = 'Z309_TPROPERTYADDRESS'
+businessKeys = 'N_PROP'
 
-runParm = '{"SourceType":"Flat File","SourceServer":"saswcnonprod01landingdev-sastoken","SourceGroup":"access","SourceName":"access_access/####_csv","SourceLocation":"access/####.csv","AdditionalProperty":"","Processor":"databricks-token|0705-044124-gored835|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive","IsAuditTable":false,"SoftDeleteSource":"","ProjectName":"Access Data","ProjectId":2,"TargetType":"BLOB Storage (csv)","TargetName":"access_access/####_csv","TargetLocation":"access/####","TargetServer":"daf-sa-lake-sastoken","DataLoadMode":"TRUNCATE-LOAD","DeltaExtract":false,"CDCSource":false,"TruncateTarget":true,"UpsertTarget":false,"AppendTarget":null,"TrackChanges":false,"LoadToSqlEDW":true,"TaskName":"access_access/####_csv","ControlStageId":1,"TaskId":4,"StageSequence":100,"StageName":"Source to Raw","SourceId":4,"TargetId":4,"ObjectGrain":"Day","CommandTypeId":5,"Watermarks":"","WatermarksDT":null,"WatermarkColumn":"","BusinessKeyColumn":"","UpdateMetaData":null,"SourceTimeStampFormat":"","Command":"","LastLoadedFile":null}'
+runParm = '{"SourceType":"BLOB Storage (csv)","SourceServer":"daf-sa-lake-sastoken","SourceGroup":"accessdata","SourceName":"access_####","SourceLocation":"accessdata/####","AdditionalProperty":"","Processor":"databricks-token|1103-023442-me8nqcm9|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive","IsAuditTable":false,"SoftDeleteSource":"","ProjectName":"CLEANSED DATA ACCESS","ProjectId":2,"TargetType":"BLOB Storage (csv)","TargetName":"access_####","TargetLocation":"accessdata/####","TargetServer":"daf-sa-lake-sastoken","DataLoadMode":"TRUNCATE-LOAD","DeltaExtract":false,"CDCSource":false,"TruncateTarget":true,"UpsertTarget":false,"AppendTarget":false,"TrackChanges":false,"LoadToSqlEDW":true,"TaskName":"access_####","ControlStageId":2,"TaskId":40,"StageSequence":200,"StageName":"Raw to Cleansed","SourceId":40,"TargetId":40,"ObjectGrain":"Day","CommandTypeId":8,"Watermarks":"","WatermarksDT":null,"WatermarkColumn":"","BusinessKeyColumn":"yyyy","PartitionColumn":null,"UpdateMetaData":null,"SourceTimeStampFormat":"","Command":"/build/cleansed/ACCESS Data/####","LastLoadedFile":null}'
 
 s = json.loads(runParm)
-for parm in ['SourceName','SourceLocation','TargetName','TargetLocation','TaskName']:
-    s[parm] = s[parm].replace('####',accessTable)
+for parm in ['SourceName','SourceLocation','TargetName','TargetLocation','TaskName','BusinessKeyColumn','Command']:
+    s[parm] = s[parm].replace('####',accessTable).replace('yyyy',businessKeys)
 runParm = json.dumps(s)
 
 # COMMAND ----------
@@ -182,21 +183,21 @@ DeltaSaveToDeltaTable (
 # COMMAND ----------
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
-#Update/rename Column ##NOTE C_DPID is being set to 00000000 for the purposes of data masking. Revert this back when they come to their senses. Ditto fo
-                #cast(N_HOUS_1 as int) as N_HOUS_1, \
-                #T_HOUS_1_SUFX, \
-                #cast(N_HOUS_2 as int) as N_HOUS_2, \
-                #T_HOUS_2_SUFX, \
-df_cleansed = spark.sql("SELECT C_LGA AS LGACode, \
+#Update/rename Column 
+df_cleansed = spark.sql(f"SELECT C_LGA AS LGACode, \
 		cast(N_PROP as int) AS propertyNumber, \
-		C_STRE_GUID AS streetGuideCode, " + 
-        ("C_DPID as DPID, " if ADS_ENVIRONMENT not in ['dev','test'] else "'00000000' as DPID, ") + " \
+		C_STRE_GUID AS streetGuideCode, \
+        C_DPID as DPID, \
 		C_FLOR_LVL AS floorLevelType, \
 		N_FLOR_LVL AS floorLevelNumber, \
 		C_FLAT_UNIT AS flatUnitType, \
-		N_FLAT_UNIT AS flatUnitNumber, " + 
-        ("N_HOUS_1 as houseNumber1, T_HOUS_1_SUFX AS houseNumber1Suffix, N_HOUS_2 as houseNumber2, T_HOUS_2_SUFX AS houseNumber2Suffix, N_LOT AS lotNumber, N_RMB AS roadSideMailbox, " if ADS_ENVIRONMENT not in ['dev','test'] else " \
-        cast(1 as int) as houseNumber1, T_HOUS_1_SUFX AS houseNumber1Suffix, cast(0 as int) AS houseNumber2, ' ' AS houseNumber2Suffix, ' ' AS lotNumber, ' ' AS roadSideMailbox, ") + f" \
+		N_FLAT_UNIT AS flatUnitNumber, \
+        N_HOUS_1 as houseNumber1, \
+        T_HOUS_1_SUFX AS houseNumber1Suffix, \
+        N_HOUS_2 as houseNumber2, \
+        T_HOUS_2_SUFX AS houseNumber2Suffix, \
+        N_LOT AS lotNumber, \
+        N_RMB AS roadSideMailbox, \
 		T_OTHE_ADDR_INFO AS otherAddressInformation, \
 		T_SPEC_DESC AS specialDescription, \
 		M_BUIL_1 AS buildingName1, \
@@ -211,7 +212,8 @@ df_cleansed = spark.sql("SELECT C_LGA AS LGACode, \
         _RecordEnd, \
         _RecordDeleted, \
         _RecordCurrent \
-	FROM {ADS_DATABASE_STAGE}.{source_object}") 
+	FROM {ADS_DATABASE_STAGE}.{source_object} \
+    ") 
 
 print(f'Number of rows: {df_cleansed.count()}')
 
