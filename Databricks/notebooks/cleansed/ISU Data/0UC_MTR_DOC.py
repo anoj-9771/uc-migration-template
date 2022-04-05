@@ -171,7 +171,7 @@ print(delta_raw_tbl_name)
 
 # DBTITLE 1,10. Load Raw to Dataframe & Do Transformations
 df = spark.sql(f"WITH stage AS \
-                      (Select *, ROW_NUMBER() OVER (PARTITION BY ABLBELNR,EQUNR ORDER BY _DLRawZoneTimestamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
+                      (Select *, ROW_NUMBER() OVER (PARTITION BY ABLBELNR,EQUNR ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
                            SELECT  \
                                       case when ABLBELNR = 'na' then '' else ABLBELNR end as meterReadingId , \
                                       case when EQUNR = 'na' then '' else EQUNR end as equipmentNumber , \
