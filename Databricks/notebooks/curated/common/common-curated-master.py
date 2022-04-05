@@ -414,5 +414,39 @@ Main()
 
 # COMMAND ----------
 
-# DBTITLE 1,11. Exit Notebook
+# DBTITLE 1,11. View Generation
+# MAGIC %sql
+# MAGIC --View to get property history for Billed Water Consumption.
+# MAGIC Create or replace view curated.viewBilledWaterConsumption as
+# MAGIC select prop.propertyNumber,
+# MAGIC prophist.inferiorPropertyTypeCode,
+# MAGIC prophist.inferiorPropertyType,
+# MAGIC prophist.superiorPropertyTypeCode,
+# MAGIC prophist.superiorPropertyType,
+# MAGIC fact.*
+# MAGIC from curated.factbilledwaterconsumption fact
+# MAGIC left outer join curated.dimproperty prop
+# MAGIC on fact.dimPropertySK = prop.dimPropertySK
+# MAGIC left outer join (select * from (select prophist.*,RANK() OVER   (PARTITION BY propertyNumber ORDER BY prophist.createddate desc,prophist.validToDate desc,prophist.validfromdate desc) as flag from cleansed.isu_zcd_tpropty_hist prophist) where flag=1) prophist
+# MAGIC on prop.propertyNumber = prophist.propertyNumber
+# MAGIC ;
+# MAGIC 
+# MAGIC --View to get property history for Apportioned Water Consumption.
+# MAGIC Create or replace view curated.viewDailyApportionedConsumption as
+# MAGIC select prop.propertyNumber,
+# MAGIC prophist.inferiorPropertyTypeCode,
+# MAGIC prophist.inferiorPropertyType,
+# MAGIC prophist.superiorPropertyTypeCode,
+# MAGIC prophist.superiorPropertyType,
+# MAGIC fact.*
+# MAGIC from curated.factDailyApportionedConsumption fact
+# MAGIC left outer join curated.dimproperty prop
+# MAGIC on fact.dimPropertySK = prop.dimPropertySK
+# MAGIC left outer join (select * from (select prophist.*,RANK() OVER   (PARTITION BY propertyNumber ORDER BY prophist.createddate desc,prophist.validToDate desc,prophist.validfromdate desc) as flag from cleansed.isu_zcd_tpropty_hist prophist) where flag=1) prophist
+# MAGIC on prop.propertyNumber = prophist.propertyNumber
+# MAGIC ;
+
+# COMMAND ----------
+
+# DBTITLE 1,12. Exit Notebook
 dbutils.notebook.exit("1")
