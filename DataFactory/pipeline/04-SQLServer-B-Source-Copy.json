@@ -192,7 +192,7 @@
 							"type": "String"
 						},
 						"SourceFileDateStamp": {
-							"value": "1",
+							"value": "@pipeline().parameters.WatermarkColumn",
 							"type": "String"
 						}
 					}
@@ -467,7 +467,7 @@
 							"type": "Int64"
 						},
 						"SourceFileDateStamp": {
-							"value": "1",
+							"value": "@pipeline().parameters.WatermarkColumn",
 							"type": "String"
 						},
 						"TaskExecutionLogID": {
