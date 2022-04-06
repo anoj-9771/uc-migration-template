@@ -537,7 +537,7 @@ def _GenerateMergeSQL_DeltaTableNew(source_table_name, target_table_name, busine
   #else:
   #  sql_source_query = _SQLSourceSelect_DeltaTable(source_table_name, business_key, delta_column, start_counter, end_counter, is_delta_extract, target_data_lake_zone)
   #sql = f"WITH {ALIAS_TABLE_SOURCE} AS (" + NEW_LINE + "SELECT * FROM (SELECT *, ROW_NUMBER() OVER (PARTITION BY " + business_key + " ORDER BY _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM " + source_table_name + ") where _RecordVersion = 1)" + NEW_LINE
-  sql_source_query = _SQLSourceSelect_DeltaTable(source_table_name, business_key, delta_column, start_counter, end_counter, is_delta_extract, target_data_lake_zone)
+  sql_source_query = _SQLSourceSelect_DeltaTableNew(source_table_name, business_key, delta_column, start_counter, end_counter, is_delta_extract, target_data_lake_zone)
   sql = f"WITH {ALIAS_TABLE_SOURCE} AS (" + NEW_LINE + sql_source_query + NEW_LINE
   #################PART 1 SOURCE QUERY ####################################
 
@@ -792,7 +792,7 @@ def _SQLInsertSyntax_DeltaTable_GenerateNew(dataframe, is_delta_extract, delta_c
   sql_values += f"to_timestamp('{curr_time_stamp}'), "
 ###  else:
 ###    sql_values += f"{col_record_start}, "
-  sql_values += f"to_timestamp('2099-12-31 00:00:00'), {delete_flag}, 1"
+  sql_values += f"to_timestamp('9999-12-31 00:00:00'), {delete_flag}, 1"
   #Build the INSERT SQL with column list and values list
   if not is_delta_extract and target_data_lake_zone == ADS_DATABASE_CLEANSED and only_insert:
     sql = f"INSERT INTO {target_table} ({sql_col}) SELECT {sql_values} FROM {source_table}" 
@@ -811,3 +811,58 @@ def _SQLInsertSyntax_DeltaTable_MergeNew(dataframe, is_delta_extract, delta_colu
   insert_merge_sql = _SQLInsertSyntax_DeltaTable_GenerateNew(dataframe, is_delta_extract, delta_column, curr_time_stamp, target_data_lake_zone,source_table_name,target_table_name, False, delete_data)
 
   return insert_merge_sql
+
+# COMMAND ----------
+
+def _SQLSourceSelect_DeltaTableNew(source_table, business_key, delta_column, start_counter, end_counter, is_delta_extract, target_data_lake_zone):
+  #Get the Source Select SQL from RAW
+  #Version the rows based on date modified and assign Rank 1 to the latest record
+  #Only this record will be historized
+  #Ideally when daily data load happens, we will only have 1 version
+
+  tbl_alias = "SRC"
+  business_key_updated = _GetSQLCollectiveColumnsFromColumnNames(business_key, tbl_alias, "CONCAT", DELTA_COL_QUALIFER)
+  
+  #Start of Fix for Handling Null in Key Coulumns
+  if target_data_lake_zone == ADS_DATALAKE_ZONE_CLEANSED:
+    #Transform the business_key column string to business_key column string with a suffix of '-TX'
+    business_key_tx = _GetSQLCollectiveColumnsFromColumnNames(business_key, tbl_alias, '', DELTA_COL_QUALIFER)
+    business_key_tx = business_key_tx.replace("SRC.", "").replace(" ", "")  
+    col_list = business_key_tx.split(',') 
+    #Generating the sql string for the additional '-TX' coulmns
+    col_list =["COALESCE(" + tbl_alias + "." + item.replace("-TX","") + ", ' ') as " + item for item in col_list]
+    business_key_tx = ','.join(col_list)
+  #End of Fix for Handling Null in Key Coulumns
+
+  #source_sql = TAB + "SELECT * FROM (SELECT *, ROW_NUMBER() OVER (PARTITION BY " + business_key_updated + " ORDER BY " + COL_DL_RAW_LOAD + " DESC) AS _RecordVersion FROM " + source_table + ") WHERE _RecordVersion = 1)"
+  #Start of Fix for Handling Null in Key Coulumns
+  #Below line commented as part of the fix
+  #source_sql = TAB + "SELECT *" + NEW_LINE
+  source_sql = TAB + "SELECT " + tbl_alias + ".*" + NEW_LINE
+  if target_data_lake_zone == ADS_DATALAKE_ZONE_CLEANSED:
+    source_sql += TAB + ", " + business_key_tx + NEW_LINE
+  #Start of Fix for Handling Null in Key Coulumns
+#   if not is_delta_extract and target_data_lake_zone == ADS_DATABASE_CLEANSED :
+#     source_sql += TAB + ",ROW_NUMBER() OVER (PARTITION BY " + business_key_updated + " ORDER BY " + COL_DL_RAW_LOAD + " DESC) AS " + COL_RECORD_VERSION + NEW_LINE
+#     source_sql += TAB + "FROM " + source_table + " " + tbl_alias + NEW_LINE
+#     source_sql += TAB + ")" + NEW_LINE 
+      
+#   if is_delta_extract and target_data_lake_zone == ADS_DATABASE_CLEANSED :
+#     source_sql += TAB + ",ROW_NUMBER() OVER (PARTITION BY " + business_key_updated + " ORDER BY " + delta_column + " DESC, " + COL_DL_RAW_LOAD + " DESC) AS " + COL_RECORD_VERSION + NEW_LINE
+#     source_sql += TAB + "FROM " + source_table + " " + tbl_alias + NEW_LINE
+#     source_sql += TAB + ")" + NEW_LINE #this bracket was added by jackson while fixing the if not script above
+#   if not target_data_lake_zone == ADS_DATABASE_CLEANSED :
+#     source_sql += TAB + "FROM " + source_table + " " + tbl_alias + NEW_LINE
+#     source_sql += TAB + ")" + NEW_LINE
+   
+  source_sql += TAB + "FROM " + source_table + " " + tbl_alias + NEW_LINE
+  source_sql += TAB + ")" + NEW_LINE 
+  #End of Fix for Handling Null in Key Coulumns
+
+
+#   if is_delta_extract:
+#     #We need the where filter only for the Delta Table Load
+#     source_sql += TAB + "WHERE date_trunc('Second', " + COL_DL_RAW_LOAD + ") >= to_timestamp('" + start_counter + "')" + NEW_LINE
+
+  return source_sql
+
