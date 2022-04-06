@@ -10591,7 +10591,7 @@
 								},
 								"SourceFileDateStamp": {
 									"value": {
-										"value": "@formatDateTime(pipeline().parameters.WatermarkColumn,'YYYYDDMMHHMISS')",
+										"value": "@replace(replace(replace(pipeline().parameters.WatermarkColumn,'-',''),':',''),' ','')",
 										"type": "Expression"
 									},
 									"type": "String"
@@ -10648,7 +10648,7 @@
 								},
 								"SourceFileDateStamp": {
 									"value": {
-										"value": "@pipeline().parameters.SourceFileDateStamp",
+										"value": "@replace(replace(replace(pipeline().parameters.WatermarkColumn,'-',''),':',''),' ','')",
 										"type": "Expression"
 									},
 									"type": "String"
@@ -10869,7 +10869,7 @@
 								},
 								"SourceFileDateStamp": {
 									"value": {
-										"value": "@formatDateTime(pipeline().parameters.WatermarkColumn,'YYYYDDMMHHMISS')",
+										"value": "@replace(replace(replace(pipeline().parameters.WatermarkColumn,'-',''),':',''),' ','')",
 										"type": "Expression"
 									},
 									"type": "String"
