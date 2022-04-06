@@ -286,18 +286,6 @@ def getProperty():
 
 # COMMAND ----------
 
-# MAGIC %sql
-# MAGIC select * from curated.dimWaterNetwork
-
-# COMMAND ----------
-
-ADS_DATABASE_CLEANSED = 'cleansed'
-ADS_DATABASE_CURATED = 'curated'
-df = getProperty()
-df.createOrReplaceTempView('res')
-
-# COMMAND ----------
-
 # ISUDummy = tuple(['-1','ISU','1900-01-01','2099-12-31'] + ['Unknown'] * 4 + [0] + ['Unknown'] * (len(sapisuDf.columns) - 9)) #this only works as long as all output columns are string
 #     ACCESSDummy = tuple(['-2','ACCESS','1900-01-01','2099-12-31'] + ['Unknown'] * 4 + [0] + ['Unknown'] * (len(sapisuDf.columns) - 9)) #this only works as long as all output columns are string
 #     dummyDimRecDf = spark.createDataFrame([ISUDummy, ACCESSDummy], sapisuDf.columns)

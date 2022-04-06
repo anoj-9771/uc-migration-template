@@ -66,7 +66,6 @@ def getWaterNetwork():
     df = spark.createDataFrame(df.rdd, schema=newSchema)
     return df
 
-
 # COMMAND ----------
 
 # ADS_DATABASE_CLEANSED = 'cleansed'

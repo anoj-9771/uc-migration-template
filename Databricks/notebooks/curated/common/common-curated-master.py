@@ -230,6 +230,10 @@ def waterNetwork():
              businessKey="supplyZone,pressureArea",
              AddSK=True
             )
+    #set n/a to null after the SKs have been generated
+    spark.sql("update curated.dimWaterNetwork \
+               set pressureArea = null \
+               where pressureArea = 'n/a'")
 
 # Add New Dim in alphabetical order Except for makeProperty. It MUST run after the network tables have been created
 #Call Property function to load DimProperty
@@ -307,7 +311,7 @@ def DatabaseChanges():
 
 # COMMAND ----------
 
-# DBTITLE 1,8. Flag Dimension/Bridge/Fact load
+# DBTITLE 1,8. Flag Dimension/Relationship/Fact load
 LoadDimensions = True
 LoadFacts = True
 LoadRelationships = True
@@ -378,15 +382,7 @@ Main()
 
 # COMMAND ----------
 
-# DBTITLE 1,The dimWaterNetwork initially gets created with a value of n/a for pressure area to enable the allocation of the SK. This code sets it back to null
-# MAGIC %sql
-# MAGIC update curated.dimWaterNetwork
-# MAGIC set pressureArea = null
-# MAGIC where pressureArea = 'n/a'
-
-# COMMAND ----------
-
-# DBTITLE 1,11.View Generation
+# DBTITLE 1,11. View Generation
 # MAGIC %sql
 # MAGIC --View to get property history for Billed Water Consumption.
 # MAGIC Create or replace view curated.viewBilledWaterConsumption as

@@ -57,7 +57,6 @@ def getBilledWaterConsumptionDaily():
                                   "meterActiveStartDate", "meterActiveEndDate", \
                                   (datediff("meterActiveEndDate", "meterActiveStartDate") + 1).alias("totalMeterActiveDays"), \
                                   "meteredWaterConsumption") \
-                                  .where((isuConsDf.isReversedFlag == 'N') & (isuConsDf.isOutsortedFlag == 'N'))
 
     accessConsDf = accessConsDf.selectExpr("sourceSystemCode", "-4 as billingDocumentNumber", \
                                   "PropertyNumber", "meterNumber", "-4 as contractID", \
@@ -205,3 +204,7 @@ def getBilledWaterConsumptionDaily():
                           .agg(sum("avgMeteredWaterConsumption").alias("dailyApportionedConsumption"))  
     
     return billedConsDf
+
+# COMMAND ----------
+
+
