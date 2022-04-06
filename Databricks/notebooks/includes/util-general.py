@@ -330,14 +330,22 @@ def GeneralToValidDateTime(dateIn, colType ="Optional", fmt = "" ):
     SydneyTimes = {'AEDT': gettz('Australia/NSW'), 'AET': 11*60*60}
     
     lowDate = parser.parse('1900-01-01 00:00:00 AET', tzinfos=SydneyTimes)
-    lowDatePlain = parser.parse('1900-01-01 01:00:00 AET', tzinfos=SydneyTimes)
-#     highNullDate = parser.parse('9999-12-30 23:00:00 AEDT', tzinfos=SydneyTimes)
+    lowDatePrior1900 = parser.parse('1900-01-01 01:00:00 AET', tzinfos=SydneyTimes)
+    lowDateMandatoryNull = parser.parse('1900-01-02 01:00:00 AET', tzinfos=SydneyTimes)
+    lowDateInvalidNull = parser.parse('1900-01-03 01:00:00 AET', tzinfos=SydneyTimes)
+    highNullDate = parser.parse('9999-12-31 22:59:59 AEDT', tzinfos=SydneyTimes)
     
-    dateStr = str(dateIn)
+    if dateIn is None:
+        dateStr = ''
+    else:
+        dateStr = str(dateIn)
     
     #check if length zero and mandatory, else add time to it if not present so the parser works nicely
     if len(dateStr) == 0 and colType.upper() == "MANDATORY":
-        return lowDatePlain
+        return lowDateMandatoryNull
+    
+    if dateStr == '00000000':
+        return highNullDate
     
     if len(dateStr) <= 10:
         dateStr += ' 00:00:00'
@@ -346,16 +354,11 @@ def GeneralToValidDateTime(dateIn, colType ="Optional", fmt = "" ):
         dateOut = parser.parse(dateStr + ' AEDT', tzinfos=SydneyTimes)
         
         if dateOut < lowDate:
-            return lowDatePlain
+            return lowDatePrior1900
         else:
             return dateOut
     except:
-        dateOut = None
-        
-    if colType.upper() == "MANDATORY" and (dateIn is None or dateOut is None):
-        return lowDate   
-    elif colType.upper() != "MANDATORY" and (dateIn is None or dateOut is None):
-        return
+        return lowDateInvalidNull
 
 from pyspark.sql.types import TimestampType, DateType
 
@@ -370,3 +373,7 @@ spark.udf.register("ToValidDateTime", GeneralToValidDateTime,TimestampType())
 ToValidDate_udf = udf(GeneralToValidDateTime, DateType())
 #DateTimeCol = df.ToValidDateTime_udf(df["StartDateTime"]))
 ToValidDateTime_udf = udf(GeneralToValidDateTime, TimestampType())
+
+# COMMAND ----------
+
+
