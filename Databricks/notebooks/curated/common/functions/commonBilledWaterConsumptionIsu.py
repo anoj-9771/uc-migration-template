@@ -40,8 +40,7 @@ def getBilledWaterConsumptionIsu():
                                 ,validFromDate, validToDate \
                                 ,billingQuantityPlaceBeforeDecimalPoint \
                              from {ADS_DATABASE_CLEANSED}.isu_dberchz1 \
-                             where lineItemTypeCode in ('ZDQUAN', 'ZRQUAN') \
-                             and trim(billingLineItemBudgetBillingIndicator) = ''")
+                             where lineItemTypeCode in ('ZDQUAN', 'ZRQUAN') ")
   
     dberchz2Df = spark.sql(f"select billingDocumentNumber, billingDocumentLineItemId \
                                 ,equipmentNumber \
