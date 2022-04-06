@@ -95,3 +95,7 @@ def getBilledWaterConsumptionIsu():
                   )
   
     return billedConsDf
+
+# COMMAND ----------
+
+

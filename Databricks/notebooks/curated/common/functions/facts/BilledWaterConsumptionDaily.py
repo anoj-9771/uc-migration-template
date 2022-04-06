@@ -204,3 +204,7 @@ def getBilledWaterConsumptionDaily():
                           .agg(sum("avgMeteredWaterConsumption").alias("dailyApportionedConsumption"))  
     
     return billedConsDf
+
+# COMMAND ----------
+
+
