@@ -2033,7 +2033,10 @@
 									"type": "String"
 								},
 								"SourceFileDateStamp": {
-									"value": "1",
+									"value": {
+										"value": "@formatDateTime(pipeline().parameters.WatermarkColumn,'YYYYDDMMHHMISS')",
+										"type": "Expression"
+									},
 									"type": "String"
 								}
 							}
@@ -2308,7 +2311,10 @@
 									"type": "Int64"
 								},
 								"SourceFileDateStamp": {
-									"value": "1",
+									"value": {
+										"value": "@formatDateTime(pipeline().parameters.WatermarkColumn,'YYYYDDMMHHMISS')",
+										"type": "Expression"
+									},
 									"type": "String"
 								},
 								"TaskExecutionLogID": {
@@ -2378,6 +2384,9 @@
 						"type": "String"
 					},
 					"RecordsRead": {
+						"type": "String"
+					},
+					"sltTimestamp": {
 						"type": "String"
 					}
 				},
