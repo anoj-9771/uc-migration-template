@@ -60,7 +60,7 @@ params = {"start_date": start_date, "end_date": end_date}
 
 #DEFAULT IF ITS BLANK
 start_date = "2000-01-01" if not start_date else start_date
-end_date = "2099-12-31" if not end_date else end_date
+end_date = "9999-12-31" if not end_date else end_date
 
 #Print Date Range
 print(f"Start_Date = {start_date}| End_Date = {end_date}")
@@ -274,26 +274,7 @@ def meterInstallation():
 
 # COMMAND ----------
 
-# DBTITLE 1,6.3 Function: Load Bridge Tables
-#Call Business Partner Group Relation function to load brgBusinessPartnerGroupRelation
-def businessPartnerGroupRelationship():
-    TemplateEtl(df=getBusinessPartnerGroupRelationship(), 
-             entity="brgBusinessPartnerGroupRelationship", 
-             businessKey="businessPartnerGroupSK,businessPartnerSK,validFromDate",
-             AddSK=False
-            ) 
-
-#Call InstallationPropertyMeterContract function to load brgInstallationPropertyMeterCon
-def installationPropertyMeterContract():
-    TemplateEtl(df=getInstallationPropertyMeterContract(), 
-             entity="brgInstallationPropertyMeterContract", 
-             businessKey="dimInstallationSK",
-             AddSK=False
-            ) 
-
-# COMMAND ----------
-
-# DBTITLE 1,6.4. Function: Load Facts
+# DBTITLE 1,6.3. Function: Load Facts
 
 def billedWaterConsumption():
     TemplateEtl(df=getBilledWaterConsumption(),
@@ -330,9 +311,8 @@ def DatabaseChanges():
 
 # COMMAND ----------
 
-# DBTITLE 1,8. Flag Dimension/Bridge/Fact load
+# DBTITLE 1,8. Flag Dimension/Relationship/Fact load
 LoadDimensions = True
-LoadBridgeTables = True
 LoadFacts = True
 LoadRelationships = True
 
@@ -381,18 +361,6 @@ def Main():
         LogEtl("End Relatioship Tables")
     else:
         LogEtl("Relationship table load not requested")
-        #==============
-    # BRIDGE TABLES
-    #==============    
-    if LoadBridgeTables:
-        LogEtl("Start Bridge Tables")
-        businessPartnerGroupRelationship()
-        installationPropertyMeterContract()
-        
-        LogEtl("End Bridge Tables")
-    else:
-        LogEtl("Bridge table load not requested")
-    
     #==============
     # FACTS
     #==============
