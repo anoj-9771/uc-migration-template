@@ -12,7 +12,7 @@ variables:
     value: false
   # Used to set Azure SQL Server deployability
   - name: azuresqlserver
-    value: false
+    value: true
   # Used to add Control DB to Azure SQL server 
   - name: controldb
     value: false
