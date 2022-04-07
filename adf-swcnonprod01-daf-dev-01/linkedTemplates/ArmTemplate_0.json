@@ -127,6 +127,7 @@
 			"type": "Microsoft.DataFactory/factories/linkedServices",
 			"apiVersion": "2018-06-01",
 			"properties": {
+				"description": "Interactive Cluster",
 				"parameters": {
 					"kvSecret": {
 						"type": "string",
