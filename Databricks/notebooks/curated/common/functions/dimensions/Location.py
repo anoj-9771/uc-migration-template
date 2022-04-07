@@ -1,9 +1,4 @@
 # Databricks notebook source
-# MAGIC %sql
-# MAGIC select * from cleansed.access_z309_tpropertyaddress where propertyNumber = 3100016
-
-# COMMAND ----------
-
 
 ###########################################################################################################################
 # Function: getLocation
@@ -38,17 +33,14 @@ def getLocation():
                                      c.postCode, \
                                      a.latitude, \
                                      a.longitude \
-                                     from (select propertyNumber, lga, latitude, longitude from \
+                                     from {ADS_DATABASE_CLEANSED}.isu_vibdnode b, \
+                                          {ADS_DATABASE_CLEANSED}.isu_0funct_loc_attr c, \
+                                          {ADS_DATABASE_CLEANSED}.isu_0uc_connobj_attr_2 d left outer join (select propertyNumber, lga, latitude, longitude from \
                                               (select propertyNumber, lga, latitude, longitude, \
                                                 row_number() over (partition by propertyNumber order by areaSize desc) recNum \
                                                 from cleansed.hydra_tlotparcel where _RecordDeleted = 0 and _RecordCurrent = 1 ) \
-                                                where recNum = 1) a, \
-                                          {ADS_DATABASE_CLEANSED}.isu_vibdnode b, \
-                                          {ADS_DATABASE_CLEANSED}.isu_0funct_loc_attr c, \
-                                          {ADS_DATABASE_CLEANSED}.isu_0uc_connobj_attr_2 d \
-                                     where a.propertyNumber is not null \
-                                     and a.propertyNumber = b.architecturalObjectNumber \
-                                     and b.architecturalObjectNumber = c.functionalLocationNumber \
+                                                where recNum = 1) a on a.propertyNumber = b.architecturalObjectNumber \
+                                     where b.architecturalObjectNumber = c.functionalLocationNumber \
                                      and b.parentArchitecturalObjectNumber is null \
                                      and d.propertyNumber = b.architecturalObjectNumber \
                                      and b._RecordDeleted = 0 \
@@ -71,18 +63,15 @@ def getLocation():
                                      c.postCode, \
                                      a.latitude, \
                                      a.longitude \
-                                     from (select propertyNumber, lga, latitude, longitude from \
+                                     from {ADS_DATABASE_CLEANSED}.isu_vibdnode b, \
+                                          {ADS_DATABASE_CLEANSED}.isu_0funct_loc_attr c, \
+                                          {ADS_DATABASE_CLEANSED}.isu_0funct_loc_attr c1, \
+                                          {ADS_DATABASE_CLEANSED}.isu_0uc_connobj_attr_2 d left outer join (select propertyNumber, lga, latitude, longitude from \
                                               (select propertyNumber, lga, latitude, longitude, \
                                                 row_number() over (partition by propertyNumber order by areaSize desc) recNum \
                                                 from cleansed.hydra_tlotparcel where _RecordDeleted = 0 and _RecordCurrent = 1 ) \
-                                                where recNum = 1) a, \
-                                          {ADS_DATABASE_CLEANSED}.isu_vibdnode b, \
-                                          {ADS_DATABASE_CLEANSED}.isu_0funct_loc_attr c, \
-                                          {ADS_DATABASE_CLEANSED}.isu_0funct_loc_attr c1, \
-                                          {ADS_DATABASE_CLEANSED}.isu_0uc_connobj_attr_2 d \
-                                     where a.propertyNumber is not null \
-                                     and a.propertyNumber = b.parentArchitecturalObjectNumber \
-                                     and b.architecturalObjectNumber = c.functionalLocationNumber \
+                                                where recNum = 1) a on a.propertyNumber = b.parentArchitecturalObjectNumber \
+                                     where b.architecturalObjectNumber = c.functionalLocationNumber \
                                      and b.parentArchitecturalObjectNumber = c1.functionalLocationNumber \
                                      and d.propertyNumber = b.architecturalObjectNumber \
                                      and b._RecordDeleted = 0 \
@@ -173,22 +162,21 @@ def getLocation():
                            sg.postcode as postcode, \
                            latitude, \
                            longitude \
-                           from {ADS_DATABASE_CLEANSED}.access_z309_tpropertyaddress pa, \
-                                 {ADS_DATABASE_CLEANSED}.access_z309_tstreetguide sg, \
+                           from {ADS_DATABASE_CLEANSED}.access_z309_tpropertyaddress pa left outer join \
+                                 {ADS_DATABASE_CLEANSED}.access_z309_tstreetguide sg on pa.streetGuideCode = sg.streetGuideCode, \
                                  parents pp, \
-                                 missingProps mp, \
+                                 missingProps mp left outer join \
                                  (select propertyNumber, lga, latitude, longitude from \
                                          (select propertyNumber, lga, latitude, longitude, \
                                                  row_number() over (partition by propertyNumber order by areaSize desc) recNum \
                                           from cleansed.hydra_tlotparcel where _RecordDeleted = 0 and _RecordCurrent = 1 ) \
-                                          where recNum = 1) hy \
-                            where pa.streetGuideCode = sg.streetGuideCode \
-                            and   pa.propertyNumber = pp.propertyNumber \
+                                          where recNum = 1) hy on hy.propertyNumber = pp.parentPropertyNumber\
+                            where pa.propertyNumber = pp.propertyNumber \
                             and   pa.propertyNumber = mp.propertyNumber \
-                            and   hy.propertyNumber = pp.parentPropertyNumber \
                             and   pa._RecordCurrent = 1 \
                             and   sg._RecordCurrent = 1 \
                         ")
+    ACCESSDf.createOrReplaceTempView('ACCESS')
     #3.JOIN TABLES  
 
     #4.UNION TABLES
@@ -214,7 +202,7 @@ def getLocation():
     ,"CAST(latitude AS DECIMAL(9,6)) as latitude" \
     ,"CAST(longitude AS DECIMAL(9,6)) as longitude"                   
     )
-    return locationDf
+#     return locationDf
     #6.Apply schema definition
     newSchema = StructType([
                             StructField("locationID", StringType(), False),
