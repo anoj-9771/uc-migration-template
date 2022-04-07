@@ -56,7 +56,7 @@ variables:
   # -------------------------------------------------
   # Name of Azure SQL Server and EDW Database
   - name: azuresqlservername
-    value: sql-$(SUBSCRIPTION)-$(PREFIX)-$(ENVIRONMENT)-$(INCREMENT)
+    value: sql-$(SUBSCRIPTION)-$(PREFIX)-$(ENVIRONMENT)-$(sqlincrement)
   - name: azureedwdbname
     value: EDW
   # Name of key vault for this environment.
