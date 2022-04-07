@@ -27,7 +27,7 @@ def getLocation():
                                      upper(c.houseNumber1) as houseNumber1, \
                                      upper(c.streetName) as streetName, \
                                      upper(trim(coalesce(streetLine1,'')||' '||coalesce(streetLine2,''))) as streetType, \
-                                     a.LGA as LGA, \
+                                     coalesce(a.LGA,d.LGA) as LGA, \
                                      upper(c.cityName) as suburb, \
                                      c.stateCode as state, \
                                      c.postCode, \
@@ -57,7 +57,7 @@ def getLocation():
                                      upper(c.houseNumber1) as houseNumber1, \
                                      upper(c.streetName) as streetName, \
                                      upper(trim(coalesce(c.streetLine1,'')||' '||coalesce(c.streetLine2,''))) as streetType, \
-                                     a.LGA as LGA, \
+                                     coalesce(a.LGA,d.LGA) as LGA, \
                                      upper(c.cityName) as suburb, \
                                      c.stateCode as state, \
                                      c.postCode, \
@@ -156,7 +156,7 @@ def getLocation():
                                     else ltrim('0',cast(pa.houseNumber1 as string))||coalesce(pa.houseNumber1Suffix,'') end as housenumber1, \
                                sg.streetName as streetName, \
                            trim(coalesce(sg.streetType,'')||' '||coalesce(sg.streetSuffix,'')) as streetType, \
-                           hy.LGA, \
+                           coalesce(hy.LGA,pr.LGA) as LGA, \
                            sg.suburb as suburb, \
                            'NSW' as state, \
                            sg.postcode as postcode, \
@@ -165,6 +165,7 @@ def getLocation():
                            from {ADS_DATABASE_CLEANSED}.access_z309_tpropertyaddress pa left outer join \
                                  {ADS_DATABASE_CLEANSED}.access_z309_tstreetguide sg on pa.streetGuideCode = sg.streetGuideCode, \
                                  parents pp, \
+                                 {ADS_DATABASE_CLEANSED}.access_z309_tproperty pr, \
                                  missingProps mp left outer join \
                                  (select propertyNumber, lga, latitude, longitude from \
                                          (select propertyNumber, lga, latitude, longitude, \
@@ -172,6 +173,7 @@ def getLocation():
                                           from cleansed.hydra_tlotparcel where _RecordDeleted = 0 and _RecordCurrent = 1 ) \
                                           where recNum = 1) hy on hy.propertyNumber = pp.parentPropertyNumber\
                             where pa.propertyNumber = pp.propertyNumber \
+                            and   pa.propertyNumber = pr.propertyNumber \
                             and   pa.propertyNumber = mp.propertyNumber \
                             and   pa._RecordCurrent = 1 \
                             and   sg._RecordCurrent = 1 \
@@ -221,3 +223,7 @@ def getLocation():
                       ])
     locationDf2 = spark.createDataFrame(locationDf.rdd, schema=newSchema)
     return locationDf2
+
+# COMMAND ----------
+
+
