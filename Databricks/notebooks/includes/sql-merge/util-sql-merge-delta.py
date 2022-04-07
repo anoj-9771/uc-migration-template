@@ -768,7 +768,7 @@ def _SQLInsertSyntax_DeltaTable_GenerateNew(dataframe, is_delta_extract, delta_c
     if not is_delta_extract:
       #Generating the sql string for the additional '-TX' coulmns
       business_key_col = business_key.split(",")
-      business_key_col_list =["COALESCE(" + item + ", 'na') " for item in business_key_col]
+      business_key_col_list =["COALESCE(" + item + ", '') " for item in business_key_col]
       business_key_tx = ",".join(business_key_col_list)
 
     sql_col += f", {business_key}"
@@ -830,7 +830,7 @@ def _SQLSourceSelect_DeltaTableNew(source_table, business_key, delta_column, sta
     business_key_tx = business_key_tx.replace("SRC.", "").replace(" ", "")  
     col_list = business_key_tx.split(',') 
     #Generating the sql string for the additional '-TX' coulmns
-    col_list =["COALESCE(" + tbl_alias + "." + item.replace("-TX","") + ", ' ') as " + item for item in col_list]
+    col_list =["COALESCE(" + tbl_alias + "." + item.replace("-TX","") + ", '') as " + item for item in col_list]
     business_key_tx = ','.join(col_list)
   #End of Fix for Handling Null in Key Coulumns
 
