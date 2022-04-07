@@ -113,7 +113,7 @@ source_group = GeneralAlignTableName(source_group)
 print("source_group: " + source_group)
 
 #Get Data Lake Folder
-data_lake_folder = source_group + "/stg"
+data_lake_folder = source_group
 print("data_lake_folder: " + data_lake_folder)
 
 #Get and Align Source Table Name (replace '[-@ ,;{}()]' character by '_')
@@ -139,6 +139,21 @@ print("delta_column: " + delta_column)
 data_load_mode = GeneralGetDataLoadMode(Params[PARAMS_TRUNCATE_TARGET], Params[PARAMS_UPSERT_TARGET], Params[PARAMS_APPEND_TARGET])
 print("data_load_mode: " + data_load_mode)
 
+#Get the start time of the last successful cleansed load execution
+LastSuccessfulExecutionTS = Params["LastSuccessfulExecutionTS"]
+print("LastSuccessfulExecutionTS: " + LastSuccessfulExecutionTS)
+
+#Get current time
+#CurrentTimeStamp = spark.sql("select current_timestamp()").first()[0]
+CurrentTimeStamp = GeneralLocalDateTime()
+CurrentTimeStamp = CurrentTimeStamp.strftime("%Y-%m-%d %H:%M:%S")
+
+#Get business key,track_changes and delta_extract flag
+business_key =  Params[PARAMS_BUSINESS_KEY_COLUMN]
+track_changes =  Params[PARAMS_TRACK_CHANGES]
+is_delta_extract =  Params[PARAMS_DELTA_EXTRACT]
+
+
 # COMMAND ----------
 
 # DBTITLE 1,9. Set raw and cleansed table name
@@ -154,29 +169,11 @@ print(delta_raw_tbl_name)
 
 # COMMAND ----------
 
-# DBTITLE 1,10. Load to Cleanse Delta Table from Raw Delta Table
-#This method uses the source table to load data into target Delta Table
-DeltaSaveToDeltaTable (
-    source_table = delta_raw_tbl_name,
-    target_table = target_table,
-    target_data_lake_zone = ADS_DATALAKE_ZONE_CLEANSED,
-    target_database = ADS_DATABASE_STAGE,
-    data_lake_folder = data_lake_folder,
-    data_load_mode = data_load_mode,
-    track_changes =  Params[PARAMS_TRACK_CHANGES],
-    is_delta_extract =  Params[PARAMS_DELTA_EXTRACT],
-    business_key =  Params[PARAMS_BUSINESS_KEY_COLUMN],
-    delta_column = delta_column,
-    start_counter = start_counter,
-    end_counter = end_counter
-)
-
-# COMMAND ----------
-
-# DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
-#Update/rename Column
-#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
-df_cleansed = spark.sql(f"SELECT \
+# DBTITLE 1,10. Load Raw to Dataframe & Do Transformations
+df = spark.sql(f"WITH stage AS \
+                      (Select *, ROW_NUMBER() OVER (PARTITION BY PARTNER,TYPE,IDNUMBER ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} \
+                                  WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
+                           SELECT \
                                 case when BP.PARTNER = 'na' then '' else BP.PARTNER end as businessPartnerNumber, \
                                 case when BP.TYPE = 'na' then '' else BP.TYPE end as identificationTypeCode, \
                                 BP_TXT.identificationType as identificationType, \
@@ -189,43 +186,74 @@ df_cleansed = spark.sql(f"SELECT \
                                 BP.REGION as stateCode, \
                                 BP.PARTNER_GUID as businessPartnerGUID, \
                                 BP.FLG_DEL_BW as deletedIndicator, \
-                                BP._RecordStart, \
-                                BP._RecordEnd, \
-                                BP._RecordDeleted, \
-                                BP._RecordCurrent \
-                           FROM {ADS_DATABASE_STAGE}.{source_object}  BP \
+                                cast('1900-01-01' as TimeStamp) as _RecordStart, \
+                                cast('9999-12-31' as TimeStamp) as _RecordEnd, \
+                                '0' as _RecordDeleted, \
+                                '1' as _RecordCurrent, \
+                                cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
+                         FROM stage BP \
                            LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0BP_ID_TYPE_TEXT BP_TXT \
-                                    ON BP.TYPE = BP_TXT.identificationTypeCode AND BP_TXT._RecordDeleted = 0 AND BP_TXT._RecordCurrent = 1")
+                                    ON BP.TYPE = BP_TXT.identificationTypeCode AND BP_TXT._RecordDeleted = 0 AND BP_TXT._RecordCurrent = 1 \
+                           where BP._RecordVersion = 1 ").cache()
 
-print(f'Number of rows: {df_cleansed.count()}')
+print(f'Number of rows: {df.count()}')
 
 # COMMAND ----------
 
-newSchema = StructType([
-	StructField('businessPartnerNumber',StringType(),False),
-	StructField('identificationTypeCode',StringType(),False),
-	StructField('identificationType',StringType(),True),
-	StructField('businessPartnerIdNumber',StringType(),False),
-	StructField('institute',StringType(),True),
-	StructField('entryDate',DateType(),True),
-	StructField('validFromDate',DateType(),True),
-	StructField('validToDate',DateType(),True),
-	StructField('countryShortName',StringType(),True),
-	StructField('stateCode',StringType(),True),
-	StructField('businessPartnerGUID',StringType(),True),
-	StructField('deletedIndicator',StringType(),True),
-	StructField('_RecordStart',TimestampType(),False),
-	StructField('_RecordEnd',TimestampType(),False),
-	StructField('_RecordDeleted',IntegerType(),False),
-	StructField('_RecordCurrent',IntegerType(),False)
-])
+# DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
+#Update/rename Column
+#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
+# df_cleansed = spark.sql(f"SELECT \
+#                                 case when BP.PARTNER = 'na' then '' else BP.PARTNER end as businessPartnerNumber, \
+#                                 case when BP.TYPE = 'na' then '' else BP.TYPE end as identificationTypeCode, \
+#                                 BP_TXT.identificationType as identificationType, \
+#                                 case when BP.IDNUMBER = 'na' then '' else BP.IDNUMBER end as businessPartnerIdNumber, \
+#                                 BP.INSTITUTE as institute, \
+#                                 ToValidDate(BP.ENTRY_DATE) as entryDate, \
+#                                 ToValidDate(BP.VALID_DATE_FROM) as validFromDate, \
+#                                 ToValidDate(BP.VALID_DATE_TO) as validToDate, \
+#                                 BP.COUNTRY as countryShortName, \
+#                                 BP.REGION as stateCode, \
+#                                 BP.PARTNER_GUID as businessPartnerGUID, \
+#                                 BP.FLG_DEL_BW as deletedIndicator, \
+#                                 BP._RecordStart, \
+#                                 BP._RecordEnd, \
+#                                 BP._RecordDeleted, \
+#                                 BP._RecordCurrent \
+#                            FROM {ADS_DATABASE_STAGE}.{source_object}  BP \
+#                            LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0BP_ID_TYPE_TEXT BP_TXT \
+#                                     ON BP.TYPE = BP_TXT.identificationTypeCode AND BP_TXT._RecordDeleted = 0 AND BP_TXT._RecordCurrent = 1")
+
+# print(f'Number of rows: {df_cleansed.count()}')
+
+# COMMAND ----------
+
+# newSchema = StructType([
+# 	StructField('businessPartnerNumber',StringType(),False),
+# 	StructField('identificationTypeCode',StringType(),False),
+# 	StructField('identificationType',StringType(),True),
+# 	StructField('businessPartnerIdNumber',StringType(),False),
+# 	StructField('institute',StringType(),True),
+# 	StructField('entryDate',DateType(),True),
+# 	StructField('validFromDate',DateType(),True),
+# 	StructField('validToDate',DateType(),True),
+# 	StructField('countryShortName',StringType(),True),
+# 	StructField('stateCode',StringType(),True),
+# 	StructField('businessPartnerGUID',StringType(),True),
+# 	StructField('deletedIndicator',StringType(),True),
+# 	StructField('_RecordStart',TimestampType(),False),
+# 	StructField('_RecordEnd',TimestampType(),False),
+# 	StructField('_RecordDeleted',IntegerType(),False),
+# 	StructField('_RecordCurrent',IntegerType(),False)
+# ])
 
 
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
-#Save Data frame into Cleansed Delta table (final)
-DeltaSaveDataframeDirect(df_cleansed, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", newSchema, "")
+DeltaSaveDataFrameToDeltaTableNew(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
+#clear cache
+df.unpersist()
 
 # COMMAND ----------
 

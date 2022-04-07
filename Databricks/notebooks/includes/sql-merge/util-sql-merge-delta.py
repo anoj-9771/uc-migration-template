@@ -479,6 +479,319 @@ def _SQLInsertSyntax_DeltaTable_Generate(dataframe, is_delta_extract, delta_colu
     sql_values += f"to_timestamp(cast ({col_record_start} as string), 'yyyyMMddHHmmss'), "
   else:
     sql_values += f"{col_record_start}, "
+  sql_values += f"to_timestamp('9999-12-31 00:00:00'), {delete_flag}, 1"
+  #Build the INSERT SQL with column list and values list
+  if not is_delta_extract and target_data_lake_zone == ADS_DATABASE_CLEANSED and only_insert:
+    sql = f"INSERT INTO {target_table} ({sql_col}) SELECT {sql_values} FROM {source_table}" 
+  else:
+    sql = f"INSERT ({sql_col}) {NEW_LINE}VALUES ({sql_values})"
+
+#End of Fix for Handling Null in Key Columns  
+      
+  return sql
+
+# COMMAND ----------
+
+def SQLMerge_DeltaTable_GenerateSQLNew(source_table_name, target_table_name, business_key, delta_column, start_counter, end_counter, is_delta_extract, data_load_mode, track_changes, target_data_lake_zone, delete_data = False):
+  
+  curr_time_stamp = GeneralLocalDateTime()
+  curr_time_stamp = str(curr_time_stamp.strftime("%Y-%m-%d %H:%M:%S"))
+  
+  query = f"SELECT * FROM {target_table_name} LIMIT 0"
+  df_col_list = spark.sql(query)
+  
+  sql_query = ""
+  if data_load_mode == ADS_WRITE_MODE_MERGE:
+    sql_query = _GenerateMergeSQL_DeltaTableNew(source_table_name, target_table_name, business_key, delta_column, start_counter, end_counter, is_delta_extract, track_changes, target_data_lake_zone, df_col_list, curr_time_stamp, delete_data)
+  else:
+    delta_column = COL_DL_RAW_LOAD
+    sql_query = _SQLInsertSyntax_DeltaTable_InsertNew(df_col_list, is_delta_extract, delta_column, curr_time_stamp, target_data_lake_zone, source_table_name, target_table_name)
+    
+  if data_load_mode == ADS_WRITE_MODE_OVERWRITE:
+      sql_query = sql_query.replace("INSERT INTO", "INSERT OVERWRITE") 
+  elif data_load_mode == ADS_WRITE_MODE_APPEND and target_data_lake_zone == ADS_DATABASE_CLEANSED:
+      print(f"Generating append query. Zone : {target_data_lake_zone}")
+      sql_query += f" WHERE date_trunc('Second', {COL_DL_RAW_LOAD}) >= to_timestamp('{start_counter}')" 
+    
+    
+  return sql_query
+
+# COMMAND ----------
+
+def _GenerateMergeSQL_DeltaTableNew(source_table_name, target_table_name, business_key, delta_column, start_counter, end_counter, is_delta_extract, track_changes, target_data_lake_zone, df_col_list, curr_time_stamp, delete_data = False):
+  
+  ALIAS_TABLE_SOURCE = "SRC"
+  ALIAS_TABLE_TARGET = "TGT"
+  ALIAS_TABLE_STAGE = "STG"
+  #ALIAS_TABLE_MAIN = "MN"
+  ALIAS_TABLE_MAIN = target_table_name.split(".",1)[1]
+  
+  #If Delta Column is a combination of Created and Upated Date then use the _transaction_date as delta column
+  delta_column = GeneralGetUpdatedDeltaColumn(delta_column)
+  
+
+  #################PART 1 SOURCE QUERY ####################################
+  #Get the source data from Raw Zone and wrap in a CTE
+  #if delete_data:
+  #  sql_source_query = _SQLSourceSelect_Delete(source_table_name, target_table_name, business_key, target_data_lake_zone)
+  #else:
+  #  sql_source_query = _SQLSourceSelect_DeltaTable(source_table_name, business_key, delta_column, start_counter, end_counter, is_delta_extract, target_data_lake_zone)
+  #sql = f"WITH {ALIAS_TABLE_SOURCE} AS (" + NEW_LINE + "SELECT * FROM (SELECT *, ROW_NUMBER() OVER (PARTITION BY " + business_key + " ORDER BY _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM " + source_table_name + ") where _RecordVersion = 1)" + NEW_LINE
+  sql_source_query = _SQLSourceSelect_DeltaTable(source_table_name, business_key, delta_column, start_counter, end_counter, is_delta_extract, target_data_lake_zone)
+  sql = f"WITH {ALIAS_TABLE_SOURCE} AS (" + NEW_LINE + sql_source_query + NEW_LINE
+  #################PART 1 SOURCE QUERY ####################################
+
+
+  
+  #################PART 2 MERGE QUERY ####################################
+#Start of Fix for Handling Null in Key Coulumns
+
+#   #Create a MERGE SQL for SCD
+#   sql += f"MERGE INTO {target_table_name} {ALIAS_TABLE_MAIN} " + NEW_LINE
+#   sql += "USING (" + NEW_LINE
+  
+#   sql += TAB + "-- These rows will either EXPIRE/UPDATE the current existing record (if merge_key matches) or INSERT the new record (if merge_key is not available)"+ NEW_LINE
+#   business_key_updated = _GetSQLCollectiveColumnsFromColumnNames(business_key, ALIAS_TABLE_SOURCE, "CONCAT", DELTA_COL_QUALIFER)
+
+#   #Get data from the first CTE above
+#   sql += TAB + f"SELECT {business_key_updated} AS merge_key, {ALIAS_TABLE_SOURCE}.* FROM {ALIAS_TABLE_SOURCE}" + NEW_LINE
+#   #We need RecordVersion only if it is the Delta Table load from the Raw Zone because we want the last version
+#   #For SQL Server, this would have already been resolved
+
+  raw_file_timestamp_exist = False
+  di_sequence_number_exist = False
+  query = f"SELECT * FROM {source_table_name} LIMIT 0"
+  src_col_list = spark.sql(query)
+  lst = src_col_list.columns
+  col_lst = [col.strip() for col in lst]
+
+  if len(col_lst) > 0:
+    raw_file_timestamp_exist = any(COL_DL_RAW_FILE_TIMESTAMP in col for col in col_lst)
+    col_dl_raw_load_exist = any(COL_DL_RAW_LOAD in col for col in col_lst)    
+    di_sequence_number_exist = any("DI_SEQUENCE_NUMBER" in col for col in col_lst)
+
+
+#Start of Arman's Fix
+#   isSAPISU = False
+#   if source_table_name != None and "sapisu" in source_table_name:
+#     isSAPISU = True
+#End of Arman's Fix
+  #Create a MERGE SQL for SCD
+  sql += f"MERGE INTO {target_table_name} {ALIAS_TABLE_MAIN} " + NEW_LINE
+  sql += "USING (" + NEW_LINE
+###  sql += TAB + "SELECT * FROM " + NEW_LINE
+###  sql += TAB + "(" + NEW_LINE
+  
+  sql += TAB + "-- These rows will either EXPIRE/UPDATE the current existing record (if merge_key matches) or INSERT the new record (if merge_key is not available)"+ NEW_LINE
+
+  #Get data from the first CTE above
+  if target_data_lake_zone == ADS_DATABASE_CLEANSED:
+    business_key_updated = _GetSQLCollectiveColumnsFromColumnNames(business_key, ALIAS_TABLE_SOURCE, "CONCAT", DELTA_COL_QUALIFER)
+    sql += TAB + f"SELECT {ALIAS_TABLE_SOURCE}.*, {business_key_updated} AS merge_key" + NEW_LINE
+###    if not is_delta_extract and raw_file_timestamp_exist:
+###      sql += TAB + ",ROW_NUMBER() OVER (PARTITION BY " + business_key_updated + " ORDER BY " + COL_DL_RAW_FILE_TIMESTAMP + " DESC) AS " + COL_RECORD_VERSION + NEW_LINE    
+
+###    if not is_delta_extract and not raw_file_timestamp_exist:
+###      sql += TAB + ",ROW_NUMBER() OVER (PARTITION BY " + business_key_updated + " ORDER BY " + COL_DL_RAW_LOAD + " DESC) AS " + COL_RECORD_VERSION + NEW_LINE    
+      
+    #Added di_sequence_number to the order by clause  to pickup the right record from SAP delta extracts
+###    if is_delta_extract:
+###       if di_sequence_number_exist:
+###         sql += TAB + ",ROW_NUMBER() OVER (PARTITION BY " + business_key_updated + " ORDER BY " + delta_column + " DESC, DI_SEQUENCE_NUMBER DESC, " + COL_DL_RAW_LOAD + " DESC) AS " + COL_RECORD_VERSION + NEW_LINE
+###       elif col_dl_raw_load_exist:
+###         sql += TAB + ",ROW_NUMBER() OVER (PARTITION BY " + business_key_updated + " ORDER BY " + delta_column + " DESC, " + COL_DL_RAW_LOAD + " DESC) AS " + COL_RECORD_VERSION + NEW_LINE
+        
+###       else:
+###         sql += TAB + ",ROW_NUMBER() OVER (PARTITION BY " + business_key_updated + " ORDER BY " + delta_column + " DESC) AS " + COL_RECORD_VERSION + NEW_LINE
+    
+#       else:
+#         sql += TAB + ",ROW_NUMBER() OVER (PARTITION BY " + business_key_updated + " ORDER BY " + delta_column + " DESC, " + COL_DL_RAW_LOAD + " DESC) AS " + COL_RECORD_VERSION + NEW_LINE
+
+###    sql += TAB +  f"FROM {ALIAS_TABLE_SOURCE} ) WHERE {COL_RECORD_VERSION} = 1" + NEW_LINE
+    sql += TAB +  f"FROM {ALIAS_TABLE_SOURCE}" + NEW_LINE
+
+  else:
+    business_key_updated = _GetSQLCollectiveColumnsFromColumnNames(business_key, ALIAS_TABLE_STAGE, "CONCAT", DELTA_COL_QUALIFER)
+    business_key_updated = business_key_updated.replace("STG.", "SRC.").replace(" ", "")
+    sql += TAB + f"SELECT {ALIAS_TABLE_SOURCE}.*, {business_key_updated} AS merge_key" + NEW_LINE
+    sql += TAB +  f"FROM {ALIAS_TABLE_SOURCE} )" + NEW_LINE
+  
+  #We need RecordVersion only if it is the Delta Table load from the Raw Zone because we want the last version
+  #For SQL Server, this would have already been resolved  
+  #if target_data_lake_zone == ADS_DATABASE_CLEANSED: sql += TAB + f"WHERE {COL_RECORD_VERSION} = 1" + NEW_LINE  
+  #End of Fix for Handling Null in Key Coulumns
+  
+  #if track_changes:
+    #Union the previous query with the next one
+  #  sql += TAB + "UNION ALL" + NEW_LINE
+  #  if delete_data:
+  #    sql_track_change_union = f"SELECT NULL AS merge_key, {ALIAS_TABLE_SOURCE}.* FROM {ALIAS_TABLE_SOURCE} " + NEW_LINE
+  #  else:
+  #    sql_track_change_union = _SQLTrackChanges_UnionQuery(ALIAS_TABLE_SOURCE, target_table_name, business_key, target_data_lake_zone, df_col_list, delta_column, is_delta_extract)
+  #  sql += TAB + sql_track_change_union + NEW_LINE
+  
+  #Complete the Merge SQL and join on merge_key
+  sql += TAB + ") " + ALIAS_TABLE_STAGE + NEW_LINE
+  business_key_updated = _GetSQLCollectiveColumnsFromColumnNames(business_key, ALIAS_TABLE_MAIN, "CONCAT", DELTA_COL_QUALIFER)
+  sql += f"ON {business_key_updated} = merge_key " + NEW_LINE
+  #Start of Fix for Handling Null in Key Coulumns
+  #if target_data_lake_zone == ADS_DATABASE_CLEANSED: sql += TAB + f"AND {COL_RECORD_VERSION} = 1" + NEW_LINE
+  #End of Fix for Handling Null in Key Coulumns  
+  #################PART 2 MERGE QUERY ####################################
+
+
+  #################PART 3 UPDATE DATA ####################################
+  #If the records match then set the current version of the record as previous.
+  #Update thh Row End Date and CurrentRecord = 0
+  sql_compare_condition = _SQLUpdateCompareCondition_DeltaTableNew(df_col_list, business_key, ALIAS_TABLE_STAGE, ALIAS_TABLE_MAIN, delta_column, is_delta_extract, delete_data)
+  
+  sql += "WHEN MATCHED " + NEW_LINE
+  sql += sql_compare_condition
+  sql += "THEN UPDATE SET "+ NEW_LINE
+
+  if track_changes:
+    sql_update = _SQLUpdateSetValue_SCD_DeltaTable(is_delta_extract, delta_column, ALIAS_TABLE_STAGE, curr_time_stamp)
+  else:
+    sql_update = _SQLUpdateSetValue_DeltaTable(df_col_list, business_key, ALIAS_TABLE_MAIN, ALIAS_TABLE_STAGE, curr_time_stamp, target_data_lake_zone, delete_data)
+  sql += sql_update
+  #################PART 3 UPDATE DATA ####################################
+
+  #################PART 4 INSERT DATA ####################################
+  #If not matched, then this is the new version of the record. Insert the new row
+  #sql_insert = _SQLInsertSyntax_DeltaTable_Merge(df_col_list, is_delta_extract, delta_column, curr_time_stamp, target_data_lake_zone, delete_data)
+  sql_insert = _SQLInsertSyntax_DeltaTable_MergeNew(df_col_list, is_delta_extract, delta_column, curr_time_stamp, target_data_lake_zone,source_table_name,target_table_name, delete_data)
+
+  sql += "WHEN NOT MATCHED THEN " + NEW_LINE
+  sql += sql_insert
+  #################PART 4 INSERT DATA ####################################
+  
+  
+  return sql
+
+# COMMAND ----------
+
+def _SQLUpdateCompareCondition_DeltaTableNew(dataframe, business_key, source_alias, target_alias, delta_column, is_delta_extract, delete_data):
+  #Generate SQL for UPDATE column compare
+ 
+  #Exclude the following columns from Update
+  #Start of Fix for Handling Null in Key Columns
+#   col_exception_list = [business_key, COL_RECORD_VERSION, COL_RECORD_START, COL_RECORD_END, COL_RECORD_CURRENT, COL_RECORD_DELETED, COL_DL_RAW_LOAD, COL_DL_CLEANSED_LOAD, COL_DL_CURATED_LOAD]
+  #Adding SK column if any to the exception list 
+  col_SK = target_alias + "SK"
+  buskey_col_list = business_key.split(",")
+  col_exception_list = [COL_RECORD_VERSION, COL_RECORD_START, COL_RECORD_END, COL_RECORD_CURRENT, COL_RECORD_DELETED, COL_DL_RAW_LOAD, COL_DL_CLEANSED_LOAD, COL_DL_CURATED_LOAD, col_SK]
+  col_exception_list.extend(buskey_col_list)
+  #End of Fix for Handling Null in Key Columns
+  #Get the list of columns which does not include the exception list 
+
+  updated_col_list = _GetExclusiveList(dataframe.columns, col_exception_list)
+  sql = ""
+  #Check current record version even if track_changes is not enabled to ensure we only check only the latest records
+  sql += TAB + f"AND {target_alias}.{COL_RECORD_CURRENT} = 1" + NEW_LINE
+  
+  if delete_data:
+    sql = sql
+  else:
+###    if is_delta_extract:
+###      sql += TAB + "-- If it is delta extract we can find new records checking if the source delta column value is higher than the target table" + NEW_LINE
+###      sql += TAB + f"AND {source_alias}.{delta_column} > {target_alias}.{delta_column}"
+###    else:
+###      # Calling the new Compare function that would handle nulls while comparing source and target columns in delta merge
+###      #join_condition = _GetSQLJoinConditionFromColumnNames(updated_col_list, source_alias, target_alias, "<>", " OR ", DELTA_COL_QUALIFER)
+###      join_condition = _GetSQLJoinConditionFromColumnNamesCompare(updated_col_list, source_alias, target_alias, "<>", " OR ", DELTA_COL_QUALIFER)
+###      sql += TAB + "-- If it full extract we have to do compare on all columns to find records that have changed" + NEW_LINE
+###      sql += TAB + f"AND ( ({join_condition}) OR ({target_alias}.{COL_RECORD_DELETED} = 1) )"
+
+    if not is_delta_extract:
+###      # Calling the new Compare function that would handle nulls while comparing source and target columns in delta merge
+###      #join_condition = _GetSQLJoinConditionFromColumnNames(updated_col_list, source_alias, target_alias, "<>", " OR ", DELTA_COL_QUALIFER)
+      join_condition = _GetSQLJoinConditionFromColumnNamesCompare(updated_col_list, source_alias, target_alias, "<>", " OR ", DELTA_COL_QUALIFER)
+      sql += TAB + "-- If it full extract we have to do compare on all columns to find records that have changed" + NEW_LINE
+      sql += TAB + f"AND ( ({join_condition}) OR ({target_alias}.{COL_RECORD_DELETED} = 1) )"
+  
+  sql += NEW_LINE
+      
+  return sql
+
+# COMMAND ----------
+
+def _SQLInsertSyntax_DeltaTable_InsertNew(dataframe, is_delta_extract, delta_column, curr_time_stamp, target_data_lake_zone, source_table, target_table):
+  #Generate SQL for INSERT
+  
+  insert_merge_sql = _SQLInsertSyntax_DeltaTable_GenerateNew(dataframe, is_delta_extract, delta_column, curr_time_stamp, target_data_lake_zone, source_table, target_table, True, False)
+  
+  return insert_merge_sql
+
+# COMMAND ----------
+
+def _SQLInsertSyntax_DeltaTable_GenerateNew(dataframe, is_delta_extract, delta_column, curr_time_stamp, target_data_lake_zone, source_table = "", target_table = "", only_insert = False, delete_data = False):
+  #Generate SQL for INSERT
+  
+  #Exclude the following columns from INSERT. We will add them with new values
+  col_exception_list = [COL_RECORD_VERSION, COL_RECORD_START, COL_RECORD_END, COL_RECORD_CURRENT, COL_RECORD_DELETED]
+  
+  delete_flag = 1 if delete_data else 0
+
+  #Chose the timestamp column based on data lake zone
+  if target_data_lake_zone == ADS_DATABASE_CLEANSED:
+    col_exception_list.append(COL_DL_CLEANSED_LOAD)
+    COL_TIMESTAMP = COL_DL_CLEANSED_LOAD
+  elif target_data_lake_zone == ADS_DATABASE_CURATED:
+    col_exception_list.append(COL_DL_CURATED_LOAD)
+    COL_TIMESTAMP = COL_DL_CURATED_LOAD
+
+#Start of Fix for Handling Null in Key Columns  
+  if target_data_lake_zone == ADS_DATABASE_CLEANSED:
+    business_key_inp =  Params[PARAMS_BUSINESS_KEY_COLUMN]
+    business_key_list = business_key_inp.split(",")
+    col_exception_list.extend(business_key_list) 
+
+  #Get the list of columns which does not include the exception list 
+  updated_col_list = _GetExclusiveList(dataframe.columns, col_exception_list)
+  updated_col_list.sort()
+  
+#End of Fix for Handling Null in Key Columns  
+  
+  sql_col = _GetSQLCollectiveColumnsFromColumnNames(updated_col_list, alias = "", func = "", column_qualifer = DELTA_COL_QUALIFER)
+#Start of Fix for Handling Null in Key Columns  
+
+  #sql_values = _GetSQLCollectiveColumnsFromColumnNames(updated_col_list, alias = "", func = "", column_qualifer = DELTA_COL_QUALIFER)
+  sql_values = sql_col
+  if target_data_lake_zone == ADS_DATABASE_CLEANSED:
+    business_key = _GetSQLCollectiveColumnsFromColumnNames(business_key_list, alias = "", func = "", column_qualifer = DELTA_COL_QUALIFER)
+
+  
+    if is_delta_extract:
+      business_key_tx_list = [item + "-TX" for item in business_key_list]
+      business_key_tx = _GetSQLCollectiveColumnsFromColumnNames(business_key_tx_list, alias = "", func = "", column_qualifer = DELTA_COL_QUALIFER)
+
+    if not is_delta_extract:
+      #Generating the sql string for the additional '-TX' coulmns
+      business_key_col = business_key.split(",")
+      business_key_col_list =["COALESCE(" + item + ", 'na') " for item in business_key_col]
+      business_key_tx = ",".join(business_key_col_list)
+
+    sql_col += f", {business_key}"
+    sql_values += f", {business_key_tx}"
+#End of Fix for Handling Null in Key Columns
+ 
+
+  #Add current timestamp column for data load
+  sql_col += f", {COL_TIMESTAMP}, "
+  sql_values += f", to_timestamp('{curr_time_stamp}'), "
+
+#Start of Fix for Handling Null in Key Columns  
+  #SCD columns
+###  col_record_start = delta_column if is_delta_extract else f"'{curr_time_stamp}'"
+  col_record_start = f"'{curr_time_stamp}'"
+  #sql_col += f"{COL_RECORD_START}, {COL_RECORD_END}, {COL_RECORD_DELETED}, {COL_RECORD_CURRENT}"
+  #sql_values += f"{col_record_start}, to_timestamp('9999-12-31 00:00:00'), {delete_flag}, 1"
+  sql_col += f"{COL_RECORD_START}, {COL_RECORD_END}, {COL_RECORD_DELETED}, {COL_RECORD_CURRENT}"
+###  if is_delta_extract:
+###  sql_values += f"to_timestamp(cast({col_record_start} as string), 'yyyyMMddHHmmss'), "
+  sql_values += f"to_timestamp('{curr_time_stamp}'), "
+###  else:
+###    sql_values += f"{col_record_start}, "
   sql_values += f"to_timestamp('2099-12-31 00:00:00'), {delete_flag}, 1"
   #Build the INSERT SQL with column list and values list
   if not is_delta_extract and target_data_lake_zone == ADS_DATABASE_CLEANSED and only_insert:
@@ -489,3 +802,12 @@ def _SQLInsertSyntax_DeltaTable_Generate(dataframe, is_delta_extract, delta_colu
 #End of Fix for Handling Null in Key Columns  
       
   return sql
+
+# COMMAND ----------
+
+def _SQLInsertSyntax_DeltaTable_MergeNew(dataframe, is_delta_extract, delta_column, curr_time_stamp, target_data_lake_zone,source_table_name,target_table_name,delete_data):
+  #Generate SQL for INSERT
+  
+  insert_merge_sql = _SQLInsertSyntax_DeltaTable_GenerateNew(dataframe, is_delta_extract, delta_column, curr_time_stamp, target_data_lake_zone,source_table_name,target_table_name, False, delete_data)
+
+  return insert_merge_sql

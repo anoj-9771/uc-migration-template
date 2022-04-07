@@ -113,7 +113,7 @@ source_group = GeneralAlignTableName(source_group)
 print("source_group: " + source_group)
 
 #Get Data Lake Folder
-data_lake_folder = source_group + "/stg"
+data_lake_folder = source_group
 print("data_lake_folder: " + data_lake_folder)
 
 #Get and Align Source Table Name (replace '[-@ ,;{}()]' character by '_')
@@ -139,6 +139,21 @@ print("delta_column: " + delta_column)
 data_load_mode = GeneralGetDataLoadMode(Params[PARAMS_TRUNCATE_TARGET], Params[PARAMS_UPSERT_TARGET], Params[PARAMS_APPEND_TARGET])
 print("data_load_mode: " + data_load_mode)
 
+#Get the start time of the last successful cleansed load execution
+LastSuccessfulExecutionTS = Params["LastSuccessfulExecutionTS"]
+print("LastSuccessfulExecutionTS: " + LastSuccessfulExecutionTS)
+
+#Get current time
+#CurrentTimeStamp = spark.sql("select current_timestamp()").first()[0]
+CurrentTimeStamp = GeneralLocalDateTime()
+CurrentTimeStamp = CurrentTimeStamp.strftime("%Y-%m-%d %H:%M:%S")
+
+#Get business key,track_changes and delta_extract flag
+business_key =  Params[PARAMS_BUSINESS_KEY_COLUMN]
+track_changes =  Params[PARAMS_TRACK_CHANGES]
+is_delta_extract =  Params[PARAMS_DELTA_EXTRACT]
+
+
 # COMMAND ----------
 
 # DBTITLE 1,9. Set raw and cleansed table name
@@ -154,203 +169,277 @@ print(delta_raw_tbl_name)
 
 # COMMAND ----------
 
-# DBTITLE 1,10. Load to Cleanse Delta Table from Raw Delta Table
-#This method uses the source table to load data into target Delta Table
-DeltaSaveToDeltaTable (
-    source_table = delta_raw_tbl_name,
-    target_table = target_table,
-    target_data_lake_zone = ADS_DATALAKE_ZONE_CLEANSED,
-    target_database = ADS_DATABASE_STAGE,
-    data_lake_folder = data_lake_folder,
-    data_load_mode = data_load_mode,
-    track_changes =  Params[PARAMS_TRACK_CHANGES],
-    is_delta_extract =  Params[PARAMS_DELTA_EXTRACT],
-    business_key =  Params[PARAMS_BUSINESS_KEY_COLUMN],
-    delta_column = delta_column,
-    start_counter = start_counter,
-    end_counter = end_counter
-)
+# DBTITLE 1,10. Load Raw to Dataframe & Do Transformations
+df = spark.sql(f"WITH stage AS \
+                      (Select *, ROW_NUMBER() OVER (PARTITION BY UTILITIESCONTRACT,CONTRACTENDDATE_E ORDER BY _DLRawZoneTimestamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} \
+                                      WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
+                           SELECT \
+                                ItemUUID as itemUUID, \
+                                PodUUID as podUUID, \
+                                HeaderUUID as headerUUID, \
+                                case when UtilitiesContract = 'na' then '' else UtilitiesContract end as utilitiesContract, \
+                                BusinessPartner as businessPartnerGroupNumber, \
+                                BusinessPartnerFullName as businessPartnerGroupName, \
+                                BusinessAgreement as businessAgreement, \
+                                BusinessAgreementUUID as businessAgreementUUID, \
+                                IncomingPaymentMethod as incomingPaymentMethod, \
+                                IncomingPaymentMethodName as incomingPaymentMethodName, \
+                                PaymentTerms as paymentTerms, \
+                                PaymentTermsName as paymentTermsName, \
+                                SoldToParty as soldToParty, \
+                                SoldToPartyName as businessPartnerFullName, \
+                                Division as divisionCode, \
+                                DivisionName as division, \
+                                ToValidDate(ContractStartDate) as contractStartDate, \
+                                ToValidDate(ContractEndDate) as contractEndDate, \
+                                ToValidDateTime(CreationDate) as creationDate, \
+                                CreatedByUser as createdBy, \
+                                ToValidDateTime(LastChangeDate) as lastChangedDate, \
+                                LastChangedByUser as changedBy, \
+                                ItemCategory as itemCategory, \
+                                ItemCategoryName as itemCategoryName, \
+                                Product as product, \
+                                ProductDescription as productDescription, \
+                                ItemType as itemType, \
+                                ItemTypeName as itemTypeName, \
+                                ProductType as productType, \
+                                HeaderType as headerType, \
+                                HeaderTypeName as headerTypeName, \
+                                HeaderCategory as headerCategory, \
+                                HeaderCategoryName as headerCategoryName, \
+                                HeaderDescription as headerDescription, \
+                                IsDeregulationPod as isDeregulationPod, \
+                                UtilitiesPremise as premise, \
+                                NumberOfPersons as numberOfPersons, \
+                                CityName as cityName, \
+                                StreetName as streetName, \
+                                HouseNumber as houseNumber, \
+                                PostalCode as postalCode, \
+                                Building as building, \
+                                AddressTimeZone as addressTimeZone, \
+                                CountryName as countryName, \
+                                RegionName as regionName, \
+                                NumberOfContractChanges as numberOfContractChanges, \
+                                IsOpen as isOpen, \
+                                IsDistributed as isDistributed, \
+                                HasError as hasError, \
+                                IsToBeDistributed as isToBeDistributed, \
+                                IsIncomplete as isIncomplete, \
+                                IsStartedDueToProductChange as isStartedDueToProductChange, \
+                                IsInActivation as isInActivation, \
+                                IsInDeactivation as isInDeactivation, \
+                                IsCancelled as isCancelled, \
+                                CancellationMessageIsCreated as cancellationMessageIsCreated, \
+                                SupplyEndCanclnMsgIsCreated as supplyEndCanclnMsgIsCreated, \
+                                ActivationIsRejected as activationIsRejected, \
+                                DeactivationIsRejected as deactivationIsRejected, \
+                                cast(NumberOfContracts as int) as numberOfContracts, \
+                                cast(NumberOfActiveContracts as int) as numberOfActiveContracts, \
+                                cast(NumberOfIncompleteContracts as int) as numberOfIncompleteContracts, \
+                                cast(NumberOfDistributedContracts as int) as numberOfDistributedContracts, \
+                                cast(NmbrOfContractsToBeDistributed as int) as numberOfContractsToBeDistributed, \
+                                cast(NumberOfBlockedContracts as int) as numberOfBlockedContracts, \
+                                cast(NumberOfCancelledContracts as int) as numberOfCancelledContracts, \
+                                cast(NumberOfProductChanges as int) as numberOfProductChanges, \
+                                cast(NmbrOfContractsWProductChanges as int) as numberOfContractsWProductChanges, \
+                                cast(NmbrOfContrWthEndOfSupRjctd as int) as numberOfContrWthEndOfSupRjctd, \
+                                cast(NmbrOfContrWthStartOfSupRjctd as int) as numberOfContrWthStartOfSupRjctd, \
+                                cast(NmbrOfContrWaitingForEndOfSup as int) as numberOfContrWaitingForEndOfSup, \
+                                cast(NmbrOfContrWaitingForStrtOfSup as int) as numberOfContrWaitingForStrtOfSup, \
+                                ToValidDate(CreationDate_E) as creationDateE, \
+                                ToValidDate(LastChangeDate_E) as lastChangedDateE, \
+                                ToValidDate(ContractStartDate_E) as contractStartDateE, \
+                                ToValidDate(ContractEndDate_E,'MANDATORY') as contractEndDateE, \
+                                cast('1900-01-01' as TimeStamp) as _RecordStart, \
+                                cast('9999-12-31' as TimeStamp) as _RecordEnd, \
+                                '0' as _RecordDeleted, \
+                                '1' as _RecordCurrent, \
+                                cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
+                        from stage where _RecordVersion = 1 ").cache()
+
+print(f'Number of rows: {df.count()}')
 
 # COMMAND ----------
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 #Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
-df_cleansed = spark.sql(f"SELECT \
-	ItemUUID as itemUUID, \
-	PodUUID as podUUID, \
-	HeaderUUID as headerUUID, \
-	case when UtilitiesContract = 'na' then '' else UtilitiesContract end as utilitiesContract, \
-	BusinessPartner as businessPartnerGroupNumber, \
-	BusinessPartnerFullName as businessPartnerGroupName, \
-	BusinessAgreement as businessAgreement, \
-	BusinessAgreementUUID as businessAgreementUUID, \
-	IncomingPaymentMethod as incomingPaymentMethod, \
-	IncomingPaymentMethodName as incomingPaymentMethodName, \
-	PaymentTerms as paymentTerms, \
-	PaymentTermsName as paymentTermsName, \
-	SoldToParty as soldToParty, \
-	SoldToPartyName as businessPartnerFullName, \
-	Division as divisionCode, \
-	DivisionName as division, \
-	ToValidDate(ContractStartDate) as contractStartDate, \
-	ToValidDate(ContractEndDate) as contractEndDate, \
-	ToValidDateTime(CreationDate) as creationDate, \
-	CreatedByUser as createdBy, \
-	ToValidDateTime(LastChangeDate) as lastChangedDate, \
-	LastChangedByUser as changedBy, \
-	ItemCategory as itemCategory, \
-	ItemCategoryName as itemCategoryName, \
-	Product as product, \
-	ProductDescription as productDescription, \
-	ItemType as itemType, \
-	ItemTypeName as itemTypeName, \
-	ProductType as productType, \
-	HeaderType as headerType, \
-	HeaderTypeName as headerTypeName, \
-	HeaderCategory as headerCategory, \
-	HeaderCategoryName as headerCategoryName, \
-	HeaderDescription as headerDescription, \
-	IsDeregulationPod as isDeregulationPod, \
-	UtilitiesPremise as premise, \
-	NumberOfPersons as numberOfPersons, \
-	CityName as cityName, \
-	StreetName as streetName, \
-	HouseNumber as houseNumber, \
-	PostalCode as postalCode, \
-	Building as building, \
-	AddressTimeZone as addressTimeZone, \
-	CountryName as countryName, \
-	RegionName as regionName, \
-	NumberOfContractChanges as numberOfContractChanges, \
-	IsOpen as isOpen, \
-	IsDistributed as isDistributed, \
-	HasError as hasError, \
-	IsToBeDistributed as isToBeDistributed, \
-	IsIncomplete as isIncomplete, \
-	IsStartedDueToProductChange as isStartedDueToProductChange, \
-	IsInActivation as isInActivation, \
-	IsInDeactivation as isInDeactivation, \
-	IsCancelled as isCancelled, \
-	CancellationMessageIsCreated as cancellationMessageIsCreated, \
-	SupplyEndCanclnMsgIsCreated as supplyEndCanclnMsgIsCreated, \
-	ActivationIsRejected as activationIsRejected, \
-	DeactivationIsRejected as deactivationIsRejected, \
-	cast(NumberOfContracts as int) as numberOfContracts, \
-	cast(NumberOfActiveContracts as int) as numberOfActiveContracts, \
-	cast(NumberOfIncompleteContracts as int) as numberOfIncompleteContracts, \
-	cast(NumberOfDistributedContracts as int) as numberOfDistributedContracts, \
-	cast(NmbrOfContractsToBeDistributed as int) as numberOfContractsToBeDistributed, \
-	cast(NumberOfBlockedContracts as int) as numberOfBlockedContracts, \
-	cast(NumberOfCancelledContracts as int) as numberOfCancelledContracts, \
-	cast(NumberOfProductChanges as int) as numberOfProductChanges, \
-	cast(NmbrOfContractsWProductChanges as int) as numberOfContractsWProductChanges, \
-	cast(NmbrOfContrWthEndOfSupRjctd as int) as numberOfContrWthEndOfSupRjctd, \
-	cast(NmbrOfContrWthStartOfSupRjctd as int) as numberOfContrWthStartOfSupRjctd, \
-	cast(NmbrOfContrWaitingForEndOfSup as int) as numberOfContrWaitingForEndOfSup, \
-	cast(NmbrOfContrWaitingForStrtOfSup as int) as numberOfContrWaitingForStrtOfSup, \
-	ToValidDate(CreationDate_E) as creationDateE, \
-	ToValidDate(LastChangeDate_E) as lastChangedDateE, \
-	ToValidDate(ContractStartDate_E) as contractStartDateE, \
-	ToValidDate(ContractEndDate_E,'MANDATORY') as contractEndDateE, \
-	_RecordStart, \
-	_RecordEnd, \
-	_RecordDeleted, \
-	_RecordCurrent \
-	FROM {ADS_DATABASE_STAGE}.{source_object}")
+# df_cleansed = spark.sql(f"SELECT \
+# 	ItemUUID as itemUUID, \
+# 	PodUUID as podUUID, \
+# 	HeaderUUID as headerUUID, \
+# 	case when UtilitiesContract = 'na' then '' else UtilitiesContract end as utilitiesContract, \
+# 	BusinessPartner as businessPartnerGroupNumber, \
+# 	BusinessPartnerFullName as businessPartnerGroupName, \
+# 	BusinessAgreement as businessAgreement, \
+# 	BusinessAgreementUUID as businessAgreementUUID, \
+# 	IncomingPaymentMethod as incomingPaymentMethod, \
+# 	IncomingPaymentMethodName as incomingPaymentMethodName, \
+# 	PaymentTerms as paymentTerms, \
+# 	PaymentTermsName as paymentTermsName, \
+# 	SoldToParty as soldToParty, \
+# 	SoldToPartyName as businessPartnerFullName, \
+# 	Division as divisionCode, \
+# 	DivisionName as division, \
+# 	ToValidDate(ContractStartDate) as contractStartDate, \
+# 	ToValidDate(ContractEndDate) as contractEndDate, \
+# 	ToValidDateTime(CreationDate) as creationDate, \
+# 	CreatedByUser as createdBy, \
+# 	ToValidDateTime(LastChangeDate) as lastChangedDate, \
+# 	LastChangedByUser as changedBy, \
+# 	ItemCategory as itemCategory, \
+# 	ItemCategoryName as itemCategoryName, \
+# 	Product as product, \
+# 	ProductDescription as productDescription, \
+# 	ItemType as itemType, \
+# 	ItemTypeName as itemTypeName, \
+# 	ProductType as productType, \
+# 	HeaderType as headerType, \
+# 	HeaderTypeName as headerTypeName, \
+# 	HeaderCategory as headerCategory, \
+# 	HeaderCategoryName as headerCategoryName, \
+# 	HeaderDescription as headerDescription, \
+# 	IsDeregulationPod as isDeregulationPod, \
+# 	UtilitiesPremise as premise, \
+# 	NumberOfPersons as numberOfPersons, \
+# 	CityName as cityName, \
+# 	StreetName as streetName, \
+# 	HouseNumber as houseNumber, \
+# 	PostalCode as postalCode, \
+# 	Building as building, \
+# 	AddressTimeZone as addressTimeZone, \
+# 	CountryName as countryName, \
+# 	RegionName as regionName, \
+# 	NumberOfContractChanges as numberOfContractChanges, \
+# 	IsOpen as isOpen, \
+# 	IsDistributed as isDistributed, \
+# 	HasError as hasError, \
+# 	IsToBeDistributed as isToBeDistributed, \
+# 	IsIncomplete as isIncomplete, \
+# 	IsStartedDueToProductChange as isStartedDueToProductChange, \
+# 	IsInActivation as isInActivation, \
+# 	IsInDeactivation as isInDeactivation, \
+# 	IsCancelled as isCancelled, \
+# 	CancellationMessageIsCreated as cancellationMessageIsCreated, \
+# 	SupplyEndCanclnMsgIsCreated as supplyEndCanclnMsgIsCreated, \
+# 	ActivationIsRejected as activationIsRejected, \
+# 	DeactivationIsRejected as deactivationIsRejected, \
+# 	cast(NumberOfContracts as int) as numberOfContracts, \
+# 	cast(NumberOfActiveContracts as int) as numberOfActiveContracts, \
+# 	cast(NumberOfIncompleteContracts as int) as numberOfIncompleteContracts, \
+# 	cast(NumberOfDistributedContracts as int) as numberOfDistributedContracts, \
+# 	cast(NmbrOfContractsToBeDistributed as int) as numberOfContractsToBeDistributed, \
+# 	cast(NumberOfBlockedContracts as int) as numberOfBlockedContracts, \
+# 	cast(NumberOfCancelledContracts as int) as numberOfCancelledContracts, \
+# 	cast(NumberOfProductChanges as int) as numberOfProductChanges, \
+# 	cast(NmbrOfContractsWProductChanges as int) as numberOfContractsWProductChanges, \
+# 	cast(NmbrOfContrWthEndOfSupRjctd as int) as numberOfContrWthEndOfSupRjctd, \
+# 	cast(NmbrOfContrWthStartOfSupRjctd as int) as numberOfContrWthStartOfSupRjctd, \
+# 	cast(NmbrOfContrWaitingForEndOfSup as int) as numberOfContrWaitingForEndOfSup, \
+# 	cast(NmbrOfContrWaitingForStrtOfSup as int) as numberOfContrWaitingForStrtOfSup, \
+# 	ToValidDate(CreationDate_E) as creationDateE, \
+# 	ToValidDate(LastChangeDate_E) as lastChangedDateE, \
+# 	ToValidDate(ContractStartDate_E) as contractStartDateE, \
+# 	ToValidDate(ContractEndDate_E,'MANDATORY') as contractEndDateE, \
+# 	_RecordStart, \
+# 	_RecordEnd, \
+# 	_RecordDeleted, \
+# 	_RecordCurrent \
+# 	FROM {ADS_DATABASE_STAGE}.{source_object}")
 
-print(f'Number of rows: {df_cleansed.count()}')
+# print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
 
-newSchema = StructType([
-	StructField('itemUUID',StringType(),True),
-	StructField('podUUID',StringType(),True),
-	StructField('headerUUID',StringType(),True),
-	StructField('utilitiesContract',StringType(),False),
-	StructField('businessPartnerGroupNumber',StringType(),True),
-	StructField('businessPartnerGroupName',StringType(),True),
-	StructField('businessAgreement',StringType(),True),
-	StructField('businessAgreementUUID',StringType(),True),
-	StructField('incomingPaymentMethod',StringType(),True),
-	StructField('incomingPaymentMethodName',StringType(),True),
-	StructField('paymentTerms',StringType(),True),
-	StructField('paymentTermsName',StringType(),True),
-	StructField('soldToParty',StringType(),True),
-	StructField('businessPartnerFullName',StringType(),True),
-	StructField('divisionCode',StringType(),True),
-	StructField('division',StringType(),True),
-	StructField('contractStartDate',DateType(),True),
-	StructField('contractEndDate',DateType(),True),
-	StructField('creationDate',TimestampType(),True),
-	StructField('createdBy',StringType(),True),
-	StructField('lastChangedDate',TimestampType(),True),
-	StructField('changedBy',StringType(),True),
-	StructField('itemCategory',StringType(),True),
-	StructField('itemCategoryName',StringType(),True),
-	StructField('product',StringType(),True),
-	StructField('productDescription',StringType(),True),
-	StructField('itemType',StringType(),True),
-	StructField('itemTypeName',StringType(),True),
-	StructField('productType',StringType(),True),
-	StructField('headerType',StringType(),True),
-	StructField('headerTypeName',StringType(),True),
-	StructField('headerCategory',StringType(),True),
-	StructField('headerCategoryName',StringType(),True),
-	StructField('headerDescription',StringType(),True),
-	StructField('isDeregulationPod',StringType(),True),
-	StructField('premise',StringType(),True),
-	StructField('numberOfPersons',StringType(),True),
-	StructField('cityName',StringType(),True),
-	StructField('streetName',StringType(),True),
-	StructField('houseNumber',StringType(),True),
-	StructField('postalCode',StringType(),True),
-	StructField('building',StringType(),True),
-	StructField('addressTimeZone',StringType(),True),
-	StructField('countryName',StringType(),True),
-	StructField('regionName',StringType(),True),
-	StructField('numberOfContractChanges',StringType(),True),
-	StructField('isOpen',StringType(),True),
-	StructField('isDistributed',StringType(),True),
-	StructField('hasError',StringType(),True),
-	StructField('isToBeDistributed',StringType(),True),
-	StructField('isIncomplete',StringType(),True),
-	StructField('isStartedDueToProductChange',StringType(),True),
-	StructField('isInActivation',StringType(),True),
-	StructField('isInDeactivation',StringType(),True),
-	StructField('isCancelled',StringType(),True),
-	StructField('cancellationMessageIsCreated',StringType(),True),
-	StructField('supplyEndCanclnMsgIsCreated',StringType(),True),
-	StructField('activationIsRejected',StringType(),True),
-	StructField('deactivationIsRejected',StringType(),True),
-	StructField('numberOfContracts',IntegerType(),True),
-	StructField('numberOfActiveContracts',IntegerType(),True),
-	StructField('numberOfIncompleteContracts',IntegerType(),True),
-	StructField('numberOfDistributedContracts',IntegerType(),True),
-	StructField('numberOfContractsToBeDistributed',IntegerType(),True),
-	StructField('numberOfBlockedContracts',IntegerType(),True),
-	StructField('numberOfCancelledContracts',IntegerType(),True),
-	StructField('numberOfProductChanges',IntegerType(),True),
-	StructField('numberOfContractsWProductChanges',IntegerType(),True),
-	StructField('numberOfContrWthEndOfSupRjctd',IntegerType(),True),
-	StructField('numberOfContrWthStartOfSupRjctd',IntegerType(),True),
-	StructField('numberOfContrWaitingForEndOfSup',IntegerType(),True),
-	StructField('numberOfContrWaitingForStrtOfSup',IntegerType(),True),
-	StructField('creationDateE',DateType(),True),
-	StructField('lastChangedDateE',DateType(),True),
-	StructField('contractStartDateE',DateType(),True),
-	StructField('contractEndDateE',DateType(),False),
-	StructField('_RecordStart',TimestampType(),False),
-	StructField('_RecordEnd',TimestampType(),False),
-	StructField('_RecordDeleted',IntegerType(),False),
-	StructField('_RecordCurrent',IntegerType(),False)
-])
+# newSchema = StructType([
+# 	StructField('itemUUID',StringType(),True),
+# 	StructField('podUUID',StringType(),True),
+# 	StructField('headerUUID',StringType(),True),
+# 	StructField('utilitiesContract',StringType(),False),
+# 	StructField('businessPartnerGroupNumber',StringType(),True),
+# 	StructField('businessPartnerGroupName',StringType(),True),
+# 	StructField('businessAgreement',StringType(),True),
+# 	StructField('businessAgreementUUID',StringType(),True),
+# 	StructField('incomingPaymentMethod',StringType(),True),
+# 	StructField('incomingPaymentMethodName',StringType(),True),
+# 	StructField('paymentTerms',StringType(),True),
+# 	StructField('paymentTermsName',StringType(),True),
+# 	StructField('soldToParty',StringType(),True),
+# 	StructField('businessPartnerFullName',StringType(),True),
+# 	StructField('divisionCode',StringType(),True),
+# 	StructField('division',StringType(),True),
+# 	StructField('contractStartDate',DateType(),True),
+# 	StructField('contractEndDate',DateType(),True),
+# 	StructField('creationDate',TimestampType(),True),
+# 	StructField('createdBy',StringType(),True),
+# 	StructField('lastChangedDate',TimestampType(),True),
+# 	StructField('changedBy',StringType(),True),
+# 	StructField('itemCategory',StringType(),True),
+# 	StructField('itemCategoryName',StringType(),True),
+# 	StructField('product',StringType(),True),
+# 	StructField('productDescription',StringType(),True),
+# 	StructField('itemType',StringType(),True),
+# 	StructField('itemTypeName',StringType(),True),
+# 	StructField('productType',StringType(),True),
+# 	StructField('headerType',StringType(),True),
+# 	StructField('headerTypeName',StringType(),True),
+# 	StructField('headerCategory',StringType(),True),
+# 	StructField('headerCategoryName',StringType(),True),
+# 	StructField('headerDescription',StringType(),True),
+# 	StructField('isDeregulationPod',StringType(),True),
+# 	StructField('premise',StringType(),True),
+# 	StructField('numberOfPersons',StringType(),True),
+# 	StructField('cityName',StringType(),True),
+# 	StructField('streetName',StringType(),True),
+# 	StructField('houseNumber',StringType(),True),
+# 	StructField('postalCode',StringType(),True),
+# 	StructField('building',StringType(),True),
+# 	StructField('addressTimeZone',StringType(),True),
+# 	StructField('countryName',StringType(),True),
+# 	StructField('regionName',StringType(),True),
+# 	StructField('numberOfContractChanges',StringType(),True),
+# 	StructField('isOpen',StringType(),True),
+# 	StructField('isDistributed',StringType(),True),
+# 	StructField('hasError',StringType(),True),
+# 	StructField('isToBeDistributed',StringType(),True),
+# 	StructField('isIncomplete',StringType(),True),
+# 	StructField('isStartedDueToProductChange',StringType(),True),
+# 	StructField('isInActivation',StringType(),True),
+# 	StructField('isInDeactivation',StringType(),True),
+# 	StructField('isCancelled',StringType(),True),
+# 	StructField('cancellationMessageIsCreated',StringType(),True),
+# 	StructField('supplyEndCanclnMsgIsCreated',StringType(),True),
+# 	StructField('activationIsRejected',StringType(),True),
+# 	StructField('deactivationIsRejected',StringType(),True),
+# 	StructField('numberOfContracts',IntegerType(),True),
+# 	StructField('numberOfActiveContracts',IntegerType(),True),
+# 	StructField('numberOfIncompleteContracts',IntegerType(),True),
+# 	StructField('numberOfDistributedContracts',IntegerType(),True),
+# 	StructField('numberOfContractsToBeDistributed',IntegerType(),True),
+# 	StructField('numberOfBlockedContracts',IntegerType(),True),
+# 	StructField('numberOfCancelledContracts',IntegerType(),True),
+# 	StructField('numberOfProductChanges',IntegerType(),True),
+# 	StructField('numberOfContractsWProductChanges',IntegerType(),True),
+# 	StructField('numberOfContrWthEndOfSupRjctd',IntegerType(),True),
+# 	StructField('numberOfContrWthStartOfSupRjctd',IntegerType(),True),
+# 	StructField('numberOfContrWaitingForEndOfSup',IntegerType(),True),
+# 	StructField('numberOfContrWaitingForStrtOfSup',IntegerType(),True),
+# 	StructField('creationDateE',DateType(),True),
+# 	StructField('lastChangedDateE',DateType(),True),
+# 	StructField('contractStartDateE',DateType(),True),
+# 	StructField('contractEndDateE',DateType(),False),
+# 	StructField('_RecordStart',TimestampType(),False),
+# 	StructField('_RecordEnd',TimestampType(),False),
+# 	StructField('_RecordDeleted',IntegerType(),False),
+# 	StructField('_RecordCurrent',IntegerType(),False)
+# ])
 
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
-#Save Data frame into Cleansed Delta table (final)
-DeltaSaveDataframeDirect(df_cleansed, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", newSchema, "")
+DeltaSaveDataFrameToDeltaTableNew(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
+#clear cache
+df.unpersist()
 
 # COMMAND ----------
 

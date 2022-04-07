@@ -319,37 +319,46 @@ def GeneralGetDataLoadMode(truncate, upsert, append):
 # COMMAND ----------
 
 def GeneralToValidDateTime(dateIn, colType ="Optional", fmt = "" ):
-  
-  #This function validates the date
-  from datetime import datetime
-  
-  dateStr = str(dateIn)
-  lowDate = str('19000101000000')
-  highDate = str('20991231000000')    
-   
-#   date_formats = ["%Y-%m-%dT%H:%M:%S", "%Y%m%d%I%M%S %p", "%Y%m%d%H%M%S","%d%y%m", "%d%m%Y", "%Y%m%d", "%d-%m-%Y", "%Y-%m-%d"]
-  date_formats = ["%Y%m%d", "%Y-%m-%d", "%d%m%Y", "%d-%m-%Y", "%Y-%m-%dT%H:%M:%S", "%Y-%m-%d%H:%M:%S", "%Y%m%d%H%M%S", "%Y%m%d %H%M%S", "%Y-%m-%d %H:%M:%S", "%Y%m%d%I%M%S %p", "%Y-%m-%d %I:%M:%S %p"]
 
-  if fmt != "" : 
-    date_formats = list(eval(fmt))
-    if len(date_formats[0]) == 1: 
-      date_formats = list(eval(fmt + ", " + fmt))
+    #This function validates the date
+    from dateutil import parser
+    from datetime import datetime
+    from dateutil.tz import gettz
+    import pytz
+    from pytz import timezone, utc
+    
+    SydneyTimes = {'AEDT': gettz('Australia/NSW'), 'AET': 11*60*60}
+    
+    lowDate = parser.parse('1900-01-01 00:00:00 AET', tzinfos=SydneyTimes)
+    lowDatePrior1900 = parser.parse('1900-01-01 01:00:00 AET', tzinfos=SydneyTimes)
+    lowDateMandatoryNull = parser.parse('1900-01-02 01:00:00 AET', tzinfos=SydneyTimes)
+    lowDateInvalidNull = parser.parse('1900-01-03 01:00:00 AET', tzinfos=SydneyTimes)
+    highNullDate = parser.parse('9999-12-31 22:59:59 AEDT', tzinfos=SydneyTimes)
+    
+    if dateIn is None:
+        dateStr = ''
+    else:
+        dateStr = str(dateIn)
+    
+    #check if length zero and mandatory, else add time to it if not present so the parser works nicely
+    if len(dateStr) == 0 and colType.upper() == "MANDATORY":
+        return lowDateMandatoryNull
+    
+    if dateStr == '00000000':
+        return highNullDate
+    
+    if len(dateStr) <= 10:
+        dateStr += ' 00:00:00'
 
-  for format in date_formats:
     try:
-        dateOut = datetime.strptime(dateStr, format)
-        if dateOut < datetime.strptime(lowDate, "%Y%m%d%H%M%S"):
-            return datetime.strptime(lowDate, "%Y%m%d%H%M%S")
-        elif dateOut >= datetime.strptime(highDate, "%Y%m%d%H%M%S"):
-            return datetime.strptime(highDate, "%Y%m%d%H%M%S")
-        return dateOut
-    except ValueError:
-        dateOut = None
-        pass
-  if colType.upper() == "MANDATORY" and (dateIn is None or dateOut is None):
-    return datetime.strptime(lowDate, "%Y%m%d%H%M%S")    
-  elif colType.upper() != "MANDATORY" and (dateIn is None or dateOut is None):
-    return
+        dateOut = parser.parse(dateStr + ' AEDT', tzinfos=SydneyTimes)
+        
+        if dateOut < lowDate:
+            return lowDatePrior1900
+        else:
+            return dateOut
+    except:
+        return lowDateInvalidNull
 
 from pyspark.sql.types import TimestampType, DateType
 
@@ -364,3 +373,7 @@ spark.udf.register("ToValidDateTime", GeneralToValidDateTime,TimestampType())
 ToValidDate_udf = udf(GeneralToValidDateTime, DateType())
 #DateTimeCol = df.ToValidDateTime_udf(df["StartDateTime"]))
 ToValidDateTime_udf = udf(GeneralToValidDateTime, TimestampType())
+
+# COMMAND ----------
+
+

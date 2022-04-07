@@ -60,7 +60,7 @@ params = {"start_date": start_date, "end_date": end_date}
 
 #DEFAULT IF ITS BLANK
 start_date = "2000-01-01" if not start_date else start_date
-end_date = "2099-12-31" if not end_date else end_date
+end_date = "9999-12-31" if not end_date else end_date
 
 #Print Date Range
 print(f"Start_Date = {start_date}| End_Date = {end_date}")
@@ -175,14 +175,6 @@ def contract():
              AddSK=True
             )  
 
-#Call Date function to load DimDate
-def makeDate(): #renamed because date() gets overloaded elsewhere
-    TemplateEtl(df=getDate(), 
-             entity="dimDate", 
-             businessKey="calendarDate",
-             AddSK=True
-            )
-
 #Call Installation function to load DimLocation
 def installation():
     TemplateEtl(df=getInstallation(), 
@@ -199,6 +191,14 @@ def location():
              AddSK=True
             )
 
+#Call Date function to load DimDate
+def makeDate(): #renamed because date() gets overloaded elsewhere
+    TemplateEtl(df=getDate(), 
+             entity="dimDate", 
+             businessKey="calendarDate",
+             AddSK=True
+            )
+
 #Call Meter function to load DimMeter
 def meter():
     TemplateEtl(df=getMeter(), 
@@ -207,6 +207,35 @@ def meter():
              AddSK=True
             )
 
+#Call SewerNetwork function to load dimSewerNetwork
+def sewerNetwork():
+    TemplateEtl(df=getSewerNetwork(), 
+             entity="dimSewerNetwork", 
+             businessKey="SCAMP",
+             AddSK=True
+            )
+
+#Call StormWater function to load dimStormWaterNetwork
+def stormWaterNetwork():
+    TemplateEtl(df=getStormWaterNetwork(), 
+             entity="dimStormWaterNetwork", 
+             businessKey="stormWaterCatchment",
+             AddSK=True
+            )
+
+#Call StormWater function to load dimStormWaterNetwork
+def waterNetwork():
+    TemplateEtl(df=getWaterNetwork(), 
+             entity="dimWaterNetwork", 
+             businessKey="supplyZone,pressureArea",
+             AddSK=True
+            )
+    #set n/a to null after the SKs have been generated
+    spark.sql("update curated.dimWaterNetwork \
+               set pressureArea = null \
+               where pressureArea = 'n/a'")
+
+# Add New Dim in alphabetical order Except for makeProperty. It MUST run after the network tables have been created
 #Call Property function to load DimProperty
 def makeProperty(): #renamed because property is a keyword
     TemplateEtl(df=getProperty(), 
@@ -215,7 +244,6 @@ def makeProperty(): #renamed because property is a keyword
              AddSK=True
             )
 
-# Add New Dim in alphabetical order
 # def Dim2_Example():
 #   TemplateEtl(df=GetDim2Example(), 
 #              entity="Dim2Example",
@@ -246,26 +274,7 @@ def meterInstallation():
 
 # COMMAND ----------
 
-# DBTITLE 1,6.3 Function: Load Bridge Tables
-#Call Business Partner Group Relation function to load brgBusinessPartnerGroupRelation
-def businessPartnerGroupRelationship():
-    TemplateEtl(df=getBusinessPartnerGroupRelationship(), 
-             entity="brgBusinessPartnerGroupRelationship", 
-             businessKey="businessPartnerGroupSK,businessPartnerSK,validFromDate",
-             AddSK=False
-            ) 
-
-#Call InstallationPropertyMeterContract function to load brgInstallationPropertyMeterCon
-def installationPropertyMeterContract():
-    TemplateEtl(df=getInstallationPropertyMeterContract(), 
-             entity="brgInstallationPropertyMeterContract", 
-             businessKey="dimInstallationSK",
-             AddSK=False
-            ) 
-
-# COMMAND ----------
-
-# DBTITLE 1,6.4. Function: Load Facts
+# DBTITLE 1,6.3. Function: Load Facts
 
 def billedWaterConsumption():
     TemplateEtl(df=getBilledWaterConsumption(),
@@ -302,9 +311,8 @@ def DatabaseChanges():
 
 # COMMAND ----------
 
-# DBTITLE 1,8. Flag Dimension/Bridge/Fact load
+# DBTITLE 1,8. Flag Dimension/Relationship/Fact load
 LoadDimensions = True
-LoadBridgeTables = True
 LoadFacts = True
 LoadRelationships = True
 
@@ -328,6 +336,13 @@ def Main():
         installation()
         location()
         meter()
+        sewerNetwork()
+        stormWaterNetwork()
+        waterNetwork()
+        #-----------------------------------------------------------------------------------------------
+        # Note: Due to the fact that dimProperty relies on the system area tables having been populated,
+        # makeProperty() must run after these three have been loaded
+        #-----------------------------------------------------------------------------------------------
         makeProperty()
         #Add new Dim in alphabetical position
         
@@ -346,18 +361,6 @@ def Main():
         LogEtl("End Relatioship Tables")
     else:
         LogEtl("Relationship table load not requested")
-        #==============
-    # BRIDGE TABLES
-    #==============    
-    if LoadBridgeTables:
-        LogEtl("Start Bridge Tables")
-        businessPartnerGroupRelationship()
-        installationPropertyMeterContract()
-        
-        LogEtl("End Bridge Tables")
-    else:
-        LogEtl("Bridge table load not requested")
-    
     #==============
     # FACTS
     #==============
@@ -379,5 +382,39 @@ Main()
 
 # COMMAND ----------
 
-# DBTITLE 1,11. Exit Notebook
+# DBTITLE 1,11. View Generation
+# MAGIC %sql
+# MAGIC --View to get property history for Billed Water Consumption.
+# MAGIC Create or replace view curated.viewBilledWaterConsumption as
+# MAGIC select prop.propertyNumber,
+# MAGIC prophist.inferiorPropertyTypeCode,
+# MAGIC prophist.inferiorPropertyType,
+# MAGIC prophist.superiorPropertyTypeCode,
+# MAGIC prophist.superiorPropertyType,
+# MAGIC fact.*
+# MAGIC from curated.factbilledwaterconsumption fact
+# MAGIC left outer join curated.dimproperty prop
+# MAGIC on fact.dimPropertySK = prop.dimPropertySK
+# MAGIC left outer join (select * from (select prophist.*,RANK() OVER   (PARTITION BY propertyNumber ORDER BY prophist.createddate desc,prophist.validToDate desc,prophist.validfromdate desc) as flag from cleansed.isu_zcd_tpropty_hist prophist) where flag=1) prophist
+# MAGIC on prop.propertyNumber = prophist.propertyNumber
+# MAGIC ;
+# MAGIC 
+# MAGIC --View to get property history for Apportioned Water Consumption.
+# MAGIC Create or replace view curated.viewDailyApportionedConsumption as
+# MAGIC select prop.propertyNumber,
+# MAGIC prophist.inferiorPropertyTypeCode,
+# MAGIC prophist.inferiorPropertyType,
+# MAGIC prophist.superiorPropertyTypeCode,
+# MAGIC prophist.superiorPropertyType,
+# MAGIC fact.*
+# MAGIC from curated.factDailyApportionedConsumption fact
+# MAGIC left outer join curated.dimproperty prop
+# MAGIC on fact.dimPropertySK = prop.dimPropertySK
+# MAGIC left outer join (select * from (select prophist.*,RANK() OVER   (PARTITION BY propertyNumber ORDER BY prophist.createddate desc,prophist.validToDate desc,prophist.validfromdate desc) as flag from cleansed.isu_zcd_tpropty_hist prophist) where flag=1) prophist
+# MAGIC on prop.propertyNumber = prophist.propertyNumber
+# MAGIC ;
+
+# COMMAND ----------
+
+# DBTITLE 1,12. Exit Notebook
 dbutils.notebook.exit("1")

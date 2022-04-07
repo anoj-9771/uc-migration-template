@@ -113,7 +113,7 @@ source_group = GeneralAlignTableName(source_group)
 print("source_group: " + source_group)
 
 #Get Data Lake Folder
-data_lake_folder = source_group + "/stg"
+data_lake_folder = source_group
 print("data_lake_folder: " + data_lake_folder)
 
 #Get and Align Source Table Name (replace '[-@ ,;{}()]' character by '_')
@@ -139,6 +139,21 @@ print("delta_column: " + delta_column)
 data_load_mode = GeneralGetDataLoadMode(Params[PARAMS_TRUNCATE_TARGET], Params[PARAMS_UPSERT_TARGET], Params[PARAMS_APPEND_TARGET])
 print("data_load_mode: " + data_load_mode)
 
+#Get the start time of the last successful cleansed load execution
+LastSuccessfulExecutionTS = Params["LastSuccessfulExecutionTS"]
+print("LastSuccessfulExecutionTS: " + LastSuccessfulExecutionTS)
+
+#Get current time
+#CurrentTimeStamp = spark.sql("select current_timestamp()").first()[0]
+CurrentTimeStamp = GeneralLocalDateTime()
+CurrentTimeStamp = CurrentTimeStamp.strftime("%Y-%m-%d %H:%M:%S")
+
+#Get business key,track_changes and delta_extract flag
+business_key =  Params[PARAMS_BUSINESS_KEY_COLUMN]
+track_changes =  Params[PARAMS_TRACK_CHANGES]
+is_delta_extract =  Params[PARAMS_DELTA_EXTRACT]
+
+
 # COMMAND ----------
 
 # DBTITLE 1,9. Set raw and cleansed table name
@@ -154,106 +169,136 @@ print(delta_raw_tbl_name)
 
 # COMMAND ----------
 
-# DBTITLE 1,10. Load to Cleanse Delta Table from Raw Delta Table
-#This method uses the source table to load data into target Delta Table
-DeltaSaveToDeltaTable (
-    source_table = delta_raw_tbl_name,
-    target_table = target_table,
-    target_data_lake_zone = ADS_DATALAKE_ZONE_CLEANSED,
-    target_database = ADS_DATABASE_STAGE,
-    data_lake_folder = data_lake_folder,
-    data_load_mode = data_load_mode,
-    track_changes =  Params[PARAMS_TRACK_CHANGES],
-    is_delta_extract =  Params[PARAMS_DELTA_EXTRACT],
-    business_key =  Params[PARAMS_BUSINESS_KEY_COLUMN],
-    delta_column = delta_column,
-    start_counter = start_counter,
-    end_counter = end_counter
-)
+# DBTITLE 1,10. Load Raw to Dataframe & Do Transformations
+df = spark.sql(f"WITH stage AS \
+                      (Select *, ROW_NUMBER() OVER (PARTITION BY EQUNR,ZWNUMMER,BIS ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} \
+                                  WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
+                           SELECT \
+                                case when EQUNR = 'na' then '' else EQUNR end as equipmentNumber, \
+                                case when ZWNUMMER = 'na' then '' else (cast(ZWNUMMER as int)) end  as registerNumber, \
+                                ToValidDate(BIS,'MANDATORY') as validToDate, \
+                                ToValidDate(AB) as validFromDate, \
+                                LOGIKZW as logicalRegisterNumber, \
+                                SPARTYP as divisionCategoryCode, \
+                                di.sectorCategory as divisionCategory, \
+                                ZWKENN as registerIdCode, \
+                                id.registerId as registerId, \
+                                ZWART as registerTypeCode, \
+                                te.registerType as registerType, \
+                                ZWTYP as registerCategoryCode, \
+                                dd.domainValueText as registerCategory, \
+                                BLIWIRK as reactiveApparentOrActiveRegister, \
+                                MASSREAD as unitOfMeasurementMeterReading, \
+                                NABLESEN as doNotReadIndicator, \
+                                cast(HOEKORR as int) as altitudeCorrectionPressure, \
+                                cast(KZAHLE as int) as setGasLawDeviationFactor, \
+                                cast(KZAHLT as int) as actualGasLawDeviationFactor, \
+                                cast(CRGPRESS as int) as gasCorrectionPressure, \
+                                INTSIZEID as intervalLengthId, \
+                                LOEVM as deletedIndicator, \
+                                ZANLAGE as installationId, \
+                                cast('1900-01-01' as TimeStamp) as _RecordStart, \
+                                cast('9999-12-31' as TimeStamp) as _RecordEnd, \
+                                '0' as _RecordDeleted, \
+                                '1' as _RecordCurrent, \
+                                cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
+                        FROM stage re \
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UCDIVISCAT_TEXT di ON re.SPARTYP = di.sectorCategoryCode \
+                                                                                          and di._RecordDeleted = 0 and di._RecordCurrent = 1 \
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_TE065T id ON re.SPARTYP = id.divisionCategoryCode and re.ZWKENN = id.registerIdCode \
+                                                                                          and id._RecordDeleted = 0 and id._RecordCurrent = 1 \
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_TE523T te ON re.ZWART = te.registerTypeCode \
+                                                                                          and te._RecordDeleted = 0 and te._RecordCurrent = 1 \
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_DD07T dd ON re.ZWTYP = dd.domainValueSingleUpperLimit and  dd.domainName = 'E_ZWTYP' \
+                                                                                          and dd._RecordDeleted = 0 and dd._RecordCurrent = 1 \
+                        where re._RecordVersion = 1 ").cache()
+
+print(f'Number of rows: {df.count()}')
 
 # COMMAND ----------
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 #Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
-df_cleansed = spark.sql(f"SELECT \
-	case when EQUNR = 'na' then '' else EQUNR end as equipmentNumber, \
-	case when ZWNUMMER = 'na' then '' else (cast(ZWNUMMER as int)) end  as registerNumber, \
-	ToValidDate(BIS,'MANDATORY') as validToDate, \
-	ToValidDate(AB) as validFromDate, \
-	LOGIKZW as logicalRegisterNumber, \
-	SPARTYP as divisionCategoryCode, \
-    di.sectorCategory as divisionCategory, \
-	ZWKENN as registerIdCode, \
-    id.registerId as registerId, \
-	ZWART as registerTypeCode, \
-	te.registerType as registerType, \
-	ZWTYP as registerCategoryCode, \
-    dd.domainValueText as registerCategory, \
-	BLIWIRK as reactiveApparentOrActiveRegister, \
-	MASSREAD as unitOfMeasurementMeterReading, \
-	NABLESEN as doNotReadIndicator, \
-	cast(HOEKORR as int) as altitudeCorrectionPressure, \
-	cast(KZAHLE as int) as setGasLawDeviationFactor, \
-	cast(KZAHLT as int) as actualGasLawDeviationFactor, \
-	cast(CRGPRESS as int) as gasCorrectionPressure, \
-	INTSIZEID as intervalLengthId, \
-	LOEVM as deletedIndicator, \
-    ZANLAGE as installationId, \
-	re._RecordStart, \
-	re._RecordEnd, \
-	re._RecordDeleted, \
-	re._RecordCurrent \
-	FROM {ADS_DATABASE_STAGE}.{source_object} re \
-    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UCDIVISCAT_TEXT di ON re.SPARTYP = di.sectorCategoryCode \
-                                                                      and di._RecordDeleted = 0 and di._RecordCurrent = 1 \
-    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_TE065T id ON re.SPARTYP = id.divisionCategoryCode and re.ZWKENN = id.registerIdCode \
-                                                                      and id._RecordDeleted = 0 and id._RecordCurrent = 1 \
-    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_TE523T te ON re.ZWART = te.registerTypeCode \
-                                                                      and te._RecordDeleted = 0 and te._RecordCurrent = 1 \
-    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_DD07T dd ON re.ZWTYP = dd.domainValueSingleUpperLimit and  dd.domainName = 'E_ZWTYP' \
-                                                                      and dd._RecordDeleted = 0 and dd._RecordCurrent = 1")
+# df_cleansed = spark.sql(f"SELECT \
+# 	case when EQUNR = 'na' then '' else EQUNR end as equipmentNumber, \
+# 	case when ZWNUMMER = 'na' then '' else (cast(ZWNUMMER as int)) end  as registerNumber, \
+# 	ToValidDate(BIS,'MANDATORY') as validToDate, \
+# 	ToValidDate(AB) as validFromDate, \
+# 	LOGIKZW as logicalRegisterNumber, \
+# 	SPARTYP as divisionCategoryCode, \
+#     di.sectorCategory as divisionCategory, \
+# 	ZWKENN as registerIdCode, \
+#     id.registerId as registerId, \
+# 	ZWART as registerTypeCode, \
+# 	te.registerType as registerType, \
+# 	ZWTYP as registerCategoryCode, \
+#     dd.domainValueText as registerCategory, \
+# 	BLIWIRK as reactiveApparentOrActiveRegister, \
+# 	MASSREAD as unitOfMeasurementMeterReading, \
+# 	NABLESEN as doNotReadIndicator, \
+# 	cast(HOEKORR as int) as altitudeCorrectionPressure, \
+# 	cast(KZAHLE as int) as setGasLawDeviationFactor, \
+# 	cast(KZAHLT as int) as actualGasLawDeviationFactor, \
+# 	cast(CRGPRESS as int) as gasCorrectionPressure, \
+# 	INTSIZEID as intervalLengthId, \
+# 	LOEVM as deletedIndicator, \
+#     ZANLAGE as installationId, \
+# 	re._RecordStart, \
+# 	re._RecordEnd, \
+# 	re._RecordDeleted, \
+# 	re._RecordCurrent \
+# 	FROM {ADS_DATABASE_STAGE}.{source_object} re \
+#     LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UCDIVISCAT_TEXT di ON re.SPARTYP = di.sectorCategoryCode \
+#                                                                       and di._RecordDeleted = 0 and di._RecordCurrent = 1 \
+#     LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_TE065T id ON re.SPARTYP = id.divisionCategoryCode and re.ZWKENN = id.registerIdCode \
+#                                                                       and id._RecordDeleted = 0 and id._RecordCurrent = 1 \
+#     LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_TE523T te ON re.ZWART = te.registerTypeCode \
+#                                                                       and te._RecordDeleted = 0 and te._RecordCurrent = 1 \
+#     LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_DD07T dd ON re.ZWTYP = dd.domainValueSingleUpperLimit and  dd.domainName = 'E_ZWTYP' \
+#                                                                       and dd._RecordDeleted = 0 and dd._RecordCurrent = 1")
 
-print(f'Number of rows: {df_cleansed.count()}')
+# print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
 
-newSchema = StructType([
-	StructField('equipmentNumber',StringType(),False),
-	StructField('registerNumber',StringType(),False),
-	StructField('validToDate',DateType(),False),
-	StructField('validFromDate',DateType(),True),
-	StructField('logicalRegisterNumber',StringType(),True),
-	StructField('divisionCategoryCode',StringType(),True),
-    StructField('divisionCategory',StringType(),True),
-	StructField('registerIdCode',StringType(),True),
-    StructField('registerId',StringType(),True),
-	StructField('registerTypeCode',StringType(),True),
-	StructField('registerType',StringType(),True),
-	StructField('registerCategoryCode',StringType(),True),
-    StructField('registerCategory',StringType(),True),
-	StructField('reactiveApparentOrActiveRegister',StringType(),True),
-	StructField('unitOfMeasurementMeterReading',StringType(),True),
-	StructField('doNotReadIndicator',StringType(),True),
-	StructField('altitudeCorrectionPressure',IntegerType(),True),
-	StructField('setGasLawDeviationFactor',IntegerType(),True),
-	StructField('actualGasLawDeviationFactor',IntegerType(),True),
-	StructField('gasCorrectionPressure',IntegerType(),True),
-	StructField('intervalLengthId',StringType(),True),
-	StructField('deletedIndicator',StringType(),True),
-    StructField('installationId',StringType(),True),
-	StructField('_RecordStart',TimestampType(),False),
-	StructField('_RecordEnd',TimestampType(),False),
-	StructField('_RecordDeleted',IntegerType(),False),
-	StructField('_RecordCurrent',IntegerType(),False)
-])
+# newSchema = StructType([
+# 	StructField('equipmentNumber',StringType(),False),
+# 	StructField('registerNumber',StringType(),False),
+# 	StructField('validToDate',DateType(),False),
+# 	StructField('validFromDate',DateType(),True),
+# 	StructField('logicalRegisterNumber',StringType(),True),
+# 	StructField('divisionCategoryCode',StringType(),True),
+#     StructField('divisionCategory',StringType(),True),
+# 	StructField('registerIdCode',StringType(),True),
+#     StructField('registerId',StringType(),True),
+# 	StructField('registerTypeCode',StringType(),True),
+# 	StructField('registerType',StringType(),True),
+# 	StructField('registerCategoryCode',StringType(),True),
+#     StructField('registerCategory',StringType(),True),
+# 	StructField('reactiveApparentOrActiveRegister',StringType(),True),
+# 	StructField('unitOfMeasurementMeterReading',StringType(),True),
+# 	StructField('doNotReadIndicator',StringType(),True),
+# 	StructField('altitudeCorrectionPressure',IntegerType(),True),
+# 	StructField('setGasLawDeviationFactor',IntegerType(),True),
+# 	StructField('actualGasLawDeviationFactor',IntegerType(),True),
+# 	StructField('gasCorrectionPressure',IntegerType(),True),
+# 	StructField('intervalLengthId',StringType(),True),
+# 	StructField('deletedIndicator',StringType(),True),
+#     StructField('installationId',StringType(),True),
+# 	StructField('_RecordStart',TimestampType(),False),
+# 	StructField('_RecordEnd',TimestampType(),False),
+# 	StructField('_RecordDeleted',IntegerType(),False),
+# 	StructField('_RecordCurrent',IntegerType(),False)
+# ])
 
 
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
-#Save Data frame into Cleansed Delta table (final)
-DeltaSaveDataframeDirect(df_cleansed, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", newSchema, "")
+DeltaSaveDataFrameToDeltaTableNew(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
+#clear cache
+df.unpersist()
 
 # COMMAND ----------
 

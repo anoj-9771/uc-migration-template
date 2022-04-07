@@ -525,3 +525,116 @@ def DeltaSyncToSQLDWOverwrite(delta_table, target_schema, target_table):
   
   DeltaSyncToSQLDW (delta_table, target_schema, target_table, business_key, start_counter, ADS_WRITE_MODE_OVERWRITE)
     
+
+# COMMAND ----------
+
+def DeltaSaveDataFrameToDeltaTableNew(
+  dataframe, target_table, target_data_lake_zone, target_database, data_lake_folder, data_load_mode, track_changes = False, is_delta_extract = False, business_key = "", AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0"):
+  
+  stage_table_name = f"{ADS_DATABASE_STAGE}.{target_table}"
+  
+  if AddSKColumn:
+    dataframe = DeltaInjectSurrogateKeyToDataFrame(dataframe, target_table)
+      
+  #Drop the stage table if it exists
+  spark.sql(f"DROP TABLE IF EXISTS {stage_table_name}")
+  #Save the dataframe temporarily to Stage database
+  LogEtl(f"write to stg table1")
+  dataframe.write.saveAsTable(stage_table_name)
+  LogEtl(f"write to stg table2")
+  
+  #Use our generic method to save the dataframe now to Delta Table
+  DeltaSaveToDeltaTableNew(
+    source_table = stage_table_name, 
+    target_table = target_table, 
+    target_data_lake_zone = target_data_lake_zone, 
+    target_database = target_database, 
+    data_lake_folder = data_lake_folder,
+    data_load_mode = data_load_mode,
+    track_changes = track_changes, 
+    is_delta_extract =  is_delta_extract, 
+    business_key = business_key, 
+    delta_column = delta_column, 
+    start_counter = start_counter, 
+    end_counter = end_counter
+    )
+  
+  if AddSKColumn:
+    dlTargetTableFqn = f"{target_database}.{target_table}"
+    DeltaUpdateSurrogateKey(target_database, target_table, business_key) 
+
+  verifyTableSchema(f"{target_database}.{target_table}", dataframe.schema)
+
+# COMMAND ----------
+
+def DeltaSaveToDeltaTableNew(
+  source_table, target_table, target_data_lake_zone, target_database, data_lake_folder, data_load_mode, track_changes = False, is_delta_extract = False, business_key = "", delta_column = "", start_counter = "0", end_counter = "0"):
+  
+  '''
+  This method uses the source table to load data into target Delta Table
+  It can do either Truncate-Load or Upsert or Append.
+  It can also track history with SCD columns
+  '''
+  
+  spark.conf.set("spark.sql.autoBroadcastJoinThreshold", -1)  
+  
+  target_table_fqn = f"{target_database}.{target_table}" 
+  # Start of Fix for Framework Folder Restructure
+  if target_data_lake_zone != ADS_DATALAKE_ZONE_CURATED:
+    target_table = target_table.split("_",1)[-1] 
+  # End of Fix for Framework Folder Restructure
+  data_lake_path = DeltaGetDataLakePath(target_data_lake_zone, data_lake_folder, target_table)
+  
+  #Ensure we have a table before we start the data load.
+  #The table is used to generate a dataframe to get the column names and to generate the merge query.
+  DeltaCreateTableIfNotExists(
+    delta_target_table = target_table_fqn, 
+    delta_source_table = source_table, 
+    data_lake_zone = target_data_lake_zone, 
+    delta_table_path = data_lake_path, 
+    is_delta_extract = is_delta_extract)
+  
+  #Generate the Query to save the data
+  LogEtl("Generating delta SQL query")
+  delta_query = SQLMerge_DeltaTable_GenerateSQLNew(
+      source_table_name = source_table, 
+      target_table_name = target_table_fqn, 
+      business_key = business_key, 
+      delta_column = delta_column, 
+      start_counter = start_counter, 
+      end_counter = end_counter, 
+      is_delta_extract = is_delta_extract, 
+      data_load_mode = data_load_mode,
+      track_changes = track_changes, 
+      target_data_lake_zone = target_data_lake_zone
+  )
+  LogExtended(delta_query)
+  
+  #Execute the SQL Query
+  LogEtl("Executing merge query")
+  spark.sql(delta_query)
+  
+#   if is_delta_extract == False and data_load_mode == ADS_WRITE_MODE_MERGE:
+#     LogEtl("Generating delete query as it is full load extraction")
+#     #Generate the Query to save the data
+#     delta_query = SQLMerge_DeltaTable_GenerateSQL(
+#         source_table_name = source_table, 
+#         target_table_name = target_table_fqn, 
+#         business_key = business_key, 
+#         delta_column = delta_column, 
+#         start_counter = start_counter, 
+#         end_counter = end_counter, 
+#         is_delta_extract = is_delta_extract, 
+#         data_load_mode = data_load_mode,
+#         track_changes = track_changes, 
+#         target_data_lake_zone = target_data_lake_zone,
+#         delete_data = True
+#     )
+#     LogExtended(delta_query)
+
+#     #Execute the SQL Query
+#     LogEtl("Executing delete query")
+#     spark.sql(delta_query)
+  
+
+

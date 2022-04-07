@@ -23,7 +23,7 @@ def getBilledWaterConsumptionAccess():
 
     #reusable query to derive the base billed consumption from Access Meter Reading dataset
     #2.Load Cleansed layer table data into dataframe
-    billedConsDf = spark.sql(f"select 'ACCESS' as sourceSystemCode, mr.propertyNumber, mr.propertyMeterNumber, \
+    billedConsDf = spark.sql(f"select 'ACCESS' as sourceSystemCode, mr.propertyNumber, dm.meterNumber, \
                                    mr.readingFromDate, mr.readingToDate, mr.meterReadingDays, \
                                    mr.meterReadingConsumption, \
                                    row_number() over (partition by mr.propertyNumber, mr.propertyMeterNumber, mr.readingFromDate \
@@ -31,6 +31,7 @@ def getBilledWaterConsumptionAccess():
                               from {ADS_DATABASE_CLEANSED}.access_z309_tmeterreading mr \
                                    inner join {ADS_DATABASE_CLEANSED}.access_z309_tpropmeter pm on pm.propertyNumber = mr.propertyNumber \
                                                                                      and pm.propertyMeterNumber = mr.propertyMeterNumber \
+                                   inner join {ADS_DATABASE_CURATED}.dimMeter dm on dm.meterSerialNumber = pm.meterMakerNumber and dm.sourceSystemCode = 'ACCESS' \
                               where mr.meterReadingTimestamp >= to_timestamp(to_date('20171001','yyyymmdd')) \
                                     and mr.meterReadingStatusCode IN ('A','B','P','V') \
                                     and mr.meterReadingDays > 0 \
@@ -56,7 +57,7 @@ def getBilledWaterConsumptionAccess():
                               ( \
                                  "sourceSystemCode" \
                                 ,"propertyNumber" \
-                                ,"propertyMeterNumber" \
+                                ,"meterNumber" \
                                 ,"readingFromDate as billingPeriodStartDate" \
                                 ,"readingToDate as billingPeriodEndDate" \
                                 ,"meterReadingDays as billingPeriodDays" \
@@ -64,3 +65,7 @@ def getBilledWaterConsumptionAccess():
                               )
 
     return billedConsDf
+
+# COMMAND ----------
+
+

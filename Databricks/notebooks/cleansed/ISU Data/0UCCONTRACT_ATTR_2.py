@@ -113,7 +113,7 @@ source_group = GeneralAlignTableName(source_group)
 print("source_group: " + source_group)
 
 #Get Data Lake Folder
-data_lake_folder = source_group + "/stg"
+data_lake_folder = source_group
 print("data_lake_folder: " + data_lake_folder)
 
 #Get and Align Source Table Name (replace '[-@ ,;{}()]' character by '_')
@@ -139,6 +139,21 @@ print("delta_column: " + delta_column)
 data_load_mode = GeneralGetDataLoadMode(Params[PARAMS_TRUNCATE_TARGET], Params[PARAMS_UPSERT_TARGET], Params[PARAMS_APPEND_TARGET])
 print("data_load_mode: " + data_load_mode)
 
+#Get the start time of the last successful cleansed load execution
+LastSuccessfulExecutionTS = Params["LastSuccessfulExecutionTS"]
+print("LastSuccessfulExecutionTS: " + LastSuccessfulExecutionTS)
+
+#Get current time
+#CurrentTimeStamp = spark.sql("select current_timestamp()").first()[0]
+CurrentTimeStamp = GeneralLocalDateTime()
+CurrentTimeStamp = CurrentTimeStamp.strftime("%Y-%m-%d %H:%M:%S")
+
+#Get business key,track_changes and delta_extract flag
+business_key =  Params[PARAMS_BUSINESS_KEY_COLUMN]
+track_changes =  Params[PARAMS_TRACK_CHANGES]
+is_delta_extract =  Params[PARAMS_DELTA_EXTRACT]
+
+
 # COMMAND ----------
 
 # DBTITLE 1,9. Set raw and cleansed table name
@@ -154,149 +169,193 @@ print(delta_raw_tbl_name)
 
 # COMMAND ----------
 
-# DBTITLE 1,10. Load to Cleanse Delta Table from Raw Delta Table
-#This method uses the source table to load data into target Delta Table
-DeltaSaveToDeltaTable (
-    source_table = delta_raw_tbl_name,
-    target_table = target_table,
-    target_data_lake_zone = ADS_DATALAKE_ZONE_CLEANSED,
-    target_database = ADS_DATABASE_STAGE,
-    data_lake_folder = data_lake_folder,
-    data_load_mode = data_load_mode,
-    track_changes =  Params[PARAMS_TRACK_CHANGES],
-    is_delta_extract =  Params[PARAMS_DELTA_EXTRACT],
-    business_key =  Params[PARAMS_BUSINESS_KEY_COLUMN],
-    delta_column = delta_column,
-    start_counter = start_counter,
-    end_counter = end_counter
-)
+# DBTITLE 1,10. Load Raw to Dataframe & Do Transformations
+df = spark.sql(f"WITH stage AS \
+                      (Select *, ROW_NUMBER() OVER (PARTITION BY VERTRAG ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
+                           SELECT \
+                                case when VERTRAG = 'na' then '' else VERTRAG end as contractId, \
+                                BUKRS as companyCode, \
+                                SPARTE as divisionCode, \
+                                KOFIZ as accountDeterminationCode, \
+                                ABSZYK as allowableBudgetBillingCycles, \
+                                GEMFAKT as invoiceContractsJointly, \
+                                ABRSPERR as billBlockingReasonCode, \
+                                ABRFREIG as billReleasingReasonCode, \
+                                VBEZ as contractText, \
+                                ToValidDate(EINZDAT_ALT) as legacyMoveInDate, \
+                                KFRIST as numberOfCancellations, \
+                                VERLAENG as numberOfRenewals, \
+                                PERSNR as personnelNumber, \
+                                VREFER as contractNumberLegacy, \
+                                ToValidDate(ERDAT) as createdDate, \
+                                ERNAM as createdBy, \
+                                ToValidDate(AEDAT) as lastChangedDate, \
+                                AENAM as lastChangedBy, \
+                                LOEVM as deletedIndicator, \
+                                FAKTURIERT as isContractInvoiced, \
+                                PS_PSP_PNR as wbsElement, \
+                                AUSGRUP as outsortingCheckGroupForBilling, \
+                                OUTCOUNT as manualOutsortingCount, \
+                                PYPLS as paymentPlanStartMonth, \
+                                SERVICEID as serviceProvider, \
+                                PYPLA as alternativePaymentStartMonth, \
+                                BILLFINIT as contractTerminatedForBilling, \
+                                SALESEMPLOYEE as salesEmployee, \
+                                INVOICING_PARTY as invoicingParty, \
+                                CANCREASON_NEW as cancellationReasonCRM, \
+                                ANLAGE as installationId, \
+                                VKONTO as contractAccountNumber, \
+                                KZSONDAUSZ as specialMoveOutCase, \
+                                ToValidDate(EINZDAT) as moveInDate, \
+                                ToValidDate(AUSZDAT) as moveOutDate, \
+                                ToValidDate(ABSSTOPDAT) as budgetBillingStopDate, \
+                                XVERA as isContractTransferred, \
+                                ZGPART as businessPartnerGroupNumber, \
+                                ToValidDate(ZDATE_FROM) as validFromDate, \
+                                ZZAGREEMENT_NUM as agreementNumber, \
+                                VSTELLE as premise, \
+                                HAUS as propertyNumber, \
+                                ZZZ_ADRMA as alternativeAddressNumber, \
+                                ZZZ_IDNUMBER as identificationNumber, \
+                                ZZ_ADRNR as addressNumber, \
+                                ZZ_OWNER as objectReferenceId, \
+                                ZZ_OBJNR as objectNumber, \
+                                cast('1900-01-01' as TimeStamp) as _RecordStart, \
+                                cast('9999-12-31' as TimeStamp) as _RecordEnd, \
+                                '0' as _RecordDeleted, \
+                                '1' as _RecordCurrent, \
+                                cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
+                        from stage where _RecordVersion = 1 ").cache()
+
+print(f'Number of rows: {df.count()}')
 
 # COMMAND ----------
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 #Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
-df_cleansed = spark.sql(f"SELECT \
-                            case when VERTRAG = 'na' then '' else VERTRAG end as contractId, \
-                            BUKRS as companyCode, \
-                            SPARTE as divisionCode, \
-                            KOFIZ as accountDeterminationCode, \
-                            ABSZYK as allowableBudgetBillingCycles, \
-                            GEMFAKT as invoiceContractsJointly, \
-                            ABRSPERR as billBlockingReasonCode, \
-                            ABRFREIG as billReleasingReasonCode, \
-                            VBEZ as contractText, \
-                            ToValidDate(EINZDAT_ALT) as legacyMoveInDate, \
-                            KFRIST as numberOfCancellations, \
-                            VERLAENG as numberOfRenewals, \
-                            PERSNR as personnelNumber, \
-                            VREFER as contractNumberLegacy, \
-                            ToValidDate(ERDAT) as createdDate, \
-                            ERNAM as createdBy, \
-                            ToValidDate(AEDAT) as lastChangedDate, \
-                            AENAM as lastChangedBy, \
-                            LOEVM as deletedIndicator, \
-                            FAKTURIERT as isContractInvoiced, \
-                            PS_PSP_PNR as wbsElement, \
-                            AUSGRUP as outsortingCheckGroupForBilling, \
-                            OUTCOUNT as manualOutsortingCount, \
-                            PYPLS as paymentPlanStartMonth, \
-                            SERVICEID as serviceProvider, \
-                            PYPLA as alternativePaymentStartMonth, \
-                            BILLFINIT as contractTerminatedForBilling, \
-                            SALESEMPLOYEE as salesEmployee, \
-                            INVOICING_PARTY as invoicingParty, \
-                            CANCREASON_NEW as cancellationReasonCRM, \
-                            ANLAGE as installationId, \
-                            VKONTO as contractAccountNumber, \
-                            KZSONDAUSZ as specialMoveOutCase, \
-                            ToValidDate(EINZDAT) as moveInDate, \
-                            ToValidDate(AUSZDAT) as moveOutDate, \
-                            ToValidDate(ABSSTOPDAT) as budgetBillingStopDate, \
-                            XVERA as isContractTransferred, \
-                            ZGPART as businessPartnerGroupNumber, \
-                            ToValidDate(ZDATE_FROM) as validFromDate, \
-                            ZZAGREEMENT_NUM as agreementNumber, \
-                            VSTELLE as premise, \
-                            HAUS as propertyNumber, \
-                            ZZZ_ADRMA as alternativeAddressNumber, \
-                            ZZZ_IDNUMBER as identificationNumber, \
-                            ZZ_ADRNR as addressNumber, \
-                            ZZ_OWNER as objectReferenceId, \
-                            ZZ_OBJNR as objectNumber, \
-                            _RecordStart, \
-                            _RecordEnd, \
-                            _RecordDeleted, \
-                            _RecordCurrent \
-                        FROM {ADS_DATABASE_STAGE}.{source_object}")
+# df_cleansed = spark.sql(f"SELECT \
+#                             case when VERTRAG = 'na' then '' else VERTRAG end as contractId, \
+#                             BUKRS as companyCode, \
+#                             SPARTE as divisionCode, \
+#                             KOFIZ as accountDeterminationCode, \
+#                             ABSZYK as allowableBudgetBillingCycles, \
+#                             GEMFAKT as invoiceContractsJointly, \
+#                             ABRSPERR as billBlockingReasonCode, \
+#                             ABRFREIG as billReleasingReasonCode, \
+#                             VBEZ as contractText, \
+#                             ToValidDate(EINZDAT_ALT) as legacyMoveInDate, \
+#                             KFRIST as numberOfCancellations, \
+#                             VERLAENG as numberOfRenewals, \
+#                             PERSNR as personnelNumber, \
+#                             VREFER as contractNumberLegacy, \
+#                             ToValidDate(ERDAT) as createdDate, \
+#                             ERNAM as createdBy, \
+#                             ToValidDate(AEDAT) as lastChangedDate, \
+#                             AENAM as lastChangedBy, \
+#                             LOEVM as deletedIndicator, \
+#                             FAKTURIERT as isContractInvoiced, \
+#                             PS_PSP_PNR as wbsElement, \
+#                             AUSGRUP as outsortingCheckGroupForBilling, \
+#                             OUTCOUNT as manualOutsortingCount, \
+#                             PYPLS as paymentPlanStartMonth, \
+#                             SERVICEID as serviceProvider, \
+#                             PYPLA as alternativePaymentStartMonth, \
+#                             BILLFINIT as contractTerminatedForBilling, \
+#                             SALESEMPLOYEE as salesEmployee, \
+#                             INVOICING_PARTY as invoicingParty, \
+#                             CANCREASON_NEW as cancellationReasonCRM, \
+#                             ANLAGE as installationId, \
+#                             VKONTO as contractAccountNumber, \
+#                             KZSONDAUSZ as specialMoveOutCase, \
+#                             ToValidDate(EINZDAT) as moveInDate, \
+#                             ToValidDate(AUSZDAT) as moveOutDate, \
+#                             ToValidDate(ABSSTOPDAT) as budgetBillingStopDate, \
+#                             XVERA as isContractTransferred, \
+#                             ZGPART as businessPartnerGroupNumber, \
+#                             ToValidDate(ZDATE_FROM) as validFromDate, \
+#                             ZZAGREEMENT_NUM as agreementNumber, \
+#                             VSTELLE as premise, \
+#                             HAUS as propertyNumber, \
+#                             ZZZ_ADRMA as alternativeAddressNumber, \
+#                             ZZZ_IDNUMBER as identificationNumber, \
+#                             ZZ_ADRNR as addressNumber, \
+#                             ZZ_OWNER as objectReferenceId, \
+#                             ZZ_OBJNR as objectNumber, \
+#                             _RecordStart, \
+#                             _RecordEnd, \
+#                             _RecordDeleted, \
+#                             _RecordCurrent \
+#                         FROM {ADS_DATABASE_STAGE}.{source_object}")
 
-print(f'Number of rows: {df_cleansed.count()}')
+# print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
 
-# Create schema for the cleanse table
-newSchema = StructType(
-                        [
-                          StructField("contractId", StringType(), False),
-                          StructField("companyCode", StringType(), True),
-                          StructField("divisionCode", StringType(), True),
-                          StructField("accountDeterminationCode", StringType(), True),
-                          StructField("allowableBudgetBillingCycles", StringType(), True),
-                          StructField("invoiceContractsJointly", StringType(), True),
-                          StructField("billBlockingReasonCode", StringType(), True),
-                          StructField("billReleasingReasonCode", StringType(), True),
-                          StructField("contractText", StringType(), True),
-                          StructField("legacyMoveInDate", DateType(), True),
-                          StructField("numberOfCancellations", StringType(), True),
-                          StructField("numberOfRenewals", StringType(), True),
-                          StructField("personnelNumber", StringType(), True),
-                          StructField("contractNumberLegacy", StringType(), True),
-                          StructField("createdDate", DateType(), True),
-                          StructField("createdBy", StringType(), True),
-                          StructField("lastChangedDate", DateType(), True),
-                          StructField("lastChangedBy", StringType(), True),
-                          StructField("deletedIndicator", StringType(), True),
-                          StructField("isContractInvoiced", StringType(), True),
-                          StructField("wbsElement", StringType(), True),
-                          StructField("outsortingCheckGroupForBilling", StringType(), True),
-                          StructField("manualOutsortingCount", StringType(), True),
-                          StructField("paymentPlanStartMonth", StringType(), True),
-                          StructField("serviceProvider", StringType(), True),
-                          StructField("alternativePaymentStartMonth", StringType(), True),
-                          StructField("contractTerminatedForBilling", StringType(), True),
-                          StructField("salesEmployee", StringType(), True),
-                          StructField("invoicingParty", StringType(), True),
-                          StructField("cancellationReasonCRM", StringType(), True),
-                          StructField("installationId", StringType(), True),
-                          StructField("contractAccountNumber", StringType(), True),
-                          StructField("specialMoveOutCase", StringType(), True),
-                          StructField("moveInDate", DateType(), True),
-                          StructField("moveOutDate", DateType(), True),
-                          StructField("budgetBillingStopDate", DateType(), True),
-                          StructField("isContractTransferred", StringType(), True),
-                          StructField("businessPartnerGroupNumber", StringType(), True),
-                          StructField("validFromDate", DateType(), True),
-                          StructField("agreementNumber", StringType(), True),
-                          StructField("premise", StringType(), True),
-                          StructField("propertyNumber", StringType(), True),
-                          StructField("alternativeAddressNumber", StringType(), True),
-                          StructField("identificationNumber", StringType(), True),
-                          StructField("addressNumber", StringType(), True),
-                          StructField("objectReferenceId", StringType(), True),
-                          StructField("objectNumber", StringType(), True),
-                          StructField('_RecordStart',TimestampType(),False),
-                          StructField('_RecordEnd',TimestampType(),False),
-                          StructField('_RecordDeleted',IntegerType(),False),
-                          StructField('_RecordCurrent',IntegerType(),False)
-                        ]
-                      )
+# # Create schema for the cleanse table
+# newSchema = StructType(
+#                         [
+#                           StructField("contractId", StringType(), False),
+#                           StructField("companyCode", StringType(), True),
+#                           StructField("divisionCode", StringType(), True),
+#                           StructField("accountDeterminationCode", StringType(), True),
+#                           StructField("allowableBudgetBillingCycles", StringType(), True),
+#                           StructField("invoiceContractsJointly", StringType(), True),
+#                           StructField("billBlockingReasonCode", StringType(), True),
+#                           StructField("billReleasingReasonCode", StringType(), True),
+#                           StructField("contractText", StringType(), True),
+#                           StructField("legacyMoveInDate", DateType(), True),
+#                           StructField("numberOfCancellations", StringType(), True),
+#                           StructField("numberOfRenewals", StringType(), True),
+#                           StructField("personnelNumber", StringType(), True),
+#                           StructField("contractNumberLegacy", StringType(), True),
+#                           StructField("createdDate", DateType(), True),
+#                           StructField("createdBy", StringType(), True),
+#                           StructField("lastChangedDate", DateType(), True),
+#                           StructField("lastChangedBy", StringType(), True),
+#                           StructField("deletedIndicator", StringType(), True),
+#                           StructField("isContractInvoiced", StringType(), True),
+#                           StructField("wbsElement", StringType(), True),
+#                           StructField("outsortingCheckGroupForBilling", StringType(), True),
+#                           StructField("manualOutsortingCount", StringType(), True),
+#                           StructField("paymentPlanStartMonth", StringType(), True),
+#                           StructField("serviceProvider", StringType(), True),
+#                           StructField("alternativePaymentStartMonth", StringType(), True),
+#                           StructField("contractTerminatedForBilling", StringType(), True),
+#                           StructField("salesEmployee", StringType(), True),
+#                           StructField("invoicingParty", StringType(), True),
+#                           StructField("cancellationReasonCRM", StringType(), True),
+#                           StructField("installationId", StringType(), True),
+#                           StructField("contractAccountNumber", StringType(), True),
+#                           StructField("specialMoveOutCase", StringType(), True),
+#                           StructField("moveInDate", DateType(), True),
+#                           StructField("moveOutDate", DateType(), True),
+#                           StructField("budgetBillingStopDate", DateType(), True),
+#                           StructField("isContractTransferred", StringType(), True),
+#                           StructField("businessPartnerGroupNumber", StringType(), True),
+#                           StructField("validFromDate", DateType(), True),
+#                           StructField("agreementNumber", StringType(), True),
+#                           StructField("premise", StringType(), True),
+#                           StructField("propertyNumber", StringType(), True),
+#                           StructField("alternativeAddressNumber", StringType(), True),
+#                           StructField("identificationNumber", StringType(), True),
+#                           StructField("addressNumber", StringType(), True),
+#                           StructField("objectReferenceId", StringType(), True),
+#                           StructField("objectNumber", StringType(), True),
+#                           StructField('_RecordStart',TimestampType(),False),
+#                           StructField('_RecordEnd',TimestampType(),False),
+#                           StructField('_RecordDeleted',IntegerType(),False),
+#                           StructField('_RecordCurrent',IntegerType(),False)
+#                         ]
+#                       )
 
 
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
-#Save Data frame into Cleansed Delta table (final)
-DeltaSaveDataframeDirect(df_cleansed, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", newSchema, "")
+DeltaSaveDataFrameToDeltaTableNew(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
+#clear cache
+df.unpersist()
 
 # COMMAND ----------
 

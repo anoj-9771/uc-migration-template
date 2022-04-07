@@ -1,4 +1,10 @@
 # Databricks notebook source
+# MAGIC %sql
+# MAGIC select * from cleansed.access_z309_tpropertyaddress where propertyNumber = 3100016
+
+# COMMAND ----------
+
+
 ###########################################################################################################################
 # Function: getLocation
 #  GETS Location DIMENSION 
@@ -18,15 +24,22 @@ def getLocation():
     #2.Load Cleansed layer table data into dataframe
     #collect parent properties and then parents of child properties so you get the parent address against the child property
     
-    HydraLocationDf = spark.sql(f"select distinct b.architecturalObjectNumber as locationID, upper(trim(trim(coalesce(c.houseNumber2,'')||' '||coalesce(c.houseNumber1,''))||' '||trim(c.streetName||' '||coalesce(c.streetLine1,''))||' '||coalesce(c.streetLine2,''))|| \
+    ISULocationDf = spark.sql(f"select distinct b.architecturalObjectNumber as locationID, \
+                                     'ISU' as sourceSystemCode, \
+                                     upper(trim(trim(coalesce(c.houseNumber2,'')||' '||coalesce(c.houseNumber1,''))||' '||trim(c.streetName||' '||coalesce(c.streetLine1,''))||' '||coalesce(c.streetLine2,''))|| \
                                      ', '||c.cityName||' NSW '||c.postCode)  as formattedAddress, \
                                      upper(c.houseNumber2) as houseNumber2, \
                                      upper(c.houseNumber1) as houseNumber1, \
                                      upper(c.streetName) as streetName, \
-                                     upper(trim(coalesce(streetLine1,'')||' '||coalesce(streetLine2,''))) as streetType, d.LGA as LGA, \
-                                     upper(c.cityName) as suburb, c.stateCode as state, c.postCode, a.latitude, a.longitude \
-                                     from (select propertyNumber, latitude, longitude from \
-                                              (select propertyNumber, latitude, longitude, \
+                                     upper(trim(coalesce(streetLine1,'')||' '||coalesce(streetLine2,''))) as streetType, \
+                                     a.LGA as LGA, \
+                                     upper(c.cityName) as suburb, \
+                                     c.stateCode as state, \
+                                     c.postCode, \
+                                     a.latitude, \
+                                     a.longitude \
+                                     from (select propertyNumber, lga, latitude, longitude from \
+                                              (select propertyNumber, lga, latitude, longitude, \
                                                 row_number() over (partition by propertyNumber order by areaSize desc) recNum \
                                                 from cleansed.hydra_tlotparcel where _RecordDeleted = 0 and _RecordCurrent = 1 ) \
                                                 where recNum = 1) a, \
@@ -46,14 +59,20 @@ def getLocation():
                                      and d._RecordCurrent = 1 \
                                      union all \
                                      select distinct b.architecturalObjectNumber as locationID, \
+                                     'ISU' as sourceSystemCode, \
                                      upper(trim(trim(coalesce(c1.houseNumber2,'')||' '||coalesce(c1.houseNumber1,''))||' '||trim(c1.streetName||' '||coalesce(c1.streetLine1,''))||' '||coalesce(c1.streetLine2,''))||', '||c1.cityName||' NSW '||c1.postCode)  as formattedAddress, \
                                      upper(c.houseNumber2) as houseNumber2, \
                                      upper(c.houseNumber1) as houseNumber1, \
                                      upper(c.streetName) as streetName, \
-                                     upper(trim(coalesce(c.streetLine1,'')||' '||coalesce(c.streetLine2,''))) as streetType, d.LGA as LGA, \
-                                     upper(c.cityName) as suburb, c.stateCode as state, c.postCode, a.latitude, a.longitude \
-                                     from (select propertyNumber, latitude, longitude from \
-                                              (select propertyNumber, latitude, longitude, \
+                                     upper(trim(coalesce(c.streetLine1,'')||' '||coalesce(c.streetLine2,''))) as streetType, \
+                                     a.LGA as LGA, \
+                                     upper(c.cityName) as suburb, \
+                                     c.stateCode as state, \
+                                     c.postCode, \
+                                     a.latitude, \
+                                     a.longitude \
+                                     from (select propertyNumber, lga, latitude, longitude from \
+                                              (select propertyNumber, lga, latitude, longitude, \
                                                 row_number() over (partition by propertyNumber order by areaSize desc) recNum \
                                                 from cleansed.hydra_tlotparcel where _RecordDeleted = 0 and _RecordCurrent = 1 ) \
                                                 where recNum = 1) a, \
@@ -72,22 +91,117 @@ def getLocation():
                                      and c._RecordCurrent = 1 \
                                      and d._RecordDeleted = 0 \
                                      and d._RecordCurrent = 1 \
-                                ")
+                               ")
 
     
-    HydraLocationDf.createOrReplaceTempView('allLocations')
+    ISULocationDf.createOrReplaceTempView('allLocations')
+    
+    missingProps = spark.sql(f"select propertyNumber \
+                               from   {ADS_DATABASE_CLEANSED}.access_Z309_TPropertyAddress \
+                               where  _RecordCurrent = 1 \
+                               minus \
+                               select locationID \
+                               from   allLocations")
+    
+    missingProps.createOrReplaceTempView('missingProps')
+    
+    #For the purposes of linking to Hydra only master strata, super lots and link lots need be considered
+    parentDf = spark.sql(f"with t1 as( \
+                                select su.propertyNumber, \
+                                       ms.masterPropertyNumber as parentPropertyNumber, \
+                                       'Child of Master Strata' as relationshipType \
+                                from {ADS_DATABASE_CLEANSED}.access_z309_tstrataunits su \
+                                      inner join {ADS_DATABASE_CLEANSED}.access_z309_tmastrataplan ms on su.strataPlanNumber = ms.strataPlanNumber and ms._RecordCurrent = 1 \
+                                      left outer join {ADS_DATABASE_CLEANSED}.access_z309_tproperty pr on pr.propertynumber = ms.masterPropertynumber and pr._RecordCurrent = 1 \
+                                where su._RecordCurrent = 1), \
+                             remainingProps as(select propertyNumber \
+                                               from   {ADS_DATABASE_CLEANSED}.access_z309_tproperty \
+                                               where  _RecordCurrent = 1 \
+                                               minus \
+                                               select propertyNumber \
+                                               from   t1), \
+                             relatedprops as( \
+                                select rp.propertyNumber as propertyNumber, \
+                                        rp.relatedPropertyNumber as parentPropertyNumber, \
+                                        rp.relationshipType as relationshipType, \
+                                        rank() over (partition by rp.propertyNumber order by relationshipTypecode desc) as rnk \
+                                from {ADS_DATABASE_CLEANSED}.access_z309_trelatedProps rp inner join remainingProps rem on rp.propertyNumber = rem.propertyNumber \
+                                       left outer join {ADS_DATABASE_CLEANSED}.access_z309_tproperty pr on pr.propertynumber = rp.relatedPropertynumber \
+                                where rp.relationshipTypeCode in ('P','U') \
+                                and   rp._RecordCurrent = 1), \
+                              t3 as(select * from t1 \
+                                    union \
+                                    select propertyNumber, \
+                                           parentPropertyNumber, \
+                                           relationshipType \
+                                    from relatedprops \
+                                    where rnk = 1), \
+                              t4 as(select propertyNumber \
+                                    from {ADS_DATABASE_CLEANSED}.access_z309_tproperty \
+                                    where _RecordCurrent = 1 \
+                                    minus \
+                                    select propertyNumber from t3) \
+                            select * from t3 \
+                            union all \
+                            select pr.propertyNumber, \
+                                    pr.propertyNumber as parentPropertyNumber, \
+                                    'Self as Parent' as relationshipType \
+                            from {ADS_DATABASE_CLEANSED}.access_z309_tproperty pr, t4 \
+                            where pr.propertyNumber = t4.propertyNumber \
+                            and pr._RecordCurrent = 1 \
+                            ")
+    parentDf.createOrReplaceTempView('parents')
+    
+    ACCESSDf = spark.sql(f"select pa.propertyNumber as locationID, \
+                               'ACCESS' as sourceSystemCode, \
+                               trim(trim(case when pa.lotNumber is not null then 'LOT '||trim(pa.lotNumber) \
+                                              when pa.roadsideMailBox is not null then 'RMB '||trim(pa.roadsideMailBox) \
+                                              else trim(trim(trim(coalesce(pa.floorLevelType,'')||' '||coalesce(pa.floorLevelNumber,''))||' '||coalesce(pa.flatUnitType,'')||' '||coalesce(pa.flatUnitNumber,''))||' '|| \
+                                                   case when pa.houseNumber2 > 0 then trim(cast(pa.houseNumber1 as string)||coalesce(pa.houseNumber1Suffix,''))||'-'||cast(pa.houseNumber2 as string)||coalesce(pa.houseNumber2Suffix,'') \
+                                                        else ltrim('0',cast(pa.houseNumber1 as string))||coalesce(pa.houseNumber1Suffix,'') end) end)|| \
+                                    ' '||trim(trim(sg.streetName||' '||coalesce(sg.streetType,''))||' '||coalesce(sg.streetSuffix,''))||', '||sg.suburb||' NSW '||sg.postcode) as formattedAddress, \
+                               case when pa.lotNumber is not null then 'LOT '||trim(pa.lotNumber) \
+                                    when pa.roadsideMailBox is not null then 'RMB '||trim(pa.roadsideMailBox) \
+                                    else trim(trim(coalesce(pa.floorLevelType,'')||' '||coalesce(pa.floorLevelNumber,''))||' '||coalesce(pa.flatUnitType,'')||' '||coalesce(pa.flatUnitNumber,'')) end as houseNumber2, \
+                               case when pa.houseNumber2 > 0 then trim(cast(pa.houseNumber1 as string)||coalesce(pa.houseNumber1Suffix,''))||'-'||cast(pa.houseNumber2 as string)||coalesce(pa.houseNumber2Suffix,'') \
+                                    else ltrim('0',cast(pa.houseNumber1 as string))||coalesce(pa.houseNumber1Suffix,'') end as housenumber1, \
+                               sg.streetName as streetName, \
+                           trim(coalesce(sg.streetType,'')||' '||coalesce(sg.streetSuffix,'')) as streetType, \
+                           hy.LGA, \
+                           sg.suburb as suburb, \
+                           'NSW' as state, \
+                           sg.postcode as postcode, \
+                           latitude, \
+                           longitude \
+                           from {ADS_DATABASE_CLEANSED}.access_z309_tpropertyaddress pa, \
+                                 {ADS_DATABASE_CLEANSED}.access_z309_tstreetguide sg, \
+                                 parents pp, \
+                                 missingProps mp, \
+                                 (select propertyNumber, lga, latitude, longitude from \
+                                         (select propertyNumber, lga, latitude, longitude, \
+                                                 row_number() over (partition by propertyNumber order by areaSize desc) recNum \
+                                          from cleansed.hydra_tlotparcel where _RecordDeleted = 0 and _RecordCurrent = 1 ) \
+                                          where recNum = 1) hy \
+                            where pa.streetGuideCode = sg.streetGuideCode \
+                            and   pa.propertyNumber = pp.propertyNumber \
+                            and   pa.propertyNumber = mp.propertyNumber \
+                            and   hy.propertyNumber = pp.parentPropertyNumber \
+                            and   pa._RecordCurrent = 1 \
+                            and   sg._RecordCurrent = 1 \
+                        ")
     #3.JOIN TABLES  
 
     #4.UNION TABLES
     #Create dummy record
-#    dummyRec = tuple([-1] + ['Unknown'] * (len(HydraLocationDf.columns) - 3) + [0,0]) 
-#    dummyDimRecDf = spark.createDataFrame([dummyRec],HydraLocationDf.columns)
-    dummyDimRecDf = spark.createDataFrame([("-1","Unknown","Unknown")], [ "locationID","formattedAddress","LGA"])
-    HydraLocationDf = HydraLocationDf.unionByName(dummyDimRecDf, allowMissingColumns = True)
-
+#    dummyRec = tuple([-1] + ['Unknown'] * (len(ISULocationDf.columns) - 3) + [0,0]) 
+#    dummyDimRecDf = spark.createDataFrame([dummyRec],ISULocationDf.columns)
+#    dummyDimRecDf = spark.createDataFrame([("-1","Unknown","Unknown")], [ "locationID","formattedAddress","LGA"])
+#    ISULocationDf = ISULocationDf.unionByName(dummyDimRecDf, allowMissingColumns = True)
+    locationDf = ISULocationDf.unionByName(ACCESSDf, allowMissingColumns = True)
     #5.SELECT / TRANSFORM
-    HydraLocationDf = HydraLocationDf.selectExpr( \
+    locationDf = locationDf.selectExpr( \
      "locationID" \
+    ,"sourceSystemCode" \
     ,"formattedAddress" \
     ,"houseNumber2" \
     ,"houseNumber1" \
@@ -100,10 +214,11 @@ def getLocation():
     ,"CAST(latitude AS DECIMAL(9,6)) as latitude" \
     ,"CAST(longitude AS DECIMAL(9,6)) as longitude"                   
     )
-
+    return locationDf
     #6.Apply schema definition
     newSchema = StructType([
                             StructField("locationID", StringType(), False),
+                            StructField("sourceSystemCode", StringType(), False),
                             StructField("formattedAddress", StringType(), True),
                             StructField("houseNumber2", StringType(), True),
                             StructField("houseNumber1", StringType(), True),
@@ -116,10 +231,5 @@ def getLocation():
                             StructField("latitude", DecimalType(9,6), True),
                             StructField("longitude", DecimalType(9,6), True)
                       ])
-
-    HydraLocationDf = spark.createDataFrame(HydraLocationDf.rdd, schema=newSchema)
-    return HydraLocationDf
-
-# COMMAND ----------
-
-
+    locationDf2 = spark.createDataFrame(locationDf.rdd, schema=newSchema)
+    return locationDf2
