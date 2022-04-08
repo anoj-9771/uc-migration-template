@@ -823,7 +823,7 @@
 			"type": "Microsoft.DataFactory/factories/linkedServices",
 			"apiVersion": "2018-06-01",
 			"properties": {
-				"description": "Databricks Delta Lake",
+				"description": "Databricks Delta Lake ",
 				"annotations": [],
 				"type": "AzureDatabricksDeltaLake",
 				"typeProperties": {
