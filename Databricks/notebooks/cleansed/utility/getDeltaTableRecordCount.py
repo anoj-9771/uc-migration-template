@@ -65,7 +65,7 @@ print(Debug)
 #target_name = "sapisu_DBERCHZ2"
 #Below Code commented as part of ADF Folder Structure Redesign
 #delta_cleansed_tbl_name = "{0}.stg_{1}".format(ADS_DATABASE_CLEANSED, target_table)
-delta_cleansed_tbl_name = "{0}.{1}".format(ADS_DATABASE_STAGE, target_table)
+delta_cleansed_tbl_name = "{0}.{1}".format(ADS_DATABASE_CLEANSED, target_table)
 sql_query = "SELECT COUNT(*) FROM {0}".format(delta_cleansed_tbl_name)
 
 print(delta_cleansed_tbl_name)
