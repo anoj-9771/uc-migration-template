@@ -327,25 +327,29 @@ def GeneralToValidDateTime(dateIn, colType ="Optional", fmt = "" ):
     import pytz
     from pytz import timezone, utc
     
-    SydneyTimes = {'AEDT': gettz('Australia/NSW'), 'AET': 11*60*60}
+    SydneyTimes = {'AEDT': gettz('Australia/NSW'), 'AET': 11*60*60} #standard 11 hour timezone difference to be applied at 1/1/1900
     
     lowDate = parser.parse('1900-01-01 00:00:00 AET', tzinfos=SydneyTimes)
-    lowDatePrior1900 = parser.parse('1900-01-01 01:00:00 AET', tzinfos=SydneyTimes)
-    lowDateMandatoryNull = parser.parse('1900-01-02 01:00:00 AET', tzinfos=SydneyTimes)
-    lowDateInvalidNull = parser.parse('1900-01-03 01:00:00 AET', tzinfos=SydneyTimes)
-    highNullDate = parser.parse('9999-12-31 22:59:59 AEDT', tzinfos=SydneyTimes)
+    datePriorTo1900 = parser.parse('1900-01-01 01:00:00 AET', tzinfos=SydneyTimes)
+    dateMandatoryButNull = parser.parse('1900-01-02 01:00:00 AET', tzinfos=SydneyTimes)
+    dateInvalid = parser.parse('1900-01-03 01:00:00 AET', tzinfos=SydneyTimes)
+    nullDate = parser.parse('9999-12-31 22:59:59 AEDT', tzinfos=SydneyTimes)
     
-    if dateIn is None:
-        dateStr = ''
+    if dateIn is None and colType.upper() != "MANDATORY":
+        return nullDate
     else:
         dateStr = str(dateIn)
+        
+    #don't allow for dates without century    
+    if len(dateIn) == 8 and dateIn.find('-') > 0:
+        return dateInvalid
     
     #check if length zero and mandatory, else add time to it if not present so the parser works nicely
     if len(dateStr) == 0 and colType.upper() == "MANDATORY":
-        return lowDateMandatoryNull
+        return dateMandatoryButNull
     
     if dateStr == '00000000':
-        return highNullDate
+        return nullDate
     
     if len(dateStr) <= 10:
         dateStr += ' 00:00:00'
@@ -354,11 +358,11 @@ def GeneralToValidDateTime(dateIn, colType ="Optional", fmt = "" ):
         dateOut = parser.parse(dateStr + ' AEDT', tzinfos=SydneyTimes)
         
         if dateOut < lowDate:
-            return lowDatePrior1900
+            return datePriorTo1900
         else:
             return dateOut
     except:
-        return lowDateInvalidNull
+        return dateInvalid
 
 from pyspark.sql.types import TimestampType, DateType
 
