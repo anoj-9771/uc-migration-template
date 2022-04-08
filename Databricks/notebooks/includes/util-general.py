@@ -336,7 +336,7 @@ def GeneralToValidDateTime(dateIn, colType ="Optional", fmt = "" ):
     nullDate = parser.parse('9999-12-31 22:59:59 AEDT', tzinfos=SydneyTimes)
     
     if dateIn is None and colType.upper() != "MANDATORY":
-        return nullDate
+        return None
     else:
         dateStr = str(dateIn)
         
