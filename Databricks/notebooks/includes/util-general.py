@@ -341,7 +341,7 @@ def GeneralToValidDateTime(dateIn, colType ="Optional", fmt = "" ):
         dateStr = str(dateIn)
         
     #don't allow for dates without century    
-    if len(dateStr) == 8 and dateStr.find('-') > 0:
+    if dateStr.find('-') <= 2 or dateStr.find(' ') == 6:
         return dateInvalid
     
     #check if length zero and mandatory, else add time to it if not present so the parser works nicely
