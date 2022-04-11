@@ -233,31 +233,32 @@ print(f'Number of rows: {df.count()}')
 
 # COMMAND ----------
 
-# newSchema = StructType([
-# 	StructField('installationId',StringType(),False),
-# 	StructField('logicalDeviceNumber',StringType(),False),
-# 	StructField('validToDate',DateType(),False),
-# 	StructField('validFromDate',DateType(),True),
-# 	StructField('priceClassCode',StringType(),True),
-# 	StructField('priceClass',StringType(),True),
-# 	StructField('payRentalPrice',StringType(),True),
-# 	StructField('rateTypeCode',StringType(),True),
-# 	StructField('rateType',StringType(),True),
-# 	StructField('deletedIndicator',StringType(),True),
-# 	StructField('bwDeltaProcess',StringType(),True),
-# 	StructField('operationCode',StringType(),True),
-# 	StructField('_RecordStart',TimestampType(),False),
-# 	StructField('_RecordEnd',TimestampType(),False),
-# 	StructField('_RecordDeleted',IntegerType(),False),
-# 	StructField('_RecordCurrent',IntegerType(),False)
-# ])
+newSchema = StructType([
+	StructField('installationId',StringType(),False),
+	StructField('logicalDeviceNumber',StringType(),False),
+	StructField('validToDate',DateType(),False),
+	StructField('validFromDate',DateType(),True),
+	StructField('priceClassCode',StringType(),True),
+	StructField('priceClass',StringType(),True),
+	StructField('payRentalPrice',StringType(),True),
+	StructField('rateTypeCode',StringType(),True),
+	StructField('rateType',StringType(),True),
+	StructField('deletedIndicator',StringType(),True),
+	StructField('bwDeltaProcess',StringType(),True),
+	StructField('operationCode',StringType(),True),
+	StructField('_RecordStart',TimestampType(),False),
+	StructField('_RecordEnd',TimestampType(),False),
+	StructField('_RecordDeleted',IntegerType(),False),
+	StructField('_RecordCurrent',IntegerType(),False),
+    StructField('_DLCleansedZoneTimeStamp',TimestampType(),False)
+])
 
 
 
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
-DeltaSaveDataFrameToDeltaTableNew(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
+DeltaSaveDataFrameToDeltaTableNew(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
 #clear cache
 df.unpersist()
 

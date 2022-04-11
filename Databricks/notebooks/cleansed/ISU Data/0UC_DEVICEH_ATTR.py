@@ -260,47 +260,48 @@ print(f'Number of rows: {df.count()}')
 
 # COMMAND ----------
 
-# newSchema = StructType([
-#                           StructField('equipmentNumber',StringType(),False),
-#                           StructField('validToDate',DateType(),False),
-#                           StructField('validFromDate',DateType(),True),
-#                           StructField('deviceCategoryCombination',StringType(),True),
-#                           StructField('logicalDeviceNumber',LongType(),True),                                      
-#                           StructField('registerGroupCode',StringType(),True),
-#                           StructField('registerGroup',StringType(),True),
-#                           StructField('installationDate',DateType(),True),
-#                           StructField('deviceRemovalDate',DateType(),True),
-#                           StructField('activityReasonCode',StringType(),True),
-#                           StructField('activityReason',StringType(),True),
-#                           StructField('deviceLocation',StringType(),True),
-#                           StructField('windingGroup',StringType(),True),
-#                           StructField('deletedIndicator',StringType(),True),
-#                           StructField('bwDeltaProcess',StringType(),True),
-#                           StructField('advancedMeterCapabilityGroup',IntegerType(),True),
-#                           StructField('messageAttributeId',IntegerType(),True),
-#                           StructField('materialNumber',StringType(),True),
-#                           StructField('installationId',StringType(),True),
-#                           StructField('addressNumber',StringType(),True),
-#                           StructField('cityName',StringType(),True),
-#                           StructField('houseNumber',StringType(),True),
-#                           StructField('streetName',StringType(),True),
-#                           StructField('postalCode',StringType(),True),
-#                           StructField('superiorFunctionalLocationNumber',StringType(),True),
-#                           StructField('policeEventNumber',StringType(),True),
-#                           StructField('orderNumber',StringType(),True),
-#                           StructField('createdBy',StringType(),True),
-#                           StructField('_RecordStart',TimestampType(),False),
-#                           StructField('_RecordEnd',TimestampType(),False),
-#                           StructField('_RecordDeleted',IntegerType(),False),
-#                           StructField('_RecordCurrent',IntegerType(),False)
-#                         ])
+newSchema = StructType([
+                          StructField('equipmentNumber',StringType(),False),
+                          StructField('validToDate',DateType(),False),
+                          StructField('validFromDate',DateType(),True),
+                          StructField('deviceCategoryCombination',StringType(),True),
+                          StructField('logicalDeviceNumber',LongType(),True),                                      
+                          StructField('registerGroupCode',StringType(),True),
+                          StructField('registerGroup',StringType(),True),
+                          StructField('installationDate',DateType(),True),
+                          StructField('deviceRemovalDate',DateType(),True),
+                          StructField('activityReasonCode',StringType(),True),
+                          StructField('activityReason',StringType(),True),
+                          StructField('deviceLocation',StringType(),True),
+                          StructField('windingGroup',StringType(),True),
+                          StructField('deletedIndicator',StringType(),True),
+                          StructField('bwDeltaProcess',StringType(),True),
+                          StructField('advancedMeterCapabilityGroup',IntegerType(),True),
+                          StructField('messageAttributeId',IntegerType(),True),
+                          StructField('materialNumber',StringType(),True),
+                          StructField('installationId',StringType(),True),
+                          StructField('addressNumber',StringType(),True),
+                          StructField('cityName',StringType(),True),
+                          StructField('houseNumber',StringType(),True),
+                          StructField('streetName',StringType(),True),
+                          StructField('postalCode',StringType(),True),
+                          StructField('superiorFunctionalLocationNumber',StringType(),True),
+                          StructField('policeEventNumber',StringType(),True),
+                          StructField('orderNumber',StringType(),True),
+                          StructField('createdBy',StringType(),True),
+                          StructField('_RecordStart',TimestampType(),False),
+                          StructField('_RecordEnd',TimestampType(),False),
+                          StructField('_RecordDeleted',IntegerType(),False),
+                          StructField('_RecordCurrent',IntegerType(),False),
+                          StructField('_DLCleansedZoneTimeStamp',TimestampType(),False)
+                        ])
                                       
 
 
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
-DeltaSaveDataFrameToDeltaTableNew(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
+DeltaSaveDataFrameToDeltaTableNew(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
 #clear cache
 df.unpersist()
 

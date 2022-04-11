@@ -256,47 +256,48 @@ print(f'Number of rows: {df.count()}')
 
 # COMMAND ----------
 
-# newSchema = StructType([
-# 	StructField('portion',StringType(),False),
-# 	StructField('intervalBetweenReadingAndEnd',IntegerType(),True),
-# 	StructField('intervalBetweenOrderAndReading',IntegerType(),True),
-# 	StructField('intervalBetweenDownloadAndReading',IntegerType(),True),
-# 	StructField('intervalBetweenPrintoutAndReading',IntegerType(),True),
-# 	StructField('intervalBetweenAnnouncementAndOrder',IntegerType(),True),
-# 	StructField('intervalBetweenPrintoutAndOrder',IntegerType(),True),
-# 	StructField('portionNumber',StringType(),True),
-# 	StructField('meterReaderNumber',StringType(),True),
-# 	StructField('meterReadingTime',DecimalType(5,1),True),
-# 	StructField('numberOfPreviousReadings',IntegerType(),True),
-# 	StructField('numberOfMobileDataEntry',StringType(),True),
-# 	StructField('meterReadingInterval',IntegerType(),True),
-# 	StructField('entryInterval',IntegerType(),True),
-# 	StructField('createdDate',DateType(),True),
-# 	StructField('createdBy',StringType(),True),
-# 	StructField('lastChangedDate',DateType(),True),
-# 	StructField('lastChangedBy',StringType(),True),
-# 	StructField('divisionCategory1',StringType(),True),
-# 	StructField('divisionCategory2',StringType(),True),
-# 	StructField('divisionCategory3',StringType(),True),
-# 	StructField('divisionCategory4',StringType(),True),
-# 	StructField('divisionCategory5',StringType(),True),
-# 	StructField('factoryCalendar',StringType(),True),
-# 	StructField('correctHolidayToWorkDay',StringType(),True),
-# 	StructField('billingKeyDate',DateType(),True),
-# 	StructField('numberOfDays',StringType(),True),
-# 	StructField('intervalBetweenOrderAndPlanned',StringType(),True),
-# 	StructField('meterReadingCenter',StringType(),True),
-# 	StructField('_RecordStart',TimestampType(),False),
-# 	StructField('_RecordEnd',TimestampType(),False),
-# 	StructField('_RecordDeleted',IntegerType(),False),
-# 	StructField('_RecordCurrent',IntegerType(),False)
-# ])
+newSchema = StructType([
+	StructField('portion',StringType(),False),
+	StructField('intervalBetweenReadingAndEnd',IntegerType(),True),
+	StructField('intervalBetweenOrderAndReading',IntegerType(),True),
+	StructField('intervalBetweenDownloadAndReading',IntegerType(),True),
+	StructField('intervalBetweenPrintoutAndReading',IntegerType(),True),
+	StructField('intervalBetweenAnnouncementAndOrder',IntegerType(),True),
+	StructField('intervalBetweenPrintoutAndOrder',IntegerType(),True),
+	StructField('portionNumber',StringType(),True),
+	StructField('meterReaderNumber',StringType(),True),
+	StructField('meterReadingTime',DecimalType(5,1),True),
+	StructField('numberOfPreviousReadings',IntegerType(),True),
+	StructField('numberOfMobileDataEntry',StringType(),True),
+	StructField('meterReadingInterval',IntegerType(),True),
+	StructField('entryInterval',IntegerType(),True),
+	StructField('createdDate',DateType(),True),
+	StructField('createdBy',StringType(),True),
+	StructField('lastChangedDate',DateType(),True),
+	StructField('lastChangedBy',StringType(),True),
+	StructField('divisionCategory1',StringType(),True),
+	StructField('divisionCategory2',StringType(),True),
+	StructField('divisionCategory3',StringType(),True),
+	StructField('divisionCategory4',StringType(),True),
+	StructField('divisionCategory5',StringType(),True),
+	StructField('factoryCalendar',StringType(),True),
+	StructField('correctHolidayToWorkDay',StringType(),True),
+	StructField('billingKeyDate',DateType(),True),
+	StructField('numberOfDays',StringType(),True),
+	StructField('intervalBetweenOrderAndPlanned',StringType(),True),
+	StructField('meterReadingCenter',StringType(),True),
+	StructField('_RecordStart',TimestampType(),False),
+	StructField('_RecordEnd',TimestampType(),False),
+	StructField('_RecordDeleted',IntegerType(),False),
+	StructField('_RecordCurrent',IntegerType(),False),
+    StructField('_DLCleansedZoneTimeStamp',TimestampType(),False)
+])
 
 
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
-DeltaSaveDataFrameToDeltaTableNew(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
+DeltaSaveDataFrameToDeltaTableNew(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
 #clear cache
 df.unpersist()
 
