@@ -230,6 +230,7 @@ newSchema = StructType([
                         StructField('_RecordEnd', TimestampType(), False),
                         StructField('_RecordDeleted', IntegerType(), False),
                         StructField('_RecordCurrent', IntegerType(), False),
+                        StructField('_DLCleansedZoneTimeStamp',TimestampType(),False)
                     ])
 
 
