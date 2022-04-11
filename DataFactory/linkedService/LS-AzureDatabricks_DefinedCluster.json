@@ -32,7 +32,8 @@
 		"connectVia": {
 			"referenceName": "IntegrationRuntime-SelfHosted",
 			"type": "IntegrationRuntimeReference"
-		}
+		},
+		"description": "Interactive Cluster"
 	},
 	"type": "Microsoft.DataFactory/factories/linkedservices"
 }
