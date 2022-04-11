@@ -251,45 +251,46 @@ print(f'Number of rows: {df.count()}')
 
 # COMMAND ----------
 
-# newSchema = StructType([
-#                         StructField('promiseToPayId',StringType(),False),
-#                         StructField('businessPartnerGroupNumber',StringType(),True),
-#                         StructField('contractAccountNumber',StringType(),True),
-#                         StructField('companyCode',StringType(),True),
-#                         StructField('promiseToPayReasonCode',StringType(),True),
-#                         StructField('withdrawalReasonCode',StringType(),True),
-#                         StructField('promiseToPayCategoryCode',StringType(),True),
-#                         StructField('numberOfChecks',StringType(),True),
-#                         StructField('currency',StringType(),True),
-#                         StructField('paymentAmountPromised',DecimalType(13,2),True),
-#                         StructField('promiseToPayCharges',DecimalType(13,2),True),
-#                         StructField('promiseToPayInterest',DecimalType(13,2),True),
-#                         StructField('amountCleared',DecimalType(13,2),True),
-#                         StructField('createdBy',StringType(),True),
-#                         StructField('createdDateTime',TimestampType(),True),
-#                         StructField('changedDate',DateType(),True),
-#                         StructField('promiseToPayStatus',StringType(),True),
-#                         StructField('statusChangedIndicator',StringType(),True),
-#                         StructField('replacementPromiseToPayId',StringType(),True),
-#                         StructField('instalmentsAgreed',StringType(),True),
-#                         StructField('firstDueDate',DateType(),True),
-#                         StructField('finalDueDate',DateType(),True),
-#                         StructField('numberOfPayments',StringType(),True),
-#                         StructField('paymentPromised',DecimalType(13,2),True),
-#                         StructField('amountPaidByToday',DecimalType(13,2),True),
-#                         StructField('currentLevelOfFulfillment',DecimalType(5,0),True),
-#                         StructField('_RecordStart',TimestampType(),False),
-#                         StructField('_RecordEnd',TimestampType(),False),
-#                         StructField('_RecordDeleted',IntegerType(),False),
-#                         StructField('_RecordCurrent',IntegerType(),False)
-#                       ])
+newSchema = StructType([
+                        StructField('promiseToPayId',StringType(),False),
+                        StructField('businessPartnerGroupNumber',StringType(),True),
+                        StructField('contractAccountNumber',StringType(),True),
+                        StructField('companyCode',StringType(),True),
+                        StructField('promiseToPayReasonCode',StringType(),True),
+                        StructField('withdrawalReasonCode',StringType(),True),
+                        StructField('promiseToPayCategoryCode',StringType(),True),
+                        StructField('numberOfChecks',StringType(),True),
+                        StructField('currency',StringType(),True),
+                        StructField('paymentAmountPromised',DecimalType(13,2),True),
+                        StructField('promiseToPayCharges',DecimalType(13,2),True),
+                        StructField('promiseToPayInterest',DecimalType(13,2),True),
+                        StructField('amountCleared',DecimalType(13,2),True),
+                        StructField('createdBy',StringType(),True),
+                        StructField('createdDateTime',TimestampType(),True),
+                        StructField('changedDate',DateType(),True),
+                        StructField('promiseToPayStatus',StringType(),True),
+                        StructField('statusChangedIndicator',StringType(),True),
+                        StructField('replacementPromiseToPayId',StringType(),True),
+                        StructField('instalmentsAgreed',StringType(),True),
+                        StructField('firstDueDate',DateType(),True),
+                        StructField('finalDueDate',DateType(),True),
+                        StructField('numberOfPayments',StringType(),True),
+                        StructField('paymentPromised',DecimalType(13,2),True),
+                        StructField('amountPaidByToday',DecimalType(13,2),True),
+                        StructField('currentLevelOfFulfillment',DecimalType(5,0),True),
+                        StructField('_RecordStart',TimestampType(),False),
+                        StructField('_RecordEnd',TimestampType(),False),
+                        StructField('_RecordDeleted',IntegerType(),False),
+                        StructField('_RecordCurrent',IntegerType(),False),
+                        StructField('_DLCleansedZoneTimeStamp',TimestampType(),False)
+                      ])
 
 
 
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
-DeltaSaveDataFrameToDeltaTableNew(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
+DeltaSaveDataFrameToDeltaTableNew(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
 #clear cache
 df.unpersist()
 

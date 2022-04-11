@@ -171,7 +171,7 @@ print(delta_raw_tbl_name)
 
 # DBTITLE 1,10. Load Raw to Dataframe & Do Transformations
 df = spark.sql(f"WITH stage AS \
-                      (Select *, ROW_NUMBER() OVER (PARTITION BY FORMKEY ORDER BY _DLRawZoneTimestamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
+                      (Select *, ROW_NUMBER() OVER (PARTITION BY FORMKEY ORDER BY _FileDateTimeStamp DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
                            SELECT \
                                 case when FORMKEY = 'na' then '' else FORMKEY end as applicationForm, \
                                 FORMCLASS as formClass, \
@@ -252,45 +252,46 @@ print(f'Number of rows: {df.count()}')
 
 # COMMAND ----------
 
-# newSchema = StructType([
-#                         StructField('applicationForm',StringType(),False),
-#                         StructField('formClass',StringType(),True),
-#                         StructField('formName',StringType(),True),
-#                         StructField('userExitInclude',StringType(),True),
-#                         StructField('userTopInclude',StringType(),True),
-#                         StructField('originalSystem',StringType(),True),
-#                         StructField('createdDate',DateType(),True),
-#                         StructField('createdBy',StringType(),True),
-#                         StructField('createdBySAPAction',StringType(),True),
-#                         StructField('lastChangedDate',DateType(),True),
-#                         StructField('lastChangedBy',StringType(),True),
-#                         StructField('lastChangedTime',StringType(),True),
-#                         StructField('lastChangedBySAPAction',StringType(),True),
-#                         StructField('applicationFormDescription',StringType(),True),
-#                         StructField('userExitBeforeHierarchyInterpretation',StringType(),True),
-#                         StructField('userExitAfterHierarchyInterpretation',StringType(),True),
-#                         StructField('userExitForDataDispatch',StringType(),True),
-#                         StructField('formType',StringType(),True),
-#                         StructField('smartForm',StringType(),True),
-#                         StructField('genFormGUID',StringType(),True),
-#                         StructField('applicationFormGUID',StringType(),True),
-#                         StructField('functionName',StringType(),True),
-#                         StructField('functionGroup',StringType(),True),
-#                         StructField('crossFormClassCollection',StringType(),True),
-#                         StructField('PDFFormName',StringType(),True),
-#                         StructField('dataDispatchMode',StringType(),True),
-#                         StructField('dynamicPDFForm',StringType(),True),
-#                         StructField('_RecordStart',TimestampType(),False),
-#                         StructField('_RecordEnd',TimestampType(),False),
-#                         StructField('_RecordDeleted',IntegerType(),False),
-#                         StructField('_RecordCurrent',IntegerType(),False)
-#                       ])
+newSchema = StructType([
+                        StructField('applicationForm',StringType(),False),
+                        StructField('formClass',StringType(),True),
+                        StructField('formName',StringType(),True),
+                        StructField('userExitInclude',StringType(),True),
+                        StructField('userTopInclude',StringType(),True),
+                        StructField('originalSystem',StringType(),True),
+                        StructField('createdDate',DateType(),True),
+                        StructField('createdBy',StringType(),True),
+                        StructField('createdBySAPAction',StringType(),True),
+                        StructField('lastChangedDate',DateType(),True),
+                        StructField('lastChangedBy',StringType(),True),
+                        StructField('lastChangedTime',StringType(),True),
+                        StructField('lastChangedBySAPAction',StringType(),True),
+                        StructField('applicationFormDescription',StringType(),True),
+                        StructField('userExitBeforeHierarchyInterpretation',StringType(),True),
+                        StructField('userExitAfterHierarchyInterpretation',StringType(),True),
+                        StructField('userExitForDataDispatch',StringType(),True),
+                        StructField('formType',StringType(),True),
+                        StructField('smartForm',StringType(),True),
+                        StructField('genFormGUID',StringType(),True),
+                        StructField('applicationFormGUID',StringType(),True),
+                        StructField('functionName',StringType(),True),
+                        StructField('functionGroup',StringType(),True),
+                        StructField('crossFormClassCollection',StringType(),True),
+                        StructField('PDFFormName',StringType(),True),
+                        StructField('dataDispatchMode',StringType(),True),
+                        StructField('dynamicPDFForm',StringType(),True),
+                        StructField('_RecordStart',TimestampType(),False),
+                        StructField('_RecordEnd',TimestampType(),False),
+                        StructField('_RecordDeleted',IntegerType(),False),
+                        StructField('_RecordCurrent',IntegerType(),False),
+                        StructField('_DLCleansedZoneTimeStamp',TimestampType(),False)
+                      ])
 
 
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
-DeltaSaveDataFrameToDeltaTableNew(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
+DeltaSaveDataFrameToDeltaTableNew(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
 #clear cache
 df.unpersist()
 

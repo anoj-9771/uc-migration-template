@@ -264,47 +264,48 @@ print(f'Number of rows: {df.count()}')
 
 # COMMAND ----------
 
-# newSchema = StructType([
-# 	StructField('businessPartnerRelationshipNumber',StringType(),False),
-# 	StructField('businessPartnerNumber1',StringType(),False),
-# 	StructField('businessPartnerNumber2',StringType(),False),
-# 	StructField('businessPartnerGUID1',StringType(),True),
-# 	StructField('businessPartnerGUID2',StringType(),True),
-# 	StructField('relationshipDirection',StringType(),True),
-# 	StructField('relationshipTypeCode',StringType(),True),
-# 	StructField('relationshipType',StringType(),True),
-# 	StructField('validToDate',DateType(),False),
-# 	StructField('validFromDate',DateType(),True),
-# 	StructField('countryShortName',StringType(),True),
-# 	StructField('postalCode',StringType(),True),
-# 	StructField('cityName',StringType(),True),
-# 	StructField('streetName',StringType(),True),
-# 	StructField('houseNumber',StringType(),True),
-# 	StructField('phoneNumber',StringType(),True),
-# 	StructField('emailAddress',StringType(),True),
-# 	StructField('capitalInterestPercentage',LongType(),True),
-# 	StructField('capitalInterestAmount',DecimalType(13,0),True),
-# 	StructField('shortFormattedAddress',StringType(),True),
-# 	StructField('shortFormattedAddress2',StringType(),True),
-# 	StructField('addressLine0',StringType(),True),
-# 	StructField('addressLine1',StringType(),True),
-# 	StructField('addressLine2',StringType(),True),
-# 	StructField('addressLine3',StringType(),True),
-# 	StructField('addressLine4',StringType(),True),
-# 	StructField('addressLine5',StringType(),True),
-# 	StructField('addressLine6',StringType(),True),
-# 	StructField('deletedIndicator',StringType(),True),
-# 	StructField('_RecordStart',TimestampType(),False),
-# 	StructField('_RecordEnd',TimestampType(),False),
-# 	StructField('_RecordDeleted',IntegerType(),False),
-# 	StructField('_RecordCurrent',IntegerType(),False)
-# ])
+newSchema = StructType([
+	StructField('businessPartnerRelationshipNumber',StringType(),False),
+	StructField('businessPartnerNumber1',StringType(),False),
+	StructField('businessPartnerNumber2',StringType(),False),
+	StructField('businessPartnerGUID1',StringType(),True),
+	StructField('businessPartnerGUID2',StringType(),True),
+	StructField('relationshipDirection',StringType(),True),
+	StructField('relationshipTypeCode',StringType(),True),
+	StructField('relationshipType',StringType(),True),
+	StructField('validToDate',DateType(),False),
+	StructField('validFromDate',DateType(),True),
+	StructField('countryShortName',StringType(),True),
+	StructField('postalCode',StringType(),True),
+	StructField('cityName',StringType(),True),
+	StructField('streetName',StringType(),True),
+	StructField('houseNumber',StringType(),True),
+	StructField('phoneNumber',StringType(),True),
+	StructField('emailAddress',StringType(),True),
+	StructField('capitalInterestPercentage',LongType(),True),
+	StructField('capitalInterestAmount',DecimalType(13,0),True),
+	StructField('shortFormattedAddress',StringType(),True),
+	StructField('shortFormattedAddress2',StringType(),True),
+	StructField('addressLine0',StringType(),True),
+	StructField('addressLine1',StringType(),True),
+	StructField('addressLine2',StringType(),True),
+	StructField('addressLine3',StringType(),True),
+	StructField('addressLine4',StringType(),True),
+	StructField('addressLine5',StringType(),True),
+	StructField('addressLine6',StringType(),True),
+	StructField('deletedIndicator',StringType(),True),
+	StructField('_RecordStart',TimestampType(),False),
+	StructField('_RecordEnd',TimestampType(),False),
+	StructField('_RecordDeleted',IntegerType(),False),
+	StructField('_RecordCurrent',IntegerType(),False),
+    StructField('_DLCleansedZoneTimeStamp',TimestampType(),False)
+])
 
 
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
-DeltaSaveDataFrameToDeltaTableNew(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
+DeltaSaveDataFrameToDeltaTableNew(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
 #clear cache
 df.unpersist()
 

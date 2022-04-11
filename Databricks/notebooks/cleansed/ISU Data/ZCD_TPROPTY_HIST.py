@@ -171,7 +171,7 @@ print(delta_raw_tbl_name)
 
 # DBTITLE 1,10. Load Raw to Dataframe & Do Transformations
 df = spark.sql(f"WITH stage AS \
-                      (Select *, ROW_NUMBER() OVER (PARTITION BY PROPERTY_NO,DATE_FROM ORDER BY _DLRawZoneTimestamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} \
+                      (Select *, ROW_NUMBER() OVER (PARTITION BY PROPERTY_NO,DATE_FROM ORDER BY _FileDateTimeStamp DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} \
                                   WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
                            SELECT  \
                                 case when stg.PROPERTY_NO = 'na' then '' else stg.PROPERTY_NO end as propertyNumber, \
@@ -230,30 +230,31 @@ print(f'Number of rows: {df.count()}')
 
 # COMMAND ----------
 
-# # Create schema for the cleanse table
-# newSchema = StructType([
-#                         StructField("propertyNumber", StringType(), False),
-#                         StructField("superiorPropertyTypeCode", StringType(), True),
-#                         StructField("superiorPropertyType", StringType(), True),
-#                         StructField("inferiorPropertyTypeCode", StringType(), True),
-#                         StructField("inferiorPropertyType", StringType(), True),
-#                         StructField("validFromDate", DateType(), False),
-#                         StructField("validToDate", DateType(), True),
-#                         StructField("createdDate", TimestampType(), True),
-#                         StructField("createdBy", StringType(), True),
-#                         StructField("changedDate", TimestampType(), True),
-#                         StructField("changedBy", StringType(), True),
-#                         StructField('_RecordStart',TimestampType(),False),
-#                         StructField('_RecordEnd',TimestampType(),False),
-#                         StructField('_RecordDeleted',IntegerType(),False),
-#                         StructField('_RecordCurrent',IntegerType(),False)
-#                       ])
+# Create schema for the cleanse table
+newSchema = StructType([
+                        StructField("propertyNumber", StringType(), False),
+                        StructField("superiorPropertyTypeCode", StringType(), True),
+                        StructField("superiorPropertyType", StringType(), True),
+                        StructField("inferiorPropertyTypeCode", StringType(), True),
+                        StructField("inferiorPropertyType", StringType(), True),
+                        StructField("validFromDate", DateType(), False),
+                        StructField("validToDate", DateType(), True),
+                        StructField("createdDate", TimestampType(), True),
+                        StructField("createdBy", StringType(), True),
+                        StructField("changedDate", TimestampType(), True),
+                        StructField("changedBy", StringType(), True),
+                        StructField('_RecordStart',TimestampType(),False),
+                        StructField('_RecordEnd',TimestampType(),False),
+                        StructField('_RecordDeleted',IntegerType(),False),
+                        StructField('_RecordCurrent',IntegerType(),False),
+                        StructField('_DLCleansedZoneTimeStamp',TimestampType(),False)
+                      ])
 
 
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
-DeltaSaveDataFrameToDeltaTableNew(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
+DeltaSaveDataFrameToDeltaTableNew(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
 #clear cache
 df.unpersist()
 
