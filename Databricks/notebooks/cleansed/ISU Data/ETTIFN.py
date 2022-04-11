@@ -171,7 +171,7 @@ print(delta_raw_tbl_name)
 
 # DBTITLE 1,10. Load Raw to Dataframe & Do Transformations
 df = spark.sql(f"WITH stage AS \
-                      (Select *, ROW_NUMBER() OVER (PARTITION BY ANLAGE,OPERAND,SAISON,AB,ABLFDNR ORDER BY _DLRawZoneTimestamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} \
+                      (Select *, ROW_NUMBER() OVER (PARTITION BY ANLAGE,OPERAND,SAISON,AB,ABLFDNR ORDER BY _FileDateTimeStamp DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} \
                                       WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
                            SELECT \
                                 case when ANLAGE = 'na' then '' else ANLAGE end as installationId, \
@@ -244,38 +244,38 @@ print(f'Number of rows: {df.count()}')
 
 # COMMAND ----------
 
-# newSchema = StructType([
-#                         StructField('installationId',StringType(),False),
-#                         StructField('operandCode',StringType(),False),
-#                         StructField('validFromDate',DateType(),False),
-#                         StructField('consecutiveDaysFromDate',StringType(),False),
-#                         StructField('validToDate',DateType(),True),
-#                         StructField('billingDocumentNumber',StringType(),True),
-#                         StructField('mBillingDocumentNumber',StringType(),True),
-#                         StructField('moveOutIndicator',StringType(),True),
-#                         StructField('expiryDate',DateType(),True),
-#                         StructField('inactiveIndicator',StringType(),True),
-#                         StructField('manualChangeIndicator',StringType(),True),
-#                         StructField('rateTypeCode',StringType(),True),
-#                         StructField('rateType',StringType(),True),
-#                         StructField('rateFactGroupCode',StringType(),True),
-#                         StructField('entryValue',DecimalType(16,7),True),
-#                         StructField('valueToBeBilled',DecimalType(16,7),True),
-#                         StructField('operandValue1',StringType(),True),
-#                         StructField('operandValue3',StringType(),True),
-#                         StructField('amount',DecimalType(13,2),True),
-#                         StructField('currencyKey',StringType(),True),
-#                         StructField('_RecordStart',TimestampType(),False),
-#                         StructField('_RecordEnd',TimestampType(),False),
-#                         StructField('_RecordDeleted',IntegerType(),False),
-#                         StructField('_RecordCurrent',IntegerType(),False)
-# ])
+newSchema = StructType([
+                        StructField('installationId',StringType(),False),
+                        StructField('operandCode',StringType(),False),
+                        StructField('validFromDate',DateType(),False),
+                        StructField('consecutiveDaysFromDate',StringType(),False),
+                        StructField('validToDate',DateType(),True),
+                        StructField('billingDocumentNumber',StringType(),True),
+                        StructField('mBillingDocumentNumber',StringType(),True),
+                        StructField('moveOutIndicator',StringType(),True),
+                        StructField('expiryDate',DateType(),True),
+                        StructField('inactiveIndicator',StringType(),True),
+                        StructField('manualChangeIndicator',StringType(),True),
+                        StructField('rateTypeCode',StringType(),True),
+                        StructField('rateType',StringType(),True),
+                        StructField('rateFactGroupCode',StringType(),True),
+                        StructField('entryValue',DecimalType(16,7),True),
+                        StructField('valueToBeBilled',DecimalType(16,7),True),
+                        StructField('operandValue1',StringType(),True),
+                        StructField('operandValue3',StringType(),True),
+                        StructField('amount',DecimalType(13,2),True),
+                        StructField('currencyKey',StringType(),True),
+                        StructField('_RecordStart',TimestampType(),False),
+                        StructField('_RecordEnd',TimestampType(),False),
+                        StructField('_RecordDeleted',IntegerType(),False),
+                        StructField('_RecordCurrent',IntegerType(),False)
+])
 
 
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
-DeltaSaveDataFrameToDeltaTableNew(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
+DeltaSaveDataFrameToDeltaTableNew(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
 #clear cache
 df.unpersist()
 

@@ -255,47 +255,47 @@ print(f'Number of rows: {df.count()}')
 
 # COMMAND ----------
 
-# newSchema = StructType([
-#                         StructField('contractAccountNumber',StringType(),False),
-#                         StructField('businessPartnerGroupNumber',StringType(),False),
-#                         StructField('createdDate',DateType(),True),
-#                         StructField('createdBy',StringType(),True),
-#                         StructField('lastChangedDate',DateType(),True),
-#                         StructField('changedBy',StringType(),True),
-#                         StructField('additionalDaysForCashManagement',IntegerType(),True),
-#                         StructField('headerUUID',StringType(),True),
-#                         StructField('directDebitLimit',DecimalType(13,0),True),
-#                         StructField('numberOfMonthsForDirectDebitLimit',IntegerType(),True),
-#                         StructField('businessPartnerReferenceNumber',StringType(),True),
-#                         StructField('companyCodeGroup',StringType(),True),
-#                         StructField('standardCompanyCode',StringType(),True),
-#                         StructField('alternativeDunningRecipient',StringType(),True),
-#                         StructField('bankDetailsId',StringType(),True),
-#                         StructField('incomingPaymentMethodCode',StringType(),True),
-#                         StructField('deletedIndicator',StringType(),True),
-#                         StructField('alternativeContractAccountForCollectiveBills',StringType(),True),
-#                         StructField('accountRelationshipCode',StringType(),True),
-#                         StructField('addressNumber',StringType(),True),
-#                         StructField('addressNumberForAlternativeDunningRecipient',StringType(),True),
-#                         StructField('alternativeInvoiceRecipient',StringType(),True),
-#                         StructField('addressNumberForAlternativeBillRecipient',StringType(),True),
-#                         StructField('toleranceGroupCode',StringType(),True),
-#                         StructField('paymentCardId',StringType(),True),
-#                         StructField('clearingCategory',StringType(),True),
-#                         StructField('collectionManagementMasterDataGroup',StringType(),True),
-#                         StructField('collectionStrategyCode',StringType(),True),
-#                         StructField('_RecordStart',TimestampType(),False),
-#                         StructField('_RecordEnd',TimestampType(),False),
-#                         StructField('_RecordDeleted',IntegerType(),False),
-#                         StructField('_RecordCurrent',IntegerType(),False)
-#                       ])
+newSchema = StructType([
+                        StructField('contractAccountNumber',StringType(),False),
+                        StructField('businessPartnerGroupNumber',StringType(),False),
+                        StructField('createdDate',DateType(),True),
+                        StructField('createdBy',StringType(),True),
+                        StructField('lastChangedDate',DateType(),True),
+                        StructField('changedBy',StringType(),True),
+                        StructField('additionalDaysForCashManagement',IntegerType(),True),
+                        StructField('headerUUID',StringType(),True),
+                        StructField('directDebitLimit',DecimalType(13,0),True),
+                        StructField('numberOfMonthsForDirectDebitLimit',IntegerType(),True),
+                        StructField('businessPartnerReferenceNumber',StringType(),True),
+                        StructField('companyCodeGroup',StringType(),True),
+                        StructField('standardCompanyCode',StringType(),True),
+                        StructField('alternativeDunningRecipient',StringType(),True),
+                        StructField('bankDetailsId',StringType(),True),
+                        StructField('incomingPaymentMethodCode',StringType(),True),
+                        StructField('deletedIndicator',StringType(),True),
+                        StructField('alternativeContractAccountForCollectiveBills',StringType(),True),
+                        StructField('accountRelationshipCode',StringType(),True),
+                        StructField('addressNumber',StringType(),True),
+                        StructField('addressNumberForAlternativeDunningRecipient',StringType(),True),
+                        StructField('alternativeInvoiceRecipient',StringType(),True),
+                        StructField('addressNumberForAlternativeBillRecipient',StringType(),True),
+                        StructField('toleranceGroupCode',StringType(),True),
+                        StructField('paymentCardId',StringType(),True),
+                        StructField('clearingCategory',StringType(),True),
+                        StructField('collectionManagementMasterDataGroup',StringType(),True),
+                        StructField('collectionStrategyCode',StringType(),True),
+                        StructField('_RecordStart',TimestampType(),False),
+                        StructField('_RecordEnd',TimestampType(),False),
+                        StructField('_RecordDeleted',IntegerType(),False),
+                        StructField('_RecordCurrent',IntegerType(),False)
+                      ])
 
 
 
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
-DeltaSaveDataFrameToDeltaTableNew(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
+DeltaSaveDataFrameToDeltaTableNew(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
 #clear cache
 df.unpersist()
 

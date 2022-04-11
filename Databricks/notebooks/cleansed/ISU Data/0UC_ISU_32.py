@@ -289,58 +289,58 @@ print(f'Number of rows: {df.count()}')
 
 # COMMAND ----------
 
-# newSchema = StructType([
-#                       StructField('validFromDate',DateType(),True),
-#                       StructField('disconnectiondate',DateType(),True),
-#                       StructField('installationId',StringType(),True),
-#                       StructField('validToDate',DateType(),False),
-#                       StructField('concessionCardTypeCode',StringType(),True),
-#                       StructField('propertyNumber',StringType(),True),
-#                       StructField('currentInstallationContract',StringType(),True),
-#                       StructField('billedValueCounter',DecimalType(16,0),True),
-#                       StructField('disconnectionActivityPeriod',StringType(),False),
-#                       StructField('disconnectionActivityTypeCode',StringType(),True),
-#                       StructField('disconnectionActivityType',StringType(),True),
-#                       StructField('disconnectionDocumentNumber',StringType(),False),
-#                       StructField('disconnectionObjectNumber',StringType(),False),
-#                       StructField('disconnectionObjectTypeCode',StringType(),True),
-#                       StructField('processingVariantCode',StringType(),True),
-#                       StructField('processingVariant',StringType(),True),
-#                       StructField('disconnectionReasonCode',StringType(),True),
-#                       StructField('disconnectionReason',StringType(),True),
-#                       StructField('equipmentNumber',StringType(),True),
-#                       StructField('documentItemNumber',StringType(),True),
-#                       StructField('documentPostingDate',DateType(),True),
-#                       StructField('loadMode',StringType(),True),
-#                       StructField('activityText',StringType(),True),
-#                       StructField('activityCode',StringType(),True),
-#                       StructField('meterReadingAfterDecimalPoint',DecimalType(14,0),True),
-#                       StructField('disconnectionReconnectionStatusCode',StringType(),True),
-#                       StructField('disconnectionReconnectionStatus',StringType(),True),
-#                       StructField('businessPartnerNumber',StringType(),True),
-#                       StructField('premise',StringType(),True),
-#                       StructField('recordMode',StringType(),True),
-#                       StructField('referenceObjectKey',StringType(),True),
-#                       StructField('referenceObjectTypeCode',StringType(),True),
-#                       StructField('meterReadingBeforeDecimalPoint',DecimalType(17,0),True),
-#                       StructField('contractAccountNumber',StringType(),True),
-#                       StructField('zDisconnectionDate',DateType(),True),
-#                       StructField('maintenanceTypeCode',StringType(),True),
-#                       StructField('disconnectionDocumentStatusCode',StringType(),True),
-#                       StructField('disconnectionDocumentStatus',StringType(),True),
-#                       StructField('orderNumber',StringType(),True),
-#                       StructField('_RecordStart',TimestampType(),False),
-#                       StructField('_RecordEnd',TimestampType(),False),
-#                       StructField('_RecordDeleted',IntegerType(),False),
-#                       StructField('_RecordCurrent',IntegerType(),False)
-#                   ])
+newSchema = StructType([
+                      StructField('validFromDate',DateType(),True),
+                      StructField('disconnectiondate',DateType(),True),
+                      StructField('installationId',StringType(),True),
+                      StructField('validToDate',DateType(),False),
+                      StructField('concessionCardTypeCode',StringType(),True),
+                      StructField('propertyNumber',StringType(),True),
+                      StructField('currentInstallationContract',StringType(),True),
+                      StructField('billedValueCounter',DecimalType(16,0),True),
+                      StructField('disconnectionActivityPeriod',StringType(),False),
+                      StructField('disconnectionActivityTypeCode',StringType(),True),
+                      StructField('disconnectionActivityType',StringType(),True),
+                      StructField('disconnectionDocumentNumber',StringType(),False),
+                      StructField('disconnectionObjectNumber',StringType(),False),
+                      StructField('disconnectionObjectTypeCode',StringType(),True),
+                      StructField('processingVariantCode',StringType(),True),
+                      StructField('processingVariant',StringType(),True),
+                      StructField('disconnectionReasonCode',StringType(),True),
+                      StructField('disconnectionReason',StringType(),True),
+                      StructField('equipmentNumber',StringType(),True),
+                      StructField('documentItemNumber',StringType(),True),
+                      StructField('documentPostingDate',DateType(),True),
+                      StructField('loadMode',StringType(),True),
+                      StructField('activityText',StringType(),True),
+                      StructField('activityCode',StringType(),True),
+                      StructField('meterReadingAfterDecimalPoint',DecimalType(14,0),True),
+                      StructField('disconnectionReconnectionStatusCode',StringType(),True),
+                      StructField('disconnectionReconnectionStatus',StringType(),True),
+                      StructField('businessPartnerNumber',StringType(),True),
+                      StructField('premise',StringType(),True),
+                      StructField('recordMode',StringType(),True),
+                      StructField('referenceObjectKey',StringType(),True),
+                      StructField('referenceObjectTypeCode',StringType(),True),
+                      StructField('meterReadingBeforeDecimalPoint',DecimalType(17,0),True),
+                      StructField('contractAccountNumber',StringType(),True),
+                      StructField('zDisconnectionDate',DateType(),True),
+                      StructField('maintenanceTypeCode',StringType(),True),
+                      StructField('disconnectionDocumentStatusCode',StringType(),True),
+                      StructField('disconnectionDocumentStatus',StringType(),True),
+                      StructField('orderNumber',StringType(),True),
+                      StructField('_RecordStart',TimestampType(),False),
+                      StructField('_RecordEnd',TimestampType(),False),
+                      StructField('_RecordDeleted',IntegerType(),False),
+                      StructField('_RecordCurrent',IntegerType(),False)
+                  ])
 
 
 
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
-DeltaSaveDataFrameToDeltaTableNew(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
+DeltaSaveDataFrameToDeltaTableNew(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
 #clear cache
 df.unpersist()
 
