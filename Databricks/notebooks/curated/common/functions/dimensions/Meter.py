@@ -39,8 +39,7 @@ def getMeter():
                                               null as inspectionRelevanceFlag, \
                                               row_number() over (partition by metermakernumber order by meterFittedDate desc) rownum \
                                       from {ADS_DATABASE_CLEANSED}.access_z309_tpropmeter \
-                                      where (meterFittedDate <> meterRemovedDate or meterRemovedDate is null) \
-                                      and _RecordCurrent = 1 \
+                                      where _RecordCurrent = 1 \
                                       and _RecordDeleted = 0")
      
     #Filter for active meter
