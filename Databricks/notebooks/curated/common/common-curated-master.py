@@ -416,5 +416,10 @@ Main()
 
 # COMMAND ----------
 
-# DBTITLE 1,12. Exit Notebook
+# DBTITLE 1,12. Create Semantic Layer after Curated Layer
+# MAGIC %run ../../semantic/semantic-view-creation
+
+# COMMAND ----------
+
+# DBTITLE 1,13. Exit Notebook
 dbutils.notebook.exit("1")
