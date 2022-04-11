@@ -171,7 +171,7 @@ print(delta_raw_tbl_name)
 
 # DBTITLE 1,10. Load Raw to Dataframe & Do Transformations
 df = spark.sql(f"WITH stage AS \
-                      (Select *, ROW_NUMBER() OVER (PARTITION BY TERMSCHL ORDER BY _DLRawZoneTimestamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
+                      (Select *, ROW_NUMBER() OVER (PARTITION BY TERMSCHL ORDER BY _FileDateTimeStamp DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
                            SELECT \
                                 case when TERMSCHL = 'na' then '' else TERMSCHL end as portion, \
                                 TERMTEXT as scheduleMasterRecord, \
@@ -256,47 +256,48 @@ print(f'Number of rows: {df.count()}')
 
 # COMMAND ----------
 
-# newSchema = StructType([
-#                         StructField('portion',StringType(),False),
-#                         StructField('scheduleMasterRecord',StringType(),True),
-#                         StructField('billingPeriodEndDate',DateType(),True),
-#                         StructField('periodLengthMonths',IntegerType(),True),
-#                         StructField('periodCategory',StringType(),True),
-#                         StructField('meterReadingAllocationDate',DateType(),True),
-#                         StructField('allowableBudgetBillingCycles',StringType(),True),
-#                         StructField('createdDate',DateType(),True),
-#                         StructField('createdBy',StringType(),True),
-#                         StructField('lastChangedDate',DateType(),True),
-#                         StructField('lastChangedBy',StringType(),True),
-#                         StructField('divisionCategory1',StringType(),True),
-#                         StructField('divisionCategory2',StringType(),True),
-#                         StructField('divisionCategory3',StringType(),True),
-#                         StructField('divisionCategory4',StringType(),True),
-#                         StructField('divisionCategory5',StringType(),True),
-#                         StructField('budgetBillingCycle1',StringType(),True),
-#                         StructField('budgetBillingCycle2',StringType(),True),
-#                         StructField('budgetBillingCycle3',StringType(),True),
-#                         StructField('budgetBillingCycle4',StringType(),True),
-#                         StructField('budgetBillingCycle5',StringType(),True),
-#                         StructField('parameterRecord',StringType(),True),
-#                         StructField('factoryCalendar',StringType(),True),
-#                         StructField('correctHolidayToWorkDay',StringType(),True),
-#                         StructField('lowerLimitBillingPeriod',IntegerType(),True),
-#                         StructField('upperLimitBillingPeriod',IntegerType(),True),
-#                         StructField('periodLengthDays',IntegerType(),True),
-#                         StructField('isWorkDay',StringType(),True),
-#                         StructField('extrapolationCategory',StringType(),True),
-#                         StructField('_RecordStart',TimestampType(),False),
-#                         StructField('_RecordEnd',TimestampType(),False),
-#                         StructField('_RecordDeleted',IntegerType(),False),
-#                         StructField('_RecordCurrent',IntegerType(),False)
-#                       ])
+newSchema = StructType([
+                        StructField('portion',StringType(),False),
+                        StructField('scheduleMasterRecord',StringType(),True),
+                        StructField('billingPeriodEndDate',DateType(),True),
+                        StructField('periodLengthMonths',IntegerType(),True),
+                        StructField('periodCategory',StringType(),True),
+                        StructField('meterReadingAllocationDate',DateType(),True),
+                        StructField('allowableBudgetBillingCycles',StringType(),True),
+                        StructField('createdDate',DateType(),True),
+                        StructField('createdBy',StringType(),True),
+                        StructField('lastChangedDate',DateType(),True),
+                        StructField('lastChangedBy',StringType(),True),
+                        StructField('divisionCategory1',StringType(),True),
+                        StructField('divisionCategory2',StringType(),True),
+                        StructField('divisionCategory3',StringType(),True),
+                        StructField('divisionCategory4',StringType(),True),
+                        StructField('divisionCategory5',StringType(),True),
+                        StructField('budgetBillingCycle1',StringType(),True),
+                        StructField('budgetBillingCycle2',StringType(),True),
+                        StructField('budgetBillingCycle3',StringType(),True),
+                        StructField('budgetBillingCycle4',StringType(),True),
+                        StructField('budgetBillingCycle5',StringType(),True),
+                        StructField('parameterRecord',StringType(),True),
+                        StructField('factoryCalendar',StringType(),True),
+                        StructField('correctHolidayToWorkDay',StringType(),True),
+                        StructField('lowerLimitBillingPeriod',IntegerType(),True),
+                        StructField('upperLimitBillingPeriod',IntegerType(),True),
+                        StructField('periodLengthDays',IntegerType(),True),
+                        StructField('isWorkDay',StringType(),True),
+                        StructField('extrapolationCategory',StringType(),True),
+                        StructField('_RecordStart',TimestampType(),False),
+                        StructField('_RecordEnd',TimestampType(),False),
+                        StructField('_RecordDeleted',IntegerType(),False),
+                        StructField('_RecordCurrent',IntegerType(),False),
+                        StructField('_DLCleansedZoneTimeStamp',TimestampType(),False)
+                      ])
 
 
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
-DeltaSaveDataFrameToDeltaTableNew(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
+DeltaSaveDataFrameToDeltaTableNew(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
 #clear cache
 df.unpersist()
 

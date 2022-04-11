@@ -207,31 +207,32 @@ print(f'Number of rows: {df.count()}')
 
 # COMMAND ----------
 
-# # Create schema for the cleanse table
-# newSchema = StructType(
-#   [
-#     StructField("equipmentNumber", StringType(), False),
-#     StructField("materialNumber", StringType(), True),
-#     StructField("deviceNumber", StringType(), True),
-#     StructField("inspectionRelevanceIndicator", StringType(), True),
-#     StructField("deviceSize", StringType(), True),
-#     StructField("assetManufacturerName", StringType(), True),
-#     StructField("manufacturerSerialNumber", StringType(), True),    
-#     StructField("manufacturerModelNumber", StringType(), True),
-#     StructField("objectNumber", StringType(), True),  
-#     StructField("registerNotRelevantToBilling", StringType(), True),     
-#     StructField('_RecordStart',TimestampType(),False),
-#     StructField('_RecordEnd',TimestampType(),False),
-#     StructField('_RecordDeleted',IntegerType(),False),
-#     StructField('_RecordCurrent',IntegerType(),False)
-#   ]
-# )
+# Create schema for the cleanse table
+newSchema = StructType(
+  [
+    StructField("equipmentNumber", StringType(), False),
+    StructField("materialNumber", StringType(), True),
+    StructField("deviceNumber", StringType(), True),
+    StructField("inspectionRelevanceIndicator", StringType(), True),
+    StructField("deviceSize", StringType(), True),
+    StructField("assetManufacturerName", StringType(), True),
+    StructField("manufacturerSerialNumber", StringType(), True),    
+    StructField("manufacturerModelNumber", StringType(), True),
+    StructField("objectNumber", StringType(), True),  
+    StructField("registerNotRelevantToBilling", StringType(), True),     
+    StructField('_RecordStart',TimestampType(),False),
+    StructField('_RecordEnd',TimestampType(),False),
+    StructField('_RecordDeleted',IntegerType(),False),
+    StructField('_RecordCurrent',IntegerType(),False),
+    StructField('_DLCleansedZoneTimeStamp',TimestampType(),False)
+  ]
+)
 
 
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
-DeltaSaveDataFrameToDeltaTableNew(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
+DeltaSaveDataFrameToDeltaTableNew(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
 #clear cache
 df.unpersist()
 

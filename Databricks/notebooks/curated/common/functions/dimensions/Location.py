@@ -1,10 +1,4 @@
 # Databricks notebook source
-# MAGIC %sql
-# MAGIC select * from cleansed.access_z309_tpropertyaddress where propertyNumber = 3100016
-
-# COMMAND ----------
-
-
 ###########################################################################################################################
 # Function: getLocation
 #  GETS Location DIMENSION 
@@ -24,7 +18,7 @@ def getLocation():
     #2.Load Cleansed layer table data into dataframe
     #collect parent properties and then parents of child properties so you get the parent address against the child property
     
-    ISULocationDf = spark.sql(f"select distinct b.architecturalObjectNumber as locationID, \
+    ISULocationDf = spark.sql(f"select distinct d.propertyNumber as locationID, \
                                      'ISU' as sourceSystemCode, \
                                      upper(trim(trim(coalesce(c.houseNumber2,'')||' '||coalesce(c.houseNumber1,''))||' '||trim(c.streetName||' '||coalesce(c.streetLine1,''))||' '||coalesce(c.streetLine2,''))|| \
                                      ', '||c.cityName||' NSW '||c.postCode)  as formattedAddress, \
@@ -32,25 +26,21 @@ def getLocation():
                                      upper(c.houseNumber1) as houseNumber1, \
                                      upper(c.streetName) as streetName, \
                                      upper(trim(coalesce(streetLine1,'')||' '||coalesce(streetLine2,''))) as streetType, \
-                                     a.LGA as LGA, \
+                                     coalesce(a.LGA,d.LGA) as LGA, \
                                      upper(c.cityName) as suburb, \
                                      c.stateCode as state, \
                                      c.postCode, \
                                      a.latitude, \
                                      a.longitude \
-                                     from (select propertyNumber, lga, latitude, longitude from \
+                                     from {ADS_DATABASE_CLEANSED}.isu_0uc_connobj_attr_2 d left outer join {ADS_DATABASE_CLEANSED}.isu_vibdnode b on d.propertyNumber = b.architecturalObjectNumber \
+                                         left outer join (select propertyNumber, lga, latitude, longitude from \
                                               (select propertyNumber, lga, latitude, longitude, \
                                                 row_number() over (partition by propertyNumber order by areaSize desc) recNum \
                                                 from cleansed.hydra_tlotparcel where _RecordDeleted = 0 and _RecordCurrent = 1 ) \
-                                                where recNum = 1) a, \
-                                          {ADS_DATABASE_CLEANSED}.isu_vibdnode b, \
-                                          {ADS_DATABASE_CLEANSED}.isu_0funct_loc_attr c, \
-                                          {ADS_DATABASE_CLEANSED}.isu_0uc_connobj_attr_2 d \
-                                     where a.propertyNumber is not null \
-                                     and a.propertyNumber = b.architecturalObjectNumber \
-                                     and b.architecturalObjectNumber = c.functionalLocationNumber \
+                                                where recNum = 1) a on a.propertyNumber = b.architecturalObjectNumber, \
+                                          {ADS_DATABASE_CLEANSED}.isu_0funct_loc_attr c \
+                                     where b.architecturalObjectNumber = c.functionalLocationNumber \
                                      and b.parentArchitecturalObjectNumber is null \
-                                     and d.propertyNumber = b.architecturalObjectNumber \
                                      and b._RecordDeleted = 0 \
                                      and b._RecordCurrent = 1 \
                                      and c._RecordDeleted = 0 \
@@ -58,33 +48,29 @@ def getLocation():
                                      and d._RecordDeleted = 0 \
                                      and d._RecordCurrent = 1 \
                                      union all \
-                                     select distinct b.architecturalObjectNumber as locationID, \
+                                     select distinct d.propertyNumber as locationID, \
                                      'ISU' as sourceSystemCode, \
                                      upper(trim(trim(coalesce(c1.houseNumber2,'')||' '||coalesce(c1.houseNumber1,''))||' '||trim(c1.streetName||' '||coalesce(c1.streetLine1,''))||' '||coalesce(c1.streetLine2,''))||', '||c1.cityName||' NSW '||c1.postCode)  as formattedAddress, \
                                      upper(c.houseNumber2) as houseNumber2, \
                                      upper(c.houseNumber1) as houseNumber1, \
                                      upper(c.streetName) as streetName, \
                                      upper(trim(coalesce(c.streetLine1,'')||' '||coalesce(c.streetLine2,''))) as streetType, \
-                                     a.LGA as LGA, \
+                                     coalesce(a.LGA,d.LGA) as LGA, \
                                      upper(c.cityName) as suburb, \
                                      c.stateCode as state, \
                                      c.postCode, \
                                      a.latitude, \
                                      a.longitude \
-                                     from (select propertyNumber, lga, latitude, longitude from \
+                                     from {ADS_DATABASE_CLEANSED}.isu_0uc_connobj_attr_2 d left outer join {ADS_DATABASE_CLEANSED}.isu_vibdnode b on d.propertyNumber = b.architecturalObjectNumber \
+                                         left outer join (select propertyNumber, lga, latitude, longitude from \
                                               (select propertyNumber, lga, latitude, longitude, \
                                                 row_number() over (partition by propertyNumber order by areaSize desc) recNum \
                                                 from cleansed.hydra_tlotparcel where _RecordDeleted = 0 and _RecordCurrent = 1 ) \
-                                                where recNum = 1) a, \
-                                          {ADS_DATABASE_CLEANSED}.isu_vibdnode b, \
+                                                where recNum = 1) a on a.propertyNumber = b.parentArchitecturalObjectNumber, \
                                           {ADS_DATABASE_CLEANSED}.isu_0funct_loc_attr c, \
-                                          {ADS_DATABASE_CLEANSED}.isu_0funct_loc_attr c1, \
-                                          {ADS_DATABASE_CLEANSED}.isu_0uc_connobj_attr_2 d \
-                                     where a.propertyNumber is not null \
-                                     and a.propertyNumber = b.parentArchitecturalObjectNumber \
-                                     and b.architecturalObjectNumber = c.functionalLocationNumber \
+                                          {ADS_DATABASE_CLEANSED}.isu_0funct_loc_attr c1 \
+                                     where b.architecturalObjectNumber = c.functionalLocationNumber \
                                      and b.parentArchitecturalObjectNumber = c1.functionalLocationNumber \
-                                     and d.propertyNumber = b.architecturalObjectNumber \
                                      and b._RecordDeleted = 0 \
                                      and b._RecordCurrent = 1 \
                                      and c._RecordDeleted = 0 \
@@ -167,28 +153,29 @@ def getLocation():
                                     else ltrim('0',cast(pa.houseNumber1 as string))||coalesce(pa.houseNumber1Suffix,'') end as housenumber1, \
                                sg.streetName as streetName, \
                            trim(coalesce(sg.streetType,'')||' '||coalesce(sg.streetSuffix,'')) as streetType, \
-                           hy.LGA, \
+                           coalesce(hy.LGA,pr.LGA) as LGA, \
                            sg.suburb as suburb, \
                            'NSW' as state, \
                            sg.postcode as postcode, \
                            latitude, \
                            longitude \
-                           from {ADS_DATABASE_CLEANSED}.access_z309_tpropertyaddress pa, \
-                                 {ADS_DATABASE_CLEANSED}.access_z309_tstreetguide sg, \
+                           from {ADS_DATABASE_CLEANSED}.access_z309_tpropertyaddress pa left outer join \
+                                 {ADS_DATABASE_CLEANSED}.access_z309_tstreetguide sg on pa.streetGuideCode = sg.streetGuideCode, \
                                  parents pp, \
-                                 missingProps mp, \
+                                 {ADS_DATABASE_CLEANSED}.access_z309_tproperty pr, \
+                                 missingProps mp left outer join \
                                  (select propertyNumber, lga, latitude, longitude from \
                                          (select propertyNumber, lga, latitude, longitude, \
                                                  row_number() over (partition by propertyNumber order by areaSize desc) recNum \
                                           from cleansed.hydra_tlotparcel where _RecordDeleted = 0 and _RecordCurrent = 1 ) \
-                                          where recNum = 1) hy \
-                            where pa.streetGuideCode = sg.streetGuideCode \
-                            and   pa.propertyNumber = pp.propertyNumber \
+                                          where recNum = 1) hy on hy.propertyNumber = pp.parentPropertyNumber\
+                            where pa.propertyNumber = pp.propertyNumber \
+                            and   pa.propertyNumber = pr.propertyNumber \
                             and   pa.propertyNumber = mp.propertyNumber \
-                            and   hy.propertyNumber = pp.parentPropertyNumber \
                             and   pa._RecordCurrent = 1 \
                             and   sg._RecordCurrent = 1 \
                         ")
+    ACCESSDf.createOrReplaceTempView('ACCESS')
     #3.JOIN TABLES  
 
     #4.UNION TABLES
@@ -214,7 +201,6 @@ def getLocation():
     ,"CAST(latitude AS DECIMAL(9,6)) as latitude" \
     ,"CAST(longitude AS DECIMAL(9,6)) as longitude"                   
     )
-    return locationDf
     #6.Apply schema definition
     newSchema = StructType([
                             StructField("locationID", StringType(), False),
@@ -233,3 +219,7 @@ def getLocation():
                       ])
     locationDf2 = spark.createDataFrame(locationDf.rdd, schema=newSchema)
     return locationDf2
+
+# COMMAND ----------
+
+
