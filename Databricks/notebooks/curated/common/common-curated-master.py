@@ -203,7 +203,7 @@ def makeDate(): #renamed because date() gets overloaded elsewhere
 def meter():
     TemplateEtl(df=getMeter(), 
              entity="dimMeter", 
-             businessKey="sourceSystemCode,meterNumber",
+             businessKey="meterNumber",
              AddSK=True
             )
 
@@ -240,7 +240,7 @@ def waterNetwork():
 def makeProperty(): #renamed because property is a keyword
     TemplateEtl(df=getProperty(), 
              entity="dimProperty", 
-             businessKey="sourceSystemCode,propertyNumber",
+             businessKey="propertyNumber",
              AddSK=True
             )
 
