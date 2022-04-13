@@ -216,14 +216,14 @@
 								},
 								"logStorageSettings": {
 									"linkedServiceName": {
-										"referenceName": "LS-AzureDataLake",
+										"referenceName": "LS_AzureBlobStorage",
 										"type": "LinkedServiceReference"
 									},
 									"path": "log"
 								},
 								"enableLogging": true,
 								"storeSettings": {
-									"type": "AzureBlobStorageReadSettings",
+									"type": "AzureBlobFSReadSettings",
 									"recursive": true
 								}
 							}

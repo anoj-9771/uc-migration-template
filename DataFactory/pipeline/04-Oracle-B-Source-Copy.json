@@ -25,12 +25,12 @@
 						"queryTimeout": "10:00:00"
 					},
 					"sink": {
-						"type": "JsonSink",
+						"type": "ParquetSink",
 						"storeSettings": {
-							"type": "AzureBlobStorageWriteSettings"
+							"type": "AzureBlobFSWriteSettings"
 						},
 						"formatSettings": {
-							"type": "JsonWriteSettings"
+							"type": "ParquetWriteSettings"
 						}
 					},
 					"enableStaging": false
@@ -46,18 +46,8 @@
 				],
 				"outputs": [
 					{
-						"referenceName": "RAW_ADLS_JSON",
-						"type": "DatasetReference",
-						"parameters": {
-							"BlobPath": {
-								"value": "@pipeline().parameters.TargetBLOBFolder",
-								"type": "Expression"
-							},
-							"BlobName": {
-								"value": "@pipeline().parameters.TargetBLOBName",
-								"type": "Expression"
-							}
-						}
+						"referenceName": "RAW_PARQUET",
+						"type": "DatasetReference"
 					}
 				]
 			},
@@ -172,10 +162,7 @@
 							},
 							"linkedServiceName": {
 								"referenceName": "LS-AzureSqlDatabase_Ctrldb",
-								"type": "LinkedServiceReference",
-								"parameters": {
-									"kvSecret": "AzureSqlDatabase-ControlDB"
-								}
+								"type": "LinkedServiceReference"
 							}
 						},
 						{
