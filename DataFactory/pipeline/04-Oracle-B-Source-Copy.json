@@ -47,7 +47,11 @@
 				"outputs": [
 					{
 						"referenceName": "RAW_PARQUET",
-						"type": "DatasetReference"
+						"type": "DatasetReference",
+						"parameters": {
+							"BlobPath": "sinkdataset needs to be changed",
+							"BlobName": "sinkdataset needs to be changed"
+						}
 					}
 				]
 			},
