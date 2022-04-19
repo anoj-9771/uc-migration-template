@@ -4,11 +4,28 @@
 		"activities": [
 			{
 				"name": "Generate Schema",
-				"description": "",
 				"type": "Copy",
 				"dependsOn": [
 					{
+						"activity": "Set-Owner",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "Set-Table",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
 						"activity": "Set-File",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "Set-Folder",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -35,7 +52,7 @@
 					"sink": {
 						"type": "DelimitedTextSink",
 						"storeSettings": {
-							"type": "AzureBlobFSWriteSettings"
+							"type": "AzureBlobStorageWriteSettings"
 						},
 						"formatSettings": {
 							"type": "DelimitedTextWriteSettings",
@@ -51,7 +68,7 @@
 						"type": "DatasetReference",
 						"parameters": {
 							"kvSecret": {
-								"value": "@pipeline().parameters.SourceServer",
+								"value": "@pipeline().parameters.TaskDetails.SourceServer",
 								"type": "Expression"
 							}
 						}
@@ -76,32 +93,6 @@
 						}
 					}
 				]
-			},
-			{
-				"name": "Set-Owner",
-				"type": "SetVariable",
-				"dependsOn": [],
-				"userProperties": [],
-				"typeProperties": {
-					"variableName": "Owner",
-					"value": {
-						"value": "@split(pipeline().parameters.SourceObject,'.')[0]",
-						"type": "Expression"
-					}
-				}
-			},
-			{
-				"name": "Set-Table",
-				"type": "SetVariable",
-				"dependsOn": [],
-				"userProperties": [],
-				"typeProperties": {
-					"variableName": "Table",
-					"value": {
-						"value": "@split(pipeline().parameters.SourceObject,'.')[1]",
-						"type": "Expression"
-					}
-				}
 			},
 			{
 				"name": "Generate Schema Original",
@@ -135,7 +126,7 @@
 					"sink": {
 						"type": "DelimitedTextSink",
 						"storeSettings": {
-							"type": "AzureBlobFSWriteSettings"
+							"type": "AzureBlobStorageWriteSettings"
 						},
 						"formatSettings": {
 							"type": "DelimitedTextWriteSettings",
@@ -151,7 +142,7 @@
 						"type": "DatasetReference",
 						"parameters": {
 							"kvSecret": {
-								"value": "@pipeline().parameters.SourceServer",
+								"value": "@pipeline().parameters.TaskDetails.SourceServer",
 								"type": "Expression"
 							}
 						}
@@ -176,51 +167,6 @@
 						}
 					}
 				]
-			},
-			{
-				"name": "Set-Folder",
-				"type": "SetVariable",
-				"dependsOn": [],
-				"userProperties": [],
-				"typeProperties": {
-					"variableName": "Folder",
-					"value": {
-						"value": "@toLower(concat(pipeline().parameters.Project, '//', 'schema'))",
-						"type": "Expression"
-					}
-				}
-			},
-			{
-				"name": "Set-File",
-				"type": "SetVariable",
-				"dependsOn": [
-					{
-						"activity": "Set-Owner",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					},
-					{
-						"activity": "Set-Table",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					},
-					{
-						"activity": "Set-Folder",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
-				"userProperties": [],
-				"typeProperties": {
-					"variableName": "File",
-					"value": {
-						"value": "@toLower(concat(variables('Owner'), '_', variables('Table'), '.', 'schema'))",
-						"type": "Expression"
-					}
-				}
 			},
 			{
 				"name": "If-Empty-Delete",
@@ -254,16 +200,23 @@
 							"userProperties": [],
 							"typeProperties": {
 								"dataset": {
-									"referenceName": "RAW_PARQUET",
+									"referenceName": "BINARY_ADLS",
 									"type": "DatasetReference",
 									"parameters": {
-										"BlobPath": "a",
-										"BlobName": "a"
+										"File": {
+											"value": "@variables('File')",
+											"type": "Expression"
+										},
+										"Container": "raw",
+										"Folder": {
+											"value": "@variables('Folder')",
+											"type": "Expression"
+										}
 									}
 								},
 								"logStorageSettings": {
 									"linkedServiceName": {
-										"referenceName": "LS_AzureDatalake",
+										"referenceName": "LS_AzureBlobStorage",
 										"type": "LinkedServiceReference"
 									},
 									"path": "log"
@@ -277,20 +230,63 @@
 						}
 					]
 				}
+			},
+			{
+				"name": "Set-Folder",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "Folder",
+					"value": {
+						"value": "@toLower(concat(pipeline().parameters.TaskDetails.SourceGroup, '//', 'schema'))",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Set-File",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "File",
+					"value": {
+						"value": "@toLower(concat(pipeline().parameters.TaskDetails.SourceName, '.', 'schema'))",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Set-Table",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "Table",
+					"value": {
+						"value": "@split(pipeline().parameters.TaskDetails.SourceLocation,'.')[1]",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Set-Owner",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "Owner",
+					"value": {
+						"value": "@split(pipeline().parameters.TaskDetails.SourceLocation,'.')[0]",
+						"type": "Expression"
+					}
+				}
 			}
 		],
 		"parameters": {
-			"SourceObject": {
-				"type": "string",
-				"defaultValue": "EBS_0165.USERS"
-			},
-			"Project": {
-				"type": "string",
-				"defaultValue": "OneEBS"
-			},
-			"SourceServer": {
-				"type": "string",
-				"defaultValue": "OneEBS-0165"
+			"TaskDetails": {
+				"type": "object"
 			}
 		},
 		"variables": {
@@ -316,10 +312,9 @@
 			}
 		},
 		"folder": {
-			"name": "z_Archive/Oracle"
+			"name": "Oracle"
 		},
-		"annotations": [],
-		"lastPublishTime": "2021-06-21T11:09:16Z"
+		"annotations": []
 	},
 	"type": "Microsoft.DataFactory/factories/pipelines"
 }
