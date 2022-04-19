@@ -227,7 +227,7 @@ newSchema = StructType([
 	StructField('logicalRegisterNumber',StringType(),False),
 	StructField('registerNotRelevantToBilling',StringType(),True),
 	StructField('installationId',StringType(),False),
-	StructField('validToDate',DateType(),True),
+	StructField('validToDate',DateType(),False),
 	StructField('validFromDate',DateType(),True),
 	StructField('payRentalPrice',StringType(),True),
 	StructField('rateTypeCode',StringType(),True),
