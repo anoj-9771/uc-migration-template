@@ -68,3 +68,13 @@ c:\Users\otob\Documents\Repos\DAF POC REPO1\ADS-Databases\CntrlDb\obj\Debug\post
 c:\Users\otob\Documents\Repos\DAF POC REPO1\ADS-Databases\CntrlDb\obj\Debug\predeploy.sql
 c:\Users\otob\Documents\Repos\DAF POC REPO1\ADS-Databases\CntrlDb\obj\Debug\CntrlDb.dll
 c:\Users\otob\Documents\Repos\DAF POC REPO1\ADS-Databases\CntrlDb\obj\Debug\CntrlDb.pdb
+c:\Users\ov8z\Projects\DAF POC REPO1\ADS-Databases\CntrlDb\bin\Debug\CntrlDb.dacpac
+c:\Users\ov8z\Projects\DAF POC REPO1\ADS-Databases\CntrlDb\bin\Debug\CntrlDb.dll
+c:\Users\ov8z\Projects\DAF POC REPO1\ADS-Databases\CntrlDb\bin\Debug\CntrlDb.pdb
+c:\Users\ov8z\Projects\DAF POC REPO1\ADS-Databases\CntrlDb\obj\Debug\CntrlDb.sqlprojAssemblyReference.cache
+c:\Users\ov8z\Projects\DAF POC REPO1\ADS-Databases\CntrlDb\obj\Debug\Model.xml
+c:\Users\ov8z\Projects\DAF POC REPO1\ADS-Databases\CntrlDb\obj\Debug\refactor.xml
+c:\Users\ov8z\Projects\DAF POC REPO1\ADS-Databases\CntrlDb\obj\Debug\postdeploy.sql
+c:\Users\ov8z\Projects\DAF POC REPO1\ADS-Databases\CntrlDb\obj\Debug\predeploy.sql
+c:\Users\ov8z\Projects\DAF POC REPO1\ADS-Databases\CntrlDb\obj\Debug\CntrlDb.dll
+c:\Users\ov8z\Projects\DAF POC REPO1\ADS-Databases\CntrlDb\obj\Debug\CntrlDb.pdb
