@@ -17,6 +17,7 @@ DECLARE
 	@vMeasureId varchar(255),	
 	@vMeasureName varchar(255)
 
+--Added comment from dev_pp_sp19_v8
 	SELECT 
 	@vsourcemeasurevalue = bc.SourceMeasureValue,
 	@vBusinessReconGroup = bc.BusinessReconGroup,
