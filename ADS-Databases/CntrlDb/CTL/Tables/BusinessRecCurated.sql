@@ -20,5 +20,5 @@ CREATE TABLE [CTL].[BusinessRecCurated]
 	TargetMeasureValue			decimal(28,7),
 	BusinessRecResult			varchar(255),
  CONSTRAINT PK_BusinessRecCurated PRIMARY KEY CLUSTERED (BusinessRecID ASC),
- CONSTRAINT UK_BusinessRecCurated UNIQUE (CreatedBatchExecutionId, CreatedTaskExecutionLogId, TargetObject, MeasureId)
+ CONSTRAINT UK_BusinessRecCurated UNIQUE (CreatedBatchExecutionId, CreatedTaskExecutionLogId, TargetObject, MeasureId, MeasureName)
 )
