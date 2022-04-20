@@ -14,12 +14,14 @@ BEGIN
 DECLARE 
 	@vsourcemeasurevalue decimal(28,7),
 	@vBusinessReconGroup varchar(255),
-	@vMeasureId varchar(255)	
+	@vMeasureId varchar(255),	
+	@vMeasureName varchar(255)
 
 	SELECT 
 	@vsourcemeasurevalue = bc.SourceMeasureValue,
 	@vBusinessReconGroup = bc.BusinessReconGroup,
-	@vMeasureId = bc.MeasureId
+	@vMeasureId = bc.MeasureId,
+	@vMeasureName = bc.MeasureName
 	FROM CTL.BusinessRecCurated bc
 	WHERE bc.BusinessRecId = @BusinessRecId
 
@@ -54,8 +56,8 @@ DECLARE
 			   UpdatedDateTime = @UpdatedDateTime
 		WHERE BusinessReconGroup = @vBusinessReconGroup
 		  AND MeasureId = @vMeasureId
+		  AND MeasureName = @vMeasureName
 		  AND BusinessRecResult is null
 		  AND UpdatedDateTime < @UpdatedDateTime
 
 END
-

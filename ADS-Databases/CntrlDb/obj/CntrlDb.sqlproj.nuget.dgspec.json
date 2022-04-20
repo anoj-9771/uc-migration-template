@@ -1,21 +1,21 @@
 {
   "format": 1,
   "restore": {
-    "c:\\Users\\otob\\Documents\\Repos\\DAF POC REPO1\\ADS-Databases\\CntrlDb\\CntrlDb.sqlproj": {}
+    "c:\\Users\\ov8z\\Projects\\DAF POC REPO1\\ADS-Databases\\CntrlDb\\CntrlDb.sqlproj": {}
   },
   "projects": {
-    "c:\\Users\\otob\\Documents\\Repos\\DAF POC REPO1\\ADS-Databases\\CntrlDb\\CntrlDb.sqlproj": {
+    "c:\\Users\\ov8z\\Projects\\DAF POC REPO1\\ADS-Databases\\CntrlDb\\CntrlDb.sqlproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "c:\\Users\\otob\\Documents\\Repos\\DAF POC REPO1\\ADS-Databases\\CntrlDb\\CntrlDb.sqlproj",
+        "projectUniqueName": "c:\\Users\\ov8z\\Projects\\DAF POC REPO1\\ADS-Databases\\CntrlDb\\CntrlDb.sqlproj",
         "projectName": "CntrlDb",
-        "projectPath": "c:\\Users\\otob\\Documents\\Repos\\DAF POC REPO1\\ADS-Databases\\CntrlDb\\CntrlDb.sqlproj",
-        "packagesPath": "C:\\Users\\otob\\.nuget\\packages\\",
-        "outputPath": "c:\\Users\\otob\\Documents\\Repos\\DAF POC REPO1\\ADS-Databases\\CntrlDb\\obj\\",
+        "projectPath": "c:\\Users\\ov8z\\Projects\\DAF POC REPO1\\ADS-Databases\\CntrlDb\\CntrlDb.sqlproj",
+        "packagesPath": "C:\\Users\\ov8z\\.nuget\\packages\\",
+        "outputPath": "c:\\Users\\ov8z\\Projects\\DAF POC REPO1\\ADS-Databases\\CntrlDb\\obj\\",
         "projectStyle": "PackageReference",
         "skipContentFileWrite": true,
         "configFilePaths": [
-          "C:\\Users\\otob\\AppData\\Roaming\\NuGet\\NuGet.Config"
+          "C:\\Users\\ov8z\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net46"
