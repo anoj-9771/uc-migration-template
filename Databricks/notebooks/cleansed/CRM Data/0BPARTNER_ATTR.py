@@ -257,8 +257,7 @@ df = spark.sql(f"WITH stage AS \
                                 '1' as _RecordCurrent, \
                                 cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
                         FROM stage  BP \
-                               LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.crm_0BPARTNER_TEXT BP_TXT \
-                                 ON BP.PARTNER = BP_TXT.businessPartnerNumber AND BP.TYPE =BP_TXT.businessPartnerCategoryCode \
+                               LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.crm_0BP_CAT_TEXT BP_TXT ON BP.TYPE =BP_TXT.businessPartnerCategoryCode \
                                                                               AND BP_TXT._RecordDeleted = 0 AND BP_TXT._RecordCurrent = 1 \
                                LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.crm_0BPTYPE_TEXT BPTYPE ON BP.BPKIND = BPTYPE.businessPartnerTypeCode \
                                                                               AND BPTYPE._RecordDeleted = 0 AND BPTYPE._RecordCurrent = 1 \
