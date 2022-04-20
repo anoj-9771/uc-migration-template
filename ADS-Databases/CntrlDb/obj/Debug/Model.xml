@@ -12,7 +12,7 @@
 		</CustomData>
 		<CustomData Category="Reference" Type="Assembly">
 			<Metadata Name="LogicalName" Value="CntrlDb.dll" />
-			<Metadata Name="FileName" Value="c:\Users\o3hz\Documents\Repos\DAF POC REPO1\ADS-Databases\CntrlDb\obj\Debug\CntrlDb.dll" />
+			<Metadata Name="FileName" Value="c:\Users\otob\Documents\Repos\DAF POC REPO1\ADS-Databases\CntrlDb\obj\Debug\CntrlDb.dll" />
 			<Metadata Name="AssemblyName" Value="CntrlDb" />
 			<Metadata Name="PermissionSet" Value="SAFE" />
 			<Metadata Name="Owner" Value="" />
@@ -20,7 +20,7 @@
 			<Metadata Name="IsVisible" Value="True" />
 			<Metadata Name="IsModelAware" Value="True" />
 			<Metadata Name="SkipCreationIfEmpty" Value="True" />
-			<Metadata Name="AssemblySymbolsName" Value="c:\Users\o3hz\Documents\Repos\DAF POC REPO1\ADS-Databases\CntrlDb\obj\Debug\CntrlDb.pdb" />
+			<Metadata Name="AssemblySymbolsName" Value="c:\Users\otob\Documents\Repos\DAF POC REPO1\ADS-Databases\CntrlDb\obj\Debug\CntrlDb.pdb" />
 		</CustomData>
 		<CustomData Category="SqlCmdVariables" Type="SqlCmdVariable" />
 	</Header>
@@ -12842,6 +12842,15 @@ end]]></Value>
 						<Relationship Name="Column">
 							<Entry>
 								<References Name="[CTL].[BusinessRecCurated].[MeasureId]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlIndexedColumnSpecification">
+						<Relationship Name="Column">
+							<Entry>
+								<References Name="[CTL].[BusinessRecCurated].[MeasureName]" />
 							</Entry>
 						</Relationship>
 					</Element>
