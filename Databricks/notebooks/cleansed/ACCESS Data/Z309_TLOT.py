@@ -210,7 +210,7 @@ df_cleansed = spark.sql(f"SELECT \
 #-----------------------------------------------------------------------------------------
 # Note: property 4174119 is a strata garage and should only exist on the strat units table
 #-----------------------------------------------------------------------------------------                        
-print(f'Number of rows: {df_cleansed.count()}')
+#print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
 

@@ -178,7 +178,7 @@ def _AddScdColumns(dataFrame : object):
 def _StageDeltaRecords(dataFrame : object, dlStageTableFqn : str):
   #STAGE RECORDS 
   LogEtl(f"Stage Deltas. [{dlStageTableFqn}] ")
-  count = dataFrame.count()
+#  count = dataFrame.count()
   LogEtl(f"Transformed {count:,} rows.")
   spark.sql(f"DROP TABLE IF EXISTS {dlStageTableFqn}")
   dataFrame.write.saveAsTable(dlStageTableFqn)
@@ -423,7 +423,7 @@ def _MergeScdSqlServer(dataFrame : object, businessKey : str, dlTargetTableFqn :
   newSqlStagedDf = spark.table(dlTargetTableFqn).where(expr("{} > '{}'".format(skColumn, max)))
   
   #NOTHING NEW
-  if(newSqlStagedDf.count() == 0):
+#  if(newSqlStagedDf.count() == 0):
     LogEtl("SQL already current!")
     return
 
@@ -572,7 +572,7 @@ def _AppendScdSqlServer(dataFrame : object, businessKey : str, dlTargetTableFqn 
   print(f"{dlTargetTableFqn} : {skColumn} > '{max}'")
   
   #NOTHING NEW
-  if(newSqlStagedDf.count() == 0):
+#  if(newSqlStagedDf.count() == 0):
     LogEtl("SQL already current!")
     return
 
@@ -706,7 +706,7 @@ def CleanTargetTables(deltaTableFqn, sqlTableFqn):
 def MergeSCD(dataFrame : object, businessKey : str, dlStageTableFqn : str, dlTargetTableFqn : str, dataLakePath : str, sqlStageTableFqn : str, sqlTargetFqn : str):
   LogEtl("Starting SCD Merge...")
   LogEtl("Caching.")
-  dataFrame.cache()
+  dataFrame
 
   #GO CREATE THE TABLE YOURSELF
   if CREATE_SQL_TARGET == False:
@@ -762,7 +762,7 @@ def MergeSCD(dataFrame : object, businessKey : str, dlStageTableFqn : str, dlTar
 def _AppendDeltaAndSql(dataFrame : object, businessKey : str, dlStageTableFqn : str, dlTargetTableFqn : str, dataLakePath : str, sqlStageTableFqn : str, sqlTargetFqn : str):
   LogEtl("Starting Append...")
   LogEtl("Caching.")
-  dataFrame.cache()
+  dataFrame
   
   #GO CREATE THE TABLE YOURSELF
   if CREATE_SQL_TARGET == False:

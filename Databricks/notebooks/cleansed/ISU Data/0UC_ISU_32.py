@@ -224,9 +224,9 @@ df = spark.sql(f"WITH stage AS \
                           LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UC_DISCREAS_TEXT dis ON isu.DISCREASON = dis.disconnectionReasonCode and dis._RecordDeleted = 0 and dis._RecordCurrent = 1 \
                           LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_EDISCORDSTATET edi ON isu.ORDSTATE = edi.confirmationStatusCode and edi._RecordDeleted = 0 and edi._RecordCurrent = 1 \
                           LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_DD07T dd1 ON isu.ZSTATUS = dd1.domainValueSingleUpperLimit and dd1.domainName ='EDCDOCSTAT' and dd1._RecordDeleted = 0 and dd1._RecordCurrent = 1 \
-                        where isu._RecordVersion = 1 ").cache()
+                        where isu._RecordVersion = 1 ")
 
-print(f'Number of rows: {df.count()}')
+#print(f'Number of rows: {df.count()}')
 
 # COMMAND ----------
 
@@ -342,8 +342,6 @@ newSchema = StructType([
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 DeltaSaveDataFrameToDeltaTableNew(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
-#clear cache
-df.unpersist()
 
 # COMMAND ----------
 

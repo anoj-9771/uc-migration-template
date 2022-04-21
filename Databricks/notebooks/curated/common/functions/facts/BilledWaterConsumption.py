@@ -58,7 +58,7 @@ def getBilledWaterConsumption():
                                 "meteredWaterConsumption") \
 
     billedConsDf = isuConsDf.union(accessConsDf)
-    billedConsDf.display()
+#    billedConsDf.display()
 
     #4.Load dimension tables into dataframe
 

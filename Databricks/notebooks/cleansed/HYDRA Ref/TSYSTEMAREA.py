@@ -196,8 +196,8 @@ df_cleansed = spark.sql(f"SELECT `20` as product, \
 		_RecordCurrent \
 	FROM {ADS_DATABASE_STAGE}.{source_object}")
 
-print(f'Number of rows: {df_cleansed.count()}')
-display(df_cleansed)
+#print(f'Number of rows: {df_cleansed.count()}')
+#display(df_cleansed)
 
 # COMMAND ----------
 

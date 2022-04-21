@@ -194,7 +194,7 @@ df_cleansed = spark.sql(f"SELECT C_PORT_LOT_TYPE AS lotTypeCode, \
 		_RecordCurrent \
 	FROM {ADS_DATABASE_STAGE}.{source_object}")
 
-print(f'Number of rows: {df_cleansed.count()}')
+#print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
 

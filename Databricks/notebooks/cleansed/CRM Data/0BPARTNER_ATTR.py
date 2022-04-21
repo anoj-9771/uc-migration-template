@@ -269,9 +269,9 @@ df = spark.sql(f"WITH stage AS \
                                                                               AND ZZTITLE._RecordDeleted = 0 AND ZZTITLE._RecordCurrent = 1 \
                                LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.crm_TSAD3T TITLE_ACA1 ON BP.TITLE_ACA1 = TITLE_ACA1.titlecode \
                                                                               AND TITLE_ACA1._RecordDeleted = 0 AND TITLE_ACA1._RecordCurrent = 1 \
-                               where BP._RecordVersion = 1 ").cache()
+                               where BP._RecordVersion = 1 ")
 
-print(f'Number of rows: {df.count()}')
+#print(f'Number of rows: {df.count()}')
 
 # COMMAND ----------
 
@@ -470,8 +470,6 @@ newSchema = StructType([
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 DeltaSaveDataFrameToDeltaTableNew(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
-#clear cache
-df.unpersist()
 
 # COMMAND ----------
 
