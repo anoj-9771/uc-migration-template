@@ -77,7 +77,7 @@ for file in files:
         
     saveSchema = dfArch.schema
     
-print(f'Total records read into dataframe: {dfEverything.count():,}')
+#print(f'Total records read into dataframe: {dfEverything.count():,}')
 dfEverything.write.option('header',True).option('delimiter','|').mode('overwrite').csv(f'/mnt/blob-accessdata/{outFile}')
 
 # COMMAND ----------
@@ -127,8 +127,8 @@ print(f'Record count: {recCount-1:,}')            #remove header record from cou
 
 # DBTITLE 1,Read file for visual verification
 dfArch = spark.read.csv(f'/mnt/blob-accessdata/{outFile}.csv',sep='|',header=True)
-print(f'Total records read from merged file: {dfArch.count():,}')
-display(dfArch)
+#print(f'Total records read from merged file: {dfArch.count():,}')
+#display(dfArch)
 
 # COMMAND ----------
 

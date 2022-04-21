@@ -181,8 +181,8 @@ where SPRAS=E as inferiorPropertyType, \
 	FROM CLEANSED.STG_SAPISU_ZRE_DS_EDW_PROPHIST \
          ")
 
-display(df_cleansed)
-print(f'Number of rows: {df_cleansed.count()}')
+#display(df_cleansed)
+#print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
 

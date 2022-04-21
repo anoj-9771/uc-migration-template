@@ -198,8 +198,8 @@ df_cleansed = spark.sql(f"SELECT \
                 cleansed.access_z309_TPROPRELATYPE ref on prt.C_PROP_RELA_TYPE = ref.relationshipTypeCode \
         ")
 
-print(f'Number of rows: {df_cleansed.count()}')
-display(df_cleansed)
+#print(f'Number of rows: {df_cleansed.count()}')
+#display(df_cleansed)
 
 # COMMAND ----------
 

@@ -179,8 +179,8 @@ Where SPRAS='E' as parentArchitecturalObjectType, \
 	FROM CLEANSED.STG_SAPISU_ZRE_DS_EDW_ARCOBJT \
          ")
 
-display(df_cleansed)
-print(f'Number of rows: {df_cleansed.count()}')
+#display(df_cleansed)
+#print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
 
