@@ -47,6 +47,11 @@ insert into [CTL].[ControlProjects]([ProjectName],[Enabled],[RunSequence]) value
 insert into [CTL].[ControlProjects]([ProjectName],[Enabled],[RunSequence]) values('CLEANSED SLT ISU ADRC',1,80);
 insert into [CTL].[ControlProjects]([ProjectName],[Enabled],[RunSequence]) values('BOM715 DATA',1,10);
 insert into [CTL].[ControlProjects]([ProjectName],[Enabled],[RunSequence]) values('IOT SW TELEMETRY ALARM DATA',1,10);
+insert into [CTL].[ControlProjects]([ProjectName],[Enabled],[RunSequence]) values('RAW REF HYDRA',1,10);
+insert into [CTL].[ControlProjects]([ProjectName],[Enabled],[RunSequence]) values('RAW DATA HYDRA',1,20);
+insert into [CTL].[ControlProjects]([ProjectName],[Enabled],[RunSequence]) values('CLEANSED REF HYDRA',1,30);
+insert into [CTL].[ControlProjects]([ProjectName],[Enabled],[RunSequence]) values('CLEANSED DATA HYDRA',1,40);
+insert into [CTL].[ControlProjects]([ProjectName],[Enabled],[RunSequence]) values('SEMANTIC MASTER',1,70);
 
 INSERT INTO [CTL].[ControlStages] ([StageSequence], [StageName]) SELECT 100, N'Source to Raw'
 WHERE NOT EXISTS (SELECT 1 FROM [CTL].[ControlStages] WHERE [StageName] = N'Source to Raw')
@@ -131,11 +136,11 @@ IF (
 DELETE FROM CTL.BusinessRecConfig;
 
 INSERT INTO [CTL].[BusinessRecConfig]([BusinessReconGroup], [MeasureID], [MeasureName], [TargetObject], [TargetQuery], [Enabled])
-     VALUES ('Water Consumption Reconciliation', 'BELNR', 'Billing Document Count', 'factBilledWaterConsumption', 'select count(BELNR) as TargetMeasure from curated.factBilledWaterConsumption', 1)
+     VALUES ('Water Consumption Reconciliation', 'Total', 'BILLING_DOC_COUNT', 'factBilledWaterConsumption', 'select count(distinct fact.dimBillingDocumentSK) as TargetMeasure from curated.factbilledwaterconsumption fact, curated.dimbillingdocument dim where fact.sourceSystemCode = ''ISU'' and dim.sourceSystemCode = ''ISU'' and dim.dimBillingDocumentSK = fact.dimBillingDocumentSK and dim.isOutsortedFlag = ''N''', 1)
 ;
 
 INSERT INTO [CTL].[BusinessRecConfig] ([BusinessReconGroup], [MeasureID], [MeasureName], [TargetObject], [TargetQuery], [Enabled])
-     VALUES ('Water Consumption Reconciliation', 'ABRMENGE', 'Billed Water Consumption Total', 'factBilledWaterConsumption', 'select sum(ABRMENGE) as TargetMeasure from curated.factBilledWaterConsumption', 1)
+     VALUES ('Water Consumption Reconciliation', 'Total', 'CONSUMPTION', 'factBilledWaterConsumption', 'select sum(meteredWaterConsumption) as TargetMeasure from curated.factbilledwaterconsumption fact, curated.dimbillingdocument dim where fact.sourceSystemCode = ''ISU'' and dim.sourceSystemCode = ''ISU'' and dim.dimBillingDocumentSK = fact.dimBillingDocumentSK and dim.isOutsortedFlag = ''N''', 1)
 ;
 
 GO

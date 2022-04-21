@@ -7654,11 +7654,15 @@ SELECT * FROM allTasks t
 				<Entry>
 					<References Name="[CTL].[TaskExecutionLog].[ExecutionStatus]" />
 				</Entry>
-				<Entry />
+				<Entry>
+					<References Name="[CTL].[TechRecCleansedConfig]" />
+				</Entry>
 				<Entry>
 					<References Name="[CTL].[ControlSource].[SourceName]" />
 				</Entry>
-				<Entry />
+				<Entry>
+					<References Name="[CTL].[TechRecCleansedConfig].[TargetObject]" />
+				</Entry>
 				<Entry>
 					<References Name="[CTL].[ControlTypes].[ControlType]" />
 				</Entry>
@@ -7770,7 +7774,9 @@ SELECT * FROM allTasks t
 				<Entry>
 					<References Name="[CTL].[ControlSource].[SourceTimeStampFormat]" />
 				</Entry>
-				<Entry />
+				<Entry>
+					<References Name="[CTL].[TechRecCleansedConfig].[WhereClause]" />
+				</Entry>
 				<Entry>
 					<References Name="[CTL].[ControlTypes].[ControlType]" />
 				</Entry>
@@ -8175,7 +8181,9 @@ SELECT * FROM allTasks t
 							<Entry>
 								<Element Type="SqlComputedColumn" Name="[CTL].[GetExecutionTasks].[CTE1].[allTasks].[WhereClause]">
 									<Relationship Name="ExpressionDependencies">
-										<Entry />
+										<Entry>
+											<References Name="[CTL].[TechRecCleansedConfig].[WhereClause]" />
+										</Entry>
 									</Relationship>
 								</Element>
 							</Entry>
@@ -10055,6 +10063,25 @@ END]]></Value>
 			</Relationship>
 			<Annotation Type="SqlInlineConstraintAnnotation" Disambiguator="36" />
 		</Element>
+		<Element Type="SqlPrimaryKeyConstraint" Name="[CTL].[PK_TechRecCleansedConfig]">
+			<Relationship Name="ColumnSpecifications">
+				<Entry>
+					<Element Type="SqlIndexedColumnSpecification">
+						<Relationship Name="Column">
+							<Entry>
+								<References Name="[CTL].[TechRecCleansedConfig].[TechRecConfigId]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+			</Relationship>
+			<Relationship Name="DefiningTable">
+				<Entry>
+					<References Name="[CTL].[TechRecCleansedConfig]" />
+				</Entry>
+			</Relationship>
+			<Annotation Type="SqlInlineConstraintAnnotation" Disambiguator="37" />
+		</Element>
 		<Element Type="SqlPrimaryKeyConstraint" Name="[CTL].[PK_TechRecRawToCleansed]">
 			<Relationship Name="ColumnSpecifications">
 				<Entry>
@@ -10072,7 +10099,7 @@ END]]></Value>
 					<References Name="[CTL].[TechRecRawToCleansed]" />
 				</Entry>
 			</Relationship>
-			<Annotation Type="SqlInlineConstraintAnnotation" Disambiguator="37" />
+			<Annotation Type="SqlInlineConstraintAnnotation" Disambiguator="38" />
 		</Element>
 		<Element Type="SqlProcedure" Name="[CTL].[RecordDataValidation]">
 			<Property Name="BodyScript">
@@ -10654,6 +10681,91 @@ delete from ctl.TaskExecutionLog where ExecutionStatus = 'In Progress'
 			<AttachedAnnotation Disambiguator="35" />
 			<AttachedAnnotation Disambiguator="36" />
 		</Element>
+		<Element Type="SqlTable" Name="[CTL].[TechRecCleansedConfig]">
+			<Property Name="IsAnsiNullsOn" Value="True" />
+			<Relationship Name="Columns">
+				<Entry>
+					<Element Type="SqlSimpleColumn" Name="[CTL].[TechRecCleansedConfig].[TechRecConfigId]">
+						<Property Name="IsNullable" Value="False" />
+						<Property Name="IsIdentity" Value="True" />
+						<Relationship Name="TypeSpecifier">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[bigint]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlSimpleColumn" Name="[CTL].[TechRecCleansedConfig].[TargetObject]">
+						<Property Name="IsNullable" Value="False" />
+						<Relationship Name="TypeSpecifier">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Property Name="Length" Value="255" />
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[varchar]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlSimpleColumn" Name="[CTL].[TechRecCleansedConfig].[WhereClause]">
+						<Property Name="IsNullable" Value="False" />
+						<Relationship Name="TypeSpecifier">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Property Name="Length" Value="2000" />
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[varchar]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlSimpleColumn" Name="[CTL].[TechRecCleansedConfig].[TechRecDashboardReady]">
+						<Property Name="IsNullable" Value="False" />
+						<Relationship Name="TypeSpecifier">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Property Name="Length" Value="1" />
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[varchar]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+			</Relationship>
+			<Relationship Name="Filegroup">
+				<Entry>
+					<References ExternalSource="BuiltIns" Name="[PRIMARY]" />
+				</Entry>
+			</Relationship>
+			<Relationship Name="Schema">
+				<Entry>
+					<References Name="[CTL]" />
+				</Entry>
+			</Relationship>
+			<AttachedAnnotation Disambiguator="37" />
+			<Annotation Type="SqlInlineConstraintAnnotation" Disambiguator="39" />
+		</Element>
 		<Element Type="SqlTable" Name="[CTL].[TechRecRawToCleansed]">
 			<Property Name="IsAnsiNullsOn" Value="True" />
 			<Relationship Name="Columns">
@@ -10825,7 +10937,7 @@ delete from ctl.TaskExecutionLog where ExecutionStatus = 'In Progress'
 					<References Name="[CTL]" />
 				</Entry>
 			</Relationship>
-			<AttachedAnnotation Disambiguator="37" />
+			<AttachedAnnotation Disambiguator="38" />
 		</Element>
 		<Element Type="SqlScalarFunction" Name="[CTL].[udf_CronToDatetime]">
 			<Property Name="IsAnsiNullsOn" Value="True" />
@@ -12918,6 +13030,34 @@ end]]></Value>
 				</Entry>
 			</Relationship>
 			<AttachedAnnotation Disambiguator="8" />
+		</Element>
+		<Element Type="SqlUniqueConstraint" Name="[CTL].[UK_TechRecCleansedConfig]">
+			<Relationship Name="ColumnSpecifications">
+				<Entry>
+					<Element Type="SqlIndexedColumnSpecification">
+						<Relationship Name="Column">
+							<Entry>
+								<References Name="[CTL].[TechRecCleansedConfig].[TechRecConfigId]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlIndexedColumnSpecification">
+						<Relationship Name="Column">
+							<Entry>
+								<References Name="[CTL].[TechRecCleansedConfig].[TargetObject]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+			</Relationship>
+			<Relationship Name="DefiningTable">
+				<Entry>
+					<References Name="[CTL].[TechRecCleansedConfig]" />
+				</Entry>
+			</Relationship>
+			<AttachedAnnotation Disambiguator="39" />
 		</Element>
 		<Element Type="SqlProcedure" Name="[CTL].[UpdateBatchLog]">
 			<Property Name="BodyScript">
