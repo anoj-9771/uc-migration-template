@@ -2,7 +2,7 @@
 # DBTITLE 1,Generate parameter and source object name for unit testing
 import json
 accessTable = 'Z309_THPROPERTY'
-businessKeys = 'propertyNumber,dateRowSuperseded,timeRowSuperseded'
+businessKeys = 'propertyNumber,rowSupersededDate,rowSupersededTime'
 
 runParm = '{"SourceType":"BLOB Storage (csv)","SourceServer":"daf-sa-lake-sastoken","SourceGroup":"accessdata","SourceName":"access_####","SourceLocation":"accessdata/####","AdditionalProperty":"","Processor":"databricks-token|1103-023442-me8nqcm9|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive","IsAuditTable":false,"SoftDeleteSource":"","ProjectName":"CLEANSED DATA ACCESS","ProjectId":2,"TargetType":"BLOB Storage (csv)","TargetName":"access_####","TargetLocation":"accessdata/####","TargetServer":"daf-sa-lake-sastoken","DataLoadMode":"TRUNCATE-LOAD","DeltaExtract":false,"CDCSource":false,"TruncateTarget":true,"UpsertTarget":false,"AppendTarget":false,"TrackChanges":false,"LoadToSqlEDW":true,"TaskName":"access_####","ControlStageId":2,"TaskId":40,"StageSequence":200,"StageName":"Raw to Cleansed","SourceId":40,"TargetId":40,"ObjectGrain":"Day","CommandTypeId":8,"Watermarks":"","WatermarksDT":null,"WatermarkColumn":"","BusinessKeyColumn":"yyyy","PartitionColumn":null,"UpdateMetaData":null,"SourceTimeStampFormat":"","Command":"/build/cleansed/accessdata/####","LastLoadedFile":null}'
 
@@ -198,10 +198,10 @@ df_cleansed = spark.sql(f"SELECT \
 	tbl.N_SEWE_DIAG as sewerDiagramNumber, \
 	tbl.C_PROP_TYPE as propertyTypeCode, \
 	ref3.propertyType as propertyType, \
-	tbl.D_PROP_TYPE_EFFE as propertyTypeEffectiveFrom, \
+	ToValidDate(tbl.D_PROP_TYPE_EFFE) as propertyTypeEffectiveFrom, \
 	tbl.C_RATA_TYPE as rateabilityTypeCode, \
 	ref4.rateabilityType as rateabilityType, \
-	tbl.D_PROP_RATE_CANC as propertyRatingCancelledDate, \
+	ToValidDate(tbl.D_PROP_RATE_CANC) as propertyRatingCancelledDate, \
 	cast(tbl.Q_RESI_PORT as int) as residentialPortionCount, \
 	tbl.F_RATE_INCL as hasIncludedRatings, \
 	tbl.F_VALU_INCL as hasIncludedValuations, \
@@ -219,14 +219,14 @@ df_cleansed = spark.sql(f"SELECT \
 	tbl.C_PROP_AREA_TYPE as propertyAreaTypeCode, \
 	ref6.propertyAreaType as propertyAreaType, \
 	cast(tbl.A_PROP_PURC_PRIC as int) as purchasePrice, \
-	tbl.D_PROP_SALE_SETT as settlementDate, \
-	tbl.D_CNTR as contractDate, \
+	ToValidDate(tbl.D_PROP_SALE_SETT) as settlementDate, \
+	ToValidDate(tbl.D_CNTR) as contractDate, \
 	tbl.C_EXTR_LOT as extractLotCode, \
 	ref7.extractLotDescription as extractLotDescription, \
-	tbl.D_PROP_UPDA as propertyUpdatedDate, \
+	ToValidDate(tbl.D_PROP_UPDA) as propertyUpdatedDate, \
 	tbl.T_PROP_LOT as lotDescription, \
-	tbl.D_SUPD as dateRowSuperseded, \
-	tbl.T_TIME_SUPD as timeRowSuperseded, \
+	ToValidDate(tbl.D_SUPD) as rowSupersededDate, \
+	tbl.T_TIME_SUPD as rowSupersededTime, \
 	tbl.M_PROC as modifiedByProcess, \
 	tbl.C_USER_ID as modifiedByUserID, \
 	tbl.C_TERM_ID as modifiedByTerminalID, \
@@ -267,10 +267,10 @@ newSchema = StructType([
 	StructField('sewerDiagramNumber',StringType(),True),
 	StructField('propertyTypeCode',StringType(),True),
 	StructField('propertyType',StringType(),True),
-	StructField('propertyTypeEffectiveFrom',StringType(),True),
+	StructField('propertyTypeEffectiveFrom',DateType(),True),
 	StructField('rateabilityTypeCode',StringType(),True),
 	StructField('rateabilityType',StringType(),True),
-	StructField('propertyRatingCancelledDate',StringType(),True),
+	StructField('propertyRatingCancelledDate',DateType(),True),
 	StructField('residentialPortionCount',IntegerType(),True),
 	StructField('hasIncludedRatings',StringType(),True),
 	StructField('hasIncludedValuations',StringType(),True),
@@ -288,14 +288,14 @@ newSchema = StructType([
 	StructField('propertyAreaTypeCode',StringType(),True),
 	StructField('propertyAreaType',StringType(),True),
 	StructField('purchasePrice',IntegerType(),True),
-	StructField('settlementDate',StringType(),True),
-	StructField('contractDate',StringType(),True),
+	StructField('settlementDate',DateType(),True),
+	StructField('contractDate',DateType(),True),
 	StructField('extractLotCode',StringType(),True),
 	StructField('extractLotDescription',StringType(),True),
-	StructField('propertyUpdatedDate',StringType(),True),
+	StructField('propertyUpdatedDate',DateType(),True),
 	StructField('lotDescription',StringType(),True),
-	StructField('dateRowSuperseded',StringType(),True),
-	StructField('timeRowSuperseded',StringType(),True),
+	StructField('rowSupersededDate',DateType(),True),
+	StructField('rowSupersededTime',StringType(),True),
 	StructField('modifiedByProcess',StringType(),True),
 	StructField('modifiedByUserID',StringType(),True),
 	StructField('modifiedByTerminalID',StringType(),True),
