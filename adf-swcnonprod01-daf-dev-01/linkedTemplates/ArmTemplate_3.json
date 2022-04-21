@@ -210,8 +210,7 @@
 									},
 									"linkedServiceName": {
 										"referenceName": "LS-AzureSqlDatabase_Ctrldb",
-										"type": "LinkedServiceReference",
-										"parameters": {}
+										"type": "LinkedServiceReference"
 									}
 								},
 								{
