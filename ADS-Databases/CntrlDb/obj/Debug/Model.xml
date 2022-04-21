@@ -7481,6 +7481,7 @@ Select
 	src.PartitionColumn, --useful for dynamic partitioning of SQL source data while copying to Delta Table in ADF's Copy Activity
 	ct.UpdateMetaData,
 	src.SourceTimeStampFormat,
+	trc.WhereClause,
 	CASE 
 	    WHEN (styp.ControlType IN ('SQL Server', 'Oracle', 'MySQL')) AND DLT.DeltaExtract = 1 Then CTL.[udf_GetDeltaSQL](ct.TaskId)
 		ELSE ctc.Command
@@ -7501,6 +7502,7 @@ Select
 	LEFT JOIN CTL.ControlSource Audit ON ISNULL(src.SoftDeleteSource, '') = Audit.SourceLocation AND Audit.IsAuditTable = 1
 	LEFT JOIN CTL.TaskExecutionLog tel On ct.TaskId = tel.ControlTaskId
 		   And tel.StartTime = (Select Max(StartTime) From CTL.TaskExecutionLog Where ControlTaskId = ct.TaskId and ExecutionStatus in ('Success'))
+	LEFT JOIN CTL.TechRecCleansedConfig	trc On src.SourceName = trc.TargetObject
  Where ct.TaskEnabled = 1
    And ct.ControlStageId = @StageId
    And ct.ProjectId = @ProjectId
@@ -7652,6 +7654,11 @@ SELECT * FROM allTasks t
 				<Entry>
 					<References Name="[CTL].[TaskExecutionLog].[ExecutionStatus]" />
 				</Entry>
+				<Entry />
+				<Entry>
+					<References Name="[CTL].[ControlSource].[SourceName]" />
+				</Entry>
+				<Entry />
 				<Entry>
 					<References Name="[CTL].[ControlTypes].[ControlType]" />
 				</Entry>
@@ -7660,9 +7667,6 @@ SELECT * FROM allTasks t
 				</Entry>
 				<Entry>
 					<References Name="[CTL].[ControlSource].[SourceGroup]" />
-				</Entry>
-				<Entry>
-					<References Name="[CTL].[ControlSource].[SourceName]" />
 				</Entry>
 				<Entry>
 					<References Name="[CTL].[ControlSource].[SourceLocation]" />
@@ -7728,6 +7732,9 @@ SELECT * FROM allTasks t
 					<References Name="[CTL].[ControlTasks].[ControlStageId]" />
 				</Entry>
 				<Entry>
+					<References Name="[CTL].[ControlTasks].[TaskId]" />
+				</Entry>
+				<Entry>
 					<References Name="[CTL].[ControlStages].[StageSequence]" />
 				</Entry>
 				<Entry>
@@ -7763,6 +7770,7 @@ SELECT * FROM allTasks t
 				<Entry>
 					<References Name="[CTL].[ControlSource].[SourceTimeStampFormat]" />
 				</Entry>
+				<Entry />
 				<Entry>
 					<References Name="[CTL].[ControlTypes].[ControlType]" />
 				</Entry>
@@ -7771,6 +7779,9 @@ SELECT * FROM allTasks t
 				</Entry>
 				<Entry>
 					<References Name="[CTL].[ControlTaskCommand].[Command]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[TaskExecutionLog].[StartTime]" />
 				</Entry>
 				<Entry>
 					<References Name="[CTL].[udf_GetLastLoadedFile]" />
@@ -8162,6 +8173,13 @@ SELECT * FROM allTasks t
 								</Element>
 							</Entry>
 							<Entry>
+								<Element Type="SqlComputedColumn" Name="[CTL].[GetExecutionTasks].[CTE1].[allTasks].[WhereClause]">
+									<Relationship Name="ExpressionDependencies">
+										<Entry />
+									</Relationship>
+								</Element>
+							</Entry>
+							<Entry>
 								<Element Type="SqlComputedColumn" Name="[CTL].[GetExecutionTasks].[CTE1].[allTasks].[Command]" />
 							</Entry>
 							<Entry>
@@ -8252,7 +8270,7 @@ SELECT * FROM allTasks t
 			</Relationship>
 			<Annotation Type="SysCommentsObjectAnnotation">
 				<Property Name="CreateOffset" Value="45" />
-				<Property Name="Length" Value="3753" />
+				<Property Name="Length" Value="3851" />
 				<Property Name="StartLine" Value="1" />
 				<Property Name="StartColumn" Value="1" />
 				<Property Name="HeaderContents" Value="&#xD;&#xA;&#xD;&#xA;&#xD;&#xA;&#xD;&#xA;&#xD;&#xA;--[CTL].[getExecutionTasks] 1,1&#xD;&#xA;&#xD;&#xA;CREATE Procedure [CTL].[GetExecutionTasks] (@StageId BigInt, @ProjectId BigInt)&#xD;&#xA;As" />
