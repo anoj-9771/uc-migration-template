@@ -49,7 +49,7 @@ def getMeter():
     accessZ309TpropmeterDf = accessZ309TpropmeterDf.drop(accessZ309TpropmeterDf.rownum)
     accessZ309TpropmeterDf.createOrReplaceTempView('ACCESS')
 #     print(f'{accessZ309TpropmeterDf.count():,} rows in accessZ309TpropmeterDf')
-    #display(accessZ309TpropmeterDf)
+#    #display(accessZ309TpropmeterDf)
     #Meter Data from SAP ISU
     isu0ucDeviceAttrDf  = spark.sql(f"select 'ISU' as sourceSystemCode, \
                                       equipmentNumber as meterNumber, \
@@ -101,7 +101,7 @@ def getMeter():
                                   how="inner") \
                             .drop(isu0ucDevCatAttrDf.materialNumber)
 #     print(f'{df.count():,} rows after merge 1')
-    #display(df)
+#    #display(df)
         
 #     #re-order columns
     df = df.select('sourceSystemCode','meterNumber','meterSerialNumber','materialNumber','usageMeterType','meterSize','meterSizeUnit','waterType','meterCategoryCode','meterCategory',

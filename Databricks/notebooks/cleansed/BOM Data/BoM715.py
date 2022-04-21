@@ -192,7 +192,7 @@ df_cleansed = spark.sql(f"select cast(y as double) as y, \
                                   _RecordCurrent \
                                   from {ADS_DATABASE_STAGE}.{source_object}")
 # df_cleansed = df_cleansed.na.fill(value='0',subset=["precipitation"])
-display(df_cleansed)
+#display(df_cleansed)
 # print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
@@ -286,7 +286,7 @@ df_bom = spark.sql("select * from cleansed.bom_bom715")
 df_bom = df_cleansed_updated.withColumn("date_only", to_date(col("start_time")))\
                                          .withColumn("hour_only", hour(col("start_time")))
 df_bom = df_bom.filter(df_bom.hour_only.between(9,23))
-display(df_bom)
+#display(df_bom)
 # df_bom = df_cleansed_updated.withColumn("date_only", to_date(col("start_time")))
 # display(df_bom.filter(df_bom.hour_only !=21))
 
@@ -299,7 +299,7 @@ df_sum = gdf.agg(sum(col("precipitation")).alias("sum_precipitation"))
 df_sum = df_sum.withColumn("is_wet_weather", when((col("sum_precipitation") >= 10),True).otherwise(False))
 # df.groupBy(someExpr).agg(somAgg).where(somePredicate) 
 # display(df_sum.filter(df_sum.sum_precipitation > 10))
-display(df_sum)
+#display(df_sum)
 # df_sum.count()
 
 # COMMAND ----------

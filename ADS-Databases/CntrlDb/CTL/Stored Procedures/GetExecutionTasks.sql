@@ -52,6 +52,7 @@ Select
 	src.PartitionColumn, --useful for dynamic partitioning of SQL source data while copying to Delta Table in ADF's Copy Activity
 	ct.UpdateMetaData,
 	src.SourceTimeStampFormat,
+	trc.WhereClause,
 	CASE 
 	    WHEN (styp.ControlType IN ('SQL Server', 'Oracle', 'MySQL')) AND DLT.DeltaExtract = 1 Then CTL.[udf_GetDeltaSQL](ct.TaskId)
 		ELSE ctc.Command
@@ -72,6 +73,7 @@ Select
 	LEFT JOIN CTL.ControlSource Audit ON ISNULL(src.SoftDeleteSource, '') = Audit.SourceLocation AND Audit.IsAuditTable = 1
 	LEFT JOIN CTL.TaskExecutionLog tel On ct.TaskId = tel.ControlTaskId
 		   And tel.StartTime = (Select Max(StartTime) From CTL.TaskExecutionLog Where ControlTaskId = ct.TaskId and ExecutionStatus in ('Success'))
+	LEFT JOIN CTL.TechRecCleansedConfig	trc On src.SourceName = trc.TargetObject
  Where ct.TaskEnabled = 1
    And ct.ControlStageId = @StageId
    And ct.ProjectId = @ProjectId

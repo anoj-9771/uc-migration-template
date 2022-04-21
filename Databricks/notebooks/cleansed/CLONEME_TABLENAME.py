@@ -160,7 +160,7 @@ df_updated_column = spark.sql("SELECT  \
                                 _RecordDeleted, \
                                 _RecordCurrent \
                                FROM CLEANSED.STG_SAP_EASTIH")
-display(df_updated_column)
+#display(df_updated_column)
 
 # COMMAND ----------
 

@@ -92,5 +92,5 @@ def getContract():
                       ])
 
     df = spark.createDataFrame(df.rdd, schema=newSchema)
-    display(df)
+#    display(df)
     return df

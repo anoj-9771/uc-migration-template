@@ -229,7 +229,7 @@ df_cleansed = spark.sql("SELECT C_LGA AS LGACode, \
          left outer join CLEANSED.access_z309_tdebitreason d on a.c_debi_type = d.debitTypeCode and a.c_debi_reas = d.debitReasonCode \
          ")
 
-print(f'Number of rows: {df_cleansed.count()}')
+#print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
 

@@ -44,7 +44,7 @@ def getInstallation():
                                       FROM {ADS_DATABASE_CLEANSED}.isu_0ucinstalla_attr_2 \
                                       WHERE _RecordCurrent = 1 \
                                       AND _RecordDeleted = 0")
-    print(f'Rows in isu0ucinstallaAttrDf:',isu0ucinstallaAttrDf.count())
+#    print(f'Rows in isu0ucinstallaAttrDf:',isu0ucinstallaAttrDf.count())
     
     #Dummy Record to be added to Installation Dimension
     dummyDimRecDf = spark.createDataFrame([("ISU", "-1"),("ACCESS","-2"),("ISU","-3"),("ACCESS","-4")],["sourceSystemCode", "installationId"])
