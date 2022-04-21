@@ -23,6 +23,10 @@
 						"target_table": {
 							"value": "@pipeline().parameters.TaskDetails.TargetName",
 							"type": "Expression"
+						},
+						"filter_clause": {
+							"value": "@pipeline().parameters.TaskDetails.WhereClause",
+							"type": "Expression"
 						}
 					}
 				},
@@ -109,10 +113,7 @@
 				},
 				"linkedServiceName": {
 					"referenceName": "LS-AzureSqlDatabase_Ctrldb",
-					"type": "LinkedServiceReference",
-					"parameters": {
-						"kvSecret": "daf-sql-controldb-connectionstring"
-					}
+					"type": "LinkedServiceReference"
 				}
 			}
 		],
