@@ -196,7 +196,7 @@ df_cleansed = spark.sql(f"SELECT case when C_METE_CANT_READ = 'na' then '' else 
 	FROM {ADS_DATABASE_STAGE}.{source_object} \
          ")
 
-print(f'Number of rows: {df_cleansed.count()}')                        
+#print(f'Number of rows: {df_cleansed.count()}')                        
 
 # COMMAND ----------
 

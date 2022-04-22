@@ -226,8 +226,8 @@ where SPRAS='E' as billReleasingReason, \
 	FROM CLEANSED.STG_SAPISU_0UCCONTRACT_ATTR_2 \
          ")
 
-display(df_cleansed)
-print(f'Number of rows: {df_cleansed.count()}')
+#display(df_cleansed)
+#print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
 

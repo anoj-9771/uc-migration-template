@@ -108,15 +108,18 @@ def getProperty():
                             ")
     parentDf.createOrReplaceTempView('parents')
     
-    systemAreaDf = spark.sql(f" \
-                            select propertyNumber, first(wn.dimWaterNetworkSK) as potableSK, first(wnr.dimWaterNetworkSK) as recycledSK, first(dimSewerNetworkSK) as sewerNetworkSK, first(dimStormWaterNetworkSK) as stormWaterNetworkSK \
+    systemAreaDf = spark.sql(f"with t1 as ( \
+                            select propertyNumber, wn.dimWaterNetworkSK as potableSK, wnr.dimWaterNetworkSK as recycledSK, dimSewerNetworkSK as sewerNetworkSK, dimStormWaterNetworkSK as stormWaterNetworkSK, \
+                                    row_number() over (partition by propertyNumber order by lp.waterPressureZone desc, lp.recycledSupplyZone desc, lp.sewerScamp desc, lp.stormWaterCatchment desc) as rnk \
                             from {ADS_DATABASE_CLEANSED}.hydra_TLotParcel lp left outer join curated.dimWaterNetwork wn on lp.waterPressureZone = wn.pressureArea and wn._RecordCurrent = 1 \
                                   left outer join {ADS_DATABASE_CURATED}.dimWaterNetwork wnr on lp.recycledSupplyZone = wnr.supplyZone and wnr._RecordCurrent = 1 \
                                   left outer join {ADS_DATABASE_CURATED}.dimSewerNetwork snw on lp.sewerScamp = snw.SCAMP and snw._RecordCurrent = 1 \
                                   left outer join {ADS_DATABASE_CURATED}.dimStormWaterNetwork sw on lp.stormWaterCatchment = sw.stormWaterCatchment and sw._RecordCurrent = 1\
                             where propertyNumber is not null \
-                            and lp._RecordCurrent = 1 \
-                            group by propertyNumber \
+                            and lp._RecordCurrent = 1) \
+                            select * \
+                            from t1 \
+                            where rnk = 1 \
                             ")
     systemAreaDf.createOrReplaceTempView('systemareas')
     #dimProperty

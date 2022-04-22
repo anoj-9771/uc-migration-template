@@ -194,7 +194,7 @@ df_cleansed = spark.sql(f"SELECT C_METE_GROU AS meterGroupCode, \
 	FROM {ADS_DATABASE_STAGE}.{source_object} \
          ")
 
-print(f'Number of rows: {df_cleansed.count()}')
+#print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
 

@@ -34,6 +34,7 @@ spark = SparkSession.builder.getOrCreate()
 #Initialize the Entity Object to be passed to the Notebook
 dbutils.widgets.text("target_table", "", "01:Target_Table")
 dbutils.widgets.text("debug_mode", "false", "02:Debug-Mode")
+dbutils.widgets.text("filter_clause", "", "03:Filter_Clause")
 #dbutils.widgets.text("source_param", "", "03:Parameters")
 
 
@@ -42,10 +43,12 @@ dbutils.widgets.text("debug_mode", "false", "02:Debug-Mode")
 # DBTITLE 1,Get Values from Widget
 target_table = dbutils.widgets.get("target_table")
 debug_mode = dbutils.widgets.get("debug_mode")
+filter_clause = dbutils.widgets.get("filter_clause")
 #source_param = dbutils.widgets.get("source_param")
 
 print(target_table)
 print(debug_mode)
+print(filter_clause)
 #print(source_param)
 
 
@@ -67,6 +70,8 @@ print(Debug)
 #delta_cleansed_tbl_name = "{0}.stg_{1}".format(ADS_DATABASE_CLEANSED, target_table)
 delta_cleansed_tbl_name = "{0}.{1}".format(ADS_DATABASE_CLEANSED, target_table)
 sql_query = "SELECT COUNT(*) FROM {0}".format(delta_cleansed_tbl_name)
+if filter_clause != '':
+  sql_query = "{0} {1}".format(sql_query,filter_clause)
 
 print(delta_cleansed_tbl_name)
 print(sql_query)

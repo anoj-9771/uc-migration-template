@@ -167,8 +167,8 @@ df_cleansed = spark.sql("SELECT \
 	FROM CLEANSED.STG_SAPISU_ZDSOPCODE \
          ")
 
-display(df_cleansed)
-print(f'Number of rows: {df_cleansed.count()}')
+#display(df_cleansed)
+#print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
 

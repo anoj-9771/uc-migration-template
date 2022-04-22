@@ -341,7 +341,8 @@ def GeneralToValidDateTime(dateIn, colType ="Optional", fmt = "" ):
         dateStr = str(dateIn)
         
     #don't allow for dates without century    
-    if len(dateStr) == 8 and dateStr.find('-') > 0:
+    dash = dateStr.find('-')
+    if (dash > -1 and dash <= 2) or (dateStr.find(' ') == 6 or len(dateStr) <= 7):
         return dateInvalid
     
     #check if length zero and mandatory, else add time to it if not present so the parser works nicely
@@ -377,6 +378,11 @@ spark.udf.register("ToValidDateTime", GeneralToValidDateTime,TimestampType())
 ToValidDate_udf = udf(GeneralToValidDateTime, DateType())
 #DateTimeCol = df.ToValidDateTime_udf(df["StartDateTime"]))
 ToValidDateTime_udf = udf(GeneralToValidDateTime, TimestampType())
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC select ToValidDateTime('2098-12-31 23:00')
 
 # COMMAND ----------
 
