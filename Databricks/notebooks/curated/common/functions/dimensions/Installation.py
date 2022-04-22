@@ -72,7 +72,7 @@ def getInstallation():
                     "propertyNumber")
        
     #6.Apply schema definition
-    newSchema = StructType([
+    schema = StructType([
                             StructField('sourceSystemCode', StringType(), True),
                             StructField('installationId', StringType(), False),
                             StructField('divisionCode', StringType(), True),
@@ -89,5 +89,4 @@ def getInstallation():
                             StructField('propertyNumber', StringType(), True)
                       ])
 
-    df = spark.createDataFrame(df.rdd, schema=newSchema)
-    return df  
+    return df, schema  

@@ -188,7 +188,7 @@ def getDate():
                        ")
     
     #6.Apply schema definition
-    newSchema = StructType([
+    schema = StructType([
                             StructField("calendarDate", DateType(), False),
                             StructField("dayName", StringType(), False),
                             StructField("monthName", StringType(), False),
@@ -222,6 +222,5 @@ def getDate():
                             StructField("halfOfFinancialYear", IntegerType(), True)
                       ])
 
-    df = spark.createDataFrame(df.rdd, schema=newSchema)
-    return df
+    return df, schema
 

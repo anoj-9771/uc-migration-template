@@ -54,7 +54,7 @@ def getWaterNetwork():
     )
                                             
     #6.Apply schema definition
-    newSchema = StructType([
+    schema = StructType([
                             StructField("deliverySystem", StringType(), False),
                             StructField("distributionSystem", StringType(), False),
                             StructField("supplyZone", StringType(), False),
@@ -63,8 +63,7 @@ def getWaterNetwork():
                             StructField("isRecycledWaterNetwork", StringType(), False)
                       ])
 
-    df = spark.createDataFrame(df.rdd, schema=newSchema)
-    return df
+    return df, schema
 
 # COMMAND ----------
 

@@ -186,7 +186,7 @@ def getLocation():
 #    ISULocationDf = ISULocationDf.unionByName(dummyDimRecDf, allowMissingColumns = True)
     locationDf = ISULocationDf.unionByName(ACCESSDf, allowMissingColumns = True)
     #5.SELECT / TRANSFORM
-    locationDf = locationDf.selectExpr( \
+    df = locationDf.selectExpr( \
      "locationID" \
     ,"sourceSystemCode" \
     ,"formattedAddress" \
@@ -202,7 +202,7 @@ def getLocation():
     ,"CAST(longitude AS DECIMAL(9,6)) as longitude"                   
     )
     #6.Apply schema definition
-    newSchema = StructType([
+    schema = StructType([
                             StructField("locationID", StringType(), False),
                             StructField("sourceSystemCode", StringType(), False),
                             StructField("formattedAddress", StringType(), True),
@@ -217,8 +217,8 @@ def getLocation():
                             StructField("latitude", DecimalType(9,6), True),
                             StructField("longitude", DecimalType(9,6), True)
                       ])
-    locationDf2 = spark.createDataFrame(locationDf.rdd, schema=newSchema)
-    return locationDf2
+
+    return df, schema
 
 # COMMAND ----------
 

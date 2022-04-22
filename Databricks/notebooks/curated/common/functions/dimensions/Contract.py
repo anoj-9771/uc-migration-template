@@ -75,7 +75,7 @@ def getContract():
                 , 'installationId')
 
     #6.Apply schema definition
-    newSchema = StructType([
+    schema = StructType([
                             StructField('contractId', StringType(), False),
                             StructField('validFromDate', DateType(), False),
                             StructField('validToDate', DateType(), True),
@@ -91,6 +91,5 @@ def getContract():
                             StructField('installationId', StringType(), True)
                       ])
 
-    df = spark.createDataFrame(df.rdd, schema=newSchema)
 #    display(df)
-    return df
+    return df, schema

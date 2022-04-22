@@ -92,7 +92,7 @@ def getBusinessPartnerGroupRelationship():
                             
     
     #6.Apply schema definition
-    newSchema = StructType([
+    schema = StructType([
                             StructField('sourceSystemCode', StringType(), True),
                             StructField('businessPartnerGroupSK', StringType(), False),
                             StructField('businessPartnerSK', StringType(), False),
@@ -103,6 +103,4 @@ def getBusinessPartnerGroupRelationship():
                             StructField('relationshipType', StringType(), True)
                       ]) 
 
-    df = spark.createDataFrame(isu0bpRelationsAttrDf.rdd, schema=newSchema)
-   
-    return df  
+    return df, schema  

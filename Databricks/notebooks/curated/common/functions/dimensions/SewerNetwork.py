@@ -48,14 +48,13 @@ def getSewerNetwork():
     )
                                             
     #6.Apply schema definition
-    newSchema = StructType([
+    schema = StructType([
                             StructField("sewerNetwork", StringType(), False),
                             StructField("sewerCatchment", StringType(), False),
                             StructField("SCAMP", StringType(), False)
                       ])
 
-    df = spark.createDataFrame(df.rdd, schema=newSchema)
-    return df
+    return df, schema
 
 
 # COMMAND ----------

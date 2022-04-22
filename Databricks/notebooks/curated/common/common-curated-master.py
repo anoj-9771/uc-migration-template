@@ -104,7 +104,7 @@ spark.conf.set("spark.sql.autoBroadcastJoinThreshold", 0)
 # COMMAND ----------
 
 # DBTITLE 1,5. Function: Load data into Curated delta table
-def TemplateEtl(df : object, entity, businessKey, AddSK = True):
+def TemplateEtl(df : object, entity, businessKey, schema, AddSK = True):
     rawEntity = entity
     entity = GeneralToPascalCase(rawEntity)
     LogEtl(f"Starting {entity}.")
@@ -122,6 +122,7 @@ def TemplateEtl(df : object, entity, businessKey, AddSK = True):
                                    track_changes = False, 
                                    is_delta_extract = False, 
                                    business_key = businessKey, 
+                                   schema,
                                    AddSKColumn = AddSK, 
                                    delta_column = "", 
                                    start_counter = "0", 
@@ -145,89 +146,111 @@ def TemplateEtl(df : object, entity, businessKey, AddSK = True):
 # DBTITLE 1,6.1 Function: Load Dimensions
 #Call BusinessPartner function to load DimBusinessPartnerGroup
 def businessPartner():
-    TemplateEtl(df=getBusinessPartner(), 
+    df, schema = getBusinessPartner()
+    TemplateEtl(df, 
              entity="dimBusinessPartner", 
              businessKey="businessPartnerNumber,sourceSystemCode",
+             schema=schema,
              AddSK=True
             )  
 
 #Call BusinessPartnerGroup function to load DimBusinessPartnerGroup
 def businessPartnerGroup():
-    TemplateEtl(df=getBusinessPartnerGroup(), 
+    df, schema = getBusinessPartnerGroup()
+    TemplateEtl(df, 
              entity="dimBusinessPartnerGroup", 
              businessKey="businessPartnerGroupNumber,sourceSystemCode",
+             schema=schema,
              AddSK=True
             )    
 
 #Call BillingDocumentSapisu function to load DimBillingDocument
 def billingDocumentIsu():
-    TemplateEtl(df=getBillingDocumentIsu(), 
+    df, schema = getBillingDocumentIsu()
+    TemplateEtl(df, 
              entity="dimBillingDocument", 
              businessKey="sourceSystemCode,billingDocumentNumber",
+             schema=schema,
              AddSK=True
             )
 
 #Call Contract function to load DimContract
 def contract():
-    TemplateEtl(df=getContract(), 
+    df, schema = getContract()
+    TemplateEtl(df, 
              entity="dimContract", 
              businessKey="contractId,validFromDate",
+             schema=schema,
              AddSK=True
             )  
 
 #Call Installation function to load DimLocation
 def installation():
-    TemplateEtl(df=getInstallation(), 
+    df, schema = getInstallation()
+    TemplateEtl(df, 
              entity="dimInstallation", 
              businessKey="installationId",
+             schema=schema,
              AddSK=True
             )
     
 #Call Location function to load DimLocation
 def location():
-    TemplateEtl(df=getLocation(), 
+    df, schema = getLocation()
+    TemplateEtl(df, 
              entity="dimLocation", 
              businessKey="locationId",
+             schema=schema,
              AddSK=True
             )
 
 #Call Date function to load DimDate
 def makeDate(): #renamed because date() gets overloaded elsewhere
-    TemplateEtl(df=getDate(), 
+    df, schema = getDate()
+    TemplateEtl(df, 
              entity="dimDate", 
              businessKey="calendarDate",
+             schema=schema,
              AddSK=True
             )
 
 #Call Meter function to load DimMeter
 def meter():
-    TemplateEtl(df=getMeter(), 
+    df, schema = getMeter()
+    TemplateEtl(df, 
              entity="dimMeter", 
              businessKey="meterNumber",
+             schema=schema,
              AddSK=True
             )
 
 #Call SewerNetwork function to load dimSewerNetwork
 def sewerNetwork():
-    TemplateEtl(df=getSewerNetwork(), 
+    df, schema = getSewerNetwork()
+    TemplateEtl(df, 
              entity="dimSewerNetwork", 
              businessKey="SCAMP",
+             schema=schema,
              AddSK=True
             )
 
 #Call StormWater function to load dimStormWaterNetwork
 def stormWaterNetwork():
-    TemplateEtl(df=getStormWaterNetwork(), 
+    df, schema = getStormWaterNetwork()
+    TemplateEtl(df, 
              entity="dimStormWaterNetwork", 
              businessKey="stormWaterCatchment",
+             schema=schema,
              AddSK=True
             )
 
 #Call StormWater function to load dimStormWaterNetwork
 def waterNetwork():
-    TemplateEtl(df=getWaterNetwork(), 
+    df, schema = getWaterNetwork()
+    TemplateEtl(df, 
              entity="dimWaterNetwork", 
              businessKey="supplyZone,pressureArea",
+             schema=schema,
              AddSK=True
             )
     #set n/a to null after the SKs have been generated
@@ -238,9 +261,11 @@ def waterNetwork():
 # Add New Dim in alphabetical order Except for makeProperty. It MUST run after the network tables have been created
 #Call Property function to load DimProperty
 def makeProperty(): #renamed because property is a keyword
-    TemplateEtl(df=getProperty(), 
+    df, schema = getProperty()
+    TemplateEtl(df, 
              entity="dimProperty", 
              businessKey="propertyNumber",
+             schema=schema,
              AddSK=True
             )
 

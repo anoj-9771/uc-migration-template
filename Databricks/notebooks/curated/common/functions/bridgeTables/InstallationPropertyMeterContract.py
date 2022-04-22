@@ -135,7 +135,7 @@ def getInstallationPropertyMeterContract():
                       ) 
                             
     #6.Apply schema definition
-    newSchema = StructType([
+    schema = StructType([
                             StructField('dimInstallationSK', LongType(), True),
                             StructField('installationId', StringType(), True),
                             StructField('dimContractSK', LongType(), True),
@@ -146,8 +146,7 @@ def getInstallationPropertyMeterContract():
                             StructField('propertyNumber', StringType(), True)
                       ]) 
 
-    df = spark.createDataFrame(df.rdd, schema=newSchema)  
 #    #print(f'{df.count():,} rows in df')
 #    #display(df)
     
-    return df  
+    return df, schema  

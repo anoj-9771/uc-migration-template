@@ -255,7 +255,7 @@ def getProperty():
                         )
                                             
     #6.Apply schema definition
-    newSchema = StructType([
+    schema = StructType([
                             StructField("propertyNumber", StringType(), False),
                             StructField("sourceSystemCode", StringType(), False),
                             StructField("waterNetworkSK_drinkingWater", StringType(), True),
@@ -283,8 +283,7 @@ def getProperty():
                             StructField('architecturalType', StringType(), True),
                       ])
 
-    df = spark.createDataFrame(df.rdd, schema=newSchema)
-    return df
+    return df, schema
 
 
 # COMMAND ----------

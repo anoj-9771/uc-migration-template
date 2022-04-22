@@ -85,7 +85,7 @@ spark.conf.set("spark.sql.autoBroadcastJoinThreshold", 0)
 # COMMAND ----------
 
 # DBTITLE 1,5. Function: Load data into Curated delta table
-def TemplateEtl(df : object, entity, businessKey, AddSK = True):
+def TemplateEtl(df : object, entity, businessKey, schema, AddSK = True):
     rawEntity = entity
     entity = GeneralToPascalCase(rawEntity)
     LogEtl(f"Starting {entity}.")
@@ -100,6 +100,7 @@ def TemplateEtl(df : object, entity, businessKey, AddSK = True):
                                    v_COMMON_CURATED_DATABASE, 
                                    v_COMMON_DATALAKE_FOLDER, 
                                    ADS_WRITE_MODE_MERGE, 
+                                   schema,
                                    track_changes = False, 
                                    is_delta_extract = False, 
                                    business_key = businessKey, 
@@ -126,17 +127,21 @@ def TemplateEtl(df : object, entity, businessKey, AddSK = True):
 # DBTITLE 1,6.1. Function: Load Bridge Tables
 #Call Business Partner Group Relation function to load brgBusinessPartnerGroupRelation
 def businessPartnerGroupRelationship():
-    TemplateEtl(df=getBusinessPartnerGroupRelationship(), 
+    df, schema = getBusinessPartnerGroupRelationship()
+    TemplateEtl(df, 
              entity="brgBusinessPartnerGroupRelationship", 
              businessKey="businessPartnerGroupSK,businessPartnerSK,validFromDate",
+             schema,
              AddSK=False
             ) 
 
 #Call InstallationPropertyMeterContract function to load brgInstallationPropertyMeterCon
 def installationPropertyMeterContract():
-    TemplateEtl(df=getInstallationPropertyMeterContract(), 
+    df, schema = getInstallationPropertyMeterContract()
+    TemplateEtl(df, 
              entity="brgInstallationPropertyMeterContract", 
              businessKey="dimInstallationSK",
+             schema,
              AddSK=False
             ) 
 
