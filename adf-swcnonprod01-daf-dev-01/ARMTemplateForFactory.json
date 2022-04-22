@@ -14092,7 +14092,7 @@
 									"type": "Expression"
 								},
 								"filter_clause": {
-									"value": "@pipeline().parameters.TaskDetails.WhereClause",
+									"value": "@if(equals(pipeline().parameters.TaskDetails.WhereClause,null),'',pipeline().parameters.TaskDetails.WhereClause)",
 									"type": "Expression"
 								}
 							}
@@ -16394,12 +16394,7 @@
 			"apiVersion": "2018-06-01",
 			"properties": {
 				"type": "SelfHosted",
-				"typeProperties": {
-					"linkedInfo": {
-						"resourceId": "/subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourcegroups/rg-swcnonprod01-daf-dev-01/providers/Microsoft.DataFactory/factories/adf-swcnonprod01-daf-dev-01/integrationruntimes/IntegrationRuntime-SelfHosted",
-						"authorizationType": "Rbac"
-					}
-				}
+				"typeProperties": {}
 			},
 			"dependsOn": []
 		},
