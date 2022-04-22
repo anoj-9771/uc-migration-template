@@ -119,10 +119,10 @@ def TemplateEtl(df : object, entity, businessKey, schema, AddSK = True):
                                    v_COMMON_CURATED_DATABASE, 
                                    v_COMMON_DATALAKE_FOLDER, 
                                    ADS_WRITE_MODE_MERGE, 
+                                   schema,
                                    track_changes = False, 
                                    is_delta_extract = False, 
                                    business_key = businessKey, 
-                                   schema,
                                    AddSKColumn = AddSK, 
                                    delta_column = "", 
                                    start_counter = "0", 
@@ -282,16 +282,20 @@ def makeProperty(): #renamed because property is a keyword
 # DBTITLE 1,6.2 Function: Load Relationship Tables
 #Call meterTimeslice function to load meterTimeslice
 def meterTimeslice(): 
-    TemplateEtl(df=getmeterTimeslice(), 
+    df, schema = getmeterTimeslice()
+    TemplateEtl(df, 
              entity="meterTimeslice", 
              businessKey="meterSK,equipmentNumber,validToDate",
+             schema=schema,
              AddSK=True
             )
     
 def meterInstallation():
-    TemplateEtl(df=getmeterInstallation(), 
+    df, schema = getmeterInstallation()
+    TemplateEtl(df, 
              entity="meterInstallation", 
              businessKey="installationSK,installationId,logicalDeviceNumber,validToDate",
+             schema=schema,
              AddSK=True
             )
     
@@ -302,16 +306,20 @@ def meterInstallation():
 # DBTITLE 1,6.3. Function: Load Facts
 
 def billedWaterConsumption():
-    TemplateEtl(df=getBilledWaterConsumption(),
+    df = getBilledWaterConsumption()
+    TemplateEtl(df,
              entity="factBilledWaterConsumption", 
              businessKey="sourceSystemCode,dimBillingDocumentSK,dimPropertySK,dimMeterSK,billingPeriodStartDate",
+             schema=df.schema,
              AddSK=False
             )
 
 def billedWaterConsumptionDaily():
-    TemplateEtl(df=getBilledWaterConsumptionDaily(), 
+    df = getBilledWaterConsumptionDaily()
+    TemplateEtl(df, 
              entity="factDailyApportionedConsumption", 
              businessKey="sourceSystemCode,consumptionDate,dimBillingDocumentSK,dimPropertySK,dimMeterSK",
+             schema=df.schema,
              AddSK=False
             )
 

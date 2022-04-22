@@ -131,7 +131,7 @@ def businessPartnerGroupRelationship():
     TemplateEtl(df, 
              entity="brgBusinessPartnerGroupRelationship", 
              businessKey="businessPartnerGroupSK,businessPartnerSK,validFromDate",
-             schema,
+             schema=schema,
              AddSK=False
             ) 
 
@@ -141,7 +141,7 @@ def installationPropertyMeterContract():
     TemplateEtl(df, 
              entity="brgInstallationPropertyMeterContract", 
              businessKey="dimInstallationSK",
-             schema,
+             schema=schema,
              AddSK=False
             ) 
 
