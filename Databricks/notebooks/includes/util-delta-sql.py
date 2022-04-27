@@ -262,7 +262,7 @@ def DeltaSyncTableWithSource(source_table, target_table):
 
 # COMMAND ----------
 
-def DeltaSaveToDeltaTable(
+def DeltaSaveToDeltaTableArchive(
   source_table, target_table, target_data_lake_zone, target_database, data_lake_folder, data_load_mode, track_changes = False, is_delta_extract = False, business_key = "", delta_column = "", start_counter = "0", end_counter = "0"):
   
   '''
@@ -291,7 +291,7 @@ def DeltaSaveToDeltaTable(
   
   #Generate the Query to save the data
   LogEtl("Generating delta SQL query")
-  delta_query = SQLMerge_DeltaTable_GenerateSQL(
+  delta_query = SQLMerge_DeltaTable_GenerateSQLArchive(
       source_table_name = source_table, 
       target_table_name = target_table_fqn, 
       business_key = business_key, 
@@ -351,7 +351,7 @@ def DeltaInjectSurrogateKeyToDataFrame(df, table_name):
 
 # COMMAND ----------
 
-def DeltaSaveDataFrameToDeltaTable(
+def DeltaSaveDataFrameToDeltaTableArchive(
   dataframe, target_table, target_data_lake_zone, target_database, data_lake_folder, data_load_mode, schema, track_changes = False, is_delta_extract = False, business_key = "", AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0"):
   
   stage_table_name = f"{ADS_DATABASE_STAGE}.{target_table}"
@@ -367,7 +367,7 @@ def DeltaSaveDataFrameToDeltaTable(
   LogEtl(f"write to stg table2")
   
   #Use our generic method to save the dataframe now to Delta Table
-  DeltaSaveToDeltaTable(
+  DeltaSaveToDeltaTableArchive(
     source_table = stage_table_name, 
     target_table = target_table, 
     target_data_lake_zone = target_data_lake_zone, 
