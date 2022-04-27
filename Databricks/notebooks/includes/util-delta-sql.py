@@ -352,7 +352,7 @@ def DeltaInjectSurrogateKeyToDataFrame(df, table_name):
 # COMMAND ----------
 
 def DeltaSaveDataFrameToDeltaTableArchive(
-  dataframe, target_table, target_data_lake_zone, target_database, data_lake_folder, data_load_mode, schema, track_changes = False, is_delta_extract = False, business_key = "", AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0"):
+  dataframe, target_table, target_data_lake_zone, target_database, data_lake_folder, data_load_mode, track_changes = False, is_delta_extract = False, business_key = "", AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0"):
   
   stage_table_name = f"{ADS_DATABASE_STAGE}.{target_table}"
   
@@ -386,7 +386,7 @@ def DeltaSaveDataFrameToDeltaTableArchive(
     dlTargetTableFqn = f"{target_database}.{target_table}"
     DeltaUpdateSurrogateKey(target_database, target_table, business_key) 
 
-  verifyTableSchema(f"{target_database}.{target_table}", schema)
+  verifyTableSchema(f"{target_database}.{target_table}", dataframe.schema)
 
 # COMMAND ----------
 
