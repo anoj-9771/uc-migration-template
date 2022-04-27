@@ -97,7 +97,7 @@ def getmeterTimeslice():
             )
 
     #6.Apply schema definition
-    newSchema = StructType([
+    schema = StructType([
                             StructField("meterSK", LongType(), False),
                             StructField("equipmentNumber", StringType(), False),
                             StructField("validToDate", DateType(), False),
@@ -129,8 +129,7 @@ def getmeterTimeslice():
                             StructField("createdBy", StringType(), True)
                       ])
 
-    df = spark.createDataFrame(df.rdd, schema=newSchema)
-    return df
+    return df, schema
 
 # COMMAND ----------
 

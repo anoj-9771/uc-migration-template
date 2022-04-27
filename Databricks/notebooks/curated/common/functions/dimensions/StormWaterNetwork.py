@@ -46,13 +46,12 @@ def getStormWaterNetwork():
     )
                                             
     #6.Apply schema definition
-    newSchema = StructType([
+    schema = StructType([
                             StructField("stormWaterNetwork", StringType(), False),
                             StructField("stormWaterCatchment", StringType(), False)
                       ])
 
-    df = spark.createDataFrame(df.rdd, schema=newSchema)
-    return df
+    return df, schema
 
 
 # COMMAND ----------

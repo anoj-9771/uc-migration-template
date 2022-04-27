@@ -43,7 +43,7 @@ def getBillingDocumentIsu():
   billedConsIsuDf = billedConsIsuDf.unionByName(dummyDimRecDf, allowMissingColumns = True)
   
   #5.SELECT / TRANSFORM
-  billDocDf = billedConsIsuDf.selectExpr \
+  df = billedConsIsuDf.selectExpr \
                                 ( \
                                    "sourceSystemCode" \
                                   ,"billingDocumentNumber" \
@@ -60,7 +60,7 @@ def getBillingDocumentIsu():
                                 
                                 ).dropDuplicates()
   #6.Apply schema definition
-  newSchema = StructType([
+  schema = StructType([
                             StructField("sourceSystemCode", StringType(), False),
                             StructField("billingDocumentNumber", StringType(), False),
                             StructField("billingPeriodStartDate", DateType(), True),
@@ -75,6 +75,4 @@ def getBillingDocumentIsu():
                             StructField("billingTransactionCode", StringType(), True)
                       ])
   
-  billDocDf = spark.createDataFrame(billDocDf.rdd, schema=newSchema)
-  
-  return billDocDf
+  return df, schema

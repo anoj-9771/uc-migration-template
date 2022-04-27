@@ -131,7 +131,7 @@ def getMeter():
 #     display(df)
     
     #5.Apply schema definition
-    newSchema = StructType([
+    schema = StructType([
                             StructField('sourceSystemCode', StringType(), False),
                             StructField('meterNumber', StringType(), False),
                             StructField('meterSerialNumber', StringType(), True),
@@ -152,10 +152,9 @@ def getMeter():
                             StructField('inspectionRelevanceFlag', StringType(), True),   
                       ])    
     
-    df = spark.createDataFrame(dfResult.rdd, schema=newSchema)
 #     display(df)    
     
-    return df
+    return dfResult, schema
   
 
 # COMMAND ----------

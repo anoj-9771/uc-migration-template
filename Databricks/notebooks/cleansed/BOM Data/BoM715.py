@@ -219,7 +219,6 @@ newSchema = StructType([
                           StructField('_RecordCurrent',IntegerType(),True)
                         ])
                                       
-df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
 df_cleansed_updated = df_cleansed
 # display(df_cleansed_updated)
 
@@ -273,7 +272,7 @@ df_cleansed_updated = df_cleansed
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
-DeltaSaveDataframeDirect(df_cleansed_updated, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
+DeltaSaveDataframeDirect(df_cleansed_updated, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", newSchema)
 
 # COMMAND ----------
 

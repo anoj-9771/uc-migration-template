@@ -94,7 +94,7 @@ def getBusinessPartner():
     df = df.unionByName(dummyDimRecDf, allowMissingColumns = True)
     
     #5.Apply schema definition
-    newSchema = StructType([
+    schema = StructType([
                             StructField('sourceSystemCode', StringType(), True),
                             StructField('businessPartnerNumber', StringType(), False),
                             StructField('validFromDate', DateType(), True),
@@ -130,8 +130,7 @@ def getBusinessPartner():
                             StructField('changedBy', StringType(), True)       
                       ]) 
 
-    df = spark.createDataFrame(df.rdd, schema=newSchema)
     #5.SELECT / TRANSFORM
     
     
-    return df  
+    return df, schema  

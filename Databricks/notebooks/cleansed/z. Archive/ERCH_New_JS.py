@@ -301,7 +301,7 @@ display (df)
 
 # DBTITLE 1,11. Save Dataframe to Staged & Cleansed
 DeltaSaveDataFrameToDeltaTable(
-  df, target_table, target_data_lake_zone, target_database, data_lake_folder, data_load_mode, track_changes = False, is_delta_extract = False, business_key = "billingDocumentNumber", AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
+  df, target_table, target_data_lake_zone, target_database, data_lake_folder, data_load_mode, "", track_changes = False, is_delta_extract = False, business_key = "billingDocumentNumber", AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
 
 # COMMAND ----------
 

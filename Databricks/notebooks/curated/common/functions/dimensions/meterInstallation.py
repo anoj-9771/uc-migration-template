@@ -67,7 +67,7 @@ def getmeterInstallation():
             )
 
     #6.Apply schema definition
-    newSchema = StructType([
+    schema = StructType([
                             StructField("installationSK", LongType(), False),
                             StructField("installationId", StringType(), False),
                             StructField("logicalDeviceNumber", StringType(), False),
@@ -83,9 +83,4 @@ def getmeterInstallation():
                             StructField("operationCode", StringType(), True)
                       ])
 
-    df = spark.createDataFrame(df.rdd, schema=newSchema)
-    return df
-
-# COMMAND ----------
-
-
+    return df, schema
