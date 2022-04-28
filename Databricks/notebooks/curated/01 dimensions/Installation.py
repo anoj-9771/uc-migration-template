@@ -1,32 +1,24 @@
 # Databricks notebook source
-#%run ../../includes/util-common
-
-# COMMAND ----------
-
-# Run the above commands only when running this notebook independently, otherwise the curated master notebook would take care of calling the above notebooks
-
-# COMMAND ----------
-
 ###########################################################################################################################
-# Function: getInstallation
-#  GETS Installation DIMENSION 
-# Returns:
-#  Dataframe of transformed Metery
+# Loads INSTALLATION dimension 
 #############################################################################################################################
 # Method
-# 1.Create Function
-# 2.Load Cleansed layer table data into dataframe and transform
-# 3.JOIN TABLES
-# 4.UNION TABLES
-# 5.SELECT / TRANSFORM
+# 1.Load Cleansed layer table data into dataframe and transform
+# 2.JOIN TABLES
+# 3.UNION TABLES
+# 4.SELECT / TRANSFORM
+# 5.SCHEMA DEFINITION
 #############################################################################################################################
-#1.Create Function
+
+# COMMAND ----------
+
+# MAGIC %run ../common/common-curated-includeMain
+
+# COMMAND ----------
 
 def getInstallation():
-    #spark.udf.register("TidyCase", GeneralToTidyCase) 
 
-    #2.Load Cleansed layer table data into dataframe
-    
+    #1.Load Cleansed layer table data into dataframe
     isu0ucinstallaAttrDf  = spark.sql(f"select 'ISU' as sourceSystemCode, \
                                           installationId, \
                                           divisionCode, \
@@ -44,18 +36,18 @@ def getInstallation():
                                       FROM {ADS_DATABASE_CLEANSED}.isu_0ucinstalla_attr_2 \
                                       WHERE _RecordCurrent = 1 \
                                       AND _RecordDeleted = 0")
-#    print(f'Rows in isu0ucinstallaAttrDf:',isu0ucinstallaAttrDf.count())
+    #print(f'Rows in isu0ucinstallaAttrDf:',isu0ucinstallaAttrDf.count())
     
     #Dummy Record to be added to Installation Dimension
     dummyDimRecDf = spark.createDataFrame([("ISU", "-1"),("ACCESS","-2"),("ISU","-3"),("ACCESS","-4")],["sourceSystemCode", "installationId"])
         
-    #3.JOIN TABLES
+    #2.JOIN TABLES
 
     
-    #4.UNION TABLES
+    #3.UNION TABLES
     df = isu0ucinstallaAttrDf.unionByName(dummyDimRecDf, allowMissingColumns = True)    
 
-    #5.SELECT / TRANSFORM
+    #4.SELECT / TRANSFORM
     df = df.select("sourceSystemCode", \
                     "installationId", \
                     "divisionCode", \
@@ -71,7 +63,7 @@ def getInstallation():
                     "changedBy", \
                     "propertyNumber")
        
-    #6.Apply schema definition
+    #5.Apply schema definition
     schema = StructType([
                             StructField('sourceSystemCode', StringType(), True),
                             StructField('installationId', StringType(), False),
@@ -90,3 +82,12 @@ def getInstallation():
                       ])
 
     return df, schema  
+
+# COMMAND ----------
+
+df, schema = getInstallation()
+TemplateEtl(df, entity="dimInstallation", businessKey="installationId", schema=schema, AddSK=True)
+
+# COMMAND ----------
+
+dbutils.notebook.exit("1")

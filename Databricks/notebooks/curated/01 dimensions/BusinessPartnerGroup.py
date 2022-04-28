@@ -1,31 +1,24 @@
 # Databricks notebook source
-#%run ../../includes/util-common
-
-# COMMAND ----------
-
-# Run the above commands only when running this notebook independently, otherwise the curated master notebook would take care of calling the above notebooks
-
-# COMMAND ----------
-
-#################################################################################4#########################################
-# Function: getBusinessPartnerGroup
-#  GETS Business Partner Group DIMENSION 
-# Returns:
-#  Dataframe of transformed Metery
+###########################################################################################################################
+# Loads BUSINESSPARTNERGROUP dimension 
 #############################################################################################################################
 # Method
-# 1.Create Function
-# 2.Load Cleansed layer table data into dataframe and transform
-# 3.JOIN TABLES
-# 4.UNION TABLES
-# 5.SELECT / TRANSFORM
+# 1.Load Cleansed layer table data into dataframe and transform
+# 2.JOIN TABLES
+# 3.UNION TABLES
+# 4.SELECT / TRANSFORM
+# 5.SCHEMA DEFINITION
 #############################################################################################################################
-#1.Create Function
+
+# COMMAND ----------
+
+# MAGIC %run ../common/common-curated-includeMain
+
+# COMMAND ----------
 
 def getBusinessPartnerGroup():
-    #spark.udf.register("TidyCase", GeneralToTidyCase) 
 
-    #2.Load Cleansed layer table data into dataframe
+    #1.Load Cleansed layer table data into dataframe
     #Business Partner Group Data from SAP ISU
     isu0bpartnerAttrDf  = spark.sql(f"select 'ISU' as sourceSystemCode, \
                                       a.businessPartnerNumber as businessPartnerGroupNumber, \
@@ -44,7 +37,7 @@ def getBusinessPartnerGroup():
                                       where a.businessPartnerCategoryCode = '3' \
                                       and a._RecordCurrent = 1 \
                                       and a._RecordDeleted = 0")
-   
+    #Business Partner Group Data from SAP CRM
     crm0bpartnerAttrDf  = spark.sql(f"select b.businessPartnerNumber as businessPartnerGroupNumber, \
                                       b.paymentAssistSchemeIndicator as paymentAssistSchemeFlag, \
                                       b.billAssistIndicator as billAssistFlag, \
@@ -57,7 +50,7 @@ def getBusinessPartnerGroup():
     #Dummy Record to be added to Business Partner Group Dimension
     dummyDimRecDf = spark.createDataFrame([("ISU", "-1", "Unknown"),("ACCESS", "-2", "Unknown"),("ISU", "-3", "NA"),("ACCESS", "-4", "NA")], ["sourceSystemCode", "businessPartnerGroupNumber","businessPartnerGroupName1"])
     
-    #3.JOIN TABLES
+    #2.JOIN TABLES
     df = isu0bpartnerAttrDf.join(crm0bpartnerAttrDf, isu0bpartnerAttrDf.businessPartnerGroupNumber == crm0bpartnerAttrDf.businessPartnerGroupNumber, how="left")\
                             .drop(crm0bpartnerAttrDf.businessPartnerGroupNumber)
     
@@ -69,9 +62,11 @@ def getBusinessPartnerGroup():
                                                 "businessPartnerGroupCode","businessPartnerGroup","businessPartnerGroupName1","businessPartnerGroupName2","externalNumber", \
                                                 "paymentAssistSchemeFlag","billAssistFlag","kidneyDialysisFlag","createdDateTime","createdBy","lastUpdatedDateTime","lastUpdatedBy") 
     
-    #4.UNION TABLES
+    #3.UNION TABLES
     df = df.unionByName(dummyDimRecDf, allowMissingColumns = True)
-    
+
+    #4.SELECT / TRANSFORM
+
     #5.Apply schema definition
     schema = StructType([
                             StructField('sourceSystemCode', StringType(), True),
@@ -92,6 +87,13 @@ def getBusinessPartnerGroup():
                             StructField('lastUpdatedBy', StringType(), True)                        
                       ])
 
-    #5.SELECT / TRANSFORM
-  
     return df, schema
+
+# COMMAND ----------
+
+df, schema = getBusinessPartnerGroup()
+TemplateEtl(df, entity="dimBusinessPartnerGroup", businessKey="businessPartnerGroupNumber,sourceSystemCode", schema=schema, AddSK=True) 
+
+# COMMAND ----------
+
+dbutils.notebook.exit("1")

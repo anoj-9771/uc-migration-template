@@ -1,40 +1,38 @@
 # Databricks notebook source
-#%run ../../includes/util-common
-
-# COMMAND ----------
-
-#%run ../commonBilledWaterConsumptionIsu
-
-# COMMAND ----------
-
-#%run ../commonBilledWaterConsumptionAccess
-
-# COMMAND ----------
-
-# Run the above commands only when running this notebook independently, otherwise the curated master notebook would take care of calling the above notebooks
-
-# COMMAND ----------
-
 ###########################################################################################################################
-# Function: getBilledWaterConsumption
-#  Merges both ISU and ACCESS BilledWaterConsumption FACT 
-# Returns:
-#  Dataframe of transformed BilledWaterConsumption
+# Loads BILLEDWATERCONSUMPTION fact 
 #############################################################################################################################
 # Method
-# 1.Create Function
-# 2.Load Cleansed layer table data into dataframe and transform
-# 3.JOIN TABLES
-# 4.UNION TABLES
-# 5.SELECT / TRANSFORM
+# 1.Load Cleansed layer table data into dataframe and transform
+# 2.JOIN TABLES
+# 3.UNION TABLES
+# 4.SELECT / TRANSFORM
+# 5.SCHEMA DEFINITION
 #############################################################################################################################
-#1.Create Function
+
+# COMMAND ----------
+
+# MAGIC %run ../common/common-curated-includeMain
+
+# COMMAND ----------
+
+# MAGIC %run ../common/functions/commonBilledWaterConsumptionIsu
+
+# COMMAND ----------
+
+# MAGIC %run ../common/functions/commonBilledWaterConsumptionAccess
+
+# COMMAND ----------
+
+#-----------------------------------------------------------------------------------------------
+# Note: BILLEDWATERCONSUMPTION fact requires the above two functions
+#-----------------------------------------------------------------------------------------------
+
+# COMMAND ----------
+
 def getBilledWaterConsumption():
-    spark.udf.register("TidyCase", GeneralToTidyCase)  
 
-    #FactBilledWaterConsumption
-
-    #2.Load Cleansed layer tables into dataframe
+    #1.Load Cleansed layer tables into dataframe
     isuConsDf = getBilledWaterConsumptionIsu()
     accessConsDf = getBilledWaterConsumptionAccess()
 
@@ -46,6 +44,7 @@ def getBilledWaterConsumption():
                                            & (legacyConsDS.billingPeriodEndDate == accessConsDf.billingPeriodEndDate)), how="inner" ) \
                            .select(accessConsDf['*'])
 
+    #2.Join tables
     #3.Union tables
     isuConsDf = isuConsDf.select("sourceSystemCode", "billingDocumentNumber", \
                                 "businessPartnerGroupNumber", "equipmentNumber", "contractId", \
@@ -174,4 +173,9 @@ def getBilledWaterConsumption():
 
 # COMMAND ----------
 
+df = getBilledWaterConsumption()
+TemplateEtl(df, entity="factBilledWaterConsumption", businessKey="sourceSystemCode,dimBillingDocumentSK,dimPropertySK,dimMeterSK,billingPeriodStartDate", schema=df.schema, AddSK=False)
 
+# COMMAND ----------
+
+dbutils.notebook.exit("1")

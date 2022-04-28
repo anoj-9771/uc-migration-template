@@ -1,31 +1,24 @@
 # Databricks notebook source
-#%run ../../includes/util-common
-
-# COMMAND ----------
-
-# Run the above commands only when running this notebook independently, otherwise the curated master notebook would take care of calling the above notebooks
-
-# COMMAND ----------
-
 ###########################################################################################################################
-# Function: getBusinessPartnerGroupRelationship
-#  Get Business Partner Group Relation Dimension
-# Returns:
-#  Dataframe of transfomred Business Partner Group Relation
+# Loads BUSINESSPARTNERGROUP relationship table
 #############################################################################################################################
 # Method
-# 1.Create Function
-# 2.Load Cleansed layer table data into dataframe and transform
-# 3.JOIN TABLES
-# 4.UNION TABLES
-# 5.SELECT / TRANSFORM
+# 1.Load Cleansed layer table data into dataframe and transform
+# 2.JOIN TABLES
+# 3.UNION TABLES
+# 4.SELECT / TRANSFORM
+# 5.SCHEMA DEFINITION
 #############################################################################################################################
-#1.Create Function
+
+# COMMAND ----------
+
+# MAGIC %run ../common/common-curated-includeMain
+
+# COMMAND ----------
 
 def getBusinessPartnerGroupRelationship():
-    #spark.udf.register("TidyCase", GeneralToTidyCase) 
 
-    #2.Load Cleansed layer table data into dataframe
+    #1.Load Cleansed layer table data into dataframe
     #Business Partner Group Relations Data from SAP ISU
     isu0bpRelationsAttrDf  = spark.sql(f"select 'ISU' as sourceSystemCode, \
                                       businessPartnerNumber1 as businessPartnerGroupNumber, \
@@ -42,7 +35,7 @@ def getBusinessPartnerGroupRelationship():
                                       and _RecordDeleted = 0")
     
      
-    #3.Load dimension tables into dataframe
+    #1.Load dimension tables into dataframe
 
     dim0bpartnerDf = spark.sql(f"select sourceSystemCode, dimBusinessPartnerSK, businessPartnerNumber, validFromDate,validToDate \
                                       from {ADS_DATABASE_CURATED}.dimBusinessPartner \
@@ -57,7 +50,7 @@ def getBusinessPartnerGroupRelationship():
                                                                                                                                             where businessPartnerGroupNumber = '-1'")
     
     
-    #4.Joins to derive SKs
+    #2.Joins to derive SKs
     isu0bpRelationsAttrDf = isu0bpRelationsAttrDf.join(dim0bpartnerDf, (isu0bpRelationsAttrDf.businessPartnerNumber == dim0bpartnerDf.businessPartnerNumber) \
                                & (isu0bpRelationsAttrDf.sourceSystemCode == dim0bpartnerDf.sourceSystemCode), how="left") \
                     .select(isu0bpRelationsAttrDf['*'], dim0bpartnerDf['dimBusinessPartnerSK'])    
@@ -66,7 +59,7 @@ def getBusinessPartnerGroupRelationship():
                                & (isu0bpRelationsAttrDf.sourceSystemCode == dim0bpGroupDf.sourceSystemCode), how="left") \
                     .select(isu0bpRelationsAttrDf['*'], dim0bpGroupDf['dimBusinessPartnerGroupSK'])
     
-    #6.Joins to derive SKs of dummy dimension(-1) records, to be used when the lookup fails for dimensionSk
+    #2.Joins to derive SKs of dummy dimension(-1) records, to be used when the lookup fails for dimensionSk
   
     isu0bpRelationsAttrDf = isu0bpRelationsAttrDf.join(dummyDimRecDf, (dummyDimRecDf.dimension == 'dimBusinessPartner') \
                                & (isu0bpRelationsAttrDf.sourceSystemCode == dummyDimRecDf.sourceSystemCode), how="left") \
@@ -76,9 +69,8 @@ def getBusinessPartnerGroupRelationship():
                                & (isu0bpRelationsAttrDf.sourceSystemCode == dummyDimRecDf.sourceSystemCode), how="left") \
                     .select(isu0bpRelationsAttrDf['*'], dummyDimRecDf['dummyDimSK'].alias('dummyBusinessPartnerGroupSK'))
     
-    
-    #7.SELECT / TRANSFORM
-    #aggregating to address any duplicates due to failed SK lookups and dummy SKs being assigned in those cases
+    #3.UNION TABLES    
+    #4.SELECT / TRANSFORM
     isu0bpRelationsAttrDf = isu0bpRelationsAttrDf.selectExpr ( \
                                            "sourceSystemCode" \
                                           ,"coalesce(dimBusinessPartnerGroupSK, dummyBusinessPartnerGroupSK) as businessPartnerGroupSK" \
@@ -91,7 +83,7 @@ def getBusinessPartnerGroupRelationship():
                                          ) 
                             
     
-    #6.Apply schema definition
+    #5.Apply schema definition
     schema = StructType([
                             StructField('sourceSystemCode', StringType(), True),
                             StructField('businessPartnerGroupSK', StringType(), False),
@@ -104,3 +96,12 @@ def getBusinessPartnerGroupRelationship():
                       ]) 
 
     return df, schema  
+
+# COMMAND ----------
+
+df, schema = getBusinessPartnerGroupRelationship()
+TemplateEtl(df, entity="brgBusinessPartnerGroupRelationship", businessKey="businessPartnerGroupSK,businessPartnerSK,validFromDate", schema=schema, AddSK=False)
+
+# COMMAND ----------
+
+dbutils.notebook.exit("1")

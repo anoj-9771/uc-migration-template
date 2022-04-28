@@ -1,19 +1,28 @@
 # Databricks notebook source
-#%run ../../includes/util-common
+###########################################################################################################################
+# Loads METER dimension 
+#############################################################################################################################
+# Method
+# 1.Load Cleansed layer table data into dataframe and transform
+# 2.JOIN TABLES
+# 3.UNION TABLES
+# 4.SELECT / TRANSFORM
+# 5.SCHEMA DEFINITION
+#############################################################################################################################
 
 # COMMAND ----------
 
-# Run the above commands only when running this notebook independently, otherwise the curated master notebook would take care of calling the above notebooks
+# MAGIC %run ../common/common-curated-includeMain
 
 # COMMAND ----------
 
 def getMeter():
-    meterFunctionClasses = ['1000','2000','9000']
-    #spark.udf.register("TidyCase", GeneralToTidyCase) 
 
-    #2.Load Cleansed layer table data into dataframe
-    #Meter Data from Access
-    #notes for future: a number of column values can be derived with aditional code/queries. LastActivity reason code can only be mapped from meter change reason code/reason after conversion of values. The text is the same but the codes differ
+    meterFunctionClasses = ['1000','2000','9000']
+    #1.Load Cleansed layer table data into dataframe
+    #notes for future: 
+        #a number of column values can be derived with aditional code/queries. 
+        #LastActivity reason code can only be mapped from meter change reason code/reason after conversion of values. The text is the same but the codes differ
     accessZ309TpropmeterDf = spark.sql(f"select 'ACCESS' as sourceSystemCode, \
                                               row_number() over (order by metermakernumber) as meterNumber, \
                                               coalesce(meterMakerNumber,'') as meterSerialNumber, \
@@ -48,8 +57,8 @@ def getMeter():
     #Drop unwanted columns
     accessZ309TpropmeterDf = accessZ309TpropmeterDf.drop(accessZ309TpropmeterDf.rownum)
     accessZ309TpropmeterDf.createOrReplaceTempView('ACCESS')
-#     print(f'{accessZ309TpropmeterDf.count():,} rows in accessZ309TpropmeterDf')
-#    #display(accessZ309TpropmeterDf)
+    #print(f'{accessZ309TpropmeterDf.count():,} rows in accessZ309TpropmeterDf')
+    #display(accessZ309TpropmeterDf)
     #Meter Data from SAP ISU
     isu0ucDeviceAttrDf  = spark.sql(f"select 'ISU' as sourceSystemCode, \
                                       equipmentNumber as meterNumber, \
@@ -77,8 +86,8 @@ def getMeter():
                                       and a._RecordDeleted = 0 \
                                       ")
     
-#     print(f'{isu0ucDeviceAttrDf.count():,} rows in isu0ucDeviceAttrDf')
-#    display(isu0ucDeviceAttrDf)
+    #print(f'{isu0ucDeviceAttrDf.count():,} rows in isu0ucDeviceAttrDf')
+    #display(isu0ucDeviceAttrDf)
 
     isu0ucDevCatAttrDf  = spark.sql(f"select distinct a.materialNumber, \
                                         case when functionClassCode = '9000' then 'Customer Standpipe' else 'Water Meter' end as usageMeterType, \
@@ -93,21 +102,20 @@ def getMeter():
                                       and a._RecordCurrent = 1 \
                                       and a._RecordDeleted = 0")
     
-#     print(f'{isu0ucDevCatAttrDf.count():,} rows in isu0ucDevCatAttrDf')
-#     display(isu0ucDevCatAttrDf)  
+    #print(f'{isu0ucDevCatAttrDf.count():,} rows in isu0ucDevCatAttrDf')
+    #display(isu0ucDevCatAttrDf)  
     
-    #3.JOIN TABLES
-    df = isu0ucDeviceAttrDf.join(isu0ucDevCatAttrDf, isu0ucDeviceAttrDf.materialNumber == isu0ucDevCatAttrDf.materialNumber, 
-                                  how="inner") \
+    #2.JOIN TABLES
+    df = isu0ucDeviceAttrDf.join(isu0ucDevCatAttrDf, isu0ucDeviceAttrDf.materialNumber == isu0ucDevCatAttrDf.materialNumber, how="inner") \
                             .drop(isu0ucDevCatAttrDf.materialNumber)
-#     print(f'{df.count():,} rows after merge 1')
-#    #display(df)
+    #print(f'{df.count():,} rows after merge 1')
+    #display(df)
         
-#     #re-order columns
+    #re-order columns
     df = df.select('sourceSystemCode','meterNumber','meterSerialNumber','materialNumber','usageMeterType','meterSize','meterSizeUnit','waterType','meterCategoryCode','meterCategory',
                     'meterReadingType','meterDescription','meterFittedDate','meterRemovedDate','manufacturerName','manufacturerSerialNumber','manufacturerModelNumber','inspectionRelevanceFlag')
     
-    #4. UNION
+    #3. UNION
     df.createOrReplaceTempView('ISU')
     dfResult = spark.sql("with ACCESSMtrs as (select meterSerialNumber \
                                               from   ACCESS \
@@ -121,14 +129,16 @@ def getMeter():
                           union all \
                           select * \
                           from   ISU")
-#     = accessZ309TpropmeterDf.union(df)
-#     print(f'{df.count():,} rows after Union 1')
-#     display(df)    
+    #= accessZ309TpropmeterDf.union(df)
+    #print(f'{df.count():,} rows after Union 1')
+    #display(df)    
     
     dummyDimRecDf = spark.createDataFrame([("ISU","-1","Unknown"),("ACCESS","-2","Unknown"),("ISU","-3","NA"),("ACCESS","-4","NA")], ["sourceSystemCode", "meterNumber","meterDescription"])   
-#     df = df.unionByName(dummyDimRecDf, allowMissingColumns = True)    
-#     print(f'{df.count():,} rows after Union 2')
-#     display(df)
+    #df = df.unionByName(dummyDimRecDf, allowMissingColumns = True)    
+    #print(f'{df.count():,} rows after Union 2')
+    #display(df)
+    
+    #4.SELECT / TRANSFORM
     
     #5.Apply schema definition
     schema = StructType([
@@ -152,10 +162,14 @@ def getMeter():
                             StructField('inspectionRelevanceFlag', StringType(), True),   
                       ])    
     
-#     display(df)    
+    #display(df)    
     
     return dfResult, schema
-  
+
+# COMMAND ----------
+
+df, schema = getMeter()
+TemplateEtl(df, entity="dimMeter", businessKey="meterNumber", schema=schema, AddSK=True)
 
 # COMMAND ----------
 
@@ -164,3 +178,7 @@ def getMeter():
 #     ACCESSDummy = tuple(['ACCESS','-2',"9999-12-31","9999-12-31",""] + ['Unknown'] * (len(df.columns) -5)) #this only works as long as all output columns are string
 #     dummyDimRecDf = spark.createDataFrame([ISUDummy, ACCESSDummy], df.columns)
 #    df.write.saveAsTable('curated.dimMeterTest_new3')
+
+# COMMAND ----------
+
+dbutils.notebook.exit("1")
