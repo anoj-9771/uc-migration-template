@@ -2,7 +2,7 @@
 # DBTITLE 1,Generate parameter and source object name for unit testing
 import json
 accessTable = 'Z309_TMETERCHANGEREAS'
-businessKeys = 'meterChangeReasonCode'
+businessKeys = 'C_METE_CHAN_REAS'
 
 runParm = '{"SourceType":"BLOB Storage (csv)","SourceServer":"daf-sa-lake-sastoken","SourceGroup":"accessref","SourceName":"access_####","SourceLocation":"accessref/####","AdditionalProperty":"","Processor":"databricks-token|1103-023442-me8nqcm9|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive","IsAuditTable":false,"SoftDeleteSource":"","ProjectName":"CLEANSED REF ACCESS","ProjectId":2,"TargetType":"BLOB Storage (csv)","TargetName":"access_####","TargetLocation":"accessref/####","TargetServer":"daf-sa-lake-sastoken","DataLoadMode":"TRUNCATE-LOAD","DeltaExtract":false,"CDCSource":false,"TruncateTarget":true,"UpsertTarget":false,"AppendTarget":false,"TrackChanges":false,"LoadToSqlEDW":true,"TaskName":"access_####","ControlStageId":2,"TaskId":40,"StageSequence":200,"StageName":"Raw to Cleansed","SourceId":40,"TargetId":40,"ObjectGrain":"Day","CommandTypeId":8,"Watermarks":"","WatermarksDT":null,"WatermarkColumn":"","BusinessKeyColumn":"yyyy","PartitionColumn":null,"UpdateMetaData":null,"SourceTimeStampFormat":"","Command":"/build/cleansed/accessref/####","LastLoadedFile":null}'
 
@@ -188,14 +188,14 @@ df_cleansed = spark.sql(f"SELECT \
 	C_METE_CHAN_REAS as meterChangeReasonCode, \
 	C_METE_CHAN_ABBR as meterExchangeReasonAbbreviation, \
 	T_METE_CHAN_REAS as meterExchangeReason, \
-	D_CHAN_REAS_EFFE as meterexchangeReasonEffectiveDate, \
-	D_CHAN_REAS_CANC as meterExchangeReasonCancelledDate, \
+	ToValidDate(D_CHAN_REAS_EFFE) as meterexchangeReasonEffectiveDate, \
+	ToValidDate(D_CHAN_REAS_CANC) as meterExchangeReasonCancelledDate, \
 	_RecordStart, \
 	_RecordEnd, \
 	_RecordDeleted, \
 	_RecordCurrent \
 	FROM {ADS_DATABASE_STAGE}.{source_object} \
-                                )
+                               ")
 
 # COMMAND ----------
 
@@ -203,8 +203,8 @@ newSchema = StructType([
 	StructField('meterChangeReasonCode',StringType(),False),
 	StructField('meterExchangeReasonAbbreviation',StringType(),True),
 	StructField('meterExchangeReason',StringType(),True),
-	StructField('meterexchangeReasonEffectiveDate',StringType(),True),
-	StructField('meterExchangeReasonCancelledDate',StringType(),True),
+	StructField('meterexchangeReasonEffectiveDate',DateType(),True),
+	StructField('meterExchangeReasonCancelledDate',DateType(),True),
 	StructField('_RecordStart',TimestampType(),False),
 	StructField('_RecordEnd',TimestampType(),False),
 	StructField('_RecordDeleted',IntegerType(),False),

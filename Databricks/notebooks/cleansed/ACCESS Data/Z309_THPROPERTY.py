@@ -2,7 +2,7 @@
 # DBTITLE 1,Generate parameter and source object name for unit testing
 import json
 accessTable = 'Z309_THPROPERTY'
-businessKeys = 'propertyNumber,rowSupersededDate,rowSupersededTime'
+businessKeys = 'N_PROP,D_SUPD,T_TIME_SUPD'
 
 runParm = '{"SourceType":"BLOB Storage (csv)","SourceServer":"daf-sa-lake-sastoken","SourceGroup":"accessdata","SourceName":"access_####","SourceLocation":"accessdata/####","AdditionalProperty":"","Processor":"databricks-token|1103-023442-me8nqcm9|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive","IsAuditTable":false,"SoftDeleteSource":"","ProjectName":"CLEANSED DATA ACCESS","ProjectId":2,"TargetType":"BLOB Storage (csv)","TargetName":"access_####","TargetLocation":"accessdata/####","TargetServer":"daf-sa-lake-sastoken","DataLoadMode":"TRUNCATE-LOAD","DeltaExtract":false,"CDCSource":false,"TruncateTarget":true,"UpsertTarget":false,"AppendTarget":false,"TrackChanges":false,"LoadToSqlEDW":true,"TaskName":"access_####","ControlStageId":2,"TaskId":40,"StageSequence":200,"StageName":"Raw to Cleansed","SourceId":40,"TargetId":40,"ObjectGrain":"Day","CommandTypeId":8,"Watermarks":"","WatermarksDT":null,"WatermarkColumn":"","BusinessKeyColumn":"yyyy","PartitionColumn":null,"UpdateMetaData":null,"SourceTimeStampFormat":"","Command":"/build/cleansed/accessdata/####","LastLoadedFile":null}'
 
@@ -163,6 +163,11 @@ print(delta_raw_tbl_name)
 
 # COMMAND ----------
 
+# MAGIC %sql
+# MAGIC -- drop table stage.access_z309_thproperty
+
+# COMMAND ----------
+
 # DBTITLE 1,10. Load to Cleanse Delta Table from Raw Delta Table
 #This method uses the source table to load data into target Delta Table
 DeltaSaveToDeltaTable (
@@ -184,128 +189,141 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
+# LGACode 225 was 
 df_cleansed = spark.sql(f"SELECT \
-	cast(tbl.N_PROP as int) as propertyNumber, \
-	tbl.C_LGA as LGACode, \
-	ref1.LGA as LGA, \
-	tbl.C_STRE_GUID as streetGuideCode, \
-	tbl.N_ADDR_UNIT as unitNumber, \
-	tbl.N_ADDR_STRE as streetNumber, \
-	tbl.C_OTHE_ADDR_TYPE as otherAddressTypeCode, \
-	ref2.otherAddressType as otherAddressType, \
-	tbl.T_OTHE_ADDR_INFO as otherAddressInformation, \
-	cast(tbl.N_WATE_SERV_SKET as int) as waterServiceSketchNumber, \
-	tbl.N_SEWE_DIAG as sewerDiagramNumber, \
-	tbl.C_PROP_TYPE as propertyTypeCode, \
-	ref3.propertyType as propertyType, \
-	ToValidDate(tbl.D_PROP_TYPE_EFFE) as propertyTypeEffectiveFrom, \
-	tbl.C_RATA_TYPE as rateabilityTypeCode, \
-	ref4.rateabilityType as rateabilityType, \
-	ToValidDate(tbl.D_PROP_RATE_CANC) as propertyRatingCancelledDate, \
-	cast(tbl.Q_RESI_PORT as int) as residentialPortionCount, \
-	tbl.F_RATE_INCL as hasIncludedRatings, \
-	tbl.F_VALU_INCL as hasIncludedValuations, \
-	tbl.F_METE_INCL as hasIncludedMeters, \
-	tbl.F_SPEC_METE_ALLO as hasSpecialMeterAllocation, \
-	tbl.F_FREE_SUPP as hasFreeSupply, \
-	tbl.C_SEWE_USAG_TYPE as sewerUsageTypeCode, \
-	ref5.sewerUsageType as sewerUsageType, \
-	tbl.F_SPEC_PROP_DESC as hasSpecialPropertyDescription, \
-	cast(tbl.Q_PROP_METE as int) as propertyMeterCount, \
-	cast(tbl.N_LAST_STMT_ISSU as int) as lastStatementIssuedNumber, \
-	tbl.F_CERT_NO_METE as isCertificateNumberMeter, \
-	tbl.N_SEWE_REFE_SHEE as sewerReferenceSheetNumber, \
-	cast(tbl.Q_PROP_AREA as dec(9,3)) as propertyArea, \
-	tbl.C_PROP_AREA_TYPE as propertyAreaTypeCode, \
-	ref6.propertyAreaType as propertyAreaType, \
-	cast(tbl.A_PROP_PURC_PRIC as int) as purchasePrice, \
-	ToValidDate(tbl.D_PROP_SALE_SETT) as settlementDate, \
-	ToValidDate(tbl.D_CNTR) as contractDate, \
-	tbl.C_EXTR_LOT as extractLotCode, \
-	ref7.extractLotDescription as extractLotDescription, \
-	ToValidDate(tbl.D_PROP_UPDA) as propertyUpdatedDate, \
-	tbl.T_PROP_LOT as lotDescription, \
-	ToValidDate(tbl.D_SUPD) as rowSupersededDate, \
-	tbl.T_TIME_SUPD as rowSupersededTime, \
+        cast(N_PROP as int) AS propertyNumber, \
+    C_LGA AS LGACode, \
+    ref1.LGA, \
+    C_PROP_TYPE AS propertyTypeCode, \
+    ref3.propertyType, \
+    ref3a.propertyTypeCode as superiorPropertyTypeCode, \
+    ref3a.propertyType as superiorPropertyType, \
+    case when D_PROP_TYPE_EFFE is not null \
+              then to_date(D_PROP_TYPE_EFFE,'yyyyMMdd') \
+         when D_PROP_RATE_CANC is not null \
+              then to_date(D_PROP_RATE_CANC,'yyyyMMdd') \
+              else to_date(D_PROP_UPDA,'yyyyMMdd') \
+    end AS propertyTypeEffectiveFrom, \
+    C_RATA_TYPE AS rateabilityTypeCode, \
+    initcap(ref4.rateabilityType) as rateabilityType, \
+    coalesce(cast(Q_RESI_PORT as decimal(5,0)),0) AS residentialPortionCount, \
+    case when F_RATE_INCL = 'R' \
+              then true \
+              else false \
+    end AS hasIncludedRatings, \
+    case when F_RATE_INCL = 'I' \
+              then true \
+              else false \
+    end AS isIncludedInOtherRating, \
+    case when F_METE_INCL = 'M' \
+              then true \
+              else false \
+    end AS meterServesOtherProperties, \
+    case when F_METE_INCL = 'L' \
+              then true \
+              else false \
+    end AS hasMeterOnOtherProperty, \
+    case when F_SPEC_METE_ALLO = '1' \
+              then true \
+              else false \
+    end AS hasSpecialMeterAllocation, \
+    case when F_FREE_SUPP = 'K' \
+              then true \
+              else false \
+    end AS hasKidneyFreeSupply, \
+    case when F_FREE_SUPP = 'Y' \
+              then true \
+              else false \
+    end AS hasNonKidneyFreeSupply, \
+    case when F_SPEC_PROP_DESC = '1' \
+              then true \
+              else false \
+    end AS hasSpecialPropertyDescription, \
+    C_SEWE_USAG_TYPE AS sewerUsageTypeCode, \
+    ref5.sewerUsageType as sewerUsageType, \
+    coalesce(cast(Q_PROP_METE as int),0) AS propertyMeterCount, \
+    coalesce(cast(Q_PROP_AREA as decimal(9,3)),0) AS propertyArea, \
+    C_PROP_AREA_TYPE AS propertyAreaTypeCode, \
+    ref6.propertyAreaType as propertyAreaType, \
+    coalesce(cast(A_PROP_PURC_PRIC as decimal(11,0)),0) AS purchasePrice, \
+    case when d_prop_sale_sett = '00000000' \
+              then null \
+         when D_PROP_SALE_SETT = '00181029' \
+              then to_date('20181029','yyyyMMdd') \
+              else to_date(D_PROP_SALE_SETT,'yyyyMMdd') \
+    end AS settlementDate, \
+    to_date(D_CNTR, 'yyyyMMdd') AS contractDate, \
+    C_EXTR_LOT AS extractLotCode, \
+    ref7.extractLotDescription as extractLotDescription, \
+    to_date(D_PROP_UPDA, 'yyyyMMdd') AS propertyUpdatedDate, \
+    T_PROP_LOT AS lotDescription, \
+    tbl.F_ADJU as rowAdjusted, \
+    C_USER_CREA AS createdByUserId, \
+    C_PLAN_CREA AS createdByPlan, \
+    cast(to_unix_timestamp(H_CREA, 'yyyy-MM-dd hh:mm:ss a') as timestamp) as createdTimestamp, \
+    case when substr(hex(c_user_modi),1,2) = '00' then ' ' else C_USER_MODI end AS modifiedByUserId, \
+    C_PLAN_MODI AS modifiedByPlan, \
+    cast(to_unix_timestamp(H_MODI, 'yyyy-MM-dd hh:mm:ss a') as timestamp) as modifiedTimestamp, \
 	tbl.M_PROC as modifiedByProcess, \
-	tbl.C_USER_ID as modifiedByUserID, \
-	tbl.C_TERM_ID as modifiedByTerminalID, \
-	tbl.F_ADJU as rowAdjusted, \
-	tbl.C_USER_CREA as createdByUserID, \
-	tbl.C_PLAN_CREA as createdByPlan, \
-	ToValidDateTime(tbl.H_CREA) as createdTimestamp, \
-	tbl.C_USER_MODI as modifiedByUserID, \
-	tbl.C_PLAN_MODI as modifiedByPlan, \
-	ToValidDateTime(tbl.H_MODI) as modifiedTimestamp, \
-	_RecordStart, \
-	_RecordEnd, \
-	_RecordDeleted, \
-	_RecordCurrent \
+	cast(to_unix_timestamp(tbl.D_SUPD||' '||substr(tbl.T_TIME_SUPD,1,6), 'yyyyMMdd HHmmss') as timestamp) as rowSupersededTimestamp, \
+	tbl._RecordStart, \
+	tbl._RecordEnd, \
+	tbl._RecordDeleted, \
+	tbl._RecordCurrent \
 	FROM {ADS_DATABASE_STAGE}.{source_object} tbl \
-left outer join Z309.TLOCALGOVT ref1 on tbl.C_LGA = ref1.LGA \
-left outer join Z309.TOTHERADDRTYPE ref2 on tbl.C_OTHE_ADDR_TYPE = ref2.otherAddressType \
-left outer join Z309.TPROPTYPE ref3 on tbl.C_PROP_TYPE = ref3.propertyType \
-left outer join Z309.TRATATYPE ref4 on tbl.C_RATA_TYPE = ref4.rateabilityType \
-left outer join Z309.TSEWEUSAGETYPE ref5 on tbl.C_SEWE_USAG_TYPE = ref5.sewerUsageType \
-left outer join Z309.TPROPAREATYPE ref6 on tbl.C_PROP_AREA_TYPE = ref6.propertyAreaType \
-left outer join Z309.TEXTRACTLOT ref7 on tbl.C_EXTR_LOT = ref7.extractLotDescription \
-                                )
+                left outer join cleansed.access_Z309_TLOCALGOVT ref1 on tbl.C_LGA = ref1.LGACode \
+                left outer join cleansed.access_Z309_TPROPTYPE ref3 on tbl.C_PROP_TYPE = ref3.propertyTypeCode \
+                left outer join cleansed.access_Z309_TPropType ref3a on ref3.superiorPropertyTypeCode = ref3a.propertyTypeCode \
+                left outer join cleansed.access_Z309_TRATATYPE ref4 on tbl.C_RATA_TYPE = ref4.rateabilityTypeCode \
+                left outer join cleansed.access_Z309_TSEWEUSAGETYPE ref5 on tbl.C_SEWE_USAG_TYPE = ref5.sewerUsageTypeCode \
+                left outer join cleansed.access_Z309_TPROPAREATYPE ref6 on tbl.C_PROP_AREA_TYPE = ref6.propertyAreaTypeCode \
+                left outer join cleansed.access_Z309_TEXTRACTLOT ref7 on tbl.C_EXTR_LOT = ref7.extractLotCode \
+                                ")
 
 # COMMAND ----------
 
 newSchema = StructType([
-	StructField('propertyNumber',IntegerType(),True),
-	StructField('LGACode',StringType(),True),
-	StructField('LGA',StringType(),True),
-	StructField('streetGuideCode',StringType(),True),
-	StructField('unitNumber',StringType(),True),
-	StructField('streetNumber',StringType(),True),
-	StructField('otherAddressTypeCode',StringType(),True),
-	StructField('otherAddressType',StringType(),True),
-	StructField('otherAddressInformation',StringType(),True),
-	StructField('waterServiceSketchNumber',IntegerType(),True),
-	StructField('sewerDiagramNumber',StringType(),True),
+	StructField('propertyNumber',IntegerType(),False),
+    StructField('LGACode',StringType(),True),
+    StructField('LGA',StringType(),True),
 	StructField('propertyTypeCode',StringType(),True),
 	StructField('propertyType',StringType(),True),
-	StructField('propertyTypeEffectiveFrom',DateType(),True),
-	StructField('rateabilityTypeCode',StringType(),True),
-	StructField('rateabilityType',StringType(),True),
-	StructField('propertyRatingCancelledDate',DateType(),True),
-	StructField('residentialPortionCount',IntegerType(),True),
-	StructField('hasIncludedRatings',StringType(),True),
-	StructField('hasIncludedValuations',StringType(),True),
-	StructField('hasIncludedMeters',StringType(),True),
-	StructField('hasSpecialMeterAllocation',StringType(),True),
-	StructField('hasFreeSupply',StringType(),True),
+    StructField('superiorPropertyTypeCode',StringType(),True),
+    StructField('superiorPropertyType',StringType(),True),
+    StructField('propertyTypeEffectiveFrom',DateType(),True),
+    StructField('rateabilityTypeCode',StringType(),True),
+    StructField('rateabilityType',StringType(),True),
+	StructField('residentialPortionCount',DecimalType(5,0),False),
+    StructField('hasIncludedRatings',BooleanType(),False),
+    StructField('isIncludedInOtherRating',BooleanType(),False),
+    StructField('meterServesOtherProperties',BooleanType(),False),
+    StructField('hasMeterOnOtherProperty',BooleanType(),False),
+    StructField('hasSpecialMeterAllocation',BooleanType(),False),
+    StructField('hasKidneyFreeSupply',BooleanType(),False),
+    StructField('hasNonKidneyFreeSupply',BooleanType(),False),
+    StructField('hasSpecialPropertyDescription',BooleanType(),False),
 	StructField('sewerUsageTypeCode',StringType(),True),
-	StructField('sewerUsageType',StringType(),True),
-	StructField('hasSpecialPropertyDescription',StringType(),True),
-	StructField('propertyMeterCount',IntegerType(),True),
-	StructField('lastStatementIssuedNumber',IntegerType(),True),
-	StructField('isCertificateNumberMeter',StringType(),True),
-	StructField('sewerReferenceSheetNumber',StringType(),True),
-	StructField('propertyArea',DecimalType(9,3),True),
+    StructField('sewerUsageType',StringType(),True),
+	StructField('propertyMeterCount',IntegerType(),False),
+	StructField('propertyArea',DecimalType(9,3),False),
 	StructField('propertyAreaTypeCode',StringType(),True),
-	StructField('propertyAreaType',StringType(),True),
-	StructField('purchasePrice',IntegerType(),True),
+    StructField('propertyAreaType',StringType(),True),
+	StructField('purchasePrice',DecimalType(11,0),False),
 	StructField('settlementDate',DateType(),True),
 	StructField('contractDate',DateType(),True),
 	StructField('extractLotCode',StringType(),True),
-	StructField('extractLotDescription',StringType(),True),
+    StructField('extractLotDescription',StringType(),True),
 	StructField('propertyUpdatedDate',DateType(),True),
-	StructField('lotDescription',StringType(),True),
-	StructField('rowSupersededDate',DateType(),True),
-	StructField('rowSupersededTime',StringType(),True),
-	StructField('modifiedByProcess',StringType(),True),
-	StructField('modifiedByUserID',StringType(),True),
-	StructField('modifiedByTerminalID',StringType(),True),
+    StructField('lotDescription',StringType(),True),
 	StructField('rowAdjusted',StringType(),True),
-	StructField('createdByUserID',StringType(),True),
+	StructField('createdByUserId',StringType(),True),
 	StructField('createdByPlan',StringType(),True),
 	StructField('createdTimestamp',TimestampType(),True),
-	StructField('modifiedByUserID',StringType(),True),
+	StructField('modifiedByUserId',StringType(),True),
 	StructField('modifiedByPlan',StringType(),True),
 	StructField('modifiedTimestamp',TimestampType(),True),
+    StructField('modifiedByProcess',StringType(),True),
+	StructField('rowSupersededTimestamp',TimestampType(),True),
 	StructField('_RecordStart',TimestampType(),False),
 	StructField('_RecordEnd',TimestampType(),False),
 	StructField('_RecordDeleted',IntegerType(),False),
@@ -322,3 +340,7 @@ DeltaSaveDataframeDirect(df_cleansed, source_group, target_table, ADS_DATABASE_C
 
 # DBTITLE 1,13. Exit Notebook
 dbutils.notebook.exit("1")
+
+# COMMAND ----------
+
+

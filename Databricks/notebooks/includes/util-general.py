@@ -381,9 +381,4 @@ ToValidDateTime_udf = udf(GeneralToValidDateTime, TimestampType())
 
 # COMMAND ----------
 
-# MAGIC %sql
-# MAGIC select ToValidDateTime('2098-12-31 23:00')
-
-# COMMAND ----------
-
 
