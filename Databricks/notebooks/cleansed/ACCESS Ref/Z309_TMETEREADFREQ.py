@@ -2,7 +2,7 @@
 # DBTITLE 1,Generate parameter and source object name for unit testing
 import json
 accessTable = 'Z309_TMETEREADFREQ'
-businessKeys = 'meterReadingFrequencyCode'
+businessKeys = 'C_METE_READ_FREQ'
 
 runParm = '{"SourceType":"BLOB Storage (csv)","SourceServer":"daf-sa-lake-sastoken","SourceGroup":"accessref","SourceName":"access_####","SourceLocation":"accessref/####","AdditionalProperty":"","Processor":"databricks-token|1103-023442-me8nqcm9|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive","IsAuditTable":false,"SoftDeleteSource":"","ProjectName":"CLEANSED REF ACCESS","ProjectId":2,"TargetType":"BLOB Storage (csv)","TargetName":"access_####","TargetLocation":"accessref/####","TargetServer":"daf-sa-lake-sastoken","DataLoadMode":"TRUNCATE-LOAD","DeltaExtract":false,"CDCSource":false,"TruncateTarget":true,"UpsertTarget":false,"AppendTarget":false,"TrackChanges":false,"LoadToSqlEDW":true,"TaskName":"access_####","ControlStageId":2,"TaskId":40,"StageSequence":200,"StageName":"Raw to Cleansed","SourceId":40,"TargetId":40,"ObjectGrain":"Day","CommandTypeId":8,"Watermarks":"","WatermarksDT":null,"WatermarkColumn":"","BusinessKeyColumn":"yyyy","PartitionColumn":null,"UpdateMetaData":null,"SourceTimeStampFormat":"","Command":"/build/cleansed/accessref/####","LastLoadedFile":null}'
 
@@ -187,23 +187,23 @@ DeltaSaveToDeltaTable (
 df_cleansed = spark.sql(f"SELECT \
 	C_METE_READ_FREQ as meterReadingFrequencyCode, \
 	T_METE_READ_FREQ as meterReadingFrequency, \
-	D_READ_FREQ_EFFE as meterReadingFrequencyEffectiveDate, \
-	D_READ_FREQ_CANC as meterReadingFrequencyCancelledDate, \
+	ToValidDate(D_READ_FREQ_EFFE) as meterReadingFrequencyEffectiveDate, \
+	ToValidDate(D_READ_FREQ_CANC) as meterReadingFrequencyCancelledDate, \
 	cast(Q_MIN_CONS_DAY_ATL as dec(5,2)) as minimumDailyConsumptionAboveTestLevel, \
 	_RecordStart, \
 	_RecordEnd, \
 	_RecordDeleted, \
 	_RecordCurrent \
 	FROM {ADS_DATABASE_STAGE}.{source_object} \
-                                )
+                                ")
 
 # COMMAND ----------
 
 newSchema = StructType([
 	StructField('meterReadingFrequencyCode',StringType(),False),
 	StructField('meterReadingFrequency',StringType(),True),
-	StructField('meterReadingFrequencyEffectiveDate',StringType(),True),
-	StructField('meterReadingFrequencyCancelledDate',StringType(),True),
+	StructField('meterReadingFrequencyEffectiveDate',DateType(),True),
+	StructField('meterReadingFrequencyCancelledDate',DateType(),True),
 	StructField('minimumDailyConsumptionAboveTestLevel',DecimalType(5,2),True),
 	StructField('_RecordStart',TimestampType(),False),
 	StructField('_RecordEnd',TimestampType(),False),
