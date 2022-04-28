@@ -2,7 +2,7 @@
 # DBTITLE 1,Generate parameter and source object name for unit testing
 import json
 accessTable = 'Z309_TOTHERADDRTYPE'
-businessKeys = 'otherAddressTypeCode'
+businessKeys = 'C_OTHE_ADDR_TYPE'
 
 runParm = '{"SourceType":"BLOB Storage (csv)","SourceServer":"daf-sa-lake-sastoken","SourceGroup":"accessref","SourceName":"access_####","SourceLocation":"accessref/####","AdditionalProperty":"","Processor":"databricks-token|1103-023442-me8nqcm9|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive","IsAuditTable":false,"SoftDeleteSource":"","ProjectName":"CLEANSED REF ACCESS","ProjectId":2,"TargetType":"BLOB Storage (csv)","TargetName":"access_####","TargetLocation":"accessref/####","TargetServer":"daf-sa-lake-sastoken","DataLoadMode":"TRUNCATE-LOAD","DeltaExtract":false,"CDCSource":false,"TruncateTarget":true,"UpsertTarget":false,"AppendTarget":false,"TrackChanges":false,"LoadToSqlEDW":true,"TaskName":"access_####","ControlStageId":2,"TaskId":40,"StageSequence":200,"StageName":"Raw to Cleansed","SourceId":40,"TargetId":40,"ObjectGrain":"Day","CommandTypeId":8,"Watermarks":"","WatermarksDT":null,"WatermarkColumn":"","BusinessKeyColumn":"yyyy","PartitionColumn":null,"UpdateMetaData":null,"SourceTimeStampFormat":"","Command":"/build/cleansed/accessref/####","LastLoadedFile":null}'
 
@@ -187,22 +187,22 @@ DeltaSaveToDeltaTable (
 df_cleansed = spark.sql(f"SELECT \
 	C_OTHE_ADDR_TYPE as otherAddressTypeCode, \
 	T_OTHE_ADDR_TYPE as otherAddressType, \
-	D_OTHE_ADDR_EFFE as otherAddressTypeEffectiveDate, \
-	D_OTHE_ADDR_CANC as otherAddressTypeCancelledDate, \
+	ToValidDate(D_OTHE_ADDR_EFFE) as otherAddressTypeEffectiveDate, \
+	ToValidDate(D_OTHE_ADDR_CANC) as otherAddressTypeCancelledDate, \
 	_RecordStart, \
 	_RecordEnd, \
 	_RecordDeleted, \
 	_RecordCurrent \
 	FROM {ADS_DATABASE_STAGE}.{source_object} \
-                                )
+                                ")
 
 # COMMAND ----------
 
 newSchema = StructType([
 	StructField('otherAddressTypeCode',StringType(),False),
 	StructField('otherAddressType',StringType(),True),
-	StructField('otherAddressTypeEffectiveDate',StringType(),True),
-	StructField('otherAddressTypeCancelledDate',StringType(),True),
+	StructField('otherAddressTypeEffectiveDate',DateType(),True),
+	StructField('otherAddressTypeCancelledDate',DateType(),True),
 	StructField('_RecordStart',TimestampType(),False),
 	StructField('_RecordEnd',TimestampType(),False),
 	StructField('_RecordDeleted',IntegerType(),False),
