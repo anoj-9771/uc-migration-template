@@ -156,7 +156,7 @@ print(delta_raw_tbl_name)
 
 # DBTITLE 1,10. Load Raw to Dataframe & Do Transformations
 df = spark.sql(f"WITH stage AS \
-                      (Select *, ROW_NUMBER() OVER (PARTITION BY ADDRNUMBER, DATE_FROM ORDER BY _DLRawZoneTimestamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
+                      (Select *, ROW_NUMBER() OVER (PARTITION BY ADDRNUMBER, DATE_FROM ORDER BY _DLRawZoneTimestamp DESC, DELTA_TS DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
                            SELECT \
 	ADDR_GROUP as addressGroup, \
 	case when ADDRNUMBER = 'na' then '' else ADDRNUMBER end as addressNumber, \
