@@ -100,6 +100,7 @@ def getmeterTimeslice():
 
     #5.Apply schema definition
     schema = StructType([
+                            StructField('meterTimesliceSK', LongType(), False),
                             StructField("meterSK", LongType(), False),
                             StructField("equipmentNumber", StringType(), False),
                             StructField("validToDate", DateType(), False),

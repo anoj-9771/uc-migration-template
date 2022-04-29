@@ -70,6 +70,7 @@ def getContract():
 
     #5.Apply schema definition
     schema = StructType([
+                            StructField('dimContractSK', LongType(), False),
                             StructField('contractId', StringType(), False),
                             StructField('validFromDate', DateType(), False),
                             StructField('validToDate', DateType(), True),
