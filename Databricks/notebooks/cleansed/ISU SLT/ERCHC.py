@@ -171,7 +171,7 @@ print(delta_raw_tbl_name)
 
 # DBTITLE 1,10. Load Raw to Dataframe & Do Transformations
 df = spark.sql(f"WITH stage AS \
-                      (Select *, ROW_NUMBER() OVER (PARTITION BY BELNR ORDER BY _DLRawZoneTimestamp DESC, DELTA_TS DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
+                      (Select *, ROW_NUMBER() OVER (PARTITION BY BELNR,LFDNR ORDER BY _DLRawZoneTimestamp DESC, DELTA_TS DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
                            select \
                                   case when BELNR = 'na' then '' else BELNR end as billingDocumentNumber, \
                                   case when LFDNR = 'na' then '' else LFDNR end as sequenceNumber, \
@@ -306,7 +306,7 @@ df = spark.sql(f"WITH stage AS \
 
 newSchema = StructType([
                           StructField('billingDocumentNumber', StringType(), False),
-                          StructField('sequenceNumber', StringType(), True),
+                          StructField('sequenceNumber', StringType(), False),
                           StructField('contractDocumentNumber', StringType(), True),
                           StructField('documentEnteredDate', DateType(), True),
                           StructField('postingDate', DateType(), True),
@@ -330,7 +330,7 @@ newSchema = StructType([
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Dataframe to Staged & Cleansed
-DeltaSaveDataFrameToDeltaTableNew(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
+DeltaSaveDataFrameToDeltaTable(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
 
 # COMMAND ----------
 
