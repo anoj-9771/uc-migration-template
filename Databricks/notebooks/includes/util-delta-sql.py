@@ -388,6 +388,7 @@ def DeltaSaveDataFrameToDeltaTableArchive(
 
   verifyTableSchema(f"{target_database}.{target_table}", dataframe.schema)
 
+
 # COMMAND ----------
 
 def DeltaSaveDataFrameToDeltaTableCleansed(

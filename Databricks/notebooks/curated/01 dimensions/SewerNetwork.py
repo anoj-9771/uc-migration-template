@@ -1,28 +1,24 @@
 # Databricks notebook source
-#%run ../../includes/util-common
+###########################################################################################################################
+# Loads SEWERNETWORK dimension 
+#############################################################################################################################
+# Method
+# 1.Load Cleansed layer table data into dataframe and transform
+# 2.JOIN TABLES
+# 3.UNION TABLES
+# 4.SELECT / TRANSFORM
+# 5.SCHEMA DEFINITION
+#############################################################################################################################
 
 # COMMAND ----------
 
-###########################################################################################################################
-# Function: getSewerNetwork
-#  GETS sewer network DIMENSION 
-# Returns:
-#  Dataframe of transformed WaterNetwork
-#############################################################################################################################
-# Method
-# 1.Create Function
-# 2.Load Cleansed layer table data into dataframe and transform
-# 3.JOIN TABLES
-# 4.UNION TABLES
-# 5.SELECT / TRANSFORM
-#############################################################################################################################
-#1.Create Function
+# MAGIC %run ../common/common-curated-includeMain
+
+# COMMAND ----------
+
 def getSewerNetwork():
 
-#     spark.udf.register("TidyCase", GeneralToTidyCase)  
-
-    #2.Load Cleansed layer table data into dataframe
-
+    #1.Load Cleansed layer table data into dataframe
     baseDf = spark.sql(f"select level30 as sewerNetwork, \
                                 level40 as sewerCatchment, \
                                 level50 as SCAMP \
@@ -33,21 +29,21 @@ def getSewerNetwork():
                         ")
 
     #Dummy Record to be added to Property Dimension
-   # dummyDimRecDf = spark.createDataFrame([("Unknown","Unknown","-1")], ["sewerNetwork", "sewerCatchment","SCAMP"])
+    #dummyDimRecDf = spark.createDataFrame([("Unknown","Unknown","-1")], ["sewerNetwork", "sewerCatchment","SCAMP"])
 
-    #3.JOIN TABLES  
-    #4.UNION TABLES
+    #2.JOIN TABLES  
+    #3.UNION TABLES
     #df = baseDf.unionByName(dummyDimRecDf, allowMissingColumns = True)
     #print(f'{df.count():,} rows after Union 2')
 
-    #5.SELECT / TRANSFORM
+    #4.SELECT / TRANSFORM
     df = baseDf.selectExpr( \
      "sewerNetwork" \
     ,"sewerCatchment" \
     ,"SCAMP" \
     )
                                             
-    #6.Apply schema definition
+    #5.Apply schema definition
     schema = StructType([
                             StructField("sewerNetwork", StringType(), False),
                             StructField("sewerCatchment", StringType(), False),
@@ -59,10 +55,15 @@ def getSewerNetwork():
 
 # COMMAND ----------
 
+df, schema = getSewerNetwork()
+TemplateEtl(df, entity="dimSewerNetwork", businessKey="SCAMP", schema=schema, AddSK=True)
+
+# COMMAND ----------
+
 # ADS_DATABASE_CLEANSED = 'cleansed'
 # df = getSewerNetwork()
 # display(df)
 
 # COMMAND ----------
 
-
+dbutils.notebook.exit("1")

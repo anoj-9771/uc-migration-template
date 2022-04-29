@@ -1,31 +1,24 @@
 # Databricks notebook source
-#%run ../../includes/util-common
-
-# COMMAND ----------
-
-# Run the above commands only when running this notebook independently, otherwise the curated master notebook would take care of calling the above notebooks
-
-# COMMAND ----------
-
 ###########################################################################################################################
-# Function: getBusinessPartner
-#  GETS Business Partner DIMENSION 
-# Returns:
-#  Dataframe of transformed Metery
+# Loads BUSINESSPARTNER dimension 
 #############################################################################################################################
 # Method
-# 1.Create Function
-# 2.Load Cleansed layer table data into dataframe and transform
-# 3.JOIN TABLES
-# 4.UNION TABLES
-# 5.SELECT / TRANSFORM
+# 1.Load Cleansed layer table data into dataframe and transform
+# 2.JOIN TABLES
+# 3.UNION TABLES
+# 4.SELECT / TRANSFORM
+# 5.SCHEMA DEFINITION
 #############################################################################################################################
-#1.Create Function
+
+# COMMAND ----------
+
+# MAGIC %run ../common/common-curated-includeMain
+
+# COMMAND ----------
 
 def getBusinessPartner():
-    #spark.udf.register("TidyCase", GeneralToTidyCase) 
 
-    #2.Load Cleansed layer table data into dataframe
+    #1.Load Cleansed layer table data into dataframe
     #Business Partner Data from SAP ISU
     isu0bpartnerAttrDf  = spark.sql(f"select 'ISU' as sourceSystemCode, \
                                       businessPartnerNumber, \
@@ -77,7 +70,7 @@ def getBusinessPartner():
     #Dummy Record to be added to Business Partner Group Dimension
     dummyDimRecDf = spark.createDataFrame([("ISU", "-1", "Unknown"),("ACCESS", "-2", "Unknown"),("ISU", "-3", "NA"),("ACCESS", "-4", "NA")], ["sourceSystemCode", "businessPartnerNumber","firstName"])
     
-    #3.JOIN TABLES
+    #2.JOIN TABLES
     df = isu0bpartnerAttrDf.join(crm0bpartnerAttrDf, isu0bpartnerAttrDf.businessPartnerNumber == crm0bpartnerAttrDf.businessPartnerNumber, how="left")\
                             .drop(crm0bpartnerAttrDf.businessPartnerNumber)
     
@@ -90,8 +83,10 @@ def getBusinessPartner():
                    "warWidowFlag", "deceasedFlag", "disabilityFlag", "goldCardHolderFlag", "naturalPersonFlag", "pensionCardFlag", "pensionType", \
                    "personNumber","personnelNumber","organizationName","organizationFoundedDate","createdDateTime","createdBy","changedDateTime", "changedBy") 
     
-    #4.UNION TABLES
+    #3.UNION TABLES
     df = df.unionByName(dummyDimRecDf, allowMissingColumns = True)
+    
+    #4.SELECT / TRANSFORM
     
     #5.Apply schema definition
     schema = StructType([
@@ -130,7 +125,13 @@ def getBusinessPartner():
                             StructField('changedBy', StringType(), True)       
                       ]) 
 
-    #5.SELECT / TRANSFORM
-    
-    
-    return df, schema  
+    return df, schema
+
+# COMMAND ----------
+
+df, schema = getBusinessPartner()
+TemplateEtl(df, entity="dimBusinessPartner", businessKey="businessPartnerNumber,sourceSystemCode", schema=schema, AddSK=True)
+
+# COMMAND ----------
+
+dbutils.notebook.exit("1")

@@ -1,25 +1,44 @@
 # Databricks notebook source
-#%run ../../includes/util-common
+###########################################################################################################################
+# Loads PROPERTY dimension 
+#############################################################################################################################
+# Method
+# 1.Load Cleansed layer table data into dataframe and transform
+# 2.JOIN TABLES
+# 3.UNION TABLES
+# 4.SELECT / TRANSFORM
+# 5.SCHEMA DEFINITION
+#############################################################################################################################
 
 # COMMAND ----------
 
-###########################################################################################################################
-# Function: getProperty
-#  GETS Property DIMENSION 
-# Returns:
-#  Dataframe of transformed Property
-#############################################################################################################################
-# Method
-# 1.Create Function
-# 2.Load Cleansed layer table data into dataframe and transform
-# 3.JOIN TABLES
-# 4.UNION TABLES
-# 5.SELECT / TRANSFORM
-#############################################################################################################################
-#1.Create Function
+# MAGIC %run ../common/common-curated-includeMain
+
+# COMMAND ----------
+
+# MAGIC %run ./SewerNetwork
+
+# COMMAND ----------
+
+# MAGIC %run ./StormWaterNetwork
+
+# COMMAND ----------
+
+# MAGIC %run ./WaterNetwork
+
+# COMMAND ----------
+
+#-----------------------------------------------------------------------------------------------
+# Note: Due to the fact that dimProperty relies on the system area tables having been populated,
+# SewerNetwork, StormWaterNetwork and WaterNetwork notebooks are included in this notebook. 
+# This takes care of the load sequence.
+#-----------------------------------------------------------------------------------------------
+
+# COMMAND ----------
+
 def getProperty():
 
-#     spark.udf.register("TidyCase", GeneralToTidyCase)  
+    #1.Load current Cleansed layer table data into dataframe
     #build a dataframe with unique properties and lot details, 4174119 is incorrectly present on Tlot
     lotDf = spark.sql(f"select propertyNumber, \
                                 first(planTypeCode) as planTypeCode, \
@@ -122,8 +141,8 @@ def getProperty():
                             where rnk = 1 \
                             ")
     systemAreaDf.createOrReplaceTempView('systemareas')
-    #dimProperty
-    #2.Load Cleansed layer table data into dataframe
+
+    #1.Load Cleansed layer table data into dataframe
     accessZ309TpropertyDf = spark.sql(f"select distinct cast(pr.propertyNumber as string), \
                                             'ACCESS' as sourceSystemCode, \
                                             potableSK as waterNetworkSK_drinkingWater, \
@@ -157,7 +176,7 @@ def getProperty():
                                      where pr._RecordCurrent = 1 \
                                      ")
     accessZ309TpropertyDf.createOrReplaceTempView('ACCESS')
-#     print(f'{accessZ309TpropertyDf.count():,} rows from ACCESS')
+    #print(f'{accessZ309TpropertyDf.count():,} rows from ACCESS')
     
     sapisuDf = spark.sql(f"select co.propertyNumber, \
                                 'ISU' as sourceSystemCode, \
@@ -201,15 +220,17 @@ def getProperty():
                          and   co._RecordCurrent = 1 \
                         ")
     sapisuDf.createOrReplaceTempView('ISU')
-#     print(f'{sapisuDf.count():,} rows from SAP')
-#     print('Creating 4 dummy rows...')
+    #print(f'{sapisuDf.count():,} rows from SAP')
+    #print('Creating 4 dummy rows...')
+
     #Dummy Record to be added to Property Dimension
     dummyDimRecDf = spark.createDataFrame([("ISU","-1"),("ACCESS","-2"),("ISU","-3"),("ACCESS","-4")], ["sourceSystemCode", "propertyNumber"])
     
-    #3.JOIN TABLES  
-    #4.UNION TABLES
-#     df = accessZ309TpropertyDf.union(sapisuDf)
-#     df = df.unionByName(dummyDimRecDf, allowMissingColumns = True)
+    #2.JOIN TABLES
+    
+    #3.UNION TABLES
+    #df = accessZ309TpropertyDf.union(sapisuDf)
+    #df = df.unionByName(dummyDimRecDf, allowMissingColumns = True)
     df = spark.sql("with propsFromACCESS as ( \
                          select propertyNumber \
                          from   ACCESS \
@@ -223,9 +244,9 @@ def getProperty():
                     union all \
                     select * \
                     from   ISU")
-#     print(f'{df.count():,} rows after Union')
+    #print(f'{df.count():,} rows after Union')
 
-    #5.SELECT / TRANSFORM
+    #4.SELECT / TRANSFORM
     df = df.selectExpr( \
                          "propertyNumber" \
                         ,"sourceSystemCode" \
@@ -254,7 +275,7 @@ def getProperty():
                         ,'architecturalType' \
                         )
                                             
-    #6.Apply schema definition
+    #5.Apply schema definition
     schema = StructType([
                             StructField("propertyNumber", StringType(), False),
                             StructField("sourceSystemCode", StringType(), False),
@@ -288,7 +309,16 @@ def getProperty():
 
 # COMMAND ----------
 
+df, schema = getProperty()
+TemplateEtl(df, entity="dimProperty", businessKey="propertyNumber", schema=schema, AddSK=True)
+
+# COMMAND ----------
+
 # ISUDummy = tuple(['-1','ISU','1900-01-01','2099-12-31'] + ['Unknown'] * 4 + [0] + ['Unknown'] * (len(sapisuDf.columns) - 9)) #this only works as long as all output columns are string
 #     ACCESSDummy = tuple(['-2','ACCESS','1900-01-01','2099-12-31'] + ['Unknown'] * 4 + [0] + ['Unknown'] * (len(sapisuDf.columns) - 9)) #this only works as long as all output columns are string
 #     dummyDimRecDf = spark.createDataFrame([ISUDummy, ACCESSDummy], sapisuDf.columns)
 #     dummyDimRecDf = dummyDimRecDf.withColumn("propertyStartDate",dummyDimRecDf['propertyStartDate'].cast(DateType())).withColumn("propertyEndDate",dummyDimRecDf['propertyEndDate'].cast(DateType()))
+
+# COMMAND ----------
+
+dbutils.notebook.exit("1")

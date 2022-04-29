@@ -1,28 +1,24 @@
 # Databricks notebook source
+###########################################################################################################################
+# Loads STORMWATERNETWORK dimension 
+#############################################################################################################################
+# Method
+# 1.Load Cleansed layer table data into dataframe and transform
+# 2.JOIN TABLES
+# 3.UNION TABLES
+# 4.SELECT / TRANSFORM
+# 5.SCHEMA DEFINITION
+#############################################################################################################################
+
+# COMMAND ----------
+
 #%run ../../includes/util-common
 
 # COMMAND ----------
 
-###########################################################################################################################
-# Function: getStormWaterNetwork
-#  GETS storm water network DIMENSION 
-# Returns:
-#  Dataframe of transformed WaterNetwork
-#############################################################################################################################
-# Method
-# 1.Create Function
-# 2.Load Cleansed layer table data into dataframe and transform
-# 3.JOIN TABLES
-# 4.UNION TABLES
-# 5.SELECT / TRANSFORM
-#############################################################################################################################
-#1.Create Function
 def getStormWaterNetwork():
 
-#     spark.udf.register("TidyCase", GeneralToTidyCase)  
-
-    #2.Load Cleansed layer table data into dataframe
-
+    #1.Load Cleansed layer table data into dataframe
     baseDf = spark.sql(f"select level30 as stormWaterNetwork, \
                                 level40 as stormWaterCatchment \
                         from {ADS_DATABASE_CLEANSED}.hydra_TSYSTEMAREA \
@@ -32,27 +28,32 @@ def getStormWaterNetwork():
                         ")
 
     #Dummy Record to be added to Property Dimension
-   # dummyDimRecDf = spark.createDataFrame([("Unknown","-1")], ["stormWaterNetwork", "stormWaterCatchment"])
+    #dummyDimRecDf = spark.createDataFrame([("Unknown","-1")], ["stormWaterNetwork", "stormWaterCatchment"])
 
-    #3.JOIN TABLES  
-    #4.UNION TABLES
-   # df = baseDf.unionByName(dummyDimRecDf, allowMissingColumns = True)
+    #2.JOIN TABLES  
+    #3.UNION TABLES
+    #df = baseDf.unionByName(dummyDimRecDf, allowMissingColumns = True)
     #print(f'{df.count():,} rows after Union 2')
 
-    #5.SELECT / TRANSFORM
-    df = baseDf.selectExpr( \
-     "stormWaterNetwork" \
-    ,"stormWaterCatchment" \
-    )
+    #4.SELECT / TRANSFORM
+    df = baseDf.selectExpr(\
+                             "stormWaterNetwork" \
+                            ,"stormWaterCatchment" \
+                            )
                                             
-    #6.Apply schema definition
+    #5.Apply schema definition
     schema = StructType([
                             StructField("stormWaterNetwork", StringType(), False),
                             StructField("stormWaterCatchment", StringType(), False)
-                      ])
+                        ])
 
     return df, schema
 
+
+# COMMAND ----------
+
+df, schema = getStormWaterNetwork()
+TemplateEtl(df, entity="dimStormWaterNetwork", businessKey="stormWaterCatchment", schema=schema, AddSK=True)
 
 # COMMAND ----------
 
@@ -62,4 +63,4 @@ def getStormWaterNetwork():
 
 # COMMAND ----------
 
-
+dbutils.notebook.exit("1")

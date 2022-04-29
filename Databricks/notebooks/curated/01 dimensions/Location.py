@@ -1,23 +1,25 @@
 # Databricks notebook source
 ###########################################################################################################################
-# Function: getLocation
-#  GETS Location DIMENSION 
-# Returns:
-#  Dataframe of transformed Location
+# Loads LOCATION dimension 
 #############################################################################################################################
 # Method
-# 1.Create Function
-# 2.Load Cleansed layer table data into dataframe and transform
-# 3.JOIN TABLES
-# 4.UNION TABLES
-# 5.SELECT / TRANSFORM
+# 1.Load Cleansed layer table data into dataframe and transform
+# 2.JOIN TABLES
+# 3.UNION TABLES
+# 4.SELECT / TRANSFORM
+# 5.SCHEMA DEFINITION
 #############################################################################################################################
-#1.Create Function
+
+# COMMAND ----------
+
+# MAGIC %run ../common/common-curated-includeMain
+
+# COMMAND ----------
+
 def getLocation():
-    #DimLocation
-    #2.Load Cleansed layer table data into dataframe
+
+    #1.Load Cleansed layer table data into dataframe
     #collect parent properties and then parents of child properties so you get the parent address against the child property
-    
     ISULocationDf = spark.sql(f"select distinct d.propertyNumber as locationID, \
                                      'ISU' as sourceSystemCode, \
                                      upper(trim(trim(coalesce(c.houseNumber2,'')||' '||coalesce(c.houseNumber1,''))||' '||trim(c.streetName||' '||coalesce(c.streetLine1,''))||' '||coalesce(c.streetLine2,''))|| \
@@ -176,32 +178,34 @@ def getLocation():
                             and   sg._RecordCurrent = 1 \
                         ")
     ACCESSDf.createOrReplaceTempView('ACCESS')
-    #3.JOIN TABLES  
 
-    #4.UNION TABLES
+    #2.JOIN TABLES  
+
+    #3.UNION TABLES
     #Create dummy record
-#    dummyRec = tuple([-1] + ['Unknown'] * (len(ISULocationDf.columns) - 3) + [0,0]) 
-#    dummyDimRecDf = spark.createDataFrame([dummyRec],ISULocationDf.columns)
-#    dummyDimRecDf = spark.createDataFrame([("-1","Unknown","Unknown")], [ "locationID","formattedAddress","LGA"])
-#    ISULocationDf = ISULocationDf.unionByName(dummyDimRecDf, allowMissingColumns = True)
+    #dummyRec = tuple([-1] + ['Unknown'] * (len(ISULocationDf.columns) - 3) + [0,0]) 
+    #dummyDimRecDf = spark.createDataFrame([dummyRec],ISULocationDf.columns)
+    #dummyDimRecDf = spark.createDataFrame([("-1","Unknown","Unknown")], [ "locationID","formattedAddress","LGA"])
+    #ISULocationDf = ISULocationDf.unionByName(dummyDimRecDf, allowMissingColumns = True)
     locationDf = ISULocationDf.unionByName(ACCESSDf, allowMissingColumns = True)
-    #5.SELECT / TRANSFORM
+
+    #4.SELECT / TRANSFORM
     df = locationDf.selectExpr( \
-     "locationID" \
-    ,"sourceSystemCode" \
-    ,"formattedAddress" \
-    ,"houseNumber2" \
-    ,"houseNumber1" \
-    ,"streetName" \
-    ,"streetType" \
-    ,"LGA" \
-    ,"suburb" \
-    ,"state" \
-    ,"postCode"
-    ,"CAST(latitude AS DECIMAL(9,6)) as latitude" \
-    ,"CAST(longitude AS DECIMAL(9,6)) as longitude"                   
-    )
-    #6.Apply schema definition
+                             "locationID" \
+                            ,"sourceSystemCode" \
+                            ,"formattedAddress" \
+                            ,"houseNumber2" \
+                            ,"houseNumber1" \
+                            ,"streetName" \
+                            ,"streetType" \
+                            ,"LGA" \
+                            ,"suburb" \
+                            ,"state" \
+                            ,"postCode"
+                            ,"CAST(latitude AS DECIMAL(9,6)) as latitude" \
+                            ,"CAST(longitude AS DECIMAL(9,6)) as longitude"                   
+                            )
+    #5.Apply schema definition
     schema = StructType([
                             StructField("locationID", StringType(), False),
                             StructField("sourceSystemCode", StringType(), False),
@@ -222,4 +226,9 @@ def getLocation():
 
 # COMMAND ----------
 
+df, schema = getLocation()
+TemplateEtl(df, entity="dimLocation", businessKey="locationId", schema=schema, AddSK=True)
 
+# COMMAND ----------
+
+dbutils.notebook.exit("1")

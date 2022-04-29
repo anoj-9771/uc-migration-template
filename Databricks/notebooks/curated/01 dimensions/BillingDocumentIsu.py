@@ -1,49 +1,40 @@
 # Databricks notebook source
-#%run ../../includes/util-common
-
-# COMMAND ----------
-
-#%run ../commonBilledWaterConsumptionIsu
-
-# COMMAND ----------
-
-# Run the above commands only when running this notebook independently, otherwise the curated master notebook would take care of calling the above notebooks
-
-# COMMAND ----------
-
 ###########################################################################################################################
-# Function: getBillingDocumentIsu
-#  GETS BillingDocument DIMENSION 
-# Returns:
-#  Dataframe of transformed BillingDocument
+# Loads BILLINGDOCUMENT dimension 
 #############################################################################################################################
 # Method
-# 1.Create Function
-# 2.Load Cleansed layer table data into dataframe and transform
-# 3.JOIN TABLES
-# 4.UNION TABLES
-# 5.SELECT / TRANSFORM
+# 1.Load Cleansed layer table data into dataframe and transform
+# 2.JOIN TABLES
+# 3.UNION TABLES
+# 4.SELECT / TRANSFORM
+# 5.SCHEMA DEFINITION
 #############################################################################################################################
-#1.Create Function
+
+# COMMAND ----------
+
+# MAGIC %run ../common/common-curated-includeMain
+
+# COMMAND ----------
+
+# MAGIC %run ../common/functions/commonBilledWaterConsumptionIsu
+
+# COMMAND ----------
+
 def getBillingDocumentIsu():
-  
-  spark.udf.register("TidyCase", GeneralToTidyCase)  
-  
-  #DimBillingDocument
-  #2.Load Cleansed layer table data into dataframe
 
-  billedConsIsuDf = getBilledWaterConsumptionIsu()
+    #1.Load Cleansed layer table data into dataframe
+    billedConsIsuDf = getBilledWaterConsumptionIsu()
 
-  dummyDimRecDf = spark.createDataFrame([("ISU", "-1", "1900-01-01", "9999-12-31"), ("ACCESS", "-2", "1900-01-01", "9999-12-31"),("ISU", "-3", "1900-01-01", "9999-12-31"),("ACCESS", "-4", "1900-01-01", "9999-12-31")], ["sourceSystemCode", "billingDocumentNumber", "billingPeriodStartDate", "billingPeriodEndDate"])
-  dummyDimRecDf = dummyDimRecDf.withColumn("billingPeriodStartDate",(col("billingPeriodStartDate").cast("date"))).withColumn("billingPeriodEndDate",(col("billingPeriodEndDate").cast("date")))  
+    dummyDimRecDf = spark.createDataFrame([("ISU", "-1", "1900-01-01", "9999-12-31"), ("ACCESS", "-2", "1900-01-01", "9999-12-31"),("ISU", "-3", "1900-01-01", "9999-12-31"),("ACCESS", "-4", "1900-01-01", "9999-12-31")], ["sourceSystemCode", "billingDocumentNumber", "billingPeriodStartDate", "billingPeriodEndDate"])
+    dummyDimRecDf = dummyDimRecDf.withColumn("billingPeriodStartDate",(col("billingPeriodStartDate").cast("date"))).withColumn("billingPeriodEndDate",(col("billingPeriodEndDate").cast("date")))  
     
-  #3.JOIN TABLES  
-  
-  #4.UNION TABLES
-  billedConsIsuDf = billedConsIsuDf.unionByName(dummyDimRecDf, allowMissingColumns = True)
-  
-  #5.SELECT / TRANSFORM
-  df = billedConsIsuDf.selectExpr \
+    #2.JOIN TABLES  
+
+    #3.UNION TABLES
+    billedConsIsuDf = billedConsIsuDf.unionByName(dummyDimRecDf, allowMissingColumns = True)
+
+    #4.SELECT / TRANSFORM
+    df = billedConsIsuDf.selectExpr \
                                 ( \
                                    "sourceSystemCode" \
                                   ,"billingDocumentNumber" \
@@ -59,8 +50,8 @@ def getBillingDocumentIsu():
                                   ,"billingTransactionCode"
                                 
                                 ).dropDuplicates()
-  #6.Apply schema definition
-  schema = StructType([
+    #5.Apply schema definition
+    schema = StructType([
                             StructField("sourceSystemCode", StringType(), False),
                             StructField("billingDocumentNumber", StringType(), False),
                             StructField("billingPeriodStartDate", DateType(), True),
@@ -74,5 +65,14 @@ def getBillingDocumentIsu():
                             StructField("meterReadingUnit", StringType(), True),
                             StructField("billingTransactionCode", StringType(), True)
                       ])
-  
-  return df, schema
+
+    return df, schema
+
+# COMMAND ----------
+
+df, schema = getBillingDocumentIsu()
+TemplateEtl(df, entity="dimBillingDocument", businessKey="sourceSystemCode,billingDocumentNumber", schema=schema, AddSK=True)
+
+# COMMAND ----------
+
+dbutils.notebook.exit("1")

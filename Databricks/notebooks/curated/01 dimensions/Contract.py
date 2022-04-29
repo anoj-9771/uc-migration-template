@@ -1,30 +1,24 @@
 # Databricks notebook source
-#%run ../../includes/util-common
-
-# COMMAND ----------
-
-# Run the above commands only when running this notebook independently, otherwise the curated master notebook would take care of calling the above notebooks
-
-# COMMAND ----------
-
 ###########################################################################################################################
-# Function: getContract
-#  GETS Contract DIMENSION 
-# Returns:
-#  Dataframe of transformed Location
+# Loads CONTRACT dimension
 #############################################################################################################################
 # Method
-# 1.Create Function
-# 2.Load Cleansed layer table data into dataframe and transform
-# 3.JOIN TABLES
-# 4.UNION TABLES
-# 5.SELECT / TRANSFORM
+# 1.Load Cleansed layer table data into dataframe and transform
+# 2.JOIN TABLES
+# 3.UNION TABLES
+# 4.SELECT / TRANSFORM
+# 5.SCHEMA DEFINITION
 #############################################################################################################################
-#1.Create Function
-def getContract():
-    #DimContract
-    #2.Load current Cleansed layer table data into dataframe
 
+# COMMAND ----------
+
+# MAGIC %run ../common/common-curated-includeMain
+
+# COMMAND ----------
+
+def getContract():
+
+    #1.Load current Cleansed layer table data into dataframe
     df = spark.sql(f"select  co.contractId, \
                              coalesce(coh.validFromDate,to_date('1900-01-01','yyyy-MM-dd')) as validFromDate, \
                              coh.validToDate, \
@@ -48,9 +42,9 @@ def getContract():
                      ")
 
     df.createOrReplaceTempView('allcontracts')
-    #3.JOIN TABLES  
+    #2.JOIN TABLES  
 
-    #4.UNION TABLES
+    #3.UNION TABLES
     #Create dummy record
     
     dummyDimRecDf = spark.createDataFrame([("ISU","-1","1900-01-01"),("ACCESS","-2","1900-01-01"),("ISU","-3","1900-01-01"),("ACCESS","-4","1900-01-01")], ["sourceSystemCode", "contractId", "validFromDate"])
@@ -58,7 +52,7 @@ def getContract():
     df = df.unionByName(dummyDimRecDf,allowMissingColumns = True)
     df = df.withColumn("validFromDate",col("validFromDate").cast("date"))
     
-    #5.SELECT / TRANSFORM
+    #4.SELECT / TRANSFORM
     df = df.selectExpr( \
                   'contractId' \
                 , 'validFromDate' \
@@ -74,7 +68,7 @@ def getContract():
                 , 'applicationArea' \
                 , 'installationId')
 
-    #6.Apply schema definition
+    #5.Apply schema definition
     schema = StructType([
                             StructField('contractId', StringType(), False),
                             StructField('validFromDate', DateType(), False),
@@ -93,3 +87,12 @@ def getContract():
 
 #    display(df)
     return df, schema
+
+# COMMAND ----------
+
+df, schema = getContract()
+TemplateEtl(df,  entity="dimContract", businessKey="contractId,validFromDate", schema=schema, AddSK=True)  
+
+# COMMAND ----------
+
+dbutils.notebook.exit("1")
