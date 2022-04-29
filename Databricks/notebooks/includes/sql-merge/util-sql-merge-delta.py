@@ -646,7 +646,7 @@ def _GenerateMergeSQL_DeltaTable(source_table_name, target_table_name, business_
     business_key_updated = _GetSQLCollectiveColumnsFromColumnNames(business_key, ALIAS_TABLE_STAGE, "CONCAT", DELTA_COL_QUALIFER)
     business_key_updated = business_key_updated.replace("STG.", "SRC.").replace(" ", "")
     sql += TAB + f"SELECT {ALIAS_TABLE_SOURCE}.*, {business_key_updated} AS merge_key" + NEW_LINE
-    sql += TAB +  f"FROM {ALIAS_TABLE_SOURCE} )" + NEW_LINE
+    sql += TAB +  f"FROM {ALIAS_TABLE_SOURCE} " + NEW_LINE
   
   #We need RecordVersion only if it is the Delta Table load from the Raw Zone because we want the last version
   #For SQL Server, this would have already been resolved  

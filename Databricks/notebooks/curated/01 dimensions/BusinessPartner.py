@@ -125,7 +125,7 @@ def getBusinessPartner():
                             StructField('changedBy', StringType(), True)       
                       ]) 
 
-    return df, schema  
+    return df, schema
 
 # COMMAND ----------
 

@@ -65,7 +65,7 @@ def TemplateEtl(df : object, entity, businessKey, schema, AddSK = True):
                                    ADS_DATALAKE_ZONE_CURATED, 
                                    v_COMMON_CURATED_DATABASE, 
                                    v_COMMON_DATALAKE_FOLDER, 
-                                   ADS_WRITE_MODE_MERGE, 
+                                   ADS_WRITE_MODE_MERGE,
                                    schema,
                                    track_changes = False, 
                                    is_delta_extract = False, 
