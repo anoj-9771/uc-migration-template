@@ -43,6 +43,7 @@ def getStormWaterNetwork():
                                             
     #5.Apply schema definition
     schema = StructType([
+                            StructField('dimStormWaterNetworkSK', LongType(), False),
                             StructField("stormWaterNetwork", StringType(), False),
                             StructField("stormWaterCatchment", StringType(), False)
                         ])

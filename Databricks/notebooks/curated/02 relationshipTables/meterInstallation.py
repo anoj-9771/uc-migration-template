@@ -70,6 +70,7 @@ def getmeterInstallation():
 
     #6.Apply schema definition
     schema = StructType([
+                            StructField('meterInstallationSK', LongType(), False),
                             StructField("installationSK", LongType(), False),
                             StructField("installationId", StringType(), False),
                             StructField("logicalDeviceNumber", StringType(), False),
