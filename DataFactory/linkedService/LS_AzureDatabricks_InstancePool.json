@@ -38,6 +38,10 @@
 			"newClusterVersion": "@linkedService().DatabricksVersion",
 			"newClusterInitScripts": [],
 			"clusterOption": "Fixed"
+		},
+		"connectVia": {
+			"referenceName": "IntegrationRuntime-Azure-ManagedVnet-01",
+			"type": "IntegrationRuntimeReference"
 		}
 	}
 }
