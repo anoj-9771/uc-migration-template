@@ -6,11 +6,11 @@
 				"type": "string",
 				"defaultValue": "databricks-token"
 			},
-			"clusterId": {
+			"poolId": {
 				"type": "string",
 				"defaultValue": "0121-060302-next337-pool-owblzzx4"
 			},
-			"DatabricksClusterVersion": {
+			"DatabricksVersion": {
 				"type": "string",
 				"defaultValue": "9.1.x-scala2.12"
 			}
@@ -30,13 +30,14 @@
 					"type": "Expression"
 				}
 			},
-			"instancePoolId": "@linkedService().clusterId",
+			"instancePoolId": "@linkedService().poolId",
 			"newClusterNumOfWorker": "1:8",
 			"newClusterSparkEnvVars": {
 				"PYSPARK_PYTHON": "/databricks/python3/bin/python3"
 			},
-			"newClusterVersion": "@linkedService().DataBricksClusterVersion",
-			"newClusterInitScripts": []
+			"newClusterVersion": "@linkedService().DatabricksVersion",
+			"newClusterInitScripts": [],
+			"clusterOption": "Fixed"
 		}
 	}
 }
