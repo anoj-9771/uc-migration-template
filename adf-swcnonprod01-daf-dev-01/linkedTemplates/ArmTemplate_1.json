@@ -888,7 +888,7 @@
 				"type": "AzureDatabricksDeltaLakeDataset",
 				"typeProperties": {
 					"database": "CURATED",
-					"table": "dimdate"
+					"table": ""
 				},
 				"schema": []
 			},
