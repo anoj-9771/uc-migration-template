@@ -38,6 +38,10 @@
 			},
 			"newClusterVersion": "@linkedService().DataBricksClusterVersion",
 			"newClusterInitScripts": []
+		},
+		"connectVia": {
+			"referenceName": "IntegrationRuntime-Azure-ManagedVnet-01",
+			"type": "IntegrationRuntimeReference"
 		}
 	},
 	"type": "Microsoft.DataFactory/factories/linkedservices"
