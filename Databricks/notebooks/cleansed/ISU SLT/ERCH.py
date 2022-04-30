@@ -176,7 +176,7 @@ df = spark.sql(f"WITH stage AS \
                                   case when BELNR = 'na' then '' else BELNR end as billingDocumentNumber, \
                                   BUKRS as companyCode, \
                                   cc.companyName as companyName, \
-                                  SPARTE as divisonCode, \
+                                  SPARTE as divisionCode, \
                                   GPARTNER as businessPartnerGroupNumber, \
                                   VKONT as contractAccountNumber, \
                                   VERTRAG as contractId, \
@@ -283,7 +283,7 @@ df = spark.sql(f"WITH stage AS \
 #                                   case when BELNR = 'na' then '' else BELNR end as billingDocumentNumber, \
 #                                   BUKRS as companyCode, \
 #                                   cc.companyName as companyName, \
-#                                   SPARTE as divisonCode, \
+#                                   SPARTE as divisionCode, \
 #                                   GPARTNER as businessPartnerGroupNumber, \
 #                                   VKONT as contractAccountNumber, \
 #                                   VERTRAG as contractId, \
@@ -385,7 +385,7 @@ newSchema = StructType([
                           StructField('billingDocumentNumber', StringType(), False),
                           StructField('companyCode', StringType(), True),
                           StructField('companyName', StringType(), True),
-                          StructField('divisonCode', StringType(), True),
+                          StructField('divisionCode', StringType(), True),
                           StructField('businessPartnerGroupNumber', StringType(), True),
                           StructField('contractAccountNumber', StringType(), True),
                           StructField('contractId', StringType(), True),

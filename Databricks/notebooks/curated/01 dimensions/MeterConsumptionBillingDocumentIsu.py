@@ -1,6 +1,6 @@
 # Databricks notebook source
 ###########################################################################################################################
-# Loads BILLINGDOCUMENT dimension 
+# Loads MeterConsumptionBillingDocument dimension 
 #############################################################################################################################
 # Method
 # 1.Load Cleansed layer table data into dataframe and transform
@@ -20,7 +20,7 @@
 
 # COMMAND ----------
 
-def getBillingDocumentIsu():
+def getMeterConsumptionBillingDocumentIsu():
 
     #1.Load Cleansed layer table data into dataframe
     billedConsIsuDf = getBilledWaterConsumptionIsu()
@@ -47,12 +47,22 @@ def getBillingDocumentIsu():
                                   ,"portionNumber" \
                                   ,"documentTypeCode" \
                                   ,"meterReadingUnit" \
-                                  ,"billingTransactionCode"
-                                
+                                  ,"billingReasonCode" \
+                                  ,"divisionCode" \
+                                  ,"lastChangedDate" \
+                                  ,"createdDate" \
+                                  ,"billingDocumentCreateDate" \
+                                  ,"erchcExistIndicator" \
+                                  ,"billingDocumentWithoutInvoicingCode" \
+                                  ,"newBillingDocumentNumberForReversedInvoicing" \
+                                  ,"invoicePostingDate" \
+                                  ,"invoiceNotReleasedIndicator" \
+                                  ,"invoiceReversalPostingDate" \
+                                  ,"invoiceMaxSequenceNumber" \
                                 ).dropDuplicates()
     #5.Apply schema definition
     schema = StructType([
-                            StructField('dimBillingDocumentSK', LongType(), False),
+                            StructField('dimMeterConsumptionBillingDocumentSK', LongType(), False),
                             StructField("sourceSystemCode", StringType(), False),
                             StructField("billingDocumentNumber", StringType(), False),
                             StructField("billingPeriodStartDate", DateType(), True),
@@ -64,15 +74,26 @@ def getBillingDocumentIsu():
                             StructField("portionNumber", StringType(), True),
                             StructField("documentTypeCode", StringType(), True),
                             StructField("meterReadingUnit", StringType(), True),
-                            StructField("billingTransactionCode", StringType(), True)
+                            StructField("billingReasonCode", StringType(), True),
+                            StructField("divisionCode", StringType(), True),
+                            StructField("lastChangedDate", DateType(), True),
+                            StructField("createdDate", DateType(), True),
+                            StructField("billingDocumentCreateDate", DateType(), True),
+                            StructField("erchcExistIndicator", StringType(), True),
+                            StructField("billingDocumentWithoutInvoicingCode", StringType(), True),
+                            StructField("newBillingDocumentNumberForReversedInvoicing", IntegerType(), True),
+                            StructField("invoicePostingDate", DateType(), True),
+                            StructField("invoiceNotReleasedIndicator", StringType(), True),
+                            StructField("invoiceReversalPostingDate", DateType(), True),
+                            StructField("invoiceMaxSequenceNumber", StringType(), True)  
                       ])
 
     return df, schema
 
 # COMMAND ----------
 
-df, schema = getBillingDocumentIsu()
-TemplateEtl(df, entity="dimBillingDocument", businessKey="sourceSystemCode,billingDocumentNumber", schema=schema, AddSK=True)
+df, schema = getMeterConsumptionBillingDocumentIsu()
+TemplateEtl(df, entity="dimMeterConsumptionBillingDocument", businessKey="sourceSystemCode,billingDocumentNumber", schema=schema, AddSK=True)
 
 # COMMAND ----------
 
