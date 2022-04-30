@@ -7,12 +7,6 @@
 				"type": "SqlServerStoredProcedure",
 				"dependsOn": [
 					{
-						"activity": "If-ClusterType",
-						"dependencyConditions": [
-							"Failed"
-						]
-					},
-					{
 						"activity": "SwitchCluster",
 						"dependencyConditions": [
 							"Failed"
@@ -76,12 +70,6 @@
 				"name": "Log Success",
 				"type": "SqlServerStoredProcedure",
 				"dependsOn": [
-					{
-						"activity": "If-ClusterType",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					},
 					{
 						"activity": "SwitchCluster",
 						"dependencyConditions": [
@@ -160,26 +148,6 @@
 				}
 			},
 			{
-				"name": "If-ClusterType",
-				"description": "",
-				"type": "IfCondition",
-				"dependsOn": [
-					{
-						"activity": "Set-ClusterType",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
-				"userProperties": [],
-				"typeProperties": {
-					"expression": {
-						"value": "@equals(variables('ClusterType'), 'interactive')",
-						"type": "Expression"
-					}
-				}
-			},
-			{
 				"name": "Business-Reconciliation",
 				"type": "ExecutePipeline",
 				"dependsOn": [
@@ -217,7 +185,14 @@
 			{
 				"name": "SwitchCluster",
 				"type": "Switch",
-				"dependsOn": [],
+				"dependsOn": [
+					{
+						"activity": "Set-ClusterType",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
 				"userProperties": [],
 				"typeProperties": {
 					"on": {
