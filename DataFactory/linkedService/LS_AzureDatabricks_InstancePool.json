@@ -6,11 +6,11 @@
 				"type": "string",
 				"defaultValue": "databricks-token"
 			},
-			"poolId": {
+			"clusterId": {
 				"type": "string",
 				"defaultValue": "0121-060302-next337-pool-owblzzx4"
 			},
-			"DatabricksVersion": {
+			"DatabricksClusterVersion": {
 				"type": "string",
 				"defaultValue": "9.1.x-scala2.12"
 			}
@@ -30,14 +30,13 @@
 					"type": "Expression"
 				}
 			},
-			"instancePoolId": "@linkedService().poolId",
+			"instancePoolId": "@linkedService().clusterId",
 			"newClusterNumOfWorker": "1:8",
 			"newClusterSparkEnvVars": {
 				"PYSPARK_PYTHON": "/databricks/python3/bin/python3"
 			},
-			"newClusterVersion": "@linkedService().DatabricksVersion",
-			"newClusterInitScripts": [],
-			"clusterOption": "Fixed"
+			"newClusterVersion": "@linkedService().DataBricksClusterVersion",
+			"newClusterInitScripts": []
 		},
 		"connectVia": {
 			"referenceName": "IntegrationRuntime-Azure-ManagedVnet-01",
