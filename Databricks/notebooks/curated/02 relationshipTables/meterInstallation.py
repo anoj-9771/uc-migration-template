@@ -1,22 +1,24 @@
 # Databricks notebook source
 ###########################################################################################################################
-# Function: getmeterInstallation
-#  GETS meterInstallation
-# Returns:
-#  Dataframe of transformed Location
+# Loads METERINSTALLATION relationship table 
 #############################################################################################################################
 # Method
-# 1.Create Function
-# 2.Load Cleansed layer table data into dataframe and transform
-# 3.JOIN TABLES
-# 4.UNION TABLES
-# 5.SELECT / TRANSFORM
+# 1.Load Cleansed layer table data into dataframe and transform
+# 2.JOIN TABLES
+# 3.UNION TABLES
+# 4.SELECT / TRANSFORM
+# 5.SCHEMA DEFINITION
 #############################################################################################################################
-#1.Create Function
-def getmeterInstallation():
-    #meterInstallation
-    #2.Load current Cleansed layer table data into dataframe
 
+# COMMAND ----------
+
+# MAGIC %run ../common/common-curated-includeMain
+
+# COMMAND ----------
+
+def getmeterInstallation():
+
+    #1.Load current Cleansed layer table data into dataframe
     df = spark.sql(f"select din.dimInstallationSK as installationSK, \
                             devin.installationId as installationId, \
                             devin.logicalDeviceNumber as logicalDeviceNumber, \
@@ -39,17 +41,17 @@ def getmeterInstallation():
                      ")
 
     df.createOrReplaceTempView('alldeviceInstallation')
-    #3.JOIN TABLES  
+    #2.JOIN TABLES  
 
-    #4.UNION TABLES
+    #3.UNION TABLES
     #Create dummy record
-#     dummyRec = tuple([-1] + ['Unknown'] * (len(Df.columns) - 2))
-#     dummyDimRecDf = spark.createDataFrame([dummyRec],Df.columns)
+    #dummyRec = tuple([-1] + ['Unknown'] * (len(Df.columns) - 2))
+    #dummyDimRecDf = spark.createDataFrame([dummyRec],Df.columns)
     
-#     Df = Df.unionByName(dummyDimRecDf, allowMissingColumns = True)
-#     Display(Df)
+    #Df = Df.unionByName(dummyDimRecDf, allowMissingColumns = True)
+    #Display(Df)
     
-    #5.SELECT / TRANSFORM
+    #4.SELECT / TRANSFORM
     df = df.selectExpr( \
                  'installationSK' \
                 , 'installationId' \
@@ -67,7 +69,8 @@ def getmeterInstallation():
             )
 
     #6.Apply schema definition
-    newSchema = StructType([
+    schema = StructType([
+                            StructField('meterInstallationSK', LongType(), False),
                             StructField("installationSK", LongType(), False),
                             StructField("installationId", StringType(), False),
                             StructField("logicalDeviceNumber", StringType(), False),
@@ -83,9 +86,13 @@ def getmeterInstallation():
                             StructField("operationCode", StringType(), True)
                       ])
 
-    df = spark.createDataFrame(df.rdd, schema=newSchema)
-    return df
+    return df, schema
 
 # COMMAND ----------
 
+df, schema = getmeterInstallation()
+TemplateEtl(df, entity="meterInstallation", businessKey="installationSK,installationId,logicalDeviceNumber,validToDate", schema=schema, AddSK=True)
 
+# COMMAND ----------
+
+dbutils.notebook.exit("1")

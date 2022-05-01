@@ -3,7 +3,6 @@
 
 # COMMAND ----------
 
-
 ###########################################################################################################################
 # Function: getBilledWaterConsumptionisu
 #  GETS ISU Billed Water Consumption from cleansed layer
@@ -31,12 +30,24 @@ def getBilledWaterConsumptionIsu():
                              portionNumber, \
                              documentTypeCode, \
                              meterReadingUnit, \
-                             billingTransactionCode, \
-                             contractId \
+                             billingTransactionCode as billingReasonCode, \
+                             contractId, \
+                             divisionCode, \
+                             lastChangedDate, \
+                             createdDate, \
+                             billingDocumentCreateDate, \
+                             erchcExistIndicator, \
+                             billingDocumentWithoutInvoicingCode, \
+                             newBillingDocumentNumberForReversedInvoicing \
                          from {ADS_DATABASE_CLEANSED}.isu_erch \
                          where trim(billingSimulationIndicator) = ''")
 
     dberchz1Df = spark.sql(f"select billingDocumentNumber, billingDocumentLineItemId \
+                                ,lineItemTypeCode, lineItemType, billingLineItemBudgetBillingIndicator \
+                                ,subtransactionForDocumentItem, industryText as industryCode, industry \
+                                ,billingClassCode, billingClass, rateTypeCode \
+                                ,rateType, rateId, rateDescription \
+                                ,statisticalAnalysisRateType as statisticalAnalysisRateTypeCode, statisticalAnalysisRateTypeDescription as statisticalAnalysisRateType \
                                 ,validFromDate, validToDate \
                                 ,billingQuantityPlaceBeforeDecimalPoint \
                              from {ADS_DATABASE_CLEANSED}.isu_dberchz1 \
@@ -44,10 +55,29 @@ def getBilledWaterConsumptionIsu():
   
     dberchz2Df = spark.sql(f"select billingDocumentNumber, billingDocumentLineItemId \
                                 ,equipmentNumber \
+                                ,logicalRegisterNumber, registerNumber \
+                                ,suppressedMeterReadingDocumentId, meterReadingReasonCode \
+                                ,previousMeterReadingReasonCode, meterReadingTypeCode \
+                                ,previousMeterReadingTypeCode, maxMeterReadingDate \
+                                ,maxMeterReadingTime, billingMeterReadingTime \
+                                ,previousMeterReadingTime, meterReadingResultsSimulationIndicator \
+                                ,registerRelationshipConsecutiveNumber, meterReadingAllocationDate \
+                                ,logicalDeviceNumber, registerRelationshipSortHelpCode \
+                                ,meterReaderNoteText, quantityDeterminationProcedureCode, meterReadingDocumentId \
                              from {ADS_DATABASE_CLEANSED}.isu_dberchz2 \
                              where trim(suppressedMeterReadingDocumentId) <> ''")
+    
+    erchcDf = spark.sql(f"select * from (select billingDocumentNumber, postingDate as invoicePostingDate \
+                                            , documentNotReleasedIndicator as invoiceNotReleasedIndicator \
+                                            , invoiceReversalPostingDate, sequenceNumber as invoiceMaxSequenceNumber \
+                                            row_number() over (partition by billingDocumentNumber order by sequenceNumber desc) rnk \
+                                         from {ADS_DATABASE_CLEANSED}.isu_erch \
+                                       ) as erch where erch.rnk=1")
   
     #3.JOIN TABLES
+    billedConsDf = erchDf.join(erchcDf, erchDf.billingDocumentNumber == erchcDf.billingDocumentNumber, how="left") \
+                       .drop(erchcDf.billingDocumentNumber)
+    
     billedConsDf = erchDf.join(dberchz1Df, erchDf.billingDocumentNumber == dberchz1Df.billingDocumentNumber, how="inner") \
                        .drop(dberchz1Df.billingDocumentNumber)
 
@@ -56,18 +86,18 @@ def getBilledWaterConsumptionIsu():
                     .drop(dberchz2Df.billingDocumentNumber) \
                     .drop(dberchz2Df.billingDocumentLineItemId)
 
-    billedConsDf = billedConsDf.select("sourceSystemCode", "billingDocumentNumber", "businessPartnerGroupNumber", "equipmentNumber", \
-                    "startBillingPeriod", "endBillingPeriod", "validFromDate", "validToDate", \
-                    "billingDocumentCreateDate", "documentNotReleasedIndicator", "reversalDate", \
-                    "portionNumber","documentTypeCode","meterReadingUnit","billingTransactionCode", "contractId", \
-                    "billingQuantityPlaceBeforeDecimalPoint") \
-                  .groupby("sourceSystemCode", "billingDocumentNumber", "businessPartnerGroupNumber", "equipmentNumber", \
-                             "startBillingPeriod", "endBillingPeriod", "billingDocumentCreateDate", \
-                             "documentNotReleasedIndicator", "reversalDate", \
-                    "portionNumber","documentTypeCode","meterReadingUnit","billingTransactionCode", "contractId") \
-                  .agg(min("validFromDate").alias("meterActiveStartDate") \
-                      ,max("validToDate").alias("meterActiveEndDate") \
-                      ,sum("billingQuantityPlaceBeforeDecimalPoint").alias("meteredWaterConsumption"))
+#     billedConsDf = billedConsDf.select("sourceSystemCode", "billingDocumentNumber", "businessPartnerGroupNumber", "equipmentNumber", \
+#                     "startBillingPeriod", "endBillingPeriod", "validFromDate", "validToDate", \
+#                     "billingDocumentCreateDate", "documentNotReleasedIndicator", "reversalDate", \
+#                     "portionNumber","documentTypeCode","meterReadingUnit","billingReasonCode", "contractId", \
+#                     "billingQuantityPlaceBeforeDecimalPoint") \
+#                   .groupby("sourceSystemCode", "billingDocumentNumber", "businessPartnerGroupNumber", "equipmentNumber", \
+#                              "startBillingPeriod", "endBillingPeriod", "billingDocumentCreateDate", \
+#                              "documentNotReleasedIndicator", "reversalDate", \
+#                     "portionNumber","documentTypeCode","meterReadingUnit","billingReasonCode", "contractId") \
+#                   .agg(min("validFromDate").alias("meterActiveStartDate") \
+#                       ,max("validToDate").alias("meterActiveEndDate") \
+#                       ,sum("billingQuantityPlaceBeforeDecimalPoint").alias("meteredWaterConsumption"))
 
   #4.UNION TABLES
   
@@ -76,6 +106,7 @@ def getBilledWaterConsumptionIsu():
                   ( \
                      "sourceSystemCode" \
                     ,"billingDocumentNumber" \
+                    ,"billingDocumentLineItemId" \
                     ,"businessPartnerGroupNumber" \
                     ,"equipmentNumber" \
                     ,"startBillingPeriod as billingPeriodStartDate" \
@@ -85,13 +116,57 @@ def getBilledWaterConsumptionIsu():
                     ,"portionNumber" \
                     ,"documentTypeCode" \
                     ,"meterReadingUnit" \
-                    ,"billingTransactionCode" \
+                    ,"billingReasonCode" \
                     ,"contractId" \
+                    ,"divisionCode" \
+                    ,"lastChangedDate" \
+                    ,"createdDate" \
+                    ,"billingDocumentCreateDate" \
+                    ,"erchcExistIndicator" \
+                    ,"billingDocumentWithoutInvoicingCode" \
+                    ,"newBillingDocumentNumberForReversedInvoicing" \
+                    ,"invoicePostingDate" \
+                    ,"invoiceNotReleasedIndicator" \
+                    ,"invoiceReversalPostingDate" \
+                    ,"invoiceMaxSequenceNumber" \
                     ,"case when reversalDate is null then 'N' else 'Y' end as isReversedFlag" \
                     ,"case when documentNotReleasedIndicator == 'X' then 'Y' else 'N' end as isOutsortedFlag" \
-                    ,"meterActiveStartDate" \
-                    ,"meterActiveEndDate" \
-                    ,"cast(meteredWaterConsumption as decimal(18,6)) as meteredWaterConsumption" \
+                    ,"lineItemTypeCode" \
+                    ,"lineItemType" \
+                    ,"billingLineItemBudgetBillingIndicator" \
+                    ,"subtransactionForDocumentItem" \
+                    ,"industryCode" \
+                    ,"industry" \
+                    ,"billingClassCode" \
+                    ,"billingClass" \
+                    ,"rateTypeCode" \
+                    ,"rateType" \
+                    ,"rateId" \
+                    ,"rateDescription" \
+                    ,"statisticalAnalysisRateTypeCode" \
+                    ,"statisticalAnalysisRateType" \
+                    ,"validFromDate" \
+                    ,"validToDate" \
+                    ,"cast(billingQuantityPlaceBeforeDecimalPoint as decimal(18,6)) as meteredWaterConsumption" \
+                    ,"logicalRegisterNumber" \
+                    ,"registerNumber" \
+                    ,"suppressedMeterReadingDocumentId" \
+                    ,"meterReadingReasonCode" \
+                    ,"previousMeterReadingReasonCode" \
+                    ,"meterReadingTypeCode" \
+                    ,"previousMeterReadingTypeCode" \
+                    ,"maxMeterReadingDate" \
+                    ,"maxMeterReadingTime" \
+                    ,"billingMeterReadingTime" \
+                    ,"previousMeterReadingTime" \
+                    ,"meterReadingResultsSimulationIndicator" \
+                    ,"registerRelationshipConsecutiveNumber" \
+                    ,"meterReadingAllocationDate" \
+                    ,"logicalDeviceNumber" \
+                    ,"registerRelationshipSortHelpCode" \
+                    ,"meterReaderNoteText" \
+                    ,"quantityDeterminationProcedureCode" \
+                    ,"meterReadingDocumentId" \
                   )
   
     return billedConsDf

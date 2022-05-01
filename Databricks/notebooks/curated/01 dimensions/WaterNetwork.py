@@ -1,28 +1,24 @@
 # Databricks notebook source
-#%run ../../includes/util-common
+###########################################################################################################################
+# Loads WATERNETWORK dimension 
+#############################################################################################################################
+# Method
+# 1.Load Cleansed layer table data into dataframe and transform
+# 2.JOIN TABLES
+# 3.UNION TABLES
+# 4.SELECT / TRANSFORM
+# 5.SCHEMA DEFINITION
+#############################################################################################################################
 
 # COMMAND ----------
 
-###########################################################################################################################
-# Function: getWaterNetwork
-#  GETS water network DIMENSION 
-# Returns:
-#  Dataframe of transformed WaterNetwork
-#############################################################################################################################
-# Method
-# 1.Create Function
-# 2.Load Cleansed layer table data into dataframe and transform
-# 3.JOIN TABLES
-# 4.UNION TABLES
-# 5.SELECT / TRANSFORM
-#############################################################################################################################
-#1.Create Function
+# MAGIC %run ../common/common-curated-includeMain
+
+# COMMAND ----------
+
 def getWaterNetwork():
 
-#     spark.udf.register("TidyCase", GeneralToTidyCase)  
-
-    #2.Load Cleansed layer table data into dataframe
-
+    #1.Load Cleansed layer table data into dataframe
     baseDf = spark.sql(f"select level30 as deliverySystem, \
                                 level40 as distributionSystem, \
                                 level50 as supplyZone, \
@@ -36,25 +32,26 @@ def getWaterNetwork():
                         ")
 
     #Dummy Record to be added to Property Dimension
-   # dummyDimRecDf = spark.createDataFrame([("Unknown","Unknown","Unknown","-1","Unknown"),("Unknown","Unknown","-1",None,"Unknown")], ["deliverySystem", "distributionSystem","reservoirZone","pressureArea","isRecycled"])
+    #dummyDimRecDf = spark.createDataFrame([("Unknown","Unknown","Unknown","-1","Unknown"),("Unknown","Unknown","-1",None,"Unknown")], ["deliverySystem", "distributionSystem","reservoirZone","pressureArea","isRecycled"])
 
-    #3.JOIN TABLES  
-    #4.UNION TABLES
-   # df = baseDf.unionByName(dummyDimRecDf, allowMissingColumns = True)
+    #2.JOIN TABLES  
+    #3.UNION TABLES
+    #df = baseDf.unionByName(dummyDimRecDf, allowMissingColumns = True)
     #print(f'{df.count():,} rows after Union 2')
 
-    #5.SELECT / TRANSFORM
+    #4.SELECT / TRANSFORM
     df = baseDf.selectExpr( \
-     "deliverySystem" \
-    ,"distributionSystem" \
-    ,"supplyZone" \
-    ,"pressureArea" \
-    ,"isPotableWaterNetwork" \
-    ,"isRecycledWaterNetwork" \
-    )
+                             "deliverySystem" \
+                            ,"distributionSystem" \
+                            ,"supplyZone" \
+                            ,"pressureArea" \
+                            ,"isPotableWaterNetwork" \
+                            ,"isRecycledWaterNetwork" \
+                            )
                                             
-    #6.Apply schema definition
-    newSchema = StructType([
+    #5.Apply schema definition
+    schema = StructType([
+                            StructField('dimWaterNetworkSK', LongType(), False),
                             StructField("deliverySystem", StringType(), False),
                             StructField("distributionSystem", StringType(), False),
                             StructField("supplyZone", StringType(), False),
@@ -63,11 +60,19 @@ def getWaterNetwork():
                             StructField("isRecycledWaterNetwork", StringType(), False)
                       ])
 
-    df = spark.createDataFrame(df.rdd, schema=newSchema)
-    return df
+    return df, schema
+
+# COMMAND ----------
+
+df, schema = getWaterNetwork()
+TemplateEtl(df, entity="dimWaterNetwork", businessKey="supplyZone,pressureArea", schema=schema, AddSK=True)
 
 # COMMAND ----------
 
 # ADS_DATABASE_CLEANSED = 'cleansed'
 # df = getWaterNetwork()
 # display(df)
+
+# COMMAND ----------
+
+dbutils.notebook.exit("1")
