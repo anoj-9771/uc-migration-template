@@ -1,8 +1,8 @@
 # Databricks notebook source
 # DBTITLE 1,Generate parameter and source object name for unit testing
 import json
-accessTable = 'Z309_TMETERCHANGEREAS'
-businessKeys = 'C_METE_CHAN_REAS'
+accessTable = 'Z309_TMETEREADINST'
+businessKeys = 'C_METE_READ_INST'
 
 runParm = '{"SourceType":"BLOB Storage (csv)","SourceServer":"daf-sa-lake-sastoken","SourceGroup":"accessref","SourceName":"access_####","SourceLocation":"accessref/####","AdditionalProperty":"","Processor":"databricks-token|1103-023442-me8nqcm9|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive","IsAuditTable":false,"SoftDeleteSource":"","ProjectName":"CLEANSED REF ACCESS","ProjectId":2,"TargetType":"BLOB Storage (csv)","TargetName":"access_####","TargetLocation":"accessref/####","TargetServer":"daf-sa-lake-sastoken","DataLoadMode":"TRUNCATE-LOAD","DeltaExtract":false,"CDCSource":false,"TruncateTarget":true,"UpsertTarget":false,"AppendTarget":false,"TrackChanges":false,"LoadToSqlEDW":true,"TaskName":"access_####","ControlStageId":2,"TaskId":40,"StageSequence":200,"StageName":"Raw to Cleansed","SourceId":40,"TargetId":40,"ObjectGrain":"Day","CommandTypeId":8,"Watermarks":"","WatermarksDT":null,"WatermarkColumn":"","BusinessKeyColumn":"yyyy","PartitionColumn":null,"UpdateMetaData":null,"SourceTimeStampFormat":"","Command":"/build/cleansed/accessref/####","LastLoadedFile":null}'
 
@@ -185,26 +185,24 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT \
-	C_METE_CHAN_REAS as meterExchangeReasonCode, \
-	C_METE_CHAN_ABBR as meterExchangeReasonAbbreviation, \
-	initcap(T_METE_CHAN_REAS) as meterExchangeReason, \
-	ToValidDate(D_CHAN_REAS_EFFE) as meterExchangeReasonEffectiveDate, \
-	ToValidDate(D_CHAN_REAS_CANC) as meterExchangeReasonCancelledDate, \
+	C_METE_READ_INST as meterReadingInstructionCode, \
+	initcap(T_METE_READ_INST) as meterReadingInstruction, \
+	ToValidDate(D_READ_INST_EFFE) as meterReadingInstructionEffectiveDate, \
+	ToValidDate(D_READ_INST_CANC) as meterReadingInstructionCancelledDate, \
 	_RecordStart, \
 	_RecordEnd, \
 	_RecordDeleted, \
 	_RecordCurrent \
 	FROM {ADS_DATABASE_STAGE}.{source_object} \
-                               ")
+                                ")
 
 # COMMAND ----------
 
 newSchema = StructType([
-	StructField('meterExchangeReasonCode',StringType(),False),
-	StructField('meterExchangeReasonAbbreviation',StringType(),True),
-	StructField('meterExchangeReason',StringType(),True),
-	StructField('meterExchangeReasonEffectiveDate',DateType(),True),
-	StructField('meterExchangeReasonCancelledDate',DateType(),True),
+	StructField('meterReadingInstructionCode',StringType(),False),
+	StructField('meterReadingInstruction',StringType(),True),
+	StructField('meterReadingInstructionEffectiveDate',DateType(),True),
+	StructField('meterReadingInstructionCancelledDate',DateType(),True),
 	StructField('_RecordStart',TimestampType(),False),
 	StructField('_RecordEnd',TimestampType(),False),
 	StructField('_RecordDeleted',IntegerType(),False),

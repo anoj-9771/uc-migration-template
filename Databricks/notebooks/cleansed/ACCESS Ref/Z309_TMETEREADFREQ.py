@@ -186,7 +186,7 @@ DeltaSaveToDeltaTable (
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT \
 	C_METE_READ_FREQ as meterReadingFrequencyCode, \
-	T_METE_READ_FREQ as meterReadingFrequency, \
+	initcap(T_METE_READ_FREQ) as meterReadingFrequency, \
 	ToValidDate(D_READ_FREQ_EFFE) as meterReadingFrequencyEffectiveDate, \
 	ToValidDate(D_READ_FREQ_CANC) as meterReadingFrequencyCancelledDate, \
 	cast(Q_MIN_CONS_DAY_ATL as dec(5,2)) as minimumDailyConsumptionAboveTestLevel, \
@@ -204,7 +204,7 @@ newSchema = StructType([
 	StructField('meterReadingFrequency',StringType(),True),
 	StructField('meterReadingFrequencyEffectiveDate',DateType(),True),
 	StructField('meterReadingFrequencyCancelledDate',DateType(),True),
-	StructField('minimumDailyConsumptionAboveTestLevel',DecimalType(5,2),True),
+	StructField('minimumDailyConsumptionAboveTestLevel',DecimalType(5,2),False),
 	StructField('_RecordStart',TimestampType(),False),
 	StructField('_RecordEnd',TimestampType(),False),
 	StructField('_RecordDeleted',IntegerType(),False),
