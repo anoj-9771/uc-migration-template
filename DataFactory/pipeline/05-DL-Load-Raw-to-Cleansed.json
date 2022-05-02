@@ -148,7 +148,7 @@
 										"value": "clusterpool",
 										"activities": [
 											{
-												"name": "Set-ReturnValue-ClusterPool",
+												"name": "Set-ReturnValue-Pool",
 												"type": "SetVariable",
 												"dependsOn": [
 													{
