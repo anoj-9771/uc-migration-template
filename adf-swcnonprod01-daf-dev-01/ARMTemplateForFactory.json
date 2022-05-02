@@ -1193,9 +1193,7 @@
 												"referenceName": "LS_AzureDatabricks_InstancePool",
 												"type": "LinkedServiceReference",
 												"parameters": {
-													"kvSecret": "databricks-token",
-													"clusterId": "0121-060302-next337-pool-owblzzx4",
-													"DatabricksClusterVersion": "9.1.x-scala2.12"
+													"kvSecret": "databricks-token"
 												}
 											}
 										}
@@ -12352,7 +12350,7 @@
 						"type": "SqlServerStoredProcedure",
 						"dependsOn": [
 							{
-								"activity": "If-ClusterType",
+								"activity": "SwitchCluster",
 								"dependencyConditions": [
 									"Failed"
 								]
@@ -12416,7 +12414,7 @@
 						"type": "SqlServerStoredProcedure",
 						"dependsOn": [
 							{
-								"activity": "If-ClusterType",
+								"activity": "SwitchCluster",
 								"dependencyConditions": [
 									"Succeeded"
 								]
@@ -12493,104 +12491,6 @@
 						}
 					},
 					{
-						"name": "If-ClusterType",
-						"description": "",
-						"type": "IfCondition",
-						"dependsOn": [
-							{
-								"activity": "Set-ClusterType",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"userProperties": [],
-						"typeProperties": {
-							"expression": {
-								"value": "@equals(variables('ClusterType'), 'interactive')",
-								"type": "Expression"
-							},
-							"ifFalseActivities": [
-								{
-									"name": "Load-To-Curated-Zone-Job",
-									"type": "DatabricksNotebook",
-									"dependsOn": [],
-									"policy": {
-										"timeout": "7.00:00:00",
-										"retry": 0,
-										"retryIntervalInSeconds": 30,
-										"secureOutput": false,
-										"secureInput": false
-									},
-									"userProperties": [],
-									"typeProperties": {
-										"notebookPath": {
-											"value": "@pipeline().parameters.TaskDetails.Command",
-											"type": "Expression"
-										}
-									},
-									"linkedServiceName": {
-										"referenceName": "LS-AzureDatabricks_JobCluster",
-										"type": "LinkedServiceReference",
-										"parameters": {
-											"kvSecret": {
-												"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[0]",
-												"type": "Expression"
-											},
-											"DataBricksClusterType": {
-												"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[2]",
-												"type": "Expression"
-											},
-											"DataBricksClusterVersion": {
-												"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[3]",
-												"type": "Expression"
-											},
-											"DataBricksWorkerNodes": {
-												"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[4]",
-												"type": "Expression"
-											}
-										}
-									}
-								}
-							],
-							"ifTrueActivities": [
-								{
-									"name": "Load-To-Curated-Zone-Interactive",
-									"type": "DatabricksNotebook",
-									"dependsOn": [],
-									"policy": {
-										"timeout": "0.02:00:00",
-										"retry": 0,
-										"retryIntervalInSeconds": 30,
-										"secureOutput": false,
-										"secureInput": false
-									},
-									"userProperties": [],
-									"typeProperties": {
-										"notebookPath": {
-											"value": "@pipeline().parameters.TaskDetails.Command",
-											"type": "Expression"
-										}
-									},
-									"linkedServiceName": {
-										"referenceName": "LS-AzureDatabricks_DefinedCluster",
-										"type": "LinkedServiceReference",
-										"parameters": {
-											"kvSecret": {
-												"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[0]",
-												"type": "Expression"
-											},
-											"clusterId": {
-												"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[1]",
-												"type": "Expression"
-											}
-										}
-									}
-								}
-							]
-						}
-					},
-					{
 						"name": "Business-Reconciliation",
 						"type": "ExecutePipeline",
 						"dependsOn": [
@@ -12623,6 +12523,153 @@
 								},
 								"BusinessReconGroup": "Water Consumption Reconciliation"
 							}
+						}
+					},
+					{
+						"name": "SwitchCluster",
+						"type": "Switch",
+						"dependsOn": [
+							{
+								"activity": "Set-ClusterType",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"on": {
+								"value": "@toLower(variables('ClusterType'))",
+								"type": "Expression"
+							},
+							"cases": [
+								{
+									"value": "clusterpool",
+									"activities": [
+										{
+											"name": "Load-To-Curated-Zone-ClusterPool",
+											"type": "DatabricksNotebook",
+											"dependsOn": [],
+											"policy": {
+												"timeout": "7.00:00:00",
+												"retry": 0,
+												"retryIntervalInSeconds": 30,
+												"secureOutput": false,
+												"secureInput": false
+											},
+											"userProperties": [],
+											"typeProperties": {
+												"notebookPath": {
+													"value": "@pipeline().parameters.TaskDetails.Command",
+													"type": "Expression"
+												}
+											},
+											"linkedServiceName": {
+												"referenceName": "LS_AzureDatabricks_InstancePool",
+												"type": "LinkedServiceReference",
+												"parameters": {
+													"kvSecret": {
+														"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[0]",
+														"type": "Expression"
+													},
+													"PoolId": {
+														"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[1]",
+														"type": "Expression"
+													},
+													"DatabricksVersion": {
+														"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[3]",
+														"type": "Expression"
+													}
+												}
+											}
+										}
+									]
+								},
+								{
+									"value": "jobcluster",
+									"activities": [
+										{
+											"name": "Load-To-Curated-Zone-Job",
+											"type": "DatabricksNotebook",
+											"dependsOn": [],
+											"policy": {
+												"timeout": "7.00:00:00",
+												"retry": 0,
+												"retryIntervalInSeconds": 30,
+												"secureOutput": false,
+												"secureInput": false
+											},
+											"userProperties": [],
+											"typeProperties": {
+												"notebookPath": {
+													"value": "@pipeline().parameters.TaskDetails.Command",
+													"type": "Expression"
+												}
+											},
+											"linkedServiceName": {
+												"referenceName": "LS-AzureDatabricks_JobCluster",
+												"type": "LinkedServiceReference",
+												"parameters": {
+													"kvSecret": {
+														"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[0]",
+														"type": "Expression"
+													},
+													"DataBricksClusterType": {
+														"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[2]",
+														"type": "Expression"
+													},
+													"DataBricksClusterVersion": {
+														"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[3]",
+														"type": "Expression"
+													},
+													"DataBricksWorkerNodes": {
+														"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[4]",
+														"type": "Expression"
+													}
+												}
+											}
+										}
+									]
+								},
+								{
+									"value": "interactive",
+									"activities": [
+										{
+											"name": "Load-To-Curated-Zone-Interactive",
+											"type": "DatabricksNotebook",
+											"dependsOn": [],
+											"policy": {
+												"timeout": "0.02:00:00",
+												"retry": 0,
+												"retryIntervalInSeconds": 30,
+												"secureOutput": false,
+												"secureInput": false
+											},
+											"userProperties": [],
+											"typeProperties": {
+												"notebookPath": {
+													"value": "@pipeline().parameters.TaskDetails.Command",
+													"type": "Expression"
+												}
+											},
+											"linkedServiceName": {
+												"referenceName": "LS-AzureDatabricks_DefinedCluster",
+												"type": "LinkedServiceReference",
+												"parameters": {
+													"kvSecret": {
+														"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[0]",
+														"type": "Expression"
+													},
+													"clusterId": {
+														"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[1]",
+														"type": "Expression"
+													}
+												}
+											}
+										}
+									]
+								}
+							]
 						}
 					}
 				],
@@ -12684,6 +12731,7 @@
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/LS-AzureSqlDatabase_Ctrldb')]",
 				"[concat(variables('factoryId'), '/pipelines/Business-Reconciliation')]",
+				"[concat(variables('factoryId'), '/linkedServices/LS_AzureDatabricks_InstancePool')]",
 				"[concat(variables('factoryId'), '/linkedServices/LS-AzureDatabricks_JobCluster')]",
 				"[concat(variables('factoryId'), '/linkedServices/LS-AzureDatabricks_DefinedCluster')]"
 			]
@@ -15245,7 +15293,7 @@
 				"type": "AzureDatabricksDeltaLakeDataset",
 				"typeProperties": {
 					"database": "CURATED",
-					"table": "dimdate"
+					"table": ""
 				},
 				"schema": []
 			},
@@ -15920,12 +15968,12 @@
 					"existingClusterId": "@linkedService().clusterId"
 				},
 				"connectVia": {
-					"referenceName": "IntegrationRuntime-SelfHosted",
+					"referenceName": "IntegrationRuntime-Azure-ManagedVnet-01",
 					"type": "IntegrationRuntimeReference"
 				}
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/integrationRuntimes/IntegrationRuntime-SelfHosted')]",
+				"[concat(variables('factoryId'), '/integrationRuntimes/IntegrationRuntime-Azure-ManagedVnet-01')]",
 				"[concat(variables('factoryId'), '/linkedServices/LS-AzureKeyVault')]"
 			]
 		},
@@ -15972,9 +16020,14 @@
 					"newClusterVersion": "@linkedService().DataBricksClusterVersion",
 					"newClusterInitScripts": [],
 					"clusterOption": "Fixed"
+				},
+				"connectVia": {
+					"referenceName": "IntegrationRuntime-Azure-ManagedVnet-01",
+					"type": "IntegrationRuntimeReference"
 				}
 			},
 			"dependsOn": [
+				"[concat(variables('factoryId'), '/integrationRuntimes/IntegrationRuntime-Azure-ManagedVnet-01')]",
 				"[concat(variables('factoryId'), '/linkedServices/LS-AzureKeyVault')]"
 			]
 		},
@@ -16060,11 +16113,11 @@
 						"type": "string",
 						"defaultValue": "databricks-token"
 					},
-					"clusterId": {
+					"PoolId": {
 						"type": "string",
 						"defaultValue": "0121-060302-next337-pool-owblzzx4"
 					},
-					"DatabricksClusterVersion": {
+					"DatabricksVersion": {
 						"type": "string",
 						"defaultValue": "9.1.x-scala2.12"
 					}
@@ -16084,17 +16137,22 @@
 							"type": "Expression"
 						}
 					},
-					"instancePoolId": "@linkedService().clusterId",
+					"instancePoolId": "@linkedService().PoolId",
 					"newClusterNumOfWorker": "1:8",
 					"newClusterSparkEnvVars": {
 						"PYSPARK_PYTHON": "/databricks/python3/bin/python3"
 					},
-					"newClusterVersion": "@linkedService().DataBricksClusterVersion",
+					"newClusterVersion": "@linkedService().DatabricksVersion",
 					"newClusterInitScripts": [],
 					"clusterOption": "Fixed"
+				},
+				"connectVia": {
+					"referenceName": "IntegrationRuntime-Azure-ManagedVnet-01",
+					"type": "IntegrationRuntimeReference"
 				}
 			},
 			"dependsOn": [
+				"[concat(variables('factoryId'), '/integrationRuntimes/IntegrationRuntime-Azure-ManagedVnet-01')]",
 				"[concat(variables('factoryId'), '/linkedServices/LS-AzureKeyVault')]"
 			]
 		},
