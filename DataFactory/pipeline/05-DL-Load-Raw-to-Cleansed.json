@@ -239,11 +239,11 @@
 										"value": "jobcluster",
 										"activities": [
 											{
-												"name": "Set-ReturnValue-Job",
+												"name": "Set-ReturnValue-JobCluster",
 												"type": "SetVariable",
 												"dependsOn": [
 													{
-														"activity": "Load-To-Cleansed-Zone-Job",
+														"activity": "Load-To-Cleansed-Zone-JobCluster",
 														"dependencyConditions": [
 															"Succeeded"
 														]
@@ -253,13 +253,13 @@
 												"typeProperties": {
 													"variableName": "ReturnValue",
 													"value": {
-														"value": "@string(activity('Load-To-Cleansed-Zone-Job').output.runOutput)",
+														"value": "@string(activity('Load-To-Cleansed-Zone-JobCluster').output.runOutput)",
 														"type": "Expression"
 													}
 												}
 											},
 											{
-												"name": "Load-To-Cleansed-Zone-Job",
+												"name": "Load-To-Cleansed-Zone-JobCluster",
 												"type": "DatabricksNotebook",
 												"dependsOn": [],
 												"policy": {
