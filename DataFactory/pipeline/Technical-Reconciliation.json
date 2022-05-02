@@ -115,6 +115,19 @@
 					"referenceName": "LS-AzureSqlDatabase_Ctrldb",
 					"type": "LinkedServiceReference"
 				}
+			},
+			{
+				"name": "SwitchCluster",
+				"type": "Switch",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"on": {
+						"value": "@toLower(last(split(pipeline().parameters.TaskDetails.Processor,'|')))",
+						"type": "Expression"
+					},
+					"cases": []
+				}
 			}
 		],
 		"parameters": {
