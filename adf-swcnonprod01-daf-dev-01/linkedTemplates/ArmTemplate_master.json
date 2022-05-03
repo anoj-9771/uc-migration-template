@@ -145,15 +145,6 @@
 					"LS-AzureKeyVault_properties_typeProperties_baseUrl": {
 						"value": "[parameters('LS-AzureKeyVault_properties_typeProperties_baseUrl')]"
 					},
-					"LS-AzureDatabricks_DefinedCluster_properties_typeProperties_domain": {
-						"value": "[parameters('LS-AzureDatabricks_DefinedCluster_properties_typeProperties_domain')]"
-					},
-					"LS-AzureDatabricks_JobCluster_properties_typeProperties_domain": {
-						"value": "[parameters('LS-AzureDatabricks_JobCluster_properties_typeProperties_domain')]"
-					},
-					"LS_AzureDatabricks_InstancePool_properties_typeProperties_domain": {
-						"value": "[parameters('LS_AzureDatabricks_InstancePool_properties_typeProperties_domain')]"
-					},
 					"LS_Oracle_properties_typeProperties_connectionString_secretName": {
 						"value": "[parameters('LS_Oracle_properties_typeProperties_connectionString_secretName')]"
 					},
@@ -178,6 +169,12 @@
 					"mpe_sqlserver_01_properties_groupId": {
 						"value": "[parameters('mpe_sqlserver_01_properties_groupId')]"
 					},
+					"LS-AzureDatabricks_DefinedCluster_properties_typeProperties_domain": {
+						"value": "[parameters('LS-AzureDatabricks_DefinedCluster_properties_typeProperties_domain')]"
+					},
+					"LS-AzureDatabricks_JobCluster_properties_typeProperties_domain": {
+						"value": "[parameters('LS-AzureDatabricks_JobCluster_properties_typeProperties_domain')]"
+					},
 					"LS-AzureSqlDatabase_Ctrldb_properties_typeProperties_connectionString_secretName": {
 						"value": "[parameters('LS-AzureSqlDatabase_Ctrldb_properties_typeProperties_connectionString_secretName')]"
 					},
@@ -189,6 +186,9 @@
 					},
 					"LS_AzureBlobStorage_properties_typeProperties_servicePrincipalId": {
 						"value": "[parameters('LS_AzureBlobStorage_properties_typeProperties_servicePrincipalId')]"
+					},
+					"LS_AzureDatabricks_InstancePool_properties_typeProperties_domain": {
+						"value": "[parameters('LS_AzureDatabricks_InstancePool_properties_typeProperties_domain')]"
 					},
 					"LS_AzureDatalake_properties_typeProperties_url": {
 						"value": "[parameters('LS_AzureDatalake_properties_typeProperties_url')]"

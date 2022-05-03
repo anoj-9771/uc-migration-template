@@ -349,117 +349,386 @@
 			"properties": {
 				"activities": [
 					{
-						"name": "Notebook-GetDeltaTableRecordCount",
-						"type": "DatabricksNotebook",
+						"name": "SwitchCluster",
+						"type": "Switch",
 						"dependsOn": [],
-						"policy": {
-							"timeout": "7.00:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
 						"userProperties": [],
 						"typeProperties": {
-							"notebookPath": {
-								"value": "@variables('NotbookURL')",
+							"on": {
+								"value": "@toLower(last(split(pipeline().parameters.TaskDetails.Processor,'|')))",
 								"type": "Expression"
 							},
-							"baseParameters": {
-								"target_table": {
-									"value": "@pipeline().parameters.TaskDetails.TargetName",
-									"type": "Expression"
+							"cases": [
+								{
+									"value": "clusterpool",
+									"activities": [
+										{
+											"name": "Notebook-GetDeltaTableRecordCount-ClusterPool",
+											"type": "DatabricksNotebook",
+											"dependsOn": [],
+											"policy": {
+												"timeout": "7.00:00:00",
+												"retry": 0,
+												"retryIntervalInSeconds": 30,
+												"secureOutput": false,
+												"secureInput": false
+											},
+											"userProperties": [],
+											"typeProperties": {
+												"notebookPath": {
+													"value": "@variables('NotbookURL')",
+													"type": "Expression"
+												},
+												"baseParameters": {
+													"target_table": {
+														"value": "@pipeline().parameters.TaskDetails.TargetName",
+														"type": "Expression"
+													},
+													"filter_clause": {
+														"value": "@if(equals(pipeline().parameters.TaskDetails.WhereClause,null),'',pipeline().parameters.TaskDetails.WhereClause)",
+														"type": "Expression"
+													}
+												}
+											},
+											"linkedServiceName": {
+												"referenceName": "LS_AzureDatabricks_InstancePool",
+												"type": "LinkedServiceReference",
+												"parameters": {
+													"kvSecret": {
+														"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[0]",
+														"type": "Expression"
+													},
+													"PoolId": {
+														"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[1]",
+														"type": "Expression"
+													},
+													"DatabricksVersion": {
+														"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[3]",
+														"type": "Expression"
+													}
+												}
+											}
+										},
+										{
+											"name": "SP-CreateTechRecRawToCleansed-ClusterPool",
+											"type": "SqlServerStoredProcedure",
+											"dependsOn": [
+												{
+													"activity": "Notebook-GetDeltaTableRecordCount-ClusterPool",
+													"dependencyConditions": [
+														"Succeeded"
+													]
+												}
+											],
+											"policy": {
+												"timeout": "7.00:00:00",
+												"retry": 0,
+												"retryIntervalInSeconds": 30,
+												"secureOutput": false,
+												"secureInput": false
+											},
+											"userProperties": [],
+											"typeProperties": {
+												"storedProcedureName": "CTL.CreateTechRecRawToCleansed",
+												"storedProcedureParameters": {
+													"BatchExecutionId": {
+														"value": {
+															"value": "@pipeline().parameters.BatchLogId",
+															"type": "Expression"
+														},
+														"type": "Int64"
+													},
+													"TaskExecutionLogId": {
+														"value": {
+															"value": "@pipeline().parameters.TaskExecutionLogId",
+															"type": "Expression"
+														},
+														"type": "Int64"
+													},
+													"TaskId": {
+														"value": {
+															"value": "@pipeline().parameters.TaskDetails.TaskId",
+															"type": "Expression"
+														},
+														"type": "Int64"
+													},
+													"SourceObject": {
+														"value": {
+															"value": "@pipeline().parameters.TaskDetails.SourceName",
+															"type": "Expression"
+														},
+														"type": "String"
+													},
+													"TargetName": {
+														"value": {
+															"value": "@pipeline().parameters.TaskDetails.TargetName",
+															"type": "Expression"
+														},
+														"type": "String"
+													},
+													"TotalNoRecords": {
+														"value": {
+															"value": "@activity('Notebook-GetDeltaTableRecordCount-ClusterPool').output.runOutput",
+															"type": "Expression"
+														},
+														"type": "Int64"
+													}
+												}
+											},
+											"linkedServiceName": {
+												"referenceName": "LS-AzureSqlDatabase_Ctrldb",
+												"type": "LinkedServiceReference"
+											}
+										}
+									]
 								},
-								"filter_clause": {
-									"value": "@if(equals(pipeline().parameters.TaskDetails.WhereClause,null),'',pipeline().parameters.TaskDetails.WhereClause)",
-									"type": "Expression"
+								{
+									"value": "jobcluster",
+									"activities": [
+										{
+											"name": "Notebook-GetDeltaTableRecordCount-JobCluster",
+											"type": "DatabricksNotebook",
+											"dependsOn": [],
+											"policy": {
+												"timeout": "7.00:00:00",
+												"retry": 0,
+												"retryIntervalInSeconds": 30,
+												"secureOutput": false,
+												"secureInput": false
+											},
+											"userProperties": [],
+											"typeProperties": {
+												"notebookPath": {
+													"value": "@variables('NotbookURL')",
+													"type": "Expression"
+												},
+												"baseParameters": {
+													"target_table": {
+														"value": "@pipeline().parameters.TaskDetails.TargetName",
+														"type": "Expression"
+													},
+													"filter_clause": {
+														"value": "@if(equals(pipeline().parameters.TaskDetails.WhereClause,null),'',pipeline().parameters.TaskDetails.WhereClause)",
+														"type": "Expression"
+													}
+												}
+											},
+											"linkedServiceName": {
+												"referenceName": "LS-AzureDatabricks_JobCluster",
+												"type": "LinkedServiceReference",
+												"parameters": {
+													"kvSecret": {
+														"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[0]",
+														"type": "Expression"
+													},
+													"DataBricksClusterType": {
+														"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[2]",
+														"type": "Expression"
+													},
+													"DataBricksClusterVersion": {
+														"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[3]",
+														"type": "Expression"
+													},
+													"DataBricksWorkerNodes": {
+														"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[4]",
+														"type": "Expression"
+													}
+												}
+											}
+										},
+										{
+											"name": "SP-CreateTechRecRawToCleansed-JobCluster",
+											"type": "SqlServerStoredProcedure",
+											"dependsOn": [
+												{
+													"activity": "Notebook-GetDeltaTableRecordCount-JobCluster",
+													"dependencyConditions": [
+														"Succeeded"
+													]
+												}
+											],
+											"policy": {
+												"timeout": "7.00:00:00",
+												"retry": 0,
+												"retryIntervalInSeconds": 30,
+												"secureOutput": false,
+												"secureInput": false
+											},
+											"userProperties": [],
+											"typeProperties": {
+												"storedProcedureName": "CTL.CreateTechRecRawToCleansed",
+												"storedProcedureParameters": {
+													"BatchExecutionId": {
+														"value": {
+															"value": "@pipeline().parameters.BatchLogId",
+															"type": "Expression"
+														},
+														"type": "Int64"
+													},
+													"TaskExecutionLogId": {
+														"value": {
+															"value": "@pipeline().parameters.TaskExecutionLogId",
+															"type": "Expression"
+														},
+														"type": "Int64"
+													},
+													"TaskId": {
+														"value": {
+															"value": "@pipeline().parameters.TaskDetails.TaskId",
+															"type": "Expression"
+														},
+														"type": "Int64"
+													},
+													"SourceObject": {
+														"value": {
+															"value": "@pipeline().parameters.TaskDetails.SourceName",
+															"type": "Expression"
+														},
+														"type": "String"
+													},
+													"TargetName": {
+														"value": {
+															"value": "@pipeline().parameters.TaskDetails.TargetName",
+															"type": "Expression"
+														},
+														"type": "String"
+													},
+													"TotalNoRecords": {
+														"value": {
+															"value": "@activity('Notebook-GetDeltaTableRecordCount-JobCluster').output.runOutput",
+															"type": "Expression"
+														},
+														"type": "Int64"
+													}
+												}
+											},
+											"linkedServiceName": {
+												"referenceName": "LS-AzureSqlDatabase_Ctrldb",
+												"type": "LinkedServiceReference"
+											}
+										}
+									]
+								},
+								{
+									"value": "interactive",
+									"activities": [
+										{
+											"name": "Notebook-GetDeltaTableRecordCount-Interactive",
+											"type": "DatabricksNotebook",
+											"dependsOn": [],
+											"policy": {
+												"timeout": "7.00:00:00",
+												"retry": 0,
+												"retryIntervalInSeconds": 30,
+												"secureOutput": false,
+												"secureInput": false
+											},
+											"userProperties": [],
+											"typeProperties": {
+												"notebookPath": {
+													"value": "@variables('NotbookURL')",
+													"type": "Expression"
+												},
+												"baseParameters": {
+													"target_table": {
+														"value": "@pipeline().parameters.TaskDetails.TargetName",
+														"type": "Expression"
+													},
+													"filter_clause": {
+														"value": "@if(equals(pipeline().parameters.TaskDetails.WhereClause,null),'',pipeline().parameters.TaskDetails.WhereClause)",
+														"type": "Expression"
+													}
+												}
+											},
+											"linkedServiceName": {
+												"referenceName": "LS-AzureDatabricks_DefinedCluster",
+												"type": "LinkedServiceReference",
+												"parameters": {
+													"kvSecret": {
+														"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[0]",
+														"type": "Expression"
+													},
+													"clusterId": {
+														"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[1]",
+														"type": "Expression"
+													}
+												}
+											}
+										},
+										{
+											"name": "SP-CreateTechRecRawToCleansed-Interactive",
+											"type": "SqlServerStoredProcedure",
+											"dependsOn": [
+												{
+													"activity": "Notebook-GetDeltaTableRecordCount-Interactive",
+													"dependencyConditions": [
+														"Succeeded"
+													]
+												}
+											],
+											"policy": {
+												"timeout": "7.00:00:00",
+												"retry": 0,
+												"retryIntervalInSeconds": 30,
+												"secureOutput": false,
+												"secureInput": false
+											},
+											"userProperties": [],
+											"typeProperties": {
+												"storedProcedureName": "CTL.CreateTechRecRawToCleansed",
+												"storedProcedureParameters": {
+													"BatchExecutionId": {
+														"value": {
+															"value": "@pipeline().parameters.BatchLogId",
+															"type": "Expression"
+														},
+														"type": "Int64"
+													},
+													"TaskExecutionLogId": {
+														"value": {
+															"value": "@pipeline().parameters.TaskExecutionLogId",
+															"type": "Expression"
+														},
+														"type": "Int64"
+													},
+													"TaskId": {
+														"value": {
+															"value": "@pipeline().parameters.TaskDetails.TaskId",
+															"type": "Expression"
+														},
+														"type": "Int64"
+													},
+													"SourceObject": {
+														"value": {
+															"value": "@pipeline().parameters.TaskDetails.SourceName",
+															"type": "Expression"
+														},
+														"type": "String"
+													},
+													"TargetName": {
+														"value": {
+															"value": "@pipeline().parameters.TaskDetails.TargetName",
+															"type": "Expression"
+														},
+														"type": "String"
+													},
+													"TotalNoRecords": {
+														"value": {
+															"value": "@activity('Notebook-GetDeltaTableRecordCount-Interactive').output.runOutput",
+															"type": "Expression"
+														},
+														"type": "Int64"
+													}
+												}
+											},
+											"linkedServiceName": {
+												"referenceName": "LS-AzureSqlDatabase_Ctrldb",
+												"type": "LinkedServiceReference"
+											}
+										}
+									]
 								}
-							}
-						},
-						"linkedServiceName": {
-							"referenceName": "LS-AzureDatabricks_DefinedCluster",
-							"type": "LinkedServiceReference",
-							"parameters": {
-								"kvSecret": {
-									"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[0]",
-									"type": "Expression"
-								},
-								"clusterId": {
-									"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[1]",
-									"type": "Expression"
-								}
-							}
-						}
-					},
-					{
-						"name": "SP-CreateTechRecRawToCleansed",
-						"type": "SqlServerStoredProcedure",
-						"dependsOn": [
-							{
-								"activity": "Notebook-GetDeltaTableRecordCount",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"policy": {
-							"timeout": "7.00:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"storedProcedureName": "CTL.CreateTechRecRawToCleansed",
-							"storedProcedureParameters": {
-								"BatchExecutionId": {
-									"value": {
-										"value": "@pipeline().parameters.BatchLogId",
-										"type": "Expression"
-									},
-									"type": "Int64"
-								},
-								"TaskExecutionLogId": {
-									"value": {
-										"value": "@pipeline().parameters.TaskExecutionLogId",
-										"type": "Expression"
-									},
-									"type": "Int64"
-								},
-								"TaskId": {
-									"value": {
-										"value": "@pipeline().parameters.TaskDetails.TaskId",
-										"type": "Expression"
-									},
-									"type": "Int64"
-								},
-								"SourceObject": {
-									"value": {
-										"value": "@pipeline().parameters.TaskDetails.SourceName",
-										"type": "Expression"
-									},
-									"type": "String"
-								},
-								"TargetName": {
-									"value": {
-										"value": "@pipeline().parameters.TaskDetails.TargetName",
-										"type": "Expression"
-									},
-									"type": "String"
-								},
-								"TotalNoRecords": {
-									"value": {
-										"value": "@activity('Notebook-GetDeltaTableRecordCount').output.runOutput",
-										"type": "Expression"
-									},
-									"type": "Int64"
-								}
-							}
-						},
-						"linkedServiceName": {
-							"referenceName": "LS-AzureSqlDatabase_Ctrldb",
-							"type": "LinkedServiceReference"
+							]
 						}
 					}
 				],
@@ -888,7 +1157,7 @@
 				"type": "AzureDatabricksDeltaLakeDataset",
 				"typeProperties": {
 					"database": "CURATED",
-					"table": "dimdate"
+					"table": ""
 				},
 				"schema": []
 			},
