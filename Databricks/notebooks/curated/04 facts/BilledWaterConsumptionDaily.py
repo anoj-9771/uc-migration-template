@@ -53,9 +53,11 @@ def getBilledWaterConsumptionDaily():
     isuConsDf = isuConsDf.select("sourceSystemCode", "billingDocumentNumber", "billingDocumentLineItemId", \
                                   "businessPartnerGroupNumber", "equipmentNumber", "contractID", \
                                   "billingPeriodStartDate", "billingPeriodEndDate", \
-                                  "validFromDate as meterActiveStartDate", "validToDate as meterActiveEndDate", \
+                                  "validFromDate", "validToDate", \
                                   (datediff("validToDate", "validFromDate") + 1).alias("totalMeterActiveDays"), \
-                                  "meteredWaterConsumption") \
+                                  "meteredWaterConsumption")  \
+                            .withColumnRenamed("validFromDate", "meterActiveStartDate") \
+                            .withColumnRenamed("validToDate", "meterActiveEndDate")
 
     accessConsDf = accessConsDf.selectExpr("sourceSystemCode", "-4 as billingDocumentNumber", "-4 as billingDocumentLineItemId", \
                                   "PropertyNumber", "meterNumber", "-4 as contractID", \

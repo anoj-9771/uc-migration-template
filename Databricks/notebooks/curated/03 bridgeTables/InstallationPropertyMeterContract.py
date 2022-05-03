@@ -130,13 +130,13 @@ def getInstallationPropertyMeterContract():
                             
     #5.Apply schema definition
     schema = StructType([
-                            StructField('dimInstallationSK', LongType(), False),
+                            StructField('installationSK', LongType(), False),
                             StructField('installationId', StringType(), True),
-                            StructField('dimContractSK', LongType(), False),
+                            StructField('contractSK', LongType(), False),
                             StructField('contractId', StringType(), True),
-                            StructField('dimMeterSK', LongType(), False),
+                            StructField('meterSK', LongType(), False),
                             StructField('meterNumber', StringType(), True),
-                            StructField('dimPropertySK', LongType(), False),
+                            StructField('propertySK', LongType(), False),
                             StructField('propertyNumber', StringType(), True)
                       ]) 
 
@@ -148,7 +148,7 @@ def getInstallationPropertyMeterContract():
 # COMMAND ----------
 
 df, schema = getInstallationPropertyMeterContract()
-TemplateEtl(df, entity="brgInstallationPropertyMeterContract", businessKey="dimInstallationSK", schema=schema, AddSK=False)
+TemplateEtl(df, entity="brgInstallationPropertyMeterContract", businessKey="installationSK", schema=schema, AddSK=False)
 
 # COMMAND ----------
 

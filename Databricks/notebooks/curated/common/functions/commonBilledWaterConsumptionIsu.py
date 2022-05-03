@@ -70,15 +70,15 @@ def getBilledWaterConsumptionIsu():
     erchcDf = spark.sql(f"select * from (select billingDocumentNumber, postingDate as invoicePostingDate \
                                             , documentNotReleasedIndicator as invoiceNotReleasedIndicator \
                                             , invoiceReversalPostingDate, sequenceNumber as invoiceMaxSequenceNumber \
-                                            row_number() over (partition by billingDocumentNumber order by sequenceNumber desc) rnk \
-                                         from {ADS_DATABASE_CLEANSED}.isu_erch \
-                                       ) as erch where erch.rnk=1")
+                                            , row_number() over (partition by billingDocumentNumber order by sequenceNumber desc) rnk \
+                                         from {ADS_DATABASE_CLEANSED}.isu_erchc \
+                                       ) as erchc where erchc.rnk=1")
   
     #3.JOIN TABLES
     billedConsDf = erchDf.join(erchcDf, erchDf.billingDocumentNumber == erchcDf.billingDocumentNumber, how="left") \
                        .drop(erchcDf.billingDocumentNumber)
     
-    billedConsDf = erchDf.join(dberchz1Df, erchDf.billingDocumentNumber == dberchz1Df.billingDocumentNumber, how="inner") \
+    billedConsDf = billedConsDf.join(dberchz1Df, erchDf.billingDocumentNumber == dberchz1Df.billingDocumentNumber, how="inner") \
                        .drop(dberchz1Df.billingDocumentNumber)
 
     billedConsDf = billedConsDf.join(dberchz2Df, (billedConsDf.billingDocumentNumber == dberchz2Df.billingDocumentNumber) \

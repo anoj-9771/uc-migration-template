@@ -95,7 +95,7 @@ def getBusinessPartnerGroupRelationship():
                             StructField('relationshipType', StringType(), True)
                       ]) 
 
-    return df, schema  
+    return isu0bpRelationsAttrDf, schema  
 
 # COMMAND ----------
 
