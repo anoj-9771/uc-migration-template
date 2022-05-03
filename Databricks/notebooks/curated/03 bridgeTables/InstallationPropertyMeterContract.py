@@ -20,7 +20,7 @@ def getInstallationPropertyMeterContract():
          
     #1.Load dimension/relationship tables into dataframe
     dimInstallationDf = spark.sql(f"select \
-                                      dimInstallationSK as installationSK, \
+                                      installationSK, \
                                       installationId, \
                                       propertyNumber \
                                       from {ADS_DATABASE_CURATED}.dimInstallation \
@@ -29,7 +29,7 @@ def getInstallationPropertyMeterContract():
     #display(dimInstallationDf)
     
     dimContractDf = spark.sql(f"select \
-                                    dimContractSK as contractSK, \
+                                    contractSK, \
                                     contractId, \
                                     installationId, \
                                     validFromDate, \
@@ -41,14 +41,14 @@ def getInstallationPropertyMeterContract():
     
     dimPropertyDf = spark.sql(f"select \
                                     propertyNumber, \
-                                    dimPropertySK as propertySK \
+                                    propertySK \
                                     from {ADS_DATABASE_CURATED}.dimProperty \
                                     where sourceSystemCode = 'ISU' and _RecordCurrent = 1 and _RecordDeleted = 0")
 #    print(f"Number of rows in dimInstallationDf: ", dimPropertyDf.count())
 #    display(dimPropertyDf)
 
 #     dimMeterDf = spark.sql(f"select \
-#                                 dimMeterSK, \
+#                                 meterSK, \
 #                                 meterNumber \
 #                                 from {ADS_DATABASE_CURATED}.dimMeter \
 #                                 where sourceSystemCode = 'ISU' and _RecordCurrent = 1 and _RecordDeleted = 0")
@@ -97,7 +97,7 @@ def getInstallationPropertyMeterContract():
 #    display(df)    
             
 #    df = df.join(dimMeterDf, (df.logicalDeviceNumber == dimMeterDf.logicalDeviceNumber), how="left") \
-#             .select(df['*'], dimMeterDf['dimMeterSK'], dimMeterDf['meterNumber'])     
+#             .select(df['*'], dimMeterDf['meterSK'], dimMeterDf['meterNumber'])     
 #    print(f'{df.count():,} rows in df -3')
 #    display(df)   
     

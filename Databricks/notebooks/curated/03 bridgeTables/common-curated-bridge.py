@@ -140,7 +140,7 @@ def installationPropertyMeterContract():
     df, schema = getInstallationPropertyMeterContract()
     TemplateEtl(df, 
              entity="brgInstallationPropertyMeterContract", 
-             businessKey="dimInstallationSK",
+             businessKey="installationSK",
              schema=schema,
              AddSK=False
             ) 

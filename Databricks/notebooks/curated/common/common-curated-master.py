@@ -309,7 +309,7 @@ def billedWaterConsumption():
     df = getBilledWaterConsumption()
     TemplateEtl(df,
              entity="factBilledWaterConsumption", 
-             businessKey="sourceSystemCode,dimBillingDocumentSK,dimPropertySK,dimMeterSK,billingPeriodStartDate",
+             businessKey="sourceSystemCode,billingDocumentSK,propertySK,meterSK,billingPeriodStartDate",
              schema=df.schema,
              AddSK=False
             )
@@ -318,7 +318,7 @@ def billedWaterConsumptionDaily():
     df = getBilledWaterConsumptionDaily()
     TemplateEtl(df, 
              entity="factDailyApportionedConsumption", 
-             businessKey="sourceSystemCode,consumptionDate,dimBillingDocumentSK,dimPropertySK,dimMeterSK",
+             businessKey="sourceSystemCode,consumptionDate,billingDocumentSK,propertySK,meterSK",
              schema=df.schema,
              AddSK=False
             )
@@ -427,7 +427,7 @@ Main()
 # MAGIC fact.*
 # MAGIC from curated.factbilledwaterconsumption fact
 # MAGIC left outer join curated.dimproperty prop
-# MAGIC on fact.dimPropertySK = prop.dimPropertySK
+# MAGIC on fact.propertySK = prop.propertySK
 # MAGIC left outer join (select * from (select prophist.*,RANK() OVER   (PARTITION BY propertyNumber ORDER BY prophist.createddate desc,prophist.validToDate desc,prophist.validfromdate desc) as flag from cleansed.isu_zcd_tpropty_hist prophist) where flag=1) prophist
 # MAGIC on prop.propertyNumber = prophist.propertyNumber
 # MAGIC ;
@@ -442,7 +442,7 @@ Main()
 # MAGIC fact.*
 # MAGIC from curated.factDailyApportionedConsumption fact
 # MAGIC left outer join curated.dimproperty prop
-# MAGIC on fact.dimPropertySK = prop.dimPropertySK
+# MAGIC on fact.propertySK = prop.propertySK
 # MAGIC left outer join (select * from (select prophist.*,RANK() OVER   (PARTITION BY propertyNumber ORDER BY prophist.createddate desc,prophist.validToDate desc,prophist.validfromdate desc) as flag from cleansed.isu_zcd_tpropty_hist prophist) where flag=1) prophist
 # MAGIC on prop.propertyNumber = prophist.propertyNumber
 # MAGIC ;

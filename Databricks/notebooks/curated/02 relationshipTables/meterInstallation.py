@@ -19,7 +19,7 @@
 def getmeterInstallation():
 
     #1.Load current Cleansed layer table data into dataframe
-    df = spark.sql(f"select din.dimInstallationSK as installationSK, \
+    df = spark.sql(f"select din.installationSK as installationSK, \
                             devin.installationId as installationId, \
                             devin.logicalDeviceNumber as logicalDeviceNumber, \
                             devin.validToDate as validToDate, \
