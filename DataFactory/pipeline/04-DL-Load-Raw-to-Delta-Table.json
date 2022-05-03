@@ -16,216 +16,11 @@
 				}
 			},
 			{
-				"name": "If-ClusterType",
-				"type": "IfCondition",
-				"dependsOn": [
-					{
-						"activity": "Set-ClusterType",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
-				"userProperties": [],
-				"typeProperties": {
-					"expression": {
-						"value": "@equals(variables('ClusterType'), 'interactive')",
-						"type": "Expression"
-					},
-					"ifFalseActivities": [
-						{
-							"name": "Notebook-Delta-Table-Job",
-							"type": "DatabricksNotebook",
-							"dependsOn": [],
-							"policy": {
-								"timeout": "7.00:00:00",
-								"retry": 0,
-								"retryIntervalInSeconds": 30,
-								"secureOutput": false,
-								"secureInput": false
-							},
-							"userProperties": [],
-							"typeProperties": {
-								"notebookPath": {
-									"value": "@variables('NoteBookURL')",
-									"type": "Expression"
-								},
-								"baseParameters": {
-									"file_object": {
-										"value": "@concat(pipeline().parameters.TargetBLOBFolder,pipeline().parameters.TargetBLOBName)",
-										"type": "Expression"
-									},
-									"source_param": {
-										"value": "@string(pipeline().parameters.TaskDetails)",
-										"type": "Expression"
-									},
-									"file_date_time_stamp": {
-										"value": "@pipeline().parameters.SourceFileDateTimeStamp",
-										"type": "Expression"
-									}
-								}
-							},
-							"linkedServiceName": {
-								"referenceName": "LS-AzureDatabricks_JobCluster",
-								"type": "LinkedServiceReference",
-								"parameters": {
-									"kvSecret": {
-										"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[0]",
-										"type": "Expression"
-									},
-									"DataBricksClusterType": {
-										"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[2]",
-										"type": "Expression"
-									},
-									"DataBricksClusterVersion": {
-										"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[3]",
-										"type": "Expression"
-									},
-									"DataBricksWorkerNodes": {
-										"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[4]",
-										"type": "Expression"
-									}
-								}
-							}
-						},
-						{
-							"name": "Set-ReturnValue-Job-DataFile",
-							"type": "SetVariable",
-							"dependsOn": [
-								{
-									"activity": "Notebook-Delta-Table-Job",
-									"dependencyConditions": [
-										"Succeeded"
-									]
-								}
-							],
-							"userProperties": [],
-							"typeProperties": {
-								"variableName": "DataFileRecordCount",
-								"value": {
-									"value": "@string(activity('Notebook-Delta-Table-Job').output.runOutput.DataFileRecordCount)",
-									"type": "Expression"
-								}
-							}
-						},
-						{
-							"name": "Set-ReturnValue-Job-TargetTable",
-							"type": "SetVariable",
-							"dependsOn": [
-								{
-									"activity": "Notebook-Delta-Table-Job",
-									"dependencyConditions": [
-										"Succeeded"
-									]
-								}
-							],
-							"userProperties": [],
-							"typeProperties": {
-								"variableName": "TargetTableRecordCount",
-								"value": {
-									"value": "@string(activity('Notebook-Delta-Table-Job').output.runOutput.TargetTableRecordCount)",
-									"type": "Expression"
-								}
-							}
-						}
-					],
-					"ifTrueActivities": [
-						{
-							"name": "Notebook-Delta-Table-Interactive",
-							"type": "DatabricksNotebook",
-							"dependsOn": [],
-							"policy": {
-								"timeout": "0.02:00:00",
-								"retry": 0,
-								"retryIntervalInSeconds": 30,
-								"secureOutput": false,
-								"secureInput": false
-							},
-							"userProperties": [],
-							"typeProperties": {
-								"notebookPath": {
-									"value": "@variables('NoteBookURL')",
-									"type": "Expression"
-								},
-								"baseParameters": {
-									"file_object": {
-										"value": "@concat(pipeline().parameters.TargetBLOBFolder,pipeline().parameters.TargetBLOBName)",
-										"type": "Expression"
-									},
-									"source_param": {
-										"value": "@string(pipeline().parameters.TaskDetails)",
-										"type": "Expression"
-									},
-									"file_date_time_stamp": {
-										"value": "@pipeline().parameters.SourceFileDateTimeStamp",
-										"type": "Expression"
-									}
-								}
-							},
-							"linkedServiceName": {
-								"referenceName": "LS-AzureDatabricks_DefinedCluster",
-								"type": "LinkedServiceReference",
-								"parameters": {
-									"kvSecret": {
-										"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[0]",
-										"type": "Expression"
-									},
-									"clusterId": {
-										"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[1]",
-										"type": "Expression"
-									}
-								}
-							}
-						},
-						{
-							"name": "Set-ReturnValue-Interactive-DataFile",
-							"type": "SetVariable",
-							"dependsOn": [
-								{
-									"activity": "Notebook-Delta-Table-Interactive",
-									"dependencyConditions": [
-										"Succeeded"
-									]
-								}
-							],
-							"userProperties": [],
-							"typeProperties": {
-								"variableName": "DataFileRecordCount",
-								"value": {
-									"value": "@string(activity('Notebook-Delta-Table-Interactive').output.runOutput.DataFileRecordCount)",
-									"type": "Expression"
-								}
-							}
-						},
-						{
-							"name": "Set-ReturnValue-Interactive-TargetTable",
-							"type": "SetVariable",
-							"dependsOn": [
-								{
-									"activity": "Notebook-Delta-Table-Interactive",
-									"dependencyConditions": [
-										"Succeeded"
-									]
-								}
-							],
-							"userProperties": [],
-							"typeProperties": {
-								"variableName": "TargetTableRecordCount",
-								"value": {
-									"value": "@string(activity('Notebook-Delta-Table-Interactive').output.runOutput.TargetTableRecordCount)",
-									"type": "Expression"
-								}
-							}
-						}
-					]
-				}
-			},
-			{
 				"name": "SP-Update-Manifest-Delta-Records",
 				"type": "SqlServerStoredProcedure",
 				"dependsOn": [
 					{
-						"activity": "If-ClusterType",
+						"activity": "SwitchCluster",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -282,6 +77,315 @@
 				"linkedServiceName": {
 					"referenceName": "LS-AzureSqlDatabase_Ctrldb",
 					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "SwitchCluster",
+				"type": "Switch",
+				"dependsOn": [
+					{
+						"activity": "Set-ClusterType",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"on": {
+						"value": "@variables('ClusterType')",
+						"type": "Expression"
+					},
+					"cases": [
+						{
+							"value": "clusterpool",
+							"activities": [
+								{
+									"name": "Notebook-Delta-Table-ClusterPool",
+									"type": "DatabricksNotebook",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "7.00:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"notebookPath": {
+											"value": "@variables('NoteBookURL')",
+											"type": "Expression"
+										},
+										"baseParameters": {
+											"file_object": {
+												"value": "@concat(pipeline().parameters.TargetBLOBFolder,pipeline().parameters.TargetBLOBName)",
+												"type": "Expression"
+											},
+											"source_param": {
+												"value": "@string(pipeline().parameters.TaskDetails)",
+												"type": "Expression"
+											},
+											"file_date_time_stamp": {
+												"value": "@pipeline().parameters.SourceFileDateTimeStamp",
+												"type": "Expression"
+											}
+										}
+									},
+									"linkedServiceName": {
+										"referenceName": "LS_AzureDatabricks_InstancePool",
+										"type": "LinkedServiceReference",
+										"parameters": {
+											"kvSecret": {
+												"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[0]",
+												"type": "Expression"
+											},
+											"PoolId": {
+												"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[1]",
+												"type": "Expression"
+											},
+											"DatabricksVersion": {
+												"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[3]",
+												"type": "Expression"
+											}
+										}
+									}
+								},
+								{
+									"name": "Set-ReturnValue-Pool-DataFile",
+									"type": "SetVariable",
+									"dependsOn": [
+										{
+											"activity": "Notebook-Delta-Table-ClusterPool",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"userProperties": [],
+									"typeProperties": {
+										"variableName": "DataFileRecordCount",
+										"value": {
+											"value": "@string(activity('Notebook-Delta-Table-ClusterPool').output.runOutput.DataFileRecordCount)",
+											"type": "Expression"
+										}
+									}
+								},
+								{
+									"name": "Set-ReturnValue-Pool-TargetTable",
+									"type": "SetVariable",
+									"dependsOn": [
+										{
+											"activity": "Notebook-Delta-Table-ClusterPool",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"userProperties": [],
+									"typeProperties": {
+										"variableName": "TargetTableRecordCount",
+										"value": {
+											"value": "@string(activity('Notebook-Delta-Table-ClusterPool').output.runOutput.TargetTableRecordCount)",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						},
+						{
+							"value": "jobcluster",
+							"activities": [
+								{
+									"name": "Notebook-Delta-Table-Job",
+									"type": "DatabricksNotebook",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "7.00:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"notebookPath": {
+											"value": "@variables('NoteBookURL')",
+											"type": "Expression"
+										},
+										"baseParameters": {
+											"file_object": {
+												"value": "@concat(pipeline().parameters.TargetBLOBFolder,pipeline().parameters.TargetBLOBName)",
+												"type": "Expression"
+											},
+											"source_param": {
+												"value": "@string(pipeline().parameters.TaskDetails)",
+												"type": "Expression"
+											},
+											"file_date_time_stamp": {
+												"value": "@pipeline().parameters.SourceFileDateTimeStamp",
+												"type": "Expression"
+											}
+										}
+									},
+									"linkedServiceName": {
+										"referenceName": "LS-AzureDatabricks_JobCluster",
+										"type": "LinkedServiceReference",
+										"parameters": {
+											"kvSecret": {
+												"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[0]",
+												"type": "Expression"
+											},
+											"DataBricksClusterType": {
+												"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[2]",
+												"type": "Expression"
+											},
+											"DataBricksClusterVersion": {
+												"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[3]",
+												"type": "Expression"
+											},
+											"DataBricksWorkerNodes": {
+												"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[4]",
+												"type": "Expression"
+											}
+										}
+									}
+								},
+								{
+									"name": "Set-ReturnValue-Job-DataFile",
+									"type": "SetVariable",
+									"dependsOn": [
+										{
+											"activity": "Notebook-Delta-Table-Job",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"userProperties": [],
+									"typeProperties": {
+										"variableName": "DataFileRecordCount",
+										"value": {
+											"value": "@string(activity('Notebook-Delta-Table-Job').output.runOutput.DataFileRecordCount)",
+											"type": "Expression"
+										}
+									}
+								},
+								{
+									"name": "Set-ReturnValue-Job-TargetTable",
+									"type": "SetVariable",
+									"dependsOn": [
+										{
+											"activity": "Notebook-Delta-Table-Job",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"userProperties": [],
+									"typeProperties": {
+										"variableName": "TargetTableRecordCount",
+										"value": {
+											"value": "@string(activity('Notebook-Delta-Table-Job').output.runOutput.TargetTableRecordCount)",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						},
+						{
+							"value": "interactive",
+							"activities": [
+								{
+									"name": "Notebook-Delta-Table-Interactive",
+									"type": "DatabricksNotebook",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "0.02:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"notebookPath": {
+											"value": "@variables('NoteBookURL')",
+											"type": "Expression"
+										},
+										"baseParameters": {
+											"file_object": {
+												"value": "@concat(pipeline().parameters.TargetBLOBFolder,pipeline().parameters.TargetBLOBName)",
+												"type": "Expression"
+											},
+											"source_param": {
+												"value": "@string(pipeline().parameters.TaskDetails)",
+												"type": "Expression"
+											},
+											"file_date_time_stamp": {
+												"value": "@pipeline().parameters.SourceFileDateTimeStamp",
+												"type": "Expression"
+											}
+										}
+									},
+									"linkedServiceName": {
+										"referenceName": "LS-AzureDatabricks_DefinedCluster",
+										"type": "LinkedServiceReference",
+										"parameters": {
+											"kvSecret": {
+												"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[0]",
+												"type": "Expression"
+											},
+											"clusterId": {
+												"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[1]",
+												"type": "Expression"
+											}
+										}
+									}
+								},
+								{
+									"name": "Set-ReturnValue-Interactive-DataFile",
+									"type": "SetVariable",
+									"dependsOn": [
+										{
+											"activity": "Notebook-Delta-Table-Interactive",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"userProperties": [],
+									"typeProperties": {
+										"variableName": "DataFileRecordCount",
+										"value": {
+											"value": "@string(activity('Notebook-Delta-Table-Interactive').output.runOutput.DataFileRecordCount)",
+											"type": "Expression"
+										}
+									}
+								},
+								{
+									"name": "Set-ReturnValue-Interactive-TargetTable",
+									"type": "SetVariable",
+									"dependsOn": [
+										{
+											"activity": "Notebook-Delta-Table-Interactive",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"userProperties": [],
+									"typeProperties": {
+										"variableName": "TargetTableRecordCount",
+										"value": {
+											"value": "@string(activity('Notebook-Delta-Table-Interactive').output.runOutput.TargetTableRecordCount)",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						}
+					]
 				}
 			}
 		],

@@ -176,7 +176,7 @@ df = spark.sql(f"WITH stage AS \
                                   case when BELNR = 'na' then '' else BELNR end as billingDocumentNumber, \
                                   BUKRS as companyCode, \
                                   cc.companyName as companyName, \
-                                  SPARTE as divisonCode, \
+                                  SPARTE as divisionCode, \
                                   GPARTNER as businessPartnerGroupNumber, \
                                   VKONT as contractAccountNumber, \
                                   VERTRAG as contractId, \
@@ -283,7 +283,7 @@ df = spark.sql(f"WITH stage AS \
 #                                   case when BELNR = 'na' then '' else BELNR end as billingDocumentNumber, \
 #                                   BUKRS as companyCode, \
 #                                   cc.companyName as companyName, \
-#                                   SPARTE as divisonCode, \
+#                                   SPARTE as divisionCode, \
 #                                   GPARTNER as businessPartnerGroupNumber, \
 #                                   VKONT as contractAccountNumber, \
 #                                   VERTRAG as contractId, \
@@ -385,7 +385,7 @@ newSchema = StructType([
                           StructField('billingDocumentNumber', StringType(), False),
                           StructField('companyCode', StringType(), True),
                           StructField('companyName', StringType(), True),
-                          StructField('divisonCode', StringType(), True),
+                          StructField('divisionCode', StringType(), True),
                           StructField('businessPartnerGroupNumber', StringType(), True),
                           StructField('contractAccountNumber', StringType(), True),
                           StructField('contractId', StringType(), True),
@@ -483,7 +483,7 @@ newSchema = StructType([
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Dataframe to Staged & Cleansed
-DeltaSaveDataFrameToDeltaTableNew(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
+DeltaSaveDataFrameToDeltaTable(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
 
 # COMMAND ----------
 

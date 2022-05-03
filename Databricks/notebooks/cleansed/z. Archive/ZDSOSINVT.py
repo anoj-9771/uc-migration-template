@@ -188,7 +188,7 @@ df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
-DeltaSaveDataframeDirect(df_updated_column, "t", source_object, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
+DeltaSaveDataframeDirect(df_cleansed, "t", source_object, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", newSchema, "")
 
 # COMMAND ----------
 

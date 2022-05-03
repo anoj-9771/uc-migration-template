@@ -136,6 +136,7 @@ DeltaSaveDataFrameToDeltaTable(
     target_database = ADS_DATABASE_CLEANSED,
     data_lake_folder = Params[PARAMS_SOURCE_GROUP],
     data_load_mode = data_load_mode,
+    "",
     track_changes = False, 
     is_delta_extract = False, 
     business_key = "", 

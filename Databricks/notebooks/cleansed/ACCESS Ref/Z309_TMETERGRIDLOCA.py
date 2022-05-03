@@ -186,7 +186,7 @@ DeltaSaveToDeltaTable (
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT \
 	C_METE_GRID_LOCA as meterGridLocationCode, \
-	T_METE_GRID_LOCA as meterGridLocation, \
+	initcap(T_METE_GRID_LOCA) as meterGridLocation, \
 	ToValidDate(D_METE_GRID_EFFE) as meterGridLocationEffectiveDate, \
 	ToValidDate(D_METE_GRID_CANC) as meterGridLocationCancelledDate, \
 	_RecordStart, \

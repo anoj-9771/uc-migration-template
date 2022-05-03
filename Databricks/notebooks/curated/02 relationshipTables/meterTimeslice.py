@@ -1,22 +1,24 @@
 # Databricks notebook source
 ###########################################################################################################################
-# Function: getmeterTimeslice
-#  GETS meterTimeslice
-# Returns:
-#  Dataframe of transformed Location
+# Loads DATE dimension 
 #############################################################################################################################
 # Method
-# 1.Create Function
-# 2.Load Cleansed layer table data into dataframe and transform
-# 3.JOIN TABLES
-# 4.UNION TABLES
-# 5.SELECT / TRANSFORM
+# 1.Load Cleansed layer table data into dataframe and transform
+# 2.JOIN TABLES
+# 3.UNION TABLES
+# 4.SELECT / TRANSFORM
+# 5.SCHEMA DEFINITION
 #############################################################################################################################
-#1.Create Function
-def getmeterTimeslice():
-    #meterTimeslice
-    #2.Load current Cleansed layer table data into dataframe
 
+# COMMAND ----------
+
+# MAGIC %run ../common/common-curated-includeMain
+
+# COMMAND ----------
+
+def getmeterTimeslice():
+
+    #1.Load current Cleansed layer table data into dataframe
     df = spark.sql(f"select dm.dimMeterSK as meterSK , \
                             devh.equipmentNumber as equipmentNumber , \
                             devh.validToDate as validToDate , \
@@ -55,49 +57,50 @@ def getmeterTimeslice():
                      ")
 
     df.createOrReplaceTempView('alldeviceTimeslice')
-    #3.JOIN TABLES  
+    #2.JOIN TABLES  
 
-    #4.UNION TABLES
+    #3.UNION TABLES
     #Create dummy record
-#     dummyRec = tuple([-1] + ['Unknown'] * (len(HydraLocationDf.columns) - 3) + [0,0]) 
-#     dummyDimRecDf = spark.createDataFrame([dummyRec],HydraLocationDf.columns)
-#     HydraLocationDf = HydraLocationDf.unionByName(dummyDimRecDf, allowMissingColumns = True)
+    #dummyRec = tuple([-1] + ['Unknown'] * (len(HydraLocationDf.columns) - 3) + [0,0]) 
+    #dummyDimRecDf = spark.createDataFrame([dummyRec],HydraLocationDf.columns)
+    #HydraLocationDf = HydraLocationDf.unionByName(dummyDimRecDf, allowMissingColumns = True)
 
-    #5.SELECT / TRANSFORM
+    #4.SELECT / TRANSFORM
     df = df.selectExpr( \
-                  'meterSK' \
-                , 'equipmentNumber' \
-                , 'validToDate' \
-                , 'validFromDate' \
-                , 'deviceCategoryCombination' \
-                , 'logicalDeviceNumber' \
-                , 'registerGroupCode' \
-                , 'registerGroup' \
-                , 'installationDate' \
-                , 'deviceRemovalDate' \
-                , 'activityReasonCode' \
-                , 'activityReason' \
-                , 'deviceLocation' \
-                , 'windingGroup' \
-                , 'deletedIndicator' \
-                , 'bwDeltaProcess' \
-                , 'advancedMeterCapabilityGroup' \
-                , 'messageAttributeId' \
-                , 'materialNumber' \
-                , 'installationId' \
-                , 'addressNumber' \
-                , 'cityName' \
-                , 'houseNumber' \
-                , 'streetName' \
-                , 'postalCode' 
-                , 'superiorFunctionalLocationNumber' \
-                , 'policeEventNumber' \
-                , 'orderNumber' \
-                , 'createdBy' 
-            )
+                      'meterSK' \
+                    ,'equipmentNumber' \
+                    ,'validToDate' \
+                    ,'validFromDate' \
+                    ,'deviceCategoryCombination' \
+                    ,'logicalDeviceNumber' \
+                    ,'registerGroupCode' \
+                    ,'registerGroup' \
+                    ,'installationDate' \
+                    ,'deviceRemovalDate' \
+                    ,'activityReasonCode' \
+                    ,'activityReason' \
+                    ,'deviceLocation' \
+                    ,'windingGroup' \
+                    ,'deletedIndicator' \
+                    ,'bwDeltaProcess' \
+                    ,'advancedMeterCapabilityGroup' \
+                    ,'messageAttributeId' \
+                    ,'materialNumber' \
+                    ,'installationId' \
+                    ,'addressNumber' \
+                    ,'cityName' \
+                    ,'houseNumber' \
+                    ,'streetName' \
+                    ,'postalCode' 
+                    ,'superiorFunctionalLocationNumber' \
+                    ,'policeEventNumber' \
+                    ,'orderNumber' \
+                    ,'createdBy' 
+                )
 
-    #6.Apply schema definition
-    newSchema = StructType([
+    #5.Apply schema definition
+    schema = StructType([
+                            StructField('meterTimesliceSK', LongType(), False),
                             StructField("meterSK", LongType(), False),
                             StructField("equipmentNumber", StringType(), False),
                             StructField("validToDate", DateType(), False),
@@ -129,9 +132,13 @@ def getmeterTimeslice():
                             StructField("createdBy", StringType(), True)
                       ])
 
-    df = spark.createDataFrame(df.rdd, schema=newSchema)
-    return df
+    return df, schema
 
 # COMMAND ----------
 
+df, schema = getmeterTimeslice()
+TemplateEtl(df, entity="meterTimeslice", businessKey="meterSK,equipmentNumber,validToDate", schema=schema, AddSK=True)
 
+# COMMAND ----------
+
+dbutils.notebook.exit("1")

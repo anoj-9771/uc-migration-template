@@ -1,6 +1,7 @@
 {
 	"name": "LS-AzureDatabricks_DefinedCluster",
 	"properties": {
+		"description": "Interactive Cluster",
 		"parameters": {
 			"kvSecret": {
 				"type": "string",
@@ -30,10 +31,9 @@
 			"existingClusterId": "@linkedService().clusterId"
 		},
 		"connectVia": {
-			"referenceName": "IntegrationRuntime-SelfHosted",
+			"referenceName": "IntegrationRuntime-Azure-ManagedVnet-01",
 			"type": "IntegrationRuntimeReference"
-		},
-		"description": "Interactive Cluster"
+		}
 	},
 	"type": "Microsoft.DataFactory/factories/linkedservices"
 }

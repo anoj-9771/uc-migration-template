@@ -185,10 +185,10 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT \
-	C_METE_CHAN_REAS as meterChangeReasonCode, \
+	C_METE_CHAN_REAS as meterExchangeReasonCode, \
 	C_METE_CHAN_ABBR as meterExchangeReasonAbbreviation, \
-	T_METE_CHAN_REAS as meterExchangeReason, \
-	ToValidDate(D_CHAN_REAS_EFFE) as meterexchangeReasonEffectiveDate, \
+	initcap(T_METE_CHAN_REAS) as meterExchangeReason, \
+	ToValidDate(D_CHAN_REAS_EFFE) as meterExchangeReasonEffectiveDate, \
 	ToValidDate(D_CHAN_REAS_CANC) as meterExchangeReasonCancelledDate, \
 	_RecordStart, \
 	_RecordEnd, \
@@ -200,10 +200,10 @@ df_cleansed = spark.sql(f"SELECT \
 # COMMAND ----------
 
 newSchema = StructType([
-	StructField('meterChangeReasonCode',StringType(),False),
+	StructField('meterExchangeReasonCode',StringType(),False),
 	StructField('meterExchangeReasonAbbreviation',StringType(),True),
 	StructField('meterExchangeReason',StringType(),True),
-	StructField('meterexchangeReasonEffectiveDate',DateType(),True),
+	StructField('meterExchangeReasonEffectiveDate',DateType(),True),
 	StructField('meterExchangeReasonCancelledDate',DateType(),True),
 	StructField('_RecordStart',TimestampType(),False),
 	StructField('_RecordEnd',TimestampType(),False),

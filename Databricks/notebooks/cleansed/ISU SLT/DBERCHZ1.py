@@ -177,6 +177,7 @@ df = spark.sql(f"WITH stage AS \
                                   case when BELZEILE = 'na' then '' else BELZEILE end as billingDocumentLineItemId, \
                                   CSNO as billingSequenceNumber, \
                                   BELZART as lineItemTypeCode, \
+                                  li.lineItemType, \
                                   ABSLKZ as billingLineItemBudgetBillingIndicator, \
                                   DIFFKZ as lineItemDiscountStatisticsIndicator, \
                                   BUCHREL as billingLineItemRelevantPostingIndicator, \
@@ -188,6 +189,7 @@ df = spark.sql(f"WITH stage AS \
                                   AKLASSE as billingClassCode, \
                                   bc.billingClass as billingClass, \
                                   BRANCHE as industryText, \
+                                  ic.industry, \
                                   TVORG as subtransactionForDocumentItem, \
                                   GEGEN_TVORG as offsettingTransactionSubtransactionForDocumentItem, \
                                   LINESORT as presortingBillingLineItems, \
@@ -203,8 +205,10 @@ df = spark.sql(f"WITH stage AS \
                                   TIMTYP as timeCategoryCode, \
                                   FRAN_TYPE as franchiseFeeTypeCode, \
                                   KONZIGR as franchiseFeeGroupNumber, \
-                                  TARIFTYP as rateTypeCode, \
+                                  stg.TARIFTYP as rateTypeCode, \
+                                  rc.TTYPBEZ as rateType, \
                                   TARIFNR as rateId, \
+                                  rd.rateDescription, \
                                   KONDIGR as rateFactGroupNumber, \
                                   STTARIF as statisticalRate, \
                                   GEWKEY as weightingKeyId, \
@@ -222,6 +226,7 @@ df = spark.sql(f"WITH stage AS \
                                   STAFO as statisticsUpdateGroupCode, \
                                   ARTMENGE as billedQuantityStatisticsCode, \
                                   STATTART as statisticalAnalysisRateType, \
+                                  srd.rateType as statisticalAnalysisRateTypeDescription, \
                                   TIMECONTRL as periodControlCode, \
                                   cast(TCNUMTOR as dec(8,4)) as timesliceNumeratorTimePortion, \
                                   cast(TCDENOMTOR as dec(8,4)) as timesliceDenominatorTimePortion, \
@@ -238,7 +243,12 @@ df = spark.sql(f"WITH stage AS \
                                   '1' as _RecordCurrent, \
                                   cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
                          FROM stage stg \
+                                 left outer join {ADS_DATABASE_CLEANSED}.isu_te835t li on li.lineItemTypeCode = stg.BELZART \
                                  left outer join {ADS_DATABASE_CLEANSED}.isu_0uc_aklasse_text bc on bc.billingClassCode = stg.AKLASSE \
+                                 left outer join {ADS_DATABASE_CLEANSED}.isu_0ind_sector_text ic on ic.industryCode = stg.BRANCHE \
+                                 left outer join {ADS_DATABASE_CLEANSED}.isu_0uc_tariftyp_text rc on rc.TARIFTYP = stg.TARIFTYP \
+                                 left outer join {ADS_DATABASE_CLEANSED}.isu_0uc_tarifnr_text rd on rd.rateId = stg.TARIFNR \
+                                 left outer join {ADS_DATABASE_CLEANSED}.isu_0uc_stattart_text srd on srd.rateTypeCode = stg.STATTART \
                          where stg._RecordVersion = 1 ")
 
 #print(f'Number of rows: {df.count()}')
@@ -325,6 +335,7 @@ newSchema = StructType([
                             StructField('billingDocumentLineItemId', StringType(), False),
                             StructField('billingSequenceNumber', StringType(), True),
                             StructField('lineItemTypeCode', StringType(), True),
+                            StructField('lineItemType', StringType(), True),
                             StructField('billingLineItemBudgetBillingIndicator', StringType(), True),
                             StructField('lineItemDiscountStatisticsIndicator', StringType(), True),
                             StructField('billingLineItemRelevantPostingIndicator', StringType(), True),
@@ -336,6 +347,7 @@ newSchema = StructType([
                             StructField('billingClassCode', StringType(), True),
                             StructField('billingClass', StringType(), True),
                             StructField('industryText', StringType(), True),
+                            StructField('industry', StringType(), True),
                             StructField('subtransactionForDocumentItem', StringType(), True),
                             StructField('offsettingTransactionSubtransactionForDocumentItem', StringType(), True),
                             StructField('presortingBillingLineItems', StringType(), True),
@@ -352,7 +364,9 @@ newSchema = StructType([
                             StructField('franchiseFeeTypeCode', StringType(), True),
                             StructField('franchiseFeeGroupNumber', StringType(), True),
                             StructField('rateTypeCode', StringType(), True),
+                            StructField('rateType', StringType(), True),
                             StructField('rateId', StringType(), True),
+                            StructField('rateDescription', StringType(), True),
                             StructField('rateFactGroupNumber', StringType(), True),
                             StructField('statisticalRate', StringType(), True),
                             StructField('weightingKeyId', StringType(), True),
@@ -370,6 +384,7 @@ newSchema = StructType([
                             StructField('statisticsUpdateGroupCode', StringType(), True),
                             StructField('billedQuantityStatisticsCode', StringType(), True),
                             StructField('statisticalAnalysisRateType', StringType(), True),
+                            StructField('statisticalAnalysisRateTypeDescription', StringType(), True),
                             StructField('periodControlCode', StringType(), True),
                             StructField('timesliceNumeratorTimePortion', DecimalType(8,4), True),
                             StructField('timesliceDenominatorTimePortion', DecimalType(8,4), True),
@@ -391,7 +406,7 @@ newSchema = StructType([
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
-DeltaSaveDataFrameToDeltaTableNew(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
+DeltaSaveDataFrameToDeltaTable(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
 
 # COMMAND ----------
 

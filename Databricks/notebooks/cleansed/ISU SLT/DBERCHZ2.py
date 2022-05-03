@@ -205,6 +205,9 @@ df = spark.sql(f"WITH stage AS \
                                 cast(N_ZWSTVOR as dec(14,14)) as previousMeterReadingAfterDecimalPlaces, \
                                 cast(V_ZWSTDIFF as dec(17)) as meterReadingDifferenceBeforeDecimalPlaces, \
                                 cast(N_ZWSTDIFF as dec(14,14)) as meterReadingDifferenceAfterDecimalPlaces, \
+                                REGRELSORT as registerRelationshipSortHelpCode, \
+                                QDPROC as quantityDeterminationProcedureCode, \
+                                MRCONNECT as meterReadingDocumentId, \
                                 cast('1900-01-01' as TimeStamp) as _RecordStart, \
                                 cast('9999-12-31' as TimeStamp) as _RecordEnd, \
                                 '0' as _RecordDeleted, \
@@ -295,6 +298,9 @@ newSchema = StructType([
                           StructField('previousMeterReadingAfterDecimalPlaces', DecimalType(14,14), True),
                           StructField('meterReadingDifferenceBeforeDecimalPlaces', DecimalType(17), True),
                           StructField('meterReadingDifferenceAfterDecimalPlaces', DecimalType(14,14), True),
+                          StructField('registerRelationshipSortHelpCode', StringType(), True),
+                          StructField('quantityDeterminationProcedureCode', StringType(), True),
+                          StructField('meterReadingDocumentId', StringType(), True),
                           StructField('_RecordStart', TimestampType(), False),
                           StructField('_RecordEnd', TimestampType(), False),
                           StructField('_RecordDeleted', IntegerType(), False),
@@ -306,7 +312,7 @@ newSchema = StructType([
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
-DeltaSaveDataFrameToDeltaTableNew(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
+DeltaSaveDataFrameToDeltaTable(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
 
 # COMMAND ----------
 
