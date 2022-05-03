@@ -77,7 +77,7 @@ def getMeterConsumptionBillingLineItemIsu():
                                 ).dropDuplicates()
     #5.Apply schema definition
     schema = StructType([
-                            StructField('dimMeterConsumptionBillingLineItemSK', LongType(), False),
+                            StructField('meterConsumptionBillingLineItemSK', LongType(), False),
                             StructField("sourceSystemCode", StringType(), False),
                             StructField("billingDocumentNumber", StringType(), False),
                             StructField("billingDocumentLineItemId", StringType(), False),

@@ -72,35 +72,35 @@ def getBilledWaterConsumptionDaily():
     #billedConsDf = billedConsDf.withColumn("avgMeteredWaterConsumption",col("avgMeteredWaterConsumption").cast("decimal(18,6)"))
     #4.Load Dmension tables into dataframe
     
-    dimPropertyDf = spark.sql(f"select sourceSystemCode, dimPropertySK, propertyNumber \
+    dimPropertyDf = spark.sql(f"select sourceSystemCode, propertySK, propertyNumber \
                                 from {ADS_DATABASE_CURATED}.dimProperty \
                                 where _RecordCurrent = 1 and _RecordDeleted = 0")
 
-    dimLocationDf = spark.sql(f"select dimLocationSK, locationID \
+    dimLocationDf = spark.sql(f"select locationSK, locationID \
                                  from {ADS_DATABASE_CURATED}.dimLocation \
                                  where _RecordCurrent = 1 and _RecordDeleted = 0")
 
-    dimMeterDf = spark.sql(f"select sourceSystemCode, dimMeterSK, meterNumber \
+    dimMeterDf = spark.sql(f"select sourceSystemCode, meterSK, meterNumber \
                                  from {ADS_DATABASE_CURATED}.dimMeter \
                                  where _RecordCurrent = 1 and _RecordDeleted = 0")
     
-    dimBillDocDf = spark.sql(f"select dimMeterConsumptionBillingDocumentSK, sourceSystemCode, billingDocumentNumber \
+    dimBillDocDf = spark.sql(f"select meterConsumptionBillingDocumentSK, sourceSystemCode, billingDocumentNumber \
                                 from {ADS_DATABASE_CURATED}.dimMeterConsumptionBillingDocument \
                                 where _RecordCurrent = 1 and _RecordDeleted = 0")
     
-    dimBillLineItemDf = spark.sql(f"select dimMeterConsumptionBillingLineItemSK, billingDocumentNumber, billingDocumentLineItemId \
+    dimBillLineItemDf = spark.sql(f"select meterConsumptionBillingLineItemSK, billingDocumentNumber, billingDocumentLineItemId \
                                 from {ADS_DATABASE_CURATED}.dimMeterConsumptionBillingLineItem \
                                 where _RecordCurrent = 1 and _RecordDeleted = 0")
 
-    dimDateDf = spark.sql(f"select dimDateSK, calendarDate \
+    dimDateDf = spark.sql(f"select dateSK, calendarDate \
                                 from {ADS_DATABASE_CURATED}.dimDate \
                                 where _RecordCurrent = 1 and _RecordDeleted = 0")
 
-    dimBusinessPartnerGroupDf = spark.sql(f"select sourceSystemCode, dimBusinessPartnerGroupSK, ltrim('0', businessPartnerGroupNumber) as businessPartnerGroupNumber \
+    dimBusinessPartnerGroupDf = spark.sql(f"select sourceSystemCode, businessPartnerGroupSK, ltrim('0', businessPartnerGroupNumber) as businessPartnerGroupNumber \
                                 from {ADS_DATABASE_CURATED}.dimBusinessPartnerGroup \
                                 where _RecordCurrent = 1 and _RecordDeleted = 0")
 
-    dimContractDf = spark.sql(f"select sourceSystemCode, dimContractSK, contractId, validFromDate, validToDate \
+    dimContractDf = spark.sql(f"select sourceSystemCode, contractSK, contractId, validFromDate, validToDate \
                                 from {ADS_DATABASE_CURATED}.dimContract \
                                 where _RecordCurrent = 1 and _RecordDeleted = 0")
 
@@ -108,36 +108,36 @@ def getBilledWaterConsumptionDaily():
                                                                                                                                 where propertyNumber in ('-1', '-2') \
                           union select dimLocationSk as dummyDimSK, 'null' as sourceSystemCode, 'dimLocation' as dimension from {ADS_DATABASE_CURATED}.dimLocation \
                                                                                                                                 where LocationId = '-1' \
-                          union select dimMeterSK as dummyDimSK, sourceSystemCode, 'dimMeter' as dimension from {ADS_DATABASE_CURATED}.dimMeter where meterNumber in ('-1','-2')\
-                          union select dimMeterConsumptionBillingDocumentSK as dummyDimSK, sourceSystemCode, 'dimMeterConsumptionBillingDocument' as dimension \
+                          union select meterSK as dummyDimSK, sourceSystemCode, 'dimMeter' as dimension from {ADS_DATABASE_CURATED}.dimMeter where meterNumber in ('-1','-2')\
+                          union select meterConsumptionBillingDocumentSK as dummyDimSK, sourceSystemCode, 'dimMeterConsumptionBillingDocument' as dimension \
                                           from {ADS_DATABASE_CURATED}.dimMeterConsumptionBillingDocument where billingDocumentNumber in ('-1','-4') \
-                          union select dimMeterConsumptionBillingLineItemSK as dummyDimSK, sourceSystemCode, 'dimMeterConsumptionBillingLineItem' as dimension \
+                          union select meterConsumptionBillingLineItemSK as dummyDimSK, sourceSystemCode, 'dimMeterConsumptionBillingLineItem' as dimension \
                                           from {ADS_DATABASE_CURATED}.dimMeterConsumptionBillingLineItem where billingDocumentLineItemId in ('-1','-4') \
-                          union select dimBusinessPartnerGroupSK as dummyDimSK, sourceSystemCode, 'dimBusinessPartnerGroup' as dimension from \
+                          union select businessPartnerGroupSK as dummyDimSK, sourceSystemCode, 'dimBusinessPartnerGroup' as dimension from \
                                                                                                                               {ADS_DATABASE_CURATED}.dimBusinessPartnerGroup \
                                                                                                                                   where BusinessPartnerGroupNumber in ('-1','-4') \
-                          union select dimContractSK as dummyDimSK, sourceSystemCode, 'dimContract' as dimension from {ADS_DATABASE_CURATED}.dimContract where contractId in ('-1','-4') \
+                          union select contractSK as dummyDimSK, sourceSystemCode, 'dimContract' as dimension from {ADS_DATABASE_CURATED}.dimContract where contractId in ('-1','-4') \
                           ")
 
 
     #5.JOIN TABLES
     billedConsDf = billedConsDf.join(dimPropertyDf, (billedConsDf.businessPartnerGroupNumber == dimPropertyDf.propertyNumber) \
                                & (billedConsDf.sourceSystemCode == dimPropertyDf.sourceSystemCode), how="left") \
-                    .select(billedConsDf['*'], dimPropertyDf['dimPropertySK'])
+                    .select(billedConsDf['*'], dimPropertyDf['propertySK'])
 
     billedConsDf = billedConsDf.join(dimLocationDf, (billedConsDf.businessPartnerGroupNumber == dimLocationDf.locationID), how="left") \
-                    .select(billedConsDf['*'], dimLocationDf['dimLocationSK'])
+                    .select(billedConsDf['*'], dimLocationDf['locationSK'])
 
     billedConsDf = billedConsDf.join(dimMeterDf, (billedConsDf.equipmentNumber == dimMeterDf.meterNumber) \
                                & (billedConsDf.sourceSystemCode == dimMeterDf.sourceSystemCode), how="left") \
-                    .select(billedConsDf['*'], dimMeterDf['dimMeterSK'])
+                    .select(billedConsDf['*'], dimMeterDf['meterSK'])
 
     billedConsDf = billedConsDf.join(dimBillDocDf, (billedConsDf.billingDocumentNumber == dimBillDocDf.billingDocumentNumber), how="left") \
-                    .select(billedConsDf['*'], dimBillDocDf['dimMeterConsumptionBillingDocumentSK'])
+                    .select(billedConsDf['*'], dimBillDocDf['meterConsumptionBillingDocumentSK'])
     
     billedConsDf = billedConsDf.join(dimBillLineItemDf, (billedConsDf.billingDocumentNumber == dimBillLineItemDf.billingDocumentNumber) \
                              & (billedConsDf.billingDocumentLineItemId == dimBillLineItemDf.billingDocumentLineItemId), how="left") \
-                  .select(billedConsDf['*'], dimBillLineItemDf['dimMeterConsumptionBillingLineItemSK'])
+                  .select(billedConsDf['*'], dimBillLineItemDf['meterConsumptionBillingLineItemSK'])
 
     billedConsDf = billedConsDf.join(dimDateDf, (billedConsDf.meterActiveStartDate <= dimDateDf.calendarDate) \
                                & (billedConsDf.meterActiveEndDate >= dimDateDf.calendarDate), how="left") \
@@ -146,11 +146,11 @@ def getBilledWaterConsumptionDaily():
     billedConsDf = billedConsDf.join(dimContractDf, (billedConsDf.contractID == dimContractDf.contractId) \
                              & (billedConsDf.billingPeriodStartDate >= dimContractDf.validFromDate) \
                              & (billedConsDf.billingPeriodStartDate <= dimContractDf.validToDate), how="left") \
-                  .select(billedConsDf['*'], dimContractDf['dimContractSK'])
+                  .select(billedConsDf['*'], dimContractDf['contractSK'])
 
     billedConsDf = billedConsDf.join(dimBusinessPartnerGroupDf, (billedConsDf.businessPartnerGroupNumber == dimBusinessPartnerGroupDf.businessPartnerGroupNumber) \
                              & (billedConsDf.sourceSystemCode == dimBusinessPartnerGroupDf.sourceSystemCode), how="left") \
-                  .select(billedConsDf['*'], dimBusinessPartnerGroupDf['dimBusinessPartnerGroupSK'])
+                  .select(billedConsDf['*'], dimBusinessPartnerGroupDf['businessPartnerGroupSK'])
 
 #    billedConsDf = billedConsDf.join(meterTimesliceDf, (billedConsDf.equipmentNumber == meterTimesliceDf.equipmentNumber), how="left") \
 #                  .select(billedConsDf['*'], meterTimesliceDf['logicalDeviceNumber'])
@@ -160,7 +160,7 @@ def getBilledWaterConsumptionDaily():
 #                  .drop(billedConsDf.logicalDeviceNumber)
 #
 #    billedConsDf = billedConsDf.join(dimInstallationDf, (billedConsDf.installationId == dimInstallationDf.installationId), how="left") \
-#                  .select(billedConsDf['*'], dimInstallationDf['dimInstallationSK']) \
+#                  .select(billedConsDf['*'], dimInstallationDf['installationSK']) \
 #                  .drop(dimInstallationDf.installationId)
 
 
@@ -205,19 +205,19 @@ def getBilledWaterConsumptionDaily():
                               ( \
                                "sourceSystemCode" \
                               ,"consumptionDate" \
-                              ,"coalesce(dimMeterConsumptionBillingDocumentSK, dummyMeterConsumptionBillingDocumentSK) as dimMeterConsumptionBillingDocumentSK" \
-                              ,"coalesce(dimMeterConsumptionBillingLineItemSK, dummyMeterConsumptionBillingLineItemSK) as dimMeterConsumptionBillingLineItemSK" \
-                              ,"coalesce(dimPropertySK, dummyPropertySK) as dimPropertySK" \
-                              ,"coalesce(dimMeterSK, dummyMeterSK) as dimMeterSK" \
-                              ,"coalesce(dimLocationSk, dummyLocationSK) as dimLocationSK" \
-                              ,"coalesce(dimBusinessPartnerGroupSk, dummyBusinessPartnerGroupSK) as dimBusinessPartnerGroupSK" \
-                              ,"-1 as dimWaterNetworkSK" \
-                              ,"coalesce(dimContractSK, dummyContractSK) as dimContractSK" \
+                              ,"coalesce(meterConsumptionBillingDocumentSK, dummyMeterConsumptionBillingDocumentSK) as meterConsumptionBillingDocumentSK" \
+                              ,"coalesce(meterConsumptionBillingLineItemSK, dummyMeterConsumptionBillingLineItemSK) as meterConsumptionBillingLineItemSK" \
+                              ,"coalesce(propertySK, dummyPropertySK) as propertySK" \
+                              ,"coalesce(meterSK, dummyMeterSK) as meterSK" \
+                              ,"coalesce(dimLocationSk, dummyLocationSK) as locationSK" \
+                              ,"coalesce(dimBusinessPartnerGroupSk, dummyBusinessPartnerGroupSK) as businessPartnerGroupSK" \
+                              ,"-1 as waterNetworkSK" \
+                              ,"coalesce(contractSK, dummyContractSK) as contractSK" \
                               ,"cast(avgMeteredWaterConsumption as decimal(18,6))" \
                               ) \
-                          .groupby("sourceSystemCode", "consumptionDate", "dimMeterConsumptionBillingDocumentSK", "dimMeterConsumptionBillingLineItemSK", \
-                                   "dimPropertySK", "dimMeterSK", \
-                                   "dimLocationSK", "dimBusinessPartnerGroupSK", "dimWaterNetworkSK", "dimContractSK") \
+                          .groupby("sourceSystemCode", "consumptionDate", "meterConsumptionBillingDocumentSK", "meterConsumptionBillingLineItemSK", \
+                                   "propertySK", "meterSK", \
+                                   "locationSK", "businessPartnerGroupSK", "waterNetworkSK", "contractSK") \
                           .agg(sum("avgMeteredWaterConsumption").alias("dailyApportionedConsumption"))  
     
     return billedConsDf
@@ -225,7 +225,7 @@ def getBilledWaterConsumptionDaily():
 # COMMAND ----------
 
 df = getBilledWaterConsumptionDaily()
-TemplateEtl(df, entity="factDailyApportionedConsumption", businessKey="sourceSystemCode,consumptionDate,dimMeterConsumptionBillingDocumentSK,dimMeterConsumptionBillingLineItemSK,dimPropertySK,dimMeterSK", schema=df.schema, AddSK=False)
+TemplateEtl(df, entity="factDailyApportionedConsumption", businessKey="sourceSystemCode,consumptionDate,meterConsumptionBillingDocumentSK,meterConsumptionBillingLineItemSK,propertySK,meterSK", schema=df.schema, AddSK=False)
 
 # COMMAND ----------
 

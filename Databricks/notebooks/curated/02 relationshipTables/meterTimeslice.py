@@ -19,7 +19,7 @@
 def getmeterTimeslice():
 
     #1.Load current Cleansed layer table data into dataframe
-    df = spark.sql(f"select dm.dimMeterSK as meterSK , \
+    df = spark.sql(f"select dm.meterSK as meterSK , \
                             devh.equipmentNumber as equipmentNumber , \
                             devh.validToDate as validToDate , \
                             devh.validFromDate as validFromDate , \

@@ -51,7 +51,7 @@ def getWaterNetwork():
                                             
     #5.Apply schema definition
     schema = StructType([
-                            StructField('dimWaterNetworkSK', LongType(), False),
+                            StructField('waterNetworkSK', LongType(), False),
                             StructField("deliverySystem", StringType(), False),
                             StructField("distributionSystem", StringType(), False),
                             StructField("supplyZone", StringType(), False),
