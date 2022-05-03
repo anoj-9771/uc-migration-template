@@ -204,7 +204,7 @@ def getDate():
 
     #2.Apply schema definition
     schema = StructType([
-                        StructField('dimDateSK', LongType(), False),
+                        StructField('dateSK', LongType(), False),
                         StructField("calendarDate", DateType(), False),
                         StructField("dayName", StringType(), False),
                         StructField("monthName", StringType(), False),

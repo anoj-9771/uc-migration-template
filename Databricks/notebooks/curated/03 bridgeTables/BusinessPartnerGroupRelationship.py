@@ -37,27 +37,27 @@ def getBusinessPartnerGroupRelationship():
      
     #1.Load dimension tables into dataframe
 
-    dim0bpartnerDf = spark.sql(f"select sourceSystemCode, dimBusinessPartnerSK, businessPartnerNumber, validFromDate,validToDate \
+    dim0bpartnerDf = spark.sql(f"select sourceSystemCode, businessPartnerSK, businessPartnerNumber, validFromDate,validToDate \
                                       from {ADS_DATABASE_CURATED}.dimBusinessPartner \
                                       where _RecordCurrent = 1 and _RecordDeleted = 0")    
        
-    dim0bpGroupDf = spark.sql(f"select sourceSystemCode, dimBusinessPartnerGroupSK, businessPartnerGroupNumber,validFromDate,validToDate \
+    dim0bpGroupDf = spark.sql(f"select sourceSystemCode, businessPartnerGroupSK, businessPartnerGroupNumber,validFromDate,validToDate \
                                       from {ADS_DATABASE_CURATED}.dimBusinessPartnerGroup \
                                       where _RecordCurrent = 1 and _RecordDeleted = 0") 
     
-    dummyDimRecDf = spark.sql(f"select dimBusinessPartnerSK as dummyDimSK, sourceSystemCode, 'dimBusinessPartner' as dimension from {ADS_DATABASE_CURATED}.dimBusinessPartner where businessPartnerNumber = '-1' \
-                            union select dimBusinessPartnerGroupSK as dummyDimSK, sourceSystemCode, 'dimBusinessPartnerGroup' as dimension from {ADS_DATABASE_CURATED}.dimBusinessPartnerGroup \
+    dummyDimRecDf = spark.sql(f"select businessPartnerSK as dummyDimSK, sourceSystemCode, 'dimBusinessPartner' as dimension from {ADS_DATABASE_CURATED}.dimBusinessPartner where businessPartnerNumber = '-1' \
+                            union select businessPartnerGroupSK as dummyDimSK, sourceSystemCode, 'dimBusinessPartnerGroup' as dimension from {ADS_DATABASE_CURATED}.dimBusinessPartnerGroup \
                                                                                                                                             where businessPartnerGroupNumber = '-1'")
     
     
     #2.Joins to derive SKs
     isu0bpRelationsAttrDf = isu0bpRelationsAttrDf.join(dim0bpartnerDf, (isu0bpRelationsAttrDf.businessPartnerNumber == dim0bpartnerDf.businessPartnerNumber) \
                                & (isu0bpRelationsAttrDf.sourceSystemCode == dim0bpartnerDf.sourceSystemCode), how="left") \
-                    .select(isu0bpRelationsAttrDf['*'], dim0bpartnerDf['dimBusinessPartnerSK'])    
+                    .select(isu0bpRelationsAttrDf['*'], dim0bpartnerDf['businessPartnerSK'])    
     
     isu0bpRelationsAttrDf = isu0bpRelationsAttrDf.join(dim0bpGroupDf, (isu0bpRelationsAttrDf.businessPartnerGroupNumber == dim0bpGroupDf.businessPartnerGroupNumber) \
                                & (isu0bpRelationsAttrDf.sourceSystemCode == dim0bpGroupDf.sourceSystemCode), how="left") \
-                    .select(isu0bpRelationsAttrDf['*'], dim0bpGroupDf['dimBusinessPartnerGroupSK'])
+                    .select(isu0bpRelationsAttrDf['*'], dim0bpGroupDf['businessPartnerGroupSK'])
     
     #2.Joins to derive SKs of dummy dimension(-1) records, to be used when the lookup fails for dimensionSk
   
@@ -73,8 +73,8 @@ def getBusinessPartnerGroupRelationship():
     #4.SELECT / TRANSFORM
     isu0bpRelationsAttrDf = isu0bpRelationsAttrDf.selectExpr ( \
                                            "sourceSystemCode" \
-                                          ,"coalesce(dimBusinessPartnerGroupSK, dummyBusinessPartnerGroupSK) as businessPartnerGroupSK" \
-                                          ,"coalesce(dimBusinessPartnerSK, dummyBusinessPartnerSK) as businessPartnerSK" \
+                                          ,"coalesce(businessPartnerGroupSK, dummyBusinessPartnerGroupSK) as businessPartnerGroupSK" \
+                                          ,"coalesce(businessPartnerSK, dummyBusinessPartnerSK) as businessPartnerSK" \
                                           ,"validFromDate" \
                                           ,"validToDate" \
                                           ,"relationshipNumber" \

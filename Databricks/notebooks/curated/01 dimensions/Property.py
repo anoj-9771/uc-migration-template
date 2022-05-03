@@ -128,7 +128,7 @@ def getProperty():
     parentDf.createOrReplaceTempView('parents')
     
     systemAreaDf = spark.sql(f"with t1 as ( \
-                            select propertyNumber, wn.dimWaterNetworkSK as potableSK, wnr.dimWaterNetworkSK as recycledSK, dimSewerNetworkSK as sewerNetworkSK, dimStormWaterNetworkSK as stormWaterNetworkSK, \
+                            select propertyNumber, wn.waterNetworkSK as potableSK, wnr.waterNetworkSK as recycledSK, sewerNetworkSK, stormWaterNetworkSK, \
                                     row_number() over (partition by propertyNumber order by lp.waterPressureZone desc, lp.recycledSupplyZone desc, lp.sewerScamp desc, lp.stormWaterCatchment desc) as rnk \
                             from {ADS_DATABASE_CLEANSED}.hydra_TLotParcel lp left outer join curated.dimWaterNetwork wn on lp.waterPressureZone = wn.pressureArea and wn._RecordCurrent = 1 \
                                   left outer join {ADS_DATABASE_CURATED}.dimWaterNetwork wnr on lp.recycledSupplyZone = wnr.supplyZone and wnr._RecordCurrent = 1 \
@@ -277,7 +277,7 @@ def getProperty():
                                             
     #5.Apply schema definition
     schema = StructType([
-                            StructField('dimPropertySK', LongType(), False),
+                            StructField('propertySK', LongType(), False),
                             StructField("propertyNumber", StringType(), False),
                             StructField("sourceSystemCode", StringType(), False),
                             StructField("waterNetworkSK_drinkingWater", StringType(), True),
