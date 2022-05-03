@@ -207,7 +207,7 @@ def getLocation():
                             )
     #5.Apply schema definition
     schema = StructType([
-                            StructField('dimLocationSK', LongType(), False),
+                            StructField('locationSK', LongType(), False),
                             StructField("locationID", StringType(), False),
                             StructField("sourceSystemCode", StringType(), False),
                             StructField("formattedAddress", StringType(), True),
