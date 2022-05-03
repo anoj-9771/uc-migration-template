@@ -196,7 +196,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"on": {
-						"value": "@toLower(variables('ClusterType'))",
+						"value": "@variables('ClusterType')",
 						"type": "Expression"
 					},
 					"cases": [
