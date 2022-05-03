@@ -205,7 +205,7 @@ df = spark.sql(f"WITH stage AS \
                                   TIMTYP as timeCategoryCode, \
                                   FRAN_TYPE as franchiseFeeTypeCode, \
                                   KONZIGR as franchiseFeeGroupNumber, \
-                                  TARIFTYP as rateTypeCode, \
+                                  stg.TARIFTYP as rateTypeCode, \
                                   rc.TTYPBEZ as rateType, \
                                   TARIFNR as rateId, \
                                   rd.rateDescription, \
@@ -245,10 +245,10 @@ df = spark.sql(f"WITH stage AS \
                          FROM stage stg \
                                  left outer join {ADS_DATABASE_CLEANSED}.isu_te835t li on li.lineItemTypeCode = stg.BELZART \
                                  left outer join {ADS_DATABASE_CLEANSED}.isu_0uc_aklasse_text bc on bc.billingClassCode = stg.AKLASSE \
-                                 left outer join {ADS_DATABASE_CLEANSED}.isu_0ind_sector_text ic bc on ic.industryCode = stg.BRANCHE \
-                                 left outer join {ADS_DATABASE_CLEANSED}.0uc_tariftyp_text rc bc on rc.TARIFTYP = stg.TARIFTYP \
-                                 left outer join {ADS_DATABASE_CLEANSED}.0uc_tarifnr_text rd bc on rd.rateId = stg.TARIFNR \
-                                 left outer join {ADS_DATABASE_CLEANSED}.0uc_stattart_text srd bc on srd.rateTypeCode = stg.STATTART \
+                                 left outer join {ADS_DATABASE_CLEANSED}.isu_0ind_sector_text ic on ic.industryCode = stg.BRANCHE \
+                                 left outer join {ADS_DATABASE_CLEANSED}.isu_0uc_tariftyp_text rc on rc.TARIFTYP = stg.TARIFTYP \
+                                 left outer join {ADS_DATABASE_CLEANSED}.isu_0uc_tarifnr_text rd on rd.rateId = stg.TARIFNR \
+                                 left outer join {ADS_DATABASE_CLEANSED}.isu_0uc_stattart_text srd on srd.rateTypeCode = stg.STATTART \
                          where stg._RecordVersion = 1 ")
 
 #print(f'Number of rows: {df.count()}')

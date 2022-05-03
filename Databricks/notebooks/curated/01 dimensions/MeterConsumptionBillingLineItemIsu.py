@@ -25,8 +25,8 @@ def getMeterConsumptionBillingLineItemIsu():
     #1.Load Cleansed layer table data into dataframe
     billedConsIsuDf = getBilledWaterConsumptionIsu()
 
-    dummyDimRecDf = spark.createDataFrame([("ISU", "-1", "1900-01-01", "9999-12-31"), ("ACCESS", "-2", "1900-01-01", "9999-12-31"),("ISU", "-3", "1900-01-01", "9999-12-31"),("ACCESS", "-4", "1900-01-01", "9999-12-31")], ["sourceSystemCode", "billingDocumentLineItemId", "validFromDate", "billingPeriodEndDate"])
-    dummyDimRecDf = dummyDimRecDf.withColumn("validFromDate",(col("validFromDate").cast("date"))).withColumn("validToDate",(col("validToDate").cast("date")))  
+    dummyDimRecDf = spark.createDataFrame([("ISU", "-1", "-1", "1900-01-01", "9999-12-31"), ("ACCESS", "-2", "-2", "1900-01-01", "9999-12-31"),("ISU", "-3", "-3", "1900-01-01", "9999-12-31"),("ACCESS", "-4", "-4", "1900-01-01", "9999-12-31")], ["sourceSystemCode", "billingDocumentNumber", "billingDocumentLineItemId", "validFromDate", "validToDate"])
+    dummyDimRecDf = dummyDimRecDf.withColumn("validFromDate",(col("validFromDate").cast("date"))).withColumn("validToDate",(col("validToDate").cast("date"))) 
     
     #2.JOIN TABLES  
 
@@ -101,7 +101,7 @@ def getMeterConsumptionBillingLineItemIsu():
                             StructField("registerNumber", StringType(), True),
                             StructField("suppressedMeterReadingDocumentId", StringType(), True),
                             StructField("meterReadingReasonCode", StringType(), True),
-                            StructField("previousMeterReadingReasonCode", StringType(), True)  
+                            StructField("previousMeterReadingReasonCode", StringType(), True),
                             StructField("meterReadingTypeCode", StringType(), True),
                             StructField("previousMeterReadingTypeCode", StringType(), True),
                             StructField("maxMeterReadingDate", DateType(), True),
@@ -123,7 +123,7 @@ def getMeterConsumptionBillingLineItemIsu():
 # COMMAND ----------
 
 df, schema = getMeterConsumptionBillingLineItemIsu()
-TemplateEtl(df, entity="getMeterConsumptionBillingLineItem", businessKey="billingDocumentNumber,billingDocumentLineItemId", schema=schema, AddSK=True)
+TemplateEtl(df, entity="dimMeterConsumptionBillingLineItem", businessKey="sourceSystemCode,billingDocumentNumber,billingDocumentLineItemId", schema=schema, AddSK=True)
 
 # COMMAND ----------
 
