@@ -215,6 +215,10 @@ df_cleansed = spark.sql(f"SELECT \
               then true \
               else false \
     end AS isIncludedInOtherRating, \
+    case when F_VALU_INCL = 'Y' \
+              then true \
+              else false \
+    end AS hasIncludedValuations, \
     case when F_METE_INCL = 'M' \
               then true \
               else false \
@@ -231,7 +235,7 @@ df_cleansed = spark.sql(f"SELECT \
               then true \
               else false \
     end AS hasKidneyFreeSupply, \
-    case when F_FREE_SUPP = 'Y' \
+    case when F_FREE_SUPP in ('Y','1') \
               then true \
               else false \
     end AS hasNonKidneyFreeSupply, \
@@ -255,9 +259,10 @@ df_cleansed = spark.sql(f"SELECT \
     to_date(D_CNTR, 'yyyyMMdd') AS contractDate, \
     C_EXTR_LOT AS extractLotCode, \
     ref7.extractLotDescription as extractLotDescription, \
-    to_date(D_PROP_UPDA, 'yyyyMMdd') AS propertyUpdatedDate, \
+    ToValidDate(D_PROP_UPDA) AS propertyUpdatedDate, \
     T_PROP_LOT AS lotDescription, \
-    tbl.F_ADJU as rowAdjusted, \
+    ToValidDate(D_SUPD) as rowSupersededDate, \
+    T_TIME_SUPD as rowSupersededTime, \
     C_USER_CREA AS createdByUserId, \
     C_PLAN_CREA AS createdByPlan, \
     cast(to_unix_timestamp(H_CREA, 'yyyy-MM-dd hh:mm:ss a') as timestamp) as createdTimestamp, \
@@ -296,6 +301,7 @@ newSchema = StructType([
 	StructField('residentialPortionCount',DecimalType(5,0),False),
     StructField('hasIncludedRatings',BooleanType(),False),
     StructField('isIncludedInOtherRating',BooleanType(),False),
+    StructField('hasIncludedValuations',BooleanType(),False),
     StructField('meterServesOtherProperties',BooleanType(),False),
     StructField('hasMeterOnOtherProperty',BooleanType(),False),
     StructField('hasSpecialMeterAllocation',BooleanType(),False),
@@ -315,7 +321,8 @@ newSchema = StructType([
     StructField('extractLotDescription',StringType(),True),
 	StructField('propertyUpdatedDate',DateType(),True),
     StructField('lotDescription',StringType(),True),
-	StructField('rowAdjusted',StringType(),True),
+	StructField('rowSupersededDate',DateType(),True),
+	StructField('rowSupersededTime',StringType(),True),
 	StructField('createdByUserId',StringType(),True),
 	StructField('createdByPlan',StringType(),True),
 	StructField('createdTimestamp',TimestampType(),True),

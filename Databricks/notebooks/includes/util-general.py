@@ -339,7 +339,8 @@ def GeneralToValidDateTime(dateIn, colType ="Optional", fmt = "" ):
         return None
     else:
         dateStr = str(dateIn)
-        
+    
+    
     #don't allow for dates without century    
     dash = dateStr.find('-')
     if (dash > -1 and dash <= 2) or (dateStr.find(' ') == 6 or len(dateStr) <= 7):
@@ -351,6 +352,8 @@ def GeneralToValidDateTime(dateIn, colType ="Optional", fmt = "" ):
     
     if dateStr == '00000000':
         return nullDate
+    elif dateStr == ' ' * 8:
+        return None
     
     if len(dateStr) <= 10:
         dateStr += ' 00:00:00'
