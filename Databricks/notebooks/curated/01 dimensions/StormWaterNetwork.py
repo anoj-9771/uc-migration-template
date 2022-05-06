@@ -12,7 +12,7 @@
 
 # COMMAND ----------
 
-#%run ../../includes/util-common
+# MAGIC %run ../common/common-curated-includeMain
 
 # COMMAND ----------
 
@@ -28,15 +28,16 @@ def getStormWaterNetwork():
                         ")
 
     #Dummy Record to be added to Property Dimension
-    #dummyDimRecDf = spark.createDataFrame([("Unknown","-1")], ["stormWaterNetwork", "stormWaterCatchment"])
+    dummyDimRecDf = spark.createDataFrame([("Unknown","Unknown")], ["stormWaterNetwork", "stormWaterCatchment"])
 
-    #2.JOIN TABLES  
+    #2.JOIN TABLES
+    
     #3.UNION TABLES
-    #df = baseDf.unionByName(dummyDimRecDf, allowMissingColumns = True)
+    df = baseDf.unionByName(dummyDimRecDf, allowMissingColumns = True)
     #print(f'{df.count():,} rows after Union 2')
 
     #4.SELECT / TRANSFORM
-    df = baseDf.selectExpr(\
+    df = df.selectExpr(\
                              "stormWaterNetwork" \
                             ,"stormWaterCatchment" \
                             )
