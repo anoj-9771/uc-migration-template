@@ -29,8 +29,7 @@ def getBusinessPartnerGroupRelationship():
                                       relationshipTypeCode, \
                                       relationshipType \
                                       FROM {ADS_DATABASE_CLEANSED}.isu_0bp_relations_attr \
-                                      where relationshipTypeCode = 'ZSW009' \
-                                      and relationshipDirection = '1'\
+                                      where relationshipDirection = '1'\
                                       and _RecordCurrent = 1 \
                                       and _RecordDeleted = 0")
     
