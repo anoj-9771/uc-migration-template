@@ -229,4 +229,28 @@ TemplateEtl(df, entity="factDailyApportionedConsumption", businessKey="sourceSys
 
 # COMMAND ----------
 
+# MAGIC %sql
+# MAGIC --Create or replace view curated.viewDailyApportionedConsumption as
+# MAGIC select * from (
+# MAGIC select * ,RANK() OVER   (PARTITION BY sourceSystemCode,consumptionDate,meterConsumptionBillingDocumentSK,meterConsumptionBillingLineItemSK,propertySK,meterSK ORDER BY propertyTypeValidToDate desc,propertyTypeValidFromDate desc) as flag  from 
+# MAGIC (select prop.propertyNumber,
+# MAGIC prophist.inferiorPropertyTypeCode,
+# MAGIC prophist.inferiorPropertyType,
+# MAGIC prophist.superiorPropertyTypeCode,
+# MAGIC prophist.superiorPropertyType,
+# MAGIC prophist.validFromDate propertyTypeValidFromDate,
+# MAGIC prophist.validToDate propertyTypeValidToDate,
+# MAGIC fact.*
+# MAGIC from curated.factDailyApportionedConsumption fact
+# MAGIC left outer join curated.dimproperty prop
+# MAGIC on fact.propertySK = prop.propertySK
+# MAGIC left outer join cleansed.isu_zcd_tpropty_hist prophist
+# MAGIC on (prop.propertyNumber = prophist.propertyNumber  and prophist.validFromDate <= fact.consumptionDate and prophist.validToDate >= fact.consumptionDate)
+# MAGIC )
+# MAGIC )
+# MAGIC where flag = 1
+# MAGIC ;
+
+# COMMAND ----------
+
 dbutils.notebook.exit("1")
