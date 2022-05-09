@@ -12,7 +12,7 @@
 		</CustomData>
 		<CustomData Category="Reference" Type="Assembly">
 			<Metadata Name="LogicalName" Value="CntrlDb.dll" />
-			<Metadata Name="FileName" Value="c:\Users\ov8z\Projects\DAF POC REPO1\ADS-Databases\CntrlDb\obj\Debug\CntrlDb.dll" />
+			<Metadata Name="FileName" Value="c:\Users\o3hz\Documents\Repos\DAF POC REPO1\ADS-Databases\CntrlDb\obj\Debug\CntrlDb.dll" />
 			<Metadata Name="AssemblyName" Value="CntrlDb" />
 			<Metadata Name="PermissionSet" Value="SAFE" />
 			<Metadata Name="Owner" Value="" />
@@ -20,7 +20,7 @@
 			<Metadata Name="IsVisible" Value="True" />
 			<Metadata Name="IsModelAware" Value="True" />
 			<Metadata Name="SkipCreationIfEmpty" Value="True" />
-			<Metadata Name="AssemblySymbolsName" Value="c:\Users\ov8z\Projects\DAF POC REPO1\ADS-Databases\CntrlDb\obj\Debug\CntrlDb.pdb" />
+			<Metadata Name="AssemblySymbolsName" Value="c:\Users\o3hz\Documents\Repos\DAF POC REPO1\ADS-Databases\CntrlDb\obj\Debug\CntrlDb.pdb" />
 		</CustomData>
 		<CustomData Category="SqlCmdVariables" Type="SqlCmdVariable" />
 	</Header>
@@ -16342,6 +16342,7 @@ SELECT * FROM
 		INNER JOIN CTL.ControlSource S ON T.SourceId = S.SourceId
 		INNER JOIN CTL.TaskExecutionLog TL ON TR.TaskExecutionLogId = TL.ExecutionLogId
 		INNER JOIN CTL.BatchExecutionLog BL ON TR.BatchExecutionId = BL.BatchExecutionLogId
+		INNER JOIN CTL.TechRecCleansedConfig TRC ON TRC.TargetObject = TR.TargetName and TRC.TechRecDashboardReady = 'Y' 
 ) src WHERE CurrentRecord = 1]]></Value>
 			</Property>
 			<Property Name="IsAnsiNullsOn" Value="True" />
@@ -16517,6 +16518,18 @@ SELECT * FROM
 					<References Name="[CTL].[BatchExecutionLog].[BatchExecutionLogId]" />
 				</Entry>
 				<Entry>
+					<References Name="[CTL].[TechRecCleansedConfig]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[TechRecCleansedConfig].[TargetObject]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[TechRecRawToCleansed].[TargetName]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[TechRecCleansedConfig].[TechRecDashboardReady]" />
+				</Entry>
+				<Entry>
 					<References Name="[CTL].[TechRecRawToCleansed].[TechRecID]" />
 				</Entry>
 				<Entry>
@@ -16571,7 +16584,7 @@ SELECT * FROM
 				</Entry>
 			</Relationship>
 			<Annotation Type="SysCommentsObjectAnnotation">
-				<Property Name="Length" Value="1101" />
+				<Property Name="Length" Value="1218" />
 				<Property Name="StartLine" Value="1" />
 				<Property Name="StartColumn" Value="1" />
 				<Property Name="HeaderContents" Value="CREATE VIEW [CTL].[vw_TechRecRawToCleansedRpt] AS" />
