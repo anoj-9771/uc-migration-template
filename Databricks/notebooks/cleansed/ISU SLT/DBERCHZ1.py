@@ -188,8 +188,7 @@ df = spark.sql(f"WITH stage AS \
                                   PRINTREL as billingLinePrintRelevantIndicator, \
                                   AKLASSE as billingClassCode, \
                                   bc.billingClass as billingClass, \
-                                  BRANCHE as industry, \
-                                  '' as industryText, \
+                                  BRANCHE as industryText, \
                                   TVORG as subtransactionForDocumentItem, \
                                   GEGEN_TVORG as offsettingTransactionSubtransactionForDocumentItem, \
                                   LINESORT as presortingBillingLineItems, \
@@ -270,7 +269,6 @@ newSchema = StructType([
                             StructField('billingLinePrintRelevantIndicator', StringType(), True),
                             StructField('billingClassCode', StringType(), True),
                             StructField('billingClass', StringType(), True),
-                            StructField('industry', StringType(), True),
                             StructField('industryText', StringType(), True),
                             StructField('subtransactionForDocumentItem', StringType(), True),
                             StructField('offsettingTransactionSubtransactionForDocumentItem', StringType(), True),
