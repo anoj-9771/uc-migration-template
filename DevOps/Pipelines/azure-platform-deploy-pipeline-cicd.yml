@@ -33,6 +33,7 @@ stages:
 # Release to Non-Production - Develop
 - template: Templates/stage-azure-pipelines-deployment.yml
   parameters:
+    pool: Daf-Self-Pool01
     stage_name: 'develop'
     variable_template_name: dev-variables
     run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/platform-deploy'))
@@ -41,6 +42,7 @@ stages:
 # Release to Non-Production - Test Environment
 - template: Templates/stage-azure-pipelines-deployment.yml
   parameters:
+    pool: Daf-Self-Pool01
     stage_name: 'test'
     variable_template_name: test-variables
     run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
@@ -49,7 +51,7 @@ stages:
 # Release to Non-Production - PreProd Environment
 - template: Templates/stage-azure-pipelines-deployment.yml
   parameters:
-    #dependencies: ['non_prod'] # Used to define any stage dependencies
+    pool: Daf-Self-Hosted-Preprod-Linux
     stage_name: 'preprod'
     variable_template_name: preprd-variables
     run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
@@ -58,7 +60,7 @@ stages:
 # Release to Production - Prod Environment
 - template: Templates/stage-azure-pipelines-deployment.yml
   parameters:
-    #dependencies: ['prod'] # Used to define any stage dependencies
+    pool: Daf-Self-Hosted-Prod-Linux
     stage_name: 'prod'
     variable_template_name: prod-variables
     run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
