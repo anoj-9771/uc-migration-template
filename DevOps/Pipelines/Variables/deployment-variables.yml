@@ -9,7 +9,7 @@ variables:
 
   # Used to set Log Analytics deployability
   - name: loganalytics
-    value: false
+    value: true
   # Used to set Azure SQL Server deployability
   - name: azuresqlserver
     value: true
@@ -18,10 +18,10 @@ variables:
     value: false
   # Used to set Blob Storage deployability..
   - name: azureblobstorage
-    value: false
+    value: true
   # Used to set Data Lake Storage deployability...
   - name: azuredatalakestorage
-    value: false
+    value: true
   # Used to set Databricks Workspace deployability - With Vnet injection
   - name: databricksvnet
     value: false
@@ -36,7 +36,7 @@ variables:
     value: false
   # Use to deploy private endpoints
   - name: privateendpoints
-    value: false
+    value: true
   # Use to deploy SQL VM for SLT server
   - name: vm_sqlslt
     value: false
