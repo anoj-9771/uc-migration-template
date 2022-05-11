@@ -167,5 +167,4 @@ INSERT INTO [CTL].[BusinessRecConfig] ([BusinessReconGroup], [MeasureID], [Measu
      VALUES ('Water Consumption Reconciliation', '9000', 'CONSUMPTION', 'factBilledWaterConsumption', 'select sum(factBill.meteredWaterConsumption) as TargetMeasure from curated.factbilledwaterconsumption factBill, curated.dimbillingdocument dimBillDoc, curated.dimmeter dimMeter where factBill.sourceSystemCode = ''ISU'' and dimBillDoc.sourceSystemCode = ''ISU'' and dimmeter.sourceSystemCode = ''ISU'' and dimBillDoc.dimBillingDocumentSK = factBill.dimBillingDocumentSK and dimBillDoc.isOutsortedFlag = ''N'' and dimmeter.watertype in (''Drinking Water'') and dimmeter.usagemetertype in (''Customer Standpipe'') and factbill.dimMeterSK = dimmeter.dimMeterSK group by dimmeter.watertype, dimmeter.usagemetertype', 1)
 ;
 
-
 GO

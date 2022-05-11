@@ -163,8 +163,8 @@ def getDate():
                       ,fiscalDates_Int(calendarDate,'day') as dayOfFinancialYear \
                       ,fiscalDates_Int(calendarDate,'week') as weekOfFinancialYear \
                       ,fiscalDates_Int(calendarDate,'month') as monthOfFinancialYear \
-                      ,fiscalDates_Int(calendarDate,'quarter') as quarterOfFinacialYear \
-                      ,case when fiscalDates_Int(calendarDate,'quarter') < 3 then 1 else 2 end as halfOfFinacialYear \
+                      ,fiscalDates_Int(calendarDate,'quarter') as quarterOfFinancialYear \
+                      ,case when fiscalDates_Int(calendarDate,'quarter') < 3 then 1 else 2 end as halfOfFinancialYear \
                       from {ADS_DATABASE_CLEANSED}.isu_scal_tt_date where calendardate <='9999-06-30'\
                       union \
                       SELECT  \
@@ -197,8 +197,8 @@ def getDate():
                       ,null as dayOfFinancialYear \
                       ,null as weekOfFinancialYear \
                       ,null as monthOfFinancialYear \
-                      ,null as quarterOfFinacialYear \
-                      ,null as halfOfFinacialYear \
+                      ,null as quarterOfFinancialYear \
+                      ,null as halfOfFinancialYear \
                       from {ADS_DATABASE_CLEANSED}.isu_scal_tt_date where calendardate >'9999-06-30'\
                    ")
 
