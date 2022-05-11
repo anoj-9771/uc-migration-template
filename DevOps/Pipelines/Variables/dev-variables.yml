@@ -7,7 +7,7 @@ variables:
   - name: subscription
     value: swcnonprod01
   - name: subscriptionId
-    value: 769a62b3-7481-44ae-878e-a466593f50ac
+    value: e59a4313-66c3-4db6-842d-6154c5e08205
   # The default resource group region name
   - name: location
     value: australiaeast
