@@ -172,15 +172,41 @@ print(delta_raw_tbl_name)
 # DBTITLE 1,10. Load Raw to Dataframe & Do Transformations
 df = spark.sql(f"WITH stage AS \
                       (Select *, ROW_NUMBER() OVER (PARTITION BY ATINN,ADZHL ORDER BY _FileDateTimeStamp DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
-                           SELECT \
-                            case when ATINN = 'na' then '' else ATINN end as internalcharacteristic, \
-                            case when ADZHL = 'na' then '' else ADZHL end as internalCounterforArchivingObjectsbyECM, \
-                            ATNAM as characteristicName, \
-                                cast('1900-01-01' as TimeStamp) as _RecordStart, \
-                                cast('9999-12-31' as TimeStamp) as _RecordEnd, \
-                                '0' as _RecordDeleted, \
-                                '1' as _RecordCurrent, \
-                                cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
+                        SELECT \
+                        case when ATINN = 'na' then '' else ATINN end as internalCharacteristic , \
+                        case when ATZHL = 'na' then '' else ATZHL end as internalCounter , \
+                        case when ADZHL = 'na' then '' else ADZHL end as internalCounterforArchivingObjectsbyECM , \
+                        ATWRT as charactericValue , \
+                        ATFLV as internalFloatingPointFrom , \
+                        ATFLB as internalFloatingPointTo , \
+                        ATCOD as valueDependencyCode , \
+                        ATSTD as defaultValueFlag , \
+                        ATAWE as unitOfMeasurement2 , \
+                        ATAW1 as unitOfMeasurement1 , \
+                        ATIDN as objectIdentification , \
+                        TXTNR as relatedTextNumber , \
+                        to_date(DATUV) as validFromDate , \
+                        to_date(DATUB) as validToDate , \
+                        TECHV as technicalStatus , \
+                        AENNR as changeNumber , \
+                        LKENZ as deletionIndicator , \
+                        DOKAR as documentTypeCode , \
+                        DOKNR as documentNumber , \
+                        DOKVR as documentVersionNumber , \
+                        DOKTL as documentPart , \
+                        ATZHH as valueHierarchyInternalCounter , \
+                        KNOBJ as objectNumberWithAssignedDependencies , \
+                        ATWHI as subordinateValueExistFlag , \
+                        ATTLV as toleranceFromValue , \
+                        ATTLB as toleranceToValue , \
+                        ATPRZ as toleranceAsPercentageFlag , \
+                        ATINC as intervalIncrementValue , \
+                        ATVPL as relevantToPlanningFlag , \
+                        cast('1900-01-01' as TimeStamp) as _RecordStart, \
+                        cast('9999-12-31' as TimeStamp) as _RecordEnd, \
+                        '0' as _RecordDeleted, \
+                        '1' as _RecordCurrent, \
+                        cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
                         from stage where _RecordVersion = 1 ")
 
 #print(f'Number of rows: {df.count()}')
@@ -205,9 +231,35 @@ df = spark.sql(f"WITH stage AS \
 
 # Create schema for the cleanse table
 newSchema = StructType([
-                        StructField("internalcharacteristic", StringType(), False),
+                        StructField("internalCharacteristic", StringType(), False),
+                        StructField("internalCounter", StringType(), False),
                         StructField("internalCounterforArchivingObjectsbyECM", StringType(), False),
-                        StructField("characteristicName", StringType(), True),
+                        StructField("charactericValue", StringType(), True),
+                        StructField("internalFloatingPointFrom", DoubleType(), True),
+                        StructField("internalFloatingPointTo", DoubleType(), True),
+                        StructField("valueDependencyCode", StringType(), True),
+                        StructField("defaultValueFlag", StringType(), True),
+                        StructField("unitOfMeasurement2", StringType(), True),
+                        StructField("unitOfMeasurement1", StringType(), True),
+                        StructField("objectIdentification", StringType(), True),
+                        StructField("relatedTextNumber", StringType(), True),
+                        StructField("validFromDate", DateType(), True),
+                        StructField("validToDate", DateType(), True),
+                        StructField("technicalStatus", StringType(), True),
+                        StructField("changeNumber", StringType(), True),
+                        StructField("deletionIndicator", StringType(), True),
+                        StructField("documentTypeCode", StringType(), True),
+                        StructField("documentNumber", StringType(), True),
+                        StructField("documentVersionNumber", StringType(), True),
+                        StructField("documentPart", StringType(), True),
+                        StructField("valueHierarchyInternalCounter", StringType(), True),
+                        StructField("objectNumberWithAssignedDependencies", StringType(), True),
+                        StructField("subordinateValueExistFlag", StringType(), True),
+                        StructField("toleranceFromValue", DoubleType(), True),
+                        StructField("toleranceToValue", DoubleType(), True),
+                        StructField("toleranceAsPercentageFlag", StringType(), True),
+                        StructField("intervalIncrementValue", DoubleType(), True),
+                        StructField("relevantToPlanningFlag", StringType(), True),
                         StructField('_RecordStart',TimestampType(),False),
                         StructField('_RecordEnd',TimestampType(),False),
                         StructField('_RecordDeleted',IntegerType(),False),
