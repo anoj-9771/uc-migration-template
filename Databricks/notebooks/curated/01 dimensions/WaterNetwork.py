@@ -32,15 +32,15 @@ def getWaterNetwork():
                         ")
 
     #Dummy Record to be added to Property Dimension
-    #dummyDimRecDf = spark.createDataFrame([("Unknown","Unknown","Unknown","-1","Unknown"),("Unknown","Unknown","-1",None,"Unknown")], ["deliverySystem", "distributionSystem","reservoirZone","pressureArea","isRecycled"])
+    dummyDimRecDf = spark.createDataFrame([("Unknown","Unknown","Unknown","-1","Unknown","Unknown"),("Unknown","Unknown","-1","n/a","Unknown","Unknown")], ["deliverySystem", "distributionSystem","supplyZone","pressureArea","isPotableWaterNetwork","isRecycledWaterNetwork"])
 
     #2.JOIN TABLES  
     #3.UNION TABLES
-    #df = baseDf.unionByName(dummyDimRecDf, allowMissingColumns = True)
+    df = baseDf.unionByName(dummyDimRecDf, allowMissingColumns = True)
     #print(f'{df.count():,} rows after Union 2')
 
     #4.SELECT / TRANSFORM
-    df = baseDf.selectExpr( \
+    df = df.selectExpr( \
                              "deliverySystem" \
                             ,"distributionSystem" \
                             ,"supplyZone" \
@@ -51,7 +51,7 @@ def getWaterNetwork():
                                             
     #5.Apply schema definition
     schema = StructType([
-                            StructField('waterNetworkSK', LongType(), False),
+                            StructField('waterNetworkSK', LongType(), True),
                             StructField("deliverySystem", StringType(), False),
                             StructField("distributionSystem", StringType(), False),
                             StructField("supplyZone", StringType(), False),
@@ -66,12 +66,6 @@ def getWaterNetwork():
 
 df, schema = getWaterNetwork()
 TemplateEtl(df, entity="dimWaterNetwork", businessKey="supplyZone,pressureArea", schema=schema, AddSK=True)
-
-# COMMAND ----------
-
-# ADS_DATABASE_CLEANSED = 'cleansed'
-# df = getWaterNetwork()
-# display(df)
 
 # COMMAND ----------
 

@@ -16,6 +16,43 @@
 
 # COMMAND ----------
 
+# MAGIC %sql
+# MAGIC create or replace view vw_ACCESS_HistoricalMeters as
+# MAGIC --get only those meters from history that are not on tpropmeter
+# MAGIC with extra as(
+# MAGIC               select distinct meterMakerNumber
+# MAGIC               from   cleansed.access_z309_thpropmeter
+# MAGIC               where  _RecordCurrent = 1 
+# MAGIC               and    _RecordDeleted = 0
+# MAGIC               except
+# MAGIC               select distinct meterMakerNumber
+# MAGIC               from   cleansed.access_z309_tpropmeter
+# MAGIC               where  _RecordCurrent = 1 
+# MAGIC               and    _RecordDeleted = 0),
+# MAGIC      --we want the most recent meter details as they are most likely correct but the earliest meter fit data
+# MAGIC      earliestFit as(
+# MAGIC               select a.meterMakerNumber, min(b.meterFittedDate) as meterFittedDate
+# MAGIC               from   extra a, cleansed.access_z309_thpropmeter b
+# MAGIC               where  a.meterMakerNumber = b.meterMakerNumber
+# MAGIC               and    b._RecordCurrent = 1 
+# MAGIC               and    b._RecordDeleted = 0
+# MAGIC               group by a.meterMakerNumber),
+# MAGIC      --waterMeterType should have been resolved on the THPropMeter table. Future fix, please
+# MAGIC      --get most recent historical 
+# MAGIC      
+# MAGIC      meters as(
+# MAGIC               select a.meterMakerNumber, a.meterClass, a.meterSize, c.waterMeterType, a.meterGroup, b.meterFittedDate, a.meterRemovedDate, 
+# MAGIC                      row_number() over (partition by a.meterMakerNumber order by rowSupersededDate||rowSupersededTime desc) as rn
+# MAGIC               from   cleansed.access_z309_thpropmeter a, earliestFit b left outer join CLEANSED.access_Z309_TMeterClass c on c.meterClassCode = a.meterClassCode
+# MAGIC               where  a.meterMakerNumber = b.meterMakerNumber
+# MAGIC               and    a._RecordCurrent = 1 
+# MAGIC               and    a._RecordDeleted = 0)
+# MAGIC select meterMakerNumber, meterClass, meterSize, waterMeterType, meterGroup, meterFittedDate, meterRemovedDate
+# MAGIC from meters
+# MAGIC where rn = 1
+
+# COMMAND ----------
+
 def getMeter():
 
     meterFunctionClasses = ['1000','2000','9000']
@@ -24,7 +61,7 @@ def getMeter():
         #a number of column values can be derived with aditional code/queries. 
         #LastActivity reason code can only be mapped from meter change reason code/reason after conversion of values. The text is the same but the codes differ
     accessZ309TpropmeterDf = spark.sql(f"select 'ACCESS' as sourceSystemCode, \
-                                              row_number() over (order by metermakernumber) as meterNumber, \
+                                              'C'||row_number() over (order by metermakernumber) as meterNumber, \
                                               coalesce(meterMakerNumber,'') as meterSerialNumber, \
                                               null as materialNumber, \
                                               case when meterClass = 'Standpipe' then 'Customer Standpipe' else 'Water Meter' end as usageMeterType, \
@@ -49,7 +86,34 @@ def getMeter():
                                               row_number() over (partition by metermakernumber order by meterFittedDate desc) rownum \
                                       from {ADS_DATABASE_CLEANSED}.access_z309_tpropmeter \
                                       where _RecordCurrent = 1 \
-                                      and _RecordDeleted = 0")
+                                      and _RecordDeleted = 0 \
+                                      union all \
+                                      select 'ACCESS' as sourceSystemCode, \
+                                              'H'||row_number() over (order by metermakernumber) as meterNumber, \
+                                              coalesce(meterMakerNumber,'') as meterSerialNumber, \
+                                              null as materialNumber, \
+                                              case when meterClass = 'Standpipe' then 'Customer Standpipe' else 'Water Meter' end as usageMeterType, \
+                                              SUBSTR(meterSize, 1, INSTR(meterSize, ' ')-1) as meterSize, \
+                                              SUBSTR(meterSize, INSTR(meterSize, ' ')+1) as meterSizeUnit, \
+                                              case when waterMeterType = 'Potable' then 'Drinking Water' \
+                                                   when waterMeterType = 'Recycled' then 'Recycled Water' else waterMeterType end as waterType, \
+                                              null as meterCategoryCode, \
+                                              null as meterCategory, \
+                                              case when meterClass = 'Standpipe' then 'STANDPIPE' \
+                                                   when meterGroup = 'Normal Reading' then 'NORMAL' \
+                                                   when meterGroup = 'Automated Reading (AMI)' then 'AMI' \
+                                                   when meterGroup = 'Remote Reading' then 'AMR' \
+                                                   else null end as meterReadingType, \
+                                              null as meterDescription, \
+                                              meterFittedDate, \
+                                              meterRemovedDate, \
+                                              null as manufacturerName, \
+                                              null as manufacturerSerialNumber, \
+                                              null as manufacturerModelNumber, \
+                                              null as inspectionRelevanceFlag, \
+                                              row_number() over (partition by metermakernumber order by meterFittedDate desc) rownum \
+                                      from vw_ACCESS_HistoricalMeters \
+                                      ")
      
     #Filter for active meter
     accessZ309TpropmeterDf = accessZ309TpropmeterDf.filter(col("rownum") == "1")
@@ -74,16 +138,16 @@ def getMeter():
                                       meterremovedddate.meterRemovedDate as meterRemovedDate \
                                       from cleansed.isu_0uc_device_attr a \
                                       left outer join \
-                                      (select equipmentNumber as meterNumber,min(installationDate) as meterFittedDate \
-                                       FROM cleansed.isu_0uc_deviceh_attr \
-                                       group by equipmentNumber \
-                                      )meterfitteddate on a.equipmentNumber=meterfitteddate.meterNumber \
+                                              (select equipmentNumber as meterNumber,min(installationDate) as meterFittedDate \
+                                               FROM cleansed.isu_0uc_deviceh_attr \
+                                               group by equipmentNumber \
+                                              )meterfitteddate on a.equipmentNumber=meterfitteddate.meterNumber \
                                       left outer join \
-                                      (select equipmentNumber as meterNumber,deviceRemovalDate as meterRemovedDate \
-                                       FROM cleansed.isu_0uc_deviceh_attr where validToDate = '9999-12-31' \
-                                      )meterremovedddate on a.equipmentNumber=meterremovedddate.meterNumber  \
-                                      where a._RecordCurrent = 1 \
-                                      and a._RecordDeleted = 0 \
+                                              (select equipmentNumber as meterNumber,deviceRemovalDate as meterRemovedDate \
+                                               FROM cleansed.isu_0uc_deviceh_attr where validToDate = '9999-12-31' \
+                                              )meterremovedddate on a.equipmentNumber=meterremovedddate.meterNumber  \
+                                              where a._RecordCurrent = 1 \
+                                              and a._RecordDeleted = 0 \
                                       ")
     
     #print(f'{isu0ucDeviceAttrDf.count():,} rows in isu0ucDeviceAttrDf')
@@ -142,7 +206,7 @@ def getMeter():
     
     #5.Apply schema definition
     schema = StructType([
-                            StructField('meterSK', LongType(), False),
+                            StructField('meterSK', LongType(), True),
                             StructField('sourceSystemCode', StringType(), False),
                             StructField('meterNumber', StringType(), False),
                             StructField('meterSerialNumber', StringType(), True),
@@ -171,14 +235,6 @@ def getMeter():
 
 df, schema = getMeter()
 TemplateEtl(df, entity="dimMeter", businessKey="meterNumber", schema=schema, AddSK=True)
-
-# COMMAND ----------
-
-#Dummy Record to be added to Meter Dimension
-#     ISUDummy = tuple(['ISU','-1',"9999-12-31","9999-12-31",""] + ['Unknown'] * (len(df.columns) - 5)) #this only works as long as all output columns are string
-#     ACCESSDummy = tuple(['ACCESS','-2',"9999-12-31","9999-12-31",""] + ['Unknown'] * (len(df.columns) -5)) #this only works as long as all output columns are string
-#     dummyDimRecDf = spark.createDataFrame([ISUDummy, ACCESSDummy], df.columns)
-#    df.write.saveAsTable('curated.dimMeterTest_new3')
 
 # COMMAND ----------
 

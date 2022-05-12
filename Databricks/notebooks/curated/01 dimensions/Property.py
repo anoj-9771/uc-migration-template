@@ -91,7 +91,7 @@ def getProperty():
                                         pr.superiorPropertyTypeCode as parentSuperiorPropertyTypeCode, \
                                         pr.superiorPropertyType as parentSuperiorPropertyType, \
                                         rp.relationshipType as relationshipType, \
-                                        rank() over (partition by rp.propertyNumber order by relationshipTypecode desc) as rnk \
+                                        row_number() over (partition by rp.propertyNumber order by relationshipTypecode desc) as rn \
                                 from {ADS_DATABASE_CLEANSED}.access_z309_trelatedProps rp inner join remainingProps rem on rp.propertyNumber = rem.propertyNumber \
                                        left outer join {ADS_DATABASE_CLEANSED}.access_z309_tproperty pr on pr.propertynumber = rp.relatedPropertynumber \
                                 where rp.relationshipTypeCode in ('M','P','U') \
@@ -106,7 +106,7 @@ def getProperty():
                                            parentSuperiorPropertyType, \
                                            relationshipType \
                                     from relatedprops \
-                                    where rnk = 1), \
+                                    where rn = 1), \
                               t4 as(select propertyNumber \
                                     from {ADS_DATABASE_CLEANSED}.access_z309_tproperty \
                                     where _RecordCurrent = 1 \
@@ -129,16 +129,31 @@ def getProperty():
     
     systemAreaDf = spark.sql(f"with t1 as ( \
                             select propertyNumber, wn.waterNetworkSK as potableSK, wnr.waterNetworkSK as recycledSK, sewerNetworkSK, stormWaterNetworkSK, \
-                                    row_number() over (partition by propertyNumber order by lp.waterPressureZone desc, lp.recycledSupplyZone desc, lp.sewerScamp desc, lp.stormWaterCatchment desc) as rnk \
-                            from {ADS_DATABASE_CLEANSED}.hydra_TLotParcel lp left outer join curated.dimWaterNetwork wn on lp.waterPressureZone = wn.pressureArea and wn._RecordCurrent = 1 \
-                                  left outer join {ADS_DATABASE_CURATED}.dimWaterNetwork wnr on lp.recycledSupplyZone = wnr.supplyZone and wnr._RecordCurrent = 1 \
-                                  left outer join {ADS_DATABASE_CURATED}.dimSewerNetwork snw on lp.sewerScamp = snw.SCAMP and snw._RecordCurrent = 1 \
-                                  left outer join {ADS_DATABASE_CURATED}.dimStormWaterNetwork sw on lp.stormWaterCatchment = sw.stormWaterCatchment and sw._RecordCurrent = 1\
+                                    row_number() over (partition by propertyNumber order by lp.waterPressureZone desc, lp.recycledSupplyZone desc, \
+                                    lp.sewerScamp desc, lp.stormWaterCatchment desc) as rn \
+                            from {ADS_DATABASE_CLEANSED}.hydra_TLotParcel lp inner join curated.dimWaterNetwork wn on coalesce(lp.waterPressureZone,'-1') = wn.pressureArea and wn._RecordCurrent = 1 \
+                                  inner join {ADS_DATABASE_CURATED}.dimWaterNetwork wnr on coalesce(lp.recycledSupplyZone,'-1') = wnr.supplyZone and wnr._RecordCurrent = 1 \
+                                  inner join {ADS_DATABASE_CURATED}.dimSewerNetwork snw on coalesce(lp.sewerScamp,'-1') = snw.SCAMP and snw._RecordCurrent = 1 \
+                                  inner join {ADS_DATABASE_CURATED}.dimStormWaterNetwork sw on coalesce(lp.stormWaterCatchment,'-1') = sw.stormWaterCatchment and sw._RecordCurrent = 1 \
                             where propertyNumber is not null \
                             and lp._RecordCurrent = 1) \
-                            select * \
+                            select propertyNumber, potableSK, recycledSK, sewerNetworkSK, stormWaterNetworkSK \
                             from t1 \
-                            where rnk = 1 \
+                            where rn = 1 \
+                            union all \
+                            select -1 as propertyNumber, wn.waterNetworkSK as potableSK, wnr.waterNetworkSK as recycledSK, sewerNetworkSK, stormWaterNetworkSK \
+                            from {ADS_DATABASE_CURATED}.dimWaterNetwork wn, \
+                                 {ADS_DATABASE_CURATED}.dimWaterNetwork wnr, \
+                                 {ADS_DATABASE_CURATED}.dimSewerNetwork snw, \
+                                 {ADS_DATABASE_CURATED}.dimStormWaterNetwork sw \
+                            where wn.pressureArea = '-1' \
+                            and   wn._RecordCurrent = 1 \
+                            and   wnr.supplyZone = '-1' \
+                            and   wnr._RecordCurrent = 1 \
+                            and   snw.SCAMP = '-1' \
+                            and   snw._RecordCurrent = 1 \
+                            and   sw.stormWaterCatchment = '-1' \
+                            and   sw._RecordCurrent = 1 \
                             ")
     systemAreaDf.createOrReplaceTempView('systemareas')
 
@@ -171,8 +186,8 @@ def getProperty():
                                             null as architecturalType \
                                      from {ADS_DATABASE_CLEANSED}.access_z309_tproperty pr left outer join \
                                           lots lo on lo.propertyNumber = pr.propertyNumber left outer join \
-                                          parents pp on pp.propertyNumber = pr.propertyNumber left outer join \
-                                          systemAreas sa on sa.propertyNumber = pp.parentPropertyNumber \
+                                          parents pp on pp.propertyNumber = pr.propertyNumber inner join \
+                                          systemAreas sa on sa.propertyNumber = coalesce(pp.parentPropertyNumber,-1) \
                                      where pr._RecordCurrent = 1 \
                                      ")
     accessZ309TpropertyDf.createOrReplaceTempView('ACCESS')
@@ -213,8 +228,8 @@ def getProperty():
                              {ADS_DATABASE_CLEANSED}.isu_0uc_connobj_attr_2 pa on pa.architecturalObjectId = coalesce(vn.parentArchitecturalObjectNumber,co.propertyNumber) \
                               and   pa._RecordCurrent = 1 and pa._RecordDeleted = 0 left outer join \
                              {ADS_DATABASE_CLEANSED}.isu_dd07t dt on co.lotTypeCode = dt.domainValueSingleUpperLimit and domainName = 'ZCD_DO_ADDR_LOT_TYPE' \
-                              and dt._RecordDeleted = 0 and dt._RecordCurrent = 1 left outer join \
-                              systemAreas sa on sa.propertyNumber = coalesce(vn.parentArchitecturalObjectNumber,co.propertyNumber) \
+                              and dt._RecordDeleted = 0 and dt._RecordCurrent = 1 inner join \
+                              systemAreas sa on sa.propertyNumber = coalesce(coalesce(int(vn.parentArchitecturalObjectNumber),int(co.propertyNumber)),-1) \
                          where co.propertyNumber <> '' \
                          and   co._RecordDeleted = 0 \
                          and   co._RecordCurrent = 1 \
@@ -229,8 +244,6 @@ def getProperty():
     #2.JOIN TABLES
     
     #3.UNION TABLES
-    #df = accessZ309TpropertyDf.union(sapisuDf)
-    #df = df.unionByName(dummyDimRecDf, allowMissingColumns = True)
     df = spark.sql("with propsFromACCESS as ( \
                          select propertyNumber \
                          from   ACCESS \
@@ -245,7 +258,8 @@ def getProperty():
                     select * \
                     from   ISU")
     #print(f'{df.count():,} rows after Union')
-
+    df = df.unionByName(dummyDimRecDf, allowMissingColumns = True)
+    
     #4.SELECT / TRANSFORM
     df = df.selectExpr( \
                          "propertyNumber" \
@@ -277,7 +291,7 @@ def getProperty():
                                             
     #5.Apply schema definition
     schema = StructType([
-                            StructField('propertySK', LongType(), False),
+                            StructField('propertySK', LongType(), True),
                             StructField("propertyNumber", StringType(), False),
                             StructField("sourceSystemCode", StringType(), False),
                             StructField("waterNetworkSK_drinkingWater", StringType(), True),
@@ -315,11 +329,8 @@ TemplateEtl(df, entity="dimProperty", businessKey="propertyNumber", schema=schem
 
 # COMMAND ----------
 
-# ISUDummy = tuple(['-1','ISU','1900-01-01','2099-12-31'] + ['Unknown'] * 4 + [0] + ['Unknown'] * (len(sapisuDf.columns) - 9)) #this only works as long as all output columns are string
-#     ACCESSDummy = tuple(['-2','ACCESS','1900-01-01','2099-12-31'] + ['Unknown'] * 4 + [0] + ['Unknown'] * (len(sapisuDf.columns) - 9)) #this only works as long as all output columns are string
-#     dummyDimRecDf = spark.createDataFrame([ISUDummy, ACCESSDummy], sapisuDf.columns)
-#     dummyDimRecDf = dummyDimRecDf.withColumn("propertyStartDate",dummyDimRecDf['propertyStartDate'].cast(DateType())).withColumn("propertyEndDate",dummyDimRecDf['propertyEndDate'].cast(DateType()))
+dbutils.notebook.exit("1")
 
 # COMMAND ----------
 
-dbutils.notebook.exit("1")
+

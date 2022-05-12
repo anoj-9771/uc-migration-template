@@ -90,9 +90,9 @@ def getBilledWaterConsumption():
                                 where _RecordCurrent = 1 and _RecordDeleted = 0")
 
 
-    dummyDimRecDf = spark.sql(f"select dimPropertySk as dummyDimSK, sourceSystemCode, 'dimProperty' as dimension from {ADS_DATABASE_CURATED}.dimProperty \
+    dummyDimRecDf = spark.sql(f"select propertySK as dummyDimSK, sourceSystemCode, 'dimProperty' as dimension from {ADS_DATABASE_CURATED}.dimProperty \
                                                                                                                                 where propertyNumber in ('-1', '-2') \
-                          union select dimLocationSk as dummyDimSK, 'null' as sourceSystemCode, 'dimLocation' as dimension from {ADS_DATABASE_CURATED}.dimLocation \
+                          union select locationSK as dummyDimSK, 'null' as sourceSystemCode, 'dimLocation' as dimension from {ADS_DATABASE_CURATED}.dimLocation \
                                                                                                                                 where LocationId = '-1' \
                           union select meterSK as dummyDimSK, sourceSystemCode, 'dimMeter' as dimension from {ADS_DATABASE_CURATED}.dimMeter where meterNumber in ('-1','-2')\
                           union select meterConsumptionBillingDocumentSK as dummyDimSK, sourceSystemCode, 'dimMeterConsumptionBillingDocument' as dimension \
@@ -172,7 +172,7 @@ def getBilledWaterConsumption():
                                         ,"coalesce(meterConsumptionBillingLineItemSK, dummyMeterConsumptionBillingLineItemSK) as meterConsumptionBillingLineItemSK" \
                                         ,"coalesce(propertySK, dummyPropertySK) as propertySK" \
                                         ,"coalesce(meterSK, dummyMeterSK) as meterSK" \
-                                        ,"coalesce(dimLocationSk, dummyLocationSK) as locationSK" \
+                                        ,"coalesce(locationSk, dummyLocationSK) as locationSK" \
                                         ,"-1 as waterNetworkSK" \
                                         ,"coalesce(businessPartnerGroupSK, dummyBusinessPartnerGroupSK) as businessPartnerGroupSK" \
                                         ,"coalesce(contractSK, dummyContractSK) as contractSK" \
@@ -195,3 +195,12 @@ TemplateEtl(df, entity="factBilledWaterConsumption", businessKey="sourceSystemCo
 # COMMAND ----------
 
 dbutils.notebook.exit("1")
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC select * from curated.dimlocation
+
+# COMMAND ----------
+
+

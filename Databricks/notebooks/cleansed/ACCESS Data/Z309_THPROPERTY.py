@@ -256,7 +256,7 @@ df_cleansed = spark.sql(f"SELECT \
               then to_date('20181029','yyyyMMdd') \
               else to_date(D_PROP_SALE_SETT,'yyyyMMdd') \
     end AS settlementDate, \
-    to_date(D_CNTR, 'yyyyMMdd') AS contractDate, \
+    ToValidDate(D_CNTR) AS contractDate, \
     C_EXTR_LOT AS extractLotCode, \
     ref7.extractLotDescription as extractLotDescription, \
     ToValidDate(D_PROP_UPDA) AS propertyUpdatedDate, \
