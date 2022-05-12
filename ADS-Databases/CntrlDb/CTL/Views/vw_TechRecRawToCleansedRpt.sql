@@ -24,5 +24,6 @@ SELECT * FROM
 		INNER JOIN CTL.ControlSource S ON T.SourceId = S.SourceId
 		INNER JOIN CTL.TaskExecutionLog TL ON TR.TaskExecutionLogId = TL.ExecutionLogId
 		INNER JOIN CTL.BatchExecutionLog BL ON TR.BatchExecutionId = BL.BatchExecutionLogId
+		INNER JOIN CTL.TechRecCleansedConfig TRC ON TRC.TargetObject = TR.TargetName and TRC.TechRecDashboardReady = 'Y' 
 ) src WHERE CurrentRecord = 1
 

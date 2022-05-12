@@ -12596,41 +12596,6 @@
 						}
 					},
 					{
-						"name": "Business-Reconciliation",
-						"type": "ExecutePipeline",
-						"dependsOn": [
-							{
-								"activity": "Log Success",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"userProperties": [],
-						"typeProperties": {
-							"pipeline": {
-								"referenceName": "Business-Reconciliation",
-								"type": "PipelineReference"
-							},
-							"waitOnCompletion": true,
-							"parameters": {
-								"BatchLogId": {
-									"value": "@pipeline().parameters.BatchLogId",
-									"type": "Expression"
-								},
-								"TaskExecutionLogId": {
-									"value": "@pipeline().parameters.TaskExecutionLogId",
-									"type": "Expression"
-								},
-								"ProjectRunId": {
-									"value": "@pipeline().parameters.ProjectRunID",
-									"type": "Expression"
-								},
-								"BusinessReconGroup": "Water Consumption Reconciliation"
-							}
-						}
-					},
-					{
 						"name": "SwitchCluster",
 						"type": "Switch",
 						"dependsOn": [
@@ -12776,6 +12741,75 @@
 								}
 							]
 						}
+					},
+					{
+						"name": "Set-RunBusinessRecon",
+						"type": "SetVariable",
+						"dependsOn": [
+							{
+								"activity": "Log Success",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"variableName": "RunBusinessRecon",
+							"value": {
+								"value": "@if(equals(toLower(last(split(pipeline().parameters.TaskDetails.Command,'/'))), 'billedwaterconsumption'), 'yes', 'no')",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "If-RunBusinessRecon",
+						"type": "IfCondition",
+						"dependsOn": [
+							{
+								"activity": "Set-RunBusinessRecon",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"expression": {
+								"value": "@equals(variables('RunBusinessRecon'), 'yes')",
+								"type": "Expression"
+							},
+							"ifTrueActivities": [
+								{
+									"name": "Business-Reconciliation",
+									"type": "ExecutePipeline",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "Business-Reconciliation",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": true,
+										"parameters": {
+											"BatchLogId": {
+												"value": "@pipeline().parameters.BatchLogId",
+												"type": "Expression"
+											},
+											"TaskExecutionLogId": {
+												"value": "@pipeline().parameters.TaskExecutionLogId",
+												"type": "Expression"
+											},
+											"ProjectRunId": {
+												"value": "@pipeline().parameters.ProjectRunID",
+												"type": "Expression"
+											},
+											"BusinessReconGroup": "Water Consumption Reconciliation"
+										}
+									}
+								}
+							]
+						}
 					}
 				],
 				"policy": {
@@ -12824,6 +12858,9 @@
 						"type": "String"
 					},
 					"TargetFileName": {
+						"type": "String"
+					},
+					"RunBusinessRecon": {
 						"type": "String"
 					}
 				},

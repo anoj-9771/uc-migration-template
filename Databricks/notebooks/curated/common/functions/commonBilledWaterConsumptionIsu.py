@@ -44,7 +44,7 @@ def getBilledWaterConsumptionIsu():
 
     dberchz1Df = spark.sql(f"select billingDocumentNumber, billingDocumentLineItemId \
                                 ,lineItemTypeCode, lineItemType, billingLineItemBudgetBillingIndicator \
-                                ,subtransactionForDocumentItem, industryText as industryCode, industry \
+                                ,subtransactionForDocumentItem, industryText as industryCode \
                                 ,billingClassCode, billingClass, rateTypeCode \
                                 ,rateType, rateId, rateDescription \
                                 ,statisticalAnalysisRateType as statisticalAnalysisRateTypeCode, statisticalAnalysisRateTypeDescription as statisticalAnalysisRateType \
@@ -129,14 +129,13 @@ def getBilledWaterConsumptionIsu():
                     ,"invoiceNotReleasedIndicator" \
                     ,"invoiceReversalPostingDate" \
                     ,"invoiceMaxSequenceNumber" \
-                    ,"case when reversalDate is null then 'N' else 'Y' end as isReversedFlag" \
+                    ,"case when (reversalDate is null  or reversalDate = '1900-01-01' or reversalDate = '9999-12-31') then 'N' else 'Y' end as isReversedFlag" \
                     ,"case when documentNotReleasedIndicator == 'X' then 'Y' else 'N' end as isOutsortedFlag" \
                     ,"lineItemTypeCode" \
                     ,"lineItemType" \
                     ,"billingLineItemBudgetBillingIndicator" \
                     ,"subtransactionForDocumentItem" \
                     ,"industryCode" \
-                    ,"industry" \
                     ,"billingClassCode" \
                     ,"billingClass" \
                     ,"rateTypeCode" \

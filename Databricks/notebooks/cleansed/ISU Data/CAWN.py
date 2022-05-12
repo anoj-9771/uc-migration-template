@@ -171,31 +171,43 @@ print(delta_raw_tbl_name)
 
 # DBTITLE 1,10. Load Raw to Dataframe & Do Transformations
 df = spark.sql(f"WITH stage AS \
-                      (Select *, ROW_NUMBER() OVER (PARTITION BY PROPERTY_NO,DATE_FROM ORDER BY _FileDateTimeStamp DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} \
-                                  WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
-                           SELECT  \
-                                case when stg.PROPERTY_NO = 'na' then '' else stg.PROPERTY_NO end as propertyNumber, \
-                                stg.SUP_PROP_TYPE as superiorPropertyTypeCode, \
-                                supty.superiorPropertyType, \
-                                stg.INF_PROP_TYPE as inferiorPropertyTypeCode, \
-                                infty.inferiorPropertyType, \
-                                ToValidDate(stg.DATE_FROM,'MANDATORY') as validFromDate, \
-                                ToValidDate(stg.DATE_TO) as validToDate, \
-                                ToValidDateTime(stg.CREATED_ON) as createdDate, \
-                                stg.CREATED_BY as createdBy, \
-                                ToValidDateTime(stg.CHANGED_ON) as changedDate, \
-                                stg.CHANGED_BY as changedBy, \
-                                cast('1900-01-01' as TimeStamp) as _RecordStart, \
-                                cast('9999-12-31' as TimeStamp) as _RecordEnd, \
-                                '0' as _RecordDeleted, \
-                                '1' as _RecordCurrent, \
-                                cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
-                        FROM stage stg \
-                          LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_zcd_tsupprtyp_tx supty on supty.superiorPropertyTypeCode = stg.SUP_PROP_TYPE \
-                                                                                                    and supty._RecordDeleted = 0 and supty._RecordCurrent = 1 \
-                          LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_zcd_tinfprty_tx infty on infty.inferiorPropertyTypeCode = stg.INF_PROP_TYPE \
-                                                                                                    and infty._RecordDeleted = 0 and infty._RecordCurrent = 1 \
-                        where stg._RecordVersion = 1 and (stg.DATE_FROM < stg.DATE_TO)")
+                      (Select *, ROW_NUMBER() OVER (PARTITION BY ATINN,ADZHL ORDER BY _FileDateTimeStamp DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
+                        SELECT \
+                        case when ATINN = 'na' then '' else ATINN end as internalCharacteristic , \
+                        case when ATZHL = 'na' then '' else ATZHL end as internalCounter , \
+                        case when ADZHL = 'na' then '' else ADZHL end as internalCounterforArchivingObjectsbyECM , \
+                        ATWRT as charactericValue , \
+                        ATFLV as internalFloatingPointFrom , \
+                        ATFLB as internalFloatingPointTo , \
+                        ATCOD as valueDependencyCode , \
+                        ATSTD as defaultValueFlag , \
+                        ATAWE as unitOfMeasurement2 , \
+                        ATAW1 as unitOfMeasurement1 , \
+                        ATIDN as objectIdentification , \
+                        TXTNR as relatedTextNumber , \
+                        to_date(DATUV) as validFromDate , \
+                        to_date(DATUB) as validToDate , \
+                        TECHV as technicalStatus , \
+                        AENNR as changeNumber , \
+                        LKENZ as deletionIndicator , \
+                        DOKAR as documentTypeCode , \
+                        DOKNR as documentNumber , \
+                        DOKVR as documentVersionNumber , \
+                        DOKTL as documentPart , \
+                        ATZHH as valueHierarchyInternalCounter , \
+                        KNOBJ as objectNumberWithAssignedDependencies , \
+                        ATWHI as subordinateValueExistFlag , \
+                        ATTLV as toleranceFromValue , \
+                        ATTLB as toleranceToValue , \
+                        ATPRZ as toleranceAsPercentageFlag , \
+                        ATINC as intervalIncrementValue , \
+                        ATVPL as relevantToPlanningFlag , \
+                        cast('1900-01-01' as TimeStamp) as _RecordStart, \
+                        cast('9999-12-31' as TimeStamp) as _RecordEnd, \
+                        '0' as _RecordDeleted, \
+                        '1' as _RecordCurrent, \
+                        cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
+                        from stage where _RecordVersion = 1 ")
 
 #print(f'Number of rows: {df.count()}')
 
@@ -203,46 +215,51 @@ df = spark.sql(f"WITH stage AS \
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
-# df_cleansed = spark.sql(f"SELECT  \
-#                             case when stg.PROPERTY_NO = 'na' then '' else stg.PROPERTY_NO end as propertyNumber, \
-#                             stg.SUP_PROP_TYPE as superiorPropertyTypeCode, \
-#                             supty.superiorPropertyType, \
-#                             stg.INF_PROP_TYPE as inferiorPropertyTypeCode, \
-#                             infty.inferiorPropertyType, \
-#                             ToValidDate(stg.DATE_FROM,'MANDATORY') as validFromDate, \
-#                             ToValidDate(stg.DATE_TO) as validToDate, \
-#                             ToValidDateTime(stg.CREATED_ON) as createdDate, \
-#                             stg.CREATED_BY as createdBy, \
-#                             ToValidDateTime(stg.CHANGED_ON) as changedDate, \
-#                             stg.CHANGED_BY as changedBy, \
-#                             stg._RecordStart, \
-#                             stg._RecordEnd, \
-#                             stg._RecordDeleted, \
-#                             stg._RecordCurrent \
-#                           FROM {ADS_DATABASE_STAGE}.{source_object} stg \
-#                           LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_zcd_tsupprtyp_tx supty on supty.superiorPropertyTypeCode = stg.SUP_PROP_TYPE \
-#                                                                                                     and supty._RecordDeleted = 0 and supty._RecordCurrent = 1 \
-#                           LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_zcd_tinfprty_tx infty on infty.inferiorPropertyTypeCode = stg.INF_PROP_TYPE \
-#                                                                                                     and infty._RecordDeleted = 0 and infty._RecordCurrent = 1")
+# df_cleansed = spark.sql(f"SELECT \
+#                             case when ATINN = 'na' then '' else ATINN end as internalcharacteristic, \
+#                             case when ADZHL = 'na' then '' else ADZHL end as internalCounterforArchivingObjectsbyECM, \
+#                             ATNAM as characteristicName, \
+#                             _RecordStart, \
+#                             _RecordEnd, \
+#                             _RecordDeleted, \
+#                             _RecordCurrent \
+#                           FROM {ADS_DATABASE_STAGE}.{source_object}")
 
-# print(f'Number of rows: {df_cleansed.count()}')
+# print(f'Number of rows: {df_cleansed.count()}')                     
 
 # COMMAND ----------
 
 # Create schema for the cleanse table
 newSchema = StructType([
-                        StructField("propertyNumber", StringType(), False),
-                        StructField("superiorPropertyTypeCode", StringType(), True),
-                        StructField("superiorPropertyType", StringType(), True),
-                        StructField("inferiorPropertyTypeCode", StringType(), True),
-                        StructField("inferiorPropertyType", StringType(), True),
-                        StructField("validFromDate", DateType(), False),
+                        StructField("internalCharacteristic", StringType(), False),
+                        StructField("internalCounter", StringType(), False),
+                        StructField("internalCounterforArchivingObjectsbyECM", StringType(), False),
+                        StructField("charactericValue", StringType(), True),
+                        StructField("internalFloatingPointFrom", DoubleType(), True),
+                        StructField("internalFloatingPointTo", DoubleType(), True),
+                        StructField("valueDependencyCode", StringType(), True),
+                        StructField("defaultValueFlag", StringType(), True),
+                        StructField("unitOfMeasurement2", StringType(), True),
+                        StructField("unitOfMeasurement1", StringType(), True),
+                        StructField("objectIdentification", StringType(), True),
+                        StructField("relatedTextNumber", StringType(), True),
+                        StructField("validFromDate", DateType(), True),
                         StructField("validToDate", DateType(), True),
-                        StructField("createdDate", TimestampType(), True),
-                        StructField("createdBy", StringType(), True),
-                        StructField("changedDate", TimestampType(), True),
-                        StructField("changedBy", StringType(), True),
+                        StructField("technicalStatus", StringType(), True),
+                        StructField("changeNumber", StringType(), True),
+                        StructField("deletionIndicator", StringType(), True),
+                        StructField("documentTypeCode", StringType(), True),
+                        StructField("documentNumber", StringType(), True),
+                        StructField("documentVersionNumber", StringType(), True),
+                        StructField("documentPart", StringType(), True),
+                        StructField("valueHierarchyInternalCounter", StringType(), True),
+                        StructField("objectNumberWithAssignedDependencies", StringType(), True),
+                        StructField("subordinateValueExistFlag", StringType(), True),
+                        StructField("toleranceFromValue", DoubleType(), True),
+                        StructField("toleranceToValue", DoubleType(), True),
+                        StructField("toleranceAsPercentageFlag", StringType(), True),
+                        StructField("intervalIncrementValue", DoubleType(), True),
+                        StructField("relevantToPlanningFlag", StringType(), True),
                         StructField('_RecordStart',TimestampType(),False),
                         StructField('_RecordEnd',TimestampType(),False),
                         StructField('_RecordDeleted',IntegerType(),False),
@@ -254,19 +271,7 @@ newSchema = StructType([
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
-# DeltaSaveDataFrameToDeltaTable(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
-#Uncomment the above function call and delete the below lines once "DeltaSaveDataFrameToDeltaTable" is enhanced for 'Overwrite' mode
-spark.sql("VACUUM cleansed.isu_zcd_tpropty_hist ")
-df.write \
-  .format('delta') \
-  .option("mergeSchema", "true") \
-  .option("overwriteSchema", "true") \
-  .mode("overwrite") \
-  .save("dbfs:/mnt/datalake-cleansed/isudata/zcd_tpropty_hist/delta")
-
-spark.sql("CREATE TABLE IF NOT EXISTS cleansed.isu_zcd_tpropty_hist  USING DELTA LOCATION \'dbfs:/mnt/datalake-cleansed/isudata/zcd_tpropty_hist/delta\'")
-
-verifyTableSchema(f"cleansed.isu_ZCD_TPROPTY_HIST", newSchema)
+DeltaSaveDataFrameToDeltaTable(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
 
 # COMMAND ----------
 
