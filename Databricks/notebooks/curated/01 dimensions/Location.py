@@ -183,10 +183,10 @@ def getLocation():
 
     #3.UNION TABLES
     #Create dummy record
-    #dummyRec = tuple([-1] + ['Unknown'] * (len(ISULocationDf.columns) - 3) + [0,0]) 
+#     dummyRec = tuple([-1] + ['Unknown'] * (len(ISULocationDf.columns) - 3) + [0,0]) 
     #dummyDimRecDf = spark.createDataFrame([dummyRec],ISULocationDf.columns)
-    #dummyDimRecDf = spark.createDataFrame([("-1","Unknown","Unknown")], [ "locationID","formattedAddress","LGA"])
-    #ISULocationDf = ISULocationDf.unionByName(dummyDimRecDf, allowMissingColumns = True)
+    dummyDimRecDf = spark.createDataFrame([("-1","Unknown","Unknown","Unknown")], [ "locationID","sourceSystemCode","formattedAddress","LGA"])
+    ISULocationDf = ISULocationDf.unionByName(dummyDimRecDf, allowMissingColumns = True)
     locationDf = ISULocationDf.unionByName(ACCESSDf, allowMissingColumns = True)
 
     #4.SELECT / TRANSFORM
@@ -207,7 +207,7 @@ def getLocation():
                             )
     #5.Apply schema definition
     schema = StructType([
-                            StructField('locationSK', LongType(), False),
+                            StructField('locationSK', LongType(), True),
                             StructField("locationID", StringType(), False),
                             StructField("sourceSystemCode", StringType(), False),
                             StructField("formattedAddress", StringType(), True),
@@ -233,3 +233,7 @@ TemplateEtl(df, entity="dimLocation", businessKey="locationId", schema=schema, A
 # COMMAND ----------
 
 dbutils.notebook.exit("1")
+
+# COMMAND ----------
+
+

@@ -28,10 +28,9 @@ def getStormWaterNetwork():
                         ")
 
     #Dummy Record to be added to Property Dimension
-    dummyDimRecDf = spark.createDataFrame([("Unknown","Unknown")], ["stormWaterNetwork", "stormWaterCatchment"])
+    dummyDimRecDf = spark.createDataFrame([("Unknown","-1")], ["stormWaterNetwork", "stormWaterCatchment"])
 
-    #2.JOIN TABLES
-    
+    #2.JOIN TABLES  
     #3.UNION TABLES
     df = baseDf.unionByName(dummyDimRecDf, allowMissingColumns = True)
     #print(f'{df.count():,} rows after Union 2')
@@ -44,7 +43,7 @@ def getStormWaterNetwork():
                                             
     #5.Apply schema definition
     schema = StructType([
-                            StructField('stormWaterNetworkSK', LongType(), False),
+                            StructField('stormWaterNetworkSK', LongType(), True),
                             StructField("stormWaterNetwork", StringType(), False),
                             StructField("stormWaterCatchment", StringType(), False)
                         ])
@@ -59,10 +58,4 @@ TemplateEtl(df, entity="dimStormWaterNetwork", businessKey="stormWaterCatchment"
 
 # COMMAND ----------
 
-# ADS_DATABASE_CLEANSED = 'cleansed'
-# df = getStormWaterNetwork()
-# display(df)
 
-# COMMAND ----------
-
-# dbutils.notebook.exit("1")
