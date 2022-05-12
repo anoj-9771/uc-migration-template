@@ -20,7 +20,7 @@ trigger: none
 #     include:
 #     - Synapse-Databases/Synapse-Database.sln
 
-pool: Daf-Self-Hosted-Dev-Win
+pool: Daf-Self-Hosted-Preprod-Win
 
 stages:
 # ---------------------------------------------------------------------------
