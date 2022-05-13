@@ -36,7 +36,7 @@ stages:
     pool: Daf-Self-Hosted-Dev-Win
     stage_name: 'dev'
     variable_template_name: dev-variables
-    run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/platform-deploy'))
+    run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
 
 # ---------------------------------------------------------------------------
 # Release to Non-Production
@@ -45,7 +45,7 @@ stages:
     pool: Daf-Self-Hosted-Dev-Win
     stage_name: 'test'
     variable_template_name: test-variables
-    run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/platform-deploy'))
+    run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
 
 # ---------------------------------------------------------------------------
 # Release to Production - PreProd Environment
