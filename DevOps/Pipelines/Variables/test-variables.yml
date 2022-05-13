@@ -7,7 +7,7 @@ variables:
   - name: subscription
     value: swcnonprod01
   - name: subscriptionId
-    value: 769a62b3-7481-44ae-878e-a466593f50ac
+    value: e59a4313-66c3-4db6-842d-6154c5e08205
   # The default resource group region name
   - name: location
     value: australiaeast
@@ -28,7 +28,7 @@ variables:
     value: azure-rg-test-serviceconnection
   # The service principal object ID (Not App ID)... Use 'az ad sp show --id <<app-id>> --query "objectId" -o tsv'
   - name: spobjectid
-    value: 71beb4c2-8b21-458b-8a58-eda46894efe8
+    value: 13daf0ce-c685-41b1-b609-0747c83bc4ac
   # Store account type for BLOB Storage e.g. Standard_LRS)
   - name: storageAccountType
     value: Standard_LRS
@@ -44,11 +44,11 @@ variables:
   - name: vnetName
     value: vnet-swcnonprod01-ae-01
   - name: vnetid
-    value: /subscriptions/$(subscriptionId)/resourceGroups/rg-swcnonprod01-daf-$(environment)-01/providers/Microsoft.Network/virtualNetworks/vnet-swcnonprod01-ae-01
+    value: /subscriptions/$(subscriptionId)/resourceGroups/rg-swcnonprod01-network-01/providers/Microsoft.Network/virtualNetworks/vnet-swcnonprod01-ae-01
   - name: internalSubnetId
-    value: /subscriptions/$(subscriptionId)/resourceGroups/rg-swcnonprod01-daf-$(environment)-01/providers/Microsoft.Network/virtualNetworks/vnet-swcnonprod01-ae-01/subnets/snet-swcnonprod01-ae-01
+    value: /subscriptions/$(subscriptionId)/resourceGroups/rg-swcnonprod01-network-01/providers/Microsoft.Network/virtualNetworks/vnet-swcnonprod01-ae-01/subnets/snet-swcnonprod01-ae-01
   - name: databricksPrivateSubnetId
-    value: /subscriptions/$(subscriptionId)/resourceGroups/rg-swcnonprod01-daf-$(environment)-01/providers/Microsoft.Network/virtualNetworks/vnet-swcnonprod01-ae-01/subnets/snet-swcnonprod01-ae-daf-$(environment)-dbwprivate-01
+    value: /subscriptions/$(subscriptionId)/resourceGroups/rg-swcnonprod01-network-01/providers/Microsoft.Network/virtualNetworks/vnet-swcnonprod01-ae-01/subnets/snet-swcnonprod01-ae-daf-test-dbwprivate-01
   # -------------------------------------------------
   # Service names for environment
   # -------------------------------------------------
@@ -77,9 +77,9 @@ variables:
   # Container or file system names within storage account
   # Used to iterate in ARM template
   - name: logzonename
-    value: container1
+    value: daflogs
   - name: zonenames
-    value: raw, cleansed, curated, datalab, synapsestaging
+    value: raw, cleansed, curated, datalab, synapsestaging, triggers
     # value: raw, stage, sandbox
   # Databricks workspace name for this enironment
   - name: databricksworkspacename
@@ -95,7 +95,7 @@ variables:
     value: $(PREFIX)-SHIR
   # Flag to specify whether Data Factory requires Git Integration.
   - name: isRepoEnabled
-    value: false 
+    value: true 
   # Environment Parameterisation of Trigger Variables
   - name: BATCH_DAILY_HYDRA_properties_typeProperties_scope
     value: /subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-daf-test-01/providers/Microsoft.Storage/storageAccounts/sadaftest01
@@ -173,6 +173,7 @@ variables:
     value: syndw$(ENVIRONMENT)$(INCREMENT)
   - name: defaultAdlsGen2AccountResourceId
     value: /subscriptions/$(subscriptionId)/resourcegroups/$(resourcegroupname)/providers/Microsoft.Storage/storageAccounts/$(defaultDataLakeStorageAccountName)
+    
   # ------------------------------------------------
   # Azure VMs Common related
   # ------------------------------------------------

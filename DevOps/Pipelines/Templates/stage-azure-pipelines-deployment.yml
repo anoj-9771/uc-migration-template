@@ -19,6 +19,8 @@ parameters:
   type: string
 - name: run_condition
   type: string
+- name: pool
+  type: string
 
 stages:
 # ---------------------------------------------------------------------------
@@ -36,8 +38,8 @@ stages:
   # through templates. Introduce or remove templates from this build script
   # as needed for your deployment
   - job: 'deploy_arm'
+    pool: ${{ parameters.pool }}
     steps:
-    
     - task: DownloadBuildArtifacts@0
       inputs:
         artifactName: 'arm_templates' 
@@ -203,10 +205,10 @@ stages:
             az resource tag --tags $(TAGS) --ids $ids 
 
   # Deploy Control DB schema / DACPAC.
-  - ${{ if eq(variables['controldb'], true) }}:
-    - template: job-deploy-controldb.yml
-      parameters:
-        AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
+  # - ${{ if eq(variables['controldb'], true) }}:
+  #   - template: job-deploy-controldb.yml
+  #     parameters:
+  #       AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
  
   
   

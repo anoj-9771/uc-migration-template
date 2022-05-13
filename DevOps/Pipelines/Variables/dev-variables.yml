@@ -7,7 +7,7 @@ variables:
   - name: subscription
     value: swcnonprod01
   - name: subscriptionId
-    value: 769a62b3-7481-44ae-878e-a466593f50ac
+    value: e59a4313-66c3-4db6-842d-6154c5e08205
   # The default resource group region name
   - name: location
     value: australiaeast
@@ -44,11 +44,11 @@ variables:
   - name: vnetName
     value: vnet-swcnonprod01-ae-01
   - name: vnetid
-    value: /subscriptions/$(subscriptionId)/resourceGroups/rg-swcnonprod01-daf-$(environment)-01/providers/Microsoft.Network/virtualNetworks/vnet-swcnonprod01-ae-01
+    value: /subscriptions/$(subscriptionId)/resourceGroups/rg-swcnonprod01-network-01/providers/Microsoft.Network/virtualNetworks/vnet-swcnonprod01-ae-01
   - name: internalSubnetId
-    value: /subscriptions/$(subscriptionId)/resourceGroups/rg-swcnonprod01-daf-$(environment)-01/providers/Microsoft.Network/virtualNetworks/vnet-swcnonprod01-ae-01/subnets/snet-swcnonprod01-ae-01
+    value: /subscriptions/$(subscriptionId)/resourceGroups/rg-swcnonprod01-network-01/providers/Microsoft.Network/virtualNetworks/vnet-swcnonprod01-ae-01/subnets/snet-swcnonprod01-ae-01
   - name: databricksPrivateSubnetId
-    value: /subscriptions/$(subscriptionId)/resourceGroups/rg-swcnonprod01-daf-$(environment)-01/providers/Microsoft.Network/virtualNetworks/vnet-swcnonprod01-ae-01/subnets/snet-swcnonprod01-ae-daf-$(environment)-dbwprivate-01
+    value: /subscriptions/$(subscriptionId)/resourceGroups/rg-swcnonprod01-network-01/providers/Microsoft.Network/virtualNetworks/vnet-swcnonprod01-ae-01/subnets/snet-swcnonprod01-ae-daf-dev-dbwprivate-01
   # -------------------------------------------------
   # Service names for environment
   # -------------------------------------------------
