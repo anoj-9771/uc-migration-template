@@ -8,6 +8,8 @@ parameters:
   type: string
 - name: run_condition
   type: string
+- name: pool
+  type: string
 
 stages:
 
@@ -18,6 +20,8 @@ stages:
   - template: ../Variables/${{ parameters.variable_template_name }}.yml
   jobs:
   - job: 'deploy_control_db'
+    pool: ${{ parameters.pool }}
+
     steps:
 
     - task: DownloadBuildArtifacts@0
