@@ -19,6 +19,8 @@ parameters:
   type: string
 - name: run_condition
   type: string
+- name: pool
+  type: string
 
 stages:
 # ---------------------------------------------------------------------------
@@ -32,6 +34,8 @@ stages:
   jobs:
   # ---------------------------------------------------------------------------
   - job: 'deploy_synapse_db'
+    pool: ${{ parameters.pool }}
+
     steps:
     - task: DownloadBuildArtifacts@0
       inputs:

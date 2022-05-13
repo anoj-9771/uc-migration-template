@@ -8,6 +8,8 @@ parameters:
   type: string
 - name: run_condition
   type: string
+- name: pool
+  type: string
 
 stages:
 # ---------------------------------------------------------------------------
@@ -27,7 +29,7 @@ stages:
 
   jobs:
   - job:
-    pool: Daf-Self-Pool01
+    pool: ${{ parameters.pool }}
     steps:
     - download: current
       artifact: adf_arm_templates

@@ -38,7 +38,7 @@ stages:
 # Release to Non-Prod - Dev Environment
 - template: Templates/stage-datafactory-integration.yml
   parameters:
-    #dependencies: ['uat'] # Used to define any stage dependencies
+    pool: Daf-Self-Hosted-Dev-Linux
     stage_name: 'deploy_adf_dev'
     variable_template_name: dev-variables
     run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/develop'))
@@ -47,7 +47,7 @@ stages:
 # Release to Non-Prod - Test Environment..
 - template: Templates/stage-datafactory-integration.yml
   parameters:
-    #dependencies: ['uat'] # Used to define any stage dependencies
+    pool: Daf-Self-Hosted-Dev-Linux
     stage_name: 'deploy_adf_test'
     variable_template_name: test-variables
     run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/test'))
@@ -56,7 +56,7 @@ stages:
 # Release to PreProduction - PreProd Environment
 - template: Templates/stage-datafactory-integration.yml
   parameters:
-    #dependencies: ['uat'] # Used to define any stage dependencies
+    pool: Daf-Self-Hosted-PreProd-Linux
     stage_name: 'deploy_adf_preprod'
     variable_template_name: preprd-variables
     run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/preprod'))
@@ -65,7 +65,7 @@ stages:
 # Release to Production - Prod Environment
 - template: Templates/stage-datafactory-integration.yml
   parameters:
-    #dependencies: ['uat'] # Used to define any stage dependencies
+    pool: Daf-Self-Hosted-Prod-Linux
     stage_name: 'deploy_adf_prod'
     variable_template_name: prod-variables
     run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
