@@ -543,11 +543,10 @@ def DeltaSaveDataFrameToDeltaTable(
   
   if AddSKColumn:
     dataframe = DeltaInjectSurrogateKeyToDataFrame(dataframe, target_table)
-    if target_table.startswith('dim'):
-      skColumn = f"{target_table.replace('dim', '')}SK"
-      skColumn = skColumn[0].lower() + skColumn[1:]
-      spark.sql(f'ALTER TABLE {target_database}.{target_table} ALTER COLUMN {skColumn} DROP NOT NULL;')
-      
+    if DeltaTableExists(f"{target_database}.{target_table}"):
+        skColumn = dataframe.schema[0].name
+        spark.sql(f'ALTER TABLE {target_database}.{target_table} ALTER COLUMN {skColumn} DROP NOT NULL;')
+
   #Drop the stage table if it exists
   spark.sql(f"DROP TABLE IF EXISTS {stage_table_name}")
   #Save the dataframe temporarily to Stage database
