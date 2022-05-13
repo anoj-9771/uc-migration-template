@@ -210,7 +210,7 @@ def getBilledWaterConsumption():
                                         ,"meteredWaterConsumption" \
                                        ) \
                           .groupby("sourceSystemCode", "meterConsumptionBillingDocumentSK", "meterConsumptionBillingLineItemSK", "propertySK", "meterSK", \
-                                   "locationSK", "waterNetworkSK", "billingPeriodStartDate", "businessPartnerGroupSK", "contractSK") \
+                                   "locationSK", "waterNetworkSK", "businessPartnerGroupSK", "contractSK", "billingPeriodStartDate") \
                           .agg(max("billingPeriodEndDate").alias("billingPeriodEndDate") \
                               ,sum("meteredWaterConsumption").alias("meteredWaterConsumption"))
 
@@ -235,7 +235,7 @@ def getBilledWaterConsumption():
 # COMMAND ----------
 
 df, schema = getBilledWaterConsumption()
-TemplateEtl(df, entity="factBilledWaterConsumption", businessKey="sourceSystemCode,meterConsumptionBillingDocumentSK,meterConsumptionBillingLineItemSK,propertySK,meterSK,billingPeriodStartDate,locationSK", schema=schema, AddSK=False)
+TemplateEtl(df, entity="factBilledWaterConsumption", businessKey="sourceSystemCode,meterConsumptionBillingDocumentSK,meterConsumptionBillingLineItemSK", schema=schema, AddSK=False)
 
 # COMMAND ----------
 
