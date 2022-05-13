@@ -20,6 +20,8 @@ trigger: none
 #     include:
 #     - ADS-Databases/ADS-Database.sln
 
+pool: Daf-Self-Hosted-Prod-Win
+
 stages:
 # ---------------------------------------------------------------------------
 # Build artifacts.
