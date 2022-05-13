@@ -204,11 +204,11 @@ stages:
             ids=$(az resource list --resource-group ${{ variables.resourcegroupname }} --query "[].id" --output tsv)
             az resource tag --tags $(TAGS) --ids $ids 
 
-    # Deploy Control DB schema / DACPAC.
-    - ${{ if eq(variables['controldb'], true) }}:
-      - template: job-deploy-controldb.yml
-        parameters:
-          AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
+  # Deploy Control DB schema / DACPAC.
+  # - ${{ if eq(variables['controldb'], true) }}:
+  #   - template: job-deploy-controldb.yml
+  #     parameters:
+  #       AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
  
   
   
