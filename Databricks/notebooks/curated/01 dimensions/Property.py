@@ -291,7 +291,7 @@ def getProperty():
                                             
     #5.Apply schema definition
     schema = StructType([
-                            StructField('propertySK', LongType(), True),
+                            StructField('propertySK', LongType(), False),
                             StructField("propertyNumber", StringType(), False),
                             StructField("sourceSystemCode", StringType(), False),
                             StructField("waterNetworkSK_drinkingWater", StringType(), True),
