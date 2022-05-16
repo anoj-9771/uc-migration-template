@@ -130,13 +130,13 @@ def getInstallationPropertyMeterContract():
                             
     #5.Apply schema definition
     schema = StructType([
-                            StructField('installationSK', LongType(), False),
+                            StructField('installationSK', LongType(), True),
                             StructField('installationId', StringType(), True),
-                            StructField('contractSK', LongType(), False),
+                            StructField('contractSK', LongType(), True),
                             StructField('contractId', StringType(), True),
-                            StructField('meterSK', LongType(), False),
+                            StructField('meterSK', LongType(), True),
                             StructField('meterNumber', StringType(), True),
-                            StructField('propertySK', LongType(), False),
+                            StructField('propertySK', LongType(), True),
                             StructField('propertyNumber', StringType(), True)
                       ]) 
 
