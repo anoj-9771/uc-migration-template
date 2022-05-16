@@ -159,7 +159,7 @@ df.write \
   .mode("overwrite") \
   .save("dbfs:/mnt/datalake-curated/brginstallationpropertymetercontract/delta")
 
-spark.sql("CREATE TABLE IF NOT EXISTS curated.brgInstallationPropertyMeterContract  USING DELTA LOCATION \'dbfs:/mnt/datalake-curated/brginstallationpropertymetercontract/delta\'")
+spark.sql("CREATE TABLE IF NOT EXISTS curated.brginstallationpropertymetercontract  USING DELTA LOCATION \'dbfs:/mnt/datalake-curated/brginstallationpropertymetercontract/delta\'")
 
 verifyTableSchema(f"curated.brginstallationpropertymetercontract", schema)
 
