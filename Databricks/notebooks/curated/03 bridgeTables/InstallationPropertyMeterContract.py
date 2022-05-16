@@ -157,11 +157,11 @@ df.write \
   .option("mergeSchema", "true") \
   .option("overwriteSchema", "true") \
   .mode("overwrite") \
-  .save("dbfs:/mnt/datalake-curated/brgInstallationPropertyMeterContract/delta")
+  .save("dbfs:/mnt/datalake-curated/brginstallationpropertymetercontract/delta")
 
-spark.sql("CREATE TABLE IF NOT EXISTS curated.brgInstallationPropertyMeterContract  USING DELTA LOCATION \'dbfs:/mnt/datalake-curated/brgInstallationPropertyMeterContract/delta\'")
+spark.sql("CREATE TABLE IF NOT EXISTS curated.brgInstallationPropertyMeterContract  USING DELTA LOCATION \'dbfs:/mnt/datalake-curated/brginstallationpropertymetercontract/delta\'")
 
-verifyTableSchema(f"curated.brgInstallationPropertyMeterContract", schema)
+verifyTableSchema(f"curated.brginstallationpropertymetercontract", schema)
 
 
 # COMMAND ----------
