@@ -185,7 +185,7 @@ def getLocation():
     #Create dummy record
 #     dummyRec = tuple([-1] + ['Unknown'] * (len(ISULocationDf.columns) - 3) + [0,0]) 
     #dummyDimRecDf = spark.createDataFrame([dummyRec],ISULocationDf.columns)
-    dummyDimRecDf = spark.createDataFrame([("-1","Unknown","Unknown","Unknown")], [ "locationID","sourceSystemCode","formattedAddress","LGA"])
+    dummyDimRecDf = spark.createDataFrame([("-1","Unknown","Unknown","Unknown"),("-2","NA","NA","NA")], [ "locationID","sourceSystemCode","formattedAddress","LGA"])
     ISULocationDf = ISULocationDf.unionByName(dummyDimRecDf, allowMissingColumns = True)
     locationDf = ISULocationDf.unionByName(ACCESSDf, allowMissingColumns = True)
 
@@ -207,7 +207,7 @@ def getLocation():
                             )
     #5.Apply schema definition
     schema = StructType([
-                            StructField('locationSK', LongType(), True),
+                            StructField('locationSK', LongType(), False),
                             StructField("locationID", StringType(), False),
                             StructField("sourceSystemCode", StringType(), False),
                             StructField("formattedAddress", StringType(), True),

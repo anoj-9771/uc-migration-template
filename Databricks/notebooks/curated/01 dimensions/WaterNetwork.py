@@ -32,7 +32,7 @@ def getWaterNetwork():
                         ")
 
     #Dummy Record to be added to Property Dimension
-    dummyDimRecDf = spark.createDataFrame([("Unknown","Unknown","Unknown","-1","Unknown","Unknown"),("Unknown","Unknown","-1","n/a","Unknown","Unknown")], ["deliverySystem", "distributionSystem","supplyZone","pressureArea","isPotableWaterNetwork","isRecycledWaterNetwork"])
+    dummyDimRecDf = spark.createDataFrame([("Unknown","Unknown","Unknown","-1","Unknown","Unknown"),("NA","NA","NA","-2","NA","NA")], ["deliverySystem", "distributionSystem","supplyZone","pressureArea","isPotableWaterNetwork","isRecycledWaterNetwork"])
 
     #2.JOIN TABLES  
     #3.UNION TABLES
@@ -51,7 +51,7 @@ def getWaterNetwork():
                                             
     #5.Apply schema definition
     schema = StructType([
-                            StructField('waterNetworkSK', LongType(), True),
+                            StructField('waterNetworkSK', LongType(), False),
                             StructField("deliverySystem", StringType(), False),
                             StructField("distributionSystem", StringType(), False),
                             StructField("supplyZone", StringType(), False),
