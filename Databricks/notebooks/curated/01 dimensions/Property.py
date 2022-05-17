@@ -41,24 +41,24 @@ def getProperty():
     #1.Load current Cleansed layer table data into dataframe
     #build a dataframe with unique properties and lot details, 4174119 is incorrectly present on Tlot
     lotDf = spark.sql(f"select propertyNumber, \
-                                first(planTypeCode) as planTypeCode, \
-                                first(planType) as planType, \
+                                first(coalesce(planTypeCodeSAP,planTypeCode)) as planTypeCode, \
+                                first(coalesce(planTypeSAP,planType)) as planType, \
                                 first(planNumber) as planNumber, \
                                 first(lotNumber)  as lotNumber, \
                                 first(lotTypeCode) as lotTypeCode, \
-                                first(lotType) as lotType, \
+                                first(coalesce(lotTypeSAP,lotType)) as lotType, \
                                 first(sectionNumber) as sectionNumber \
                         from {ADS_DATABASE_CLEANSED}.access_z309_tlot \
                         where _RecordCurrent = 1 \
                         group by propertyNumber \
                         union all \
                         select propertyNumber, \
-                                'SP' as planTypeCode, \
+                                '02' as planTypeCode, \
                                 'Strata Plan' as planType, \
                                 strataPlanNumber as planNumber, \
                                 strataPlanLot as lotNumber, \
                                 '01' as lotTypeCode, \
-                                'Lot' as lotType, \
+                                'Full' as lotType, \
                                 null as sectionNumber \
                         from {ADS_DATABASE_CLEANSED}.access_z309_tstrataunits \
                         where _RecordCurrent = 1 \
@@ -69,9 +69,9 @@ def getProperty():
                                 select su.propertyNumber, \
                                         ms.masterPropertyNumber as parentPropertyNumber, \
                                         pr.propertyTypeCode as parentPropertyTypeCode, \
-                                        pr.propertyType as parentPropertyType, \
+                                        coalesce(pr.propertyTypeSAP,pr.propertyType) as parentPropertyType, \
                                         pr.superiorPropertyTypeCode as parentSuperiorPropertyTypeCode, \
-                                        pr.superiorPropertyType as parentSuperiorPropertyType, \
+                                        coalesce(pr.superiorPropertyTypeSAP,pr.superiorPropertyType) as parentSuperiorPropertyType, \
                                        'Child of Master Strata' as relationshipType \
                                 from {ADS_DATABASE_CLEANSED}.access_z309_tstrataunits su \
                                       inner join {ADS_DATABASE_CLEANSED}.access_z309_tmastrataplan ms on su.strataPlanNumber = ms.strataPlanNumber and ms._RecordCurrent = 1 \
@@ -87,9 +87,9 @@ def getProperty():
                                 select rp.propertyNumber as propertyNumber, \
                                         rp.relatedPropertyNumber as parentPropertyNumber, \
                                         pr.propertyTypeCode as parentPropertyTypeCode, \
-                                        pr.propertyType as parentPropertyType, \
+                                        coalesce(pr.propertyTypeSAP,pr.propertyType) as parentPropertyType, \
                                         pr.superiorPropertyTypeCode as parentSuperiorPropertyTypeCode, \
-                                        pr.superiorPropertyType as parentSuperiorPropertyType, \
+                                        coalesce(pr.superiorPropertyTypeSAP,pr.superiorPropertyType) as parentSuperiorPropertyType, \
                                         rp.relationshipType as relationshipType, \
                                         row_number() over (partition by rp.propertyNumber order by relationshipTypecode desc) as rn \
                                 from {ADS_DATABASE_CLEANSED}.access_z309_trelatedProps rp inner join remainingProps rem on rp.propertyNumber = rem.propertyNumber \
@@ -165,9 +165,9 @@ def getProperty():
                                             sewerNetworkSK, \
                                             stormWaterNetworkSK, \
                                             propertyTypeCode, \
-                                            propertyType, \
+                                            initcap(coalesce(propertyTypeSAP,propertyType)) as propertyType, \
                                             superiorPropertyTypeCode, \
-                                            superiorPropertyType, \
+                                            initcap(coalesce(superiorPropertyTypeSAP,superiorPropertyType)) as superiorPropertyType, \
                                             CASE WHEN propertyAreaTypeCode == 'H' THEN  propertyArea * 10000 \
                                                                                   ELSE propertyArea END AS areaSize, \
                                             pp.parentPropertyNumber as parentPropertyNumber, \
