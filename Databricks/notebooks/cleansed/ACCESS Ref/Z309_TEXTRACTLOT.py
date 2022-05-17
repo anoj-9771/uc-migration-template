@@ -186,7 +186,7 @@ DeltaSaveToDeltaTable (
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT \
 	C_EXTR_LOT as extractLotCode, \
-	T_EXTR_LOT as extractLotDescription, \
+	initcap(T_EXTR_LOT) as extractLotDescription, \
 	ToValidDate(D_EXTR_LOT_EFFE) as extraLotInfoEffectiveDate, \
 	ToValidDate(D_EXTR_LOT_CANC) as extraLotInfoCancelledDate, \
 	_RecordStart, \

@@ -196,8 +196,10 @@ df_cleansed = spark.sql(f"SELECT \
     ref1.LGA, \
     C_PROP_TYPE AS propertyTypeCode, \
     ref3.propertyType, \
+    infsap.inferiorPropertyType as propertyTypeSAP, \
     ref3a.propertyTypeCode as superiorPropertyTypeCode, \
     ref3a.propertyType as superiorPropertyType, \
+    supsap.superiorPropertyType as superiorPropertyTypeSAP, \
     case when D_PROP_TYPE_EFFE is not null \
               then to_date(D_PROP_TYPE_EFFE,'yyyyMMdd') \
          when D_PROP_RATE_CANC is not null \
@@ -265,24 +267,30 @@ df_cleansed = spark.sql(f"SELECT \
     T_TIME_SUPD as rowSupersededTime, \
     C_USER_CREA AS createdByUserId, \
     C_PLAN_CREA AS createdByPlan, \
-    cast(to_unix_timestamp(H_CREA, 'yyyy-MM-dd hh:mm:ss a') as timestamp) as createdTimestamp, \
+    ToValidDateTime(H_CREA) as createdTimestamp, \
     case when substr(hex(c_user_modi),1,2) = '00' then ' ' else C_USER_MODI end AS modifiedByUserId, \
     C_PLAN_MODI AS modifiedByPlan, \
-    cast(to_unix_timestamp(H_MODI, 'yyyy-MM-dd hh:mm:ss a') as timestamp) as modifiedTimestamp, \
+    ToValidDateTime(H_MODI) as modifiedTimestamp, \
 	tbl.M_PROC as modifiedByProcess, \
-	cast(to_unix_timestamp(tbl.D_SUPD||' '||substr(tbl.T_TIME_SUPD,1,6), 'yyyyMMdd HHmmss') as timestamp) as rowSupersededTimestamp, \
+    case when substr(T_TIME_SUPD,1,2) between '00' and '23' \
+              and substr(T_TIME_SUPD,3,2) between '00' and '59' \
+              and substr(T_TIME_SUPD,5,2) between '00' and '59' \
+              then ToValidDateTime(tbl.D_SUPD||' '||substr(tbl.T_TIME_SUPD,1,6)) \
+              else ToValidDateTime(tbl.D_SUPD||' 120000') end as rowSupersededTimestamp, \
 	tbl._RecordStart, \
 	tbl._RecordEnd, \
 	tbl._RecordDeleted, \
 	tbl._RecordCurrent \
 	FROM {ADS_DATABASE_STAGE}.{source_object} tbl \
-                left outer join cleansed.access_Z309_TLOCALGOVT ref1 on tbl.C_LGA = ref1.LGACode \
-                left outer join cleansed.access_Z309_TPROPTYPE ref3 on tbl.C_PROP_TYPE = ref3.propertyTypeCode \
-                left outer join cleansed.access_Z309_TPropType ref3a on ref3.superiorPropertyTypeCode = ref3a.propertyTypeCode \
-                left outer join cleansed.access_Z309_TRATATYPE ref4 on tbl.C_RATA_TYPE = ref4.rateabilityTypeCode \
-                left outer join cleansed.access_Z309_TSEWEUSAGETYPE ref5 on tbl.C_SEWE_USAG_TYPE = ref5.sewerUsageTypeCode \
-                left outer join cleansed.access_Z309_TPROPAREATYPE ref6 on tbl.C_PROP_AREA_TYPE = ref6.propertyAreaTypeCode \
-                left outer join cleansed.access_Z309_TEXTRACTLOT ref7 on tbl.C_EXTR_LOT = ref7.extractLotCode \
+                left outer join cleansed.access_Z309_TLOCALGOVT ref1 on tbl.C_LGA = ref1.LGACode and ref1._RecordCurrent = 1 \
+                left outer join cleansed.access_Z309_TPROPTYPE ref3 on tbl.C_PROP_TYPE = ref3.propertyTypeCode and ref3._RecordCurrent = 1 \
+                left outer join cleansed.access_Z309_TPropType ref3a on ref3.superiorPropertyTypeCode = ref3a.propertyTypeCode and ref3a._RecordCurrent = 1 \
+                left outer join cleansed.access_Z309_TRATATYPE ref4 on tbl.C_RATA_TYPE = ref4.rateabilityTypeCode and ref4._RecordCurrent = 1 \
+                left outer join cleansed.access_Z309_TSEWEUSAGETYPE ref5 on tbl.C_SEWE_USAG_TYPE = ref5.sewerUsageTypeCode and ref5._RecordCurrent = 1 \
+                left outer join cleansed.access_Z309_TPROPAREATYPE ref6 on tbl.C_PROP_AREA_TYPE = ref6.propertyAreaTypeCode and ref6._RecordCurrent = 1 \
+                left outer join cleansed.access_Z309_TEXTRACTLOT ref7 on tbl.C_EXTR_LOT = ref7.extractLotCode and ref7._RecordCurrent = 1 \
+                left outer join cleansed.isu_zcd_tinfprty_tx infsap on infsap.inferiorPropertyTypeCode = tbl.c_prop_type and infsap._RecordCurrent = 1 \
+                left outer join cleansed.isu_zcd_tsupprtyp_tx supsap on supsap.superiorPropertyTypeCode = ref3a.propertyTypeCode and supsap._RecordCurrent = 1 \
                                 ")
 
 # COMMAND ----------
@@ -293,8 +301,10 @@ newSchema = StructType([
     StructField('LGA',StringType(),True),
 	StructField('propertyTypeCode',StringType(),True),
 	StructField('propertyType',StringType(),True),
+    StructField('propertyTypeSAP',StringType(),True),
     StructField('superiorPropertyTypeCode',StringType(),True),
     StructField('superiorPropertyType',StringType(),True),
+    StructField('superiorPropertyTypeSAP',StringType(),True),
     StructField('propertyTypeEffectiveFrom',DateType(),True),
     StructField('rateabilityTypeCode',StringType(),True),
     StructField('rateabilityType',StringType(),True),

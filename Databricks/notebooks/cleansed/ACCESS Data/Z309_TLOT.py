@@ -188,12 +188,15 @@ df_cleansed = spark.sql(f"SELECT \
             cast(N_PROP as int) AS propertyNumber, \
             cast(N_LOT_SEQU as int) AS lotSequenceNumber, \
             l.C_PLAN_TYPE AS planTypeCode, \
+            pts.PLAN_TYPE AS planTypeCodeSAP, \
             pt.planType, \
+            pts.description as planTypeSAP, \
             N_PLAN AS planNumber, \
             N_LOT AS lotNumber, \
             N_PLAN_SECT AS sectionNumber, \
             l.C_PORT_LOT_TYPE as lotTypeCode, \
             plt.lotType as lotType, \
+            plts.domainValueText as lotTypeSAP, \
             N_PORT AS portionNumber, \
             N_SUBD as subdivisionNumber, \
             cast(Q_LOT_AREA as decimal(9,3)) AS areaSize, \
@@ -204,12 +207,20 @@ df_cleansed = spark.sql(f"SELECT \
             l._RecordEnd, \
             l._RecordDeleted, \
             l._RecordCurrent \
-        FROM {ADS_DATABASE_STAGE}.{source_object} l left outer join \
-                cleansed.access_z309_TPLANTYPE pt on l.C_PLAN_TYPE = pt.planTypeCode left outer join \
-                cleansed.access_z309_TPORTIONLOTYPE plt on l.C_PORT_LOT_TYPE = plt.lotTypeCode WHERE N_PROP <> '4174119'")
-#-----------------------------------------------------------------------------------------
-# Note: property 4174119 is a strata garage and should only exist on the strat units table
-#-----------------------------------------------------------------------------------------                        
+        FROM {ADS_DATABASE_STAGE}.{source_object} l \
+                left outer join cleansed.access_z309_TPLANTYPE pt on l.C_PLAN_TYPE = pt.planTypeCode \
+                left outer join cleansed.access_z309_TPORTIONLOTYPE plt on l.C_PORT_LOT_TYPE = plt.lotTypeCode \
+                left outer join cleansed.isu_dd07t plts on l.C_PORT_LOT_TYPE = plts.domainValueSingleUpperLimit and domainName = 'ZCD_DO_ADDR_LOT_TYPE' \
+                left outer join cleansed.isu_zcd_tplantype_tx pts on pts.plan_type = case when l.c_plan_type = 'DP' then '01' \
+                                                                                          when l.c_plan_type = 'PSP' then '03' \
+                                                                                          when l.c_plan_type = 'PDP' then '04' \
+                                                                                          when l.c_plan_type = 'CN' then '05' \
+                                                                                          when l.c_plan_type = 'SP' then '02' \
+                                                                                          else null end \
+        WHERE N_PROP <> '4174119'")
+#------------------------------------------------------------------------------------------
+# Note: property 4174119 is a strata garage and should only exist on the strata units table
+#------------------------------------------------------------------------------------------                        
 #print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
@@ -218,12 +229,15 @@ newSchema = StructType([
 	StructField('propertyNumber',IntegerType(),False),
     StructField('lotSequenceNumber',IntegerType(),False),
     StructField('planTypeCode',StringType(),True),
+    StructField('planTypeCodeSAP',StringType(),True),
     StructField('planType',StringType(),True),
+    StructField('planTypeSAP',StringType(),True),
     StructField('planNumber',StringType(),True),
     StructField('lotNumber',StringType(),True),
     StructField('sectionNumber',StringType(),True),
     StructField('lotTypeCode',StringType(),True),
 	StructField('lotType',StringType(),True),
+	StructField('lotTypeSAP',StringType(),True),
 	StructField('portionNumber',StringType(),True),
     StructField('subdivisionNumber',StringType(),True),
     StructField('areaSize',DecimalType(9,3),False),
