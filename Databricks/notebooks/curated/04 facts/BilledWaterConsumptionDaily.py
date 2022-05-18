@@ -268,13 +268,31 @@ def getBilledWaterConsumptionDaily():
 
 # COMMAND ----------
 
+# df, schema = getBilledWaterConsumptionDaily()
+# TemplateEtl(df, entity="factDailyApportionedConsumption", businessKey="sourceSystemCode,consumptionDate,meterConsumptionBillingDocumentSK,meterConsumptionBillingLineItemSK", schema=schema, AddSK=False)
+
+# COMMAND ----------
+
+#Uncomment the above function call (TemplateEtl) and delete the below lines once "DeltaSaveDataFrameToDeltaTable" is enhanced for 'Overwrite' mode
 df, schema = getBilledWaterConsumptionDaily()
-TemplateEtl(df, entity="factDailyApportionedConsumption", businessKey="sourceSystemCode,consumptionDate,meterConsumptionBillingDocumentSK,meterConsumptionBillingLineItemSK", schema=schema, AddSK=False)
+if DeltaTableExists("curated.factDailyApportionedConsumption"):
+    spark.sql("VACUUM curated.factDailyApportionedConsumption")
+
+df.write \
+  .format('delta') \
+  .option("mergeSchema", "true") \
+  .option("overwriteSchema", "true") \
+  .mode("overwrite") \
+  .save("dbfs:/mnt/datalake-curated/factDailyApportionedConsumption/delta")
+
+spark.sql("CREATE TABLE IF NOT EXISTS curated.factDailyApportionedConsumption  USING DELTA LOCATION \'dbfs:/mnt/datalake-curated/factDailyApportionedConsumption/delta\'")
+
+verifyTableSchema(f"curated.factDailyApportionedConsumption", schema)
 
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC --Create or replace view curated.viewDailyApportionedConsumption as
+# MAGIC Create or replace view curated.viewDailyApportionedConsumption as
 # MAGIC select 
 # MAGIC propertyNumber,
 # MAGIC inferiorPropertyTypeCode,
@@ -294,7 +312,7 @@ TemplateEtl(df, entity="factDailyApportionedConsumption", businessKey="sourceSys
 # MAGIC businessPartnerGroupSK
 # MAGIC contractSK
 # MAGIC dailyApportionedConsumption from (
-# MAGIC select * ,RANK() OVER   (PARTITION BY sourceSystemCode,consumptionDate,meterConsumptionBillingDocumentSK,meterConsumptionBillingLineItemSK,propertySK,meterSK ORDER BY propertyTypeValidToDate desc,propertyTypeValidFromDate desc) as flag  from 
+# MAGIC select * ,RANK() OVER   (PARTITION BY sourceSystemCode,consumptionDate,meterConsumptionBillingDocumentSK,meterConsumptionBillingLineItemSK ORDER BY propertyTypeValidToDate desc,propertyTypeValidFromDate desc) as flag  from 
 # MAGIC (select prop.propertyNumber,
 # MAGIC prophist.inferiorPropertyTypeCode,
 # MAGIC prophist.inferiorPropertyType,

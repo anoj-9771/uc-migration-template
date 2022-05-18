@@ -234,8 +234,27 @@ def getBilledWaterConsumption():
 
 # COMMAND ----------
 
+# df, schema = getBilledWaterConsumption()
+# TemplateEtl(df, entity="factBilledWaterConsumption", businessKey="sourceSystemCode,meterConsumptionBillingDocumentSK,meterConsumptionBillingLineItemSK", schema=schema, AddSK=False)
+
+# COMMAND ----------
+
+#Uncomment the above function call (TemplateEtl) and delete the below lines once "DeltaSaveDataFrameToDeltaTable" is enhanced for 'Overwrite' mode
 df, schema = getBilledWaterConsumption()
-TemplateEtl(df, entity="factBilledWaterConsumption", businessKey="sourceSystemCode,meterConsumptionBillingDocumentSK,meterConsumptionBillingLineItemSK", schema=schema, AddSK=False)
+if DeltaTableExists("curated.factBilledWaterConsumption"):
+    spark.sql("VACUUM curated.factBilledWaterConsumption")
+
+df.write \
+  .format('delta') \
+  .option("mergeSchema", "true") \
+  .option("overwriteSchema", "true") \
+  .mode("overwrite") \
+  .save("dbfs:/mnt/datalake-curated/factBilledWaterConsumption/delta")
+
+spark.sql("CREATE TABLE IF NOT EXISTS curated.factBilledWaterConsumption  USING DELTA LOCATION \'dbfs:/mnt/datalake-curated/factBilledWaterConsumption/delta\'")
+
+verifyTableSchema(f"curated.factBilledWaterConsumption", schema)
+
 
 # COMMAND ----------
 
@@ -261,7 +280,7 @@ TemplateEtl(df, entity="factBilledWaterConsumption", businessKey="sourceSystemCo
 # MAGIC billingPeriodStartDate
 # MAGIC billingPeriodEndDate
 # MAGIC meteredWaterConsumption from (
-# MAGIC select * ,RANK() OVER (PARTITION BY sourceSystemCode,meterConsumptionBillingDocumentSK,meterConsumptionBillingLineItemSK,propertySK,meterSK,billingPeriodStartDate ORDER BY propertyTypeValidToDate desc,propertyTypeValidFromDate desc) as flag  from 
+# MAGIC select * ,RANK() OVER (PARTITION BY sourceSystemCode,meterConsumptionBillingDocumentSK,meterConsumptionBillingLineItemSK ORDER BY propertyTypeValidToDate desc,propertyTypeValidFromDate desc) as flag  from 
 # MAGIC (select prop.propertyNumber,
 # MAGIC prophist.inferiorPropertyTypeCode,
 # MAGIC prophist.inferiorPropertyType,
