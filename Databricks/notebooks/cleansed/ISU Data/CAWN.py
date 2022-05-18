@@ -185,8 +185,8 @@ df = spark.sql(f"WITH stage AS \
                         ATAW1 as unitOfMeasurement1 , \
                         ATIDN as objectIdentification , \
                         TXTNR as relatedTextNumber , \
-                        to_date(DATUV) as validFromDate , \
-                        to_date(DATUB) as validToDate , \
+                        ToValidDate(DATUV) as validFromDate , \
+                        ToValidDate(DATUB) as validToDate , \
                         TECHV as technicalStatus , \
                         AENNR as changeNumber , \
                         LKENZ as deletionIndicator , \
