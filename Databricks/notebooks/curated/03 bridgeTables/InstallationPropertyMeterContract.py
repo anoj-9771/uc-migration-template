@@ -147,10 +147,15 @@ def getInstallationPropertyMeterContract():
 
 # COMMAND ----------
 
-df, schema = getInstallationPropertyMeterContract()
-#TemplateEtl(df, entity="brgInstallationPropertyMeterContract", businessKey="installationSK", schema=schema, AddSK=False)
+# df, schema = getInstallationPropertyMeterContract()
+# TemplateEtl(df, entity="brgInstallationPropertyMeterContract", businessKey="installationSK", schema=schema, AddSK=False)
+
+# COMMAND ----------
+
 #Uncomment the above function call (TemplateElt) and delete the below lines once "DeltaSaveDataFrameToDeltaTable" is enhanced for 'Overwrite' mode
-spark.sql("VACUUM curated.brgInstallationPropertyMeterContract ")
+df, schema = getInstallationPropertyMeterContract()
+if DeltaTableExists("curated.brgInstallationPropertyMeterContract"):
+    spark.sql("VACUUM curated.brgInstallationPropertyMeterContract")
 
 df.write \
   .format('delta') \

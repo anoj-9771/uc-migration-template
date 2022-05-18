@@ -171,7 +171,7 @@ print(delta_raw_tbl_name)
 
 # DBTITLE 1,10. Load Raw to Dataframe & Do Transformations
 df = spark.sql(f"WITH stage AS \
-                      (Select *, ROW_NUMBER() OVER (PARTITION BY INTRENO,FIXFITCHARACT,VALIDTO ORDER BY _FileDateTimeStamp DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} \
+                      (Select *, ROW_NUMBER() OVER (PARTITION BY INTRENO,FIXFITCHARACT,VALIDTO ORDER BY _DLRawZoneTimeStamp DESC, DELTA_TS DESC) AS _RecordVersion FROM {delta_raw_tbl_name} \
                                   WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
                            SELECT  \
                                   case when INTRENO = 'na' then '' else INTRENO end as architecturalObjectInternalId, \
@@ -197,34 +197,6 @@ df = spark.sql(f"WITH stage AS \
                         where stg._RecordVersion = 1 ")
 
 #print(f'Number of rows: {df.count()}')
-
-# COMMAND ----------
-
-# DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
-#Update/rename Column
-#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
-# df_cleansed = spark.sql(f"SELECT  \
-#                                   case when INTRENO = 'na' then '' else INTRENO end as architecturalObjectInternalId, \
-#                                   case when FIXFITCHARACT = 'na' then '' else FIXFITCHARACT end as fixtureAndFittingCharacteristicCode, \
-#                                   ff.fixtureAndFittingCharacteristic as fixtureAndFittingCharacteristic, \
-#                                   ToValidDate(VALIDTO,'MANDATORY') as validToDate, \
-#                                   ToValidDate(VALIDFROM) as validFromDate, \
-#                                   AMOUNTPERAREA as amountPerAreaUnit, \
-#                                   FFCTACCURATE as applicableIndicator, \
-#                                   CHARACTAMTAREA as characteristicAmountArea, \
-#                                   CHARACTPERCENT as characteristicPercentage, \
-#                                   CHARACTAMTABS as characteristicPriceAmount, \
-#                                   CHARACTCOUNT as characteristicCount, \
-#                                   SUPPLEMENTINFO as supplementInfo, \
-#                                   stg._RecordStart, \
-#                                   stg._RecordEnd, \
-#                                   stg._RecordDeleted, \
-#                                   stg._RecordCurrent \
-#                                FROM {ADS_DATABASE_STAGE}.{source_object} stg\
-#                                  left outer join {ADS_DATABASE_CLEANSED}.isu_0df_refixfi_text ff on ff.fixtureAndFittingCharacteristicCode = stg.FIXFITCHARACT \
-#                                                                                                    and ff._RecordDeleted = 0 and ff._RecordCurrent = 1")
-
-# print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
 
