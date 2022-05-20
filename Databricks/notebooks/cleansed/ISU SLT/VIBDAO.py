@@ -171,7 +171,7 @@ print(delta_raw_tbl_name)
 
 # DBTITLE 1,10. Load Raw to Dataframe & Do Transformations
 df = spark.sql(f"WITH stage AS \
-                      (Select *, ROW_NUMBER() OVER (PARTITION BY INTRENO ORDER BY _FileDateTimeStamp DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
+                      (Select *, ROW_NUMBER() OVER (PARTITION BY INTRENO ORDER BY _DLRawZoneTimeStamp DESC, DELTA_TS DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
                            SELECT \
                                   case when vib.INTRENO = 'na' then '' else vib.INTRENO end as architecturalObjectInternalId , \
                                   vib.AOID as architecturalObjectId , \
@@ -252,90 +252,6 @@ df = spark.sql(f"WITH stage AS \
                         where vib._RecordVersion = 1 ")
 
 #print(f'Number of rows: {df.count()}')
-
-# COMMAND ----------
-
-# DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
-#Update/rename Column
-#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
-# df_cleansed = spark.sql(f"SELECT \
-#                                   case when vib.INTRENO = 'na' then '' else vib.INTRENO end as architecturalObjectInternalId , \
-#                                   vib.AOID as architecturalObjectId , \
-#                                   vib.AOTYPE as architecturalObjectTypeCode , \
-#                                   tiv.XMAOTYPE as architecturalObjectType , \
-#                                   AONR as architecturalObjectNumber , \
-#                                   ToValidDate(VALIDFROM) as validFromDate , \
-#                                   ToValidDate(VALIDTO) as validToDate , \
-#                                   PARTAOID as partArchitecturalObjectId , \
-#                                   OBJNR as objectNumber , \
-#                                   RERF as firstEnteredBy , \
-#                                   ToValidDate(DERF) as firstEnteredOnDate , \
-#                                   TERF as firstEnteredTime , \
-#                                   ToValidDateTime(concat(DERF, coalesce(TERF,'00:00:00'))) as firstEnteredDateTime , \
-#                                   REHER as firstEnteredSource , \
-#                                   RBEAR as employeeId , \
-#                                   ToValidDate(DBEAR) as lastEditedOnDate , \
-#                                   TBEAR as lastEditedTime , \
-#                                   ToValidDateTime(concat(DBEAR, coalesce(TBEAR,'00:00:00'))) as lastEditedDateTime , \
-#                                   RBHER as lastEditedSource , \
-#                                   RESPONSIBLE as responsiblePerson , \
-#                                   USEREXCLUSIVE as exclusiveUser , \
-#                                   ToValidDate(LASTRENO) as lastRelocationDate , \
-#                                   MEASSTRC as measurementStructure , \
-#                                   DOORPLT as shortDescription , \
-#                                   RSAREA as reservationArea , \
-#                                   SINSTBEZ as maintenanceDistrict , \
-#                                   SVERKEHR as businessEntityTransportConnectionsIndicator , \
-#                                   ZCD_PROPERTY_NO as propertyNumber , \
-#                                   ToValidDate(ZCD_PROP_CR_DATE) as propertyCreatedDate , \
-#                                   ZCD_PROP_LOT_NO as propertyLotNumber , \
-#                                   ZCD_REQUEST_NO as propertyRequestNumber , \
-#                                   ZCD_PLAN_TYPE as planTypeCode , \
-#                                   plt.DESCRIPTION as planType , \
-#                                   ZCD_PLAN_NUMBER as planNumber , \
-#                                   ZCD_PROCESS_TYPE as processTypeCode , \
-#                                   prt.DESCRIPTION as processType , \
-#                                   ZCD_ADDR_LOT_NO as addressLotNumber , \
-#                                   ZCD_LOT_TYPE as lotTypeCode , \
-#                                   ZCD_UNIT_ENTITLEMENT as unitEntitlement , \
-#                                   ZCD_NO_OF_FLATS as flatCount , \
-#                                   ZCD_SUP_PROP_TYPE as superiorPropertyTypeCode , \
-#                                   sp.superiorPropertyType as superiorPropertyType , \
-#                                   ZCD_INF_PROP_TYPE as inferiorPropertyTypeCode , \
-#                                   ip.inferiorPropertyType as inferiorPropertyType , \
-#                                   ZCD_STORM_WATER_ASSESS as stormWaterAssessmentIndicator , \
-#                                   ZCD_IND_MLIM as mlimIndicator , \
-#                                   ZCD_IND_WICA as wicaIndicator , \
-#                                   ZCD_IND_SOPA as sopaIndicator , \
-#                                   ZCD_IND_COMMUNITY_TITLE as communityTitleIndicator , \
-#                                   ZCD_SECTION_NUMBER as sectionNumber , \
-#                                   ZCD_HYDRA_CALC_AREA as hydraCalculatedArea , \
-#                                   ZCD_HYDRA_AREA_UNIT as hydraAreaUnit , \
-#                                   ZCD_HYDRA_AREA_FLAG as hydraAreaIndicator , \
-#                                   ZCD_CASENO_FLAG as caseNumberIndicator , \
-#                                   ZCD_OVERRIDE_AREA as overrideArea , \
-#                                   ZCD_OVERRIDE_AREA_UNIT as overrideAreaUnit , \
-#                                   ToValidDate(ZCD_CANCELLATION_DATE) as cancellationDate , \
-#                                   ZCD_CANC_REASON as cancellationReasonCode , \
-#                                   ZCD_COMMENTS as comments , \
-#                                   ZCD_PROPERTY_INFO as propertyInfo , \
-#                                   vib._RecordStart, \
-#                                   vib._RecordEnd, \
-#                                   vib._RecordDeleted, \
-#                                   vib._RecordCurrent \
-#                               FROM {ADS_DATABASE_STAGE}.{source_object} vib \
-#                                     LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_ZCD_TINFPRTY_TX ip ON \
-#                                    vib.ZCD_INF_PROP_TYPE = ip.inferiorPropertyTypeCode and ip._RecordDeleted = 0 and ip._RecordCurrent = 1 \
-#                                     LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_ZCD_TSUPPRTYP_TX sp ON \
-#                                    vib.ZCD_SUP_PROP_TYPE = sp.superiorPropertyTypeCode and sp._RecordDeleted = 0 and sp._RecordCurrent = 1 \
-#                                     LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_ZCD_TPLANTYPE_TX plt ON \
-#                                    vib.ZCD_PLAN_TYPE = plt.PLAN_TYPE and plt._RecordDeleted = 0 and plt._RecordCurrent = 1 \
-#                                     LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_TIVBDAROBJTYPET tiv ON \
-#                                    vib.AOTYPE = tiv.AOTYPE and tiv._RecordDeleted = 0 and tiv._RecordCurrent = 1 \
-#                                     LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_ZCD_TPROCTYPE_TX prt ON \
-#                                    vib.ZCD_PROCESS_TYPE = prt.PROCESS_TYPE and prt._RecordDeleted = 0 and prt._RecordCurrent = 1")
-
-# print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
 
