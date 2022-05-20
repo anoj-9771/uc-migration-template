@@ -133,7 +133,7 @@ def getProperty():
                                     row_number() over (partition by propertyNumber order by lp.waterPressureZone desc, lp.recycledSupplyZone desc, \
                                     lp.sewerScamp desc, lp.stormWaterCatchment desc) as rn \
                             from {ADS_DATABASE_CLEANSED}.hydra_TLotParcel lp \
-                                  left outer join curated.dimWaterNetwork wn on lp.waterPressureZone = wn.pressureArea and wn._RecordCurrent = 1 \
+                                  left outer join {ADS_DATABASE_CURATED}.dimWaterNetwork wn on lp.waterPressureZone = wn.pressureArea and wn._RecordCurrent = 1 \
                                   left outer join {ADS_DATABASE_CURATED}.dimWaterNetwork wnr on lp.recycledSupplyZone = wnr.supplyZone and wnr._RecordCurrent = 1 \
                                   left outer join {ADS_DATABASE_CURATED}.dimSewerNetwork snw on lp.sewerScamp = snw.SCAMP and snw._RecordCurrent = 1 \
                                   left outer join {ADS_DATABASE_CURATED}.dimStormWaterNetwork sw on lp.stormWaterCatchment = sw.stormWaterCatchment and sw._RecordCurrent = 1 \
@@ -143,7 +143,7 @@ def getProperty():
                             from t1 \
                             where rn = 1 \
                             union all \
-                            select -1 as propertyNumber, wn.waterNetworkSK as potableSK, wnr.waterNetworkSK as recycledSK, sewerNetworkSK, stormWaterNetworkSK \
+                            select '-1' as propertyNumber, wn.waterNetworkSK as potableSK, wnr.waterNetworkSK as recycledSK, sewerNetworkSK, stormWaterNetworkSK \
                             from {ADS_DATABASE_CURATED}.dimWaterNetwork wn, \
                                  {ADS_DATABASE_CURATED}.dimWaterNetwork wnr, \
                                  {ADS_DATABASE_CURATED}.dimSewerNetwork snw, \
@@ -239,10 +239,7 @@ def getProperty():
     sapisuDf.createOrReplaceTempView('ISU')
     #print(f'{sapisuDf.count():,} rows from SAP')
     #print('Creating 4 dummy rows...')
-
-    #Dummy Record to be added to Property Dimension
-    dummyDimRecDf = spark.createDataFrame([("ISU","-1"),("ACCESS","-2"),("ISU","-3"),("ACCESS","-4")], ["sourceSystemCode", "propertyNumber"])
-    
+   
     #2.JOIN TABLES
     
     #3.UNION TABLES
@@ -259,17 +256,26 @@ def getProperty():
                     union all \
                     select * \
                     from   ISU")
-    #print(f'{df.count():,} rows after Union')
-    df = df.unionByName(dummyDimRecDf, allowMissingColumns = True)
+    
+    dummyDimRecDf = spark.sql(f"select waterNetworkSK as dummyDimSK, 'dimWaterNetwork' as dimension from {ADS_DATABASE_CURATED}.dimWaterNetwork where pressureArea in ('-1') and supplyZone in ('-1') \
+                          union select sewerNetworkSK as dummyDimSK, 'dimSewerNetwork' as dimension from {ADS_DATABASE_CURATED}.dimSewerNetwork where SCAMP in ('-1') \
+                          union select stormWaterNetworkSK as dummyDimSK, 'dimStormWaterNetwork' as dimension from {ADS_DATABASE_CURATED}.dimStormWaterNetwork where stormWaterCatchment in ('-1') \
+                          ")
+    df = df.join(dummyDimRecDf, (dummyDimRecDf.dimension == 'dimWaterNetwork'), how="left") \
+                  .select(df['*'], dummyDimRecDf['dummyDimSK'].alias('dummyWaterNetworkSK'))
+    df = df.join(dummyDimRecDf, (dummyDimRecDf.dimension == 'dimSewerNetwork'), how="left") \
+                  .select(df['*'], dummyDimRecDf['dummyDimSK'].alias('dummySewerNetworkSK'))
+    df = df.join(dummyDimRecDf, (dummyDimRecDf.dimension == 'dimStormWaterNetwork'), how="left") \
+                  .select(df['*'], dummyDimRecDf['dummyDimSK'].alias('dummyStormWaterNetworkSK'))
     
     #4.SELECT / TRANSFORM
     df = df.selectExpr( \
                          "propertyNumber" \
                         ,"sourceSystemCode" \
-                        ,"waterNetworkSK_drinkingWater" \
-                        ,"waterNetworkSK_recycledWater" \
-                        ,"sewerNetworkSK" \
-                        ,"stormWaterNetworkSK" \
+                        ,"coalesce(waterNetworkSK_drinkingWater, dummyWaterNetworkSK) as waterNetworkSK_drinkingWater" \
+                        ,"coalesce(waterNetworkSK_recycledWater, dummyWaterNetworkSK) as waterNetworkSK_recycledWater" \
+                        ,"coalesce(sewerNetworkSK, dummySewerNetworkSK) as sewerNetworkSK" \
+                        ,"coalesce(stormWaterNetworkSK, dummyStormWaterNetworkSK) as stormWaterNetworkSK" \
                         ,"propertyTypeCode" \
                         ,"propertyType" \
                         ,"superiorPropertyTypeCode" \
@@ -307,10 +313,10 @@ def getProperty():
                             StructField('propertySK', LongType(), False),
                             StructField("propertyNumber", StringType(), False),
                             StructField("sourceSystemCode", StringType(), False),
-                            StructField("waterNetworkSK_drinkingWater", StringType(), True),
-                            StructField("waterNetworkSK_recycledWater", StringType(), True),
-                            StructField("sewerNetworkSK", StringType(), True),
-                            StructField("stormWaterNetworkSK", StringType(), True),
+                            StructField("waterNetworkSK_drinkingWater", StringType(), False),
+                            StructField("waterNetworkSK_recycledWater", StringType(), False),
+                            StructField("sewerNetworkSK", StringType(), False),
+                            StructField("stormWaterNetworkSK", StringType(), False),
                             StructField("propertyTypeCode", StringType(), True),
                             StructField("propertyType", StringType(), True),
                             StructField("superiorPropertyTypeCode", StringType(), True),
@@ -343,35 +349,6 @@ TemplateEtl(df, entity="dimProperty", businessKey="propertyNumber", schema=schem
 # COMMAND ----------
 
 dbutils.notebook.exit("1")
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC with t1 as (select potableSK, recycledSK, sewerNetworkSK, stormWaterNetworkSK from systemareas where propertynumber = '-1')
-# MAGIC select a.propertyNumber, sourceSystemCode, coalesce(waterNetworkSK_drinkingWater,potableSK) as waterNetworkSK_drinkingWater, coalesce(waterNetworkSK_recycledWater,recycledSK) as waterNetworkSK_recycledWater,  
-# MAGIC                             coalesce(a.sewerNetworkSK,b.sewerNetworkSK) as sewerNetworkSK, coalesce(a.stormWaterNetworkSK, b.stormWaterNetworkSK) as stormWaterNetworkSK, propertyTypeCode 
-# MAGIC                             propertyType, superiorPropertyTypeCode, superiorPropertyType, areaSize, parentPropertyNumber, parentPropertyTypeCode, parentPropertyType, parentSuperiorPropertyTypeCode, parentSuperiorPropertyType, 
-# MAGIC                             planTypeCode, planType, lotTypeCode, lotType, planNumber, lotNumber, sectionNumber, architecturalTypeCode, architecturalType 
-# MAGIC                       from allprops a, 
-# MAGIC                            t1 b 
-# MAGIC                       where a.propertynumber < 3100005
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC select * from curated.dimproperty
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC select count(*) from curated.dimproperty
-# MAGIC where sourcesystemcode = 'ISU'
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC select * from curated.dimproperty
-# MAGIC where sourcesystemcode = 'ISU' and sewernetworksk is null
 
 # COMMAND ----------
 
