@@ -209,6 +209,7 @@ df = spark.sql(f"WITH stage AS \
                         cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
                         from stage where _RecordVersion = 1 ")
 
+
 #print(f'Number of rows: {df.count()}')
 
 # COMMAND ----------
