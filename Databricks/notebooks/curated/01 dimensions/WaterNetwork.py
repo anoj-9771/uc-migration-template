@@ -65,7 +65,7 @@ def getWaterNetwork():
 # COMMAND ----------
 
 df, schema = getWaterNetwork()
-TemplateEtl(df, entity="dimWaterNetwork", businessKey="supplyZone,pressureArea", schema=schema, writeMode=ADS_WRITE_MODE_MERGE, AddSK=False)
+TemplateEtl(df, entity="dimWaterNetwork", businessKey="supplyZone,pressureArea", schema=schema, writeMode=ADS_WRITE_MODE_MERGE, AddSK=True)
 
 # COMMAND ----------
 
