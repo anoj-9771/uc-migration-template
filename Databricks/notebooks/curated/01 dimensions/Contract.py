@@ -92,7 +92,7 @@ def getContract():
 # COMMAND ----------
 
 df, schema = getContract()
-TemplateEtl(df,  entity="dimContract", businessKey="contractId,validFromDate", schema=schema, AddSK=True)  
+TemplateEtl(df,  entity="dimContract", businessKey="contractId,validFromDate", schema=schema, writeMode=ADS_WRITE_MODE_MERGE, AddSK=False)
 
 # COMMAND ----------
 
