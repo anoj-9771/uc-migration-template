@@ -137,7 +137,7 @@ def getmeterTimeslice():
 # COMMAND ----------
 
 df, schema = getmeterTimeslice()
-TemplateEtl(df, entity="meterTimeslice", businessKey="meterSK,equipmentNumber,validToDate", schema=schema, writeMode=ADS_WRITE_MODE_MERGE, AddSK=False)
+TemplateEtl(df, entity="meterTimeslice", businessKey="meterSK,equipmentNumber,validToDate", schema=schema, writeMode=ADS_WRITE_MODE_MERGE, AddSK=True)
 
 # COMMAND ----------
 
