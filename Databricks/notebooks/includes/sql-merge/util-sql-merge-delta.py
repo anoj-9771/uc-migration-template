@@ -826,11 +826,16 @@ def _SQLInsertSyntax_DeltaTable_Generate(dataframe, is_delta_extract, delta_colu
 ###    sql_values += f"{col_record_start}, "
   sql_values += f"to_timestamp('9999-12-31 00:00:00'), {delete_flag}, 1"
   #Build the INSERT SQL with column list and values list
+#   if not is_delta_extract and target_data_lake_zone == ADS_DATABASE_CLEANSED and only_insert:
+#     sql = f"INSERT INTO {target_table} ({sql_col}) SELECT {sql_values} FROM {source_table}" 
+#   else:
+#     sql = f"INSERT ({sql_col}) {NEW_LINE}VALUES ({sql_values})"
   if not is_delta_extract and target_data_lake_zone == ADS_DATABASE_CLEANSED and only_insert:
-    sql = f"INSERT INTO {target_table} ({sql_col}) SELECT {sql_values} FROM {source_table}" 
+      sql = f"INSERT INTO {target_table} ({sql_col}) SELECT {sql_values} FROM {source_table}"
+  elif not is_delta_extract and target_data_lake_zone == ADS_DATABASE_CURATED and only_insert:
+      sql = f"INSERT INTO {target_table} ({sql_col}) SELECT {sql_values} FROM {source_table}"
   else:
-    sql = f"INSERT ({sql_col}) {NEW_LINE}VALUES ({sql_values})"
-
+      sql = f"INSERT ({sql_col}) {NEW_LINE}VALUES ({sql_values})"
 #End of Fix for Handling Null in Key Columns  
       
   return sql

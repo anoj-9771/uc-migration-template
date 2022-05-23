@@ -51,7 +51,7 @@ spark.conf.set("spark.sql.autoBroadcastJoinThreshold", 0)
 # COMMAND ----------
 
 # DBTITLE 1,4. Function: Load data into Curated delta table
-def TemplateEtl(df : object, entity, businessKey, schema, AddSK = True):
+def TemplateEtl(df : object, entity, businessKey, schema, writeMode, AddSK = True):
     rawEntity = entity
     entity = GeneralToPascalCase(rawEntity)
     LogEtl(f"Starting {entity}.")
@@ -65,7 +65,7 @@ def TemplateEtl(df : object, entity, businessKey, schema, AddSK = True):
                                    ADS_DATALAKE_ZONE_CURATED, 
                                    v_COMMON_CURATED_DATABASE, 
                                    v_COMMON_DATALAKE_FOLDER, 
-                                   ADS_WRITE_MODE_MERGE,
+                                   writeMode,
                                    schema,
                                    track_changes = False, 
                                    is_delta_extract = False, 

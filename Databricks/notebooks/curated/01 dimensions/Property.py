@@ -41,24 +41,24 @@ def getProperty():
     #1.Load current Cleansed layer table data into dataframe
     #build a dataframe with unique properties and lot details, 4174119 is incorrectly present on Tlot
     lotDf = spark.sql(f"select propertyNumber, \
-                                first(planTypeCode) as planTypeCode, \
-                                first(planType) as planType, \
+                                first(coalesce(planTypeCodeSAP,planTypeCode)) as planTypeCode, \
+                                first(coalesce(planTypeSAP,planType)) as planType, \
                                 first(planNumber) as planNumber, \
                                 first(lotNumber)  as lotNumber, \
                                 first(lotTypeCode) as lotTypeCode, \
-                                first(lotType) as lotType, \
+                                first(coalesce(lotTypeSAP,lotType)) as lotType, \
                                 first(sectionNumber) as sectionNumber \
                         from {ADS_DATABASE_CLEANSED}.access_z309_tlot \
                         where _RecordCurrent = 1 \
                         group by propertyNumber \
                         union all \
                         select propertyNumber, \
-                                'SP' as planTypeCode, \
+                                '02' as planTypeCode, \
                                 'Strata Plan' as planType, \
                                 strataPlanNumber as planNumber, \
                                 strataPlanLot as lotNumber, \
                                 '01' as lotTypeCode, \
-                                'Lot' as lotType, \
+                                'Full' as lotType, \
                                 null as sectionNumber \
                         from {ADS_DATABASE_CLEANSED}.access_z309_tstrataunits \
                         where _RecordCurrent = 1 \
@@ -69,9 +69,9 @@ def getProperty():
                                 select su.propertyNumber, \
                                         ms.masterPropertyNumber as parentPropertyNumber, \
                                         pr.propertyTypeCode as parentPropertyTypeCode, \
-                                        pr.propertyType as parentPropertyType, \
+                                        coalesce(pr.propertyTypeSAP,pr.propertyType) as parentPropertyType, \
                                         pr.superiorPropertyTypeCode as parentSuperiorPropertyTypeCode, \
-                                        pr.superiorPropertyType as parentSuperiorPropertyType, \
+                                        coalesce(pr.superiorPropertyTypeSAP,pr.superiorPropertyType) as parentSuperiorPropertyType, \
                                        'Child of Master Strata' as relationshipType \
                                 from {ADS_DATABASE_CLEANSED}.access_z309_tstrataunits su \
                                       inner join {ADS_DATABASE_CLEANSED}.access_z309_tmastrataplan ms on su.strataPlanNumber = ms.strataPlanNumber and ms._RecordCurrent = 1 \
@@ -87,9 +87,9 @@ def getProperty():
                                 select rp.propertyNumber as propertyNumber, \
                                         rp.relatedPropertyNumber as parentPropertyNumber, \
                                         pr.propertyTypeCode as parentPropertyTypeCode, \
-                                        pr.propertyType as parentPropertyType, \
+                                        coalesce(pr.propertyTypeSAP,pr.propertyType) as parentPropertyType, \
                                         pr.superiorPropertyTypeCode as parentSuperiorPropertyTypeCode, \
-                                        pr.superiorPropertyType as parentSuperiorPropertyType, \
+                                        coalesce(pr.superiorPropertyTypeSAP,pr.superiorPropertyType) as parentSuperiorPropertyType, \
                                         rp.relationshipType as relationshipType, \
                                         row_number() over (partition by rp.propertyNumber order by relationshipTypecode desc) as rn \
                                 from {ADS_DATABASE_CLEANSED}.access_z309_trelatedProps rp inner join remainingProps rem on rp.propertyNumber = rem.propertyNumber \
@@ -128,20 +128,22 @@ def getProperty():
     parentDf.createOrReplaceTempView('parents')
     
     systemAreaDf = spark.sql(f"with t1 as ( \
-                            select propertyNumber, wn.waterNetworkSK as potableSK, wnr.waterNetworkSK as recycledSK, sewerNetworkSK, stormWaterNetworkSK, \
+                            select propertyNumber, wn.waterNetworkSK as potableSK, wnr.waterNetworkSK as recycledSK, \
+                                    sewerNetworkSK as sewerNetworkSK, stormWaterNetworkSK as stormWaterNetworkSK, \
                                     row_number() over (partition by propertyNumber order by lp.waterPressureZone desc, lp.recycledSupplyZone desc, \
                                     lp.sewerScamp desc, lp.stormWaterCatchment desc) as rn \
-                            from {ADS_DATABASE_CLEANSED}.hydra_TLotParcel lp inner join curated.dimWaterNetwork wn on coalesce(lp.waterPressureZone,'-1') = wn.pressureArea and wn._RecordCurrent = 1 \
-                                  inner join {ADS_DATABASE_CURATED}.dimWaterNetwork wnr on coalesce(lp.recycledSupplyZone,'-1') = wnr.supplyZone and wnr._RecordCurrent = 1 \
-                                  inner join {ADS_DATABASE_CURATED}.dimSewerNetwork snw on coalesce(lp.sewerScamp,'-1') = snw.SCAMP and snw._RecordCurrent = 1 \
-                                  inner join {ADS_DATABASE_CURATED}.dimStormWaterNetwork sw on coalesce(lp.stormWaterCatchment,'-1') = sw.stormWaterCatchment and sw._RecordCurrent = 1 \
+                            from {ADS_DATABASE_CLEANSED}.hydra_TLotParcel lp \
+                                  left outer join {ADS_DATABASE_CURATED}.dimWaterNetwork wn on lp.waterPressureZone = wn.pressureArea and wn._RecordCurrent = 1 \
+                                  left outer join {ADS_DATABASE_CURATED}.dimWaterNetwork wnr on lp.recycledSupplyZone = wnr.supplyZone and wnr._RecordCurrent = 1 \
+                                  left outer join {ADS_DATABASE_CURATED}.dimSewerNetwork snw on lp.sewerScamp = snw.SCAMP and snw._RecordCurrent = 1 \
+                                  left outer join {ADS_DATABASE_CURATED}.dimStormWaterNetwork sw on lp.stormWaterCatchment = sw.stormWaterCatchment and sw._RecordCurrent = 1 \
                             where propertyNumber is not null \
                             and lp._RecordCurrent = 1) \
                             select propertyNumber, potableSK, recycledSK, sewerNetworkSK, stormWaterNetworkSK \
                             from t1 \
                             where rn = 1 \
                             union all \
-                            select -1 as propertyNumber, wn.waterNetworkSK as potableSK, wnr.waterNetworkSK as recycledSK, sewerNetworkSK, stormWaterNetworkSK \
+                            select '-1' as propertyNumber, wn.waterNetworkSK as potableSK, wnr.waterNetworkSK as recycledSK, sewerNetworkSK, stormWaterNetworkSK \
                             from {ADS_DATABASE_CURATED}.dimWaterNetwork wn, \
                                  {ADS_DATABASE_CURATED}.dimWaterNetwork wnr, \
                                  {ADS_DATABASE_CURATED}.dimSewerNetwork snw, \
@@ -156,7 +158,7 @@ def getProperty():
                             and   sw._RecordCurrent = 1 \
                             ")
     systemAreaDf.createOrReplaceTempView('systemareas')
-
+    
     #1.Load Cleansed layer table data into dataframe
     accessZ309TpropertyDf = spark.sql(f"select distinct cast(pr.propertyNumber as string), \
                                             'ACCESS' as sourceSystemCode, \
@@ -165,9 +167,9 @@ def getProperty():
                                             sewerNetworkSK, \
                                             stormWaterNetworkSK, \
                                             propertyTypeCode, \
-                                            propertyType, \
+                                            initcap(coalesce(propertyTypeSAP,propertyType)) as propertyType, \
                                             superiorPropertyTypeCode, \
-                                            superiorPropertyType, \
+                                            initcap(coalesce(superiorPropertyTypeSAP,superiorPropertyType)) as superiorPropertyType, \
                                             CASE WHEN propertyAreaTypeCode == 'H' THEN  propertyArea * 10000 \
                                                                                   ELSE propertyArea END AS areaSize, \
                                             pp.parentPropertyNumber as parentPropertyNumber, \
@@ -187,7 +189,7 @@ def getProperty():
                                      from {ADS_DATABASE_CLEANSED}.access_z309_tproperty pr left outer join \
                                           lots lo on lo.propertyNumber = pr.propertyNumber left outer join \
                                           parents pp on pp.propertyNumber = pr.propertyNumber inner join \
-                                          systemAreas sa on sa.propertyNumber = coalesce(pp.parentPropertyNumber,-1) \
+                                          systemAreas sa on sa.propertyNumber = coalesce(pp.parentPropertyNumber,'-1') \
                                      where pr._RecordCurrent = 1 \
                                      ")
     accessZ309TpropertyDf.createOrReplaceTempView('ACCESS')
@@ -229,7 +231,7 @@ def getProperty():
                               and   pa._RecordCurrent = 1 and pa._RecordDeleted = 0 left outer join \
                              {ADS_DATABASE_CLEANSED}.isu_dd07t dt on co.lotTypeCode = dt.domainValueSingleUpperLimit and domainName = 'ZCD_DO_ADDR_LOT_TYPE' \
                               and dt._RecordDeleted = 0 and dt._RecordCurrent = 1 inner join \
-                              systemAreas sa on sa.propertyNumber = coalesce(coalesce(int(vn.parentArchitecturalObjectNumber),int(co.propertyNumber)),-1) \
+                              systemAreas sa on sa.propertyNumber = coalesce(int(vn.parentArchitecturalObjectNumber),int(co.propertyNumber)) \
                          where co.propertyNumber <> '' \
                          and   co._RecordDeleted = 0 \
                          and   co._RecordCurrent = 1 \
@@ -237,10 +239,7 @@ def getProperty():
     sapisuDf.createOrReplaceTempView('ISU')
     #print(f'{sapisuDf.count():,} rows from SAP')
     #print('Creating 4 dummy rows...')
-
-    #Dummy Record to be added to Property Dimension
-    dummyDimRecDf = spark.createDataFrame([("ISU","-1"),("ACCESS","-2"),("ISU","-3"),("ACCESS","-4")], ["sourceSystemCode", "propertyNumber"])
-    
+   
     #2.JOIN TABLES
     
     #3.UNION TABLES
@@ -257,17 +256,26 @@ def getProperty():
                     union all \
                     select * \
                     from   ISU")
-    #print(f'{df.count():,} rows after Union')
-    df = df.unionByName(dummyDimRecDf, allowMissingColumns = True)
+    
+    dummyDimRecDf = spark.sql(f"select waterNetworkSK as dummyDimSK, 'dimWaterNetwork' as dimension from {ADS_DATABASE_CURATED}.dimWaterNetwork where pressureArea in ('-1') and supplyZone in ('-1') \
+                          union select sewerNetworkSK as dummyDimSK, 'dimSewerNetwork' as dimension from {ADS_DATABASE_CURATED}.dimSewerNetwork where SCAMP in ('-1') \
+                          union select stormWaterNetworkSK as dummyDimSK, 'dimStormWaterNetwork' as dimension from {ADS_DATABASE_CURATED}.dimStormWaterNetwork where stormWaterCatchment in ('-1') \
+                          ")
+    df = df.join(dummyDimRecDf, (dummyDimRecDf.dimension == 'dimWaterNetwork'), how="left") \
+                  .select(df['*'], dummyDimRecDf['dummyDimSK'].alias('dummyWaterNetworkSK'))
+    df = df.join(dummyDimRecDf, (dummyDimRecDf.dimension == 'dimSewerNetwork'), how="left") \
+                  .select(df['*'], dummyDimRecDf['dummyDimSK'].alias('dummySewerNetworkSK'))
+    df = df.join(dummyDimRecDf, (dummyDimRecDf.dimension == 'dimStormWaterNetwork'), how="left") \
+                  .select(df['*'], dummyDimRecDf['dummyDimSK'].alias('dummyStormWaterNetworkSK'))
     
     #4.SELECT / TRANSFORM
     df = df.selectExpr( \
                          "propertyNumber" \
                         ,"sourceSystemCode" \
-                        ,"waterNetworkSK_drinkingWater" \
-                        ,"waterNetworkSK_recycledWater" \
-                        ,"sewerNetworkSK" \
-                        ,"stormWaterNetworkSK" \
+                        ,"coalesce(waterNetworkSK_drinkingWater, dummyWaterNetworkSK) as waterNetworkSK_drinkingWater" \
+                        ,"coalesce(waterNetworkSK_recycledWater, dummyWaterNetworkSK) as waterNetworkSK_recycledWater" \
+                        ,"coalesce(sewerNetworkSK, dummySewerNetworkSK) as sewerNetworkSK" \
+                        ,"coalesce(stormWaterNetworkSK, dummyStormWaterNetworkSK) as stormWaterNetworkSK" \
                         ,"propertyTypeCode" \
                         ,"propertyType" \
                         ,"superiorPropertyTypeCode" \
@@ -288,16 +296,27 @@ def getProperty():
                         ,'architecturalTypeCode' \
                         ,'architecturalType' \
                         )
-                                            
+    
+    #set system area defaults
+    df.createOrReplaceTempView('allProps')
+#     df = spark.sql(f"select a.propertyNumber, sourceSystemCode, coalesce(waterNetworkSK_drinkingWater,potableSK) as waterNetworkSK_drinkingWater, coalesce(waterNetworkSK_recycledWater,recycledSK) as waterNetworkSK_recycledWater,  \
+#                             coalesce(a.sewerNetworkSK,b.sewerNetworkSK) as sewerNetworkSK, coalesce(a.stormWaterNetworkSK, b.stormWaterNetworkSK) as stormWaterNetworkSK, propertyTypeCode \
+#                             propertyType, superiorPropertyTypeCode, superiorPropertyType, areaSize, parentPropertyNumber, parentPropertyTypeCode, parentPropertyType, parentSuperiorPropertyTypeCode, parentSuperiorPropertyType, \
+#                             planTypeCode, planType, lotTypeCode, lotType, planNumber, lotNumber, sectionNumber, architecturalTypeCode, architecturalType \
+#                       from allprops a, \
+#                            systemareas b \
+#                       where b.propertyNumber = '-1' \
+#                       ")
+    
     #5.Apply schema definition
     schema = StructType([
                             StructField('propertySK', LongType(), False),
                             StructField("propertyNumber", StringType(), False),
                             StructField("sourceSystemCode", StringType(), False),
-                            StructField("waterNetworkSK_drinkingWater", StringType(), True),
-                            StructField("waterNetworkSK_recycledWater", StringType(), True),
-                            StructField("sewerNetworkSK", StringType(), True),
-                            StructField("stormWaterNetworkSK", StringType(), True),
+                            StructField("waterNetworkSK_drinkingWater", StringType(), False),
+                            StructField("waterNetworkSK_recycledWater", StringType(), False),
+                            StructField("sewerNetworkSK", StringType(), False),
+                            StructField("stormWaterNetworkSK", StringType(), False),
                             StructField("propertyTypeCode", StringType(), True),
                             StructField("propertyType", StringType(), True),
                             StructField("superiorPropertyTypeCode", StringType(), True),
@@ -325,7 +344,7 @@ def getProperty():
 # COMMAND ----------
 
 df, schema = getProperty()
-TemplateEtl(df, entity="dimProperty", businessKey="propertyNumber", schema=schema, AddSK=True)
+TemplateEtl(df, entity="dimProperty", businessKey="propertyNumber", schema=schema, writeMode=ADS_WRITE_MODE_MERGE, AddSK=False)
 
 # COMMAND ----------
 

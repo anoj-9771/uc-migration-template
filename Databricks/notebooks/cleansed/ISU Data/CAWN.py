@@ -171,7 +171,7 @@ print(delta_raw_tbl_name)
 
 # DBTITLE 1,10. Load Raw to Dataframe & Do Transformations
 df = spark.sql(f"WITH stage AS \
-                      (Select *, ROW_NUMBER() OVER (PARTITION BY ATINN,ADZHL ORDER BY _FileDateTimeStamp DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
+                      (Select *, ROW_NUMBER() OVER (PARTITION BY ATINN,ATZHL,ADZHL ORDER BY _FileDateTimeStamp DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
                         SELECT \
                         case when ATINN = 'na' then '' else ATINN end as internalCharacteristic , \
                         case when ATZHL = 'na' then '' else ATZHL end as internalCounter , \
@@ -185,8 +185,8 @@ df = spark.sql(f"WITH stage AS \
                         ATAW1 as unitOfMeasurement1 , \
                         ATIDN as objectIdentification , \
                         TXTNR as relatedTextNumber , \
-                        to_date(DATUV) as validFromDate , \
-                        to_date(DATUB) as validToDate , \
+                        ToValidDate(DATUV) as validFromDate , \
+                        ToValidDate(DATUB) as validToDate , \
                         TECHV as technicalStatus , \
                         AENNR as changeNumber , \
                         LKENZ as deletionIndicator , \
@@ -208,6 +208,7 @@ df = spark.sql(f"WITH stage AS \
                         '1' as _RecordCurrent, \
                         cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
                         from stage where _RecordVersion = 1 ")
+
 
 #print(f'Number of rows: {df.count()}')
 

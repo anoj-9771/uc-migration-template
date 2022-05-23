@@ -186,7 +186,7 @@ DeltaSaveToDeltaTable (
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT \
 	C_PROP_AREA_TYPE as propertyAreaTypeCode, \
-	T_PROP_AREA_TYPE as propertyAreaType, \
+	initcap(T_PROP_AREA_TYPE) as propertyAreaType, \
 	T_PROP_AREA_TYPE_ABBR as propertyAreaTypeAbbreviation, \
 	ToValidDate(D_PROP_AREA_TYPE_EFFE) as propertyAreaTypeEffectiveDate, \
 	ToValidDate(D_PROP_AREA_TYPE_CANC) as propertyAreaTypeCancelledDate, \
@@ -221,3 +221,7 @@ DeltaSaveDataframeDirect(df_cleansed, source_group, target_table, ADS_DATABASE_C
 
 # DBTITLE 1,13. Exit Notebook
 dbutils.notebook.exit("1")
+
+# COMMAND ----------
+
+

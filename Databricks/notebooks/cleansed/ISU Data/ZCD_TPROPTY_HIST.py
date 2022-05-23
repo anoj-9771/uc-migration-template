@@ -254,19 +254,7 @@ newSchema = StructType([
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
-# DeltaSaveDataFrameToDeltaTable(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
-#Uncomment the above function call and delete the below lines once "DeltaSaveDataFrameToDeltaTable" is enhanced for 'Overwrite' mode
-spark.sql("VACUUM cleansed.isu_zcd_tpropty_hist ")
-df.write \
-  .format('delta') \
-  .option("mergeSchema", "true") \
-  .option("overwriteSchema", "true") \
-  .mode("overwrite") \
-  .save("dbfs:/mnt/datalake-cleansed/isudata/zcd_tpropty_hist/delta")
-
-spark.sql("CREATE TABLE IF NOT EXISTS cleansed.isu_zcd_tpropty_hist  USING DELTA LOCATION \'dbfs:/mnt/datalake-cleansed/isudata/zcd_tpropty_hist/delta\'")
-
-verifyTableSchema(f"cleansed.isu_ZCD_TPROPTY_HIST", newSchema)
+DeltaSaveDataFrameToDeltaTable(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_OVERWRITE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
 
 # COMMAND ----------
 

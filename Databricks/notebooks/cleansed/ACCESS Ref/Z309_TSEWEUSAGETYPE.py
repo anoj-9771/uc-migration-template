@@ -186,7 +186,7 @@ DeltaSaveToDeltaTable (
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT \
 	C_SEWE_USAG_TYPE as sewerUsageTypeCode, \
-	T_SEWE_USAG_TYPE as sewerUsageType, \
+	initcap(T_SEWE_USAG_TYPE) as sewerUsageType, \
 	ToValidDate(D_SEWE_TYPE_EFFE) as sewerUsageTypeEffectiveDate, \
 	ToValidDate(D_SEWE_TYPE_CANC) as sewerUsageTypeCancelledDate, \
 	_RecordStart, \

@@ -99,20 +99,7 @@ def getBusinessPartnerGroupRelationship():
 # COMMAND ----------
 
 df, schema = getBusinessPartnerGroupRelationship()
-#TemplateEtl(df, entity="brgBusinessPartnerGroupRelationship", businessKey="businessPartnerGroupSK,businessPartnerSK,validFromDate", schema=schema, AddSK=False)
-#Uncomment the above function call (TemplateElt) and delete the below lines once "DeltaSaveDataFrameToDeltaTable" is enhanced for 'Overwrite' mode
-spark.sql("VACUUM curated.brgbusinesspartnergrouprelationship ")
-
-df.write \
-  .format('delta') \
-  .option("mergeSchema", "true") \
-  .option("overwriteSchema", "true") \
-  .mode("overwrite") \
-  .save("dbfs:/mnt/datalake-curated/brgbusinesspartnergrouprelationship/delta")
-
-spark.sql("CREATE TABLE IF NOT EXISTS curated.brgbusinesspartnergrouprelationship  USING DELTA LOCATION \'dbfs:/mnt/datalake-curated/brgbusinesspartnergrouprelationship/delta\'")
-
-verifyTableSchema(f"curated.brgbusinesspartnergrouprelationship", schema)
+TemplateEtl(df, entity="brgBusinessPartnerGroupRelationship", businessKey="businessPartnerGroupSK,businessPartnerSK,validFromDate", schema=schema, writeMode=ADS_WRITE_MODE_OVERWRITE, AddSK=False)
 
 # COMMAND ----------
 

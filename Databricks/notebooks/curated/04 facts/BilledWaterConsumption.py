@@ -235,15 +235,33 @@ def getBilledWaterConsumption():
 # COMMAND ----------
 
 df, schema = getBilledWaterConsumption()
-TemplateEtl(df, entity="factBilledWaterConsumption", businessKey="sourceSystemCode,meterConsumptionBillingDocumentSK,meterConsumptionBillingLineItemSK", schema=schema, AddSK=False)
+TemplateEtl(df, entity="factBilledWaterConsumption", businessKey="sourceSystemCode,meterConsumptionBillingDocumentSK,meterConsumptionBillingLineItemSK", schema=schema, writeMode=ADS_WRITE_MODE_OVERWRITE, AddSK=False)
 
 # COMMAND ----------
 
 # MAGIC %sql
 # MAGIC --View to get property history for Billed Water Consumption.
 # MAGIC Create or replace view curated.viewBilledWaterConsumption as
-# MAGIC select * from (
-# MAGIC select * ,RANK() OVER (PARTITION BY sourceSystemCode,meterConsumptionBillingDocumentSK,meterConsumptionBillingLineItemSK,propertySK,meterSK,billingPeriodStartDate ORDER BY propertyTypeValidToDate desc,propertyTypeValidFromDate desc) as flag  from 
+# MAGIC select propertyNumber,
+# MAGIC inferiorPropertyTypeCode,
+# MAGIC inferiorPropertyType,
+# MAGIC superiorPropertyTypeCode,
+# MAGIC superiorPropertyType,
+# MAGIC validFromDate propertyTypeValidFromDate,
+# MAGIC validToDate propertyTypeValidToDate,
+# MAGIC sourceSystemCode
+# MAGIC meterConsumptionBillingDocumentSK
+# MAGIC meterConsumptionBillingLineItemSK
+# MAGIC propertySK
+# MAGIC meterSK
+# MAGIC locationSK
+# MAGIC waterNetworkSK
+# MAGIC businessPartnerGroupSK
+# MAGIC contractSK
+# MAGIC billingPeriodStartDate
+# MAGIC billingPeriodEndDate
+# MAGIC meteredWaterConsumption from (
+# MAGIC select * ,RANK() OVER (PARTITION BY sourceSystemCode,meterConsumptionBillingDocumentSK,meterConsumptionBillingLineItemSK ORDER BY propertyTypeValidToDate desc,propertyTypeValidFromDate desc) as flag  from 
 # MAGIC (select prop.propertyNumber,
 # MAGIC prophist.inferiorPropertyTypeCode,
 # MAGIC prophist.inferiorPropertyType,
@@ -251,7 +269,18 @@ TemplateEtl(df, entity="factBilledWaterConsumption", businessKey="sourceSystemCo
 # MAGIC prophist.superiorPropertyType,
 # MAGIC prophist.validFromDate propertyTypeValidFromDate,
 # MAGIC prophist.validToDate propertyTypeValidToDate,
-# MAGIC fact.*
+# MAGIC fact.sourceSystemCode
+# MAGIC fact.meterConsumptionBillingDocumentSK
+# MAGIC fact.meterConsumptionBillingLineItemSK
+# MAGIC fact.propertySK
+# MAGIC fact.meterSK
+# MAGIC fact.locationSK
+# MAGIC fact.waterNetworkSK
+# MAGIC fact.businessPartnerGroupSK
+# MAGIC fact.contractSK
+# MAGIC fact.billingPeriodStartDate
+# MAGIC fact.billingPeriodEndDate
+# MAGIC fact.meteredWaterConsumption
 # MAGIC from curated.factbilledwaterconsumption fact
 # MAGIC left outer join curated.dimproperty prop
 # MAGIC on fact.propertySK = prop.propertySK

@@ -148,21 +148,7 @@ def getInstallationPropertyMeterContract():
 # COMMAND ----------
 
 df, schema = getInstallationPropertyMeterContract()
-#TemplateEtl(df, entity="brgInstallationPropertyMeterContract", businessKey="installationSK", schema=schema, AddSK=False)
-#Uncomment the above function call (TemplateElt) and delete the below lines once "DeltaSaveDataFrameToDeltaTable" is enhanced for 'Overwrite' mode
-spark.sql("VACUUM curated.brgInstallationPropertyMeterContract ")
-
-df.write \
-  .format('delta') \
-  .option("mergeSchema", "true") \
-  .option("overwriteSchema", "true") \
-  .mode("overwrite") \
-  .save("dbfs:/mnt/datalake-curated/brginstallationpropertymetercontract/delta")
-
-spark.sql("CREATE TABLE IF NOT EXISTS curated.brginstallationpropertymetercontract  USING DELTA LOCATION \'dbfs:/mnt/datalake-curated/brginstallationpropertymetercontract/delta\'")
-
-verifyTableSchema(f"curated.brginstallationpropertymetercontract", schema)
-
+TemplateEtl(df, entity="brgInstallationPropertyMeterContract", businessKey="installationSK", schema=schema, writeMode=ADS_WRITE_MODE_OVERWRITE, AddSK=False)
 
 # COMMAND ----------
 

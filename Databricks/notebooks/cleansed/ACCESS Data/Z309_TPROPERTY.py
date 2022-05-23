@@ -2,12 +2,13 @@
 # DBTITLE 1,Generate parameter and source object string for unit testing
 import json
 accessTable = 'Z309_TPROPERTY'
+businessKeys = 'N_PROP'
 
-runParm = '{"SourceType":"Flat File","SourceServer":"saswcnonprod01landingdev-sastoken","SourceGroup":"access","SourceName":"access_access/####_csv","SourceLocation":"access/####.csv","AdditionalProperty":"","Processor":"databricks-token|0705-044124-gored835|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive","IsAuditTable":false,"SoftDeleteSource":"","ProjectName":"Access Data","ProjectId":2,"TargetType":"BLOB Storage (csv)","TargetName":"access_access/####_csv","TargetLocation":"access/####","TargetServer":"daf-sa-lake-sastoken","DataLoadMode":"TRUNCATE-LOAD","DeltaExtract":false,"CDCSource":false,"TruncateTarget":true,"UpsertTarget":false,"AppendTarget":null,"TrackChanges":false,"LoadToSqlEDW":true,"TaskName":"access_access/####_csv","ControlStageId":1,"TaskId":4,"StageSequence":100,"StageName":"Source to Raw","SourceId":4,"TargetId":4,"ObjectGrain":"Day","CommandTypeId":5,"Watermarks":"","WatermarksDT":null,"WatermarkColumn":"","BusinessKeyColumn":"","UpdateMetaData":null,"SourceTimeStampFormat":"","Command":"","LastLoadedFile":null}'
+runParm = '{"SourceType":"BLOB Storage (csv)","SourceServer":"daf-sa-lake-sastoken","SourceGroup":"accessdata","SourceName":"access_####","SourceLocation":"accessdata/####","AdditionalProperty":"","Processor":"databricks-token|1103-023442-me8nqcm9|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive","IsAuditTable":false,"SoftDeleteSource":"","ProjectName":"CLEANSED DATA ACCESS","ProjectId":2,"TargetType":"BLOB Storage (csv)","TargetName":"access_####","TargetLocation":"accessdata/####","TargetServer":"daf-sa-lake-sastoken","DataLoadMode":"TRUNCATE-LOAD","DeltaExtract":false,"CDCSource":false,"TruncateTarget":true,"UpsertTarget":false,"AppendTarget":false,"TrackChanges":false,"LoadToSqlEDW":true,"TaskName":"access_####","ControlStageId":2,"TaskId":40,"StageSequence":200,"StageName":"Raw to Cleansed","SourceId":40,"TargetId":40,"ObjectGrain":"Day","CommandTypeId":8,"Watermarks":"","WatermarksDT":null,"WatermarkColumn":"","BusinessKeyColumn":"yyyy","PartitionColumn":null,"UpdateMetaData":null,"SourceTimeStampFormat":"","Command":"/build/cleansed/accessdata/####","LastLoadedFile":null}'
 
 s = json.loads(runParm)
-for parm in ['SourceName','SourceLocation','TargetName','TargetLocation','TaskName']:
-    s[parm] = s[parm].replace('####',accessTable)
+for parm in ['SourceName','SourceLocation','TargetName','TargetLocation','TaskName','BusinessKeyColumn','Command']:
+    s[parm] = s[parm].replace('####',accessTable).replace('yyyy',businessKeys)
 runParm = json.dumps(s)
 
 # COMMAND ----------
@@ -188,8 +189,10 @@ df_cleansed = spark.sql(f"SELECT cast(N_PROP as int) AS propertyNumber, \
         b.LGA, \
 		C_PROP_TYPE AS propertyTypeCode, \
         e.propertyType, \
+        infsap.inferiorPropertyType as propertyTypeSAP, \
         f.propertyTypeCode as superiorPropertyTypeCode, \
         f.propertyType as superiorPropertyType, \
+        supsap.superiorPropertyType as superiorPropertyTypeSAP, \
         case when D_PROP_TYPE_EFFE is not null \
                   then to_date(D_PROP_TYPE_EFFE,'yyyyMMdd') \
              when D_PROP_RATE_CANC is not null \
@@ -207,6 +210,10 @@ df_cleansed = spark.sql(f"SELECT cast(N_PROP as int) AS propertyNumber, \
                   then true \
                   else false \
         end AS isIncludedInOtherRating, \
+        case when F_VALU_INCL = 'Y' \
+              then true \
+              else false \
+        end AS hasIncludedValuations, \
         case when F_METE_INCL = 'M' \
                   then true \
                   else false \
@@ -223,7 +230,7 @@ df_cleansed = spark.sql(f"SELECT cast(N_PROP as int) AS propertyNumber, \
                   then true \
                   else false \
         end AS hasKidneyFreeSupply, \
-        case when F_FREE_SUPP = 'Y' \
+        case when F_FREE_SUPP in('Y','1') \
                   then true \
                   else false \
         end AS hasNonKidneyFreeSupply, \
@@ -232,9 +239,11 @@ df_cleansed = spark.sql(f"SELECT cast(N_PROP as int) AS propertyNumber, \
                   else false \
         end AS hasSpecialPropertyDescription, \
 		C_SEWE_USAG_TYPE AS sewerUsageTypeCode, \
+        ref5.sewerUsageType as sewerUsageType, \
 		cast(Q_PROP_METE as int) AS propertyMeterCount, \
 		cast(Q_PROP_AREA as decimal(9,3)) AS propertyArea, \
 		C_PROP_AREA_TYPE AS propertyAreaTypeCode, \
+        ref6.propertyAreaType as propertyAreaType, \
 		cast(A_PROP_PURC_PRIC as decimal(11,0)) AS purchasePrice, \
 		case when d_prop_sale_sett = '00000000' \
                   then null \
@@ -243,7 +252,8 @@ df_cleansed = spark.sql(f"SELECT cast(N_PROP as int) AS propertyNumber, \
                   else to_date(D_PROP_SALE_SETT,'yyyyMMdd') \
         end AS settlementDate, \
 		to_date(D_CNTR, 'yyyyMMdd') AS contractDate, \
-		C_EXTR_LOT AS extraLotCode, \
+		C_EXTR_LOT AS extractLotCode, \
+        ref7.extractLotDescription as extractLotDescription, \
         to_date(D_PROP_UPDA, 'yyyyMMdd') AS propertyUpdatedDate, \
 		T_PROP_LOT AS lotDescription, \
 		C_USER_CREA AS createdByUserId, \
@@ -257,10 +267,15 @@ df_cleansed = spark.sql(f"SELECT cast(N_PROP as int) AS propertyNumber, \
         a._RecordDeleted, \
         a._RecordCurrent \
 	FROM {ADS_DATABASE_STAGE}.{source_object} a \
-         left outer join cleansed.access_Z309_TLocalGovt b on b.LGACode = a.c_lga \
-         left outer join cleansed.access_Z309_TPropType e on e.propertyTypeCode = a.c_prop_type \
-         left outer join cleansed.access_Z309_TPropType f on e.superiorPropertyTypeCode = f.propertyTypeCode \
-         left outer join cleansed.access_Z309_TRataType h on h.rateabilityTypeCode = a.c_rata_type \
+         left outer join cleansed.access_Z309_TLocalGovt b on b.LGACode = a.c_lga and b._RecordCurrent = 1 \
+         left outer join cleansed.access_Z309_TPropType e on e.propertyTypeCode = a.c_prop_type and e._RecordCurrent = 1 \
+         left outer join cleansed.access_Z309_TPropType f on e.superiorPropertyTypeCode = f.propertyTypeCode and f._RecordCurrent = 1 \
+         left outer join cleansed.access_Z309_TRataType h on h.rateabilityTypeCode = a.c_rata_type and h._RecordCurrent = 1 \
+         left outer join cleansed.isu_zcd_tinfprty_tx infsap on infsap.inferiorPropertyTypeCode = a.c_prop_type and infsap._RecordCurrent = 1 \
+         left outer join cleansed.isu_zcd_tsupprtyp_tx supsap on supsap.superiorPropertyTypeCode = f.propertyTypeCode and supsap._RecordCurrent = 1 \
+         left outer join cleansed.access_Z309_TSEWEUSAGETYPE ref5 on a.C_SEWE_USAG_TYPE = ref5.sewerUsageTypeCode and ref5._RecordCurrent = 1 \
+         left outer join cleansed.access_Z309_TPROPAREATYPE ref6 on a.C_PROP_AREA_TYPE = ref6.propertyAreaTypeCode and ref6._RecordCurrent = 1 \
+         left outer join cleansed.access_Z309_TEXTRACTLOT ref7 on a.C_EXTR_LOT = ref7.extractLotCode and ref7._RecordCurrent = 1 \
 ")
 #print(f'Number of rows: {df_cleansed.count()}')
 
@@ -272,14 +287,17 @@ newSchema = StructType([
     StructField('LGA',StringType(),False),
 	StructField('propertyTypeCode',StringType(),False),
 	StructField('propertyType',StringType(),False),
+    StructField('propertyTypeSAP',StringType(),True),
     StructField('superiorPropertyTypeCode',StringType(),False),
     StructField('superiorPropertyType',StringType(),False),
+    StructField('superiorPropertyTypeSAP',StringType(),True),
     StructField('propertyTypeEffectiveFrom',DateType(),False),
     StructField('rateabilityTypeCode',StringType(),False),
     StructField('rateabilityType',StringType(),False),
 	StructField('residentialPortionCount',DecimalType(5,0),False),
     StructField('hasIncludedRatings',BooleanType(),False),
     StructField('isIncludedInOtherRating',BooleanType(),False),
+    StructField('hasIncludedValuations',BooleanType(),False),
     StructField('meterServesOtherProperties',BooleanType(),False),
     StructField('hasMeterOnOtherProperty',BooleanType(),False),
     StructField('hasSpecialMeterAllocation',BooleanType(),False),
@@ -287,13 +305,16 @@ newSchema = StructType([
     StructField('hasNonKidneyFreeSupply',BooleanType(),False),
     StructField('hasSpecialPropertyDescription',BooleanType(),False),
 	StructField('sewerUsageTypeCode',StringType(),True),
+	StructField('sewerUsageType',StringType(),True),
 	StructField('propertyMeterCount',IntegerType(),False),
 	StructField('propertyArea',DecimalType(9,3),False),
 	StructField('propertyAreaTypeCode',StringType(),True),
-	StructField('purchasePrice',DecimalType(11,0),False),
+	StructField('propertyAreaType',StringType(),True),
+    StructField('purchasePrice',DecimalType(11,0),False),
 	StructField('settlementDate',DateType(),True),
 	StructField('contractDate',DateType(),True),
-	StructField('extraLotCode',StringType(),True),
+	StructField('extractLotCode',StringType(),True),
+	StructField('extractLotDescription',StringType(),True),
 	StructField('propertyUpdatedDate',DateType(),True),
     StructField('lotDescription',StringType(),True),
 	StructField('createdByUserId',StringType(),True),

@@ -93,7 +93,7 @@ def getBusinessPartnerGroup():
 # COMMAND ----------
 
 df, schema = getBusinessPartnerGroup()
-TemplateEtl(df, entity="dimBusinessPartnerGroup", businessKey="businessPartnerGroupNumber,sourceSystemCode", schema=schema, AddSK=True) 
+TemplateEtl(df, entity="dimBusinessPartnerGroup", businessKey="businessPartnerGroupNumber,sourceSystemCode", schema=schema, writeMode=ADS_WRITE_MODE_MERGE, AddSK=False)
 
 # COMMAND ----------
 
