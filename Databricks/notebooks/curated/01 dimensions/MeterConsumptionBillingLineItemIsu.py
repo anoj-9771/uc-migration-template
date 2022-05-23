@@ -121,7 +121,7 @@ def getMeterConsumptionBillingLineItemIsu():
 # COMMAND ----------
 
 df, schema = getMeterConsumptionBillingLineItemIsu()
-TemplateEtl(df, entity="dimMeterConsumptionBillingLineItem", businessKey="sourceSystemCode,billingDocumentNumber,billingDocumentLineItemId", schema=schema, AddSK=True)
+TemplateEtl(df, entity="dimMeterConsumptionBillingLineItem", businessKey="sourceSystemCode,billingDocumentNumber,billingDocumentLineItemId", schema=schema, writeMode=ADS_WRITE_MODE_MERGE, AddSK=False)
 
 # COMMAND ----------
 

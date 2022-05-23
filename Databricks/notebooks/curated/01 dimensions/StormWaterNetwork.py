@@ -54,7 +54,7 @@ def getStormWaterNetwork():
 # COMMAND ----------
 
 df, schema = getStormWaterNetwork()
-TemplateEtl(df, entity="dimStormWaterNetwork", businessKey="stormWaterCatchment", schema=schema, AddSK=True)
+TemplateEtl(df, entity="dimStormWaterNetwork", businessKey="stormWaterCatchment", schema=schema, writeMode=ADS_WRITE_MODE_MERGE, AddSK=False)
 
 # COMMAND ----------
 

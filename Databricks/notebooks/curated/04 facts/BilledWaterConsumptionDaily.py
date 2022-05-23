@@ -268,26 +268,8 @@ def getBilledWaterConsumptionDaily():
 
 # COMMAND ----------
 
-# df, schema = getBilledWaterConsumptionDaily()
-# TemplateEtl(df, entity="factDailyApportionedConsumption", businessKey="sourceSystemCode,consumptionDate,meterConsumptionBillingDocumentSK,meterConsumptionBillingLineItemSK", schema=schema, AddSK=False)
-
-# COMMAND ----------
-
-#Uncomment the above function call (TemplateEtl) and delete the below lines once "DeltaSaveDataFrameToDeltaTable" is enhanced for 'Overwrite' mode
 df, schema = getBilledWaterConsumptionDaily()
-if DeltaTableExists("curated.factDailyApportionedConsumption"):
-    spark.sql("VACUUM curated.factDailyApportionedConsumption")
-
-df.write \
-  .format('delta') \
-  .option("mergeSchema", "true") \
-  .option("overwriteSchema", "true") \
-  .mode("overwrite") \
-  .save("dbfs:/mnt/datalake-curated/factDailyApportionedConsumption/delta")
-
-spark.sql("CREATE TABLE IF NOT EXISTS curated.factDailyApportionedConsumption  USING DELTA LOCATION \'dbfs:/mnt/datalake-curated/factDailyApportionedConsumption/delta\'")
-
-verifyTableSchema(f"curated.factDailyApportionedConsumption", schema)
+TemplateEtl(df, entity="factDailyApportionedConsumption", businessKey="sourceSystemCode,consumptionDate,meterConsumptionBillingDocumentSK,meterConsumptionBillingLineItemSK", schema=schema, writeMode=ADS_WRITE_MODE_OVERWRITE, AddSK=False)
 
 # COMMAND ----------
 
