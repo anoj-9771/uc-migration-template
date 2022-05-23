@@ -281,18 +281,18 @@ TemplateEtl(df, entity="factDailyApportionedConsumption", businessKey="sourceSys
 # MAGIC inferiorPropertyType,
 # MAGIC superiorPropertyTypeCode,
 # MAGIC superiorPropertyType,
-# MAGIC validFromDate propertyTypeValidFromDate,
-# MAGIC validToDate propertyTypeValidToDate,
-# MAGIC sourceSystemCode
-# MAGIC consumptionDate
-# MAGIC meterConsumptionBillingDocumentSK
-# MAGIC meterConsumptionBillingLineItemSK
-# MAGIC propertySK
-# MAGIC meterSK
-# MAGIC locationSK
-# MAGIC waterNetworkSK
-# MAGIC businessPartnerGroupSK
-# MAGIC contractSK
+# MAGIC propertyTypeValidFromDate,
+# MAGIC propertyTypeValidToDate,
+# MAGIC sourceSystemCode,
+# MAGIC consumptionDate,
+# MAGIC meterConsumptionBillingDocumentSK,
+# MAGIC meterConsumptionBillingLineItemSK,
+# MAGIC propertySK,
+# MAGIC meterSK,
+# MAGIC locationSK,
+# MAGIC waterNetworkSK,
+# MAGIC businessPartnerGroupSK,
+# MAGIC contractSK,
 # MAGIC dailyApportionedConsumption from (
 # MAGIC select * ,RANK() OVER   (PARTITION BY sourceSystemCode,consumptionDate,meterConsumptionBillingDocumentSK,meterConsumptionBillingLineItemSK ORDER BY propertyTypeValidToDate desc,propertyTypeValidFromDate desc) as flag  from 
 # MAGIC (select prop.propertyNumber,
@@ -300,18 +300,18 @@ TemplateEtl(df, entity="factDailyApportionedConsumption", businessKey="sourceSys
 # MAGIC prophist.inferiorPropertyType,
 # MAGIC prophist.superiorPropertyTypeCode,
 # MAGIC prophist.superiorPropertyType,
-# MAGIC prophist.validFromDate propertyTypeValidFromDate,
-# MAGIC prophist.validToDate propertyTypeValidToDate,
-# MAGIC fact.sourceSystemCode
-# MAGIC fact.consumptionDate
-# MAGIC fact.meterConsumptionBillingDocumentSK
-# MAGIC fact.meterConsumptionBillingLineItemSK
-# MAGIC fact.propertySK
-# MAGIC fact.meterSK
-# MAGIC fact.locationSK
-# MAGIC fact.waterNetworkSK
-# MAGIC fact.businessPartnerGroupSK
-# MAGIC fact.contractSK
+# MAGIC prophist.validFromDate as propertyTypeValidFromDate,
+# MAGIC prophist.validToDate as propertyTypeValidToDate,
+# MAGIC fact.sourceSystemCode,
+# MAGIC fact.consumptionDate,
+# MAGIC fact.meterConsumptionBillingDocumentSK,
+# MAGIC fact.meterConsumptionBillingLineItemSK,
+# MAGIC fact.propertySK,
+# MAGIC fact.meterSK,
+# MAGIC fact.locationSK,
+# MAGIC fact.waterNetworkSK,
+# MAGIC fact.businessPartnerGroupSK,
+# MAGIC fact.contractSK,
 # MAGIC fact.dailyApportionedConsumption
 # MAGIC from curated.factDailyApportionedConsumption fact
 # MAGIC left outer join curated.dimproperty prop
