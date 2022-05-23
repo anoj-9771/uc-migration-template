@@ -87,7 +87,7 @@ def getInstallation():
 # COMMAND ----------
 
 df, schema = getInstallation()
-TemplateEtl(df, entity="dimInstallation", businessKey="installationId", schema=schema, writeMode=ADS_WRITE_MODE_MERGE, AddSK=False)
+TemplateEtl(df, entity="dimInstallation", businessKey="installationId", schema=schema, writeMode=ADS_WRITE_MODE_MERGE, AddSK=True)
 
 # COMMAND ----------
 

@@ -57,7 +57,7 @@ def getSewerNetwork():
 # COMMAND ----------
 
 df, schema = getSewerNetwork()
-TemplateEtl(df, entity="dimSewerNetwork", businessKey="SCAMP", schema=schema, writeMode=ADS_WRITE_MODE_MERGE, AddSK=False)
+TemplateEtl(df, entity="dimSewerNetwork", businessKey="SCAMP", schema=schema, writeMode=ADS_WRITE_MODE_MERGE, AddSK=True)
 
 # COMMAND ----------
 
