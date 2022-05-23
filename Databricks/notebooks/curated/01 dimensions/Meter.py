@@ -198,7 +198,7 @@ def getMeter():
     #display(df)    
     
     dummyDimRecDf = spark.createDataFrame([("ISU","-1","Unknown"),("ACCESS","-2","Unknown"),("ISU","-3","NA"),("ACCESS","-4","NA")], ["sourceSystemCode", "meterNumber","meterDescription"])   
-    #df = df.unionByName(dummyDimRecDf, allowMissingColumns = True)    
+    df = df.unionByName(dummyDimRecDf, allowMissingColumns = True)    
     #print(f'{df.count():,} rows after Union 2')
     #display(df)
     

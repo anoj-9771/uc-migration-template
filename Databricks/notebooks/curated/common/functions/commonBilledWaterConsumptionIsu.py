@@ -44,7 +44,7 @@ def getBilledWaterConsumptionIsu():
 
     dberchz1Df = spark.sql(f"select billingDocumentNumber, billingDocumentLineItemId \
                                 ,lineItemTypeCode, lineItemType, billingLineItemBudgetBillingIndicator \
-                                ,subtransactionForDocumentItem, industryCode, \
+                                ,subtransactionForDocumentItem, industryCode \
                                 ,billingClassCode, billingClass, rateTypeCode \
                                 ,rateType, rateId, rateDescription \
                                 ,statisticalAnalysisRateType as statisticalAnalysisRateTypeCode, statisticalAnalysisRateTypeDescription as statisticalAnalysisRateType \
