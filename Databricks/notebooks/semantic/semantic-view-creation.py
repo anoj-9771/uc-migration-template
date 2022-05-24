@@ -550,7 +550,7 @@ for table in spark.catalog.listTables("curated"):
 # MAGIC isu_dberchz1.lineItemTypeCode,  -- BELZART,
 # MAGIC isu_dberchz1.billingLineItemBudgetBillingIndicator,  -- ABSLKZ,
 # MAGIC isu_dberchz1.subtransactionForDocumentItem,  -- TVORG,
-# MAGIC isu_dberchz1.industryText,  -- BRANCHE,
+# MAGIC isu_dberchz1.industryCode,  -- BRANCHE,
 # MAGIC isu_dberchz1.billingClassCode,  -- AKLASSE,
 # MAGIC isu_dberchz1.validFromDate,  -- AB,
 # MAGIC isu_dberchz1.validToDate,  -- BIS,
