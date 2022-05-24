@@ -256,12 +256,15 @@ def getProperty():
                     select * \
                     from   ISU")
     
-    dummyDimRecDf = spark.sql(f"select waterNetworkSK as dummyDimSK, 'dimWaterNetwork' as dimension from {ADS_DATABASE_CURATED}.dimWaterNetwork where pressureArea in ('-1') and supplyZone in ('-1') \
-                          union select sewerNetworkSK as dummyDimSK, 'dimSewerNetwork' as dimension from {ADS_DATABASE_CURATED}.dimSewerNetwork where SCAMP in ('-1') \
-                          union select stormWaterNetworkSK as dummyDimSK, 'dimStormWaterNetwork' as dimension from {ADS_DATABASE_CURATED}.dimStormWaterNetwork where stormWaterCatchment in ('-1') \
+    dummyDimRecDf = spark.sql(f"select waterNetworkSK as dummyDimSK, 'dimWaterNetwork_drinkingWater' as dimension from {ADS_DATABASE_CURATED}.dimWaterNetwork where pressureArea='-1' and isPotableWaterNetwork='Y' and isRecycledWaterNetwork='N' \
+                          union select waterNetworkSK as dummyDimSK, 'dimWaterNetwork_recycledWater' as dimension from {ADS_DATABASE_CURATED}.dimWaterNetwork where supplyZone='-1' and isPotableWaterNetwork='N' and isRecycledWaterNetwork='Y' \
+                          union select sewerNetworkSK as dummyDimSK, 'dimSewerNetwork' as dimension from {ADS_DATABASE_CURATED}.dimSewerNetwork where SCAMP='-1' \
+                          union select stormWaterNetworkSK as dummyDimSK, 'dimStormWaterNetwork' as dimension from {ADS_DATABASE_CURATED}.dimStormWaterNetwork where stormWaterCatchment='-1' \
                           ")
-    df = df.join(dummyDimRecDf, (dummyDimRecDf.dimension == 'dimWaterNetwork'), how="left") \
-                  .select(df['*'], dummyDimRecDf['dummyDimSK'].alias('dummyWaterNetworkSK'))
+    df = df.join(dummyDimRecDf, (dummyDimRecDf.dimension == 'dimWaterNetwork_drinkingWater'), how="left") \
+                  .select(df['*'], dummyDimRecDf['dummyDimSK'].alias('dummyWaterNetworkSK_drinkingWater'))
+    df = df.join(dummyDimRecDf, (dummyDimRecDf.dimension == 'dimWaterNetwork_recycledWater'), how="left") \
+                  .select(df['*'], dummyDimRecDf['dummyDimSK'].alias('dummyWaterNetworkSK_recycledWater'))
     df = df.join(dummyDimRecDf, (dummyDimRecDf.dimension == 'dimSewerNetwork'), how="left") \
                   .select(df['*'], dummyDimRecDf['dummyDimSK'].alias('dummySewerNetworkSK'))
     df = df.join(dummyDimRecDf, (dummyDimRecDf.dimension == 'dimStormWaterNetwork'), how="left") \
@@ -287,8 +290,8 @@ def getProperty():
     df = df.selectExpr( \
                          "propertyNumber" \
                         ,"sourceSystemCode" \
-                        ,"coalesce(waterNetworkSK_drinkingWater, dummyWaterNetworkSK) as waterNetworkSK_drinkingWater" \
-                        ,"coalesce(waterNetworkSK_recycledWater, dummyWaterNetworkSK) as waterNetworkSK_recycledWater" \
+                        ,"coalesce(waterNetworkSK_drinkingWater, dummyWaterNetworkSK_drinkingWater) as waterNetworkSK_drinkingWater" \
+                        ,"coalesce(waterNetworkSK_recycledWater, dummyWaterNetworkSK_recycledWater) as waterNetworkSK_recycledWater" \
                         ,"coalesce(sewerNetworkSK, dummySewerNetworkSK) as sewerNetworkSK" \
                         ,"coalesce(stormWaterNetworkSK, dummyStormWaterNetworkSK) as stormWaterNetworkSK" \
                         ,"propertyTypeCode" \
