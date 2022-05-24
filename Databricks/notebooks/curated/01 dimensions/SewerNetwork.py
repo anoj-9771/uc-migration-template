@@ -29,7 +29,7 @@ def getSewerNetwork():
                         ")
 
     #Dummy Record to be added to Property Dimension
-    dummyDimRecDf = spark.createDataFrame([("Unknown","Unknown","-1"),("NA","NA","-2")], ["sewerNetwork", "sewerCatchment","SCAMP"])
+    dummyDimRecDf = spark.createDataFrame([("Unknown","Unknown","-1")], ["sewerNetwork", "sewerCatchment","SCAMP"])
 
     #2.JOIN TABLES  
     #3.UNION TABLES

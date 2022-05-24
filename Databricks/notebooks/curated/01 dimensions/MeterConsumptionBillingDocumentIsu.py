@@ -25,7 +25,7 @@ def getMeterConsumptionBillingDocumentIsu():
     #1.Load Cleansed layer table data into dataframe
     billedConsIsuDf = getBilledWaterConsumptionIsu()
 
-    dummyDimRecDf = spark.createDataFrame([("ISU", "-1", "1900-01-01", "9999-12-31"), ("ACCESS", "-2", "1900-01-01", "9999-12-31"),("ISU", "-3", "1900-01-01", "9999-12-31"),("ACCESS", "-4", "1900-01-01", "9999-12-31")], ["sourceSystemCode", "billingDocumentNumber", "billingPeriodStartDate", "billingPeriodEndDate"])
+    dummyDimRecDf = spark.createDataFrame([("Unknown", "-1", "1900-01-01", "9999-12-31")], ["sourceSystemCode", "billingDocumentNumber", "billingPeriodStartDate", "billingPeriodEndDate"])
     dummyDimRecDf = dummyDimRecDf.withColumn("billingPeriodStartDate",(col("billingPeriodStartDate").cast("date"))).withColumn("billingPeriodEndDate",(col("billingPeriodEndDate").cast("date")))  
     
     #2.JOIN TABLES  

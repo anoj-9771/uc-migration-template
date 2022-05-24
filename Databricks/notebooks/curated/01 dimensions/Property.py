@@ -268,21 +268,7 @@ def getProperty():
     df = df.join(dummyDimRecDf, (dummyDimRecDf.dimension == 'dimStormWaterNetwork'), how="left") \
                   .select(df['*'], dummyDimRecDf['dummyDimSK'].alias('dummyStormWaterNetworkSK'))
     
-    dummyDimDf = spark.sql(f"select '-1' as propertyNumber, 'ISU' as sourceSystemCode, wn.waterNetworkSK as waterNetworkSK_drinkingWater, wnr.waterNetworkSK as waterNetworkSK_recycledWater, sewerNetworkSK, stormWaterNetworkSK \
-                            from {ADS_DATABASE_CURATED}.dimWaterNetwork wn, \
-                                 {ADS_DATABASE_CURATED}.dimWaterNetwork wnr, \
-                                 {ADS_DATABASE_CURATED}.dimSewerNetwork snw, \
-                                 {ADS_DATABASE_CURATED}.dimStormWaterNetwork sw \
-                            where wn.pressureArea = '-1' \
-                            and   wn._RecordCurrent = 1 \
-                            and   wnr.supplyZone = '-1' \
-                            and   wnr._RecordCurrent = 1 \
-                            and   snw.SCAMP = '-1' \
-                            and   snw._RecordCurrent = 1 \
-                            and   sw.stormWaterCatchment = '-1' \
-                            and   sw._RecordCurrent = 1 \
-                            union \
-                           select '-2' as propertyNumber, 'ACCESS' as sourceSystemCode, wn.waterNetworkSK as waterNetworkSK_drinkingWater, wnr.waterNetworkSK as waterNetworkSK_recycledWater, sewerNetworkSK, stormWaterNetworkSK \
+    dummyDimDf = spark.sql(f"select '-1' as propertyNumber, 'Unknown' as sourceSystemCode, wn.waterNetworkSK as waterNetworkSK_drinkingWater, wnr.waterNetworkSK as waterNetworkSK_recycledWater, sewerNetworkSK, stormWaterNetworkSK \
                             from {ADS_DATABASE_CURATED}.dimWaterNetwork wn, \
                                  {ADS_DATABASE_CURATED}.dimWaterNetwork wnr, \
                                  {ADS_DATABASE_CURATED}.dimSewerNetwork snw, \

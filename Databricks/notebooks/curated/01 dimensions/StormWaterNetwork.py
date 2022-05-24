@@ -28,7 +28,7 @@ def getStormWaterNetwork():
                         ")
 
     #Dummy Record to be added to Property Dimension
-    dummyDimRecDf = spark.createDataFrame([("Unknown","-1"),("NA","-2")], ["stormWaterNetwork", "stormWaterCatchment"])
+    dummyDimRecDf = spark.createDataFrame([("Unknown","-1")], ["stormWaterNetwork", "stormWaterCatchment"])
 
     #2.JOIN TABLES  
     #3.UNION TABLES
