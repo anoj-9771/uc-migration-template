@@ -25,7 +25,7 @@ def getMeterConsumptionBillingDocumentIsu():
     #1.Load Cleansed layer table data into dataframe
     billedConsIsuDf = getBilledWaterConsumptionIsu()
 
-    dummyDimRecDf = spark.createDataFrame([("Unknown", "-1", "1900-01-01", "9999-12-31")], ["sourceSystemCode", "billingDocumentNumber", "billingPeriodStartDate", "billingPeriodEndDate"])
+    dummyDimRecDf = spark.createDataFrame([("-1", "1900-01-01", "9999-12-31")], ["billingDocumentNumber", "billingPeriodStartDate", "billingPeriodEndDate"])
     dummyDimRecDf = dummyDimRecDf.withColumn("billingPeriodStartDate",(col("billingPeriodStartDate").cast("date"))).withColumn("billingPeriodEndDate",(col("billingPeriodEndDate").cast("date")))  
     
     #2.JOIN TABLES  
@@ -63,7 +63,7 @@ def getMeterConsumptionBillingDocumentIsu():
     #5.Apply schema definition
     schema = StructType([
                             StructField('meterConsumptionBillingDocumentSK', LongType(), False),
-                            StructField("sourceSystemCode", StringType(), False),
+                            StructField("sourceSystemCode", StringType(), True),
                             StructField("billingDocumentNumber", StringType(), False),
                             StructField("billingPeriodStartDate", DateType(), True),
                             StructField("billingPeriodEndDate", DateType(), True),
@@ -93,7 +93,7 @@ def getMeterConsumptionBillingDocumentIsu():
 # COMMAND ----------
 
 df, schema = getMeterConsumptionBillingDocumentIsu()
-TemplateEtl(df, entity="dimMeterConsumptionBillingDocument", businessKey="sourceSystemCode,billingDocumentNumber", schema=schema, writeMode=ADS_WRITE_MODE_MERGE, AddSK=True)
+TemplateEtl(df, entity="dimMeterConsumptionBillingDocument", businessKey="billingDocumentNumber", schema=schema, writeMode=ADS_WRITE_MODE_MERGE, AddSK=True)
 
 # COMMAND ----------
 

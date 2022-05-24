@@ -68,7 +68,7 @@ def getBusinessPartner():
                                       and _RecordDeleted = 0")  
     
     #Dummy Record to be added to Business Partner Group Dimension
-    dummyDimRecDf = spark.createDataFrame([("Unknown", "-1", "Unknown")], ["sourceSystemCode","businessPartnerNumber","firstName"])
+    dummyDimRecDf = spark.createDataFrame([("-1", "Unknown")], ["businessPartnerNumber","firstName"])
     
     #2.JOIN TABLES
     df = isu0bpartnerAttrDf.join(crm0bpartnerAttrDf, isu0bpartnerAttrDf.businessPartnerNumber == crm0bpartnerAttrDf.businessPartnerNumber, how="left")\
@@ -131,7 +131,7 @@ def getBusinessPartner():
 # COMMAND ----------
 
 df, schema = getBusinessPartner()
-TemplateEtl(df, entity="dimBusinessPartner", businessKey="businessPartnerNumber,sourceSystemCode", schema=schema, writeMode=ADS_WRITE_MODE_MERGE, AddSK=True)
+TemplateEtl(df, entity="dimBusinessPartner", businessKey="businessPartnerNumber", schema=schema, writeMode=ADS_WRITE_MODE_MERGE, AddSK=True)
 
 # COMMAND ----------
 
