@@ -112,7 +112,10 @@ def getBilledWaterConsumption():
                                                        from {ADS_DATABASE_CURATED}.dimMeterConsumptionBillingLineItem where billingDocumentLineItemId = '-1' \
                           union select businessPartnerGroupSK as dummyDimSK, 'dimBusinessPartnerGroup' as dimension from {ADS_DATABASE_CURATED}.dimBusinessPartnerGroup where BusinessPartnerGroupNumber = '-1' \
                           union select contractSK as dummyDimSK, 'dimContract' as dimension from {ADS_DATABASE_CURATED}.dimContract where contractId = '-1' \
-                          union select waterNetworkSK as dummyDimSK, 'dimWaterNetwork' as dimension from {ADS_DATABASE_CURATED}.dimWaterNetwork where deliverySystem in ('Unknown') \
+                          union select waterNetworkSK as dummyDimSK, 'dimWaterNetwork_drinkingWater' as dimension from {ADS_DATABASE_CURATED}.dimWaterNetwork where pressureArea = '-1' \
+                                                and isPotableWaterNetwork='Y' and isRecycledWaterNetwork='N' \
+                          union select waterNetworkSK as dummyDimSK, 'dimWaterNetwork_recycledWater' as dimension from {ADS_DATABASE_CURATED}.dimWaterNetwork where supplyZone = '-1' \
+                                                and isPotableWaterNetwork='N' and isRecycledWaterNetwork='Y' \
                           ")
 
 
@@ -174,8 +177,11 @@ def getBilledWaterConsumption():
     billedConsDf = billedConsDf.join(dummyDimRecDf, (dummyDimRecDf.dimension == 'dimBusinessPartnerGroup'), how="left") \
                   .select(billedConsDf['*'], dummyDimRecDf['dummyDimSK'].alias('dummyBusinessPartnerGroupSK'))
 
-    billedConsDf = billedConsDf.join(dummyDimRecDf, (dummyDimRecDf.dimension == 'dimWaterNetwork'), how="left") \
-                  .select(billedConsDf['*'], dummyDimRecDf['dummyDimSK'].alias('dummyWaterNetworkSK'))
+    billedConsDf = billedConsDf.join(dummyDimRecDf, (dummyDimRecDf.dimension == 'dimWaterNetwork_drinkingWater'), how="left") \
+                  .select(billedConsDf['*'], dummyDimRecDf['dummyDimSK'].alias('dummyWaterNetworkSK_drinkingWater'))
+    
+    billedConsDf = billedConsDf.join(dummyDimRecDf, (dummyDimRecDf.dimension == 'dimWaterNetwork_recycledWater'), how="left") \
+                  .select(billedConsDf['*'], dummyDimRecDf['dummyDimSK'].alias('dummyWaterNetworkSK_recycledWater'))
     
     #7.SELECT / TRANSFORM
     #aggregating to address any duplicates due to failed SK lookups and dummy SKs being assigned in those cases
@@ -189,7 +195,8 @@ def getBilledWaterConsumption():
                                         ,"coalesce( \
                                                     (case when waterType = 'Drinking Water' then waterNetworkSK_drinkingWater \
                                                          when waterType = 'Recycled Water' then waterNetworkSK_recycledWater else null end) \
-                                                         , dummyWaterNetworkSK) as waterNetworkSK" \
+                                                         , (case when waterType = 'Drinking Water' then dummyWaterNetworkSK_drinkingWater \
+                                                         when waterType = 'Recycled Water' then dummyWaterNetworkSK_recycledWater end)) as waterNetworkSK" \
                                         ,"coalesce(businessPartnerGroupSK, dummyBusinessPartnerGroupSK) as businessPartnerGroupSK" \
                                         ,"coalesce(contractSK, dummyContractSK) as contractSK" \
                                         ,"billingPeriodStartDate" \
