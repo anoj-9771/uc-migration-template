@@ -196,10 +196,8 @@ df_cleansed = spark.sql(f"SELECT \
     ref1.LGA, \
     C_PROP_TYPE AS propertyTypeCode, \
     ref3.propertyType, \
-    infsap.inferiorPropertyType as propertyTypeSAP, \
     ref3a.propertyTypeCode as superiorPropertyTypeCode, \
     ref3a.propertyType as superiorPropertyType, \
-    supsap.superiorPropertyType as superiorPropertyTypeSAP, \
     case when D_PROP_TYPE_EFFE is not null \
               then to_date(D_PROP_TYPE_EFFE,'yyyyMMdd') \
          when D_PROP_RATE_CANC is not null \
@@ -289,8 +287,6 @@ df_cleansed = spark.sql(f"SELECT \
                 left outer join cleansed.access_Z309_TSEWEUSAGETYPE ref5 on tbl.C_SEWE_USAG_TYPE = ref5.sewerUsageTypeCode and ref5._RecordCurrent = 1 \
                 left outer join cleansed.access_Z309_TPROPAREATYPE ref6 on tbl.C_PROP_AREA_TYPE = ref6.propertyAreaTypeCode and ref6._RecordCurrent = 1 \
                 left outer join cleansed.access_Z309_TEXTRACTLOT ref7 on tbl.C_EXTR_LOT = ref7.extractLotCode and ref7._RecordCurrent = 1 \
-                left outer join cleansed.isu_zcd_tinfprty_tx infsap on infsap.inferiorPropertyTypeCode = tbl.c_prop_type and infsap._RecordCurrent = 1 \
-                left outer join cleansed.isu_zcd_tsupprtyp_tx supsap on supsap.superiorPropertyTypeCode = ref3a.propertyTypeCode and supsap._RecordCurrent = 1 \
                                 ")
 
 # COMMAND ----------
@@ -301,10 +297,8 @@ newSchema = StructType([
     StructField('LGA',StringType(),True),
 	StructField('propertyTypeCode',StringType(),True),
 	StructField('propertyType',StringType(),True),
-    StructField('propertyTypeSAP',StringType(),True),
     StructField('superiorPropertyTypeCode',StringType(),True),
     StructField('superiorPropertyType',StringType(),True),
-    StructField('superiorPropertyTypeSAP',StringType(),True),
     StructField('propertyTypeEffectiveFrom',DateType(),True),
     StructField('rateabilityTypeCode',StringType(),True),
     StructField('rateabilityType',StringType(),True),
