@@ -48,7 +48,7 @@ def getProperty():
                                 first(lotTypeCode) as lotTypeCode, \
                                 first(coalesce(plts.domainValueText,lotType)) as lotType, \
                                 first(sectionNumber) as sectionNumber \
-                        from {ADS_DATABASE_CLEANSED}.access_z309_tlot \
+                        from {ADS_DATABASE_CLEANSED}.access_z309_tlot tlot \
                              left outer join {ADS_DATABASE_CLEANSED}.isu_zcd_tplantype_tx pts on pts.plan_type = case when planTypeCode = 'DP' then '01' \
                                                                                           when planTypeCode = 'PSP' then '03' \
                                                                                           when planTypeCode = 'PDP' then '04' \
@@ -56,7 +56,7 @@ def getProperty():
                                                                                           when planTypeCode = 'SP' then '02' \
                                                                                           else null end \
                              left outer join {ADS_DATABASE_CLEANSED}.isu_dd07t plts on lotTypeCode = plts.domainValueSingleUpperLimit and domainName = 'ZCD_DO_ADDR_LOT_TYPE' \
-                        where _RecordCurrent = 1 \
+                        where tlot._RecordCurrent = 1 \
                         group by propertyNumber \
                         union all \
                         select propertyNumber, \
@@ -165,8 +165,8 @@ def getProperty():
                                             stormWaterNetworkSK, \
                                             propertyTypeCode, \
                                             initcap(coalesce(infsap.inferiorPropertyType,propertyType)) as propertyType, \
-                                            superiorPropertyTypeCode, \
-                                            initcap(coalesce(supsap.superiorPropertyType,superiorPropertyType)) as superiorPropertyType, \
+                                            pr.superiorPropertyTypeCode, \
+                                            initcap(coalesce(supsap.superiorPropertyType,pr.superiorPropertyType)) as superiorPropertyType, \
                                             CASE WHEN propertyAreaTypeCode == 'H' THEN  propertyArea * 10000 \
                                                                                   ELSE propertyArea END AS areaSize, \
                                             pp.parentPropertyNumber as parentPropertyNumber, \
@@ -327,7 +327,7 @@ def getProperty():
     schema = StructType([
                             StructField('propertySK', LongType(), False),
                             StructField("propertyNumber", StringType(), False),
-                            StructField("sourceSystemCode", StringType(), False),
+                            StructField("sourceSystemCode", StringType(), True),
                             StructField("waterNetworkSK_drinkingWater", StringType(), False),
                             StructField("waterNetworkSK_recycledWater", StringType(), False),
                             StructField("sewerNetworkSK", StringType(), False),
