@@ -197,8 +197,8 @@ def getMeter():
     #print(f'{df.count():,} rows after Union 1')
     #display(df)    
     
-    dummyDimRecDf = spark.createDataFrame([("ISU","-1","Unknown"),("ACCESS","-2","Unknown"),("ISU","-3","NA"),("ACCESS","-4","NA")], ["sourceSystemCode", "meterNumber","meterDescription"])   
-    df = df.unionByName(dummyDimRecDf, allowMissingColumns = True)    
+    dummyDimRecDf = spark.createDataFrame([("-1","Unknown")], ["meterNumber","meterDescription"])   
+    dfResult = dfResult.unionByName(dummyDimRecDf, allowMissingColumns = True)    
     #print(f'{df.count():,} rows after Union 2')
     #display(df)
     
@@ -207,7 +207,7 @@ def getMeter():
     #5.Apply schema definition
     schema = StructType([
                             StructField('meterSK', LongType(), False),
-                            StructField('sourceSystemCode', StringType(), False),
+                            StructField('sourceSystemCode', StringType(), True),
                             StructField('meterNumber', StringType(), False),
                             StructField('meterSerialNumber', StringType(), True),
                             StructField('materialNumber', StringType(), True),

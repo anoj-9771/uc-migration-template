@@ -153,20 +153,6 @@ def getProperty():
                             select propertyNumber, potableSK, recycledSK, sewerNetworkSK, stormWaterNetworkSK \
                             from t1 \
                             where rn = 1 \
-                            union all \
-                            select '-1' as propertyNumber, wn.waterNetworkSK as potableSK, wnr.waterNetworkSK as recycledSK, sewerNetworkSK, stormWaterNetworkSK \
-                            from {ADS_DATABASE_CURATED}.dimWaterNetwork wn, \
-                                 {ADS_DATABASE_CURATED}.dimWaterNetwork wnr, \
-                                 {ADS_DATABASE_CURATED}.dimSewerNetwork snw, \
-                                 {ADS_DATABASE_CURATED}.dimStormWaterNetwork sw \
-                            where wn.pressureArea = '-1' \
-                            and   wn._RecordCurrent = 1 \
-                            and   wnr.supplyZone = '-1' \
-                            and   wnr._RecordCurrent = 1 \
-                            and   snw.SCAMP = '-1' \
-                            and   snw._RecordCurrent = 1 \
-                            and   sw.stormWaterCatchment = '-1' \
-                            and   sw._RecordCurrent = 1 \
                             ")
     systemAreaDf.createOrReplaceTempView('systemareas')
     
@@ -202,7 +188,7 @@ def getProperty():
                                           parents pp on pp.propertyNumber = pr.propertyNumber \
                                           left outer join {ADS_DATABASE_CLEANSED}.isu_zcd_tinfprty_tx infsap on infsap.inferiorPropertyTypeCode = pr.propertyTypeCode and infsap._RecordCurrent = 1 \
                                           left outer join {ADS_DATABASE_CLEANSED}.isu_zcd_tsupprtyp_tx supsap on supsap.superiorPropertyTypeCode = pr.superiorPropertyTypeCode and supsap._RecordCurrent = 1 \
-                                          inner join systemAreas sa on sa.propertyNumber = coalesce(pp.parentPropertyNumber,'-1') \
+                                          left outer join systemAreas sa on sa.propertyNumber = pp.parentPropertyNumber \
                                      where pr._RecordCurrent = 1 \
                                      ")
     accessZ309TpropertyDf.createOrReplaceTempView('ACCESS')
@@ -281,29 +267,15 @@ def getProperty():
     df = df.join(dummyDimRecDf, (dummyDimRecDf.dimension == 'dimStormWaterNetwork'), how="left") \
                   .select(df['*'], dummyDimRecDf['dummyDimSK'].alias('dummyStormWaterNetworkSK'))
     
-    dummyDimDf = spark.sql(f"select '-1' as propertyNumber, 'ISU' as sourceSystemCode, wn.waterNetworkSK as waterNetworkSK_drinkingWater, wnr.waterNetworkSK as waterNetworkSK_recycledWater, sewerNetworkSK, stormWaterNetworkSK \
+    dummyDimDf = spark.sql(f"select '-1' as propertyNumber, wn.waterNetworkSK as waterNetworkSK_drinkingWater, wnr.waterNetworkSK as waterNetworkSK_recycledWater, sewerNetworkSK, stormWaterNetworkSK \
                             from {ADS_DATABASE_CURATED}.dimWaterNetwork wn, \
                                  {ADS_DATABASE_CURATED}.dimWaterNetwork wnr, \
                                  {ADS_DATABASE_CURATED}.dimSewerNetwork snw, \
                                  {ADS_DATABASE_CURATED}.dimStormWaterNetwork sw \
                             where wn.pressureArea = '-1' \
-                            and   wn._RecordCurrent = 1 \
+                            and   wn._RecordCurrent = 1 and wn.isPotableWaterNetwork='Y' and wn.isRecycledWaterNetwork='N' \
                             and   wnr.supplyZone = '-1' \
-                            and   wnr._RecordCurrent = 1 \
-                            and   snw.SCAMP = '-1' \
-                            and   snw._RecordCurrent = 1 \
-                            and   sw.stormWaterCatchment = '-1' \
-                            and   sw._RecordCurrent = 1 \
-                            union \
-                           select '-2' as propertyNumber, 'ACCESS' as sourceSystemCode, wn.waterNetworkSK as waterNetworkSK_drinkingWater, wnr.waterNetworkSK as waterNetworkSK_recycledWater, sewerNetworkSK, stormWaterNetworkSK \
-                            from {ADS_DATABASE_CURATED}.dimWaterNetwork wn, \
-                                 {ADS_DATABASE_CURATED}.dimWaterNetwork wnr, \
-                                 {ADS_DATABASE_CURATED}.dimSewerNetwork snw, \
-                                 {ADS_DATABASE_CURATED}.dimStormWaterNetwork sw \
-                            where wn.pressureArea = '-1' \
-                            and   wn._RecordCurrent = 1 \
-                            and   wnr.supplyZone = '-1' \
-                            and   wnr._RecordCurrent = 1 \
+                            and   wnr._RecordCurrent = 1 and wnr.isPotableWaterNetwork='N' and wnr.isRecycledWaterNetwork='Y' \
                             and   snw.SCAMP = '-1' \
                             and   snw._RecordCurrent = 1 \
                             and   sw.stormWaterCatchment = '-1' \
@@ -382,7 +354,6 @@ def getProperty():
                       ])
 
     return df, schema
-
 
 # COMMAND ----------
 
