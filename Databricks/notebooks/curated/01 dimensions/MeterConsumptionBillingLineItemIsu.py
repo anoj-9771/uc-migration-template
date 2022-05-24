@@ -25,7 +25,7 @@ def getMeterConsumptionBillingLineItemIsu():
     #1.Load Cleansed layer table data into dataframe
     billedConsIsuDf = getBilledWaterConsumptionIsu()
 
-    dummyDimRecDf = spark.createDataFrame([("ISU", "-1", "-1", "1900-01-01", "9999-12-31"), ("ACCESS", "-2", "-2", "1900-01-01", "9999-12-31"),("ISU", "-3", "-3", "1900-01-01", "9999-12-31"),("ACCESS", "-4", "-4", "1900-01-01", "9999-12-31")], ["sourceSystemCode", "billingDocumentNumber", "billingDocumentLineItemId", "validFromDate", "validToDate"])
+    dummyDimRecDf = spark.createDataFrame([("-1", "-1", "1900-01-01", "9999-12-31")], ["billingDocumentNumber", "billingDocumentLineItemId", "validFromDate", "validToDate"])
     dummyDimRecDf = dummyDimRecDf.withColumn("validFromDate",(col("validFromDate").cast("date"))).withColumn("validToDate",(col("validToDate").cast("date"))) 
     
     #2.JOIN TABLES  
@@ -77,7 +77,7 @@ def getMeterConsumptionBillingLineItemIsu():
     #5.Apply schema definition
     schema = StructType([
                             StructField('meterConsumptionBillingLineItemSK', LongType(), False),
-                            StructField("sourceSystemCode", StringType(), False),
+                            StructField("sourceSystemCode", StringType(), True),
                             StructField("billingDocumentNumber", StringType(), False),
                             StructField("billingDocumentLineItemId", StringType(), False),
                             StructField("lineItemTypeCode", StringType(), True),
@@ -121,7 +121,7 @@ def getMeterConsumptionBillingLineItemIsu():
 # COMMAND ----------
 
 df, schema = getMeterConsumptionBillingLineItemIsu()
-TemplateEtl(df, entity="dimMeterConsumptionBillingLineItem", businessKey="sourceSystemCode,billingDocumentNumber,billingDocumentLineItemId", schema=schema, writeMode=ADS_WRITE_MODE_MERGE, AddSK=True)
+TemplateEtl(df, entity="dimMeterConsumptionBillingLineItem", businessKey="billingDocumentNumber,billingDocumentLineItemId", schema=schema, writeMode=ADS_WRITE_MODE_MERGE, AddSK=True)
 
 # COMMAND ----------
 
