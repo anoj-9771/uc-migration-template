@@ -61,7 +61,7 @@ def getBilledWaterConsumptionDaily():
     #2.Join Tables
     
     #3.Union Access and isu billed consumption datasets
-    isuConsDf = isuConsDf.select("cfv", "billingDocumentNumber", "billingDocumentLineItemId", \
+    isuConsDf = isuConsDf.select("sourceSystemCode", "billingDocumentNumber", "billingDocumentLineItemId", \
                                   "businessPartnerGroupNumber", "equipmentNumber", "contractID", \
                                   "billingPeriodStartDate", "billingPeriodEndDate", \
                                   "validFromDate", "validToDate", \
