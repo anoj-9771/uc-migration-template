@@ -189,10 +189,8 @@ df_cleansed = spark.sql(f"SELECT cast(N_PROP as int) AS propertyNumber, \
         b.LGA, \
 		C_PROP_TYPE AS propertyTypeCode, \
         e.propertyType, \
-        infsap.inferiorPropertyType as propertyTypeSAP, \
         f.propertyTypeCode as superiorPropertyTypeCode, \
         f.propertyType as superiorPropertyType, \
-        supsap.superiorPropertyType as superiorPropertyTypeSAP, \
         case when D_PROP_TYPE_EFFE is not null \
                   then to_date(D_PROP_TYPE_EFFE,'yyyyMMdd') \
              when D_PROP_RATE_CANC is not null \
@@ -271,8 +269,6 @@ df_cleansed = spark.sql(f"SELECT cast(N_PROP as int) AS propertyNumber, \
          left outer join cleansed.access_Z309_TPropType e on e.propertyTypeCode = a.c_prop_type and e._RecordCurrent = 1 \
          left outer join cleansed.access_Z309_TPropType f on e.superiorPropertyTypeCode = f.propertyTypeCode and f._RecordCurrent = 1 \
          left outer join cleansed.access_Z309_TRataType h on h.rateabilityTypeCode = a.c_rata_type and h._RecordCurrent = 1 \
-         left outer join cleansed.isu_zcd_tinfprty_tx infsap on infsap.inferiorPropertyTypeCode = a.c_prop_type and infsap._RecordCurrent = 1 \
-         left outer join cleansed.isu_zcd_tsupprtyp_tx supsap on supsap.superiorPropertyTypeCode = f.propertyTypeCode and supsap._RecordCurrent = 1 \
          left outer join cleansed.access_Z309_TSEWEUSAGETYPE ref5 on a.C_SEWE_USAG_TYPE = ref5.sewerUsageTypeCode and ref5._RecordCurrent = 1 \
          left outer join cleansed.access_Z309_TPROPAREATYPE ref6 on a.C_PROP_AREA_TYPE = ref6.propertyAreaTypeCode and ref6._RecordCurrent = 1 \
          left outer join cleansed.access_Z309_TEXTRACTLOT ref7 on a.C_EXTR_LOT = ref7.extractLotCode and ref7._RecordCurrent = 1 \
@@ -287,10 +283,8 @@ newSchema = StructType([
     StructField('LGA',StringType(),False),
 	StructField('propertyTypeCode',StringType(),False),
 	StructField('propertyType',StringType(),False),
-    StructField('propertyTypeSAP',StringType(),True),
     StructField('superiorPropertyTypeCode',StringType(),False),
     StructField('superiorPropertyType',StringType(),False),
-    StructField('superiorPropertyTypeSAP',StringType(),True),
     StructField('propertyTypeEffectiveFrom',DateType(),False),
     StructField('rateabilityTypeCode',StringType(),False),
     StructField('rateabilityType',StringType(),False),

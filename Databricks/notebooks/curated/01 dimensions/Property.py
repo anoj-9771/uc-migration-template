@@ -41,14 +41,21 @@ def getProperty():
     #1.Load current Cleansed layer table data into dataframe
     #build a dataframe with unique properties and lot details, 4174119 is incorrectly present on Tlot
     lotDf = spark.sql(f"select propertyNumber, \
-                                first(coalesce(planTypeCodeSAP,planTypeCode)) as planTypeCode, \
-                                first(coalesce(planTypeSAP,planType)) as planType, \
+                                first(coalesce(pts.PLAN_TYPE,planTypeCode)) as planTypeCode, \
+                                first(coalesce(pts.description,planType)) as planType, \
                                 first(planNumber) as planNumber, \
                                 first(lotNumber)  as lotNumber, \
                                 first(lotTypeCode) as lotTypeCode, \
-                                first(coalesce(lotTypeSAP,lotType)) as lotType, \
+                                first(coalesce(plts.domainValueText,lotType)) as lotType, \
                                 first(sectionNumber) as sectionNumber \
                         from {ADS_DATABASE_CLEANSED}.access_z309_tlot \
+                             left outer join {ADS_DATABASE_CLEANSED}.isu_zcd_tplantype_tx pts on pts.plan_type = case when planTypeCode = 'DP' then '01' \
+                                                                                          when planTypeCode = 'PSP' then '03' \
+                                                                                          when planTypeCode = 'PDP' then '04' \
+                                                                                          when planTypeCode = 'CN' then '05' \
+                                                                                          when planTypeCode = 'SP' then '02' \
+                                                                                          else null end \
+                             left outer join {ADS_DATABASE_CLEANSED}.isu_dd07t plts on lotTypeCode = plts.domainValueSingleUpperLimit and domainName = 'ZCD_DO_ADDR_LOT_TYPE' \
                         where _RecordCurrent = 1 \
                         group by propertyNumber \
                         union all \
@@ -69,13 +76,15 @@ def getProperty():
                                 select su.propertyNumber, \
                                         ms.masterPropertyNumber as parentPropertyNumber, \
                                         pr.propertyTypeCode as parentPropertyTypeCode, \
-                                        coalesce(pr.propertyTypeSAP,pr.propertyType) as parentPropertyType, \
+                                        coalesce(infsap.inferiorPropertyType,pr.propertyType) as parentPropertyType, \
                                         pr.superiorPropertyTypeCode as parentSuperiorPropertyTypeCode, \
-                                        coalesce(pr.superiorPropertyTypeSAP,pr.superiorPropertyType) as parentSuperiorPropertyType, \
+                                        coalesce(supsap.superiorPropertyType,pr.superiorPropertyType) as parentSuperiorPropertyType, \
                                        'Child of Master Strata' as relationshipType \
                                 from {ADS_DATABASE_CLEANSED}.access_z309_tstrataunits su \
                                       inner join {ADS_DATABASE_CLEANSED}.access_z309_tmastrataplan ms on su.strataPlanNumber = ms.strataPlanNumber and ms._RecordCurrent = 1 \
                                       left outer join {ADS_DATABASE_CLEANSED}.access_z309_tproperty pr on pr.propertynumber = ms.masterPropertynumber and pr._RecordCurrent = 1 \
+                                      left outer join {ADS_DATABASE_CLEANSED}.isu_zcd_tinfprty_tx infsap on infsap.inferiorPropertyTypeCode = pr.propertyTypeCode and infsap._RecordCurrent = 1 \
+                                      left outer join {ADS_DATABASE_CLEANSED}.isu_zcd_tsupprtyp_tx supsap on supsap.superiorPropertyTypeCode = pr.superiorPropertyTypeCode and supsap._RecordCurrent = 1 \
                                 where su._RecordCurrent = 1), \
                              remainingProps as(select propertyNumber \
                                                from   {ADS_DATABASE_CLEANSED}.access_z309_tproperty \
@@ -87,13 +96,15 @@ def getProperty():
                                 select rp.propertyNumber as propertyNumber, \
                                         rp.relatedPropertyNumber as parentPropertyNumber, \
                                         pr.propertyTypeCode as parentPropertyTypeCode, \
-                                        coalesce(pr.propertyTypeSAP,pr.propertyType) as parentPropertyType, \
+                                        coalesce(infsap.inferiorPropertyType,pr.propertyType) as parentPropertyType, \
                                         pr.superiorPropertyTypeCode as parentSuperiorPropertyTypeCode, \
-                                        coalesce(pr.superiorPropertyTypeSAP,pr.superiorPropertyType) as parentSuperiorPropertyType, \
+                                        coalesce(supsap.superiorPropertyType,pr.superiorPropertyType) as parentSuperiorPropertyType, \
                                         rp.relationshipType as relationshipType, \
                                         row_number() over (partition by rp.propertyNumber order by relationshipTypecode desc) as rn \
                                 from {ADS_DATABASE_CLEANSED}.access_z309_trelatedProps rp inner join remainingProps rem on rp.propertyNumber = rem.propertyNumber \
                                        left outer join {ADS_DATABASE_CLEANSED}.access_z309_tproperty pr on pr.propertynumber = rp.relatedPropertynumber \
+                                       left outer join {ADS_DATABASE_CLEANSED}.isu_zcd_tinfprty_tx infsap on infsap.inferiorPropertyTypeCode = pr.propertyTypeCode and infsap._RecordCurrent = 1 \
+                                       left outer join {ADS_DATABASE_CLEANSED}.isu_zcd_tsupprtyp_tx supsap on supsap.superiorPropertyTypeCode = pr.superiorPropertyTypeCode and supsap._RecordCurrent = 1 \
                                 where rp.relationshipTypeCode in ('M','P','U') \
                                 and   rp._RecordCurrent = 1), \
                               t3 as(select * from t1 \
@@ -167,9 +178,9 @@ def getProperty():
                                             sewerNetworkSK, \
                                             stormWaterNetworkSK, \
                                             propertyTypeCode, \
-                                            initcap(coalesce(propertyTypeSAP,propertyType)) as propertyType, \
+                                            initcap(coalesce(infsap.inferiorPropertyType,propertyType)) as propertyType, \
                                             superiorPropertyTypeCode, \
-                                            initcap(coalesce(superiorPropertyTypeSAP,superiorPropertyType)) as superiorPropertyType, \
+                                            initcap(coalesce(supsap.superiorPropertyType,superiorPropertyType)) as superiorPropertyType, \
                                             CASE WHEN propertyAreaTypeCode == 'H' THEN  propertyArea * 10000 \
                                                                                   ELSE propertyArea END AS areaSize, \
                                             pp.parentPropertyNumber as parentPropertyNumber, \
@@ -188,8 +199,10 @@ def getProperty():
                                             null as architecturalType \
                                      from {ADS_DATABASE_CLEANSED}.access_z309_tproperty pr left outer join \
                                           lots lo on lo.propertyNumber = pr.propertyNumber left outer join \
-                                          parents pp on pp.propertyNumber = pr.propertyNumber inner join \
-                                          systemAreas sa on sa.propertyNumber = coalesce(pp.parentPropertyNumber,'-1') \
+                                          parents pp on pp.propertyNumber = pr.propertyNumber \
+                                          left outer join {ADS_DATABASE_CLEANSED}.isu_zcd_tinfprty_tx infsap on infsap.inferiorPropertyTypeCode = pr.propertyTypeCode and infsap._RecordCurrent = 1 \
+                                          left outer join {ADS_DATABASE_CLEANSED}.isu_zcd_tsupprtyp_tx supsap on supsap.superiorPropertyTypeCode = pr.superiorPropertyTypeCode and supsap._RecordCurrent = 1 \
+                                          inner join systemAreas sa on sa.propertyNumber = coalesce(pp.parentPropertyNumber,'-1') \
                                      where pr._RecordCurrent = 1 \
                                      ")
     accessZ309TpropertyDf.createOrReplaceTempView('ACCESS')
