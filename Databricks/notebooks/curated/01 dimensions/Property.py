@@ -48,7 +48,7 @@ def getProperty():
                                 first(lotTypeCode) as lotTypeCode, \
                                 first(coalesce(plts.domainValueText,lotType)) as lotType, \
                                 first(sectionNumber) as sectionNumber \
-                        from {ADS_DATABASE_CLEANSED}.access_z309_tlot \
+                        from {ADS_DATABASE_CLEANSED}.access_z309_tlot tlot \
                              left outer join {ADS_DATABASE_CLEANSED}.isu_zcd_tplantype_tx pts on pts.plan_type = case when planTypeCode = 'DP' then '01' \
                                                                                           when planTypeCode = 'PSP' then '03' \
                                                                                           when planTypeCode = 'PDP' then '04' \
@@ -56,7 +56,7 @@ def getProperty():
                                                                                           when planTypeCode = 'SP' then '02' \
                                                                                           else null end \
                              left outer join {ADS_DATABASE_CLEANSED}.isu_dd07t plts on lotTypeCode = plts.domainValueSingleUpperLimit and domainName = 'ZCD_DO_ADDR_LOT_TYPE' \
-                        where _RecordCurrent = 1 \
+                        where tlot._RecordCurrent = 1 \
                         group by propertyNumber \
                         union all \
                         select propertyNumber, \
@@ -165,8 +165,8 @@ def getProperty():
                                             stormWaterNetworkSK, \
                                             propertyTypeCode, \
                                             initcap(coalesce(infsap.inferiorPropertyType,propertyType)) as propertyType, \
-                                            superiorPropertyTypeCode, \
-                                            initcap(coalesce(supsap.superiorPropertyType,superiorPropertyType)) as superiorPropertyType, \
+                                            pr.superiorPropertyTypeCode, \
+                                            initcap(coalesce(supsap.superiorPropertyType,pr.superiorPropertyType)) as superiorPropertyType, \
                                             CASE WHEN propertyAreaTypeCode == 'H' THEN  propertyArea * 10000 \
                                                                                   ELSE propertyArea END AS areaSize, \
                                             pp.parentPropertyNumber as parentPropertyNumber, \
@@ -256,12 +256,15 @@ def getProperty():
                     select * \
                     from   ISU")
     
-    dummyDimRecDf = spark.sql(f"select waterNetworkSK as dummyDimSK, 'dimWaterNetwork' as dimension from {ADS_DATABASE_CURATED}.dimWaterNetwork where pressureArea in ('-1') and supplyZone in ('-1') \
-                          union select sewerNetworkSK as dummyDimSK, 'dimSewerNetwork' as dimension from {ADS_DATABASE_CURATED}.dimSewerNetwork where SCAMP in ('-1') \
-                          union select stormWaterNetworkSK as dummyDimSK, 'dimStormWaterNetwork' as dimension from {ADS_DATABASE_CURATED}.dimStormWaterNetwork where stormWaterCatchment in ('-1') \
+    dummyDimRecDf = spark.sql(f"select waterNetworkSK as dummyDimSK, 'dimWaterNetwork_drinkingWater' as dimension from {ADS_DATABASE_CURATED}.dimWaterNetwork where pressureArea='-1' and isPotableWaterNetwork='Y' and isRecycledWaterNetwork='N' \
+                          union select waterNetworkSK as dummyDimSK, 'dimWaterNetwork_recycledWater' as dimension from {ADS_DATABASE_CURATED}.dimWaterNetwork where supplyZone='-1' and isPotableWaterNetwork='N' and isRecycledWaterNetwork='Y' \
+                          union select sewerNetworkSK as dummyDimSK, 'dimSewerNetwork' as dimension from {ADS_DATABASE_CURATED}.dimSewerNetwork where SCAMP='-1' \
+                          union select stormWaterNetworkSK as dummyDimSK, 'dimStormWaterNetwork' as dimension from {ADS_DATABASE_CURATED}.dimStormWaterNetwork where stormWaterCatchment='-1' \
                           ")
-    df = df.join(dummyDimRecDf, (dummyDimRecDf.dimension == 'dimWaterNetwork'), how="left") \
-                  .select(df['*'], dummyDimRecDf['dummyDimSK'].alias('dummyWaterNetworkSK'))
+    df = df.join(dummyDimRecDf, (dummyDimRecDf.dimension == 'dimWaterNetwork_drinkingWater'), how="left") \
+                  .select(df['*'], dummyDimRecDf['dummyDimSK'].alias('dummyWaterNetworkSK_drinkingWater'))
+    df = df.join(dummyDimRecDf, (dummyDimRecDf.dimension == 'dimWaterNetwork_recycledWater'), how="left") \
+                  .select(df['*'], dummyDimRecDf['dummyDimSK'].alias('dummyWaterNetworkSK_recycledWater'))
     df = df.join(dummyDimRecDf, (dummyDimRecDf.dimension == 'dimSewerNetwork'), how="left") \
                   .select(df['*'], dummyDimRecDf['dummyDimSK'].alias('dummySewerNetworkSK'))
     df = df.join(dummyDimRecDf, (dummyDimRecDf.dimension == 'dimStormWaterNetwork'), how="left") \
@@ -287,8 +290,8 @@ def getProperty():
     df = df.selectExpr( \
                          "propertyNumber" \
                         ,"sourceSystemCode" \
-                        ,"coalesce(waterNetworkSK_drinkingWater, dummyWaterNetworkSK) as waterNetworkSK_drinkingWater" \
-                        ,"coalesce(waterNetworkSK_recycledWater, dummyWaterNetworkSK) as waterNetworkSK_recycledWater" \
+                        ,"coalesce(waterNetworkSK_drinkingWater, dummyWaterNetworkSK_drinkingWater) as waterNetworkSK_drinkingWater" \
+                        ,"coalesce(waterNetworkSK_recycledWater, dummyWaterNetworkSK_recycledWater) as waterNetworkSK_recycledWater" \
                         ,"coalesce(sewerNetworkSK, dummySewerNetworkSK) as sewerNetworkSK" \
                         ,"coalesce(stormWaterNetworkSK, dummyStormWaterNetworkSK) as stormWaterNetworkSK" \
                         ,"propertyTypeCode" \
@@ -327,7 +330,7 @@ def getProperty():
     schema = StructType([
                             StructField('propertySK', LongType(), False),
                             StructField("propertyNumber", StringType(), False),
-                            StructField("sourceSystemCode", StringType(), False),
+                            StructField("sourceSystemCode", StringType(), True),
                             StructField("waterNetworkSK_drinkingWater", StringType(), False),
                             StructField("waterNetworkSK_recycledWater", StringType(), False),
                             StructField("sewerNetworkSK", StringType(), False),

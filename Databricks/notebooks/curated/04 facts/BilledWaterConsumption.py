@@ -196,7 +196,7 @@ def getBilledWaterConsumption():
                                                     (case when waterType = 'Drinking Water' then waterNetworkSK_drinkingWater \
                                                          when waterType = 'Recycled Water' then waterNetworkSK_recycledWater else null end) \
                                                          , (case when waterType = 'Drinking Water' then dummyWaterNetworkSK_drinkingWater \
-                                                         when waterType = 'Recycled Water' then dummyWaterNetworkSK_recycledWater end)) as waterNetworkSK" \
+                                                         when waterType = 'Recycled Water' then dummyWaterNetworkSK_recycledWater else dummyWaterNetworkSK_drinkingWater end)) as waterNetworkSK" \
                                         ,"coalesce(businessPartnerGroupSK, dummyBusinessPartnerGroupSK) as businessPartnerGroupSK" \
                                         ,"coalesce(contractSK, dummyContractSK) as contractSK" \
                                         ,"billingPeriodStartDate" \

@@ -61,7 +61,7 @@ def getBilledWaterConsumptionDaily():
     #2.Join Tables
     
     #3.Union Access and isu billed consumption datasets
-    isuConsDf = isuConsDf.select("cfv", "billingDocumentNumber", "billingDocumentLineItemId", \
+    isuConsDf = isuConsDf.select("sourceSystemCode", "billingDocumentNumber", "billingDocumentLineItemId", \
                                   "businessPartnerGroupNumber", "equipmentNumber", "contractID", \
                                   "billingPeriodStartDate", "billingPeriodEndDate", \
                                   "validFromDate", "validToDate", \
@@ -232,7 +232,7 @@ def getBilledWaterConsumptionDaily():
                                           (case when waterType = 'Drinking Water' then waterNetworkSK_drinkingWater \
                                                 when waterType = 'Recycled Water' then waterNetworkSK_recycledWater else null end) \
                                                 , (case when waterType = 'Drinking Water' then dummyWaterNetworkSK_drinkingWater \
-                                                         when waterType = 'Recycled Water' then dummyWaterNetworkSK_recycledWater end)) as waterNetworkSK" \
+                                                         when waterType = 'Recycled Water' then dummyWaterNetworkSK_recycledWater else dummyWaterNetworkSK_drinkingWater end)) as waterNetworkSK" \
                               ,"coalesce(BusinessPartnerGroupSk, dummyBusinessPartnerGroupSK) as businessPartnerGroupSK" \
                               ,"coalesce(contractSK, dummyContractSK) as contractSK" \
                               ,"cast(avgMeteredWaterConsumption as decimal(18,6))" \
