@@ -24,7 +24,9 @@ def getInstallationPropertyMeterContract():
                                       installationId, \
                                       propertyNumber \
                                       from {ADS_DATABASE_CURATED}.dimInstallation \
-                                      where sourceSystemCode = 'ISU' and _RecordCurrent = 1 and _RecordDeleted = 0")     
+                                      where sourceSystemCode = 'ISU' and divisionCode = '10' \
+                                      and current_date() >= coalesce(changedDate, createdDate) \
+                                      and _RecordCurrent = 1 and _RecordDeleted = 0")     
     #print(f"Number of rows in dimInstallationDf: ", dimInstallationDf.count())
     #display(dimInstallationDf)
     
@@ -126,7 +128,7 @@ def getInstallationPropertyMeterContract():
                       ,"meterNumber" \
                       ,"propertySK" \
                       ,"propertyNumber" \
-                      ) 
+                      ).dropDuplicates()
                             
     #5.Apply schema definition
     schema = StructType([
