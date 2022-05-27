@@ -8,8 +8,7 @@ parameters:
   type: string
 - name: run_condition
   type: string
-- name: pool
-  type: string
+
 
 stages:
 # ---------------------------------------------------------------------------
