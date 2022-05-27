@@ -122,7 +122,7 @@ source_group = GeneralAlignTableName(source_group)
 print("source_group: " + source_group)
 
 #Get Data Lake Folder
-data_lake_folder = source_group + "/stg"
+data_lake_folder = source_group
 print("data_lake_folder: " + data_lake_folder)
 
 #Get and Align Source Table Name (replace '[-@ ,;{}()]' character by '_')
@@ -148,6 +148,20 @@ print("delta_column: " + delta_column)
 data_load_mode = GeneralGetDataLoadMode(Params[PARAMS_TRUNCATE_TARGET], Params[PARAMS_UPSERT_TARGET], Params[PARAMS_APPEND_TARGET])
 print("data_load_mode: " + data_load_mode)
 
+#Get the start time of the last successful cleansed load execution
+LastSuccessfulExecutionTS = Params["LastSuccessfulExecutionTS"]
+print("LastSuccessfulExecutionTS: " + LastSuccessfulExecutionTS)
+
+#Get current time
+#CurrentTimeStamp = spark.sql("select current_timestamp()").first()[0]
+CurrentTimeStamp = GeneralLocalDateTime()
+CurrentTimeStamp = CurrentTimeStamp.strftime("%Y-%m-%d %H:%M:%S")
+
+#Get business key,track_changes and delta_extract flag
+business_key =  Params[PARAMS_BUSINESS_KEY_COLUMN]
+track_changes =  Params[PARAMS_TRACK_CHANGES]
+is_delta_extract =  Params[PARAMS_DELTA_EXTRACT]
+
 # COMMAND ----------
 
 # DBTITLE 1,9. Set raw and cleansed table name
@@ -163,51 +177,63 @@ print(delta_raw_tbl_name)
 
 # COMMAND ----------
 
-# DBTITLE 1,10. Load to Cleanse Delta Table from Raw Delta Table
-#This method uses the source table to load data into target Delta Table
-DeltaSaveToDeltaTable (
-    source_table = delta_raw_tbl_name,
-    target_table = target_table,
-    target_data_lake_zone = ADS_DATALAKE_ZONE_CLEANSED,
-    target_database = ADS_DATABASE_STAGE,
-    data_lake_folder = data_lake_folder,
-    data_load_mode = data_load_mode,
-    track_changes =  Params[PARAMS_TRACK_CHANGES],
-    is_delta_extract =  Params[PARAMS_DELTA_EXTRACT],
-    business_key =  Params[PARAMS_BUSINESS_KEY_COLUMN],
-    delta_column = delta_column,
-    start_counter = start_counter,
-    end_counter = end_counter
-)
+# DBTITLE 1,10. Load Raw to Dataframe & Do Transformations
+df = spark.sql(f"WITH stage AS \
+                      (Select *, ROW_NUMBER() OVER (PARTITION BY System_Key ORDER BY _DLRawZoneTimestamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
+                           SELECT cast(System_Key as int) AS systemKey, \
+                                cast(Property_Number as int) AS propertyNumber, \
+                                case when LGA = 'N/A' then null else initcap(LGA) end as LGA, \
+                                case when Address = ' ' then null else initcap(Address) end as propertyAddress, \
+                                case when Suburb = 'N/A' then null else initcap(Suburb) end AS suburb, \
+                                case when Land_Use = 'N/A' then null else initcap(Land_Use) end as landUse, \
+                                case when Superior_Land_Use = 'N/A' then null else initcap(Superior_Land_Use) end as superiorLandUse, \
+                                cast(Area_m2 as int) as areaSize, \
+                                'm2' as areaSizeUnit, \
+                                cast(Lon as dec(9,6)) as longitude, \
+                                cast(Lat as dec(9,6)) as latitude, \
+                                cast(MGA56_X as long) as x_coordinate_MGA56, \
+                                cast(MGA56_Y as long) as y_coordinate_MGA56, \
+                                case when Water_Pressure_Zone = 'N/A' then null else Water_Pressure_Zone end as waterPressureZone, \
+                                case when Sewer_SCAMP = 'N/A' then null else Sewer_SCAMP end as sewerScamp, \
+                                case when Recycled_Supply_Zone = 'N/A' then null else Recycled_Supply_Zone end as recycledSupplyZone, \
+                                case when Stormwater_Catchment = 'N/A' then null else Stormwater_Catchment end as stormwaterCatchment, \
+                                cast('1900-01-01' as TimeStamp) as _RecordStart, \
+                                cast('9999-12-31' as TimeStamp) as _RecordEnd, \
+                                '0' as _RecordDeleted, \
+                                '1' as _RecordCurrent, \
+                                cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
+                        from stage where _RecordVersion = 1 ")
+
+#print(f'Number of rows: {df.count()}')
 
 # COMMAND ----------
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_cleansed = spark.sql(f"SELECT cast(System_Key as int) AS systemKey, \
-        cast(Property_Number as int) AS propertyNumber, \
-		case when LGA = 'N/A' then null else initcap(LGA) end as LGA, \
-		case when Address = ' ' then null else initcap(Address) end as propertyAddress, \
-		case when Suburb = 'N/A' then null else initcap(Suburb) end AS suburb, \
-        case when Land_Use = 'N/A' then null else initcap(Land_Use) end as landUse, \
-        case when Superior_Land_Use = 'N/A' then null else initcap(Superior_Land_Use) end as superiorLandUse, \
-        cast(Area_m2 as int) as areaSize, \
-        'm2' as areaSizeUnit, \
-        cast(Lon as dec(9,6)) as longitude, \
-        cast(Lat as dec(9,6)) as latitude, \
-        cast(MGA56_X as long) as x_coordinate_MGA56, \
-        cast(MGA56_Y as long) as y_coordinate_MGA56, \
-		case when Water_Pressure_Zone = 'N/A' then null else Water_Pressure_Zone end as waterPressureZone, \
-        case when Sewer_SCAMP = 'N/A' then null else Sewer_SCAMP end as sewerScamp, \
-        case when Recycled_Supply_Zone = 'N/A' then null else Recycled_Supply_Zone end as recycledSupplyZone, \
-        case when Stormwater_Catchment = 'N/A' then null else Stormwater_Catchment end as stormwaterCatchment, \
-		_RecordStart, \
-		_RecordEnd, \
-		_RecordDeleted, \
-		_RecordCurrent \
-	FROM {ADS_DATABASE_STAGE}.{source_object}")
+# df_cleansed = spark.sql(f"SELECT cast(System_Key as int) AS systemKey, \
+#         cast(Property_Number as int) AS propertyNumber, \
+# 		case when LGA = 'N/A' then null else initcap(LGA) end as LGA, \
+# 		case when Address = ' ' then null else initcap(Address) end as propertyAddress, \
+# 		case when Suburb = 'N/A' then null else initcap(Suburb) end AS suburb, \
+#         case when Land_Use = 'N/A' then null else initcap(Land_Use) end as landUse, \
+#         case when Superior_Land_Use = 'N/A' then null else initcap(Superior_Land_Use) end as superiorLandUse, \
+#         cast(Area_m2 as int) as areaSize, \
+#         'm2' as areaSizeUnit, \
+#         cast(Lon as dec(9,6)) as longitude, \
+#         cast(Lat as dec(9,6)) as latitude, \
+#         cast(MGA56_X as long) as x_coordinate_MGA56, \
+#         cast(MGA56_Y as long) as y_coordinate_MGA56, \
+# 		case when Water_Pressure_Zone = 'N/A' then null else Water_Pressure_Zone end as waterPressureZone, \
+#         case when Sewer_SCAMP = 'N/A' then null else Sewer_SCAMP end as sewerScamp, \
+#         case when Recycled_Supply_Zone = 'N/A' then null else Recycled_Supply_Zone end as recycledSupplyZone, \
+#         case when Stormwater_Catchment = 'N/A' then null else Stormwater_Catchment end as stormwaterCatchment, \
+# 		_RecordStart, \
+# 		_RecordEnd, \
+# 		_RecordDeleted, \
+# 		_RecordCurrent \
+# 	FROM {ADS_DATABASE_STAGE}.{source_object}")
 
-print(f'Number of rows: {df_cleansed.count()}')
+#print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
 
@@ -239,8 +265,7 @@ newSchema = StructType([
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
-#Save Data frame into Cleansed Delta table (final)
-DeltaSaveDataframeDirect(df_cleansed, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", newSchema, "")
+DeltaSaveDataFrameToDeltaTable(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
 
 # COMMAND ----------
 

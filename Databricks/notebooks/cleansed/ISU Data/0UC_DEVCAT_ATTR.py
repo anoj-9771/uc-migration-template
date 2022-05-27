@@ -161,7 +161,7 @@ print(delta_raw_tbl_name)
 
 # DBTITLE 1,10. Load Raw to Dataframe & Do Transformations
 df = spark.sql(f"WITH stage AS \
-                      (Select *, ROW_NUMBER() OVER (PARTITION BY MATNR ORDER BY _DLRawZoneTimestamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
+                      (Select *, ROW_NUMBER() OVER (PARTITION BY MATNR ORDER BY  _FileDateTimeStamp DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
                            SELECT \
                                   case when DEVCAT.MATNR = 'na' then '' else DEVCAT.MATNR end as materialNumber, \
                                   DEVCAT.KOMBINAT as deviceCategoryCombination, \
@@ -197,9 +197,9 @@ df = spark.sql(f"WITH stage AS \
                                                                                                     and BKLASTX._RecordDeleted = 0 and BKLASTX._RecordCurrent = 1 \
                               LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UC_REGGRP_TEXT REGGRP ON DEVCAT.ZWGRUPPE = REGGRP.registerGroupCode \
                                                                                                     and REGGRP._RecordDeleted = 0 and REGGRP._RecordCurrent = 1 \
-                        where DEVCAT._RecordVersion = 1 ").cache()
+                        where DEVCAT._RecordVersion = 1 ")
 
-print(f'Number of rows: {df.count()}')
+#print(f'Number of rows: {df.count()}')
 
 # COMMAND ----------
 
@@ -246,45 +246,44 @@ print(f'Number of rows: {df.count()}')
 
 # COMMAND ----------
 
-# # Create schema for the cleanse table
-# newSchema = StructType(
-#   [
-#     StructField("materialNumber", StringType(), False),
-#     StructField("deviceCategoryCombination", StringType(), True),
-#     StructField("functionClassCode", StringType(), True),
-#     StructField("functionClass", StringType(), True),
-#     StructField("constructionClassCode", StringType(), True),
-#     StructField("constructionClass", StringType(), True),
-#     StructField("deviceCategoryDescription", StringType(), True),
-#     StructField("deviceCategoryName", StringType(), True),
-#     StructField("ptiNumber", StringType(), True),
-#     StructField("ggwaNumber", StringType(), True),
-#     StructField("certificationRequirementType", StringType(), True),
-#     StructField("registerGroupCode", StringType(), True),
-#     StructField("registerGroup", StringType(), True),
-#     StructField("transformationRatio", DecimalType(10,3), True),  
-#     StructField("changedBy", StringType(), True),
-#     StructField("lastChangedDate", DateType(), True),
-#     StructField("division", StringType(), True),
-#     StructField("nominalLoad", DecimalType(10,4), True),
-#     StructField("containerSpaceCount", StringType(), True),
-#     StructField("containerCategoryHeight", DecimalType(7,2), True),
-#     StructField("containerCategoryWidth", DecimalType(7,2), True),
-#     StructField("containerCategoryDepth", DecimalType(7,2), True),   
-#     StructField('_RecordStart',TimestampType(),False),
-#     StructField('_RecordEnd',TimestampType(),False),
-#     StructField('_RecordDeleted',IntegerType(),False),
-#     StructField('_RecordCurrent',IntegerType(),False)
-#   ]
-# )
+# Create schema for the cleanse table
+newSchema = StructType(
+  [
+    StructField("materialNumber", StringType(), False),
+    StructField("deviceCategoryCombination", StringType(), True),
+    StructField("functionClassCode", StringType(), True),
+    StructField("functionClass", StringType(), True),
+    StructField("constructionClassCode", StringType(), True),
+    StructField("constructionClass", StringType(), True),
+    StructField("deviceCategoryDescription", StringType(), True),
+    StructField("deviceCategoryName", StringType(), True),
+    StructField("ptiNumber", StringType(), True),
+    StructField("ggwaNumber", StringType(), True),
+    StructField("certificationRequirementType", StringType(), True),
+    StructField("registerGroupCode", StringType(), True),
+    StructField("registerGroup", StringType(), True),
+    StructField("transformationRatio", DecimalType(10,3), True),  
+    StructField("changedBy", StringType(), True),
+    StructField("lastChangedDate", DateType(), True),
+    StructField("division", StringType(), True),
+    StructField("nominalLoad", DecimalType(10,4), True),
+    StructField("containerSpaceCount", StringType(), True),
+    StructField("containerCategoryHeight", DecimalType(7,2), True),
+    StructField("containerCategoryWidth", DecimalType(7,2), True),
+    StructField("containerCategoryDepth", DecimalType(7,2), True),   
+    StructField('_RecordStart',TimestampType(),False),
+    StructField('_RecordEnd',TimestampType(),False),
+    StructField('_RecordDeleted',IntegerType(),False),
+    StructField('_RecordCurrent',IntegerType(),False),
+    StructField('_DLCleansedZoneTimeStamp',TimestampType(),False)
+  ]
+)
 
 
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
-DeltaSaveDataFrameToDeltaTableNew(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
-#clear cache
-df.unpersist()
+DeltaSaveDataFrameToDeltaTable(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
 
 # COMMAND ----------
 

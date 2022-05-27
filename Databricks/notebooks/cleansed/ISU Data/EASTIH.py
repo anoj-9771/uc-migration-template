@@ -185,9 +185,9 @@ df = spark.sql(f"WITH stage AS \
                                   '0' as _RecordDeleted, \
                                   '1' as _RecordCurrent, \
                                   cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
-                        from stage where _RecordVersion = 1 ").cache()
+                        from stage where _RecordVersion = 1 ")
 
-print(f'Number of rows: {df.count()}')
+#print(f'Number of rows: {df.count()}')
 
 # COMMAND ----------
 
@@ -212,30 +212,29 @@ print(f'Number of rows: {df.count()}')
 
 # COMMAND ----------
 
-# # Create schema for the cleanse table
-# newSchema = StructType(
-#   [
-#     StructField("consecutiveNumberOfRegisterRelationship", StringType(), False),
-#     StructField("validationGroupForDependentValidations", StringType(), True),
-#     StructField("registerRelationshipType", StringType(), True),
-#     StructField("createdDate", DateType(), True),
-#     StructField("createdBy", StringType(), True),
-#     StructField("lastChangedDate", DateType(), True),
-#     StructField("changedBy", StringType(), True),    
-#     StructField('_RecordStart',TimestampType(),False),
-#     StructField('_RecordEnd',TimestampType(),False),
-#     StructField('_RecordDeleted',IntegerType(),False),
-#     StructField('_RecordCurrent',IntegerType(),False)
-#   ]
-# )
+# Create schema for the cleanse table
+newSchema = StructType(
+  [
+    StructField("consecutiveNumberOfRegisterRelationship", StringType(), False),
+    StructField("validationGroupForDependentValidations", StringType(), True),
+    StructField("registerRelationshipType", StringType(), True),
+    StructField("createdDate", DateType(), True),
+    StructField("createdBy", StringType(), True),
+    StructField("lastChangedDate", DateType(), True),
+    StructField("changedBy", StringType(), True),    
+    StructField('_RecordStart',TimestampType(),False),
+    StructField('_RecordEnd',TimestampType(),False),
+    StructField('_RecordDeleted',IntegerType(),False),
+    StructField('_RecordCurrent',IntegerType(),False),
+    StructField('_DLCleansedZoneTimeStamp',TimestampType(),False)
+  ]
+)
 
 
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
-DeltaSaveDataFrameToDeltaTableNew(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
-#clear cache
-df.unpersist()
+DeltaSaveDataFrameToDeltaTable(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
 
 # COMMAND ----------
 

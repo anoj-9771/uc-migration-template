@@ -171,7 +171,7 @@ print(delta_raw_tbl_name)
 
 # DBTITLE 1,10. Load Raw to Dataframe & Do Transformations
 df = spark.sql(f"WITH stage AS \
-                      (Select *, ROW_NUMBER() OVER (PARTITION BY BELNR, BELZEILE ORDER BY _DLRawZoneTimestamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
+                      (Select *, ROW_NUMBER() OVER (PARTITION BY BELNR, BELZEILE ORDER BY _DLRawZoneTimestamp DESC, DELTA_TS DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
                            SELECT  \
                                     case when BELNR = 'na' then '' else BELNR end as billingDocumentNumber, \
                                     case when BELZEILE = 'na' then '' else BELZEILE end as billingDocumentLineItemId, \
@@ -214,9 +214,9 @@ df = spark.sql(f"WITH stage AS \
                                     '0' as _RecordDeleted, \
                                     '1' as _RecordCurrent, \
                                     cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
-                        from stage where _RecordVersion = 1 ").cache()
+                        from stage where _RecordVersion = 1 ")
 
-print(f'Number of rows: {df.count()}')
+#print(f'Number of rows: {df.count()}')
 
 # COMMAND ----------
 
@@ -270,56 +270,55 @@ print(f'Number of rows: {df.count()}')
 
 # COMMAND ----------
 
-# newSchema = StructType([
-#                         StructField('billingDocumentNumber', StringType(), False),
-#                         StructField('billingDocumentLineItemId', StringType(), False),
-#                         StructField('taxSalesCode', StringType(), True),
-#                         StructField('taxDeterminationCode', StringType(), True),
-#                         StructField('billingLineItemNetAmount', DecimalType(13,2), True),
-#                         StructField('transactionCurrency', StringType(), True),
-#                         StructField('priceLevel', StringType(), True),
-#                         StructField('priceCategory', StringType(), True),
-#                         StructField('price', StringType(), True),
-#                         StructField('priceSummaryIndicator', StringType(), True),
-#                         StructField('fromBlock', StringType(), True),
-#                         StructField('toBlock', StringType(), True),
-#                         StructField('numberOfPriceBlock', StringType(), True),
-#                         StructField('priceAmount', DecimalType(17,8), True),
-#                         StructField('amountLongQuantityBase', DecimalType(9,2), True),
-#                         StructField('priceAdjustmentClause', StringType(), True),
-#                         StructField('priceAdjustmentClauseBasePrice', DecimalType(17,8), True),
-#                         StructField('addedAdjustmentPrice', DecimalType(17,8), True),
-#                         StructField('priceAdjustmentFactor', DecimalType(12,7), True),
-#                         StructField('additionFirst', StringType(), True),
-#                         StructField('taxDecisiveDate', DateType(), True),
-#                         StructField('profitCenter', StringType(), True),
-#                         StructField('costCenter', StringType(), True),
-#                         StructField('wbsElement', StringType(), True),
-#                         StructField('orderNumber', StringType(), True),
-#                         StructField('profitabilitySegmentNumber', StringType(), True),
-#                         StructField('profitabilitySegmentNumberForPost', StringType(), True),
-#                         StructField('businessArea', StringType(), True),
-#                         StructField('nonPeriodicPosting', StringType(), True),
-#                         StructField('grossGroup', StringType(), True),
-#                         StructField('grossBillingLineItem', StringType(), True),
-#                         StructField('businessPlace', StringType(), True),
-#                         StructField('billingLineClassificationIndicator', StringType(), True),
-#                         StructField('priceType', StringType(), True),
-#                         StructField('longNetAmountPredecimalPlaces', DecimalType(17), True),
-#                         StructField('longNetAmountDecimalPlaces', DecimalType(14,14), True),
-#                         StructField('_RecordStart',TimestampType(),False),
-#                         StructField('_RecordEnd',TimestampType(),False),
-#                         StructField('_RecordDeleted',IntegerType(),False),
-#                         StructField('_RecordCurrent',IntegerType(),False)
-#                     ])
+newSchema = StructType([
+                        StructField('billingDocumentNumber', StringType(), False),
+                        StructField('billingDocumentLineItemId', StringType(), False),
+                        StructField('taxSalesCode', StringType(), True),
+                        StructField('taxDeterminationCode', StringType(), True),
+                        StructField('billingLineItemNetAmount', DecimalType(13,2), True),
+                        StructField('transactionCurrency', StringType(), True),
+                        StructField('priceLevel', StringType(), True),
+                        StructField('priceCategory', StringType(), True),
+                        StructField('price', StringType(), True),
+                        StructField('priceSummaryIndicator', StringType(), True),
+                        StructField('fromBlock', StringType(), True),
+                        StructField('toBlock', StringType(), True),
+                        StructField('numberOfPriceBlock', StringType(), True),
+                        StructField('priceAmount', DecimalType(17,8), True),
+                        StructField('amountLongQuantityBase', DecimalType(9,2), True),
+                        StructField('priceAdjustmentClause', StringType(), True),
+                        StructField('priceAdjustmentClauseBasePrice', DecimalType(17,8), True),
+                        StructField('addedAdjustmentPrice', DecimalType(17,8), True),
+                        StructField('priceAdjustmentFactor', DecimalType(12,7), True),
+                        StructField('additionFirst', StringType(), True),
+                        StructField('taxDecisiveDate', DateType(), True),
+                        StructField('profitCenter', StringType(), True),
+                        StructField('costCenter', StringType(), True),
+                        StructField('wbsElement', StringType(), True),
+                        StructField('orderNumber', StringType(), True),
+                        StructField('profitabilitySegmentNumber', StringType(), True),
+                        StructField('profitabilitySegmentNumberForPost', StringType(), True),
+                        StructField('businessArea', StringType(), True),
+                        StructField('nonPeriodicPosting', StringType(), True),
+                        StructField('grossGroup', StringType(), True),
+                        StructField('grossBillingLineItem', StringType(), True),
+                        StructField('businessPlace', StringType(), True),
+                        StructField('billingLineClassificationIndicator', StringType(), True),
+                        StructField('priceType', StringType(), True),
+                        StructField('longNetAmountPredecimalPlaces', DecimalType(17), True),
+                        StructField('longNetAmountDecimalPlaces', DecimalType(14,14), True),
+                        StructField('_RecordStart',TimestampType(),False),
+                        StructField('_RecordEnd',TimestampType(),False),
+                        StructField('_RecordDeleted',IntegerType(),False),
+                        StructField('_RecordCurrent',IntegerType(),False),
+                        StructField('_DLCleansedZoneTimeStamp',TimestampType(),False)
+                    ])
 
 
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
-DeltaSaveDataFrameToDeltaTableNew(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
-#clear cache
-df.unpersist()
+DeltaSaveDataFrameToDeltaTable(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
 
 # COMMAND ----------
 

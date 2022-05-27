@@ -225,9 +225,9 @@ df = spark.sql(f"WITH stage AS \
                                 '0' as _RecordDeleted, \
                                 '1' as _RecordCurrent, \
                                 cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
-                        from stage where _RecordVersion = 1 ").cache()
+                        from stage where _RecordVersion = 1 ")
 
-print(f'Number of rows: {df.count()}')
+#print(f'Number of rows: {df.count()}')
 
 # COMMAND ----------
 
@@ -292,70 +292,69 @@ print(f'Number of rows: {df.count()}')
 
 # COMMAND ----------
 
-# # Create schema for the cleanse table
-# newSchema = StructType(
-#                         [
-#                           StructField("contractId", StringType(), False),
-#                           StructField("companyCode", StringType(), True),
-#                           StructField("divisionCode", StringType(), True),
-#                           StructField("accountDeterminationCode", StringType(), True),
-#                           StructField("allowableBudgetBillingCycles", StringType(), True),
-#                           StructField("invoiceContractsJointly", StringType(), True),
-#                           StructField("billBlockingReasonCode", StringType(), True),
-#                           StructField("billReleasingReasonCode", StringType(), True),
-#                           StructField("contractText", StringType(), True),
-#                           StructField("legacyMoveInDate", DateType(), True),
-#                           StructField("numberOfCancellations", StringType(), True),
-#                           StructField("numberOfRenewals", StringType(), True),
-#                           StructField("personnelNumber", StringType(), True),
-#                           StructField("contractNumberLegacy", StringType(), True),
-#                           StructField("createdDate", DateType(), True),
-#                           StructField("createdBy", StringType(), True),
-#                           StructField("lastChangedDate", DateType(), True),
-#                           StructField("lastChangedBy", StringType(), True),
-#                           StructField("deletedIndicator", StringType(), True),
-#                           StructField("isContractInvoiced", StringType(), True),
-#                           StructField("wbsElement", StringType(), True),
-#                           StructField("outsortingCheckGroupForBilling", StringType(), True),
-#                           StructField("manualOutsortingCount", StringType(), True),
-#                           StructField("paymentPlanStartMonth", StringType(), True),
-#                           StructField("serviceProvider", StringType(), True),
-#                           StructField("alternativePaymentStartMonth", StringType(), True),
-#                           StructField("contractTerminatedForBilling", StringType(), True),
-#                           StructField("salesEmployee", StringType(), True),
-#                           StructField("invoicingParty", StringType(), True),
-#                           StructField("cancellationReasonCRM", StringType(), True),
-#                           StructField("installationId", StringType(), True),
-#                           StructField("contractAccountNumber", StringType(), True),
-#                           StructField("specialMoveOutCase", StringType(), True),
-#                           StructField("moveInDate", DateType(), True),
-#                           StructField("moveOutDate", DateType(), True),
-#                           StructField("budgetBillingStopDate", DateType(), True),
-#                           StructField("isContractTransferred", StringType(), True),
-#                           StructField("businessPartnerGroupNumber", StringType(), True),
-#                           StructField("validFromDate", DateType(), True),
-#                           StructField("agreementNumber", StringType(), True),
-#                           StructField("premise", StringType(), True),
-#                           StructField("propertyNumber", StringType(), True),
-#                           StructField("alternativeAddressNumber", StringType(), True),
-#                           StructField("identificationNumber", StringType(), True),
-#                           StructField("addressNumber", StringType(), True),
-#                           StructField("objectReferenceId", StringType(), True),
-#                           StructField("objectNumber", StringType(), True),
-#                           StructField('_RecordStart',TimestampType(),False),
-#                           StructField('_RecordEnd',TimestampType(),False),
-#                           StructField('_RecordDeleted',IntegerType(),False),
-#                           StructField('_RecordCurrent',IntegerType(),False)
-#                         ]
-#                       )
+# Create schema for the cleanse table
+newSchema = StructType(
+                        [
+                          StructField("contractId", StringType(), False),
+                          StructField("companyCode", StringType(), True),
+                          StructField("divisionCode", StringType(), True),
+                          StructField("accountDeterminationCode", StringType(), True),
+                          StructField("allowableBudgetBillingCycles", StringType(), True),
+                          StructField("invoiceContractsJointly", StringType(), True),
+                          StructField("billBlockingReasonCode", StringType(), True),
+                          StructField("billReleasingReasonCode", StringType(), True),
+                          StructField("contractText", StringType(), True),
+                          StructField("legacyMoveInDate", DateType(), True),
+                          StructField("numberOfCancellations", StringType(), True),
+                          StructField("numberOfRenewals", StringType(), True),
+                          StructField("personnelNumber", StringType(), True),
+                          StructField("contractNumberLegacy", StringType(), True),
+                          StructField("createdDate", DateType(), True),
+                          StructField("createdBy", StringType(), True),
+                          StructField("lastChangedDate", DateType(), True),
+                          StructField("lastChangedBy", StringType(), True),
+                          StructField("deletedIndicator", StringType(), True),
+                          StructField("isContractInvoiced", StringType(), True),
+                          StructField("wbsElement", StringType(), True),
+                          StructField("outsortingCheckGroupForBilling", StringType(), True),
+                          StructField("manualOutsortingCount", StringType(), True),
+                          StructField("paymentPlanStartMonth", StringType(), True),
+                          StructField("serviceProvider", StringType(), True),
+                          StructField("alternativePaymentStartMonth", StringType(), True),
+                          StructField("contractTerminatedForBilling", StringType(), True),
+                          StructField("salesEmployee", StringType(), True),
+                          StructField("invoicingParty", StringType(), True),
+                          StructField("cancellationReasonCRM", StringType(), True),
+                          StructField("installationId", StringType(), True),
+                          StructField("contractAccountNumber", StringType(), True),
+                          StructField("specialMoveOutCase", StringType(), True),
+                          StructField("moveInDate", DateType(), True),
+                          StructField("moveOutDate", DateType(), True),
+                          StructField("budgetBillingStopDate", DateType(), True),
+                          StructField("isContractTransferred", StringType(), True),
+                          StructField("businessPartnerGroupNumber", StringType(), True),
+                          StructField("validFromDate", DateType(), True),
+                          StructField("agreementNumber", StringType(), True),
+                          StructField("premise", StringType(), True),
+                          StructField("propertyNumber", StringType(), True),
+                          StructField("alternativeAddressNumber", StringType(), True),
+                          StructField("identificationNumber", StringType(), True),
+                          StructField("addressNumber", StringType(), True),
+                          StructField("objectReferenceId", StringType(), True),
+                          StructField("objectNumber", StringType(), True),
+                          StructField('_RecordStart',TimestampType(),False),
+                          StructField('_RecordEnd',TimestampType(),False),
+                          StructField('_RecordDeleted',IntegerType(),False),
+                          StructField('_RecordCurrent',IntegerType(),False),
+                          StructField('_DLCleansedZoneTimeStamp',TimestampType(),False)
+                        ]
+                      )
 
 
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
-DeltaSaveDataFrameToDeltaTableNew(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
-#clear cache
-df.unpersist()
+DeltaSaveDataFrameToDeltaTable(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
 
 # COMMAND ----------
 

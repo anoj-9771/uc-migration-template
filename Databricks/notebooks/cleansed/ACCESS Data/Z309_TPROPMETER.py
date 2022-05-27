@@ -228,7 +228,7 @@ df_cleansed = spark.sql(f"SELECT cast(N_PROP as int) AS propertyNumber, \
          left outer join CLEANSED.access_Z309_TMeterGroup e on e.meterGroupCode = a.C_METE_GROU \
          ")
 
-print(f'Number of rows: {df_cleansed.count()}')
+#print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
 

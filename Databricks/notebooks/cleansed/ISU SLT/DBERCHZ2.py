@@ -171,7 +171,7 @@ print(delta_raw_tbl_name)
 
 # DBTITLE 1,10. Load Raw to Dataframe & Do Transformations
 df = spark.sql(f"WITH stage AS \
-                      (Select *, ROW_NUMBER() OVER (PARTITION BY BELNR, BELZEILE ORDER BY _DLRawZoneTimestamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
+                      (Select *, ROW_NUMBER() OVER (PARTITION BY BELNR, BELZEILE ORDER BY _DLRawZoneTimestamp DESC, DELTA_TS DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
                            SELECT  \
                                 case when BELNR = 'na' then '' else BELNR end as billingDocumentNumber, \
                                 case when BELZEILE = 'na' then '' else BELZEILE end as billingDocumentLineItemId, \
@@ -205,14 +205,17 @@ df = spark.sql(f"WITH stage AS \
                                 cast(N_ZWSTVOR as dec(14,14)) as previousMeterReadingAfterDecimalPlaces, \
                                 cast(V_ZWSTDIFF as dec(17)) as meterReadingDifferenceBeforeDecimalPlaces, \
                                 cast(N_ZWSTDIFF as dec(14,14)) as meterReadingDifferenceAfterDecimalPlaces, \
+                                REGRELSORT as registerRelationshipSortHelpCode, \
+                                QDPROC as quantityDeterminationProcedureCode, \
+                                MRCONNECT as meterReadingDocumentId, \
                                 cast('1900-01-01' as TimeStamp) as _RecordStart, \
                                 cast('9999-12-31' as TimeStamp) as _RecordEnd, \
                                 '0' as _RecordDeleted, \
                                 '1' as _RecordCurrent, \
                                 cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
-                        from stage where _RecordVersion = 1 ").cache()
+                        from stage where _RecordVersion = 1 ")
 
-print(f'Number of rows: {df.count()}')
+#print(f'Number of rows: {df.count()}')
 
 # COMMAND ----------
 
@@ -262,52 +265,54 @@ print(f'Number of rows: {df.count()}')
 
 # COMMAND ----------
 
-# newSchema = StructType([
-#                           StructField('billingDocumentNumber', StringType(), False),
-#                           StructField('billingDocumentLineItemId', StringType(), False),
-#                           StructField('equipmentNumber', StringType(), True),
-#                           StructField('deviceNumber', StringType(), True),
-#                           StructField('materialNumber', StringType(), True),
-#                           StructField('registerNumber', StringType(), True),
-#                           StructField('registerRelationshipConsecutiveNumber', StringType(), True),
-#                           StructField('meterReadingReasonCode', StringType(), True),
-#                           StructField('previousMeterReadingReasonCode', StringType(), True),
-#                           StructField('billingMeterReadingTime', StringType(), True),
-#                           StructField('previousMeterReadingTime', StringType(), True),
-#                           StructField('maxMeterReadingDate', DateType(), True),
-#                           StructField('maxMeterReadingTime', StringType(), True),
-#                           StructField('serviceAllocationDate', DateType(), True),
-#                           StructField('meterReadingAllocationDate', DateType(), True),
-#                           StructField('suppressedMeterReadingDocumentId', StringType(), True),
-#                           StructField('logicalDeviceNumber', StringType(), True),
-#                           StructField('logicalRegisterNumber', StringType(), True),
-#                           StructField('meterReadingTypeCode', StringType(), True),
-#                           StructField('previousMeterReadingTypeCode', StringType(), True),
-#                           StructField('meterReadingResultsSimulationIndicator', StringType(), True),
-#                           StructField('forecastPeriodStartDate', DateType(), True),
-#                           StructField('forecastPeriodEndDate', DateType(), True),
-#                           StructField('meterReaderNoteText', StringType(), True),
-#                           StructField('meterReadingBeforeDecimalPoint', DecimalType(17), True),
-#                           StructField('meterReadingAfterDecimalPoint', DecimalType(14,14), True),
-#                           StructField('billedMeterReadingBeforeDecimalPlaces', DecimalType(17), True),
-#                           StructField('billedMeterReadingAfterDecimalPlaces', DecimalType(14,14), True),
-#                           StructField('previousMeterReadingBeforeDecimalPlaces', DecimalType(17), True),
-#                           StructField('previousMeterReadingAfterDecimalPlaces', DecimalType(14,14), True),
-#                           StructField('meterReadingDifferenceBeforeDecimalPlaces', DecimalType(17), True),
-#                           StructField('meterReadingDifferenceAfterDecimalPlaces', DecimalType(14,14), True),
-#                           StructField('_RecordStart', TimestampType(), False),
-#                           StructField('_RecordEnd', TimestampType(), False),
-#                           StructField('_RecordDeleted', IntegerType(), False),
-#                           StructField('_RecordCurrent', IntegerType(), False)
-#                       ])
+newSchema = StructType([
+                          StructField('billingDocumentNumber', StringType(), False),
+                          StructField('billingDocumentLineItemId', StringType(), False),
+                          StructField('equipmentNumber', StringType(), True),
+                          StructField('deviceNumber', StringType(), True),
+                          StructField('materialNumber', StringType(), True),
+                          StructField('registerNumber', StringType(), True),
+                          StructField('registerRelationshipConsecutiveNumber', StringType(), True),
+                          StructField('meterReadingReasonCode', StringType(), True),
+                          StructField('previousMeterReadingReasonCode', StringType(), True),
+                          StructField('billingMeterReadingTime', StringType(), True),
+                          StructField('previousMeterReadingTime', StringType(), True),
+                          StructField('maxMeterReadingDate', DateType(), True),
+                          StructField('maxMeterReadingTime', StringType(), True),
+                          StructField('serviceAllocationDate', DateType(), True),
+                          StructField('meterReadingAllocationDate', DateType(), True),
+                          StructField('suppressedMeterReadingDocumentId', StringType(), True),
+                          StructField('logicalDeviceNumber', StringType(), True),
+                          StructField('logicalRegisterNumber', StringType(), True),
+                          StructField('meterReadingTypeCode', StringType(), True),
+                          StructField('previousMeterReadingTypeCode', StringType(), True),
+                          StructField('meterReadingResultsSimulationIndicator', StringType(), True),
+                          StructField('forecastPeriodStartDate', DateType(), True),
+                          StructField('forecastPeriodEndDate', DateType(), True),
+                          StructField('meterReaderNoteText', StringType(), True),
+                          StructField('meterReadingBeforeDecimalPoint', DecimalType(17), True),
+                          StructField('meterReadingAfterDecimalPoint', DecimalType(14,14), True),
+                          StructField('billedMeterReadingBeforeDecimalPlaces', DecimalType(17), True),
+                          StructField('billedMeterReadingAfterDecimalPlaces', DecimalType(14,14), True),
+                          StructField('previousMeterReadingBeforeDecimalPlaces', DecimalType(17), True),
+                          StructField('previousMeterReadingAfterDecimalPlaces', DecimalType(14,14), True),
+                          StructField('meterReadingDifferenceBeforeDecimalPlaces', DecimalType(17), True),
+                          StructField('meterReadingDifferenceAfterDecimalPlaces', DecimalType(14,14), True),
+                          StructField('registerRelationshipSortHelpCode', StringType(), True),
+                          StructField('quantityDeterminationProcedureCode', StringType(), True),
+                          StructField('meterReadingDocumentId', StringType(), True),
+                          StructField('_RecordStart', TimestampType(), False),
+                          StructField('_RecordEnd', TimestampType(), False),
+                          StructField('_RecordDeleted', IntegerType(), False),
+                          StructField('_RecordCurrent', IntegerType(), False),
+                          StructField('_DLCleansedZoneTimeStamp',TimestampType(),False)
+                      ])
 
 
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
-DeltaSaveDataFrameToDeltaTableNew(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
-#clear cache
-df.unpersist()
+DeltaSaveDataFrameToDeltaTable(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
 
 # COMMAND ----------
 

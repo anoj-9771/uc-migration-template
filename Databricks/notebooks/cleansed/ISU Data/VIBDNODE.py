@@ -171,7 +171,7 @@ print(delta_raw_tbl_name)
 
 # DBTITLE 1,10. Load Raw to Dataframe & Do Transformations
 df = spark.sql(f"WITH stage AS \
-                      (Select *, ROW_NUMBER() OVER (PARTITION BY INTRENO,TREE ORDER BY _DLRawZoneTimestamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} \
+                      (Select *, ROW_NUMBER() OVER (PARTITION BY INTRENO,TREE ORDER BY _FileDateTimeStamp DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} \
                                   WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
                            SELECT  \
                                 case when VIB.INTRENO = 'na' then '' else VIB.INTRENO end as architecturalObjectInternalId , \
@@ -193,9 +193,9 @@ df = spark.sql(f"WITH stage AS \
                                                                                                     and arch._RecordDeleted = 0 and arch._RecordCurrent = 1 \
                                LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_tivbdarobjtypet archobj ON vib.aotype_pa = archobj.aotype \
                                                                                                     and archobj._RecordDeleted = 0 and archobj._RecordCurrent = 1 \
-                         where vib._RecordVersion = 1 ").cache()
+                         where vib._RecordVersion = 1 ")
 
-print(f'Number of rows: {df.count()}')
+#print(f'Number of rows: {df.count()}')
 
 # COMMAND ----------
 
@@ -226,32 +226,31 @@ print(f'Number of rows: {df.count()}')
 # COMMAND ----------
 
 
-# # Create schema for the cleanse table
-# newSchema = StructType(
-#   [
-#     StructField("architecturalObjectInternalId", StringType(), False),
-#     StructField("alternativeDisplayStructureId", StringType(), False),
-#     StructField("architecturalObjectTypeCode", StringType(), True),
-#     StructField("architecturalObjectType", StringType(), True),
-#     StructField("architecturalObjectNumber", StringType(), True),
-#     StructField("parentArchitecturalObjectInternalId", StringType(), True),
-#     StructField("parentArchitecturalObjectTypeCode", StringType(), True),
-#     StructField("parentArchitecturalObjectType", StringType(), True),
-#     StructField("parentArchitecturalObjectNumber", StringType(), True),
-#     StructField('_RecordStart',TimestampType(),False),
-#     StructField('_RecordEnd',TimestampType(),False),
-#     StructField('_RecordDeleted',IntegerType(),False),
-#     StructField('_RecordCurrent',IntegerType(),False)
-#   ]
-# )
+# Create schema for the cleanse table
+newSchema = StructType(
+  [
+    StructField("architecturalObjectInternalId", StringType(), False),
+    StructField("alternativeDisplayStructureId", StringType(), False),
+    StructField("architecturalObjectTypeCode", StringType(), True),
+    StructField("architecturalObjectType", StringType(), True),
+    StructField("architecturalObjectNumber", StringType(), True),
+    StructField("parentArchitecturalObjectInternalId", StringType(), True),
+    StructField("parentArchitecturalObjectTypeCode", StringType(), True),
+    StructField("parentArchitecturalObjectType", StringType(), True),
+    StructField("parentArchitecturalObjectNumber", StringType(), True),
+    StructField('_RecordStart',TimestampType(),False),
+    StructField('_RecordEnd',TimestampType(),False),
+    StructField('_RecordDeleted',IntegerType(),False),
+    StructField('_RecordCurrent',IntegerType(),False),
+    StructField('_DLCleansedZoneTimeStamp',TimestampType(),False)
+  ]
+)
 
 
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
-DeltaSaveDataFrameToDeltaTableNew(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
-#clear cache
-df.unpersist()
+DeltaSaveDataFrameToDeltaTable(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
 
 # COMMAND ----------
 

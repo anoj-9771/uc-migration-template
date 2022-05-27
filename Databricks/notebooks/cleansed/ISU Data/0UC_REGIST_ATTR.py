@@ -211,9 +211,9 @@ df = spark.sql(f"WITH stage AS \
                                                                                           and te._RecordDeleted = 0 and te._RecordCurrent = 1 \
                         LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_DD07T dd ON re.ZWTYP = dd.domainValueSingleUpperLimit and  dd.domainName = 'E_ZWTYP' \
                                                                                           and dd._RecordDeleted = 0 and dd._RecordCurrent = 1 \
-                        where re._RecordVersion = 1 ").cache()
+                        where re._RecordVersion = 1 ")
 
-print(f'Number of rows: {df.count()}')
+#print(f'Number of rows: {df.count()}')
 
 # COMMAND ----------
 
@@ -262,43 +262,42 @@ print(f'Number of rows: {df.count()}')
 
 # COMMAND ----------
 
-# newSchema = StructType([
-# 	StructField('equipmentNumber',StringType(),False),
-# 	StructField('registerNumber',StringType(),False),
-# 	StructField('validToDate',DateType(),False),
-# 	StructField('validFromDate',DateType(),True),
-# 	StructField('logicalRegisterNumber',StringType(),True),
-# 	StructField('divisionCategoryCode',StringType(),True),
-#     StructField('divisionCategory',StringType(),True),
-# 	StructField('registerIdCode',StringType(),True),
-#     StructField('registerId',StringType(),True),
-# 	StructField('registerTypeCode',StringType(),True),
-# 	StructField('registerType',StringType(),True),
-# 	StructField('registerCategoryCode',StringType(),True),
-#     StructField('registerCategory',StringType(),True),
-# 	StructField('reactiveApparentOrActiveRegister',StringType(),True),
-# 	StructField('unitOfMeasurementMeterReading',StringType(),True),
-# 	StructField('doNotReadIndicator',StringType(),True),
-# 	StructField('altitudeCorrectionPressure',IntegerType(),True),
-# 	StructField('setGasLawDeviationFactor',IntegerType(),True),
-# 	StructField('actualGasLawDeviationFactor',IntegerType(),True),
-# 	StructField('gasCorrectionPressure',IntegerType(),True),
-# 	StructField('intervalLengthId',StringType(),True),
-# 	StructField('deletedIndicator',StringType(),True),
-#     StructField('installationId',StringType(),True),
-# 	StructField('_RecordStart',TimestampType(),False),
-# 	StructField('_RecordEnd',TimestampType(),False),
-# 	StructField('_RecordDeleted',IntegerType(),False),
-# 	StructField('_RecordCurrent',IntegerType(),False)
-# ])
+newSchema = StructType([
+	StructField('equipmentNumber',StringType(),False),
+	StructField('registerNumber',StringType(),False),
+	StructField('validToDate',DateType(),False),
+	StructField('validFromDate',DateType(),True),
+	StructField('logicalRegisterNumber',StringType(),True),
+	StructField('divisionCategoryCode',StringType(),True),
+    StructField('divisionCategory',StringType(),True),
+	StructField('registerIdCode',StringType(),True),
+    StructField('registerId',StringType(),True),
+	StructField('registerTypeCode',StringType(),True),
+	StructField('registerType',StringType(),True),
+	StructField('registerCategoryCode',StringType(),True),
+    StructField('registerCategory',StringType(),True),
+	StructField('reactiveApparentOrActiveRegister',StringType(),True),
+	StructField('unitOfMeasurementMeterReading',StringType(),True),
+	StructField('doNotReadIndicator',StringType(),True),
+	StructField('altitudeCorrectionPressure',IntegerType(),True),
+	StructField('setGasLawDeviationFactor',IntegerType(),True),
+	StructField('actualGasLawDeviationFactor',IntegerType(),True),
+	StructField('gasCorrectionPressure',IntegerType(),True),
+	StructField('intervalLengthId',StringType(),True),
+	StructField('deletedIndicator',StringType(),True),
+    StructField('installationId',StringType(),True),
+	StructField('_RecordStart',TimestampType(),False),
+	StructField('_RecordEnd',TimestampType(),False),
+	StructField('_RecordDeleted',IntegerType(),False),
+	StructField('_RecordCurrent',IntegerType(),False),
+    StructField('_DLCleansedZoneTimeStamp',TimestampType(),False)
+])
 
 
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
-DeltaSaveDataFrameToDeltaTableNew(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
-#clear cache
-df.unpersist()
+DeltaSaveDataFrameToDeltaTable(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
 
 # COMMAND ----------
 

@@ -1,7 +1,7 @@
 {
 	"name": "LS_DeltaLake",
 	"properties": {
-		"description": "Databricks Delta Lake",
+		"description": "Databricks Delta Lake ",
 		"annotations": [],
 		"type": "AzureDatabricksDeltaLake",
 		"typeProperties": {

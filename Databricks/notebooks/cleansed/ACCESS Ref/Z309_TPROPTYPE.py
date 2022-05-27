@@ -233,7 +233,7 @@ df_PropType = spark.createDataFrame(pddf_cleansed)
 df_cleansed = df_cleansed.drop('propertyType').join(df_PropType,'propertyTypeCode')['propertyTypeCode','superiorPropertyTypeCode','propertyTypeAbbreviation','propertyType','isFlatValid','isSLICValid','isAccountPropertyValid','isRouseHillLandChargeLiable','propertyTypeEffectiveDate','propertyTypeCancelledDate', 
                                                                             '_RecordStart','_RecordEnd','_RecordDeleted','_RecordCurrent']
 
-print(f'Number of rows: {df_cleansed.count()}')
+#print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
 

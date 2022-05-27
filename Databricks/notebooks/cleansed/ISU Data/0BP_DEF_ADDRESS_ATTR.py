@@ -243,9 +243,9 @@ df = spark.sql(f"WITH stage AS \
                                 '0' as _RecordDeleted, \
                                 '1' as _RecordCurrent, \
                                 cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
-                        from stage where _RecordVersion = 1 ").cache()
+                        from stage where _RecordVersion = 1 ")
 
-print(f'Number of rows: {df.count()}')
+#print(f'Number of rows: {df.count()}')
 
 # COMMAND ----------
 
@@ -327,85 +327,84 @@ print(f'Number of rows: {df.count()}')
 
 # COMMAND ----------
 
-# newSchema = StructType([
-#                         StructField('businessPartnerNumber', StringType(), False),
-#                         StructField('businessPartnerGUID', StringType(), True),
-#                         StructField('addressNumber', StringType(), False),
-#                         StructField('validFromDate', DateType(), True),
-#                         StructField('validToDate', DateType(), True),
-#                         StructField('titleCode', StringType(), True),
-#                         StructField('businessPartnerName1', StringType(), True),
-#                         StructField('businessPartnerName2', StringType(), True),
-#                         StructField('businessPartnerName3', StringType(), True),
-#                         StructField('coName', StringType(), True),
-#                         StructField('cityName', StringType(), True),
-#                         StructField('cityCode', StringType(), True),
-#                         StructField('postalCode', StringType(), True),
-#                         StructField('poBoxPostalCode', StringType(), True),
-#                         StructField('companyPostalCode', StringType(), True),
-#                         StructField('poBoxCode', StringType(), True),
-#                         StructField('poBoxWithoutNumberIndicator', StringType(), True),
-#                         StructField('poBoxCity', StringType(), True),
-#                         StructField('cityPoBoxCode', StringType(), True),
-#                         StructField('streetName', StringType(), True),
-#                         StructField('streetCode', StringType(), True),
-#                         StructField('houseNumber', StringType(), True),
-#                         StructField('houseNumber2', StringType(), True),
-#                         StructField('streetType', StringType(), True),
-#                         StructField('streetLine3', StringType(), True),
-#                         StructField('streetLine4', StringType(), True),
-#                         StructField('streetLine5', StringType(), True),
-#                         StructField('building', StringType(), True),
-#                         StructField('floorNumber', StringType(), True),
-#                         StructField('apartmentNumber', StringType(), True),
-#                         StructField('countryShortName', StringType(), True),
-#                         StructField('stateCode', StringType(), True),
-#                         StructField('personalAddressIndicator', StringType(), True),
-#                         StructField('searchTerm1', StringType(), True),
-#                         StructField('searchTerm2', StringType(), True),
-#                         StructField('phoneNumber', StringType(), True),
-#                         StructField('faxNumber', StringType(), True),
-#                         StructField('addressTimeZone', StringType(), True),
-#                         StructField('emailAddress', StringType(), True),
-#                         StructField('uriAddress', StringType(), True),
-#                         StructField('phoneNumberDisplayFormat', StringType(), True),
-#                         StructField('faxDisplayFormat', StringType(), True),
-#                         StructField('longitude', DecimalType(15,12), True),
-#                         StructField('latitude', DecimalType(15,12), True),
-#                         StructField('altitude', DecimalType(9,3), True),
-#                         StructField('precision', StringType(), True),
-#                         StructField('communicationAddressNumber', StringType(), True),
-#                         StructField('shortFormattedAddress', StringType(), True),
-#                         StructField('shortFormattedAddress2', StringType(), True),
-#                         StructField('addressLine0', StringType(), True),
-#                         StructField('addressLine1', StringType(), True),
-#                         StructField('addressLine2', StringType(), True),
-#                         StructField('addressLine3', StringType(), True),
-#                         StructField('addressLine4', StringType(), True),
-#                         StructField('addressLine5', StringType(), True),
-#                         StructField('addressLine6', StringType(), True),
-#                         StructField('addressLine7', StringType(), True),
-#                         StructField('addressLine8', StringType(), True),
-#                         StructField('mobileNumber', StringType(), True),
-#                         StructField('phoneNumberWithExtension', StringType(), True),
-#                         StructField('postalCodeExtension', StringType(), True),
-#                         StructField('poBoxExtension', StringType(), True),
-#                         StructField('deliveryServiceTypeCode', StringType(), True),
-#                         StructField('deliveryServiceNumber', StringType(), True),
-#                         StructField('_RecordStart', TimestampType(), False),
-#                         StructField('_RecordEnd', TimestampType(), False),
-#                         StructField('_RecordDeleted', IntegerType(), False),
-#                         StructField('_RecordCurrent', IntegerType(), False)
-#                       ])
+newSchema = StructType([
+                        StructField('businessPartnerNumber', StringType(), False),
+                        StructField('businessPartnerGUID', StringType(), True),
+                        StructField('addressNumber', StringType(), False),
+                        StructField('validFromDate', DateType(), True),
+                        StructField('validToDate', DateType(), True),
+                        StructField('titleCode', StringType(), True),
+                        StructField('businessPartnerName1', StringType(), True),
+                        StructField('businessPartnerName2', StringType(), True),
+                        StructField('businessPartnerName3', StringType(), True),
+                        StructField('coName', StringType(), True),
+                        StructField('cityName', StringType(), True),
+                        StructField('cityCode', StringType(), True),
+                        StructField('postalCode', StringType(), True),
+                        StructField('poBoxPostalCode', StringType(), True),
+                        StructField('companyPostalCode', StringType(), True),
+                        StructField('poBoxCode', StringType(), True),
+                        StructField('poBoxWithoutNumberIndicator', StringType(), True),
+                        StructField('poBoxCity', StringType(), True),
+                        StructField('cityPoBoxCode', StringType(), True),
+                        StructField('streetName', StringType(), True),
+                        StructField('streetCode', StringType(), True),
+                        StructField('houseNumber', StringType(), True),
+                        StructField('houseNumber2', StringType(), True),
+                        StructField('streetType', StringType(), True),
+                        StructField('streetLine3', StringType(), True),
+                        StructField('streetLine4', StringType(), True),
+                        StructField('streetLine5', StringType(), True),
+                        StructField('building', StringType(), True),
+                        StructField('floorNumber', StringType(), True),
+                        StructField('apartmentNumber', StringType(), True),
+                        StructField('countryShortName', StringType(), True),
+                        StructField('stateCode', StringType(), True),
+                        StructField('personalAddressIndicator', StringType(), True),
+                        StructField('searchTerm1', StringType(), True),
+                        StructField('searchTerm2', StringType(), True),
+                        StructField('phoneNumber', StringType(), True),
+                        StructField('faxNumber', StringType(), True),
+                        StructField('addressTimeZone', StringType(), True),
+                        StructField('emailAddress', StringType(), True),
+                        StructField('uriAddress', StringType(), True),
+                        StructField('phoneNumberDisplayFormat', StringType(), True),
+                        StructField('faxDisplayFormat', StringType(), True),
+                        StructField('longitude', DecimalType(15,12), True),
+                        StructField('latitude', DecimalType(15,12), True),
+                        StructField('altitude', DecimalType(9,3), True),
+                        StructField('precision', StringType(), True),
+                        StructField('communicationAddressNumber', StringType(), True),
+                        StructField('shortFormattedAddress', StringType(), True),
+                        StructField('shortFormattedAddress2', StringType(), True),
+                        StructField('addressLine0', StringType(), True),
+                        StructField('addressLine1', StringType(), True),
+                        StructField('addressLine2', StringType(), True),
+                        StructField('addressLine3', StringType(), True),
+                        StructField('addressLine4', StringType(), True),
+                        StructField('addressLine5', StringType(), True),
+                        StructField('addressLine6', StringType(), True),
+                        StructField('addressLine7', StringType(), True),
+                        StructField('addressLine8', StringType(), True),
+                        StructField('mobileNumber', StringType(), True),
+                        StructField('phoneNumberWithExtension', StringType(), True),
+                        StructField('postalCodeExtension', StringType(), True),
+                        StructField('poBoxExtension', StringType(), True),
+                        StructField('deliveryServiceTypeCode', StringType(), True),
+                        StructField('deliveryServiceNumber', StringType(), True),
+                        StructField('_RecordStart', TimestampType(), False),
+                        StructField('_RecordEnd', TimestampType(), False),
+                        StructField('_RecordDeleted', IntegerType(), False),
+                        StructField('_RecordCurrent', IntegerType(), False),
+                        StructField('_DLCleansedZoneTimeStamp',TimestampType(),False)
+                      ])
 
 
 
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
-DeltaSaveDataFrameToDeltaTableNew(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
-#clear cache
-df.unpersist()
+DeltaSaveDataFrameToDeltaTable(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
 
 # COMMAND ----------
 

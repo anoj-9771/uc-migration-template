@@ -248,9 +248,9 @@ df = spark.sql(f"WITH stage AS \
                                                                                             and stc._RecordDeleted = 0 and stc._RecordCurrent = 1 \
                             LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_TE227T reg ON con.REGPOLIT = reg.REGPOLIT and con.COUNTRY = reg.COUNTRY\
                                                                                             and reg._RecordDeleted = 0 and reg._RecordCurrent = 1 \
-                         where con._RecordVersion = 1 ").cache()
+                         where con._RecordVersion = 1 ")
 
-print(f'Number of rows: {df.count()}')
+#print(f'Number of rows: {df.count()}')
 
 # COMMAND ----------
 
@@ -338,76 +338,75 @@ print(f'Number of rows: {df.count()}')
 
 # COMMAND ----------
 
-# # Create schema for the cleanse table
-# newSchema = StructType([
-#                         StructField("propertyNumber", StringType(), False),
-#                         StructField("countryShortName", StringType(), False),
-#                         StructField("cityCode", StringType(), True),
-#                         StructField("streetCode", StringType(), True),
-#                         StructField("streetName", StringType(), True),
-#                         StructField("postcode", StringType(), True),
-#                         StructField("stateCode", StringType(), True),
-#                         StructField("regionGroup", StringType(), True),
-#                         StructField("politicalRegionCode", StringType(), True),
-#                         StructField("politicalRegion", StringType(), True),
-#                         StructField("validFromDate", DateType(), True),
-#                         StructField("connectionObjectGUID", StringType(), True),
-#                         StructField("regionGroupPermit", StringType(), True),
-#                         StructField("planTypeCode", StringType(), True),
-#                         StructField("planType", StringType(), True),
-#                         StructField("processTypeCode", StringType(), True),
-#                         StructField("processType", StringType(), True),
-#                         StructField("planNumber", StringType(), True),
-#                         StructField("lotTypeCode", StringType(), True),
-#                         StructField("lotNumber", StringType(), True),
-#                         StructField("sectionNumber", StringType(), True),
-#                         StructField("serviceAgreementIndicator", StringType(), True),
-#                         StructField("mlimIndicator", StringType(), True),
-#                         StructField("wicaIndicator", StringType(), True),
-#                         StructField("sopaIndicator", StringType(), True),
-#                         StructField("architecturalObjectNumber", StringType(), True),
-#                         StructField("architecturalObjectTypeCode", StringType(), True),
-#                         StructField("architecturalObjectType", StringType(), True),
-#                         StructField("buildingFeeDate", DateType(), True),
-#                         StructField("cadID", StringType(), True),
-#                         StructField("pumpWasteWaterIndicator", StringType(), True),
-#                         StructField("fireServiceIndicator", StringType(), True),
-#                         StructField("architecturalObjectInternalId", StringType(), True),
-#                         StructField("architecturalObjectId", StringType(), True),
-#                         StructField("fixtureAndFittingCharacteristic", StringType(), True),
-#                         StructField("houseAddressNumber", StringType(), True),
-#                         StructField("WWTP", StringType(), True),
-#                         StructField("SCAMP", StringType(), True),
-#                         StructField("houseStreetName", StringType(), True),
-#                         StructField("houseNumber", StringType(), True),
-#                         StructField("LGA", StringType(), True),
-#                         StructField("cityName", StringType(), True),
-#                         StructField("waterDeliverySystem", StringType(), True),
-#                         StructField("waterDistributionSystem", StringType(), True),
-#                         StructField("waterSupplyZone", StringType(), True),
-#                         StructField("recycleWaterDeliverySystem", StringType(), True),
-#                         StructField("recycleWaterDistributionSystem", StringType(), True),
-#                         StructField("recycleWaterSupplyZone", StringType(), True),
-#                         StructField("superiorPropertyTypeCode", StringType(), True),
-#                         StructField("superiorPropertyType", StringType(), True),
-#                         StructField("inferiorPropertyTypeCode", StringType(), True),
-#                         StructField("inferiorPropertyType", StringType(), True),
-#                         StructField("objectReferenceIndicator", StringType(), True),
-#                         StructField("objectNumber", StringType(), True),
-#                         StructField("flatCount", StringType(), True),
-#                         StructField('_RecordStart',TimestampType(),False),
-#                         StructField('_RecordEnd',TimestampType(),False),
-#                         StructField('_RecordDeleted',IntegerType(),False),
-#                         StructField('_RecordCurrent',IntegerType(),False)
-#                     ])
+# Create schema for the cleanse table
+newSchema = StructType([
+                        StructField("propertyNumber", StringType(), False),
+                        StructField("countryShortName", StringType(), False),
+                        StructField("cityCode", StringType(), True),
+                        StructField("streetCode", StringType(), True),
+                        StructField("streetName", StringType(), True),
+                        StructField("postcode", StringType(), True),
+                        StructField("stateCode", StringType(), True),
+                        StructField("regionGroup", StringType(), True),
+                        StructField("politicalRegionCode", StringType(), True),
+                        StructField("politicalRegion", StringType(), True),
+                        StructField("validFromDate", DateType(), True),
+                        StructField("connectionObjectGUID", StringType(), True),
+                        StructField("regionGroupPermit", StringType(), True),
+                        StructField("planTypeCode", StringType(), True),
+                        StructField("planType", StringType(), True),
+                        StructField("processTypeCode", StringType(), True),
+                        StructField("processType", StringType(), True),
+                        StructField("planNumber", StringType(), True),
+                        StructField("lotTypeCode", StringType(), True),
+                        StructField("lotNumber", StringType(), True),
+                        StructField("sectionNumber", StringType(), True),
+                        StructField("serviceAgreementIndicator", StringType(), True),
+                        StructField("mlimIndicator", StringType(), True),
+                        StructField("wicaIndicator", StringType(), True),
+                        StructField("sopaIndicator", StringType(), True),
+                        StructField("architecturalObjectNumber", StringType(), True),
+                        StructField("architecturalObjectTypeCode", StringType(), True),
+                        StructField("architecturalObjectType", StringType(), True),
+                        StructField("buildingFeeDate", DateType(), True),
+                        StructField("cadID", StringType(), True),
+                        StructField("pumpWasteWaterIndicator", StringType(), True),
+                        StructField("fireServiceIndicator", StringType(), True),
+                        StructField("architecturalObjectInternalId", StringType(), True),
+                        StructField("architecturalObjectId", StringType(), True),
+                        StructField("fixtureAndFittingCharacteristic", StringType(), True),
+                        StructField("houseAddressNumber", StringType(), True),
+                        StructField("WWTP", StringType(), True),
+                        StructField("SCAMP", StringType(), True),
+                        StructField("houseStreetName", StringType(), True),
+                        StructField("houseNumber", StringType(), True),
+                        StructField("LGA", StringType(), True),
+                        StructField("cityName", StringType(), True),
+                        StructField("waterDeliverySystem", StringType(), True),
+                        StructField("waterDistributionSystem", StringType(), True),
+                        StructField("waterSupplyZone", StringType(), True),
+                        StructField("recycleWaterDeliverySystem", StringType(), True),
+                        StructField("recycleWaterDistributionSystem", StringType(), True),
+                        StructField("recycleWaterSupplyZone", StringType(), True),
+                        StructField("superiorPropertyTypeCode", StringType(), True),
+                        StructField("superiorPropertyType", StringType(), True),
+                        StructField("inferiorPropertyTypeCode", StringType(), True),
+                        StructField("inferiorPropertyType", StringType(), True),
+                        StructField("objectReferenceIndicator", StringType(), True),
+                        StructField("objectNumber", StringType(), True),
+                        StructField("flatCount", StringType(), True),
+                        StructField('_RecordStart',TimestampType(),False),
+                        StructField('_RecordEnd',TimestampType(),False),
+                        StructField('_RecordDeleted',IntegerType(),False),
+                        StructField('_RecordCurrent',IntegerType(),False),
+                        StructField('_DLCleansedZoneTimeStamp',TimestampType(),False)
+                    ])
 
 
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
-DeltaSaveDataFrameToDeltaTableNew(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
-#clear cache
-df.unpersist()
+DeltaSaveDataFrameToDeltaTable(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
 
 # COMMAND ----------
 

@@ -154,6 +154,8 @@
     <Build Include="CTL\Stored Procedures\GetBusinessRecCurated.sql" />
     <Build Include="CTL\Stored Procedures\UpdateBusinessRecCurated.sql" />
     <Build Include="CTL\Tables\BusinessRecStage.sql" />
+    <Build Include="CTL\Tables\Dummy.sql" />
+    <Build Include="CTL\Tables\TechRecCleansedConfig.sql" />
   </ItemGroup>
   <ItemGroup>
     <PostDeploy Include="Script.PostDeployment1.sql" />

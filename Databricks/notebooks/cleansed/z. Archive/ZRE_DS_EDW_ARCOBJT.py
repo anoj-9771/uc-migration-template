@@ -179,8 +179,8 @@ Where SPRAS='E' as parentArchitecturalObjectType, \
 	FROM CLEANSED.STG_SAPISU_ZRE_DS_EDW_ARCOBJT \
          ")
 
-display(df_cleansed)
-print(f'Number of rows: {df_cleansed.count()}')
+#display(df_cleansed)
+#print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
 
@@ -201,14 +201,14 @@ newSchema = StructType([
 	StructField('_RecordCurrent',IntegerType(),False)
 ])
 
-df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
+# df_updated_column = spark.createDataFrame(df_cleansed.rdd, schema=newSchema)
 
 
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
-DeltaSaveDataframeDirect(df_updated_column, "t", source_object, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", "")
+DeltaSaveDataframeDirect(df_cleansed, "t", source_object, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", newSchema, "")
 
 # COMMAND ----------
 

@@ -198,7 +198,7 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_cleansed = spark.sql(f"SELECT cast(N_PROP as int) AS propertyNumber, \
+df_data = spark.sql(f"SELECT cast(N_PROP as int) AS propertyNumber, \
 		cast(N_PROP_METE as int) AS propertyMeterNumber, \
 		cast(N_METE_READ as int) AS meterReadingNumber, \
 		C_METE_READ_TOLE AS meterReadingToleranceCode, \
@@ -286,7 +286,19 @@ df_cleansed = spark.sql(f"SELECT cast(N_PROP as int) AS propertyNumber, \
          left outer join CLEANSED.access_Z309_TMETERCANTREAD h on coalesce(a.C_METE_CANT_READ,'') = h.cannotReadCode \
          left outer join CLEANSED.access_Z309_TPDEREADMETH i on a.C_PDE_READ_METH = i.PDEReadingMethodCode")
 
-print(f'Number of rows: {df_cleansed.count()}')   
+#drop rows that were modified after having been archived
+df_data.createOrReplaceTempView('allReadings')
+
+df_cleansed = spark.sql("with t1 as( \
+                                    select *, \
+                                           row_number() over(partition by propertyNumber, propertyMeterNumber, meterReadingNumber, readingFromDate, readingToDate order by meterReadingUpdatedDate desc) as rn \
+                                    from   allReadings) \
+                          select * \
+                          from   t1 \
+                          where  rn = 1")
+
+df_cleansed = df_cleansed.drop('rn')
+#print(f'Number of rows: {df_cleansed.count()}')   
 
 # COMMAND ----------
 

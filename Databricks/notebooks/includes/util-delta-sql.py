@@ -262,7 +262,7 @@ def DeltaSyncTableWithSource(source_table, target_table):
 
 # COMMAND ----------
 
-def DeltaSaveToDeltaTable(
+def DeltaSaveToDeltaTableArchive(
   source_table, target_table, target_data_lake_zone, target_database, data_lake_folder, data_load_mode, track_changes = False, is_delta_extract = False, business_key = "", delta_column = "", start_counter = "0", end_counter = "0"):
   
   '''
@@ -291,7 +291,7 @@ def DeltaSaveToDeltaTable(
   
   #Generate the Query to save the data
   LogEtl("Generating delta SQL query")
-  delta_query = SQLMerge_DeltaTable_GenerateSQL(
+  delta_query = SQLMerge_DeltaTable_GenerateSQLArchive(
       source_table_name = source_table, 
       target_table_name = target_table_fqn, 
       business_key = business_key, 
@@ -336,9 +336,19 @@ def DeltaSaveToDeltaTable(
 
 # COMMAND ----------
 
+def deriveSurrogateKey(table_name):
+    if table_name.startswith('dim'):
+      skColumn = f"{table_name.replace('dim', '')}SK"
+    else:
+      skColumn = f"{table_name}SK"
+    
+    return skColumn[0].lower() + skColumn[1:]
+
+# COMMAND ----------
+
 def DeltaInjectSurrogateKeyToDataFrame(df, table_name):
   cols = df.columns
-  skColumn = f"{table_name}SK"
+  skColumn = deriveSurrogateKey(table_name)
   LogEtl(f"Adding SK column : {skColumn}")
   dfSK = df.withColumn(skColumn, lit(None).cast(LongType()))
   df = dfSK.select(skColumn, *cols)
@@ -347,11 +357,25 @@ def DeltaInjectSurrogateKeyToDataFrame(df, table_name):
   
   return df
 
+# COMMAND ----------
 
+def DeltaUpdateSurrogateKey(target_database, target_table, business_key):
+  LogEtl(f"Updating SK values")
+  dlTargetTableFqn = f"{target_database}.{target_table}"
+  skColumn = deriveSurrogateKey(target_table)
+  max = spark.sql(f"SELECT MAX({skColumn}) AS MAX FROM {dlTargetTableFqn}").rdd.collect()[0][0]
+  max = 0 if max is None else max
+
+  cols = business_key.split(",")
+  updateCondition = " AND ".join(["SRC.`{col}` = TGT.`{col}`".format(col=col) for col in cols]) 
+
+  sqlUpdateSK = f"WITH UpdateSK AS ( SELECT {business_key}, {COL_RECORD_START}, CAST(ROW_NUMBER() OVER (ORDER BY 1) AS BIGINT) + {max} AS {skColumn} FROM {dlTargetTableFqn} WHERE {skColumn} IS NULL ) MERGE INTO {dlTargetTableFqn} TGT USING UpdateSK SRC ON {updateCondition} AND SRC.{COL_RECORD_START} = TGT.{COL_RECORD_START} WHEN MATCHED THEN UPDATE SET {skColumn} = SRC.{skColumn}"
+  LogExtended(sqlUpdateSK)
+  spark.sql(sqlUpdateSK)
 
 # COMMAND ----------
 
-def DeltaSaveDataFrameToDeltaTable(
+def DeltaSaveDataFrameToDeltaTableArchive(
   dataframe, target_table, target_data_lake_zone, target_database, data_lake_folder, data_load_mode, track_changes = False, is_delta_extract = False, business_key = "", AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0"):
   
   stage_table_name = f"{ADS_DATABASE_STAGE}.{target_table}"
@@ -367,7 +391,7 @@ def DeltaSaveDataFrameToDeltaTable(
   LogEtl(f"write to stg table2")
   
   #Use our generic method to save the dataframe now to Delta Table
-  DeltaSaveToDeltaTable(
+  DeltaSaveToDeltaTableArchive(
     source_table = stage_table_name, 
     target_table = target_table, 
     target_data_lake_zone = target_data_lake_zone, 
@@ -387,6 +411,7 @@ def DeltaSaveDataFrameToDeltaTable(
     DeltaUpdateSurrogateKey(target_database, target_table, business_key) 
 
   verifyTableSchema(f"{target_database}.{target_table}", dataframe.schema)
+
 
 # COMMAND ----------
 
@@ -425,23 +450,6 @@ def DeltaSaveDataFrameToDeltaTableCleansed(
     DeltaUpdateSurrogateKey(target_database, target_table, business_key) 
   
   verifyTableSchema(f"{target_database}.{target_table}", dataframe.schema)
-
-# COMMAND ----------
-
-def DeltaUpdateSurrogateKey(target_database, target_table, business_key):
-  LogEtl(f"Updating SK values")
-  dlTargetTableFqn = f"{target_database}.{target_table}"
-  skColumn = f"{target_table}SK"
-  max = spark.sql(f"SELECT MAX({skColumn}) AS MAX FROM {dlTargetTableFqn}").rdd.collect()[0][0]
-  max = 0 if max is None else max
-
-  cols = business_key.split(",")
-  updateCondition = " AND ".join(["SRC.`{col}` = TGT.`{col}`".format(col=col) for col in cols]) 
-
-  sqlUpdateSK = f"WITH UpdateSK AS ( SELECT {business_key}, {COL_RECORD_START}, CAST(ROW_NUMBER() OVER (ORDER BY 1) AS BIGINT) + {max} AS {skColumn} FROM {dlTargetTableFqn} WHERE {skColumn} IS NULL ) MERGE INTO {dlTargetTableFqn} TGT USING UpdateSK SRC ON {updateCondition} AND SRC.{COL_RECORD_START} = TGT.{COL_RECORD_START} WHEN MATCHED THEN UPDATE SET {skColumn} = SRC.{skColumn}"
-  LogExtended(sqlUpdateSK)
-  spark.sql(sqlUpdateSK)
-  
 
 # COMMAND ----------
 
@@ -528,14 +536,17 @@ def DeltaSyncToSQLDWOverwrite(delta_table, target_schema, target_table):
 
 # COMMAND ----------
 
-def DeltaSaveDataFrameToDeltaTableNew(
-  dataframe, target_table, target_data_lake_zone, target_database, data_lake_folder, data_load_mode, track_changes = False, is_delta_extract = False, business_key = "", AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0"):
+def DeltaSaveDataFrameToDeltaTable(
+  dataframe, target_table, target_data_lake_zone, target_database, data_lake_folder, data_load_mode, schema, track_changes = False, is_delta_extract = False, business_key = "", AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0"):
   
   stage_table_name = f"{ADS_DATABASE_STAGE}.{target_table}"
   
   if AddSKColumn:
     dataframe = DeltaInjectSurrogateKeyToDataFrame(dataframe, target_table)
-      
+    if DeltaTableExists(f"{target_database}.{target_table}"):
+        skColumn = dataframe.schema[0].name
+        spark.sql(f'ALTER TABLE {target_database}.{target_table} ALTER COLUMN {skColumn} DROP NOT NULL;')
+
   #Drop the stage table if it exists
   spark.sql(f"DROP TABLE IF EXISTS {stage_table_name}")
   #Save the dataframe temporarily to Stage database
@@ -544,7 +555,7 @@ def DeltaSaveDataFrameToDeltaTableNew(
   LogEtl(f"write to stg table2")
   
   #Use our generic method to save the dataframe now to Delta Table
-  DeltaSaveToDeltaTableNew(
+  DeltaSaveToDeltaTable(
     source_table = stage_table_name, 
     target_table = target_table, 
     target_data_lake_zone = target_data_lake_zone, 
@@ -563,11 +574,12 @@ def DeltaSaveDataFrameToDeltaTableNew(
     dlTargetTableFqn = f"{target_database}.{target_table}"
     DeltaUpdateSurrogateKey(target_database, target_table, business_key) 
 
-  verifyTableSchema(f"{target_database}.{target_table}", dataframe.schema)
+#   verifyTableSchema(f"{target_database}.{target_table}", dataframe.schema)
+  verifyTableSchema(f"{target_database}.{target_table}", schema)
 
 # COMMAND ----------
 
-def DeltaSaveToDeltaTableNew(
+def DeltaSaveToDeltaTable(
   source_table, target_table, target_data_lake_zone, target_database, data_lake_folder, data_load_mode, track_changes = False, is_delta_extract = False, business_key = "", delta_column = "", start_counter = "0", end_counter = "0"):
   
   '''
@@ -596,7 +608,7 @@ def DeltaSaveToDeltaTableNew(
   
   #Generate the Query to save the data
   LogEtl("Generating delta SQL query")
-  delta_query = SQLMerge_DeltaTable_GenerateSQLNew(
+  delta_query = SQLMerge_DeltaTable_GenerateSQL(
       source_table_name = source_table, 
       target_table_name = target_table_fqn, 
       business_key = business_key, 

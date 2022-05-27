@@ -201,9 +201,9 @@ df = spark.sql(f"WITH stage AS \
                                                                                                     and st._RecordDeleted = 0 and st._RecordCurrent = 1 \
                                  left outer join {ADS_DATABASE_CLEANSED}.isu_0ind_numsys_text nt on nt.industrySystem = stg.ISTYPE \
                                                                                                     and nt._RecordDeleted = 0 and nt._RecordCurrent = 1 \
-                        where stg._RecordVersion = 1 ").cache()
+                        where stg._RecordVersion = 1 ")
 
-print(f'Number of rows: {df.count()}')
+#print(f'Number of rows: {df.count()}')
 
 # COMMAND ----------
 
@@ -243,34 +243,33 @@ print(f'Number of rows: {df.count()}')
 
 # COMMAND ----------
 
-# newSchema = StructType([
-#                           StructField('installationId', StringType(), False),
-#                           StructField('validToDate', DateType(), False),
-#                           StructField('validFromDate', DateType(), True),
-#                           StructField('rateCategoryCode', StringType(), True),
-#                           StructField('rateCategory', StringType(), True),
-#                           StructField('industryCode', StringType(), True),
-#                           StructField('industry', StringType(), True),
-#                           StructField('billingClassCode', StringType(), True),
-#                           StructField('billingClass', StringType(), True),
-#                           StructField('meterReadingUnit', StringType(), True),
-#                           StructField('industrySystemCode', StringType(), True),
-#                           StructField('industrySystem', StringType(), True),
-#                           StructField('deltaProcessRecordMode', StringType(), True),
-#                           StructField('logicalDeviceNumber', StringType(), True),
-#                           StructField('_RecordStart',TimestampType(),False),
-#                           StructField('_RecordEnd',TimestampType(),False),
-#                           StructField('_RecordDeleted',IntegerType(),False),
-#                           StructField('_RecordCurrent',IntegerType(),False)
-# ])
+newSchema = StructType([
+                          StructField('installationId', StringType(), False),
+                          StructField('validToDate', DateType(), False),
+                          StructField('validFromDate', DateType(), True),
+                          StructField('rateCategoryCode', StringType(), True),
+                          StructField('rateCategory', StringType(), True),
+                          StructField('industryCode', StringType(), True),
+                          StructField('industry', StringType(), True),
+                          StructField('billingClassCode', StringType(), True),
+                          StructField('billingClass', StringType(), True),
+                          StructField('meterReadingUnit', StringType(), True),
+                          StructField('industrySystemCode', StringType(), True),
+                          StructField('industrySystem', StringType(), True),
+                          StructField('deltaProcessRecordMode', StringType(), True),
+                          StructField('logicalDeviceNumber', StringType(), True),
+                          StructField('_RecordStart',TimestampType(),False),
+                          StructField('_RecordEnd',TimestampType(),False),
+                          StructField('_RecordDeleted',IntegerType(),False),
+                          StructField('_RecordCurrent',IntegerType(),False),
+                          StructField('_DLCleansedZoneTimeStamp',TimestampType(),False)
+])
 
 
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
-DeltaSaveDataFrameToDeltaTableNew(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
-#clear cache
-df.unpersist()
+DeltaSaveDataFrameToDeltaTable(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
 
 # COMMAND ----------
 

@@ -231,8 +231,7 @@ df = spark.sql(f"WITH stage AS \
                                 '1' as _RecordCurrent, \
                                 cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
                         FROM stage BP \
-                               LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0BPARTNER_TEXT BP_TXT \
-                                 ON BP.PARTNER = BP_TXT.businessPartnerNumber AND BP.TYPE =BP_TXT.businessPartnerCategoryCode \
+                               LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0BP_CAT_TEXT BP_TXT ON BP.TYPE = BP_TXT.businessPartnerCategoryCode \
                                                                               AND BP_TXT._RecordDeleted = 0 AND BP_TXT._RecordCurrent = 1 \
                                LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0BPTYPE_TEXT BPTYPE ON BP.BPKIND = BPTYPE.businessPartnerTypeCode \
                                                                               AND BPTYPE._RecordDeleted = 0 AND BPTYPE._RecordCurrent = 1 \
@@ -240,9 +239,9 @@ df = spark.sql(f"WITH stage AS \
                                                                               AND BPGRP._RecordDeleted = 0 AND BPGRP._RecordCurrent = 1 \
                                LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_TSAD3T TITLE ON BP.TITLE = TITLE.titlecode \
                                                                               AND TITLE._RecordDeleted = 0 AND TITLE._RecordCurrent = 1 \
-                        where BP._RecordVersion = 1 ").cache()
+                        where BP._RecordVersion = 1 ")
 
-print(f'Number of rows: {df.count()}')
+#print(f'Number of rows: {df.count()}')
 
 # COMMAND ----------
 
@@ -321,75 +320,74 @@ print(f'Number of rows: {df.count()}')
 
 # COMMAND ----------
 
-# # Create schema for the cleanse table
-# newSchema = StructType(
-#   [
-#     StructField("businessPartnerNumber", StringType(), False),
-#     StructField("businessPartnerCategoryCode", StringType(), True),
-#     StructField("businessPartnerCategory", StringType(), True),
-#     StructField("businessPartnerTypeCode", StringType(), True),
-#     StructField("businessPartnerType", StringType(), True),
-#     StructField("businessPartnerGroupCode", StringType(), True),
-#     StructField("businessPartnerGroup", StringType(), True),
-#     StructField("externalBusinessPartnerNumber", StringType(), True),
-#     StructField("searchTerm1", StringType(), True),
-#     StructField("searchTerm2", StringType(), True),
-#     StructField("titleCode", StringType(), True),
-#     StructField("title", StringType(), True),
-#     StructField("deletedIndicator", StringType(), True),
-#     StructField("centralBlockBusinessPartner", StringType(), True),
-#     StructField("userId", StringType(), True),
-#     StructField("paymentAssistSchemeIndicator", StringType(), True),
-#     StructField("billAssistIndicator", StringType(), True),
-#     StructField("createdOn", DateType(), True),
-#     StructField("organizationName1", StringType(), True),
-#     StructField("organizationName2", StringType(), True),
-#     StructField("organizationName3", StringType(), True),
-#     StructField("organizationFoundedDate", DateType(), True),
-#     StructField("internationalLocationNumber1", StringType(), True),
-#     StructField("internationalLocationNumber2", StringType(), True),
-#     StructField("internationalLocationNumber3", StringType(), True),
-#     StructField("lastName", StringType(), True),
-#     StructField("firstName", StringType(), True),
-#     StructField("atBirthName", StringType(), True),
-#     StructField("middleName", StringType(), True),
-#     StructField("academicTitle", StringType(), True),
-#     StructField("nickName", StringType(), True),
-#     StructField("nameInitials", StringType(), True),
-#     StructField("countryName", StringType(), True),
-#     StructField("correspondenceLanguage", StringType(), True),
-#     StructField("nationality", StringType(), True),
-#     StructField("personNumber", StringType(), True),
-#     StructField("unknownGenderIndicator", StringType(), True),
-#     StructField("language", StringType(), True),
-#     StructField("dateOfBirth", DateType(), True),
-#     StructField("dateOfDeath", DateType(), True),
-#     StructField("personnelNumber", StringType(), True),
-#     StructField("nameGroup1", StringType(), True),
-#     StructField("nameGroup2", StringType(), True),
-#     StructField("createdBy", StringType(), True),
-#     StructField("createdDateTime", TimestampType(), True),
-#     StructField("changedBy", StringType(), True),
-#     StructField("changedDateTime", TimestampType(), True),
-#     StructField("businessPartnerGUID", StringType(), True),
-#     StructField("addressNumber", StringType(), True),
-#     StructField("validFromDate",DateType(), True),
-#     StructField("validToDate",DateType(), True),
-#     StructField("naturalPersonIndicator", StringType(), True),
-#     StructField('_RecordStart',TimestampType(),False),
-#     StructField('_RecordEnd',TimestampType(),False),
-#     StructField('_RecordDeleted',IntegerType(),False),
-#     StructField('_RecordCurrent',IntegerType(),False)
-#   ]
-# )
+# Create schema for the cleanse table
+newSchema = StructType(
+  [
+    StructField("businessPartnerNumber", StringType(), False),
+    StructField("businessPartnerCategoryCode", StringType(), True),
+    StructField("businessPartnerCategory", StringType(), True),
+    StructField("businessPartnerTypeCode", StringType(), True),
+    StructField("businessPartnerType", StringType(), True),
+    StructField("businessPartnerGroupCode", StringType(), True),
+    StructField("businessPartnerGroup", StringType(), True),
+    StructField("externalBusinessPartnerNumber", StringType(), True),
+    StructField("searchTerm1", StringType(), True),
+    StructField("searchTerm2", StringType(), True),
+    StructField("titleCode", StringType(), True),
+    StructField("title", StringType(), True),
+    StructField("deletedIndicator", StringType(), True),
+    StructField("centralBlockBusinessPartner", StringType(), True),
+    StructField("userId", StringType(), True),
+    StructField("paymentAssistSchemeIndicator", StringType(), True),
+    StructField("billAssistIndicator", StringType(), True),
+    StructField("createdOn", DateType(), True),
+    StructField("organizationName1", StringType(), True),
+    StructField("organizationName2", StringType(), True),
+    StructField("organizationName3", StringType(), True),
+    StructField("organizationFoundedDate", DateType(), True),
+    StructField("internationalLocationNumber1", StringType(), True),
+    StructField("internationalLocationNumber2", StringType(), True),
+    StructField("internationalLocationNumber3", StringType(), True),
+    StructField("lastName", StringType(), True),
+    StructField("firstName", StringType(), True),
+    StructField("atBirthName", StringType(), True),
+    StructField("middleName", StringType(), True),
+    StructField("academicTitle", StringType(), True),
+    StructField("nickName", StringType(), True),
+    StructField("nameInitials", StringType(), True),
+    StructField("countryName", StringType(), True),
+    StructField("correspondenceLanguage", StringType(), True),
+    StructField("nationality", StringType(), True),
+    StructField("personNumber", StringType(), True),
+    StructField("unknownGenderIndicator", StringType(), True),
+    StructField("language", StringType(), True),
+    StructField("dateOfBirth", DateType(), True),
+    StructField("dateOfDeath", DateType(), True),
+    StructField("personnelNumber", StringType(), True),
+    StructField("nameGroup1", StringType(), True),
+    StructField("nameGroup2", StringType(), True),
+    StructField("createdBy", StringType(), True),
+    StructField("createdDateTime", TimestampType(), True),
+    StructField("changedBy", StringType(), True),
+    StructField("changedDateTime", TimestampType(), True),
+    StructField("businessPartnerGUID", StringType(), True),
+    StructField("addressNumber", StringType(), True),
+    StructField("validFromDate",DateType(), True),
+    StructField("validToDate",DateType(), True),
+    StructField("naturalPersonIndicator", StringType(), True),
+    StructField('_RecordStart',TimestampType(),False),
+    StructField('_RecordEnd',TimestampType(),False),
+    StructField('_RecordDeleted',IntegerType(),False),
+    StructField('_RecordCurrent',IntegerType(),False),
+    StructField('_DLCleansedZoneTimeStamp',TimestampType(),False)
+  ]
+)
 
 
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
-DeltaSaveDataFrameToDeltaTableNew(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
-#clear cache
-df.unpersist()
+DeltaSaveDataFrameToDeltaTable(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
 
 # COMMAND ----------
 

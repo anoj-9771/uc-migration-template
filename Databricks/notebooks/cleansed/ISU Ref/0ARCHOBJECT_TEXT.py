@@ -171,7 +171,7 @@ print(delta_raw_tbl_name)
 
 # DBTITLE 1,10. Load Raw to Dataframe & Do Transformations
 df = spark.sql(f"WITH stage AS \
-                      (Select *, ROW_NUMBER() OVER (PARTITION BY OBJNR ORDER BY _DLRawZoneTimestamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
+                      (Select *, ROW_NUMBER() OVER (PARTITION BY OBJNR ORDER BY _FileDateTimeStamp DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
                            SELECT  \
                                   AOID as AOID , \
                                   case when OBJNR = 'na' then '' else OBJNR end as OBJNR, \
@@ -181,9 +181,9 @@ df = spark.sql(f"WITH stage AS \
                                   '0' as _RecordDeleted, \
                                   '1' as _RecordCurrent, \
                                   cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
-                                  from stage where _RecordVersion = 1 ").cache()
+                                  from stage where _RecordVersion = 1 ")
 
-print(f'Number of rows: {df.count()}')
+#print(f'Number of rows: {df.count()}')
 
 # COMMAND ----------
 
@@ -204,25 +204,24 @@ print(f'Number of rows: {df.count()}')
 
 # COMMAND ----------
 
-# # Create schema for the cleanse table
-# newSchema = StructType(
-#                             [
-#                             StructField("AOID", StringType(), True),
-#                             StructField("OBJNR", StringType(), False),
-#                             StructField("DOORPLT", StringType(), True),
-#                             StructField('_RecordStart',TimestampType(),False),
-#                             StructField('_RecordEnd',TimestampType(),False),
-#                             StructField('_RecordDeleted',IntegerType(),False),
-#                             StructField('_RecordCurrent',IntegerType(),False)
-#                             ]
-#                         )
+# Create schema for the cleanse table
+newSchema = StructType(
+                            [
+                            StructField("AOID", StringType(), True),
+                            StructField("OBJNR", StringType(), False),
+                            StructField("DOORPLT", StringType(), True),
+                            StructField('_RecordStart',TimestampType(),False),
+                            StructField('_RecordEnd',TimestampType(),False),
+                            StructField('_RecordDeleted',IntegerType(),False),
+                            StructField('_RecordCurrent',IntegerType(),False),
+                            StructField('_DLCleansedZoneTimeStamp',TimestampType(),False)
+                            ]
+                        )
 
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
-DeltaSaveDataFrameToDeltaTableNew(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
-#clear cache
-df.unpersist()
+DeltaSaveDataFrameToDeltaTable(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
 
 # COMMAND ----------
 

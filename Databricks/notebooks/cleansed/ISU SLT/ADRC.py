@@ -113,7 +113,7 @@ source_group = GeneralAlignTableName(source_group)
 print("source_group: " + source_group)
 
 #Get Data Lake Folder
-data_lake_folder = source_group + "/stg"
+data_lake_folder = source_group
 print("data_lake_folder: " + data_lake_folder)
 
 #Get and Align Source Table Name (replace '[-@ ,;{}()]' character by '_')
@@ -154,29 +154,10 @@ print(delta_raw_tbl_name)
 
 # COMMAND ----------
 
-# DBTITLE 1,10. Load to Cleanse Delta Table from Raw Delta Table
-#This method uses the source table to load data into target Delta Table
-DeltaSaveToDeltaTable (
-    source_table = delta_raw_tbl_name,
-    target_table = target_table,
-    target_data_lake_zone = ADS_DATALAKE_ZONE_CLEANSED,
-    target_database = ADS_DATABASE_STAGE,
-    data_lake_folder = data_lake_folder,
-    data_load_mode = data_load_mode,
-    track_changes =  Params[PARAMS_TRACK_CHANGES],
-    is_delta_extract =  Params[PARAMS_DELTA_EXTRACT],
-    business_key =  Params[PARAMS_BUSINESS_KEY_COLUMN],
-    delta_column = delta_column,
-    start_counter = start_counter,
-    end_counter = end_counter
-)
-
-# COMMAND ----------
-
-# DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
-#Update/rename Column
-#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
-df_cleansed = spark.sql(f"SELECT \
+# DBTITLE 1,10. Load Raw to Dataframe & Do Transformations
+df = spark.sql(f"WITH stage AS \
+                      (Select *, ROW_NUMBER() OVER (PARTITION BY ADDRNUMBER, DATE_FROM ORDER BY _DLRawZoneTimestamp DESC, DELTA_TS DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
+                           SELECT \
 	ADDR_GROUP as addressGroup, \
 	case when ADDRNUMBER = 'na' then '' else ADDRNUMBER end as addressNumber, \
 	BUILDING as building, \
@@ -229,14 +210,83 @@ df_cleansed = spark.sql(f"SELECT \
 	TEL_NUMBER as phoneNumber, \
 	TIME_ZONE as addressTimeZone, \
 	TITLE as titleCode, \
-    _RecordStart, \
-	_RecordEnd, \
-	_RecordDeleted, \
-	_RecordCurrent \
-	FROM {ADS_DATABASE_STAGE}.{source_object} \
-    WHERE CLIENT = '100'")
+                                  cast('1900-01-01' as TimeStamp) as _RecordStart, \
+                                  cast('9999-12-31' as TimeStamp) as _RecordEnd, \
+                                  '0' as _RecordDeleted, \
+                                  '1' as _RecordCurrent, \
+                                  cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
+                         FROM stage stg \
+                                 left outer join {ADS_DATABASE_CLEANSED}.isu_0uc_aklasse_text bc on bc.billingClassCode = stg.AKLASSE \
+                         where stg._RecordVersion = 1 ")
 
-print(f'Number of rows: {df_cleansed.count()}')
+#print(f'Number of rows: {df.count()}')
+
+# COMMAND ----------
+
+# DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
+# #Update/rename Column
+# #Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
+# df_cleansed = spark.sql(f"SELECT \
+# 	ADDR_GROUP as addressGroup, \
+# 	case when ADDRNUMBER = 'na' then '' else ADDRNUMBER end as addressNumber, \
+# 	BUILDING as building, \
+# 	CHCKSTATUS as regionalStructureGrouping, \
+# 	CITY_CODE as cityCode, \
+# 	CITY_CODE2 as cityPoBoxCode, \
+# 	CITY1 as cityName, \
+# 	COUNTRY as countryShortName, \
+# 	ToValidDate(DATE_FROM,'MANDATORY') as validFromDate, \
+# 	ToValidDate(DATE_TO) as validToDate, \
+# 	DEFLT_COMM as communicationMethod, \
+# 	FAX_NUMBER as faxNumber, \
+# 	FLAGCOMM12 as ftpAddressFlag, \
+# 	FLAGCOMM13 as pagerAddressFlag, \
+# 	FLAGCOMM2 as telephoneNumberFlag, \
+# 	FLAGCOMM3 as faxNumberFlag, \
+# 	FLAGCOMM6 as emailAddressFlag, \
+# 	FLOOR as floorNumber, \
+# 	HOUSE_NUM1 as houseNumber, \
+# 	HOUSE_NUM2 as houseNumber2, \
+# 	HOUSE_NUM3 as houseNumber3, \
+# 	LANGU_CREA as originalAddressRecordCreation, \
+# 	LOCATION as streetLine5, \
+# 	MC_CITY1 as searchHelpCityName, \
+# 	MC_NAME1 as searchHelpLastName, \
+# 	MC_STREET as searchHelpStreetName, \
+# 	NAME_CO as coName, \
+# 	NAME1 as name1, \
+# 	NAME2 as name2, \
+# 	NAME3 as name3, \
+# 	PCODE1_EXT as postalCodeExtension, \
+# 	PCODE2_EXT as poBoxExtension, \
+# 	PERS_ADDR as personalAddressIndicator, \
+# 	PO_BOX as poBoxCode, \
+# 	PO_BOX_LOC as poBoxCity, \
+# 	POST_CODE1 as postalCode, \
+# 	POST_CODE2 as poBoxPostalCode, \
+# 	POST_CODE3 as companyPostalCode, \
+# 	REGION as stateCode, \
+# 	ROOMNUMBER as apartmentNumber, \
+# 	SORT1 as searchTerm1, \
+# 	SORT2 as searchTerm2, \
+# 	STR_SUPPL1 as streetType, \
+# 	STR_SUPPL2 as streetLine3, \
+# 	STR_SUPPL3 as streetLine4, \
+# 	STREET as streetName, \
+# 	STREETABBR as streetAbbreviation, \
+# 	STREETCODE as streetCode, \
+# 	TEL_EXTENS as telephoneExtension, \
+# 	TEL_NUMBER as phoneNumber, \
+# 	TIME_ZONE as addressTimeZone, \
+# 	TITLE as titleCode, \
+#     _RecordStart, \
+# 	_RecordEnd, \
+# 	_RecordDeleted, \
+# 	_RecordCurrent \
+# 	FROM {ADS_DATABASE_STAGE}.{source_object} \
+#     WHERE CLIENT = '100'")
+
+# print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
 
@@ -296,15 +346,15 @@ newSchema = StructType([
 	StructField('_RecordStart',TimestampType(),False),
 	StructField('_RecordEnd',TimestampType(),False),
 	StructField('_RecordDeleted',IntegerType(),False),
-	StructField('_RecordCurrent',IntegerType(),False)
+	StructField('_RecordCurrent',IntegerType(),False),
+    StructField('_DLCleansedZoneTimeStamp',TimestampType(),False)
 ])
 
 
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
-#Save Data frame into Cleansed Delta table (final)
-DeltaSaveDataframeDirect(df_cleansed, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", newSchema, "")
+DeltaSaveDataFrameToDeltaTable(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
 
 # COMMAND ----------
 

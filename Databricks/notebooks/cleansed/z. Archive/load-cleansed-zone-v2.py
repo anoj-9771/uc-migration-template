@@ -120,12 +120,12 @@ DeltaSaveToDeltaTable (
 # COMMAND ----------
 
 df = spark.sql("select partner as Business_Partner_NUM,ZZPAS_INDICATOR as Payment_Assist_Scheme_IND,ZZBA_INDICATOR as Bill_Assist_IND from raw.sap_0bpartner_attr" )
-display(df)
+#display(df)
 
 # COMMAND ----------
 
 changes_df = spark.read.format("delta").option("readChangeData", True).option("startingVersion", 2).table('raw.sap_0bpartner_attr')
-display(changes_df)
+#display(changes_df)
 
 # COMMAND ----------
 
@@ -136,6 +136,7 @@ DeltaSaveDataFrameToDeltaTable(
     target_database = ADS_DATABASE_CLEANSED,
     data_lake_folder = Params[PARAMS_SOURCE_GROUP],
     data_load_mode = data_load_mode,
+    "",
     track_changes = False, 
     is_delta_extract = False, 
     business_key = "", 

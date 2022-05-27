@@ -171,7 +171,7 @@ print(delta_raw_tbl_name)
 
 # DBTITLE 1,10. Load Raw to Dataframe & Do Transformations
 df = spark.sql(f"WITH stage AS \
-                      (Select *, ROW_NUMBER() OVER (PARTITION BY UTILITIESCONTRACT,CONTRACTENDDATE_E ORDER BY _DLRawZoneTimestamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} \
+                      (Select *, ROW_NUMBER() OVER (PARTITION BY UTILITIESCONTRACT,CONTRACTENDDATE_E ORDER BY  _FileDateTimeStamp DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} \
                                       WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
                            SELECT \
                                 ItemUUID as itemUUID, \
@@ -255,9 +255,9 @@ df = spark.sql(f"WITH stage AS \
                                 '0' as _RecordDeleted, \
                                 '1' as _RecordCurrent, \
                                 cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
-                        from stage where _RecordVersion = 1 ").cache()
+                        from stage where _RecordVersion = 1 ")
 
-print(f'Number of rows: {df.count()}')
+#print(f'Number of rows: {df.count()}')
 
 # COMMAND ----------
 
@@ -351,95 +351,94 @@ print(f'Number of rows: {df.count()}')
 
 # COMMAND ----------
 
-# newSchema = StructType([
-# 	StructField('itemUUID',StringType(),True),
-# 	StructField('podUUID',StringType(),True),
-# 	StructField('headerUUID',StringType(),True),
-# 	StructField('utilitiesContract',StringType(),False),
-# 	StructField('businessPartnerGroupNumber',StringType(),True),
-# 	StructField('businessPartnerGroupName',StringType(),True),
-# 	StructField('businessAgreement',StringType(),True),
-# 	StructField('businessAgreementUUID',StringType(),True),
-# 	StructField('incomingPaymentMethod',StringType(),True),
-# 	StructField('incomingPaymentMethodName',StringType(),True),
-# 	StructField('paymentTerms',StringType(),True),
-# 	StructField('paymentTermsName',StringType(),True),
-# 	StructField('soldToParty',StringType(),True),
-# 	StructField('businessPartnerFullName',StringType(),True),
-# 	StructField('divisionCode',StringType(),True),
-# 	StructField('division',StringType(),True),
-# 	StructField('contractStartDate',DateType(),True),
-# 	StructField('contractEndDate',DateType(),True),
-# 	StructField('creationDate',TimestampType(),True),
-# 	StructField('createdBy',StringType(),True),
-# 	StructField('lastChangedDate',TimestampType(),True),
-# 	StructField('changedBy',StringType(),True),
-# 	StructField('itemCategory',StringType(),True),
-# 	StructField('itemCategoryName',StringType(),True),
-# 	StructField('product',StringType(),True),
-# 	StructField('productDescription',StringType(),True),
-# 	StructField('itemType',StringType(),True),
-# 	StructField('itemTypeName',StringType(),True),
-# 	StructField('productType',StringType(),True),
-# 	StructField('headerType',StringType(),True),
-# 	StructField('headerTypeName',StringType(),True),
-# 	StructField('headerCategory',StringType(),True),
-# 	StructField('headerCategoryName',StringType(),True),
-# 	StructField('headerDescription',StringType(),True),
-# 	StructField('isDeregulationPod',StringType(),True),
-# 	StructField('premise',StringType(),True),
-# 	StructField('numberOfPersons',StringType(),True),
-# 	StructField('cityName',StringType(),True),
-# 	StructField('streetName',StringType(),True),
-# 	StructField('houseNumber',StringType(),True),
-# 	StructField('postalCode',StringType(),True),
-# 	StructField('building',StringType(),True),
-# 	StructField('addressTimeZone',StringType(),True),
-# 	StructField('countryName',StringType(),True),
-# 	StructField('regionName',StringType(),True),
-# 	StructField('numberOfContractChanges',StringType(),True),
-# 	StructField('isOpen',StringType(),True),
-# 	StructField('isDistributed',StringType(),True),
-# 	StructField('hasError',StringType(),True),
-# 	StructField('isToBeDistributed',StringType(),True),
-# 	StructField('isIncomplete',StringType(),True),
-# 	StructField('isStartedDueToProductChange',StringType(),True),
-# 	StructField('isInActivation',StringType(),True),
-# 	StructField('isInDeactivation',StringType(),True),
-# 	StructField('isCancelled',StringType(),True),
-# 	StructField('cancellationMessageIsCreated',StringType(),True),
-# 	StructField('supplyEndCanclnMsgIsCreated',StringType(),True),
-# 	StructField('activationIsRejected',StringType(),True),
-# 	StructField('deactivationIsRejected',StringType(),True),
-# 	StructField('numberOfContracts',IntegerType(),True),
-# 	StructField('numberOfActiveContracts',IntegerType(),True),
-# 	StructField('numberOfIncompleteContracts',IntegerType(),True),
-# 	StructField('numberOfDistributedContracts',IntegerType(),True),
-# 	StructField('numberOfContractsToBeDistributed',IntegerType(),True),
-# 	StructField('numberOfBlockedContracts',IntegerType(),True),
-# 	StructField('numberOfCancelledContracts',IntegerType(),True),
-# 	StructField('numberOfProductChanges',IntegerType(),True),
-# 	StructField('numberOfContractsWProductChanges',IntegerType(),True),
-# 	StructField('numberOfContrWthEndOfSupRjctd',IntegerType(),True),
-# 	StructField('numberOfContrWthStartOfSupRjctd',IntegerType(),True),
-# 	StructField('numberOfContrWaitingForEndOfSup',IntegerType(),True),
-# 	StructField('numberOfContrWaitingForStrtOfSup',IntegerType(),True),
-# 	StructField('creationDateE',DateType(),True),
-# 	StructField('lastChangedDateE',DateType(),True),
-# 	StructField('contractStartDateE',DateType(),True),
-# 	StructField('contractEndDateE',DateType(),False),
-# 	StructField('_RecordStart',TimestampType(),False),
-# 	StructField('_RecordEnd',TimestampType(),False),
-# 	StructField('_RecordDeleted',IntegerType(),False),
-# 	StructField('_RecordCurrent',IntegerType(),False)
-# ])
+newSchema = StructType([
+	StructField('itemUUID',StringType(),True),
+	StructField('podUUID',StringType(),True),
+	StructField('headerUUID',StringType(),True),
+	StructField('utilitiesContract',StringType(),False),
+	StructField('businessPartnerGroupNumber',StringType(),True),
+	StructField('businessPartnerGroupName',StringType(),True),
+	StructField('businessAgreement',StringType(),True),
+	StructField('businessAgreementUUID',StringType(),True),
+	StructField('incomingPaymentMethod',StringType(),True),
+	StructField('incomingPaymentMethodName',StringType(),True),
+	StructField('paymentTerms',StringType(),True),
+	StructField('paymentTermsName',StringType(),True),
+	StructField('soldToParty',StringType(),True),
+	StructField('businessPartnerFullName',StringType(),True),
+	StructField('divisionCode',StringType(),True),
+	StructField('division',StringType(),True),
+	StructField('contractStartDate',DateType(),True),
+	StructField('contractEndDate',DateType(),True),
+	StructField('creationDate',TimestampType(),True),
+	StructField('createdBy',StringType(),True),
+	StructField('lastChangedDate',TimestampType(),True),
+	StructField('changedBy',StringType(),True),
+	StructField('itemCategory',StringType(),True),
+	StructField('itemCategoryName',StringType(),True),
+	StructField('product',StringType(),True),
+	StructField('productDescription',StringType(),True),
+	StructField('itemType',StringType(),True),
+	StructField('itemTypeName',StringType(),True),
+	StructField('productType',StringType(),True),
+	StructField('headerType',StringType(),True),
+	StructField('headerTypeName',StringType(),True),
+	StructField('headerCategory',StringType(),True),
+	StructField('headerCategoryName',StringType(),True),
+	StructField('headerDescription',StringType(),True),
+	StructField('isDeregulationPod',StringType(),True),
+	StructField('premise',StringType(),True),
+	StructField('numberOfPersons',StringType(),True),
+	StructField('cityName',StringType(),True),
+	StructField('streetName',StringType(),True),
+	StructField('houseNumber',StringType(),True),
+	StructField('postalCode',StringType(),True),
+	StructField('building',StringType(),True),
+	StructField('addressTimeZone',StringType(),True),
+	StructField('countryName',StringType(),True),
+	StructField('regionName',StringType(),True),
+	StructField('numberOfContractChanges',StringType(),True),
+	StructField('isOpen',StringType(),True),
+	StructField('isDistributed',StringType(),True),
+	StructField('hasError',StringType(),True),
+	StructField('isToBeDistributed',StringType(),True),
+	StructField('isIncomplete',StringType(),True),
+	StructField('isStartedDueToProductChange',StringType(),True),
+	StructField('isInActivation',StringType(),True),
+	StructField('isInDeactivation',StringType(),True),
+	StructField('isCancelled',StringType(),True),
+	StructField('cancellationMessageIsCreated',StringType(),True),
+	StructField('supplyEndCanclnMsgIsCreated',StringType(),True),
+	StructField('activationIsRejected',StringType(),True),
+	StructField('deactivationIsRejected',StringType(),True),
+	StructField('numberOfContracts',IntegerType(),True),
+	StructField('numberOfActiveContracts',IntegerType(),True),
+	StructField('numberOfIncompleteContracts',IntegerType(),True),
+	StructField('numberOfDistributedContracts',IntegerType(),True),
+	StructField('numberOfContractsToBeDistributed',IntegerType(),True),
+	StructField('numberOfBlockedContracts',IntegerType(),True),
+	StructField('numberOfCancelledContracts',IntegerType(),True),
+	StructField('numberOfProductChanges',IntegerType(),True),
+	StructField('numberOfContractsWProductChanges',IntegerType(),True),
+	StructField('numberOfContrWthEndOfSupRjctd',IntegerType(),True),
+	StructField('numberOfContrWthStartOfSupRjctd',IntegerType(),True),
+	StructField('numberOfContrWaitingForEndOfSup',IntegerType(),True),
+	StructField('numberOfContrWaitingForStrtOfSup',IntegerType(),True),
+	StructField('creationDateE',DateType(),True),
+	StructField('lastChangedDateE',DateType(),True),
+	StructField('contractStartDateE',DateType(),True),
+	StructField('contractEndDateE',DateType(),False),
+	StructField('_RecordStart',TimestampType(),False),
+	StructField('_RecordEnd',TimestampType(),False),
+	StructField('_RecordDeleted',IntegerType(),False),
+	StructField('_RecordCurrent',IntegerType(),False),
+    StructField('_DLCleansedZoneTimeStamp',TimestampType(),False)
+])
 
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
-DeltaSaveDataFrameToDeltaTableNew(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
-#clear cache
-df.unpersist()
+DeltaSaveDataFrameToDeltaTable(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
 
 # COMMAND ----------
 

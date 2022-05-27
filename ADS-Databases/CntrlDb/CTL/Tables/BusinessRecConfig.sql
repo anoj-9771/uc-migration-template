@@ -8,5 +8,5 @@ CREATE TABLE [CTL].[BusinessRecConfig]
 	TargetQuery           varchar(2000) NULL,
 	Enabled               bit NULL,
   CONSTRAINT PK_BusinessRecConfig PRIMARY KEY CLUSTERED (BusinessRecConfigId ASC),
-  CONSTRAINT UK_BusinessRecConfig UNIQUE (BusinessReconGroup, MeasureId)
+  CONSTRAINT UK_BusinessRecConfig UNIQUE (BusinessReconGroup, MeasureId, MeasureName)
 )
