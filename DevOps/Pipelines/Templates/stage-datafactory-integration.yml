@@ -29,7 +29,7 @@ stages:
 
   jobs:
   - job:
-    pool: ${{ parameters.pool }}
+    pool: Daf-Self-Hosted-Prod-Linux
     steps:
     - download: current
       artifact: adf_arm_templates
