@@ -62,7 +62,6 @@ stages:
 # Release to Production - Prod Environment
 - template: Templates/stage-datafactory-integration.yml
   parameters:
-    pool: Daf-Self-Hosted-Prod-Linux
     stage_name: 'deploy_adf_prod'
     variable_template_name: prod-variables
     run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
