@@ -192,10 +192,10 @@ df_cleansed = spark.sql(f"SELECT cast(N_PROP as int) AS propertyNumber, \
         f.propertyTypeCode as superiorPropertyTypeCode, \
         f.propertyType as superiorPropertyType, \
         case when D_PROP_TYPE_EFFE is not null \
-                  then to_date(D_PROP_TYPE_EFFE,'yyyyMMdd') \
+                  then ToValidDate(D_PROP_TYPE_EFFE) \
              when D_PROP_RATE_CANC is not null \
-                  then to_date(D_PROP_RATE_CANC,'yyyyMMdd') \
-                  else to_date(D_PROP_UPDA,'yyyyMMdd') \
+                  then ToValidDate(D_PROP_RATE_CANC) \
+                  else ToValidDate(D_PROP_UPDA) \
         end AS propertyTypeEffectiveFrom, \
         C_RATA_TYPE AS rateabilityTypeCode, \
 		initcap(h.rateabilityType) as rateabilityType, \
@@ -246,20 +246,20 @@ df_cleansed = spark.sql(f"SELECT cast(N_PROP as int) AS propertyNumber, \
 		case when d_prop_sale_sett = '00000000' \
                   then null \
              when D_PROP_SALE_SETT = '00181029' \
-                  then to_date('20181029','yyyyMMdd') \
-                  else to_date(D_PROP_SALE_SETT,'yyyyMMdd') \
+                  then ToValidDate('20181029') \
+                  else ToValidDate(D_PROP_SALE_SETT) \
         end AS settlementDate, \
-		to_date(D_CNTR, 'yyyyMMdd') AS contractDate, \
+		ToValidDate(D_CNTR) AS contractDate, \
 		C_EXTR_LOT AS extractLotCode, \
         ref7.extractLotDescription as extractLotDescription, \
-        to_date(D_PROP_UPDA, 'yyyyMMdd') AS propertyUpdatedDate, \
+        ToValidDate(D_PROP_UPDA) AS propertyUpdatedDate, \
 		T_PROP_LOT AS lotDescription, \
 		C_USER_CREA AS createdByUserId, \
 		C_PLAN_CREA AS createdByPlan, \
-		cast(to_unix_timestamp(H_CREA, 'yyyy-MM-dd hh:mm:ss a') as timestamp) as createdTimestamp, \
-        case when substr(hex(c_user_modi),1,2) = '00' then ' ' else C_USER_MODI end AS modifiedByUserId, \
+		ToValidDateTime(H_CREA) as createdTimestamp, \
+        case when substr(hex(c_user_modi),1,2) = '00' or c_user_modi = ' ' then null else C_USER_MODI end AS modifiedByUserId, \
 		C_PLAN_MODI AS modifiedByPlan, \
-		cast(to_unix_timestamp(H_MODI, 'yyyy-MM-dd hh:mm:ss a') as timestamp) as modifiedTimestamp, \
+		ToValidDateTime(H_MODI) as modifiedTimestamp, \
         a._RecordStart, \
         a._RecordEnd, \
         a._RecordDeleted, \
