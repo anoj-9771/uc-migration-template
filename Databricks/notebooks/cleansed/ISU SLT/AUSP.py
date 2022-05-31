@@ -172,7 +172,7 @@ print(delta_raw_tbl_name)
 # DBTITLE 1,10. Load Raw to Dataframe & Do Transformations
 df = spark.sql(f"WITH stage AS \
                       (Select *, ROW_NUMBER() OVER (PARTITION BY OBJEK, ATINN, ATZHL, MAFID, KLART, ADZHL ORDER BY _DLRawZoneTimeStamp DESC, DELTA_TS DESC) AS _RecordVersion FROM {delta_raw_tbl_name} \
-                                  WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
+                                  WHERE  _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
                            SELECT  \
                                     case when OBJEK = 'na' then '' else OBJEK end as architecturalObjectInternalId, \
                                     case when ATINN = 'na' then '' else ATINN end as characteristicInternalId, \
