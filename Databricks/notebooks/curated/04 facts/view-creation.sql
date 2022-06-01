@@ -236,7 +236,6 @@ isu_0uccontract_attr_2.numberOfCancellations,
 isu_0uccontract_attr_2.numberOfRenewals,
 isu_0uccontract_attr_2.personnelNumber,
 isu_0uccontract_attr_2.contractNumberLegacy,
-isu_0uccontract_attr_2.deletedIndicator,
 isu_0uccontract_attr_2.isContractInvoiced,
 isu_0uccontract_attr_2.outsortingCheckGroupForBilling,
 isu_0uccontract_attr_2.manualOutsortingCount,
@@ -587,12 +586,12 @@ and isu_dberchz2.`_RecordCurrent` = 1
 
 -- COMMAND ----------
 
--- View: view_dailyapportionedconsumption
+-- View: view_apportionedconsumption
 -- Description: this view provide DAF data similar to QQV extractor in C&B
 -- History:     1.0 24/4/2022 LV created
 --              1.1 10/05/2022 LV added erchc, updated renamed columns
 --              1.2 26/05/2022 LV changed view name, added property details 
-CREATE OR REPLACE VIEW curated.view_dailyapportionedconsumption as
+CREATE OR REPLACE VIEW curated.view_apportionedconsumption as
 with statBilling as
 (SELECT factdailyapportionedconsumption.meterConsumptionBillingDocumentSK, 
 factdailyapportionedconsumption.PropertySK,
