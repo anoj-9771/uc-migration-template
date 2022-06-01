@@ -167,7 +167,7 @@ isu_0ucinstalla_attr_2.meterReadingControl,
 isu_0uc_isu_32.disconnectionDocumentNumber,
 isu_0uc_isu_32.disconnectionActivityPeriod,
 isu_0uc_isu_32.disconnectionObjectNumber,
-isu_0uc_isu_32.disconnectiondate,
+isu_0uc_isu_32.disconnectionDate,
 isu_0uc_isu_32.disconnectionActivityTypeCode,
 isu_0uc_isu_32.disconnectionActivityType,
 isu_0uc_isu_32.disconnectionObjectTypeCode,
@@ -184,7 +184,7 @@ isu_0ucinstalla_attr_2.createdDate installationCreatedDate,
 isu_0ucinstalla_attr_2.lastChangedBy installationLastChangedBy,
 isu_0ucinstalla_attr_2.lastChangedDate installationLastChangedDate,
 isu_0ucinstalla_attr_2.deletedIndicator installationDeletedIndicator,
-isu_0ucinstallah_attr_2.deltaProcessRecordMode installationHistorydeletedIndicator,
+isu_0ucinstallah_attr_2.deltaProcessRecordMode installationHistoryDeletedIndicator,
 case when (isu_0ucinstallah_attr_2.validFromDate <= current_date and isu_0ucinstallah_attr_2.validToDate >= current_date) then 'Y'
 else 'N'
 end currentIndicator,
@@ -236,7 +236,6 @@ isu_0uccontract_attr_2.numberOfCancellations,
 isu_0uccontract_attr_2.numberOfRenewals,
 isu_0uccontract_attr_2.personnelNumber,
 isu_0uccontract_attr_2.contractNumberLegacy,
-isu_0uccontract_attr_2.deletedIndicator,
 isu_0uccontract_attr_2.isContractInvoiced,
 isu_0uccontract_attr_2.outsortingCheckGroupForBilling,
 isu_0uccontract_attr_2.manualOutsortingCount,
@@ -587,12 +586,12 @@ and isu_dberchz2.`_RecordCurrent` = 1
 
 -- COMMAND ----------
 
--- View: view_dailyapportionedconsumption
+-- View: view_apportionedconsumption
 -- Description: this view provide DAF data similar to QQV extractor in C&B
 -- History:     1.0 24/4/2022 LV created
 --              1.1 10/05/2022 LV added erchc, updated renamed columns
 --              1.2 26/05/2022 LV changed view name, added property details 
-CREATE OR REPLACE VIEW curated.view_dailyapportionedconsumption as
+CREATE OR REPLACE VIEW curated.view_apportionedconsumption as
 with statBilling as
 (SELECT factdailyapportionedconsumption.meterConsumptionBillingDocumentSK, 
 factdailyapportionedconsumption.PropertySK,
