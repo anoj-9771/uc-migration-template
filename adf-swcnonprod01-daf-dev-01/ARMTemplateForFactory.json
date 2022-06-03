@@ -16744,12 +16744,12 @@
 					}
 				},
 				"connectVia": {
-					"referenceName": "IntegrationRuntime-SelfHosted",
+					"referenceName": "IntegrationRuntime-SelfHosted-onPrem",
 					"type": "IntegrationRuntimeReference"
 				}
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/integrationRuntimes/IntegrationRuntime-SelfHosted')]",
+				"[concat(variables('factoryId'), '/integrationRuntimes/IntegrationRuntime-SelfHosted-onPrem')]",
 				"[concat(variables('factoryId'), '/linkedServices/LS-AzureKeyVault')]"
 			]
 		},
@@ -16953,6 +16953,17 @@
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/managedVirtualNetworks/default')]"
 			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/IntegrationRuntime-SelfHosted-onPrem')]",
+			"type": "Microsoft.DataFactory/factories/integrationRuntimes",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "SelfHosted",
+				"description": "on premise SHIR",
+				"typeProperties": {}
+			},
+			"dependsOn": []
 		},
 		{
 			"name": "[concat(parameters('factoryName'), '/IntegrationRuntime-SelfHosted')]",
