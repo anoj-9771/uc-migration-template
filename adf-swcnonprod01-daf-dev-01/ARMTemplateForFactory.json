@@ -14001,6 +14001,268 @@
 								"value": "@activity('Get Business Recon Queries').output.value",
 								"type": "Expression"
 							},
+							"isSequential": false,
+							"activities": [
+								{
+									"name": "SP-Update-Business-Rec-Curated",
+									"type": "SqlServerStoredProcedure",
+									"dependsOn": [
+										{
+											"activity": "Notebook-GetDeltaTableRecordTargetMeasure-Interactive",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "7.00:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"storedProcedureName": "[[CTL].[UpdateBusinessRecCurated]",
+										"storedProcedureParameters": {
+											"TargetMeasureValue": {
+												"value": {
+													"value": "@activity('Notebook-GetDeltaTableRecordTargetMeasure-Interactive').output.runOutput",
+													"type": "Expression"
+												},
+												"type": "Int64"
+											},
+											"BusinessRecId": {
+												"value": {
+													"value": "@item().BusinessRecId",
+													"type": "Expression"
+												},
+												"type": "Int64"
+											},
+											"UpdatedBatchExecutionId": {
+												"value": {
+													"value": "@pipeline().parameters.BatchLogId",
+													"type": "Expression"
+												},
+												"type": "Int64"
+											},
+											"UpdatedTaskExecutionLogId": {
+												"value": {
+													"value": "@pipeline().parameters.TaskExecutionLogId",
+													"type": "Expression"
+												},
+												"type": "Int64"
+											},
+											"CuratedPipelineRunID": {
+												"value": {
+													"value": "@pipeline().RunId",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"UpdatedDateTime": {
+												"value": {
+													"value": "@convertFromUtc(getFutureTime(0,'Day'),'AUS Eastern Standard Time')",
+													"type": "Expression"
+												},
+												"type": "Datetime"
+											}
+										}
+									},
+									"linkedServiceName": {
+										"referenceName": "LS-AzureSqlDatabase_Ctrldb",
+										"type": "LinkedServiceReference"
+									}
+								},
+								{
+									"name": "Notebook-GetDeltaTableRecordTargetMeasure-Interactive",
+									"type": "DatabricksNotebook",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "7.00:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"notebookPath": {
+											"value": "@variables('NotebookURL')",
+											"type": "Expression"
+										},
+										"baseParameters": {
+											"target_query": {
+												"value": "@item().TargetQuery",
+												"type": "Expression"
+											}
+										}
+									},
+									"linkedServiceName": {
+										"referenceName": "LS-AzureDatabricks_DefinedCluster",
+										"type": "LinkedServiceReference",
+										"parameters": {
+											"kvSecret": {
+												"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[0]",
+												"type": "Expression"
+											},
+											"clusterId": {
+												"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[1]",
+												"type": "Expression"
+											}
+										}
+									}
+								}
+							]
+						}
+					},
+					{
+						"name": "Delete-Trigger-File",
+						"type": "Delete",
+						"dependsOn": [
+							{
+								"activity": "ForEach Business Rec",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataset": {
+								"referenceName": "RAW_ADLS_JSON_v2_NOCOMP",
+								"type": "DatasetReference",
+								"parameters": {
+									"BlobPath": "triggers",
+									"BlobName": "trigger_batch_daily_sapslt.json"
+								}
+							},
+							"enableLogging": false,
+							"storeSettings": {
+								"type": "AzureBlobFSReadSettings",
+								"recursive": true,
+								"enablePartitionDiscovery": false
+							}
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"parameters": {
+					"BatchLogId": {
+						"type": "int",
+						"defaultValue": 1
+					},
+					"TaskExecutionLogId": {
+						"type": "int",
+						"defaultValue": 2
+					},
+					"ProjectRunId": {
+						"type": "string"
+					},
+					"WatermarkValue": {
+						"type": "string"
+					},
+					"BusinessReconGroup": {
+						"type": "string",
+						"defaultValue": "Water Consumption Reconciliation"
+					},
+					"MeasureName": {
+						"type": "string",
+						"defaultValue": "Billing Document Count"
+					},
+					"TaskDetails": {
+						"type": "object"
+					}
+				},
+				"variables": {
+					"TargetQuery": {
+						"type": "String"
+					},
+					"NotebookURL": {
+						"type": "String",
+						"defaultValue": "/build/curated/utility/getDeltaTableRecordTargetMeasure"
+					}
+				},
+				"folder": {
+					"name": "Validation"
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/AzureSqlDatabase_Ctrldb')]",
+				"[concat(variables('factoryId'), '/datasets/RAW_ADLS_JSON_v2_NOCOMP')]",
+				"[concat(variables('factoryId'), '/linkedServices/LS-AzureSqlDatabase_Ctrldb')]",
+				"[concat(variables('factoryId'), '/linkedServices/LS-AzureDatabricks_DefinedCluster')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Business-Reconciliation_Bak')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Get Business Recon Queries",
+						"type": "Lookup",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"sqlReaderStoredProcedureName": "[[CTL].[GetBusinessRecCurated]",
+								"storedProcedureParameters": {
+									"BusinessReconGroup": {
+										"type": "String",
+										"value": {
+											"value": "@pipeline().parameters.BusinessReconGroup",
+											"type": "Expression"
+										}
+									}
+								},
+								"partitionOption": "None"
+							},
+							"dataset": {
+								"referenceName": "AzureSqlDatabase_Ctrldb",
+								"type": "DatasetReference",
+								"parameters": {}
+							},
+							"firstRowOnly": false
+						}
+					},
+					{
+						"name": "ForEach Business Rec",
+						"type": "ForEach",
+						"dependsOn": [
+							{
+								"activity": "Get Business Recon Queries",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@activity('Get Business Recon Queries').output.value",
+								"type": "Expression"
+							},
 							"isSequential": true,
 							"activities": [
 								{
@@ -14259,7 +14521,7 @@
 					}
 				},
 				"folder": {
-					"name": "Validation"
+					"name": "z_Archive"
 				},
 				"annotations": []
 			},
