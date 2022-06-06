@@ -53,7 +53,7 @@
 						"value": "@activity('Get Business Recon Queries').output.value",
 						"type": "Expression"
 					},
-					"isSequential": true,
+					"isSequential": false,
 					"activities": [
 						{
 							"name": "SP-Update-Business-Rec-Curated",
