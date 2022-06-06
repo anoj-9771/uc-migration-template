@@ -451,14 +451,14 @@
 												}
 											],
 											"sqlReaderQuery": {
-												"value": "SELECT * FROM DBO.VW_AUSP WHERE ?AdfDynamicRangePartitionCondition AND DELTA_TS > '20000601164817' AND DELTA_TS <= '20220703010101'",
+												"value": "@pipeline().parameters.SQLCommand",
 												"type": "Expression"
 											},
 											"queryTimeout": "02:00:00",
 											"partitionOption": "DynamicRange",
 											"partitionSettings": {
 												"partitionColumnName": {
-													"value": "ATINN_INT",
+													"value": "@{pipeline().parameters.TaskDetails.PartitionColumn}",
 													"type": "Expression"
 												},
 												"partitionUpperBound": "",
@@ -863,7 +863,7 @@
 											"type": "DatasetReference",
 											"parameters": {
 												"kvSecret": {
-													"value": "daf-sql-slt-connectionstring",
+													"value": "@pipeline().parameters.TaskDetails.SourceServer",
 													"type": "Expression"
 												},
 												"tableName": "AUSP",
@@ -877,7 +877,7 @@
 											"type": "DatasetReference",
 											"parameters": {
 												"TableName": {
-													"value": "isu_AUSP",
+													"value": "@pipeline().parameters.TaskDetails.TargetName",
 													"type": "Expression"
 												}
 											}
