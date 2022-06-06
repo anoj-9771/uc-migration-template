@@ -1012,7 +1012,7 @@
 							"typeProperties": {
 								"variableName": "RowCount",
 								"value": {
-									"value": "@activity('Copy-Source-DataLake').output.rowsCopied",
+									"value": "@string(activity('Copy-Source-DataLake').output.rowsCopied)",
 									"type": "Expression"
 								}
 							}
