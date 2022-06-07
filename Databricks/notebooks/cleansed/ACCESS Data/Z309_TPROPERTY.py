@@ -198,7 +198,7 @@ df_cleansed = spark.sql(f"SELECT cast(N_PROP as int) AS propertyNumber, \
                   else ToValidDate(D_PROP_UPDA) \
         end AS propertyTypeEffectiveFrom, \
         C_RATA_TYPE AS rateabilityTypeCode, \
-		initcap(h.rateabilityType) as rateabilityType, \
+		h.rateabilityType as rateabilityType, \
 		cast(Q_RESI_PORT as decimal(5,0)) AS residentialPortionCount, \
         case when F_RATE_INCL = 'R' \
                   then true \

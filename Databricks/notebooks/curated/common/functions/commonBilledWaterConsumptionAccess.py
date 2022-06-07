@@ -39,7 +39,7 @@ def getBilledWaterConsumptionAccess():
                               where mr.meterReadingStatusCode IN ('A','B','P','V') \
                                     and mr.meterReadingDays > 0 \
                                     and mr.meterReadingConsumption > 0 \
-                                    and (not mts.isCheckMeter or isCheckMeter ) \
+                                    and (not mts.isCheckMeter or mts.isCheckMeter is null) \
                                     and mr._RecordCurrent = 1 \
                                     and mr._RecordDeleted = 0 \
                                     and not exists (select 1 \
