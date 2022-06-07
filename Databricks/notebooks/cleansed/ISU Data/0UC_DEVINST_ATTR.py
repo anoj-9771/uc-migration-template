@@ -169,10 +169,29 @@ print(delta_raw_tbl_name)
 
 # COMMAND ----------
 
+# DBTITLE 1,9.1 Identify Deleted records from Raw table
+df = spark.sql(f"select distinct ANLAGE,LOGIKNR,BIS from {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' and   DI_OPERATION_TYPE ='X'")
+df.createOrReplaceTempView("isu_devinst_deleted_records")
+
+# COMMAND ----------
+
+# DBTITLE 1,9.2 Update _RecordDeleted and _RecordCurrent Flags
+# MAGIC %sql
+# MAGIC MERGE INTO cleansed.isu_0UC_DEVINST_ATTR
+# MAGIC using isu_devinst_deleted_records
+# MAGIC on isu_0UC_DEVINST_ATTR.installationId = isu_devinst_deleted_records.ANLAGE
+# MAGIC and isu_0UC_DEVINST_ATTR.logicalDeviceNumber = isu_devinst_deleted_records.LOGIKNR
+# MAGIC and isu_0UC_DEVINST_ATTR.validToDate = isu_devinst_deleted_records.BIS
+# MAGIC WHEN MATCHED THEN UPDATE SET
+# MAGIC _RecordDeleted=1
+# MAGIC ,_RecordCurrent=0
+
+# COMMAND ----------
+
 # DBTITLE 1,10. Load Raw to Dataframe & Do Transformations
 df = spark.sql(f"WITH stage AS \
                       (Select *, ROW_NUMBER() OVER (PARTITION BY ANLAGE,LOGIKNR,BIS ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} \
-                                  WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
+                                  WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' and DI_OPERATION_TYPE !='X' ) \
                            SELECT \
                                 case when ANLAGE = 'na' then '' else ANLAGE end as installationId, \
                                 case when LOGIKNR = 'na' then '' else LOGIKNR end as logicalDeviceNumber, \
@@ -199,37 +218,6 @@ df = spark.sql(f"WITH stage AS \
                         where dev._RecordVersion = 1 ")
 
 #print(f'Number of rows: {df.count()}')
-
-# COMMAND ----------
-
-# DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
-#Update/rename Column
-#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
-# df_cleansed = spark.sql(f"SELECT \
-#                                 case when ANLAGE = 'na' then '' else ANLAGE end as installationId, \
-#                                 case when LOGIKNR = 'na' then '' else LOGIKNR end as logicalDeviceNumber, \
-#                                 ToValidDate((case when BIS = 'na' then '9999-12-31' else BIS end),'MANDATORY') as validToDate, \
-#                                 ToValidDate(AB) as validFromDate, \
-#                                 PREISKLA as priceClassCode, \
-#                                 ip.priceClass as priceClass, \
-#                                 GVERRECH as payRentalPrice, \
-#                                 TARIFART as rateTypeCode, \
-#                                 sp.rateType as rateType, \
-#                                 LOEVM as deletedIndicator, \
-#                                 UPDMOD as bwDeltaProcess, \
-#                                 ZOPCODE as operationCode, \
-#                                 dev._RecordStart, \
-#                                 dev._RecordEnd, \
-#                                 dev._RecordDeleted, \
-#                                 dev._RecordCurrent \
-#                            FROM {ADS_DATABASE_STAGE}.{source_object} dev \
-#                            LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UC_PRICCLA_TEXT ip ON dev.PREISKLA = ip.priceClassCode \
-#                                                                                                     and ip._RecordDeleted = 0 and ip._RecordCurrent = 1 \
-#                            LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UC_STATTART_TEXT sp ON dev.TARIFART = sp.rateTypeCode \
-#                                                                                                     and sp._RecordDeleted = 0 and sp._RecordCurrent = 1")
-
-
-# print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
 
