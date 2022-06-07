@@ -114,7 +114,7 @@
 				"type": "SqlServerStoredProcedure",
 				"dependsOn": [
 					{
-						"activity": "Switch-SLTTtables",
+						"activity": "Switch-SLT-Tables",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -342,7 +342,7 @@
 				"type": "SqlServerStoredProcedure",
 				"dependsOn": [
 					{
-						"activity": "Switch-SLTTtables",
+						"activity": "Switch-SLT-Tables",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -406,7 +406,7 @@
 				}
 			},
 			{
-				"name": "Switch-SLTTtables",
+				"name": "Switch-SLT-Tables",
 				"type": "Switch",
 				"dependsOn": [
 					{
