@@ -3,102 +3,6 @@
 	"properties": {
 		"activities": [
 			{
-				"name": "Copy-Source-DataLake",
-				"type": "Copy",
-				"dependsOn": [
-					{
-						"activity": "SP-Record-Manifest_copy1",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
-				"policy": {
-					"timeout": "7.00:00:00",
-					"retry": 0,
-					"retryIntervalInSeconds": 30,
-					"secureOutput": false,
-					"secureInput": false
-				},
-				"userProperties": [],
-				"typeProperties": {
-					"source": {
-						"type": "SqlServerSource",
-						"additionalColumns": [
-							{
-								"name": "_DLRawZoneTimeStamp",
-								"value": {
-									"value": "@formatDateTime(convertFromUtc(utcnow(),'AUS Eastern Standard Time'),'yyyy-MM-dd HH:mm:ss')",
-									"type": "Expression"
-								}
-							}
-						],
-						"sqlReaderQuery": {
-							"value": "@pipeline().parameters.SQLCommand",
-							"type": "Expression"
-						},
-						"queryTimeout": "02:00:00",
-						"partitionOption": "DynamicRange",
-						"partitionSettings": {
-							"partitionColumnName": {
-								"value": "@{pipeline().parameters.TaskDetails.PartitionColumn}",
-								"type": "Expression"
-							},
-							"partitionUpperBound": "",
-							"partitionLowerBound": ""
-						}
-					},
-					"sink": {
-						"type": "AzureDatabricksDeltaLakeSink",
-						"importSettings": {
-							"type": "AzureDatabricksDeltaLakeImportCommand",
-							"dateFormat": "yyyy-MM-dd HH:mm:ss",
-							"timestampFormat": "yyyy-MM-dd HH:mm:ss"
-						}
-					},
-					"enableStaging": true,
-					"stagingSettings": {
-						"linkedServiceName": {
-							"referenceName": "LS_AzureDatalake",
-							"type": "LinkedServiceReference"
-						},
-						"path": {
-							"value": "@concat('raw/landing/isu_data/', pipeline().parameters.TaskDetails.TargetName)",
-							"type": "Expression"
-						},
-						"enableCompression": false
-					},
-					"parallelCopies": 32,
-					"dataIntegrationUnits": 8
-				},
-				"inputs": [
-					{
-						"referenceName": "SRC_SQLSERVER",
-						"type": "DatasetReference",
-						"parameters": {
-							"kvSecret": {
-								"value": "@pipeline().parameters.TaskDetails.SourceServer",
-								"type": "Expression"
-							},
-							"tableName": "erch",
-							"schemaName": "eq1"
-						}
-					}
-				],
-				"outputs": [
-					{
-						"referenceName": "DS_RAW_ADLS_DELTALAKE",
-						"type": "DatasetReference",
-						"parameters": {
-							"TableName": {
-								"value": "@pipeline().parameters.TaskDetails.TargetName",
-								"type": "Expression"
-							}
-						}
-					}
-				]
-			},
-			{
 				"name": "SP-Record-Manifest_copy1",
 				"type": "SqlServerStoredProcedure",
 				"dependsOn": [],
@@ -210,7 +114,7 @@
 				"type": "SqlServerStoredProcedure",
 				"dependsOn": [
 					{
-						"activity": "Copy-Source-DataLake",
+						"activity": "Switch-SLT-Tables",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -243,7 +147,7 @@
 						},
 						"RecordsDeltaTable": {
 							"value": {
-								"value": "@activity('Copy-Source-DataLake').output.rowsCopied",
+								"value": "@variables('RowCount')",
 								"type": "Expression"
 							},
 							"type": "Int64"
@@ -257,7 +161,7 @@
 						},
 						"RecordsTargetTable": {
 							"value": {
-								"value": "@activity('Copy-Source-DataLake').output.rowsCopied",
+								"value": "@variables('RowCount')",
 								"type": "Expression"
 							},
 							"type": "Int64"
@@ -438,7 +342,7 @@
 				"type": "SqlServerStoredProcedure",
 				"dependsOn": [
 					{
-						"activity": "Copy-Source-DataLake",
+						"activity": "Switch-SLT-Tables",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -464,7 +368,7 @@
 						},
 						"M_DeltaRecordCount": {
 							"value": {
-								"value": "@activity('Copy-Source-DataLake').output.rowsCopied",
+								"value": "@variables('RowCount')",
 								"type": "Expression"
 							},
 							"type": "Int64"
@@ -499,6 +403,621 @@
 				"linkedServiceName": {
 					"referenceName": "LS-AzureSqlDatabase_Ctrldb",
 					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "Switch-SLT-Tables",
+				"type": "Switch",
+				"dependsOn": [
+					{
+						"activity": "SP-Record-Manifest_copy1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"on": {
+						"value": "@pipeline().parameters.TaskDetails.SourceName",
+						"type": "Expression"
+					},
+					"cases": [
+						{
+							"value": "isu_AUSP",
+							"activities": [
+								{
+									"name": "Copy-Source-DataLake-AUSP",
+									"type": "Copy",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "7.00:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "SqlServerSource",
+											"additionalColumns": [
+												{
+													"name": "_DLRawZoneTimeStamp",
+													"value": {
+														"value": "@formatDateTime(convertFromUtc(utcnow(),'AUS Eastern Standard Time'),'yyyy-MM-dd HH:mm:ss')",
+														"type": "Expression"
+													}
+												}
+											],
+											"sqlReaderQuery": {
+												"value": "@pipeline().parameters.SQLCommand",
+												"type": "Expression"
+											},
+											"queryTimeout": "02:00:00",
+											"partitionOption": "DynamicRange",
+											"partitionSettings": {
+												"partitionColumnName": {
+													"value": "@{pipeline().parameters.TaskDetails.PartitionColumn}",
+													"type": "Expression"
+												},
+												"partitionUpperBound": "",
+												"partitionLowerBound": ""
+											}
+										},
+										"sink": {
+											"type": "AzureDatabricksDeltaLakeSink",
+											"importSettings": {
+												"type": "AzureDatabricksDeltaLakeImportCommand",
+												"dateFormat": "yyyy-MM-dd HH:mm:ss",
+												"timestampFormat": "yyyy-MM-dd HH:mm:ss"
+											}
+										},
+										"enableStaging": true,
+										"stagingSettings": {
+											"linkedServiceName": {
+												"referenceName": "LS_AzureDatalake",
+												"type": "LinkedServiceReference"
+											},
+											"path": {
+												"value": "@concat('raw/landing/isu_data/', pipeline().parameters.TaskDetails.TargetName)",
+												"type": "Expression"
+											},
+											"enableCompression": false
+										},
+										"parallelCopies": 32,
+										"dataIntegrationUnits": 8,
+										"translator": {
+											"type": "TabularTranslator",
+											"mappings": [
+												{
+													"source": {
+														"name": "OBJEK",
+														"type": "String"
+													},
+													"sink": {
+														"name": "OBJEK",
+														"type": "string"
+													}
+												},
+												{
+													"source": {
+														"name": "ATINN",
+														"type": "String"
+													},
+													"sink": {
+														"name": "ATINN",
+														"type": "string"
+													}
+												},
+												{
+													"source": {
+														"name": "ATZHL",
+														"type": "String"
+													},
+													"sink": {
+														"name": "ATZHL",
+														"type": "string"
+													}
+												},
+												{
+													"source": {
+														"name": "MAFID",
+														"type": "String"
+													},
+													"sink": {
+														"name": "MAFID",
+														"type": "string"
+													}
+												},
+												{
+													"source": {
+														"name": "KLART",
+														"type": "String"
+													},
+													"sink": {
+														"name": "KLART",
+														"type": "string"
+													}
+												},
+												{
+													"source": {
+														"name": "ADZHL",
+														"type": "String"
+													},
+													"sink": {
+														"name": "ADZHL",
+														"type": "string"
+													}
+												},
+												{
+													"source": {
+														"name": "ATWRT",
+														"type": "String"
+													},
+													"sink": {
+														"name": "ATWRT",
+														"type": "string"
+													}
+												},
+												{
+													"source": {
+														"name": "ATFLV",
+														"type": "Double"
+													},
+													"sink": {
+														"name": "ATFLV",
+														"type": "Double"
+													}
+												},
+												{
+													"source": {
+														"name": "ATAWE",
+														"type": "String"
+													},
+													"sink": {
+														"name": "ATAWE",
+														"type": "string"
+													}
+												},
+												{
+													"source": {
+														"name": "ATFLB",
+														"type": "Double"
+													},
+													"sink": {
+														"name": "ATFLB",
+														"type": "Double"
+													}
+												},
+												{
+													"source": {
+														"name": "ATAW1",
+														"type": "String"
+													},
+													"sink": {
+														"name": "ATAW1",
+														"type": "string"
+													}
+												},
+												{
+													"source": {
+														"name": "ATCOD",
+														"type": "String"
+													},
+													"sink": {
+														"name": "ATCOD",
+														"type": "string"
+													}
+												},
+												{
+													"source": {
+														"name": "ATTLV",
+														"type": "Double"
+													},
+													"sink": {
+														"name": "ATTLV",
+														"type": "Double"
+													}
+												},
+												{
+													"source": {
+														"name": "ATTLB",
+														"type": "Double"
+													},
+													"sink": {
+														"name": "ATTLB",
+														"type": "Double"
+													}
+												},
+												{
+													"source": {
+														"name": "ATPRZ",
+														"type": "String"
+													},
+													"sink": {
+														"name": "ATPRZ",
+														"type": "string"
+													}
+												},
+												{
+													"source": {
+														"name": "ATINC",
+														"type": "Double"
+													},
+													"sink": {
+														"name": "ATINC",
+														"type": "Double"
+													}
+												},
+												{
+													"source": {
+														"name": "ATAUT",
+														"type": "String"
+													},
+													"sink": {
+														"name": "ATAUT",
+														"type": "string"
+													}
+												},
+												{
+													"source": {
+														"name": "AENNR",
+														"type": "String"
+													},
+													"sink": {
+														"name": "AENNR",
+														"type": "string"
+													}
+												},
+												{
+													"source": {
+														"name": "DATUV",
+														"type": "String"
+													},
+													"sink": {
+														"name": "DATUV",
+														"type": "string"
+													}
+												},
+												{
+													"source": {
+														"name": "LKENZ",
+														"type": "String"
+													},
+													"sink": {
+														"name": "LKENZ",
+														"type": "string"
+													}
+												},
+												{
+													"source": {
+														"name": "ATIMB",
+														"type": "String"
+													},
+													"sink": {
+														"name": "ATIMB",
+														"type": "string"
+													}
+												},
+												{
+													"source": {
+														"name": "ATZIS",
+														"type": "String"
+													},
+													"sink": {
+														"name": "ATZIS",
+														"type": "string"
+													}
+												},
+												{
+													"source": {
+														"name": "ATSRT",
+														"type": "String"
+													},
+													"sink": {
+														"name": "ATSRT",
+														"type": "string"
+													}
+												},
+												{
+													"source": {
+														"name": "ATVGLART",
+														"type": "String"
+													},
+													"sink": {
+														"name": "ATVGLART",
+														"type": "string"
+													}
+												},
+												{
+													"source": {
+														"name": "DATUB",
+														"type": "String"
+													},
+													"sink": {
+														"name": "DATUB",
+														"type": "string"
+													}
+												},
+												{
+													"source": {
+														"name": "DEC_VALUE_FROM",
+														"type": "Decimal"
+													},
+													"sink": {
+														"name": "DEC_VALUE_FROM"
+													}
+												},
+												{
+													"source": {
+														"name": "DEC_VALUE_TO",
+														"type": "Decimal"
+													},
+													"sink": {
+														"name": "DEC_VALUE_TO"
+													}
+												},
+												{
+													"source": {
+														"name": "CURR_VALUE_FROM",
+														"type": "Decimal"
+													},
+													"sink": {
+														"name": "CURR_VALUE_FROM"
+													}
+												},
+												{
+													"source": {
+														"name": "CURR_VALUE_TO",
+														"type": "Decimal"
+													},
+													"sink": {
+														"name": "CURR_VALUE_TO"
+													}
+												},
+												{
+													"source": {
+														"name": "CURRENCY",
+														"type": "String"
+													},
+													"sink": {
+														"name": "CURRENCY",
+														"type": "string"
+													}
+												},
+												{
+													"source": {
+														"name": "DATE_FROM",
+														"type": "String"
+													},
+													"sink": {
+														"name": "DATE_FROM",
+														"type": "string"
+													}
+												},
+												{
+													"source": {
+														"name": "DATE_TO",
+														"type": "String"
+													},
+													"sink": {
+														"name": "DATE_TO",
+														"type": "string"
+													}
+												},
+												{
+													"source": {
+														"name": "TIME_FROM",
+														"type": "String"
+													},
+													"sink": {
+														"name": "TIME_FROM",
+														"type": "string"
+													}
+												},
+												{
+													"source": {
+														"name": "TIME_TO",
+														"type": "String"
+													},
+													"sink": {
+														"name": "TIME_TO",
+														"type": "string"
+													}
+												},
+												{
+													"source": {
+														"name": "ATINN_INT",
+														"type": "Int16"
+													},
+													"sink": {
+														"name": "ATINN_INT",
+														"type": "Int"
+													}
+												},
+												{
+													"source": {
+														"name": "DELTA_TS",
+														"type": "Decimal"
+													},
+													"sink": {
+														"name": "DELTA_TS"
+													}
+												},
+												{
+													"source": {
+														"name": "_DLRawZoneTimeStamp"
+													},
+													"sink": {
+														"name": "_DLRawZoneTimeStamp",
+														"type": "DateTime"
+													}
+												}
+											]
+										}
+									},
+									"inputs": [
+										{
+											"referenceName": "SRC_SQLSERVER",
+											"type": "DatasetReference",
+											"parameters": {
+												"kvSecret": {
+													"value": "@pipeline().parameters.TaskDetails.SourceServer",
+													"type": "Expression"
+												},
+												"tableName": "AUSP",
+												"schemaName": "dbo"
+											}
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "DS_RAW_ADLS_DELTALAKE",
+											"type": "DatasetReference",
+											"parameters": {
+												"TableName": {
+													"value": "@pipeline().parameters.TaskDetails.TargetName",
+													"type": "Expression"
+												}
+											}
+										}
+									]
+								},
+								{
+									"name": "Set-RowCount-AUSP",
+									"type": "SetVariable",
+									"dependsOn": [
+										{
+											"activity": "Copy-Source-DataLake-AUSP",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"userProperties": [],
+									"typeProperties": {
+										"variableName": "RowCount",
+										"value": {
+											"value": "@string(activity('Copy-Source-DataLake-AUSP').output.rowsCopied)",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						}
+					],
+					"defaultActivities": [
+						{
+							"name": "Copy-Source-DataLake",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "SqlServerSource",
+									"additionalColumns": [
+										{
+											"name": "_DLRawZoneTimeStamp",
+											"value": {
+												"value": "@formatDateTime(convertFromUtc(utcnow(),'AUS Eastern Standard Time'),'yyyy-MM-dd HH:mm:ss')",
+												"type": "Expression"
+											}
+										}
+									],
+									"sqlReaderQuery": {
+										"value": "@pipeline().parameters.SQLCommand",
+										"type": "Expression"
+									},
+									"queryTimeout": "02:00:00",
+									"partitionOption": "DynamicRange",
+									"partitionSettings": {
+										"partitionColumnName": {
+											"value": "@{pipeline().parameters.TaskDetails.PartitionColumn}",
+											"type": "Expression"
+										},
+										"partitionUpperBound": "",
+										"partitionLowerBound": ""
+									}
+								},
+								"sink": {
+									"type": "AzureDatabricksDeltaLakeSink",
+									"importSettings": {
+										"type": "AzureDatabricksDeltaLakeImportCommand",
+										"dateFormat": "yyyy-MM-dd HH:mm:ss",
+										"timestampFormat": "yyyy-MM-dd HH:mm:ss"
+									}
+								},
+								"enableStaging": true,
+								"stagingSettings": {
+									"linkedServiceName": {
+										"referenceName": "LS_AzureDatalake",
+										"type": "LinkedServiceReference"
+									},
+									"path": {
+										"value": "@concat('raw/landing/isu_data/', pipeline().parameters.TaskDetails.TargetName)",
+										"type": "Expression"
+									},
+									"enableCompression": false
+								},
+								"parallelCopies": 32,
+								"dataIntegrationUnits": 8
+							},
+							"inputs": [
+								{
+									"referenceName": "SRC_SQLSERVER",
+									"type": "DatasetReference",
+									"parameters": {
+										"kvSecret": {
+											"value": "@pipeline().parameters.TaskDetails.SourceServer",
+											"type": "Expression"
+										},
+										"tableName": "erch",
+										"schemaName": "eq1"
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "DS_RAW_ADLS_DELTALAKE",
+									"type": "DatasetReference",
+									"parameters": {
+										"TableName": {
+											"value": "@pipeline().parameters.TaskDetails.TargetName",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						},
+						{
+							"name": "Set-RowCount",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "Copy-Source-DataLake",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "RowCount",
+								"value": {
+									"value": "@string(activity('Copy-Source-DataLake').output.rowsCopied)",
+									"type": "Expression"
+								}
+							}
+						}
+					]
 				}
 			}
 		],
@@ -542,6 +1061,9 @@
 				"type": "String"
 			},
 			"sltTimestamp": {
+				"type": "String"
+			},
+			"RowCount": {
 				"type": "String"
 			}
 		},
