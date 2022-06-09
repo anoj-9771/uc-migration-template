@@ -266,7 +266,7 @@ def getBilledWaterConsumptionDaily():
 # COMMAND ----------
 
 df, schema = getBilledWaterConsumptionDaily()
-TemplateEtl(df, entity="factDailyApportionedConsumption", businessKey="sourceSystemCode,consumptionDate,meterConsumptionBillingDocumentSK,meterConsumptionBillingLineItemSK,propertySK,meterSK,locationSK,waterNetworkSK,businessPartnerGroupSK,contractSK", schema=schema, writeMode=ADS_WRITE_MODE_MERGE, AddSK=False)
+TemplateEtl(df, entity="factDailyApportionedConsumption", businessKey="consumptionDate,meterConsumptionBillingDocumentSK,meterConsumptionBillingLineItemSK,propertySK,meterSK,locationSK,waterNetworkSK,businessPartnerGroupSK,contractSK", schema=schema, writeMode=ADS_WRITE_MODE_MERGE, AddSK=False)
 
 # COMMAND ----------
 
@@ -291,7 +291,7 @@ TemplateEtl(df, entity="factDailyApportionedConsumption", businessKey="sourceSys
 # MAGIC businessPartnerGroupSK,
 # MAGIC contractSK,
 # MAGIC dailyApportionedConsumption from (
-# MAGIC select * ,RANK() OVER   (PARTITION BY sourceSystemCode,consumptionDate,meterConsumptionBillingDocumentSK,meterConsumptionBillingLineItemSK,propertySK,meterSK,locationSK,waterNetworkSK,businessPartnerGroupSK,contractSK ORDER BY propertyTypeValidToDate desc,propertyTypeValidFromDate desc) as flag  from 
+# MAGIC select * ,RANK() OVER   (PARTITION BY consumptionDate,meterConsumptionBillingDocumentSK,meterConsumptionBillingLineItemSK,propertySK,meterSK,locationSK,waterNetworkSK,businessPartnerGroupSK,contractSK ORDER BY propertyTypeValidToDate desc,propertyTypeValidFromDate desc) as flag  from 
 # MAGIC (select prop.propertyNumber,
 # MAGIC prophist.inferiorPropertyTypeCode,
 # MAGIC prophist.inferiorPropertyType,
