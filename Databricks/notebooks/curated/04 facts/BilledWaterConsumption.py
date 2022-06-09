@@ -233,14 +233,14 @@ def getBilledWaterConsumption():
     #8.Apply schema definition
     schema = StructType([
                             StructField("sourceSystemCode", StringType(), False),
-                            StructField("meterConsumptionBillingDocumentSK", LongType(), False),
-                            StructField("meterConsumptionBillingLineItemSK", LongType(), False),
-                            StructField("propertySK", LongType(), False),
-                            StructField("meterSK", LongType(), False),
-                            StructField("locationSK", LongType(), False),
-                            StructField("waterNetworkSK", LongType(), False),
-                            StructField("businessPartnerGroupSK", LongType(), False),
-                            StructField("contractSK", LongType(), False),
+                            StructField("meterConsumptionBillingDocumentSK", StringType(), False),
+                            StructField("meterConsumptionBillingLineItemSK", StringType(), False),
+                            StructField("propertySK", StringType(), False),
+                            StructField("meterSK", StringType(), False),
+                            StructField("locationSK", StringType(), False),
+                            StructField("waterNetworkSK", StringType(), False),
+                            StructField("businessPartnerGroupSK", StringType(), False),
+                            StructField("contractSK", StringType(), False),
                             StructField("billingPeriodStartDate", DateType(), False),
                             StructField("billingPeriodEndDate", DateType(), False),
                             StructField("meteredWaterConsumption", DecimalType(18,6), True)
@@ -251,7 +251,7 @@ def getBilledWaterConsumption():
 # COMMAND ----------
 
 df, schema = getBilledWaterConsumption()
-TemplateEtl(df, entity="factBilledWaterConsumption", businessKey="sourceSystemCode,meterConsumptionBillingDocumentSK,meterConsumptionBillingLineItemSK", schema=schema, writeMode=ADS_WRITE_MODE_MERGE, AddSK=False)
+TemplateEtl(df, entity="factBilledWaterConsumption", businessKey="sourceSystemCode,meterConsumptionBillingDocumentSK,meterConsumptionBillingLineItemSK,propertySK,meterSK,locationSK,waterNetworkSK,businessPartnerGroupSK,contractSK,billingPeriodStartDate", schema=schema, writeMode=ADS_WRITE_MODE_MERGE, AddSK=False)
 
 # COMMAND ----------
 
@@ -277,7 +277,7 @@ TemplateEtl(df, entity="factBilledWaterConsumption", businessKey="sourceSystemCo
 # MAGIC billingPeriodStartDate,
 # MAGIC billingPeriodEndDate,
 # MAGIC meteredWaterConsumption from (
-# MAGIC select * ,RANK() OVER (PARTITION BY sourceSystemCode,meterConsumptionBillingDocumentSK,meterConsumptionBillingLineItemSK ORDER BY propertyTypeValidToDate desc,propertyTypeValidFromDate desc) as flag  from 
+# MAGIC select * ,RANK() OVER (PARTITION BY sourceSystemCode,meterConsumptionBillingDocumentSK,meterConsumptionBillingLineItemSK,propertySK,meterSK,locationSK,waterNetworkSK,businessPartnerGroupSK,contractSK,billingPeriodStartDate ORDER BY propertyTypeValidToDate desc,propertyTypeValidFromDate desc) as flag  from 
 # MAGIC (select prop.propertyNumber,
 # MAGIC prophist.inferiorPropertyTypeCode,
 # MAGIC prophist.inferiorPropertyType,
