@@ -309,7 +309,7 @@
 				"typeProperties": {
 					"variableName": "RunBusinessRecon",
 					"value": {
-						"value": "@if(equals(toLower(last(split(pipeline().parameters.TaskDetails.Command,'/'))), 'billedwaterconsumption'), 'yes', 'no')",
+						"value": "@if(or(equals(toLower(last(split(pipeline().parameters.TaskDetails.Command,'/'))), 'billedwaterconsumption'), equals(toLower(last(split(pipeline().parameters.TaskDetails.Command,'/'))), 'billedwaterconsumptiondaily')), 'yes', 'no')",
 						"type": "Expression"
 					}
 				}
