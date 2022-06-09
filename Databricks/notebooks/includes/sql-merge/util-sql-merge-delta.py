@@ -340,9 +340,9 @@ def _SQLUpdateCompareCondition_DeltaTableArchive(dataframe, business_key, source
   #Start of Fix for Handling Null in Key Columns
 #   col_exception_list = [business_key, COL_RECORD_VERSION, COL_RECORD_START, COL_RECORD_END, COL_RECORD_CURRENT, COL_RECORD_DELETED, COL_DL_RAW_LOAD, COL_DL_CLEANSED_LOAD, COL_DL_CURATED_LOAD]
   #Adding SK column if any to the exception list 
-  col_SK = target_alias + "SK"
+  col_SK = deriveSurrogateKey(target_alias)
   buskey_col_list = business_key.split(",")
-  col_exception_list = [COL_RECORD_VERSION, COL_RECORD_START, COL_RECORD_END, COL_RECORD_CURRENT, COL_RECORD_DELETED, COL_DL_RAW_LOAD, COL_DL_CLEANSED_LOAD, COL_DL_CURATED_LOAD, col_SK]
+  col_exception_list = [COL_RECORD_VERSION, COL_RECORD_START, COL_RECORD_END, COL_RECORD_CURRENT, COL_RECORD_DELETED, COL_DL_RAW_LOAD, COL_DL_CLEANSED_LOAD, COL_DL_CURATED_LOAD, col_SK, COL_RECORD_BUS_KEY]
   col_exception_list.extend(buskey_col_list)
   #End of Fix for Handling Null in Key Columns
   #Get the list of columns which does not include the exception list 
@@ -380,9 +380,9 @@ def _SQLUpdateSetValue_DeltaTable(dataframe, business_key, source_alias, target_
  #Exclude the following columns from Update
 #   col_exception_list = [business_key, COL_RECORD_VERSION, COL_RECORD_START, COL_RECORD_END, COL_RECORD_CURRENT, COL_RECORD_DELETED] 
   #Adding SK column if any to the exception list
-  col_SK = source_alias+"SK"  
+  col_SK = deriveSurrogateKey(source_alias)  
   buskey_col_list = business_key.split(",")
-  col_exception_list = [COL_RECORD_VERSION, COL_RECORD_START, COL_RECORD_END, COL_RECORD_CURRENT, COL_RECORD_DELETED, col_SK]
+  col_exception_list = [COL_RECORD_VERSION, COL_RECORD_START, COL_RECORD_END, COL_RECORD_CURRENT, COL_RECORD_DELETED, col_SK, COL_RECORD_BUS_KEY]
   col_exception_list.extend(buskey_col_list) 
   #End of Fix for Handling Null in Key Columns
   
@@ -709,9 +709,9 @@ def _SQLUpdateCompareCondition_DeltaTable(dataframe, business_key, source_alias,
   #Start of Fix for Handling Null in Key Columns
 #   col_exception_list = [business_key, COL_RECORD_VERSION, COL_RECORD_START, COL_RECORD_END, COL_RECORD_CURRENT, COL_RECORD_DELETED, COL_DL_RAW_LOAD, COL_DL_CLEANSED_LOAD, COL_DL_CURATED_LOAD]
   #Adding SK column if any to the exception list 
-  col_SK = target_alias + "SK"
+  col_SK = deriveSurrogateKey(target_alias)
   buskey_col_list = business_key.split(",")
-  col_exception_list = [COL_RECORD_VERSION, COL_RECORD_START, COL_RECORD_END, COL_RECORD_CURRENT, COL_RECORD_DELETED, COL_DL_RAW_LOAD, COL_DL_CLEANSED_LOAD, COL_DL_CURATED_LOAD, col_SK]
+  col_exception_list = [COL_RECORD_VERSION, COL_RECORD_START, COL_RECORD_END, COL_RECORD_CURRENT, COL_RECORD_DELETED, COL_DL_RAW_LOAD, COL_DL_CLEANSED_LOAD, COL_DL_CURATED_LOAD, col_SK, COL_RECORD_BUS_KEY]
   col_exception_list.extend(buskey_col_list)
   #End of Fix for Handling Null in Key Columns
   #Get the list of columns which does not include the exception list 

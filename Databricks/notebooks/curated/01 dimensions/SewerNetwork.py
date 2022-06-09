@@ -45,7 +45,7 @@ def getSewerNetwork():
                                             
     #5.Apply schema definition
     schema = StructType([
-                            StructField('sewerNetworkSK', LongType(), False),
+                            StructField('sewerNetworkSK', StringType(), False),
                             StructField("sewerNetwork", StringType(), False),
                             StructField("sewerCatchment", StringType(), False),
                             StructField("SCAMP", StringType(), False)

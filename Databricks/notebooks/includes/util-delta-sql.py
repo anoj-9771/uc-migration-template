@@ -1,4 +1,8 @@
 # Databricks notebook source
+from pyspark.sql.functions import concat_ws, md5
+
+# COMMAND ----------
+
 def DeltaTableExists(table_name):
   
   sql = "DESCRIBE " + table_name
@@ -346,14 +350,21 @@ def deriveSurrogateKey(table_name):
 
 # COMMAND ----------
 
+def deriveMd5Column(df, md5Col, business_key):
+   keyCols = business_key.split(",")
+   dfMd5 = df.withColumn(md5Col, md5(concat_ws('|', *keyCols))) 
+    
+   return dfMd5
+
+# COMMAND ----------
+
 def DeltaInjectSurrogateKeyToDataFrame(df, table_name, business_key):
-  from pyspark.sql.functions import concat_ws, md5
   keyCols = business_key.split(",")
   cols = df.columns
   skColumn = deriveSurrogateKey(table_name)
   LogEtl(f"Adding SK column : {skColumn}")
-  dfSK = df.withColumn(skColumn, md5(concat_ws('||',*keyCols)))
-  df = dfSK.select(skColumn, *cols)
+  dfSK = deriveMd5Column(df, skColumn, business_key).withColumn(COL_RECORD_BUS_KEY, concat_ws('|', *keyCols)) 
+  df = dfSK.select(skColumn, *cols, COL_RECORD_BUS_KEY)
   #the surrogate key should never be null
   #df.schema[skColumn].nullable = False
   
