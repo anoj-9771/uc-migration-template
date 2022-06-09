@@ -36,7 +36,7 @@ def getBilledWaterConsumptionAccess():
                                                                                      and mts.propertyMeterNumber = mr.propertyMeterNumber \
                                                                                      and mr.readingToDate between mts.validFrom and mts.validTo \
                                                                                      and mr.readingToDate != mts.validFrom \
-                                   left outer join {ADS_DATABASE_CURATED}.dimMeter dm on dm.meterSerialNumber = coalesce(mts.meterMakerNumber,'-1') and (dm.sourceSystemCode = 'ACCESS' or dm.sourceSystemCode is null) \
+                                   left outer join {ADS_DATABASE_CURATED}.dimMeter dm on dm.meterSerialNumber = coalesce(mts.meterMakerNumber,'-1') \
                               where mr.meterReadingStatusCode IN ('A','B','P','V') \
                                     and mr.meterReadingDays > 0 \
                                     and mr.meterReadingConsumption > 0 \
