@@ -346,11 +346,13 @@ def deriveSurrogateKey(table_name):
 
 # COMMAND ----------
 
-def DeltaInjectSurrogateKeyToDataFrame(df, table_name):
+def DeltaInjectSurrogateKeyToDataFrame(df, table_name, business_key):
+  from pyspark.sql.functions import concat_ws, md5
+  keyCols = business_key.split(",")
   cols = df.columns
   skColumn = deriveSurrogateKey(table_name)
   LogEtl(f"Adding SK column : {skColumn}")
-  dfSK = df.withColumn(skColumn, lit(None).cast(LongType()))
+  dfSK = df.withColumn(skColumn, md5(concat_ws('||',*keyCols)))
   df = dfSK.select(skColumn, *cols)
   #the surrogate key should never be null
   #df.schema[skColumn].nullable = False
@@ -542,10 +544,7 @@ def DeltaSaveDataFrameToDeltaTable(
   stage_table_name = f"{ADS_DATABASE_STAGE}.{target_table}"
   
   if AddSKColumn:
-    dataframe = DeltaInjectSurrogateKeyToDataFrame(dataframe, target_table)
-    if DeltaTableExists(f"{target_database}.{target_table}"):
-        skColumn = dataframe.schema[0].name
-        spark.sql(f'ALTER TABLE {target_database}.{target_table} ALTER COLUMN {skColumn} DROP NOT NULL;')
+    dataframe = DeltaInjectSurrogateKeyToDataFrame(dataframe, target_table, business_key)
 
   #Drop the stage table if it exists
   spark.sql(f"DROP TABLE IF EXISTS {stage_table_name}")
@@ -570,11 +569,6 @@ def DeltaSaveDataFrameToDeltaTable(
     end_counter = end_counter
     )
   
-  if AddSKColumn:
-    dlTargetTableFqn = f"{target_database}.{target_table}"
-    DeltaUpdateSurrogateKey(target_database, target_table, business_key) 
-
-#   verifyTableSchema(f"{target_database}.{target_table}", dataframe.schema)
   verifyTableSchema(f"{target_database}.{target_table}", schema)
 
 # COMMAND ----------
