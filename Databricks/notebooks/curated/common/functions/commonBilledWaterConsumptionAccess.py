@@ -23,9 +23,10 @@ def getBilledWaterConsumptionAccess():
 
     #reusable query to derive the base billed consumption from Access Meter Reading dataset
     #2.Load Cleansed layer table data into dataframe
-    billedConsDf = spark.sql(f"select 'ACCESS' as sourceSystemCode, mr.propertyNumber, dm.meterNumber, \
+    #dm.sourceSystemCode is null is there for the -1 case as that dummy row has a null sourcesystem code
+    billedConsDf = spark.sql(f"select 'ACCESS' as sourceSystemCode, mr.propertyNumber, coalesce(dm.meterNumber,'-1') as meterNumber, \
                                    mr.readingFromDate, mr.readingToDate, mr.meterReadingDays, \
-                                   mr.meterReadingConsumption, coalesce(mts.meterMakerNumber,'0') as meterMakerNumber, \
+                                   mr.meterReadingConsumption, coalesce(mts.meterMakerNumber,'Unknowm') as meterMakerNumber, \
                                    row_number() over (partition by mr.propertyNumber, mr.propertyMeterNumber, mr.readingFromDate \
                                                        order by mr.meterReadingNumber desc) meterReadRecNumFrom, \
                                    row_number() over (partition by mr.propertyNumber, mr.propertyMeterNumber, mr.readingToDate \
@@ -35,7 +36,7 @@ def getBilledWaterConsumptionAccess():
                                                                                      and mts.propertyMeterNumber = mr.propertyMeterNumber \
                                                                                      and mr.readingToDate between mts.validFrom and mts.validTo \
                                                                                      and mr.readingToDate != mts.validFrom \
-                                   left outer join {ADS_DATABASE_CURATED}.dimMeter dm on dm.meterSerialNumber = coalesce(mts.meterMakerNumber,'0') and dm.sourceSystemCode = 'ACCESS' \
+                                   left outer join {ADS_DATABASE_CURATED}.dimMeter dm on dm.meterSerialNumber = coalesce(mts.meterMakerNumber,'-1') and (dm.sourceSystemCode = 'ACCESS' or dm.sourceSystemCode is null) \
                               where mr.meterReadingStatusCode IN ('A','B','P','V') \
                                     and mr.meterReadingDays > 0 \
                                     and mr.meterReadingConsumption > 0 \
@@ -71,4 +72,7 @@ def getBilledWaterConsumptionAccess():
 
 # COMMAND ----------
 
-
+# ADS_DATABASE_CLEANSED = 'cleansed'
+# ADS_DATABASE_CURATED = 'curated'
+# df = getBilledWaterConsumptionAccess()
+# df.createOrReplaceTempView('accs')
