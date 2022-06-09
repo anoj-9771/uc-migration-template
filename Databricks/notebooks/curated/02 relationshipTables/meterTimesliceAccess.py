@@ -128,7 +128,7 @@ def getmeterTimesliceAccess():
     schema = StructType([
                             StructField('propertyNumber', StringType(), False),
                             StructField("propertyMeterNumber", StringType(), False),
-                            StructField("meterMakerNumber", StringType(), False),
+                            StructField("meterMakerNumber", StringType(), True),
                             StructField("validFrom", DateType(), False),
                             StructField("validTo", DateType(), True),
                             StructField("meterSize", StringType(), True),

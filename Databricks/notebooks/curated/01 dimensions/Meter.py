@@ -206,7 +206,7 @@ def getMeter():
     
     #5.Apply schema definition
     schema = StructType([
-                            StructField('meterSK', LongType(), False),
+                            StructField('meterSK', StringType(), False),
                             StructField('sourceSystemCode', StringType(), True),
                             StructField('meterNumber', StringType(), False),
                             StructField('meterSerialNumber', StringType(), True),

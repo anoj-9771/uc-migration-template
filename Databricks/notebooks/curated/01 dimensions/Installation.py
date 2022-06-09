@@ -65,7 +65,7 @@ def getInstallation():
        
     #5.Apply schema definition
     schema = StructType([
-                            StructField('installationSK', LongType(), False),
+                            StructField('installationSK', StringType(), False),
                             StructField('sourceSystemCode', StringType(), True),
                             StructField('installationId', StringType(), False),
                             StructField('divisionCode', StringType(), True),
