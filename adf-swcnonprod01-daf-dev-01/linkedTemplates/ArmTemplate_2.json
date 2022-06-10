@@ -6375,6 +6375,13 @@
 											"value": "@pipeline().parameters.BusinessReconGroup",
 											"type": "Expression"
 										}
+									},
+									"TargetObject": {
+										"type": "String",
+										"value": {
+											"value": "@last(split(pipeline().parameters.TaskDetails.Command,'/'))",
+											"type": "Expression"
+										}
 									}
 								},
 								"partitionOption": "None"
@@ -6585,6 +6592,9 @@
 					},
 					"TaskDetails": {
 						"type": "object"
+					},
+					"TargetObject": {
+						"type": "string"
 					}
 				},
 				"variables": {
