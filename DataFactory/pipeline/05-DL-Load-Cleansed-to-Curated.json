@@ -356,7 +356,15 @@
 										"value": "@pipeline().parameters.ProjectRunID",
 										"type": "Expression"
 									},
-									"BusinessReconGroup": "Water Consumption Reconciliation"
+									"BusinessReconGroup": "Water Consumption Reconciliation",
+									"TaskDetails": {
+										"value": "@pipeline().parameters.TaskDetails",
+										"type": "Expression"
+									},
+									"TargetObject": {
+										"value": "@last(split(pipeline().parameters.TaskDetails.Command,'/'))",
+										"type": "Expression"
+									}
 								}
 							}
 						}
