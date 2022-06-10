@@ -169,24 +169,6 @@ print(delta_raw_tbl_name)
 
 # COMMAND ----------
 
-# DBTITLE 1,9.1 Identify Deleted records from Raw table
-df = spark.sql(f"select distinct EQUNR,BIS from {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' and   DI_OPERATION_TYPE ='X'")
-df.createOrReplaceTempView("isu_device_deleted_records")
-
-# COMMAND ----------
-
-# DBTITLE 1,9.2 Update _RecordDeleted and _RecordCurrent Flags
-# MAGIC %sql
-# MAGIC MERGE INTO cleansed.isu_0UC_DEVICEH_ATTR
-# MAGIC using isu_device_deleted_records
-# MAGIC on isu_0UC_DEVICEH_ATTR.equipmentNumber = isu_device_deleted_records.EQUNR
-# MAGIC and isu_0UC_DEVICEH_ATTR.validToDate = isu_device_deleted_records.BIS
-# MAGIC WHEN MATCHED THEN UPDATE SET
-# MAGIC _RecordDeleted=1
-# MAGIC ,_RecordCurrent=0
-
-# COMMAND ----------
-
 # DBTITLE 1,10. Load Raw to Dataframe & Do Transformations
 df = spark.sql(f"WITH stage AS \
                       (Select *, ROW_NUMBER() OVER (PARTITION BY EQUNR,BIS ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' and DI_OPERATION_TYPE !='X' ) \
@@ -278,5 +260,27 @@ DeltaSaveDataFrameToDeltaTable(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS
 
 # COMMAND ----------
 
-# DBTITLE 1,13. Exit Notebook
+# DBTITLE 1,13.1 Identify Deleted records from Raw table
+df = spark.sql(f"select EQUNR,AB,BIS from {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' and   DI_OPERATION_TYPE ='X'")
+df.createOrReplaceTempView("isu_device_deleted_records")
+
+# COMMAND ----------
+
+# DBTITLE 1,13.2 Update _RecordDeleted and _RecordCurrent Flags
+spark.sql(f" \
+    MERGE INTO cleansed.isu_0UC_DEVICEH_ATTR \
+    using isu_device_deleted_records \
+    on isu_0UC_DEVICEH_ATTR.equipmentNumber = isu_device_deleted_records.EQUNR \
+    and isu_0UC_DEVICEH_ATTR.validFromDate = isu_device_deleted_records.AB \
+    and isu_0UC_DEVICEH_ATTR.validToDate = isu_device_deleted_records.BIS \
+    WHEN MATCHED THEN UPDATE SET \
+    _DLCleansedZoneTimeStamp = cast('{CurrentTimeStamp}' as TimeStamp) \
+    ,_RecordEnd = cast('{CurrentTimeStamp}' as TimeStamp) \
+    ,_RecordDeleted=1 \
+    ,_RecordCurrent=0 \
+    ")
+
+# COMMAND ----------
+
+# DBTITLE 1,14. Exit Notebook
 dbutils.notebook.exit("1")
