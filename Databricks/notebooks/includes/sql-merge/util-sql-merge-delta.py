@@ -375,6 +375,7 @@ def _SQLUpdateSetValue_DeltaTable(dataframe, business_key, source_alias, target_
   #Generate SQL for UPDATE column compare
   
   delete_flag = 1 if delete_data else 0
+  current_flag = 0 if delete_data else 1
 
  #Start of Fix for Handling Null in Key Columns
  #Exclude the following columns from Update
@@ -402,7 +403,7 @@ def _SQLUpdateSetValue_DeltaTable(dataframe, business_key, source_alias, target_
       
   #Add the timestamp column for the zone
   sql+= "," + source_alias + "." + COL_TIMESTAMP + " = " + "to_timestamp('" + curr_time_stamp + "')" 
-  sql+= f", {COL_RECORD_DELETED} = {delete_flag}" 
+  sql+= f", {COL_RECORD_DELETED} = {delete_flag}, {COL_RECORD_CURRENT} = {current_flag}" 
   
   sql += NEW_LINE
     
@@ -719,7 +720,9 @@ def _SQLUpdateCompareCondition_DeltaTable(dataframe, business_key, source_alias,
   updated_col_list = _GetExclusiveList(dataframe.columns, col_exception_list)
   sql = ""
   #Check current record version even if track_changes is not enabled to ensure we only check only the latest records
-  sql += TAB + f"AND {target_alias}.{COL_RECORD_CURRENT} = 1" + NEW_LINE
+  #Below line of code is commented to handle Deleted Records from source (when a new record with the same key get created again after deletion). 
+  #This needs to revisited when SCD gets implemented
+#   sql += TAB + f"AND {target_alias}.{COL_RECORD_CURRENT} = 1" + NEW_LINE
   
   if delete_data:
     sql = sql
