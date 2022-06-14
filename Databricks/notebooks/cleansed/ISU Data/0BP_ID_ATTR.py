@@ -172,7 +172,7 @@ print(delta_raw_tbl_name)
 # DBTITLE 1,10. Load Raw to Dataframe & Do Transformations
 df = spark.sql(f"WITH stage AS \
                       (Select *, ROW_NUMBER() OVER (PARTITION BY PARTNER,TYPE,IDNUMBER ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} \
-                                  WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
+                                  WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' and FLG_DEL_BW IS NULL ) \
                            SELECT \
                                 case when BP.PARTNER = 'na' then '' else BP.PARTNER end as businessPartnerNumber, \
                                 case when BP.TYPE = 'na' then '' else BP.TYPE end as identificationTypeCode, \
@@ -197,34 +197,6 @@ df = spark.sql(f"WITH stage AS \
                            where BP._RecordVersion = 1 ")
 
 #print(f'Number of rows: {df.count()}')
-
-# COMMAND ----------
-
-# DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
-#Update/rename Column
-#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
-# df_cleansed = spark.sql(f"SELECT \
-#                                 case when BP.PARTNER = 'na' then '' else BP.PARTNER end as businessPartnerNumber, \
-#                                 case when BP.TYPE = 'na' then '' else BP.TYPE end as identificationTypeCode, \
-#                                 BP_TXT.identificationType as identificationType, \
-#                                 case when BP.IDNUMBER = 'na' then '' else BP.IDNUMBER end as businessPartnerIdNumber, \
-#                                 BP.INSTITUTE as institute, \
-#                                 ToValidDate(BP.ENTRY_DATE) as entryDate, \
-#                                 ToValidDate(BP.VALID_DATE_FROM) as validFromDate, \
-#                                 ToValidDate(BP.VALID_DATE_TO) as validToDate, \
-#                                 BP.COUNTRY as countryShortName, \
-#                                 BP.REGION as stateCode, \
-#                                 BP.PARTNER_GUID as businessPartnerGUID, \
-#                                 BP.FLG_DEL_BW as deletedIndicator, \
-#                                 BP._RecordStart, \
-#                                 BP._RecordEnd, \
-#                                 BP._RecordDeleted, \
-#                                 BP._RecordCurrent \
-#                            FROM {ADS_DATABASE_STAGE}.{source_object}  BP \
-#                            LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0BP_ID_TYPE_TEXT BP_TXT \
-#                                     ON BP.TYPE = BP_TXT.identificationTypeCode AND BP_TXT._RecordDeleted = 0 AND BP_TXT._RecordCurrent = 1")
-
-# print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
 
@@ -253,6 +225,28 @@ newSchema = StructType([
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 DeltaSaveDataFrameToDeltaTable(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
+
+# COMMAND ----------
+
+# DBTITLE 1,13.1 Identify Deleted records from Raw table
+df = spark.sql(f"select distinct PARTNER,TYPE,IDNUMBER from {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' and FLG_DEL_BW IS NOT NULL")
+df.createOrReplaceTempView("isu_bp_id_deleted_records")
+
+# COMMAND ----------
+
+# DBTITLE 1,13.2 Update _RecordDeleted and _RecordCurrent Flags
+spark.sql(f" \
+    MERGE INTO cleansed.isu_0BP_ID_ATTR \
+    using isu_bp_id_deleted_records \
+    on isu_0BP_ID_ATTR.businessPartnerNumber = isu_bp_id_deleted_records.PARTNER \
+    and isu_0BP_ID_ATTR.identificationTypeCode = isu_bp_id_deleted_records.TYPE \
+    and isu_0BP_ID_ATTR.businessPartnerIdNumber = isu_bp_id_deleted_records.IDNUMBER \
+    WHEN MATCHED THEN UPDATE SET \
+    _DLCleansedZoneTimeStamp = cast('{CurrentTimeStamp}' as TimeStamp) \
+    ,_RecordEnd = cast('{CurrentTimeStamp}' as TimeStamp) \
+    ,_RecordDeleted=1 \
+    ,_RecordCurrent=0 \
+    ")
 
 # COMMAND ----------
 
