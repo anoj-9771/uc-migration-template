@@ -13279,7 +13279,7 @@
 						"typeProperties": {
 							"variableName": "RunBusinessRecon",
 							"value": {
-								"value": "@if(equals(toLower(last(split(pipeline().parameters.TaskDetails.Command,'/'))), 'billedwaterconsumption'), 'yes', 'no')",
+								"value": "@if(or(equals(toLower(last(split(pipeline().parameters.TaskDetails.Command,'/'))), 'billedwaterconsumption'), equals(toLower(last(split(pipeline().parameters.TaskDetails.Command,'/'))), 'billedwaterconsumptiondaily')), 'yes', 'no')",
 								"type": "Expression"
 							}
 						}
@@ -13326,7 +13326,15 @@
 												"value": "@pipeline().parameters.ProjectRunID",
 												"type": "Expression"
 											},
-											"BusinessReconGroup": "Water Consumption Reconciliation"
+											"BusinessReconGroup": "Water Consumption Reconciliation",
+											"TaskDetails": {
+												"value": "@pipeline().parameters.TaskDetails",
+												"type": "Expression"
+											},
+											"TargetObject": {
+												"value": "@last(split(pipeline().parameters.TaskDetails.Command,'/'))",
+												"type": "Expression"
+											}
 										}
 									}
 								}
@@ -14494,6 +14502,13 @@
 											"value": "@pipeline().parameters.BusinessReconGroup",
 											"type": "Expression"
 										}
+									},
+									"TargetObject": {
+										"type": "String",
+										"value": {
+											"value": "@last(split(pipeline().parameters.TaskDetails.Command,'/'))",
+											"type": "Expression"
+										}
 									}
 								},
 								"partitionOption": "None"
@@ -14704,6 +14719,9 @@
 					},
 					"TaskDetails": {
 						"type": "object"
+					},
+					"TargetObject": {
+						"type": "string"
 					}
 				},
 				"variables": {
