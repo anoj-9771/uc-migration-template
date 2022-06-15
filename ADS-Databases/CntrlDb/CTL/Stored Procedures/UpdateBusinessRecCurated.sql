@@ -15,14 +15,15 @@ DECLARE
 	@vsourcemeasurevalue decimal(28,7),
 	@vBusinessReconGroup varchar(255),
 	@vMeasureId varchar(255),	
-	@vMeasureName varchar(255)
+	@vMeasureName varchar(255),
+	@vTargetObject varchar(255)
 
---Added comment from dev_pp_sp19_v8
 	SELECT 
 	@vsourcemeasurevalue = bc.SourceMeasureValue,
 	@vBusinessReconGroup = bc.BusinessReconGroup,
 	@vMeasureId = bc.MeasureId,
-	@vMeasureName = bc.MeasureName
+	@vMeasureName = bc.MeasureName,
+	@vTargetObject = bc.TargetObject
 	FROM CTL.BusinessRecCurated bc
 	WHERE bc.BusinessRecId = @BusinessRecId
 
@@ -58,6 +59,7 @@ DECLARE
 		WHERE BusinessReconGroup = @vBusinessReconGroup
 		  AND MeasureId = @vMeasureId
 		  AND MeasureName = @vMeasureName
+		  AND TargetObject = @vTargetObject
 		  AND BusinessRecResult is null
 		  AND UpdatedDateTime < @UpdatedDateTime
 
