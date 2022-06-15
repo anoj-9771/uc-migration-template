@@ -232,7 +232,7 @@ DeltaSaveDataFrameToDeltaTable(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS
 # COMMAND ----------
 
 # DBTITLE 1,13.1 Identify Deleted records from Raw table
-df = spark.sql(f"select ANLAGE,LOGIKNR,AB,BIS from {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' and   DI_OPERATION_TYPE ='X'")
+df = spark.sql(f"select distinct ANLAGE,LOGIKNR,AB,BIS from {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' and   DI_OPERATION_TYPE ='X'")
 df.createOrReplaceTempView("isu_devinst_deleted_records")
 
 # COMMAND ----------
