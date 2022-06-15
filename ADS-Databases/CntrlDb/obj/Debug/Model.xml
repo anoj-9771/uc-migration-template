@@ -7205,9 +7205,10 @@ SELECT
 	   recLog.BusinessRecId,
 	   recLog.CreatedBatchExecutionId,
 	   recLog.CreatedTaskExecutionLogId     
-  FROM (select *, row_number() over (partition by BusinessReconGroup, MeasureId, MeasureName order by CreatedDateTime desc) as CurrentRec
+  FROM (select *, row_number() over (partition by BusinessReconGroup, MeasureId, MeasureName, TargetObject order by CreatedDateTime desc) as CurrentRec
         from CTL.BusinessRecCurated
         where (CuratedPipelineRunID is null or BusinessRecResult is null)
+		and TargetObject = @TargetObject
         ) recLog,
        CTL.BusinessRecConfig recMstr
  where recLog.BusinessReconGroup = recMstr.BusinessReconGroup
@@ -7215,7 +7216,8 @@ SELECT
    and recLog.MeasureName = recMstr.MeasureName
    AND recMstr.Enabled = 1
    AND recLog.CurrentRec = 1
-   AND recMstr.BusinessReconGroup = @BusinessReconGroup]]></Value>
+   AND recMstr.BusinessReconGroup = @BusinessReconGroup
+   AND recMstr.TargetObject = @TargetObject]]></Value>
 			</Property>
 			<Property Name="IsAnsiNullsOn" Value="True" />
 			<Relationship Name="BodyDependencies">
@@ -7232,6 +7234,9 @@ SELECT
 					<References Name="[CTL].[BusinessRecCurated].[MeasureName]" />
 				</Entry>
 				<Entry>
+					<References Name="[CTL].[BusinessRecCurated].[TargetObject]" />
+				</Entry>
+				<Entry>
 					<References Name="[CTL].[BusinessRecCurated].[CreatedDateTime]" />
 				</Entry>
 				<Entry>
@@ -7239,6 +7244,9 @@ SELECT
 				</Entry>
 				<Entry>
 					<References Name="[CTL].[BusinessRecCurated].[BusinessRecResult]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[GetBusinessRecCurated].[@TargetObject]" />
 				</Entry>
 				<Entry>
 					<References Name="[CTL].[BusinessRecConfig]" />
@@ -7279,10 +7287,29 @@ SELECT
 				<Entry>
 					<References Name="[CTL].[GetBusinessRecCurated].[@BusinessReconGroup]" />
 				</Entry>
+				<Entry>
+					<References Name="[CTL].[BusinessRecConfig].[TargetObject]" />
+				</Entry>
 			</Relationship>
 			<Relationship Name="Parameters">
 				<Entry>
 					<Element Type="SqlSubroutineParameter" Name="[CTL].[GetBusinessRecCurated].[@BusinessReconGroup]">
+						<Relationship Name="Type">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Property Name="Length" Value="255" />
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[varchar]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlSubroutineParameter" Name="[CTL].[GetBusinessRecCurated].[@TargetObject]">
 						<Relationship Name="Type">
 							<Entry>
 								<Element Type="SqlTypeSpecifier">
@@ -7304,10 +7331,10 @@ SELECT
 				</Entry>
 			</Relationship>
 			<Annotation Type="SysCommentsObjectAnnotation">
-				<Property Name="Length" Value="821" />
+				<Property Name="Length" Value="948" />
 				<Property Name="StartLine" Value="1" />
 				<Property Name="StartColumn" Value="1" />
-				<Property Name="HeaderContents" Value="CREATE PROCEDURE [CTL].[GetBusinessRecCurated] &#xD;&#xA;  (&#xD;&#xA;&#x9;  @BusinessReconGroup varchar(255)&#xD;&#xA;  )&#xD;&#xA;AS" />
+				<Property Name="HeaderContents" Value="CREATE PROCEDURE [CTL].[GetBusinessRecCurated] &#xD;&#xA;  (&#xD;&#xA;&#x9;  @BusinessReconGroup varchar(255),&#xD;&#xA;&#x9;  @TargetObject varchar(255)&#xD;&#xA;  )&#xD;&#xA;AS" />
 			</Annotation>
 		</Element>
 		<Element Type="SqlProcedure" Name="[CTL].[GetExecutionStages]">
@@ -12968,6 +12995,15 @@ end]]></Value>
 						</Relationship>
 					</Element>
 				</Entry>
+				<Entry>
+					<Element Type="SqlIndexedColumnSpecification">
+						<Relationship Name="Column">
+							<Entry>
+								<References Name="[CTL].[BusinessRecConfig].[TargetObject]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
 			</Relationship>
 			<Relationship Name="DefiningTable">
 				<Entry>
@@ -13183,14 +13219,15 @@ DECLARE
 	@vsourcemeasurevalue decimal(28,7),
 	@vBusinessReconGroup varchar(255),
 	@vMeasureId varchar(255),	
-	@vMeasureName varchar(255)
+	@vMeasureName varchar(255),
+	@vTargetObject varchar(255)
 
---Added comment from dev_pp_sp19_v8
 	SELECT 
 	@vsourcemeasurevalue = bc.SourceMeasureValue,
 	@vBusinessReconGroup = bc.BusinessReconGroup,
 	@vMeasureId = bc.MeasureId,
-	@vMeasureName = bc.MeasureName
+	@vMeasureName = bc.MeasureName,
+	@vTargetObject = bc.TargetObject
 	FROM CTL.BusinessRecCurated bc
 	WHERE bc.BusinessRecId = @BusinessRecId
 
@@ -13226,6 +13263,7 @@ DECLARE
 		WHERE BusinessReconGroup = @vBusinessReconGroup
 		  AND MeasureId = @vMeasureId
 		  AND MeasureName = @vMeasureName
+		  AND TargetObject = @vTargetObject
 		  AND BusinessRecResult is null
 		  AND UpdatedDateTime < @UpdatedDateTime
 
@@ -13235,6 +13273,9 @@ END]]></Value>
 			<Relationship Name="BodyDependencies">
 				<Entry>
 					<References ExternalSource="BuiltIns" Name="[decimal]" />
+				</Entry>
+				<Entry>
+					<References ExternalSource="BuiltIns" Name="[varchar]" />
 				</Entry>
 				<Entry>
 					<References ExternalSource="BuiltIns" Name="[varchar]" />
@@ -13259,6 +13300,9 @@ END]]></Value>
 				</Entry>
 				<Entry>
 					<References Name="[CTL].[BusinessRecCurated].[MeasureName]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[BusinessRecCurated].[TargetObject]" />
 				</Entry>
 				<Entry>
 					<References Name="[CTL].[BusinessRecCurated].[BusinessRecId]" />
@@ -13310,6 +13354,9 @@ END]]></Value>
 				</Entry>
 				<Entry>
 					<References Name="[CTL].[BusinessRecCurated].[MeasureName]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[BusinessRecCurated].[TargetObject]" />
 				</Entry>
 			</Relationship>
 			<Relationship Name="Parameters">
@@ -13413,7 +13460,7 @@ END]]></Value>
 				</Entry>
 			</Relationship>
 			<Annotation Type="SysCommentsObjectAnnotation">
-				<Property Name="Length" Value="2038" />
+				<Property Name="Length" Value="2107" />
 				<Property Name="StartLine" Value="1" />
 				<Property Name="StartColumn" Value="1" />
 				<Property Name="HeaderContents" Value="CREATE PROCEDURE [CTL].[UpdateBusinessRecCurated]&#xD;&#xA;(&#xD;&#xA;  @TargetMeasureValue decimal(28,7),&#xD;&#xA;&#x9;@BusinessRecId bigint,&#xD;&#xA;&#x9;@UpdatedBatchExecutionId bigint,&#xD;&#xA;&#x9;@UpdatedTaskExecutionLogId bigint,&#xD;&#xA;&#x9;@CuratedPipelineRunID varchar(255),&#xD;&#xA;&#x9;@UpdatedDateTime datetime&#xD;&#xA;)&#xD;&#xA;AS" />
