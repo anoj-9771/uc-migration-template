@@ -95,7 +95,7 @@ def getBusinessPartnerGroupRelationship():
 # COMMAND ----------
 
 df, schema = getBusinessPartnerGroupRelationship()
-TemplateEtl(df, entity="brgBusinessPartnerGroupRelationship", businessKey="businessPartnerGroupSK,businessPartnerSK,validFromDate", schema=schema, writeMode=ADS_WRITE_MODE_OVERWRITE, AddSK=False)
+TemplateEtl(df, entity="brgBusinessPartnerGroupRelationship", businessKey="businessPartnerGroupSK,businessPartnerSK,relationshipNumber,validFromDate", schema=schema, writeMode=ADS_WRITE_MODE_OVERWRITE, AddSK=False)
 
 # COMMAND ----------
 
