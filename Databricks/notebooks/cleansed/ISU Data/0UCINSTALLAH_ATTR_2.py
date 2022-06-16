@@ -193,7 +193,7 @@ df = spark.sql(f"WITH stage AS \
                                   '1' as _RecordCurrent, \
                                   cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
                         FROM stage stg \
-                                 left outer join {ADS_DATABASE_CLEANSED}.isu_0uc_aklasse_text bc on bc.billingClass = stg.AKLASSE \
+                                 left outer join {ADS_DATABASE_CLEANSED}.isu_0uc_aklasse_text bc on bc.billingClassCode = stg.AKLASSE \
                                                                                                     and bc._RecordDeleted = 0 and bc._RecordCurrent = 1 \
                                  left outer join {ADS_DATABASE_CLEANSED}.isu_0uc_tariftyp_text tt on tt.TARIFTYP = stg.TARIFTYP \
                                                                                                     and tt._RecordDeleted = 0 and tt._RecordCurrent = 1 \
