@@ -27,10 +27,11 @@
         },
         "skuName": {
             "type": "string",
-            "defaultValue": "Standard_LRS",
+            "defaultValue": "Standard_GRS",
             "allowedValues": [
                 "Standard_LRS",
-                "Premium_LRS"
+                "Premium_LRS",
+                "Standard_GRS"
             ],
             "metadata": {
                 "description": "Specifies the storage SKU name"
