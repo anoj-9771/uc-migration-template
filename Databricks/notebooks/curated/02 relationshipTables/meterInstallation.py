@@ -70,8 +70,8 @@ def getmeterInstallation():
 
     #6.Apply schema definition
     schema = StructType([
-                            StructField('meterInstallationSK', LongType(), False),
-                            StructField("installationSK", LongType(), False),
+                            StructField('meterInstallationSK', StringType(), False),
+                            StructField("installationSK", StringType(), False),
                             StructField("installationId", StringType(), False),
                             StructField("logicalDeviceNumber", StringType(), False),
                             StructField("validToDate", DateType(), False),
@@ -91,7 +91,7 @@ def getmeterInstallation():
 # COMMAND ----------
 
 df, schema = getmeterInstallation()
-TemplateEtl(df, entity="meterInstallation", businessKey="installationSK,installationId,logicalDeviceNumber,validToDate", schema=schema, writeMode=ADS_WRITE_MODE_MERGE, AddSK=True)
+TemplateEtl(df, entity="dimMeterInstallation", businessKey="installationSK,installationId,logicalDeviceNumber,validToDate", schema=schema, writeMode=ADS_WRITE_MODE_MERGE, AddSK=True)
 
 # COMMAND ----------
 

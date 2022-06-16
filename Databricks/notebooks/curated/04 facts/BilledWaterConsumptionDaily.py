@@ -30,37 +30,31 @@
 
 # COMMAND ----------
 
+dbutils.widgets.text("Source System", "ISU")
+
+# COMMAND ----------
+
+source_system = dbutils.widgets.get("Source System").strip().upper()
+source_system = "ISU & ACCESS" if not source_system else source_system
+
+print(f"Source System = {source_system}")
+
+loadISUConsumption = True if source_system == 'ISU' else False
+loadAccessConsumption = True if source_system == 'ACCESS' else False
+loadConsumption = True if source_system == 'ISU & ACCESS' else False
+
+print(f"Load ISU only = {loadISUConsumption}")
+print(f"Load Access only = {loadAccessConsumption}")
+print(f"Load both Sources = {loadConsumption}")
+
+# COMMAND ----------
+
 import pyspark.sql.functions as F
 
 # COMMAND ----------
 
-def getBilledWaterConsumptionDaily():
-
-    #1.Load Cleansed layer tables into dataframe
+def isuConsumption():
     isuConsDf = getBilledWaterConsumptionIsu()
-    accessConsDf = getBilledWaterConsumptionAccess()
-
-    legacyConsDf = accessConsDf.select('propertyNumber', 'billingPeriodStartDate', 'billingPeriodEndDate') \
-                             .subtract(isuConsDf.select('businessPartnerGroupNumber', 'billingPeriodStartDate', 'billingPeriodEndDate'))
-
-    accessConsDf = accessConsDf.join(legacyConsDf, (legacyConsDf.propertyNumber == accessConsDf.propertyNumber) \
-                                             & ((legacyConsDf.billingPeriodStartDate == accessConsDf.billingPeriodStartDate) \
-                                             & (legacyConsDf.billingPeriodEndDate == accessConsDf.billingPeriodEndDate)), how="inner" ) \
-                             .select(accessConsDf['*'])
-
-#     lotParcelDf = spark.sql(f"select cast(propertyNumber as String) as propertyNumber, waterDeliverySystem as deliverySystem, waterDistributionSystem as distributionSystem, \
-#                                 waterSupplyZone as supplyZone, waterPressureZone as pressureArea \
-#                                 from {ADS_DATABASE_CLEANSED}.hydra_tlotparcel \
-#                                 where propertyNumber is not null and _RecordCurrent = 1 and _RecordDeleted = 0")
-#     lotParcelDf = spark.sql(f"select cast(propertyNumber as String) as propertyNumber, waterDeliverySystem as deliverySystem, waterDistributionSystem as distributionSystem, \
-#                                   waterSupplyZone as supplyZone, waterPressureZone as pressureArea \
-#                                   from (select lp.*, row_number() over (partition by propertyNumber order by waterDeliverySystem desc, areaSize desc) as CurRec from cleansed.hydra_tlotparcel lp \
-#                                                   where lp.propertyNumber is not null and lp._RecordCurrent = 1 and lp._RecordDeleted = 0 \
-#                                        ) where CurRec = 1")
-
-    #2.Join Tables
-    
-    #3.Union Access and isu billed consumption datasets
     isuConsDf = isuConsDf.select("sourceSystemCode", "billingDocumentNumber", "billingDocumentLineItemId", \
                                   "businessPartnerGroupNumber", "equipmentNumber", "contractID", \
                                   "billingPeriodStartDate", "billingPeriodEndDate", \
@@ -69,15 +63,49 @@ def getBilledWaterConsumptionDaily():
                                   "meteredWaterConsumption")  \
                             .withColumnRenamed("validFromDate", "meterActiveStartDate") \
                             .withColumnRenamed("validToDate", "meterActiveEndDate")
+    return isuConsDf
 
+# COMMAND ----------
+
+def accessConsumption():
+    accessConsDf = getBilledWaterConsumptionAccess()
+    isuConsDf = isuConsumption()
+        
+    legacyConsDf = accessConsDf.select('propertyNumber', 'billingPeriodStartDate', 'billingPeriodEndDate') \
+                           .subtract(isuConsDf.select('businessPartnerGroupNumber', 'billingPeriodStartDate', 'billingPeriodEndDate'))
+
+    accessConsDf = accessConsDf.join(legacyConsDf, (legacyConsDf.propertyNumber == accessConsDf.propertyNumber) \
+                                           & ((legacyConsDf.billingPeriodStartDate == accessConsDf.billingPeriodStartDate) \
+                                           & (legacyConsDf.billingPeriodEndDate == accessConsDf.billingPeriodEndDate)), how="inner" ) \
+                           .select(accessConsDf['*'])
+    
     accessConsDf = accessConsDf.selectExpr("sourceSystemCode", "-1 as billingDocumentNumber", "-1 as billingDocumentLineItemId", \
-                                  "PropertyNumber", "meterNumber", "-1 as contractID", \
+                                  "PropertyNumber as businessPartnerGroupNumber", "meterNumber as equipmentNumber", "-1 as contractID", \
                                   "billingPeriodStartDate", "billingPeriodEndDate", \
                                   "billingPeriodStartDate as meterActiveStartDate", "billingPeriodEndDate as meterActiveEndDate", \
-                                  "billingPeriodDays", \
-                                  "meteredWaterConsumption") \
+                                  "billingPeriodDays as totalMeterActiveDays", \
+                                  "meteredWaterConsumption")
+    return accessConsDf
 
-    billedConsDf = isuConsDf.union(accessConsDf)
+# COMMAND ----------
+
+def getBilledWaterConsumptionDaily():
+
+    #1.Load Cleansed layer tables into dataframe
+    if loadISUConsumption :
+        billedConsDf = isuConsumption()
+
+    if loadAccessConsumption :
+        billedConsDf = accessConsumption()
+
+    if loadConsumption :
+        isuConsDf = isuConsumption()
+        accessConsDf = accessConsumption()
+        billedConsDf = isuConsDf.union(accessConsDf)
+
+    #2.Join Tables
+    
+    #3.Union Access and isu billed consumption datasets
 
     billedConsDf = billedConsDf.withColumn("avgMeteredWaterConsumption", F.col("meteredWaterConsumption")/F.col("totalMeterActiveDays"))
     #billedConsDf = billedConsDf.withColumn("avgMeteredWaterConsumption",col("avgMeteredWaterConsumption").cast("decimal(18,6)"))
@@ -163,26 +191,6 @@ def getBilledWaterConsumptionDaily():
     billedConsDf = billedConsDf.join(dimBusinessPartnerGroupDf, (billedConsDf.businessPartnerGroupNumber == dimBusinessPartnerGroupDf.businessPartnerGroupNumber), how="left") \
                   .select(billedConsDf['*'], dimBusinessPartnerGroupDf['businessPartnerGroupSK'])
 
-#     billedConsDf = billedConsDf.join(lotParcelDf, (billedConsDf.businessPartnerGroupNumber == lotParcelDf.propertyNumber), how="left") \
-#                   .select(billedConsDf['*'], lotParcelDf['deliverySystem'], lotParcelDf['distributionSystem'], lotParcelDf['supplyZone'], lotParcelDf['pressureArea'])
-    
-#     billedConsDf = billedConsDf.join(dimWaterNetworkDf, (billedConsDf.deliverySystem == dimWaterNetworkDf.deliverySystem) \
-#                              & (billedConsDf.distributionSystem == dimWaterNetworkDf.distributionSystem) \
-#                              & (billedConsDf.supplyZone == dimWaterNetworkDf.supplyZone) \
-#                              & (billedConsDf.pressureArea == dimWaterNetworkDf.pressureArea), how="left") \
-#                   .select(billedConsDf['*'], dimWaterNetworkDf['waterNetworkSK'])
-
-#    billedConsDf = billedConsDf.join(meterTimesliceDf, (billedConsDf.equipmentNumber == meterTimesliceDf.equipmentNumber), how="left") \
-#                  .select(billedConsDf['*'], meterTimesliceDf['logicalDeviceNumber'])
-#
-#    billedConsDf = billedConsDf.join(meterInstallationDf, (billedConsDf.logicalDeviceNumber == meterInstallationDf.logicalDeviceNumber), how="left") \
-#                  .select(billedConsDf['*'], meterInstallationDf['installationId']) \
-#                  .drop(billedConsDf.logicalDeviceNumber)
-#
-#    billedConsDf = billedConsDf.join(dimInstallationDf, (billedConsDf.installationId == dimInstallationDf.installationId), how="left") \
-#                  .select(billedConsDf['*'], dimInstallationDf['installationSK']) \
-#                  .drop(dimInstallationDf.installationId)
-
 
     #6.Joins to derive SKs of dummy dimension(-1) records, to be used when the lookup fails for dimensionSk
 
@@ -213,10 +221,6 @@ def getBilledWaterConsumptionDaily():
     billedConsDf = billedConsDf.join(dummyDimRecDf, (dummyDimRecDf.dimension == 'dimWaterNetwork_recycledWater'), how="left") \
                   .select(billedConsDf['*'], dummyDimRecDf['dummyDimSK'].alias('dummyWaterNetworkSK_recycledWater'))
 
-#     billedConsDf = billedConsDf.join(dummyDimRecDf, (dummyDimRecDf.dimension == 'dimDate'), how="left") \
-#                     .select(billedConsDf['*'], dummyDimRecDf['dummyDimSK'].alias('dummyDateSK'))
-#    billedConsDf = billedConsDf.join(dummyDimRecDf, (dummyDimRecDf.dimension == 'dimInstallation'), how="left") \
-#                  .select(billedConsDf['*'], dummyDimRecDf['dummyDimSK'].alias('dummyInstallationSK'))
 
     #7.SELECT / TRANSFORM
     billedConsDf = billedConsDf.selectExpr \
@@ -246,15 +250,15 @@ def getBilledWaterConsumptionDaily():
     schema = StructType([
                             StructField("sourceSystemCode", StringType(), False),
                             StructField("consumptionDate", DateType(), False),
-                            StructField("meterConsumptionBillingDocumentSK", LongType(), False),
-                            StructField("meterConsumptionBillingLineItemSK", LongType(), False),
-                            StructField("propertySK", LongType(), False),
-                            StructField("meterSK", LongType(), False),
-                            StructField("locationSK", LongType(), False),
-                            StructField("waterNetworkSK", LongType(), False),
-                            StructField("businessPartnerGroupSK", LongType(), False),
-                            StructField("contractSK", LongType(), False),
-                            StructField("dailyApportionedConsumption", DecimalType(18,6), True)
+                            StructField("meterConsumptionBillingDocumentSK", StringType(), False),
+                            StructField("meterConsumptionBillingLineItemSK", StringType(), False),
+                            StructField("propertySK", StringType(), False),
+                            StructField("meterSK", StringType(), False),
+                            StructField("locationSK", StringType(), False),
+                            StructField("waterNetworkSK", StringType(), False),
+                            StructField("businessPartnerGroupSK", StringType(), False),
+                            StructField("contractSK", StringType(), False),
+                            StructField("dailyApportionedConsumption", FloatType(), True)
                         ])
 
     return billedConsDf, schema
@@ -262,7 +266,7 @@ def getBilledWaterConsumptionDaily():
 # COMMAND ----------
 
 df, schema = getBilledWaterConsumptionDaily()
-TemplateEtl(df, entity="factDailyApportionedConsumption", businessKey="sourceSystemCode,consumptionDate,meterConsumptionBillingDocumentSK,meterConsumptionBillingLineItemSK", schema=schema, writeMode=ADS_WRITE_MODE_OVERWRITE, AddSK=False)
+TemplateEtl(df, entity="factDailyApportionedConsumption", businessKey="consumptionDate,meterConsumptionBillingDocumentSK,meterConsumptionBillingLineItemSK,propertySK,meterSK,locationSK,waterNetworkSK,businessPartnerGroupSK,contractSK", schema=schema, writeMode=ADS_WRITE_MODE_MERGE, AddSK=False)
 
 # COMMAND ----------
 
@@ -287,7 +291,7 @@ TemplateEtl(df, entity="factDailyApportionedConsumption", businessKey="sourceSys
 # MAGIC businessPartnerGroupSK,
 # MAGIC contractSK,
 # MAGIC dailyApportionedConsumption from (
-# MAGIC select * ,RANK() OVER   (PARTITION BY sourceSystemCode,consumptionDate,meterConsumptionBillingDocumentSK,meterConsumptionBillingLineItemSK ORDER BY propertyTypeValidToDate desc,propertyTypeValidFromDate desc) as flag  from 
+# MAGIC select * ,RANK() OVER   (PARTITION BY consumptionDate,meterConsumptionBillingDocumentSK,meterConsumptionBillingLineItemSK,propertySK,meterSK,locationSK,waterNetworkSK,businessPartnerGroupSK,contractSK ORDER BY propertyTypeValidToDate desc,propertyTypeValidFromDate desc) as flag  from 
 # MAGIC (select prop.propertyNumber,
 # MAGIC prophist.inferiorPropertyTypeCode,
 # MAGIC prophist.inferiorPropertyType,

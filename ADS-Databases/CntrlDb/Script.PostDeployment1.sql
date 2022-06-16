@@ -52,6 +52,14 @@ insert into [CTL].[ControlProjects]([ProjectName],[Enabled],[RunSequence]) value
 insert into [CTL].[ControlProjects]([ProjectName],[Enabled],[RunSequence]) values('CLEANSED REF HYDRA',1,30);
 insert into [CTL].[ControlProjects]([ProjectName],[Enabled],[RunSequence]) values('CLEANSED DATA HYDRA',1,40);
 insert into [CTL].[ControlProjects]([ProjectName],[Enabled],[RunSequence]) values('SEMANTIC MASTER',1,70);
+insert into [CTL].[ControlProjects]([ProjectName],[Enabled],[RunSequence]) values('CURATED BATCH 1',1,10);
+insert into [CTL].[ControlProjects]([ProjectName],[Enabled],[RunSequence]) values('CURATED BATCH 2',1,20);
+insert into [CTL].[ControlProjects]([ProjectName],[Enabled],[RunSequence]) values('CURATED BATCH 3',1,30);
+insert into [CTL].[ControlProjects]([ProjectName],[Enabled],[RunSequence]) values('CURATED BATCH 4',1,40);
+insert into [CTL].[ControlProjects]([ProjectName],[Enabled],[RunSequence]) values('CURATED BATCH 5',1,50);
+insert into [CTL].[ControlProjects]([ProjectName],[Enabled],[RunSequence]) values('CURATED BATCH 6',1,60);
+insert into [CTL].[ControlProjects]([ProjectName],[Enabled],[RunSequence]) values('RAW SLT ISU',1,10);
+insert into [CTL].[ControlProjects]([ProjectName],[Enabled],[RunSequence]) values('CLEANSED SLT ISU',1,20);
 
 INSERT INTO [CTL].[ControlStages] ([StageSequence], [StageName]) SELECT 100, N'Source to Raw'
 WHERE NOT EXISTS (SELECT 1 FROM [CTL].[ControlStages] WHERE [StageName] = N'Source to Raw')
@@ -136,35 +144,164 @@ IF (
 DELETE FROM CTL.BusinessRecConfig;
 
 INSERT INTO [CTL].[BusinessRecConfig]([BusinessReconGroup], [MeasureID], [MeasureName], [TargetObject], [TargetQuery], [Enabled])
-     VALUES ('Water Consumption Reconciliation', 'Total', 'BILLING_DOC_COUNT', 'factBilledWaterConsumption', 'select count(distinct fact.dimBillingDocumentSK) as TargetMeasure from curated.factbilledwaterconsumption fact, curated.dimbillingdocument dim where fact.sourceSystemCode = ''ISU'' and dim.sourceSystemCode = ''ISU'' and dim.dimBillingDocumentSK = fact.dimBillingDocumentSK and dim.isOutsortedFlag = ''N''', 1)
+     VALUES ('Water Consumption Reconciliation', 'Total', 'BILLING_DOC_COUNT', 'BilledWaterConsumption', 'select count(distinct fact.meterconsumptionbillingdocumentSK) as TargetMeasure from curated.factbilledwaterconsumption fact, curated.dimmeterconsumptionbillingdocument dim where dim.meterconsumptionbillingdocumentSK = fact.meterconsumptionbillingdocumentSK and dim.isOutsortedFlag = ''N''', 1)
 ;
 
 INSERT INTO [CTL].[BusinessRecConfig] ([BusinessReconGroup], [MeasureID], [MeasureName], [TargetObject], [TargetQuery], [Enabled])
-     VALUES ('Water Consumption Reconciliation', 'Total', 'CONSUMPTION', 'factBilledWaterConsumption', 'select sum(meteredWaterConsumption) as TargetMeasure from curated.factbilledwaterconsumption fact, curated.dimbillingdocument dim where fact.sourceSystemCode = ''ISU'' and dim.sourceSystemCode = ''ISU'' and dim.dimBillingDocumentSK = fact.dimBillingDocumentSK and dim.isOutsortedFlag = ''N''', 1)
+     VALUES ('Water Consumption Reconciliation', 'Total', 'CONSUMPTION', 'BilledWaterConsumption', 'select sum(fact.meteredWaterConsumption) as TargetMeasure from curated.factbilledwaterconsumption fact, curated.dimmeterconsumptionbillingdocument dim where dim.meterconsumptionbillingdocumentSK = fact.meterconsumptionbillingdocumentSK and dim.isOutsortedFlag = ''N''', 1)
 ;
 
 INSERT INTO [CTL].[BusinessRecConfig]([BusinessReconGroup], [MeasureID], [MeasureName], [TargetObject], [TargetQuery], [Enabled])
-     VALUES ('Water Consumption Reconciliation', '1000', 'BILLING_DOC_COUNT', 'factBilledWaterConsumption', 'select count(distinct factBill.dimBillingDocumentSK) as TargetMeasure from curated.factbilledwaterconsumption factBill, curated.dimbillingdocument dimBillDoc, curated.dimmeter dimMeter where factBill.sourceSystemCode = ''ISU'' and dimBillDoc.sourceSystemCode = ''ISU'' and dimmeter.sourceSystemCode = ''ISU'' and dimBillDoc.dimBillingDocumentSK = factBill.dimBillingDocumentSK and dimBillDoc.isOutsortedFlag = ''N'' and dimmeter.watertype in (''Drinking Water'') and dimmeter.usagemetertype in (''Water Meter'') and factbill.dimMeterSK = dimmeter.dimMeterSK group by dimmeter.watertype, dimmeter.usagemetertype', 1)
+     VALUES ('Water Consumption Reconciliation', '1000', 'BILLING_DOC_COUNT', 'BilledWaterConsumption', 'select count(distinct fact.meterconsumptionbillingdocumentSK) as TargetMeasure from curated.factbilledwaterconsumption fact, curated.dimmeterconsumptionbillingdocument dimBillDoc, curated.dimmeter dimMeter where dimBillDoc.meterconsumptionbillingdocumentSK = fact.meterconsumptionbillingdocumentSK and fact.meterSK = dimmeter.meterSK and dimBillDoc.isOutsortedFlag = ''N'' and dimmeter.watertype in (''Drinking Water'') and dimmeter.usagemetertype in (''Water Meter'') group by dimmeter.watertype, dimmeter.usagemetertype', 1)
 ;
 
 INSERT INTO [CTL].[BusinessRecConfig] ([BusinessReconGroup], [MeasureID], [MeasureName], [TargetObject], [TargetQuery], [Enabled])
-     VALUES ('Water Consumption Reconciliation', '1000', 'CONSUMPTION', 'factBilledWaterConsumption', 'select sum(factBill.meteredWaterConsumption) as TargetMeasure from curated.factbilledwaterconsumption factBill, curated.dimbillingdocument dimBillDoc, curated.dimmeter dimMeter where factBill.sourceSystemCode = ''ISU'' and dimBillDoc.sourceSystemCode = ''ISU'' and dimmeter.sourceSystemCode = ''ISU'' and dimBillDoc.dimBillingDocumentSK = factBill.dimBillingDocumentSK and dimBillDoc.isOutsortedFlag = ''N'' and dimmeter.watertype in (''Drinking Water'') and dimmeter.usagemetertype in (''Water Meter'') and factbill.dimMeterSK = dimmeter.dimMeterSK group by dimmeter.watertype, dimmeter.usagemetertype', 1)
+     VALUES ('Water Consumption Reconciliation', '1000', 'CONSUMPTION', 'BilledWaterConsumption', 'select sum(fact.meteredWaterConsumption) as TargetMeasure from curated.factbilledwaterconsumption fact, curated.dimmeterconsumptionbillingdocument dimBillDoc, curated.dimmeter dimMeter where dimBillDoc.meterconsumptionbillingdocumentSK = fact.meterconsumptionbillingdocumentSK and fact.meterSK = dimmeter.meterSK and dimBillDoc.isOutsortedFlag = ''N'' and dimmeter.watertype in (''Drinking Water'') and dimmeter.usagemetertype in (''Water Meter'') group by dimmeter.watertype, dimmeter.usagemetertype', 1)
 ;
 
 INSERT INTO [CTL].[BusinessRecConfig]([BusinessReconGroup], [MeasureID], [MeasureName], [TargetObject], [TargetQuery], [Enabled])
-     VALUES ('Water Consumption Reconciliation', '2000', 'BILLING_DOC_COUNT', 'factBilledWaterConsumption', 'select count(distinct factBill.dimBillingDocumentSK) as TargetMeasure from curated.factbilledwaterconsumption factBill, curated.dimbillingdocument dimBillDoc, curated.dimmeter dimMeter where factBill.sourceSystemCode = ''ISU'' and dimBillDoc.sourceSystemCode = ''ISU'' and dimmeter.sourceSystemCode = ''ISU'' and dimBillDoc.dimBillingDocumentSK = factBill.dimBillingDocumentSK and dimBillDoc.isOutsortedFlag = ''N'' and dimmeter.watertype in (''Recycled Water'') and dimmeter.usagemetertype in (''Water Meter'') and factbill.dimMeterSK = dimmeter.dimMeterSK group by dimmeter.watertype, dimmeter.usagemetertype', 1)
+     VALUES ('Water Consumption Reconciliation', '2000', 'BILLING_DOC_COUNT', 'BilledWaterConsumption', 'select count(distinct fact.meterconsumptionbillingdocumentSK) as TargetMeasure from curated.factbilledwaterconsumption fact, curated.dimmeterconsumptionbillingdocument dimBillDoc, curated.dimmeter dimMeter where dimBillDoc.meterconsumptionbillingdocumentSK = fact.meterconsumptionbillingdocumentSK and fact.meterSK = dimmeter.meterSK and dimBillDoc.isOutsortedFlag = ''N'' and dimmeter.watertype in (''Recycled Water'') and dimmeter.usagemetertype in (''Water Meter'') group by dimmeter.watertype, dimmeter.usagemetertype', 1)
 ;
 
 INSERT INTO [CTL].[BusinessRecConfig] ([BusinessReconGroup], [MeasureID], [MeasureName], [TargetObject], [TargetQuery], [Enabled])
-     VALUES ('Water Consumption Reconciliation', '2000', 'CONSUMPTION', 'factBilledWaterConsumption', 'select sum(factBill.meteredWaterConsumption) as TargetMeasure from curated.factbilledwaterconsumption factBill, curated.dimbillingdocument dimBillDoc, curated.dimmeter dimMeter where factBill.sourceSystemCode = ''ISU'' and dimBillDoc.sourceSystemCode = ''ISU'' and dimmeter.sourceSystemCode = ''ISU'' and dimBillDoc.dimBillingDocumentSK = factBill.dimBillingDocumentSK and dimBillDoc.isOutsortedFlag = ''N'' and dimmeter.watertype in (''Recycled Water'') and dimmeter.usagemetertype in (''Water Meter'') and factbill.dimMeterSK = dimmeter.dimMeterSK group by dimmeter.watertype, dimmeter.usagemetertype', 1)
+     VALUES ('Water Consumption Reconciliation', '2000', 'CONSUMPTION', 'BilledWaterConsumption', 'select sum(fact.meteredWaterConsumption) as TargetMeasure from curated.factbilledwaterconsumption fact, curated.dimmeterconsumptionbillingdocument dimBillDoc, curated.dimmeter dimMeter where dimBillDoc.meterconsumptionbillingdocumentSK = fact.meterconsumptionbillingdocumentSK and fact.meterSK = dimmeter.meterSK and dimBillDoc.isOutsortedFlag = ''N'' and dimmeter.watertype in (''Recycled Water'') and dimmeter.usagemetertype in (''Water Meter'') group by dimmeter.watertype, dimmeter.usagemetertype', 1)
 ;
 
 INSERT INTO [CTL].[BusinessRecConfig]([BusinessReconGroup], [MeasureID], [MeasureName], [TargetObject], [TargetQuery], [Enabled])
-     VALUES ('Water Consumption Reconciliation', '9000', 'BILLING_DOC_COUNT', 'factBilledWaterConsumption', 'select count(distinct factBill.dimBillingDocumentSK) as TargetMeasure from curated.factbilledwaterconsumption factBill, curated.dimbillingdocument dimBillDoc, curated.dimmeter dimMeter where factBill.sourceSystemCode = ''ISU'' and dimBillDoc.sourceSystemCode = ''ISU'' and dimmeter.sourceSystemCode = ''ISU'' and dimBillDoc.dimBillingDocumentSK = factBill.dimBillingDocumentSK and dimBillDoc.isOutsortedFlag = ''N'' and dimmeter.watertype in (''Drinking Water'') and dimmeter.usagemetertype in (''Customer Standpipe'') and factbill.dimMeterSK = dimmeter.dimMeterSK group by dimmeter.watertype, dimmeter.usagemetertype', 1)
+     VALUES ('Water Consumption Reconciliation', '9000', 'BILLING_DOC_COUNT', 'BilledWaterConsumption', 'select count(distinct fact.meterconsumptionbillingdocumentSK) as TargetMeasure from curated.factbilledwaterconsumption fact, curated.dimmeterconsumptionbillingdocument dimBillDoc, curated.dimmeter dimMeter where dimBillDoc.meterconsumptionbillingdocumentSK = fact.meterconsumptionbillingdocumentSK and fact.meterSK = dimmeter.meterSK and dimBillDoc.isOutsortedFlag = ''N'' and dimmeter.watertype in (''Drinking Water'') and dimmeter.usagemetertype in (''Customer Standpipe'') group by dimmeter.watertype, dimmeter.usagemetertype', 1)
 ;
 
 INSERT INTO [CTL].[BusinessRecConfig] ([BusinessReconGroup], [MeasureID], [MeasureName], [TargetObject], [TargetQuery], [Enabled])
-     VALUES ('Water Consumption Reconciliation', '9000', 'CONSUMPTION', 'factBilledWaterConsumption', 'select sum(factBill.meteredWaterConsumption) as TargetMeasure from curated.factbilledwaterconsumption factBill, curated.dimbillingdocument dimBillDoc, curated.dimmeter dimMeter where factBill.sourceSystemCode = ''ISU'' and dimBillDoc.sourceSystemCode = ''ISU'' and dimmeter.sourceSystemCode = ''ISU'' and dimBillDoc.dimBillingDocumentSK = factBill.dimBillingDocumentSK and dimBillDoc.isOutsortedFlag = ''N'' and dimmeter.watertype in (''Drinking Water'') and dimmeter.usagemetertype in (''Customer Standpipe'') and factbill.dimMeterSK = dimmeter.dimMeterSK group by dimmeter.watertype, dimmeter.usagemetertype', 1)
+     VALUES ('Water Consumption Reconciliation', '9000', 'CONSUMPTION', 'BilledWaterConsumption', 'select sum(fact.meteredWaterConsumption) as TargetMeasure from curated.factbilledwaterconsumption fact, curated.dimmeterconsumptionbillingdocument dimBillDoc, curated.dimmeter dimMeter where dimBillDoc.meterconsumptionbillingdocumentSK = fact.meterconsumptionbillingdocumentSK and fact.meterSK = dimmeter.meterSK and dimBillDoc.isOutsortedFlag = ''N'' and dimmeter.watertype in (''Drinking Water'') and dimmeter.usagemetertype in (''Customer Standpipe'') group by dimmeter.watertype, dimmeter.usagemetertype', 1)
 ;
+
+INSERT INTO [CTL].[BusinessRecConfig]
+           ([BusinessReconGroup]
+           ,[MeasureId]
+           ,[MeasureName]
+           ,[TargetObject]
+           ,[TargetQuery]
+           ,[Enabled])
+     VALUES
+           ('Water Consumption Reconciliation'
+           ,'Total'
+           ,'BILLING_DOC_COUNT'
+           ,'BilledWaterConsumptionDaily'
+           ,'select count(distinct fact.meterconsumptionbillingdocumentSK) as TargetMeasure from curated.factdailyapportionedconsumption fact, curated.dimmeterconsumptionbillingdocument dim where dim.meterconsumptionbillingdocumentSK = fact.meterconsumptionbillingdocumentSK and dim.isOutsortedFlag = ''N'''
+           ,1)
+GO
+
+INSERT INTO [CTL].[BusinessRecConfig]
+           ([BusinessReconGroup]
+           ,[MeasureId]
+           ,[MeasureName]
+           ,[TargetObject]
+           ,[TargetQuery]
+           ,[Enabled])
+     VALUES
+           ('Water Consumption Reconciliation'
+           ,'Total'
+           ,'CONSUMPTION'
+           ,'BilledWaterConsumptionDaily'
+           ,'select sum(fact.dailyApportionedConsumption) as TargetMeasure from curated.factdailyapportionedconsumption fact, curated.dimmeterconsumptionbillingdocument dim where dim.meterconsumptionbillingdocumentSK = fact.meterconsumptionbillingdocumentSK and dim.isOutsortedFlag = ''N'''
+           ,1)
+GO
+
+INSERT INTO [CTL].[BusinessRecConfig]
+           ([BusinessReconGroup]
+           ,[MeasureId]
+           ,[MeasureName]
+           ,[TargetObject]
+           ,[TargetQuery]
+           ,[Enabled])
+     VALUES
+           ('Water Consumption Reconciliation'
+           ,'1000'
+           ,'BILLING_DOC_COUNT'
+           ,'BilledWaterConsumptionDaily'
+           ,'select count(distinct fact.meterconsumptionbillingdocumentSK) as TargetMeasure from curated.factdailyapportionedconsumption fact, curated.dimmeterconsumptionbillingdocument dimBillDoc, curated.dimmeter dimMeter where dimBillDoc.meterconsumptionbillingdocumentSK = fact.meterconsumptionbillingdocumentSK and fact.meterSK = dimmeter.meterSK and dimBillDoc.isOutsortedFlag = ''N'' and dimmeter.watertype in (''Drinking Water'') and dimmeter.usagemetertype in (''Water Meter'') group by dimmeter.watertype, dimmeter.usagemetertype'
+           ,1)
+GO
+
+INSERT INTO [CTL].[BusinessRecConfig]
+           ([BusinessReconGroup]
+           ,[MeasureId]
+           ,[MeasureName]
+           ,[TargetObject]
+           ,[TargetQuery]
+           ,[Enabled])
+     VALUES
+           ('Water Consumption Reconciliation'
+           ,'1000'
+           ,'CONSUMPTION'
+           ,'BilledWaterConsumptionDaily'
+           ,'select sum(fact.dailyApportionedConsumption) as TargetMeasure from curated.factdailyapportionedconsumption fact, curated.dimmeterconsumptionbillingdocument dimBillDoc, curated.dimmeter dimMeter where dimBillDoc.meterconsumptionbillingdocumentSK = fact.meterconsumptionbillingdocumentSK and fact.meterSK = dimmeter.meterSK and dimBillDoc.isOutsortedFlag = ''N'' and dimmeter.watertype in (''Drinking Water'') and dimmeter.usagemetertype in (''Water Meter'') group by dimmeter.watertype, dimmeter.usagemetertype'
+           ,1)
+GO
+
+INSERT INTO [CTL].[BusinessRecConfig]
+           ([BusinessReconGroup]
+           ,[MeasureId]
+           ,[MeasureName]
+           ,[TargetObject]
+           ,[TargetQuery]
+           ,[Enabled])
+     VALUES
+           ('Water Consumption Reconciliation'
+           ,'2000'
+           ,'CONSUMPTION'
+           ,'BilledWaterConsumptionDaily'
+           ,'select sum(fact.dailyApportionedConsumption) as TargetMeasure from curated.factdailyapportionedconsumption fact, curated.dimmeterconsumptionbillingdocument dimBillDoc, curated.dimmeter dimMeter where dimBillDoc.meterconsumptionbillingdocumentSK = fact.meterconsumptionbillingdocumentSK and fact.meterSK = dimmeter.meterSK and dimBillDoc.isOutsortedFlag = ''N'' and dimmeter.watertype in (''Recycled Water'') and dimmeter.usagemetertype in (''Water Meter'') group by dimmeter.watertype, dimmeter.usagemetertype'
+           ,1)
+GO
+
+INSERT INTO [CTL].[BusinessRecConfig]
+           ([BusinessReconGroup]
+           ,[MeasureId]
+           ,[MeasureName]
+           ,[TargetObject]
+           ,[TargetQuery]
+           ,[Enabled])
+     VALUES
+           ('Water Consumption Reconciliation'
+           ,'2000'
+           ,'BILLING_DOC_COUNT'
+           ,'BilledWaterConsumptionDaily'
+           ,'select count(distinct fact.meterconsumptionbillingdocumentSK) as TargetMeasure from curated.factdailyapportionedconsumption fact, curated.dimmeterconsumptionbillingdocument dimBillDoc, curated.dimmeter dimMeter where dimBillDoc.meterconsumptionbillingdocumentSK = fact.meterconsumptionbillingdocumentSK and fact.meterSK = dimmeter.meterSK and dimBillDoc.isOutsortedFlag = ''N'' and dimmeter.watertype in (''Recycled Water'') and dimmeter.usagemetertype in (''Water Meter'') group by dimmeter.watertype, dimmeter.usagemetertype'
+           ,1)
+GO
+
+INSERT INTO [CTL].[BusinessRecConfig]
+           ([BusinessReconGroup]
+           ,[MeasureId]
+           ,[MeasureName]
+           ,[TargetObject]
+           ,[TargetQuery]
+           ,[Enabled])
+     VALUES
+           ('Water Consumption Reconciliation'
+           ,'9000'
+           ,'BILLING_DOC_COUNT'
+           ,'BilledWaterConsumptionDaily'
+           ,'select count(distinct fact.meterconsumptionbillingdocumentSK) as TargetMeasure from curated.factdailyapportionedconsumption fact, curated.dimmeterconsumptionbillingdocument dimBillDoc, curated.dimmeter dimMeter where dimBillDoc.meterconsumptionbillingdocumentSK = fact.meterconsumptionbillingdocumentSK and fact.meterSK = dimmeter.meterSK and dimBillDoc.isOutsortedFlag = ''N'' and dimmeter.watertype in (''Drinking Water'') and dimmeter.usagemetertype in (''Customer Standpipe'') group by dimmeter.watertype, dimmeter.usagemetertype'
+           ,1)
+GO
+
+INSERT INTO [CTL].[BusinessRecConfig]
+           ([BusinessReconGroup]
+           ,[MeasureId]
+           ,[MeasureName]
+           ,[TargetObject]
+           ,[TargetQuery]
+           ,[Enabled])
+     VALUES
+           ('Water Consumption Reconciliation'
+           ,'9000'
+           ,'CONSUMPTION'
+           ,'BilledWaterConsumptionDaily'
+           ,'select sum(fact.dailyApportionedConsumption) as TargetMeasure from curated.factdailyapportionedconsumption fact, curated.dimmeterconsumptionbillingdocument dimBillDoc, curated.dimmeter dimMeter where dimBillDoc.meterconsumptionbillingdocumentSK = fact.meterconsumptionbillingdocumentSK and fact.meterSK = dimmeter.meterSK and dimBillDoc.isOutsortedFlag = ''N'' and dimmeter.watertype in (''Drinking Water'') and dimmeter.usagemetertype in (''Customer Standpipe'') group by dimmeter.watertype, dimmeter.usagemetertype'
+           ,1)
+GO
+
 
 GO

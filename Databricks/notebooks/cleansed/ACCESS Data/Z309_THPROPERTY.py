@@ -199,13 +199,13 @@ df_cleansed = spark.sql(f"SELECT \
     ref3a.propertyTypeCode as superiorPropertyTypeCode, \
     ref3a.propertyType as superiorPropertyType, \
     case when D_PROP_TYPE_EFFE is not null \
-              then to_date(D_PROP_TYPE_EFFE,'yyyyMMdd') \
+              then ToValidDate(D_PROP_TYPE_EFFE) \
          when D_PROP_RATE_CANC is not null \
-              then to_date(D_PROP_RATE_CANC,'yyyyMMdd') \
-              else to_date(D_PROP_UPDA,'yyyyMMdd') \
+              then ToValidDate(D_PROP_RATE_CANC) \
+              else ToValidDate(D_PROP_UPDA) \
     end AS propertyTypeEffectiveFrom, \
     C_RATA_TYPE AS rateabilityTypeCode, \
-    initcap(ref4.rateabilityType) as rateabilityType, \
+    ref4.rateabilityType as rateabilityType, \
     coalesce(cast(Q_RESI_PORT as decimal(5,0)),0) AS residentialPortionCount, \
     case when F_RATE_INCL = 'R' \
               then true \
@@ -253,8 +253,8 @@ df_cleansed = spark.sql(f"SELECT \
     case when d_prop_sale_sett = '00000000' \
               then null \
          when D_PROP_SALE_SETT = '00181029' \
-              then to_date('20181029','yyyyMMdd') \
-              else to_date(D_PROP_SALE_SETT,'yyyyMMdd') \
+              then ToValidDate('20181029') \
+              else ToValidDate(D_PROP_SALE_SETT) \
     end AS settlementDate, \
     ToValidDate(D_CNTR) AS contractDate, \
     C_EXTR_LOT AS extractLotCode, \
@@ -266,7 +266,7 @@ df_cleansed = spark.sql(f"SELECT \
     C_USER_CREA AS createdByUserId, \
     C_PLAN_CREA AS createdByPlan, \
     ToValidDateTime(H_CREA) as createdTimestamp, \
-    case when substr(hex(c_user_modi),1,2) = '00' then ' ' else C_USER_MODI end AS modifiedByUserId, \
+    case when substr(hex(c_user_modi),1,2) = '00' or c_user_modi = ' ' then null else C_USER_MODI end AS modifiedByUserId, \
     C_PLAN_MODI AS modifiedByPlan, \
     ToValidDateTime(H_MODI) as modifiedTimestamp, \
 	tbl.M_PROC as modifiedByProcess, \

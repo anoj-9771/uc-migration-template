@@ -340,9 +340,9 @@ def _SQLUpdateCompareCondition_DeltaTableArchive(dataframe, business_key, source
   #Start of Fix for Handling Null in Key Columns
 #   col_exception_list = [business_key, COL_RECORD_VERSION, COL_RECORD_START, COL_RECORD_END, COL_RECORD_CURRENT, COL_RECORD_DELETED, COL_DL_RAW_LOAD, COL_DL_CLEANSED_LOAD, COL_DL_CURATED_LOAD]
   #Adding SK column if any to the exception list 
-  col_SK = target_alias + "SK"
+  col_SK = deriveSurrogateKey(target_alias)
   buskey_col_list = business_key.split(",")
-  col_exception_list = [COL_RECORD_VERSION, COL_RECORD_START, COL_RECORD_END, COL_RECORD_CURRENT, COL_RECORD_DELETED, COL_DL_RAW_LOAD, COL_DL_CLEANSED_LOAD, COL_DL_CURATED_LOAD, col_SK]
+  col_exception_list = [COL_RECORD_VERSION, COL_RECORD_START, COL_RECORD_END, COL_RECORD_CURRENT, COL_RECORD_DELETED, COL_DL_RAW_LOAD, COL_DL_CLEANSED_LOAD, COL_DL_CURATED_LOAD, col_SK, COL_RECORD_BUS_KEY]
   col_exception_list.extend(buskey_col_list)
   #End of Fix for Handling Null in Key Columns
   #Get the list of columns which does not include the exception list 
@@ -375,14 +375,15 @@ def _SQLUpdateSetValue_DeltaTable(dataframe, business_key, source_alias, target_
   #Generate SQL for UPDATE column compare
   
   delete_flag = 1 if delete_data else 0
+  current_flag = 0 if delete_data else 1
 
  #Start of Fix for Handling Null in Key Columns
  #Exclude the following columns from Update
 #   col_exception_list = [business_key, COL_RECORD_VERSION, COL_RECORD_START, COL_RECORD_END, COL_RECORD_CURRENT, COL_RECORD_DELETED] 
   #Adding SK column if any to the exception list
-  col_SK = source_alias+"SK"  
+  col_SK = deriveSurrogateKey(source_alias)  
   buskey_col_list = business_key.split(",")
-  col_exception_list = [COL_RECORD_VERSION, COL_RECORD_START, COL_RECORD_END, COL_RECORD_CURRENT, COL_RECORD_DELETED, col_SK]
+  col_exception_list = [COL_RECORD_VERSION, COL_RECORD_START, COL_RECORD_END, COL_RECORD_CURRENT, COL_RECORD_DELETED, col_SK, COL_RECORD_BUS_KEY]
   col_exception_list.extend(buskey_col_list) 
   #End of Fix for Handling Null in Key Columns
   
@@ -402,7 +403,7 @@ def _SQLUpdateSetValue_DeltaTable(dataframe, business_key, source_alias, target_
       
   #Add the timestamp column for the zone
   sql+= "," + source_alias + "." + COL_TIMESTAMP + " = " + "to_timestamp('" + curr_time_stamp + "')" 
-  sql+= f", {COL_RECORD_DELETED} = {delete_flag}" 
+  sql+= f", {COL_RECORD_DELETED} = {delete_flag}, {COL_RECORD_CURRENT} = {current_flag}" 
   
   sql += NEW_LINE
     
@@ -709,9 +710,9 @@ def _SQLUpdateCompareCondition_DeltaTable(dataframe, business_key, source_alias,
   #Start of Fix for Handling Null in Key Columns
 #   col_exception_list = [business_key, COL_RECORD_VERSION, COL_RECORD_START, COL_RECORD_END, COL_RECORD_CURRENT, COL_RECORD_DELETED, COL_DL_RAW_LOAD, COL_DL_CLEANSED_LOAD, COL_DL_CURATED_LOAD]
   #Adding SK column if any to the exception list 
-  col_SK = target_alias + "SK"
+  col_SK = deriveSurrogateKey(target_alias)
   buskey_col_list = business_key.split(",")
-  col_exception_list = [COL_RECORD_VERSION, COL_RECORD_START, COL_RECORD_END, COL_RECORD_CURRENT, COL_RECORD_DELETED, COL_DL_RAW_LOAD, COL_DL_CLEANSED_LOAD, COL_DL_CURATED_LOAD, col_SK]
+  col_exception_list = [COL_RECORD_VERSION, COL_RECORD_START, COL_RECORD_END, COL_RECORD_CURRENT, COL_RECORD_DELETED, COL_DL_RAW_LOAD, COL_DL_CLEANSED_LOAD, COL_DL_CURATED_LOAD, col_SK, COL_RECORD_BUS_KEY]
   col_exception_list.extend(buskey_col_list)
   #End of Fix for Handling Null in Key Columns
   #Get the list of columns which does not include the exception list 
@@ -719,7 +720,9 @@ def _SQLUpdateCompareCondition_DeltaTable(dataframe, business_key, source_alias,
   updated_col_list = _GetExclusiveList(dataframe.columns, col_exception_list)
   sql = ""
   #Check current record version even if track_changes is not enabled to ensure we only check only the latest records
-  sql += TAB + f"AND {target_alias}.{COL_RECORD_CURRENT} = 1" + NEW_LINE
+  #Below line of code is commented to handle Deleted Records from source (when a new record with the same key get created again after deletion). 
+  #This needs to revisited when SCD gets implemented
+#   sql += TAB + f"AND {target_alias}.{COL_RECORD_CURRENT} = 1" + NEW_LINE
   
   if delete_data:
     sql = sql

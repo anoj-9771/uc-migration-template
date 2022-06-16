@@ -171,7 +171,7 @@ print(delta_raw_tbl_name)
 
 # DBTITLE 1,10. Load Raw to Dataframe & Do Transformations
 df = spark.sql(f"WITH stage AS \
-                      (Select *, ROW_NUMBER() OVER (PARTITION BY EQUNR,BIS ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
+                      (Select *, ROW_NUMBER() OVER (PARTITION BY EQUNR,BIS ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' and DI_OPERATION_TYPE !='X' ) \
                            SELECT \
                                 case when dev.EQUNR = 'na' then '' else dev.EQUNR end as equipmentNumber, \
                                 ToValidDate((case when dev.BIS = 'na' then '9999-12-31' else dev.BIS end),'MANDATORY') as validToDate, \
@@ -212,51 +212,6 @@ df = spark.sql(f"WITH stage AS \
                         where dev._RecordVersion = 1 ")
 
 #print(f'Number of rows: {df.count()}')
-
-# COMMAND ----------
-
-# DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
-#Update/rename Column
-#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
-# df_cleansed = spark.sql(f"SELECT \
-#                             case when dev.EQUNR = 'na' then '' else dev.EQUNR end as equipmentNumber, \
-#                             ToValidDate((case when dev.BIS = 'na' then '9999-12-31' else dev.BIS end),'MANDATORY') as validToDate, \
-#                             ToValidDate(dev.AB) as validFromDate, \
-#                             dev.KOMBINAT as deviceCategoryCombination, \
-#                             cast(dev.LOGIKNR as Long) as logicalDeviceNumber, \
-#                             dev.ZWGRUPPE as registerGroupCode, \
-#                             c.registerGroup, \
-#                             ToValidDate(dev.EINBDAT) as installationDate, \
-#                             ToValidDate(dev.AUSBDAT) as deviceRemovalDate, \
-#                             dev.GERWECHS as activityReasonCode, \
-#                             b.activityReason, \
-#                             dev.DEVLOC as deviceLocation, \
-#                             dev.WGRUPPE as windingGroup, \
-#                             dev.LOEVM as deletedIndicator, \
-#                             dev.UPDMOD as bwDeltaProcess, \
-#                             cast(dev.AMCG_CAP_GRP as Integer) as advancedMeterCapabilityGroup, \
-#                             cast(dev.MSG_ATTR_ID as Integer) as messageAttributeId, \
-#                             dev.ZZMATNR as materialNumber, \
-#                             dev.ZANLAGE as installationId, \
-#                             dev.ZADDRNUMBER as addressNumber, \
-#                             dev.ZCITY1 as cityName, \
-#                             dev.ZHOUSE_NUM1 as houseNumber, \
-#                             dev.ZSTREET as streetName, \
-#                             dev.ZPOST_CODE1 as postalCode, \
-#                             dev.ZTPLMA as superiorFunctionalLocationNumber, \
-#                             dev.ZZ_POLICE_EVENT as policeEventNumber, \
-#                             dev.ZAUFNR as orderNumber, \
-#                             dev.ZERNAM as createdBy, \
-#                             dev._RecordStart, \
-#                             dev._RecordEnd, \
-#                             dev._RecordDeleted, \
-#                             dev._RecordCurrent \
-#                         FROM {ADS_DATABASE_STAGE}.{source_object} dev \
-#                             left outer join cleansed.isu_0UC_GERWECHS_TEXT b on dev.GERWECHS = b.activityReasonCode \
-#                             left outer join cleansed.isu_0UC_REGGRP_TEXT c on dev.ZWGRUPPE = c.registerGroupCode")
-
-
-# print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
 
@@ -305,5 +260,27 @@ DeltaSaveDataFrameToDeltaTable(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS
 
 # COMMAND ----------
 
-# DBTITLE 1,13. Exit Notebook
+# DBTITLE 1,13.1 Identify Deleted records from Raw table
+df = spark.sql(f"select distinct EQUNR,AB,BIS from {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' and   DI_OPERATION_TYPE ='X'")
+df.createOrReplaceTempView("isu_device_deleted_records")
+
+# COMMAND ----------
+
+# DBTITLE 1,13.2 Update _RecordDeleted and _RecordCurrent Flags
+spark.sql(f" \
+    MERGE INTO cleansed.isu_0UC_DEVICEH_ATTR \
+    using isu_device_deleted_records \
+    on isu_0UC_DEVICEH_ATTR.equipmentNumber = isu_device_deleted_records.EQUNR \
+    and isu_0UC_DEVICEH_ATTR.validFromDate = isu_device_deleted_records.AB \
+    and isu_0UC_DEVICEH_ATTR.validToDate = isu_device_deleted_records.BIS \
+    WHEN MATCHED THEN UPDATE SET \
+    _DLCleansedZoneTimeStamp = cast('{CurrentTimeStamp}' as TimeStamp) \
+    ,_RecordEnd = cast('{CurrentTimeStamp}' as TimeStamp) \
+    ,_RecordDeleted=1 \
+    ,_RecordCurrent=0 \
+    ")
+
+# COMMAND ----------
+
+# DBTITLE 1,14. Exit Notebook
 dbutils.notebook.exit("1")

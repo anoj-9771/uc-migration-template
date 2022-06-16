@@ -1,5 +1,5 @@
 {
-	"name": "Business-Reconciliation",
+	"name": "Business-Reconciliation_Bak",
 	"properties": {
 		"activities": [
 			{
@@ -23,13 +23,6 @@
 								"type": "String",
 								"value": {
 									"value": "@pipeline().parameters.BusinessReconGroup",
-									"type": "Expression"
-								}
-							},
-							"TargetObject": {
-								"type": "String",
-								"value": {
-									"value": "@last(split(pipeline().parameters.TaskDetails.Command,'/'))",
 									"type": "Expression"
 								}
 							}
@@ -60,14 +53,123 @@
 						"value": "@activity('Get Business Recon Queries').output.value",
 						"type": "Expression"
 					},
-					"isSequential": false,
+					"isSequential": true,
 					"activities": [
+						{
+							"name": "Copy-DeltaLake-RecordMeasure",
+							"type": "Copy",
+							"dependsOn": [
+								{
+									"activity": "Set Bus Rec Query",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "AzureDatabricksDeltaLakeSource",
+									"query": {
+										"value": "@variables('TargetQuery')",
+										"type": "Expression"
+									},
+									"exportSettings": {
+										"type": "AzureDatabricksDeltaLakeExportCommand"
+									}
+								},
+								"sink": {
+									"type": "AzureSqlSink",
+									"preCopyScript": "truncate table ctl.BusinessRecStage",
+									"writeBehavior": "insert",
+									"sqlWriterUseTableLock": false,
+									"disableMetricsCollection": false
+								},
+								"enableStaging": true,
+								"stagingSettings": {
+									"linkedServiceName": {
+										"referenceName": "LS_AzureDatalake",
+										"type": "LinkedServiceReference"
+									},
+									"path": "raw/landing/isu_data",
+									"enableCompression": false
+								},
+								"parallelCopies": 32,
+								"dataIntegrationUnits": 8
+							},
+							"inputs": [
+								{
+									"referenceName": "DS_CURATED_ADLS_DELTALAKE",
+									"type": "DatasetReference",
+									"parameters": {
+										"TableName": "curated.dimdate"
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "AzureSqlDatabase_Ctrl_db_businessrecstage",
+									"type": "DatasetReference"
+								}
+							]
+						},
+						{
+							"name": "Set Bus Rec Query",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "TargetQuery",
+								"value": {
+									"value": "@item().TargetQuery",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "Lookup_copy_rec",
+							"type": "Lookup",
+							"dependsOn": [
+								{
+									"activity": "Copy-DeltaLake-RecordMeasure",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "AzureSqlSource",
+									"queryTimeout": "02:00:00",
+									"partitionOption": "None"
+								},
+								"dataset": {
+									"referenceName": "AzureSqlDatabase_Ctrl_db_businessrecstage",
+									"type": "DatasetReference"
+								}
+							}
+						},
 						{
 							"name": "SP-Update-Business-Rec-Curated",
 							"type": "SqlServerStoredProcedure",
 							"dependsOn": [
 								{
-									"activity": "Notebook-GetDeltaTableRecordTargetMeasure-Interactive",
+									"activity": "Lookup_copy_rec",
 									"dependencyConditions": [
 										"Succeeded"
 									]
@@ -86,10 +188,10 @@
 								"storedProcedureParameters": {
 									"TargetMeasureValue": {
 										"value": {
-											"value": "@activity('Notebook-GetDeltaTableRecordTargetMeasure-Interactive').output.runOutput",
+											"value": "@activity('Lookup_copy_rec').output.firstRow.TargetMeasure",
 											"type": "Expression"
 										},
-										"type": "Decimal"
+										"type": "Int64"
 									},
 									"BusinessRecId": {
 										"value": {
@@ -131,45 +233,6 @@
 							"linkedServiceName": {
 								"referenceName": "LS-AzureSqlDatabase_Ctrldb",
 								"type": "LinkedServiceReference"
-							}
-						},
-						{
-							"name": "Notebook-GetDeltaTableRecordTargetMeasure-Interactive",
-							"type": "DatabricksNotebook",
-							"dependsOn": [],
-							"policy": {
-								"timeout": "7.00:00:00",
-								"retry": 0,
-								"retryIntervalInSeconds": 30,
-								"secureOutput": false,
-								"secureInput": false
-							},
-							"userProperties": [],
-							"typeProperties": {
-								"notebookPath": {
-									"value": "@variables('NotebookURL')",
-									"type": "Expression"
-								},
-								"baseParameters": {
-									"target_query": {
-										"value": "@item().TargetQuery",
-										"type": "Expression"
-									}
-								}
-							},
-							"linkedServiceName": {
-								"referenceName": "LS-AzureDatabricks_DefinedCluster",
-								"type": "LinkedServiceReference",
-								"parameters": {
-									"kvSecret": {
-										"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[0]",
-										"type": "Expression"
-									},
-									"clusterId": {
-										"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[1]",
-										"type": "Expression"
-									}
-								}
 							}
 						}
 					]
@@ -234,25 +297,15 @@
 			"MeasureName": {
 				"type": "string",
 				"defaultValue": "Billing Document Count"
-			},
-			"TaskDetails": {
-				"type": "object"
-			},
-			"TargetObject": {
-				"type": "string"
 			}
 		},
 		"variables": {
 			"TargetQuery": {
 				"type": "String"
-			},
-			"NotebookURL": {
-				"type": "String",
-				"defaultValue": "/build/curated/utility/getDeltaTableRecordTargetMeasure"
 			}
 		},
 		"folder": {
-			"name": "Validation"
+			"name": "z_Archive"
 		},
 		"annotations": []
 	}

@@ -171,7 +171,7 @@ print(delta_raw_tbl_name)
 
 # DBTITLE 1,10. Load Raw to Dataframe & Do Transformations
 df = spark.sql(f"WITH stage AS \
-                      (Select *, ROW_NUMBER() OVER (PARTITION BY VERTRAG,BIS ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
+                      (Select *, ROW_NUMBER() OVER (PARTITION BY VERTRAG,BIS ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' and DI_OPERATION_TYPE !='X' ) \
                            SELECT \
                                 case when VERTRAG = 'na' then '' else VERTRAG end as contractId, \
                                 ToValidDate((case when BIS = 'na' then '9999-12-31' else BIS end),'MANDATORY') as validToDate, \
@@ -199,38 +199,6 @@ df = spark.sql(f"WITH stage AS \
                         from stage where _RecordVersion = 1 ")
 
 #print(f'Number of rows: {df.count()}')
-
-# COMMAND ----------
-
-# DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
-#Update/rename Column
-#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
-# df_cleansed = spark.sql(f"SELECT \
-#                             case when VERTRAG = 'na' then '' else VERTRAG end as contractId, \
-#                             ToValidDate((case when BIS = 'na' then '9999-12-31' else BIS end),'MANDATORY') as validToDate, \
-#                             ToValidDate(AB) as validFromDate, \
-#                             ANLAGE as installationId, \
-#                             CONTRACTHEAD as contractHeadGUID, \
-#                             CONTRACTPOS as contractPosGUID, \
-#                             PRODID as productId, \
-#                             PRODUCT_GUID as productGUID, \
-#                             CAMPAIGN as marketingCampaign, \
-#                             LOEVM as deletedIndicator, \
-#                             PRODCH_BEG as productBeginIndicator, \
-#                             PRODCH_END as productChangeIndicator, \
-#                             XREPLCNTL as replicationControls, \
-#                             ToValidDate(ERDAT) as createdDate, \
-#                             ERNAM as createdBy, \
-#                             ToValidDate(AEDAT) as lastChangedDate, \
-#                             OUCONTRACT as individualContractId, \
-#                             AENAM as lastChangedBy, \
-#                             _RecordStart, \
-#                             _RecordEnd, \
-#                             _RecordDeleted, \
-#                             _RecordCurrent \
-#                           FROM {ADS_DATABASE_STAGE}.{source_object}")
-
-# print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
 
@@ -268,5 +236,27 @@ DeltaSaveDataFrameToDeltaTable(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS
 
 # COMMAND ----------
 
-# DBTITLE 1,13. Exit Notebook
+# DBTITLE 1,13.1 Identify Deleted records from Raw table
+df = spark.sql(f"select distinct VERTRAG,AB,BIS from {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' and   DI_OPERATION_TYPE ='X'")
+df.createOrReplaceTempView("isu_contract_deleted_records")
+
+# COMMAND ----------
+
+# DBTITLE 1,13.2 Update _RecordDeleted and _RecordCurrent Flags
+spark.sql(f" \
+    MERGE INTO cleansed.isu_0UCCONTRACTH_ATTR_2 \
+    using isu_contract_deleted_records \
+    on isu_0UCCONTRACTH_ATTR_2.contractId = isu_contract_deleted_records.VERTRAG \
+    and isu_0UCCONTRACTH_ATTR_2.validFromDate = isu_contract_deleted_records.AB \
+    and isu_0UCCONTRACTH_ATTR_2.validToDate = isu_contract_deleted_records.BIS \
+    WHEN MATCHED THEN UPDATE SET \
+    _DLCleansedZoneTimeStamp = cast('{CurrentTimeStamp}' as TimeStamp) \
+    ,_RecordEnd = cast('{CurrentTimeStamp}' as TimeStamp) \
+    ,_RecordDeleted=1 \
+    ,_RecordCurrent=0 \
+    ")
+
+# COMMAND ----------
+
+# DBTITLE 1,14. Exit Notebook
 dbutils.notebook.exit("1")
