@@ -1,6 +1,6 @@
 -- Databricks notebook source
 -- DBTITLE 1,Define Widgets (Parameters)
-CREATE WIDGET TEXT env DEFAULT "swcprod01-preprod"
+CREATE WIDGET TEXT env DEFAULT ""
 
 -- COMMAND ----------
 
@@ -8,6 +8,7 @@ CREATE WIDGET TEXT env DEFAULT "swcprod01-preprod"
 REVOKE ALL PRIVILEGES ON SCHEMA raw FROM `A-Azure-rg-$env-daf-01-DataAdmin`;
 REVOKE ALL PRIVILEGES ON SCHEMA cleansed FROM `A-Azure-rg-$env-daf-01-DataAdmin`;
 REVOKE ALL PRIVILEGES ON SCHEMA curated FROM `A-Azure-rg-$env-daf-01-DataAdmin`;
+REVOKE ALL PRIVILEGES ON SCHEMA semantic FROM `A-Azure-rg-$env-daf-01-DataAdmin`;
 REVOKE ALL PRIVILEGES ON SCHEMA datalab FROM `A-Azure-rg-$env-daf-01-DataAdmin`;
 
 -- COMMAND ----------
@@ -16,6 +17,7 @@ REVOKE ALL PRIVILEGES ON SCHEMA datalab FROM `A-Azure-rg-$env-daf-01-DataAdmin`;
 GRANT ALL PRIVILEGES ON SCHEMA raw TO `A-Azure-rg-$env-daf-01-DataAdmin`;
 GRANT ALL PRIVILEGES ON SCHEMA cleansed TO `A-Azure-rg-$env-daf-01-DataAdmin`;
 GRANT ALL PRIVILEGES ON SCHEMA curated TO `A-Azure-rg-$env-daf-01-DataAdmin`;
+GRANT ALL PRIVILEGES ON SCHEMA semantic TO `A-Azure-rg-$env-daf-01-DataAdmin`;
 GRANT ALL PRIVILEGES ON SCHEMA datalab TO `A-Azure-rg-$env-daf-01-DataAdmin`;
 
 -- COMMAND ----------
@@ -24,6 +26,7 @@ GRANT ALL PRIVILEGES ON SCHEMA datalab TO `A-Azure-rg-$env-daf-01-DataAdmin`;
 REVOKE ALL PRIVILEGES ON SCHEMA raw FROM `A-Azure-rg-$env-daf-01-DataDeveloper`;
 REVOKE ALL PRIVILEGES ON SCHEMA cleansed FROM `A-Azure-rg-$env-daf-01-DataDeveloper`;
 REVOKE ALL PRIVILEGES ON SCHEMA curated FROM `A-Azure-rg-$env-daf-01-DataDeveloper`;
+REVOKE ALL PRIVILEGES ON SCHEMA semantic FROM `A-Azure-rg-$env-daf-01-DataDeveloper`;
 REVOKE ALL PRIVILEGES ON SCHEMA datalab FROM `A-Azure-rg-$env-daf-01-DataDeveloper`;
 
 -- COMMAND ----------
@@ -32,6 +35,7 @@ REVOKE ALL PRIVILEGES ON SCHEMA datalab FROM `A-Azure-rg-$env-daf-01-DataDevelop
 GRANT USAGE, SELECT, READ_METADATA ON SCHEMA raw TO `A-Azure-rg-$env-daf-01-DataDeveloper`;
 GRANT USAGE, SELECT, READ_METADATA ON SCHEMA cleansed TO `A-Azure-rg-$env-daf-01-DataDeveloper`;
 GRANT USAGE, SELECT, READ_METADATA ON SCHEMA curated TO `A-Azure-rg-$env-daf-01-DataDeveloper`;
+GRANT USAGE, SELECT, READ_METADATA ON SCHEMA semantic TO `A-Azure-rg-$env-daf-01-DataDeveloper`;
 GRANT ALL PRIVILEGES ON SCHEMA datalab TO `A-Azure-rg-$env-daf-01-DataDeveloper`;
 
 -- COMMAND ----------
@@ -40,6 +44,7 @@ GRANT ALL PRIVILEGES ON SCHEMA datalab TO `A-Azure-rg-$env-daf-01-DataDeveloper`
 REVOKE ALL PRIVILEGES ON SCHEMA raw FROM `A-Azure-rg-$env-daf-01-DataAnalystStdUsr`;
 REVOKE ALL PRIVILEGES ON SCHEMA cleansed FROM `A-Azure-rg-$env-daf-01-DataAnalystStdUsr`;
 REVOKE ALL PRIVILEGES ON SCHEMA curated FROM `A-Azure-rg-$env-daf-01-DataAnalystStdUsr`;
+REVOKE ALL PRIVILEGES ON SCHEMA semantic FROM `A-Azure-rg-$env-daf-01-DataAnalystStdUsr`;
 REVOKE ALL PRIVILEGES ON SCHEMA datalab FROM `A-Azure-rg-$env-daf-01-DataAnalystStdUsr`;
 
 -- COMMAND ----------
@@ -48,6 +53,7 @@ REVOKE ALL PRIVILEGES ON SCHEMA datalab FROM `A-Azure-rg-$env-daf-01-DataAnalyst
 DENY ALL PRIVILEGES ON SCHEMA raw TO `A-Azure-rg-$env-daf-01-DataAnalystStdUsr`;
 DENY ALL PRIVILEGES ON SCHEMA cleansed TO `A-Azure-rg-$env-daf-01-DataAnalystStdUsr`;
 GRANT USAGE, SELECT, READ_METADATA ON SCHEMA curated TO `A-Azure-rg-$env-daf-01-DataAnalystStdUsr`;
+DENY ALL PRIVILEGES ON SCHEMA semantic TO `A-Azure-rg-$env-daf-01-DataAnalystStdUsr`;
 DENY ALL PRIVILEGES ON SCHEMA datalab TO `A-Azure-rg-$env-daf-01-DataAnalystStdUsr`;
 
 -- COMMAND ----------
@@ -56,6 +62,7 @@ DENY ALL PRIVILEGES ON SCHEMA datalab TO `A-Azure-rg-$env-daf-01-DataAnalystStdU
 REVOKE ALL PRIVILEGES ON SCHEMA raw FROM `A-Azure-rg-$env-daf-01-DataAnalystAdvUsr`;
 REVOKE ALL PRIVILEGES ON SCHEMA cleansed FROM `A-Azure-rg-$env-daf-01-DataAnalystAdvUsr`;
 REVOKE ALL PRIVILEGES ON SCHEMA curated FROM `A-Azure-rg-$env-daf-01-DataAnalystAdvUsr`;
+REVOKE ALL PRIVILEGES ON SCHEMA semantic FROM `A-Azure-rg-$env-daf-01-DataAnalystAdvUsr`;
 REVOKE ALL PRIVILEGES ON SCHEMA datalab FROM `A-Azure-rg-$env-daf-01-DataAnalystAdvUsr`;
 
 -- COMMAND ----------
@@ -64,6 +71,7 @@ REVOKE ALL PRIVILEGES ON SCHEMA datalab FROM `A-Azure-rg-$env-daf-01-DataAnalyst
 GRANT USAGE, SELECT, READ_METADATA ON SCHEMA raw TO `A-Azure-rg-$env-daf-01-DataAnalystAdvUsr`;
 GRANT USAGE, SELECT, READ_METADATA ON SCHEMA cleansed TO `A-Azure-rg-$env-daf-01-DataAnalystAdvUsr`;
 GRANT USAGE, SELECT, READ_METADATA ON SCHEMA curated TO `A-Azure-rg-$env-daf-01-DataAnalystAdvUsr`;
+DENY ALL PRIVILEGES ON SCHEMA semantic TO `A-Azure-rg-$env-daf-01-DataAnalystAdvUsr`;
 GRANT ALL PRIVILEGES ON SCHEMA datalab TO `A-Azure-rg-$env-daf-01-DataAnalystAdvUsr`;
 
 -- COMMAND ----------
@@ -72,6 +80,7 @@ GRANT ALL PRIVILEGES ON SCHEMA datalab TO `A-Azure-rg-$env-daf-01-DataAnalystAdv
 REVOKE ALL PRIVILEGES ON SCHEMA raw FROM `A-Azure-rg-$env-daf-01-BiStdUsr`;
 REVOKE ALL PRIVILEGES ON SCHEMA cleansed FROM `A-Azure-rg-$env-daf-01-BiStdUsr`;
 REVOKE ALL PRIVILEGES ON SCHEMA curated FROM `A-Azure-rg-$env-daf-01-BiStdUsr`;
+REVOKE ALL PRIVILEGES ON SCHEMA semantic FROM `A-Azure-rg-$env-daf-01-BiStdUsr`;
 REVOKE ALL PRIVILEGES ON SCHEMA datalab FROM `A-Azure-rg-$env-daf-01-BiStdUsr`;
 
 -- COMMAND ----------
@@ -79,7 +88,8 @@ REVOKE ALL PRIVILEGES ON SCHEMA datalab FROM `A-Azure-rg-$env-daf-01-BiStdUsr`;
 -- DBTITLE 1,Grant all ACLs to BI Std User group
 DENY ALL PRIVILEGES ON SCHEMA raw TO `A-Azure-rg-$env-daf-01-BiStdUsr`;
 DENY ALL PRIVILEGES ON SCHEMA cleansed TO `A-Azure-rg-$env-daf-01-BiStdUsr`;
-GRANT USAGE, SELECT, READ_METADATA ON SCHEMA curated TO `A-Azure-rg-$env-daf-01-BiStdUsr`;
+DENY ALL PRIVILEGES ON SCHEMA curated TO `A-Azure-rg-$env-daf-01-BiStdUsr`;
+GRANT USAGE, SELECT, READ_METADATA ON SCHEMA semantic TO `A-Azure-rg-$env-daf-01-BiStdUsr`;
 DENY ALL PRIVILEGES ON SCHEMA datalab TO `A-Azure-rg-$env-daf-01-BiStdUsr`;
 
 -- COMMAND ----------
@@ -88,6 +98,7 @@ DENY ALL PRIVILEGES ON SCHEMA datalab TO `A-Azure-rg-$env-daf-01-BiStdUsr`;
 REVOKE ALL PRIVILEGES ON SCHEMA raw FROM `A-Azure-rg-$env-daf-01-BiAdvUsr`;
 REVOKE ALL PRIVILEGES ON SCHEMA cleansed FROM `A-Azure-rg-$env-daf-01-BiAdvUsr`;
 REVOKE ALL PRIVILEGES ON SCHEMA curated FROM `A-Azure-rg-$env-daf-01-BiAdvUsr`;
+REVOKE ALL PRIVILEGES ON SCHEMA semantic FROM `A-Azure-rg-$env-daf-01-BiAdvUsr`;
 REVOKE ALL PRIVILEGES ON SCHEMA datalab FROM `A-Azure-rg-$env-daf-01-BiAdvUsr`;
 
 -- COMMAND ----------
@@ -95,5 +106,24 @@ REVOKE ALL PRIVILEGES ON SCHEMA datalab FROM `A-Azure-rg-$env-daf-01-BiAdvUsr`;
 -- DBTITLE 1,Grant all ACLs to BI Adv User group
 DENY ALL PRIVILEGES ON SCHEMA raw TO `A-Azure-rg-$env-daf-01-BiAdvUsr`;
 DENY ALL PRIVILEGES ON SCHEMA cleansed TO `A-Azure-rg-$env-daf-01-BiAdvUsr`;
-GRANT USAGE, SELECT, READ_METADATA ON SCHEMA curated TO `A-Azure-rg-$env-daf-01-BiAdvUsr`;
+DENY ALL PRIVILEGES ON SCHEMA curated TO `A-Azure-rg-$env-daf-01-BiAdvUsr`;
+GRANT USAGE, SELECT, READ_METADATA ON SCHEMA semantic TO `A-Azure-rg-$env-daf-01-BiAdvUsr`;
 GRANT ALL PRIVILEGES ON SCHEMA datalab TO `A-Azure-rg-$env-daf-01-BiAdvUsr`;
+
+-- COMMAND ----------
+
+-- DBTITLE 1,Revoke all ACLs from BI Developer User group
+REVOKE ALL PRIVILEGES ON SCHEMA raw FROM `A-Azure-rg-$env-daf-01-BiDeveloper`;
+REVOKE ALL PRIVILEGES ON SCHEMA cleansed FROM `A-Azure-rg-$env-daf-01-BiDeveloper`;
+REVOKE ALL PRIVILEGES ON SCHEMA curated FROM `A-Azure-rg-$env-daf-01-BiDeveloper`;
+REVOKE ALL PRIVILEGES ON SCHEMA semantic FROM `A-Azure-rg-$env-daf-01-BiDeveloper`;
+REVOKE ALL PRIVILEGES ON SCHEMA datalab FROM `A-Azure-rg-$env-daf-01-BiDeveloper`;
+
+-- COMMAND ----------
+
+-- DBTITLE 1,Grant all ACLs to BI Developer User group
+DENY ALL PRIVILEGES ON SCHEMA raw TO `A-Azure-rg-$env-daf-01-BiDeveloper`;
+DENY ALL PRIVILEGES ON SCHEMA cleansed TO `A-Azure-rg-$env-daf-01-BiDeveloper`;
+DENY ALL PRIVILEGES ON SCHEMA curated TO `A-Azure-rg-$env-daf-01-BiDeveloper`;
+GRANT USAGE, SELECT, READ_METADATA ON SCHEMA semantic TO `A-Azure-rg-$env-daf-01-BiDeveloper`;
+GRANT ALL PRIVILEGES ON SCHEMA datalab TO `A-Azure-rg-$env-daf-01-BiDeveloper`;
