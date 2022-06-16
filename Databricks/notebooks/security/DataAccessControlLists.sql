@@ -127,3 +127,8 @@ DENY ALL PRIVILEGES ON SCHEMA cleansed TO `A-Azure-rg-$env-daf-01-BiDeveloper`;
 DENY ALL PRIVILEGES ON SCHEMA curated TO `A-Azure-rg-$env-daf-01-BiDeveloper`;
 GRANT USAGE, SELECT, READ_METADATA ON SCHEMA semantic TO `A-Azure-rg-$env-daf-01-BiDeveloper`;
 GRANT ALL PRIVILEGES ON SCHEMA datalab TO `A-Azure-rg-$env-daf-01-BiDeveloper`;
+
+-- COMMAND ----------
+
+-- MAGIC %python
+-- MAGIC dbutils.notebook.exit("1")
