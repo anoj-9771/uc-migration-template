@@ -52,6 +52,14 @@ insert into [CTL].[ControlProjects]([ProjectName],[Enabled],[RunSequence]) value
 insert into [CTL].[ControlProjects]([ProjectName],[Enabled],[RunSequence]) values('CLEANSED REF HYDRA',1,30);
 insert into [CTL].[ControlProjects]([ProjectName],[Enabled],[RunSequence]) values('CLEANSED DATA HYDRA',1,40);
 insert into [CTL].[ControlProjects]([ProjectName],[Enabled],[RunSequence]) values('SEMANTIC MASTER',1,70);
+insert into [CTL].[ControlProjects]([ProjectName],[Enabled],[RunSequence]) values('CURATED BATCH 1',1,10);
+insert into [CTL].[ControlProjects]([ProjectName],[Enabled],[RunSequence]) values('CURATED BATCH 2',1,20);
+insert into [CTL].[ControlProjects]([ProjectName],[Enabled],[RunSequence]) values('CURATED BATCH 3',1,30);
+insert into [CTL].[ControlProjects]([ProjectName],[Enabled],[RunSequence]) values('CURATED BATCH 4',1,40);
+insert into [CTL].[ControlProjects]([ProjectName],[Enabled],[RunSequence]) values('CURATED BATCH 5',1,50);
+insert into [CTL].[ControlProjects]([ProjectName],[Enabled],[RunSequence]) values('CURATED BATCH 6',1,60);
+insert into [CTL].[ControlProjects]([ProjectName],[Enabled],[RunSequence]) values('RAW SLT ISU',1,10);
+insert into [CTL].[ControlProjects]([ProjectName],[Enabled],[RunSequence]) values('CLEANSED SLT ISU',1,20);
 
 INSERT INTO [CTL].[ControlStages] ([StageSequence], [StageName]) SELECT 100, N'Source to Raw'
 WHERE NOT EXISTS (SELECT 1 FROM [CTL].[ControlStages] WHERE [StageName] = N'Source to Raw')
