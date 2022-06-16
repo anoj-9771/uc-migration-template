@@ -31,7 +31,7 @@ variables:
     value: 13daf0ce-c685-41b1-b609-0747c83bc4ac
   # Store account type for BLOB Storage e.g. Standard_LRS)
   - name: storageAccountType
-    value: Standard_LRS
+    value: Standard_GRS
   # Tagging.
   - name: applytags
     value: false
