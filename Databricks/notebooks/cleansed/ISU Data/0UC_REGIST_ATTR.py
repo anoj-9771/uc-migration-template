@@ -217,51 +217,6 @@ df = spark.sql(f"WITH stage AS \
 
 # COMMAND ----------
 
-# DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
-#Update/rename Column
-#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
-# df_cleansed = spark.sql(f"SELECT \
-# 	case when EQUNR = 'na' then '' else EQUNR end as equipmentNumber, \
-# 	case when ZWNUMMER = 'na' then '' else (cast(ZWNUMMER as int)) end  as registerNumber, \
-# 	ToValidDate(BIS,'MANDATORY') as validToDate, \
-# 	ToValidDate(AB) as validFromDate, \
-# 	LOGIKZW as logicalRegisterNumber, \
-# 	SPARTYP as divisionCategoryCode, \
-#     di.sectorCategory as divisionCategory, \
-# 	ZWKENN as registerIdCode, \
-#     id.registerId as registerId, \
-# 	ZWART as registerTypeCode, \
-# 	te.registerType as registerType, \
-# 	ZWTYP as registerCategoryCode, \
-#     dd.domainValueText as registerCategory, \
-# 	BLIWIRK as reactiveApparentOrActiveRegister, \
-# 	MASSREAD as unitOfMeasurementMeterReading, \
-# 	NABLESEN as doNotReadIndicator, \
-# 	cast(HOEKORR as int) as altitudeCorrectionPressure, \
-# 	cast(KZAHLE as int) as setGasLawDeviationFactor, \
-# 	cast(KZAHLT as int) as actualGasLawDeviationFactor, \
-# 	cast(CRGPRESS as int) as gasCorrectionPressure, \
-# 	INTSIZEID as intervalLengthId, \
-# 	LOEVM as deletedIndicator, \
-#     ZANLAGE as installationId, \
-# 	re._RecordStart, \
-# 	re._RecordEnd, \
-# 	re._RecordDeleted, \
-# 	re._RecordCurrent \
-# 	FROM {ADS_DATABASE_STAGE}.{source_object} re \
-#     LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UCDIVISCAT_TEXT di ON re.SPARTYP = di.sectorCategoryCode \
-#                                                                       and di._RecordDeleted = 0 and di._RecordCurrent = 1 \
-#     LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_TE065T id ON re.SPARTYP = id.divisionCategoryCode and re.ZWKENN = id.registerIdCode \
-#                                                                       and id._RecordDeleted = 0 and id._RecordCurrent = 1 \
-#     LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_TE523T te ON re.ZWART = te.registerTypeCode \
-#                                                                       and te._RecordDeleted = 0 and te._RecordCurrent = 1 \
-#     LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_DD07T dd ON re.ZWTYP = dd.domainValueSingleUpperLimit and  dd.domainName = 'E_ZWTYP' \
-#                                                                       and dd._RecordDeleted = 0 and dd._RecordCurrent = 1")
-
-# print(f'Number of rows: {df_cleansed.count()}')
-
-# COMMAND ----------
-
 newSchema = StructType([
 	StructField('equipmentNumber',StringType(),False),
 	StructField('registerNumber',StringType(),False),
@@ -298,6 +253,31 @@ newSchema = StructType([
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 DeltaSaveDataFrameToDeltaTable(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
+
+# COMMAND ----------
+
+# DBTITLE 1,13.1 Identify Deleted records from Raw table
+df = spark.sql(f"select distinct EQUNR,ZWNUMMER,AB,BIS from ( \
+Select *, ROW_NUMBER() OVER (PARTITION BY EQUNR,ZWNUMMER,AB,BIS ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' ) \
+where  _RecordVersion = 1 and DI_OPERATION_TYPE ='X'")
+df.createOrReplaceTempView("isu_regist_deleted_records")
+
+# COMMAND ----------
+
+# DBTITLE 1,13.2 Update _RecordDeleted and _RecordCurrent Flags
+spark.sql(f" \
+    MERGE INTO cleansed.isu_0UC_REGIST_ATTR \
+    using isu_regist_deleted_records \
+    on isu_0UC_REGIST_ATTR.equipmentNumber = isu_regist_deleted_records.EQUNR \
+    and isu_0UC_REGIST_ATTR.registerNumber = isu_regist_deleted_records.ZWNUMMER \
+    and isu_0UC_REGIST_ATTR.validFromDate = isu_regist_deleted_records.AB \
+    and isu_0UC_REGIST_ATTR.validToDate = isu_regist_deleted_records.BIS \
+    WHEN MATCHED THEN UPDATE SET \
+    _DLCleansedZoneTimeStamp = cast('{CurrentTimeStamp}' as TimeStamp) \
+    ,_RecordEnd = cast('{CurrentTimeStamp}' as TimeStamp) \
+    ,_RecordDeleted=1 \
+    ,_RecordCurrent=0 \
+    ")
 
 # COMMAND ----------
 
