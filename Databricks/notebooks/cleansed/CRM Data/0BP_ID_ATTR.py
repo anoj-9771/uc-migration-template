@@ -231,7 +231,7 @@ DeltaSaveDataFrameToDeltaTable(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS
 # df = spark.sql(f"select distinct PARTNER,TYPE,IDNUMBER from {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' and FLG_DEL_BW IS NOT NULL")
 # df.createOrReplaceTempView("crm_bp_id_deleted_records")
 
-df = spark.sql(f"select distinct PARTNER,TYPE,IDNUMBER from ( \
+df = spark.sql(f"select distinct coalesce(PARTNER,'') as PARTNER, coalesce(TYPE,'') as TYPE, coalesce(IDNUMBER,'') as IDNUMBER from ( \
 Select *, ROW_NUMBER() OVER (PARTITION BY PARTNER,TYPE,IDNUMBER ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' ) \
 where  _RecordVersion = 1 and FLG_DEL_BW IS NOT NULL")
 df.createOrReplaceTempView("crm_bp_id_deleted_records")
@@ -239,6 +239,10 @@ df.createOrReplaceTempView("crm_bp_id_deleted_records")
 # COMMAND ----------
 
 # DBTITLE 1,13.2 Update _RecordDeleted and _RecordCurrent Flags
+#Get current time
+CurrentTimeStamp = GeneralLocalDateTime()
+CurrentTimeStamp = CurrentTimeStamp.strftime("%Y-%m-%d %H:%M:%S")
+
 spark.sql(f" \
     MERGE INTO cleansed.crm_0BP_ID_ATTR \
     using crm_bp_id_deleted_records \
