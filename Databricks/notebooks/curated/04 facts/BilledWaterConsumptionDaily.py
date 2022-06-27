@@ -349,4 +349,34 @@ verifyTableSchema(f"curated.factDailyApportionedConsumption", schema)
 
 # COMMAND ----------
 
+# THIS IS COMMENTED AND TO BE UNCOMMENTED TO RUN ONLY WHEN ACCESS DATA LOADING USING THIS NOTEBOOK.
+# %sql
+# OPTIMIZE curated.factdailyapportionedconsumption
+# WHERE sourceSystemCode = 'ACCESS'
+# ZORDER BY (locationSK)
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC OPTIMIZE curated.factdailyapportionedconsumption
+# MAGIC WHERE sourceSystemCode = 'ISU'
+# MAGIC ZORDER BY (locationSK)
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC set spark.databricks.delta.retentionDurationCheck.enabled=false;
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC VACUUM curated.factdailyapportionedconsumption RETAIN 0 HOURS;
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC set spark.databricks.delta.retentionDurationCheck.enabled=true;
+
+# COMMAND ----------
+
 dbutils.notebook.exit("1")
