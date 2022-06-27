@@ -227,7 +227,7 @@ df = spark.sql(f"WITH stage AS \
                             case when Water_Pressure_Zone = 'N/A' then null else wnp.pressureArea end as waterPressureZone, \
                             case when Sewer_SCAMP = 'N/A' then null else sn.sewerNetwork end as sewerNetwork, \
                             case when Sewer_SCAMP = 'N/A' then null else sn.sewerCatchment end as sewerCatchment, \
-                            case when Sewer_SCAMP = 'N/A' then null else sn.SCAMP end as SCAMP, \
+                            case when Sewer_SCAMP = 'N/A' then null else sn.SCAMP end as sewerSCAMP, \
                             case when Recycled_Supply_Zone = 'N/A' then null else wnr.deliverySystem end as recycledDeliverySystem, \
                             case when Recycled_Supply_Zone = 'N/A' then null else wnr.distributionSystem end as recycledDistributionSystem, \
                             case when Recycled_Supply_Zone = 'N/A' then null else wnr.supplyZone end as recycledSupplyZone, \
@@ -268,7 +268,7 @@ newSchema = StructType([
     StructField('waterPressureZone',StringType(),True),
     StructField('sewerNetwork',StringType(),True),
     StructField('sewerCatchment',StringType(),True),
-    StructField('SCAMP',StringType(),True),
+    StructField('sewerSCAMP',StringType(),True),
     StructField('recycledDeliverySystem',StringType(),True),
     StructField('recycledDistributionSystem',StringType(),True),
     StructField('recycledSupplyZone',StringType(),True),
