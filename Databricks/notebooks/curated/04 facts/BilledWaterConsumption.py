@@ -251,7 +251,34 @@ def getBilledWaterConsumption():
 # COMMAND ----------
 
 df, schema = getBilledWaterConsumption()
-TemplateEtl(df, entity="factBilledWaterConsumption", businessKey="meterConsumptionBillingDocumentSK,meterConsumptionBillingLineItemSK,propertySK,meterSK,locationSK,waterNetworkSK,businessPartnerGroupSK,contractSK,billingPeriodStartDate", schema=schema, writeMode=ADS_WRITE_MODE_MERGE, AddSK=False)
+# TemplateEtl(df, entity="factBilledWaterConsumption", businessKey="meterConsumptionBillingDocumentSK,meterConsumptionBillingLineItemSK,propertySK,meterSK,locationSK,waterNetworkSK,businessPartnerGroupSK,contractSK,billingPeriodStartDate", schema=schema, writeMode=ADS_WRITE_MODE_MERGE, AddSK=False)
+
+# COMMAND ----------
+
+df = df.withColumn("_DLCuratedZoneTimeStamp",current_timestamp().cast("timestamp")).withColumn("_RecordStart",col('_DLCuratedZoneTimeStamp').cast("timestamp")).withColumn("_RecordEnd",lit('9999-12-31 00:00:00').cast("timestamp")).withColumn("_RecordDeleted",lit(0).cast("int")).withColumn("_RecordCurrent",lit(1).cast("int"))
+
+if loadConsumption:
+    dfAccess = df.filter("sourceSystemCode='ACCESS'")
+    dfAccess.write \
+      .format("delta") \
+      .mode("overwrite") \
+      .option("replaceWhere", "sourceSystemCode = 'ACCESS'") \
+      .option("overwriteSchema","true").saveAsTable("curated.factBilledWaterConsumption")
+    
+    dfISU = df.filter("sourceSystemCode='ISU'")
+    dfISU.write \
+      .format("delta") \
+      .mode("overwrite") \
+      .option("replaceWhere", "sourceSystemCode = 'ISU'") \
+      .option("overwriteSchema","true").saveAsTable("curated.factBilledWaterConsumption")
+else:
+    df.write \
+      .format("delta") \
+      .mode("overwrite") \
+      .option("replaceWhere", f"sourceSystemCode = '{source_system}'") \
+      .option("overwriteSchema","true").saveAsTable("curated.factBilledWaterConsumption")
+    
+verifyTableSchema(f"curated.factBilledWaterConsumption", schema)
 
 # COMMAND ----------
 
