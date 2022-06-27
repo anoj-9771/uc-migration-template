@@ -237,12 +237,21 @@ DeltaSaveDataFrameToDeltaTable(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS
 # COMMAND ----------
 
 # DBTITLE 1,13.1 Identify Deleted records from Raw table
-df = spark.sql(f"select distinct VERTRAG,AB,BIS from {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' and   DI_OPERATION_TYPE ='X'")
+# df = spark.sql(f"select distinct VERTRAG,AB,BIS from {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' and   DI_OPERATION_TYPE ='X'")
+# df.createOrReplaceTempView("isu_contract_deleted_records")
+
+df = spark.sql(f"select distinct coalesce(VERTRAG,'') as VERTRAG, coalesce(AB,'') as AB, coalesce(BIS,'') BIS as from ( \
+Select *, ROW_NUMBER() OVER (PARTITION BY VERTRAG,AB,BIS ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' ) \
+where  _RecordVersion = 1 and DI_OPERATION_TYPE ='X'")
 df.createOrReplaceTempView("isu_contract_deleted_records")
 
 # COMMAND ----------
 
 # DBTITLE 1,13.2 Update _RecordDeleted and _RecordCurrent Flags
+#Get current time
+CurrentTimeStamp = GeneralLocalDateTime()
+CurrentTimeStamp = CurrentTimeStamp.strftime("%Y-%m-%d %H:%M:%S")
+
 spark.sql(f" \
     MERGE INTO cleansed.isu_0UCCONTRACTH_ATTR_2 \
     using isu_contract_deleted_records \

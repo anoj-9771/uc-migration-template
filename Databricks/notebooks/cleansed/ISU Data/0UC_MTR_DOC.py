@@ -171,7 +171,7 @@ print(delta_raw_tbl_name)
 
 # DBTITLE 1,10. Load Raw to Dataframe & Do Transformations
 df = spark.sql(f"WITH stage AS \
-                      (Select *, ROW_NUMBER() OVER (PARTITION BY ABLBELNR,EQUNR ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
+                      (Select *, ROW_NUMBER() OVER (PARTITION BY ABLBELNR,EQUNR ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' and DI_OPERATION_TYPE !='X' ) \
                            SELECT  \
                                       case when ABLBELNR = 'na' then '' else ABLBELNR end as meterReadingId , \
                                       case when EQUNR = 'na' then '' else EQUNR end as equipmentNumber , \
@@ -215,55 +215,6 @@ df = spark.sql(f"WITH stage AS \
                         from stage where _RecordVersion = 1 ")
 
 #print(f'Number of rows: {df.count()}')
-
-# COMMAND ----------
-
-# DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
-#Update/rename Column
-#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
-# df_cleansed = spark.sql(f"SELECT  \
-#                                       case when ABLBELNR = 'na' then '' else ABLBELNR end as meterReadingId , \
-#                                       case when EQUNR = 'na' then '' else EQUNR end as equipmentNumber , \
-#                                       ZWNUMMER as registerNumber , \
-#                                       ToValidDate(ADAT) as meterReadingDate , \
-#                                       MRESULT as meterReadingTaken , \
-#                                       MR_BILL as duplicate , \
-#                                       AKTIV as meterReadingActive , \
-#                                       ToValidDate(ADATSOLL) as scheduledMeterReadingDate , \
-#                                       ABLSTAT as meterReadingStatus , \
-#                                       ABLHINW as noteFromMeterReader , \
-#                                       ABLESART as scheduledMeterReadingCategory , \
-#                                       ABLESER as meterReaderNumber , \
-#                                       MDEUPL as orderHasBeenOutput , \
-#                                       ISTABLART as meterReadingType , \
-#                                       ABLESTYP as meterReadingCategory , \
-#                                       MASSREAD as unitOfMeasurementMeterReading , \
-#                                       UPDMOD as bwDeltaProcess , \
-#                                       LOEVM as deletedIndicator , \
-#                                       PRUEFPKT as independentValidation , \
-#                                       POPCODE as dependentValidation , \
-#                                       AMS as advancedMeteringSystem , \
-#                                       TRANSSTAT as transferStatusCode , \
-#                                       TRANSTSTAMP as timeStamp , \
-#                                       SOURCESYST as sourceSystemOrigin , \
-#                                       ToValidDate(ZPREV_ADT) as actualPreviousMeterReadingDate , \
-#                                       ZPREV_MRESULT as meterPreviousReadingTaken , \
-#                                       ZZ_PHOTO_IND as meterPhotoIndicator , \
-#                                       ZZ_FREE_TEXT as freeText , \
-#                                       ZZ_COMM_CODE as meterReadingCommentCode , \
-#                                       ZZ_NO_READ_CODE as noReadCode , \
-#                                       ZGERNR as deviceNumber , \
-#                                       ToValidDate(ZADATTATS) as actualMeterReadingDate , \
-#                                       ZWNABR as registerNotRelevantToBilling , \
-#                                       ToValidDate(AEDAT) as lastChangedDate , \
-#                                       _RecordStart, \
-#                                       _RecordEnd, \
-#                                       _RecordDeleted, \
-#                                       _RecordCurrent \
-#                               FROM {ADS_DATABASE_STAGE}.{source_object}")
-
-
-# print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
 
@@ -317,6 +268,33 @@ newSchema = StructType(
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 DeltaSaveDataFrameToDeltaTable(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
+
+# COMMAND ----------
+
+# DBTITLE 1,13.1 Identify Deleted records from Raw table
+df = spark.sql(f"select distinct coalesce(ABLBELNR,'') as ABLBELNR, coalesce(EQUNR,'') as EQUNR from ( \
+Select *, ROW_NUMBER() OVER (PARTITION BY ABLBELNR,EQUNR ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' ) \
+where  _RecordVersion = 1 and DI_OPERATION_TYPE ='X'")
+df.createOrReplaceTempView("isu_mtr_doc_deleted_records")
+
+# COMMAND ----------
+
+# DBTITLE 1,13.2 Update _RecordDeleted and _RecordCurrent Flags
+#Get current time
+CurrentTimeStamp = GeneralLocalDateTime()
+CurrentTimeStamp = CurrentTimeStamp.strftime("%Y-%m-%d %H:%M:%S")
+
+spark.sql(f" \
+    MERGE INTO cleansed.isu_0UC_MTR_DOC \
+    using isu_mtr_doc_deleted_records \
+    on isu_0UC_MTR_DOC.meterReadingId = isu_mtr_doc_deleted_records.ABLBELNR \
+    and isu_0UC_MTR_DOC.equipmentNumber = isu_mtr_doc_deleted_records.EQUNR \
+    WHEN MATCHED THEN UPDATE SET \
+    _DLCleansedZoneTimeStamp = cast('{CurrentTimeStamp}' as TimeStamp) \
+    ,_RecordEnd = cast('{CurrentTimeStamp}' as TimeStamp) \
+    ,_RecordDeleted=1 \
+    ,_RecordCurrent=0 \
+    ")
 
 # COMMAND ----------
 
