@@ -229,7 +229,7 @@ def getProperty():
                              {ADS_DATABASE_CLEANSED}.isu_0uc_connobj_attr_2 pa on pa.architecturalObjectId = coalesce(vn.parentArchitecturalObjectNumber,co.propertyNumber) \
                               and   pa._RecordCurrent = 1 and pa._RecordDeleted = 0 left outer join \
                              {ADS_DATABASE_CLEANSED}.isu_dd07t dt on co.lotTypeCode = dt.domainValueSingleUpperLimit and domainName = 'ZCD_DO_ADDR_LOT_TYPE' \
-                              and dt._RecordDeleted = 0 and dt._RecordCurrent = 1 inner join \
+                              and dt._RecordDeleted = 0 and dt._RecordCurrent = 1 left outer join \
                               systemAreas sa on sa.propertyNumber = coalesce(int(vn.parentArchitecturalObjectNumber),int(co.propertyNumber)) \
                          where co.propertyNumber <> '' \
                          and   co._RecordDeleted = 0 \

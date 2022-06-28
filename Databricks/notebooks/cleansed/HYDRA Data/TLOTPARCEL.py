@@ -2,9 +2,9 @@
 # DBTITLE 1,Generate parameter and source object name for unit testing
 import json
 hydraTable = 'TLOTPARCEL'
-businessKeys = 'System_Key'
+businessKeys = 'systemKey'
 
-runParm = '{"SourceType":"BLOB Storage (csv)","SourceServer":"daf-sa-lake-sastoken","SourceGroup":"hydradata","SourceName":"hydra_####","SourceLocation":"hydradata/####","AdditionalProperty":"","Processor":"databricks-token|1103-023442-me8nqcm9|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive","IsAuditTable":false,"SoftDeleteSource":"","ProjectName":"CLEANSED DATA HYDRA","ProjectId":2,"TargetType":"BLOB Storage (csv)","TargetName":"hydra_####","TargetLocation":"hydradata/####","TargetServer":"daf-sa-lake-sastoken","DataLoadMode":"TRUNCATE-LOAD","DeltaExtract":false,"CDCSource":false,"TruncateTarget":true,"UpsertTarget":false,"AppendTarget":false,"TrackChanges":false,"LoadToSqlEDW":true,"TaskName":"hydra_####","ControlStageId":2,"TaskId":40,"StageSequence":200,"StageName":"Raw to Cleansed","SourceId":40,"TargetId":40,"ObjectGrain":"Day","CommandTypeId":8,"Watermarks":"","WatermarksDT":null,"WatermarkColumn":"","BusinessKeyColumn":"yyyy","PartitionColumn":null,"UpdateMetaData":null,"SourceTimeStampFormat":"","Command":"/build/cleansed/HYDRA Data/####","LastLoadedFile":null}'
+runParm = '{"SourceType":"BLOB Storage (csv)","SourceServer":"daf-sa-lake-sastoken","SourceGroup":"hydradata","SourceName":"hydra_####","SourceLocation":"hydradata/####","AdditionalProperty":"","Processor":"databricks-token|1103-023442-me8nqcm9|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive","IsAuditTable":false,"SoftDeleteSource":"","ProjectName":"CLEANSED DATA HYDRA","ProjectId":2,"TargetType":"BLOB Storage (csv)","TargetName":"hydra_####","TargetLocation":"hydradata/####","TargetServer":"daf-sa-lake-sastoken","DataLoadMode":"TRUNCATE-LOAD","DeltaExtract":false,"CDCSource":false,"TruncateTarget":true,"UpsertTarget":false,"AppendTarget":false,"TrackChanges":false,"LoadToSqlEDW":true,"TaskName":"hydra_####","ControlStageId":2,"TaskId":40,"StageSequence":200,"StageName":"Raw to Cleansed","SourceId":40,"TargetId":40,"ObjectGrain":"Day","CommandTypeId":8,"Watermarks":"","WatermarksDT":null,"WatermarkColumn":"","BusinessKeyColumn":"yyyy","PartitionColumn":null,"UpdateMetaData":null,"SourceTimeStampFormat":"","Command":"/build/cleansed/HYDRA Data/####","LastLoadedFile":null,"LastSuccessfulExecutionTS":"2022-05-23T12:49:06"}'
 
 s = json.loads(runParm)
 for parm in ['SourceName','SourceLocation','TargetName','TargetLocation','TaskName','BusinessKeyColumn','Command']:
@@ -179,61 +179,72 @@ print(delta_raw_tbl_name)
 
 # DBTITLE 1,10. Load Raw to Dataframe & Do Transformations
 df = spark.sql(f"WITH stage AS \
-                      (Select *, ROW_NUMBER() OVER (PARTITION BY System_Key ORDER BY _DLRawZoneTimestamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
-                           SELECT cast(System_Key as int) AS systemKey, \
-                                cast(Property_Number as int) AS propertyNumber, \
-                                case when LGA = 'N/A' then null else initcap(LGA) end as LGA, \
-                                case when Address = ' ' then null else initcap(Address) end as propertyAddress, \
-                                case when Suburb = 'N/A' then null else initcap(Suburb) end AS suburb, \
-                                case when Land_Use = 'N/A' then null else initcap(Land_Use) end as landUse, \
-                                case when Superior_Land_Use = 'N/A' then null else initcap(Superior_Land_Use) end as superiorLandUse, \
-                                cast(Area_m2 as int) as areaSize, \
-                                'm2' as areaSizeUnit, \
-                                cast(Lon as dec(9,6)) as longitude, \
-                                cast(Lat as dec(9,6)) as latitude, \
-                                cast(MGA56_X as long) as x_coordinate_MGA56, \
-                                cast(MGA56_Y as long) as y_coordinate_MGA56, \
-                                case when Water_Pressure_Zone = 'N/A' then null else Water_Pressure_Zone end as waterPressureZone, \
-                                case when Sewer_SCAMP = 'N/A' then null else Sewer_SCAMP end as sewerScamp, \
-                                case when Recycled_Supply_Zone = 'N/A' then null else Recycled_Supply_Zone end as recycledSupplyZone, \
-                                case when Stormwater_Catchment = 'N/A' then null else Stormwater_Catchment end as stormwaterCatchment, \
-                                cast('1900-01-01' as TimeStamp) as _RecordStart, \
-                                cast('9999-12-31' as TimeStamp) as _RecordEnd, \
-                                '0' as _RecordDeleted, \
-                                '1' as _RecordCurrent, \
-                                cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
-                        from stage where _RecordVersion = 1 ")
+                          (Select *, ROW_NUMBER() OVER (PARTITION BY System_Key ORDER BY _DLRawZoneTimestamp DESC) AS _RecordVersion \
+                          FROM {delta_raw_tbl_name} \
+                          WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}'), \
+                      waterNetwork as \
+                          (select level30 as deliverySystem, \
+                                  level40 as distributionSystem, \
+                                  level50 as supplyZone, \
+                                  coalesce(level60,'n/a')  as pressureArea, \
+                                  case when product = 'Water'  then 'Y' else 'N' end as isPotableWaterNetwork, \
+                                  case when product = 'RecycledWater'  then 'Y' else 'N' end as isRecycledWaterNetwork \
+                           from {ADS_DATABASE_CLEANSED}.hydra_TSYSTEMAREA \
+                           where product in ('Water','RecycledWater') \
+                           and   _RecordDeleted = 0 \
+                           and   _RecordCurrent = 1), \
+                       sewerNetwork as \
+                           (select level30 as sewerNetwork, \
+                                   level40 as sewerCatchment, \
+                                   level50 as SCAMP \
+                            from {ADS_DATABASE_CLEANSED}.hydra_TSYSTEMAREA \
+                            where product = 'WasteWater' \
+                            and   _RecordDeleted = 0 \
+                            and   _RecordCurrent = 1), \
+                       stormWaterNetwork as \
+                           (select level30 as stormWaterNetwork, \
+                                   level40 as stormWaterCatchment \
+                            from {ADS_DATABASE_CLEANSED}.hydra_TSYSTEMAREA \
+                            where product = 'StormWater' \
+                            and   _RecordDeleted = 0 \
+                            and   _RecordCurrent = 1) \
+                       SELECT cast(System_Key as int) AS systemKey, \
+                            cast(Property_Number as int) AS propertyNumber, \
+                            case when LGA = 'N/A' then null else initcap(LGA) end as LGA, \
+                            case when Address = ' ' then null else initcap(Address) end as propertyAddress, \
+                            case when Suburb = 'N/A' then null else initcap(Suburb) end AS suburb, \
+                            case when Land_Use = 'N/A' then null else initcap(Land_Use) end as landUse, \
+                            case when Superior_Land_Use = 'N/A' then null else initcap(Superior_Land_Use) end as superiorLandUse, \
+                            cast(Area_m2 as int) as areaSize, \
+                            'm2' as areaSizeUnit, \
+                            cast(Lon as dec(9,6)) as longitude, \
+                            cast(Lat as dec(9,6)) as latitude, \
+                            cast(MGA56_X as long) as x_coordinate_MGA56, \
+                            cast(MGA56_Y as long) as y_coordinate_MGA56, \
+                            case when Water_Pressure_Zone = 'N/A' then null else wnp.deliverySystem end as waterDeliverySystem, \
+                            case when Water_Pressure_Zone = 'N/A' then null else wnp.distributionSystem end as waterDistributionSystem, \
+                            case when Water_Pressure_Zone = 'N/A' then null else wnp.supplyZone end as waterSupplyZone, \
+                            case when Water_Pressure_Zone = 'N/A' then null else wnp.pressureArea end as waterPressureZone, \
+                            case when Sewer_SCAMP = 'N/A' then null else sn.sewerNetwork end as sewerNetwork, \
+                            case when Sewer_SCAMP = 'N/A' then null else sn.sewerCatchment end as sewerCatchment, \
+                            case when Sewer_SCAMP = 'N/A' then null else sn.SCAMP end as sewerSCAMP, \
+                            case when Recycled_Supply_Zone = 'N/A' then null else wnr.deliverySystem end as recycledDeliverySystem, \
+                            case when Recycled_Supply_Zone = 'N/A' then null else wnr.distributionSystem end as recycledDistributionSystem, \
+                            case when Recycled_Supply_Zone = 'N/A' then null else wnr.supplyZone end as recycledSupplyZone, \
+                            case when Stormwater_Catchment = 'N/A' then null else swn.stormWaterNetwork end as stormWaterNetwork, \
+                            case when Stormwater_Catchment = 'N/A' then null else swn.stormwaterCatchment end as stormWaterCatchment, \
+                            cast('1900-01-01' as TimeStamp) as _RecordStart, \
+                            cast('9999-12-31' as TimeStamp) as _RecordEnd, \
+                            '0' as _RecordDeleted, \
+                            '1' as _RecordCurrent, \
+                            cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
+                    from stage left outer join waterNetwork wnp on wnp.pressureArea = Water_Pressure_Zone \
+                               left outer join waterNetwork wnr on wnr.supplyZone = Recycled_Supply_Zone \
+                               left outer join sewerNetwork sn on sn.SCAMP = Sewer_SCAMP \
+                               left outer join stormWaterNetwork swn on swn.stormWaterCatchment = Stormwater_Catchment \
+                    where _RecordVersion = 1 ")
 
 #print(f'Number of rows: {df.count()}')
-
-# COMMAND ----------
-
-# DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
-#Update/rename Column
-# df_cleansed = spark.sql(f"SELECT cast(System_Key as int) AS systemKey, \
-#         cast(Property_Number as int) AS propertyNumber, \
-# 		case when LGA = 'N/A' then null else initcap(LGA) end as LGA, \
-# 		case when Address = ' ' then null else initcap(Address) end as propertyAddress, \
-# 		case when Suburb = 'N/A' then null else initcap(Suburb) end AS suburb, \
-#         case when Land_Use = 'N/A' then null else initcap(Land_Use) end as landUse, \
-#         case when Superior_Land_Use = 'N/A' then null else initcap(Superior_Land_Use) end as superiorLandUse, \
-#         cast(Area_m2 as int) as areaSize, \
-#         'm2' as areaSizeUnit, \
-#         cast(Lon as dec(9,6)) as longitude, \
-#         cast(Lat as dec(9,6)) as latitude, \
-#         cast(MGA56_X as long) as x_coordinate_MGA56, \
-#         cast(MGA56_Y as long) as y_coordinate_MGA56, \
-# 		case when Water_Pressure_Zone = 'N/A' then null else Water_Pressure_Zone end as waterPressureZone, \
-#         case when Sewer_SCAMP = 'N/A' then null else Sewer_SCAMP end as sewerScamp, \
-#         case when Recycled_Supply_Zone = 'N/A' then null else Recycled_Supply_Zone end as recycledSupplyZone, \
-#         case when Stormwater_Catchment = 'N/A' then null else Stormwater_Catchment end as stormwaterCatchment, \
-# 		_RecordStart, \
-# 		_RecordEnd, \
-# 		_RecordDeleted, \
-# 		_RecordCurrent \
-# 	FROM {ADS_DATABASE_STAGE}.{source_object}")
-
-#print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
 
@@ -251,10 +262,18 @@ newSchema = StructType([
     StructField('latitude',DecimalType(9,6),False),
     StructField('x_coordinate_MGA56',LongType(),False),
     StructField('y_coordinate_MGA56',LongType(),False),
+    StructField('waterDeliverySystem',StringType(),True),
+    StructField('waterDistributionSystem',StringType(),True),
+    StructField('waterSupplyZone',StringType(),True),
     StructField('waterPressureZone',StringType(),True),
-    StructField('sewerScamp',StringType(),True),
+    StructField('sewerNetwork',StringType(),True),
+    StructField('sewerCatchment',StringType(),True),
+    StructField('sewerSCAMP',StringType(),True),
+    StructField('recycledDeliverySystem',StringType(),True),
+    StructField('recycledDistributionSystem',StringType(),True),
     StructField('recycledSupplyZone',StringType(),True),
-    StructField('stormwaterCatchment',StringType(),True),
+    StructField('stormWaterNetwork',StringType(),True),
+    StructField('stormWaterCatchment',StringType(),True),
     StructField('_RecordStart',TimestampType(),False),
     StructField('_RecordEnd',TimestampType(),False),
     StructField('_RecordDeleted',IntegerType(),False),
