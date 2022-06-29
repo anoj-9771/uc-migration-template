@@ -172,7 +172,7 @@ print(delta_raw_tbl_name)
 # DBTITLE 1,10. Load Raw to Dataframe & Do Transformations
 df = spark.sql(f"WITH stage AS \
                       (Select *, ROW_NUMBER() OVER (PARTITION BY LOGIKZW,ANLAGE,BIS ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} \
-                                      WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
+                                      WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' and DI_OPERATION_TYPE !='X' ) \
                            SELECT \
                                 case when LOGIKZW = 'na' then '' else LOGIKZW end as logicalRegisterNumber, \
                                 ZWNABR as registerNotRelevantToBilling, \
