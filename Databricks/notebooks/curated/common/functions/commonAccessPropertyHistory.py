@@ -1,7 +1,6 @@
 # Databricks notebook source
 # MAGIC %sql
-# MAGIC CREATE OR REPLACE TABLE stage.access_property_hist 
-# MAGIC LOCATION 'dbfs:/mnt/datalake-curated/stage'
+# MAGIC CREATE OR REPLACE TEMP VIEW view_access_property_hist 
 # MAGIC as with histRaw as(
 # MAGIC                 select a.propertyNumber, propertyTypeCode, propertyType, superiorPropertyTypeCode, superiorPropertyType, propertyTypeEffectiveFrom as validFrom, rowSupersededTimestamp as updateTS
 # MAGIC                 from cleansed.access_z309_thproperty a),
@@ -24,3 +23,26 @@
 # MAGIC                 from clean1
 # MAGIC                 where validFrom <> validTo)
 # MAGIC select * from clean2;
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC CREATE OR REPLACE TABLE stage.access_property_hist
+# MAGIC LOCATION 'dbfs:/mnt/datalake-curated/stage/access_property_hist'
+# MAGIC as with accessProperties as (select propertyNumber from view_access_property_hist
+# MAGIC                           minus
+# MAGIC                           select propertyNumber from cleansed.isu_zcd_tpropty_hist),
+# MAGIC      prophist as (
+# MAGIC         select propertyNumber,inferiorPropertyTypeCode,inferiorPropertyType,superiorPropertyTypeCode,superiorPropertyType,validFromDate,validToDate from cleansed.isu_zcd_tpropty_hist
+# MAGIC         union  
+# MAGIC         select a.propertyNumber,inferiorPropertyTypeCode,inferiorPropertyType,superiorPropertyTypeCode,superiorPropertyType,validFromDate,validToDate from view_access_property_hist a 
+# MAGIC               join accessProperties b on a.propertyNumber = b.propertyNumber
+# MAGIC       )
+# MAGIC select * from prophist;
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC set spark.databricks.delta.retentionDurationCheck.enabled=false;
+# MAGIC VACUUM stage.access_property_hist RETAIN 0 HOURS;
+# MAGIC set spark.databricks.delta.retentionDurationCheck.enabled=true;
