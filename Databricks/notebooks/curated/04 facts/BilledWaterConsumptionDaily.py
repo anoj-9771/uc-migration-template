@@ -276,8 +276,36 @@ verifyTableSchema(f"curated.factDailyApportionedConsumption", schema)
 
 # COMMAND ----------
 
+# THIS IS COMMENTED AND TO BE UNCOMMENTED TO RUN ONLY WHEN ACCESS DATA LOADING USING THIS NOTEBOOK.
+# %sql
+# OPTIMIZE curated.factdailyapportionedconsumption
+# WHERE sourceSystemCode = 'ACCESS'
+# ZORDER BY (locationSK)
+
+# COMMAND ----------
+
 # MAGIC %sql
-# MAGIC Create or replace view curated.viewDailyApportionedConsumption as
+# MAGIC OPTIMIZE curated.factdailyapportionedconsumption
+# MAGIC WHERE sourceSystemCode = 'ISU'
+# MAGIC ZORDER BY (locationSK)
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC set spark.databricks.delta.retentionDurationCheck.enabled=false;
+# MAGIC VACUUM curated.factdailyapportionedconsumption RETAIN 0 HOURS;
+# MAGIC set spark.databricks.delta.retentionDurationCheck.enabled=true;
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC CREATE OR REPLACE TABLE curated.viewDailyApportionedConsumption 
+# MAGIC LOCATION 'dbfs:/mnt/datalake-curated/viewdailyapportionedconsumption'
+# MAGIC as with prophist as (
+# MAGIC           select propertyNumber,inferiorPropertyTypeCode,inferiorPropertyType,superiorPropertyTypeCode,superiorPropertyType,validFromDate,validToDate from cleansed.isu_zcd_tpropty_hist
+# MAGIC           union  
+# MAGIC           select propertyNumber,inferiorPropertyTypeCode,inferiorPropertyType,superiorPropertyTypeCode,superiorPropertyType,validFromDate,validToDate from stage.access_property_hist
+# MAGIC         )
 # MAGIC select 
 # MAGIC propertyNumber,
 # MAGIC inferiorPropertyTypeCode,
@@ -296,7 +324,7 @@ verifyTableSchema(f"curated.factDailyApportionedConsumption", schema)
 # MAGIC businessPartnerGroupSK,
 # MAGIC contractSK,
 # MAGIC dailyApportionedConsumption from (
-# MAGIC select * ,RANK() OVER   (PARTITION BY consumptionDate,meterConsumptionBillingDocumentSK,meterConsumptionBillingLineItemSK,propertySK,meterSK,locationSK,businessPartnerGroupSK,contractSK ORDER BY propertyTypeValidToDate desc,propertyTypeValidFromDate desc) as flag  from 
+# MAGIC select *, row_number() OVER   (PARTITION BY consumptionDate,meterConsumptionBillingDocumentSK,meterConsumptionBillingLineItemSK,propertySK,meterSK,locationSK,businessPartnerGroupSK,contractSK ORDER BY propertyTypeValidToDate desc,propertyTypeValidFromDate desc) as flag  from 
 # MAGIC (select prop.propertyNumber,
 # MAGIC prophist.inferiorPropertyTypeCode,
 # MAGIC prophist.inferiorPropertyType,
@@ -317,7 +345,7 @@ verifyTableSchema(f"curated.factDailyApportionedConsumption", schema)
 # MAGIC from curated.factDailyApportionedConsumption fact
 # MAGIC left outer join curated.dimproperty prop
 # MAGIC on fact.propertySK = prop.propertySK
-# MAGIC left outer join cleansed.isu_zcd_tpropty_hist prophist
+# MAGIC left outer join prophist
 # MAGIC on (prop.propertyNumber = prophist.propertyNumber  and prophist.validFromDate <= fact.consumptionDate and prophist.validToDate >= fact.consumptionDate)
 # MAGIC )
 # MAGIC )
@@ -326,32 +354,9 @@ verifyTableSchema(f"curated.factDailyApportionedConsumption", schema)
 
 # COMMAND ----------
 
-# THIS IS COMMENTED AND TO BE UNCOMMENTED TO RUN ONLY WHEN ACCESS DATA LOADING USING THIS NOTEBOOK.
-# %sql
-# OPTIMIZE curated.factdailyapportionedconsumption
-# WHERE sourceSystemCode = 'ACCESS'
-# ZORDER BY (locationSK)
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC OPTIMIZE curated.factdailyapportionedconsumption
-# MAGIC WHERE sourceSystemCode = 'ISU'
-# MAGIC ZORDER BY (locationSK)
-
-# COMMAND ----------
-
 # MAGIC %sql
 # MAGIC set spark.databricks.delta.retentionDurationCheck.enabled=false;
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC VACUUM curated.factdailyapportionedconsumption RETAIN 0 HOURS;
-
-# COMMAND ----------
-
-# MAGIC %sql
+# MAGIC VACUUM curated.viewDailyApportionedConsumption RETAIN 0 HOURS;
 # MAGIC set spark.databricks.delta.retentionDurationCheck.enabled=true;
 
 # COMMAND ----------

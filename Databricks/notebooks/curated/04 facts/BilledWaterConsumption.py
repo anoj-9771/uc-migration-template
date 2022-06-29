@@ -262,9 +262,35 @@ verifyTableSchema(f"curated.factBilledWaterConsumption", schema)
 
 # COMMAND ----------
 
+# THIS IS COMMENTED AND TO BE UNCOMMENTED TO RUN ONLY WHEN ACCESS DATA LOADING USING THIS NOTEBOOK.
+# %sql
+# OPTIMIZE curated.factBilledWaterConsumption
+# WHERE sourceSystemCode = 'ACCESS'
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC OPTIMIZE curated.factBilledWaterConsumption
+# MAGIC WHERE sourceSystemCode = 'ISU'
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC set spark.databricks.delta.retentionDurationCheck.enabled=false;
+# MAGIC VACUUM curated.factBilledWaterConsumption RETAIN 0 HOURS;
+# MAGIC set spark.databricks.delta.retentionDurationCheck.enabled=true;
+
+# COMMAND ----------
+
 # MAGIC %sql
 # MAGIC --View to get property history for Billed Water Consumption.
-# MAGIC Create or replace view curated.viewBilledWaterConsumption as
+# MAGIC CREATE OR REPLACE TABLE curated.viewBilledWaterConsumption 
+# MAGIC LOCATION 'dbfs:/mnt/datalake-curated/viewbilledwaterconsumption'
+# MAGIC as with prophist as (
+# MAGIC           select propertyNumber,inferiorPropertyTypeCode,inferiorPropertyType,superiorPropertyTypeCode,superiorPropertyType,validFromDate,validToDate from cleansed.isu_zcd_tpropty_hist
+# MAGIC           union  
+# MAGIC           select propertyNumber,inferiorPropertyTypeCode,inferiorPropertyType,superiorPropertyTypeCode,superiorPropertyType,validFromDate,validToDate from stage.access_property_hist
+# MAGIC         )
 # MAGIC select propertyNumber,
 # MAGIC inferiorPropertyTypeCode,
 # MAGIC inferiorPropertyType,
@@ -283,7 +309,7 @@ verifyTableSchema(f"curated.factBilledWaterConsumption", schema)
 # MAGIC billingPeriodStartDate,
 # MAGIC billingPeriodEndDate,
 # MAGIC meteredWaterConsumption from (
-# MAGIC select * ,RANK() OVER (PARTITION BY meterConsumptionBillingDocumentSK,meterConsumptionBillingLineItemSK,propertySK,meterSK,locationSK,businessPartnerGroupSK,contractSK,billingPeriodStartDate ORDER BY propertyTypeValidToDate desc,propertyTypeValidFromDate desc) as flag  from 
+# MAGIC select *,row_number() OVER (PARTITION BY meterConsumptionBillingDocumentSK,meterConsumptionBillingLineItemSK,propertySK,meterSK,locationSK,businessPartnerGroupSK,contractSK,billingPeriodStartDate ORDER BY propertyTypeValidToDate desc,propertyTypeValidFromDate desc) as flag  from 
 # MAGIC (select prop.propertyNumber,
 # MAGIC prophist.inferiorPropertyTypeCode,
 # MAGIC prophist.inferiorPropertyType,
@@ -305,11 +331,18 @@ verifyTableSchema(f"curated.factBilledWaterConsumption", schema)
 # MAGIC from curated.factbilledwaterconsumption fact
 # MAGIC left outer join curated.dimproperty prop
 # MAGIC on fact.propertySK = prop.propertySK
-# MAGIC left outer join cleansed.isu_zcd_tpropty_hist prophist
-# MAGIC on (prop.propertyNumber = prophist.propertyNumber  and prophist.validFromDate <= fact.billingPeriodEndDate and prophist.validToDate >= fact.billingPeriodEndDate)
+# MAGIC left outer join prophist
+# MAGIC on (prop.propertyNumber = prophist.propertyNumber  and prophist.validFromDate <= fact.billingPeriodStartDate and prophist.validToDate >= fact.billingPeriodStartDate)
 # MAGIC )
 # MAGIC )
 # MAGIC where flag = 1
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC set spark.databricks.delta.retentionDurationCheck.enabled=false;
+# MAGIC VACUUM curated.viewBilledWaterConsumption RETAIN 0 HOURS;
+# MAGIC set spark.databricks.delta.retentionDurationCheck.enabled=true;
 
 # COMMAND ----------
 

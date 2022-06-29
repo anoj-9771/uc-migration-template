@@ -301,8 +301,34 @@ verifyTableSchema(f"curated.factMonthlyApportionedConsumption", schema)
 
 # COMMAND ----------
 
+# THIS IS COMMENTED AND TO BE UNCOMMENTED TO RUN ONLY WHEN ACCESS DATA LOADING USING THIS NOTEBOOK.
+# %sql
+# OPTIMIZE curated.factMonthlyApportionedConsumption
+# WHERE sourceSystemCode = 'ACCESS'
+
+# COMMAND ----------
+
 # MAGIC %sql
-# MAGIC Create or replace view curated.viewMonthlyApportionedConsumption as
+# MAGIC OPTIMIZE curated.factMonthlyApportionedConsumption
+# MAGIC WHERE sourceSystemCode = 'ISU'
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC set spark.databricks.delta.retentionDurationCheck.enabled=false;
+# MAGIC VACUUM curated.factMonthlyApportionedConsumption RETAIN 0 HOURS;
+# MAGIC set spark.databricks.delta.retentionDurationCheck.enabled=true;
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC CREATE OR REPLACE TABLE curated.viewMonthlyApportionedConsumption 
+# MAGIC LOCATION 'dbfs:/mnt/datalake-curated/viewmonthlyapportionedconsumption'
+# MAGIC as with prophist as (
+# MAGIC           select propertyNumber,inferiorPropertyTypeCode,inferiorPropertyType,superiorPropertyTypeCode,superiorPropertyType,validFromDate,validToDate from cleansed.isu_zcd_tpropty_hist
+# MAGIC           union  
+# MAGIC           select propertyNumber,inferiorPropertyTypeCode,inferiorPropertyType,superiorPropertyTypeCode,superiorPropertyType,validFromDate,validToDate from stage.access_property_hist
+# MAGIC         )
 # MAGIC select 
 # MAGIC propertyNumber,
 # MAGIC inferiorPropertyTypeCode,
@@ -330,7 +356,7 @@ verifyTableSchema(f"curated.factMonthlyApportionedConsumption", schema)
 # MAGIC contractSK,
 # MAGIC totalMeterActiveDaysPerMonth,
 # MAGIC monthlyApportionedConsumption from (
-# MAGIC select * ,RANK() OVER   (PARTITION BY consumptionYear,billingPeriodStartDate,billingPeriodEndDate,meterActiveStartDate,meterActiveEndDate,meterActiveMonthStartDate,meterActiveMonthEndDate,meterConsumptionBillingDocumentSK,meterConsumptionBillingLineItemSK,propertySK,meterSK,locationSK,businessPartnerGroupSK,contractSK ORDER BY propertyTypeValidToDate desc,propertyTypeValidFromDate desc) as flag  from 
+# MAGIC select *, row_number() OVER   (PARTITION BY consumptionYear,billingPeriodStartDate,billingPeriodEndDate,meterActiveStartDate,meterActiveEndDate,meterActiveMonthStartDate,meterActiveMonthEndDate,meterConsumptionBillingDocumentSK,meterConsumptionBillingLineItemSK,propertySK,meterSK,locationSK,businessPartnerGroupSK,contractSK ORDER BY propertyTypeValidToDate desc,propertyTypeValidFromDate desc) as flag  from 
 # MAGIC (select prop.propertyNumber,
 # MAGIC prophist.inferiorPropertyTypeCode,
 # MAGIC prophist.inferiorPropertyType,
@@ -360,7 +386,7 @@ verifyTableSchema(f"curated.factMonthlyApportionedConsumption", schema)
 # MAGIC from curated.factMonthlyApportionedConsumption fact
 # MAGIC left outer join curated.dimproperty prop
 # MAGIC on fact.propertySK = prop.propertySK
-# MAGIC left outer join cleansed.isu_zcd_tpropty_hist prophist
+# MAGIC left outer join prophist
 # MAGIC on (prop.propertyNumber = prophist.propertyNumber  and prophist.validFromDate <= fact.meterActiveMonthStartDate and prophist.validToDate >= fact.meterActiveMonthStartDate)
 # MAGIC )
 # MAGIC )
@@ -369,24 +395,10 @@ verifyTableSchema(f"curated.factMonthlyApportionedConsumption", schema)
 
 # COMMAND ----------
 
-# %sql
-# OPTIMIZE curated.factMonthlyApportionedConsumption
-# WHERE sourceSystemCode = 'ISU'
-
-# COMMAND ----------
-
 # MAGIC %sql
-# MAGIC -- set spark.databricks.delta.retentionDurationCheck.enabled=false;
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC -- VACUUM curated.factMonthlyApportionedConsumption RETAIN 0 HOURS;
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC -- set spark.databricks.delta.retentionDurationCheck.enabled=true;
+# MAGIC set spark.databricks.delta.retentionDurationCheck.enabled=false;
+# MAGIC VACUUM curated.viewMonthlyApportionedConsumption RETAIN 0 HOURS;
+# MAGIC set spark.databricks.delta.retentionDurationCheck.enabled=true;
 
 # COMMAND ----------
 
