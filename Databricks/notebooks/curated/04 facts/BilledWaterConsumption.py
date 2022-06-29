@@ -101,7 +101,7 @@ def getBilledWaterConsumption():
     #3.Union tables
 
     #4.Load dimension tables into dataframe
-    dimPropertyDf = spark.sql(f"select sourceSystemCode, propertySK, waterNetworkSK_drinkingWater, waterNetworkSK_recycledWater, propertyNumber \
+    dimPropertyDf = spark.sql(f"select sourceSystemCode, propertySK, propertyNumber \
                                 from {ADS_DATABASE_CURATED}.dimProperty \
                                 where _RecordCurrent = 1 and _RecordDeleted = 0")
 
@@ -129,10 +129,6 @@ def getBilledWaterConsumption():
                                 from {ADS_DATABASE_CURATED}.dimContract \
                                 where _RecordCurrent = 1 and _RecordDeleted = 0")
 
-    dimWaterNetworkDf = spark.sql(f"select waterNetworkSK, deliverySystem, distributionSystem, supplyZone, pressureArea \
-                                from {ADS_DATABASE_CURATED}.dimWaterNetwork \
-                                where _RecordCurrent = 1 and _RecordDeleted = 0")
-
     dummyDimRecDf = spark.sql(f"select PropertySk as dummyDimSK, 'dimProperty' as dimension from {ADS_DATABASE_CURATED}.dimProperty where propertyNumber = '-1' \
                           union select LocationSk as dummyDimSK, 'dimLocation' as dimension from {ADS_DATABASE_CURATED}.dimLocation where LocationId = '-1' \
                           union select meterSK as dummyDimSK, 'dimMeter' as dimension from {ADS_DATABASE_CURATED}.dimMeter where meterNumber = '-1'\
@@ -142,17 +138,13 @@ def getBilledWaterConsumption():
                                                        from {ADS_DATABASE_CURATED}.dimMeterConsumptionBillingLineItem where billingDocumentLineItemId = '-1' \
                           union select businessPartnerGroupSK as dummyDimSK, 'dimBusinessPartnerGroup' as dimension from {ADS_DATABASE_CURATED}.dimBusinessPartnerGroup where BusinessPartnerGroupNumber = '-1' \
                           union select contractSK as dummyDimSK, 'dimContract' as dimension from {ADS_DATABASE_CURATED}.dimContract where contractId = '-1' \
-                          union select waterNetworkSK as dummyDimSK, 'dimWaterNetwork_drinkingWater' as dimension from {ADS_DATABASE_CURATED}.dimWaterNetwork where pressureArea = '-1' \
-                                                and isPotableWaterNetwork='Y' and isRecycledWaterNetwork='N' \
-                          union select waterNetworkSK as dummyDimSK, 'dimWaterNetwork_recycledWater' as dimension from {ADS_DATABASE_CURATED}.dimWaterNetwork where supplyZone = '-1' \
-                                                and isPotableWaterNetwork='N' and isRecycledWaterNetwork='Y' \
                           ")
 
 
     #5.Joins to derive SKs for Fact load
 
     billedConsDf = billedConsDf.join(dimPropertyDf, (billedConsDf.businessPartnerGroupNumber == dimPropertyDf.propertyNumber), how="left") \
-                  .select(billedConsDf['*'], dimPropertyDf['propertySK'], dimPropertyDf['waterNetworkSK_drinkingWater'], dimPropertyDf['waterNetworkSK_recycledWater'])
+                  .select(billedConsDf['*'], dimPropertyDf['propertySK'])
 
     billedConsDf = billedConsDf.join(dimLocationDf, (billedConsDf.businessPartnerGroupNumber == dimLocationDf.locationId), how="left") \
                   .select(billedConsDf['*'], dimLocationDf['locationSK'])
@@ -199,12 +191,6 @@ def getBilledWaterConsumption():
     billedConsDf = billedConsDf.join(dummyDimRecDf, (dummyDimRecDf.dimension == 'dimBusinessPartnerGroup'), how="left") \
                   .select(billedConsDf['*'], dummyDimRecDf['dummyDimSK'].alias('dummyBusinessPartnerGroupSK'))
 
-    billedConsDf = billedConsDf.join(dummyDimRecDf, (dummyDimRecDf.dimension == 'dimWaterNetwork_drinkingWater'), how="left") \
-                  .select(billedConsDf['*'], dummyDimRecDf['dummyDimSK'].alias('dummyWaterNetworkSK_drinkingWater'))
-    
-    billedConsDf = billedConsDf.join(dummyDimRecDf, (dummyDimRecDf.dimension == 'dimWaterNetwork_recycledWater'), how="left") \
-                  .select(billedConsDf['*'], dummyDimRecDf['dummyDimSK'].alias('dummyWaterNetworkSK_recycledWater'))
-    
     #7.SELECT / TRANSFORM
     #aggregating to address any duplicates due to failed SK lookups and dummy SKs being assigned in those cases
     billedConsDf = billedConsDf.selectExpr ( \
@@ -214,11 +200,6 @@ def getBilledWaterConsumption():
                                         ,"coalesce(propertySK, dummyPropertySK) as propertySK" \
                                         ,"coalesce(meterSK, dummyMeterSK) as meterSK" \
                                         ,"coalesce(locationSk, dummyLocationSK) as locationSK" \
-                                        ,"coalesce( \
-                                                    (case when waterType = 'Drinking Water' then waterNetworkSK_drinkingWater \
-                                                         when waterType = 'Recycled Water' then waterNetworkSK_recycledWater else null end) \
-                                                         , (case when waterType = 'Drinking Water' then dummyWaterNetworkSK_drinkingWater \
-                                                         when waterType = 'Recycled Water' then dummyWaterNetworkSK_recycledWater else dummyWaterNetworkSK_drinkingWater end)) as waterNetworkSK" \
                                         ,"coalesce(businessPartnerGroupSK, dummyBusinessPartnerGroupSK) as businessPartnerGroupSK" \
                                         ,"coalesce(contractSK, dummyContractSK) as contractSK" \
                                         ,"billingPeriodStartDate" \
@@ -226,7 +207,7 @@ def getBilledWaterConsumption():
                                         ,"meteredWaterConsumption" \
                                        ) \
                           .groupby("sourceSystemCode", "meterConsumptionBillingDocumentSK", "meterConsumptionBillingLineItemSK", "propertySK", "meterSK", \
-                                   "locationSK", "waterNetworkSK", "businessPartnerGroupSK", "contractSK", "billingPeriodStartDate") \
+                                   "locationSK", "businessPartnerGroupSK", "contractSK", "billingPeriodStartDate") \
                           .agg(max("billingPeriodEndDate").alias("billingPeriodEndDate") \
                               ,sum("meteredWaterConsumption").alias("meteredWaterConsumption"))
 
@@ -238,7 +219,6 @@ def getBilledWaterConsumption():
                             StructField("propertySK", StringType(), False),
                             StructField("meterSK", StringType(), False),
                             StructField("locationSK", StringType(), False),
-                            StructField("waterNetworkSK", StringType(), False),
                             StructField("businessPartnerGroupSK", StringType(), False),
                             StructField("contractSK", StringType(), False),
                             StructField("billingPeriodStartDate", DateType(), False),
@@ -251,7 +231,7 @@ def getBilledWaterConsumption():
 # COMMAND ----------
 
 df, schema = getBilledWaterConsumption()
-# TemplateEtl(df, entity="factBilledWaterConsumption", businessKey="meterConsumptionBillingDocumentSK,meterConsumptionBillingLineItemSK,propertySK,meterSK,locationSK,waterNetworkSK,businessPartnerGroupSK,contractSK,billingPeriodStartDate", schema=schema, writeMode=ADS_WRITE_MODE_MERGE, AddSK=False)
+# TemplateEtl(df, entity="factBilledWaterConsumption", businessKey="meterConsumptionBillingDocumentSK,meterConsumptionBillingLineItemSK,propertySK,meterSK,locationSK,businessPartnerGroupSK,contractSK,billingPeriodStartDate", schema=schema, writeMode=ADS_WRITE_MODE_MERGE, AddSK=False)
 
 # COMMAND ----------
 
@@ -298,13 +278,12 @@ verifyTableSchema(f"curated.factBilledWaterConsumption", schema)
 # MAGIC propertySK,
 # MAGIC meterSK,
 # MAGIC locationSK,
-# MAGIC waterNetworkSK,
 # MAGIC businessPartnerGroupSK,
 # MAGIC contractSK,
 # MAGIC billingPeriodStartDate,
 # MAGIC billingPeriodEndDate,
 # MAGIC meteredWaterConsumption from (
-# MAGIC select * ,RANK() OVER (PARTITION BY meterConsumptionBillingDocumentSK,meterConsumptionBillingLineItemSK,propertySK,meterSK,locationSK,waterNetworkSK,businessPartnerGroupSK,contractSK,billingPeriodStartDate ORDER BY propertyTypeValidToDate desc,propertyTypeValidFromDate desc) as flag  from 
+# MAGIC select * ,RANK() OVER (PARTITION BY meterConsumptionBillingDocumentSK,meterConsumptionBillingLineItemSK,propertySK,meterSK,locationSK,businessPartnerGroupSK,contractSK,billingPeriodStartDate ORDER BY propertyTypeValidToDate desc,propertyTypeValidFromDate desc) as flag  from 
 # MAGIC (select prop.propertyNumber,
 # MAGIC prophist.inferiorPropertyTypeCode,
 # MAGIC prophist.inferiorPropertyType,
@@ -318,7 +297,6 @@ verifyTableSchema(f"curated.factBilledWaterConsumption", schema)
 # MAGIC fact.propertySK,
 # MAGIC fact.meterSK,
 # MAGIC fact.locationSK,
-# MAGIC fact.waterNetworkSK,
 # MAGIC fact.businessPartnerGroupSK,
 # MAGIC fact.contractSK,
 # MAGIC fact.billingPeriodStartDate,
