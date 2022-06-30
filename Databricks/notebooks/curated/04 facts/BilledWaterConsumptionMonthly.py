@@ -276,7 +276,7 @@ def getBilledWaterConsumptionMonthly():
                                max("lastDayOfMeterActiveMonth").alias("lastDayOfMeterActiveMonth"), \
                                max("meterActiveMonthStartDate").alias("meterActiveMonthStartDate"), max("meterActiveMonthEndDate").alias("meterActiveMonthEndDate"), \
                                max("locationSK").alias("locationSK"),max("businessPartnerGroupSK").alias("businessPartnerGroupSK"), \
-                               max("contractSK").alias("contractSK"), max("totalMeterActiveDaysPerMonth").alias("totalMeterActiveDaysPerMonth"), max("monthlyApportionedConsumption").alias("monthlyApportionedConsumption")) 
+                               max("contractSK").alias("contractSK"), max("totalMeterActiveDaysPerMonth").alias("totalMeterActiveDaysPerMonth"), sum("monthlyApportionedConsumption").alias("monthlyApportionedConsumption")) 
                           .selectExpr \
                                   ( \
                                    "sourceSystemCode" \
