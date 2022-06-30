@@ -45,6 +45,11 @@
 
 # COMMAND ----------
 
+# FOLLOWING COMMAND TO BE RUN MANUALLY FIRST TIME LOADING AFTER THE TABLE CLEANUP. THIS COMMAND WILL CREATE A VIEW stage.access_property_hist
+# %run ../common/functions/commonAccessPropertyHistory
+
+# COMMAND ----------
+
 # MAGIC %run ../common/common-curated-includeMain
 
 # COMMAND ----------
