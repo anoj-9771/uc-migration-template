@@ -24,7 +24,7 @@
 #   `contractSK` STRING NOT NULL,
 #   `billingPeriodStartDate` DATE NOT NULL,
 #   `billingPeriodEndDate` DATE NOT NULL,
-#   `meteredWaterConsumption` DECIMAL(18,6),
+#   `meteredWaterConsumption` DECIMAL(24,12),
 #   `_DLCuratedZoneTimeStamp` TIMESTAMP NOT NULL,
 #   `_RecordStart` TIMESTAMP NOT NULL,
 #   `_RecordEnd` TIMESTAMP NOT NULL,
@@ -233,12 +233,12 @@ def getBilledWaterConsumption():
                                         ,"coalesce(contractSK, dummyContractSK) as contractSK" \
                                         ,"billingPeriodStartDate" \
                                         ,"billingPeriodEndDate" \
-                                        ,"cast(meteredWaterConsumption as decimal(18,6)) as meteredWaterConsumption" \
+                                        ,"meteredWaterConsumption" \
                                        ) \
                           .groupby("sourceSystemCode", "meterConsumptionBillingDocumentSK", "meterConsumptionBillingLineItemSK", "propertySK", "meterSK", "billingPeriodStartDate") \
                           .agg(max("locationSK").alias("locationSK"),max("businessPartnerGroupSK").alias("businessPartnerGroupSK"), \
                                max("contractSK").alias("contractSK"), max("billingPeriodEndDate").alias("billingPeriodEndDate") \
-                              ,sum("meteredWaterConsumption").alias("meteredWaterConsumption"))
+                              ,sum("meteredWaterConsumption").alias("meteredWaterConsumption")) \
                           .selectExpr ( \
                                              "sourceSystemCode" \
                                             ,"meterConsumptionBillingDocumentSK" \
@@ -250,7 +250,7 @@ def getBilledWaterConsumption():
                                             ,"contractSK" \
                                             ,"billingPeriodStartDate" \
                                             ,"billingPeriodEndDate" \
-                                            ,"meteredWaterConsumption" \
+                                            ,"cast(meteredWaterConsumption as decimal(24,12)) as meteredWaterConsumption" \
                                            ) \
 
     #8.Apply schema definition
@@ -265,7 +265,7 @@ def getBilledWaterConsumption():
                             StructField("contractSK", StringType(), False),
                             StructField("billingPeriodStartDate", DateType(), False),
                             StructField("billingPeriodEndDate", DateType(), False),
-                            StructField("meteredWaterConsumption", DecimalType(18,6), True)
+                            StructField("meteredWaterConsumption", DecimalType(24,12), True)
                         ])
 
     return billedConsDf, schema
