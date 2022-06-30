@@ -272,7 +272,7 @@ def getBilledWaterConsumptionMonthly():
                               ,"coalesce(BusinessPartnerGroupSk, dummyBusinessPartnerGroupSK) as businessPartnerGroupSK" \
                               ,"coalesce(contractSK, dummyContractSK) as contractSK" \
                               ,"totalMeterActiveDaysPerMonth" \
-                              ,"cast(avgMeteredWaterConsumptionPerMonth as decimal(24,12)) as monthlyApportionedConsumption" \
+                              ,"avgMeteredWaterConsumptionPerMonth as monthlyApportionedConsumption" \
                               ) \
                           .groupby("sourceSystemCode", "firstDayOfMeterActiveMonth", "meterConsumptionBillingDocumentSK", "meterConsumptionBillingLineItemSK", "propertySK", "meterSK") \
                           .agg(max("consumptionYear").alias("consumptionYear"), max("consumptionMonth").alias("consumptionMonth"), \
@@ -281,7 +281,7 @@ def getBilledWaterConsumptionMonthly():
                                max("lastDayOfMeterActiveMonth").alias("lastDayOfMeterActiveMonth"), \
                                max("meterActiveMonthStartDate").alias("meterActiveMonthStartDate"), max("meterActiveMonthEndDate").alias("meterActiveMonthEndDate"), \
                                max("locationSK").alias("locationSK"),max("businessPartnerGroupSK").alias("businessPartnerGroupSK"), \
-                               max("contractSK").alias("contractSK"), max("totalMeterActiveDaysPerMonth").alias("totalMeterActiveDaysPerMonth"), sum("monthlyApportionedConsumption").alias("monthlyApportionedConsumption")) 
+                               max("contractSK").alias("contractSK"), max("totalMeterActiveDaysPerMonth").alias("totalMeterActiveDaysPerMonth"), sum("monthlyApportionedConsumption").alias("monthlyApportionedConsumption")) \
                           .selectExpr \
                                   ( \
                                    "sourceSystemCode" \
@@ -303,7 +303,7 @@ def getBilledWaterConsumptionMonthly():
                                   ,"businessPartnerGroupSK" \
                                   ,"contractSK" \
                                   ,"totalMeterActiveDaysPerMonth" \
-                                  ,"monthlyApportionedConsumption" \
+                                  ,"cast(monthlyApportionedConsumption as decimal(24,12)) as monthlyApportionedConsumption" \
                                   )
     
     #8.Apply schema definition
@@ -327,7 +327,7 @@ def getBilledWaterConsumptionMonthly():
                             StructField("businessPartnerGroupSK", StringType(), False),
                             StructField("contractSK", StringType(), False),
                             StructField("totalMeterActiveDaysPerMonth", IntegerType(), True),
-                            StructField("monthlyApportionedConsumption", FloatType(), True)
+                            StructField("monthlyApportionedConsumption", DecimalType(24,12), True)
                         ])
 
     return billedConsDf, schema

@@ -23,7 +23,7 @@
 #   `locationSK` STRING NOT NULL,
 #   `businessPartnerGroupSK` STRING NOT NULL,
 #   `contractSK` STRING NOT NULL,
-#   `dailyApportionedConsumption` DECIMAL(18,6),
+#   `dailyApportionedConsumption` DECIMAL(24,12),
 #   `_DLCuratedZoneTimeStamp` TIMESTAMP NOT NULL,
 #   `_RecordStart` TIMESTAMP NOT NULL,
 #   `_RecordEnd` TIMESTAMP NOT NULL,
@@ -247,11 +247,12 @@ def getBilledWaterConsumptionDaily():
                               ,"coalesce(locationSK, dummyLocationSK) as locationSK" \
                               ,"coalesce(BusinessPartnerGroupSk, dummyBusinessPartnerGroupSK) as businessPartnerGroupSK" \
                               ,"coalesce(contractSK, dummyContractSK) as contractSK" \
-                              ,"cast(avgMeteredWaterConsumption as decimal(18,6)) as avgMeteredWaterConsumption" \
+                              ,"avgMeteredWaterConsumption" \
                               ) \
                           .groupby("sourceSystemCode", "consumptionDate", "meterConsumptionBillingDocumentSK", "meterConsumptionBillingLineItemSK", \
                                    "propertySK", "meterSK") \
-                          .agg(sum("avgMeteredWaterConsumption").alias("dailyApportionedConsumption"))  
+                          .agg(max("locationSK").alias("locationSK"),max("businessPartnerGroupSK").alias("businessPartnerGroupSK"), \
+                               max("contractSK").alias("contractSK"),sum("avgMeteredWaterConsumption").alias("dailyApportionedConsumption")) \
                           .selectExpr \
                                   ( \
                                    "sourceSystemCode" \
@@ -263,7 +264,7 @@ def getBilledWaterConsumptionDaily():
                                   ,"locationSK" \
                                   ,"businessPartnerGroupSK" \
                                   ,"contractSK" \
-                                  ,"dailyApportionedConsumption" \
+                                  ,"cast(dailyApportionedConsumption as decimal(24,12)) as dailyApportionedConsumption" \
                                   ) \
     
     #8.Apply schema definition
@@ -277,7 +278,7 @@ def getBilledWaterConsumptionDaily():
                             StructField("locationSK", StringType(), False),
                             StructField("businessPartnerGroupSK", StringType(), False),
                             StructField("contractSK", StringType(), False),
-                            StructField("dailyApportionedConsumption", FloatType(), True)
+                            StructField("dailyApportionedConsumption", DecimalType(24,12), True)
                         ])
 
     return billedConsDf, schema
