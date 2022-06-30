@@ -12,6 +12,39 @@
 
 # COMMAND ----------
 
+# FOLLOWING TABLE TO BE CREATED MANUALLY FIRST TIME LOADING AFTER THE TABLE CLEANUP
+# CREATE TABLE `curated`.`factMonthlyApportionedConsumption` (
+#   `sourceSystemCode` STRING NOT NULL,
+#   `consumptionYear` INT NOT NULL,
+#   `consumptionMonth` INT NOT NULL,
+#   `billingPeriodStartDate` DATE NOT NULL,
+#   `billingPeriodEndDate` DATE NOT NULL,
+#   `meterActiveStartDate` DATE NOT NULL,
+#   `meterActiveEndDate` DATE NOT NULL,
+#   `firstDayOfMeterActiveMonth` DATE NOT NULL,
+#   `lastDayOfMeterActiveMonth` DATE NOT NULL,
+#   `meterActiveMonthStartDate` DATE NOT NULL,
+#   `meterActiveMonthEndDate` DATE NOT NULL,
+#   `meterConsumptionBillingDocumentSK` STRING NOT NULL,
+#   `meterConsumptionBillingLineItemSK` STRING NOT NULL,
+#   `propertySK` STRING NOT NULL,
+#   `meterSK` STRING NOT NULL,
+#   `locationSK` STRING NOT NULL,
+#   `businessPartnerGroupSK` STRING NOT NULL,
+#   `contractSK` STRING NOT NULL,
+#   `totalMeterActiveDaysPerMonth` INT NOT NULL,
+#   `monthlyApportionedConsumption` DECIMAL(24,12),
+#   `_DLCuratedZoneTimeStamp` TIMESTAMP NOT NULL,
+#   `_RecordStart` TIMESTAMP NOT NULL,
+#   `_RecordEnd` TIMESTAMP NOT NULL,
+#   `_RecordDeleted` INT NOT NULL,
+#   `_RecordCurrent` INT NOT NULL)
+# USING delta
+# PARTITIONED BY (sourceSystemCode)
+# LOCATION 'dbfs:/mnt/datalake-curated/factmonthlyapportionedconsumption/delta'
+
+# COMMAND ----------
+
 # MAGIC %run ../common/common-curated-includeMain
 
 # COMMAND ----------
@@ -235,13 +268,38 @@ def getBilledWaterConsumptionMonthly():
                               ,"coalesce(contractSK, dummyContractSK) as contractSK" \
                               ,"totalMeterActiveDaysPerMonth" \
                               ,"cast(avgMeteredWaterConsumptionPerMonth as decimal(24,12)) as monthlyApportionedConsumption" \
-                              ).dropDuplicates()
-#                           .groupby("sourceSystemCode", "consumptionYear", "consumptionMonth", "billingPeriodStartDate", "billingPeriodEndDate", "meterActiveStartDate", "meterActiveEndDate", \
-#                                    "firstDayOfMeterActiveMonth", "lastDayOfMeterActiveMonth", "meterActiveMonthStartDate", "meterActiveMonthEndDate", \
-#                                    "meterConsumptionBillingDocumentSK", "meterConsumptionBillingLineItemSK", \
-#                                    "propertySK", "meterSK", \
-#                                    "locationSK", "businessPartnerGroupSK", "contractSK") \
-#                           .agg(max("totalMeterActiveDaysPerMonth").alias("totalMeterActiveDaysPerMonth"), max("monthlyApportionedConsumption").alias("monthlyApportionedConsumption"))  
+                              ) \
+                          .groupby("sourceSystemCode", "firstDayOfMeterActiveMonth", "meterConsumptionBillingDocumentSK", "meterConsumptionBillingLineItemSK", "propertySK", "meterSK") \
+                          .agg(max("consumptionYear").alias("consumptionYear"), max("consumptionMonth").alias("consumptionMonth"), \
+                               max("billingPeriodStartDate").alias("billingPeriodStartDate"), max("billingPeriodEndDate").alias("billingPeriodEndDate"), \
+                               max("meterActiveStartDate").alias("meterActiveStartDate"), max("meterActiveEndDate").alias("meterActiveEndDate"), \
+                               max("lastDayOfMeterActiveMonth").alias("lastDayOfMeterActiveMonth"), \
+                               max("meterActiveMonthStartDate").alias("meterActiveMonthStartDate"), max("meterActiveMonthEndDate").alias("meterActiveMonthEndDate"), \
+                               max("locationSK").alias("locationSK"),max("businessPartnerGroupSK").alias("businessPartnerGroupSK"), \
+                               max("contractSK").alias("contractSK"), max("totalMeterActiveDaysPerMonth").alias("totalMeterActiveDaysPerMonth"), max("monthlyApportionedConsumption").alias("monthlyApportionedConsumption")) 
+                          .selectExpr \
+                                  ( \
+                                   "sourceSystemCode" \
+                                  ,"consumptionYear" \
+                                  ,"consumptionMonth" \
+                                  ,"billingPeriodStartDate" \
+                                  ,"billingPeriodEndDate" \
+                                  ,"meterActiveStartDate" \
+                                  ,"meterActiveEndDate" \
+                                  ,"firstDayOfMeterActiveMonth" \
+                                  ,"lastDayOfMeterActiveMonth" \
+                                  ,"meterActiveMonthStartDate" \
+                                  ,"meterActiveMonthEndDate" \
+                                  ,"meterConsumptionBillingDocumentSK" \
+                                  ,"meterConsumptionBillingLineItemSK" \
+                                  ,"propertySK" \
+                                  ,"meterSK" \
+                                  ,"locationSK" \
+                                  ,"businessPartnerGroupSK" \
+                                  ,"contractSK" \
+                                  ,"totalMeterActiveDaysPerMonth" \
+                                  ,"monthlyApportionedConsumption" \
+                                  )
     
     #8.Apply schema definition
     schema = StructType([
@@ -272,7 +330,7 @@ def getBilledWaterConsumptionMonthly():
 # COMMAND ----------
 
 df, schema = getBilledWaterConsumptionMonthly()
-# TemplateEtl(df, entity="factDailyApportionedConsumption", businessKey="consumptionDate,meterConsumptionBillingDocumentSK,meterConsumptionBillingLineItemSK,propertySK,meterSK,locationSK,businessPartnerGroupSK,contractSK", schema=schema, writeMode=ADS_WRITE_MODE_MERGE, AddSK=False)
+# TemplateEtl(df, entity="factMonthlyApportionedConsumption", businessKey="sourceSystemCode,firstDayOfMeterActiveMonth,meterConsumptionBillingDocumentSK,meterConsumptionBillingLineItemSK,propertySK,meterSK, schema=schema, writeMode=ADS_WRITE_MODE_MERGE, AddSK=False)
 
 # COMMAND ----------
 
@@ -293,6 +351,7 @@ if loadConsumption:
       .option("replaceWhere", "sourceSystemCode = 'ISU'") \
       .option("overwriteSchema","true").saveAsTable("curated.factMonthlyApportionedConsumption")
 else:
+    df = df.filter("sourceSystemCode='{source_system}'")
     df.write \
       .format("delta") \
       .mode("overwrite") \
