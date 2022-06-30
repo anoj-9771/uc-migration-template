@@ -47,10 +47,10 @@ def getContract():
     #3.UNION TABLES
     #Create dummy record
     
-    dummyDimRecDf = spark.createDataFrame([("-1","1900-01-01")], ["contractId", "validFromDate"])
+    dummyDimRecDf = spark.createDataFrame([("-1","1900-01-01", "9999-12-31")], ["contractId", "validFromDate", "validToDate"])
                                      
     df = df.unionByName(dummyDimRecDf,allowMissingColumns = True)
-    df = df.withColumn("validFromDate",col("validFromDate").cast("date"))
+    df = df.withColumn("validFromDate",col("validFromDate").cast("date")).withColumn("validToDate",col("validToDate").cast("date"))
     
     #4.SELECT / TRANSFORM
     df = df.selectExpr( \
@@ -92,7 +92,7 @@ def getContract():
 # COMMAND ----------
 
 df, schema = getContract()
-TemplateEtl(df,  entity="dimContract", businessKey="contractId,validFromDate", schema=schema, writeMode=ADS_WRITE_MODE_MERGE, AddSK=True)
+TemplateEtl(df,  entity="dimContract", businessKey="contractId,validToDate", schema=schema, writeMode=ADS_WRITE_MODE_MERGE, AddSK=True)
 
 # COMMAND ----------
 
