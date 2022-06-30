@@ -449,13 +449,15 @@ and isu_0cacont_acc_attr_2.`_RecordCurrent` = 1
 
 -- COMMAND ----------
 
--- View: view_billedwaterconsumption
+-- View: view_zbl
 -- Description: this view provide DAF data similar to ZBL extractor in C&B
 -- History:     1.0 09/5/2022 LV created
 --              1.1 26/5/2022 renamed to view_billedwaterconsumption
 --                            added property details
-CREATE OR REPLACE VIEW curated.view_billedwaterconsumption as
-with ercho as
+--              1.2 29/6/2022 renamed to view_zbl
+CREATE OR REPLACE TABLE curated.view_zbl 
+LOCATION 'dbfs:/mnt/datalake-curated/view_zbl'
+as with ercho as
 (
 select isu_ercho.*,
      rank() over (partition by isu_ercho.billingDocumentNumber order by isu_ercho.outsortingNumber desc) rankNumber
@@ -586,13 +588,15 @@ and isu_dberchz2.`_RecordCurrent` = 1
 
 -- COMMAND ----------
 
--- View: view_apportionedconsumption
+-- View: view_qqv
 -- Description: this view provide DAF data similar to QQV extractor in C&B
 -- History:     1.0 24/4/2022 LV created
 --              1.1 10/05/2022 LV added erchc, updated renamed columns
 --              1.2 26/05/2022 LV changed view name, added property details 
-CREATE OR REPLACE VIEW curated.view_apportionedconsumption as
-with statBilling as
+--              1.3 29/06/2022 LV rename view name to view_qqv 
+CREATE OR REPLACE TABLE curated.view_qqv 
+LOCATION 'dbfs:/mnt/datalake-curated/view_qqv'
+as with statBilling as
 (SELECT factdailyapportionedconsumption.meterConsumptionBillingDocumentSK, 
 factdailyapportionedconsumption.PropertySK,
 factdailyapportionedconsumption.LocationSK,
@@ -700,6 +704,14 @@ and dimmeter.`_RecordCurrent` = 1
 and isu_0uc_devcat_attr.`_RecordCurrent` = 1
 and brginstallationpropertymetercontract.`_RecordCurrent` = 1
 and diminstallation.`_RecordCurrent` = 1
+
+-- COMMAND ----------
+
+-- MAGIC %sql
+-- MAGIC set spark.databricks.delta.retentionDurationCheck.enabled=false;
+-- MAGIC VACUUM curated.view_zbl RETAIN 0 HOURS;
+-- MAGIC VACUUM curated.view_qqv RETAIN 0 HOURS;
+-- MAGIC set spark.databricks.delta.retentionDurationCheck.enabled=true;
 
 -- COMMAND ----------
 
