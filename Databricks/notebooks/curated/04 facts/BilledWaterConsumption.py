@@ -12,6 +12,30 @@
 
 # COMMAND ----------
 
+# FOLLOWING TABLE TO BE CREATED MANUALLY FIRST TIME LOADING AFTER THE TABLE CLEANUP
+# CREATE TABLE `curated`.`factBilledWaterConsumption` (
+#   `sourceSystemCode` STRING NOT NULL,
+#   `meterConsumptionBillingDocumentSK` STRING NOT NULL,
+#   `meterConsumptionBillingLineItemSK` STRING NOT NULL,
+#   `propertySK` STRING NOT NULL,
+#   `meterSK` STRING NOT NULL,
+#   `locationSK` STRING NOT NULL,
+#   `businessPartnerGroupSK` STRING NOT NULL,
+#   `contractSK` STRING NOT NULL,
+#   `billingPeriodStartDate` DATE NOT NULL,
+#   `billingPeriodEndDate` DATE NOT NULL,
+#   `meteredWaterConsumption` DECIMAL(18,6),
+#   `_DLCuratedZoneTimeStamp` TIMESTAMP NOT NULL,
+#   `_RecordStart` TIMESTAMP NOT NULL,
+#   `_RecordEnd` TIMESTAMP NOT NULL,
+#   `_RecordDeleted` INT NOT NULL,
+#   `_RecordCurrent` INT NOT NULL)
+# USING delta
+# PARTITIONED BY (sourceSystemCode)
+# LOCATION 'dbfs:/mnt/datalake-curated/factbilledwaterconsumption/delta'
+
+# COMMAND ----------
+
 # MAGIC %run ../common/common-curated-includeMain
 
 # COMMAND ----------
@@ -204,12 +228,25 @@ def getBilledWaterConsumption():
                                         ,"coalesce(contractSK, dummyContractSK) as contractSK" \
                                         ,"billingPeriodStartDate" \
                                         ,"billingPeriodEndDate" \
-                                        ,"meteredWaterConsumption" \
+                                        ,"cast(meteredWaterConsumption as decimal(18,6)) as meteredWaterConsumption" \
                                        ) \
-                          .groupby("sourceSystemCode", "meterConsumptionBillingDocumentSK", "meterConsumptionBillingLineItemSK", "propertySK", "meterSK", \
-                                   "locationSK", "businessPartnerGroupSK", "contractSK", "billingPeriodStartDate") \
-                          .agg(max("billingPeriodEndDate").alias("billingPeriodEndDate") \
+                          .groupby("sourceSystemCode", "meterConsumptionBillingDocumentSK", "meterConsumptionBillingLineItemSK", "propertySK", "meterSK", "billingPeriodStartDate") \
+                          .agg(max("locationSK").alias("locationSK"),max("businessPartnerGroupSK").alias("businessPartnerGroupSK"), \
+                               max("contractSK").alias("contractSK"), max("billingPeriodEndDate").alias("billingPeriodEndDate") \
                               ,sum("meteredWaterConsumption").alias("meteredWaterConsumption"))
+                          .selectExpr ( \
+                                             "sourceSystemCode" \
+                                            ,"meterConsumptionBillingDocumentSK" \
+                                            ,"meterConsumptionBillingLineItemSK" \
+                                            ,"propertySK" \
+                                            ,"meterSK" \
+                                            ,"locationSK" \
+                                            ,"businessPartnerGroupSK" \
+                                            ,"contractSK" \
+                                            ,"billingPeriodStartDate" \
+                                            ,"billingPeriodEndDate" \
+                                            ,"meteredWaterConsumption" \
+                                           ) \
 
     #8.Apply schema definition
     schema = StructType([
@@ -231,7 +268,7 @@ def getBilledWaterConsumption():
 # COMMAND ----------
 
 df, schema = getBilledWaterConsumption()
-# TemplateEtl(df, entity="factBilledWaterConsumption", businessKey="meterConsumptionBillingDocumentSK,meterConsumptionBillingLineItemSK,propertySK,meterSK,locationSK,businessPartnerGroupSK,contractSK,billingPeriodStartDate", schema=schema, writeMode=ADS_WRITE_MODE_MERGE, AddSK=False)
+# TemplateEtl(df, entity="factBilledWaterConsumption", businessKey="meterConsumptionBillingDocumentSK,meterConsumptionBillingLineItemSK,propertySK,meterSK,billingPeriodStartDate", schema=schema, writeMode=ADS_WRITE_MODE_MERGE, AddSK=False)
 
 # COMMAND ----------
 

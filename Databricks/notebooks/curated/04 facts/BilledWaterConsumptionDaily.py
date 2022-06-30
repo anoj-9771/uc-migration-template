@@ -12,6 +12,29 @@
 
 # COMMAND ----------
 
+# FOLLOWING TABLE TO BE CREATED MANUALLY FIRST TIME LOADING AFTER THE TABLE CLEANUP
+# CREATE TABLE `curated`.`factDailyApportionedConsumption` (
+#   `sourceSystemCode` STRING NOT NULL,
+#   `consumptionDate` DATE NOT NULL,
+#   `meterConsumptionBillingDocumentSK` STRING NOT NULL,
+#   `meterConsumptionBillingLineItemSK` STRING NOT NULL,
+#   `propertySK` STRING NOT NULL,
+#   `meterSK` STRING NOT NULL,
+#   `locationSK` STRING NOT NULL,
+#   `businessPartnerGroupSK` STRING NOT NULL,
+#   `contractSK` STRING NOT NULL,
+#   `dailyApportionedConsumption` DECIMAL(18,6),
+#   `_DLCuratedZoneTimeStamp` TIMESTAMP NOT NULL,
+#   `_RecordStart` TIMESTAMP NOT NULL,
+#   `_RecordEnd` TIMESTAMP NOT NULL,
+#   `_RecordDeleted` INT NOT NULL,
+#   `_RecordCurrent` INT NOT NULL)
+# USING delta
+# PARTITIONED BY (sourceSystemCode)
+# LOCATION 'dbfs:/mnt/datalake-curated/factdailyapportionedconsumption/delta'
+
+# COMMAND ----------
+
 # MAGIC %run ../common/common-curated-includeMain
 
 # COMMAND ----------
@@ -219,12 +242,24 @@ def getBilledWaterConsumptionDaily():
                               ,"coalesce(locationSK, dummyLocationSK) as locationSK" \
                               ,"coalesce(BusinessPartnerGroupSk, dummyBusinessPartnerGroupSK) as businessPartnerGroupSK" \
                               ,"coalesce(contractSK, dummyContractSK) as contractSK" \
-                              ,"cast(avgMeteredWaterConsumption as decimal(18,6))" \
+                              ,"cast(avgMeteredWaterConsumption as decimal(18,6)) as avgMeteredWaterConsumption" \
                               ) \
                           .groupby("sourceSystemCode", "consumptionDate", "meterConsumptionBillingDocumentSK", "meterConsumptionBillingLineItemSK", \
-                                   "propertySK", "meterSK", \
-                                   "locationSK", "businessPartnerGroupSK", "contractSK") \
+                                   "propertySK", "meterSK") \
                           .agg(sum("avgMeteredWaterConsumption").alias("dailyApportionedConsumption"))  
+                          .selectExpr \
+                                  ( \
+                                   "sourceSystemCode" \
+                                  ,"consumptionDate" \
+                                  ,"meterConsumptionBillingDocumentSK" \
+                                  ,"meterConsumptionBillingLineItemSK" \
+                                  ,"propertySK" \
+                                  ,"meterSK" \
+                                  ,"locationSK" \
+                                  ,"businessPartnerGroupSK" \
+                                  ,"contractSK" \
+                                  ,"dailyApportionedConsumption" \
+                                  ) \
     
     #8.Apply schema definition
     schema = StructType([
@@ -245,7 +280,7 @@ def getBilledWaterConsumptionDaily():
 # COMMAND ----------
 
 df, schema = getBilledWaterConsumptionDaily()
-# TemplateEtl(df, entity="factDailyApportionedConsumption", businessKey="consumptionDate,meterConsumptionBillingDocumentSK,meterConsumptionBillingLineItemSK,propertySK,meterSK,locationSK,businessPartnerGroupSK,contractSK", schema=schema, writeMode=ADS_WRITE_MODE_MERGE, AddSK=False)
+# TemplateEtl(df, entity="factDailyApportionedConsumption", businessKey="consumptionDate,meterConsumptionBillingDocumentSK,meterConsumptionBillingLineItemSK,propertySK,meterSK", schema=schema, writeMode=ADS_WRITE_MODE_MERGE, AddSK=False)
 
 # COMMAND ----------
 
