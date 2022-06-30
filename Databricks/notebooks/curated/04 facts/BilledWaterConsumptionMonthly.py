@@ -131,7 +131,7 @@ def getBilledWaterConsumptionMonthly():
                                 from {ADS_DATABASE_CURATED}.dimMeterConsumptionBillingLineItem \
                                 where _RecordCurrent = 1 and _RecordDeleted = 0")
 
-    dimDateDf = spark.sql(f"select dateSK, calendarDate, calendarYear, monthStartDate, monthEndDate \
+    dimDateDf = spark.sql(f"select dateSK, calendarDate, calendarYear, monthOfYear, monthStartDate, monthEndDate \
                                 from {ADS_DATABASE_CURATED}.dimDate \
                                 where _RecordCurrent = 1 and _RecordDeleted = 0")
 
@@ -173,7 +173,7 @@ def getBilledWaterConsumptionMonthly():
 
     billedConsDf = billedConsDf.join(dimDateDf, (billedConsDf.meterActiveStartDate <= dimDateDf.calendarDate) \
                                & (billedConsDf.meterActiveEndDate >= dimDateDf.calendarDate), how="left") \
-                    .select(billedConsDf['*'], dimDateDf['calendarYear'].alias('consumptionYear'), dimDateDf['monthStartDate'].alias('firstDayOfMeterActiveMonth'), dimDateDf['monthEndDate'].alias('lastDayOfMeterActiveMonth')).dropDuplicates()
+                    .select(billedConsDf['*'], dimDateDf['calendarYear'].alias('consumptionYear').cast("int"), dimDateDf['monthOfYear'].alias('consumptionMonth').cast("int"), dimDateDf['monthStartDate'].alias('firstDayOfMeterActiveMonth'), dimDateDf['monthEndDate'].alias('lastDayOfMeterActiveMonth')).dropDuplicates()
     
     billedConsDf = billedConsDf.withColumn("meterActiveMonthStartDate", when((col("meterActiveStartDate") >= col("firstDayOfMeterActiveMonth")) & (col("meterActiveStartDate") <= col("lastDayOfMeterActiveMonth")), col("meterActiveStartDate")).otherwise(col("firstDayOfMeterActiveMonth"))) \
                     .withColumn("meterActiveMonthEndDate", when((col("meterActiveEndDate") >= col("firstDayOfMeterActiveMonth")) & (col("meterActiveEndDate") <= col("lastDayOfMeterActiveMonth")), col("meterActiveEndDate")).otherwise(col("lastDayOfMeterActiveMonth"))) \
@@ -217,6 +217,7 @@ def getBilledWaterConsumptionMonthly():
                               ( \
                                "sourceSystemCode" \
                               ,"consumptionYear" \
+                              ,"consumptionMonth" \
                               ,"billingPeriodStartDate" \
                               ,"billingPeriodEndDate" \
                               ,"meterActiveStartDate" \
@@ -233,9 +234,9 @@ def getBilledWaterConsumptionMonthly():
                               ,"coalesce(BusinessPartnerGroupSk, dummyBusinessPartnerGroupSK) as businessPartnerGroupSK" \
                               ,"coalesce(contractSK, dummyContractSK) as contractSK" \
                               ,"totalMeterActiveDaysPerMonth" \
-                              ,"cast(avgMeteredWaterConsumptionPerMonth as decimal(28,12)) as monthlyApportionedConsumption" \
+                              ,"cast(avgMeteredWaterConsumptionPerMonth as decimal(24,12)) as monthlyApportionedConsumption" \
                               ).dropDuplicates()
-#                           .groupby("sourceSystemCode", "consumptionYear", "billingPeriodStartDate", "billingPeriodEndDate", "meterActiveStartDate", "meterActiveEndDate", \
+#                           .groupby("sourceSystemCode", "consumptionYear", "consumptionMonth", "billingPeriodStartDate", "billingPeriodEndDate", "meterActiveStartDate", "meterActiveEndDate", \
 #                                    "firstDayOfMeterActiveMonth", "lastDayOfMeterActiveMonth", "meterActiveMonthStartDate", "meterActiveMonthEndDate", \
 #                                    "meterConsumptionBillingDocumentSK", "meterConsumptionBillingLineItemSK", \
 #                                    "propertySK", "meterSK", \
@@ -245,7 +246,8 @@ def getBilledWaterConsumptionMonthly():
     #8.Apply schema definition
     schema = StructType([
                             StructField("sourceSystemCode", StringType(), False),
-                            StructField("consumptionYear", LongType(), False),
+                            StructField("consumptionYear", IntegerType(), False),
+                            StructField("consumptionMonth", IntegerType(), False),
                             StructField("billingPeriodStartDate", DateType(), False),
                             StructField("billingPeriodEndDate", DateType(), False),
                             StructField("meterActiveStartDate", DateType(), False),
@@ -339,6 +341,7 @@ verifyTableSchema(f"curated.factMonthlyApportionedConsumption", schema)
 # MAGIC propertyTypeValidToDate,
 # MAGIC sourceSystemCode,
 # MAGIC consumptionYear,
+# MAGIC consumptionMonth,
 # MAGIC billingPeriodStartDate,
 # MAGIC billingPeriodEndDate,
 # MAGIC meterActiveStartDate,
@@ -356,7 +359,7 @@ verifyTableSchema(f"curated.factMonthlyApportionedConsumption", schema)
 # MAGIC contractSK,
 # MAGIC totalMeterActiveDaysPerMonth,
 # MAGIC monthlyApportionedConsumption from (
-# MAGIC select *, row_number() OVER   (PARTITION BY consumptionYear,billingPeriodStartDate,billingPeriodEndDate,meterActiveStartDate,meterActiveEndDate,meterActiveMonthStartDate,meterActiveMonthEndDate,meterConsumptionBillingDocumentSK,meterConsumptionBillingLineItemSK,propertySK,meterSK,locationSK,businessPartnerGroupSK,contractSK ORDER BY propertyTypeValidToDate desc,propertyTypeValidFromDate desc) as flag  from 
+# MAGIC select *, row_number() OVER   (PARTITION BY consumptionYear,consumptionMonth,billingPeriodStartDate,billingPeriodEndDate,meterActiveStartDate,meterActiveEndDate,meterActiveMonthStartDate,meterActiveMonthEndDate,meterConsumptionBillingDocumentSK,meterConsumptionBillingLineItemSK,propertySK,meterSK,locationSK,businessPartnerGroupSK,contractSK ORDER BY propertyTypeValidToDate desc,propertyTypeValidFromDate desc) as flag  from 
 # MAGIC (select prop.propertyNumber,
 # MAGIC prophist.inferiorPropertyTypeCode,
 # MAGIC prophist.inferiorPropertyType,
@@ -366,6 +369,7 @@ verifyTableSchema(f"curated.factMonthlyApportionedConsumption", schema)
 # MAGIC prophist.validToDate as propertyTypeValidToDate,
 # MAGIC fact.sourceSystemCode,
 # MAGIC fact.consumptionYear,
+# MAGIC fact.consumptionMonth,
 # MAGIC fact.billingPeriodStartDate,
 # MAGIC fact.billingPeriodEndDate,
 # MAGIC fact.meterActiveStartDate,
