@@ -351,7 +351,6 @@ if loadConsumption:
       .option("replaceWhere", "sourceSystemCode = 'ISU'") \
       .option("overwriteSchema","true").saveAsTable("curated.factMonthlyApportionedConsumption")
 else:
-    df = df.filter("sourceSystemCode='{source_system}'")
     df.write \
       .format("delta") \
       .mode("overwrite") \
