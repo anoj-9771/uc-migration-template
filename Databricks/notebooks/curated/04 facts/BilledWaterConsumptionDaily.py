@@ -12,6 +12,34 @@
 
 # COMMAND ----------
 
+# FOLLOWING TABLE TO BE CREATED MANUALLY FIRST TIME LOADING AFTER THE TABLE CLEANUP
+# CREATE TABLE `curated`.`factDailyApportionedConsumption` (
+#   `sourceSystemCode` STRING NOT NULL,
+#   `consumptionDate` DATE NOT NULL,
+#   `meterConsumptionBillingDocumentSK` STRING NOT NULL,
+#   `meterConsumptionBillingLineItemSK` STRING NOT NULL,
+#   `propertySK` STRING NOT NULL,
+#   `meterSK` STRING NOT NULL,
+#   `locationSK` STRING NOT NULL,
+#   `businessPartnerGroupSK` STRING NOT NULL,
+#   `contractSK` STRING NOT NULL,
+#   `dailyApportionedConsumption` DECIMAL(18,6),
+#   `_DLCuratedZoneTimeStamp` TIMESTAMP NOT NULL,
+#   `_RecordStart` TIMESTAMP NOT NULL,
+#   `_RecordEnd` TIMESTAMP NOT NULL,
+#   `_RecordDeleted` INT NOT NULL,
+#   `_RecordCurrent` INT NOT NULL)
+# USING delta
+# PARTITIONED BY (sourceSystemCode)
+# LOCATION 'dbfs:/mnt/datalake-curated/factdailyapportionedconsumption/delta'
+
+# COMMAND ----------
+
+# FOLLOWING COMMAND TO BE RUN MANUALLY FIRST TIME LOADING AFTER THE TABLE CLEANUP. THIS COMMAND WILL CREATE A VIEW stage.access_property_hist
+# %run ../common/functions/commonAccessPropertyHistory
+
+# COMMAND ----------
+
 # MAGIC %run ../common/common-curated-includeMain
 
 # COMMAND ----------
@@ -111,7 +139,7 @@ def getBilledWaterConsumptionDaily():
     #billedConsDf = billedConsDf.withColumn("avgMeteredWaterConsumption",col("avgMeteredWaterConsumption").cast("decimal(18,6)"))
     
     #4.Load Dmension tables into dataframe    
-    dimPropertyDf = spark.sql(f"select sourceSystemCode, propertySK, waterNetworkSK_drinkingWater, waterNetworkSK_recycledWater, propertyNumber \
+    dimPropertyDf = spark.sql(f"select sourceSystemCode, propertySK, propertyNumber \
                                 from {ADS_DATABASE_CURATED}.dimProperty \
                                 where _RecordCurrent = 1 and _RecordDeleted = 0")
 
@@ -143,10 +171,6 @@ def getBilledWaterConsumptionDaily():
                                 from {ADS_DATABASE_CURATED}.dimContract \
                                 where _RecordCurrent = 1 and _RecordDeleted = 0")
 
-    dimWaterNetworkDf = spark.sql(f"select waterNetworkSK, deliverySystem, distributionSystem, supplyZone, pressureArea \
-                                from {ADS_DATABASE_CURATED}.dimWaterNetwork \
-                                where _RecordCurrent = 1 and _RecordDeleted = 0")
-    
     dummyDimRecDf = spark.sql(f"select PropertySk as dummyDimSK, 'dimProperty' as dimension from {ADS_DATABASE_CURATED}.dimProperty where propertyNumber = '-1' \
                           union select LocationSk as dummyDimSK, 'dimLocation' as dimension from {ADS_DATABASE_CURATED}.dimLocation where LocationId = '-1' \
                           union select meterSK as dummyDimSK, 'dimMeter' as dimension from {ADS_DATABASE_CURATED}.dimMeter where meterNumber = '-1'\
@@ -156,15 +180,11 @@ def getBilledWaterConsumptionDaily():
                                                        from {ADS_DATABASE_CURATED}.dimMeterConsumptionBillingLineItem where billingDocumentLineItemId = '-1' \
                           union select businessPartnerGroupSK as dummyDimSK, 'dimBusinessPartnerGroup' as dimension from {ADS_DATABASE_CURATED}.dimBusinessPartnerGroup where BusinessPartnerGroupNumber = '-1' \
                           union select contractSK as dummyDimSK, 'dimContract' as dimension from {ADS_DATABASE_CURATED}.dimContract where contractId = '-1' \
-                          union select waterNetworkSK as dummyDimSK, 'dimWaterNetwork_drinkingWater' as dimension from {ADS_DATABASE_CURATED}.dimWaterNetwork where pressureArea = '-1' \
-                                                and isPotableWaterNetwork='Y' and isRecycledWaterNetwork='N' \
-                          union select waterNetworkSK as dummyDimSK, 'dimWaterNetwork_recycledWater' as dimension from {ADS_DATABASE_CURATED}.dimWaterNetwork where supplyZone = '-1' \
-                                                and isPotableWaterNetwork='N' and isRecycledWaterNetwork='Y' \
                           ")
 
     #5.JOIN TABLES
     billedConsDf = billedConsDf.join(dimPropertyDf, (billedConsDf.businessPartnerGroupNumber == dimPropertyDf.propertyNumber), how="left") \
-                    .select(billedConsDf['*'], dimPropertyDf['propertySK'], dimPropertyDf['waterNetworkSK_drinkingWater'], dimPropertyDf['waterNetworkSK_recycledWater'])
+                    .select(billedConsDf['*'], dimPropertyDf['propertySK'])
 
     billedConsDf = billedConsDf.join(dimLocationDf, (billedConsDf.businessPartnerGroupNumber == dimLocationDf.locationID), how="left") \
                     .select(billedConsDf['*'], dimLocationDf['locationSK'])
@@ -215,13 +235,6 @@ def getBilledWaterConsumptionDaily():
     billedConsDf = billedConsDf.join(dummyDimRecDf, (dummyDimRecDf.dimension == 'dimBusinessPartnerGroup'), how="left") \
                   .select(billedConsDf['*'], dummyDimRecDf['dummyDimSK'].alias('dummyBusinessPartnerGroupSK'))
 
-    billedConsDf = billedConsDf.join(dummyDimRecDf, (dummyDimRecDf.dimension == 'dimWaterNetwork_drinkingWater'), how="left") \
-                  .select(billedConsDf['*'], dummyDimRecDf['dummyDimSK'].alias('dummyWaterNetworkSK_drinkingWater'))
-    
-    billedConsDf = billedConsDf.join(dummyDimRecDf, (dummyDimRecDf.dimension == 'dimWaterNetwork_recycledWater'), how="left") \
-                  .select(billedConsDf['*'], dummyDimRecDf['dummyDimSK'].alias('dummyWaterNetworkSK_recycledWater'))
-
-
     #7.SELECT / TRANSFORM
     billedConsDf = billedConsDf.selectExpr \
                               ( \
@@ -232,19 +245,26 @@ def getBilledWaterConsumptionDaily():
                               ,"coalesce(propertySK, dummyPropertySK) as propertySK" \
                               ,"coalesce(meterSK, dummyMeterSK) as meterSK" \
                               ,"coalesce(locationSK, dummyLocationSK) as locationSK" \
-                              ,"coalesce( \
-                                          (case when waterType = 'Drinking Water' then waterNetworkSK_drinkingWater \
-                                                when waterType = 'Recycled Water' then waterNetworkSK_recycledWater else null end) \
-                                                , (case when waterType = 'Drinking Water' then dummyWaterNetworkSK_drinkingWater \
-                                                         when waterType = 'Recycled Water' then dummyWaterNetworkSK_recycledWater else dummyWaterNetworkSK_drinkingWater end)) as waterNetworkSK" \
                               ,"coalesce(BusinessPartnerGroupSk, dummyBusinessPartnerGroupSK) as businessPartnerGroupSK" \
                               ,"coalesce(contractSK, dummyContractSK) as contractSK" \
-                              ,"cast(avgMeteredWaterConsumption as decimal(18,6))" \
+                              ,"cast(avgMeteredWaterConsumption as decimal(18,6)) as avgMeteredWaterConsumption" \
                               ) \
                           .groupby("sourceSystemCode", "consumptionDate", "meterConsumptionBillingDocumentSK", "meterConsumptionBillingLineItemSK", \
-                                   "propertySK", "meterSK", \
-                                   "locationSK", "waterNetworkSK", "businessPartnerGroupSK", "contractSK") \
+                                   "propertySK", "meterSK") \
                           .agg(sum("avgMeteredWaterConsumption").alias("dailyApportionedConsumption"))  
+                          .selectExpr \
+                                  ( \
+                                   "sourceSystemCode" \
+                                  ,"consumptionDate" \
+                                  ,"meterConsumptionBillingDocumentSK" \
+                                  ,"meterConsumptionBillingLineItemSK" \
+                                  ,"propertySK" \
+                                  ,"meterSK" \
+                                  ,"locationSK" \
+                                  ,"businessPartnerGroupSK" \
+                                  ,"contractSK" \
+                                  ,"dailyApportionedConsumption" \
+                                  ) \
     
     #8.Apply schema definition
     schema = StructType([
@@ -255,7 +275,6 @@ def getBilledWaterConsumptionDaily():
                             StructField("propertySK", StringType(), False),
                             StructField("meterSK", StringType(), False),
                             StructField("locationSK", StringType(), False),
-                            StructField("waterNetworkSK", StringType(), False),
                             StructField("businessPartnerGroupSK", StringType(), False),
                             StructField("contractSK", StringType(), False),
                             StructField("dailyApportionedConsumption", FloatType(), True)
@@ -266,7 +285,7 @@ def getBilledWaterConsumptionDaily():
 # COMMAND ----------
 
 df, schema = getBilledWaterConsumptionDaily()
-# TemplateEtl(df, entity="factDailyApportionedConsumption", businessKey="consumptionDate,meterConsumptionBillingDocumentSK,meterConsumptionBillingLineItemSK,propertySK,meterSK,locationSK,waterNetworkSK,businessPartnerGroupSK,contractSK", schema=schema, writeMode=ADS_WRITE_MODE_MERGE, AddSK=False)
+# TemplateEtl(df, entity="factDailyApportionedConsumption", businessKey="consumptionDate,meterConsumptionBillingDocumentSK,meterConsumptionBillingLineItemSK,propertySK,meterSK", schema=schema, writeMode=ADS_WRITE_MODE_MERGE, AddSK=False)
 
 # COMMAND ----------
 
@@ -297,58 +316,6 @@ verifyTableSchema(f"curated.factDailyApportionedConsumption", schema)
 
 # COMMAND ----------
 
-# MAGIC %sql
-# MAGIC Create or replace view curated.viewDailyApportionedConsumption as
-# MAGIC select 
-# MAGIC propertyNumber,
-# MAGIC inferiorPropertyTypeCode,
-# MAGIC inferiorPropertyType,
-# MAGIC superiorPropertyTypeCode,
-# MAGIC superiorPropertyType,
-# MAGIC propertyTypeValidFromDate,
-# MAGIC propertyTypeValidToDate,
-# MAGIC sourceSystemCode,
-# MAGIC consumptionDate,
-# MAGIC meterConsumptionBillingDocumentSK,
-# MAGIC meterConsumptionBillingLineItemSK,
-# MAGIC propertySK,
-# MAGIC meterSK,
-# MAGIC locationSK,
-# MAGIC waterNetworkSK,
-# MAGIC businessPartnerGroupSK,
-# MAGIC contractSK,
-# MAGIC dailyApportionedConsumption from (
-# MAGIC select * ,RANK() OVER   (PARTITION BY consumptionDate,meterConsumptionBillingDocumentSK,meterConsumptionBillingLineItemSK,propertySK,meterSK,locationSK,waterNetworkSK,businessPartnerGroupSK,contractSK ORDER BY propertyTypeValidToDate desc,propertyTypeValidFromDate desc) as flag  from 
-# MAGIC (select prop.propertyNumber,
-# MAGIC prophist.inferiorPropertyTypeCode,
-# MAGIC prophist.inferiorPropertyType,
-# MAGIC prophist.superiorPropertyTypeCode,
-# MAGIC prophist.superiorPropertyType,
-# MAGIC prophist.validFromDate as propertyTypeValidFromDate,
-# MAGIC prophist.validToDate as propertyTypeValidToDate,
-# MAGIC fact.sourceSystemCode,
-# MAGIC fact.consumptionDate,
-# MAGIC fact.meterConsumptionBillingDocumentSK,
-# MAGIC fact.meterConsumptionBillingLineItemSK,
-# MAGIC fact.propertySK,
-# MAGIC fact.meterSK,
-# MAGIC fact.locationSK,
-# MAGIC fact.waterNetworkSK,
-# MAGIC fact.businessPartnerGroupSK,
-# MAGIC fact.contractSK,
-# MAGIC fact.dailyApportionedConsumption
-# MAGIC from curated.factDailyApportionedConsumption fact
-# MAGIC left outer join curated.dimproperty prop
-# MAGIC on fact.propertySK = prop.propertySK
-# MAGIC left outer join cleansed.isu_zcd_tpropty_hist prophist
-# MAGIC on (prop.propertyNumber = prophist.propertyNumber  and prophist.validFromDate <= fact.consumptionDate and prophist.validToDate >= fact.consumptionDate)
-# MAGIC )
-# MAGIC )
-# MAGIC where flag = 1
-# MAGIC ;
-
-# COMMAND ----------
-
 # THIS IS COMMENTED AND TO BE UNCOMMENTED TO RUN ONLY WHEN ACCESS DATA LOADING USING THIS NOTEBOOK.
 # %sql
 # OPTIMIZE curated.factdailyapportionedconsumption
@@ -366,15 +333,70 @@ verifyTableSchema(f"curated.factDailyApportionedConsumption", schema)
 
 # MAGIC %sql
 # MAGIC set spark.databricks.delta.retentionDurationCheck.enabled=false;
-
-# COMMAND ----------
-
-# MAGIC %sql
 # MAGIC VACUUM curated.factdailyapportionedconsumption RETAIN 0 HOURS;
+# MAGIC set spark.databricks.delta.retentionDurationCheck.enabled=true;
 
 # COMMAND ----------
 
 # MAGIC %sql
+# MAGIC CREATE OR REPLACE TABLE curated.viewDailyApportionedConsumption 
+# MAGIC LOCATION 'dbfs:/mnt/datalake-curated/viewdailyapportionedconsumption'
+# MAGIC as with prophist as (
+# MAGIC           select propertyNumber,inferiorPropertyTypeCode,inferiorPropertyType,superiorPropertyTypeCode,superiorPropertyType,validFromDate,validToDate from cleansed.isu_zcd_tpropty_hist
+# MAGIC           union  
+# MAGIC           select propertyNumber,inferiorPropertyTypeCode,inferiorPropertyType,superiorPropertyTypeCode,superiorPropertyType,validFromDate,validToDate from stage.access_property_hist
+# MAGIC         )
+# MAGIC select 
+# MAGIC propertyNumber,
+# MAGIC inferiorPropertyTypeCode,
+# MAGIC inferiorPropertyType,
+# MAGIC superiorPropertyTypeCode,
+# MAGIC superiorPropertyType,
+# MAGIC propertyTypeValidFromDate,
+# MAGIC propertyTypeValidToDate,
+# MAGIC sourceSystemCode,
+# MAGIC consumptionDate,
+# MAGIC meterConsumptionBillingDocumentSK,
+# MAGIC meterConsumptionBillingLineItemSK,
+# MAGIC propertySK,
+# MAGIC meterSK,
+# MAGIC locationSK,
+# MAGIC businessPartnerGroupSK,
+# MAGIC contractSK,
+# MAGIC dailyApportionedConsumption from (
+# MAGIC select *, row_number() OVER   (PARTITION BY consumptionDate,meterConsumptionBillingDocumentSK,meterConsumptionBillingLineItemSK,propertySK,meterSK,locationSK,businessPartnerGroupSK,contractSK ORDER BY propertyTypeValidToDate desc,propertyTypeValidFromDate desc) as flag  from 
+# MAGIC (select prop.propertyNumber,
+# MAGIC prophist.inferiorPropertyTypeCode,
+# MAGIC prophist.inferiorPropertyType,
+# MAGIC prophist.superiorPropertyTypeCode,
+# MAGIC prophist.superiorPropertyType,
+# MAGIC prophist.validFromDate as propertyTypeValidFromDate,
+# MAGIC prophist.validToDate as propertyTypeValidToDate,
+# MAGIC fact.sourceSystemCode,
+# MAGIC fact.consumptionDate,
+# MAGIC fact.meterConsumptionBillingDocumentSK,
+# MAGIC fact.meterConsumptionBillingLineItemSK,
+# MAGIC fact.propertySK,
+# MAGIC fact.meterSK,
+# MAGIC fact.locationSK,
+# MAGIC fact.businessPartnerGroupSK,
+# MAGIC fact.contractSK,
+# MAGIC fact.dailyApportionedConsumption
+# MAGIC from curated.factDailyApportionedConsumption fact
+# MAGIC left outer join curated.dimproperty prop
+# MAGIC on fact.propertySK = prop.propertySK
+# MAGIC left outer join prophist
+# MAGIC on (prop.propertyNumber = prophist.propertyNumber  and prophist.validFromDate <= fact.consumptionDate and prophist.validToDate >= fact.consumptionDate)
+# MAGIC )
+# MAGIC )
+# MAGIC where flag = 1
+# MAGIC ;
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC set spark.databricks.delta.retentionDurationCheck.enabled=false;
+# MAGIC VACUUM curated.viewDailyApportionedConsumption RETAIN 0 HOURS;
 # MAGIC set spark.databricks.delta.retentionDurationCheck.enabled=true;
 
 # COMMAND ----------
