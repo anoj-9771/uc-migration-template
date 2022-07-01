@@ -93,7 +93,7 @@ def getMeterConsumptionBillingDocumentIsu():
 # COMMAND ----------
 
 df, schema = getMeterConsumptionBillingDocumentIsu()
-TemplateEtl(df, entity="dimMeterConsumptionBillingDocument", businessKey="billingDocumentNumber", schema=schema, writeMode=ADS_WRITE_MODE_MERGE, AddSK=True)
+TemplateEtl(df, entity="dimMeterConsumptionBillingDocument", businessKey="billingDocumentNumber", schema=schema, writeMode=ADS_WRITE_MODE_OVERWRITE, AddSK=True)
 
 # COMMAND ----------
 
