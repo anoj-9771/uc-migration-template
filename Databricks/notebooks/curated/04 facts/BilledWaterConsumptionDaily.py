@@ -339,66 +339,66 @@ verifyTableSchema(f"curated.factDailyApportionedConsumption", schema)
 
 # COMMAND ----------
 
-# MAGIC %sql
-# MAGIC CREATE OR REPLACE TABLE curated.viewDailyApportionedConsumption 
-# MAGIC LOCATION 'dbfs:/mnt/datalake-curated/viewdailyapportionedconsumption'
-# MAGIC as with prophist as (
-# MAGIC           select propertyNumber,inferiorPropertyTypeCode,inferiorPropertyType,superiorPropertyTypeCode,superiorPropertyType,validFromDate,validToDate from cleansed.isu_zcd_tpropty_hist
-# MAGIC           union  
-# MAGIC           select propertyNumber,inferiorPropertyTypeCode,inferiorPropertyType,superiorPropertyTypeCode,superiorPropertyType,validFromDate,validToDate from stage.access_property_hist
-# MAGIC         )
-# MAGIC select 
-# MAGIC propertyNumber,
-# MAGIC inferiorPropertyTypeCode,
-# MAGIC inferiorPropertyType,
-# MAGIC superiorPropertyTypeCode,
-# MAGIC superiorPropertyType,
-# MAGIC propertyTypeValidFromDate,
-# MAGIC propertyTypeValidToDate,
-# MAGIC sourceSystemCode,
-# MAGIC consumptionDate,
-# MAGIC meterConsumptionBillingDocumentSK,
-# MAGIC meterConsumptionBillingLineItemSK,
-# MAGIC propertySK,
-# MAGIC meterSK,
-# MAGIC locationSK,
-# MAGIC businessPartnerGroupSK,
-# MAGIC contractSK,
-# MAGIC dailyApportionedConsumption from (
-# MAGIC select *, row_number() OVER   (PARTITION BY consumptionDate,meterConsumptionBillingDocumentSK,meterConsumptionBillingLineItemSK,propertySK,meterSK,locationSK,businessPartnerGroupSK,contractSK ORDER BY propertyTypeValidToDate desc,propertyTypeValidFromDate desc) as flag  from 
-# MAGIC (select prop.propertyNumber,
-# MAGIC prophist.inferiorPropertyTypeCode,
-# MAGIC prophist.inferiorPropertyType,
-# MAGIC prophist.superiorPropertyTypeCode,
-# MAGIC prophist.superiorPropertyType,
-# MAGIC prophist.validFromDate as propertyTypeValidFromDate,
-# MAGIC prophist.validToDate as propertyTypeValidToDate,
-# MAGIC fact.sourceSystemCode,
-# MAGIC fact.consumptionDate,
-# MAGIC fact.meterConsumptionBillingDocumentSK,
-# MAGIC fact.meterConsumptionBillingLineItemSK,
-# MAGIC fact.propertySK,
-# MAGIC fact.meterSK,
-# MAGIC fact.locationSK,
-# MAGIC fact.businessPartnerGroupSK,
-# MAGIC fact.contractSK,
-# MAGIC fact.dailyApportionedConsumption
-# MAGIC from curated.factDailyApportionedConsumption fact
-# MAGIC left outer join curated.dimproperty prop
-# MAGIC on fact.propertySK = prop.propertySK
-# MAGIC left outer join prophist
-# MAGIC on (prop.propertyNumber = prophist.propertyNumber  and prophist.validFromDate <= fact.consumptionDate and prophist.validToDate >= fact.consumptionDate)
-# MAGIC )
-# MAGIC )
-# MAGIC where flag = 1
-# MAGIC ;
+# %sql
+# CREATE OR REPLACE TABLE curated.viewDailyApportionedConsumption 
+# LOCATION 'dbfs:/mnt/datalake-curated/viewdailyapportionedconsumption'
+# as with prophist as (
+#           select propertyNumber,inferiorPropertyTypeCode,inferiorPropertyType,superiorPropertyTypeCode,superiorPropertyType,validFromDate,validToDate from cleansed.isu_zcd_tpropty_hist
+#           union  
+#           select propertyNumber,inferiorPropertyTypeCode,inferiorPropertyType,superiorPropertyTypeCode,superiorPropertyType,validFromDate,validToDate from stage.access_property_hist
+#         )
+# select 
+# propertyNumber,
+# inferiorPropertyTypeCode,
+# inferiorPropertyType,
+# superiorPropertyTypeCode,
+# superiorPropertyType,
+# propertyTypeValidFromDate,
+# propertyTypeValidToDate,
+# sourceSystemCode,
+# consumptionDate,
+# meterConsumptionBillingDocumentSK,
+# meterConsumptionBillingLineItemSK,
+# propertySK,
+# meterSK,
+# locationSK,
+# businessPartnerGroupSK,
+# contractSK,
+# dailyApportionedConsumption from (
+# select *, row_number() OVER   (PARTITION BY consumptionDate,meterConsumptionBillingDocumentSK,meterConsumptionBillingLineItemSK,propertySK,meterSK,locationSK,businessPartnerGroupSK,contractSK ORDER BY propertyTypeValidToDate desc,propertyTypeValidFromDate desc) as flag  from 
+# (select prop.propertyNumber,
+# prophist.inferiorPropertyTypeCode,
+# prophist.inferiorPropertyType,
+# prophist.superiorPropertyTypeCode,
+# prophist.superiorPropertyType,
+# prophist.validFromDate as propertyTypeValidFromDate,
+# prophist.validToDate as propertyTypeValidToDate,
+# fact.sourceSystemCode,
+# fact.consumptionDate,
+# fact.meterConsumptionBillingDocumentSK,
+# fact.meterConsumptionBillingLineItemSK,
+# fact.propertySK,
+# fact.meterSK,
+# fact.locationSK,
+# fact.businessPartnerGroupSK,
+# fact.contractSK,
+# fact.dailyApportionedConsumption
+# from curated.factDailyApportionedConsumption fact
+# left outer join curated.dimproperty prop
+# on fact.propertySK = prop.propertySK
+# left outer join prophist
+# on (prop.propertyNumber = prophist.propertyNumber  and prophist.validFromDate <= fact.consumptionDate and prophist.validToDate >= fact.consumptionDate)
+# )
+# )
+# where flag = 1
+# ;
 
 # COMMAND ----------
 
-# MAGIC %sql
-# MAGIC set spark.databricks.delta.retentionDurationCheck.enabled=false;
-# MAGIC VACUUM curated.viewDailyApportionedConsumption RETAIN 0 HOURS;
-# MAGIC set spark.databricks.delta.retentionDurationCheck.enabled=true;
+# %sql
+# set spark.databricks.delta.retentionDurationCheck.enabled=false;
+# VACUUM curated.viewDailyApportionedConsumption RETAIN 0 HOURS;
+# set spark.databricks.delta.retentionDurationCheck.enabled=true;
 
 # COMMAND ----------
 
