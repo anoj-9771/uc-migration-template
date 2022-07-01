@@ -250,9 +250,9 @@ def getBilledWaterConsumptionDaily():
                               ,"avgMeteredWaterConsumption" \
                               ) \
                           .groupby("sourceSystemCode", "consumptionDate", "meterConsumptionBillingDocumentSK", "meterConsumptionBillingLineItemSK", \
-                                   "propertySK", "meterSK") \
-                          .agg(max("locationSK").alias("locationSK"),max("businessPartnerGroupSK").alias("businessPartnerGroupSK"), \
-                               max("contractSK").alias("contractSK"),sum("avgMeteredWaterConsumption").alias("dailyApportionedConsumption")) \
+                                   "propertySK", "meterSK", \
+                                   "locationSK", "businessPartnerGroupSK", "contractSK") \
+                          .agg(sum("avgMeteredWaterConsumption").alias("dailyApportionedConsumption")) \
                           .selectExpr \
                                   ( \
                                    "sourceSystemCode" \

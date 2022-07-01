@@ -361,7 +361,7 @@ def getProperty():
 # COMMAND ----------
 
 df, schema = getProperty()
-TemplateEtl(df, entity="dimProperty", businessKey="propertyNumber", schema=schema, writeMode=ADS_WRITE_MODE_MERGE, AddSK=True)
+TemplateEtl(df, entity="dimProperty", businessKey="propertyNumber", schema=schema, writeMode=ADS_WRITE_MODE_OVERWRITE, AddSK=True)
 
 # COMMAND ----------
 
