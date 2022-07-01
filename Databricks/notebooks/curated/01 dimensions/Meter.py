@@ -234,7 +234,7 @@ def getMeter():
 # COMMAND ----------
 
 df, schema = getMeter()
-TemplateEtl(df, entity="dimMeter", businessKey="meterNumber", schema=schema, writeMode=ADS_WRITE_MODE_MERGE, AddSK=True)
+TemplateEtl(df, entity="dimMeter", businessKey="meterNumber", schema=schema, writeMode=ADS_WRITE_MODE_OVERWRITE, AddSK=True)
 
 # COMMAND ----------
 
