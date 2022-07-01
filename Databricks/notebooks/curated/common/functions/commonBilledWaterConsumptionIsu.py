@@ -146,7 +146,7 @@ def getBilledWaterConsumptionIsu():
                     ,"statisticalAnalysisRateType" \
                     ,"validFromDate" \
                     ,"validToDate" \
-                    ,"cast(billingQuantityPlaceBeforeDecimalPoint as decimal(18,6)) as meteredWaterConsumption" \
+                    ,"billingQuantityPlaceBeforeDecimalPoint as meteredWaterConsumption" \
                     ,"logicalRegisterNumber" \
                     ,"registerNumber" \
                     ,"suppressedMeterReadingDocumentId" \

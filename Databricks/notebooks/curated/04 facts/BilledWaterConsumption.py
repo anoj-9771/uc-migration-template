@@ -235,9 +235,9 @@ def getBilledWaterConsumption():
                                         ,"billingPeriodEndDate" \
                                         ,"meteredWaterConsumption" \
                                        ) \
-                          .groupby("sourceSystemCode", "meterConsumptionBillingDocumentSK", "meterConsumptionBillingLineItemSK", "propertySK", "meterSK", "billingPeriodStartDate") \
-                          .agg(max("locationSK").alias("locationSK"),max("businessPartnerGroupSK").alias("businessPartnerGroupSK"), \
-                               max("contractSK").alias("contractSK"), max("billingPeriodEndDate").alias("billingPeriodEndDate") \
+                          .groupby("sourceSystemCode", "meterConsumptionBillingDocumentSK", "meterConsumptionBillingLineItemSK", "propertySK", "meterSK", \
+                                   "locationSK", "businessPartnerGroupSK", "contractSK", "billingPeriodStartDate") \
+                          .agg(max("billingPeriodEndDate").alias("billingPeriodEndDate") \
                               ,sum("meteredWaterConsumption").alias("meteredWaterConsumption")) \
                           .selectExpr ( \
                                              "sourceSystemCode" \

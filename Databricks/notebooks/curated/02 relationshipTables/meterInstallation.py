@@ -91,7 +91,7 @@ def getmeterInstallation():
 # COMMAND ----------
 
 df, schema = getmeterInstallation()
-TemplateEtl(df, entity="dimMeterInstallation", businessKey="installationSK,installationId,logicalDeviceNumber,validToDate", schema=schema, writeMode=ADS_WRITE_MODE_MERGE, AddSK=True)
+TemplateEtl(df, entity="dimMeterInstallation", businessKey="installationSK,installationId,logicalDeviceNumber,validToDate", schema=schema, writeMode=ADS_WRITE_MODE_OVERWRITE, AddSK=True)
 
 # COMMAND ----------
 

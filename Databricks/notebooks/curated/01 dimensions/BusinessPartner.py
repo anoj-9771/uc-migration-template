@@ -131,7 +131,7 @@ def getBusinessPartner():
 # COMMAND ----------
 
 df, schema = getBusinessPartner()
-TemplateEtl(df, entity="dimBusinessPartner", businessKey="businessPartnerNumber", schema=schema, writeMode=ADS_WRITE_MODE_MERGE, AddSK=True)
+TemplateEtl(df, entity="dimBusinessPartner", businessKey="businessPartnerNumber", schema=schema, writeMode=ADS_WRITE_MODE_OVERWRITE, AddSK=True)
 
 # COMMAND ----------
 
