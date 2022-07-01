@@ -252,7 +252,6 @@ spark.sql(f" \
     and isu_0BP_ID_ATTR.businessPartnerIdNumber = isu_bp_id_deleted_records.IDNUMBER \
     WHEN MATCHED THEN UPDATE SET \
     _DLCleansedZoneTimeStamp = cast('{CurrentTimeStamp}' as TimeStamp) \
-    ,_RecordEnd = cast('{CurrentTimeStamp}' as TimeStamp) \
     ,_RecordDeleted=1 \
     ,_RecordCurrent=0 \
     ")
