@@ -291,7 +291,6 @@ spark.sql(f" \
     and isu_0UC_MTR_DOC.equipmentNumber = isu_mtr_doc_deleted_records.EQUNR \
     WHEN MATCHED THEN UPDATE SET \
     _DLCleansedZoneTimeStamp = cast('{CurrentTimeStamp}' as TimeStamp) \
-    ,_RecordEnd = cast('{CurrentTimeStamp}' as TimeStamp) \
     ,_RecordDeleted=1 \
     ,_RecordCurrent=0 \
     ")
