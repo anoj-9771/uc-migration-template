@@ -274,14 +274,11 @@ def getBilledWaterConsumptionMonthly():
                               ,"totalMeterActiveDaysPerMonth" \
                               ,"avgMeteredWaterConsumptionPerMonth as monthlyApportionedConsumption" \
                               ) \
-                          .groupby("sourceSystemCode", "firstDayOfMeterActiveMonth", "meterConsumptionBillingDocumentSK", "meterConsumptionBillingLineItemSK", "propertySK", "meterSK") \
-                          .agg(max("consumptionYear").alias("consumptionYear"), max("consumptionMonth").alias("consumptionMonth"), \
-                               max("billingPeriodStartDate").alias("billingPeriodStartDate"), max("billingPeriodEndDate").alias("billingPeriodEndDate"), \
-                               max("meterActiveStartDate").alias("meterActiveStartDate"), max("meterActiveEndDate").alias("meterActiveEndDate"), \
-                               max("lastDayOfMeterActiveMonth").alias("lastDayOfMeterActiveMonth"), \
-                               max("meterActiveMonthStartDate").alias("meterActiveMonthStartDate"), max("meterActiveMonthEndDate").alias("meterActiveMonthEndDate"), \
-                               max("locationSK").alias("locationSK"),max("businessPartnerGroupSK").alias("businessPartnerGroupSK"), \
-                               max("contractSK").alias("contractSK"), max("totalMeterActiveDaysPerMonth").alias("totalMeterActiveDaysPerMonth"), sum("monthlyApportionedConsumption").alias("monthlyApportionedConsumption")) \
+                          .groupby("sourceSystemCode", "consumptionYear", "consumptionMonth", "billingPeriodStartDate", "billingPeriodEndDate" \
+                                   ,"meterActiveStartDate", "meterActiveEndDate", "firstDayOfMeterActiveMonth", "lastDayOfMeterActiveMonth" \
+                                   ,"meterActiveMonthStartDate", "meterActiveMonthEndDate", "meterConsumptionBillingDocumentSK", "meterConsumptionBillingLineItemSK", "propertySK", "meterSK" \
+                                   ,"locationSK", "businessPartnerGroupSK", "contractSK") \
+                          .agg(max("totalMeterActiveDaysPerMonth").alias("totalMeterActiveDaysPerMonth"), sum("monthlyApportionedConsumption").alias("monthlyApportionedConsumption")) \
                           .selectExpr \
                                   ( \
                                    "sourceSystemCode" \
