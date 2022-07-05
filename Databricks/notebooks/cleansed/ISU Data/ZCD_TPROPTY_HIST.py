@@ -172,7 +172,7 @@ print(delta_raw_tbl_name)
 # DBTITLE 1,10. Load Raw to Dataframe & Do Transformations
 df = spark.sql(f"WITH stage AS \
                       (Select *, ROW_NUMBER() OVER (PARTITION BY PROPERTY_NO,DATE_FROM ORDER BY _FileDateTimeStamp DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} \
-                                  WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
+                                  WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' and (DATE_FROM < DATE_TO)) \
                            SELECT  \
                                 case when stg.PROPERTY_NO = 'na' then '' else stg.PROPERTY_NO end as propertyNumber, \
                                 stg.SUP_PROP_TYPE as superiorPropertyTypeCode, \
@@ -195,7 +195,7 @@ df = spark.sql(f"WITH stage AS \
                                                                                                     and supty._RecordDeleted = 0 and supty._RecordCurrent = 1 \
                           LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_zcd_tinfprty_tx infty on infty.inferiorPropertyTypeCode = stg.INF_PROP_TYPE \
                                                                                                     and infty._RecordDeleted = 0 and infty._RecordCurrent = 1 \
-                        where stg._RecordVersion = 1 and (stg.DATE_FROM < stg.DATE_TO)")
+                        where stg._RecordVersion = 1")
 
 #print(f'Number of rows: {df.count()}')
 

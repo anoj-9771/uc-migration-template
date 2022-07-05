@@ -171,13 +171,13 @@ print(delta_raw_tbl_name)
 
 # DBTITLE 1,10. Load Raw to Dataframe & Do Transformations
 df = spark.sql(f"WITH stage AS \
-                      (Select *, ROW_NUMBER() OVER (PARTITION BY DISCNO,BIS,DISCACT_BEGIN,DISCOBJ ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} \
+                      (Select *, ROW_NUMBER() OVER (PARTITION BY DISCNO,DISCACT_BEGIN,DISCOBJ ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} \
                                       WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
                            SELECT \
                                 ToValidDate(AB) as  validFromDate, \
                                 ToValidDate(ACTDATE) as disconnectiondate, \
                                 ANLAGE as installationId, \
-                                ToValidDate((case when BIS = 'na' then '9999-12-31' else BIS end),'MANDATORY') as validToDate, \
+                                ToValidDate(BIS) as validToDate, \
                                 CON_CARDTYP as concessionCardTypeCode, \
                                 CONNOBJ as propertyNumber, \
                                 CONTRACT as currentInstallationContract, \
@@ -226,66 +226,7 @@ df = spark.sql(f"WITH stage AS \
                           LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_DD07T dd1 ON isu.ZSTATUS = dd1.domainValueSingleUpperLimit and dd1.domainName ='EDCDOCSTAT' and dd1._RecordDeleted = 0 and dd1._RecordCurrent = 1 \
                         where isu._RecordVersion = 1 ")
 
-#print(f'Number of rows: {df.count()}')
-
-# COMMAND ----------
-
-# DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
-#Update/rename Column
-#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
-# df_cleansed = spark.sql(f"SELECT \
-#                             ToValidDate(AB) as  validFromDate, \
-#                             ToValidDate(ACTDATE) as disconnectiondate, \
-#                             ANLAGE as installationId, \
-#                             ToValidDate((case when BIS = 'na' then '9999-12-31' else BIS end),'MANDATORY') as validToDate, \
-#                             CON_CARDTYP as concessionCardTypeCode, \
-#                             CONNOBJ as propertyNumber, \
-#                             CONTRACT as currentInstallationContract, \
-#                             cast(COUNTER as dec(16,0)) as billedValueCounter, \
-#                             case when DISCACT_BEGIN = 'na' then '' else DISCACT_BEGIN end as disconnectionActivityPeriod, \
-#                             DISCACTTYP as disconnectionActivityTypeCode, \
-#                             dd.domainValueText as disconnectionActivityType, \
-#                             case when DISCNO = 'na' then '' else DISCNO end as disconnectionDocumentNumber, \
-#                             case when DISCOBJ = 'na' then '' else DISCOBJ end as disconnectionObjectNumber, \
-#                             DISCOBJTYP as disconnectionObjectTypeCode, \
-#                             DISCPROCV as processingVariantCode, \
-#                             di.applicationFormDescription as processingVariant, \
-#                             DISCREASON as disconnectionReasonCode, \
-#                             dis.disconnectionReason as disconnectionReason, \
-#                             EQUINR as equipmentNumber, \
-#                             FAILED_ATTEMPTS as documentItemNumber, \
-#                             ToValidDate(FPD) as documentPostingDate, \
-#                             LADEMODUS as loadMode, \
-#                             MATXT as activityText, \
-#                             MNCOD as activityCode, \
-#                             cast(N_ZWSTAND as dec(14,0)) as meterReadingAfterDecimalPoint, \
-#                             ORDSTATE as disconnectionReconnectionStatusCode, \
-#                             edi.confirmationStatus as disconnectionReconnectionStatus, \
-#                             PARTNER as businessPartnerNumber, \
-#                             PREMISE as premise, \
-#                             RECORDMODE as recordMode, \
-#                             REFOBJKEY as referenceObjectKey, \
-#                             REFOBJTYPE as referenceObjectTypeCode, \
-#                             cast(V_ZWSTAND as dec(17,0)) as meterReadingBeforeDecimalPoint, \
-#                             VKONT as contractAccountNumber, \
-#                             ToValidDate(ZACTDATE) as zDisconnectionDate, \
-#                             ZILART as maintenanceTypeCode, \
-#                             ZSTATUS as disconnectionDocumentStatusCode, \
-#                             dd1.domainValueText as disconnectionDocumentStatus, \
-#                             ZZORDERNUM as orderNumber, \
-#                             isu._RecordStart, \
-#                             isu._RecordEnd, \
-#                             isu._RecordDeleted, \
-#                             isu._RecordCurrent \
-#                           FROM {ADS_DATABASE_STAGE}.{source_object} isu \
-#                           LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_DD07T dd ON isu.DISCACTTYP = dd.domainValueSingleUpperLimit and dd.domainName ='DISCACTTYP' and dd._RecordDeleted = 0 and dd._RecordCurrent = 1 \
-#                           LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UC_DISCPRV_TEXT di ON isu.DISCPROCV = di.processingVariantCode and di._RecordDeleted = 0 and di._RecordCurrent = 1 \
-#                           LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UC_DISCREAS_TEXT dis ON isu.DISCREASON = dis.disconnectionReasonCode and dis._RecordDeleted = 0 and dis._RecordCurrent = 1 \
-#                           LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_EDISCORDSTATET edi ON isu.ORDSTATE = edi.confirmationStatusCode and edi._RecordDeleted = 0 and edi._RecordCurrent = 1 \
-#                           LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_DD07T dd1 ON isu.ZSTATUS = dd1.domainValueSingleUpperLimit and dd1.domainName ='EDCDOCSTAT' and dd1._RecordDeleted = 0 and dd1._RecordCurrent = 1")
-
-
-# print(f'Number of rows: {df_cleansed.count()}')
+print(f'Number of rows: {df.count()}')
 
 # COMMAND ----------
 
@@ -293,7 +234,7 @@ newSchema = StructType([
                       StructField('validFromDate',DateType(),True),
                       StructField('disconnectiondate',DateType(),True),
                       StructField('installationId',StringType(),True),
-                      StructField('validToDate',DateType(),False),
+                      StructField('validToDate',DateType(),True),
                       StructField('concessionCardTypeCode',StringType(),True),
                       StructField('propertyNumber',StringType(),True),
                       StructField('currentInstallationContract',StringType(),True),
