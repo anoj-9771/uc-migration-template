@@ -660,4 +660,4 @@ def DeltaSaveToStageTable(dataframe, target_database, target_table, stage_table_
   dbutils.fs.rm(data_lake_path, True)
   #Save the dataframe temporarily to Stage database
   LogEtl(f"write to stg table")
-  df.write.mode("overwrite").option("overwriteSchema","true").option("path", data_lake_path).saveAsTable(stage_table_name)
+  dataframe.write.mode("overwrite").option("overwriteSchema","true").option("path", data_lake_path).saveAsTable(stage_table_name)
