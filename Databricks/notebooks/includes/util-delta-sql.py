@@ -60,6 +60,8 @@ def DeltaGetDataLakePath(data_lake_zone, data_lake_folder, object):
   
   if data_lake_zone == ADS_DATALAKE_ZONE_CURATED:
     data_lake_path = f"dbfs:{mount_point}/{object.lower()}/delta"
+  elif data_lake_zone == ADS_DATALAKE_ZONE_STAGE:
+    data_lake_path = f"dbfs:{mount_point}/{data_lake_folder.lower()}/{object.lower()}"
   else:
     data_lake_path = f"dbfs:{mount_point}/{data_lake_folder.lower()}/{object.lower()}/delta"
   LogEtl(data_lake_path)
@@ -396,12 +398,8 @@ def DeltaSaveDataFrameToDeltaTableArchive(
   if AddSKColumn:
     dataframe = DeltaInjectSurrogateKeyToDataFrame(dataframe, target_table)
       
-  #Drop the stage table if it exists
-  spark.sql(f"DROP TABLE IF EXISTS {stage_table_name}")
   #Save the dataframe temporarily to Stage database
-  LogEtl(f"write to stg table1")
-  dataframe.write.saveAsTable(stage_table_name)
-  LogEtl(f"write to stg table2")
+  DeltaSaveToStageTable(dataframe, target_database, target_table, stage_table_name)
   
   #Use our generic method to save the dataframe now to Delta Table
   DeltaSaveToDeltaTableArchive(
@@ -435,12 +433,9 @@ def DeltaSaveDataFrameToDeltaTableCleansed(
   
   if AddSKColumn:
     dataframe = DeltaInjectSurrogateKeyToDataFrame(dataframe, target_table)
-    
   
-  #Drop the stage table if it exists
-  spark.sql(f"DROP TABLE IF EXISTS {stage_table_name}")
   #Save the dataframe temporarily to Stage database
-  dataframe.write.saveAsTable(stage_table_name)
+  DeltaSaveToStageTable(dataframe, target_database, target_table, stage_table_name)
   
   #Use our generic method to save the dataframe now to Delta Table
   DeltaSaveToDeltaTable(
@@ -557,12 +552,8 @@ def DeltaSaveDataFrameToDeltaTable(
   if AddSKColumn:
     dataframe = DeltaInjectSurrogateKeyToDataFrame(dataframe, target_table, business_key)
 
-  #Drop the stage table if it exists
-  spark.sql(f"DROP TABLE IF EXISTS {stage_table_name}")
   #Save the dataframe temporarily to Stage database
-  LogEtl(f"write to stg table1")
-  dataframe.write.saveAsTable(stage_table_name)
-  LogEtl(f"write to stg table2")
+  DeltaSaveToStageTable(dataframe, target_database, target_table, stage_table_name)
   
   #Use our generic method to save the dataframe now to Delta Table
   DeltaSaveToDeltaTable(
@@ -655,3 +646,18 @@ def DeltaSaveToDeltaTable(
   
 
 
+
+# COMMAND ----------
+
+def DeltaSaveToStageTable(dataframe, target_database, target_table, stage_table_name):
+  '''
+  This method uses the dataframe to load data into stage Delta Table
+  '''
+  data_lake_path = DeltaGetDataLakePath(ADS_DATALAKE_ZONE_STAGE, target_database, target_table)
+  #Drop the stage table if it exists
+  spark.sql(f"DROP TABLE IF EXISTS {stage_table_name}")
+  dbutils.fs.rm(f'{data_lake_path}/_delta_log', True)
+  dbutils.fs.rm(data_lake_path, True)
+  #Save the dataframe temporarily to Stage database
+  LogEtl(f"write to stg table")
+  dataframe.write.mode("overwrite").option("overwriteSchema","true").option("path", data_lake_path).saveAsTable(stage_table_name)

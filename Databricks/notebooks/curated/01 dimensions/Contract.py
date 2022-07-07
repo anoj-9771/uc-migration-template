@@ -72,8 +72,8 @@ def getContract():
     schema = StructType([
                             StructField('contractSK', StringType(), False),
                             StructField('contractId', StringType(), False),
-                            StructField('validFromDate', DateType(), False),
-                            StructField('validToDate', DateType(), True),
+                            StructField('validFromDate', DateType(), True),
+                            StructField('validToDate', DateType(), False),
                             StructField('sourceSystemCode', StringType(), True),
                             StructField('contractStartDate', DateType(), True),
                             StructField('contractEndDate', DateType(), True),
