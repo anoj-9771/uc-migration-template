@@ -28,9 +28,9 @@ def getBilledWaterConsumptionAccess():
                                    mr.readingFromDate, mr.readingToDate, mr.meterReadingDays, \
                                    mr.meterReadingConsumption, coalesce(mts.meterMakerNumber,'Unknowm') as meterMakerNumber, \
                                    row_number() over (partition by mr.propertyNumber, mr.propertyMeterNumber, mr.readingFromDate \
-                                                       order by mr.meterReadingNumber desc) meterReadRecNumFrom, \
+                                                       order by mr.meterReadingNumber desc, mr.meterReadingUpdatedDate desc) meterReadRecNumFrom, \
                                    row_number() over (partition by mr.propertyNumber, mr.propertyMeterNumber, mr.readingToDate \
-                                                       order by mr.meterReadingNumber desc) meterReadRecNumTo \
+                                                       order by mr.meterReadingNumber desc, mr.meterReadingUpdatedDate desc) meterReadRecNumTo \
                               from {ADS_DATABASE_CLEANSED}.access_z309_tmeterreading mr \
                                    left outer join {ADS_DATABASE_CURATED}.metertimesliceaccess mts on mts.propertyNumber = mr.propertyNumber \
                                                                                      and mts.propertyMeterNumber = mr.propertyMeterNumber \
