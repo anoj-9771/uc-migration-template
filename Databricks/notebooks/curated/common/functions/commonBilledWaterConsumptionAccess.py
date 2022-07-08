@@ -37,17 +37,15 @@ def getBilledWaterConsumptionAccess():
                                                                                      and mr.readingToDate between mts.validFrom and mts.validTo \
                                                                                      and mr.readingToDate != mts.validFrom \
                                    left outer join {ADS_DATABASE_CURATED}.dimMeter dm on dm.meterSerialNumber = coalesce(mts.meterMakerNumber,'-1') \
+                                   left outer join {ADS_DATABASE_CLEANSED}.access_z309_tdebit dr on mr.propertyNumber = dr.propertyNumber \
+                                                   and dr.debitTypeCode = '10' and dr.debitReasonCode IN ('360','367') \
                               where mr.meterReadingStatusCode IN ('A','B','P','V') \
                                     and mr.meterReadingDays > 0 \
                                     and mr.meterReadingConsumption > 0 \
                                     and (not mts.isCheckMeter or mts.isCheckMeter is null) \
                                     and mr._RecordCurrent = 1 \
                                     and mr._RecordDeleted = 0 \
-                                    and not exists (select 1 \
-                                                    from {ADS_DATABASE_CLEANSED}.access_z309_tdebit dr \
-                                                    where mr.propertyNumber = dr.propertyNumber \
-                                                    and dr.debitTypeCode = '10' \
-                                                    and dr.debitReasonCode IN ('360','367')) \
+                                    and dr.propertyNumber is null \
                                    ")
 
     billedConsDf = billedConsDf.where("meterReadRecNumFrom = 1 and meterReadRecNumTo = 1")
