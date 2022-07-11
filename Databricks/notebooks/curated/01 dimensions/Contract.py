@@ -21,11 +21,11 @@ def getContract():
     #1.Load current Cleansed layer table data into dataframe
     df = spark.sql(f"select  co.contractId, \
                              coalesce(coh.validFromDate,to_date('1900-01-01','yyyy-MM-dd')) as validFromDate, \
-                             coh.validToDate, \
+                             coalesce(coh.validToDate,to_date('9999-12-31','yyyy-MM-dd')) as validToDate, \
                              'ISU' as sourceSystemCode, \
                              least(coh.validFromDate, co.createdDate) as contractStartDate, \
                              coh.validToDate as contractEndDate, \
-                             case when co.invoiceContractsJointly = 'X' then 'Y' else 'N' end as invoiceJointlyFlag, \
+                             co.invoiceContractsJointly as invoiceJointlyFlag, \
                              co.moveInDate, \
                              co.moveOutDate, \
                              ca.contractAccountNumber, \
