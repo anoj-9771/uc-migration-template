@@ -169,9 +169,9 @@ def getBilledWaterConsumptionMonthly():
                                 from {ADS_DATABASE_CURATED}.dimMeterConsumptionBillingLineItem \
                                 where _RecordCurrent = 1 and _RecordDeleted = 0")
 
-    dimDateDf = spark.sql(f"select dateSK, calendarDate, calendarYear, monthOfYear, monthStartDate, monthEndDate \
+    dimDateDf = spark.sql(f"select calendarYear, monthOfYear, monthStartDate, monthEndDate \
                                 from {ADS_DATABASE_CURATED}.dimDate \
-                                where _RecordCurrent = 1 and _RecordDeleted = 0")
+                                where _RecordCurrent = 1 and _RecordDeleted = 0").dropDuplicates()
 
     dimBusinessPartnerGroupDf = spark.sql(f"select sourceSystemCode, businessPartnerGroupSK, ltrim('0', businessPartnerGroupNumber) as businessPartnerGroupNumber \
                                 from {ADS_DATABASE_CURATED}.dimBusinessPartnerGroup \
@@ -209,9 +209,9 @@ def getBilledWaterConsumptionMonthly():
                              & (billedConsDf.billingDocumentLineItemId == dimBillLineItemDf.billingDocumentLineItemId), how="left") \
                   .select(billedConsDf['*'], dimBillLineItemDf['meterConsumptionBillingLineItemSK'])
 
-    billedConsDf = billedConsDf.join(dimDateDf, (billedConsDf.meterActiveStartDate <= dimDateDf.calendarDate) \
-                               & (billedConsDf.meterActiveEndDate >= dimDateDf.calendarDate), how="left") \
-                    .select(billedConsDf['*'], dimDateDf['calendarYear'].alias('consumptionYear').cast("int"), dimDateDf['monthOfYear'].alias('consumptionMonth').cast("int"), dimDateDf['monthStartDate'].alias('firstDayOfMeterActiveMonth'), dimDateDf['monthEndDate'].alias('lastDayOfMeterActiveMonth')).dropDuplicates()
+    billedConsDf = billedConsDf.join(dimDateDf,((billedConsDf.meterActiveEndDate >= dimDateDf.monthStartDate) & (dimDateDf.monthEndDate >= billedConsDf.meterActiveStartDate)) \
+                               , how="left") \
+                    .select(billedConsDf['*'], dimDateDf['calendarYear'].alias('consumptionYear').cast("int"), dimDateDf['monthOfYear'].alias('consumptionMonth').cast("int"), dimDateDf['monthStartDate'].alias('firstDayOfMeterActiveMonth'), dimDateDf['monthEndDate'].alias('lastDayOfMeterActiveMonth'))
     
     billedConsDf = billedConsDf.withColumn("meterActiveMonthStartDate", when((col("meterActiveStartDate") >= col("firstDayOfMeterActiveMonth")) & (col("meterActiveStartDate") <= col("lastDayOfMeterActiveMonth")), col("meterActiveStartDate")).otherwise(col("firstDayOfMeterActiveMonth"))) \
                     .withColumn("meterActiveMonthEndDate", when((col("meterActiveEndDate") >= col("firstDayOfMeterActiveMonth")) & (col("meterActiveEndDate") <= col("lastDayOfMeterActiveMonth")), col("meterActiveEndDate")).otherwise(col("lastDayOfMeterActiveMonth"))) \
