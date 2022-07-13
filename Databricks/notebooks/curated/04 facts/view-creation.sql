@@ -212,6 +212,7 @@ and isu_0ucinstallah_attr_2.`_RecordCurrent` = 1
 -- History: 1.0 16/5/2022 LV created
 -- 1.1 20/05/2022 LV added lookup text columns from text tables
 -- 1.2 27/05/2022 LV changed view name, some column names
+-- 1.3 13/07/2022 filter logic change to reconcile with dimContract
 CREATE OR REPLACE VIEW curated.view_contract as
 SELECT isu_0uccontract_attr_2.contractId,
 isu_0uccontracth_attr_2.validFromDate contractHistoryValidFromDate,
@@ -276,13 +277,13 @@ isu_0uccontract_attr_2.lastChangedBy,
 case when isu_0uccontract_attr_2.deletedIndicator = 'X' then 'Y'
 else 'N'
 end contractDeletedIndicator,
-case when isu_0uccontracth_attr_2.deletedIndicator = 'X' then 'Y'
+case when isu_0uccontracth_attr_2.deletedIndicator = 'X' then 'Y' 
 else 'N'
 end contractHistoryDeletedIndicator,
-case when (isu_0uccontracth_attr_2.validFromDate <= current_date and isu_0uccontracth_attr_2.validToDate >= current_date) then 'Y'
+case when (isu_0uccontracth_attr_2.validFromDate <= current_date and isu_0uccontracth_attr_2.validToDate >=  current_date) then 'Y'
 else 'N'
 end currentIndicator,
-'Y' currentRecordIndicator
+'Y' currentRecordIndicator 
 from cleansed.isu_0uccontract_attr_2
 inner join cleansed.isu_0uccontracth_attr_2
 on isu_0uccontract_attr_2.contractId = isu_0uccontracth_attr_2.contractId
@@ -308,9 +309,10 @@ on isu_0uccontract_attr_2.billBlockingReasonCode = isu_0uc_abrsperr_text.billBlo
 and isu_0uc_abrsperr_text.`_RecordCurrent` = 1
 left outer join cleansed.isu_dd07t isu_dd07t_alias
 on isu_dd07t_alias.domainName = 'EXREPLCNTL'
-and isu_0uccontracth_attr_2.replicationControls = isu_dd07t_alias.domainValueSingleUpperLimit
+and isu_0uccontracth_attr_2.replicationControls = isu_dd07t_alias.domainValueSingleUpperLimit 
 and isu_dd07t_alias.`_RecordCurrent` = 1
-where isu_0uccontracth_attr_2.deletedIndicator is null
+where isu_0uccontract_attr_2._RecordDeleted = 0
+and  isu_0uccontracth_attr_2._RecordDeleted = 0
 and isu_0uccontract_attr_2.`_RecordCurrent` = 1
 and isu_0uccontracth_attr_2.`_RecordCurrent` = 1
 
