@@ -181,7 +181,7 @@ df = spark.sql(f"WITH stage AS \
                                 '0' as _RecordDeleted, \
                                 '1' as _RecordCurrent, \
                                 cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
-                        from stage where _RecordVersion = 1 ")
+                        from stage where COUNTRY = 'AU' and _RecordVersion = 1 ")
 
 #print(f'Number of rows: {df.count()}')
 
