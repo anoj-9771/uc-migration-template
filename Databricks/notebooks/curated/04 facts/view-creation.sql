@@ -596,34 +596,50 @@ and isu_dberchz2.`_RecordCurrent` = 1
 --              1.3 29/06/2022 LV rename view name to view_qqv 
 CREATE OR REPLACE TABLE curated.view_qqv 
 LOCATION 'dbfs:/mnt/datalake-curated/view_qqv'
-as with statBilling as
-(SELECT factdailyapportionedconsumption.meterConsumptionBillingDocumentSK, 
-factdailyapportionedconsumption.PropertySK,
-factdailyapportionedconsumption.LocationSK,
-factdailyapportionedconsumption.BusinessPartnerGroupSK,
-factdailyapportionedconsumption.ContractSK,
-factdailyapportionedconsumption.MeterSK,
-factdailyapportionedconsumption.sourceSystemCode,
-trunc(consumptionDate, 'MM') firstDayOfMonthDate,
-last_day(consumptionDate) lastDayOfMonthDate,
-min(factdailyapportionedconsumption.consumptionDate) deviceMonthStartDate,
-max(factdailyapportionedconsumption.consumptionDate) deviceMonthEndDate,
-datediff(max(factdailyapportionedconsumption.consumptionDate), min(factdailyapportionedconsumption.consumptionDate)) + 1 activeDaysPerMonthPerDevice,
-sum(factdailyapportionedconsumption.dailyApportionedConsumption) consumptionPerMonthPerDevice
-FROM curated.factdailyapportionedconsumption
+AS with statBilling as
+(SELECT 
+factmonthlyapportionedconsumption.consumptionYear,
+factmonthlyapportionedconsumption.consumptionMonth,
+factmonthlyapportionedconsumption.meterConsumptionBillingDocumentSK, 
+factmonthlyapportionedconsumption.PropertySK,
+factmonthlyapportionedconsumption.LocationSK,
+factmonthlyapportionedconsumption.BusinessPartnerGroupSK,
+factmonthlyapportionedconsumption.ContractSK,
+factmonthlyapportionedconsumption.MeterSK,
+factmonthlyapportionedconsumption.sourceSystemCode,
+factmonthlyapportionedconsumption.meterActiveStartDate,
+factmonthlyapportionedconsumption.meterActiveEndDate,
+factmonthlyapportionedconsumption.firstDayOfMeterActiveMonth,
+factmonthlyapportionedconsumption.lastDayOfMeterActiveMonth,
+factmonthlyapportionedconsumption.meterActiveMonthStartDate,
+factmonthlyapportionedconsumption.meterActiveMonthEndDate,
+factmonthlyapportionedconsumption.totalMeterActiveDaysPerMonth,
+sum(factmonthlyapportionedconsumption.monthlyApportionedConsumption) consumptionPerMonthPerDevice
+FROM curated.factmonthlyapportionedconsumption
 WHERE 
-factdailyapportionedconsumption.`_RecordCurrent` = 1
-GROUP BY factdailyapportionedconsumption.meterconsumptionbillingdocumentSK, 
-factdailyapportionedconsumption.PropertySK,
-factdailyapportionedconsumption.LocationSK,
-factdailyapportionedconsumption.BusinessPartnerGroupSK,
-factdailyapportionedconsumption.ContractSK,
-factdailyapportionedconsumption.MeterSK,
-factdailyapportionedconsumption.sourceSystemCode,
-trunc(factdailyapportionedconsumption.consumptionDate, 'MM'),
-last_day(factdailyapportionedconsumption.consumptionDate)
+factmonthlyapportionedconsumption.`_RecordCurrent` = 1
+and factmonthlyapportionedconsumption.sourceSystemCode = 'ISU'
+GROUP BY 
+factmonthlyapportionedconsumption.consumptionYear,
+factmonthlyapportionedconsumption.consumptionMonth,
+factmonthlyapportionedconsumption.meterconsumptionbillingdocumentSK, 
+factmonthlyapportionedconsumption.PropertySK,
+factmonthlyapportionedconsumption.LocationSK,
+factmonthlyapportionedconsumption.BusinessPartnerGroupSK,
+factmonthlyapportionedconsumption.ContractSK,
+factmonthlyapportionedconsumption.MeterSK,
+factmonthlyapportionedconsumption.sourceSystemCode,
+factmonthlyapportionedconsumption.meterActiveStartDate,
+factmonthlyapportionedconsumption.meterActiveEndDate,
+factmonthlyapportionedconsumption.firstDayOfMeterActiveMonth,
+factmonthlyapportionedconsumption.lastDayOfMeterActiveMonth,
+factmonthlyapportionedconsumption.meterActiveMonthStartDate,
+factmonthlyapportionedconsumption.meterActiveMonthEndDate,
+factmonthlyapportionedconsumption.totalMeterActiveDaysPerMonth
 )
 select 
+statBilling.consumptionYear ,
+statBilling.consumptionMonth ,
 dimmeterconsumptionbillingdocument.meterConsumptionBillingDocumentSK,
 dimmeterconsumptionbillingdocument.billingDocumentNumber, 
 dimmeterconsumptionbillingdocument.invoiceMaxSequenceNumber,
@@ -650,12 +666,15 @@ isu_zcd_tpropty_hist.validToDate propertyTypeValidToDate,
 isu_ehauisu.politicalRegionCode,
 dimlocation.LGA,
 dimbusinesspartnergroup.businessPartnerGroupNumber,
-statBilling.firstDayOfMonthDate,
-statBilling.lastDayOfMonthDate,
-statBilling.deviceMonthStartDate,
-statBilling.deviceMonthEndDate,
-statBilling.activeDaysPerMonthPerDevice,
+statBilling.meterActiveStartDate,
+statBilling.meterActiveEndDate,
+statBilling.firstDayOfMeterActiveMonth,
+statBilling.lastDayOfMeterActiveMonth,
+statBilling.meterActiveMonthStartDate,
+statBilling.meterActiveMonthEndDate,
+statBilling.totalMeterActiveDaysPerMonth,
 statBilling.consumptionPerMonthPerDevice,
+statBilling.consumptionPerMonthPerDevice/statBilling.totalMeterActiveDaysPerMonth avgMeteredWaterConsumption,
 dimmeterconsumptionbillingdocument.isOutSortedFlag,
 dimmeterconsumptionbillingdocument.invoiceNotReleasedIndicator,
 dimmeterconsumptionbillingdocument.isreversedFlag,
@@ -681,17 +700,16 @@ inner join curated.dimbusinesspartnergroup
 on dimbusinesspartnergroup.BusinessPartnerGroupSK = statBilling.BusinessPartnerGroupSK
 inner join curated.dimcontract
 on dimContract.ContractSK = statBilling.ContractSK
-inner join cleansed.isu_ehauisu
+left outer join cleansed.isu_ehauisu
 on dimproperty.propertyNumber = isu_ehauisu.propertyNumber
+and isu_ehauisu.`_RecordCurrent` = 1
 inner join curated.dimmeter
 on dimmeter.MeterSK = statBilling.MeterSK
 inner join cleansed.isu_0uc_devcat_attr
 on dimmeter.materialNumber = isu_0uc_devcat_attr.materialNumber
-inner join curated.brginstallationpropertymetercontract
-on brginstallationpropertymetercontract.MeterSK = statBilling.MeterSK
 inner join curated.diminstallation
-on diminstallation.InstallationSK = brginstallationpropertymetercontract.InstallationSK
-inner join cleansed.isu_zcd_tpropty_hist
+on diminstallation.propertyNumber = dimproperty.propertyNumber
+left outer join cleansed.isu_zcd_tpropty_hist
 on isu_zcd_tpropty_hist.propertyNumber = dimproperty.propertyNumber
 and isu_zcd_tpropty_hist.validFromDate <= current_date and isu_zcd_tpropty_hist.validToDate >= current_date
 and isu_zcd_tpropty_hist.`_RecordCurrent`= 1
@@ -699,11 +717,9 @@ where dimmeterconsumptionbillingdocument.`_RecordCurrent` = 1
 and dimproperty.`_RecordCurrent` = 1
 and dimlocation.`_RecordCurrent` = 1
 and dimbusinesspartnergroup.`_RecordCurrent` = 1
-and isu_ehauisu.`_RecordCurrent` = 1
 and dimmeter.`_RecordCurrent` = 1
-and isu_0uc_devcat_attr.`_RecordCurrent` = 1
-and brginstallationpropertymetercontract.`_RecordCurrent` = 1
 and diminstallation.`_RecordCurrent` = 1
+and isu_0uc_devcat_attr.`_RecordCurrent` = 1
 
 -- COMMAND ----------
 
