@@ -172,7 +172,7 @@ print(delta_raw_tbl_name)
 # DBTITLE 1,10. Load Raw to Dataframe & Do Transformations
 df = spark.sql(f"WITH stage AS \
                       (Select *, ROW_NUMBER() OVER (PARTITION BY SAISON,ANLAGE,OPERAND,AB ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} \
-                                      WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
+                                      WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' and DI_OPERATION_TYPE !='D') \
                            SELECT \
                                 case when SAISON = 'na' then '' else SAISON end as seasonNumber, \
                                 case when ANLAGE = 'na' then '' else ANLAGE end as installationId, \
@@ -193,32 +193,6 @@ df = spark.sql(f"WITH stage AS \
                         from stage where _RecordVersion = 1 ")
 
 #print(f'Number of rows: {df.count()}')
-
-# COMMAND ----------
-
-# DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
-#Update/rename Column
-#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
-# df_cleansed = spark.sql(f"SELECT \
-#     case when SAISON = 'na' then '' else SAISON end as seasonNumber, \
-# 	case when ANLAGE = 'na' then '' else ANLAGE end as installationId, \
-# 	case when OPERAND = 'na' then '' else OPERAND end as operandCode, \
-# 	ToValidDate(AB,'MANDATORY') as validFromDate, \
-#     ToValidDate((case when BIS = 'na' then '9999-12-31' else BIS end)) as validToDate, \
-# 	cast(WERT1 as dec(16,7)) as entryValue, \
-# 	cast(WERT2 as dec(16,7)) as valueToBeBilled, \
-# 	STRING3 as operandValue, \
-# 	cast(BETRAG as dec(13,2)) as amount, \
-# 	UPDMOD as bwDeltaProcess, \
-# 	MASS as measurementUnit, \
-# 	_RecordStart, \
-# 	_RecordEnd, \
-# 	_RecordDeleted, \
-# 	_RecordCurrent \
-# 	FROM {ADS_DATABASE_STAGE}.{source_object}")
-
-
-# print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
 
@@ -250,5 +224,34 @@ DeltaSaveDataFrameToDeltaTable(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS
 
 # COMMAND ----------
 
-# DBTITLE 1,13. Exit Notebook
+# DBTITLE 1,13.1 Identify Deleted records from Raw table
+df = spark.sql(f"select distinct coalesce(SAISON,'') as SAISON, coalesce(ANLAGE,'') as ANLAGE, coalesce(OPERAND,'') as OPERAND,coalesce(AB,'') as AB, coalesce(BIS,'') as BIS from ( \
+Select *, ROW_NUMBER() OVER (PARTITION BY SAISON,ANLAGE,OPERAND,AB ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' ) \
+where  _RecordVersion = 1 and DI_OPERATION_TYPE ='D'")
+df.createOrReplaceTempView("isu_instfacts_deleted_records")
+
+# COMMAND ----------
+
+# DBTITLE 1,13.2 Update _RecordDeleted and _RecordCurrent Flags
+#Get current time
+CurrentTimeStamp = GeneralLocalDateTime()
+CurrentTimeStamp = CurrentTimeStamp.strftime("%Y-%m-%d %H:%M:%S")
+
+spark.sql(f" \
+    MERGE INTO cleansed.isu_0UC_INSTFACTS \
+    using isu_instfacts_deleted_records \
+    on isu_0UC_INSTFACTS.seasonNumber = isu_instfacts_deleted_records.SAISON \
+    and isu_0UC_INSTFACTS.installationId = isu_instfacts_deleted_records.ANLAGE \
+    and isu_0UC_INSTFACTS.operandCode = isu_instfacts_deleted_records.OPERAND \
+    and isu_0UC_INSTFACTS.validFromDate = isu_instfacts_deleted_records.AB \
+    and isu_0UC_INSTFACTS.validToDate = isu_instfacts_deleted_records.BIS \
+    WHEN MATCHED THEN UPDATE SET \
+    _DLCleansedZoneTimeStamp = cast('{CurrentTimeStamp}' as TimeStamp) \
+    ,_RecordDeleted=1 \
+    ,_RecordCurrent=0 \
+    ")
+
+# COMMAND ----------
+
+# DBTITLE 1,14. Exit Notebook
 dbutils.notebook.exit("1")
