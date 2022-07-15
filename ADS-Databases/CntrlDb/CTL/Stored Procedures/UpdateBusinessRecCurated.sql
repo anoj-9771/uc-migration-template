@@ -27,7 +27,7 @@ DECLARE
 	FROM CTL.BusinessRecCurated bc
 	WHERE bc.BusinessRecId = @BusinessRecId
 
-	IF @vsourcemeasurevalue = @TargetMeasureValue
+	IF round(@vsourcemeasurevalue,0) = round(@TargetMeasureValue,0)
 	BEGIN
 		UPDATE CTL.BusinessRecCurated
 		SET	   TargetMeasureValue = @TargetMeasureValue,

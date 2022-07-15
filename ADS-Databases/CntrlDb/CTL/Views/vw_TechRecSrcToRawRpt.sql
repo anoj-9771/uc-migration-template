@@ -4,7 +4,7 @@ SELECT * FROM
 	SELECT 
 		 ManifestID
 		,S.SourceGroup
-		,S.SourceLocation
+		,SUBSTRING(S.SourceLocation,CHARINDEX('.',S.SourceLocation)+1,LEN(S.SourceLocation)) as SourceLocation
 		,SourceFileDateStamp
 		,M_DeltaRecordCount AS ManifestDeltaRecordCount
 		,RecordCountDeltaTable AS RecordCount_ReadFromDataFile
@@ -23,5 +23,7 @@ SELECT * FROM
 		INNER JOIN CTL.ControlTasks T ON TL.ControlTaskId = T.TaskId
 		INNER JOIN CTL.ControlSource S ON T.SourceId = S.SourceId
 		INNER JOIN CTL.ControlTypes ST ON S.SourceTypeId = ST.TypeId
-	WHERE ST.ControlType = 'BLOB Storage (json)'
+	WHERE ST.ControlType in ('BLOB Storage (json)','SQL server')
 ) src WHERE src.ValidRecord = 1
+GO
+
