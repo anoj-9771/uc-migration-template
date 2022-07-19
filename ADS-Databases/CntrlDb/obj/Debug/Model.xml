@@ -1800,36 +1800,6 @@ DBCC CHECKIDENT ('CTL.ControlWatermark',Reseed,0)]]></Value>
 						</Relationship>
 					</Element>
 				</Entry>
-				<Entry>
-					<Element Type="SqlSimpleColumn" Name="[CTL].[ControlManifest].[BatchExecutionLogID_old]">
-						<Relationship Name="TypeSpecifier">
-							<Entry>
-								<Element Type="SqlTypeSpecifier">
-									<Relationship Name="Type">
-										<Entry>
-											<References ExternalSource="BuiltIns" Name="[bigint]" />
-										</Entry>
-									</Relationship>
-								</Element>
-							</Entry>
-						</Relationship>
-					</Element>
-				</Entry>
-				<Entry>
-					<Element Type="SqlSimpleColumn" Name="[CTL].[ControlManifest].[TaskExecutionLogID_old]">
-						<Relationship Name="TypeSpecifier">
-							<Entry>
-								<Element Type="SqlTypeSpecifier">
-									<Relationship Name="Type">
-										<Entry>
-											<References ExternalSource="BuiltIns" Name="[bigint]" />
-										</Entry>
-									</Relationship>
-								</Element>
-							</Entry>
-						</Relationship>
-					</Element>
-				</Entry>
 			</Relationship>
 			<Relationship Name="Schema">
 				<Entry>

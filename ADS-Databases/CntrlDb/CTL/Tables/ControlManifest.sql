@@ -27,8 +27,6 @@
  [projectname] VARCHAR (100) NULL,
  [triggername] VARCHAR (100) NULL,
  [projectid] BIGINT NULL,
- [BatchExecutionLogID_old] BIGINT NULL,
- [TaskExecutionLogID_old] BIGINT NULL,
  CONSTRAINT [UQ_ControlManifest_SrcFileDateStamp] UNIQUE NONCLUSTERED ([BatchExecutionLogID] ASC, [TaskExecutionLogID] ASC, [SourceFileDateStamp] ASC),
  CONSTRAINT [PK_CTL_ControlManifest] PRIMARY KEY CLUSTERED ([ManifestID] ASC)
 );
