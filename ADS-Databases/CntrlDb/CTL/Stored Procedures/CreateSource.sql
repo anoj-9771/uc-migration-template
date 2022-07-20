@@ -25,7 +25,7 @@ CREATE PROC [CTL].[CreateSource]
 		@DLStagetoDBCommand  varchar(5000),
 		@TargetObjectType	 varchar(100),
 		@TargetOverride		 varchar(150),
-		@BusinessKeyColumn	 varchar(150),
+		@BusinessKeyColumn	 varchar(255),
 		@WatermarkColumn	 varchar(150),
 		@PartitionColumn	 varchar(150),
 		@TrackChanges		 varchar(100),
