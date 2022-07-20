@@ -17,6 +17,8 @@ Delete From [CTL].[ControlTarget]
 
 DELETE FROM CTL.ControlManifest
 
+DELETE from [CTL].[ControlProjectSchedule]
+
 DBCC CHECKIDENT ('CTL.ControlTarget',Reseed,0)
 DBCC CHECKIDENT ('CTL.ControlSource',Reseed,0)
 DBCC CHECKIDENT ('CTL.ControlTasks',Reseed,0)
@@ -24,3 +26,4 @@ DBCC CHECKIDENT ('CTL.BatchExecutionLog',Reseed,0)
 DBCC CHECKIDENT ('CTL.TaskExecutionLog',Reseed,0)
 DBCC CHECKIDENT ('CTL.ControlTaskCommand',Reseed,0)
 DBCC CHECKIDENT ('CTL.ControlWatermark',Reseed,0)
+DBCC CHECKIDENT ('CTL.ControlProjectSchedule',Reseed,0)
