@@ -62,7 +62,7 @@ def getMeterConsumptionBillingDocumentIsu():
                                 ).dropDuplicates()
     #5.Apply schema definition
     schema = StructType([
-                            StructField('meterConsumptionBillingDocumentSK', LongType(), False),
+                            StructField('meterConsumptionBillingDocumentSK', StringType(), False),
                             StructField("sourceSystemCode", StringType(), True),
                             StructField("billingDocumentNumber", StringType(), False),
                             StructField("billingPeriodStartDate", DateType(), True),
@@ -93,7 +93,7 @@ def getMeterConsumptionBillingDocumentIsu():
 # COMMAND ----------
 
 df, schema = getMeterConsumptionBillingDocumentIsu()
-TemplateEtl(df, entity="dimMeterConsumptionBillingDocument", businessKey="billingDocumentNumber", schema=schema, writeMode=ADS_WRITE_MODE_MERGE, AddSK=True)
+TemplateEtl(df, entity="dimMeterConsumptionBillingDocument", businessKey="billingDocumentNumber", schema=schema, writeMode=ADS_WRITE_MODE_OVERWRITE, AddSK=True)
 
 # COMMAND ----------
 

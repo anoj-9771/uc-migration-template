@@ -10893,102 +10893,6 @@
 			"properties": {
 				"activities": [
 					{
-						"name": "Copy-Source-DataLake",
-						"type": "Copy",
-						"dependsOn": [
-							{
-								"activity": "SP-Record-Manifest_copy1",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"policy": {
-							"timeout": "7.00:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"source": {
-								"type": "SqlServerSource",
-								"additionalColumns": [
-									{
-										"name": "_DLRawZoneTimeStamp",
-										"value": {
-											"value": "@formatDateTime(convertFromUtc(utcnow(),'AUS Eastern Standard Time'),'yyyy-MM-dd HH:mm:ss')",
-											"type": "Expression"
-										}
-									}
-								],
-								"sqlReaderQuery": {
-									"value": "@pipeline().parameters.SQLCommand",
-									"type": "Expression"
-								},
-								"queryTimeout": "02:00:00",
-								"partitionOption": "DynamicRange",
-								"partitionSettings": {
-									"partitionColumnName": {
-										"value": "@{pipeline().parameters.TaskDetails.PartitionColumn}",
-										"type": "Expression"
-									},
-									"partitionUpperBound": "",
-									"partitionLowerBound": ""
-								}
-							},
-							"sink": {
-								"type": "AzureDatabricksDeltaLakeSink",
-								"importSettings": {
-									"type": "AzureDatabricksDeltaLakeImportCommand",
-									"dateFormat": "yyyy-MM-dd HH:mm:ss",
-									"timestampFormat": "yyyy-MM-dd HH:mm:ss"
-								}
-							},
-							"enableStaging": true,
-							"stagingSettings": {
-								"linkedServiceName": {
-									"referenceName": "LS_AzureDatalake",
-									"type": "LinkedServiceReference"
-								},
-								"path": {
-									"value": "@concat('raw/landing/isu_data/', pipeline().parameters.TaskDetails.TargetName)",
-									"type": "Expression"
-								},
-								"enableCompression": false
-							},
-							"parallelCopies": 32,
-							"dataIntegrationUnits": 8
-						},
-						"inputs": [
-							{
-								"referenceName": "SRC_SQLSERVER",
-								"type": "DatasetReference",
-								"parameters": {
-									"kvSecret": {
-										"value": "@pipeline().parameters.TaskDetails.SourceServer",
-										"type": "Expression"
-									},
-									"tableName": "erch",
-									"schemaName": "eq1"
-								}
-							}
-						],
-						"outputs": [
-							{
-								"referenceName": "DS_RAW_ADLS_DELTALAKE",
-								"type": "DatasetReference",
-								"parameters": {
-									"TableName": {
-										"value": "@pipeline().parameters.TaskDetails.TargetName",
-										"type": "Expression"
-									}
-								}
-							}
-						]
-					},
-					{
 						"name": "SP-Record-Manifest_copy1",
 						"type": "SqlServerStoredProcedure",
 						"dependsOn": [],
@@ -11100,7 +11004,7 @@
 						"type": "SqlServerStoredProcedure",
 						"dependsOn": [
 							{
-								"activity": "Copy-Source-DataLake",
+								"activity": "Switch-SLT-Tables",
 								"dependencyConditions": [
 									"Succeeded"
 								]
@@ -11133,7 +11037,7 @@
 								},
 								"RecordsDeltaTable": {
 									"value": {
-										"value": "@activity('Copy-Source-DataLake').output.rowsCopied",
+										"value": "@variables('RowCount')",
 										"type": "Expression"
 									},
 									"type": "Int64"
@@ -11147,7 +11051,7 @@
 								},
 								"RecordsTargetTable": {
 									"value": {
-										"value": "@activity('Copy-Source-DataLake').output.rowsCopied",
+										"value": "@variables('RowCount')",
 										"type": "Expression"
 									},
 									"type": "Int64"
@@ -11328,7 +11232,7 @@
 						"type": "SqlServerStoredProcedure",
 						"dependsOn": [
 							{
-								"activity": "Copy-Source-DataLake",
+								"activity": "Switch-SLT-Tables",
 								"dependencyConditions": [
 									"Succeeded"
 								]
@@ -11354,7 +11258,7 @@
 								},
 								"M_DeltaRecordCount": {
 									"value": {
-										"value": "@activity('Copy-Source-DataLake').output.rowsCopied",
+										"value": "@variables('RowCount')",
 										"type": "Expression"
 									},
 									"type": "Int64"
@@ -11389,6 +11293,621 @@
 						"linkedServiceName": {
 							"referenceName": "LS-AzureSqlDatabase_Ctrldb",
 							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "Switch-SLT-Tables",
+						"type": "Switch",
+						"dependsOn": [
+							{
+								"activity": "SP-Record-Manifest_copy1",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"on": {
+								"value": "@pipeline().parameters.TaskDetails.SourceName",
+								"type": "Expression"
+							},
+							"cases": [
+								{
+									"value": "isu_AUSP",
+									"activities": [
+										{
+											"name": "Copy-Source-DataLake-AUSP",
+											"type": "Copy",
+											"dependsOn": [],
+											"policy": {
+												"timeout": "7.00:00:00",
+												"retry": 0,
+												"retryIntervalInSeconds": 30,
+												"secureOutput": false,
+												"secureInput": false
+											},
+											"userProperties": [],
+											"typeProperties": {
+												"source": {
+													"type": "SqlServerSource",
+													"additionalColumns": [
+														{
+															"name": "_DLRawZoneTimeStamp",
+															"value": {
+																"value": "@formatDateTime(convertFromUtc(utcnow(),'AUS Eastern Standard Time'),'yyyy-MM-dd HH:mm:ss')",
+																"type": "Expression"
+															}
+														}
+													],
+													"sqlReaderQuery": {
+														"value": "@pipeline().parameters.SQLCommand",
+														"type": "Expression"
+													},
+													"queryTimeout": "02:00:00",
+													"partitionOption": "DynamicRange",
+													"partitionSettings": {
+														"partitionColumnName": {
+															"value": "@{pipeline().parameters.TaskDetails.PartitionColumn}",
+															"type": "Expression"
+														},
+														"partitionUpperBound": "",
+														"partitionLowerBound": ""
+													}
+												},
+												"sink": {
+													"type": "AzureDatabricksDeltaLakeSink",
+													"importSettings": {
+														"type": "AzureDatabricksDeltaLakeImportCommand",
+														"dateFormat": "yyyy-MM-dd HH:mm:ss",
+														"timestampFormat": "yyyy-MM-dd HH:mm:ss"
+													}
+												},
+												"enableStaging": true,
+												"stagingSettings": {
+													"linkedServiceName": {
+														"referenceName": "LS_AzureDatalake",
+														"type": "LinkedServiceReference"
+													},
+													"path": {
+														"value": "@concat('raw/landing/isu_data/', pipeline().parameters.TaskDetails.TargetName)",
+														"type": "Expression"
+													},
+													"enableCompression": false
+												},
+												"parallelCopies": 32,
+												"dataIntegrationUnits": 8,
+												"translator": {
+													"type": "TabularTranslator",
+													"mappings": [
+														{
+															"source": {
+																"name": "OBJEK",
+																"type": "String"
+															},
+															"sink": {
+																"name": "OBJEK",
+																"type": "string"
+															}
+														},
+														{
+															"source": {
+																"name": "ATINN",
+																"type": "String"
+															},
+															"sink": {
+																"name": "ATINN",
+																"type": "string"
+															}
+														},
+														{
+															"source": {
+																"name": "ATZHL",
+																"type": "String"
+															},
+															"sink": {
+																"name": "ATZHL",
+																"type": "string"
+															}
+														},
+														{
+															"source": {
+																"name": "MAFID",
+																"type": "String"
+															},
+															"sink": {
+																"name": "MAFID",
+																"type": "string"
+															}
+														},
+														{
+															"source": {
+																"name": "KLART",
+																"type": "String"
+															},
+															"sink": {
+																"name": "KLART",
+																"type": "string"
+															}
+														},
+														{
+															"source": {
+																"name": "ADZHL",
+																"type": "String"
+															},
+															"sink": {
+																"name": "ADZHL",
+																"type": "string"
+															}
+														},
+														{
+															"source": {
+																"name": "ATWRT",
+																"type": "String"
+															},
+															"sink": {
+																"name": "ATWRT",
+																"type": "string"
+															}
+														},
+														{
+															"source": {
+																"name": "ATFLV",
+																"type": "Double"
+															},
+															"sink": {
+																"name": "ATFLV",
+																"type": "Double"
+															}
+														},
+														{
+															"source": {
+																"name": "ATAWE",
+																"type": "String"
+															},
+															"sink": {
+																"name": "ATAWE",
+																"type": "string"
+															}
+														},
+														{
+															"source": {
+																"name": "ATFLB",
+																"type": "Double"
+															},
+															"sink": {
+																"name": "ATFLB",
+																"type": "Double"
+															}
+														},
+														{
+															"source": {
+																"name": "ATAW1",
+																"type": "String"
+															},
+															"sink": {
+																"name": "ATAW1",
+																"type": "string"
+															}
+														},
+														{
+															"source": {
+																"name": "ATCOD",
+																"type": "String"
+															},
+															"sink": {
+																"name": "ATCOD",
+																"type": "string"
+															}
+														},
+														{
+															"source": {
+																"name": "ATTLV",
+																"type": "Double"
+															},
+															"sink": {
+																"name": "ATTLV",
+																"type": "Double"
+															}
+														},
+														{
+															"source": {
+																"name": "ATTLB",
+																"type": "Double"
+															},
+															"sink": {
+																"name": "ATTLB",
+																"type": "Double"
+															}
+														},
+														{
+															"source": {
+																"name": "ATPRZ",
+																"type": "String"
+															},
+															"sink": {
+																"name": "ATPRZ",
+																"type": "string"
+															}
+														},
+														{
+															"source": {
+																"name": "ATINC",
+																"type": "Double"
+															},
+															"sink": {
+																"name": "ATINC",
+																"type": "Double"
+															}
+														},
+														{
+															"source": {
+																"name": "ATAUT",
+																"type": "String"
+															},
+															"sink": {
+																"name": "ATAUT",
+																"type": "string"
+															}
+														},
+														{
+															"source": {
+																"name": "AENNR",
+																"type": "String"
+															},
+															"sink": {
+																"name": "AENNR",
+																"type": "string"
+															}
+														},
+														{
+															"source": {
+																"name": "DATUV",
+																"type": "String"
+															},
+															"sink": {
+																"name": "DATUV",
+																"type": "string"
+															}
+														},
+														{
+															"source": {
+																"name": "LKENZ",
+																"type": "String"
+															},
+															"sink": {
+																"name": "LKENZ",
+																"type": "string"
+															}
+														},
+														{
+															"source": {
+																"name": "ATIMB",
+																"type": "String"
+															},
+															"sink": {
+																"name": "ATIMB",
+																"type": "string"
+															}
+														},
+														{
+															"source": {
+																"name": "ATZIS",
+																"type": "String"
+															},
+															"sink": {
+																"name": "ATZIS",
+																"type": "string"
+															}
+														},
+														{
+															"source": {
+																"name": "ATSRT",
+																"type": "String"
+															},
+															"sink": {
+																"name": "ATSRT",
+																"type": "string"
+															}
+														},
+														{
+															"source": {
+																"name": "ATVGLART",
+																"type": "String"
+															},
+															"sink": {
+																"name": "ATVGLART",
+																"type": "string"
+															}
+														},
+														{
+															"source": {
+																"name": "DATUB",
+																"type": "String"
+															},
+															"sink": {
+																"name": "DATUB",
+																"type": "string"
+															}
+														},
+														{
+															"source": {
+																"name": "DEC_VALUE_FROM",
+																"type": "Decimal"
+															},
+															"sink": {
+																"name": "DEC_VALUE_FROM"
+															}
+														},
+														{
+															"source": {
+																"name": "DEC_VALUE_TO",
+																"type": "Decimal"
+															},
+															"sink": {
+																"name": "DEC_VALUE_TO"
+															}
+														},
+														{
+															"source": {
+																"name": "CURR_VALUE_FROM",
+																"type": "Decimal"
+															},
+															"sink": {
+																"name": "CURR_VALUE_FROM"
+															}
+														},
+														{
+															"source": {
+																"name": "CURR_VALUE_TO",
+																"type": "Decimal"
+															},
+															"sink": {
+																"name": "CURR_VALUE_TO"
+															}
+														},
+														{
+															"source": {
+																"name": "CURRENCY",
+																"type": "String"
+															},
+															"sink": {
+																"name": "CURRENCY",
+																"type": "string"
+															}
+														},
+														{
+															"source": {
+																"name": "DATE_FROM",
+																"type": "String"
+															},
+															"sink": {
+																"name": "DATE_FROM",
+																"type": "string"
+															}
+														},
+														{
+															"source": {
+																"name": "DATE_TO",
+																"type": "String"
+															},
+															"sink": {
+																"name": "DATE_TO",
+																"type": "string"
+															}
+														},
+														{
+															"source": {
+																"name": "TIME_FROM",
+																"type": "String"
+															},
+															"sink": {
+																"name": "TIME_FROM",
+																"type": "string"
+															}
+														},
+														{
+															"source": {
+																"name": "TIME_TO",
+																"type": "String"
+															},
+															"sink": {
+																"name": "TIME_TO",
+																"type": "string"
+															}
+														},
+														{
+															"source": {
+																"name": "ATINN_INT",
+																"type": "Int16"
+															},
+															"sink": {
+																"name": "ATINN_INT",
+																"type": "Int"
+															}
+														},
+														{
+															"source": {
+																"name": "DELTA_TS",
+																"type": "Decimal"
+															},
+															"sink": {
+																"name": "DELTA_TS"
+															}
+														},
+														{
+															"source": {
+																"name": "_DLRawZoneTimeStamp"
+															},
+															"sink": {
+																"name": "_DLRawZoneTimeStamp",
+																"type": "DateTime"
+															}
+														}
+													]
+												}
+											},
+											"inputs": [
+												{
+													"referenceName": "SRC_SQLSERVER",
+													"type": "DatasetReference",
+													"parameters": {
+														"kvSecret": {
+															"value": "@pipeline().parameters.TaskDetails.SourceServer",
+															"type": "Expression"
+														},
+														"tableName": "AUSP",
+														"schemaName": "dbo"
+													}
+												}
+											],
+											"outputs": [
+												{
+													"referenceName": "DS_RAW_ADLS_DELTALAKE",
+													"type": "DatasetReference",
+													"parameters": {
+														"TableName": {
+															"value": "@pipeline().parameters.TaskDetails.TargetName",
+															"type": "Expression"
+														}
+													}
+												}
+											]
+										},
+										{
+											"name": "Set-RowCount-AUSP",
+											"type": "SetVariable",
+											"dependsOn": [
+												{
+													"activity": "Copy-Source-DataLake-AUSP",
+													"dependencyConditions": [
+														"Succeeded"
+													]
+												}
+											],
+											"userProperties": [],
+											"typeProperties": {
+												"variableName": "RowCount",
+												"value": {
+													"value": "@string(activity('Copy-Source-DataLake-AUSP').output.rowsCopied)",
+													"type": "Expression"
+												}
+											}
+										}
+									]
+								}
+							],
+							"defaultActivities": [
+								{
+									"name": "Copy-Source-DataLake",
+									"type": "Copy",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "7.00:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "SqlServerSource",
+											"additionalColumns": [
+												{
+													"name": "_DLRawZoneTimeStamp",
+													"value": {
+														"value": "@formatDateTime(convertFromUtc(utcnow(),'AUS Eastern Standard Time'),'yyyy-MM-dd HH:mm:ss')",
+														"type": "Expression"
+													}
+												}
+											],
+											"sqlReaderQuery": {
+												"value": "@pipeline().parameters.SQLCommand",
+												"type": "Expression"
+											},
+											"queryTimeout": "02:00:00",
+											"partitionOption": "DynamicRange",
+											"partitionSettings": {
+												"partitionColumnName": {
+													"value": "@{pipeline().parameters.TaskDetails.PartitionColumn}",
+													"type": "Expression"
+												},
+												"partitionUpperBound": "",
+												"partitionLowerBound": ""
+											}
+										},
+										"sink": {
+											"type": "AzureDatabricksDeltaLakeSink",
+											"importSettings": {
+												"type": "AzureDatabricksDeltaLakeImportCommand",
+												"dateFormat": "yyyy-MM-dd HH:mm:ss",
+												"timestampFormat": "yyyy-MM-dd HH:mm:ss"
+											}
+										},
+										"enableStaging": true,
+										"stagingSettings": {
+											"linkedServiceName": {
+												"referenceName": "LS_AzureDatalake",
+												"type": "LinkedServiceReference"
+											},
+											"path": {
+												"value": "@concat('raw/landing/isu_data/', pipeline().parameters.TaskDetails.TargetName)",
+												"type": "Expression"
+											},
+											"enableCompression": false
+										},
+										"parallelCopies": 32,
+										"dataIntegrationUnits": 8
+									},
+									"inputs": [
+										{
+											"referenceName": "SRC_SQLSERVER",
+											"type": "DatasetReference",
+											"parameters": {
+												"kvSecret": {
+													"value": "@pipeline().parameters.TaskDetails.SourceServer",
+													"type": "Expression"
+												},
+												"tableName": "erch",
+												"schemaName": "eq1"
+											}
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "DS_RAW_ADLS_DELTALAKE",
+											"type": "DatasetReference",
+											"parameters": {
+												"TableName": {
+													"value": "@pipeline().parameters.TaskDetails.TargetName",
+													"type": "Expression"
+												}
+											}
+										}
+									]
+								},
+								{
+									"name": "Set-RowCount",
+									"type": "SetVariable",
+									"dependsOn": [
+										{
+											"activity": "Copy-Source-DataLake",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"userProperties": [],
+									"typeProperties": {
+										"variableName": "RowCount",
+										"value": {
+											"value": "@string(activity('Copy-Source-DataLake').output.rowsCopied)",
+											"type": "Expression"
+										}
+									}
+								}
+							]
 						}
 					}
 				],
@@ -11437,6 +11956,9 @@
 					},
 					"sltTimestamp": {
 						"type": "String"
+					},
+					"RowCount": {
+						"type": "String"
 					}
 				},
 				"folder": {
@@ -11445,11 +11967,11 @@
 				"annotations": []
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/SRC_SQLSERVER')]",
-				"[concat(variables('factoryId'), '/datasets/DS_RAW_ADLS_DELTALAKE')]",
 				"[concat(variables('factoryId'), '/linkedServices/LS-AzureSqlDatabase_Ctrldb')]",
 				"[concat(variables('factoryId'), '/pipelines/recon-record-validation')]",
 				"[concat(variables('factoryId'), '/datasets/RAW_ADLS_JSON_v2_NOCOMP')]",
+				"[concat(variables('factoryId'), '/datasets/SRC_SQLSERVER')]",
+				"[concat(variables('factoryId'), '/datasets/DS_RAW_ADLS_DELTALAKE')]",
 				"[concat(variables('factoryId'), '/linkedServices/LS_AzureDatalake')]"
 			]
 		},
@@ -12757,7 +13279,7 @@
 						"typeProperties": {
 							"variableName": "RunBusinessRecon",
 							"value": {
-								"value": "@if(equals(toLower(last(split(pipeline().parameters.TaskDetails.Command,'/'))), 'billedwaterconsumption'), 'yes', 'no')",
+								"value": "@if(or(equals(toLower(last(split(pipeline().parameters.TaskDetails.Command,'/'))), 'billedwaterconsumption'), equals(toLower(last(split(pipeline().parameters.TaskDetails.Command,'/'))), 'billedwaterconsumptiondaily')), 'yes', 'no')",
 								"type": "Expression"
 							}
 						}
@@ -12804,7 +13326,15 @@
 												"value": "@pipeline().parameters.ProjectRunID",
 												"type": "Expression"
 											},
-											"BusinessReconGroup": "Water Consumption Reconciliation"
+											"BusinessReconGroup": "Water Consumption Reconciliation",
+											"TaskDetails": {
+												"value": "@pipeline().parameters.TaskDetails",
+												"type": "Expression"
+											},
+											"TargetObject": {
+												"value": "@last(split(pipeline().parameters.TaskDetails.Command,'/'))",
+												"type": "Expression"
+											}
 										}
 									}
 								}
@@ -13972,6 +14502,278 @@
 											"value": "@pipeline().parameters.BusinessReconGroup",
 											"type": "Expression"
 										}
+									},
+									"TargetObject": {
+										"type": "String",
+										"value": {
+											"value": "@last(split(pipeline().parameters.TaskDetails.Command,'/'))",
+											"type": "Expression"
+										}
+									}
+								},
+								"partitionOption": "None"
+							},
+							"dataset": {
+								"referenceName": "AzureSqlDatabase_Ctrldb",
+								"type": "DatasetReference",
+								"parameters": {}
+							},
+							"firstRowOnly": false
+						}
+					},
+					{
+						"name": "ForEach Business Rec",
+						"type": "ForEach",
+						"dependsOn": [
+							{
+								"activity": "Get Business Recon Queries",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@activity('Get Business Recon Queries').output.value",
+								"type": "Expression"
+							},
+							"isSequential": false,
+							"activities": [
+								{
+									"name": "SP-Update-Business-Rec-Curated",
+									"type": "SqlServerStoredProcedure",
+									"dependsOn": [
+										{
+											"activity": "Notebook-GetDeltaTableRecordTargetMeasure-Interactive",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "7.00:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"storedProcedureName": "[[CTL].[UpdateBusinessRecCurated]",
+										"storedProcedureParameters": {
+											"TargetMeasureValue": {
+												"value": {
+													"value": "@activity('Notebook-GetDeltaTableRecordTargetMeasure-Interactive').output.runOutput",
+													"type": "Expression"
+												},
+												"type": "Decimal"
+											},
+											"BusinessRecId": {
+												"value": {
+													"value": "@item().BusinessRecId",
+													"type": "Expression"
+												},
+												"type": "Int64"
+											},
+											"UpdatedBatchExecutionId": {
+												"value": {
+													"value": "@pipeline().parameters.BatchLogId",
+													"type": "Expression"
+												},
+												"type": "Int64"
+											},
+											"UpdatedTaskExecutionLogId": {
+												"value": {
+													"value": "@pipeline().parameters.TaskExecutionLogId",
+													"type": "Expression"
+												},
+												"type": "Int64"
+											},
+											"CuratedPipelineRunID": {
+												"value": {
+													"value": "@pipeline().RunId",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"UpdatedDateTime": {
+												"value": {
+													"value": "@convertFromUtc(getFutureTime(0,'Day'),'AUS Eastern Standard Time')",
+													"type": "Expression"
+												},
+												"type": "Datetime"
+											}
+										}
+									},
+									"linkedServiceName": {
+										"referenceName": "LS-AzureSqlDatabase_Ctrldb",
+										"type": "LinkedServiceReference"
+									}
+								},
+								{
+									"name": "Notebook-GetDeltaTableRecordTargetMeasure-Interactive",
+									"type": "DatabricksNotebook",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "7.00:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"notebookPath": {
+											"value": "@variables('NotebookURL')",
+											"type": "Expression"
+										},
+										"baseParameters": {
+											"target_query": {
+												"value": "@item().TargetQuery",
+												"type": "Expression"
+											}
+										}
+									},
+									"linkedServiceName": {
+										"referenceName": "LS-AzureDatabricks_DefinedCluster",
+										"type": "LinkedServiceReference",
+										"parameters": {
+											"kvSecret": {
+												"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[0]",
+												"type": "Expression"
+											},
+											"clusterId": {
+												"value": "@split(pipeline().parameters.TaskDetails.Processor,'|')[1]",
+												"type": "Expression"
+											}
+										}
+									}
+								}
+							]
+						}
+					},
+					{
+						"name": "Delete-Trigger-File",
+						"type": "Delete",
+						"dependsOn": [
+							{
+								"activity": "ForEach Business Rec",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataset": {
+								"referenceName": "RAW_ADLS_JSON_v2_NOCOMP",
+								"type": "DatasetReference",
+								"parameters": {
+									"BlobPath": "triggers",
+									"BlobName": "trigger_batch_daily_sapslt.json"
+								}
+							},
+							"enableLogging": false,
+							"storeSettings": {
+								"type": "AzureBlobFSReadSettings",
+								"recursive": true,
+								"enablePartitionDiscovery": false
+							}
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"parameters": {
+					"BatchLogId": {
+						"type": "int",
+						"defaultValue": 1
+					},
+					"TaskExecutionLogId": {
+						"type": "int",
+						"defaultValue": 2
+					},
+					"ProjectRunId": {
+						"type": "string"
+					},
+					"WatermarkValue": {
+						"type": "string"
+					},
+					"BusinessReconGroup": {
+						"type": "string",
+						"defaultValue": "Water Consumption Reconciliation"
+					},
+					"MeasureName": {
+						"type": "string",
+						"defaultValue": "Billing Document Count"
+					},
+					"TaskDetails": {
+						"type": "object"
+					},
+					"TargetObject": {
+						"type": "string"
+					}
+				},
+				"variables": {
+					"TargetQuery": {
+						"type": "String"
+					},
+					"NotebookURL": {
+						"type": "String",
+						"defaultValue": "/build/curated/utility/getDeltaTableRecordTargetMeasure"
+					}
+				},
+				"folder": {
+					"name": "Validation"
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/AzureSqlDatabase_Ctrldb')]",
+				"[concat(variables('factoryId'), '/datasets/RAW_ADLS_JSON_v2_NOCOMP')]",
+				"[concat(variables('factoryId'), '/linkedServices/LS-AzureSqlDatabase_Ctrldb')]",
+				"[concat(variables('factoryId'), '/linkedServices/LS-AzureDatabricks_DefinedCluster')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Business-Reconciliation_Bak')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Get Business Recon Queries",
+						"type": "Lookup",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"sqlReaderStoredProcedureName": "[[CTL].[GetBusinessRecCurated]",
+								"storedProcedureParameters": {
+									"BusinessReconGroup": {
+										"type": "String",
+										"value": {
+											"value": "@pipeline().parameters.BusinessReconGroup",
+											"type": "Expression"
+										}
 									}
 								},
 								"partitionOption": "None"
@@ -14259,7 +15061,7 @@
 					}
 				},
 				"folder": {
-					"name": "Validation"
+					"name": "z_Archive"
 				},
 				"annotations": []
 			},
@@ -16744,12 +17546,12 @@
 					}
 				},
 				"connectVia": {
-					"referenceName": "IntegrationRuntime-SelfHosted",
+					"referenceName": "IntegrationRuntime-SelfHosted-onPrem",
 					"type": "IntegrationRuntimeReference"
 				}
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/integrationRuntimes/IntegrationRuntime-SelfHosted')]",
+				"[concat(variables('factoryId'), '/integrationRuntimes/IntegrationRuntime-SelfHosted-onPrem')]",
 				"[concat(variables('factoryId'), '/linkedServices/LS-AzureKeyVault')]"
 			]
 		},
@@ -16953,6 +17755,17 @@
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/managedVirtualNetworks/default')]"
 			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/IntegrationRuntime-SelfHosted-onPrem')]",
+			"type": "Microsoft.DataFactory/factories/integrationRuntimes",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "SelfHosted",
+				"description": "on premise SHIR",
+				"typeProperties": {}
+			},
+			"dependsOn": []
 		},
 		{
 			"name": "[concat(parameters('factoryName'), '/IntegrationRuntime-SelfHosted')]",

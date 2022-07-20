@@ -69,7 +69,7 @@ def getBusinessPartnerGroup():
 
     #5.Apply schema definition
     schema = StructType([
-                            StructField('businessPartnerGroupSK', LongType(), False),
+                            StructField('businessPartnerGroupSK', StringType(), False),
                             StructField('sourceSystemCode', StringType(), True),
                             StructField('businessPartnerGroupNumber', StringType(), False),
                             StructField('validFromDate', DateType(), True),
@@ -93,7 +93,7 @@ def getBusinessPartnerGroup():
 # COMMAND ----------
 
 df, schema = getBusinessPartnerGroup()
-TemplateEtl(df, entity="dimBusinessPartnerGroup", businessKey="businessPartnerGroupNumber", schema=schema, writeMode=ADS_WRITE_MODE_MERGE, AddSK=True)
+TemplateEtl(df, entity="dimBusinessPartnerGroup", businessKey="businessPartnerGroupNumber", schema=schema, writeMode=ADS_WRITE_MODE_OVERWRITE, AddSK=True)
 
 # COMMAND ----------
 

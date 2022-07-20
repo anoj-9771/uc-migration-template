@@ -21,11 +21,11 @@ def getContract():
     #1.Load current Cleansed layer table data into dataframe
     df = spark.sql(f"select  co.contractId, \
                              coalesce(coh.validFromDate,to_date('1900-01-01','yyyy-MM-dd')) as validFromDate, \
-                             coh.validToDate, \
+                             coalesce(coh.validToDate,to_date('9999-12-31','yyyy-MM-dd')) as validToDate, \
                              'ISU' as sourceSystemCode, \
                              least(coh.validFromDate, co.createdDate) as contractStartDate, \
                              coh.validToDate as contractEndDate, \
-                             case when co.invoiceContractsJointly = 'X' then 'Y' else 'N' end as invoiceJointlyFlag, \
+                             co.invoiceContractsJointly as invoiceJointlyFlag, \
                              co.moveInDate, \
                              co.moveOutDate, \
                              ca.contractAccountNumber, \
@@ -47,10 +47,10 @@ def getContract():
     #3.UNION TABLES
     #Create dummy record
     
-    dummyDimRecDf = spark.createDataFrame([("-1","1900-01-01")], ["contractId", "validFromDate"])
+    dummyDimRecDf = spark.createDataFrame([("-1","1900-01-01", "9999-12-31")], ["contractId", "validFromDate", "validToDate"])
                                      
     df = df.unionByName(dummyDimRecDf,allowMissingColumns = True)
-    df = df.withColumn("validFromDate",col("validFromDate").cast("date"))
+    df = df.withColumn("validFromDate",col("validFromDate").cast("date")).withColumn("validToDate",col("validToDate").cast("date"))
     
     #4.SELECT / TRANSFORM
     df = df.selectExpr( \
@@ -70,10 +70,10 @@ def getContract():
 
     #5.Apply schema definition
     schema = StructType([
-                            StructField('contractSK', LongType(), False),
+                            StructField('contractSK', StringType(), False),
                             StructField('contractId', StringType(), False),
-                            StructField('validFromDate', DateType(), False),
-                            StructField('validToDate', DateType(), True),
+                            StructField('validFromDate', DateType(), True),
+                            StructField('validToDate', DateType(), False),
                             StructField('sourceSystemCode', StringType(), True),
                             StructField('contractStartDate', DateType(), True),
                             StructField('contractEndDate', DateType(), True),
@@ -92,7 +92,7 @@ def getContract():
 # COMMAND ----------
 
 df, schema = getContract()
-TemplateEtl(df,  entity="dimContract", businessKey="contractId,validFromDate", schema=schema, writeMode=ADS_WRITE_MODE_MERGE, AddSK=True)
+TemplateEtl(df,  entity="dimContract", businessKey="contractId,validToDate", schema=schema, writeMode=ADS_WRITE_MODE_OVERWRITE, AddSK=True)
 
 # COMMAND ----------
 

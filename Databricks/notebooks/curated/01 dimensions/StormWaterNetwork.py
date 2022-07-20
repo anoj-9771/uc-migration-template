@@ -43,7 +43,7 @@ def getStormWaterNetwork():
                                             
     #5.Apply schema definition
     schema = StructType([
-                            StructField('stormWaterNetworkSK', LongType(), False),
+                            StructField('stormWaterNetworkSK', StringType(), False),
                             StructField("stormWaterNetwork", StringType(), False),
                             StructField("stormWaterCatchment", StringType(), False)
                         ])
@@ -54,7 +54,7 @@ def getStormWaterNetwork():
 # COMMAND ----------
 
 df, schema = getStormWaterNetwork()
-TemplateEtl(df, entity="dimStormWaterNetwork", businessKey="stormWaterCatchment", schema=schema, writeMode=ADS_WRITE_MODE_MERGE, AddSK=True)
+TemplateEtl(df, entity="dimStormWaterNetwork", businessKey="stormWaterCatchment", schema=schema, writeMode=ADS_WRITE_MODE_OVERWRITE, AddSK=True)
 
 # COMMAND ----------
 

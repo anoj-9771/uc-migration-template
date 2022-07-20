@@ -64,7 +64,7 @@ def getInstallationPropertyMeterContract():
                                 logicalDeviceNumber, \
                                 validFromDate, \
                                 validToDate \
-                                from {ADS_DATABASE_CURATED}.meterInstallation \
+                                from {ADS_DATABASE_CURATED}.dimMeterInstallation \
                                 where _RecordCurrent = 1 and _RecordDeleted = 0")    
 #    print(f"Number of rows in meterInstallationDf: ", meterInstallationDf.count())
 #    display(meterInstallationDf)
@@ -75,7 +75,7 @@ def getInstallationPropertyMeterContract():
                                 logicalDeviceNumber, \
                                 validFromDate, \
                                 validToDate \
-                                from {ADS_DATABASE_CURATED}.meterTimeslice \
+                                from {ADS_DATABASE_CURATED}.dimMeterTimeslice \
                                 where _RecordCurrent = 1 and _RecordDeleted = 0")    
 #    print(f"Number of rows in meterTimesliceDf: ", meterTimesliceDf.count())
 #    display(meterTimesliceDf)    

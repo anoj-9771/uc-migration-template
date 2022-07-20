@@ -51,7 +51,7 @@ def getWaterNetwork():
                                             
     #5.Apply schema definition
     schema = StructType([
-                            StructField('waterNetworkSK', LongType(), False),
+                            StructField('waterNetworkSK', StringType(), False),
                             StructField("deliverySystem", StringType(), False),
                             StructField("distributionSystem", StringType(), False),
                             StructField("supplyZone", StringType(), False),
@@ -65,7 +65,7 @@ def getWaterNetwork():
 # COMMAND ----------
 
 df, schema = getWaterNetwork()
-TemplateEtl(df, entity="dimWaterNetwork", businessKey="supplyZone,pressureArea", schema=schema, writeMode=ADS_WRITE_MODE_MERGE, AddSK=True)
+TemplateEtl(df, entity="dimWaterNetwork", businessKey="supplyZone,pressureArea", schema=schema, writeMode=ADS_WRITE_MODE_OVERWRITE, AddSK=True)
 
 # COMMAND ----------
 

@@ -204,7 +204,7 @@ def getDate():
 
     #2.Apply schema definition
     schema = StructType([
-                        StructField('dateSK', LongType(), False),
+                        StructField('dateSK', StringType(), False),
                         StructField("calendarDate", DateType(), False),
                         StructField("dayName", StringType(), False),
                         StructField("monthName", StringType(), False),
@@ -244,7 +244,7 @@ def getDate():
 # COMMAND ----------
 
 df, schema = getDate()
-TemplateEtl(df, entity="dimDate", businessKey="calendarDate", schema=schema, writeMode=ADS_WRITE_MODE_MERGE, AddSK=True)
+TemplateEtl(df, entity="dimDate", businessKey="calendarDate", schema=schema, writeMode=ADS_WRITE_MODE_OVERWRITE, AddSK=True)
 
 # COMMAND ----------
 

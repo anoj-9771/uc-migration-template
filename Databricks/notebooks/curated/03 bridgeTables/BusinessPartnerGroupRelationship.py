@@ -29,7 +29,7 @@ def getBusinessPartnerGroupRelationship():
                                       relationshipTypeCode, \
                                       relationshipType \
                                       FROM {ADS_DATABASE_CLEANSED}.isu_0bp_relations_attr \
-                                      where relationshipDirection = '1'\
+                                      where relationshipDirection = '1' and deletedindicator is null\
                                       and _RecordCurrent = 1 \
                                       and _RecordDeleted = 0")
     
@@ -95,7 +95,7 @@ def getBusinessPartnerGroupRelationship():
 # COMMAND ----------
 
 df, schema = getBusinessPartnerGroupRelationship()
-TemplateEtl(df, entity="brgBusinessPartnerGroupRelationship", businessKey="businessPartnerGroupSK,businessPartnerSK,validFromDate", schema=schema, writeMode=ADS_WRITE_MODE_OVERWRITE, AddSK=False)
+TemplateEtl(df, entity="brgBusinessPartnerGroupRelationship", businessKey="businessPartnerGroupSK,businessPartnerSK,relationshipNumber,validFromDate", schema=schema, writeMode=ADS_WRITE_MODE_OVERWRITE, AddSK=False)
 
 # COMMAND ----------
 

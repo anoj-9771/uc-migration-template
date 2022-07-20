@@ -1,6 +1,7 @@
 CREATE PROCEDURE [CTL].[GetBusinessRecCurated] 
   (
-	  @BusinessReconGroup varchar(255)
+	  @BusinessReconGroup varchar(255),
+	  @TargetObject varchar(255)
   )
 AS
 SELECT 
@@ -8,9 +9,10 @@ SELECT
 	   recLog.BusinessRecId,
 	   recLog.CreatedBatchExecutionId,
 	   recLog.CreatedTaskExecutionLogId     
-  FROM (select *, row_number() over (partition by BusinessReconGroup, MeasureId, MeasureName order by CreatedDateTime desc) as CurrentRec
+  FROM (select *, row_number() over (partition by BusinessReconGroup, MeasureId, MeasureName, TargetObject order by CreatedDateTime desc) as CurrentRec
         from CTL.BusinessRecCurated
         where (CuratedPipelineRunID is null or BusinessRecResult is null)
+		and TargetObject = @TargetObject
         ) recLog,
        CTL.BusinessRecConfig recMstr
  where recLog.BusinessReconGroup = recMstr.BusinessReconGroup
@@ -19,5 +21,4 @@ SELECT
    AND recMstr.Enabled = 1
    AND recLog.CurrentRec = 1
    AND recMstr.BusinessReconGroup = @BusinessReconGroup
-
-
+   AND recMstr.TargetObject = @TargetObject

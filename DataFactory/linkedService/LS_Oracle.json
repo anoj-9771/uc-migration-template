@@ -23,7 +23,7 @@
 			}
 		},
 		"connectVia": {
-			"referenceName": "IntegrationRuntime-SelfHosted",
+			"referenceName": "IntegrationRuntime-SelfHosted-onPrem",
 			"type": "IntegrationRuntimeReference"
 		}
 	},

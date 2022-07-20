@@ -206,7 +206,7 @@ def getMeter():
     
     #5.Apply schema definition
     schema = StructType([
-                            StructField('meterSK', LongType(), False),
+                            StructField('meterSK', StringType(), False),
                             StructField('sourceSystemCode', StringType(), True),
                             StructField('meterNumber', StringType(), False),
                             StructField('meterSerialNumber', StringType(), True),
@@ -234,7 +234,7 @@ def getMeter():
 # COMMAND ----------
 
 df, schema = getMeter()
-TemplateEtl(df, entity="dimMeter", businessKey="meterNumber", schema=schema, writeMode=ADS_WRITE_MODE_MERGE, AddSK=True)
+TemplateEtl(df, entity="dimMeter", businessKey="meterNumber", schema=schema, writeMode=ADS_WRITE_MODE_OVERWRITE, AddSK=True)
 
 # COMMAND ----------
 

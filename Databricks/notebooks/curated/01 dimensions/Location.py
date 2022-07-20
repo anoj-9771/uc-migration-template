@@ -207,7 +207,7 @@ def getLocation():
                             )
     #5.Apply schema definition
     schema = StructType([
-                            StructField('locationSK', LongType(), False),
+                            StructField('locationSK', StringType(), False),
                             StructField("locationID", StringType(), False),
                             StructField("sourceSystemCode", StringType(), True),
                             StructField("formattedAddress", StringType(), True),
@@ -228,7 +228,7 @@ def getLocation():
 # COMMAND ----------
 
 df, schema = getLocation()
-TemplateEtl(df, entity="dimLocation", businessKey="locationId", schema=schema, writeMode=ADS_WRITE_MODE_MERGE, AddSK=True)
+TemplateEtl(df, entity="dimLocation", businessKey="locationId", schema=schema, writeMode=ADS_WRITE_MODE_OVERWRITE, AddSK=True)
 
 # COMMAND ----------
 

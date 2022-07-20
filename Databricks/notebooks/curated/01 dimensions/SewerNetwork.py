@@ -45,7 +45,7 @@ def getSewerNetwork():
                                             
     #5.Apply schema definition
     schema = StructType([
-                            StructField('sewerNetworkSK', LongType(), False),
+                            StructField('sewerNetworkSK', StringType(), False),
                             StructField("sewerNetwork", StringType(), False),
                             StructField("sewerCatchment", StringType(), False),
                             StructField("SCAMP", StringType(), False)
@@ -57,7 +57,7 @@ def getSewerNetwork():
 # COMMAND ----------
 
 df, schema = getSewerNetwork()
-TemplateEtl(df, entity="dimSewerNetwork", businessKey="SCAMP", schema=schema, writeMode=ADS_WRITE_MODE_MERGE, AddSK=True)
+TemplateEtl(df, entity="dimSewerNetwork", businessKey="SCAMP", schema=schema, writeMode=ADS_WRITE_MODE_OVERWRITE, AddSK=True)
 
 # COMMAND ----------
 

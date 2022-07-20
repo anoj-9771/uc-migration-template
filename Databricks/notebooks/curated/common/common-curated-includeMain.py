@@ -92,7 +92,7 @@ def TemplateEtl(df : object, entity, businessKey, schema, writeMode, AddSK = Tru
 
 # DBTITLE 1,5. Function: Create stage and curated database if not exist
 def DatabaseChanges():
-  #CREATE stage AND curated DATABASES IS NOT PRESENT
+  #CREATE stage AND curated DATABASES IF NOT PRESENT
   spark.sql("CREATE DATABASE IF NOT EXISTS stage")
   spark.sql("CREATE DATABASE IF NOT EXISTS curated")  
 
