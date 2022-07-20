@@ -16,7 +16,7 @@
 	@Command varchar(max)= '',
 	@DataLoadMode varchar(100) = '',
 	@Grain varchar(30) = '',
-	@BusinessKeyColumn varchar(100) = '',
+	@BusinessKeyColumn varchar(255) = '',
 	@WatermarkColumn varchar(100) = '',
 	@PartitionColumn varchar(100) = '',  --useful for dynamic partitioning of SQL source data while copying to Delta Table in ADF's Copy Activity
 	@TrackChangeFlag bit = 0,

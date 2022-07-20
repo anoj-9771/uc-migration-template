@@ -3,6 +3,7 @@ SELECT * FROM
 (
 	SELECT 
 		 TechRecID
+		,P.ProjectName
 		,S.SourceGroup
 		,S.SourceLocation	
 		,SourceFileDateStamp
@@ -25,5 +26,6 @@ SELECT * FROM
 		INNER JOIN CTL.TaskExecutionLog TL ON TR.TaskExecutionLogId = TL.ExecutionLogId
 		INNER JOIN CTL.BatchExecutionLog BL ON TR.BatchExecutionId = BL.BatchExecutionLogId
 		INNER JOIN CTL.TechRecCleansedConfig TRC ON TRC.TargetObject = TR.TargetName and TRC.TechRecDashboardReady = 'Y' 
+		INNER JOIN CTL.ControlProjects P ON P.ProjectId = T.ProjectId
 ) src WHERE CurrentRecord = 1
-
+GO
