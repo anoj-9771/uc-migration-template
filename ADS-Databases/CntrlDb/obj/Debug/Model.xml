@@ -15185,6 +15185,436 @@ SELECT B.[BatchExecutionLogId]
 				<Property Name="HeaderContents" Value="&#xD;&#xA;&#xD;&#xA;CREATE VIEW CTL.vw_BatchExecution&#xD;&#xA;AS" />
 			</Annotation>
 		</Element>
+		<Element Type="SqlView" Name="[CTL].[vw_BusinessRecDetailRpt]">
+			<Property Name="QueryScript">
+				<Value><![CDATA[ 
+SELECT 
+  *,
+  CASE WHEN TargetMeasureValue > 0 THEN ABS(TargetMeasureValue - SourceMeasureValue) ELSE SourceMeasureValue END AS RecDiff,
+  GETDATE() AS RefreshDate
+FROM
+  CTL.BusinessRecCurated]]></Value>
+			</Property>
+			<Property Name="IsAnsiNullsOn" Value="True" />
+			<Relationship Name="Columns">
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_BusinessRecDetailRpt].[BusinessRecId]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[BusinessRecCurated].[BusinessRecId]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_BusinessRecDetailRpt].[ExtractRunID]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[BusinessRecCurated].[ExtractRunID]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_BusinessRecDetailRpt].[CreatedDateTime]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[BusinessRecCurated].[CreatedDateTime]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_BusinessRecDetailRpt].[UpdatedDateTime]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[BusinessRecCurated].[UpdatedDateTime]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_BusinessRecDetailRpt].[CreatedBatchExecutionId]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[BusinessRecCurated].[CreatedBatchExecutionId]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_BusinessRecDetailRpt].[CreatedTaskExecutionLogId]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[BusinessRecCurated].[CreatedTaskExecutionLogId]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_BusinessRecDetailRpt].[RawZonePipelineRunId]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[BusinessRecCurated].[RawZonePipelineRunId]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_BusinessRecDetailRpt].[UpdatedBatchExecutionId]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[BusinessRecCurated].[UpdatedBatchExecutionId]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_BusinessRecDetailRpt].[UpdatedTaskExecutionLogId]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[BusinessRecCurated].[UpdatedTaskExecutionLogId]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_BusinessRecDetailRpt].[CuratedPipelineRunId]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[BusinessRecCurated].[CuratedPipelineRunId]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_BusinessRecDetailRpt].[BusinessReconGroup]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[BusinessRecCurated].[BusinessReconGroup]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_BusinessRecDetailRpt].[SourceObject]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[BusinessRecCurated].[SourceObject]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_BusinessRecDetailRpt].[TargetObject]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[BusinessRecCurated].[TargetObject]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_BusinessRecDetailRpt].[WatermarkValue]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[BusinessRecCurated].[WatermarkValue]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_BusinessRecDetailRpt].[MeasureId]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[BusinessRecCurated].[MeasureId]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_BusinessRecDetailRpt].[MeasureName]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[BusinessRecCurated].[MeasureName]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_BusinessRecDetailRpt].[SourceMeasureValue]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[BusinessRecCurated].[SourceMeasureValue]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_BusinessRecDetailRpt].[TargetMeasureValue]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[BusinessRecCurated].[TargetMeasureValue]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_BusinessRecDetailRpt].[BusinessRecResult]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[BusinessRecCurated].[BusinessRecResult]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_BusinessRecDetailRpt].[RecDiff]" />
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_BusinessRecDetailRpt].[RefreshDate]" />
+				</Entry>
+			</Relationship>
+			<Relationship Name="QueryDependencies">
+				<Entry>
+					<References Name="[CTL].[BusinessRecCurated]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[BusinessRecCurated].[TargetMeasureValue]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[BusinessRecCurated].[SourceMeasureValue]" />
+				</Entry>
+			</Relationship>
+			<Relationship Name="Schema">
+				<Entry>
+					<References Name="[CTL]" />
+				</Entry>
+			</Relationship>
+			<Annotation Type="SysCommentsObjectAnnotation">
+				<Property Name="Length" Value="244" />
+				<Property Name="StartLine" Value="1" />
+				<Property Name="StartColumn" Value="1" />
+				<Property Name="HeaderContents" Value="CREATE VIEW [CTL].[vw_BusinessRecDetailRpt]&#xA;  AS" />
+			</Annotation>
+		</Element>
+		<Element Type="SqlView" Name="[CTL].[vw_BusinessRecSummaryRpt]">
+			<Property Name="QueryScript">
+				<Value><![CDATA[ 
+SELECT 
+  T1.BusinessRecID, 
+  CreatedDateTime, 
+  BusinessReconGroup, 
+  SourceObject, 
+  T2.TargetObject, 
+  T2.MeasureId, 
+  T2.MeasureName, 
+  SourceMeasureValue, 
+  TargetMeasureValue, 
+  BusinessRecResult, 
+  CASE WHEN T2.BusinessRecResult = 'PASS' THEN 1 ELSE 0 END AS PassFlg, 
+  CASE WHEN T2.BusinessRecResult = 'FAIL' THEN 1 ELSE 0 END AS FailFlg, 
+  ABS(
+    COALESCE(TargetMeasureValue, 0) - SourceMeasureValue
+  ) AS RecDiff, 
+  getdate() AS RefreshDate,
+ CAST(SYSDATETIMEOFFSET() AT TIME ZONE 'E. Australia Standard Time' AS smalldatetime) AS RefreshDateTime
+  FROM (
+    SELECT 
+      MAX(BusinessRecID) AS BusinessRecID, 
+      TargetObject, 
+      MeasureId, 
+      MeasureName 
+    from 
+      CTL.BusinessRecCurated 
+    group by 
+      TargetObject, 
+      MeasureId, 
+      MeasureName
+  ) T1, 
+  CTL.BusinessRecCurated T2 
+WHERE 
+  T1.BusinessRecID = T2.BusinessRecID 
+  AND T1.TargetObject = T2.TargetObject 
+  AND T1.MeasureId = T2.MeasureId 
+  AND T1.MeasureName = T2.MeasureName]]></Value>
+			</Property>
+			<Property Name="IsAnsiNullsOn" Value="True" />
+			<Relationship Name="Columns">
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_BusinessRecSummaryRpt].[BusinessRecID]" />
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_BusinessRecSummaryRpt].[CreatedDateTime]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[BusinessRecCurated].[CreatedDateTime]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_BusinessRecSummaryRpt].[BusinessReconGroup]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[BusinessRecCurated].[BusinessReconGroup]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_BusinessRecSummaryRpt].[SourceObject]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[BusinessRecCurated].[SourceObject]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_BusinessRecSummaryRpt].[TargetObject]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[BusinessRecCurated].[TargetObject]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_BusinessRecSummaryRpt].[MeasureId]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[BusinessRecCurated].[MeasureId]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_BusinessRecSummaryRpt].[MeasureName]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[BusinessRecCurated].[MeasureName]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_BusinessRecSummaryRpt].[SourceMeasureValue]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[BusinessRecCurated].[SourceMeasureValue]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_BusinessRecSummaryRpt].[TargetMeasureValue]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[BusinessRecCurated].[TargetMeasureValue]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_BusinessRecSummaryRpt].[BusinessRecResult]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[BusinessRecCurated].[BusinessRecResult]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_BusinessRecSummaryRpt].[PassFlg]" />
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_BusinessRecSummaryRpt].[FailFlg]" />
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_BusinessRecSummaryRpt].[RecDiff]" />
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_BusinessRecSummaryRpt].[RefreshDate]" />
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_BusinessRecSummaryRpt].[RefreshDateTime]" />
+				</Entry>
+			</Relationship>
+			<Relationship Name="QueryDependencies">
+				<Entry>
+					<References Name="[CTL].[BusinessRecCurated]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[BusinessRecCurated].[BusinessRecId]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[BusinessRecCurated].[TargetObject]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[BusinessRecCurated].[MeasureId]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[BusinessRecCurated].[MeasureName]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[BusinessRecCurated].[CreatedDateTime]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[BusinessRecCurated].[BusinessReconGroup]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[BusinessRecCurated].[SourceObject]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[BusinessRecCurated].[TargetObject]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[BusinessRecCurated].[MeasureId]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[BusinessRecCurated].[MeasureName]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[BusinessRecCurated].[SourceMeasureValue]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[BusinessRecCurated].[TargetMeasureValue]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[BusinessRecCurated].[BusinessRecResult]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[BusinessRecCurated].[BusinessRecResult]" />
+				</Entry>
+				<Entry>
+					<References ExternalSource="BuiltIns" Name="[smalldatetime]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[BusinessRecCurated].[BusinessRecId]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[BusinessRecCurated].[TargetObject]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[BusinessRecCurated].[MeasureId]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[BusinessRecCurated].[MeasureName]" />
+				</Entry>
+			</Relationship>
+			<Relationship Name="Schema">
+				<Entry>
+					<References Name="[CTL]" />
+				</Entry>
+			</Relationship>
+			<Annotation Type="SysCommentsObjectAnnotation">
+				<Property Name="Length" Value="1055" />
+				<Property Name="StartLine" Value="1" />
+				<Property Name="StartColumn" Value="1" />
+				<Property Name="HeaderContents" Value="CREATE VIEW [CTL].[vw_BusinessRecSummaryRpt]&#xA;  AS" />
+			</Annotation>
+		</Element>
 		<Element Type="SqlView" Name="[CTL].[vw_ControlConfiguration]">
 			<Property Name="QueryScript">
 				<Value><![CDATA[
@@ -15982,6 +16412,1208 @@ LEFT JOIN CTL.TaskExecutionLog T ON M.TaskExecutionLogID = T.ExecutionLogId]]></
 				<Property Name="HeaderContents" Value="&#xD;&#xA;CREATE VIEW CTL.vw_DataLoadDetails&#xD;&#xA;AS" />
 			</Annotation>
 		</Element>
+		<Element Type="SqlView" Name="[CTL].[vw_RawToCleansedDetailRpt]">
+			<Property Name="QueryScript">
+				<Value><![CDATA[ SELECT 
+  LEFT(T2.SourceFileDateStamp, 8) AS SrcFileDate, 
+  LEFT(T1.SrcTimestamp, 8) AS LastSrcFileDate, 
+  DATEDIFF(
+    MINUTE, StartDateTime, EndDateTime
+  ) AS ProcessTimeMin, 
+  GETDATE() AS RefreshDate, 
+  CASE WHEN T1.SrcTimestamp = T2.SourceFileDateStamp THEN 1 ELSE 0 END AS LastFile, 
+  CASE WHEN T1.SrcTimestamp = T2.SourceFileDateStamp AND T2.RawToCleansedMatchStatus = 'Passed' THEN 1 ELSE 0 END AS LastUpdatePass, 
+  CAST(
+    LEFT(T3.SrcTimestamp, 8) AS DATE
+  ) AS LastPassDate,  
+  CASE WHEN T2.RawToCleansedMatchStatus = 'Passed' THEN 1 ELSE 0 END AS PassFlag,
+  T2.* 
+FROM 
+  (
+    SELECT 
+      SourceGroup, 
+      SourceLocation, 
+      MAX(SourceFileDateStamp) AS SrcTimestamp 
+    FROM 
+      [CTL].[vw_TechRecRawToCleansedRpt] 
+    GROUP BY 
+      SourceGroup, 
+      SourceLocation
+  ) T1, 
+  [CTL].[vw_TechRecRawToCleansedRpt] T2 
+  LEFT OUTER JOIN (
+    SELECT 
+      SourceGroup, 
+      SourceLocation, 
+      MAX(SourceFileDateStamp) AS SrcTimestamp 
+    FROM 
+      CTL.vw_TechRecRawToCleansedRpt 
+    WHERE 
+      RawToCleansedMatchStatus = 'Passed' 
+    GROUP BY 
+      SourceGroup, 
+      SourceLocation
+  ) T3 ON T2.SourceGroup = T3.SourceGroup 
+  AND T2.SourceLocation = T3.SourceLocation 
+WHERE 
+  T1.SourceGroup = T2.SourceGroup 
+  AND T1.SourceLocation = T2.SourceLocation]]></Value>
+			</Property>
+			<Property Name="IsAnsiNullsOn" Value="True" />
+			<Relationship Name="Columns">
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_RawToCleansedDetailRpt].[SrcFileDate]" />
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_RawToCleansedDetailRpt].[LastSrcFileDate]" />
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_RawToCleansedDetailRpt].[ProcessTimeMin]" />
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_RawToCleansedDetailRpt].[RefreshDate]" />
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_RawToCleansedDetailRpt].[LastFile]" />
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_RawToCleansedDetailRpt].[LastUpdatePass]" />
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_RawToCleansedDetailRpt].[LastPassDate]" />
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_RawToCleansedDetailRpt].[PassFlag]" />
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_RawToCleansedDetailRpt].[TechRecID]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[vw_TechRecRawToCleansedRpt].[TechRecID]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_RawToCleansedDetailRpt].[ProjectName]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[vw_TechRecRawToCleansedRpt].[ProjectName]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_RawToCleansedDetailRpt].[SourceGroup]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[vw_TechRecRawToCleansedRpt].[SourceGroup]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_RawToCleansedDetailRpt].[SourceLocation]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[vw_TechRecRawToCleansedRpt].[SourceLocation]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_RawToCleansedDetailRpt].[SourceFileDateStamp]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[vw_TechRecRawToCleansedRpt].[SourceFileDateStamp]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_RawToCleansedDetailRpt].[TargetName]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[vw_TechRecRawToCleansedRpt].[TargetName]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_RawToCleansedDetailRpt].[ManifestId]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[vw_TechRecRawToCleansedRpt].[ManifestId]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_RawToCleansedDetailRpt].[ManifestTotalNoRecords]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[vw_TechRecRawToCleansedRpt].[ManifestTotalNoRecords]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_RawToCleansedDetailRpt].[TargetTableRowCount]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[vw_TechRecRawToCleansedRpt].[TargetTableRowCount]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_RawToCleansedDetailRpt].[RawToCleansedMatchStatus]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[vw_TechRecRawToCleansedRpt].[RawToCleansedMatchStatus]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_RawToCleansedDetailRpt].[StartDateTime]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[vw_TechRecRawToCleansedRpt].[StartDateTime]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_RawToCleansedDetailRpt].[StartDate]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[vw_TechRecRawToCleansedRpt].[StartDate]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_RawToCleansedDetailRpt].[EndDateTime]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[vw_TechRecRawToCleansedRpt].[EndDateTime]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_RawToCleansedDetailRpt].[EndDate]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[vw_TechRecRawToCleansedRpt].[EndDate]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_RawToCleansedDetailRpt].[BatchExecutionStatus]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[vw_TechRecRawToCleansedRpt].[BatchExecutionStatus]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_RawToCleansedDetailRpt].[TaskExecutionStatus]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[vw_TechRecRawToCleansedRpt].[TaskExecutionStatus]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_RawToCleansedDetailRpt].[TaskExecutionLogId]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[vw_TechRecRawToCleansedRpt].[TaskExecutionLogId]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_RawToCleansedDetailRpt].[CurrentRecord]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[vw_TechRecRawToCleansedRpt].[CurrentRecord]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+			</Relationship>
+			<Relationship Name="QueryDependencies">
+				<Entry>
+					<References Name="[CTL].[vw_TechRecRawToCleansedRpt]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[vw_TechRecRawToCleansedRpt].[SourceGroup]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[vw_TechRecRawToCleansedRpt].[SourceLocation]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[vw_TechRecRawToCleansedRpt].[SourceFileDateStamp]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[vw_TechRecRawToCleansedRpt].[RawToCleansedMatchStatus]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[vw_TechRecRawToCleansedRpt].[SourceGroup]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[vw_TechRecRawToCleansedRpt].[SourceGroup]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[vw_TechRecRawToCleansedRpt].[SourceLocation]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[vw_TechRecRawToCleansedRpt].[SourceLocation]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[vw_TechRecRawToCleansedRpt].[SourceFileDateStamp]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[vw_TechRecRawToCleansedRpt].[StartDateTime]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[vw_TechRecRawToCleansedRpt].[EndDateTime]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[vw_TechRecRawToCleansedRpt].[RawToCleansedMatchStatus]" />
+				</Entry>
+				<Entry>
+					<References ExternalSource="BuiltIns" Name="[date]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[vw_TechRecRawToCleansedRpt].[SourceGroup]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[vw_TechRecRawToCleansedRpt].[SourceLocation]" />
+				</Entry>
+			</Relationship>
+			<Relationship Name="Schema">
+				<Entry>
+					<References Name="[CTL]" />
+				</Entry>
+			</Relationship>
+			<Annotation Type="SysCommentsObjectAnnotation">
+				<Property Name="Length" Value="1362" />
+				<Property Name="StartLine" Value="1" />
+				<Property Name="StartColumn" Value="1" />
+				<Property Name="HeaderContents" Value="CREATE VIEW [CTL].[vw_RawToCleansedDetailRpt]&#xA;  AS" />
+			</Annotation>
+		</Element>
+		<Element Type="SqlView" Name="[CTL].[vw_RawToCleansedSummaryRpt]">
+			<Property Name="QueryScript">
+				<Value><![CDATA[ 
+SELECT 
+  LEFT(T2.SourceFileDateStamp, 8) AS SrcFileDate, 
+  LEFT(T1.SrcTimestamp, 8) AS LastSrcFileDate, 
+  DATEDIFF(
+    MINUTE, StartDateTime, EndDateTime
+  ) AS ProcessTimeMin, 
+  GETDATE() AS RefreshDate, 
+  CASE WHEN T1.SrcTimestamp = T2.SourceFileDateStamp THEN 1 ELSE 0 END AS LastFile, 
+  CASE WHEN T1.SrcTimestamp = T2.SourceFileDateStamp AND T2.RawToCleansedMatchStatus = 'Passed' THEN 1 ELSE 0 END AS LastUpdatePass, 
+  CAST(
+    LEFT(T3.SrcTimestamp, 8) AS DATE
+  ) AS LastPassDate,  
+  CASE WHEN T2.RawToCleansedMatchStatus = 'Passed' THEN 1 ELSE 0 END AS PassFlag,
+  T2.* 
+FROM 
+  (
+    SELECT 
+      SourceGroup, 
+      SourceLocation, 
+      MAX(SourceFileDateStamp) AS SrcTimestamp 
+    FROM 
+      [CTL].[vw_TechRecRawToCleansedRpt] 
+    GROUP BY 
+      SourceGroup, 
+      SourceLocation
+  ) T1, 
+  [CTL].[vw_TechRecRawToCleansedRpt] T2 
+  LEFT OUTER JOIN (
+    SELECT 
+      SourceGroup, 
+      SourceLocation, 
+      MAX(SourceFileDateStamp) AS SrcTimestamp 
+    FROM 
+      CTL.vw_TechRecRawToCleansedRpt 
+    WHERE 
+      RawToCleansedMatchStatus = 'Passed' 
+    GROUP BY 
+      SourceGroup, 
+      SourceLocation
+  ) T3 ON T2.SourceGroup = T3.SourceGroup 
+  AND T2.SourceLocation = T3.SourceLocation 
+WHERE 
+  T1.SourceGroup = T2.SourceGroup 
+  AND T1.SourceLocation = T2.SourceLocation]]></Value>
+			</Property>
+			<Property Name="IsAnsiNullsOn" Value="True" />
+			<Relationship Name="Columns">
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_RawToCleansedSummaryRpt].[SrcFileDate]" />
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_RawToCleansedSummaryRpt].[LastSrcFileDate]" />
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_RawToCleansedSummaryRpt].[ProcessTimeMin]" />
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_RawToCleansedSummaryRpt].[RefreshDate]" />
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_RawToCleansedSummaryRpt].[LastFile]" />
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_RawToCleansedSummaryRpt].[LastUpdatePass]" />
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_RawToCleansedSummaryRpt].[LastPassDate]" />
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_RawToCleansedSummaryRpt].[PassFlag]" />
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_RawToCleansedSummaryRpt].[TechRecID]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[vw_TechRecRawToCleansedRpt].[TechRecID]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_RawToCleansedSummaryRpt].[ProjectName]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[vw_TechRecRawToCleansedRpt].[ProjectName]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_RawToCleansedSummaryRpt].[SourceGroup]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[vw_TechRecRawToCleansedRpt].[SourceGroup]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_RawToCleansedSummaryRpt].[SourceLocation]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[vw_TechRecRawToCleansedRpt].[SourceLocation]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_RawToCleansedSummaryRpt].[SourceFileDateStamp]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[vw_TechRecRawToCleansedRpt].[SourceFileDateStamp]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_RawToCleansedSummaryRpt].[TargetName]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[vw_TechRecRawToCleansedRpt].[TargetName]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_RawToCleansedSummaryRpt].[ManifestId]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[vw_TechRecRawToCleansedRpt].[ManifestId]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_RawToCleansedSummaryRpt].[ManifestTotalNoRecords]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[vw_TechRecRawToCleansedRpt].[ManifestTotalNoRecords]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_RawToCleansedSummaryRpt].[TargetTableRowCount]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[vw_TechRecRawToCleansedRpt].[TargetTableRowCount]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_RawToCleansedSummaryRpt].[RawToCleansedMatchStatus]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[vw_TechRecRawToCleansedRpt].[RawToCleansedMatchStatus]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_RawToCleansedSummaryRpt].[StartDateTime]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[vw_TechRecRawToCleansedRpt].[StartDateTime]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_RawToCleansedSummaryRpt].[StartDate]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[vw_TechRecRawToCleansedRpt].[StartDate]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_RawToCleansedSummaryRpt].[EndDateTime]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[vw_TechRecRawToCleansedRpt].[EndDateTime]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_RawToCleansedSummaryRpt].[EndDate]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[vw_TechRecRawToCleansedRpt].[EndDate]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_RawToCleansedSummaryRpt].[BatchExecutionStatus]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[vw_TechRecRawToCleansedRpt].[BatchExecutionStatus]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_RawToCleansedSummaryRpt].[TaskExecutionStatus]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[vw_TechRecRawToCleansedRpt].[TaskExecutionStatus]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_RawToCleansedSummaryRpt].[TaskExecutionLogId]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[vw_TechRecRawToCleansedRpt].[TaskExecutionLogId]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_RawToCleansedSummaryRpt].[CurrentRecord]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[vw_TechRecRawToCleansedRpt].[CurrentRecord]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+			</Relationship>
+			<Relationship Name="QueryDependencies">
+				<Entry>
+					<References Name="[CTL].[vw_TechRecRawToCleansedRpt]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[vw_TechRecRawToCleansedRpt].[SourceGroup]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[vw_TechRecRawToCleansedRpt].[SourceLocation]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[vw_TechRecRawToCleansedRpt].[SourceFileDateStamp]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[vw_TechRecRawToCleansedRpt].[RawToCleansedMatchStatus]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[vw_TechRecRawToCleansedRpt].[SourceGroup]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[vw_TechRecRawToCleansedRpt].[SourceGroup]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[vw_TechRecRawToCleansedRpt].[SourceLocation]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[vw_TechRecRawToCleansedRpt].[SourceLocation]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[vw_TechRecRawToCleansedRpt].[SourceFileDateStamp]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[vw_TechRecRawToCleansedRpt].[StartDateTime]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[vw_TechRecRawToCleansedRpt].[EndDateTime]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[vw_TechRecRawToCleansedRpt].[RawToCleansedMatchStatus]" />
+				</Entry>
+				<Entry>
+					<References ExternalSource="BuiltIns" Name="[date]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[vw_TechRecRawToCleansedRpt].[SourceGroup]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[vw_TechRecRawToCleansedRpt].[SourceLocation]" />
+				</Entry>
+			</Relationship>
+			<Relationship Name="Schema">
+				<Entry>
+					<References Name="[CTL]" />
+				</Entry>
+			</Relationship>
+			<Annotation Type="SysCommentsObjectAnnotation">
+				<Property Name="Length" Value="1364" />
+				<Property Name="StartLine" Value="1" />
+				<Property Name="StartColumn" Value="1" />
+				<Property Name="HeaderContents" Value="CREATE VIEW [CTL].[vw_RawToCleansedSummaryRpt]&#xA;  AS" />
+			</Annotation>
+		</Element>
+		<Element Type="SqlView" Name="[CTL].[vw_SrcToRawDetailRpt]">
+			<Property Name="QueryScript">
+				<Value><![CDATA[ SELECT 
+  CAST(
+    LEFT(T2.SourceFileDateStamp, 8) AS DATE
+  ) AS SrcFileDate, 
+  CAST(
+    LEFT(T1.SrcTimestamp, 8) AS DATE
+  ) AS LastSrcFileDate, 
+  DATEDIFF(
+    DAY, 
+    CAST(
+      LEFT(T2.SourceFileDateStamp, 8) AS DATE
+    ), 
+    GETDATE()
+  ) AS ProcessTimeDays, 
+  DATEDIFF(
+    MINUTE, StartDateTime, EndDateTime
+  ) AS ProcessTimeMin, 
+  T2.SourceGroup + '/' + T2.SourceLocation AS SrcTableID, 
+  GETDATE() AS RefreshDate, 
+  CASE WHEN T1.SrcTimestamp = T2.SourceFileDateStamp THEN 1 ELSE 0 END AS LastFile, 
+  CASE WHEN T1.SrcTimestamp = T2.SourceFileDateStamp 
+  AND T2.SrcToRawMatchStatus = 'Passed' THEN 1 ELSE 0 END AS LastUpdatePass, 
+  CAST(
+    LEFT(T3.SrcTimestamp, 8) AS DATE
+  ) AS LastPassDate, 
+  CASE WHEN T2.SrcToRawMatchStatus = 'Passed' THEN 1 ELSE 0 END AS PassFlag,
+  T2.* ,
+  CAST(SYSDATETIMEOFFSET() AT TIME ZONE 'E. Australia Standard Time' AS smalldatetime) AS RefreshDateTime
+FROM 
+  (
+    SELECT 
+      SourceGroup, 
+      SourceLocation, 
+      MAX(SourceFileDateStamp) AS SrcTimestamp 
+    FROM 
+      CTL.vw_TechRecSrcToRawRpt 
+    GROUP BY 
+      SourceGroup, 
+      SourceLocation
+  ) T1, 
+  CTL.vw_TechRecSrcToRawRpt T2 
+  LEFT OUTER JOIN (
+    SELECT 
+      SourceGroup, 
+      SourceLocation, 
+      MAX(SourceFileDateStamp) AS SrcTimestamp 
+    FROM 
+      CTL.vw_TechRecSrcToRawRpt 
+    WHERE 
+      SrcToRawMatchStatus = 'Passed' 
+    GROUP BY 
+      SourceGroup, 
+      SourceLocation
+  ) T3 ON T2.SourceGroup = T3.SourceGroup 
+  AND T2.SourceLocation = T3.SourceLocation 
+WHERE 
+  T1.SourceGroup = T2.SourceGroup 
+  AND T1.SourceLocation = T2.SourceLocation]]></Value>
+			</Property>
+			<Property Name="IsAnsiNullsOn" Value="True" />
+			<Relationship Name="Columns">
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_SrcToRawDetailRpt].[SrcFileDate]" />
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_SrcToRawDetailRpt].[LastSrcFileDate]" />
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_SrcToRawDetailRpt].[ProcessTimeDays]" />
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_SrcToRawDetailRpt].[ProcessTimeMin]" />
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_SrcToRawDetailRpt].[SrcTableID]" />
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_SrcToRawDetailRpt].[RefreshDate]" />
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_SrcToRawDetailRpt].[LastFile]" />
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_SrcToRawDetailRpt].[LastUpdatePass]" />
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_SrcToRawDetailRpt].[LastPassDate]" />
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_SrcToRawDetailRpt].[PassFlag]" />
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_SrcToRawDetailRpt].[ManifestID]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[vw_TechRecSrcToRawRpt].[ManifestID]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_SrcToRawDetailRpt].[ProjectName]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[vw_TechRecSrcToRawRpt].[ProjectName]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_SrcToRawDetailRpt].[SourceGroup]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[vw_TechRecSrcToRawRpt].[SourceGroup]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_SrcToRawDetailRpt].[SourceLocation]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[vw_TechRecSrcToRawRpt].[SourceLocation]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_SrcToRawDetailRpt].[SourceFileDateStamp]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[vw_TechRecSrcToRawRpt].[SourceFileDateStamp]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_SrcToRawDetailRpt].[ManifestDeltaRecordCount]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[vw_TechRecSrcToRawRpt].[ManifestDeltaRecordCount]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_SrcToRawDetailRpt].[RecordCount_ReadFromDataFile]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[vw_TechRecSrcToRawRpt].[RecordCount_ReadFromDataFile]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_SrcToRawDetailRpt].[RecordCount_SavedToDeltaTable]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[vw_TechRecSrcToRawRpt].[RecordCount_SavedToDeltaTable]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_SrcToRawDetailRpt].[SrcToRawMatchStatus]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[vw_TechRecSrcToRawRpt].[SrcToRawMatchStatus]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_SrcToRawDetailRpt].[StartDateTime]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[vw_TechRecSrcToRawRpt].[StartDateTime]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_SrcToRawDetailRpt].[StartDate]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[vw_TechRecSrcToRawRpt].[StartDate]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_SrcToRawDetailRpt].[EndDateTime]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[vw_TechRecSrcToRawRpt].[EndDateTime]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_SrcToRawDetailRpt].[EndDate]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[vw_TechRecSrcToRawRpt].[EndDate]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_SrcToRawDetailRpt].[BatchExecutionStatus]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[vw_TechRecSrcToRawRpt].[BatchExecutionStatus]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_SrcToRawDetailRpt].[TaskExecutionStatus]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[vw_TechRecSrcToRawRpt].[TaskExecutionStatus]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_SrcToRawDetailRpt].[ValidRecord]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[vw_TechRecSrcToRawRpt].[ValidRecord]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_SrcToRawDetailRpt].[RefreshDateTime]" />
+				</Entry>
+			</Relationship>
+			<Relationship Name="QueryDependencies">
+				<Entry>
+					<References Name="[CTL].[vw_TechRecSrcToRawRpt]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[vw_TechRecSrcToRawRpt].[SourceGroup]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[vw_TechRecSrcToRawRpt].[SourceLocation]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[vw_TechRecSrcToRawRpt].[SourceFileDateStamp]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[vw_TechRecSrcToRawRpt].[SrcToRawMatchStatus]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[vw_TechRecSrcToRawRpt].[SourceGroup]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[vw_TechRecSrcToRawRpt].[SourceGroup]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[vw_TechRecSrcToRawRpt].[SourceLocation]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[vw_TechRecSrcToRawRpt].[SourceLocation]" />
+				</Entry>
+				<Entry>
+					<References ExternalSource="BuiltIns" Name="[date]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[vw_TechRecSrcToRawRpt].[SourceFileDateStamp]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[vw_TechRecSrcToRawRpt].[StartDateTime]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[vw_TechRecSrcToRawRpt].[EndDateTime]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[vw_TechRecSrcToRawRpt].[SrcToRawMatchStatus]" />
+				</Entry>
+				<Entry>
+					<References ExternalSource="BuiltIns" Name="[smalldatetime]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[vw_TechRecSrcToRawRpt].[SourceGroup]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[vw_TechRecSrcToRawRpt].[SourceLocation]" />
+				</Entry>
+			</Relationship>
+			<Relationship Name="Schema">
+				<Entry>
+					<References Name="[CTL]" />
+				</Entry>
+			</Relationship>
+			<Annotation Type="SysCommentsObjectAnnotation">
+				<Property Name="Length" Value="1656" />
+				<Property Name="StartLine" Value="1" />
+				<Property Name="StartColumn" Value="1" />
+				<Property Name="HeaderContents" Value="CREATE VIEW [CTL].[vw_SrcToRawDetailRpt]&#xA;  AS" />
+			</Annotation>
+		</Element>
+		<Element Type="SqlView" Name="[CTL].[vw_SrcToRawSummaryRpt]">
+			<Property Name="QueryScript">
+				<Value><![CDATA[ SELECT 
+  CAST(
+    LEFT(T2.SourceFileDateStamp, 8) AS DATE
+  ) AS SrcFileDate, 
+  CAST(
+    LEFT(T1.SrcTimestamp, 8) AS DATE
+  ) AS LastSrcFileDate, 
+  DATEDIFF(
+    DAY, 
+    CAST(
+      LEFT(T2.SourceFileDateStamp, 8) AS DATE
+    ), 
+    GETDATE()
+  ) AS ProcessTimeDays, 
+  DATEDIFF(
+    MINUTE, StartDateTime, EndDateTime
+  ) AS ProcessTimeMin, 
+  T2.SourceGroup + '/' + T2.SourceLocation AS SrcTableID, 
+  GETDATE() AS RefreshDate, 
+  CASE WHEN T1.SrcTimestamp = T2.SourceFileDateStamp THEN 1 ELSE 0 END AS LastFile, 
+  CASE WHEN T1.SrcTimestamp = T2.SourceFileDateStamp 
+  AND T2.SrcToRawMatchStatus = 'Passed' THEN 1 ELSE 0 END AS LastUpdatePass, 
+  CAST(
+    LEFT(T3.SrcTimestamp, 8) AS DATE
+  ) AS LastPassDate, 
+  CASE WHEN T2.SrcToRawMatchStatus = 'Passed' THEN 1 ELSE 0 END AS PassFlag,
+  T2.*
+FROM 
+  (
+    SELECT 
+      SourceGroup, 
+      SourceLocation, 
+      MAX(SourceFileDateStamp) AS SrcTimestamp 
+    FROM 
+      CTL.vw_TechRecSrcToRawRpt 
+    GROUP BY 
+      SourceGroup, 
+      SourceLocation
+  ) T1, 
+  CTL.vw_TechRecSrcToRawRpt T2 
+  LEFT OUTER JOIN (
+    SELECT 
+      SourceGroup, 
+      SourceLocation, 
+      MAX(SourceFileDateStamp) AS SrcTimestamp 
+    FROM 
+      CTL.vw_TechRecSrcToRawRpt 
+    WHERE 
+      SrcToRawMatchStatus = 'Passed' 
+    GROUP BY 
+      SourceGroup, 
+      SourceLocation
+  ) T3 ON T2.SourceGroup = T3.SourceGroup 
+  AND T2.SourceLocation = T3.SourceLocation 
+WHERE 
+  T1.SourceGroup = T2.SourceGroup 
+  AND T1.SourceLocation = T2.SourceLocation]]></Value>
+			</Property>
+			<Property Name="IsAnsiNullsOn" Value="True" />
+			<Relationship Name="Columns">
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_SrcToRawSummaryRpt].[SrcFileDate]" />
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_SrcToRawSummaryRpt].[LastSrcFileDate]" />
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_SrcToRawSummaryRpt].[ProcessTimeDays]" />
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_SrcToRawSummaryRpt].[ProcessTimeMin]" />
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_SrcToRawSummaryRpt].[SrcTableID]" />
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_SrcToRawSummaryRpt].[RefreshDate]" />
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_SrcToRawSummaryRpt].[LastFile]" />
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_SrcToRawSummaryRpt].[LastUpdatePass]" />
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_SrcToRawSummaryRpt].[LastPassDate]" />
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_SrcToRawSummaryRpt].[PassFlag]" />
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_SrcToRawSummaryRpt].[ManifestID]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[vw_TechRecSrcToRawRpt].[ManifestID]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_SrcToRawSummaryRpt].[ProjectName]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[vw_TechRecSrcToRawRpt].[ProjectName]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_SrcToRawSummaryRpt].[SourceGroup]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[vw_TechRecSrcToRawRpt].[SourceGroup]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_SrcToRawSummaryRpt].[SourceLocation]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[vw_TechRecSrcToRawRpt].[SourceLocation]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_SrcToRawSummaryRpt].[SourceFileDateStamp]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[vw_TechRecSrcToRawRpt].[SourceFileDateStamp]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_SrcToRawSummaryRpt].[ManifestDeltaRecordCount]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[vw_TechRecSrcToRawRpt].[ManifestDeltaRecordCount]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_SrcToRawSummaryRpt].[RecordCount_ReadFromDataFile]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[vw_TechRecSrcToRawRpt].[RecordCount_ReadFromDataFile]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_SrcToRawSummaryRpt].[RecordCount_SavedToDeltaTable]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[vw_TechRecSrcToRawRpt].[RecordCount_SavedToDeltaTable]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_SrcToRawSummaryRpt].[SrcToRawMatchStatus]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[vw_TechRecSrcToRawRpt].[SrcToRawMatchStatus]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_SrcToRawSummaryRpt].[StartDateTime]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[vw_TechRecSrcToRawRpt].[StartDateTime]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_SrcToRawSummaryRpt].[StartDate]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[vw_TechRecSrcToRawRpt].[StartDate]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_SrcToRawSummaryRpt].[EndDateTime]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[vw_TechRecSrcToRawRpt].[EndDateTime]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_SrcToRawSummaryRpt].[EndDate]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[vw_TechRecSrcToRawRpt].[EndDate]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_SrcToRawSummaryRpt].[BatchExecutionStatus]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[vw_TechRecSrcToRawRpt].[BatchExecutionStatus]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_SrcToRawSummaryRpt].[TaskExecutionStatus]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[vw_TechRecSrcToRawRpt].[TaskExecutionStatus]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_SrcToRawSummaryRpt].[ValidRecord]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[vw_TechRecSrcToRawRpt].[ValidRecord]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+			</Relationship>
+			<Relationship Name="QueryDependencies">
+				<Entry>
+					<References Name="[CTL].[vw_TechRecSrcToRawRpt]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[vw_TechRecSrcToRawRpt].[SourceGroup]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[vw_TechRecSrcToRawRpt].[SourceLocation]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[vw_TechRecSrcToRawRpt].[SourceFileDateStamp]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[vw_TechRecSrcToRawRpt].[SrcToRawMatchStatus]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[vw_TechRecSrcToRawRpt].[SourceGroup]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[vw_TechRecSrcToRawRpt].[SourceGroup]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[vw_TechRecSrcToRawRpt].[SourceLocation]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[vw_TechRecSrcToRawRpt].[SourceLocation]" />
+				</Entry>
+				<Entry>
+					<References ExternalSource="BuiltIns" Name="[date]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[vw_TechRecSrcToRawRpt].[SourceFileDateStamp]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[vw_TechRecSrcToRawRpt].[StartDateTime]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[vw_TechRecSrcToRawRpt].[EndDateTime]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[vw_TechRecSrcToRawRpt].[SrcToRawMatchStatus]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[vw_TechRecSrcToRawRpt].[SourceGroup]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[vw_TechRecSrcToRawRpt].[SourceLocation]" />
+				</Entry>
+			</Relationship>
+			<Relationship Name="Schema">
+				<Entry>
+					<References Name="[CTL]" />
+				</Entry>
+			</Relationship>
+			<Annotation Type="SysCommentsObjectAnnotation">
+				<Property Name="Length" Value="1549" />
+				<Property Name="StartLine" Value="1" />
+				<Property Name="StartColumn" Value="1" />
+				<Property Name="HeaderContents" Value="CREATE VIEW [CTL].[vw_SrcToRawSummaryRpt]&#xA;  AS" />
+			</Annotation>
+		</Element>
 		<Element Type="SqlView" Name="[CTL].[vw_TaskExecutionDetails]">
 			<Property Name="QueryScript">
 				<Value><![CDATA[
@@ -16445,6 +18077,7 @@ SELECT * FROM
 (
 	SELECT 
 		 TechRecID
+		,P.ProjectName
 		,S.SourceGroup
 		,S.SourceLocation	
 		,SourceFileDateStamp
@@ -16467,6 +18100,7 @@ SELECT * FROM
 		INNER JOIN CTL.TaskExecutionLog TL ON TR.TaskExecutionLogId = TL.ExecutionLogId
 		INNER JOIN CTL.BatchExecutionLog BL ON TR.BatchExecutionId = BL.BatchExecutionLogId
 		INNER JOIN CTL.TechRecCleansedConfig TRC ON TRC.TargetObject = TR.TargetName and TRC.TechRecDashboardReady = 'Y' 
+		INNER JOIN CTL.ControlProjects P ON P.ProjectId = T.ProjectId
 ) src WHERE CurrentRecord = 1]]></Value>
 			</Property>
 			<Property Name="IsAnsiNullsOn" Value="True" />
@@ -16476,6 +18110,15 @@ SELECT * FROM
 						<Relationship Name="ExpressionDependencies">
 							<Entry>
 								<References Name="[CTL].[TechRecRawToCleansed].[TechRecID]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_TechRecRawToCleansedRpt].[ProjectName]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[ControlProjects].[ProjectName]" />
 							</Entry>
 						</Relationship>
 					</Element>
@@ -16654,7 +18297,19 @@ SELECT * FROM
 					<References Name="[CTL].[TechRecCleansedConfig].[TechRecDashboardReady]" />
 				</Entry>
 				<Entry>
+					<References Name="[CTL].[ControlProjects]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlProjects].[ProjectId]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlTasks].[ProjectId]" />
+				</Entry>
+				<Entry>
 					<References Name="[CTL].[TechRecRawToCleansed].[TechRecID]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlProjects].[ProjectName]" />
 				</Entry>
 				<Entry>
 					<References Name="[CTL].[ControlSource].[SourceGroup]" />
@@ -16708,7 +18363,7 @@ SELECT * FROM
 				</Entry>
 			</Relationship>
 			<Annotation Type="SysCommentsObjectAnnotation">
-				<Property Name="Length" Value="1218" />
+				<Property Name="Length" Value="1301" />
 				<Property Name="StartLine" Value="1" />
 				<Property Name="StartColumn" Value="1" />
 				<Property Name="HeaderContents" Value="CREATE VIEW [CTL].[vw_TechRecRawToCleansedRpt] AS" />
@@ -16946,40 +18601,14 @@ WHERE ST.ControlType = 'BLOB Storage (json)']]></Value>
 				<Property Name="HeaderContents" Value="CREATE VIEW CTL.vw_TechRecSrcToRaw&#xD;&#xA;AS" />
 			</Annotation>
 		</Element>
-		<Element Type="SqlTable" Name="[dbo].[Dummy]">
-			<Property Name="IsAnsiNullsOn" Value="True" />
-			<Relationship Name="Columns">
-				<Entry>
-					<Element Type="SqlSimpleColumn" Name="[dbo].[Dummy].[Id]">
-						<Property Name="IsNullable" Value="False" />
-						<Relationship Name="TypeSpecifier">
-							<Entry>
-								<Element Type="SqlTypeSpecifier">
-									<Relationship Name="Type">
-										<Entry>
-											<References ExternalSource="BuiltIns" Name="[int]" />
-										</Entry>
-									</Relationship>
-								</Element>
-							</Entry>
-						</Relationship>
-						<AttachedAnnotation Disambiguator="3" />
-					</Element>
-				</Entry>
-			</Relationship>
-			<Relationship Name="Schema">
-				<Entry>
-					<References ExternalSource="BuiltIns" Name="[dbo]" />
-				</Entry>
-			</Relationship>
-		</Element>
-		<Element Type="SqlView" Name="[dbo].[vw_TechRecSrcToRawRpt]">
+		<Element Type="SqlView" Name="[CTL].[vw_TechRecSrcToRawRpt]">
 			<Property Name="QueryScript">
 				<Value><![CDATA[
 SELECT * FROM
 (
 	SELECT 
 		 ManifestID
+		,P.ProjectName
 		,S.SourceGroup
 		,SUBSTRING(S.SourceLocation,CHARINDEX('.',S.SourceLocation)+1,LEN(S.SourceLocation)) as SourceLocation
 		,SourceFileDateStamp
@@ -17000,13 +18629,14 @@ SELECT * FROM
 		INNER JOIN CTL.ControlTasks T ON TL.ControlTaskId = T.TaskId
 		INNER JOIN CTL.ControlSource S ON T.SourceId = S.SourceId
 		INNER JOIN CTL.ControlTypes ST ON S.SourceTypeId = ST.TypeId
+		INNER JOIN CTL.ControlProjects P ON P.ProjectId = T.ProjectId
 	WHERE ST.ControlType in ('BLOB Storage (json)','SQL server')
 ) src WHERE src.ValidRecord = 1]]></Value>
 			</Property>
 			<Property Name="IsAnsiNullsOn" Value="True" />
 			<Relationship Name="Columns">
 				<Entry>
-					<Element Type="SqlComputedColumn" Name="[dbo].[vw_TechRecSrcToRawRpt].[ManifestID]">
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_TechRecSrcToRawRpt].[ManifestID]">
 						<Relationship Name="ExpressionDependencies">
 							<Entry>
 								<References Name="[CTL].[ControlManifest].[ManifestID]" />
@@ -17015,7 +18645,16 @@ SELECT * FROM
 					</Element>
 				</Entry>
 				<Entry>
-					<Element Type="SqlComputedColumn" Name="[dbo].[vw_TechRecSrcToRawRpt].[SourceGroup]">
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_TechRecSrcToRawRpt].[ProjectName]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[ControlProjects].[ProjectName]" />
+							</Entry>
+						</Relationship>
+					</Element>
+				</Entry>
+				<Entry>
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_TechRecSrcToRawRpt].[SourceGroup]">
 						<Relationship Name="ExpressionDependencies">
 							<Entry>
 								<References Name="[CTL].[ControlSource].[SourceGroup]" />
@@ -17024,10 +18663,10 @@ SELECT * FROM
 					</Element>
 				</Entry>
 				<Entry>
-					<Element Type="SqlComputedColumn" Name="[dbo].[vw_TechRecSrcToRawRpt].[SourceLocation]" />
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_TechRecSrcToRawRpt].[SourceLocation]" />
 				</Entry>
 				<Entry>
-					<Element Type="SqlComputedColumn" Name="[dbo].[vw_TechRecSrcToRawRpt].[SourceFileDateStamp]">
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_TechRecSrcToRawRpt].[SourceFileDateStamp]">
 						<Relationship Name="ExpressionDependencies">
 							<Entry>
 								<References Name="[CTL].[ControlManifest].[SourceFileDateStamp]" />
@@ -17036,7 +18675,7 @@ SELECT * FROM
 					</Element>
 				</Entry>
 				<Entry>
-					<Element Type="SqlComputedColumn" Name="[dbo].[vw_TechRecSrcToRawRpt].[ManifestDeltaRecordCount]">
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_TechRecSrcToRawRpt].[ManifestDeltaRecordCount]">
 						<Relationship Name="ExpressionDependencies">
 							<Entry>
 								<References Name="[CTL].[ControlManifest].[M_DeltaRecordCount]" />
@@ -17045,7 +18684,7 @@ SELECT * FROM
 					</Element>
 				</Entry>
 				<Entry>
-					<Element Type="SqlComputedColumn" Name="[dbo].[vw_TechRecSrcToRawRpt].[RecordCount_ReadFromDataFile]">
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_TechRecSrcToRawRpt].[RecordCount_ReadFromDataFile]">
 						<Relationship Name="ExpressionDependencies">
 							<Entry>
 								<References Name="[CTL].[ControlManifest].[RecordCountDeltaTable]" />
@@ -17054,7 +18693,7 @@ SELECT * FROM
 					</Element>
 				</Entry>
 				<Entry>
-					<Element Type="SqlComputedColumn" Name="[dbo].[vw_TechRecSrcToRawRpt].[RecordCount_SavedToDeltaTable]">
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_TechRecSrcToRawRpt].[RecordCount_SavedToDeltaTable]">
 						<Relationship Name="ExpressionDependencies">
 							<Entry>
 								<References Name="[CTL].[ControlManifest].[RecordCountTargetTable]" />
@@ -17063,10 +18702,10 @@ SELECT * FROM
 					</Element>
 				</Entry>
 				<Entry>
-					<Element Type="SqlComputedColumn" Name="[dbo].[vw_TechRecSrcToRawRpt].[SrcToRawMatchStatus]" />
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_TechRecSrcToRawRpt].[SrcToRawMatchStatus]" />
 				</Entry>
 				<Entry>
-					<Element Type="SqlComputedColumn" Name="[dbo].[vw_TechRecSrcToRawRpt].[StartDateTime]">
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_TechRecSrcToRawRpt].[StartDateTime]">
 						<Relationship Name="ExpressionDependencies">
 							<Entry>
 								<References Name="[CTL].[TaskExecutionLog].[StartTime]" />
@@ -17075,10 +18714,10 @@ SELECT * FROM
 					</Element>
 				</Entry>
 				<Entry>
-					<Element Type="SqlComputedColumn" Name="[dbo].[vw_TechRecSrcToRawRpt].[StartDate]" />
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_TechRecSrcToRawRpt].[StartDate]" />
 				</Entry>
 				<Entry>
-					<Element Type="SqlComputedColumn" Name="[dbo].[vw_TechRecSrcToRawRpt].[EndDateTime]">
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_TechRecSrcToRawRpt].[EndDateTime]">
 						<Relationship Name="ExpressionDependencies">
 							<Entry>
 								<References Name="[CTL].[TaskExecutionLog].[EndTime]" />
@@ -17087,10 +18726,10 @@ SELECT * FROM
 					</Element>
 				</Entry>
 				<Entry>
-					<Element Type="SqlComputedColumn" Name="[dbo].[vw_TechRecSrcToRawRpt].[EndDate]" />
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_TechRecSrcToRawRpt].[EndDate]" />
 				</Entry>
 				<Entry>
-					<Element Type="SqlComputedColumn" Name="[dbo].[vw_TechRecSrcToRawRpt].[BatchExecutionStatus]">
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_TechRecSrcToRawRpt].[BatchExecutionStatus]">
 						<Relationship Name="ExpressionDependencies">
 							<Entry>
 								<References Name="[CTL].[BatchExecutionLog].[BatchExecutionStatus]" />
@@ -17099,7 +18738,7 @@ SELECT * FROM
 					</Element>
 				</Entry>
 				<Entry>
-					<Element Type="SqlComputedColumn" Name="[dbo].[vw_TechRecSrcToRawRpt].[TaskExecutionStatus]">
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_TechRecSrcToRawRpt].[TaskExecutionStatus]">
 						<Relationship Name="ExpressionDependencies">
 							<Entry>
 								<References Name="[CTL].[TaskExecutionLog].[ExecutionStatus]" />
@@ -17108,7 +18747,7 @@ SELECT * FROM
 					</Element>
 				</Entry>
 				<Entry>
-					<Element Type="SqlComputedColumn" Name="[dbo].[vw_TechRecSrcToRawRpt].[ValidRecord]" />
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_TechRecSrcToRawRpt].[ValidRecord]" />
 				</Entry>
 			</Relationship>
 			<Relationship Name="QueryDependencies">
@@ -17161,7 +18800,19 @@ SELECT * FROM
 					<References Name="[CTL].[ControlTypes].[TypeId]" />
 				</Entry>
 				<Entry>
+					<References Name="[CTL].[ControlProjects]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlProjects].[ProjectId]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlTasks].[ProjectId]" />
+				</Entry>
+				<Entry>
 					<References Name="[CTL].[ControlManifest].[ManifestID]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlProjects].[ProjectName]" />
 				</Entry>
 				<Entry>
 					<References Name="[CTL].[ControlSource].[SourceGroup]" />
@@ -17214,15 +18865,42 @@ SELECT * FROM
 			</Relationship>
 			<Relationship Name="Schema">
 				<Entry>
-					<References ExternalSource="BuiltIns" Name="[dbo]" />
+					<References Name="[CTL]" />
 				</Entry>
 			</Relationship>
 			<Annotation Type="SysCommentsObjectAnnotation">
-				<Property Name="Length" Value="1351" />
+				<Property Name="Length" Value="1434" />
 				<Property Name="StartLine" Value="1" />
 				<Property Name="StartColumn" Value="1" />
-				<Property Name="HeaderContents" Value="CREATE VIEW [dbo].[vw_TechRecSrcToRawRpt] AS" />
+				<Property Name="HeaderContents" Value="CREATE VIEW [CTL].[vw_TechRecSrcToRawRpt] AS" />
 			</Annotation>
+		</Element>
+		<Element Type="SqlTable" Name="[dbo].[Dummy]">
+			<Property Name="IsAnsiNullsOn" Value="True" />
+			<Relationship Name="Columns">
+				<Entry>
+					<Element Type="SqlSimpleColumn" Name="[dbo].[Dummy].[Id]">
+						<Property Name="IsNullable" Value="False" />
+						<Relationship Name="TypeSpecifier">
+							<Entry>
+								<Element Type="SqlTypeSpecifier">
+									<Relationship Name="Type">
+										<Entry>
+											<References ExternalSource="BuiltIns" Name="[int]" />
+										</Entry>
+									</Relationship>
+								</Element>
+							</Entry>
+						</Relationship>
+						<AttachedAnnotation Disambiguator="3" />
+					</Element>
+				</Entry>
+			</Relationship>
+			<Relationship Name="Schema">
+				<Entry>
+					<References ExternalSource="BuiltIns" Name="[dbo]" />
+				</Entry>
+			</Relationship>
 		</Element>
 	</Model>
 </DataSchemaModel>
