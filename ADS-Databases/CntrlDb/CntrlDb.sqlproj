@@ -156,6 +156,12 @@
     <Build Include="CTL\Tables\BusinessRecStage.sql" />
     <Build Include="CTL\Tables\Dummy.sql" />
     <Build Include="CTL\Tables\TechRecCleansedConfig.sql" />
+    <Build Include="CTL\Views\vw_SrcToRawDetailRpt.sql" />
+    <Build Include="CTL\Views\vw_SrcToRawSummaryRpt.sql" />
+    <Build Include="CTL\Views\vw_RawToCleansedSummaryRpt.sql" />
+    <Build Include="CTL\Views\vw_RawToCleansedDetailRpt.sql" />
+    <Build Include="CTL\Views\vw_BusinessRecSummaryRpt.sql" />
+    <Build Include="CTL\Views\vw_BusinessRecDetailRpt.sql" />
   </ItemGroup>
   <ItemGroup>
     <PostDeploy Include="Script.PostDeployment1.sql" />
