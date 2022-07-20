@@ -669,13 +669,16 @@ Delete From [CTL].[ControlTarget]
 
 DELETE FROM CTL.ControlManifest
 
+DELETE from [CTL].[ControlProjectSchedule]
+
 DBCC CHECKIDENT ('CTL.ControlTarget',Reseed,0)
 DBCC CHECKIDENT ('CTL.ControlSource',Reseed,0)
 DBCC CHECKIDENT ('CTL.ControlTasks',Reseed,0)
 DBCC CHECKIDENT ('CTL.BatchExecutionLog',Reseed,0)
 DBCC CHECKIDENT ('CTL.TaskExecutionLog',Reseed,0)
 DBCC CHECKIDENT ('CTL.ControlTaskCommand',Reseed,0)
-DBCC CHECKIDENT ('CTL.ControlWatermark',Reseed,0)]]></Value>
+DBCC CHECKIDENT ('CTL.ControlWatermark',Reseed,0)
+DBCC CHECKIDENT ('CTL.ControlProjectSchedule',Reseed,0)]]></Value>
 			</Property>
 			<Property Name="IsAnsiNullsOn" Value="True" />
 			<Relationship Name="BodyDependencies">
@@ -703,6 +706,9 @@ DBCC CHECKIDENT ('CTL.ControlWatermark',Reseed,0)]]></Value>
 				<Entry>
 					<References Name="[CTL].[ControlManifest]" />
 				</Entry>
+				<Entry>
+					<References Name="[CTL].[ControlProjectSchedule]" />
+				</Entry>
 			</Relationship>
 			<Relationship Name="Schema">
 				<Entry>
@@ -710,7 +716,7 @@ DBCC CHECKIDENT ('CTL.ControlWatermark',Reseed,0)]]></Value>
 				</Entry>
 			</Relationship>
 			<Annotation Type="SysCommentsObjectAnnotation">
-				<Property Name="Length" Value="699" />
+				<Property Name="Length" Value="802" />
 				<Property Name="StartLine" Value="1" />
 				<Property Name="StartColumn" Value="1" />
 				<Property Name="HeaderContents" Value="CREATE   PROC [CTL].[ClearDB]&#xD;&#xA;AS" />
