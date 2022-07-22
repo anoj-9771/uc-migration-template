@@ -2,8 +2,7 @@
 # DBTITLE 1,Generate parameter and source object name for unit testing
 import json
 hydraTable = 'TSYSTEMAREA'
-delta = 'PRODUCT,LEVEL30,LEVEL40,LEVEL50,LEVEL60'
-runParm = '{"SourceType":"BLOB Storage (csv)","SourceServer":"daf-sa-lake-sastoken","SourceGroup":"hydraref","SourceName":"hydra_TSYSTEMAREA","SourceLocation":"hydraref/TSYSTEMAREA","AdditionalProperty":"","Processor":"databricks-token|1103-023442-me8nqcm9|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive","IsAuditTable":false,"SoftDeleteSource":"","ProjectName":"CLEANSED HYDRA REF","ProjectId":27,"TargetType":"BLOB Storage (csv)","TargetName":"hydra_TSYSTEMAREA","TargetLocation":"hydraref/TSYSTEMAREA","TargetServer":"daf-sa-lake-sastoken","DataLoadMode":"TRUNCATE-LOAD","DeltaExtract":false,"CDCSource":false,"TruncateTarget":true,"UpsertTarget":false,"AppendTarget":false,"TrackChanges":false,"LoadToSqlEDW":true,"TaskName":"hydra_TSYSTEMAREA","ControlStageId":2,"TaskId":16,"StageSequence":200,"StageName":"Raw to Cleansed","SourceId":16,"TargetId":16,"ObjectGrain":"Day","CommandTypeId":8,"Watermarks":"","WatermarksDT":null,"WatermarkColumn":"","BusinessKeyColumn":"20,30,40,50,60","PartitionColumn":null,"UpdateMetaData":null,"SourceTimeStampFormat":"","Command":"/build/cleansed/HYDRA Ref/TSYSTEMAREA","LastLoadedFile":null}'
+runParm = '{"SourceType":"BLOB Storage (csv)","SourceServer":"daf-sa-lake-sastoken","SourceGroup":"hydraref","SourceName":"hydra_TSYSTEMAREA","SourceLocation":"hydraref/TSYSTEMAREA","AdditionalProperty":"","Processor":"databricks-token|0517-025528-mkzhqnk1|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive","IsAuditTable":false,"SoftDeleteSource":"","ProjectName":"CLEANSED REF HYDRA","ProjectId":28,"TargetType":"BLOB Storage (csv)","TargetName":"hydra_TSYSTEMAREA","TargetLocation":"hydraref/TSYSTEMAREA","TargetServer":"daf-sa-lake-sastoken","DataLoadMode":"TRUNCATE-LOAD","DeltaExtract":false,"CDCSource":false,"TruncateTarget":true,"UpsertTarget":false,"AppendTarget":false,"TrackChanges":false,"LoadToSqlEDW":true,"TaskName":"hydra_TSYSTEMAREA","ControlStageId":2,"TaskId":377,"StageSequence":200,"StageName":"Raw to Cleansed","SourceId":377,"TargetId":377,"ObjectGrain":"Day","CommandTypeId":8,"Watermarks":"","WatermarksDT":null,"WatermarkColumn":"","BusinessKeyColumn":"level30,level40,level50,level60","PartitionColumn":null,"UpdateMetaData":null,"SourceTimeStampFormat":"","WhereClause":null,"Command":"/build/cleansed/HYDRA Ref/TSYSTEMAREA","LastSuccessfulExecutionTS":"2021-05-25T08:58:57.42","LastLoadedFile":null}'
 
 s = json.loads(runParm)
 for parm in ['SourceName','SourceLocation','TargetName','TargetLocation','TaskName']:
@@ -14,7 +13,6 @@ runParm = json.dumps(s)
 # COMMAND ----------
 
 print('Use the following as parameters for unit testing:')
-print(delta)
 print(runParm)
 print(f'hydra_{hydraTable.lower()}')
 
@@ -180,7 +178,7 @@ print(delta_raw_tbl_name)
 
 # DBTITLE 1,10. Load Raw to Dataframe & Do Transformations
 df = spark.sql(f"WITH stage AS \
-                      (Select *, ROW_NUMBER() OVER (PARTITION BY 20,30,40,50,60 ORDER BY _DLRawZoneTimestamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
+                      (Select *, ROW_NUMBER() OVER (PARTITION BY `30`,`40`,`50`,`60` ORDER BY _DLRawZoneTimestamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
                            SELECT `20` as product, \
                                 `30` as level30, \
                                 `40` as level40, \
@@ -194,6 +192,11 @@ df = spark.sql(f"WITH stage AS \
                         from stage where _RecordVersion = 1 ")
 
 #print(f'Number of rows: {df.count()}')
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC Select *, ROW_NUMBER() OVER (PARTITION BY `30`,`40`,`50`,`60` ORDER BY _DLRawZoneTimestamp DESC) AS _RecordVersion FROM raw.hydra_TSYSTEMAREA WHERE _DLRawZoneTimestamp >= '2021-05-25T08:58:57.42'
 
 # COMMAND ----------
 
@@ -232,6 +235,11 @@ newSchema = StructType([
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 DeltaSaveDataFrameToDeltaTable(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC select * from cleansed.hydra_TSYSTEMAREA
 
 # COMMAND ----------
 
