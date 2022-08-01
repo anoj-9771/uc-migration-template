@@ -1,13 +1,26 @@
 # Databricks notebook source
+# MAGIC %md
+# MAGIC <b>Note that this is a non-standard notebook as it merges multiple input files into one delta table</b>
+
+# COMMAND ----------
+
+# dbutils.widgets.removeAll() #debug runs only
+
+# COMMAND ----------
+
 # DBTITLE 1,Generate parameter and source object name for unit testing
 import json
 accessTable = 'Z309_TPROPMETER' 
+businessKey = 'N_PROP,N_PROP_METE,N_METE_MAKE'
 
-runParm = '{"SourceType":"Flat File","SourceServer":"saswcnonprod01landingdev-sastoken","SourceGroup":"access","SourceName":"access_access/####_csv","SourceLocation":"access/####.csv","AdditionalProperty":"","Processor":"databricks-token|0705-044124-gored835|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive","IsAuditTable":false,"SoftDeleteSource":"","ProjectName":"Access Data","ProjectId":2,"TargetType":"BLOB Storage (csv)","TargetName":"access_access/####_csv","TargetLocation":"access/####","TargetServer":"daf-sa-lake-sastoken","DataLoadMode":"TRUNCATE-LOAD","DeltaExtract":false,"CDCSource":false,"TruncateTarget":true,"UpsertTarget":false,"AppendTarget":null,"TrackChanges":false,"LoadToSqlEDW":true,"TaskName":"access_access/####_csv","ControlStageId":1,"TaskId":4,"StageSequence":100,"StageName":"Source to Raw","SourceId":4,"TargetId":4,"ObjectGrain":"Day","CommandTypeId":5,"Watermarks":"","WatermarksDT":null,"WatermarkColumn":"","BusinessKeyColumn":"","UpdateMetaData":null,"SourceTimeStampFormat":"","Command":"","LastLoadedFile":null}'
+runParm = '{"SourceType":"BLOB Storage (csv)","SourceServer":"daf-sa-lake-sastoken","SourceGroup":"accessdata","SourceName":"access_####","SourceLocation":"accessdata/####","AdditionalProperty":"","Processor":"databricks-token|0705-044124-gored835|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive","IsAuditTable":false,"SoftDeleteSource":"","ProjectName":"ACCESSDATA","ProjectId":3,"TargetType":"BLOB Storage (csv)","TargetName":"access_####","TargetLocation":"accessdata/####","TargetServer":"daf-sa-lake-sastoken","DataLoadMode":"TRUNCATE-LOAD","DeltaExtract":false,"CDCSource":false,"TruncateTarget":true,"UpsertTarget":false,"AppendTarget":null,"TrackChanges":false,"LoadToSqlEDW":true,"TaskName":"access_####","ControlStageId":2,"TaskId":808,"StageSequence":200,"StageName":"Raw to Cleansed","SourceId":808,"TargetId":808,"ObjectGrain":"Day","CommandTypeId":8,"Watermarks":"","WatermarksDT":null,"WatermarkColumn":"","BusinessKeyColumn":"N_PROP,N_PROP_METE","UpdateMetaData":null,"SourceTimeStampFormat":"","Command":"/build/cleansed/ACCESS Data/####","LastLoadedFile":null}'
 
 s = json.loads(runParm)
 for parm in ['SourceName','SourceLocation','TargetName','TargetLocation','TaskName']:
     s[parm] = s[parm].replace('####',accessTable)
+
+s['BusinessKeyColumn'] = businessKey
+
 runParm = json.dumps(s)
 
 # COMMAND ----------
@@ -70,11 +83,11 @@ spark = SparkSession.builder.getOrCreate()
 # DBTITLE 1,3. Define Widgets (Parameters) at the start
 #3.Define Widgets/Parameters
 #Initialise the Entity source_object to be passed to the Notebook
-dbutils.widgets.text("source_object", "", "Source Object")
+dbutils.widgets.text("source_object", f'access_{accessTable.lower()}', "Source Object")
 dbutils.widgets.text("start_counter", "", "Start Counter")
 dbutils.widgets.text("end_counter", "", "End Counter")
 dbutils.widgets.text("delta_column", "", "Delta Column")
-dbutils.widgets.text("source_param", "", "Param")
+dbutils.widgets.text("source_param", runParm, "Param")
 
 
 # COMMAND ----------
@@ -164,71 +177,126 @@ print(delta_raw_tbl_name)
 
 # DBTITLE 1,10. Load to Cleanse Delta Table from Raw Delta Table
 #This method uses the source table to load data into target Delta Table
-DeltaSaveToDeltaTable (
-    source_table = delta_raw_tbl_name,
-    target_table = target_table,
-    target_data_lake_zone = ADS_DATALAKE_ZONE_CLEANSED,
-    target_database = ADS_DATABASE_STAGE,
-    data_lake_folder = data_lake_folder,
-    data_load_mode = data_load_mode,
-    track_changes =  Params[PARAMS_TRACK_CHANGES],
-    is_delta_extract =  Params[PARAMS_DELTA_EXTRACT],
-    business_key =  Params[PARAMS_BUSINESS_KEY_COLUMN],
-    delta_column = delta_column,
-    start_counter = start_counter,
-    end_counter = end_counter
-)
+#this notebook is exceptional as it merges multiple tables, so run this code for each of the tables
+tableReplace = ['',".replace('TPROPMETER','TPROPMETER_BI')"]
+
+for replacement in tableReplace:
+    DeltaSaveToDeltaTable (
+        source_table = eval(repr(delta_raw_tbl_name) + replacement),
+        target_table = eval(repr(target_table) + replacement),
+        target_data_lake_zone = ADS_DATALAKE_ZONE_CLEANSED,
+        target_database = ADS_DATABASE_STAGE,
+        data_lake_folder = data_lake_folder,
+        data_load_mode = data_load_mode,
+        track_changes =  Params[PARAMS_TRACK_CHANGES],
+        is_delta_extract =  Params[PARAMS_DELTA_EXTRACT],
+        business_key =  Params[PARAMS_BUSINESS_KEY_COLUMN],
+        delta_column = delta_column,
+        start_counter = start_counter,
+        end_counter = end_counter
+    )
 
 # COMMAND ----------
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_cleansed = spark.sql(f"SELECT cast(N_PROP as int) AS propertyNumber, \
-		cast(N_PROP_METE as int) AS propertyMeterNumber, \
-		N_METE_MAKE AS meterMakerNumber, \
-		C_METE_TYPE AS meterSizeCode, \
-        case when b.meterSizeUnit = 'mm' then \
-            cast(cast(b.meterSize as int) as string)||' '||lower(b.meterSizeUnit) \
-            else cast(cast(b.meterSize as decimal(5,2)) as string)||' '||lower(b.meterSizeUnit) end as meterSize, \
-		case when C_METE_POSI_STAT = 'M' then true else false end as isMasterMeter, \
-        case when C_METE_POSI_STAT = 'C' then true else false end as isCheckMeter, \
-        case when C_METE_POSI_STAT = 'A' then true else false end as allowAlso, \
-        case when F_METE_CONN = 'D' then false else true end AS isMeterConnected, \
-		C_METE_READ_FREQ AS meterReadingFrequencyCode, \
-		C_METE_CLAS AS meterClassCode, \
-        initcap(c.meterClass) as meterClass, \
-        c.waterMeterType, \
-        C_METE_CATE AS meterCategoryCode, \
-        initcap(d.meterCategory) as meterCategory, \
-		C_METE_GROU AS meterGroupCode, \
-        replace(initcap(e.meterGroup),'ami','AMI') as meterGroup, \
-		C_METE_READ_LOCA AS meterReadingLocationCode, \
-		cast(N_METE_READ_ROUT as int) AS meterReadingRouteNumber, \
-		initcap(T_METE_SERV) AS meterServes, \
-		C_METE_GRID_LOCA AS meterGridLocationCode, \
-		C_READ_INST_NUM1 AS readingInstructionCode1, \
-		C_READ_INST_NUM2 AS readingInstructionCode2, \
-		case when F_METE_ADDI_DESC = '1' then true else false end AS hasAdditionalDescription, \
-		case when F_METE_ROUT_PREP = '1' then true else false end AS hasMeterRoutePreparation, \
-		case when F_METE_WARN_NOTE = '1' then true else false end AS hasMeterWarningNote, \
-		to_date(D_METE_FIT, 'yyyyMMdd') AS meterFittedDate, \
-		cast(N_METE_READ_SEQU as int) AS meterReadingSequenceNumber, \
-		C_METE_CHAN_REAS AS meterChangeReasonCode, \
-		N_METE_CHAN_ADVI AS meterChangeAdviceNumber, \
-		to_date(D_METE_REMO, 'yyyyMMdd') AS meterRemovedDate, \
-		to_date(D_PROP_METE_UPDA, 'yyyyMMdd') AS propertyMeterUpdatedDate, \
-		a._RecordStart, \
-		a._RecordEnd, \
-		a._RecordDeleted, \
-		a._RecordCurrent \
-	FROM {ADS_DATABASE_STAGE}.{source_object} a \
-         left outer join CLEANSED.access_Z309_TMeterType b on b.meterTypeCode = a.C_METE_TYPE \
-         left outer join CLEANSED.access_Z309_TMeterClass c on c.meterClassCode = a.C_METE_CLAS \
-         left outer join CLEANSED.access_Z309_TMeterCategory d on d.meterCategoryCode = a.C_METE_CATE \
-         left outer join CLEANSED.access_Z309_TMeterGroup e on e.meterGroupCode = a.C_METE_GROU \
-         ")
+def runQuery(table):
+    df_data = spark.sql(f"SELECT cast(N_PROP as int) AS propertyNumber, \
+            cast(N_PROP_METE as int) AS propertyMeterNumber, \
+            N_METE_MAKE AS meterMakerNumber, \
+            C_METE_TYPE AS meterSizeCode, \
+            case when b.meterSizeUnit = 'mm' then \
+                cast(cast(b.meterSize as int) as string)||' '||lower(b.meterSizeUnit) \
+                else cast(cast(b.meterSize as decimal(5,2)) as string)||' '||lower(b.meterSizeUnit) end as meterSize, \
+            case when C_METE_POSI_STAT = 'M' then true else false end as isMasterMeter, \
+            case when C_METE_POSI_STAT = 'C' then true else false end as isCheckMeter, \
+            case when C_METE_POSI_STAT = 'A' then true else false end as allowAlso, \
+            case when F_METE_CONN = 'D' then false else true end AS isMeterConnected, \
+            C_METE_READ_FREQ AS meterReadingFrequencyCode, \
+            C_METE_CLAS AS meterClassCode, \
+            initcap(c.meterClass) as meterClass, \
+            c.waterMeterType, \
+            C_METE_CATE AS meterCategoryCode, \
+            initcap(d.meterCategory) as meterCategory, \
+            C_METE_GROU AS meterGroupCode, \
+            replace(initcap(e.meterGroup),'ami','AMI') as meterGroup, \
+            C_METE_READ_LOCA AS meterReadingLocationCode, \
+            cast(N_METE_READ_ROUT as int) AS meterReadingRouteNumber, \
+            initcap(T_METE_SERV) AS meterServes, \
+            C_METE_GRID_LOCA AS meterGridLocationCode, \
+            C_READ_INST_NUM1 AS readingInstructionCode1, \
+            C_READ_INST_NUM2 AS readingInstructionCode2, \
+            case when F_METE_ADDI_DESC = '1' then true else false end AS hasAdditionalDescription, \
+            case when F_METE_ROUT_PREP = '1' then true else false end AS hasMeterRoutePreparation, \
+            case when F_METE_WARN_NOTE = '1' then true else false end AS hasMeterWarningNote, \
+            to_date(D_METE_FIT, 'yyyyMMdd') AS meterFittedDate, \
+            cast(N_METE_READ_SEQU as int) AS meterReadingSequenceNumber, \
+            C_METE_CHAN_REAS AS meterChangeReasonCode, \
+            N_METE_CHAN_ADVI AS meterChangeAdviceNumber, \
+            to_date(D_METE_REMO, 'yyyyMMdd') AS meterRemovedDate, \
+            to_date(D_PROP_METE_UPDA, 'yyyyMMdd') AS propertyMeterUpdatedDate, \
+            a._RecordStart, \
+            a._RecordEnd, \
+            a._RecordDeleted, \
+            a._RecordCurrent \
+        FROM {table} a \
+             left outer join CLEANSED.access_Z309_TMeterType b on b.meterTypeCode = a.C_METE_TYPE \
+             left outer join CLEANSED.access_Z309_TMeterClass c on c.meterClassCode = a.C_METE_CLAS \
+             left outer join CLEANSED.access_Z309_TMeterCategory d on d.meterCategoryCode = a.C_METE_CATE \
+             left outer join CLEANSED.access_Z309_TMeterGroup e on e.meterGroupCode = a.C_METE_GROU \
+             ")
+    
+    return df_data
 
+df_current = runQuery(f'{ADS_DATABASE_STAGE}.{source_object}')
+df_BI_data = runQuery(f"{ADS_DATABASE_STAGE}.{source_object.replace('TPROPMETER','TPROPMETER_BI')}")
+
+df_current.createOrReplaceTempView('currentMeters')
+df_BI_data.createOrReplaceTempView('BIMeters')
+                       
+df_BI_complement = spark.sql('select * from BIMeters \
+                              except \
+                              select a.* \
+                              from   BIMeters a, \
+                                     currentMeters b \
+                              where  a.propertyNumber = b.propertyNumber \
+                              and    a.propertyMeterNumber = b.propertyMeterNumber \
+                              and    a.waterMeterType = b.waterMeterType \
+                              and    a.isMasterMeter = b.isMasterMeter \
+                              and    a.isCheckMeter = b.isCheckMeter \
+                              and    a.allowAlso = b.allowAlso \
+                              and    a.meterClass = b.meterClass \
+                              and    a.meterCategory = b.meterCategory \
+                              and    a.meterMakerNumber = b.meterMakerNumber \
+                              and    a.propertyMeterUpdatedDate = b.propertyMeterUpdatedDate')
+
+df_BI_complement.createOrReplaceTempView('BIComplement')
+                        
+spark.sql('create or replace temp view allMeters as \
+                select * \
+                from   currentMeters \
+                union all \
+                select * \
+                from   BIComplement')
+                        
+#drop original rows if they were updated after having been archived                        
+df_cleansed = spark.sql("with t1 as( \
+                                    select *, \
+                                           row_number() over(partition by propertyNumber, propertyMeterNumber, meterMakerNumber, waterMeterType, isMasterMeter, isCheckMeter, allowAlso, meterClass, \
+                                                                          meterCategory order by propertyMeterUpdatedDate desc) as rn \
+                                    from   allMeters ) \
+                          select * \
+                          from   t1 \
+                          where  rn = 1")
+                        
+df_cleansed = df_cleansed.drop('rn')
 #print(f'Number of rows: {df_cleansed.count()}')
+
+# COMMAND ----------
+
+# print('Current Data:',df_current.count())
+# print('BI Data:',df_BI_data.count())
+# print('BI complement:',df_BI_complement.count())
 
 # COMMAND ----------
 
