@@ -409,7 +409,7 @@ verifyTableSchema(f"curated.factMonthlyApportionedConsumption", schema)
 # MAGIC firstDayOfMeterActiveMonth,
 # MAGIC lastDayOfMeterActiveMonth,
 # MAGIC meterActiveMonthStartDate,
-# MAGIC meterActiveMonthEndDate
+# MAGIC meterActiveMonthEndDate,
 # MAGIC meterConsumptionBillingDocumentSK,
 # MAGIC meterConsumptionBillingLineItemSK,
 # MAGIC propertySK,
