@@ -93,26 +93,26 @@ isu_vibdao.`_RecordCurrent` = 1
 
 -- COMMAND ----------
 
--- View: VW_PROPERT_SERV
--- Description: this view provide snapshot of integrated model of property at run time.
--- strucure similar to IM_PROPERTY_SERV, but without historical data
--- History: 1.0 1/4/2022 LV created
--- 1.1 26/5/2022 LV changed view name, removed C&B alias column
-CREATE OR REPLACE VIEW curated.view_propertyservices As
-select
-isu_vibdnode.architecturalObjectNumber propertyNumber,
-isu_vibdcharact.architecturalObjectInternalId ,
-isu_vibdcharact.validToDate,
-isu_vibdcharact.validFromDate,
-isu_vibdcharact.fixtureAndFittingCharacteristicCode ,
-isu_vibdcharact.fixtureAndFittingCharacteristic ,
-isu_vibdcharact.supplementInfo ,
--- CHG_DT,
-CASE WHEN isu_vibdcharact.validFromDate <= current_date and isu_vibdcharact.validToDate >= current_date THEN 'Y' ELSE 'N' END currentIndicator,
-'Y' currentRecordIndicator
-from cleansed.isu_vibdcharact isu_vibdcharact
-inner join cleansed.isu_vibdnode isu_vibdnode
-on isu_vibdcharact.architecturalObjectInternalId = isu_vibdnode.architecturalObjectInternalId
+-- -- View: VW_PROPERT_SERV
+-- -- Description: this view provide snapshot of integrated model of property at run time.
+-- -- strucure similar to IM_PROPERTY_SERV, but without historical data
+-- -- History: 1.0 1/4/2022 LV created
+-- -- 1.1 26/5/2022 LV changed view name, removed C&B alias column
+-- CREATE OR REPLACE VIEW curated.view_propertyservices As
+-- select
+-- isu_vibdnode.architecturalObjectNumber propertyNumber,
+-- isu_vibdcharact.architecturalObjectInternalId ,
+-- isu_vibdcharact.validToDate,
+-- isu_vibdcharact.validFromDate,
+-- isu_vibdcharact.fixtureAndFittingCharacteristicCode ,
+-- isu_vibdcharact.fixtureAndFittingCharacteristic ,
+-- isu_vibdcharact.supplementInfo ,
+-- -- CHG_DT,
+-- CASE WHEN isu_vibdcharact.validFromDate <= current_date and isu_vibdcharact.validToDate >= current_date THEN 'Y' ELSE 'N' END currentIndicator,
+-- 'Y' currentRecordIndicator
+-- from cleansed.isu_vibdcharact isu_vibdcharact
+-- inner join cleansed.isu_vibdnode isu_vibdnode
+-- on isu_vibdcharact.architecturalObjectInternalId = isu_vibdnode.architecturalObjectInternalId
 
 -- COMMAND ----------
 
@@ -136,74 +136,74 @@ where isu_zcd_tprop_rel.`_RecordCurrent` = 1
 
 -- COMMAND ----------
 
--- View: view_installation
--- Description: this view provide DAF data similar to C&B VW_INSTALLATION
--- History: 1.0 11/5/2022 LV created
--- 1.1 27/5/2022 LV renamed view
-CREATE OR REPLACE VIEW curated.view_installation as
-select isu_0ucinstalla_attr_2.installationId,
-isu_0ucinstallah_attr_2.validFromDate,
-isu_0ucinstallah_attr_2.validToDate,
-isu_0ucinstalla_attr_2.divisionCode,
-isu_0ucinstalla_attr_2.division,
-isu_0ucinstalla_attr_2.propertyNumber,
-isu_0ucinstalla_attr_2.premise,
-isu_0ucinstalla_attr_2.reference,
-isu_0ucinstalla_attr_2.serviceTypeCode,
-isu_0ucinstalla_attr_2.serviceType,
-isu_0ucinstallah_attr_2.rateCategoryCode,
-isu_0ucinstallah_attr_2.rateCategory,
-isu_0ucinstallah_attr_2.industryCode,
-isu_0ucinstallah_attr_2.industry,
-isu_0ucinstallah_attr_2.billingClassCode,
-isu_0ucinstallah_attr_2.billingClass,
-isu_0ucinstallah_attr_2.meterReadingUnit,
-isu_0ucmtrdunit_attr.portionNumber,
-isu_0ucinstallah_attr_2.industrySystemCode,
-isu_0ucinstallah_attr_2.industrySystem,
-isu_0ucinstalla_attr_2.authorizationGroupCode,
-isu_0ucinstalla_attr_2.meterReadingControlCode,
-isu_0ucinstalla_attr_2.meterReadingControl,
-isu_0uc_isu_32.disconnectionDocumentNumber,
-isu_0uc_isu_32.disconnectionActivityPeriod,
-isu_0uc_isu_32.disconnectionObjectNumber,
-isu_0uc_isu_32.disconnectionDate,
-isu_0uc_isu_32.disconnectionActivityTypeCode,
-isu_0uc_isu_32.disconnectionActivityType,
-isu_0uc_isu_32.disconnectionObjectTypeCode,
-isu_0uc_isu_32.disconnectionReasonCode,
-isu_0uc_isu_32.disconnectionReason,
-isu_0uc_isu_32.processingVariantCode,
-isu_0uc_isu_32.processingVariant,
-isu_0uc_isu_32.disconnectionReconnectionStatusCode,
-isu_0uc_isu_32.disconnectionReconnectionStatus,
-isu_0uc_isu_32.disconnectionDocumentStatusCode,
-isu_0uc_isu_32.disconnectionDocumentStatus,
-isu_0ucinstalla_attr_2.createdBy installationCreatedBy,
-isu_0ucinstalla_attr_2.createdDate installationCreatedDate,
-isu_0ucinstalla_attr_2.lastChangedBy installationLastChangedBy,
-isu_0ucinstalla_attr_2.lastChangedDate installationLastChangedDate,
-isu_0ucinstalla_attr_2.deletedIndicator installationDeletedIndicator,
-isu_0ucinstallah_attr_2.deltaProcessRecordMode installationHistoryDeletedIndicator,
-case when (isu_0ucinstallah_attr_2.validFromDate <= current_date and isu_0ucinstallah_attr_2.validToDate >= current_date) then 'Y'
-else 'N'
-end currentIndicator,
-'Y' currentRecordIndicator
-from cleansed.isu_0ucinstalla_attr_2
-inner join cleansed.isu_0ucinstallah_attr_2
-on isu_0ucinstalla_attr_2.installationId = isu_0ucinstallah_attr_2.installationId
-left outer join cleansed.isu_0uc_isu_32
-on isu_0ucinstallah_attr_2.installationId = isu_0uc_isu_32.installationId
-and isu_0ucinstallah_attr_2.validFromDate <= current_date and isu_0ucinstallah_attr_2.validToDate >= current_date
-and isu_0uc_isu_32.referenceObjectTypeCode = 'INSTLN'
-and isu_0uc_isu_32.validFromDate <= current_date and isu_0uc_isu_32.validToDate >= current_date
-and isu_0uc_isu_32.`_RecordCurrent` = 1
-left outer join cleansed.isu_0ucmtrdunit_attr
-on isu_0ucinstallah_attr_2.meterReadingUnit = isu_0ucmtrdunit_attr.portion
-and isu_0ucmtrdunit_attr.`_RecordCurrent` = 1
-where
-isu_0ucinstalla_attr_2.`_RecordCurrent` = 1
-and isu_0ucinstallah_attr_2.`_RecordCurrent` = 1
+-- -- View: view_installation
+-- -- Description: this view provide DAF data similar to C&B VW_INSTALLATION
+-- -- History: 1.0 11/5/2022 LV created
+-- -- 1.1 27/5/2022 LV renamed view
+-- CREATE OR REPLACE VIEW curated.view_installation as
+-- select isu_0ucinstalla_attr_2.installationId,
+-- isu_0ucinstallah_attr_2.validFromDate,
+-- isu_0ucinstallah_attr_2.validToDate,
+-- isu_0ucinstalla_attr_2.divisionCode,
+-- isu_0ucinstalla_attr_2.division,
+-- isu_0ucinstalla_attr_2.propertyNumber,
+-- isu_0ucinstalla_attr_2.premise,
+-- isu_0ucinstalla_attr_2.reference,
+-- isu_0ucinstalla_attr_2.serviceTypeCode,
+-- isu_0ucinstalla_attr_2.serviceType,
+-- isu_0ucinstallah_attr_2.rateCategoryCode,
+-- isu_0ucinstallah_attr_2.rateCategory,
+-- isu_0ucinstallah_attr_2.industryCode,
+-- isu_0ucinstallah_attr_2.industry,
+-- isu_0ucinstallah_attr_2.billingClassCode,
+-- isu_0ucinstallah_attr_2.billingClass,
+-- isu_0ucinstallah_attr_2.meterReadingUnit,
+-- isu_0ucmtrdunit_attr.portionNumber,
+-- isu_0ucinstallah_attr_2.industrySystemCode,
+-- isu_0ucinstallah_attr_2.industrySystem,
+-- isu_0ucinstalla_attr_2.authorizationGroupCode,
+-- isu_0ucinstalla_attr_2.meterReadingControlCode,
+-- isu_0ucinstalla_attr_2.meterReadingControl,
+-- isu_0uc_isu_32.disconnectionDocumentNumber,
+-- isu_0uc_isu_32.disconnectionActivityPeriod,
+-- isu_0uc_isu_32.disconnectionObjectNumber,
+-- isu_0uc_isu_32.disconnectionDate,
+-- isu_0uc_isu_32.disconnectionActivityTypeCode,
+-- isu_0uc_isu_32.disconnectionActivityType,
+-- isu_0uc_isu_32.disconnectionObjectTypeCode,
+-- isu_0uc_isu_32.disconnectionReasonCode,
+-- isu_0uc_isu_32.disconnectionReason,
+-- isu_0uc_isu_32.processingVariantCode,
+-- isu_0uc_isu_32.processingVariant,
+-- isu_0uc_isu_32.disconnectionReconnectionStatusCode,
+-- isu_0uc_isu_32.disconnectionReconnectionStatus,
+-- isu_0uc_isu_32.disconnectionDocumentStatusCode,
+-- isu_0uc_isu_32.disconnectionDocumentStatus,
+-- isu_0ucinstalla_attr_2.createdBy installationCreatedBy,
+-- isu_0ucinstalla_attr_2.createdDate installationCreatedDate,
+-- isu_0ucinstalla_attr_2.lastChangedBy installationLastChangedBy,
+-- isu_0ucinstalla_attr_2.lastChangedDate installationLastChangedDate,
+-- isu_0ucinstalla_attr_2.deletedIndicator installationDeletedIndicator,
+-- isu_0ucinstallah_attr_2.deltaProcessRecordMode installationHistoryDeletedIndicator,
+-- case when (isu_0ucinstallah_attr_2.validFromDate <= current_date and isu_0ucinstallah_attr_2.validToDate >= current_date) then 'Y'
+-- else 'N'
+-- end currentIndicator,
+-- 'Y' currentRecordIndicator
+-- from cleansed.isu_0ucinstalla_attr_2
+-- inner join cleansed.isu_0ucinstallah_attr_2
+-- on isu_0ucinstalla_attr_2.installationId = isu_0ucinstallah_attr_2.installationId
+-- left outer join cleansed.isu_0uc_isu_32
+-- on isu_0ucinstallah_attr_2.installationId = isu_0uc_isu_32.installationId
+-- and isu_0ucinstallah_attr_2.validFromDate <= current_date and isu_0ucinstallah_attr_2.validToDate >= current_date
+-- and isu_0uc_isu_32.referenceObjectTypeCode = 'INSTLN'
+-- and isu_0uc_isu_32.validFromDate <= current_date and isu_0uc_isu_32.validToDate >= current_date
+-- and isu_0uc_isu_32.`_RecordCurrent` = 1
+-- left outer join cleansed.isu_0ucmtrdunit_attr
+-- on isu_0ucinstallah_attr_2.meterReadingUnit = isu_0ucmtrdunit_attr.portion
+-- and isu_0ucmtrdunit_attr.`_RecordCurrent` = 1
+-- where
+-- isu_0ucinstalla_attr_2.`_RecordCurrent` = 1
+-- and isu_0ucinstallah_attr_2.`_RecordCurrent` = 1
 
 -- COMMAND ----------
 
@@ -318,136 +318,136 @@ and isu_0uccontracth_attr_2.`_RecordCurrent` = 1
 
 -- COMMAND ----------
 
--- View: VW_CONTRACT_ACC
--- Description: this view provide DAF data similar to C&B IM_CONTRACT_ACC
--- History:     1.0 19/5/2022 LV created
---              1.1 30/05/2022 LV changed view name, column name for standard names
-CREATE OR REPLACE VIEW curated.view_contractaccount as
-select 
-isu_0uc_accntbp_attr_2.contractAccountNumber,
-isu_0uc_accntbp_attr_2.businessPartnerGroupNumber,
-isu_0uc_accntbp_attr_2.accountRelationshipCode,
-isu_0uc_accntbp_attr_2.accountRelationship,
-isu_0cacont_acc_attr_2.applicationArea applicationAreaCode,
-isu_0uc_applk_text.applicationArea, 
-isu_0cacont_acc_attr_2.contractAccountCategoryCode,
-isu_0cacont_acc_attr_2.contractAccountCategory,
-isu_0uc_accntbp_attr_2.businessPartnerReferenceNumber,
-isu_0uc_accntbp_attr_2.toleranceGroupCode,
-isu_tfk043t.toleranceGroupDescription toleranceGroup,
-isu_0uc_accntbp_attr_2.manualOutsortingReasonCode,
-isu_te128t.manualOutsortingReasonDescription manualOutsortingReason,
-isu_0uc_accntbp_attr_2.outsortingCheckGroupCode,
-isu_te192t.outsortingCheckGroup,
-isu_0uc_accntbp_attr_2.manualOutsortingCount,
-isu_0uc_accntbp_attr_2.participationInYearlyAdvancePayment participationInYearlyAdvancePaymentCode,
-isu_dd07t.domainValueText participationInYearlyAdvancePayment,
-isu_0uc_accntbp_attr_2.billingProcedureActivationIndicator,
-isu_0uc_bbproc_text.billingProcedure,
-isu_0uc_accntbp_attr_2.paymentConditionCode,
-isu_0uc_zahlkond_text.paymentCondition,
-isu_0uc_accntbp_attr_2.accountDeterminationCode,
-isu_0fcactdetid_text.accountDetermination,
-isu_0uc_accntbp_attr_2.alternativeInvoiceRecipient,
-isu_0uc_accntbp_attr_2.addressNumberForAlternativeBillRecipient,
-isu_0uc_accntbp_attr_2.alternativeContractAccountForCollectiveBills,
-isu_0uc_accntbp_attr_2.dispatchControlForAlternativeBillRecipient,
-isu_0uc_accntbp_attr_2.applicationForm applicationFormCode,
-isu_efrm.applicationFormDescription applicationForm,
-isu_0uc_accntbp_attr_2.sendAdditionalBillIndicator,
-isu_0uc_accntbp_attr_2.headerUUID,
-isu_0uc_accntbp_attr_2.companyCodeGroup,
-isu_0comp_code_text.companyName,
-isu_0uc_accntbp_attr_2.standardCompanyCode,
-isu_0comp_code_text_2.companyName standardCompanyName,
-isu_0uc_accntbp_attr_2.incomingPaymentMethodCode,
-isu_0fc_pymet_text.paymentMethod incomingPaymentMethod,
-isu_0uc_accntbp_attr_2.bankDetailsId,
-isu_0uc_accntbp_attr_2.paymentCardId,
-isu_0uc_accntbp_attr_2.noPaymentFormIndicator,
-isu_0uc_accntbp_attr_2.alternativeDunningRecipient,
-isu_0uc_accntbp_attr_2.collectionStrategyCode,
-isu_tfk047xt.collectionStrategyName,
-isu_0uc_accntbp_attr_2.collectionManagementMasterDataGroup,
-isu_0uc_accntbp_attr_2.shippingControlForAlternativeDunningRecipient,
-isu_0uc_accntbp_attr_2.sendAdditionalDunningNoticeIndicator,
-isu_0uc_accntbp_attr_2.dispatchControl dispatchControlCode,
-isu_esendcontrolt.dispatchControlDescription dispatchControl,
-isu_0uc_accntbp_attr_2.budgetBillingRequestForCashPayer budgetBillingRequestForCashPayerCode,
-isu_dd07t_alias.domainValueText budgetBillingRequestForCashPayer,
-isu_0uc_accntbp_attr_2.budgetBillingRequestForDebtor budgetBillingRequestForDebtorCode,
-isu_dd07t_alias2.domainValueText budgetBillingRequestForDebtor,
-isu_0uc_accntbp_attr_2.directDebitLimit,
-isu_0uc_accntbp_attr_2.addressNumberForAlternativeDunningRecipient,
-isu_0uc_accntbp_attr_2.deletedIndicator accountBpDeletedIndicator,
-isu_0cacont_acc_attr_2.legacyContractAccountNumber,
-isu_0cacont_acc_attr_2.deletedIndicator contractAccountDeletedIndicator,
-isu_0cacont_acc_attr_2.createdBy contractAccountCreatedBy,
-isu_0cacont_acc_attr_2.createdDate contractAccountCreatedDate,
-isu_0cacont_acc_attr_2.lastChangedBy contractAccountLastChangedBy,
-isu_0cacont_acc_attr_2.lastChangedDate contractAccountLastChangedDate,
-isu_0uc_accntbp_attr_2.createdBy accountBpCreatedBy,
-isu_0uc_accntbp_attr_2.createdDate accountBpCreatedDate,
-isu_0uc_accntbp_attr_2.changedBy accountBpChangedBy,
-isu_0uc_accntbp_attr_2.lastChangedDate accountBpLastChangedDate,
-'Y' currentRecordIndicator
-from cleansed.isu_0cacont_acc_attr_2
-inner join cleansed.isu_0uc_accntbp_attr_2
-on  isu_0cacont_acc_attr_2.contractAccountNumber = isu_0uc_accntbp_attr_2.contractAccountNumber
-left outer join cleansed.isu_0uc_applk_text
-on isu_0uc_applk_text.applicationAreaCode = isu_0cacont_acc_attr_2.applicationArea
-and isu_0uc_applk_text.`_RecordCurrent` = 1
-left outer join cleansed.isu_tfk043t
-on isu_0uc_accntbp_attr_2.toleranceGroupCode = isu_tfk043t.toleranceGroupCode
-and isu_tfk043t.`_RecordCurrent` = 1
-left outer join cleansed.isu_te128t
-on isu_0uc_accntbp_attr_2.manualOutsortingReasonCode = isu_te128t.manualOutsortingReasonCode
-left outer join cleansed.isu_te192t
-on isu_0uc_accntbp_attr_2.outsortingCheckGroupCode = isu_te192t.outsortingCheckGroupCode
-and isu_te192t.`_RecordCurrent` = 1
-left outer join cleansed.isu_dd07t
-on isu_dd07t.domainName = 'JVLTE'
-and isu_0uc_accntbp_attr_2.participationInYearlyAdvancePayment = isu_dd07t.domainValueSingleUpperLimit
-and isu_dd07t._RecordCurrent = 1
-left outer join cleansed.isu_0uc_bbproc_text
-on isu_0uc_accntbp_attr_2.billingProcedureActivationIndicator = isu_0uc_bbproc_text.billingProcedureCode
-and isu_0uc_bbproc_text.`_RecordCurrent` = 1
-left outer join cleansed.isu_0uc_zahlkond_text
-on isu_0uc_accntbp_attr_2.paymentConditionCode = isu_0uc_zahlkond_text.paymentConditionCode
-and isu_0uc_zahlkond_text.`_RecordCurrent` = 1
-left outer join cleansed.isu_0fcactdetid_text
-on isu_0uc_accntbp_attr_2.accountDeterminationCode = isu_0fcactdetid_text.accountDeterminationCode
-and isu_0fcactdetid_text.`_RecordCurrent` = 1
-left outer join cleansed.isu_efrm
-on isu_0uc_accntbp_attr_2.applicationForm = isu_efrm.applicationForm
-and isu_efrm.`_RecordCurrent` = 1
-left outer join cleansed.isu_0comp_code_text
-on isu_0uc_accntbp_attr_2.companyCodeGroup = isu_0comp_code_text.companyCode
-and isu_0comp_code_text.`_RecordCurrent` = 1
-left outer join cleansed.isu_0comp_code_text isu_0comp_code_text_2
-on isu_0uc_accntbp_attr_2.standardCompanyCode = isu_0comp_code_text_2.companyCode
-and isu_0comp_code_text_2.`_RecordCurrent` = 1
-left outer join cleansed.isu_0fc_pymet_text
-on isu_0uc_accntbp_attr_2.incomingPaymentMethodCode = isu_0fc_pymet_text.paymentMethodCode
-and isu_0fc_pymet_text.countryCode = 'AU'
-and isu_0fc_pymet_text.`_RecordCurrent` = 1
-left outer join cleansed.isu_tfk047xt
-on isu_0uc_accntbp_attr_2.collectionStrategyCode = isu_tfk047xt.collectionStrategyCode
-and isu_tfk047xt.`_RecordCurrent` = 1
-left outer join cleansed.isu_esendcontrolt
-on isu_0uc_accntbp_attr_2.dispatchControl = isu_esendcontrolt.dispatchControlCode
-and isu_esendcontrolt.`_RecordCurrent` = 1
-left outer join cleansed.isu_dd07t isu_dd07t_alias
-on isu_dd07t_alias.domainName = 'ABSLANFO'
-and isu_0uc_accntbp_attr_2.budgetBillingRequestForCashPayer = isu_dd07t_alias.domainValueSingleUpperLimit
-and isu_dd07t_alias.`_RecordCurrent` = 1
-left outer join cleansed.isu_dd07t isu_dd07t_alias2
-on isu_dd07t_alias2.domainName = 'ABSLANFO'
-and isu_0uc_accntbp_attr_2.budgetBillingRequestForDebtor = isu_dd07t_alias2.domainValueSingleUpperLimit
-and isu_dd07t_alias2.`_RecordCurrent` = 1
-where
-isu_0cacont_acc_attr_2.`_RecordCurrent` = 1
-and isu_0cacont_acc_attr_2.`_RecordCurrent` = 1
+-- -- View: VW_CONTRACT_ACC
+-- -- Description: this view provide DAF data similar to C&B IM_CONTRACT_ACC
+-- -- History:     1.0 19/5/2022 LV created
+-- --              1.1 30/05/2022 LV changed view name, column name for standard names
+-- CREATE OR REPLACE VIEW curated.view_contractaccount as
+-- select 
+-- isu_0uc_accntbp_attr_2.contractAccountNumber,
+-- isu_0uc_accntbp_attr_2.businessPartnerGroupNumber,
+-- isu_0uc_accntbp_attr_2.accountRelationshipCode,
+-- isu_0uc_accntbp_attr_2.accountRelationship,
+-- isu_0cacont_acc_attr_2.applicationArea applicationAreaCode,
+-- isu_0uc_applk_text.applicationArea, 
+-- isu_0cacont_acc_attr_2.contractAccountCategoryCode,
+-- isu_0cacont_acc_attr_2.contractAccountCategory,
+-- isu_0uc_accntbp_attr_2.businessPartnerReferenceNumber,
+-- isu_0uc_accntbp_attr_2.toleranceGroupCode,
+-- isu_tfk043t.toleranceGroupDescription toleranceGroup,
+-- isu_0uc_accntbp_attr_2.manualOutsortingReasonCode,
+-- isu_te128t.manualOutsortingReasonDescription manualOutsortingReason,
+-- isu_0uc_accntbp_attr_2.outsortingCheckGroupCode,
+-- isu_te192t.outsortingCheckGroup,
+-- isu_0uc_accntbp_attr_2.manualOutsortingCount,
+-- isu_0uc_accntbp_attr_2.participationInYearlyAdvancePayment participationInYearlyAdvancePaymentCode,
+-- isu_dd07t.domainValueText participationInYearlyAdvancePayment,
+-- isu_0uc_accntbp_attr_2.billingProcedureActivationIndicator,
+-- isu_0uc_bbproc_text.billingProcedure,
+-- isu_0uc_accntbp_attr_2.paymentConditionCode,
+-- isu_0uc_zahlkond_text.paymentCondition,
+-- isu_0uc_accntbp_attr_2.accountDeterminationCode,
+-- isu_0fcactdetid_text.accountDetermination,
+-- isu_0uc_accntbp_attr_2.alternativeInvoiceRecipient,
+-- isu_0uc_accntbp_attr_2.addressNumberForAlternativeBillRecipient,
+-- isu_0uc_accntbp_attr_2.alternativeContractAccountForCollectiveBills,
+-- isu_0uc_accntbp_attr_2.dispatchControlForAlternativeBillRecipient,
+-- isu_0uc_accntbp_attr_2.applicationForm applicationFormCode,
+-- isu_efrm.applicationFormDescription applicationForm,
+-- isu_0uc_accntbp_attr_2.sendAdditionalBillIndicator,
+-- isu_0uc_accntbp_attr_2.headerUUID,
+-- isu_0uc_accntbp_attr_2.companyCodeGroup,
+-- isu_0comp_code_text.companyName,
+-- isu_0uc_accntbp_attr_2.standardCompanyCode,
+-- isu_0comp_code_text_2.companyName standardCompanyName,
+-- isu_0uc_accntbp_attr_2.incomingPaymentMethodCode,
+-- isu_0fc_pymet_text.paymentMethod incomingPaymentMethod,
+-- isu_0uc_accntbp_attr_2.bankDetailsId,
+-- isu_0uc_accntbp_attr_2.paymentCardId,
+-- isu_0uc_accntbp_attr_2.noPaymentFormIndicator,
+-- isu_0uc_accntbp_attr_2.alternativeDunningRecipient,
+-- isu_0uc_accntbp_attr_2.collectionStrategyCode,
+-- isu_tfk047xt.collectionStrategyName,
+-- isu_0uc_accntbp_attr_2.collectionManagementMasterDataGroup,
+-- isu_0uc_accntbp_attr_2.shippingControlForAlternativeDunningRecipient,
+-- isu_0uc_accntbp_attr_2.sendAdditionalDunningNoticeIndicator,
+-- isu_0uc_accntbp_attr_2.dispatchControl dispatchControlCode,
+-- isu_esendcontrolt.dispatchControlDescription dispatchControl,
+-- isu_0uc_accntbp_attr_2.budgetBillingRequestForCashPayer budgetBillingRequestForCashPayerCode,
+-- isu_dd07t_alias.domainValueText budgetBillingRequestForCashPayer,
+-- isu_0uc_accntbp_attr_2.budgetBillingRequestForDebtor budgetBillingRequestForDebtorCode,
+-- isu_dd07t_alias2.domainValueText budgetBillingRequestForDebtor,
+-- isu_0uc_accntbp_attr_2.directDebitLimit,
+-- isu_0uc_accntbp_attr_2.addressNumberForAlternativeDunningRecipient,
+-- isu_0uc_accntbp_attr_2.deletedIndicator accountBpDeletedIndicator,
+-- isu_0cacont_acc_attr_2.legacyContractAccountNumber,
+-- isu_0cacont_acc_attr_2.deletedIndicator contractAccountDeletedIndicator,
+-- isu_0cacont_acc_attr_2.createdBy contractAccountCreatedBy,
+-- isu_0cacont_acc_attr_2.createdDate contractAccountCreatedDate,
+-- isu_0cacont_acc_attr_2.lastChangedBy contractAccountLastChangedBy,
+-- isu_0cacont_acc_attr_2.lastChangedDate contractAccountLastChangedDate,
+-- isu_0uc_accntbp_attr_2.createdBy accountBpCreatedBy,
+-- isu_0uc_accntbp_attr_2.createdDate accountBpCreatedDate,
+-- isu_0uc_accntbp_attr_2.changedBy accountBpChangedBy,
+-- isu_0uc_accntbp_attr_2.lastChangedDate accountBpLastChangedDate,
+-- 'Y' currentRecordIndicator
+-- from cleansed.isu_0cacont_acc_attr_2
+-- inner join cleansed.isu_0uc_accntbp_attr_2
+-- on  isu_0cacont_acc_attr_2.contractAccountNumber = isu_0uc_accntbp_attr_2.contractAccountNumber
+-- left outer join cleansed.isu_0uc_applk_text
+-- on isu_0uc_applk_text.applicationAreaCode = isu_0cacont_acc_attr_2.applicationArea
+-- and isu_0uc_applk_text.`_RecordCurrent` = 1
+-- left outer join cleansed.isu_tfk043t
+-- on isu_0uc_accntbp_attr_2.toleranceGroupCode = isu_tfk043t.toleranceGroupCode
+-- and isu_tfk043t.`_RecordCurrent` = 1
+-- left outer join cleansed.isu_te128t
+-- on isu_0uc_accntbp_attr_2.manualOutsortingReasonCode = isu_te128t.manualOutsortingReasonCode
+-- left outer join cleansed.isu_te192t
+-- on isu_0uc_accntbp_attr_2.outsortingCheckGroupCode = isu_te192t.outsortingCheckGroupCode
+-- and isu_te192t.`_RecordCurrent` = 1
+-- left outer join cleansed.isu_dd07t
+-- on isu_dd07t.domainName = 'JVLTE'
+-- and isu_0uc_accntbp_attr_2.participationInYearlyAdvancePayment = isu_dd07t.domainValueSingleUpperLimit
+-- and isu_dd07t._RecordCurrent = 1
+-- left outer join cleansed.isu_0uc_bbproc_text
+-- on isu_0uc_accntbp_attr_2.billingProcedureActivationIndicator = isu_0uc_bbproc_text.billingProcedureCode
+-- and isu_0uc_bbproc_text.`_RecordCurrent` = 1
+-- left outer join cleansed.isu_0uc_zahlkond_text
+-- on isu_0uc_accntbp_attr_2.paymentConditionCode = isu_0uc_zahlkond_text.paymentConditionCode
+-- and isu_0uc_zahlkond_text.`_RecordCurrent` = 1
+-- left outer join cleansed.isu_0fcactdetid_text
+-- on isu_0uc_accntbp_attr_2.accountDeterminationCode = isu_0fcactdetid_text.accountDeterminationCode
+-- and isu_0fcactdetid_text.`_RecordCurrent` = 1
+-- left outer join cleansed.isu_efrm
+-- on isu_0uc_accntbp_attr_2.applicationForm = isu_efrm.applicationForm
+-- and isu_efrm.`_RecordCurrent` = 1
+-- left outer join cleansed.isu_0comp_code_text
+-- on isu_0uc_accntbp_attr_2.companyCodeGroup = isu_0comp_code_text.companyCode
+-- and isu_0comp_code_text.`_RecordCurrent` = 1
+-- left outer join cleansed.isu_0comp_code_text isu_0comp_code_text_2
+-- on isu_0uc_accntbp_attr_2.standardCompanyCode = isu_0comp_code_text_2.companyCode
+-- and isu_0comp_code_text_2.`_RecordCurrent` = 1
+-- left outer join cleansed.isu_0fc_pymet_text
+-- on isu_0uc_accntbp_attr_2.incomingPaymentMethodCode = isu_0fc_pymet_text.paymentMethodCode
+-- and isu_0fc_pymet_text.countryCode = 'AU'
+-- and isu_0fc_pymet_text.`_RecordCurrent` = 1
+-- left outer join cleansed.isu_tfk047xt
+-- on isu_0uc_accntbp_attr_2.collectionStrategyCode = isu_tfk047xt.collectionStrategyCode
+-- and isu_tfk047xt.`_RecordCurrent` = 1
+-- left outer join cleansed.isu_esendcontrolt
+-- on isu_0uc_accntbp_attr_2.dispatchControl = isu_esendcontrolt.dispatchControlCode
+-- and isu_esendcontrolt.`_RecordCurrent` = 1
+-- left outer join cleansed.isu_dd07t isu_dd07t_alias
+-- on isu_dd07t_alias.domainName = 'ABSLANFO'
+-- and isu_0uc_accntbp_attr_2.budgetBillingRequestForCashPayer = isu_dd07t_alias.domainValueSingleUpperLimit
+-- and isu_dd07t_alias.`_RecordCurrent` = 1
+-- left outer join cleansed.isu_dd07t isu_dd07t_alias2
+-- on isu_dd07t_alias2.domainName = 'ABSLANFO'
+-- and isu_0uc_accntbp_attr_2.budgetBillingRequestForDebtor = isu_dd07t_alias2.domainValueSingleUpperLimit
+-- and isu_dd07t_alias2.`_RecordCurrent` = 1
+-- where
+-- isu_0cacont_acc_attr_2.`_RecordCurrent` = 1
+-- and isu_0cacont_acc_attr_2.`_RecordCurrent` = 1
 
 -- COMMAND ----------
 
@@ -590,145 +590,145 @@ and isu_dberchz2.`_RecordCurrent` = 1
 
 -- COMMAND ----------
 
--- View: view_qqv
--- Description: this view provide DAF data similar to QQV extractor in C&B
--- History:     1.0 24/4/2022 LV created
---              1.1 10/05/2022 LV added erchc, updated renamed columns
---              1.2 26/05/2022 LV changed view name, added property details 
---              1.3 29/06/2022 LV rename view name to view_qqv 
-CREATE OR REPLACE TABLE curated.view_qqv 
-LOCATION 'dbfs:/mnt/datalake-curated/view_qqv'
-AS with statBilling as
-(SELECT 
-factmonthlyapportionedconsumption.consumptionYear,
-factmonthlyapportionedconsumption.consumptionMonth,
-factmonthlyapportionedconsumption.meterConsumptionBillingDocumentSK, 
-factmonthlyapportionedconsumption.PropertySK,
-factmonthlyapportionedconsumption.LocationSK,
-factmonthlyapportionedconsumption.BusinessPartnerGroupSK,
-factmonthlyapportionedconsumption.ContractSK,
-factmonthlyapportionedconsumption.MeterSK,
-factmonthlyapportionedconsumption.sourceSystemCode,
-factmonthlyapportionedconsumption.meterActiveStartDate,
-factmonthlyapportionedconsumption.meterActiveEndDate,
-factmonthlyapportionedconsumption.firstDayOfMeterActiveMonth,
-factmonthlyapportionedconsumption.lastDayOfMeterActiveMonth,
-factmonthlyapportionedconsumption.meterActiveMonthStartDate,
-factmonthlyapportionedconsumption.meterActiveMonthEndDate,
-factmonthlyapportionedconsumption.totalMeterActiveDaysPerMonth,
-sum(factmonthlyapportionedconsumption.monthlyApportionedConsumption) consumptionPerMonthPerDevice
-FROM curated.factmonthlyapportionedconsumption
-WHERE 
-factmonthlyapportionedconsumption.`_RecordCurrent` = 1
-and factmonthlyapportionedconsumption.sourceSystemCode = 'ISU'
-GROUP BY 
-factmonthlyapportionedconsumption.consumptionYear,
-factmonthlyapportionedconsumption.consumptionMonth,
-factmonthlyapportionedconsumption.meterconsumptionbillingdocumentSK, 
-factmonthlyapportionedconsumption.PropertySK,
-factmonthlyapportionedconsumption.LocationSK,
-factmonthlyapportionedconsumption.BusinessPartnerGroupSK,
-factmonthlyapportionedconsumption.ContractSK,
-factmonthlyapportionedconsumption.MeterSK,
-factmonthlyapportionedconsumption.sourceSystemCode,
-factmonthlyapportionedconsumption.meterActiveStartDate,
-factmonthlyapportionedconsumption.meterActiveEndDate,
-factmonthlyapportionedconsumption.firstDayOfMeterActiveMonth,
-factmonthlyapportionedconsumption.lastDayOfMeterActiveMonth,
-factmonthlyapportionedconsumption.meterActiveMonthStartDate,
-factmonthlyapportionedconsumption.meterActiveMonthEndDate,
-factmonthlyapportionedconsumption.totalMeterActiveDaysPerMonth
-)
-select 
-statBilling.consumptionYear ,
-statBilling.consumptionMonth ,
-dimmeterconsumptionbillingdocument.meterConsumptionBillingDocumentSK,
-dimmeterconsumptionbillingdocument.billingDocumentNumber, 
-dimmeterconsumptionbillingdocument.invoiceMaxSequenceNumber,
-statBilling.sourceSystemCode,
-dimmeter.meterNumber,
-dimmeter.meterSerialNumber,
-dimmeter.materialNumber,
-dimmeter.meterSize,
-isu_0uc_devcat_attr.functionClassCode,
-isu_0uc_devcat_attr.functionClass,
-dimmeterconsumptionbillingdocument.billingPeriodStartDate,
-dimmeterconsumptionbillingdocument.billingPeriodEndDate,
-dimmeterconsumptionbillingdocument.billCreatedDate,
-dimmeterconsumptionbillingdocument.lastChangedDate, 
-dimmeterconsumptionbillingdocument.invoicePostingDate,
-datediff(dimmeterconsumptionbillingdocument.billingPeriodEndDate, dimmeterconsumptionbillingdocument.billingPeriodStartDate) + 1 totalBilledDays,
-isu_zcd_tpropty_hist.propertyNumber,
-isu_zcd_tpropty_hist.superiorPropertyTypeCode,
-isu_zcd_tpropty_hist.superiorPropertyType,
-isu_zcd_tpropty_hist.inferiorPropertyTypeCode,
-isu_zcd_tpropty_hist.inferiorPropertyType,
-isu_zcd_tpropty_hist.validFromDate propertyTypeValidFromDate,
-isu_zcd_tpropty_hist.validToDate propertyTypeValidToDate,
-isu_ehauisu.politicalRegionCode,
-dimlocation.LGA,
-dimbusinesspartnergroup.businessPartnerGroupNumber,
-statBilling.meterActiveStartDate,
-statBilling.meterActiveEndDate,
-statBilling.firstDayOfMeterActiveMonth,
-statBilling.lastDayOfMeterActiveMonth,
-statBilling.meterActiveMonthStartDate,
-statBilling.meterActiveMonthEndDate,
-statBilling.totalMeterActiveDaysPerMonth,
-statBilling.consumptionPerMonthPerDevice,
-statBilling.consumptionPerMonthPerDevice/statBilling.totalMeterActiveDaysPerMonth avgMeteredWaterConsumption,
-dimmeterconsumptionbillingdocument.isOutSortedFlag,
-dimmeterconsumptionbillingdocument.invoiceNotReleasedIndicator,
-dimmeterconsumptionbillingdocument.isreversedFlag,
-dimmeterconsumptionbillingdocument.reversalDate,
-dimmeterconsumptionbillingdocument.invoiceReversalPostingDate,
-dimmeterconsumptionbillingdocument.erchcExistIndicator,
-dimmeterconsumptionbillingdocument.billingDocumentWithoutInvoicingCode,
-dimmeterconsumptionbillingdocument.portionNumber,
-dimmeterconsumptionbillingdocument.billingReasonCode,
-dimContract.contractId,
-dimcontract.contractAccountNumber,
-diminstallation.installationId,
-diminstallation.divisionCode,
-diminstallation.division
-from statBilling  
-inner join curated.dimmeterconsumptionbillingdocument
-on statBilling.meterconsumptionbillingdocumentSK = dimmeterconsumptionbillingdocument.meterconsumptionbillingdocumentSK
-inner join curated.dimlocation
-on dimlocation.LocationSK = statBilling.LocationSK
-inner join curated.dimproperty
-on dimproperty.PropertySK = statBilling.PropertySK
-inner join curated.dimbusinesspartnergroup
-on dimbusinesspartnergroup.BusinessPartnerGroupSK = statBilling.BusinessPartnerGroupSK
-inner join curated.dimcontract
-on dimContract.ContractSK = statBilling.ContractSK
-left outer join cleansed.isu_ehauisu
-on dimproperty.propertyNumber = isu_ehauisu.propertyNumber
-and isu_ehauisu.`_RecordCurrent` = 1
-inner join curated.dimmeter
-on dimmeter.MeterSK = statBilling.MeterSK
-inner join cleansed.isu_0uc_devcat_attr
-on dimmeter.materialNumber = isu_0uc_devcat_attr.materialNumber
-inner join curated.diminstallation
-on diminstallation.propertyNumber = dimproperty.propertyNumber
-left outer join cleansed.isu_zcd_tpropty_hist
-on isu_zcd_tpropty_hist.propertyNumber = dimproperty.propertyNumber
-and isu_zcd_tpropty_hist.validFromDate <= current_date and isu_zcd_tpropty_hist.validToDate >= current_date
-and isu_zcd_tpropty_hist.`_RecordCurrent`= 1
-where dimmeterconsumptionbillingdocument.`_RecordCurrent` = 1
-and dimproperty.`_RecordCurrent` = 1
-and dimlocation.`_RecordCurrent` = 1
-and dimbusinesspartnergroup.`_RecordCurrent` = 1
-and dimmeter.`_RecordCurrent` = 1
-and diminstallation.`_RecordCurrent` = 1
-and isu_0uc_devcat_attr.`_RecordCurrent` = 1
+-- -- View: view_qqv
+-- -- Description: this view provide DAF data similar to QQV extractor in C&B
+-- -- History:     1.0 24/4/2022 LV created
+-- --              1.1 10/05/2022 LV added erchc, updated renamed columns
+-- --              1.2 26/05/2022 LV changed view name, added property details 
+-- --              1.3 29/06/2022 LV rename view name to view_qqv 
+-- CREATE OR REPLACE TABLE curated.view_qqv 
+-- LOCATION 'dbfs:/mnt/datalake-curated/view_qqv'
+-- AS with statBilling as
+-- (SELECT 
+-- factmonthlyapportionedconsumption.consumptionYear,
+-- factmonthlyapportionedconsumption.consumptionMonth,
+-- factmonthlyapportionedconsumption.meterConsumptionBillingDocumentSK, 
+-- factmonthlyapportionedconsumption.PropertySK,
+-- factmonthlyapportionedconsumption.LocationSK,
+-- factmonthlyapportionedconsumption.BusinessPartnerGroupSK,
+-- factmonthlyapportionedconsumption.ContractSK,
+-- factmonthlyapportionedconsumption.MeterSK,
+-- factmonthlyapportionedconsumption.sourceSystemCode,
+-- factmonthlyapportionedconsumption.meterActiveStartDate,
+-- factmonthlyapportionedconsumption.meterActiveEndDate,
+-- factmonthlyapportionedconsumption.firstDayOfMeterActiveMonth,
+-- factmonthlyapportionedconsumption.lastDayOfMeterActiveMonth,
+-- factmonthlyapportionedconsumption.meterActiveMonthStartDate,
+-- factmonthlyapportionedconsumption.meterActiveMonthEndDate,
+-- factmonthlyapportionedconsumption.totalMeterActiveDaysPerMonth,
+-- sum(factmonthlyapportionedconsumption.monthlyApportionedConsumption) consumptionPerMonthPerDevice
+-- FROM curated.factmonthlyapportionedconsumption
+-- WHERE 
+-- factmonthlyapportionedconsumption.`_RecordCurrent` = 1
+-- and factmonthlyapportionedconsumption.sourceSystemCode = 'ISU'
+-- GROUP BY 
+-- factmonthlyapportionedconsumption.consumptionYear,
+-- factmonthlyapportionedconsumption.consumptionMonth,
+-- factmonthlyapportionedconsumption.meterconsumptionbillingdocumentSK, 
+-- factmonthlyapportionedconsumption.PropertySK,
+-- factmonthlyapportionedconsumption.LocationSK,
+-- factmonthlyapportionedconsumption.BusinessPartnerGroupSK,
+-- factmonthlyapportionedconsumption.ContractSK,
+-- factmonthlyapportionedconsumption.MeterSK,
+-- factmonthlyapportionedconsumption.sourceSystemCode,
+-- factmonthlyapportionedconsumption.meterActiveStartDate,
+-- factmonthlyapportionedconsumption.meterActiveEndDate,
+-- factmonthlyapportionedconsumption.firstDayOfMeterActiveMonth,
+-- factmonthlyapportionedconsumption.lastDayOfMeterActiveMonth,
+-- factmonthlyapportionedconsumption.meterActiveMonthStartDate,
+-- factmonthlyapportionedconsumption.meterActiveMonthEndDate,
+-- factmonthlyapportionedconsumption.totalMeterActiveDaysPerMonth
+-- )
+-- select 
+-- statBilling.consumptionYear ,
+-- statBilling.consumptionMonth ,
+-- dimmeterconsumptionbillingdocument.meterConsumptionBillingDocumentSK,
+-- dimmeterconsumptionbillingdocument.billingDocumentNumber, 
+-- dimmeterconsumptionbillingdocument.invoiceMaxSequenceNumber,
+-- statBilling.sourceSystemCode,
+-- dimmeter.meterNumber,
+-- dimmeter.meterSerialNumber,
+-- dimmeter.materialNumber,
+-- dimmeter.meterSize,
+-- isu_0uc_devcat_attr.functionClassCode,
+-- isu_0uc_devcat_attr.functionClass,
+-- dimmeterconsumptionbillingdocument.billingPeriodStartDate,
+-- dimmeterconsumptionbillingdocument.billingPeriodEndDate,
+-- dimmeterconsumptionbillingdocument.billCreatedDate,
+-- dimmeterconsumptionbillingdocument.lastChangedDate, 
+-- dimmeterconsumptionbillingdocument.invoicePostingDate,
+-- datediff(dimmeterconsumptionbillingdocument.billingPeriodEndDate, dimmeterconsumptionbillingdocument.billingPeriodStartDate) + 1 totalBilledDays,
+-- isu_zcd_tpropty_hist.propertyNumber,
+-- isu_zcd_tpropty_hist.superiorPropertyTypeCode,
+-- isu_zcd_tpropty_hist.superiorPropertyType,
+-- isu_zcd_tpropty_hist.inferiorPropertyTypeCode,
+-- isu_zcd_tpropty_hist.inferiorPropertyType,
+-- isu_zcd_tpropty_hist.validFromDate propertyTypeValidFromDate,
+-- isu_zcd_tpropty_hist.validToDate propertyTypeValidToDate,
+-- isu_ehauisu.politicalRegionCode,
+-- dimlocation.LGA,
+-- dimbusinesspartnergroup.businessPartnerGroupNumber,
+-- statBilling.meterActiveStartDate,
+-- statBilling.meterActiveEndDate,
+-- statBilling.firstDayOfMeterActiveMonth,
+-- statBilling.lastDayOfMeterActiveMonth,
+-- statBilling.meterActiveMonthStartDate,
+-- statBilling.meterActiveMonthEndDate,
+-- statBilling.totalMeterActiveDaysPerMonth,
+-- statBilling.consumptionPerMonthPerDevice,
+-- statBilling.consumptionPerMonthPerDevice/statBilling.totalMeterActiveDaysPerMonth avgMeteredWaterConsumption,
+-- dimmeterconsumptionbillingdocument.isOutSortedFlag,
+-- dimmeterconsumptionbillingdocument.invoiceNotReleasedIndicator,
+-- dimmeterconsumptionbillingdocument.isreversedFlag,
+-- dimmeterconsumptionbillingdocument.reversalDate,
+-- dimmeterconsumptionbillingdocument.invoiceReversalPostingDate,
+-- dimmeterconsumptionbillingdocument.erchcExistIndicator,
+-- dimmeterconsumptionbillingdocument.billingDocumentWithoutInvoicingCode,
+-- dimmeterconsumptionbillingdocument.portionNumber,
+-- dimmeterconsumptionbillingdocument.billingReasonCode,
+-- dimContract.contractId,
+-- dimcontract.contractAccountNumber,
+-- diminstallation.installationId,
+-- diminstallation.divisionCode,
+-- diminstallation.division
+-- from statBilling  
+-- inner join curated.dimmeterconsumptionbillingdocument
+-- on statBilling.meterconsumptionbillingdocumentSK = dimmeterconsumptionbillingdocument.meterconsumptionbillingdocumentSK
+-- inner join curated.dimlocation
+-- on dimlocation.LocationSK = statBilling.LocationSK
+-- inner join curated.dimproperty
+-- on dimproperty.PropertySK = statBilling.PropertySK
+-- inner join curated.dimbusinesspartnergroup
+-- on dimbusinesspartnergroup.BusinessPartnerGroupSK = statBilling.BusinessPartnerGroupSK
+-- inner join curated.dimcontract
+-- on dimContract.ContractSK = statBilling.ContractSK
+-- left outer join cleansed.isu_ehauisu
+-- on dimproperty.propertyNumber = isu_ehauisu.propertyNumber
+-- and isu_ehauisu.`_RecordCurrent` = 1
+-- inner join curated.dimmeter
+-- on dimmeter.MeterSK = statBilling.MeterSK
+-- inner join cleansed.isu_0uc_devcat_attr
+-- on dimmeter.materialNumber = isu_0uc_devcat_attr.materialNumber
+-- inner join curated.diminstallation
+-- on diminstallation.propertyNumber = dimproperty.propertyNumber
+-- left outer join cleansed.isu_zcd_tpropty_hist
+-- on isu_zcd_tpropty_hist.propertyNumber = dimproperty.propertyNumber
+-- and isu_zcd_tpropty_hist.validFromDate <= current_date and isu_zcd_tpropty_hist.validToDate >= current_date
+-- and isu_zcd_tpropty_hist.`_RecordCurrent`= 1
+-- where dimmeterconsumptionbillingdocument.`_RecordCurrent` = 1
+-- and dimproperty.`_RecordCurrent` = 1
+-- and dimlocation.`_RecordCurrent` = 1
+-- and dimbusinesspartnergroup.`_RecordCurrent` = 1
+-- and dimmeter.`_RecordCurrent` = 1
+-- and diminstallation.`_RecordCurrent` = 1
+-- and isu_0uc_devcat_attr.`_RecordCurrent` = 1
 
 -- COMMAND ----------
 
 -- MAGIC %sql
 -- MAGIC set spark.databricks.delta.retentionDurationCheck.enabled=false;
 -- MAGIC VACUUM curated.view_zbl RETAIN 0 HOURS;
--- MAGIC VACUUM curated.view_qqv RETAIN 0 HOURS;
+-- MAGIC -- VACUUM curated.view_qqv RETAIN 0 HOURS;
 -- MAGIC set spark.databricks.delta.retentionDurationCheck.enabled=true;
 
 -- COMMAND ----------
