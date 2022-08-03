@@ -171,7 +171,7 @@ print(delta_raw_tbl_name)
 
 # DBTITLE 1,10. Load Raw to Dataframe & Do Transformations
 df = spark.sql(f"WITH stage AS \
-                      (Select *, ROW_NUMBER() OVER (PARTITION BY PPKEY,PRDAT ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
+                      (Select *, ROW_NUMBER() OVER (PARTITION BY PPKEY,PRDAT ORDER BY _FileDateTimeStamp DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
                            SELECT \
                                 case when PPKEY = 'na' then '' else PPKEY end as promiseToPayId, \
                                 ToValidDate(PRDAT,'MANDATORY') as paymentDatePromised, \
@@ -189,29 +189,6 @@ df = spark.sql(f"WITH stage AS \
                         from stage where _RecordVersion = 1 ")
 
 #print(f'Number of rows: {df.count()}')
-
-# COMMAND ----------
-
-# DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
-#Update/rename Column
-#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
-# df_cleansed = spark.sql(f"SELECT \
-# 	case when PPKEY = 'na' then '' else PPKEY end as promiseToPayId, \
-# 	ToValidDate(PRDAT,'MANDATORY') as paymentDatePromised, \
-# 	cast(PRAMT as dec(13,2)) as paymentAmountPromised, \
-# 	cast(PRAMO as dec(13,2)) as promisedAmountOpen, \
-# 	PRCUR as currency, \
-# 	cast(FDDBT as dec(13,2)) as amount2, \
-# 	cast(FDDBO as dec(13,2)) as amount1, \
-# 	ToValidDate(ERDAT) as createdDate, \
-# 	_RecordStart, \
-# 	_RecordEnd, \
-# 	_RecordDeleted, \
-# 	_RecordCurrent \
-# 	FROM {ADS_DATABASE_STAGE}.{source_object}")
-
-
-# print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
 
