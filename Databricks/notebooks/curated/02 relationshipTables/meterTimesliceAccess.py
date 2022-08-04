@@ -37,7 +37,7 @@ def getmeterTimesliceAccess():
                       ), \
                  t3 as( \
                       select src, propertyNumber, propertyMeterNumber, meterSize, meterFittedDate, meterRemovedDate, meterMakerNumber, \
-                             meterClass, meterCategory, meterGroup, isCheckMeter, propertyMeterUpdatedDate as validFrom, \
+                             meterClass, meterCategory, meterGroup, isCheckMeter, case when propertyMeterUpdatedDate > meterFittedDate then propertyMeterUpdatedDate else meterFittedDate end as validFrom, \
                              row_number() over (partition by propertyNumber, propertyMeterNumber, meterMakerNumber order by propertyMeterUpdatedDate) as rn \
                       from t2 \
                       ), \
@@ -164,13 +164,13 @@ dbutils.notebook.exit('0')
 # MAGIC                   rank() over (partition by propertyNumber, propertyMeterNumber, meterSize, meterFittedDate, metermakernumber, 
 # MAGIC                   meterClass, meterCategory, meterGroup, isCheckMeter, rowSupersededDate order by rowSupersededTime desc) as rnk 
 # MAGIC           FROM cleansed.access_Z309_THPROPMETER
-# MAGIC           where propertyNumber = 5000109 --meterMakerNumber = 'DTED0028'
+# MAGIC           where propertyNumber = 3100190 --meterMakerNumber = 'DTED0028'
 # MAGIC           ),
 # MAGIC      t2 as(
 # MAGIC           select 'C' as src, propertyNumber, propertyMeterNumber, meterSize, meterFittedDate, meterRemovedDate, meterMakerNumber, 
 # MAGIC                   meterClass, meterCategory, coalesce(meterGroup,  'Normal Reading') as meterGroup, isCheckMeter, propertyMeterUpdatedDate
 # MAGIC           from cleansed.access_z309_tpropmeter 
-# MAGIC           where propertyNumber = 5000109 --meterMakerNumber = 'DTED0028'
+# MAGIC           where propertyNumber = 3100190 --meterMakerNumber = 'DTED0028'
 # MAGIC           union all
 # MAGIC           select src, propertyNumber, propertyMeterNumber, meterSize, meterFittedDate, meterRemovedDate, meterMakerNumber, 
 # MAGIC                  meterClass, meterCategory, meterGroup, isCheckMeter, propertyMeterUpdatedDate 
@@ -189,6 +189,13 @@ dbutils.notebook.exit('0')
 # MAGIC order by validFrom
 # MAGIC        
 # MAGIC --, meterMakerNumber, meterClass, meterCategory, meterGroup, isCheckMeter
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC select * 
+# MAGIC from cleansed.access_z309_tpropmeter
+# MAGIC where propertyNumber = 3100190
 
 # COMMAND ----------
 
