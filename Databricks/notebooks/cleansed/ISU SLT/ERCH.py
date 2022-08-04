@@ -198,18 +198,18 @@ df = spark.sql(f"WITH stage AS \
                                   BELEGART as documentTypeCode, \
                                   BERGRUND as backbillingCreditReasonCode, \
                                   ToValidDate(BEGNACH) as  backbillingStartPeriod, \
-                                  TOBRELEASD as documentNotReleasedIndicator, \
+                                  case when TOBRELEASD = 'X' then 'Y' else 'N' end as documentNotReleasedIndicator, \
                                   TXJCD as taxJurisdictionDescription, \
                                   KONZVER as franchiseContractCode, \
                                   EROETIM as billingDocumentCreateTime, \
-                                  ERCHO_V as erchoExistIndicator, \
-                                  ERCHZ_V as erchzExistIndicator, \
-                                  ERCHU_V as erchuExistIndicator, \
-                                  ERCHR_V as erchrExistIndicator, \
-                                  ERCHC_V as erchcExistIndicator, \
-                                  ERCHV_V as erchvExistIndicator, \
-                                  ERCHT_V as erchtExistIndicator, \
-                                  ERCHP_V as erchpExistIndicator, \
+                                  case when ERCHO_V = 'X' then 'Y' else 'N' end as erchoExistIndicator, \
+                                  case when ERCHZ_V = 'X' then 'Y' else 'N' end as erchzExistIndicator, \
+                                  case when ERCHU_V = 'X' then 'Y' else 'N' end as erchuExistIndicator, \
+                                  case when ERCHR_V = 'X' then 'Y' else 'N' end as erchrExistIndicator, \
+                                  case when ERCHC_V = 'X' then 'Y' else 'N' end as erchcExistIndicator, \
+                                  case when ERCHV_V = 'X' then 'Y' else 'N' end as erchvExistIndicator, \
+                                  case when ERCHT_V = 'X' then 'Y' else 'N' end as erchtExistIndicator, \
+                                  case when ERCHP_V = 'X' then 'Y' else 'N' end as erchpExistIndicator, \
                                   ABRVORG2 as periodEndBillingTransactionCode, \
                                   ABLEINH as meterReadingUnit, \
                                   ENDPRIO as billingEndingPriorityCode, \
@@ -218,7 +218,7 @@ df = spark.sql(f"WITH stage AS \
                                   ToValidDate(AEDAT) as  lastChangedDate, \
                                   AENAM as changedBy, \
                                   BEGRU as authorizationGroupCode, \
-                                  LOEVM as deletedIndicator, \
+                                  case when LOEVM = 'X' then 'Y' else 'N' end as deletedIndicator, \
                                   ToValidDate(ABRDATSU) as  suppressedBillingOrderScheduleDate, \
                                   ABRVORGU as suppressedBillingOrderTransactionCode, \
                                   N_INVSEP as jointInvoiceAutomaticDocumentIndicator, \

@@ -178,14 +178,14 @@ df = spark.sql(f"WITH stage AS \
                                   CSNO as billingSequenceNumber, \
                                   BELZART as lineItemTypeCode, \
                                   li.lineItemType, \
-                                  ABSLKZ as billingLineItemBudgetBillingIndicator, \
+                                  case when ABSLKZ = 'X' then 'Y' else 'N' end as billingLineItemBudgetBillingIndicator, \
                                   DIFFKZ as lineItemDiscountStatisticsIndicator, \
-                                  BUCHREL as billingLineItemRelevantPostingIndicator, \
-                                  MENGESTREL as billedValueStatisticallyRelevantIndicator, \
+                                  case when BUCHREL = 'X' then 'Y' else 'N' end as billingLineItemRelevantPostingIndicator, \
+                                  case when MENGESTREL = 'X' then 'Y' else 'N' end as billedValueStatisticallyRelevantIndicator, \
                                   BETRSTREL as billingLineItemStatisticallyRelevantAmount, \
                                   STGRQNT as quantityStatisticsGroupCode, \
                                   STGRAMT as amountStatisticsGroupCode, \
-                                  PRINTREL as billingLinePrintRelevantIndicator, \
+                                  case when PRINTREL = 'X' then 'Y' else 'N' end as billingLinePrintRelevantIndicator, \
                                   AKLASSE as billingClassCode, \
                                   bc.billingClass as billingClass, \
                                   BRANCHE as industryCode, \

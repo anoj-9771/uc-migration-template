@@ -54,10 +54,6 @@ def getBusinessPartnerGroup():
     df = isu0bpartnerAttrDf.join(crm0bpartnerAttrDf, isu0bpartnerAttrDf.businessPartnerGroupNumber == crm0bpartnerAttrDf.businessPartnerGroupNumber, how="left")\
                             .drop(crm0bpartnerAttrDf.businessPartnerGroupNumber)
     
-    df = df.withColumn('paymentAssistSchemeFlag', when ((col("paymentAssistSchemeFlag") == 'X'),'Y').otherwise('N')) \
-           .withColumn('billAssistFlag', when ((col("billAssistFlag") == 'X'),'Y').otherwise('N')) \
-           .withColumn('kidneyDialysisFlag', when ((col("kidneyDialysisFlag") == 'X'),'Y').otherwise('N'))
-    
     df = df.select("sourceSystemCode","businessPartnerGroupNumber","validFromDate","validToDate", \
                                                 "businessPartnerGroupCode","businessPartnerGroup","businessPartnerGroupName1","businessPartnerGroupName2","externalNumber", \
                                                 "paymentAssistSchemeFlag","billAssistFlag","kidneyDialysisFlag","createdDateTime","createdBy","lastUpdatedDateTime","lastUpdatedBy") 
