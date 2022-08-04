@@ -207,6 +207,17 @@ from t1
 -- COMMAND ----------
 
 select * 
+from allreadings
+where propertyNumber = 3100190
+
+-- COMMAND ----------
+
+select * from curated.metertimesliceaccess
+where propertyNumber = 3100190
+
+-- COMMAND ----------
+
+select * 
 from cleansed.access_z309_tpropmeter
 where propertyNumber = 4582990
 and propertyMeterNumber = 1
