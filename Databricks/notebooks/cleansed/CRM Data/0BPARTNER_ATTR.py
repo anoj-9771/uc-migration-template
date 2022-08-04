@@ -185,11 +185,11 @@ df = spark.sql(f"WITH stage AS \
                                 BU_SORT2 as searchTerm2, \
                                 BP.TITLE as titleCode, \
                                 TITLE.TITLE as title, \
-                                XDELE as deletedIndicator, \
+                                case when XDELE = 'X' then 'Y' else 'N' end as deletedIndicator, \
                                 XBLCK as centralBlockBusinessPartner, \
                                 ZZUSER as userId, \
-                                ZZPAS_INDICATOR as paymentAssistSchemeIndicator, \
-                                ZZBA_INDICATOR as billAssistIndicator, \
+                                case when ZZPAS_INDICATOR = 'X' then 'Y' else 'N' end as paymentAssistSchemeIndicator, \
+                                case when ZZBA_INDICATOR = 'X' then 'Y' else 'N' end as billAssistIndicator, \
                                 ToValidDate(BP.ZZAFLD00001Z) as createdDate, \
                                 ZZ_CONSENT1 as consent1Indicator, \
                                 ZZWAR_WID as warWidowIndicator, \
@@ -220,7 +220,7 @@ df = spark.sql(f"WITH stage AS \
                                 LANGU_CORR as correspondenceLanguage, \
                                 NATIO as nationality, \
                                 PERSNUMBER as personNumber, \
-                                XSEXU as unknownGenderIndicator, \
+                                case when XSEXU = 'X' then 'Y' else 'N' end as unknownGenderIndicator, \
                                 ToValidDate(BP.BIRTHDT) as dateOfBirth, \
                                 ToValidDate(BP.DEATHDT) as dateOfDeath, \
                                 PERNO as personnelNumber, \
@@ -237,8 +237,8 @@ df = spark.sql(f"WITH stage AS \
                                 TD_SWITCH as plannedChangeDocument, \
                                 ToValidDate(substr(BP.VALID_FROM,0,8)) as validFromDate, \
                                 ToValidDate(substr(BP.VALID_TO,0,8)) as validToDate, \
-                                NATPERS as naturalPersonIndicator, \
-                                ZZAFLD00000M as kidneyDialysisIndicator, \
+                                case when NATPERS = 'X' then 'Y' else 'N' end as naturalPersonIndicator, \
+                                case when ZZAFLD00000M = 'X' then 'Y' else 'N' end as kidneyDialysisIndicator, \
                                 ZZUNIT as patientUnit, \
                                 ZZTITLE as patientTitleCode, \
                                 ZZTITLE.TITLE as patientTitle, \
