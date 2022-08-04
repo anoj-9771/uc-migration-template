@@ -181,12 +181,12 @@ df = spark.sql(f"WITH stage AS \
                                   INTOPBEL as  printDocumentNumber, \
                                   ToValidDate(INTCPUDT) as  invoiceReversalEnteredDate, \
                                   ToValidDate(INTBUDAT) as  invoiceReversalPostingDate, \
-                                  TOBRELEASD as documentNotReleasedIndicator, \
-                                  SIMULATED as billingSimulationIndicator, \
-                                  INVOICED as invoicePostedIndicator, \
+                                  case when TOBRELEASD = 'X' then 'Y' else 'N' end as documentNotReleasedIndicator, \
+                                  case when SIMULATED = 'X' then 'Y' else 'N' end as billingSimulationIndicator, \
+                                  case when INVOICED = 'X' then 'Y' else 'N' end as invoicePostedIndicator, \
                                   SPCANC as adjustmentReversalIndicator, \
-                                  STATUPD as documentInSalesStatsIndicator, \
-                                  STATUPD_CANC as reversalDocumentInSalesStatsIndicator, \
+                                  case when STATUPD = 'X' then 'Y' else 'N' end as documentInSalesStatsIndicator, \
+                                  case when STATUPD_CANC = 'X' then 'Y' else 'N' end as reversalDocumentInSalesStatsIndicator, \
                                   cast('1900-01-01' as TimeStamp) as _RecordStart, \
                                   cast('9999-12-31' as TimeStamp) as _RecordEnd, \
                                   '0' as _RecordDeleted, \
