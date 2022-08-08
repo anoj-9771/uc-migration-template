@@ -51,6 +51,10 @@
 			"type": "string",
 			"defaultValue": "acff96db-8630-433b-bbb1-35a3813fa036"
 		},
+		"LS_AzureSqlDatabase_Sewercctv_properties_typeProperties_connectionString_secretName": {
+			"type": "string",
+			"defaultValue": "daf-sql-sewercctv-connectionstring"
+		},
 		"LS_DeltaLake_properties_typeProperties_domain": {
 			"type": "string",
 			"defaultValue": "https://adb-7004525605760210.10.azuredatabricks.net"
@@ -10895,7 +10899,14 @@
 					{
 						"name": "SP-Record-Manifest_copy1",
 						"type": "SqlServerStoredProcedure",
-						"dependsOn": [],
+						"dependsOn": [
+							{
+								"activity": "Set-ExtractDateTime",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
 						"policy": {
 							"timeout": "7.00:00:00",
 							"retry": 0,
@@ -10987,7 +10998,7 @@
 								},
 								"SourceFileDateStamp": {
 									"value": {
-										"value": "@replace(replace(replace(pipeline().parameters.WatermarkColumn,'-',''),':',''),' ','')",
+										"value": "@variables('ExtractDateTime')",
 										"type": "Expression"
 									},
 									"type": "String"
@@ -11044,7 +11055,7 @@
 								},
 								"SourceFileDateStamp": {
 									"value": {
-										"value": "@replace(replace(replace(pipeline().parameters.WatermarkColumn,'-',''),':',''),' ','')",
+										"value": "@variables('ExtractDateTime')",
 										"type": "Expression"
 									},
 									"type": "String"
@@ -11265,7 +11276,7 @@
 								},
 								"SourceFileDateStamp": {
 									"value": {
-										"value": "@replace(replace(replace(pipeline().parameters.WatermarkColumn,'-',''),':',''),' ','')",
+										"value": "@variables('ExtractDateTime')",
 										"type": "Expression"
 									},
 									"type": "String"
@@ -12252,6 +12263,19 @@
 						"typeProperties": {
 							"waitTimeInSeconds": 1
 						}
+					},
+					{
+						"name": "Set-ExtractDateTime",
+						"type": "SetVariable",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"variableName": "ExtractDateTime",
+							"value": {
+								"value": "@formatDateTime(convertFromUtc(utcnow(),'AUS Eastern Standard Time'), 'yyyyMMddHHmmss')",
+								"type": "Expression"
+							}
+						}
 					}
 				],
 				"policy": {
@@ -12310,6 +12334,9 @@
 						"type": "String"
 					},
 					"RowsRead": {
+						"type": "String"
+					},
+					"ExtractDateTime": {
 						"type": "String"
 					}
 				},
@@ -15926,6 +15953,274 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/pipeline2')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "attachments",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "ParquetSource",
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": true,
+									"wildcardFolderPath": "sewercctv/cctv_kaltura_attachments",
+									"wildcardFileName": "*.parquet",
+									"enablePartitionDiscovery": false
+								}
+							},
+							"sink": {
+								"type": "AzureSqlSink",
+								"writeBehavior": "insert",
+								"sqlWriterUseTableLock": false,
+								"tableOption": "autoCreate",
+								"disableMetricsCollection": false
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "Parquet2",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "AzureSqlTable3",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					},
+					{
+						"name": "flavors",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "attachments",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "ParquetSource",
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": true,
+									"wildcardFolderPath": "sewercctv/cctv_kaltura_flavors",
+									"wildcardFileName": "*.parquet",
+									"enablePartitionDiscovery": false
+								}
+							},
+							"sink": {
+								"type": "AzureSqlSink",
+								"writeBehavior": "insert",
+								"sqlWriterUseTableLock": false,
+								"tableOption": "autoCreate",
+								"disableMetricsCollection": false
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "flavors_src",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "flavors_dst",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					},
+					{
+						"name": "metadata",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "flavors",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "ParquetSource",
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": true,
+									"wildcardFolderPath": "sewercctv/cctv_kaltura_metadata",
+									"wildcardFileName": "*.parquet",
+									"enablePartitionDiscovery": false
+								}
+							},
+							"sink": {
+								"type": "AzureSqlSink",
+								"writeBehavior": "insert",
+								"sqlWriterUseTableLock": false,
+								"tableOption": "autoCreate",
+								"disableMetricsCollection": false
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "metadata_src",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "metadata_Dst",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					},
+					{
+						"name": "mediaentry",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "metadata",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "ParquetSource",
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": true,
+									"wildcardFolderPath": "sewercctv/cctv_kaltura_mediaentry",
+									"wildcardFileName": "*.parquet",
+									"enablePartitionDiscovery": false
+								}
+							},
+							"sink": {
+								"type": "AzureSqlSink",
+								"writeBehavior": "insert",
+								"sqlWriterUseTableLock": false,
+								"tableOption": "autoCreate",
+								"disableMetricsCollection": false
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "media_entry_src",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "mediaentry_Dst",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"folder": {
+					"name": "z_Archive"
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/Parquet2')]",
+				"[concat(variables('factoryId'), '/datasets/AzureSqlTable3')]",
+				"[concat(variables('factoryId'), '/datasets/flavors_src')]",
+				"[concat(variables('factoryId'), '/datasets/flavors_dst')]",
+				"[concat(variables('factoryId'), '/datasets/metadata_src')]",
+				"[concat(variables('factoryId'), '/datasets/metadata_Dst')]",
+				"[concat(variables('factoryId'), '/datasets/media_entry_src')]",
+				"[concat(variables('factoryId'), '/datasets/mediaentry_Dst')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/recon-record-validation')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
 			"apiVersion": "2018-06-01",
@@ -16690,6 +16985,27 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/AzureSqlTable3')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_AzureSqlDatabase_Sewercctv",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "cctv_kaltura_attachments"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_AzureSqlDatabase_Sewercctv')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/BINARY_ADLS')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -16993,6 +17309,120 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/LS_DeltaLake')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Parquet2')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_AzureDatalake",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Parquet",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": "sewercctv/cctv_kaltura_attachments",
+						"fileSystem": "cleansed"
+					},
+					"compressionCodec": "snappy"
+				},
+				"schema": [
+					{
+						"name": "attachments_id",
+						"type": "UTF8"
+					},
+					{
+						"name": "attachments_entryId",
+						"type": "UTF8"
+					},
+					{
+						"name": "attachments_partnerId",
+						"type": "INT64"
+					},
+					{
+						"name": "attachments_version",
+						"type": "INT64"
+					},
+					{
+						"name": "attachments_size",
+						"type": "INT64"
+					},
+					{
+						"name": "attachments_tags",
+						"type": "UTF8"
+					},
+					{
+						"name": "attachments_fileExt",
+						"type": "UTF8"
+					},
+					{
+						"name": "attachments_createdAt",
+						"type": "INT64"
+					},
+					{
+						"name": "attachments_updatedAt",
+						"type": "INT64"
+					},
+					{
+						"name": "attachments_description",
+						"type": "UTF8"
+					},
+					{
+						"name": "attachments_partnerDescription",
+						"type": "UTF8"
+					},
+					{
+						"name": "attachments_sizeInBytes",
+						"type": "INT64"
+					},
+					{
+						"name": "attachments_filename",
+						"type": "UTF8"
+					},
+					{
+						"name": "attachments_title",
+						"type": "UTF8"
+					},
+					{
+						"name": "attachments_format",
+						"type": "UTF8"
+					},
+					{
+						"name": "attachments_status",
+						"type": "UTF8"
+					},
+					{
+						"name": "processed_timestamp",
+						"type": "INT96"
+					},
+					{
+						"name": "_DLCleansedZoneTimeStamp",
+						"type": "INT96"
+					},
+					{
+						"name": "_RecordStart",
+						"type": "INT96"
+					},
+					{
+						"name": "_RecordEnd",
+						"type": "INT96"
+					},
+					{
+						"name": "_RecordDeleted",
+						"type": "INT32"
+					},
+					{
+						"name": "_RecordCurrent",
+						"type": "INT32"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_AzureDatalake')]"
 			]
 		},
 		{
@@ -17596,6 +18026,737 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/cctv_kaltura_attachments')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_AzureDatalake",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Parquet",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": "sewercctv/cctv_kaltura_attachments",
+						"fileSystem": "cleansed"
+					},
+					"compressionCodec": "snappy"
+				},
+				"schema": [
+					{
+						"name": "attachments_id",
+						"type": "UTF8"
+					},
+					{
+						"name": "attachments_entryId",
+						"type": "UTF8"
+					},
+					{
+						"name": "attachments_partnerId",
+						"type": "INT64"
+					},
+					{
+						"name": "attachments_version",
+						"type": "INT64"
+					},
+					{
+						"name": "attachments_size",
+						"type": "INT64"
+					},
+					{
+						"name": "attachments_tags",
+						"type": "UTF8"
+					},
+					{
+						"name": "attachments_fileExt",
+						"type": "UTF8"
+					},
+					{
+						"name": "attachments_createdAt",
+						"type": "INT64"
+					},
+					{
+						"name": "attachments_updatedAt",
+						"type": "INT64"
+					},
+					{
+						"name": "attachments_description",
+						"type": "UTF8"
+					},
+					{
+						"name": "attachments_partnerDescription",
+						"type": "UTF8"
+					},
+					{
+						"name": "attachments_sizeInBytes",
+						"type": "INT64"
+					},
+					{
+						"name": "attachments_filename",
+						"type": "UTF8"
+					},
+					{
+						"name": "attachments_title",
+						"type": "UTF8"
+					},
+					{
+						"name": "attachments_format",
+						"type": "UTF8"
+					},
+					{
+						"name": "attachments_status",
+						"type": "UTF8"
+					},
+					{
+						"name": "processed_timestamp",
+						"type": "INT96"
+					},
+					{
+						"name": "_DLCleansedZoneTimeStamp",
+						"type": "INT96"
+					},
+					{
+						"name": "_RecordStart",
+						"type": "INT96"
+					},
+					{
+						"name": "_RecordEnd",
+						"type": "INT96"
+					},
+					{
+						"name": "_RecordDeleted",
+						"type": "INT32"
+					},
+					{
+						"name": "_RecordCurrent",
+						"type": "INT32"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_AzureDatalake')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/flavors_dst')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_AzureSqlDatabase_Sewercctv",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "cctv_kaltura_flavors"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_AzureSqlDatabase_Sewercctv')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/flavors_src')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_AzureDatalake",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Parquet",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": "sewercctv/cctv_kaltura_flavors",
+						"fileSystem": "cleansed"
+					},
+					"compressionCodec": "snappy"
+				},
+				"schema": [
+					{
+						"name": "flavors_id",
+						"type": "UTF8"
+					},
+					{
+						"name": "flavors_entryId",
+						"type": "UTF8"
+					},
+					{
+						"name": "flavors_partnerId",
+						"type": "INT64"
+					},
+					{
+						"name": "flavors_version",
+						"type": "INT64"
+					},
+					{
+						"name": "flavors_size",
+						"type": "INT64"
+					},
+					{
+						"name": "flavors_tags",
+						"type": "UTF8"
+					},
+					{
+						"name": "flavors_fileExt",
+						"type": "UTF8"
+					},
+					{
+						"name": "flavors_createdAt",
+						"type": "INT64"
+					},
+					{
+						"name": "flavors_updatedAt",
+						"type": "INT64"
+					},
+					{
+						"name": "flavors_description",
+						"type": "UTF8"
+					},
+					{
+						"name": "flavors_sizeInBytes",
+						"type": "INT64"
+					},
+					{
+						"name": "flavors_flavorParamsId",
+						"type": "INT64"
+					},
+					{
+						"name": "flavors_width",
+						"type": "INT64"
+					},
+					{
+						"name": "flavors_height",
+						"type": "INT64"
+					},
+					{
+						"name": "flavors_bitrate",
+						"type": "INT64"
+					},
+					{
+						"name": "flavors_frameRate",
+						"type": "DOUBLE"
+					},
+					{
+						"name": "flavors_isOriginal",
+						"type": "BOOLEAN"
+					},
+					{
+						"name": "flavors_isWeb",
+						"type": "BOOLEAN"
+					},
+					{
+						"name": "flavors_containerFormat",
+						"type": "UTF8"
+					},
+					{
+						"name": "flavors_videoCodecId",
+						"type": "UTF8"
+					},
+					{
+						"name": "flavors_status",
+						"type": "UTF8"
+					},
+					{
+						"name": "flavors_isDefault",
+						"type": "BOOLEAN"
+					},
+					{
+						"name": "flavors_language",
+						"type": "UTF8"
+					},
+					{
+						"name": "processed_timestamp",
+						"type": "INT96"
+					},
+					{
+						"name": "_DLCleansedZoneTimeStamp",
+						"type": "INT96"
+					},
+					{
+						"name": "_RecordStart",
+						"type": "INT96"
+					},
+					{
+						"name": "_RecordEnd",
+						"type": "INT96"
+					},
+					{
+						"name": "_RecordDeleted",
+						"type": "INT32"
+					},
+					{
+						"name": "_RecordCurrent",
+						"type": "INT32"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_AzureDatalake')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/media_entry_src')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_AzureDatalake",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Parquet",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": "sewercctv/cctv_kaltura_mediaentry",
+						"fileSystem": "cleansed"
+					},
+					"compressionCodec": "snappy"
+				},
+				"schema": [
+					{
+						"name": "id",
+						"type": "UTF8"
+					},
+					{
+						"name": "name",
+						"type": "UTF8"
+					},
+					{
+						"name": "description",
+						"type": "UTF8"
+					},
+					{
+						"name": "partnerId",
+						"type": "INT64"
+					},
+					{
+						"name": "userId",
+						"type": "UTF8"
+					},
+					{
+						"name": "creatorId",
+						"type": "UTF8"
+					},
+					{
+						"name": "tags",
+						"type": "UTF8"
+					},
+					{
+						"name": "categories",
+						"type": "UTF8"
+					},
+					{
+						"name": "categoriesIds",
+						"type": "UTF8"
+					},
+					{
+						"name": "status",
+						"type": "UTF8"
+					},
+					{
+						"name": "moderationStatus",
+						"type": "UTF8"
+					},
+					{
+						"name": "moderationCount",
+						"type": "INT64"
+					},
+					{
+						"name": "type",
+						"type": "UTF8"
+					},
+					{
+						"name": "createdAt",
+						"type": "INT64"
+					},
+					{
+						"name": "updatedAt",
+						"type": "INT64"
+					},
+					{
+						"name": "rank",
+						"type": "DOUBLE"
+					},
+					{
+						"name": "totalRank",
+						"type": "INT64"
+					},
+					{
+						"name": "votes",
+						"type": "INT64"
+					},
+					{
+						"name": "downloadUrl",
+						"type": "UTF8"
+					},
+					{
+						"name": "searchText",
+						"type": "UTF8"
+					},
+					{
+						"name": "licenseType",
+						"type": "UTF8"
+					},
+					{
+						"name": "version",
+						"type": "INT64"
+					},
+					{
+						"name": "thumbnailUrl",
+						"type": "UTF8"
+					},
+					{
+						"name": "replacementStatus",
+						"type": "UTF8"
+					},
+					{
+						"name": "partnerSortValue",
+						"type": "INT64"
+					},
+					{
+						"name": "conversionProfileId",
+						"type": "INT64"
+					},
+					{
+						"name": "rootEntryId",
+						"type": "UTF8"
+					},
+					{
+						"name": "entitledUsersEdit",
+						"type": "UTF8"
+					},
+					{
+						"name": "entitledUsersPublish",
+						"type": "UTF8"
+					},
+					{
+						"name": "entitledUsersView",
+						"type": "UTF8"
+					},
+					{
+						"name": "capabilities",
+						"type": "UTF8"
+					},
+					{
+						"name": "displayInSearch",
+						"type": "UTF8"
+					},
+					{
+						"name": "blockAutoTranscript",
+						"type": "BOOLEAN"
+					},
+					{
+						"name": "plays",
+						"type": "INT64"
+					},
+					{
+						"name": "views",
+						"type": "INT64"
+					},
+					{
+						"name": "lastPlayedAt",
+						"type": "DOUBLE"
+					},
+					{
+						"name": "width",
+						"type": "INT64"
+					},
+					{
+						"name": "height",
+						"type": "INT64"
+					},
+					{
+						"name": "duration",
+						"type": "INT64"
+					},
+					{
+						"name": "msDuration",
+						"type": "INT64"
+					},
+					{
+						"name": "mediaType",
+						"type": "UTF8"
+					},
+					{
+						"name": "conversionQuality",
+						"type": "UTF8"
+					},
+					{
+						"name": "sourceType",
+						"type": "UTF8"
+					},
+					{
+						"name": "dataUrl",
+						"type": "UTF8"
+					},
+					{
+						"name": "flavorParamsIds",
+						"type": "UTF8"
+					},
+					{
+						"name": "adminTags",
+						"type": "UTF8"
+					},
+					{
+						"name": "_DLCleansedZoneTimeStamp",
+						"type": "INT96"
+					},
+					{
+						"name": "_RecordStart",
+						"type": "INT96"
+					},
+					{
+						"name": "_RecordEnd",
+						"type": "INT96"
+					},
+					{
+						"name": "_RecordCurrent",
+						"type": "INT32"
+					},
+					{
+						"name": "_RecordDeleted",
+						"type": "INT32"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_AzureDatalake')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/mediaentry_Dst')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_AzureSqlDatabase_Sewercctv",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "cctv_kaltura_mediaentry"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_AzureSqlDatabase_Sewercctv')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/metadata_Dst')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_AzureSqlDatabase_Sewercctv",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "cctv_kaltura_metadata"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_AzureSqlDatabase_Sewercctv')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/metadata_src')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_AzureDatalake",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Parquet",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": "sewercctv/cctv_kaltura_metadata",
+						"fileSystem": "cleansed"
+					},
+					"compressionCodec": "snappy"
+				},
+				"schema": [
+					{
+						"name": "metadata_id",
+						"type": "INT64"
+					},
+					{
+						"name": "metadata_partnerId",
+						"type": "INT64"
+					},
+					{
+						"name": "metadata_metadataProfileId",
+						"type": "INT64"
+					},
+					{
+						"name": "metadata_metadataProfileVersion",
+						"type": "INT64"
+					},
+					{
+						"name": "metadata_metadataObjectType",
+						"type": "UTF8"
+					},
+					{
+						"name": "metadata_objectId",
+						"type": "UTF8"
+					},
+					{
+						"name": "metadata_version",
+						"type": "INT64"
+					},
+					{
+						"name": "metadata_createdAt",
+						"type": "INT64"
+					},
+					{
+						"name": "metadata_updatedAt",
+						"type": "INT64"
+					},
+					{
+						"name": "metadata_status",
+						"type": "UTF8"
+					},
+					{
+						"name": "metadata_jsonData.AssessedByName",
+						"type": "UTF8"
+					},
+					{
+						"name": "metadata_jsonData.AssessedByDate",
+						"type": "UTF8"
+					},
+					{
+						"name": "metadata_jsonData.ParentWorkOrderNumber",
+						"type": "UTF8"
+					},
+					{
+						"name": "metadata_jsonData.ChildWorkOrderNumbers",
+						"type": "UTF8"
+					},
+					{
+						"name": "metadata_jsonData.WorkOrderDescription",
+						"type": "UTF8"
+					},
+					{
+						"name": "metadata_jsonData.AssetNumbers",
+						"type": "UTF8"
+					},
+					{
+						"name": "metadata_jsonData.TaskCode",
+						"type": "UTF8"
+					},
+					{
+						"name": "metadata_jsonData.Suburb",
+						"type": "UTF8"
+					},
+					{
+						"name": "metadata_jsonData.Product",
+						"type": "UTF8"
+					},
+					{
+						"name": "metadata_jsonData.Contractor",
+						"type": "UTF8"
+					},
+					{
+						"name": "metadata_jsonData.UpstreamMH",
+						"type": "UTF8"
+					},
+					{
+						"name": "metadata_jsonData.DownstreamMH",
+						"type": "UTF8"
+					},
+					{
+						"name": "metadata_jsonData.DirectionOfSurvey",
+						"type": "UTF8"
+					},
+					{
+						"name": "metadata_jsonData.DateOfCompletedInspection",
+						"type": "UTF8"
+					},
+					{
+						"name": "metadata_jsonData.TimeOfCompletedInspection",
+						"type": "UTF8"
+					},
+					{
+						"name": "metadata_jsonData.PackageName",
+						"type": "UTF8"
+					},
+					{
+						"name": "metadata_jsonData.Cleaned",
+						"type": "UTF8"
+					},
+					{
+						"name": "metadata_jsonData.SurveyedLength",
+						"type": "UTF8"
+					},
+					{
+						"name": "metadata_jsonData.DiscardDate",
+						"type": "UTF8"
+					},
+					{
+						"name": "metadata_jsonData.Condition",
+						"type": "UTF8"
+					},
+					{
+						"name": "metadata_jsonData.Serviceability",
+						"type": "UTF8"
+					},
+					{
+						"name": "metadata_jsonData.Infiltration",
+						"type": "UTF8"
+					},
+					{
+						"name": "metadata_jsonData.AddressStreet",
+						"type": "UTF8"
+					},
+					{
+						"name": "processed_timestamp",
+						"type": "INT96"
+					},
+					{
+						"name": "_DLCleansedZoneTimeStamp",
+						"type": "INT96"
+					},
+					{
+						"name": "_RecordStart",
+						"type": "INT96"
+					},
+					{
+						"name": "_RecordEnd",
+						"type": "INT96"
+					},
+					{
+						"name": "_RecordDeleted",
+						"type": "INT32"
+					},
+					{
+						"name": "_RecordCurrent",
+						"type": "INT32"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_AzureDatalake')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/LS-AzureDatabricks_DefinedCluster')]",
 			"type": "Microsoft.DataFactory/factories/linkedServices",
 			"apiVersion": "2018-06-01",
@@ -17837,6 +18998,33 @@
 							"type": "LinkedServiceReference"
 						},
 						"secretName": "SERVICE-PRINCIPAL-SECRET"
+					}
+				},
+				"connectVia": {
+					"referenceName": "IntegrationRuntime-Azure-ManagedVnet-01",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/integrationRuntimes/IntegrationRuntime-Azure-ManagedVnet-01')]",
+				"[concat(variables('factoryId'), '/linkedServices/LS-AzureKeyVault')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/LS_AzureSqlDatabase_Sewercctv')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureSqlDatabase",
+				"typeProperties": {
+					"connectionString": {
+						"type": "AzureKeyVaultSecret",
+						"store": {
+							"referenceName": "LS-AzureKeyVault",
+							"type": "LinkedServiceReference"
+						},
+						"secretName": "[parameters('LS_AzureSqlDatabase_Sewercctv_properties_typeProperties_connectionString_secretName')]"
 					}
 				},
 				"connectVia": {
@@ -18096,6 +19284,9 @@
 							"coreCount": 8,
 							"timeToLive": 10,
 							"cleanup": false
+						},
+						"pipelineExternalComputeScaleProperties": {
+							"timeToLive": 60
 						}
 					}
 				},
