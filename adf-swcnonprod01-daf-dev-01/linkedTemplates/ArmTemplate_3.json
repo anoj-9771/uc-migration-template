@@ -7409,7 +7409,7 @@
 											},
 											"SourceFileDateStamp": {
 												"value": {
-													"value": "@replace(replace(replace(pipeline().parameters.WatermarkColumn,'-',''),':',''),' ','')",
+													"value": "@variables('ExtractDateTime')",
 													"type": "Expression"
 												},
 												"type": "String"
@@ -7477,7 +7477,7 @@
 											},
 											"SourceFileDateStamp": {
 												"value": {
-													"value": "@replace(replace(replace(pipeline().parameters.WatermarkColumn,'-',''),':',''),' ','')",
+													"value": "@variables('ExtractDateTime')",
 													"type": "Expression"
 												},
 												"type": "String"
