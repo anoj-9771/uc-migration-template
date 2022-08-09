@@ -32,13 +32,13 @@ create or replace temp view allReadings as
 select mr.*, mts.meterMakerNumber, mts.meterFittedDate
 from   cleansed.access_z309_tmeterreading mr left outer join curated.metertimesliceaccess mts on mts.propertyNumber = mr.propertyNumber 
                                                                                                and mts.propertyMeterNumber = mr.propertyMeterNumber
-                                                                                               and (mr.readingToDate between mts.validFrom and mts.validTo
-                                                                                               or   (mr.readingFromDate between mts.validfrom and mts.validto
-                                                                                               and  mr.readingToDate between mts.validFrom and date_add(mts.validTo,31)))
+                                                                                               and ((mr.readingToDate between mts.validFrom and mts.validTo
+                                                                                                   and mr.readingToDate != mts.validFrom) 
+                                                                                               or  (mr.readingFromDate between mts.validfrom and mts.validto
+                                                                                                   and  mr.readingToDate between mts.validFrom and date_add(mts.validTo,31)))
                                                                                                -- either take the meter if the readingtoDate is between meter valid from and to
                                                                                                -- or if the reading from date is covered and the reading to data is less than a month out
-where mr.meterReadingStatusCode IN ('A','B','P','V') 
-and mr.meterReadingDays > 0 
+where mr.meterReadingDays > 0 
 and mr.meterReadingConsumption > 0                                                                                              
 
 -- COMMAND ----------
@@ -54,7 +54,7 @@ where  meterMakerNumber is null
 create or replace temp view newMeters as
 with t1 as (select propertyNumber, propertyMeterNumber, min(readingFromDate) as newMeterFittedDate, max(readingToDate) as lastReadDate
             from   allreadings
-            where  meterMakerNumber is null
+            where  meterMakerNumber is null --and propertyNumber = 3100078
             group by propertyNumber, propertyMeterNumber),
      t2 as (select pm.*, newMeterFittedDate, lastReadDate, row_number() over (partition by pm.propertyNumber, pm.propertyMeterNumber order by pm.meterFittedDate) as rn
             from   cleansed.access_z309_tpropmeter pm,
@@ -149,8 +149,7 @@ from   cleansed.access_z309_tmeterreading mr left outer join curated.metertimesl
                                                                                                and  mr.readingToDate between mts.validFrom and date_add(mts.validTo,31)))
                                                                                                -- either take the meter if the readingtoDate is between meter valid from and to
                                                                                                -- or if the reading from date is covered and the reading to data is less than a month out
-where mr.meterReadingStatusCode IN ('A','B','P','V') 
-and mr.meterReadingDays > 0 
+where mr.meterReadingDays > 0 
 and mr.meterReadingConsumption > 0     
 and meterMakerNumber is null
 )
@@ -181,6 +180,23 @@ from t1
 
 -- MAGIC %md
 -- MAGIC End of functional code. The rest is experimental/testing
+
+-- COMMAND ----------
+
+-- MAGIC %sql
+-- MAGIC select * from curated.metertimesliceaccess
+-- MAGIC where propertyNumber = 3100078
+
+-- COMMAND ----------
+
+-- MAGIC %sql
+-- MAGIC select * from cleansed.access_z309_tmeterreading
+-- MAGIC where propertyNumber = 3100078
+-- MAGIC order by readingToDate
+
+-- COMMAND ----------
+
+
 
 -- COMMAND ----------
 
