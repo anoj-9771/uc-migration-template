@@ -171,10 +171,10 @@ print(delta_raw_tbl_name)
 
 # DBTITLE 1,10. Load Raw to Dataframe & Do Transformations
 df = spark.sql(f"WITH stage AS \
-                      (Select *, ROW_NUMBER() OVER (PARTITION BY ABLBELNR,EQUNR ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' and DI_OPERATION_TYPE !='X' ) \
+                      (Select *, ROW_NUMBER() OVER (PARTITION BY ABLBELNR ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' and DI_OPERATION_TYPE !='X' ) \
                            SELECT  \
                                       case when ABLBELNR = 'na' then '' else ABLBELNR end as meterReadingId , \
-                                      case when EQUNR = 'na' then '' else EQUNR end as equipmentNumber , \
+                                      EQUNR as equipmentNumber , \
                                       ZWNUMMER as registerNumber , \
                                       ToValidDate(ADAT) as meterReadingDate , \
                                       MRESULT as meterReadingTaken , \
@@ -222,7 +222,7 @@ df = spark.sql(f"WITH stage AS \
 newSchema = StructType(
                              [
                               StructField("meterReadingId", StringType(), False),
-                              StructField("equipmentNumber", StringType(), False),
+                              StructField("equipmentNumber", StringType(), True),
                               StructField("registerNumber", LongType(), True),
                               StructField("meterReadingDate", DateType(), True),
                               StructField("meterReadingTaken",DoubleType(), True),
@@ -272,8 +272,8 @@ DeltaSaveDataFrameToDeltaTable(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS
 # COMMAND ----------
 
 # DBTITLE 1,13.1 Identify Deleted records from Raw table
-df = spark.sql(f"select distinct coalesce(ABLBELNR,'') as ABLBELNR, coalesce(EQUNR,'') as EQUNR from ( \
-Select *, ROW_NUMBER() OVER (PARTITION BY ABLBELNR,EQUNR ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' ) \
+df = spark.sql(f"select distinct coalesce(ABLBELNR,'') as ABLBELNR from ( \
+Select *, ROW_NUMBER() OVER (PARTITION BY ABLBELNR ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' ) \
 where  _RecordVersion = 1 and DI_OPERATION_TYPE ='X'")
 df.createOrReplaceTempView("isu_mtr_doc_deleted_records")
 
@@ -288,7 +288,6 @@ spark.sql(f" \
     MERGE INTO cleansed.isu_0UC_MTR_DOC \
     using isu_mtr_doc_deleted_records \
     on isu_0UC_MTR_DOC.meterReadingId = isu_mtr_doc_deleted_records.ABLBELNR \
-    and isu_0UC_MTR_DOC.equipmentNumber = isu_mtr_doc_deleted_records.EQUNR \
     WHEN MATCHED THEN UPDATE SET \
     _DLCleansedZoneTimeStamp = cast('{CurrentTimeStamp}' as TimeStamp) \
     ,_RecordDeleted=1 \
