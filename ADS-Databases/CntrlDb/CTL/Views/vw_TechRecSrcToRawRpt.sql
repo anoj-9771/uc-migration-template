@@ -6,8 +6,7 @@ SELECT * FROM
 		,P.ProjectName
 		,S.SourceGroup
 		,SUBSTRING(S.SourceLocation,CHARINDEX('.',S.SourceLocation)+1,LEN(S.SourceLocation)) as SourceLocation
-		,case when P.ProjectName = 'RAW ISU SLT' THEN
-		format(TL.StartTime, 'yyyyMMddhhmmss') ELSE SourceFileDateStamp END SourceFileDateStamp
+		,SourceFileDateStamp
 		,M_DeltaRecordCount AS ManifestDeltaRecordCount
 		,RecordCountDeltaTable AS RecordCount_ReadFromDataFile
 		,RecordCountTargetTable AS RecordCount_SavedToDeltaTable

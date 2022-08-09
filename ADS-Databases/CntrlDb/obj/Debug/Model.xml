@@ -18617,8 +18617,7 @@ SELECT * FROM
 		,P.ProjectName
 		,S.SourceGroup
 		,SUBSTRING(S.SourceLocation,CHARINDEX('.',S.SourceLocation)+1,LEN(S.SourceLocation)) as SourceLocation
-		,case when P.ProjectName = 'RAW ISU SLT' THEN
-		format(TL.StartTime, 'yyyyMMddhhmmss') ELSE SourceFileDateStamp END SourceFileDateStamp
+		,SourceFileDateStamp
 		,M_DeltaRecordCount AS ManifestDeltaRecordCount
 		,RecordCountDeltaTable AS RecordCount_ReadFromDataFile
 		,RecordCountTargetTable AS RecordCount_SavedToDeltaTable
@@ -18673,7 +18672,13 @@ SELECT * FROM
 					<Element Type="SqlComputedColumn" Name="[CTL].[vw_TechRecSrcToRawRpt].[SourceLocation]" />
 				</Entry>
 				<Entry>
-					<Element Type="SqlComputedColumn" Name="[CTL].[vw_TechRecSrcToRawRpt].[SourceFileDateStamp]" />
+					<Element Type="SqlComputedColumn" Name="[CTL].[vw_TechRecSrcToRawRpt].[SourceFileDateStamp]">
+						<Relationship Name="ExpressionDependencies">
+							<Entry>
+								<References Name="[CTL].[ControlManifest].[SourceFileDateStamp]" />
+							</Entry>
+						</Relationship>
+					</Element>
 				</Entry>
 				<Entry>
 					<Element Type="SqlComputedColumn" Name="[CTL].[vw_TechRecSrcToRawRpt].[ManifestDeltaRecordCount]">
@@ -18822,9 +18827,6 @@ SELECT * FROM
 					<References Name="[CTL].[ControlSource].[SourceLocation]" />
 				</Entry>
 				<Entry>
-					<References Name="[CTL].[TaskExecutionLog].[StartTime]" />
-				</Entry>
-				<Entry>
 					<References Name="[CTL].[ControlManifest].[SourceFileDateStamp]" />
 				</Entry>
 				<Entry>
@@ -18841,6 +18843,9 @@ SELECT * FROM
 				</Entry>
 				<Entry>
 					<References Name="[CTL].[ControlManifest].[RecordCountTargetTable]" />
+				</Entry>
+				<Entry>
+					<References Name="[CTL].[TaskExecutionLog].[StartTime]" />
 				</Entry>
 				<Entry>
 					<References Name="[CTL].[TaskExecutionLog].[StartTime]" />
@@ -18870,7 +18875,7 @@ SELECT * FROM
 				</Entry>
 			</Relationship>
 			<Annotation Type="SysCommentsObjectAnnotation">
-				<Property Name="Length" Value="1550" />
+				<Property Name="Length" Value="1434" />
 				<Property Name="StartLine" Value="1" />
 				<Property Name="StartColumn" Value="1" />
 				<Property Name="HeaderContents" Value="CREATE VIEW [CTL].[vw_TechRecSrcToRawRpt] AS" />
