@@ -284,13 +284,66 @@ df_cleansed = spark.sql("with t1 as( \
                                     select *, \
                                            row_number() over(partition by propertyNumber, propertyMeterNumber, meterMakerNumber, waterMeterType, isMasterMeter, isCheckMeter, allowAlso, meterClass, \
                                                                           meterCategory order by propertyMeterUpdatedDate desc) as rn \
-                                    from   allMeters ) \
-                          select * \
-                          from   t1 \
-                          where  rn = 1")
+                                    from   allMeters ), \
+                              t2 as(select *, \
+                                            case when meterRemovedDate is null \
+                                                      then lead(meterfittedDate,1) over (partition by propertyNumber, propertyMeterNumber order by meterFittedDate) \
+                                                      else meterRemovedDate \
+                                            end as altMeterRemovedDate \
+                                    from   t1 \
+                                    where  rn = 1) \
+                          select propertyNumber, \
+                                 propertyMeterNumber, \
+                                 meterMakerNumber, \
+                                 meterSizeCode, \
+                                 meterSize, \
+                                 isMasterMeter, \
+                                 isCheckMeter, \
+                                 allowAlso, \
+                                 isMeterConnected, \
+                                 meterReadingFrequencyCode, \
+                                 meterClassCode, \
+                                 meterClass, \
+                                 waterMeterType, \
+                                 meterCategoryCode, \
+                                 meterCategory, \
+                                 meterGroupCode, \
+                                 meterGroup, \
+                                 meterReadingLocationCode, \
+                                 meterReadingRouteNumber, \
+                                 meterServes, \
+                                 meterGridLocationCode, \
+                                 readingInstructionCode1, \
+                                 readingInstructionCode2, \
+                                 hasAdditionalDescription, \
+                                 hasMeterRoutePreparation, \
+                                 hasMeterWarningNote, \
+                                 meterFittedDate, \
+                                 meterReadingSequenceNumber, \
+                                 meterChangeReasonCode, \
+                                 meterChangeAdviceNumber, \
+                                 altMeterRemovedDate as meterRemovedDate, \
+                                 propertyMeterUpdatedDate, \
+                                 _RecordStart, \
+                                 _RecordEnd, \
+                                 _RecordDeleted, \
+                                 _RecordCurrent \
+                          from   t2 \
+                          ")
                         
 df_cleansed = df_cleansed.drop('rn')
 #print(f'Number of rows: {df_cleansed.count()}')
+
+# COMMAND ----------
+
+# df_cleansed.createOrReplaceTempView('mtr')
+
+# COMMAND ----------
+
+# %sql
+# select *
+# from mtr
+# where propertyNumber = 3100078
 
 # COMMAND ----------
 

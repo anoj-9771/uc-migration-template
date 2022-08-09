@@ -20,41 +20,43 @@ def getmeterTimesliceAccess():
     df = spark.sql(" \
             with t1 as( \
                       SELECT 'H' as src, propertyNumber, propertyMeterNumber, meterSize, meterFittedDate, meterRemovedDate, meterMakerNumber, \
-                              meterClass, meterCategory, coalesce(meterGroup,  'Normal Reading') as meterGroup, isCheckMeter, propertyMeterUpdatedDate, \
+                              hpm.meterClass, meterCategory, coalesce(meterGroup,  'Normal Reading') as meterGroup, isCheckMeter, mc.waterMeterType, propertyMeterUpdatedDate, \
                               row_number() over (partition by propertyNumber, propertyMeterNumber, meterSize, meterFittedDate, metermakernumber, \
-                              meterClass, meterCategory, meterGroup, isCheckMeter, rowSupersededDate order by rowSupersededTime desc) as rn \
-                      FROM cleansed.access_Z309_THPROPMETER \
+                              hpm.meterClass, meterCategory, meterGroup, isCheckMeter, mc.waterMeterType, rowSupersededDate order by rowSupersededTime desc) as rn \
+                      FROM cleansed.access_Z309_THPROPMETER hpm left outer join CLEANSED.access_Z309_TMeterClass mc on mc.meterClassCode = hpm.meterClassCode \
                       ), \
                  t2 as( \
                       select 'C' as src, propertyNumber, propertyMeterNumber, meterSize, meterFittedDate, meterRemovedDate, meterMakerNumber, \
-                              meterClass, meterCategory, coalesce(meterGroup,  'Normal Reading') as meterGroup, isCheckMeter, propertyMeterUpdatedDate \
+                              meterClass, meterCategory, coalesce(meterGroup,  'Normal Reading') as meterGroup, isCheckMeter, waterMeterType, propertyMeterUpdatedDate \
                       from cleansed.access_z309_tpropmeter \
                       union all \
-                      select src, propertyNumber, propertyMeterNumber, meterSize, meterFittedDate, meterRemovedDate, meterMakerNumber, \
-                             meterClass, meterCategory, meterGroup, isCheckMeter, propertyMeterUpdatedDate \
-                      from t1 \
+                      select src, t1.propertyNumber, t1.propertyMeterNumber, t1.meterSize, t1.meterFittedDate, greatest(t1.meterRemovedDate, pm.meterRemovedDate) as meterRemovedDate, t1.meterMakerNumber, \
+                             t1.meterClass, t1.meterCategory, t1.meterGroup, t1.isCheckMeter, t1.waterMeterType, t1.propertyMeterUpdatedDate \
+                      from t1 left outer join cleansed.access_z309_tpropmeter pm on pm.propertyNumber = t1.propertyNumber \
+                                                                                and pm.propertyMeterNumber = t1.propertyMeterNumber \
+                                                                                and pm.meterMakerNumber = t1.meterMakerNumber \
                       where rn = 1 \
                       ), \
                  t3 as( \
                       select src, propertyNumber, propertyMeterNumber, meterSize, meterFittedDate, meterRemovedDate, meterMakerNumber, \
-                             meterClass, meterCategory, meterGroup, isCheckMeter, case when propertyMeterUpdatedDate > meterFittedDate then propertyMeterUpdatedDate else meterFittedDate end as validFrom, \
-                             row_number() over (partition by propertyNumber, propertyMeterNumber, meterMakerNumber order by propertyMeterUpdatedDate) as rn \
+                             meterClass, meterCategory, meterGroup, isCheckMeter, waterMeterType, case when propertyMeterUpdatedDate > meterFittedDate then propertyMeterUpdatedDate else meterFittedDate end as validFrom, \
+                             row_number() over (partition by propertyNumber, propertyMeterNumber, meterMakerNumber order by meterFittedDate, propertyMeterUpdatedDate) as rn \
                       from t2 \
                       ), \
                  t4 as( \
                       select propertyNumber, propertyMeterNumber, meterSize, meterFittedDate, meterRemovedDate, meterMakerNumber, meterClass, meterCategory, \
-                             meterGroup, isCheckMeter, least(validFrom,meterFittedDate) as validFrom \
+                             meterGroup, isCheckMeter, waterMeterType, least(validFrom,meterFittedDate) as validFrom \
                       from   t3 \
                       where  rn = 1 \
                       union all \
                       select propertyNumber, propertyMeterNumber, meterSize, meterFittedDate, meterRemovedDate, meterMakerNumber, meterClass, meterCategory, \
-                             meterGroup, isCheckMeter, validFrom \
+                             meterGroup, isCheckMeter, waterMeterType, validFrom \
                       from   t3 \
                       where  rn > 1 \
                       ), \
                  t5 as( \
                       select propertyNumber, propertyMeterNumber, meterSize, meterFittedDate, meterRemovedDate, meterMakerNumber, meterClass, meterCategory, \
-                             meterGroup, isCheckMeter, validFrom, \
+                             meterGroup, isCheckMeter, waterMeterType, validFrom, \
                              coalesce( \
                                       date_add( \
                                          lag(validFrom,1) over (partition by propertyNumber, propertyMeterNumber, meterMakerNumber order by validFrom desc),-1), \
@@ -63,26 +65,26 @@ def getmeterTimesliceAccess():
                       ), \
                  t6 as( \
                       select propertyNumber, propertyMeterNumber, meterSize, meterFittedDate, meterRemovedDate, meterMakerNumber, meterClass, meterCategory, \
-                                        meterGroup, isCheckMeter, validFrom, validTo \
+                                        meterGroup, isCheckMeter, waterMeterType, validFrom, validTo \
                       from   t5 \
                       where  not validFrom > validTo \
                       ), \
                  t7 as( \
                       SELECT \
                           propertyNumber, propertyMeterNumber, meterSize, meterFittedDate, meterRemovedDate, meterMakerNumber, meterClass, meterCategory, \
-                                        meterGroup, isCheckMeter, \
+                                        meterGroup, isCheckMeter, waterMeterType, \
                           MIN(validFrom) as validFrom, \
                           max(validTo) as validTo \
                       FROM ( \
                           SELECT \
                               propertyNumber, propertyMeterNumber, meterSize, meterFittedDate, meterRemovedDate, meterMakerNumber, meterClass, meterCategory, \
-                                        meterGroup, isCheckMeter, validFrom, validTo, \
+                                        meterGroup, isCheckMeter, waterMeterType, validFrom, validTo, \
                               DATEADD( \
                                   DAY, \
                                   -COALESCE( \
                                       SUM(DATEDIFF(DAY, validFrom, validTo) +1) OVER (PARTITION BY propertyNumber, propertyMeterNumber, meterSize, meterFittedDate, \
                                       meterRemovedDate, meterMakerNumber, meterClass, meterCategory, \
-                                        meterGroup, isCheckMeter ORDER BY validTo ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING), \
+                                        meterGroup, isCheckMeter, waterMeterType ORDER BY validTo ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING), \
                                       0 \
                                   ), \
                                   validFrom \
@@ -90,9 +92,9 @@ def getmeterTimesliceAccess():
                           FROM t6 \
                       ) withGroup \
                       GROUP BY propertyNumber, propertyMeterNumber, meterSize, meterFittedDate, meterRemovedDate, meterMakerNumber, meterClass, meterCategory, \
-                               meterGroup, isCheckMeter, grp \
+                               meterGroup, isCheckMeter, waterMeterType, grp \
                       ORDER BY propertyNumber, propertyMeterNumber, meterSize, meterFittedDate, meterRemovedDate, meterMakerNumber, meterClass, meterCategory, \
-                               meterGroup, isCheckMeter, validFrom \
+                               meterGroup, isCheckMeter, waterMeterType, validFrom \
                       ) \
             select * \
             from   t7 \
@@ -110,6 +112,7 @@ def getmeterTimesliceAccess():
                         ,'meterCategory' \
                         ,'meterGroup' \
                         ,'isCheckMeter' \
+                        ,'waterMeterType' \
                         ,'validFrom' \
                         ,'validTo' \
                 )
@@ -126,6 +129,7 @@ def getmeterTimesliceAccess():
                             StructField("meterCategory", StringType(), True),
                             StructField("meterGroup", StringType(), True),
                             StructField("isCheckMeter", StringType(), True),
+                            StructField("waterMeterType", StringType(), True),
                             StructField("validFrom", DateType(), False),
                             StructField("validTo", DateType(), True)
     ])
@@ -147,7 +151,7 @@ dbutils.notebook.exit('0')
 # MAGIC %sql
 # MAGIC select *
 # MAGIC from ts
-# MAGIC where propertyNumber = 5000109
+# MAGIC where propertyNumber = 3100078
 # MAGIC order by propertyNumber, meterMakerNumber, validFrom
 
 # COMMAND ----------
@@ -158,35 +162,91 @@ dbutils.notebook.exit('0')
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC with t1 as(--latest update for a day
-# MAGIC           SELECT 'H' as src, propertyNumber, propertyMeterNumber, meterSize, meterFittedDate, meterRemovedDate, meterMakerNumber, 
-# MAGIC                   meterClass, meterCategory, coalesce(meterGroup,  'Normal Reading') as meterGroup, isCheckMeter, propertyMeterUpdatedDate, 
-# MAGIC                   rank() over (partition by propertyNumber, propertyMeterNumber, meterSize, meterFittedDate, metermakernumber, 
-# MAGIC                   meterClass, meterCategory, meterGroup, isCheckMeter, rowSupersededDate order by rowSupersededTime desc) as rnk 
-# MAGIC           FROM cleansed.access_Z309_THPROPMETER
-# MAGIC           where propertyNumber = 3100190 --meterMakerNumber = 'DTED0028'
-# MAGIC           ),
-# MAGIC      t2 as(
-# MAGIC           select 'C' as src, propertyNumber, propertyMeterNumber, meterSize, meterFittedDate, meterRemovedDate, meterMakerNumber, 
-# MAGIC                   meterClass, meterCategory, coalesce(meterGroup,  'Normal Reading') as meterGroup, isCheckMeter, propertyMeterUpdatedDate
-# MAGIC           from cleansed.access_z309_tpropmeter 
-# MAGIC           where propertyNumber = 3100190 --meterMakerNumber = 'DTED0028'
-# MAGIC           union all
-# MAGIC           select src, propertyNumber, propertyMeterNumber, meterSize, meterFittedDate, meterRemovedDate, meterMakerNumber, 
-# MAGIC                  meterClass, meterCategory, meterGroup, isCheckMeter, propertyMeterUpdatedDate 
-# MAGIC           from t1
-# MAGIC           where rnk = 1),
-# MAGIC      t3 as(
-# MAGIC           select src, propertyNumber, propertyMeterNumber, meterSize, meterFittedDate, meterRemovedDate, meterMakerNumber, 
-# MAGIC                  meterClass, meterCategory, meterGroup, isCheckMeter, propertyMeterUpdatedDate as validFrom, 
-# MAGIC                  coalesce(date_add(
-# MAGIC                      lag(propertyMeterUpdatedDate,1) over (partition by propertyNumber, propertyMeterNumber order by propertyMeterUpdatedDate desc),-1),
-# MAGIC                    least(meterRemovedDate,to_date('99991231','yyyyMMdd'))) as validTo
-# MAGIC           from t2)
-# MAGIC select src, propertyNumber, propertyMeterNumber, meterSize, meterFittedDate, meterRemovedDate, meterMakerNumber, meterClass, meterCategory,  
-# MAGIC                   meterGroup, isCheckMeter, validFrom, validTo
-# MAGIC from t3
-# MAGIC order by validFrom
+# MAGIC with t1 as( 
+# MAGIC                       SELECT 'H' as src, propertyNumber, propertyMeterNumber, meterSize, meterFittedDate, meterRemovedDate, meterMakerNumber, 
+# MAGIC                               meterClass, meterCategory, coalesce(meterGroup,  'Normal Reading') as meterGroup, isCheckMeter, propertyMeterUpdatedDate, 
+# MAGIC                               row_number() over (partition by propertyNumber, propertyMeterNumber, meterSize, meterFittedDate, metermakernumber, 
+# MAGIC                               meterClass, meterCategory, meterGroup, isCheckMeter, rowSupersededDate order by rowSupersededTime desc) as rn 
+# MAGIC                       FROM cleansed.access_Z309_THPROPMETER 
+# MAGIC                       where propertyNumber = 5703660
+# MAGIC                       ), 
+# MAGIC                  t2 as( 
+# MAGIC                       select 'C' as src, propertyNumber, propertyMeterNumber, meterSize, meterFittedDate, meterRemovedDate, meterMakerNumber, 
+# MAGIC                               meterClass, meterCategory, coalesce(meterGroup,  'Normal Reading') as meterGroup, isCheckMeter, propertyMeterUpdatedDate 
+# MAGIC                       from cleansed.access_z309_tpropmeter 
+# MAGIC                       where propertyNumber = 5703660
+# MAGIC                       union all 
+# MAGIC                       select src, propertyNumber, propertyMeterNumber, meterSize, meterFittedDate, meterRemovedDate, meterMakerNumber, 
+# MAGIC                              meterClass, meterCategory, meterGroup, isCheckMeter, propertyMeterUpdatedDate 
+# MAGIC                       from t1 
+# MAGIC                       where rn = 1 
+# MAGIC                       ), 
+# MAGIC                  t3 as( 
+# MAGIC                       select src, propertyNumber, propertyMeterNumber, meterSize, meterFittedDate, meterRemovedDate, meterMakerNumber, 
+# MAGIC                              meterClass, meterCategory, meterGroup, isCheckMeter, case when propertyMeterUpdatedDate > meterFittedDate then propertyMeterUpdatedDate else meterFittedDate end as validFrom, 
+# MAGIC                              row_number() over (partition by propertyNumber, propertyMeterNumber, meterMakerNumber order by meterFittedDate, propertyMeterUpdatedDate) as rn 
+# MAGIC                       from t2 
+# MAGIC                       ), 
+# MAGIC                  t4 as( 
+# MAGIC                       select propertyNumber, propertyMeterNumber, meterSize, meterFittedDate, meterRemovedDate, meterMakerNumber, meterClass, meterCategory, 
+# MAGIC                              meterGroup, isCheckMeter, least(validFrom,meterFittedDate) as validFrom 
+# MAGIC                       from   t3 
+# MAGIC                       where  rn = 1 
+# MAGIC                       union all 
+# MAGIC                       select propertyNumber, propertyMeterNumber, meterSize, meterFittedDate, meterRemovedDate, meterMakerNumber, meterClass, meterCategory, 
+# MAGIC                              meterGroup, isCheckMeter, validFrom 
+# MAGIC                       from   t3 
+# MAGIC                       where  rn > 1 
+# MAGIC                       ), 
+# MAGIC                  t5 as( 
+# MAGIC                       select propertyNumber, propertyMeterNumber, meterSize, meterFittedDate, meterRemovedDate, meterMakerNumber, meterClass, meterCategory, 
+# MAGIC                              meterGroup, isCheckMeter, validFrom, 
+# MAGIC                              coalesce( 
+# MAGIC                                       date_add( 
+# MAGIC                                          lag(validFrom,1) over (partition by propertyNumber, propertyMeterNumber, meterMakerNumber order by validFrom desc),-1), 
+# MAGIC                                       least(meterRemovedDate,to_date('99991231','yyyyMMdd'))) as validTo 
+# MAGIC                       from t4 
+# MAGIC                       ), 
+# MAGIC                  t6 as( 
+# MAGIC                       select propertyNumber, propertyMeterNumber, meterSize, meterFittedDate, meterRemovedDate, meterMakerNumber, meterClass, meterCategory, 
+# MAGIC                                         meterGroup, isCheckMeter, validFrom, validTo 
+# MAGIC                       from   t5 
+# MAGIC                       where  not validFrom > validTo 
+# MAGIC                       ), 
+# MAGIC                  t7 as( 
+# MAGIC                       SELECT 
+# MAGIC                           propertyNumber, propertyMeterNumber, meterSize, meterFittedDate, meterRemovedDate, meterMakerNumber, meterClass, meterCategory, 
+# MAGIC                                         meterGroup, isCheckMeter, 
+# MAGIC                           MIN(validFrom) as validFrom, 
+# MAGIC                           max(validTo) as validTo 
+# MAGIC                       FROM ( 
+# MAGIC                           SELECT 
+# MAGIC                               propertyNumber, propertyMeterNumber, meterSize, meterFittedDate, meterRemovedDate, meterMakerNumber, meterClass, meterCategory, 
+# MAGIC                                         meterGroup, isCheckMeter, validFrom, validTo, 
+# MAGIC                               DATEADD( 
+# MAGIC                                   DAY, 
+# MAGIC                                   -COALESCE( 
+# MAGIC                                       SUM(DATEDIFF(DAY, validFrom, validTo) +1) OVER (PARTITION BY propertyNumber, propertyMeterNumber, meterSize, meterFittedDate, 
+# MAGIC                                       meterRemovedDate, meterMakerNumber, meterClass, meterCategory, 
+# MAGIC                                         meterGroup, isCheckMeter ORDER BY validTo ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING), 
+# MAGIC                                       0 
+# MAGIC                                   ), 
+# MAGIC                                   validFrom 
+# MAGIC                           ) as grp 
+# MAGIC                           FROM t6 
+# MAGIC                       ) withGroup 
+# MAGIC                       GROUP BY propertyNumber, propertyMeterNumber, meterSize, meterFittedDate, meterRemovedDate, meterMakerNumber, meterClass, meterCategory, 
+# MAGIC                                meterGroup, isCheckMeter, grp 
+# MAGIC                       ORDER BY propertyNumber, propertyMeterNumber, meterSize, meterFittedDate, meterRemovedDate, meterMakerNumber, meterClass, meterCategory, 
+# MAGIC                                meterGroup, isCheckMeter, validFrom 
+# MAGIC                       ) 
+# MAGIC             select * 
+# MAGIC             from   t7
+# MAGIC             order  by propertyNumber, propertyMeterNumber, validFrom 
+# MAGIC -- select src, propertyNumber, propertyMeterNumber, meterSize, meterFittedDate, meterRemovedDate, meterMakerNumber, meterClass, meterCategory,  
+# MAGIC --                   meterGroup, isCheckMeter, validFrom, validTo
+# MAGIC -- from t3
+# MAGIC -- order by validFrom
 # MAGIC        
 # MAGIC --, meterMakerNumber, meterClass, meterCategory, meterGroup, isCheckMeter
 
@@ -195,7 +255,7 @@ dbutils.notebook.exit('0')
 # MAGIC %sql
 # MAGIC select * 
 # MAGIC from cleansed.access_z309_tpropmeter
-# MAGIC where propertyNumber = 3100190
+# MAGIC where propertyNumber = 3100078
 
 # COMMAND ----------
 

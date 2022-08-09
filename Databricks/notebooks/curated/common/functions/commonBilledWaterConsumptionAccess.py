@@ -44,6 +44,8 @@ def getBilledWaterConsumptionAccess():
                               where mr.meterReadingStatusCode IN ('A','B','P','V') \
                                     and mr.meterReadingDays > 0 \
                                     and mr.meterReadingConsumption > 0 \
+                                    and mr.readingFromDate >= '1990-07-01' \
+                                    and mr.readingToDate >= '1991-01-01' \
                                     and (not mts.isCheckMeter or mts.isCheckMeter is null) \
                                     and mr._RecordCurrent = 1 \
                                     and mr._RecordDeleted = 0 \
@@ -88,8 +90,12 @@ def getBilledWaterConsumptionAccess():
 
 # COMMAND ----------
 
-# DBTITLE 1,Check meters without known meter maker number (should be 10 based on CreateMeterTimeSliceAccess)
+# DBTITLE 1,Check meters without known meter maker number (should be based on result in CreateMeterTimeSliceAccess and a very low number)
 # %sql
 # select * from accs
 # where meterMakerNumber = 'Unknown'
-# limit 10
+
+
+# COMMAND ----------
+
+

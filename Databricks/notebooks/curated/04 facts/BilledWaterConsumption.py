@@ -132,31 +132,31 @@ def getBilledWaterConsumption():
     #4.Load dimension tables into dataframe
     dimPropertyDf = spark.sql(f"select sourceSystemCode, propertySK, propertyNumber \
                                 from {ADS_DATABASE_CURATED}.dimProperty \
-                                where _RecordCurrent = 1 and _RecordDeleted = 0")
+                                where _RecordCurrent = 1")
 
     dimLocationDf = spark.sql(f"select locationSK, locationId \
                                  from {ADS_DATABASE_CURATED}.dimLocation \
-                                 where _RecordCurrent = 1 and _RecordDeleted = 0")
+                                 where _RecordCurrent = 1")
 
     dimMeterDf = spark.sql(f"select sourceSystemCode, meterSK, meterNumber, waterType \
                                  from {ADS_DATABASE_CURATED}.dimMeter \
-                                 where _RecordCurrent = 1 and _RecordDeleted = 0")
+                                 where _RecordCurrent = 1")
     
     dimBillDocDf = spark.sql(f"select meterConsumptionBillingDocumentSK, sourceSystemCode, billingDocumentNumber \
                                 from {ADS_DATABASE_CURATED}.dimMeterConsumptionBillingDocument \
-                                where _RecordCurrent = 1 and _RecordDeleted = 0")
+                                where _RecordCurrent = 1")
     
     dimBillLineItemDf = spark.sql(f"select meterConsumptionBillingLineItemSK, billingDocumentNumber, billingDocumentLineItemId \
                                 from {ADS_DATABASE_CURATED}.dimMeterConsumptionBillingLineItem \
-                                where _RecordCurrent = 1 and _RecordDeleted = 0")
+                                where _RecordCurrent = 1")
 
     dimBusinessPartnerGroupDf = spark.sql(f"select sourceSystemCode, businessPartnerGroupSK, ltrim('0', businessPartnerGroupNumber) as businessPartnerGroupNumber \
                                 from {ADS_DATABASE_CURATED}.dimBusinessPartnerGroup \
-                                where _RecordCurrent = 1 and _RecordDeleted = 0")
+                                where _RecordCurrent = 1")
 
     dimContractDf = spark.sql(f"select sourceSystemCode, contractSK, contractId, validFromDate, validToDate \
                                 from {ADS_DATABASE_CURATED}.dimContract \
-                                where _RecordCurrent = 1 and _RecordDeleted = 0")
+                                where _RecordCurrent = 1")
 
     dummyDimRecDf = spark.sql(f"select PropertySk as dummyDimSK, 'dimProperty' as dimension from {ADS_DATABASE_CURATED}.dimProperty where propertyNumber = '-1' \
                           union select LocationSk as dummyDimSK, 'dimLocation' as dimension from {ADS_DATABASE_CURATED}.dimLocation where LocationId = '-1' \
