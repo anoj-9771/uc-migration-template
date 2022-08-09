@@ -171,7 +171,7 @@ print(delta_raw_tbl_name)
 
 # DBTITLE 1,10. Load Raw to Dataframe & Do Transformations
 df = spark.sql(f"WITH stage AS \
-                      (Select *, ROW_NUMBER() OVER (PARTITION BY PPKEY ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
+                      (Select *, ROW_NUMBER() OVER (PARTITION BY PPKEY ORDER BY _FileDateTimeStamp DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
                           SELECT \
                                 case when PPKEY = 'na' then '' else PPKEY end as promiseToPayId, \
                                 GPART as businessPartnerGroupNumber, \
@@ -207,47 +207,6 @@ df = spark.sql(f"WITH stage AS \
                         from stage where _RecordVersion = 1 ")
 
 #print(f'Number of rows: {df.count()}')
-
-# COMMAND ----------
-
-# DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
-#Update/rename Column
-#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
-# df_cleansed = spark.sql(f"SELECT \
-#                             case when PPKEY = 'na' then '' else PPKEY end as promiseToPayId, \
-#                             GPART as businessPartnerGroupNumber, \
-#                             VKONT as contractAccountNumber, \
-#                             BUKRS as companyCode, \
-#                             PPRSC as promiseToPayReasonCode, \
-#                             PPRSW as withdrawalReasonCode, \
-#                             PPCAT as promiseToPayCategoryCode, \
-#                             C4LEV as numberOfChecks, \
-#                             PRCUR as currency, \
-#                             cast(PRAMT as dec(13,2)) as paymentAmountPromised, \
-#                             cast(PRAMT_CHR as dec(13,2)) as promiseToPayCharges, \
-#                             cast(PRAMT_INT as dec(13,2)) as promiseToPayInterest, \
-#                             cast(RDAMT as dec(13,2)) as amountCleared, \
-#                             ERNAM as createdBy, \
-#                             ToValidDateTime(concat(erdat,' ',ertim)) as createdDateTime, \
-#                             ToValidDate(CHDAT) as changedDate, \
-#                             PPSTA as promiseToPayStatus, \
-#                             XSTCH as statusChangedIndicator, \
-#                             PPKEY_NEW as replacementPromiseToPayId, \
-#                             XINDR as instalmentsAgreed, \
-#                             ToValidDate(FTDAT) as firstDueDate, \
-#                             ToValidDate(LTDAT) as finalDueDate, \
-#                             NRRTS as numberOfPayments, \
-#                             cast(PPDUE as dec(13,2)) as paymentPromised, \
-#                             cast(PPPAY as dec(13,2)) as amountPaidByToday, \
-#                             cast(DEGFA as dec(5,0)) as currentLevelOfFulfillment, \
-#                             _RecordStart, \
-#                             _RecordEnd, \
-#                             _RecordDeleted, \
-#                             _RecordCurrent \
-#                         FROM {ADS_DATABASE_STAGE}.{source_object}")
-
-
-# print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
 
