@@ -82,7 +82,7 @@ def getMeter():
 #                                               null as manufacturerName, \
 #                                               null as manufacturerSerialNumber, \
 #                                               null as manufacturerModelNumber, \
-#                                               null as inspectionRelevanceFlag, \
+#                                               null as inspectionRelevanceIndicator, \
 #                                               row_number() over (partition by metermakernumber order by meterFittedDate desc) rownum \
 #                                       from {ADS_DATABASE_CLEANSED}.access_z309_tpropmeter \
 #                                       where _RecordCurrent = 1 \
@@ -110,7 +110,7 @@ def getMeter():
 #                                               null as manufacturerName, \
 #                                               null as manufacturerSerialNumber, \
 #                                               null as manufacturerModelNumber, \
-#                                               null as inspectionRelevanceFlag, \
+#                                               null as inspectionRelevanceIndicator, \
 #                                               row_number() over (partition by metermakernumber order by meterFittedDate desc) rownum \
 #                                       from vw_ACCESS_HistoricalMeters \
 #                                       ")
@@ -136,7 +136,7 @@ def getMeter():
                                               null as manufacturerName, \
                                               null as manufacturerSerialNumber, \
                                               null as manufacturerModelNumber, \
-                                              null as inspectionRelevanceFlag, \
+                                              null as inspectionRelevanceIndicator, \
                                               row_number() over (partition by metermakernumber order by meterFittedDate desc) rownum \
                                       from {ADS_DATABASE_CURATED}.meterTimeSliceAccess \
                                       ")
@@ -158,7 +158,7 @@ def getMeter():
                                       assetManufacturerName as manufacturerName, \
                                       manufacturerSerialNumber, \
                                       manufacturerModelNumber, \
-                                      case when inspectionRelevanceIndicator = 'X' then 'Y' else 'N' end as inspectionRelevanceFlag, \
+                                      inspectionRelevanceIndicator, \
                                       meterfitteddate.meterFittedDate as meterFittedDate, \
                                       meterremovedddate.meterRemovedDate as meterRemovedDate \
                                       from cleansed.isu_0uc_device_attr a \
@@ -202,7 +202,7 @@ def getMeter():
         
     #re-order columns
     df = df.select('sourceSystemCode','meterNumber','meterSerialNumber','materialNumber','usageMeterType','meterSize','meterSizeUnit','waterType','meterCategoryCode','meterCategory',
-                    'meterReadingType','meterDescription','meterFittedDate','meterRemovedDate','manufacturerName','manufacturerSerialNumber','manufacturerModelNumber','inspectionRelevanceFlag')
+                    'meterReadingType','meterDescription','meterFittedDate','meterRemovedDate','manufacturerName','manufacturerSerialNumber','manufacturerModelNumber','inspectionRelevanceIndicator')
     
     #3. UNION
     df.createOrReplaceTempView('ISU')
@@ -249,7 +249,7 @@ def getMeter():
                             StructField('manufacturerName', StringType(), True),
                             StructField('manufacturerSerialNumber', StringType(), True),
                             StructField('manufacturerModelNumber', StringType(), True),
-                            StructField('inspectionRelevanceFlag', StringType(), True),   
+                            StructField('inspectionRelevanceIndicator', StringType(), True),   
                       ])    
     
     #display(df)    
