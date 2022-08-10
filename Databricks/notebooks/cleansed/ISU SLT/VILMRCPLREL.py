@@ -178,6 +178,7 @@ df = spark.sql(f"WITH stage AS \
                                 case when INTRENOPL = 'na' then '' else INTRENOPL end as architecturalObjectInternalIdParcel , \
                                 case when SEQNO = 'na' then '' else SEQNO end as sequenceNumber , \
                                 case when RCSTATUS = 'na' then '' else RCSTATUS end as parcelStatus , \
+                                RCTYPE as parcelUpdateType , \
                                 cast('1900-01-01' as TimeStamp) as _RecordStart, \
                                 cast('9999-12-31' as TimeStamp) as _RecordEnd, \
                                 '0' as _RecordDeleted, \
@@ -197,6 +198,7 @@ newSchema = StructType(
     StructField("architecturalObjectInternalIdParcel", StringType(), False),
     StructField("sequenceNumber", StringType(), False),
     StructField("parcelStatus", StringType(), False),
+    StructField("parcelUpdateType", StringType(), False),
     StructField('_RecordStart',TimestampType(),False),
     StructField('_RecordEnd',TimestampType(),False),
     StructField('_RecordDeleted',IntegerType(),False),

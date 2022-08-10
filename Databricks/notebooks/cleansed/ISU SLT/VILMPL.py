@@ -174,7 +174,7 @@ df = spark.sql(f"WITH stage AS \
                       (Select *, ROW_NUMBER() OVER (PARTITION BY INTRENO ORDER BY _DLRawZoneTimeStamp DESC, DELTA_TS DESC) AS _RecordVersion FROM {delta_raw_tbl_name} \
                                   WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
                            SELECT  \
-                                case when INTRENO = 'na' then '' else VIB.INTRENO end as architecturalObjectInternalId , \
+                                case when INTRENO = 'na' then '' else INTRENO end as architecturalObjectInternalId , \
                                 OBJNR as objectNumber , \
                                 cast('1900-01-01' as TimeStamp) as _RecordStart, \
                                 cast('9999-12-31' as TimeStamp) as _RecordEnd, \
@@ -192,7 +192,7 @@ df = spark.sql(f"WITH stage AS \
 newSchema = StructType(
   [
     StructField("architecturalObjectInternalId", StringType(), False),
-    StructField("alternativeDisplayStructureId", StringType(), True),
+    StructField("objectNumber", StringType(), True),
     StructField('_RecordStart',TimestampType(),False),
     StructField('_RecordEnd',TimestampType(),False),
     StructField('_RecordDeleted',IntegerType(),False),
