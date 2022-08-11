@@ -254,6 +254,11 @@ newSchema = StructType([
 
 # COMMAND ----------
 
+# DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
+DeltaSaveDataFrameToDeltaTable(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
+
+# COMMAND ----------
+
 # DBTITLE 1,13.1 Identify Deleted records from Raw table
 df = spark.sql(f"select distinct coalesce(ATINN,'') as ATINN, coalesce(OBJEK,'') as OBJEK, coalesce(ATZHL,'') as ATZHL, coalesce(MAFID,'') as MAFID, coalesce(KLART,'') as KLART,  coalesce(ADZHL,'') as ADZHL from ( \
 Select *, ROW_NUMBER() OVER (PARTITION BY OBJEK, ATINN, ATZHL, MAFID, KLART, ADZHL ORDER BY _DLRawZoneTimeStamp DESC, DELTA_TS DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' ) \
@@ -281,11 +286,6 @@ spark.sql(f" \
     ,_RecordDeleted=1 \
     ,_RecordCurrent=0 \
     ")
-
-# COMMAND ----------
-
-# DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
-DeltaSaveDataFrameToDeltaTable(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
 
 # COMMAND ----------
 
