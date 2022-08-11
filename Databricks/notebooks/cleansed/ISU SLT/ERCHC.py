@@ -171,7 +171,7 @@ print(delta_raw_tbl_name)
 
 # DBTITLE 1,10. Load Raw to Dataframe & Do Transformations
 df = spark.sql(f"WITH stage AS \
-                      (Select *, ROW_NUMBER() OVER (PARTITION BY BELNR,LFDNR ORDER BY _DLRawZoneTimestamp DESC, DELTA_TS DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
+                      (Select *, ROW_NUMBER() OVER (PARTITION BY BELNR,LFDNR ORDER BY _DLRawZoneTimestamp DESC, DELTA_TS DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' and IS_DELETED != 'X') \
                            select \
                                   case when BELNR = 'na' then '' else BELNR end as billingDocumentNumber, \
                                   case when LFDNR = 'na' then '' else LFDNR end as sequenceNumber, \
@@ -196,111 +196,6 @@ df = spark.sql(f"WITH stage AS \
                         where stg._RecordVersion = 1 ")
 
 #print(f'Number of rows: {df.count()}')
-
-# COMMAND ----------
-
-# DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
-#Update/rename Column
-#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
-# df_cleansed = spark.sql(f"SELECT  \
-#                                   case when BELNR = 'na' then '' else BELNR end as billingDocumentNumber, \
-#                                   BUKRS as companyCode, \
-#                                   cc.companyName as companyName, \
-#                                   SPARTE as divisonCode, \
-#                                   GPARTNER as businessPartnerGroupNumber, \
-#                                   VKONT as contractAccountNumber, \
-#                                   VERTRAG as contractId, \
-#                                   ToValidDate(BEGABRPE) as  startBillingPeriod, \
-#                                   ToValidDate(ENDABRPE) as  endBillingPeriod, \
-#                                   ToValidDate(ABRDATS) as  billingScheduleDate, \
-#                                   ToValidDate(ADATSOLL) as  meterReadingScheduleDate, \
-#                                   ToValidDate(PTERMTDAT) as  billingPeriodEndDate, \
-#                                   ToValidDate(BELEGDAT) as  billingDocumentCreateDate, \
-#                                   ABWVK as alternativeContractAccountForCollectiveBills, \
-#                                   BELNRALT as previousDocumentNumber, \
-#                                   ToValidDate(STORNODAT) as  reversalDate, \
-#                                   ABRVORG as billingTransactionCode, \
-#                                   HVORG as mainTransactionLineItemCode, \
-#                                   KOFIZ as contractAccountDeterminationId, \
-#                                   PORTION as portionNumber, \
-#                                   FORMULAR as formName, \
-#                                   SIMULATION as billingSimulationIndicator, \
-#                                   BELEGART as documentTypeCode, \
-#                                   BERGRUND as backbillingCreditReasonCode, \
-#                                   ToValidDate(BEGNACH) as  backbillingStartPeriod, \
-#                                   TOBRELEASD as documentNotReleasedIndicator, \
-#                                   TXJCD as taxJurisdictionDescription, \
-#                                   KONZVER as franchiseContractCode, \
-#                                   EROETIM as billingDocumentCreateTime, \
-#                                   ERCHO_V as erchoExistIndicator, \
-#                                   ERCHZ_V as erchzExistIndicator, \
-#                                   ERCHU_V as erchuExistIndicator, \
-#                                   ERCHR_V as erchrExistIndicator, \
-#                                   ERCHC_V as erchcExistIndicator, \
-#                                   ERCHV_V as erchvExistIndicator, \
-#                                   ERCHT_V as erchtExistIndicator, \
-#                                   ERCHP_V as erchpExistIndicator, \
-#                                   ABRVORG2 as periodEndBillingTransactionCode, \
-#                                   ABLEINH as meterReadingUnit, \
-#                                   ENDPRIO as billingEndingPriorityCode, \
-#                                   ToValidDate(ERDAT) as  createdDate, \
-#                                   ERNAM as createdBy, \
-#                                   ToValidDate(AEDAT) as  lastChangedDate, \
-#                                   AENAM as changedBy, \
-#                                   BEGRU as authorizationGroupCode, \
-#                                   LOEVM as deletedIndicator, \
-#                                   ToValidDate(ABRDATSU) as  suppressedBillingOrderScheduleDate, \
-#                                   ABRVORGU as suppressedBillingOrderTransactionCode, \
-#                                   N_INVSEP as jointInvoiceAutomaticDocumentIndicator, \
-#                                   ABPOPBEL as budgetBillingPlanCode, \
-#                                   MANBILLREL as manualDocumentReleasedInvoicingIndicator, \
-#                                   BACKBI as backbillingTypeCode, \
-#                                   PERENDBI as billingPeriodEndType, \
-#                                   cast(NUMPERBB as integer) as backbillingPeriodNumber, \
-#                                   ToValidDate(BEGEND) as  periodEndBillingStartDate, \
-#                                   ENDOFBB as backbillingPeriodEndIndicator, \
-#                                   ENDOFPEB as billingPeriodEndIndicator, \
-#                                   cast(NUMPERPEB as integer) as billingPeriodEndCount, \
-#                                   SC_BELNR_H as billingDocumentAdjustmentReversalCount, \
-#                                   SC_BELNR_N as billingDocumentNumberForAdjustmentReversal, \
-#                                   ToValidDate(ZUORDDAA) as  billingAllocationDate, \
-#                                   BILLINGRUNNO as billingRunNumber, \
-#                                   SIMRUNID as simulationPeriodId, \
-#                                   KTOKLASSE as accountClassCode, \
-#                                   ORIGDOC as billingDocumentOriginCode, \
-#                                   NOCANC as billingDonotExecuteIndicator, \
-#                                   ABSCHLPAN as billingPlanAdjustIndicator, \
-#                                   MEM_OPBEL as newBillingDocumentNumberForReversedInvoicing, \
-#                                   ToValidDate(MEM_BUDAT) as  billingPostingDateInDocument, \
-#                                   EXBILLDOCNO as externalDocumentNumber, \
-#                                   BCREASON as reversalReasonCode, \
-#                                   NINVOICE as billingDocumentWithoutInvoicingCode, \
-#                                   NBILLREL as billingRelevancyIndicator, \
-#                                   ToValidDate(CORRECTION_DATE) as  errorDetectedDate, \
-#                                   BASDYPER as basicCategoryDynamicPeriodControlCode, \
-#                                   ESTINBILL as meterReadingResultEstimatedBillingIndicator, \
-#                                   ESTINBILLU as suppressedOrderEstimateBillingIndicator, \
-#                                   ESTINBILL_SAV as originalValueEstimateBillingIndicator, \
-#                                   ESTINBILL_USAV as suppressedOrderBillingIndicator, \
-#                                   ACTPERIOD as currentBillingPeriodCategoryCode, \
-#                                   ACTPERORG as toBeBilledPeriodOriginalCategoryCode, \
-#                                   EZAWE as incomingPaymentMethodCode, \
-#                                   DAUBUCH as standingOrderIndicator, \
-#                                   FDGRP as planningGroupNumber, \
-#                                   BILLING_PERIOD as billingKeyDate, \
-#                                   OSB_GROUP as onsiteBillingGroupCode, \
-#                                   BP_BILL as resultingBillingPeriodIndicator, \
-#                                   MAINDOCNO as billingDocumentPrimaryInstallationNumber, \
-#                                   INSTGRTYPE as instalGroupTypeCode, \
-#                                   INSTROLE as instalGroupRoleCode,  \
-#                                   stg._RecordStart, \
-#                                   stg._RecordEnd, \
-#                                   stg._RecordDeleted, \
-#                                   stg._RecordCurrent \
-#                               FROM {ADS_DATABASE_STAGE}.{source_object} stg \
-#                                left outer join {ADS_DATABASE_CLEANSED}.isu_0comp_code_text cc on cc.companyCode = stg.BUKRS"
-#                               )
-# print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
 
@@ -334,5 +229,31 @@ DeltaSaveDataFrameToDeltaTable(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS
 
 # COMMAND ----------
 
-# DBTITLE 1,13. Exit Notebook
+# DBTITLE 1,13.1 Identify Deleted records from Raw table
+df = spark.sql(f"select distinct coalesce(BELNR,'') as BELNR, coalesce(LFDNR,'') as LFDNR from ( \
+Select *, ROW_NUMBER() OVER (PARTITION BY BELNR,LFDNR ORDER BY _DLRawZoneTimeStamp DESC, DELTA_TS DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' ) \
+where  _RecordVersion = 1 and IS_DELETED ='X'")
+df.createOrReplaceTempView("isu_erchc_deleted_records")
+
+# COMMAND ----------
+
+# DBTITLE 1,13.2 Update _RecordDeleted and _RecordCurrent Flags
+#Get current time
+CurrentTimeStamp = GeneralLocalDateTime()
+CurrentTimeStamp = CurrentTimeStamp.strftime("%Y-%m-%d %H:%M:%S")
+
+spark.sql(f" \
+    MERGE INTO cleansed.isu_ERCHC \
+    using isu_erchc_deleted_records \
+    and isu_ERCHC.billingDocumentNumber = isu_erchc_deleted_records.BELNR \
+    and isu_ERCHC.sequenceNumber = isu_erchc_deleted_records.LFDNR \
+    WHEN MATCHED THEN UPDATE SET \
+    _DLCleansedZoneTimeStamp = cast('{CurrentTimeStamp}' as TimeStamp) \
+    ,_RecordDeleted=1 \
+    ,_RecordCurrent=0 \
+    ")
+
+# COMMAND ----------
+
+# DBTITLE 1,14. Exit Notebook
 dbutils.notebook.exit("1")

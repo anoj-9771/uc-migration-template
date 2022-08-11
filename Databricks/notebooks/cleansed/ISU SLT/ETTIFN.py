@@ -171,7 +171,7 @@ print(delta_raw_tbl_name)
 
 # DBTITLE 1,10. Load Raw to Dataframe & Do Transformations
 df = spark.sql(f"WITH stage AS \
-                      (Select *, ROW_NUMBER() OVER (PARTITION BY ANLAGE,OPERAND,SAISON,AB,ABLFDNR ORDER BY _DLRawZoneTimestamp DESC, DELTA_TS DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
+                      (Select *, ROW_NUMBER() OVER (PARTITION BY ANLAGE,OPERAND,SAISON,AB,ABLFDNR ORDER BY _DLRawZoneTimestamp DESC, DELTA_TS DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' and IS_DELETED !='X') \
                            SELECT \
                                 case when ANLAGE = 'na' then '' else ANLAGE end as installationId, \
                                 case when OPERAND = 'na' then '' else OPERAND end as operandCode, \
@@ -204,42 +204,6 @@ df = spark.sql(f"WITH stage AS \
                         where ef._RecordVersion = 1 ")
 
 #print(f'Number of rows: {df.count()}')
-
-# COMMAND ----------
-
-# DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
-#Update/rename Column
-#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
-# df_cleansed = spark.sql(f"SELECT \
-#                                 case when ANLAGE = 'na' then '' else ANLAGE end as installationId, \
-#                                 case when OPERAND = 'na' then '' else OPERAND end as operandCode, \
-#                                 ToValidDate(AB,'MANDATORY') as validFromDate, \
-#                                 case when ABLFDNR = 'na' then '' else ABLFDNR end as consecutiveDaysFromDate, \
-#                                 ToValidDate(BIS) as validToDate, \
-#                                 BELNR as billingDocumentNumber, \
-#                                 MBELNR as mBillingDocumentNumber, \
-#                                 MAUSZUG as moveOutIndicator, \
-#                                 ToValidDate(ALTBIS) as expiryDate, \
-#                                 INAKTIV as inactiveIndicator, \
-#                                 MANAEND as manualChangeIndicator, \
-#                                 TARIFART as rateTypeCode, \
-#                                 te.rateType as rateType, \
-#                                 KONDIGR as rateFactGroupCode, \
-#                                 cast(WERT1 as dec(16,7)) as entryValue, \
-#                                 cast(WERT2 as dec(16,7)) as valueToBeBilled, \
-#                                 STRING1 as operandValue1, \
-#                                 STRING3 as operandValue3, \
-#                                 cast(BETRAG as dec(13,2)) as amount, \
-#                                 WAERS as currencyKey, \
-#                                 ef._RecordStart, \
-#                                 ef._RecordEnd, \
-#                                 ef._RecordDeleted, \
-#                                 ef._RecordCurrent \
-#                          FROM {ADS_DATABASE_STAGE}.{source_object} ef \
-#                          LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UC_STATTART_TEXT te ON ef.TARIFART = te.rateTypeCode \
-#                                                                                                     and te._RecordDeleted = 0 and te._RecordCurrent = 1")
-
-# print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
 
@@ -279,5 +243,33 @@ DeltaSaveDataFrameToDeltaTable(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS
 
 # COMMAND ----------
 
-# DBTITLE 1,13. Exit Notebook
+# DBTITLE 1,13.1 Identify Deleted records from Raw table
+df = spark.sql(f"select distinct coalesce(ANLAGE,'') as ANLAGE, coalesce(OPERAND,'') as OPERAND, coalesce(AB,'') as AB, coalesce(ABLFDNR,'') as ABLFDNR from ( \
+Select *, ROW_NUMBER() OVER (PARTITION BY ANLAGE,OPERAND,SAISON,AB,ABLFDNR ORDER BY _DLRawZoneTimestamp DESC, DELTA_TS DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' ) \
+where  _RecordVersion = 1 and IS_DELETED ='X'")
+df.createOrReplaceTempView("isu_ettifn_deleted_records")
+
+# COMMAND ----------
+
+# DBTITLE 1,13.2 Update _RecordDeleted and _RecordCurrent Flags
+#Get current time
+CurrentTimeStamp = GeneralLocalDateTime()
+CurrentTimeStamp = CurrentTimeStamp.strftime("%Y-%m-%d %H:%M:%S")
+
+spark.sql(f" \
+    MERGE INTO cleansed.isu_ETTIFN \
+    using isu_ettifn_deleted_records \
+    and isu_ETTIFN.installationId = isu_ettifn_deleted_records.ANLAGE \
+    and isu_ETTIFN.operandCode = isu_ettifn_deleted_records.OPERAND \
+    and isu_ETTIFN.validFromDate = isu_ettifn_deleted_records.AB \
+    and isu_ETTIFN.consecutiveDaysFromDate = isu_ettifn_deleted_records.ABLFDNR \
+    WHEN MATCHED THEN UPDATE SET \
+    _DLCleansedZoneTimeStamp = cast('{CurrentTimeStamp}' as TimeStamp) \
+    ,_RecordDeleted=1 \
+    ,_RecordCurrent=0 \
+    ")
+
+# COMMAND ----------
+
+# DBTITLE 1,14. Exit Notebook
 dbutils.notebook.exit("1")

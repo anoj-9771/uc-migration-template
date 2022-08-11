@@ -172,7 +172,7 @@ print(delta_raw_tbl_name)
 # DBTITLE 1,10. Load Raw to Dataframe & Do Transformations
 df = spark.sql(f"WITH stage AS \
                       (Select *, ROW_NUMBER() OVER (PARTITION BY INTRENO,FIXFITCHARACT,VALIDTO ORDER BY _DLRawZoneTimeStamp DESC, DELTA_TS DESC) AS _RecordVersion FROM {delta_raw_tbl_name} \
-                                  WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
+                                  WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' and IS_DELETED != 'X') \
                            SELECT  \
                                   case when INTRENO = 'na' then '' else INTRENO end as architecturalObjectInternalId, \
                                   case when FIXFITCHARACT = 'na' then '' else FIXFITCHARACT end as fixtureAndFittingCharacteristicCode, \
@@ -225,6 +225,33 @@ newSchema = StructType([
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 DeltaSaveDataFrameToDeltaTable(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
+
+# COMMAND ----------
+
+# DBTITLE 1,13.1 Identify Deleted records from Raw table
+df = spark.sql(f"select distinct coalesce(INTRENO,'') as INTRENO, coalesce(FIXFITCHARACT,'') as FIXFITCHARACT, coalesce(VALIDTO,'') as VALIDTO from ( \
+Select *, ROW_NUMBER() OVER (PARTITION BY INTRENO,FIXFITCHARACT,VALIDTO ORDER BY _DLRawZoneTimeStamp DESC, DELTA_TS DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' ) \
+where  _RecordVersion = 1 and IS_DELETED ='X'")
+df.createOrReplaceTempView("isu_vibdcharact_deleted_records")
+
+# COMMAND ----------
+
+# DBTITLE 1,13.2 Update _RecordDeleted and _RecordCurrent Flags
+#Get current time
+CurrentTimeStamp = GeneralLocalDateTime()
+CurrentTimeStamp = CurrentTimeStamp.strftime("%Y-%m-%d %H:%M:%S")
+
+spark.sql(f" \
+    MERGE INTO cleansed.isu_VIBDCHARACT \
+    using isu_vibdcharact_deleted_records \
+    and isu_VIBDCHARACT.architecturalObjectInternalId = isu_vibdcharact_deleted_records.INTRENO \
+    and isu_VIBDCHARACT.fixtureAndFittingCharacteristicCode = isu_vibdcharact_deleted_records.FIXFITCHARACT \
+    and isu_VIBDCHARACT.validToDate = isu_vibdcharact_deleted_records.VALIDTO \
+    WHEN MATCHED THEN UPDATE SET \
+    _DLCleansedZoneTimeStamp = cast('{CurrentTimeStamp}' as TimeStamp) \
+    ,_RecordDeleted=1 \
+    ,_RecordCurrent=0 \
+    ")
 
 # COMMAND ----------
 
