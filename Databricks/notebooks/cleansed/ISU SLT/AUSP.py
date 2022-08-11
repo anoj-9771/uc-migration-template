@@ -172,7 +172,7 @@ print(delta_raw_tbl_name)
 # DBTITLE 1,10. Load Raw to Dataframe & Do Transformations
 df = spark.sql(f"WITH stage AS \
                       (Select *, ROW_NUMBER() OVER (PARTITION BY OBJEK, ATINN, ATZHL, MAFID, KLART, ADZHL ORDER BY _DLRawZoneTimeStamp DESC, DELTA_TS DESC) AS _RecordVersion FROM {delta_raw_tbl_name} \
-                                  WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' and IS_DELETED != 'X') \
+                                  WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
                            SELECT  \
                                     case when OBJEK = 'na' then '' else OBJEK end as classificationObjectInternalId, \
                                     case when ATINN = 'na' then '' else ATINN end as characteristicInternalId, \
@@ -257,7 +257,7 @@ newSchema = StructType([
 # DBTITLE 1,13.1 Identify Deleted records from Raw table
 df = spark.sql(f"select distinct coalesce(ATINN,'') as ATINN, coalesce(OBJEK,'') as OBJEK, coalesce(ATZHL,'') as ATZHL, coalesce(MAFID,'') as MAFID, coalesce(KLART,'') as KLART,  coalesce(ADZHL,'') as ADZHL from ( \
 Select *, ROW_NUMBER() OVER (PARTITION BY OBJEK, ATINN, ATZHL, MAFID, KLART, ADZHL ORDER BY _DLRawZoneTimeStamp DESC, DELTA_TS DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' ) \
-where  _RecordVersion = 1 and IS_DELETED ='X'")
+where  _RecordVersion = 1 and IS_DELETED ='Y'")
 df.createOrReplaceTempView("isu_ausp_deleted_records")
 
 # COMMAND ----------
@@ -270,7 +270,7 @@ CurrentTimeStamp = CurrentTimeStamp.strftime("%Y-%m-%d %H:%M:%S")
 spark.sql(f" \
     MERGE INTO cleansed.isu_AUSP \
     using isu_ausp_deleted_records \
-    and isu_AUSP.characteristicInternalId = isu_ausp_deleted_records.ATINN \
+    on isu_AUSP.characteristicInternalId = isu_ausp_deleted_records.ATINN \
     and isu_AUSP.classificationObjectInternalId = isu_ausp_deleted_records.OBJEK \
     and isu_AUSP.characteristicValueInternalId = isu_ausp_deleted_records.ATZHL \
     and isu_AUSP.classifiedEntityType = isu_ausp_deleted_records.MAFID \

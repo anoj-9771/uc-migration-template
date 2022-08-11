@@ -171,7 +171,7 @@ print(delta_raw_tbl_name)
 
 # DBTITLE 1,10. Load Raw to Dataframe & Do Transformations
 df = spark.sql(f"WITH stage AS \
-                      (Select *, ROW_NUMBER() OVER (PARTITION BY ANLAGE,OPERAND,SAISON,AB,ABLFDNR ORDER BY _DLRawZoneTimestamp DESC, DELTA_TS DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' and IS_DELETED !='X') \
+                      (Select *, ROW_NUMBER() OVER (PARTITION BY ANLAGE,OPERAND,SAISON,AB,ABLFDNR ORDER BY _DLRawZoneTimestamp DESC, DELTA_TS DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
                            SELECT \
                                 case when ANLAGE = 'na' then '' else ANLAGE end as installationId, \
                                 case when OPERAND = 'na' then '' else OPERAND end as operandCode, \
@@ -246,7 +246,7 @@ DeltaSaveDataFrameToDeltaTable(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS
 # DBTITLE 1,13.1 Identify Deleted records from Raw table
 df = spark.sql(f"select distinct coalesce(ANLAGE,'') as ANLAGE, coalesce(OPERAND,'') as OPERAND, coalesce(AB,'') as AB, coalesce(ABLFDNR,'') as ABLFDNR from ( \
 Select *, ROW_NUMBER() OVER (PARTITION BY ANLAGE,OPERAND,SAISON,AB,ABLFDNR ORDER BY _DLRawZoneTimestamp DESC, DELTA_TS DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' ) \
-where  _RecordVersion = 1 and IS_DELETED ='X'")
+where  _RecordVersion = 1 and IS_DELETED ='Y'")
 df.createOrReplaceTempView("isu_ettifn_deleted_records")
 
 # COMMAND ----------
@@ -259,7 +259,7 @@ CurrentTimeStamp = CurrentTimeStamp.strftime("%Y-%m-%d %H:%M:%S")
 spark.sql(f" \
     MERGE INTO cleansed.isu_ETTIFN \
     using isu_ettifn_deleted_records \
-    and isu_ETTIFN.installationId = isu_ettifn_deleted_records.ANLAGE \
+    on isu_ETTIFN.installationId = isu_ettifn_deleted_records.ANLAGE \
     and isu_ETTIFN.operandCode = isu_ettifn_deleted_records.OPERAND \
     and isu_ETTIFN.validFromDate = isu_ettifn_deleted_records.AB \
     and isu_ETTIFN.consecutiveDaysFromDate = isu_ettifn_deleted_records.ABLFDNR \
