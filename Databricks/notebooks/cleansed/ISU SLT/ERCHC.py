@@ -171,7 +171,7 @@ print(delta_raw_tbl_name)
 
 # DBTITLE 1,10. Load Raw to Dataframe & Do Transformations
 df = spark.sql(f"WITH stage AS \
-                      (Select *, ROW_NUMBER() OVER (PARTITION BY BELNR,LFDNR ORDER BY _DLRawZoneTimestamp DESC, DELTA_TS DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' and IS_DELETED != 'X') \
+                      (Select *, ROW_NUMBER() OVER (PARTITION BY BELNR,LFDNR ORDER BY _DLRawZoneTimestamp DESC, DELTA_TS DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
                            select \
                                   case when BELNR = 'na' then '' else BELNR end as billingDocumentNumber, \
                                   case when LFDNR = 'na' then '' else LFDNR end as sequenceNumber, \
@@ -232,7 +232,7 @@ DeltaSaveDataFrameToDeltaTable(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS
 # DBTITLE 1,13.1 Identify Deleted records from Raw table
 df = spark.sql(f"select distinct coalesce(BELNR,'') as BELNR, coalesce(LFDNR,'') as LFDNR from ( \
 Select *, ROW_NUMBER() OVER (PARTITION BY BELNR,LFDNR ORDER BY _DLRawZoneTimeStamp DESC, DELTA_TS DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' ) \
-where  _RecordVersion = 1 and IS_DELETED ='X'")
+where  _RecordVersion = 1 and IS_DELETED ='Y'")
 df.createOrReplaceTempView("isu_erchc_deleted_records")
 
 # COMMAND ----------
@@ -245,7 +245,7 @@ CurrentTimeStamp = CurrentTimeStamp.strftime("%Y-%m-%d %H:%M:%S")
 spark.sql(f" \
     MERGE INTO cleansed.isu_ERCHC \
     using isu_erchc_deleted_records \
-    and isu_ERCHC.billingDocumentNumber = isu_erchc_deleted_records.BELNR \
+    on isu_ERCHC.billingDocumentNumber = isu_erchc_deleted_records.BELNR \
     and isu_ERCHC.sequenceNumber = isu_erchc_deleted_records.LFDNR \
     WHEN MATCHED THEN UPDATE SET \
     _DLCleansedZoneTimeStamp = cast('{CurrentTimeStamp}' as TimeStamp) \
