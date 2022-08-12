@@ -171,17 +171,19 @@ print(delta_raw_tbl_name)
 
 # DBTITLE 1,10. Load Raw to Dataframe & Do Transformations
 df = spark.sql(f"WITH stage AS \
-                      (Select *, ROW_NUMBER() OVER (PARTITION BY INTRENO ORDER BY _FileDateTimeStamp DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} \
+                      (Select *, ROW_NUMBER() OVER (PARTITION BY OBJNRSRC,OBJASSTYPE,OBJNRTRG,VALIDFROM ORDER BY _DLRawZoneTimeStamp DESC, DELTA_TS DESC) AS _RecordVersion FROM {delta_raw_tbl_name} \
                                   WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
                            SELECT  \
-                                case when INTRENO = 'na' then '' else VIB.INTRENO end as architecturalObjectInternalId , \
-                                OBJNR as objectNumber , \
+                                case when OBJNRSRC = 'na' then '' else OBJNRSRC end as objectNumberSource , \
+                                case when OBJASSTYPE = 'na' then '' else OBJASSTYPE end as objectType , \
+                                case when OBJNRTRG = 'na' then '' else OBJNRTRG end as objectNumberTarget , \
+                                ToValidDate(VALIDFROM,'MANDATORY') as validFromDate, \
                                 cast('1900-01-01' as TimeStamp) as _RecordStart, \
                                 cast('9999-12-31' as TimeStamp) as _RecordEnd, \
                                 '0' as _RecordDeleted, \
                                 '1' as _RecordCurrent, \
                                 cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
-                         FROM stage where _RecordVersion = 1 ")
+                         from stage where _RecordVersion = 1 ")
 
 #print(f'Number of rows: {df.count()}')
 
@@ -191,8 +193,10 @@ df = spark.sql(f"WITH stage AS \
 # Create schema for the cleanse table
 newSchema = StructType(
   [
-    StructField("architecturalObjectInternalId", StringType(), False),
-    StructField("alternativeDisplayStructureId", StringType(), True),
+    StructField("objectNumberSource", StringType(), False),
+    StructField("objectType", StringType(), False),
+    StructField("objectNumberTarget", StringType(), False),
+    StructField("validFromDate", DateType(), False)
     StructField('_RecordStart',TimestampType(),False),
     StructField('_RecordEnd',TimestampType(),False),
     StructField('_RecordDeleted',IntegerType(),False),
