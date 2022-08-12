@@ -196,7 +196,7 @@ newSchema = StructType(
     StructField("objectNumberSource", StringType(), False),
     StructField("objectType", StringType(), False),
     StructField("objectNumberTarget", StringType(), False),
-    StructField("validFromDate", DateType(), False)
+    StructField("validFromDate", DateType(), False),
     StructField('_RecordStart',TimestampType(),False),
     StructField('_RecordEnd',TimestampType(),False),
     StructField('_RecordDeleted',IntegerType(),False),
