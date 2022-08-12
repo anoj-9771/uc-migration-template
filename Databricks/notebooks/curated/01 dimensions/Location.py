@@ -37,7 +37,7 @@ def getLocation():
                                      from {ADS_DATABASE_CLEANSED}.isu_0uc_connobj_attr_2 d left outer join {ADS_DATABASE_CLEANSED}.isu_vibdnode b on d.propertyNumber = b.architecturalObjectNumber \
                                          left outer join (select propertyNumber, lga, latitude, longitude from \
                                               (select propertyNumber, lga, latitude, longitude, \
-                                                row_number() over (partition by propertyNumber order by areaSize desc) recNum \
+                                                row_number() over (partition by propertyNumber order by areaSize desc,latitude,longitude) recNum \
                                                 from cleansed.hydra_tlotparcel where _RecordDeleted = 0 and _RecordCurrent = 1 ) \
                                                 where recNum = 1) a on a.propertyNumber = b.architecturalObjectNumber, \
                                           {ADS_DATABASE_CLEANSED}.isu_0funct_loc_attr c \
@@ -66,7 +66,7 @@ def getLocation():
                                      from {ADS_DATABASE_CLEANSED}.isu_0uc_connobj_attr_2 d left outer join {ADS_DATABASE_CLEANSED}.isu_vibdnode b on d.propertyNumber = b.architecturalObjectNumber \
                                          left outer join (select propertyNumber, lga, latitude, longitude from \
                                               (select propertyNumber, lga, latitude, longitude, \
-                                                row_number() over (partition by propertyNumber order by areaSize desc) recNum \
+                                                row_number() over (partition by propertyNumber order by areaSize desc,latitude,longitude) recNum \
                                                 from cleansed.hydra_tlotparcel where _RecordDeleted = 0 and _RecordCurrent = 1 ) \
                                                 where recNum = 1) a on a.propertyNumber = b.parentArchitecturalObjectNumber, \
                                           {ADS_DATABASE_CLEANSED}.isu_0funct_loc_attr c, \
@@ -168,7 +168,7 @@ def getLocation():
                                  missingProps mp left outer join \
                                  (select propertyNumber, lga, latitude, longitude from \
                                          (select propertyNumber, lga, latitude, longitude, \
-                                                 row_number() over (partition by propertyNumber order by areaSize desc) recNum \
+                                                 row_number() over (partition by propertyNumber order by areaSize desc,latitude,longitude) recNum \
                                           from cleansed.hydra_tlotparcel where _RecordDeleted = 0 and _RecordCurrent = 1 ) \
                                           where recNum = 1) hy on hy.propertyNumber = pp.parentPropertyNumber\
                             where pa.propertyNumber = pp.propertyNumber \
