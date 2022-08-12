@@ -178,6 +178,7 @@ df = spark.sql(f"WITH stage AS \
                                 case when OBJASSTYPE = 'na' then '' else OBJASSTYPE end as objectType , \
                                 case when OBJNRTRG = 'na' then '' else OBJNRTRG end as objectNumberTarget , \
                                 ToValidDate(VALIDFROM,'MANDATORY') as validFromDate, \
+                                ToValidDate(VALIDTO) as validToDate , \
                                 cast('1900-01-01' as TimeStamp) as _RecordStart, \
                                 cast('9999-12-31' as TimeStamp) as _RecordEnd, \
                                 '0' as _RecordDeleted, \
@@ -197,6 +198,7 @@ newSchema = StructType(
     StructField("objectType", StringType(), False),
     StructField("objectNumberTarget", StringType(), False),
     StructField("validFromDate", DateType(), False),
+    StructField("validToDate", DateType(), True),
     StructField('_RecordStart',TimestampType(),False),
     StructField('_RecordEnd',TimestampType(),False),
     StructField('_RecordDeleted',IntegerType(),False),
