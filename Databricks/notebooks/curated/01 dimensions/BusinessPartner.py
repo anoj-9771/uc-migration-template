@@ -74,7 +74,7 @@ def getBusinessPartner():
     df = isu0bpartnerAttrDf.join(crm0bpartnerAttrDf, isu0bpartnerAttrDf.businessPartnerNumber == crm0bpartnerAttrDf.businessPartnerNumber, how="left")\
                             .drop(crm0bpartnerAttrDf.businessPartnerNumber)
     
-    df = df.withColumn('naturalPersonFlag', when ((col("isunaturalPersonFlag") == 'X') | (col("crmnaturalPersonFlag") == 'X'),'Y').otherwise('N')) \
+    df = df.withColumn('naturalPersonFlag', coalesce(col("isunaturalPersonFlag"), col("crmnaturalPersonFlag"))) \
            .drop("isunaturalPersonFlag").drop("crmnaturalPersonFlag")
         
     df = df.select("sourceSystemCode","businessPartnerNumber","validFromDate","validToDate", \
