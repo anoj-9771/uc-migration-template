@@ -581,7 +581,7 @@ on isu_dberchz1.statisticalAnalysisRateType = isu_0uc_stattart_text.rateTypeCode
 and isu_0uc_stattart_text.`_RecordCurrent` = 1
 where 
 isu_erch.billingSimulationIndicator = ' '
-and isu_erch.documentNotReleasedIndicator = ' '
+and isu_erch.documentNotReleasedIndicator = 'N'
 and isu_dberchz1.lineItemTypeCode in ('ZDQUAN', 'ZRQUAN')
 and isu_dberchz2.suppressedMeterReadingDocumentId <> ' '
 and isu_erch.`_RecordCurrent` = 1
