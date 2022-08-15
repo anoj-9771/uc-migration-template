@@ -874,20 +874,22 @@ Architecturalobj.firstEnteredOnDate
 from cleansed.isu_vibdao      as Architecturalobj
 inner join   cleansed.isu_vibdobjass  as Objassignment    
 on  Architecturalobj.objectNumber   = Objassignment.objectNumberTarget
-and Objassignment.objectType = '20'
+and Objassignment.objectType = '20' and Objassignment.`_RecordCurrent`=1
 inner join   cleansed.isu_vilmpl      as Parcelofland     
-on Objassignment.objectNumberSource = Parcelofland.objectNumber
+on Objassignment.objectNumberSource = Parcelofland.objectNumber and Parcelofland.`_RecordCurrent`=1
 inner join   cleansed.isu_vilmrcplrel as Parcelupdate     
 on  Parcelofland.architecturalObjectInternalId  = Parcelupdate.architecturalObjectInternalIdParcel
-and Parcelupdate.parcelStatus = '2'
+and Parcelupdate.parcelStatus = '2' and Parcelupdate.`_RecordCurrent`=1
 inner join   cleansed.isu_vilmrcplrel as Parcelupdate1    
 on  Parcelupdate1.architecturalObjectInternalId  = Parcelupdate.architecturalObjectInternalId
 and Parcelupdate1.sequenceNumber    = Parcelupdate.sequenceNumber 
-and Parcelupdate1.parcelStatus = '1'
+and Parcelupdate1.parcelStatus = '1' and Parcelupdate1.`_RecordCurrent`=1
 inner join   cleansed.isu_vilmpl      as OldParcelofland  
 on OldParcelofland.architecturalObjectInternalId = Parcelupdate1.architecturalObjectInternalIdParcel
+and OldParcelofland.`_RecordCurrent`=1
 inner join   cleansed.isu_vibdobjass  as OldObjassignment 
 on  OldObjassignment.objectNumberSource   = OldParcelofland.objectNumber
-and OldObjassignment.objectType = '20'
+and OldObjassignment.objectType = '20' and  OldObjassignment.`_RecordCurrent`=1
 inner join   cleansed.isu_vibdao      as OldProperty      
-on OldObjassignment.objectNumberTarget = OldProperty.objectNumber
+on OldObjassignment.objectNumberTarget = OldProperty.objectNumber and OldProperty.`_RecordCurrent`=1
+where Architecturalobj.`_RecordCurrent`=1
