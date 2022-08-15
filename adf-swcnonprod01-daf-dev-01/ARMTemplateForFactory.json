@@ -11393,6 +11393,16 @@
 													"mappings": [
 														{
 															"source": {
+																"name": "MANDT",
+																"type": "String"
+															},
+															"sink": {
+																"name": "MANDT",
+																"type": "string"
+															}
+														},
+														{
+															"source": {
 																"name": "OBJEK",
 																"type": "String"
 															},
@@ -11739,6 +11749,16 @@
 														},
 														{
 															"source": {
+																"name": "IS_DELETED",
+																"type": "String"
+															},
+															"sink": {
+																"name": "IS_DELETED",
+																"type": "string"
+															}
+														},
+														{
+															"source": {
 																"name": "DELTA_TS",
 																"type": "Decimal"
 															},
@@ -11767,7 +11787,7 @@
 															"value": "@pipeline().parameters.TaskDetails.SourceServer",
 															"type": "Expression"
 														},
-														"tableName": "AUSP",
+														"tableName": "vw_AUSP",
 														"schemaName": "dbo"
 													}
 												}
