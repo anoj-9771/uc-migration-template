@@ -229,7 +229,7 @@ DeltaSaveDataFrameToDeltaTable(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS
 # COMMAND ----------
 
 # DBTITLE 1,13.1 Identify Deleted records from Raw table
-df = spark.sql(f"select distinct coalesce(INTRENO,'') as INTRENO, coalesce(FIXFITCHARACT,'') as FIXFITCHARACT, coalesce(VALIDTO,'') as VALIDTO from ( \
+df = spark.sql(f"select distinct coalesce(INTRENO,'') as INTRENO, coalesce(FIXFITCHARACT,'') as FIXFITCHARACT, ToValidDate(VALIDTO,'MANDATORY') as VALIDTO from ( \
 Select *, ROW_NUMBER() OVER (PARTITION BY INTRENO,FIXFITCHARACT,VALIDTO ORDER BY _DLRawZoneTimeStamp DESC, DELTA_TS DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' ) \
 where  _RecordVersion = 1 and IS_DELETED ='Y'")
 df.createOrReplaceTempView("isu_vibdcharact_deleted_records")
