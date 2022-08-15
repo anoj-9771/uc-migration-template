@@ -318,68 +318,104 @@ def GeneralGetDataLoadMode(truncate, upsert, append):
 
 # COMMAND ----------
 
-def GeneralToValidDateTime(dateIn, colType ="Optional", fmt = "" ):
+from dateutil import parser
+from datetime import datetime
+from dateutil.tz import gettz
+import pytz
+from pytz import timezone, utc
 
-    #This function validates the date
-    from dateutil import parser
-    from datetime import datetime
-    from dateutil.tz import gettz
-    import pytz
-    from pytz import timezone, utc
+# Initiate Global Variables
+_SydneyTimes = {'AEDT': gettz('Australia/NSW'), 'AET': 11*60*60} #standard 11 hour timezone difference to be applied at 1/1/1900
+
+_lowDate = parser.parse('1900-01-01 00:00:00 AET', tzinfos=_SydneyTimes)
+_datePriorTo1900 = parser.parse('1900-01-01 01:00:00 AET', tzinfos=_SydneyTimes)
+_dateMandatoryButNull = parser.parse('1900-01-02 01:00:00 AET', tzinfos=_SydneyTimes)
+_dateInvalid = parser.parse('1900-01-03 01:00:00 AET', tzinfos=_SydneyTimes)
+_nullDate = parser.parse('9999-12-31 22:59:59 AEDT', tzinfos=_SydneyTimes)
+
+_mandatoryStr = "MANDATORY"
+_zeroDate = '00000000'    
+_emptyPadDate = '        '
+
+def GeneralToValidDateTime(dateIn, colType ="Optional"):
+    #-----------------------------------------------------------------------
+    # Last Author: Dylan McCullough
+    # **** Functions Purpose ****
+    #   Used to parse strings into date format. Where the parser
+    #   would naturally fail and return null for 'invalid' dates, 
+    #   this function will return 'dummy values' that better  
+    #   identify the 'category' of invalid input. 
+    #
+    # **** Params **** 
+    #   dateIn: string value. The input date string.
+    #   colType: defines whether the column type is mandatory or optional
+    #        inputs: "Optional", "MANDATORY"
+    #-----------------------------------------------------------------------
     
-    SydneyTimes = {'AEDT': gettz('Australia/NSW'), 'AET': 11*60*60} #standard 11 hour timezone difference to be applied at 1/1/1900
+    #import global variables
+    global _SydneyTimes, _lowDate, _datePriorTo1900, _dateMandatoryButNull, _dateInvalid, _nullDate, _mandatoryStr, _zeroDate, _emptyPadDate
     
-    lowDate = parser.parse('1900-01-01 00:00:00 AET', tzinfos=SydneyTimes)
-    datePriorTo1900 = parser.parse('1900-01-01 01:00:00 AET', tzinfos=SydneyTimes)
-    dateMandatoryButNull = parser.parse('1900-01-02 01:00:00 AET', tzinfos=SydneyTimes)
-    dateInvalid = parser.parse('1900-01-03 01:00:00 AET', tzinfos=SydneyTimes)
-    nullDate = parser.parse('9999-12-31 22:59:59 AEDT', tzinfos=SydneyTimes)
+    #assign the global variables
+    lowDate = _lowDate
+    datePriorTo1900 = _datePriorTo1900
+    dateMandatoryButNull = _dateMandatoryButNull
+    dateInvalid = _dateInvalid
+    nullDate = _nullDate
+    mandatoryStr = _mandatoryStr
+    zeroDate = _zeroDate
+    emptyPadDate = _emptyPadDate
+    SydneyTimes = _SydneyTimes
     
-    if dateIn is None and colType.upper() != "MANDATORY":
+    # if there is no value and it's not mandatory, then return Non
+    # otherwise convert the date input to string
+    if dateIn is None and colType.upper() != mandatoryStr:
         return None
     else:
         dateStr = str(dateIn)
     
-    
-    #don't allow for dates without century    
+    #------ Invalid Date Checks ------#
+    # don't allow for dates without century    
     dash = dateStr.find('-')
     if (dash > -1 and dash <= 2) or (dateStr.find(' ') == 6 or len(dateStr) <= 7):
         return dateInvalid
     
-    #check if length zero and mandatory, else add time to it if not present so the parser works nicely
-    if len(dateStr) == 0 and colType.upper() == "MANDATORY":
+    # Check for 0 length dates
+    if len(dateStr) == 0 and colType.upper() == str(mandatoryStr):
         return dateMandatoryButNull
     
-    if dateStr == '00000000':
+    # Check for 'zeroed' dates 
+    if dateStr == str(zeroDate): #zeroDate: '00000000'
         return nullDate
-    elif dateStr == ' ' * 8:
+    elif dateStr == str(emptyPadDate): #emptyPadDate: '        '
         return None
     
+    # check for dates less than 10 in length
     if len(dateStr) <= 10:
         dateStr += ' 00:00:00'
 
+    # try parse the valid date
     try:
         dateOut = parser.parse(dateStr + ' AEDT', tzinfos=SydneyTimes)
         
+        # check if date is prior to 1900
         if dateOut < lowDate:
             return datePriorTo1900
         else:
             return dateOut
     except:
+        # otherwise return invalid date dummy value
         return dateInvalid
 
 from pyspark.sql.types import TimestampType, DateType
 
-#Register UDF - This method allows UDF to be used with Saprk SQL
-#%sql SELECT ID, ToValidDate(DATECOL) FROM TABLE
+#Register UDF for Spark SQL
+#    e.g) %sql SELECT ID, ToValidDate(DATECOL) FROM TABLE
 spark.udf.register("ToValidDate", GeneralToValidDateTime,DateType())
-#%sql SELECT ID, ToValidDateTime(DATETIMECOL) FROM TABLE
 spark.udf.register("ToValidDateTime", GeneralToValidDateTime,TimestampType())
 
-#Register the UDF - This method allows UDF to be used with DataFrames
-#DateCol = df.ToValidDate_udf(df["StartDate"]))
+#Register the UDF for Dataframes
+#     e.g.) DateCol = df.ToValidDate_udf(df["StartDate"]))
 ToValidDate_udf = udf(GeneralToValidDateTime, DateType())
-#DateTimeCol = df.ToValidDateTime_udf(df["StartDateTime"]))
 ToValidDateTime_udf = udf(GeneralToValidDateTime, TimestampType())
 
 # COMMAND ----------
