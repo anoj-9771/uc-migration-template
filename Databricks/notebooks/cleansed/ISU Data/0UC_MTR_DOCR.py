@@ -174,7 +174,7 @@ df = spark.sql(f"WITH stage AS \
                       (Select *, ROW_NUMBER() OVER (PARTITION BY ABLBELNR,ABLESGR,ANLAGE ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} \
                                       WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' and DI_OPERATION_TYPE !='X' ) \
                            SELECT \
-                                case when ABLBELNR = 'na' then '' else ABLBELNR end as suppressedMeterReadingDocumentId, \
+                                case when ABLBELNR = 'na' then '' else ABLBELNR end as meterReadingDocumentId, \
                                 ABLEINH as meterReadingUnit, \
                                 case when ABLESGR = 'na' then '' else ABLESGR end as meterReadingReasonCode, \
                                 ToValidDate(ADATSOLL) as meterReadingScheduleDate, \
@@ -193,7 +193,7 @@ df = spark.sql(f"WITH stage AS \
 # COMMAND ----------
 
 newSchema = StructType([
-                  StructField('suppressedMeterReadingDocumentId',StringType(),False),
+                  StructField('meterReadingDocumentId',StringType(),False),
                   StructField('meterReadingUnit',StringType(),True),
                   StructField('meterReadingReasonCode',StringType(),False),
                   StructField('meterReadingScheduleDate',DateType(),True),

@@ -186,7 +186,7 @@ df = spark.sql(f"WITH stage AS \
                                       ABLESART as scheduledMeterReadingCategory , \
                                       ABLESER as meterReaderNumber , \
                                       MDEUPL as orderHasBeenOutput , \
-                                      ISTABLART as meterReadingType , \
+                                      ISTABLART as meterReadingTypeCode , \
                                       ABLESTYP as meterReadingCategory , \
                                       MASSREAD as unitOfMeasurementMeterReading , \
                                       UPDMOD as bwDeltaProcess , \
@@ -234,7 +234,7 @@ newSchema = StructType(
                               StructField("scheduledMeterReadingCategory", StringType(), True),
                               StructField("meterReaderNumber", StringType(), True),
                               StructField("orderHasBeenOutput", StringType(), True),
-                              StructField("meterReadingType", StringType(), True),
+                              StructField("meterReadingTypeCode", StringType(), True),
                               StructField("meterReadingCategory", StringType(), True),
                               StructField("unitOfMeasurementMeterReading", StringType(), True),
                               StructField("bwDeltaProcess", StringType(), True),

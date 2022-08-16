@@ -175,23 +175,33 @@ df = spark.sql(f"WITH stage AS \
                                       WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' and DI_OPERATION_TYPE !='X' ) \
                            SELECT \
                                 case when LOGIKZW = 'na' then '' else LOGIKZW end as logicalRegisterNumber, \
-                                ZWNABR as registerNotRelevantToBilling, \
+                                case when ZWNABR = 'X' then 'Y' else 'N' end as registerNotRelevantToBilling, \
                                 case when ANLAGE = 'na' then '' else ANLAGE end as installationId, \
                                 ToValidDate(BIS) as validToDate, \
                                 ToValidDate(AB) as validFromDate, \
                                 GVERRECH as payRentalPrice, \
-                                TARIFART as rateTypeCode, \
+                                re.TARIFART as rateTypeCode, \
+                                st.rateType as rateType, \
                                 KONDIGR as rateFactGroupCode, \
-                                PREISKLA as priceClassCode, \
+                                re.PREISKLA as priceClassCode, \
+                                pt.priceClass, \
                                 LOEVM as deletedIndicator, \
                                 UPDMOD as bwDeltaProcess, \
-                                ZOPCODE as operationCode, \
+                                re.ZOPCODE as operationCode, \
+                                te.operationDescription, \
                                 cast('1900-01-01' as TimeStamp) as _RecordStart, \
                                 cast('9999-12-31' as TimeStamp) as _RecordEnd, \
                                 '0' as _RecordDeleted, \
                                 '1' as _RecordCurrent, \
                                 cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
-                        from stage where _RecordVersion = 1 ")
+                        from stage re \
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UC_STATTART_TEXT st ON re.TARIFART = st.rateTypeCode \
+                                                                                          and st._RecordDeleted = 0 and st._RecordCurrent = 1 \
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UC_PRICCLA_TEXT pt ON re.PREISKLA = pt.priceClassCode \
+                                                                                          and pt._RecordDeleted = 0 and pt._RecordCurrent = 1 \
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_TE405T te ON re.ZOPCODE = te.operationCode \
+                                                                                          and te._RecordDeleted = 0 and te._RecordCurrent = 1 \
+                        where re._RecordVersion = 1 ")
 
 #print(f'Number of rows: {df.count()}')
 
@@ -205,11 +215,14 @@ newSchema = StructType([
 	StructField('validFromDate',DateType(),True),
 	StructField('payRentalPrice',StringType(),True),
 	StructField('rateTypeCode',StringType(),True),
+    StructField('rateType',StringType(),True),
 	StructField('rateFactGroupCode',StringType(),True),
 	StructField('priceClassCode',StringType(),True),
+    StructField('priceClass',StringType(),True),
 	StructField('deletedIndicator',StringType(),True),
 	StructField('bwDeltaProcess',StringType(),True),
 	StructField('operationCode',StringType(),True),
+    StructField('operationDescription',StringType(),True),
 	StructField('_RecordStart',TimestampType(),False),
 	StructField('_RecordEnd',TimestampType(),False),
 	StructField('_RecordDeleted',IntegerType(),False),
