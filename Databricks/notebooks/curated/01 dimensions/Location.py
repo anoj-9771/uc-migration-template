@@ -22,10 +22,13 @@ def getLocation():
     #collect parent properties and then parents of child properties so you get the parent address against the child property
     ISULocationDf = spark.sql(f"select distinct d.propertyNumber as locationID, \
                                      'ISU' as sourceSystemCode, \
-                                     upper(trim(trim(coalesce(c.houseNumber2,'')||' '||coalesce(c.houseNumber1,''))||' '||trim(c.streetName||' '||coalesce(c.streetLine1,''))||' '||coalesce(c.streetLine2,''))|| \
-                                     ', '||c.cityName||' NSW '||c.postCode)  as formattedAddress, \
-                                     upper(c.houseNumber2) as houseNumber2, \
-                                     upper(c.houseNumber1) as houseNumber1, \
+                                     upper(trim(trim(trim(trim(trim(coalesce(c.locationDescription,''))||' '||coalesce(c.buildingNumber,''))||' '||(coalesce(c.houseNumber2,'')||' '||(coalesce(c.floorNumber,'')||' '||coalesce(c.houseNumber1,''))||' '||coalesce(c.houseNumber3,''))||' '||trim(c.streetName||' '||coalesce(c.streetLine1,''))||' '||coalesce(c.streetLine2,''))||', '||c.cityName||' NSW '||c.postCode)))  as formattedAddress, \
+                                     upper(c.locationDescription) as buildingName1, \
+                                     upper(c.buildingNumber) as buildingName2, \
+                                     upper(c.houseNumber2) as unitDetails,\
+                                     upper(c.floorNumber) as floorNumber, \
+                                     upper(c.houseNumber1) as houseNumber, \
+                                     upper(c.houseNumber3) as lotDetails,\
                                      upper(c.streetName) as streetName, \
                                      upper(trim(coalesce(streetLine1,'')||' '||coalesce(streetLine2,''))) as streetType, \
                                      coalesce(a.LGA,d.LGA) as LGA, \
@@ -52,9 +55,13 @@ def getLocation():
                                      union all \
                                      select distinct d.propertyNumber as locationID, \
                                      'ISU' as sourceSystemCode, \
-                                     upper(trim(trim(coalesce(c1.houseNumber2,'')||' '||coalesce(c1.houseNumber1,''))||' '||trim(c1.streetName||' '||coalesce(c1.streetLine1,''))||' '||coalesce(c1.streetLine2,''))||', '||c1.cityName||' NSW '||c1.postCode)  as formattedAddress, \
-                                     upper(c.houseNumber2) as houseNumber2, \
-                                     upper(c.houseNumber1) as houseNumber1, \
+                                     upper(trim(trim(trim(trim(trim(coalesce(c.locationDescription,''))||' '||coalesce(c.buildingNumber,''))||' '||(coalesce(c.houseNumber2,'')||' '||(coalesce(c.floorNumber,'')||' '||coalesce(c.houseNumber1,''))||' '||coalesce(c.houseNumber3,''))||' '||trim(c.streetName||' '||coalesce(c.streetLine1,''))||' '||coalesce(c.streetLine2,''))||', '||c.cityName||' NSW '||c.postCode)))  as formattedAddress, \
+                                     upper(c.locationDescription) as buildingName1, \
+                                     upper(c.buildingNumber) as buildingName2, \
+                                     upper(c.houseNumber2) as unitDetails,\
+                                     upper(c.floorNumber) as floorNumber, \
+                                     upper(c.houseNumber1) as houseNumber, \
+                                     upper(c.houseNumber3) as lotDetails,\
                                      upper(c.streetName) as streetName, \
                                      upper(trim(coalesce(c.streetLine1,'')||' '||coalesce(c.streetLine2,''))) as streetType, \
                                      coalesce(a.LGA,d.LGA) as LGA, \
@@ -142,17 +149,29 @@ def getLocation():
     
     ACCESSDf = spark.sql(f"select pa.propertyNumber as locationID, \
                                'ACCESS' as sourceSystemCode, \
-                               trim(trim(case when pa.lotNumber is not null then 'LOT '||trim(pa.lotNumber) \
-                                              when pa.roadsideMailBox is not null then 'RMB '||trim(pa.roadsideMailBox) \
-                                              else trim(trim(trim(coalesce(pa.floorLevelType,'')||' '||coalesce(pa.floorLevelNumber,''))||' '||coalesce(pa.flatUnitType,'')||' '||coalesce(pa.flatUnitNumber,''))||' '|| \
-                                                   case when pa.houseNumber2 > 0 then trim(cast(pa.houseNumber1 as string)||coalesce(pa.houseNumber1Suffix,''))||'-'||cast(pa.houseNumber2 as string)||coalesce(pa.houseNumber2Suffix,'') \
-                                                        else ltrim('0',cast(pa.houseNumber1 as string))||coalesce(pa.houseNumber1Suffix,'') end) end)|| \
-                                    ' '||trim(trim(sg.streetName||' '||coalesce(sg.streetType,''))||' '||coalesce(sg.streetSuffix,''))||', '||sg.suburb||' NSW '||sg.postcode) as formattedAddress, \
-                               case when pa.lotNumber is not null then 'LOT '||trim(pa.lotNumber) \
-                                    when pa.roadsideMailBox is not null then 'RMB '||trim(pa.roadsideMailBox) \
-                                    else trim(trim(coalesce(pa.floorLevelType,'')||' '||coalesce(pa.floorLevelNumber,''))||' '||coalesce(pa.flatUnitType,'')||' '||coalesce(pa.flatUnitNumber,'')) end as houseNumber2, \
-                               case when pa.houseNumber2 > 0 then trim(cast(pa.houseNumber1 as string)||coalesce(pa.houseNumber1Suffix,''))||'-'||cast(pa.houseNumber2 as string)||coalesce(pa.houseNumber2Suffix,'') \
-                                    else ltrim('0',cast(pa.houseNumber1 as string))||coalesce(pa.houseNumber1Suffix,'') end as housenumber1, \
+                               trim(trim(coalesce(pa.buildingName1,'')||' '||coalesce(pa.buildingName2,''))||\
+                                (case when pa.lotNumber is not null then ' LOT '||trim(pa.lotNumber) \
+                                    when pa.roadsideMailBox is not null then ' RMB '||trim(pa.roadsideMailBox)\
+                                    else '' end)||\
+                                (case when pa.floorLevelType is not null then ' ' || trim(coalesce(pa.floorLevelType,'')||' '||coalesce(pa.floorLevelNumber,''))\
+                                      else '' end)||\
+                                (case when pa.flatUnitType is not null then ' ' || trim(coalesce(pa.flatUnitType,'')||' '||coalesce(pa.flatUnitNumber,''))\
+                                      else '' end)||\
+                                (case when pa.houseNumber2 > 0 then ' ' || trim(cast(pa.houseNumber1 as string)||coalesce(pa.houseNumber1Suffix,''))||'-'||cast(pa.houseNumber2 as string)||coalesce(pa.houseNumber2Suffix,'') \
+                                      else ' ' || ltrim('0',cast(pa.houseNumber1 as string))||coalesce(pa.houseNumber1Suffix,'') end)||\
+                                (' '|| trim(trim(sg.streetName||' '||coalesce(sg.streetType,''))||' '||coalesce(sg.streetSuffix,''))||', '||sg.suburb||' NSW '||sg.postcode)) \
+                             as formattedAddress, \
+                             pa.buildingName1 as buildingName1,\
+                             pa.buildingName2 as buildingName2,\
+                             (case when pa.flatUnitType is not null then ' ' || trim(coalesce(pa.flatUnitType,'')||' '||coalesce(pa.flatUnitNumber,''))\
+                                      else '' end) as unitDetails,\
+                             (case when pa.floorLevelType is not null then ' ' || trim(coalesce(pa.floorLevelType,'')||' '||coalesce(pa.floorLevelNumber,''))\
+                                      else '' end) as floorNumber,\
+                             (case when pa.houseNumber2 > 0 then ' ' || trim(cast(pa.houseNumber1 as string)||coalesce(pa.houseNumber1Suffix,''))||'-'||cast(pa.houseNumber2 as string)||coalesce(pa.houseNumber2Suffix,'') \
+                                      else ' ' || ltrim('0',cast(pa.houseNumber1 as string))||coalesce(pa.houseNumber1Suffix,'') end) as houseNumber,\
+                             (case when pa.lotNumber is not null then ' LOT '||trim(pa.lotNumber) \
+                                    when pa.roadsideMailBox is not null then ' RMB '||trim(pa.roadsideMailBox)\
+                                    else '' end) as lotDetails,\
                                sg.streetName as streetName, \
                            trim(coalesce(sg.streetType,'')||' '||coalesce(sg.streetSuffix,'')) as streetType, \
                            coalesce(hy.LGA,pr.LGA) as LGA, \
@@ -194,8 +213,12 @@ def getLocation():
                              "locationID" \
                             ,"sourceSystemCode" \
                             ,"formattedAddress" \
-                            ,"houseNumber2" \
-                            ,"houseNumber1" \
+                            ,"buildingName1" \
+                            ,"buildingName2" \
+                            ,"unitDetails" \
+                            ,"floorNumber" \
+                            ,"houseNumber" \
+                            ,"lotDetails" \
                             ,"streetName" \
                             ,"streetType" \
                             ,"LGA" \
@@ -211,8 +234,12 @@ def getLocation():
                             StructField("locationID", StringType(), False),
                             StructField("sourceSystemCode", StringType(), True),
                             StructField("formattedAddress", StringType(), True),
-                            StructField("houseNumber2", StringType(), True),
-                            StructField("houseNumber1", StringType(), True),
+                            StructField("buildingName1", StringType(), True),
+                            StructField("buildingName2", StringType(), True),
+                            StructField("unitDetails", StringType(), True),
+                            StructField("floorNumber", StringType(), True),
+                            StructField("houseNumber", StringType(), True),
+                            StructField("lotDetails", StringType(), True),
                             StructField("streetName", StringType(), True),
                             StructField("streetType", StringType(), True),
                             StructField("LGA", StringType(), True),
@@ -233,7 +260,3 @@ TemplateEtl(df, entity="dimLocation", businessKey="locationId", schema=schema, w
 # COMMAND ----------
 
 dbutils.notebook.exit("1")
-
-# COMMAND ----------
-
-
