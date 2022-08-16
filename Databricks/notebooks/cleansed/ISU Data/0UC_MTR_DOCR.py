@@ -3,7 +3,7 @@
 import json
 #For unit testing...
 #Use this string in the Param widget: 
-#{"SourceType": "BLOB Storage (json)", "SourceServer": "daf-sa-lake-sastoken", "SourceGroup": "ISU", "SourceName": "ISU_0UC_MTR_DOCR", "SourceLocation": "ISU/0UC_MTR_DOCR", "AdditionalProperty": "", "Processor": "databricks-token|0711-011053-turfs581|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive", "IsAuditTable": false, "SoftDeleteSource": "", "ProjectName": "ISU DATA", "ProjectId": 2, "TargetType": "BLOB Storage (json)", "TargetName": "ISU_0UC_MTR_DOCR", "TargetLocation": "ISU/0UC_MTR_DOCR", "TargetServer": "daf-sa-lake-sastoken", "DataLoadMode": "FULL-EXTRACT", "DeltaExtract": false, "CDCSource": false, "TruncateTarget": false, "UpsertTarget": true, "AppendTarget": null, "TrackChanges": false, "LoadToSqlEDW": true, "TaskName": "ISU_0UC_MTR_DOCR", "ControlStageId": 2, "TaskId": 46, "StageSequence": 200, "StageName": "Raw to Cleansed", "SourceId": 46, "TargetId": 46, "ObjectGrain": "Day", "CommandTypeId": 8, "Watermarks": "", "WatermarksDT": null, "WatermarkColumn": "", "BusinessKeyColumn": "suppressedMeterReadingDocumentID,meterReadingReasonCode,installationId", "UpdateMetaData": null, "SourceTimeStampFormat": "", "Command": "", "LastLoadedFile": null}
+#{"SourceType": "BLOB Storage (json)", "SourceServer": "daf-sa-lake-sastoken", "SourceGroup": "ISU", "SourceName": "ISU_0UC_MTR_DOCR", "SourceLocation": "ISU/0UC_MTR_DOCR", "AdditionalProperty": "", "Processor": "databricks-token|0711-011053-turfs581|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive", "IsAuditTable": false, "SoftDeleteSource": "", "ProjectName": "ISU DATA", "ProjectId": 2, "TargetType": "BLOB Storage (json)", "TargetName": "ISU_0UC_MTR_DOCR", "TargetLocation": "ISU/0UC_MTR_DOCR", "TargetServer": "daf-sa-lake-sastoken", "DataLoadMode": "FULL-EXTRACT", "DeltaExtract": false, "CDCSource": false, "TruncateTarget": false, "UpsertTarget": true, "AppendTarget": null, "TrackChanges": false, "LoadToSqlEDW": true, "TaskName": "ISU_0UC_MTR_DOCR", "ControlStageId": 2, "TaskId": 46, "StageSequence": 200, "StageName": "Raw to Cleansed", "SourceId": 46, "TargetId": 46, "ObjectGrain": "Day", "CommandTypeId": 8, "Watermarks": "", "WatermarksDT": null, "WatermarkColumn": "", "BusinessKeyColumn": "meterReadingDocumentId,meterReadingReasonCode,installationId", "UpdateMetaData": null, "SourceTimeStampFormat": "", "Command": "", "LastLoadedFile": null}
 
 #Use this string in the Source Object widget
 #ISU_0UC_MTR_DOCR
@@ -232,7 +232,7 @@ CurrentTimeStamp = CurrentTimeStamp.strftime("%Y-%m-%d %H:%M:%S")
 spark.sql(f" \
     MERGE INTO cleansed.isu_0UC_MTR_DOCR \
     using isu_mtr_docr_deleted_records \
-    on isu_0UC_MTR_DOCR.suppressedMeterReadingDocumentId = isu_mtr_docr_deleted_records.ABLBELNR \
+    on isu_0UC_MTR_DOCR.meterReadingDocumentId = isu_mtr_docr_deleted_records.ABLBELNR \
     and isu_0UC_MTR_DOCR.meterReadingReasonCode = isu_mtr_docr_deleted_records.ABLESGR \
     and isu_0UC_MTR_DOCR.installationId = isu_mtr_docr_deleted_records.ANLAGE \
     WHEN MATCHED THEN UPDATE SET \

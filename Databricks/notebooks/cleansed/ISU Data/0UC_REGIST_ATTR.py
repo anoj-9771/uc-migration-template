@@ -188,7 +188,7 @@ df = spark.sql(f"WITH stage AS \
                                 ZWTYP as registerCategoryCode, \
                                 dd.domainValueText as registerCategory, \
                                 BLIWIRK as reactiveApparentOrActiveRegister, \
-                                dd1.reactiveApparentOrActiveRegisterTxt, \
+                                dd1.domainValueText as reactiveApparentOrActiveRegisterTxt, \
                                 MASSREAD as unitOfMeasurementMeterReading, \
                                 NABLESEN as doNotReadIndicator, \
                                 cast(HOEKORR as int) as altitudeCorrectionPressure, \
