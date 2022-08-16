@@ -50,6 +50,45 @@ where  meterMakerNumber is null
 
 -- COMMAND ----------
 
+-- DBTITLE 1,Create reference table for dummy meters (meter class, water type etc defaults)
+-- MAGIC %sql
+-- MAGIC create or replace temp view vMeterDefaults as
+-- MAGIC with t1 as(
+-- MAGIC select propertyNumber, propertyMeterNumber, meterClassCode, meterClass, waterMeterType, meterCategoryCode, meterCategory, meterFittedDate, meterRemovedDate,
+-- MAGIC         row_number() over (partition by propertyNumber, propertyMeterNumber order by meterFittedDate) as rn1,
+-- MAGIC         row_number() over (partition by propertyNumber, propertyMeterNumber order by meterRemovedDate desc) as rn2
+-- MAGIC from cleansed.access_z309_tpropmeter
+-- MAGIC where meterClass is not null
+-- MAGIC and meterFittedDate <> meterRemovedDate
+-- MAGIC --group by propertyNumber, propertyMeterNumber, meterClassCode, meterClass, waterMeterType, meterCategoryCode, meterCategory
+-- MAGIC ),
+-- MAGIC t2 as (
+-- MAGIC select propertyNumber, propertyMeterNumber, meterClassCode, meterClass, waterMeterType, meterCategoryCode, meterCategory, least(to_date('1900-01-01'),meterFittedDate) as validFrom 
+-- MAGIC from t1
+-- MAGIC where rn1 = 1
+-- MAGIC union all
+-- MAGIC select propertyNumber, propertyMeterNumber, meterClassCode, meterClass, waterMeterType, meterCategoryCode, meterCategory, meterFittedDate as validFrom 
+-- MAGIC from t1
+-- MAGIC where rn1 > 1
+-- MAGIC )
+-- MAGIC select propertyNumber, propertyMeterNumber, meterClassCode, meterClass, waterMeterType, meterCategoryCode, meterCategory, validFrom, 
+-- MAGIC         coalesce(lead(validFrom,1) over (partition by propertyNumber, propertyMeterNumber order by validFrom),to_date('2099-01-01')) as validTo
+-- MAGIC         
+-- MAGIC from t2
+-- MAGIC order by propertyNumber, validFrom
+-- MAGIC -- group by propertyNumber, propertyMeterNumber
+-- MAGIC -- having count(*) > 1
+
+-- COMMAND ----------
+
+-- %sql
+-- select *
+-- from vMeterDefaults
+-- where propertyNumber = 5487533
+-- and propertyMeterNumber = 4
+
+-- COMMAND ----------
+
 -- DBTITLE 1,Main query for insert of meters prior to first meter fitted or where no meters are present
 create or replace temp view newMeters as
 with t1 as (select propertyNumber, propertyMeterNumber, min(readingFromDate) as newMeterFittedDate, max(readingToDate) as lastReadDate
@@ -61,7 +100,8 @@ with t1 as (select propertyNumber, propertyMeterNumber, min(readingFromDate) as 
                    t1
             where  pm.propertyNumber = t1.propertyNumber
             and    pm.propertyMeterNumber = t1.propertyMeterNumber
-            and    pm.meterFittedDate >= t1.newMeterFittedDate),
+            and    pm.meterFittedDate >= t1.newMeterFittedDate
+            and    pm.meterClass is not null),
      t3 as (select propertyNumber, propertyMeterNumber, 'DUMMY-'||cast(propertyNumber as string)||'-'||cast(propertyMeterNumber as string)||'-1' as meterMakerNumber, meterSizeCode, meterSize, isMasterMeter, 
                    isCheckMeter, allowAlso, 
                    isMeterConnected, meterReadingFrequencyCode, meterClassCode, meterClass, waterMeterType, 
@@ -71,13 +111,14 @@ with t1 as (select propertyNumber, propertyMeterNumber, min(readingFromDate) as 
                    least(date_add(meterFittedDate,-1),lastReadDate) as propertyMeterUpdatedDate, current_date as _RecordStart, current_date as _RecordEnd, 0 as _RecordDeleted, 1 as _RecordCurrent
             from   t2
             where  rn = 1),
-     t4 as (select propertyNumber, propertyMeterNumber, 'DUMMY-'||cast(propertyNumber as string)||'-'||cast(propertyMeterNumber as string)||'-2' as meterMakerNumber, '01' as meterSizeCode, '20 mm' as meterSize, 
-                   false as isMasterMeter, false as isCheckMeter, false as allowAlso, false as isMeterConnected, '3M' as meterReadingFrequencyCode, '01' as meterClassCode, 'Potable' as meterClass, 'Potable' as waterMeterType, 
-                   'S' as meterCategoryCode, 'Standard Meter' as meterCategory, 'N' as meterGroupCode, 'Normal Reading' as meterGroup, ' ' as meterReadingLocationCode, null as meterReadingRouteNumber, ' ' as meterServes, 
+     t4 as (select t1.propertyNumber, t1.propertyMeterNumber, 'DUMMY-'||cast(t1.propertyNumber as string)||'-'||cast(t1.propertyMeterNumber as string)||'-2' as meterMakerNumber, '01' as meterSizeCode, '20 mm' as meterSize, 
+                   false as isMasterMeter, false as isCheckMeter, false as allowAlso, false as isMeterConnected, '3M' as meterReadingFrequencyCode, coalesce(md.meterClassCode,'01') as meterClassCode, coalesce(md.meterClass,'Potable') as meterClass,
+                   coalesce(md.waterMeterType,'Potable') as waterMeterType, coalesce(md.meterCategoryCode,'S') as meterCategoryCode, coalesce(md.meterCategory,'Standard Meter') as meterCategory, 'N' as meterGroupCode, 
+                   'Normal Reading' as meterGroup, ' ' as meterReadingLocationCode, null as meterReadingRouteNumber, ' ' as meterServes, 
                    ' ' as meterGridLocationCode, null as readingInstructionCode1, null as readingInstructionCode2, false as hasAdditionalDescription, false as hasMeterRoutePreparation, false as hasMeterWarningNote, 
                    newMeterFittedDate as meterFittedDate, 0 as meterReadingSequenceNumber, '01' as meterChangeReasonCode, null as meterChangeAdviceNumber, lastReadDate as meterRemovedDate, 
                    lastReadDate as propertyMeterUpdatedDate, current_date as _RecordStart, current_date as _RecordEnd, 0 as _RecordDeleted, 1 as _RecordCurrent
-            from   t1
+            from   t1 left outer join vMeterDefaults md on t1.propertyNumber = md.propertyNumber and t1.propertyMeterNumber = md.propertyMeterNumber and newMeterFittedDate between md.validFrom and md.validTo
             where  not exists(select 1 
                               from cleansed.access_z309_tpropmeter pm 
                               where pm.propertyNumber = t1.propertyNumber
@@ -97,7 +138,7 @@ from newMeters
 
 -- DBTITLE 1,Insert all new meters
 insert into cleansed.access_z309_tpropmeter
-select * from newMeters
+select distinct * from newMeters
 
 -- COMMAND ----------
 
@@ -110,7 +151,7 @@ select * from newMeters
 
 -- DBTITLE 1,For the remaining readings, just insert a meter for each reading (no clues what else to do with historical junk)
 insert into cleansed.access_z309_tpropmeter
-        with t1 as (select mr.*, mts.meterMakerNumber, mts.meterFittedDate
+        with t1 as (select distinct mr.*, mts.meterMakerNumber, mts.meterFittedDate
         from   cleansed.access_z309_tmeterreading mr left outer join curated.metertimesliceaccess mts on mts.propertyNumber = mr.propertyNumber 
                                                                                                        and mts.propertyMeterNumber = mr.propertyMeterNumber
                                                                                                        and (mr.readingToDate between mts.validFrom and mts.validTo
@@ -118,18 +159,18 @@ insert into cleansed.access_z309_tpropmeter
                                                                                                        and  mr.readingToDate between mts.validFrom and date_add(mts.validTo,31)))
                                                                                                        -- either take the meter if the readingtoDate is between meter valid from and to
                                                                                                        -- or if the reading from date is covered and the reading to data is less than a month out
-        where mr.meterReadingStatusCode IN ('A','B','P','V') 
-        and mr.meterReadingDays > 0 
+        where mr.meterReadingDays > 0 
         and mr.meterReadingConsumption > 0     
         and meterMakerNumber is null
         )
-        select propertyNumber, propertyMeterNumber, 'DUMMY-'||cast(propertyNumber as string)||'-'||cast(propertyMeterNumber as string)||'-3' as meterMakerNumber, '01' as meterSizeCode, '20 mm' as meterSize, 
-                   false as isMasterMeter, false as isCheckMeter, false as allowAlso, false as isMeterConnected, '3M' as meterReadingFrequencyCode, '01' as meterClassCode, 'Potable' as meterClass, 'Potable' as waterMeterType, 
-                   'S' as meterCategoryCode, 'Standard Meter' as meterCategory, 'N' as meterGroupCode, 'Normal Reading' as meterGroup, ' ' as meterReadingLocationCode, null as meterReadingRouteNumber, ' ' as meterServes, 
+        select t1.propertyNumber, t1.propertyMeterNumber, 'DUMMY-'||cast(t1.propertyNumber as string)||'-'||cast(t1.propertyMeterNumber as string)||'-3-'||cast(meterReadingNumber as string) as meterMakerNumber, '01' as meterSizeCode, '20 mm' as meterSize, 
+                   false as isMasterMeter, false as isCheckMeter, false as allowAlso, false as isMeterConnected, '3M' as meterReadingFrequencyCode, coalesce(md.meterClassCode,'01') as meterClassCode, coalesce(md.meterClass,'Potable') as meterClass,
+                   coalesce(md.waterMeterType,'Potable') as waterMeterType, coalesce(md.meterCategoryCode,'S') as meterCategoryCode, coalesce(md.meterCategory,'Standard Meter') as meterCategory, 'N' as meterGroupCode, 'Normal Reading' as meterGroup, 
+                   ' ' as meterReadingLocationCode, null as meterReadingRouteNumber, ' ' as meterServes, 
                    ' ' as meterGridLocationCode, null as readingInstructionCode1, null as readingInstructionCode2, false as hasAdditionalDescription, false as hasMeterRoutePreparation, false as hasMeterWarningNote, 
-                   readingFromDate as meterFittedDate, 0 as meterReadingSequenceNumber, '01' as meterChangeReasonCode, null as meterChangeAdviceNumber, readingToDate as meterRemovedDate, 
+                   readingFromDate -1 as meterFittedDate, 0 as meterReadingSequenceNumber, '01' as meterChangeReasonCode, null as meterChangeAdviceNumber, readingToDate as meterRemovedDate, 
                    readingToDate as propertyMeterUpdatedDate, current_date as _RecordStart, current_date as _RecordEnd, 0 as _RecordDeleted, 1 as _RecordCurrent
-        from   t1
+        from   t1 left outer join vMeterDefaults md on t1.propertyNumber = md.propertyNumber and t1.propertyMeterNumber = md.propertyMeterNumber and meterFittedDate between md.validFrom and md.validTo
 
 -- COMMAND ----------
 
@@ -139,7 +180,7 @@ insert into cleansed.access_z309_tpropmeter
 
 -- COMMAND ----------
 
--- DBTITLE 1,Show count of meters still missing
+-- DBTITLE 1,Show count of meters still missing for billable consumption
 --meters still missing
 with t1 as (select mr.*, mts.meterMakerNumber, mts.meterFittedDate
 from   cleansed.access_z309_tmeterreading mr left outer join curated.metertimesliceaccess mts on mts.propertyNumber = mr.propertyNumber 
@@ -149,7 +190,8 @@ from   cleansed.access_z309_tmeterreading mr left outer join curated.metertimesl
                                                                                                and  mr.readingToDate between mts.validFrom and date_add(mts.validTo,31)))
                                                                                                -- either take the meter if the readingtoDate is between meter valid from and to
                                                                                                -- or if the reading from date is covered and the reading to data is less than a month out
-where mr.meterReadingDays > 0 
+where mr.meterReadingStatusCode IN ('A','B','P','V') 
+and mr.meterReadingDays > 0 
 and mr.meterReadingConsumption > 0     
 and meterMakerNumber is null
 )
@@ -158,7 +200,7 @@ from t1
 
 -- COMMAND ----------
 
--- DBTITLE 1,Show total consumption for which no unique meter is identifiable
+-- DBTITLE 1,Show total billable consumption for which no unique meter is identifiable
 with t1 as (select mr.*, mts.meterMakerNumber, mts.meterFittedDate
 from   cleansed.access_z309_tmeterreading mr left outer join curated.metertimesliceaccess mts on mts.propertyNumber = mr.propertyNumber 
                                                                                                and mts.propertyMeterNumber = mr.propertyMeterNumber
@@ -184,14 +226,41 @@ from t1
 -- COMMAND ----------
 
 -- MAGIC %sql
+-- MAGIC delete from cleansed.access_z309_tpropmeter
+-- MAGIC where metermakerNumber like 'DUMMY%3'
+
+-- COMMAND ----------
+
+--meters still missing
+with t1 as (select mr.*, mts.meterMakerNumber, mts.meterFittedDate
+from   cleansed.access_z309_tmeterreading mr left outer join curated.metertimesliceaccess mts on mts.propertyNumber = mr.propertyNumber 
+                                                                                               and mts.propertyMeterNumber = mr.propertyMeterNumber
+                                                                                               and (mr.readingToDate between mts.validFrom and mts.validTo
+                                                                                               or   (mr.readingFromDate between mts.validfrom and mts.validto
+                                                                                               and  mr.readingToDate between mts.validFrom and date_add(mts.validTo,31)))
+                                                                                               -- either take the meter if the readingtoDate is between meter valid from and to
+                                                                                               -- or if the reading from date is covered and the reading to data is less than a month out
+where mr.meterReadingStatusCode IN ('A','B','P','V') 
+and mr.meterReadingDays > 0 
+and mr.meterReadingConsumption > 0     
+and meterMakerNumber is null
+)
+select *
+from t1
+
+-- COMMAND ----------
+
+-- MAGIC %sql
 -- MAGIC select * from curated.metertimesliceaccess
--- MAGIC where propertyNumber = 3100078
+-- MAGIC where propertyNumber = 4045203
+-- MAGIC and   propertyMeterNumber = 1
 
 -- COMMAND ----------
 
 -- MAGIC %sql
 -- MAGIC select * from cleansed.access_z309_tmeterreading
--- MAGIC where propertyNumber = 3100078
+-- MAGIC where propertyNumber = 4914686
+-- MAGIC and   propertyMeterNumber = 6
 -- MAGIC order by readingToDate
 
 -- COMMAND ----------

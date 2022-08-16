@@ -28,16 +28,20 @@ def getmeterTimesliceAccess():
                                                                 left outer join cleansed.access_z309_tpropmeter pm on hpm.propertyNumber = pm.propertyNumber and hpm.propertyMeterNumber = pm.propertyMeterNumber and hpm.meterMakerNumber = pm.meterMakerNumber \
                       ), \
                  t2 as( \
-                      select 'C' as src, propertyNumber, propertyMeterNumber, meterSize, meterFittedDate, meterRemovedDate, meterMakerNumber, \
-                              meterClass, meterCategory, coalesce(meterGroup,  'Normal Reading') as meterGroup, isCheckMeter, waterMeterType, propertyMeterUpdatedDate \
-                      from cleansed.access_z309_tpropmeter \
+                      select distinct 'C' as src, propertyNumber, propertyMeterNumber, meterSize, meterFittedDate, meterRemovedDate, meterMakerNumber, \
+                             meterClass, meterCategory, coalesce(meterGroup,  'Normal Reading') as meterGroup, isCheckMeter, waterMeterType, propertyMeterUpdatedDate \
+                      from   cleansed.access_z309_tpropmeter \
+                      where  meterRemovedDate is null \
+                      or     meterRemovedDate > meterFittedDate \
                       union all \
                       select src, t1.propertyNumber, t1.propertyMeterNumber, t1.meterSize, t1.meterFittedDate, greatest(t1.meterRemovedDate, pm.meterRemovedDate) as meterRemovedDate, t1.meterMakerNumber, \
                              t1.meterClass, t1.meterCategory, t1.meterGroup, t1.isCheckMeter, t1.waterMeterType, t1.propertyMeterUpdatedDate \
                       from t1 left outer join cleansed.access_z309_tpropmeter pm on pm.propertyNumber = t1.propertyNumber \
                                                                                 and pm.propertyMeterNumber = t1.propertyMeterNumber \
                                                                                 and pm.meterMakerNumber = t1.meterMakerNumber \
-                      where rn = 1 \
+                      where  rn = 1 \
+                      and    (t1.meterRemovedDate is null \
+                      or      t1.meterRemovedDate > t1.meterFittedDate) \
                       ), \
                  t3 as( \
                       select src, propertyNumber, propertyMeterNumber, meterSize, meterFittedDate, meterRemovedDate, meterMakerNumber, \
@@ -70,7 +74,6 @@ def getmeterTimesliceAccess():
                                         meterGroup, isCheckMeter, waterMeterType, validFrom, validTo \
                       from   t5 \
                       where  validFrom < validTo \
-                      and    (meterFittedDate != meterRemovedDate or meterRemovedDate is null) \
                       ), \
                  t7 as( \
                       SELECT \
@@ -171,14 +174,14 @@ dbutils.notebook.exit('0')
 # MAGIC                               row_number() over (partition by hpm.propertyNumber, hpm.propertyMeterNumber, hpm.meterSize, hpm.meterFittedDate, hpm.metermakernumber, 
 # MAGIC                               hpm.meterClass, hpm.meterCategory, hpm.meterGroup, hpm.isCheckMeter, hpm.rowSupersededDate order by hpm.rowSupersededTime desc) as rn 
 # MAGIC                       FROM cleansed.access_Z309_THPROPMETER hpm left outer join cleansed.access_z309_tpropmeter pm on hpm.propertyNumber = pm.propertyNumber and hpm.propertyMeterNumber = pm.propertyMeterNumber and hpm.meterMakerNumber = pm.meterMakerNumber
-# MAGIC                       where hpm.propertyNumber = 4995495 --5703660
+# MAGIC                       where hpm.propertyNumber = 4045203 --5703660
 # MAGIC                       ), 
 # MAGIC                  t2 as( 
-# MAGIC                       select 'C' as src, propertyNumber, propertyMeterNumber, meterSize, meterFittedDate, meterRemovedDate, meterMakerNumber, 
+# MAGIC                       select distinct 'C' as src, propertyNumber, propertyMeterNumber, meterSize, meterFittedDate, meterRemovedDate, meterMakerNumber, 
 # MAGIC                               meterClass, meterCategory, coalesce(meterGroup,  'Normal Reading') as meterGroup, isCheckMeter, propertyMeterUpdatedDate 
 # MAGIC                       from cleansed.access_z309_tpropmeter 
 # MAGIC                       where meterFittedDate < meterremovedDate
-# MAGIC                       and propertyNumber = 4995495 --5703660
+# MAGIC                       and propertyNumber = 4045203 --5703660
 # MAGIC                       union all 
 # MAGIC                       select src, propertyNumber, propertyMeterNumber, meterSize, meterFittedDate, meterRemovedDate, meterMakerNumber, 
 # MAGIC                              meterClass, meterCategory, meterGroup, isCheckMeter, propertyMeterUpdatedDate 
@@ -246,7 +249,7 @@ dbutils.notebook.exit('0')
 # MAGIC                                meterGroup, isCheckMeter, validFrom 
 # MAGIC                       ) 
 # MAGIC             select * 
-# MAGIC             from   t7
+# MAGIC             from   t4
 # MAGIC             order  by propertyNumber, propertyMeterNumber , validFrom 
 # MAGIC -- select src, propertyNumber, propertyMeterNumber, meterSize, meterFittedDate, meterRemovedDate, meterMakerNumber, meterClass, meterCategory,  
 # MAGIC --                   meterGroup, isCheckMeter, validFrom, validTo
