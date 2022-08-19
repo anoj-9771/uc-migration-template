@@ -29,7 +29,7 @@ def getSewerNetwork():
                         ")
 
     #Dummy Record to be added to Property Dimension
-    dummyDimRecDf = spark.createDataFrame([("Unknown","Unknown","-1")], ["sewerNetwork", "sewerCatchment","SCAMP"])
+    dummyDimRecDf = spark.createDataFrame([("Unknown","Unknown","Unknown")], ["sewerNetwork", "sewerCatchment","SCAMP"])
 
     #2.JOIN TABLES  
     #3.UNION TABLES
@@ -58,7 +58,3 @@ def getSewerNetwork():
 
 df, schema = getSewerNetwork()
 TemplateEtl(df, entity="dimSewerNetwork", businessKey="SCAMP", schema=schema, writeMode=ADS_WRITE_MODE_OVERWRITE, AddSK=True)
-
-# COMMAND ----------
-
-
