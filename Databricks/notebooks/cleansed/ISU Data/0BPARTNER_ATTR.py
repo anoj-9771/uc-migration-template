@@ -185,11 +185,11 @@ df = spark.sql(f"WITH stage AS \
                                 BP.BU_SORT2 as searchTerm2, \
                                 BP.TITLE as titleCode, \
                                 TITLE.TITLE as title, \
-                                BP.XDELE as deletedIndicator, \
+                                case when BP.XDELE = 'X' then 'Y' else 'N' end as deletedIndicator, \
                                 BP.XBLCK as centralBlockBusinessPartner, \
                                 BP.ZZUSER as userId, \
-                                BP.ZZPAS_INDICATOR as paymentAssistSchemeIndicator, \
-                                BP.ZZBA_INDICATOR as billAssistIndicator, \
+                                case when BP.ZZPAS_INDICATOR = 'X' then 'Y' else 'N' end as paymentAssistSchemeIndicator, \
+                                case when BP.ZZBA_INDICATOR = 'X' then 'Y' else 'N' end as billAssistIndicator, \
                                 ToValidDate(BP.ZZAFLD00001Z) as createdOn, \
                                 BP.NAME_ORG1 as organizationName1, \
                                 BP.NAME_ORG2 as organizationName2, \
@@ -209,7 +209,7 @@ df = spark.sql(f"WITH stage AS \
                                 BP.LANGU_CORR as correspondenceLanguage, \
                                 BP.NATIO as nationality, \
                                 BP.PERSNUMBER as personNumber, \
-                                BP.XSEXU as unknownGenderIndicator, \
+                                case when BP.XSEXU = 'X' then 'Y' else 'N' end as unknownGenderIndicator, \
                                 BP.BU_LANGU as language, \
                                 ToValidDate(BP.BIRTHDT) as dateOfBirth, \
                                 ToValidDate(BP.DEATHDT) as dateOfDeath, \
@@ -224,7 +224,7 @@ df = spark.sql(f"WITH stage AS \
                                 BP.ADDRCOMM as addressNumber, \
                                 ToValidDate(substr(BP.VALID_FROM,0,8)) as validFromDate, \
                                 ToValidDate(substr(BP.VALID_TO,0,8)) as validToDate, \
-                                BP.NATPERS as naturalPersonIndicator, \
+                                case when BP.NATPERS = 'X' then 'Y' else 'N' end as naturalPersonIndicator, \
                                 cast('1900-01-01' as TimeStamp) as _RecordStart, \
                                 cast('9999-12-31' as TimeStamp) as _RecordEnd, \
                                 '0' as _RecordDeleted, \
