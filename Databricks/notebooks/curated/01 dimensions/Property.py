@@ -40,24 +40,27 @@ def getProperty():
 
     #1.Load current Cleansed layer table data into dataframe
     #build a dataframe with unique properties and lot details, 4174119 is incorrectly present on Tlot
-    lotDf = spark.sql(f"select propertyNumber, \
-                                first(coalesce(pts.PLAN_TYPE,planTypeCode)) as planTypeCode, \
-                                first(coalesce(pts.description,planType)) as planType, \
-                                first(planNumber) as planNumber, \
-                                first(lotNumber)  as lotNumber, \
-                                first(lotTypeCode) as lotTypeCode, \
-                                first(coalesce(plts.domainValueText,lotType)) as lotType, \
-                                first(sectionNumber) as sectionNumber \
-                        from {ADS_DATABASE_CLEANSED}.access_z309_tlot tlot \
-                             left outer join {ADS_DATABASE_CLEANSED}.isu_zcd_tplantype_tx pts on pts.plan_type = case when planTypeCode = 'DP' then '01' \
-                                                                                          when planTypeCode = 'PSP' then '03' \
-                                                                                          when planTypeCode = 'PDP' then '04' \
-                                                                                          when planTypeCode = 'CN' then '05' \
-                                                                                          when planTypeCode = 'SP' then '02' \
-                                                                                          else null end \
-                             left outer join {ADS_DATABASE_CLEANSED}.isu_dd07t plts on lotTypeCode = plts.domainValueSingleUpperLimit and domainName = 'ZCD_DO_ADDR_LOT_TYPE' \
-                        where tlot._RecordCurrent = 1 \
-                        group by propertyNumber \
+    lotDf = spark.sql(f"select propertyNumber,planTypeCode,planType,planNumber,lotNumber,lotTypeCode, lotType,sectionNumber from \
+                          ( \
+                            select propertyNumber, \
+                                    coalesce(pts.PLAN_TYPE,planTypeCode) as planTypeCode, \
+                                    coalesce(pts.description,planType) as planType, \
+                                    planNumber as planNumber, \
+                                    lotNumber  as lotNumber, \
+                                    lotTypeCode as lotTypeCode, \
+                                    coalesce(plts.domainValueText,lotType) as lotType, \
+                                    sectionNumber as sectionNumber, \
+                                    row_number() over (partition by propertyNumber order by planNumber,lotNumber,sectionNumber) recNum \
+                            from {ADS_DATABASE_CLEANSED}.access_z309_tlot tlot \
+                                 left outer join {ADS_DATABASE_CLEANSED}.isu_zcd_tplantype_tx pts on pts.plan_type = case when planTypeCode = 'DP' then '01' \
+                                                                                              when planTypeCode = 'PSP' then '03' \
+                                                                                              when planTypeCode = 'PDP' then '04' \
+                                                                                              when planTypeCode = 'CN' then '05' \
+                                                                                              when planTypeCode = 'SP' then '02' \
+                                                                                              else null end \
+                                 left outer join {ADS_DATABASE_CLEANSED}.isu_dd07t plts on lotTypeCode = plts.domainValueSingleUpperLimit and domainName = 'ZCD_DO_ADDR_LOT_TYPE' \
+                            where tlot._RecordCurrent = 1 \
+                         ) numRec where recNum = 1\
                         union all \
                         select propertyNumber, \
                                 '02' as planTypeCode, \
