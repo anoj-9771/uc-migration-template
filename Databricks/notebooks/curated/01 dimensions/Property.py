@@ -256,10 +256,10 @@ def getProperty():
                     select * \
                     from   ISU")
     
-    dummyDimRecDf = spark.sql(f"select waterNetworkSK as dummyDimSK, 'dimWaterNetwork_drinkingWater' as dimension from {ADS_DATABASE_CURATED}.dimWaterNetwork where pressureArea='-1' and isPotableWaterNetwork='Y' and isRecycledWaterNetwork='N' \
-                          union select waterNetworkSK as dummyDimSK, 'dimWaterNetwork_recycledWater' as dimension from {ADS_DATABASE_CURATED}.dimWaterNetwork where supplyZone='-1' and isPotableWaterNetwork='N' and isRecycledWaterNetwork='Y' \
-                          union select sewerNetworkSK as dummyDimSK, 'dimSewerNetwork' as dimension from {ADS_DATABASE_CURATED}.dimSewerNetwork where SCAMP='-1' \
-                          union select stormWaterNetworkSK as dummyDimSK, 'dimStormWaterNetwork' as dimension from {ADS_DATABASE_CURATED}.dimStormWaterNetwork where stormWaterCatchment='-1' \
+    dummyDimRecDf = spark.sql(f"select waterNetworkSK as dummyDimSK, 'dimWaterNetwork_drinkingWater' as dimension from {ADS_DATABASE_CURATED}.dimWaterNetwork where pressureArea='Unknown' and isPotableWaterNetwork='Y' \
+                          union select waterNetworkSK as dummyDimSK, 'dimWaterNetwork_recycledWater' as dimension from {ADS_DATABASE_CURATED}.dimWaterNetwork where supplyZone='Unknown' and isRecycledWaterNetwork='Y' \
+                          union select sewerNetworkSK as dummyDimSK, 'dimSewerNetwork' as dimension from {ADS_DATABASE_CURATED}.dimSewerNetwork where SCAMP='Unknown' \
+                          union select stormWaterNetworkSK as dummyDimSK, 'dimStormWaterNetwork' as dimension from {ADS_DATABASE_CURATED}.dimStormWaterNetwork where stormWaterCatchment='Unknown' \
                           ")
     df = df.join(dummyDimRecDf, (dummyDimRecDf.dimension == 'dimWaterNetwork_drinkingWater'), how="left") \
                   .select(df['*'], dummyDimRecDf['dummyDimSK'].alias('dummyWaterNetworkSK_drinkingWater'))
@@ -275,13 +275,13 @@ def getProperty():
                                  {ADS_DATABASE_CURATED}.dimWaterNetwork wnr, \
                                  {ADS_DATABASE_CURATED}.dimSewerNetwork snw, \
                                  {ADS_DATABASE_CURATED}.dimStormWaterNetwork sw \
-                            where wn.pressureArea = '-1' \
-                            and   wn._RecordCurrent = 1 and wn.isPotableWaterNetwork='Y' and wn.isRecycledWaterNetwork='N' \
-                            and   wnr.supplyZone = '-1' \
-                            and   wnr._RecordCurrent = 1 and wnr.isPotableWaterNetwork='N' and wnr.isRecycledWaterNetwork='Y' \
-                            and   snw.SCAMP = '-1' \
+                            where wn.pressureArea = 'Unknown' \
+                            and   wn._RecordCurrent = 1 and wn.isPotableWaterNetwork='Y' \
+                            and   wnr.supplyZone = 'Unknown' \
+                            and   wnr._RecordCurrent = 1 and wnr.isRecycledWaterNetwork='Y' \
+                            and   snw.SCAMP = 'Unknown' \
                             and   snw._RecordCurrent = 1 \
-                            and   sw.stormWaterCatchment = '-1' \
+                            and   sw.stormWaterCatchment = 'Unknown' \
                             and   sw._RecordCurrent = 1 \
                             ")
     df = df.unionByName(dummyDimDf, allowMissingColumns = True)
@@ -366,7 +366,3 @@ TemplateEtl(df, entity="dimProperty", businessKey="propertyNumber", schema=schem
 # COMMAND ----------
 
 dbutils.notebook.exit("1")
-
-# COMMAND ----------
-
-
