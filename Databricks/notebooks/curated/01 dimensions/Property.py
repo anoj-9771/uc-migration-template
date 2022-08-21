@@ -368,4 +368,26 @@ TemplateEtl(df, entity="dimProperty", businessKey="propertyNumber", schema=schem
 
 # COMMAND ----------
 
+# MAGIC %md
+# MAGIC Set the network details for cancelled properties to those of their now active equivalent (to be expanded for SAP cancelled props)
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC with t1 as (select cp.propertyNumber, waterNetworkSK_drinkingWater, waterNetworkSK_recycledWater, sewerNetworkSK, stormWaterNetworkSK 
+# MAGIC             from   curated.dimProperty p,
+# MAGIC                    curated.ACCESSCancelledActiveProps cp
+# MAGIC             where  p.propertyNumber = cp.activeProperty)
+# MAGIC 
+# MAGIC merge into curated.dimProperty p
+# MAGIC using      t1
+# MAGIC on         p.propertyNumber = t1.propertyNumber
+# MAGIC when matched then update 
+# MAGIC              set p.waterNetworkSK_drinkingWater = t1.waterNetworkSK_drinkingWater,
+# MAGIC                  p.waterNetworkSK_recycledWater = t1.waterNetworkSK_recycledWater,
+# MAGIC                  p.sewerNetworkSK = t1.sewerNetworkSK,
+# MAGIC                  p.stormWaterNetworkSK = t1.stormWaterNetworkSK
+
+# COMMAND ----------
+
 dbutils.notebook.exit("1")
