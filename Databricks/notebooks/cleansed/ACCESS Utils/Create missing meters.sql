@@ -7,10 +7,6 @@
 -- MAGIC </ol>
 -- MAGIC This Notebook will generate meter records on ACCESS_Z309_TPROPMETER for meters that historically were removed from the property without having been written to history (and which could not be found in BI)<br />
 -- MAGIC <br />
--- MAGIC Change the fact table query to include the date_add in the between clause:<br />
--- MAGIC <code>
--- MAGIC   and mr.readingToDate between mts.validFrom and date_add(mts.validTo,31)
--- MAGIC </code>
 
 -- COMMAND ----------
 
@@ -32,12 +28,8 @@ create or replace temp view allReadings as
 select mr.*, mts.meterMakerNumber, mts.meterFittedDate
 from   cleansed.access_z309_tmeterreading mr left outer join curated.metertimesliceaccess mts on mts.propertyNumber = mr.propertyNumber 
                                                                                                and mts.propertyMeterNumber = mr.propertyMeterNumber
-                                                                                               and ((mr.readingToDate between mts.validFrom and mts.validTo
-                                                                                                   and mr.readingToDate != mts.validFrom) 
-                                                                                               or  (mr.readingFromDate between mts.validfrom and mts.validto
-                                                                                                   and  mr.readingToDate between mts.validFrom and date_add(mts.validTo,31)))
-                                                                                               -- either take the meter if the readingtoDate is between meter valid from and to
-                                                                                               -- or if the reading from date is covered and the reading to data is less than a month out
+                                                                                               and mr.readingToDate between mts.validFrom and mts.validTo
+                                                                                               and mr.readingToDate != mts.validFrom
 where mr.meterReadingDays > 0 
 and mr.meterReadingConsumption > 0                                                                                              
 
@@ -154,11 +146,8 @@ insert into cleansed.access_z309_tpropmeter
         with t1 as (select distinct mr.*, mts.meterMakerNumber, mts.meterFittedDate
         from   cleansed.access_z309_tmeterreading mr left outer join curated.metertimesliceaccess mts on mts.propertyNumber = mr.propertyNumber 
                                                                                                        and mts.propertyMeterNumber = mr.propertyMeterNumber
-                                                                                                       and (mr.readingToDate between mts.validFrom and mts.validTo
-                                                                                                       or   (mr.readingFromDate between mts.validfrom and mts.validto
-                                                                                                       and  mr.readingToDate between mts.validFrom and date_add(mts.validTo,31)))
-                                                                                                       -- either take the meter if the readingtoDate is between meter valid from and to
-                                                                                                       -- or if the reading from date is covered and the reading to data is less than a month out
+                                                                                                       and mr.readingToDate between mts.validFrom and mts.validTo
+                                                                                                       and mr.readingToDate != mts.validFrom
         where mr.meterReadingDays > 0 
         and mr.meterReadingConsumption > 0     
         and meterMakerNumber is null
@@ -185,11 +174,8 @@ insert into cleansed.access_z309_tpropmeter
 with t1 as (select mr.*, mts.meterMakerNumber, mts.meterFittedDate
 from   cleansed.access_z309_tmeterreading mr left outer join curated.metertimesliceaccess mts on mts.propertyNumber = mr.propertyNumber 
                                                                                                and mts.propertyMeterNumber = mr.propertyMeterNumber
-                                                                                               and (mr.readingToDate between mts.validFrom and mts.validTo
-                                                                                               or   (mr.readingFromDate between mts.validfrom and mts.validto
-                                                                                               and  mr.readingToDate between mts.validFrom and date_add(mts.validTo,31)))
-                                                                                               -- either take the meter if the readingtoDate is between meter valid from and to
-                                                                                               -- or if the reading from date is covered and the reading to data is less than a month out
+                                                                                               and mr.readingToDate between mts.validFrom and mts.validTo
+                                                                                               and mr.readingToDate != mts.validFrom
 where mr.meterReadingStatusCode IN ('A','B','P','V') 
 and mr.meterReadingDays > 0 
 and mr.meterReadingConsumption > 0     
@@ -204,9 +190,8 @@ from t1
 with t1 as (select mr.*, mts.meterMakerNumber, mts.meterFittedDate
 from   cleansed.access_z309_tmeterreading mr left outer join curated.metertimesliceaccess mts on mts.propertyNumber = mr.propertyNumber 
                                                                                                and mts.propertyMeterNumber = mr.propertyMeterNumber
-                                                                                               and (mr.readingToDate between mts.validFrom and mts.validTo
-                                                                                               or   (mr.readingFromDate between mts.validfrom and mts.validto
-                                                                                               and  mr.readingToDate between mts.validFrom and date_add(mts.validTo,31)))
+                                                                                               and mr.readingToDate between mts.validFrom and mts.validTo
+                                                                                               and mr.readingToDate != mts.validFrom
                                                                                                -- either take the meter if the readingtoDate is between meter valid from and to
                                                                                                -- or if the reading from date is covered and the reading to data is less than a month out
 where mr.meterReadingStatusCode IN ('A','B','P','V') 
