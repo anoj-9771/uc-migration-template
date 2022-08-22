@@ -259,4 +259,25 @@ TemplateEtl(df, entity="dimLocation", businessKey="locationId", schema=schema, w
 
 # COMMAND ----------
 
+# MAGIC %md
+# MAGIC Set the LGA and lat/lon details for cancelled properties to those of their now active equivalent (to be expanded for SAP cancelled props)
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC with t1 as (select cp.propertyNumber, LGA, latitude, longitude
+# MAGIC             from   curated.dimLocation l,
+# MAGIC                    curated.ACCESSCancelledActiveProps cp
+# MAGIC             where  l.locationID = cp.activeProperty)
+# MAGIC 
+# MAGIC merge into curated.dimLocation l
+# MAGIC using      t1
+# MAGIC on         l.locationID = t1.propertyNumber
+# MAGIC when matched then update 
+# MAGIC              set l.LGA = t1.LGA,
+# MAGIC                  l.latitude = t1.latitude,
+# MAGIC                  l.longitude = t1.longitude
+
+# COMMAND ----------
+
 dbutils.notebook.exit("1")
