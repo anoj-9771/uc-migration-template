@@ -304,8 +304,8 @@ verifyTableSchema(f"curated.factBilledWaterConsumption", schema)
 
 # COMMAND ----------
 
-# THIS IS COMMENTED AND TO BE UNCOMMENTED TO RUN ONLY WHEN ACCESS DATA LOADING USING THIS NOTEBOOK.
 # %sql
+# --THIS IS COMMENTED AND TO BE UNCOMMENTED TO RUN ONLY WHEN ACCESS DATA LOADING USING THIS NOTEBOOK.
 # OPTIMIZE curated.factBilledWaterConsumption
 # WHERE sourceSystemCode = 'ACCESS'
 

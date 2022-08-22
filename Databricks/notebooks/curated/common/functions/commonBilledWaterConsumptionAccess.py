@@ -34,10 +34,8 @@ def getBilledWaterConsumptionAccess():
                               from {ADS_DATABASE_CLEANSED}.access_z309_tmeterreading mr \
                                    left outer join {ADS_DATABASE_CURATED}.metertimesliceaccess mts on mts.propertyNumber = mr.propertyNumber \
                                                                                      and mts.propertyMeterNumber = mr.propertyMeterNumber \
-                                                                                     and ((mr.readingToDate between mts.validFrom and mts.validTo \
-                                                                                         and mr.readingToDate != mts.validFrom) \
-                                                                                     or  (mr.readingFromDate between mts.validFrom and mts.validTo \
-                                                                                         and mr.readingToDate between mts.validFrom and date_add(mts.validTo,31))) \
+                                                                                     and mr.readingToDate between mts.validFrom and mts.validTo \
+                                                                                     and mr.readingToDate != mts.validFrom \
                                    left outer join {ADS_DATABASE_CURATED}.dimMeter dm on dm.meterSerialNumber = coalesce(mts.meterMakerNumber,'-1') \
                                    left outer join {ADS_DATABASE_CLEANSED}.access_z309_tdebit dr on mr.propertyNumber = dr.propertyNumber \
                                                    and dr.debitTypeCode = '10' and dr.debitReasonCode IN ('360','367') \
@@ -84,8 +82,8 @@ def getBilledWaterConsumptionAccess():
 
 # DBTITLE 1,Verify no consumption records finds more than one meter (must return no results)
 # %sql
-# select propertyNumber, billingPeriodstartDate, billingPeriodEndDate, meterReadingNumber, propertyMeterNumber, meterMakerNumber, count(*) from accs
-# group by propertyNumber, billingPeriodstartDate, billingPeriodEndDate, meterReadingNumber, propertyMeterNumber, meterMakerNumber
+# select propertyNumber, billingPeriodstartDate, billingPeriodEndDate, meterMakerNumber, count(*) from accs
+# group by propertyNumber, billingPeriodstartDate, billingPeriodEndDate, meterMakerNumber
 # having count(*) > 1
 
 # COMMAND ----------
@@ -94,6 +92,27 @@ def getBilledWaterConsumptionAccess():
 # %sql
 # select * from accs
 # where meterMakerNumber = 'Unknown'
+
+
+# COMMAND ----------
+
+# %sql
+# select *
+# from cleansed.access_z309_tpropmeter
+# where propertyNumber = 5591530
+
+# COMMAND ----------
+
+# %sql
+# select *
+# from curated.metertimesliceaccess
+# where propertyNumber = 3654983
+
+# COMMAND ----------
+
+# %sql
+# select * from accs
+# where propertyNumber = 5327438
 
 
 # COMMAND ----------

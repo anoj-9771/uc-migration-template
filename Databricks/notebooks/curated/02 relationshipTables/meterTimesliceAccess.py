@@ -64,10 +64,10 @@ def getmeterTimesliceAccess():
                  t5 as( \
                       select propertyNumber, propertyMeterNumber, meterSize, meterFittedDate, meterRemovedDate, meterMakerNumber, meterClass, meterCategory, \
                              meterGroup, isCheckMeter, waterMeterType, validFrom, \
-                             coalesce( \
+                             least(coalesce( \
                                       date_add( \
                                          lag(validFrom,1) over (partition by propertyNumber, propertyMeterNumber, meterMakerNumber order by validFrom desc),-1), \
-                                      least(meterRemovedDate,to_date('99991231','yyyyMMdd'))) as validTo \
+                                      least(meterRemovedDate,to_date('99991231','yyyyMMdd'))), meterRemovedDate) as validTo \
                       from t4 \
                       ), \
                  t6 as( \
@@ -103,8 +103,11 @@ def getmeterTimesliceAccess():
                       ORDER BY propertyNumber, propertyMeterNumber, meterSize, meterFittedDate, meterRemovedDate, meterMakerNumber, meterClass, meterCategory, \
                                meterGroup, isCheckMeter, waterMeterType, validFrom \
                       ) \
-            select * \
+            select propertyNumber, propertyMeterNumber, meterSize, meterFittedDate, meterRemovedDate, meterMakerNumber, meterClass, meterCategory, meterGroup, \
+                   isCheckMeter, waterMeterType, MIN(validFrom) as validFrom, max(validTo) as validTo \
             from   t7 \
+            group by propertyNumber, propertyMeterNumber, meterSize, meterFittedDate, meterRemovedDate, meterMakerNumber, meterClass, meterCategory, meterGroup, \
+                   isCheckMeter, waterMeterType \
             order  by propertyNumber, propertyMeterNumber, validFrom \
      ")
     #2.SELECT / TRANSFORM
@@ -145,6 +148,11 @@ def getmeterTimesliceAccess():
 
 # COMMAND ----------
 
+# %sql
+# drop table curated.meterTimeSliceACCESS
+
+# COMMAND ----------
+
 df, schema = getmeterTimesliceAccess()
 df.createOrReplaceTempView('ts')
 TemplateEtl(df, entity="meterTimesliceAccess", businessKey="propertyNumber,propertymeterNumber,validFrom", schema=schema, writeMode=ADS_WRITE_MODE_OVERWRITE, AddSK=False)
@@ -176,7 +184,7 @@ dbutils.notebook.exit('0')
 # MAGIC                               hpm.meterClass, hpm.meterCategory, hpm.meterGroup, hpm.isCheckMeter, mc.waterMeterType, hpm.rowSupersededDate order by hpm.rowSupersededTime desc) as rn 
 # MAGIC                       FROM cleansed.access_Z309_THPROPMETER hpm left outer join CLEANSED.access_Z309_TMeterClass mc on mc.meterClassCode = hpm.meterClassCode 
 # MAGIC                                                                 left outer join cleansed.access_z309_tpropmeter pm on hpm.propertyNumber = pm.propertyNumber and hpm.propertyMeterNumber = pm.propertyMeterNumber and hpm.meterMakerNumber = pm.meterMakerNumber 
-# MAGIC                       where hpm.propertyNumber = 4305849
+# MAGIC                       where hpm.propertyNumber = 3654983
 # MAGIC                       ), 
 # MAGIC                  t2 as( 
 # MAGIC                       select distinct 'C' as src, propertyNumber, propertyMeterNumber, meterSize, meterFittedDate, meterRemovedDate, meterMakerNumber, 
@@ -184,7 +192,7 @@ dbutils.notebook.exit('0')
 # MAGIC                       from   cleansed.access_z309_tpropmeter 
 # MAGIC                       where  (meterRemovedDate is null 
 # MAGIC                       or     meterRemovedDate > meterFittedDate )
-# MAGIC                       and    propertyNumber = 4305849
+# MAGIC                       and    propertyNumber = 3654983
 # MAGIC                       union all 
 # MAGIC                       select src, t1.propertyNumber, t1.propertyMeterNumber, t1.meterSize, t1.meterFittedDate, greatest(t1.meterRemovedDate, pm.meterRemovedDate) as meterRemovedDate, t1.meterMakerNumber, 
 # MAGIC                              t1.meterClass, t1.meterCategory, t1.meterGroup, t1.isCheckMeter, t1.waterMeterType, t1.propertyMeterUpdatedDate 
@@ -265,6 +273,19 @@ dbutils.notebook.exit('0')
 # MAGIC -- order by validFrom
 # MAGIC        
 # MAGIC --, meterMakerNumber, meterClass, meterCategory, meterGroup, isCheckMeter
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC select mr.*, mts.meterMakerNumber, mts.meterFittedDate
+# MAGIC from   cleansed.access_z309_tmeterreading mr left outer join curated.metertimesliceaccess mts on mts.propertyNumber = mr.propertyNumber 
+# MAGIC                                                                                                and mts.propertyMeterNumber = mr.propertyMeterNumber
+# MAGIC                                                                                                and mr.readingToDate between mts.validFrom and mts.validTo
+# MAGIC                                                                                                and mr.readingToDate != mts.validFrom
+# MAGIC where mr.meterReadingDays > 0 
+# MAGIC and mr.meterReadingConsumption > 0  
+# MAGIC and mr.propertyNumber = 3654983
+# MAGIC and mr.propertyMeterNumber = 5
 
 # COMMAND ----------
 
