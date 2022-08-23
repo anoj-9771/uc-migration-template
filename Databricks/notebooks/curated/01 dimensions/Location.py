@@ -22,7 +22,7 @@ def getLocation():
     #collect parent properties and then parents of child properties so you get the parent address against the child property
     ISULocationDf = spark.sql(f"select distinct d.propertyNumber as locationID, \
                                      'ISU' as sourceSystemCode, \
-                                     upper(trim(trim(trim(trim(trim(coalesce(c.locationDescription,''))||' '||coalesce(c.buildingNumber,''))||' '||(coalesce(c.houseNumber2,'')||' '||(coalesce(c.floorNumber,'')||' '||coalesce(c.houseNumber1,''))||' '||coalesce(c.houseNumber3,''))||' '||trim(c.streetName||' '||coalesce(c.streetLine1,''))||' '||coalesce(c.streetLine2,''))||', '||c.cityName||' NSW '||c.postCode)))  as formattedAddress, \
+                                     upper(trim(trim(trim(trim(trim(coalesce(c.locationDescription,''))||' '||coalesce(c.buildingNumber,''))||' '||(coalesce(c.houseNumber2,'')||' '||(coalesce(c.floorNumber,'')||' '||coalesce(c.houseNumber1,''))||' '||coalesce(c.houseNumber3,''))||' '||trim(coalesce(c.streetName,'')||' '||coalesce(c.streetLine1,''))||' '||coalesce(c.streetLine2,''))||'  '||coalesce(c.cityName,'')||' NSW '||coalesce(c.postCode,''))))  as formattedAddress, \
                                      upper(c.locationDescription) as buildingName1, \
                                      upper(c.buildingNumber) as buildingName2, \
                                      upper(c.houseNumber2) as unitDetails,\
@@ -55,7 +55,7 @@ def getLocation():
                                      union all \
                                      select distinct d.propertyNumber as locationID, \
                                      'ISU' as sourceSystemCode, \
-                                     upper(trim(trim(trim(trim(trim(coalesce(c.locationDescription,''))||' '||coalesce(c.buildingNumber,''))||' '||(coalesce(c.houseNumber2,'')||' '||(coalesce(c.floorNumber,'')||' '||coalesce(c.houseNumber1,''))||' '||coalesce(c.houseNumber3,''))||' '||trim(c.streetName||' '||coalesce(c.streetLine1,''))||' '||coalesce(c.streetLine2,''))||', '||c.cityName||' NSW '||c.postCode)))  as formattedAddress, \
+                                     upper(trim(trim(trim(trim(trim(coalesce(c.locationDescription,''))||' '||coalesce(c.buildingNumber,''))||' '||(coalesce(c.houseNumber2,'')||' '||(coalesce(c.floorNumber,'')||' '||coalesce(c.houseNumber1,''))||' '||coalesce(c.houseNumber3,''))||' '||trim(coalesce(c.streetName,'')||' '||coalesce(c.streetLine1,''))||' '||coalesce(c.streetLine2,''))||'  '||coalesce(c.cityName)||' NSW '||coalesce(c.postCode,''))))  as formattedAddress, \
                                      upper(c.locationDescription) as buildingName1, \
                                      upper(c.buildingNumber) as buildingName2, \
                                      upper(c.houseNumber2) as unitDetails,\
@@ -157,8 +157,10 @@ def getLocation():
                                       else '' end)||\
                                 (case when pa.flatUnitType is not null then ' ' || trim(coalesce(pa.flatUnitType,'')||' '||coalesce(pa.flatUnitNumber,''))\
                                       else '' end)||\
-                                (case when pa.houseNumber2 > 0 then ' ' || trim(cast(pa.houseNumber1 as string)||coalesce(pa.houseNumber1Suffix,''))||'-'||cast(pa.houseNumber2 as string)||coalesce(pa.houseNumber2Suffix,'') \
-                                      else ' ' || ltrim('0',cast(pa.houseNumber1 as string))||coalesce(pa.houseNumber1Suffix,'') end)||\
+                                (case when pa.houseNumber1 > 0 and pa.houseNumber2 > 0  then ' ' || trim(cast(pa.houseNumber1 as string)||coalesce(pa.houseNumber1Suffix,''))||'-'||cast(pa.houseNumber2 as string)||coalesce(pa.houseNumber2Suffix,'') \
+                                      when pa.houseNumber1 > 0 and pa.houseNumber2 <= 0 then ' ' || trim(cast(pa.houseNumber1 as string)||coalesce(pa.houseNumber1Suffix,'')) \
+                                      when pa.houseNumber1 <= 0 and pa.houseNumber2 > 0 then ' ' || trim(cast(pa.houseNumber2 as string)||coalesce(pa.houseNumber2Suffix,'')) \
+                                      else '' end)||\
                                 (' '|| trim(trim(sg.streetName||' '||coalesce(sg.streetType,''))||' '||coalesce(sg.streetSuffix,''))||', '||sg.suburb||' NSW '||sg.postcode)) \
                              as formattedAddress, \
                              pa.buildingName1 as buildingName1,\
@@ -167,8 +169,10 @@ def getLocation():
                                       else '' end) as unitDetails,\
                              (case when pa.floorLevelType is not null then ' ' || trim(coalesce(pa.floorLevelType,'')||' '||coalesce(pa.floorLevelNumber,''))\
                                       else '' end) as floorNumber,\
-                             (case when pa.houseNumber2 > 0 then ' ' || trim(cast(pa.houseNumber1 as string)||coalesce(pa.houseNumber1Suffix,''))||'-'||cast(pa.houseNumber2 as string)||coalesce(pa.houseNumber2Suffix,'') \
-                                      else ' ' || ltrim('0',cast(pa.houseNumber1 as string))||coalesce(pa.houseNumber1Suffix,'') end) as houseNumber,\
+                             (case when pa.houseNumber1 > 0 and pa.houseNumber2 > 0  then ' ' || trim(cast(pa.houseNumber1 as string)||coalesce(pa.houseNumber1Suffix,''))||'-'||cast(pa.houseNumber2 as string)||coalesce(pa.houseNumber2Suffix,'') \
+                                      when pa.houseNumber1 > 0 and pa.houseNumber2 <= 0 then ' ' || trim(cast(pa.houseNumber1 as string)||coalesce(pa.houseNumber1Suffix,'')) \
+                                      when pa.houseNumber1 <= 0 and pa.houseNumber2 > 0 then ' ' || trim(cast(pa.houseNumber2 as string)||coalesce(pa.houseNumber2Suffix,'')) \
+                                      else '' end) as houseNumber,\
                              (case when pa.lotNumber is not null then ' LOT '||trim(pa.lotNumber) \
                                     when pa.roadsideMailBox is not null then ' RMB '||trim(pa.roadsideMailBox)\
                                     else '' end) as lotDetails,\
