@@ -97,10 +97,24 @@ def isuConsumption():
                                   "businessPartnerGroupNumber", "equipmentNumber", "contractID", \
                                   "billingPeriodStartDate", "billingPeriodEndDate", \
                                   "validFromDate", "validToDate", \
-                                  (datediff("validToDate", "validFromDate") + 1).alias("totalMeterActiveDays"), \
-                                  "meteredWaterConsumption")  \
+                                  (datediff("validToDate", "validFromDate") + 1).alias("meterActiveDays"), \
+                                  "meteredWaterConsumption") \
                             .withColumnRenamed("validFromDate", "meterActiveStartDate") \
                             .withColumnRenamed("validToDate", "meterActiveEndDate")
+    isuConsDfAgg = isuConsDf.groupby("sourceSystemCode", "billingDocumentNumber", "billingPeriodStartDate", "billingPeriodEndDate", "equipmentNumber") \
+                            .agg(sum("meterActiveDays").alias("totalMeterActiveDays") \
+                                  ,sum("meteredWaterConsumption").alias("totalMeteredWaterConsumption")) 
+    isuConsDf = isuConsDf.join(isuConsDfAgg, (isuConsDf.sourceSystemCode == isuConsDfAgg.sourceSystemCode) \
+                               & (isuConsDf.billingDocumentNumber == isuConsDfAgg.billingDocumentNumber) \
+                               & (isuConsDf.billingPeriodStartDate == isuConsDfAgg.billingPeriodStartDate) \
+                               & (isuConsDf.billingPeriodEndDate == isuConsDfAgg.billingPeriodEndDate) \
+                               & (isuConsDf.equipmentNumber == isuConsDfAgg.equipmentNumber), how="left") \
+                         .select(isuConsDf['*'], isuConsDfAgg['totalMeterActiveDays'], isuConsDfAgg['totalMeteredWaterConsumption']) \
+                         .selectExpr("sourceSystemCode", "billingDocumentNumber", "billingDocumentLineItemId", \
+                                  "businessPartnerGroupNumber", "equipmentNumber", "contractID", \
+                                  "billingPeriodStartDate", "billingPeriodEndDate", \
+                                  "meterActiveStartDate", "meterActiveEndDate", \
+                                  "totalMeterActiveDays", "totalMeteredWaterConsumption")
     return isuConsDf
 
 # COMMAND ----------
@@ -122,7 +136,8 @@ def accessConsumption():
                                   "billingPeriodStartDate", "billingPeriodEndDate", \
                                   "billingPeriodStartDate as meterActiveStartDate", "billingPeriodEndDate as meterActiveEndDate", \
                                   "billingPeriodDays as totalMeterActiveDays", \
-                                  "meteredWaterConsumption")
+                                  "meteredWaterConsumption") \
+                               .withColumnRenamed("meteredWaterConsumption", "totalMeteredWaterConsumption")
     return accessConsDf
 
 # COMMAND ----------
@@ -139,15 +154,15 @@ def getBilledWaterConsumptionMonthly():
     if loadConsumption :
         isuConsDf = isuConsumption()
         accessConsDf = accessConsumption()
-        billedConsDf = isuConsDf.union(accessConsDf)
+        billedConsDf = isuConsDf.unionByName(accessConsDf)
 
     #2.Join Tables
     
     #3.Union Access and isu billed consumption datasets
 
-    billedConsDf = billedConsDf.withColumn("avgMeteredWaterConsumption", F.col("meteredWaterConsumption")/F.col("totalMeterActiveDays"))
+    billedConsDf = billedConsDf.withColumn("avgMeteredWaterConsumption", F.col("totalMeteredWaterConsumption")/F.col("totalMeterActiveDays"))
     #billedConsDf = billedConsDf.withColumn("avgMeteredWaterConsumption",col("avgMeteredWaterConsumption").cast("decimal(18,6)"))
-    
+
     #4.Load Dmension tables into dataframe    
     dimPropertyDf = spark.sql(f"select sourceSystemCode, propertySK, propertyNumber \
                                 from {ADS_DATABASE_CURATED}.dimProperty \
