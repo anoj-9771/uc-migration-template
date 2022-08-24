@@ -331,7 +331,10 @@ verifyTableSchema(f"curated.factBilledWaterConsumption", schema)
 # MAGIC as with prophist as (
 # MAGIC           select propertyNumber,inferiorPropertyTypeCode,inferiorPropertyType,superiorPropertyTypeCode,superiorPropertyType,validFromDate,validToDate from cleansed.isu_zcd_tpropty_hist
 # MAGIC           union  
-# MAGIC           select propertyNumber,inferiorPropertyTypeCode,inferiorPropertyType,superiorPropertyTypeCode,superiorPropertyType,validFromDate,validToDate from stage.access_property_hist
+# MAGIC           select accPropHist.propertyNumber,accPropHist.inferiorPropertyTypeCode,coalesce(infsap.inferiorPropertyType, accPropHist.inferiorPropertyType) as inferiorPropertyType,accPropHist.superiorPropertyTypeCode,coalesce(supsap.superiorPropertyType, accPropHist.superiorPropertyType) as superiorPropertyType,validFromDate,validToDate 
+# MAGIC from stage.access_property_hist accPropHist 
+# MAGIC left outer join cleansed.isu_zcd_tinfprty_tx infsap on infsap.inferiorPropertyTypeCode = accPropHist.inferiorPropertyTypeCode and infsap._RecordCurrent = 1
+# MAGIC left outer join cleansed.isu_zcd_tsupprtyp_tx supsap on supsap.superiorPropertyTypeCode = accPropHist.superiorPropertyTypeCode and supsap._RecordCurrent = 1
 # MAGIC         )
 # MAGIC select propertyNumber,
 # MAGIC inferiorPropertyTypeCode,
