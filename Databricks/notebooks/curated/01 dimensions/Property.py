@@ -45,12 +45,12 @@ def getProperty():
                             select propertyNumber, \
                                     coalesce(pts.PLAN_TYPE,planTypeCode) as planTypeCode, \
                                     coalesce(pts.description,planType) as planType, \
-                                    planNumber as planNumber, \
-                                    lotNumber  as lotNumber, \
-                                    lotTypeCode as lotTypeCode, \
-                                    coalesce(plts.domainValueText,lotType) as lotType, \
-                                    sectionNumber as sectionNumber, \
-                                    row_number() over (partition by propertyNumber order by planNumber,lotNumber,sectionNumber) recNum \
+                                    case when isnotnull(coalesce(pts.description,planType)) then planNumber else null end as planNumber, \
+                                    case when isnotnull(coalesce(pts.description,planType)) then lotNumber else null end as lotNumber, \
+                                    case when isnotnull(coalesce(pts.description,planType)) then lotTypeCode else null end as lotTypeCode, \
+                                    case when isnotnull(coalesce(pts.description,planType)) then coalesce(plts.domainValueText,lotType) else null end as lotType, \
+                                    case when isnotnull(coalesce(pts.description,planType)) then sectionNumber else null end as sectionNumber, \
+                                    row_number() over (partition by propertyNumber order by coalesce(pts.description,planType) NULLS LAST, planNumber NULLS LAST,lotNumber NULLS LAST,sectionNumber NULLS LAST) recNum \
                             from {ADS_DATABASE_CLEANSED}.access_z309_tlot tlot \
                                  left outer join {ADS_DATABASE_CLEANSED}.isu_zcd_tplantype_tx pts on pts.plan_type = case when planTypeCode = 'DP' then '01' \
                                                                                               when planTypeCode = 'PSP' then '03' \
