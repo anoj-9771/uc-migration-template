@@ -88,11 +88,6 @@ print(source_param)
 
 # COMMAND ----------
 
-source_param = ''
-
-
-# COMMAND ----------
-
 # DBTITLE 1,5. Format the Parameters into JSON
 #5.Format the Source_param parameter value into JSON
 import json
