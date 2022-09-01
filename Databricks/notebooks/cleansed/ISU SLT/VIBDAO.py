@@ -171,7 +171,7 @@ print(delta_raw_tbl_name)
 
 # DBTITLE 1,10. Load Raw to Dataframe & Do Transformations
 df = spark.sql(f"WITH stage AS \
-                      (Select *, ROW_NUMBER() OVER (PARTITION BY INTRENO ORDER BY _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
+                      (Select *, ROW_NUMBER() OVER (PARTITION BY INTRENO ORDER BY _DLRawZoneTimeStamp DESC, DELTA_TS DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
                            SELECT \
                                   case when vib.INTRENO = 'na' then '' else vib.INTRENO end as architecturalObjectInternalId , \
                                   vib.AOID as architecturalObjectId , \
@@ -226,7 +226,6 @@ df = spark.sql(f"WITH stage AS \
                                   ZCD_HYDRA_CALC_AREA as hydraCalculatedArea , \
                                   ZCD_HYDRA_AREA_UNIT as hydraAreaUnit , \
                                   ZCD_HYDRA_AREA_FLAG as hydraAreaIndicator , \
-                                  ZCD_BAND as hydraBand, \
                                   ZCD_CASENO_FLAG as caseNumberIndicator , \
                                   ZCD_OVERRIDE_AREA as overrideArea , \
                                   ZCD_OVERRIDE_AREA_UNIT as overrideAreaUnit , \
@@ -312,7 +311,6 @@ newSchema = StructType(
                             StructField("hydraCalculatedArea", StringType(), True),
                             StructField("hydraAreaUnit", StringType(), True),
                             StructField("hydraAreaIndicator", StringType(), True),
-                            StructField("hydraBand", StringType(), True),
                             StructField("caseNumberIndicator", StringType(), True),
                             StructField("overrideArea", StringType(), True),
                             StructField("overrideAreaUnit", StringType(), True),
