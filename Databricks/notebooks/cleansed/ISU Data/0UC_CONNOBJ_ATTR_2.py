@@ -192,7 +192,6 @@ df = spark.sql(f"WITH stage AS \
                                   prt.DESCRIPTION as processType, \
                                   con.ZCD_PLAN_NUMBER as planNumber, \
                                   con.ZCD_LOT_TYPE as lotTypeCode, \
-                                  dd.domainValueText as lotType, \
                                   con.ZCD_LOT_NUMBER as lotNumber, \
                                   con.ZCD_SECTION_NUMBER as sectionNumber, \
                                   con.ZCD_IND_SRV_AGR as serviceAgreementIndicator, \
@@ -249,7 +248,6 @@ df = spark.sql(f"WITH stage AS \
                                                                                             and stc._RecordDeleted = 0 and stc._RecordCurrent = 1 \
                             LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_TE227T reg ON con.REGPOLIT = reg.REGPOLIT and con.COUNTRY = reg.COUNTRY\
                                                                                             and reg._RecordDeleted = 0 and reg._RecordCurrent = 1 \
-                            LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_dd07t dd ON dd.domainName = 'ZCD_DO_ADDR_LOT_TYPE' and con.ZCD_LOT_TYPE = dd.domainValueSingleUpperLimit \
                          where con._RecordVersion = 1 ")
 
 #print(f'Number of rows: {df.count()}')
@@ -361,7 +359,6 @@ newSchema = StructType([
                         StructField("processType", StringType(), True),
                         StructField("planNumber", StringType(), True),
                         StructField("lotTypeCode", StringType(), True),
-                        StructField("lotType", StringType(), True),
                         StructField("lotNumber", StringType(), True),
                         StructField("sectionNumber", StringType(), True),
                         StructField("serviceAgreementIndicator", StringType(), True),
