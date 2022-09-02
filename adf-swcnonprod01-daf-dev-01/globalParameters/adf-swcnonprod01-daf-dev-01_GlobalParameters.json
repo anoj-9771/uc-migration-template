@@ -2,5 +2,9 @@
 	"environment": {
 		"type": "string",
 		"value": "dev"
+	},
+	"keyVaultName": {
+		"type": "string",
+		"value": "kv-daf-dev-01"
 	}
 }
