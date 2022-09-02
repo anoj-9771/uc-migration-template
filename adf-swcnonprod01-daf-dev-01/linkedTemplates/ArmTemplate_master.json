@@ -59,13 +59,25 @@
 			"type": "string",
 			"defaultValue": "https://adb-7004525605760210.10.azuredatabricks.net"
 		},
+		"LS_HTTP_Anonymous_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "@{linkedService().url}"
+		},
 		"LS_Oracle_properties_typeProperties_connectionString_secretName": {
 			"type": "string",
 			"defaultValue": "@linkedService().kvSecret"
 		},
+		"LS_REST_Anonymous_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "@{linkedService().url}"
+		},
 		"LS_SQLServer_properties_typeProperties_connectionString_secretName": {
 			"type": "string",
 			"defaultValue": "@linkedService().kvSecret"
+		},
+		"azure_Sql_sewercctv_properties_typeProperties_connectionString_secretName": {
+			"type": "string",
+			"defaultValue": "daf-sql-sewercctv-connectionstring"
 		},
 		"BATCH_DAILY_HYDRA_properties_01-Main_parameters_TriggerName": {
 			"type": "string",
@@ -149,6 +161,12 @@
 					"LS-AzureKeyVault_properties_typeProperties_baseUrl": {
 						"value": "[parameters('LS-AzureKeyVault_properties_typeProperties_baseUrl')]"
 					},
+					"LS_HTTP_Anonymous_properties_typeProperties_url": {
+						"value": "[parameters('LS_HTTP_Anonymous_properties_typeProperties_url')]"
+					},
+					"LS_REST_Anonymous_properties_typeProperties_url": {
+						"value": "[parameters('LS_REST_Anonymous_properties_typeProperties_url')]"
+					},
 					"LS_Oracle_properties_typeProperties_connectionString_secretName": {
 						"value": "[parameters('LS_Oracle_properties_typeProperties_connectionString_secretName')]"
 					},
@@ -175,6 +193,24 @@
 					},
 					"LS-AzureDatabricks_DefinedCluster_properties_typeProperties_domain": {
 						"value": "[parameters('LS-AzureDatabricks_DefinedCluster_properties_typeProperties_domain')]"
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "adf-swcnonprod01-daf-dev-01_ArmTemplate_1",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2018-02-01",
+			"properties": {
+				"mode": "incremental",
+				"templateLink": {
+					"uri": "[concat(parameters('containerUri'), '/ArmTemplate_1.json', parameters('containerSasToken'))]",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"factoryName": {
+						"value": "[parameters('factoryName')]"
 					},
 					"LS-AzureDatabricks_JobCluster_properties_typeProperties_domain": {
 						"value": "[parameters('LS-AzureDatabricks_JobCluster_properties_typeProperties_domain')]"
@@ -208,24 +244,9 @@
 					},
 					"LS_DeltaLake_properties_typeProperties_domain": {
 						"value": "[parameters('LS_DeltaLake_properties_typeProperties_domain')]"
-					}
-				}
-			},
-			"dependsOn": []
-		},
-		{
-			"name": "adf-swcnonprod01-daf-dev-01_ArmTemplate_1",
-			"type": "Microsoft.Resources/deployments",
-			"apiVersion": "2018-02-01",
-			"properties": {
-				"mode": "incremental",
-				"templateLink": {
-					"uri": "[concat(parameters('containerUri'), '/ArmTemplate_1.json', parameters('containerSasToken'))]",
-					"contentVersion": "1.0.0.0"
-				},
-				"parameters": {
-					"factoryName": {
-						"value": "[parameters('factoryName')]"
+					},
+					"azure_Sql_sewercctv_properties_typeProperties_connectionString_secretName": {
+						"value": "[parameters('azure_Sql_sewercctv_properties_typeProperties_connectionString_secretName')]"
 					}
 				}
 			},
@@ -286,6 +307,46 @@
 				"parameters": {
 					"factoryName": {
 						"value": "[parameters('factoryName')]"
+					}
+				}
+			},
+			"dependsOn": [
+				"[resourceId('Microsoft.Resources/deployments', 'adf-swcnonprod01-daf-dev-01_ArmTemplate_3')]"
+			]
+		},
+		{
+			"name": "adf-swcnonprod01-daf-dev-01_ArmTemplate_5",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2018-02-01",
+			"properties": {
+				"mode": "incremental",
+				"templateLink": {
+					"uri": "[concat(parameters('containerUri'), '/ArmTemplate_5.json', parameters('containerSasToken'))]",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"factoryName": {
+						"value": "[parameters('factoryName')]"
+					}
+				}
+			},
+			"dependsOn": [
+				"[resourceId('Microsoft.Resources/deployments', 'adf-swcnonprod01-daf-dev-01_ArmTemplate_4')]"
+			]
+		},
+		{
+			"name": "adf-swcnonprod01-daf-dev-01_ArmTemplate_6",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2018-02-01",
+			"properties": {
+				"mode": "incremental",
+				"templateLink": {
+					"uri": "[concat(parameters('containerUri'), '/ArmTemplate_6.json', parameters('containerSasToken'))]",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"factoryName": {
+						"value": "[parameters('factoryName')]"
 					},
 					"BATCH_DAILY_HYDRA_properties_01-Main_parameters_TriggerName": {
 						"value": "[parameters('BATCH_DAILY_HYDRA_properties_01-Main_parameters_TriggerName')]"
@@ -311,7 +372,7 @@
 				}
 			},
 			"dependsOn": [
-				"[resourceId('Microsoft.Resources/deployments', 'adf-swcnonprod01-daf-dev-01_ArmTemplate_3')]"
+				"[resourceId('Microsoft.Resources/deployments', 'adf-swcnonprod01-daf-dev-01_ArmTemplate_5')]"
 			]
 		}
 	]
