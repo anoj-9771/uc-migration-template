@@ -23,6 +23,10 @@
 			"type": "string",
 			"defaultValue": "@linkedService().kvSecret"
 		},
+		"LS_SQLServer_properties_typeProperties_connectionString_secretName": {
+			"type": "string",
+			"defaultValue": "@linkedService().kvSecret"
+		},
 		"mpe_sablob01_properties_privateLinkResourceId": {
 			"type": "string",
 			"defaultValue": "/subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-daf-dev-01/providers/Microsoft.Storage/storageAccounts/sablobdafdev01"
@@ -50,30 +54,6 @@
 		"LS-AzureDatabricks_DefinedCluster_properties_typeProperties_domain": {
 			"type": "string",
 			"defaultValue": "https://adb-7004525605760210.10.azuredatabricks.net/"
-		},
-		"LS-AzureDatabricks_JobCluster_properties_typeProperties_domain": {
-			"type": "string",
-			"defaultValue": "https://australiaeast.azuredatabricks.net"
-		},
-		"LS-AzureSqlDatabase_Ctrldb_properties_typeProperties_connectionString_secretName": {
-			"type": "string",
-			"defaultValue": "daf-sql-controldb-connectionstring"
-		},
-		"LS_AzureBlobStorage_properties_typeProperties_serviceEndpoint": {
-			"type": "string",
-			"defaultValue": "https://sablobdafdev01.blob.core.windows.net"
-		},
-		"LS_AzureBlobStorage_properties_typeProperties_tenant": {
-			"type": "string",
-			"defaultValue": "8351bb5c-749d-4ee4-b1c4-71a3971acbe9"
-		},
-		"LS_AzureBlobStorage_properties_typeProperties_servicePrincipalId": {
-			"type": "string",
-			"defaultValue": "acff96db-8630-433b-bbb1-35a3813fa036"
-		},
-		"LS_AzureDatabricks_InstancePool_properties_typeProperties_domain": {
-			"type": "string",
-			"defaultValue": "https://adb-7004525605760210.10.azuredatabricks.net"
 		}
 	},
 	"variables": {
@@ -304,6 +284,42 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/LS_SQLServer')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"parameters": {
+					"kvSecret": {
+						"type": "string",
+						"defaultValue": "daf-sql-slt-connectionstring"
+					}
+				},
+				"annotations": [],
+				"type": "SqlServer",
+				"typeProperties": {
+					"connectionString": {
+						"type": "AzureKeyVaultSecret",
+						"store": {
+							"referenceName": "LS-AzureKeyVault",
+							"type": "LinkedServiceReference"
+						},
+						"secretName": {
+							"value": "[parameters('LS_SQLServer_properties_typeProperties_connectionString_secretName')]",
+							"type": "Expression"
+						}
+					}
+				},
+				"connectVia": {
+					"referenceName": "IntegrationRuntime-SelfHosted",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/integrationRuntimes/IntegrationRuntime-SelfHosted')]",
+				"[concat(variables('factoryId'), '/linkedServices/LS-AzureKeyVault')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/IntegrationRuntime-Azure-ManagedVnet-01')]",
 			"type": "Microsoft.DataFactory/factories/integrationRuntimes",
 			"apiVersion": "2018-06-01",
@@ -369,6 +385,85 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/SQL_Server')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_SQLServer",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"kvSecret": {
+							"value": "@dataset().kvSecret",
+							"type": "Expression"
+						}
+					}
+				},
+				"parameters": {
+					"kvSecret": {
+						"type": "string"
+					}
+				},
+				"folder": {
+					"name": "MDP-Framework/SQL"
+				},
+				"annotations": [],
+				"type": "SqlServerTable",
+				"schema": [],
+				"typeProperties": {}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_SQLServer')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/SQL_Server_Table')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_SQLServer",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"kvSecret": {
+							"value": "@dataset().kvSecret",
+							"type": "Expression"
+						}
+					}
+				},
+				"parameters": {
+					"kvSecret": {
+						"type": "string"
+					},
+					"schemaName": {
+						"type": "string"
+					},
+					"tableName": {
+						"type": "string"
+					}
+				},
+				"folder": {
+					"name": "MDP-Framework/SQL"
+				},
+				"annotations": [],
+				"type": "SqlServerTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": {
+						"value": "@dataset().schemaName",
+						"type": "Expression"
+					},
+					"table": {
+						"value": "@dataset().tableName",
+						"type": "Expression"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_SQLServer')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/SRC_Oracle')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -415,6 +510,53 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/SRC_SQLSERVER')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_SQLServer",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"kvSecret": {
+							"value": "@dataset().kvSecret",
+							"type": "Expression"
+						}
+					}
+				},
+				"parameters": {
+					"kvSecret": {
+						"type": "string"
+					},
+					"tableName": {
+						"type": "string"
+					},
+					"schemaName": {
+						"type": "string"
+					}
+				},
+				"folder": {
+					"name": "SQL Server"
+				},
+				"annotations": [],
+				"type": "SqlServerTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": {
+						"value": "@dataset().schemaName",
+						"type": "Expression"
+					},
+					"table": {
+						"value": "@dataset().tableName",
+						"type": "Expression"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_SQLServer')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/LS-AzureDatabricks_DefinedCluster')]",
 			"type": "Microsoft.DataFactory/factories/linkedServices",
 			"apiVersion": "2018-06-01",
@@ -447,172 +589,6 @@
 						"secretVersion": ""
 					},
 					"existingClusterId": "@linkedService().clusterId"
-				},
-				"connectVia": {
-					"referenceName": "IntegrationRuntime-Azure-ManagedVnet-01",
-					"type": "IntegrationRuntimeReference"
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/integrationRuntimes/IntegrationRuntime-Azure-ManagedVnet-01')]",
-				"[concat(variables('factoryId'), '/linkedServices/LS-AzureKeyVault')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/LS-AzureDatabricks_JobCluster')]",
-			"type": "Microsoft.DataFactory/factories/linkedServices",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"parameters": {
-					"kvSecret": {
-						"type": "String"
-					},
-					"DataBricksClusterType": {
-						"type": "String"
-					},
-					"DataBricksClusterVersion": {
-						"type": "String"
-					},
-					"DataBricksWorkerNodes": {
-						"type": "String"
-					}
-				},
-				"annotations": [],
-				"type": "AzureDatabricks",
-				"typeProperties": {
-					"domain": "[parameters('LS-AzureDatabricks_JobCluster_properties_typeProperties_domain')]",
-					"accessToken": {
-						"type": "AzureKeyVaultSecret",
-						"store": {
-							"referenceName": "LS-AzureKeyVault",
-							"type": "LinkedServiceReference"
-						},
-						"secretName": {
-							"value": "@linkedService().kvSecret",
-							"type": "Expression"
-						},
-						"secretVersion": "Latest version"
-					},
-					"newClusterNodeType": "@linkedService().DataBricksClusterType",
-					"newClusterNumOfWorker": "@linkedService().DataBricksWorkerNodes",
-					"newClusterSparkEnvVars": {
-						"PYSPARK_PYTHON": "/databricks/python3/bin/python3"
-					},
-					"newClusterVersion": "@linkedService().DataBricksClusterVersion",
-					"newClusterInitScripts": [],
-					"clusterOption": "Fixed"
-				},
-				"connectVia": {
-					"referenceName": "IntegrationRuntime-Azure-ManagedVnet-01",
-					"type": "IntegrationRuntimeReference"
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/integrationRuntimes/IntegrationRuntime-Azure-ManagedVnet-01')]",
-				"[concat(variables('factoryId'), '/linkedServices/LS-AzureKeyVault')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/LS-AzureSqlDatabase_Ctrldb')]",
-			"type": "Microsoft.DataFactory/factories/linkedServices",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"description": "ETL Control database linked service",
-				"annotations": [],
-				"type": "AzureSqlDatabase",
-				"typeProperties": {
-					"connectionString": {
-						"type": "AzureKeyVaultSecret",
-						"store": {
-							"referenceName": "LS-AzureKeyVault",
-							"type": "LinkedServiceReference"
-						},
-						"secretName": "[parameters('LS-AzureSqlDatabase_Ctrldb_properties_typeProperties_connectionString_secretName')]"
-					}
-				},
-				"connectVia": {
-					"referenceName": "IntegrationRuntime-Azure-ManagedVnet-01",
-					"type": "IntegrationRuntimeReference"
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/integrationRuntimes/IntegrationRuntime-Azure-ManagedVnet-01')]",
-				"[concat(variables('factoryId'), '/linkedServices/LS-AzureKeyVault')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/LS_AzureBlobStorage')]",
-			"type": "Microsoft.DataFactory/factories/linkedServices",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"annotations": [],
-				"type": "AzureBlobStorage",
-				"typeProperties": {
-					"serviceEndpoint": "[parameters('LS_AzureBlobStorage_properties_typeProperties_serviceEndpoint')]",
-					"tenant": "[parameters('LS_AzureBlobStorage_properties_typeProperties_tenant')]",
-					"servicePrincipalId": "[parameters('LS_AzureBlobStorage_properties_typeProperties_servicePrincipalId')]",
-					"servicePrincipalKey": {
-						"type": "AzureKeyVaultSecret",
-						"store": {
-							"referenceName": "LS-AzureKeyVault",
-							"type": "LinkedServiceReference"
-						},
-						"secretName": "SERVICE-PRINCIPAL-SECRET"
-					},
-					"accountKind": "StorageV2"
-				},
-				"connectVia": {
-					"referenceName": "IntegrationRuntime-Azure-ManagedVnet-01",
-					"type": "IntegrationRuntimeReference"
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/integrationRuntimes/IntegrationRuntime-Azure-ManagedVnet-01')]",
-				"[concat(variables('factoryId'), '/linkedServices/LS-AzureKeyVault')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/LS_AzureDatabricks_InstancePool')]",
-			"type": "Microsoft.DataFactory/factories/linkedServices",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"parameters": {
-					"kvSecret": {
-						"type": "string",
-						"defaultValue": "databricks-token"
-					},
-					"PoolId": {
-						"type": "string",
-						"defaultValue": "0121-060302-next337-pool-owblzzx4"
-					},
-					"DatabricksVersion": {
-						"type": "string",
-						"defaultValue": "9.1.x-scala2.12"
-					}
-				},
-				"annotations": [],
-				"type": "AzureDatabricks",
-				"typeProperties": {
-					"domain": "[parameters('LS_AzureDatabricks_InstancePool_properties_typeProperties_domain')]",
-					"accessToken": {
-						"type": "AzureKeyVaultSecret",
-						"store": {
-							"referenceName": "LS-AzureKeyVault",
-							"type": "LinkedServiceReference"
-						},
-						"secretName": {
-							"value": "@linkedService().kvSecret",
-							"type": "Expression"
-						}
-					},
-					"instancePoolId": "@linkedService().PoolId",
-					"newClusterNumOfWorker": "1:8",
-					"newClusterSparkEnvVars": {
-						"PYSPARK_PYTHON": "/databricks/python3/bin/python3"
-					},
-					"newClusterVersion": "@linkedService().DatabricksVersion",
-					"newClusterInitScripts": [],
-					"clusterOption": "Fixed"
 				},
 				"connectVia": {
 					"referenceName": "IntegrationRuntime-Azure-ManagedVnet-01",

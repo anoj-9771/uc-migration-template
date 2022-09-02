@@ -26384,12 +26384,12 @@
 					}
 				},
 				"connectVia": {
-					"referenceName": "IntegrationRuntime-Azure-ManagedVnet-01",
+					"referenceName": "IntegrationRuntime-SelfHosted",
 					"type": "IntegrationRuntimeReference"
 				}
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/integrationRuntimes/IntegrationRuntime-Azure-ManagedVnet-01')]",
+				"[concat(variables('factoryId'), '/integrationRuntimes/IntegrationRuntime-SelfHosted')]",
 				"[concat(variables('factoryId'), '/linkedServices/LS-AzureKeyVault')]"
 			]
 		},

@@ -13,6 +13,185 @@
 	},
 	"resources": [
 		{
+			"name": "[concat(parameters('factoryName'), '/KalturaDestn')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_AzureBlobStorage",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Binary",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"folderPath": "ARCHIVE",
+						"container": "kaltura"
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Parquet2')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_AzureDatalake",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Parquet",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": "sewercctv/cctv_kaltura_attachments",
+						"fileSystem": "cleansed"
+					},
+					"compressionCodec": "snappy"
+				},
+				"schema": [
+					{
+						"name": "attachments_id",
+						"type": "UTF8"
+					},
+					{
+						"name": "attachments_entryId",
+						"type": "UTF8"
+					},
+					{
+						"name": "attachments_partnerId",
+						"type": "INT64"
+					},
+					{
+						"name": "attachments_version",
+						"type": "INT64"
+					},
+					{
+						"name": "attachments_size",
+						"type": "INT64"
+					},
+					{
+						"name": "attachments_tags",
+						"type": "UTF8"
+					},
+					{
+						"name": "attachments_fileExt",
+						"type": "UTF8"
+					},
+					{
+						"name": "attachments_createdAt",
+						"type": "INT64"
+					},
+					{
+						"name": "attachments_updatedAt",
+						"type": "INT64"
+					},
+					{
+						"name": "attachments_description",
+						"type": "UTF8"
+					},
+					{
+						"name": "attachments_partnerDescription",
+						"type": "UTF8"
+					},
+					{
+						"name": "attachments_sizeInBytes",
+						"type": "INT64"
+					},
+					{
+						"name": "attachments_filename",
+						"type": "UTF8"
+					},
+					{
+						"name": "attachments_title",
+						"type": "UTF8"
+					},
+					{
+						"name": "attachments_format",
+						"type": "UTF8"
+					},
+					{
+						"name": "attachments_status",
+						"type": "UTF8"
+					},
+					{
+						"name": "processed_timestamp",
+						"type": "INT96"
+					},
+					{
+						"name": "_DLCleansedZoneTimeStamp",
+						"type": "INT96"
+					},
+					{
+						"name": "_RecordStart",
+						"type": "INT96"
+					},
+					{
+						"name": "_RecordEnd",
+						"type": "INT96"
+					},
+					{
+						"name": "_RecordDeleted",
+						"type": "INT32"
+					},
+					{
+						"name": "_RecordCurrent",
+						"type": "INT32"
+					}
+				]
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/RAW_ADLS_CSV')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_AzureDatalake",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"BlobPath": {
+						"type": "string"
+					},
+					"BlobName": {
+						"type": "string"
+					}
+				},
+				"folder": {
+					"name": "Data Lake"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": {
+							"value": "@dataset().BlobName",
+							"type": "Expression"
+						},
+						"folderPath": {
+							"value": "@dataset().BlobPath",
+							"type": "Expression"
+						},
+						"fileSystem": "raw"
+					},
+					"columnDelimiter": "|",
+					"compressionCodec": "gzip",
+					"compressionLevel": "Optimal",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": ""
+				},
+				"schema": []
+			},
+			"dependsOn": []
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/RAW_ADLS_JSON_v2')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -218,81 +397,6 @@
 				"type": "AzureSqlTable",
 				"schema": [],
 				"typeProperties": {}
-			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/SQL_Server')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "LS_SQLServer",
-					"type": "LinkedServiceReference",
-					"parameters": {
-						"kvSecret": {
-							"value": "@dataset().kvSecret",
-							"type": "Expression"
-						}
-					}
-				},
-				"parameters": {
-					"kvSecret": {
-						"type": "string"
-					}
-				},
-				"folder": {
-					"name": "MDP-Framework/SQL"
-				},
-				"annotations": [],
-				"type": "SqlServerTable",
-				"schema": [],
-				"typeProperties": {}
-			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/SQL_Server_Table')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "LS_SQLServer",
-					"type": "LinkedServiceReference",
-					"parameters": {
-						"kvSecret": {
-							"value": "@dataset().kvSecret",
-							"type": "Expression"
-						}
-					}
-				},
-				"parameters": {
-					"kvSecret": {
-						"type": "string"
-					},
-					"schemaName": {
-						"type": "string"
-					},
-					"tableName": {
-						"type": "string"
-					}
-				},
-				"folder": {
-					"name": "MDP-Framework/SQL"
-				},
-				"annotations": [],
-				"type": "SqlServerTable",
-				"schema": [],
-				"typeProperties": {
-					"schema": {
-						"value": "@dataset().schemaName",
-						"type": "Expression"
-					},
-					"table": {
-						"value": "@dataset().tableName",
-						"type": "Expression"
-					}
-				}
 			},
 			"dependsOn": []
 		},
@@ -558,51 +662,6 @@
 					"quoteChar": ""
 				},
 				"schema": []
-			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/SRC_SQLSERVER')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "LS_SQLServer",
-					"type": "LinkedServiceReference",
-					"parameters": {
-						"kvSecret": {
-							"value": "@dataset().kvSecret",
-							"type": "Expression"
-						}
-					}
-				},
-				"parameters": {
-					"kvSecret": {
-						"type": "string"
-					},
-					"tableName": {
-						"type": "string"
-					},
-					"schemaName": {
-						"type": "string"
-					}
-				},
-				"folder": {
-					"name": "SQL Server"
-				},
-				"annotations": [],
-				"type": "SqlServerTable",
-				"schema": [],
-				"typeProperties": {
-					"schema": {
-						"value": "@dataset().schemaName",
-						"type": "Expression"
-					},
-					"table": {
-						"value": "@dataset().tableName",
-						"type": "Expression"
-					}
-				}
 			},
 			"dependsOn": []
 		},
