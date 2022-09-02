@@ -259,35 +259,5 @@ DeltaSaveDataFrameToDeltaTable(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS
 
 # COMMAND ----------
 
-# DBTITLE 1,13.1 Identify Deleted records from Raw table
-df = spark.sql(f"select distinct coalesce(ATINN,'') as ATINN, coalesce(OBJEK,'') as OBJEK, coalesce(ATZHL,'') as ATZHL, coalesce(MAFID,'') as MAFID, coalesce(KLART,'') as KLART,  coalesce(ADZHL,'') as ADZHL from ( \
-Select *, ROW_NUMBER() OVER (PARTITION BY OBJEK, ATINN, ATZHL, MAFID, KLART, ADZHL ORDER BY _DLRawZoneTimeStamp DESC, DELTA_TS DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' ) \
-where  _RecordVersion = 1 and IS_DELETED ='Y'")
-df.createOrReplaceTempView("isu_ausp_deleted_records")
-
-# COMMAND ----------
-
-# DBTITLE 1,13.2 Update _RecordDeleted and _RecordCurrent Flags
-#Get current time
-CurrentTimeStamp = GeneralLocalDateTime()
-CurrentTimeStamp = CurrentTimeStamp.strftime("%Y-%m-%d %H:%M:%S")
-
-spark.sql(f" \
-    MERGE INTO cleansed.isu_AUSP \
-    using isu_ausp_deleted_records \
-    on isu_AUSP.characteristicInternalId = isu_ausp_deleted_records.ATINN \
-    and isu_AUSP.classificationObjectInternalId = isu_ausp_deleted_records.OBJEK \
-    and isu_AUSP.characteristicValueInternalId = isu_ausp_deleted_records.ATZHL \
-    and isu_AUSP.classifiedEntityType = isu_ausp_deleted_records.MAFID \
-    and isu_AUSP.classType = isu_ausp_deleted_records.KLART \
-    and isu_AUSP.archivingObjectsInternalId = isu_ausp_deleted_records.ADZHL \
-    WHEN MATCHED THEN UPDATE SET \
-    _DLCleansedZoneTimeStamp = cast('{CurrentTimeStamp}' as TimeStamp) \
-    ,_RecordDeleted=1 \
-    ,_RecordCurrent=0 \
-    ")
-
-# COMMAND ----------
-
 # DBTITLE 1,14. Exit Notebook
 dbutils.notebook.exit("1")
