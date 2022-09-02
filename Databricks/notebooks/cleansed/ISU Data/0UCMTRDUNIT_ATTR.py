@@ -173,7 +173,7 @@ print(delta_raw_tbl_name)
 df = spark.sql(f"WITH stage AS \
                       (Select *, ROW_NUMBER() OVER (PARTITION BY TERMSCHL ORDER BY _FileDateTimeStamp DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
                            SELECT \
-                                case when TERMSCHL = 'na' then '' else TERMSCHL end as portion, \
+                                case when TERMSCHL = 'na' then '' else TERMSCHL end as meterReadingUnit, \
                                 cast(EPER_ABL as Integer) as intervalBetweenReadingAndEnd, \
                                 cast(AUF_ABL as Integer) as intervalBetweenOrderAndReading, \
                                 cast(DOWNL_ABL as Integer) as intervalBetweenDownloadAndReading, \
@@ -181,6 +181,7 @@ df = spark.sql(f"WITH stage AS \
                                 cast(ANSCH_AUF as Integer) as intervalBetweenAnnouncementAndOrder, \
                                 cast(AUKSA_AUF as Integer) as intervalBetweenPrintoutAndOrder, \
                                 PORTION as portionNumber, \
+                                PR_TXT.portionText, \
                                 ABLESER as meterReaderNumber, \
                                 cast(ABLZEIT as dec(5,1)) as meterReadingTime, \
                                 cast(AZVORABL as Integer) as numberOfPreviousReadings, \
@@ -207,7 +208,11 @@ df = spark.sql(f"WITH stage AS \
                                 '0' as _RecordDeleted, \
                                 '1' as _RecordCurrent, \
                                 cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
-                        from stage where _RecordVersion = 1 ")
+                        from stage MU \
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UC_PORTION_TEXT PR_TXT \
+                                ON MU.PORTION = PR_TXT.portionNumber \
+                                AND PR_TXT._RecordDeleted = 0 AND PR_TXT._RecordCurrent = 1 \
+                        where MU._RecordVersion = 1 ")
 
 #print(f'Number of rows: {df.count()}')
 
@@ -257,7 +262,7 @@ df = spark.sql(f"WITH stage AS \
 # COMMAND ----------
 
 newSchema = StructType([
-	StructField('portion',StringType(),False),
+	StructField('meterReadingUnit',StringType(),False),
 	StructField('intervalBetweenReadingAndEnd',IntegerType(),True),
 	StructField('intervalBetweenOrderAndReading',IntegerType(),True),
 	StructField('intervalBetweenDownloadAndReading',IntegerType(),True),
@@ -265,6 +270,7 @@ newSchema = StructType([
 	StructField('intervalBetweenAnnouncementAndOrder',IntegerType(),True),
 	StructField('intervalBetweenPrintoutAndOrder',IntegerType(),True),
 	StructField('portionNumber',StringType(),True),
+    StructField('portionText',StringType(),True),
 	StructField('meterReaderNumber',StringType(),True),
 	StructField('meterReadingTime',DecimalType(5,1),True),
 	StructField('numberOfPreviousReadings',IntegerType(),True),

@@ -28,7 +28,7 @@ def getStormWaterNetwork():
                         ")
 
     #Dummy Record to be added to Property Dimension
-    dummyDimRecDf = spark.createDataFrame([("Unknown","-1")], ["stormWaterNetwork", "stormWaterCatchment"])
+    dummyDimRecDf = spark.createDataFrame([("Unknown","Unknown")], ["stormWaterNetwork", "stormWaterCatchment"])
 
     #2.JOIN TABLES  
     #3.UNION TABLES
@@ -55,7 +55,3 @@ def getStormWaterNetwork():
 
 df, schema = getStormWaterNetwork()
 TemplateEtl(df, entity="dimStormWaterNetwork", businessKey="stormWaterCatchment", schema=schema, writeMode=ADS_WRITE_MODE_OVERWRITE, AddSK=True)
-
-# COMMAND ----------
-
-

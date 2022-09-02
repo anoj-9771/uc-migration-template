@@ -188,6 +188,7 @@ df = spark.sql(f"WITH stage AS \
                                 ZWTYP as registerCategoryCode, \
                                 dd.domainValueText as registerCategory, \
                                 BLIWIRK as reactiveApparentOrActiveRegister, \
+                                dd1.domainValueText as reactiveApparentOrActiveRegisterTxt, \
                                 MASSREAD as unitOfMeasurementMeterReading, \
                                 NABLESEN as doNotReadIndicator, \
                                 cast(HOEKORR as int) as altitudeCorrectionPressure, \
@@ -211,6 +212,8 @@ df = spark.sql(f"WITH stage AS \
                                                                                           and te._RecordDeleted = 0 and te._RecordCurrent = 1 \
                         LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_DD07T dd ON re.ZWTYP = dd.domainValueSingleUpperLimit and  dd.domainName = 'E_ZWTYP' \
                                                                                           and dd._RecordDeleted = 0 and dd._RecordCurrent = 1 \
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_DD07T dd1 ON re.BLIWIRK = dd1.domainValueSingleUpperLimit and  dd1.domainName = 'BLIWIRK' \
+                                                                                          and dd1._RecordDeleted = 0 and dd1._RecordCurrent = 1 \
                         where re._RecordVersion = 1 ")
 
 #print(f'Number of rows: {df.count()}')
@@ -232,6 +235,7 @@ newSchema = StructType([
 	StructField('registerCategoryCode',StringType(),True),
     StructField('registerCategory',StringType(),True),
 	StructField('reactiveApparentOrActiveRegister',StringType(),True),
+    StructField('reactiveApparentOrActiveRegisterTxt',StringType(),True),
 	StructField('unitOfMeasurementMeterReading',StringType(),True),
 	StructField('doNotReadIndicator',StringType(),True),
 	StructField('altitudeCorrectionPressure',IntegerType(),True),

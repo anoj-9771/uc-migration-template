@@ -44,11 +44,20 @@
 		"LS_DeltaLake_properties_typeProperties_domain": {
 			"value": "https://adb-7004525605760210.10.azuredatabricks.net"
 		},
+		"LS_HTTP_Anonymous_properties_typeProperties_url": {
+			"value": "@{linkedService().url}"
+		},
 		"LS_Oracle_properties_typeProperties_connectionString_secretName": {
 			"value": "@linkedService().kvSecret"
 		},
+		"LS_REST_Anonymous_properties_typeProperties_url": {
+			"value": "@{linkedService().url}"
+		},
 		"LS_SQLServer_properties_typeProperties_connectionString_secretName": {
 			"value": "@linkedService().kvSecret"
+		},
+		"azure_Sql_sewercctv_properties_typeProperties_connectionString_secretName": {
+			"value": "daf-sql-sewercctv-connectionstring"
 		},
 		"BATCH_DAILY_HYDRA_properties_01-Main_parameters_TriggerName": {
 			"value": "BATCH_DAILY_HYDRA"

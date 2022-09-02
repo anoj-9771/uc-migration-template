@@ -3,10 +3,10 @@
 import json
 #For unit testing...
 #Use this string in the Param widget: 
-#{"SourceType": "BLOB Storage (json)", "SourceServer": "daf-sa-lake-sastoken", "SourceGroup": "isu", "SourceName": "isu_0UC_PORTION_TEXT", "SourceLocation": "isu/0UC_PORTION_TEXT", "AdditionalProperty": "", "Processor": "databricks-token|0711-011053-turfs581|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive", "IsAuditTable": false, "SoftDeleteSource": "", "ProjectName": "ISU REF", "ProjectId": 2, "TargetType": "BLOB Storage (json)", "TargetName": "isu_0UC_PORTION_TEXT", "TargetLocation": "isu/0UC_PORTION_TEXT", "TargetServer": "daf-sa-lake-sastoken", "DataLoadMode": "FULL-EXTRACT", "DeltaExtract": false, "CDCSource": false, "TruncateTarget": false, "UpsertTarget": true, "AppendTarget": null, "TrackChanges": false, "LoadToSqlEDW": true, "TaskName": "isu_0UC_PORTION_TEXT", "ControlStageId": 2, "TaskId": 46, "StageSequence": 200, "StageName": "Raw to Cleansed", "SourceId": 46, "TargetId": 46, "ObjectGrain": "Day", "CommandTypeId": 8, "Watermarks": "", "WatermarksDT": null, "WatermarkColumn": "", "BusinessKeyColumn": "portion", "UpdateMetaData": null, "SourceTimeStampFormat": "", "Command": "", "LastLoadedFile": null}
+#$PARAM
 
 #Use this string in the Source Object widget
-#isu_0UC_PORTION_TEXT
+#$GROUP_$SOURCE
 
 # COMMAND ----------
 
@@ -171,45 +171,42 @@ print(delta_raw_tbl_name)
 
 # DBTITLE 1,10. Load Raw to Dataframe & Do Transformations
 df = spark.sql(f"WITH stage AS \
-                      (Select *, ROW_NUMBER() OVER (PARTITION BY TERMSCHL ORDER BY _FileDateTimeStamp DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
-                           SELECT \
-                                case when TERMSCHL = 'na' then '' else TERMSCHL end as portionNumber, \
-                                TERMTEXT as portionText, \
+                      (Select *, ROW_NUMBER() OVER (PARTITION BY OBJNRSRC,OBJASSTYPE,OBJNRTRG,VALIDFROM ORDER BY _DLRawZoneTimeStamp DESC, DELTA_TS DESC) AS _RecordVersion FROM {delta_raw_tbl_name} \
+                                  WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
+                           SELECT  \
+                                case when OBJNRSRC = 'na' then '' else OBJNRSRC end as objectNumberSource , \
+                                case when OBJASSTYPE = 'na' then '' else OBJASSTYPE end as objectType , \
+                                case when OBJNRTRG = 'na' then '' else OBJNRTRG end as objectNumberTarget , \
+                                ToValidDate(VALIDFROM,'MANDATORY') as validFromDate, \
+                                ToValidDate(VALIDTO) as validToDate , \
                                 cast('1900-01-01' as TimeStamp) as _RecordStart, \
                                 cast('9999-12-31' as TimeStamp) as _RecordEnd, \
                                 '0' as _RecordDeleted, \
                                 '1' as _RecordCurrent, \
                                 cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
-                        from stage where _RecordVersion = 1 ")
+                         from stage where _RecordVersion = 1 ")
 
 #print(f'Number of rows: {df.count()}')
 
 # COMMAND ----------
 
-# DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
-# #Update/rename Column
-# df_cleansed = spark.sql(f"SELECT \
-# 	case when TERMSCHL = 'na' then '' else TERMSCHL end as portion, \
-# 	TERMTEXT as scheduleMasterRecord, \
-# 	_RecordStart, \
-# 	_RecordEnd, \
-# 	_RecordDeleted, \
-# 	_RecordCurrent \
-# 	FROM {ADS_DATABASE_STAGE}.{source_object}")
 
-# print(f'Number of rows: {df_cleansed.count()}')
-
-# COMMAND ----------
-
-newSchema = StructType([
-	StructField('portionNumber',StringType(),False),
-	StructField('portionText',StringType(),True),
-	StructField('_RecordStart',TimestampType(),False),
-	StructField('_RecordEnd',TimestampType(),False),
-	StructField('_RecordDeleted',IntegerType(),False),
-	StructField('_RecordCurrent',IntegerType(),False),
+# Create schema for the cleanse table
+newSchema = StructType(
+  [
+    StructField("objectNumberSource", StringType(), False),
+    StructField("objectType", StringType(), False),
+    StructField("objectNumberTarget", StringType(), False),
+    StructField("validFromDate", DateType(), False),
+    StructField("validToDate", DateType(), True),
+    StructField('_RecordStart',TimestampType(),False),
+    StructField('_RecordEnd',TimestampType(),False),
+    StructField('_RecordDeleted',IntegerType(),False),
+    StructField('_RecordCurrent',IntegerType(),False),
     StructField('_DLCleansedZoneTimeStamp',TimestampType(),False)
-])
+  ]
+)
+
 
 # COMMAND ----------
 
