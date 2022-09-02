@@ -228,32 +228,5 @@ DeltaSaveDataFrameToDeltaTable(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS
 
 # COMMAND ----------
 
-# DBTITLE 1,13.1 Identify Deleted records from Raw table
-df = spark.sql(f"select distinct coalesce(INTRENO,'') as INTRENO, coalesce(FIXFITCHARACT,'') as FIXFITCHARACT, coalesce(VALIDTO,'') as VALIDTO from ( \
-Select *, ROW_NUMBER() OVER (PARTITION BY INTRENO,FIXFITCHARACT,VALIDTO ORDER BY _DLRawZoneTimeStamp DESC, DELTA_TS DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' ) \
-where  _RecordVersion = 1 and IS_DELETED ='Y'")
-df.createOrReplaceTempView("isu_vibdcharact_deleted_records")
-
-# COMMAND ----------
-
-# DBTITLE 1,13.2 Update _RecordDeleted and _RecordCurrent Flags
-#Get current time
-CurrentTimeStamp = GeneralLocalDateTime()
-CurrentTimeStamp = CurrentTimeStamp.strftime("%Y-%m-%d %H:%M:%S")
-
-spark.sql(f" \
-    MERGE INTO cleansed.isu_VIBDCHARACT \
-    using isu_vibdcharact_deleted_records \
-    on isu_VIBDCHARACT.architecturalObjectInternalId = isu_vibdcharact_deleted_records.INTRENO \
-    and isu_VIBDCHARACT.fixtureAndFittingCharacteristicCode = isu_vibdcharact_deleted_records.FIXFITCHARACT \
-    and isu_VIBDCHARACT.validToDate = isu_vibdcharact_deleted_records.VALIDTO \
-    WHEN MATCHED THEN UPDATE SET \
-    _DLCleansedZoneTimeStamp = cast('{CurrentTimeStamp}' as TimeStamp) \
-    ,_RecordDeleted=1 \
-    ,_RecordCurrent=0 \
-    ")
-
-# COMMAND ----------
-
 # DBTITLE 1,13. Exit Notebook
 dbutils.notebook.exit("1")
