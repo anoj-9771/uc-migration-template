@@ -40,24 +40,28 @@ def getProperty():
 
     #1.Load current Cleansed layer table data into dataframe
     #build a dataframe with unique properties and lot details, 4174119 is incorrectly present on Tlot
-    lotDf = spark.sql(f"select propertyNumber, \
-                                first(coalesce(pts.PLAN_TYPE,planTypeCode)) as planTypeCode, \
-                                first(coalesce(pts.description,planType)) as planType, \
-                                first(planNumber) as planNumber, \
-                                first(lotNumber)  as lotNumber, \
-                                first(lotTypeCode) as lotTypeCode, \
-                                first(coalesce(plts.domainValueText,lotType)) as lotType, \
-                                first(sectionNumber) as sectionNumber \
-                        from {ADS_DATABASE_CLEANSED}.access_z309_tlot tlot \
-                             left outer join {ADS_DATABASE_CLEANSED}.isu_zcd_tplantype_tx pts on pts.plan_type = case when planTypeCode = 'DP' then '01' \
-                                                                                          when planTypeCode = 'PSP' then '03' \
-                                                                                          when planTypeCode = 'PDP' then '04' \
-                                                                                          when planTypeCode = 'CN' then '05' \
-                                                                                          when planTypeCode = 'SP' then '02' \
-                                                                                          else null end \
-                             left outer join {ADS_DATABASE_CLEANSED}.isu_dd07t plts on lotTypeCode = plts.domainValueSingleUpperLimit and domainName = 'ZCD_DO_ADDR_LOT_TYPE' \
-                        where tlot._RecordCurrent = 1 \
-                        group by propertyNumber \
+    lotDf = spark.sql(f"select propertyNumber,planTypeCode,planType,planNumber,lotNumber,lotTypeCode, lotType,sectionNumber from \
+                          ( \
+                            select propertyNumber, \
+                                    coalesce(pts.PLAN_TYPE,planTypeCode) as planTypeCode, \
+                                    coalesce(pts.description,planType) as planType, \
+                                    case when isnotnull(coalesce(pts.description,planType)) then planNumber else null end as planNumber, \
+                                    case when isnotnull(coalesce(pts.description,planType)) then lotNumber else null end as lotNumber, \
+                                    case when isnotnull(coalesce(pts.description,planType)) then lotTypeCode else null end as lotTypeCode, \
+                                    case when isnotnull(coalesce(pts.description,planType)) then coalesce(plts.domainValueText,lotType) else null end as lotType, \
+                                    case when isnotnull(coalesce(pts.description,planType)) then sectionNumber else null end as sectionNumber, \
+                                    row_number() over (partition by propertyNumber order by coalesce(pts.description,planType) NULLS LAST, \
+                                        planNumber NULLS LAST,lotNumber NULLS LAST,sectionNumber NULLS LAST, lotTypeCode NULLS LAST, lotType NULLS LAST) recNum \
+                            from {ADS_DATABASE_CLEANSED}.access_z309_tlot tlot \
+                                 left outer join {ADS_DATABASE_CLEANSED}.isu_zcd_tplantype_tx pts on pts.plan_type = case when planTypeCode = 'DP' then '01' \
+                                                                                              when planTypeCode = 'PSP' then '03' \
+                                                                                              when planTypeCode = 'PDP' then '04' \
+                                                                                              when planTypeCode = 'CN' then '05' \
+                                                                                              when planTypeCode = 'SP' then '02' \
+                                                                                              else null end \
+                                 left outer join {ADS_DATABASE_CLEANSED}.isu_dd07t plts on lotTypeCode = plts.domainValueSingleUpperLimit and domainName = 'ZCD_DO_ADDR_LOT_TYPE' \
+                            where tlot._RecordCurrent = 1 \
+                         ) numRec where recNum = 1\
                         union all \
                         select propertyNumber, \
                                 '02' as planTypeCode, \
@@ -256,10 +260,10 @@ def getProperty():
                     select * \
                     from   ISU")
     
-    dummyDimRecDf = spark.sql(f"select waterNetworkSK as dummyDimSK, 'dimWaterNetwork_drinkingWater' as dimension from {ADS_DATABASE_CURATED}.dimWaterNetwork where pressureArea='-1' and isPotableWaterNetwork='Y' and isRecycledWaterNetwork='N' \
-                          union select waterNetworkSK as dummyDimSK, 'dimWaterNetwork_recycledWater' as dimension from {ADS_DATABASE_CURATED}.dimWaterNetwork where supplyZone='-1' and isPotableWaterNetwork='N' and isRecycledWaterNetwork='Y' \
-                          union select sewerNetworkSK as dummyDimSK, 'dimSewerNetwork' as dimension from {ADS_DATABASE_CURATED}.dimSewerNetwork where SCAMP='-1' \
-                          union select stormWaterNetworkSK as dummyDimSK, 'dimStormWaterNetwork' as dimension from {ADS_DATABASE_CURATED}.dimStormWaterNetwork where stormWaterCatchment='-1' \
+    dummyDimRecDf = spark.sql(f"select waterNetworkSK as dummyDimSK, 'dimWaterNetwork_drinkingWater' as dimension from {ADS_DATABASE_CURATED}.dimWaterNetwork where pressureArea='Unknown' and isPotableWaterNetwork='Y' \
+                          union select waterNetworkSK as dummyDimSK, 'dimWaterNetwork_recycledWater' as dimension from {ADS_DATABASE_CURATED}.dimWaterNetwork where supplyZone='Unknown' and isRecycledWaterNetwork='Y' \
+                          union select sewerNetworkSK as dummyDimSK, 'dimSewerNetwork' as dimension from {ADS_DATABASE_CURATED}.dimSewerNetwork where SCAMP='Unknown' \
+                          union select stormWaterNetworkSK as dummyDimSK, 'dimStormWaterNetwork' as dimension from {ADS_DATABASE_CURATED}.dimStormWaterNetwork where stormWaterCatchment='Unknown' \
                           ")
     df = df.join(dummyDimRecDf, (dummyDimRecDf.dimension == 'dimWaterNetwork_drinkingWater'), how="left") \
                   .select(df['*'], dummyDimRecDf['dummyDimSK'].alias('dummyWaterNetworkSK_drinkingWater'))
@@ -275,13 +279,13 @@ def getProperty():
                                  {ADS_DATABASE_CURATED}.dimWaterNetwork wnr, \
                                  {ADS_DATABASE_CURATED}.dimSewerNetwork snw, \
                                  {ADS_DATABASE_CURATED}.dimStormWaterNetwork sw \
-                            where wn.pressureArea = '-1' \
-                            and   wn._RecordCurrent = 1 and wn.isPotableWaterNetwork='Y' and wn.isRecycledWaterNetwork='N' \
-                            and   wnr.supplyZone = '-1' \
-                            and   wnr._RecordCurrent = 1 and wnr.isPotableWaterNetwork='N' and wnr.isRecycledWaterNetwork='Y' \
-                            and   snw.SCAMP = '-1' \
+                            where wn.pressureArea = 'Unknown' \
+                            and   wn._RecordCurrent = 1 and wn.isPotableWaterNetwork='Y' \
+                            and   wnr.supplyZone = 'Unknown' \
+                            and   wnr._RecordCurrent = 1 and wnr.isRecycledWaterNetwork='Y' \
+                            and   snw.SCAMP = 'Unknown' \
                             and   snw._RecordCurrent = 1 \
-                            and   sw.stormWaterCatchment = '-1' \
+                            and   sw.stormWaterCatchment = 'Unknown' \
                             and   sw._RecordCurrent = 1 \
                             ")
     df = df.unionByName(dummyDimDf, allowMissingColumns = True)
@@ -365,8 +369,26 @@ TemplateEtl(df, entity="dimProperty", businessKey="propertyNumber", schema=schem
 
 # COMMAND ----------
 
-dbutils.notebook.exit("1")
+# MAGIC %md
+# MAGIC Set the network details for cancelled properties to those of their now active equivalent (to be expanded for SAP cancelled props)
 
 # COMMAND ----------
 
+# MAGIC %sql
+# MAGIC with t1 as (select cp.propertyNumber, waterNetworkSK_drinkingWater, waterNetworkSK_recycledWater, sewerNetworkSK, stormWaterNetworkSK 
+# MAGIC             from   curated.dimProperty p,
+# MAGIC                    curated.ACCESSCancelledActiveProps cp
+# MAGIC             where  p.propertyNumber = cp.activeProperty)
+# MAGIC 
+# MAGIC merge into curated.dimProperty p
+# MAGIC using      t1
+# MAGIC on         p.propertyNumber = t1.propertyNumber
+# MAGIC when matched then update 
+# MAGIC              set p.waterNetworkSK_drinkingWater = t1.waterNetworkSK_drinkingWater,
+# MAGIC                  p.waterNetworkSK_recycledWater = t1.waterNetworkSK_recycledWater,
+# MAGIC                  p.sewerNetworkSK = t1.sewerNetworkSK,
+# MAGIC                  p.stormWaterNetworkSK = t1.stormWaterNetworkSK
 
+# COMMAND ----------
+
+dbutils.notebook.exit("1")
