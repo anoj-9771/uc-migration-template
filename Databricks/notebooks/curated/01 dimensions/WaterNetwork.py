@@ -22,7 +22,7 @@ def getWaterNetwork():
     baseDf = spark.sql(f"select level30 as deliverySystem, \
                                 level40 as distributionSystem, \
                                 level50 as supplyZone, \
-                                coalesce(level60,'n/a')  as pressureArea, \
+                                coalesce(level60,'Unknown')  as pressureArea, \
                                 case when product = 'Water'  then 'Y' else 'N' end as isPotableWaterNetwork, \
                                 case when product = 'RecycledWater'  then 'Y' else 'N' end as isRecycledWaterNetwork \
                         from {ADS_DATABASE_CLEANSED}.hydra_TSYSTEMAREA \
@@ -32,7 +32,7 @@ def getWaterNetwork():
                         ")
 
     #Dummy Record to be added to Property Dimension
-    dummyDimRecDf = spark.createDataFrame([("Unknown","Unknown","-1","Unknown","Y","N"), ("Unknown","Unknown","Unknown","-1","N","Y")], ["deliverySystem", "distributionSystem","supplyZone","pressureArea","isRecycledWaterNetwork","isPotableWaterNetwork"])
+    dummyDimRecDf = spark.createDataFrame([("Unknown","Unknown","Unknown","Unknown","Y","Y")], ["deliverySystem", "distributionSystem","supplyZone","pressureArea","isRecycledWaterNetwork","isPotableWaterNetwork"])
 
     #2.JOIN TABLES  
     #3.UNION TABLES
