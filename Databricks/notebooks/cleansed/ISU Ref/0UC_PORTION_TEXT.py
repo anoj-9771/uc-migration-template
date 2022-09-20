@@ -173,8 +173,8 @@ print(delta_raw_tbl_name)
 df = spark.sql(f"WITH stage AS \
                       (Select *, ROW_NUMBER() OVER (PARTITION BY TERMSCHL ORDER BY _FileDateTimeStamp DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
                            SELECT \
-                                case when TERMSCHL = 'na' then '' else TERMSCHL end as portion, \
-                                TERMTEXT as scheduleMasterRecord, \
+                                case when TERMSCHL = 'na' then '' else TERMSCHL end as portionNumber, \
+                                TERMTEXT as portionText, \
                                 cast('1900-01-01' as TimeStamp) as _RecordStart, \
                                 cast('9999-12-31' as TimeStamp) as _RecordEnd, \
                                 '0' as _RecordDeleted, \
@@ -202,8 +202,8 @@ df = spark.sql(f"WITH stage AS \
 # COMMAND ----------
 
 newSchema = StructType([
-	StructField('portion',StringType(),False),
-	StructField('scheduleMasterRecord',StringType(),True),
+	StructField('portionNumber',StringType(),False),
+	StructField('portionText',StringType(),True),
 	StructField('_RecordStart',TimestampType(),False),
 	StructField('_RecordEnd',TimestampType(),False),
 	StructField('_RecordDeleted',IntegerType(),False),

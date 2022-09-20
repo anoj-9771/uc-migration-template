@@ -3,7 +3,49 @@
 import json
 #For unit testing...
 #Use this string in the Param widget: 
-#{"SourceType": "BLOB Storage (json)", "SourceServer": "daf-sa-lake-sastoken", "SourceGroup": "crm", "SourceName": "crm_0BP_DEF_ADDRESS_ATTR", "SourceLocation": "crm/0BP_DEF_ADDRESS_ATTR", "AdditionalProperty": "", "Processor": "databricks-token|0711-011053-turfs581|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive", "IsAuditTable": false, "SoftDeleteSource": "", "ProjectName": "CRM DATA", "ProjectId": 2, "TargetType": "BLOB Storage (json)", "TargetName": "crm_0BP_DEF_ADDRESS_ATTR", "TargetLocation": "crm/0BP_DEF_ADDRESS_ATTR", "TargetServer": "daf-sa-lake-sastoken", "DataLoadMode": "FULL-EXTRACT", "DeltaExtract": false, "CDCSource": false, "TruncateTarget": false, "UpsertTarget": true, "AppendTarget": null, "TrackChanges": false, "LoadToSqlEDW": true, "TaskName": "crm_0BP_DEF_ADDRESS_ATTR", "ControlStageId": 2, "TaskId": 46, "StageSequence": 200, "StageName": "Raw to Cleansed", "SourceId": 46, "TargetId": 46, "ObjectGrain": "Day", "CommandTypeId": 8, "Watermarks": "", "WatermarksDT": null, "WatermarkColumn": "", "BusinessKeyColumn": "businessPartnerNumber,addressNumber", "UpdateMetaData": null, "SourceTimeStampFormat": "", "Command": "", "LastLoadedFile": null}
+# {
+# 	"SourceType": "BLOB Storage (json)", 
+# 	"SourceServer": "daf-sa-lake-sastoken", 
+# 	"SourceGroup": "crmdata", 
+# 	"SourceName": "crm_0BP_DEF_ADDRESS_ATTR", 
+# 	"SourceLocation": "crmdata/0BP_DEF_ADDRESS_ATTR", 
+# 	"AdditionalProperty": "", 
+# 	"Processor": "databricks-token|0527-214438-v6loft1a|Standard_DS12_v2|10.4.x-scala2.12|2:28|interactive", 
+# 	"IsAuditTable": false, 
+# 	"SoftDeleteSource": "", 
+# 	"ProjectName": "CLEANSED CRM DATA", 
+# 	"ProjectId": 9, 
+# 	"TargetType": "BLOB Storage (json)", 
+# 	"TargetName": "crm_0BP_DEF_ADDRESS_ATTR", 
+# 	"TargetLocation": "crmdata/0BP_DEF_ADDRESS_ATTR", 
+# 	"TargetServer": "daf-sa-lake-sastoken", 
+# 	"DataLoadMode": "INCREMENTAL", 
+# 	"DeltaExtract": true, 
+# 	"CDCSource": false, 
+# 	"TruncateTarget": false, 
+# 	"UpsertTarget": true, 
+# 	"AppendTarget": null, 
+# 	"TrackChanges": false, 
+# 	"LoadToSqlEDW": true, 
+# 	"TaskName": "crm_0BP_DEF_ADDRESS_ATTR", 
+# 	"ControlStageId": 2, 
+# 	"TaskId": 64, 
+# 	"StageSequence": 200, 
+# 	"StageName": "Raw to Cleansed", 
+# 	"SourceId": 64, 
+# 	"TargetId": 64, 
+# 	"ObjectGrain": "Day", 
+# 	"CommandTypeId": 8, 
+# 	"Watermarks": "2000-01-01 00:00:00", 
+# 	"WatermarksDT": "2000-01-01T00:00:00", 
+# 	"WatermarkColumn": "_FileDateTimeStamp", 
+# 	"BusinessKeyColumn": "businessPartnerNumber,addressNumber", 
+# 	"UpdateMetaData": null, 
+# 	"SourceTimeStampFormat": "", 
+# 	"Command": "/build/cleansed/CRM Data/0BP_DEF_ADDRESS_ATTR", 
+# 	"LastLoadedFile": null, 
+# 	"LastSuccessfulExecutionTS": "2022-09-07"
+# }
 
 #Use this string in the Source Object widget
 #crm_0BP_DEF_ADDRESS_ATTR
@@ -197,16 +239,23 @@ df = spark.sql(f"WITH stage AS \
                                     STREETCODE as streetCode, \
                                     HOUSE_NUM1 as houseNumber, \
                                     HOUSE_NUM2 as houseNumber2, \
-                                    STR_SUPPL1 as streetType, \
-                                    STR_SUPPL2 as streetLine3, \
-                                    STR_SUPPL3 as streetLine4, \
+                                    STR_SUPPL1 as streetSupplementName1, \
+                                    STR_SUPPL2 as streetSupplementName2, \
+                                    STR_SUPPL3 as otherLocationName, \
                                     LOCATION as streetLine5, \
+                                    TEL_EXTENS as phoneExtension, \
+                                    FAX_EXTENS as faxExtension, \
                                     BUILDING as building, \
                                     FLOOR as floorNumber, \
                                     ROOMNUMBER as apartmentNumber, \
                                     COUNTRY as countryShortName, \
+                                    t005t.countryName as countryName, \
                                     REGION as stateCode, \
-                                    PERS_ADDR as personalAddressIndicator, \
+                                    CASE \
+                                        WHEN PERS_ADDR = 'X' \
+                                        THEN 'Y' \
+                                        ELSE 'N' \
+                                    END as personalAddressFlag, \
                                     SORT1 as searchTerm1, \
                                     SORT2 as searchTerm2, \
                                     TEL_NUMBER as phoneNumber, \
@@ -237,9 +286,13 @@ df = spark.sql(f"WITH stage AS \
                                     '0' as _RecordDeleted, \
                                     '1' as _RecordCurrent, \
                                     cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
-                        from stage where _RecordVersion = 1 ")
+                        from stage ADDR \
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_t005t t005t ON \
+                        ADDR.COUNTRY = t005t.countryCode \
+                        where ADDR._RecordVersion = 1")
 
-#print(f'Number of rows: {df.count()}')
+# print(f'Number of rows: {df.count()}')
+# display(df)
 
 # COMMAND ----------
 
@@ -339,16 +392,19 @@ newSchema = StructType([
 	StructField('streetCode',StringType(),True),
 	StructField('houseNumber',StringType(),True),
 	StructField('houseNumber2',StringType(),True),
-	StructField('streetType',StringType(),True),
-	StructField('streetLine3',StringType(),True),
-	StructField('streetLine4',StringType(),True),
+	StructField('streetSupplementName1',StringType(),True),
+	StructField('streetSupplementName2',StringType(),True),
+	StructField('otherLocationName',StringType(),True),
 	StructField('streetLine5',StringType(),True),
+	StructField('phoneExtension', StringType(), True),
+	StructField('faxExtension',StringType(),True),
 	StructField('building',StringType(),True),
 	StructField('floorNumber',StringType(),True),
 	StructField('apartmentNumber',StringType(),True),
 	StructField('countryShortName',StringType(),True),
+	StructField('countryName',StringType(),True),
 	StructField('stateCode',StringType(),True),
-	StructField('personalAddressIndicator',StringType(),True),
+	StructField('personalAddressFlag',StringType(),True),
 	StructField('searchTerm1',StringType(),True),
 	StructField('searchTerm2',StringType(),True),
 	StructField('phoneNumber',StringType(),True),

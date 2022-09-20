@@ -186,7 +186,8 @@ df = spark.sql(f"WITH stage AS \
                                       ABLESART as scheduledMeterReadingCategory , \
                                       ABLESER as meterReaderNumber , \
                                       MDEUPL as orderHasBeenOutput , \
-                                      ISTABLART as meterReadingType , \
+                                      ISTABLART as meterReadingTypeCode , \
+                                      MR_TXT.meterReadingType , \
                                       ABLESTYP as meterReadingCategory , \
                                       MASSREAD as unitOfMeasurementMeterReading , \
                                       UPDMOD as bwDeltaProcess , \
@@ -212,7 +213,11 @@ df = spark.sql(f"WITH stage AS \
                                       '0' as _RecordDeleted, \
                                       '1' as _RecordCurrent, \
                                       cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
-                        from stage where _RecordVersion = 1 ")
+                        from stage MR \
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UC_MRTYPE_TEXT MR_TXT \
+                                ON MR.ISTABLART = MR_TXT.meterReadingTypeCode \
+                                AND MR_TXT._RecordDeleted = 0 AND MR_TXT._RecordCurrent = 1 \
+                        where MR._RecordVersion = 1 ")
 
 #print(f'Number of rows: {df.count()}')
 
@@ -234,6 +239,7 @@ newSchema = StructType(
                               StructField("scheduledMeterReadingCategory", StringType(), True),
                               StructField("meterReaderNumber", StringType(), True),
                               StructField("orderHasBeenOutput", StringType(), True),
+                              StructField("meterReadingTypeCode", StringType(), True),
                               StructField("meterReadingType", StringType(), True),
                               StructField("meterReadingCategory", StringType(), True),
                               StructField("unitOfMeasurementMeterReading", StringType(), True),
