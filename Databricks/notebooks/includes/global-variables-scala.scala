@@ -18,6 +18,7 @@ val ADS_DATABASE_RAW = "raw"
 val ADS_DATABASE_CLEANSED = "cleansed"
 val ADS_DATABASE_STAGE = "stage"
 val ADS_DATABASE_CURATED = "curated"
+val ADS_DATABASE_CURATED_V2 = "curated_v2"
 
 // COMMAND ----------
 

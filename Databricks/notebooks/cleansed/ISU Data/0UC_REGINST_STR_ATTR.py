@@ -3,7 +3,7 @@
 import json
 #For unit testing...
 #Use this string in the Param widget: 
-#{"SourceType": "BLOB Storage (json)", "SourceServer": "daf-sa-lake-sastoken", "SourceGroup": "ISU", "SourceName": "ISU_0UC_REGINST_STR_ATTR", "SourceLocation": "ISU/0UC_REGINST_STR_ATTR", "AdditionalProperty": "", "Processor": "databricks-token|0711-011053-turfs581|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive", "IsAuditTable": false, "SoftDeleteSource": "", "ProjectName": "ISUDATA", "ProjectId": 2, "TargetType": "BLOB Storage (json)", "TargetName": "ISU_0UC_REGINST_STR_ATTR", "TargetLocation": "ISU/0UC_REGINST_STR_ATTR", "TargetServer": "daf-sa-lake-sastoken", "DataLoadMode": "FULL-EXTRACT", "DeltaExtract": false, "CDCSource": false, "TruncateTarget": false, "UpsertTarget": true, "AppendTarget": null, "TrackChanges": false, "LoadToSqlEDW": true, "TaskName": "ISU_0UC_REGINST_STR_ATTR", "ControlStageId": 2, "TaskId": 46, "StageSequence": 200, "StageName": "Raw to Cleansed", "SourceId": 46, "TargetId": 46, "ObjectGrain": "Day", "CommandTypeId": 8, "Watermarks": "", "WatermarksDT": null, "WatermarkColumn": "", "BusinessKeyColumn": "logicalRegisterNumber,installationId,validToDate", "UpdateMetaData": null, "SourceTimeStampFormat": "", "Command": "", "LastLoadedFile": null}
+#{"SourceType": "BLOB Storage (json)", "SourceServer": "daf-sa-lake-sastoken", "SourceGroup": "ISU", "SourceName": "ISU_0UC_REGINST_STR_ATTR", "SourceLocation": "ISU/0UC_REGINST_STR_ATTR", "AdditionalProperty": "", "Processor": "databricks-token|0711-011053-turfs581|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive", "IsAuditTable": false, "SoftDeleteSource": "", "ProjectName": "ISUDATA", "ProjectId": 2, "TargetType": "BLOB Storage (json)", "TargetName": "ISU_0UC_REGINST_STR_ATTR", "TargetLocation": "ISU/0UC_REGINST_STR_ATTR", "TargetServer": "daf-sa-lake-sastoken", "DataLoadMode": "FULL-EXTRACT", "DeltaExtract": false, "CDCSource": false, "TruncateTarget": false, "UpsertTarget": true, "AppendTarget": null, "TrackChanges": false, "LoadToSqlEDW": true, "TaskName": "ISU_0UC_REGINST_STR_ATTR", "ControlStageId": 2, "TaskId": 46, "StageSequence": 200, "StageName": "Raw to Cleansed", "SourceId": 46, "TargetId": 46, "ObjectGrain": "Day", "CommandTypeId": 8, "Watermarks": "", "WatermarksDT": null, "WatermarkColumn": "", "BusinessKeyColumn": "logicalRegisterNumber,installationNumber,validToDate", "UpdateMetaData": null, "SourceTimeStampFormat": "", "Command": "", "LastLoadedFile": null}
 
 #Use this string in the Source Object widget
 #ISU_0UC_REGINST_STR_ATTR
@@ -175,23 +175,33 @@ df = spark.sql(f"WITH stage AS \
                                       WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' and DI_OPERATION_TYPE !='X' ) \
                            SELECT \
                                 case when LOGIKZW = 'na' then '' else LOGIKZW end as logicalRegisterNumber, \
-                                ZWNABR as registerNotRelevantToBilling, \
-                                case when ANLAGE = 'na' then '' else ANLAGE end as installationId, \
+                                case when ZWNABR = 'X' then 'Y' else 'N' end as registerNotRelevantToBilling, \
+                                case when ANLAGE = 'na' then '' else ANLAGE end as installationNumber, \
                                 ToValidDate(BIS) as validToDate, \
                                 ToValidDate(AB) as validFromDate, \
                                 GVERRECH as payRentalPrice, \
-                                TARIFART as rateTypeCode, \
+                                re.TARIFART as rateTypeCode, \
+                                st.rateType as rateType, \
                                 KONDIGR as rateFactGroupCode, \
-                                PREISKLA as priceClassCode, \
+                                re.PREISKLA as priceClassCode, \
+                                pt.priceClass, \
                                 LOEVM as deletedIndicator, \
                                 UPDMOD as bwDeltaProcess, \
-                                ZOPCODE as operationCode, \
+                                re.ZOPCODE as operationCode, \
+                                te.operationDescription, \
                                 cast('1900-01-01' as TimeStamp) as _RecordStart, \
                                 cast('9999-12-31' as TimeStamp) as _RecordEnd, \
                                 '0' as _RecordDeleted, \
                                 '1' as _RecordCurrent, \
                                 cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
-                        from stage where _RecordVersion = 1 ")
+                        from stage re \
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UC_STATTART_TEXT st ON re.TARIFART = st.rateTypeCode \
+                                                                                          and st._RecordDeleted = 0 and st._RecordCurrent = 1 \
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UC_PRICCLA_TEXT pt ON re.PREISKLA = pt.priceClassCode \
+                                                                                          and pt._RecordDeleted = 0 and pt._RecordCurrent = 1 \
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_TE405T te ON re.ZOPCODE = te.operationCode \
+                                                                                          and te._RecordDeleted = 0 and te._RecordCurrent = 1 \
+                        where re._RecordVersion = 1 ")
 
 #print(f'Number of rows: {df.count()}')
 
@@ -200,16 +210,19 @@ df = spark.sql(f"WITH stage AS \
 newSchema = StructType([
 	StructField('logicalRegisterNumber',StringType(),False),
 	StructField('registerNotRelevantToBilling',StringType(),True),
-	StructField('installationId',StringType(),False),
+	StructField('installationNumber',StringType(),False),
 	StructField('validToDate',DateType(),False),
 	StructField('validFromDate',DateType(),True),
 	StructField('payRentalPrice',StringType(),True),
 	StructField('rateTypeCode',StringType(),True),
+    StructField('rateType',StringType(),True),
 	StructField('rateFactGroupCode',StringType(),True),
 	StructField('priceClassCode',StringType(),True),
+    StructField('priceClass',StringType(),True),
 	StructField('deletedIndicator',StringType(),True),
 	StructField('bwDeltaProcess',StringType(),True),
 	StructField('operationCode',StringType(),True),
+    StructField('operationDescription',StringType(),True),
 	StructField('_RecordStart',TimestampType(),False),
 	StructField('_RecordEnd',TimestampType(),False),
 	StructField('_RecordDeleted',IntegerType(),False),

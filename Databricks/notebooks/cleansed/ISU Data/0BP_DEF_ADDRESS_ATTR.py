@@ -3,7 +3,51 @@
 import json
 #For unit testing...
 #Use this string in the Param widget: 
-#{"SourceType": "BLOB Storage (json)", "SourceServer": "daf-sa-lake-sastoken", "SourceGroup": "isu", "SourceName": "isu_0BP_DEF_ADDRESS_ATTR", "SourceLocation": "isu/0BP_DEF_ADDRESS_ATTR", "AdditionalProperty": "", "Processor": "databricks-token|0711-011053-turfs581|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive", "IsAuditTable": false, "SoftDeleteSource": "", "ProjectName": "ISU DATA", "ProjectId": 2, "TargetType": "BLOB Storage (json)", "TargetName": "isu_0BP_DEF_ADDRESS_ATTR", "TargetLocation": "isu/0BP_DEF_ADDRESS_ATTR", "TargetServer": "daf-sa-lake-sastoken", "DataLoadMode": "FULL-EXTRACT", "DeltaExtract": false, "CDCSource": false, "TruncateTarget": false, "UpsertTarget": true, "AppendTarget": null, "TrackChanges": false, "LoadToSqlEDW": true, "TaskName": "isu_0BP_DEF_ADDRESS_ATTR", "ControlStageId": 2, "TaskId": 46, "StageSequence": 200, "StageName": "Raw to Cleansed", "SourceId": 46, "TargetId": 46, "ObjectGrain": "Day", "CommandTypeId": 8, "Watermarks": "", "WatermarksDT": null, "WatermarkColumn": "", "BusinessKeyColumn": "businessPartnerNumber,addressNumber", "UpdateMetaData": null, "SourceTimeStampFormat": "", "Command": "", "LastLoadedFile": null}
+# {
+# 	"SourceType": "BLOB Storage (json)", 
+# 	"SourceServer": "daf-sa-lake-sastoken", 
+# 	"SourceGroup": "isudata", 
+# 	"SourceName": "isu_0BP_DEF_ADDRESS_ATTR", 
+# 	"SourceLocation": "isudata/0BP_DEF_ADDRESS_ATTR", 
+# 	"AdditionalProperty": "", 
+# 	"Processor": "databricks-token|0527-214324-ytwxx0tv|Standard_DS12_v2|10.4.x-scala2.12|2:28|interactive", 
+# 	"IsAuditTable": false, 
+# 	"SoftDeleteSource": "", 
+# 	"ProjectName": "CLEANSED ISU DATA", 
+# 	"ProjectId": 12, 
+# 	"TargetType": "BLOB Storage (json)", 
+# 	"TargetName": "isu_0BP_DEF_ADDRESS_ATTR", 
+# 	"TargetLocation": "isudata/0BP_DEF_ADDRESS_ATTR", 
+# 	"TargetServer": "daf-sa-lake-sastoken", 
+# 	"DataLoadMode": "INCREMENTAL", 
+# 	"DeltaExtract": true, 
+# 	"CDCSource": false, 
+# 	"TruncateTarget": false, 
+# 	"UpsertTarget": true, 
+# 	"AppendTarget": false, 
+# 	"TrackChanges": false, 
+# 	"LoadToSqlEDW": true, 
+# 	"TaskName": "isu_0BP_DEF_ADDRESS_ATTR", 
+# 	"ControlStageId": 2, 
+# 	"TaskId": 100, 
+# 	"StageSequence": 200, 
+# 	"StageName": "Raw to Cleansed", 
+# 	"SourceId": 100, 
+# 	"TargetId": 100, 
+# 	"ObjectGrain": "Day", 
+# 	"CommandTypeId": 8, 
+# 	"Watermarks": "2000-01-01 00:00:00", 
+# 	"WatermarksDT": "2000-01-01T00:00:00", 
+# 	"WatermarkColumn": "_FileDateTimeStamp", 
+# 	"BusinessKeyColumn": "businessPartnerNumber,addressNumber", 
+# 	"PartitionColumn": null, 
+# 	"UpdateMetaData": null, 
+# 	"SourceTimeStampFormat": "", 
+# 	"WhereClause": "",
+# 	"Command": "/build/cleansed/ISU Data/0BP_DEF_ADDRESS_ATTR", 
+# 	"LastSuccessfulExecutionTS": "2022-09-07",
+# 	"LastLoadedFile": null
+# }
 
 #Use this string in the Source Object widget
 #isu_0BP_DEF_ADDRESS_ATTR
@@ -85,7 +129,6 @@ print(start_counter)
 print(end_counter)
 print(source_param)
 
-
 # COMMAND ----------
 
 # DBTITLE 1,5. Format the Parameters into JSON
@@ -166,86 +209,111 @@ delta_raw_tbl_name = "{0}.{1}".format(ADS_DATABASE_RAW, source_object)
 print(delta_cleansed_tbl_name)
 print(delta_raw_tbl_name)
 
-
 # COMMAND ----------
 
 # DBTITLE 1,10. Load Raw to Dataframe & Do Transformations
-df = spark.sql(f"WITH stage AS \
-                      (Select *, ROW_NUMBER() OVER (PARTITION BY PARTNER,ADDRNUMBER ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} \
-                                     WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
-                           SELECT \
-                                case when PARTNER = 'na' then '' else PARTNER end as businessPartnerNumber, \
-                                PARTNER_GUID as businessPartnerGUID, \
-                                case when ADDRNUMBER = 'na' then '' else ADDRNUMBER end as addressNumber, \
-                                ToValidDate(DATE_FROM) as validFromDate, \
-                                ToValidDate(DATE_TO) as validToDate, \
-                                TITLE as titleCode, \
-                                NAME1 as businessPartnerName1, \
-                                NAME2 as businessPartnerName2, \
-                                NAME3 as businessPartnerName3, \
-                                NAME_CO as coName, \
-                                CITY1 as cityName, \
-                                CITY_CODE as cityCode, \
-                                POST_CODE1 as postalCode, \
-                                POST_CODE2 as poBoxPostalCode, \
-                                POST_CODE3 as companyPostalCode, \
-                                PO_BOX as poBoxCode, \
-                                PO_BOX_NUM as poBoxWithoutNumberIndicator, \
-                                PO_BOX_LOC as poBoxCity, \
-                                CITY_CODE2 as cityPoBoxCode, \
-                                STREET as streetName, \
-                                STREETCODE as streetCode, \
-                                HOUSE_NUM1 as houseNumber, \
-                                HOUSE_NUM2 as houseNumber2, \
-                                STR_SUPPL1 as streetType, \
-                                STR_SUPPL2 as streetLine3, \
-                                STR_SUPPL3 as streetLine4, \
-                                LOCATION as streetLine5, \
-                                BUILDING as building, \
-                                FLOOR as floorNumber, \
-                                ROOMNUMBER as apartmentNumber, \
-                                COUNTRY as countryShortName, \
-                                REGION as stateCode, \
-                                PERS_ADDR as personalAddressIndicator, \
-                                SORT1 as searchTerm1, \
-                                SORT2 as searchTerm2, \
-                                TEL_NUMBER as phoneNumber, \
-                                FAX_NUMBER as faxNumber, \
-                                TIME_ZONE as addressTimeZone, \
-                                SMTP_ADDR as emailAddress, \
-                                URI_ADDR as uriAddress, \
-                                TELDISPLAY as phoneNumberDisplayFormat, \
-                                FAXDISPLAY as faxDisplayFormat, \
-                                cast(LONGITUDE as dec(15,12)) as longitude, \
-                                cast(LATITUDE as dec(15,12)) as latitude, \
-                                cast(ALTITUDE as dec(9,3)) as altitude, \
-                                PRECISID as precision, \
-                                ADDRCOMM as communicationAddressNumber, \
-                                ADDR_SHORT as shortFormattedAddress, \
-                                ADDR_SHORT_S as shortFormattedAddress2, \
-                                LINE0 as addressLine0, \
-                                LINE1 as addressLine1, \
-                                LINE2 as addressLine2, \
-                                LINE3 as addressLine3, \
-                                LINE4 as addressLine4, \
-                                LINE5 as addressLine5, \
-                                LINE6 as addressLine6, \
-                                LINE7 as addressLine7, \
-                                LINE8 as addressLine8, \
-                                ZZMOBILENO as mobileNumber, \
-                                ZZTELNO as phoneNumberWithExtension, \
-                                PCODE1_EXT as postalCodeExtension, \
-                                PCODE2_EXT as poBoxExtension, \
-                                DELI_SERV_TYPE as deliveryServiceTypeCode, \
-                                DELI_SERV_NUMBER as deliveryServiceNumber, \
-                                cast('1900-01-01' as TimeStamp) as _RecordStart, \
-                                cast('9999-12-31' as TimeStamp) as _RecordEnd, \
-                                '0' as _RecordDeleted, \
-                                '1' as _RecordCurrent, \
-                                cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
-                        from stage where _RecordVersion = 1 ")
-
-#print(f'Number of rows: {df.count()}')
+df = spark.sql(f"""
+    WITH stage AS (
+        SELECT
+            *, 
+            ROW_NUMBER() OVER (PARTITION BY PARTNER,ADDRNUMBER ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion 
+        FROM {delta_raw_tbl_name} 
+        WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' 
+    ) 
+                            
+        SELECT 
+            CASE 
+                WHEN PARTNER = 'na' 
+                THEN '' 
+                ELSE PARTNER 
+            END                                        as businessPartnerNumber, 
+            PARTNER_GUID                               as businessPartnerGUID, 
+            CASE 
+                WHEN ADDRNUMBER = 'na' 
+                THEN '' 
+                ELSE ADDRNUMBER 
+            END                                        as addressNumber, 
+            ToValidDate(DATE_FROM)                     as validFromDate, 
+            ToValidDate(DATE_TO)                       as validToDate, 
+            TITLE                                      as titleCode, 
+            NAME1                                      as businessPartnerName1, 
+            NAME2                                      as businessPartnerName2, 
+            NAME3                                      as businessPartnerName3, 
+            NAME_CO                                    as coName, 
+            CITY1                                      as cityName, 
+            CITY_CODE                                  as cityCode, 
+            POST_CODE1                                 as postalCode, 
+            POST_CODE2                                 as poBoxPostalCode, 
+            POST_CODE3                                 as companyPostalCode, 
+            PO_BOX                                     as poBoxCode, 
+            PO_BOX_NUM                                 as poBoxWithoutNumberIndicator, 
+            PO_BOX_LOC                                 as poBoxCity, 
+            CITY_CODE2                                 as cityPoBoxCode, 
+            STREET                                     as streetName, 
+            STREETCODE                                 as streetCode, 
+            HOUSE_NUM1                                 as houseNumber, 
+            HOUSE_NUM2                                 as houseNumber2, 
+            STR_SUPPL1                                 as streetSupplementName1, 
+            STR_SUPPL2                                 as streetSupplementName2, 
+            STR_SUPPL3                                 as otherLocationName, 
+            LOCATION                                   as streetLine5, 
+            TEL_EXTENS                                 as phoneExtension, 
+            FAX_EXTENS                                 as faxExtension, 
+            BUILDING                                   as building, 
+            FLOOR                                      as floorNumber, 
+            ROOMNUMBER                                 as apartmentNumber, 
+            COUNTRY                                    as countryShortName, 
+            t005t.countryName                          as countryName, 
+            REGION                                     as stateCode, 
+            CASE
+                WHEN PERS_ADDR = 'X'
+                THEN 'Y'
+                ELSE 'N'
+            END                                        as personalAddressFlag, 
+            SORT1                                      as searchTerm1, 
+            SORT2                                      as searchTerm2, 
+            TEL_NUMBER                                 as phoneNumber, 
+            FAX_NUMBER                                 as faxNumber, 
+            TIME_ZONE                                  as addressTimeZone, 
+            SMTP_ADDR                                  as emailAddress, 
+            URI_ADDR                                   as uriAddress, 
+            TELDISPLAY                                 as phoneNumberDisplayFormat, 
+            FAXDISPLAY                                 as faxDisplayFormat, 
+            CAST(LONGITUDE as dec(15,12))              as longitude, 
+            CAST(LATITUDE as dec(15,12))               as latitude, 
+            CAST(ALTITUDE as dec(9,3))                 as altitude, 
+            PRECISID                                   as precision, 
+            ADDRCOMM                                   as communicationAddressNumber, 
+            ADDR_SHORT                                 as shortFormattedAddress, 
+            ADDR_SHORT_S                               as shortFormattedAddress2, 
+            LINE0                                      as addressLine0, 
+            LINE1                                      as addressLine1, 
+            LINE2                                      as addressLine2, 
+            LINE3                                      as addressLine3, 
+            LINE4                                      as addressLine4, 
+            LINE5                                      as addressLine5, 
+            LINE6                                      as addressLine6, 
+            LINE7                                      as addressLine7, 
+            LINE8                                      as addressLine8, 
+            ZZMOBILENO                                 as mobileNumber, 
+            ZZTELNO                                    as phoneNumberWithExtension, 
+            PCODE1_EXT                                 as postalCodeExtension, 
+            PCODE2_EXT                                 as poBoxExtension, 
+            DELI_SERV_TYPE                             as deliveryServiceTypeCode, 
+            DELI_SERV_NUMBER                           as deliveryServiceNumber, 
+            CAST('1900-01-01' as TimeStamp)            as _RecordStart, 
+            CAST('9999-12-31' as TimeStamp)            as _RecordEnd, 
+            '0'                                        as _RecordDeleted, 
+            '1'                                        as _RecordCurrent, 
+            CAST('{CurrentTimeStamp}' as TimeStamp)    as _DLCleansedZoneTimeStamp 
+        FROM stage ADDR
+        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_t005t t005t ON 
+            ADDR.COUNTRY = t005t.countryCode
+        WHERE ADDR._RecordVersion = 1 
+        """
+)
+# print(f'Number of rows: {df.count()}')
+# display(df)
 
 # COMMAND ----------
 
@@ -328,78 +396,79 @@ df = spark.sql(f"WITH stage AS \
 # COMMAND ----------
 
 newSchema = StructType([
-                        StructField('businessPartnerNumber', StringType(), False),
-                        StructField('businessPartnerGUID', StringType(), True),
-                        StructField('addressNumber', StringType(), False),
-                        StructField('validFromDate', DateType(), True),
-                        StructField('validToDate', DateType(), True),
-                        StructField('titleCode', StringType(), True),
-                        StructField('businessPartnerName1', StringType(), True),
-                        StructField('businessPartnerName2', StringType(), True),
-                        StructField('businessPartnerName3', StringType(), True),
-                        StructField('coName', StringType(), True),
-                        StructField('cityName', StringType(), True),
-                        StructField('cityCode', StringType(), True),
-                        StructField('postalCode', StringType(), True),
-                        StructField('poBoxPostalCode', StringType(), True),
-                        StructField('companyPostalCode', StringType(), True),
-                        StructField('poBoxCode', StringType(), True),
-                        StructField('poBoxWithoutNumberIndicator', StringType(), True),
-                        StructField('poBoxCity', StringType(), True),
-                        StructField('cityPoBoxCode', StringType(), True),
-                        StructField('streetName', StringType(), True),
-                        StructField('streetCode', StringType(), True),
-                        StructField('houseNumber', StringType(), True),
-                        StructField('houseNumber2', StringType(), True),
-                        StructField('streetType', StringType(), True),
-                        StructField('streetLine3', StringType(), True),
-                        StructField('streetLine4', StringType(), True),
-                        StructField('streetLine5', StringType(), True),
-                        StructField('building', StringType(), True),
-                        StructField('floorNumber', StringType(), True),
-                        StructField('apartmentNumber', StringType(), True),
-                        StructField('countryShortName', StringType(), True),
-                        StructField('stateCode', StringType(), True),
-                        StructField('personalAddressIndicator', StringType(), True),
-                        StructField('searchTerm1', StringType(), True),
-                        StructField('searchTerm2', StringType(), True),
-                        StructField('phoneNumber', StringType(), True),
-                        StructField('faxNumber', StringType(), True),
-                        StructField('addressTimeZone', StringType(), True),
-                        StructField('emailAddress', StringType(), True),
-                        StructField('uriAddress', StringType(), True),
-                        StructField('phoneNumberDisplayFormat', StringType(), True),
-                        StructField('faxDisplayFormat', StringType(), True),
-                        StructField('longitude', DecimalType(15,12), True),
-                        StructField('latitude', DecimalType(15,12), True),
-                        StructField('altitude', DecimalType(9,3), True),
-                        StructField('precision', StringType(), True),
-                        StructField('communicationAddressNumber', StringType(), True),
-                        StructField('shortFormattedAddress', StringType(), True),
-                        StructField('shortFormattedAddress2', StringType(), True),
-                        StructField('addressLine0', StringType(), True),
-                        StructField('addressLine1', StringType(), True),
-                        StructField('addressLine2', StringType(), True),
-                        StructField('addressLine3', StringType(), True),
-                        StructField('addressLine4', StringType(), True),
-                        StructField('addressLine5', StringType(), True),
-                        StructField('addressLine6', StringType(), True),
-                        StructField('addressLine7', StringType(), True),
-                        StructField('addressLine8', StringType(), True),
-                        StructField('mobileNumber', StringType(), True),
-                        StructField('phoneNumberWithExtension', StringType(), True),
-                        StructField('postalCodeExtension', StringType(), True),
-                        StructField('poBoxExtension', StringType(), True),
-                        StructField('deliveryServiceTypeCode', StringType(), True),
-                        StructField('deliveryServiceNumber', StringType(), True),
-                        StructField('_RecordStart', TimestampType(), False),
-                        StructField('_RecordEnd', TimestampType(), False),
-                        StructField('_RecordDeleted', IntegerType(), False),
-                        StructField('_RecordCurrent', IntegerType(), False),
-                        StructField('_DLCleansedZoneTimeStamp',TimestampType(),False)
-                      ])
-
-
+  StructField('businessPartnerNumber', StringType(), False),
+  StructField('businessPartnerGUID', StringType(), True),
+  StructField('addressNumber', StringType(), False),
+  StructField('validFromDate', DateType(), True),
+  StructField('validToDate', DateType(), True),
+  StructField('titleCode', StringType(), True),
+  StructField('businessPartnerName1', StringType(), True),
+  StructField('businessPartnerName2', StringType(), True),
+  StructField('businessPartnerName3', StringType(), True),
+  StructField('coName', StringType(), True),
+  StructField('cityName', StringType(), True),
+  StructField('cityCode', StringType(), True),
+  StructField('postalCode', StringType(), True),
+  StructField('poBoxPostalCode', StringType(), True),
+  StructField('companyPostalCode', StringType(), True),
+  StructField('poBoxCode', StringType(), True),
+  StructField('poBoxWithoutNumberIndicator', StringType(), True),
+  StructField('poBoxCity', StringType(), True),
+  StructField('cityPoBoxCode', StringType(), True),
+  StructField('streetName', StringType(), True),
+  StructField('streetCode', StringType(), True),
+  StructField('houseNumber', StringType(), True),
+  StructField('houseNumber2', StringType(), True),
+  StructField('streetSupplementName1', StringType(), True),
+  StructField('streetSupplementName2', StringType(), True),
+  StructField('otherLocationName', StringType(), True),
+  StructField('streetLine5', StringType(), True),
+  StructField('phoneExtension', StringType(), True),
+  StructField('faxExtension', StringType(), True),
+  StructField('building', StringType(), True),
+  StructField('floorNumber', StringType(), True),
+  StructField('apartmentNumber', StringType(), True),
+  StructField('countryShortName', StringType(), True),
+  StructField('countryName', StringType(), True),
+  StructField('stateCode', StringType(), True),
+  StructField('personalAddressFlag', StringType(), True),
+  StructField('searchTerm1', StringType(), True),
+  StructField('searchTerm2', StringType(), True),
+  StructField('phoneNumber', StringType(), True),
+  StructField('faxNumber', StringType(), True),
+  StructField('addressTimeZone', StringType(), True),
+  StructField('emailAddress', StringType(), True),
+  StructField('uriAddress', StringType(), True),
+  StructField('phoneNumberDisplayFormat', StringType(), True),
+  StructField('faxDisplayFormat', StringType(), True),
+  StructField('longitude', DecimalType(15,12), True),
+  StructField('latitude', DecimalType(15,12), True),
+  StructField('altitude', DecimalType(9,3), True),
+  StructField('precision', StringType(), True),
+  StructField('communicationAddressNumber', StringType(), True),
+  StructField('shortFormattedAddress', StringType(), True),
+  StructField('shortFormattedAddress2', StringType(), True),
+  StructField('addressLine0', StringType(), True),
+  StructField('addressLine1', StringType(), True),
+  StructField('addressLine2', StringType(), True),
+  StructField('addressLine3', StringType(), True),
+  StructField('addressLine4', StringType(), True),
+  StructField('addressLine5', StringType(), True),
+  StructField('addressLine6', StringType(), True),
+  StructField('addressLine7', StringType(), True),
+  StructField('addressLine8', StringType(), True),
+  StructField('mobileNumber', StringType(), True),
+  StructField('phoneNumberWithExtension', StringType(), True),
+  StructField('postalCodeExtension', StringType(), True),
+  StructField('poBoxExtension', StringType(), True),
+  StructField('deliveryServiceTypeCode', StringType(), True),
+  StructField('deliveryServiceNumber', StringType(), True),
+  StructField('_RecordStart', TimestampType(), False),
+  StructField('_RecordEnd', TimestampType(), False),
+  StructField('_RecordDeleted', IntegerType(), False),
+  StructField('_RecordCurrent', IntegerType(), False),
+  StructField('_DLCleansedZoneTimeStamp',TimestampType(), False)
+])
 
 # COMMAND ----------
 
