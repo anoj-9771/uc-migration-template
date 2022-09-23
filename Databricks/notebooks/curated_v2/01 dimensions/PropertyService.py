@@ -18,13 +18,13 @@ def getPropertyService():
                         where isu_vibdcharact.fixtureAndFittingCharacteristic NOT in ('WATER DELIVERY SYSTEM', 'WATER DISTRIBUTION SYSTEM', 'WATER PRESSURE ZONE', 'WATER SUPPLY ZONE', 'RECYCLED WATER DELIVERY SYSTEM', 'RECYCLED WATER DISTRIBUTION SYSTEM', 'RECYCLED WATER SUPPLY ZONE','SEWERAGE NETWORK', 'SEWERAGE CATCHMENT', 'SCAMP','STORMWATER RECEIVING WATERS', 'STORMWATER CATCHMENT')""")
     
     schema = StructType([StructField('propertyServiceSK', StringType(), False),
-                         StructField('propertyNumber', StringType(), True),
+                         StructField('propertyNumber', StringType(), False),
                          StructField("architecturalObjectInternalId", StringType(), True),
-                         StructField("validToDate", DateType(), True),
-                         StructField("validFromDate", DateType(), True),
-                         StructField("fixtureAndFittingCharacteristicCode", StringType(), True),
-                         StructField("fixtureAndFittingCharacteristic", StringType(), True),
-                         StructField("supplementInfo", StringType(), True)])
+                         StructField("validToDate", DateType(), False),
+                         StructField("validFromDate", DateType(), False),
+                         StructField("fixtureAndFittingCharacteristicCode", StringType(), False),
+                         StructField("fixtureAndFittingCharacteristic", StringType(), False),
+                         StructField("supplementInfo", StringType(), False)])
     
     return df_isu, schema
 
