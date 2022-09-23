@@ -16,14 +16,14 @@ def getPropertyRelation():
                                         from {ADS_DATABASE_CLEANSED}.isu_zcd_tprop_rel""")
     
     schema = StructType([StructField('propertyRelationSK', StringType(), False),
-                         StructField('property1Number', StringType(), True),
-                         StructField("property2Number", StringType(), True),
-                         StructField("validFromDate", DateType(), True),
-                         StructField("validToDate", DateType(), True),
-                         StructField("relationshipTypeCode1", StringType(), True),
-                         StructField("relationshipType1", StringType(), True),
-                         StructField("relationshipTypeCode2", StringType(), True),
-                         StructField("relationshipType2", StringType(), True)])
+                         StructField('property1Number', StringType(), False),
+                         StructField("property2Number", StringType(), False),
+                         StructField("validFromDate", DateType(), False),
+                         StructField("validToDate", DateType(), False),
+                         StructField("relationshipTypeCode1", StringType(), False),
+                         StructField("relationshipType1", StringType(), False),
+                         StructField("relationshipTypeCode2", StringType(), False),
+                         StructField("relationshipType2", StringType(), False)])
     
     return df_isu, schema
 

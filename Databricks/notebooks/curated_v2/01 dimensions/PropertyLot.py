@@ -15,14 +15,14 @@ def getPropertyLot():
                                         propertyNumber from {ADS_DATABASE_CLEANSED}.isu_0uc_connobj_attr_2 where propertyNumber <> ''""")
     
     schema = StructType([StructField('propertyLotSK', StringType(), False),
-                         StructField('planTypeCode', StringType(), True),
+                         StructField('planTypeCode', StringType(), False),
                          StructField("planType", StringType(), True),
-                         StructField("planNumber", StringType(), True),
-                         StructField("lotTypeCode", StringType(), True),
+                         StructField("planNumber", StringType(), False),
+                         StructField("lotTypeCode", StringType(), False),
                          StructField("lotType", StringType(), True),
-                         StructField("lotNumber", StringType(), True),
-                         StructField("sectionNumber", StringType(), True),
-                         StructField("propertyNumber", StringType(), True)])
+                         StructField("lotNumber", StringType(), False),
+                         StructField("sectionNumber", StringType(), False),
+                         StructField("propertyNumber", StringType(), False)])
     
     return df_isu, schema
 
