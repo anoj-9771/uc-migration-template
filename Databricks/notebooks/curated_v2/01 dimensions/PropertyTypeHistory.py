@@ -69,12 +69,12 @@ def getPropertyTypeHistory():
     
     schema = StructType([StructField('propertyTypeHistorySK', StringType(), False),
                          StructField('propertyNumber', StringType(), False),
-                         StructField("superiorPropertyTypeCode", StringType(), True),
-                         StructField("superiorPropertyType", StringType(), True),
-                         StructField("inferiorPropertyTypeCode", StringType(), True),
-                         StructField("inferiorPropertyType", StringType(), True),
-                         StructField("ValidFromDate", DateType(), True),
-                         StructField("ValidToDate", DateType(), True)])
+                         StructField("superiorPropertyTypeCode", StringType(), False),
+                         StructField("superiorPropertyType", StringType(), False),
+                         StructField("inferiorPropertyTypeCode", StringType(), False),
+                         StructField("inferiorPropertyType", StringType(), False),
+                         StructField("ValidFromDate", DateType(), False),
+                         StructField("ValidToDate", DateType(), False)])
     
     return df, schema
 
