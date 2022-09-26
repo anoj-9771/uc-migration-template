@@ -19,7 +19,7 @@ def getDeviceCharacteristics():
     isuDeviceCharacteristicsDf  = spark.sql(f"""
                                     WITH ausp AS (
                                               SELECT characteristicInternalId, 
-                                                  CONCAT_WS(',',SORT_ARRAY(COLLECT_LIST(STRUCT(characteristicValueInternalId,characteristicValueCode))).characteristicValueCode) AS characteristicValueCode 
+                                                  CONCAT_WS(' ',SORT_ARRAY(COLLECT_LIST(STRUCT(characteristicValueInternalId,characteristicValueCode))).characteristicValueCode) AS characteristicValueCode 
                                               FROM {ADS_DATABASE_CLEANSED}.isu_ausp ausp 
                                               WHERE _RecordCurrent = 1 and _RecordDeleted = 0
                                               GROUP BY characteristicInternalId
