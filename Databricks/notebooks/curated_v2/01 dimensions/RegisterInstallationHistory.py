@@ -26,7 +26,8 @@ def getRegisterInstallationHistory():
                                                   rateTypeCode,
                                                   rateType,
                                                   registerNotRelevantToBilling,
-                                                  rateFactGroupCode
+                                                  rateFactGroupCode,
+                                                  rateFactGroup
                                               from {ADS_DATABASE_CLEANSED}.isu_0UC_REGINST_STR_ATTR rih
                                               where rih._RecordCurrent = 1 and  rih._RecordDeleted = 0
                                         """)
@@ -47,7 +48,8 @@ def getRegisterInstallationHistory():
                             StructField('rateTypeCode', StringType(), True),
                             StructField('rateType', StringType(), True),
                             StructField('registerNotRelevantToBilling', StringType(), True),
-                            StructField('rateFactGroupCode', StringType(), True)
+                            StructField('rateFactGroupCode', StringType(), True),
+                            StructField('rateFactGroup', StringType(), True)
                       ])    
     
     return dfResult, schema

@@ -183,6 +183,7 @@ df = spark.sql(f"WITH stage AS \
                                 re.TARIFART as rateTypeCode, \
                                 st.rateType as rateType, \
                                 KONDIGR as rateFactGroupCode, \
+                                te67.rateFactGroup, \
                                 re.PREISKLA as priceClassCode, \
                                 pt.priceClass, \
                                 LOEVM as deletedIndicator, \
@@ -201,6 +202,8 @@ df = spark.sql(f"WITH stage AS \
                                                                                           and pt._RecordDeleted = 0 and pt._RecordCurrent = 1 \
                         LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_TE405T te ON re.ZOPCODE = te.operationCode \
                                                                                           and te._RecordDeleted = 0 and te._RecordCurrent = 1 \
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_TE067T te67 ON re.KONDIGR = te67.rateFactGroupCode \
+                                                                                          and te67._RecordDeleted = 0 and te67._RecordCurrent = 1 \
                         where re._RecordVersion = 1 ")
 
 #print(f'Number of rows: {df.count()}')
@@ -217,6 +220,7 @@ newSchema = StructType([
 	StructField('rateTypeCode',StringType(),True),
     StructField('rateType',StringType(),True),
 	StructField('rateFactGroupCode',StringType(),True),
+    StructField('rateFactGroup',StringType(),True),
 	StructField('priceClassCode',StringType(),True),
     StructField('priceClass',StringType(),True),
 	StructField('deletedIndicator',StringType(),True),
