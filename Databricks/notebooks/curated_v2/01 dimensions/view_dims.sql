@@ -400,7 +400,7 @@ CREATE OR REPLACE VIEW curated_v2.view_businesspartner AS
      )  
  
  /*============================
-    view_businessPartnerGroup
+    view_businessPartner
  ==============================*/
  SELECT
     /* Business Partner Columns */
