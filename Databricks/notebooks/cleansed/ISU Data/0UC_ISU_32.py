@@ -3,7 +3,51 @@
 import json
 #For unit testing...
 #Use this string in the Param widget: 
-#{"SourceType": "BLOB Storage (json)", "SourceServer": "daf-sa-lake-sastoken", "SourceGroup": "ISU", "SourceName": "ISU_0UC_ISU_32", "SourceLocation": "ISU/0UC_ISU_32", "AdditionalProperty": "", "Processor": "databricks-token|0711-011053-turfs581|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive", "IsAuditTable": false, "SoftDeleteSource": "", "ProjectName": "ISU DATA", "ProjectId": 2, "TargetType": "BLOB Storage (json)", "TargetName": "ISU_0UC_ISU_32", "TargetLocation": "ISU/0UC_ISU_32", "TargetServer": "daf-sa-lake-sastoken", "DataLoadMode": "FULL-EXTRACT", "DeltaExtract": false, "CDCSource": false, "TruncateTarget": false, "UpsertTarget": true, "AppendTarget": null, "TrackChanges": false, "LoadToSqlEDW": true, "TaskName": "ISU_0UC_ISU_32", "ControlStageId": 2, "TaskId": 46, "StageSequence": 200, "StageName": "Raw to Cleansed", "SourceId": 46, "TargetId": 46, "ObjectGrain": "Day", "CommandTypeId": 8, "Watermarks": "", "WatermarksDT": null, "WatermarkColumn": "", "BusinessKeyColumn": "validToDatetime,disconnectionActivityPeriod,disconnectionDocumentNumber,disconnectionObjectNumber", "UpdateMetaData": null, "SourceTimeStampFormat": "", "Command": "", "LastLoadedFile": null}
+# {
+# 	"SourceType": "BLOB Storage (json)", 
+# 	"SourceServer": "daf-sa-lake-sastoken", 
+# 	"SourceGroup": "isudata", 
+# 	"SourceName": "isu_0UC_ISU_32", 
+# 	"SourceLocation": "isudata/0UC_ISU_32", 
+# 	"AdditionalProperty": "", 
+# 	"Processor": "databricks-token|0505-021119-s07txzr6|Standard_DS12_v2|10.4.x-scala2.12|2:28|interactive", 
+# 	"IsAuditTable": false, 
+# 	"SoftDeleteSource": "", 
+# 	"ProjectName": "CLEANSED ISU DATA", 
+# 	"ProjectId": 12, 
+# 	"TargetType": "BLOB Storage (json)", 
+# 	"TargetName": "isu_0UC_ISU_32", 
+# 	"TargetLocation": "isudata/0UC_ISU_32", 
+# 	"TargetServer": "daf-sa-lake-sastoken", 
+# 	"DataLoadMode": "INCREMENTAL", 
+# 	"DeltaExtract": true, 
+# 	"CDCSource": false, 
+# 	"TruncateTarget": false, 
+# 	"UpsertTarget": true, 
+# 	"AppendTarget": false, 
+# 	"TrackChanges": false, 
+# 	"LoadToSqlEDW": true, 
+# 	"TaskName": "isu_0UC_ISU_32", 
+# 	"ControlStageId": 2, 
+# 	"TaskId": 138, 
+# 	"StageSequence": 200, 
+# 	"StageName": "Raw to Cleansed", 
+# 	"SourceId": 138, 
+# 	"TargetId": 138, 
+# 	"ObjectGrain": "Day", 
+# 	"CommandTypeId": 8, 
+# 	"Watermarks": "2000-01-01 00:00:00", 
+# 	"WatermarksDT": "2000-01-01T00:00:00", 
+# 	"WatermarkColumn": "_FileDateTimeStamp", 
+# 	"BusinessKeyColumn": "disconnectionDocumentNumber,disconnectionActivityPeriod,disconnectionObjectNumber", 
+# 	"PartitionColumn": null, 
+# 	"UpdateMetaData": null, 
+# 	"SourceTimeStampFormat": "", 
+# 	"WhereClause": "",
+# 	"Command": "/build/cleansed/ISU Data/0UC_ISU_32", 
+# 	"LastSuccessfulExecutionTS": "1900-01-01",
+# 	"LastLoadedFile": null
+# }
 
 #Use this string in the Source Object widget
 #ISU_0UC_ISU_32
@@ -170,70 +214,69 @@ print(delta_raw_tbl_name)
 # COMMAND ----------
 
 # DBTITLE 1,10. Load Raw to Dataframe & Do Transformations
-df = spark.sql(f"WITH stage AS \
-                      (Select *, ROW_NUMBER() OVER (PARTITION BY DISCNO,DISCACT_BEGIN,DISCOBJ ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} \
-                                      WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
-                           SELECT \
-                                ToValidDate(AB) as  validFromDate, \
-                                ToValidDate(ACTDATE) as disconnectiondate, \
-                                ANLAGE as installationId, \
-                                ToValidDate(BIS) as validToDate, \
-                                CON_CARDTYP as concessionCardTypeCode, \
-                                CONNOBJ as propertyNumber, \
-                                CONTRACT as currentInstallationContract, \
-                                cast(COUNTER as dec(16,0)) as billedValueCounter, \
-                                case when DISCACT_BEGIN = 'na' then '' else DISCACT_BEGIN end as disconnectionActivityPeriod, \
-                                DISCACTTYP as disconnectionActivityTypeCode, \
-                                dd.domainValueText as disconnectionActivityType, \
-                                case when DISCNO = 'na' then '' else DISCNO end as disconnectionDocumentNumber, \
-                                case when DISCOBJ = 'na' then '' else DISCOBJ end as disconnectionObjectNumber, \
-                                DISCOBJTYP as disconnectionObjectTypeCode, \
-                                DISCPROCV as processingVariantCode, \
-                                di.applicationFormDescription as processingVariant, \
-                                DISCREASON as disconnectionReasonCode, \
-                                dis.disconnectionReason as disconnectionReason, \
-                                EQUINR as equipmentNumber, \
-                                FAILED_ATTEMPTS as documentItemNumber, \
-                                ToValidDate(FPD) as documentPostingDate, \
-                                LADEMODUS as loadMode, \
-                                MATXT as activityText, \
-                                MNCOD as activityCode, \
-                                cast(N_ZWSTAND as dec(14,0)) as meterReadingAfterDecimalPoint, \
-                                ORDSTATE as disconnectionReconnectionStatusCode, \
-                                edi.confirmationStatus as disconnectionReconnectionStatus, \
-                                PARTNER as businessPartnerNumber, \
-                                PREMISE as premise, \
-                                RECORDMODE as recordMode, \
-                                REFOBJKEY as referenceObjectKey, \
-                                REFOBJTYPE as referenceObjectTypeCode, \
-                                cast(V_ZWSTAND as dec(17,0)) as meterReadingBeforeDecimalPoint, \
-                                VKONT as contractAccountNumber, \
-                                ToValidDate(ZACTDATE) as zDisconnectionDate, \
-                                ZILART as maintenanceTypeCode, \
-                                ZSTATUS as disconnectionDocumentStatusCode, \
-                                dd1.domainValueText as disconnectionDocumentStatus, \
-                                ZZORDERNUM as orderNumber, \
-                                cast('1900-01-01' as TimeStamp) as _RecordStart, \
-                                cast('9999-12-31' as TimeStamp) as _RecordEnd, \
-                                '0' as _RecordDeleted, \
-                                '1' as _RecordCurrent, \
-                                cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
-                        FROM stage isu \
-                          LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_DD07T dd ON isu.DISCACTTYP = dd.domainValueSingleUpperLimit and dd.domainName ='DISCACTTYP' and dd._RecordDeleted = 0 and dd._RecordCurrent = 1 \
-                          LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UC_DISCPRV_TEXT di ON isu.DISCPROCV = di.processingVariantCode and di._RecordDeleted = 0 and di._RecordCurrent = 1 \
-                          LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UC_DISCREAS_TEXT dis ON isu.DISCREASON = dis.disconnectionReasonCode and dis._RecordDeleted = 0 and dis._RecordCurrent = 1 \
-                          LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_EDISCORDSTATET edi ON isu.ORDSTATE = edi.confirmationStatusCode and edi._RecordDeleted = 0 and edi._RecordCurrent = 1 \
-                          LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_DD07T dd1 ON isu.ZSTATUS = dd1.domainValueSingleUpperLimit and dd1.domainName ='EDCDOCSTAT' and dd1._RecordDeleted = 0 and dd1._RecordCurrent = 1 \
-                        where isu._RecordVersion = 1 ")
-
-print(f'Number of rows: {df.count()}')
+df = spark.sql(f"""WITH stage AS 
+                      (Select *, ROW_NUMBER() OVER (PARTITION BY DISCNO,DISCACT_BEGIN,DISCOBJ ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} 
+                                      WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') 
+                           SELECT 
+                                ToValidDate(AB) as  validFromDate, 
+                                ToValidDate(ACTDATE) as disconnectiondate, 
+                                ANLAGE as installationNumber, 
+                                ToValidDate(BIS) as validToDate, 
+                                CON_CARDTYP as concessionCardTypeCode, 
+                                CONNOBJ as propertyNumber, 
+                                CONTRACT as currentInstallationContract, 
+                                cast(COUNTER as dec(16,0)) as billedValueCounter, 
+                                case when DISCACT_BEGIN = 'na' then '' else DISCACT_BEGIN end as disconnectionActivityPeriod, 
+                                DISCACTTYP as disconnectionActivityTypeCode, 
+                                dd.domainValueText as disconnectionActivityType, 
+                                case when DISCNO = 'na' then '' else DISCNO end as disconnectionDocumentNumber, 
+                                case when DISCOBJ = 'na' then '' else DISCOBJ end as disconnectionObjectNumber, 
+                                DISCOBJTYP as disconnectionObjectTypeCode, 
+                                DISCPROCV as processingVariantCode, 
+                                di.applicationFormDescription as processingVariant, 
+                                DISCREASON as disconnectionReasonCode, 
+                                dis.disconnectionReason as disconnectionReason, 
+                                EQUINR as equipmentNumber, 
+                                FAILED_ATTEMPTS as documentItemNumber, 
+                                ToValidDate(FPD) as documentPostingDate, 
+                                LADEMODUS as loadMode, 
+                                MATXT as activityText, 
+                                MNCOD as activityCode, 
+                                cast(N_ZWSTAND as dec(14,0)) as meterReadingAfterDecimalPoint, 
+                                ORDSTATE as disconnectionReconnectionStatusCode, 
+                                edi.confirmationStatus as disconnectionReconnectionStatus, 
+                                PARTNER as businessPartnerNumber, 
+                                PREMISE as premise, 
+                                RECORDMODE as recordMode, 
+                                REFOBJKEY as referenceObjectKey, 
+                                REFOBJTYPE as referenceObjectTypeCode, 
+                                cast(V_ZWSTAND as dec(17,0)) as meterReadingBeforeDecimalPoint, 
+                                VKONT as contractAccountNumber, 
+                                ToValidDate(ZACTDATE) as zDisconnectionDate, 
+                                ZILART as maintenanceTypeCode, 
+                                ZSTATUS as disconnectionDocumentStatusCode, 
+                                dd1.domainValueText as disconnectionDocumentStatus, 
+                                ZZORDERNUM as orderNumber, 
+                                cast('1900-01-01' as TimeStamp) as _RecordStart, 
+                                cast('9999-12-31' as TimeStamp) as _RecordEnd, 
+                                '0' as _RecordDeleted, 
+                                '1' as _RecordCurrent, 
+                                cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp 
+                        FROM stage isu 
+                          LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_DD07T dd ON isu.DISCACTTYP = dd.domainValueSingleUpperLimit and dd.domainName ='DISCACTTYP' and dd._RecordDeleted = 0 and dd._RecordCurrent = 1 
+                          LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UC_DISCPRV_TEXT di ON isu.DISCPROCV = di.processingVariantCode and di._RecordDeleted = 0 and di._RecordCurrent = 1 
+                          LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UC_DISCREAS_TEXT dis ON isu.DISCREASON = dis.disconnectionReasonCode and dis._RecordDeleted = 0 and dis._RecordCurrent = 1 
+                          LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_EDISCORDSTATET edi ON isu.ORDSTATE = edi.confirmationStatusCode and edi._RecordDeleted = 0 and edi._RecordCurrent = 1 
+                          LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_DD07T dd1 ON isu.ZSTATUS = dd1.domainValueSingleUpperLimit and dd1.domainName ='EDCDOCSTAT' and dd1._RecordDeleted = 0 and dd1._RecordCurrent = 1 
+                        where isu._RecordVersion = 1 """)
+#print(f'Number of rows: {df.count()}')
 
 # COMMAND ----------
 
 newSchema = StructType([
                       StructField('validFromDate',DateType(),True),
                       StructField('disconnectiondate',DateType(),True),
-                      StructField('installationId',StringType(),True),
+                      StructField('installationNumber',StringType(),True),
                       StructField('validToDate',DateType(),True),
                       StructField('concessionCardTypeCode',StringType(),True),
                       StructField('propertyNumber',StringType(),True),
@@ -276,8 +319,6 @@ newSchema = StructType([
                       StructField('_RecordCurrent',IntegerType(),False),
                       StructField('_DLCleansedZoneTimeStamp',TimestampType(),False)
                   ])
-
-
 
 # COMMAND ----------
 

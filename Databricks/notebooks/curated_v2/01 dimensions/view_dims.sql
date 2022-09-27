@@ -1,10 +1,381 @@
 -- Databricks notebook source
+-- MAGIC %md
+-- MAGIC # Device
+
+-- COMMAND ----------
+
+-- View: view_device
+-- Description: view_device
+CREATE OR REPLACE VIEW curated_v2.view_device AS
+WITH dateDriver AS
+(
+    SELECT DISTINCT deviceNumber, _recordStart AS _effectiveFrom FROM curated_v2.dimDevice
+    WHERE _recordDeleted <> 1
+    union
+    SELECT DISTINCT deviceNumber, _recordStart AS _effectiveFrom FROM curated_v2.dimDeviceHistory
+    WHERE _recordDeleted <> 1
+),
+effectiveDateranges AS 
+(
+    SELECT deviceNumber, _effectiveFrom, COALESCE(TIMESTAMP(DATE_ADD(LEAD(_effectiveFrom,1) OVER(PARTITION BY deviceNumber ORDER BY _effectiveFrom), -1)), '9999-12-31') AS _effectiveTo
+    FROM dateDriver
+)
+SELECT
+     effectiveDateRanges._effectiveFrom
+    ,effectiveDateRanges._effectiveTo
+    ,effectiveDateRanges.deviceNumber
+    ,dimdevice.deviceSK
+    ,dimdevice.sourceSystemCode
+--     ,dimdevice.deviceNumber
+    ,dimdevice.materialNumber
+    ,dimdevice.deviceID
+    ,dimdevice.inspectionRelevanceIndicator
+    ,dimdevice.deviceSize
+    ,dimdevice.assetManufacturerName
+    ,dimdevice.manufacturerSerialNumber
+    ,dimdevice.manufacturerModelNumber
+    ,dimdevice.objectNumber
+    ,dimdevice.functionClassCode
+    ,dimdevice.functionClass
+    ,dimdevice.constructionClassCode
+    ,dimdevice.constructionClass
+    ,dimdevice.deviceCategoryName
+    ,dimdevice.deviceCategoryDescription
+    ,dimdevice.ptiNumber
+    ,dimdevice.ggwaNumber
+    ,dimdevice.certificationRequirementType
+    --,dimdevice._recordStart AS dev_recordStart
+    --,dimdevice._recordEnd AS device_recordEnd
+    ,dimdevicehistory.deviceHistorySK
+--     ,dimdevicehistory.deviceNumber
+    ,dimdevicehistory.validToDate AS deviceHistoryValidToDate
+    ,dimdevicehistory.validFromDate AS deviceHistoryValidFromDate
+    ,dimdevicehistory.logicalDeviceNumber
+    ,dimdevicehistory.deviceLocation
+    ,dimdevicehistory.deviceCategoryCombination
+    ,dimdevicehistory.registerGroupCode
+    ,dimdevicehistory.registerGroup
+    ,dimdevicehistory.installationDate
+    ,dimdevicehistory.deviceRemovalDate
+    ,dimdevicehistory.activityReasonCode
+    ,dimdevicehistory.activityReason
+    ,dimdevicehistory.firstInstallationDate
+    ,dimdevicehistory.lastDeviceRemovalDate
+    ,dimdeviceinstallationhistory.deviceInstallationHistorySK
+    ,dimdeviceinstallationhistory.installationNumber
+    ,dimdeviceinstallationhistory.validToDate AS deviceInstallationHistoryValidToDate
+    ,dimdeviceinstallationhistory.validFromDate AS deviceInstallationHistoryValidFromDate
+    ,dimdeviceinstallationhistory.priceClassCode
+    ,dimdeviceinstallationhistory.priceClass
+    ,dimdeviceinstallationhistory.rateTypeCode AS deviceInstallationHistoryRateTypeCode
+    ,dimdeviceinstallationhistory.rateType AS deviceInstallationHistoryRateType
+    ,dimregisterhistory.registerHistorySK
+    ,dimregisterhistory.registerNumber
+    ,dimregisterhistory.validToDate AS registerHistoryValidToDate
+    ,dimregisterhistory.validFromDate AS registerHistoryvalidFromDate
+    ,dimregisterhistory.logicalRegisterNumber
+    ,dimregisterhistory.divisionCategoryCode
+    ,dimregisterhistory.divisionCategory
+    ,dimregisterhistory.registerIdCode
+    ,dimregisterhistory.registerId
+    ,dimregisterhistory.registerTypeCode
+    ,dimregisterhistory.registerType
+    ,dimregisterhistory.registerCategoryCode
+    ,dimregisterhistory.registerCategory
+    ,dimregisterhistory.reactiveApparentOrActiveRegisterCode
+    ,dimregisterhistory.reactiveApparentOrActiveRegister
+    ,dimregisterhistory.unitOfMeasurementMeterReading
+    ,dimregisterhistory.doNotReadIndicator	
+    ,dimregisterinstallationhistory.registerInstallationHistorySK
+    ,dimregisterinstallationhistory.validToDate AS registerInstallationHistoryValidToDate
+    ,dimregisterinstallationhistory.validFromDate AS registerInstallationHistoryValidFromDate
+    ,dimregisterinstallationhistory.operationCode
+    ,dimregisterinstallationhistory.operationDescription
+    ,dimregisterinstallationhistory.rateTypeCode AS registerInstallationHistoryRateTypeCode
+    ,dimregisterinstallationhistory.rateType AS registerInstallationHistoryRateType
+    ,dimregisterinstallationhistory.registerNotRelevantToBilling
+    ,dimregisterinstallationhistory.rateFactGroupCode
+    ,installAttr.divisionCode
+    ,installAttr.division
+    , CASE 
+        WHEN (dimdeviceHistory.validFromDate <= CURRENT_DATE() AND dimdeviceHistory.validToDate >= CURRENT_DATE()
+        AND (dimdeviceInstallationHistory.validToDate IS NULL OR (dimdeviceInstallationHistory.validFromDate <= CURRENT_DATE() AND dimdeviceInstallationHistory.validToDate >= CURRENT_DATE()))
+        AND (dimRegisterHistory.validToDate IS NULL OR (dimRegisterHistory.validFromDate <= CURRENT_DATE() AND dimRegisterHistory.validToDate >= CURRENT_DATE()))
+        AND (dimRegisterInstallationHistory.validToDate IS NULL OR (dimRegisterInstallationHistory.validFromDate <= CURRENT_DATE() AND dimRegisterInstallationHistory.validToDate >= CURRENT_DATE()))
+        )  THEN 'Y' 
+           ELSE 'N' END AS currentIndicator
+FROM effectiveDateRanges
+LEFT OUTER JOIN curated_v2.dimDevice dimdevice
+    ON dimdevice.deviceNumber = effectiveDateRanges.deviceNumber 
+        AND dimdevice._recordEnd >= effectiveDateRanges._effectiveFrom 
+        AND dimdevice._recordStart <= effectiveDateRanges._effectiveTo
+LEFT OUTER JOIN curated_v2.dimDeviceHistory dimdevicehistory
+    ON dimdevicehistory.deviceNumber = effectiveDateRanges.deviceNumber 
+        AND dimdevicehistory._recordEnd >= effectiveDateRanges._effectiveFrom 
+        AND dimdevicehistory._recordStart <= effectiveDateRanges._effectiveTo
+LEFT OUTER JOIN curated_v2.dimDeviceInstallationHistory dimdeviceinstallationhistory
+    ON dimdeviceinstallationhistory.logicalDeviceNumber = dimdevicehistory.logicalDeviceNumber
+        AND dimdevicehistory._recordStart >= dimdeviceinstallationhistory._recordStart
+        AND dimdevicehistory._recordStart <= dimdeviceinstallationhistory._recordEnd
+LEFT OUTER JOIN curated_v2.dimRegisterHistory dimregisterhistory
+    ON dimregisterhistory.deviceNumber = dimdevice.deviceNumber
+      AND dimDeviceHistory._recordStart >= dimregisterhistory._recordStart
+      AND dimDeviceHistory._recordStart <= dimregisterhistory._recordEnd
+LEFT OUTER JOIN curated_v2.dimRegisterInstallationHistory dimregisterinstallationhistory
+    ON dimregisterinstallationhistory.installationNumber = dimdeviceinstallationhistory.installationNumber
+      AND dimregisterhistory.logicalRegisterNumber = dimregisterinstallationhistory.logicalRegisterNumber
+      AND dimDeviceHistory._recordStart >= dimregisterinstallationhistory._recordStart
+      AND dimDeviceHistory._recordStart <= dimregisterhistory._recordEnd
+LEFT OUTER JOIN cleansed.isu_0UCINSTALLA_ATTR_2 installAttr
+    ON installAttr.installationId = dimdeviceinstallationhistory.installationNumber
+ORDER BY effectiveDateRanges._effectiveFrom
+
+-- COMMAND ----------
+
+-- MAGIC %md 
+-- MAGIC # Business Partner Identification
+
+-- COMMAND ----------
+
+-- View: view_businesspartneridentification
+-- Description: view_businesspartneridentification
+
+CREATE OR REPLACE VIEW curated_v2.view_businesspartneridentification AS 
+
+WITH all_ID AS (
+		/*================================================================================================
+			All IDs
+				-> _rank: used to only bring 1 businesspartner ID per identification type
+				-> _validFlag: Used to flag whether ID validFrom and To dates are between the current date
+                -> Filter to CURRENT_DATE() BETWEEN _RecordStart AND _RecordEnd
+		 ================================================================================================*/
+		SELECT
+        *,
+        RANK() OVER (PARTITION BY sourceSystemCode, businessPartnerNumber, identificationType ORDER BY ifnull(validToDate, '9999-01-01') DESC, ifnull(entryDate, '1900-01-01') DESC) AS _rank,
+        CASE 
+            WHEN CURRENT_DATE() BETWEEN  ifnull(ID.validFromDate, '1900-01-01') AND ifnull(ID.validToDate, '9999-01-01') 
+            THEN 1
+            ELSE 0
+        END AS _validFlag
+     FROM curated_v2.dimBusinessPartnerIdentification ID
+
+),
+	/*=====================================================================================
+		valid_ID
+			-> Apply Filters: _rank = 1, _validFlag = 1
+			-> filter to identificationType's in scope for the view
+	 ===================================================================================*/
+	valid_ID AS (
+	SELECT * FROM all_ID 
+	WHERE all_ID._rank = 1 AND all_ID._validFlag = 1 AND
+	/* IDs in Scope */
+	all_ID.identificationType IN (
+		'Drivers License Number',
+		'Passport',
+		'Pensioner_no',
+		'Australian Business Number',
+		'Australian Company Number',
+		'DVA_no',
+		'Commercial Register Number',
+		'Trade License Number',
+		'Direct Debit Telephone Number',
+		'Direct Debit Email ID',
+		'Ebill registration Party Type',
+		'Ebill registration Telephone Number',
+		'Ebill registration Email ID',
+		'Dealing Number',
+		'Dealing Date',
+		'Dealing Type',
+		'Dealing Amount',
+		'Online ID',
+		'Password',
+		'Place of Birth',
+		"Pet's Name",
+		"Mother's First Name",
+		"Mother's Maiden Name",
+		"Father's First Name",
+		"Labware User ID",
+		'RAS Portal Service ID',
+		'Identity card',
+		'IMS Number',
+		'External System Indicator for ICM',
+		'External System Identifier'
+	)
+)
+
+/*========================================
+	view_businessPartnerIdentification
+		-> applying a pivot to transpose
+==========================================*/
+SELECT * FROM (
+	SELECT	
+		sourceSystemCode                                                                                 AS sourceSystemCode,
+		businessPartnerNumber                                                                            AS businessPartnerNumber,
+		--
+		Drivers_License_Number                                                                           AS driverLicenseNumber,
+		CASE WHEN Drivers_License_Number IS NULL THEN NULL ELSE ValidFromDate END                        AS driverLicenseNumberValidFrom,
+		CASE WHEN Drivers_License_Number IS NULL THEN NULL ELSE ValidToDate END                          AS driverLicenseNumberValidTo,
+		CASE WHEN Drivers_License_Number IS NULL THEN NULL ELSE EntryDate END                            AS driverLicenseNumberEntryDate,
+		--
+		Passport                                                                                         AS passportNumber,
+		CASE WHEN Passport IS NULL THEN NULL ELSE ValidFromDate END                                      AS passportNumberValidFrom,
+		CASE WHEN Passport IS NULL THEN NULL ELSE ValidToDate END                                        AS passportNumberValidTo,
+		CASE WHEN Passport IS NULL THEN NULL ELSE EntryDate END                                          AS passportNumberEntryDate,
+		--
+		Pensioner_no                                                                                     AS pensionNumber,
+		CASE WHEN Pensioner_no IS NULL THEN NULL ELSE ValidFromDate END                                  AS pensionNumberValidFrom,
+		CASE WHEN Pensioner_no IS NULL THEN NULL ELSE ValidToDate END                                    AS pensionNumberValidTo,
+		CASE WHEN Pensioner_no IS NULL THEN NULL ELSE EntryDate END                                      AS pensionNumberEntryDate,
+		--
+		Australian_Business_Number                                                                       AS australianBusinessNumber,
+		CASE WHEN Australian_Business_Number IS NULL THEN NULL ELSE ValidFromDate END                    AS australianBusinessNumberValidFrom,
+		CASE WHEN Australian_Business_Number IS NULL THEN NULL ELSE ValidToDate END                      AS australianBusinessNumberValidTo,
+		CASE WHEN Australian_Business_Number IS NULL THEN NULL ELSE EntryDate END                        AS australianBusinessNumberEntryDate,
+		--
+		Australian_Company_Number                                                                        AS australianCompanyNumber,
+		CASE WHEN Australian_Company_Number IS NULL THEN NULL ELSE ValidFromDate END                     AS australianCompanyNumberValidFrom,
+		CASE WHEN Australian_Company_Number IS NULL THEN NULL ELSE ValidToDate END                       AS australianCompanyNumberValidTo,
+		CASE WHEN Australian_Company_Number IS NULL THEN NULL ELSE  EntryDate END                        AS australianCompanyNumberEntryDate,
+		--
+		DVA_no                                                                                           AS dvaNumber,
+		CASE WHEN DVA_no IS NULL THEN NULL ELSE ValidFromDate END                                        AS dvaNumberValidFrom,
+		CASE WHEN DVA_no IS NULL THEN NULL ELSE ValidToDate END                                          AS dvaNumberValidTo,
+		CASE WHEN DVA_no IS NULL THEN NULL ELSE EntryDate END                                            AS dvaNumberEntryDate,
+		--
+		Commercial_Register_Number                                                                       AS commercialRegisterNumber,
+		CASE WHEN Commercial_Register_Number IS NULL THEN NULL ELSE ValidFromDate END                    AS commercialRegisterNumberValidFrom,
+		CASE WHEN Commercial_Register_Number IS NULL THEN NULL ELSE ValidToDate END                      AS commercialRegisterNumberValidTo,
+		CASE WHEN Commercial_Register_Number IS NULL THEN NULL ELSE EntryDate END                        AS commercialRegisterNumberEntryDate,
+		--
+		Trade_License_Number                                                                             AS tradeLicenseNumber,
+		CASE WHEN Trade_License_Number IS NULL THEN NULL ELSE ValidFromDate END                          AS tradeLicenseNumberValidFrom,
+		CASE WHEN Trade_License_Number IS NULL THEN NULL ELSE ValidToDate END                            AS tradeLicenseNumberValidTo,
+		CASE WHEN Trade_License_Number IS NULL THEN NULL ELSE EntryDate END                              AS tradeLicenseNumberEntryDate,
+		--
+		Direct_Debit_Telephone_Number                                                                    AS directDebitTelephoneNumber,
+		CASE WHEN Direct_Debit_Telephone_Number IS NULL THEN NULL ELSE EntryDate END                     AS directDebitTelephoneNumberEntryDate,
+		--
+		Direct_Debit_Email_ID                                                                            AS directDebitEmail,
+		CASE WHEN Direct_Debit_Email_ID IS NULL THEN NULL ELSE EntryDate END                             AS directDebitEmailEntryDate,
+		--
+		Ebill_registration_Party_Type                                                                    AS ebillRegistrationPartyType,
+		CASE WHEN Ebill_registration_Party_Type IS NULL THEN NULL ELSE EntryDate END                     AS ebillRegistrationPartyTypeEntryDate,
+		--
+		Ebill_registration_Telephone_Number                                                              AS ebillRegistrationTelephoneNumber,
+		CASE WHEN Ebill_registration_Telephone_Number IS NULL THEN NULL ELSE EntryDate END               AS ebillRegistrationTelephoneNumberEntryDate,
+		--
+		Ebill_registration_Email_ID                                                                      AS ebillRegistrationEmail,
+		CASE WHEN Ebill_registration_Email_ID IS NULL THEN NULL ELSE EntryDate END                       AS ebillRegistrationEmailEntryDate,
+		--
+		Dealing_Number                                                                                   AS dealingNumber,
+		CASE WHEN Dealing_Number IS NULL THEN NULL ELSE EntryDate END                                    AS dealingNumberEntryDate,
+		--
+		Dealing_Date                                                                                     AS dealingDate,
+		CASE WHEN Dealing_Date IS NULL THEN NULL ELSE EntryDate END                                      AS dealingDateEntryDate,
+		--
+		Dealing_Type                                                                                     AS dealingType,
+		CASE WHEN Dealing_Type IS NULL THEN NULL ELSE EntryDate END                                      AS dealingTypeEntryDate,
+		--
+		Dealing_Amount                                                                                   AS dealingAmount,
+		CASE WHEN Dealing_Amount IS NULL THEN NULL ELSE EntryDate END                                    AS dealingAmountEntryDate,
+		--
+		Online_ID                                                                                        AS onlineID,
+		CASE WHEN Online_ID IS NULL THEN NULL ELSE EntryDate END                                         AS onlineIDEntryDate,
+		--
+		Password                                                                                         AS userPassword,
+		CASE WHEN Password IS NULL THEN NULL ELSE EntryDate END                                          AS userPasswordEntryDate,
+		--
+		Place_of_Birth                                                                                   AS placeofBirth,
+		CASE WHEN Place_of_Birth IS NULL THEN NULL ELSE EntryDate END                                    AS placeofBirthEntryDate,
+		--
+		Pets_Name                                                                                        AS petsName,
+		CASE WHEN Pets_Name IS NULL THEN NULL ELSE EntryDate END                                         AS petsNameEntryDate,
+		--
+		Mothers_First_Name                                                                               AS mothersFirstName,
+		CASE WHEN Mothers_First_Name IS NULL THEN NULL ELSE EntryDate END                                AS mothersFirstNameEntryDate,
+		--
+		Mothers_Maiden_Name                                                                              AS mothersMaidenName,
+		CASE WHEN Mothers_Maiden_Name IS NULL THEN NULL ELSE EntryDate END                               AS mothersMaidenNameEntryDate,
+		--
+		Fathers_First_Name                                                                               AS fathersFirstName,
+		CASE WHEN Fathers_First_Name IS NULL THEN NULL ELSE EntryDate END                                AS fathersFirstNameEntryDate,
+		--
+		Labware_User_ID                                                                                  AS labwareUserId,
+		CASE WHEN Labware_User_ID IS NULL THEN NULL ELSE ValidFromDate END                               AS labwareUserIdValidFrom,
+		CASE WHEN Labware_User_ID IS NULL THEN NULL ELSE ValidToDate END                                 AS labwareUserIdValidTo,
+		CASE WHEN Labware_User_ID IS NULL THEN NULL ELSE EntryDate END                                   AS labwareUserIdEntryDate,
+		--
+		RAS_Portal_Service_ID                                                                            AS rasPortalServiceId,
+		CASE WHEN RAS_Portal_Service_ID IS NULL THEN NULL ELSE ValidFromDate END                         AS rasPortalServiceIdValidFrom,
+		CASE WHEN RAS_Portal_Service_ID IS NULL THEN NULL ELSE ValidToDate END                           AS rasPortalServiceIdValidTo,
+		CASE WHEN RAS_Portal_Service_ID IS NULL THEN NULL ELSE EntryDate END                             AS rasPortalServiceIdEntryDate,
+		--
+		Identity_card                                                                                    AS identityCard,
+		CASE WHEN Identity_card IS NULL THEN NULL ELSE ValidFromDate END                                 AS identityCardValidFrom,
+		CASE WHEN Identity_card IS NULL THEN NULL ELSE ValidToDate END                                   AS identityCardValidTo,
+		CASE WHEN Identity_card IS NULL THEN NULL ELSE EntryDate END                                     AS identityCardEntryDate,
+		--
+		IMS_Number                                                                                       AS imsNumber,
+		CASE WHEN IMS_Number IS NULL THEN NULL ELSE EntryDate END                                        AS imsNumberEntryDate,
+		--
+		External_System_Indicator_for_ICM                                                                AS externalSystemIndicatorForIcm,
+		CASE WHEN External_System_Indicator_for_ICM IS NULL THEN NULL ELSE EntryDate END                 AS externalSystemIndicatorForIcmEntryDate,
+		--
+		External_System_Identifier                                                                       AS externalSystemIdentifier,
+		CASE WHEN External_System_Identifier IS NULL THEN NULL ELSE EntryDate END                        AS externalSystemIdentifierEntryDate
+	FROM valid_id
+	/* Pivot Table */
+	PIVOT (
+		MIN(businessPartnerIdNumber)
+		FOR identificationType IN (
+			'Drivers License Number'               AS Drivers_License_Number,
+			'Passport'                             AS Passport,
+			'Pensioner_no'                         AS Pensioner_no,
+			'Australian Business Number'           AS Australian_Business_Number,
+			'Australian Company Number'            AS Australian_Company_Number,
+			'DVA_no'                               AS DVA_no,
+			'Commercial Register Number'           AS Commercial_Register_Number,
+			'Trade License Number'                 AS Trade_License_Number,
+			'Direct Debit Telephone Number'        AS Direct_Debit_Telephone_Number,
+			'Direct Debit Email ID'                AS Direct_Debit_Email_ID,
+			'Ebill registration Party Type'        AS Ebill_registration_Party_Type,
+			'Ebill registration Telephone Number'  AS Ebill_registration_Telephone_Number,
+			'Ebill registration Email ID'          AS Ebill_registration_Email_ID,
+			'Dealing Number'                       AS Dealing_Number,
+			'Dealing Date'                         AS Dealing_Date,
+			'Dealing Type'                         AS Dealing_Type,
+			'Dealing Amount'                       AS Dealing_Amount,
+			'Online ID'                            AS Online_ID,
+			'Password'                             AS Password,
+			'Place of Birth'                       AS Place_of_Birth,
+			"Pet's Name"                           AS Pets_Name,
+			"Mother's First Name"                  AS Mothers_First_Name,
+			"Mother's Maiden Name"                 AS Mothers_Maiden_Name,
+			"Father's First Name"                  AS Fathers_First_Name,
+			"Labware User ID"                      AS Labware_User_ID,
+			"RAS Portal Service ID"                AS RAS_Portal_Service_ID,
+			"Identity card"                        AS Identity_card,
+			"IMS Number"                           AS IMS_Number,
+			"External System Indicator for ICM"    AS External_System_Indicator_for_ICM,
+			"External System Identifier"           AS External_System_Identifier
+		)
+	) 
+)
+
+
+-- COMMAND ----------
+
+-- MAGIC %md
+-- MAGIC # Business Partner
+
+-- COMMAND ----------
+
 -- View: view_businesspartner
 -- Description: view_businesspartner
 CREATE OR REPLACE VIEW curated_v2.view_businesspartner AS 
  WITH 
      /**************************************
-     Build 'Effective From and To' table
+     Build 'Effective From and To table
      **************************************/
      dateDriver AS (
          SELECT DISTINCT
@@ -26,61 +397,11 @@ CREATE OR REPLACE VIEW curated_v2.view_businesspartner AS
                  ), 
              TIMESTAMP('9999-12-31')) AS _effectiveTo
          from dateDriver
-     ),   
+     )  
  
-     /**************************************
-     -- Get BP Identification Tables --
-         Right now, if there are multiple IDs for one ID Type, then the rank 
-         function will pick only one (based on sorting the businessPartnerIdNumber)
-     **************************************/
-     id_driverLicense AS (
-         SELECT
-             *,
-             DENSE_RANK() OVER (PARTITION BY businessPartnerNumber ORDER BY _RecordStart DESC, businessPartnerIdNumber) AS _rank
-         FROM curated_v2.dimBusinessPartnerIdentification BPID
-         WHERE BPID.identificationType = 'Drivers License Number' -- 'ZLICID'
-         AND CURRENT_DATE() BETWEEN BPID._RecordStart AND BPID._RecordEnd -- Current State of BP IDs
-     ),
- 
-     id_pensionNumber AS (
-         SELECT
-             *,
-             DENSE_RANK() OVER (PARTITION BY businessPartnerNumber ORDER BY _RecordStart DESC, businessPartnerIdNumber) AS _rank
-         FROM curated_v2.dimBusinessPartnerIdentification BPID
-         WHERE BPID.identificationType = 'Pensioner#' -- ZSWPEN'
-         AND CURRENT_DATE() BETWEEN BPID._RecordStart AND BPID._RecordEnd -- Current State of BP IDs
-     ),
- 
-     id_australianBusinessNumber AS (
-         SELECT
-             *,
-             DENSE_RANK() OVER (PARTITION BY businessPartnerNumber ORDER BY _RecordStart DESC, businessPartnerIdNumber) AS _rank
-         FROM curated_v2.dimBusinessPartnerIdentification BPID
-         WHERE BPID.identificationType = 'Australian Business Number' -- 'ZABN'
-         AND CURRENT_DATE() BETWEEN BPID._RecordStart AND BPID._RecordEnd -- Current State of BP IDs
-     ),
- 
-     id_australianCompanyNumber AS (
-         SELECT
-             *,
-             DENSE_RANK() OVER (PARTITION BY businessPartnerNumber ORDER BY _RecordStart DESC, businessPartnerIdNumber) AS _rank
-         FROM curated_v2.dimBusinessPartnerIdentification BPID
-         WHERE BPID.identificationType = 'Australian Company Number' -- 'ZACN'
-         AND CURRENT_DATE() BETWEEN BPID._RecordStart AND BPID._RecordEnd -- Current State of BP IDs
-     ),
- 
-     id_dvaNumber AS (
-         SELECT
-             *,
-             DENSE_RANK() OVER (PARTITION BY businessPartnerNumber ORDER BY _RecordStart DESC, businessPartnerIdNumber) AS _rank
-         FROM curated_v2.dimBusinessPartnerIdentification BPID
-         WHERE BPID.identificationType = 'DVA#' -- ZSWDVA#' 
-         AND CURRENT_DATE() BETWEEN BPID._RecordStart AND BPID._RecordEnd -- Current State of BP IDs
-     )
- 
- /**************************************
- CREATE THE VIEW TABLE
- **************************************/
+ /*============================
+    view_businessPartner
+ ==============================*/
  SELECT
     /* Business Partner Columns */
     BP.businessPartnerSK,
@@ -169,26 +490,26 @@ CREATE OR REPLACE VIEW curated_v2.view_businesspartner AS
     ADDR.addressTimeZone,
     ADDR.communicationAddressNumber,
     /* Identification Columns */
-    DL.businessPartnerIdNumber AS driverLicenseNumber,
-    DL.ValidFromDate AS driverLicenseNumberValidFrom,
-    DL.ValidToDate AS driverLicenseNumberValidTo,
-    DL.EntryDate AS driverLicenseNumberEntryDate,
-    PEN.businessPartnerIdNumber AS pensionNumber,
-    PEN.ValidFromDate AS pensionNumberValidFrom,
-    PEN.ValidToDate AS pensionNumberValidTo,
-    PEN.EntryDate AS pensionNumberEntryDate,
-    ABN.businessPartnerIdNumber AS australianBusinessNumber,
-    ABN.ValidFromDate AS australianBusinessNumberValidFrom,
-    ABN.ValidToDate AS australianBusinessNumberValidTo,
-    ABN.EntryDate AS australianBusinessNumberEntryDate,
-    ACN.businessPartnerIdNumber AS australianCompanyNumber,
-    ACN.ValidFromDate AS australianCompanyNumberValidFrom,
-    ACN.ValidToDate AS australianCompanyNumberValidTo,
-    ACN.EntryDate AS australianCompanyNumberEntryDate,
-    DVA.businessPartnerIdNumber AS dvaNumber,
-    DVA.ValidFromDate AS dvaNumberValidFrom,
-    DVA.ValidToDate AS dvaNumberValidTo,
-    DVA.EntryDate AS dvaNumberEntryDate,
+    ID.driverLicenseNumber,
+    ID.driverLicenseNumberValidFrom,
+    ID.driverLicenseNumberValidTo,
+    ID.driverLicenseNumberEntryDate,
+    ID.pensionNumber,
+    ID.pensionNumberValidFrom,
+    ID.pensionNumberValidTo,
+    ID.pensionNumberEntryDate,
+    ID.australianBusinessNumber,
+    ID.australianBusinessNumberValidFrom,
+    ID.australianBusinessNumberValidTo,
+    ID.australianBusinessNumberEntryDate,
+    ID.australianCompanyNumber,
+    ID.australianCompanyNumberValidFrom,
+    ID.australianCompanyNumberValidTo,
+    ID.australianCompanyNumberEntryDate,
+    ID.dvaNumber,
+    ID.dvaNumberValidFrom,
+    ID.dvaNumberValidTo,
+    ID.dvaNumberEntryDate,
     DR._effectiveFrom, 
     DR._effectiveTo
 FROM effectiveDateRanges DR
@@ -202,188 +523,15 @@ LEFT JOIN curated_v2.dimbusinesspartneraddress ADDR ON
     DR.sourceSystemCode = ADDR.sourceSystemCode AND
     DR._effectiveFrom <= ADDR._RecordEnd AND
     DR._effectiveTo >= ADDR._RecordStart 
-LEFT JOIN id_driverLicense DL ON
-    DL.sourceSystemCode = BP.sourceSystemCode AND
-    DL.businessPartnerNumber = BP.businessPartnerNumber AND
-    DL._rank = 1
-LEFT JOIN id_pensionNumber PEN ON
-    PEN.sourceSystemCode = BP.sourceSystemCode AND
-    PEN.businessPartnerNumber = BP.businessPartnerNumber AND
-    PEN._rank = 1
-LEFT JOIN id_australianBusinessNumber ABN ON
-    ABN.sourceSystemCode = BP.sourceSystemCode AND
-    ABN.businessPartnerNumber = BP.businessPartnerNumber AND
-    ABN._rank = 1
-LEFT JOIN id_australianCompanyNumber ACN ON
-    ACN.sourceSystemCode = BP.sourceSystemCode AND
-    ACN.businessPartnerNumber = BP.businessPartnerNumber AND
-    ACN._rank = 1
-LEFT JOIN id_dvaNumber DVA ON
-    DVA.sourceSystemCode = BP.sourceSystemCode AND
-    DVA.businessPartnerNumber = BP.businessPartnerNumber AND
-    DVA._rank = 1
+LEFT JOIN curated_v2.view_businesspartneridentification ID ON 
+    DR.businessPartnerNumber = ID.businessPartnerNumber AND
+    DR.sourceSystemCode = ID.sourceSystemCode
+WHERE businessPartnerSK IS NOT NULL
 
 -- COMMAND ----------
 
--- View: view_businesspartneridentification
--- Description: view_businesspartneridentification
-
-CREATE OR REPLACE VIEW curated_v2.view_businesspartneridentification AS 
-
-WITH 
-    businessPartnerNumber AS (
-        SELECT DISTINCT
-            sourceSystemCode,
-            businessPartnerNumber
-        FROM curated_v2.dimBusinessPartnerIdentification BP
-    )
-
-    SELECT
-        BP.sourceSystemCode,
-        BP.businessPartnerNumber,
-        DL.businessPartnerIdNumber AS driverLicenseNumber,
-        DL.ValidFromDate AS driverLicenseNumberValidFrom,
-        DL.ValidToDate AS driverLicenseNumberValidTo,
-        DL.EntryDate AS driverLicenseNumberEntryDate,
-        PN.businessPartnerIdNumber AS passportNumber,
-        PN.ValidFromDate AS passportNumberValidFrom,
-        PN.ValidToDate AS passportNumberValidTo,
-        PN.EntryDate AS passportNumberEntryDate,
-        P.businessPartnerIdNumber AS pensionNumber,
-        P.ValidFromDate AS pensionNumberValidFrom,
-        P.ValidToDate AS pensionNumberValidTo,
-        P.EntryDate AS pensionNumberEntryDate,
-        ABN.businessPartnerIdNumber AS australianBusinessNumber,
-        ABN.ValidFromDate AS australianBusinessNumberValidFrom,
-        ABN.ValidToDate AS australianBusinessNumberValidTo,
-        ABN.EntryDate AS australianBusinessNumberEntryDate,
-        ACN.businessPartnerIdNumber AS australianCompanyNumber,
-        ACN.ValidFromDate AS australianCompanyNumberValidFrom,
-        ACN.ValidToDate AS australianCompanyNumberValidTo,
-        ACN.EntryDate AS australianCompanyNumberEntryDate,
-        DVA.businessPartnerIdNumber AS dvaNumber,
-        DVA.ValidFromDate AS dvaNumberValidFrom,
-        DVA.ValidToDate AS dvaNumberValidTo,
-        DVA.EntryDate AS dvaNumberEntryDate,
-        CRN.businessPartnerIdNumber AS commercialRegisterNumber,
-        CRN.ValidFromDate AS commercialRegisterNumberValidFrom,
-        CRN.ValidToDate AS commercialRegisterNumberValidTo,
-        CRN.EntryDate AS commercialRegisterNumberEntryDate,
-        TLN.businessPartnerIdNumber AS tradeLicenseNumber,
-        TLN.ValidFromDate AS tradeLicenseNumberValidFrom,
-        TLN.ValidToDate AS tradeLicenseNumberValidTo,
-        TLN.EntryDate AS tradeLicenseNumberEntryDate,
-        DBT.businessPartnerIdNumber AS directDebitTelephoneNumber,
-        DBT.EntryDate AS directDebitTelephoneNumberEntryDate,
-        DBE.businessPartnerIdNumber AS directDebitEmail,
-        DBE.EntryDate AS directDebitEmailEntryDate,
-        ERP.businessPartnerIdNumber AS ebillRegistrationPartyType,
-        ERP.EntryDate AS ebillRegistrationPartyTypeEntryDate,
-        ERT.businessPartnerIdNumber AS ebillRegistrationTelephoneNumber,
-        ERT.EntryDate AS ebillRegistrationTelephoneNumberEntryDate,
-        ERE.businessPartnerIdNumber AS ebillRegistrationEmail,
-        ERE.EntryDate AS ebillRegistrationEmailEntryDate,
-        DN.businessPartnerIdNumber AS dealingNumber,
-        DN.EntryDate AS dealingNumberEntryDate,
-        DD.businessPartnerIdNumber AS dealingDate,
-        DD.EntryDate AS dealingDateEntryDate,
-        DT.businessPartnerIdNumber AS dealingType,
-        DT.EntryDate AS dealingTypeEntryDate,
-        DA.businessPartnerIdNumber AS dealingAmount,
-        DA.EntryDate AS dealingAmontEntryDate,
-        OID.businessPartnerIdNumber AS onlineID,
-        OID.EntryDate AS onlineIDEntryDate,
-        UP.businessPartnerIdNumber AS userPassword,
-        UP.EntryDate AS userPasswordEntryDate,
-        PB.businessPartnerIdNumber AS placeofBirth,
-        PB.EntryDate AS placeofBirthEntryDate,
-        PET.businessPartnerIdNumber AS petsName,
-        PET.EntryDate AS petsNameEntryDate,
-        MFN.businessPartnerIdNumber AS mothersFirstName,
-        MFN.EntryDate AS mothersFirstNameEntryDate,
-        MMN.businessPartnerIdNumber AS mothersMaidenName,
-        MMN.EntryDate AS mothersMaidenNameEntryDate,
-        FFN.businessPartnerIdNumber AS fathersFirstName,
-        FFN.EntryDate AS fathersFirstNameEntryDate,
-        LUID.businessPartnerIdNumber AS labwareUserId,
-        LUID.ValidFromDate AS labwareUserIdValidFrom,
-        LUID.ValidToDate AS labwareUserIdValidTo,
-        LUID.EntryDate AS labwareUserIdEntryDate,
-        RPSID.businessPartnerIdNumber AS rasPortalServiceId,
-        RPSID.ValidFromDate AS rasPortalServiceIdValidFrom,
-        RPSID.ValidToDate AS rasPortalServiceIdValidTo,
-        RPSID.EntryDate AS rasPortalServiceIdEntryDate,
-        ID.businessPartnerIdNumber AS identityCard,
-        ID.ValidFromDate AS identityCardValidFrom,
-        ID.ValidToDate AS identityCardValidTo,
-        ID.EntryDate AS identityCardEntryDate,
-        IMS.businessPartnerIdNumber AS imsNumber,
-        IMS.EntryDate AS imsNumberEntryDate,
-        ESICM.businessPartnerIdNumber AS externalSystemIndicatorForIcm,
-        ESICM.EntryDate AS externalSystemIndicatorForIcmEntryDate,
-        ESI.businessPartnerIdNumber AS externalSystemIdentifier,
-        ESI.EntryDate AS externalSystemIdentifierEntryDate
-    FROM businessPartnerNumber BP
-    LEFT OUTER JOIN curated_v2.dimBusinessPartnerIdentification DL 
-        ON DL.sourceSystemCode = BP.sourceSystemCode AND DL.businessPartnerNumber = BP.businessPartnerNumber AND DL.identificationType = 'Drivers License Number'
-    LEFT OUTER JOIN curated_v2.dimBusinessPartnerIdentification P 
-        ON P.sourceSystemCode = BP.sourceSystemCode AND P.businessPartnerNumber = BP.businessPartnerNumber AND P.identificationType = 'Passport'
-    LEFT OUTER JOIN curated_v2.dimBusinessPartnerIdentification PN 
-        ON PN.sourceSystemCode = BP.sourceSystemCode AND PN.businessPartnerNumber = BP.businessPartnerNumber AND PN.identificationType =  'Pensioner#' 
-    LEFT OUTER JOIN curated_v2.dimBusinessPartnerIdentification ABN 
-        ON ABN.sourceSystemCode = BP.sourceSystemCode AND ABN.businessPartnerNumber = BP.businessPartnerNumber AND ABN.identificationType = 'Australian Business Number'
-    LEFT OUTER JOIN curated_v2.dimBusinessPartnerIdentification ACN 
-        ON ACN.sourceSystemCode = BP.sourceSystemCode AND ACN.businessPartnerNumber = BP.businessPartnerNumber AND ACN.identificationType = 'Australian Company Number'
-    LEFT OUTER JOIN curated_v2.dimBusinessPartnerIdentification DVA 
-        ON DVA.sourceSystemCode = BP.sourceSystemCode AND DVA.businessPartnerNumber = BP.businessPartnerNumber AND DVA.identificationType = 'DVA#'
-    LEFT OUTER JOIN curated_v2.dimBusinessPartnerIdentification CRN 
-        ON CRN.sourceSystemCode = BP.sourceSystemCode AND CRN.businessPartnerNumber = BP.businessPartnerNumber AND CRN.identificationType = 'Commercial Register Number' 
-    LEFT OUTER JOIN curated_v2.dimBusinessPartnerIdentification TLN 
-        ON TLN.sourceSystemCode = BP.sourceSystemCode AND TLN.businessPartnerNumber = BP.businessPartnerNumber AND TLN.identificationType = 'Trade License Number' 
-    LEFT OUTER JOIN curated_v2.dimBusinessPartnerIdentification DBT 
-        ON DBT.sourceSystemCode = BP.sourceSystemCode AND DBT.businessPartnerNumber = BP.businessPartnerNumber AND DBT.identificationType = 'Direct Debit Telephone Number' 
-    LEFT OUTER JOIN curated_v2.dimBusinessPartnerIdentification DBE 
-        ON DBE.sourceSystemCode = BP.sourceSystemCode AND DBE.businessPartnerNumber = BP.businessPartnerNumber AND DBE.identificationType = 'Direct Debit Email ID' 
-    LEFT OUTER JOIN curated_v2.dimBusinessPartnerIdentification ERP 
-        ON ERP.sourceSystemCode = BP.sourceSystemCode AND ERP.businessPartnerNumber = BP.businessPartnerNumber AND ERP.identificationType = 'Ebill registration Party Type' 
-    LEFT OUTER JOIN curated_v2.dimBusinessPartnerIdentification ERT 
-        ON ERT.sourceSystemCode = BP.sourceSystemCode AND ERT.businessPartnerNumber = BP.businessPartnerNumber AND ERT.identificationType =  'Ebilll registration Telephone Number' 
-    LEFT OUTER JOIN curated_v2.dimBusinessPartnerIdentification ERE 
-        ON ERE.sourceSystemCode = BP.sourceSystemCode AND ERE.businessPartnerNumber = BP.businessPartnerNumber AND ERE.identificationType = 'Ebill registration Email ID' 
-    LEFT OUTER JOIN curated_v2.dimBusinessPartnerIdentification DN 
-        ON DN.sourceSystemCode = BP.sourceSystemCode AND DN.businessPartnerNumber = BP.businessPartnerNumber AND DN.identificationType = 'Dealing Number' 
-    LEFT OUTER JOIN curated_v2.dimBusinessPartnerIdentification DD 
-        ON DD.sourceSystemCode = BP.sourceSystemCode AND DD.businessPartnerNumber = BP.businessPartnerNumber AND DD.identificationType = 'Dealing Date' 
-    LEFT OUTER JOIN curated_v2.dimBusinessPartnerIdentification DT 
-        ON DT.sourceSystemCode = BP.sourceSystemCode AND DT.businessPartnerNumber = BP.businessPartnerNumber AND DT.identificationType = 'Dealing Type' 
-    LEFT OUTER JOIN curated_v2.dimBusinessPartnerIdentification DA 
-        ON dA.sourceSystemCode = BP.sourceSystemCode AND DA.businessPartnerNumber = BP.businessPartnerNumber AND DA.identificationType = 'Dealing Amount' 
-    LEFT OUTER JOIN curated_v2.dimBusinessPartnerIdentification OID 
-        ON OID.sourceSystemCode = BP.sourceSystemCode AND OID.businessPartnerNumber = BP.businessPartnerNumber AND OID.identificationType =  'Online ID' 
-    LEFT OUTER JOIN curated_v2.dimBusinessPartnerIdentification UP 
-        ON UP.sourceSystemCode = BP.sourceSystemCode AND UP.businessPartnerNumber = BP.businessPartnerNumber AND UP.identificationType = 'Password' 
-    LEFT OUTER JOIN curated_v2.dimBusinessPartnerIdentification PB 
-        ON PB.sourceSystemCode = BP.sourceSystemCode AND PB.businessPartnerNumber = BP.businessPartnerNumber AND PB.identificationType =  'Place of Birth' 
-    LEFT OUTER JOIN curated_v2.dimBusinessPartnerIdentification PET 
-        ON PET.sourceSystemCode = BP.sourceSystemCode AND PET.businessPartnerNumber = BP.businessPartnerNumber AND PET.identificationType = "Pet's Name"
-    LEFT OUTER JOIN curated_v2.dimBusinessPartnerIdentification MFN 
-        ON MFN.sourceSystemCode = BP.sourceSystemCode AND MFN.businessPartnerNumber = BP.businessPartnerNumber AND MFN.identificationType = "Mother's First Name"
-    LEFT OUTER JOIN curated_v2.dimBusinessPartnerIdentification MMN 
-        ON MMN.sourceSystemCode = BP.sourceSystemCode AND MMN.businessPartnerNumber = BP.businessPartnerNumber AND MMN.identificationType = "Mother's Maiden Name"
-    LEFT OUTER JOIN curated_v2.dimBusinessPartnerIdentification FFN 
-        ON FFN.sourceSystemCode = BP.sourceSystemCode AND FFN.businessPartnerNumber = BP.businessPartnerNumber AND FFN.identificationType = "Father's First Name"
-    LEFT OUTER JOIN curated_v2.dimBusinessPartnerIdentification LUID 
-        ON LUID.sourceSystemCode = BP.sourceSystemCode AND LUID.businessPartnerNumber = BP.businessPartnerNumber AND LUID.identificationType = 'Labware User ID' 
-    LEFT OUTER JOIN curated_v2.dimBusinessPartnerIdentification RPSID 
-        ON RPSID.sourceSystemCode = BP.sourceSystemCode AND RPSID.businessPartnerNumber = BP.businessPartnerNumber AND RPSID.identificationType = 'RAS Portal Service ID' 
-    LEFT OUTER JOIN curated_v2.dimBusinessPartnerIdentification ID 
-        ON ID.sourceSystemCode = BP.sourceSystemCode AND ID.businessPartnerNumber = BP.businessPartnerNumber AND ID.identificationType = 'Identity card' 
-    LEFT OUTER JOIN curated_v2.dimBusinessPartnerIdentification IMS 
-        ON IMS.sourceSystemCode = BP.sourceSystemCode AND IMS.businessPartnerNumber = BP.businessPartnerNumber AND IMS.identificationType = 'IMS Number' 
-    LEFT OUTER JOIN curated_v2.dimBusinessPartnerIdentification ESICM 
-        ON ESICM.sourceSystemCode = BP.sourceSystemCode AND ESICM.businessPartnerNumber = BP.businessPartnerNumber AND ESICM.identificationType = 'External System Indicator for ICM' 
-    LEFT OUTER JOIN curated_v2.dimBusinessPartnerIdentification ESI 
-        ON ESI.sourceSystemCode = BP.sourceSystemCode AND ESI.businessPartnerNumber = BP.businessPartnerNumber AND ESI.identificationType = 'External System Identifier' 
+-- MAGIC %md
+-- MAGIC # Business Partner Group
 
 -- COMMAND ----------
 
@@ -392,55 +540,36 @@ WITH
 
 CREATE OR REPLACE VIEW curated_v2.view_businesspartnergroup AS 
 WITH 
-    businessPartnerNumber AS (
-        SELECT DISTINCT
-            sourceSystemCode,
-            businessPartnerNumber
-        FROM curated_v2.dimBusinessPartnerIdentification BP
-    ),
-
-    ID AS (
-        SELECT
-            BP.sourceSystemCode             AS sourceSystemCode,
-            BP.businessPartnerNumber        AS businessPartnerNumber, 
-            ERP.businessPartnerIdNumber     AS ebillRegistrationPartyType,
-            ERT.businessPartnerIdNumber     AS ebillRegistrationTelephoneNumber,
-            ERE.businessPartnerIdNumber     AS ebillRegistrationEmail,
-            ERE.EntryDate                   AS ebillRegistrationEmailEntryDate,
-            DN.businessPartnerIdNumber      AS dealingNumber,
-            DT.businessPartnerIdNumber      AS dealingType,
-            DA.businessPartnerIdNumber      AS dealingAmount,
-            DD.businessPartnerIdNumber      AS dealingDate,
-            DBT.businessPartnerIdNumber     AS directDebitTelephoneNumber,
-            DBE.businessPartnerIdNumber     AS directDebitEmail,
-            OID.businessPartnerIdNumber     AS onlineID,
-            UP.businessPartnerIdNumber      AS userPassword
-        FROM businessPartnerNumber BP
-        LEFT OUTER JOIN curated_v2.dimBusinessPartnerIdentification DBT 
-            ON DBT.sourceSystemCode = BP.sourceSystemCode AND DBT.businessPartnerNumber = BP.businessPartnerNumber AND DBT.identificationType = 'Direct Debit Telephone Number' 
-        LEFT OUTER JOIN curated_v2.dimBusinessPartnerIdentification DBE 
-            ON DBE.sourceSystemCode = BP.sourceSystemCode AND DBE.businessPartnerNumber = BP.businessPartnerNumber AND DBE.identificationType = 'Direct Debit Email ID' 
-        LEFT OUTER JOIN curated_v2.dimBusinessPartnerIdentification ERP 
-            ON ERP.sourceSystemCode = BP.sourceSystemCode AND ERP.businessPartnerNumber = BP.businessPartnerNumber AND ERP.identificationType = 'Ebill registration Party Type' 
-        LEFT OUTER JOIN curated_v2.dimBusinessPartnerIdentification ERT 
-            ON ERT.sourceSystemCode = BP.sourceSystemCode AND ERT.businessPartnerNumber = BP.businessPartnerNumber AND ERT.identificationType =  'Ebilll registration Telephone Number' 
-        LEFT OUTER JOIN curated_v2.dimBusinessPartnerIdentification ERE 
-            ON ERE.sourceSystemCode = BP.sourceSystemCode AND ERE.businessPartnerNumber = BP.businessPartnerNumber AND ERE.identificationType = 'Ebill registration Email ID' 
-        LEFT OUTER JOIN curated_v2.dimBusinessPartnerIdentification DN 
-            ON DN.sourceSystemCode = BP.sourceSystemCode AND DN.businessPartnerNumber = BP.businessPartnerNumber AND DN.identificationType = 'Dealing Number' 
-        LEFT OUTER JOIN curated_v2.dimBusinessPartnerIdentification DD 
-            ON DD.sourceSystemCode = BP.sourceSystemCode AND DD.businessPartnerNumber = BP.businessPartnerNumber AND DD.identificationType = 'Dealing Date' 
-        LEFT OUTER JOIN curated_v2.dimBusinessPartnerIdentification DT 
-            ON DT.sourceSystemCode = BP.sourceSystemCode AND DT.businessPartnerNumber = BP.businessPartnerNumber AND DT.identificationType = 'Dealing Type' 
-        LEFT OUTER JOIN curated_v2.dimBusinessPartnerIdentification DA 
-            ON dA.sourceSystemCode = BP.sourceSystemCode AND DA.businessPartnerNumber = BP.businessPartnerNumber AND DA.identificationType = 'Dealing Amount' 
-        LEFT OUTER JOIN curated_v2.dimBusinessPartnerIdentification OID 
-            ON OID.sourceSystemCode = BP.sourceSystemCode AND OID.businessPartnerNumber = BP.businessPartnerNumber AND OID.identificationType =  'Online ID' 
-        LEFT OUTER JOIN curated_v2.dimBusinessPartnerIdentification UP 
-            ON UP.sourceSystemCode = BP.sourceSystemCode AND UP.businessPartnerNumber = BP.businessPartnerNumber AND UP.identificationType = 'Password' 
-    )
+    /*==============================
+        Effective From and To Dates
+    ================================*/
+     dateDriver AS (
+         SELECT DISTINCT
+             sourceSystemCode,
+             businessPartnerGroupNumber,
+             _recordStart AS _effectiveFrom
+         FROM curated_v2.dimBusinessPartnerGroup
+     ),
+ 
+     effectiveDateRanges AS (
+         SELECT 
+             sourceSystemCode,
+             businessPartnerGroupNumber, 
+             _effectiveFrom, 
+             COALESCE(
+                 TIMESTAMP(
+                     DATE_ADD(
+                         LEAD(_effectiveFrom,1) OVER (PARTITION BY sourceSystemCode, businessPartnerGroupNumber ORDER BY _effectiveFrom),-1)
+                 ), 
+             TIMESTAMP('9999-12-31')) AS _effectiveTo
+         from dateDriver
+     )
     
+/*============================
+    view_businessPartnerGroup
+==============================*/    
 SELECT 
+    /* Business Partner Group Columns */
     BPG.businessPartnerGroupSK,
     BPG.sourceSystemCode,
     BPG.businessPartnerGroupNumber,
@@ -454,6 +583,7 @@ SELECT
     BPG.businessPartnerGUID,
     BPG.businessPartnerGroupName1,
     BPG.businessPartnerGroupName2,
+    /* Address Columns */
     ADDR.addressNumber,
     ADDR.addressValidFromDate,
     ADDR.addressValidToDate,
@@ -463,11 +593,11 @@ SELECT
     ADDR.floorNumber,
     ADDR.apartmentNumber,
     ADDR.houseNumber,
-    ADDR.houseSupplementNumber, -- houseNumber2
+    ADDR.houseSupplementNumber, 
     ADDR.streetName,
-    ADDR.streetSupplementName1, -- streetType
-    ADDR.streetSupplementName2, -- streetLine3
-    ADDR.otherLocationName, -- streetLine4
+    ADDR.streetSupplementName1,
+    ADDR.streetSupplementName2, 
+    ADDR.otherLocationName, 
     ADDR.streetCode,
     ADDR.cityName,
     ADDR.cityCode,
@@ -480,13 +610,14 @@ SELECT
     ADDR.postalCodeExtension,
     ADDR.poBoxExtension,
     ADDR.deliveryServiceTypeCode,
-    ADDR.deliveryServiceType, -- deliveryServiceDescription
+    ADDR.deliveryServiceType, 
     ADDR.deliveryServiceNumber,
     ADDR.addressTimeZone,
     ADDR.communicationAddressNumber,
     ADDR.phoneNumber,
     ADDR.faxNumber,
     ADDR.emailAddress,
+    /* Business Partner Group Columns */
     BPG.paymentAssistSchemeFlag,
     BPG.billAssistFlag,
     BPG.consent1Indicator,
@@ -515,6 +646,7 @@ SELECT
     BPG.lastUpdatedDateTime,
     BPG.validFromDate,
     BPG.validToDate,
+    /* Identification Columns */
     ID.ebillRegistrationPartyType,
     ID.ebillRegistrationTelephoneNumber,
     ID.ebillRegistrationEmail,
@@ -526,17 +658,24 @@ SELECT
     ID.directDebitTelephoneNumber,
     ID.directDebitEmail,
     ID.onlineId,
-    ID.userPassword
-FROM curated_v2.dimbusinesspartnergroup BPG
+    ID.userPassword,
+    DR._effectiveFrom,
+    DR._effectiveTo
+FROM effectiveDateRanges DR
+LEFT JOIN curated_v2.dimBusinessPartnerGroup BPG ON 
+    DR.businessPartnerGroupNumber = BPG.businessPartnerGroupNumber AND
+    DR.sourceSystemCode = BPG.sourceSystemCode AND
+    DR._effectiveFrom <= BPG._RecordEnd AND
+    DR._effectiveTo >= BPG._RecordStart 
 LEFT JOIN curated_v2.dimbusinesspartneraddress ADDR ON 
-    ADDR.businessPartnerNumber = BPG.businessPartnerGroupNumber AND
-    ADDR.sourceSystemCode = BPG.sourceSystemCode 
-LEFT JOIN ID ON 
-    ID.businessPartnerNumber = BPG.businessPartnerGroupNumber AND
-    ID.sourceSystemCode = BPG.sourceSystemCode 
-WHERE 
-    BPG._recordCurrent = 1 AND
-    ADDR._recordCurrent = 1
+    DR.businessPartnerGroupNumber = ADDR.businessPartnerNumber AND
+    DR.sourceSystemCode = ADDR.sourceSystemCode AND
+    DR._effectiveFrom <= ADDR._RecordEnd AND
+    DR._effectiveTo >= ADDR._RecordStart 
+LEFT JOIN curated_v2.view_businesspartneridentification ID ON 
+    DR.businessPartnerGroupNumber = ID.businessPartnerNumber AND
+    DR.sourceSystemCode = ID.sourceSystemCode
+WHERE businessPartnerGroupSK IS NOT NULL
 
 -- COMMAND ----------
 

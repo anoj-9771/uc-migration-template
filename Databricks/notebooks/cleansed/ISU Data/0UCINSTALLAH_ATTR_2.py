@@ -4,7 +4,51 @@ import json
 #For unit testing...
 #Use this string in the Param widget: 
 #$PARAM
-
+# {
+# 	"SourceType": "BLOB Storage (json)", 
+# 	"SourceServer": "daf-sa-lake-sastoken", 
+# 	"SourceGroup": "isudata", 
+# 	"SourceName": "isu_0UCINSTALLAH_ATTR_2", 
+# 	"SourceLocation": "isudata/0UCINSTALLAH_ATTR_2", 
+# 	"AdditionalProperty": "", 
+# 	"Processor": "databricks-token|0527-214324-ytwxx0tv|Standard_DS12_v2|10.4.x-scala2.12|2:28|interactive", 
+# 	"IsAuditTable": false, 
+# 	"SoftDeleteSource": "", 
+# 	"ProjectName": "CLEANSED ISU DATA", 
+# 	"ProjectId": 12, 
+# 	"TargetType": "BLOB Storage (json)", 
+# 	"TargetName": "isu_0UCINSTALLAH_ATTR_2", 
+# 	"TargetLocation": "isudata/0UCINSTALLAH_ATTR_2", 
+# 	"TargetServer": "daf-sa-lake-sastoken", 
+# 	"DataLoadMode": "INCREMENTAL", 
+# 	"DeltaExtract": true, 
+# 	"CDCSource": false, 
+# 	"TruncateTarget": false, 
+# 	"UpsertTarget": true, 
+# 	"AppendTarget": false, 
+# 	"TrackChanges": false, 
+# 	"LoadToSqlEDW": true, 
+# 	"TaskName": "isu_0UCINSTALLAH_ATTR_2", 
+# 	"ControlStageId": 2, 
+# 	"TaskId": 152, 
+# 	"StageSequence": 200, 
+# 	"StageName": "Raw to Cleansed", 
+# 	"SourceId": 152, 
+# 	"TargetId": 152, 
+# 	"ObjectGrain": "Day", 
+# 	"CommandTypeId": 8, 
+# 	"Watermarks": "2000-01-01 00:00:00", 
+# 	"WatermarksDT": "2000-01-01T00:00:00", 
+# 	"WatermarkColumn": "_FileDateTimeStamp", 
+# 	"BusinessKeyColumn": "installationNumber, validToDate", 
+# 	"PartitionColumn": null, 
+# 	"UpdateMetaData": null, 
+# 	"SourceTimeStampFormat": "", 
+# 	"WhereClause": "",
+# 	"Command": "/build/cleansed/ISU Data/0UCINSTALLAH_ATTR_2", 
+# 	"LastSuccessfulExecutionTS": "1900-01-01",
+# 	"LastLoadedFile": null
+# }
 #Use this string in the Source Object widget
 #$GROUP_$SOURCE
 
@@ -170,45 +214,82 @@ print(delta_raw_tbl_name)
 # COMMAND ----------
 
 # DBTITLE 1,10. Load Raw to Dataframe & Do Transformations
-df = spark.sql(f"WITH stage AS \
-                      (Select *, ROW_NUMBER() OVER (PARTITION BY ANLAGE,BIS ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' and DI_OPERATION_TYPE !='X' ) \
-                           SELECT  \
-                                  case when stg.ANLAGE = 'na' then '' else stg.ANLAGE end as installationId, \
-                                  ToValidDate((case when stg.BIS = 'na' then '9999-12-31' else stg.BIS end),'MANDATORY') as validToDate, \
-                                  ToValidDate(stg.AB) as validFromDate, \
-                                  stg.TARIFTYP as rateCategoryCode, \
-                                  tt.TTYPBEZ as rateCategory, \
-                                  stg.BRANCHE as industryCode, \
-                                  st.industry, \
-                                  stg.AKLASSE as billingClassCode, \
-                                  bc.billingClass as billingClass, \
-                                  stg.ABLEINH as meterReadingUnit, \
-                                  stg.ISTYPE as industrySystemCode, \
-                                  nt.industry as industrySystem, \
-                                  stg.UPDMOD as deltaProcessRecordMode, \
-                                  stg.ZLOGIKNR as logicalDeviceNumber, \
-                                  cast('1900-01-01' as TimeStamp) as _RecordStart, \
-                                  cast('9999-12-31' as TimeStamp) as _RecordEnd, \
-                                  '0' as _RecordDeleted, \
-                                  '1' as _RecordCurrent, \
-                                  cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
-                        FROM stage stg \
-                                 left outer join {ADS_DATABASE_CLEANSED}.isu_0uc_aklasse_text bc on bc.billingClassCode = stg.AKLASSE \
-                                                                                                    and bc._RecordDeleted = 0 and bc._RecordCurrent = 1 \
-                                 left outer join {ADS_DATABASE_CLEANSED}.isu_0uc_tariftyp_text tt on tt.TARIFTYP = stg.TARIFTYP \
-                                                                                                    and tt._RecordDeleted = 0 and tt._RecordCurrent = 1 \
-                                 left outer join {ADS_DATABASE_CLEANSED}.isu_0ind_sector_text st on st.industrySystem = stg.ISTYPE and st.industryCode = stg.BRANCHE \
-                                                                                                    and st._RecordDeleted = 0 and st._RecordCurrent = 1 \
-                                 left outer join {ADS_DATABASE_CLEANSED}.isu_0ind_numsys_text nt on nt.industrySystem = stg.ISTYPE \
-                                                                                                    and nt._RecordDeleted = 0 and nt._RecordCurrent = 1 \
-                        where stg._RecordVersion = 1 ")
+df = spark.sql(f"""
+     WITH stage AS (
+          Select 
+               *, 
+               ROW_NUMBER() OVER (
+                    PARTITION BY ANLAGE,BIS 
+                    ORDER BY 
+                         _FileDateTimeStamp DESC, 
+                         DI_SEQUENCE_NUMBER DESC, 
+                         _DLRawZoneTimeStamp DESC
+               ) AS _RecordVersion
+          FROM {delta_raw_tbl_name}
+          --WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' and DI_OPERATION_TYPE !='X' 
+     ) 
+          SELECT  
+               case 
+                    when stg.ANLAGE = 'na' 
+                    then '' 
+                    else stg.ANLAGE 
+               end                                             as installationNumber, 
+               ToValidDate((
+                    case 
+                         when stg.BIS = 'na' 
+                         then '9999-12-31' 
+                         else stg.BIS 
+                    end),
+               'MANDATORY')                                    as validToDate, 
+               ToValidDate(stg.AB)                             as validFromDate, 
+               stg.TARIFTYP                                    as rateCategoryCode, 
+               tt.TTYPBEZ                                      as rateCategory, 
+               stg.BRANCHE                                     as industryCode, 
+               st.industry                                     as industry, 
+               stg.AKLASSE                                     as billingClassCode, 
+               bc.billingClass                                 as billingClass, 
+               stg.ABLEINH                                     as meterReadingUnit, 
+               stg.ISTYPE                                      as industrySystemCode, 
+               nt.industry                                     as industrySystem, 
+               stg.UPDMOD                                      as deltaProcessRecordMode, 
+               stg.ZLOGIKNR                                    as logicalDeviceNumber, 
+               cast('1900-01-01' as TimeStamp)                 as _RecordStart, 
+               cast('9999-12-31' as TimeStamp)                 as _RecordEnd, 
+               '0'                                             as _RecordDeleted, 
+               '1'                                             as _RecordCurrent, 
+               cast('{CurrentTimeStamp}' as TimeStamp)         as _DLCleansedZoneTimeStamp 
+          FROM stage stg 
+          LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0uc_aklasse_text bc on 
+               bc.billingClassCode = stg.AKLASSE and 
+               bc._RecordDeleted = 0 and 
+               bc._RecordCurrent = 1 
+               LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0uc_tariftyp_text tt on 
+                    tt.TARIFTYP = stg.TARIFTYP and 
+                    tt._RecordDeleted = 0 and 
+                    tt._RecordCurrent = 1 
+               LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0ind_sector_text st on 
+                    st.industrySystem = stg.ISTYPE and 
+                    st.industryCode = stg.BRANCHE and 
+                    st._RecordDeleted = 0 and 
+                    st._RecordCurrent = 1 
+               LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0ind_numsys_text nt on
+                    nt.industrySystem = stg.ISTYPE and 
+                    nt._RecordDeleted = 0 and
+                    nt._RecordCurrent = 1 
+          WHERE 
+               stg._RecordVersion = 1 
+               AND ANLAGE IS NOT NULL
+     """
+)
+
+#display(df)
 
 #print(f'Number of rows: {df.count()}')
 
 # COMMAND ----------
 
 newSchema = StructType([
-                          StructField('installationId', StringType(), False),
+                          StructField('installationNumber', StringType(), False),
                           StructField('validToDate', DateType(), False),
                           StructField('validFromDate', DateType(), True),
                           StructField('rateCategoryCode', StringType(), True),
@@ -228,7 +309,6 @@ newSchema = StructType([
                           StructField('_RecordCurrent',IntegerType(),False),
                           StructField('_DLCleansedZoneTimeStamp',TimestampType(),False)
 ])
-
 
 # COMMAND ----------
 
@@ -256,7 +336,7 @@ CurrentTimeStamp = CurrentTimeStamp.strftime("%Y-%m-%d %H:%M:%S")
 spark.sql(f" \
     MERGE INTO cleansed.isu_0UCINSTALLAH_ATTR_2 \
     using isu_installation_deleted_records \
-    on isu_0UCINSTALLAH_ATTR_2.installationId = isu_installation_deleted_records.ANLAGE \
+    on isu_0UCINSTALLAH_ATTR_2.installationNumber = isu_installation_deleted_records.ANLAGE \
     and isu_0UCINSTALLAH_ATTR_2.validFromDate = isu_installation_deleted_records.AB \
     and isu_0UCINSTALLAH_ATTR_2.validToDate = isu_installation_deleted_records.BIS \
     WHEN MATCHED THEN UPDATE SET \
