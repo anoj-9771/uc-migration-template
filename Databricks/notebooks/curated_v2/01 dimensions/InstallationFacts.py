@@ -20,7 +20,7 @@
 df_installation_fact = spark.sql(f"""
     SELECT
         'ISU'                          AS sourceSystemCode,
-        installationId                 AS installationNumber,
+        installationNumber             AS installationNumber,
         operandCode                    AS operandCode,
         validFromDate                  AS validFromDate,
         consecutiveDaysFromDate        AS consecutiveDaysFromDate,
@@ -53,7 +53,7 @@ dummyDimRecDf = spark.createDataFrame(
     ["installationNumber", "description"]
 )
 
-#UNION TABLES
+# Union Tables
 df_installation_fact = (
     df_installation_fact
     .unionByName(dummyDimRecDf, allowMissingColumns = True)
@@ -99,6 +99,6 @@ schema = StructType([
 TemplateTimeSliceEtlSCD(
     df_installation_fact, 
     entity="dimInstallationFact", 
-    businessKey="installationNumber", 
+    businessKey="installationNumber,operandCode,validFromDate", 
     schema=schema
 )

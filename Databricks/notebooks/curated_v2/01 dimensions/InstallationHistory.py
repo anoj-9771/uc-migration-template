@@ -62,7 +62,7 @@ schema = StructType([
     StructField('installationHistorySK',StringType(),False),
     StructField('sourceSystemCode',StringType(),True),
     StructField('installationNumber',StringType(),False),
-    StructField('validFromDate',DateType(),False),
+    StructField('validFromDate',DateType(),True),
     StructField('validToDate',DateType(),False),
     StructField('rateCategoryCode',StringType(),True),
     StructField('rateCategory',StringType(),True),
