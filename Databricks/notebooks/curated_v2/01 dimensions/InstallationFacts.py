@@ -51,9 +51,11 @@ df_installation_fact = spark.sql(f"""
 # ----------------
 # Dummy Dimension
 # ----------------
-dummyDimRecDf = spark.createDataFrame(
-    [("-1", "1900-01-01", "unknown")],
-    ["installationNumber", "description"]
+dummyDimRecDf = (
+    spark.createDataFrame(
+        [("-1","-1", "1900-01-01", "9999-12-31")], 
+        ["installationNumber", "operandCode", "validFromDate","validToDate"]
+    )
 )
 
 # Union Tables
@@ -61,6 +63,8 @@ df_installation_fact = (
     df_installation_fact
     .unionByName(dummyDimRecDf, allowMissingColumns = True)
     .drop_duplicates()
+    .withColumn("validFromDate",col("validFromDate").cast("date"))
+    .withColumn("validToDate",col("validToDate").cast("date"))
 )    
 
 # print('df count',df_installation_fact.count())
@@ -69,7 +73,7 @@ df_installation_fact = (
 # COMMAND ----------
 
 schema = StructType([
-    StructField('installationFactSK',StringType(),False),
+    StructField('installationFactsSK',StringType(),False),
     StructField('sourceSystemCode',StringType(),True),
     StructField('installationNumber',StringType(),False),
     StructField('operandCode',StringType(),False),
