@@ -225,7 +225,7 @@ df = spark.sql(f"""
                 WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}'
         ) 
                 SELECT
-                        MANDT                                               as clientId 
+                        MANDT                                               as clientId, 
                         case when ANLAGE = 'na' then '' else ANLAGE end     as installationNumber, 
                         case when OPERAND = 'na' then '' else OPERAND end   as operandCode, 
                         SAISON                                              as seasonNumber, 
