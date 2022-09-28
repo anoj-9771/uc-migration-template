@@ -38,14 +38,14 @@ def getDeviceHistory():
                                       from {ADS_DATABASE_CLEANSED}.isu_0UC_DEVICEH_ATTR dh
                                       where dh._RecordCurrent = 1 and  dh._RecordDeleted = 0
                                       """)
-    dummyDimRecDf = spark.createDataFrame([("ISU","-1","1900-01-01", "9999-12-31")], ["sourceSystemCode","deviceNumber","validFromDate","validToDate"])   
+    dummyDimRecDf = spark.createDataFrame([("-1","1900-01-01", "9999-12-31")], ["deviceNumber","validFromDate","validToDate"])   
     dfResult = isuDeviceHistDf.unionByName(dummyDimRecDf, allowMissingColumns = True) 
     dfResult = dfResult.withColumn("validFromDate",col("validFromDate").cast("date")).withColumn("validToDate",col("validToDate").cast("date"))
     
     #5.Apply schema definition
     schema = StructType([
                             StructField('deviceHistorySK', StringType(), False),
-                            StructField('sourceSystemCode', StringType(), False),
+                            StructField('sourceSystemCode', StringType(), True),
                             StructField('deviceNumber', StringType(), False),
                             StructField('validToDate', DateType(), False),
                             StructField('validFromDate', DateType(), True),

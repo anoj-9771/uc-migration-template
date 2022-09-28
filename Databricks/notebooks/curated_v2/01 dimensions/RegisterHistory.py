@@ -37,14 +37,14 @@ def getRegisterHistory():
                                       from {ADS_DATABASE_CLEANSED}.isu_0UC_REGIST_ATTR rh
                                       where rh._RecordCurrent = 1 and rh._RecordDeleted = 0
                                       """)
-    dummyDimRecDf = spark.createDataFrame([("ISU","-1","-1","1900-01-01", "9999-12-31")], ["sourceSystemCode","registerNumber","deviceNumber","validFromDate","validToDate"])   
+    dummyDimRecDf = spark.createDataFrame([("-1","-1","1900-01-01", "9999-12-31")], ["registerNumber","deviceNumber","validFromDate","validToDate"])   
     dfResult = isuRegisterHistDf.unionByName(dummyDimRecDf, allowMissingColumns = True) 
     dfResult = dfResult.withColumn("validFromDate",col("validFromDate").cast("date")).withColumn("validToDate",col("validToDate").cast("date"))
     
     #5.Apply schema definition
     schema = StructType([
                             StructField('registerHistorySK', StringType(), False),
-                            StructField('sourceSystemCode', StringType(), False),
+                            StructField('sourceSystemCode', StringType(), True),
                             StructField('registerNumber', StringType(), False),
                             StructField('deviceNumber', StringType(), False),
                             StructField('validToDate', DateType(), False),

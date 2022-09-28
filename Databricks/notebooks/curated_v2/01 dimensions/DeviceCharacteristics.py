@@ -102,13 +102,13 @@ def getDeviceCharacteristics():
                                     FROM ausp_cabnt_cawnt
                               """)
     
-    dummyDimRecDf = spark.createDataFrame([("ISU","-1","-1","-1","-1","-1")], ["sourceSystemCode","deviceNumber","characteristicInternalId","classifiedEntityType","classTypeCode","archivingObjectsInternalId"])   
+    dummyDimRecDf = spark.createDataFrame([("-1","-1","Unknown","Unknown","-1")], ["deviceNumber","characteristicInternalId","classifiedEntityType","classTypeCode","archivingObjectsInternalId"])   
     dfResult = isuDeviceCharacteristicsDf.unionByName(dummyDimRecDf, allowMissingColumns = True)    
     
     #5.Apply schema definition
     schema = StructType([
                             StructField('deviceCharacteristicsSK', StringType(), False),
-                            StructField('sourceSystemCode', StringType(), False),
+                            StructField('sourceSystemCode', StringType(), True),
                             StructField('deviceNumber', StringType(), False),
                             StructField('characteristicInternalId', StringType(), False),
                             StructField('classifiedEntityType', StringType(), False),
