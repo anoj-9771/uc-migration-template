@@ -26,6 +26,7 @@ df_isu_0uc_isu_32 = spark.sql(f"""
         disconnectionActivityTypeCode             AS disconnectionActivityTypeCode,
         disconnectionActivityType                 AS disconnectionActivityType,
         disconnectionObjectTypeCode               AS disconnectionObjectTypeCode,
+        referenceObjectTypeCode                   AS referenceObjectTypeCode,
         disconnectionReasonCode                   AS disconnectionReasonCode,
         disconnectionReason                       AS disconnectionReason,
         processingVariantCode                     AS processingVariantCode,
@@ -75,6 +76,7 @@ schema = StructType([
     StructField('disconnectionActivityTypeCode',StringType(),True),
     StructField('disconnectionActivityType',StringType(),True),
     StructField('disconnectionObjectTypeCode',StringType(),True),
+    StructField('referenceObjectTypeCode', StringType(), True),
     StructField('disconnectionReasonCode',StringType(),True),
     StructField('disconnectionReason',StringType(),True),
     StructField('processingVariantCode',StringType(),True),
@@ -96,3 +98,7 @@ TemplateEtlSCD(
     businessKey="sourceSystemCode,disconnectionDocumentNumber,disconnectionObjectNumber,disconnectionActivityPeriod",
     schema=schema
 )
+
+# COMMAND ----------
+
+dbutils.notebook.exit("1")

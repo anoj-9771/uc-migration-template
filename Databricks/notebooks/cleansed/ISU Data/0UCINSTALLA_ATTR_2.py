@@ -46,7 +46,7 @@ import json
 # 	"SourceTimeStampFormat": "", 
 # 	"WhereClause": "",
 # 	"Command": "/build/cleansed/ISU Data/0UCINSTALLA_ATTR_2", 
-# 	"LastSuccessfulExecutionTS": "1900-01-01",
+# 	"LastSuccessfulExecutionTS": "2022-09-20 08:42:06.000",
 # 	"LastLoadedFile": null
 # }
 #Use this string in the Source Object widget
