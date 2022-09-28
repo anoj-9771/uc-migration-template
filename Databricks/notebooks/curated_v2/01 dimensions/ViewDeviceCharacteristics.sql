@@ -1,7 +1,7 @@
 -- Databricks notebook source
--- View: view_Devicecharacterictics
--- Description: view_Devicecharacterictics
-CREATE OR REPLACE VIEW curated_v2.view_Devicecharacterictics AS
+-- View: view_Devicecharacteristics
+-- Description: view_Devicecharacteristics
+CREATE OR REPLACE VIEW curated_v2.view_Devicecharacteristics AS
 SELECT
      deviceCharacteristicsSK
     ,deviceNumber

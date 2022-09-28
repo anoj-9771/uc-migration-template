@@ -19,10 +19,10 @@ def getDeviceCharacteristics():
     isuDeviceCharacteristicsDf  = spark.sql(f"""
                                     WITH isu_ausp AS (
                                             SELECT classificationObjectInternalId,characteristicInternalId,characteristicValueInternalId,
-                                                    classifiedEntityType,classType,archivingObjectsInternalId,characteristicValueCode,
+                                                    classifiedEntityType,classTypeCode,classType,archivingObjectsInternalId,characteristicValueCode,
                                                     minimumValue,minimumValueUnit,maximumValue,maximumValueUnit,valueDependencyCode,
                                                     minToleranceValue,maxToleranceValue,toleranceIsPercentFlag,IncrementWithinInterval,
-                                                    charactericticAuthor,characteristicChangeNumber,validFromDate,isDeletedFlag,
+                                                    characteristicAuthor,characteristicChangeNumber,validFromDate,isDeletedFlag,
                                                     validToDate,decimalMinimumValue,decimalMaximumValue,currencyMinimumValue,
                                                     currencyMaximumValue,validFromDate1,validToDate1,timeMinimumValue,timeMaximumValue
                                             FROM (
@@ -38,7 +38,7 @@ def getDeviceCharacteristics():
                                                 SELECT isu_ausp.*, isu_cawnt.characteristicValueDescription
                                                  FROM isu_ausp LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_cawn
                                                      ON isu_ausp.characteristicInternalId = isu_cawn.internalcharacteristic
-                                                         AND isu_ausp.characteristicValueCode = isu_cawn.charactericValue
+                                                         AND isu_ausp.characteristicValueCode = isu_cawn.characteristicValue
                                                          AND isu_cawn._RecordCurrent = 1 AND isu_cawn._RecordDeleted = 0
                                                  LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_cawnt
                                                       ON isu_cawn.internalCharacteristic = isu_cawnt.internalcharacteristic
@@ -47,7 +47,7 @@ def getDeviceCharacteristics():
                                                   ),
                                          ausp_cawnt AS (
                                               SELECT classificationObjectInternalId,characteristicInternalId
-                                                ,classifiedEntityType,classType
+                                                ,classifiedEntityType,classTypeCode,classType
                                                 ,archivingObjectsInternalId
                                                 ,CONCAT_WS(' ',SORT_ARRAY(COLLECT_LIST(STRUCT(characteristicValueInternalId,characteristicValueCode))).characteristicValueCode) AS characteristicValueCode
                                                 ,CONCAT_WS(' ', SORT_ARRAY(COLLECT_LIST(STRUCT(characteristicValueInternalId,characteristicValueDescription))).characteristicValueDescription) AS characteristicValueDescription
@@ -56,15 +56,15 @@ def getDeviceCharacteristics():
                                                 ,decimalMinimumValue,decimalMaximumValue,currencyMinimumValue,currencyMaximumValue 
                                               FROM isu_ausp_cawnt 
                                               GROUP BY classificationObjectInternalId,characteristicInternalId,
-                                                    classifiedEntityType,classType,archivingObjectsInternalId,
+                                                    classifiedEntityType,classTypeCode,classType,archivingObjectsInternalId,
                                                     minimumValue,minimumValueUnit,maximumValue,maximumValueUnit,valueDependencyCode,
                                                     minToleranceValue,maxToleranceValue,toleranceIsPercentFlag,IncrementWithinInterval,
-                                                    charactericticAuthor,characteristicChangeNumber,validFromDate,isDeletedFlag,
+                                                    characteristicAuthor,characteristicChangeNumber,validFromDate,isDeletedFlag,
                                                     validToDate,decimalMinimumValue,decimalMaximumValue,currencyMinimumValue,
                                                     currencyMaximumValue,validFromDate1,validToDate1,timeMinimumValue,timeMaximumValue
                                                  ),
                                          ausp_cabnt_cawnt AS (
-                                              SELECT DISTINCT ausp_cawnt.*, isu_cabn.characteristicName, isu_cabnt.charactericDescription 
+                                              SELECT DISTINCT ausp_cawnt.*, isu_cabn.characteristicName, isu_cabnt.characteristicDescription 
                                               FROM ausp_cawnt INNER JOIN {ADS_DATABASE_CLEANSED}.isu_cabn
                                                   ON ausp_cawnt.characteristicInternalId = isu_cabn.internalcharacteristic
                                                       AND isu_cabn._RecordCurrent = 1 and  isu_cabn._RecordDeleted = 0
@@ -82,11 +82,11 @@ def getDeviceCharacteristics():
                                         classificationObjectInternalId AS deviceNumber,
                                         characteristicInternalId,
                                         classifiedEntityType,
-                                        cast('' as string) as classTypeCode,
+                                        classTypeCode,
                                         classType,
                                         archivingObjectsInternalId,
                                         characteristicName,
-                                        charactericDescription,
+                                        characteristicDescription,
                                         characteristicValueCode,
                                         characteristicValueDescription,
                                         validFromDate1 AS characteristicValueMinimumDate,
@@ -102,7 +102,7 @@ def getDeviceCharacteristics():
                                     FROM ausp_cabnt_cawnt
                               """)
     
-    dummyDimRecDf = spark.createDataFrame([("ISU","-1")], ["sourceSystemCode","deviceNumber"])   
+    dummyDimRecDf = spark.createDataFrame([("ISU","-1","-1","-1","-1","-1")], ["sourceSystemCode","deviceNumber","characteristicInternalId","classifiedEntityType","classTypeCode","archivingObjectsInternalId"])   
     dfResult = isuDeviceCharacteristicsDf.unionByName(dummyDimRecDf, allowMissingColumns = True)    
     
     #5.Apply schema definition
@@ -116,7 +116,7 @@ def getDeviceCharacteristics():
                             StructField('classType', StringType(), True),
                             StructField('archivingObjectsInternalId', StringType(), False),
                             StructField('characteristicName', StringType(), True),
-                            StructField('charactericDescription', StringType(), True),
+                            StructField('characteristicDescription', StringType(), True),
                             StructField('characteristicValueCode', StringType(), True),
                             StructField('characteristicValueDescription', StringType(), True),
                             StructField('characteristicValueMinimumDate', DateType(), True),
