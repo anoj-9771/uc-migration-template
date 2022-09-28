@@ -226,7 +226,7 @@ df = spark.sql(f"""
                          _DLRawZoneTimeStamp DESC
                ) AS _RecordVersion
           FROM {delta_raw_tbl_name}
-          --WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' and DI_OPERATION_TYPE !='X' 
+          WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' and DI_OPERATION_TYPE !='X' 
      ) 
           SELECT  
                case 

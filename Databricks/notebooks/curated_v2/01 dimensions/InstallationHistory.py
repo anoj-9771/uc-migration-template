@@ -95,3 +95,7 @@ TemplateTimeSliceEtlSCD(
     businessKey="installationNumber,validToDate", 
     schema=schema
 )
+
+# COMMAND ----------
+
+dbutils.notebook.exit("1")
