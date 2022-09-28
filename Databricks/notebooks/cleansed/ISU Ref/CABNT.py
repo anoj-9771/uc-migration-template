@@ -175,7 +175,7 @@ df = spark.sql(f"WITH stage AS \
                            SELECT \
                                 case when ATINN = 'na' then '' else ATINN end as internalcharacteristic, \
                                 case when ADZHL = 'na' then '' else ADZHL end as internalCounterforArchivingObjectsbyECM, \
-                                ATBEZ as charactericDescription, \
+                                ATBEZ as characteristicDescription, \
                                 ATUE1 as headingFirstLine, \
                                 ATUE2 as headingSecondLine, \
                                 ToValidDate(DATUV) as validFromDate, \
@@ -199,7 +199,7 @@ newSchema = StructType(
                            [
                             StructField("internalcharacteristic", StringType(), False),
                             StructField("internalCounterforArchivingObjectsbyECM", StringType(), False),
-                            StructField("charactericDescription", StringType(), True),
+                            StructField("characteristicDescription", StringType(), True),
                             StructField("headingFirstLine", StringType(), True),
                             StructField("headingSecondLine", StringType(), True),
                             StructField("validFromDate", DateType(), True),

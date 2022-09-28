@@ -259,7 +259,7 @@ spark.sql(f" \
     MERGE INTO cleansed.isu_0UC_REGINST_STR_ATTR \
     using isu_reginst_deleted_records \
     on isu_0UC_REGINST_STR_ATTR.logicalRegisterNumber = isu_reginst_deleted_records.LOGIKZW \
-    and isu_0UC_REGINST_STR_ATTR.installationId = isu_reginst_deleted_records.ANLAGE \
+    and isu_0UC_REGINST_STR_ATTR.installationNumber = isu_reginst_deleted_records.ANLAGE \
     and isu_0UC_REGINST_STR_ATTR.validFromDate = isu_reginst_deleted_records.AB \
     and isu_0UC_REGINST_STR_ATTR.validToDate = isu_reginst_deleted_records.BIS \
     WHEN MATCHED THEN UPDATE SET \

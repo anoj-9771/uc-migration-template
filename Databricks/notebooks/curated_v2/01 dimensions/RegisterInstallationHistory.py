@@ -32,13 +32,14 @@ def getRegisterInstallationHistory():
                                               where rih._RecordCurrent = 1 and  rih._RecordDeleted = 0
                                         """)
     
-    dummyDimRecDf = spark.createDataFrame([("ISU","-1","-1","1900-01-01", "9999-12-31")], ["sourceSystemCode","logicalRegisterNumber","installationNumber","validFromDate","validToDate"])   
-    dfResult = isuRegisterInstallHistDf.unionByName(dummyDimRecDf, allowMissingColumns = True)    
+    dummyDimRecDf = spark.createDataFrame([("-1","-1","1900-01-01", "9999-12-31")], ["logicalRegisterNumber","installationNumber","validFromDate","validToDate"])   
+    dfResult = isuRegisterInstallHistDf.unionByName(dummyDimRecDf, allowMissingColumns = True)   
+    dfResult = dfResult.withColumn("validFromDate",col("validFromDate").cast("date")).withColumn("validToDate",col("validToDate").cast("date"))
     
     #5.Apply schema definition
     schema = StructType([
                             StructField('registerInstallationHistorySK', StringType(), False),
-                            StructField('sourceSystemCode', StringType(), False),
+                            StructField('sourceSystemCode', StringType(), True),
                             StructField('logicalRegisterNumber', StringType(), False),
                             StructField('installationNumber', StringType(), False),
                             StructField('validToDate', DateType(), False),
