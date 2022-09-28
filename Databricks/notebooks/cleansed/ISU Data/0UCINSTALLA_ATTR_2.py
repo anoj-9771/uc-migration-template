@@ -4,7 +4,51 @@ import json
 #For unit testing...
 #Use this string in the Param widget: 
 #$PARAM
-
+# {
+# 	"SourceType": "BLOB Storage (json)", 
+# 	"SourceServer": "daf-sa-lake-sastoken", 
+# 	"SourceGroup": "isudata", 
+# 	"SourceName": "isu_0UCINSTALLA_ATTR_2", 
+# 	"SourceLocation": "isudata/0UCINSTALLA_ATTR_2", 
+# 	"AdditionalProperty": "", 
+# 	"Processor": "databricks-token|0527-214324-ytwxx0tv|Standard_DS12_v2|10.4.x-scala2.12|2:28|interactive", 
+# 	"IsAuditTable": false, 
+# 	"SoftDeleteSource": "", 
+# 	"ProjectName": "CLEANSED ISU DATA", 
+# 	"ProjectId": 12, 
+# 	"TargetType": "BLOB Storage (json)", 
+# 	"TargetName": "isu_0UCINSTALLA_ATTR_2", 
+# 	"TargetLocation": "isudata/0UCINSTALLA_ATTR_2", 
+# 	"TargetServer": "daf-sa-lake-sastoken", 
+# 	"DataLoadMode": "INCREMENTAL", 
+# 	"DeltaExtract": true, 
+# 	"CDCSource": false, 
+# 	"TruncateTarget": false, 
+# 	"UpsertTarget": true, 
+# 	"AppendTarget": false, 
+# 	"TrackChanges": false, 
+# 	"LoadToSqlEDW": true, 
+# 	"TaskName": "isu_0UCINSTALLA_ATTR_2", 
+# 	"ControlStageId": 2, 
+# 	"TaskId": 152, 
+# 	"StageSequence": 200, 
+# 	"StageName": "Raw to Cleansed", 
+# 	"SourceId": 152, 
+# 	"TargetId": 152, 
+# 	"ObjectGrain": "Day", 
+# 	"CommandTypeId": 8, 
+# 	"Watermarks": "2000-01-01 00:00:00", 
+# 	"WatermarksDT": "2000-01-01T00:00:00", 
+# 	"WatermarkColumn": "_FileDateTimeStamp", 
+# 	"BusinessKeyColumn": "installationNumber", 
+# 	"PartitionColumn": null, 
+# 	"UpdateMetaData": null, 
+# 	"SourceTimeStampFormat": "", 
+# 	"WhereClause": "",
+# 	"Command": "/build/cleansed/ISU Data/0UCINSTALLA_ATTR_2", 
+# 	"LastSuccessfulExecutionTS": "1900-01-01",
+# 	"LastLoadedFile": null
+# }
 #Use this string in the Source Object widget
 #$GROUP_$SOURCE
 
@@ -170,42 +214,68 @@ print(delta_raw_tbl_name)
 # COMMAND ----------
 
 # DBTITLE 1,10. Load Raw to Dataframe & Do Transformations
-df = spark.sql(f"WITH stage AS \
-                      (Select *, ROW_NUMBER() OVER (PARTITION BY ANLAGE ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
-                           SELECT  \
-                                case when stg.ANLAGE = 'na' then '' else stg.ANLAGE end as installationId, \
-                                stg.SPARTE as divisionCode, \
-                                div.division, \
-                                stg.VSTELLE as premise, \
-                                stg.BEZUG as reference, \
-                                stg.ABLESARTST as meterReadingControlCode, \
-                                mrc.meterReadingControl as meterReadingControl, \
-                                stg.SERVICE as serviceTypeCode, \
-                                ser.serviceType, \
-                                stg.ETIMEZONE as timeZone, \
-                                ToValidDate(stg.ERDAT) as createdDate, \
-                                stg.ERNAM as createdBy, \
-                                ToValidDate(stg.AEDAT) as lastChangedDate, \
-                                stg.AENAM as lastChangedBy, \
-                                stg.BEGRU as authorizationGroupCode, \
-                                stg.LOEVM as deletedIndicator, \
-                                stg.ZZ_HAUS as propertyNumber, \
-                                stg.ZZ_PROPTYPE as industry, \
-                                stg.ZZ_ADRNR as addressNumber, \
-                                stg.ZZ_OBJNR as objectNumber, \
-                                cast('1900-01-01' as TimeStamp) as _RecordStart, \
-                                cast('9999-12-31' as TimeStamp) as _RecordEnd, \
-                                '0' as _RecordDeleted, \
-                                '1' as _RecordCurrent, \
-                                cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
-                        FROM stage stg \
-                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0DIVISION_TEXT div on div.divisionCode = stg.SPARTE \
-                                                                                                    and div._RecordDeleted = 0 and div._RecordCurrent = 1 \
-                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UC_SERTYPE_TEXT ser on ser.serviceTypeCode = stg.SERVICE \
-                                                                                                    and ser._RecordDeleted = 0 and ser._RecordCurrent = 1 \
-                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_TE438T mrc ON mrc.meterReadingControlCode = stg.ABLESARTST \
-                                                                                                    and mrc._RecordDeleted = 0 and mrc._RecordCurrent = 1 \
-                        where stg._RecordVersion = 1 ")
+df = spark.sql(f"""
+     WITH stage AS (
+          Select 
+               *, 
+               ROW_NUMBER() OVER (
+                    PARTITION BY ANLAGE 
+                    ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC
+               ) AS _RecordVersion 
+          FROM {delta_raw_tbl_name} 
+          WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}'
+     ) 
+          SELECT  
+               case 
+                    when stg.ANLAGE = 'na' 
+                    then '' 
+                    else stg.ANLAGE 
+               end                                                     as installationNumber, -- 2.2
+               stg.SPARTE                                              as divisionCode, -- 1.2
+               div.division                                            as division, 
+               stg.VSTELLE                                             as premise, 
+               stg.BEZUG                                               as reference, 
+               stg.ABLESARTST                                          as meterReadingControlCode, 
+               mrc.meterReadingControl                                 as meterReadingControl, 
+               stg.SERVICE                                             as serviceTypeCode, 
+               ser.serviceType                                         as serviceType , 
+               stg.ETIMEZONE                                           as timeZone, 
+               ToValidDate(stg.ERDAT)                                  as createdDate, 
+               stg.ERNAM                                               as createdBy, 
+               ToValidDate(stg.AEDAT)                                  as lastChangedDate, 
+               stg.AENAM                                               as lastChangedBy, 
+               stg.BEGRU                                               as authorizationGroupCode, 
+               stg.LOEVM                                               as deletedIndicator, 
+               stg.ZZ_HAUS                                             as propertyNumber, 
+               stg.ZZ_PROPTYPE                                         as industry, 
+               stg.ZZ_ADRNR                                            as addressNumber, 
+               stg.ZZ_OBJNR                                            as objectNumber, 
+               stg.ABLSPERR                                            as meterReadingBlockedReason, -- 2.2
+               stg.BAPERTYP                                            as basePeriodCategory, -- 2.2
+               stg.NODISCONCT                                          as guaranteedSupplyReason, -- 2.2
+               stg.DEREGSTAT                                           as deregulationStatus, -- 2.2
+               stg.ANLART                                              as installationType, -- 2.2 
+               cast('1900-01-01' as TimeStamp)                         as _RecordStart, 
+               cast('9999-12-31' as TimeStamp)                         as _RecordEnd, 
+               '0'                                                     as _RecordDeleted, 
+               '1'                                                     as _RecordCurrent, 
+               cast('{CurrentTimeStamp}' as TimeStamp)                 as _DLCleansedZoneTimeStamp 
+     FROM stage stg 
+     LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0DIVISION_TEXT div ON 
+          div.divisionCode = stg.SPARTE and 
+          div._RecordDeleted = 0 and
+          div._RecordCurrent = 1 
+     LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UC_SERTYPE_TEXT ser ON 
+          ser.serviceTypeCode = stg.SERVICE and 
+          ser._RecordDeleted = 0 and 
+          ser._RecordCurrent = 1 
+     LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_TE438T mrc ON 
+          mrc.meterReadingControlCode = stg.ABLESARTST and 
+          mrc._RecordDeleted = 0 and 
+          mrc._RecordCurrent = 1 
+     WHERE stg._RecordVersion = 1 
+"""
+)
 
 #print(f'Number of rows: {df.count()}')
 
@@ -253,7 +323,7 @@ df = spark.sql(f"WITH stage AS \
 
 # Create schema for the cleanse table
 newSchema = StructType([
-                        StructField("installationId", StringType(), False),
+                        StructField("installationNumber", StringType(), False),
                         StructField("divisionCode", StringType(), True),
                         StructField("division", StringType(), True),
                         StructField("premise", StringType(), True),
@@ -273,6 +343,11 @@ newSchema = StructType([
                         StructField("industry", StringType(), True),
                         StructField("addressNumber", StringType(), True),
                         StructField("objectNumber", StringType(), True),
+                        StructField('meterReadingBlockedReason', StringType(), True),
+                        StructField('basePeriodCategory', StringType(), True),
+                        StructField('guaranteedSupplyReason', StringType(), True),
+                        StructField('deregulationStatus', StringType(), True),
+                        StructField('installationType', StringType(), True),
                         StructField('_RecordStart',TimestampType(),False),
                         StructField('_RecordEnd',TimestampType(),False),
                         StructField('_RecordDeleted',IntegerType(),False),
