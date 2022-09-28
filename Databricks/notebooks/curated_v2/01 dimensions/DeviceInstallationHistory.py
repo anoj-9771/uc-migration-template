@@ -31,7 +31,8 @@ def getDeviceInstallationHistory():
                                       """)
     
     dummyDimRecDf = spark.createDataFrame([("ISU","-1","-1","1900-01-01", "9999-12-31")], ["sourceSystemCode","installationNumber","logicalDeviceNumber","validFromDate","validToDate"])   
-    dfResult = isuDeviceInstallHistDf.unionByName(dummyDimRecDf, allowMissingColumns = True)    
+    dfResult = isuDeviceInstallHistDf.unionByName(dummyDimRecDf, allowMissingColumns = True) 
+    dfResult = dfResult.withColumn("validFromDate",col("validFromDate").cast("date")).withColumn("validToDate",col("validToDate").cast("date"))
     
     #5.Apply schema definition
     schema = StructType([
