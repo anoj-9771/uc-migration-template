@@ -39,7 +39,7 @@ import json
 # 	"Watermarks": "2000-01-01 00:00:00", 
 # 	"WatermarksDT": "2000-01-01T00:00:00", 
 # 	"WatermarkColumn": "DELTA_TS", 
-# 	"BusinessKeyColumn": "installationId,operandCode,validFromDate,consecutiveDaysFromDate", 
+# 	"BusinessKeyColumn": "installationNumber,operandCode,validFromDate,consecutiveDaysFromDate", 
 # 	"PartitionColumn": null, 
 # 	"UpdateMetaData": null, 
 # 	"SourceTimeStampFormat": "", 
@@ -225,10 +225,8 @@ df = spark.sql(f"""
           WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}'
      ) 
           SELECT 
-               MANDT                                               as clientId,
                case when ANLAGE = 'na' then '' else ANLAGE end     as installationNumber, 
                case when OPERAND = 'na' then '' else OPERAND end   as operandCode, 
-               SAISON                                              as seasonNumber, 
                ToValidDate(AB,'MANDATORY')                         as validFromDate, 
                case when ABLFDNR = 'na' then '' else ABLFDNR end   as consecutiveDaysFromDate, 
                ToValidDate(BIS)                                    as validToDate, 
@@ -259,7 +257,7 @@ df = spark.sql(f"""
           te._RecordDeleted = 0 and 
           te._RecordCurrent = 1 
      LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_te067t te067t ON
-          ef.KONDIGR = te067t AND
+          ef.KONDIGR = te067t.rateFactGroupCode AND
           te067t._RecordDeleted = 0 and 
           te067t._RecordCurrent = 1 
      WHERE 
@@ -267,7 +265,8 @@ df = spark.sql(f"""
           ef.ANLAGE IS NOT NULL
      """
 )
-#print(f'Number of rows: {df.count()}')
+# print(f'Number of rows: {df.count()}')
+# display(df)
 
 # COMMAND ----------
 
@@ -308,31 +307,32 @@ df = spark.sql(f"""
 # COMMAND ----------
 
 newSchema = StructType([
-                        StructField('installationNumber',StringType(),False),
-                        StructField('operandCode',StringType(),False),
-                        StructField('validFromDate',DateType(),False),
-                        StructField('consecutiveDaysFromDate',StringType(),False),
-                        StructField('validToDate',DateType(),True),
-                        StructField('billingDocumentNumber',StringType(),True),
-                        StructField('mBillingDocumentNumber',StringType(),True),
-                        StructField('moveOutIndicator',StringType(),True),
-                        StructField('expiryDate',DateType(),True),
-                        StructField('inactiveIndicator',StringType(),True),
-                        StructField('manualChangeIndicator',StringType(),True),
-                        StructField('rateTypeCode',StringType(),True),
-                        StructField('rateType',StringType(),True),
-                        StructField('rateFactGroupCode',StringType(),True),
-                        StructField('entryValue',DecimalType(16,7),True),
-                        StructField('valueToBeBilled',DecimalType(16,7),True),
-                        StructField('operandValue1',StringType(),True),
-                        StructField('operandValue3',StringType(),True),
-                        StructField('amount',DecimalType(13,2),True),
-                        StructField('currencyKey',StringType(),True),
-                        StructField('_RecordStart',TimestampType(),False),
-                        StructField('_RecordEnd',TimestampType(),False),
-                        StructField('_RecordDeleted',IntegerType(),False),
-                        StructField('_RecordCurrent',IntegerType(),False),
-                        StructField('_DLCleansedZoneTimeStamp',TimestampType(),False)
+    StructField('installationNumber',StringType(),False),
+    StructField('operandCode',StringType(),False),
+    StructField('validFromDate',DateType(),False),
+    StructField('consecutiveDaysFromDate',StringType(),False),
+    StructField('validToDate',DateType(),True),
+    StructField('billingDocumentNumber',StringType(),True),
+    StructField('mBillingDocumentNumber',StringType(),True),
+    StructField('moveOutIndicator',StringType(),True),
+    StructField('expiryDate',DateType(),True),
+    StructField('inactiveIndicator',StringType(),True),
+    StructField('manualChangeIndicator',StringType(),True),
+    StructField('rateTypeCode',StringType(),True),
+    StructField('rateType',StringType(),True),
+    StructField('rateFactGroupCode',StringType(),True),
+    StructField('rateFactGroup',StringType(),True),
+    StructField('entryValue',DecimalType(16,7),True),
+    StructField('valueToBeBilled',DecimalType(16,7),True),
+    StructField('operandValue1',StringType(),True),
+    StructField('operandValue3',StringType(),True),
+    StructField('amount',DecimalType(13,2),True),
+    StructField('currencyKey',StringType(),True),
+    StructField('_RecordStart',TimestampType(),False),
+    StructField('_RecordEnd',TimestampType(),False),
+    StructField('_RecordDeleted',IntegerType(),False),
+    StructField('_RecordCurrent',IntegerType(),False),
+    StructField('_DLCleansedZoneTimeStamp',TimestampType(),False)
 ])
 
 

@@ -42,6 +42,9 @@ df_installation_fact = spark.sql(f"""
         amount                         AS amount,
         currencyKey                    AS currencyKey
     FROM {ADS_DATABASE_CLEANSED}.isu_ettifn
+    WHERE 
+        _RecordCurrent = 1 
+        AND _RecordDeleted = 0 
 """    
 ).drop_duplicates()
 
@@ -60,11 +63,13 @@ df_installation_fact = (
     .drop_duplicates()
 )    
 
+# print('df count',df_installation_fact.count())
+# display(df_installation_fact)
 
 # COMMAND ----------
 
 schema = StructType([
-    StructField('installationFactsSK',StringType(),False),
+    StructField('installationFactSK',StringType(),False),
     StructField('sourceSystemCode',StringType(),True),
     StructField('installationNumber',StringType(),False),
     StructField('operandCode',StringType(),False),
@@ -98,7 +103,11 @@ schema = StructType([
 
 TemplateTimeSliceEtlSCD(
     df_installation_fact, 
-    entity="dimInstallationFact", 
+    entity="dimInstallationFacts", 
     businessKey="installationNumber,operandCode,validFromDate", 
     schema=schema
 )
+
+# COMMAND ----------
+
+dbutils.notebook.exit("1")
