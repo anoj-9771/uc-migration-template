@@ -182,10 +182,10 @@ df = spark.sql(f"WITH stage AS \
                                 BusinessPartnerFullName as businessPartnerGroupName, \
                                 BusinessAgreement as businessAgreement, \
                                 BusinessAgreementUUID as businessAgreementUUID, \
-                                IncomingPaymentMethod as incomingPaymentMethod, \
-                                IncomingPaymentMethodName as incomingPaymentMethodName, \
-                                PaymentTerms as paymentTerms, \
-                                PaymentTermsName as paymentTermsName, \
+                                IncomingPaymentMethod as incomingPaymentMethodCode, \
+                                IncomingPaymentMethodName as incomingPaymentMethod, \
+                                PaymentTerms as paymentTermsCode, \
+                                PaymentTermsName as paymentTerms, \
                                 SoldToParty as soldToParty, \
                                 SoldToPartyName as businessPartnerFullName, \
                                 Division as divisionCode, \
@@ -196,19 +196,20 @@ df = spark.sql(f"WITH stage AS \
                                 CreatedByUser as createdBy, \
                                 ToValidDateTime(LastChangeDate) as lastChangedDate, \
                                 LastChangedByUser as changedBy, \
-                                ItemCategory as itemCategory, \
-                                ItemCategoryName as itemCategoryName, \
-                                Product as product, \
-                                ProductDescription as productDescription, \
-                                ItemType as itemType, \
-                                ItemTypeName as itemTypeName, \
-                                ProductType as productType, \
-                                HeaderType as headerType, \
-                                HeaderTypeName as headerTypeName, \
-                                HeaderCategory as headerCategory, \
+                                ItemCategory as itemCategoryCode, \
+                                ItemCategoryName as itemCategory, \
+                                Product as productCode, \
+                                ProductDescription as product, \
+                                ItemType as itemTypeCode, \
+                                ItemTypeName as itemType, \
+                                ProductType as productTypeCode, \
+                                dd.domainValueText as productType, \
+                                HeaderType as headerTypeCode, \
+                                HeaderTypeName as headerType, \
+                                HeaderCategory as headerCategoryCode, \
                                 HeaderCategoryName as headerCategoryName, \
                                 HeaderDescription as headerDescription, \
-                                IsDeregulationPod as isDeregulationPod, \
+                                (CASE WHEN IsDeregulationPod = 'X' THEN 'Y' ELSE 'N' END) as isDeregulationPODFlag, \
                                 UtilitiesPremise as premise, \
                                 NumberOfPersons as numberOfPersons, \
                                 CityName as cityName, \
@@ -228,7 +229,7 @@ df = spark.sql(f"WITH stage AS \
                                 IsStartedDueToProductChange as isStartedDueToProductChange, \
                                 IsInActivation as isInActivation, \
                                 IsInDeactivation as isInDeactivation, \
-                                IsCancelled as isCancelled, \
+                                (CASE WHEN IsCancelled = 'X' THEN 'Y' ELSE 'N' END) as isCancelledFlag, \
                                 CancellationMessageIsCreated as cancellationMessageIsCreated, \
                                 SupplyEndCanclnMsgIsCreated as supplyEndCanclnMsgIsCreated, \
                                 ActivationIsRejected as activationIsRejected, \
@@ -255,7 +256,10 @@ df = spark.sql(f"WITH stage AS \
                                 '0' as _RecordDeleted, \
                                 '1' as _RecordCurrent, \
                                 cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
-                        from stage where _RecordVersion = 1 ")
+                        from stage cu \
+                         LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.crm_DD07T dd ON cu.ProductType = dd.domainValueSingleUpperLimit \
+                                                                    and dd.domainName = 'CRM_PRODUCT_KIND' and dd._RecordDeleted = 0 and dd._RecordCurrent = 1 \
+                        where cu._RecordVersion = 1 ")
 
 #print(f'Number of rows: {df.count()}')
 
@@ -360,10 +364,10 @@ newSchema = StructType([
 	StructField('businessPartnerGroupName',StringType(),True),
 	StructField('businessAgreement',StringType(),True),
 	StructField('businessAgreementUUID',StringType(),True),
+	StructField('incomingPaymentMethodCode',StringType(),True),
 	StructField('incomingPaymentMethod',StringType(),True),
-	StructField('incomingPaymentMethodName',StringType(),True),
+	StructField('paymentTermsCode',StringType(),True),
 	StructField('paymentTerms',StringType(),True),
-	StructField('paymentTermsName',StringType(),True),
 	StructField('soldToParty',StringType(),True),
 	StructField('businessPartnerFullName',StringType(),True),
 	StructField('divisionCode',StringType(),True),
@@ -374,19 +378,20 @@ newSchema = StructType([
 	StructField('createdBy',StringType(),True),
 	StructField('lastChangedDate',TimestampType(),True),
 	StructField('changedBy',StringType(),True),
+	StructField('itemCategoryCode',StringType(),True),
 	StructField('itemCategory',StringType(),True),
-	StructField('itemCategoryName',StringType(),True),
+	StructField('productCode',StringType(),True),
 	StructField('product',StringType(),True),
-	StructField('productDescription',StringType(),True),
+	StructField('itemTypeCode',StringType(),True),
 	StructField('itemType',StringType(),True),
-	StructField('itemTypeName',StringType(),True),
-	StructField('productType',StringType(),True),
+	StructField('productTypeCode',StringType(),True),
+    StructField('productType',StringType(),True),
+	StructField('headerTypeCode',StringType(),True),
 	StructField('headerType',StringType(),True),
-	StructField('headerTypeName',StringType(),True),
-	StructField('headerCategory',StringType(),True),
+	StructField('headerCategoryCode',StringType(),True),
 	StructField('headerCategoryName',StringType(),True),
 	StructField('headerDescription',StringType(),True),
-	StructField('isDeregulationPod',StringType(),True),
+	StructField('isDeregulationPODFlag',StringType(),True),
 	StructField('premise',StringType(),True),
 	StructField('numberOfPersons',StringType(),True),
 	StructField('cityName',StringType(),True),
@@ -406,7 +411,7 @@ newSchema = StructType([
 	StructField('isStartedDueToProductChange',StringType(),True),
 	StructField('isInActivation',StringType(),True),
 	StructField('isInDeactivation',StringType(),True),
-	StructField('isCancelled',StringType(),True),
+	StructField('isCancelledFlag',StringType(),True),
 	StructField('cancellationMessageIsCreated',StringType(),True),
 	StructField('supplyEndCanclnMsgIsCreated',StringType(),True),
 	StructField('activationIsRejected',StringType(),True),
