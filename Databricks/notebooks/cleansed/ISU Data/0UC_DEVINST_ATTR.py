@@ -3,7 +3,7 @@
 import json
 #For unit testing...
 #Use this string in the Param widget: 
-#{"SourceType": "BLOB Storage (json)", "SourceServer": "daf-sa-lake-sastoken", "SourceGroup": "isu", "SourceName": "isu_0UC_DEVINST_ATTR", "SourceLocation": "isu/0UC_DEVINST_ATTR", "AdditionalProperty": "", "Processor": "databricks-token|0711-011053-turfs581|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive", "IsAuditTable": false, "SoftDeleteSource": "", "ProjectName": "ISU DATA", "ProjectId": 2, "TargetType": "BLOB Storage (json)", "TargetName": "isu_0UC_DEVINST_ATTR", "TargetLocation": "isu/0UC_DEVINST_ATTR", "TargetServer": "daf-sa-lake-sastoken", "DataLoadMode": "FULL-EXTRACT", "DeltaExtract": false, "CDCSource": false, "TruncateTarget": false, "UpsertTarget": true, "AppendTarget": null, "TrackChanges": false, "LoadToSqlEDW": true, "TaskName": "isu_0UC_DEVINST_ATTR", "ControlStageId": 2, "TaskId": 46, "StageSequence": 200, "StageName": "Raw to Cleansed", "SourceId": 46, "TargetId": 46, "ObjectGrain": "Day", "CommandTypeId": 8, "Watermarks": "", "WatermarksDT": null, "WatermarkColumn": "", "BusinessKeyColumn": "installationNumber,logicalDeviceNumber,validToDate", "UpdateMetaData": null, "SourceTimeStampFormat": "", "Command": "", "LastLoadedFile": null}
+#{"SourceType": "BLOB Storage (json)", "SourceServer": "daf-sa-lake-sastoken", "SourceGroup": "isu", "SourceName": "isu_0UC_DEVINST_ATTR", "SourceLocation": "isu/0UC_DEVINST_ATTR", "AdditionalProperty": "", "Processor": "databricks-token|0711-011053-turfs581|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive", "IsAuditTable": false, "SoftDeleteSource": "", "ProjectName": "ISU DATA", "ProjectId": 2, "TargetType": "BLOB Storage (json)", "TargetName": "isu_0UC_DEVINST_ATTR", "TargetLocation": "isu/0UC_DEVINST_ATTR", "TargetServer": "daf-sa-lake-sastoken", "DataLoadMode": "FULL-EXTRACT", "DeltaExtract": false, "CDCSource": false, "TruncateTarget": false, "UpsertTarget": true, "AppendTarget": null, "TrackChanges": false, "LoadToSqlEDW": true, "TaskName": "isu_0UC_DEVINST_ATTR", "ControlStageId": 2, "TaskId": 46, "StageSequence": 200, "StageName": "Raw to Cleansed", "SourceId": 46, "TargetId": 46, "ObjectGrain": "Day", "CommandTypeId": 8, "Watermarks": "", "WatermarksDT": null, "WatermarkColumn": "", "BusinessKeyColumn": "installationId,logicalDeviceNumber,validToDate", "UpdateMetaData": null, "SourceTimeStampFormat": "", "Command": "", "LastLoadedFile": null}
 
 #Use this string in the Source Object widget
 #isu_0UC_DEVINST_ATTR
@@ -174,7 +174,7 @@ df = spark.sql(f"WITH stage AS \
                       (Select *, ROW_NUMBER() OVER (PARTITION BY ANLAGE,LOGIKNR,BIS ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} \
                                   WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' and DI_OPERATION_TYPE !='X' ) \
                            SELECT \
-                                case when ANLAGE = 'na' then '' else ANLAGE end as installationNumber, \
+                                case when ANLAGE = 'na' then '' else ANLAGE end as installationId, \
                                 case when LOGIKNR = 'na' then '' else LOGIKNR end as logicalDeviceNumber, \
                                 ToValidDate((case when BIS = 'na' then '9999-12-31' else BIS end),'MANDATORY') as validToDate, \
                                 ToValidDate(AB) as validFromDate, \
@@ -203,7 +203,7 @@ df = spark.sql(f"WITH stage AS \
 # COMMAND ----------
 
 newSchema = StructType([
-	StructField('installationNumber',StringType(),False),
+	StructField('installationId',StringType(),False),
 	StructField('logicalDeviceNumber',StringType(),False),
 	StructField('validToDate',DateType(),False),
 	StructField('validFromDate',DateType(),True),
@@ -247,7 +247,7 @@ CurrentTimeStamp = CurrentTimeStamp.strftime("%Y-%m-%d %H:%M:%S")
 spark.sql(f" \
     MERGE INTO cleansed.isu_0UC_DEVINST_ATTR \
     using isu_devinst_deleted_records \
-    on isu_0UC_DEVINST_ATTR.installationNumber = isu_devinst_deleted_records.ANLAGE \
+    on isu_0UC_DEVINST_ATTR.installationId = isu_devinst_deleted_records.ANLAGE \
     and isu_0UC_DEVINST_ATTR.logicalDeviceNumber = isu_devinst_deleted_records.LOGIKNR \
     and isu_0UC_DEVINST_ATTR.validFromDate = isu_devinst_deleted_records.AB \
     and isu_0UC_DEVINST_ATTR.validToDate = isu_devinst_deleted_records.BIS \

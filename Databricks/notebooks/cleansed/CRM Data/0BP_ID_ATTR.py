@@ -3,7 +3,7 @@
 import json
 #For unit testing...
 #Use this string in the Param widget: 
-#{"SourceType": "BLOB Storage (json)", "SourceServer": "daf-sa-lake-sastoken", "SourceGroup": "crm", "SourceName": "crm_0BP_ID_ATTR", "SourceLocation": "crmdata/0BP_ID_ATTR", "AdditionalProperty": "", "Processor": "databricks-token|0711-011053-turfs581|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive", "IsAuditTable": false, "SoftDeleteSource": "", "ProjectName": "CRM DATA", "ProjectId": 2, "TargetType": "BLOB Storage (json)", "TargetName": "crm_0BP_ID_ATTR", "TargetLocation": "crmdata/0BP_ID_ATTR", "TargetServer": "daf-sa-lake-sastoken", "DataLoadMode": "FULL-EXTRACT", "DeltaExtract": false, "CDCSource": false, "TruncateTarget": false, "UpsertTarget": true, "AppendTarget": null, "TrackChanges": false, "LoadToSqlEDW": true, "TaskName": "crm_0BP_ID_ATTR", "ControlStageId": 2, "TaskId": 46, "StageSequence": 200, "StageName": "Raw to Cleansed", "SourceId": 46, "TargetId": 46, "ObjectGrain": "Day", "CommandTypeId": 8, "Watermarks": "", "WatermarksDT": null, "WatermarkColumn": "", "BusinessKeyColumn": "businessPartnerNumber,identificationTypeCode,businessPartnerIdNumber", "UpdateMetaData": null, "SourceTimeStampFormat": "", "Command": "", "LastLoadedFile": null, "LastSuccessfulExecutionTS": "2022-04-08"}
+#{"SourceType": "BLOB Storage (json)", "SourceServer": "daf-sa-lake-sastoken", "SourceGroup": "crm", "SourceName": "crm_0BP_ID_ATTR", "SourceLocation": "crm/0BP_ID_ATTR", "AdditionalProperty": "", "Processor": "databricks-token|0711-011053-turfs581|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive", "IsAuditTable": false, "SoftDeleteSource": "", "ProjectName": "CRM DATA", "ProjectId": 2, "TargetType": "BLOB Storage (json)", "TargetName": "crm_0BP_ID_ATTR", "TargetLocation": "crm/0BP_ID_ATTR", "TargetServer": "daf-sa-lake-sastoken", "DataLoadMode": "FULL-EXTRACT", "DeltaExtract": false, "CDCSource": false, "TruncateTarget": false, "UpsertTarget": true, "AppendTarget": null, "TrackChanges": false, "LoadToSqlEDW": true, "TaskName": "crm_0BP_ID_ATTR", "ControlStageId": 2, "TaskId": 46, "StageSequence": 200, "StageName": "Raw to Cleansed", "SourceId": 46, "TargetId": 46, "ObjectGrain": "Day", "CommandTypeId": 8, "Watermarks": "", "WatermarksDT": null, "WatermarkColumn": "", "BusinessKeyColumn": "businessPartnerNumber,identificationTypeCode,businessPartnerIdNumber", "UpdateMetaData": null, "SourceTimeStampFormat": "", "Command": "", "LastLoadedFile": null}
 
 #Use this string in the Source Object widget
 #crm_0BP_ID_ATTR
@@ -196,7 +196,7 @@ df = spark.sql(f"WITH stage AS \
                                     ON BP.TYPE = BP_TXT.identificationTypeCode AND BP_TXT._RecordDeleted = 0 AND BP_TXT._RecordCurrent = 1 \
                            where BP._RecordVersion = 1")
 
-#print(f'Number of rows: {df.count()}')
+print(f'Number of rows: {df.count()}')
 
 # COMMAND ----------
 
