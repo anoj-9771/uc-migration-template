@@ -183,7 +183,7 @@ df = spark.sql(f"WITH stage AS \
                                 GVERRECH as payRentalPrice, \
                                 TARIFART as rateTypeCode, \
                                 sp.rateType as rateType, \
-                                LOEVM as deletedIndicator, \
+                                (CASE WHEN LOEVM = 'X' THEN 'Y' ELSE 'N' END) as deletedFlag, \
                                 UPDMOD as bwDeltaProcess, \
                                 ZOPCODE as operationCode, \
                                 cast('1900-01-01' as TimeStamp) as _RecordStart, \
@@ -212,7 +212,7 @@ newSchema = StructType([
 	StructField('payRentalPrice',StringType(),True),
 	StructField('rateTypeCode',StringType(),True),
 	StructField('rateType',StringType(),True),
-	StructField('deletedIndicator',StringType(),True),
+	StructField('deletedFlag',StringType(),True),
 	StructField('bwDeltaProcess',StringType(),True),
 	StructField('operationCode',StringType(),True),
 	StructField('_RecordStart',TimestampType(),False),

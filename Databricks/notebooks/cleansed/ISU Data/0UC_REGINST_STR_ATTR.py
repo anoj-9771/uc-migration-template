@@ -186,7 +186,7 @@ df = spark.sql(f"WITH stage AS \
                                 te67.rateFactGroup, \
                                 re.PREISKLA as priceClassCode, \
                                 pt.priceClass, \
-                                LOEVM as deletedIndicator, \
+                                (CASE WHEN LOEVM = 'X' THEN 'Y' ELSE 'N' END) as deletedFlag, \
                                 UPDMOD as bwDeltaProcess, \
                                 re.ZOPCODE as operationCode, \
                                 te.operationDescription, \
@@ -223,7 +223,7 @@ newSchema = StructType([
     StructField('rateFactGroup',StringType(),True),
 	StructField('priceClassCode',StringType(),True),
     StructField('priceClass',StringType(),True),
-	StructField('deletedIndicator',StringType(),True),
+	StructField('deletedFlag',StringType(),True),
 	StructField('bwDeltaProcess',StringType(),True),
 	StructField('operationCode',StringType(),True),
     StructField('operationDescription',StringType(),True),
