@@ -744,7 +744,7 @@ isu_0uc_deviceh_attr.validFromDate deviceHistoryValidFromDate,
 isu_0uc_deviceh_attr.validToDate deviceHistoryvalidToDate,
 isu_0uc_device_attr.deviceNumber,
 isu_0uc_deviceh_attr.logicalDeviceNumber,
-isu_0uc_devinst_attr.installationId,
+isu_0uc_devinst_attr.installationNumber as installationId,
 isu_0uc_devinst_attr.validFromDate deviceInstallationValidFromDate,
 isu_0uc_devinst_attr.validToDate deviceInstallationValidToDate,
 isu_0uc_regist_attr.registerNumber,
@@ -831,14 +831,14 @@ and isu_0uc_deviceh_attr.validFromDate <= isu_0uc_regist_attr.validToDate
 and isu_0uc_regist_attr.`_RecordCurrent` = 1
 and isu_0uc_regist_attr.deletedIndicator is null
 left outer join cleansed.isu_0uc_reginst_str_attr
-on isu_0uc_reginst_str_attr.installationId = isu_0uc_devinst_attr.installationId
+on isu_0uc_reginst_str_attr.installationNumber = isu_0uc_devinst_attr.installationNumber
 and isu_0uc_reginst_str_attr.logicalRegisterNumber = isu_0uc_regist_attr.logicalRegisterNumber
 and isu_0uc_deviceh_attr.validFromDate >= isu_0uc_reginst_str_attr.validFromDate
 and isu_0uc_deviceh_attr.validFromDate <= isu_0uc_reginst_str_attr.validToDate
 and isu_0uc_reginst_str_attr._RecordCurrent = 1
 and isu_0uc_reginst_str_attr.deletedIndicator is null
 left outer join cleansed.isu_0ucinstalla_attr_2
-on isu_0ucinstalla_attr_2.installationId = isu_0uc_devinst_attr.installationId
+on isu_0ucinstalla_attr_2.installationId = isu_0uc_devinst_attr.installationNumber
 and isu_0ucinstalla_attr_2.`_RecordCurrent` = 1
 and isu_0ucinstalla_attr_2.deletedIndicator is null
 left outer join cleansed.isu_0uc_devcat_attr
