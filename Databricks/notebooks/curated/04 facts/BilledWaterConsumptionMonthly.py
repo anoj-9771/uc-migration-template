@@ -97,10 +97,24 @@ def isuConsumption():
                                   "businessPartnerGroupNumber", "equipmentNumber", "contractID", \
                                   "billingPeriodStartDate", "billingPeriodEndDate", \
                                   "validFromDate", "validToDate", \
-                                  (datediff("validToDate", "validFromDate") + 1).alias("totalMeterActiveDays"), \
-                                  "meteredWaterConsumption")  \
+                                  (datediff("validToDate", "validFromDate") + 1).alias("meterActiveDays"), \
+                                  "meteredWaterConsumption") \
                             .withColumnRenamed("validFromDate", "meterActiveStartDate") \
                             .withColumnRenamed("validToDate", "meterActiveEndDate")
+    isuConsDfAgg = isuConsDf.groupby("sourceSystemCode", "billingDocumentNumber", "billingPeriodStartDate", "billingPeriodEndDate", "equipmentNumber") \
+                            .agg(sum("meterActiveDays").alias("totalMeterActiveDays") \
+                                  ,sum("meteredWaterConsumption").alias("totalMeteredWaterConsumption")) 
+    isuConsDf = isuConsDf.join(isuConsDfAgg, (isuConsDf.sourceSystemCode == isuConsDfAgg.sourceSystemCode) \
+                               & (isuConsDf.billingDocumentNumber == isuConsDfAgg.billingDocumentNumber) \
+                               & (isuConsDf.billingPeriodStartDate == isuConsDfAgg.billingPeriodStartDate) \
+                               & (isuConsDf.billingPeriodEndDate == isuConsDfAgg.billingPeriodEndDate) \
+                               & (isuConsDf.equipmentNumber == isuConsDfAgg.equipmentNumber), how="left") \
+                         .select(isuConsDf['*'], isuConsDfAgg['totalMeterActiveDays'], isuConsDfAgg['totalMeteredWaterConsumption']) \
+                         .selectExpr("sourceSystemCode", "billingDocumentNumber", "billingDocumentLineItemId", \
+                                  "businessPartnerGroupNumber", "equipmentNumber", "contractID", \
+                                  "billingPeriodStartDate", "billingPeriodEndDate", \
+                                  "meterActiveStartDate", "meterActiveEndDate", \
+                                  "totalMeterActiveDays", "totalMeteredWaterConsumption")
     return isuConsDf
 
 # COMMAND ----------
@@ -122,7 +136,8 @@ def accessConsumption():
                                   "billingPeriodStartDate", "billingPeriodEndDate", \
                                   "billingPeriodStartDate as meterActiveStartDate", "billingPeriodEndDate as meterActiveEndDate", \
                                   "billingPeriodDays as totalMeterActiveDays", \
-                                  "meteredWaterConsumption")
+                                  "meteredWaterConsumption") \
+                               .withColumnRenamed("meteredWaterConsumption", "totalMeteredWaterConsumption")
     return accessConsDf
 
 # COMMAND ----------
@@ -139,15 +154,15 @@ def getBilledWaterConsumptionMonthly():
     if loadConsumption :
         isuConsDf = isuConsumption()
         accessConsDf = accessConsumption()
-        billedConsDf = isuConsDf.union(accessConsDf)
+        billedConsDf = isuConsDf.unionByName(accessConsDf)
 
     #2.Join Tables
     
     #3.Union Access and isu billed consumption datasets
 
-    billedConsDf = billedConsDf.withColumn("avgMeteredWaterConsumption", F.col("meteredWaterConsumption")/F.col("totalMeterActiveDays"))
+    billedConsDf = billedConsDf.withColumn("avgMeteredWaterConsumption", F.col("totalMeteredWaterConsumption")/F.col("totalMeterActiveDays"))
     #billedConsDf = billedConsDf.withColumn("avgMeteredWaterConsumption",col("avgMeteredWaterConsumption").cast("decimal(18,6)"))
-    
+
     #4.Load Dmension tables into dataframe    
     dimPropertyDf = spark.sql(f"select sourceSystemCode, propertySK, propertyNumber \
                                 from {ADS_DATABASE_CURATED}.dimProperty \
@@ -363,8 +378,8 @@ verifyTableSchema(f"curated.factMonthlyApportionedConsumption", schema)
 
 # COMMAND ----------
 
-# THIS IS COMMENTED AND TO BE UNCOMMENTED TO RUN ONLY WHEN ACCESS DATA LOADING USING THIS NOTEBOOK.
 # %sql
+# --THIS IS COMMENTED AND TO BE UNCOMMENTED TO RUN ONLY WHEN ACCESS DATA LOADING USING THIS NOTEBOOK.
 # OPTIMIZE curated.factMonthlyApportionedConsumption
 # WHERE sourceSystemCode = 'ACCESS'
 
@@ -383,86 +398,89 @@ verifyTableSchema(f"curated.factMonthlyApportionedConsumption", schema)
 
 # COMMAND ----------
 
-# %sql
-# CREATE OR REPLACE TABLE curated.viewMonthlyApportionedConsumption 
-# LOCATION 'dbfs:/mnt/datalake-curated/viewmonthlyapportionedconsumption'
-# as with prophist as (
-#           select propertyNumber,inferiorPropertyTypeCode,inferiorPropertyType,superiorPropertyTypeCode,superiorPropertyType,validFromDate,validToDate from cleansed.isu_zcd_tpropty_hist
-#           union  
-#           select propertyNumber,inferiorPropertyTypeCode,inferiorPropertyType,superiorPropertyTypeCode,superiorPropertyType,validFromDate,validToDate from stage.access_property_hist
-#         )
-# select 
-# propertyNumber,
-# inferiorPropertyTypeCode,
-# inferiorPropertyType,
-# superiorPropertyTypeCode,
-# superiorPropertyType,
-# propertyTypeValidFromDate,
-# propertyTypeValidToDate,
-# sourceSystemCode,
-# consumptionYear,
-# consumptionMonth,
-# billingPeriodStartDate,
-# billingPeriodEndDate,
-# meterActiveStartDate,
-# meterActiveEndDate,
-# firstDayOfMeterActiveMonth,
-# lastDayOfMeterActiveMonth,
-# meterActiveMonthStartDate,
-# meterActiveMonthEndDate
-# meterConsumptionBillingDocumentSK,
-# meterConsumptionBillingLineItemSK,
-# propertySK,
-# meterSK,
-# locationSK,
-# businessPartnerGroupSK,
-# contractSK,
-# totalMeterActiveDaysPerMonth,
-# monthlyApportionedConsumption from (
-# select *, row_number() OVER   (PARTITION BY consumptionYear,consumptionMonth,billingPeriodStartDate,billingPeriodEndDate,meterActiveStartDate,meterActiveEndDate,meterActiveMonthStartDate,meterActiveMonthEndDate,meterConsumptionBillingDocumentSK,meterConsumptionBillingLineItemSK,propertySK,meterSK,locationSK,businessPartnerGroupSK,contractSK ORDER BY propertyTypeValidToDate desc,propertyTypeValidFromDate desc) as flag  from 
-# (select prop.propertyNumber,
-# prophist.inferiorPropertyTypeCode,
-# prophist.inferiorPropertyType,
-# prophist.superiorPropertyTypeCode,
-# prophist.superiorPropertyType,
-# prophist.validFromDate as propertyTypeValidFromDate,
-# prophist.validToDate as propertyTypeValidToDate,
-# fact.sourceSystemCode,
-# fact.consumptionYear,
-# fact.consumptionMonth,
-# fact.billingPeriodStartDate,
-# fact.billingPeriodEndDate,
-# fact.meterActiveStartDate,
-# fact.meterActiveEndDate,
-# fact.firstDayOfMeterActiveMonth,
-# fact.lastDayOfMeterActiveMonth,
-# fact.meterActiveMonthStartDate,
-# fact.meterActiveMonthEndDate,
-# fact.meterConsumptionBillingDocumentSK,
-# fact.meterConsumptionBillingLineItemSK,
-# fact.propertySK,
-# fact.meterSK,
-# fact.locationSK,
-# fact.businessPartnerGroupSK,
-# fact.contractSK,
-# fact.totalMeterActiveDaysPerMonth,
-# fact.monthlyApportionedConsumption
-# from curated.factMonthlyApportionedConsumption fact
-# left outer join curated.dimproperty prop
-# on fact.propertySK = prop.propertySK
-# left outer join prophist
-# on (prop.propertyNumber = prophist.propertyNumber  and prophist.validFromDate <= fact.meterActiveMonthStartDate and prophist.validToDate >= fact.meterActiveMonthStartDate)
-# )
-# )
-# where flag = 1
-# ;
+# MAGIC %sql
+# MAGIC CREATE OR REPLACE TABLE curated.viewMonthlyApportionedConsumption 
+# MAGIC LOCATION 'dbfs:/mnt/datalake-curated/viewmonthlyapportionedconsumption'
+# MAGIC as with prophist as (
+# MAGIC           select propertyNumber,inferiorPropertyTypeCode,inferiorPropertyType,superiorPropertyTypeCode,superiorPropertyType,validFromDate,validToDate from cleansed.isu_zcd_tpropty_hist
+# MAGIC           union  
+# MAGIC           select accPropHist.propertyNumber,accPropHist.inferiorPropertyTypeCode,coalesce(infsap.inferiorPropertyType, accPropHist.inferiorPropertyType) as inferiorPropertyType,accPropHist.superiorPropertyTypeCode,coalesce(supsap.superiorPropertyType, accPropHist.superiorPropertyType) as superiorPropertyType,validFromDate,validToDate 
+# MAGIC from stage.access_property_hist accPropHist 
+# MAGIC left outer join cleansed.isu_zcd_tinfprty_tx infsap on infsap.inferiorPropertyTypeCode = accPropHist.inferiorPropertyTypeCode and infsap._RecordCurrent = 1
+# MAGIC left outer join cleansed.isu_zcd_tsupprtyp_tx supsap on supsap.superiorPropertyTypeCode = accPropHist.superiorPropertyTypeCode and supsap._RecordCurrent = 1
+# MAGIC         )
+# MAGIC select 
+# MAGIC propertyNumber,
+# MAGIC inferiorPropertyTypeCode,
+# MAGIC inferiorPropertyType,
+# MAGIC superiorPropertyTypeCode,
+# MAGIC superiorPropertyType,
+# MAGIC propertyTypeValidFromDate,
+# MAGIC propertyTypeValidToDate,
+# MAGIC sourceSystemCode,
+# MAGIC consumptionYear,
+# MAGIC consumptionMonth,
+# MAGIC billingPeriodStartDate,
+# MAGIC billingPeriodEndDate,
+# MAGIC meterActiveStartDate,
+# MAGIC meterActiveEndDate,
+# MAGIC firstDayOfMeterActiveMonth,
+# MAGIC lastDayOfMeterActiveMonth,
+# MAGIC meterActiveMonthStartDate,
+# MAGIC meterActiveMonthEndDate,
+# MAGIC meterConsumptionBillingDocumentSK,
+# MAGIC meterConsumptionBillingLineItemSK,
+# MAGIC propertySK,
+# MAGIC meterSK,
+# MAGIC locationSK,
+# MAGIC businessPartnerGroupSK,
+# MAGIC contractSK,
+# MAGIC totalMeterActiveDaysPerMonth,
+# MAGIC monthlyApportionedConsumption from (
+# MAGIC select *, row_number() OVER   (PARTITION BY consumptionYear,consumptionMonth,billingPeriodStartDate,billingPeriodEndDate,meterActiveStartDate,meterActiveEndDate,meterActiveMonthStartDate,meterActiveMonthEndDate,meterConsumptionBillingDocumentSK,meterConsumptionBillingLineItemSK,propertySK,meterSK,locationSK,businessPartnerGroupSK,contractSK ORDER BY propertyTypeValidToDate desc,propertyTypeValidFromDate desc) as flag  from 
+# MAGIC (select prop.propertyNumber,
+# MAGIC prophist.inferiorPropertyTypeCode,
+# MAGIC prophist.inferiorPropertyType,
+# MAGIC prophist.superiorPropertyTypeCode,
+# MAGIC prophist.superiorPropertyType,
+# MAGIC prophist.validFromDate as propertyTypeValidFromDate,
+# MAGIC prophist.validToDate as propertyTypeValidToDate,
+# MAGIC fact.sourceSystemCode,
+# MAGIC fact.consumptionYear,
+# MAGIC fact.consumptionMonth,
+# MAGIC fact.billingPeriodStartDate,
+# MAGIC fact.billingPeriodEndDate,
+# MAGIC fact.meterActiveStartDate,
+# MAGIC fact.meterActiveEndDate,
+# MAGIC fact.firstDayOfMeterActiveMonth,
+# MAGIC fact.lastDayOfMeterActiveMonth,
+# MAGIC fact.meterActiveMonthStartDate,
+# MAGIC fact.meterActiveMonthEndDate,
+# MAGIC fact.meterConsumptionBillingDocumentSK,
+# MAGIC fact.meterConsumptionBillingLineItemSK,
+# MAGIC fact.propertySK,
+# MAGIC fact.meterSK,
+# MAGIC fact.locationSK,
+# MAGIC fact.businessPartnerGroupSK,
+# MAGIC fact.contractSK,
+# MAGIC fact.totalMeterActiveDaysPerMonth,
+# MAGIC fact.monthlyApportionedConsumption
+# MAGIC from curated.factMonthlyApportionedConsumption fact
+# MAGIC left outer join curated.dimproperty prop
+# MAGIC on fact.propertySK = prop.propertySK
+# MAGIC left outer join prophist
+# MAGIC on (prop.propertyNumber = prophist.propertyNumber  and prophist.validFromDate <= fact.meterActiveMonthStartDate and prophist.validToDate >= fact.meterActiveMonthStartDate)
+# MAGIC )
+# MAGIC )
+# MAGIC where flag = 1
+# MAGIC ;
 
 # COMMAND ----------
 
-# %sql
-# set spark.databricks.delta.retentionDurationCheck.enabled=false;
-# VACUUM curated.viewMonthlyApportionedConsumption RETAIN 0 HOURS;
-# set spark.databricks.delta.retentionDurationCheck.enabled=true;
+# MAGIC %sql
+# MAGIC set spark.databricks.delta.retentionDurationCheck.enabled=false;
+# MAGIC VACUUM curated.viewMonthlyApportionedConsumption RETAIN 0 HOURS;
+# MAGIC set spark.databricks.delta.retentionDurationCheck.enabled=true;
 
 # COMMAND ----------
 

@@ -20,7 +20,7 @@ def getInstallation():
 
     #1.Load Cleansed layer table data into dataframe
     isu0ucinstallaAttrDf  = spark.sql(f"select 'ISU' as sourceSystemCode, \
-                                          installationNumber, \
+                                          installationId, \
                                           divisionCode, \
                                           division, \
                                           meterReadingControlCode, \
@@ -49,7 +49,7 @@ def getInstallation():
 
     #4.SELECT / TRANSFORM
     df = df.select("sourceSystemCode", \
-                    "installationNumber", \
+                    "installationId", \
                     "divisionCode", \
                     "division", \
                     "meterReadingControlCode", \
@@ -67,7 +67,7 @@ def getInstallation():
     schema = StructType([
                             StructField('installationSK', StringType(), False),
                             StructField('sourceSystemCode', StringType(), True),
-                            StructField('installationNumber', StringType(), False),
+                            StructField('installationId', StringType(), False),
                             StructField('divisionCode', StringType(), True),
                             StructField('division', StringType(), True),
                             StructField('meterReadingControlCode', StringType(), True),

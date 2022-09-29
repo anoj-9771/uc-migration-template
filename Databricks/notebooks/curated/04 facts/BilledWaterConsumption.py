@@ -132,31 +132,31 @@ def getBilledWaterConsumption():
     #4.Load dimension tables into dataframe
     dimPropertyDf = spark.sql(f"select sourceSystemCode, propertySK, propertyNumber \
                                 from {ADS_DATABASE_CURATED}.dimProperty \
-                                where _RecordCurrent = 1 and _RecordDeleted = 0")
+                                where _RecordCurrent = 1")
 
     dimLocationDf = spark.sql(f"select locationSK, locationId \
                                  from {ADS_DATABASE_CURATED}.dimLocation \
-                                 where _RecordCurrent = 1 and _RecordDeleted = 0")
+                                 where _RecordCurrent = 1")
 
     dimMeterDf = spark.sql(f"select sourceSystemCode, meterSK, meterNumber, waterType \
                                  from {ADS_DATABASE_CURATED}.dimMeter \
-                                 where _RecordCurrent = 1 and _RecordDeleted = 0")
+                                 where _RecordCurrent = 1")
     
     dimBillDocDf = spark.sql(f"select meterConsumptionBillingDocumentSK, sourceSystemCode, billingDocumentNumber \
                                 from {ADS_DATABASE_CURATED}.dimMeterConsumptionBillingDocument \
-                                where _RecordCurrent = 1 and _RecordDeleted = 0")
+                                where _RecordCurrent = 1")
     
     dimBillLineItemDf = spark.sql(f"select meterConsumptionBillingLineItemSK, billingDocumentNumber, billingDocumentLineItemId \
                                 from {ADS_DATABASE_CURATED}.dimMeterConsumptionBillingLineItem \
-                                where _RecordCurrent = 1 and _RecordDeleted = 0")
+                                where _RecordCurrent = 1")
 
     dimBusinessPartnerGroupDf = spark.sql(f"select sourceSystemCode, businessPartnerGroupSK, ltrim('0', businessPartnerGroupNumber) as businessPartnerGroupNumber \
                                 from {ADS_DATABASE_CURATED}.dimBusinessPartnerGroup \
-                                where _RecordCurrent = 1 and _RecordDeleted = 0")
+                                where _RecordCurrent = 1")
 
     dimContractDf = spark.sql(f"select sourceSystemCode, contractSK, contractId, validFromDate, validToDate \
                                 from {ADS_DATABASE_CURATED}.dimContract \
-                                where _RecordCurrent = 1 and _RecordDeleted = 0")
+                                where _RecordCurrent = 1")
 
     dummyDimRecDf = spark.sql(f"select PropertySk as dummyDimSK, 'dimProperty' as dimension from {ADS_DATABASE_CURATED}.dimProperty where propertyNumber = '-1' \
                           union select LocationSk as dummyDimSK, 'dimLocation' as dimension from {ADS_DATABASE_CURATED}.dimLocation where LocationId = '-1' \
@@ -304,8 +304,8 @@ verifyTableSchema(f"curated.factBilledWaterConsumption", schema)
 
 # COMMAND ----------
 
-# THIS IS COMMENTED AND TO BE UNCOMMENTED TO RUN ONLY WHEN ACCESS DATA LOADING USING THIS NOTEBOOK.
 # %sql
+# --THIS IS COMMENTED AND TO BE UNCOMMENTED TO RUN ONLY WHEN ACCESS DATA LOADING USING THIS NOTEBOOK.
 # OPTIMIZE curated.factBilledWaterConsumption
 # WHERE sourceSystemCode = 'ACCESS'
 
@@ -331,7 +331,10 @@ verifyTableSchema(f"curated.factBilledWaterConsumption", schema)
 # MAGIC as with prophist as (
 # MAGIC           select propertyNumber,inferiorPropertyTypeCode,inferiorPropertyType,superiorPropertyTypeCode,superiorPropertyType,validFromDate,validToDate from cleansed.isu_zcd_tpropty_hist
 # MAGIC           union  
-# MAGIC           select propertyNumber,inferiorPropertyTypeCode,inferiorPropertyType,superiorPropertyTypeCode,superiorPropertyType,validFromDate,validToDate from stage.access_property_hist
+# MAGIC           select accPropHist.propertyNumber,accPropHist.inferiorPropertyTypeCode,coalesce(infsap.inferiorPropertyType, accPropHist.inferiorPropertyType) as inferiorPropertyType,accPropHist.superiorPropertyTypeCode,coalesce(supsap.superiorPropertyType, accPropHist.superiorPropertyType) as superiorPropertyType,validFromDate,validToDate 
+# MAGIC from stage.access_property_hist accPropHist 
+# MAGIC left outer join cleansed.isu_zcd_tinfprty_tx infsap on infsap.inferiorPropertyTypeCode = accPropHist.inferiorPropertyTypeCode and infsap._RecordCurrent = 1
+# MAGIC left outer join cleansed.isu_zcd_tsupprtyp_tx supsap on supsap.superiorPropertyTypeCode = accPropHist.superiorPropertyTypeCode and supsap._RecordCurrent = 1
 # MAGIC         )
 # MAGIC select propertyNumber,
 # MAGIC inferiorPropertyTypeCode,

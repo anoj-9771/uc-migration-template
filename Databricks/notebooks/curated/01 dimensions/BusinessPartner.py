@@ -38,7 +38,7 @@ def getBusinessPartner():
                                       title, \
                                       dateOfBirth, \
                                       dateOfDeath, \
-                                      naturalPersonFlag AS isunaturalPersonFlag, \
+                                      naturalPersonIndicator as isunaturalPersonFlag, \
                                       personNumber, \
                                       personnelNumber, \
                                       case when businessPartnerCategoryCode = '2' then \
@@ -46,8 +46,8 @@ def getBusinessPartner():
                                       case when businessPartnerCategoryCode = '2' then organizationFoundedDate else null end as organizationFoundedDate, \
                                       createdDateTime, \
                                       createdBy, \
-                                      lastUpdatedDateTime, \
-                                      lastUpdatedBy \
+                                      changedDateTime, \
+                                      changedBy \
                                       FROM {ADS_DATABASE_CLEANSED}.isu_0bpartner_attr \
                                       where businessPartnerCategoryCode in ('1','2') \
                                       and _RecordCurrent = 1 \
@@ -55,12 +55,12 @@ def getBusinessPartner():
     
     #Business Partner Data from SAP CRM
     crm0bpartnerAttrDf  = spark.sql(f"select businessPartnerNumber, \
-                                      warWidowFlag, \
-                                      deceasedFlag, \
-                                      disabilityFlag, \
-                                      goldCardHolderFlag, \
-                                      naturalPersonFlag AS crmnaturalPersonFlag, \
-                                      pensionConcessionCardFlag, \
+                                      warWidowIndicator as warWidowFlag, \
+                                      deceasedIndicator as deceasedFlag, \
+                                      disabilityIndicator as disabilityFlag, \
+                                      goldCardHolderIndicator as goldCardHolderFlag, \
+                                      naturalPersonIndicator as crmnaturalPersonFlag, \
+                                      pensionConcessionCardIndicator as pensionCardFlag, \
                                       pensionType as pensionType \
                                       FROM {ADS_DATABASE_CLEANSED}.crm_0bpartner_attr \
                                       where businessPartnerCategoryCode in ('1','2') \
@@ -80,8 +80,8 @@ def getBusinessPartner():
     df = df.select("sourceSystemCode","businessPartnerNumber","validFromDate","validToDate", \
                    "businessPartnerCategoryCode","businessPartnerCategory","businessPartnerTypeCode", "businessPartnerType","externalNumber", \
                    "businessPartnerGUID", "firstName", "lastName", "middleName", "nickName", "titleCode", "title", "dateOfBirth", "dateOfDeath", \
-                   "warWidowFlag", "deceasedFlag", "disabilityFlag", "goldCardHolderFlag", "naturalPersonFlag", "pensionConcessionCardFlag", "pensionType", \
-                   "personNumber","personnelNumber","organizationName","organizationFoundedDate","createdDateTime","createdBy","lastUpdatedDateTime", "lastUpdatedBy") 
+                   "warWidowFlag", "deceasedFlag", "disabilityFlag", "goldCardHolderFlag", "naturalPersonFlag", "pensionCardFlag", "pensionType", \
+                   "personNumber","personnelNumber","organizationName","organizationFoundedDate","createdDateTime","createdBy","changedDateTime", "changedBy") 
     
     #3.UNION TABLES
     df = df.unionByName(dummyDimRecDf, allowMissingColumns = True)
@@ -114,7 +114,7 @@ def getBusinessPartner():
                             StructField('disabilityFlag', StringType(), True), 
                             StructField('goldCardHolderFlag', StringType(), True), 
                             StructField('naturalPersonFlag', StringType(), True), 
-                            StructField('pensionConcessionCardFlag', StringType(), True), 
+                            StructField('pensionCardFlag', StringType(), True), 
                             StructField('pensionType', StringType(), True),        
                             StructField('personNumber', StringType(), True), 
                             StructField('personnelNumber', StringType(), True), 
@@ -122,8 +122,8 @@ def getBusinessPartner():
                             StructField('organizationFoundedDate', DateType(), True), 
                             StructField('createdDateTime', TimestampType(), True),   
                             StructField('createdBy', StringType(), True), 
-                            StructField('lastUpdatedDateTime', TimestampType(), True), 
-                            StructField('lastUpdatedBy', StringType(), True)       
+                            StructField('changedDateTime', TimestampType(), True), 
+                            StructField('changedBy', StringType(), True)       
                       ]) 
 
     return df, schema

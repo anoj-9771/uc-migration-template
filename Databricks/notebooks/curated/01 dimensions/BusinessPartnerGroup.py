@@ -31,17 +31,17 @@ def getBusinessPartnerGroup():
                                       a.externalBusinessPartnerNumber as externalNumber, \
                                       a.createdDateTime as createdDateTime, \
                                       a.createdBy as createdBy, \
-                                      a.lastUpdatedDateTime, \
-                                      a.lastUpdatedBy \
+                                      a.changedDateTime as lastUpdatedDateTime, \
+                                      a.changedBy as lastUpdatedBy \
                                       FROM {ADS_DATABASE_CLEANSED}.isu_0bpartner_attr a \
                                       where a.businessPartnerCategoryCode = '3' \
                                       and a._RecordCurrent = 1 \
                                       and a._RecordDeleted = 0")
     #Business Partner Group Data from SAP CRM
     crm0bpartnerAttrDf  = spark.sql(f"select b.businessPartnerNumber as businessPartnerGroupNumber, \
-                                      b.paymentAssistSchemeFlag, \
-                                      b.billAssistFlag, \
-                                      b.kidneyDialysisFlag \
+                                      b.paymentAssistSchemeIndicator as paymentAssistSchemeFlag, \
+                                      b.billAssistIndicator as billAssistFlag, \
+                                      b.kidneyDialysisIndicator as kidneyDialysisFlag \
                                       FROM {ADS_DATABASE_CLEANSED}.crm_0bpartner_attr b \
                                       where b.businessPartnerCategoryCode = '3' \
                                       and b._RecordCurrent = 1 \
