@@ -175,11 +175,18 @@ df = spark.sql(f"WITH stage AS \
                            SELECT \
                                 case when VERTRAG = 'na' then '' else VERTRAG end as contractId, \
                                 BUKRS as companyCode, \
+                                ct.companyName, \
                                 SPARTE as divisionCode, \
+                                dt.division, \
                                 KOFIZ as accountDeterminationCode, \
-                                ABSZYK as allowableBudgetBillingCycles, \
-                                GEMFAKT as invoiceContractsJointly, \
+                                ft.accountDetermination, \
+                                ABSZYK as allowableBudgetBillingCyclesCode, \
+                                dd.domainValueText as allowableBudgetBillingCycles, \
+                                GEMFAKT as invoiceContractsJointlyCode, \
+                                dd1.domainValueText as invoiceContractsJointly, \
+                                (CASE WHEN MANABR = 'X' THEN 'Y' ELSE 'N' END) as manualBillContractflag, \
                                 ABRSPERR as billBlockingReasonCode, \
+                                at.billBlockingReason, \
                                 ABRFREIG as billReleasingReasonCode, \
                                 VBEZ as contractText, \
                                 ToValidDate(EINZDAT_ALT) as legacyMoveInDate, \
@@ -191,41 +198,57 @@ df = spark.sql(f"WITH stage AS \
                                 ERNAM as createdBy, \
                                 ToValidDate(AEDAT) as lastChangedDate, \
                                 AENAM as lastChangedBy, \
-                                LOEVM as deletedIndicator, \
-                                FAKTURIERT as isContractInvoiced, \
+                                (CASE WHEN LOEVM = 'X' THEN 'Y' ELSE 'N' END) as deletedIndicator, \
+                                (CASE WHEN FAKTURIERT = 'X' THEN 'Y' ELSE 'N' END) as isContractInvoicedFlag, \
                                 PS_PSP_PNR as wbsElement, \
                                 AUSGRUP as outsortingCheckGroupForBilling, \
                                 OUTCOUNT as manualOutsortingCount, \
                                 PYPLS as paymentPlanStartMonth, \
                                 SERVICEID as serviceProvider, \
                                 PYPLA as alternativePaymentStartMonth, \
-                                BILLFINIT as contractTerminatedForBilling, \
+                                (CASE WHEN BILLFINIT = 'X' THEN 'Y' ELSE 'N' END) as contractTerminatedForBillingFlag, \
                                 SALESEMPLOYEE as salesEmployee, \
                                 INVOICING_PARTY as invoicingParty, \
                                 CANCREASON_NEW as cancellationReasonCRM, \
-                                ANLAGE as installationId, \
+                                ANLAGE as installationNumber, \
                                 VKONTO as contractAccountNumber, \
-                                KZSONDAUSZ as specialMoveOutCase, \
+                                KZSONDAUSZ as specialMoveOutCaseCode, \
+                                dd2.domainValueText as specialMoveOutCase, \
                                 ToValidDate(EINZDAT) as moveInDate, \
                                 ToValidDate(AUSZDAT) as moveOutDate, \
                                 ToValidDate(ABSSTOPDAT) as budgetBillingStopDate, \
-                                XVERA as isContractTransferred, \
+                                (CASE WHEN XVERA = 'X' THEN 'Y' ELSE 'N' END) as isContractTransferredFlag, \
                                 ZGPART as businessPartnerGroupNumber, \
                                 ToValidDate(ZDATE_FROM) as validFromDate, \
                                 ZZAGREEMENT_NUM as agreementNumber, \
-                                VSTELLE as premise, \
-                                HAUS as propertyNumber, \
+                                regexp_replace(VSTELLE, r'^[0]*', '') as premise, \
+                                regexp_replace(HAUS, r'^[0]*', '') as propertyNumber, \
                                 ZZZ_ADRMA as alternativeAddressNumber, \
                                 ZZZ_IDNUMBER as identificationNumber, \
                                 ZZ_ADRNR as addressNumber, \
-                                ZZ_OWNER as objectReferenceId, \
+                                ZZ_OWNER as objectReferenceIndicator, \
                                 ZZ_OBJNR as objectNumber, \
                                 cast('1900-01-01' as TimeStamp) as _RecordStart, \
                                 cast('9999-12-31' as TimeStamp) as _RecordEnd, \
                                 '0' as _RecordDeleted, \
                                 '1' as _RecordCurrent, \
                                 cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
-                        from stage where _RecordVersion = 1 ")
+                        from stage ca \
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0COMP_CODE_TEXT ct ON ca.BUKRS = ct.companyCode \
+                                                                                          and ct._RecordDeleted = 0 and ct._RecordCurrent = 1 \
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0DIVISION_TEXT dt ON ca.SPARTE = dt.divisionCode \
+                                                                                          and dt._RecordDeleted = 0 and dt._RecordCurrent = 1 \
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0FCACTDETID_TEXT ft ON ca.KOFIZ = ft.accountDeterminationCode \
+                                                                                          and ft._RecordDeleted = 0 and ft._RecordCurrent = 1 \
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_DD07T dd ON ca.ABSZYK = dd.domainValueSingleUpperLimit \
+                                                                    and dd.domainName = 'ABSZYK' and dd._RecordDeleted = 0 and dd._RecordCurrent = 1 \
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_DD07T dd1 ON ca.GEMFAKT = dd1.domainValueSingleUpperLimit \
+                                                                    and dd1.domainName = 'E_GEMFAKT' and dd1._RecordDeleted = 0 and dd1._RecordCurrent = 1 \
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UC_ABRSPERR_TEXT at ON ca.ABRSPERR = at.billBlockingReasonCode \
+                                                                                          and at._RecordDeleted = 0 and at._RecordCurrent = 1 \
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_DD07T dd2 ON ca.KZSONDAUSZ = dd2.domainValueSingleUpperLimit \
+                                                                    and dd2.domainName = 'KZSONDAUSZ' and dd2._RecordDeleted = 0 and dd2._RecordCurrent = 1 \
+                        where ca._RecordVersion = 1 ")
 
 #print(f'Number of rows: {df.count()}')
 
@@ -297,11 +320,18 @@ newSchema = StructType(
                         [
                           StructField("contractId", StringType(), False),
                           StructField("companyCode", StringType(), True),
+                          StructField("companyName", StringType(), True),
                           StructField("divisionCode", StringType(), True),
+                          StructField("division", StringType(), True),
                           StructField("accountDeterminationCode", StringType(), True),
+                          StructField("accountDetermination", StringType(), True),
+                          StructField("allowableBudgetBillingCyclesCode", StringType(), True),
                           StructField("allowableBudgetBillingCycles", StringType(), True),
+                          StructField("invoiceContractsJointlyCode", StringType(), True),
                           StructField("invoiceContractsJointly", StringType(), True),
+                          StructField("manualBillContractflag", StringType(), True),
                           StructField("billBlockingReasonCode", StringType(), True),
+                          StructField("billBlockingReason", StringType(), True),
                           StructField("billReleasingReasonCode", StringType(), True),
                           StructField("contractText", StringType(), True),
                           StructField("legacyMoveInDate", DateType(), True),
@@ -314,24 +344,25 @@ newSchema = StructType(
                           StructField("lastChangedDate", DateType(), True),
                           StructField("lastChangedBy", StringType(), True),
                           StructField("deletedIndicator", StringType(), True),
-                          StructField("isContractInvoiced", StringType(), True),
+                          StructField("isContractInvoicedFlag", StringType(), True),
                           StructField("wbsElement", StringType(), True),
                           StructField("outsortingCheckGroupForBilling", StringType(), True),
                           StructField("manualOutsortingCount", StringType(), True),
                           StructField("paymentPlanStartMonth", StringType(), True),
                           StructField("serviceProvider", StringType(), True),
                           StructField("alternativePaymentStartMonth", StringType(), True),
-                          StructField("contractTerminatedForBilling", StringType(), True),
+                          StructField("contractTerminatedForBillingFlag", StringType(), True),
                           StructField("salesEmployee", StringType(), True),
                           StructField("invoicingParty", StringType(), True),
                           StructField("cancellationReasonCRM", StringType(), True),
-                          StructField("installationId", StringType(), True),
+                          StructField("installationNumber", StringType(), True),
                           StructField("contractAccountNumber", StringType(), True),
+                          StructField("specialMoveOutCaseCode", StringType(), True),
                           StructField("specialMoveOutCase", StringType(), True),
                           StructField("moveInDate", DateType(), True),
                           StructField("moveOutDate", DateType(), True),
                           StructField("budgetBillingStopDate", DateType(), True),
-                          StructField("isContractTransferred", StringType(), True),
+                          StructField("isContractTransferredFlag", StringType(), True),
                           StructField("businessPartnerGroupNumber", StringType(), True),
                           StructField("validFromDate", DateType(), True),
                           StructField("agreementNumber", StringType(), True),
@@ -340,7 +371,7 @@ newSchema = StructType(
                           StructField("alternativeAddressNumber", StringType(), True),
                           StructField("identificationNumber", StringType(), True),
                           StructField("addressNumber", StringType(), True),
-                          StructField("objectReferenceId", StringType(), True),
+                          StructField("objectReferenceIndicator", StringType(), True),
                           StructField("objectNumber", StringType(), True),
                           StructField('_RecordStart',TimestampType(),False),
                           StructField('_RecordEnd',TimestampType(),False),

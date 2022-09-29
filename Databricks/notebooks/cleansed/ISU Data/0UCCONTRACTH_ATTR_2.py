@@ -176,16 +176,20 @@ df = spark.sql(f"WITH stage AS \
                                 case when VERTRAG = 'na' then '' else VERTRAG end as contractId, \
                                 ToValidDate((case when BIS = 'na' then '9999-12-31' else BIS end),'MANDATORY') as validToDate, \
                                 ToValidDate(AB) as validFromDate, \
-                                ANLAGE as installationId, \
+                                ANLAGE as installationNumber, \
                                 CONTRACTHEAD as contractHeadGUID, \
                                 CONTRACTPOS as contractPosGUID, \
                                 PRODID as productId, \
                                 PRODUCT_GUID as productGUID, \
                                 CAMPAIGN as marketingCampaign, \
-                                LOEVM as deletedIndicator, \
-                                PRODCH_BEG as productBeginIndicator, \
-                                PRODCH_END as productChangeIndicator, \
-                                XREPLCNTL as replicationControls, \
+                                (CASE WHEN LOEVM = 'X' THEN 'Y' ELSE 'N' END) as deletedIndicator, \
+                                (CASE WHEN PRODCH_BEG = 'X' THEN 'Y' ELSE 'N' END) as productBeginflag, \
+                                (CASE WHEN PRODCH_END = 'X' THEN 'Y' ELSE 'N' END) as productChangeflag, \
+                                XREPLCNTL as replicationControlsCode, \
+                                dd.domainValueText as replicationControls, \
+                                CRM_OBJECT_ID as CRMObjectId, \
+                                CRM_OBJECT_POS as CRMDocumentItemNumber, \
+                                CRM_PRODUCT as CRMProduct, \
                                 ToValidDate(ERDAT) as createdDate, \
                                 ERNAM as createdBy, \
                                 ToValidDate(AEDAT) as lastChangedDate, \
@@ -196,7 +200,10 @@ df = spark.sql(f"WITH stage AS \
                                 '0' as _RecordDeleted, \
                                 '1' as _RecordCurrent, \
                                 cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
-                        from stage where _RecordVersion = 1 ")
+                        from stage ca \
+                         LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_DD07T dd ON ca.XREPLCNTL = dd.domainValueSingleUpperLimit \
+                                                                    and dd.domainName = 'EXREPLCNTL' and dd._RecordDeleted = 0 and dd._RecordCurrent = 1 \
+                        where ca._RecordVersion = 1 ")
 
 #print(f'Number of rows: {df.count()}')
 
@@ -206,16 +213,20 @@ newSchema = StructType([
                         StructField('contractId',StringType(),False),
                         StructField('validToDate',DateType(),False),
                         StructField('validFromDate',DateType(),True),
-                        StructField('installationId',StringType(),True),
+                        StructField('installationNumber',StringType(),True),
                         StructField('contractHeadGUID',StringType(),True),
                         StructField('contractPosGUID',StringType(),True),
                         StructField('productId',StringType(),True),
                         StructField('productGUID',StringType(),True),
                         StructField('marketingCampaign',StringType(),True),
                         StructField('deletedIndicator',StringType(),True),
-                        StructField('productBeginIndicator',StringType(),True),
-                        StructField('productChangeIndicator',StringType(),True),
+                        StructField('productBeginflag',StringType(),True),
+                        StructField('productChangeflag',StringType(),True),
+                        StructField('replicationControlsCode',StringType(),True),
                         StructField('replicationControls',StringType(),True),
+                        StructField('CRMObjectId',StringType(),True),
+                        StructField('CRMDocumentItemNumber',StringType(),True),
+                        StructField('CRMProduct',StringType(),True),
                         StructField('createdDate',DateType(),True),
                         StructField('createdBy',StringType(),True),
                         StructField('lastChangedDate',DateType(),True),
