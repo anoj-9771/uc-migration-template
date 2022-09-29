@@ -174,9 +174,9 @@ df = spark.sql(f"WITH stage AS \
                       (Select *, ROW_NUMBER() OVER (PARTITION BY APPLK,HVORG,TVORG ORDER BY _FileDateTimeStamp DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
                            SELECT \
                                 case when APPLK = 'na' then '' else APPLK end as applicationArea, \
-                                case when HVORG = 'na' then '' else HVORG end as mainTransactionLineItemCode, \
-                                case when TVORG = 'na' then '' else TVORG end as subtransactionLineItemCode, \
-                                TXT30 as subtransaction, \
+                                case when HVORG = 'na' then '' else HVORG end as mainTransactionCode, \
+                                case when TVORG = 'na' then '' else TVORG end as subTransactionCode, \
+                                TXT30 as subTransaction, \
                                 cast('1900-01-01' as TimeStamp) as _RecordStart, \
                                 cast('9999-12-31' as TimeStamp) as _RecordEnd, \
                                 '0' as _RecordDeleted, \
@@ -207,9 +207,9 @@ df = spark.sql(f"WITH stage AS \
 
 newSchema = StructType([
 	StructField('applicationArea',StringType(),False),
-	StructField('mainTransactionLineItemCode',StringType(),False),
-	StructField('subtransactionLineItemCode',StringType(),False),
-	StructField('subtransaction',StringType(),True),
+	StructField('mainTransactionCode',StringType(),False),
+	StructField('subTransactionCode',StringType(),False),
+	StructField('subTransaction',StringType(),True),
 	StructField('_RecordStart',TimestampType(),False),
 	StructField('_RecordEnd',TimestampType(),False),
 	StructField('_RecordDeleted',IntegerType(),False),
