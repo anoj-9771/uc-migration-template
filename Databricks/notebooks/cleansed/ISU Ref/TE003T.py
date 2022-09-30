@@ -174,7 +174,7 @@ df = spark.sql(f"WITH stage AS \
                       (Select *, ROW_NUMBER() OVER (PARTITION BY OBJECT,BLART ORDER BY _FileDateTimeStamp DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
                            SELECT  \
                                 case when OBJECT = 'na' then '' else OBJECT end as objectName, \
-                                case when BELART = 'na' then '' else BLART end as documentTypeCode, \
+                                case when BLART = 'na' then '' else BLART end as documentTypeCode, \
                                 TEXT30  as documentType, \
                                 cast('1900-01-01' as TimeStamp) as _RecordStart, \
                                 cast('9999-12-31' as TimeStamp) as _RecordEnd, \
