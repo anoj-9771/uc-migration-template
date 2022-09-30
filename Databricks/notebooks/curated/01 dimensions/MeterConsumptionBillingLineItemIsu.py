@@ -41,8 +41,8 @@ def getMeterConsumptionBillingLineItemIsu():
                                     ,"billingDocumentLineItemId" \
                                     ,"lineItemTypeCode" \
                                     ,"lineItemType" \
-                                    ,"billingLineItemBudgetBillingIndicator" \
-                                    ,"subtransactionForDocumentItem" \
+                                    ,"billingLineItemBudgetBillingFlag" \
+                                    ,"subTransactionCode" \
                                     ,"industryCode" \
                                     ,"billingClassCode" \
                                     ,"billingClass" \
@@ -82,8 +82,8 @@ def getMeterConsumptionBillingLineItemIsu():
                             StructField("billingDocumentLineItemId", StringType(), False),
                             StructField("lineItemTypeCode", StringType(), True),
                             StructField("lineItemType", StringType(), True),
-                            StructField("billingLineItemBudgetBillingIndicator", StringType(), True),
-                            StructField("subtransactionForDocumentItem", StringType(), True),
+                            StructField("billingLineItemBudgetBillingFlag", StringType(), True),
+                            StructField("subTransactionCode", StringType(), True),
                             StructField("industryCode", StringType(), True),
                             StructField("billingClassCode", StringType(), True),
                             StructField("billingClass", StringType(), True),
