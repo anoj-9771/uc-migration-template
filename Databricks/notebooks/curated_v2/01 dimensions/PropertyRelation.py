@@ -22,8 +22,8 @@ def getPropertyRelation():
                          StructField("validToDate", DateType(), False),
                          StructField("relationshipTypeCode1", StringType(), False),
                          StructField("relationshipType1", StringType(), False),
-                         StructField("relationshipTypeCode2", StringType(), False),
-                         StructField("relationshipType2", StringType(), False)])
+                         StructField("relationshipTypeCode2", StringType(), True),
+                         StructField("relationshipType2", StringType(), True)])
     
     return df_isu, schema
 

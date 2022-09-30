@@ -208,12 +208,21 @@ df = spark.sql(f"WITH stage AS \
                                 REGRELSORT as registerRelationshipSortHelpCode, \
                                 QDPROC as quantityDeterminationProcedureCode, \
                                 MRCONNECT as meterReadingDocumentId, \
+                                te609t.meterReadingReason as meterReadingReason, \
+                                te609t.meterReadingReason as previousMeterReadingReason,\
+                                mrtype.meterReadingType as meterReadingType, \
+                                mrtype2.meterReadingType as previousMeterReadingType, \
+                                dd07t.domainValueText as registerRelationshipSortHelp, \
                                 cast('1900-01-01' as TimeStamp) as _RecordStart, \
                                 cast('9999-12-31' as TimeStamp) as _RecordEnd, \
                                 '0' as _RecordDeleted, \
                                 '1' as _RecordCurrent, \
                                 cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
-                        from stage where _RecordVersion = 1 ")
+                        from stage left join {ADS_DATABASE_CLEANSED}.isu_te609t te609t on te609t.meterReadingReasonCode = stage.ABLESGRV \
+                                left join {ADS_DATABASE_CLEANSED}.isu_0uc_mrtype_text mrtype on mrtype.meterReadingTypeCode = stage.ISTABLART \
+                                left join {ADS_DATABASE_CLEANSED}.isu_0uc_mrtype_text mrtype2 on mrtype2.meterReadingTypeCode = stage.ISTABLARTVA \
+                                left join {ADS_DATABASE_CLEANSED}.isu_dd07t dd07t on dd07t.domainName = 'REGRELSORT' and dd07t.domainValueSingleUpperLimit = stage.REGRELSORT \
+                                where _RecordVersion = 1")
 
 #print(f'Number of rows: {df.count()}')
 
@@ -301,6 +310,11 @@ newSchema = StructType([
                           StructField('registerRelationshipSortHelpCode', StringType(), True),
                           StructField('quantityDeterminationProcedureCode', StringType(), True),
                           StructField('meterReadingDocumentId', StringType(), True),
+                          StructField('meterReadingReason', StringType(), True),
+                          StructField('previousMeterReadingReason', StringType(), True),
+                          StructField('meterReadingType', StringType(), True),
+                          StructField('previousMeterReadingType', StringType(), True),
+                          StructField('registerRelationshipSortHelp', StringType(), True),
                           StructField('_RecordStart', TimestampType(), False),
                           StructField('_RecordEnd', TimestampType(), False),
                           StructField('_RecordDeleted', IntegerType(), False),

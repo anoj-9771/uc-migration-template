@@ -190,7 +190,8 @@ df = spark.sql(f"WITH stage AS \
                                   BELNRALT as previousDocumentNumber, \
                                   ToValidDate(STORNODAT) as  reversalDate, \
                                   ABRVORG as billingTransactionCode, \
-                                  HVORG as mainTransactionLineItemCode, \
+                                  HVORG as mainTransactionCode, \
+                                  hvorg_text.mainTransaction as mainTransaction,\
                                   KOFIZ as contractAccountDeterminationId, \
                                   PORTION as portionNumber, \
                                   FORMULAR as formName, \
@@ -198,18 +199,18 @@ df = spark.sql(f"WITH stage AS \
                                   BELEGART as documentTypeCode, \
                                   BERGRUND as backbillingCreditReasonCode, \
                                   ToValidDate(BEGNACH) as  backbillingStartPeriod, \
-                                  case when TOBRELEASD = 'X' then 'Y' else 'N' end as documentNotReleasedIndicator, \
+                                  case when TOBRELEASD = 'X' then 'Y' else 'N' end as documentNotReleasedFlag, \
                                   TXJCD as taxJurisdictionDescription, \
                                   KONZVER as franchiseContractCode, \
                                   EROETIM as billingDocumentCreateTime, \
-                                  case when ERCHO_V = 'X' then 'Y' else 'N' end as erchoExistIndicator, \
-                                  case when ERCHZ_V = 'X' then 'Y' else 'N' end as erchzExistIndicator, \
-                                  case when ERCHU_V = 'X' then 'Y' else 'N' end as erchuExistIndicator, \
-                                  case when ERCHR_V = 'X' then 'Y' else 'N' end as erchrExistIndicator, \
-                                  case when ERCHC_V = 'X' then 'Y' else 'N' end as erchcExistIndicator, \
-                                  case when ERCHV_V = 'X' then 'Y' else 'N' end as erchvExistIndicator, \
-                                  case when ERCHT_V = 'X' then 'Y' else 'N' end as erchtExistIndicator, \
-                                  case when ERCHP_V = 'X' then 'Y' else 'N' end as erchpExistIndicator, \
+                                  case when ERCHO_V = 'X' then 'Y' else 'N' end as erchoExistFlag, \
+                                  case when ERCHZ_V = 'X' then 'Y' else 'N' end as erchzExistFlag, \
+                                  case when ERCHU_V = 'X' then 'Y' else 'N' end as erchuExistFlag, \
+                                  case when ERCHR_V = 'X' then 'Y' else 'N' end as erchrExistFlag, \
+                                  case when ERCHC_V = 'X' then 'Y' else 'N' end as erchcExistFlag, \
+                                  case when ERCHV_V = 'X' then 'Y' else 'N' end as erchvExistFlag, \
+                                  case when ERCHT_V = 'X' then 'Y' else 'N' end as erchtExistFlag, \
+                                  case when ERCHP_V = 'X' then 'Y' else 'N' end as erchpExistFlag, \
                                   ABRVORG2 as periodEndBillingTransactionCode, \
                                   ABLEINH as meterReadingUnit, \
                                   ENDPRIO as billingEndingPriorityCode, \
@@ -218,7 +219,7 @@ df = spark.sql(f"WITH stage AS \
                                   ToValidDate(AEDAT) as  lastChangedDate, \
                                   AENAM as changedBy, \
                                   BEGRU as authorizationGroupCode, \
-                                  case when LOEVM = 'X' then 'Y' else 'N' end as deletedIndicator, \
+                                  case when LOEVM = 'X' then 'Y' else 'N' end as deletedFlag, \
                                   ToValidDate(ABRDATSU) as  suppressedBillingOrderScheduleDate, \
                                   ABRVORGU as suppressedBillingOrderTransactionCode, \
                                   N_INVSEP as jointInvoiceAutomaticDocumentIndicator, \
@@ -263,6 +264,11 @@ df = spark.sql(f"WITH stage AS \
                                   MAINDOCNO as billingDocumentPrimaryInstallationNumber, \
                                   INSTGRTYPE as instalGroupTypeCode, \
                                   INSTROLE as instalGroupRoleCode,  \
+                                  dd07t.domainValueText as billingTransaction,\
+                                  divText.division as division,\
+                                  pText.portionText as portion,\
+                                  dd07t2.domainValueText as billingDocumentWithoutInvoicing, \
+                                  '' as documentType,\
                                   cast('1900-01-01' as TimeStamp) as _RecordStart, \
                                   cast('9999-12-31' as TimeStamp) as _RecordEnd, \
                                   '0' as _RecordDeleted, \
@@ -270,8 +276,14 @@ df = spark.sql(f"WITH stage AS \
                                   cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
                         FROM stage stg \
                                left outer join {ADS_DATABASE_CLEANSED}.isu_0comp_code_text cc on cc.companyCode = stg.BUKRS \
+                               left outer join {ADS_DATABASE_CLEANSED}.isu_0division_text divText on divText.divisionCode = stg.SPARTE \
+                               left outer join {ADS_DATABASE_CLEANSED}.isu_0uc_portion_text pText on pText.portionNumber = stg.PORTION \
+                               left outer join {ADS_DATABASE_CLEANSED}.isu_0uc_hvorg_text hvorg_text on hvorg_text.maintransactionLineItemCode = stg.HVORG \
+                               left outer join {ADS_DATABASE_CLEANSED}.isu_dd07t dd07t on dd07t.domainName = 'ABRVORG' and dd07t.domainValueSingleUpperLimit = stg.ABRVORG \
+                               left outer join {ADS_DATABASE_CLEANSED}.isu_dd07t dd07t2 on dd07t2.domainName = 'NINVOICE' and dd07t2.domainValueSingleUpperLimit = stg.NINVOICE \
                         where stg._RecordVersion = 1 ")
 
+#left outer join {ADS_DATABASE_CLEANSED}.isu_te093t t093 on t093.documentTypeCode = stg.BELEGART \
 #print(f'Number of rows: {df.count()}')
 
 # COMMAND ----------
@@ -399,7 +411,8 @@ newSchema = StructType([
                           StructField('previousDocumentNumber', StringType(), True),
                           StructField('reversalDate', DateType(), True),
                           StructField('billingTransactionCode', StringType(), True),
-                          StructField('mainTransactionLineItemCode', StringType(), True),
+                          StructField('mainTransactionCode', StringType(), True),
+                          StructField('mainTransaction', StringType(), True),
                           StructField('contractAccountDeterminationId', StringType(), True),
                           StructField('portionNumber', StringType(), True),
                           StructField('formName', StringType(), True),
@@ -407,18 +420,18 @@ newSchema = StructType([
                           StructField('documentTypeCode', StringType(), True),
                           StructField('backbillingCreditReasonCode', StringType(), True),
                           StructField('backbillingStartPeriod', DateType(), True),
-                          StructField('documentNotReleasedIndicator', StringType(), True),
+                          StructField('documentNotReleasedFlag', StringType(), True),
                           StructField('taxJurisdictionDescription', StringType(), True),
                           StructField('franchiseContractCode', StringType(), True),
                           StructField('billingDocumentCreateTime', StringType(), True),
-                          StructField('erchoExistIndicator', StringType(), True),
-                          StructField('erchzExistIndicator', StringType(), True),
-                          StructField('erchuExistIndicator', StringType(), True),
-                          StructField('erchrExistIndicator', StringType(), True),
-                          StructField('erchcExistIndicator', StringType(), True),
-                          StructField('erchvExistIndicator', StringType(), True),
-                          StructField('erchtExistIndicator', StringType(), True),
-                          StructField('erchpExistIndicator', StringType(), True), 
+                          StructField('erchoExistFlag', StringType(), True),
+                          StructField('erchzExistFlag', StringType(), True),
+                          StructField('erchuExistFlag', StringType(), True),
+                          StructField('erchrExistFlag', StringType(), True),
+                          StructField('erchcExistFlag', StringType(), True),
+                          StructField('erchvExistFlag', StringType(), True),
+                          StructField('erchtExistFlag', StringType(), True),
+                          StructField('erchpExistFlag', StringType(), True), 
                           StructField('periodEndBillingTransactionCode', StringType(), True),
                           StructField('meterReadingUnit', StringType(), True),
                           StructField('billingEndingPriorityCode', StringType(), True),
@@ -427,7 +440,7 @@ newSchema = StructType([
                           StructField('lastChangedDate', DateType(), True),
                           StructField('changedBy', StringType(), True),
                           StructField('authorizationGroupCode', StringType(), True),
-                          StructField('deletedIndicator', StringType(), True),
+                          StructField('deletedFlag', StringType(), True),
                           StructField('suppressedBillingOrderScheduleDate', DateType(), True),
                           StructField('suppressedBillingOrderTransactionCode', StringType(), True),
                           StructField('jointInvoiceAutomaticDocumentIndicator', StringType(), True),
@@ -472,6 +485,11 @@ newSchema = StructType([
                           StructField('billingDocumentPrimaryInstallationNumber', StringType(), True),
                           StructField('instalGroupTypeCode', StringType(), True),
                           StructField('instalGroupRoleCode', StringType(), True),
+                          StructField('billingTransaction', StringType(), True),
+                          StructField('division', StringType(), True),
+                          StructField('portion', StringType(), True),
+                          StructField('billingDocumentWithoutInvoicing', StringType(), True),
+                          StructField('documentType', StringType(), True),
                           StructField('_RecordStart', TimestampType(), True),
                           StructField('_RecordEnd', TimestampType(), False),
                           StructField('_RecordDeleted', IntegerType(), False),

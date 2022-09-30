@@ -178,18 +178,18 @@ df = spark.sql(f"WITH stage AS \
                                   CSNO as billingSequenceNumber, \
                                   BELZART as lineItemTypeCode, \
                                   li.lineItemType, \
-                                  case when ABSLKZ = 'X' then 'Y' else 'N' end as billingLineItemBudgetBillingIndicator, \
+                                  case when ABSLKZ = 'X' then 'Y' else 'N' end as billingLineItemBudgetBillingFlag, \
                                   DIFFKZ as lineItemDiscountStatisticsIndicator, \
-                                  case when BUCHREL = 'X' then 'Y' else 'N' end as billingLineItemRelevantPostingIndicator, \
-                                  case when MENGESTREL = 'X' then 'Y' else 'N' end as billedValueStatisticallyRelevantIndicator, \
+                                  case when BUCHREL = 'X' then 'Y' else 'N' end as billingLineItemRelevantPostingFlag, \
+                                  case when MENGESTREL = 'X' then 'Y' else 'N' end as billedValueStatisticallyRelevantFlag, \
                                   BETRSTREL as billingLineItemStatisticallyRelevantAmount, \
                                   STGRQNT as quantityStatisticsGroupCode, \
                                   STGRAMT as amountStatisticsGroupCode, \
-                                  case when PRINTREL = 'X' then 'Y' else 'N' end as billingLinePrintRelevantIndicator, \
+                                  case when PRINTREL = 'X' then 'Y' else 'N' end as billingLinePrintRelevantFlag, \
                                   AKLASSE as billingClassCode, \
                                   bc.billingClass as billingClass, \
                                   BRANCHE as industryCode, \
-                                  TVORG as subtransactionForDocumentItem, \
+                                  TVORG as subTransactionCode, \
                                   GEGEN_TVORG as offsettingTransactionSubtransactionForDocumentItem, \
                                   LINESORT as presortingBillingLineItems, \
                                   ToValidDate(AB) as  validFromDate, \
@@ -259,18 +259,18 @@ newSchema = StructType([
                             StructField('billingSequenceNumber', StringType(), True),
                             StructField('lineItemTypeCode', StringType(), True),
                             StructField('lineItemType', StringType(), True),
-                            StructField('billingLineItemBudgetBillingIndicator', StringType(), True),
+                            StructField('billingLineItemBudgetBillingFlag', StringType(), True),
                             StructField('lineItemDiscountStatisticsIndicator', StringType(), True),
-                            StructField('billingLineItemRelevantPostingIndicator', StringType(), True),
-                            StructField('billedValueStatisticallyRelevantIndicator', StringType(), True),
+                            StructField('billingLineItemRelevantPostingFlag', StringType(), True),
+                            StructField('billedValueStatisticallyRelevantFlag', StringType(), True),
                             StructField('billingLineItemStatisticallyRelevantAmount', StringType(), True),
                             StructField('quantityStatisticsGroupCode', StringType(), True),
                             StructField('amountStatisticsGroupCode', StringType(), True),
-                            StructField('billingLinePrintRelevantIndicator', StringType(), True),
+                            StructField('billingLinePrintRelevantFlag', StringType(), True),
                             StructField('billingClassCode', StringType(), True),
                             StructField('billingClass', StringType(), True),
                             StructField('industryCode', StringType(), True),
-                            StructField('subtransactionForDocumentItem', StringType(), True),
+                            StructField('subTransactionCode', StringType(), True),
                             StructField('offsettingTransactionSubtransactionForDocumentItem', StringType(), True),
                             StructField('presortingBillingLineItems', StringType(), True),
                             StructField('validFromDate', DateType(), True),
