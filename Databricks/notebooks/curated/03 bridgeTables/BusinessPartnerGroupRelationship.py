@@ -85,7 +85,7 @@ def getBusinessPartnerGroupRelationship():
                             StructField('businessPartnerSK', StringType(), False),
                             StructField('validFromDate', DateType(), False),
                             StructField('validToDate', DateType(), True),
-                            StructField('relationshipNumber', StringType(), False),
+                            StructField('relationshipNumber', StringType(), True),
                             StructField('relationshipTypeCode', StringType(), True),
                             StructField('relationshipType', StringType(), True)
                       ]) 
