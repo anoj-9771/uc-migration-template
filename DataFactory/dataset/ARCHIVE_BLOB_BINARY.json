@@ -25,5 +25,6 @@
 				"container": "archive"
 			}
 		}
-	}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
 }

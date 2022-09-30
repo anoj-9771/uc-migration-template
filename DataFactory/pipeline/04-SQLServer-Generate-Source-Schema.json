@@ -318,7 +318,8 @@
 		"folder": {
 			"name": "SQL Server"
 		},
-		"annotations": []
+		"annotations": [],
+		"lastPublishTime": "2022-08-10T01:21:14Z"
 	},
 	"type": "Microsoft.DataFactory/factories/pipelines"
 }

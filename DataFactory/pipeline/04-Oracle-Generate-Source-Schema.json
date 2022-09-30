@@ -314,7 +314,8 @@
 		"folder": {
 			"name": "Oracle"
 		},
-		"annotations": []
+		"annotations": [],
+		"lastPublishTime": "2022-09-02T02:56:20Z"
 	},
 	"type": "Microsoft.DataFactory/factories/pipelines"
 }

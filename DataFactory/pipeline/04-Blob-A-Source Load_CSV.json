@@ -469,10 +469,7 @@
 												},
 												"linkedServiceName": {
 													"referenceName": "LS-AzureSqlDatabase_Ctrldb",
-													"type": "LinkedServiceReference",
-													"parameters": {
-														"kvSecret": "daf-sql-controldb-connectionstring"
-													}
+													"type": "LinkedServiceReference"
 												}
 											},
 											{
@@ -817,10 +814,7 @@
 												},
 												"linkedServiceName": {
 													"referenceName": "LS-AzureSqlDatabase_Ctrldb",
-													"type": "LinkedServiceReference",
-													"parameters": {
-														"kvSecret": "daf-sql-controldb-connectionstring"
-													}
+													"type": "LinkedServiceReference"
 												}
 											},
 											{
@@ -937,10 +931,7 @@
 												},
 												"linkedServiceName": {
 													"referenceName": "LS-AzureSqlDatabase_Ctrldb",
-													"type": "LinkedServiceReference",
-													"parameters": {
-														"kvSecret": "daf-sql-controldb-connectionstring"
-													}
+													"type": "LinkedServiceReference"
 												}
 											}
 										]
@@ -1156,10 +1147,7 @@
 				},
 				"linkedServiceName": {
 					"referenceName": "LS-AzureSqlDatabase_Ctrldb",
-					"type": "LinkedServiceReference",
-					"parameters": {
-						"kvSecret": "daf-sql-controldb-connectionstring"
-					}
+					"type": "LinkedServiceReference"
 				}
 			},
 			{
@@ -1227,10 +1215,7 @@
 				},
 				"linkedServiceName": {
 					"referenceName": "LS-AzureSqlDatabase_Ctrldb",
-					"type": "LinkedServiceReference",
-					"parameters": {
-						"kvSecret": "daf-sql-controldb-connectionstring"
-					}
+					"type": "LinkedServiceReference"
 				}
 			},
 			{
@@ -1319,7 +1304,7 @@
 			"name": "Blob"
 		},
 		"annotations": [],
-		"lastPublishTime": "2021-06-30T08:46:15Z"
+		"lastPublishTime": "2022-09-02T02:56:21Z"
 	},
 	"type": "Microsoft.DataFactory/factories/pipelines"
 }

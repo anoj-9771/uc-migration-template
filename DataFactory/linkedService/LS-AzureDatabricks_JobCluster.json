@@ -1,5 +1,6 @@
 {
 	"name": "LS-AzureDatabricks_JobCluster",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
 	"properties": {
 		"parameters": {
 			"kvSecret": {
@@ -18,7 +19,7 @@
 		"annotations": [],
 		"type": "AzureDatabricks",
 		"typeProperties": {
-			"domain": "https://australiaeast.azuredatabricks.net",
+			"domain": "$(LS-AzureDatabricks_JobCluster_properties_typeProperties_domain)",
 			"accessToken": {
 				"type": "AzureKeyVaultSecret",
 				"store": {
@@ -37,12 +38,12 @@
 				"PYSPARK_PYTHON": "/databricks/python3/bin/python3"
 			},
 			"newClusterVersion": "@linkedService().DataBricksClusterVersion",
-			"newClusterInitScripts": []
+			"newClusterInitScripts": [],
+			"clusterOption": "Fixed"
 		},
 		"connectVia": {
 			"referenceName": "IntegrationRuntime-Azure-ManagedVnet-01",
 			"type": "IntegrationRuntimeReference"
 		}
-	},
-	"type": "Microsoft.DataFactory/factories/linkedservices"
+	}
 }

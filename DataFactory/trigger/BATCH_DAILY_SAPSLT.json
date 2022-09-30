@@ -1,0 +1,35 @@
+{
+	"name": "BATCH_DAILY_SAPSLT",
+	"properties": {
+		"annotations": [],
+		"runtimeState": "Started",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "01-Main",
+					"type": "PipelineReference"
+				},
+				"parameters": {
+					"TriggerName": "BATCH_DAILY_SAPSLT"
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Day",
+				"interval": 1,
+				"startTime": "2022-04-29T22:00:00",
+				"timeZone": "AUS Eastern Standard Time",
+				"schedule": {
+					"minutes": [
+						15
+					],
+					"hours": [
+						0
+					]
+				}
+			}
+		}
+	}
+}

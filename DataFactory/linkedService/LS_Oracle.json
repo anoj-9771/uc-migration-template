@@ -1,10 +1,11 @@
 {
 	"name": "LS_Oracle",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
 	"properties": {
 		"parameters": {
 			"kvSecret": {
 				"type": "string",
-				"defaultValue": "OracleDB-PAS"
+				"defaultValue": "daf-oracle-Maximo-connectionstring"
 			}
 		},
 		"annotations": [],
@@ -26,6 +27,5 @@
 			"referenceName": "IntegrationRuntime-SelfHosted-onPrem",
 			"type": "IntegrationRuntimeReference"
 		}
-	},
-	"type": "Microsoft.DataFactory/factories/linkedservices"
+	}
 }

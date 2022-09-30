@@ -1,0 +1,178 @@
+{
+	"name": "metadata_src",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_AzureDatalake",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Parquet",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"folderPath": "sewercctv/cctv_kaltura_metadata",
+				"fileSystem": "cleansed"
+			},
+			"compressionCodec": "snappy"
+		},
+		"schema": [
+			{
+				"name": "metadata_id",
+				"type": "INT64"
+			},
+			{
+				"name": "metadata_partnerId",
+				"type": "INT64"
+			},
+			{
+				"name": "metadata_metadataProfileId",
+				"type": "INT64"
+			},
+			{
+				"name": "metadata_metadataProfileVersion",
+				"type": "INT64"
+			},
+			{
+				"name": "metadata_metadataObjectType",
+				"type": "UTF8"
+			},
+			{
+				"name": "metadata_objectId",
+				"type": "UTF8"
+			},
+			{
+				"name": "metadata_version",
+				"type": "INT64"
+			},
+			{
+				"name": "metadata_createdAt",
+				"type": "INT64"
+			},
+			{
+				"name": "metadata_updatedAt",
+				"type": "INT64"
+			},
+			{
+				"name": "metadata_status",
+				"type": "UTF8"
+			},
+			{
+				"name": "metadata_jsonData.AssessedByName",
+				"type": "UTF8"
+			},
+			{
+				"name": "metadata_jsonData.AssessedByDate",
+				"type": "UTF8"
+			},
+			{
+				"name": "metadata_jsonData.ParentWorkOrderNumber",
+				"type": "UTF8"
+			},
+			{
+				"name": "metadata_jsonData.ChildWorkOrderNumbers",
+				"type": "UTF8"
+			},
+			{
+				"name": "metadata_jsonData.WorkOrderDescription",
+				"type": "UTF8"
+			},
+			{
+				"name": "metadata_jsonData.AssetNumbers",
+				"type": "UTF8"
+			},
+			{
+				"name": "metadata_jsonData.TaskCode",
+				"type": "UTF8"
+			},
+			{
+				"name": "metadata_jsonData.Suburb",
+				"type": "UTF8"
+			},
+			{
+				"name": "metadata_jsonData.Product",
+				"type": "UTF8"
+			},
+			{
+				"name": "metadata_jsonData.Contractor",
+				"type": "UTF8"
+			},
+			{
+				"name": "metadata_jsonData.UpstreamMH",
+				"type": "UTF8"
+			},
+			{
+				"name": "metadata_jsonData.DownstreamMH",
+				"type": "UTF8"
+			},
+			{
+				"name": "metadata_jsonData.DirectionOfSurvey",
+				"type": "UTF8"
+			},
+			{
+				"name": "metadata_jsonData.DateOfCompletedInspection",
+				"type": "UTF8"
+			},
+			{
+				"name": "metadata_jsonData.TimeOfCompletedInspection",
+				"type": "UTF8"
+			},
+			{
+				"name": "metadata_jsonData.PackageName",
+				"type": "UTF8"
+			},
+			{
+				"name": "metadata_jsonData.Cleaned",
+				"type": "UTF8"
+			},
+			{
+				"name": "metadata_jsonData.SurveyedLength",
+				"type": "UTF8"
+			},
+			{
+				"name": "metadata_jsonData.DiscardDate",
+				"type": "UTF8"
+			},
+			{
+				"name": "metadata_jsonData.Condition",
+				"type": "UTF8"
+			},
+			{
+				"name": "metadata_jsonData.Serviceability",
+				"type": "UTF8"
+			},
+			{
+				"name": "metadata_jsonData.Infiltration",
+				"type": "UTF8"
+			},
+			{
+				"name": "metadata_jsonData.AddressStreet",
+				"type": "UTF8"
+			},
+			{
+				"name": "processed_timestamp",
+				"type": "INT96"
+			},
+			{
+				"name": "_DLCleansedZoneTimeStamp",
+				"type": "INT96"
+			},
+			{
+				"name": "_RecordStart",
+				"type": "INT96"
+			},
+			{
+				"name": "_RecordEnd",
+				"type": "INT96"
+			},
+			{
+				"name": "_RecordDeleted",
+				"type": "INT32"
+			},
+			{
+				"name": "_RecordCurrent",
+				"type": "INT32"
+			}
+		]
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}
