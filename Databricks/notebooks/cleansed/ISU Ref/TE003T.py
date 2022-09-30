@@ -175,7 +175,7 @@ df = spark.sql(f"WITH stage AS \
                            SELECT  \
                                 case when OBJECT = 'na' then '' else OBJECT end as objectName, \
                                 case when BLART = 'na' then '' else BLART end as documentTypeCode, \
-                                TEXT30  as documentType, \
+                                TEXT as documentType, \
                                 cast('1900-01-01' as TimeStamp) as _RecordStart, \
                                 cast('9999-12-31' as TimeStamp) as _RecordEnd, \
                                 '0' as _RecordDeleted, \
