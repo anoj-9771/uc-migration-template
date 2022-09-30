@@ -181,6 +181,8 @@
 		"folder": {
 			"name": "Validation"
 		},
-		"annotations": []
-	}
+		"annotations": [],
+		"lastPublishTime": "2022-08-10T01:21:15Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
 }

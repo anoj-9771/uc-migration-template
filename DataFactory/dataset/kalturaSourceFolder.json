@@ -1,0 +1,19 @@
+{
+	"name": "kalturaSourceFolder",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_AzureBlobStorage",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Binary",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"folderPath": "Inbound",
+				"container": "kaltura"
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

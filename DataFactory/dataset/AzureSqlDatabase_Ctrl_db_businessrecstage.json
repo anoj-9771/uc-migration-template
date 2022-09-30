@@ -12,5 +12,6 @@
 			"schema": "CTL",
 			"table": "BusinessRecStage"
 		}
-	}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
 }

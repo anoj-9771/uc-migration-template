@@ -3,10 +3,7 @@
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "LS-AzureSqlDatabase_Ctrldb",
-			"type": "LinkedServiceReference",
-			"parameters": {
-				"kvSecret": "daf-sql-controldb-connectionstring"
-			}
+			"type": "LinkedServiceReference"
 		},
 		"folder": {
 			"name": "Control"

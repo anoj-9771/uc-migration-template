@@ -1,7 +1,10 @@
 {
 	"name": "mpe_sablob01",
 	"properties": {
-		"privateLinkResourceId": "/subscriptions/e59a4313-66c3-4db6-842d-6154c5e08205/resourceGroups/rg-swcnonprod01-daf-dev-01/providers/Microsoft.Storage/storageAccounts/sablobdafdev01",
-		"groupId": "blob"
+		"privateLinkResourceId": "/subscriptions/769a62b3-7481-44ae-878e-a466593f50ac/resourceGroups/rg-swcprod01-preprod-daf-01/providers/Microsoft.Storage/storageAccounts/sablobdafpreprod01",
+		"groupId": "blob",
+		"fqdns": [
+			"sablobdafpreprod01.blob.core.windows.net"
+		]
 	}
 }

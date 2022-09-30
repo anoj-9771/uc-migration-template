@@ -5,7 +5,14 @@
 			{
 				"name": "SP-Record-Manifest_copy1",
 				"type": "SqlServerStoredProcedure",
-				"dependsOn": [],
+				"dependsOn": [
+					{
+						"activity": "Set-ExtractDateTime",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
 				"policy": {
 					"timeout": "7.00:00:00",
 					"retry": 0,
@@ -97,7 +104,7 @@
 						},
 						"SourceFileDateStamp": {
 							"value": {
-								"value": "@replace(replace(replace(pipeline().parameters.WatermarkColumn,'-',''),':',''),' ','')",
+								"value": "@variables('ExtractDateTime')",
 								"type": "Expression"
 							},
 							"type": "String"
@@ -154,7 +161,7 @@
 						},
 						"SourceFileDateStamp": {
 							"value": {
-								"value": "@replace(replace(replace(pipeline().parameters.WatermarkColumn,'-',''),':',''),' ','')",
+								"value": "@variables('ExtractDateTime')",
 								"type": "Expression"
 							},
 							"type": "String"
@@ -375,7 +382,7 @@
 						},
 						"SourceFileDateStamp": {
 							"value": {
-								"value": "@replace(replace(replace(pipeline().parameters.WatermarkColumn,'-',''),':',''),' ','')",
+								"value": "@variables('ExtractDateTime')",
 								"type": "Expression"
 							},
 							"type": "String"
@@ -432,7 +439,7 @@
 									"dependsOn": [],
 									"policy": {
 										"timeout": "7.00:00:00",
-										"retry": 0,
+										"retry": 2,
 										"retryIntervalInSeconds": 30,
 										"secureOutput": false,
 										"secureInput": false
@@ -903,6 +910,66 @@
 											"type": "Expression"
 										}
 									}
+								},
+								{
+									"name": "Set-DeltaRowsReadCount-AUSP",
+									"type": "SetVariable",
+									"dependsOn": [
+										{
+											"activity": "Copy-Source-DataLake-AUSP",
+											"dependencyConditions": [
+												"Failed"
+											]
+										}
+									],
+									"userProperties": [],
+									"typeProperties": {
+										"variableName": "RowsRead",
+										"value": {
+											"value": "@string(activity('Copy-Source-DataLake-AUSP').output.rowsRead)",
+											"type": "Expression"
+										}
+									}
+								},
+								{
+									"name": "Set-ErrorMesage-AUSP",
+									"type": "SetVariable",
+									"dependsOn": [
+										{
+											"activity": "Set-DeltaRowsReadCount-AUSP",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"userProperties": [],
+									"typeProperties": {
+										"variableName": "ErrorMessage",
+										"value": {
+											"value": "@string(activity('Copy-Source-DataLake-AUSP').output.errors[0].Message)",
+											"type": "Expression"
+										}
+									}
+								},
+								{
+									"name": "Set-ErrorCode-AUSP",
+									"type": "SetVariable",
+									"dependsOn": [
+										{
+											"activity": "Set-ErrorMesage-AUSP",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"userProperties": [],
+									"typeProperties": {
+										"variableName": "ErrorCode",
+										"value": {
+											"value": "@string(activity('Copy-Source-DataLake-AUSP').output.errors[0].Code)",
+											"type": "Expression"
+										}
+									}
 								}
 							]
 						}
@@ -914,7 +981,7 @@
 							"dependsOn": [],
 							"policy": {
 								"timeout": "7.00:00:00",
-								"retry": 0,
+								"retry": 2,
 								"retryIntervalInSeconds": 30,
 								"secureOutput": false,
 								"secureInput": false
@@ -1016,8 +1083,304 @@
 									"type": "Expression"
 								}
 							}
+						},
+						{
+							"name": "Set-DeltaRowsReadCount",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "Copy-Source-DataLake",
+									"dependencyConditions": [
+										"Failed"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "RowsRead",
+								"value": {
+									"value": "@string(activity('Copy-Source-DataLake').output.rowsRead)",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "Set-ErrorMesage",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "Set-DeltaRowsReadCount",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "ErrorMessage",
+								"value": {
+									"value": "@string(activity('Copy-Source-DataLake').output.errors[0].Message)",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "Set-ErrorCode",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "Set-ErrorMesage",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "ErrorCode",
+								"value": {
+									"value": "@string(activity('Copy-Source-DataLake').output.errors[0].Code)",
+									"type": "Expression"
+								}
+							}
 						}
 					]
+				}
+			},
+			{
+				"name": "Check-if-Zero-Delta-Records",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "Switch-SLT-Tables",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@equals(variables('RowsRead'),'0')",
+						"type": "Expression"
+					},
+					"ifFalseActivities": [
+						{
+							"name": "Fail-SLT-Raw-Load",
+							"type": "Fail",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"message": {
+									"value": "@variables('ErrorMessage')",
+									"type": "Expression"
+								},
+								"errorCode": {
+									"value": "@variables('ErrorCode')",
+									"type": "Expression"
+								}
+							}
+						}
+					],
+					"ifTrueActivities": [
+						{
+							"name": "SP-Update-Manifest-Value-ZeroRecords",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[CTL].[UpdateManifestValue]",
+								"storedProcedureParameters": {
+									"BatchExecutionLogID": {
+										"value": {
+											"value": "@pipeline().parameters.BatchExecutionLogID",
+											"type": "Expression"
+										},
+										"type": "Int64"
+									},
+									"M_DeltaRecordCount": {
+										"value": {
+											"value": "@variables('RowsRead')",
+											"type": "Expression"
+										},
+										"type": "Int64"
+									},
+									"SourceFileDateStamp": {
+										"value": {
+											"value": "@variables('ExtractDateTime')",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"TaskExecutionLogID": {
+										"value": {
+											"value": "@pipeline().parameters.TaskExecutionLogID",
+											"type": "Expression"
+										},
+										"type": "Int64"
+									},
+									"M_TotalNoRows": {
+										"value": {
+											"value": "@pipeline().parameters.ValidationDetails.RecordCount",
+											"type": "Expression"
+										},
+										"type": "Int64"
+									},
+									"M_Message": {
+										"value": null,
+										"type": "String"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "LS-AzureSqlDatabase_Ctrldb",
+								"type": "LinkedServiceReference"
+							}
+						},
+						{
+							"name": "SP-Update-Manifest-Delta-Zero-Records",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[CTL].[UpdateManifestDeltaRecords]",
+								"storedProcedureParameters": {
+									"BatchExecutionLogID": {
+										"value": {
+											"value": "@pipeline().parameters.BatchExecutionLogID",
+											"type": "Expression"
+										},
+										"type": "Int64"
+									},
+									"TaskExecutionLogID": {
+										"value": {
+											"value": "@pipeline().parameters.TaskExecutionLogId",
+											"type": "Expression"
+										},
+										"type": "Int64"
+									},
+									"RecordsDeltaTable": {
+										"value": {
+											"value": "@variables('RowsRead')",
+											"type": "Expression"
+										},
+										"type": "Int64"
+									},
+									"SourceFileDateStamp": {
+										"value": {
+											"value": "@variables('ExtractDateTime')",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"RecordsTargetTable": {
+										"value": {
+											"value": "@variables('RowsRead')",
+											"type": "Expression"
+										},
+										"type": "Int64"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "LS-AzureSqlDatabase_Ctrldb",
+								"type": "LinkedServiceReference"
+							}
+						},
+						{
+							"name": "EP-Record-Validation-Zero-Delta",
+							"type": "ExecutePipeline",
+							"dependsOn": [
+								{
+									"activity": "SP-Update-Manifest-Delta-Zero-Records",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "recon-record-validation",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"ProjectRunID": {
+										"value": "@pipeline().parameters.ProjectRunID",
+										"type": "Expression"
+									},
+									"ValidationDetails": {
+										"value": "@pipeline().parameters.ValidationDetails",
+										"type": "Expression"
+									},
+									"SourceID": {
+										"value": "@pipeline().parameters.TaskDetails.SourceID",
+										"type": "Expression"
+									}
+								}
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "Dummy1UponSkip",
+				"type": "Wait",
+				"dependsOn": [
+					{
+						"activity": "EP-Record-Validation",
+						"dependencyConditions": [
+							"Skipped"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"waitTimeInSeconds": 1
+				}
+			},
+			{
+				"name": "Dummy2UponSkip",
+				"type": "Wait",
+				"dependsOn": [
+					{
+						"activity": "SP-Update-Manifest-Value",
+						"dependencyConditions": [
+							"Skipped"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"waitTimeInSeconds": 1
+				}
+			},
+			{
+				"name": "Set-ExtractDateTime",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "ExtractDateTime",
+					"value": {
+						"value": "@formatDateTime(convertFromUtc(utcnow(),'AUS Eastern Standard Time'), 'yyyyMMddHHmmss')",
+						"type": "Expression"
+					}
 				}
 			}
 		],
@@ -1065,11 +1428,25 @@
 			},
 			"RowCount": {
 				"type": "String"
+			},
+			"ErrorMessage": {
+				"type": "String"
+			},
+			"ErrorCode": {
+				"type": "String"
+			},
+			"RowsRead": {
+				"type": "String"
+			},
+			"ExtractDateTime": {
+				"type": "String"
 			}
 		},
 		"folder": {
 			"name": "SQL Server"
 		},
-		"annotations": []
-	}
+		"annotations": [],
+		"lastPublishTime": "2022-08-10T01:21:15Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
 }

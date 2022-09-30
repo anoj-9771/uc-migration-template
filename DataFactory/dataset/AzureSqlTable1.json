@@ -1,0 +1,81 @@
+{
+	"name": "AzureSqlTable1",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "azure_Sql_sewercctv",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "ID",
+				"type": "bigint",
+				"precision": 19
+			},
+			{
+				"name": "VIDEO_ID",
+				"type": "bigint",
+				"precision": 19
+			},
+			{
+				"name": "DEFECT",
+				"type": "varchar"
+			},
+			{
+				"name": "AVG_PROBABILITY",
+				"type": "decimal",
+				"precision": 18,
+				"scale": 15
+			},
+			{
+				"name": "SCORE",
+				"type": "bigint",
+				"precision": 19
+			},
+			{
+				"name": "START_TIME",
+				"type": "varchar"
+			},
+			{
+				"name": "END_TIME",
+				"type": "varchar"
+			},
+			{
+				"name": "START_DISTANCE",
+				"type": "decimal",
+				"precision": 18,
+				"scale": 2
+			},
+			{
+				"name": "END_DISTANCE",
+				"type": "decimal",
+				"precision": 18,
+				"scale": 2
+			},
+			{
+				"name": "OUTCOME_CLASSIFICATION",
+				"type": "bit"
+			},
+			{
+				"name": "DEFECT_SUGGESTED",
+				"type": "varchar"
+			},
+			{
+				"name": "CREATED_TIMESTAMP",
+				"type": "datetime2",
+				"scale": 7
+			},
+			{
+				"name": "UPDATED_TIMESTAMP",
+				"type": "datetime2",
+				"scale": 7
+			}
+		],
+		"typeProperties": {
+			"schema": "CCTVPortal",
+			"table": "VIDEO_AI_IDENTIFIED_DEFECT"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

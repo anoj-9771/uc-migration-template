@@ -94,10 +94,7 @@
 							},
 							"linkedServiceName": {
 								"referenceName": "LS-AzureSqlDatabase_Ctrldb",
-								"type": "LinkedServiceReference",
-								"parameters": {
-									"kvSecret": "AzureSqlDatabase-ControlDB"
-								}
+								"type": "LinkedServiceReference"
 							}
 						},
 						{
@@ -159,10 +156,7 @@
 							},
 							"linkedServiceName": {
 								"referenceName": "LS-AzureSqlDatabase_Ctrldb",
-								"type": "LinkedServiceReference",
-								"parameters": {
-									"kvSecret": "AzureSqlDatabase-ControlDB"
-								}
+								"type": "LinkedServiceReference"
 							}
 						},
 						{
@@ -276,10 +270,7 @@
 							},
 							"linkedServiceName": {
 								"referenceName": "LS-AzureSqlDatabase_Ctrldb",
-								"type": "LinkedServiceReference",
-								"parameters": {
-									"kvSecret": "AzureSqlDatabase-ControlDB"
-								}
+								"type": "LinkedServiceReference"
 							}
 						},
 						{
@@ -344,10 +335,7 @@
 							},
 							"linkedServiceName": {
 								"referenceName": "LS-AzureSqlDatabase_Ctrldb",
-								"type": "LinkedServiceReference",
-								"parameters": {
-									"kvSecret": "AzureSqlDatabase-ControlDB"
-								}
+								"type": "LinkedServiceReference"
 							}
 						},
 						{
@@ -412,10 +400,7 @@
 							},
 							"linkedServiceName": {
 								"referenceName": "LS-AzureSqlDatabase_Ctrldb",
-								"type": "LinkedServiceReference",
-								"parameters": {
-									"kvSecret": "AzureSqlDatabase-ControlDB"
-								}
+								"type": "LinkedServiceReference"
 							}
 						},
 						{
@@ -532,10 +517,7 @@
 							},
 							"linkedServiceName": {
 								"referenceName": "LS-AzureSqlDatabase_Ctrldb",
-								"type": "LinkedServiceReference",
-								"parameters": {
-									"kvSecret": "AzureSqlDatabase-ControlDB"
-								}
+								"type": "LinkedServiceReference"
 							}
 						},
 						{
@@ -613,10 +595,7 @@
 							},
 							"linkedServiceName": {
 								"referenceName": "LS-AzureSqlDatabase_Ctrldb",
-								"type": "LinkedServiceReference",
-								"parameters": {
-									"kvSecret": "AzureSqlDatabase-ControlDB"
-								}
+								"type": "LinkedServiceReference"
 							}
 						}
 					]
@@ -772,10 +751,7 @@
 				},
 				"linkedServiceName": {
 					"referenceName": "LS-AzureSqlDatabase_Ctrldb",
-					"type": "LinkedServiceReference",
-					"parameters": {
-						"kvSecret": "AzureSqlDatabase-ControlDB"
-					}
+					"type": "LinkedServiceReference"
 				}
 			},
 			{
@@ -840,10 +816,7 @@
 				},
 				"linkedServiceName": {
 					"referenceName": "LS-AzureSqlDatabase_Ctrldb",
-					"type": "LinkedServiceReference",
-					"parameters": {
-						"kvSecret": "AzureSqlDatabase-ControlDB"
-					}
+					"type": "LinkedServiceReference"
 				}
 			},
 			{
@@ -980,10 +953,7 @@
 				},
 				"linkedServiceName": {
 					"referenceName": "LS-AzureSqlDatabase_Ctrldb",
-					"type": "LinkedServiceReference",
-					"parameters": {
-						"kvSecret": "AzureSqlDatabase-ControlDB"
-					}
+					"type": "LinkedServiceReference"
 				}
 			}
 		],
@@ -1015,7 +985,8 @@
 		"folder": {
 			"name": "Oracle"
 		},
-		"annotations": []
+		"annotations": [],
+		"lastPublishTime": "2022-09-02T02:56:22Z"
 	},
 	"type": "Microsoft.DataFactory/factories/pipelines"
 }

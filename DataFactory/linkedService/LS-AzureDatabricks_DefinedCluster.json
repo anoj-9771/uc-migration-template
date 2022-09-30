@@ -1,5 +1,6 @@
 {
 	"name": "LS-AzureDatabricks_DefinedCluster",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
 	"properties": {
 		"description": "Interactive Cluster",
 		"parameters": {
@@ -15,7 +16,7 @@
 		"annotations": [],
 		"type": "AzureDatabricks",
 		"typeProperties": {
-			"domain": "https://adb-7004525605760210.10.azuredatabricks.net/",
+			"domain": "https://adb-2717485385283200.0.azuredatabricks.net",
 			"accessToken": {
 				"type": "AzureKeyVaultSecret",
 				"store": {
@@ -34,6 +35,5 @@
 			"referenceName": "IntegrationRuntime-Azure-ManagedVnet-01",
 			"type": "IntegrationRuntimeReference"
 		}
-	},
-	"type": "Microsoft.DataFactory/factories/linkedservices"
+	}
 }

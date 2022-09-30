@@ -95,10 +95,7 @@
 							},
 							"linkedServiceName": {
 								"referenceName": "LS-AzureSqlDatabase_Ctrldb",
-								"type": "LinkedServiceReference",
-								"parameters": {
-									"kvSecret": "daf-sql-controldb-connectionstring"
-								}
+								"type": "LinkedServiceReference"
 							}
 						}
 					]
@@ -157,6 +154,8 @@
 		"folder": {
 			"name": "Validation"
 		},
-		"annotations": []
-	}
+		"annotations": [],
+		"lastPublishTime": "2022-09-02T02:56:21Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
 }

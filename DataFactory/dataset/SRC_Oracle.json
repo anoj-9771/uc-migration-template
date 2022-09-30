@@ -5,7 +5,7 @@
 			"referenceName": "LS_Oracle",
 			"type": "LinkedServiceReference",
 			"parameters": {
-				"kvSecret": "OracleDB-PAS"
+				"kvSecret": "daf-oracle-Maximo-connectionstring"
 			}
 		},
 		"parameters": {
@@ -17,7 +17,25 @@
 			"name": "z_Archive"
 		},
 		"annotations": [],
-		"type": "OracleTable"
+		"type": "OracleTable",
+		"structure": [
+			{
+				"name": "OBJECT_NAME",
+				"type": "String"
+			},
+			{
+				"name": "COLUMN_NAME",
+				"type": "String"
+			},
+			{
+				"name": "DATA_TYPE",
+				"type": "String"
+			},
+			{
+				"name": "DATA_LENGTH",
+				"type": "Double"
+			}
+		]
 	},
 	"type": "Microsoft.DataFactory/factories/datasets"
 }

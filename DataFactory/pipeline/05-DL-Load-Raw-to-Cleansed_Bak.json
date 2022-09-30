@@ -63,10 +63,7 @@
 				},
 				"linkedServiceName": {
 					"referenceName": "LS-AzureSqlDatabase_Ctrldb",
-					"type": "LinkedServiceReference",
-					"parameters": {
-						"kvSecret": "daf-sql-controldb-connectionstring"
-					}
+					"type": "LinkedServiceReference"
 				}
 			},
 			{
@@ -134,10 +131,7 @@
 				},
 				"linkedServiceName": {
 					"referenceName": "LS-AzureSqlDatabase_Ctrldb",
-					"type": "LinkedServiceReference",
-					"parameters": {
-						"kvSecret": "daf-sql-controldb-connectionstring"
-					}
+					"type": "LinkedServiceReference"
 				}
 			},
 			{
@@ -322,7 +316,7 @@
 			"name": "z_Archive"
 		},
 		"annotations": [],
-		"lastPublishTime": "2021-06-21T11:04:49Z"
+		"lastPublishTime": "2022-09-02T02:56:20Z"
 	},
 	"type": "Microsoft.DataFactory/factories/pipelines"
 }

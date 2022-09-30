@@ -1,12 +1,13 @@
 {
 	"name": "LS_AzureBlobStorage",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
 	"properties": {
 		"annotations": [],
 		"type": "AzureBlobStorage",
 		"typeProperties": {
-			"serviceEndpoint": "https://sablobdafdev01.blob.core.windows.net",
+			"serviceEndpoint": "https://sablobdafpreprod01.blob.core.windows.net/",
 			"tenant": "8351bb5c-749d-4ee4-b1c4-71a3971acbe9",
-			"servicePrincipalId": "acff96db-8630-433b-bbb1-35a3813fa036",
+			"servicePrincipalId": "3012901b-9b8c-4100-a6bf-a1a2ec010def",
 			"servicePrincipalKey": {
 				"type": "AzureKeyVaultSecret",
 				"store": {
@@ -21,6 +22,5 @@
 			"referenceName": "IntegrationRuntime-Azure-ManagedVnet-01",
 			"type": "IntegrationRuntimeReference"
 		}
-	},
-	"type": "Microsoft.DataFactory/factories/linkedservices"
+	}
 }
