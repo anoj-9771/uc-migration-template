@@ -20,7 +20,7 @@ def getInstallation():
 
     #1.Load Cleansed layer table data into dataframe
     isu0ucinstallaAttrDf  = spark.sql(f"select 'ISU' as sourceSystemCode, \
-                                          installationId, \
+                                          installationNumber, \
                                           divisionCode, \
                                           division, \
                                           meterReadingControlCode, \
@@ -39,7 +39,7 @@ def getInstallation():
     #print(f'Rows in isu0ucinstallaAttrDf:',isu0ucinstallaAttrDf.count())
     
     #Dummy Record to be added to Installation Dimension
-    dummyDimRecDf = spark.createDataFrame([("-1", "Unknown")],["installationId", "division"])
+    dummyDimRecDf = spark.createDataFrame([("-1", "Unknown")],["installationNumber", "division"])
         
     #2.JOIN TABLES
 
@@ -49,7 +49,7 @@ def getInstallation():
 
     #4.SELECT / TRANSFORM
     df = df.select("sourceSystemCode", \
-                    "installationId", \
+                    "installationNumber", \
                     "divisionCode", \
                     "division", \
                     "meterReadingControlCode", \
@@ -67,7 +67,7 @@ def getInstallation():
     schema = StructType([
                             StructField('installationSK', StringType(), False),
                             StructField('sourceSystemCode', StringType(), True),
-                            StructField('installationId', StringType(), False),
+                            StructField('installationNumber', StringType(), False),
                             StructField('divisionCode', StringType(), True),
                             StructField('division', StringType(), True),
                             StructField('meterReadingControlCode', StringType(), True),
@@ -87,7 +87,7 @@ def getInstallation():
 # COMMAND ----------
 
 df, schema = getInstallation()
-TemplateEtl(df, entity="dimInstallation", businessKey="installationId", schema=schema, writeMode=ADS_WRITE_MODE_OVERWRITE, AddSK=True)
+TemplateEtl(df, entity="dimInstallation", businessKey="installationNumber", schema=schema, writeMode=ADS_WRITE_MODE_OVERWRITE, AddSK=True)
 
 # COMMAND ----------
 
