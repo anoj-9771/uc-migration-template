@@ -20,7 +20,7 @@ def getmeterInstallation():
 
     #1.Load current Cleansed layer table data into dataframe
     df = spark.sql(f"select din.installationSK as installationSK, \
-                            devin.installationId as installationId, \
+                            devin.installationNumber as installationId, \
                             devin.logicalDeviceNumber as logicalDeviceNumber, \
                             devin.validToDate as validToDate, \
                             devin.validFromDate as validFromDate, \
@@ -29,11 +29,11 @@ def getmeterInstallation():
                             devin.payRentalPrice as payRentalPrice, \
                             devin.rateTypeCode as rateTypeCode, \
                             devin.rateType as rateType, \
-                            devin.deletedIndicator as deletedIndicator, \
+                            devin.deletedFlag as deletedIndicator, \
                             devin.bwDeltaProcess as bwDeltaProcess, \
                             devin.operationCode as operationCode \
                             from {ADS_DATABASE_CLEANSED}.isu_0UC_DEVINST_ATTR devin left outer join {ADS_DATABASE_CURATED}.dimInstallation din \
-                                                                                        on devin.installationId = din.installationId \
+                                                                                        on devin.installationNumber = din.installationNumber \
                             where devin._RecordDeleted = 0 \
                             and   devin._RecordCurrent = 1 \
                             and   din._RecordDeleted = 0 \

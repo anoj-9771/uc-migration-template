@@ -39,7 +39,7 @@ def getInstallation():
     #print(f'Rows in isu0ucinstallaAttrDf:',isu0ucinstallaAttrDf.count())
     
     #Dummy Record to be added to Installation Dimension
-    dummyDimRecDf = spark.createDataFrame([("-1", "Unknown")],["installationId", "division"])
+    dummyDimRecDf = spark.createDataFrame([("-1", "Unknown")],["installationNumber", "division"])
         
     #2.JOIN TABLES
 
@@ -87,7 +87,7 @@ def getInstallation():
 # COMMAND ----------
 
 df, schema = getInstallation()
-TemplateEtl(df, entity="dimInstallation", businessKey="installationId", schema=schema, writeMode=ADS_WRITE_MODE_OVERWRITE, AddSK=True)
+TemplateEtl(df, entity="dimInstallation", businessKey="installationNumber", schema=schema, writeMode=ADS_WRITE_MODE_OVERWRITE, AddSK=True)
 
 # COMMAND ----------
 
