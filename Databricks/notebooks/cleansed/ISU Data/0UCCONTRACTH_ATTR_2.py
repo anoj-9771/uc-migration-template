@@ -182,9 +182,9 @@ df = spark.sql(f"WITH stage AS \
                                 PRODID as productId, \
                                 PRODUCT_GUID as productGUID, \
                                 CAMPAIGN as marketingCampaign, \
-                                (CASE WHEN LOEVM = 'X' THEN 'Y' ELSE 'N' END) as deletedIndicator, \
-                                (CASE WHEN PRODCH_BEG = 'X' THEN 'Y' ELSE 'N' END) as productBeginflag, \
-                                (CASE WHEN PRODCH_END = 'X' THEN 'Y' ELSE 'N' END) as productChangeflag, \
+                                (CASE WHEN LOEVM = 'X' THEN 'Y' ELSE 'N' END) as deletedFlag, \
+                                (CASE WHEN PRODCH_BEG = 'X' THEN 'Y' ELSE 'N' END) as productBeginFlag, \
+                                (CASE WHEN PRODCH_END = 'X' THEN 'Y' ELSE 'N' END) as productChangeFlag, \
                                 XREPLCNTL as replicationControlsCode, \
                                 dd.domainValueText as replicationControls, \
                                 CRM_OBJECT_ID as CRMObjectId, \
@@ -219,9 +219,9 @@ newSchema = StructType([
                         StructField('productId',StringType(),True),
                         StructField('productGUID',StringType(),True),
                         StructField('marketingCampaign',StringType(),True),
-                        StructField('deletedIndicator',StringType(),True),
-                        StructField('productBeginflag',StringType(),True),
-                        StructField('productChangeflag',StringType(),True),
+                        StructField('deletedFlag',StringType(),True),
+                        StructField('productBeginFlag',StringType(),True),
+                        StructField('productChangeFlag',StringType(),True),
                         StructField('replicationControlsCode',StringType(),True),
                         StructField('replicationControls',StringType(),True),
                         StructField('CRMObjectId',StringType(),True),

@@ -196,7 +196,7 @@ df = spark.sql(f"WITH stage AS \
                                 cast(KZAHLT as int) as actualGasLawDeviationFactor, \
                                 cast(CRGPRESS as int) as gasCorrectionPressure, \
                                 INTSIZEID as intervalLengthId, \
-                                LOEVM as deletedIndicator, \
+                                (CASE WHEN LOEVM = 'X' THEN 'Y' ELSE 'N' END) as deletedFlag, \
                                 ZANLAGE as installationId, \
                                 cast('1900-01-01' as TimeStamp) as _RecordStart, \
                                 cast('9999-12-31' as TimeStamp) as _RecordEnd, \
@@ -243,7 +243,7 @@ newSchema = StructType([
 	StructField('actualGasLawDeviationFactor',IntegerType(),True),
 	StructField('gasCorrectionPressure',IntegerType(),True),
 	StructField('intervalLengthId',StringType(),True),
-	StructField('deletedIndicator',StringType(),True),
+	StructField('deletedFlag',StringType(),True),
     StructField('installationId',StringType(),True),
 	StructField('_RecordStart',TimestampType(),False),
 	StructField('_RecordEnd',TimestampType(),False),

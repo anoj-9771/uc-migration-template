@@ -198,7 +198,7 @@ df = spark.sql(f"WITH stage AS \
                                 ERNAM as createdBy, \
                                 ToValidDate(AEDAT) as lastChangedDate, \
                                 AENAM as lastChangedBy, \
-                                (CASE WHEN LOEVM = 'X' THEN 'Y' ELSE 'N' END) as deletedIndicator, \
+                                (CASE WHEN LOEVM = 'X' THEN 'Y' ELSE 'N' END) as deletedFlag, \
                                 (CASE WHEN FAKTURIERT = 'X' THEN 'Y' ELSE 'N' END) as isContractInvoicedFlag, \
                                 PS_PSP_PNR as wbsElement, \
                                 AUSGRUP as outsortingCheckGroupForBilling, \
@@ -343,7 +343,7 @@ newSchema = StructType(
                           StructField("createdBy", StringType(), True),
                           StructField("lastChangedDate", DateType(), True),
                           StructField("lastChangedBy", StringType(), True),
-                          StructField("deletedIndicator", StringType(), True),
+                          StructField("deletedFlag", StringType(), True),
                           StructField("isContractInvoicedFlag", StringType(), True),
                           StructField("wbsElement", StringType(), True),
                           StructField("outsortingCheckGroupForBilling", StringType(), True),
