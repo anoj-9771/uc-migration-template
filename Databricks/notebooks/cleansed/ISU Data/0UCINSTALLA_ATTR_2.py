@@ -273,7 +273,7 @@ df = spark.sql(f"""
           mrc.meterReadingControlCode = stg.ABLESARTST and 
           mrc._RecordDeleted = 0 and 
           mrc._RecordCurrent = 1 
-     WHERE stg._RecordVersion = 1 
+     WHERE stg._RecordVersion = 1 AND stg.ANLAGE IS NOT NULL
 """
 )
 

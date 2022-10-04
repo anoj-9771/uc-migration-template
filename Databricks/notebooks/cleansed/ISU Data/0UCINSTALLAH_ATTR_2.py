@@ -282,9 +282,8 @@ df = spark.sql(f"""
      """
 )
 
-#display(df)
-
-#print(f'Number of rows: {df.count()}')
+# display(df)
+# print(f'Number of rows: {df.count()}')
 
 # COMMAND ----------
 
