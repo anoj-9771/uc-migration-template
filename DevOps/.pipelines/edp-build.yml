@@ -42,10 +42,10 @@ stages:
       #========================
       # PUBLISH
       #========================
-      - task: PublishPipelineArtifact@1
+      - task: PublishBuildArtifacts@1
         displayName: 'Publish ADF'
         inputs:
-          targetPath: '$(Build.Repository.LocalPath)/DevOps/.pipelines/ArmTemplate'
+          PathtoPublish: '$(Build.Repository.LocalPath)/DevOps/.pipelines/ArmTemplate'
           ArtifactName: 'ADF'
       - task: PublishBuildArtifacts@1
         displayName: 'Publish Databricks'
