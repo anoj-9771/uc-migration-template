@@ -298,11 +298,11 @@ TemplateEtlSCD(df, entity="dimLocation", businessKey="locationId", schema=schema
 # MAGIC with t1 as (select cp.propertyNumber, LGA, latitude, longitude
 # MAGIC             from   curated_v2.dimLocation l,
 # MAGIC                    curated.ACCESSCancelledActiveProps cp
-# MAGIC             where  l.locationID = cp.activeProperty)
+# MAGIC             where  l.locationID = cp.activeProperty and l._RecordCurrent = 1)
 # MAGIC 
 # MAGIC merge into curated.dimLocation l
 # MAGIC using      t1
-# MAGIC on         l.locationID = t1.propertyNumber
+# MAGIC on         l.locationID = t1.propertyNumber and l._RecordCurrent = 1
 # MAGIC when matched then update 
 # MAGIC              set l.LGA = t1.LGA,
 # MAGIC                  l.latitude = t1.latitude,

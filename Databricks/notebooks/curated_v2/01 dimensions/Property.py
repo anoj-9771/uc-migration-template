@@ -382,11 +382,11 @@ TemplateEtlSCD(df, entity="dimProperty", businessKey="propertyNumber", schema=sc
 # MAGIC with t1 as (select cp.propertyNumber, waterNetworkSK_drinkingWater, waterNetworkSK_recycledWater, sewerNetworkSK, stormWaterNetworkSK 
 # MAGIC             from   curated_v2.dimProperty p,
 # MAGIC                    curated.ACCESSCancelledActiveProps cp
-# MAGIC             where  p.propertyNumber = cp.activeProperty)
+# MAGIC             where  p.propertyNumber = cp.activeProperty and p._RecordCurrent = 1)
 # MAGIC 
 # MAGIC merge into curated_v2.dimProperty p
 # MAGIC using      t1
-# MAGIC on         p.propertyNumber = t1.propertyNumber
+# MAGIC on         p.propertyNumber = t1.propertyNumber and p._RecordCurrent = 1
 # MAGIC when matched then update 
 # MAGIC              set p.waterNetworkSK_drinkingWater = t1.waterNetworkSK_drinkingWater,
 # MAGIC                  p.waterNetworkSK_recycledWater = t1.waterNetworkSK_recycledWater,
