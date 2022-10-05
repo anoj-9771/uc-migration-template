@@ -5,7 +5,8 @@
 
 def getPropertyLot():
     
-    df_isu = spark.sql(f"""select distinct planTypeCode, 
+    df_isu = spark.sql(f"""select distinct 'ISU' as sourceSystemCode, 
+                                        planTypeCode, 
                                         planType, 
                                         planNumber, 
                                         lotTypeCode,
@@ -15,6 +16,7 @@ def getPropertyLot():
                                         propertyNumber from {ADS_DATABASE_CLEANSED}.isu_0uc_connobj_attr_2 where propertyNumber <> ''""")
     
     schema = StructType([StructField('propertyLotSK', StringType(), False),
+                         StructField('sourceSystemCode', StringType(), True),
                          StructField('planTypeCode', StringType(), True),
                          StructField("planType", StringType(), True),
                          StructField("planNumber", StringType(), True),

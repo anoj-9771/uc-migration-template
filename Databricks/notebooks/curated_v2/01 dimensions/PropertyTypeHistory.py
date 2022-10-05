@@ -5,7 +5,7 @@
 
 def getPropertyTypeHistory():
     
-    df_isu = spark.sql(f"""select 
+    df_isu = spark.sql(f"""select 'ISU' as sourceSystemCode,
                     propertyNumber, 
                     superiorPropertyTypeCode, 
                     superiorPropertyType, 
@@ -55,7 +55,7 @@ def getPropertyTypeHistory():
           ) 
     select * from prophist;""")
     
-    df_access = spark.sql(f"""select 
+    df_access = spark.sql(f"""select 'ACCESS' as sourceSystemCode,
                     propertyNumber, 
                     superiorPropertyTypeCode, 
                     superiorPropertyType, 
@@ -68,6 +68,7 @@ def getPropertyTypeHistory():
     df = df_isu.unionByName(df_access, allowMissingColumns = True).dropDuplicates()
     
     schema = StructType([StructField('propertyTypeHistorySK', StringType(), False),
+                         StructField('sourceSystemCode', StringType(), True),
                          StructField('propertyNumber', StringType(), False),
                          StructField("superiorPropertyTypeCode", StringType(), False),
                          StructField("superiorPropertyType", StringType(), False),

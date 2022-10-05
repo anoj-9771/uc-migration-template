@@ -5,7 +5,7 @@
 
 def getPropertyService():
     
-    df_isu = spark.sql(f"""select 
+    df_isu = spark.sql(f"""select 'ISU' as sourceSystemCode,
                         isu_vibdnode.architecturalObjectNumber as propertyNumber, 
                         isu_vibdcharact.architecturalObjectInternalId as architecturalObjectInternalId, 
                         isu_vibdcharact.validToDate, 
@@ -18,6 +18,7 @@ def getPropertyService():
                         where isu_vibdcharact.fixtureAndFittingCharacteristic NOT in ('WATER DELIVERY SYSTEM', 'WATER DISTRIBUTION SYSTEM', 'WATER PRESSURE ZONE', 'WATER SUPPLY ZONE', 'RECYCLED WATER DELIVERY SYSTEM', 'RECYCLED WATER DISTRIBUTION SYSTEM', 'RECYCLED WATER SUPPLY ZONE','SEWERAGE NETWORK', 'SEWERAGE CATCHMENT', 'SCAMP','STORMWATER RECEIVING WATERS', 'STORMWATER CATCHMENT')""")
     
     schema = StructType([StructField('propertyServiceSK', StringType(), False),
+                         StructField('sourceSystemCode', StringType(), True),
                          StructField('propertyNumber', StringType(), False),
                          StructField("architecturalObjectInternalId", StringType(), True),
                          StructField("validToDate", DateType(), False),

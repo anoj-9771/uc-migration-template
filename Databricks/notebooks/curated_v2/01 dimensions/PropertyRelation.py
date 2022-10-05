@@ -5,7 +5,8 @@
 
 def getPropertyRelation():
     
-    df_isu = spark.sql(f"""select distinct property1Number,
+    df_isu = spark.sql(f"""select distinct 'ISU' as sourceSystemCode, 
+                                        property1Number,
                                         property2Number,
                                         validFromDate,
                                         validToDate,
@@ -16,6 +17,7 @@ def getPropertyRelation():
                                         from {ADS_DATABASE_CLEANSED}.isu_zcd_tprop_rel""")
     
     schema = StructType([StructField('propertyRelationSK', StringType(), False),
+                         StructField('sourceSystemCode', StringType(), True),
                          StructField('property1Number', StringType(), False),
                          StructField("property2Number", StringType(), False),
                          StructField("validFromDate", DateType(), False),
