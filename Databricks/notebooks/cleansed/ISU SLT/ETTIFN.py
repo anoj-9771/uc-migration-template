@@ -243,5 +243,33 @@ DeltaSaveDataFrameToDeltaTable(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS
 
 # COMMAND ----------
 
+# DBTITLE 1,13.1 Identify Deleted records from Raw table
+df = spark.sql(f"select distinct coalesce(ANLAGE,'') as ANLAGE, coalesce(OPERAND,'') as OPERAND, ToValidDate(AB,'MANDATORY') as AB, coalesce(ABLFDNR,'') as ABLFDNR from ( \
+Select *, ROW_NUMBER() OVER (PARTITION BY ANLAGE,OPERAND,SAISON,AB,ABLFDNR ORDER BY _DLRawZoneTimestamp DESC, DELTA_TS DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' ) \
+where  _RecordVersion = 1 and IS_DELETED ='Y'")
+df.createOrReplaceTempView("isu_ettifn_deleted_records")
+
+# COMMAND ----------
+
+# DBTITLE 1,13.2 Update _RecordDeleted and _RecordCurrent Flags
+#Get current time
+CurrentTimeStamp = GeneralLocalDateTime()
+CurrentTimeStamp = CurrentTimeStamp.strftime("%Y-%m-%d %H:%M:%S")
+
+spark.sql(f" \
+    MERGE INTO cleansed.isu_ETTIFN \
+    using isu_ettifn_deleted_records \
+    on isu_ETTIFN.installationId = isu_ettifn_deleted_records.ANLAGE \
+    and isu_ETTIFN.operandCode = isu_ettifn_deleted_records.OPERAND \
+    and isu_ETTIFN.validFromDate = isu_ettifn_deleted_records.AB \
+    and isu_ETTIFN.consecutiveDaysFromDate = isu_ettifn_deleted_records.ABLFDNR \
+    WHEN MATCHED THEN UPDATE SET \
+    _DLCleansedZoneTimeStamp = cast('{CurrentTimeStamp}' as TimeStamp) \
+    ,_RecordDeleted=1 \
+    ,_RecordCurrent=0 \
+    ")
+
+# COMMAND ----------
+
 # DBTITLE 1,14. Exit Notebook
 dbutils.notebook.exit("1")
