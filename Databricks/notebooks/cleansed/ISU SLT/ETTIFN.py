@@ -3,51 +3,8 @@
 import json
 #For unit testing...
 #Use this string in the Param widget: 
-# {
-# 	"SourceType": "BLOB Storage (json)", 
-# 	"SourceServer": "daf-sa-lake-sastoken", 
-# 	"SourceGroup": "isudata", 
-# 	"SourceName": "isu_ETTIFN", 
-# 	"SourceLocation": "isudata/ETTIFN", 
-# 	"AdditionalProperty": "", 
-# 	"Processor": "databricks-token|0505-021119-s07txzr6|Standard_DS12_v2|10.4.x-scala2.12|2:28|interactive", 
-# 	"IsAuditTable": false, 
-# 	"SoftDeleteSource": "", 
-# 	"ProjectName": "CLEANSED ISU SLT", 
-# 	"ProjectId": 14, 
-# 	"TargetType": "BLOB Storage (json)", 
-# 	"TargetName": "isu_ETTIFN", 
-# 	"TargetLocation": "isudata/ETTIFN", 
-# 	"TargetServer": "daf-sa-lake-sastoken", 
-# 	"DataLoadMode": "INCREMENTAL", 
-# 	"DeltaExtract": true, 
-# 	"CDCSource": false, 
-# 	"TruncateTarget": false, 
-# 	"UpsertTarget": true, 
-# 	"AppendTarget": false, 
-# 	"TrackChanges": false, 
-# 	"LoadToSqlEDW": true, 
-# 	"TaskName": "isu_ETTIFN", 
-# 	"ControlStageId": 2, 
-# 	"TaskId": 403, 
-# 	"StageSequence": 200, 
-# 	"StageName": "Raw to Cleansed", 
-# 	"SourceId": 403, 
-# 	"TargetId": 403, 
-# 	"ObjectGrain": "Day", 
-# 	"CommandTypeId": 8, 
-# 	"Watermarks": "2000-01-01 00:00:00", 
-# 	"WatermarksDT": "2000-01-01T00:00:00", 
-# 	"WatermarkColumn": "DELTA_TS", 
-# 	"BusinessKeyColumn": "installationNumber,operandCode,validFromDate,consecutiveDaysFromDate", 
-# 	"PartitionColumn": null, 
-# 	"UpdateMetaData": null, 
-# 	"SourceTimeStampFormat": "", 
-# 	"WhereClause": "",
-# 	"Command": "/build/cleansed/ISU SLT/ETTIFN", 
-# 	"LastSuccessfulExecutionTS": "1900-01-01",
-# 	"LastLoadedFile": null
-# }
+#{"SourceType": "BLOB Storage (json)", "SourceServer": "daf-sa-lake-sastoken", "SourceGroup": "ISU", "SourceName": "ISU_ETTIFN", "SourceLocation": "ISU/ETTIFN", "AdditionalProperty": "", "Processor": "databricks-token|0711-011053-turfs581|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive", "IsAuditTable": false, "SoftDeleteSource": "", "ProjectName": "ISU DATA", "ProjectId": 2, "TargetType": "BLOB Storage (json)", "TargetName": "ISU_ETTIFN", "TargetLocation": "ISU/ETTIFN", "TargetServer": "daf-sa-lake-sastoken", "DataLoadMode": "FULL-EXTRACT", "DeltaExtract": false, "CDCSource": false, "TruncateTarget": false, "UpsertTarget": true, "AppendTarget": null, "TrackChanges": false, "LoadToSqlEDW": true, "TaskName": "ISU_ETTIFN", "ControlStageId": 2, "TaskId": 46, "StageSequence": 200, "StageName": "Raw to Cleansed", "SourceId": 46, "TargetId": 46, "ObjectGrain": "Day", "CommandTypeId": 8, "Watermarks": "", "WatermarksDT": null, "WatermarkColumn": "", "BusinessKeyColumn": "installationId,operandCode,validFromDate,consecutiveDaysFromDate", "UpdateMetaData": null, "SourceTimeStampFormat": "", "Command": "", "LastLoadedFile": null}
+
 #Use this string in the Source Object widget
 #ISU_ETTIFN
 
@@ -213,126 +170,69 @@ print(delta_raw_tbl_name)
 # COMMAND ----------
 
 # DBTITLE 1,10. Load Raw to Dataframe & Do Transformations
-df = spark.sql(f"""
-     WITH stage AS (
-          SELECT
-               *, 
-               ROW_NUMBER() OVER (
-                    PARTITION BY ANLAGE,OPERAND,SAISON,AB,ABLFDNR 
-                    ORDER BY _DLRawZoneTimestamp DESC, DELTA_TS DESC
-               ) AS _RecordVersion 
-          FROM {delta_raw_tbl_name} 
-          WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}'
-     ) 
-          SELECT 
-               case when ANLAGE = 'na' then '' else ANLAGE end     as installationNumber, 
-               case when OPERAND = 'na' then '' else OPERAND end   as operandCode, 
-               ToValidDate(AB,'MANDATORY')                         as validFromDate, 
-               case when ABLFDNR = 'na' then '' else ABLFDNR end   as consecutiveDaysFromDate, 
-               ToValidDate(BIS)                                    as validToDate, 
-               BELNR                                               as billingDocumentNumber, 
-               MBELNR                                              as mBillingDocumentNumber, 
-               MAUSZUG                                             as moveOutIndicator, 
-               ToValidDate(ALTBIS)                                 as expiryDate, 
-               INAKTIV                                             as inactiveIndicator, 
-               MANAEND                                             as manualChangeIndicator, 
-               TARIFART                                            as rateTypeCode, 
-               te.rateType                                         as rateType, 
-               KONDIGR                                             as rateFactGroupCode, 
-               te067t.rateFactGroup                                as rateFactGroup,
-               cast(WERT1 as dec(16,7))                            as entryValue, 
-               cast(WERT2 as dec(16,7))                            as valueToBeBilled, 
-               STRING1                                             as operandValue1,
-               STRING3                                             as operandValue3, 
-               cast(BETRAG as dec(13,2))                           as amount, 
-               WAERS                                               as currencyKey, 
-               cast('1900-01-01' as TimeStamp)                     as _RecordStart, 
-               cast('9999-12-31' as TimeStamp)                     as _RecordEnd, 
-               '0'                                                 as _RecordDeleted, 
-               '1'                                                 as _RecordCurrent, 
-               cast('{CurrentTimeStamp}' as TimeStamp)             as _DLCleansedZoneTimeStamp 
-     FROM stage ef 
-     LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UC_STATTART_TEXT te ON 
-          ef.TARIFART = te.rateTypeCode and 
-          te._RecordDeleted = 0 and 
-          te._RecordCurrent = 1 
-     LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_te067t te067t ON
-          ef.KONDIGR = te067t.rateFactGroupCode AND
-          te067t._RecordDeleted = 0 and 
-          te067t._RecordCurrent = 1 
-     WHERE 
-          ef._RecordVersion = 1 AND
-          ef.ANLAGE IS NOT NULL
-     """
-)
-# print(f'Number of rows: {df.count()}')
-# display(df)
+df = spark.sql(f"WITH stage AS \
+                      (Select *, ROW_NUMBER() OVER (PARTITION BY ANLAGE,OPERAND,SAISON,AB,ABLFDNR ORDER BY _DLRawZoneTimestamp DESC, DELTA_TS DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
+                           SELECT \
+                                case when ANLAGE = 'na' then '' else ANLAGE end as installationId, \
+                                case when OPERAND = 'na' then '' else OPERAND end as operandCode, \
+                                ToValidDate(AB,'MANDATORY') as validFromDate, \
+                                case when ABLFDNR = 'na' then '' else ABLFDNR end as consecutiveDaysFromDate, \
+                                ToValidDate(BIS) as validToDate, \
+                                BELNR as billingDocumentNumber, \
+                                MBELNR as mBillingDocumentNumber, \
+                                MAUSZUG as moveOutIndicator, \
+                                ToValidDate(ALTBIS) as expiryDate, \
+                                INAKTIV as inactiveIndicator, \
+                                MANAEND as manualChangeIndicator, \
+                                TARIFART as rateTypeCode, \
+                                te.rateType as rateType, \
+                                KONDIGR as rateFactGroupCode, \
+                                cast(WERT1 as dec(16,7)) as entryValue, \
+                                cast(WERT2 as dec(16,7)) as valueToBeBilled, \
+                                STRING1 as operandValue1, \
+                                STRING3 as operandValue3, \
+                                cast(BETRAG as dec(13,2)) as amount, \
+                                WAERS as currencyKey, \
+                                cast('1900-01-01' as TimeStamp) as _RecordStart, \
+                                cast('9999-12-31' as TimeStamp) as _RecordEnd, \
+                                '0' as _RecordDeleted, \
+                                '1' as _RecordCurrent, \
+                                cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
+                        FROM stage ef \
+                         LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UC_STATTART_TEXT te ON ef.TARIFART = te.rateTypeCode \
+                                                                                                    and te._RecordDeleted = 0 and te._RecordCurrent = 1 \
+                        where ef._RecordVersion = 1 ")
 
-# COMMAND ----------
-
-# DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
-#Update/rename Column
-#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
-# df_cleansed = spark.sql(f"SELECT \
-#                                 case when ANLAGE = 'na' then '' else ANLAGE end as installationId, \
-#                                 case when OPERAND = 'na' then '' else OPERAND end as operandCode, \
-#                                 ToValidDate(AB,'MANDATORY') as validFromDate, \
-#                                 case when ABLFDNR = 'na' then '' else ABLFDNR end as consecutiveDaysFromDate, \
-#                                 ToValidDate(BIS) as validToDate, \
-#                                 BELNR as billingDocumentNumber, \
-#                                 MBELNR as mBillingDocumentNumber, \
-#                                 MAUSZUG as moveOutIndicator, \
-#                                 ToValidDate(ALTBIS) as expiryDate, \
-#                                 INAKTIV as inactiveIndicator, \
-#                                 MANAEND as manualChangeIndicator, \
-#                                 TARIFART as rateTypeCode, \
-#                                 te.rateType as rateType, \
-#                                 KONDIGR as rateFactGroupCode, \
-#                                 cast(WERT1 as dec(16,7)) as entryValue, \
-#                                 cast(WERT2 as dec(16,7)) as valueToBeBilled, \
-#                                 STRING1 as operandValue1, \
-#                                 STRING3 as operandValue3, \
-#                                 cast(BETRAG as dec(13,2)) as amount, \
-#                                 WAERS as currencyKey, \
-#                                 ef._RecordStart, \
-#                                 ef._RecordEnd, \
-#                                 ef._RecordDeleted, \
-#                                 ef._RecordCurrent \
-#                          FROM {ADS_DATABASE_STAGE}.{source_object} ef \
-#                          LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UC_STATTART_TEXT te ON ef.TARIFART = te.rateTypeCode \
-#                                                                                                     and te._RecordDeleted = 0 and te._RecordCurrent = 1")
-
-# print(f'Number of rows: {df_cleansed.count()}')
+#print(f'Number of rows: {df.count()}')
 
 # COMMAND ----------
 
 newSchema = StructType([
-    StructField('installationNumber',StringType(),False),
-    StructField('operandCode',StringType(),False),
-    StructField('validFromDate',DateType(),False),
-    StructField('consecutiveDaysFromDate',StringType(),False),
-    StructField('validToDate',DateType(),True),
-    StructField('billingDocumentNumber',StringType(),True),
-    StructField('mBillingDocumentNumber',StringType(),True),
-    StructField('moveOutIndicator',StringType(),True),
-    StructField('expiryDate',DateType(),True),
-    StructField('inactiveIndicator',StringType(),True),
-    StructField('manualChangeIndicator',StringType(),True),
-    StructField('rateTypeCode',StringType(),True),
-    StructField('rateType',StringType(),True),
-    StructField('rateFactGroupCode',StringType(),True),
-    StructField('rateFactGroup',StringType(),True),
-    StructField('entryValue',DecimalType(16,7),True),
-    StructField('valueToBeBilled',DecimalType(16,7),True),
-    StructField('operandValue1',StringType(),True),
-    StructField('operandValue3',StringType(),True),
-    StructField('amount',DecimalType(13,2),True),
-    StructField('currencyKey',StringType(),True),
-    StructField('_RecordStart',TimestampType(),False),
-    StructField('_RecordEnd',TimestampType(),False),
-    StructField('_RecordDeleted',IntegerType(),False),
-    StructField('_RecordCurrent',IntegerType(),False),
-    StructField('_DLCleansedZoneTimeStamp',TimestampType(),False)
+                        StructField('installationId',StringType(),False),
+                        StructField('operandCode',StringType(),False),
+                        StructField('validFromDate',DateType(),False),
+                        StructField('consecutiveDaysFromDate',StringType(),False),
+                        StructField('validToDate',DateType(),True),
+                        StructField('billingDocumentNumber',StringType(),True),
+                        StructField('mBillingDocumentNumber',StringType(),True),
+                        StructField('moveOutIndicator',StringType(),True),
+                        StructField('expiryDate',DateType(),True),
+                        StructField('inactiveIndicator',StringType(),True),
+                        StructField('manualChangeIndicator',StringType(),True),
+                        StructField('rateTypeCode',StringType(),True),
+                        StructField('rateType',StringType(),True),
+                        StructField('rateFactGroupCode',StringType(),True),
+                        StructField('entryValue',DecimalType(16,7),True),
+                        StructField('valueToBeBilled',DecimalType(16,7),True),
+                        StructField('operandValue1',StringType(),True),
+                        StructField('operandValue3',StringType(),True),
+                        StructField('amount',DecimalType(13,2),True),
+                        StructField('currencyKey',StringType(),True),
+                        StructField('_RecordStart',TimestampType(),False),
+                        StructField('_RecordEnd',TimestampType(),False),
+                        StructField('_RecordDeleted',IntegerType(),False),
+                        StructField('_RecordCurrent',IntegerType(),False),
+                        StructField('_DLCleansedZoneTimeStamp',TimestampType(),False)
 ])
 
 
@@ -343,5 +243,33 @@ DeltaSaveDataFrameToDeltaTable(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS
 
 # COMMAND ----------
 
-# DBTITLE 1,13. Exit Notebook
+# DBTITLE 1,13.1 Identify Deleted records from Raw table
+df = spark.sql(f"select distinct coalesce(ANLAGE,'') as ANLAGE, coalesce(OPERAND,'') as OPERAND, ToValidDate(AB,'MANDATORY') as AB, coalesce(ABLFDNR,'') as ABLFDNR from ( \
+Select *, ROW_NUMBER() OVER (PARTITION BY ANLAGE,OPERAND,SAISON,AB,ABLFDNR ORDER BY _DLRawZoneTimestamp DESC, DELTA_TS DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' ) \
+where  _RecordVersion = 1 and IS_DELETED ='Y'")
+df.createOrReplaceTempView("isu_ettifn_deleted_records")
+
+# COMMAND ----------
+
+# DBTITLE 1,13.2 Update _RecordDeleted and _RecordCurrent Flags
+#Get current time
+CurrentTimeStamp = GeneralLocalDateTime()
+CurrentTimeStamp = CurrentTimeStamp.strftime("%Y-%m-%d %H:%M:%S")
+
+spark.sql(f" \
+    MERGE INTO cleansed.isu_ETTIFN \
+    using isu_ettifn_deleted_records \
+    on isu_ETTIFN.installationId = isu_ettifn_deleted_records.ANLAGE \
+    and isu_ETTIFN.operandCode = isu_ettifn_deleted_records.OPERAND \
+    and isu_ETTIFN.validFromDate = isu_ettifn_deleted_records.AB \
+    and isu_ETTIFN.consecutiveDaysFromDate = isu_ettifn_deleted_records.ABLFDNR \
+    WHEN MATCHED THEN UPDATE SET \
+    _DLCleansedZoneTimeStamp = cast('{CurrentTimeStamp}' as TimeStamp) \
+    ,_RecordDeleted=1 \
+    ,_RecordCurrent=0 \
+    ")
+
+# COMMAND ----------
+
+# DBTITLE 1,14. Exit Notebook
 dbutils.notebook.exit("1")
