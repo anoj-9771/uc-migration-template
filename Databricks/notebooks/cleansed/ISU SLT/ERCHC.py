@@ -181,12 +181,12 @@ df = spark.sql(f"WITH stage AS \
                                   INTOPBEL as  printDocumentNumber, \
                                   ToValidDate(INTCPUDT) as  invoiceReversalEnteredDate, \
                                   ToValidDate(INTBUDAT) as  invoiceReversalPostingDate, \
-                                  case when TOBRELEASD = 'X' then 'Y' else 'N' end as documentNotReleasedIndicator, \
-                                  case when SIMULATED = 'X' then 'Y' else 'N' end as billingSimulationIndicator, \
-                                  case when INVOICED = 'X' then 'Y' else 'N' end as invoicePostedIndicator, \
-                                  SPCANC as adjustmentReversalIndicator, \
-                                  case when STATUPD = 'X' then 'Y' else 'N' end as documentInSalesStatsIndicator, \
-                                  case when STATUPD_CANC = 'X' then 'Y' else 'N' end as reversalDocumentInSalesStatsIndicator, \
+                                  case when TOBRELEASD = 'X' then 'Y' else 'N' end as documentNotReleasedFlag, \
+                                  case when SIMULATED = 'X' then 'Y' else 'N' end as billingSimulationFlag, \
+                                  case when INVOICED = 'X' then 'Y' else 'N' end as invoicePostedFlag, \
+                                  SPCANC as adjustmentReversalFlag, \
+                                  case when STATUPD = 'X' then 'Y' else 'N' end as documentInSalesStatsFlag, \
+                                  case when STATUPD_CANC = 'X' then 'Y' else 'N' end as reversalDocumentInSalesStatsFlag, \
                                   cast('1900-01-01' as TimeStamp) as _RecordStart, \
                                   cast('9999-12-31' as TimeStamp) as _RecordEnd, \
                                   '0' as _RecordDeleted, \
@@ -208,12 +208,12 @@ newSchema = StructType([
                           StructField('printDocumentNumber', StringType(), True),
                           StructField('invoiceReversalEnteredDate', DateType(), True),
                           StructField('invoiceReversalPostingDate', DateType(), True),
-                          StructField('documentNotReleasedIndicator', StringType(), True),
-                          StructField('billingSimulationIndicator', StringType(), True),
-                          StructField('invoicePostedIndicator', StringType(), True),
-                          StructField('adjustmentReversalIndicator', StringType(), True),
-                          StructField('documentInSalesStatsIndicator', StringType(), True),
-                          StructField('reversalDocumentInSalesStatsIndicator', StringType(), True),
+                          StructField('documentNotReleasedFlag', StringType(), True),
+                          StructField('billingSimulationFlag', StringType(), True),
+                          StructField('invoicePostedFlag', StringType(), True),
+                          StructField('adjustmentReversalFlag', StringType(), True),
+                          StructField('documentInSalesStatsFlag', StringType(), True),
+                          StructField('reversalDocumentInSalesStatsFlag', StringType(), True),
                           StructField('_RecordStart', TimestampType(), True),
                           StructField('_RecordEnd', TimestampType(), False),
                           StructField('_RecordDeleted', IntegerType(), False),

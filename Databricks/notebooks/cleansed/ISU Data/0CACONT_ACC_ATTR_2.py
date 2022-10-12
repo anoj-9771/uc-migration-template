@@ -3,8 +3,51 @@
 import json
 #For unit testing...
 #Use this string in the Param widget: 
-#{"SourceType": "BLOB Storage (json)", "SourceServer": "daf-sa-lake-sastoken", "SourceGroup": "isu", "SourceName": "isu_0CACONT_ACC_ATTR_2", "SourceLocation": "isu/0CACONT_ACC_ATTR_2", "AdditionalProperty": "", "Processor": "databricks-token|0711-011053-turfs581|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive", "IsAuditTable": false, "SoftDeleteSource": "", "ProjectName": "ISU DATA", "ProjectId": 2, "TargetType": "BLOB Storage (json)", "TargetName": "isu_0CACONT_ACC_ATTR_2", "TargetLocation": "isu/0CACONT_ACC_ATTR_2", "TargetServer": "daf-sa-lake-sastoken", "DataLoadMode": "FULL-EXTRACT", "DeltaExtract": false, "CDCSource": false, "TruncateTarget": false, "UpsertTarget": true, "AppendTarget": null, "TrackChanges": false, "LoadToSqlEDW": true, "TaskName": "isu_0CACONT_ACC_ATTR_2", "ControlStageId": 2, "TaskId": 46, "StageSequence": 200, "StageName": "Raw to Cleansed", "SourceId": 46, "TargetId": 46, "ObjectGrain": "Day", "CommandTypeId": 8, "Watermarks": "", "WatermarksDT": null, "WatermarkColumn": "", "BusinessKeyColumn": "clientId,contractAccountNumber", "UpdateMetaData": null, "SourceTimeStampFormat": "", "Command": "", "LastLoadedFile": null}
-
+# {
+# 	"SourceType": "BLOB Storage (json)", 
+# 	"SourceServer": "daf-sa-lake-sastoken", 
+# 	"SourceGroup": "isudata", 
+# 	"SourceName": "isu_0CACONT_ACC_ATTR_2", 
+# 	"SourceLocation": "isudata/0CACONT_ACC_ATTR_2", 
+# 	"AdditionalProperty": "", 
+# 	"Processor": "databricks-token|0527-214324-ytwxx0tv|Standard_DS12_v2|10.4.x-scala2.12|2:28|interactive", 
+# 	"IsAuditTable": false, 
+# 	"SoftDeleteSource": "", 
+# 	"ProjectName": "CLEANSED ISU DATA", 
+# 	"ProjectId": 12, 
+# 	"TargetType": "BLOB Storage (json)", 
+# 	"TargetName": "isu_0CACONT_ACC_ATTR_2", 
+# 	"TargetLocation": "isudata/0CACONT_ACC_ATTR_2", 
+# 	"TargetServer": "daf-sa-lake-sastoken", 
+# 	"DataLoadMode": "INCREMENTAL", 
+# 	"DeltaExtract": true, 
+# 	"CDCSource": false, 
+# 	"TruncateTarget": false, 
+# 	"UpsertTarget": true, 
+# 	"AppendTarget": false, 
+# 	"TrackChanges": false, 
+# 	"LoadToSqlEDW": true, 
+# 	"TaskName": "isu_0CACONT_ACC_ATTR_2", 
+# 	"ControlStageId": 2, 
+# 	"TaskId": 108, 
+# 	"StageSequence": 200, 
+# 	"StageName": "Raw to Cleansed", 
+# 	"SourceId": 108, 
+# 	"TargetId": 108, 
+# 	"ObjectGrain": "Day", 
+# 	"CommandTypeId": 8, 
+# 	"Watermarks": "2000-01-01 00:00:00", 
+# 	"WatermarksDT": "2000-01-01T00:00:00", 
+# 	"WatermarkColumn": "_FileDateTimeStamp", 
+# 	"BusinessKeyColumn": "contractAccountNumber", 
+# 	"PartitionColumn": null, 
+# 	"UpdateMetaData": null, 
+# 	"SourceTimeStampFormat": "", 
+# 	"WhereClause": "",
+# 	"Command": "/build/cleansed/ISU Data/0CACONT_ACC_ATTR_2", 
+# 	"LastSuccessfulExecutionTS": "1900-01-01",
+# 	"LastLoadedFile": null
+# }
 #Use this string in the Source Object widget
 #isu_0CACONT_ACC_ATTR_2
 
@@ -170,30 +213,49 @@ print(delta_raw_tbl_name)
 # COMMAND ----------
 
 # DBTITLE 1,10. Load Raw to Dataframe & Do Transformations
-df = spark.sql(f"WITH stage AS \
-                      (Select *, ROW_NUMBER() OVER (PARTITION BY VKONT ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
-                           SELECT \
-                                case when VKONT = 'na' then '' else VKONT end as contractAccountNumber, \
-                                ToValidDate(ERDAT) as createdDate, \
-                                ERNAM as createdBy, \
-                                ToValidDate(AEDAT) as lastChangedDate, \
-                                AENAM as lastChangedBy, \
-                                LOEVM as deletedIndicator, \
-                                APPLK as applicationArea, \
-                                VKTYP as contractAccountCategoryCode, \
-                                ty.contractAccountCategory as contractAccountCategory, \
-                                VKONA as legacyContractAccountNumber, \
-                                cast('1900-01-01' as TimeStamp) as _RecordStart, \
-                                cast('9999-12-31' as TimeStamp) as _RecordEnd, \
-                                '0' as _RecordDeleted, \
-                                '1' as _RecordCurrent, \
-                                cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
-                        FROM stage con \
-                          LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UC_VKTYP_TEXT ty ON con.VKTYP = ty.contractAccountCategoryCode and  con.APPLK = ty.applicationArea\
-                                                                                                    and ty._RecordDeleted = 0 and ty._RecordCurrent = 1 \
-                        where con._RecordVersion = 1 ")
+df = spark.sql(f"""
+     WITH stage AS (
+          SELECT
+               *,
+               ROW_NUMBER() OVER (
+                    PARTITION BY VKONT 
+                    ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC
+               ) AS _RecordVersion 
+          FROM {delta_raw_tbl_name} 
+          WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}'
+     ) 
+          
+          SELECT 
+               case when VKONT = 'na' then '' else VKONT end   as contractAccountNumber, 
+               ToValidDate(ERDAT)                              as createdDate, 
+               ERNAM                                           as createdBy, 
+               ToValidDate(AEDAT)                              as lastChangedDate, 
+               AENAM                                           as lastChangedBy, 
+               LOEVM                                           as deletedFlag,
+               APPLK                                           as applicationAreaCode, 
+               APP.applicationArea                             as applicationArea,
+               VKTYP                                           as contractAccountCategoryCode, 
+               ty.contractAccountCategory                      as contractAccountCategory, 
+               VKONA                                           as legacyContractAccountNumber, 
+               cast('1900-01-01' as TimeStamp)                 as _RecordStart, 
+               cast('9999-12-31' as TimeStamp)                 as _RecordEnd, 
+               '0'                                             as _RecordDeleted, 
+               '1'                                             as _RecordCurrent, 
+               cast('{CurrentTimeStamp}' as TimeStamp)         as _DLCleansedZoneTimeStamp 
+     FROM stage con 
+     LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UC_VKTYP_TEXT ty ON 
+          con.VKTYP = ty.contractAccountCategoryCode and 
+          con.APPLK = ty.applicationArea and ty._RecordDeleted = 0 and 
+          ty._RecordCurrent = 1 
+     LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0uc_applk_text APP ON
+          APP.ApplicationAreaCode = con.APPLK
+     WHERE 
+          con._RecordVersion = 1 
+"""
+)
 
-#print(f'Number of rows: {df.count()}')
+# print(f'Number of rows: {df.count()}')
+# display(df)
 
 # COMMAND ----------
 
@@ -225,24 +287,23 @@ df = spark.sql(f"WITH stage AS \
 # COMMAND ----------
 
 newSchema = StructType([
-                        StructField('contractAccountNumber',StringType(),False),
-                        StructField('createdDate',DateType(),True),
-                        StructField('createdBy',StringType(),True),
-                        StructField('lastChangedDate',DateType(),True),
-                        StructField('lastChangedBy',StringType(),True),
-                        StructField('deletedIndicator',StringType(),True),
-                        StructField('applicationArea',StringType(),True),
-                        StructField('contractAccountCategoryCode',StringType(),True),
-                        StructField('contractAccountCategory',StringType(),True),
-                        StructField('legacyContractAccountNumber',StringType(),True),
-                        StructField('_RecordStart',TimestampType(),False),
-                        StructField('_RecordEnd',TimestampType(),False),
-                        StructField('_RecordDeleted',IntegerType(),False),
-                        StructField('_RecordCurrent',IntegerType(),False),
-                        StructField('_DLCleansedZoneTimeStamp',TimestampType(),False)
-                    ])
-
-
+    StructField('contractAccountNumber',StringType(),False),
+    StructField('createdDate',DateType(),True),
+    StructField('createdBy',StringType(),True),
+    StructField('lastChangedDate',DateType(),True),
+    StructField('lastChangedBy',StringType(),True),
+    StructField('deletedFlag',StringType(),True),
+    StructField('applicationAreaCode',StringType(),True),
+    StructField('applicationArea',StringType(),True),
+    StructField('contractAccountCategoryCode',StringType(),True),
+    StructField('contractAccountCategory',StringType(),True),
+    StructField('legacyContractAccountNumber',StringType(),True),
+    StructField('_RecordStart',TimestampType(),False),
+    StructField('_RecordEnd',TimestampType(),False),
+    StructField('_RecordDeleted',IntegerType(),False),
+    StructField('_RecordCurrent',IntegerType(),False),
+    StructField('_DLCleansedZoneTimeStamp',TimestampType(),False)
+])
 
 # COMMAND ----------
 

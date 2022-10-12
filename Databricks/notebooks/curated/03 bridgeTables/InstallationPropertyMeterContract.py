@@ -21,7 +21,7 @@ def getInstallationPropertyMeterContract():
     #1.Load dimension/relationship tables into dataframe
     dimInstallationDf = spark.sql(f"select \
                                       installationSK, \
-                                      installationId, \
+                                      installationNumber, \
                                       propertyNumber \
                                       from {ADS_DATABASE_CURATED}.dimInstallation \
                                       where sourceSystemCode = 'ISU' and divisionCode = '10' \
@@ -33,7 +33,7 @@ def getInstallationPropertyMeterContract():
     dimContractDf = spark.sql(f"select \
                                     contractSK, \
                                     contractId, \
-                                    installationId, \
+                                    installationNumber, \
                                     validFromDate, \
                                     validToDate \
                                     from {ADS_DATABASE_CURATED}.dimContract \
@@ -60,7 +60,7 @@ def getInstallationPropertyMeterContract():
     meterInstallationDf = spark.sql(f"select \
                                 meterInstallationSK, \
                                 installationSK, \
-                                installationId, \
+                                installationNumber, \
                                 logicalDeviceNumber, \
                                 validFromDate, \
                                 validToDate \
@@ -82,7 +82,7 @@ def getInstallationPropertyMeterContract():
     
     
     #2.Joins Tables
-    df = dimInstallationDf.join(dimContractDf, (dimInstallationDf.installationId == dimContractDf.installationId) \
+    df = dimInstallationDf.join(dimContractDf, (dimInstallationDf.installationNumber == dimContractDf.installationNumber) \
                                              & (current_date() >= dimContractDf.validFromDate) \
                                              & (current_date() <= dimContractDf.validToDate) \
                                              , how="left") \
@@ -90,7 +90,7 @@ def getInstallationPropertyMeterContract():
 #    print(f'{df.count():,} rows in df -1')
 #    display(df)    
     
-    df = df.join(meterInstallationDf, (df.installationId == meterInstallationDf.installationId) \
+    df = df.join(meterInstallationDf, (df.installationNumber == meterInstallationDf.installationNumber) \
                                     & (current_date() >= meterInstallationDf.validFromDate) \
                                     & (current_date() <= meterInstallationDf.validToDate) \
                                     , how="left") \
@@ -121,7 +121,7 @@ def getInstallationPropertyMeterContract():
     #4.SELECT / TRANSFORM
     df = df.selectExpr ( \
                        "installationSK" \
-                      ,"installationId" \
+                      ,"installationNumber" \
                       ,"contractSK" \
                       ,"contractId" \
                       ,"meterSK" \
@@ -133,7 +133,7 @@ def getInstallationPropertyMeterContract():
     #5.Apply schema definition
     schema = StructType([
                             StructField('installationSK', LongType(), True),
-                            StructField('installationId', StringType(), True),
+                            StructField('installationNumber', StringType(), True),
                             StructField('contractSK', LongType(), True),
                             StructField('contractId', StringType(), True),
                             StructField('meterSK', LongType(), True),

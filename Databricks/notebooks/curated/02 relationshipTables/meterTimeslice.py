@@ -33,7 +33,7 @@ def getmeterTimeslice():
                             devh.activityReason as activityReason , \
                             devh.deviceLocation as deviceLocation , \
                             devh.windingGroup as windingGroup , \
-                            devh.deletedIndicator as deletedIndicator , \
+                            devh.deletedFlag as deletedFlag , \
                             devh.bwDeltaProcess as bwDeltaProcess , \
                             devh.advancedMeterCapabilityGroup as advancedMeterCapabilityGroup , \
                             devh.messageAttributeId as messageAttributeId , \
@@ -81,7 +81,7 @@ def getmeterTimeslice():
                     ,'activityReason' \
                     ,'deviceLocation' \
                     ,'windingGroup' \
-                    ,'deletedIndicator' \
+                    ,'deletedFlag' \
                     ,'bwDeltaProcess' \
                     ,'advancedMeterCapabilityGroup' \
                     ,'messageAttributeId' \
@@ -115,7 +115,7 @@ def getmeterTimeslice():
                             StructField("activityReason", StringType(), True),
                             StructField("deviceLocation", StringType(), True),
                             StructField("windingGroup", StringType(), True),
-                            StructField("deletedIndicator", StringType(), True),
+                            StructField("deletedFlag", StringType(), True),
                             StructField("bwDeltaProcess", StringType(), True),
                             StructField("advancedMeterCapabilityGroup", LongType(), True),
                             StructField("messageAttributeId", LongType(), True),

@@ -3,7 +3,51 @@
 import json
 #For unit testing...
 #Use this string in the Param widget: 
-#{"SourceType": "BLOB Storage (json)", "SourceServer": "daf-sa-lake-sastoken", "SourceGroup": "CRM", "SourceName": "CRM_0BPARTNER_ATTR", "SourceLocation": "CRM/0BPARTNER_ATTR", "AdditionalProperty": "", "Processor": "databricks-token|0711-011053-turfs581|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive", "IsAuditTable": false, "SoftDeleteSource": "", "ProjectName": "CRMREF", "ProjectId": 2, "TargetType": "BLOB Storage (json)", "TargetName": "CRM_0BPARTNER_ATTR", "TargetLocation": "CRM/0BPARTNER_ATTR", "TargetServer": "daf-sa-lake-sastoken", "DataLoadMode": "FULL-EXTRACT", "DeltaExtract": false, "CDCSource": false, "TruncateTarget": false, "UpsertTarget": true, "AppendTarget": null, "TrackChanges": false, "LoadToSqlEDW": true, "TaskName": "CRM_0BPARTNER_ATTR", "ControlStageId": 2, "TaskId": 46, "StageSequence": 200, "StageName": "Raw to Cleansed", "SourceId": 46, "TargetId": 46, "ObjectGrain": "Day", "CommandTypeId": 8, "Watermarks": "", "WatermarksDT": null, "WatermarkColumn": "", "BusinessKeyColumn": "businessPartnerNumber", "UpdateMetaData": null, "SourceTimeStampFormat": "", "Command": "", "LastLoadedFile": null}
+# {
+# 	"SourceType": "BLOB Storage (json)", 
+# 	"SourceServer": "daf-sa-lake-sastoken", 
+# 	"SourceGroup": "crmdata", 
+# 	"SourceName": "crm_0BPARTNER_ATTR", 
+# 	"SourceLocation": "crmdata/0BPARTNER_ATTR", 
+# 	"AdditionalProperty": "", 
+# 	"Processor": "databricks-token|0527-214438-v6loft1a|Standard_DS12_v2|10.4.x-scala2.12|2:28|interactive", 
+# 	"IsAuditTable": false, 
+# 	"SoftDeleteSource": "", 
+# 	"ProjectName": "CLEANSED CRM DATA", 
+# 	"ProjectId": 9, 
+# 	"TargetType": "BLOB Storage (json)", 
+# 	"TargetName": "crm_0BPARTNER_ATTR", 
+# 	"TargetLocation": "crmdata/0BPARTNER_ATTR", 
+# 	"TargetServer": "daf-sa-lake-sastoken", 
+# 	"DataLoadMode": "INCREMENTAL", 
+# 	"DeltaExtract": true, 
+# 	"CDCSource": false, 
+# 	"TruncateTarget": false, 
+# 	"UpsertTarget": true, 
+# 	"AppendTarget": false, 
+# 	"TrackChanges": false, 
+# 	"LoadToSqlEDW": true, 
+# 	"TaskName": "crm_0BPARTNER_ATTR", 
+# 	"ControlStageId": 2, 
+# 	"TaskId": 70, 
+# 	"StageSequence": 200, 
+# 	"StageName": "Raw to Cleansed", 
+# 	"SourceId": 70, 
+# 	"TargetId": 70, 
+# 	"ObjectGrain": "Day", 
+# 	"CommandTypeId": 8, 
+# 	"Watermarks": "2000-01-01 00:00:00", 
+# 	"WatermarksDT": "2000-01-01T00:00:00", 
+# 	"WatermarkColumn": "_FileDateTimeStamp", 
+# 	"BusinessKeyColumn": "businessPartnerNumber", 
+# 	"PartitionColumn": null, 
+# 	"UpdateMetaData": null, 
+# 	"SourceTimeStampFormat": "", 
+# 	"WhereClause": "",
+# 	"Command": "/build/cleansed/CRM Data/0BPARTNER_ATTR", 
+# 	"LastSuccessfulExecutionTS": "1900-01-01",
+# 	"LastLoadedFile": null
+# }
 
 #Use this string in the Source Object widget
 #CRM_0BPARTNER_ATTR
@@ -166,112 +210,196 @@ delta_raw_tbl_name = f'{ADS_DATABASE_RAW}.{ source_object}'
 print(delta_cleansed_tbl_name)
 print(delta_raw_tbl_name)
 
-
 # COMMAND ----------
 
 # DBTITLE 1,10. Load Raw to Dataframe & Do Transformations
-df = spark.sql(f"WITH stage AS \
-                      (Select *, ROW_NUMBER() OVER (PARTITION BY PARTNER ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
-                           SELECT \
-                                case when PARTNER = 'na' then '' else PARTNER end as businessPartnerNumber, \
-                                TYPE as businessPartnerCategoryCode, \
-                                BP_TXT.businessPartnerCategory as businessPartnerCategory, \
-                                BPKIND as businessPartnerTypeCode, \
-                                BPTYPE.businessPartnerType as businessPartnerType, \
-                                BP.BU_GROUP as businessPartnerGroupCode, \
-                                BPGRP.businessPartnerGroup as businessPartnerGroup, \
-                                BPEXT as externalBusinessPartnerNumber, \
-                                BU_SORT1 as searchTerm1, \
-                                BU_SORT2 as searchTerm2, \
-                                BP.TITLE as titleCode, \
-                                TITLE.TITLE as title, \
-                                case when XDELE = 'X' then 'Y' else 'N' end as deletedIndicator, \
-                                XBLCK as centralBlockBusinessPartner, \
-                                ZZUSER as userId, \
-                                case when ZZPAS_INDICATOR = 'X' then 'Y' else 'N' end as paymentAssistSchemeIndicator, \
-                                case when ZZBA_INDICATOR = 'X' then 'Y' else 'N' end as billAssistIndicator, \
-                                ToValidDate(BP.ZZAFLD00001Z) as createdDate, \
-                                ZZ_CONSENT1 as consent1Indicator, \
-                                ZZWAR_WID as warWidowIndicator, \
-                                ZZDISABILITY as disabilityIndicator, \
-                                ZZGCH as goldCardHolderIndicator, \
-                                ZZDECEASED as deceasedIndicator, \
-                                ZZPCC as pensionConcessionCardIndicator, \
-                                ZZELIGIBILITY as eligibilityIndicator, \
-                                ToValidDate(ZZDT_CHK) as dateOfCheck, \
-                                ToValidDate(ZZPAY_ST_DT) as paymentStartDate, \
-                                ZZPEN_TY as pensionType, \
-                                ZZ_CONSENT2 as consent2Indicator, \
-                                NAME_ORG1 as organizationName1, \
-                                NAME_ORG2 as organizationName2, \
-                                NAME_ORG3 as organizationName3, \
-                                ToValidDate(BP.FOUND_DAT) as organizationFoundedDate, \
-                                LOCATION_1 as internationalLocationNumber1, \
-                                LOCATION_2 as internationalLocationNumber2, \
-                                LOCATION_3 as internationalLocationNumber3, \
-                                NAME_LAST as lastName, \
-                                NAME_FIRST as firstName, \
-                                NAMEMIDDLE as middleName, \
-                                TITLE_ACA1 as academicTitleCode, \
-                                TITLE_ACA1.TITLE as academicTitle, \
-                                NICKNAME as nickName, \
-                                INITIALS as nameInitials, \
-                                NAMCOUNTRY as countryName, \
-                                LANGU_CORR as correspondenceLanguage, \
-                                NATIO as nationality, \
-                                PERSNUMBER as personNumber, \
-                                case when XSEXU = 'X' then 'Y' else 'N' end as unknownGenderIndicator, \
-                                ToValidDate(BP.BIRTHDT) as dateOfBirth, \
-                                ToValidDate(BP.DEATHDT) as dateOfDeath, \
-                                PERNO as personnelNumber, \
-                                NAME_GRP1 as nameGroup1, \
-                                NAME_GRP2 as nameGroup2, \
-                                MC_NAME1 as searchHelpLastName, \
-                                MC_NAME2 as searchHelpFirstName, \
-                                CRUSR as createdBy, \
-                                ToValidDateTime(concat(BP.CRDAT, 'T', coalesce(BP.CRTIM,'00:00:00'))) as createdDateTime, \
-                                BP.CHUSR as changedBy, \
-                                ToValidDateTime(concat(BP.CHDAT, 'T', coalesce(BP.CHTIM,'00:00:00'))) as lastChangedDateTime, \
-                                PARTNER_GUID as businessPartnerGUID, \
-                                ADDRCOMM as communicationAddressNumber, \
-                                TD_SWITCH as plannedChangeDocument, \
-                                ToValidDate(substr(BP.VALID_FROM,0,8)) as validFromDate, \
-                                ToValidDate(substr(BP.VALID_TO,0,8)) as validToDate, \
-                                case when NATPERS = 'X' then 'Y' else 'N' end as naturalPersonIndicator, \
-                                case when ZZAFLD00000M = 'X' then 'Y' else 'N' end as kidneyDialysisIndicator, \
-                                ZZUNIT as patientUnit, \
-                                ZZTITLE as patientTitleCode, \
-                                ZZTITLE.TITLE as patientTitle, \
-                                ZZF_NAME as patientFirstName, \
-                                ZZSURNAME as patientSurname, \
-                                ZZAREACODE as patientAreaCode, \
-                                ZZPHONE as patientPhoneNumber, \
-                                ZZHOSP_NAME as hospitalName, \
-                                ZZMACH_TYPE as patientMachineType, \
-                                ToValidDate(BP.ZZON_DATE) as machineTypeValidFromDate, \
-                                ZZOFF_REAS as offReason, \
-                                ToValidDate(BP.ZZOFF_DATE) as machineTypeValidToDate, \
-                                cast('1900-01-01' as TimeStamp) as _RecordStart, \
-                                cast('9999-12-31' as TimeStamp) as _RecordEnd, \
-                                '0' as _RecordDeleted, \
-                                '1' as _RecordCurrent, \
-                                cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
-                        FROM stage  BP \
-                               LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.crm_0BP_CAT_TEXT BP_TXT ON BP.TYPE =BP_TXT.businessPartnerCategoryCode \
-                                                                              AND BP_TXT._RecordDeleted = 0 AND BP_TXT._RecordCurrent = 1 \
-                               LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.crm_0BPTYPE_TEXT BPTYPE ON BP.BPKIND = BPTYPE.businessPartnerTypeCode \
-                                                                              AND BPTYPE._RecordDeleted = 0 AND BPTYPE._RecordCurrent = 1 \
-                               LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.crm_0BP_GROUP_TEXT BPGRP ON BP.BU_GROUP = BPGRP.businessPartnerGroupCode \
-                                                                              AND BPGRP._RecordDeleted = 0 AND BPGRP._RecordCurrent = 1 \
-                               LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.crm_TSAD3T TITLE ON BP.TITLE = TITLE.titlecode \
-                                                                              AND TITLE._RecordDeleted = 0 AND TITLE._RecordCurrent = 1 \
-                               LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.crm_TSAD3T ZZTITLE ON BP.ZZTITLE = ZZTITLE.titlecode \
-                                                                              AND ZZTITLE._RecordDeleted = 0 AND ZZTITLE._RecordCurrent = 1 \
-                               LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.crm_TSAD3T TITLE_ACA1 ON BP.TITLE_ACA1 = TITLE_ACA1.titlecode \
-                                                                              AND TITLE_ACA1._RecordDeleted = 0 AND TITLE_ACA1._RecordCurrent = 1 \
-                               where BP._RecordVersion = 1 ")
-
-#print(f'Number of rows: {df.count()}')
+df = spark.sql(f"""
+     WITH stage AS (
+          SELECT 
+               *, 
+               ROW_NUMBER() OVER (
+                    PARTITION BY PARTNER 
+                    ORDER BY 
+                    _FileDateTimeStamp DESC, 
+                    DI_SEQUENCE_NUMBER DESC,
+                    _DLRawZoneTimeStamp DESC
+               ) AS _RecordVersion 
+          FROM {delta_raw_tbl_name}
+          WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}'
+     )
+     SELECT 
+          case 
+               when PARTNER = 'na' 
+               then '' 
+               else PARTNER 
+          end                                                             as businessPartnerNumber, 
+          TYPE                                                            as businessPartnerCategoryCode, 
+          BP_TXT.businessPartnerCategory                                  as businessPartnerCategory, 
+          BPKIND                                                          as businessPartnerTypeCode, 
+          UPPER(BPTYPE.businessPartnerType)                               as businessPartnerType, 
+          BP.BU_GROUP                                                     as businessPartnerGroupCode, 
+          BPGRP.businessPartnerGroup                                      as businessPartnerGroup, 
+          BPEXT                                                           as externalBusinessPartnerNumber, 
+          BU_SORT1                                                        as searchTerm1, 
+          BU_SORT2                                                        as searchTerm2, 
+          BP.TITLE                                                        as titleCode, 
+          TITLE.TITLE                                                     as title, 
+          case 
+               when XDELE = 'X' 
+               then 'Y' 
+               else 'N' 
+          end                                                             as deletedFlag, 
+          XBLCK                                                           as centralBlockBusinessPartner, 
+          ZZUSER                                                          as userId, 
+          case 
+               when ZZPAS_INDICATOR = 'X' 
+               then 'Y' 
+               else 'N' 
+          end                                                             as paymentAssistSchemeFlag, 
+          case 
+               when ZZBA_INDICATOR = 'X' 
+               then 'Y' 
+               else 'N' 
+          end                                                             as billAssistFlag, 
+          ToValidDate(BP.ZZAFLD00001Z)                                    as createdDate, 
+          ZZ_CONSENT1                                                     as consent1Indicator, 
+          ZZWAR_WID                                                       as warWidowFlag, 
+          ZZDISABILITY                                                    as disabilityFlag, 
+          ZZGCH                                                           as goldCardHolderFlag, 
+          ZZDECEASED                                                      as deceasedFlag, 
+          ZZPCC                                                           as pensionConcessionCardFlag, 
+          ZZELIGIBILITY                                                   as eligibilityFlag, 
+          ToValidDate(ZZDT_CHK)                                           as dateOfCheck, 
+          ToValidDate(ZZPAY_ST_DT)                                        as paymentStartDate, 
+          ZZPEN_TY                                                        as pensionType, 
+          ZZ_CONSENT2                                                     as consent2Indicator, 
+          NAME_ORG1                                                       as organizationName1, 
+          NAME_ORG2                                                       as organizationName2, 
+          NAME_ORG3                                                       as organizationName3, 
+          ToValidDate(BP.FOUND_DAT)                                       as organizationFoundedDate, 
+          CAST(LOCATION_1 AS string)                                      as internationalLocationNumber1, 
+          CAST(LOCATION_2 AS string)                                      as internationalLocationNumber2, 
+          CAST(LOCATION_3 AS string)                                      as internationalLocationNumber3, 
+          NAME_LAST                                                       as lastName, 
+          NAME_FIRST                                                      as firstName, 
+          NAMEMIDDLE                                                      as middleName, 
+          TITLE_ACA1                                                      as academicTitleCode, 
+          TITLE_ACA1.TITLE                                                as academicTitle, 
+          NICKNAME                                                        as nickName, 
+          INITIALS                                                        as nameInitials, 
+          NAMCOUNTRY                                                      as countryName, 
+          LANGU_CORR                                                      as correspondenceLanguage, 
+          NATIO                                                           as nationality, 
+          PERSNUMBER                                                      as personNumber, 
+          case 
+               when XSEXU = 'X' 
+               then 'Y' 
+               else 'N' 
+          end                                                             as unknownGenderFlag, 
+          ToValidDate(BP.BIRTHDT)                                         as dateOfBirth, 
+          ToValidDate(BP.DEATHDT)                                         as dateOfDeath, 
+          CAST(PERNO as string)                                           as personnelNumber, 
+          NAME_GRP1                                                       as nameGroup1, 
+          NAME_GRP2                                                       as nameGroup2, 
+          MC_NAME1                                                        as searchHelpLastName, 
+          MC_NAME2                                                        as searchHelpFirstName, 
+          CRUSR                                                           as createdBy, 
+          ToValidDateTime(
+               concat(BP.CRDAT, 'T', coalesce(BP.CRTIM,'00:00:00'))
+          )                                                               as createdDateTime, 
+          BP.CHUSR                                                        as lastUpdatedBy, 
+          ToValidDateTime(
+               concat(BP.CHDAT, 'T', coalesce(BP.CHTIM,'00:00:00'))
+          )                                                               as lastUpdatedDateTime, 
+          PARTNER_GUID                                                    as businessPartnerGUID, 
+          ADDRCOMM                                                        as communicationAddressNumber, 
+          TD_SWITCH                                                       as plannedChangeDocument, 
+          ToValidDate(substr(BP.VALID_FROM,0,8))                          as validFromDate, 
+          ToValidDate(substr(BP.VALID_TO,0,8))                            as validToDate, 
+          case 
+               when NATPERS = 'X' 
+               then 'Y' 
+               else 'N' 
+          end                                                             as naturalPersonFlag, 
+          case 
+               when ZZAFLD00000M = 'X' 
+               then 'Y' 
+               else 'N'
+          end                                                             as kidneyDialysisFlag, 
+          ZZUNIT                                                          as patientUnit, 
+          ZZTITLE                                                         as patientTitleCode, 
+          ZZTITLE.TITLE                                                   as patientTitle,
+          ZZF_NAME                                                        as patientFirstName, 
+          ZZSURNAME                                                       as patientSurname, 
+          ZZAREACODE                                                      as patientAreaCode, 
+          ZZPHONE                                                         as patientPhoneNumber, 
+          ZZHOSP_NAME                                                     as hospitalCode, 
+          substring(
+               dd07t_HOSP.domainValueText, 
+               instr(dd07t_HOSP.domainValueText, '-')
+               + 1,
+               100
+          )                                                               as hospitalName, 
+          ZZMACH_TYPE                                                     as patientMachineTypeCode, 
+          substring(
+               dd07t_MACH.domainValueText, 
+               instr(dd07t_MACH.domainValueText, '-') 
+               + 1, 
+               100
+          )                                                               as patientMachineType,
+          ToValidDate(BP.ZZON_DATE)                                       as machineTypeValidFromDate, 
+          ZZOFF_REAS                                                      as machineOffReasonCode, 
+          substr(
+               dd07t_OFF.domainValueText,
+               instr(dd07t_OFF.domainValueText, '-') 
+               + 1, 
+               100
+          )                                                               as machineOffReason, 
+          ToValidDate(BP.ZZOFF_DATE)                                      as machineTypeValidToDate, 
+          cast('1900-01-01' as TimeStamp)                                 as _RecordStart, 
+          cast('9999-12-31' as TimeStamp)                                 as _RecordEnd, 
+          '0'                                                             as _RecordDeleted, 
+          '1'                                                             as _RecordCurrent, 
+          cast('{CurrentTimeStamp}' as TimeStamp)                         as _DLCleansedZoneTimeStamp 
+    FROM stage  BP
+    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.crm_0BP_CAT_TEXT BP_TXT ON 
+        BP.TYPE =BP_TXT.businessPartnerCategoryCode 
+        AND BP_TXT._RecordDeleted = 0 
+        AND BP_TXT._RecordCurrent = 1 
+    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.crm_0BPTYPE_TEXT BPTYPE ON 
+        BP.BPKIND = BPTYPE.businessPartnerTypeCode 
+        AND BPTYPE._RecordDeleted = 0 
+        AND BPTYPE._RecordCurrent = 1 
+    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.crm_0BP_GROUP_TEXT BPGRP ON 
+        BP.BU_GROUP = BPGRP.businessPartnerGroupCode 
+        AND BPGRP._RecordDeleted = 0 
+        AND BPGRP._RecordCurrent = 1 
+    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.crm_TSAD3T TITLE ON 
+        BP.TITLE = TITLE.titlecode 
+        AND TITLE._RecordDeleted = 0 
+        AND TITLE._RecordCurrent = 1 
+    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.crm_TSAD3T ZZTITLE ON 
+        BP.ZZTITLE = ZZTITLE.titlecode 
+        AND ZZTITLE._RecordDeleted = 0 
+        AND ZZTITLE._RecordCurrent = 1 
+    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.crm_TSAD3T TITLE_ACA1 ON 
+        BP.TITLE_ACA1 = TITLE_ACA1.titlecode 
+        AND TITLE_ACA1._RecordDeleted = 0 
+        AND TITLE_ACA1._RecordCurrent = 1 
+    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.crm_dd07t dd07t_HOSP ON 
+        BP.ZZHOSP_NAME = dd07t_HOSP.domainValueSingleUpperLimit  
+        AND dd07t_HOSP.domainName = 'ZZ_HOSP_NAME' 
+    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.crm_dd07t dd07t_MACH ON 
+        BP.ZZMACH_TYPE = dd07t_MACH.domainValueSingleUpperLimit  
+        AND dd07t_MACH.domainName = 'ZZ_MACH_TYPE' 
+    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.crm_dd07t dd07t_OFF ON 
+        BP.ZZOFF_REAS = dd07t_OFF.domainValueSingleUpperLimit  
+        AND dd07t_OFF.domainName = 'ZZ_OFF_REAS' 
+    WHERE BP._RecordVersion = 1 
+"""
+) 
+# print(f'Number of rows: {df.count()}')
+# display(df)
 
 # COMMAND ----------
 
@@ -393,19 +521,19 @@ newSchema = StructType([
 	StructField('searchTerm2',StringType(),True),
 	StructField('titleCode',StringType(),True),
 	StructField('title',StringType(),True),
-	StructField('deletedIndicator',StringType(),True),
+	StructField('deletedFlag',StringType(),True),
 	StructField('centralBlockBusinessPartner',StringType(),True),
 	StructField('userId',StringType(),True),
-	StructField('paymentAssistSchemeIndicator',StringType(),True),
-	StructField('billAssistIndicator',StringType(),True),
+	StructField('paymentAssistSchemeFlag',StringType(),True),
+	StructField('billAssistFlag',StringType(),True),
 	StructField('createdDate',DateType(),True),
 	StructField('consent1Indicator',StringType(),True),
-	StructField('warWidowIndicator',StringType(),True),
-	StructField('disabilityIndicator',StringType(),True),
-	StructField('goldCardHolderIndicator',StringType(),True),
-	StructField('deceasedIndicator',StringType(),True),
-	StructField('pensionConcessionCardIndicator',StringType(),True),
-	StructField('eligibilityIndicator',StringType(),True),
+	StructField('warWidowFlag',StringType(),True),
+	StructField('disabilityFlag',StringType(),True),
+	StructField('goldCardHolderFlag',StringType(),True),
+	StructField('deceasedFlag',StringType(),True),
+	StructField('pensionConcessionCardFlag',StringType(),True),
+	StructField('eligibilityFlag',StringType(),True),
 	StructField('dateOfCheck',DateType(),True),
 	StructField('paymentStartDate',DateType(),True),
 	StructField('pensionType',StringType(),True),
@@ -428,7 +556,7 @@ newSchema = StructType([
 	StructField('correspondenceLanguage',StringType(),True),
 	StructField('nationality',StringType(),True),
 	StructField('personNumber',StringType(),True),
-	StructField('unknownGenderIndicator',StringType(),True),
+	StructField('unknownGenderFlag',StringType(),True),
 	StructField('dateOfBirth',DateType(),True),
 	StructField('dateOfDeath',DateType(),True),
 	StructField('personnelNumber',StringType(),True),
@@ -438,15 +566,15 @@ newSchema = StructType([
 	StructField('searchHelpFirstName',StringType(),True),
 	StructField('createdBy',StringType(),True),
 	StructField('createdDateTime',TimestampType(),True),
-	StructField('changedBy',StringType(),True),
-	StructField('lastChangedDateTime',TimestampType(),True),
+	StructField('lastUpdatedBy',StringType(),True),
+	StructField('lastUpdatedDateTime',TimestampType(),True),
 	StructField('businessPartnerGUID',StringType(),True),
 	StructField('communicationAddressNumber',StringType(),True),
 	StructField('plannedChangeDocument',StringType(),True),
 	StructField('validFromDate',DateType(),True),
 	StructField('validToDate',DateType(),True),
-	StructField('naturalPersonIndicator',StringType(),True),
-	StructField('kidneyDialysisIndicator',StringType(),True),
+	StructField('naturalPersonFlag',StringType(),True),
+	StructField('kidneyDialysisFlag',StringType(),True),
 	StructField('patientUnit',StringType(),True),
 	StructField('patientTitleCode',StringType(),True),
 	StructField('patientTitle',StringType(),True),
@@ -454,16 +582,19 @@ newSchema = StructType([
 	StructField('patientSurname',StringType(),True),
 	StructField('patientAreaCode',StringType(),True),
 	StructField('patientPhoneNumber',StringType(),True),
+	StructField('hospitalCode', StringType(), True),
 	StructField('hospitalName',StringType(),True),
+	StructField('patientMachineTypeCode', StringType(),True),
 	StructField('patientMachineType',StringType(),True),
 	StructField('machineTypeValidFromDate',DateType(),True),
-	StructField('offReason',StringType(),True),
+	StructField('machineOffReasonCode', StringType(),True),
+	StructField('machineOffReason',StringType(),True),
 	StructField('machineTypeValidToDate',DateType(),True),
 	StructField('_RecordStart',TimestampType(),False),
 	StructField('_RecordEnd',TimestampType(),False),
 	StructField('_RecordDeleted',IntegerType(),False),
 	StructField('_RecordCurrent',IntegerType(),False),
-    StructField('_DLCleansedZoneTimeStamp',TimestampType(),False)
+	StructField('_DLCleansedZoneTimeStamp',TimestampType(),False)
 ])
 
 # COMMAND ----------

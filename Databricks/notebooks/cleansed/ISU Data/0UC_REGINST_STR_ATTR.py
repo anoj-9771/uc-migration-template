@@ -3,7 +3,7 @@
 import json
 #For unit testing...
 #Use this string in the Param widget: 
-#{"SourceType": "BLOB Storage (json)", "SourceServer": "daf-sa-lake-sastoken", "SourceGroup": "ISU", "SourceName": "ISU_0UC_REGINST_STR_ATTR", "SourceLocation": "ISU/0UC_REGINST_STR_ATTR", "AdditionalProperty": "", "Processor": "databricks-token|0711-011053-turfs581|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive", "IsAuditTable": false, "SoftDeleteSource": "", "ProjectName": "ISUDATA", "ProjectId": 2, "TargetType": "BLOB Storage (json)", "TargetName": "ISU_0UC_REGINST_STR_ATTR", "TargetLocation": "ISU/0UC_REGINST_STR_ATTR", "TargetServer": "daf-sa-lake-sastoken", "DataLoadMode": "FULL-EXTRACT", "DeltaExtract": false, "CDCSource": false, "TruncateTarget": false, "UpsertTarget": true, "AppendTarget": null, "TrackChanges": false, "LoadToSqlEDW": true, "TaskName": "ISU_0UC_REGINST_STR_ATTR", "ControlStageId": 2, "TaskId": 46, "StageSequence": 200, "StageName": "Raw to Cleansed", "SourceId": 46, "TargetId": 46, "ObjectGrain": "Day", "CommandTypeId": 8, "Watermarks": "", "WatermarksDT": null, "WatermarkColumn": "", "BusinessKeyColumn": "logicalRegisterNumber,installationId,validToDate", "UpdateMetaData": null, "SourceTimeStampFormat": "", "Command": "", "LastLoadedFile": null}
+#{"SourceType": "BLOB Storage (json)", "SourceServer": "daf-sa-lake-sastoken", "SourceGroup": "ISU", "SourceName": "ISU_0UC_REGINST_STR_ATTR", "SourceLocation": "ISU/0UC_REGINST_STR_ATTR", "AdditionalProperty": "", "Processor": "databricks-token|0711-011053-turfs581|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive", "IsAuditTable": false, "SoftDeleteSource": "", "ProjectName": "ISUDATA", "ProjectId": 2, "TargetType": "BLOB Storage (json)", "TargetName": "ISU_0UC_REGINST_STR_ATTR", "TargetLocation": "ISU/0UC_REGINST_STR_ATTR", "TargetServer": "daf-sa-lake-sastoken", "DataLoadMode": "FULL-EXTRACT", "DeltaExtract": false, "CDCSource": false, "TruncateTarget": false, "UpsertTarget": true, "AppendTarget": null, "TrackChanges": false, "LoadToSqlEDW": true, "TaskName": "ISU_0UC_REGINST_STR_ATTR", "ControlStageId": 2, "TaskId": 46, "StageSequence": 200, "StageName": "Raw to Cleansed", "SourceId": 46, "TargetId": 46, "ObjectGrain": "Day", "CommandTypeId": 8, "Watermarks": "", "WatermarksDT": null, "WatermarkColumn": "", "BusinessKeyColumn": "logicalRegisterNumber,installationNumber,validToDate", "UpdateMetaData": null, "SourceTimeStampFormat": "", "Command": "", "LastLoadedFile": null}
 
 #Use this string in the Source Object widget
 #ISU_0UC_REGINST_STR_ATTR
@@ -176,16 +176,17 @@ df = spark.sql(f"WITH stage AS \
                            SELECT \
                                 case when LOGIKZW = 'na' then '' else LOGIKZW end as logicalRegisterNumber, \
                                 case when ZWNABR = 'X' then 'Y' else 'N' end as registerNotRelevantToBilling, \
-                                case when ANLAGE = 'na' then '' else ANLAGE end as installationId, \
+                                case when ANLAGE = 'na' then '' else ANLAGE end as installationNumber, \
                                 ToValidDate(BIS) as validToDate, \
                                 ToValidDate(AB) as validFromDate, \
                                 GVERRECH as payRentalPrice, \
                                 re.TARIFART as rateTypeCode, \
                                 st.rateType as rateType, \
                                 KONDIGR as rateFactGroupCode, \
+                                te67.rateFactGroup, \
                                 re.PREISKLA as priceClassCode, \
                                 pt.priceClass, \
-                                LOEVM as deletedIndicator, \
+                                (CASE WHEN LOEVM = 'X' THEN 'Y' ELSE 'N' END) as deletedFlag, \
                                 UPDMOD as bwDeltaProcess, \
                                 re.ZOPCODE as operationCode, \
                                 te.operationDescription, \
@@ -201,6 +202,8 @@ df = spark.sql(f"WITH stage AS \
                                                                                           and pt._RecordDeleted = 0 and pt._RecordCurrent = 1 \
                         LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_TE405T te ON re.ZOPCODE = te.operationCode \
                                                                                           and te._RecordDeleted = 0 and te._RecordCurrent = 1 \
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_TE067T te67 ON re.KONDIGR = te67.rateFactGroupCode \
+                                                                                          and te67._RecordDeleted = 0 and te67._RecordCurrent = 1 \
                         where re._RecordVersion = 1 ")
 
 #print(f'Number of rows: {df.count()}')
@@ -210,16 +213,17 @@ df = spark.sql(f"WITH stage AS \
 newSchema = StructType([
 	StructField('logicalRegisterNumber',StringType(),False),
 	StructField('registerNotRelevantToBilling',StringType(),True),
-	StructField('installationId',StringType(),False),
+	StructField('installationNumber',StringType(),False),
 	StructField('validToDate',DateType(),False),
 	StructField('validFromDate',DateType(),True),
 	StructField('payRentalPrice',StringType(),True),
 	StructField('rateTypeCode',StringType(),True),
     StructField('rateType',StringType(),True),
 	StructField('rateFactGroupCode',StringType(),True),
+    StructField('rateFactGroup',StringType(),True),
 	StructField('priceClassCode',StringType(),True),
     StructField('priceClass',StringType(),True),
-	StructField('deletedIndicator',StringType(),True),
+	StructField('deletedFlag',StringType(),True),
 	StructField('bwDeltaProcess',StringType(),True),
 	StructField('operationCode',StringType(),True),
     StructField('operationDescription',StringType(),True),
@@ -255,7 +259,7 @@ spark.sql(f" \
     MERGE INTO cleansed.isu_0UC_REGINST_STR_ATTR \
     using isu_reginst_deleted_records \
     on isu_0UC_REGINST_STR_ATTR.logicalRegisterNumber = isu_reginst_deleted_records.LOGIKZW \
-    and isu_0UC_REGINST_STR_ATTR.installationId = isu_reginst_deleted_records.ANLAGE \
+    and isu_0UC_REGINST_STR_ATTR.installationNumber = isu_reginst_deleted_records.ANLAGE \
     and isu_0UC_REGINST_STR_ATTR.validFromDate = isu_reginst_deleted_records.AB \
     and isu_0UC_REGINST_STR_ATTR.validToDate = isu_reginst_deleted_records.BIS \
     WHEN MATCHED THEN UPDATE SET \

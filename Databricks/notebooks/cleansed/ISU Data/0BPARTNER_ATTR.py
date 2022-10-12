@@ -4,7 +4,51 @@ import json
 #For unit testing...
 #Use this string in the Param widget: 
 #$PARAM
-
+# {
+# 	"SourceType": "BLOB Storage (json)", 
+# 	"SourceServer": "daf-sa-lake-sastoken", 
+# 	"SourceGroup": "isudata", 
+# 	"SourceName": "isu_0BPARTNER_ATTR", 
+# 	"SourceLocation": "isudata/0BPARTNER_ATTR", 
+# 	"AdditionalProperty": "", 
+# 	"Processor": "databricks-token|0527-214324-ytwxx0tv|Standard_DS12_v2|10.4.x-scala2.12|2:28|interactive", 
+# 	"IsAuditTable": false, 
+# 	"SoftDeleteSource": "", 
+# 	"ProjectName": "CLEANSED ISU DATA", 
+# 	"ProjectId": 12, 
+# 	"TargetType": "BLOB Storage (json)", 
+# 	"TargetName": "isu_0BPARTNER_ATTR", 
+# 	"TargetLocation": "isudata/0BPARTNER_ATTR", 
+# 	"TargetServer": "daf-sa-lake-sastoken", 
+# 	"DataLoadMode": "INCREMENTAL", 
+# 	"DeltaExtract": true, 
+# 	"CDCSource": false, 
+# 	"TruncateTarget": false, 
+# 	"UpsertTarget": true, 
+# 	"AppendTarget": false, 
+# 	"TrackChanges": false, 
+# 	"LoadToSqlEDW": true, 
+# 	"TaskName": "isu_0BPARTNER_ATTR", 
+# 	"ControlStageId": 2, 
+# 	"TaskId": 106, 
+# 	"StageSequence": 200, 
+# 	"StageName": "Raw to Cleansed", 
+# 	"SourceId": 106, 
+# 	"TargetId": 106, 
+# 	"ObjectGrain": "Day", 
+# 	"CommandTypeId": 8, 
+# 	"Watermarks": "2000-01-01 00:00:00", 
+# 	"WatermarksDT": "2000-01-01T00:00:00", 
+# 	"WatermarkColumn": "_FileDateTimeStamp", 
+# 	"BusinessKeyColumn": "businessPartnerNumber", 
+# 	"PartitionColumn": null, 
+# 	"UpdateMetaData": null, 
+# 	"SourceTimeStampFormat": "", 
+# 	"WhereClause": "",
+# 	"Command": "/build/cleansed/ISU Data/0BPARTNER_ATTR", 
+# 	"LastSuccessfulExecutionTS": "1900-01-01",
+# 	"LastLoadedFile": null
+# }
 #Use this string in the Source Object widget
 #$GROUP_$SOURCE
 
@@ -153,7 +197,6 @@ business_key =  Params[PARAMS_BUSINESS_KEY_COLUMN]
 track_changes =  Params[PARAMS_TRACK_CHANGES]
 is_delta_extract =  Params[PARAMS_DELTA_EXTRACT]
 
-
 # COMMAND ----------
 
 # DBTITLE 1,9. Set raw and cleansed table name
@@ -170,78 +213,98 @@ print(delta_raw_tbl_name)
 # COMMAND ----------
 
 # DBTITLE 1,10. Load Raw to Dataframe & Do Transformations
-df = spark.sql(f"WITH stage AS \
-                      (Select *, ROW_NUMBER() OVER (PARTITION BY PARTNER ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
-                           SELECT \
-                                case when BP.PARTNER = 'na' then '' else BP.PARTNER end as businessPartnerNumber, \
-                                BP.TYPE as businessPartnerCategoryCode, \
-                                BP_TXT.businessPartnerCategory as businessPartnerCategory, \
-                                BP.BPKIND as businessPartnerTypeCode, \
-                                BPTYPE.businessPartnerType as businessPartnerType, \
-                                BP.BU_GROUP as businessPartnerGroupCode, \
-                                BPGRP.businessPartnerGroup as businessPartnerGroup, \
-                                BP.BPEXT as externalBusinessPartnerNumber, \
-                                BP.BU_SORT1 as searchTerm1, \
-                                BP.BU_SORT2 as searchTerm2, \
-                                BP.TITLE as titleCode, \
-                                TITLE.TITLE as title, \
-                                case when BP.XDELE = 'X' then 'Y' else 'N' end as deletedIndicator, \
-                                BP.XBLCK as centralBlockBusinessPartner, \
-                                BP.ZZUSER as userId, \
-                                case when BP.ZZPAS_INDICATOR = 'X' then 'Y' else 'N' end as paymentAssistSchemeIndicator, \
-                                case when BP.ZZBA_INDICATOR = 'X' then 'Y' else 'N' end as billAssistIndicator, \
-                                ToValidDate(BP.ZZAFLD00001Z) as createdOn, \
-                                BP.NAME_ORG1 as organizationName1, \
-                                BP.NAME_ORG2 as organizationName2, \
-                                BP.NAME_ORG3 as organizationName3, \
-                                ToValidDate(BP.FOUND_DAT) as organizationFoundedDate, \
-                                BP.LOCATION_1 as internationalLocationNumber1, \
-                                BP.LOCATION_2 as internationalLocationNumber2, \
-                                BP.LOCATION_3 as internationalLocationNumber3, \
-                                BP.NAME_LAST as lastName, \
-                                BP.NAME_FIRST as firstName, \
-                                BP.NAME_LAST2 as atBirthName, \
-                                BP.NAMEMIDDLE as middleName, \
-                                BP.TITLE_ACA1 as academicTitle, \
-                                BP.NICKNAME as nickName, \
-                                BP.INITIALS as nameInitials, \
-                                BP.NAMCOUNTRY as countryName, \
-                                BP.LANGU_CORR as correspondenceLanguage, \
-                                BP.NATIO as nationality, \
-                                BP.PERSNUMBER as personNumber, \
-                                case when BP.XSEXU = 'X' then 'Y' else 'N' end as unknownGenderIndicator, \
-                                BP.BU_LANGU as language, \
-                                ToValidDate(BP.BIRTHDT) as dateOfBirth, \
-                                ToValidDate(BP.DEATHDT) as dateOfDeath, \
-                                BP.PERNO as personnelNumber, \
-                                BP.NAME_GRP1 as nameGroup1, \
-                                BP.NAME_GRP2 as nameGroup2, \
-                                BP.CRUSR as createdBy, \
-                                ToValidDateTime(concat(BP.CRDAT, 'T', coalesce(BP.CRTIM,'00:00:00'))) as createdDateTime, \
-                                BP.CHUSR as changedBy, \
-                                ToValidDateTime(concat(BP.CHDAT, 'T', coalesce(BP.CHTIM,'00:00:00'))) as changedDateTime, \
-                                BP.PARTNER_GUID as businessPartnerGUID, \
-                                BP.ADDRCOMM as addressNumber, \
-                                ToValidDate(substr(BP.VALID_FROM,0,8)) as validFromDate, \
-                                ToValidDate(substr(BP.VALID_TO,0,8)) as validToDate, \
-                                case when BP.NATPERS = 'X' then 'Y' else 'N' end as naturalPersonIndicator, \
-                                cast('1900-01-01' as TimeStamp) as _RecordStart, \
-                                cast('9999-12-31' as TimeStamp) as _RecordEnd, \
-                                '0' as _RecordDeleted, \
-                                '1' as _RecordCurrent, \
-                                cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
-                        FROM stage BP \
-                               LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0BP_CAT_TEXT BP_TXT ON BP.TYPE = BP_TXT.businessPartnerCategoryCode \
-                                                                              AND BP_TXT._RecordDeleted = 0 AND BP_TXT._RecordCurrent = 1 \
-                               LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0BPTYPE_TEXT BPTYPE ON BP.BPKIND = BPTYPE.businessPartnerTypeCode \
-                                                                              AND BPTYPE._RecordDeleted = 0 AND BPTYPE._RecordCurrent = 1 \
-                               LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0BP_GROUP_TEXT BPGRP ON BP.BU_GROUP = BPGRP.businessPartnerGroupCode \
-                                                                              AND BPGRP._RecordDeleted = 0 AND BPGRP._RecordCurrent = 1 \
-                               LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_TSAD3T TITLE ON BP.TITLE = TITLE.titlecode \
-                                                                              AND TITLE._RecordDeleted = 0 AND TITLE._RecordCurrent = 1 \
-                        where BP._RecordVersion = 1 ")
+df = spark.sql(f"""
+    WITH stage AS (
+        SELECT 
+            *, 
+            ROW_NUMBER() OVER (
+                PARTITION BY PARTNER 
+                ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC
+            ) AS _RecordVersion 
+        FROM {delta_raw_tbl_name}
+        WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}'
+    ) 
+        SELECT  
+            case when BP.PARTNER = 'na' then '' else BP.PARTNER end               as businessPartnerNumber, 
+            BP.TYPE                                                               as businessPartnerCategoryCode, 
+            BP_TXT.businessPartnerCategory                                        as businessPartnerCategory, 
+            BP.BPKIND                                                             as businessPartnerTypeCode, 
+            UPPER(BPTYPE.businessPartnerType)                                     as businessPartnerType, 
+            BP.BU_GROUP                                                           as businessPartnerGroupCode, 
+            BPGRP.businessPartnerGroup                                            as businessPartnerGroup, 
+            BP.BPEXT                                                              as externalBusinessPartnerNumber, 
+            BP.BU_SORT1                                                           as searchTerm1, 
+            BP.BU_SORT2                                                           as searchTerm2, 
+            BP.TITLE                                                              as titleCode, 
+            TITLE.TITLE                                                           as title, 
+            case when BP.XDELE = 'X' then 'Y' else 'N' end                        as deletedFlag, 
+            BP.XBLCK                                                              as centralBlockBusinessPartner, 
+            BP.ZZUSER                                                             as userId, 
+            case when BP.ZZPAS_INDICATOR = 'X' then 'Y' else 'N' end              as paymentAssistSchemeFlag, 
+            case when BP.ZZBA_INDICATOR = 'X' then 'Y' else 'N' end               as billAssistFlag, 
+            ToValidDate(BP.ZZAFLD00001Z)                                          as createdOn, 
+            BP.NAME_ORG1                                                          as organizationName1, 
+            BP.NAME_ORG2                                                          as organizationName2, 
+            BP.NAME_ORG3                                                          as organizationName3, 
+            ToValidDate(BP.FOUND_DAT)                                             as organizationFoundedDate, 
+            CAST(BP.LOCATION_1 AS string)                                         as internationalLocationNumber1, 
+            CAST(BP.LOCATION_2 AS string)                                         as internationalLocationNumber2, 
+            CAST(BP.LOCATION_3 AS string)                                         as internationalLocationNumber3, 
+            BP.NAME_LAST                                                          as lastName, 
+            BP.NAME_FIRST                                                         as firstName, 
+            BP.NAME_LAST2                                                         as atBirthName, 
+            BP.NAMEMIDDLE                                                         as middleName, 
+            BP.TITLE_ACA1                                                         as academicTitle, 
+            BP.NICKNAME                                                           as nickName, 
+            BP.INITIALS                                                           as nameInitials, 
+            BP.NAMCOUNTRY                                                         as countryName, 
+            BP.LANGU_CORR                                                         as correspondenceLanguage, 
+            BP.NATIO                                                              as nationality, 
+            BP.PERSNUMBER                                                         as personNumber, 
+            case when BP.XSEXU = 'X' then 'Y' else 'N' end                        as unknownGenderFlag, 
+            BP.BU_LANGU                                                           as language, 
+            ToValidDate(BP.BIRTHDT)                                               as dateOfBirth, 
+            ToValidDate(BP.DEATHDT)                                               as dateOfDeath, 
+            CAST(BP.PERNO as string)                                              as personnelNumber, 
+            BP.NAME_GRP1                                                          as nameGroup1, 
+            BP.NAME_GRP2                                                          as nameGroup2, 
+            BP.CRUSR                                                              as createdBy, 
+            ToValidDateTime(concat(BP.CRDAT, 'T', coalesce(BP.CRTIM,'00:00:00'))) as createdDateTime, 
+            BP.CHUSR                                                              as lastUpdatedBy, 
+            ToValidDateTime(concat(BP.CHDAT, 'T', coalesce(BP.CHTIM,'00:00:00'))) as lastUpdatedDateTime, 
+            BP.PARTNER_GUID                                                       as businessPartnerGUID, 
+            BP.ADDRCOMM                                                           as addressNumber, 
+            ToValidDate(substr(BP.VALID_FROM,0,8))                                as validFromDate, 
+            ToValidDate(substr(BP.VALID_TO,0,8))                                  as validToDate, 
+            case when BP.NATPERS = 'X' then 'Y' else 'N' end                      as naturalPersonFlag, 
+            cast('1900-01-01' as TimeStamp)                                       as _RecordStart, 
+            cast('9999-12-31' as TimeStamp)                                       as _RecordEnd, 
+            '0'                                                                   as _RecordDeleted, 
+            '1'                                                                   as _RecordCurrent, 
+            cast('{CurrentTimeStamp}' as TimeStamp)                               as _DLCleansedZoneTimeStamp 
+        FROM stage BP 
+        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0BP_CAT_TEXT BP_TXT ON 
+            BP.TYPE = BP_TXT.businessPartnerCategoryCode AND 
+            BP_TXT._RecordDeleted = 0 AND 
+            BP_TXT._RecordCurrent = 1 
+        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0BPTYPE_TEXT BPTYPE ON 
+            BP.BPKIND = BPTYPE.businessPartnerTypeCode AND 
+            BPTYPE._RecordDeleted = 0 AND 
+            BPTYPE._RecordCurrent = 1 
+        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0BP_GROUP_TEXT BPGRP ON 
+            BP.BU_GROUP = BPGRP.businessPartnerGroupCode AND 
+            BPGRP._RecordDeleted = 0 AND 
+            BPGRP._RecordCurrent = 1 
+        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_TSAD3T TITLE ON 
+            BP.TITLE = TITLE.titlecode AND 
+            TITLE._RecordDeleted = 0 AND 
+            TITLE._RecordCurrent = 1 
+        WHERE BP._RecordVersion = 1 
+        """
+)
 
-#print(f'Number of rows: {df.count()}')
+# print(f'Number of rows: {df.count()}')
+# display(df)
 
 # COMMAND ----------
 
@@ -335,11 +398,11 @@ newSchema = StructType(
     StructField("searchTerm2", StringType(), True),
     StructField("titleCode", StringType(), True),
     StructField("title", StringType(), True),
-    StructField("deletedIndicator", StringType(), True),
+    StructField("deletedFlag", StringType(), True),
     StructField("centralBlockBusinessPartner", StringType(), True),
     StructField("userId", StringType(), True),
-    StructField("paymentAssistSchemeIndicator", StringType(), True),
-    StructField("billAssistIndicator", StringType(), True),
+    StructField("paymentAssistSchemeFlag", StringType(), True),
+    StructField("billAssistFlag", StringType(), True),
     StructField("createdOn", DateType(), True),
     StructField("organizationName1", StringType(), True),
     StructField("organizationName2", StringType(), True),
@@ -359,7 +422,7 @@ newSchema = StructType(
     StructField("correspondenceLanguage", StringType(), True),
     StructField("nationality", StringType(), True),
     StructField("personNumber", StringType(), True),
-    StructField("unknownGenderIndicator", StringType(), True),
+    StructField("unknownGenderFlag", StringType(), True),
     StructField("language", StringType(), True),
     StructField("dateOfBirth", DateType(), True),
     StructField("dateOfDeath", DateType(), True),
@@ -368,13 +431,13 @@ newSchema = StructType(
     StructField("nameGroup2", StringType(), True),
     StructField("createdBy", StringType(), True),
     StructField("createdDateTime", TimestampType(), True),
-    StructField("changedBy", StringType(), True),
-    StructField("changedDateTime", TimestampType(), True),
+    StructField("lastUpdatedBy", StringType(), True),
+    StructField("lastUpdatedDateTime", TimestampType(), True),
     StructField("businessPartnerGUID", StringType(), True),
     StructField("addressNumber", StringType(), True),
     StructField("validFromDate",DateType(), True),
     StructField("validToDate",DateType(), True),
-    StructField("naturalPersonIndicator", StringType(), True),
+    StructField("naturalPersonFlag", StringType(), True),
     StructField('_RecordStart',TimestampType(),False),
     StructField('_RecordEnd',TimestampType(),False),
     StructField('_RecordDeleted',IntegerType(),False),
@@ -382,7 +445,6 @@ newSchema = StructType(
     StructField('_DLCleansedZoneTimeStamp',TimestampType(),False)
   ]
 )
-
 
 # COMMAND ----------
 

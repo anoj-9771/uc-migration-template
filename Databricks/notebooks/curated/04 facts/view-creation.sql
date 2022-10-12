@@ -141,7 +141,7 @@ where isu_zcd_tprop_rel.`_RecordCurrent` = 1
 -- History: 1.0 11/5/2022 LV created
 -- 1.1 27/5/2022 LV renamed view
 CREATE OR REPLACE VIEW curated.view_installation as
-select isu_0ucinstalla_attr_2.installationId,
+select isu_0ucinstalla_attr_2.installationNumber,
 isu_0ucinstallah_attr_2.validFromDate,
 isu_0ucinstallah_attr_2.validToDate,
 isu_0ucinstalla_attr_2.divisionCode,
@@ -191,9 +191,9 @@ end currentIndicator,
 'Y' currentRecordIndicator
 from cleansed.isu_0ucinstalla_attr_2
 inner join cleansed.isu_0ucinstallah_attr_2
-on isu_0ucinstalla_attr_2.installationId = isu_0ucinstallah_attr_2.installationId
+on isu_0ucinstalla_attr_2.installationNumber = isu_0ucinstallah_attr_2.installationNumber
 left outer join cleansed.isu_0uc_isu_32
-on isu_0ucinstallah_attr_2.installationId = isu_0uc_isu_32.installationId
+on isu_0ucinstallah_attr_2.installationNumber = isu_0uc_isu_32.installationNumber
 and isu_0ucinstallah_attr_2.validFromDate <= current_date and isu_0ucinstallah_attr_2.validToDate >= current_date
 and isu_0uc_isu_32.referenceObjectTypeCode = 'INSTLN'
 and isu_0uc_isu_32.validFromDate <= current_date and isu_0uc_isu_32.validToDate >= current_date
@@ -221,7 +221,7 @@ isu_0uccontract_attr_2.companyCode,
 isu_0comp_code_text.companyName,
 isu_0uccontract_attr_2.divisionCode,
 isu_0division_text.division,
-isu_0uccontract_attr_2.installationId,
+isu_0uccontract_attr_2.installationNumber,
 isu_0uccontract_attr_2.contractAccountNumber,
 isu_0uccontract_attr_2.accountDeterminationCode,
 isu_0fcactdetid_text.accountDetermination,
@@ -237,18 +237,18 @@ isu_0uccontract_attr_2.numberOfCancellations,
 isu_0uccontract_attr_2.numberOfRenewals,
 isu_0uccontract_attr_2.personnelNumber,
 isu_0uccontract_attr_2.contractNumberLegacy,
-isu_0uccontract_attr_2.isContractInvoiced,
+isu_0uccontract_attr_2.isContractInvoicedFlag AS isContractInvoiced,
 isu_0uccontract_attr_2.outsortingCheckGroupForBilling,
 isu_0uccontract_attr_2.manualOutsortingCount,
 isu_0uccontract_attr_2.serviceProvider,
-isu_0uccontract_attr_2.contractTerminatedForBilling,
+isu_0uccontract_attr_2.contractTerminatedForBillingFlag AS contractTerminatedForBilling,
 isu_0uccontract_attr_2.invoicingParty,
 isu_0uccontract_attr_2.cancellationReasonCRM,
 isu_0uccontract_attr_2.specialMoveOutCase,
 isu_0uccontract_attr_2.moveInDate,
 isu_0uccontract_attr_2.moveOutDate,
 isu_0uccontract_attr_2.budgetBillingStopDate,
-isu_0uccontract_attr_2.isContractTransferred,
+isu_0uccontract_attr_2.isContractTransferredFlag AS isContractTransferred,
 isu_0uccontract_attr_2.premise,
 isu_0uccontract_attr_2.propertyNumber,
 isu_0uccontract_attr_2.validFromDate contractValidityDate,
@@ -256,30 +256,30 @@ isu_0uccontract_attr_2.agreementNumber,
 isu_0uccontract_attr_2.alternativeAddressNumber,
 isu_0uccontract_attr_2.identificationNumber,
 isu_0uccontract_attr_2.addressNumber,
-isu_0uccontract_attr_2.objectReferenceId,
+isu_0uccontract_attr_2.objectReferenceIndicator AS objectReferenceId,
 isu_0uccontracth_attr_2.marketingCampaign,
 isu_0uccontracth_attr_2.individualContractId,
-isu_0uccontracth_attr_2.productBeginIndicator,
-isu_0uccontracth_attr_2.productChangeIndicator,
+isu_0uccontracth_attr_2.productBeginFlag AS productBeginIndicator,
+isu_0uccontracth_attr_2.productChangeFlag AS productChangeIndicator,
 isu_0uccontracth_attr_2.replicationControls replicationControlsCode,
 isu_dd07t_alias.domainValueText replicationControls,
 isu_0uccontract_attr_2.objectNumber,
 crm_utilitiescontract.podUUID,
+crm_utilitiescontract.headerTypeCode,
 crm_utilitiescontract.headerType,
-crm_utilitiescontract.headerTypeName,
-case when crm_utilitiescontract.isCancelled = 'X' then 'Y'
+case when crm_utilitiescontract.isCancelledFlag = 'X' then 'Y'
 else 'N'
-end isCancelled,
+end isCancelledFlag,
 isu_0uccontract_attr_2.createdDate,
 isu_0uccontract_attr_2.createdBy,
 isu_0uccontract_attr_2.lastChangedDate,
 isu_0uccontract_attr_2.lastChangedBy,
-case when isu_0uccontract_attr_2.deletedIndicator = 'X' then 'Y'
+case when isu_0uccontract_attr_2.deletedFlag = 'X' then 'Y'
 else 'N'
-end contractDeletedIndicator,
-case when isu_0uccontracth_attr_2.deletedIndicator = 'X' then 'Y' 
+end contractDeletedFlag,
+case when isu_0uccontracth_attr_2.deletedFlag = 'X' then 'Y' 
 else 'N'
-end contractHistoryDeletedIndicator,
+end contractHistoryDeletedFlag,
 case when (isu_0uccontracth_attr_2.validFromDate <= current_date and isu_0uccontracth_attr_2.validToDate >=  current_date) then 'Y'
 else 'N'
 end currentIndicator,
@@ -379,9 +379,9 @@ isu_0uc_accntbp_attr_2.budgetBillingRequestForDebtor budgetBillingRequestForDebt
 isu_dd07t_alias2.domainValueText budgetBillingRequestForDebtor,
 isu_0uc_accntbp_attr_2.directDebitLimit,
 isu_0uc_accntbp_attr_2.addressNumberForAlternativeDunningRecipient,
-isu_0uc_accntbp_attr_2.deletedIndicator accountBpDeletedIndicator,
+isu_0uc_accntbp_attr_2.deletedFlag accountBpDeletedIndicator,
 isu_0cacont_acc_attr_2.legacyContractAccountNumber,
-isu_0cacont_acc_attr_2.deletedIndicator contractAccountDeletedIndicator,
+isu_0cacont_acc_attr_2.deletedFlag contractAccountDeletedIndicator,
 isu_0cacont_acc_attr_2.createdBy contractAccountCreatedBy,
 isu_0cacont_acc_attr_2.createdDate contractAccountCreatedDate,
 isu_0cacont_acc_attr_2.lastChangedBy contractAccountLastChangedBy,
@@ -498,18 +498,18 @@ isu_0division_text.division,
 isu_erch.lastChangedDate,
 isu_erch.createdDate,
 ercho.documentReleasedDate,
-isu_erch.documentNotReleasedIndicator,
+isu_erch.documentNotReleasedflag,
 erchc.postingDate,  
 isu_erch.meterReadingUnit,
 isu_erch.billingDocumentCreateDate,
-isu_erch.erchcExistIndicator,
+isu_erch.erchcExistFlag,
 isu_erch.billingDocumentWithoutInvoicingCode, 
-erchc.documentNotReleasedIndicator invoiceNotReleasedIndicator,
+erchc.documentNotReleasedFlag invoiceNotReleasedFlag,
 isu_dberchz1.billingQuantityPlaceBeforeDecimalPoint meteredWaterConsumption,
 isu_dberchz1.lineItemTypeCode,
 isu_te835t.lineItemType,
-isu_dberchz1.billingLineItemBudgetBillingIndicator,
-isu_dberchz1.subtransactionForDocumentItem,
+isu_dberchz1.billingLineItemBudgetBillingFlag,
+isu_dberchz1.subTransactionCode,
 isu_dberchz1.industryCode,
 isu_0uc_aklasse_text.billingClass,
 isu_dberchz1.validFromDate, 
@@ -581,7 +581,7 @@ on isu_dberchz1.statisticalAnalysisRateType = isu_0uc_stattart_text.rateTypeCode
 and isu_0uc_stattart_text.`_RecordCurrent` = 1
 where 
 isu_erch.billingSimulationIndicator = ' '
-and isu_erch.documentNotReleasedIndicator = 'N'
+and isu_erch.documentNotReleasedflag = 'N'
 and isu_dberchz1.lineItemTypeCode in ('ZDQUAN', 'ZRQUAN')
 and isu_dberchz2.suppressedMeterReadingDocumentId <> ' '
 and isu_erch.`_RecordCurrent` = 1
@@ -682,13 +682,13 @@ dimmeterconsumptionbillingdocument.invoiceNotReleasedIndicator,
 dimmeterconsumptionbillingdocument.isreversedFlag,
 dimmeterconsumptionbillingdocument.reversalDate,
 dimmeterconsumptionbillingdocument.invoiceReversalPostingDate,
-dimmeterconsumptionbillingdocument.erchcExistIndicator,
+dimmeterconsumptionbillingdocument.erchcExistFlag,
 dimmeterconsumptionbillingdocument.billingDocumentWithoutInvoicingCode,
 dimmeterconsumptionbillingdocument.portionNumber,
 dimmeterconsumptionbillingdocument.billingReasonCode,
 dimContract.contractId,
 dimcontract.contractAccountNumber,
-diminstallation.installationId,
+diminstallation.installationNumber,
 diminstallation.divisionCode,
 diminstallation.division
 from statBilling  
@@ -744,7 +744,7 @@ isu_0uc_deviceh_attr.validFromDate deviceHistoryValidFromDate,
 isu_0uc_deviceh_attr.validToDate deviceHistoryvalidToDate,
 isu_0uc_device_attr.deviceNumber,
 isu_0uc_deviceh_attr.logicalDeviceNumber,
-isu_0uc_devinst_attr.installationId,
+isu_0uc_devinst_attr.installationNumber,
 isu_0uc_devinst_attr.validFromDate deviceInstallationValidFromDate,
 isu_0uc_devinst_attr.validToDate deviceInstallationValidToDate,
 isu_0uc_regist_attr.registerNumber,
@@ -823,22 +823,22 @@ on isu_0uc_deviceh_attr.logicalDeviceNumber = isu_0uc_devinst_attr.logicalDevice
 and isu_0uc_deviceh_attr.validFromDate >= isu_0uc_devinst_attr.validFromDate
 and isu_0uc_deviceh_attr.validFromDate <= isu_0uc_devinst_attr.validToDate
 and isu_0uc_devinst_attr.`_RecordCurrent` = 1
-and isu_0uc_devinst_attr.deletedIndicator is null
+and isu_0uc_devinst_attr.deletedFlag is null
 left outer join cleansed.isu_0uc_regist_attr
 on isu_0uc_regist_attr.equipmentNumber = isu_0uc_deviceh_attr.equipmentNumber
 and isu_0uc_deviceh_attr.validFromDate >= isu_0uc_regist_attr.validFromDate
 and isu_0uc_deviceh_attr.validFromDate <= isu_0uc_regist_attr.validToDate
 and isu_0uc_regist_attr.`_RecordCurrent` = 1
-and isu_0uc_regist_attr.deletedIndicator is null
+and isu_0uc_regist_attr.deletedFlag is null
 left outer join cleansed.isu_0uc_reginst_str_attr
-on isu_0uc_reginst_str_attr.installationId = isu_0uc_devinst_attr.installationId
+on isu_0uc_reginst_str_attr.installationNumber = isu_0uc_devinst_attr.installationNumber
 and isu_0uc_reginst_str_attr.logicalRegisterNumber = isu_0uc_regist_attr.logicalRegisterNumber
 and isu_0uc_deviceh_attr.validFromDate >= isu_0uc_reginst_str_attr.validFromDate
 and isu_0uc_deviceh_attr.validFromDate <= isu_0uc_reginst_str_attr.validToDate
 and isu_0uc_reginst_str_attr._RecordCurrent = 1
-and isu_0uc_reginst_str_attr.deletedIndicator is null
+and isu_0uc_reginst_str_attr.deletedFlag is null
 left outer join cleansed.isu_0ucinstalla_attr_2
-on isu_0ucinstalla_attr_2.installationId = isu_0uc_devinst_attr.installationId
+on isu_0ucinstalla_attr_2.installationNumber = isu_0uc_devinst_attr.installationNumber
 and isu_0ucinstalla_attr_2.`_RecordCurrent` = 1
 and isu_0ucinstalla_attr_2.deletedIndicator is null
 left outer join cleansed.isu_0uc_devcat_attr
@@ -857,7 +857,7 @@ and isu_dd07t.`_RecordCurrent` = 1
 where 
 nvl(isu_0uc_reginst_str_attr.registerNotRelevantToBilling, ' ') <> 'X'
 and isu_0uc_deviceh_attr.`_RecordCurrent` = 1
-and isu_0uc_deviceh_attr.deletedIndicator is null
+and isu_0uc_deviceh_attr.deletedFlag is null
 and isu_0uc_device_attr.`_RecordCurrent` = 1
 
 -- COMMAND ----------

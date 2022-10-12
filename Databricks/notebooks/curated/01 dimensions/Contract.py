@@ -31,10 +31,10 @@ def getContract():
                              ca.contractAccountNumber, \
                              ca.contractAccountCategory, \
                              ca.applicationArea, \
-                             co.installationId \
+                             co.installationNumber \
                              from {ADS_DATABASE_CLEANSED}.isu_0UCCONTRACT_ATTR_2 co left outer join \
                                   {ADS_DATABASE_CLEANSED}.isu_0UCCONTRACTH_ATTR_2 coh on co.contractId = coh.contractId \
-                                                           and coh.deletedIndicator is null and coh._RecordDeleted = 0 and coh._RecordCurrent = 1 left outer join \
+                                                           and coh.deletedFlag is null and coh._RecordDeleted = 0 and coh._RecordCurrent = 1 left outer join \
                                   {ADS_DATABASE_CLEANSED}.isu_0CACONT_ACC_ATTR_2 ca on co.contractAccountNumber = ca.contractAccountNumber \
                                                            and ca._RecordDeleted = 0 and ca._RecordCurrent = 1 \
                              where co._RecordDeleted = 0 \
@@ -66,7 +66,7 @@ def getContract():
                 , 'contractAccountNumber' \
                 , 'contractAccountCategory' \
                 , 'applicationArea' \
-                , 'installationId')
+                , 'installationNumber')
 
     #5.Apply schema definition
     schema = StructType([
@@ -83,7 +83,7 @@ def getContract():
                             StructField('contractAccountNumber', StringType(), True),
                             StructField('contractAccountCategory', StringType(), True),
                             StructField('applicationArea', StringType(), True),
-                            StructField('installationId', StringType(), True)
+                            StructField('installationNumber', StringType(), True)
                       ])
 
 #    display(df)

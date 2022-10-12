@@ -176,7 +176,7 @@ df = spark.sql(f"WITH stage AS \
                         case when ATINN = 'na' then '' else ATINN end as internalCharacteristic , \
                         case when ATZHL = 'na' then '' else ATZHL end as internalCounter , \
                         case when ADZHL = 'na' then '' else ADZHL end as internalCounterforArchivingObjectsbyECM , \
-                        ATWRT as charactericValue , \
+                        ATWRT as characteristicValue , \
                         ATFLV as internalFloatingPointFrom , \
                         ATFLB as internalFloatingPointTo , \
                         ATCOD as valueDependencyCode , \
@@ -235,7 +235,7 @@ newSchema = StructType([
                         StructField("internalCharacteristic", StringType(), False),
                         StructField("internalCounter", StringType(), False),
                         StructField("internalCounterforArchivingObjectsbyECM", StringType(), False),
-                        StructField("charactericValue", StringType(), True),
+                        StructField("characteristicValue", StringType(), True),
                         StructField("internalFloatingPointFrom", DoubleType(), True),
                         StructField("internalFloatingPointTo", DoubleType(), True),
                         StructField("valueDependencyCode", StringType(), True),

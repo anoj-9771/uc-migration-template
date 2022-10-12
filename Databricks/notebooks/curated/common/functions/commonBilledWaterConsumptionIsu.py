@@ -26,7 +26,7 @@ def getBilledWaterConsumptionIsu():
                              case when ltrim('0', businessPartnerGroupNumber) is null then 'Unknown' else ltrim('0', businessPartnerGroupNumber) end as businessPartnerGroupNumber, \
                              case when startBillingPeriod is null then to_date('19000101', 'yyyymmdd') else startBillingPeriod end as startBillingPeriod, \
                              case when endBillingPeriod is null then to_date('19000101', 'yyyymmdd') else endBillingPeriod end as endBillingPeriod, \
-                             billingDocumentCreateDate, documentNotReleasedIndicator, reversalDate, \
+                             billingDocumentCreateDate, documentNotReleasedFlag, reversalDate, \
                              portionNumber, \
                              documentTypeCode, \
                              meterReadingUnit, \
@@ -36,15 +36,15 @@ def getBilledWaterConsumptionIsu():
                              lastChangedDate, \
                              createdDate, \
                              billingDocumentCreateDate, \
-                             erchcExistIndicator, \
+                             erchcExistFlag, \
                              billingDocumentWithoutInvoicingCode, \
                              newBillingDocumentNumberForReversedInvoicing \
                          from {ADS_DATABASE_CLEANSED}.isu_erch \
                          where trim(billingSimulationIndicator) = ''")
 
     dberchz1Df = spark.sql(f"select billingDocumentNumber, billingDocumentLineItemId \
-                                ,lineItemTypeCode, lineItemType, billingLineItemBudgetBillingIndicator \
-                                ,subtransactionForDocumentItem, industryCode \
+                                ,lineItemTypeCode, lineItemType, billingLineItemBudgetBillingFlag \
+                                ,subTransactionCode, industryCode \
                                 ,billingClassCode, billingClass, rateTypeCode \
                                 ,rateType, rateId, rateDescription \
                                 ,statisticalAnalysisRateType as statisticalAnalysisRateTypeCode, statisticalAnalysisRateTypeDescription as statisticalAnalysisRateType \
@@ -68,7 +68,7 @@ def getBilledWaterConsumptionIsu():
                              where trim(suppressedMeterReadingDocumentId) <> ''")
     
     erchcDf = spark.sql(f"select * from (select billingDocumentNumber, postingDate as invoicePostingDate \
-                                            , documentNotReleasedIndicator as invoiceNotReleasedIndicator \
+                                            , documentNotReleasedFlag as invoiceNotReleasedIndicator \
                                             , invoiceReversalPostingDate, sequenceNumber as invoiceMaxSequenceNumber \
                                             , row_number() over (partition by billingDocumentNumber order by sequenceNumber desc) rnk \
                                          from {ADS_DATABASE_CLEANSED}.isu_erchc \
@@ -122,7 +122,7 @@ def getBilledWaterConsumptionIsu():
                     ,"lastChangedDate" \
                     ,"createdDate" \
                     ,"billingDocumentCreateDate" \
-                    ,"erchcExistIndicator" \
+                    ,"erchcExistFlag" \
                     ,"billingDocumentWithoutInvoicingCode" \
                     ,"newBillingDocumentNumberForReversedInvoicing" \
                     ,"invoicePostingDate" \
@@ -130,11 +130,11 @@ def getBilledWaterConsumptionIsu():
                     ,"invoiceReversalPostingDate" \
                     ,"invoiceMaxSequenceNumber" \
                     ,"case when (reversalDate is null  or reversalDate = '1900-01-01' or reversalDate = '9999-12-31') then 'N' else 'Y' end as isReversedFlag" \
-                    ,"documentNotReleasedIndicator as isOutsortedFlag" \
+                    ,"documentNotReleasedFlag as isOutsortedFlag" \
                     ,"lineItemTypeCode" \
                     ,"lineItemType" \
-                    ,"billingLineItemBudgetBillingIndicator" \
-                    ,"subtransactionForDocumentItem" \
+                    ,"billingLineItemBudgetBillingFlag" \
+                    ,"subTransactionCode" \
                     ,"industryCode" \
                     ,"billingClassCode" \
                     ,"billingClass" \

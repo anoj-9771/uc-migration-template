@@ -178,7 +178,8 @@ df = spark.sql(f"WITH stage AS \
                                     case when ATINN = 'na' then '' else ATINN end as characteristicInternalId, \
                                     case when ATZHL = 'na' then '' else ATZHL end as characteristicValueInternalId, \
                                     case when MAFID = 'na' then '' else MAFID end as classifiedEntityType, \
-                                    case when KLART = 'na' then '' else KLART end as classType, \
+                                    case when KLART = 'na' then '' else KLART end as classTypeCode, \
+                                    tc.classType, \
                                     case when ADZHL = 'na' then '' else ADZHL end as archivingObjectsInternalId, \
                                     ATWRT as characteristicValueCode, \
                                     ATFLV as minimumValue, \
@@ -190,7 +191,7 @@ df = spark.sql(f"WITH stage AS \
                                     ATTLB as maxToleranceValue, \
                                     ATPRZ as toleranceIsPercentFlag, \
                                     ATINC as IncrementWithinInterval, \
-                                    ATAUT as charactericticAuthor, \
+                                    ATAUT as characteristicAuthor, \
                                     AENNR as characteristicChangeNumber, \
                                     ToValidDate(DATUV) as validFromDate, \
                                     LKENZ as isDeletedFlag, \
@@ -208,7 +209,10 @@ df = spark.sql(f"WITH stage AS \
                                     '0' as _RecordDeleted, \
                                     '1' as _RecordCurrent, \
                                     cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
-                        from stage stg where stg._RecordVersion = 1 ")
+                        from stage stg \
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_TCLAT tc ON stg.KLART = tc.classTypeCode \
+                                     and tc._RecordDeleted = 0 and tc._RecordCurrent = 1 \
+                        where stg._RecordVersion = 1 ")
 
 #print(f'Number of rows: {df.count()}')
 
@@ -219,7 +223,8 @@ newSchema = StructType([
                             StructField('characteristicInternalId', StringType(), False),
                             StructField('characteristicValueInternalId', StringType(), False),
                             StructField('classifiedEntityType', StringType(), False),
-                            StructField('classType', StringType(), False),
+                            StructField('classTypeCode', StringType(), False),
+                            StructField('classType', StringType(), True),
                             StructField('archivingObjectsInternalId', StringType(), False),
                             StructField('characteristicValueCode', StringType(), True),
                             StructField('minimumValue', FloatType(), True),
@@ -231,7 +236,7 @@ newSchema = StructType([
                             StructField('maxToleranceValue', FloatType(), True),
                             StructField('toleranceIsPercentFlag', StringType(), True),
                             StructField('IncrementWithinInterval', FloatType(), True),
-                            StructField('charactericticAuthor', StringType(), True),
+                            StructField('characteristicAuthor', StringType(), True),
                             StructField('characteristicChangeNumber', StringType(), True),
                             StructField('validFromDate', DateType(), True),
                             StructField('isDeletedFlag', StringType(), True),
@@ -259,5 +264,5 @@ DeltaSaveDataFrameToDeltaTable(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS
 
 # COMMAND ----------
 
-# DBTITLE 1,14. Exit Notebook
+# DBTITLE 1,13. Exit Notebook
 dbutils.notebook.exit("1")

@@ -374,14 +374,14 @@ def GeneralToValidDateTime(dateIn, colType ="Optional"):
         dateStr = str(dateIn)
     
     #------ Invalid Date Checks ------#
+    # Check Mandatory, but null or 0 length
+    if colType.upper() == str(mandatoryStr) and (len(dateStr) == 0 or dateIn is None):
+        return dateMandatoryButNull
+    
     # don't allow for dates without century    
     dash = dateStr.find('-')
     if (dash > -1 and dash <= 2) or (dateStr.find(' ') == 6 or len(dateStr) <= 7):
         return dateInvalid
-    
-    # Check for 0 length dates
-    if len(dateStr) == 0 and colType.upper() == str(mandatoryStr):
-        return dateMandatoryButNull
     
     # Check for 'zeroed' dates 
     if dateStr == str(zeroDate): #zeroDate: '00000000'
@@ -417,7 +417,3 @@ spark.udf.register("ToValidDateTime", GeneralToValidDateTime,TimestampType())
 #     e.g.) DateCol = df.ToValidDate_udf(df["StartDate"]))
 ToValidDate_udf = udf(GeneralToValidDateTime, DateType())
 ToValidDateTime_udf = udf(GeneralToValidDateTime, TimestampType())
-
-# COMMAND ----------
-
-

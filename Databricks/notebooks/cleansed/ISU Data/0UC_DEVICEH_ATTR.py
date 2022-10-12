@@ -186,7 +186,7 @@ df = spark.sql(f"WITH stage AS \
                                 b.activityReason, \
                                 dev.DEVLOC as deviceLocation, \
                                 dev.WGRUPPE as windingGroup, \
-                                dev.LOEVM as deletedIndicator, \
+                                (CASE WHEN dev.LOEVM = 'X' THEN 'Y' ELSE 'N' END) as deletedFlag, \
                                 dev.UPDMOD as bwDeltaProcess, \
                                 cast(dev.AMCG_CAP_GRP as Integer) as advancedMeterCapabilityGroup, \
                                 cast(dev.MSG_ATTR_ID as Integer) as messageAttributeId, \
@@ -229,7 +229,7 @@ newSchema = StructType([
                           StructField('activityReason',StringType(),True),
                           StructField('deviceLocation',StringType(),True),
                           StructField('windingGroup',StringType(),True),
-                          StructField('deletedIndicator',StringType(),True),
+                          StructField('deletedFlag',StringType(),True),
                           StructField('bwDeltaProcess',StringType(),True),
                           StructField('advancedMeterCapabilityGroup',IntegerType(),True),
                           StructField('messageAttributeId',IntegerType(),True),

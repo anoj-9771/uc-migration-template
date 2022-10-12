@@ -52,7 +52,7 @@ def getMeterConsumptionBillingDocumentIsu():
                                   ,"lastChangedDate" \
                                   ,"createdDate" \
                                   ,"billingDocumentCreateDate" \
-                                  ,"erchcExistIndicator" \
+                                  ,"erchcExistFlag" \
                                   ,"billingDocumentWithoutInvoicingCode" \
                                   ,"newBillingDocumentNumberForReversedInvoicing" \
                                   ,"invoicePostingDate" \
@@ -79,7 +79,7 @@ def getMeterConsumptionBillingDocumentIsu():
                             StructField("lastChangedDate", DateType(), True),
                             StructField("createdDate", DateType(), True),
                             StructField("billingDocumentCreateDate", DateType(), True),
-                            StructField("erchcExistIndicator", StringType(), True),
+                            StructField("erchcExistFlag", StringType(), True),
                             StructField("billingDocumentWithoutInvoicingCode", StringType(), True),
                             StructField("newBillingDocumentNumberForReversedInvoicing", IntegerType(), True),
                             StructField("invoicePostingDate", DateType(), True),
