@@ -452,20 +452,20 @@
 												{
 													"name": "_DLRawZoneTimeStamp",
 													"value": {
-														"value": "@formatDateTime(convertFromUtc(utcnow(),'AUS Eastern Standard Time'),'yyyy-MM-dd HH:mm:ss')",
+														"value": "@formatDateTime(utcnow(),'AUS Eastern Standard Time')",
 														"type": "Expression"
 													}
 												}
 											],
 											"sqlReaderQuery": {
-												"value": "@pipeline().parameters.SQLCommand",
+												"value": "SELECT * FROM DBO.VW_AUSP WHERE ?AdfDynamicRangePartitionCondition",
 												"type": "Expression"
 											},
 											"queryTimeout": "02:00:00",
 											"partitionOption": "DynamicRange",
 											"partitionSettings": {
 												"partitionColumnName": {
-													"value": "@{pipeline().parameters.TaskDetails.PartitionColumn}",
+													"value": "ATINN_INT",
 													"type": "Expression"
 												},
 												"partitionUpperBound": "",
@@ -497,6 +497,16 @@
 										"translator": {
 											"type": "TabularTranslator",
 											"mappings": [
+												{
+													"source": {
+														"name": "MANDT",
+														"type": "String"
+													},
+													"sink": {
+														"name": "MANDT",
+														"type": "string"
+													}
+												},
 												{
 													"source": {
 														"name": "OBJEK",
@@ -845,6 +855,16 @@
 												},
 												{
 													"source": {
+														"name": "IS_DELETED",
+														"type": "String"
+													},
+													"sink": {
+														"name": "IS_DELETED",
+														"type": "string"
+													}
+												},
+												{
+													"source": {
 														"name": "DELTA_TS",
 														"type": "Decimal"
 													},
@@ -870,7 +890,7 @@
 											"type": "DatasetReference",
 											"parameters": {
 												"kvSecret": {
-													"value": "@pipeline().parameters.TaskDetails.SourceServer",
+													"value": "daf-sql-slt-connectionstring",
 													"type": "Expression"
 												},
 												"tableName": "AUSP",
@@ -884,7 +904,7 @@
 											"type": "DatasetReference",
 											"parameters": {
 												"TableName": {
-													"value": "@pipeline().parameters.TaskDetails.TargetName",
+													"value": "isu_AUSP",
 													"type": "Expression"
 												}
 											}
