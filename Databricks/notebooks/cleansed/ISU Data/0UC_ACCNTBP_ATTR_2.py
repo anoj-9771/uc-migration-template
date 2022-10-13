@@ -190,7 +190,6 @@ df = spark.sql(f"WITH stage AS \
                                 SENDCONTROL_RH as dispatchControlForAlternativeBillRecipient, \
                                 SENDCONTROL_GP as dispatchControl, \
                                 KZABSVER as billingProcedureActivationIndicator, \
-                                JVLTE as participationInYearlyAdvancePayment, \
                                 ToValidDate(ERDAT) as createdDate, \
                                 ERNAM as createdBy, \
                                 ToValidDate(AEDATP) as lastChangedDate, \
@@ -205,7 +204,7 @@ df = spark.sql(f"WITH stage AS \
                                 ABWMA as alternativeDunningRecipient, \
                                 EBVTY as bankDetailsId, \
                                 EZAWE as incomingPaymentMethodCode, \
-                                LOEVM as deletedIndicator, \
+                                LOEVM as deletedFlag, \
                                 ABWVK as alternativeContractAccountForCollectiveBills, \
                                 VKPBZ as accountRelationshipCode, \
                                 acc_txt.accountRelationship as accountRelationship, \
@@ -220,6 +219,31 @@ df = spark.sql(f"WITH stage AS \
                                 STRAT as collectionStrategyCode, \
                                 ZAHLKOND as paymentConditionCode, \
                                 KOFIZ_SD as accountDeterminationCode, \
+                                tfk043t.toleranceGroupDescription as toleranceGroup,\
+                                te128t.manualOutsortingReasonDescription as manualOutsortingReason, \
+                                te192t.outsortingCheckGroup as outsortingCheckGroup, \
+                                JVLTE as participationInYearlyAdvancePaymentCode,\
+                                dd07t.domainValueText as participationInYearlyAdvancePayment,\
+                                KZABSVER as activatebudgetbillingProcedureCode,\
+                                bbproc.billingProcedure as activatebudgetbillingProcedure,\
+                                zahlkond.paymentCondition as paymentCondition,\
+                                0fcactdetid.accountDetermination as accountDetermination, \
+                                SENDCONTROL_RH as dispatchControlForAltBillRecipientCode, \
+                                esendcontrolt.dispatchControlDescription as dispatchControlForAltBillRecipient,\
+                                OPBUK as companyGroupCode, \
+                                0comp_code.companyName as companyGroupName, \
+                                0comp_code1.companyName as standardCompanyName,\
+                                pymet.paymentMethod as incomingPaymentMethod,\
+                                tfk047xt.collectionStrategyName as collectionStrategyName,\
+                                CMGRP as collectionManagementMasterDataGroupCode,\
+                                SENDCONTROL_MA as shippingControlForAltDunningRecipientCode,\
+                                esendcontrolt1.dispatchControlDescription as shippingControlForAltDunningRecipient,\
+                                SENDCONTROL_GP as dispatchControlForOriginalCustomerCode,\
+                                esendcontrolt2.dispatchControlDescription as dispatchControlForOriginalCustomer,\
+                                ABSANFBZ as budgetBillingRequestForCashPayerCode,\
+                                ABSANFAB as budgetBillingRequestForDebtorCode,\
+                                VERTYP as clearingCategoryCode,\
+                                FORMKEY as applicationFormCode,\
                                 cast('1900-01-01' as TimeStamp) as _RecordStart, \
                                 cast('9999-12-31' as TimeStamp) as _RecordEnd, \
                                 '0' as _RecordDeleted, \
@@ -227,6 +251,20 @@ df = spark.sql(f"WITH stage AS \
                                 cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
                         FROM stage acc \
                         LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0FC_ACCTREL_TEXT acc_txt ON acc.VKPBZ = acc_txt.accountRelationshipCode and acc_txt._RecordDeleted = 0 and acc_txt._RecordCurrent = 1 \
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_tfk043t tfk043t ON tfk043t.toleranceGroupCode = acc.TOGRU \
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_te128t te128t ON te128t.manualOutsortingReasonCode  = acc.MANOUTS_IN \
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_te192t te192t ON te192t.outsortingCheckGroupCode  = acc.AUSGRUP_IN \
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_dd07t dd07t ON dd07t.domainName = 'JVLTE' AND  dd07t.domainValueSingleUpperLimit = acc.JVLTE \
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0uc_bbproc_text bbproc ON bbproc.billingProcedureCode  = acc.KZABSVER \
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0uc_zahlkond_text zahlkond ON zahlkond.paymentConditionCode = acc.ZAHLKOND \
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0fcactdetid_text 0fcactdetid ON 0fcactdetid.accountDeterminationCode  = acc.KOFIZ_SD \
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_esendcontrolt esendcontrolt ON esendcontrolt.dispatchControlCode  = acc.SENDCONTROL_RH \
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0comp_code_text 0comp_code ON acc.OPBUK =0comp_code.companyCode \
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0comp_code_text 0comp_code1 ON acc.STDBK =0comp_code1.companyCode \
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0fc_pymet_text pymet ON pymet.paymentMethodCode  =  acc.EZAWE \
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_tfk047xt tfk047xt ON tfk047xt.collectionStrategyCode  = acc.STRAT \
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_esendcontrolt esendcontrolt1 ON esendcontrolt1.dispatchControlCode  = acc.SENDCONTROL_MA \
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_esendcontrolt esendcontrolt2 ON esendcontrolt2.dispatchControlCode  = acc.SENDCONTROL_GP \
                         where acc._RecordVersion = 1 ")
 
 #print(f'Number of rows: {df.count()}')
@@ -314,7 +352,6 @@ newSchema = StructType([
 	StructField('dispatchControlForAlternativeBillRecipient',StringType(),True),
 	StructField('dispatchControl',StringType(),True),
 	StructField('billingProcedureActivationIndicator',StringType(),True),
-	StructField('participationInYearlyAdvancePayment',StringType(),True),
 	StructField('createdDate',DateType(),True),
 	StructField('createdBy',StringType(),True),
 	StructField('lastChangedDate',DateType(),True),
@@ -329,7 +366,7 @@ newSchema = StructType([
 	StructField('alternativeDunningRecipient',StringType(),True),
 	StructField('bankDetailsId',StringType(),True),
 	StructField('incomingPaymentMethodCode',StringType(),True),
-	StructField('deletedIndicator',StringType(),True),
+	StructField('deletedFlag',StringType(),True),
 	StructField('alternativeContractAccountForCollectiveBills',StringType(),True),
 	StructField('accountRelationshipCode',StringType(),True),
 	StructField('accountRelationship',StringType(),True),
@@ -344,14 +381,37 @@ newSchema = StructType([
 	StructField('collectionStrategyCode',StringType(),True),
 	StructField('paymentConditionCode',StringType(),True),
 	StructField('accountDeterminationCode',StringType(),True),
+    StructField('toleranceGroup',StringType(),True),
+    StructField('manualOutsortingReason',StringType(),True),
+    StructField('outsortingCheckGroup',StringType(),True),
+    StructField('participationInYearlyAdvancePaymentCode',StringType(),True),
+    StructField('participationInYearlyAdvancePayment',StringType(),True),
+    StructField('activatebudgetbillingProcedureCode',StringType(),True),
+    StructField('activatebudgetbillingProcedure',StringType(),True),
+    StructField('paymentCondition',StringType(),True),
+    StructField('accountDetermination',StringType(),True),
+    StructField('dispatchControlForAltBillRecipientCode',StringType(),True),
+    StructField('dispatchControlForAltBillRecipient',StringType(),True),
+    StructField('companyGroupCode',StringType(),True),
+    StructField('companyGroupName',StringType(),True),
+    StructField('standardCompanyName',StringType(),True),
+    StructField('incomingPaymentMethod',StringType(),True),
+    StructField('collectionStrategyName',StringType(),True),
+    StructField('collectionManagementMasterDataGroupCode',StringType(),True),
+    StructField('shippingControlForAltDunningRecipientCode',StringType(),True),
+    StructField('shippingControlForAltDunningRecipient',StringType(),True),
+    StructField('dispatchControlForOriginalCustomerCode',StringType(),True),
+    StructField('dispatchControlForOriginalCustomer',StringType(),True),
+    StructField('budgetBillingRequestForCashPayerCode',StringType(),True),
+    StructField('budgetBillingRequestForDebtorCode',StringType(),True),
+    StructField('clearingCategoryCode',StringType(),True),
+    StructField('applicationFormCode',StringType(),True),
 	StructField('_RecordStart',TimestampType(),False),
 	StructField('_RecordEnd',TimestampType(),False),
 	StructField('_RecordDeleted',IntegerType(),False),
 	StructField('_RecordCurrent',IntegerType(),False),
     StructField('_DLCleansedZoneTimeStamp',TimestampType(),False)
 ])
-
-
 
 # COMMAND ----------
 

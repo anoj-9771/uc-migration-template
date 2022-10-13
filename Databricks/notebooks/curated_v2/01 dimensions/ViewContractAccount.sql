@@ -67,7 +67,7 @@ SELECT
      ,dimAccountBusinessPartner.dispatchControlForAltBillRecipient
      ,dimAccountBusinessPartner.applicationFormCode
      ,dimAccountBusinessPartner.applicationForm
-     ,dimAccountBusinessPartner.sendAdditionalBillFlag
+     ,dimAccountBusinessPartner.sendAdditionalBillIndicator
      ,dimAccountBusinessPartner.headerUUID
      ,dimAccountBusinessPartner.companyGroupCode
      ,dimAccountBusinessPartner.companyGroupName
@@ -77,7 +77,7 @@ SELECT
      ,dimAccountBusinessPartner.incomingPaymentMethod
      ,dimAccountBusinessPartner.bankDetailsId
      ,dimAccountBusinessPartner.paymentCardId
-     ,dimAccountBusinessPartner.noPaymentFormFlag
+     ,dimAccountBusinessPartner.noPaymentFormIndicator
      ,dimAccountBusinessPartner.alternativeDunningRecipient
      ,dimAccountBusinessPartner.collectionStrategyCode
      ,dimAccountBusinessPartner.collectionStrategyName
@@ -85,7 +85,7 @@ SELECT
      ,dimAccountBusinessPartner.collectionManagementMasterDataGroup
      ,dimAccountBusinessPartner.shippingControlForAltDunningRecipientCode
      ,dimAccountBusinessPartner.shippingControlForAltDunningRecipient
-     ,dimAccountBusinessPartner.sendAdditionalDunningNoticeFlag
+     ,dimAccountBusinessPartner.sendAdditionalDunningNoticeIndicator
      ,dimAccountBusinessPartner.dispatchControlForOriginalCustomerCode
      ,dimAccountBusinessPartner.dispatchControlForOriginalCustomer
      ,dimAccountBusinessPartner.budgetBillingRequestForCashPayerCode
