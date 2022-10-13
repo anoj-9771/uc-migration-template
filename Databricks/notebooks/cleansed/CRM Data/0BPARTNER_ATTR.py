@@ -287,7 +287,10 @@ df = spark.sql(f"""
           TITLE_ACA1.TITLE                                                as academicTitle, 
           NICKNAME                                                        as nickName, 
           INITIALS                                                        as nameInitials, 
-          NAMCOUNTRY                                                      as countryName, 
+
+          NAMCOUNTRY                                                      as countryCode,
+          t005t.countryName                                               as countryName,
+         
           LANGU_CORR                                                      as correspondenceLanguage, 
           NATIO                                                           as nationality, 
           PERSNUMBER                                                      as personNumber, 
@@ -395,6 +398,8 @@ df = spark.sql(f"""
     LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.crm_dd07t dd07t_OFF ON 
         BP.ZZOFF_REAS = dd07t_OFF.domainValueSingleUpperLimit  
         AND dd07t_OFF.domainName = 'ZZ_OFF_REAS' 
+    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.crm_t005t t005t ON 
+        BP.NAMCOUNTRY = t005t.countryCode 
     WHERE BP._RecordVersion = 1 
 """
 ) 
@@ -552,6 +557,7 @@ newSchema = StructType([
 	StructField('academicTitle',StringType(),True),
 	StructField('nickName',StringType(),True),
 	StructField('nameInitials',StringType(),True),
+	StructField("countryCode", StringType(), True),
 	StructField('countryName',StringType(),True),
 	StructField('correspondenceLanguage',StringType(),True),
 	StructField('nationality',StringType(),True),
