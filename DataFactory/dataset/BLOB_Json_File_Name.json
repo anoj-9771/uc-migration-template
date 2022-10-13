@@ -1,0 +1,36 @@
+{
+	"name": "BLOB_Json_File_Name",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_AzureBlobStorage",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"BlobFolderName": {
+				"type": "string"
+			},
+			"BlobFileName": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "MDP-Framework/BLOB"
+		},
+		"annotations": [],
+		"type": "Json",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": {
+					"value": "@dataset().BlobFileName",
+					"type": "Expression"
+				},
+				"container": {
+					"value": "@dataset().BlobFolderName",
+					"type": "Expression"
+				}
+			}
+		},
+		"schema": {}
+	}
+}

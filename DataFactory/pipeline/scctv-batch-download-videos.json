@@ -1,0 +1,153 @@
+{
+	"name": "scctv-batch-download-videos",
+	"properties": {
+		"activities": [
+			{
+				"name": "ForEachVideo",
+				"type": "ForEach",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@pipeline().parameters.videoBatch",
+						"type": "Expression"
+					},
+					"isSequential": false,
+					"activities": [
+						{
+							"name": "http-download-to-blob",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "BinarySource",
+									"storeSettings": {
+										"type": "HttpReadSettings",
+										"requestMethod": "GET"
+									},
+									"formatSettings": {
+										"type": "BinaryReadSettings"
+									}
+								},
+								"sink": {
+									"type": "BinarySink",
+									"storeSettings": {
+										"type": "AzureBlobStorageWriteSettings",
+										"copyBehavior": "PreserveHierarchy"
+									}
+								},
+								"enableStaging": false
+							},
+							"inputs": [
+								{
+									"referenceName": "HTTP_Binary",
+									"type": "DatasetReference",
+									"parameters": {
+										"httpUrl": {
+											"value": "@concat('https://api.ap.kaltura.com/p/107/sp/10700/playManifest/entryId/', split(item().name, '-')[0], '/format/download/protocol/https/flavorParamIds/', split(split(item().name, '-')[1], '.')[0])",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "SourceVideoFolder_test",
+									"type": "DatasetReference",
+									"parameters": {
+										"video_id": {
+											"value": "@split(item().name, '-')[0]",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						},
+						{
+							"name": "archive-que",
+							"type": "Copy",
+							"dependsOn": [
+								{
+									"activity": "http-download-to-blob",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "BinarySource",
+									"storeSettings": {
+										"type": "AzureBlobStorageReadSettings",
+										"recursive": true,
+										"deleteFilesAfterCompletion": false
+									},
+									"formatSettings": {
+										"type": "BinaryReadSettings"
+									}
+								},
+								"sink": {
+									"type": "BinarySink",
+									"storeSettings": {
+										"type": "AzureBlobStorageWriteSettings"
+									}
+								},
+								"enableStaging": false
+							},
+							"inputs": [
+								{
+									"referenceName": "kalturaSourceFolder",
+									"type": "DatasetReference"
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "KalturaDestn",
+									"type": "DatasetReference"
+								}
+							]
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"videoBatch": {
+				"type": "array"
+			}
+		},
+		"variables": {
+			"video_filename": {
+				"type": "String"
+			},
+			"complete": {
+				"type": "String",
+				"defaultValue": "false"
+			},
+			"fail": {
+				"type": "String",
+				"defaultValue": "false"
+			}
+		},
+		"folder": {
+			"name": "AI-ML/SewerCCTV"
+		},
+		"annotations": []
+	}
+}

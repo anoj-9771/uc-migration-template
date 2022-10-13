@@ -1,0 +1,339 @@
+{
+	"name": "ftp-binary-load",
+	"properties": {
+		"activities": [
+			{
+				"name": "set-output-path",
+				"description": "",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "OutputFullPath",
+					"value": {
+						"value": "@replace(replace(replace(replace(replace(replace(\npipeline().parameters.task.RawPath\n,'$yyyy$', formatDateTime(convertTimeZone(utcnow(), 'UTC', 'AUS Eastern Standard Time'), 'yyyy'))\n,'$MM$', formatDateTime(convertTimeZone(utcnow(), 'UTC', 'AUS Eastern Standard Time'), 'MM'))\n,'$dd$', formatDateTime(convertTimeZone(utcnow(), 'UTC', 'AUS Eastern Standard Time'), 'dd'))\n,'$HH$', formatDateTime(convertTimeZone(utcnow(), 'UTC', 'AUS Eastern Standard Time'), 'HH'))\n,'$mm$', formatDateTime(convertTimeZone(utcnow(), 'UTC', 'AUS Eastern Standard Time'), 'mm'))\n,'$guid$', guid())",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "set-file-path",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "set-host",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "filePath",
+					"value": {
+						"value": "@replace(replace(replace(replace(replace(replace(replace(\npipeline().parameters.task.SourceQuery\n,'$yyyy$', formatDateTime(convertTimeZone(utcnow(), 'UTC', 'AUS Eastern Standard Time'), 'yyyy'))\n,'$MM$', formatDateTime(convertTimeZone(utcnow(), 'UTC', 'AUS Eastern Standard Time'), 'MM'))\n,'$dd$', formatDateTime(convertTimeZone(utcnow(), 'UTC', 'AUS Eastern Standard Time'), 'dd'))\n,'$HH$', formatDateTime(convertTimeZone(utcnow(), 'UTC', 'AUS Eastern Standard Time'), 'HH'))\n,'$mm$', formatDateTime(convertTimeZone(utcnow(), 'UTC', 'AUS Eastern Standard Time'), 'mm'))\n,'ftp://', '')\n,variables('host'), '')",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "copy-ftp-binary",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "set-output-path",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "set-file-path",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "if-ftp-secret",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [
+					{
+						"name": "Destination",
+						"value": "raw/Cewa Financials/"
+					}
+				],
+				"typeProperties": {
+					"source": {
+						"type": "BinarySource",
+						"storeSettings": {
+							"type": "FtpReadSettings",
+							"recursive": true,
+							"useBinaryTransfer": true,
+							"deleteFilesAfterCompletion": false,
+							"disableChunking": true
+						},
+						"formatSettings": {
+							"type": "BinaryReadSettings"
+						}
+					},
+					"sink": {
+						"type": "BinarySink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						}
+					},
+					"enableStaging": false
+				},
+				"inputs": [
+					{
+						"referenceName": "FTP_Binary",
+						"type": "DatasetReference",
+						"parameters": {
+							"host": {
+								"value": "@variables('host')",
+								"type": "Expression"
+							},
+							"filePath": {
+								"value": "@variables('filePath')",
+								"type": "Expression"
+							},
+							"username": {
+								"value": "@variables('username')",
+								"type": "Expression"
+							},
+							"password": {
+								"value": "@variables('password')",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "DLS_Binary",
+						"type": "DatasetReference",
+						"parameters": {
+							"filePath": {
+								"value": "@variables('OutputFullPath')",
+								"type": "Expression"
+							}
+						}
+					}
+				]
+			},
+			{
+				"name": "task-raw-path",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "copy-ftp-binary",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "log-status-update",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": false,
+					"parameters": {
+						"ID": {
+							"value": "@pipeline().parameters.task.ID",
+							"type": "Expression"
+						},
+						"Property": "RawPath",
+						"Value": {
+							"value": "@variables('OutputFullPath')",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "log-copy",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "copy-ftp-binary",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "log-message",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": false,
+					"parameters": {
+						"ID": {
+							"value": "@pipeline().parameters.task.ID",
+							"type": "Expression"
+						},
+						"ActivityType": "copy-data",
+						"Message": {
+							"value": "@{activity('copy-ftp-binary')}",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "ftp-failed",
+				"type": "Fail",
+				"dependsOn": [
+					{
+						"activity": "copy-ftp-binary",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"message": {
+						"value": "@activity('copy-ftp-binary').output.error",
+						"type": "Expression"
+					},
+					"errorCode": {
+						"value": "@activity('copy-ftp-binary').output.ErrorCode",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "set-host",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "host",
+					"value": {
+						"value": "@split(replace(\npipeline().parameters.task.SourceQuery\n,'ftp://', ''), '/')[0]\n",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "if-ftp-secret",
+				"type": "IfCondition",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@or(equals(pipeline().parameters.task.SourceKeyVaultSecret, 'n/a')\n,equals(pipeline().parameters.task.SourceKeyVaultSecret, ''))",
+						"type": "Expression"
+					},
+					"ifFalseActivities": [
+						{
+							"name": "get-ftp-credentials",
+							"type": "WebActivity",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": true,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"url": {
+									"value": "https://@{pipeline().globalParameters.keyVaultName}.vault.azure.net/secrets/@{pipeline().parameters.task.SourceKeyVaultSecret}?api-version=7.0",
+									"type": "Expression"
+								},
+								"method": "GET",
+								"authentication": {
+									"type": "MSI",
+									"resource": "https://vault.azure.net"
+								}
+							}
+						},
+						{
+							"name": "set-username",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "get-ftp-credentials",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "username",
+								"value": {
+									"value": "@split(split(activity('get-ftp-credentials').output.value, ';')[0], '=')[1]\n\n",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "set-password",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "get-ftp-credentials",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "password",
+								"value": {
+									"value": "@split(split(activity('get-ftp-credentials').output.value, ';')[1], '=')[1]\n\n",
+									"type": "Expression"
+								}
+							}
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"task": {
+				"type": "object"
+			}
+		},
+		"variables": {
+			"OutputFullPath": {
+				"type": "String"
+			},
+			"host": {
+				"type": "String"
+			},
+			"filePath": {
+				"type": "String"
+			},
+			"username": {
+				"type": "String",
+				"defaultValue": "anonymous"
+			},
+			"password": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "MDP-Framework/SourceHandler/FTP"
+		},
+		"annotations": []
+	}
+}

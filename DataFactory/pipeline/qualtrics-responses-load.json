@@ -1,0 +1,542 @@
+{
+	"name": "qualtrics-responses-load",
+	"properties": {
+		"activities": [
+			{
+				"name": "get-keyvault-clientid",
+				"type": "WebActivity",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": true,
+					"secureInput": true
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"url": {
+						"value": "https://@{pipeline().globalParameters.keyVaultName}.vault.azure.net/secrets/qualtrics-auth-clientId?api-version=7.0",
+						"type": "Expression"
+					},
+					"method": "GET",
+					"authentication": {
+						"type": "MSI",
+						"resource": "https://vault.azure.net"
+					}
+				}
+			},
+			{
+				"name": "set-clientid",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "get-keyvault-clientid",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "client-id",
+					"value": {
+						"value": "@activity('get-keyvault-clientid').output.value",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "get-bearer-token",
+				"type": "WebActivity",
+				"dependsOn": [
+					{
+						"activity": "set-clientid",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": true
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"url": "https://syd1.qualtrics.com/oauth2/token",
+					"method": "POST",
+					"headers": {
+						"Content-Type": "application/x-www-form-urlencoded"
+					},
+					"body": {
+						"value": "grant_type=client_credentials&scope=read:survey_responses",
+						"type": "Expression"
+					},
+					"authentication": {
+						"type": "Basic",
+						"username": {
+							"value": "@variables('client-id')",
+							"type": "Expression"
+						},
+						"password": {
+							"type": "AzureKeyVaultSecret",
+							"store": {
+								"referenceName": "LS-AzureKeyVault",
+								"type": "LinkedServiceReference"
+							},
+							"secretName": "qualtrics-auth-clientSecret"
+						}
+					}
+				}
+			},
+			{
+				"name": "set-bearer-token",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "get-bearer-token",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "bearer-token",
+					"value": {
+						"value": "@activity('get-bearer-token').output.access_token",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "trigger-export",
+				"type": "WebActivity",
+				"dependsOn": [
+					{
+						"activity": "set-bearer-token",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"url": {
+						"value": "@pipeline().parameters.task.SourceQuery",
+						"type": "Expression"
+					},
+					"method": "POST",
+					"headers": {
+						"Content-Type": "application/json",
+						"Authorization": {
+							"value": "bearer @{variables('bearer-token')}",
+							"type": "Expression"
+						}
+					},
+					"body": {
+						"value": "{\n\"format\": \"json\",\n\"compress\": false,\n\"allowContinuation\": true\n}",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "set-progress-id",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "trigger-export",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "progress-id",
+					"value": {
+						"value": "@activity('trigger-export').output.result.progressId",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "until-export-complete",
+				"description": "Check status of export until status is \"complete\"",
+				"type": "Until",
+				"dependsOn": [
+					{
+						"activity": "set-progress-id",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@bool(variables('export-status'))",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "get-export-status",
+							"type": "WebActivity",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"url": {
+									"value": "https://syd1.qualtrics.com/API/v3/surveys/SV_bkGwmzYr5TJGFpk/export-responses/@{variables('progress-id')}",
+									"type": "Expression"
+								},
+								"method": "GET",
+								"headers": {
+									"Authorization": {
+										"value": "bearer @{variables('bearer-token')}",
+										"type": "Expression"
+									}
+								}
+							}
+						},
+						{
+							"name": "if-status-complete",
+							"type": "IfCondition",
+							"dependsOn": [
+								{
+									"activity": "get-export-status",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"expression": {
+									"value": "@equals(\n    activity('get-export-status').output.result.status, \n    'complete'\n)",
+									"type": "Expression"
+								},
+								"ifFalseActivities": [
+									{
+										"name": "wait",
+										"type": "Wait",
+										"dependsOn": [],
+										"userProperties": [],
+										"typeProperties": {
+											"waitTimeInSeconds": 2
+										}
+									}
+								],
+								"ifTrueActivities": [
+									{
+										"name": "get-file-id",
+										"type": "WebActivity",
+										"dependsOn": [],
+										"policy": {
+											"timeout": "7.00:00:00",
+											"retry": 0,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"url": {
+												"value": "https://syd1.qualtrics.com/API/v3/surveys/SV_bkGwmzYr5TJGFpk/export-responses/@{variables('progress-id')}",
+												"type": "Expression"
+											},
+											"method": "GET",
+											"headers": {
+												"Authorization": {
+													"value": "Bearer @{variables('bearer-token')}",
+													"type": "Expression"
+												}
+											}
+										}
+									},
+									{
+										"name": "complete-status-true",
+										"type": "SetVariable",
+										"dependsOn": [],
+										"userProperties": [],
+										"typeProperties": {
+											"variableName": "export-status",
+											"value": {
+												"value": "@bool(true)",
+												"type": "Expression"
+											}
+										}
+									},
+									{
+										"name": "set-file-id",
+										"type": "SetVariable",
+										"dependsOn": [
+											{
+												"activity": "get-file-id",
+												"dependencyConditions": [
+													"Succeeded"
+												]
+											}
+										],
+										"userProperties": [],
+										"typeProperties": {
+											"variableName": "file-id",
+											"value": {
+												"value": "@activity('get-file-id').output.result.fileId",
+												"type": "Expression"
+											}
+										}
+									},
+									{
+										"name": "set-continuation-token",
+										"type": "SetVariable",
+										"dependsOn": [
+											{
+												"activity": "get-file-id",
+												"dependencyConditions": [
+													"Succeeded"
+												]
+											}
+										],
+										"userProperties": [],
+										"typeProperties": {
+											"variableName": "continuation-token",
+											"value": {
+												"value": "@activity('get-file-id').output.result.continuationToken",
+												"type": "Expression"
+											}
+										}
+									}
+								]
+							}
+						}
+					],
+					"timeout": "0.10:00:00"
+				}
+			},
+			{
+				"name": "export-survey",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "until-export-complete",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "set-full-path",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "RestSource",
+						"httpRequestTimeout": "00:01:40",
+						"requestInterval": "00.00:00:00.010",
+						"requestMethod": "GET",
+						"additionalHeaders": {
+							"Authorization": {
+								"value": "bearer @{variables('bearer-token')}",
+								"type": "Expression"
+							}
+						}
+					},
+					"sink": {
+						"type": "JsonSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "JsonWriteSettings"
+						}
+					},
+					"enableStaging": false
+				},
+				"inputs": [
+					{
+						"referenceName": "REST_Binary",
+						"type": "DatasetReference",
+						"parameters": {
+							"url": {
+								"value": "@{pipeline().parameters.task.SourceQuery}/@{variables('file-id')}/file",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "DLS_Json",
+						"type": "DatasetReference",
+						"parameters": {
+							"filePath": {
+								"value": "@variables('OutputFullPath')",
+								"type": "Expression"
+							}
+						}
+					}
+				]
+			},
+			{
+				"name": "set-full-path",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "OutputFullPath",
+					"value": {
+						"value": "@replace(replace(replace(replace(replace(replace(\npipeline().parameters.task.RawPath\n,'$yyyy$', formatDateTime(convertTimeZone(utcnow(), 'UTC', 'AUS Eastern Standard Time'), 'yyyy'))\n,'$MM$', formatDateTime(convertTimeZone(utcnow(), 'UTC', 'AUS Eastern Standard Time'), 'MM'))\n,'$dd$', formatDateTime(convertTimeZone(utcnow(), 'UTC', 'AUS Eastern Standard Time'), 'dd'))\n,'$HH$', formatDateTime(convertTimeZone(utcnow(), 'UTC', 'AUS Eastern Standard Time'), 'HH'))\n,'$mm$', formatDateTime(convertTimeZone(utcnow(), 'UTC', 'AUS Eastern Standard Time'), 'mm'))\n,'$guid$', guid())",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "log-copy",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "export-survey",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "log-message",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": false,
+					"parameters": {
+						"ID": {
+							"value": "@pipeline().parameters.task.ID",
+							"type": "Expression"
+						},
+						"ActivityType": "copy-data",
+						"Message": {
+							"value": "@{activity('export-survey')}",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "task-raw-path",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "export-survey",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "log-status-update",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"ID": {
+							"value": "@pipeline().parameters.task.ID",
+							"type": "Expression"
+						},
+						"Property": "RawPath",
+						"Value": {
+							"value": "@variables('OutputFullPath')",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "qualtrics-failed",
+				"type": "Fail",
+				"dependsOn": [
+					{
+						"activity": "export-survey",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"message": {
+						"value": "@activity('export-survey').output.errors[0].Message",
+						"type": "Expression"
+					},
+					"errorCode": {
+						"value": "@activity('export-survey').output.errors[0].Code",
+						"type": "Expression"
+					}
+				}
+			}
+		],
+		"parameters": {
+			"task": {
+				"type": "object"
+			}
+		},
+		"variables": {
+			"client-id": {
+				"type": "String"
+			},
+			"bearer-token": {
+				"type": "String"
+			},
+			"url": {
+				"type": "String"
+			},
+			"continuation-token": {
+				"type": "String"
+			},
+			"progress-id": {
+				"type": "String"
+			},
+			"export-status": {
+				"type": "Boolean"
+			},
+			"file-id": {
+				"type": "String"
+			},
+			"OutputFullPath": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "MDP-Framework/SourceHandler/Qualtrics"
+		},
+		"annotations": []
+	}
+}
