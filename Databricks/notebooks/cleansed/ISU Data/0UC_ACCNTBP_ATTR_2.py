@@ -186,9 +186,6 @@ df = spark.sql(f"WITH stage AS \
                                 AUSGRUP_IN as outsortingCheckGroupCode, \
                                 OUTCOUNT as manualOutsortingCount, \
                                 MANOUTS_IN as manualOutsortingReasonCode, \
-                                SENDCONTROL_MA as shippingControlForAlternativeDunningRecipient, \
-                                SENDCONTROL_RH as dispatchControlForAlternativeBillRecipient, \
-                                SENDCONTROL_GP as dispatchControl, \
                                 KZABSVER as billingProcedureActivationIndicator, \
                                 ToValidDate(ERDAT) as createdDate, \
                                 ERNAM as createdBy, \
@@ -199,7 +196,6 @@ df = spark.sql(f"WITH stage AS \
                                 cast(DDLAM as dec(13,0)) as directDebitLimit, \
                                 DDLNM as numberOfMonthsForDirectDebitLimit, \
                                 EXVKO as businessPartnerReferenceNumber, \
-                                OPBUK as companyCodeGroup, \
                                 STDBK as standardCompanyCode, \
                                 ABWMA as alternativeDunningRecipient, \
                                 EBVTY as bankDetailsId, \
@@ -348,9 +344,6 @@ newSchema = StructType([
 	StructField('outsortingCheckGroupCode',StringType(),True),
 	StructField('manualOutsortingCount',StringType(),True),
 	StructField('manualOutsortingReasonCode',StringType(),True),
-	StructField('shippingControlForAlternativeDunningRecipient',StringType(),True),
-	StructField('dispatchControlForAlternativeBillRecipient',StringType(),True),
-	StructField('dispatchControl',StringType(),True),
 	StructField('billingProcedureActivationIndicator',StringType(),True),
 	StructField('createdDate',DateType(),True),
 	StructField('createdBy',StringType(),True),
@@ -361,7 +354,6 @@ newSchema = StructType([
 	StructField('directDebitLimit',DecimalType(13,0),True),
 	StructField('numberOfMonthsForDirectDebitLimit',StringType(),True),
 	StructField('businessPartnerReferenceNumber',StringType(),True),
-	StructField('companyCodeGroup',StringType(),True),
 	StructField('standardCompanyCode',StringType(),True),
 	StructField('alternativeDunningRecipient',StringType(),True),
 	StructField('bankDetailsId',StringType(),True),
