@@ -1,16 +1,19 @@
 {
-	"name": "kalturaSourceFolder",
+	"name": "kaltura_metadata_archive_blob",
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "LS_AzureBlobStorage",
 			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "AI-ML/Sewer CCTV"
 		},
 		"annotations": [],
 		"type": "Binary",
 		"typeProperties": {
 			"location": {
 				"type": "AzureBlobStorageLocation",
-				"folderPath": "Inbound",
+				"folderPath": "ARCHIVE",
 				"container": "kaltura"
 			}
 		}

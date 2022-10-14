@@ -40,8 +40,7 @@
 								"sink": {
 									"type": "BinarySink",
 									"storeSettings": {
-										"type": "AzureBlobStorageWriteSettings",
-										"copyBehavior": "PreserveHierarchy"
+										"type": "AzureBlobStorageWriteSettings"
 									}
 								},
 								"enableStaging": false
@@ -60,14 +59,8 @@
 							],
 							"outputs": [
 								{
-									"referenceName": "SourceVideoFolder_test",
-									"type": "DatasetReference",
-									"parameters": {
-										"video_id": {
-											"value": "@split(item().name, '-')[0]",
-											"type": "Expression"
-										}
-									}
+									"referenceName": "scctv_videos_inbound_blob",
+									"type": "DatasetReference"
 								}
 							]
 						},
@@ -112,13 +105,13 @@
 							},
 							"inputs": [
 								{
-									"referenceName": "kalturaSourceFolder",
+									"referenceName": "kaltura_metadata_inbound_blob",
 									"type": "DatasetReference"
 								}
 							],
 							"outputs": [
 								{
-									"referenceName": "KalturaDestn",
+									"referenceName": "kaltura_metadata_archive_blob",
 									"type": "DatasetReference"
 								}
 							]

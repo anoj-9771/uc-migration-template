@@ -16,7 +16,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"dataset": {
-						"referenceName": "SourceQueHighVideos",
+						"referenceName": "kaltura_metadata_inbound_blob",
 						"type": "DatasetReference"
 					},
 					"fieldList": [
@@ -152,7 +152,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"dataset": {
-						"referenceName": "SourceQueHighVideos",
+						"referenceName": "kaltura_metadata_inbound_blob",
 						"type": "DatasetReference"
 					},
 					"fieldList": [
@@ -182,7 +182,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"dataset": {
-						"referenceName": "kalturaSourceFolder",
+						"referenceName": "kaltura_metadata_inbound_blob",
 						"type": "DatasetReference"
 					},
 					"fieldList": [
