@@ -1,0 +1,381 @@
+{
+	"name": "scctv-main-daily-orchestration",
+	"properties": {
+		"activities": [
+			{
+				"name": "get-high-priority-que-videos",
+				"type": "GetMetadata",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "SourceQueHighVideos",
+						"type": "DatasetReference"
+					},
+					"fieldList": [
+						"childItems"
+					],
+					"storeSettings": {
+						"type": "AzureBlobStorageReadSettings",
+						"recursive": true,
+						"enablePartitionDiscovery": false
+					},
+					"formatSettings": {
+						"type": "BinaryReadSettings"
+					}
+				}
+			},
+			{
+				"name": "download-videos-high-priority",
+				"description": "to be run outside business hours",
+				"type": "Until",
+				"dependsOn": [
+					{
+						"activity": "get-high-priority-que-videos",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@or(and(greater(int(utcNow('HH')), pipeline().parameters.processEndTime), less(int(utcNow('HH')), pipeline().parameters.processStartTime)), or(equals(variables('fail'), 'true'), equals(variables('complete'), 'true')))",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "batch-download-videos",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "scctv-batch-download-videos",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"videoBatch": {
+										"value": "@activity('get-high-priority-que-videos').output",
+										"type": "Expression"
+									}
+								}
+							}
+						},
+						{
+							"name": "complete",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "batch-download-videos",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "complete",
+								"value": "true"
+							}
+						},
+						{
+							"name": "fail",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "batch-download-videos",
+									"dependencyConditions": [
+										"Failed"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "fail",
+								"value": "true"
+							}
+						}
+					],
+					"timeout": "0.12:00:00"
+				}
+			},
+			{
+				"name": "execute-AI-pipeline-high-priority",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "download-videos-high-priority",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "scctv-AI-pipeline",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"DatabricksJobName": "sewer-cctv-pipeline"
+					}
+				}
+			},
+			{
+				"name": "get-low-priority-que-videos",
+				"type": "GetMetadata",
+				"dependsOn": [
+					{
+						"activity": "execute-AI-pipeline-high-priority",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "SourceQueHighVideos",
+						"type": "DatasetReference"
+					},
+					"fieldList": [
+						"childItems"
+					],
+					"storeSettings": {
+						"type": "AzureBlobStorageReadSettings",
+						"recursive": true,
+						"enablePartitionDiscovery": false
+					},
+					"formatSettings": {
+						"type": "BinaryReadSettings"
+					}
+				}
+			},
+			{
+				"name": "get-kaltura-metadata",
+				"type": "GetMetadata",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "kalturaSourceFolder",
+						"type": "DatasetReference"
+					},
+					"fieldList": [
+						"childItems"
+					],
+					"storeSettings": {
+						"type": "AzureBlobStorageReadSettings",
+						"recursive": true,
+						"enablePartitionDiscovery": false
+					},
+					"formatSettings": {
+						"type": "BinaryReadSettings"
+					}
+				}
+			},
+			{
+				"name": "execute-AI-pipeline-low-priority",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "download-videos-low-priority",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "scctv-AI-pipeline",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"DatabricksJobName": "sewer-cctv-pipeline"
+					}
+				}
+			},
+			{
+				"name": "download-videos-low-priority",
+				"description": "run outside-business-hours",
+				"type": "Until",
+				"dependsOn": [
+					{
+						"activity": "get-low-priority-que-videos",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@or(and(greater(int(utcNow('HH')), pipeline().parameters.processEndTime), less(int(utcNow('HH')), pipeline().parameters.processStartTime)), or(equals(variables('fail'), 'true'), equals(variables('complete'), 'true')))",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "batch-download-videos_copy1",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "scctv-batch-download-videos",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"videoBatch": {
+										"value": "@activity('get-high-priority-que-videos').output",
+										"type": "Expression"
+									}
+								}
+							}
+						},
+						{
+							"name": "complete_copy1",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "batch-download-videos_copy1",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "complete",
+								"value": "true"
+							}
+						},
+						{
+							"name": "fail_copy1",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "batch-download-videos_copy1",
+									"dependencyConditions": [
+										"Failed"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "fail",
+								"value": "true"
+							}
+						}
+					],
+					"timeout": "0.12:00:00"
+				}
+			},
+			{
+				"name": "for-each-kaltura-metadata-json-file",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "get-kaltura-metadata",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('get-kaltura-metadata').output.childItems",
+						"type": "Expression"
+					},
+					"isSequential": true,
+					"activities": [
+						{
+							"name": "ingest-kaltura-metadata",
+							"type": "DatabricksNotebook",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"notebookPath": "Workspace/AI-ML/Sewer CCTV/ingest_kaltuira_metadata",
+								"baseParameters": {
+									"json_file_path": {
+										"value": "@item().name",
+										"type": "Expression"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "LS-AzureDatabricks_DefinedCluster",
+								"type": "LinkedServiceReference",
+								"parameters": {
+									"kvSecret": "databricks-token",
+									"clusterId": "1103-023442-me8nqcm9"
+								}
+							}
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"processStartTime": {
+				"type": "int",
+				"defaultValue": 18
+			},
+			"processEndTime": {
+				"type": "int",
+				"defaultValue": 6
+			}
+		},
+		"variables": {
+			"video_filename": {
+				"type": "String"
+			},
+			"complete": {
+				"type": "String",
+				"defaultValue": "false"
+			},
+			"fail": {
+				"type": "String",
+				"defaultValue": "false"
+			}
+		},
+		"folder": {
+			"name": "AI-ML/SewerCCTV"
+		},
+		"annotations": []
+	}
+}

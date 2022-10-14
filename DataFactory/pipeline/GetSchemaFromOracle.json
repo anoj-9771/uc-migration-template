@@ -1,0 +1,100 @@
+{
+	"name": "GetSchemaFromOracle",
+	"properties": {
+		"activities": [
+			{
+				"name": "GetSchemaFromMaximo",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "OracleSource",
+						"oracleReaderQuery": "SELECT \n    obj.object_name, \n    atc.column_name, \n    atc.data_type, \n    atc.data_length \nFROM \n    all_tab_columns atc,\n    (SELECT \n        * \n     FROM \n         all_objects\n     WHERE \n      --  object_name like 'GL_JE%'\n        -- owner = 'maximo'\n         object_type in ('TABLE','VIEW')   \n    ) obj\nWHERE \n    atc.table_name = obj.object_name\nORDER BY \n    obj.object_name, \n    atc.column_name;",
+						"partitionOption": "None",
+						"queryTimeout": "02:00:00"
+					},
+					"sink": {
+						"type": "DelimitedTextSink",
+						"storeSettings": {
+							"type": "AzureBlobStorageWriteSettings"
+						},
+						"formatSettings": {
+							"type": "DelimitedTextWriteSettings",
+							"quoteAllText": true,
+							"fileExtension": ".txt"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "OBJECT_NAME"
+								},
+								"sink": {
+									"name": "OBJECT_NAME",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "COLUMN_NAME"
+								},
+								"sink": {
+									"name": "COLUMN_NAME",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "DATA_TYPE"
+								},
+								"sink": {
+									"name": "DATA_TYPE",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "DATA_LENGTH"
+								},
+								"sink": {
+									"name": "DATA_LENGTH",
+									"type": "String"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SRC_Oracle",
+						"type": "DatasetReference",
+						"parameters": {
+							"kvSecret": "daf-oracle-labware-connectionstring"
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "DelimitedText1",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "MDP-Framework/Setup"
+		},
+		"annotations": []
+	}
+}

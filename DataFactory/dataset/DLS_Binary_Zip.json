@@ -1,0 +1,32 @@
+{
+	"name": "DLS_Binary_Zip",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_AzureDatalake",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"filePath": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "MDP-Framework/DLS"
+		},
+		"annotations": [],
+		"type": "Binary",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": {
+					"value": "@dataset().filePath",
+					"type": "Expression"
+				}
+			},
+			"compression": {
+				"type": "ZipDeflate",
+				"level": "Optimal"
+			}
+		}
+	}
+}

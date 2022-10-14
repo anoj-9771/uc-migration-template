@@ -1,0 +1,547 @@
+{
+	"name": "bods-load-manifest",
+	"properties": {
+		"activities": [
+			{
+				"name": "log-copy",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "copy-Manifest",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "log-message",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": false,
+					"parameters": {
+						"ID": {
+							"value": "@pipeline().parameters.task.ID",
+							"type": "Expression"
+						},
+						"ActivityType": "copy-data",
+						"Message": {
+							"value": "@{activity('copy-Manifest')}",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "fail-folder-copy",
+				"type": "Fail",
+				"dependsOn": [
+					{
+						"activity": "copy-Manifest",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"message": "fail-folder-copy",
+					"errorCode": "500"
+				}
+			},
+			{
+				"name": "switch-load-type",
+				"type": "Switch",
+				"dependsOn": [
+					{
+						"activity": "for-manifest-delta-count",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"on": {
+						"value": "@toLower(pipeline().parameters.LoadType)",
+						"type": "Expression"
+					},
+					"cases": [
+						{
+							"value": "overwrite",
+							"activities": [
+								{
+									"name": "task-update-manifest-delta-count-overwrite-mode",
+									"type": "ExecutePipeline",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "log-status-update",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": true,
+										"parameters": {
+											"ID": {
+												"value": "@pipeline().parameters.task.ID",
+												"type": "Expression"
+											},
+											"Property": "SourceRowCount",
+											"Value": {
+												"value": "@variables('ManifestDeltaCountTemp1')",
+												"type": "Expression"
+											}
+										}
+									}
+								},
+								{
+									"name": "task-update-manifest-full-count-overwrite-mode",
+									"type": "ExecutePipeline",
+									"dependsOn": [
+										{
+											"activity": "task-update-manifest-delta-count-overwrite-mode",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "log-status-update",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": true,
+										"parameters": {
+											"ID": {
+												"value": "@pipeline().parameters.task.ID",
+												"type": "Expression"
+											},
+											"Property": "CleansedSourceCount",
+											"Value": {
+												"value": "@variables('ManifestFullCount')",
+												"type": "Expression"
+											}
+										}
+									}
+								}
+							]
+						}
+					],
+					"defaultActivities": [
+						{
+							"name": "task-update-manifest-delta-count-default-mode",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "log-status-update",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"ID": {
+										"value": "@pipeline().parameters.task.ID",
+										"type": "Expression"
+									},
+									"Property": "SourceRowCount",
+									"Value": {
+										"value": "@variables('ManifestDeltaCountTotal')",
+										"type": "Expression"
+									}
+								}
+							}
+						},
+						{
+							"name": "task-update-manifest-full-count-default-mode_copy1",
+							"type": "ExecutePipeline",
+							"dependsOn": [
+								{
+									"activity": "task-update-manifest-delta-count-default-mode",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "log-status-update",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"ID": {
+										"value": "@pipeline().parameters.task.ID",
+										"type": "Expression"
+									},
+									"Property": "CleansedSourceCount",
+									"Value": {
+										"value": "@variables('ManifestFullCount')",
+										"type": "Expression"
+									}
+								}
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "copy-Manifest",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "get-file-metadata",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [
+					{
+						"name": "Destination",
+						"value": "raw/Cewa Financials/"
+					}
+				],
+				"typeProperties": {
+					"source": {
+						"type": "BinarySource",
+						"storeSettings": {
+							"type": "AzureBlobStorageReadSettings",
+							"recursive": true,
+							"wildcardFileName": {
+								"value": "@concat(pipeline().parameters.SourceFileName,'_MANIFEST_*')",
+								"type": "Expression"
+							},
+							"deleteFilesAfterCompletion": {
+								"value": "@pipeline().parameters.DeleteSourceFiles",
+								"type": "Expression"
+							}
+						},
+						"formatSettings": {
+							"type": "BinaryReadSettings"
+						}
+					},
+					"sink": {
+						"type": "BinarySink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						}
+					},
+					"enableStaging": false
+				},
+				"inputs": [
+					{
+						"referenceName": "BLOB_Binary_Folder",
+						"type": "DatasetReference",
+						"parameters": {
+							"folderPath": {
+								"value": "@pipeline().parameters.SourceFilePath",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "DLS_Binary_Folder",
+						"type": "DatasetReference",
+						"parameters": {
+							"folderPath": {
+								"value": "@replace(pipeline().parameters.OutputFullPath, pipeline().parameters.SourceFileName, concat(pipeline().parameters.SourceFileName,'_MANIFEST'))\n",
+								"type": "Expression"
+							}
+						}
+					}
+				]
+			},
+			{
+				"name": "get-file-metadata",
+				"type": "GetMetadata",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "BLOB_Json_File_Name",
+						"type": "DatasetReference",
+						"parameters": {
+							"BlobFolderName": {
+								"value": "@pipeline().parameters.SourceFilePath",
+								"type": "Expression"
+							},
+							"BlobFileName": {
+								"value": "@concat(pipeline().parameters.SourceFileName,'_MANIFEST_*')",
+								"type": "Expression"
+							}
+						}
+					},
+					"fieldList": [
+						"childItems"
+					],
+					"storeSettings": {
+						"type": "AzureBlobStorageReadSettings",
+						"recursive": true,
+						"enablePartitionDiscovery": false
+					},
+					"formatSettings": {
+						"type": "JsonReadSettings"
+					}
+				}
+			},
+			{
+				"name": "for-last-modified",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "get-file-metadata",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('get-file-metadata').output.childItems",
+						"type": "Expression"
+					},
+					"isSequential": true,
+					"activities": [
+						{
+							"name": "LookupRecordCount",
+							"type": "Lookup",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "JsonSource",
+									"storeSettings": {
+										"type": "AzureBlobStorageReadSettings",
+										"recursive": true,
+										"enablePartitionDiscovery": false
+									},
+									"formatSettings": {
+										"type": "JsonReadSettings"
+									}
+								},
+								"dataset": {
+									"referenceName": "BLOB_Json_Read",
+									"type": "DatasetReference",
+									"parameters": {
+										"BlobFolderName": {
+											"value": "@pipeline().parameters.SourceFilePath",
+											"type": "Expression"
+										},
+										"BlobName": {
+											"value": "@item().name",
+											"type": "Expression"
+										}
+									}
+								}
+							}
+						},
+						{
+							"name": "append-delta-count-array",
+							"type": "AppendVariable",
+							"dependsOn": [
+								{
+									"activity": "LookupRecordCount",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "ManifestDeltaCountArray",
+								"value": {
+									"value": "@string(activity('LookupRecordCount').output.firstRow.DELTA_RECORD_COUNT)\n",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "set-manifest-full-count",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "LookupRecordCount",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "ManifestFullCount",
+								"value": {
+									"value": "@string(activity('LookupRecordCount').output.firstRow.FULL_RECORD_COUNT)\n",
+									"type": "Expression"
+								}
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "set-manifest-delta-count",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "for-last-modified",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "ManifestDeltaCountTemp2",
+					"value": "0"
+				}
+			},
+			{
+				"name": "for-manifest-delta-count",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "set-manifest-delta-count",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@variables('ManifestDeltaCountArray')",
+						"type": "Expression"
+					},
+					"isSequential": true,
+					"activities": [
+						{
+							"name": "set-manifest-delta-count-temp1",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "ManifestDeltaCountTemp1",
+								"value": {
+									"value": "@item()",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "set-manifest-delta-count-total",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "set-manifest-delta-count-temp1",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "ManifestDeltaCountTotal",
+								"value": {
+									"value": "@string(add(int(variables('ManifestDeltaCountTemp1')),int(variables('ManifestDeltaCountTemp2'))))",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "set-manifest-delta-count-temp2",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "set-manifest-delta-count-total",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "ManifestDeltaCountTemp2",
+								"value": {
+									"value": "@variables('ManifestDeltaCountTotal')",
+									"type": "Expression"
+								}
+							}
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"task": {
+				"type": "object"
+			},
+			"SourceFilePath": {
+				"type": "string"
+			},
+			"OutputFullPath": {
+				"type": "string"
+			},
+			"DeleteSourceFiles": {
+				"type": "bool"
+			},
+			"SourceFileName": {
+				"type": "string"
+			},
+			"LoadType": {
+				"type": "string"
+			}
+		},
+		"variables": {
+			"DeltaCountArray": {
+				"type": "Array"
+			},
+			"ManifestDeltaCountArray": {
+				"type": "Array"
+			},
+			"ManifestDeltaCountTemp1": {
+				"type": "String"
+			},
+			"ManifestFullCount": {
+				"type": "String"
+			},
+			"ManifestDeltaCountTemp2": {
+				"type": "String"
+			},
+			"ManifestDeltaCountTotal": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "MDP-Framework/SourceHandler/BODS"
+		},
+		"annotations": []
+	}
+}
