@@ -40,7 +40,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"dataset": {
-						"referenceName": "SourceVideoFolder",
+						"referenceName": "scctv_videos_inbound_blob",
 						"type": "DatasetReference"
 					},
 					"fieldList": [

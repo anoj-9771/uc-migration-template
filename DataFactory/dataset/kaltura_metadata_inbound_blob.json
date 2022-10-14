@@ -1,9 +1,12 @@
 {
-	"name": "SourceVideoFolder",
+	"name": "kaltura_metadata_inbound_blob",
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "LS_AzureBlobStorage",
 			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "AI-ML/Sewer CCTV"
 		},
 		"annotations": [],
 		"type": "Binary",
@@ -11,7 +14,7 @@
 			"location": {
 				"type": "AzureBlobStorageLocation",
 				"folderPath": "Inbound",
-				"container": "sewercctvvideos"
+				"container": "kaltura"
 			}
 		}
 	},
