@@ -351,12 +351,11 @@ isu_0fcactdetid_text.accountDetermination,
 isu_0uc_accntbp_attr_2.alternativeInvoiceRecipient,
 isu_0uc_accntbp_attr_2.addressNumberForAlternativeBillRecipient,
 isu_0uc_accntbp_attr_2.alternativeContractAccountForCollectiveBills,
-isu_0uc_accntbp_attr_2.dispatchControlForAlternativeBillRecipient,
 isu_0uc_accntbp_attr_2.applicationForm applicationFormCode,
 isu_efrm.applicationFormDescription applicationForm,
 isu_0uc_accntbp_attr_2.sendAdditionalBillFlag,
 isu_0uc_accntbp_attr_2.headerUUID,
-isu_0uc_accntbp_attr_2.companyCodeGroup,
+isu_0uc_accntbp_attr_2.companyGroupCode,
 isu_0comp_code_text.companyName,
 isu_0uc_accntbp_attr_2.standardCompanyCode,
 isu_0comp_code_text_2.companyName standardCompanyName,
@@ -369,9 +368,8 @@ isu_0uc_accntbp_attr_2.alternativeDunningRecipient,
 isu_0uc_accntbp_attr_2.collectionStrategyCode,
 isu_tfk047xt.collectionStrategyName,
 isu_0uc_accntbp_attr_2.collectionManagementMasterDataGroup,
-isu_0uc_accntbp_attr_2.shippingControlForAlternativeDunningRecipient,
 isu_0uc_accntbp_attr_2.sendAdditionalDunningNoticeFlag,
-isu_0uc_accntbp_attr_2.dispatchControl dispatchControlCode,
+isu_0uc_accntbp_attr_2.dispatchControlForOriginalCustomerCode dispatchControlCode,
 isu_esendcontrolt.dispatchControlDescription dispatchControl,
 isu_0uc_accntbp_attr_2.budgetBillingRequestForCashPayer budgetBillingRequestForCashPayerCode,
 isu_dd07t_alias.domainValueText budgetBillingRequestForCashPayer,
@@ -422,7 +420,7 @@ left outer join cleansed.isu_efrm
 on isu_0uc_accntbp_attr_2.applicationForm = isu_efrm.applicationForm
 and isu_efrm.`_RecordCurrent` = 1
 left outer join cleansed.isu_0comp_code_text
-on isu_0uc_accntbp_attr_2.companyCodeGroup = isu_0comp_code_text.companyCode
+on isu_0uc_accntbp_attr_2.companyGroupCode = isu_0comp_code_text.companyCode
 and isu_0comp_code_text.`_RecordCurrent` = 1
 left outer join cleansed.isu_0comp_code_text isu_0comp_code_text_2
 on isu_0uc_accntbp_attr_2.standardCompanyCode = isu_0comp_code_text_2.companyCode
@@ -435,7 +433,7 @@ left outer join cleansed.isu_tfk047xt
 on isu_0uc_accntbp_attr_2.collectionStrategyCode = isu_tfk047xt.collectionStrategyCode
 and isu_tfk047xt.`_RecordCurrent` = 1
 left outer join cleansed.isu_esendcontrolt
-on isu_0uc_accntbp_attr_2.dispatchControl = isu_esendcontrolt.dispatchControlCode
+on isu_0uc_accntbp_attr_2.dispatchControlForOriginalCustomerCode = isu_esendcontrolt.dispatchControlCode
 and isu_esendcontrolt.`_RecordCurrent` = 1
 left outer join cleansed.isu_dd07t isu_dd07t_alias
 on isu_dd07t_alias.domainName = 'ABSLANFO'
