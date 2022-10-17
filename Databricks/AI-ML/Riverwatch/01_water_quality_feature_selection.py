@@ -7,11 +7,8 @@
 
 # COMMAND ----------
 
-dbutils.widgets.text(name="last_model_runtime", defaultValue="2022-01-07T12:00:00.000", label="last_model_runtime")
-# The "current_model_runtime" is only for the initial test. 
-# Aiming to see the final processed dataset as 24 rows (hours) for each location when there are 24 hours gap between "last_model_runtime" and "current_model_runtime"
-dbutils.widgets.text(name="current_model_runtime", defaultValue="2022-02-09T12:00:00.000", label="current_model_runtime")
-dbutils.widgets.text(name="ADS_ENVIRONMENT", defaultValue="dev", label="ADS_ENVIRONMENT")
+dbutils.widgets.text(name="current_model_runtime", defaultValue="2022-02-10T08:33:00.000", label="current_model_runtime")
+dbutils.widgets.text(name="last_model_runtime", defaultValue="2022-02-09T08:00:00.000", label="current_model_runtime")
 
 # COMMAND ----------
 
@@ -19,6 +16,13 @@ from pyspark.sql import functions as psf
 from pyspark.sql import Window as W
 from pyspark.sql import types as t
 from pyspark.sql.types import IntegerType, StringType, DoubleType, StructType, StructField, FloatType
+import datetime
+ 
+LAST_MODEL_RUNTIME = dbutils.widgets.get("last_model_runtime")
+CURRENT_MODEL_RUNTIME = dbutils.widgets.get("current_model_runtime")
+# CURRENT_MODEL_RUNTIME = datetime.datetime.now() # set current timestamp (using datetime function) for test
+
+print(CURRENT_MODEL_RUNTIME)
 
 # COMMAND ----------
 
@@ -26,32 +30,55 @@ from pyspark.sql.types import IntegerType, StringType, DoubleType, StructType, S
 
 # COMMAND ----------
 
-ADS_ENVIRONMENT=dbutils.widgets.get("ADS_ENVIRONMENT")
+try: 
+    df_hierarchy_cnfgn = spark.table("cleansed.iicats_hierarchy_cnfgn").alias("hcnfg")
+    print("IICATS Hierarchy Config loaded from cleansed")
+except:
+        try:
+            df_hierarchy_cnfgn = spark.table("datalab.iicats_hierarchy_cnfgn_riverwatch_2022").alias("hcnfg")
+            print("IICATS Hierarchy Config loaded from datalab")
+        except ValueError:
+                print("Cleansed & Datalab tables for IICATS Hierarchy Config do not exist.")
+                
+try: 
+    df_time_series_values_cnfgn = spark.table("cleansed.iicats_tsv_point_cnfgn").alias("tsvptcnfg")
+    print("IICATS TSV Config loaded from cleansed")
+except:
+        try:
+            df_time_series_values_cnfgn = spark.table("datalab.iicats_tsv_point_cnfgn_riverwatch_2022").alias("tsvptcnfg")
+            print("IICATS TSV Config loaded from datalab")
+        except ValueError:
+                print("Cleansed & Datalab tables for IICATS TSV Config do not exist.") 
+                
+try: 
+    df_time_series_values = spark.table("cleansed.iicats_tsv").alias("tsv")
+    print("IICATS TSV loaded from cleansed")
+except:
+        try:
+            df_time_series_values = spark.table("datalab.iicats_tsv_riverwatch_2022").alias("tsv")
+            print("IICATS TSV loaded from datalab")
+        except ValueError:
+                print("Cleansed & Datalab tables for IICATS TSV do not exist.")    
 
-if ADS_ENVIRONMENT == "dev":
-    print("Here")
-    df_hierarchy_cnfgn = spark.table("datalab.iicats_hierarchy_cnfgn_riverwatch_2022").alias("hcnfg")
-    df_time_series_values_cnfgn = spark.table("datalab.iicats_tsv_point_cnfgn_riverwatch_2022").alias("tsvptcnfg")
-    df_time_series_values = spark.table("datalab.iicats_tsv_riverwatch_2022").alias("tsv")
-    df_sun=spark.table("hive_metastore.cleansed.bom_dailyweatherobservation_sydneyairport")
-    df_solar=spark.table("datalab.solar_exposure_2022")
-    
-    import datetime
-    LAST_MODEL_RUNTIME=dbutils.widgets.get("last_model_runtime")
-#     CURRENT_MODEL_RUNTIME=dbutils.widgets.get("current_model_runtime")
-    CURRENT_MODEL_RUNTIME=datetime.datetime.now() # set current timestamp (using datetime function) for test
-    print(CURRENT_MODEL_RUNTIME)
-    
-elif ADS_ENVIRONMENT == "test":
-    df_sun=spark.table("hive_metastore.cleansed.bom_dailyweatherobservation_sydneyairport")
-elif ADS_ENVIRONMENT == "preprod":
-    df_sun=spark.table("hive_metastore.cleansed.bom_dailyweatherobservation_sydneyairport")
-elif ADS_ENVIRONMENT == "prod":
-    df_sun=spark.table("hive_metastore.cleansed.bom_dailyweatherobservation_sydneyairport")
-#     df_time_series_values = spark.table("cleansed.iicats_tsv")
-    
-
-display(df_solar)
+try: 
+    df_sun=spark.table("cleansed.bom_dailyweatherobservation_sydneyairport")
+    print("BoM Weather Observations loaded from cleansed")
+except:
+        try:
+            df_sun=spark.table("cleansed.bom_dailyweatherobservation_sydneyairport")
+            print("BoM Weather Observations loaded from datalab")
+        except ValueError:
+                print("Cleansed & Datalab tables for BoM Weather Observations do not exist.")  
+                
+try: 
+    df_solar=spark.table("cleansed.bom_dailyclimatedata_sydneyairport")
+    print("BoM Climate Data loaded from cleansed")
+except:
+        try:
+            df_solar=spark.table("datalab.solar_exposure_2022")
+            print("BoM Climate Data loaded from datalab")
+        except ValueError:
+                print("Cleansed & Datalab tables for Climate Data do not exist.")   
 
 # COMMAND ----------
 
@@ -100,8 +127,6 @@ df_solar=(df_solar
               .where(psf.col("epoch_Date")>=(psf.col("epoch_LAST_RUNTIME")-EPOCH_TIMESTAMP_2d))
        )
 
-display(df_time_series_values)
-
 # COMMAND ----------
 
 # MAGIC %md ## Hourly rainfall all sites
@@ -117,7 +142,6 @@ df_time_series_values = (df_time_series_values
                          .orderBy("timestamp")
 #                          .where(psf.col("CDB_OBJ_ID")==557525)
                         )
-display(df_time_series_values)
 
 # COMMAND ----------
 
@@ -161,7 +185,6 @@ df_iicats_rainfall = (df_hierarchy_cnfgn
                             how='left'
                            )
                        )
-display(df_iicats_rainfall)
 
 # COMMAND ----------
 
@@ -178,8 +201,6 @@ df = (df_iicats_rainfall
            psf.max(psf.col("timestamp")).alias("last_timestamp")
           )
        )
-display(df)
-
 
 # COMMAND ----------
 
@@ -198,7 +219,6 @@ realtime_ref  = (df
         .select("SITE_NM", "PNT_CDB_OBJ_ID", "epoch_timestamp","timestamp")
          .alias("ref")
        )
-display(realtime_ref)
 
 # COMMAND ----------
 
@@ -215,7 +235,6 @@ realtime_missing_hourly_filled=(realtime_ref
              )
       .withColumn("TSV_RSLT_VAL", psf.when(psf.col("TSV_RSLT_VAL").isNull(), 0).otherwise(psf.col("TSV_RSLT_VAL")))
        )
-display(realtime_missing_hourly_filled)
 
 # COMMAND ----------
 
@@ -224,7 +243,7 @@ display(realtime_missing_hourly_filled)
 # COMMAND ----------
 
 swim_site_specific_rainfall = (realtime_missing_hourly_filled
-                               .withColumn("swim_site", 
+                               .withColumn("siteName", 
                                            psf.when(((psf.col("SITE_NM") == "GG0019 CONCORD") |
                                                      (psf.col("SITE_NM") == "GG0020 FIVEDOCK") |
                                                      (psf.col("SITE_NM") == "GG0064 GLADESVILLE") 
@@ -238,9 +257,8 @@ swim_site_specific_rainfall = (realtime_missing_hourly_filled
                                                     )
                                                 .otherwise(None)
                                           )
-                               .where(psf.col("swim_site").isNotNull())
+                               .where(psf.col("siteName").isNotNull())
                               )
-display(swim_site_specific_rainfall)
 
 # COMMAND ----------
 
@@ -252,7 +270,7 @@ w24=W.orderBy("epoch_timestamp").rowsBetween(RAIN_24_FILTER,-1)
 
 rain_24=(swim_site_specific_rainfall
                 .withColumn("date", psf.to_date(psf.col("ref.timestamp")))
-                .groupBy("date", "epoch_timestamp", "swim_site")
+                .groupBy("date", "epoch_timestamp", "siteName")
                 .mean("TSV_RSLT_VAL")
                 .withColumn("rain_24", psf.sum(psf.col("avg(TSV_RSLT_VAL)")).over(w24))
 #                 .withColumn("timestamp", psf.to_timestamp(psf.from_unixtime(psf.col("epoch_timestamp"))))
@@ -261,7 +279,6 @@ rain_24=(swim_site_specific_rainfall
                 .where(psf.col("epoch_timestamp")>=psf.col("epoch_LAST_RUNTIME"))
                 .alias("past_rain_hours")
         )
-display(rain_24)
 
 # COMMAND ----------
 
@@ -273,14 +290,13 @@ w48=W.orderBy("epoch_timestamp").rowsBetween(RAIN_48_FILTER,-1)
 
 rain_48=(swim_site_specific_rainfall
        .withColumn("date", psf.to_date(psf.col("ref.timestamp")))
-                .groupBy("date", "epoch_timestamp", "swim_site")
+                .groupBy("date", "epoch_timestamp", "siteName")
                 .mean("TSV_RSLT_VAL")
                 .withColumn("rain_48", psf.sum(psf.col("avg(TSV_RSLT_VAL)")).over(w48))
 #                 .withColumn("timestamp", psf.to_timestamp(psf.from_unixtime(psf.col("epoch_timestamp"))))
                .orderBy("epoch_timestamp")
                   .alias("past_rain_hours")
         )
-display(rain_48)
 
 # COMMAND ----------
 
@@ -292,14 +308,13 @@ w72=W.orderBy("epoch_timestamp").rowsBetween(RAIN_72_FILTER,-1)
 
 rain_72=(swim_site_specific_rainfall
        .withColumn("date", psf.to_date(psf.col("ref.timestamp")))
-                .groupBy("date", "epoch_timestamp", "swim_site")
+                .groupBy("date", "epoch_timestamp", "siteName")
                 .mean("TSV_RSLT_VAL")
                 .withColumn("rain_72", psf.sum(psf.col("avg(TSV_RSLT_VAL)")).over(w72))
 #                 .withColumn("timestamp", psf.to_timestamp(psf.from_unixtime(psf.col("epoch_timestamp"))))
                .orderBy("epoch_timestamp")
                   .alias("past_rain_hours")
       )
-display(rain_72)
 
 # COMMAND ----------
 
@@ -311,14 +326,13 @@ w7d=W.orderBy("epoch_timestamp").rowsBetween(RAIN_7d_FILTER,-1)
 
 rain_7d=(swim_site_specific_rainfall
        .withColumn("date", psf.to_date(psf.col("ref.timestamp")))
-                .groupBy("date", "epoch_timestamp", "swim_site")
+                .groupBy("date", "epoch_timestamp", "siteName")
                 .mean("TSV_RSLT_VAL")
                 .withColumn("rain_7d", psf.sum(psf.col("avg(TSV_RSLT_VAL)")).over(w7d))
 #                 .withColumn("timestamp", psf.to_timestamp(psf.from_unixtime(psf.col("epoch_timestamp"))))
                .orderBy("epoch_timestamp")
                   .alias("past_rain_hours")
       )
-display(rain_7d)
 
 # COMMAND ----------
 
@@ -331,7 +345,7 @@ w48=W.orderBy("epoch_timestamp").rowsBetween(RAIN_48_FILTER,-1)
 
 Rintensity=(swim_site_specific_rainfall
        .withColumn("date", psf.to_date(psf.col("ref.timestamp")))
-                .groupBy("date", "epoch_timestamp", "swim_site")
+                .groupBy("date", "epoch_timestamp", "siteName")
                 .mean("TSV_RSLT_VAL")
                 .withColumn("rain_int", psf.mean(psf.col("avg(TSV_RSLT_VAL)")).over(w3))
                 .withColumn("Rintensity", psf.max(psf.col("rain_int")).over(w48))
@@ -339,7 +353,6 @@ Rintensity=(swim_site_specific_rainfall
                .orderBy("epoch_timestamp")
                   .alias("past_rain_hours")
           )
-display(Rintensity)
 
 # COMMAND ----------
 
@@ -351,7 +364,7 @@ w48=W.orderBy("epoch_timestamp").rowsBetween(RAIN_48_FILTER,-1)
 
 Rduration=(swim_site_specific_rainfall
        .withColumn("date", psf.to_date(psf.col("ref.timestamp")))
-                .groupBy("date", "epoch_timestamp", "swim_site")
+                .groupBy("date", "epoch_timestamp", "siteName")
                 .mean("TSV_RSLT_VAL")
                 .withColumn("rain_dur", psf.when(psf.col('avg(TSV_RSLT_VAL)') >= 2., 1).otherwise(0))
                 .withColumn("Rduration", psf.sum(psf.col("rain_dur")).over(w48))
@@ -359,7 +372,6 @@ Rduration=(swim_site_specific_rainfall
                .orderBy("epoch_timestamp")
                   .alias("past_rain_hours")
       )
-display(Rduration)
 
 # COMMAND ----------
 
@@ -372,14 +384,13 @@ w48partNM = W.partitionBy("SITE_NM").orderBy("epoch_timestamp").rowsBetween(RAIN
 Rdistribution = (swim_site_specific_rainfall
                     .withColumn("rain_48_ES",psf.sum(psf.col("TSV_RSLT_VAL")).over(w48partNM))
                     .withColumn("flag:rain_48>=2mm",psf.when(psf.col("rain_48_ES") >= 2., 1).otherwise(0))
-                    .groupBy("epoch_timestamp","swim_site")
+                    .groupBy("epoch_timestamp","siteName")
                     .sum("flag:rain_48>=2mm")
                     .withColumnRenamed("sum(flag:rain_48>=2mm)", "Rdistribution")
                     .withColumn("timestamp", psf.to_timestamp(psf.from_unixtime(psf.col("epoch_timestamp"))))
                     .orderBy("epoch_timestamp")
-                    .select("epoch_timestamp","Rdistribution","swim_site")
+                    .select("epoch_timestamp","Rdistribution","siteName")
                    )
-display(Rdistribution)
 
 # COMMAND ----------
 
@@ -398,7 +409,7 @@ days_after_rain_20mm = (rain_24
                      .withColumn('preceding_epoch_day_rain_20mm', psf.last('epoch_day_rain_20mm', ignorenulls=True).over(wdaily.rowsBetween(W.unboundedPreceding, -1)))
                      .withColumn("days_after_rain_20mm",(psf.col("epoch_timestamp")-psf.col("preceding_epoch_day_rain_20mm"))/daily_seconds)
                      .alias("drydays20mm")
-                     .select("timestamp","epoch_timestamp", "swim_site", "days_after_rain_20mm")
+                     .select("timestamp","epoch_timestamp", "siteName", "days_after_rain_20mm")
                       )
 display(days_after_rain_20mm)
 
@@ -413,7 +424,7 @@ win = W.orderBy("date")
 sun_24=(df_sun
         .dropDuplicates(["Date"])
         .withColumnRenamed("Date", "date")
-        .withColumn("sun_24", psf.lag("Sunshine_hours",1).over(win))
+        .withColumn("sun_24", psf.lag("Sunshine_hours",1).over(win).cast("double"))
         .select("date", "Sunshine_hours", "sun_24",)
         
        )
@@ -430,7 +441,7 @@ wsolor24 = W.partitionBy("Bureau of Meteorology station number").orderBy("date")
 solar_24=(df_solar
         .where(psf.col("Bureau of Meteorology station number")==66037) #66037 is the gauge number of Sydney Airport
         .withColumn("date", psf.date_format(psf.make_date("Year","Month","Day"), 'y-M-d').alias('date'))
-        .withColumn("solar_24", psf.lag("Daily global solar exposure (MJ/m*m)",1).over(wsolor24))
+        .withColumn("solar_24", psf.lag("Daily global solar exposure (MJ/m*m)",1).over(wsolor24).cast("double"))
         .select("date", "Daily global solar exposure (MJ/m*m)", "solar_24")
        )
 display(solar_24)
@@ -443,25 +454,25 @@ display(solar_24)
 
 model_realtime_input = (rain_24
                        .join(rain_48,
-                             on=["epoch_timestamp", "swim_site"],
+                             on=["epoch_timestamp", "siteName"],
                              how="left")
                        .join(rain_72,
-                             on=["epoch_timestamp", "swim_site"],
+                             on=["epoch_timestamp", "siteName"],
                              how="left")
                        .join(rain_7d,
-                             on=["epoch_timestamp", "swim_site"],
+                             on=["epoch_timestamp", "siteName"],
                              how="left")
                        .join(Rintensity,
-                             on=["epoch_timestamp", "swim_site"],
+                             on=["epoch_timestamp", "siteName"],
                              how="left")
                        .join(Rduration,
-                             on=["epoch_timestamp", "swim_site"],
+                             on=["epoch_timestamp", "siteName"],
                              how="left")
                        .join(Rdistribution,
-                             on=["epoch_timestamp", "swim_site"],
+                             on=["epoch_timestamp", "siteName"],
                              how="left")
                        .join(days_after_rain_20mm,
-                             on=["epoch_timestamp", "swim_site"],
+                             on=["epoch_timestamp", "siteName"],
                              how="left")
                        .join(sun_24,
                              on="date",
@@ -471,8 +482,11 @@ model_realtime_input = (rain_24
                              how="left")
                        .withColumn("timestamp", psf.to_timestamp(psf.from_unixtime(psf.col("epoch_timestamp"))))
                        .orderBy("epoch_timestamp")
-                       .select("epoch_timestamp","swim_site", "timestamp","rain_24","rain_48","rain_72","rain_7d"
-                               ,"Rintensity","Rduration","Rdistribution","days_after_rain_20mm","sun_24","solar_24").na.fill(value=0)
+                       .select("epoch_timestamp","siteName", "timestamp","rain_24","rain_48","rain_72","rain_7d"
+                               ,"Rintensity","Rduration","Rdistribution","days_after_rain_20mm","sun_24","solar_24")
+                       .na.fill(value=0,subset=["rain_24","rain_48","rain_72","rain_7d"
+                               ,"Rintensity","Rduration","Rdistribution","days_after_rain_20mm"])
+                        .where(psf.col("timestamp") == (psf.floor(psf.unix_timestamp(psf.lit(CURRENT_MODEL_RUNTIME), "yyyy-MM-dd'T'hh:mm:ss.SSS")/3600)*3600).cast("timestamp") - psf.expr('INTERVAL 1 HOURS'))
                        )
 display(model_realtime_input)
 
@@ -574,7 +588,36 @@ infer_input_cato= (model_realtime_input
                                                                     .when(((psf.col("days_after_rain_20mm") >= 3) 
                                                                                 & (psf.col("days_after_rain_20mm") < 4)), catranges_dar20[3])
                                                                     .when((psf.col("days_after_rain_20mm") >= 4), catranges_dar20[4])
-                                   )    
+                                   )
+                   .withColumn("locationId",psf.when(psf.col("siteName")=="Bayview",1)
+                               .when(psf.col("siteName")=="Putney Park",2)
+                              )
+                   .withColumn("_DLCleansedZoneTimeStamp", psf.current_timestamp())
+                   .select("locationId",
+                           "siteName",
+                           "timestamp",
+                           "rain_24",
+                           "rain_24_cat",
+                           "rain_48",
+                           "rain_48_cat",
+                           "rain_72",
+                           "rain_72_cat",
+                           "rain_7d",
+                           "rain_7d_cat",
+                           "Rintensity",
+                           "Rintensity_cat",
+                           "Rduration",
+                           "Rduration_cat",
+                           "Rdistribution",
+                           "Rdistribution_cat",
+                           "days_after_rain_20mm",
+                           "days_after_rain_20mm_cat",
+                           "sun_24",
+                           "sun_24_cat",
+                           "solar_24",
+                           "solar_24_cat",
+                           "_DLCleansedZoneTimeStamp"
+                          )
                
                 )
 display(infer_input_cato)
@@ -585,99 +628,41 @@ display(infer_input_cato)
 
 # COMMAND ----------
 
-# w24=W.orderBy("epoch_timestamp").rowsBetween(-24,-1)
-# epochwin_24hr=3600*24
-
-# Data_in24hrWindow=(infer_input_cato
-#                    .where(psf.col('swim_site')=='Bayview')
-#                    #-------obtain current timestamp--------
-#                    .withColumn("current_timestamp",psf.date_trunc("hour", psf.current_timestamp()))
-#                    .withColumn("current_epoch",psf.unix_timestamp(psf.col("current_timestamp")))
-#                    #-------filter the recent 24hr timestamp
-#                    .withColumn("epoch_dif",psf.col('current_epoch')-psf.col('epoch_timestamp'))
-#                    .where(psf.col("epoch_dif")>epochwin_24hr)
-                   
-# )
-# display(Data_in24hrWindow)
-
-# infer_input_cato.write.saveAsTable("datalab.riverwatch_preprocessed_model_input")
-
-# COMMAND ----------
-
-# MAGIC %md # Appendices
-
-# COMMAND ----------
-
-# MAGIC %md ## days_after_rain_20mm (strictly daily with integer days)
-
-# COMMAND ----------
-
-# # The days between the water quality sample and the 'first preceding' rain event must have had less then 20mm to have been counted.
-# daily_seconds=3600*24
-# wdaily = W.orderBy("epoch_timestamp")
-# dry_days_after_20mm = (modelinput_rain1
-#                      .withColumn("epoch_timestamp", psf.col("epoch_timestamp") - psf.col("epoch_timestamp")%daily_seconds)
-#                      .groupBy("epoch_timestamp")
-#                      .sum("avg(TSV_RSLT_VAL)")
-#                      .withColumnRenamed("sum(avg(TSV_RSLT_VAL))", "rain_daily")
-#                      .withColumn("timestamp", psf.to_timestamp(psf.from_unixtime(psf.col("epoch_timestamp"))))
-#                      .orderBy("epoch_timestamp")
-#                      .withColumn('epoch_day_rain_20mm', psf.when(psf.col('rain_daily')>=20, psf.col('epoch_timestamp')))
-#                      .withColumn('preceding_epoch_day_rain_20mm', psf.last('epoch_day_rain_20mm', ignorenulls=True).over(wdaily.rowsBetween(W.unboundedPreceding, -1)))
-#                      .withColumn("dry_days_after_20mm",(psf.col("epoch_timestamp")-psf.col("preceding_epoch_day_rain_20mm"))/daily_seconds-1)
-#                        .alias("drydays20mm")
-#                       )
-# display(dry_days_after_20mm)
+# MAGIC %sql
+# MAGIC -- Create urbanplunge_water_quality_predictions table in cleansed layer
+# MAGIC CREATE TABLE IF NOT EXISTS cleansed.urbanplunge_water_quality_features
+# MAGIC (
+# MAGIC locationId INT,
+# MAGIC siteName STRING,
+# MAGIC timestamp TIMESTAMP,
+# MAGIC rain_24 DOUBLE,
+# MAGIC rain_24_cat STRING,
+# MAGIC rain_48 DOUBLE,
+# MAGIC rain_48_cat STRING,
+# MAGIC rain_72 DOUBLE,
+# MAGIC rain_72_cat STRING,
+# MAGIC rain_7d DOUBLE,
+# MAGIC rain_7d_cat STRING,
+# MAGIC Rintensity DOUBLE,
+# MAGIC Rintensity_cat STRING,
+# MAGIC Rduration DOUBLE,
+# MAGIC Rduration_cat STRING,
+# MAGIC Rdistribution DOUBLE,
+# MAGIC Rdistribution_cat STRING,
+# MAGIC days_after_rain_20mm DOUBLE,
+# MAGIC days_after_rain_20mm_cat STRING,
+# MAGIC sun_24 DOUBLE, 
+# MAGIC sun_24_cat STRING,
+# MAGIC solar_24 DOUBLE,
+# MAGIC solar_24_cat STRING,
+# MAGIC _DLCleansedZoneTimeStamp TIMESTAMP
+# MAGIC )
+# MAGIC USING DELTA 
+# MAGIC LOCATION 'dbfs:/mnt/datalake-cleansed/urbanplunge/urbanplunge_water_quality_features'
+# MAGIC 
+# MAGIC -- df_model_output.write.mode("append").insertInto('cleansed.urbanplunge_water_quality_predictions')
 
 # COMMAND ----------
 
-# MAGIC %md ## Test registered model using real data
-
-# COMMAND ----------
-
-# import mlflow
-# from pyspark.sql.functions import struct
-
-# # # ------------------------------- load experiment model-------------
-# # logged_model = 'runs:/c8f5f0eb4dc4491895d53e1ba81ffc56/riverwatch_test'
-
-# # # --------------------------------load registered model--------------
-# _MODEL_NAME = "riverwatch-pollution-classifier"
-# _MODEL_VERSION = "1"
-# logged_model = f'models:/{_MODEL_NAME}/{_MODEL_VERSION}'
-# # # --------------------------------end load registered model--------------
-
-# # Load model as a Spark UDF. Override result_type if the model does not return double values.
-# loaded_model = mlflow.pyfunc.spark_udf(spark, model_uri=logged_model, env_manager='conda', result_type='string')
-# # df = df.withColumn("MyNewCol", expr("udf.Method(LGACode, LGA, )"))
-# tmpdata=(infer_input_cato
-#             .where(psf.col("epoch_timestamp")==1658102400)
-#             .select("rain_48","Rduration_cat","Rintensity_cat", "rain_48_cat","Rdistribution_cat","rain_24_cat","rain_72_cat","rain_7d_cat","solar_24_cat","sun_24_cat","days_after_rain_20mm_cat")
-#         )
-
-# # display(tmpdata)
-
-# inputdata=struct(tmpdata.columns)
-
-# print(inputdata)
-
-# prediction=(tmpdata
-# #             .withColumn("struct")
-# #             .withColumn("predict_BN",loaded_model(struct("Rduration_cat","Rintensity_cat", "rain_48_cat","Rdistribution_cat","rain_24_cat","rain_72_cat","rain_7d_cat","solar_24_cat","sun_24_cat","days_after_rain_20mm_cat")
-#               .withColumn("predict_BN",loaded_model(struct(tmpdata.columns)
-#                                                    )
-#                        )
-#             .withColumn("predict_BW",psf.when(((psf.col("rain_48") >= 0) 
-#                                                       & (psf.col("rain_48") < 12)), "Unlikely")
-#                                                         .when(((psf.col("rain_48") >= 12) 
-#                                                       & (psf.col("rain_48") < 20)), "Possible")
-#                                                         .when((psf.col("rain_48") >= 20), "Likely")
-#                        )
-#             )
-
-# display(prediction)
-
-
-# COMMAND ----------
-
-
+#data inserted to the video metadata table
+infer_input_cato.write.mode("append").insertInto('cleansed.urbanplunge_water_quality_features')

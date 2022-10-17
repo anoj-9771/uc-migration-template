@@ -5,7 +5,14 @@
 			{
 				"name": "get-high-priority-que-videos",
 				"type": "GetMetadata",
-				"dependsOn": [],
+				"dependsOn": [
+					{
+						"activity": "run-deployment-pipeline",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
 				"policy": {
 					"timeout": "0.12:00:00",
 					"retry": 0,
@@ -171,7 +178,14 @@
 			{
 				"name": "get-kaltura-metadata",
 				"type": "GetMetadata",
-				"dependsOn": [],
+				"dependsOn": [
+					{
+						"activity": "run-deployment-pipeline",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
 				"policy": {
 					"timeout": "0.12:00:00",
 					"retry": 0,
@@ -348,6 +362,19 @@
 						}
 					]
 				}
+			},
+			{
+				"name": "run-deployment-pipeline",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "scctv-deployment-pipeline",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
 			}
 		],
 		"parameters": {
@@ -374,7 +401,7 @@
 			}
 		},
 		"folder": {
-			"name": "AI-ML/SewerCCTV"
+			"name": "AI-ML/Sewer CCTV"
 		},
 		"annotations": []
 	}

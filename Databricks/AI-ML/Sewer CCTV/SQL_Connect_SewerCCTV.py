@@ -22,7 +22,6 @@ def JdbcConnectionFromSqlConnectionString(connectionString):
 
 def RunQuery(sql):
     jdbc = JdbcConnectionFromSqlConnectionString(dbutils.secrets.get(scope = "ADS", key = "daf-sql-sewercctv-connectionstring"))
-    print(jdbc)
     return spark.read.option("driver", "com.microsoft.sqlserver.jdbc.SQLServerDriver").jdbc(url=jdbc, table=f"({sql}) T")
 
 # COMMAND ----------
@@ -37,7 +36,6 @@ def ExecuteStatement(sql):
 
 def WriteTable(sourceDf, targetTable, mode):
     jdbc = JdbcConnectionFromSqlConnectionString(dbutils.secrets.get(scope = "ADS", key = "daf-sql-sewercctv-connectionstring"))
-    df = sourceDf
-    df.write \
+    sourceDf.write \
     .mode(mode) \
     .jdbc(jdbc, targetTable)
