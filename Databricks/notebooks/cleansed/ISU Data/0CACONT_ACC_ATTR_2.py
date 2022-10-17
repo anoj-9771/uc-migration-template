@@ -231,7 +231,7 @@ df = spark.sql(f"""
                ERNAM                                           as createdBy, 
                ToValidDate(AEDAT)                              as lastChangedDate, 
                AENAM                                           as lastChangedBy, 
-               LOEVM                                           as deletedFlag,
+               if(LOEVM = 'X', 'Y', 'N')                       as deletedFlag,
                APPLK                                           as applicationAreaCode, 
                APP.applicationArea                             as applicationArea,
                VKTYP                                           as contractAccountCategoryCode, 
