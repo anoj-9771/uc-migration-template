@@ -11,21 +11,11 @@
 from pyspark.sql import functions as psf
 from pyspark.sql import Window as W
 from pyspark.sql import types as t
-from pyspark.sql.types import IntegerType, StringType, DoubleType, StructType, StructField, FloatType
 
 # ------------------ Below are libraries for BN model, need to run using cluster "riverwatch" -----------------
 
 import pandas as pd  # for data manipulation
 import numpy as np
-import networkx as nx  # for drawing graphs
-import matplotlib.pyplot as plt  # for drawing graphs
-from mlxtend.plotting import plot_confusion_matrix
-from pathlib import Path
-from sklearn.metrics import confusion_matrix
-from sklearn.metrics import precision_score
-from sklearn.metrics import recall_score
-from sklearn.metrics import f1_score
-import swat
 
 # for creating Bayesian Belief Networks (BBN)
 from pybbn.graph.dag import Bbn
@@ -39,13 +29,7 @@ from pybbn.pptc.inferencecontroller import InferenceController
 import mlflow
 import mlflow.pyfunc
 import mlflow.sklearn
-import numpy as np
-import sklearn
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import roc_auc_score
 from mlflow.models.signature import infer_signature
-from mlflow.utils.environment import _mlflow_conda_env
-import cloudpickle
 import time
 
 # COMMAND ----------
@@ -62,7 +46,8 @@ import time
 
 ### so it is the issue with the data format when read the data using spark or pd
 #---------------------dicretise the data for each node---------------------------
-df_train=pd.read_csv("/dbfs/FileStore/DataLab/Riverwatch/df_train_bef2014.csv")
+# df_train=pd.read_csv("/dbfs/FileStore/DataLab/Riverwatch/df_train_bef2014.csv")
+df_train=pd.read_csv("/dbfs/FileStore/DataLab/Riverwatch/df_train_bef2019Jul.csv")
 df_train['ent_cat'] = df_train['ent'].apply(
     lambda x: '0.0-32' if 0 <= x < 32 
     else '1.32-39' if 32 <= x < 39 
@@ -213,7 +198,6 @@ def cpt(data, child, parent1=None, parent2=None, parent3=None, child_cat_number=
     else:
         print("Error in Probability Frequency Calculations")
     return prob
-
 
 # COMMAND ----------
 
@@ -399,6 +383,7 @@ def evidence(ev, nod, cat, val):
           .build()
          )
     BayesianNet.set_observation(ev)
+# BayesianNet.get_unobserved_evidence
 
 # COMMAND ----------
 
@@ -420,6 +405,8 @@ class BayesianNetWrapper(mlflow.pyfunc.PythonModel):
         outputs = model_input.iloc[:,0:1]
 #         outputs['prediction'] = None
         for index, model_input in model_input.iterrows():
+            self.model.unobserve_all()
+            # update evidence for all features
             evidence('ev1', 'rdur', model_input.Rduration_cat, 1)
             evidence('ev2', 'rint', model_input.Rintensity_cat, 1)
             evidence('ev3', 'r48', model_input.rain_48_cat, 1)
@@ -427,10 +414,17 @@ class BayesianNetWrapper(mlflow.pyfunc.PythonModel):
             evidence('ev5', 'r24', model_input.rain_24_cat, 1)
             evidence('ev6', 'r72', model_input.rain_72_cat, 1)
             evidence('ev7', 'r7d', model_input.rain_7d_cat, 1)
-            evidence('ev8', 'so24', model_input.solar_24_cat, 1)
-            evidence('ev9', 'su24', model_input.sun_24_cat, 1)
             evidence('ev10', 'dar20', model_input.days_after_rain_20mm_cat, 1)
-            evidence('ev10', 'dar20', model_input.days_after_rain_20mm_cat, 1)
+            if pd.isnull(model_input.sun_24_cat) and pd.isnull(model_input.solar_24_cat):
+                pass
+            elif pd.isnull(model_input.sun_24_cat) and pd.notna(model_input.solar_24_cat):
+                evidence('ev8', 'so24', model_input.solar_24_cat, 1)
+            elif pd.isnull(model_input.solar_24_cat) and pd.notna(model_input.sun_24_cat):
+                evidence('ev9', 'su24', model_input.sun_24_cat, 1)
+            elif pd.notna(model_input.sun_24_cat) and pd.notna(model_input.solar_24_cat):
+                evidence('ev8', 'so24', model_input.solar_24_cat, 1)
+                evidence('ev9', 'su24', model_input.sun_24_cat, 1)
+            
             #------ prediction of pollution ---------------
             pollu_inference = [self.model.get_bbn_potential(pollu).entries[0].value,
                            self.model.get_bbn_potential(pollu).entries[1].value,
@@ -447,34 +441,58 @@ class BayesianNetWrapper(mlflow.pyfunc.PythonModel):
 wrappedModel = BayesianNetWrapper(BayesianNet)    
 # # ===================================End Create the class Wrapper for BN model==========================
 
-# # ----------------------------- inference to obtain output schema for registering the model into MLflow--------------------------
-infer_input_cato = spark.table("datalab.riverwatch_preprocessed_model_input").limit(10)
-inputdata=(infer_input_cato
-            .select("Rduration_cat",
-                    "Rintensity_cat", 
-                    "rain_48_cat",
-                    "Rdistribution_cat",
-                    "rain_24_cat",
-                    "rain_72_cat",
-                    "rain_7d_cat",
-                    "solar_24_cat",
-                    "sun_24_cat",
-                    "days_after_rain_20mm_cat")
-            .limit(10)
-            .toPandas()
-        )
+# # # ----------------------------- inference to obtain output schema for registering the model into MLflow--------------------------
+# infer_input_cato = spark.table("datalab.riverwatch_preprocessed_model_input").limit(10)
+# inputdata=(infer_input_cato
+#             .select("Rduration_cat",
+#                     "Rintensity_cat", 
+#                     "rain_48_cat",
+#                     "Rdistribution_cat",
+#                     "rain_24_cat",
+#                     "rain_72_cat",
+#                     "rain_7d_cat",
+#                     "solar_24_cat",
+#                     "sun_24_cat",
+#                     "days_after_rain_20mm_cat")
+#             .limit(10)
+#             .toPandas()
+#         )
+data = [
+    [1,
+     "Bayview", 
+     '2022-02-10T07:00:00.000+0000', 
+     '1.0-6',
+     '1.0-6', 
+     '1.0-14',
+     '1.10-50',
+     '1.0-2',
+     '1.0-2',
+     '1.0-5',
+     '0.0-1',
+     '0.0-1',
+     '0.0-1'
+    ]
+]
+df = (spark.createDataFrame(data, ["locationId", 
+                                  "siteName", 
+                                  "timestamp", 
+                                  "rain_24_cat", 
+                                  "rain_48_cat", 
+                                  "rain_72_cat",
+                                  "rain_7d_cat",
+                                  "Rintensity_cat",
+                                  "Rduration_cat",
+                                  "Rdistribution_cat",
+                                  "days_after_rain_20mm_cat",
+                                  "sun_24_cat",
+                                  "solar_24_cat"
+                                 ])
+      .withColumn("locationId", psf.col("locationId").cast("INT"))
+     )
 
-prediction=(wrappedModel.predict(None,inputdata))
-# display(prediction)
+prediction=(wrappedModel.predict(None,df.toPandas()))
+display(prediction)
 
-
-# COMMAND ----------
-
-# MAGIC %md ## Check the address of the model
-
-# COMMAND ----------
-
-wrappedModel.model
 
 # COMMAND ----------
 
@@ -482,291 +500,85 @@ wrappedModel.model
 
 # COMMAND ----------
 
-signature = infer_signature(inputdata, prediction) 
-# mlflow.sklearn.log_model(clf, "iris_rf", signature=signature)
-mlflow.pyfunc.log_model("riverwatch_test", python_model=wrappedModel,signature=signature)
+signature = mlflow.models.signature.infer_signature(df.toPandas(), prediction) 
 
 # COMMAND ----------
 
-# MAGIC %md # Apendices
+conda_environment = {
+    "name": "mlflow-env",
+    "channels": ["conda-forge"],
+    "dependencies": [
+        "python=3.8.10",
+        "pip<=21.0.1",
+        
+        {
+            "pip": [
+                "mlflow",
+                "cloudpickle==2.2.0",
+                "pybbn==3.2.1"
+            ],
+        },
+    ],
+}
+
 
 # COMMAND ----------
 
-# MAGIC %md ## Test data categorisation
-# MAGIC 
-# MAGIC The testing data is a spark dataframe
+_MODEL_NAME = "riverwatch-pollution-classifier"
+_MODEL_DESCRIPTION = 'Water quality prediction model using bayesian network to predict the likelihood of pollution occurring at a particular swim site. The bayesian network predicts entreccocci levels which is converted into a pollution likelihood.'
 
-# COMMAND ----------
+mlflow_experiment = mlflow.get_experiment_by_name("/AI-ML/Riverwatch/riverwatch-pollution-classifier")
 
-# dawnfraser_test=spark.read.option("header",True).csv("/FileStore/DataLab/Riverwatch/df_test_aft2014.csv")
-
-# infer_input_cato= (dawnfraser_test
-#                        .withColumn("rain_24_cat", psf.when(psf.col("rain_24") == 0, catranges_r24[0])
-#                                                      .when(((psf.col("rain_24") > 0) 
-#                                                             & (psf.col("rain_24") < 6)), catranges_r24[1])
-#                                                      .when(((psf.col("rain_24") >= 6) 
-#                                                             & (psf.col("rain_24") < 12)), catranges_r24[2])
-#                                                      .when(((psf.col("rain_24") >= 12) 
-#                                                             & (psf.col("rain_24") < 20)), catranges_r24[3])
-#                                                      .when((psf.col("rain_24") >= 20), catranges_r24[4])
-#                                   )
-#                        .withColumn("rain_48_cat", psf.when(psf.col("rain_48") == 0, catranges_r48[0])
-#                                                      .when(((psf.col("rain_48") > 0) 
-#                                                             & (psf.col("rain_48") < 6)), catranges_r48[1])
-#                                                      .when(((psf.col("rain_48") >= 6) 
-#                                                             & (psf.col("rain_48") < 14)), catranges_r48[2])
-#                                                      .when(((psf.col("rain_48") >= 14) 
-#                                                             & (psf.col("rain_48") < 20)), catranges_r48[3])
-#                                                      .when((psf.col("rain_48") >= 20), catranges_r48[4])
-#                                   )
-#                        .withColumn("rain_72_cat", psf.when(psf.col("rain_72") == 0, catranges_r72[0])
-#                                                      .when(((psf.col("rain_72") > 0) 
-#                                                             & (psf.col("rain_72") < 14)), catranges_r72[1])
-#                                                      .when(((psf.col("rain_72") >= 14) 
-#                                                             & (psf.col("rain_72") < 30)), catranges_r72[2])
-#                                                      .when((psf.col("rain_72") >= 30), catranges_r72[3])
-#                                   )
-#                        .withColumn("rain_7d_cat", psf.when(((psf.col("rain_7d") >= 0) 
-#                                                             & (psf.col("rain_7d") < 10)), catranges_r7d[0])
-#                                                      .when(((psf.col("rain_7d") >= 10) 
-#                                                             & (psf.col("rain_7d") < 50)), catranges_r7d[1])
-#                                                      .when((psf.col("rain_7d") >= 50), catranges_r7d[2])
-#                                   )
-#                        .withColumn("Rintensity_cat", psf.when(psf.col("Rintensity") == 0, catranges_rint[0])
-#                                                      .when(((psf.col("Rintensity") > 0) 
-#                                                             & (psf.col("Rintensity") < 2)), catranges_rint[1])
-#                                                      .when(((psf.col("Rintensity") >= 2) 
-#                                                             & (psf.col("Rintensity") < 4)), catranges_rint[2])
-#                                                      .when((psf.col("Rintensity") >= 4), catranges_rint[3])
-#                                   )
-#                        .withColumn("Rduration_cat", psf.when(psf.col("Rduration") == 0, catranges_rdur[0])
-#                                                      .when(((psf.col("Rduration") > 0) 
-#                                                             & (psf.col("Rduration") < 2)), catranges_rdur[1])
-#                                                      .when(((psf.col("Rduration") >= 2) 
-#                                                             & (psf.col("Rduration") < 4)), catranges_rdur[2])
-#                                                      .when((psf.col("Rduration") >= 4), catranges_rdur[3])
-#                                   )
-#                        .withColumn("Rdistribution_cat", psf.when(psf.col("Rdistribution") == 0, catranges_rdis[0])
-#                                                      .when(((psf.col("Rdistribution") > 0) 
-#                                                             & (psf.col("Rdistribution") < 7)), catranges_rdis[1])
-#                                                      .when((psf.col("Rdistribution") >= 7), catranges_rdis[2])
-#                                   )
-#                        .withColumn("sun_24_cat", psf.when(((psf.col("sun_24") >= 0) 
-#                                                            & (psf.col("sun_24") < 1)), catranges_su24[0])
-#                                                      .when(((psf.col("sun_24") >= 1) 
-#                                                             & (psf.col("sun_24") < 5)), catranges_su24[1])
-#                                                      .when((psf.col("sun_24") >= 5), catranges_su24[2])
-#                                   )
-#                         .withColumn("solar_24_cat", psf.when(((psf.col("solar_24") >= 0) 
-#                                                               & (psf.col("solar_24") < 1)), catranges_so24[0])
-#                                                      .when(((psf.col("solar_24") >= 1) 
-#                                                             & (psf.col("solar_24") < 4)), catranges_so24[1])
-#                                                      .when(((psf.col("solar_24") >= 4) 
-#                                                             & (psf.col("solar_24") < 9)), catranges_so24[2])
-#                                                      .when((psf.col("solar_24") >= 9), catranges_so24[3])
-#                                   )
-#                         .withColumn("days_after_rain_20mm_cat", psf.when(((psf.col("days_after_rain_20mm") >= 0) 
-#                                                                           & (psf.col("days_after_rain_20mm") < 1)), catranges_dar20[0])
-#                                                                     .when(((psf.col("days_after_rain_20mm") >= 1) 
-#                                                                                 & (psf.col("days_after_rain_20mm") < 2)), catranges_dar20[1])
-#                                                                     .when(((psf.col("days_after_rain_20mm") >= 2) 
-#                                                                                 & (psf.col("days_after_rain_20mm") < 3)), catranges_dar20[2])
-#                                                                     .when(((psf.col("days_after_rain_20mm") >= 3) 
-#                                                                                 & (psf.col("days_after_rain_20mm") < 4)), catranges_dar20[3])
-#                                                                     .when((psf.col("days_after_rain_20mm") >= 4), catranges_dar20[4])
-#                                    )    
-               
-#                 )
-# display(infer_input_cato
-#        .orderBy("Date"))
-
-# COMMAND ----------
-
-# MAGIC %md ## Test registered model
-
-# COMMAND ----------
-
-# import mlflow
-# from pyspark.sql.functions import struct
-
-# # # ------------------------------- load experiment model-------------
-# # logged_model = 'runs:/88146961206043bc86734a9771350843/riverwatch_test'
-
-# # # --------------------------------load registered model--------------
-# _MODEL_NAME = "riverwatch-pollution-classifier"
-# _MODEL_VERSION = "2"
-# logged_model = f'models:/{_MODEL_NAME}/{_MODEL_VERSION}'
-# # # --------------------------------end load registered model--------------
-
-# # Load model as a Spark UDF. Override result_type if the model does not return double values.
-# loaded_model = mlflow.pyfunc.spark_udf(spark, model_uri=logged_model, env_manager='conda', result_type='string')
-# # df = df.withColumn("MyNewCol", expr("udf.Method(LGACode, LGA, )"))
-# expr_lastrow = [psf.last(col).alias(col) for col in infer_input_cato.columns] # This is for select the last row of the dataframe
-# w_severalbottom = W().orderBy(psf.lit('epoch_timestamp')) # This is for select several bottom rows of the dataframe
-# tmpdata=(test_BP_PP
-# #          .agg(*expr_lastrow)
-# #          .withColumn("row_num",psf.row_number().over(w_severalbottom))
-# #          .filter(psf.col("row_num").between(1,5))
-#          .select("rain_48","Rduration_cat","Rintensity_cat", "rain_48_cat","Rdistribution_cat","rain_24_cat",
-#                  "rain_72_cat","rain_7d_cat","solar_24_cat","sun_24_cat","days_after_rain_20mm_cat")
-#         )
-# # w = Window().partitionBy(lit('a')).orderBy(lit('a'))
-
-# # df1 = df.withColumn("row_num", row_number().over(w))
-
-# # df1.filter(col("row_num").between(1,2)).show()  
-# # display(tmpdata)
-
-# inputdata=struct(tmpdata.columns)
-# # print(inputdata)
-# prediction=(tmpdata
-#             .withColumn('predict_BN',loaded_model(inputdata)
-#                        )
-#             .withColumn("predict_BW",psf.when(((psf.col("rain_48") >= 0) 
-#                                           & (psf.col("rain_48") < 12)), "Unlikely")
-#                                             .when(((psf.col("rain_48") >= 12) 
-#                                           & (psf.col("rain_48") < 20)), "Possible")
-#                                             .when((psf.col("rain_48") >= 20), "Likely")
-#                        )
-#             )
-# display(prediction)
-# loaded_model
-
-# COMMAND ----------
-
-# MAGIC %md ## Signature example
-
-# COMMAND ----------
-
-# import pandas as pd
-# from sklearn import datasets
-# from sklearn.ensemble import RandomForestClassifier
-# import mlflow
-# import mlflow.sklearn
-# from mlflow.models.signature import infer_signature
-
-# iris = datasets.load_iris()
-# # print(iris) #Cannot call display(<class 'sklearn.utils._bunch.Bunch'>)
-# iris_train = pd.DataFrame(iris.data, columns=iris.feature_names)
-# display(iris_train) #Dataframe
-# clf = RandomForestClassifier(max_depth=7, random_state=0)
-# # print(clf)
-# clf.fit(iris_train, iris.target)
-# signature = infer_signature(iris_train, clf.predict(iris_train))
-# print(signature) # Cannot call display(<class 'mlflow.models.signature.ModelSignature'>)
-# # mlflow.sklearn.log_model(clf, "iris_rf", signature=signature)
-
-# COMMAND ----------
-
-# df_test=pd.read_csv("/dbfs/FileStore/DataLab/Riverwatch/df_test_aft2014.csv")
-# # df_test=dawnfraser_test
-# # display(df_test)
-# df_test['ent_cat'] = df_test['ent'].apply(
-#     lambda x: '0.0-32' if 0 <= x < 32 else '1.32-39' if 32 <= x < 39 else '2.39-51' if 39 <= x < 51 else '3.51-158' if 51 <= x < 158 else '4.>=158')
-# df_test['EC_cat'] = df_test['EC'].apply(
-#     lambda x: '0.0-40' if 0 <= x < 40 else '1.40-45' if 40 <= x < 45 else '2.45-50' if 45 <= x < 50 else '3.>=50')
-# df_test['solar_24_cat'] = df_test['solar_24'].apply(
-#     lambda x: '0.0-1' if 0 <= x < 1 else '1.1-4' if 1 <= x < 4 else '2.4-9' if 4 <= x < 9 else '3.>=9')
-# df_test['sun_24_cat'] = df_test['sun_24'].apply(
-#     lambda x: '0.0-1' if 0 <= x < 1 else '1.1-5' if 1 <= x < 5 else '2.>=5')
-# df_test['rain_24_cat'] = df_test['rain_24'].apply(
-#     lambda x: '0.0' if x == 0 else '1.0-6' if 0 < x < 6 else '2.6-12' if 6 <= x < 12 else '3.12-20' if 12 <= x < 20 else '4.>=20')
-# df_test['rain_48_cat'] = df_test['rain_48'].apply(
-#     lambda x: '0.0' if x == 0 else '1.0-6' if 0 < x < 6 else '2.6-14' if 6 <= x < 14 else '3.14-20' if 14 <= x < 20 else '4.>=20')
-# df_test['rain_72_cat'] = df_test['rain_72'].apply(
-#     lambda x: '0.0' if x == 0 else '1.0-14' if 0 < x < 14 else '2.14-30' if 14 <= x < 30 else '3.>=30')
-# df_test['rain_7d_cat'] = df_test['rain_7d'].apply(
-#     lambda x: '0.0-10' if 0 <= x < 10 else '1.10-50' if 10 <= x < 50 else '2.>=50')
-# df_test['Rintensity_cat'] = df_test['Rintensity'].apply(
-#     lambda x: '0.0' if x == 0 else '1.0-2' if 0 < x < 2 else '2.2-4' if 2 <= x < 4 else '3.>=4')
-# df_test['Rduration_cat'] = df_test['Rduration'].apply(
-#     lambda x: '0.0' if x == 0 else '1.0-2' if 0 < x < 2 else '2.2-4' if 2 <= x < 4 else '3.>=4')
-# df_test['Rdistribution_cat'] = df_test['Rdistribution'].apply(
-#     lambda x: '0.0' if x == 0 else '1.0-5' if 0 < x < 7 else '2.>=7')
-# df_test['stormwater_pct_cat'] = df_test['stormwater_pct'].apply(
-#     lambda x: '0.0-5' if 0 <= x < 5 else '1.5-15' if 5 <= x < 15 else '2.15-25' if 15 <= x < 25 else '3.>=25')
-# df_test['days_after_rain_20mm_cat'] = df_test['days_after_rain_20mm'].apply(
-#     lambda x: '0.0-1' if 0 <= x < 1 else '1.1-2' if 1 <= x < 2 else '2.2-3' if 2 <= x < 3 else '3.3-4' if 3 <= x < 4 else '4.>=4')               
-#     #-------------------------------- Model Inference
+if mlflow_experiment == None:
+    experiment_id = mlflow.create_experiment("/AI-ML/Riverwatch/riverwatch-pollution-classifier")
+else:
+    experiment_id = mlflow_experiment.experiment_id
     
-# # evidence('ev1', 'rdur', df_test.Rduration_cat[0], 1)
-# # evidence('ev2', 'rint', df_test.Rintensity_cat[0], 1)
-# # evidence('ev3', 'r48', df_test.rain_48_cat[0], 1)
-# # evidence('ev4', 'rdis', df_test.Rdistribution_cat[0], 1)
-# # evidence('ev5', 'r24', df_test.rain_24_cat[0], 1)
-# # evidence('ev6', 'r72', df_test.rain_72_cat[0], 1)
-# # evidence('ev7', 'r7d', df_test.rain_7d_cat[0], 1)
-# # evidence('ev8', 'so24', df_test.solar_24_cat[0], 1)
-# # evidence('ev9', 'su24', df_test.sun_24_cat[0], 1)
-# # # evidence('ev10', 'dar20', df_test.days_after_rain_20mm_cat[0], 1)
-# # pollu_inference = [BayesianNet.get_bbn_potential(pollu).entries[0].value,
-# #                    BayesianNet.get_bbn_potential(pollu).entries[1].value,
-# #                    BayesianNet.get_bbn_potential(pollu).entries[2].value]
-# # max_index = pollu_inference.index(max(pollu_inference))
-# # print(pollu_inference)
-
-# # print(BNprediction(df_test.Rduration_cat[1],
-# #                    df_test.Rintensity_cat[1],
-# #                    df_test.rain_48_cat[1],
-# #                    df_test.Rdistribution_cat[1],
-# #                    df_test.rain_24_cat[1],
-# #                    df_test.rain_72_cat[1],
-# #                    df_test.rain_7d_cat[1],
-# #                    df_test.solar_24_cat[1],
-# #                    df_test.sun_24_cat[1],
-# #                    df_test.days_after_rain_20mm_cat[1]
-# #                   ))
-
-# tmpdata=(infer_input_cato
-#                 .where(psf.col("epoch_timestamp")==1658102400)
-#                 .select("Rduration_cat","Rintensity_cat",
-#                         "rain_48_cat","Rdistribution_cat",
-#                         "rain_24_cat","rain_72_cat",
-#                         "rain_7d_cat","solar_24_cat",
-#                         "sun_24_cat","days_after_rain_20mm_cat")
-#             .toPandas()
-#                )
-# prediction=(BNprediction(tmpdata.Rduration_cat[0],
-#                                  tmpdata.Rintensity_cat[0],
-#                                   tmpdata.rain_48_cat[0],
-#                                   tmpdata.Rdistribution_cat[0],
-#                                   tmpdata.rain_24_cat[0],
-#                                   tmpdata.rain_72_cat[0],
-#                                   tmpdata.rain_7d_cat[0],
-#                                   tmpdata.solar_24_cat[0],
-#                                   tmpdata.sun_24_cat[0],
-#                                   tmpdata.days_after_rain_20mm_cat[0])
-
-#            )
-# print(prediction)
-# # BayesianNet.
+with mlflow.start_run(run_name="riverwatch-pollution-classifier", experiment_id=experiment_id, description=_MODEL_DESCRIPTION):
+    mlflow.set_tag("Release Version", "1.0")
+    mlflow.set_tag("Application", "Riverwatch")
+    model_details = mlflow.pyfunc.log_model(_MODEL_NAME, 
+                                            python_model=wrappedModel,  
+                                            conda_env=conda_environment,
+                                            registered_model_name=_MODEL_NAME,
+                                            signature=signature
+                                           )
 
 # COMMAND ----------
 
-# MAGIC %md ## Plot BN model
+from mlflow.tracking.client import MlflowClient
+client = MlflowClient()
+
+model_details = client.get_latest_versions(name=_MODEL_NAME, stages=["None"])
+
+client.update_model_version(
+    name=_MODEL_NAME,
+    version=model_details[0].version,
+    description=_MODEL_DESCRIPTION
+)
+
+client.update_registered_model(
+    name=_MODEL_NAME,
+    description=_MODEL_DESCRIPTION
+)
+
+client.set_registered_model_tag(
+  name=_MODEL_NAME,
+  key="Application",
+  value="Riverwatch"
+)
+
+client.set_model_version_tag(
+  name=_MODEL_NAME,
+  version=model_details[0].version,
+  key="Application",
+  value="Riverwatch"
+)
 
 # COMMAND ----------
 
-# # Set node positions
-# pos = {0: (1, 4), 1: (4, 4), 2: (2.5, 3.5), 3: (2, 5), 4: (3, 5), 5: (2, 2), 6: (1, 1), 7: (1, 5), 8: (1, 3), 9: (3, 1),
-#        10: (4, 5), 11: (4, 1), 12: (1, 2), 13: (4, 2.5), 14: (5, 2.5), 15: (5, 1)}
-
-# # Set options for graph looks
-# options = {
-#     "font_size": 12,
-#     "node_size": 2000,
-#     "node_color": "white",
-#     "edgecolors": "black",
-#     "edge_color": "red",
-#     "linewidths": 3,
-#     "width": 3, }
-
-# # Generate graph
-# n, d = bbn.to_nx_graph()
-# nx.draw(n, with_labels=True, labels=d, pos=pos, **options)
-
-# # Update margins and print the graph
-# ax = plt.gca()
-# ax.margins(0.10)
-# plt.axis("off")
-# plt.show()
+client.transition_model_version_stage(
+    name=_MODEL_NAME,
+    version=model_details[0].version,
+    stage='Production'
+)

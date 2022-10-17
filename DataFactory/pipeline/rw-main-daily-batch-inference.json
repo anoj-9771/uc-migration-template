@@ -1,0 +1,377 @@
+{
+	"name": "rw-main-daily-batch-inference",
+	"properties": {
+		"activities": [
+			{
+				"name": "get-bearer-token",
+				"type": "WebActivity",
+				"dependsOn": [
+					{
+						"activity": "run-deployment-pipeline",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"url": {
+						"value": "@concat('https://', pipeline().globalParameters.keyVaultName, '.vault.azure.net/secrets/databricks-token?api-version=7.0')",
+						"type": "Expression"
+					},
+					"method": "GET",
+					"authentication": {
+						"type": "MSI",
+						"resource": "https://vault.azure.net"
+					}
+				}
+			},
+			{
+				"name": "set-secret-variable",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "get-bearer-token",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "DatabricksSecret",
+					"value": {
+						"value": "@activity('get-bearer-token').output.value",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "get-databricks-jobs",
+				"type": "WebActivity",
+				"dependsOn": [
+					{
+						"activity": "set-secret-variable",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"url": "https://australiaeast.azuredatabricks.net/api/2.1/jobs/list",
+					"method": "GET",
+					"headers": {
+						"Authorization": {
+							"value": "Bearer @{variables('DatabricksSecret')}",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "get-riverwatch-pipeline-job-id",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "get-databricks-jobs",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('get-databricks-jobs').output.jobs",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "check-job-name-is-sewer-cctv-pipeline",
+							"type": "IfCondition",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"expression": {
+									"value": "@equals(item().settings.name, pipeline().parameters.DatabricksJobName)",
+									"type": "Expression"
+								},
+								"ifTrueActivities": [
+									{
+										"name": "set-job-exists-variable",
+										"type": "SetVariable",
+										"dependsOn": [],
+										"userProperties": [],
+										"typeProperties": {
+											"variableName": "PipelineJobExists",
+											"value": true
+										}
+									},
+									{
+										"name": "set-job-id-variable",
+										"type": "SetVariable",
+										"dependsOn": [
+											{
+												"activity": "set-job-exists-variable",
+												"dependencyConditions": [
+													"Succeeded"
+												]
+											}
+										],
+										"userProperties": [],
+										"typeProperties": {
+											"variableName": "PipelineJobID",
+											"value": {
+												"value": "@string(item().job_id)",
+												"type": "Expression"
+											}
+										}
+									}
+								]
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "run-databricks-job",
+				"type": "WebActivity",
+				"dependsOn": [
+					{
+						"activity": "get-riverwatch-pipeline-job-id",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "set-current-model-run-time",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "set-last-model-run-time",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"url": "https://australiaeast.azuredatabricks.net/api/2.1/jobs/run-now",
+					"method": "POST",
+					"headers": {
+						"Authorization": {
+							"value": "Bearer @{variables('DatabricksSecret')}",
+							"type": "Expression"
+						}
+					},
+					"body": {
+						"value": "{ \"job_id\": @{variables('PipelineJobID')}, \"notebook_params\": { \"current_model_runtime\" : \"@{variables('CurrentModelRuntime')}\", \"last_model_runtime\": \"@{variables('LastModelRuntime')}\" }}}",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "wait_for_job_to_complete",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "get-run-task-id",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "wait-until-databricks-job-complete",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"RunID": {
+							"value": "@activity('get-run-task-id').output.tasks[0].run_id",
+							"type": "Expression"
+						},
+						"DatabricksSecret": {
+							"value": "@variables('DatabricksSecret')",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "check-job-status-register-model",
+				"type": "WebActivity",
+				"dependsOn": [
+					{
+						"activity": "wait_for_job_to_complete",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"url": {
+						"value": "@concat('https://australiaeast.azuredatabricks.net/api/2.1/jobs/runs/get-output?run_id=', activity('get-run-task-id').output.tasks[1].run_id)",
+						"type": "Expression"
+					},
+					"method": "GET",
+					"headers": {
+						"Authorization": {
+							"value": "Bearer @{variables('DatabricksSecret')}",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "set-current-model-run-time",
+				"description": "@concat(utcnow('yyyy-MM-dd'), 'T', '08:00:00.000')",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "run-deployment-pipeline",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "CurrentModelRuntime",
+					"value": {
+						"value": "@concat('2022-02-13', 'T', '08:00:00.000')",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "set-last-model-run-time",
+				"description": "@concat(addDays(utcNow(), -1, 'yyyy-MM-dd'), 'T', '08:00:00.000')",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "run-deployment-pipeline",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "LastModelRuntime",
+					"value": {
+						"value": "@concat('2022-02-12', 'T', '08:00:00.000')",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "get-run-task-id",
+				"type": "WebActivity",
+				"dependsOn": [
+					{
+						"activity": "run-databricks-job",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"url": {
+						"value": "@concat('https://australiaeast.azuredatabricks.net/api/2.1/jobs/runs/get?run_id=', activity('run-databricks-job').output.run_id,'&active_only=true&expand_tasks=true')",
+						"type": "Expression"
+					},
+					"method": "GET",
+					"headers": {
+						"Authorization": {
+							"value": "Bearer @{variables('DatabricksSecret')}",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "run-deployment-pipeline",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "rw-deployment-pipeline",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			}
+		],
+		"parameters": {
+			"DatabricksJobName": {
+				"type": "string",
+				"defaultValue": "riverwatch-pipeline"
+			}
+		},
+		"variables": {
+			"DatabricksSecret": {
+				"type": "String"
+			},
+			"PipelineJobExists": {
+				"type": "Boolean"
+			},
+			"PipelineJobID": {
+				"type": "String"
+			},
+			"CurrentModelRuntime": {
+				"type": "String"
+			},
+			"LastModelRuntime": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "AI-ML/Riverwatch"
+		},
+		"annotations": []
+	}
+}
