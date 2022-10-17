@@ -16,18 +16,12 @@ def PreviewTransform(systemCode, tableName, showTransform=True):
     # 3. DISPLAY SCHEMA
     if showTransform:
         pprint(df.schema.fields)
-#PreviewTransform("bom", "raw.bom_dailyweatherobservation_parramattanorth") # GOOD
-#PreviewTransform("maximo", "raw.maximo_ACCOUNTDEFAULTS") # GOOD
-#PreviewTransform("sap", "raw.crm_zcst_source") # GOOD
-#PreviewTransform("sap", "raw.crm_0bpartner_attr") # TABLE NOT IN SHEET
-#PreviewTransform("crm", "raw.crm_0crm_srv_req_inci_h")
 
 # COMMAND ----------
 
 def PreviewLookup(lookupTag):
     table, key, value, refaultReturn, whereclause = lookupTags.get(lookupTag) if "|" not in lookupTag else lookupTag.split("|")
     display(spark.table(table).selectExpr(f"{key} Key", f"{value} Value").where("Value IS NOT NULL"))
-#PreviewLookup("lookup-crm-communication-channel")
 
 # COMMAND ----------
 
@@ -40,7 +34,6 @@ def ValidateLookups():
             print(f"[ OK ] - {tag} - {table}")
         except Exception as error:
             print(f"[ !! ] - {tag} - {error}")
-#ValidateLookups()
 
 # COMMAND ----------
 
@@ -55,7 +48,6 @@ def DisplayAllTags():
         for k, v in value.items():
             list.append([key, k, str(v)])
     display(list)
-#DisplayAllTags()
 
 # COMMAND ----------
 
@@ -63,6 +55,9 @@ def ImportCleansedMapping(systemCode):
     path = f"/FileStore/Cleansed/{systemCode.lower()}_cleansed.csv"
     transforms = LoadCsv(path)
     dataTypeFailures, transformFailures, lookupFailures, customTransformFailures = 0, 0, 0, 0
+    
+    if transforms is None:
+        return
     
     # VALIDATE DATATYPES
     df = transforms.selectExpr("TRIM(LOWER(DataType)) DataType").dropDuplicates().na.drop()
@@ -77,7 +72,6 @@ def ImportCleansedMapping(systemCode):
         sql = f"SELECT CAST('' AS {dataType.lower()}) A"
         try:
             spark.sql(sql).count()
-            #print(sql)
         except Exception as error:
             dataTypeFailures+=1
             message = str(error).split(".")[0]
@@ -97,26 +91,6 @@ def ImportCleansedMapping(systemCode):
         except Exception as error:
             transformFailures+=1
             print(f"[ !! ] - {tag} - {error}")
-
-    # VALIDATE LOOKUP TAGS
-    #print("""
-    #Validating Lookup Tags...
-    #-------------------------
-    #""")
-    #df = transforms.selectExpr("TRIM(LOWER(Lookup)) Lookup").dropDuplicates().na.drop()
-    #for t in df.rdd.collect():
-        #lookup = t.Lookup
-        #try:
-            #tag = lookupTags.get(lookup)
-            
-            #if tag is None:
-                #raise Exception(f"Tag {lookup} not found!")
-            
-            #table, key, value, returnNull, whereClause = lookupTags[lookup]
-            #spark.table(table).where(whereClause).selectExpr(f"{key} Key", f"{value} Value")
-        #except Exception as e:
-            #lookupFailures+=1
-            #print(f"[ !! ] - {lookup} - {e}")
 
     # VALIDATE CUSTOM TRANSFORM
     print("""
@@ -146,10 +120,6 @@ Transform Tag Failures = {transformFailures}
 Custom Transform Failures = {customTransformFailures}
         """)
 
-#ImportCleansedMapping("bom")
-#ImportCleansedMapping("crm")
-#ImportCleansedMapping("maximo")
-
 # COMMAND ----------
 
 def ImportCleansedReference():
@@ -163,8 +133,7 @@ def ImportCleansedReference():
     -------------------------
     """)
     df = referenceFile.where("Parent like '%lookup%'").dropDuplicates().where("ExtendedProperties IS NOT NULL")
-    #display(df)
-    #return 
+
     for t in df.rdd.collect():
         whereClause = TryGetJsonProperty(t.ExtendedProperties, "filter")
         try:
@@ -182,8 +151,25 @@ def ImportCleansedReference():
         print(f"""
 Lookup Tag Failures = {lookupFailures}
         """)
-#ImportCleansedReference()
 
 # COMMAND ----------
 
-
+def UnitTests():
+    pass
+    #ValidateLookups()
+    #DisplayAllTags()
+    #PreviewLookup("lookup-crm-communication-channel")
+    
+    #ImportCleansedReference()
+    #ImportCleansedMapping("bom")
+    #ImportCleansedMapping("sap")
+    #ImportCleansedMapping("crm")
+    #ImportCleansedMapping("maximo")
+    
+    #PreviewTransform("bom", "raw.bom_dailyweatherobservation_parramattanorth") # GOOD
+    #PreviewTransform("maximo", "raw.maximo_ACCOUNTDEFAULTS") # GOOD
+    #PreviewTransform("sap", "raw.crm_zcst_source") # GOOD
+    #PreviewTransform("sap", "raw.crm_0bpartner_attr") # TABLE NOT IN SHEET
+    #PreviewTransform("crm", "raw.crm_0crm_srv_req_inci_h")
+    #PreviewTransform("sap", "raw.isu_zdmt_rate_type") # GOOD
+#UnitTests()
