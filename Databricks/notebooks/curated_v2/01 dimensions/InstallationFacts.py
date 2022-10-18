@@ -19,28 +19,28 @@
 # ----------------
 df_installation_fact = spark.sql(f"""
     SELECT
-        'ISU'                          AS sourceSystemCode,
-        installationNumber             AS installationNumber,
-        operandCode                    AS operandCode,
-        validFromDate                  AS validFromDate,
-        consecutiveDaysFromDate        AS consecutiveDaysFromDate,
-        validToDate                    AS validToDate,
-        billingDocumentNumber          AS billingDocumentNumber,
-        mBillingDocumentNumber         AS mBillingDocumentNumber,
-        moveOutIndicator               AS moveOutIndicator,
-        expiryDate                     AS expiryDate,
-        inactiveIndicator              AS inactiveIndicator,
-        manualChangeIndicator          AS manualChangeIndicator,
-        rateTypeCode                   AS rateTypeCode,
-        rateType                       AS rateType,
-        rateFactGroupCode              AS rateFactGroupCode,
-        rateFactGroup                  AS rateFactGroup,
-        entryValue                     AS entryValue,
-        valueToBeBilled                AS valueToBeBilled,
-        operandValue1                  AS operandValue1,
-        operandValue3                  AS operandValue3,
-        amount                         AS amount,
-        currencyKey                    AS currencyKey
+        'ISU'                             AS sourceSystemCode,
+        installationNumber                AS installationNumber,
+        operandCode                       AS operandCode,
+        validFromDate                     AS validFromDate, 
+        consecutiveDaysFromDate           AS consecutiveDaysFromDate,
+        validToDate                       AS validToDate, 
+        billingDocumentNumber             AS billingDocumentNumber,
+        mBillingDocumentNumber            AS mBillingDocumentNumber,
+        moveOutIndicator                  AS moveOutIndicator,
+        expiryDate                        AS expiryDate, 
+        inactiveIndicator                 AS inactiveIndicator,
+        manualChangeIndicator             AS manualChangeIndicator,
+        rateTypeCode                      AS rateTypeCode,
+        rateType                          AS rateType,
+        rateFactGroupCode                 AS rateFactGroupCode,
+        rateFactGroup                     AS rateFactGroup,
+        entryValue                        AS entryValue,
+        valueToBeBilled                   AS valueToBeBilled,
+        operandValue1                     AS operandValue1,
+        operandValue3                     AS operandValue3,
+        amount                            AS amount,
+        currencyKey                       AS currencyKey
     FROM {ADS_DATABASE_CLEANSED}.isu_ettifn
     WHERE 
         _RecordCurrent = 1 
@@ -53,18 +53,21 @@ df_installation_fact = spark.sql(f"""
 # ----------------
 dummyDimRecDf = (
     spark.createDataFrame(
-        [("-1","-1", "1900-01-01", "9999-12-31")], 
-        ["installationNumber", "operandCode", "validFromDate","validToDate"]
+        [("-1","-1", "-1", "1900-01-01", "9999-12-31")], 
+        ["installationNumber", "operandCode", "consecutiveDaysFromDate", "validFromDate", "validToDate"]
     )
 )
 
-# Union Tables
+# Master Table
 df_installation_fact = (
     df_installation_fact
+    # --- Add Dummy Dimension --- #
     .unionByName(dummyDimRecDf, allowMissingColumns = True)
     .drop_duplicates()
+    # --- Cast Data Types --- # 
     .withColumn("validFromDate",col("validFromDate").cast("date"))
     .withColumn("validToDate",col("validToDate").cast("date"))
+    .withColumn("validToDate",col("validToDate").cast("expiryDate"))
 )    
 
 # print('df count',df_installation_fact.count())
@@ -108,7 +111,7 @@ schema = StructType([
 TemplateTimeSliceEtlSCD(
     df_installation_fact, 
     entity="dimInstallationFacts", 
-    businessKey="installationNumber,operandCode,validFromDate", 
+    businessKey="installationNumber,operandCode,validFromDate,consecutiveDaysFromDate", 
     schema=schema
 )
 
