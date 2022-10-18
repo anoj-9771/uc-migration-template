@@ -173,8 +173,8 @@ print(delta_raw_tbl_name)
 df = spark.sql(f"WITH stage AS \
                       (Select *, ROW_NUMBER() OVER (PARTITION BY VERTYP ORDER BY _FileDateTimeStamp DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
                            SELECT  \
-                                VERTYP as VERTYP_KK, \
-                                TEXT as TEXT40, \
+                                VERTYP as clearingCategoryCode, \
+                                TEXT as clearingCategory, \
                                 cast('1900-01-01' as TimeStamp) as _RecordStart, \
                                 cast('9999-12-31' as TimeStamp) as _RecordEnd, \
                                 '0' as _RecordDeleted, \
@@ -189,8 +189,8 @@ df = spark.sql(f"WITH stage AS \
 # Create schema for the cleanse table
 newSchema = StructType(
                             [
-                            StructField("VERTYP_KK", StringType(), False),
-                            StructField("TEXT40", StringType(), True)
+                            StructField("clearingCategoryCode", StringType(), False),
+                            StructField("clearingCategory", StringType(), True)
                             ]
                         )
 
