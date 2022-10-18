@@ -173,8 +173,8 @@ print(delta_raw_tbl_name)
 df = spark.sql(f"WITH stage AS \
                       (Select *, ROW_NUMBER() OVER (PARTITION BY CMGRP ORDER BY _FileDateTimeStamp DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
                            SELECT  \
-                                CMGRP as CMGRP_CM_KK, \
-                                DESCR as GRPDESCR_CM_KK, \
+                                CMGRP as collectionManagementMasterDataGroupCode, \
+                                DESCR as collectionManagementMasterDataGroup, \
                                 cast('1900-01-01' as TimeStamp) as _RecordStart, \
                                 cast('9999-12-31' as TimeStamp) as _RecordEnd, \
                                 '0' as _RecordDeleted, \
@@ -189,8 +189,8 @@ df = spark.sql(f"WITH stage AS \
 # Create schema for the cleanse table
 newSchema = StructType(
                             [
-                            StructField("CMGRP_CM_KK", StringType(), False),
-                            StructField("GRPDESCR_CM_KK", StringType(), True)
+                            StructField("collectionManagementMasterDataGroupCode", StringType(), False),
+                            StructField("collectionManagementMasterDataGroup", StringType(), True)
                             ]
                         )
 
