@@ -210,8 +210,8 @@ df = spark.sql(f"WITH stage AS \
                                 ADRRH as addressNumberForAlternativeBillRecipient, \
                                 TOGRU as toleranceGroupCode, \
                                 CCARD_ID as paymentCardId, \
-                                TFK111T.TEXT40 as clearingCategory, \
-                                TFK041BT.GRPDESCR_CM_KK as collectionManagementMasterDataGroup, \
+                                TFK111T.clearingCategory as clearingCategory, \
+                                TFK041BT.collectionManagementMasterDataGroup as collectionManagementMasterDataGroup, \
                                 STRAT as collectionStrategyCode, \
                                 ZAHLKOND as paymentConditionCode, \
                                 KOFIZ_SD as accountDeterminationCode, \
@@ -264,8 +264,8 @@ df = spark.sql(f"WITH stage AS \
                         LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_esendcontrolt esendcontrolt1 ON esendcontrolt1.dispatchControlCode  = acc.SENDCONTROL_MA \
                         LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_esendcontrolt esendcontrolt2 ON esendcontrolt2.dispatchControlCode  = acc.SENDCONTROL_GP \
                         LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_efrm efrm ON acc.FORMKEY = efrm.applicationForm \
-                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_TFK111T TFK111T ON  acc.VERTYP = TFK111T.VERTYP_KK \
-                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_TFK041BT TFK041BT ON TFK041BT.CMGRP_CM_KK =acc.CMGRP \
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_TFK111T TFK111T ON  acc.VERTYP = TFK111T.clearingCategoryCode \
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_TFK041BT TFK041BT ON TFK041BT.collectionManagementMasterDataGroupCode =acc.CMGRP \
                         where acc._RecordVersion = 1 ")
 
 #print(f'Number of rows: {df.count()}')
