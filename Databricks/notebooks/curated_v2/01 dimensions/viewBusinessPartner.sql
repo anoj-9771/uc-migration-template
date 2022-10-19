@@ -72,7 +72,7 @@ WITH all_ID AS (
 )
 
 /*========================================
-	view_businessPartnerIdentification
+	viewBusinessPartnerIdentification
 		-> applying a pivot to transpose
 ==========================================*/
 SELECT * FROM (
@@ -422,7 +422,7 @@ WHERE businessPartnerSK IS NOT NULL
 
 -- COMMAND ----------
 
--- View: view_businesspartnergroup
+-- View: viewBusinessPartnerGroup
 -- Description: viewBusinessPartnerGroup
 
 CREATE OR REPLACE VIEW curated_v2.viewBusinessPartnerGroup AS 
@@ -454,7 +454,7 @@ WITH
      )
     
 /*============================
-    view_businessPartnerGroup
+    viewBusinessPartnerGroup
 ==============================*/    
 SELECT 
     /* Business Partner Group Columns */
@@ -563,7 +563,7 @@ LEFT JOIN curated_v2.dimbusinesspartneraddress ADDR ON
     DR.sourceSystemCode = ADDR.sourceSystemCode AND
     DR._effectiveFrom <= ADDR._RecordEnd AND
     DR._effectiveTo >= ADDR._RecordStart 
-LEFT JOIN curated_v2.view_businesspartneridentification ID ON 
+LEFT JOIN curated_v2.viewBusinessPartnerIdentification ID ON 
     DR.businessPartnerGroupNumber = ID.businessPartnerNumber AND
     DR.sourceSystemCode = ID.sourceSystemCode
 WHERE businessPartnerGroupSK IS NOT NULL
