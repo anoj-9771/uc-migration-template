@@ -175,14 +175,14 @@ df = spark.sql(f"WITH stage AS \
                            SELECT \
                                 GPART as businessPartnerGroupNumber, \
                                 VKONT as contractAccountNumber, \
-                                ABSANFAB as budgetBillingRequestForDebtor, \
-                                ABSANFBZ as budgetBillingRequestForCashPayer, \
-                                KEINZAHL as noPaymentFormFlag, \
+                                dd07t2.domainValueText as budgetBillingRequestForDebtor, \
+                                dd07t1.domainValueText as budgetBillingRequestForCashPayer, \
+                                if(KEINZAHL = 'X', 'Y', 'N') as noPaymentFormFlag, \
                                 EINZUGSZ as numberOfSuccessfulDirectDebits, \
                                 RUECKLZ as numberOfDirectDebitReturns, \
-                                MAHNUNG_Z as sendAdditionalDunningNoticeFlag, \
-                                RECHNUNG_Z as sendAdditionalBillFlag, \
-                                FORMKEY as applicationForm, \
+                                if(MAHNUNG_Z = 'X', 'Y', 'N') as sendAdditionalDunningNoticeFlag, \
+                                if(RECHNUNG_Z = 'X', 'Y', 'N') as sendAdditionalBillFlag, \
+                                efrm.applicationFormDescription as applicationForm, \
                                 AUSGRUP_IN as outsortingCheckGroupCode, \
                                 OUTCOUNT as manualOutsortingCount, \
                                 MANOUTS_IN as manualOutsortingReasonCode, \
@@ -200,7 +200,7 @@ df = spark.sql(f"WITH stage AS \
                                 ABWMA as alternativeDunningRecipient, \
                                 EBVTY as bankDetailsId, \
                                 EZAWE as incomingPaymentMethodCode, \
-                                LOEVM as deletedFlag, \
+                                if(LOEVM = 'X', 'Y', 'N') as deletedFlag, \
                                 ABWVK as alternativeContractAccountForCollectiveBills, \
                                 VKPBZ as accountRelationshipCode, \
                                 acc_txt.accountRelationship as accountRelationship, \
@@ -210,8 +210,8 @@ df = spark.sql(f"WITH stage AS \
                                 ADRRH as addressNumberForAlternativeBillRecipient, \
                                 TOGRU as toleranceGroupCode, \
                                 CCARD_ID as paymentCardId, \
-                                VERTYP as clearingCategory, \
-                                CMGRP as collectionManagementMasterDataGroup, \
+                                TFK111T.clearingCategory as clearingCategory, \
+                                TFK041BT.collectionManagementMasterDataGroup as collectionManagementMasterDataGroup, \
                                 STRAT as collectionStrategyCode, \
                                 ZAHLKOND as paymentConditionCode, \
                                 KOFIZ_SD as accountDeterminationCode, \
@@ -251,6 +251,8 @@ df = spark.sql(f"WITH stage AS \
                         LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_te128t te128t ON te128t.manualOutsortingReasonCode  = acc.MANOUTS_IN \
                         LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_te192t te192t ON te192t.outsortingCheckGroupCode  = acc.AUSGRUP_IN \
                         LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_dd07t dd07t ON dd07t.domainName = 'JVLTE' AND  dd07t.domainValueSingleUpperLimit = acc.JVLTE \
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_dd07t dd07t1 ON dd07t1.domainName = 'ABSLANFO' AND  dd07t1.domainValueSingleUpperLimit = acc.ABSANFBZ \
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_dd07t dd07t2 ON dd07t2.domainName = 'ABSLANFO' AND  dd07t2.domainValueSingleUpperLimit = acc.ABSANFAB \
                         LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0uc_bbproc_text bbproc ON bbproc.billingProcedureCode  = acc.KZABSVER \
                         LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0uc_zahlkond_text zahlkond ON zahlkond.paymentConditionCode = acc.ZAHLKOND \
                         LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0fcactdetid_text 0fcactdetid ON 0fcactdetid.accountDeterminationCode  = acc.KOFIZ_SD \
@@ -261,6 +263,9 @@ df = spark.sql(f"WITH stage AS \
                         LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_tfk047xt tfk047xt ON tfk047xt.collectionStrategyCode  = acc.STRAT \
                         LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_esendcontrolt esendcontrolt1 ON esendcontrolt1.dispatchControlCode  = acc.SENDCONTROL_MA \
                         LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_esendcontrolt esendcontrolt2 ON esendcontrolt2.dispatchControlCode  = acc.SENDCONTROL_GP \
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_efrm efrm ON acc.FORMKEY = efrm.applicationForm \
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_TFK111T TFK111T ON  acc.VERTYP = TFK111T.clearingCategoryCode \
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_TFK041BT TFK041BT ON TFK041BT.collectionManagementMasterDataGroupCode =acc.CMGRP \
                         where acc._RecordVersion = 1 ")
 
 #print(f'Number of rows: {df.count()}')

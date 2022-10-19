@@ -1,17 +1,17 @@
 # Databricks notebook source
 # MAGIC %sql
 # MAGIC 
-# MAGIC create or replace view curated_v2.scd_view_property
+# MAGIC create or replace view curated_v2.viewProperty
 # MAGIC as (
 # MAGIC with dateDriver as
 # MAGIC (
-# MAGIC 	select distinct propertyNumber, to_date(_recordStart) as _effectiveFrom from curated_v2.dimProperty where isnotnull(propertyNumber)
+# MAGIC 	select distinct propertyNumber, to_date(_recordStart) as _effectiveFrom from curated_v2.dimProperty where isnotnull(propertyNumber) and _RecordDeleted = 0 
 # MAGIC 	union
-# MAGIC 	select distinct propertyNumber,to_date(validFromDate) as _effectiveFrom from curated_v2.dimPropertyTypeHistory  where isnotnull(propertyNumber)
+# MAGIC 	select distinct propertyNumber,to_date(validFromDate) as _effectiveFrom from curated_v2.dimPropertyTypeHistory  where isnotnull(propertyNumber) and  _RecordDeleted = 0
 # MAGIC     union
-# MAGIC     select distinct propertyNumber, to_date(_recordStart) as _effectiveFrom from curated_v2.dimPropertyLot where isnotnull(propertyNumber)
+# MAGIC     select distinct propertyNumber, to_date(_recordStart) as _effectiveFrom from curated_v2.dimPropertyLot where isnotnull(propertyNumber) and _RecordDeleted = 0
 # MAGIC     union
-# MAGIC     select distinct locationID as propertyNumber, to_date(_recordStart) as _effectiveFrom from curated_v2.dimLocation where isnotnull(locationID)
+# MAGIC     select distinct locationID as propertyNumber, to_date(_recordStart) as _effectiveFrom from curated_v2.dimLocation where isnotnull(locationID) and  _RecordDeleted = 0
 # MAGIC ),
 # MAGIC effectiveDateranges as 
 # MAGIC (
@@ -82,7 +82,12 @@
 # MAGIC 	dimPropertyTypeHistory.ValidFromDate as propertyTypeValidFromDate,
 # MAGIC 	dimPropertyTypeHistory.ValidToDate as propertyTypeValidToDate,
 # MAGIC 	effectiveDateRanges._effectiveFrom,
-# MAGIC 	effectiveDateRanges._effectiveTo
+# MAGIC 	effectiveDateRanges._effectiveTo,
+# MAGIC     case
+# MAGIC       when current_date() between effectiveDateRanges._effectiveFrom
+# MAGIC       and effectiveDateRanges._effectiveTo then 'Y'
+# MAGIC       else 'N'
+# MAGIC     end as currentIndicator 
 # MAGIC from effectiveDateRanges
 # MAGIC left outer join curated_v2.dimProperty dimProperty
 # MAGIC         on dimproperty.propertynumber = effectiveDateRanges.propertyNumber 
