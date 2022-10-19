@@ -16,11 +16,9 @@ effectiveDateranges AS
     FROM dateDriver
 )
 SELECT
-     effectiveDateRanges._effectiveFrom
-    ,effectiveDateRanges._effectiveTo
-    ,effectiveDateRanges.deviceNumber
-    ,dimdevice.deviceSK
+     dimdevice.deviceSK
     ,dimdevice.sourceSystemCode
+    ,dimdevice.deviceNumber
     ,dimdevice.materialNumber
     ,dimdevice.deviceID
     ,dimdevice.inspectionRelevanceIndicator
@@ -88,6 +86,8 @@ SELECT
     ,dimregisterinstallationhistory.rateFactGroupCode
     ,installAttr.divisionCode
     ,installAttr.division
+    ,effectiveDateRanges._effectiveFrom
+    ,effectiveDateRanges._effectiveTo
     , CASE
       WHEN CURRENT_DATE() BETWEEN effectiveDateRanges._effectiveFrom AND effectiveDateRanges._effectiveTo then 'Y'
       ELSE 'N'
