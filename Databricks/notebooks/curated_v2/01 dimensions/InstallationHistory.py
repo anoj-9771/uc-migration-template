@@ -36,12 +36,12 @@ df_installation_history = spark.sql(f"""
         i.IndustrySystem               AS IndustrySystem
     FROM {ADS_DATABASE_CLEANSED}.isu_0ucinstallah_attr_2 i
     LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0ucmtrdunit_attr m ON 
-        i.meterReadingUnit = m.portionNumber
+        i.meterReadingUnit = m.portionNumber AND
+        m._RecordCurrent = 1 AND
+        m._RecordDeleted = 1
     WHERE 
         i._RecordCurrent = 1 
-        AND i._RecordDeleted = 0 
-        AND m._RecordCurrent = 1
-        AND m._RecordDeleted = 0
+        AND i._RecordDeleted = 0
 """    
 ).drop_duplicates()
 
@@ -58,6 +58,9 @@ df_installation_history = (
     df_installation_history
     .unionByName(dummyDimRecDf, allowMissingColumns = True)
     .drop_duplicates()
+      # --- Cast Data Types --- # 
+    .withColumn("validFromDate",col("validFromDate").cast("date"))
+    .withColumn("validToDate",col("validToDate").cast("date"))
 )    
 
 
