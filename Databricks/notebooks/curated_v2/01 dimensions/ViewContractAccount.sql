@@ -22,11 +22,9 @@ WITH dateDriver AS (
          from dateDriver
      ) 
 SELECT
-      effectiveDateRanges._effectiveFrom
-     ,effectiveDateRanges._effectiveTo
-     ,effectiveDateRanges.contractAccountNumber
-     ,dimContractAccount.contractAccountSK
+      dimContractAccount.contractAccountSK
      ,dimContractAccount.sourceSystemCode
+     ,dimContractAccount.contractAccountNumber     
      ,dimContractAccount.legacyContractAccountNumber
      ,dimContractAccount.applicationAreaCode
      ,dimContractAccount.applicationArea
@@ -101,6 +99,8 @@ SELECT
      ,dimAccountBusinessPartner.createdDate as accountBpCreatedDate
      ,dimAccountBusinessPartner.changedBy as accountBpChangedBy
      ,dimAccountBusinessPartner.lastChangedDate as accountBplastChangedDate
+     ,effectiveDateRanges._effectiveFrom
+     ,effectiveDateRanges._effectiveTo
     , CASE
       WHEN CURRENT_DATE() BETWEEN effectiveDateRanges._effectiveFrom AND effectiveDateRanges._effectiveTo then 'Y'
       ELSE 'N'
