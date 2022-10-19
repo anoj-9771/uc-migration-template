@@ -186,7 +186,6 @@ df = spark.sql(f"WITH stage AS \
                                 AUSGRUP_IN as outsortingCheckGroupCode, \
                                 OUTCOUNT as manualOutsortingCount, \
                                 MANOUTS_IN as manualOutsortingReasonCode, \
-                                KZABSVER as billingProcedureActivationIndicator, \
                                 ToValidDate(ERDAT) as createdDate, \
                                 ERNAM as createdBy, \
                                 ToValidDate(AEDATP) as lastChangedDate, \
@@ -341,23 +340,22 @@ newSchema = StructType([
 	StructField('budgetBillingRequestForDebtor',StringType(),True),
 	StructField('budgetBillingRequestForCashPayer',StringType(),True),
 	StructField('noPaymentFormFlag',StringType(),True),
-	StructField('numberOfSuccessfulDirectDebits',StringType(),True),
-	StructField('numberOfDirectDebitReturns',StringType(),True),
+	StructField('numberOfSuccessfulDirectDebits',LongType(),True),
+	StructField('numberOfDirectDebitReturns',LongType(),True),
 	StructField('sendAdditionalDunningNoticeFlag',StringType(),True),
 	StructField('sendAdditionalBillFlag',StringType(),True),
 	StructField('applicationForm',StringType(),True),
 	StructField('outsortingCheckGroupCode',StringType(),True),
-	StructField('manualOutsortingCount',StringType(),True),
+	StructField('manualOutsortingCount',LongType(),True),
 	StructField('manualOutsortingReasonCode',StringType(),True),
-	StructField('billingProcedureActivationIndicator',StringType(),True),
 	StructField('createdDate',DateType(),True),
 	StructField('createdBy',StringType(),True),
 	StructField('lastChangedDate',DateType(),True),
 	StructField('changedBy',StringType(),True),
-	StructField('additionalDaysForCashManagement',StringType(),True),
+	StructField('additionalDaysForCashManagement',LongType(),True),
 	StructField('headerUUID',StringType(),True),
 	StructField('directDebitLimit',DecimalType(13,0),True),
-	StructField('numberOfMonthsForDirectDebitLimit',StringType(),True),
+	StructField('numberOfMonthsForDirectDebitLimit',LongType(),True),
 	StructField('businessPartnerReferenceNumber',StringType(),True),
 	StructField('standardCompanyCode',StringType(),True),
 	StructField('alternativeDunningRecipient',StringType(),True),
@@ -381,7 +379,7 @@ newSchema = StructType([
     StructField('toleranceGroup',StringType(),True),
     StructField('manualOutsortingReason',StringType(),True),
     StructField('outsortingCheckGroup',StringType(),True),
-    StructField('participationInYearlyAdvancePaymentCode',StringType(),True),
+    StructField('participationInYearlyAdvancePaymentCode',LongType(),True),
     StructField('participationInYearlyAdvancePayment',StringType(),True),
     StructField('activatebudgetbillingProcedureCode',StringType(),True),
     StructField('activatebudgetbillingProcedure',StringType(),True),
@@ -399,8 +397,8 @@ newSchema = StructType([
     StructField('shippingControlForAltDunningRecipient',StringType(),True),
     StructField('dispatchControlForOriginalCustomerCode',StringType(),True),
     StructField('dispatchControlForOriginalCustomer',StringType(),True),
-    StructField('budgetBillingRequestForCashPayerCode',StringType(),True),
-    StructField('budgetBillingRequestForDebtorCode',StringType(),True),
+    StructField('budgetBillingRequestForCashPayerCode',LongType(),True),
+    StructField('budgetBillingRequestForDebtorCode',LongType(),True),
     StructField('clearingCategoryCode',StringType(),True),
     StructField('applicationFormCode',StringType(),True),
 	StructField('_RecordStart',TimestampType(),False),
