@@ -16,28 +16,28 @@
 
 df_isu_0uc_isu_32 = spark.sql(f"""
     SELECT
-        'ISU'                                     AS sourceSystemCode,
-        disconnectionDocumentNumber               AS disconnectionDocumentNumber,
-        disconnectionObjectNumber                 AS disconnectionObjectNumber,
-        disconnectionActivityPeriod               AS disconnectionActivityPeriod,
-        disconnectionDate                         AS disconnectionDate,
-        validFromDate                             AS validFromDate,
-        validToDate                               AS validToDate,
-        disconnectionActivityTypeCode             AS disconnectionActivityTypeCode,
-        disconnectionActivityType                 AS disconnectionActivityType,
-        disconnectionObjectTypeCode               AS disconnectionObjectTypeCode,
-        referenceObjectTypeCode                   AS referenceObjectTypeCode,
-        disconnectionReasonCode                   AS disconnectionReasonCode,
-        disconnectionReason                       AS disconnectionReason,
-        processingVariantCode                     AS processingVariantCode,
-        processingVariant                         AS processingVariant,
-        disconnectionReconnectionStatusCode       AS disconnectionReconnectionStatusCode,
-        disconnectionReconnectionStatus           AS disconnectionReconnectionStatus,
-        disconnectionDocumentStatusCode           AS disconnectionDocumentStatusCode,
-        disconnectionDocumentStatus               AS disconnectionDocumentStatus,
-        installationNumber                        AS installationNumber,
-        equipmentNumber                           AS equipmentNumber,
-        propertyNumber                            AS propertyNumber
+        'ISU'                                                     AS sourceSystemCode,
+        disconnectionDocumentNumber                               AS disconnectionDocumentNumber,
+        disconnectionObjectNumber                                 AS disconnectionObjectNumber,
+        disconnectionActivityPeriod                               AS disconnectionActivityPeriod,
+        disconnectionDate                                         AS disconnectionDate,
+        validFromDate                                             AS validFromDate,
+        validToDate                                               AS validToDate,
+        disconnectionActivityTypeCode                             AS disconnectionActivityTypeCode,
+        disconnectionActivityType                                 AS disconnectionActivityType,
+        disconnectionObjectTypeCode                               AS disconnectionObjectTypeCode,
+        referenceObjectTypeCode                                   AS referenceObjectTypeCode,
+        disconnectionReasonCode                                   AS disconnectionReasonCode,
+        disconnectionReason                                       AS disconnectionReason,
+        processingVariantCode                                     AS processingVariantCode,
+        processingVariant                                         AS processingVariant,
+        CAST(disconnectionReconnectionStatusCode AS STRING)       AS disconnectionReconnectionStatusCode,
+        disconnectionReconnectionStatus                           AS disconnectionReconnectionStatus,
+        CAST(disconnectionDocumentStatusCode AS STRING)           AS disconnectionDocumentStatusCode,
+        disconnectionDocumentStatus                               AS disconnectionDocumentStatus,
+        installationNumber                                        AS installationNumber,
+        equipmentNumber                                           AS equipmentNumber,
+        propertyNumber                                            AS propertyNumber
     FROM {ADS_DATABASE_CLEANSED}.isu_0uc_isu_32
     WHERE 
         _RecordCurrent = 1 
@@ -55,6 +55,11 @@ dummy_dim = (
 df_disconnection_document = (
     df_isu_0uc_isu_32
     .unionByName(dummy_dim, allowMissingColumns = True)
+    .dropDuplicates()
+          # --- Cast Data Types --- # 
+    .withColumn("validFromDate",col("validFromDate").cast("date"))
+    .withColumn("validToDate",col("validToDate").cast("date"))
+    .withColumn("disconnectionDate",col("disconnectionDate").cast("date"))
 )
 
 # COMMAND ----------
