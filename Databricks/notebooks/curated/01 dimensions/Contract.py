@@ -25,12 +25,12 @@ def getContract():
                              'ISU' as sourceSystemCode, \
                              least(coh.validFromDate, co.createdDate) as contractStartDate, \
                              coh.validToDate as contractEndDate, \
-                             co.invoiceContractsJointly as invoiceJointlyFlag, \
+                             co.invoiceContractsJointlyCode, \
                              co.moveInDate, \
                              co.moveOutDate, \
                              ca.contractAccountNumber, \
                              ca.contractAccountCategory, \
-                             ca.applicationArea, \
+                             ca.applicationAreaCode, \
                              co.installationNumber \
                              from {ADS_DATABASE_CLEANSED}.isu_0UCCONTRACT_ATTR_2 co left outer join \
                                   {ADS_DATABASE_CLEANSED}.isu_0UCCONTRACTH_ATTR_2 coh on co.contractId = coh.contractId \
@@ -60,12 +60,12 @@ def getContract():
                 , 'sourceSystemCode' \
                 , 'contractStartDate' \
                 , 'contractEndDate' \
-                , 'invoiceJointlyFlag' \
+                , 'invoiceContractsJointlyCode' \
                 , 'moveInDate' \
                 , 'moveOutDate' \
                 , 'contractAccountNumber' \
                 , 'contractAccountCategory' \
-                , 'applicationArea' \
+                , 'applicationAreaCode' \
                 , 'installationNumber')
 
     #5.Apply schema definition
@@ -77,12 +77,12 @@ def getContract():
                             StructField('sourceSystemCode', StringType(), True),
                             StructField('contractStartDate', DateType(), True),
                             StructField('contractEndDate', DateType(), True),
-                            StructField('invoiceJointlyFlag', StringType(), True),
+                            StructField('invoiceContractsJointlyCode', StringType(), True),
                             StructField('moveInDate', DateType(), True),
                             StructField('moveOutDate', DateType(), True),
                             StructField('contractAccountNumber', StringType(), True),
                             StructField('contractAccountCategory', StringType(), True),
-                            StructField('applicationArea', StringType(), True),
+                            StructField('applicationAreaCode', StringType(), True),
                             StructField('installationNumber', StringType(), True)
                       ])
 

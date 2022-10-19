@@ -289,7 +289,7 @@ df_bpartner_master = (
     .unionByName(dummyDimRecDf, allowMissingColumns = True)
     
     # --- Order Columns --- #
-    .select(
+    .selectExpr(
         "sourceSystemCode",
         "businessPartnerNumber",
         "businessPartnerCategoryCode",
@@ -308,6 +308,8 @@ df_bpartner_master = (
         "title",
         "dateOfBirth",
         "dateOfDeath",
+        "validFromDate",
+        "validToDate",
         "warWidowFlag",
         "deceasedFlag",
         "disabilityFlag",
@@ -324,14 +326,12 @@ df_bpartner_master = (
         "pensionType",
         "personNumber",
         "personnelNumber",
-        "organizationName",
+        "TRIM(TRAILING ',' FROM TRIM(organizationName)) AS organizationName",
         "organizationFoundedDate",
         "createdDateTime",
         "createdBy",
         "lastUpdatedBy",
-        "lastUpdatedDateTime",
-        "validFromDate",
-        "validToDate"
+        "lastUpdatedDateTime"
     )
     .cache()
 )

@@ -4,37 +4,38 @@
 
 -- COMMAND ----------
 
--- View: view_businesspartneridentification
--- Description: view_businesspartneridentification
+-- View: viewBusinessPartnerIdentification
+-- Description: viewBusinessPartnerIdentification
 
-CREATE OR REPLACE VIEW curated_v2.view_businesspartneridentification AS 
+CREATE OR REPLACE VIEW curated_v2.viewBusinessPartnerIdentification AS 
 
 WITH all_ID AS (
 		/*================================================================================================
 			All IDs
 				-> _rank: used to only bring 1 businesspartner ID per identification type
-				-> _validFlag: Used to flag whether ID validFrom and To dates are between the current date
+				-> _currentIndicator: Used to flag whether ID validFrom and To dates are between the current date
                 -> Filter to CURRENT_DATE() BETWEEN _RecordStart AND _RecordEnd
 		 ================================================================================================*/
 		SELECT
         *,
         RANK() OVER (PARTITION BY sourceSystemCode, businessPartnerNumber, identificationType ORDER BY ifnull(validToDate, '9999-01-01') DESC, ifnull(entryDate, '1900-01-01') DESC) AS _rank,
         CASE 
-            WHEN CURRENT_DATE() BETWEEN  ifnull(ID.validFromDate, '1900-01-01') AND ifnull(ID.validToDate, '9999-01-01') 
-            THEN 1
-            ELSE 0
-        END AS _validFlag
+            WHEN CURRENT_DATE() BETWEEN ifnull(ID.validFromDate, '1900-01-01') AND ifnull(ID.validToDate, '9999-01-01') 
+            THEN 'Y'
+            ELSE 'N'
+        END AS _currentIndicator
      FROM curated_v2.dimBusinessPartnerIdentification ID
+     WHERE _recordDeleted <> 1
 
 ),
 	/*=====================================================================================
 		valid_ID
-			-> Apply Filters: _rank = 1, _validFlag = 1
+			-> Apply Filters: _rank = 1, _currentIndicator = 1
 			-> filter to identificationType's in scope for the view
 	 ===================================================================================*/
 	valid_ID AS (
 	SELECT * FROM all_ID 
-	WHERE all_ID._rank = 1 AND all_ID._validFlag = 1 AND
+	WHERE all_ID._rank = 1 AND all_ID._currentIndicator = 'Y' AND
 	/* IDs in Scope */
 	all_ID.identificationType IN (
 		'Drivers License Number',
@@ -189,7 +190,8 @@ SELECT * FROM (
 		CASE WHEN External_System_Indicator_for_ICM IS NULL THEN NULL ELSE EntryDate END                 AS externalSystemIndicatorForIcmEntryDate,
 		--
 		External_System_Identifier                                                                       AS externalSystemIdentifier,
-		CASE WHEN External_System_Identifier IS NULL THEN NULL ELSE EntryDate END                        AS externalSystemIdentifierEntryDate
+		CASE WHEN External_System_Identifier IS NULL THEN NULL ELSE EntryDate END                        AS externalSystemIdentifierEntryDate,
+        _currentIndicator                                                                                AS currentIndicator
 	FROM valid_id
 	/* Pivot Table */
 	PIVOT (
@@ -229,7 +231,6 @@ SELECT * FROM (
 	) 
 )
 
-
 -- COMMAND ----------
 
 -- MAGIC %md
@@ -237,19 +238,20 @@ SELECT * FROM (
 
 -- COMMAND ----------
 
--- View: view_businesspartner
--- Description: view_businesspartner
-CREATE OR REPLACE VIEW curated_v2.view_businesspartner AS 
+-- View: viewBusinessPartner
+-- Description: viewBusinessPartner
+CREATE OR REPLACE VIEW curated_v2.viewBusinessPartner AS 
  WITH 
-     /**************************************
-     Build 'Effective From and To table
-     **************************************/
+     /*=====================================
+        Build 'Effective From and To table
+     =======================================*/
      dateDriver AS (
          SELECT DISTINCT
              sourceSystemCode,
              businessPartnerNumber,
              _recordStart AS _effectiveFrom
          FROM curated_v2.dimBusinessPartner
+         WHERE _recordDeleted <> 1
      ),
  
      effectiveDateRanges AS (
@@ -267,7 +269,7 @@ CREATE OR REPLACE VIEW curated_v2.view_businesspartner AS
      )  
  
  /*============================
-    view_businessPartner
+    viewBusinessPartner
  ==============================*/
  SELECT
     /* Business Partner Columns */
@@ -312,11 +314,11 @@ CREATE OR REPLACE VIEW curated_v2.view_businesspartner AS
     BP.organizationFoundedDate,
     BP.createdDateTime,
     BP.createdBy,
-    BP.lastUpdatedBy,
     BP.lastUpdatedDateTime,
+    BP.lastUpdatedBy,
     /* Address Columns */
     ADDR.businesspartnerAddressSK,
-    ADDR.AddressNumber,
+    ADDR.businessPartnerAddressNumber,
     ADDR.addressValidFromDate,
     ADDR.addressValidToDate,
     ADDR.phoneNumber,
@@ -343,6 +345,7 @@ CREATE OR REPLACE VIEW curated_v2.view_businesspartner AS
     ADDR.cityName,
     ADDR.cityCode,
     ADDR.stateCode,
+    ADDR.stateName,
     ADDR.postalCode,
     ADDR.countryCode,
     ADDR.countryName,
@@ -377,8 +380,25 @@ CREATE OR REPLACE VIEW curated_v2.view_businesspartner AS
     ID.dvaNumberValidFrom,
     ID.dvaNumberValidTo,
     ID.dvaNumberEntryDate,
+    ID.userPassword,
+    ID.userPasswordEntryDate,
+    ID.placeofBirth,
+    ID.placeofBirthEntryDate,
+    ID.petsName,
+    ID.petsNameEntryDate,
+    ID.mothersFirstName,
+    ID.mothersFirstNameEntryDate,
+    ID.mothersMaidenName,
+    ID.mothersMaidenNameEntryDate,
+    ID.fathersFirstName,
+    ID.fathersFirstNameEntryDate,
     DR._effectiveFrom, 
-    DR._effectiveTo
+    DR._effectiveTo,
+    case
+      when current_date() between DR._effectiveFrom
+      and DR._effectiveTo then 'Y'
+      else 'N'
+    end as currentIndicator 
 FROM effectiveDateRanges DR
 LEFT JOIN curated_v2.dimbusinesspartner BP ON 
     DR.businessPartnerNumber = BP.businessPartnerNumber AND
@@ -403,9 +423,9 @@ WHERE businessPartnerSK IS NOT NULL
 -- COMMAND ----------
 
 -- View: view_businesspartnergroup
--- Description: view_businesspartnergroup
+-- Description: viewBusinessPartnerGroup
 
-CREATE OR REPLACE VIEW curated_v2.view_businesspartnergroup AS 
+CREATE OR REPLACE VIEW curated_v2.viewBusinessPartnerGroup AS 
 WITH 
     /*==============================
         Effective From and To Dates
@@ -416,6 +436,7 @@ WITH
              businessPartnerGroupNumber,
              _recordStart AS _effectiveFrom
          FROM curated_v2.dimBusinessPartnerGroup
+         WHERE _recordDeleted <> 1
      ),
  
      effectiveDateRanges AS (
@@ -437,7 +458,6 @@ WITH
 ==============================*/    
 SELECT 
     /* Business Partner Group Columns */
-    BPG.businessPartnerGroupSK,
     BPG.sourceSystemCode,
     BPG.businessPartnerGroupNumber,
     BPG.businessPartnerGroupCode,
@@ -450,41 +470,6 @@ SELECT
     BPG.businessPartnerGUID,
     BPG.businessPartnerGroupName1,
     BPG.businessPartnerGroupName2,
-    /* Address Columns */
-    ADDR.addressNumber,
-    ADDR.addressValidFromDate,
-    ADDR.addressValidToDate,
-    ADDR.coName,
-    ADDR.streetLine5,
-    ADDR.building,
-    ADDR.floorNumber,
-    ADDR.apartmentNumber,
-    ADDR.houseNumber,
-    ADDR.houseSupplementNumber, 
-    ADDR.streetName,
-    ADDR.streetSupplementName1,
-    ADDR.streetSupplementName2, 
-    ADDR.otherLocationName, 
-    ADDR.streetCode,
-    ADDR.cityName,
-    ADDR.cityCode,
-    ADDR.postalCode,
-    ADDR.stateCode,
-    ADDR.countrCode,
-    ADDR.countryName,
-    ADDR.poBoxCode,
-    ADDR.poBoxCity,
-    ADDR.postalCodeExtension,
-    ADDR.poBoxExtension,
-    ADDR.deliveryServiceTypeCode,
-    ADDR.deliveryServiceType, 
-    ADDR.deliveryServiceNumber,
-    ADDR.addressTimeZone,
-    ADDR.communicationAddressNumber,
-    ADDR.phoneNumber,
-    ADDR.faxNumber,
-    ADDR.emailAddress,
-    /* Business Partner Group Columns */
     BPG.paymentAssistSchemeFlag,
     BPG.billAssistFlag,
     BPG.consent1Indicator,
@@ -511,9 +496,43 @@ SELECT
     BPG.createdDateTime,
     BPG.lastUpdatedBy,
     BPG.lastUpdatedDateTime,
-    BPG.validFromDate,
-    BPG.validToDate,
-    /* Identification Columns */
+    BPG.validFromDate AS businessPartnerGroupValidFromDate,
+    BPG.validToDate AS businessPartnerGroupValidToDate,
+    /* Address Columns */
+    ADDR.businessPartnerAddressNumber,
+    ADDR.addressValidFromDate,
+    ADDR.addressValidToDate,
+    ADDR.coName,
+    ADDR.streetLine5,
+    ADDR.building,
+    ADDR.floorNumber,
+    ADDR.apartmentNumber,
+    ADDR.housePrimaryNumber,
+    ADDR.houseSupplementNumber,
+    ADDR.streetPrimaryName,
+    ADDR.streetSupplementName1,
+    ADDR.streetSupplementName2,
+    ADDR.otherLocationName,
+    ADDR.streetCode,
+    ADDR.cityName,
+    ADDR.cityCode,
+    ADDR.postalCode,
+    ADDR.stateCode,
+    ADDR.countryCode,
+    ADDR.countryName,
+    ADDR.poBoxCode,
+    ADDR.poBoxCity,
+    ADDR.postalCodeExtension,
+    ADDR.poBoxExtension,
+    ADDR.deliveryServiceTypeCode,
+    ADDR.deliveryServiceType,
+    ADDR.deliveryServiceNumber,
+    ADDR.addressTimeZone,
+    ADDR.communicationAddressNumber,
+    ADDR.phoneNumber,
+    ADDR.faxNumber,
+    ADDR.emailAddress,
+    /* BP ID columns */
     ID.ebillRegistrationPartyType,
     ID.ebillRegistrationTelephoneNumber,
     ID.ebillRegistrationEmail,
@@ -527,7 +546,12 @@ SELECT
     ID.onlineId,
     ID.userPassword,
     DR._effectiveFrom,
-    DR._effectiveTo
+    DR._effectiveTo,
+    case
+      when current_date() between DR._effectiveFrom
+      and DR._effectiveTo then 'Y'
+      else 'N'
+    end as currentIndicator 
 FROM effectiveDateRanges DR
 LEFT JOIN curated_v2.dimBusinessPartnerGroup BPG ON 
     DR.businessPartnerGroupNumber = BPG.businessPartnerGroupNumber AND
@@ -543,109 +567,6 @@ LEFT JOIN curated_v2.view_businesspartneridentification ID ON
     DR.businessPartnerGroupNumber = ID.businessPartnerNumber AND
     DR.sourceSystemCode = ID.sourceSystemCode
 WHERE businessPartnerGroupSK IS NOT NULL
-
--- COMMAND ----------
-
--- MAGIC %md
--- MAGIC # Installation
-
--- COMMAND ----------
-
--- View: view_installation
--- Description: view_installation
-
-create or replace view curated_v2.view_installation
-as
-
-with dateDriver as
-(
-	select distinct installationNumber, to_date(_recordStart) as _effectiveFrom from curated_v2.dimInstallation where isnotnull(installationNumber)
-	union
-	select distinct installationNumber,to_date(_recordStart) as _effectiveFrom from curated_v2.dimInstallationHistory  where isnotnull(installationNumber)
-    union
-    select distinct installationNumber, to_date(_recordStart) as _effectiveFrom from curated_v2.dimDisconnectionDocument where isnotnull(installationNumber)
-),
-effectiveDateranges as 
-(
-	select 
-		installationNumber, 
-		_effectiveFrom, 
-		coalesce(timestamp(date_add(lead(_effectiveFrom,1) over(partition by installationNumber order by _effectiveFrom), -1)), '9999-12-31 00:00:00') as _effectiveTo
-	from dateDriver 
-)
-
-    SELECT
-        /* Installation */
-        dimInstallation.installationSK,
-        dimInstallation.sourceSystemCode,
-        dimInstallation.installationNumber,
-        dimInstallation.divisionCode,
-        dimInstallation.division,
-        dimInstallation.propertyNumber,
-        dimInstallation.Premise,
-        dimInstallation.meterReadingBlockedReason,
-        dimInstallation.basePeriodCategory,
-        dimInstallation.installationType,
-        dimInstallation.meterReadingControlCode,
-        dimInstallation.meterReadingControl,
-        dimInstallation.reference,
-        dimInstallation.authorizationGroupCode,
-        dimInstallation.guaranteedSupplyReason,
-        dimInstallation.serviceTypeCode,
-        dimInstallation.serviceType,
-        dimInstallation.deregulationStatus,
-        dimInstallation.createdDate,
-        dimInstallation.createdBy,
-        dimInstallation.changedDate,
-        dimInstallation.changedBy,
-        /* Installation History */
-        dimInstallationHistory.installationHistorySK,
-        dimInstallationHistory.validFromDate,
-        dimInstallationHistory.validToDate,
-        dimInstallationHistory.rateCategoryCode,
-        dimInstallationHistory.rateCategory,
-        dimInstallationHistory.portionNumber,
-        dimInstallationHistory.portionText,
-        dimInstallationHistory.industrySystemCode,
-        dimInstallationHistory.Industry System,
-        dimInstallationHistory.industryCode,
-        dimInstallationHistory.industry,
-        dimInstallationHistory.billingClassCode,
-        dimInstallationHistory.billingClass,
-        dimInstallationHistory.meterReadingUnit,
-        /* Disconnection Document */
-        dimDisconnectionDocument.disconnectionDocumentSK,
-        dimDisconnectionDocument.disconnectionDocumentNumber,
-        dimDisconnectionDocument.disconnectionActivityPeriod,
-        dimDisconnectionDocument.disconnectionObjectNumber,
-        dimDisconnectionDocument.disconnectionDate,
-        dimDisconnectionDocument.disconnectionActivityTypeCode,
-        dimDisconnectionDocument.disconnectionActivityType,
-        dimDisconnectionDocument.disconnectionObjectTypeCode,
-        dimDisconnectionDocument.disconnectionReasonCode,
-        dimDisconnectionDocument.disconnectionReason,
-        dimDisconnectionDocument.processingVariantCode,
-        dimDisconnectionDocument.processingVariant,
-        dimDisconnectionDocument.disconnectionReconnectionStatusCode,
-        dimDisconnectionDocument.disconnectionReconnectionStatus,
-        dimDisconnectionDocument.disconnectionDocumentStatusCode,
-        dimDisconnectionDocument.disconnectionDocumentStatus,
-        effectiveDateRanges._effectiveFrom,
-        effectiveDateRanges._effectiveTo
-    FROM effectiveDateRanges
-    LEFT OUTER JOIN curated_v2.dimInstallation dimInstallation
-        ON dimInstallation.installationNumber = effectiveDateRanges.installationNumber
-        AND dimInstallation._recordEnd >= effectiveDateRanges._effectiveFrom 
-        AND dimInstallation._recordStart <= effectiveDateRanges._effectiveTo
-    LEFT OUTER JOIN curated_v2.dimInstallationHistory dimInstallationHistory 
-        ON dimInstallationHistory.installationNumber = effectiveDateRanges.installationNumber 
-        AND dimInstallationHistory.validToDate >= effectiveDateRanges._effectiveFrom 
-        AND dimInstallationHistory.validFromDate <= effectiveDateRanges._effectiveTo
-    LEFT OUTER JOIN curated_v2.dimDisconnectionDocument dimDisconnectionDocument 
-        ON dimDisconnectionDocument.installationNumber = effectiveDateRanges.installationNumber 
-        AND dimDisconnectionDocument.referenceObjectTypeCode = 'INSTLN'
-        AND dimDisconnectionDocument.validToDate >= effectiveDateRanges._effectiveFrom 
-        AND dimDisconnectionDocument.validFromDate <= effectiveDateRanges._effectiveTo
 
 -- COMMAND ----------
 

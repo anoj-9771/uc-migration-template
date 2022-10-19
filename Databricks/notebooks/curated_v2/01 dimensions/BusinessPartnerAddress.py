@@ -67,6 +67,11 @@ df_isu_addr_attr = (
                 THEN '' 
                 ELSE stateCode 
             END                                                                 AS stateCode, -- TRANSFORMATION
+            CASE 
+                WHEN countryCode = 'AU' AND cityName IS NULL 
+                THEN '' 
+                ELSE stateName 
+            END                                                                 AS stateName, -- TRANSFORMATION
             postalCode                                                          AS postalCode, 
             CASE 
                 WHEN countryCode = 'AU' AND cityName IS NULL 
@@ -163,6 +168,11 @@ df_crm_addr_attr = (
                 THEN '' 
                 ELSE stateCode 
             END                                                                 AS stateCode, -- TRANSFORMATION
+            CASE 
+                WHEN countryCode = 'AU' AND cityName IS NULL 
+                THEN '' 
+                ELSE stateName 
+            END                                                                 AS stateName, -- TRANSFORMATION
             postalCode                                                          AS postalCode,
             CASE 
                 WHEN countryCode = 'AU' AND cityName IS NULL 
@@ -293,6 +303,7 @@ df_bp_addr_master = (
         "cityName",
         "cityCode",
         "stateCode",
+        "stateName",
         "postalCode",
         "countryCode",
         "countryName",
@@ -355,6 +366,7 @@ schema = StructType([
     StructField('cityName', StringType(), True),
     StructField('cityCode', StringType(), True),
     StructField('stateCode', StringType(), True),
+    StructField('stateName', StringType(), True),
     StructField('postalCode', StringType(), True),
     StructField('countryCode', StringType(), True),
     StructField('countryName', StringType(), True),

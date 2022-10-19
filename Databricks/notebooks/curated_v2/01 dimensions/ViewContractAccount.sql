@@ -1,10 +1,9 @@
 -- Databricks notebook source
--- View: view_ContractAccount
--- Description: view_ContractAccount
-CREATE OR REPLACE VIEW curated_v2.view_ContractAccount AS
+-- View: viewContractAccount
+-- Description: viewContractAccount
+CREATE OR REPLACE VIEW curated_v2.viewContractAccount AS
 WITH dateDriver AS (
          SELECT DISTINCT
-             sourceSystemCode,
              contractAccountNumber,
              _recordStart AS _effectiveFrom
          FROM curated_v2.dimContractAccount WHERE _recordDeleted <> 1
@@ -12,13 +11,12 @@ WITH dateDriver AS (
  
      effectiveDateRanges AS (
          SELECT 
-             sourceSystemCode,
              contractAccountNumber, 
              _effectiveFrom, 
              COALESCE(
                  TIMESTAMP(
                      DATE_ADD(
-                         LEAD(_effectiveFrom,1) OVER (PARTITION BY sourceSystemCode, contractAccountNumber ORDER BY _effectiveFrom),-1)
+                         LEAD(_effectiveFrom,1) OVER (PARTITION BY contractAccountNumber ORDER BY _effectiveFrom),-1)
                  ), 
              TIMESTAMP('9999-12-31')) AS _effectiveTo
          from dateDriver
@@ -39,7 +37,6 @@ SELECT
      ,dimContractAccount.lastChangedBy as contractAccountLastChangedBy
      ,dimContractAccount.lastChangedDate as contractAccountLastChangedDate
      ,dimAccountBusinessPartner.accountBusinessPartnerSK
---      ,dimAccountBusinessPartner.contractAccountNumber
      ,dimAccountBusinessPartner.businessPartnerGroupNumber
      ,dimAccountBusinessPartner.accountRelationshipCode
      ,dimAccountBusinessPartner.accountRelationship
@@ -104,15 +101,17 @@ SELECT
      ,dimAccountBusinessPartner.createdDate as accountBpCreatedDate
      ,dimAccountBusinessPartner.changedBy as accountBpChangedBy
      ,dimAccountBusinessPartner.lastChangedDate as accountBplastChangedDate
+    , CASE
+      WHEN CURRENT_DATE() BETWEEN effectiveDateRanges._effectiveFrom AND effectiveDateRanges._effectiveTo then 'Y'
+      ELSE 'N'
+      END AS currentIndicator
 FROM effectiveDateRanges
 LEFT OUTER JOIN curated_v2.dimContractAccount
   ON effectiveDateRanges.contractAccountNumber = dimContractAccount.contractAccountNumber
-        AND effectiveDateRanges.sourceSystemCode = dimContractAccount.sourceSystemCode
         AND effectiveDateRanges._effectiveFrom <= dimContractAccount._RecordEnd
         AND effectiveDateRanges._effectiveTo >= dimContractAccount._RecordStart 
 LEFT OUTER JOIN curated_v2.dimAccountBusinessPartner
     ON effectiveDateRanges.contractAccountNumber = dimAccountBusinessPartner.contractAccountNumber
-      AND effectiveDateRanges.sourceSystemCode = dimAccountBusinessPartner.sourceSystemCode
       AND effectiveDateRanges._effectiveFrom <= dimAccountBusinessPartner._RecordEnd
       AND effectiveDateRanges._effectiveTo >= dimAccountBusinessPartner._RecordStart
 ORDER BY effectiveDateRanges._effectiveFrom
