@@ -1,7 +1,7 @@
 -- Databricks notebook source
--- View: view_contract
--- Description: view_contract
-CREATE OR REPLACE VIEW curated_v2.view_contract AS
+-- View: viewContract
+-- Description: viewContract
+CREATE OR REPLACE VIEW curated_v2.viewContract AS
 WITH dateDriver AS
 (
     SELECT DISTINCT contractId, _recordStart AS _effectiveFrom FROM curated_v2.dimContract
@@ -21,7 +21,6 @@ SELECT
     ,effectiveDateRanges.contractId
     ,contractSK
     ,dimContract.sourceSystemCode
---     ,dimContract.contractId
     ,dimContract.companyCode
     ,dimContract.companyName
     ,dimContract.divisionCode
@@ -85,10 +84,10 @@ SELECT
     ,dimContractHistory.headerTypeCode
     ,dimContractHistory.headerType
     ,dimContractHistory.isCancelledFlag
-    ,CASE 
-        WHEN (dimContractHistory.validFromDate <= CURRENT_DATE() AND dimContractHistory.validToDate >= CURRENT_DATE())
-           THEN 'Y' 
-           ELSE 'N' END AS currentIndicator
+    , CASE
+      WHEN CURRENT_DATE() BETWEEN effectiveDateRanges._effectiveFrom AND effectiveDateRanges._effectiveTo then 'Y'
+      ELSE 'N'
+      END AS currentIndicator
 FROM effectiveDateRanges
 LEFT OUTER JOIN curated_v2.dimContract
     ON dimContract.contractId = effectiveDateRanges.contractId 
