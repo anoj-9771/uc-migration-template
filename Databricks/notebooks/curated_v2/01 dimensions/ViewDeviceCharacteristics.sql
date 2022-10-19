@@ -31,8 +31,6 @@ WITH dateDriver AS (
          from dateDriver
      )
 SELECT
-      effectiveDateRanges._effectiveFrom
-     ,effectiveDateRanges._effectiveTo
      deviceCharacteristicsSK
     ,dimDeviceCharacteristics.deviceNumber
     ,dimDeviceCharacteristics.classifiedEntityType
@@ -185,6 +183,8 @@ SELECT
     , CASE WHEN characteristicName in ('METER_GPS_DATE_CAPTURED') THEN characteristicValueMaximumDate ELSE NULL END AS meterGPSCapturedDate
     , CASE WHEN characteristicName in ('TOTAL_REVENUE_COST') THEN dimDeviceCharacteristics.characteristicInternalId ELSE NULL END AS totalRevenueCostInternalId
     , CASE WHEN characteristicName in ('TOTAL_REVENUE_COST') THEN currencyMaximumValue ELSE NULL END AS totalRevenueCost
+    , effectiveDateRanges._effectiveFrom
+    , effectiveDateRanges._effectiveTo
     , CASE
       WHEN CURRENT_DATE() BETWEEN effectiveDateRanges._effectiveFrom AND effectiveDateRanges._effectiveTo then 'Y'
       ELSE 'N'
