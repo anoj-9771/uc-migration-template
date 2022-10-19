@@ -16,11 +16,9 @@ effectiveDateranges AS
     FROM dateDriver
 )
 SELECT
-     effectiveDateRanges._effectiveFrom
-    ,effectiveDateRanges._effectiveTo
-    ,effectiveDateRanges.contractId
-    ,contractSK
+     dimContract.contractSK
     ,dimContract.sourceSystemCode
+    ,dimContract.contractId    
     ,dimContract.companyCode
     ,dimContract.companyName
     ,dimContract.divisionCode
@@ -84,6 +82,8 @@ SELECT
     ,dimContractHistory.headerTypeCode
     ,dimContractHistory.headerType
     ,dimContractHistory.isCancelledFlag
+    ,effectiveDateRanges._effectiveFrom
+    ,effectiveDateRanges._effectiveTo
     , CASE
       WHEN CURRENT_DATE() BETWEEN effectiveDateRanges._effectiveFrom AND effectiveDateRanges._effectiveTo then 'Y'
       ELSE 'N'
