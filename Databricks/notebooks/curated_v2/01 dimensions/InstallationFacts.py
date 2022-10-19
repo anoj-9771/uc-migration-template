@@ -15,7 +15,7 @@
 
 
 # ----------------
-# Main Installation History Table
+# Main Installation Facts Table
 # ----------------
 df_installation_fact = spark.sql(f"""
     SELECT
@@ -67,7 +67,7 @@ df_installation_fact = (
     # --- Cast Data Types --- # 
     .withColumn("validFromDate",col("validFromDate").cast("date"))
     .withColumn("validToDate",col("validToDate").cast("date"))
-    .withColumn("validToDate",col("validToDate").cast("expiryDate"))
+    .withColumn("expiryDatec",col("expiryDate").cast("date"))
 )    
 
 # print('df count',df_installation_fact.count())
