@@ -84,7 +84,7 @@ df_isu_addr_attr = (
             postalCodeExtension                                                 AS postalCodeExtension, 
             poBoxExtension                                                      AS poBoxExtension, 
             deliveryServiceTypeCode                                             AS deliveryServiceTypeCode, 
-            deliveryServiceTypeCode                                             AS deliveryServiceType, -- RENAMED
+            deliveryServiceType                                                 AS deliveryServiceType, -- RENAMED
             deliveryServiceNumber                                               AS deliveryServiceNumber, 
             addressTimeZone                                                     AS addressTimeZone, 
             communicationAddressNumber                                          AS communicationAddressNumber,
