@@ -103,4 +103,3 @@ effectiveDateranges as
         AND dimDisconnectionDocument.referenceObjectTypeCode = 'INSTLN'
         AND dimDisconnectionDocument.validToDate >= effectiveDateRanges._effectiveFrom 
         AND dimDisconnectionDocument.validFromDate <= effectiveDateRanges._effectiveTo
-
