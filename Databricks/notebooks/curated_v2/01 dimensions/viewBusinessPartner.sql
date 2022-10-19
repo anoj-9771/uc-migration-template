@@ -410,7 +410,7 @@ LEFT JOIN curated_v2.dimbusinesspartneraddress ADDR ON
     DR.sourceSystemCode = ADDR.sourceSystemCode AND
     DR._effectiveFrom <= ADDR._RecordEnd AND
     DR._effectiveTo >= ADDR._RecordStart 
-LEFT JOIN curated_v2.view_businesspartneridentification ID ON 
+LEFT JOIN curated_v2.viewBusinessPartnerIdentification ID ON 
     DR.businessPartnerNumber = ID.businessPartnerNumber AND
     DR.sourceSystemCode = ID.sourceSystemCode
 WHERE businessPartnerSK IS NOT NULL
