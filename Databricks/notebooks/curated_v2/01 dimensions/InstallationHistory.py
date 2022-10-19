@@ -58,6 +58,9 @@ df_installation_history = (
     df_installation_history
     .unionByName(dummyDimRecDf, allowMissingColumns = True)
     .drop_duplicates()
+      # --- Cast Data Types --- # 
+    .withColumn("validFromDate",col("validFromDate").cast("date"))
+    .withColumn("validToDate",col("validToDate").cast("date"))
 )    
 
 
