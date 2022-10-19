@@ -231,7 +231,6 @@ SELECT * FROM (
 	) 
 )
 
-
 -- COMMAND ----------
 
 -- MAGIC %md
@@ -239,13 +238,13 @@ SELECT * FROM (
 
 -- COMMAND ----------
 
--- View: view_businesspartner
--- Description: view_businesspartner
+-- View: viewBusinessPartner
+-- Description: viewBusinessPartner
 CREATE OR REPLACE VIEW curated_v2.viewBusinessPartner AS 
  WITH 
-     /**************************************
-     Build 'Effective From and To table
-     **************************************/
+     /*=====================================
+        Build 'Effective From and To table
+     =======================================*/
      dateDriver AS (
          SELECT DISTINCT
              sourceSystemCode,
@@ -270,7 +269,7 @@ CREATE OR REPLACE VIEW curated_v2.viewBusinessPartner AS
      )  
  
  /*============================
-    view_businessPartner
+    viewBusinessPartner
  ==============================*/
  SELECT
     /* Business Partner Columns */
@@ -315,8 +314,8 @@ CREATE OR REPLACE VIEW curated_v2.viewBusinessPartner AS
     BP.organizationFoundedDate,
     BP.createdDateTime,
     BP.createdBy,
-    BP.lastUpdatedBy,
     BP.lastUpdatedDateTime,
+    BP.lastUpdatedBy,
     /* Address Columns */
     ADDR.businesspartnerAddressSK,
     ADDR.businessPartnerAddressNumber,
@@ -346,6 +345,7 @@ CREATE OR REPLACE VIEW curated_v2.viewBusinessPartner AS
     ADDR.cityName,
     ADDR.cityCode,
     ADDR.stateCode,
+    ADDR.stateName,
     ADDR.postalCode,
     ADDR.countryCode,
     ADDR.countryName,
@@ -380,6 +380,18 @@ CREATE OR REPLACE VIEW curated_v2.viewBusinessPartner AS
     ID.dvaNumberValidFrom,
     ID.dvaNumberValidTo,
     ID.dvaNumberEntryDate,
+    ID.userPassword,
+    ID.userPasswordEntryDate,
+    ID.placeofBirth,
+    ID.placeofBirthEntryDate,
+    ID.petsName,
+    ID.petsNameEntryDate,
+    ID.mothersFirstName,
+    ID.mothersFirstNameEntryDate,
+    ID.mothersMaidenName,
+    ID.mothersMaidenNameEntryDate,
+    ID.fathersFirstName,
+    ID.fathersFirstNameEntryDate,
     DR._effectiveFrom, 
     DR._effectiveTo,
     case
@@ -446,7 +458,6 @@ WITH
 ==============================*/    
 SELECT 
     /* Business Partner Group Columns */
-    BPG.businessPartnerGroupSK,
     BPG.sourceSystemCode,
     BPG.businessPartnerGroupNumber,
     BPG.businessPartnerGroupCode,
@@ -459,41 +470,6 @@ SELECT
     BPG.businessPartnerGUID,
     BPG.businessPartnerGroupName1,
     BPG.businessPartnerGroupName2,
-    /* Address Columns */
-    ADDR.businessPartnerAddressNumber,
-    ADDR.addressValidFromDate,
-    ADDR.addressValidToDate,
-    ADDR.coName,
-    ADDR.streetLine5,
-    ADDR.building,
-    ADDR.floorNumber,
-    ADDR.apartmentNumber,
-    ADDR.houseNumber,
-    ADDR.houseSupplementNumber, 
-    ADDR.streetName,
-    ADDR.streetSupplementName1,
-    ADDR.streetSupplementName2, 
-    ADDR.otherLocationName, 
-    ADDR.streetCode,
-    ADDR.cityName,
-    ADDR.cityCode,
-    ADDR.postalCode,
-    ADDR.stateCode,
-    ADDR.countryCode,
-    ADDR.countryName,
-    ADDR.poBoxCode,
-    ADDR.poBoxCity,
-    ADDR.postalCodeExtension,
-    ADDR.poBoxExtension,
-    ADDR.deliveryServiceTypeCode,
-    ADDR.deliveryServiceType, 
-    ADDR.deliveryServiceNumber,
-    ADDR.addressTimeZone,
-    ADDR.communicationAddressNumber,
-    ADDR.phoneNumber,
-    ADDR.faxNumber,
-    ADDR.emailAddress,
-    /* Business Partner Group Columns */
     BPG.paymentAssistSchemeFlag,
     BPG.billAssistFlag,
     BPG.consent1Indicator,
@@ -520,9 +496,43 @@ SELECT
     BPG.createdDateTime,
     BPG.lastUpdatedBy,
     BPG.lastUpdatedDateTime,
-    BPG.validFromDate,
-    BPG.validToDate,
-    /* Identification Columns */
+    BPG.validFromDate AS businessPartnerGroupValidFromDate,
+    BPG.validToDate AS businessPartnerGroupValidToDate,
+    /* Address Columns */
+    ADDR.businessPartnerAddressNumber,
+    ADDR.addressValidFromDate,
+    ADDR.addressValidToDate,
+    ADDR.coName,
+    ADDR.streetLine5,
+    ADDR.building,
+    ADDR.floorNumber,
+    ADDR.apartmentNumber,
+    ADDR.housePrimaryNumber,
+    ADDR.houseSupplementNumber,
+    ADDR.streetPrimaryName,
+    ADDR.streetSupplementName1,
+    ADDR.streetSupplementName2,
+    ADDR.otherLocationName,
+    ADDR.streetCode,
+    ADDR.cityName,
+    ADDR.cityCode,
+    ADDR.postalCode,
+    ADDR.stateCode,
+    ADDR.countryCode,
+    ADDR.countryName,
+    ADDR.poBoxCode,
+    ADDR.poBoxCity,
+    ADDR.postalCodeExtension,
+    ADDR.poBoxExtension,
+    ADDR.deliveryServiceTypeCode,
+    ADDR.deliveryServiceType,
+    ADDR.deliveryServiceNumber,
+    ADDR.addressTimeZone,
+    ADDR.communicationAddressNumber,
+    ADDR.phoneNumber,
+    ADDR.faxNumber,
+    ADDR.emailAddress,
+    /* BP ID columns */
     ID.ebillRegistrationPartyType,
     ID.ebillRegistrationTelephoneNumber,
     ID.ebillRegistrationEmail,
