@@ -167,7 +167,7 @@ schema = StructType([
 TemplateEtlSCD(
     df_bpid_master, 
     entity="dimBusinessPartnerIdentification", 
-    businessKey="businessPartnerNumber,businessPartnerIdNumber",
+    businessKey="businessPartnerNumber,businessPartnerIdNumber,identificationTypeCode",
     schema=schema
 )
 
