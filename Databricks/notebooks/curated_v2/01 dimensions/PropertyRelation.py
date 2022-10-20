@@ -16,6 +16,10 @@ def getPropertyRelation():
                                         relationshipType2 
                                         from {ADS_DATABASE_CLEANSED}.isu_zcd_tprop_rel""")
     
+    dummyDimRecDf = spark.createDataFrame([("-1","-1","1900-01-01","9999-12-31","","")], ["property1Number","property2Number","validFromDate","validToDate","relationshipTypeCode1","relationshipType1"])
+    
+    df = df_isu.unionByName(dummyDimRecDf, allowMissingColumns = True)
+    
     schema = StructType([StructField('propertyRelationSK', StringType(), False),
                          StructField('sourceSystemCode', StringType(), True),
                          StructField('property1Number', StringType(), False),
@@ -27,7 +31,7 @@ def getPropertyRelation():
                          StructField("relationshipTypeCode2", StringType(), True),
                          StructField("relationshipType2", StringType(), True)])
     
-    return df_isu, schema
+    return df, schema
 
 # COMMAND ----------
 
