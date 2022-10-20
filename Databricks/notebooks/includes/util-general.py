@@ -337,7 +337,7 @@ _mandatoryStr = "MANDATORY"
 _zeroDate = '00000000'    
 _emptyPadDate = '        '
 
-def GeneralToValidDateTime(dateIn, colType ="Optional"):
+def GeneralToValidDateTime(dateIn, colType ="Optional", missingFlag = "Max"):
     #-----------------------------------------------------------------------
     # Last Author: Dylan McCullough
     # **** Functions Purpose ****
@@ -385,7 +385,11 @@ def GeneralToValidDateTime(dateIn, colType ="Optional"):
     
     # Check for 'zeroed' dates 
     if dateStr == str(zeroDate): #zeroDate: '00000000'
-        return nullDate
+        if missingFlag == "Max":
+            return nullDate
+        elif missingFlag == "Min":
+            return lowDate
+            
     elif dateStr == str(emptyPadDate): #emptyPadDate: '        '
         return None
     
