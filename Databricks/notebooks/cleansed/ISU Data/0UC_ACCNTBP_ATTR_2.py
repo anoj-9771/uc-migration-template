@@ -186,7 +186,6 @@ df = spark.sql(f"WITH stage AS \
                                 AUSGRUP_IN as outsortingCheckGroupCode, \
                                 OUTCOUNT as manualOutsortingCount, \
                                 MANOUTS_IN as manualOutsortingReasonCode, \
-                                KZABSVER as billingProcedureActivationIndicator, \
                                 ToValidDate(ERDAT) as createdDate, \
                                 ERNAM as createdBy, \
                                 ToValidDate(AEDATP) as lastChangedDate, \
@@ -210,8 +209,8 @@ df = spark.sql(f"WITH stage AS \
                                 ADRRH as addressNumberForAlternativeBillRecipient, \
                                 TOGRU as toleranceGroupCode, \
                                 CCARD_ID as paymentCardId, \
-                                TFK111T.TEXT40 as clearingCategory, \
-                                TFK041BT.GRPDESCR_CM_KK as collectionManagementMasterDataGroup, \
+                                TFK111T.clearingCategory as clearingCategory, \
+                                TFK041BT.collectionManagementMasterDataGroup as collectionManagementMasterDataGroup, \
                                 STRAT as collectionStrategyCode, \
                                 ZAHLKOND as paymentConditionCode, \
                                 KOFIZ_SD as accountDeterminationCode, \
@@ -264,8 +263,8 @@ df = spark.sql(f"WITH stage AS \
                         LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_esendcontrolt esendcontrolt1 ON esendcontrolt1.dispatchControlCode  = acc.SENDCONTROL_MA \
                         LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_esendcontrolt esendcontrolt2 ON esendcontrolt2.dispatchControlCode  = acc.SENDCONTROL_GP \
                         LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_efrm efrm ON acc.FORMKEY = efrm.applicationForm \
-                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_TFK111T TFK111T ON  acc.VERTYP = TFK111T.VERTYP_KK \
-                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_TFK041BT TFK041BT ON TFK041BT.CMGRP_CM_KK =acc.CMGRP \
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_TFK111T TFK111T ON  acc.VERTYP = TFK111T.clearingCategoryCode \
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_TFK041BT TFK041BT ON TFK041BT.collectionManagementMasterDataGroupCode =acc.CMGRP \
                         where acc._RecordVersion = 1 ")
 
 #print(f'Number of rows: {df.count()}')
@@ -341,23 +340,22 @@ newSchema = StructType([
 	StructField('budgetBillingRequestForDebtor',StringType(),True),
 	StructField('budgetBillingRequestForCashPayer',StringType(),True),
 	StructField('noPaymentFormFlag',StringType(),True),
-	StructField('numberOfSuccessfulDirectDebits',StringType(),True),
-	StructField('numberOfDirectDebitReturns',StringType(),True),
+	StructField('numberOfSuccessfulDirectDebits',LongType(),True),
+	StructField('numberOfDirectDebitReturns',LongType(),True),
 	StructField('sendAdditionalDunningNoticeFlag',StringType(),True),
 	StructField('sendAdditionalBillFlag',StringType(),True),
 	StructField('applicationForm',StringType(),True),
 	StructField('outsortingCheckGroupCode',StringType(),True),
-	StructField('manualOutsortingCount',StringType(),True),
+	StructField('manualOutsortingCount',LongType(),True),
 	StructField('manualOutsortingReasonCode',StringType(),True),
-	StructField('billingProcedureActivationIndicator',StringType(),True),
 	StructField('createdDate',DateType(),True),
 	StructField('createdBy',StringType(),True),
 	StructField('lastChangedDate',DateType(),True),
 	StructField('changedBy',StringType(),True),
-	StructField('additionalDaysForCashManagement',StringType(),True),
+	StructField('additionalDaysForCashManagement',LongType(),True),
 	StructField('headerUUID',StringType(),True),
 	StructField('directDebitLimit',DecimalType(13,0),True),
-	StructField('numberOfMonthsForDirectDebitLimit',StringType(),True),
+	StructField('numberOfMonthsForDirectDebitLimit',LongType(),True),
 	StructField('businessPartnerReferenceNumber',StringType(),True),
 	StructField('standardCompanyCode',StringType(),True),
 	StructField('alternativeDunningRecipient',StringType(),True),
@@ -381,7 +379,7 @@ newSchema = StructType([
     StructField('toleranceGroup',StringType(),True),
     StructField('manualOutsortingReason',StringType(),True),
     StructField('outsortingCheckGroup',StringType(),True),
-    StructField('participationInYearlyAdvancePaymentCode',StringType(),True),
+    StructField('participationInYearlyAdvancePaymentCode',LongType(),True),
     StructField('participationInYearlyAdvancePayment',StringType(),True),
     StructField('activatebudgetbillingProcedureCode',StringType(),True),
     StructField('activatebudgetbillingProcedure',StringType(),True),
@@ -399,8 +397,8 @@ newSchema = StructType([
     StructField('shippingControlForAltDunningRecipient',StringType(),True),
     StructField('dispatchControlForOriginalCustomerCode',StringType(),True),
     StructField('dispatchControlForOriginalCustomer',StringType(),True),
-    StructField('budgetBillingRequestForCashPayerCode',StringType(),True),
-    StructField('budgetBillingRequestForDebtorCode',StringType(),True),
+    StructField('budgetBillingRequestForCashPayerCode',LongType(),True),
+    StructField('budgetBillingRequestForDebtorCode',LongType(),True),
     StructField('clearingCategoryCode',StringType(),True),
     StructField('applicationFormCode',StringType(),True),
 	StructField('_RecordStart',TimestampType(),False),

@@ -342,7 +342,7 @@ isu_te192t.outsortingCheckGroup,
 isu_0uc_accntbp_attr_2.manualOutsortingCount,
 isu_0uc_accntbp_attr_2.participationInYearlyAdvancePayment participationInYearlyAdvancePaymentCode,
 isu_dd07t.domainValueText participationInYearlyAdvancePayment,
-isu_0uc_accntbp_attr_2.billingProcedureActivationIndicator,
+isu_0uc_accntbp_attr_2.activatebudgetbillingProcedureCode,
 isu_0uc_bbproc_text.billingProcedure,
 isu_0uc_accntbp_attr_2.paymentConditionCode,
 isu_0uc_zahlkond_text.paymentCondition,
@@ -408,7 +408,7 @@ on isu_dd07t.domainName = 'JVLTE'
 and isu_0uc_accntbp_attr_2.participationInYearlyAdvancePayment = isu_dd07t.domainValueSingleUpperLimit
 and isu_dd07t._RecordCurrent = 1
 left outer join cleansed.isu_0uc_bbproc_text
-on isu_0uc_accntbp_attr_2.billingProcedureActivationIndicator = isu_0uc_bbproc_text.billingProcedureCode
+on isu_0uc_accntbp_attr_2.activatebudgetbillingProcedureCode = isu_0uc_bbproc_text.billingProcedureCode
 and isu_0uc_bbproc_text.`_RecordCurrent` = 1
 left outer join cleansed.isu_0uc_zahlkond_text
 on isu_0uc_accntbp_attr_2.paymentConditionCode = isu_0uc_zahlkond_text.paymentConditionCode
