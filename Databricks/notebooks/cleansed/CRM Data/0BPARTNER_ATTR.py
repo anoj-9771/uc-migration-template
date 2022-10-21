@@ -213,7 +213,10 @@ print(delta_raw_tbl_name)
 # COMMAND ----------
 
 # DBTITLE 1,10. Load Raw to Dataframe & Do Transformations
-df = spark.sql(f"""
+import pyspark.sql.functions as F
+
+df = (
+    spark.sql(f"""
      WITH stage AS (
           SELECT 
                *, 
@@ -276,6 +279,14 @@ df = spark.sql(f"""
           NAME_ORG1                                                       as organizationName1, 
           NAME_ORG2                                                       as organizationName2, 
           NAME_ORG3                                                       as organizationName3, 
+          CASE 
+              WHEN businessPartnerCategoryCode = '2' 
+              THEN concat( 
+                  coalesce(NAME_ORG1, ''), 
+                  ' ', coalesce(NAME_ORG2, ''), 
+                  ' ', coalesce(NAME_ORG3, '')) 
+              ELSE NAME_ORG1 
+          END                                                             as organizationName, -- TRANSFORMATION
           ToValidDate(BP.FOUND_DAT)                                       as organizationFoundedDate, 
           CAST(LOCATION_1 AS string)                                      as internationalLocationNumber1, 
           CAST(LOCATION_2 AS string)                                      as internationalLocationNumber2, 
@@ -401,8 +412,13 @@ df = spark.sql(f"""
     LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.crm_t005t t005t ON 
         BP.NAMCOUNTRY = t005t.countryCode 
     WHERE BP._RecordVersion = 1 
-"""
-) 
+    """
+    )
+    .withColumn(
+        'organizationName',
+        F.expr("TRIM(TRAILING ',' FROM TRIM(organizationName))")
+    )
+)
 # print(f'Number of rows: {df.count()}')
 # display(df)
 
