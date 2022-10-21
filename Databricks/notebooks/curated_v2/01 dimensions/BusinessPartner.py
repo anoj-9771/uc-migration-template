@@ -71,19 +71,8 @@ df_isu_0bpartner_attr = (
             validToDate                                             AS validToDate, 
             personNumber                                            AS personNumber, 
             personnelNumber                                         AS personnelNumber, 
-            CASE 
-                WHEN businessPartnerCategoryCode = '2' 
-                THEN concat( 
-                    coalesce(trim(organizationName1), ''), 
-                    ' ', coalesce(trim(organizationName2), ''), 
-                    ' ', coalesce(trim(organizationName3), '')) 
-                ELSE organizationName1 
-            END                                                     AS organizationName, -- TRANSFORMATION
-            CASE 
-                WHEN businessPartnerCategoryCode = '2' 
-                THEN organizationFoundedDate 
-                ELSE NULL 
-            END                                                     AS organizationFoundedDate, -- TRANSFORMATION
+            organizationName                                        AS organizationName, 
+            organizationFoundedDate                                 AS organizationFoundedDate, -- TRANSFORMATION
             externalBusinessPartnerNumber                           AS externalBusinessPartnerNumber, 
             createdDateTime                                         AS createdDateTime, 
             createdBy                                               AS createdBy, 
@@ -135,19 +124,8 @@ df_crm_0bpartner_attr = (
             validToDate                                            AS validToDate, 
             personNumber                                           AS personNumber, 
             personnelNumber                                        AS personnelNumber, 
-            CASE 
-                WHEN businessPartnerCategoryCode = '2' 
-                THEN concat( 
-                    coalesce(organizationName1, ''), 
-                    ' ', coalesce(organizationName2, ''), 
-                    ' ', coalesce(organizationName3, '')) 
-                ELSE organizationName1 
-            END                                                    AS organizationName, -- TRANSFORMATION
-            CASE 
-                WHEN businessPartnerCategoryCode = '2' 
-                THEN organizationFoundedDate 
-                ELSE NULL 
-            END                                                    AS organizationFoundedDate, -- TRANSFORMATION
+            organizationName                                       AS organizationName,
+            organizationFoundedDate                                AS organizationFoundedDate,
             externalBusinessPartnerNumber                          AS externalBusinessPartnerNumber, 
             createdDateTime                                        AS createdDateTime, 
             createdBy                                              AS createdBy, 
@@ -289,7 +267,7 @@ df_bpartner_master = (
     .unionByName(dummyDimRecDf, allowMissingColumns = True)
     
     # --- Order Columns --- #
-    .selectExpr(
+    .select(
         "sourceSystemCode",
         "businessPartnerNumber",
         "businessPartnerCategoryCode",
@@ -326,7 +304,7 @@ df_bpartner_master = (
         "pensionType",
         "personNumber",
         "personnelNumber",
-        "TRIM(TRAILING ',' FROM TRIM(organizationName)) AS organizationName",
+        "organizationName",
         "organizationFoundedDate",
         "createdDateTime",
         "createdBy",
@@ -365,6 +343,8 @@ schema = StructType([
     StructField('title', StringType(), True),
     StructField('dateOfBirth', DateType(), True),
     StructField('dateOfDeath', DateType(), True),
+    StructField('validFromDate', DateType(), True),
+    StructField('validToDate', DateType(), True),
     StructField('warWidowFlag', StringType(), True),
     StructField('deceasedFlag', StringType(), True),
     StructField('disabilityFlag', StringType(), True),
@@ -386,9 +366,7 @@ schema = StructType([
     StructField('createdDateTime', TimestampType(), True),
     StructField('createdBy', StringType(), True),
     StructField('lastUpdatedBy', StringType(), True),
-    StructField('lastUpdatedDateTime', StringType(), True),
-    StructField('validFromDate', DateType(), True),
-    StructField('validToDate', DateType(), True)
+    StructField('lastUpdatedDateTime', StringType(), True)
 ]) 
 
 # ---- Load Data with SCD --- #

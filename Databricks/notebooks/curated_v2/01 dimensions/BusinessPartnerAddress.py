@@ -63,22 +63,26 @@ df_isu_addr_attr = (
             cityName                                                            AS cityName, 
             cityCode                                                            AS cityCode, 
             CASE 
-                WHEN countryCode = 'AU' AND cityName IS NULL 
+                WHEN countryCode = 'AU' AND cityCode IS NULL 
                 THEN '' 
                 ELSE stateCode 
             END                                                                 AS stateCode, -- TRANSFORMATION
             CASE 
-                WHEN countryCode = 'AU' AND cityName IS NULL 
+                WHEN countryCode = 'AU' AND cityCode IS NULL 
                 THEN '' 
                 ELSE stateName 
             END                                                                 AS stateName, -- TRANSFORMATION
             postalCode                                                          AS postalCode, 
             CASE 
-                WHEN countryCode = 'AU' AND cityName IS NULL 
+                WHEN countryCode = 'AU' AND cityCode IS NULL 
                 THEN '' 
                 ELSE countryCode 
             END                                                                 AS countryCode, -- TRANSFORMATION
-            countryName                                                         AS countryName, 
+            CASE 
+                WHEN countryCode = 'AU' AND cityCode IS NULL 
+                THEN '' 
+                ELSE countryName
+            END                                                                 AS countryName, -- TRANSFORMATION
             poBoxCode                                                           AS poBoxCode, 
             poBoxCity                                                           AS poBoxCity, 
             postalCodeExtension                                                 AS postalCodeExtension, 
@@ -89,7 +93,7 @@ df_isu_addr_attr = (
             addressTimeZone                                                     AS addressTimeZone, 
             communicationAddressNumber                                          AS communicationAddressNumber,
             CASE 
-                WHEN countryCode = 'AU' AND cityName IS NULL 
+                WHEN countryCode = 'AU' AND cityCode IS NULL 
                 THEN ''
                 ELSE CONCAT(
                     coalesce(concat(streetLine5, ', '), ''), 
@@ -164,18 +168,18 @@ df_crm_addr_attr = (
             cityName                                                            AS cityName,
             cityCode                                                            AS cityCode,
             CASE 
-                WHEN countryCode = 'AU' AND cityName IS NULL 
+                WHEN countryCode = 'AU' AND cityCode IS NULL 
                 THEN '' 
                 ELSE stateCode 
             END                                                                 AS stateCode, -- TRANSFORMATION
             CASE 
-                WHEN countryCode = 'AU' AND cityName IS NULL 
+                WHEN countryCode = 'AU' AND cityCode IS NULL 
                 THEN '' 
                 ELSE stateName 
             END                                                                 AS stateName, -- TRANSFORMATION
             postalCode                                                          AS postalCode,
             CASE 
-                WHEN countryCode = 'AU' AND cityName IS NULL 
+                WHEN countryCode = 'AU' AND cityCode IS NULL 
                 THEN '' 
                 ELSE countryCode 
             END                                                                 AS countryCode, -- TRANSFORMATION 
@@ -190,7 +194,7 @@ df_crm_addr_attr = (
             addressTimeZone                                                     AS addressTimeZone,
             communicationAddressNumber                                          AS communicationAddressNumber,
             CASE 
-                WHEN countryCode = 'AU' AND cityName IS NULL 
+                WHEN countryCode = 'AU' AND cityCode IS NULL 
                 THEN ''
                 ELSE CONCAT(
                     coalesce(concat(streetLine5, ', '), ''), 
