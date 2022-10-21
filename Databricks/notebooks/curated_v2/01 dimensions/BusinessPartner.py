@@ -72,11 +72,7 @@ df_isu_0bpartner_attr = (
             personNumber                                            AS personNumber, 
             personnelNumber                                         AS personnelNumber, 
             organizationName                                        AS organizationName, 
-            CASE 
-                WHEN businessPartnerCategoryCode = '2' 
-                THEN organizationFoundedDate 
-                ELSE NULL 
-            END                                                     AS organizationFoundedDate, -- TRANSFORMATION
+            organizationFoundedDate                                 AS organizationFoundedDate, -- TRANSFORMATION
             externalBusinessPartnerNumber                           AS externalBusinessPartnerNumber, 
             createdDateTime                                         AS createdDateTime, 
             createdBy                                               AS createdBy, 
@@ -129,11 +125,7 @@ df_crm_0bpartner_attr = (
             personNumber                                           AS personNumber, 
             personnelNumber                                        AS personnelNumber, 
             organizationName                                       AS organizationName,
-            CASE 
-                WHEN businessPartnerCategoryCode = '2' 
-                THEN organizationFoundedDate 
-                ELSE NULL 
-            END                                                    AS organizationFoundedDate, -- TRANSFORMATION
+            organizationFoundedDate                                AS organizationFoundedDate,
             externalBusinessPartnerNumber                          AS externalBusinessPartnerNumber, 
             createdDateTime                                        AS createdDateTime, 
             createdBy                                              AS createdBy, 
@@ -351,6 +343,8 @@ schema = StructType([
     StructField('title', StringType(), True),
     StructField('dateOfBirth', DateType(), True),
     StructField('dateOfDeath', DateType(), True),
+    StructField('validFromDate', DateType(), True),
+    StructField('validToDate', DateType(), True),
     StructField('warWidowFlag', StringType(), True),
     StructField('deceasedFlag', StringType(), True),
     StructField('disabilityFlag', StringType(), True),
@@ -372,9 +366,7 @@ schema = StructType([
     StructField('createdDateTime', TimestampType(), True),
     StructField('createdBy', StringType(), True),
     StructField('lastUpdatedBy', StringType(), True),
-    StructField('lastUpdatedDateTime', StringType(), True),
-    StructField('validFromDate', DateType(), True),
-    StructField('validToDate', DateType(), True)
+    StructField('lastUpdatedDateTime', StringType(), True)
 ]) 
 
 # ---- Load Data with SCD --- #

@@ -287,7 +287,11 @@ df = (
                   ' ', coalesce(NAME_ORG3, '')) 
               ELSE NAME_ORG1 
           END                                                             as organizationName, -- TRANSFORMATION
-          ToValidDate(BP.FOUND_DAT)                                       as organizationFoundedDate, 
+          CASE 
+              WHEN businessPartnerCategoryCode = '2' 
+              THEN ToValidDate(BP.FOUND_DAT) 
+              ELSE NULL 
+          END                                                             as organizationFoundedDate, -- TRANSFORMATION
           CAST(LOCATION_1 AS string)                                      as internationalLocationNumber1, 
           CAST(LOCATION_2 AS string)                                      as internationalLocationNumber2, 
           CAST(LOCATION_3 AS string)                                      as internationalLocationNumber3, 
@@ -562,6 +566,7 @@ newSchema = StructType([
 	StructField('organizationName1',StringType(),True),
 	StructField('organizationName2',StringType(),True),
 	StructField('organizationName3',StringType(),True),
+    StructField("organizationName", StringType(), True),
 	StructField('organizationFoundedDate',DateType(),True),
 	StructField('internationalLocationNumber1',StringType(),True),
 	StructField('internationalLocationNumber2',StringType(),True),
