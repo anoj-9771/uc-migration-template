@@ -98,7 +98,7 @@ def TemplateEtl(df : object, entity, businessKey, schema, writeMode, AddSK = Tru
 
 # COMMAND ----------
 
-def TemplateEtlSCD(df : object, entity, businessKey, schema, target_layer='curated', scd_valid_start_date='now', scd_valid_end_date='9999-12-31', snap_shot=1, date_granularity='Day'):
+def TemplateEtlSCD(df : object, entity, businessKey, schema, target_layer='curated', scd_valid_start_date='now', scd_valid_end_date='9999-12-31', snap_shot=1, date_granularity='Second'):
     
     Entity_Type = 'dimension'
     TARGET_LAYER = ADS_DATABASE_CURATED_V2
