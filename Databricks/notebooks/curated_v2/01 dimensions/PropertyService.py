@@ -17,6 +17,10 @@ def getPropertyService():
                         on isu_vibdcharact.architecturalObjectInternalId = isu_vibdnode.architecturalObjectInternalId 
                         where isu_vibdcharact.fixtureAndFittingCharacteristic NOT in ('WATER DELIVERY SYSTEM', 'WATER DISTRIBUTION SYSTEM', 'WATER PRESSURE ZONE', 'WATER SUPPLY ZONE', 'RECYCLED WATER DELIVERY SYSTEM', 'RECYCLED WATER DISTRIBUTION SYSTEM', 'RECYCLED WATER SUPPLY ZONE','SEWERAGE NETWORK', 'SEWERAGE CATCHMENT', 'SCAMP','STORMWATER RECEIVING WATERS', 'STORMWATER CATCHMENT')""")
     
+    dummyDimRecDf = spark.createDataFrame([("-1","9999-12-31","1900-01-01","","")], ["propertyNumber","validToDate","validFromDate","fixtureAndFittingCharacteristicCode","fixtureAndFittingCharacteristic"])
+    
+    df = df_isu.unionByName(dummyDimRecDf, allowMissingColumns = True)
+    
     schema = StructType([StructField('propertyServiceSK', StringType(), False),
                          StructField('sourceSystemCode', StringType(), True),
                          StructField('propertyNumber', StringType(), False),
@@ -25,15 +29,15 @@ def getPropertyService():
                          StructField("validFromDate", DateType(), False),
                          StructField("fixtureAndFittingCharacteristicCode", StringType(), False),
                          StructField("fixtureAndFittingCharacteristic", StringType(), False),
-                         StructField("supplementInfo", StringType(), False)])
+                         StructField("supplementInfo", StringType(), True)])
     
-    return df_isu, schema
+    return df, schema
 
 # COMMAND ----------
 
 df, schema = getPropertyService()
 #TemplateEtl(df, entity="dimPropertyService", businessKey="propertyNumber,fixtureAndFittingCharacteristicCode,validFromDate", schema=schema, writeMode=ADS_WRITE_MODE_OVERWRITE, AddSK=True)
-TemplateTimeSliceEtlSCD(df, entity="dimPropertyService", businessKey="propertyNumber,fixtureAndFittingCharacteristicCode,validFromDate", schema=schema)
+TemplateTimeSliceEtlSCD(df, entity="dimPropertyService", businessKey="propertyNumber,fixtureAndFittingCharacteristicCode,validFromDate,validToDate", schema=schema)
 
 # COMMAND ----------
 
