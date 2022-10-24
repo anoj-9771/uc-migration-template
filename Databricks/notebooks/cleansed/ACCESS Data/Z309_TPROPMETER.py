@@ -82,7 +82,6 @@ spark = SparkSession.builder.getOrCreate()
 
 # DBTITLE 1,3. Define Widgets (Parameters) at the start
 #3.Define Widgets/Parameters
-#Initialise the Entity source_object to be passed to the Notebook
 dbutils.widgets.text("source_object", f'access_{accessTable.lower()}', "Source Object")
 dbutils.widgets.text("start_counter", "", "Start Counter")
 dbutils.widgets.text("end_counter", "", "End Counter")
@@ -200,10 +199,11 @@ for replacement in tableReplace:
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-def runQuery(table):
+def runQuery(table, source):
     df_data = spark.sql(f"SELECT cast(N_PROP as int) AS propertyNumber, \
             cast(N_PROP_METE as int) AS propertyMeterNumber, \
             N_METE_MAKE AS meterMakerNumber, \
+            '{source}' as dataSource, \
             C_METE_TYPE AS meterSizeCode, \
             case when b.meterSizeUnit = 'mm' then \
                 cast(cast(b.meterSize as int) as string)||' '||lower(b.meterSizeUnit) \
@@ -213,6 +213,7 @@ def runQuery(table):
             case when C_METE_POSI_STAT = 'A' then true else false end as allowAlso, \
             case when F_METE_CONN = 'D' then false else true end AS isMeterConnected, \
             C_METE_READ_FREQ AS meterReadingFrequencyCode, \
+            ref2.meterReadingFrequency as meterReadingFrequency, \
             C_METE_CLAS AS meterClassCode, \
             initcap(c.meterClass) as meterClass, \
             c.waterMeterType, \
@@ -221,17 +222,22 @@ def runQuery(table):
             C_METE_GROU AS meterGroupCode, \
             replace(initcap(e.meterGroup),'ami','AMI') as meterGroup, \
             C_METE_READ_LOCA AS meterReadingLocationCode, \
+            ref10.meterGridLocation as meterReadingLocation, \
             cast(N_METE_READ_ROUT as int) AS meterReadingRouteNumber, \
             initcap(T_METE_SERV) AS meterServes, \
             C_METE_GRID_LOCA AS meterGridLocationCode, \
+            ref3.meterGridLocation as meterGridLocation, \
             C_READ_INST_NUM1 AS readingInstructionCode1, \
+            ref4.meterReadingInstruction as readingInstruction1, \
             C_READ_INST_NUM2 AS readingInstructionCode2, \
+            ref5.meterReadingInstruction as readingInstruction2, \
             case when F_METE_ADDI_DESC = '1' then true else false end AS hasAdditionalDescription, \
             case when F_METE_ROUT_PREP = '1' then true else false end AS hasMeterRoutePreparation, \
             case when F_METE_WARN_NOTE = '1' then true else false end AS hasMeterWarningNote, \
             to_date(D_METE_FIT, 'yyyyMMdd') AS meterFittedDate, \
             cast(N_METE_READ_SEQU as int) AS meterReadingSequenceNumber, \
             C_METE_CHAN_REAS AS meterChangeReasonCode, \
+            ref6.meterExchangeReason as meterExchangeReason, \
             N_METE_CHAN_ADVI AS meterChangeAdviceNumber, \
             to_date(D_METE_REMO, 'yyyyMMdd') AS meterRemovedDate, \
             to_date(D_PROP_METE_UPDA, 'yyyyMMdd') AS propertyMeterUpdatedDate, \
@@ -241,60 +247,82 @@ def runQuery(table):
             a._RecordCurrent \
         FROM {table} a \
              left outer join CLEANSED.access_Z309_TMeterType b on b.meterTypeCode = a.C_METE_TYPE \
+             left outer join cleansed.access_Z309_TMETEREADFREQ ref2 on a.C_METE_READ_FREQ = ref2.meterReadingFrequencyCode \
+             left outer join cleansed.access_Z309_TMETERGRIDLOCA ref3 on a.C_METE_GRID_LOCA = ref3.meterGridLocationCode \
+             left outer join cleansed.access_Z309_TMETEREADINST ref4 on a.C_READ_INST_NUM1 = ref4.meterReadingInstructionCode \
+             left outer join cleansed.access_Z309_TMETEREADINST ref5 on a.C_READ_INST_NUM2 = ref5.meterReadingInstructionCode \
+             left outer join cleansed.access_Z309_TMETERCHANGEREAS ref6 on a.C_METE_CHAN_REAS = ref6.meterExchangeReasonCode \
              left outer join CLEANSED.access_Z309_TMeterClass c on c.meterClassCode = a.C_METE_CLAS \
              left outer join CLEANSED.access_Z309_TMeterCategory d on d.meterCategoryCode = a.C_METE_CATE \
              left outer join CLEANSED.access_Z309_TMeterGroup e on e.meterGroupCode = a.C_METE_GROU \
+             left outer join cleansed.access_Z309_TMETERGRIDLOCA ref10 on a.C_METE_READ_LOCA = ref10.meterGridLocationCode \
              ")
     
     return df_data
 
-df_current = runQuery(f'{ADS_DATABASE_STAGE}.{source_object}')
-df_BI_data = runQuery(f"{ADS_DATABASE_STAGE}.{source_object.replace('TPROPMETER','TPROPMETER_BI')}")
+df_current = runQuery(f'{ADS_DATABASE_STAGE}.{source_object}','ACCESS')
+df_BI_data = runQuery(f"{ADS_DATABASE_STAGE}.{source_object.replace('TPROPMETER','TPROPMETER_BI')}",'BI')
 
 df_current.createOrReplaceTempView('currentMeters')
 df_BI_data.createOrReplaceTempView('BIMeters')
-                       
-df_BI_complement = spark.sql('select * from BIMeters \
+#By way of experiment, only take the meters for which we have no information in ACCESS at all                       
+df_extraBIMeters = spark.sql('select propertyNumber, propertyMeterNumber, meterMakerNumber from BIMeters \
                               except \
-                              select a.* \
+                              select propertyNumber, propertyMeterNumber, meterMakerNumber \
+                              from   currentMeters')
+
+df_extraBIMeters.createOrReplaceTempView('extraBIMeters')
+
+df_BI_complement = spark.sql('select a.* \
                               from   BIMeters a, \
-                                     currentMeters b \
+                                     extraBIMeters b \
                               where  a.propertyNumber = b.propertyNumber \
                               and    a.propertyMeterNumber = b.propertyMeterNumber \
-                              and    a.waterMeterType = b.waterMeterType \
-                              and    a.isMasterMeter = b.isMasterMeter \
-                              and    a.isCheckMeter = b.isCheckMeter \
-                              and    a.allowAlso = b.allowAlso \
-                              and    a.meterClass = b.meterClass \
-                              and    a.meterCategory = b.meterCategory \
-                              and    a.meterMakerNumber = b.meterMakerNumber \
-                              and    a.propertyMeterUpdatedDate = b.propertyMeterUpdatedDate')
-
+                              and    a.meterMakerNumber = b.meterMakerNumber')
+                              
+#                               and    a.waterMeterType = b.waterMeterType \
+#                               and    a.isMasterMeter = b.isMasterMeter \
+#                               and    a.isCheckMeter = b.isCheckMeter \
+#                               and    a.allowAlso = b.allowAlso \
+#                               and    a.meterClass = b.meterClass \
+#                               and    a.meterCategory = b.meterCategory \
+#                               and    a.propertyMeterUpdatedDate = b.propertyMeterUpdatedDate')
 df_BI_complement.createOrReplaceTempView('BIComplement')
-                        
+#for odd reasons there are records in BI that show a later updated date than ACCESS. Don't include these.
+# df_max_update_ACCESS = spark.sql('select propertyNumber, \
+#                                          propertyMeterNumber, \
+#                                          meterMakerNumber, \
+#                                          max(propertyMeterUpdatedDate) as maxPropertyMeterUpdatedDate \
+#                                   from   currentMeters \
+#                                   group by propertyNumber, propertyMeterNumber, meterMakerNumber')
+
+# df_max_update_ACCESS.createOrReplaceTempView('maxDates')
+
 spark.sql('create or replace temp view allMeters as \
-                select * \
-                from   currentMeters \
-                union all \
-                select * \
-                from   BIComplement')
-                        
+              select * \
+              from   currentMeters \
+              union all \
+              select bi.* \
+              from   BIComplement bi') 
+#                              left outer join maxDates m on bi.propertyNumber = m.propertyNumber and bi.propertyMeterNumber = m.propertyMeterNumber and bi.meterMakerNumber = m.meterMakerNumber \
+#                 where  bi.propertyMeterUpdatedDate < m.maxPropertyMeterUpdatedDate')
+# with t1 as( \
+#                                     select *, \
+#                                            row_number() over(partition by propertyNumber, propertyMeterNumber, meterMakerNumber, waterMeterType, isMasterMeter, isCheckMeter, allowAlso, meterClass, \
+#                                                                           meterCategory order by propertyMeterUpdatedDate desc) as rn \
+#                                     from   allMeters ), \
+#                               t2 as(select *, \
+#                                             case when meterRemovedDate is null \
+#                                                       then lead(meterfittedDate,1) over (partition by propertyNumber, propertyMeterNumber order by meterFittedDate) \
+#                                                       else meterRemovedDate \
+#                                             end as altMeterRemovedDate \
+#                                     from   t1 \
+#                                     where  rn = 1) \                        
 #drop original rows if they were updated after having been archived                        
-df_cleansed = spark.sql("with t1 as( \
-                                    select *, \
-                                           row_number() over(partition by propertyNumber, propertyMeterNumber, meterMakerNumber, waterMeterType, isMasterMeter, isCheckMeter, allowAlso, meterClass, \
-                                                                          meterCategory order by propertyMeterUpdatedDate desc) as rn \
-                                    from   allMeters ), \
-                              t2 as(select *, \
-                                            case when meterRemovedDate is null \
-                                                      then lead(meterfittedDate,1) over (partition by propertyNumber, propertyMeterNumber order by meterFittedDate) \
-                                                      else meterRemovedDate \
-                                            end as altMeterRemovedDate \
-                                    from   t1 \
-                                    where  rn = 1) \
-                          select propertyNumber, \
+df_cleansed = spark.sql(" select propertyNumber, \
                                  propertyMeterNumber, \
-                                 meterMakerNumber, \
+                                 trim(translate(meterMakerNumber,chr(26),' ')) as meterMakerNumber, \
+                                 dataSource, \
                                  meterSizeCode, \
                                  meterSize, \
                                  isMasterMeter, \
@@ -302,6 +330,7 @@ df_cleansed = spark.sql("with t1 as( \
                                  allowAlso, \
                                  isMeterConnected, \
                                  meterReadingFrequencyCode, \
+                                 meterReadingFrequency, \
                                  meterClassCode, \
                                  meterClass, \
                                  waterMeterType, \
@@ -310,33 +339,41 @@ df_cleansed = spark.sql("with t1 as( \
                                  meterGroupCode, \
                                  meterGroup, \
                                  meterReadingLocationCode, \
+                                 meterReadingLocation, \
                                  meterReadingRouteNumber, \
                                  meterServes, \
                                  meterGridLocationCode, \
+                                 meterGridLocation, \
                                  readingInstructionCode1, \
+                                 readingInstruction1, \
                                  readingInstructionCode2, \
+                                 readingInstruction2, \
                                  hasAdditionalDescription, \
                                  hasMeterRoutePreparation, \
                                  hasMeterWarningNote, \
                                  meterFittedDate, \
                                  meterReadingSequenceNumber, \
                                  meterChangeReasonCode, \
+                                 meterExchangeReason, \
                                  meterChangeAdviceNumber, \
-                                 altMeterRemovedDate as meterRemovedDate, \
+                                 meterRemovedDate, \
                                  propertyMeterUpdatedDate, \
                                  _RecordStart, \
                                  _RecordEnd, \
                                  _RecordDeleted, \
                                  _RecordCurrent \
-                          from   t2 \
+                          from   allMeters \
                           ")
-                        
+                        #altMeterRemovedDate as meterRemovedDate, \
 df_cleansed = df_cleansed.drop('rn')
 #print(f'Number of rows: {df_cleansed.count()}')
 
 # COMMAND ----------
 
-# df_cleansed.createOrReplaceTempView('mtr')
+# MAGIC %sql
+# MAGIC select * 
+# MAGIC from BIComplement
+# MAGIC where propertyNumber = 5568937
 
 # COMMAND ----------
 
@@ -357,6 +394,7 @@ newSchema = StructType([
 	StructField('propertyNumber',IntegerType(),False),
 	StructField('propertyMeterNumber',IntegerType(),False),
 	StructField('meterMakerNumber',StringType(),True),
+    StructField('dataSource',StringType(),False),
     StructField('meterSizeCode',StringType(),False),
 	StructField('meterSize',StringType(),False),
     StructField('isMasterMeter',BooleanType(),False),
@@ -364,6 +402,7 @@ newSchema = StructType([
     StructField('allowAlso',BooleanType(),False),
 	StructField('isMeterConnected',BooleanType(),False),
 	StructField('meterReadingFrequencyCode',StringType(),True),
+    StructField('meterReadingFrequency',StringType(),True),
 	StructField('meterClassCode',StringType(),True),
 	StructField('meterClass',StringType(),True),
     StructField('waterMeterType',StringType(),True),
@@ -372,17 +411,22 @@ newSchema = StructType([
 	StructField('meterGroupCode',StringType(),True),
 	StructField('meterGroup',StringType(),True),
 	StructField('meterReadingLocationCode',StringType(),True),
+    StructField('meterReadingLocation',StringType(),True),
 	StructField('meterReadingRouteNumber',IntegerType(),True),
 	StructField('meterServes',StringType(),True),
 	StructField('meterGridLocationCode',StringType(),True),
+    StructField('meterGridLocation',StringType(),True),
 	StructField('readingInstructionCode1',StringType(),True),
+    StructField('readingInstruction1',StringType(),True),
 	StructField('readingInstructionCode2',StringType(),True),
+    StructField('readingInstruction2',StringType(),True),
 	StructField('hasAdditionalDescription',BooleanType(),False),
 	StructField('hasMeterRoutePreparation',BooleanType(),False),
 	StructField('hasMeterWarningNote',BooleanType(),False),
 	StructField('meterFittedDate',DateType(),True),
 	StructField('meterReadingSequenceNumber',IntegerType(),False),
 	StructField('meterChangeReasonCode',StringType(),True),
+    StructField('meterExchangeReason',StringType(),True),
 	StructField('meterChangeAdviceNumber',StringType(),True),
 	StructField('meterRemovedDate',DateType(),True),
 	StructField('propertyMeterUpdatedDate',DateType(),True),
@@ -401,6 +445,11 @@ newSchema = StructType([
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
 DeltaSaveDataframeDirect(df_cleansed, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", newSchema, "")
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC select count(*) from cleansed.access_Z309_TPROPMETER where dataSource = 'BI'
 
 # COMMAND ----------
 
