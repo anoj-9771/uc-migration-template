@@ -1,4 +1,8 @@
 # Databricks notebook source
+# dbutils.widgets.removeAll() #debug runs only
+
+# COMMAND ----------
+
 # DBTITLE 1,Generate parameter and source object name for unit testing
 import json
 accessTable = 'Z309_THPROPMETER'
@@ -70,12 +74,11 @@ spark = SparkSession.builder.getOrCreate()
 
 # DBTITLE 1,3. Define Widgets (Parameters) at the start
 #3.Define Widgets/Parameters
-#Initialise the Entity source_object to be passed to the Notebook
-dbutils.widgets.text("source_object", "", "Source Object")
+dbutils.widgets.text("source_object", f'access_{accessTable.lower()}', "Source Object")
 dbutils.widgets.text("start_counter", "", "Start Counter")
 dbutils.widgets.text("end_counter", "", "End Counter")
 dbutils.widgets.text("delta_column", "", "Delta Column")
-dbutils.widgets.text("source_param", "", "Param")
+dbutils.widgets.text("source_param", runParm, "Param")
 
 
 # COMMAND ----------
@@ -186,65 +189,66 @@ DeltaSaveToDeltaTable (
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT \
 	cast(tbl.N_PROP as int) as propertyNumber, \
-	cast(tbl.N_PROP_METE as int) as propertyMeterNumber, \
-	cast(tbl.N_METE_READ_ROUT as int) as meterReadingRouteNumber, \
+    cast(tbl.N_PROP_METE as int) as propertyMeterNumber, \
+	trim(translate(tbl.N_METE_MAKE,chr(26),' ')) as meterMakerNumber, \
 	tbl.C_METE_TYPE as meterSizeCode, \
     case when ref1.meterSizeUnit = 'mm' then \
             cast(cast(ref1.meterSize as int) as string)||' '||lower(ref1.meterSizeUnit) \
             else cast(cast(ref1.meterSize as decimal(5,2)) as string)||' '||lower(ref1.meterSizeUnit) end as meterSize, \
-	tbl.C_METE_READ_FREQ as meterReadingFrequencyCode, \
+	case when C_METE_POSI_STAT = 'M' then true else false end as isMasterMeter, \
+    case when C_METE_POSI_STAT = 'C' then true else false end as isCheckMeter, \
+    case when C_METE_POSI_STAT = 'A' then true else false end as allowAlso, \
+	case when F_METE_CONN = 'D' then false else true end AS isMeterConnected, \
+    tbl.C_METE_READ_FREQ as meterReadingFrequencyCode, \
 	ref2.meterReadingFrequency as meterReadingFrequency, \
+	tbl.C_METE_CLAS as meterClassCode, \
+	ref7.meterClass as meterClass, \
+	ref7.waterMeterType, \
+    tbl.C_METE_CATE as meterCategoryCode, \
+	ref8.meterCategory as meterCategory, \
+	tbl.C_METE_GROU as meterGroupCode, \
+	replace(initcap(ref9.meterGroup),'ami','AMI') as meterGroup, \
+	tbl.C_METE_READ_LOCA as meterReadingLocationCode, \
+	ref10.meterGridLocation as meterReadingLocation, \
+	cast(tbl.N_METE_READ_ROUT as int) as meterReadingRouteNumber, \
+	tbl.T_METE_SERV as meterServes, \
 	tbl.C_METE_GRID_LOCA as meterGridLocationCode, \
 	ref3.meterGridLocation as meterGridLocation, \
-	tbl.C_READ_INST_NUM1 as meterReadingInstructionCode1, \
-	ref4.meterReadingInstruction as meterReadingInstruction1, \
-	tbl.C_READ_INST_NUM2 as meterReadingInstructionCode2, \
-	ref5.meterReadingInstruction as meterReadingInstruction2, \
+	tbl.C_READ_INST_NUM1 as readingInstructionCode1, \
+	ref4.meterReadingInstruction as readingInstruction1, \
+	tbl.C_READ_INST_NUM2 as readingInstructionCode2, \
+	ref5.meterReadingInstruction as readingInstruction2, \
 	case when F_METE_ADDI_DESC = '1' then true else false end AS hasAdditionalDescription, \
     case when F_METE_ROUT_PREP = '1' then true else false end AS hasMeterRoutePreparation, \
 	case when F_METE_WARN_NOTE = '1' then true else false end AS hasMeterWarningNote, \
 	ToValidDate(tbl.D_METE_FIT) as meterFittedDate, \
 	cast(tbl.N_METE_READ_SEQU as int) as meterReadingSequenceNumber, \
-	case when C_METE_POSI_STAT = 'M' then true else false end as isMasterMeter, \
-    case when C_METE_POSI_STAT = 'C' then true else false end as isCheckMeter, \
-    case when C_METE_POSI_STAT = 'A' then true else false end as allowAlso, \
 	tbl.C_METE_CHAN_REAS as meterChangeReasonCode, \
 	ref6.meterExchangeReason as meterExchangeReason, \
 	tbl.N_METE_CHAN_ADVI as meterChangeAdviceNumber, \
 	ToValidDate(tbl.D_METE_REMO) as meterRemovedDate, \
-	tbl.F_METE_CONN as isMeterConnected, \
-	tbl.N_METE_MAKE as meterMakerNumber, \
 	ToValidDate(tbl.D_PROP_METE_UPDA) as propertyMeterUpdatedDate, \
-	tbl.C_METE_CLAS as meterClassCode, \
-	ref7.meterClass as meterClass, \
-	tbl.C_METE_CATE as meterCategoryCode, \
-	ref8.meterCategory as meterCategory, \
-	tbl.C_METE_GROU as meterGroupCode, \
-	ref9.meterGroup as meterGroup, \
 	ToValidDate(tbl.D_SUPD) as rowSupersededDate, \
 	tbl.T_TIME_SUPD as rowSupersededTime, \
 	tbl.M_PROC as modifiedByProcess, \
 	tbl.C_USER_ID as modifiedByUserID, \
 	tbl.C_TERM_ID as modifiedByTerminalID, \
 	tbl.F_ADJU as rowAdjusted, \
-	tbl.C_METE_READ_LOCA as meterReadingLocationCode, \
-	ref10.meterGridLocation as meterReadingLocation, \
-	tbl.T_METE_SERV as meterServes, \
 	tbl._RecordStart, \
 	tbl._RecordEnd, \
 	tbl._RecordDeleted, \
 	tbl._RecordCurrent \
 	FROM {ADS_DATABASE_STAGE}.{source_object} tbl \
-left outer join cleansed.access_Z309_TMETERTYPE ref1 on tbl.C_METE_TYPE = ref1.meterTypeCode \
-left outer join cleansed.access_Z309_TMETEREADFREQ ref2 on tbl.C_METE_READ_FREQ = ref2.meterReadingFrequencyCode \
-left outer join cleansed.access_Z309_TMETERGRIDLOCA ref3 on tbl.C_METE_GRID_LOCA = ref3.meterGridLocationCode \
-left outer join cleansed.access_Z309_TMETEREADINST ref4 on tbl.C_READ_INST_NUM1 = ref4.meterReadingInstructionCode \
-left outer join cleansed.access_Z309_TMETEREADINST ref5 on tbl.C_READ_INST_NUM2 = ref5.meterReadingInstructionCode \
-left outer join cleansed.access_Z309_TMETERCHANGEREAS ref6 on tbl.C_METE_CHAN_REAS = ref6.meterExchangeReasonCode \
-left outer join cleansed.access_Z309_TMETERCLASS ref7 on tbl.C_METE_CLAS = ref7.meterClassCode \
-left outer join cleansed.access_Z309_TMETERCATEGORY ref8 on tbl.C_METE_CATE = ref8.meterCategoryCode \
-left outer join cleansed.access_Z309_TMETERGROUP ref9 on tbl.C_METE_GROU = ref9.meterGroupCode \
-left outer join cleansed.access_Z309_TMETERGRIDLOCA ref10 on tbl.C_METE_READ_LOCA = ref10.meterGridLocationCode \
+        left outer join cleansed.access_Z309_TMETERTYPE ref1 on tbl.C_METE_TYPE = ref1.meterTypeCode \
+        left outer join cleansed.access_Z309_TMETEREADFREQ ref2 on tbl.C_METE_READ_FREQ = ref2.meterReadingFrequencyCode \
+        left outer join cleansed.access_Z309_TMETERGRIDLOCA ref3 on tbl.C_METE_GRID_LOCA = ref3.meterGridLocationCode \
+        left outer join cleansed.access_Z309_TMETEREADINST ref4 on tbl.C_READ_INST_NUM1 = ref4.meterReadingInstructionCode \
+        left outer join cleansed.access_Z309_TMETEREADINST ref5 on tbl.C_READ_INST_NUM2 = ref5.meterReadingInstructionCode \
+        left outer join cleansed.access_Z309_TMETERCHANGEREAS ref6 on tbl.C_METE_CHAN_REAS = ref6.meterExchangeReasonCode \
+        left outer join cleansed.access_Z309_TMETERCLASS ref7 on tbl.C_METE_CLAS = ref7.meterClassCode \
+        left outer join cleansed.access_Z309_TMETERCATEGORY ref8 on tbl.C_METE_CATE = ref8.meterCategoryCode \
+        left outer join cleansed.access_Z309_TMETERGROUP ref9 on tbl.C_METE_GROU = ref9.meterGroupCode \
+        left outer join cleansed.access_Z309_TMETERGRIDLOCA ref10 on tbl.C_METE_READ_LOCA = ref10.meterGridLocationCode \
                                 ")
 
 # COMMAND ----------
@@ -252,47 +256,48 @@ left outer join cleansed.access_Z309_TMETERGRIDLOCA ref10 on tbl.C_METE_READ_LOC
 newSchema = StructType([
 	StructField('propertyNumber',IntegerType(),False),
 	StructField('propertyMeterNumber',IntegerType(),False),
-	StructField('meterReadingRouteNumber',IntegerType(),False),
+	StructField('meterMakerNumber',StringType(),True),
 	StructField('meterSizeCode',StringType(),True),
 	StructField('meterSize',StringType(),True),
+	StructField('isMasterMeter',BooleanType(),False),
+	StructField('isCheckMeter',BooleanType(),False),
+    StructField('allowAlso',BooleanType(),False),
+	StructField('isMeterConnected',StringType(),True),
 	StructField('meterReadingFrequencyCode',StringType(),True),
 	StructField('meterReadingFrequency',StringType(),True),
+	StructField('meterClassCode',StringType(),True),
+	StructField('meterClass',StringType(),True),
+    StructField('waterMeterType',StringType(),True),
+	StructField('meterCategoryCode',StringType(),True),
+	StructField('meterCategory',StringType(),True),
+	StructField('meterGroupCode',StringType(),True),
+	StructField('meterGroup',StringType(),True),
+	StructField('meterReadingLocationCode',StringType(),True),
+	StructField('meterReadingLocation',StringType(),True),
+	StructField('meterReadingRouteNumber',IntegerType(),False),
+	StructField('meterServes',StringType(),True),
 	StructField('meterGridLocationCode',StringType(),True),
 	StructField('meterGridLocation',StringType(),True),
-	StructField('meterReadingInstructionCode1',StringType(),True),
-	StructField('meterReadingInstruction1',StringType(),True),
-	StructField('meterReadingInstructionCode2',StringType(),True),
-	StructField('meterReadingInstruction2',StringType(),True),
+	StructField('readingInstructionCode1',StringType(),True),
+    StructField('readingInstruction1',StringType(),True),
+	StructField('readingInstructionCode2',StringType(),True),
+    StructField('readingInstruction2',StringType(),True),
 	StructField('hasAdditionalDescription',BooleanType(),False),
 	StructField('hasMeterRoutePreparation',BooleanType(),False),
 	StructField('hasMeterWarningNote',BooleanType(),False),
 	StructField('meterFittedDate',DateType(),True),
 	StructField('meterReadingSequenceNumber',IntegerType(),False),
-	StructField('isMasterMeter',BooleanType(),False),
-	StructField('isCheckMeter',BooleanType(),False),
-    StructField('allowAlso',BooleanType(),False),
 	StructField('meterChangeReasonCode',StringType(),True),
 	StructField('meterExchangeReason',StringType(),True),
 	StructField('meterChangeAdviceNumber',StringType(),True),
 	StructField('meterRemovedDate',DateType(),True),
-	StructField('isMeterConnected',StringType(),True),
-	StructField('meterMakerNumber',StringType(),True),
 	StructField('propertyMeterUpdatedDate',DateType(),True),
-	StructField('meterClassCode',StringType(),True),
-	StructField('meterClass',StringType(),True),
-	StructField('meterCategoryCode',StringType(),True),
-	StructField('meterCategory',StringType(),True),
-	StructField('meterGroupCode',StringType(),True),
-	StructField('meterGroup',StringType(),True),
 	StructField('rowSupersededDate',DateType(),True),
 	StructField('rowSupersededTime',StringType(),True),
 	StructField('modifiedByProcess',StringType(),True),
 	StructField('modifiedByUserID',StringType(),True),
 	StructField('modifiedByTerminalID',StringType(),True),
 	StructField('rowAdjusted',StringType(),True),
-	StructField('meterReadingLocationCode',StringType(),True),
-	StructField('meterReadingLocation',StringType(),True),
-	StructField('meterServes',StringType(),True),
 	StructField('_RecordStart',TimestampType(),False),
 	StructField('_RecordEnd',TimestampType(),False),
 	StructField('_RecordDeleted',IntegerType(),False),
@@ -308,9 +313,36 @@ DeltaSaveDataframeDirect(df_cleansed, source_group, target_table, ADS_DATABASE_C
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC select * from cleansed.access_Z309_thpropmeter
+# MAGIC select count(*) from cleansed.access_z309_tpropmeter pm 
+# MAGIC where exists (select 1 from cleansed.access_z309_thpropmeter hpm 
+# MAGIC               where pm.propertyNumber = hpm.propertyNumber 
+# MAGIC               and pm.propertyMeterNumber = hpm.propertyMeterNumber 
+# MAGIC               and pm.meterMakerNumber = hpm.meterMakerNumber)
+# MAGIC and pm.dataSource = 'BI'
+
+# COMMAND ----------
+
+# DBTITLE 1,TPropMeter contains rows from BI but we only want to keep these where there are no meter details in ACCESS
+# MAGIC %sql
+# MAGIC delete from cleansed.access_z309_tpropmeter pm 
+# MAGIC where exists (select 1 from cleansed.access_z309_thpropmeter hpm 
+# MAGIC               where pm.propertyNumber = hpm.propertyNumber 
+# MAGIC               and pm.propertyMeterNumber = hpm.propertyMeterNumber 
+# MAGIC               and pm.meterMakerNumber = hpm.meterMakerNumber)
+# MAGIC and pm.dataSource = 'BI'
 
 # COMMAND ----------
 
 # DBTITLE 1,13. Exit Notebook
 dbutils.notebook.exit("1")
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC select * 
+# MAGIC from cleansed.access_Z309_thpropmeter
+# MAGIC where propertyNumber = 5568937
+
+# COMMAND ----------
+
+
