@@ -253,7 +253,7 @@ df_bpartner_crm_unique = (
 dummyDimRecDf = (
     spark.createDataFrame(
         [("-1", "Unknown")], 
-        ["businessPartnerNumber","firstName"]
+        ["businessPartnerNumber", "sourceSystemCode"]
     )
 )
 
