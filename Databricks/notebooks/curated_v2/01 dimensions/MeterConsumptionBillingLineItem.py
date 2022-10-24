@@ -5,7 +5,7 @@
 
 def getMeterConsumptionBillingLineItem():
     
-    df = spark.sql(f"""
+    df_isu = spark.sql(f"""
                     select 
                     'ISU' as sourceSystemCode,
                     erch.billingDocumentNumber as billingDocumentNumber,
@@ -60,6 +60,9 @@ def getMeterConsumptionBillingLineItem():
                                left join cleansed.isu_0uc_tvorg_text as tvorg_text on tvorg_text.mainTransactionCode = erch.mainTransactionCode 
                                                               and tvorg_text.subTransactionCode = dberchz1.subTransactionCode
                    """)
+    
+    dummyDimRecDf = spark.createDataFrame([("Unknown","-1","-1")], ["sourceSystemCode","billingDocumentNumber","billingDocumentLineItemId"])
+    df = df_isu.unionByName(dummyDimRecDf, allowMissingColumns = True)
     
     schema = StructType([
                             StructField('meterConsumptionBillingLineItemSK', StringType(), False),
