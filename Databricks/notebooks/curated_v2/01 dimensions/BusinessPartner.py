@@ -249,12 +249,12 @@ df_bpartner_crm_unique = (
 # ------------------------------- #
 # 2) Dummy Dimension
 # ------------------------------- #
-# dummy dimension
 dummyDimRecDf = (
     spark.createDataFrame(
-        [("-1")], 
-        ["businessPartnerNumber"]
+        ["-1"], 
+        "string"
     )
+    .toDF("businessPartnerNumber")
 )
 
 # ------------------------------- #
