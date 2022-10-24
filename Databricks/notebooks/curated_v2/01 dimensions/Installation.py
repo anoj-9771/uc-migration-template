@@ -48,7 +48,7 @@ def getInstallation():
     #print(f'Rows in isu0ucinstallaAttrDf:',isu0ucinstallaAttrDf.count())
     
     #Dummy Record to be added to Installation Dimension
-    dummyDimRecDf = spark.createDataFrame([("-1")],["installationNumber"])
+    dummyDimRecDf = spark.createDataFrame(["-1"],"string").toDF("installationNumber")
 
     #2.UNION TABLES
     df = (
