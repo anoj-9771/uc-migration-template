@@ -109,7 +109,8 @@ df_bpid_crm_unique = (
         df_isu_0bp_id_attr.alias("isu"),
         [
             col("crm.businessPartnerNumber") == col("isu.businessPartnerNumber"),
-            col("crm.businessPartnerIdNumber") == col("isu.businessPartnerIdNumber")
+            col("crm.businessPartnerIdNumber") == col("isu.businessPartnerIdNumber"),
+            col("crm.identificationTypeCode") == col("isu.identificationTypeCode")
         ],
         how = 'leftanti'
     )
@@ -122,8 +123,8 @@ df_bpid_crm_unique = (
 # ------------------------------- #
 dummyDimRecDf = (
     spark.createDataFrame(
-        [("-1", "-1", "Unknown")], 
-        ["businessPartnerNumber", "businessPartnerIdNumber", "identificationType"]
+        [("-1", "-1", "Unknown", "Unknown")], 
+        ["businessPartnerNumber", "businessPartnerIdNumber", "sourceSystemCode", "identificationTypeCode"]
     )
 )
 
