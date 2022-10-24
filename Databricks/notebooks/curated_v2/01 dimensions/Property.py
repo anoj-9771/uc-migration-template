@@ -226,8 +226,7 @@ def getProperty():
                                 vd.hydraAreaIndicator,
                                 vd.comments 
                         from 
-                              (select * from (select *, row_number() over(partition by propertyNumber order by premise desc, createdDate desc) as rec_num from {ADS_DATABASE_CLEANSED}.isu_0ucpremise_attr_2) 
-                               where rec_num = 1) 0ucp 
+                              {ADS_DATABASE_CLEANSED}.isu_0ucpremise_attr_2 0ucp 
                               left outer join {ADS_DATABASE_CLEANSED}.isu_0uc_connobj_attr_2 co 
                               on co.propertyNumber = 0ucp.propertyNumber 
                               left outer join {ADS_DATABASE_CLEANSED}.isu_vibdao vd 

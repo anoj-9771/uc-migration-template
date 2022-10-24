@@ -5,7 +5,7 @@
 
 def getMeterConsumptionBillingDocument():
     
-    df = spark.sql(f"""
+    df_isu = spark.sql(f"""
         select 
         'ISU' as sourceSystemCode,
         erch.billingDocumentNumber as billingDocumentNumber,
@@ -50,6 +50,9 @@ def getMeterConsumptionBillingDocument():
            left outer join (select *, row_number() over(partition by billingDocumentNumber order by sequenceNumber desc) rec_num from {ADS_DATABASE_CLEANSED}.isu_erchc) erchc
                                           on erch.billingDocumentNumber =  erchc.billingDocumentNumber and erchc.rec_num = 1
         """)
+    
+    dummyDimRecDf = spark.createDataFrame([("Unknown","-1")], ["sourceSystemCode","billingDocumentNumber"])
+    df = df_isu.unionByName(dummyDimRecDf, allowMissingColumns = True)
     
     schema = StructType([
                             StructField('meterConsumptionBillingDocumentSK', StringType(), False),
