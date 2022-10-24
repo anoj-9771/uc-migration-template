@@ -221,9 +221,10 @@ def getLocation():
 
     #3.UNION TABLES
     #Create dummy record
-#     dummyRec = tuple([-1] + ['Unknown'] * (len(ISULocationDf.columns) - 3) + [0,0]) 
+    #dummyRec = tuple([-1] + ['Unknown'] * (len(ISULocationDf.columns) - 3) + [0,0]) 
     #dummyDimRecDf = spark.createDataFrame([dummyRec],ISULocationDf.columns)
-    dummyDimRecDf = spark.createDataFrame([("-1","Unknown","Unknown")], [ "locationID","formattedAddress","LGA"])
+    dummyDimRecDf = spark.createDataFrame(["-1"], "string").toDF("locationID")
+    
     ISULocationDf = ISULocationDf.unionByName(dummyDimRecDf, allowMissingColumns = True)
     locationDf = ISULocationDf.unionByName(ACCESSDf, allowMissingColumns = True)
 
