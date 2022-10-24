@@ -23,7 +23,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"dataset": {
-						"referenceName": "kaltura_metadata_inbound_blob",
+						"referenceName": "kaltura_video_que_high_inbound_blob",
 						"type": "DatasetReference"
 					},
 					"fieldList": [
@@ -159,7 +159,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"dataset": {
-						"referenceName": "kaltura_metadata_inbound_blob",
+						"referenceName": "kaltura_video_que_low_inbound_blob",
 						"type": "DatasetReference"
 					},
 					"fieldList": [
@@ -343,7 +343,7 @@
 							},
 							"userProperties": [],
 							"typeProperties": {
-								"notebookPath": "Workspace/AI-ML/Sewer CCTV/ingest_kaltuira_metadata",
+								"notebookPath": "Workspace/AI-ML/Sewer CCTV/ingest_kaltura_metadata",
 								"baseParameters": {
 									"json_file_path": {
 										"value": "@item().name",
