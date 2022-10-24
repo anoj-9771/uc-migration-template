@@ -3,6 +3,10 @@
 
 # COMMAND ----------
 
+from datetime import datetime
+
+# COMMAND ----------
+
 def getPropertyService():
     
     df_isu = spark.sql(f"""select 'ISU' as sourceSystemCode,
@@ -17,18 +21,22 @@ def getPropertyService():
                         on isu_vibdcharact.architecturalObjectInternalId = isu_vibdnode.architecturalObjectInternalId 
                         where isu_vibdcharact.fixtureAndFittingCharacteristic NOT in ('WATER DELIVERY SYSTEM', 'WATER DISTRIBUTION SYSTEM', 'WATER PRESSURE ZONE', 'WATER SUPPLY ZONE', 'RECYCLED WATER DELIVERY SYSTEM', 'RECYCLED WATER DISTRIBUTION SYSTEM', 'RECYCLED WATER SUPPLY ZONE','SEWERAGE NETWORK', 'SEWERAGE CATCHMENT', 'SCAMP','STORMWATER RECEIVING WATERS', 'STORMWATER CATCHMENT')""")
     
-    dummyDimRecDf = spark.createDataFrame([("-1","9999-12-31","1900-01-01","","")], ["propertyNumber","validToDate","validFromDate","fixtureAndFittingCharacteristicCode","fixtureAndFittingCharacteristic"])
+    dummyDimRecDf = spark.createDataFrame([("-1","Unknown",
+                                            datetime.strptime("9999-12-31","%Y-%m-%d").date(),
+                                            datetime.strptime("1900-01-01","%Y-%m-%d").date(),
+                                            "Unknown")], 
+                                          ["propertyNumber","architecturalObjectInternalId","validToDate","validFromDate","fixtureAndFittingCharacteristicCode"])
     
     df = df_isu.unionByName(dummyDimRecDf, allowMissingColumns = True)
     
     schema = StructType([StructField('propertyServiceSK', StringType(), False),
                          StructField('sourceSystemCode', StringType(), True),
                          StructField('propertyNumber', StringType(), False),
-                         StructField("architecturalObjectInternalId", StringType(), True),
+                         StructField("architecturalObjectInternalId", StringType(), False),
                          StructField("validToDate", DateType(), False),
                          StructField("validFromDate", DateType(), False),
                          StructField("fixtureAndFittingCharacteristicCode", StringType(), False),
-                         StructField("fixtureAndFittingCharacteristic", StringType(), False),
+                         StructField("fixtureAndFittingCharacteristic", StringType(), True),
                          StructField("supplementInfo", StringType(), True)])
     
     return df, schema

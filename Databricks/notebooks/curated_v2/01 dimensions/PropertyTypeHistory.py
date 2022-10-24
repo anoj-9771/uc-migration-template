@@ -69,8 +69,8 @@ def getPropertyTypeHistory():
     
     '''
     
-    dummyDimRecDf = spark.createDataFrame([("-1","","","","","9999-12-31","1900-01-01")], 
-                                          ["propertyNumber","superiorPropertyTypeCode","superiorPropertyType","inferiorPropertyTypeCode","inferiorPropertyType","ValidFromDate","ValidToDate"])
+    dummyDimRecDf = spark.createDataFrame([("-1","Unknown","Unknown","Unknown","Unknown","9999-12-31","1900-01-01")], 
+                                          ["propertyNumber","superiorPropertyTypeCode","superiorPropertyType","inferiorPropertyTypeCode","inferiorPropertyType","ValidToDate","ValidFromDate"])
     
     dummyDimRecDf = dummyDimRecDf.withColumn("ValidFromDate", (col("ValidFromDate").cast("date")))
     dummyDimRecDf = dummyDimRecDf.withColumn("ValidToDate", (col("ValidToDate").cast("date")))
