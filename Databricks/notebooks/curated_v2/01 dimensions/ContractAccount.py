@@ -41,9 +41,9 @@ df_contract_account = spark.sql(f"""
 # Dummy Dimension
 #==================
 dummyDimRecDf = spark.createDataFrame(
-    [("-1")],
-    ["contractAccountNumber"]
-)
+    ["-1"],
+    "string"
+).toDF("contractAccountNumber")
 
 # Union Tables
 df_contract_account = (
