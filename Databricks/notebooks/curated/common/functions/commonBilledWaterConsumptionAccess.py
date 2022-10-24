@@ -24,7 +24,8 @@ def getBilledWaterConsumptionAccess():
     #reusable query to derive the base billed consumption from Access Meter Reading dataset
     #2.Load Cleansed layer table data into dataframe
     #dm.sourceSystemCode is null is there for the -1 case as that dummy row has a null sourcesystem code
-    billedConsDf = spark.sql(f"select 'ACCESS' as sourceSystemCode, mr.propertyNumber, mr.meterReadingNumber, mr.propertyMeterNumber, coalesce(dm.meterNumber,'-1') as meterNumber, \
+    billedConsDf = spark.sql(f"select 'ACCESS' as sourceSystemCode, mr.propertyNumber, mr.meterReadingNumber, mr.propertyMeterNumber, \
+                                   coalesce(dm.meterNumber,'-1') as meterNumber, \
                                    mr.readingFromDate as billingPeriodStartDate, mr.readingToDate as billingPeriodEndDate, mr.meterReadingDays as billingPeriodDays, \
                                    mr.meterReadingConsumption as meteredWaterConsumption, coalesce(mts.meterMakerNumber,'Unknown') as meterMakerNumber, \
                                    row_number() over (partition by mr.propertyNumber, mr.propertyMeterNumber, mr.readingFromDate \
