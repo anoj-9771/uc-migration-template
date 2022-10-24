@@ -48,7 +48,7 @@ def getContractHistory():
                                       where ch._RecordCurrent = 1 and ch._RecordDeleted = 0
                                           and uc._RecordCurrent = 1 and uc._RecordDeleted = 0
                                       """)
-    dummyDimRecDf = spark.createDataFrame([("ISU","-1","1900-01-01", "9999-12-31")], ["sourceSystemCode","contractId","validFromDate","validToDate"])   
+    dummyDimRecDf = spark.createDataFrame([("-1","1900-01-01", "9999-12-31")], ["contractId","validFromDate","validToDate"])   
     dfResult = isuContractHistDf.unionByName(dummyDimRecDf, allowMissingColumns = True) 
     dfResult = dfResult.withColumn("validFromDate",col("validFromDate").cast("date")).withColumn("validToDate",col("validToDate").cast("date"))
     

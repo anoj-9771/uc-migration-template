@@ -42,7 +42,7 @@ def getDevice():
                                       and dc._RecordCurrent = 1 and  dc._RecordDeleted = 0
                               """)
     
-    dummyDimRecDf = spark.createDataFrame([("-1","Unknown","Unknown")], ["deviceNumber","materialNumber","deviceId"])   
+    dummyDimRecDf = spark.createDataFrame(["-1"], "string").toDF("deviceNumber")   
     dfResult = isuDeviceDf.unionByName(dummyDimRecDf, allowMissingColumns = True)    
     
     #Apply schema definition
