@@ -69,7 +69,7 @@ def getContract():
                                 where _RecordCurrent = 1 and _RecordDeleted=0
                               """)
     
-    dummyDimRecDf = spark.createDataFrame([("-1","Unknown","Unknown")], ["contractId","companyName","division"])   
+    dummyDimRecDf = spark.createDataFrame(["-1"], "string").toDF("contractId") 
     dfResult = isuContractDf.unionByName(dummyDimRecDf, allowMissingColumns = True)    
     
     #5.Apply schema definition
