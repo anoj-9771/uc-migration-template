@@ -249,7 +249,8 @@ df_bp_addr_crm_unique = (
     .join(
         df_isu_addr_attr.alias("isu"),
         [
-            col("crm.businessPartnerNumber") == col("isu.businessPartnerNumber")
+            col("crm.businessPartnerNumber") == col("isu.businessPartnerNumber"),
+            col("crm.businessPartnerAddressNumber") == col("isu.businessPartnerAddressNumber")
         ],
         how = 'leftanti'
     )
@@ -262,8 +263,8 @@ df_bp_addr_crm_unique = (
 # ------------------------------- #
 dummyDimRecDf = (
     spark.createDataFrame(
-        [("-1", "-1", "Unknown")], 
-        ["businessPartnerAddressNumber", "businessPartnerNumber", "coName"]
+        [("-1", "-1")], 
+        ["businessPartnerAddressNumber", "businessPartnerNumber"]
     )
 )
 
