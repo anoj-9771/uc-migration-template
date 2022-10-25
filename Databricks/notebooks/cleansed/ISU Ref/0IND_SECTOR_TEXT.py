@@ -3,7 +3,52 @@
 import json
 #For unit testing...
 #Use this string in the Param widget: 
-#{"SourceType": "BLOB Storage (json)", "SourceServer": "daf-sa-lake-sastoken", "SourceGroup": "isu", "SourceName": "isu_0IND_SECTOR_TEXT", "SourceLocation": "isu/0IND_SECTOR_TEXT", "AdditionalProperty": "", "Processor": "databricks-token|0711-011053-turfs581|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive", "IsAuditTable": false, "SoftDeleteSource": "", "ProjectName": "ISU REF", "ProjectId": 2, "TargetType": "BLOB Storage (json)", "TargetName": "isu_0IND_SECTOR_TEXT", "TargetLocation": "isu/0IND_SECTOR_TEXT", "TargetServer": "daf-sa-lake-sastoken", "DataLoadMode": "FULL-EXTRACT", "DeltaExtract": false, "CDCSource": false, "TruncateTarget": false, "UpsertTarget": true, "AppendTarget": null, "TrackChanges": false, "LoadToSqlEDW": true, "TaskName": "isu_0IND_SECTOR_TEXT", "ControlStageId": 2, "TaskId": 46, "StageSequence": 200, "StageName": "Raw to Cleansed", "SourceId": 46, "TargetId": 46, "ObjectGrain": "Day", "CommandTypeId": 8, "Watermarks": "", "WatermarksDT": null, "WatermarkColumn": "", "BusinessKeyColumn": "language,industrySystem,industryCode", "UpdateMetaData": null, "SourceTimeStampFormat": "", "Command": "", "LastLoadedFile": null}
+
+# {
+# 	"SourceType": "BLOB Storage (json)", 
+# 	"SourceServer": "daf-sa-lake-sastoken", 
+# 	"SourceGroup": "isudata", 
+# 	"SourceName": "isu_0IND_SECTOR_TEXT", 
+# 	"SourceLocation": "isudata/0IND_SECTOR_TEXT", 
+# 	"AdditionalProperty": "", 
+# 	"Processor": "databricks-token|0527-214324-ytwxx0tv|Standard_DS12_v2|10.4.x-scala2.12|2:28|interactive", 
+# 	"IsAuditTable": false, 
+# 	"SoftDeleteSource": "", 
+# 	"ProjectName": "CLEANSED ISU DATA", 
+# 	"ProjectId": 11, 
+# 	"TargetType": "BLOB Storage (json)", 
+# 	"TargetName": "isu_0IND_SECTOR_TEXT", 
+# 	"TargetLocation": "isudata/isu_0IND_SECTOR_TEXT", 
+# 	"TargetServer": "daf-sa-lake-sastoken", 
+# 	"DataLoadMode": "FULL-EXTACT", 
+# 	"DeltaExtract": false, 
+# 	"CDCSource": false, 
+# 	"TruncateTarget": false, 
+# 	"UpsertTarget": true, 
+# 	"AppendTarget": false, 
+# 	"TrackChanges": false, 
+# 	"LoadToSqlEDW": true, 
+# 	"TaskName": "isu_0IND_SECTOR_TEXT", 
+# 	"ControlStageId": 2, 
+# 	"TaskId": 245, 
+# 	"StageSequence": 200, 
+# 	"StageName": "Raw to Cleansed", 
+# 	"SourceId": 245, 
+# 	"TargetId": 245, 
+# 	"ObjectGrain": "Day", 
+# 	"CommandTypeId": 8, 
+# 	"Watermarks": "", 
+# 	"WatermarksDT": "", 
+# 	"WatermarkColumn": "", 
+# 	"BusinessKeyColumn": "industrySystem,industryCode", 
+# 	"PartitionColumn": null, 
+# 	"UpdateMetaData": null, 
+# 	"SourceTimeStampFormat": "", 
+# 	"WhereClause": "",
+# 	"Command": "/build/cleansed/ISU Data/isu_0IND_SECTOR_TEXT", 
+# 	"LastSuccessfulExecutionTS": "1900-01-01",
+# 	"LastLoadedFile": null
+# }
 
 #Use this string in the Source Object widget
 #isu_0IND_SECTOR_TEXT
@@ -175,7 +220,7 @@ df = spark.sql(f"WITH stage AS \
                            SELECT \
 	                            case when ISTYPE = 'na' then '' else ISTYPE end as industrySystem, \
 	                            case when IND_SECTOR = 'na' then '' else IND_SECTOR end as industryCode, \
-	                            TEXT as industry, \
+	                            UPPER(TRIM(TEXT)) as industry, \
                                 cast('1900-01-01' as TimeStamp) as _RecordStart, \
                                 cast('9999-12-31' as TimeStamp) as _RecordEnd, \
                                 '0' as _RecordDeleted, \
@@ -217,7 +262,22 @@ newSchema = StructType([
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
-DeltaSaveDataFrameToDeltaTable(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
+DeltaSaveDataFrameToDeltaTable(
+    df,
+    target_table, 
+    ADS_DATALAKE_ZONE_CLEANSED, 
+    ADS_DATABASE_CLEANSED, 
+    data_lake_folder,
+    ADS_WRITE_MODE_MERGE, 
+    newSchema, 
+    track_changes,
+    is_delta_extract, 
+    business_key, 
+    AddSKColumn = False, 
+    delta_column = "", 
+    start_counter = "0", 
+    end_counter = "0"
+)
 
 # COMMAND ----------
 
