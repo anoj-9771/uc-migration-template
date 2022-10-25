@@ -79,7 +79,7 @@
 							"typeProperties": {
 								"notebookPath": "/AI-ML/Sewer CCTV/ingest_kaltura_metadata",
 								"baseParameters": {
-									"json_file_path": {
+									"json_file_name": {
 										"value": "@item().name",
 										"type": "Expression"
 									}
