@@ -37,8 +37,8 @@ df_installation_history = spark.sql(f"""
     FROM {ADS_DATABASE_CLEANSED}.isu_0ucinstallah_attr_2 i
     LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0ucmtrdunit_attr m ON 
         i.meterReadingUnit = m.meterReadingUnit AND
-        m._RecordCurrent = 1 AND
-        m._RecordDeleted = 1
+        m._recordCurrent = 1 AND
+        m._recordDeleted = 0
     WHERE 
         i._RecordCurrent = 1 
         AND i._RecordDeleted = 0
