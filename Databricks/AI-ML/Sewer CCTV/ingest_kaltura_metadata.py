@@ -29,7 +29,6 @@
 # MAGIC   videoCodecId STRING,
 # MAGIC   status STRING,
 # MAGIC   isDefault BOOLEAN,
-# MAGIC   language BIGINT,
 # MAGIC   processed_timestamp TIMESTAMP
 # MAGIC )
 # MAGIC USING DELTA 
@@ -310,7 +309,6 @@ df_kaltura_flavors = (spark.read.json(filepath)
                               "flavors.containerFormat",
                               "flavors.videoCodecId",
                               "flavors.status",
-                              "flavors.language",
                               "flavors.isDefault",
                               "processed_timestamp"
                              )
@@ -489,7 +487,6 @@ df_kaltura_media_entry.createOrReplaceTempView("tmp_datalake_kaltura_media_entry
 # MAGIC         videoCodecId = src.videoCodecId,
 # MAGIC         status = src.status,
 # MAGIC         isDefault = src.isDefault,
-# MAGIC         language = src.language,
 # MAGIC         processed_timestamp = src.processed_timestamp
 # MAGIC WHEN NOT MATCHED THEN
 # MAGIC     INSERT (
@@ -515,7 +512,6 @@ df_kaltura_media_entry.createOrReplaceTempView("tmp_datalake_kaltura_media_entry
 # MAGIC     videoCodecId,
 # MAGIC     status,
 # MAGIC     isDefault,
-# MAGIC     language,
 # MAGIC     processed_timestamp
 # MAGIC   )
 # MAGIC   VALUES (
@@ -541,7 +537,6 @@ df_kaltura_media_entry.createOrReplaceTempView("tmp_datalake_kaltura_media_entry
 # MAGIC     src.videoCodecId,
 # MAGIC     src.status,
 # MAGIC     src.isDefault,
-# MAGIC     src.language,
 # MAGIC     src.processed_timestamp
 # MAGIC   )
 
