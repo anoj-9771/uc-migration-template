@@ -77,7 +77,7 @@
 							},
 							"userProperties": [],
 							"typeProperties": {
-								"notebookPath": "Workspace/AI-ML/Sewer CCTV/ingest_kaltura_metadata",
+								"notebookPath": "/AI-ML/Sewer CCTV/ingest_kaltura_metadata",
 								"baseParameters": {
 									"json_file_path": {
 										"value": "@item().name",
