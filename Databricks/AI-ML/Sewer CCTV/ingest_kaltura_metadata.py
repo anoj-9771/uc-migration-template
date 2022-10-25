@@ -899,4 +899,5 @@ ExecuteStatement("EXEC  [dbo].[sp_merge_dbo_to_CCTVPortal_kaltura]")
 
 # COMMAND ----------
 
-
+file_name = dbutils.widgets.get("json_file_name")
+dbutils.fs.mv(f"dbfs:{filepath}", f"dbfs:/mnt/blob-kaltura/ARCHIVE/{file_name}")
