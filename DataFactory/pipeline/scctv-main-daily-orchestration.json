@@ -232,7 +232,7 @@
 							"userProperties": [],
 							"typeProperties": {
 								"pipeline": {
-									"referenceName": "scctv-download-high-queue-videos",
+									"referenceName": "scctv-download-low-queue-videos",
 									"type": "PipelineReference"
 								},
 								"waitOnCompletion": true
