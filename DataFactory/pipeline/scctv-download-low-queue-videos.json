@@ -64,7 +64,7 @@
 								"waitOnCompletion": true,
 								"parameters": {
 									"videoBatch": {
-										"value": "@activity('get-low-priority-que-videos').output",
+										"value": "@activity('get-low-priority-que-videos').output.childItems",
 										"type": "Expression"
 									}
 								}
