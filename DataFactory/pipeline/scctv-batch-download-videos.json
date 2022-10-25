@@ -59,8 +59,14 @@
 							],
 							"outputs": [
 								{
-									"referenceName": "scctv_videos_inbound_blob",
-									"type": "DatasetReference"
+									"referenceName": "scctv_videos_inbound_blob_video_file",
+									"type": "DatasetReference",
+									"parameters": {
+										"video_id": {
+											"value": "@split(item().name, '-')[0]",
+											"type": "Expression"
+										}
+									}
 								}
 							]
 						},
