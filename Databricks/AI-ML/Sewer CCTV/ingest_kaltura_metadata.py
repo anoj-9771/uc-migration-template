@@ -272,6 +272,10 @@ CreateSewerCCTVViews()
 
 # COMMAND ----------
 
+spark.conf.set("spark.sql.legacy.timeParserPolicy", "CORRECTED")
+
+# COMMAND ----------
+
 dbutils.widgets.text(name="json_file_name", defaultValue="kaltura_json_2.json", label="json_file_name")
 dbutils.widgets.get("json_file_name")
 
