@@ -50,9 +50,7 @@ df_isu_0bp_id_attr = (
             validFromDate,
             validToDate,
             entryDate,
-            institute,
-            stateCode,
-            countryShortName
+            institute
         FROM {ADS_DATABASE_CLEANSED}.isu_0bp_id_attr
         WHERE 
             _RecordCurrent = 1 
@@ -73,9 +71,7 @@ df_crm_0bp_id_attr = (
             validFromDate,
             validToDate,
             entryDate,
-            institute,
-            stateCode,
-            countryShortName
+            institute
         FROM {ADS_DATABASE_CLEANSED}.crm_0bp_id_attr
         WHERE 
             _RecordCurrent = 1 
@@ -123,8 +119,8 @@ df_bpid_crm_unique = (
 # ------------------------------- #
 dummyDimRecDf = (
     spark.createDataFrame(
-        [("-1", "-1", "Unknown", "Unknown")], 
-        ["businessPartnerNumber", "businessPartnerIdNumber", "sourceSystemCode", "identificationTypeCode"]
+        [("-1", "-1", "Unknown")], 
+        ["businessPartnerNumber", "businessPartnerIdNumber", "identificationTypeCode"]
     )
 )
 
@@ -159,9 +155,7 @@ schema = StructType([
     StructField('validFromDate', StringType(), True),
     StructField('validToDate', StringType(), True),
     StructField('entryDate', StringType(), True),
-    StructField('institute', StringType(), True),
-    StructField('stateCode', StringType(), True),
-    StructField('countryShortName', StringType(), True)
+    StructField('institute', StringType(), True)
     ])
 
 # ---- Load Data with SCD --- #

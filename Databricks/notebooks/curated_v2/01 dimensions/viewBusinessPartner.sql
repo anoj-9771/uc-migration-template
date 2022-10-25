@@ -25,7 +25,6 @@ WITH all_ID AS (
             ELSE 'N'
         END AS _currentIndicator
      FROM curated_v2.dimBusinessPartnerIdentification ID
-     WHERE _recordDeleted <> 1
 
 ),
 	/*=====================================================================================
@@ -251,7 +250,6 @@ CREATE OR REPLACE VIEW curated_v2.viewBusinessPartner AS
              businessPartnerNumber,
              _recordStart AS _effectiveFrom
          FROM curated_v2.dimBusinessPartner
-         WHERE _recordDeleted <> 1
      ),
  
      effectiveDateRanges AS (
@@ -436,7 +434,6 @@ WITH
              businessPartnerGroupNumber,
              _recordStart AS _effectiveFrom
          FROM curated_v2.dimBusinessPartnerGroup
-         WHERE _recordDeleted <> 1
      ),
  
      effectiveDateRanges AS (

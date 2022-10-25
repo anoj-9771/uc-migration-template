@@ -53,7 +53,7 @@ dummyDimRecDf = spark.createDataFrame(
     ["installationNumber", "validFromDate", "validToDate"]
 )
 
-#UNION TABLES
+# master table
 df_installation_history = (
     df_installation_history
     .unionByName(dummyDimRecDf, allowMissingColumns = True)
@@ -70,7 +70,7 @@ schema = StructType([
     StructField('installationHistorySK',StringType(),False),
     StructField('sourceSystemCode',StringType(),True),
     StructField('installationNumber',StringType(),False),
-    StructField('validFromDate',DateType(),True),
+    StructField('validFromDate',DateType(),False),
     StructField('validToDate',DateType(),False),
     StructField('rateCategoryCode',StringType(),True),
     StructField('rateCategory',StringType(),True),
