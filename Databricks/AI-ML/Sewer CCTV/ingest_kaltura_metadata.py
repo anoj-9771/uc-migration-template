@@ -29,6 +29,7 @@
 # MAGIC   videoCodecId STRING,
 # MAGIC   status STRING,
 # MAGIC   isDefault BOOLEAN,
+# MAGIC   language BIGINT,
 # MAGIC   processed_timestamp TIMESTAMP
 # MAGIC )
 # MAGIC USING DELTA 
@@ -92,6 +93,7 @@
 # MAGIC   createdAt TIMESTAMP,
 # MAGIC   updatedAt TIMESTAMP,
 # MAGIC   description STRING,
+# MAGIC   partnerDescription STRING,
 # MAGIC   sizeInBytes STRING,
 # MAGIC   filename STRING,
 # MAGIC   title STRING,
@@ -278,9 +280,164 @@ filepath
 
 # COMMAND ----------
 
+from pyspark.sql.types import *
+
+# COMMAND ----------
+
+schema = StructType([
+    StructField("update",BooleanType(),True),
+    StructField("attachments",
+                ArrayType(
+                    StructType([
+                        StructField("createdAt",StringType(),True),
+                        StructField("description",StringType(),True),
+                        StructField("entryId",StringType(),True),
+                        StructField("fileExt",StringType(),True),
+                        StructField("filename",StringType(),True),
+                        StructField("format",StringType(),True),
+                        StructField("id",StringType(),True),
+                        StructField("partnerDescription",StringType(),True),
+                        StructField("partnerId",LongType(),True),
+                        StructField("size",LongType(),True),
+                        StructField("sizeInBytes",LongType(),True),
+                        StructField("status",StringType(),True),
+                        StructField("tags",StringType(),True),
+                        StructField("title",StringType(),True),
+                        StructField("updatedAt",StringType(),True),
+                        StructField("version",LongType(),True)
+                    ]), True
+                ),True
+               ),
+    StructField("flavors",
+                ArrayType(
+                    StructType([
+                        StructField("bitrate",LongType(),True),
+                        StructField("containerFormat",StringType(),True),
+                        StructField("createdAt",StringType(),True),
+                        StructField("description",StringType(),True),
+                        StructField("entryId",StringType(),True),
+                        StructField("fileExt",StringType(),True),
+                        StructField("flavorParamsId",LongType(),True),
+                        StructField("frameRate",DoubleType(),True),
+                        StructField("height",LongType(),True),
+                        StructField("id",StringType(),True),
+                        StructField("isDefault",BooleanType(),True),
+                        StructField("isOriginal",BooleanType(),True),
+                        StructField("isWeb",BooleanType(),True),
+                        StructField("language",BooleanType(),True),
+                        StructField("partnerId",LongType(),True),
+                        StructField("size",LongType(),True),
+                        StructField("sizeInBytes",LongType(),True),
+                        StructField("status",StringType(),True),
+                        StructField("tags",StringType(),True),
+                        StructField("updatedAt",StringType(),True),
+                        StructField("version",LongType(),True),
+                        StructField("videoCodecId",StringType(),True),
+                        StructField("width",LongType(),True)
+                    ]),True
+                ),True
+               ),
+    StructField("mediaEntry",
+                StructType([
+                    StructField("application",StringType(),True),
+                    StructField("blockAutoTranscript",BooleanType(),True),
+                    StructField("capabilities",StringType(),True),
+                    StructField("categories",StringType(),True),
+                    StructField("categoriesIds",StringType(),True),
+                    StructField("conversionProfileId",LongType(),True),
+                    StructField("conversionQuality",StringType(),True),
+                    StructField("createdAt",StringType(),True),
+                    StructField("creatorId",StringType(),True),
+                    StructField("dataUrl",StringType(),True),
+                    StructField("description",StringType(),True),
+                    StructField("displayInSearch",StringType(),True),
+                    StructField("downloadUrl",StringType(),True),
+                    StructField("duration",LongType(),True),
+                    StructField("entitledUsersEdit",StringType(),True),
+                    StructField("entitledUsersPublish",StringType(),True),
+                    StructField("entitledUsersView",StringType(),True),
+                    StructField("flavorParamsIds",StringType(),True),
+                    StructField("height",LongType(),True),
+                    StructField("id",StringType(),True),
+                    StructField("lastPlayedAt",StringType(),True),
+                    StructField("licenseType",StringType(),True),
+                    StructField("mediaType",StringType(),True),
+                    StructField("moderationCount",LongType(),True),
+                    StructField("moderationStatus",StringType(),True),
+                    StructField("msDuration",LongType(),True),
+                    StructField("name",StringType(),True),
+                    StructField("operationAttributes",ArrayType(StringType(),True),True),
+                    StructField("partnerId",LongType(),True),
+                    StructField("partnerSortValue",LongType(),True),
+                    StructField("plays",LongType(),True),
+                    StructField("rank",DoubleType(),True),
+                    StructField("replacementStatus",StringType(),True),
+                    StructField("rootEntryId",StringType(),True),
+                    StructField("searchText",StringType(),True),
+                    StructField("sourceType",StringType(),True),
+                    StructField("status",StringType(),True),
+                    StructField("tags",StringType(),True),
+                    StructField("thumbnailUrl",StringType(),True),
+                    StructField("totalRank",LongType(),True),
+                    StructField("type",StringType(),True),
+                    StructField("updatedAt",StringType(),True),
+                    StructField("userId",StringType(),True),
+                    StructField("version",LongType(),True),
+                    StructField("views",LongType(),True),
+                    StructField("votes",LongType(),True),
+                    StructField("width",LongType(),True)
+                ]),True
+                ),
+    StructField("metadata",
+            ArrayType(
+                StructType([
+                    StructField("createdAt",StringType(),True),
+                    StructField("id",LongType(),True),
+                    StructField("jsonData",
+                                StructType([
+                                    StructField("AddressStreet",StringType(),True),
+                                    StructField("AssessedByDate",StringType(),True),
+                                    StructField("AssessedByName",StringType(),True),
+                                    StructField("AssetNumbers",StringType(),True),
+                                    StructField("ChildWorkOrderNumbers",StringType(),True),
+                                    StructField("Cleaned",StringType(),True),
+                                    StructField("Condition",StringType(),True),
+                                    StructField("Contractor",StringType(),True),
+                                    StructField("DateOfCompletedInspection",StringType(),True),
+                                    StructField("DirectionOfSurvey",StringType(),True),
+                                    StructField("DiscardDate",StringType(),True),
+                                    StructField("DownstreamMH",StringType(),True),
+                                    StructField("FacilityNo",StringType(),True),
+                                    StructField("Infiltration",StringType(),True),
+                                    StructField("Location",StringType(),True),
+                                    StructField("PackageName",StringType(),True),
+                                    StructField("ParentWorkOrderNumber",StringType(),True),
+                                    StructField("Product",StringType(),True),
+                                    StructField("Serviceability",StringType(),True),
+                                    StructField("Suburb",StringType(),True),
+                                    StructField("SurveyedLength",StringType(),True),
+                                    StructField("TaskCode",StringType(),True),
+                                    StructField("TimeOfCompletedInspection",StringType(),True),
+                                    StructField("UpstreamMH",StringType(),True),
+                                    StructField("WorkOrderDescription",StringType(),True)
+                                ]), True),
+                    StructField("metadataObjectType",StringType(),True),
+                    StructField("metadataProfileId",LongType(),True),
+                    StructField("metadataProfileVersion",LongType(),True),
+                    StructField("objectId",StringType(),True),
+                    StructField("partnerId",LongType(),True),
+                    StructField("status",StringType(),True),
+                    StructField("updatedAt",StringType(),True),
+                    StructField("version",LongType(),True),
+                    StructField("update",BooleanType(),True)
+                ]), True), True)
+])
+
+# COMMAND ----------
+
 from pyspark.sql import functions as psf
 
-df_kaltura_flavors = (spark.read.json(filepath)
+df_kaltura_flavors = (spark.read.schema(schema).json(filepath)
                       .withColumn("flavors", psf.col("flavors")[0])
                       .withColumn("createdAt", psf.to_timestamp(psf.col("flavors.createdAt"), format='yyyy-MM-dd HH:mm:ss'))
                       .withColumn("updatedAt", psf.to_timestamp(psf.col("flavors.updatedAt"), format='yyyy-MM-dd HH:mm:ss'))
@@ -309,12 +466,13 @@ df_kaltura_flavors = (spark.read.json(filepath)
                               "flavors.videoCodecId",
                               "flavors.status",
                               "flavors.isDefault",
+                              "flavors.language",
                               "processed_timestamp"
                              )
                          )
 df_kaltura_flavors.createOrReplaceTempView("tmp_datalake_kaltura_flavors")
 
-df_kaltura_attachments = (spark.read.json(filepath)
+df_kaltura_attachments = (spark.read.schema(schema).json(filepath)
                           .withColumn("attachments", psf.col("attachments")[0])
                           .withColumn("createdAt", psf.to_timestamp(psf.col("attachments.createdAt"), format='yyyy-MM-dd HH:mm:ss'))
                           .withColumn("updatedAt", psf.to_timestamp(psf.col("attachments.updatedAt"), format='yyyy-MM-dd HH:mm:ss'))
@@ -331,6 +489,7 @@ df_kaltura_attachments = (spark.read.json(filepath)
                                   "createdAt",
                                   "updatedAt",
                                   "attachments.description",
+                                  "attachments.partnerDescription",
                                   "attachments.sizeInBytes",
                                   "attachments.filename",
                                   "attachments.title",
@@ -342,7 +501,7 @@ df_kaltura_attachments = (spark.read.json(filepath)
 df_kaltura_attachments.createOrReplaceTempView("tmp_datalake_kaltura_attachments")
 
 
-df_kaltura_metadata = spark.read.json(filepath).withColumn("metadata", psf.col("metadata")[0])
+df_kaltura_metadata = spark.read.schema(schema).json(filepath).withColumn("metadata", psf.col("metadata")[0])
 df_kaltura_metadata = (df_kaltura_metadata
                        .withColumn("AssessedByDate", psf.to_timestamp(psf.col("metadata.jsonData.AssessedByDate"), format='yyyy-MM-dd HH:mm:ss'))
                        .withColumn("DiscardDate", psf.to_timestamp(psf.col("metadata.jsonData.DiscardDate"), format='yyyy-MM-dd HH:mm:ss'))
@@ -391,7 +550,7 @@ df_kaltura_metadata = (df_kaltura_metadata
                          )
 df_kaltura_metadata.createOrReplaceTempView("tmp_datalake_kaltura_metadata")
 
-df_kaltura_media_entry = (spark.read.json(filepath)
+df_kaltura_media_entry = (spark.read.schema(schema).json(filepath)
                           .withColumn("processed_timestamp", psf.current_timestamp())
                           .where(psf.col("mediaEntry").isNotNull())
                           .withColumn("createdAt", psf.to_timestamp(psf.col("mediaEntry.createdAt"), format='yyyy-MM-dd HH:mm:ss'))
@@ -485,6 +644,7 @@ df_kaltura_media_entry.createOrReplaceTempView("tmp_datalake_kaltura_media_entry
 # MAGIC         videoCodecId = src.videoCodecId,
 # MAGIC         status = src.status,
 # MAGIC         isDefault = src.isDefault,
+# MAGIC         language = src.language,
 # MAGIC         processed_timestamp = src.processed_timestamp
 # MAGIC WHEN NOT MATCHED THEN
 # MAGIC     INSERT (
@@ -510,6 +670,7 @@ df_kaltura_media_entry.createOrReplaceTempView("tmp_datalake_kaltura_media_entry
 # MAGIC     videoCodecId,
 # MAGIC     status,
 # MAGIC     isDefault,
+# MAGIC     language,
 # MAGIC     processed_timestamp
 # MAGIC   )
 # MAGIC   VALUES (
@@ -535,6 +696,7 @@ df_kaltura_media_entry.createOrReplaceTempView("tmp_datalake_kaltura_media_entry
 # MAGIC     src.videoCodecId,
 # MAGIC     src.status,
 # MAGIC     src.isDefault,
+# MAGIC     src.language,
 # MAGIC     src.processed_timestamp
 # MAGIC   )
 
@@ -672,6 +834,7 @@ df_kaltura_media_entry.createOrReplaceTempView("tmp_datalake_kaltura_media_entry
 # MAGIC         createdAt = src.createdAt,
 # MAGIC         updatedAt = src.updatedAt,
 # MAGIC         description = src.description,
+# MAGIC         partnerDescription = src.partnerDescription,
 # MAGIC         sizeInBytes = src.sizeInBytes,
 # MAGIC         filename = src.filename,
 # MAGIC         title = src.title,
@@ -690,6 +853,7 @@ df_kaltura_media_entry.createOrReplaceTempView("tmp_datalake_kaltura_media_entry
 # MAGIC     createdAt,
 # MAGIC     updatedAt,
 # MAGIC     description,
+# MAGIC     partnerDescription,
 # MAGIC     sizeInBytes,
 # MAGIC     filename,
 # MAGIC     title,
@@ -708,6 +872,7 @@ df_kaltura_media_entry.createOrReplaceTempView("tmp_datalake_kaltura_media_entry
 # MAGIC     src.createdAt,
 # MAGIC     src.updatedAt,
 # MAGIC     src.description,
+# MAGIC     src.partnerDescription,
 # MAGIC     src.sizeInBytes,
 # MAGIC     src.filename,
 # MAGIC     src.title,
