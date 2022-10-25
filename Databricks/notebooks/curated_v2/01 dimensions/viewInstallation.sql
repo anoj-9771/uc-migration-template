@@ -12,11 +12,11 @@ as
 
 with dateDriver as
 (
-	select distinct installationNumber, to_date(_recordStart) as _effectiveFrom from curated_v2.dimInstallation where isnotnull(installationNumber) AND _recordDeleted <> 1
+	select distinct installationNumber, to_date(_recordStart) as _effectiveFrom from curated_v2.dimInstallation where isnotnull(installationNumber)  
 	union
-	select distinct installationNumber,to_date(_recordStart) as _effectiveFrom from curated_v2.dimInstallationHistory  where isnotnull(installationNumber) AND _recordDeleted <> 1
+	select distinct installationNumber,to_date(_recordStart) as _effectiveFrom from curated_v2.dimInstallationHistory  where isnotnull(installationNumber)  
     union
-    select distinct installationNumber, to_date(_recordStart) as _effectiveFrom from curated_v2.dimDisconnectionDocument where isnotnull(installationNumber) AND _recordDeleted <> 1
+    select distinct installationNumber, to_date(_recordStart) as _effectiveFrom from curated_v2.dimDisconnectionDocument where isnotnull(installationNumber) 
 ),
 effectiveDateranges as 
 (
@@ -49,8 +49,8 @@ effectiveDateranges as
         dimInstallation.deregulationStatus,
         dimInstallation.createdDate,
         dimInstallation.createdBy,
-        dimInstallation.changedDate,
-        dimInstallation.changedBy,
+        dimInstallation.lastChangedDate,
+        dimInstallation.lastChangedBy,
         /* Installation History */
         dimInstallationHistory.installationHistorySK,
         dimInstallationHistory.validFromDate,
