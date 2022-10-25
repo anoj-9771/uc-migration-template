@@ -14,7 +14,7 @@
 			"location": {
 				"type": "AzureBlobStorageLocation",
 				"folderPath": "queue-high",
-				"container": "kaltura"
+				"container": "sewercctvvideos"
 			}
 		}
 	},
