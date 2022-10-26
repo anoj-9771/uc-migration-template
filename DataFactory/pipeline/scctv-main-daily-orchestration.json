@@ -43,7 +43,17 @@
 									"referenceName": "scctv-download-high-queue-videos",
 									"type": "PipelineReference"
 								},
-								"waitOnCompletion": true
+								"waitOnCompletion": true,
+								"parameters": {
+									"processStartTime": {
+										"value": "@pipeline().parameters.processStartTime",
+										"type": "Expression"
+									},
+									"processEndTime": {
+										"value": "@pipeline().parameters.processEndTime",
+										"type": "Expression"
+									}
+								}
 							}
 						},
 						{
@@ -137,7 +147,17 @@
 									"referenceName": "scctv-download-low-queue-videos",
 									"type": "PipelineReference"
 								},
-								"waitOnCompletion": true
+								"waitOnCompletion": true,
+								"parameters": {
+									"processStartTime": {
+										"value": "@pipeline().parameters.processStartTime",
+										"type": "Expression"
+									},
+									"processEndTime": {
+										"value": "@pipeline().parameters.processEndTime",
+										"type": "Expression"
+									}
+								}
 							}
 						},
 						{
@@ -474,6 +494,9 @@
 			},
 			"DatabricksSecret": {
 				"type": "String"
+			},
+			"test": {
+				"type": "Boolean"
 			}
 		},
 		"folder": {

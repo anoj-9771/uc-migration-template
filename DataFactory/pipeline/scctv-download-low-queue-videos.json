@@ -47,7 +47,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"expression": {
-						"value": "@or(and(greater(int(utcNow('HH')), pipeline().parameters.processEndTime), less(int(utcNow('HH')), pipeline().parameters.processStartTime)), or(equals(variables('fail'), true), equals(variables('complete'), true)))",
+						"value": "@or(or(greater(int(utcNow('HH')), pipeline().parameters.processEndTime), less(int(utcNow('HH')), pipeline().parameters.processStartTime)), or(equals(variables('fail'), true), equals(variables('complete'), true)))",
 						"type": "Expression"
 					},
 					"activities": [
