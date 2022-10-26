@@ -95,7 +95,7 @@
 									"storeSettings": {
 										"type": "AzureBlobStorageReadSettings",
 										"recursive": true,
-										"deleteFilesAfterCompletion": false
+										"deleteFilesAfterCompletion": true
 									},
 									"formatSettings": {
 										"type": "BinaryReadSettings"
@@ -104,7 +104,8 @@
 								"sink": {
 									"type": "BinarySink",
 									"storeSettings": {
-										"type": "AzureBlobStorageWriteSettings"
+										"type": "AzureBlobStorageWriteSettings",
+										"copyBehavior": "PreserveHierarchy"
 									}
 								},
 								"enableStaging": false
