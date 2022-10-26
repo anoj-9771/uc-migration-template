@@ -170,10 +170,15 @@ print(delta_raw_tbl_name)
 # COMMAND ----------
 
 # DBTITLE 1,10. Load Raw to Dataframe & Do Transformations
-df = spark.sql(f"WITH stage AS \
-                      (Select *, ROW_NUMBER() OVER (PARTITION BY ANLAGE,LOGIKNR,BIS ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} \
-                                  WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' and DI_OPERATION_TYPE !='X' ) \
-                           SELECT \
+df = spark.sql(f"WITH stageNew AS \
+                      (select *, '1' as isNew from (Select *, ROW_NUMBER() OVER (PARTITION BY ANLAGE,LOGIKNR,BIS ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} \
+                                  WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' and DI_OPERATION_TYPE !='X' ) where _RecordVersion = 1), \
+                      stageDel AS \
+                      (select *, '0' as isNew from ( \
+Select *, ROW_NUMBER() OVER (PARTITION BY ANLAGE,LOGIKNR,AB,BIS ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion \
+                        FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') where  _RecordVersion = 1 and DI_OPERATION_TYPE ='X'), \
+                      stage AS (select * from stageNew union select * from stageDel) \
+                   SELECT \
                                 case when ANLAGE = 'na' then '' else ANLAGE end as installationNumber, \
                                 case when LOGIKNR = 'na' then '' else LOGIKNR end as logicalDeviceNumber, \
                                 ToValidDate((case when BIS = 'na' then '9999-12-31' else BIS end),'MANDATORY') as validToDate, \
@@ -188,7 +193,7 @@ df = spark.sql(f"WITH stage AS \
                                 ZOPCODE as operationCode, \
                                 cast('1900-01-01' as TimeStamp) as _RecordStart, \
                                 cast('9999-12-31' as TimeStamp) as _RecordEnd, \
-                                '0' as _RecordDeleted, \
+                                (CASE WHEN isNew = '1' THEN '0' ELSE '1' END) as _RecordDeleted, \
                                 '1' as _RecordCurrent, \
                                 cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
                         FROM stage dev \
@@ -196,9 +201,7 @@ df = spark.sql(f"WITH stage AS \
                                                                                                     and ip._RecordDeleted = 0 and ip._RecordCurrent = 1 \
                            LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UC_STATTART_TEXT sp ON dev.TARIFART = sp.rateTypeCode \
                                                                                                     and sp._RecordDeleted = 0 and sp._RecordCurrent = 1 \
-                        where dev._RecordVersion = 1 ")
-
-#print(f'Number of rows: {df.count()}')
+                        ")
 
 # COMMAND ----------
 
@@ -226,36 +229,15 @@ newSchema = StructType([
 
 # COMMAND ----------
 
-# DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
-DeltaSaveDataFrameToDeltaTable(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
+# DBTITLE 1,12.1 Save Non Deleted Records Data frame into Cleansed Delta table (Final)
+# Load Non deleted records same as earlier
+DeltaSaveDataFrameToDeltaTable(df.filter("_RecordDeleted = '0'"), target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
 
 # COMMAND ----------
 
-# DBTITLE 1,13.1 Identify Deleted records from Raw table
-df = spark.sql(f"select distinct coalesce(ANLAGE,'') as ANLAGE, coalesce(LOGIKNR,'') as LOGIKNR, coalesce(AB,'') as AB, coalesce(BIS,'') as BIS from ( \
-Select *, ROW_NUMBER() OVER (PARTITION BY ANLAGE,LOGIKNR,AB,BIS ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' ) \
-where  _RecordVersion = 1 and DI_OPERATION_TYPE ='X'")
-df.createOrReplaceTempView("isu_devinst_deleted_records")
-
-# COMMAND ----------
-
-# DBTITLE 1,13.2 Update _RecordDeleted and _RecordCurrent Flags
-#Get current time
-CurrentTimeStamp = GeneralLocalDateTime()
-CurrentTimeStamp = CurrentTimeStamp.strftime("%Y-%m-%d %H:%M:%S")
-
-spark.sql(f" \
-    MERGE INTO cleansed.isu_0UC_DEVINST_ATTR \
-    using isu_devinst_deleted_records \
-    on isu_0UC_DEVINST_ATTR.installationNumber = isu_devinst_deleted_records.ANLAGE \
-    and isu_0UC_DEVINST_ATTR.logicalDeviceNumber = isu_devinst_deleted_records.LOGIKNR \
-    and isu_0UC_DEVINST_ATTR.validFromDate = isu_devinst_deleted_records.AB \
-    and isu_0UC_DEVINST_ATTR.validToDate = isu_devinst_deleted_records.BIS \
-    WHEN MATCHED THEN UPDATE SET \
-    _DLCleansedZoneTimeStamp = cast('{CurrentTimeStamp}' as TimeStamp) \
-    ,_RecordDeleted=1 \
-    ,_RecordCurrent=0 \
-    ")
+# DBTITLE 1,12.2 Save Deleted records Data frame into Cleansed Delta table
+# Load deleted records to replace the existing Deleted records implementation logic
+DeltaSaveDataFrameToDeltaTable(df.filter("_RecordDeleted = '1'"), target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
 
 # COMMAND ----------
 
