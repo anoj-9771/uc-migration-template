@@ -112,7 +112,7 @@
 							},
 							"inputs": [
 								{
-									"referenceName": "kaltura_video_queue_high_inbound_blob_file",
+									"referenceName": "kaltura_video_queue_low_inbound_blob_file",
 									"type": "DatasetReference",
 									"parameters": {
 										"fileName": {
