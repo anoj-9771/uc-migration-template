@@ -176,10 +176,10 @@ _MODEL_DESCRIPTION = 'Image classifier to identify 14 different defects within s
                                       13. Infiltration\n\
                                       14. No Defect'
 
-mlflow_experiment = mlflow.get_experiment_by_name("/Users/onyu@sydneywater.com.au/sewer-cctv-image-classifier")
+mlflow_experiment = mlflow.get_experiment_by_name("/AI-ML/Sewer CCTV/sewer-cctv-image-classifier")
 
 if mlflow_experiment == None:
-    experiment_id = mlflow.create_experiment("/Users/onyu@sydneywater.com.au/sewer-cctv-image-classifier")
+    experiment_id = mlflow.create_experiment("/AI-ML/Sewer CCTV/sewer-cctv-image-classifier")
 else:
     experiment_id = mlflow_experiment.experiment_id
     

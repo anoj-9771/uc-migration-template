@@ -15,7 +15,23 @@
 # MAGIC  _DLRawZoneTimeStamp TIMESTAMP 
 # MAGIC )
 # MAGIC USING DELTA 
-# MAGIC LOCATION 'dbfs:/mnt/datalake-raw/sewercctv/cctv_video_metadata'
+# MAGIC LOCATION 'dbfs:/mnt/datalake-raw/sewercctv/cctv_video_metadata';
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC -- Create cctv_video_metadata table in raw layer
+# MAGIC CREATE TABLE IF NOT EXISTS stage.cctv_video_metadata 
+# MAGIC (video_id STRING,
+# MAGIC  video_mount_point STRING,
+# MAGIC  video_blob_storage STRING,
+# MAGIC  fps INT,
+# MAGIC  total_frames INT,
+# MAGIC  total_msecs INT,
+# MAGIC  _DLRawZoneTimeStamp TIMESTAMP 
+# MAGIC )
+# MAGIC USING DELTA 
+# MAGIC LOCATION 'dbfs:/mnt/datalake-stage/stage/cctv_video_metadata'
 
 # COMMAND ----------
 
@@ -69,4 +85,4 @@ df_cctv_metadata = (spark.createDataFrame(data=data, schema=video_metadata_schem
           )
 
 #data inserted to the video metadata table
-df_cctv_metadata.write.mode("append").insertInto('raw.cctv_video_metadata')
+df_cctv_metadata.write.mode("append").insertInto('stage.cctv_video_metadata')

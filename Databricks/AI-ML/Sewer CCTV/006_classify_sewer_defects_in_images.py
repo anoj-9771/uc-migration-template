@@ -18,6 +18,21 @@
 
 # COMMAND ----------
 
+# MAGIC %sql
+# MAGIC -- Create cctv_ai_image_classifications table in raw layer
+# MAGIC CREATE TABLE IF NOT EXISTS stage.cctv_ai_image_classifications
+# MAGIC (video_id STRING,
+# MAGIC  timestamp INT,
+# MAGIC  defect STRING,
+# MAGIC  confidence FLOAT,
+# MAGIC  score FLOAT,
+# MAGIC  _DLRawZoneTimeStamp TIMESTAMP 
+# MAGIC )
+# MAGIC PARTITIONED BY (video_id)
+# MAGIC LOCATION 'dbfs:/mnt/datalake-stage/stage/cctv_ai_image_classifications'
+
+# COMMAND ----------
+
   #default Widget Parameter
 #define notebook widget to accept video_id parameter
 dbutils.widgets.text(name="video_id", defaultValue="0_oiif5iqr", label="video_id")
@@ -39,7 +54,7 @@ applyReturnSchema = t.StructType([
 ])
 
 #define raw images dataframe for selected CCTV video
-df_raw_images = (spark.table("raw.cctv_video_frames")
+df_raw_images = (spark.table("stage.cctv_video_frames")
                  .where(psf.col("video_id") == _VIDEO_ID)
                  .orderBy("timestamp")
                  .drop("_DLRawZoneTimeStamp")
@@ -60,4 +75,8 @@ df_image_classifications = (df_raw_images
 
 
 
-df_image_classifications.write.mode("append").insertInto('raw.cctv_ai_image_classifications')
+df_image_classifications.write.mode("append").insertInto('stage.cctv_ai_image_classifications')
+
+# COMMAND ----------
+
+
