@@ -63,7 +63,7 @@
 									"type": "DatasetReference",
 									"parameters": {
 										"video_id": {
-											"value": "@split(item().name, '-')[0]",
+											"value": "@concat(split(item().name, '-')[0], '.mp4')",
 											"type": "Expression"
 										}
 									}
