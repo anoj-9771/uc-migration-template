@@ -217,17 +217,17 @@ df = spark.sql(f"WITH stage AS \
                                   sp.superiorPropertyType as superiorPropertyType , \
                                   ZCD_INF_PROP_TYPE as inferiorPropertyTypeCode , \
                                   ip.inferiorPropertyType as inferiorPropertyType , \
-                                  if(ZCD_STORM_WATER_ASSESS = 'X' , 'Y', 'N') as stormWaterAssessmentFlag , \
+                                  if(isnull(ZCD_STORM_WATER_ASSESS) or  ZCD_STORM_WATER_ASSESS <> 'X' , 'N', 'Y') as stormWaterAssessmentFlag , \
                                   ZCD_IND_MLIM as mlimIndicator , \
-                                  if(ZCD_IND_WICA = 'X' , 'Y', 'N') as wicaFlag , \
-                                  if(ZCD_IND_SOPA = 'X' , 'Y', 'N') as sopaFlag , \
-                                  if(ZCD_IND_COMMUNITY_TITLE = 'X' , 'Y', 'N') as communityTitleFlag , \
+                                  if(isnull(ZCD_IND_WICA) or  ZCD_IND_WICA <> 'X' , 'N', 'Y') as wicaFlag , \
+                                  if(isnull(ZCD_IND_SOPA) or  ZCD_IND_SOPA <> 'X' , 'N', 'Y') as sopaFlag , \
+                                  if(isnull(ZCD_IND_COMMUNITY_TITLE) or ZCD_IND_COMMUNITY_TITLE <> 'X' , 'N', 'Y') as communityTitleFlag , \
                                   ZCD_SECTION_NUMBER as sectionNumber , \
                                   ZCD_HYDRA_CALC_AREA as hydraCalculatedArea , \
                                   ZCD_HYDRA_AREA_UNIT as hydraAreaUnit , \
-                                  if(ZCD_HYDRA_AREA_FLAG = 'X' , 'Y', 'N')  as hydraAreaFlag , \
+                                  if(isnull(ZCD_HYDRA_AREA_FLAG) or  ZCD_HYDRA_AREA_FLAG <> 'X' , 'N', 'Y')  as hydraAreaFlag , \
                                   ZCD_BAND as hydraBand, \
-                                  if(ZCD_CASENO_FLAG = 'X' , 'Y', 'N') as caseNumberFlag , \
+                                  if(isnull(ZCD_CASENO_FLAG) or ZCD_CASENO_FLAG <> 'X' , 'N', 'Y') as caseNumberFlag , \
                                   ZCD_OVERRIDE_AREA as overrideArea , \
                                   ZCD_OVERRIDE_AREA_UNIT as overrideAreaUnit , \
                                   ToValidDate(ZCD_CANCELLATION_DATE) as cancellationDate , \
