@@ -81,7 +81,7 @@ schema = StructType([
     StructField('installationNumber',StringType(),False),
     StructField('operandCode',StringType(),False),
     StructField('validFromDate',DateType(),False),
-    StructField('consecutiveDaysFromDate',StringType(),True),
+    StructField('consecutiveDaysFromDate',StringType(),False),
     StructField('validToDate',DateType(),True),
     StructField('billingDocumentNumber',StringType(),True),
     StructField('mBillingDocumentNumber',StringType(),True),

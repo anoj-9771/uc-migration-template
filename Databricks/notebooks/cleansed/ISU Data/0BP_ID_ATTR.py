@@ -223,24 +223,36 @@ df = spark.sql(f"""
         ) AS _RecordVersion FROM {delta_raw_tbl_name} 
     WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' and FLG_DEL_BW IS NULL ) 
     SELECT 
-        case when BP.PARTNER = 'na' then '' else BP.PARTNER end as businessPartnerNumber, 
-        case when BP.TYPE = 'na' then '' else BP.TYPE end as identificationTypeCode, 
+        case 
+            when BP.PARTNER = 'na' 
+            then '' 
+            else TRIM(BP.PARTNER) 
+        end                                                       as businessPartnerNumber, 
+        case 
+            when BP.TYPE = 'na' 
+            then '' 
+            else TRIM(BP.TYPE) 
+        end                                                       as identificationTypeCode, 
         BP_TXT.identificationType as identificationType, 
-        case when BP.IDNUMBER = 'na' then '' else BP.IDNUMBER end as businessPartnerIdNumber, 
-        BP.INSTITUTE as institute, 
-        ToValidDate(BP.ENTRY_DATE) as entryDate, 
-        ToValidDate(BP.VALID_DATE_FROM) as validFromDate, 
-        ToValidDate(BP.VALID_DATE_TO) as validToDate, 
-        BP.COUNTRY as countryCode, 
-        t005t.countryName AS countryName,
-        BP.REGION as stateCode, 
-        t005u.stateName as stateName,
-        BP.PARTNER_GUID as businessPartnerGUID, 
-        BP.FLG_DEL_BW as deletedIndicator, 
-        cast('1900-01-01' as TimeStamp) as _RecordStart, 
-        cast('9999-12-31' as TimeStamp) as _RecordEnd, 
-        '0' as _RecordDeleted, 
-        '1' as _RecordCurrent, 
+        case 
+            when BP.IDNUMBER = 'na' 
+            then '' 
+            else TRIM(BP.IDNUMBER) 
+        end                                                       as businessPartnerIdNumber, 
+        BP.INSTITUTE                                              as institute, 
+        ToValidDate(BP.ENTRY_DATE)                                as entryDate, 
+        ToValidDate(BP.VALID_DATE_FROM)                           as validFromDate, 
+        ToValidDate(BP.VALID_DATE_TO)                             as validToDate, 
+        BP.COUNTRY                                                as countryCode, 
+        t005t.countryName                                         as countryName,
+        BP.REGION                                                 as stateCode, 
+        t005u.stateName                                           as stateName,
+        BP.PARTNER_GUID                                           as businessPartnerGUID, 
+        BP.FLG_DEL_BW                                             as deletedIndicator, 
+        cast('1900-01-01' as TimeStamp)                           as _RecordStart, 
+        cast('9999-12-31' as TimeStamp)                           as _RecordEnd, 
+        '0'                                                       as _RecordDeleted, 
+        '1'                                                       as _RecordCurrent, 
         cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp 
     FROM stage BP 
     LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0BP_ID_TYPE_TEXT BP_TXT 
