@@ -21,6 +21,24 @@
 
 # COMMAND ----------
 
+# MAGIC %sql
+# MAGIC -- Create cctv_ai_image_classifications table in raw layer
+# MAGIC CREATE TABLE IF NOT EXISTS stage.cctv_group_ai_identified_defects
+# MAGIC (video_id STRING,
+# MAGIC  defect STRING,
+# MAGIC  avg_probability DOUBLE,
+# MAGIC  score FLOAT,
+# MAGIC  start_timestamp STRING,
+# MAGIC  end_timestamp STRING,
+# MAGIC  start_distance_m FLOAT,
+# MAGIC  end_distance_m FLOAT,
+# MAGIC  _DLCleansedZoneTimeStamp TIMESTAMP
+# MAGIC )
+# MAGIC PARTITIONED BY (video_id)
+# MAGIC LOCATION 'dbfs:/mnt/datalake-stage/stage/cctv_group_ai_identified_defects'
+
+# COMMAND ----------
+
   #default Widget Parameter
 #define notebook widget to accept video_id parameter
 dbutils.widgets.text(name="video_id", defaultValue="0_oiif5iqr", label="video_id")
@@ -36,7 +54,7 @@ from pyspark.sql import Window as W
 w_video = W.partitionBy("video_id", "defect").orderBy("timestamp")
 
 
-df_image_classifications = (spark.table("raw.cctv_ai_image_classifications")
+df_image_classifications = (spark.table("stage.cctv_ai_image_classifications")
                             .drop("_DLRawZoneTimeStamp")
                             .where(psf.col("video_id") == _VIDEO_ID)
                             .where(psf.col("confidence") >= 0.75)
@@ -153,7 +171,7 @@ df_cctv_defect_series = (df_grouped_defects
 # COMMAND ----------
 
 df_ai = df_cctv_defect_series.alias("df_defects_ai")
-df_st_text = (spark.table("cleansed.cctv_ocr_extract")
+df_st_text = (spark.table("stage.cctv_ocr_extract_cleansed")
               .withColumn("hour", psf.floor(psf.col("timestamp")/1000/60/60))
               .withColumn("minute", psf.floor(psf.col("timestamp")/1000/60%60))
               .withColumn("second", psf.floor(psf.col("timestamp")/1000%60))
@@ -196,4 +214,4 @@ df_cctv_defect_series = (df_ai
                          .withColumn("_DLCleansedZoneTimeStamp", psf.current_timestamp())
                         )
 
-df_cctv_defect_series.write.insertInto("cleansed.cctv_group_ai_identified_defects")
+df_cctv_defect_series.write.insertInto("stage.cctv_group_ai_identified_defects")

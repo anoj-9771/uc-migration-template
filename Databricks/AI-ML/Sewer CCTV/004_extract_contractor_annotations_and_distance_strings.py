@@ -17,6 +17,20 @@
 
 # COMMAND ----------
 
+# MAGIC %sql
+# MAGIC -- Create cctv_ocr_extract table in cleansed layer
+# MAGIC CREATE TABLE IF NOT EXISTS stage.cctv_ocr_extract_cleansed
+# MAGIC (video_id STRING,
+# MAGIC  timestamp INT,
+# MAGIC  distance_m STRING,
+# MAGIC  contractor_annotation STRING,
+# MAGIC  _DLCleansedZoneTimeStamp TIMESTAMP 
+# MAGIC )
+# MAGIC PARTITIONED BY (video_id)
+# MAGIC LOCATION 'dbfs:/mnt/datalake-stage/stage/cctv_ocr_extract_cleansed'
+
+# COMMAND ----------
+
   #default Widget Parameter
 #define notebook widget to accept video_id parameter
 dbutils.widgets.text(name="video_id", defaultValue="0_oiif5iqr", label="video_id")
@@ -31,7 +45,7 @@ from pyspark.sql import types as t
 w = W.partitionBy("video_id").orderBy("timestamp")
 
 #define raw ocr dataframe for the specified video id
-df_raw_ocr = (spark.table("raw.cctv_ocr_extract")
+df_raw_ocr = (spark.table("stage.cctv_ocr_extract")
               .where(psf.col("video_id") == _VIDEO_ID)
              )
 
@@ -109,4 +123,4 @@ df_cleansed_ocr = (spark.table("raw.cctv_video_frames")
                    .withColumn("_DLCleansedZoneTimestamp",psf.current_timestamp())
                   )
 
-df_cleansed_ocr.write.mode("append").insertInto('cleansed.cctv_ocr_extract')
+df_cleansed_ocr.write.mode("append").insertInto('stage.cctv_ocr_extract_cleansed')

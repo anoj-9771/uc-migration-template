@@ -48,11 +48,65 @@
 
 # COMMAND ----------
 
+# MAGIC %sql
+# MAGIC -- Create cctv_ocr_extract table in raw layer
+# MAGIC CREATE TABLE IF NOT EXISTS stage.cctv_ocr_extract
+# MAGIC (video_id STRING,
+# MAGIC  timestamp INT,
+# MAGIC  image STRUCT<origin STRING, height: INT, width:INT, nChannels:INT, mode:INT, data:binary>,
+# MAGIC  image_url STRING,
+# MAGIC  RecognizeText_bdc240b316bc_error STRUCT<response string,
+# MAGIC                                          status STRUCT<
+# MAGIC                                            protocolVersion STRUCT<
+# MAGIC                                              protocol STRING,
+# MAGIC                                              major INT,
+# MAGIC                                              minor INT
+# MAGIC                                              >,
+# MAGIC                                            statusCode int,
+# MAGIC                                            reasonPhrase string
+# MAGIC                                            >
+# MAGIC                                          >,
+# MAGIC ocr STRUCT<status STRING,
+# MAGIC             recognitionResult STRUCT<
+# MAGIC               lines ARRAY<
+# MAGIC                 STRUCT<
+# MAGIC                   boundingBox ARRAY<
+# MAGIC                     INT
+# MAGIC                   >,
+# MAGIC                   text STRING,
+# MAGIC                   words ARRAY<
+# MAGIC                     STRUCT<
+# MAGIC                       boundingBox ARRAY<
+# MAGIC                         INT
+# MAGIC                       >,
+# MAGIC                       text STRING
+# MAGIC                     >
+# MAGIC                   >
+# MAGIC                 >
+# MAGIC               >
+# MAGIC             >
+# MAGIC            >,
+# MAGIC _DLRawZoneTimeStamp TIMESTAMP
+# MAGIC )
+# MAGIC PARTITIONED BY (video_id)
+# MAGIC LOCATION 'dbfs:/mnt/datalake-stage/stage/cctv_ocr_extract'
+
+# COMMAND ----------
+
 #default Widget Parameter
 #define notebook widget to accept video_id parameter
 dbutils.widgets.text(name="video_id", defaultValue="0_oiif5iqr", label="video_id")
 
 _VIDEO_ID = dbutils.widgets.get("video_id").replace(".mp4",'')
+
+# COMMAND ----------
+
+ADS_KV_ACCOUNT_SCOPE = "ADS"
+ADS_COGCV_NAME = "daf-cognitive-services-computer-vision-name"
+ADS_COGCV_KEY = "daf-cognitive-services-computer-vision-key"
+_COG_CV_SUBSCRIPTION_KEY = dbutils.secrets.get(scope=ADS_KV_ACCOUNT_SCOPE, key=ADS_COGCV_KEY)
+_COG_CV_NAME = dbutils.secrets.get(scope=ADS_KV_ACCOUNT_SCOPE, key=ADS_COGCV_NAME)
+
 
 # COMMAND ----------
 
@@ -62,8 +116,7 @@ _VIDEO_ID = dbutils.widgets.get("video_id").replace(".mp4",'')
 
 from synapse.ml import cognitive as synapsemlcog
 
-_COG_CV_SUBSCRIPTION_KEY = "b373a4b5d0a84ee2a61ea038ab869997"
-_COG_CV_READ_TEXT_ENDPOINT = "https://cogcv-swcnonprod01-daf-dev-01.cognitiveservices.azure.com/vision/v2.0/recognizeText"
+_COG_CV_READ_TEXT_ENDPOINT = f"https://{_COG_CV_NAME}.cognitiveservices.azure.com/vision/v2.0/recognizeText"
 _LOCATION = "australiaeast"
 
 # COMMAND ----------
@@ -75,7 +128,7 @@ from pyspark.sql.functions import lit
 import dateutil.parser
 
 
-df_raw_images_org = (spark.table("raw.cctv_video_frames")
+df_raw_images_org = (spark.table("stage.cctv_video_frames")
                      .where(psf.col("video_id") == _VIDEO_ID)
                     )
 df_raw_images = df_raw_images_org.drop("_DLRawZoneTimeStamp")
@@ -99,4 +152,12 @@ df_raw_ocr = (cog_recognizeText
              )
 
 #data inserted to the raw ocr extract table
-df_raw_ocr.write.mode("append").insertInto('raw.cctv_ocr_extract')
+df_raw_ocr.write.mode("append").insertInto('stage.cctv_ocr_extract')
+
+# COMMAND ----------
+
+display(df_raw_ocr)
+
+# COMMAND ----------
+
+
