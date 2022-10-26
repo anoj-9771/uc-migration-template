@@ -232,10 +232,22 @@ df = spark.sql(f"""
                ToValidDate(BIS)                                    as validToDate, 
                BELNR                                               as billingDocumentNumber, 
                MBELNR                                              as mBillingDocumentNumber, 
-               MAUSZUG                                             as moveOutIndicator, 
+               CASE
+                   WHEN MAUSZUG = 'X'
+                   THEN 'Y'
+                   ELSE 'N'
+               END                                                 as moveOutFlag, 
                ToValidDate(ALTBIS)                                 as expiryDate, 
-               INAKTIV                                             as inactiveIndicator, 
-               MANAEND                                             as manualChangeIndicator, 
+               CASE
+                   WHEN INAKTIV = 'X'
+                   THEN 'Y'
+                   ELSE 'N' 
+               END                                                 as inactiveFlag, 
+               CASE
+                   WHEN MANAEND = 'X'
+                   THEN 'Y'
+                   ELSE 'N'
+               END                                                 as manualChangeFlag, 
                TARIFART                                            as rateTypeCode, 
                te.rateType                                         as rateType, 
                KONDIGR                                             as rateFactGroupCode, 
@@ -243,7 +255,11 @@ df = spark.sql(f"""
                cast(WERT1 as dec(16,7))                            as entryValue, 
                cast(WERT2 as dec(16,7))                            as valueToBeBilled, 
                STRING1                                             as operandValue1,
-               STRING3                                             as operandValue3, 
+               CASE
+                   WHEN STRING3 = 'X'
+                   THEN 'Y'
+                   ELSE 'N' 
+               END                                                 as operandValue3Flag, 
                cast(BETRAG as dec(13,2))                           as amount, 
                WAERS                                               as currencyKey, 
                cast('1900-01-01' as TimeStamp)                     as _RecordStart, 
@@ -278,10 +294,10 @@ newSchema = StructType([
     StructField('validToDate',DateType(),True),
     StructField('billingDocumentNumber',StringType(),True),
     StructField('mBillingDocumentNumber',StringType(),True),
-    StructField('moveOutIndicator',StringType(),True),
+    StructField('moveOutFlag',StringType(),True),
     StructField('expiryDate',DateType(),True),
-    StructField('inactiveIndicator',StringType(),True),
-    StructField('manualChangeIndicator',StringType(),True),
+    StructField('inactiveFlag',StringType(),True),
+    StructField('manualChangeFlag',StringType(),True),
     StructField('rateTypeCode',StringType(),True),
     StructField('rateType',StringType(),True),
     StructField('rateFactGroupCode',StringType(),True),
@@ -289,7 +305,7 @@ newSchema = StructType([
     StructField('entryValue',DecimalType(16,7),True),
     StructField('valueToBeBilled',DecimalType(16,7),True),
     StructField('operandValue1',StringType(),True),
-    StructField('operandValue3',StringType(),True),
+    StructField('operandValue3Flag',StringType(),True),
     StructField('amount',DecimalType(13,2),True),
     StructField('currencyKey',StringType(),True),
     StructField('_RecordStart',TimestampType(),False),
