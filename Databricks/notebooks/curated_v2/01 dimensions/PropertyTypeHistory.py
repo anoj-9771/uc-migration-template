@@ -13,8 +13,8 @@ def getPropertyTypeHistory():
                     inferiorPropertyType, 
                     ValidFromDate, 
                     ValidToDate 
-                    from {ADS_DATABASE_CLEANSED}.isu_zcd_tpropty_hist""")
-    
+                    from {ADS_DATABASE_CLEANSED}.isu_zcd_tpropty_hist where _RecordCurrent = 1 and _RecordDeleted = 0 """)
+    '''
     spark.sql(f"""CREATE OR REPLACE TEMP VIEW view_access_property_hist 
             as with histRaw as( 
                             select a.propertyNumber, propertyTypeCode, propertyType, superiorPropertyTypeCode, superiorPropertyType, propertyTypeEffectiveFrom as validFrom, rowSupersededTimestamp as updateTS 
@@ -66,6 +66,16 @@ def getPropertyTypeHistory():
                     from stage.access_property_hist""")
     
     df = df_isu.unionByName(df_access, allowMissingColumns = True).dropDuplicates()
+    
+    '''
+    
+    dummyDimRecDf = spark.createDataFrame([("-1","Unknown","Unknown","Unknown","Unknown","9999-12-31","1900-01-01")], 
+                                          ["propertyNumber","superiorPropertyTypeCode","superiorPropertyType","inferiorPropertyTypeCode","inferiorPropertyType","ValidToDate","ValidFromDate"])
+    
+    dummyDimRecDf = dummyDimRecDf.withColumn("ValidFromDate", (col("ValidFromDate").cast("date")))
+    dummyDimRecDf = dummyDimRecDf.withColumn("ValidToDate", (col("ValidToDate").cast("date")))
+    
+    df = df_isu.unionByName(dummyDimRecDf, allowMissingColumns = True)
     
     schema = StructType([StructField('propertyTypeHistorySK', StringType(), False),
                          StructField('sourceSystemCode', StringType(), True),
