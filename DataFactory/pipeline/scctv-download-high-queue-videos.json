@@ -52,13 +52,13 @@
 					},
 					"activities": [
 						{
-							"name": "batch-download-videos",
+							"name": "batch-download-videos-queue-high",
 							"type": "ExecutePipeline",
 							"dependsOn": [],
 							"userProperties": [],
 							"typeProperties": {
 								"pipeline": {
-									"referenceName": "scctv-batch-download-videos",
+									"referenceName": "scctv-batch-download-queue-high-videos",
 									"type": "PipelineReference"
 								},
 								"waitOnCompletion": true,
@@ -75,7 +75,7 @@
 							"type": "SetVariable",
 							"dependsOn": [
 								{
-									"activity": "batch-download-videos",
+									"activity": "batch-download-videos-queue-high",
 									"dependencyConditions": [
 										"Succeeded"
 									]
@@ -92,7 +92,7 @@
 							"type": "SetVariable",
 							"dependsOn": [
 								{
-									"activity": "batch-download-videos",
+									"activity": "batch-download-videos-queue-high",
 									"dependencyConditions": [
 										"Failed"
 									]

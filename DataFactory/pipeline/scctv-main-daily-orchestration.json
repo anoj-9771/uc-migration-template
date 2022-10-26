@@ -3,104 +3,6 @@
 	"properties": {
 		"activities": [
 			{
-				"name": "get-kaltura-metadata",
-				"type": "GetMetadata",
-				"dependsOn": [
-					{
-						"activity": "run-deployment-pipeline",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					},
-					{
-						"activity": "check-cluster-exists",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
-				"policy": {
-					"timeout": "0.12:00:00",
-					"retry": 0,
-					"retryIntervalInSeconds": 30,
-					"secureOutput": false,
-					"secureInput": false
-				},
-				"userProperties": [],
-				"typeProperties": {
-					"dataset": {
-						"referenceName": "kaltura_metadata_inbound_blob",
-						"type": "DatasetReference"
-					},
-					"fieldList": [
-						"childItems"
-					],
-					"storeSettings": {
-						"type": "AzureBlobStorageReadSettings",
-						"recursive": true,
-						"enablePartitionDiscovery": false
-					},
-					"formatSettings": {
-						"type": "BinaryReadSettings"
-					}
-				}
-			},
-			{
-				"name": "for-each-kaltura-metadata-json-file",
-				"type": "ForEach",
-				"dependsOn": [
-					{
-						"activity": "get-kaltura-metadata",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
-				"userProperties": [],
-				"typeProperties": {
-					"items": {
-						"value": "@activity('get-kaltura-metadata').output.childItems",
-						"type": "Expression"
-					},
-					"isSequential": true,
-					"activities": [
-						{
-							"name": "ingest-kaltura-metadata",
-							"type": "DatabricksNotebook",
-							"dependsOn": [],
-							"policy": {
-								"timeout": "0.12:00:00",
-								"retry": 0,
-								"retryIntervalInSeconds": 30,
-								"secureOutput": false,
-								"secureInput": false
-							},
-							"userProperties": [],
-							"typeProperties": {
-								"notebookPath": "/AI-ML/Sewer CCTV/ingest_kaltura_metadata",
-								"baseParameters": {
-									"json_file_name": {
-										"value": "@item().name",
-										"type": "Expression"
-									}
-								}
-							},
-							"linkedServiceName": {
-								"referenceName": "LS-AzureDatabricks_DefinedCluster",
-								"type": "LinkedServiceReference",
-								"parameters": {
-									"kvSecret": "databricks-token",
-									"clusterId": {
-										"value": "@variables('ClusterId')",
-										"type": "Expression"
-									}
-								}
-							}
-						}
-					]
-				}
-			},
-			{
 				"name": "run-deployment-pipeline",
 				"type": "ExecutePipeline",
 				"dependsOn": [],
@@ -455,6 +357,89 @@
 						"type": "MSI",
 						"resource": "https://vault.azure.net"
 					}
+				}
+			},
+			{
+				"name": "check-kaltura-inbound-exists",
+				"type": "GetMetadata",
+				"dependsOn": [
+					{
+						"activity": "check-cluster-exists",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "run-deployment-pipeline",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "kaltura_metadata_inbound_blob",
+						"type": "DatasetReference"
+					},
+					"fieldList": [
+						"exists"
+					],
+					"storeSettings": {
+						"type": "AzureBlobStorageReadSettings",
+						"recursive": true,
+						"enablePartitionDiscovery": false
+					},
+					"formatSettings": {
+						"type": "BinaryReadSettings"
+					}
+				}
+			},
+			{
+				"name": "if-kaltura-inbound-exists",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "check-kaltura-inbound-exists",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@equals(activity('check-kaltura-inbound-exists').output.exists, true)",
+						"type": "Expression"
+					},
+					"ifTrueActivities": [
+						{
+							"name": "process-kaltura-json",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "scctv-process-kaltura-json",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"ClusterId": {
+										"value": "@variables('ClusterId')",
+										"type": "Expression"
+									}
+								}
+							}
+						}
+					]
 				}
 			}
 		],
