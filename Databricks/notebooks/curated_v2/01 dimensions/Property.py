@@ -222,8 +222,8 @@ def getProperty():
                                 coalesce(vd.hydraAreaUnit, 'Unknown') as hydraAreaUnit,
                                 vd.overrideArea,
                                 vd.overrideAreaUnit,
-                                vd.stormWaterAssessmentFlag,
-                                vd.hydraAreaFlag,
+                                coalesce(vd.stormWaterAssessmentFlag, 'N') as stormWaterAssessmentFlag,
+                                coalesce(vd.hydraAreaFlag, 'N') as hydraAreaFlag,
                                 vd.comments 
                         from 
                               {ADS_DATABASE_CLEANSED}.isu_0uc_connobj_attr_2 co 

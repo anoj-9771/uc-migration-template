@@ -13,7 +13,8 @@ def getPropertyLot():
                                         lotType, 
                                         lotNumber,
                                         sectionNumber,
-                                        propertyNumber from {ADS_DATABASE_CLEANSED}.isu_0uc_connobj_attr_2 where propertyNumber <> ''""")
+                                        propertyNumber from {ADS_DATABASE_CLEANSED}.isu_0uc_connobj_attr_2 where propertyNumber <> '' 
+                                        and  _RecordCurrent = 1 and _RecordDeleted = 0 """)
     
     dummyDimRecDf = spark.createDataFrame([("Unknown","Unknown","Unknown","Unknown","Unknown","-1")], ["planTypeCode","planNumber","lotTypeCode","lotNumber","sectionNumber","propertyNumber"])
     #dummyDimRecDf = spark.createDataFrame([("-1")], ["propertyNumber"])

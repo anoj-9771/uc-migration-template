@@ -18,7 +18,11 @@ def getPropertyService():
                         isu_vibdcharact.fixtureAndFittingCharacteristic, 
                         isu_vibdcharact.supplementInfo 
                         from {ADS_DATABASE_CLEANSED}.isu_vibdcharact isu_vibdcharact inner join {ADS_DATABASE_CLEANSED}.isu_vibdnode isu_vibdnode 
-                        on isu_vibdcharact.architecturalObjectInternalId = isu_vibdnode.architecturalObjectInternalId """)
+                        on isu_vibdcharact.architecturalObjectInternalId = isu_vibdnode.architecturalObjectInternalId 
+                        where isu_vibdcharact._RecordCurrent = 1 
+                        and  isu_vibdnode._RecordCurrent = 1 
+                        and isu_vibdcharact._RecordDeleted = 0 
+                        and isu_vibdnode._RecordDeleted = 0 """)
     
     dummyDimRecDf = spark.createDataFrame([("-1","Unknown",
                                             datetime.strptime("9999-12-31","%Y-%m-%d").date(),
