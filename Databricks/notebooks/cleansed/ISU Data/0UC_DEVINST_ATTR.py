@@ -170,14 +170,14 @@ print(delta_raw_tbl_name)
 # COMMAND ----------
 
 # DBTITLE 1,10. Load Raw to Dataframe & Do Transformations
-df = spark.sql(f"WITH stageNew AS \
-                      (select *, '1' as isNew from (Select *, ROW_NUMBER() OVER (PARTITION BY ANLAGE,LOGIKNR,BIS ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} \
+df = spark.sql(f"WITH stageUpsert AS \
+                      (select *, 'U' as upsertFlag from (Select *, ROW_NUMBER() OVER (PARTITION BY ANLAGE,LOGIKNR,BIS ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} \
                                   WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' and DI_OPERATION_TYPE !='X' ) where _RecordVersion = 1), \
-                      stageDel AS \
-                      (select *, '0' as isNew from ( \
+                      stageDelete AS \
+                      (select *, 'D' as upsertFlag from ( \
 Select *, ROW_NUMBER() OVER (PARTITION BY ANLAGE,LOGIKNR,AB,BIS ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion \
                         FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') where  _RecordVersion = 1 and DI_OPERATION_TYPE ='X'), \
-                      stage AS (select * from stageNew union select * from stageDel) \
+                      stage AS (select * from stageUpsert union select * from stageDelete) \
                    SELECT \
                                 case when ANLAGE = 'na' then '' else ANLAGE end as installationNumber, \
                                 case when LOGIKNR = 'na' then '' else LOGIKNR end as logicalDeviceNumber, \
@@ -193,7 +193,7 @@ Select *, ROW_NUMBER() OVER (PARTITION BY ANLAGE,LOGIKNR,AB,BIS ORDER BY _FileDa
                                 ZOPCODE as operationCode, \
                                 cast('1900-01-01' as TimeStamp) as _RecordStart, \
                                 cast('9999-12-31' as TimeStamp) as _RecordEnd, \
-                                (CASE WHEN isNew = '1' THEN '0' ELSE '1' END) as _RecordDeleted, \
+                                (CASE WHEN upsertFlag = 'U' THEN '0' ELSE '1' END) as _RecordDeleted, \
                                 '1' as _RecordCurrent, \
                                 cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
                         FROM stage dev \
