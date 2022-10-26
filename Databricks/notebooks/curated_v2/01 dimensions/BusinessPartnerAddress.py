@@ -73,16 +73,8 @@ df_isu_addr_attr = (
                 ELSE stateName 
             END                                                                 AS stateName, -- TRANSFORMATION
             postalCode                                                          AS postalCode, 
-            CASE 
-                WHEN countryCode = 'AU' AND cityCode IS NULL 
-                THEN '' 
-                ELSE countryCode 
-            END                                                                 AS countryCode, -- TRANSFORMATION
-            CASE 
-                WHEN countryCode = 'AU' AND cityCode IS NULL 
-                THEN '' 
-                ELSE countryName
-            END                                                                 AS countryName, -- TRANSFORMATION
+            countryCode                                                         AS countryCode, 
+            countryName                                                         AS countryName, 
             poBoxCode                                                           AS poBoxCode, 
             poBoxCity                                                           AS poBoxCity, 
             postalCodeExtension                                                 AS postalCodeExtension, 
@@ -172,17 +164,9 @@ df_crm_addr_attr = (
                 THEN '' 
                 ELSE stateCode 
             END                                                                 AS stateCode, -- TRANSFORMATION
-            CASE 
-                WHEN countryCode = 'AU' AND cityCode IS NULL 
-                THEN '' 
-                ELSE stateName 
-            END                                                                 AS stateName, -- TRANSFORMATION
+            stateName                                                           AS stateName,
             postalCode                                                          AS postalCode,
-            CASE 
-                WHEN countryCode = 'AU' AND cityCode IS NULL 
-                THEN '' 
-                ELSE countryCode 
-            END                                                                 AS countryCode, -- TRANSFORMATION 
+            countryCode                                                         AS countryCode,
             countryName                                                         AS countryName,
             poBoxCode                                                           AS poBoxCode,
             poBoxCity                                                           AS poBoxCity,
