@@ -184,8 +184,8 @@ def getProperty():
                                             'Unknown' as hydraAreaUnit,
                                             null as overrideArea,
                                             null as overrideAreaUnit,
-                                            null as stormWaterAssessmentIndicator,
-                                            null as hydraAreaIndicator,
+                                            null as stormWaterAssessmentFlag,
+                                            null as hydraAreaFlag,
                                             null as comments 
                                      from {ADS_DATABASE_CLEANSED}.access_z309_tproperty pr left outer join 
                                           lots lo on lo.propertyNumber = pr.propertyNumber left outer join 
@@ -222,8 +222,8 @@ def getProperty():
                                 coalesce(vd.hydraAreaUnit, 'Unknown') as hydraAreaUnit,
                                 vd.overrideArea,
                                 vd.overrideAreaUnit,
-                                vd.stormWaterAssessmentIndicator,
-                                vd.hydraAreaIndicator,
+                                vd.stormWaterAssessmentFlag,
+                                vd.hydraAreaFlag,
                                 vd.comments 
                         from 
                               {ADS_DATABASE_CLEANSED}.isu_0uc_connobj_attr_2 co 
@@ -316,8 +316,8 @@ def getProperty():
                        ,"hydraAreaUnit" \
                        ,"overrideArea" \
                        ,"overrideAreaUnit" \
-                       ,"stormWaterAssessmentIndicator" \
-                       ,"hydraAreaIndicator" \
+                       ,"stormWaterAssessmentFlag" \
+                       ,"hydraAreaFlag" \
                        ,"comments"
                         )
     
@@ -358,8 +358,8 @@ def getProperty():
                             StructField('hydraAreaUnit', StringType(), False),
                             StructField('overrideArea', DecimalType(18,6), True),
                             StructField('overrideAreaUnit', StringType(), True),
-                            StructField('stormWaterAssessmentIndicator', StringType(), True),
-                            StructField('hydraAreaIndicator', StringType(), True),
+                            StructField('stormWaterAssessmentFlag', StringType(), True),
+                            StructField('hydraAreaFlag', StringType(), True),
                             StructField('comments', StringType(), True),
                       ])
 

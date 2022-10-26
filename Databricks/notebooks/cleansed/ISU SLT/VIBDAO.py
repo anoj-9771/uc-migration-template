@@ -217,17 +217,17 @@ df = spark.sql(f"WITH stage AS \
                                   sp.superiorPropertyType as superiorPropertyType , \
                                   ZCD_INF_PROP_TYPE as inferiorPropertyTypeCode , \
                                   ip.inferiorPropertyType as inferiorPropertyType , \
-                                  ZCD_STORM_WATER_ASSESS as stormWaterAssessmentIndicator , \
+                                  if(ZCD_STORM_WATER_ASSESS = 'X' , 'Y', 'N') as stormWaterAssessmentFlag , \
                                   ZCD_IND_MLIM as mlimIndicator , \
-                                  ZCD_IND_WICA as wicaIndicator , \
-                                  ZCD_IND_SOPA as sopaIndicator , \
-                                  ZCD_IND_COMMUNITY_TITLE as communityTitleIndicator , \
+                                  if(ZCD_IND_WICA = 'X' , 'Y', 'N') as wicaFlag , \
+                                  if(ZCD_IND_SOPA = 'X' , 'Y', 'N') as sopaFlag , \
+                                  if(ZCD_IND_COMMUNITY_TITLE = 'X' , 'Y', 'N') as communityTitleFlag , \
                                   ZCD_SECTION_NUMBER as sectionNumber , \
                                   ZCD_HYDRA_CALC_AREA as hydraCalculatedArea , \
                                   ZCD_HYDRA_AREA_UNIT as hydraAreaUnit , \
-                                  ZCD_HYDRA_AREA_FLAG as hydraAreaIndicator , \
+                                  if(ZCD_HYDRA_AREA_FLAG = 'X' , 'Y', 'N')  as hydraAreaFlag , \
                                   ZCD_BAND as hydraBand, \
-                                  ZCD_CASENO_FLAG as caseNumberIndicator , \
+                                  if(ZCD_CASENO_FLAG = 'X' , 'Y', 'N') as caseNumberFlag , \
                                   ZCD_OVERRIDE_AREA as overrideArea , \
                                   ZCD_OVERRIDE_AREA_UNIT as overrideAreaUnit , \
                                   ToValidDate(ZCD_CANCELLATION_DATE) as cancellationDate , \
@@ -303,17 +303,17 @@ newSchema = StructType(
                             StructField("superiorPropertyType", StringType(), True),
                             StructField("inferiorPropertyTypeCode", StringType(), True),
                             StructField("inferiorPropertyType", StringType(), True),
-                            StructField("stormWaterAssessmentIndicator", StringType(), True),
+                            StructField("stormWaterAssessmentFlag", StringType(), True),
                             StructField("mlimIndicator", StringType(), True),
-                            StructField("wicaIndicator", StringType(), True),
-                            StructField("sopaIndicator", StringType(), True),
-                            StructField("communityTitleIndicator", StringType(), True),
+                            StructField("wicaFlag", StringType(), True),
+                            StructField("sopaFlag", StringType(), True),
+                            StructField("communityTitleFlag", StringType(), True),
                             StructField("sectionNumber", StringType(), True),
                             StructField("hydraCalculatedArea", StringType(), True),
                             StructField("hydraAreaUnit", StringType(), True),
-                            StructField("hydraAreaIndicator", StringType(), True),
+                            StructField("hydraAreaFlag", StringType(), True),
                             StructField("hydraBand", StringType(), True),
-                            StructField("caseNumberIndicator", StringType(), True),
+                            StructField("caseNumberFlag", StringType(), True),
                             StructField("overrideArea", StringType(), True),
                             StructField("overrideAreaUnit", StringType(), True),
                             StructField("cancellationDate", DateType(), True),
