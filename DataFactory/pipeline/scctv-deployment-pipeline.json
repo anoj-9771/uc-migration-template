@@ -885,7 +885,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"pipeline": {
-						"referenceName": "scctv-cluster-deployment",
+						"referenceName": "util-cluster-deployment",
 						"type": "PipelineReference"
 					},
 					"waitOnCompletion": true,
@@ -893,7 +893,9 @@
 						"DatabricksSecret": {
 							"value": "@variables('DatabricksSecret')",
 							"type": "Expression"
-						}
+						},
+						"JobPoolName": "Batch Pool DS4",
+						"ClusterName": "sewer-cctv"
 					}
 				}
 			},
@@ -1189,7 +1191,10 @@
 					"url": "https://australiaeast.azuredatabricks.net/api/2.0/mlflow/registered-models/list",
 					"method": "GET",
 					"headers": {
-						"Authorization": "Bearer @{variables('DatabricksSecret')}"
+						"Authorization": {
+							"value": "Bearer @{variables('DatabricksSecret')}",
+							"type": "Expression"
+						}
 					}
 				}
 			}
