@@ -971,7 +971,7 @@
 							"userProperties": [],
 							"typeProperties": {
 								"expression": {
-									"value": "@equals(item().instance_pool_name, 'SCCTV BATCH POOL DS4')",
+									"value": "@equals(item().instance_pool_name, 'Batch Pool DS4')",
 									"type": "Expression"
 								},
 								"ifTrueActivities": [
