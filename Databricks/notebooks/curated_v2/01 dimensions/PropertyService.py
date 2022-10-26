@@ -18,8 +18,7 @@ def getPropertyService():
                         isu_vibdcharact.fixtureAndFittingCharacteristic, 
                         isu_vibdcharact.supplementInfo 
                         from {ADS_DATABASE_CLEANSED}.isu_vibdcharact isu_vibdcharact inner join {ADS_DATABASE_CLEANSED}.isu_vibdnode isu_vibdnode 
-                        on isu_vibdcharact.architecturalObjectInternalId = isu_vibdnode.architecturalObjectInternalId 
-                        where isu_vibdcharact.fixtureAndFittingCharacteristic NOT in ('WATER DELIVERY SYSTEM', 'WATER DISTRIBUTION SYSTEM', 'WATER PRESSURE ZONE', 'WATER SUPPLY ZONE', 'RECYCLED WATER DELIVERY SYSTEM', 'RECYCLED WATER DISTRIBUTION SYSTEM', 'RECYCLED WATER SUPPLY ZONE','SEWERAGE NETWORK', 'SEWERAGE CATCHMENT', 'SCAMP','STORMWATER RECEIVING WATERS', 'STORMWATER CATCHMENT')""")
+                        on isu_vibdcharact.architecturalObjectInternalId = isu_vibdnode.architecturalObjectInternalId """)
     
     dummyDimRecDf = spark.createDataFrame([("-1","Unknown",
                                             datetime.strptime("9999-12-31","%Y-%m-%d").date(),

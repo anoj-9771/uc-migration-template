@@ -217,17 +217,17 @@ df = spark.sql(f"WITH stage AS \
                                   sp.superiorPropertyType as superiorPropertyType , \
                                   ZCD_INF_PROP_TYPE as inferiorPropertyTypeCode , \
                                   ip.inferiorPropertyType as inferiorPropertyType , \
-                                  ZCD_STORM_WATER_ASSESS as stormWaterAssessmentIndicator , \
+                                  if(isnull(ZCD_STORM_WATER_ASSESS) or  ZCD_STORM_WATER_ASSESS <> 'X' , 'N', 'Y') as stormWaterAssessmentFlag , \
                                   ZCD_IND_MLIM as mlimIndicator , \
-                                  ZCD_IND_WICA as wicaIndicator , \
-                                  ZCD_IND_SOPA as sopaIndicator , \
-                                  ZCD_IND_COMMUNITY_TITLE as communityTitleIndicator , \
+                                  if(isnull(ZCD_IND_WICA) or  ZCD_IND_WICA <> 'X' , 'N', 'Y') as wicaFlag , \
+                                  if(isnull(ZCD_IND_SOPA) or  ZCD_IND_SOPA <> 'X' , 'N', 'Y') as sopaFlag , \
+                                  if(isnull(ZCD_IND_COMMUNITY_TITLE) or ZCD_IND_COMMUNITY_TITLE <> 'X' , 'N', 'Y') as communityTitleFlag , \
                                   ZCD_SECTION_NUMBER as sectionNumber , \
                                   ZCD_HYDRA_CALC_AREA as hydraCalculatedArea , \
                                   ZCD_HYDRA_AREA_UNIT as hydraAreaUnit , \
-                                  ZCD_HYDRA_AREA_FLAG as hydraAreaIndicator , \
+                                  if(isnull(ZCD_HYDRA_AREA_FLAG) or  ZCD_HYDRA_AREA_FLAG <> 'X' , 'N', 'Y')  as hydraAreaFlag , \
                                   ZCD_BAND as hydraBand, \
-                                  ZCD_CASENO_FLAG as caseNumberIndicator , \
+                                  if(isnull(ZCD_CASENO_FLAG) or ZCD_CASENO_FLAG <> 'X' , 'N', 'Y') as caseNumberFlag , \
                                   ZCD_OVERRIDE_AREA as overrideArea , \
                                   ZCD_OVERRIDE_AREA_UNIT as overrideAreaUnit , \
                                   ToValidDate(ZCD_CANCELLATION_DATE) as cancellationDate , \
@@ -303,17 +303,17 @@ newSchema = StructType(
                             StructField("superiorPropertyType", StringType(), True),
                             StructField("inferiorPropertyTypeCode", StringType(), True),
                             StructField("inferiorPropertyType", StringType(), True),
-                            StructField("stormWaterAssessmentIndicator", StringType(), True),
+                            StructField("stormWaterAssessmentFlag", StringType(), True),
                             StructField("mlimIndicator", StringType(), True),
-                            StructField("wicaIndicator", StringType(), True),
-                            StructField("sopaIndicator", StringType(), True),
-                            StructField("communityTitleIndicator", StringType(), True),
+                            StructField("wicaFlag", StringType(), True),
+                            StructField("sopaFlag", StringType(), True),
+                            StructField("communityTitleFlag", StringType(), True),
                             StructField("sectionNumber", StringType(), True),
                             StructField("hydraCalculatedArea", StringType(), True),
                             StructField("hydraAreaUnit", StringType(), True),
-                            StructField("hydraAreaIndicator", StringType(), True),
+                            StructField("hydraAreaFlag", StringType(), True),
                             StructField("hydraBand", StringType(), True),
-                            StructField("caseNumberIndicator", StringType(), True),
+                            StructField("caseNumberFlag", StringType(), True),
                             StructField("overrideArea", StringType(), True),
                             StructField("overrideAreaUnit", StringType(), True),
                             StructField("cancellationDate", DateType(), True),
