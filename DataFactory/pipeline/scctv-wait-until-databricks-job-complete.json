@@ -103,7 +103,7 @@
 										"typeProperties": {
 											"variableName": "Save_Data_To_Azure_SQLRunID",
 											"value": {
-												"value": "@item().run_id",
+												"value": "@string(item().run_id)",
 												"type": "Expression"
 											}
 										}
