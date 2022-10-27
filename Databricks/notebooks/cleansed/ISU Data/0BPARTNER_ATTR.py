@@ -296,9 +296,9 @@ df = (
             cast('1900-01-01' as TimeStamp)                                       as _RecordStart, 
             cast('9999-12-31' as TimeStamp)                                       as _RecordEnd, 
             CASE
-                WHEN XDELE = 'X' 
-                THEN '0'                                                              
-                ELSE '1'
+                WHEN XDELE IS NULL
+                THEN '1'                                                              
+                ELSE '0'
             END                                                                   as _RecordDeleted,
             '1'                                                                   as _RecordCurrent, 
             cast('{CurrentTimeStamp}' as TimeStamp)                               as _DLCleansedZoneTimeStamp 
@@ -477,8 +477,13 @@ newSchema = StructType(
 
 # COMMAND ----------
 
-# DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
-DeltaSaveDataFrameToDeltaTable(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
+# DBTITLE 1,12. Save Data frame into Cleansed Delta table (New Records)
+DeltaSaveDataFrameToDeltaTable(df.filter("_RecordDeleted == 0"), target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
+
+# COMMAND ----------
+
+# DBTITLE 1,12. Save Data frame into Cleansed Delta table (Deleted Records)
+DeltaSaveDataFrameToDeltaTable(df.filter("_RecordDeleted == 1"), target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
 
 # COMMAND ----------
 

@@ -222,7 +222,6 @@ df = spark.sql(f"""
                 ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC
             ) AS _RecordVersion FROM {delta_raw_tbl_name} 
           WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}'
-          and FLG_DEL_BW IS NULL 
     ) 
         SELECT 
             case 
@@ -235,7 +234,7 @@ df = spark.sql(f"""
                 then '' 
                 else TRIM(BP.TYPE) 
             end                                                             as identificationTypeCode, 
-            BP_TXT.identificationType as identificationType, 
+            BP_TXT.identificationType                                       as identificationType, 
             case 
                 when BP.IDNUMBER = 'na' 
                 then '' 
@@ -250,12 +249,20 @@ df = spark.sql(f"""
             BP.REGION                                                       as stateCode, 
             t005u.stateName                                                 as stateName,
             BP.PARTNER_GUID                                                 as businessPartnerGUID, 
-            BP.FLG_DEL_BW                                                   as deletedIndicator, 
+            CASE
+                WHEN BP.FLG_DEL_BW = 'X'
+                THEN 'Y'
+                ELSE 'N'
+            END                                                             as deletedFlag, 
             cast('1900-01-01' as TimeStamp)                                 as _RecordStart, 
             cast('9999-12-31' as TimeStamp)                                 as _RecordEnd, 
-            '0'                                                             as _RecordDeleted, 
+            CASE
+                WHEN FLG_DEL_BW IS NULL 
+                THEN '0'
+                ELSE '1'
+            END                                                             as _RecordDeleted, 
             '1'                                                             as _RecordCurrent, 
-            cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp 
+            cast('{CurrentTimeStamp}' as TimeStamp)                         as _DLCleansedZoneTimeStamp 
         FROM stage BP 
         LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.crm_0BP_ID_TYPE_TEXT BP_TXT 
                ON BP.TYPE = BP_TXT.identificationTypeCode 
@@ -292,7 +299,7 @@ newSchema = StructType([
 	StructField('stateCode',StringType(),True),
     StructField('stateName',StringType(),True),
 	StructField('businessPartnerGUID',StringType(),True),
-	StructField('deletedIndicator',StringType(),True),
+	StructField('deletedFlag',StringType(),True),
 	StructField('_RecordStart',TimestampType(),False),
 	StructField('_RecordEnd',TimestampType(),False),
 	StructField('_RecordDeleted',IntegerType(),False),
@@ -302,38 +309,43 @@ newSchema = StructType([
 
 # COMMAND ----------
 
-# DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
-DeltaSaveDataFrameToDeltaTable(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
+# DBTITLE 1,12. Save Data frame into Cleansed Delta table (New Records)
+DeltaSaveDataFrameToDeltaTable(df.filter("_RecordDeleted == 0"), target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
+
+# COMMAND ----------
+
+# DBTITLE 1,12. Save Data frame into Cleansed Delta table (Deleted Records)
+DeltaSaveDataFrameToDeltaTable(df.filter("_RecordDeleted == 1"), target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
 
 # COMMAND ----------
 
 # DBTITLE 1,13.1 Identify Deleted records from Raw table
-# df = spark.sql(f"select distinct PARTNER,TYPE,IDNUMBER from {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' and FLG_DEL_BW IS NOT NULL")
-# df.createOrReplaceTempView("crm_bp_id_deleted_records")
+# # df = spark.sql(f"select distinct PARTNER,TYPE,IDNUMBER from {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' and FLG_DEL_BW IS NOT NULL")
+# # df.createOrReplaceTempView("crm_bp_id_deleted_records")
 
-df = spark.sql(f"select distinct coalesce(PARTNER,'') as PARTNER, coalesce(TYPE,'') as TYPE, coalesce(IDNUMBER,'') as IDNUMBER from ( \
-Select *, ROW_NUMBER() OVER (PARTITION BY PARTNER,TYPE,IDNUMBER ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' ) \
-where  _RecordVersion = 1 and FLG_DEL_BW IS NOT NULL")
-df.createOrReplaceTempView("crm_bp_id_deleted_records")
+# df = spark.sql(f"select distinct coalesce(PARTNER,'') as PARTNER, coalesce(TYPE,'') as TYPE, coalesce(IDNUMBER,'') as IDNUMBER from ( \
+# Select *, ROW_NUMBER() OVER (PARTITION BY PARTNER,TYPE,IDNUMBER ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' ) \
+# where  _RecordVersion = 1 and FLG_DEL_BW IS NOT NULL")
+# df.createOrReplaceTempView("crm_bp_id_deleted_records")
 
 # COMMAND ----------
 
 # DBTITLE 1,13.2 Update _RecordDeleted and _RecordCurrent Flags
-#Get current time
-CurrentTimeStamp = GeneralLocalDateTime()
-CurrentTimeStamp = CurrentTimeStamp.strftime("%Y-%m-%d %H:%M:%S")
+# #Get current time
+# CurrentTimeStamp = GeneralLocalDateTime()
+# CurrentTimeStamp = CurrentTimeStamp.strftime("%Y-%m-%d %H:%M:%S")
 
-spark.sql(f" \
-    MERGE INTO cleansed.crm_0BP_ID_ATTR \
-    using crm_bp_id_deleted_records \
-    on crm_0BP_ID_ATTR.businessPartnerNumber = crm_bp_id_deleted_records.PARTNER \
-    and crm_0BP_ID_ATTR.identificationTypeCode = crm_bp_id_deleted_records.TYPE \
-    and crm_0BP_ID_ATTR.businessPartnerIdNumber = crm_bp_id_deleted_records.IDNUMBER \
-    WHEN MATCHED THEN UPDATE SET \
-    _DLCleansedZoneTimeStamp = cast('{CurrentTimeStamp}' as TimeStamp) \
-    ,_RecordDeleted=1 \
-    ,_RecordCurrent=0 \
-    ")
+# spark.sql(f" \
+#     MERGE INTO cleansed.crm_0BP_ID_ATTR \
+#     using crm_bp_id_deleted_records \
+#     on crm_0BP_ID_ATTR.businessPartnerNumber = crm_bp_id_deleted_records.PARTNER \
+#     and crm_0BP_ID_ATTR.identificationTypeCode = crm_bp_id_deleted_records.TYPE \
+#     and crm_0BP_ID_ATTR.businessPartnerIdNumber = crm_bp_id_deleted_records.IDNUMBER \
+#     WHEN MATCHED THEN UPDATE SET \
+#     _DLCleansedZoneTimeStamp = cast('{CurrentTimeStamp}' as TimeStamp) \
+#     ,_RecordDeleted=1 \
+#     ,_RecordCurrent=0 \
+#     ")
 
 # COMMAND ----------
 

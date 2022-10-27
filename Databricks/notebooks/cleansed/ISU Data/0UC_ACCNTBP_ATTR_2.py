@@ -170,102 +170,108 @@ print(delta_raw_tbl_name)
 # COMMAND ----------
 
 # DBTITLE 1,10. Load Raw to Dataframe & Do Transformations
-df = spark.sql(f"WITH stage AS \
-                      (Select *, ROW_NUMBER() OVER (PARTITION BY GPART,VKONT ORDER BY _FileDateTimeStamp DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
-                           SELECT \
-                                GPART as businessPartnerGroupNumber, \
-                                VKONT as contractAccountNumber, \
-                                dd07t2.domainValueText as budgetBillingRequestForDebtor, \
-                                dd07t1.domainValueText as budgetBillingRequestForCashPayer, \
-                                if(KEINZAHL = 'X', 'Y', 'N') as noPaymentFormFlag, \
-                                EINZUGSZ as numberOfSuccessfulDirectDebits, \
-                                RUECKLZ as numberOfDirectDebitReturns, \
-                                if(MAHNUNG_Z = 'X', 'Y', 'N') as sendAdditionalDunningNoticeFlag, \
-                                if(RECHNUNG_Z = 'X', 'Y', 'N') as sendAdditionalBillFlag, \
-                                efrm.applicationFormDescription as applicationForm, \
-                                AUSGRUP_IN as outsortingCheckGroupCode, \
-                                OUTCOUNT as manualOutsortingCount, \
-                                MANOUTS_IN as manualOutsortingReasonCode, \
-                                ToValidDate(ERDAT) as createdDate, \
-                                ERNAM as createdBy, \
-                                ToValidDate(AEDATP) as lastChangedDate, \
-                                AENAMP as changedBy, \
-                                FDZTG as additionalDaysForCashManagement, \
-                                GUID as headerUUID, \
-                                cast(DDLAM as dec(13,0)) as directDebitLimit, \
-                                DDLNM as numberOfMonthsForDirectDebitLimit, \
-                                EXVKO as businessPartnerReferenceNumber, \
-                                STDBK as standardCompanyCode, \
-                                ABWMA as alternativeDunningRecipient, \
-                                EBVTY as bankDetailsId, \
-                                EZAWE as incomingPaymentMethodCode, \
-                                if(LOEVM = 'X', 'Y', 'N') as deletedFlag, \
-                                ABWVK as alternativeContractAccountForCollectiveBills, \
-                                VKPBZ as accountRelationshipCode, \
-                                acc_txt.accountRelationship as accountRelationship, \
-                                ADRNB as addressNumber, \
-                                ADRMA as addressNumberForAlternativeDunningRecipient, \
-                                ABWRH as alternativeInvoiceRecipient, \
-                                ADRRH as addressNumberForAlternativeBillRecipient, \
-                                TOGRU as toleranceGroupCode, \
-                                CCARD_ID as paymentCardId, \
-                                TFK111T.clearingCategory as clearingCategory, \
-                                TFK041BT.collectionManagementMasterDataGroup as collectionManagementMasterDataGroup, \
-                                STRAT as collectionStrategyCode, \
-                                ZAHLKOND as paymentConditionCode, \
-                                KOFIZ_SD as accountDeterminationCode, \
-                                tfk043t.toleranceGroupDescription as toleranceGroup,\
-                                te128t.manualOutsortingReasonDescription as manualOutsortingReason, \
-                                te192t.outsortingCheckGroup as outsortingCheckGroup, \
-                                JVLTE as participationInYearlyAdvancePaymentCode,\
-                                dd07t.domainValueText as participationInYearlyAdvancePayment,\
-                                KZABSVER as activatebudgetbillingProcedureCode,\
-                                bbproc.billingProcedure as activatebudgetbillingProcedure,\
-                                zahlkond.paymentCondition as paymentCondition,\
-                                0fcactdetid.accountDetermination as accountDetermination, \
-                                SENDCONTROL_RH as dispatchControlForAltBillRecipientCode, \
-                                esendcontrolt.dispatchControlDescription as dispatchControlForAltBillRecipient,\
-                                OPBUK as companyGroupCode, \
-                                0comp_code.companyName as companyGroupName, \
-                                0comp_code1.companyName as standardCompanyName,\
-                                pymet.paymentMethod as incomingPaymentMethod,\
-                                tfk047xt.collectionStrategyName as collectionStrategyName,\
-                                CMGRP as collectionManagementMasterDataGroupCode,\
-                                SENDCONTROL_MA as shippingControlForAltDunningRecipientCode,\
-                                esendcontrolt1.dispatchControlDescription as shippingControlForAltDunningRecipient,\
-                                SENDCONTROL_GP as dispatchControlForOriginalCustomerCode,\
-                                esendcontrolt2.dispatchControlDescription as dispatchControlForOriginalCustomer,\
-                                ABSANFBZ as budgetBillingRequestForCashPayerCode,\
-                                ABSANFAB as budgetBillingRequestForDebtorCode,\
-                                VERTYP as clearingCategoryCode,\
-                                FORMKEY as applicationFormCode,\
-                                cast('1900-01-01' as TimeStamp) as _RecordStart, \
-                                cast('9999-12-31' as TimeStamp) as _RecordEnd, \
-                                '0' as _RecordDeleted, \
-                                '1' as _RecordCurrent, \
-                                cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
-                        FROM stage acc \
-                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0FC_ACCTREL_TEXT acc_txt ON acc.VKPBZ = acc_txt.accountRelationshipCode and acc_txt._RecordDeleted = 0 and acc_txt._RecordCurrent = 1 \
-                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_tfk043t tfk043t ON tfk043t.toleranceGroupCode = acc.TOGRU \
-                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_te128t te128t ON te128t.manualOutsortingReasonCode  = acc.MANOUTS_IN \
-                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_te192t te192t ON te192t.outsortingCheckGroupCode  = acc.AUSGRUP_IN \
-                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_dd07t dd07t ON dd07t.domainName = 'JVLTE' AND  dd07t.domainValueSingleUpperLimit = acc.JVLTE \
-                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_dd07t dd07t1 ON dd07t1.domainName = 'ABSLANFO' AND  dd07t1.domainValueSingleUpperLimit = acc.ABSANFBZ \
-                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_dd07t dd07t2 ON dd07t2.domainName = 'ABSLANFO' AND  dd07t2.domainValueSingleUpperLimit = acc.ABSANFAB \
-                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0uc_bbproc_text bbproc ON bbproc.billingProcedureCode  = acc.KZABSVER \
-                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0uc_zahlkond_text zahlkond ON zahlkond.paymentConditionCode = acc.ZAHLKOND \
-                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0fcactdetid_text 0fcactdetid ON 0fcactdetid.accountDeterminationCode  = acc.KOFIZ_SD \
-                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_esendcontrolt esendcontrolt ON esendcontrolt.dispatchControlCode  = acc.SENDCONTROL_RH \
-                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0comp_code_text 0comp_code ON acc.OPBUK =0comp_code.companyCode \
-                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0comp_code_text 0comp_code1 ON acc.STDBK =0comp_code1.companyCode \
-                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0fc_pymet_text pymet ON pymet.paymentMethodCode  =  acc.EZAWE \
-                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_tfk047xt tfk047xt ON tfk047xt.collectionStrategyCode  = acc.STRAT \
-                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_esendcontrolt esendcontrolt1 ON esendcontrolt1.dispatchControlCode  = acc.SENDCONTROL_MA \
-                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_esendcontrolt esendcontrolt2 ON esendcontrolt2.dispatchControlCode  = acc.SENDCONTROL_GP \
-                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_efrm efrm ON acc.FORMKEY = efrm.applicationForm \
-                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_TFK111T TFK111T ON  acc.VERTYP = TFK111T.clearingCategoryCode \
-                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_TFK041BT TFK041BT ON TFK041BT.collectionManagementMasterDataGroupCode =acc.CMGRP \
-                        where acc._RecordVersion = 1 ")
+df = spark.sql(f"""WITH stage AS 
+                      (Select *, ROW_NUMBER() OVER (PARTITION BY GPART,VKONT ORDER BY _FileDateTimeStamp DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') 
+                           SELECT 
+                                GPART as businessPartnerGroupNumber, 
+                                VKONT as contractAccountNumber, 
+                                dd07t2.domainValueText as budgetBillingRequestForDebtor, 
+                                dd07t1.domainValueText as budgetBillingRequestForCashPayer, 
+                                if(KEINZAHL = 'X', 'Y', 'N') as noPaymentFormFlag, 
+                                EINZUGSZ as numberOfSuccessfulDirectDebits, 
+                                RUECKLZ as numberOfDirectDebitReturns, 
+                                if(MAHNUNG_Z = 'X', 'Y', 'N') as sendAdditionalDunningNoticeFlag, 
+                                if(RECHNUNG_Z = 'X', 'Y', 'N') as sendAdditionalBillFlag, 
+                                efrm.applicationFormDescription as applicationForm, 
+                                AUSGRUP_IN as outsortingCheckGroupCode, 
+                                OUTCOUNT as manualOutsortingCount, 
+                                MANOUTS_IN as manualOutsortingReasonCode, 
+                                ToValidDate(ERDAT) as createdDate, 
+                                ERNAM as createdBy, 
+                                ToValidDate(AEDATP) as lastChangedDate, 
+                                AENAMP as changedBy, 
+                                FDZTG as additionalDaysForCashManagement, 
+                                GUID as headerUUID, 
+                                cast(DDLAM as dec(13,0)) as directDebitLimit, 
+                                DDLNM as numberOfMonthsForDirectDebitLimit, 
+                                EXVKO as businessPartnerReferenceNumber,
+                                STDBK as standardCompanyCode, 
+                                ABWMA as alternativeDunningRecipient, 
+                                EBVTY as bankDetailsId, 
+                                EZAWE as incomingPaymentMethodCode, 
+                                if(LOEVM = 'X', 'Y', 'N') as deletedFlag, 
+                                ABWVK as alternativeContractAccountForCollectiveBills,
+                                VKPBZ as accountRelationshipCode, 
+                                acc_txt.accountRelationship as accountRelationship, 
+                                ADRNB as addressNumber, 
+                                ADRMA as addressNumberForAlternativeDunningRecipient, 
+                                ABWRH as alternativeInvoiceRecipient, 
+                                ADRRH as addressNumberForAlternativeBillRecipient, 
+                                TOGRU as toleranceGroupCode, 
+                                CCARD_ID as paymentCardId, 
+                                TFK111T.clearingCategory as clearingCategory, 
+                                TFK041BT.collectionManagementMasterDataGroup as collectionManagementMasterDataGroup, 
+                                STRAT as collectionStrategyCode, 
+                                ZAHLKOND as paymentConditionCode, 
+                                KOFIZ_SD as accountDeterminationCode, 
+                                tfk043t.toleranceGroupDescription as toleranceGroup,
+                                te128t.manualOutsortingReasonDescription as manualOutsortingReason, 
+                                te192t.outsortingCheckGroup as outsortingCheckGroup, 
+                                JVLTE as participationInYearlyAdvancePaymentCode,
+                                dd07t.domainValueText as participationInYearlyAdvancePayment,
+                                KZABSVER as activatebudgetbillingProcedureCode,
+                                bbproc.billingProcedure as activatebudgetbillingProcedure,
+                                zahlkond.paymentCondition as paymentCondition,
+                                0fcactdetid.accountDetermination as accountDetermination, 
+                                SENDCONTROL_RH as dispatchControlForAltBillRecipientCode, 
+                                esendcontrolt.dispatchControlDescription as dispatchControlForAltBillRecipient,
+                                OPBUK as companyGroupCode, 
+                                0comp_code.companyName as companyGroupName, 
+                                0comp_code1.companyName as standardCompanyName,
+                                pymet.paymentMethod as incomingPaymentMethod,
+                                tfk047xt.collectionStrategyName as collectionStrategyName,
+                                CMGRP as collectionManagementMasterDataGroupCode,
+                                SENDCONTROL_MA as shippingControlForAltDunningRecipientCode,
+                                esendcontrolt1.dispatchControlDescription as shippingControlForAltDunningRecipient,
+                                SENDCONTROL_GP as dispatchControlForOriginalCustomerCode,
+                                esendcontrolt2.dispatchControlDescription as dispatchControlForOriginalCustomer,
+                                ABSANFBZ as budgetBillingRequestForCashPayerCode,
+                                ABSANFAB as budgetBillingRequestForDebtorCode,
+                                VERTYP as clearingCategoryCode,
+                                FORMKEY as applicationFormCode,
+                                cast('1900-01-01' as TimeStamp) as _RecordStart, 
+                                cast('9999-12-31' as TimeStamp) as _RecordEnd, 
+                                CASE
+                                    WHEN LOEVM IS NULL
+                                    THEN '0'
+                                    ELSE '1'
+                                END as _RecordDeleted, 
+                                '1' as _RecordCurrent, 
+                                cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp 
+                        FROM stage acc 
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0FC_ACCTREL_TEXT acc_txt ON acc.VKPBZ = acc_txt.accountRelationshipCode and acc_txt._RecordDeleted = 0 and acc_txt._RecordCurrent = 1 
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_tfk043t tfk043t ON tfk043t.toleranceGroupCode = acc.TOGRU 
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_te128t te128t ON te128t.manualOutsortingReasonCode  = acc.MANOUTS_IN 
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_te192t te192t ON te192t.outsortingCheckGroupCode  = acc.AUSGRUP_IN 
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_dd07t dd07t ON dd07t.domainName = 'JVLTE' AND  dd07t.domainValueSingleUpperLimit = acc.JVLTE 
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_dd07t dd07t1 ON dd07t1.domainName = 'ABSLANFO' AND  dd07t1.domainValueSingleUpperLimit = acc.ABSANFBZ 
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_dd07t dd07t2 ON dd07t2.domainName = 'ABSLANFO' AND  dd07t2.domainValueSingleUpperLimit = acc.ABSANFAB 
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0uc_bbproc_text bbproc ON bbproc.billingProcedureCode  = acc.KZABSVER 
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0uc_zahlkond_text zahlkond ON zahlkond.paymentConditionCode = acc.ZAHLKOND 
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0fcactdetid_text 0fcactdetid ON 0fcactdetid.accountDeterminationCode  = acc.KOFIZ_SD 
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_esendcontrolt esendcontrolt ON esendcontrolt.dispatchControlCode  = acc.SENDCONTROL_RH 
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0comp_code_text 0comp_code ON acc.OPBUK =0comp_code.companyCode 
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0comp_code_text 0comp_code1 ON acc.STDBK =0comp_code1.companyCode 
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0fc_pymet_text pymet ON pymet.paymentMethodCode  =  acc.EZAWE 
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_tfk047xt tfk047xt ON tfk047xt.collectionStrategyCode  = acc.STRAT 
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_esendcontrolt esendcontrolt1 ON esendcontrolt1.dispatchControlCode  = acc.SENDCONTROL_MA 
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_esendcontrolt esendcontrolt2 ON esendcontrolt2.dispatchControlCode  = acc.SENDCONTROL_GP 
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_efrm efrm ON acc.FORMKEY = efrm.applicationForm 
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_TFK111T TFK111T ON  acc.VERTYP = TFK111T.clearingCategoryCode 
+                        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_TFK041BT TFK041BT ON TFK041BT.collectionManagementMasterDataGroupCode =acc.CMGRP 
+                        where acc._RecordVersion = 1 
+                        """
+)
 
 #print(f'Number of rows: {df.count()}')
 
@@ -410,8 +416,13 @@ newSchema = StructType([
 
 # COMMAND ----------
 
-# DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
-DeltaSaveDataFrameToDeltaTable(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_OVERWRITE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
+# DBTITLE 1,12. Save Data frame into Cleansed Delta table (New Records)
+DeltaSaveDataFrameToDeltaTable(df.filter("_RecordDeleted == 0"), target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_OVERWRITE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
+
+# COMMAND ----------
+
+# DBTITLE 1,12. Save Data frame into Cleansed Delta table (Deleted Records)
+DeltaSaveDataFrameToDeltaTable(df.filter("_RecordDeleted == 1"), target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_OVERWRITE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
 
 # COMMAND ----------
 
