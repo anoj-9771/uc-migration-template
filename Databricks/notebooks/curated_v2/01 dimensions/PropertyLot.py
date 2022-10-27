@@ -38,7 +38,7 @@ def getPropertyLot():
 
 df, schema = getPropertyLot()
 #TemplateEtl(df, entity="dimPropertyLot", businessKey="planTypeCode,planNumber,lotTypeCode,lotNumber,sectionNumber,propertyNumber", schema=schema, writeMode=ADS_WRITE_MODE_OVERWRITE, AddSK=True)
-TemplateEtlSCD(df, entity="dimPropertyLot", businessKey="planTypeCode,planNumber,lotTypeCode,lotNumber,propertyNumber", schema=schema)
+TemplateEtlSCD(df, entity="dimPropertyLot", businessKey="propertyNumber", schema=schema)
 
 # COMMAND ----------
 
