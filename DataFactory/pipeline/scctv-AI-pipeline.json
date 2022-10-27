@@ -123,7 +123,7 @@
 							"userProperties": [],
 							"typeProperties": {
 								"pipeline": {
-									"referenceName": "wait-until-databricks-job-complete",
+									"referenceName": "scctv-wait-until-databricks-job-complete",
 									"type": "PipelineReference"
 								},
 								"waitOnCompletion": true,
@@ -135,6 +135,10 @@
 									"DatabricksSecret": {
 										"value": "@variables('DatabricksSecret')",
 										"type": "Expression"
+									},
+									"pipelineRunID": {
+										"value": "@variables('sewer-cctv-pipeline-run-id')",
+										"type": "Expression"
 									}
 								}
 							}
@@ -144,7 +148,7 @@
 							"type": "WebActivity",
 							"dependsOn": [
 								{
-									"activity": "run-databricks-job",
+									"activity": "set-sewer-cctv-pipeline-run-id",
 									"dependencyConditions": [
 										"Succeeded"
 									]
@@ -160,7 +164,7 @@
 							"userProperties": [],
 							"typeProperties": {
 								"url": {
-									"value": "@concat('https://australiaeast.azuredatabricks.net/api/2.1/jobs/runs/get?run_id=', activity('run-databricks-job').output.run_id,'&active_only=true&expand_tasks=true')",
+									"value": "@concat('https://australiaeast.azuredatabricks.net/api/2.1/jobs/runs/get?run_id=', variables('sewer-cctv-pipeline-run-id'),'&active_only=true&expand_tasks=true')",
 									"type": "Expression"
 								},
 								"method": "GET",
@@ -212,6 +216,26 @@
 										"value": "Bearer @{variables('DatabricksSecret')}",
 										"type": "Expression"
 									}
+								}
+							}
+						},
+						{
+							"name": "set-sewer-cctv-pipeline-run-id",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "run-databricks-job",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "sewer-cctv-pipeline-run-id",
+								"value": {
+									"value": "activity('run-databricks-job').output.run_id",
+									"type": "Expression"
 								}
 							}
 						}
@@ -364,7 +388,10 @@
 			"RegisterModelState": {
 				"type": "String"
 			},
-			"test": {
+			"Save_Data_To_Azure_SQLRunID": {
+				"type": "String"
+			},
+			"sewer-cctv-pipeline-run-id": {
 				"type": "String"
 			}
 		},
