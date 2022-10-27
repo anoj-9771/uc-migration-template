@@ -20,10 +20,10 @@ def getStormWaterNetwork():
 
     #1.Load Cleansed layer table data into dataframe
     baseDf = spark.sql(f"""select level30 as stormWaterNetwork, 
-                                level40 as stormWaterCatchment 
+                                level40 as stormWaterCatchment ,
+                                _RecordDeleted 
                         from {ADS_DATABASE_CLEANSED}.hydra_TSYSTEMAREA 
                         where product = 'StormWater' 
-                        and   _RecordDeleted = 0 
                         and   _RecordCurrent = 1 
                         """)
 
@@ -39,6 +39,7 @@ def getStormWaterNetwork():
     df = df.selectExpr(\
                              "stormWaterNetwork" \
                             ,"stormWaterCatchment" \
+                           ,"_RecordDeleted" \
                             )
                                             
     #5.Apply schema definition
