@@ -234,7 +234,7 @@
 							"typeProperties": {
 								"variableName": "sewer-cctv-pipeline-run-id",
 								"value": {
-									"value": "activity('run-databricks-job').output.run_id",
+									"value": "@string(activity('run-databricks-job').output.run_id)",
 									"type": "Expression"
 								}
 							}
