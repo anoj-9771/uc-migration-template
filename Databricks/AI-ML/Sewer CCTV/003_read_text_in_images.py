@@ -153,11 +153,3 @@ df_raw_ocr = (cog_recognizeText
 
 #data inserted to the raw ocr extract table
 df_raw_ocr.write.mode("append").insertInto('stage.cctv_ocr_extract')
-
-# COMMAND ----------
-
-display(df_raw_ocr)
-
-# COMMAND ----------
-
-
