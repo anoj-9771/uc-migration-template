@@ -51,7 +51,7 @@
 				"type": "WebActivity",
 				"dependsOn": [
 					{
-						"activity": "set-secret-variable",
+						"activity": "Execute Cluster Deployment",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -197,7 +197,7 @@
 				"type": "WebActivity",
 				"dependsOn": [
 					{
-						"activity": "set-secret-variable",
+						"activity": "Execute Cluster Deployment",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -810,6 +810,61 @@
 							}
 						}
 					]
+				}
+			},
+			{
+				"name": "Execute Riverwatch Ingestion Notebook",
+				"type": "DatabricksNotebook",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"notebookPath": "/AI-ML/Riverwatch/Riverwatch-ingestion"
+				},
+				"linkedServiceName": {
+					"referenceName": "LS-AzureDatabricks_DefinedCluster",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"kvSecret": "databricks-token",
+						"clusterId": "0517-025528-mkzhqnk1"
+					}
+				}
+			},
+			{
+				"name": "Execute Cluster Deployment",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "set-secret-variable",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "util-cluster-deployment",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"DatabricksSecret": {
+							"value": "@variables('DatabricksSecret')",
+							"type": "Expression"
+						},
+						"JobPoolName": "Batch Pool DS4",
+						"ClusterName": "riverwatch",
+						"MinWorkers": "2",
+						"MaxWorkers": "10",
+						"SparkVersion": "10.4.x-cpu-ml-scala2.12"
+					}
 				}
 			}
 		],
