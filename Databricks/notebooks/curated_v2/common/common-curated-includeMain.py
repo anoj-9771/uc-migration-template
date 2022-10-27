@@ -161,7 +161,12 @@ def TemplateTimeSliceEtlSCD(df : object, entity, businessKey, schema, target_lay
     df = df.withColumn("_BusinessKey", concat_ws('|', *(businessKey.split(","))))
     df = df.withColumn("_RecordStart", expr("CAST(ifnull(validFromDate,'1900-01-01') as timestamp)"))
     df = df.withColumn("_RecordEnd", expr("CAST(ifnull(validToDate,'9999-12-31') as timestamp)"))
-    df = df.withColumn("_RecordDeleted", expr("CAST(0 AS INT)"))
+    
+    if "_RecordDeleted" not in df.columns:
+        df = df.withColumn("_RecordDeleted", expr("CAST(0 AS INT)"))
+    else:
+        df = df.withColumn("_RecordDeleted", when(col('_RecordDeleted').isNull(),expr(f"CAST(0 AS INT)")).otherwise(col('_RecordDeleted'))) 
+    
     df = df.withColumn("_DLCuratedZoneTimeStamp", expr("now()"))
     df = df.withColumn(SurrogateKey, md5(expr(f"concat(_BusinessKey,'|',_RecordStart)")))
     
