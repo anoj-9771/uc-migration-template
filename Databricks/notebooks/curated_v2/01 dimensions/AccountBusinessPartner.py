@@ -72,9 +72,10 @@ def getAccountBusinessPartner():
           createdBy,
           createdDate,
           changedBy,
-          lastChangedDate
+          lastChangedDate,
+          _RecordDeleted 
           from {ADS_DATABASE_CLEANSED}.isu_0uc_accntbp_attr_2 
-          where _RecordCurrent = 1 and _RecordDeleted = 0 
+          where _RecordCurrent = 1  
         """)
     
     dummyDimRecDf = spark.createDataFrame([("-1","-1")], ["contractAccountNumber","businessPartnerGroupNumber"])
