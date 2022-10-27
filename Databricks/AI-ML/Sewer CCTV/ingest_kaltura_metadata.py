@@ -62,8 +62,8 @@
 # MAGIC   UpstreamMH STRING,
 # MAGIC   DownstreamMH STRING,
 # MAGIC   DirectionOfSurvey STRING,
-# MAGIC   DateOfCompletedInspection TIMESTAMP,
-# MAGIC   TimeOfCompletedInspection TIMESTAMP,
+# MAGIC   DateOfCompletedInspectionString STRING,
+# MAGIC   TimeOfCompletedInspectionString STRING,
 # MAGIC   PackageName STRING,
 # MAGIC   Cleaned STRING,
 # MAGIC   SurveyedLength DECIMAL,
@@ -509,8 +509,8 @@ df_kaltura_metadata = spark.read.schema(schema).json(filepath).withColumn("metad
 df_kaltura_metadata = (df_kaltura_metadata
                        .withColumn("AssessedByDate", psf.to_timestamp(psf.col("metadata.jsonData.AssessedByDate"), format='yyyy-MM-dd HH:mm:ss'))
                        .withColumn("DiscardDate", psf.to_timestamp(psf.col("metadata.jsonData.DiscardDate"), format='yyyy-MM-dd HH:mm:ss'))
-                       .withColumn("DateOfCompletedInspection", psf.to_timestamp(psf.col("metadata.jsonData.DateOfCompletedInspection"), format='yyyy-MM-dd HH:mm:ss'))
-                       .withColumn("TimeOfCompletedInspection", psf.to_timestamp(psf.col("metadata.jsonData.TimeOfCompletedInspection"), format='yyyy-MM-dd HH:mm:ss'))
+                       .withColumn("DateOfCompletedInspectionString", psf.col("metadata.jsonData.DateOfCompletedInspection"))
+                       .withColumn("TimeOfCompletedInspectionString", psf.col("metadata.jsonData.TimeOfCompletedInspection"))
                        .withColumn("createdAt", psf.to_timestamp(psf.col("metadata.createdAt"), format='yyyy-MM-dd HH:mm:ss'))
                        .withColumn("updatedAt", psf.to_timestamp(psf.col("metadata.updatedAt"), format='yyyy-MM-dd HH:mm:ss'))
                        .withColumn("SurveyedLength", psf.col("metadata.jsonData.SurveyedLength").cast('decimal'))
@@ -539,8 +539,8 @@ df_kaltura_metadata = (df_kaltura_metadata
                                "metadata.jsonData.UpstreamMH",
                                "metadata.jsonData.DownstreamMH",
                                "metadata.jsonData.DirectionOfSurvey",
-                               "DateOfCompletedInspection",
-                               "TimeOfCompletedInspection",
+                               "DateOfCompletedInspectionString",
+                               "TimeOfCompletedInspectionString",
                                "metadata.jsonData.PackageName",
                                "metadata.jsonData.Cleaned",
                                "SurveyedLength",
@@ -611,6 +611,10 @@ df_kaltura_media_entry = (spark.read.schema(schema).json(filepath)
                                   "processed_timestamp")
                          )
 df_kaltura_media_entry.createOrReplaceTempView("tmp_datalake_kaltura_media_entry")
+
+# COMMAND ----------
+
+display(df_kaltura_metadata)
 
 # COMMAND ----------
 
@@ -734,8 +738,8 @@ df_kaltura_media_entry.createOrReplaceTempView("tmp_datalake_kaltura_media_entry
 # MAGIC         UpstreamMH = src.UpstreamMH,
 # MAGIC         DownstreamMH = src.DownstreamMH,
 # MAGIC         DirectionOfSurvey = src.DirectionOfSurvey,
-# MAGIC         DateOfCompletedInspection = src.DateOfCompletedInspection,
-# MAGIC         TimeOfCompletedInspection = src.TimeOfCompletedInspection,
+# MAGIC         DateOfCompletedInspectionString = src.DateOfCompletedInspectionString,
+# MAGIC         TimeOfCompletedInspectionString = src.TimeOfCompletedInspectionString,
 # MAGIC         PackageName = src.PackageName,
 # MAGIC         Cleaned = src.Cleaned,
 # MAGIC         SurveyedLength = src.SurveyedLength,
@@ -770,8 +774,8 @@ df_kaltura_media_entry.createOrReplaceTempView("tmp_datalake_kaltura_media_entry
 # MAGIC     UpstreamMH,
 # MAGIC     DownstreamMH,
 # MAGIC     DirectionOfSurvey,
-# MAGIC     DateOfCompletedInspection,
-# MAGIC     TimeOfCompletedInspection,
+# MAGIC     DateOfCompletedInspectionString,
+# MAGIC     TimeOfCompletedInspectionString,
 # MAGIC     PackageName,
 # MAGIC     Cleaned,
 # MAGIC     SurveyedLength,
@@ -806,8 +810,8 @@ df_kaltura_media_entry.createOrReplaceTempView("tmp_datalake_kaltura_media_entry
 # MAGIC     src.UpstreamMH,
 # MAGIC     src.DownstreamMH,
 # MAGIC     src.DirectionOfSurvey,
-# MAGIC     src.DateOfCompletedInspection,
-# MAGIC     src.TimeOfCompletedInspection,
+# MAGIC     src.DateOfCompletedInspectionString,
+# MAGIC     src.TimeOfCompletedInspectionString,
 # MAGIC     src.PackageName,
 # MAGIC     src.Cleaned,
 # MAGIC     src.SurveyedLength,
