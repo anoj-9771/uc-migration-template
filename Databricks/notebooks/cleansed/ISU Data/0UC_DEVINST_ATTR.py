@@ -171,10 +171,10 @@ print(delta_raw_tbl_name)
 
 # DBTITLE 1,10. Load Raw to Dataframe & Do Transformations
 df = spark.sql(f"WITH stageUpsert AS \
-                      (select *, 'U' as upsertFlag from (Select *, ROW_NUMBER() OVER (PARTITION BY ANLAGE,LOGIKNR,BIS ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} \
+                      (select *, 'U' as _upsertFlag from (Select *, ROW_NUMBER() OVER (PARTITION BY ANLAGE,LOGIKNR,BIS ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} \
                                   WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' and DI_OPERATION_TYPE !='X' ) where _RecordVersion = 1), \
                       stageDelete AS \
-                      (select *, 'D' as upsertFlag from ( \
+                      (select *, 'D' as _upsertFlag from ( \
 Select *, ROW_NUMBER() OVER (PARTITION BY ANLAGE,LOGIKNR,AB,BIS ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion \
                         FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') where  _RecordVersion = 1 and DI_OPERATION_TYPE ='X'), \
                       stage AS (select * from stageUpsert union select * from stageDelete) \
@@ -193,7 +193,7 @@ Select *, ROW_NUMBER() OVER (PARTITION BY ANLAGE,LOGIKNR,AB,BIS ORDER BY _FileDa
                                 ZOPCODE as operationCode, \
                                 cast('1900-01-01' as TimeStamp) as _RecordStart, \
                                 cast('9999-12-31' as TimeStamp) as _RecordEnd, \
-                                (CASE WHEN upsertFlag = 'U' THEN '0' ELSE '1' END) as _RecordDeleted, \
+                                (CASE WHEN _upsertFlag = 'U' THEN '0' ELSE '1' END) as _RecordDeleted, \
                                 '1' as _RecordCurrent, \
                                 cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
                         FROM stage dev \
@@ -237,9 +237,9 @@ DeltaSaveDataFrameToDeltaTable(df.filter("_RecordDeleted = '0'"), target_table, 
 
 # DBTITLE 1,12.2 Save Deleted records Data frame into Cleansed Delta table
 # Load deleted records to replace the existing Deleted records implementation logic
-DeltaSaveDataFrameToDeltaTable(df.filter("_RecordDeleted = '1'"), target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
+DeltaSaveDataFrameToDeltaTable(df.filter("_RecordDeleted = '1'"), target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, "installationNumber,logicalDeviceNumber,validFromDate,validToDate", AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
 
 # COMMAND ----------
 
-# DBTITLE 1,14. Exit Notebook
+# DBTITLE 1,13. Exit Notebook
 dbutils.notebook.exit("1")

@@ -170,9 +170,14 @@ print(delta_raw_tbl_name)
 # COMMAND ----------
 
 # DBTITLE 1,10. Load Raw to Dataframe & Do Transformations
-df = spark.sql(f"WITH stage AS \
-                      (Select *, ROW_NUMBER() OVER (PARTITION BY SAISON,ANLAGE,OPERAND,AB ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} \
-                                      WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' and DI_OPERATION_TYPE !='D') \
+df = spark.sql(f"WITH stageUpsert AS \
+                      (select *, 'U' as _upsertFlag from (Select *, ROW_NUMBER() OVER (PARTITION BY SAISON,ANLAGE,OPERAND,AB ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} \
+                                      WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' and DI_OPERATION_TYPE !='D') where _RecordVersion = 1), \
+                     stageDelete AS \
+                      (select *, 'D' as _upsertFlag from ( \
+Select *, ROW_NUMBER() OVER (PARTITION BY SAISON,ANLAGE,OPERAND,AB ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' ) \
+where  _RecordVersion = 1 and DI_OPERATION_TYPE ='D'), \
+                      stage AS (select * from stageUpsert union select * from stageDelete) \
                            SELECT \
                                 case when SAISON = 'na' then '' else SAISON end as seasonNumber, \
                                 case when ANLAGE = 'na' then '' else ANLAGE end as installationId, \
@@ -187,12 +192,10 @@ df = spark.sql(f"WITH stage AS \
                                 MASS as measurementUnit, \
                                 cast('1900-01-01' as TimeStamp) as _RecordStart, \
                                 cast('9999-12-31' as TimeStamp) as _RecordEnd, \
-                                '0' as _RecordDeleted, \
+                                (CASE WHEN _upsertFlag = 'U' THEN '0' ELSE '1' END) as _RecordDeleted, \
                                 '1' as _RecordCurrent, \
                                 cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
-                        from stage where _RecordVersion = 1 ")
-
-#print(f'Number of rows: {df.count()}')
+                        from stage ")
 
 # COMMAND ----------
 
@@ -219,39 +222,17 @@ newSchema = StructType([
 
 # COMMAND ----------
 
-# DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
-DeltaSaveDataFrameToDeltaTable(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
+# DBTITLE 1,12.1 Save Non Deleted Records Data frame into Cleansed Delta table (Final)
+# Load Non deleted records same as earlier
+DeltaSaveDataFrameToDeltaTable(df.filter("_RecordDeleted = '0'"), target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
 
 # COMMAND ----------
 
-# DBTITLE 1,13.1 Identify Deleted records from Raw table
-df = spark.sql(f"select distinct coalesce(SAISON,'') as SAISON, coalesce(ANLAGE,'') as ANLAGE, coalesce(OPERAND,'') as OPERAND,coalesce(AB,'') as AB, coalesce(BIS,'') as BIS from ( \
-Select *, ROW_NUMBER() OVER (PARTITION BY SAISON,ANLAGE,OPERAND,AB ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' ) \
-where  _RecordVersion = 1 and DI_OPERATION_TYPE ='D'")
-df.createOrReplaceTempView("isu_instfacts_deleted_records")
+# DBTITLE 1,12.2 Save Deleted records Data frame into Cleansed Delta table
+# Load deleted records to replace the existing Deleted records implementation logic
+DeltaSaveDataFrameToDeltaTable(df.filter("_RecordDeleted = '1'"), target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
 
 # COMMAND ----------
 
-# DBTITLE 1,13.2 Update _RecordDeleted and _RecordCurrent Flags
-#Get current time
-CurrentTimeStamp = GeneralLocalDateTime()
-CurrentTimeStamp = CurrentTimeStamp.strftime("%Y-%m-%d %H:%M:%S")
-
-spark.sql(f" \
-    MERGE INTO cleansed.isu_0UC_INSTFACTS \
-    using isu_instfacts_deleted_records \
-    on isu_0UC_INSTFACTS.seasonNumber = isu_instfacts_deleted_records.SAISON \
-    and isu_0UC_INSTFACTS.installationId = isu_instfacts_deleted_records.ANLAGE \
-    and isu_0UC_INSTFACTS.operandCode = isu_instfacts_deleted_records.OPERAND \
-    and isu_0UC_INSTFACTS.validFromDate = isu_instfacts_deleted_records.AB \
-    and isu_0UC_INSTFACTS.validToDate = isu_instfacts_deleted_records.BIS \
-    WHEN MATCHED THEN UPDATE SET \
-    _DLCleansedZoneTimeStamp = cast('{CurrentTimeStamp}' as TimeStamp) \
-    ,_RecordDeleted=1 \
-    ,_RecordCurrent=0 \
-    ")
-
-# COMMAND ----------
-
-# DBTITLE 1,14. Exit Notebook
+# DBTITLE 1,13. Exit Notebook
 dbutils.notebook.exit("1")

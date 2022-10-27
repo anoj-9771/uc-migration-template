@@ -214,7 +214,7 @@ print(delta_raw_tbl_name)
 
 # DBTITLE 1,10. Load Raw to Dataframe & Do Transformations
 df = spark.sql(f"""
-     WITH stage AS (
+     WITH stageUpsert AS (select *, 'U' as _upsertFlag from (
           SELECT
                *, 
                ROW_NUMBER() OVER (
@@ -223,7 +223,12 @@ df = spark.sql(f"""
                ) AS _RecordVersion 
           FROM {delta_raw_tbl_name} 
           WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}'
-     ) 
+     ) where _RecordVersion = 1), 
+         stageDelete AS 
+                      (select *, 'D' as _upsertFlag from ( 
+Select *, ROW_NUMBER() OVER (PARTITION BY ANLAGE,OPERAND,SAISON,AB,ABLFDNR ORDER BY _DLRawZoneTimestamp DESC, DELTA_TS DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' ) 
+where  _RecordVersion = 1 and IS_DELETED ='Y'), 
+         stage AS (select * from stageUpsert union select * from stageDelete) 
           SELECT 
                case when ANLAGE = 'na' then '' else ANLAGE end     as installationNumber,
                case when OPERAND = 'na' then '' else OPERAND end   as operandCode, 
@@ -248,7 +253,7 @@ df = spark.sql(f"""
                WAERS                                               as currencyKey, 
                cast('1900-01-01' as TimeStamp)                     as _RecordStart, 
                cast('9999-12-31' as TimeStamp)                     as _RecordEnd, 
-               '0'                                                 as _RecordDeleted, 
+               (CASE WHEN _upsertFlag = 'U' THEN '0' ELSE '1' END) as _RecordDeleted, 
                '1'                                                 as _RecordCurrent, 
                cast('{CurrentTimeStamp}' as TimeStamp)             as _DLCleansedZoneTimeStamp 
      FROM stage ef 
@@ -261,12 +266,9 @@ df = spark.sql(f"""
           te067t._RecordDeleted = 0 and 
           te067t._RecordCurrent = 1 
      WHERE 
-          ef._RecordVersion = 1 AND
           ef.ANLAGE IS NOT NULL
      """
 )
-
-#print(f'Number of rows: {df.count()}')
 
 # COMMAND ----------
 
@@ -301,38 +303,17 @@ newSchema = StructType([
 
 # COMMAND ----------
 
-# DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
-DeltaSaveDataFrameToDeltaTable(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
+# DBTITLE 1,12.1 Save Non Deleted Records Data frame into Cleansed Delta table (Final)
+# Load Non deleted records same as earlier
+DeltaSaveDataFrameToDeltaTable(df.filter("_RecordDeleted = '0'"), target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
 
 # COMMAND ----------
 
-# DBTITLE 1,13.1 Identify Deleted records from Raw table
-df = spark.sql(f"select distinct coalesce(ANLAGE,'') as ANLAGE, coalesce(OPERAND,'') as OPERAND, ToValidDate(AB,'MANDATORY') as AB, coalesce(ABLFDNR,'') as ABLFDNR from ( \
-Select *, ROW_NUMBER() OVER (PARTITION BY ANLAGE,OPERAND,SAISON,AB,ABLFDNR ORDER BY _DLRawZoneTimestamp DESC, DELTA_TS DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' ) \
-where  _RecordVersion = 1 and IS_DELETED ='Y'")
-df.createOrReplaceTempView("isu_ettifn_deleted_records")
+# DBTITLE 1,12.2 Save Deleted records Data frame into Cleansed Delta table
+# Load deleted records to replace the existing Deleted records implementation logic
+DeltaSaveDataFrameToDeltaTable(df.filter("_RecordDeleted = '1'"), target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
 
 # COMMAND ----------
 
-# DBTITLE 1,13.2 Update _RecordDeleted and _RecordCurrent Flags
-#Get current time
-CurrentTimeStamp = GeneralLocalDateTime()
-CurrentTimeStamp = CurrentTimeStamp.strftime("%Y-%m-%d %H:%M:%S")
-
-spark.sql(f" \
-    MERGE INTO cleansed.isu_ETTIFN \
-    using isu_ettifn_deleted_records \
-    on isu_ETTIFN.installationNumber = isu_ettifn_deleted_records.ANLAGE \
-    and isu_ETTIFN.operandCode = isu_ettifn_deleted_records.OPERAND \
-    and isu_ETTIFN.validFromDate = isu_ettifn_deleted_records.AB \
-    and isu_ETTIFN.consecutiveDaysFromDate = isu_ettifn_deleted_records.ABLFDNR \
-    WHEN MATCHED THEN UPDATE SET \
-    _DLCleansedZoneTimeStamp = cast('{CurrentTimeStamp}' as TimeStamp) \
-    ,_RecordDeleted=1 \
-    ,_RecordCurrent=0 \
-    ")
-
-# COMMAND ----------
-
-# DBTITLE 1,14. Exit Notebook
+# DBTITLE 1,13. Exit Notebook
 dbutils.notebook.exit("1")

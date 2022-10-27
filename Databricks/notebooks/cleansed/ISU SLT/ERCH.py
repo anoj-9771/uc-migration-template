@@ -170,8 +170,13 @@ print(delta_raw_tbl_name)
 # COMMAND ----------
 
 # DBTITLE 1,10. Load Raw to Dataframe & Do Transformations
-df = spark.sql(f"WITH stage AS \
-                      (Select *, ROW_NUMBER() OVER (PARTITION BY BELNR ORDER BY _DLRawZoneTimestamp DESC, DELTA_TS DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
+df = spark.sql(f"WITH stageUpsert AS \
+                      (select *, 'U' as _upsertFlag from (Select *, ROW_NUMBER() OVER (PARTITION BY BELNR ORDER BY _DLRawZoneTimestamp DESC, DELTA_TS DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') where _RecordVersion = 1), \
+                     stageDelete AS \
+                      (select *, 'D' as _upsertFlag from ( \
+Select *, ROW_NUMBER() OVER (PARTITION BY BELNRL ORDER BY _DLRawZoneTimeStamp DESC, DELTA_TS DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' ) \
+where  _RecordVersion = 1 and IS_DELETED ='Y'), \
+                      stage AS (select * from stageUpsert union select * from stageDelete) \
                            select \
                                   case when BELNR = 'na' then '' else BELNR end as billingDocumentNumber, \
                                   BUKRS as companyCode, \
@@ -271,7 +276,7 @@ df = spark.sql(f"WITH stage AS \
                                   '' as documentType,\
                                   cast('1900-01-01' as TimeStamp) as _RecordStart, \
                                   cast('9999-12-31' as TimeStamp) as _RecordEnd, \
-                                  '0' as _RecordDeleted, \
+                                  (CASE WHEN _upsertFlag = 'U' THEN '0' ELSE '1' END) as _RecordDeleted, \
                                   '1' as _RecordCurrent, \
                                   cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
                         FROM stage stg \
@@ -281,115 +286,7 @@ df = spark.sql(f"WITH stage AS \
                                left outer join {ADS_DATABASE_CLEANSED}.isu_0uc_hvorg_text hvorg_text on hvorg_text.maintransactionLineItemCode = stg.HVORG \
                                left outer join {ADS_DATABASE_CLEANSED}.isu_dd07t dd07t on dd07t.domainName = 'ABRVORG' and dd07t.domainValueSingleUpperLimit = stg.ABRVORG \
                                left outer join {ADS_DATABASE_CLEANSED}.isu_dd07t dd07t2 on dd07t2.domainName = 'NINVOICE' and dd07t2.domainValueSingleUpperLimit = stg.NINVOICE \
-                        where stg._RecordVersion = 1 ")
-
-#left outer join {ADS_DATABASE_CLEANSED}.isu_te093t t093 on t093.documentTypeCode = stg.BELEGART \
-#print(f'Number of rows: {df.count()}')
-
-# COMMAND ----------
-
-# DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
-#Update/rename Column
-#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
-# df_cleansed = spark.sql(f"SELECT  \
-#                                   case when BELNR = 'na' then '' else BELNR end as billingDocumentNumber, \
-#                                   BUKRS as companyCode, \
-#                                   cc.companyName as companyName, \
-#                                   SPARTE as divisionCode, \
-#                                   GPARTNER as businessPartnerGroupNumber, \
-#                                   VKONT as contractAccountNumber, \
-#                                   VERTRAG as contractId, \
-#                                   ToValidDate(BEGABRPE) as  startBillingPeriod, \
-#                                   ToValidDate(ENDABRPE) as  endBillingPeriod, \
-#                                   ToValidDate(ABRDATS) as  billingScheduleDate, \
-#                                   ToValidDate(ADATSOLL) as  meterReadingScheduleDate, \
-#                                   ToValidDate(PTERMTDAT) as  billingPeriodEndDate, \
-#                                   ToValidDate(BELEGDAT) as  billingDocumentCreateDate, \
-#                                   ABWVK as alternativeContractAccountForCollectiveBills, \
-#                                   BELNRALT as previousDocumentNumber, \
-#                                   ToValidDate(STORNODAT) as  reversalDate, \
-#                                   ABRVORG as billingTransactionCode, \
-#                                   HVORG as mainTransactionLineItemCode, \
-#                                   KOFIZ as contractAccountDeterminationId, \
-#                                   PORTION as portionNumber, \
-#                                   FORMULAR as formName, \
-#                                   SIMULATION as billingSimulationIndicator, \
-#                                   BELEGART as documentTypeCode, \
-#                                   BERGRUND as backbillingCreditReasonCode, \
-#                                   ToValidDate(BEGNACH) as  backbillingStartPeriod, \
-#                                   TOBRELEASD as documentNotReleasedIndicator, \
-#                                   TXJCD as taxJurisdictionDescription, \
-#                                   KONZVER as franchiseContractCode, \
-#                                   EROETIM as billingDocumentCreateTime, \
-#                                   ERCHO_V as erchoExistIndicator, \
-#                                   ERCHZ_V as erchzExistIndicator, \
-#                                   ERCHU_V as erchuExistIndicator, \
-#                                   ERCHR_V as erchrExistIndicator, \
-#                                   ERCHC_V as erchcExistIndicator, \
-#                                   ERCHV_V as erchvExistIndicator, \
-#                                   ERCHT_V as erchtExistIndicator, \
-#                                   ERCHP_V as erchpExistIndicator, \
-#                                   ABRVORG2 as periodEndBillingTransactionCode, \
-#                                   ABLEINH as meterReadingUnit, \
-#                                   ENDPRIO as billingEndingPriorityCode, \
-#                                   ToValidDate(ERDAT) as  createdDate, \
-#                                   ERNAM as createdBy, \
-#                                   ToValidDate(AEDAT) as  lastChangedDate, \
-#                                   AENAM as changedBy, \
-#                                   BEGRU as authorizationGroupCode, \
-#                                   LOEVM as deletedIndicator, \
-#                                   ToValidDate(ABRDATSU) as  suppressedBillingOrderScheduleDate, \
-#                                   ABRVORGU as suppressedBillingOrderTransactionCode, \
-#                                   N_INVSEP as jointInvoiceAutomaticDocumentIndicator, \
-#                                   ABPOPBEL as budgetBillingPlanCode, \
-#                                   MANBILLREL as manualDocumentReleasedInvoicingIndicator, \
-#                                   BACKBI as backbillingTypeCode, \
-#                                   PERENDBI as billingPeriodEndType, \
-#                                   cast(NUMPERBB as integer) as backbillingPeriodNumber, \
-#                                   ToValidDate(BEGEND) as  periodEndBillingStartDate, \
-#                                   ENDOFBB as backbillingPeriodEndIndicator, \
-#                                   ENDOFPEB as billingPeriodEndIndicator, \
-#                                   cast(NUMPERPEB as integer) as billingPeriodEndCount, \
-#                                   SC_BELNR_H as billingDocumentAdjustmentReversalCount, \
-#                                   SC_BELNR_N as billingDocumentNumberForAdjustmentReversal, \
-#                                   ToValidDate(ZUORDDAA) as  billingAllocationDate, \
-#                                   BILLINGRUNNO as billingRunNumber, \
-#                                   SIMRUNID as simulationPeriodId, \
-#                                   KTOKLASSE as accountClassCode, \
-#                                   ORIGDOC as billingDocumentOriginCode, \
-#                                   NOCANC as billingDonotExecuteIndicator, \
-#                                   ABSCHLPAN as billingPlanAdjustIndicator, \
-#                                   MEM_OPBEL as newBillingDocumentNumberForReversedInvoicing, \
-#                                   ToValidDate(MEM_BUDAT) as  billingPostingDateInDocument, \
-#                                   EXBILLDOCNO as externalDocumentNumber, \
-#                                   BCREASON as reversalReasonCode, \
-#                                   NINVOICE as billingDocumentWithoutInvoicingCode, \
-#                                   NBILLREL as billingRelevancyIndicator, \
-#                                   ToValidDate(CORRECTION_DATE) as  errorDetectedDate, \
-#                                   BASDYPER as basicCategoryDynamicPeriodControlCode, \
-#                                   ESTINBILL as meterReadingResultEstimatedBillingIndicator, \
-#                                   ESTINBILLU as suppressedOrderEstimateBillingIndicator, \
-#                                   ESTINBILL_SAV as originalValueEstimateBillingIndicator, \
-#                                   ESTINBILL_USAV as suppressedOrderBillingIndicator, \
-#                                   ACTPERIOD as currentBillingPeriodCategoryCode, \
-#                                   ACTPERORG as toBeBilledPeriodOriginalCategoryCode, \
-#                                   EZAWE as incomingPaymentMethodCode, \
-#                                   DAUBUCH as standingOrderIndicator, \
-#                                   FDGRP as planningGroupNumber, \
-#                                   BILLING_PERIOD as billingKeyDate, \
-#                                   OSB_GROUP as onsiteBillingGroupCode, \
-#                                   BP_BILL as resultingBillingPeriodIndicator, \
-#                                   MAINDOCNO as billingDocumentPrimaryInstallationNumber, \
-#                                   INSTGRTYPE as instalGroupTypeCode, \
-#                                   INSTROLE as instalGroupRoleCode,  \
-#                                   stg._RecordStart, \
-#                                   stg._RecordEnd, \
-#                                   stg._RecordDeleted, \
-#                                   stg._RecordCurrent \
-#                               FROM {ADS_DATABASE_STAGE}.{source_object} stg \
-#                                left outer join {ADS_DATABASE_CLEANSED}.isu_0comp_code_text cc on cc.companyCode = stg.BUKRS"
-#                               )
-# print(f'Number of rows: {df_cleansed.count()}')
+                        ")
 
 # COMMAND ----------
 
@@ -500,10 +397,17 @@ newSchema = StructType([
 
 # COMMAND ----------
 
-# DBTITLE 1,12. Save Dataframe to Staged & Cleansed
-DeltaSaveDataFrameToDeltaTable(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
+# DBTITLE 1,12.1 Save Non Deleted Records Data frame into Cleansed Delta table (Final)
+# Load Non deleted records same as earlier
+DeltaSaveDataFrameToDeltaTable(df.filter("_RecordDeleted = '0'"), target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
 
 # COMMAND ----------
 
-# DBTITLE 1,12. Exit Notebook
+# DBTITLE 1,12.2 Save Deleted records Data frame into Cleansed Delta table
+# Load deleted records to replace the existing Deleted records implementation logic
+DeltaSaveDataFrameToDeltaTable(df.filter("_RecordDeleted = '1'"), target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
+
+# COMMAND ----------
+
+# DBTITLE 1,13. Exit Notebook
 dbutils.notebook.exit("1")
