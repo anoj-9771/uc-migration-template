@@ -170,7 +170,7 @@ def getProperty():
                                             stormWaterNetworkSK, 
                                             null as objectNumber, 
                                             null as propertyInfo, 
-                                            to_date('1900-01-01') as buildingFeeDate , 
+                                            null as buildingFeeDate , 
                                             null as connectionValidFromDate , 
                                             null as CRMConnectionObjectGUID, 
                                             null as architecturalObjectNumber, 
@@ -208,7 +208,7 @@ def getProperty():
                                 stormWaterNetworkSK, 
                                 co.objectNumber, 
                                 co.propertyInfo, 
-                                coalesce(co.buildingFeeDate,to_date('1900-01-01')) as buildingFeeDate, 
+                                co.buildingFeeDate as buildingFeeDate, 
                                 co.validFromDate as connectionValidFromDate , 
                                 co.CRMConnectionObjectGUID, 
                                 vn.architecturalObjectNumber, 
@@ -274,8 +274,8 @@ def getProperty():
     df = df.join(dummyDimRecDf, (dummyDimRecDf.dimension == 'dimStormWaterNetwork'), how="left") \
                   .select(df['*'], dummyDimRecDf['dummyDimSK'].alias('dummyStormWaterNetworkSK'))
     
-    dummyDimDf = spark.sql(f"""select '-1' as propertyNumber, wn.waterNetworkSK as waterNetworkSK_drinkingWater, wnr.waterNetworkSK as waterNetworkSK_recycledWater, sewerNetworkSK, stormWaterNetworkSK ,
-                                to_date('1900-01-01') as buildingFeeDate,  -1 as hydraCalculatedArea, 'Unknown' as hydraAreaUnit, '-1' as premise  
+    dummyDimDf = spark.sql(f"""select '-1' as propertyNumber, wn.waterNetworkSK as waterNetworkSK_drinkingWater, wnr.waterNetworkSK as waterNetworkSK_recycledWater, sewerNetworkSK, stormWaterNetworkSK , 
+                                  -1 as hydraCalculatedArea, 'Unknown' as hydraAreaUnit, '-1' as premise  
                             from {ADS_DATABASE_CURATED_V2}.dimWaterNetwork wn, 
                                  {ADS_DATABASE_CURATED_V2}.dimWaterNetwork wnr, 
                                  {ADS_DATABASE_CURATED_V2}.dimSewerNetwork snw, 
@@ -344,7 +344,7 @@ def getProperty():
                             StructField("stormWaterNetworkSK", StringType(), False),
                             StructField("objectNumber", StringType(), True),
                             StructField("propertyInfo", StringType(), True),
-                            StructField("buildingFeeDate", DateType(), False),
+                            StructField("buildingFeeDate", DateType(), True),
                             StructField("connectionValidFromDate", DateType(), True),
                             StructField("CRMConnectionObjectGUID", StringType(), True),
                             StructField('architecturalObjectNumber', StringType(), True),
