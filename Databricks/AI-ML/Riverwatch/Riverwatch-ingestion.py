@@ -8,21 +8,42 @@ WITH _Base AS
 (
   SELECT 'BeachWatch' SystemCode, '' SourceKeyVaultSecret, 'http-binary-load' SourceHandler, 'xml' RawFileExtension, 'raw-load-delta' RawHandler, 'cleansed-load-delta' CleansedHandler
 )
-SELECT SystemCode, SourceKeyVaultSecret, SourceHandler, RawFileExtension, RawHandler, CleansedHandler, 'Chiswick_Baths_Pollution_WeatherForecast' SourceTableName, 'http://www.environment.nsw.gov.au/Beachapp/SingleRss.aspx?surl=%2Fbeachapp%2FSydneyBulletin.xml&title=Chiswick%20Baths' SourceQuery, '{"rowTag" : "channel", "CleansedQuery" : "Select 5 locationId, * from raw.BeachWatch_Chiswick_Baths_Pollution_WeatherForecast"}' ExtendedProperties
+SELECT SystemCode, 'BeachWatch' SourceSchema, SourceKeyVaultSecret, SourceHandler, RawFileExtension, RawHandler, CleansedHandler, 'Chiswick_Baths_Pollution_WeatherForecast' SourceTableName, 'http://www.environment.nsw.gov.au/Beachapp/SingleRss.aspx?surl=%2Fbeachapp%2FSydneyBulletin.xml&title=Chiswick%20Baths' SourceQuery, '{"rowTag" : "channel", "CleansedQuery" : "Select 5 locationId, * from raw.BeachWatch_Chiswick_Baths_Pollution_WeatherForecast"}' ExtendedProperties
 from _Base
 
 UNION
-SELECT SystemCode, SourceKeyVaultSecret, SourceHandler, RawFileExtension, RawHandler, CleansedHandler, 'Cabarita_Beach_Pollution_WeatherForecast' SourceTableName, 'http://www.environment.nsw.gov.au/Beachapp/SingleRss.aspx?surl=%2Fbeachapp%2FSydneyBulletin.xml&title=Cabarita%20Beach' SourceQuery, '{"rowTag" : "channel", "CleansedQuery" : "Select 4 locationId, * from raw.BeachWatch_Cabarita_Beach_Pollution_WeatherForecast"}' ExtendedProperties
+SELECT SystemCode, 'BeachWatch' SourceSchema, SourceKeyVaultSecret, SourceHandler, RawFileExtension, RawHandler, CleansedHandler, 'Cabarita_Beach_Pollution_WeatherForecast' SourceTableName, 'http://www.environment.nsw.gov.au/Beachapp/SingleRss.aspx?surl=%2Fbeachapp%2FSydneyBulletin.xml&title=Cabarita%20Beach' SourceQuery, '{"rowTag" : "channel", "CleansedQuery" : "Select 4 locationId, * from raw.BeachWatch_Cabarita_Beach_Pollution_WeatherForecast"}' ExtendedProperties
 from _Base
 
 UNION
-SELECT SystemCode, SourceKeyVaultSecret, SourceHandler, RawFileExtension, RawHandler, CleansedHandler, 'Dawn_Fraser_Pool_Pollution_WeatherForecast' SourceTableName, 'http://www.environment.nsw.gov.au/Beachapp/SingleRss.aspx?surl=%2Fbeachapp%2FSydneyBulletin.xml&title=Dawn%20Fraser%20Pool' SourceQuery, '{"rowTag" : "channel", "CleansedQuery" : "Select 3 locationId, * from raw.BeachWatch_Dawn_Fraser_Pool_Pollution_WeatherForecast"}' ExtendedProperties
+SELECT SystemCode, 'BeachWatch' SourceSchema, SourceKeyVaultSecret, SourceHandler, RawFileExtension, RawHandler, CleansedHandler, 'Dawn_Fraser_Pool_Pollution_WeatherForecast' SourceTableName, 'http://www.environment.nsw.gov.au/Beachapp/SingleRss.aspx?surl=%2Fbeachapp%2FSydneyBulletin.xml&title=Dawn%20Fraser%20Pool' SourceQuery, '{"rowTag" : "channel", "CleansedQuery" : "Select 3 locationId, * from raw.BeachWatch_Dawn_Fraser_Pool_Pollution_WeatherForecast"}' ExtendedProperties
 from _Base
 
 UNION 
-SELECT 'BoM' SystemCode, '' SourceKeyVaultSecret, 'http-binary-load' SourceHandler, 'xml' RawFileExtension, 'raw-load' RawHandler, 'cleansed-load' CleansedHandler, 'FortDenision_Tide' SourceTableName, 'http://www.bom.gov.au/ntc/IDO59001/IDO59001_2023_NSW_TP007.xml' SourceQuery
+SELECT 'BoM' SystemCode, 'BoM' SourceSchema, '' SourceKeyVaultSecret, 'http-binary-load' SourceHandler, 'xml' RawFileExtension, 'raw-load' RawHandler, 'cleansed-load' CleansedHandler, 'FortDenision_Tide' SourceTableName, 'http://www.bom.gov.au/ntc/IDO59001/IDO59001_2023_NSW_TP007.xml' SourceQuery
 ,     '{"rowTag" : "forecast-period", "TransformMethod": "ExpandTable"}' ExtendedProperties
 
+
+UNION 
+SELECT 'iicats' SystemCode, 'scxstg' SourceSchema, 'daf-oracle-IICATS-stg-connectionstring' SourceKeyVaultSecret, 'oracle-load' SourceHandler, NULL RawFileExtension, 'raw-load-delta' RawHandler, 'cleansed-load-delta' CleansedHandler, 'dly_prof_cnfgn' SourceTableName, null SourceQuery, NULL ExtendedProperties
+UNION 
+SELECT 'iicats' SystemCode, 'scxstg' SourceSchema, 'daf-oracle-IICATS-stg-connectionstring' SourceKeyVaultSecret, 'oracle-load' SourceHandler, NULL RawFileExtension, 'raw-load-delta' RawHandler, 'cleansed-load-delta' CleansedHandler, 'event' SourceTableName, null SourceQuery, NULL ExtendedProperties
+UNION 
+SELECT 'iicats' SystemCode, 'scxstg' SourceSchema, 'daf-oracle-IICATS-stg-connectionstring' SourceKeyVaultSecret, 'oracle-load' SourceHandler, NULL RawFileExtension, 'raw-load-delta' RawHandler, 'cleansed-load-delta' CleansedHandler, 'hierarchy_cnfgn' SourceTableName, null SourceQuery, NULL ExtendedProperties
+UNION 
+SELECT 'iicats' SystemCode, 'scxstg' SourceSchema, 'daf-oracle-IICATS-stg-connectionstring' SourceKeyVaultSecret, 'oracle-load' SourceHandler, NULL RawFileExtension, 'raw-load-delta' RawHandler, 'cleansed-load-delta' CleansedHandler, 'iicats_work_orders' SourceTableName, null SourceQuery, NULL ExtendedProperties
+UNION 
+SELECT 'iicats' SystemCode, 'scxstg' SourceSchema, 'daf-oracle-IICATS-stg-connectionstring' SourceKeyVaultSecret, 'oracle-load' SourceHandler, NULL RawFileExtension, 'raw-load-delta' RawHandler, 'cleansed-load-delta' CleansedHandler, 'point_cnfgn' SourceTableName, null SourceQuery, NULL ExtendedProperties
+UNION 
+SELECT 'iicats' SystemCode, 'scxstg' SourceSchema, 'daf-oracle-IICATS-stg-connectionstring' SourceKeyVaultSecret, 'oracle-load' SourceHandler, NULL RawFileExtension, 'raw-load-delta' RawHandler, 'cleansed-load-delta' CleansedHandler, 'point_limit' SourceTableName, null SourceQuery, NULL ExtendedProperties
+UNION 
+SELECT 'iicats' SystemCode, 'scxstg' SourceSchema, 'daf-oracle-IICATS-stg-connectionstring' SourceKeyVaultSecret, 'oracle-load' SourceHandler, NULL RawFileExtension, 'raw-load-delta' RawHandler, 'cleansed-load-delta' CleansedHandler, 'rtu' SourceTableName, null SourceQuery, NULL ExtendedProperties
+UNION 
+SELECT 'iicats' SystemCode, 'scxstg' SourceSchema, 'daf-oracle-IICATS-stg-connectionstring' SourceKeyVaultSecret, 'oracle-load' SourceHandler, NULL RawFileExtension, 'raw-load-delta' RawHandler, 'cleansed-load-delta' CleansedHandler, 'tsv' SourceTableName, null SourceQuery, NULL ExtendedProperties
+UNION 
+SELECT 'iicats' SystemCode, 'scxstg' SourceSchema, 'daf-oracle-IICATS-stg-connectionstring' SourceKeyVaultSecret, 'oracle-load' SourceHandler, NULL RawFileExtension, 'raw-load-delta' RawHandler, 'cleansed-load-delta' CleansedHandler, 'tsv_point_cnfgn' SourceTableName, null SourceQuery, NULL ExtendedProperties
+UNION 
+SELECT 'iicats' SystemCode, 'scxstg' SourceSchema, 'daf-oracle-IICATS-stg-connectionstring' SourceKeyVaultSecret, 'oracle-load' SourceHandler, NULL RawFileExtension, 'raw-load-delta' RawHandler, 'cleansed-load-delta' CleansedHandler, 'wkly_prof_cnfgn' SourceTableName, null SourceQuery, NULL ExtendedProperties
 """)
 display(df)
 
@@ -36,16 +57,23 @@ def ExecuteStatement(sql):
 
 # COMMAND ----------
 
+display(df.where("systemCode <> 'iicats'"))
+
+# COMMAND ----------
+
+##DO NON IICATS
 ExecuteStatement("""
 DELETE FROM dbo.extractloadmanifest
 WHERE SystemCode in ('BeachWatch','BoM')
 """)
 
-for i in df.rdd.collect():
+dfNonIicats = df.where("systemCode <> 'iicats'")
+
+for i in dfNonIicats.rdd.collect():
     ExecuteStatement(f"""
     DECLARE @RC int
     DECLARE @SystemCode varchar(max) = '{i.SystemCode}'
-    DECLARE @Schema varchar(max) = '{i.SystemCode}'
+    DECLARE @Schema varchar(max) = '{i.SourceSchema}'
     DECLARE @Table varchar(max) = '{i.SourceTableName}'
     DECLARE @Query varchar(max) = '{i.SourceQuery}'
     DECLARE @WatermarkColumn varchar(max) = NULL
@@ -69,8 +97,42 @@ for i in df.rdd.collect():
       ,@RawHandler
       ,@CleansedHandler
     """)
-    #break   
 
-# COMMAND ----------
+##DO IICATS
+ExecuteStatement("""
+DELETE FROM dbo.extractloadmanifest
+WHERE SystemCode = 'iicats' and sourceSchema = 'scxstg'
+""")
+
+dfIicats = df.where("systemCode = 'iicats'")
+
+for i in dfIicats.rdd.collect():
+    ExecuteStatement(f"""
+    DECLARE @RC int
+    DECLARE @SystemCode varchar(max) = '{i.SystemCode}'
+    DECLARE @Schema varchar(max) = '{i.SourceSchema}'
+    DECLARE @Table varchar(max) = '{i.SourceTableName}'
+    DECLARE @Query varchar(max) = NULL
+    DECLARE @WatermarkColumn varchar(max) = NULL
+    DECLARE @SourceHandler varchar(max) = '{i.SourceHandler}'
+    DECLARE @RawFileExtension varchar(max) = NULL
+    DECLARE @KeyVaultSecret varchar(max) = '{i.SourceKeyVaultSecret}'
+    DECLARE @ExtendedProperties varchar(max) = NULL
+    DECLARE @RawHandler varchar(max) = '{i.RawHandler}'
+    DECLARE @CleansedHandler varchar(max) = '{i.CleansedHandler}'
+    
+    EXECUTE @RC = [dbo].[AddIngestion] 
+       @SystemCode
+      ,@Schema
+      ,@Table
+      ,@Query
+      ,@WatermarkColumn
+      ,@SourceHandler
+      ,@RawFileExtension
+      ,@KeyVaultSecret
+      ,@ExtendedProperties
+      ,@RawHandler
+      ,@CleansedHandler
+    """)
 
 
