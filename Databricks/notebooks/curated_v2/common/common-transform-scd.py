@@ -73,7 +73,12 @@ def addSCDColumns(dataFrame, scd_start_date = SCD_START_DATE, scd_end_date = SCD
     
     if "_RecordDeleted" not in cols:
         df = df.withColumn("_RecordDeleted", expr("CAST(0 AS INT)"))
-    
+    else:
+        cols.remove("_RecordDeleted")
+        df = df.withColumn("_RecordDeleted", when(col('_RecordDeleted').isNull(),expr(f"CAST(0 AS INT)")).otherwise(col('_RecordDeleted'))) 
+        #df = df.drop("_RecordDeleted")
+        #df = df.withColumnRenamed("_RecordDeleted_","_RecordDeleted")
+        
     df = df.withColumn("_DLCuratedZoneTimeStamp", expr("now()"))
     #df = df.withColumn(f"_Batch_SK", expr(f"DATE_FORMAT(_RecordStart, '{DATE_FORMAT}') || COALESCE(DATE_FORMAT(_RecordEnd, '{DATE_FORMAT}'), '{BATCH_END_CODE}') || _RecordCurrent"))
     #THIS IS LARGER THAN BIGINT 
@@ -130,7 +135,8 @@ def SCDMerge(sourceDataFrame, scd_start_date = SCD_START_DATE, scd_end_date = SC
         # Adjust _RecordStart date for first load
         
         print("Adjust _RecordStart date for first load")
-        sourceDataFrame = AdjustRecordStartDate(sourceDataFrame,_)
+        #sourceDataFrame = AdjustRecordStartDate(sourceDataFrame,_)
+        sourceDataFrame = sourceDataFrame.withColumn("_RecordStart", expr("CAST('1990-01-01' AS TIMESTAMP)"))
         
         CreateDeltaTable(sourceDataFrame, targetTableFqn, _.DataLakePath)  
         return
@@ -152,6 +158,7 @@ def SCDMerge(sourceDataFrame, scd_start_date = SCD_START_DATE, scd_end_date = SC
         
     # Check hard deleted records if SNAP_SHOP is 1 (Full Load)
     
+    ''' No More hrad-deleted check
     if _.Snapshot == 1:
         
         print("Checking hard-deleted records")
@@ -171,6 +178,7 @@ def SCDMerge(sourceDataFrame, scd_start_date = SCD_START_DATE, scd_end_date = SC
             stagedHardDel = stagedHardDel.withColumn(f"{_.SurrogateKey}", when(col('BK').isNull(),md5(expr(f"concat({_.BK},'|',_RecordStart)"))).otherwise(col(f"{_.SurrogateKey}")))
         
         print(f"Number of hard-deleted Records: {hardDelRecords.count()}")
+    '''
     
     # For records have BK exists in Target table, SCD Merge into Target table 
     
@@ -189,10 +197,17 @@ def SCDMerge(sourceDataFrame, scd_start_date = SCD_START_DATE, scd_end_date = SC
     
     print(f"Number of SCD Changed Records: {changeRecords.count()}")
     
-    if _.Snapshot == 1 and changeRecords.count() == 0 and hardDelRecords.count() == 0:
-        return
+    #
+    #if _.Snapshot == 1 and changeRecords.count() == 0 and hardDelRecords.count() == 0:
+    #    return
     
-    if _.Snapshot == 0 and changeRecords.count() == 0:
+    #if _.Snapshot == 1 and changeRecords.count() == 0 :
+    #    return
+    
+    #if _.Snapshot == 0 and changeRecords.count() == 0:
+    #    return
+    
+    if changeRecords.count() == 0:
         return
 
     # For SCD 2
@@ -204,9 +219,10 @@ def SCDMerge(sourceDataFrame, scd_start_date = SCD_START_DATE, scd_end_date = SC
           changeRecords.selectExpr(f"{_.BK} BK", "s.*") \
         )
     
+    # No more hard-deleted check
     # Consider hard deletion case
-    if _.Snapshot == 1 and hardDelRecords.count() > 0:
-        stagedUpdates = stagedUpdates.unionByName(stagedHardDel)
+    #if _.Snapshot == 1 and hardDelRecords.count() > 0:
+    #    stagedUpdates = stagedUpdates.unionByName(stagedHardDel)
         
     insertValues = {
         f"{_.SurrogateKey}": f"s.{_.SurrogateKey}", 
