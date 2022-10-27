@@ -263,7 +263,7 @@
 				"type": "SetVariable",
 				"dependsOn": [
 					{
-						"activity": "Ingest Beachwatch, BoM and IICATS Data",
+						"activity": "Ingest Beachwatch BoM and IICATS Data",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -284,7 +284,7 @@
 				"type": "SetVariable",
 				"dependsOn": [
 					{
-						"activity": "Ingest Beachwatch, BoM and IICATS Data",
+						"activity": "Ingest Beachwatch BoM and IICATS Data",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -498,7 +498,7 @@
 				}
 			},
 			{
-				"name": "Ingest Beachwatch, BoM and IICATS Data",
+				"name": "Ingest Beachwatch BoM and IICATS Data",
 				"type": "ExecutePipeline",
 				"dependsOn": [
 					{
