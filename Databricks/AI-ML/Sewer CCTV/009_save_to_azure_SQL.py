@@ -4,16 +4,32 @@
 # COMMAND ----------
 
 dbutils.widgets.text("video_id","0_oiif5iqr")
-_video_id = dbutils.widgets.get("video_id")
+_video_id = dbutils.widgets.get("video_id").replace(".mp4",'')
+
+from pyspark.sql import functions as psf
+
+# COMMAND ----------
 
 #set data frames from data lake, drop _DLCleansedZoneTimeStamp and remove any duplicates
-df_ai_identified_defects = spark.table("cleansed.cctv_group_ai_identified_defects").where(f"video_id = '{_video_id}'")
-df_ai_identified_defects = df_ai_identified_defects.drop("_DLCleansedZoneTimeStamp")
-df_ai_identified_defects = df_ai_identified_defects.dropDuplicates()
+df_ai_identified_defects = (spark.table("cleansed.cctv_group_ai_identified_defects")
+                            .where(psf.col("video_id") ==_video_id )
+                            .drop("_DLCleansedZoneTimeStamp")
+                            .orderBy("start_timestamp", psf.col("start_distance_m").desc())
+                            .dropDuplicates([
+                                "video_id",
+                                "defect",
+                                "avg_probability",
+                                "score",
+                                "start_timestamp",
+                                "end_timestamp"
+                            ])
+                           )
 
-df_contractor_annotations = spark.table("cleansed.cctv_contractor_annotations").where(f"video_id = '{_video_id}'")
-df_contractor_annotations = df_contractor_annotations.drop("_DLCleansedZoneTimeStamp")
-df_contractor_annotations = df_contractor_annotations.dropDuplicates()
+df_contractor_annotations = (spark.table("cleansed.cctv_contractor_annotations")
+                             .where(psf.col("video_id") ==_video_id )
+                             .drop("_DLCleansedZoneTimeStamp")
+                             .dropDuplicates()
+                            )
 
 # COMMAND ----------
 
@@ -37,11 +53,11 @@ df_video_annotation = RunQuery(
        f"""
        Select video_id = {_video_id_int}, contractor_annotation as annotation, convert(varchar, start_timestamp, 114) as start_time, convert(varchar, end_timestamp, 114) as end_time, start_distance_m as start_distance, 
        end_distance_m as end_distance 
-       from dbo.cctv_contractor_annotations 
+       from dbo.scctv_contractor_annotations 
        where video_id = '{_video_id}' 
        """
 )
-#remove pre existing records for the source video id
+# #remove pre existing records for the source video id
 ExecuteStatement(f"""
     delete va 
     from cctvportal.video_annotation va
@@ -55,7 +71,7 @@ WriteTable(df_video_annotation, "cctvportal.video_annotation", "append")
 df_ai_identified_defect = RunQuery(f"""
     select
         video_id = {_video_id_int}, defect, avg_probability, score, start_time = start_timestamp, end_time = end_timestamp, start_distance = start_distance_m, end_distance = end_distance_m, outcome_classification = NULL, created_timestamp = getutcdate()
-    from dbo.cctv_group_ai_identified_defects 
+    from dbo.scctv_group_ai_identified_defects 
     where video_id = '{_video_id}' 
 """)
 ExecuteStatement(f"""
