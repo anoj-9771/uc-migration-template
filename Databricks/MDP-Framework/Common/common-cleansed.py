@@ -12,6 +12,7 @@ defaultTransformTags = {
     ,"str-yyyy-mm-dd-to-date" : "to_date(trim($c$),'yyyy-MM-dd')"
     ,"flag-x-yes-no" : "case WHEN $c$='X' then 'Yes' Else 'No' end "
     ,"flag-x-true-false" : "case WHEN $c$='X' then 'True' Else 'False' end "
+    ,"flag-1or0-yes-no" : "case WHEN $c$='1' then 'Yes' when $c$='0' then 'No' end "
     ,"flag-int-inbound-outbound" : "'A'"
     ,"int-utc-to-sydney-datetime" : "'A'"
     ,"int-to-datetime" : "'A'"

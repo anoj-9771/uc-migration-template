@@ -66,8 +66,8 @@ def JdbcConnectionFromSqlConnectionString(connectionString):
         connectionList[key] = value
 
     server = connectionList["Server"].replace(",1433", "").replace("tcp:", "")
-    database = connectionList["Initial Catalog"]
-    username = connectionList["User ID"]
+    database = connectionList["Initial Catalog"] if connectionList.get("Initial Catalog") is not None else connectionList["Database"]
+    username = connectionList["User ID"] if connectionList.get("User ID") is not None else connectionList["User Id"]
     password = connectionList["Password"]
 
     jdbc = f"jdbc:sqlserver://{server};DatabaseName={database};Persist Security Info=False;user={username};Password={password};"
