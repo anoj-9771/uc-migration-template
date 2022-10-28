@@ -33,9 +33,10 @@ def getRegisterHistory():
                                           reactiveApparentOrActiveRegister as reactiveApparentOrActiveRegisterCode,
                                           reactiveApparentOrActiveRegisterTxt as reactiveApparentOrActiveRegister,
                                           unitOfMeasurementMeterReading,
-                                          doNotReadIndicator
+                                          doNotReadIndicator,
+                                          rh._RecordDeleted 
                                       from {ADS_DATABASE_CLEANSED}.isu_0UC_REGIST_ATTR rh
-                                      where rh._RecordCurrent = 1 and rh._RecordDeleted = 0
+                                      where rh._RecordCurrent = 1 
                                       """)
     dummyDimRecDf = spark.createDataFrame([("-1","-1","1900-01-01", "9999-12-31")], ["registerNumber","deviceNumber","validFromDate","validToDate"])   
     dfResult = isuRegisterHistDf.unionByName(dummyDimRecDf, allowMissingColumns = True) 

@@ -68,12 +68,12 @@ df_isu_0bpartner_attr = (
             lastUpdatedBy                             AS lastUpdatedBy, 
             lastUpdatedDateTime                       AS lastUpdatedDateTime, 
             validFromDate                             AS validFromDate,
-            validToDate                               AS validToDate
+            validToDate                               AS validToDate,
+            _RecordDeleted 
         FROM {ADS_DATABASE_CLEANSED}.isu_0bpartner_attr isu
         WHERE
             businessPartnerCategoryCode = '3' -- FILTERS TO GROUP
             AND _RecordCurrent = 1 
-            AND _RecordDeleted = 0 
     """
     )
     .cache()
@@ -132,12 +132,12 @@ df_crm_0bpartner_attr = (
             machineTypeValidFromDate                  AS machineTypeValidFromDate,
             machineTypeValidToDate                    AS machineTypeValidToDate,
             machineOffReasonCode                      AS machineOffReasonCode,
-            machineOffReason                          AS machineOffReason
+            machineOffReason                          AS machineOffReason,
+            _RecordDeleted 
         FROM {ADS_DATABASE_CLEANSED}.crm_0bpartner_attr crm
         WHERE 
             businessPartnerCategoryCode = '3' -- FILTERS TO GROUP
             AND _RecordCurrent = 1 
-            AND _RecordDeleted = 0
     """
     )
     .cache()
@@ -270,7 +270,8 @@ df_bpartnergroup_master = (
         "lastUpdatedBy",
         "lastUpdatedDateTime",
         "validFromDate",
-        "validToDate"
+        "validToDate",
+        "_RecordDeleted" 
     )
     .drop_duplicates()
     .cache()

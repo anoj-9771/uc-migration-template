@@ -186,7 +186,8 @@ def getProperty():
                                             null as overrideAreaUnit,
                                             null as stormWaterAssessmentFlag,
                                             null as hydraAreaFlag,
-                                            null as comments 
+                                            null as comments,
+                                            pr._RecordDeleted 
                                      from {ADS_DATABASE_CLEANSED}.access_z309_tproperty pr left outer join 
                                           lots lo on lo.propertyNumber = pr.propertyNumber left outer join 
                                           parents pp on pp.propertyNumber = pr.propertyNumber 
@@ -224,7 +225,8 @@ def getProperty():
                                 vd.overrideAreaUnit,
                                 coalesce(vd.stormWaterAssessmentFlag, 'N') as stormWaterAssessmentFlag,
                                 coalesce(vd.hydraAreaFlag, 'N') as hydraAreaFlag,
-                                vd.comments 
+                                vd.comments,
+                                co._RecordDeleted 
                         from 
                               {ADS_DATABASE_CLEANSED}.isu_0uc_connobj_attr_2 co 
                               left outer join {ADS_DATABASE_CLEANSED}.isu_0ucpremise_attr_2 0ucp 
@@ -236,7 +238,6 @@ def getProperty():
                               left outer join systemAreas sa 
                               on sa.propertyNumber = coalesce(int(vn.parentArchitecturalObjectNumber),int(co.propertyNumber)) 
                          where co.propertyNumber <> '' 
-                         and   co._RecordDeleted = 0 
                          and   co._RecordCurrent = 1 
                         """)
     sapisuDf.createOrReplaceTempView('ISU')
@@ -318,7 +319,8 @@ def getProperty():
                        ,"overrideAreaUnit" \
                        ,"stormWaterAssessmentFlag" \
                        ,"hydraAreaFlag" \
-                       ,"comments"
+                       ,"comments" \
+                        ,"_RecordDeleted" 
                         )
     
     #set system area defaults
