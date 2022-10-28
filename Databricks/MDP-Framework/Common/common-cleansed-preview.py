@@ -3,6 +3,10 @@
 
 # COMMAND ----------
 
+# MAGIC %run ../Common/common-include-all
+
+# COMMAND ----------
+
 def PreviewTransform(systemCode, tableName, showTransform=True):
     from pprint import pprint
     # 1. DISPLAY RAW TABLE
@@ -154,6 +158,46 @@ Lookup Tag Failures = {lookupFailures}
 
 # COMMAND ----------
 
+def WriteRawToCleansedTable(rawTableName):
+    sourceTableName = rawTableName
+    zone, tableName = rawTableName.split(".")
+    
+    # GET CONFIG
+    control = spark.table("controldb.dbo_extractloadmanifest").where(f"LOWER(DestinationSchema || '_' || DestinationTableName) = '{tableName}'").rdd.collect()
+    
+    if len(control) == 0:
+        raise Exception(f"Table not found {tableName}!")
+
+    control = control[0]
+    #print(control)
+    sourceDataFrame = spark.table(rawTableName)
+    lastLoadTimeStamp = '2022-01-01' #DEFAULT
+    cleansedTableName = f"cleansed.{control.DestinationSchema}_{control.DestinationTableName}"
+    systemCode = control.SystemCode.replace("data", "").replace("ref", "")
+    dataLakePath = control.CleansedPath.replace("/cleansed", "/mnt/datalake-cleansed")
+    businessKey = control.BusinessKeyColumn
+    
+    #GET LAST CLEANSED LOAD TIMESTAMP
+    try:
+        lastLoadTimeStamp = spark.sql(f"select max(_DLCleansedZoneTimeStamp) as lastLoadTimeStamp from {cleansedTableName}").collect()[0][0]
+        #print(lastLoadTimeStamp)
+    except Exception as e:
+        pass
+    
+    # APPLY CLEANSED FRAMEWORK
+    cleanseDataFrame = CleansedTransform(sourceDataFrame, sourceTableName.lower(), systemCode)
+    cleanseDataFrame = cleanseDataFrame.withColumn("_DLCleansedZoneTimeStamp",current_timestamp()) \
+                                       .withColumn("_RecordCurrent",lit('1')) \
+                                       .withColumn("_RecordDeleted",lit('0')) 
+
+    # FIX BAD COLUMNS
+    sourceDataFrame = sourceDataFrame.toDF(*(c.replace(' ', '_') for c in sourceDataFrame.columns))
+    
+    # WRITE DELTA
+    CreateDeltaTable(cleanseDataFrame, cleansedTableName, dataLakePath) if businessKey is None else CreateOrMerge(cleanseDataFrame, cleansedTableName, dataLakePath, businessKey)
+
+# COMMAND ----------
+
 def UnitTests():
     pass
     #ValidateLookups()
@@ -165,6 +209,7 @@ def UnitTests():
     #ImportCleansedMapping("sap")
     #ImportCleansedMapping("crm")
     #ImportCleansedMapping("maximo")
+    #ImportCleansedMapping("isu")
     
     #PreviewTransform("bom", "raw.bom_dailyweatherobservation_parramattanorth") # GOOD
     #PreviewTransform("maximo", "raw.maximo_ACCOUNTDEFAULTS") # GOOD
@@ -172,4 +217,6 @@ def UnitTests():
     #PreviewTransform("sap", "raw.crm_0bpartner_attr") # TABLE NOT IN SHEET
     #PreviewTransform("crm", "raw.crm_0crm_srv_req_inci_h")
     #PreviewTransform("sap", "raw.isu_zdmt_rate_type") # GOOD
+    
+    #WriteRawToCleansedTable("raw.isu_zdmt_rate_type")
 #UnitTests()
