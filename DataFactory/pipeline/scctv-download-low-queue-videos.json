@@ -66,6 +66,10 @@
 									"videoBatch": {
 										"value": "@activity('get-low-priority-que-videos').output.childItems",
 										"type": "Expression"
+									},
+									"kalturaId": {
+										"value": "@pipeline().parameters.kalturaId",
+										"type": "Expression"
 									}
 								}
 							}
@@ -115,6 +119,10 @@
 			},
 			"processEndTime": {
 				"type": "int"
+			},
+			"kalturaId": {
+				"type": "string",
+				"defaultValue": "107"
 			}
 		},
 		"variables": {
