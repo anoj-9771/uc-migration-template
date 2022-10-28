@@ -192,6 +192,7 @@ where  _RecordVersion = 1 and IS_DELETED ='Y'), \
                                   SPCANC as adjustmentReversalFlag, \
                                   case when STATUPD = 'X' then 'Y' else 'N' end as documentInSalesStatsFlag, \
                                   case when STATUPD_CANC = 'X' then 'Y' else 'N' end as reversalDocumentInSalesStatsFlag, \
+                                  (CASE WHEN _upsertFlag = 'D' THEN 'Y' ELSE 'N' END) as deletedFlag, \
                                   cast('1900-01-01' as TimeStamp) as _RecordStart, \
                                   cast('9999-12-31' as TimeStamp) as _RecordEnd, \
                                   (CASE WHEN _upsertFlag = 'U' THEN '0' ELSE '1' END) as _RecordDeleted, \
@@ -217,6 +218,7 @@ newSchema = StructType([
                           StructField('adjustmentReversalFlag', StringType(), True),
                           StructField('documentInSalesStatsFlag', StringType(), True),
                           StructField('reversalDocumentInSalesStatsFlag', StringType(), True),
+                          StructField('deletedFlag',StringType(),True),
                           StructField('_RecordStart', TimestampType(), True),
                           StructField('_RecordEnd', TimestampType(), False),
                           StructField('_RecordDeleted', IntegerType(), False),

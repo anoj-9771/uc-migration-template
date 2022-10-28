@@ -188,7 +188,7 @@ Select *, ROW_NUMBER() OVER (PARTITION BY ANLAGE,LOGIKNR,AB,BIS ORDER BY _FileDa
                                 GVERRECH as payRentalPrice, \
                                 TARIFART as rateTypeCode, \
                                 sp.rateType as rateType, \
-                                (CASE WHEN LOEVM = 'X' THEN 'Y' ELSE 'N' END) as deletedFlag, \
+                                (CASE WHEN _upsertFlag = 'D' THEN 'Y' ELSE 'N' END) as deletedFlag, \
                                 UPDMOD as bwDeltaProcess, \
                                 ZOPCODE as operationCode, \
                                 cast('1900-01-01' as TimeStamp) as _RecordStart, \

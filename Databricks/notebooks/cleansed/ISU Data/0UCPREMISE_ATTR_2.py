@@ -183,7 +183,7 @@ df = spark.sql(f"WITH stage AS \
                                 ERNAM as createdBy, \
                                 ToValidDate(AEDAT) as lastChangedDate, \
                                 AENAM as lastChangedBy, \
-                                LOEVM as deletedIndicator, \
+                                (CASE WHEN LOEVM IS NULL THEN 'N' ELSE 'Y' END) as deletedFlag,\
                                 cast(ANZPERS as int) as numberOfPersons, \
                                 FLOOR as floorNumber, \
                                 ROOMNUMBER as apartmentNumber, \
@@ -243,7 +243,7 @@ newSchema = StructType([
                           StructField('createdBy',StringType(),True),
                           StructField('lastChangedDate',DateType(),True),
                           StructField('lastChangedBy',StringType(),True),
-                          StructField('deletedIndicator',StringType(),True),
+                          StructField('deletedFlag',StringType(),True),
                           StructField('numberOfPersons',StringType(),True),
                           StructField('floorNumber',StringType(),True),
                           StructField('apartmentNumber',StringType(),True),

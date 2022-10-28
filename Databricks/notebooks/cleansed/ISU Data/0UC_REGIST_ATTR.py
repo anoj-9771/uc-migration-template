@@ -201,7 +201,7 @@ Select *, ROW_NUMBER() OVER (PARTITION BY EQUNR,ZWNUMMER,AB,BIS ORDER BY _FileDa
                                 cast(KZAHLT as int) as actualGasLawDeviationFactor, \
                                 cast(CRGPRESS as int) as gasCorrectionPressure, \
                                 INTSIZEID as intervalLengthId, \
-                                (CASE WHEN LOEVM = 'X' THEN 'Y' ELSE 'N' END) as deletedFlag, \
+                                (CASE WHEN _upsertFlag = 'D' THEN 'Y' ELSE 'N' END) as deletedFlag, \
                                 ZANLAGE as installationId, \
                                 cast('1900-01-01' as TimeStamp) as _RecordStart, \
                                 cast('9999-12-31' as TimeStamp) as _RecordEnd, \

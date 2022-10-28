@@ -184,7 +184,7 @@ where  _RecordVersion = 1 and DI_OPERATION_TYPE ='X'), \
                                 case when ABLESGR = 'na' then '' else ABLESGR end as meterReadingReasonCode, \
                                 ToValidDate(ADATSOLL) as meterReadingScheduleDate, \
                                 case when ANLAGE = 'na' then '' else ANLAGE end as installationId, \
-                                LOEVM as deletedIndicator, \
+                                (CASE WHEN _upsertFlag = 'D' THEN 'Y' ELSE 'N' END) as deletedFlag, \
                                 UPDMOD as bwDeltaProcess, \
                                 cast('1900-01-01' as TimeStamp) as _RecordStart, \
                                 cast('9999-12-31' as TimeStamp) as _RecordEnd, \
@@ -201,7 +201,7 @@ newSchema = StructType([
                   StructField('meterReadingReasonCode',StringType(),False),
                   StructField('meterReadingScheduleDate',DateType(),True),
                   StructField('installationId',StringType(),False),
-                  StructField('deletedIndicator',StringType(),True),
+                  StructField('deletedFlag',StringType(),True),
                   StructField('bwDeltaProcess',StringType(),True),
                   StructField('_RecordStart',TimestampType(),False),
                   StructField('_RecordEnd',TimestampType(),False),

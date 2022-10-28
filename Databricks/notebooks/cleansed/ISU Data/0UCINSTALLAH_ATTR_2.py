@@ -269,6 +269,7 @@ df = spark.sql(f"""
         nt.industry                                     as industrySystem, 
         stg.UPDMOD                                      as deltaProcessRecordMode, 
         stg.ZLOGIKNR                                    as logicalDeviceNumber, 
+        (CASE WHEN _upsertFlag = 'D' THEN 'Y' ELSE 'N' END) as deletedFlag, \
         cast('1900-01-01' as TimeStamp)                 as _RecordStart, 
         cast('9999-12-31' as TimeStamp)                 as _RecordEnd, 
         (CASE WHEN _upsertFlag = 'U' THEN '0' ELSE '1' END) as _RecordDeleted, 
@@ -314,6 +315,7 @@ newSchema = StructType([
                           StructField('industrySystem', StringType(), True),
                           StructField('deltaProcessRecordMode', StringType(), True),
                           StructField('logicalDeviceNumber', StringType(), True),
+                          StructField('deletedFlag',StringType(),True),
                           StructField('_RecordStart',TimestampType(),False),
                           StructField('_RecordEnd',TimestampType(),False),
                           StructField('_RecordDeleted',IntegerType(),False),

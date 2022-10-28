@@ -199,7 +199,7 @@ where  _RecordVersion = 1 and IS_DELETED ='Y'), \
                                     ATAUT as characteristicAuthor, \
                                     AENNR as characteristicChangeNumber, \
                                     ToValidDate(DATUV) as validFromDate, \
-                                    LKENZ as isDeletedFlag, \
+                                    (CASE WHEN _upsertFlag = 'D' THEN 'Y' ELSE 'N' END) as deletedFlag, \
                                     ToValidDate(DATUB) as validToDate, \
                                     DEC_VALUE_FROM as decimalMinimumValue, \
                                     DEC_VALUE_TO as decimalMaximumValue, \
@@ -242,7 +242,7 @@ newSchema = StructType([
                             StructField('characteristicAuthor', StringType(), True),
                             StructField('characteristicChangeNumber', StringType(), True),
                             StructField('validFromDate', DateType(), True),
-                            StructField('isDeletedFlag', StringType(), True),
+                            StructField('deletedFlag', StringType(), True),
                             StructField('validToDate', DateType(), True),
                             StructField('decimalMinimumValue', DecimalType(31,14), True),
                             StructField('decimalMaximumValue', DecimalType(31,14), True),

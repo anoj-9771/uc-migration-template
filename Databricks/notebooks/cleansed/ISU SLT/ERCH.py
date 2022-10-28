@@ -224,7 +224,7 @@ where  _RecordVersion = 1 and IS_DELETED ='Y'), \
                                   ToValidDate(AEDAT) as  lastChangedDate, \
                                   AENAM as changedBy, \
                                   BEGRU as authorizationGroupCode, \
-                                  case when LOEVM = 'X' then 'Y' else 'N' end as deletedFlag, \
+                                  (CASE WHEN _upsertFlag = 'D' THEN 'Y' ELSE 'N' END) as deletedFlag, \
                                   ToValidDate(ABRDATSU) as  suppressedBillingOrderScheduleDate, \
                                   ABRVORGU as suppressedBillingOrderTransactionCode, \
                                   N_INVSEP as jointInvoiceAutomaticDocumentIndicator, \

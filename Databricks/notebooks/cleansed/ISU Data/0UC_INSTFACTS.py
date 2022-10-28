@@ -190,6 +190,7 @@ where  _RecordVersion = 1 and DI_OPERATION_TYPE ='D'), \
                                 cast(BETRAG as dec(13,2)) as amount, \
                                 UPDMOD as bwDeltaProcess, \
                                 MASS as measurementUnit, \
+                                (CASE WHEN _upsertFlag = 'D' THEN 'Y' ELSE 'N' END) as deletedFlag, \
                                 cast('1900-01-01' as TimeStamp) as _RecordStart, \
                                 cast('9999-12-31' as TimeStamp) as _RecordEnd, \
                                 (CASE WHEN _upsertFlag = 'U' THEN '0' ELSE '1' END) as _RecordDeleted, \
@@ -211,6 +212,7 @@ newSchema = StructType([
 	StructField('amount',DecimalType(13,2),True),
 	StructField('bwDeltaProcess',StringType(),True),
 	StructField('measurementUnit',StringType(),True),
+    StructField('deletedFlag',StringType(),True),
 	StructField('_RecordStart',TimestampType(),False),
 	StructField('_RecordEnd',TimestampType(),False),
 	StructField('_RecordDeleted',IntegerType(),False),

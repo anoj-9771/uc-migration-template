@@ -205,6 +205,7 @@ df = spark.sql(f"WITH stage AS \
 newSchema = StructType([
 	StructField('profileCode',StringType(),False),
 	StructField('profile',StringType(),True),
+    StructField('deletedFlag',StringType(),True),
 	StructField('_RecordStart',TimestampType(),False),
 	StructField('_RecordEnd',TimestampType(),False),
 	StructField('_RecordDeleted',IntegerType(),False),

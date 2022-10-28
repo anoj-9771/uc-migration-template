@@ -197,7 +197,7 @@ where  _RecordVersion = 1 and DI_OPERATION_TYPE ='X'), \
                                       ABLESTYP as meterReadingCategory , \
                                       MASSREAD as unitOfMeasurementMeterReading , \
                                       UPDMOD as bwDeltaProcess , \
-                                      LOEVM as deletedIndicator , \
+                                      (CASE WHEN _upsertFlag = 'D' THEN 'Y' ELSE 'N' END) as deletedFlag, \
                                       PRUEFPKT as independentValidation , \
                                       POPCODE as dependentValidation , \
                                       AMS as advancedMeteringSystem , \
@@ -248,7 +248,7 @@ newSchema = StructType(
                               StructField("meterReadingCategory", StringType(), True),
                               StructField("unitOfMeasurementMeterReading", StringType(), True),
                               StructField("bwDeltaProcess", StringType(), True),
-                              StructField("deletedIndicator", StringType(), True),
+                              StructField("deletedFlag", StringType(), True),
                               StructField("independentValidation", StringType(), True),
                               StructField("dependentValidation", StringType(), True),
                               StructField("advancedMeteringSystem", StringType(), True),

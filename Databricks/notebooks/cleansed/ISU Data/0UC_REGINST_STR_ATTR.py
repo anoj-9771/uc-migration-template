@@ -191,7 +191,7 @@ Select *, ROW_NUMBER() OVER (PARTITION BY LOGIKZW,ANLAGE,AB,BIS ORDER BY _FileDa
                                 te67.rateFactGroup, \
                                 re.PREISKLA as priceClassCode, \
                                 pt.priceClass, \
-                                (CASE WHEN LOEVM = 'X' THEN 'Y' ELSE 'N' END) as deletedFlag, \
+                                (CASE WHEN _upsertFlag = 'D' THEN 'Y' ELSE 'N' END) as deletedFlag, \
                                 UPDMOD as bwDeltaProcess, \
                                 re.ZOPCODE as operationCode, \
                                 te.operationDescription, \

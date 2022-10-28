@@ -205,7 +205,7 @@ newSchema = StructType(
                             StructField("validFromDate", DateType(), True),
                             StructField("technicalStatus", StringType(), True),
                             StructField("changeNumber", StringType(), True),
-                            StructField("deletionIndicator", StringType(), True), 
+                            StructField("deletedFlag", StringType(), True), 
                             StructField("validToDate", DateType(), True),   
                             StructField('_RecordStart',TimestampType(),False),
                             StructField('_RecordEnd',TimestampType(),False),

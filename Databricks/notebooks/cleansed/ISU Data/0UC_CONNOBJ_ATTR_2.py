@@ -404,6 +404,7 @@ newSchema = StructType([
                         StructField("objectNumber", StringType(), True),
                         StructField("flatCount", StringType(), True),
                         StructField("CRMConnectionObjectGUID", StringType(), True),
+                        StructField('deletedFlag',StringType(),True),
                         StructField('_RecordStart',TimestampType(),False),
                         StructField('_RecordEnd',TimestampType(),False),
                         StructField('_RecordDeleted',IntegerType(),False),
