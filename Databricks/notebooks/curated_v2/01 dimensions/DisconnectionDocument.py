@@ -37,11 +37,11 @@ df_isu_0uc_isu_32 = spark.sql(f"""
         disconnectionDocumentStatus                               AS disconnectionDocumentStatus,
         installationNumber                                        AS installationNumber,
         equipmentNumber                                           AS equipmentNumber,
-        propertyNumber                                            AS propertyNumber
+        propertyNumber                                            AS propertyNumber,
+        _RecordDeleted 
     FROM {ADS_DATABASE_CLEANSED}.isu_0uc_isu_32
     WHERE 
         _RecordCurrent = 1 
-        AND _RecordDeleted = 0
     """
 )
 

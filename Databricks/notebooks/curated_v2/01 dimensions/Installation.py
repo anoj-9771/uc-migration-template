@@ -39,10 +39,10 @@ def getInstallation():
             createdDate,
             createdBy,
             lastChangedDate,
-            lastChangedBy
+            lastChangedBy,
+            _RecordDeleted 
         FROM {ADS_DATABASE_CLEANSED}.isu_0ucinstalla_attr_2 
         WHERE _RecordCurrent = 1 
-        AND _RecordDeleted = 0
         """
     )
     #print(f'Rows in isu0ucinstallaAttrDf:',isu0ucinstallaAttrDf.count())

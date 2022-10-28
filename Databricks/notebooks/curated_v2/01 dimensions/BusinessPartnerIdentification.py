@@ -50,11 +50,11 @@ df_isu_0bp_id_attr = (
             validFromDate,
             validToDate,
             entryDate,
-            institute
+            institute,
+            _RecordDeleted 
         FROM {ADS_DATABASE_CLEANSED}.isu_0bp_id_attr
         WHERE 
             _RecordCurrent = 1 
-            AND _RecordDeleted = 0 
     """
     )
     .cache()
@@ -71,11 +71,11 @@ df_crm_0bp_id_attr = (
             validFromDate,
             validToDate,
             entryDate,
-            institute
+            institute,
+            _RecordDeleted 
         FROM {ADS_DATABASE_CLEANSED}.crm_0bp_id_attr
         WHERE 
             _RecordCurrent = 1 
-            AND _RecordDeleted = 0 
 """
     )
     .cache()

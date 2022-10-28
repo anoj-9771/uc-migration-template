@@ -33,15 +33,14 @@ df_installation_history = spark.sql(f"""
         i.billingClass                 AS billingClass,
         i.meterReadingUnit             AS meterReadingUnit,
         i.industrySystemCode           AS industrySystemCode,
-        i.IndustrySystem               AS IndustrySystem
+        i.IndustrySystem               AS IndustrySystem,
+        i._RecordDeleted 
     FROM {ADS_DATABASE_CLEANSED}.isu_0ucinstallah_attr_2 i
     LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0ucmtrdunit_attr m ON 
         i.meterReadingUnit = m.meterReadingUnit AND
-        m._recordCurrent = 1 AND
-        m._recordDeleted = 0
+        m._recordCurrent = 1 
     WHERE 
         i._RecordCurrent = 1 
-        AND i._RecordDeleted = 0
 """    
 ).drop_duplicates()
 

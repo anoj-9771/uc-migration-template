@@ -78,12 +78,12 @@ df_isu_0bpartner_attr = (
             createdBy                                               AS createdBy, 
             lastUpdatedDateTime, 
             lastUpdatedBy,
-            naturalPersonFlag                                       AS naturalPersonFlag
+            naturalPersonFlag                                       AS naturalPersonFlag,
+            _RecordDeleted
         FROM {ADS_DATABASE_CLEANSED}.isu_0bpartner_attr isu
         WHERE
             businessPartnerCategoryCode in ('1','2') 
             AND _RecordCurrent = 1 
-            AND _RecordDeleted = 0 
     """
     )
     .cache()
@@ -145,12 +145,12 @@ df_crm_0bpartner_attr = (
             dateOfCheck                                            AS dateOfCheck,
             pensionConcessionCardFlag                              AS pensionConcessionCardFlag,
             pensionType                                            AS pensionType,
-            naturalPersonFlag                                      AS naturalPersonFlag
+            naturalPersonFlag                                      AS naturalPersonFlag,
+            _RecordDeleted 
         FROM {ADS_DATABASE_CLEANSED}.crm_0bpartner_attr 
         WHERE 
             businessPartnerCategoryCode in ('1','2') 
             AND _RecordCurrent = 1 
-            AND _RecordDeleted = 0 
     """
     )
     .cache()
@@ -309,7 +309,8 @@ df_bpartner_master = (
         "createdDateTime",
         "createdBy",
         "lastUpdatedBy",
-        "lastUpdatedDateTime"
+        "lastUpdatedDateTime",
+        "_RecordDeleted" 
     )
     .cache()
 )

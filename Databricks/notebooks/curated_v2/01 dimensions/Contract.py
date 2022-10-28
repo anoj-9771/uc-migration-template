@@ -64,9 +64,10 @@ def getContract():
                                     ,createdDate
                                     ,createdBy
                                     ,lastChangedDate
-                                    ,lastChangedBy
+                                    ,lastChangedBy 
+                                    ,_RecordDeleted 
                                 from {ADS_DATABASE_CLEANSED}.isu_0uccontract_attr_2
-                                where _RecordCurrent = 1 and _RecordDeleted=0
+                                where _RecordCurrent = 1 
                               """)
     
     dummyDimRecDf = spark.createDataFrame(["-1"], "string").toDF("contractId") 
