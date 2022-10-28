@@ -49,7 +49,8 @@ def getMeterConsumptionBillingLineItem():
                     dberchz2.registerRelationshipSortHelp,
                     dberchz2.meterReaderNoteText,
                     dberchz2.quantityDeterminationProcedureCode,
-                    dberchz2.meterReadingDocumentId
+                    dberchz2.meterReadingDocumentId,
+                    erch._RecordDeleted as _RecordDeleted 
                     from cleansed.isu_erch erch 
                                inner join cleansed.isu_dberchz1 as dberchz1 on erch.billingDocumentNumber = dberchz1.billingDocumentNumber                               
                                                               and (dberchz1.lineItemTypeCode = 'ZDQUAN' or dberchz1.lineItemTypeCode = 'ZRQUAN')         
@@ -58,7 +59,8 @@ def getMeterConsumptionBillingLineItem():
                                                               and dberchz1.billingDocumentLineItemId  = dberchz2.billingDocumentLineItemId
                                                               and trim(dberchz2.suppressedMeterReadingDocumentId) <> '' 
                                left join cleansed.isu_0uc_tvorg_text as tvorg_text on tvorg_text.mainTransactionCode = erch.mainTransactionCode 
-                                                              and tvorg_text.subTransactionCode = dberchz1.subTransactionCode
+                                                              and tvorg_text.subTransactionCode = dberchz1.subTransactionCode 
+                               where erch._RecordCurrent = 1 and dberchz1._RecordCurrent = 1 and dberchz2._RecordCurrent = 1
                    """)
     
     dummyDimRecDf = spark.createDataFrame([("Unknown","-1","-1")], ["sourceSystemCode","billingDocumentNumber","billingDocumentLineItemId"])

@@ -40,11 +40,11 @@ df_installation_fact = spark.sql(f"""
         operandValue1                     AS operandValue1,
         operandValue3Flag                 AS operandValue3Flag,
         amount                            AS amount,
-        currencyKey                       AS currencyKey
+        currencyKey                       AS currencyKey,
+        _RecordDeleted 
     FROM {ADS_DATABASE_CLEANSED}.isu_ettifn
     WHERE 
         _RecordCurrent = 1 
-        AND _RecordDeleted = 0 
 """    
 ).drop_duplicates()
 

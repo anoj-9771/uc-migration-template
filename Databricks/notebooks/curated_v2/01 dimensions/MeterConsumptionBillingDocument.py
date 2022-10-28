@@ -39,7 +39,8 @@ def getMeterConsumptionBillingDocument():
         erchc.postingDate as invoicePostingDate,
         erchc.documentNotReleasedFlag as documentNotReleasedFlag,
         erchc.invoiceReversalPostingDate as invoiceReversalPostingDate,
-        erchc.sequenceNumber as invoiceMaxSequenceNumber
+        erchc.sequenceNumber as invoiceMaxSequenceNumber,
+        erch._RecordDeleted as _RecordDeleted 
         from {ADS_DATABASE_CLEANSED}.isu_erch erch 
            inner join {ADS_DATABASE_CLEANSED}.isu_dberchz1 as dberchz1 on erch.billingDocumentNumber = dberchz1.billingDocumentNumber                               
                                           and (dberchz1.lineItemTypeCode = 'ZDQUAN' or dberchz1.lineItemTypeCode = 'ZRQUAN')         
@@ -47,8 +48,10 @@ def getMeterConsumptionBillingDocument():
            inner join {ADS_DATABASE_CLEANSED}.isu_dberchz2 as dberchz2 on dberchz1.billingDocumentNumber = dberchz2.billingDocumentNumber
                                           and dberchz1.billingDocumentLineItemId  = dberchz2.billingDocumentLineItemId
                                           and trim(dberchz2.suppressedMeterReadingDocumentId) <> ''
-           left outer join (select *, row_number() over(partition by billingDocumentNumber order by sequenceNumber desc) rec_num from {ADS_DATABASE_CLEANSED}.isu_erchc) erchc
-                                          on erch.billingDocumentNumber =  erchc.billingDocumentNumber and erchc.rec_num = 1
+           left outer join (select *, row_number() over(partition by billingDocumentNumber order by sequenceNumber desc) rec_num 
+                               from {ADS_DATABASE_CLEANSED}.isu_erchc where _RecordCurrent = 1 ) erchc
+                                          on erch.billingDocumentNumber =  erchc.billingDocumentNumber and erchc.rec_num = 1 
+           where erch._RecordCurrent = 1 and dberchz1._RecordCurrent = 1 and dberchz2._RecordCurrent = 1 
         """)
     
     dummyDimRecDf = spark.createDataFrame([("Unknown","-1")], ["sourceSystemCode","billingDocumentNumber"])
