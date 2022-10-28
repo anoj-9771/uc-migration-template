@@ -34,12 +34,12 @@ df_contractor_annotations = (spark.table("cleansed.cctv_contractor_annotations")
 # COMMAND ----------
 
 #delete just to be safe if re-inserting
-ExecuteStatement(f"delete from dbo.cctv_group_ai_identified_defects where video_id = '{_video_id}'")
-ExecuteStatement(f"delete from dbo.cctv_contractor_annotations where video_id = '{_video_id}'")
+ExecuteStatement(f"delete from dbo.scctv_group_ai_identified_defects where video_id = '{_video_id}'")
+ExecuteStatement(f"delete from dbo.scctv_contractor_annotations where video_id = '{_video_id}'")
 
 #write data frames to corresponding tables
-WriteTable(df_ai_identified_defects, "dbo.cctv_group_ai_identified_defects", "append")
-WriteTable(df_contractor_annotations, "dbo.cctv_contractor_annotations", "append")
+WriteTable(df_ai_identified_defects, "dbo.scctv_group_ai_identified_defects", "append")
+WriteTable(df_contractor_annotations, "dbo.scctv_contractor_annotations", "append")
 
 # COMMAND ----------
 
