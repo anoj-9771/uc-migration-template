@@ -529,6 +529,12 @@
 						"dependencyConditions": [
 							"Succeeded"
 						]
+					},
+					{
+						"activity": "get-cluster-id",
+						"dependencyConditions": [
+							"Succeeded"
+						]
 					}
 				],
 				"policy": {
@@ -547,7 +553,10 @@
 					"type": "LinkedServiceReference",
 					"parameters": {
 						"kvSecret": "databricks-token",
-						"clusterId": "0517-025528-mkzhqnk1"
+						"clusterId": {
+							"value": "@variables('ClusterId')",
+							"type": "Expression"
+						}
 					}
 				}
 			},
@@ -598,6 +607,90 @@
 						"type": "Expression"
 					}
 				}
+			},
+			{
+				"name": "get-databricks-clusters",
+				"type": "WebActivity",
+				"dependsOn": [
+					{
+						"activity": "run-deployment-pipeline",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "get-bearer-token",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"url": "https://australiaeast.azuredatabricks.net/api/2.0/clusters/list",
+					"method": "GET",
+					"headers": {
+						"Authorization": {
+							"value": "Bearer @{variables('DatabricksSecret')}",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "get-cluster-id",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "get-databricks-clusters",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('get-databricks-clusters').output.clusters",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "check-cluster-name-is-riverwatch",
+							"type": "IfCondition",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"expression": {
+									"value": "@equals(item().cluster_name, 'riverwatch')",
+									"type": "Expression"
+								},
+								"ifTrueActivities": [
+									{
+										"name": "set-cluster-id",
+										"type": "SetVariable",
+										"dependsOn": [],
+										"userProperties": [],
+										"typeProperties": {
+											"variableName": "ClusterId",
+											"value": {
+												"value": "@item().cluster_id",
+												"type": "Expression"
+											}
+										}
+									}
+								]
+							}
+						}
+					]
+				}
 			}
 		],
 		"parameters": {
@@ -638,10 +731,7 @@
 			"AemSubscriptionKey": {
 				"type": "String"
 			},
-			"datetime": {
-				"type": "String"
-			},
-			"datetime2": {
+			"ClusterId": {
 				"type": "String"
 			}
 		},

@@ -25,9 +25,12 @@ sourceDataFrame = spark.table(sourceTableName)
 if(extendedProperties):
   extendedProperties = json.loads(extendedProperties)
   cleansedQuery = extendedProperties.get("CleansedQuery")
+  transformMethod = extendedProperties.get("TransformMethod")
   if(cleansedQuery):
     sourceDataFrame = spark.sql(cleansedQuery.replace("{tableFqn}", sourceTableName))
-    
+  if(transformMethod):
+    sourceDataFrame = getattr(sys.modules[__name__], f"{transformMethod}")(spark.table(sourceTableName))  
+
 # FIX BAD COLUMNS
 sourceDataFrame = sourceDataFrame.toDF(*(RemoveBadCharacters(c) for c in sourceDataFrame.columns))
 
