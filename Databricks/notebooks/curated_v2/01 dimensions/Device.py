@@ -34,12 +34,13 @@ def getDevice():
                                       dc.deviceCategoryDescription,
                                       dc.ptiNumber,
                                       dc.ggwaNumber,
-                                      dc.certificationRequirementType
+                                      dc.certificationRequirementType,
+                                      d._RecordDeleted 
                                 from {ADS_DATABASE_CLEANSED}.isu_0uc_device_attr d
                                     left outer join {ADS_DATABASE_CLEANSED}.isu_0uc_devcat_attr dc
                                           on d.materialNumber = dc.materialNumber
-                                where d._RecordCurrent = 1 and d._RecordDeleted=0
-                                      and dc._RecordCurrent = 1 and  dc._RecordDeleted = 0
+                                where d._RecordCurrent = 1 
+                                      and dc._RecordCurrent = 1 
                               """)
     
     dummyDimRecDf = spark.createDataFrame(["-1"], "string").toDF("deviceNumber")   

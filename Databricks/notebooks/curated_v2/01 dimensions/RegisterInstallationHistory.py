@@ -27,9 +27,10 @@ def getRegisterInstallationHistory():
                                                   rateType,
                                                   registerNotRelevantToBilling,
                                                   rateFactGroupCode,
-                                                  rateFactGroup
+                                                  rateFactGroup,
+                                                  rih._RecordDeleted 
                                               from {ADS_DATABASE_CLEANSED}.isu_0UC_REGINST_STR_ATTR rih
-                                              where rih._RecordCurrent = 1 and  rih._RecordDeleted = 0
+                                              where rih._RecordCurrent = 1 
                                         """)
     
     dummyDimRecDf = spark.createDataFrame([("-1","-1","1900-01-01", "9999-12-31")], ["logicalRegisterNumber","installationNumber","validFromDate","validToDate"])   
