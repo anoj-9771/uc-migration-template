@@ -224,9 +224,9 @@ df = spark.sql(f"""
             PRODID as productId, 
             PRODUCT_GUID as productGUID, 
             CAMPAIGN as marketingCampaign, 
-            (CASE WHEN LOEVM = 'X' THEN 'Y' ELSE 'N' END) as deletedFlag, 
-            (CASE WHEN PRODCH_BEG = 'X' THEN 'Y' ELSE 'N' END) as productBeginFlag,
-            (CASE WHEN PRODCH_END = 'X' THEN 'Y' ELSE 'N' END) as productChangeFlag, 
+            CASE WHEN LOEVM = 'X' THEN 'Y' ELSE 'N' END as deletedFlag, 
+            CASE WHEN PRODCH_BEG = 'X' THEN 'Y' ELSE 'N' END as productBeginFlag,
+            CASE WHEN PRODCH_END = 'X' THEN 'Y' ELSE 'N' END as productChangeFlag, 
             XREPLCNTL as replicationControlsCode, 
             dd.domainValueText as replicationControls, 
             CRM_OBJECT_ID as CRMObjectId, 
@@ -239,7 +239,7 @@ df = spark.sql(f"""
             AENAM as lastChangedBy, 
             cast('1900-01-01' as TimeStamp) as _RecordStart, 
             cast('9999-12-31' as TimeStamp) as _RecordEnd, 
-            (CASE WHEN upsertFlag = 'U' THEN '0' ELSE '1' END) as _RecordDeleted, 
+            CASE WHEN upsertFlag = 'U' THEN '0' ELSE '1' END as _RecordDeleted, 
             '1' as _RecordCurrent, 
             cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp 
         from stage ca 
@@ -288,12 +288,12 @@ newSchema = StructType([
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Non-Delete Records)
-DeltaSaveDataFrameToDeltaTable(df.filter("_RecordDeleted==0"), target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
+DeltaSaveDataFrameToDeltaTable(df.filter("_RecordDeleted=0"), target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
 
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Delete Records)
-DeltaSaveDataFrameToDeltaTable(df.filter("_RecordDeleted==1"), target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
+DeltaSaveDataFrameToDeltaTable(df.filter("_RecordDeleted=1"), target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
 
 # COMMAND ----------
 
