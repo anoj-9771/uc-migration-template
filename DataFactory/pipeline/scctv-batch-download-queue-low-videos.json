@@ -51,7 +51,7 @@
 									"type": "DatasetReference",
 									"parameters": {
 										"httpUrl": {
-											"value": "@concat('https://api.ap.kaltura.com/p/107/sp/10700/playManifest/entryId/', split(item().name, '-')[0], '/format/download/protocol/https/flavorParamIds/', split(split(item().name, '-')[1], '.')[0])",
+											"value": "@concat('https://api.ap.kaltura.com/p/', pipeline().parameters.kalturaId,'/sp/10700/playManifest/entryId/', split(item().name, '-')[0], '/format/download/protocol/https/flavorParamIds/', split(split(item().name, '-')[1], '.')[0])",
 											"type": "Expression"
 										}
 									}
@@ -142,6 +142,10 @@
 		"parameters": {
 			"videoBatch": {
 				"type": "array"
+			},
+			"kalturaId": {
+				"type": "string",
+				"defaultValue": "107"
 			}
 		},
 		"variables": {
