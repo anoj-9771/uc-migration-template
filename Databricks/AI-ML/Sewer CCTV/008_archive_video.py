@@ -28,7 +28,7 @@ df_raw_ocr = (spark.table("stage.cctv_ocr_extract")
                     .where(psf.col("video_id") == _VIDEO_ID)
                     .dropDuplicates()
                    )
-df_raw_ocr.write.mode("append").insertInto('stage.cctv_ocr_extract')
+df_raw_ocr.write.mode("append").insertInto('raw.cctv_ocr_extract')
 
 df_cleansed_ocr = (spark.table("stage.cctv_ocr_extract_cleansed")
                     .where(psf.col("video_id") == _VIDEO_ID)
