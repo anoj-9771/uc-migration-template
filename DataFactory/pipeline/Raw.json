@@ -336,7 +336,10 @@
 								"type": "LinkedServiceReference",
 								"parameters": {
 									"kvSecret": "databricks-token",
-									"clusterId": "0517-025528-mkzhqnk1"
+									"clusterId": {
+										"value": "@pipeline().parameters.ClusterId",
+										"type": "Expression"
+									}
 								}
 							}
 						},
@@ -699,6 +702,9 @@
 		"parameters": {
 			"task": {
 				"type": "object"
+			},
+			"ClusterId": {
+				"type": "string"
 			}
 		},
 		"variables": {
