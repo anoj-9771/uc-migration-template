@@ -220,7 +220,7 @@ def getProperty():
                                 vn.parentArchitecturalObjectNumber,
                                 vd.hydraBand,
                                 coalesce(vd.hydraCalculatedArea, -1) as hydraCalculatedArea,
-                                coalesce(vd.hydraAreaUnit, 'Unknown') as hydraAreaUnit,
+                                if(vd.hydraAreaUnit is null or trim(vd.hydraAreaUnit) = '', 'Unknown', vd.hydraAreaUnit) as hydraAreaUnit,
                                 vd.overrideArea,
                                 vd.overrideAreaUnit,
                                 coalesce(vd.stormWaterAssessmentFlag, 'N') as stormWaterAssessmentFlag,
