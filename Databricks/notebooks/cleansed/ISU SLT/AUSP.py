@@ -3,7 +3,7 @@
 import json
 #For unit testing...
 #Use this string in the Param widget: 
-#$PARAM
+#{"SourceType":"BLOB Storage (json)","SourceServer":"daf-sa-blob-sastoken","SourceGroup":"isudata","SourceName":"isu_AUSP","SourceLocation":"isudata/AUSP","AdditionalProperty":"","Processor":"databricks-token|1018-021846-1a1ycoqc|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive","IsAuditTable":false,"SoftDeleteSource":"","ProjectName":"CLEANSED ISU DATA","ProjectId":12,"TargetType":"BLOB Storage (json)","TargetName":"isu_AUSP","TargetLocation":"isudata/AUSP","TargetServer":"daf-sa-lake-sastoken","DataLoadMode":"INCREMENTAL","DeltaExtract":true,"CDCSource":false,"TruncateTarget":false,"UpsertTarget":true,"AppendTarget":null,"TrackChanges":false,"LoadToSqlEDW":true,"TaskName":"isu_AUSP","ControlStageId":2,"TaskId":228,"StageSequence":200,"StageName":"Raw to Cleansed","SourceId":228,"TargetId":228,"ObjectGrain":"Day","CommandTypeId":8,"Watermarks":"2000-01-01 00:00:00","WatermarksDT":"2000-01-01T00:00:00","WatermarkColumn":"_FileDateTimeStamp","BusinessKeyColumn":"classificationObjectInternalId,characteristicInternalId,characteristicValueInternalId,classifiedEntityType,classTypeCode,archivingObjectsInternalId","PartitionColumn":null,"UpdateMetaData":null,"SourceTimeStampFormat":"","WhereClause":"","Command":"/build/cleansed/ISU Data/AUSP","LastSuccessfulExecutionTS":"2000-01-01T23:46:12.39","LastLoadedFile":null}
 
 #Use this string in the Source Object widget
 #$GROUP_$SOURCE
@@ -199,7 +199,7 @@ where  _RecordVersion = 1 and IS_DELETED ='Y'), \
                                     ATAUT as characteristicAuthor, \
                                     AENNR as characteristicChangeNumber, \
                                     ToValidDate(DATUV) as validFromDate, \
-                                    (CASE WHEN _upsertFlag = 'D' THEN 'Y' ELSE 'N' END) as deletedFlag, \
+                                    (CASE WHEN LKENZ IS NULL THEN 'N' ELSE 'Y' END) as deletedFlag, \
                                     ToValidDate(DATUB) as validToDate, \
                                     DEC_VALUE_FROM as decimalMinimumValue, \
                                     DEC_VALUE_TO as decimalMaximumValue, \
