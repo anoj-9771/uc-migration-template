@@ -215,33 +215,54 @@ print(delta_raw_tbl_name)
 # DBTITLE 1,10. Load Raw to Dataframe & Do Transformations
 df = spark.sql(f"""
     WITH stage AS (
+        SELECT 
+            *, 
+            ROW_NUMBER() OVER (
+                PARTITION BY PARTNER,TYPE,IDNUMBER 
+                ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC
+            ) AS _RecordVersion FROM {delta_raw_tbl_name} 
+        WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}'
+    ) 
     SELECT 
-        *, 
-        ROW_NUMBER() OVER (
-            PARTITION BY PARTNER,TYPE,IDNUMBER 
-            ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC
-        ) AS _RecordVersion FROM {delta_raw_tbl_name} 
-    WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' and FLG_DEL_BW IS NULL ) 
-    SELECT 
-        case when BP.PARTNER = 'na' then '' else BP.PARTNER end as businessPartnerNumber, 
-        case when BP.TYPE = 'na' then '' else BP.TYPE end as identificationTypeCode, 
-        BP_TXT.identificationType as identificationType, 
-        case when BP.IDNUMBER = 'na' then '' else BP.IDNUMBER end as businessPartnerIdNumber, 
-        BP.INSTITUTE as institute, 
-        ToValidDate(BP.ENTRY_DATE) as entryDate, 
-        ToValidDate(BP.VALID_DATE_FROM) as validFromDate, 
-        ToValidDate(BP.VALID_DATE_TO) as validToDate, 
-        BP.COUNTRY as countryCode, 
-        t005t.countryName AS countryName,
-        BP.REGION as stateCode, 
-        t005u.stateName as stateName,
-        BP.PARTNER_GUID as businessPartnerGUID, 
-        BP.FLG_DEL_BW as deletedIndicator, 
-        cast('1900-01-01' as TimeStamp) as _RecordStart, 
-        cast('9999-12-31' as TimeStamp) as _RecordEnd, 
-        '0' as _RecordDeleted, 
-        '1' as _RecordCurrent, 
-        cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp 
+        case 
+            when BP.PARTNER = 'na' 
+            then '' 
+            else TRIM(BP.PARTNER) 
+        end                                                       as businessPartnerNumber, 
+        case 
+            when BP.TYPE = 'na' 
+            then '' 
+            else TRIM(BP.TYPE) 
+        end                                                       as identificationTypeCode, 
+        BP_TXT.identificationType                                 as identificationType, 
+        case 
+            when BP.IDNUMBER = 'na' 
+            then '' 
+            else TRIM(BP.IDNUMBER) 
+        end                                                       as businessPartnerIdNumber, 
+        BP.INSTITUTE                                              as institute, 
+        ToValidDate(BP.ENTRY_DATE)                                as entryDate, 
+        ToValidDate(BP.VALID_DATE_FROM)                           as validFromDate, 
+        ToValidDate(BP.VALID_DATE_TO)                             as validToDate, 
+        BP.COUNTRY                                                as countryCode, 
+        t005t.countryName                                         as countryName,
+        BP.REGION                                                 as stateCode, 
+        t005u.stateName                                           as stateName,
+        BP.PARTNER_GUID                                           as businessPartnerGUID, 
+        CASE
+            WHEN BP.FLG_DEL_BW = 'X'
+            THEN 'Y' 
+            ELSE 'N'
+        END                                                       as deletedFlag, 
+        cast('1900-01-01' as TimeStamp)                           as _RecordStart, 
+        cast('9999-12-31' as TimeStamp)                           as _RecordEnd, 
+        CASE
+            WHEN FLG_DEL_BW IS NULL 
+            THEN '0'
+            ELSE '1'
+        END                                                       as _RecordDeleted,
+        '1'                                                       as _RecordCurrent, 
+        cast('{CurrentTimeStamp}' as TimeStamp)                   as _DLCleansedZoneTimeStamp 
     FROM stage BP 
     LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0BP_ID_TYPE_TEXT BP_TXT 
         ON BP.TYPE = BP_TXT.identificationTypeCode 
@@ -278,7 +299,7 @@ newSchema = StructType([
 	StructField('stateCode',StringType(),True),
     StructField('stateName',StringType(),True),
 	StructField('businessPartnerGUID',StringType(),True),
-	StructField('deletedIndicator',StringType(),True),
+	StructField('deletedFlag',StringType(),True),
 	StructField('_RecordStart',TimestampType(),False),
 	StructField('_RecordEnd',TimestampType(),False),
 	StructField('_RecordDeleted',IntegerType(),False),
@@ -289,7 +310,7 @@ newSchema = StructType([
 
 # COMMAND ----------
 
-# DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
+# DBTITLE 1,12. Save Data frame into Cleansed Delta table (New Records)
 DeltaSaveDataFrameToDeltaTable(
     df,
     target_table,
@@ -310,32 +331,32 @@ DeltaSaveDataFrameToDeltaTable(
 # COMMAND ----------
 
 # DBTITLE 1,13.1 Identify Deleted records from Raw table
-# df = spark.sql(f"select distinct PARTNER,TYPE,IDNUMBER from {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' and FLG_DEL_BW IS NOT NULL")
-# df.createOrReplaceTempView("isu_bp_id_deleted_records")
+# # df = spark.sql(f"select distinct PARTNER,TYPE,IDNUMBER from {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' and FLG_DEL_BW IS NOT NULL")
+# # df.createOrReplaceTempView("isu_bp_id_deleted_records")
 
-df = spark.sql(f"select distinct coalesce(PARTNER,'') as PARTNER, coalesce(TYPE,'') as TYPE, coalesce(IDNUMBER,'') as IDNUMBER from ( \
-Select *, ROW_NUMBER() OVER (PARTITION BY PARTNER,TYPE,IDNUMBER ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' ) \
-where  _RecordVersion = 1 and FLG_DEL_BW IS NOT NULL")
-df.createOrReplaceTempView("isu_bp_id_deleted_records")
+# df = spark.sql(f"select distinct coalesce(PARTNER,'') as PARTNER, coalesce(TYPE,'') as TYPE, coalesce(IDNUMBER,'') as IDNUMBER from ( \
+# Select *, ROW_NUMBER() OVER (PARTITION BY PARTNER,TYPE,IDNUMBER ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' ) \
+# where  _RecordVersion = 1 and FLG_DEL_BW IS NOT NULL")
+# df.createOrReplaceTempView("isu_bp_id_deleted_records")
 
 # COMMAND ----------
 
 # DBTITLE 1,13.2 Update _RecordDeleted and _RecordCurrent Flags
-#Get current time
-CurrentTimeStamp = GeneralLocalDateTime()
-CurrentTimeStamp = CurrentTimeStamp.strftime("%Y-%m-%d %H:%M:%S")
+# #Get current time
+# CurrentTimeStamp = GeneralLocalDateTime()
+# CurrentTimeStamp = CurrentTimeStamp.strftime("%Y-%m-%d %H:%M:%S")
 
-spark.sql(f" \
-    MERGE INTO cleansed.isu_0BP_ID_ATTR \
-    using isu_bp_id_deleted_records \
-    on isu_0BP_ID_ATTR.businessPartnerNumber = isu_bp_id_deleted_records.PARTNER \
-    and isu_0BP_ID_ATTR.identificationTypeCode = isu_bp_id_deleted_records.TYPE \
-    and isu_0BP_ID_ATTR.businessPartnerIdNumber = isu_bp_id_deleted_records.IDNUMBER \
-    WHEN MATCHED THEN UPDATE SET \
-    _DLCleansedZoneTimeStamp = cast('{CurrentTimeStamp}' as TimeStamp) \
-    ,_RecordDeleted=1 \
-    ,_RecordCurrent=0 \
-    ")
+# spark.sql(f" \
+#     MERGE INTO cleansed.isu_0BP_ID_ATTR \
+#     using isu_bp_id_deleted_records \
+#     on isu_0BP_ID_ATTR.businessPartnerNumber = isu_bp_id_deleted_records.PARTNER \
+#     and isu_0BP_ID_ATTR.identificationTypeCode = isu_bp_id_deleted_records.TYPE \
+#     and isu_0BP_ID_ATTR.businessPartnerIdNumber = isu_bp_id_deleted_records.IDNUMBER \
+#     WHEN MATCHED THEN UPDATE SET \
+#     _DLCleansedZoneTimeStamp = cast('{CurrentTimeStamp}' as TimeStamp) \
+#     ,_RecordDeleted=1 \
+#     ,_RecordCurrent=0 \
+#     ")
 
 # COMMAND ----------
 
