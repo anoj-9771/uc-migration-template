@@ -30,7 +30,7 @@ def getDeviceCharacteristics():
                                                                               ORDER BY _DLCleansedZoneTimeStamp DESC
                                                                          ) AS rank
                                                   FROM {ADS_DATABASE_CLEANSED}.isu_ausp ausp 
-                                                  WHERE _RecordCurrent = 1 and _RecordDeleted = 0
+                                                  WHERE _RecordCurrent = 1 
                                                   ) 
                                             WHERE rank = 1
                                                 ),
@@ -39,11 +39,11 @@ def getDeviceCharacteristics():
                                                  FROM isu_ausp LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_cawn
                                                      ON isu_ausp.characteristicInternalId = isu_cawn.internalcharacteristic
                                                          AND isu_ausp.characteristicValueCode = isu_cawn.characteristicValue
-                                                         AND isu_cawn._RecordCurrent = 1 AND isu_cawn._RecordDeleted = 0
+                                                         AND isu_cawn._RecordCurrent = 1 
                                                  LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_cawnt
                                                       ON isu_cawn.internalCharacteristic = isu_cawnt.internalcharacteristic
                                                           AND isu_cawn.internalCounter = isu_cawnt.internalCounter 
-                                                          AND isu_cawnt._RecordCurrent = 1 AND isu_cawnt._RecordDeleted = 0
+                                                          AND isu_cawnt._RecordCurrent = 1 
                                                   ),
                                          ausp_cawnt AS (
                                               SELECT classificationObjectInternalId,characteristicInternalId
@@ -67,11 +67,11 @@ def getDeviceCharacteristics():
                                               SELECT DISTINCT ausp_cawnt.*, isu_cabn.characteristicName, isu_cabnt.characteristicDescription 
                                               FROM ausp_cawnt INNER JOIN {ADS_DATABASE_CLEANSED}.isu_cabn
                                                   ON ausp_cawnt.characteristicInternalId = isu_cabn.internalcharacteristic
-                                                      AND isu_cabn._RecordCurrent = 1 and  isu_cabn._RecordDeleted = 0
+                                                      AND isu_cabn._RecordCurrent = 1 
                                               LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_cabnt
                                                   ON isu_cabn.internalcharacteristic = isu_cabnt.internalcharacteristic
                                                       AND isu_cabn.internalCounterforArchivingObjectsbyECM = isu_cabnt.internalCounterforArchivingObjectsbyECM
-                                                      AND isu_cabnt._RecordCurrent = 1 and isu_cabnt._RecordDeleted = 0
+                                                      AND isu_cabnt._RecordCurrent = 1 
                                                 WHERE isu_cabn.characteristicName IN ('MTR_GRID_LOCATION_CODE', 'MR_LOCATION', 'COMMON_AREA_METER', 'MLOC_LEVEL', 'MLOC_DESC', 'MTR_PROPERTY_POSITION_ID', 'MTR_READ_GRID_LOCATION_CODE', 'RFDEVICEMODEL', 'RFDEVICEMAKER', 'RF_ID', 'WARNINGNOTES', 'MTR_ACCESS_NOTE', 'MTR_READING_NOTE', 'METER_SERVES', 'SO_COMMENTS', 'COMMENTS', 'METER_COMPLETION_NOTES', 'SIM_ITEM_NO', 'PRJ_NUM', 'IOTFIRMWARE', 'ADDITIONAL_INFO', 'CANT_DO_CODE', 'BARCODE', 'CENTRALISED_HOTWATER',
                 'MLIM_SYSTEM', 'SITE_ID', 'TAP_TESTED', 'IOT_TYPE', 'IOT_NETWORK', 'IOT_NETWORK_PROVIDER', 'IOT_PRESSURE_SENSOR', 'IOT_PROGRAM_CATEGORY', 'IOT_PROGRAM_CATEGORY_2',
                 'IOT_PROGRAM_CATEGORY_3', 'IOT_METER', 'METER_GPS_LAT_LONG_SOURCE', 'METER_COUPLINGS', 'IOT_RADIO_MODEL', 'PULSE_SENSOR', 'PULSE_SPLITTER',
