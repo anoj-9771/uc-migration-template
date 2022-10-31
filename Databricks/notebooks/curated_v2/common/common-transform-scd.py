@@ -136,7 +136,7 @@ def SCDMerge(sourceDataFrame, scd_start_date = SCD_START_DATE, scd_end_date = SC
         
         print("Adjust _RecordStart date for first load")
         #sourceDataFrame = AdjustRecordStartDate(sourceDataFrame,_)
-        sourceDataFrame = sourceDataFrame.withColumn("_RecordStart", expr("CAST('1990-01-01' AS TIMESTAMP)"))
+        sourceDataFrame = sourceDataFrame.withColumn("_RecordStart", expr("CAST('1900-01-01' AS TIMESTAMP)"))
         
         CreateDeltaTable(sourceDataFrame, targetTableFqn, _.DataLakePath)  
         return
