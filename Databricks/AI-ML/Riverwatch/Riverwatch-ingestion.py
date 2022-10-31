@@ -24,6 +24,9 @@ SELECT 'BoM' SystemCode, 'BoM' SourceSchema, '' SourceKeyVaultSecret, 'http-bina
 ,     '{"rowTag" : "forecast-period", "TransformMethod": "ExpandTable"}' ExtendedProperties
 
 
+UNION
+SELECT 'BoM' SystemCode, 'BoM' SourceSchema, '' SourceKeyVaultSecret, 'ftp-binary-load' SourceHandler, 'xml' RawFileExtension, 'raw-load' RawHandler, 'cleansed-load' CleansedHandler, 'WeatherForecast' SourceTableName, 'ftp://ftp.bom.gov.au/anon/gen/fwo/IDN10064.xml' SourceQuery, '{"rowTag" : "area"}' ExtendedProperties
+
 UNION 
 SELECT 'iicats' SystemCode, 'scxstg' SourceSchema, 'daf-oracle-IICATS-stg-connectionstring' SourceKeyVaultSecret, 'oracle-load' SourceHandler, NULL RawFileExtension, 'raw-load-delta' RawHandler, 'cleansed-load-delta' CleansedHandler, 'dly_prof_cnfgn' SourceTableName, null SourceQuery, NULL ExtendedProperties
 UNION 
@@ -54,10 +57,6 @@ def ExecuteStatement(sql):
     connection = spark._sc._gateway.jvm.java.sql.DriverManager.getConnection(jdbc)
     connection.prepareCall(sql).execute()
     connection.close()
-
-# COMMAND ----------
-
-display(df.where("systemCode <> 'iicats'"))
 
 # COMMAND ----------
 
@@ -134,5 +133,9 @@ for i in dfIicats.rdd.collect():
       ,@RawHandler
       ,@CleansedHandler
     """)
+
+
+
+# COMMAND ----------
 
 
