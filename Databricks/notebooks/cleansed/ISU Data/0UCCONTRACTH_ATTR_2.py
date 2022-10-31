@@ -173,11 +173,11 @@ df = spark.sql(f"""
     WITH stageUpsert AS (
         SELECT
             *,
-            'U' AS upsertFlag
+            'U' AS _upsertFlag
         FROM(
             SELECT 
                 *, 
-                ROW_NUMBER() OVER (PARTITION BY VERTRAG,BIS ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion 
+                ROW_NUMBER() OVER (PARTITION BY VERTRAG, BIS ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion 
             FROM {delta_raw_tbl_name} 
             WHERE 
                 _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}'
@@ -191,11 +191,11 @@ df = spark.sql(f"""
     stageDelete AS ( 
         SELECT
             *,
-            'D' AS upsertFlag
+            'D' AS _upsertFlag
         FROM (
             SELECT 
                 *, 
-                ROW_NUMBER() OVER (PARTITION BY VERTRAG,AB,BIS ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion 
+                ROW_NUMBER() OVER (PARTITION BY VERTRAG, AB, BIS ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion 
             FROM {delta_raw_tbl_name} 
             WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}'
         )
@@ -236,7 +236,8 @@ df = spark.sql(f"""
             cast('1900-01-01' as TimeStamp) as _RecordStart, 
             cast('9999-12-31' as TimeStamp) as _RecordEnd, 
             CASE 
-                WHEN upsertFlag = 'U' THEN '0'
+                WHEN _upsertFlag = 'U' 
+                THEN '0'
                 ELSE '1'
             END as _RecordDeleted, 
             '1' as _RecordCurrent, 
@@ -317,7 +318,7 @@ DeltaSaveDataFrameToDeltaTable(
     newSchema, 
     track_changes, 
     is_delta_extract, 
-    business_key, 
+    business_key = 'contractId,validFromDate,validToDate'
     AddSKColumn = False, 
     delta_column = "", 
     start_counter = "0", 
