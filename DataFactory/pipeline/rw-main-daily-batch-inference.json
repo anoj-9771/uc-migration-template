@@ -263,7 +263,7 @@
 				"type": "SetVariable",
 				"dependsOn": [
 					{
-						"activity": "Ingest Beachwatch BoM and IICATS Data",
+						"activity": "Execute Create Views",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -284,7 +284,7 @@
 				"type": "SetVariable",
 				"dependsOn": [
 					{
-						"activity": "Ingest Beachwatch BoM and IICATS Data",
+						"activity": "Execute Create Views",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -529,12 +529,6 @@
 						"dependencyConditions": [
 							"Succeeded"
 						]
-					},
-					{
-						"activity": "get-cluster-id",
-						"dependencyConditions": [
-							"Succeeded"
-						]
 					}
 				],
 				"policy": {
@@ -690,6 +684,46 @@
 							}
 						}
 					]
+				}
+			},
+			{
+				"name": "Execute Create Views",
+				"type": "DatabricksNotebook",
+				"dependsOn": [
+					{
+						"activity": "Ingest Beachwatch BoM and IICATS Data",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "get-cluster-id",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"notebookPath": "/AI-ML/Riverwatch/Create_Views"
+				},
+				"linkedServiceName": {
+					"referenceName": "LS-AzureDatabricks_DefinedCluster",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"kvSecret": "databricks-token",
+						"clusterId": {
+							"value": "@variables('ClusterId')",
+							"type": "Expression"
+						}
+					}
 				}
 			}
 		],
