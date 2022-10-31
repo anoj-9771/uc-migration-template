@@ -322,14 +322,6 @@ df = spark.sql(f"""
 
 # COMMAND ----------
 
-display(
-    df
-    .groupBy("deletedFlag", "_RecordDeleted")
-    .count()
-)
-
-# COMMAND ----------
-
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 #Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns

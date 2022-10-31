@@ -68,7 +68,6 @@ dbutils.widgets.text("end_counter", "", "End Counter")
 dbutils.widgets.text("delta_column", "", "Delta Column")
 dbutils.widgets.text("source_param", "", "Param")
 
-
 # COMMAND ----------
 
 # DBTITLE 1,4. Get Values from Widget
@@ -84,7 +83,6 @@ print(delta_column)
 print(start_counter)
 print(end_counter)
 print(source_param)
-
 
 # COMMAND ----------
 
@@ -153,7 +151,6 @@ business_key =  Params[PARAMS_BUSINESS_KEY_COLUMN]
 track_changes =  Params[PARAMS_TRACK_CHANGES]
 is_delta_extract =  Params[PARAMS_DELTA_EXTRACT]
 
-
 # COMMAND ----------
 
 # DBTITLE 1,9. Set raw and cleansed table name
@@ -165,7 +162,6 @@ delta_raw_tbl_name = "{0}.{1}".format(ADS_DATABASE_RAW, source_object)
 #Destination
 print(delta_cleansed_tbl_name)
 print(delta_raw_tbl_name)
-
 
 # COMMAND ----------
 
@@ -290,13 +286,43 @@ newSchema = StructType([
 
 # COMMAND ----------
 
-# DBTITLE 1,12. Save Data frame into Cleansed Delta table (Non-Delete Records)
-df.filter("_RecordDeleted=0")DeltaSaveDataFrameToDeltaTable(df.filter("_RecordDeleted=0"), target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
+# DBTITLE 1,12.1 Save Data frame into Cleansed Delta table (Non-Delete Records)
+DeltaSaveDataFrameToDeltaTable(
+    df.filter("_RecordDeleted=0"), 
+    target_table, 
+    ADS_DATALAKE_ZONE_CLEANSED, 
+    ADS_DATABASE_CLEANSED, 
+    data_lake_folder, 
+    ADS_WRITE_MODE_MERGE, 
+    newSchema, 
+    track_changes, 
+    is_delta_extract, 
+    business_key, 
+    AddSKColumn = False, 
+    delta_column = "", 
+    start_counter = "0", 
+    end_counter = "0"
+)
 
 # COMMAND ----------
 
-# DBTITLE 1,12. Save Data frame into Cleansed Delta table (Delete Records)
-DeltaSaveDataFrameToDeltaTable(df.filter("_RecordDeleted=1"), target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
+# DBTITLE 1,12.2 Save Data frame into Cleansed Delta table (Delete Records)
+DeltaSaveDataFrameToDeltaTable(
+  df.filter("_RecordDeleted=1"), 
+    target_table, 
+    ADS_DATALAKE_ZONE_CLEANSED, 
+    ADS_DATABASE_CLEANSED, 
+    data_lake_folder, 
+    ADS_WRITE_MODE_MERGE, 
+    newSchema, 
+    track_changes, 
+    is_delta_extract, 
+    business_key, 
+    AddSKColumn = False, 
+    delta_column = "", 
+    start_counter = "0", 
+    end_counter = "0"
+)
 
 # COMMAND ----------
 
