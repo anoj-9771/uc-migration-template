@@ -13,11 +13,12 @@ def getPropertyLot():
                                         lotType, 
                                         lotNumber,
                                         sectionNumber,
-                                        propertyNumber from {ADS_DATABASE_CLEANSED}.isu_0uc_connobj_attr_2 where propertyNumber <> '' 
-                                        and  _RecordCurrent = 1 and _RecordDeleted = 0 """)
+                                        propertyNumber,
+                                        _RecordDeleted from {ADS_DATABASE_CLEANSED}.isu_0uc_connobj_attr_2 where propertyNumber <> '' 
+                                        and  _RecordCurrent = 1 """)
     
-    dummyDimRecDf = spark.createDataFrame([("Unknown","Unknown","Unknown","Unknown","Unknown","-1")], ["planTypeCode","planNumber","lotTypeCode","lotNumber","sectionNumber","propertyNumber"])
-    #dummyDimRecDf = spark.createDataFrame([("-1")], ["propertyNumber"])
+    #dummyDimRecDf = spark.createDataFrame([("Unknown","Unknown","Unknown","Unknown","-1")], ["planTypeCode","planNumber","lotTypeCode","lotNumber","propertyNumber"])
+    dummyDimRecDf = spark.createDataFrame(["-1"], "string").toDF("propertyNumber")
     
     df = df_isu.unionByName(dummyDimRecDf, allowMissingColumns = True)
     
@@ -38,7 +39,7 @@ def getPropertyLot():
 
 df, schema = getPropertyLot()
 #TemplateEtl(df, entity="dimPropertyLot", businessKey="planTypeCode,planNumber,lotTypeCode,lotNumber,sectionNumber,propertyNumber", schema=schema, writeMode=ADS_WRITE_MODE_OVERWRITE, AddSK=True)
-TemplateEtlSCD(df, entity="dimPropertyLot", businessKey="planTypeCode,planNumber,lotTypeCode,lotNumber,sectionNumber,propertyNumber", schema=schema)
+TemplateEtlSCD(df, entity="dimPropertyLot", businessKey="propertyNumber", schema=schema)
 
 # COMMAND ----------
 

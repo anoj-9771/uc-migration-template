@@ -41,7 +41,8 @@ def getLocation():
                                      coalesce(a.LGA,d.LGA) as LGA, 
                                      d.politicalRegionCode as LGACode, 
                                      a.latitude, 
-                                     a.longitude 
+                                     a.longitude,
+                                     d._RecordDeleted 
                                      from {ADS_DATABASE_CLEANSED}.isu_0uc_connobj_attr_2 d left outer join {ADS_DATABASE_CLEANSED}.isu_vibdnode b on d.propertyNumber = b.architecturalObjectNumber 
                                          left outer join (select propertyNumber, lga, latitude, longitude from 
                                               (select propertyNumber, lga, latitude, longitude, 
@@ -51,11 +52,8 @@ def getLocation():
                                           {ADS_DATABASE_CLEANSED}.isu_0funct_loc_attr c 
                                      where b.architecturalObjectNumber = c.functionalLocationNumber 
                                      and b.parentArchitecturalObjectNumber is null 
-                                     and b._RecordDeleted = 0 
                                      and b._RecordCurrent = 1 
-                                     and c._RecordDeleted = 0 
                                      and c._RecordCurrent = 1 
-                                     and d._RecordDeleted = 0 
                                      and d._RecordCurrent = 1 
                                      union all 
                                      select distinct d.propertyNumber as locationID, 
@@ -79,7 +77,8 @@ def getLocation():
                                      coalesce(a.LGA,d.LGA) as LGA, 
                                      d.politicalRegionCode as LGACode, 
                                      a.latitude, 
-                                     a.longitude 
+                                     a.longitude,
+                                     d._RecordDeleted 
                                      from {ADS_DATABASE_CLEANSED}.isu_0uc_connobj_attr_2 d left outer join {ADS_DATABASE_CLEANSED}.isu_vibdnode b on d.propertyNumber = b.architecturalObjectNumber 
                                          left outer join (select propertyNumber, lga, latitude, longitude from 
                                               (select propertyNumber, lga, latitude, longitude, 
@@ -90,11 +89,8 @@ def getLocation():
                                           {ADS_DATABASE_CLEANSED}.isu_0funct_loc_attr c1 
                                      where b.architecturalObjectNumber = c.functionalLocationNumber 
                                      and b.parentArchitecturalObjectNumber = c1.functionalLocationNumber 
-                                     and b._RecordDeleted = 0 
                                      and b._RecordCurrent = 1 
-                                     and c._RecordDeleted = 0 
                                      and c._RecordCurrent = 1 
-                                     and d._RecordDeleted = 0 
                                      and d._RecordCurrent = 1 
                                """)
 
@@ -198,7 +194,8 @@ def getLocation():
                            sg.LGACode as LGACode, 
                            coalesce(hy.LGA,pr.LGA) as LGA, 
                            latitude, 
-                           longitude 
+                           longitude,
+                           pa._RecordDeleted 
                            from {ADS_DATABASE_CLEANSED}.access_z309_tpropertyaddress pa left outer join 
                                  {ADS_DATABASE_CLEANSED}.access_z309_tstreetguide sg on pa.streetGuideCode = sg.streetGuideCode, 
                                  parents pp, 
@@ -251,7 +248,8 @@ def getLocation():
                             ,"LGACode"\
                             ,"LGA" \
                             ,"CAST(latitude AS DECIMAL(9,6)) as latitude" \
-                            ,"CAST(longitude AS DECIMAL(9,6)) as longitude"                   
+                            ,"CAST(longitude AS DECIMAL(9,6)) as longitude" \
+                            ,"_RecordDeleted" 
                             )
     #5.Apply schema definition
     schema = StructType([

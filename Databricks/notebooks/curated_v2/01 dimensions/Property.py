@@ -170,7 +170,7 @@ def getProperty():
                                             stormWaterNetworkSK, 
                                             null as objectNumber, 
                                             null as propertyInfo, 
-                                            to_date('1900-01-01') as buildingFeeDate , 
+                                            null as buildingFeeDate , 
                                             null as connectionValidFromDate , 
                                             null as CRMConnectionObjectGUID, 
                                             null as architecturalObjectNumber, 
@@ -186,7 +186,8 @@ def getProperty():
                                             null as overrideAreaUnit,
                                             null as stormWaterAssessmentFlag,
                                             null as hydraAreaFlag,
-                                            null as comments 
+                                            null as comments,
+                                            pr._RecordDeleted 
                                      from {ADS_DATABASE_CLEANSED}.access_z309_tproperty pr left outer join 
                                           lots lo on lo.propertyNumber = pr.propertyNumber left outer join 
                                           parents pp on pp.propertyNumber = pr.propertyNumber 
@@ -208,7 +209,7 @@ def getProperty():
                                 stormWaterNetworkSK, 
                                 co.objectNumber, 
                                 co.propertyInfo, 
-                                coalesce(co.buildingFeeDate,to_date('1900-01-01')) as buildingFeeDate, 
+                                co.buildingFeeDate as buildingFeeDate, 
                                 co.validFromDate as connectionValidFromDate , 
                                 co.CRMConnectionObjectGUID, 
                                 vn.architecturalObjectNumber, 
@@ -219,12 +220,13 @@ def getProperty():
                                 vn.parentArchitecturalObjectNumber,
                                 vd.hydraBand,
                                 coalesce(vd.hydraCalculatedArea, -1) as hydraCalculatedArea,
-                                coalesce(vd.hydraAreaUnit, 'Unknown') as hydraAreaUnit,
+                                if(vd.hydraAreaUnit is null or trim(vd.hydraAreaUnit) = '', 'Unknown', vd.hydraAreaUnit) as hydraAreaUnit,
                                 vd.overrideArea,
                                 vd.overrideAreaUnit,
                                 coalesce(vd.stormWaterAssessmentFlag, 'N') as stormWaterAssessmentFlag,
                                 coalesce(vd.hydraAreaFlag, 'N') as hydraAreaFlag,
-                                vd.comments 
+                                vd.comments,
+                                co._RecordDeleted 
                         from 
                               {ADS_DATABASE_CLEANSED}.isu_0uc_connobj_attr_2 co 
                               left outer join {ADS_DATABASE_CLEANSED}.isu_0ucpremise_attr_2 0ucp 
@@ -236,7 +238,6 @@ def getProperty():
                               left outer join systemAreas sa 
                               on sa.propertyNumber = coalesce(int(vn.parentArchitecturalObjectNumber),int(co.propertyNumber)) 
                          where co.propertyNumber <> '' 
-                         and   co._RecordDeleted = 0 
                          and   co._RecordCurrent = 1 
                         """)
     sapisuDf.createOrReplaceTempView('ISU')
@@ -274,8 +275,8 @@ def getProperty():
     df = df.join(dummyDimRecDf, (dummyDimRecDf.dimension == 'dimStormWaterNetwork'), how="left") \
                   .select(df['*'], dummyDimRecDf['dummyDimSK'].alias('dummyStormWaterNetworkSK'))
     
-    dummyDimDf = spark.sql(f"""select '-1' as propertyNumber, wn.waterNetworkSK as waterNetworkSK_drinkingWater, wnr.waterNetworkSK as waterNetworkSK_recycledWater, sewerNetworkSK, stormWaterNetworkSK ,
-                                to_date('1900-01-01') as buildingFeeDate,  -1 as hydraCalculatedArea, 'Unknown' as hydraAreaUnit, '-1' as premise  
+    dummyDimDf = spark.sql(f"""select '-1' as propertyNumber, wn.waterNetworkSK as waterNetworkSK_drinkingWater, wnr.waterNetworkSK as waterNetworkSK_recycledWater, sewerNetworkSK, stormWaterNetworkSK , 
+                                  -1 as hydraCalculatedArea, 'Unknown' as hydraAreaUnit, '-1' as premise  
                             from {ADS_DATABASE_CURATED_V2}.dimWaterNetwork wn, 
                                  {ADS_DATABASE_CURATED_V2}.dimWaterNetwork wnr, 
                                  {ADS_DATABASE_CURATED_V2}.dimSewerNetwork snw, 
@@ -318,7 +319,8 @@ def getProperty():
                        ,"overrideAreaUnit" \
                        ,"stormWaterAssessmentFlag" \
                        ,"hydraAreaFlag" \
-                       ,"comments"
+                       ,"comments" \
+                        ,"_RecordDeleted" 
                         )
     
     #set system area defaults
@@ -344,7 +346,7 @@ def getProperty():
                             StructField("stormWaterNetworkSK", StringType(), False),
                             StructField("objectNumber", StringType(), True),
                             StructField("propertyInfo", StringType(), True),
-                            StructField("buildingFeeDate", DateType(), False),
+                            StructField("buildingFeeDate", DateType(), True),
                             StructField("connectionValidFromDate", DateType(), True),
                             StructField("CRMConnectionObjectGUID", StringType(), True),
                             StructField('architecturalObjectNumber', StringType(), True),

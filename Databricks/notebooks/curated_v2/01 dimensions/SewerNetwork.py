@@ -21,10 +21,10 @@ def getSewerNetwork():
     #1.Load Cleansed layer table data into dataframe
     baseDf = spark.sql(f"""select level30 as sewerNetwork, 
                                 level40 as sewerCatchment, 
-                                level50 as SCAMP 
+                                level50 as SCAMP,
+                                _RecordDeleted 
                         from {ADS_DATABASE_CLEANSED}.hydra_TSYSTEMAREA 
                         where product = 'WasteWater' 
-                        and   _RecordDeleted = 0 
                         and   _RecordCurrent = 1 
                         """)
 
@@ -41,6 +41,7 @@ def getSewerNetwork():
      "sewerNetwork" \
     ,"sewerCatchment" \
     ,"SCAMP" \
+   ,"_RecordDeleted" \
     )
                                             
     #5.Apply schema definition

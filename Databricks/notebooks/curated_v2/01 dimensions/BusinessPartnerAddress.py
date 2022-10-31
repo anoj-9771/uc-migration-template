@@ -104,11 +104,11 @@ df_isu_addr_attr = (
                     coalesce(concat(stateCode, ', '), ''),
                     coalesce(postalCode, '')
                 )
-            END                                                                 AS addressFullText -- TRANSFORMATION
+            END                                                                 AS addressFullText,  -- TRANSFORMATION
+            _RecordDeleted 
         FROM {ADS_DATABASE_CLEANSED}.isu_0bp_def_address_attr 
         WHERE 
             _RecordCurrent = 1 
-            AND _RecordDeleted = 0 
             AND addressNumber IS NOT NULL
             AND addressNumber <> ''
     """
@@ -197,11 +197,11 @@ df_crm_addr_attr = (
                     coalesce(concat(stateCode, ', '), ''),
                     coalesce(postalCode, '')
                 )
-            END                                                                 AS addressFullText -- TRANSFORMATION
+            END                                                                 AS addressFullText, -- TRANSFORMATION
+            _RecordDeleted 
         FROM {ADS_DATABASE_CLEANSED}.crm_0bp_def_address_attr 
         WHERE 
             _RecordCurrent = 1 
-            AND _RecordDeleted = 0 
             AND addressNumber IS NOT NULL
             AND addressNumber <> ''
 """
@@ -304,7 +304,8 @@ df_bp_addr_master = (
         "deliveryServiceType",
         "deliveryServiceNumber",
         "addressTimeZone",
-        "communicationAddressNumber"
+        "communicationAddressNumber",
+        "_RecordDeleted" 
     )
     .cache()
 )
