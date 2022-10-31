@@ -3,8 +3,51 @@
 import json
 #For unit testing...
 #Use this string in the Param widget: 
-#{"SourceType": "BLOB Storage (json)", "SourceServer": "daf-sa-lake-sastoken", "SourceGroup": "crm", "SourceName": "crm_0BP_RELATIONS_ATTR", "SourceLocation": "crm/0BP_RELATIONS_ATTR", "AdditionalProperty": "", "Processor": "databricks-token|0711-011053-turfs581|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive", "IsAuditTable": false, "SoftDeleteSource": "", "ProjectName": "CRM DATA", "ProjectId": 2, "TargetType": "BLOB Storage (json)", "TargetName": "crm_0BP_RELATIONS_ATTR", "TargetLocation": "crm/0BP_RELATIONS_ATTR", "TargetServer": "daf-sa-lake-sastoken", "DataLoadMode": "FULL-EXTRACT", "DeltaExtract": false, "CDCSource": false, "TruncateTarget": false, "UpsertTarget": true, "AppendTarget": null, "TrackChanges": false, "LoadToSqlEDW": true, "TaskName": "crm_0BP_RELATIONS_ATTR", "ControlStageId": 2, "TaskId": 46, "StageSequence": 200, "StageName": "Raw to Cleansed", "SourceId": 46, "TargetId": 46, "ObjectGrain": "Day", "CommandTypeId": 8, "Watermarks": "", "WatermarksDT": null, "WatermarkColumn": "", "BusinessKeyColumn": "businessPartnerRelationshipNumber,businessPartnerNumber1,businessPartnerNumber2,validToDate", "UpdateMetaData": null, "SourceTimeStampFormat": "", "Command": "", "LastLoadedFile": null}
-
+# {
+# 	"SourceType": "BLOB Storage (json)", 
+# 	"SourceServer": "daf-sa-lake-sastoken", 
+# 	"SourceGroup": "isudata", 
+# 	"SourceName": "crm_0BP_RELATIONS_ATTR", 
+# 	"SourceLocation": "crmdata/0BP_RELATIONS_ATTR", 
+# 	"AdditionalProperty": "", 
+# 	"Processor": "databricks-token|0527-214324-ytwxx0tv|Standard_DS12_v2|10.4.x-scala2.12|2:28|interactive",
+# 	"IsAuditTable": false, 
+# 	"SoftDeleteSource": "", 
+# 	"ProjectName": "CLEANSED crm DATA", 
+# 	"ProjectId": 12, 
+# 	"TargetType": "BLOB Storage (json)", 
+# 	"TargetName": "crm_0BP_RELATIONS_ATTR", 
+# 	"TargetLocation": "crmdata/0BP_RELATIONS_ATTR", 
+# 	"TargetServer": "daf-sa-lake-sastoken", 
+# 	"DataLoadMode": "INCREMENTAL", 
+# 	"DeltaExtract": true, 
+# 	"CDCSource": false, 
+# 	"TruncateTarget": false, 
+# 	"UpsertTarget": true, 
+# 	"AppendTarget": false, 
+# 	"TrackChanges": false, 
+# 	"LoadToSqlEDW": true, 
+# 	"TaskName": "crm_0BP_RELATIONS_ATTR", 
+# 	"ControlStageId": 2, 
+# 	"TaskId": 104, 
+# 	"StageSequence": 200, 
+# 	"StageName": "Raw to Cleansed", 
+# 	"SourceId": 104, 
+# 	"TargetId": 104, 
+# 	"ObjectGrain": "Day", 
+# 	"CommandTypeId": 8, 
+# 	"Watermarks": "2000-01-01 00:00:00", 
+# 	"WatermarksDT": "2000-01-01T00:00:00", 
+# 	"WatermarkColumn": "_FileDateTimeStamp", 
+# 	"BusinessKeyColumn": "businessPartnerRelationshipNumber,businessPartnerNumber1,businessPartnerNumber2,relationshipDirection,relationshipTypeCode,validToDate", 
+# 	"PartitionColumn": null, 
+# 	"UpdateMetaData": null, 
+# 	"SourceTimeStampFormat": "", 
+# 	"WhereClause": "WHERE relationshipDirection = 2 AND deletedIndicator IS NULL",
+# 	"Command": "/build/cleansed/CRM Data/0BP_RELATIONS_ATTR", 
+# 	"LastSuccessfulExecutionTS": "1900-01-01",
+# 	"LastLoadedFile": null
+# }
 #Use this string in the Source Object widget
 #crm_0BP_RELATIONS_ATTR
 
@@ -170,49 +213,57 @@ print(delta_raw_tbl_name)
 # COMMAND ----------
 
 # DBTITLE 1,10. Load Raw to Dataframe & Do Transformations
-df = spark.sql(f"WITH stage AS \
-                      (Select *, ROW_NUMBER() OVER (PARTITION BY RELNR,PARTNER1,PARTNER2,RELDIR,RELTYP,DATE_TO ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} \
-                                      WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
-                           SELECT \
-                                case when RELNR = 'na' then '' else RELNR end as businessPartnerRelationshipNumber, \
-                                case when PARTNER1 = 'na' then '' else PARTNER1 end as businessPartnerNumber1, \
-                                case when PARTNER2 = 'na' then '' else PARTNER2 end as businessPartnerNumber2, \
-                                PARTNER1_GUID as businessPartnerGUID1, \
-                                PARTNER2_GUID as businessPartnerGUID2, \
-                                RELDIR as relationshipDirection, \
-                                RELTYP as relationshipTypeCode, \
-                                BP_TXT.relationshipType as relationshipType, \
-                                ToValidDate(DATE_TO) as validToDate, \
-                                ToValidDate(DATE_FROM) as validFromDate, \
-                                COUNTRY as countryShortName, \
-                                POST_CODE1 as postalCode, \
-                                CITY1 as cityName, \
-                                STREET as streetName, \
-                                HOUSE_NUM1 as houseNumber, \
-                                TEL_NUMBER as phoneNumber, \
-                                SMTP_ADDR as emailAddress, \
-                                cast(CMPY_PART_PER as dec(13,2)) as capitalInterestPercentage, \
-                                cast(CMPY_PART_AMO as dec(13,2)) as capitalInterestAmount, \
-                                ADDR_SHORT as shortFormattedAddress, \
-                                ADDR_SHORT_S as shortFormattedAddress2, \
-                                LINE0 as addressLine0, \
-                                LINE1 as addressLine1, \
-                                LINE2 as addressLine2, \
-                                LINE3 as addressLine3, \
-                                LINE4 as addressLine4, \
-                                LINE5 as addressLine5, \
-                                LINE6 as addressLine6, \
-                                FLG_DELETED as deletedIndicator, \
-                                cast('1900-01-01' as TimeStamp) as _RecordStart, \
-                                cast('9999-12-31' as TimeStamp) as _RecordEnd, \
-                                '0' as _RecordDeleted, \
-                                '1' as _RecordCurrent, \
-                                cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
-                         FROM stage BP \
-                          LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.crm_0BP_RELTYPES_TEXT BP_TXT \
-                                ON BP.RELDIR = BP_TXT.relationshipDirection AND BP.RELTYP =BP_TXT.relationshipTypeCode \
-                                AND BP_TXT._RecordDeleted = 0 AND BP_TXT._RecordCurrent = 1 \
-                           where BP._RecordVersion = 1 ")
+df = spark.sql(f"""WITH stage AS 
+                      (Select *, ROW_NUMBER() OVER (PARTITION BY RELNR,PARTNER1,PARTNER2,RELDIR,RELTYP,DATE_TO ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} 
+                                      WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') 
+                           SELECT 
+                                case when RELNR = 'na' then '' else RELNR end as businessPartnerRelationshipNumber, 
+                                case when PARTNER1 = 'na' then '' else PARTNER1 end as businessPartnerNumber1, 
+                                case when PARTNER2 = 'na' then '' else PARTNER2 end as businessPartnerNumber2, 
+                                PARTNER1_GUID as businessPartnerGUID1, 
+                                PARTNER2_GUID as businessPartnerGUID2, 
+                                RELDIR as relationshipDirection, 
+                                RELTYP as relationshipTypeCode, 
+                                BP_TXT.relationshipType as relationshipType, 
+                                ToValidDate(DATE_TO) as validToDate, 
+                                ToValidDate(DATE_FROM) as validFromDate, 
+                                COUNTRY as countryShortName, 
+                                POST_CODE1 as postalCode, 
+                                CITY1 as cityName, 
+                                STREET as streetName, 
+                                HOUSE_NUM1 as houseNumber, 
+                                TEL_NUMBER as phoneNumber, 
+                                SMTP_ADDR as emailAddress, 
+                                cast(CMPY_PART_PER as dec(13,2)) as capitalInterestPercentage, 
+                                cast(CMPY_PART_AMO as dec(13,2)) as capitalInterestAmount, 
+                                ADDR_SHORT as shortFormattedAddress, 
+                                ADDR_SHORT_S as shortFormattedAddress2, 
+                                LINE0 as addressLine0, 
+                                LINE1 as addressLine1, 
+                                LINE2 as addressLine2, 
+                                LINE3 as addressLine3, 
+                                LINE4 as addressLine4, 
+                                LINE5 as addressLine5, 
+                                LINE6 as addressLine6, 
+                                CASE
+                                    WHEN FLG_DELETED = 'X'
+                                    THEN 'Y'
+                                    ELSE 'N' 
+                                END as deletedFlag, 
+                                cast('1900-01-01' as TimeStamp) as _RecordStart, 
+                                cast('9999-12-31' as TimeStamp) as _RecordEnd, 
+                                CASE
+                                    WHEN FLG_DELETED IS NULL
+                                    THEN '0'
+                                    ELSE '1'
+                                END as _RecordDeleted, 
+                                '1' as _RecordCurrent, 
+                                cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp 
+                         FROM stage BP 
+                          LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.crm_0BP_RELTYPES_TEXT BP_TXT 
+                                ON BP.RELDIR = BP_TXT.relationshipDirection AND BP.RELTYP =BP_TXT.relationshipTypeCode 
+                                AND BP_TXT._RecordDeleted = 0 AND BP_TXT._RecordCurrent = 1 
+                           where BP._RecordVersion = 1 """)
 
 #print(f'Number of rows: {df.count()}')
 
@@ -293,7 +344,7 @@ newSchema = StructType([
 	StructField('addressLine4',StringType(),True),
 	StructField('addressLine5',StringType(),True),
 	StructField('addressLine6',StringType(),True),
-	StructField('deletedIndicator',StringType(),True),
+	StructField('deletedFlag',StringType(),True),
 	StructField('_RecordStart',TimestampType(),False),
 	StructField('_RecordEnd',TimestampType(),False),
 	StructField('_RecordDeleted',IntegerType(),False),
@@ -303,8 +354,23 @@ newSchema = StructType([
 
 # COMMAND ----------
 
-# DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
-DeltaSaveDataFrameToDeltaTable(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
+# DBTITLE 1,12. Save Data frame into Cleansed Delta table (New Records)
+DeltaSaveDataFrameToDeltaTable(
+    df, 
+    target_table, 
+    ADS_DATALAKE_ZONE_CLEANSED,
+    ADS_DATABASE_CLEANSED, 
+    data_lake_folder, 
+    ADS_WRITE_MODE_MERGE, 
+    newSchema, 
+    track_changes, 
+    is_delta_extract, 
+    business_key, 
+    AddSKColumn = False, 
+    delta_column = "", 
+    start_counter = "0", 
+    end_counter = "0"
+)
 
 # COMMAND ----------
 
