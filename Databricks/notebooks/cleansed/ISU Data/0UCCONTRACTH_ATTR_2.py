@@ -3,7 +3,7 @@
 import json
 #For unit testing...
 #Use this string in the Param widget: 
-#{"SourceType": "BLOB Storage (json)", "SourceServer": "daf-sa-lake-sastoken", "SourceGroup": "isu", "SourceName": "isu_0UCCONTRACTH_ATTR_2", "SourceLocation": "isu/0UCCONTRACTH_ATTR_2", "AdditionalProperty": "", "Processor": "databricks-token|0711-011053-turfs581|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive", "IsAuditTable": false, "SoftDeleteSource": "", "ProjectName": "ISU DATA", "ProjectId": 2, "TargetType": "BLOB Storage (json)", "TargetName": "isu_0UCCONTRACTH_ATTR_2", "TargetLocation": "isu/0UCCONTRACTH_ATTR_2", "TargetServer": "daf-sa-lake-sastoken", "DataLoadMode": "FULL-EXTRACT", "DeltaExtract": false, "CDCSource": false, "TruncateTarget": false, "UpsertTarget": true, "AppendTarget": null, "TrackChanges": false, "LoadToSqlEDW": true, "TaskName": "isu_0UCCONTRACTH_ATTR_2", "ControlStageId": 2, "TaskId": 46, "StageSequence": 200, "StageName": "Raw to Cleansed", "SourceId": 46, "TargetId": 46, "ObjectGrain": "Day", "CommandTypeId": 8, "Watermarks": "", "WatermarksDT": null, "WatermarkColumn": "", "BusinessKeyColumn": "VERTRAG,BIS", "UpdateMetaData": null, "SourceTimeStampFormat": "", "Command": "", "LastLoadedFile": null}
+# {"SourceType":"BLOB Storage (json)","SourceServer":"daf-sa-blob-sastoken","SourceGroup":"isudata","SourceName":"isu_0UCCONTRACTH_ATTR_2","SourceLocation":"isudata/0UCCONTRACTH_ATTR_2","AdditionalProperty":"","Processor":"databricks-token|1018-021846-1a1ycoqc|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive","IsAuditTable":false,"SoftDeleteSource":"","ProjectName":"CLEANSED ISU DATA","ProjectId":12,"TargetType":"BLOB Storage (json)","TargetName":"isu_0UCCONTRACTH_ATTR_2","TargetLocation":"isudata/0UCCONTRACTH_ATTR_2","TargetServer":"daf-sa-lake-sastoken","DataLoadMode":"INCREMENTAL","DeltaExtract":true,"CDCSource":false,"TruncateTarget":false,"UpsertTarget":true,"AppendTarget":null,"TrackChanges":false,"LoadToSqlEDW":true,"TaskName":"isu_0UCCONTRACTH_ATTR_2","ControlStageId":2,"TaskId":228,"StageSequence":200,"StageName":"Raw to Cleansed","SourceId":228,"TargetId":228,"ObjectGrain":"Day","CommandTypeId":8,"Watermarks":"2000-01-01 00:00:00","WatermarksDT":"2000-01-01T00:00:00","WatermarkColumn":"_FileDateTimeStamp","BusinessKeyColumn":"contractId,validToDate","PartitionColumn":null,"UpdateMetaData":null,"SourceTimeStampFormat":"","WhereClause":"","Command":"/build/cleansed/ISU Data/0UCCONTRACTH_ATTR_2","LastSuccessfulExecutionTS":"2000-01-01T23:46:12.39","LastLoadedFile":null}
 
 #Use this string in the Source Object widget
 #isu_0UCCONTRACTH_ATTR_2
@@ -170,110 +170,163 @@ print(delta_raw_tbl_name)
 # COMMAND ----------
 
 # DBTITLE 1,10. Load Raw to Dataframe & Do Transformations
-df = spark.sql(f"WITH stage AS \
-                      (Select *, ROW_NUMBER() OVER (PARTITION BY VERTRAG,BIS ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' and DI_OPERATION_TYPE !='X' ) \
-                           SELECT \
-                                case when VERTRAG = 'na' then '' else VERTRAG end as contractId, \
-                                ToValidDate((case when BIS = 'na' then '9999-12-31' else BIS end),'MANDATORY') as validToDate, \
-                                ToValidDate(AB) as validFromDate, \
-                                ANLAGE as installationNumber, \
-                                CONTRACTHEAD as contractHeadGUID, \
-                                CONTRACTPOS as contractPosGUID, \
-                                PRODID as productId, \
-                                PRODUCT_GUID as productGUID, \
-                                CAMPAIGN as marketingCampaign, \
-                                (CASE WHEN LOEVM = 'X' THEN 'Y' ELSE 'N' END) as deletedFlag, \
-                                (CASE WHEN PRODCH_BEG = 'X' THEN 'Y' ELSE 'N' END) as productBeginFlag, \
-                                (CASE WHEN PRODCH_END = 'X' THEN 'Y' ELSE 'N' END) as productChangeFlag, \
-                                XREPLCNTL as replicationControlsCode, \
-                                dd.domainValueText as replicationControls, \
-                                CRM_OBJECT_ID as CRMObjectId, \
-                                CRM_OBJECT_POS as CRMDocumentItemNumber, \
-                                CRM_PRODUCT as CRMProduct, \
-                                ToValidDate(ERDAT) as createdDate, \
-                                ERNAM as createdBy, \
-                                ToValidDate(AEDAT) as lastChangedDate, \
-                                OUCONTRACT as individualContractId, \
-                                AENAM as lastChangedBy, \
-                                cast('1900-01-01' as TimeStamp) as _RecordStart, \
-                                cast('9999-12-31' as TimeStamp) as _RecordEnd, \
-                                '0' as _RecordDeleted, \
-                                '1' as _RecordCurrent, \
-                                cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
-                        from stage ca \
-                         LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_DD07T dd ON ca.XREPLCNTL = dd.domainValueSingleUpperLimit \
-                                                                    and dd.domainName = 'EXREPLCNTL' and dd._RecordDeleted = 0 and dd._RecordCurrent = 1 \
-                        where ca._RecordVersion = 1 ")
+df = spark.sql(f"""
+    /*===============================
+       Upsert Records (Non Deletes)
+    ================================*/
+    WITH stageUpsert AS (
+        SELECT
+            *,
+            'U' AS upsertFlag
+        FROM(
+            SELECT 
+                *, 
+                ROW_NUMBER() OVER (PARTITION BY VERTRAG,BIS ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion 
+            FROM {delta_raw_tbl_name} 
+            WHERE 
+                _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}'
+                AND DI_OPERATION_TYPE !='X'
+        )
+        WHERE _recordVersion = 1
+    ),
+    /*===============================
+       Delete Records
+    ================================*/
+    stageDelete AS ( 
+        SELECT
+            *,
+            'D' AS upsertFlag
+        FROM (
+            SELECT 
+                *, 
+                ROW_NUMBER() OVER (PARTITION BY VERTRAG,AB,BIS ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion 
+            FROM {delta_raw_tbl_name} 
+            WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}'
+        )
+        WHERE  
+            _RecordVersion = 1 
+            AND DI_OPERATION_TYPE = 'X'
+    ),
+    /*===============================
+       UNION Upsert and Delete
+      ==============================*/
+    stage AS (
+        SELECT * FROM stageUpsert UNION SELECT * FROM stageDelete
+    )
+    
+        SELECT 
+            case when VERTRAG = 'na' then '' else VERTRAG end as contractId, 
+            ToValidDate((case when BIS = 'na' then '9999-12-31' else BIS end),'MANDATORY') as validToDate, 
+            ToValidDate(AB) as validFromDate, 
+            ANLAGE as installationNumber, 
+            CONTRACTHEAD as contractHeadGUID, 
+            CONTRACTPOS as contractPosGUID, 
+            PRODID as productId, 
+            PRODUCT_GUID as productGUID, 
+            CAMPAIGN as marketingCampaign, 
+            CASE WHEN LOEVM = 'X' THEN 'Y' ELSE 'N' END as deletedFlag, 
+            CASE WHEN PRODCH_BEG = 'X' THEN 'Y' ELSE 'N' END as productBeginFlag,
+            CASE WHEN PRODCH_END = 'X' THEN 'Y' ELSE 'N' END as productChangeFlag, 
+            XREPLCNTL as replicationControlsCode, 
+            dd.domainValueText as replicationControls, 
+            CRM_OBJECT_ID as CRMObjectId, 
+            CRM_OBJECT_POS as CRMDocumentItemNumber, 
+            CRM_PRODUCT as CRMProduct, 
+            ToValidDate(ERDAT) as createdDate, 
+            ERNAM as createdBy, 
+            ToValidDate(AEDAT) as lastChangedDate, 
+            OUCONTRACT as individualContractId, 
+            AENAM as lastChangedBy, 
+            cast('1900-01-01' as TimeStamp) as _RecordStart, 
+            cast('9999-12-31' as TimeStamp) as _RecordEnd, 
+            CASE 
+                WHEN upsertFlag = 'U' THEN '0'
+                ELSE '1'
+            END as _RecordDeleted, 
+            '1' as _RecordCurrent, 
+            cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp 
+        from stage ca 
+        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_DD07T dd ON 
+            ca.XREPLCNTL = dd.domainValueSingleUpperLimit 
+            and dd.domainName = 'EXREPLCNTL' 
+            and dd._RecordDeleted = 0 
+            and dd._RecordCurrent = 1 
+        """
+)
 
 #print(f'Number of rows: {df.count()}')
 
 # COMMAND ----------
 
 newSchema = StructType([
-                        StructField('contractId',StringType(),False),
-                        StructField('validToDate',DateType(),False),
-                        StructField('validFromDate',DateType(),True),
-                        StructField('installationNumber',StringType(),True),
-                        StructField('contractHeadGUID',StringType(),True),
-                        StructField('contractPosGUID',StringType(),True),
-                        StructField('productId',StringType(),True),
-                        StructField('productGUID',StringType(),True),
-                        StructField('marketingCampaign',StringType(),True),
-                        StructField('deletedFlag',StringType(),True),
-                        StructField('productBeginFlag',StringType(),True),
-                        StructField('productChangeFlag',StringType(),True),
-                        StructField('replicationControlsCode',StringType(),True),
-                        StructField('replicationControls',StringType(),True),
-                        StructField('CRMObjectId',StringType(),True),
-                        StructField('CRMDocumentItemNumber',StringType(),True),
-                        StructField('CRMProduct',StringType(),True),
-                        StructField('createdDate',DateType(),True),
-                        StructField('createdBy',StringType(),True),
-                        StructField('lastChangedDate',DateType(),True),
-                        StructField('individualContractId',StringType(),True),
-                        StructField('lastChangedBy',StringType(),True),
-                        StructField('_RecordStart',TimestampType(),False),
-                        StructField('_RecordEnd',TimestampType(),False),
-                        StructField('_RecordDeleted',IntegerType(),False),
-                        StructField('_RecordCurrent',IntegerType(),False),
-                        StructField('_DLCleansedZoneTimeStamp',TimestampType(),False)
-                      ])
-
+    StructField('contractId',StringType(),False),
+    StructField('validToDate',DateType(),False),
+    StructField('validFromDate',DateType(),True),
+    StructField('installationNumber',StringType(),True),
+    StructField('contractHeadGUID',StringType(),True),
+    StructField('contractPosGUID',StringType(),True),
+    StructField('productId',StringType(),True),
+    StructField('productGUID',StringType(),True),
+    StructField('marketingCampaign',StringType(),True),
+    StructField('deletedFlag',StringType(),True),
+    StructField('productBeginFlag',StringType(),True),
+    StructField('productChangeFlag',StringType(),True),
+    StructField('replicationControlsCode',StringType(),True),
+    StructField('replicationControls',StringType(),True),
+    StructField('CRMObjectId',StringType(),True),
+    StructField('CRMDocumentItemNumber',StringType(),True),
+    StructField('CRMProduct',StringType(),True),
+    StructField('createdDate',DateType(),True),
+    StructField('createdBy',StringType(),True),
+    StructField('lastChangedDate',DateType(),True),
+    StructField('individualContractId',StringType(),True),
+    StructField('lastChangedBy',StringType(),True),
+    StructField('_RecordStart',TimestampType(),False),
+    StructField('_RecordEnd',TimestampType(),False),
+    StructField('_RecordDeleted',IntegerType(),False),
+    StructField('_RecordCurrent',IntegerType(),False),
+    StructField('_DLCleansedZoneTimeStamp',TimestampType(),False)
+])
 
 # COMMAND ----------
 
-# DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
-DeltaSaveDataFrameToDeltaTable(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
+# DBTITLE 1,12. Save Data frame into Cleansed Delta table (Non-Delete Records)
+df.filter("_RecordDeleted=0")DeltaSaveDataFrameToDeltaTable(df.filter("_RecordDeleted=0"), target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
+
+# COMMAND ----------
+
+# DBTITLE 1,12. Save Data frame into Cleansed Delta table (Delete Records)
+DeltaSaveDataFrameToDeltaTable(df.filter("_RecordDeleted=1"), target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
 
 # COMMAND ----------
 
 # DBTITLE 1,13.1 Identify Deleted records from Raw table
-# df = spark.sql(f"select distinct VERTRAG,AB,BIS from {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' and   DI_OPERATION_TYPE ='X'")
-# df.createOrReplaceTempView("isu_contract_deleted_records")
+# # df = spark.sql(f"select distinct VERTRAG,AB,BIS from {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' and   DI_OPERATION_TYPE ='X'")
+# # df.createOrReplaceTempView("isu_contract_deleted_records")
 
-df = spark.sql(f"select distinct coalesce(VERTRAG,'') as VERTRAG, coalesce(AB,'') as AB, coalesce(BIS,'') as BIS from ( \
-Select *, ROW_NUMBER() OVER (PARTITION BY VERTRAG,AB,BIS ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' ) \
-where  _RecordVersion = 1 and DI_OPERATION_TYPE ='X'")
-df.createOrReplaceTempView("isu_contract_deleted_records")
+# df = spark.sql(f"select distinct coalesce(VERTRAG,'') as VERTRAG, coalesce(AB,'') as AB, coalesce(BIS,'') as BIS from ( \
+# Select *, ROW_NUMBER() OVER (PARTITION BY VERTRAG,AB,BIS ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' ) \
+# where  _RecordVersion = 1 and DI_OPERATION_TYPE ='X'")
+# df.createOrReplaceTempView("isu_contract_deleted_records")
 
 # COMMAND ----------
 
 # DBTITLE 1,13.2 Update _RecordDeleted and _RecordCurrent Flags
-#Get current time
-CurrentTimeStamp = GeneralLocalDateTime()
-CurrentTimeStamp = CurrentTimeStamp.strftime("%Y-%m-%d %H:%M:%S")
+# #Get current time
+# CurrentTimeStamp = GeneralLocalDateTime()
+# CurrentTimeStamp = CurrentTimeStamp.strftime("%Y-%m-%d %H:%M:%S")
 
-spark.sql(f" \
-    MERGE INTO cleansed.isu_0UCCONTRACTH_ATTR_2 \
-    using isu_contract_deleted_records \
-    on isu_0UCCONTRACTH_ATTR_2.contractId = isu_contract_deleted_records.VERTRAG \
-    and isu_0UCCONTRACTH_ATTR_2.validFromDate = isu_contract_deleted_records.AB \
-    and isu_0UCCONTRACTH_ATTR_2.validToDate = isu_contract_deleted_records.BIS \
-    WHEN MATCHED THEN UPDATE SET \
-    _DLCleansedZoneTimeStamp = cast('{CurrentTimeStamp}' as TimeStamp) \
-    ,_RecordDeleted=1 \
-    ,_RecordCurrent=0 \
-    ")
+# spark.sql(f" \
+#     MERGE INTO cleansed.isu_0UCCONTRACTH_ATTR_2 \
+#     using isu_contract_deleted_records \
+#     on isu_0UCCONTRACTH_ATTR_2.contractId = isu_contract_deleted_records.VERTRAG \
+#     and isu_0UCCONTRACTH_ATTR_2.validFromDate = isu_contract_deleted_records.AB \
+#     and isu_0UCCONTRACTH_ATTR_2.validToDate = isu_contract_deleted_records.BIS \
+#     WHEN MATCHED THEN UPDATE SET \
+#     _DLCleansedZoneTimeStamp = cast('{CurrentTimeStamp}' as TimeStamp) \
+#     ,_RecordDeleted=1 \
+#     ,_RecordCurrent=0 \
+#     ")
 
 # COMMAND ----------
 
