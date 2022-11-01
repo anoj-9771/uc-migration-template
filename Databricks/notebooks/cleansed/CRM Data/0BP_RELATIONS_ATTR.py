@@ -246,18 +246,16 @@ df = spark.sql(f"""WITH stage AS
                                 LINE5 as addressLine5, 
                                 LINE6 as addressLine6, 
                                 CASE
-                                    WHEN BP.FLG_DELETED IS NULL
-                                    OR TRIM(BP.FLG_DELETED) = ''
-                                    THEN 'N'
-                                    ELSE 'Y'
+                                    WHEN BP.FLG_DELETED = 'X'
+                                    THEN 'Y'
+                                    ELSE 'N'
                                 END as deletedFlag, 
                                 cast('1900-01-01' as TimeStamp) as _RecordStart, 
                                 cast('9999-12-31' as TimeStamp) as _RecordEnd, 
                                 CASE
-                                    WHEN BP.FLG_DELETED IS NULL
-                                    OR TRIM(BP.FLG_DELETED) = ''
-                                    THEN '0'
-                                    ELSE '1'
+                                    WHEN BP.FLG_DELETED = 'X'
+                                    THEN '1'
+                                    ELSE '0'
                                 END as _RecordDeleted, 
                                 '1' as _RecordCurrent, 
                                 cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp 

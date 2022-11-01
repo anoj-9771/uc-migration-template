@@ -244,10 +244,9 @@ df = spark.sql(f"""WITH stage AS
                                 EBVTY as bankDetailsId, 
                                 EZAWE as incomingPaymentMethodCode, 
                                 CASE
-                                    WHEN LOEVM IS NULL
-                                    OR TRIM(LOEVM) = ''
-                                    THEN 'N'
-                                    ELSE 'Y'
+                                    WHEN LOEVM = 'X'
+                                    THEN 'Y'
+                                    ELSE 'N'
                                 END as deletedFlag, 
                                 ABWVK as alternativeContractAccountForCollectiveBills,
                                 VKPBZ as accountRelationshipCode, 
@@ -291,10 +290,9 @@ df = spark.sql(f"""WITH stage AS
                                 cast('1900-01-01' as TimeStamp) as _RecordStart, 
                                 cast('9999-12-31' as TimeStamp) as _RecordEnd, 
                                 CASE
-                                    WHEN LOEVM IS NULL
-                                    OR TRIM(LOEVM) = ''
-                                    THEN '0'
-                                    ELSE '1'
+                                    WHEN LOEVM = 'X'
+                                    THEN '1'
+                                    ELSE '0'
                                 END as _RecordDeleted, 
                                 '1' as _RecordCurrent, 
                                 cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp 
@@ -387,14 +385,6 @@ df = spark.sql(f"""WITH stage AS
 
 
 # print(f'Number of rows: {df_cleansed.count()}')
-
-# COMMAND ----------
-
-display(
-    df
-    .groupBy("deletedFlag", "_recordDeleted")
-    .count()
-)
 
 # COMMAND ----------
 
