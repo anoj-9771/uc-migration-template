@@ -251,7 +251,7 @@ df = spark.sql(f"""
             BP.PARTNER_GUID                                                 as businessPartnerGUID, 
             CASE
                 WHEN BP.FLG_DEL_BW IS NULL
-                OR TIRM(BP.FLG_DEL_BW) = ''
+                OR TRIM(BP.FLG_DEL_BW) = ''
                 THEN 'N'
                 ELSE 'Y'
             END                                                             as _RecordDeleted, 
@@ -259,7 +259,7 @@ df = spark.sql(f"""
             cast('9999-12-31' as TimeStamp)                                 as _RecordEnd, 
             CASE
                 WHEN BP.FLG_DEL_BW IS NULL
-                OR TIRM(BP.FLG_DEL_BW) = ''
+                OR TRIM(BP.FLG_DEL_BW) = ''
                 THEN '0'
                 ELSE '1'
             END                                                             as _RecordDeleted, 
