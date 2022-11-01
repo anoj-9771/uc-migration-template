@@ -194,7 +194,7 @@ df = spark.sql(f"WITH stage AS \
                                     ATAUT as characteristicAuthor, \
                                     AENNR as characteristicChangeNumber, \
                                     ToValidDate(DATUV) as validFromDate, \
-                                    LKENZ as isDeletedFlag, \
+                                    (CASE WHEN LKENZ IS NULL OR TRIM(LKENZ) = '' THEN 'N' ELSE 'Y' END) as deletedFlag, \
                                     ToValidDate(DATUB) as validToDate, \
                                     DEC_VALUE_FROM as decimalMinimumValue, \
                                     DEC_VALUE_TO as decimalMaximumValue, \
@@ -239,7 +239,7 @@ newSchema = StructType([
                             StructField('characteristicAuthor', StringType(), True),
                             StructField('characteristicChangeNumber', StringType(), True),
                             StructField('validFromDate', DateType(), True),
-                            StructField('isDeletedFlag', StringType(), True),
+                            StructField('deletedFlag', StringType(), True),
                             StructField('validToDate', DateType(), True),
                             StructField('decimalMinimumValue', DecimalType(31,14), True),
                             StructField('decimalMaximumValue', DecimalType(31,14), True),

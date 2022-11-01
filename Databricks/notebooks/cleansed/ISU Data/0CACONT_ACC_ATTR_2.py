@@ -231,7 +231,12 @@ df = spark.sql(f"""
                ERNAM                                           as createdBy, 
                ToValidDate(AEDAT)                              as lastChangedDate, 
                AENAM                                           as lastChangedBy, 
-               if(LOEVM = 'X', 'Y', 'N')                       as deletedFlag,
+               CASE
+                   WHEN LOEVM IS NULL
+                   OR TRIM(LOEVM) = ''
+                   THEN 'N'
+                   ELSE 'Y' 
+               END                                             as deletedFlag, 
                APPLK                                           as applicationAreaCode, 
                APP.applicationArea                             as applicationArea,
                VKTYP                                           as contractAccountCategoryCode, 
@@ -239,7 +244,12 @@ df = spark.sql(f"""
                VKONA                                           as legacyContractAccountNumber, 
                cast('1900-01-01' as TimeStamp)                 as _RecordStart, 
                cast('9999-12-31' as TimeStamp)                 as _RecordEnd, 
-               '0'                                             as _RecordDeleted, 
+               CASE
+                   WHEN LOEVM IS NULL
+                   OR TRIM(LOEVM) = ''
+                   THEN '0'
+                   ELSE '1' 
+               END                                             as _RecordDeleted, 
                '1'                                             as _RecordCurrent, 
                cast('{CurrentTimeStamp}' as TimeStamp)         as _DLCleansedZoneTimeStamp 
      FROM stage con 
@@ -307,7 +317,7 @@ newSchema = StructType([
 
 # COMMAND ----------
 
-# DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
+# DBTITLE 1,12. Save Data frame into Cleansed Delta table (New Records)
 DeltaSaveDataFrameToDeltaTable(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
 
 # COMMAND ----------

@@ -233,8 +233,7 @@ df_bp_addr_crm_unique = (
     .join(
         df_isu_addr_attr.alias("isu"),
         [
-            col("crm.businessPartnerNumber") == col("isu.businessPartnerNumber"),
-            col("crm.businessPartnerAddressNumber") == col("isu.businessPartnerAddressNumber")
+            col("crm.businessPartnerNumber") == col("isu.businessPartnerNumber")
         ],
         how = 'leftanti'
     )
