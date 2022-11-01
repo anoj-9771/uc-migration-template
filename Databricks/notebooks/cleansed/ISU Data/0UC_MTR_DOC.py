@@ -196,7 +196,7 @@ Select *, ROW_NUMBER() OVER (PARTITION BY ABLBELNR ORDER BY _FileDateTimeStamp D
                                       ABLESTYP as meterReadingCategory , \
                                       MASSREAD as unitOfMeasurementMeterReading , \
                                       UPDMOD as bwDeltaProcess , \
-                                      (CASE WHEN MR.LOEVM IS NULL THEN 'N' ELSE 'Y' END) as deletedFlag, \
+                                      (CASE WHEN MR.LOEVM IS NULL OR TRIM(MR.LOEVM) = '' THEN 'N' ELSE 'Y' END) as deletedFlag, \
                                       PRUEFPKT as independentValidation , \
                                       POPCODE as dependentValidation , \
                                       AMS as advancedMeteringSystem , \

@@ -171,7 +171,7 @@ print(delta_raw_tbl_name)
 
 # DBTITLE 1,10. Load Raw to Dataframe & Do Transformations
 df = spark.sql(f"WITH stage AS \
-                      (select *, 'U' as _upsertFlag from (Select *, ROW_NUMBER() OVER (PARTITION BY BELNR ORDER BY _DLRawZoneTimestamp DESC, DELTA_TS DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') where _RecordVersion = 1) \
+                      (select * from (Select *, ROW_NUMBER() OVER (PARTITION BY BELNR ORDER BY _DLRawZoneTimestamp DESC, DELTA_TS DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') where _RecordVersion = 1) \
                            select \
                                   case when BELNR = 'na' then '' else BELNR end as billingDocumentNumber, \
                                   BUKRS as companyCode, \
@@ -219,7 +219,7 @@ df = spark.sql(f"WITH stage AS \
                                   ToValidDate(AEDAT) as  lastChangedDate, \
                                   AENAM as changedBy, \
                                   BEGRU as authorizationGroupCode, \
-                                  (CASE WHEN LOEVM IS NULL THEN 'N' ELSE 'Y' END) as deletedFlag, \
+                                  (CASE WHEN LOEVM IS NULL OR TRIM(LOEVM) = '' THEN 'N' ELSE 'Y' END) as deletedFlag, \
                                   ToValidDate(ABRDATSU) as  suppressedBillingOrderScheduleDate, \
                                   ABRVORGU as suppressedBillingOrderTransactionCode, \
                                   N_INVSEP as jointInvoiceAutomaticDocumentIndicator, \
@@ -271,7 +271,7 @@ df = spark.sql(f"WITH stage AS \
                                   '' as documentType,\
                                   cast('1900-01-01' as TimeStamp) as _RecordStart, \
                                   cast('9999-12-31' as TimeStamp) as _RecordEnd, \
-                                  (CASE WHEN LOEVM IS NULL THEN 'N' ELSE 'Y' END) as _RecordDeleted, \
+                                  (CASE WHEN LOEVM IS NULL OR TRIM(LOEVM) = '' THEN '0' ELSE '1' END) as _RecordDeleted, \
                                   '1' as _RecordCurrent, \
                                   cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
                         FROM stage stg \
@@ -394,13 +394,7 @@ newSchema = StructType([
 
 # DBTITLE 1,12.1 Save Non Deleted Records Data frame into Cleansed Delta table (Final)
 # Load Non deleted records same as earlier
-DeltaSaveDataFrameToDeltaTable(df.filter("_RecordDeleted = '0'"), target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
-
-# COMMAND ----------
-
-# DBTITLE 1,12.2 Save Deleted records Data frame into Cleansed Delta table
-# Load deleted records to replace the existing Deleted records implementation logic
-DeltaSaveDataFrameToDeltaTable(df.filter("_RecordDeleted = '1'"), target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
+DeltaSaveDataFrameToDeltaTable(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
 
 # COMMAND ----------
 

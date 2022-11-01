@@ -184,7 +184,7 @@ where  _RecordVersion = 1 and DI_OPERATION_TYPE ='X'), \
                                 case when ABLESGR = 'na' then '' else ABLESGR end as meterReadingReasonCode, \
                                 ToValidDate(ADATSOLL) as meterReadingScheduleDate, \
                                 case when ANLAGE = 'na' then '' else ANLAGE end as installationId, \
-                                (CASE WHEN LOEVM IS NULL THEN 'N' ELSE 'Y' END) as deletedFlag, \
+                                (CASE WHEN LOEVM IS NULL OR TRIM(LOEVM) = '' THEN 'N' ELSE 'Y' END) as deletedFlag, \
                                 UPDMOD as bwDeltaProcess, \
                                 cast('1900-01-01' as TimeStamp) as _RecordStart, \
                                 cast('9999-12-31' as TimeStamp) as _RecordEnd, \

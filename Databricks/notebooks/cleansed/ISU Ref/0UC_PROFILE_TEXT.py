@@ -175,10 +175,10 @@ df = spark.sql(f"WITH stage AS \
                            SELECT \
                                 case when PROFILE = 'na' then '' else PROFILE end as profileCode, \
                                 PROFTEXT as profile, \
-                                (CASE WHEN LOEVM IS NULL THEN 'N' ELSE 'Y' END) as deletedFlag,\
+                                (CASE WHEN LOEVM IS NULL OR TRIM(LOEVM) = '' THEN 'N' ELSE 'Y' END) as deletedFlag,\
                                 cast('1900-01-01' as TimeStamp) as _RecordStart, \
                                 cast('9999-12-31' as TimeStamp) as _RecordEnd, \
-                                (CASE WHEN LOEVM IS NULL THEN '0' ELSE '1' END) as _RecordDeleted, \
+                                (CASE WHEN LOEVM IS NULL OR TRIM(LOEVM) = '' THEN '0' ELSE '1' END) as _RecordDeleted, \
                                 '1' as _RecordCurrent, \
                                 cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
                         from stage where _RecordVersion = 1 ")

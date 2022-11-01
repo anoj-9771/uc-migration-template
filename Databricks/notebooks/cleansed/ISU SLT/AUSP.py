@@ -3,7 +3,7 @@
 import json
 #For unit testing...
 #Use this string in the Param widget: 
-#{"SourceType":"BLOB Storage (json)","SourceServer":"daf-sa-blob-sastoken","SourceGroup":"isudata","SourceName":"isu_AUSP","SourceLocation":"isudata/AUSP","AdditionalProperty":"","Processor":"databricks-token|1018-021846-1a1ycoqc|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive","IsAuditTable":false,"SoftDeleteSource":"","ProjectName":"CLEANSED ISU DATA","ProjectId":12,"TargetType":"BLOB Storage (json)","TargetName":"isu_AUSP","TargetLocation":"isudata/AUSP","TargetServer":"daf-sa-lake-sastoken","DataLoadMode":"INCREMENTAL","DeltaExtract":true,"CDCSource":false,"TruncateTarget":false,"UpsertTarget":true,"AppendTarget":null,"TrackChanges":false,"LoadToSqlEDW":true,"TaskName":"isu_AUSP","ControlStageId":2,"TaskId":228,"StageSequence":200,"StageName":"Raw to Cleansed","SourceId":228,"TargetId":228,"ObjectGrain":"Day","CommandTypeId":8,"Watermarks":"2000-01-01 00:00:00","WatermarksDT":"2000-01-01T00:00:00","WatermarkColumn":"_FileDateTimeStamp","BusinessKeyColumn":"classificationObjectInternalId,characteristicInternalId,characteristicValueInternalId,classifiedEntityType,classTypeCode,archivingObjectsInternalId","PartitionColumn":null,"UpdateMetaData":null,"SourceTimeStampFormat":"","WhereClause":"","Command":"/build/cleansed/ISU Data/AUSP","LastSuccessfulExecutionTS":"2000-01-01T23:46:12.39","LastLoadedFile":null}
+#$PARAM
 
 #Use this string in the Source Object widget
 #$GROUP_$SOURCE
@@ -170,14 +170,9 @@ print(delta_raw_tbl_name)
 # COMMAND ----------
 
 # DBTITLE 1,10. Load Raw to Dataframe & Do Transformations
-df = spark.sql(f"WITH stageUpsert AS \
-                      (select *, 'U' as _upsertFlag from (Select *, ROW_NUMBER() OVER (PARTITION BY OBJEK, ATINN, ATZHL, MAFID, KLART, ADZHL ORDER BY _DLRawZoneTimeStamp DESC, DELTA_TS DESC) AS _RecordVersion FROM {delta_raw_tbl_name} \
-                                  WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') where _RecordVersion = 1), \
-                     stageDelete AS \
-                      (select *, 'D' as _upsertFlag from ( \
-Select *, ROW_NUMBER() OVER (PARTITION BY OBJEK, ATINN, ATZHL, MAFID, KLART, ADZHL ORDER BY _DLRawZoneTimeStamp DESC, DELTA_TS DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' ) \
-where  _RecordVersion = 1 and IS_DELETED ='Y'), \
-                      stage AS (select * from stageUpsert union select * from stageDelete) \
+df = spark.sql(f"WITH stage AS \
+                      (Select *, ROW_NUMBER() OVER (PARTITION BY OBJEK, ATINN, ATZHL, MAFID, KLART, ADZHL ORDER BY _DLRawZoneTimeStamp DESC, DELTA_TS DESC) AS _RecordVersion FROM {delta_raw_tbl_name} \
+                                  WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') \
                            SELECT  \
                                     case when OBJEK = 'na' then '' else OBJEK end as classificationObjectInternalId, \
                                     case when ATINN = 'na' then '' else ATINN end as characteristicInternalId, \
@@ -199,7 +194,7 @@ where  _RecordVersion = 1 and IS_DELETED ='Y'), \
                                     ATAUT as characteristicAuthor, \
                                     AENNR as characteristicChangeNumber, \
                                     ToValidDate(DATUV) as validFromDate, \
-                                    (CASE WHEN LKENZ IS NULL THEN 'N' ELSE 'Y' END) as deletedFlag, \
+                                    (CASE WHEN LKENZ IS NULL OR TRIM(LKENZ) = '' THEN 'N' ELSE 'Y' END) as deletedFlag, \
                                     ToValidDate(DATUB) as validToDate, \
                                     DEC_VALUE_FROM as decimalMinimumValue, \
                                     DEC_VALUE_TO as decimalMaximumValue, \
@@ -211,13 +206,15 @@ where  _RecordVersion = 1 and IS_DELETED ='Y'), \
                                     TIME_TO as timeMaximumValue, \
                                     cast('1900-01-01' as TimeStamp) as _RecordStart, \
                                     cast('9999-12-31' as TimeStamp) as _RecordEnd, \
-                                    (CASE WHEN _upsertFlag = 'U' THEN '0' ELSE '1' END) as _RecordDeleted, \
+                                    '0' as _RecordDeleted, \
                                     '1' as _RecordCurrent, \
                                     cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
                         from stage stg \
                         LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_TCLAT tc ON stg.KLART = tc.classTypeCode \
                                      and tc._RecordDeleted = 0 and tc._RecordCurrent = 1 \
-                        ")
+                        where stg._RecordVersion = 1 ")
+
+#print(f'Number of rows: {df.count()}')
 
 # COMMAND ----------
 
@@ -262,17 +259,40 @@ newSchema = StructType([
 
 # COMMAND ----------
 
-# DBTITLE 1,12.1 Save Non Deleted Records Data frame into Cleansed Delta table (Final)
-# Load Non deleted records same as earlier
-DeltaSaveDataFrameToDeltaTable(df.filter("_RecordDeleted = '0'"), target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
+# DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
+DeltaSaveDataFrameToDeltaTable(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
 
 # COMMAND ----------
 
-# DBTITLE 1,12.2 Save Deleted records Data frame into Cleansed Delta table
-# Load deleted records to replace the existing Deleted records implementation logic
-DeltaSaveDataFrameToDeltaTable(df.filter("_RecordDeleted = '1'"), target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
+# DBTITLE 1,13.1 Identify Deleted records from Raw table
+df = spark.sql(f"select distinct coalesce(ATINN,'') as ATINN, coalesce(OBJEK,'') as OBJEK, coalesce(ATZHL,'') as ATZHL, coalesce(MAFID,'') as MAFID, coalesce(KLART,'') as KLART,  coalesce(ADZHL,'') as ADZHL from ( \
+Select *, ROW_NUMBER() OVER (PARTITION BY OBJEK, ATINN, ATZHL, MAFID, KLART, ADZHL ORDER BY _DLRawZoneTimeStamp DESC, DELTA_TS DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' ) \
+where  _RecordVersion = 1 and IS_DELETED ='Y'")
+df.createOrReplaceTempView("isu_ausp_deleted_records")
 
 # COMMAND ----------
 
-# DBTITLE 1,13. Exit Notebook
+# DBTITLE 1,13.2 Update _RecordDeleted and _RecordCurrent Flags
+#Get current time
+CurrentTimeStamp = GeneralLocalDateTime()
+CurrentTimeStamp = CurrentTimeStamp.strftime("%Y-%m-%d %H:%M:%S")
+
+spark.sql(f" \
+    MERGE INTO cleansed.isu_AUSP \
+    using isu_ausp_deleted_records \
+    on isu_AUSP.characteristicInternalId = isu_ausp_deleted_records.ATINN \
+    and isu_AUSP.classificationObjectInternalId = isu_ausp_deleted_records.OBJEK \
+    and isu_AUSP.characteristicValueInternalId = isu_ausp_deleted_records.ATZHL \
+    and isu_AUSP.classifiedEntityType = isu_ausp_deleted_records.MAFID \
+    and isu_AUSP.classTypeCode = isu_ausp_deleted_records.KLART \
+    and isu_AUSP.archivingObjectsInternalId = isu_ausp_deleted_records.ADZHL \
+    WHEN MATCHED THEN UPDATE SET \
+    _DLCleansedZoneTimeStamp = cast('{CurrentTimeStamp}' as TimeStamp) \
+    ,_RecordDeleted=1 \
+    ,_RecordCurrent=0 \
+    ")
+
+# COMMAND ----------
+
+# DBTITLE 1,14. Exit Notebook
 dbutils.notebook.exit("1")
