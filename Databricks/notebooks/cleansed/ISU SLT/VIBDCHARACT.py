@@ -178,7 +178,7 @@ df = spark.sql(f"WITH stage AS \
                                   case when FIXFITCHARACT = 'na' then '' else FIXFITCHARACT end as fixtureAndFittingCharacteristicCode, \
                                   ff.fixtureAndFittingCharacteristic as fixtureAndFittingCharacteristic, \
                                   ToValidDate(VALIDTO,'MANDATORY') as validToDate, \
-                                  ToValidDate(VALIDFROM, 'Optional', 'Min') as validFromDate, \
+                                  ToValidDate(VALIDFROM) as validFromDate, \
                                   AMOUNTPERAREA as amountPerAreaUnit, \
                                   FFCTACCURATE as applicableIndicator, \
                                   CHARACTAMTAREA as characteristicAmountArea, \
