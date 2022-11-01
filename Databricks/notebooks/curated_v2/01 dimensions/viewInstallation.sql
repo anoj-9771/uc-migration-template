@@ -60,7 +60,7 @@ effectiveDateranges as
         dimInstallationHistory.portionNumber,
         dimInstallationHistory.portionText,
         dimInstallationHistory.industrySystemCode,
-        dimInstallationHistory.Industry System,
+        dimInstallationHistory.IndustrySystem,
         dimInstallationHistory.industryCode,
         dimInstallationHistory.industry,
         dimInstallationHistory.billingClassCode,
