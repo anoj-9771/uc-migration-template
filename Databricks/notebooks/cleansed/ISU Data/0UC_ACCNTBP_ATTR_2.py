@@ -3,7 +3,51 @@
 import json
 #For unit testing...
 #Use this string in the Param widget: 
-#{"SourceType": "BLOB Storage (json)", "SourceServer": "daf-sa-lake-sastoken", "SourceGroup": "isu", "SourceName": "isu_0UC_ACCNTBP_ATTR_2", "SourceLocation": "isu/0UC_ACCNTBP_ATTR_2", "AdditionalProperty": "", "Processor": "databricks-token|0711-011053-turfs581|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive", "IsAuditTable": false, "SoftDeleteSource": "", "ProjectName": "ISU DATA", "ProjectId": 2, "TargetType": "BLOB Storage (json)", "TargetName": "isu_0UC_ACCNTBP_ATTR_2", "TargetLocation": "isu/0UC_ACCNTBP_ATTR_2", "TargetServer": "daf-sa-lake-sastoken", "DataLoadMode": "FULL-EXTRACT", "DeltaExtract": false, "CDCSource": false, "TruncateTarget": false, "UpsertTarget": true, "AppendTarget": null, "TrackChanges": false, "LoadToSqlEDW": true, "TaskName": "isu_0UC_ACCNTBP_ATTR_2", "ControlStageId": 2, "TaskId": 46, "StageSequence": 200, "StageName": "Raw to Cleansed", "SourceId": 46, "TargetId": 46, "ObjectGrain": "Day", "CommandTypeId": 8, "Watermarks": "", "WatermarksDT": null, "WatermarkColumn": "", "BusinessKeyColumn": "businessPartnerGroupNumber,contractAccountNumber", "UpdateMetaData": null, "SourceTimeStampFormat": "", "Command": "", "LastLoadedFile": null}
+# {
+# 	"SourceType": "BLOB Storage (json)", 
+# 	"SourceServer": "daf-sa-lake-sastoken", 
+# 	"SourceGroup": "isudata", 
+# 	"SourceName": "isu_0UC_ACCNTBP_ATTR_2", 
+# 	"SourceLocation": "isudata/0UC_ACCNTBP_ATTR_2", 
+# 	"AdditionalProperty": "", 
+# 	"Processor": "databricks-token|0527-214324-ytwxx0tv|Standard_DS12_v2|10.4.x-scala2.12|2:28|interactive",
+# 	"IsAuditTable": false, 
+# 	"SoftDeleteSource": "", 
+# 	"ProjectName": "CLEANSED ISU DATA", 
+# 	"ProjectId": 12, 
+# 	"TargetType": "BLOB Storage (json)", 
+# 	"TargetName": "isu_0UC_ACCNTBP_ATTR_2", 
+# 	"TargetLocation": "isudata/0UC_ACCNTBP_ATTR_2", 
+# 	"TargetServer": "daf-sa-lake-sastoken", 
+# 	"DataLoadMode": "TRUNCATE-LOAD", 
+# 	"DeltaExtract": false, 
+# 	"CDCSource": false, 
+# 	"TruncateTarget": true, 
+# 	"UpsertTarget": false, 
+# 	"AppendTarget": false, 
+# 	"TrackChanges": false, 
+# 	"LoadToSqlEDW": true, 
+# 	"TaskName": "isu_0UC_ACCNTBP_ATTR_2", 
+# 	"ControlStageId": 2, 
+# 	"TaskId": 124, 
+# 	"StageSequence": 200, 
+# 	"StageName": "Raw to Cleansed", 
+# 	"SourceId": 124, 
+# 	"TargetId": 124, 
+# 	"ObjectGrain": "Day", 
+# 	"CommandTypeId": 8, 
+# 	"Watermarks": "", 
+# 	"WatermarksDT": "2000-01-01T00:00:00", 
+# 	"WatermarkColumn": "_FileDateTimeStamp", 
+# 	"BusinessKeyColumn": "businessPartnerGroupNumber,contractAccountNumber", 
+# 	"PartitionColumn": null, 
+# 	"UpdateMetaData": null, 
+# 	"SourceTimeStampFormat": "", 
+# 	"WhereClause": "WHERE relationshipDirection = 2 AND deletedIndicator IS NULL",
+# 	"Command": "/build/cleansed/ISU Data/0UC_ACCNTBP_ATTR_2", 
+# 	"LastSuccessfulExecutionTS": "1900-01-01",
+# 	"LastLoadedFile": null
+# }
 
 #Use this string in the Source Object widget
 #isu_0UC_ACCNTBP_ATTR_2
@@ -199,7 +243,12 @@ df = spark.sql(f"""WITH stage AS
                                 ABWMA as alternativeDunningRecipient, 
                                 EBVTY as bankDetailsId, 
                                 EZAWE as incomingPaymentMethodCode, 
-                                if(LOEVM = 'X', 'Y', 'N') as deletedFlag, 
+                                CASE
+                                    WHEN LOEVM IS NULL
+                                    OR TRIM(LOEVM) = ''
+                                    THEN 'N'
+                                    ELSE 'Y'
+                                END as deletedFlag, 
                                 ABWVK as alternativeContractAccountForCollectiveBills,
                                 VKPBZ as accountRelationshipCode, 
                                 acc_txt.accountRelationship as accountRelationship, 
@@ -243,6 +292,7 @@ df = spark.sql(f"""WITH stage AS
                                 cast('9999-12-31' as TimeStamp) as _RecordEnd, 
                                 CASE
                                     WHEN LOEVM IS NULL
+                                    OR TRIM(LOEVM) = ''
                                     THEN '0'
                                     ELSE '1'
                                 END as _RecordDeleted, 
@@ -337,6 +387,14 @@ df = spark.sql(f"""WITH stage AS
 
 
 # print(f'Number of rows: {df_cleansed.count()}')
+
+# COMMAND ----------
+
+display(
+    df
+    .groupBy("deletedFlag", "_recordDeleted")
+    .count()
+)
 
 # COMMAND ----------
 

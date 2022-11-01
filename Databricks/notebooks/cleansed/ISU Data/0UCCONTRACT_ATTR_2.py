@@ -248,7 +248,12 @@ df = spark.sql(f"""
             ERNAM as createdBy, 
             ToValidDate(AEDAT) as lastChangedDate, 
             AENAM as lastChangedBy, 
-            (CASE WHEN LOEVM = 'X' THEN 'Y' ELSE 'N' END) as deletedFlag, 
+            CASE 
+                WHEN ca.LOEVM IS NULL 
+                OR TRIM(ca.LOEVM) = ''
+                THEN 'N' 
+                ELSE 'Y' 
+            END as deletedFlag, 
             (CASE WHEN FAKTURIERT = 'X' THEN 'Y' ELSE 'N' END) as isContractInvoicedFlag, 
             PS_PSP_PNR as wbsElement, 
             AUSGRUP as outsortingCheckGroupForBilling, 
@@ -280,7 +285,12 @@ df = spark.sql(f"""
             ZZ_OBJNR as objectNumber, 
             cast('1900-01-01' as TimeStamp) as _RecordStart, 
             cast('9999-12-31' as TimeStamp) as _RecordEnd, 
-            (CASE WHEN LOEVM IS NULL THEN '0' ELSE '1' END) as _RecordDeleted, 
+            CASE 
+                WHEN ca.LOEVM IS NULL 
+                OR TRIM(ca.LOEVM) = ''
+                THEN '0' 
+                ELSE '1' 
+            END as _RecordDeleted, 
             '1' as _RecordCurrent, 
             cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp 
         FROM stage ca 

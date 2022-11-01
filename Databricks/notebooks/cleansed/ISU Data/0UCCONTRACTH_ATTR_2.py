@@ -316,7 +316,7 @@ DeltaSaveDataFrameToDeltaTable(
     newSchema, 
     track_changes, 
     is_delta_extract, 
-    business_key = 'contractId,validFromDate,validToDate'
+    business_key = 'contractId,validFromDate,validToDate',
     AddSKColumn = False, 
     delta_column = "", 
     start_counter = "0", 

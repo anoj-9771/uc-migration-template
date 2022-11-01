@@ -22,8 +22,8 @@ effectiveDateranges as
 (
 	select 
 		installationNumber, 
-		_effectiveFrom, 
-		coalesce(timestamp(date_add(lead(_effectiveFrom,1) over(partition by installationNumber order by _effectiveFrom), -1)), '9999-12-31 00:00:00') as _effectiveTo
+		to_date(_effectiveFrom) AS _effectiveFrom, 
+		to_date(coalesce(timestamp(date_add(lead(_effectiveFrom,1) over(partition by installationNumber order by _effectiveFrom), -1)), '9999-12-31 00:00:00')) as _effectiveTo
 	from dateDriver 
 )
 
@@ -60,7 +60,7 @@ effectiveDateranges as
         dimInstallationHistory.portionNumber,
         dimInstallationHistory.portionText,
         dimInstallationHistory.industrySystemCode,
-        dimInstallationHistory.Industry System,
+        dimInstallationHistory.IndustrySystem,
         dimInstallationHistory.industryCode,
         dimInstallationHistory.industry,
         dimInstallationHistory.billingClassCode,
