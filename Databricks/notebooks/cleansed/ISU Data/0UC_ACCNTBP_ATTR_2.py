@@ -390,6 +390,14 @@ df = spark.sql(f"""WITH stage AS
 
 # COMMAND ----------
 
+display(
+    df
+    .groupBy("deletedFlag", "_recordDeleted")
+    .count()
+)
+
+# COMMAND ----------
+
 newSchema = StructType([
 	StructField('businessPartnerGroupNumber',StringType(),False),
 	StructField('contractAccountNumber',StringType(),False),

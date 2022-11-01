@@ -250,8 +250,8 @@ df = (
           CASE
               WHEN BP.XDELE IS NULL
               OR TRIM(BP.XDELE) = ''
-              THEN '0'                                                              
-              ELSE '1'
+              THEN 'N'                                                              
+              ELSE 'Y'
           END                                                             as deletedFlag,
           XBLCK                                                           as centralBlockBusinessPartner, 
           ZZUSER                                                          as userId, 

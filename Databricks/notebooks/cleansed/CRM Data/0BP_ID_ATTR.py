@@ -254,7 +254,7 @@ df = spark.sql(f"""
                 OR TRIM(BP.FLG_DEL_BW) = ''
                 THEN 'N'
                 ELSE 'Y'
-            END                                                             as _RecordDeleted, 
+            END                                                             as deletedFlag, 
             cast('1900-01-01' as TimeStamp)                                 as _RecordStart, 
             cast('9999-12-31' as TimeStamp)                                 as _RecordEnd, 
             CASE

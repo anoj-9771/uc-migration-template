@@ -251,8 +251,8 @@ df = spark.sql(f"""
             CASE 
                 WHEN ca.LOEVM IS NULL 
                 OR TRIM(ca.LOEVM) = ''
-                THEN '0' 
-                ELSE '1' 
+                THEN 'N' 
+                ELSE 'Y' 
             END as deletedFlag, 
             (CASE WHEN FAKTURIERT = 'X' THEN 'Y' ELSE 'N' END) as isContractInvoicedFlag, 
             PS_PSP_PNR as wbsElement, 
