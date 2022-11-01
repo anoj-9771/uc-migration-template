@@ -231,7 +231,12 @@ df = spark.sql(f"""
                ERNAM                                           as createdBy, 
                ToValidDate(AEDAT)                              as lastChangedDate, 
                AENAM                                           as lastChangedBy, 
-               if(LOEVM = 'X', 'Y', 'N')                       as deletedFlag,
+               CASE
+                   WHEN LOEVM IS NULL
+                   OR TRIM(LOEVM) = ''
+                   THEN 'N'
+                   ELSE 'Y' 
+               END                                             as deletedFlag, 
                APPLK                                           as applicationAreaCode, 
                APP.applicationArea                             as applicationArea,
                VKTYP                                           as contractAccountCategoryCode, 
@@ -241,6 +246,7 @@ df = spark.sql(f"""
                cast('9999-12-31' as TimeStamp)                 as _RecordEnd, 
                CASE
                    WHEN LOEVM IS NULL
+                   OR TRIM(LOEVM) = ''
                    THEN '0'
                    ELSE '1' 
                END                                             as _RecordDeleted, 

@@ -199,7 +199,12 @@ df = spark.sql(f"""WITH stage AS
                                 ABWMA as alternativeDunningRecipient, 
                                 EBVTY as bankDetailsId, 
                                 EZAWE as incomingPaymentMethodCode, 
-                                if(LOEVM = 'X', 'Y', 'N') as deletedFlag, 
+                                CASE
+                                    WHEN LOEVM IS NULL
+                                    OR TRIM(LOEVM) = ''
+                                    THEN 'N'
+                                    ELSE 'Y'
+                                END as deletedFlag, 
                                 ABWVK as alternativeContractAccountForCollectiveBills,
                                 VKPBZ as accountRelationshipCode, 
                                 acc_txt.accountRelationship as accountRelationship, 
@@ -243,6 +248,7 @@ df = spark.sql(f"""WITH stage AS
                                 cast('9999-12-31' as TimeStamp) as _RecordEnd, 
                                 CASE
                                     WHEN LOEVM IS NULL
+                                    OR TRIM(LOEVM) = ''
                                     THEN '0'
                                     ELSE '1'
                                 END as _RecordDeleted, 
