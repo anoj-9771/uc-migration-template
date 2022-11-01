@@ -248,7 +248,7 @@ df = spark.sql(f"""
             ERNAM as createdBy, 
             ToValidDate(AEDAT) as lastChangedDate, 
             AENAM as lastChangedBy, 
-                        CASE 
+            CASE 
                 WHEN ca.LOEVM IS NULL 
                 OR TRIM(ca.LOEVM) = ''
                 THEN '0' 
@@ -329,14 +329,6 @@ df = spark.sql(f"""
 )
 
 #print(f'Number of rows: {df.count()}')
-
-# COMMAND ----------
-
-display(
-    df
-    .groupBy("deletedFlag", "_RecordDeleted")
-    .count()
-)
 
 # COMMAND ----------
 
