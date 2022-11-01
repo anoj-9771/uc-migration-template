@@ -249,10 +249,9 @@ df = spark.sql(f"""
             ToValidDate(AEDAT) as lastChangedDate, 
             AENAM as lastChangedBy, 
             CASE 
-                WHEN ca.LOEVM IS NULL 
-                OR TRIM(ca.LOEVM) = ''
-                THEN 'N' 
-                ELSE 'Y' 
+                WHEN ca.LOEVM = 'X'
+                THEN 'Y' 
+                ELSE 'N' 
             END as deletedFlag, 
             (CASE WHEN FAKTURIERT = 'X' THEN 'Y' ELSE 'N' END) as isContractInvoicedFlag, 
             PS_PSP_PNR as wbsElement, 
@@ -286,10 +285,9 @@ df = spark.sql(f"""
             cast('1900-01-01' as TimeStamp) as _RecordStart, 
             cast('9999-12-31' as TimeStamp) as _RecordEnd, 
             CASE 
-                WHEN ca.LOEVM IS NULL 
-                OR TRIM(ca.LOEVM) = ''
-                THEN '0' 
-                ELSE '1' 
+                WHEN ca.LOEVM = 'X'
+                THEN '1' 
+                ELSE '0' 
             END as _RecordDeleted, 
             '1' as _RecordCurrent, 
             cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp 

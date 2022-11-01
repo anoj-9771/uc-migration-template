@@ -232,10 +232,9 @@ df = spark.sql(f"""
                ToValidDate(AEDAT)                              as lastChangedDate, 
                AENAM                                           as lastChangedBy, 
                CASE
-                   WHEN LOEVM IS NULL
-                   OR TRIM(LOEVM) = ''
-                   THEN 'N'
-                   ELSE 'Y' 
+                   WHEN LOEVM = 'X'
+                   THEN 'Y'
+                   ELSE 'N' 
                END                                             as deletedFlag, 
                APPLK                                           as applicationAreaCode, 
                APP.applicationArea                             as applicationArea,
@@ -245,10 +244,9 @@ df = spark.sql(f"""
                cast('1900-01-01' as TimeStamp)                 as _RecordStart, 
                cast('9999-12-31' as TimeStamp)                 as _RecordEnd, 
                CASE
-                   WHEN LOEVM IS NULL
-                   OR TRIM(LOEVM) = ''
-                   THEN '0'
-                   ELSE '1' 
+                   WHEN LOEVM = 'X'
+                   THEN '1'
+                   ELSE '0' 
                END                                             as _RecordDeleted, 
                '1'                                             as _RecordCurrent, 
                cast('{CurrentTimeStamp}' as TimeStamp)         as _DLCleansedZoneTimeStamp 
