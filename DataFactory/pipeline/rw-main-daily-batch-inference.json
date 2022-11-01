@@ -395,6 +395,12 @@
 						"dependencyConditions": [
 							"Succeeded"
 						]
+					},
+					{
+						"activity": "Set Base AEM Url",
+						"dependencyConditions": [
+							"Succeeded"
+						]
 					}
 				],
 				"policy": {
@@ -407,7 +413,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"url": {
-						"value": "@concat(pipeline().parameters.BaseAemUrl,'libs/granite/csrf/token.json')",
+						"value": "@concat(variables('BaseAemUrl'),'libs/granite/csrf/token.json')",
 						"type": "Expression"
 					},
 					"connectVia": {
@@ -471,7 +477,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"url": {
-						"value": "@concat(pipeline().parameters.BaseAemUrl,'api/assets/sydneywater-applications-mpg/RW_output.json')",
+						"value": "@concat(variables('BaseAemUrl'),'api/assets/sydneywater-applications-mpg/RW_output.json')",
 						"type": "Expression"
 					},
 					"connectVia": {
@@ -725,16 +731,60 @@
 						}
 					}
 				}
+			},
+			{
+				"name": "Get Base AEM Url",
+				"type": "WebActivity",
+				"dependsOn": [
+					{
+						"activity": "Execute 04_JSON_RW_output",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"url": "https://kv-daf-dev-01.vault.azure.net/secrets/AEM-Base-URL/a6cce1bde8c048dd834cbde9e7d8fddf?api-version=7.0",
+					"method": "GET",
+					"authentication": {
+						"type": "MSI",
+						"resource": "https://vault.azure.net"
+					}
+				}
+			},
+			{
+				"name": "Set Base AEM Url",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "Get Base AEM Url",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "BaseAemUrl",
+					"value": {
+						"value": "@activity('Get Base AEM Url').output.value",
+						"type": "Expression"
+					}
+				}
 			}
 		],
 		"parameters": {
 			"DatabricksJobName": {
 				"type": "string",
 				"defaultValue": "riverwatch-pipeline"
-			},
-			"BaseAemUrl": {
-				"type": "string",
-				"defaultValue": "https://azure-apidev.swcdev/aem-assets/v1/"
 			},
 			"currentModelRuntimeOverride": {
 				"type": "string"
@@ -766,6 +816,9 @@
 				"type": "String"
 			},
 			"ClusterId": {
+				"type": "String"
+			},
+			"BaseAemUrl": {
 				"type": "String"
 			}
 		},
