@@ -240,7 +240,12 @@ df = (
             BP.BU_SORT2                                                           as searchTerm2, 
             BP.TITLE                                                              as titleCode, 
             TITLE.TITLE                                                           as title, 
-            case when BP.XDELE = 'X' then 'Y' else 'N' end                        as deletedFlag, 
+            CASE
+                WHEN BP.XDELE IS NULL
+                OR TRIM(BP.XDELE) = ''
+                THEN 'N'                                                              
+                ELSE 'Y'
+            END                                                                   as deletedFlag,
             BP.XBLCK                                                              as centralBlockBusinessPartner, 
             BP.ZZUSER                                                             as userId, 
             case when BP.ZZPAS_INDICATOR = 'X' then 'Y' else 'N' end              as paymentAssistSchemeFlag, -- TRANSFORMATION
