@@ -303,8 +303,8 @@ df = (
             CASE
                 WHEN BP.XDELE IS NULL
                 OR TRIM(BP.XDELE) = ''
-                THEN '1'                                                              
-                ELSE '0'
+                THEN '0'                                                              
+                ELSE '1'
             END                                                                   as _RecordDeleted,
             '1'                                                                   as _RecordCurrent, 
             cast('{CurrentTimeStamp}' as TimeStamp)                               as _DLCleansedZoneTimeStamp 
