@@ -1,0 +1,28 @@
+{
+	"name": "BATCH_DAILY_RIVERWATCH",
+	"properties": {
+		"annotations": [],
+		"runtimeState": "Stopped",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "rw-main-daily-batch-inference",
+					"type": "PipelineReference"
+				},
+				"parameters": {
+					"DatabricksJobName": "riverwatch-pipeline",
+					"BaseAemUrl": "https://azure-apidev.swcdev/aem-assets/v1/"
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Day",
+				"interval": 1,
+				"startTime": "2022-10-21T07:40:00Z",
+				"timeZone": "UTC"
+			}
+		}
+	}
+}
