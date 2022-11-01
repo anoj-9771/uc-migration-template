@@ -27,6 +27,9 @@ SELECT 'BoM' SystemCode, 'BoM' SourceSchema, '' SourceKeyVaultSecret, 'http-bina
 UNION
 SELECT 'BoM' SystemCode, 'BoM' SourceSchema, '' SourceKeyVaultSecret, 'ftp-binary-load' SourceHandler, 'xml' RawFileExtension, 'raw-load' RawHandler, 'cleansed-load' CleansedHandler, 'WeatherForecast' SourceTableName, 'ftp://ftp.bom.gov.au/anon/gen/fwo/IDN10064.xml' SourceQuery, '{"rowTag" : "area"}' ExtendedProperties
 
+UNION
+SELECT 'BoM' SystemCode, 'BoM' SourceSchema, '' SourceKeyVaultSecret, 'http-binary-load' SourceHandler, 'csv' RawFileExtension, 'raw-bom-csv' RawHandler, 'cleansed-load' CleansedHandler, 'DailyWeatherObservation_SydneyAirport' SourceTableName, 'http://www.bom.gov.au/climate/dwo/$yyyy$$MM$/text/IDCJDW2125.$yyyy$$MM$.csv' SourceQuery, '' ExtendedProperties
+
 UNION 
 SELECT 'iicats' SystemCode, 'scxstg' SourceSchema, 'daf-oracle-IICATS-stg-connectionstring' SourceKeyVaultSecret, 'oracle-load' SourceHandler, NULL RawFileExtension, 'raw-load-delta' RawHandler, 'cleansed-load-delta' CleansedHandler, 'dly_prof_cnfgn' SourceTableName, null SourceQuery, NULL ExtendedProperties
 UNION 

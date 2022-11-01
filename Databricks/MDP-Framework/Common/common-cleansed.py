@@ -174,6 +174,7 @@ def DataTypeConvertRow(columnName, dataType):
 
 from pyspark.sql.functions import expr, col
 def CleansedTransform(dataFrame, tableFqn, systemCode, showTransform=False):
+    tableFqn = tableFqn.lower()
     dataFrame = spark.table(tableFqn) if dataFrame is None else dataFrame
     path = f"{CLEANSED_PATH}/{systemCode.lower()}_cleansed.csv"
 

@@ -50,8 +50,7 @@ dbutils.widgets.text(name="process_timestamp", defaultValue="2022-02-07T12:00:00
 TIME_VARIABLE=dbutils.widgets.get("process_timestamp")
 
 #--------------- open and prepare json file -----------
-# with open('/dbfs/mnt/blob-urbanplunge/RW_locations.json', 'r') as f:
-# with open('/dbfs/FileStore/DataLab/Riverwatch/RW_locations_allsites_nolocationlayer.json', 'r') as f:
+# with open('/dbfs/FileStore/DataLab/Riverwatch/RW_locations.json', 'r') as f:
 with open('/dbfs/mnt/blob-urbanplunge/RW_locations.json', 'r') as f:
     RW_locations = json.load(f)
 # print(json.dumps(RW_locations, indent = 4))
@@ -241,7 +240,7 @@ for index,location in enumerate(RW_locations_InactiveRevmoved['locations']):
             highTideTime_timedelt=timedelta(hours=highTideTime.hour, minutes=highTideTime.minute)
             lowTideTime=datetime.strptime(str(rw_lowTide.startTimeLocal[0].time()), '%H:%M:%S').time()
             lowTideTime_timedelt=timedelta(hours=lowTideTime.hour, minutes=lowTideTime.minute)
-            if location["tidal_adjustment"]=="NoTide":
+            if location["tidal_adjustment"]=="No Tide":
                 high_tide=str(highTideTime_timedelt) # done
                 low_tide=str(lowTideTime_timedelt) # done
             else:
@@ -268,7 +267,7 @@ for index,location in enumerate(RW_locations_InactiveRevmoved['locations']):
                     forecast_precise = RW_icon_code["icon_meaning"][icon] #done
             air_temp_min=str(minairtemp.types_value[0]) #done
             air_temp_max=str(maxairtemp.types_value[0]) #done 
-            rainfall_since9am = str(round(rain_wind.Rainfall_mm[0]))+"mm" #done
+            rainfall_since9am = str(round(rain_wind.Rainfall_mm[0])) #done
             windspeed_kmh = str(rain_wind.latest_wind_speed[0]) #done
             wind_direction = rain_wind.latest_wind_dire[0] #done
             uv_forecast = (str(uv.uv_interpret[0][-2]) + "/11+") # done
@@ -286,7 +285,7 @@ for index,location in enumerate(RW_locations_InactiveRevmoved['locations']):
             lowTideTime=datetime.strptime(beachwatch_info.lowTideTime[0], '%H:%M').time()
             lowTideTime_timedelt=timedelta(hours=lowTideTime.hour, minutes=lowTideTime.minute)
 
-            if location["tidal_adjustment"]=="NoTide":
+            if location["tidal_adjustment"]=="No Tide":
                 high_tide=str(highTideTime_timedelt) # done
                 low_tide=str(lowTideTime_timedelt) # done
             else:
@@ -311,7 +310,7 @@ for index,location in enumerate(RW_locations_InactiveRevmoved['locations']):
                     forecast_precise = RW_icon_code["icon_meaning"][icon] #done
             air_temp_min=str(minairtemp.types_value[0]) #done
             air_temp_max=str(maxairtemp.types_value[0]) #done 
-            rainfall_since9am = str(round(rain_wind.Rainfall_mm[0]))+"mm" #done
+            rainfall_since9am = str(round(rain_wind.Rainfall_mm[0])) #done
             windspeed_kmh = str(rain_wind.latest_wind_speed[0]) #done
             wind_direction = rain_wind.latest_wind_dire[0] #done
             uv_forecast = (str(uv.uv_interpret[0][-2])  + "/11+") # done
@@ -353,7 +352,7 @@ for index,location in enumerate(RW_locations_InactiveRevmoved['locations']):
                     forecast_precise = RW_icon_code["icon_meaning"][icon] #done
             air_temp_min=str(minairtemp.types_value[0]) #done
             air_temp_max=str(maxairtemp.types_value[0]) #done 
-            rainfall_since9am = str(round(rain_wind.Rainfall_mm[0]))+"mm" #done
+            rainfall_since9am = str(round(rain_wind.Rainfall_mm[0])) #done
             windspeed_kmh = str(rain_wind.latest_wind_speed[0]) #done
             wind_direction = rain_wind.latest_wind_dire[0] #done
             uv_forecast = (str(uv.uv_interpret[0][-2]) + "/11+") # done
@@ -414,7 +413,6 @@ RW_output=dict(list(RW_notice.items()) + list(RW_header.items()) + list(RW_locat
 # RW_output = json.dumps(RW_output, indent = 4)
 
 # print(json.dumps(RW_output, indent = 4))
-
 
 # COMMAND ----------
 

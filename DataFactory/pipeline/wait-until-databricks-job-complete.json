@@ -71,6 +71,12 @@
 		"variables": {
 			"RegisterModelState": {
 				"type": "String"
+			},
+			"Save_Data_To_Azure_SQLRunID": {
+				"type": "String"
+			},
+			"sewer-cctv-pipeline-run-id": {
+				"type": "String"
 			}
 		},
 		"folder": {
