@@ -22,7 +22,7 @@ effectiveDateranges as
 (
 	select 
 		installationNumber, 
-		_effectiveFrom, 
+		to_date(_effectiveFrom) AS _effectiveFrom, 
 		to_date(coalesce(timestamp(date_add(lead(_effectiveFrom,1) over(partition by installationNumber order by _effectiveFrom), -1)), '9999-12-31 00:00:00')) as _effectiveTo
 	from dateDriver 
 )
