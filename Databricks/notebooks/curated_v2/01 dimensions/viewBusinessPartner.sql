@@ -11,16 +11,20 @@ CREATE OR REPLACE VIEW curated_v2.viewBusinessPartnerIdentification AS
 
 WITH all_ID AS (
 		/*================================================================================================
-			All IDs
+			all_ID
 				-> _rank: used to only bring 1 businesspartner ID per identification type
 				-> _currentIndicator: Used to flag whether ID validFrom and To dates are between the current date
-                -> Filter to CURRENT_DATE() BETWEEN _RecordStart AND _RecordEnd
+                -> Filter CURRENT_DATE() BETWEEN _RecordStart AND _RecordEnd
 		 ================================================================================================*/
 		SELECT
         *,
-        RANK() OVER (PARTITION BY sourceSystemCode, businessPartnerNumber, identificationType ORDER BY ifnull(validToDate, '9999-01-01') DESC, ifnull(entryDate, '1900-01-01') DESC) AS _rank,
+        RANK() OVER (
+          PARTITION BY sourceSystemCode, businessPartnerNumber, identificationType 
+          ORDER BY ifnull(validToDate, '9999-01-01') DESC, ifnull(entryDate, '1900-01-01') DESC
+        ) AS _rank,
         CASE 
-            WHEN CURRENT_DATE() BETWEEN ifnull(ID.validFromDate, '1900-01-01') AND ifnull(ID.validToDate, '9999-01-01') 
+            WHEN CURRENT_DATE() BETWEEN 
+              ifnull(ID.validFromDate, '1900-01-01') AND ifnull(ID.validToDate, '9999-01-01') 
             THEN 'Y'
             ELSE 'N'
         END AS _currentIndicator
@@ -34,9 +38,11 @@ WITH all_ID AS (
 	 ===================================================================================*/
 	valid_ID AS (
 	SELECT * FROM all_ID 
-	WHERE all_ID._rank = 1 AND all_ID._currentIndicator = 'Y' AND
-	/* IDs in Scope */
-	all_ID.identificationType IN (
+	WHERE 
+      all_ID._rank = 1 
+      AND all_ID._currentIndicator = 'Y'
+      /* IDs in Scope */
+      AND all_ID.identificationType IN (
 		'Drivers License Number',
 		'Passport',
 		'Pensioner_no',
@@ -262,8 +268,9 @@ CREATE OR REPLACE VIEW curated_v2.viewBusinessPartner AS
                      DATE_ADD(
                          LEAD(_effectiveFrom,1) OVER (PARTITION BY sourceSystemCode, businessPartnerNumber ORDER BY _effectiveFrom),-1)
                  ), 
-             TIMESTAMP('9999-12-31')) AS _effectiveTo
-         from dateDriver
+                 TIMESTAMP('9999-12-31')
+             ) AS _effectiveTo
+         FROM dateDriver
      )  
  
  /*============================
@@ -392,11 +399,12 @@ CREATE OR REPLACE VIEW curated_v2.viewBusinessPartner AS
     ID.fathersFirstNameEntryDate,
     DR._effectiveFrom, 
     DR._effectiveTo,
-    case
-      when current_date() between DR._effectiveFrom
-      and DR._effectiveTo then 'Y'
-      else 'N'
-    end as currentIndicator 
+    CASE
+      WHEN CURRENT_DATE() BETWEEN 
+        DR._effectiveFrom AND DR._effectiveTo 
+      THEN 'Y'
+      ELSE 'N'
+    END AS currentIndicator 
 FROM effectiveDateRanges DR
 LEFT JOIN curated_v2.dimbusinesspartner BP ON 
     DR.businessPartnerNumber = BP.businessPartnerNumber AND
@@ -544,11 +552,12 @@ SELECT
     ID.userPassword,
     DR._effectiveFrom,
     DR._effectiveTo,
-    case
-      when current_date() between DR._effectiveFrom
-      and DR._effectiveTo then 'Y'
-      else 'N'
-    end as currentIndicator 
+    CASE
+      WHEN CURRENT_DATE() BETWEEN 
+        DR._effectiveFrom AND DR._effectiveTo 
+      THEN 'Y'
+      ELSE 'N'
+    END AS currentIndicator 
 FROM effectiveDateRanges DR
 LEFT JOIN curated_v2.dimBusinessPartnerGroup BPG ON 
     DR.businessPartnerGroupNumber = BPG.businessPartnerGroupNumber AND
