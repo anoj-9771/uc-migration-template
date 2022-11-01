@@ -3,7 +3,7 @@
 import json
 #For unit testing...
 #Use this string in the Param widget: 
-#$PARAM
+#{"SourceType":"BLOB Storage (json)","SourceServer":"daf-sa-blob-sastoken","SourceGroup":"isudata","SourceName":"isu_0UC_MTR_DOC","SourceLocation":"isudata/0UC_MTR_DOC","AdditionalProperty":"","Processor":"databricks-token|1018-021846-1a1ycoqc|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive","IsAuditTable":false,"SoftDeleteSource":"","ProjectName":"CLEANSED ISU DATA","ProjectId":12,"TargetType":"BLOB Storage (json)","TargetName":"isu_0UC_MTR_DOC","TargetLocation":"isudata/0UC_MTR_DOC","TargetServer":"daf-sa-lake-sastoken","DataLoadMode":"INCREMENTAL","DeltaExtract":true,"CDCSource":false,"TruncateTarget":false,"UpsertTarget":true,"AppendTarget":null,"TrackChanges":false,"LoadToSqlEDW":true,"TaskName":"isu_0UC_MTR_DOC","ControlStageId":2,"TaskId":228,"StageSequence":200,"StageName":"Raw to Cleansed","SourceId":228,"TargetId":228,"ObjectGrain":"Day","CommandTypeId":8,"Watermarks":"2000-01-01 00:00:00","WatermarksDT":"2000-01-01T00:00:00","WatermarkColumn":"_FileDateTimeStamp","BusinessKeyColumn":"meterReadingId","PartitionColumn":null,"UpdateMetaData":null,"SourceTimeStampFormat":"","WhereClause":"","Command":"/build/cleansed/ISU Data/0UC_MTR_DOC","LastSuccessfulExecutionTS":"2000-01-01T23:46:12.39","LastLoadedFile":null}
 
 #Use this string in the Source Object widget
 #$GROUP_$SOURCE
@@ -170,10 +170,15 @@ print(delta_raw_tbl_name)
 # COMMAND ----------
 
 # DBTITLE 1,10. Load Raw to Dataframe & Do Transformations
-df = spark.sql(f"WITH stage AS \
-                      (Select *, ROW_NUMBER() OVER (PARTITION BY ABLBELNR ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' and DI_OPERATION_TYPE !='X' ) \
-                           SELECT  \
-                                      case when ABLBELNR = 'na' then '' else ABLBELNR end as meterReadingId , \
+df = spark.sql(f"WITH stageUpsert AS \
+                      (select *, 'U' as _upsertFlag from (Select *, ROW_NUMBER() OVER (PARTITION BY ABLBELNR ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} \
+                          WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' and DI_OPERATION_TYPE !='X' ) where _RecordVersion = 1), \
+                     stageDelete AS \
+                      (select *, 'D' as _upsertFlag from ( \
+Select *, ROW_NUMBER() OVER (PARTITION BY ABLBELNR ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion \
+            FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' ) where  _RecordVersion = 1 and DI_OPERATION_TYPE ='X'), \
+          stage AS (select * from stageUpsert union select * from stageDelete) \
+              SELECT  case when ABLBELNR = 'na' then '' else ABLBELNR end as meterReadingId , \
                                       EQUNR as equipmentNumber , \
                                       ZWNUMMER as registerNumber , \
                                       ToValidDate(ADAT) as meterReadingDate , \
@@ -191,7 +196,7 @@ df = spark.sql(f"WITH stage AS \
                                       ABLESTYP as meterReadingCategory , \
                                       MASSREAD as unitOfMeasurementMeterReading , \
                                       UPDMOD as bwDeltaProcess , \
-                                      LOEVM as deletedIndicator , \
+                                      (CASE WHEN MR.LOEVM IS NULL OR TRIM(MR.LOEVM) = '' THEN 'N' ELSE 'Y' END) as deletedFlag, \
                                       PRUEFPKT as independentValidation , \
                                       POPCODE as dependentValidation , \
                                       AMS as advancedMeteringSystem , \
@@ -210,16 +215,14 @@ df = spark.sql(f"WITH stage AS \
                                       ToValidDate(AEDAT) as lastChangedDate , \
                                       cast('1900-01-01' as TimeStamp) as _RecordStart, \
                                       cast('9999-12-31' as TimeStamp) as _RecordEnd, \
-                                      '0' as _RecordDeleted, \
+                                      (CASE WHEN _upsertFlag = 'U' THEN '0' ELSE '1' END) as _RecordDeleted, \
                                       '1' as _RecordCurrent, \
                                       cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
                         from stage MR \
                         LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UC_MRTYPE_TEXT MR_TXT \
                                 ON MR.ISTABLART = MR_TXT.meterReadingTypeCode \
                                 AND MR_TXT._RecordDeleted = 0 AND MR_TXT._RecordCurrent = 1 \
-                        where MR._RecordVersion = 1 ")
-
-#print(f'Number of rows: {df.count()}')
+                       ")
 
 # COMMAND ----------
 
@@ -244,7 +247,7 @@ newSchema = StructType(
                               StructField("meterReadingCategory", StringType(), True),
                               StructField("unitOfMeasurementMeterReading", StringType(), True),
                               StructField("bwDeltaProcess", StringType(), True),
-                              StructField("deletedIndicator", StringType(), True),
+                              StructField("deletedFlag", StringType(), True),
                               StructField("independentValidation", StringType(), True),
                               StructField("dependentValidation", StringType(), True),
                               StructField("advancedMeteringSystem", StringType(), True),
@@ -272,33 +275,15 @@ newSchema = StructType(
 
 # COMMAND ----------
 
-# DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
-DeltaSaveDataFrameToDeltaTable(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
+# DBTITLE 1,12.1 Save Non Deleted Records Data frame into Cleansed Delta table (Final)
+# Load Non deleted records same as earlier
+DeltaSaveDataFrameToDeltaTable(df.filter("_RecordDeleted = '0'"), target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
 
 # COMMAND ----------
 
-# DBTITLE 1,13.1 Identify Deleted records from Raw table
-df = spark.sql(f"select distinct coalesce(ABLBELNR,'') as ABLBELNR from ( \
-Select *, ROW_NUMBER() OVER (PARTITION BY ABLBELNR ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' ) \
-where  _RecordVersion = 1 and DI_OPERATION_TYPE ='X'")
-df.createOrReplaceTempView("isu_mtr_doc_deleted_records")
-
-# COMMAND ----------
-
-# DBTITLE 1,13.2 Update _RecordDeleted and _RecordCurrent Flags
-#Get current time
-CurrentTimeStamp = GeneralLocalDateTime()
-CurrentTimeStamp = CurrentTimeStamp.strftime("%Y-%m-%d %H:%M:%S")
-
-spark.sql(f" \
-    MERGE INTO cleansed.isu_0UC_MTR_DOC \
-    using isu_mtr_doc_deleted_records \
-    on isu_0UC_MTR_DOC.meterReadingId = isu_mtr_doc_deleted_records.ABLBELNR \
-    WHEN MATCHED THEN UPDATE SET \
-    _DLCleansedZoneTimeStamp = cast('{CurrentTimeStamp}' as TimeStamp) \
-    ,_RecordDeleted=1 \
-    ,_RecordCurrent=0 \
-    ")
+# DBTITLE 1,12.2 Save Deleted records Data frame into Cleansed Delta table
+# Load deleted records to replace the existing Deleted records implementation logic
+DeltaSaveDataFrameToDeltaTable(df.filter("_RecordDeleted = '1'"), target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
 
 # COMMAND ----------
 
