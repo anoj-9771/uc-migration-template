@@ -323,7 +323,7 @@ DeltaSaveDataFrameToDeltaTable(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS
 # COMMAND ----------
 
 # DBTITLE 1,13.1 Identify Deleted records from Raw table
-df = spark.sql(f"select distinct coalesce(ANLAGE,'') as ANLAGE, coalesce(OPERAND,'') as OPERAND, ToValidDate(AB,'MANDATORY') as AB, coalesce(ABLFDNR,'') as ABLFDNR from ( \
+df = spark.sql(f"select distinct (case when ANLAGE = 'na' then '' else ANLAGE end) as ANLAGE, (case when OPERAND = 'na' then '' else OPERAND end) as OPERAND, ToValidDate(AB,'MANDATORY') as AB, (case when ABLFDNR = 'na' then '' else ABLFDNR end) as ABLFDNR from ( \
 Select *, ROW_NUMBER() OVER (PARTITION BY ANLAGE,OPERAND,SAISON,AB,ABLFDNR ORDER BY _DLRawZoneTimestamp DESC, DELTA_TS DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' ) \
 where  _RecordVersion = 1 and IS_DELETED ='Y'")
 df.createOrReplaceTempView("isu_ettifn_deleted_records")
@@ -345,7 +345,7 @@ spark.sql(f" \
     WHEN MATCHED THEN UPDATE SET \
     _DLCleansedZoneTimeStamp = cast('{CurrentTimeStamp}' as TimeStamp) \
     ,_RecordDeleted=1 \
-    ,_RecordCurrent=0 \
+    ,_RecordCurrent=1 \
     ")
 
 # COMMAND ----------
