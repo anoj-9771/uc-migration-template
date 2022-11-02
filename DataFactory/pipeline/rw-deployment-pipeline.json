@@ -51,7 +51,7 @@
 				"type": "WebActivity",
 				"dependsOn": [
 					{
-						"activity": "Execute Cluster Deployment",
+						"activity": "run-job-pool-deployment",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -77,127 +77,11 @@
 				}
 			},
 			{
-				"name": "check-jobs-exist-and-get-job-ids",
-				"type": "ForEach",
-				"dependsOn": [
-					{
-						"activity": "get-databricks-jobs",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
-				"userProperties": [],
-				"typeProperties": {
-					"items": {
-						"value": "@activity('get-databricks-jobs').output.jobs",
-						"type": "Expression"
-					},
-					"activities": [
-						{
-							"name": "check-job-name-is-riverwatch-pipeline_1",
-							"type": "IfCondition",
-							"dependsOn": [],
-							"userProperties": [],
-							"typeProperties": {
-								"expression": {
-									"value": "@equals(item().settings.name, 'riverwatch-pipeline')",
-									"type": "Expression"
-								},
-								"ifTrueActivities": [
-									{
-										"name": "set-job-exists-variable",
-										"type": "SetVariable",
-										"dependsOn": [],
-										"userProperties": [],
-										"typeProperties": {
-											"variableName": "PipelineJobExists",
-											"value": true
-										}
-									},
-									{
-										"name": "set-job-id-variable",
-										"type": "SetVariable",
-										"dependsOn": [
-											{
-												"activity": "set-job-exists-variable",
-												"dependencyConditions": [
-													"Succeeded"
-												]
-											}
-										],
-										"userProperties": [],
-										"typeProperties": {
-											"variableName": "PipelineJobID",
-											"value": {
-												"value": "@string(item().job_id)",
-												"type": "Expression"
-											}
-										}
-									}
-								]
-							}
-						},
-						{
-							"name": "check-job-name-is-register-riverwatch-model",
-							"type": "IfCondition",
-							"dependsOn": [
-								{
-									"activity": "check-job-name-is-riverwatch-pipeline_1",
-									"dependencyConditions": [
-										"Succeeded"
-									]
-								}
-							],
-							"userProperties": [],
-							"typeProperties": {
-								"expression": {
-									"value": "@equals(item().settings.name, 'register-riverwatch-model')",
-									"type": "Expression"
-								},
-								"ifTrueActivities": [
-									{
-										"name": "set-register-model-job-exists-variable_2",
-										"type": "SetVariable",
-										"dependsOn": [],
-										"userProperties": [],
-										"typeProperties": {
-											"variableName": "RegisterModelJobExists",
-											"value": true
-										}
-									},
-									{
-										"name": "set-register-model-job-id-variable_2",
-										"type": "SetVariable",
-										"dependsOn": [
-											{
-												"activity": "set-register-model-job-exists-variable_2",
-												"dependencyConditions": [
-													"Succeeded"
-												]
-											}
-										],
-										"userProperties": [],
-										"typeProperties": {
-											"variableName": "RegisterModelJobID",
-											"value": {
-												"value": "@string(item().job_id)",
-												"type": "Expression"
-											}
-										}
-									}
-								]
-							}
-						}
-					]
-				}
-			},
-			{
 				"name": "get-mlflow-models",
 				"type": "WebActivity",
 				"dependsOn": [
 					{
-						"activity": "Execute Cluster Deployment",
+						"activity": "run-job-pool-deployment",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -223,72 +107,26 @@
 				}
 			},
 			{
-				"name": "check-model-exists-and-in-production",
-				"type": "ForEach",
-				"dependsOn": [
-					{
-						"activity": "get-mlflow-models",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
-				"userProperties": [],
-				"typeProperties": {
-					"items": {
-						"value": "@activity('get-mlflow-models').output.registered_models",
-						"type": "Expression"
-					},
-					"activities": [
-						{
-							"name": "check-model-is-riverwatch-pollution-classifier",
-							"type": "IfCondition",
-							"dependsOn": [],
-							"userProperties": [],
-							"typeProperties": {
-								"expression": {
-									"value": "@and(equals(item().latest_versions[0].name, 'riverwatch-pollution-classifier'), equals(item().latest_versions[0].current_stage, 'Production'))",
-									"type": "Expression"
-								},
-								"ifTrueActivities": [
-									{
-										"name": "set-model-exists-variable_1",
-										"type": "SetVariable",
-										"dependsOn": [],
-										"userProperties": [],
-										"typeProperties": {
-											"variableName": "ModelExists",
-											"value": true
-										}
-									}
-								]
-							}
-						}
-					]
-				}
-			},
-			{
-				"name": "model_exists",
+				"name": "if-riverwatch-model-exists",
 				"type": "IfCondition",
 				"dependsOn": [
 					{
-						"activity": "register-model-job-exists",
+						"activity": "if-register-model-job-exists",
 						"dependencyConditions": [
 							"Succeeded"
 						]
 					},
 					{
-						"activity": "check-model-exists-and-in-production",
+						"activity": "if-registered-models-exist",
 						"dependencyConditions": [
-							"Succeeded",
-							"Failed"
+							"Succeeded"
 						]
 					}
 				],
 				"userProperties": [],
 				"typeProperties": {
 					"expression": {
-						"value": "@equals(variables('ModelExists'), true)",
+						"value": "@and(\n    equals(variables('ModelExists'), true),\n    bool(contains(activity('get-mlflow-models').output, 'registered_models'))\n    )",
 						"type": "Expression"
 					},
 					"ifFalseActivities": [
@@ -324,7 +162,7 @@
 							"type": "ExecutePipeline",
 							"dependsOn": [
 								{
-									"activity": "get-job-task-id",
+									"activity": "get-job-id-last-task",
 									"dependencyConditions": [
 										"Succeeded"
 									]
@@ -339,7 +177,7 @@
 								"waitOnCompletion": true,
 								"parameters": {
 									"RunID": {
-										"value": "@activity('get-job-task-id').output.runs[0].tasks[0].run_id",
+										"value": "@activity('get-job-id-last-task').output.Value[0].run_id",
 										"type": "Expression"
 									},
 									"DatabricksSecret": {
@@ -395,12 +233,6 @@
 									"dependencyConditions": [
 										"Succeeded"
 									]
-								},
-								{
-									"activity": "get-job-task-id",
-									"dependencyConditions": [
-										"Succeeded"
-									]
 								}
 							],
 							"policy": {
@@ -413,7 +245,7 @@
 							"userProperties": [],
 							"typeProperties": {
 								"url": {
-									"value": "@concat('https://australiaeast.azuredatabricks.net/api/2.1/jobs/runs/get-output?run_id=', activity('get-job-task-id').output.runs[0].tasks[0].run_id)",
+									"value": "@concat('https://australiaeast.azuredatabricks.net/api/2.1/jobs/runs/get-output?run_id=', activity('get-job-id-last-task').output.Value[0].run_id)",
 									"type": "Expression"
 								},
 								"method": "GET",
@@ -444,49 +276,52 @@
 									"type": "Expression"
 								}
 							}
-						}
-					]
-				}
-			},
-			{
-				"name": "model_registered",
-				"type": "IfCondition",
-				"dependsOn": [
-					{
-						"activity": "model_exists",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
-				"userProperties": [],
-				"typeProperties": {
-					"expression": {
-						"value": "@and(equals(variables('ModelExists'), false), equals(variables('RegisterModelState'), 'SUCCESS'))",
-						"type": "Expression"
-					},
-					"ifTrueActivities": [
+						},
 						{
-							"name": "set-model-exists-variable-update_5",
-							"type": "SetVariable",
-							"dependsOn": [],
+							"name": "get-job-id-last-task",
+							"type": "Filter",
+							"dependsOn": [
+								{
+									"activity": "get-job-task-id",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
 							"userProperties": [],
 							"typeProperties": {
-								"variableName": "ModelExists",
-								"value": true
+								"items": {
+									"value": "@activity('get-job-task-id').output.runs[0].tasks",
+									"type": "Expression"
+								},
+								"condition": {
+									"value": "@equals(item().task_key, 'complete_registration')",
+									"type": "Expression"
+								}
 							}
 						}
 					]
 				}
 			},
 			{
-				"name": "register-model-job-exists",
+				"name": "if-register-model-job-exists",
 				"type": "IfCondition",
 				"dependsOn": [
 					{
-						"activity": "check-jobs-exist-and-get-job-ids",
+						"activity": "if-jobs-exist",
 						"dependencyConditions": [
-							"Failed",
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "filter-job-pool-batch-exists",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "set-job-pool-id",
+						"dependencyConditions": [
 							"Succeeded"
 						]
 					}
@@ -494,7 +329,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"expression": {
-						"value": "@equals(variables('RegisterModelJobExists'), true)",
+						"value": "@and(\n    equals(variables('RegisterModelJobExists'), true),\n    bool(contains(activity('get-databricks-jobs').output, 'jobs'))\n    )",
 						"type": "Expression"
 					},
 					"ifFalseActivities": [
@@ -520,84 +355,8 @@
 									}
 								},
 								"body": {
-									"name": "register-riverwatch-model",
-									"email_notifications": {
-										"no_alert_for_skipped_runs": false
-									},
-									"timeout_seconds": 0,
-									"max_concurrent_runs": 1,
-									"tasks": [
-										{
-											"task_key": "register-riverwatch-model",
-											"notebook_task": {
-												"notebook_path": "/AI-ML/Riverwatch/00_register_bayesian_network_water_quality_model_mlflow",
-												"source": "WORKSPACE"
-											},
-											"job_cluster_key": "Shared_job_cluster",
-											"libraries": [
-												{
-													"pypi": {
-														"package": "pybbn==3.2.1"
-													}
-												},
-												{
-													"pypi": {
-														"package": "mlflow"
-													}
-												}
-											],
-											"timeout_seconds": 0
-										},
-										{
-											"task_key": "complete_registration",
-											"depends_on": [
-												{
-													"task_key": "register-riverwatch-model"
-												}
-											],
-											"notebook_task": {
-												"notebook_path": "/AI-ML/Riverwatch/register_model_complete",
-												"source": "WORKSPACE"
-											},
-											"job_cluster_key": "Shared_job_cluster",
-											"timeout_seconds": 0
-										}
-									],
-									"job_clusters": [
-										{
-											"job_cluster_key": "Shared_job_cluster",
-											"new_cluster": {
-												"cluster_name": "",
-												"spark_version": "10.4.x-scala2.12",
-												"spark_conf": {
-													"spark.databricks.delta.preview.enabled": "true"
-												},
-												"azure_attributes": {
-													"first_on_demand": 1,
-													"availability": "ON_DEMAND_AZURE",
-													"spot_bid_max_price": -1
-												},
-												"node_type_id": "Standard_DS3_v2",
-												"spark_env_vars": {
-													"PYSPARK_PYTHON": "/databricks/python3/bin/python3"
-												},
-												"enable_elastic_disk": true,
-												"data_security_mode": "LEGACY_SINGLE_USER_STANDARD",
-												"runtime_engine": "STANDARD",
-												"num_workers": 8
-											}
-										}
-									],
-									"format": "MULTI_TASK",
-									"tags": {
-										"Product": "Riverwatch"
-									},
-									"access_control_list": [
-										{
-											"user_name": "onyu@sydneywater.com.au",
-											"permission_level": "IS_OWNER"
-										}
-									]
+									"value": "{\n    \"name\": \"register-riverwatch-model\",\n    \"email_notifications\": {\n        \"no_alert_for_skipped_runs\": false\n    },\n    \"timeout_seconds\": 0,\n    \"max_concurrent_runs\": 1,\n    \"tasks\": [\n        {\n            \"task_key\": \"register-riverwatch-model\",\n            \"notebook_task\": {\n                \"notebook_path\": \"/AI-ML/Riverwatch/00_register_bayesian_network_water_quality_model_mlflow\",\n                \"source\": \"WORKSPACE\"\n            },\n            \"job_cluster_key\": \"riverwatch-job-cluster\",\n            \"libraries\": [\n                {\n                    \"pypi\": {\n                        \"package\": \"pybbn==3.2.1\"\n                    }\n                },\n                {\n                    \"pypi\": {\n                        \"package\": \"mlflow\"\n                    }\n                }\n            ],\n            \"timeout_seconds\": 0\n        },\n        {\n            \"task_key\": \"complete_registration\",\n            \"depends_on\": [\n                {\n                    \"task_key\": \"register-riverwatch-model\"\n                }\n            ],\n            \"notebook_task\": {\n                \"notebook_path\": \"/AI-ML/Riverwatch/register_model_complete\",\n                \"source\": \"WORKSPACE\"\n            },\n            \"job_cluster_key\": \"riverwatch-job-cluster\",\n            \"timeout_seconds\": 0\n        }\n    ],\n    \"job_clusters\": [\n        {\n            \"job_cluster_key\": \"riverwatch-job-cluster\",\n            \"new_cluster\": {\n                \"cluster_name\": \"\",\n                \"spark_version\": \"10.4.x-cpu-ml-scala2.12\",\n                \"spark_conf\": {\n                    \"spark.databricks.delta.preview.enabled\": \"true\"\n                },\n                \"instance_pool_id\": \"@{variables('JobPoolId')}\",\n                \"data_security_mode\": \"LEGACY_SINGLE_USER_STANDARD\",\n                \"runtime_engine\": \"STANDARD\",\n                \"num_workers\": 2\n            }\n        }\n    ],\n    \"format\": \"MULTI_TASK\",\n    \"access_control_list\": [\n        {\n            \"user_name\": \"onyu@sydneywater.com.au\",\n            \"permission_level\": \"IS_OWNER\"\n        }\n    ]\n}",
+									"type": "Expression"
 								}
 							}
 						},
@@ -639,25 +398,51 @@
 								"value": true
 							}
 						}
+					],
+					"ifTrueActivities": [
+						{
+							"name": "set-register-model-job-id",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "RegisterModelJobID",
+								"value": {
+									"value": "@string(activity('filter-register-riverwatch-model-job').output.Value[0].job_id)",
+									"type": "Expression"
+								}
+							}
+						}
 					]
 				}
 			},
 			{
-				"name": "riverwatch-pipeline-exists",
+				"name": "if-riverwatch-pipeline-exists",
 				"type": "IfCondition",
 				"dependsOn": [
 					{
-						"activity": "check-jobs-exist-and-get-job-ids",
+						"activity": "if-jobs-exist",
 						"dependencyConditions": [
-							"Succeeded",
-							"Failed"
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "filter-job-pool-batch-exists",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "set-job-pool-id",
+						"dependencyConditions": [
+							"Succeeded"
 						]
 					}
 				],
 				"userProperties": [],
 				"typeProperties": {
 					"expression": {
-						"value": "@equals(variables('PipelineJobExists'), true)",
+						"value": "@and(\n    equals(variables('PipelineJobExists'), true),\n    bool(contains(activity('get-databricks-jobs').output, 'jobs'))\n    )",
 						"type": "Expression"
 					},
 					"ifFalseActivities": [
@@ -683,91 +468,8 @@
 									}
 								},
 								"body": {
-									"name": "riverwatch-pipeline",
-									"email_notifications": {
-										"no_alert_for_skipped_runs": false
-									},
-									"timeout_seconds": 0,
-									"max_concurrent_runs": 1,
-									"tasks": [
-										{
-											"task_key": "preprocess_water_quality_features",
-											"notebook_task": {
-												"notebook_path": "/AI-ML/Riverwatch/01_water_quality_feature_selection",
-												"base_parameters": {
-													"current_model_runtime": "",
-													"last_model_runtime": ""
-												},
-												"source": "WORKSPACE"
-											},
-											"job_cluster_key": "Shared_job_cluster",
-											"timeout_seconds": 0
-										},
-										{
-											"task_key": "inference_water_quality",
-											"depends_on": [
-												{
-													"task_key": "preprocess_water_quality_features"
-												}
-											],
-											"notebook_task": {
-												"notebook_path": "/AI-ML/Riverwatch/02_water_quality_predictions",
-												"base_parameters": {
-													"current_model_runtime": ""
-												},
-												"source": "WORKSPACE"
-											},
-											"job_cluster_key": "Shared_job_cluster",
-											"libraries": [
-												{
-													"pypi": {
-														"package": "pybbn==3.2.1"
-													}
-												},
-												{
-													"pypi": {
-														"package": "mlflow"
-													}
-												}
-											],
-											"timeout_seconds": 0
-										}
-									],
-									"job_clusters": [
-										{
-											"job_cluster_key": "Shared_job_cluster",
-											"new_cluster": {
-												"cluster_name": "",
-												"spark_version": "10.4.x-scala2.12",
-												"spark_conf": {
-													"spark.databricks.delta.preview.enabled": "true"
-												},
-												"azure_attributes": {
-													"first_on_demand": 1,
-													"availability": "ON_DEMAND_AZURE",
-													"spot_bid_max_price": -1
-												},
-												"node_type_id": "Standard_DS3_v2",
-												"spark_env_vars": {
-													"PYSPARK_PYTHON": "/databricks/python3/bin/python3"
-												},
-												"enable_elastic_disk": true,
-												"data_security_mode": "LEGACY_SINGLE_USER_STANDARD",
-												"runtime_engine": "STANDARD",
-												"num_workers": 8
-											}
-										}
-									],
-									"format": "MULTI_TASK",
-									"tags": {
-										"Product": "Riverwatch"
-									},
-									"access_control_list": [
-										{
-											"user_name": "onyu@sydneywater.com.au",
-											"permission_level": "IS_OWNER"
-										}
-									]
+									"value": "{\n    \"name\": \"riverwatch-pipeline\",\n    \"email_notifications\": {\n        \"no_alert_for_skipped_runs\": false\n    },\n    \"timeout_seconds\": 0,\n    \"max_concurrent_runs\": 1,\n    \"tasks\": [\n        {\n            \"task_key\": \"preprocess_water_quality_features\",\n            \"notebook_task\": {\n                \"notebook_path\": \"/AI-ML/Riverwatch/01_water_quality_feature_selection\",\n                \"base_parameters\": {\n                    \"current_model_runtime\": \"\",\n                    \"last_model_runtime\": \"\"\n                },\n                \"source\": \"WORKSPACE\"\n            },\n            \"job_cluster_key\": \"riverwatch-job-cluster\",\n            \"timeout_seconds\": 0\n        },\n        {\n            \"task_key\": \"inference_water_quality\",\n            \"depends_on\": [\n                {\n                    \"task_key\": \"preprocess_water_quality_features\"\n                }\n            ],\n            \"notebook_task\": {\n                \"notebook_path\": \"/AI-ML/Riverwatch/02_water_quality_predictions\",\n                \"base_parameters\": {\n                    \"current_model_runtime\": \"\"\n                },\n                \"source\": \"WORKSPACE\"\n            },\n            \"job_cluster_key\": \"riverwatch-job-cluster\",\n            \"libraries\": [\n                {\n                    \"pypi\": {\n                        \"package\": \"pybbn==3.2.1\"\n                    }\n                },\n                {\n                    \"pypi\": {\n                        \"package\": \"mlflow\"\n                    }\n                }\n            ],\n            \"timeout_seconds\": 0\n        }\n    ],\n    \"job_clusters\": [\n        {\n            \"job_cluster_key\": \"riverwatch-job-cluster\",\n            \"new_cluster\": {\n                \"cluster_name\": \"\",\n                \"spark_version\": \"10.4.x-cpu-ml-scala2.12\",\n                \"spark_conf\": {\n                    \"spark.databricks.delta.preview.enabled\": \"true\"\n                },\n                \"instance_pool_id\": \"@{variables('JobPoolId')}\",\n                \"data_security_mode\": \"LEGACY_SINGLE_USER_STANDARD\",\n                \"runtime_engine\": \"STANDARD\",\n                \"num_workers\": 2\n            }\n        }\n    ],\n    \"format\": \"MULTI_TASK\",\n    \"access_control_list\": [\n        {\n            \"user_name\": \"onyu@sydneywater.com.au\",\n            \"permission_level\": \"IS_OWNER\"\n        }\n    ]\n}",
+									"type": "Expression"
 								}
 							}
 						},
@@ -809,6 +511,21 @@
 								"value": true
 							}
 						}
+					],
+					"ifTrueActivities": [
+						{
+							"name": "set-riverwatch-pipeline-job-id",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "PipelineJobID",
+								"value": {
+									"value": "@string(activity('filter-riverwatch-pipeline-job').output.Value[0].job_id)",
+									"type": "Expression"
+								}
+							}
+						}
 					]
 				}
 			},
@@ -817,7 +534,7 @@
 				"type": "DatabricksNotebook",
 				"dependsOn": [
 					{
-						"activity": "get-cluster-id",
+						"activity": "set-job-pool-id",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -835,19 +552,20 @@
 					"notebookPath": "/AI-ML/Riverwatch/Riverwatch-ingestion"
 				},
 				"linkedServiceName": {
-					"referenceName": "LS-AzureDatabricks_DefinedCluster",
+					"referenceName": "LS_AzureDatabricks_InstancePool",
 					"type": "LinkedServiceReference",
 					"parameters": {
 						"kvSecret": "databricks-token",
-						"clusterId": {
-							"value": "@variables('ClusterId')",
+						"PoolId": {
+							"value": "@variables('JobPoolId')",
 							"type": "Expression"
-						}
+						},
+						"DatabricksVersion": "10.4.x-cpu-ml-scala2.12"
 					}
 				}
 			},
 			{
-				"name": "Execute Cluster Deployment",
+				"name": "run-job-pool-deployment",
 				"type": "ExecutePipeline",
 				"dependsOn": [
 					{
@@ -860,7 +578,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"pipeline": {
-						"referenceName": "util-cluster-deployment",
+						"referenceName": "util-job-pool-deployment",
 						"type": "PipelineReference"
 					},
 					"waitOnCompletion": true,
@@ -869,20 +587,114 @@
 							"value": "@variables('DatabricksSecret')",
 							"type": "Expression"
 						},
-						"JobPoolName": "Batch Pool DS4",
-						"ClusterName": "riverwatch",
-						"MinWorkers": "2",
-						"MaxWorkers": "10",
-						"SparkVersion": "10.4.x-cpu-ml-scala2.12"
+						"JobPoolName": {
+							"value": "@pipeline().parameters.BatchPoolName",
+							"type": "Expression"
+						},
+						"NodeTypeId": "Standard_DS3_v2",
+						"ApplicationTag": "Riverwatch"
 					}
 				}
 			},
 			{
-				"name": "get-databricks-clusters",
+				"name": "if-jobs-exist",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "get-databricks-jobs",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@bool(contains(activity('get-databricks-jobs').output, 'jobs'))",
+						"type": "Expression"
+					},
+					"ifTrueActivities": [
+						{
+							"name": "filter-riverwatch-pipeline-job",
+							"type": "Filter",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"items": {
+									"value": "@activity('get-databricks-jobs').output.jobs",
+									"type": "Expression"
+								},
+								"condition": {
+									"value": "@equals(item().settings.name, 'riverwatch-pipeline')",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "filter-register-riverwatch-model-job",
+							"type": "Filter",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"items": {
+									"value": "@activity('get-databricks-jobs').output.jobs",
+									"type": "Expression"
+								},
+								"condition": {
+									"value": "@equals(item().settings.name, 'register-riverwatch-model')",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "set-pipeline-job-exists",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "filter-riverwatch-pipeline-job",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "PipelineJobExists",
+								"value": {
+									"value": "@not(empty(activity('filter-riverwatch-pipeline-job').output.Value))",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "set-register-model-job-exists",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "filter-register-riverwatch-model-job",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "RegisterModelJobExists",
+								"value": {
+									"value": "@not(empty(activity('filter-register-riverwatch-model-job').output.Value))",
+									"type": "Expression"
+								}
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "get-databricks-job-pools",
 				"type": "WebActivity",
 				"dependsOn": [
 					{
-						"activity": "Execute Cluster Deployment",
+						"activity": "run-job-pool-deployment",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -897,22 +709,39 @@
 				},
 				"userProperties": [],
 				"typeProperties": {
-					"url": "https://australiaeast.azuredatabricks.net/api/2.0/clusters/list",
+					"url": "https://australiaeast.azuredatabricks.net/api/2.0/instance-pools/list",
 					"method": "GET",
 					"headers": {
 						"Authorization": {
 							"value": "Bearer @{variables('DatabricksSecret')}",
 							"type": "Expression"
 						}
+					},
+					"body": {
+						"autoscale": {
+							"min_workers": 2,
+							"max_workers": 10
+						},
+						"cluster_name": "sewer-cctv",
+						"spark_version": "10.4.x-cpu-ml-scala2.12",
+						"spark_conf": {
+							"spark.databricks.delta.preview.enabled": "true"
+						},
+						"ssh_public_keys": [],
+						"autotermination_minutes": 60,
+						"init_scripts": [],
+						"instance_pool_id": "1024-005500-twain3-pool-jk2lh0go",
+						"driver_instance_pool_id": "1024-005500-twain3-pool-jk2lh0go",
+						"runtime_engine": "STANDARD"
 					}
 				}
 			},
 			{
-				"name": "get-cluster-id",
-				"type": "ForEach",
+				"name": "filter-job-pool-batch-exists",
+				"type": "Filter",
 				"dependsOn": [
 					{
-						"activity": "get-databricks-clusters",
+						"activity": "get-databricks-job-pools",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -921,41 +750,99 @@
 				"userProperties": [],
 				"typeProperties": {
 					"items": {
-						"value": "@activity('get-databricks-clusters').output.clusters",
+						"value": "@activity('get-databricks-job-pools').output.instance_pools",
 						"type": "Expression"
 					},
-					"activities": [
+					"condition": {
+						"value": "@equals(item().instance_pool_name, pipeline().parameters.BatchPoolName)",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "set-job-pool-id",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "filter-job-pool-batch-exists",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "JobPoolId",
+					"value": {
+						"value": "@string(activity('filter-job-pool-batch-exists').output.Value[0].instance_pool_id)",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "if-registered-models-exist",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "get-mlflow-models",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@bool(contains(activity('get-mlflow-models').output, 'registered_models'))",
+						"type": "Expression"
+					},
+					"ifTrueActivities": [
 						{
-							"name": "check-cluster-name-is-riverwatch",
-							"type": "IfCondition",
+							"name": "filter-riverwatch-model",
+							"type": "Filter",
 							"dependsOn": [],
 							"userProperties": [],
 							"typeProperties": {
-								"expression": {
-									"value": "@equals(item().cluster_name, 'riverwatch')",
+								"items": {
+									"value": "@activity('get-mlflow-models').output.registered_models",
 									"type": "Expression"
 								},
-								"ifTrueActivities": [
-									{
-										"name": "set-cluster-id",
-										"type": "SetVariable",
-										"dependsOn": [],
-										"userProperties": [],
-										"typeProperties": {
-											"variableName": "ClusterId",
-											"value": {
-												"value": "@item().cluster_id",
-												"type": "Expression"
-											}
-										}
-									}
-								]
+								"condition": {
+									"value": "@equals(item().latest_versions[0].name, 'riverwatch-pollution-classifier')",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "set-model-exists",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "filter-riverwatch-model",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "ModelExists",
+								"value": {
+									"value": "@and(\n    not(empty(activity('filter-riverwatch-model').output.Value)),\n    equals(activity('filter-riverwatch-model').output.Value[0].current_stage, 'Production')\n)",
+									"type": "Expression"
+								}
 							}
 						}
 					]
 				}
 			}
 		],
+		"parameters": {
+			"BatchPoolName": {
+				"type": "string",
+				"defaultValue": "RIVERWATCH_POOL"
+			}
+		},
 		"variables": {
 			"DatabricksSecret": {
 				"type": "String"
@@ -982,6 +869,15 @@
 				"type": "String"
 			},
 			"ClusterId": {
+				"type": "String"
+			},
+			"JobsExist": {
+				"type": "Boolean"
+			},
+			"JobPoolExists": {
+				"type": "Boolean"
+			},
+			"JobPoolId": {
 				"type": "String"
 			}
 		},
