@@ -47,7 +47,8 @@ import time
 ### so it is the issue with the data format when read the data using spark or pd
 #---------------------dicretise the data for each node---------------------------
 # df_train=pd.read_csv("/dbfs/FileStore/DataLab/Riverwatch/df_train_bef2014.csv")
-df_train=pd.read_csv("/dbfs/FileStore/DataLab/Riverwatch/df_train_bef2019Jul.csv")
+# df_train=pd.read_csv("/dbfs/FileStore/DataLab/Riverwatch/df_train_bef2019Jul.csv")
+df_train=pd.read_csv("/dbfs/mnt/blob-urbanplunge/df_train_bef2019Jul.csv")
 df_train['ent_cat'] = df_train['ent'].apply(
     lambda x: '0.0-32' if 0 <= x < 32 
     else '1.32-39' if 32 <= x < 39 
