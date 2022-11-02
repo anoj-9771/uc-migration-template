@@ -278,7 +278,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"dataset": {
-						"referenceName": "BLOB_Json_File_Name",
+						"referenceName": "BLOB_Json_Container",
 						"type": "DatasetReference",
 						"parameters": {
 							"BlobFolderName": {
@@ -348,17 +348,11 @@
 									}
 								},
 								"dataset": {
-									"referenceName": "BLOB_Json_Read",
+									"referenceName": "BLOB_Json_Container",
 									"type": "DatasetReference",
 									"parameters": {
-										"BlobFolderName": {
-											"value": "@pipeline().parameters.SourceFilePath",
-											"type": "Expression"
-										},
-										"BlobName": {
-											"value": "@item().name",
-											"type": "Expression"
-										}
+										"BlobFolderName": "@pipeline().parameters.SourceFilePath",
+										"BlobFileName": "@item().name"
 									}
 								}
 							}
