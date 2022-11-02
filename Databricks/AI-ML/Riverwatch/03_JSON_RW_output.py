@@ -5,7 +5,7 @@ from pyspark.sql import functions as psf
 from pyspark.sql import Window as W
 from pyspark.sql import types as t
 from pyspark.sql.types import IntegerType, StringType, DoubleType, StructType, StructField, FloatType
-import mlflow
+# import mlflow
 from pyspark.sql.functions import struct
 from pyspark.sql.functions import split
 from datetime import datetime
@@ -166,6 +166,7 @@ for index,location in enumerate(RW_locations_InactiveRevmoved['locations']):
                                   #---only look at column we need---
                                   .withColumn("available_days_data",psf.explode(psf.col("forecast-period")))
                                   .withColumn("_start-time-local",psf.to_date(psf.col("available_days_data")["_start-time-local"]))
+                                  .withColumn("IssueTime",psf.col("available_days_data")["_start-time-local"])
                                   .orderBy("_start-time-local")
                               #---------START---- using time variable to select specific date if necessary !!!!!!!!!!!!!
 #                               .withColumn("current_date",psf.to_date(psf.lit(TIME_VARIABLE)))
@@ -174,7 +175,7 @@ for index,location in enumerate(RW_locations_InactiveRevmoved['locations']):
                                   .withColumn("text",psf.explode(psf.col("available_days_data")["text"]))
                                   .withColumn("types",psf.col("text")["_type"])
                                   .where(psf.col("types")=="forecast")
-                                  .withColumn("VALUE",psf.col("text")["_VALUE"])   
+                                  .withColumn("VALUE",psf.col("text")["_VALUE"])
                                   .toPandas()
                                )
 
@@ -258,7 +259,7 @@ for index,location in enumerate(RW_locations_InactiveRevmoved['locations']):
             
             #-----------obtain weather information ------------
             bom_station= location["BOM_station"]
-            issue_time_local_tz=""
+            issue_time_local_tz=str(forecast_description_text.IssueTime[0])
             forecast_icon=forecast_icon_code.types_value[0] #done 
             forecast_text=forecast_description_text.VALUE[0] #done
             for icon in RW_icon_code["icon_meaning"]:
@@ -301,7 +302,7 @@ for index,location in enumerate(RW_locations_InactiveRevmoved['locations']):
             
             #-----------obtain weather information ------------
             bom_station= location["BOM_station"]
-            issue_time_local_tz=""
+            issue_time_local_tz=str(forecast_description_text.IssueTime[0])
             forecast_icon=forecast_icon_code.types_value[0] #done 
             forecast_text=forecast_description_text.VALUE[0] #done
             for icon in RW_icon_code["icon_meaning"]:
@@ -343,7 +344,7 @@ for index,location in enumerate(RW_locations_InactiveRevmoved['locations']):
             current_temp= str(Dawn_Fraser_Pool_tempinfo.airTemp[0]) # done
         
             bom_station= location["BOM_station"]
-            issue_time_local_tz=""
+            issue_time_local_tz=str(forecast_description_text.IssueTime[0])
             forecast_icon=forecast_icon_code.types_value[0] #done 
             forecast_text=forecast_description_text.VALUE[0] #done
             for icon in RW_icon_code["icon_meaning"]:
@@ -413,6 +414,7 @@ RW_output=dict(list(RW_notice.items()) + list(RW_header.items()) + list(RW_locat
 # RW_output = json.dumps(RW_output, indent = 4)
 
 # print(json.dumps(RW_output, indent = 4))
+# print(json.dumps(RW_output))
 
 # COMMAND ----------
 
