@@ -245,7 +245,12 @@ df = spark.sql(f"""
                ToValidDate(stg.AEDAT)                                  as lastChangedDate, 
                stg.AENAM                                               as lastChangedBy, 
                stg.BEGRU                                               as authorizationGroupCode, 
-               (CASE WHEN stg.LOEVM IS NULL OR TRIM(stg.LOEVM) = '' THEN '0' ELSE '1' END)     as deletedFlag, 
+               CASE 
+                   WHEN stg.LOEVM IS NULL 
+                   OR TRIM(stg.LOEVM) = '' 
+                   THEN '0' 
+                   ELSE '1' 
+               END                                                     as deletedFlag, 
                stg.ZZ_HAUS                                             as propertyNumber, 
                stg.ZZ_PROPTYPE                                         as industry, 
                stg.ZZ_ADRNR                                            as addressNumber, 
@@ -257,7 +262,12 @@ df = spark.sql(f"""
                stg.ANLART                                              as installationType, -- 2.2 
                cast('1900-01-01' as TimeStamp)                         as _RecordStart, 
                cast('9999-12-31' as TimeStamp)                         as _RecordEnd, 
-               (CASE WHEN stg.LOEVM IS NULL OR TRIM(stg.LOEVM) = '' THEN '0' ELSE '1' END)     as _RecordDeleted, 
+               CASE 
+                   WHEN stg.LOEVM IS NULL 
+                   OR TRIM(stg.LOEVM) = '' 
+                   THEN '0' 
+                   ELSE '1' 
+               END                                                     as _RecordDeleted, 
                '1'                                                     as _RecordCurrent, 
                cast('{CurrentTimeStamp}' as TimeStamp)                 as _DLCleansedZoneTimeStamp 
      FROM stage stg 
