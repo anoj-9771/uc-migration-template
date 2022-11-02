@@ -3,7 +3,7 @@
 import json
 #For unit testing...
 #Use this string in the Param widget: 
-#$PARAM
+#{"SourceType":"BLOB Storage (json)","SourceServer":"daf-sa-blob-sastoken","SourceGroup":"isudata","SourceName":"isu_AUSP","SourceLocation":"isudata/AUSP","AdditionalProperty":"","Processor":"databricks-token|1018-021846-1a1ycoqc|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive","IsAuditTable":false,"SoftDeleteSource":"","ProjectName":"CLEANSED ISU DATA","ProjectId":12,"TargetType":"BLOB Storage (json)","TargetName":"isu_AUSP","TargetLocation":"isudata/AUSP","TargetServer":"daf-sa-lake-sastoken","DataLoadMode":"INCREMENTAL","DeltaExtract":true,"CDCSource":false,"TruncateTarget":false,"UpsertTarget":true,"AppendTarget":null,"TrackChanges":false,"LoadToSqlEDW":true,"TaskName":"isu_AUSP","ControlStageId":2,"TaskId":228,"StageSequence":200,"StageName":"Raw to Cleansed","SourceId":228,"TargetId":228,"ObjectGrain":"Day","CommandTypeId":8,"Watermarks":"2000-01-01 00:00:00","WatermarksDT":"2000-01-01T00:00:00","WatermarkColumn":"_FileDateTimeStamp","BusinessKeyColumn":"classificationObjectInternalId,characteristicInternalId,characteristicValueInternalId,classifiedEntityType,classTypeCode,archivingObjectsInternalId","PartitionColumn":null,"UpdateMetaData":null,"SourceTimeStampFormat":"","WhereClause":"","Command":"/build/cleansed/ISU Data/AUSP","LastSuccessfulExecutionTS":"2000-01-01T23:46:12.39","LastLoadedFile":null}
 
 #Use this string in the Source Object widget
 #$GROUP_$SOURCE
@@ -194,7 +194,6 @@ df = spark.sql(f"WITH stage AS \
                                     ATAUT as characteristicAuthor, \
                                     AENNR as characteristicChangeNumber, \
                                     ToValidDate(DATUV) as validFromDate, \
-                                    (CASE WHEN LKENZ IS NULL OR TRIM(LKENZ) = '' THEN 'N' ELSE 'Y' END) as deletedFlag, \
                                     ToValidDate(DATUB) as validToDate, \
                                     DEC_VALUE_FROM as decimalMinimumValue, \
                                     DEC_VALUE_TO as decimalMaximumValue, \
@@ -239,7 +238,6 @@ newSchema = StructType([
                             StructField('characteristicAuthor', StringType(), True),
                             StructField('characteristicChangeNumber', StringType(), True),
                             StructField('validFromDate', DateType(), True),
-                            StructField('deletedFlag', StringType(), True),
                             StructField('validToDate', DateType(), True),
                             StructField('decimalMinimumValue', DecimalType(31,14), True),
                             StructField('decimalMaximumValue', DecimalType(31,14), True),
@@ -265,7 +263,7 @@ DeltaSaveDataFrameToDeltaTable(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS
 # COMMAND ----------
 
 # DBTITLE 1,13.1 Identify Deleted records from Raw table
-df = spark.sql(f"select distinct coalesce(ATINN,'') as ATINN, coalesce(OBJEK,'') as OBJEK, coalesce(ATZHL,'') as ATZHL, coalesce(MAFID,'') as MAFID, coalesce(KLART,'') as KLART,  coalesce(ADZHL,'') as ADZHL from ( \
+df = spark.sql(f"select distinct (case when ATINN = 'na' then '' else ATINN end) as ATINN, (case when OBJEK = 'na' then '' else OBJEK end) as OBJEK, (case when ATZHL = 'na' then '' else ATZHL end) as ATZHL, (case when MAFID = 'na' then '' else MAFID end) as MAFID, (case when KLART = 'na' then '' else KLART end) as KLART,  (case when ADZHL = 'na' then '' else ADZHL end) as ADZHL from ( \
 Select *, ROW_NUMBER() OVER (PARTITION BY OBJEK, ATINN, ATZHL, MAFID, KLART, ADZHL ORDER BY _DLRawZoneTimeStamp DESC, DELTA_TS DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' ) \
 where  _RecordVersion = 1 and IS_DELETED ='Y'")
 df.createOrReplaceTempView("isu_ausp_deleted_records")
@@ -289,7 +287,7 @@ spark.sql(f" \
     WHEN MATCHED THEN UPDATE SET \
     _DLCleansedZoneTimeStamp = cast('{CurrentTimeStamp}' as TimeStamp) \
     ,_RecordDeleted=1 \
-    ,_RecordCurrent=0 \
+    ,_RecordCurrent=1 \
     ")
 
 # COMMAND ----------
