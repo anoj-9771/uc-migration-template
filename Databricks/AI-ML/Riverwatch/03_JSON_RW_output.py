@@ -23,6 +23,7 @@ def delete_multiple_element(outerlayer, indices):
 
 # COMMAND ----------
 
+import re
 bom_weatherforecast_original = (spark.table("cleansed.bom_weatherforecast")
                       )
 
@@ -38,7 +39,7 @@ rw_tide_temp_info_original=(spark.table("cleansed.bom_fortdenision_tide")
 df_rwBN_water_quality = (spark.table("cleansed.urbanplunge_water_quality_predictions")
                         )
 
-# display(df_rwBN_water_quality)
+# display(bom_weatherforecast_original)
 
 # COMMAND ----------
 
@@ -195,9 +196,10 @@ for index,location in enumerate(RW_locations_InactiveRevmoved['locations']):
                               .withColumn("types",psf.col("text")["_type"])
                               .where(psf.col("types")=="uv_alert")
                               .withColumn("VALUE",psf.col("text")["_VALUE"])
-                              .withColumn("uv_interpret", split("VALUE", " "))
+                              .withColumn("uv_interpret", psf.regexp_extract(psf.col("VALUE"), r"\[([^()]+)\]$", 1))
+                              .withColumn("uv_value", psf.regexp_extract(psf.col("VALUE"), r"reach ([^()]+) \[", 1))
                               .orderBy("_start-time-local")
-                              .na.drop(subset=["types","VALUE","uv_interpret"])#remove all null rows in column "element_VALUE" and "element_instance" to avoid null is selected for tide info
+                              .na.drop(subset=["types","VALUE","uv_interpret","uv_value"])#remove all null rows in column "element_VALUE" and "element_instance" to avoid null is selected for tide info
                               .toPandas()
                                   )
 # #         display(uv)
@@ -271,8 +273,8 @@ for index,location in enumerate(RW_locations_InactiveRevmoved['locations']):
             rainfall_since9am = str(round(rain_wind.Rainfall_mm[0])) #done
             windspeed_kmh = str(rain_wind.latest_wind_speed[0]) #done
             wind_direction = rain_wind.latest_wind_dire[0] #done
-            uv_forecast = (str(uv.uv_interpret[0][-2]) + "/11+") # done
-            uv_meaning = re.sub(r"[\([{})\]]", "",uv.uv_interpret[0][-1]) #done
+            uv_forecast = str(uv.uv_value[0]) + "/11+" # done
+            uv_meaning = uv.uv_interpret[0] #done
             
 
         elif location["source"] == "Beachwatch":
@@ -314,8 +316,8 @@ for index,location in enumerate(RW_locations_InactiveRevmoved['locations']):
             rainfall_since9am = str(round(rain_wind.Rainfall_mm[0])) #done
             windspeed_kmh = str(rain_wind.latest_wind_speed[0]) #done
             wind_direction = rain_wind.latest_wind_dire[0] #done
-            uv_forecast = (str(uv.uv_interpret[0][-2])  + "/11+") # done
-            uv_meaning = re.sub(r"[\([{})\]]", "",uv.uv_interpret[0][-1]) #done
+            uv_forecast = str(uv.uv_value[0]) + "/11+" # done
+            uv_meaning = uv.uv_interpret[0] #done
         
         elif location["source"] == "Unmonitored":
             water_quality = "Unmonitored" #unlikely/possible/likely
@@ -356,8 +358,8 @@ for index,location in enumerate(RW_locations_InactiveRevmoved['locations']):
             rainfall_since9am = str(round(rain_wind.Rainfall_mm[0])) #done
             windspeed_kmh = str(rain_wind.latest_wind_speed[0]) #done
             wind_direction = rain_wind.latest_wind_dire[0] #done
-            uv_forecast = (str(uv.uv_interpret[0][-2]) + "/11+") # done
-            uv_meaning = re.sub(r"[\([{})\]]", "",uv.uv_interpret[0][-1]) #done
+            uv_forecast = str(uv.uv_value[0]) + "/11+" # done
+            uv_meaning = uv.uv_interpret[0] #done
             
         #-----------append water quality to JSON at the level of location name @ Bay View Park------------
         json_water_quality = {"water_quality": {"pollution": water_quality}}
