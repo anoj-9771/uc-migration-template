@@ -33,122 +33,6 @@
 				}
 			},
 			{
-				"name": "check-jobs-exist-and-get-job-ids",
-				"type": "ForEach",
-				"dependsOn": [
-					{
-						"activity": "get-databricks-jobs",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
-				"userProperties": [],
-				"typeProperties": {
-					"items": {
-						"value": "@activity('get-databricks-jobs').output.jobs",
-						"type": "Expression"
-					},
-					"activities": [
-						{
-							"name": "check-job-name-is-sewer-cctv-pipeline",
-							"type": "IfCondition",
-							"dependsOn": [],
-							"userProperties": [],
-							"typeProperties": {
-								"expression": {
-									"value": "@equals(item().settings.name, 'sewer-cctv-pipeline')",
-									"type": "Expression"
-								},
-								"ifTrueActivities": [
-									{
-										"name": "set-job-exists-variable",
-										"type": "SetVariable",
-										"dependsOn": [],
-										"userProperties": [],
-										"typeProperties": {
-											"variableName": "PipelineJobExsits",
-											"value": true
-										}
-									},
-									{
-										"name": "set-job-id-variable",
-										"type": "SetVariable",
-										"dependsOn": [
-											{
-												"activity": "set-job-exists-variable",
-												"dependencyConditions": [
-													"Succeeded"
-												]
-											}
-										],
-										"userProperties": [],
-										"typeProperties": {
-											"variableName": "PipelineJobID",
-											"value": {
-												"value": "@string(item().job_id)",
-												"type": "Expression"
-											}
-										}
-									}
-								]
-							}
-						},
-						{
-							"name": "check-job-name-is-register-sewer-cctv-model",
-							"type": "IfCondition",
-							"dependsOn": [
-								{
-									"activity": "check-job-name-is-sewer-cctv-pipeline",
-									"dependencyConditions": [
-										"Succeeded"
-									]
-								}
-							],
-							"userProperties": [],
-							"typeProperties": {
-								"expression": {
-									"value": "@equals(item().settings.name, 'register-sewer-cctv-model')",
-									"type": "Expression"
-								},
-								"ifTrueActivities": [
-									{
-										"name": "set-register-model-job-exists-variable",
-										"type": "SetVariable",
-										"dependsOn": [],
-										"userProperties": [],
-										"typeProperties": {
-											"variableName": "RegisterModelJobExists",
-											"value": true
-										}
-									},
-									{
-										"name": "set-register-model-job-id-variable",
-										"type": "SetVariable",
-										"dependsOn": [
-											{
-												"activity": "set-register-model-job-exists-variable",
-												"dependencyConditions": [
-													"Succeeded"
-												]
-											}
-										],
-										"userProperties": [],
-										"typeProperties": {
-											"variableName": "RegisterModelJobID",
-											"value": {
-												"value": "@string(item().job_id)",
-												"type": "Expression"
-											}
-										}
-									}
-								]
-							}
-						}
-					]
-				}
-			},
-			{
 				"name": "set-secret-variable",
 				"type": "SetVariable",
 				"dependsOn": [
@@ -169,11 +53,17 @@
 				}
 			},
 			{
-				"name": "model_exists",
+				"name": "if-sewer-cctv-model-exists",
 				"type": "IfCondition",
 				"dependsOn": [
 					{
-						"activity": "register-model-job-exists",
+						"activity": "if-register-model-job-exists",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "if-registered-models-exist",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -182,7 +72,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"expression": {
-						"value": "@equals(variables('ModelExists'), true)",
+						"value": "@and(\n    equals(variables('ModelExists'), true),\n    bool(contains(activity('get-mlflow-models').output, 'registered_models'))\n    )",
 						"type": "Expression"
 					},
 					"ifFalseActivities": [
@@ -218,7 +108,7 @@
 							"type": "ExecutePipeline",
 							"dependsOn": [
 								{
-									"activity": "get-job-task-id",
+									"activity": "get-job-id-last-task",
 									"dependencyConditions": [
 										"Succeeded"
 									]
@@ -233,7 +123,7 @@
 								"waitOnCompletion": true,
 								"parameters": {
 									"RunID": {
-										"value": "@activity('get-job-task-id').output.runs[0].tasks[0].run_id",
+										"value": "@activity('get-job-id-last-task').output.Value[0].run_id",
 										"type": "Expression"
 									},
 									"DatabricksSecret": {
@@ -289,12 +179,6 @@
 									"dependencyConditions": [
 										"Succeeded"
 									]
-								},
-								{
-									"activity": "get-job-task-id",
-									"dependencyConditions": [
-										"Succeeded"
-									]
 								}
 							],
 							"policy": {
@@ -307,7 +191,7 @@
 							"userProperties": [],
 							"typeProperties": {
 								"url": {
-									"value": "@concat('https://australiaeast.azuredatabricks.net/api/2.1/jobs/runs/get-output?run_id=', activity('get-job-task-id').output.runs[0].tasks[0].run_id)",
+									"value": "@concat('https://australiaeast.azuredatabricks.net/api/2.1/jobs/runs/get-output?run_id=', activity('get-job-id-last-task').output.Value[0].run_id)",
 									"type": "Expression"
 								},
 								"method": "GET",
@@ -338,29 +222,51 @@
 									"type": "Expression"
 								}
 							}
+						},
+						{
+							"name": "get-job-id-last-task",
+							"type": "Filter",
+							"dependsOn": [
+								{
+									"activity": "get-job-task-id",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"items": {
+									"value": "@activity('get-job-task-id').output.runs[0].tasks",
+									"type": "Expression"
+								},
+								"condition": {
+									"value": "@equals(item().task_key, 'registration_complete')",
+									"type": "Expression"
+								}
+							}
 						}
 					]
 				}
 			},
 			{
-				"name": "register-model-job-exists",
+				"name": "if-register-model-job-exists",
 				"type": "IfCondition",
 				"dependsOn": [
 					{
-						"activity": "check-jobs-exist-and-get-job-ids",
-						"dependencyConditions": [
-							"Succeeded",
-							"Failed"
-						]
-					},
-					{
-						"activity": "check-job-pool-exists",
+						"activity": "check-cluster-exists",
 						"dependencyConditions": [
 							"Succeeded"
 						]
 					},
 					{
-						"activity": "check-cluster-exists",
+						"activity": "if-jobs-exist",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "set-job-pool-id",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -369,7 +275,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"expression": {
-						"value": "@equals(variables('RegisterModelJobExists'), true)",
+						"value": "@and(\n    equals(variables('RegisterModelJobExists'), true),\n    bool(contains(activity('get-databricks-jobs').output, 'jobs'))\n    )",
 						"type": "Expression"
 					},
 					"ifFalseActivities": [
@@ -395,83 +301,8 @@
 									}
 								},
 								"body": {
-									"name": "register-sewer-cctv-model",
-									"email_notifications": {
-										"no_alert_for_skipped_runs": false
-									},
-									"timeout_seconds": 0,
-									"max_concurrent_runs": 1,
-									"tasks": [
-										{
-											"task_key": "register-sewer-cctv-model-task",
-											"notebook_task": {
-												"notebook_path": "/AI-ML/Sewer CCTV/register_pytorch_resnet_model_to_mlflow",
-												"source": "WORKSPACE"
-											},
-											"job_cluster_key": "register-sewer-cctv-model-task_cluster",
-											"libraries": [
-												{
-													"pypi": {
-														"package": "mlflow==1.27.0"
-													}
-												},
-												{
-													"whl": "dbfs:/mnt/blob-sewercctvmodel/MainModel-0.1.0-py3-none-any.whl"
-												},
-												{
-													"pypi": {
-														"package": "torch"
-													}
-												},
-												{
-													"pypi": {
-														"package": "torchvision"
-													}
-												}
-											],
-											"timeout_seconds": 0
-										},
-										{
-											"task_key": "registration_complete",
-											"depends_on": [
-												{
-													"task_key": "register-sewer-cctv-model-task"
-												}
-											],
-											"notebook_task": {
-												"notebook_path": "/AI-ML/Sewer CCTV/register_model_complete",
-												"source": "WORKSPACE"
-											},
-											"job_cluster_key": "register-sewer-cctv-model-task_cluster",
-											"timeout_seconds": 0
-										}
-									],
-									"job_clusters": [
-										{
-											"job_cluster_key": "register-sewer-cctv-model-task_cluster",
-											"new_cluster": {
-												"cluster_name": "",
-												"spark_version": "10.4.x-cpu-ml-scala2.12",
-												"spark_env_vars": {
-													"PYSPARK_PYTHON": "/databricks/python3/bin/python3"
-												},
-												"instance_pool_id": "@{variables('JobPoolId')}",
-												"data_security_mode": "LEGACY_SINGLE_USER_STANDARD",
-												"runtime_engine": "STANDARD",
-												"num_workers": 2
-											}
-										}
-									],
-									"tags": {
-										"Application": "Sewer CCTV Application"
-									},
-									"access_control_list": [
-										{
-											"user_name": "onyu@sydneywater.com.au",
-											"permission_level": "IS_OWNER"
-										}
-									],
-									"format": "MULTI_TASK"
+									"value": "{\n    \"name\": \"register-sewer-cctv-model\",\n    \"email_notifications\": {\n        \"no_alert_for_skipped_runs\": false\n    },\n    \"timeout_seconds\": 0,\n    \"max_concurrent_runs\": 1,\n    \"tasks\": [\n        {\n            \"task_key\": \"register-sewer-cctv-model-task\",\n            \"notebook_task\": {\n                \"notebook_path\": \"/AI-ML/Sewer CCTV/register_pytorch_resnet_model_to_mlflow\",\n                \"source\": \"WORKSPACE\"\n            },\n            \"job_cluster_key\": \"register-sewer-cctv-model-task-cluster\",\n            \"libraries\": [\n                {\n                    \"pypi\": {\n                        \"package\": \"mlflow==1.27.0\"\n                    }\n                },\n                {\n                    \"whl\": \"dbfs:/mnt/blob-sewercctvmodel/MainModel-0.1.0-py3-none-any.whl\"\n                },\n                {\n                    \"pypi\": {\n                        \"package\": \"torch\"\n                    }\n                },\n                {\n                    \"pypi\": {\n                        \"package\": \"torchvision\"\n                    }\n                }\n            ],\n            \"timeout_seconds\": 0\n        },\n        {\n            \"task_key\": \"registration_complete\",\n            \"depends_on\": [\n                {\n                    \"task_key\": \"register-sewer-cctv-model-task\"\n                }\n            ],\n            \"notebook_task\": {\n                \"notebook_path\": \"/AI-ML/Sewer CCTV/register_model_complete\",\n                \"source\": \"WORKSPACE\"\n            },\n            \"job_cluster_key\": \"register-sewer-cctv-model-task-cluster\",\n            \"timeout_seconds\": 0\n        }\n    ],\n    \"job_clusters\": [\n        {\n            \"job_cluster_key\": \"register-sewer-cctv-model-task-cluster\",\n            \"new_cluster\": {\n                \"cluster_name\": \"\",\n                \"spark_version\": \"10.4.x-cpu-ml-scala2.12\",\n                \"spark_env_vars\": {\n                    \"PYSPARK_PYTHON\": \"/databricks/python3/bin/python3\"\n                },\n                \"instance_pool_id\": \"@{variables('JobPoolId')}\",\n                \"data_security_mode\": \"LEGACY_SINGLE_USER_STANDARD\",\n                \"runtime_engine\": \"STANDARD\",\n                \"num_workers\": 2\n            }\n        }\n    ],\n    \"access_control_list\": [\n        {\n            \"user_name\": \"onyu@sydneywater.com.au\",\n            \"permission_level\": \"IS_OWNER\"\n        }\n    ],\n    \"format\": \"MULTI_TASK\"\n}",
+									"type": "Expression"
 								}
 							}
 						},
@@ -513,28 +344,42 @@
 								"value": true
 							}
 						}
+					],
+					"ifTrueActivities": [
+						{
+							"name": "set-register-model-job-id",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "RegisterModelJobID",
+								"value": {
+									"value": "@string(activity('filter-register-sewer-cctv-model-job').output.Value[0].job_id)",
+									"type": "Expression"
+								}
+							}
+						}
 					]
 				}
 			},
 			{
-				"name": "sewer-cctv-pipeline-exists",
+				"name": "if-sewer-cctv-pipeline-exists",
 				"type": "IfCondition",
 				"dependsOn": [
 					{
-						"activity": "check-jobs-exist-and-get-job-ids",
-						"dependencyConditions": [
-							"Succeeded",
-							"Failed"
-						]
-					},
-					{
-						"activity": "check-job-pool-exists",
+						"activity": "check-cluster-exists",
 						"dependencyConditions": [
 							"Succeeded"
 						]
 					},
 					{
-						"activity": "check-cluster-exists",
+						"activity": "if-jobs-exist",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "set-job-pool-id",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -543,7 +388,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"expression": {
-						"value": "@equals(variables('PipelineJobExsits'), true)",
+						"value": "@and(\n    equals(variables('PipelineJobExists'), true),\n    bool(contains(activity('get-databricks-jobs').output, 'jobs'))\n    )",
 						"type": "Expression"
 					},
 					"ifFalseActivities": [
@@ -569,220 +414,8 @@
 									}
 								},
 								"body": {
-									"name": "sewer-cctv-pipeline",
-									"email_notifications": {
-										"no_alert_for_skipped_runs": false
-									},
-									"timeout_seconds": 0,
-									"max_concurrent_runs": 10,
-									"tasks": [
-										{
-											"task_key": "extract_video_metadata",
-											"notebook_task": {
-												"notebook_path": "/AI-ML/Sewer CCTV/001_extract_video_metadata",
-												"base_parameters": {
-													"video_id": ""
-												},
-												"source": "WORKSPACE"
-											},
-											"existing_cluster_id": "@{variables('ClusterId')}",
-											"libraries": [
-												{
-													"pypi": {
-														"package": "opencv-python"
-													}
-												}
-											],
-											"timeout_seconds": 0
-										},
-										{
-											"task_key": "save_cctv_images",
-											"depends_on": [
-												{
-													"task_key": "extract_video_metadata"
-												}
-											],
-											"notebook_task": {
-												"notebook_path": "/AI-ML/Sewer CCTV/002_save_cctv_images",
-												"base_parameters": {
-													"video_id": ""
-												},
-												"source": "WORKSPACE"
-											},
-											"existing_cluster_id": "@{variables('ClusterId')}",
-											"libraries": [
-												{
-													"pypi": {
-														"package": "opencv-python"
-													}
-												}
-											],
-											"timeout_seconds": 0
-										},
-										{
-											"task_key": "classify_sewer_defects_in_images",
-											"depends_on": [
-												{
-													"task_key": "save_cctv_images"
-												}
-											],
-											"notebook_task": {
-												"notebook_path": "/AI-ML/Sewer CCTV/006_classify_sewer_defects_in_images",
-												"base_parameters": {
-													"video_id": ""
-												},
-												"source": "WORKSPACE"
-											},
-											"job_cluster_key": "sewercctv-job-cluster",
-											"libraries": [
-												{
-													"pypi": {
-														"package": "mlflow==1.27.0"
-													}
-												},
-												{
-													"whl": "dbfs:/mnt/blob-sewercctvmodel/MainModel-0.1.0-py3-none-any.whl"
-												}
-											],
-											"timeout_seconds": 0
-										},
-										{
-											"task_key": "read_text_in_images",
-											"depends_on": [
-												{
-													"task_key": "save_cctv_images"
-												}
-											],
-											"notebook_task": {
-												"notebook_path": "/AI-ML/Sewer CCTV/003_read_text_in_images",
-												"base_parameters": {
-													"video_id": ""
-												},
-												"source": "WORKSPACE"
-											},
-											"existing_cluster_id": "@{variables('ClusterId')}",
-											"libraries": [
-												{
-													"maven": {
-														"coordinates": "com.microsoft.azure:synapseml_2.12:0.9.5",
-														"repo": "https://mmlspark.azureedge.net/maven"
-													}
-												}
-											],
-											"timeout_seconds": 0
-										},
-										{
-											"task_key": "extract_contractor_annotations_and_distance_strings",
-											"depends_on": [
-												{
-													"task_key": "read_text_in_images"
-												}
-											],
-											"notebook_task": {
-												"notebook_path": "/AI-ML/Sewer CCTV/004_extract_contractor_annotations_and_distance_strings",
-												"base_parameters": {
-													"video_id": ""
-												},
-												"source": "WORKSPACE"
-											},
-											"existing_cluster_id": "@{variables('ClusterId')}",
-											"timeout_seconds": 0
-										},
-										{
-											"task_key": "cluster_contractor_identified_defects_across_video",
-											"depends_on": [
-												{
-													"task_key": "extract_contractor_annotations_and_distance_strings"
-												}
-											],
-											"notebook_task": {
-												"notebook_path": "/AI-ML/Sewer CCTV/005_cluster_contractor_identified_defects_across_video",
-												"base_parameters": {
-													"video_id": ""
-												},
-												"source": "WORKSPACE"
-											},
-											"existing_cluster_id": "@{variables('ClusterId')}",
-											"timeout_seconds": 0
-										},
-										{
-											"task_key": "cluster_AI_identified_defects",
-											"depends_on": [
-												{
-													"task_key": "classify_sewer_defects_in_images"
-												},
-												{
-													"task_key": "extract_contractor_annotations_and_distance_strings"
-												}
-											],
-											"notebook_task": {
-												"notebook_path": "/AI-ML/Sewer CCTV/007_cluster_AI_identified_defects",
-												"base_parameters": {
-													"video_id": ""
-												},
-												"source": "WORKSPACE"
-											},
-											"existing_cluster_id": "@{variables('ClusterId')}",
-											"timeout_seconds": 0
-										},
-										{
-											"task_key": "archive_video",
-											"depends_on": [
-												{
-													"task_key": "cluster_contractor_identified_defects_across_video"
-												},
-												{
-													"task_key": "cluster_AI_identified_defects"
-												}
-											],
-											"notebook_task": {
-												"notebook_path": "/AI-ML/Sewer CCTV/008_archive_video",
-												"base_parameters": {
-													"video_id": ""
-												},
-												"source": "WORKSPACE"
-											},
-											"existing_cluster_id": "@{variables('ClusterId')}",
-											"timeout_seconds": 0
-										},
-										{
-											"task_key": "Save_Data_To_Azure_SQL",
-											"depends_on": [
-												{
-													"task_key": "archive_video"
-												}
-											],
-											"notebook_task": {
-												"notebook_path": "/AI-ML/Sewer CCTV/009_save_to_azure_SQL",
-												"source": "WORKSPACE"
-											},
-											"job_cluster_key": "sewercctv-job-cluster",
-											"timeout_seconds": 0
-										}
-									],
-									"job_clusters": [
-										{
-											"job_cluster_key": "sewercctv-job-cluster",
-											"new_cluster": {
-												"cluster_name": "",
-												"spark_version": "10.4.x-cpu-ml-scala2.12",
-												"spark_conf": {
-													"spark.databricks.delta.preview.enabled": "true"
-												},
-												"instance_pool_id": "@{variables('JobPoolId')}",
-												"data_security_mode": "LEGACY_SINGLE_USER_STANDARD",
-												"runtime_engine": "STANDARD",
-												"num_workers": 5
-											}
-										}
-									],
-									"access_control_list": [
-										{
-											"user_name": "onyu@sydneywater.com.au",
-											"permission_level": "IS_OWNER"
-										}
-									],
-									"format": "MULTI_TASK"
+									"value": "{\n    \"name\": \"sewer-cctv-pipeline\",\n    \"email_notifications\": {\n        \"no_alert_for_skipped_runs\": false\n    },\n    \"timeout_seconds\": 0,\n    \"max_concurrent_runs\": 10,\n    \"tasks\": [\n        {\n            \"task_key\": \"extract_video_metadata\",\n            \"notebook_task\": {\n                \"notebook_path\": \"/AI-ML/Sewer CCTV/001_extract_video_metadata\",\n                \"base_parameters\": {\n                    \"video_id\": \"\"\n                },\n                \"source\": \"WORKSPACE\"\n            },\n            \"existing_cluster_id\": \"@{variables('ClusterId')}\",\n            \"libraries\": [\n                {\n                    \"pypi\": {\n                        \"package\": \"opencv-python\"\n                    }\n                }\n            ],\n            \"timeout_seconds\": 0\n        },\n        {\n            \"task_key\": \"save_cctv_images\",\n            \"depends_on\": [\n                {\n                    \"task_key\": \"extract_video_metadata\"\n                }\n            ],\n            \"notebook_task\": {\n                \"notebook_path\": \"/AI-ML/Sewer CCTV/002_save_cctv_images\",\n                \"base_parameters\": {\n                    \"video_id\": \"\"\n                },\n                \"source\": \"WORKSPACE\"\n            },\n            \"existing_cluster_id\": \"@{variables('ClusterId')}\",\n            \"libraries\": [\n                {\n                    \"pypi\": {\n                        \"package\": \"opencv-python\"\n                    }\n                }\n            ],\n            \"timeout_seconds\": 0\n        },\n        {\n            \"task_key\": \"classify_sewer_defects_in_images\",\n            \"depends_on\": [\n                {\n                    \"task_key\": \"save_cctv_images\"\n                }\n            ],\n            \"notebook_task\": {\n                \"notebook_path\": \"/AI-ML/Sewer CCTV/006_classify_sewer_defects_in_images\",\n                \"base_parameters\": {\n                    \"video_id\": \"\"\n                },\n                \"source\": \"WORKSPACE\"\n            },\n            \"job_cluster_key\": \"sewercctv-job-cluster\",\n            \"libraries\": [\n                {\n                    \"pypi\": {\n                        \"package\": \"mlflow==1.27.0\"\n                    }\n                },\n                {\n                    \"whl\": \"dbfs:/mnt/blob-sewercctvmodel/MainModel-0.1.0-py3-none-any.whl\"\n                }\n            ],\n            \"timeout_seconds\": 0\n        },\n        {\n            \"task_key\": \"read_text_in_images\",\n            \"depends_on\": [\n                {\n                    \"task_key\": \"save_cctv_images\"\n                }\n            ],\n            \"notebook_task\": {\n                \"notebook_path\": \"/AI-ML/Sewer CCTV/003_read_text_in_images\",\n                \"base_parameters\": {\n                    \"video_id\": \"\"\n                },\n                \"source\": \"WORKSPACE\"\n            },\n            \"existing_cluster_id\": \"@{variables('ClusterId')}\",\n            \"libraries\": [\n                {\n                    \"maven\": {\n                        \"coordinates\": \"com.microsoft.azure:synapseml_2.12:0.9.5\",\n                        \"repo\": \"https://mmlspark.azureedge.net/maven\"\n                    }\n                }\n            ],\n            \"timeout_seconds\": 0\n        },\n        {\n            \"task_key\": \"extract_contractor_annotations_and_distance_strings\",\n            \"depends_on\": [\n                {\n                    \"task_key\": \"read_text_in_images\"\n                }\n            ],\n            \"notebook_task\": {\n                \"notebook_path\": \"/AI-ML/Sewer CCTV/004_extract_contractor_annotations_and_distance_strings\",\n                \"base_parameters\": {\n                    \"video_id\": \"\"\n                },\n                \"source\": \"WORKSPACE\"\n            },\n            \"existing_cluster_id\": \"@{variables('ClusterId')}\",\n            \"timeout_seconds\": 0\n        },\n        {\n            \"task_key\": \"cluster_contractor_identified_defects_across_video\",\n            \"depends_on\": [\n                {\n                    \"task_key\": \"extract_contractor_annotations_and_distance_strings\"\n                }\n            ],\n            \"notebook_task\": {\n                \"notebook_path\": \"/AI-ML/Sewer CCTV/005_cluster_contractor_identified_defects_across_video\",\n                \"base_parameters\": {\n                    \"video_id\": \"\"\n                },\n                \"source\": \"WORKSPACE\"\n            },\n            \"existing_cluster_id\": \"@{variables('ClusterId')}\",\n            \"timeout_seconds\": 0\n        },\n        {\n            \"task_key\": \"cluster_AI_identified_defects\",\n            \"depends_on\": [\n                {\n                    \"task_key\": \"classify_sewer_defects_in_images\"\n                },\n                {\n                    \"task_key\": \"extract_contractor_annotations_and_distance_strings\"\n                }\n            ],\n            \"notebook_task\": {\n                \"notebook_path\": \"/AI-ML/Sewer CCTV/007_cluster_AI_identified_defects\",\n                \"base_parameters\": {\n                    \"video_id\": \"\"\n                },\n                \"source\": \"WORKSPACE\"\n            },\n            \"existing_cluster_id\": \"@{variables('ClusterId')}\",\n            \"timeout_seconds\": 0\n        },\n        {\n            \"task_key\": \"archive_video\",\n            \"depends_on\": [\n                {\n                    \"task_key\": \"cluster_contractor_identified_defects_across_video\"\n                },\n                {\n                    \"task_key\": \"cluster_AI_identified_defects\"\n                }\n            ],\n            \"notebook_task\": {\n                \"notebook_path\": \"/AI-ML/Sewer CCTV/008_archive_video\",\n                \"base_parameters\": {\n                    \"video_id\": \"\"\n                },\n                \"source\": \"WORKSPACE\"\n            },\n            \"existing_cluster_id\": \"@{variables('ClusterId')}\",\n            \"timeout_seconds\": 0\n        },\n        {\n            \"task_key\": \"Save_Data_To_Azure_SQL\",\n            \"depends_on\": [\n                {\n                    \"task_key\": \"archive_video\"\n                }\n            ],\n            \"notebook_task\": {\n                \"notebook_path\": \"/AI-ML/Sewer CCTV/009_save_to_azure_SQL\",\n                \"source\": \"WORKSPACE\"\n            },\n            \"job_cluster_key\": \"sewercctv-job-cluster\",\n            \"timeout_seconds\": 0\n        }\n    ],\n    \"job_clusters\": [\n        {\n            \"job_cluster_key\": \"sewercctv-job-cluster\",\n            \"new_cluster\": {\n                \"cluster_name\": \"\",\n                \"spark_version\": \"10.4.x-cpu-ml-scala2.12\",\n                \"spark_conf\": {\n                    \"spark.databricks.delta.preview.enabled\": \"true\"\n                },\n                \"instance_pool_id\": \"@{variables('JobPoolId')}\",\n                \"data_security_mode\": \"LEGACY_SINGLE_USER_STANDARD\",\n                \"runtime_engine\": \"STANDARD\",\n                \"num_workers\": 5\n            }\n        }\n    ],\n    \"access_control_list\": [\n        {\n            \"user_name\": \"onyu@sydneywater.com.au\",\n            \"permission_level\": \"IS_OWNER\"\n        }\n    ],\n    \"format\": \"MULTI_TASK\"\n}",
+									"type": "Expression"
 								}
 							}
 						},
@@ -820,8 +453,23 @@
 							],
 							"userProperties": [],
 							"typeProperties": {
-								"variableName": "PipelineJobExsits",
+								"variableName": "PipelineJobExists",
 								"value": true
+							}
+						}
+					],
+					"ifTrueActivities": [
+						{
+							"name": "set-sewer-cctv-pipeline-job-id",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "PipelineJobID",
+								"value": {
+									"value": "@string(activity('filter-sewer-cctv-pipeline-job').output.Value[0].job_id)",
+									"type": "Expression"
+								}
 							}
 						}
 					]
@@ -880,6 +528,12 @@
 						"dependencyConditions": [
 							"Succeeded"
 						]
+					},
+					{
+						"activity": "set-job-pool-id",
+						"dependencyConditions": [
+							"Succeeded"
+						]
 					}
 				],
 				"userProperties": [],
@@ -894,8 +548,13 @@
 							"value": "@variables('DatabricksSecret')",
 							"type": "Expression"
 						},
-						"JobPoolName": "Batch Pool DS4",
-						"ClusterName": "sewer-cctv"
+						"ClusterName": "sewer-cctv",
+						"MinWorkers": "2",
+						"MaxWorkers": "10",
+						"JobPoolId": {
+							"value": "@variables('JobPoolId')",
+							"type": "Expression"
+						}
 					}
 				}
 			},
@@ -904,7 +563,7 @@
 				"type": "WebActivity",
 				"dependsOn": [
 					{
-						"activity": "execute-cluster-deployment",
+						"activity": "run-job-pool-deployment",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -944,71 +603,6 @@
 						"driver_instance_pool_id": "1024-005500-twain3-pool-jk2lh0go",
 						"runtime_engine": "STANDARD"
 					}
-				}
-			},
-			{
-				"name": "check-job-pool-exists",
-				"type": "ForEach",
-				"dependsOn": [
-					{
-						"activity": "get-databricks-job-pools",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
-				"userProperties": [],
-				"typeProperties": {
-					"items": {
-						"value": "@activity('get-databricks-job-pools').output.instance_pools",
-						"type": "Expression"
-					},
-					"activities": [
-						{
-							"name": "check-pool-name-is-SCCTV-BATCHPOOL-DS4_copy1",
-							"type": "IfCondition",
-							"dependsOn": [],
-							"userProperties": [],
-							"typeProperties": {
-								"expression": {
-									"value": "@equals(item().instance_pool_name, 'Batch Pool DS4')",
-									"type": "Expression"
-								},
-								"ifTrueActivities": [
-									{
-										"name": "set-job-pool-id-1_copy1",
-										"type": "SetVariable",
-										"dependsOn": [],
-										"userProperties": [],
-										"typeProperties": {
-											"variableName": "JobPoolId",
-											"value": {
-												"value": "@item().instance_pool_id",
-												"type": "Expression"
-											}
-										}
-									},
-									{
-										"name": "set-job-pool-exists_copy1",
-										"type": "SetVariable",
-										"dependsOn": [
-											{
-												"activity": "set-job-pool-id-1_copy1",
-												"dependencyConditions": [
-													"Succeeded"
-												]
-											}
-										],
-										"userProperties": [],
-										"typeProperties": {
-											"variableName": "JobPoolExists",
-											"value": true
-										}
-									}
-								]
-							}
-						}
-					]
 				}
 			},
 			{
@@ -1124,51 +718,6 @@
 				}
 			},
 			{
-				"name": "check-model-registered",
-				"type": "ForEach",
-				"dependsOn": [
-					{
-						"activity": "get-mlflow-models",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
-				"userProperties": [],
-				"typeProperties": {
-					"items": {
-						"value": "@activity('get-mlflow-models').output.registered_models",
-						"type": "Expression"
-					},
-					"activities": [
-						{
-							"name": "if-model-name-is-sewer-cctv-image-classifier-and-prod",
-							"type": "IfCondition",
-							"dependsOn": [],
-							"userProperties": [],
-							"typeProperties": {
-								"expression": {
-									"value": "@and(equals(item().name, 'sewer-cctv-image-classifier'), equals(item().latest_versions[0].current_stage, 'Production'))",
-									"type": "Expression"
-								},
-								"ifTrueActivities": [
-									{
-										"name": "model-exists",
-										"type": "SetVariable",
-										"dependsOn": [],
-										"userProperties": [],
-										"typeProperties": {
-											"variableName": "ModelExists",
-											"value": true
-										}
-									}
-								]
-							}
-						}
-					]
-				}
-			},
-			{
 				"name": "get-mlflow-models",
 				"type": "WebActivity",
 				"dependsOn": [
@@ -1197,16 +746,246 @@
 						}
 					}
 				}
+			},
+			{
+				"name": "if-jobs-exist",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "get-databricks-jobs",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@bool(contains(activity('get-databricks-jobs').output, 'jobs'))",
+						"type": "Expression"
+					},
+					"ifTrueActivities": [
+						{
+							"name": "filter-sewer-cctv-pipeline-job",
+							"type": "Filter",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"items": {
+									"value": "@activity('get-databricks-jobs').output.jobs",
+									"type": "Expression"
+								},
+								"condition": {
+									"value": "@equals(item().settings.name, 'sewer-cctv-pipeline')",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "filter-register-sewer-cctv-model-job",
+							"type": "Filter",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"items": {
+									"value": "@activity('get-databricks-jobs').output.jobs",
+									"type": "Expression"
+								},
+								"condition": {
+									"value": "@equals(item().settings.name, 'register-sewer-cctv-model')",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "set-pipeline-job-exists",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "filter-sewer-cctv-pipeline-job",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "PipelineJobExists",
+								"value": {
+									"value": "@not(empty(activity('filter-sewer-cctv-pipeline-job').output.Value))",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "set-register-model-job-exists",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "filter-register-sewer-cctv-model-job",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "RegisterModelJobExists",
+								"value": {
+									"value": "@not(empty(activity('filter-register-sewer-cctv-model-job').output.Value))",
+									"type": "Expression"
+								}
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "filter-job-pool-batch-exists",
+				"type": "Filter",
+				"dependsOn": [
+					{
+						"activity": "get-databricks-job-pools",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('get-databricks-job-pools').output.instance_pools",
+						"type": "Expression"
+					},
+					"condition": {
+						"value": "@equals(item().instance_pool_name, pipeline().parameters.BatchPoolName)",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "set-job-pool-id",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "filter-job-pool-batch-exists",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "JobPoolId",
+					"value": {
+						"value": "@string(activity('filter-job-pool-batch-exists').output.Value[0].instance_pool_id)",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "run-job-pool-deployment",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "set-secret-variable",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "util-job-pool-deployment",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"DatabricksSecret": {
+							"value": "@variables('DatabricksSecret')",
+							"type": "Expression"
+						},
+						"JobPoolName": {
+							"value": "@pipeline().parameters.BatchPoolName",
+							"type": "Expression"
+						},
+						"ApplicationTag": "Sewer CCTV Application",
+						"MaxCapacity": "75",
+						"IdleTerminationTime": "20"
+					}
+				}
+			},
+			{
+				"name": "if-registered-models-exist",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "get-mlflow-models",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@bool(contains(activity('get-mlflow-models').output, 'registered_models'))",
+						"type": "Expression"
+					},
+					"ifTrueActivities": [
+						{
+							"name": "filter-sewer-cctv-model",
+							"type": "Filter",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"items": {
+									"value": "@activity('get-mlflow-models').output.registered_models",
+									"type": "Expression"
+								},
+								"condition": {
+									"value": "@equals(item().latest_versions[0].name, 'sewer-cctv-image-classifier')",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "set-model-exists",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "filter-sewer-cctv-model",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "ModelExists",
+								"value": {
+									"value": "@and(\n    not(empty(activity('filter-sewer-cctv-model').output.Value)),\n    equals(activity('filter-sewer-cctv-model').output.Value[0].current_stage, 'Production')\n)",
+									"type": "Expression"
+								}
+							}
+						}
+					]
+				}
 			}
 		],
 		"parameters": {
 			"DatabricksJobsUser": {
 				"type": "string",
 				"defaultValue": "onyu@sydneywater.com.au"
+			},
+			"BatchPoolName": {
+				"type": "string",
+				"defaultValue": "SCCTV_POOL"
 			}
 		},
 		"variables": {
-			"PipelineJobExsits": {
+			"PipelineJobExists": {
 				"type": "Boolean",
 				"defaultValue": false
 			},
