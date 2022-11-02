@@ -16,14 +16,7 @@
 						{
 							"name": "check-job-status-register-model",
 							"type": "WebActivity",
-							"dependsOn": [
-								{
-									"activity": "wait-60-seconds",
-									"dependencyConditions": [
-										"Succeeded"
-									]
-								}
-							],
+							"dependsOn": [],
 							"policy": {
 								"timeout": "0.12:00:00",
 								"retry": 0,
@@ -47,12 +40,19 @@
 							}
 						},
 						{
-							"name": "wait-60-seconds",
+							"name": "wait",
 							"type": "Wait",
-							"dependsOn": [],
+							"dependsOn": [
+								{
+									"activity": "check-job-status-register-model",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
 							"userProperties": [],
 							"typeProperties": {
-								"waitTimeInSeconds": 60
+								"waitTimeInSeconds": 15
 							}
 						}
 					],
