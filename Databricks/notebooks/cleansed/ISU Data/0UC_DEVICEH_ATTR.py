@@ -3,7 +3,7 @@
 import json
 #For unit testing...
 #Use this string in the Param widget: 
-#{"SourceType": "BLOB Storage (json)", "SourceServer": "daf-sa-lake-sastoken", "SourceGroup": "isu", "SourceName": "isu_0UC_DEVICEH_ATTR", "SourceLocation": "isu/0UC_DEVICEH_ATTR", "AdditionalProperty": "", "Processor": "databricks-token|0711-011053-turfs581|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive", "IsAuditTable": false, "SoftDeleteSource": "", "ProjectName": "SAP DATA", "ProjectId": 2, "TargetType": "BLOB Storage (json)", "TargetName": "isu_0UC_DEVICEH_ATTR", "TargetLocation": "isu/0UC_DEVICEH_ATTR", "TargetServer": "daf-sa-lake-sastoken", "DataLoadMode": "FULL-EXTRACT", "DeltaExtract": false, "CDCSource": false, "TruncateTarget": false, "UpsertTarget": true, "AppendTarget": null, "TrackChanges": false, "LoadToSqlEDW": true, "TaskName": "isu_0UC_DEVICEH_ATTR", "ControlStageId": 2, "TaskId": 46, "StageSequence": 200, "StageName": "Raw to Cleansed", "SourceId": 46, "TargetId": 46, "ObjectGrain": "Day", "CommandTypeId": 8, "Watermarks": "", "WatermarksDT": null, "WatermarkColumn": "", "BusinessKeyColumn": "EQUNR,BIS", "UpdateMetaData": null, "SourceTimeStampFormat": "", "Command": "", "LastLoadedFile": null}
+# {"SourceType": "BLOB Storage (json)", "SourceServer": "daf-sa-lake-sastoken", "SourceGroup": "isu", "SourceName": "isu_0UC_DEVICEH_ATTR", "SourceLocation": "isu/0UC_DEVICEH_ATTR", "AdditionalProperty": "", "Processor": "databricks-token|0711-011053-turfs581|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive", "IsAuditTable": false, "SoftDeleteSource": "", "ProjectName": "SAP DATA", "ProjectId": 2, "TargetType": "BLOB Storage (json)", "TargetName": "isu_0UC_DEVICEH_ATTR", "TargetLocation": "isu/0UC_DEVICEH_ATTR", "TargetServer": "daf-sa-lake-sastoken", "DataLoadMode": "FULL-EXTRACT", "DeltaExtract": false, "CDCSource": false, "TruncateTarget": false, "UpsertTarget": true, "AppendTarget": null, "TrackChanges": false, "LoadToSqlEDW": true, "TaskName": "isu_0UC_DEVICEH_ATTR", "ControlStageId": 2, "TaskId": 46, "StageSequence": 200, "StageName": "Raw to Cleansed", "SourceId": 46, "TargetId": 46, "ObjectGrain": "Day", "CommandTypeId": 8, "Watermarks": "", "WatermarksDT": null, "WatermarkColumn": "", "BusinessKeyColumn": "EQUNR,BIS", "UpdateMetaData": null, "SourceTimeStampFormat": "", "Command": "", "LastLoadedFile": null}
 
 #Use this string in the Source Object widget
 #isu_0UC_DEVICEH_ATTR
@@ -177,7 +177,7 @@ df = spark.sql(f"WITH stage AS \
                                 ToValidDate((case when dev.BIS = 'na' then '9999-12-31' else dev.BIS end),'MANDATORY') as validToDate, \
                                 ToValidDate(dev.AB) as validFromDate, \
                                 dev.KOMBINAT as deviceCategoryCombination, \
-                                cast(dev.LOGIKNR as Long) as logicalDeviceNumber, \
+                                dev.LOGIKNR as logicalDeviceNumber, \
                                 dev.ZWGRUPPE as registerGroupCode, \
                                 c.registerGroup, \
                                 ToValidDate(dev.EINBDAT) as installationDate, \
@@ -220,7 +220,7 @@ newSchema = StructType([
                           StructField('validToDate',DateType(),False),
                           StructField('validFromDate',DateType(),True),
                           StructField('deviceCategoryCombination',StringType(),True),
-                          StructField('logicalDeviceNumber',LongType(),True),                                      
+                          StructField('logicalDeviceNumber',StringType(),True),                                      
                           StructField('registerGroupCode',StringType(),True),
                           StructField('registerGroup',StringType(),True),
                           StructField('installationDate',DateType(),True),
