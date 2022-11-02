@@ -1,5 +1,5 @@
 {
-	"name": "BLOB_Json_File_Name",
+	"name": "BLOB_Json_Container",
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "LS_AzureBlobStorage",
