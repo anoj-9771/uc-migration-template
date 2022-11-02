@@ -205,7 +205,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"dataset": {
-						"referenceName": "BLOB_Json_File_Name",
+						"referenceName": "BLOB_Json_Container",
 						"type": "DatasetReference",
 						"parameters": {
 							"BlobFolderName": {
@@ -264,7 +264,7 @@
 							"userProperties": [],
 							"typeProperties": {
 								"dataset": {
-									"referenceName": "BLOB_Json_File_Name",
+									"referenceName": "BLOB_Json_Container",
 									"type": "DatasetReference",
 									"parameters": {
 										"BlobFolderName": {
