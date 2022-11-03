@@ -201,10 +201,10 @@ for index,location in enumerate(RW_locations_InactiveRevmoved['locations']):
                                                              .when(psf.col("waterQualityPredictionBeachwatch")=="Possible",1)
                                                              .when(psf.col("waterQualityPredictionBeachwatch")=="Likely",2)
                                           )
-                               .orderBy("_DLCleansedZoneTimeStamp", ascending=False)
-                               .withColumn("split_DLCleansedZoneTimeStamp", psf.split(psf.col("_DLCleansedZoneTimeStamp"),'T'))
-                               .withColumn("Date", psf.split(psf.col("split_DLCleansedZoneTimeStamp")[0],' ').getItem(0))
-                               .withColumn("Time", psf.split(psf.col("split_DLCleansedZoneTimeStamp")[0],' ').getItem(1))
+                               .orderBy("timestamp", ascending=False)
+                               .withColumn("split_timestamp", psf.split(psf.col("timestamp"),'T'))
+                               .withColumn("Date", psf.split(psf.col("split_timestamp")[0],' ').getItem(0))
+                               .withColumn("Time", psf.split(psf.col("split_timestamp")[0],' ').getItem(1))
                                .toPandas()
                             )
             # when BW method predict more risk than SW model, use BW method results                               
@@ -398,10 +398,6 @@ RW_output=dict(list(RW_notice.items()) + list(RW_header.items()) + list(RW_locat
 
 with open('/dbfs/mnt/blob-urbanplunge/RW_output.json', 'w') as f:
     json.dump(RW_output, f)
-
-# COMMAND ----------
-
-print(json.dumps(RW_output, indent = 4))
 
 # COMMAND ----------
 
