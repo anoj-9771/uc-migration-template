@@ -3,31 +3,11 @@
 
 # COMMAND ----------
 
-# MAGIC %sql
-# MAGIC -- Create cctv_ocr_extract table in raw layer
-# MAGIC CREATE TABLE IF NOT EXISTS cleansed.cctv_ocr_extract 
-# MAGIC (video_id STRING,
-# MAGIC  timestamp INT,
-# MAGIC  distance_m STRING,
-# MAGIC  contractor_annotation STRING,
-# MAGIC  _DLCleansedZoneTimeStamp TIMESTAMP 
-# MAGIC )
-# MAGIC PARTITIONED BY (video_id)
-# MAGIC LOCATION 'dbfs:/mnt/datalake-cleansed/sewercctv/cctv_ocr_extract'
+
 
 # COMMAND ----------
 
-# MAGIC %sql
-# MAGIC -- Create cctv_ocr_extract table in cleansed layer
-# MAGIC CREATE TABLE IF NOT EXISTS stage.cctv_ocr_extract_cleansed
-# MAGIC (video_id STRING,
-# MAGIC  timestamp INT,
-# MAGIC  distance_m STRING,
-# MAGIC  contractor_annotation STRING,
-# MAGIC  _DLCleansedZoneTimeStamp TIMESTAMP 
-# MAGIC )
-# MAGIC PARTITIONED BY (video_id)
-# MAGIC LOCATION 'dbfs:/mnt/datalake-stage/stage/cctv_ocr_extract_cleansed'
+
 
 # COMMAND ----------
 

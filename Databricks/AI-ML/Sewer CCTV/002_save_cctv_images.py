@@ -3,34 +3,6 @@
 
 # COMMAND ----------
 
-# MAGIC %sql
-# MAGIC -- Create cctv_video_frames table in raw layer
-# MAGIC CREATE TABLE IF NOT EXISTS raw.cctv_video_frames
-# MAGIC (video_id STRING,
-# MAGIC  timestamp INT,
-# MAGIC  image STRUCT<origin STRING, height: INT, width:INT, nChannels:INT, mode:INT, data:binary>,
-# MAGIC  image_url STRING,
-# MAGIC  _DLRawZoneTimeStamp TIMESTAMP
-# MAGIC )
-# MAGIC PARTITIONED BY (video_id)
-# MAGIC LOCATION 'dbfs:/mnt/datalake-raw/sewercctv/cctv_video_frames'
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC -- Create cctv_video_frames table in raw layer
-# MAGIC CREATE TABLE IF NOT EXISTS stage.cctv_video_frames
-# MAGIC (video_id STRING,
-# MAGIC  timestamp INT,
-# MAGIC  image STRUCT<origin STRING, height: INT, width:INT, nChannels:INT, mode:INT, data:binary>,
-# MAGIC  image_url STRING,
-# MAGIC  _DLRawZoneTimeStamp TIMESTAMP
-# MAGIC )
-# MAGIC PARTITIONED BY (video_id)
-# MAGIC LOCATION 'dbfs:/mnt/datalake-stage/stage/cctv_video_frames'
-
-# COMMAND ----------
-
 #default Widget Parameter
 #define notebook widget to accept video_id parameter
 #define notebook widget to accept video_id parameter
