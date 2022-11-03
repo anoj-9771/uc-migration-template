@@ -39,7 +39,7 @@ rw_tide_temp_info_original=(spark.table("cleansed.bom_fortdenision_tide")
 df_rwBN_water_quality = (spark.table("cleansed.urbanplunge_water_quality_predictions")
                         )
 
-# display(bom_weatherforecast_original)
+display(vw_beachwatch_info_original)
 
 # COMMAND ----------
 
@@ -365,7 +365,7 @@ for index,location in enumerate(RW_locations_InactiveRevmoved['locations']):
         json_water_quality = {"water_quality": {"pollution": water_quality}}
         #-----------append weather to JSON at the level of location name @ Bay View Park------------
         json_weather={"weather": {"bom_station": bom_station,
-                                 "issue-time":issue_time_local_tz, 
+                                 "issue_time":issue_time_local_tz, 
                                  "forecast_icon": forecast_icon,
                                  "forecast_text": forecast_text,
                                  "forecast_precise":forecast_precise,
@@ -422,6 +422,10 @@ RW_output=dict(list(RW_notice.items()) + list(RW_header.items()) + list(RW_locat
 
 with open('/dbfs/mnt/blob-urbanplunge/RW_output.json', 'w') as f:
     json.dump(RW_output, f)
+
+# COMMAND ----------
+
+
 
 # COMMAND ----------
 
