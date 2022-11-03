@@ -415,29 +415,6 @@
 				}
 			},
 			{
-				"name": "Ingest Beachwatch BoM and IICATS Data",
-				"type": "ExecutePipeline",
-				"dependsOn": [
-					{
-						"activity": "Execute 03_JSON_RW_output",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
-				"userProperties": [],
-				"typeProperties": {
-					"pipeline": {
-						"referenceName": "Main",
-						"type": "PipelineReference"
-					},
-					"waitOnCompletion": true,
-					"parameters": {
-						"SystemCodes": "beachwatch,bom,iicats"
-					}
-				}
-			},
-			{
 				"name": "Execute 03_JSON_RW_output",
 				"type": "DatabricksNotebook",
 				"dependsOn": [
@@ -535,6 +512,12 @@
 				"dependsOn": [
 					{
 						"activity": "set-job-pool-id",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "Ingest Beachwatch BoM and IICATS Data",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -812,6 +795,22 @@
 					"condition": {
 						"value": "@equals(item().task_key, 'inference_water_quality')",
 						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Ingest Beachwatch BoM and IICATS Data",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "Main",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"SystemCodes": "beachwatch,bom,iicats"
 					}
 				}
 			}
