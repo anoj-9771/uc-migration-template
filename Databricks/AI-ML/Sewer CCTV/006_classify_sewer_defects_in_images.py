@@ -3,36 +3,6 @@
 
 # COMMAND ----------
 
-# MAGIC %sql
-# MAGIC -- Create cctv_ai_image_classifications table in raw layer
-# MAGIC CREATE TABLE IF NOT EXISTS raw.cctv_ai_image_classifications
-# MAGIC (video_id STRING,
-# MAGIC  timestamp INT,
-# MAGIC  defect STRING,
-# MAGIC  confidence FLOAT,
-# MAGIC  score FLOAT,
-# MAGIC  _DLRawZoneTimeStamp TIMESTAMP 
-# MAGIC )
-# MAGIC PARTITIONED BY (video_id)
-# MAGIC LOCATION 'dbfs:/mnt/datalake-raw/sewercctv/cctv_ai_image_classifications'
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC -- Create cctv_ai_image_classifications table in raw layer
-# MAGIC CREATE TABLE IF NOT EXISTS stage.cctv_ai_image_classifications
-# MAGIC (video_id STRING,
-# MAGIC  timestamp INT,
-# MAGIC  defect STRING,
-# MAGIC  confidence FLOAT,
-# MAGIC  score FLOAT,
-# MAGIC  _DLRawZoneTimeStamp TIMESTAMP 
-# MAGIC )
-# MAGIC PARTITIONED BY (video_id)
-# MAGIC LOCATION 'dbfs:/mnt/datalake-stage/stage/cctv_ai_image_classifications'
-
-# COMMAND ----------
-
   #default Widget Parameter
 #define notebook widget to accept video_id parameter
 dbutils.widgets.text(name="video_id", defaultValue="0_oiif5iqr", label="video_id")
