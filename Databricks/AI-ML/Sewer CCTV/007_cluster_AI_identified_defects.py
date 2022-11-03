@@ -1,44 +1,4 @@
 # Databricks notebook source
-# MAGIC %run ./000_Includes
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC -- Create cctv_ai_image_classifications table in raw layer
-# MAGIC CREATE TABLE IF NOT EXISTS cleansed.cctv_group_ai_identified_defects
-# MAGIC (video_id STRING,
-# MAGIC  defect STRING,
-# MAGIC  avg_probability DOUBLE,
-# MAGIC  score FLOAT,
-# MAGIC  start_timestamp STRING,
-# MAGIC  end_timestamp STRING,
-# MAGIC  start_distance_m FLOAT,
-# MAGIC  end_distance_m FLOAT,
-# MAGIC  _DLCleansedZoneTimeStamp TIMESTAMP
-# MAGIC )
-# MAGIC PARTITIONED BY (video_id)
-# MAGIC LOCATION 'dbfs:/mnt/datalake-cleansed/sewercctv/cctv_group_ai_identified_defects'
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC -- Create cctv_ai_image_classifications table in raw layer
-# MAGIC CREATE TABLE IF NOT EXISTS stage.cctv_group_ai_identified_defects
-# MAGIC (video_id STRING,
-# MAGIC  defect STRING,
-# MAGIC  avg_probability DOUBLE,
-# MAGIC  score FLOAT,
-# MAGIC  start_timestamp STRING,
-# MAGIC  end_timestamp STRING,
-# MAGIC  start_distance_m FLOAT,
-# MAGIC  end_distance_m FLOAT,
-# MAGIC  _DLCleansedZoneTimeStamp TIMESTAMP
-# MAGIC )
-# MAGIC PARTITIONED BY (video_id)
-# MAGIC LOCATION 'dbfs:/mnt/datalake-stage/stage/cctv_group_ai_identified_defects'
-
-# COMMAND ----------
-
   #default Widget Parameter
 #define notebook widget to accept video_id parameter
 dbutils.widgets.text(name="video_id", defaultValue="0_oiif5iqr", label="video_id")

@@ -3,38 +3,6 @@
 
 # COMMAND ----------
 
-# MAGIC %sql
-# MAGIC -- Create cctv_video_metadata table in raw layer
-# MAGIC CREATE TABLE IF NOT EXISTS raw.cctv_video_metadata 
-# MAGIC (video_id STRING,
-# MAGIC  video_mount_point STRING,
-# MAGIC  video_blob_storage STRING,
-# MAGIC  fps INT,
-# MAGIC  total_frames INT,
-# MAGIC  total_msecs INT,
-# MAGIC  _DLRawZoneTimeStamp TIMESTAMP 
-# MAGIC )
-# MAGIC USING DELTA 
-# MAGIC LOCATION 'dbfs:/mnt/datalake-raw/sewercctv/cctv_video_metadata';
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC -- Create cctv_video_metadata table in raw layer
-# MAGIC CREATE TABLE IF NOT EXISTS stage.cctv_video_metadata 
-# MAGIC (video_id STRING,
-# MAGIC  video_mount_point STRING,
-# MAGIC  video_blob_storage STRING,
-# MAGIC  fps INT,
-# MAGIC  total_frames INT,
-# MAGIC  total_msecs INT,
-# MAGIC  _DLRawZoneTimeStamp TIMESTAMP 
-# MAGIC )
-# MAGIC USING DELTA 
-# MAGIC LOCATION 'dbfs:/mnt/datalake-stage/stage/cctv_video_metadata'
-
-# COMMAND ----------
-
 #default Widget Parameter
 #define notebook widget to accept video_id parameter
 dbutils.widgets.text(name="video_id", defaultValue="0_oiif5iqr", label="video_id")
