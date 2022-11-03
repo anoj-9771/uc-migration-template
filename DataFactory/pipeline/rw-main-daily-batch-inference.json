@@ -174,7 +174,7 @@
 				"type": "SetVariable",
 				"dependsOn": [
 					{
-						"activity": "Execute Create Views",
+						"activity": "Ingest Beachwatch BoM and IICATS Data",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -184,7 +184,7 @@
 				"typeProperties": {
 					"variableName": "CurrentModelRuntime",
 					"value": {
-						"value": "@startOfHour(convertTimeZone(utcNow(),'UTC','AUS Eastern Standard Time'))",
+						"value": "@coalesce(pipeline().parameters.currentModelRuntimeOverride,startOfHour(convertTimeZone(utcNow(),'UTC','AUS Eastern Standard Time')))",
 						"type": "Expression"
 					}
 				}
@@ -195,7 +195,7 @@
 				"type": "SetVariable",
 				"dependsOn": [
 					{
-						"activity": "Execute Create Views",
+						"activity": "Ingest Beachwatch BoM and IICATS Data",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -205,7 +205,7 @@
 				"typeProperties": {
 					"variableName": "LastModelRuntime",
 					"value": {
-						"value": "@startOfHour(convertTimeZone(addDays(utcNow(), -1),'UTC','AUS Eastern Standard Time'))",
+						"value": "@coalesce(pipeline().parameters.lastModelRuntimeOverride,startOfHour(convertTimeZone(addDays(utcNow(), -1),'UTC','AUS Eastern Standard Time')))",
 						"type": "Expression"
 					}
 				}
@@ -507,47 +507,6 @@
 				}
 			},
 			{
-				"name": "Execute Create Views",
-				"type": "DatabricksNotebook",
-				"dependsOn": [
-					{
-						"activity": "set-job-pool-id",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					},
-					{
-						"activity": "Ingest Beachwatch BoM and IICATS Data",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
-				"policy": {
-					"timeout": "0.12:00:00",
-					"retry": 0,
-					"retryIntervalInSeconds": 30,
-					"secureOutput": false,
-					"secureInput": false
-				},
-				"userProperties": [],
-				"typeProperties": {
-					"notebookPath": "/AI-ML/Riverwatch/Create_Views"
-				},
-				"linkedServiceName": {
-					"referenceName": "LS_AzureDatabricks_InstancePool",
-					"type": "LinkedServiceReference",
-					"parameters": {
-						"kvSecret": "databricks-token",
-						"PoolId": {
-							"value": "@variables('JobPoolId')",
-							"type": "Expression"
-						},
-						"DatabricksVersion": "10.4.x-cpu-ml-scala2.12"
-					}
-				}
-			},
-			{
 				"name": "Get Base AEM Url",
 				"type": "WebActivity",
 				"dependsOn": [
@@ -802,6 +761,29 @@
 				"name": "Ingest Beachwatch BoM and IICATS Data",
 				"type": "ExecutePipeline",
 				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "Main",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"SystemCodes": "beachwatch,bom,iicats"
+					}
+				}
+			},
+			{
+				"name": "Ingest Beachwatch BoM and IICATS Data_copy1",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Execute 03_JSON_RW_output",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
 				"userProperties": [],
 				"typeProperties": {
 					"pipeline": {
