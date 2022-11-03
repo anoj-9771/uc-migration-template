@@ -15,14 +15,14 @@
 # MAGIC ),
 # MAGIC effectiveDateranges as 
 # MAGIC (
-# MAGIC 	select propertyNumber, _effectiveFrom, coalesce(timestamp(date_add(lead(_effectiveFrom,1) over(partition by propertyNumber order by _effectiveFrom), -1)), '9999-12-31 00:00:00') as _effectiveTo
+# MAGIC 	select propertyNumber, _effectiveFrom, coalesce(timestamp(date_add(lead(_effectiveFrom,1) over(partition by propertyNumber order by _effectiveFrom), -1)), '9999-12-31') as _effectiveTo
 # MAGIC 	from dateDriver 
 # MAGIC )
 # MAGIC select
-# MAGIC     coalesce(dimProperty.propertySK, 'Unknown') as propertySK,
+# MAGIC     dimProperty.propertySK,
 # MAGIC     dimPropertyTypeHistory.propertyTypeHistorySK,
 # MAGIC     dimProperty.sourceSystemCode,
-# MAGIC     coalesce(dimProperty.propertyNumber, dimPropertyTypeHistory.propertyNumber, dimPropertyLot.propertyNumber, dimLocation.locationID) as propertyNumber,
+# MAGIC     coalesce(dimProperty.propertyNumber, dimPropertyTypeHistory.propertyNumber, dimPropertyLot.propertyNumber, dimLocation.locationID, -1) as propertyNumber,
 # MAGIC     dimProperty.premise,
 # MAGIC     dimProperty.waterNetworkSK_drinkingWater,
 # MAGIC     dimProperty.waterNetworkSK_recycledWater,
