@@ -15,8 +15,8 @@
 # MAGIC   updated,
 # MAGIC   cast(left(data.hightide,charindex("metres", data.hightide) -2) as float) as highTideMeters,
 # MAGIC   cast(left(data.lowtide,charindex("metres", data.lowtide) -2) as float) as lowTideMeters,
-# MAGIC   cast(substring(data.hightide, charindex("at", data.hightide) + 3, length(data.hightide)) as float) as highTideTime,
-# MAGIC   cast(substring(data.lowtide, charindex("at", data.lowtide) + 3, length(data.lowtide)) as float) as lowTideTime
+# MAGIC   substring(data.hightide, charindex("at", data.hightide) + 3, length(data.hightide)) as highTideTime,
+# MAGIC   substring(data.lowtide, charindex("at", data.lowtide) + 3, length(data.lowtide)) as lowTideTime
 # MAGIC from cleansed.beachwatch_cabarita_beach_pollution_weatherforecast
 # MAGIC 
 # MAGIC union all
@@ -33,8 +33,8 @@
 # MAGIC   updated,
 # MAGIC   cast(left(data.hightide,charindex("metres", data.hightide) -2) as float) as highTideMeters,
 # MAGIC   cast(left(data.lowtide,charindex("metres", data.lowtide) -2) as float) as lowTideMeters,
-# MAGIC   cast(substring(data.hightide, charindex("at", data.hightide) + 3, length(data.hightide)) as float) as highTideTime,
-# MAGIC   cast(substring(data.lowtide, charindex("at", data.lowtide) + 3, length(data.lowtide)) as float) as lowTideTime
+# MAGIC   substring(data.hightide, charindex("at", data.hightide) + 3, length(data.hightide)) as highTideTime,
+# MAGIC   substring(data.lowtide, charindex("at", data.lowtide) + 3, length(data.lowtide)) as lowTideTime
 # MAGIC from cleansed.beachwatch_chiswick_baths_pollution_weatherforecast
 # MAGIC 
 # MAGIC union all
@@ -51,6 +51,6 @@
 # MAGIC   updated,
 # MAGIC   cast(left(data.hightide,charindex("metres", data.hightide) -2) as float) as highTideMeters,
 # MAGIC   cast(left(data.lowtide,charindex("metres", data.lowtide) -2) as float) as lowTideMeters,
-# MAGIC   cast(substring(data.hightide, charindex("at", data.hightide) + 3, length(data.hightide)) as float) as highTideTime,
-# MAGIC   cast(substring(data.lowtide, charindex("at", data.lowtide) + 3, length(data.lowtide)) as float) as lowTideTime
+# MAGIC   substring(data.hightide, charindex("at", data.hightide) + 3, length(data.hightide)) as highTideTime,
+# MAGIC   substring(data.lowtide, charindex("at", data.lowtide) + 3, length(data.lowtide)) as lowTideTime
 # MAGIC from cleansed.beachwatch_dawn_fraser_pool_pollution_weatherforecast

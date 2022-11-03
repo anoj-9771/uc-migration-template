@@ -1,5 +1,5 @@
 {
-	"name": "BLOB_Json_Read",
+	"name": "BLOB_Json_Container",
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "LS_AzureBlobStorage",
@@ -9,7 +9,7 @@
 			"BlobFolderName": {
 				"type": "string"
 			},
-			"BlobName": {
+			"BlobFileName": {
 				"type": "string"
 			}
 		},
@@ -22,7 +22,7 @@
 			"location": {
 				"type": "AzureBlobStorageLocation",
 				"fileName": {
-					"value": "@dataset().BlobName",
+					"value": "@dataset().BlobFileName",
 					"type": "Expression"
 				},
 				"container": {
