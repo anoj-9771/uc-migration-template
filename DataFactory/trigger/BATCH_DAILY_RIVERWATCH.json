@@ -11,7 +11,7 @@
 				},
 				"parameters": {
 					"DatabricksJobName": "riverwatch-pipeline",
-					"BaseAemUrl": "https://azure-apidev.swcdev/aem-assets/v1/"
+					"BatchPoolName": "RIVERWATCH_POOL"
 				}
 			}
 		],
