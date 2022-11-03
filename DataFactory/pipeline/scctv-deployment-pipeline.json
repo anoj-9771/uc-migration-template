@@ -772,7 +772,7 @@
 									"type": "Expression"
 								},
 								"condition": {
-									"value": "@equals(item().settings.name, 'register-sewer-cctv-model')",
+									"value": "@equals(item().settings.name, 'deploy-sewer-cctv-tasks')",
 									"type": "Expression"
 								}
 							}
