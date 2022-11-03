@@ -772,29 +772,6 @@
 						"SystemCodes": "beachwatch,bom,iicats"
 					}
 				}
-			},
-			{
-				"name": "Ingest Beachwatch BoM and IICATS Data_copy1",
-				"type": "ExecutePipeline",
-				"dependsOn": [
-					{
-						"activity": "Execute 03_JSON_RW_output",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
-				"userProperties": [],
-				"typeProperties": {
-					"pipeline": {
-						"referenceName": "Main",
-						"type": "PipelineReference"
-					},
-					"waitOnCompletion": true,
-					"parameters": {
-						"SystemCodes": "beachwatch,bom,iicats"
-					}
-				}
 			}
 		],
 		"parameters": {
