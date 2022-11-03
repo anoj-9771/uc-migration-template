@@ -42,7 +42,7 @@ rw_tide_temp_info_original=(spark.table("cleansed.bom_fortdenision_tide")
 #---------5
 df_rwBN_water_quality = (spark.table("cleansed.urbanplunge_water_quality_predictions")
                         )
-# display(df_rwBN_water_quality)
+display(df_rwBN_water_quality)
 
 # COMMAND ----------
 
@@ -112,8 +112,7 @@ for index,location in enumerate(RW_locations_InactiveRevmoved['locations']):
         rw_lowTide= (rw_Tide
                      .where(psf.col("element_instance")=="low")
                      .toPandas()
-                     )
-    
+                     )  
 
         forecast_icon_airtemp = (bom_weatherforecast_original
                                  #---screen lcation and bom station----
@@ -193,15 +192,26 @@ for index,location in enumerate(RW_locations_InactiveRevmoved['locations']):
         #-----------obtain water quality and header info @ Bay View Park------------
         if location["source"] == "RiverWatch":
             Water_quality = (df_rwBN_water_quality
-                       .where(psf.col("locationId") == location["locationId"])
-                       .orderBy("_DLCleansedZoneTimeStamp", ascending=False)
-                       .withColumn("split_DLCleansedZoneTimeStamp", psf.split(psf.col("_DLCleansedZoneTimeStamp"),'T'))
-                       .withColumn("Date", psf.split(psf.col("split_DLCleansedZoneTimeStamp")[0],' ').getItem(0))
-                       .withColumn("Time", psf.split(psf.col("split_DLCleansedZoneTimeStamp")[0],' ').getItem(1))
-                       .toPandas()
+                               .where(psf.col("locationId") == location["locationId"])
+                               .withColumn("SW_pollu_num",psf.when(psf.col("waterQualityPredictionSW")=="Unlikely",0)
+                                                             .when(psf.col("waterQualityPredictionSW")=="Possible",1)
+                                                             .when(psf.col("waterQualityPredictionSW")=="Likely",2)
+                                          )
+                               .withColumn("BW_pollu_num",psf.when(psf.col("waterQualityPredictionBeachwatch")=="Unlikely",0)
+                                                             .when(psf.col("waterQualityPredictionBeachwatch")=="Possible",1)
+                                                             .when(psf.col("waterQualityPredictionBeachwatch")=="Likely",2)
+                                          )
+                               .orderBy("_DLCleansedZoneTimeStamp", ascending=False)
+                               .withColumn("split_DLCleansedZoneTimeStamp", psf.split(psf.col("_DLCleansedZoneTimeStamp"),'T'))
+                               .withColumn("Date", psf.split(psf.col("split_DLCleansedZoneTimeStamp")[0],' ').getItem(0))
+                               .withColumn("Time", psf.split(psf.col("split_DLCleansedZoneTimeStamp")[0],' ').getItem(1))
+                               .toPandas()
                             )
-            
-            water_quality = Water_quality.waterQualityPredictionBeachwatch[0] #unlikely/possible/likely
+            # when BW method predict more risk than SW model, use BW method results                               
+            if Water_quality.SW_pollu_num[0] > Water_quality.BW_pollu_num[0]:
+                water_quality = Water_quality.waterQualityPredictionSW[0] #unlikely/possible/likely
+            else:
+                water_quality = Water_quality.waterQualityPredictionBeachwatch[0] #unlikely/possible/likely
             ocean_temp = str(Dawn_Fraser_Pool_tempinfo.oceanTemp[0]) 
             current_temp= str(Dawn_Fraser_Pool_tempinfo.airTemp[0]) 
             
