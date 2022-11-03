@@ -828,7 +828,7 @@
 							"typeProperties": {
 								"variableName": "ModelExists",
 								"value": {
-									"value": "@and(\n    not(empty(activity('filter-riverwatch-model').output.Value)),\n    equals(activity('filter-riverwatch-model').output.Value[0].current_stage, 'Production')\n)",
+									"value": "@and(\n    not(empty(activity('filter-riverwatch-model').output.Value)),\n    equals(activity('filter-riverwatch-model').output.Value[0].latest_versions.current_stage, 'Production')\n)",
 									"type": "Expression"
 								}
 							}

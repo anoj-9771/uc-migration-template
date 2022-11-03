@@ -241,7 +241,7 @@
 									"type": "Expression"
 								},
 								"condition": {
-									"value": "@equals(item().task_key, 'registration_complete')",
+									"value": "@equals(item().task_key, 'create-delta-tables')",
 									"type": "Expression"
 								}
 							}
@@ -301,7 +301,7 @@
 									}
 								},
 								"body": {
-									"value": "{\n    \"name\": \"register-sewer-cctv-model\",\n    \"email_notifications\": {\n        \"no_alert_for_skipped_runs\": false\n    },\n    \"timeout_seconds\": 0,\n    \"max_concurrent_runs\": 1,\n    \"tasks\": [\n        {\n            \"task_key\": \"register-sewer-cctv-model-task\",\n            \"notebook_task\": {\n                \"notebook_path\": \"/AI-ML/Sewer CCTV/register_pytorch_resnet_model_to_mlflow\",\n                \"source\": \"WORKSPACE\"\n            },\n            \"job_cluster_key\": \"register-sewer-cctv-model-task-cluster\",\n            \"libraries\": [\n                {\n                    \"pypi\": {\n                        \"package\": \"mlflow==1.27.0\"\n                    }\n                },\n                {\n                    \"whl\": \"dbfs:/mnt/blob-sewercctvmodel/MainModel-0.1.0-py3-none-any.whl\"\n                },\n                {\n                    \"pypi\": {\n                        \"package\": \"torch\"\n                    }\n                },\n                {\n                    \"pypi\": {\n                        \"package\": \"torchvision\"\n                    }\n                }\n            ],\n            \"timeout_seconds\": 0\n        },\n        {\n            \"task_key\": \"registration_complete\",\n            \"depends_on\": [\n                {\n                    \"task_key\": \"register-sewer-cctv-model-task\"\n                }\n            ],\n            \"notebook_task\": {\n                \"notebook_path\": \"/AI-ML/Sewer CCTV/register_model_complete\",\n                \"source\": \"WORKSPACE\"\n            },\n            \"job_cluster_key\": \"register-sewer-cctv-model-task-cluster\",\n            \"timeout_seconds\": 0\n        }\n    ],\n    \"job_clusters\": [\n        {\n            \"job_cluster_key\": \"register-sewer-cctv-model-task-cluster\",\n            \"new_cluster\": {\n                \"cluster_name\": \"\",\n                \"spark_version\": \"10.4.x-cpu-ml-scala2.12\",\n                \"spark_env_vars\": {\n                    \"PYSPARK_PYTHON\": \"/databricks/python3/bin/python3\"\n                },\n                \"instance_pool_id\": \"@{variables('JobPoolId')}\",\n                \"data_security_mode\": \"LEGACY_SINGLE_USER_STANDARD\",\n                \"runtime_engine\": \"STANDARD\",\n                \"num_workers\": 2\n            }\n        }\n    ],\n    \"access_control_list\": [\n        {\n            \"user_name\": \"onyu@sydneywater.com.au\",\n            \"permission_level\": \"IS_OWNER\"\n        }\n    ],\n    \"format\": \"MULTI_TASK\"\n}",
+									"value": "{\n    \"name\": \"deploy-sewer-cctv-tasks\",\n    \"email_notifications\": {\n        \"no_alert_for_skipped_runs\": false\n    },\n    \"timeout_seconds\": 0,\n    \"max_concurrent_runs\": 1,\n    \"tasks\": [\n        {\n            \"task_key\": \"register-sewer-cctv-model-task\",\n            \"depends_on\": [\n                {\n                    \"task_key\": \"mount-containers\"\n                }\n            ],\n            \"notebook_task\": {\n                \"notebook_path\": \"/AI-ML/Sewer CCTV/register_pytorch_resnet_model_to_mlflow\",\n                \"source\": \"WORKSPACE\"\n            },\n            \"job_cluster_key\": \"deploy-sewer-cctv-cluster\",\n            \"libraries\": [\n                {\n                    \"pypi\": {\n                        \"package\": \"mlflow==1.27.0\"\n                    }\n                },\n                {\n                    \"whl\": \"dbfs:/mnt/blob-sewercctvmodel/MainModel-0.1.0-py3-none-any.whl\"\n                },\n                {\n                    \"pypi\": {\n                        \"package\": \"torch\"\n                    }\n                },\n                {\n                    \"pypi\": {\n                        \"package\": \"torchvision\"\n                    }\n                }\n            ],\n            \"timeout_seconds\": 0,\n            \"email_notifications\": {}\n        },\n        {\n            \"task_key\": \"create-delta-tables\",\n            \"depends_on\": [\n                {\n                    \"task_key\": \"register-sewer-cctv-model-task\"\n                }\n            ],\n            \"notebook_task\": {\n                \"notebook_path\": \"/AI-ML/Sewer CCTV/create_sewer_cctv_delta_tables\",\n                \"source\": \"WORKSPACE\"\n            },\n            \"job_cluster_key\": \"deploy-sewer-cctv-cluster\",\n            \"timeout_seconds\": 0,\n            \"email_notifications\": {}\n        },\n        {\n            \"task_key\": \"mount-containers\",\n            \"notebook_task\": {\n                \"notebook_path\": \"/AI-ML/Sewer CCTV/mount-contrainers\",\n                \"source\": \"WORKSPACE\"\n            },\n            \"job_cluster_key\": \"deploy-sewer-cctv-cluster\",\n            \"timeout_seconds\": 0,\n            \"email_notifications\": {}\n        }\n    ],\n    \"job_clusters\": [\n        {\n            \"job_cluster_key\": \"deploy-sewer-cctv-cluster\",\n            \"new_cluster\": {\n                \"cluster_name\": \"\",\n                \"spark_version\": \"10.4.x-cpu-ml-scala2.12\",\n                \"spark_env_vars\": {\n                    \"PYSPARK_PYTHON\": \"/databricks/python3/bin/python3\"\n                },\n                \"instance_pool_id\": \"@{variables('JobPoolId')}\",\n                \"data_security_mode\": \"LEGACY_SINGLE_USER_STANDARD\",\n                \"runtime_engine\": \"STANDARD\",\n                \"num_workers\": 2\n            }\n        }\n    ],\n    \"access_control_list\": [\n        {\n            \"user_name\": \"onyu@sydneywater.com.au\",\n            \"permission_level\": \"IS_OWNER\"\n        }\n    ],\n    \"format\": \"MULTI_TASK\"\n}",
 									"type": "Expression"
 								}
 							}
@@ -497,26 +497,6 @@
 						"type": "MSI",
 						"resource": "https://vault.azure.net"
 					}
-				}
-			},
-			{
-				"name": "create-kaltura-dbo-tables",
-				"type": "SqlServerStoredProcedure",
-				"dependsOn": [],
-				"policy": {
-					"timeout": "0.12:00:00",
-					"retry": 0,
-					"retryIntervalInSeconds": 30,
-					"secureOutput": false,
-					"secureInput": false
-				},
-				"userProperties": [],
-				"typeProperties": {
-					"storedProcedureName": "dbo.sp_create_dbo_kaltura_tables"
-				},
-				"linkedServiceName": {
-					"referenceName": "LS_AzureSqlDatabase_Sewercctv",
-					"type": "LinkedServiceReference"
 				}
 			},
 			{
@@ -965,12 +945,25 @@
 							"typeProperties": {
 								"variableName": "ModelExists",
 								"value": {
-									"value": "@and(\n    not(empty(activity('filter-sewer-cctv-model').output.Value)),\n    equals(activity('filter-sewer-cctv-model').output.Value[0].current_stage, 'Production')\n)",
+									"value": "@and(\n    not(empty(activity('filter-sewer-cctv-model').output.Value)),\n    equals(activity('filter-sewer-cctv-model').output.Value[0].latest_versions.current_stage, 'Production')\n)",
 									"type": "Expression"
 								}
 							}
 						}
 					]
+				}
+			},
+			{
+				"name": "run-azure-sql-deployment",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "scctv-deploy-azure-sql-tables",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
 				}
 			}
 		],
