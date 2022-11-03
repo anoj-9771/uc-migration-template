@@ -232,9 +232,9 @@ def getProperty():
                               left outer join {ADS_DATABASE_CLEANSED}.isu_0ucpremise_attr_2 0ucp 
                               on co.propertyNumber = 0ucp.propertyNumber 
                               left outer join {ADS_DATABASE_CLEANSED}.isu_vibdao vd 
-                              on co.architecturalObjectInternalId = vd.architecturalObjectInternalId and vd._RecordDeleted = 0 and vd._RecordCurrent = 1 
+                              on co.architecturalObjectInternalId = vd.architecturalObjectInternalId and vd._RecordCurrent = 1 
                               left outer join {ADS_DATABASE_CLEANSED}.isu_vibdnode vn 
-                              on co.architecturalObjectInternalId = vn.architecturalObjectInternalId and vn._RecordDeleted = 0 and   vn._RecordCurrent = 1 
+                              on co.architecturalObjectInternalId = vn.architecturalObjectInternalId and vn._RecordCurrent = 1 
                               left outer join systemAreas sa 
                               on sa.propertyNumber = coalesce(int(vn.parentArchitecturalObjectNumber),int(co.propertyNumber)) 
                          where co.propertyNumber <> '' 
