@@ -10,7 +10,8 @@
 					"type": "PipelineReference"
 				},
 				"parameters": {
-					"DatabricksJobName": "riverwatch-pipeline"
+					"DatabricksJobName": "riverwatch-pipeline",
+					"BatchPoolName": "RIVERWATCH_POOL"
 				}
 			}
 		],
