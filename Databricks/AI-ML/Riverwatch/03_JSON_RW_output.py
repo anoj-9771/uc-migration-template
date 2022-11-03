@@ -23,23 +23,26 @@ def delete_multiple_element(outerlayer, indices):
 
 # COMMAND ----------
 
-import re
+#---------1
 bom_weatherforecast_original = (spark.table("cleansed.bom_weatherforecast")
                       )
-
+# display(bom_weatherforecast_original)
+#---------2
 bom_dailyweatherobservation_original = (spark.table("cleansed.bom_dailyweatherobservation_sydneyairport")
                                        )
-
+# display(bom_dailyweatherobservation_original.orderBy("date",ascending=False))
+#---------3
 vw_beachwatch_info_original=(spark.table("cleansed.vw_beachwatch_pollution_weather_forecast")
                             )
-
+# display(vw_beachwatch_info_original.orderBy(psf.col("updated"),ascending=False))
+#---------4
 rw_tide_temp_info_original=(spark.table("cleansed.bom_fortdenision_tide")
                            )
-
+# display(rw_tide_temp_info_original)
+#---------5
 df_rwBN_water_quality = (spark.table("cleansed.urbanplunge_water_quality_predictions")
                         )
-
-display(vw_beachwatch_info_original)
+# display(df_rwBN_water_quality)
 
 # COMMAND ----------
 
@@ -51,10 +54,9 @@ dbutils.widgets.text(name="process_timestamp", defaultValue="2022-02-07T12:00:00
 TIME_VARIABLE=dbutils.widgets.get("process_timestamp")
 
 #--------------- open and prepare json file -----------
-# with open('/dbfs/FileStore/DataLab/Riverwatch/RW_locations.json', 'r') as f:
 with open('/dbfs/mnt/blob-urbanplunge/RW_locations.json', 'r') as f:
     RW_locations = json.load(f)
-# print(json.dumps(RW_locations, indent = 4))
+
 with open('/dbfs/mnt/blob-urbanplunge/RW_icon_code.json', 'r') as f:
     RW_icon_code = json.load(f)
     
@@ -76,44 +78,32 @@ for index,location in enumerate(RW_locations['locations']):
         removelist.append(index)
 
 RW_locations_InactiveRevmoved=delete_multiple_element(RW_locations, removelist)
-# print(json.dumps(RW_locations_InactiveRevmoved, indent = 4))
+
 for index,location in enumerate(RW_locations_InactiveRevmoved['locations']):
 #=========Active==================    
     if location["status"] == "Active":
-#         print(str(index))
 
         beachwatch_info = (vw_beachwatch_info_original
                            .where(psf.col("locationId") == location["locationId"])
                            .withColumn("BW_date",psf.to_date(psf.col("updated")))
-                           #---------START---- using time variable to select specific date if necessary !!!!!!!!!!!!!
-#                            .withColumn("current_date",psf.to_date(psf.lit(TIME_VARIABLE)))# import current time using datetime function in real cases!!!!!!!!!!!!!!!!!!!!!
-#                            .where(psf.col("BW_date")==psf.col("current_date"))
-                           #---------END---- using time variable to select specific date if necessary !!!!!!!!!!!!!
-                           .orderBy("BW_date")
+                           .orderBy("BW_date",ascending=False)
                            .toPandas()
                           )
         Dawn_Fraser_Pool_tempinfo = (vw_beachwatch_info_original # this is for ocean temp only, the Dawnfraser ocean temprature is applied to all sites
                                      .where(psf.col("locationId")==3)
                                      .withColumn("BW_date",psf.to_date(psf.col("updated")))
-                                     #---------START---- using time variable to select specific date if necessary !!!!!!!!!!!!!
-#                                        .withColumn("current_date",psf.to_date(psf.lit(TIME_VARIABLE)))# import current time using datetime function in real cases!!!!!!!!!!!!!!!!!!!!!
-#                                      .where(psf.col("BW_date")==psf.col("current_date"))
-                                     #---------END---- using time variable to select specific date if necessary !!!!!!!!!!!!!
-                                     .orderBy("BW_date")
+                                     .orderBy("BW_date",ascending=False)
                                      .toPandas()
                                     )
-# #         print(location["locationId"])
-#         display(beachwatch_info)
-
         
         w = W.partitionBy("element_instance").orderBy("_start-time-utc")
         rw_Tide=(rw_tide_temp_info_original
                      .withColumnRenamed("element_time-local","startTimeLocal")
-                     .withColumn("current_date",psf.to_date(psf.lit(TIME_VARIABLE)))# import current using datetime function in real cases!!!!!!!!!!!!!!!!!!!!!
-#                      .where(psf.col("startTimeLocal")>psf.col("current_date"))
-                     .na.drop(subset=["element_VALUE","element_instance"])#remove all null rows in column "element_VALUE" and "element_instance" to avoid null is selected for tide info
+                     .withColumn("current_datetime",psf.to_timestamp(psf.lit(TIME_VARIABLE)))
+                     .where(psf.col("startTimeLocal")>psf.col("current_datetime"))
+                     .na.drop(subset=["element_VALUE","element_instance"])
                      .withColumn("high&lowTide", psf.row_number().over(w))
-                     .where(psf.col("high&lowTide")==1)           
+                     .where(psf.col("high&lowTide")==1) 
                      )
         rw_highTide= (rw_Tide
                      .where(psf.col("element_instance")=="high")
@@ -124,7 +114,7 @@ for index,location in enumerate(RW_locations_InactiveRevmoved['locations']):
                      .toPandas()
                      )
     
-#         display(rw_tide_temp)
+
         forecast_icon_airtemp = (bom_weatherforecast_original
                                  #---screen lcation and bom station----
                                  .where(psf.col("_type")=="location")
@@ -132,21 +122,17 @@ for index,location in enumerate(RW_locations_InactiveRevmoved['locations']):
                                  #---only look at column we need---
                                  .withColumn("available_days_data",psf.explode(psf.col("forecast-period")))
                                  .withColumn("_start-time-local",psf.to_date(psf.col("available_days_data")["_start-time-local"]))
-                              #---------START---- using time variable to select specific date if necessary !!!!!!!!!!!!!
-#                               .withColumn("current_date",psf.to_date(psf.lit(TIME_VARIABLE)))
-#                               .where(psf.col("_start-time-local")==psf.col("current_date"))
-                              #---------END---- using time variable to select specific date if necessary !!!!!!!!!!!!!
                                  .withColumn("elements",psf.explode(psf.col("available_days_data")["element"]))
                                  .withColumn("types",psf.col("elements")["_type"])
                                  .withColumn("types_value",psf.col("elements")["_VALUE"])
                                 )
-#         display(forecast_icon_airtemp)
+
         forecast_icon_code=(forecast_icon_airtemp
                            .where(psf.col("types")=="forecast_icon_code")
                             .select("types_value")
                             .toPandas()
                            )
-#         print(forecast_icon_code.types_value[0])
+
         minairtemp=(forecast_icon_airtemp
                            .where(psf.col("types")=="air_temperature_minimum")
                             .select("types_value")
@@ -157,9 +143,7 @@ for index,location in enumerate(RW_locations_InactiveRevmoved['locations']):
                             .select("types_value")
                             .toPandas()
                            )
-#         display(minairtemp)
-#         print(len(forecast_icon_airtemp_tmp[0]))
-#         forecast_icon_airtemp_tmp.tmp.show()
+
         forecast_description_text = (bom_weatherforecast_original
                                  #---screen lcation and bom station----
                                   .where(psf.col("_type")=="metropolitan")
@@ -169,10 +153,6 @@ for index,location in enumerate(RW_locations_InactiveRevmoved['locations']):
                                   .withColumn("_start-time-local",psf.to_date(psf.col("available_days_data")["_start-time-local"]))
                                   .withColumn("IssueTime",psf.col("available_days_data")["_start-time-local"])
                                   .orderBy("_start-time-local")
-                              #---------START---- using time variable to select specific date if necessary !!!!!!!!!!!!!
-#                               .withColumn("current_date",psf.to_date(psf.lit(TIME_VARIABLE)))
-#                               .where(psf.col("_start-time-local")==psf.col("current_date"))
-                              #---------END---- using time variable to select specific date if necessary !!!!!!!!!!!!!
                                   .withColumn("text",psf.explode(psf.col("available_days_data")["text"]))
                                   .withColumn("types",psf.col("text")["_type"])
                                   .where(psf.col("types")=="forecast")
@@ -180,7 +160,6 @@ for index,location in enumerate(RW_locations_InactiveRevmoved['locations']):
                                   .toPandas()
                                )
 
-#         display(forecast_description_text)
         uv=(bom_weatherforecast_original
                               #---screen lcation and bom station----
                               .where(psf.col("_type")=="metropolitan")
@@ -188,10 +167,6 @@ for index,location in enumerate(RW_locations_InactiveRevmoved['locations']):
                               #---only look at column we need---
                               .withColumn("available_days_data",psf.explode(psf.col("forecast-period")))
                               .withColumn("_start-time-local",psf.to_date(psf.col("available_days_data")["_start-time-local"]))
-                              #---------START---- using time variable to select specific date if necessary !!!!!!!!!!!!!
-#                               .withColumn("current_date",psf.to_date(psf.lit(TIME_VARIABLE)))
-#                               .where(psf.col("_start-time-local")==psf.col("current_date"))
-                              #---------END---- using time variable to select specific date if necessary !!!!!!!!!!!!!
                               .withColumn("text",psf.explode(psf.col("available_days_data")["text"]))
                               .withColumn("types",psf.col("text")["_type"])
                               .where(psf.col("types")=="uv_alert")
@@ -202,13 +177,8 @@ for index,location in enumerate(RW_locations_InactiveRevmoved['locations']):
                               .na.drop(subset=["types","VALUE","uv_interpret","uv_value"])#remove all null rows in column "element_VALUE" and "element_instance" to avoid null is selected for tide info
                               .toPandas()
                                   )
-# #         display(uv)
-# #         print(uv.uv_interpret[0][-2])
+
         rain_wind=(bom_dailyweatherobservation_original
-                          ##---------START---- using time variable to select specific date if necessary !!!!!!!!!!!!!
-           #             .withColumn("current_date",psf.to_date(psf.lit(TIME_VARIABLE)))
-#                        .where(psf.col("Date")==psf.col("current_date"))
-                          ##---------END---- using time variable to select specific date if necessary !!!!!!!!!!!!!
                          .sort(psf.desc("date"))
                          .withColumn("latest_wind_speed",psf.when(psf.isnull(psf.col("3pm_wind_speed_kmh")),psf.col("9am_wind_speed_kmh"))
                                                             .otherwise(psf.col("3pm_wind_speed_kmh"))
@@ -219,41 +189,40 @@ for index,location in enumerate(RW_locations_InactiveRevmoved['locations']):
                          .na.drop(subset=["Rainfall_mm"])
                          .toPandas()
                   )
-#         display(rain_wind)
+
         #-----------obtain water quality and header info @ Bay View Park------------
         if location["source"] == "RiverWatch":
             Water_quality = (df_rwBN_water_quality
                        .where(psf.col("locationId") == location["locationId"])
-#                        .where(psf.col("timestamp") == TIME_VARIABLE)# import current using datetime function in real cases!!!!!!!!!!!!!
+                       .orderBy("_DLCleansedZoneTimeStamp", ascending=False)
                        .withColumn("split_DLCleansedZoneTimeStamp", psf.split(psf.col("_DLCleansedZoneTimeStamp"),'T'))
                        .withColumn("Date", psf.split(psf.col("split_DLCleansedZoneTimeStamp")[0],' ').getItem(0))
                        .withColumn("Time", psf.split(psf.col("split_DLCleansedZoneTimeStamp")[0],' ').getItem(1))
                        .toPandas()
                             )
-#             display(df_rw_water_quality_predictions)
+            
             water_quality = Water_quality.waterQualityPredictionBeachwatch[0] #unlikely/possible/likely
-            ocean_temp = str(Dawn_Fraser_Pool_tempinfo.oceanTemp[0]) # done
-            current_temp= str(Dawn_Fraser_Pool_tempinfo.airTemp[0]) # done
+            ocean_temp = str(Dawn_Fraser_Pool_tempinfo.oceanTemp[0]) 
+            current_temp= str(Dawn_Fraser_Pool_tempinfo.airTemp[0]) 
             
             #-----------tide info----------------------------
             tidal_adjust=datetime.strptime(location["tidal_adjustment"], '+%H:%M').time()
             tidal_adjust_timedelt=timedelta(hours=tidal_adjust.hour, minutes=tidal_adjust.minute)
-#             print(len(rw_highTide.startTimeLocal))
+
             highTideTime=datetime.strptime(str(rw_highTide.startTimeLocal[0].time()), '%H:%M:%S').time()
             highTideTime_timedelt=timedelta(hours=highTideTime.hour, minutes=highTideTime.minute)
             lowTideTime=datetime.strptime(str(rw_lowTide.startTimeLocal[0].time()), '%H:%M:%S').time()
             lowTideTime_timedelt=timedelta(hours=lowTideTime.hour, minutes=lowTideTime.minute)
             if location["tidal_adjustment"]=="No Tide":
-                high_tide=str(highTideTime_timedelt) # done
-                low_tide=str(lowTideTime_timedelt) # done
+                high_tide=str(highTideTime_timedelt) 
+                low_tide=str(lowTideTime_timedelt) 
             else:
-                high_tide=str(highTideTime_timedelt+tidal_adjust_timedelt) # done
-                low_tide=str(lowTideTime_timedelt+tidal_adjust_timedelt) # done
-#             print(low_tide)
-            high_tide_height_m = str(rw_highTide.element_VALUE[0]) # need data source
-            low_tide_height_m = str(rw_lowTide.element_VALUE[0]) # need data source
-#             print(high_tide_height_m)
-            
+                high_tide=str(highTideTime_timedelt+tidal_adjust_timedelt)
+                low_tide=str(lowTideTime_timedelt+tidal_adjust_timedelt)
+
+            high_tide_height_m = str(rw_highTide.element_VALUE[0]) 
+            low_tide_height_m = str(rw_lowTide.element_VALUE[0]) 
+
 #             high_tide = "bom_fortdenision_tide info" # need data source
 #             high_tide_height_m = "bom_fortdenision_tide info" # need data source
 #             low_tide = "bom_fortdenision_tide info" # need data source
@@ -262,19 +231,18 @@ for index,location in enumerate(RW_locations_InactiveRevmoved['locations']):
             #-----------obtain weather information ------------
             bom_station= location["BOM_station"]
             issue_time_local_tz=str(forecast_description_text.IssueTime[0])
-            forecast_icon=forecast_icon_code.types_value[0] #done 
-            forecast_text=forecast_description_text.VALUE[0] #done
+            forecast_icon=forecast_icon_code.types_value[0] 
+            forecast_text=forecast_description_text.VALUE[0]
             for icon in RW_icon_code["icon_meaning"]:
-            #     if RW_icon_code["icon_meaning"][icon]=="Sunny":
                 if icon == forecast_icon: # icon here is string
-                    forecast_precise = RW_icon_code["icon_meaning"][icon] #done
-            air_temp_min=str(minairtemp.types_value[0]) #done
-            air_temp_max=str(maxairtemp.types_value[0]) #done 
-            rainfall_since9am = str(round(rain_wind.Rainfall_mm[0])) #done
-            windspeed_kmh = str(rain_wind.latest_wind_speed[0]) #done
-            wind_direction = rain_wind.latest_wind_dire[0] #done
-            uv_forecast = str(uv.uv_value[0]) + "/11+" # done
-            uv_meaning = uv.uv_interpret[0] #done
+                    forecast_precise = RW_icon_code["icon_meaning"][icon] 
+            air_temp_min=str(minairtemp.types_value[0]) 
+            air_temp_max=str(maxairtemp.types_value[0]) 
+            rainfall_since9am = str(round(rain_wind.Rainfall_mm[0])) 
+            windspeed_kmh = str(rain_wind.latest_wind_speed[0]) 
+            wind_direction = rain_wind.latest_wind_dire[0]
+            uv_forecast = str(uv.uv_value[0]) + "/11+" 
+            uv_meaning = uv.uv_interpret[0] 
             
 
         elif location["source"] == "Beachwatch":
@@ -289,35 +257,34 @@ for index,location in enumerate(RW_locations_InactiveRevmoved['locations']):
             lowTideTime_timedelt=timedelta(hours=lowTideTime.hour, minutes=lowTideTime.minute)
 
             if location["tidal_adjustment"]=="No Tide":
-                high_tide=str(highTideTime_timedelt) # done
-                low_tide=str(lowTideTime_timedelt) # done
+                high_tide=str(highTideTime_timedelt) 
+                low_tide=str(lowTideTime_timedelt)
             else:
-                high_tide=str(highTideTime_timedelt+tidal_adjust_timedelt) # done
-                low_tide=str(lowTideTime_timedelt+tidal_adjust_timedelt) # done
-#             print(low_tide)
-            high_tide_height_m = str(beachwatch_info.highTideMeters[0]) # need data source
-            low_tide_height_m = str(beachwatch_info.lowTideMeters[0]) # need data source
-#             print(high_tide_height_m)
+                high_tide=str(highTideTime_timedelt+tidal_adjust_timedelt)
+                low_tide=str(lowTideTime_timedelt+tidal_adjust_timedelt) 
+
+            high_tide_height_m = str(beachwatch_info.highTideMeters[0]) 
+            low_tide_height_m = str(beachwatch_info.lowTideMeters[0]) 
+
             #-----------temp info-----------------------
-            ocean_temp = str(beachwatch_info.oceanTemp[0]) # done
-            current_temp= str(beachwatch_info.airTemp[0]) # done
+            ocean_temp = str(beachwatch_info.oceanTemp[0]) 
+            current_temp= str(beachwatch_info.airTemp[0]) 
             
             #-----------obtain weather information ------------
             bom_station= location["BOM_station"]
             issue_time_local_tz=str(forecast_description_text.IssueTime[0])
-            forecast_icon=forecast_icon_code.types_value[0] #done 
-            forecast_text=forecast_description_text.VALUE[0] #done
+            forecast_icon=forecast_icon_code.types_value[0]  
+            forecast_text=forecast_description_text.VALUE[0] 
             for icon in RW_icon_code["icon_meaning"]:
-            #     if RW_icon_code["icon_meaning"][icon]=="Sunny":
                 if icon == forecast_icon: # icon here is string
-                    forecast_precise = RW_icon_code["icon_meaning"][icon] #done
-            air_temp_min=str(minairtemp.types_value[0]) #done
-            air_temp_max=str(maxairtemp.types_value[0]) #done 
-            rainfall_since9am = str(round(rain_wind.Rainfall_mm[0])) #done
-            windspeed_kmh = str(rain_wind.latest_wind_speed[0]) #done
-            wind_direction = rain_wind.latest_wind_dire[0] #done
-            uv_forecast = str(uv.uv_value[0]) + "/11+" # done
-            uv_meaning = uv.uv_interpret[0] #done
+                    forecast_precise = RW_icon_code["icon_meaning"][icon] 
+            air_temp_min=str(minairtemp.types_value[0]) 
+            air_temp_max=str(maxairtemp.types_value[0]) 
+            rainfall_since9am = str(round(rain_wind.Rainfall_mm[0])) 
+            windspeed_kmh = str(rain_wind.latest_wind_speed[0]) 
+            wind_direction = rain_wind.latest_wind_dire[0] 
+            uv_forecast = str(uv.uv_value[0]) + "/11+" 
+            uv_meaning = uv.uv_interpret[0] 
         
         elif location["source"] == "Unmonitored":
             water_quality = "Unmonitored" #unlikely/possible/likely
@@ -336,30 +303,29 @@ for index,location in enumerate(RW_locations_InactiveRevmoved['locations']):
 #             else:
 #                 high_tide=str(highTideTime_timedelt+tidal_adjust_timedelt) # done
 #                 low_tide=str(lowTideTime_timedelt+tidal_adjust_timedelt) # done
-            high_tide="Unmonitored" # done
-            low_tide="Unmonitored" # done
+            high_tide="Unmonitored" 
+            low_tide="Unmonitored" 
 #             print(low_tide)
-            high_tide_height_m = "Unmonitored" # need data source
-            low_tide_height_m = "Unmonitored" # need data source
+            high_tide_height_m = "Unmonitored" 
+            low_tide_height_m = "Unmonitored" 
             #-----------temp info-----------------------
-            ocean_temp = str(Dawn_Fraser_Pool_tempinfo.oceanTemp[0]) # done
-            current_temp= str(Dawn_Fraser_Pool_tempinfo.airTemp[0]) # done
+            ocean_temp = str(Dawn_Fraser_Pool_tempinfo.oceanTemp[0]) 
+            current_temp= str(Dawn_Fraser_Pool_tempinfo.airTemp[0]) 
         
             bom_station= location["BOM_station"]
             issue_time_local_tz=str(forecast_description_text.IssueTime[0])
-            forecast_icon=forecast_icon_code.types_value[0] #done 
-            forecast_text=forecast_description_text.VALUE[0] #done
+            forecast_icon=forecast_icon_code.types_value[0]  
+            forecast_text=forecast_description_text.VALUE[0] 
             for icon in RW_icon_code["icon_meaning"]:
-            #     if RW_icon_code["icon_meaning"][icon]=="Sunny":
                 if icon == forecast_icon: # icon here is string
-                    forecast_precise = RW_icon_code["icon_meaning"][icon] #done
-            air_temp_min=str(minairtemp.types_value[0]) #done
-            air_temp_max=str(maxairtemp.types_value[0]) #done 
-            rainfall_since9am = str(round(rain_wind.Rainfall_mm[0])) #done
-            windspeed_kmh = str(rain_wind.latest_wind_speed[0]) #done
-            wind_direction = rain_wind.latest_wind_dire[0] #done
-            uv_forecast = str(uv.uv_value[0]) + "/11+" # done
-            uv_meaning = uv.uv_interpret[0] #done
+                    forecast_precise = RW_icon_code["icon_meaning"][icon] 
+            air_temp_min=str(minairtemp.types_value[0]) 
+            air_temp_max=str(maxairtemp.types_value[0]) 
+            rainfall_since9am = str(round(rain_wind.Rainfall_mm[0]))
+            windspeed_kmh = str(rain_wind.latest_wind_speed[0])
+            wind_direction = rain_wind.latest_wind_dire[0]
+            uv_forecast = str(uv.uv_value[0]) + "/11+"
+            uv_meaning = uv.uv_interpret[0]
             
         #-----------append water quality to JSON at the level of location name @ Bay View Park------------
         json_water_quality = {"water_quality": {"pollution": water_quality}}
@@ -425,7 +391,7 @@ with open('/dbfs/mnt/blob-urbanplunge/RW_output.json', 'w') as f:
 
 # COMMAND ----------
 
-
+print(json.dumps(RW_output, indent = 4))
 
 # COMMAND ----------
 
