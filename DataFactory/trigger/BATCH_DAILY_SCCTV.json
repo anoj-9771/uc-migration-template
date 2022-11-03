@@ -1,0 +1,28 @@
+{
+	"name": "BATCH_DAILY_SCCTV",
+	"properties": {
+		"annotations": [],
+		"runtimeState": "Stopped",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "scctv-main-daily-orchestration",
+					"type": "PipelineReference"
+				},
+				"parameters": {
+					"processStartTime": 8,
+					"processEndTime": 19
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Day",
+				"interval": 1,
+				"startTime": "2022-11-04T18:00:00Z",
+				"timeZone": "UTC"
+			}
+		}
+	}
+}
