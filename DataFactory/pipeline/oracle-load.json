@@ -190,7 +190,7 @@
 							"typeProperties": {
 								"variableName": "QueryClause",
 								"value": {
-									"value": "WHERE @{variables('WatermarkColumn')} >= @{activity('low-high-watermark').output.firstRow.LowWatermark} AND @{variables('WatermarkColumn')} <= @{activity('low-high-watermark').output.firstRow.HighWatermark}",
+									"value": "WHERE @{variables('WatermarkColumn')} >= ''@{activity('low-high-watermark').output.firstRow.LowWatermark}'' AND @{variables('WatermarkColumn')} <= ''@{activity('low-high-watermark').output.firstRow.HighWatermark''}",
 									"type": "Expression"
 								}
 							}
