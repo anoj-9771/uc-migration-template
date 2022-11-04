@@ -58,4 +58,9 @@ stages:
         inputs:
           PathtoPublish: '$(Build.Repository.LocalPath)/ADS-Databases/CntrlDB/bin/Debug'
           ArtifactName: ControlDB
-
+      - task: PublishBuildArtifacts@1
+        displayName: 'Publish Includes'
+        enabled: true
+        inputs:
+          PathtoPublish: '$(Build.Repository.LocalPath)/Includes'
+          ArtifactName: Includes
