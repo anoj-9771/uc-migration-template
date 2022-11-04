@@ -268,7 +268,7 @@ df = spark.sql(f"""
         stg.ISTYPE                                      as industrySystemCode, 
         nt.industry                                     as industrySystem, 
         stg.UPDMOD                                      as deltaProcessRecordMode, 
-        stg.ZLOGIKNR                                    as logicalDeviceNumber, 
+        cast(stg.ZLOGIKNR as string)                    as logicalDeviceNumber, 
         cast('1900-01-01' as TimeStamp)                 as _RecordStart, 
         cast('9999-12-31' as TimeStamp)                 as _RecordEnd, 
         (CASE WHEN _upsertFlag = 'U' THEN '0' ELSE '1' END) as _RecordDeleted, 
@@ -331,7 +331,29 @@ DeltaSaveDataFrameToDeltaTable(df.filter("_RecordDeleted = '0'"), target_table, 
 
 # DBTITLE 1,12.2 Save Deleted records Data frame into Cleansed Delta table
 # Load deleted records to replace the existing Deleted records implementation logic
-DeltaSaveDataFrameToDeltaTable(df.filter("_RecordDeleted = '1'"), target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, "installationNumber,validFromDate,validToDate", AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
+df.filter("_RecordDeleted = '1'").createOrReplaceTempView("isu_installation_deleted_records")
+spark.sql(f" \
+    MERGE INTO cleansed.isu_0UCINSTALLAH_ATTR_2 \
+    using isu_installation_deleted_records \
+    on isu_0UCINSTALLAH_ATTR_2.installationNumber = isu_installation_deleted_records.installationNumber \
+    and isu_0UCINSTALLAH_ATTR_2.validFromDate = isu_installation_deleted_records.validFromDate \
+    and isu_0UCINSTALLAH_ATTR_2.validToDate = isu_installation_deleted_records.validToDate \
+    WHEN MATCHED THEN UPDATE SET \
+    rateCategoryCode=isu_installation_deleted_records.rateCategoryCode \
+    ,rateCategory=isu_installation_deleted_records.rateCategory \
+    ,industryCode=isu_installation_deleted_records.industryCode \
+    ,industry=isu_installation_deleted_records.industry \
+    ,billingClassCode=isu_installation_deleted_records.billingClassCode \
+    ,billingClass=isu_installation_deleted_records.billingClass \
+    ,meterReadingUnit=isu_installation_deleted_records.meterReadingUnit \
+    ,industrySystemCode=isu_installation_deleted_records.industrySystemCode \
+    ,industrySystem=isu_installation_deleted_records.industrySystem \
+    ,logicalDeviceNumber=isu_installation_deleted_records.logicalDeviceNumber \
+    ,_DLCleansedZoneTimeStamp = cast('{CurrentTimeStamp}' as TimeStamp) \
+    ,_RecordDeleted=1 \
+    ,_RecordCurrent=1 \
+    ,deltaProcessRecordMode='D'\
+    ")
 
 # COMMAND ----------
 

@@ -193,7 +193,7 @@ Select *, ROW_NUMBER() OVER (PARTITION BY LOGIKZW,ANLAGE,AB,BIS ORDER BY _FileDa
                                 pt.priceClass, \
                                 (CASE WHEN LOEVM = 'X' THEN 'Y' ELSE 'N' END) as deletedFlag, \
                                 UPDMOD as bwDeltaProcess, \
-                                re.ZOPCODE as operationCode, \
+                                cast(re.ZOPCODE as string) as operationCode, \
                                 te.operationDescription, \
                                 cast('1900-01-01' as TimeStamp) as _RecordStart, \
                                 cast('9999-12-31' as TimeStamp) as _RecordEnd, \
@@ -248,7 +248,30 @@ DeltaSaveDataFrameToDeltaTable(df.filter("_RecordDeleted = '0'"), target_table, 
 
 # DBTITLE 1,12.2 Save Deleted records Data frame into Cleansed Delta table
 # Load deleted records to replace the existing Deleted records implementation logic
-DeltaSaveDataFrameToDeltaTable(df.filter("_RecordDeleted = '1'"), target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, "logicalRegisterNumber,installationNumber,validFromDate,validToDate", AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
+df.filter("_RecordDeleted=1").createOrReplaceTempView("isu_reginst_deleted_records")
+spark.sql(f" \
+    MERGE INTO cleansed.isu_0UC_REGINST_STR_ATTR \
+    using isu_reginst_deleted_records \
+    on isu_0UC_REGINST_STR_ATTR.logicalRegisterNumber = isu_reginst_deleted_records.logicalRegisterNumber \
+    and isu_0UC_REGINST_STR_ATTR.installationNumber = isu_reginst_deleted_records.installationNumber \
+    and isu_0UC_REGINST_STR_ATTR.validFromDate = isu_reginst_deleted_records.validFromDate \
+    and isu_0UC_REGINST_STR_ATTR.validToDate = isu_reginst_deleted_records.validToDate \
+    WHEN MATCHED THEN UPDATE SET \
+     payRentalPrice=isu_reginst_deleted_records.payRentalPrice \
+    ,rateTypeCode=isu_reginst_deleted_records.rateTypeCode \
+    ,rateType=isu_reginst_deleted_records.rateType \
+    ,rateFactGroupCode=isu_reginst_deleted_records.rateFactGroupCode \
+    ,rateFactGroup=isu_reginst_deleted_records.rateFactGroup \
+    ,priceClassCode=isu_reginst_deleted_records.priceClassCode \
+    ,priceClass=isu_reginst_deleted_records.priceClass \
+    ,deletedFlag=isu_reginst_deleted_records.deletedFlag \
+    ,bwDeltaProcess=isu_reginst_deleted_records.bwDeltaProcess \
+    ,operationCode=isu_reginst_deleted_records.operationCode \
+    ,operationDescription=isu_reginst_deleted_records.operationDescription \
+    ,_DLCleansedZoneTimeStamp = cast('{CurrentTimeStamp}' as TimeStamp) \
+    ,_RecordDeleted=1 \
+    ,_RecordCurrent=1 \
+    ")
 
 # COMMAND ----------
 

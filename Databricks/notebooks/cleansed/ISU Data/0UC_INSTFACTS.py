@@ -180,7 +180,7 @@ where  _RecordVersion = 1 and DI_OPERATION_TYPE ='D'), \
                       stage AS (select * from stageUpsert union select * from stageDelete) \
                            SELECT \
                                 case when SAISON = 'na' then '' else SAISON end as seasonNumber, \
-                                case when ANLAGE = 'na' then '' else ANLAGE end as installationId, \
+                                case when ANLAGE = 'na' then '' else ANLAGE end as installationNumber, \
                                 case when OPERAND = 'na' then '' else OPERAND end as operandCode, \
                                 ToValidDate(AB,'MANDATORY') as validFromDate, \
                                 ToValidDate((case when BIS = 'na' then '9999-12-31' else BIS end)) as validToDate, \
@@ -201,7 +201,7 @@ where  _RecordVersion = 1 and DI_OPERATION_TYPE ='D'), \
 
 newSchema = StructType([
     StructField('seasonNumber',StringType(),False),
-	StructField('installationId',StringType(),False),
+	StructField('installationNumber',StringType(),False),
 	StructField('operandCode',StringType(),False),
 	StructField('validFromDate',DateType(),False),
 	StructField('validToDate',DateType(),True),
