@@ -115,7 +115,7 @@ for i in dfIicats.rdd.collect():
     DECLARE @Schema varchar(max) = '{i.SourceSchema}'
     DECLARE @Table varchar(max) = '{i.SourceTableName}'
     DECLARE @Query varchar(max) = NULL
-    DECLARE @WatermarkColumn varchar(max) = NULL
+    DECLARE @WatermarkColumn varchar(max) = 'HT_CRT_DT'
     DECLARE @SourceHandler varchar(max) = '{i.SourceHandler}'
     DECLARE @RawFileExtension varchar(max) = NULL
     DECLARE @KeyVaultSecret varchar(max) = '{i.SourceKeyVaultSecret}'
@@ -137,7 +137,11 @@ for i in dfIicats.rdd.collect():
       ,@CleansedHandler
     """)
 
-
+ExecuteStatement("""
+update dbo.extractLoadManifest set
+destinationSchema = systemCode
+where systemCode = 'iicats' and sourceSchema = 'scxstg'
+""")
 
 # COMMAND ----------
 

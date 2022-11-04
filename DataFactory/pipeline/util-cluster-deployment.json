@@ -147,7 +147,7 @@
 									}
 								},
 								"body": {
-									"value": "{\n    \"autoscale\": {\n        \"min_workers\": @{pipeline().parameters.MinWorkers},\n        \"max_workers\": @{pipeline().parameters.MaxWorkers}\n    },\n    \"cluster_name\": \"@{pipeline().parameters.ClusterName}\",\n    \"spark_version\": \"@{pipeline().parameters.SparkVersion}\",\n    \"spark_conf\": {\n        \"spark.databricks.delta.preview.enabled\": \"true\"\n    },\n    \"azure_attributes\": {},\n    \"ssh_public_keys\": [],\n    \"spark_env_vars\": {},\n    \"autotermination_minutes\": @{pipeline().parameters.AutoTermination},\n    \"init_scripts\": [],\n    \"instance_pool_id\": \"@{variables('JobPoolId')}\",\n    \"driver_instance_pool_id\": \"@{variables('JobPoolId')}\",\n    \"runtime_engine\": \"STANDARD\"\n}",
+									"value": "{\n    \"autoscale\": {\n        \"min_workers\": @{pipeline().parameters.MinWorkers},\n        \"max_workers\": @{pipeline().parameters.MaxWorkers}\n    },\n    \"cluster_name\": \"@{pipeline().parameters.ClusterName}\",\n    \"spark_version\": \"@{pipeline().parameters.SparkVersion}\",\n    \"spark_conf\": {\n        \"spark.databricks.delta.preview.enabled\": \"true\"\n    },\n    \"azure_attributes\": {},\n    \"ssh_public_keys\": [],\n    \"spark_env_vars\": {},\n    \"autotermination_minutes\": @{pipeline().parameters.AutoTermination},\n    \"init_scripts\": [],\n    \"instance_pool_id\": \"@{pipeline().parameters.JobPoolId}\",\n    \"driver_instance_pool_id\": \"@{pipeline().parameters.JobPoolId}\",\n    \"runtime_engine\": \"STANDARD\"\n}",
 									"type": "Expression"
 								}
 							}
