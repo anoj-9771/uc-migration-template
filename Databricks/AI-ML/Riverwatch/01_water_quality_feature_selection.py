@@ -70,15 +70,25 @@ except:
         except ValueError:
                 print("Cleansed & Datalab tables for BoM Weather Observations do not exist.")  
                 
-try: 
+try:
     df_solar=spark.table("cleansed.bom_dailyclimatedata_sydneyairport")
     print("BoM Climate Data loaded from cleansed")
 except:
-        try:
-            df_solar=spark.table("datalab.solar_exposure_2022")
-            print("BoM Climate Data loaded from datalab")
-        except ValueError:
-                print("Cleansed & Datalab tables for Climate Data do not exist.")   
+    try:
+        df_solar=spark.table("datalab.solar_exposure_2022")
+        print("BoM Climate Data loaded from datalab")
+    except:
+        schema = StructType([
+            StructField('Product Code', StringType()),
+            StructField('Bureau of Meteorology station number', StringType()),
+            StructField('Year', StringType()),
+            StructField('Month', StringType()),
+            StructField('Day', StringType()),
+            StructField('Daily global solar exposure (MJ/m*m)', StringType())
+        ])
+
+        df_solar = spark.createDataFrame([], schema)
+        print("BOM Solar: Empty DF Created")
 
 # COMMAND ----------
 
