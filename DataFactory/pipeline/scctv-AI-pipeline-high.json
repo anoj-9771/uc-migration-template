@@ -1,5 +1,5 @@
 {
-	"name": "scctv-AI-pipeline",
+	"name": "scctv-AI-pipeline-high",
 	"properties": {
 		"activities": [
 			{
@@ -40,7 +40,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"dataset": {
-						"referenceName": "scctv_videos_inbound_blob_low",
+						"referenceName": "scctv_videos_inbound_blob_high",
 						"type": "DatasetReference"
 					},
 					"fieldList": [
@@ -104,7 +104,7 @@
 									}
 								},
 								"body": {
-									"value": "{ \"job_id\": @{variables('PipelineJobID')}, \"notebook_params\": { \"video_id\": @{concat('\"', item().name, '\"')}}}",
+									"value": "{\n    \"job_id\": @{variables('PipelineJobID')\n    },\n    \"notebook_params\": {\n        \"video_id\": @{concat('\"', item().name, '\"')},\n        \"priority\": @{concat('\"', pipeline().parameters.Priority, '\"')}\n    }\n}",
 									"type": "Expression"
 								}
 							}
@@ -362,6 +362,10 @@
 			"DatabricksJobName": {
 				"type": "string",
 				"defaultValue": "sewer-cctv-pipeline"
+			},
+			"Priority": {
+				"type": "string",
+				"defaultValue": "high"
 			}
 		},
 		"variables": {
