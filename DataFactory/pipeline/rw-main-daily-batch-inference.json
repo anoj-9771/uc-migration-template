@@ -760,7 +760,14 @@
 			{
 				"name": "Ingest Beachwatch BoM and IICATS Data",
 				"type": "ExecutePipeline",
-				"dependsOn": [],
+				"dependsOn": [
+					{
+						"activity": "run-deployment-pipeline",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
 				"userProperties": [],
 				"typeProperties": {
 					"pipeline": {
