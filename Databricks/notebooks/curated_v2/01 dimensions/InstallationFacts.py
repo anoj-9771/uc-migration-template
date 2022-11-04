@@ -27,10 +27,10 @@ df_installation_fact = spark.sql(f"""
         validToDate                       AS validToDate, 
         billingDocumentNumber             AS billingDocumentNumber,
         mBillingDocumentNumber            AS mBillingDocumentNumber,
-        moveOutIndicator                  AS moveOutIndicator,
+        moveOutFlag                       AS moveOutFlag,
         expiryDate                        AS expiryDate, 
-        inactiveIndicator                 AS inactiveIndicator,
-        manualChangeIndicator             AS manualChangeIndicator,
+        inactiveFlag                      AS inactiveFlag,
+        manualChangeFlag                  AS manualChangeFlag,
         rateTypeCode                      AS rateTypeCode,
         rateType                          AS rateType,
         rateFactGroupCode                 AS rateFactGroupCode,
@@ -38,13 +38,13 @@ df_installation_fact = spark.sql(f"""
         entryValue                        AS entryValue,
         valueToBeBilled                   AS valueToBeBilled,
         operandValue1                     AS operandValue1,
-        operandValue3                     AS operandValue3,
+        operandValue3Flag                 AS operandValue3Flag,
         amount                            AS amount,
-        currencyKey                       AS currencyKey
+        currencyKey                       AS currencyKey,
+        _RecordDeleted 
     FROM {ADS_DATABASE_CLEANSED}.isu_ettifn
     WHERE 
         _RecordCurrent = 1 
-        AND _RecordDeleted = 0 
 """    
 ).drop_duplicates()
 
@@ -81,14 +81,14 @@ schema = StructType([
     StructField('installationNumber',StringType(),False),
     StructField('operandCode',StringType(),False),
     StructField('validFromDate',DateType(),False),
-    StructField('consecutiveDaysFromDate',StringType(),True),
+    StructField('consecutiveDaysFromDate',StringType(),False),
     StructField('validToDate',DateType(),True),
     StructField('billingDocumentNumber',StringType(),True),
     StructField('mBillingDocumentNumber',StringType(),True),
-    StructField('moveOutIndicator',StringType(),True),
+    StructField('moveOutFlag',StringType(),True),
     StructField('expiryDate',DateType(),True),
-    StructField('inactiveIndicator',StringType(),True),
-    StructField('manualChangeIndicator',StringType(),True),
+    StructField('inactiveFlag',StringType(),True),
+    StructField('manualChangeFlag',StringType(),True),
     StructField('rateTypeCode',StringType(),True),
     StructField('rateType',StringType(),True),
     StructField('rateFactGroupCode',StringType(),True),
@@ -96,7 +96,7 @@ schema = StructType([
     StructField('entryValue',DecimalType(),True),
     StructField('valueToBeBilled',DecimalType(),True),
     StructField('operandValue1',StringType(),True),
-    StructField('operandValue3',StringType(),True),
+    StructField('operandValue3Flag',StringType(),True),
     StructField('amount',DecimalType(),True),
     StructField('currencyKey',StringType(),True)
 ])

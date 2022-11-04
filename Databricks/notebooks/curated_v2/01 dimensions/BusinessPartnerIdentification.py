@@ -51,12 +51,10 @@ df_isu_0bp_id_attr = (
             validToDate,
             entryDate,
             institute,
-            stateCode,
-            countryShortName
+            _RecordDeleted 
         FROM {ADS_DATABASE_CLEANSED}.isu_0bp_id_attr
         WHERE 
             _RecordCurrent = 1 
-            AND _RecordDeleted = 0 
     """
     )
     .cache()
@@ -74,12 +72,10 @@ df_crm_0bp_id_attr = (
             validToDate,
             entryDate,
             institute,
-            stateCode,
-            countryShortName
+            _RecordDeleted 
         FROM {ADS_DATABASE_CLEANSED}.crm_0bp_id_attr
         WHERE 
             _RecordCurrent = 1 
-            AND _RecordDeleted = 0 
 """
     )
     .cache()
@@ -109,7 +105,8 @@ df_bpid_crm_unique = (
         df_isu_0bp_id_attr.alias("isu"),
         [
             col("crm.businessPartnerNumber") == col("isu.businessPartnerNumber"),
-            col("crm.businessPartnerIdNumber") == col("isu.businessPartnerIdNumber")
+            col("crm.businessPartnerIdNumber") == col("isu.businessPartnerIdNumber"),
+            col("crm.identificationTypeCode") == col("isu.identificationTypeCode")
         ],
         how = 'leftanti'
     )
@@ -123,7 +120,7 @@ df_bpid_crm_unique = (
 dummyDimRecDf = (
     spark.createDataFrame(
         [("-1", "-1", "Unknown")], 
-        ["businessPartnerNumber", "businessPartnerIdNumber", "identificationType"]
+        ["businessPartnerNumber", "businessPartnerIdNumber", "identificationTypeCode"]
     )
 )
 
@@ -158,16 +155,14 @@ schema = StructType([
     StructField('validFromDate', StringType(), True),
     StructField('validToDate', StringType(), True),
     StructField('entryDate', StringType(), True),
-    StructField('institute', StringType(), True),
-    StructField('stateCode', StringType(), True),
-    StructField('countryShortName', StringType(), True)
+    StructField('institute', StringType(), True)
     ])
 
 # ---- Load Data with SCD --- #
 TemplateEtlSCD(
     df_bpid_master, 
     entity="dimBusinessPartnerIdentification", 
-    businessKey="businessPartnerNumber,businessPartnerIdNumber",
+    businessKey="businessPartnerNumber,businessPartnerIdNumber,identificationTypeCode",
     schema=schema
 )
 

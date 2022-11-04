@@ -3,7 +3,7 @@
 import json
 #For unit testing...
 #Use this string in the Param widget: 
-#$PARAM
+#{"SourceType":"BLOB Storage (json)","SourceServer":"daf-sa-blob-sastoken","SourceGroup":"isudata","SourceName":"isu_VIBDCHARACT","SourceLocation":"isudata/VIBDCHARACT","AdditionalProperty":"","Processor":"databricks-token|1018-021846-1a1ycoqc|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive","IsAuditTable":false,"SoftDeleteSource":"","ProjectName":"CLEANSED ISU DATA","ProjectId":12,"TargetType":"BLOB Storage (json)","TargetName":"isu_VIBDCHARACT","TargetLocation":"isudata/VIBDCHARACT","TargetServer":"daf-sa-lake-sastoken","DataLoadMode":"INCREMENTAL","DeltaExtract":true,"CDCSource":false,"TruncateTarget":false,"UpsertTarget":true,"AppendTarget":null,"TrackChanges":false,"LoadToSqlEDW":true,"TaskName":"isu_VIBDCHARACT","ControlStageId":2,"TaskId":228,"StageSequence":200,"StageName":"Raw to Cleansed","SourceId":228,"TargetId":228,"ObjectGrain":"Day","CommandTypeId":8,"Watermarks":"2000-01-01 00:00:00","WatermarksDT":"2000-01-01T00:00:00","WatermarkColumn":"_FileDateTimeStamp","BusinessKeyColumn":"architecturalObjectInternalId,fixtureAndFittingCharacteristicCode,validToDate","PartitionColumn":null,"UpdateMetaData":null,"SourceTimeStampFormat":"","WhereClause":"","Command":"/build/cleansed/ISU Data/VIBDCHARACT","LastSuccessfulExecutionTS":"2000-01-01T23:46:12.39","LastLoadedFile":null}
 
 #Use this string in the Source Object widget
 #$GROUP_$SOURCE
@@ -229,7 +229,7 @@ DeltaSaveDataFrameToDeltaTable(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS
 # COMMAND ----------
 
 # DBTITLE 1,13.1 Identify Deleted records from Raw table
-df = spark.sql(f"select distinct coalesce(INTRENO,'') as INTRENO, coalesce(FIXFITCHARACT,'') as FIXFITCHARACT, coalesce(VALIDTO,'') as VALIDTO from ( \
+df = spark.sql(f"select distinct (case when INTRENO = 'na' then '' else INTRENO end) as INTRENO, (case when FIXFITCHARACT = 'na' then '' else FIXFITCHARACT end) as FIXFITCHARACT, ToValidDate(VALIDTO,'MANDATORY') as VALIDTO from ( \
 Select *, ROW_NUMBER() OVER (PARTITION BY INTRENO,FIXFITCHARACT,VALIDTO ORDER BY _DLRawZoneTimeStamp DESC, DELTA_TS DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' ) \
 where  _RecordVersion = 1 and IS_DELETED ='Y'")
 df.createOrReplaceTempView("isu_vibdcharact_deleted_records")
@@ -250,7 +250,7 @@ spark.sql(f" \
     WHEN MATCHED THEN UPDATE SET \
     _DLCleansedZoneTimeStamp = cast('{CurrentTimeStamp}' as TimeStamp) \
     ,_RecordDeleted=1 \
-    ,_RecordCurrent=0 \
+    ,_RecordCurrent=1 \
     ")
 
 # COMMAND ----------

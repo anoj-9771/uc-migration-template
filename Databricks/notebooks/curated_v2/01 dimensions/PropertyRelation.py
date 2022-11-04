@@ -3,6 +3,10 @@
 
 # COMMAND ----------
 
+from datetime import datetime
+
+# COMMAND ----------
+
 def getPropertyRelation():
     
     df_isu = spark.sql(f"""select distinct 'ISU' as sourceSystemCode, 
@@ -13,8 +17,17 @@ def getPropertyRelation():
                                         relationshipTypeCode1,
                                         relationshipType1,
                                         relationshipTypeCode2,
-                                        relationshipType2 
-                                        from {ADS_DATABASE_CLEANSED}.isu_zcd_tprop_rel""")
+                                        relationshipType2,
+                                        _RecordDeleted   
+                                        from {ADS_DATABASE_CLEANSED}.isu_zcd_tprop_rel where _RecordCurrent = 1 """)
+    
+    dummyDimRecDf = spark.createDataFrame([("-1","-1",
+                                            datetime.strptime("1900-01-01","%Y-%m-%d").date(),
+                                            datetime.strptime("9999-12-31","%Y-%m-%d").date(),
+                                            "Unknown","Unknown")], 
+                                          ["property1Number","property2Number","validFromDate","validToDate","relationshipTypeCode1","relationshipType1"])
+    
+    df = df_isu.unionByName(dummyDimRecDf, allowMissingColumns = True)
     
     schema = StructType([StructField('propertyRelationSK', StringType(), False),
                          StructField('sourceSystemCode', StringType(), True),
@@ -27,13 +40,13 @@ def getPropertyRelation():
                          StructField("relationshipTypeCode2", StringType(), True),
                          StructField("relationshipType2", StringType(), True)])
     
-    return df_isu, schema
+    return df, schema
 
 # COMMAND ----------
 
 df, schema = getPropertyRelation()
 #TemplateEtl(df, entity="dimPropertyRelation", businessKey="property1Number,property2Number,relationshipTypeCode1,relationshipTypeCode2,validFromDate", schema=schema, writeMode=ADS_WRITE_MODE_OVERWRITE, AddSK=True)
-TemplateTimeSliceEtlSCD(df, entity="dimPropertyRelation", businessKey="property1Number,property2Number,relationshipTypeCode1,relationshipTypeCode2,validFromDate", schema=schema)
+TemplateTimeSliceEtlSCD(df, entity="dimPropertyRelation", businessKey="property1Number,property2Number,relationshipTypeCode1,validFromDate", schema=schema)
 
 # COMMAND ----------
 

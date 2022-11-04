@@ -63,33 +63,29 @@ df_isu_addr_attr = (
             cityName                                                            AS cityName, 
             cityCode                                                            AS cityCode, 
             CASE 
-                WHEN countryCode = 'AU' AND cityName IS NULL 
+                WHEN countryCode = 'AU' AND cityCode IS NULL 
                 THEN '' 
                 ELSE stateCode 
             END                                                                 AS stateCode, -- TRANSFORMATION
             CASE 
-                WHEN countryCode = 'AU' AND cityName IS NULL 
+                WHEN countryCode = 'AU' AND cityCode IS NULL 
                 THEN '' 
                 ELSE stateName 
             END                                                                 AS stateName, -- TRANSFORMATION
             postalCode                                                          AS postalCode, 
-            CASE 
-                WHEN countryCode = 'AU' AND cityName IS NULL 
-                THEN '' 
-                ELSE countryCode 
-            END                                                                 AS countryCode, -- TRANSFORMATION
+            countryCode                                                         AS countryCode, 
             countryName                                                         AS countryName, 
             poBoxCode                                                           AS poBoxCode, 
             poBoxCity                                                           AS poBoxCity, 
             postalCodeExtension                                                 AS postalCodeExtension, 
             poBoxExtension                                                      AS poBoxExtension, 
             deliveryServiceTypeCode                                             AS deliveryServiceTypeCode, 
-            deliveryServiceTypeCode                                             AS deliveryServiceType, -- RENAMED
+            deliveryServiceType                                                 AS deliveryServiceType, -- RENAMED
             deliveryServiceNumber                                               AS deliveryServiceNumber, 
             addressTimeZone                                                     AS addressTimeZone, 
             communicationAddressNumber                                          AS communicationAddressNumber,
             CASE 
-                WHEN countryCode = 'AU' AND cityName IS NULL 
+                WHEN countryCode = 'AU' AND cityCode IS NULL 
                 THEN ''
                 ELSE CONCAT(
                     coalesce(concat(streetLine5, ', '), ''), 
@@ -108,11 +104,11 @@ df_isu_addr_attr = (
                     coalesce(concat(stateCode, ', '), ''),
                     coalesce(postalCode, '')
                 )
-            END                                                                 AS addressFullText -- TRANSFORMATION
+            END                                                                 AS addressFullText,  -- TRANSFORMATION
+            _RecordDeleted 
         FROM {ADS_DATABASE_CLEANSED}.isu_0bp_def_address_attr 
         WHERE 
             _RecordCurrent = 1 
-            AND _RecordDeleted = 0 
             AND addressNumber IS NOT NULL
             AND addressNumber <> ''
     """
@@ -164,21 +160,13 @@ df_crm_addr_attr = (
             cityName                                                            AS cityName,
             cityCode                                                            AS cityCode,
             CASE 
-                WHEN countryCode = 'AU' AND cityName IS NULL 
+                WHEN countryCode = 'AU' AND cityCode IS NULL 
                 THEN '' 
                 ELSE stateCode 
             END                                                                 AS stateCode, -- TRANSFORMATION
-            CASE 
-                WHEN countryCode = 'AU' AND cityName IS NULL 
-                THEN '' 
-                ELSE stateName 
-            END                                                                 AS stateName, -- TRANSFORMATION
+            stateName                                                           AS stateName,
             postalCode                                                          AS postalCode,
-            CASE 
-                WHEN countryCode = 'AU' AND cityName IS NULL 
-                THEN '' 
-                ELSE countryCode 
-            END                                                                 AS countryCode, -- TRANSFORMATION 
+            countryCode                                                         AS countryCode,
             countryName                                                         AS countryName,
             poBoxCode                                                           AS poBoxCode,
             poBoxCity                                                           AS poBoxCity,
@@ -190,7 +178,7 @@ df_crm_addr_attr = (
             addressTimeZone                                                     AS addressTimeZone,
             communicationAddressNumber                                          AS communicationAddressNumber,
             CASE 
-                WHEN countryCode = 'AU' AND cityName IS NULL 
+                WHEN countryCode = 'AU' AND cityCode IS NULL 
                 THEN ''
                 ELSE CONCAT(
                     coalesce(concat(streetLine5, ', '), ''), 
@@ -209,11 +197,11 @@ df_crm_addr_attr = (
                     coalesce(concat(stateCode, ', '), ''),
                     coalesce(postalCode, '')
                 )
-            END                                                                 AS addressFullText -- TRANSFORMATION
+            END                                                                 AS addressFullText, -- TRANSFORMATION
+            _RecordDeleted 
         FROM {ADS_DATABASE_CLEANSED}.crm_0bp_def_address_attr 
         WHERE 
             _RecordCurrent = 1 
-            AND _RecordDeleted = 0 
             AND addressNumber IS NOT NULL
             AND addressNumber <> ''
 """
@@ -258,8 +246,8 @@ df_bp_addr_crm_unique = (
 # ------------------------------- #
 dummyDimRecDf = (
     spark.createDataFrame(
-        [("-1", "-1", "Unknown")], 
-        ["businessPartnerAddressNumber", "businessPartnerNumber", "coName"]
+        [("-1", "-1")], 
+        ["businessPartnerAddressNumber", "businessPartnerNumber"]
     )
 )
 
@@ -316,7 +304,8 @@ df_bp_addr_master = (
         "deliveryServiceType",
         "deliveryServiceNumber",
         "addressTimeZone",
-        "communicationAddressNumber"
+        "communicationAddressNumber",
+        "_RecordDeleted" 
     )
     .cache()
 )

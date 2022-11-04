@@ -72,9 +72,15 @@ def getAccountBusinessPartner():
           createdBy,
           createdDate,
           changedBy,
-          lastChangedDate
-          from {ADS_DATABASE_CLEANSED}.isu_0uc_accntbp_attr_2
+          lastChangedDate,
+          _RecordDeleted 
+          from {ADS_DATABASE_CLEANSED}.isu_0uc_accntbp_attr_2 
+          where _RecordCurrent = 1  
         """)
+    
+    dummyDimRecDf = spark.createDataFrame([("-1","-1")], ["contractAccountNumber","businessPartnerGroupNumber"])
+    
+    df = df_isu.unionByName(dummyDimRecDf, allowMissingColumns = True)
     
     schema = StructType([StructField('accountBusinessPartnerSK', StringType(), False),
                       StructField('sourceSystemCode', StringType(), True),
@@ -144,7 +150,7 @@ def getAccountBusinessPartner():
                       StructField('changedBy',StringType(), True),
                       StructField('lastChangedDate',DateType(), True)])
     
-    return df_isu, schema
+    return df, schema
 
 # COMMAND ----------
 

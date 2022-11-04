@@ -29,11 +29,11 @@ df_contract_account = spark.sql(f"""
         createdBy                     AS createdBy,
         createdDate                   AS createdDate,
         lastChangedBy                 AS lastChangedBy,
-        lastChangedDate               AS lastChangedDate
+        lastChangedDate               AS lastChangedDate,
+        con._RecordDeleted            AS _RecordDeleted 
     FROM {ADS_DATABASE_CLEANSED}.isu_0cacont_acc_attr_2 con
     WHERE 
         con._RecordCurrent = 1 
-        AND con._RecordDeleted = 0 
 """    
 ).drop_duplicates()
 
@@ -41,9 +41,9 @@ df_contract_account = spark.sql(f"""
 # Dummy Dimension
 #==================
 dummyDimRecDf = spark.createDataFrame(
-    [("-1", "unknown")],
-    ["contractAccountNumber", "applicationArea"]
-)
+    ["-1"],
+    "string"
+).toDF("contractAccountNumber")
 
 # Union Tables
 df_contract_account = (

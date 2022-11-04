@@ -22,7 +22,7 @@
 # MAGIC     dimProperty.propertySK,
 # MAGIC     dimPropertyTypeHistory.propertyTypeHistorySK,
 # MAGIC     dimProperty.sourceSystemCode,
-# MAGIC     dimProperty.propertyNumber,
+# MAGIC     coalesce(dimProperty.propertyNumber, dimPropertyTypeHistory.propertyNumber, dimPropertyLot.propertyNumber, dimLocation.locationID, -1) as propertyNumber,
 # MAGIC     dimProperty.premise,
 # MAGIC     dimProperty.waterNetworkSK_drinkingWater,
 # MAGIC     dimProperty.waterNetworkSK_recycledWater,
@@ -44,8 +44,8 @@
 # MAGIC     dimProperty.hydraAreaUnit,
 # MAGIC     dimProperty.overrideArea,
 # MAGIC     dimProperty.overrideAreaUnit,
-# MAGIC     dimProperty.stormWaterAssessmentIndicator,
-# MAGIC     dimProperty.hydraAreaIndicator,
+# MAGIC     dimProperty.stormWaterAssessmentFlag,
+# MAGIC     dimProperty.hydraAreaFlag,
 # MAGIC     dimProperty.comments,
 # MAGIC     dimPropertyLot.planTypeCode,
 # MAGIC     dimPropertyLot.planType,
@@ -81,8 +81,8 @@
 # MAGIC     dimLocation.longitude,
 # MAGIC 	dimPropertyTypeHistory.ValidFromDate as propertyTypeValidFromDate,
 # MAGIC 	dimPropertyTypeHistory.ValidToDate as propertyTypeValidToDate,
-# MAGIC 	effectiveDateRanges._effectiveFrom,
-# MAGIC 	effectiveDateRanges._effectiveTo,
+# MAGIC 	cast(effectiveDateRanges._effectiveFrom as date),
+# MAGIC 	cast(effectiveDateRanges._effectiveTo as date),
 # MAGIC     case
 # MAGIC       when current_date() between effectiveDateRanges._effectiveFrom
 # MAGIC       and effectiveDateRanges._effectiveTo then 'Y'
@@ -105,5 +105,5 @@
 # MAGIC         on dimLocation.locationID = effectiveDateRanges.propertyNumber 
 # MAGIC 		and dimLocation._recordEnd >= effectiveDateRanges._effectiveFrom 
 # MAGIC 		and dimLocation._recordStart <= effectiveDateRanges._effectiveTo 
-# MAGIC where isnotnull(dimProperty.propertyNumber)
+# MAGIC --where isnotnull(dimProperty.propertyNumber)
 # MAGIC );

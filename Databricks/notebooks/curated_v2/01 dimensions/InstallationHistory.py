@@ -33,15 +33,14 @@ df_installation_history = spark.sql(f"""
         i.billingClass                 AS billingClass,
         i.meterReadingUnit             AS meterReadingUnit,
         i.industrySystemCode           AS industrySystemCode,
-        i.IndustrySystem               AS IndustrySystem
+        i.IndustrySystem               AS IndustrySystem,
+        i._RecordDeleted 
     FROM {ADS_DATABASE_CLEANSED}.isu_0ucinstallah_attr_2 i
     LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0ucmtrdunit_attr m ON 
-        i.meterReadingUnit = m.portionNumber
+        i.meterReadingUnit = m.meterReadingUnit AND
+        m._recordCurrent = 1 
     WHERE 
         i._RecordCurrent = 1 
-        AND i._RecordDeleted = 0 
-        AND m._RecordCurrent = 1
-        AND m._RecordDeleted = 0
 """    
 ).drop_duplicates()
 
@@ -53,11 +52,14 @@ dummyDimRecDf = spark.createDataFrame(
     ["installationNumber", "validFromDate", "validToDate"]
 )
 
-#UNION TABLES
+# master table
 df_installation_history = (
     df_installation_history
     .unionByName(dummyDimRecDf, allowMissingColumns = True)
     .drop_duplicates()
+      # --- Cast Data Types --- # 
+    .withColumn("validFromDate",col("validFromDate").cast("date"))
+    .withColumn("validToDate",col("validToDate").cast("date"))
 )    
 
 
@@ -67,7 +69,7 @@ schema = StructType([
     StructField('installationHistorySK',StringType(),False),
     StructField('sourceSystemCode',StringType(),True),
     StructField('installationNumber',StringType(),False),
-    StructField('validFromDate',DateType(),True),
+    StructField('validFromDate',DateType(),False),
     StructField('validToDate',DateType(),False),
     StructField('rateCategoryCode',StringType(),True),
     StructField('rateCategory',StringType(),True),

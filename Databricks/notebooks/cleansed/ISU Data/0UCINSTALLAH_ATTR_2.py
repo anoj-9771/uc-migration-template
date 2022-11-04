@@ -215,75 +215,87 @@ print(delta_raw_tbl_name)
 
 # DBTITLE 1,10. Load Raw to Dataframe & Do Transformations
 df = spark.sql(f"""
-     WITH stage AS (
-          Select 
-               *, 
-               ROW_NUMBER() OVER (
-                    PARTITION BY ANLAGE,BIS 
-                    ORDER BY 
-                         _FileDateTimeStamp DESC, 
-                         DI_SEQUENCE_NUMBER DESC, 
-                         _DLRawZoneTimeStamp DESC
-               ) AS _RecordVersion
-          FROM {delta_raw_tbl_name}
-          WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' and DI_OPERATION_TYPE !='X' 
-     ) 
-          SELECT  
-               case 
-                    when stg.ANLAGE = 'na' 
-                    then '' 
-                    else stg.ANLAGE 
-               end                                             as installationNumber, 
-               ToValidDate((
-                    case 
-                         when stg.BIS = 'na' 
-                         then '9999-12-31' 
-                         else stg.BIS 
-                    end),
-               'MANDATORY')                                    as validToDate, 
-               ToValidDate(stg.AB)                             as validFromDate, 
-               stg.TARIFTYP                                    as rateCategoryCode, 
-               tt.TTYPBEZ                                      as rateCategory, 
-               stg.BRANCHE                                     as industryCode, 
-               st.industry                                     as industry, 
-               stg.AKLASSE                                     as billingClassCode, 
-               bc.billingClass                                 as billingClass, 
-               stg.ABLEINH                                     as meterReadingUnit, 
-               stg.ISTYPE                                      as industrySystemCode, 
-               nt.industry                                     as industrySystem, 
-               stg.UPDMOD                                      as deltaProcessRecordMode, 
-               stg.ZLOGIKNR                                    as logicalDeviceNumber, 
-               cast('1900-01-01' as TimeStamp)                 as _RecordStart, 
-               cast('9999-12-31' as TimeStamp)                 as _RecordEnd, 
-               '0'                                             as _RecordDeleted, 
-               '1'                                             as _RecordCurrent, 
-               cast('{CurrentTimeStamp}' as TimeStamp)         as _DLCleansedZoneTimeStamp 
-          FROM stage stg 
-          LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0uc_aklasse_text bc on 
-               bc.billingClassCode = stg.AKLASSE and 
-               bc._RecordDeleted = 0 and 
-               bc._RecordCurrent = 1 
-               LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0uc_tariftyp_text tt on 
-                    tt.TARIFTYP = stg.TARIFTYP and 
-                    tt._RecordDeleted = 0 and 
-                    tt._RecordCurrent = 1 
-               LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0ind_sector_text st on 
-                    st.industrySystem = stg.ISTYPE and 
-                    st.industryCode = stg.BRANCHE and 
-                    st._RecordDeleted = 0 and 
-                    st._RecordCurrent = 1 
-               LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0ind_numsys_text nt on
-                    nt.industrySystem = stg.ISTYPE and 
-                    nt._RecordDeleted = 0 and
-                    nt._RecordCurrent = 1 
-          WHERE 
-               stg._RecordVersion = 1 
-               AND ANLAGE IS NOT NULL
+    WITH stageUpsert AS (select *, 'U' as _upsertFlag from (
+    SELECT 
+        *, 
+        ROW_NUMBER() OVER (
+            PARTITION BY ANLAGE,BIS 
+            ORDER BY 
+                _FileDateTimeStamp DESC, 
+                DI_SEQUENCE_NUMBER DESC, 
+                _DLRawZoneTimeStamp DESC
+        ) AS _RecordVersion
+    FROM {delta_raw_tbl_name}
+    WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' and DI_OPERATION_TYPE !='X' 
+    ) where _RecordVersion = 1), 
+    stageDelete AS
+          (SELECT *, 'D' as _upsertFlag 
+    FROM ( 
+        SELECT 
+            *,
+            ROW_NUMBER() OVER (
+                PARTITION BY ANLAGE,AB,BIS 
+                ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC
+            ) AS _RecordVersion 
+        FROM {delta_raw_tbl_name} 
+        WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}'
+    ) 
+    WHERE  
+        _RecordVersion = 1 
+        and DI_OPERATION_TYPE ='X'), 
+    stage AS (select * from stageUpsert union select * from stageDelete) 
+    SELECT  
+        case 
+            when stg.ANLAGE = 'na' 
+            then '' 
+            else stg.ANLAGE 
+        end                                             as installationNumber, 
+        ToValidDate((
+            case 
+                when stg.BIS = 'na' 
+                then '9999-12-31' 
+                else stg.BIS 
+            end),
+            'MANDATORY')                                as validToDate, 
+        ToValidDate(stg.AB)                             as validFromDate, 
+        stg.TARIFTYP                                    as rateCategoryCode, 
+        tt.TTYPBEZ                                      as rateCategory, 
+        stg.BRANCHE                                     as industryCode, 
+        st.industry                                     as industry, 
+        stg.AKLASSE                                     as billingClassCode, 
+        bc.billingClass                                 as billingClass, 
+        stg.ABLEINH                                     as meterReadingUnit, 
+        stg.ISTYPE                                      as industrySystemCode, 
+        nt.industry                                     as industrySystem, 
+        stg.UPDMOD                                      as deltaProcessRecordMode, 
+        cast(stg.ZLOGIKNR as string)                    as logicalDeviceNumber, 
+        cast('1900-01-01' as TimeStamp)                 as _RecordStart, 
+        cast('9999-12-31' as TimeStamp)                 as _RecordEnd, 
+        (CASE WHEN _upsertFlag = 'U' THEN '0' ELSE '1' END) as _RecordDeleted, 
+        '1'                                             as _RecordCurrent, 
+        cast('{CurrentTimeStamp}' as TimeStamp)         as _DLCleansedZoneTimeStamp 
+    FROM stage stg 
+    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0uc_aklasse_text bc on 
+        bc.billingClassCode = stg.AKLASSE and 
+        bc._RecordDeleted = 0 and 
+        bc._RecordCurrent = 1 
+    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0uc_tariftyp_text tt on 
+        tt.TARIFTYP = stg.TARIFTYP and 
+        tt._RecordDeleted = 0 and 
+        tt._RecordCurrent = 1 
+    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0ind_sector_text st on 
+        st.industrySystem = stg.ISTYPE and 
+        st.industryCode = stg.BRANCHE and 
+        st._RecordDeleted = 0 and 
+        st._RecordCurrent = 1 
+    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0ind_numsys_text nt on
+        nt.industrySystem = stg.ISTYPE and 
+        nt._RecordDeleted = 0 and
+        nt._RecordCurrent = 1 
+    WHERE 
+        ANLAGE IS NOT NULL
      """
 )
-
-# display(df)
-# print(f'Number of rows: {df.count()}')
 
 # COMMAND ----------
 
@@ -311,58 +323,39 @@ newSchema = StructType([
 
 # COMMAND ----------
 
-# DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
-DeltaSaveDataFrameToDeltaTable(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
+# DBTITLE 1,12.1 Save Non Deleted Records Data frame into Cleansed Delta table (Final)
+# Load Non deleted records same as earlier
+DeltaSaveDataFrameToDeltaTable(df.filter("_RecordDeleted = '0'"), target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
 
 # COMMAND ----------
 
-# DBTITLE 1,13.1 Identify Deleted records from Raw table
-# df = spark.sql(f"select distinct ANLAGE,AB,BIS from {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' and   DI_OPERATION_TYPE ='X'")
-# df.createOrReplaceTempView("isu_installation_deleted_records")
-
-df = spark.sql(f"""
-    SELECT DISTINCT
-        coalesce(ANLAGE,'') as ANLAGE, 
-        coalesce(AB,'') as AB,
-        coalesce(BIS,'') as BIS 
-    FROM ( 
-        SELECT 
-            *,
-            ROW_NUMBER() OVER (
-                PARTITION BY ANLAGE,AB,BIS 
-                ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC
-            ) AS _RecordVersion 
-        FROM {delta_raw_tbl_name} 
-        WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}'
-    ) 
-    WHERE  
-        _RecordVersion = 1 
-        and DI_OPERATION_TYPE ='X'
-"""
-)
-df.createOrReplaceTempView("isu_installation_deleted_records")
-
-# COMMAND ----------
-
-# DBTITLE 1,13.2 Update _RecordDeleted and _RecordCurrent Flags
-#Get current time
-CurrentTimeStamp = GeneralLocalDateTime()
-CurrentTimeStamp = CurrentTimeStamp.strftime("%Y-%m-%d %H:%M:%S")
-
+# DBTITLE 1,12.2 Save Deleted records Data frame into Cleansed Delta table
+# Load deleted records to replace the existing Deleted records implementation logic
+df.filter("_RecordDeleted = '1'").createOrReplaceTempView("isu_installation_deleted_records")
 spark.sql(f" \
     MERGE INTO cleansed.isu_0UCINSTALLAH_ATTR_2 \
     using isu_installation_deleted_records \
-    on isu_0UCINSTALLAH_ATTR_2.installationNumber = isu_installation_deleted_records.ANLAGE \
-    and isu_0UCINSTALLAH_ATTR_2.validFromDate = isu_installation_deleted_records.AB \
-    and isu_0UCINSTALLAH_ATTR_2.validToDate = isu_installation_deleted_records.BIS \
+    on isu_0UCINSTALLAH_ATTR_2.installationNumber = isu_installation_deleted_records.installationNumber \
+    and isu_0UCINSTALLAH_ATTR_2.validFromDate = isu_installation_deleted_records.validFromDate \
+    and isu_0UCINSTALLAH_ATTR_2.validToDate = isu_installation_deleted_records.validToDate \
     WHEN MATCHED THEN UPDATE SET \
-    _DLCleansedZoneTimeStamp = cast('{CurrentTimeStamp}' as TimeStamp) \
+    rateCategoryCode=isu_installation_deleted_records.rateCategoryCode \
+    ,rateCategory=isu_installation_deleted_records.rateCategory \
+    ,industryCode=isu_installation_deleted_records.industryCode \
+    ,industry=isu_installation_deleted_records.industry \
+    ,billingClassCode=isu_installation_deleted_records.billingClassCode \
+    ,billingClass=isu_installation_deleted_records.billingClass \
+    ,meterReadingUnit=isu_installation_deleted_records.meterReadingUnit \
+    ,industrySystemCode=isu_installation_deleted_records.industrySystemCode \
+    ,industrySystem=isu_installation_deleted_records.industrySystem \
+    ,logicalDeviceNumber=isu_installation_deleted_records.logicalDeviceNumber \
+    ,_DLCleansedZoneTimeStamp = cast('{CurrentTimeStamp}' as TimeStamp) \
     ,_RecordDeleted=1 \
-    ,_RecordCurrent=0 \
+    ,_RecordCurrent=1 \
     ,deltaProcessRecordMode='D'\
     ")
 
 # COMMAND ----------
 
-# DBTITLE 1,14. Exit Notebook
+# DBTITLE 1,13. Exit Notebook
 dbutils.notebook.exit("1")

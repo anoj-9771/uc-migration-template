@@ -38,17 +38,17 @@ def getInstallation():
             deregulationStatus,
             createdDate,
             createdBy,
-            lastChangedDate as changedDate,
-            lastChangedBy as changedBy
+            lastChangedDate,
+            lastChangedBy,
+            _RecordDeleted 
         FROM {ADS_DATABASE_CLEANSED}.isu_0ucinstalla_attr_2 
         WHERE _RecordCurrent = 1 
-        AND _RecordDeleted = 0
         """
     )
     #print(f'Rows in isu0ucinstallaAttrDf:',isu0ucinstallaAttrDf.count())
     
     #Dummy Record to be added to Installation Dimension
-    dummyDimRecDf = spark.createDataFrame([("-1", "Unknown")],["installationNumber", "division"])
+    dummyDimRecDf = spark.createDataFrame(["-1"],"string").toDF("installationNumber")
 
     #2.UNION TABLES
     df = (
@@ -79,8 +79,8 @@ def getInstallation():
         StructField('deregulationStatus',StringType(),True),
         StructField('createdDate',DateType(),True),
         StructField('createdBy',StringType(),True),
-        StructField('changedDate',DateType(),True),
-        StructField('changedBy',StringType(),True)
+        StructField('lastChangedDate',DateType(),True),
+        StructField('lastChangedBy',StringType(),True)
     ])
 
     return df, schema  

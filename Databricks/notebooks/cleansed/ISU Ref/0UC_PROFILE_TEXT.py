@@ -3,7 +3,7 @@
 import json
 #For unit testing...
 #Use this string in the Param widget: 
-#{"SourceType": "BLOB Storage (json)", "SourceServer": "daf-sa-lake-sastoken", "SourceGroup": "ISU", "SourceName": "ISU_0UC_PROFILE_TEXT", "SourceLocation": "ISU/0UC_PROFILE_TEXT", "AdditionalProperty": "", "Processor": "databricks-token|0711-011053-turfs581|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive", "IsAuditTable": false, "SoftDeleteSource": "", "ProjectName": "ISUREF", "ProjectId": 2, "TargetType": "BLOB Storage (json)", "TargetName": "ISU_0UC_PROFILE_TEXT", "TargetLocation": "ISU/0UC_PROFILE_TEXT", "TargetServer": "daf-sa-lake-sastoken", "DataLoadMode": "FULL-EXTRACT", "DeltaExtract": false, "CDCSource": false, "TruncateTarget": false, "UpsertTarget": true, "AppendTarget": null, "TrackChanges": false, "LoadToSqlEDW": true, "TaskName": "ISU_0UC_PROFILE_TEXT", "ControlStageId": 2, "TaskId": 46, "StageSequence": 200, "StageName": "Raw to Cleansed", "SourceId": 46, "TargetId": 46, "ObjectGrain": "Day", "CommandTypeId": 8, "Watermarks": "", "WatermarksDT": null, "WatermarkColumn": "", "BusinessKeyColumn": "profileCode,language", "UpdateMetaData": null, "SourceTimeStampFormat": "", "Command": "", "LastLoadedFile": null}
+#{"SourceType":"BLOB Storage (json)","SourceServer":"daf-sa-blob-sastoken","SourceGroup":"isuref","SourceName":"isu_0UC_PROFILE_TEXT","SourceLocation":"isuref/0UC_PROFILE_TEXT","AdditionalProperty":"","Processor":"databricks-token|1018-021846-1a1ycoqc|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive","IsAuditTable":false,"SoftDeleteSource":"","ProjectName":"CLEANSED ISU DATA","ProjectId":12,"TargetType":"BLOB Storage (json)","TargetName":"isu_0UC_PROFILE_TEXT","TargetLocation":"isuref/0UC_PROFILE_TEXT","TargetServer":"daf-sa-lake-sastoken","DataLoadMode":"FULL-EXTRACT","DeltaExtract":true,"CDCSource":false,"TruncateTarget":false,"UpsertTarget":true,"AppendTarget":null,"TrackChanges":false,"LoadToSqlEDW":true,"TaskName":"isu_0UC_PROFILE_TEXT","ControlStageId":2,"TaskId":228,"StageSequence":200,"StageName":"Raw to Cleansed","SourceId":228,"TargetId":228,"ObjectGrain":"Day","CommandTypeId":8,"Watermarks":"2000-01-01 00:00:00","WatermarksDT":"2000-01-01T00:00:00","WatermarkColumn":"_FileDateTimeStamp","BusinessKeyColumn":"profileCode","PartitionColumn":null,"UpdateMetaData":null,"SourceTimeStampFormat":"","WhereClause":"","Command":"/build/cleansed/ISU Ref/0UC_PROFILE_TEXT","LastSuccessfulExecutionTS":"2000-01-01T23:46:12.39","LastLoadedFile":null}
 
 #Use this string in the Source Object widget
 #ISU_0UC_PROFILE_TEXT
@@ -175,9 +175,10 @@ df = spark.sql(f"WITH stage AS \
                            SELECT \
                                 case when PROFILE = 'na' then '' else PROFILE end as profileCode, \
                                 PROFTEXT as profile, \
+                                (CASE WHEN LOEVM IS NULL OR TRIM(LOEVM) = '' THEN 'N' ELSE 'Y' END) as deletedFlag,\
                                 cast('1900-01-01' as TimeStamp) as _RecordStart, \
                                 cast('9999-12-31' as TimeStamp) as _RecordEnd, \
-                                '0' as _RecordDeleted, \
+                                (CASE WHEN LOEVM IS NULL OR TRIM(LOEVM) = '' THEN '0' ELSE '1' END) as _RecordDeleted, \
                                 '1' as _RecordCurrent, \
                                 cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
                         from stage where _RecordVersion = 1 ")
@@ -204,6 +205,7 @@ df = spark.sql(f"WITH stage AS \
 newSchema = StructType([
 	StructField('profileCode',StringType(),False),
 	StructField('profile',StringType(),True),
+    StructField('deletedFlag',StringType(),True),
 	StructField('_RecordStart',TimestampType(),False),
 	StructField('_RecordEnd',TimestampType(),False),
 	StructField('_RecordDeleted',IntegerType(),False),

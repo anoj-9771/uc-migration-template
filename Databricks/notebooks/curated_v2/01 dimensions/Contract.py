@@ -64,12 +64,13 @@ def getContract():
                                     ,createdDate
                                     ,createdBy
                                     ,lastChangedDate
-                                    ,lastChangedBy
+                                    ,lastChangedBy 
+                                    ,_RecordDeleted 
                                 from {ADS_DATABASE_CLEANSED}.isu_0uccontract_attr_2
-                                where _RecordCurrent = 1 and _RecordDeleted=0
+                                where _RecordCurrent = 1 
                               """)
     
-    dummyDimRecDf = spark.createDataFrame([("-1","Unknown","Unknown")], ["contractId","companyName","division"])   
+    dummyDimRecDf = spark.createDataFrame(["-1"], "string").toDF("contractId") 
     dfResult = isuContractDf.unionByName(dummyDimRecDf, allowMissingColumns = True)    
     
     #5.Apply schema definition

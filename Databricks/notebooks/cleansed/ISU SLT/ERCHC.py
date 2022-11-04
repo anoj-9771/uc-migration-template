@@ -3,7 +3,7 @@
 import json
 #For unit testing...
 #Use this string in the Param widget: 
-#$PARAM
+#{"SourceType":"BLOB Storage (json)","SourceServer":"daf-sa-blob-sastoken","SourceGroup":"isudata","SourceName":"isu_ERCHC","SourceLocation":"isudata/ERCHC","AdditionalProperty":"","Processor":"databricks-token|1018-021846-1a1ycoqc|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive","IsAuditTable":false,"SoftDeleteSource":"","ProjectName":"CLEANSED ISU DATA","ProjectId":12,"TargetType":"BLOB Storage (json)","TargetName":"isu_ERCHC","TargetLocation":"isudata/ERCHC","TargetServer":"daf-sa-lake-sastoken","DataLoadMode":"INCREMENTAL","DeltaExtract":true,"CDCSource":false,"TruncateTarget":false,"UpsertTarget":true,"AppendTarget":null,"TrackChanges":false,"LoadToSqlEDW":true,"TaskName":"isu_ERCHC","ControlStageId":2,"TaskId":228,"StageSequence":200,"StageName":"Raw to Cleansed","SourceId":228,"TargetId":228,"ObjectGrain":"Day","CommandTypeId":8,"Watermarks":"2000-01-01 00:00:00","WatermarksDT":"2000-01-01T00:00:00","WatermarkColumn":"_FileDateTimeStamp","BusinessKeyColumn":"billingDocumentNumber,sequenceNumber","PartitionColumn":null,"UpdateMetaData":null,"SourceTimeStampFormat":"","WhereClause":"","Command":"/build/cleansed/ISU Data/ERCHC","LastSuccessfulExecutionTS":"2000-01-01T23:46:12.39","LastLoadedFile":null}
 
 #Use this string in the Source Object widget
 #$GROUP_$SOURCE
@@ -184,7 +184,7 @@ df = spark.sql(f"WITH stage AS \
                                   case when TOBRELEASD = 'X' then 'Y' else 'N' end as documentNotReleasedFlag, \
                                   case when SIMULATED = 'X' then 'Y' else 'N' end as billingSimulationFlag, \
                                   case when INVOICED = 'X' then 'Y' else 'N' end as invoicePostedFlag, \
-                                  SPCANC as adjustmentReversalFlag, \
+                                  case when SPCANC = 'X' then 'Y' else 'N' end as adjustmentReversalFlag, \
                                   case when STATUPD = 'X' then 'Y' else 'N' end as documentInSalesStatsFlag, \
                                   case when STATUPD_CANC = 'X' then 'Y' else 'N' end as reversalDocumentInSalesStatsFlag, \
                                   cast('1900-01-01' as TimeStamp) as _RecordStart, \
@@ -230,7 +230,7 @@ DeltaSaveDataFrameToDeltaTable(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS
 # COMMAND ----------
 
 # DBTITLE 1,13.1 Identify Deleted records from Raw table
-df = spark.sql(f"select distinct coalesce(BELNR,'') as BELNR, coalesce(LFDNR,'') as LFDNR from ( \
+df = spark.sql(f"select distinct (case when BELNR = 'na' then '' else BELNR end) as BELNR, (case when LFDNR = 'na' then '' else LFDNR end) as LFDNR from ( \
 Select *, ROW_NUMBER() OVER (PARTITION BY BELNR,LFDNR ORDER BY _DLRawZoneTimeStamp DESC, DELTA_TS DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' ) \
 where  _RecordVersion = 1 and IS_DELETED ='Y'")
 df.createOrReplaceTempView("isu_erchc_deleted_records")
@@ -250,7 +250,7 @@ spark.sql(f" \
     WHEN MATCHED THEN UPDATE SET \
     _DLCleansedZoneTimeStamp = cast('{CurrentTimeStamp}' as TimeStamp) \
     ,_RecordDeleted=1 \
-    ,_RecordCurrent=0 \
+    ,_RecordCurrent=1 \
     ")
 
 # COMMAND ----------

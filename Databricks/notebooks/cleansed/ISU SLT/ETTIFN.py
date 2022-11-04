@@ -232,10 +232,22 @@ df = spark.sql(f"""
                ToValidDate(BIS)                                    as validToDate, 
                BELNR                                               as billingDocumentNumber, 
                MBELNR                                              as mBillingDocumentNumber, 
-               MAUSZUG                                             as moveOutIndicator, 
+               CASE
+                   WHEN MAUSZUG = 'X'
+                   THEN 'Y'
+                   ELSE 'N'
+               END                                                 as moveOutFlag, 
                ToValidDate(ALTBIS)                                 as expiryDate, 
-               INAKTIV                                             as inactiveIndicator, 
-               MANAEND                                             as manualChangeIndicator, 
+               CASE
+                   WHEN INAKTIV = 'X'
+                   THEN 'Y'
+                   ELSE 'N' 
+               END                                                 as inactiveFlag, 
+               CASE
+                   WHEN MANAEND = 'X'
+                   THEN 'Y'
+                   ELSE 'N'
+               END                                                 as manualChangeFlag, 
                TARIFART                                            as rateTypeCode, 
                te.rateType                                         as rateType, 
                KONDIGR                                             as rateFactGroupCode, 
@@ -243,7 +255,11 @@ df = spark.sql(f"""
                cast(WERT1 as dec(16,7))                            as entryValue, 
                cast(WERT2 as dec(16,7))                            as valueToBeBilled, 
                STRING1                                             as operandValue1,
-               STRING3                                             as operandValue3, 
+               CASE
+                   WHEN STRING3 = 'X'
+                   THEN 'Y'
+                   ELSE 'N' 
+               END                                                 as operandValue3Flag, 
                cast(BETRAG as dec(13,2))                           as amount, 
                WAERS                                               as currencyKey, 
                cast('1900-01-01' as TimeStamp)                     as _RecordStart, 
@@ -278,10 +294,10 @@ newSchema = StructType([
     StructField('validToDate',DateType(),True),
     StructField('billingDocumentNumber',StringType(),True),
     StructField('mBillingDocumentNumber',StringType(),True),
-    StructField('moveOutIndicator',StringType(),True),
+    StructField('moveOutFlag',StringType(),True),
     StructField('expiryDate',DateType(),True),
-    StructField('inactiveIndicator',StringType(),True),
-    StructField('manualChangeIndicator',StringType(),True),
+    StructField('inactiveFlag',StringType(),True),
+    StructField('manualChangeFlag',StringType(),True),
     StructField('rateTypeCode',StringType(),True),
     StructField('rateType',StringType(),True),
     StructField('rateFactGroupCode',StringType(),True),
@@ -289,7 +305,7 @@ newSchema = StructType([
     StructField('entryValue',DecimalType(16,7),True),
     StructField('valueToBeBilled',DecimalType(16,7),True),
     StructField('operandValue1',StringType(),True),
-    StructField('operandValue3',StringType(),True),
+    StructField('operandValue3Flag',StringType(),True),
     StructField('amount',DecimalType(13,2),True),
     StructField('currencyKey',StringType(),True),
     StructField('_RecordStart',TimestampType(),False),
@@ -307,7 +323,7 @@ DeltaSaveDataFrameToDeltaTable(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS
 # COMMAND ----------
 
 # DBTITLE 1,13.1 Identify Deleted records from Raw table
-df = spark.sql(f"select distinct coalesce(ANLAGE,'') as ANLAGE, coalesce(OPERAND,'') as OPERAND, ToValidDate(AB,'MANDATORY') as AB, coalesce(ABLFDNR,'') as ABLFDNR from ( \
+df = spark.sql(f"select distinct (case when ANLAGE = 'na' then '' else ANLAGE end) as ANLAGE, (case when OPERAND = 'na' then '' else OPERAND end) as OPERAND, ToValidDate(AB,'MANDATORY') as AB, (case when ABLFDNR = 'na' then '' else ABLFDNR end) as ABLFDNR from ( \
 Select *, ROW_NUMBER() OVER (PARTITION BY ANLAGE,OPERAND,SAISON,AB,ABLFDNR ORDER BY _DLRawZoneTimestamp DESC, DELTA_TS DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' ) \
 where  _RecordVersion = 1 and IS_DELETED ='Y'")
 df.createOrReplaceTempView("isu_ettifn_deleted_records")
@@ -329,7 +345,7 @@ spark.sql(f" \
     WHEN MATCHED THEN UPDATE SET \
     _DLCleansedZoneTimeStamp = cast('{CurrentTimeStamp}' as TimeStamp) \
     ,_RecordDeleted=1 \
-    ,_RecordCurrent=0 \
+    ,_RecordCurrent=1 \
     ")
 
 # COMMAND ----------

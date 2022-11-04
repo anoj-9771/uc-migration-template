@@ -374,8 +374,8 @@ def _SQLUpdateCompareCondition_DeltaTableArchive(dataframe, business_key, source
 def _SQLUpdateSetValue_DeltaTable(dataframe, business_key, source_alias, target_alias, curr_time_stamp, target_data_lake_zone, delete_data):
   #Generate SQL for UPDATE column compare
   
-  delete_flag = 1 if delete_data else 0
-  current_flag = 0 if delete_data else 1
+#   delete_flag = 1 if delete_data else 0
+#   current_flag = 0 if delete_data else 1
 
  #Start of Fix for Handling Null in Key Columns
  #Exclude the following columns from Update
@@ -383,7 +383,8 @@ def _SQLUpdateSetValue_DeltaTable(dataframe, business_key, source_alias, target_
   #Adding SK column if any to the exception list
   col_SK = deriveSurrogateKey(source_alias)  
   buskey_col_list = business_key.split(",")
-  col_exception_list = [COL_RECORD_VERSION, COL_RECORD_START, COL_RECORD_END, COL_RECORD_CURRENT, COL_RECORD_DELETED, col_SK, COL_RECORD_BUS_KEY]
+#   col_exception_list = [COL_RECORD_VERSION, COL_RECORD_START, COL_RECORD_END, COL_RECORD_CURRENT, COL_RECORD_DELETED, col_SK, COL_RECORD_BUS_KEY]
+  col_exception_list = [COL_RECORD_VERSION, COL_RECORD_START, COL_RECORD_END, col_SK, COL_RECORD_BUS_KEY]
   col_exception_list.extend(buskey_col_list) 
   #End of Fix for Handling Null in Key Columns
   
@@ -403,7 +404,7 @@ def _SQLUpdateSetValue_DeltaTable(dataframe, business_key, source_alias, target_
       
   #Add the timestamp column for the zone
   sql+= "," + source_alias + "." + COL_TIMESTAMP + " = " + "to_timestamp('" + curr_time_stamp + "')" 
-  sql+= f", {COL_RECORD_DELETED} = {delete_flag}, {COL_RECORD_CURRENT} = {current_flag}" 
+#   sql+= f", {COL_RECORD_DELETED} = {delete_flag}, {COL_RECORD_CURRENT} = {current_flag}" 
   
   sql += NEW_LINE
     
@@ -763,7 +764,10 @@ def _SQLInsertSyntax_DeltaTable_Generate(dataframe, is_delta_extract, delta_colu
   #Generate SQL for INSERT
   
   #Exclude the following columns from INSERT. We will add them with new values
-  col_exception_list = [COL_RECORD_VERSION, COL_RECORD_START, COL_RECORD_END, COL_RECORD_CURRENT, COL_RECORD_DELETED]
+  if target_data_lake_zone == ADS_DATABASE_CLEANSED:
+    col_exception_list = [COL_RECORD_VERSION, COL_RECORD_START, COL_RECORD_END]
+  elif target_data_lake_zone == ADS_DATABASE_CURATED:
+    col_exception_list = [COL_RECORD_VERSION, COL_RECORD_START, COL_RECORD_END, COL_RECORD_CURRENT, COL_RECORD_DELETED]
   
   delete_flag = 1 if delete_data else 0
 
@@ -821,13 +825,19 @@ def _SQLInsertSyntax_DeltaTable_Generate(dataframe, is_delta_extract, delta_colu
   col_record_start = f"'{curr_time_stamp}'"
   #sql_col += f"{COL_RECORD_START}, {COL_RECORD_END}, {COL_RECORD_DELETED}, {COL_RECORD_CURRENT}"
   #sql_values += f"{col_record_start}, to_timestamp('9999-12-31 00:00:00'), {delete_flag}, 1"
-  sql_col += f"{COL_RECORD_START}, {COL_RECORD_END}, {COL_RECORD_DELETED}, {COL_RECORD_CURRENT}"
+  if target_data_lake_zone == ADS_DATABASE_CLEANSED:
+    sql_col += f"{COL_RECORD_START}, {COL_RECORD_END}"
+  elif target_data_lake_zone == ADS_DATABASE_CURATED:
+    sql_col += f"{COL_RECORD_START}, {COL_RECORD_END}, {COL_RECORD_DELETED}, {COL_RECORD_CURRENT}"
 ###  if is_delta_extract:
 ###  sql_values += f"to_timestamp(cast({col_record_start} as string), 'yyyyMMddHHmmss'), "
   sql_values += f"to_timestamp('{curr_time_stamp}'), "
 ###  else:
 ###    sql_values += f"{col_record_start}, "
-  sql_values += f"to_timestamp('9999-12-31 00:00:00'), {delete_flag}, 1"
+  if target_data_lake_zone == ADS_DATABASE_CLEANSED:
+    sql_values += f"to_timestamp('9999-12-31 00:00:00')"
+  elif target_data_lake_zone == ADS_DATABASE_CURATED:
+    sql_values += f"to_timestamp('9999-12-31 00:00:00'), {delete_flag}, 1"
   #Build the INSERT SQL with column list and values list
 #   if not is_delta_extract and target_data_lake_zone == ADS_DATABASE_CLEANSED and only_insert:
 #     sql = f"INSERT INTO {target_table} ({sql_col}) SELECT {sql_values} FROM {source_table}" 

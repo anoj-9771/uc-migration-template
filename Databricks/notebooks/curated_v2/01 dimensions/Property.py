@@ -180,13 +180,14 @@ def getProperty():
                                             null as parentArchitecturalObjectType,
                                             null as parentArchitecturalObjectNumber,
                                             null as hydraBand,
-                                            null as hydraCalculatedArea,
-                                            null as hydraAreaUnit,
+                                            -1 as hydraCalculatedArea,
+                                            'Unknown' as hydraAreaUnit,
                                             null as overrideArea,
                                             null as overrideAreaUnit,
-                                            null as stormWaterAssessmentIndicator,
-                                            null as hydraAreaIndicator,
-                                            null as comments 
+                                            null as stormWaterAssessmentFlag,
+                                            null as hydraAreaFlag,
+                                            null as comments,
+                                            pr._RecordDeleted 
                                      from {ADS_DATABASE_CLEANSED}.access_z309_tproperty pr left outer join 
                                           lots lo on lo.propertyNumber = pr.propertyNumber left outer join 
                                           parents pp on pp.propertyNumber = pr.propertyNumber 
@@ -200,15 +201,15 @@ def getProperty():
     
     sapisuDf = spark.sql(f"""select 
                                 'ISU' as sourceSystemCode, 
-                                0ucp.propertyNumber, 
-                                0ucp.premise, 
+                                co.propertyNumber, 
+                                coalesce(0ucp.premise,'-1') as premise, 
                                 potableSK as waterNetworkSK_drinkingWater, 
                                 recycledSK as waterNetworkSK_recycledWater, 
                                 sewerNetworkSK, 
                                 stormWaterNetworkSK, 
                                 co.objectNumber, 
                                 co.propertyInfo, 
-                                co.buildingFeeDate , 
+                                co.buildingFeeDate as buildingFeeDate, 
                                 co.validFromDate as connectionValidFromDate , 
                                 co.CRMConnectionObjectGUID, 
                                 vn.architecturalObjectNumber, 
@@ -218,26 +219,25 @@ def getProperty():
                                 vn.parentArchitecturalObjectType,
                                 vn.parentArchitecturalObjectNumber,
                                 vd.hydraBand,
-                                vd.hydraCalculatedArea,
-                                vd.hydraAreaUnit,
+                                coalesce(vd.hydraCalculatedArea, -1) as hydraCalculatedArea,
+                                if(vd.hydraAreaUnit is null or trim(vd.hydraAreaUnit) = '', 'Unknown', vd.hydraAreaUnit) as hydraAreaUnit,
                                 vd.overrideArea,
                                 vd.overrideAreaUnit,
-                                vd.stormWaterAssessmentIndicator,
-                                vd.hydraAreaIndicator,
-                                vd.comments 
+                                coalesce(vd.stormWaterAssessmentFlag, 'N') as stormWaterAssessmentFlag,
+                                coalesce(vd.hydraAreaFlag, 'N') as hydraAreaFlag,
+                                vd.comments,
+                                co._RecordDeleted 
                         from 
-                              (select * from (select *, row_number() over(partition by propertyNumber order by premise desc, createdDate desc) as rec_num from {ADS_DATABASE_CLEANSED}.isu_0ucpremise_attr_2) 
-                               where rec_num = 1) 0ucp 
-                              left outer join {ADS_DATABASE_CLEANSED}.isu_0uc_connobj_attr_2 co 
+                              {ADS_DATABASE_CLEANSED}.isu_0uc_connobj_attr_2 co 
+                              left outer join {ADS_DATABASE_CLEANSED}.isu_0ucpremise_attr_2 0ucp 
                               on co.propertyNumber = 0ucp.propertyNumber 
                               left outer join {ADS_DATABASE_CLEANSED}.isu_vibdao vd 
-                              on co.architecturalObjectInternalId = vd.architecturalObjectInternalId and vd._RecordDeleted = 0 and vd._RecordCurrent = 1 
+                              on co.architecturalObjectInternalId = vd.architecturalObjectInternalId and vd._RecordCurrent = 1 
                               left outer join {ADS_DATABASE_CLEANSED}.isu_vibdnode vn 
-                              on co.architecturalObjectInternalId = vn.architecturalObjectInternalId and vn._RecordDeleted = 0 and   vn._RecordCurrent = 1 
+                              on co.architecturalObjectInternalId = vn.architecturalObjectInternalId and vn._RecordCurrent = 1 
                               left outer join systemAreas sa 
                               on sa.propertyNumber = coalesce(int(vn.parentArchitecturalObjectNumber),int(co.propertyNumber)) 
                          where co.propertyNumber <> '' 
-                         and   co._RecordDeleted = 0 
                          and   co._RecordCurrent = 1 
                         """)
     sapisuDf.createOrReplaceTempView('ISU')
@@ -275,7 +275,8 @@ def getProperty():
     df = df.join(dummyDimRecDf, (dummyDimRecDf.dimension == 'dimStormWaterNetwork'), how="left") \
                   .select(df['*'], dummyDimRecDf['dummyDimSK'].alias('dummyStormWaterNetworkSK'))
     
-    dummyDimDf = spark.sql(f"""select '-1' as propertyNumber, wn.waterNetworkSK as waterNetworkSK_drinkingWater, wnr.waterNetworkSK as waterNetworkSK_recycledWater, sewerNetworkSK, stormWaterNetworkSK 
+    dummyDimDf = spark.sql(f"""select '-1' as propertyNumber, wn.waterNetworkSK as waterNetworkSK_drinkingWater, wnr.waterNetworkSK as waterNetworkSK_recycledWater, sewerNetworkSK, stormWaterNetworkSK , 
+                                  -1 as hydraCalculatedArea, 'Unknown' as hydraAreaUnit, '-1' as premise  
                             from {ADS_DATABASE_CURATED_V2}.dimWaterNetwork wn, 
                                  {ADS_DATABASE_CURATED_V2}.dimWaterNetwork wnr, 
                                  {ADS_DATABASE_CURATED_V2}.dimSewerNetwork snw, 
@@ -316,9 +317,10 @@ def getProperty():
                        ,"hydraAreaUnit" \
                        ,"overrideArea" \
                        ,"overrideAreaUnit" \
-                       ,"stormWaterAssessmentIndicator" \
-                       ,"hydraAreaIndicator" \
-                       ,"comments"
+                       ,"stormWaterAssessmentFlag" \
+                       ,"hydraAreaFlag" \
+                       ,"comments" \
+                        ,"_RecordDeleted" 
                         )
     
     #set system area defaults
@@ -337,7 +339,7 @@ def getProperty():
                             StructField('propertySK', StringType(), False),
                             StructField('sourceSystemCode', StringType(), True),
                             StructField("propertyNumber", StringType(), False),
-                            StructField("premise", StringType(), True),
+                            StructField("premise", StringType(), False),
                             StructField("waterNetworkSK_drinkingWater", StringType(), False),
                             StructField("waterNetworkSK_recycledWater", StringType(), False),
                             StructField("sewerNetworkSK", StringType(), False),
@@ -354,12 +356,12 @@ def getProperty():
                             StructField('parentArchitecturalObjectType', StringType(), True),
                             StructField('parentArchitecturalObjectNumber', StringType(), True),
                             StructField('hydraBand', StringType(), True),
-                            StructField('hydraCalculatedArea', DecimalType(17,4), True),
-                            StructField('hydraAreaUnit', StringType(), True),
-                            StructField('overrideArea', StringType(), True),
+                            StructField('hydraCalculatedArea', DecimalType(18,6), False),
+                            StructField('hydraAreaUnit', StringType(), False),
+                            StructField('overrideArea', DecimalType(18,6), True),
                             StructField('overrideAreaUnit', StringType(), True),
-                            StructField('stormWaterAssessmentIndicator', StringType(), True),
-                            StructField('hydraAreaIndicator', StringType(), True),
+                            StructField('stormWaterAssessmentFlag', StringType(), True),
+                            StructField('hydraAreaFlag', StringType(), True),
                             StructField('comments', StringType(), True),
                       ])
 

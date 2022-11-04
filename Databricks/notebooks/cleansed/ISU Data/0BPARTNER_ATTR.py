@@ -213,7 +213,10 @@ print(delta_raw_tbl_name)
 # COMMAND ----------
 
 # DBTITLE 1,10. Load Raw to Dataframe & Do Transformations
-df = spark.sql(f"""
+import pyspark.sql.functions as F
+
+df = (
+    spark.sql(f"""
     WITH stage AS (
         SELECT 
             *, 
@@ -225,7 +228,7 @@ df = spark.sql(f"""
         WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}'
     ) 
         SELECT  
-            case when BP.PARTNER = 'na' then '' else BP.PARTNER end               as businessPartnerNumber, 
+            case when BP.PARTNER = 'na' then '' else BP.PARTNER end               as businessPartnerNumber, -- TRANSFORMATION
             BP.TYPE                                                               as businessPartnerCategoryCode, 
             BP_TXT.businessPartnerCategory                                        as businessPartnerCategory, 
             BP.BPKIND                                                             as businessPartnerTypeCode, 
@@ -237,16 +240,32 @@ df = spark.sql(f"""
             BP.BU_SORT2                                                           as searchTerm2, 
             BP.TITLE                                                              as titleCode, 
             TITLE.TITLE                                                           as title, 
-            case when BP.XDELE = 'X' then 'Y' else 'N' end                        as deletedFlag, 
+            CASE
+                WHEN BP.XDELE = 'X'
+                THEN 'Y'                                                              
+                ELSE 'N'
+            END                                                                   as deletedFlag,
             BP.XBLCK                                                              as centralBlockBusinessPartner, 
             BP.ZZUSER                                                             as userId, 
-            case when BP.ZZPAS_INDICATOR = 'X' then 'Y' else 'N' end              as paymentAssistSchemeFlag, 
-            case when BP.ZZBA_INDICATOR = 'X' then 'Y' else 'N' end               as billAssistFlag, 
+            case when BP.ZZPAS_INDICATOR = 'X' then 'Y' else 'N' end              as paymentAssistSchemeFlag, -- TRANSFORMATION
+            case when BP.ZZBA_INDICATOR = 'X' then 'Y' else 'N' end               as billAssistFlag, -- TRANSFORMATION
             ToValidDate(BP.ZZAFLD00001Z)                                          as createdOn, 
             BP.NAME_ORG1                                                          as organizationName1, 
             BP.NAME_ORG2                                                          as organizationName2, 
             BP.NAME_ORG3                                                          as organizationName3, 
-            ToValidDate(BP.FOUND_DAT)                                             as organizationFoundedDate, 
+            CASE 
+                WHEN businessPartnerCategoryCode = '2' 
+                THEN concat( 
+                    coalesce(NAME_ORG1, ''), 
+                    ' ', coalesce(NAME_ORG2, ''), 
+                    ' ', coalesce(NAME_ORG3, '')) 
+                ELSE NAME_ORG1 
+            END                                                                   as organizationName, -- TRANSFORMATION
+            CASE 
+                WHEN businessPartnerCategoryCode = '2' 
+                THEN ToValidDate(BP.FOUND_DAT) 
+                ELSE NULL 
+            END                                                                   as organizationFoundedDate, -- TRANSFORMATION
             CAST(BP.LOCATION_1 AS string)                                         as internationalLocationNumber1, 
             CAST(BP.LOCATION_2 AS string)                                         as internationalLocationNumber2, 
             CAST(BP.LOCATION_3 AS string)                                         as internationalLocationNumber3, 
@@ -270,9 +289,9 @@ df = spark.sql(f"""
             BP.NAME_GRP1                                                          as nameGroup1, 
             BP.NAME_GRP2                                                          as nameGroup2, 
             BP.CRUSR                                                              as createdBy, 
-            ToValidDateTime(concat(BP.CRDAT, 'T', coalesce(BP.CRTIM,'00:00:00'))) as createdDateTime, 
+            ToValidDateTime(concat(BP.CRDAT, 'T', coalesce(BP.CRTIM,'00:00:00'))) as createdDateTime, -- TRANSFORMATION
             BP.CHUSR                                                              as lastUpdatedBy, 
-            ToValidDateTime(concat(BP.CHDAT, 'T', coalesce(BP.CHTIM,'00:00:00'))) as lastUpdatedDateTime, 
+            ToValidDateTime(concat(BP.CHDAT, 'T', coalesce(BP.CHTIM,'00:00:00'))) as lastUpdatedDateTime, -- TRANSFORMATION
             BP.PARTNER_GUID                                                       as businessPartnerGUID, 
             BP.ADDRCOMM                                                           as addressNumber, 
             ToValidDate(substr(BP.VALID_FROM,0,8))                                as validFromDate, 
@@ -280,7 +299,11 @@ df = spark.sql(f"""
             case when BP.NATPERS = 'X' then 'Y' else 'N' end                      as naturalPersonFlag, 
             cast('1900-01-01' as TimeStamp)                                       as _RecordStart, 
             cast('9999-12-31' as TimeStamp)                                       as _RecordEnd, 
-            '0'                                                                   as _RecordDeleted, 
+            CASE
+                WHEN BP.XDELE = 'X'
+                THEN '1'                                                              
+                ELSE '0'
+            END                                                                   as _RecordDeleted,
             '1'                                                                   as _RecordCurrent, 
             cast('{CurrentTimeStamp}' as TimeStamp)                               as _DLCleansedZoneTimeStamp 
         FROM stage BP 
@@ -304,6 +327,11 @@ df = spark.sql(f"""
             BP.NAMCOUNTRY = t005t.countryCode 
         WHERE BP._RecordVersion = 1 
         """
+    )
+    .withColumn(
+        "organizationName",
+        F.expr("TRIM(TRAILING ',' FROM TRIM(organizationName))")
+    )
 )
 
 # print(f'Number of rows: {df.count()}')
@@ -410,6 +438,7 @@ newSchema = StructType(
     StructField("organizationName1", StringType(), True),
     StructField("organizationName2", StringType(), True),
     StructField("organizationName3", StringType(), True),
+    StructField("organizationName", StringType(), True),
     StructField("organizationFoundedDate", DateType(), True),
     StructField("internationalLocationNumber1", StringType(), True),
     StructField("internationalLocationNumber2", StringType(), True),
@@ -452,7 +481,7 @@ newSchema = StructType(
 
 # COMMAND ----------
 
-# DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
+# DBTITLE 1,12. Save Data frame into Cleansed Delta table
 DeltaSaveDataFrameToDeltaTable(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
 
 # COMMAND ----------

@@ -213,7 +213,10 @@ print(delta_raw_tbl_name)
 # COMMAND ----------
 
 # DBTITLE 1,10. Load Raw to Dataframe & Do Transformations
-df = spark.sql(f"""
+import pyspark.sql.functions as F
+
+df = (
+    spark.sql(f"""
      WITH stage AS (
           SELECT 
                *, 
@@ -244,11 +247,11 @@ df = spark.sql(f"""
           BU_SORT2                                                        as searchTerm2, 
           BP.TITLE                                                        as titleCode, 
           TITLE.TITLE                                                     as title, 
-          case 
-               when XDELE = 'X' 
-               then 'Y' 
-               else 'N' 
-          end                                                             as deletedFlag, 
+          CASE
+              WHEN BP.XDELE = 'X'
+              THEN 'Y'                                                              
+              ELSE 'N'
+          END                                                             as deletedFlag,
           XBLCK                                                           as centralBlockBusinessPartner, 
           ZZUSER                                                          as userId, 
           case 
@@ -276,7 +279,19 @@ df = spark.sql(f"""
           NAME_ORG1                                                       as organizationName1, 
           NAME_ORG2                                                       as organizationName2, 
           NAME_ORG3                                                       as organizationName3, 
-          ToValidDate(BP.FOUND_DAT)                                       as organizationFoundedDate, 
+          CASE 
+              WHEN businessPartnerCategoryCode = '2' 
+              THEN concat( 
+                  coalesce(NAME_ORG1, ''), 
+                  ' ', coalesce(NAME_ORG2, ''), 
+                  ' ', coalesce(NAME_ORG3, '')) 
+              ELSE NAME_ORG1 
+          END                                                             as organizationName, -- TRANSFORMATION
+          CASE 
+              WHEN businessPartnerCategoryCode = '2' 
+              THEN ToValidDate(BP.FOUND_DAT) 
+              ELSE NULL 
+          END                                                             as organizationFoundedDate, -- TRANSFORMATION
           CAST(LOCATION_1 AS string)                                      as internationalLocationNumber1, 
           CAST(LOCATION_2 AS string)                                      as internationalLocationNumber2, 
           CAST(LOCATION_3 AS string)                                      as internationalLocationNumber3, 
@@ -361,7 +376,11 @@ df = spark.sql(f"""
           ToValidDate(BP.ZZOFF_DATE)                                      as machineTypeValidToDate, 
           cast('1900-01-01' as TimeStamp)                                 as _RecordStart, 
           cast('9999-12-31' as TimeStamp)                                 as _RecordEnd, 
-          '0'                                                             as _RecordDeleted, 
+          CASE
+              WHEN BP.XDELE = 'X'
+              THEN '1'                                                              
+              ELSE '0'
+          END                                                             as _RecordDeleted,
           '1'                                                             as _RecordCurrent, 
           cast('{CurrentTimeStamp}' as TimeStamp)                         as _DLCleansedZoneTimeStamp 
     FROM stage  BP
@@ -401,8 +420,13 @@ df = spark.sql(f"""
     LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.crm_t005t t005t ON 
         BP.NAMCOUNTRY = t005t.countryCode 
     WHERE BP._RecordVersion = 1 
-"""
-) 
+    """
+    )
+    .withColumn(
+        'organizationName',
+        F.expr("TRIM(TRAILING ',' FROM TRIM(organizationName))")
+    )
+)
 # print(f'Number of rows: {df.count()}')
 # display(df)
 
@@ -546,6 +570,7 @@ newSchema = StructType([
 	StructField('organizationName1',StringType(),True),
 	StructField('organizationName2',StringType(),True),
 	StructField('organizationName3',StringType(),True),
+    StructField("organizationName", StringType(), True),
 	StructField('organizationFoundedDate',DateType(),True),
 	StructField('internationalLocationNumber1',StringType(),True),
 	StructField('internationalLocationNumber2',StringType(),True),
@@ -605,7 +630,7 @@ newSchema = StructType([
 
 # COMMAND ----------
 
-# DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
+# DBTITLE 1,12. Save Data frame into Cleansed Delta table
 DeltaSaveDataFrameToDeltaTable(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
 
 # COMMAND ----------

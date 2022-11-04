@@ -3,7 +3,7 @@
 import json
 #For unit testing...
 #Use this string in the Param widget: 
-#{"SourceType": "BLOB Storage (json)", "SourceServer": "daf-sa-lake-sastoken", "SourceGroup": "isu", "SourceName": "isu_0UC_REGIST_ATTR", "SourceLocation": "isu/0UC_REGIST_ATTR", "AdditionalProperty": "", "Processor": "databricks-token|0711-011053-turfs581|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive", "IsAuditTable": false, "SoftDeleteSource": "", "ProjectName": "ISU DATA", "ProjectId": 2, "TargetType": "BLOB Storage (json)", "TargetName": "isu_0UC_REGIST_ATTR", "TargetLocation": "isu/0UC_REGIST_ATTR", "TargetServer": "daf-sa-lake-sastoken", "DataLoadMode": "FULL-EXTRACT", "DeltaExtract": false, "CDCSource": false, "TruncateTarget": false, "UpsertTarget": true, "AppendTarget": null, "TrackChanges": false, "LoadToSqlEDW": true, "TaskName": "isu_0UC_REGIST_ATTR", "ControlStageId": 2, "TaskId": 46, "StageSequence": 200, "StageName": "Raw to Cleansed", "SourceId": 46, "TargetId": 46, "ObjectGrain": "Day", "CommandTypeId": 8, "Watermarks": "", "WatermarksDT": null, "WatermarkColumn": "", "BusinessKeyColumn": "equipmentNumber,registerNumber,validToDate", "UpdateMetaData": null, "SourceTimeStampFormat": "", "Command": "", "LastLoadedFile": null}
+#{"SourceType":"BLOB Storage (json)","SourceServer":"daf-sa-blob-sastoken","SourceGroup":"isudata","SourceName":"isu_0UC_REGIST_ATTR","SourceLocation":"isudata/0UC_REGIST_ATTR","AdditionalProperty":"","Processor":"databricks-token|1018-021846-1a1ycoqc|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive","IsAuditTable":false,"SoftDeleteSource":"","ProjectName":"CLEANSED ISU DATA","ProjectId":12,"TargetType":"BLOB Storage (json)","TargetName":"isu_0UC_REGIST_ATTR","TargetLocation":"isudata/0UC_REGIST_ATTR","TargetServer":"daf-sa-lake-sastoken","DataLoadMode":"INCREMENTAL","DeltaExtract":true,"CDCSource":false,"TruncateTarget":false,"UpsertTarget":true,"AppendTarget":null,"TrackChanges":false,"LoadToSqlEDW":true,"TaskName":"isu_0UC_REGIST_ATTR","ControlStageId":2,"TaskId":228,"StageSequence":200,"StageName":"Raw to Cleansed","SourceId":228,"TargetId":228,"ObjectGrain":"Day","CommandTypeId":8,"Watermarks":"2000-01-01 00:00:00","WatermarksDT":"2000-01-01T00:00:00","WatermarkColumn":"_FileDateTimeStamp","BusinessKeyColumn":"equipmentNumber,registerNumber,validToDate","PartitionColumn":null,"UpdateMetaData":null,"SourceTimeStampFormat":"","WhereClause":"","Command":"/build/cleansed/ISU Data/0UC_REGIST_ATTR","LastSuccessfulExecutionTS":"2000-01-01T23:46:12.39","LastLoadedFile":null}
 
 #Use this string in the Source Object widget
 #isu_0UC_REGIST_ATTR
@@ -170,27 +170,32 @@ print(delta_raw_tbl_name)
 # COMMAND ----------
 
 # DBTITLE 1,10. Load Raw to Dataframe & Do Transformations
-df = spark.sql(f"WITH stage AS \
-                      (Select *, ROW_NUMBER() OVER (PARTITION BY EQUNR,ZWNUMMER,BIS ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} \
-                                  WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' and DI_OPERATION_TYPE !='X' ) \
+df = spark.sql(f"WITH stageUpsert AS \
+                      (select *, 'U' as _upsertFlag from (Select *, ROW_NUMBER() OVER (PARTITION BY EQUNR,ZWNUMMER,BIS ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} \
+                                  WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' and DI_OPERATION_TYPE !='X' ) where _RecordVersion = 1), \
+                     stageDelete AS \
+                      (select *, 'D' as _upsertFlag from ( \
+Select *, ROW_NUMBER() OVER (PARTITION BY EQUNR,ZWNUMMER,AB,BIS ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion \
+                    FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' ) where  _RecordVersion = 1 and DI_OPERATION_TYPE ='X'), \
+                      stage AS (select * from stageUpsert union select * from stageDelete) \
                            SELECT \
                                 case when EQUNR = 'na' then '' else EQUNR end as equipmentNumber, \
                                 case when ZWNUMMER = 'na' then '' else (cast(ZWNUMMER as int)) end  as registerNumber, \
                                 ToValidDate(BIS,'MANDATORY') as validToDate, \
                                 ToValidDate(AB) as validFromDate, \
-                                LOGIKZW as logicalRegisterNumber, \
-                                SPARTYP as divisionCategoryCode, \
+                                cast(LOGIKZW as string) as logicalRegisterNumber, \
+                                cast(SPARTYP as string) as divisionCategoryCode, \
                                 di.sectorCategory as divisionCategory, \
                                 ZWKENN as registerIdCode, \
                                 id.registerId as registerId, \
                                 ZWART as registerTypeCode, \
                                 te.registerType as registerType, \
-                                ZWTYP as registerCategoryCode, \
+                                cast(ZWTYP as string) as registerCategoryCode, \
                                 dd.domainValueText as registerCategory, \
-                                BLIWIRK as reactiveApparentOrActiveRegister, \
+                                cast(BLIWIRK as string) as reactiveApparentOrActiveRegister, \
                                 dd1.domainValueText as reactiveApparentOrActiveRegisterTxt, \
                                 MASSREAD as unitOfMeasurementMeterReading, \
-                                NABLESEN as doNotReadIndicator, \
+                                (case when NABLESEN = 'X' then 'Y' else 'N' end) as doNotReadFlag, \
                                 cast(HOEKORR as int) as altitudeCorrectionPressure, \
                                 cast(KZAHLE as int) as setGasLawDeviationFactor, \
                                 cast(KZAHLT as int) as actualGasLawDeviationFactor, \
@@ -200,7 +205,7 @@ df = spark.sql(f"WITH stage AS \
                                 ZANLAGE as installationId, \
                                 cast('1900-01-01' as TimeStamp) as _RecordStart, \
                                 cast('9999-12-31' as TimeStamp) as _RecordEnd, \
-                                '0' as _RecordDeleted, \
+                                (CASE WHEN _upsertFlag = 'U' THEN '0' ELSE '1' END) as _RecordDeleted, \
                                 '1' as _RecordCurrent, \
                                 cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
                         FROM stage re \
@@ -214,9 +219,7 @@ df = spark.sql(f"WITH stage AS \
                                                                                           and dd._RecordDeleted = 0 and dd._RecordCurrent = 1 \
                         LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_DD07T dd1 ON re.BLIWIRK = dd1.domainValueSingleUpperLimit and  dd1.domainName = 'BLIWIRK' \
                                                                                           and dd1._RecordDeleted = 0 and dd1._RecordCurrent = 1 \
-                        where re._RecordVersion = 1 ")
-
-#print(f'Number of rows: {df.count()}')
+                        ")
 
 # COMMAND ----------
 
@@ -237,7 +240,7 @@ newSchema = StructType([
 	StructField('reactiveApparentOrActiveRegister',StringType(),True),
     StructField('reactiveApparentOrActiveRegisterTxt',StringType(),True),
 	StructField('unitOfMeasurementMeterReading',StringType(),True),
-	StructField('doNotReadIndicator',StringType(),True),
+	StructField('doNotReadFlag',StringType(),True),
 	StructField('altitudeCorrectionPressure',IntegerType(),True),
 	StructField('setGasLawDeviationFactor',IntegerType(),True),
 	StructField('actualGasLawDeviationFactor',IntegerType(),True),
@@ -255,35 +258,46 @@ newSchema = StructType([
 
 # COMMAND ----------
 
-# DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
-DeltaSaveDataFrameToDeltaTable(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
+# DBTITLE 1,12.1 Save Non Deleted Records Data frame into Cleansed Delta table (Final)
+# Load Non deleted records same as earlier
+DeltaSaveDataFrameToDeltaTable(df.filter("_RecordDeleted = '0'"), target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
 
 # COMMAND ----------
 
-# DBTITLE 1,13.1 Identify Deleted records from Raw table
-df = spark.sql(f"select distinct coalesce(EQUNR,'') as EQUNR, coalesce(ZWNUMMER,'') as ZWNUMMER, coalesce(AB,'') as AB, coalesce(BIS,'') as BIS from ( \
-Select *, ROW_NUMBER() OVER (PARTITION BY EQUNR,ZWNUMMER,AB,BIS ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' ) \
-where  _RecordVersion = 1 and DI_OPERATION_TYPE ='X'")
-df.createOrReplaceTempView("isu_regist_deleted_records")
-
-# COMMAND ----------
-
-# DBTITLE 1,13.2 Update _RecordDeleted and _RecordCurrent Flags
-#Get current time
-CurrentTimeStamp = GeneralLocalDateTime()
-CurrentTimeStamp = CurrentTimeStamp.strftime("%Y-%m-%d %H:%M:%S")
-
+# DBTITLE 1,12.2 Save Deleted records Data frame into Cleansed Delta table
+# Load deleted records to replace the existing Deleted records implementation logic
+df.filter("_RecordDeleted=1").createOrReplaceTempView("isu_regist_deleted_records")
 spark.sql(f" \
     MERGE INTO cleansed.isu_0UC_REGIST_ATTR \
     using isu_regist_deleted_records \
-    on isu_0UC_REGIST_ATTR.equipmentNumber = isu_regist_deleted_records.EQUNR \
-    and isu_0UC_REGIST_ATTR.registerNumber = isu_regist_deleted_records.ZWNUMMER \
-    and isu_0UC_REGIST_ATTR.validFromDate = isu_regist_deleted_records.AB \
-    and isu_0UC_REGIST_ATTR.validToDate = isu_regist_deleted_records.BIS \
+    on isu_0UC_REGIST_ATTR.equipmentNumber = isu_regist_deleted_records.equipmentNumber \
+    and isu_0UC_REGIST_ATTR.registerNumber = isu_regist_deleted_records.registerNumber \
+    and isu_0UC_REGIST_ATTR.validFromDate = isu_regist_deleted_records.validFromDate \
+    and isu_0UC_REGIST_ATTR.validToDate = isu_regist_deleted_records.validToDate \
     WHEN MATCHED THEN UPDATE SET \
-    _DLCleansedZoneTimeStamp = cast('{CurrentTimeStamp}' as TimeStamp) \
+     logicalRegisterNumber=isu_regist_deleted_records.logicalRegisterNumber \
+    ,divisionCategoryCode=isu_regist_deleted_records.divisionCategoryCode \
+    ,divisionCategory=isu_regist_deleted_records.divisionCategory \
+    ,registerIdCode=isu_regist_deleted_records.registerIdCode \
+    ,registerId=isu_regist_deleted_records.registerId \
+    ,registerTypeCode=isu_regist_deleted_records.registerTypeCode \
+    ,registerType=isu_regist_deleted_records.registerType \
+    ,registerCategoryCode=isu_regist_deleted_records.registerCategoryCode \
+    ,registerCategory=isu_regist_deleted_records.registerCategory \
+    ,reactiveApparentOrActiveRegister=isu_regist_deleted_records.reactiveApparentOrActiveRegister \
+    ,reactiveApparentOrActiveRegisterTxt=isu_regist_deleted_records.reactiveApparentOrActiveRegisterTxt \
+    ,unitOfMeasurementMeterReading=isu_regist_deleted_records.unitOfMeasurementMeterReading \
+    ,doNotReadFlag=isu_regist_deleted_records.doNotReadFlag \
+    ,altitudeCorrectionPressure=isu_regist_deleted_records.altitudeCorrectionPressure \
+    ,setGasLawDeviationFactor=isu_regist_deleted_records.setGasLawDeviationFactor \
+    ,actualGasLawDeviationFactor=isu_regist_deleted_records.actualGasLawDeviationFactor \
+    ,gasCorrectionPressure=isu_regist_deleted_records.gasCorrectionPressure \
+    ,intervalLengthId=isu_regist_deleted_records.intervalLengthId \
+    ,deletedFlag=isu_regist_deleted_records.deletedFlag \
+    ,installationId=isu_regist_deleted_records.installationId \
+    ,_DLCleansedZoneTimeStamp = cast('{CurrentTimeStamp}' as TimeStamp) \
     ,_RecordDeleted=1 \
-    ,_RecordCurrent=0 \
+    ,_RecordCurrent=1 \
     ")
 
 # COMMAND ----------
