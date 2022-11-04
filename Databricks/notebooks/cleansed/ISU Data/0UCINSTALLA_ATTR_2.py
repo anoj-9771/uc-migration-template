@@ -248,8 +248,8 @@ df = spark.sql(f"""
                CASE 
                    WHEN stg.LOEVM IS NULL 
                    OR TRIM(stg.LOEVM) = '' 
-                   THEN '0' 
-                   ELSE '1' 
+                   THEN 'N' 
+                   ELSE 'Y' 
                END                                                     as deletedFlag, 
                stg.ZZ_HAUS                                             as propertyNumber, 
                stg.ZZ_PROPTYPE                                         as industry, 

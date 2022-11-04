@@ -22,7 +22,7 @@ def getDeviceCharacteristics():
                                                     classifiedEntityType,classTypeCode,classType,archivingObjectsInternalId,characteristicValueCode,
                                                     minimumValue,minimumValueUnit,maximumValue,maximumValueUnit,valueDependencyCode,
                                                     minToleranceValue,maxToleranceValue,toleranceIsPercentFlag,IncrementWithinInterval,
-                                                    characteristicAuthor,characteristicChangeNumber,validFromDate,isDeletedFlag,
+                                                    characteristicAuthor,characteristicChangeNumber,validFromDate,
                                                     validToDate,decimalMinimumValue,decimalMaximumValue,currencyMinimumValue,
                                                     currencyMaximumValue,validFromDate1,validToDate1,timeMinimumValue,timeMaximumValue
                                             FROM (
@@ -59,7 +59,7 @@ def getDeviceCharacteristics():
                                                     classifiedEntityType,classTypeCode,classType,archivingObjectsInternalId,
                                                     minimumValue,minimumValueUnit,maximumValue,maximumValueUnit,valueDependencyCode,
                                                     minToleranceValue,maxToleranceValue,toleranceIsPercentFlag,IncrementWithinInterval,
-                                                    characteristicAuthor,characteristicChangeNumber,validFromDate,isDeletedFlag,
+                                                    characteristicAuthor,characteristicChangeNumber,validFromDate,
                                                     validToDate,decimalMinimumValue,decimalMaximumValue,currencyMinimumValue,
                                                     currencyMaximumValue,validFromDate1,validToDate1,timeMinimumValue,timeMaximumValue
                                                  ),
@@ -102,7 +102,7 @@ def getDeviceCharacteristics():
                                     FROM ausp_cabnt_cawnt
                               """)
     
-    dummyDimRecDf = spark.createDataFrame([("-1","-1","Unknown","Unknown","-1")], ["deviceNumber","characteristicInternalId","classifiedEntityType","classTypeCode","archivingObjectsInternalId"])   
+    dummyDimRecDf = spark.createDataFrame([("-1","-1","-1","-1","-1")], ["deviceNumber","characteristicInternalId","classifiedEntityType","classTypeCode","archivingObjectsInternalId"])   
     dfResult = isuDeviceCharacteristicsDf.unionByName(dummyDimRecDf, allowMissingColumns = True)    
     
     #5.Apply schema definition

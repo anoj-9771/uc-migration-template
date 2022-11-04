@@ -190,7 +190,7 @@ Select *, ROW_NUMBER() OVER (PARTITION BY ANLAGE,LOGIKNR,AB,BIS ORDER BY _FileDa
                                 sp.rateType as rateType, \
                                 (CASE WHEN LOEVM = 'X' THEN 'Y' ELSE 'N' END) as deletedFlag, \
                                 UPDMOD as bwDeltaProcess, \
-                                ZOPCODE as operationCode, \
+                                cast(ZOPCODE as string) as operationCode, \
                                 cast('1900-01-01' as TimeStamp) as _RecordStart, \
                                 cast('9999-12-31' as TimeStamp) as _RecordEnd, \
                                 (CASE WHEN _upsertFlag = 'U' THEN '0' ELSE '1' END) as _RecordDeleted, \
@@ -237,7 +237,27 @@ DeltaSaveDataFrameToDeltaTable(df.filter("_RecordDeleted = '0'"), target_table, 
 
 # DBTITLE 1,12.2 Save Deleted records Data frame into Cleansed Delta table
 # Load deleted records to replace the existing Deleted records implementation logic
-DeltaSaveDataFrameToDeltaTable(df.filter("_RecordDeleted = '1'"), target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, "installationNumber,logicalDeviceNumber,validFromDate,validToDate", AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
+df.filter("_RecordDeleted=1").createOrReplaceTempView("isu_devinst_deleted_records")
+spark.sql(f" \
+    MERGE INTO cleansed.isu_0UC_DEVINST_ATTR \
+    using isu_devinst_deleted_records \
+    on isu_0UC_DEVINST_ATTR.installationNumber = isu_devinst_deleted_records.installationNumber \
+    and isu_0UC_DEVINST_ATTR.logicalDeviceNumber = isu_devinst_deleted_records.logicalDeviceNumber \
+    and isu_0UC_DEVINST_ATTR.validFromDate = isu_devinst_deleted_records.validFromDate \
+    and isu_0UC_DEVINST_ATTR.validToDate = isu_devinst_deleted_records.validToDate \
+    WHEN MATCHED THEN UPDATE SET \
+    priceClassCode=isu_devinst_deleted_records.priceClassCode \
+    ,priceClass=isu_devinst_deleted_records.priceClass \
+    ,payRentalPrice=isu_devinst_deleted_records.payRentalPrice \
+    ,rateTypeCode=isu_devinst_deleted_records.rateTypeCode \
+    ,rateType=isu_devinst_deleted_records.rateType \
+    ,deletedFlag=isu_devinst_deleted_records.deletedFlag \
+    ,bwDeltaProcess=isu_devinst_deleted_records.bwDeltaProcess \
+    ,operationCode=isu_devinst_deleted_records.operationCode \
+    ,_DLCleansedZoneTimeStamp = cast('{CurrentTimeStamp}' as TimeStamp) \
+    ,_RecordDeleted=1 \
+    ,_RecordCurrent=1 \
+    ")
 
 # COMMAND ----------
 
