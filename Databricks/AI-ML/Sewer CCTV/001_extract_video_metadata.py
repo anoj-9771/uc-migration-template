@@ -6,13 +6,15 @@
 #default Widget Parameter
 #define notebook widget to accept video_id parameter
 dbutils.widgets.text(name="video_id", defaultValue="0_oiif5iqr", label="video_id")
+dbutils.widgets.text(name="priority", defaultValue="high", label="priority")
 
 _VIDEO_ID = dbutils.widgets.get("video_id").replace(".mp4",'')
+_PRIORITY = dbutils.widgets.get("priority")
 
 # COMMAND ----------
 
-mount_location='/dbfs/mnt/blob-sewercctvvideos/Inbound'
-blob_location='blob-sewercctvvideos/Inbound'
+mount_location=f'/dbfs/mnt/blob-sewercctvvideos/inbound-{_PRIORITY}'
+blob_location=f'blob-sewercctvvideos/inbound-{_PRIORITY}'
 
 # COMMAND ----------
 
