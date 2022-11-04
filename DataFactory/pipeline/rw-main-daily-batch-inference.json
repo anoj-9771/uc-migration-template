@@ -769,7 +769,7 @@
 					},
 					"waitOnCompletion": true,
 					"parameters": {
-						"SystemCodes": "beachwatch,bom,iicats"
+						"SystemCodes": "beachwatch,bom,iicats_rw"
 					}
 				}
 			}
