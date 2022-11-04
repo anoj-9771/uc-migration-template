@@ -192,7 +192,7 @@ Select *, ROW_NUMBER() OVER (PARTITION BY EQUNR,ZWNUMMER,AB,BIS ORDER BY _FileDa
                                 te.registerType as registerType, \
                                 cast(ZWTYP as string) as registerCategoryCode, \
                                 dd.domainValueText as registerCategory, \
-                                BLIWIRK as reactiveApparentOrActiveRegister, \
+                                cast(BLIWIRK as string) as reactiveApparentOrActiveRegister, \
                                 dd1.domainValueText as reactiveApparentOrActiveRegisterTxt, \
                                 MASSREAD as unitOfMeasurementMeterReading, \
                                 (case when NABLESEN = 'X' then 'Y' else 'N' end) as doNotReadFlag, \
