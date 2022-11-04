@@ -73,14 +73,15 @@
 								}
 							},
 							"linkedServiceName": {
-								"referenceName": "LS-AzureDatabricks_DefinedCluster",
+								"referenceName": "LS_AzureDatabricks_InstancePool",
 								"type": "LinkedServiceReference",
 								"parameters": {
 									"kvSecret": "databricks-token",
-									"clusterId": {
-										"value": "@pipeline().parameters.ClusterId",
+									"PoolId": {
+										"value": "@pipeline().parameters.JobPoolId",
 										"type": "Expression"
-									}
+									},
+									"DatabricksVersion": "10.4.x-cpu-ml-scala2.12"
 								}
 							}
 						}
@@ -89,8 +90,13 @@
 			}
 		],
 		"parameters": {
-			"ClusterId": {
+			"JobPoolId": {
 				"type": "string"
+			}
+		},
+		"variables": {
+			"JobPoolId": {
+				"type": "String"
 			}
 		},
 		"folder": {

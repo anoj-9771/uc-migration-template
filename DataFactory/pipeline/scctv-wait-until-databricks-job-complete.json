@@ -25,7 +25,7 @@
 							"type": "WebActivity",
 							"dependsOn": [
 								{
-									"activity": "wait",
+									"activity": "wait-60-seconds",
 									"dependencyConditions": [
 										"Succeeded"
 									]
@@ -54,12 +54,12 @@
 							}
 						},
 						{
-							"name": "wait",
+							"name": "wait-60-seconds",
 							"type": "Wait",
 							"dependsOn": [],
 							"userProperties": [],
 							"typeProperties": {
-								"waitTimeInSeconds": 20
+								"waitTimeInSeconds": 60
 							}
 						}
 					],
