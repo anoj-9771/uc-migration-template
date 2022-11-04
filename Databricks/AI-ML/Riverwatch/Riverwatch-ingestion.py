@@ -31,25 +31,25 @@ UNION
 SELECT 'BoM' SystemCode, 'BoM' SourceSchema, '' SourceKeyVaultSecret, 'http-binary-load' SourceHandler, 'csv' RawFileExtension, 'raw-bom-csv' RawHandler, 'cleansed-load' CleansedHandler, 'DailyWeatherObservation_SydneyAirport' SourceTableName, 'http://www.bom.gov.au/climate/dwo/$yyyy$$MM$/text/IDCJDW2125.$yyyy$$MM$.csv' SourceQuery, '' ExtendedProperties
 
 UNION 
-SELECT 'iicats' SystemCode, 'scxstg' SourceSchema, 'daf-oracle-IICATS-stg-connectionstring' SourceKeyVaultSecret, 'oracle-load' SourceHandler, NULL RawFileExtension, 'raw-load-delta' RawHandler, 'cleansed-load-delta' CleansedHandler, 'dly_prof_cnfgn' SourceTableName, null SourceQuery, NULL ExtendedProperties
+SELECT 'iicats_rw' SystemCode, 'scxstg' SourceSchema, 'daf-oracle-IICATS-stg-connectionstring' SourceKeyVaultSecret, 'oracle-load' SourceHandler, NULL RawFileExtension, 'raw-load-delta' RawHandler, 'cleansed-load-delta' CleansedHandler, 'dly_prof_cnfgn' SourceTableName, null SourceQuery, NULL ExtendedProperties
 UNION 
-SELECT 'iicats' SystemCode, 'scxstg' SourceSchema, 'daf-oracle-IICATS-stg-connectionstring' SourceKeyVaultSecret, 'oracle-load' SourceHandler, NULL RawFileExtension, 'raw-load-delta' RawHandler, 'cleansed-load-delta' CleansedHandler, 'event' SourceTableName, null SourceQuery, NULL ExtendedProperties
+SELECT 'iicats_rw' SystemCode, 'scxstg' SourceSchema, 'daf-oracle-IICATS-stg-connectionstring' SourceKeyVaultSecret, 'oracle-load' SourceHandler, NULL RawFileExtension, 'raw-load-delta' RawHandler, 'cleansed-load-delta' CleansedHandler, 'event' SourceTableName, null SourceQuery, NULL ExtendedProperties
 UNION 
-SELECT 'iicats' SystemCode, 'scxstg' SourceSchema, 'daf-oracle-IICATS-stg-connectionstring' SourceKeyVaultSecret, 'oracle-load' SourceHandler, NULL RawFileExtension, 'raw-load-delta' RawHandler, 'cleansed-load-delta' CleansedHandler, 'hierarchy_cnfgn' SourceTableName, null SourceQuery, NULL ExtendedProperties
+SELECT 'iicats_rw' SystemCode, 'scxstg' SourceSchema, 'daf-oracle-IICATS-stg-connectionstring' SourceKeyVaultSecret, 'oracle-load' SourceHandler, NULL RawFileExtension, 'raw-load-delta' RawHandler, 'cleansed-load-delta' CleansedHandler, 'hierarchy_cnfgn' SourceTableName, null SourceQuery, NULL ExtendedProperties
 UNION 
-SELECT 'iicats' SystemCode, 'scxstg' SourceSchema, 'daf-oracle-IICATS-stg-connectionstring' SourceKeyVaultSecret, 'oracle-load' SourceHandler, NULL RawFileExtension, 'raw-load-delta' RawHandler, 'cleansed-load-delta' CleansedHandler, 'iicats_work_orders' SourceTableName, null SourceQuery, NULL ExtendedProperties
+SELECT 'iicats_rw' SystemCode, 'scxstg' SourceSchema, 'daf-oracle-IICATS-stg-connectionstring' SourceKeyVaultSecret, 'oracle-load' SourceHandler, NULL RawFileExtension, 'raw-load-delta' RawHandler, 'cleansed-load-delta' CleansedHandler, 'iicats_work_orders' SourceTableName, null SourceQuery, NULL ExtendedProperties
 UNION 
-SELECT 'iicats' SystemCode, 'scxstg' SourceSchema, 'daf-oracle-IICATS-stg-connectionstring' SourceKeyVaultSecret, 'oracle-load' SourceHandler, NULL RawFileExtension, 'raw-load-delta' RawHandler, 'cleansed-load-delta' CleansedHandler, 'point_cnfgn' SourceTableName, null SourceQuery, NULL ExtendedProperties
+SELECT 'iicats_rw' SystemCode, 'scxstg' SourceSchema, 'daf-oracle-IICATS-stg-connectionstring' SourceKeyVaultSecret, 'oracle-load' SourceHandler, NULL RawFileExtension, 'raw-load-delta' RawHandler, 'cleansed-load-delta' CleansedHandler, 'point_cnfgn' SourceTableName, null SourceQuery, NULL ExtendedProperties
 UNION 
-SELECT 'iicats' SystemCode, 'scxstg' SourceSchema, 'daf-oracle-IICATS-stg-connectionstring' SourceKeyVaultSecret, 'oracle-load' SourceHandler, NULL RawFileExtension, 'raw-load-delta' RawHandler, 'cleansed-load-delta' CleansedHandler, 'point_limit' SourceTableName, null SourceQuery, NULL ExtendedProperties
+SELECT 'iicats_rw' SystemCode, 'scxstg' SourceSchema, 'daf-oracle-IICATS-stg-connectionstring' SourceKeyVaultSecret, 'oracle-load' SourceHandler, NULL RawFileExtension, 'raw-load-delta' RawHandler, 'cleansed-load-delta' CleansedHandler, 'point_limit' SourceTableName, null SourceQuery, NULL ExtendedProperties
 UNION 
-SELECT 'iicats' SystemCode, 'scxstg' SourceSchema, 'daf-oracle-IICATS-stg-connectionstring' SourceKeyVaultSecret, 'oracle-load' SourceHandler, NULL RawFileExtension, 'raw-load-delta' RawHandler, 'cleansed-load-delta' CleansedHandler, 'rtu' SourceTableName, null SourceQuery, NULL ExtendedProperties
+SELECT 'iicats_rw' SystemCode, 'scxstg' SourceSchema, 'daf-oracle-IICATS-stg-connectionstring' SourceKeyVaultSecret, 'oracle-load' SourceHandler, NULL RawFileExtension, 'raw-load-delta' RawHandler, 'cleansed-load-delta' CleansedHandler, 'rtu' SourceTableName, null SourceQuery, NULL ExtendedProperties
 UNION 
-SELECT 'iicats' SystemCode, 'scxstg' SourceSchema, 'daf-oracle-IICATS-stg-connectionstring' SourceKeyVaultSecret, 'oracle-load' SourceHandler, NULL RawFileExtension, 'raw-load-delta' RawHandler, 'cleansed-load-delta' CleansedHandler, 'tsv' SourceTableName, null SourceQuery, NULL ExtendedProperties
+SELECT 'iicats_rw' SystemCode, 'scxstg' SourceSchema, 'daf-oracle-IICATS-stg-connectionstring' SourceKeyVaultSecret, 'oracle-load' SourceHandler, NULL RawFileExtension, 'raw-load-delta' RawHandler, 'cleansed-load-delta' CleansedHandler, 'tsv' SourceTableName, null SourceQuery, NULL ExtendedProperties
 UNION 
-SELECT 'iicats' SystemCode, 'scxstg' SourceSchema, 'daf-oracle-IICATS-stg-connectionstring' SourceKeyVaultSecret, 'oracle-load' SourceHandler, NULL RawFileExtension, 'raw-load-delta' RawHandler, 'cleansed-load-delta' CleansedHandler, 'tsv_point_cnfgn' SourceTableName, null SourceQuery, NULL ExtendedProperties
+SELECT 'iicats_rw' SystemCode, 'scxstg' SourceSchema, 'daf-oracle-IICATS-stg-connectionstring' SourceKeyVaultSecret, 'oracle-load' SourceHandler, NULL RawFileExtension, 'raw-load-delta' RawHandler, 'cleansed-load-delta' CleansedHandler, 'tsv_point_cnfgn' SourceTableName, null SourceQuery, NULL ExtendedProperties
 UNION 
-SELECT 'iicats' SystemCode, 'scxstg' SourceSchema, 'daf-oracle-IICATS-stg-connectionstring' SourceKeyVaultSecret, 'oracle-load' SourceHandler, NULL RawFileExtension, 'raw-load-delta' RawHandler, 'cleansed-load-delta' CleansedHandler, 'wkly_prof_cnfgn' SourceTableName, null SourceQuery, NULL ExtendedProperties
+SELECT 'iicats_rw' SystemCode, 'scxstg' SourceSchema, 'daf-oracle-IICATS-stg-connectionstring' SourceKeyVaultSecret, 'oracle-load' SourceHandler, NULL RawFileExtension, 'raw-load-delta' RawHandler, 'cleansed-load-delta' CleansedHandler, 'wkly_prof_cnfgn' SourceTableName, null SourceQuery, NULL ExtendedProperties
 """)
 display(df)
 
@@ -64,11 +64,6 @@ def ExecuteStatement(sql):
 # COMMAND ----------
 
 ##DO NON IICATS
-ExecuteStatement("""
-DELETE FROM dbo.extractloadmanifest
-WHERE SystemCode in ('BeachWatch','BoM')
-""")
-
 dfNonIicats = df.where("systemCode <> 'iicats'")
 
 for i in dfNonIicats.rdd.collect():
@@ -101,11 +96,6 @@ for i in dfNonIicats.rdd.collect():
     """)
 
 ##DO IICATS
-ExecuteStatement("""
-DELETE FROM dbo.extractloadmanifest
-WHERE SystemCode = 'iicats' and sourceSchema = 'scxstg'
-""")
-
 dfIicats = df.where("systemCode = 'iicats'")
 
 for i in dfIicats.rdd.collect():
@@ -139,8 +129,8 @@ for i in dfIicats.rdd.collect():
 
 ExecuteStatement("""
 update dbo.extractLoadManifest set
-destinationSchema = systemCode
-where systemCode = 'iicats' and sourceSchema = 'scxstg'
+destinationSchema = 'iicats'
+where systemCode = 'iicats_rw' and sourceSchema = 'scxstg' and destinationSchema <> 'iicats'
 """)
 
 # COMMAND ----------
