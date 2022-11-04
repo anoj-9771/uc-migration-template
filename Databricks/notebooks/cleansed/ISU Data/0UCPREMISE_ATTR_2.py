@@ -184,7 +184,7 @@ df = spark.sql(f"WITH stage AS \
                                 ToValidDate(AEDAT) as lastChangedDate, \
                                 AENAM as lastChangedBy, \
                                 (CASE WHEN LOEVM IS NULL OR TRIM(LOEVM) = '' THEN 'N' ELSE 'Y' END) as deletedFlag,\
-                                cast(ANZPERS as int) as numberOfPersons, \
+                                cast(ANZPERS as string) as numberOfPersons, \
                                 FLOOR as floorNumber, \
                                 ROOMNUMBER as apartmentNumber, \
                                 HPTWOHNSITZ as mainResidence, \

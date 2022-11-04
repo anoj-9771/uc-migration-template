@@ -306,22 +306,36 @@ DeltaSaveDataFrameToDeltaTable(
 # COMMAND ----------
 
 # DBTITLE 1,12.2 Save Data frame into Cleansed Delta table (Delete Records)
-DeltaSaveDataFrameToDeltaTable(
-  df.filter("_RecordDeleted=1"), 
-    target_table, 
-    ADS_DATALAKE_ZONE_CLEANSED, 
-    ADS_DATABASE_CLEANSED, 
-    data_lake_folder, 
-    ADS_WRITE_MODE_MERGE, 
-    newSchema, 
-    track_changes, 
-    is_delta_extract, 
-    business_key = 'contractId,validFromDate,validToDate',
-    AddSKColumn = False, 
-    delta_column = "", 
-    start_counter = "0", 
-    end_counter = "0"
-)
+df.filter("_RecordDeleted=1").createOrReplaceTempView("isu_contract_deleted_records")
+spark.sql(f" \
+    MERGE INTO cleansed.isu_0UCCONTRACTH_ATTR_2 \
+    using isu_contract_deleted_records \
+    on isu_0UCCONTRACTH_ATTR_2.contractId = isu_contract_deleted_records.contractId \
+    and isu_0UCCONTRACTH_ATTR_2.validFromDate = isu_contract_deleted_records.validFromDate \
+    and isu_0UCCONTRACTH_ATTR_2.validToDate = isu_contract_deleted_records.validToDate \
+    WHEN MATCHED THEN UPDATE SET \
+    installationNumber=isu_contract_deleted_records.installationNumber \
+    ,contractHeadGUID=isu_contract_deleted_records.contractHeadGUID \
+    ,contractPosGUID=isu_contract_deleted_records.contractPosGUID \
+    ,productId=isu_contract_deleted_records.productId \
+    ,productGUID=isu_contract_deleted_records.productGUID \
+    ,marketingCampaign=isu_contract_deleted_records.marketingCampaign \
+    ,productBeginFlag=isu_contract_deleted_records.productBeginFlag \
+    ,productChangeFlag=isu_contract_deleted_records.productChangeFlag \
+    ,replicationControlsCode=isu_contract_deleted_records.replicationControlsCode \
+    ,replicationControls=isu_contract_deleted_records.replicationControls \
+    ,CRMObjectId=isu_contract_deleted_records.CRMObjectId \
+    ,CRMDocumentItemNumber=isu_contract_deleted_records.CRMDocumentItemNumber \
+    ,CRMProduct=isu_contract_deleted_records.CRMProduct \
+    ,createdDate=isu_contract_deleted_records.createdDate \
+    ,createdBy=isu_contract_deleted_records.createdBy \
+    ,lastChangedDate=isu_contract_deleted_records.lastChangedDate \
+    ,individualContractId=isu_contract_deleted_records.individualContractId \
+    ,lastChangedBy=isu_contract_deleted_records.lastChangedBy \
+    ,_DLCleansedZoneTimeStamp = cast('{CurrentTimeStamp}' as TimeStamp) \
+    ,_RecordDeleted=1 \
+    ,_RecordCurrent=1 \
+    ")
 
 # COMMAND ----------
 
