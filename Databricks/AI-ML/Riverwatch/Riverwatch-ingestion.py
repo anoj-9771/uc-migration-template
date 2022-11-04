@@ -96,7 +96,7 @@ for i in dfNonIicats.rdd.collect():
     """)
 
 ##DO IICATS
-dfIicats = df.where("systemCode = 'iicats'")
+dfIicats = df.where("systemCode = 'iicats_rw'")
 
 for i in dfIicats.rdd.collect():
     ExecuteStatement(f"""
