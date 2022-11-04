@@ -34,7 +34,7 @@ def getContract():
                              co.installationNumber \
                              from {ADS_DATABASE_CLEANSED}.isu_0UCCONTRACT_ATTR_2 co left outer join \
                                   {ADS_DATABASE_CLEANSED}.isu_0UCCONTRACTH_ATTR_2 coh on co.contractId = coh.contractId \
-                                                           and coh.deletedFlag is null and coh._RecordDeleted = 0 and coh._RecordCurrent = 1 left outer join \
+                                                           and coh._RecordDeleted = 0 and coh._RecordCurrent = 1 left outer join \
                                   {ADS_DATABASE_CLEANSED}.isu_0CACONT_ACC_ATTR_2 ca on co.contractAccountNumber = ca.contractAccountNumber \
                                                            and ca._RecordDeleted = 0 and ca._RecordCurrent = 1 \
                              where co._RecordDeleted = 0 \
