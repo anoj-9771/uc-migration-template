@@ -1,14 +1,9 @@
 {
-	"name": "scctv_videos_inbound_blob_video_file",
+	"name": "scctv_videos_inbound_blob_high",
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "LS_AzureBlobStorage",
 			"type": "LinkedServiceReference"
-		},
-		"parameters": {
-			"video_id": {
-				"type": "String"
-			}
 		},
 		"folder": {
 			"name": "AI-ML/Sewer CCTV"
@@ -18,11 +13,7 @@
 		"typeProperties": {
 			"location": {
 				"type": "AzureBlobStorageLocation",
-				"fileName": {
-					"value": "@dataset().video_id",
-					"type": "Expression"
-				},
-				"folderPath": "Inbound",
+				"folderPath": "inbound-high",
 				"container": "sewercctvvideos"
 			}
 		}

@@ -223,6 +223,71 @@
 					],
 					"scriptBlockExecutionTimeout": "02:00:00"
 				}
+			},
+			{
+				"name": "create-sp_merge_datalakeview_to_dbo_kaltura",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "drop-sp_merge_datalakeview_to_dbo_kaltura-if-exists",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "LS_AzureSqlDatabase_Sewercctv",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "NonQuery",
+							"text": {
+								"value": "CREATE procedure [dbo].[sp_merge_datalakeview_to_dbo_kaltura] as\nBEGIN\n\n/** Merge data from datalake to dbo staging tables for Kaltura Flavors **/ \nMERGE dbo.scctv_kaltura_flavors as tgt\nUSING dbo.tmp_datalake_kaltura_flavors as src\nON (tgt.id = src.id)\n\nWHEN MATCHED THEN\n    UPDATE SET id = src.id,\n        entryId = src.entryId,\n        partnerId = src.partnerId,\n        version = src.version,\n        size = src.size,\n        tags = src.tags,\n        fileExt = src.fileExt,\n        createdAt = src.createdAt,\n        updatedAt = src.updatedAt,\n        description = src.description,\n        sizeInBytes = src.sizeInBytes,\n        flavorParamsId = src.flavorParamsId,\n        width  = src.width,\n        height = src.height,\n        bitrate = src.bitrate,\n        frameRate = src.frameRate,\n        isOriginal = src.isOriginal,\n        isWeb = src.isWeb,\n        containerFormat = src.containerFormat,\n        videoCodecId = src.videoCodecId,\n        status = src.status,\n        isDefault = src.isDefault,\n        language = src.language,\n        processed_timestamp = src.processed_timestamp\nWHEN NOT MATCHED THEN\n    INSERT (\n    id,\n    entryId,\n    partnerId,\n    version,\n    size,\n    tags,\n    fileExt,\n    createdAt,\n    updatedAt,\n    description,\n    sizeInBytes,\n    flavorParamsId,\n    width,\n    height,\n    bitrate,\n    frameRate,\n    isOriginal,\n    isWeb,\n    containerFormat,\n    videoCodecId,\n    status,\n    isDefault,\n    language,\n    processed_timestamp\n  )\n  VALUES (\n    src.id,\n    src.entryId,\n    src.partnerId,\n    src.version,\n    src.size,\n    src.tags,\n    src.fileExt,\n    src.createdAt,\n    src.updatedAt,\n    src.description,\n    src.sizeInBytes,\n    src.flavorParamsId,\n    src.width,\n    src.height,\n    src.bitrate,\n    src.frameRate,\n    src.isOriginal,\n    src.isWeb,\n    src.containerFormat,\n    src.videoCodecId,\n    src.status,\n    src.isDefault,\n    src.language,\n    src.processed_timestamp\n  );\n\n/** Merge data from datalake to dbo staging tables for Kaltura Attachments **/ \nMERGE dbo.scctv_kaltura_attachments as tgt\nUSING dbo.tmp_datalake_kaltura_attachments as src\nON (tgt.id = src.id)\n\nWHEN MATCHED THEN\n    UPDATE SET id = src.id,\n        entryId = src.entryId,\n        partnerId = src.partnerId,\n        version = src.version,\n        size = src.size,\n        tags = src.tags,\n        fileExt = src.fileExt,\n        createdAt = src.createdAt,\n        updatedAt = src.updatedAt,\n        description = src.description,\n        partnerDescription = src.partnerDescription,\n        sizeInBytes = src.sizeInBytes,\n        filename = src.filename,\n        title = src.title,\n        format = src.format,\n        status = src.status,\n        processed_timestamp = src.processed_timestamp\nWHEN NOT MATCHED THEN\n    INSERT (\n    id,\n    entryId,\n    partnerId,\n    version,\n    size,\n    tags,\n    fileExt,\n    createdAt,\n    updatedAt,\n    description,\n    partnerDescription,\n    sizeInBytes,\n    filename,\n    title,\n    format,\n    status,\n    processed_timestamp\n  )\n  VALUES (\n    src.id,\n    src.entryId,\n    src.partnerId,\n    src.version,\n    src.size,\n    src.tags,\n    src.fileExt,\n    src.createdAt,\n    src.updatedAt,\n    src.description,\n    src.partnerDescription,\n    src.sizeInBytes,\n    src.filename,\n    src.title,\n    src.format,\n    src.status,\n    src.processed_timestamp\n  );\n\n/** Merge data from datalake to dbo staging tables for Kaltura Metadata **/ \nMERGE dbo.scctv_kaltura_metadata as tgt\nUSING dbo.tmp_datalake_kaltura_metadata as src\nON (tgt.id = src.id)\n\nWHEN MATCHED THEN\n    UPDATE SET id = src.id,\n        partnerId = src.partnerId,\n        metadataProfileId = src.metadataProfileId,\n        metadataProfileVersion = src.metadataProfileVersion,\n        metadataObjectType = src.metadataObjectType,\n        objectId = src.objectId,\n        version = src.version,\n        status = src.status,\n        AssessedByName = src.AssessedByName,\n        AssessedByDate = src.AssessedByDate,\n        ParentWorkOrderNumber = src.ParentWorkOrderNumber,\n        ChildWorkOrderNumbers = src.ChildWorkOrderNumbers,\n        WorkOrderDescription = src.WorkOrderDescription,\n        AssetNumbers = src.AssetNumbers,\n        TaskCode = src.TaskCode,\n        Suburb = src.Suburb,\n        AddressStreet = src.AddressStreet,\n        Product = src.Product,\n        Contractor = src.Contractor,\n        UpstreamMH = src.UpstreamMH,\n        DownstreamMH = src.DownstreamMH,\n        DirectionOfSurvey = src.DirectionOfSurvey,\n        DateOfCompletedInspectionString = src.DateOfCompletedInspectionString,\n        TimeOfCompletedInspectionString = src.TimeOfCompletedInspectionString,\n        PackageName = src.PackageName,\n        Cleaned = src.Cleaned,\n        SurveyedLength = src.SurveyedLength,\n        DiscardDate = src.DiscardDate,\n        Condition = src.Condition,\n        Serviceability = src.Serviceability,\n        Infiltration = src.Infiltration,\n        createdAt = src.createdAt,\n        updatedAt = src.updatedAt,\n        processed_timestamp = src.processed_timestamp\nWHEN NOT MATCHED THEN\n    INSERT (\n    id,\n    partnerId,\n    metadataProfileId,\n    metadataProfileVersion,\n    metadataObjectType,\n    objectId,\n    version,\n    status,\n    AssessedByName,\n    AssessedByDate,\n    ParentWorkOrderNumber,\n    ChildWorkOrderNumbers,\n    WorkOrderDescription,\n    AssetNumbers,\n    TaskCode,\n    Suburb,\n    AddressStreet,\n    Product,\n    Contractor,\n    UpstreamMH,\n    DownstreamMH,\n    DirectionOfSurvey,\n    DateOfCompletedInspectionString,\n    TimeOfCompletedInspectionString,\n    PackageName,\n    Cleaned,\n    SurveyedLength,\n    DiscardDate,\n    Condition,\n    Serviceability,\n    Infiltration,\n    createdAt,\n    updatedAt,\n    processed_timestamp\n  )\n  VALUES (\n    src.id,\n    src.partnerId,\n    src.metadataProfileId,\n    src.metadataProfileVersion,\n    src.metadataObjectType,\n    src.objectId,\n    src.version,\n    src.status,\n    src.AssessedByName,\n    src.AssessedByDate,\n    src.ParentWorkOrderNumber,\n    src.ChildWorkOrderNumbers,\n    src.WorkOrderDescription,\n    src.AssetNumbers,\n    src.TaskCode,\n    src.Suburb,\n    src.AddressStreet,\n    src.Product,\n    src.Contractor,\n    src.UpstreamMH,\n    src.DownstreamMH,\n    src.DirectionOfSurvey,\n    src.DateOfCompletedInspectionString,\n    src.TimeOfCompletedInspectionString,\n    src.PackageName,\n    src.Cleaned,\n    src.SurveyedLength,\n    src.DiscardDate,\n    src.Condition,\n    src.Serviceability,\n    src.Infiltration,\n    src.createdAt,\n    src.updatedAt,\n    src.processed_timestamp\n  );\n\n/** Merge data from datalake to dbo staging tables for Kaltura mediaEntry **/ \nMERGE dbo.scctv_kaltura_mediaentry as tgt\nUSING dbo.tmp_datalake_kaltura_media_entry as src\nON (tgt.id = src.id)\n\nWHEN MATCHED THEN\n    UPDATE SET id = src.id,\n        name = src.name,\n        description = src.description,\n        partnerId = src.partnerId,\n        userId = src.userId,\n        creatorId = src.creatorId,\n        tags = src.tags,\n        categories = src.categories,\n        categoriesIds = src.categoriesIds,\n        status = src.status,\n        moderationStatus = src.moderationStatus,\n        moderationCount = src.moderationCount,\n        type = src.type,\n        createdAt = src.createdAt,\n        updatedAt = src.updatedAt,\n        rank = src.rank,\n        totalRank = src.totalRank,\n        votes = src.votes,\n        downloadUrl = src.downloadUrl,\n        searchText = src.searchText,\n        licenseType = src.licenseType,\n        version = src.version,\n        thumbnailUrl = src.thumbnailUrl,\n        replacementStatus = src.replacementStatus,\n        partnerSortValue = src.partnerSortValue,\n        conversionProfileId = src.conversionProfileId,\n        rootEntryId = src.rootEntryId,\n        operationAttributes = src.operationAttributes,\n        entitledUsersEdit = src.entitledUsersEdit,\n        entitledUsersPublish = src.entitledUsersPublish,\n        entitledUsersView = src.entitledUsersView,\n        capabilities = src.capabilities,\n        displayInSearch = src.displayInSearch,\n        blockAutoTranscript = src.blockAutoTranscript,\n        plays = src.plays,\n        views = src.views,\n        lastPlayedAt = src.lastPlayedAt,\n        width = src.width,\n        height = src.height,\n        duration = src.duration,\n        msDuration = src.msDuration,\n        mediaType = src.mediaType,\n        conversionQuality = src.conversionQuality,\n        sourceType = src.sourceType,\n        dataUrl = src.dataUrl,\n        flavorParamsIds = src.flavorParamsIds,\n        processed_timestamp = src.processed_timestamp\nWHEN NOT MATCHED THEN\n    INSERT (\n    id,\n    name,\n    description,\n    partnerId,\n    userId,\n    creatorId,\n    tags,\n    categories,\n    categoriesIds,\n    status,\n    moderationStatus,\n    moderationCount,\n    type,\n    createdAt,\n    updatedAt,\n    rank,\n    totalRank,\n    votes,\n    downloadUrl,\n    searchText,\n    licenseType,\n    version,\n    thumbnailUrl,\n    replacementStatus,\n    partnerSortValue,\n    conversionProfileId,\n    rootEntryId,\n    operationAttributes,\n    entitledUsersEdit,\n    entitledUsersPublish,\n    entitledUsersView,\n    capabilities,\n    displayInSearch,\n    blockAutoTranscript,\n    plays,\n    views,\n    lastPlayedAt,\n    width,\n    height,\n    duration,\n    msDuration,\n    mediaType,\n    conversionQuality,\n    sourceType,\n    dataUrl,\n    flavorParamsIds,\n    processed_timestamp\n  )\n  VALUES (\n    src.id,\n    src.name,\n    src.description,\n    src.partnerId,\n    src.userId,\n    src.creatorId,\n    src.tags,\n    src.categories,\n    src.categoriesIds,\n    src.status,\n    src.moderationStatus,\n    src.moderationCount,\n    src.type,\n    src.createdAt,\n    src.updatedAt,\n    src.rank,\n    src.totalRank,\n    src.votes,\n    src.downloadUrl,\n    src.searchText,\n    src.licenseType,\n    src.version,\n    src.thumbnailUrl,\n    src.replacementStatus,\n    src.partnerSortValue,\n    src.conversionProfileId,\n    src.rootEntryId,\n    src.operationAttributes,\n    src.entitledUsersEdit,\n    src.entitledUsersPublish,\n    src.entitledUsersView,\n    src.capabilities,\n    src.displayInSearch,\n    src.blockAutoTranscript,\n    src.plays,\n    src.views,\n    src.lastPlayedAt,\n    src.width,\n    src.height,\n    src.duration,\n    src.msDuration,\n    src.mediaType,\n    src.conversionQuality,\n    src.sourceType,\n    src.dataUrl,\n    src.flavorParamsIds,\n    src.processed_timestamp\n  );\n\n\n\n\nEND",
+								"type": "Expression"
+							}
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "drop-sp_merge_datalakeview_to_dbo_kaltura-if-exists",
+				"type": "Script",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "LS_AzureSqlDatabase_Sewercctv",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": {
+								"value": "IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'sp_merge_datalakeview_to_dbo_kaltura') AND type in (N'P', N'PC'))\n  DROP PROCEDURE [dbo].[sp_merge_datalakeview_to_dbo_kaltura]",
+								"type": "Expression"
+							}
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
 			}
 		],
 		"folder": {
