@@ -3,14 +3,6 @@
 
 # COMMAND ----------
 
-
-
-# COMMAND ----------
-
-
-
-# COMMAND ----------
-
   #default Widget Parameter
 #define notebook widget to accept video_id parameter
 dbutils.widgets.text(name="video_id", defaultValue="0_oiif5iqr", label="video_id")
@@ -85,7 +77,7 @@ df_cleansed_ocr = (df_cleansed_ocr
 df_cleansed_ocr = checkDistanceText(df_cleansed_ocr, "distance_m")
 
 #ensure every raw image for the selected video has a distance value
-df_cleansed_ocr = (spark.table("raw.cctv_video_frames")         
+df_cleansed_ocr = (spark.table("stage.cctv_video_frames")         
                    .select("video_id", "timestamp")
                    .where(psf.col("video_id") == _VIDEO_ID)
                    .join(df_cleansed_ocr, 
