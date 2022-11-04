@@ -59,7 +59,7 @@
 							],
 							"outputs": [
 								{
-									"referenceName": "scctv_videos_inbound_blob_video_file",
+									"referenceName": "scctv_videos_inbound_blob_video_file_high",
 									"type": "DatasetReference",
 									"parameters": {
 										"video_id": {

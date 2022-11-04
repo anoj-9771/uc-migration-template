@@ -32,6 +32,24 @@
 						"value": "@equals(activity('check-high-priority-que-videos-exist').output.exists, true)",
 						"type": "Expression"
 					},
+					"ifFalseActivities": [
+						{
+							"name": "execute-AI-pipeline-high-priority_2",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "scctv-AI-pipeline-high",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"DatabricksJobName": "sewer-cctv-pipeline"
+								}
+							}
+						}
+					],
 					"ifTrueActivities": [
 						{
 							"name": "download-high-queue-videos",
@@ -70,7 +88,7 @@
 							"userProperties": [],
 							"typeProperties": {
 								"pipeline": {
-									"referenceName": "scctv-AI-pipeline",
+									"referenceName": "scctv-AI-pipeline-high",
 									"type": "PipelineReference"
 								},
 								"waitOnCompletion": true,
@@ -136,6 +154,24 @@
 						"value": "@equals(activity('check-low-priority-que-videos-exist').output.exists, true)",
 						"type": "Expression"
 					},
+					"ifFalseActivities": [
+						{
+							"name": "execute-AI-pipeline-low-priority-2",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "scctv-AI-pipeline-low",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"DatabricksJobName": "sewer-cctv-pipeline"
+								}
+							}
+						}
+					],
 					"ifTrueActivities": [
 						{
 							"name": "download-low-queue-videos",
@@ -174,7 +210,7 @@
 							"userProperties": [],
 							"typeProperties": {
 								"pipeline": {
-									"referenceName": "scctv-AI-pipeline",
+									"referenceName": "scctv-AI-pipeline-low",
 									"type": "PipelineReference"
 								},
 								"waitOnCompletion": true,
@@ -221,118 +257,6 @@
 					"formatSettings": {
 						"type": "BinaryReadSettings"
 					}
-				}
-			},
-			{
-				"name": "get-databricks-clusters",
-				"type": "WebActivity",
-				"dependsOn": [
-					{
-						"activity": "set-secret-variable",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
-				"policy": {
-					"timeout": "0.12:00:00",
-					"retry": 0,
-					"retryIntervalInSeconds": 30,
-					"secureOutput": false,
-					"secureInput": false
-				},
-				"userProperties": [],
-				"typeProperties": {
-					"url": "https://australiaeast.azuredatabricks.net/api/2.0/clusters/list",
-					"method": "GET",
-					"headers": {
-						"Authorization": {
-							"value": "Bearer @{variables('DatabricksSecret')}",
-							"type": "Expression"
-						}
-					},
-					"body": {
-						"autoscale": {
-							"min_workers": 2,
-							"max_workers": 10
-						},
-						"cluster_name": "sewer-cctv",
-						"spark_version": "10.4.x-cpu-ml-scala2.12",
-						"spark_conf": {
-							"spark.databricks.delta.preview.enabled": "true"
-						},
-						"ssh_public_keys": [],
-						"autotermination_minutes": 60,
-						"init_scripts": [],
-						"instance_pool_id": "1024-005500-twain3-pool-jk2lh0go",
-						"driver_instance_pool_id": "1024-005500-twain3-pool-jk2lh0go",
-						"runtime_engine": "STANDARD"
-					}
-				}
-			},
-			{
-				"name": "check-cluster-exists",
-				"type": "ForEach",
-				"dependsOn": [
-					{
-						"activity": "get-databricks-clusters",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
-				"userProperties": [],
-				"typeProperties": {
-					"items": {
-						"value": "@activity('get-databricks-clusters').output.clusters",
-						"type": "Expression"
-					},
-					"activities": [
-						{
-							"name": "check-cluster-name-is-interactive",
-							"type": "IfCondition",
-							"dependsOn": [],
-							"userProperties": [],
-							"typeProperties": {
-								"expression": {
-									"value": "@equals(item().cluster_name, 'interactive')",
-									"type": "Expression"
-								},
-								"ifTrueActivities": [
-									{
-										"name": "set-cluster-exists",
-										"type": "SetVariable",
-										"dependsOn": [
-											{
-												"activity": "set-cluster-id",
-												"dependencyConditions": [
-													"Succeeded"
-												]
-											}
-										],
-										"userProperties": [],
-										"typeProperties": {
-											"variableName": "ClusterExists",
-											"value": true
-										}
-									},
-									{
-										"name": "set-cluster-id",
-										"type": "SetVariable",
-										"dependsOn": [],
-										"userProperties": [],
-										"typeProperties": {
-											"variableName": "ClusterId",
-											"value": {
-												"value": "@item().cluster_id",
-												"type": "Expression"
-											}
-										}
-									}
-								]
-							}
-						}
-					]
 				}
 			},
 			{
@@ -384,13 +308,7 @@
 				"type": "GetMetadata",
 				"dependsOn": [
 					{
-						"activity": "check-cluster-exists",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					},
-					{
-						"activity": "run-deployment-pipeline",
+						"activity": "set-job-pool-id",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -452,14 +370,110 @@
 								},
 								"waitOnCompletion": true,
 								"parameters": {
-									"ClusterId": {
-										"value": "@variables('ClusterId')",
+									"JobPoolId": {
+										"value": "@variables('JobPoolId')",
 										"type": "Expression"
 									}
 								}
 							}
 						}
 					]
+				}
+			},
+			{
+				"name": "get-databricks-job-pools",
+				"type": "WebActivity",
+				"dependsOn": [
+					{
+						"activity": "set-secret-variable",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "run-deployment-pipeline",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"url": "https://australiaeast.azuredatabricks.net/api/2.0/instance-pools/list",
+					"method": "GET",
+					"headers": {
+						"Authorization": {
+							"value": "Bearer @{variables('DatabricksSecret')}",
+							"type": "Expression"
+						}
+					},
+					"body": {
+						"autoscale": {
+							"min_workers": 2,
+							"max_workers": 10
+						},
+						"cluster_name": "sewer-cctv",
+						"spark_version": "10.4.x-cpu-ml-scala2.12",
+						"spark_conf": {
+							"spark.databricks.delta.preview.enabled": "true"
+						},
+						"ssh_public_keys": [],
+						"autotermination_minutes": 60,
+						"init_scripts": [],
+						"instance_pool_id": "1024-005500-twain3-pool-jk2lh0go",
+						"driver_instance_pool_id": "1024-005500-twain3-pool-jk2lh0go",
+						"runtime_engine": "STANDARD"
+					}
+				}
+			},
+			{
+				"name": "filter-job-pool-batch-exists",
+				"type": "Filter",
+				"dependsOn": [
+					{
+						"activity": "get-databricks-job-pools",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('get-databricks-job-pools').output.instance_pools",
+						"type": "Expression"
+					},
+					"condition": {
+						"value": "@equals(item().instance_pool_name, 'SCCTV_POOL')",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "set-job-pool-id",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "filter-job-pool-batch-exists",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "JobPoolId",
+					"value": {
+						"value": "@string(activity('filter-job-pool-batch-exists').output.Value[0].instance_pool_id)",
+						"type": "Expression"
+					}
 				}
 			}
 		],
@@ -497,6 +511,9 @@
 			},
 			"test": {
 				"type": "Boolean"
+			},
+			"JobPoolId": {
+				"type": "String"
 			}
 		},
 		"folder": {
