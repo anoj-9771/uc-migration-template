@@ -4,8 +4,10 @@ from pyspark.sql import functions as psf
 #default Widget Parameter
 #define notebook widget to accept video_id parameter
 dbutils.widgets.text(name="video_id", defaultValue="0_oiif5iqr", label="video_id")
+dbutils.widgets.text(name="priority", defaultValue="high", label="priority")
 
 _VIDEO_ID = dbutils.widgets.get("video_id").replace(".mp4",'')
+_PRIORITY = dbutils.widgets.get("priority")
 
 # COMMAND ----------
 
@@ -57,7 +59,7 @@ df_cctv_defect_series.write.insertInto("cleansed.cctv_group_ai_identified_defect
 
 # COMMAND ----------
 
-dbutils.fs.mv(f"dbfs:/mnt/blob-sewercctvvideos/Inbound/{_VIDEO_ID}.mp4", f"dbfs:/mnt/blob-sewercctvvideos/Archive/{_VIDEO_ID}.mp4", recurse=False)
+dbutils.fs.mv(f"dbfs:/mnt/blob-sewercctvvideos/inbound-{_PRIORITY}/{_VIDEO_ID}.mp4", f"dbfs:/mnt/blob-sewercctvvideos/Archive-{_PRIORITY}/{_VIDEO_ID}.mp4", recurse=False)
 
 # COMMAND ----------
 
