@@ -57,8 +57,8 @@ isu_0uc_connobj_attr_2.objectNumber,
 isu_vibdao.hydraCalculatedArea,
 isu_vibdao.hydraAreaUnit,
 isu_vibdao.propertyInfo,
-isu_vibdao.stormWaterAssessmentIndicator,
-isu_vibdao.hydraAreaIndicator,
+isu_vibdao.stormWaterAssessmentFlag,
+isu_vibdao.hydraAreaFlag,
 isu_vibdao.overrideArea hydraOverrideArea,
 isu_vibdao.overrideAreaUnit hydraOverrideAreaUnit,
 isu_vibdao.comments hydraComments,
@@ -183,7 +183,7 @@ isu_0ucinstalla_attr_2.createdBy installationCreatedBy,
 isu_0ucinstalla_attr_2.createdDate installationCreatedDate,
 isu_0ucinstalla_attr_2.lastChangedBy installationLastChangedBy,
 isu_0ucinstalla_attr_2.lastChangedDate installationLastChangedDate,
-isu_0ucinstalla_attr_2.deletedIndicator installationDeletedIndicator,
+isu_0ucinstalla_attr_2.deletedFlag installationDeletedIndicator,
 isu_0ucinstallah_attr_2.deltaProcessRecordMode installationHistoryDeletedIndicator,
 case when (isu_0ucinstallah_attr_2.validFromDate <= current_date and isu_0ucinstallah_attr_2.validToDate >= current_date) then 'Y'
 else 'N'
@@ -277,7 +277,7 @@ isu_0uccontract_attr_2.lastChangedBy,
 case when isu_0uccontract_attr_2.deletedFlag = 'X' then 'Y'
 else 'N'
 end contractDeletedFlag,
-case when isu_0uccontracth_attr_2.deletedFlag = 'X' then 'Y' 
+case when isu_0uccontracth_attr_2._RecordDeleted = 1 then 'Y' 
 else 'N'
 end contractHistoryDeletedFlag,
 case when (isu_0uccontracth_attr_2.validFromDate <= current_date and isu_0uccontracth_attr_2.validToDate >=  current_date) then 'Y'
@@ -386,7 +386,7 @@ isu_0cacont_acc_attr_2.lastChangedBy contractAccountLastChangedBy,
 isu_0cacont_acc_attr_2.lastChangedDate contractAccountLastChangedDate,
 isu_0uc_accntbp_attr_2.createdBy accountBpCreatedBy,
 isu_0uc_accntbp_attr_2.createdDate accountBpCreatedDate,
-isu_0uc_accntbp_attr_2.changedBy accountBpChangedBy,
+isu_0uc_accntbp_attr_2.lastChangedBy accountBpChangedBy,
 isu_0uc_accntbp_attr_2.lastChangedDate accountBpLastChangedDate,
 'Y' currentRecordIndicator
 from cleansed.isu_0cacont_acc_attr_2
@@ -802,7 +802,7 @@ isu_0uc_regist_attr.unitOfMeasurementMeterReading,
 isu_0uc_devcat_attr.ptiNumber,
 isu_0uc_devcat_attr.ggwaNumber,
 isu_0uc_devcat_attr.certificationRequirementType,
-isu_0uc_regist_attr.doNotReadIndicator,
+isu_0uc_regist_attr.doNotReadFlag,
 isu_0uc_device_attr.objectNumber,
 case 
 when (isu_0uc_deviceh_attr.validFromDate <= current_date and isu_0uc_deviceh_attr.validToDate >= current_date
@@ -838,7 +838,7 @@ and isu_0uc_reginst_str_attr.deletedFlag is null
 left outer join cleansed.isu_0ucinstalla_attr_2
 on isu_0ucinstalla_attr_2.installationNumber = isu_0uc_devinst_attr.installationNumber
 and isu_0ucinstalla_attr_2.`_RecordCurrent` = 1
-and isu_0ucinstalla_attr_2.deletedIndicator is null
+and isu_0ucinstalla_attr_2.deletedFlag is null
 left outer join cleansed.isu_0uc_devcat_attr
 on isu_0uc_device_attr.materialNumber = isu_0uc_devcat_attr.materialNumber
 and isu_0uc_devcat_attr.`_RecordCurrent` = 1
