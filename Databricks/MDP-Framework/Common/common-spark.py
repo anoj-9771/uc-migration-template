@@ -11,6 +11,7 @@ def GetDeltaTablePath(tableFqn):
 # COMMAND ----------
 
 def CreateDeltaTable(dataFrame, targetTableFqn, dataLakePath):
+  dataLakePath = dataLakePath.lower()
   dataFrame.write \
     .format("delta") \
     .option("mergeSchema", "true") \
@@ -21,6 +22,7 @@ def CreateDeltaTable(dataFrame, targetTableFqn, dataLakePath):
 # COMMAND ----------
 
 def AppendDeltaTable(dataFrame, targetTableFqn, dataLakePath):
+  dataLakePath = dataLakePath.lower()
   dataFrame.write \
     .format("delta") \
     .option("mergeSchema", "true") \
