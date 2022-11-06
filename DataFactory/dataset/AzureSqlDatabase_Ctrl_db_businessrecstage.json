@@ -5,6 +5,9 @@
 			"referenceName": "LS-AzureSqlDatabase_Ctrldb",
 			"type": "LinkedServiceReference"
 		},
+		"folder": {
+			"name": "Data Lake"
+		},
 		"annotations": [],
 		"type": "AzureSqlTable",
 		"schema": [],
