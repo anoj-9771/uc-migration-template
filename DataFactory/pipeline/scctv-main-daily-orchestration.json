@@ -52,6 +52,10 @@
 									"processEndTime": {
 										"value": "@pipeline().parameters.processEndTime",
 										"type": "Expression"
+									},
+									"kalturaId": {
+										"value": "@pipeline().parameters.kalturaId",
+										"type": "Expression"
 									}
 								}
 							}
@@ -155,6 +159,10 @@
 									},
 									"processEndTime": {
 										"value": "@pipeline().parameters.processEndTime",
+										"type": "Expression"
+									},
+									"kalturaId": {
+										"value": "@pipeline().parameters.kalturaId",
 										"type": "Expression"
 									}
 								}
@@ -597,6 +605,10 @@
 			"processEndTime": {
 				"type": "int",
 				"defaultValue": 6
+			},
+			"kalturaId": {
+				"type": "string",
+				"defaultValue": "107"
 			}
 		},
 		"variables": {
@@ -631,8 +643,6 @@
 		"folder": {
 			"name": "AI-ML/Sewer CCTV"
 		},
-		"annotations": [],
-		"lastPublishTime": "2022-11-04T11:49:53Z"
-	},
-	"type": "Microsoft.DataFactory/factories/pipelines"
+		"annotations": []
+	}
 }
