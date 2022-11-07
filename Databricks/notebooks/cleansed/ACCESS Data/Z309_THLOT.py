@@ -191,17 +191,20 @@ df_cleansed = spark.sql(f"SELECT \
 	ref1.planType as planType, \
 	tbl.N_SUBD as subdivisionNumber, \
 	tbl.N_LOT as lotNumber, \
-	tbl.C_PORT_LOT_TYPE as lotPortionTypeCode, \
-	ref2.lotPortionType as lotPortionType, \
+	tbl.C_PORT_LOT_TYPE as lotTypeCode, \
+	ref2.lotType as lotType, \
 	tbl.N_PORT as portionNumber, \
 	tbl.N_PLAN_SECT as sectionNumber, \
 	cast(tbl.Q_LOT_AREA as dec(9,3)) as lotAreaSize, \
-	tbl.C_LOT_AREA_TYPE as lotAreaSizeUnit, \
+	coalesce(tbl.C_LOT_AREA_TYPE,'M') as lotAreaSizeUnit, \
 	tbl.N_PLAN as planNumber, \
 	tbl.M_PARI as parishName, \
 	ToValidDate(tbl.D_LOT_UPDA) as lotDetailsUpdatedDate, \
-	ToValidDate(tbl.D_SUPD) as rowSupersededDate, \
-	tbl.T_TIME_SUPD as rowSupersededTime, \
+	case when substr(T_TIME_SUPD,1,2) between '00' and '23' \
+              and substr(T_TIME_SUPD,3,2) between '00' and '59' \
+              and substr(T_TIME_SUPD,5,2) between '00' and '59' \
+              then ToValidDateTime(tbl.D_SUPD||' '||substr(tbl.T_TIME_SUPD,1,6)) \
+              else ToValidDateTime(tbl.D_SUPD||' 120000') end as rowSupersededTimestamp, \
 	tbl.M_PROC as modifiedByProcess, \
 	tbl.C_USER_ID as modifiedByUserID, \
 	tbl.C_TERM_ID as modifiedByTerminalID, \
@@ -211,8 +214,8 @@ df_cleansed = spark.sql(f"SELECT \
 	tbl._RecordDeleted, \
 	tbl._RecordCurrent \
 	FROM {ADS_DATABASE_STAGE}.{source_object} tbl \
-left outer join cleansed.access_Z309_TPLANTYPE ref1 on tbl.C_PLAN_TYPE = ref1.C_PLAN_TYPE \
-left outer join cleansed.access_Z309_TPORTIONLOTYPE ref2 on tbl.C_PORT_LOT_TYPE = ref2.C_PORT_LOT_TYPE \
+left outer join cleansed.access_Z309_TPLANTYPE ref1 on tbl.C_PLAN_TYPE = ref1.planTypeCode \
+left outer join cleansed.access_Z309_TPORTIONLOTYPE ref2 on tbl.C_PORT_LOT_TYPE = ref2.lotTypeCode \
                                 ")
 
 # COMMAND ----------
@@ -224,8 +227,8 @@ newSchema = StructType([
 	StructField('planType',StringType(),True),
 	StructField('subdivisionNumber',StringType(),True),
 	StructField('lotNumber',StringType(),True),
-	StructField('lotPortionTypeCode',StringType(),True),
-	StructField('lotPortionType',StringType(),True),
+	StructField('lotTypeCode',StringType(),True),
+	StructField('lotType',StringType(),True),
 	StructField('portionNumber',StringType(),True),
 	StructField('sectionNumber',StringType(),True),
 	StructField('lotAreaSize',DecimalType(9,3),False),
@@ -233,8 +236,7 @@ newSchema = StructType([
 	StructField('planNumber',StringType(),True),
 	StructField('parishName',StringType(),True),
 	StructField('lotDetailsUpdatedDate',DateType(),True),
-	StructField('rowSupersededDate',DateType(),True),
-	StructField('rowSupersededTime',StringType(),True),
+	StructField('rowSupersededTimestamp',StringType(),True),
 	StructField('modifiedByProcess',StringType(),True),
 	StructField('modifiedByUserID',StringType(),True),
 	StructField('modifiedByTerminalID',StringType(),True),
@@ -250,6 +252,12 @@ newSchema = StructType([
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
 DeltaSaveDataframeDirect(df_cleansed, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", newSchema, "")
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC select * from cleansed.access_z309_thlot
+# MAGIC where planTypecode is not null
 
 # COMMAND ----------
 
