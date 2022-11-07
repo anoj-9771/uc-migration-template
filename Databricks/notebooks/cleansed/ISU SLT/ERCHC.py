@@ -184,7 +184,7 @@ df = spark.sql(f"WITH stage AS \
                                   case when TOBRELEASD = 'X' then 'Y' else 'N' end as documentNotReleasedFlag, \
                                   case when SIMULATED = 'X' then 'Y' else 'N' end as billingSimulationFlag, \
                                   case when INVOICED = 'X' then 'Y' else 'N' end as invoicePostedFlag, \
-                                  SPCANC as adjustmentReversalFlag, \
+                                  case when SPCANC = 'X' then 'Y' else 'N' end as adjustmentReversalFlag, \
                                   case when STATUPD = 'X' then 'Y' else 'N' end as documentInSalesStatsFlag, \
                                   case when STATUPD_CANC = 'X' then 'Y' else 'N' end as reversalDocumentInSalesStatsFlag, \
                                   cast('1900-01-01' as TimeStamp) as _RecordStart, \

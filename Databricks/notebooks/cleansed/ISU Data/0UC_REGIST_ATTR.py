@@ -183,19 +183,19 @@ Select *, ROW_NUMBER() OVER (PARTITION BY EQUNR,ZWNUMMER,AB,BIS ORDER BY _FileDa
                                 case when ZWNUMMER = 'na' then '' else (cast(ZWNUMMER as int)) end  as registerNumber, \
                                 ToValidDate(BIS,'MANDATORY') as validToDate, \
                                 ToValidDate(AB) as validFromDate, \
-                                LOGIKZW as logicalRegisterNumber, \
-                                SPARTYP as divisionCategoryCode, \
+                                cast(LOGIKZW as string) as logicalRegisterNumber, \
+                                cast(SPARTYP as string) as divisionCategoryCode, \
                                 di.sectorCategory as divisionCategory, \
                                 ZWKENN as registerIdCode, \
                                 id.registerId as registerId, \
                                 ZWART as registerTypeCode, \
                                 te.registerType as registerType, \
-                                ZWTYP as registerCategoryCode, \
+                                cast(ZWTYP as string) as registerCategoryCode, \
                                 dd.domainValueText as registerCategory, \
-                                BLIWIRK as reactiveApparentOrActiveRegister, \
+                                cast(BLIWIRK as string) as reactiveApparentOrActiveRegister, \
                                 dd1.domainValueText as reactiveApparentOrActiveRegisterTxt, \
                                 MASSREAD as unitOfMeasurementMeterReading, \
-                                NABLESEN as doNotReadIndicator, \
+                                (case when NABLESEN = 'X' then 'Y' else 'N' end) as doNotReadFlag, \
                                 cast(HOEKORR as int) as altitudeCorrectionPressure, \
                                 cast(KZAHLE as int) as setGasLawDeviationFactor, \
                                 cast(KZAHLT as int) as actualGasLawDeviationFactor, \
@@ -240,7 +240,7 @@ newSchema = StructType([
 	StructField('reactiveApparentOrActiveRegister',StringType(),True),
     StructField('reactiveApparentOrActiveRegisterTxt',StringType(),True),
 	StructField('unitOfMeasurementMeterReading',StringType(),True),
-	StructField('doNotReadIndicator',StringType(),True),
+	StructField('doNotReadFlag',StringType(),True),
 	StructField('altitudeCorrectionPressure',IntegerType(),True),
 	StructField('setGasLawDeviationFactor',IntegerType(),True),
 	StructField('actualGasLawDeviationFactor',IntegerType(),True),
@@ -266,7 +266,39 @@ DeltaSaveDataFrameToDeltaTable(df.filter("_RecordDeleted = '0'"), target_table, 
 
 # DBTITLE 1,12.2 Save Deleted records Data frame into Cleansed Delta table
 # Load deleted records to replace the existing Deleted records implementation logic
-DeltaSaveDataFrameToDeltaTable(df.filter("_RecordDeleted = '1'"), target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, "equipmentNumber,registerNumber,validFromDate,validToDate", AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
+df.filter("_RecordDeleted=1").createOrReplaceTempView("isu_regist_deleted_records")
+spark.sql(f" \
+    MERGE INTO cleansed.isu_0UC_REGIST_ATTR \
+    using isu_regist_deleted_records \
+    on isu_0UC_REGIST_ATTR.equipmentNumber = isu_regist_deleted_records.equipmentNumber \
+    and isu_0UC_REGIST_ATTR.registerNumber = isu_regist_deleted_records.registerNumber \
+    and isu_0UC_REGIST_ATTR.validFromDate = isu_regist_deleted_records.validFromDate \
+    and isu_0UC_REGIST_ATTR.validToDate = isu_regist_deleted_records.validToDate \
+    WHEN MATCHED THEN UPDATE SET \
+     logicalRegisterNumber=isu_regist_deleted_records.logicalRegisterNumber \
+    ,divisionCategoryCode=isu_regist_deleted_records.divisionCategoryCode \
+    ,divisionCategory=isu_regist_deleted_records.divisionCategory \
+    ,registerIdCode=isu_regist_deleted_records.registerIdCode \
+    ,registerId=isu_regist_deleted_records.registerId \
+    ,registerTypeCode=isu_regist_deleted_records.registerTypeCode \
+    ,registerType=isu_regist_deleted_records.registerType \
+    ,registerCategoryCode=isu_regist_deleted_records.registerCategoryCode \
+    ,registerCategory=isu_regist_deleted_records.registerCategory \
+    ,reactiveApparentOrActiveRegister=isu_regist_deleted_records.reactiveApparentOrActiveRegister \
+    ,reactiveApparentOrActiveRegisterTxt=isu_regist_deleted_records.reactiveApparentOrActiveRegisterTxt \
+    ,unitOfMeasurementMeterReading=isu_regist_deleted_records.unitOfMeasurementMeterReading \
+    ,doNotReadFlag=isu_regist_deleted_records.doNotReadFlag \
+    ,altitudeCorrectionPressure=isu_regist_deleted_records.altitudeCorrectionPressure \
+    ,setGasLawDeviationFactor=isu_regist_deleted_records.setGasLawDeviationFactor \
+    ,actualGasLawDeviationFactor=isu_regist_deleted_records.actualGasLawDeviationFactor \
+    ,gasCorrectionPressure=isu_regist_deleted_records.gasCorrectionPressure \
+    ,intervalLengthId=isu_regist_deleted_records.intervalLengthId \
+    ,deletedFlag=isu_regist_deleted_records.deletedFlag \
+    ,installationId=isu_regist_deleted_records.installationId \
+    ,_DLCleansedZoneTimeStamp = cast('{CurrentTimeStamp}' as TimeStamp) \
+    ,_RecordDeleted=1 \
+    ,_RecordCurrent=1 \
+    ")
 
 # COMMAND ----------
 

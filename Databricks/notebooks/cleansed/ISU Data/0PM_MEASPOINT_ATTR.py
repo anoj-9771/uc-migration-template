@@ -179,7 +179,7 @@ df = spark.sql(f"WITH stage AS \
                                 MPTYP as measuringPointCategory, \
                                 ToValidDate(ERDAT) as createdDate, \
                                 INACT as inactiveIndicator, \
-                                ATINN as internalcharacteristic, \
+                                cast(ATINN as string) as internalcharacteristic, \
                                 MRNGU as measurementRangeUnit, \
                                 CODCT as measurementReadingCatalogCode, \
                                 CODGR as measurementReadingGroupCode, \
