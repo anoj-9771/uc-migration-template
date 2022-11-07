@@ -35,7 +35,7 @@ SELECT 'iicats_rw' SystemCode, 'scxstg' SourceSchema, 'daf-oracle-IICATS-stg-con
 UNION 
 SELECT 'iicats_rw' SystemCode, 'scxstg' SourceSchema, 'daf-oracle-IICATS-stg-connectionstring' SourceKeyVaultSecret, 'oracle-load' SourceHandler, NULL RawFileExtension, 'raw-load-delta' RawHandler, 'cleansed-load-delta' CleansedHandler, 'point_cnfgn' SourceTableName, null SourceQuery, NULL ExtendedProperties, 'HT_CRT_DT' WatermarkColumn
 UNION 
-SELECT 'iicats_rw' SystemCode, 'scxstg' SourceSchema, 'daf-oracle-IICATS-stg-connectionstring' SourceKeyVaultSecret, 'oracle-load' SourceHandler, NULL RawFileExtension, 'raw-load-delta' RawHandler, 'cleansed-load-delta' CleansedHandler, 'tsv' SourceTableName, 'select * from scxstg.tsv where HT_CRT_DT > (select SYSDATE - 7 from DUAL)' SourceQuery, NULL ExtendedProperties, 'HT_CRT_DT' WatermarkColumn
+SELECT 'iicats_rw' SystemCode, 'scxstg' SourceSchema, 'daf-oracle-IICATS-stg-connectionstring' SourceKeyVaultSecret, 'oracle-load' SourceHandler, NULL RawFileExtension, 'raw-load-delta' RawHandler, 'cleansed-load-delta' CleansedHandler, 'tsv' SourceTableName, 'select * from scxstg.tsv where HT_CRT_DT > (select SYSDATE - 7 from DUAL)' SourceQuery, NULL ExtendedProperties, NULL WatermarkColumn
 
 /* -- CHANGED TO ONLY TAKE NECESSARY TABLES TO REDUCE LOAD
 SELECT 'iicats_rw' SystemCode, 'scxstg' SourceSchema, 'daf-oracle-IICATS-stg-connectionstring' SourceKeyVaultSecret, 'oracle-load' SourceHandler, NULL RawFileExtension, 'raw-load-delta' RawHandler, 'cleansed-load-delta' CleansedHandler, 'dly_prof_cnfgn' SourceTableName, null SourceQuery, NULL ExtendedProperties
@@ -145,6 +145,13 @@ ExecuteStatement("""
 update dbo.extractLoadManifest set
 sourceQuery = NULL
 where systemCode = 'iicats_rw' and sourceSchema = 'scxstg' and sourceQuery = 'None'
+""")
+
+#FIX WATERMARK COLUMN
+ExecuteStatement("""
+update dbo.extractLoadManifest set
+waterMarkColumn = NULL
+where systemCode = 'iicats_rw' and sourceSchema = 'scxstg' and waterMarkColumn = 'None'
 """)
 
 # COMMAND ----------
