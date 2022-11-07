@@ -787,12 +787,10 @@
 				"defaultValue": "riverwatch-pipeline"
 			},
 			"currentModelRuntimeOverride": {
-				"type": "string",
-				"defaultValue": "2022-02-10T08:33:00.000"
+				"type": "string"
 			},
 			"lastModelRuntimeOverride": {
-				"type": "string",
-				"defaultValue": "2022-02-09T08:00:00.000"
+				"type": "string"
 			},
 			"BatchPoolName": {
 				"type": "string",
