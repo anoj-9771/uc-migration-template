@@ -1,0 +1,349 @@
+{
+	"name": "System",
+	"properties": {
+		"activities": [
+			{
+				"name": "get-tasks",
+				"description": "",
+				"type": "Lookup",
+				"dependsOn": [
+					{
+						"activity": "set-parent-batch",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderStoredProcedureName": "[dbo].[ExtractLoadInit]",
+						"storedProcedureParameters": {
+							"BatchID": {
+								"value": {
+									"value": "@variables('ParentBatchID')",
+									"type": "Expression"
+								}
+							},
+							"SystemCode": {
+								"value": {
+									"value": "@pipeline().parameters.SystemCode",
+									"type": "Expression"
+								}
+							}
+						},
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "SQL_ControlDB",
+						"type": "DatasetReference"
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "for-each-raw",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "get-tasks",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "get-cluster-id",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('get-tasks').output.value",
+						"type": "Expression"
+					},
+					"isSequential": false,
+					"batchCount": 10,
+					"activities": [
+						{
+							"name": "execute-raw",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "Raw",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"task": {
+										"value": "@item()",
+										"type": "Expression"
+									},
+									"ClusterId": {
+										"value": "@variables('ClusterId')",
+										"type": "Expression"
+									}
+								}
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "set-parent-batch",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "ParentBatchID",
+					"value": {
+						"value": "@substring(coalesce(pipeline().parameters.ParentBatchID, pipeline().GroupId), 0,8)",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "for-each-cleansed",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "for-each-raw",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('get-tasks').output.value",
+						"type": "Expression"
+					},
+					"isSequential": false,
+					"batchCount": 10,
+					"activities": [
+						{
+							"name": "execute-cleansed",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "Cleansed",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"task": {
+										"value": "@item()",
+										"type": "Expression"
+									},
+									"ClusterId": {
+										"value": "@variables('ClusterId')",
+										"type": "Expression"
+									}
+								}
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "end-system",
+				"type": "Lookup",
+				"dependsOn": [
+					{
+						"activity": "for-each-cleansed",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": {
+							"value": "UPDATE U\nSET [EndedDTS] = CONVERT(DATETIME, CONVERT(DATETIMEOFFSET, GETDATE()) AT TIME ZONE 'AUS Eastern Standard Time')\nFROM [dbo].[ExtractLoadStatus] U\nWHERE BatchID = '@{variables('ParentBatchID')}'\nAND SystemCode = '@{pipeline().parameters.SystemCode}'\nSELECT 1 A",
+							"type": "Expression"
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "SQL_ControlDB",
+						"type": "DatasetReference"
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "get-databricks-clusters",
+				"type": "WebActivity",
+				"dependsOn": [
+					{
+						"activity": "set-secret-variable",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"url": "https://australiaeast.azuredatabricks.net/api/2.0/clusters/list",
+					"method": "GET",
+					"headers": {
+						"Authorization": {
+							"value": "Bearer @{variables('DatabricksSecret')}",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "get-cluster-id",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "get-databricks-clusters",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('get-databricks-clusters').output.clusters",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "check-cluster-name-is-interactive",
+							"type": "IfCondition",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"expression": {
+									"value": "@equals(item().cluster_name, 'interactive')",
+									"type": "Expression"
+								},
+								"ifTrueActivities": [
+									{
+										"name": "set-cluster-id",
+										"type": "SetVariable",
+										"dependsOn": [],
+										"userProperties": [],
+										"typeProperties": {
+											"variableName": "ClusterId",
+											"value": {
+												"value": "@item().cluster_id",
+												"type": "Expression"
+											}
+										}
+									}
+								]
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "get-bearer-token",
+				"type": "WebActivity",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"url": {
+						"value": "@concat('https://', pipeline().globalParameters.keyVaultName, '.vault.azure.net/secrets/databricks-token?api-version=7.0')",
+						"type": "Expression"
+					},
+					"method": "GET",
+					"authentication": {
+						"type": "MSI",
+						"resource": "https://vault.azure.net"
+					}
+				}
+			},
+			{
+				"name": "set-secret-variable",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "get-bearer-token",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "DatabricksSecret",
+					"value": {
+						"value": "@activity('get-bearer-token').output.value",
+						"type": "Expression"
+					}
+				}
+			}
+		],
+		"parameters": {
+			"SystemCode": {
+				"type": "string",
+				"defaultValue": "System"
+			},
+			"ParentBatchID": {
+				"type": "string"
+			}
+		},
+		"variables": {
+			"ParentBatchID": {
+				"type": "String"
+			},
+			"DatabricksSecret": {
+				"type": "String"
+			},
+			"ClusterId": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "MDP-Framework"
+		},
+		"annotations": [],
+		"lastPublishTime": "2021-07-08T02:50:54Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

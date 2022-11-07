@@ -1,0 +1,1025 @@
+{
+    "name": "scctv-deployment-pipeline",
+    "properties": {
+        "activities": [
+            {
+                "name": "get-databricks-jobs",
+                "type": "WebActivity",
+                "dependsOn": [
+                    {
+                        "activity": "set-secret-variable",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "0.12:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "url": "https://australiaeast.azuredatabricks.net/api/2.1/jobs/list",
+                    "method": "GET",
+                    "headers": {
+                        "Authorization": {
+                            "value": "Bearer @{variables('DatabricksSecret')}",
+                            "type": "Expression"
+                        }
+                    }
+                }
+            },
+            {
+                "name": "set-secret-variable",
+                "type": "SetVariable",
+                "dependsOn": [
+                    {
+                        "activity": "get-bearer-token",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "userProperties": [],
+                "typeProperties": {
+                    "variableName": "DatabricksSecret",
+                    "value": {
+                        "value": "@activity('get-bearer-token').output.value",
+                        "type": "Expression"
+                    }
+                }
+            },
+            {
+                "name": "if-sewer-cctv-model-exists",
+                "type": "IfCondition",
+                "dependsOn": [
+                    {
+                        "activity": "if-register-model-job-exists",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    },
+                    {
+                        "activity": "if-registered-models-exist",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "userProperties": [],
+                "typeProperties": {
+                    "expression": {
+                        "value": "@and(\n    equals(variables('ModelExists'), true),\n    bool(contains(activity('get-mlflow-models').output, 'registered_models'))\n    )",
+                        "type": "Expression"
+                    },
+                    "ifFalseActivities": [
+                        {
+                            "name": "run-databricks-job_register-sewer-cctv-model",
+                            "type": "WebActivity",
+                            "dependsOn": [],
+                            "policy": {
+                                "timeout": "0.12:00:00",
+                                "retry": 0,
+                                "retryIntervalInSeconds": 30,
+                                "secureOutput": false,
+                                "secureInput": false
+                            },
+                            "userProperties": [],
+                            "typeProperties": {
+                                "url": "https://australiaeast.azuredatabricks.net/api/2.1/jobs/run-now",
+                                "method": "POST",
+                                "headers": {
+                                    "Authorization": {
+                                        "value": "Bearer @{variables('DatabricksSecret')}",
+                                        "type": "Expression"
+                                    }
+                                },
+                                "body": {
+                                    "value": "{ \"job_id\": @{variables('RegisterModelJobID')}}}",
+                                    "type": "Expression"
+                                }
+                            }
+                        },
+                        {
+                            "name": "wait_until_job_complete",
+                            "type": "ExecutePipeline",
+                            "dependsOn": [
+                                {
+                                    "activity": "get-job-id-last-task",
+                                    "dependencyConditions": [
+                                        "Succeeded"
+                                    ]
+                                }
+                            ],
+                            "userProperties": [],
+                            "typeProperties": {
+                                "pipeline": {
+                                    "referenceName": "wait-until-databricks-job-complete",
+                                    "type": "PipelineReference"
+                                },
+                                "waitOnCompletion": true,
+                                "parameters": {
+                                    "RunID": {
+                                        "value": "@activity('get-job-id-last-task').output.Value[0].run_id",
+                                        "type": "Expression"
+                                    },
+                                    "DatabricksSecret": {
+                                        "value": "@variables('DatabricksSecret')",
+                                        "type": "Expression"
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "name": "get-job-task-id",
+                            "type": "WebActivity",
+                            "dependsOn": [
+                                {
+                                    "activity": "run-databricks-job_register-sewer-cctv-model",
+                                    "dependencyConditions": [
+                                        "Succeeded"
+                                    ]
+                                }
+                            ],
+                            "policy": {
+                                "timeout": "0.12:00:00",
+                                "retry": 0,
+                                "retryIntervalInSeconds": 30,
+                                "secureOutput": false,
+                                "secureInput": false
+                            },
+                            "userProperties": [],
+                            "typeProperties": {
+                                "url": {
+                                    "value": "@concat('https://australiaeast.azuredatabricks.net/api/2.1/jobs/runs/list?job_id=', variables('RegisterModelJobID'),'&active_only=true&expand_tasks=true')",
+                                    "type": "Expression"
+                                },
+                                "method": "GET",
+                                "headers": {
+                                    "Authorization": {
+                                        "value": "Bearer @{variables('DatabricksSecret')}",
+                                        "type": "Expression"
+                                    }
+                                },
+                                "body": {
+                                    "value": "{ \"job_id\": @{variables('RegisterModelJobID')}}}",
+                                    "type": "Expression"
+                                }
+                            }
+                        },
+                        {
+                            "name": "check-job-status-register-model",
+                            "type": "WebActivity",
+                            "dependsOn": [
+                                {
+                                    "activity": "wait_until_job_complete",
+                                    "dependencyConditions": [
+                                        "Succeeded"
+                                    ]
+                                }
+                            ],
+                            "policy": {
+                                "timeout": "0.12:00:00",
+                                "retry": 0,
+                                "retryIntervalInSeconds": 30,
+                                "secureOutput": false,
+                                "secureInput": false
+                            },
+                            "userProperties": [],
+                            "typeProperties": {
+                                "url": {
+                                    "value": "@concat('https://australiaeast.azuredatabricks.net/api/2.1/jobs/runs/get-output?run_id=', activity('get-job-id-last-task').output.Value[0].run_id)",
+                                    "type": "Expression"
+                                },
+                                "method": "GET",
+                                "headers": {
+                                    "Authorization": {
+                                        "value": "Bearer @{variables('DatabricksSecret')}",
+                                        "type": "Expression"
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "name": "set-register-model-state-variable",
+                            "type": "SetVariable",
+                            "dependsOn": [
+                                {
+                                    "activity": "check-job-status-register-model",
+                                    "dependencyConditions": [
+                                        "Succeeded"
+                                    ]
+                                }
+                            ],
+                            "userProperties": [],
+                            "typeProperties": {
+                                "variableName": "RegisterModelState",
+                                "value": {
+                                    "value": "@activity('check-job-status-register-model').output.metadata.state.result_state",
+                                    "type": "Expression"
+                                }
+                            }
+                        },
+                        {
+                            "name": "get-job-id-last-task",
+                            "type": "Filter",
+                            "dependsOn": [
+                                {
+                                    "activity": "get-job-task-id",
+                                    "dependencyConditions": [
+                                        "Succeeded"
+                                    ]
+                                }
+                            ],
+                            "userProperties": [],
+                            "typeProperties": {
+                                "items": {
+                                    "value": "@activity('get-job-task-id').output.runs[0].tasks",
+                                    "type": "Expression"
+                                },
+                                "condition": {
+                                    "value": "@equals(item().task_key, 'create-delta-tables')",
+                                    "type": "Expression"
+                                }
+                            }
+                        }
+                    ]
+                }
+            },
+            {
+                "name": "if-register-model-job-exists",
+                "type": "IfCondition",
+                "dependsOn": [
+                    {
+                        "activity": "check-cluster-exists",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    },
+                    {
+                        "activity": "if-jobs-exist",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    },
+                    {
+                        "activity": "set-job-pool-id",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "userProperties": [],
+                "typeProperties": {
+                    "expression": {
+                        "value": "@and(\n    equals(variables('RegisterModelJobExists'), true),\n    bool(contains(activity('get-databricks-jobs').output, 'jobs'))\n    )",
+                        "type": "Expression"
+                    },
+                    "ifFalseActivities": [
+                        {
+                            "name": "create-register-model-job-api",
+                            "type": "WebActivity",
+                            "dependsOn": [],
+                            "policy": {
+                                "timeout": "0.12:00:00",
+                                "retry": 0,
+                                "retryIntervalInSeconds": 30,
+                                "secureOutput": false,
+                                "secureInput": false
+                            },
+                            "userProperties": [],
+                            "typeProperties": {
+                                "url": "https://australiaeast.azuredatabricks.net/api/2.1/jobs/create",
+                                "method": "POST",
+                                "headers": {
+                                    "Authorization": {
+                                        "value": "Bearer @{variables('DatabricksSecret')}",
+                                        "type": "Expression"
+                                    }
+                                },
+                                "body": {
+                                    "value": "{\n    \"name\": \"deploy-sewer-cctv-tasks\",\n    \"email_notifications\": {\n        \"no_alert_for_skipped_runs\": false\n    },\n    \"timeout_seconds\": 0,\n    \"max_concurrent_runs\": 1,\n    \"tasks\": [\n        {\n            \"task_key\": \"register-sewer-cctv-model-task\",\n            \"depends_on\": [\n                {\n                    \"task_key\": \"mount-containers\"\n                }\n            ],\n            \"notebook_task\": {\n                \"notebook_path\": \"/AI-ML/Sewer CCTV/register_pytorch_resnet_model_to_mlflow\",\n                \"source\": \"WORKSPACE\"\n            },\n            \"job_cluster_key\": \"deploy-sewer-cctv-cluster\",\n            \"libraries\": [\n                {\n                    \"pypi\": {\n                        \"package\": \"mlflow==1.27.0\"\n                    }\n                },\n                {\n                    \"whl\": \"dbfs:/mnt/blob-sewercctvmodel/MainModel-0.1.0-py3-none-any.whl\"\n                },\n                {\n                    \"pypi\": {\n                        \"package\": \"torch\"\n                    }\n                },\n                {\n                    \"pypi\": {\n                        \"package\": \"torchvision\"\n                    }\n                }\n            ],\n            \"timeout_seconds\": 0,\n            \"email_notifications\": {}\n        },\n        {\n            \"task_key\": \"create-delta-tables\",\n            \"depends_on\": [\n                {\n                    \"task_key\": \"register-sewer-cctv-model-task\"\n                }\n            ],\n            \"notebook_task\": {\n                \"notebook_path\": \"/AI-ML/Sewer CCTV/create_sewer_cctv_delta_tables\",\n                \"source\": \"WORKSPACE\"\n            },\n            \"job_cluster_key\": \"deploy-sewer-cctv-cluster\",\n            \"timeout_seconds\": 0,\n            \"email_notifications\": {}\n        },\n        {\n            \"task_key\": \"mount-containers\",\n            \"notebook_task\": {\n                \"notebook_path\": \"/AI-ML/Sewer CCTV/mount-contrainers\",\n                \"source\": \"WORKSPACE\"\n            },\n            \"job_cluster_key\": \"deploy-sewer-cctv-cluster\",\n            \"timeout_seconds\": 0,\n            \"email_notifications\": {}\n        }\n    ],\n    \"job_clusters\": [\n        {\n            \"job_cluster_key\": \"deploy-sewer-cctv-cluster\",\n            \"new_cluster\": {\n                \"cluster_name\": \"\",\n                \"spark_version\": \"10.4.x-cpu-ml-scala2.12\",\n                \"spark_env_vars\": {\n                    \"PYSPARK_PYTHON\": \"/databricks/python3/bin/python3\"\n                },\n                \"instance_pool_id\": \"@{variables('JobPoolId')}\",\n                \"data_security_mode\": \"LEGACY_SINGLE_USER_STANDARD\",\n                \"runtime_engine\": \"STANDARD\",\n                \"num_workers\": 2\n            }\n        }\n    ],\n    \"access_control_list\": [\n        {\n            \"user_name\": \"onyu@sydneywater.com.au\",\n            \"permission_level\": \"IS_OWNER\"\n        }\n    ],\n    \"format\": \"MULTI_TASK\"\n}",
+                                    "type": "Expression"
+                                }
+                            }
+                        },
+                        {
+                            "name": "set-register-model-job-id-variable-new",
+                            "type": "SetVariable",
+                            "dependsOn": [
+                                {
+                                    "activity": "create-register-model-job-api",
+                                    "dependencyConditions": [
+                                        "Succeeded"
+                                    ]
+                                }
+                            ],
+                            "userProperties": [],
+                            "typeProperties": {
+                                "variableName": "RegisterModelJobID",
+                                "value": {
+                                    "value": "@string(activity('create-register-model-job-api').output.job_id)",
+                                    "type": "Expression"
+                                }
+                            }
+                        },
+                        {
+                            "name": "set-register-model-exists-variable-new",
+                            "description": "",
+                            "type": "SetVariable",
+                            "dependsOn": [
+                                {
+                                    "activity": "set-register-model-job-id-variable-new",
+                                    "dependencyConditions": [
+                                        "Succeeded"
+                                    ]
+                                }
+                            ],
+                            "userProperties": [],
+                            "typeProperties": {
+                                "variableName": "RegisterModelJobExists",
+                                "value": true
+                            }
+                        }
+                    ],
+                    "ifTrueActivities": [
+                        {
+                            "name": "set-register-model-job-id",
+                            "type": "SetVariable",
+                            "dependsOn": [],
+                            "userProperties": [],
+                            "typeProperties": {
+                                "variableName": "RegisterModelJobID",
+                                "value": {
+                                    "value": "@string(activity('filter-register-sewer-cctv-model-job').output.Value[0].job_id)",
+                                    "type": "Expression"
+                                }
+                            }
+                        }
+                    ]
+                }
+            },
+            {
+                "name": "if-sewer-cctv-pipeline-exists",
+                "type": "IfCondition",
+                "dependsOn": [
+                    {
+                        "activity": "check-cluster-exists",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    },
+                    {
+                        "activity": "if-jobs-exist",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    },
+                    {
+                        "activity": "set-job-pool-id",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "userProperties": [],
+                "typeProperties": {
+                    "expression": {
+                        "value": "@and(\n    equals(variables('PipelineJobExists'), true),\n    bool(contains(activity('get-databricks-jobs').output, 'jobs'))\n    )",
+                        "type": "Expression"
+                    },
+                    "ifFalseActivities": [
+                        {
+                            "name": "create-sewer-cctv-pipeline-job",
+                            "type": "WebActivity",
+                            "dependsOn": [],
+                            "policy": {
+                                "timeout": "0.12:00:00",
+                                "retry": 0,
+                                "retryIntervalInSeconds": 30,
+                                "secureOutput": false,
+                                "secureInput": false
+                            },
+                            "userProperties": [],
+                            "typeProperties": {
+                                "url": "https://australiaeast.azuredatabricks.net/api/2.1/jobs/create",
+                                "method": "POST",
+                                "headers": {
+                                    "Authorization": {
+                                        "value": "Bearer @{variables('DatabricksSecret')}",
+                                        "type": "Expression"
+                                    }
+                                },
+                                "body": {
+                                    "value": "{\n    \"name\": \"sewer-cctv-pipeline\",\n    \"email_notifications\": {\n        \"no_alert_for_skipped_runs\": false\n    },\n    \"timeout_seconds\": 0,\n    \"max_concurrent_runs\": 10,\n    \"tasks\": [\n        {\n            \"task_key\": \"extract_video_metadata\",\n            \"notebook_task\": {\n                \"notebook_path\": \"/AI-ML/Sewer CCTV/001_extract_video_metadata\",\n                \"base_parameters\": {\n                    \"video_id\": \"\",\n                    \"priority\": \"\"\n                },\n                \"source\": \"WORKSPACE\"\n            },\n            \"existing_cluster_id\": \"@{variables('ClusterId')}\",\n            \"libraries\": [\n                {\n                    \"pypi\": {\n                        \"package\": \"opencv-python\"\n                    }\n                }\n            ],\n            \"timeout_seconds\": 0\n        },\n        {\n            \"task_key\": \"save_cctv_images\",\n            \"depends_on\": [\n                {\n                    \"task_key\": \"extract_video_metadata\"\n                }\n            ],\n            \"notebook_task\": {\n                \"notebook_path\": \"/AI-ML/Sewer CCTV/002_save_cctv_images\",\n                \"base_parameters\": {\n                    \"video_id\": \"\"\n                },\n                \"source\": \"WORKSPACE\"\n            },\n            \"existing_cluster_id\": \"@{variables('ClusterId')}\",\n            \"libraries\": [\n                {\n                    \"pypi\": {\n                        \"package\": \"opencv-python\"\n                    }\n                }\n            ],\n            \"timeout_seconds\": 0\n        },\n        {\n            \"task_key\": \"classify_sewer_defects_in_images\",\n            \"depends_on\": [\n                {\n                    \"task_key\": \"save_cctv_images\"\n                }\n            ],\n            \"notebook_task\": {\n                \"notebook_path\": \"/AI-ML/Sewer CCTV/006_classify_sewer_defects_in_images\",\n                \"base_parameters\": {\n                    \"video_id\": \"\"\n                },\n                \"source\": \"WORKSPACE\"\n            },\n            \"job_cluster_key\": \"sewercctv-job-cluster\",\n            \"libraries\": [\n                {\n                    \"pypi\": {\n                        \"package\": \"mlflow==1.27.0\"\n                    }\n                },\n                {\n                    \"whl\": \"dbfs:/mnt/blob-sewercctvmodel/MainModel-0.1.0-py3-none-any.whl\"\n                }\n            ],\n            \"timeout_seconds\": 0\n        },\n        {\n            \"task_key\": \"read_text_in_images\",\n            \"depends_on\": [\n                {\n                    \"task_key\": \"save_cctv_images\"\n                }\n            ],\n            \"notebook_task\": {\n                \"notebook_path\": \"/AI-ML/Sewer CCTV/003_read_text_in_images\",\n                \"base_parameters\": {\n                    \"video_id\": \"\"\n                },\n                \"source\": \"WORKSPACE\"\n            },\n            \"existing_cluster_id\": \"@{variables('ClusterId')}\",\n            \"libraries\": [\n                {\n                    \"maven\": {\n                        \"coordinates\": \"com.microsoft.azure:synapseml_2.12:0.9.5\",\n                        \"repo\": \"https://mmlspark.azureedge.net/maven\"\n                    }\n                }\n            ],\n            \"timeout_seconds\": 0\n        },\n        {\n            \"task_key\": \"extract_contractor_annotations_and_distance_strings\",\n            \"depends_on\": [\n                {\n                    \"task_key\": \"read_text_in_images\"\n                }\n            ],\n            \"notebook_task\": {\n                \"notebook_path\": \"/AI-ML/Sewer CCTV/004_extract_contractor_annotations_and_distance_strings\",\n                \"base_parameters\": {\n                    \"video_id\": \"\"\n                },\n                \"source\": \"WORKSPACE\"\n            },\n            \"existing_cluster_id\": \"@{variables('ClusterId')}\",\n            \"timeout_seconds\": 0\n        },\n        {\n            \"task_key\": \"cluster_contractor_identified_defects_across_video\",\n            \"depends_on\": [\n                {\n                    \"task_key\": \"extract_contractor_annotations_and_distance_strings\"\n                }\n            ],\n            \"notebook_task\": {\n                \"notebook_path\": \"/AI-ML/Sewer CCTV/005_cluster_contractor_identified_defects_across_video\",\n                \"base_parameters\": {\n                    \"video_id\": \"\"\n                },\n                \"source\": \"WORKSPACE\"\n            },\n            \"existing_cluster_id\": \"@{variables('ClusterId')}\",\n            \"timeout_seconds\": 0\n        },\n        {\n            \"task_key\": \"cluster_AI_identified_defects\",\n            \"depends_on\": [\n                {\n                    \"task_key\": \"classify_sewer_defects_in_images\"\n                },\n                {\n                    \"task_key\": \"extract_contractor_annotations_and_distance_strings\"\n                }\n            ],\n            \"notebook_task\": {\n                \"notebook_path\": \"/AI-ML/Sewer CCTV/007_cluster_AI_identified_defects\",\n                \"base_parameters\": {\n                    \"video_id\": \"\"\n                },\n                \"source\": \"WORKSPACE\"\n            },\n            \"existing_cluster_id\": \"@{variables('ClusterId')}\",\n            \"timeout_seconds\": 0\n        },\n        {\n            \"task_key\": \"archive_video\",\n            \"depends_on\": [\n                {\n                    \"task_key\": \"cluster_contractor_identified_defects_across_video\"\n                },\n                {\n                    \"task_key\": \"cluster_AI_identified_defects\"\n                }\n            ],\n            \"notebook_task\": {\n                \"notebook_path\": \"/AI-ML/Sewer CCTV/008_archive_video\",\n                \"base_parameters\": {\n                    \"video_id\": \"\",\n                    \"priority\": \"\"\n                },\n                \"source\": \"WORKSPACE\"\n            },\n            \"existing_cluster_id\": \"@{variables('ClusterId')}\",\n            \"timeout_seconds\": 0\n        },\n        {\n            \"task_key\": \"Save_Data_To_Azure_SQL\",\n            \"depends_on\": [\n                {\n                    \"task_key\": \"archive_video\"\n                }\n            ],\n            \"notebook_task\": {\n                \"notebook_path\": \"/AI-ML/Sewer CCTV/009_save_to_azure_SQL\",\n                \"source\": \"WORKSPACE\"\n            },\n            \"job_cluster_key\": \"sewercctv-job-cluster\",\n            \"timeout_seconds\": 0\n        }\n    ],\n    \"job_clusters\": [\n        {\n            \"job_cluster_key\": \"sewercctv-job-cluster\",\n            \"new_cluster\": {\n                \"cluster_name\": \"\",\n                \"spark_version\": \"10.4.x-cpu-ml-scala2.12\",\n                \"spark_conf\": {\n                    \"spark.databricks.delta.preview.enabled\": \"true\"\n                },\n                \"instance_pool_id\": \"@{variables('JobPoolId')}\",\n                \"data_security_mode\": \"LEGACY_SINGLE_USER_STANDARD\",\n                \"runtime_engine\": \"STANDARD\",\n                \"num_workers\": 5\n            }\n        }\n    ],\n    \"access_control_list\": [\n        {\n            \"user_name\": \"onyu@sydneywater.com.au\",\n            \"permission_level\": \"IS_OWNER\"\n        }\n    ],\n    \"format\": \"MULTI_TASK\"\n}",
+                                    "type": "Expression"
+                                }
+                            }
+                        },
+                        {
+                            "name": "set-sewer-cctv-pipeline-job-id-variable-new_copy1",
+                            "type": "SetVariable",
+                            "dependsOn": [
+                                {
+                                    "activity": "create-sewer-cctv-pipeline-job",
+                                    "dependencyConditions": [
+                                        "Succeeded"
+                                    ]
+                                }
+                            ],
+                            "userProperties": [],
+                            "typeProperties": {
+                                "variableName": "PipelineJobID",
+                                "value": {
+                                    "value": "@string(activity('create-sewer-cctv-pipeline-job').output.job_id)",
+                                    "type": "Expression"
+                                }
+                            }
+                        },
+                        {
+                            "name": "set-sewer-cctv-pipeline-exists-variable-new_copy1",
+                            "description": "true",
+                            "type": "SetVariable",
+                            "dependsOn": [
+                                {
+                                    "activity": "set-sewer-cctv-pipeline-job-id-variable-new_copy1",
+                                    "dependencyConditions": [
+                                        "Succeeded"
+                                    ]
+                                }
+                            ],
+                            "userProperties": [],
+                            "typeProperties": {
+                                "variableName": "PipelineJobExists",
+                                "value": true
+                            }
+                        }
+                    ],
+                    "ifTrueActivities": [
+                        {
+                            "name": "set-sewer-cctv-pipeline-job-id",
+                            "type": "SetVariable",
+                            "dependsOn": [],
+                            "userProperties": [],
+                            "typeProperties": {
+                                "variableName": "PipelineJobID",
+                                "value": {
+                                    "value": "@string(activity('filter-sewer-cctv-pipeline-job').output.Value[0].job_id)",
+                                    "type": "Expression"
+                                }
+                            }
+                        }
+                    ]
+                }
+            },
+            {
+                "name": "get-bearer-token",
+                "type": "WebActivity",
+                "dependsOn": [],
+                "policy": {
+                    "timeout": "0.12:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "url": {
+                        "value": "@concat('https://', pipeline().globalParameters.keyVaultName, '.vault.azure.net/secrets/databricks-token?api-version=7.0')",
+                        "type": "Expression"
+                    },
+                    "method": "GET",
+                    "authentication": {
+                        "type": "MSI",
+                        "resource": "https://vault.azure.net"
+                    }
+                }
+            },
+            {
+                "name": "execute-cluster-deployment",
+                "type": "ExecutePipeline",
+                "dependsOn": [
+                    {
+                        "activity": "set-secret-variable",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    },
+                    {
+                        "activity": "set-job-pool-id",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "userProperties": [],
+                "typeProperties": {
+                    "pipeline": {
+                        "referenceName": "util-cluster-deployment",
+                        "type": "PipelineReference"
+                    },
+                    "waitOnCompletion": true,
+                    "parameters": {
+                        "DatabricksSecret": {
+                            "value": "@variables('DatabricksSecret')",
+                            "type": "Expression"
+                        },
+                        "ClusterName": "sewer-cctv",
+                        "MinWorkers": "2",
+                        "MaxWorkers": "10",
+                        "JobPoolId": {
+                            "value": "@variables('JobPoolId')",
+                            "type": "Expression"
+                        }
+                    }
+                }
+            },
+            {
+                "name": "get-databricks-job-pools",
+                "type": "WebActivity",
+                "dependsOn": [
+                    {
+                        "activity": "run-job-pool-deployment",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "0.12:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "url": "https://australiaeast.azuredatabricks.net/api/2.0/instance-pools/list",
+                    "method": "GET",
+                    "headers": {
+                        "Authorization": {
+                            "value": "Bearer @{variables('DatabricksSecret')}",
+                            "type": "Expression"
+                        }
+                    },
+                    "body": {
+                        "autoscale": {
+                            "min_workers": 2,
+                            "max_workers": 10
+                        },
+                        "cluster_name": "sewer-cctv",
+                        "spark_version": "10.4.x-cpu-ml-scala2.12",
+                        "spark_conf": {
+                            "spark.databricks.delta.preview.enabled": "true"
+                        },
+                        "ssh_public_keys": [],
+                        "autotermination_minutes": 60,
+                        "init_scripts": [],
+                        "instance_pool_id": "1024-005500-twain3-pool-jk2lh0go",
+                        "driver_instance_pool_id": "1024-005500-twain3-pool-jk2lh0go",
+                        "runtime_engine": "STANDARD"
+                    }
+                }
+            },
+            {
+                "name": "get-databricks-clusters",
+                "type": "WebActivity",
+                "dependsOn": [
+                    {
+                        "activity": "execute-cluster-deployment",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "0.12:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "url": "https://australiaeast.azuredatabricks.net/api/2.0/clusters/list",
+                    "method": "GET",
+                    "headers": {
+                        "Authorization": {
+                            "value": "Bearer @{variables('DatabricksSecret')}",
+                            "type": "Expression"
+                        }
+                    },
+                    "body": {
+                        "autoscale": {
+                            "min_workers": 2,
+                            "max_workers": 10
+                        },
+                        "cluster_name": "sewer-cctv",
+                        "spark_version": "10.4.x-cpu-ml-scala2.12",
+                        "spark_conf": {
+                            "spark.databricks.delta.preview.enabled": "true"
+                        },
+                        "ssh_public_keys": [],
+                        "autotermination_minutes": 60,
+                        "init_scripts": [],
+                        "instance_pool_id": "1024-005500-twain3-pool-jk2lh0go",
+                        "driver_instance_pool_id": "1024-005500-twain3-pool-jk2lh0go",
+                        "runtime_engine": "STANDARD"
+                    }
+                }
+            },
+            {
+                "name": "check-cluster-exists",
+                "type": "ForEach",
+                "dependsOn": [
+                    {
+                        "activity": "get-databricks-clusters",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "userProperties": [],
+                "typeProperties": {
+                    "items": {
+                        "value": "@activity('get-databricks-clusters').output.clusters",
+                        "type": "Expression"
+                    },
+                    "activities": [
+                        {
+                            "name": "check-cluster-name-is-sewer-cctv",
+                            "type": "IfCondition",
+                            "dependsOn": [],
+                            "userProperties": [],
+                            "typeProperties": {
+                                "expression": {
+                                    "value": "@equals(item().cluster_name, 'sewer-cctv')",
+                                    "type": "Expression"
+                                },
+                                "ifTrueActivities": [
+                                    {
+                                        "name": "set-cluster-exists",
+                                        "type": "SetVariable",
+                                        "dependsOn": [
+                                            {
+                                                "activity": "set-cluster-id",
+                                                "dependencyConditions": [
+                                                    "Succeeded"
+                                                ]
+                                            }
+                                        ],
+                                        "userProperties": [],
+                                        "typeProperties": {
+                                            "variableName": "ClusterExists",
+                                            "value": true
+                                        }
+                                    },
+                                    {
+                                        "name": "set-cluster-id",
+                                        "type": "SetVariable",
+                                        "dependsOn": [],
+                                        "userProperties": [],
+                                        "typeProperties": {
+                                            "variableName": "ClusterId",
+                                            "value": {
+                                                "value": "@item().cluster_id",
+                                                "type": "Expression"
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            },
+            {
+                "name": "get-mlflow-models",
+                "type": "WebActivity",
+                "dependsOn": [
+                    {
+                        "activity": "set-secret-variable",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "0.12:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "url": "https://australiaeast.azuredatabricks.net/api/2.0/mlflow/registered-models/list",
+                    "method": "GET",
+                    "headers": {
+                        "Authorization": {
+                            "value": "Bearer @{variables('DatabricksSecret')}",
+                            "type": "Expression"
+                        }
+                    }
+                }
+            },
+            {
+                "name": "if-jobs-exist",
+                "type": "IfCondition",
+                "dependsOn": [
+                    {
+                        "activity": "get-databricks-jobs",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "userProperties": [],
+                "typeProperties": {
+                    "expression": {
+                        "value": "@bool(contains(activity('get-databricks-jobs').output, 'jobs'))",
+                        "type": "Expression"
+                    },
+                    "ifTrueActivities": [
+                        {
+                            "name": "filter-sewer-cctv-pipeline-job",
+                            "type": "Filter",
+                            "dependsOn": [],
+                            "userProperties": [],
+                            "typeProperties": {
+                                "items": {
+                                    "value": "@activity('get-databricks-jobs').output.jobs",
+                                    "type": "Expression"
+                                },
+                                "condition": {
+                                    "value": "@equals(item().settings.name, 'sewer-cctv-pipeline')",
+                                    "type": "Expression"
+                                }
+                            }
+                        },
+                        {
+                            "name": "filter-register-sewer-cctv-model-job",
+                            "type": "Filter",
+                            "dependsOn": [],
+                            "userProperties": [],
+                            "typeProperties": {
+                                "items": {
+                                    "value": "@activity('get-databricks-jobs').output.jobs",
+                                    "type": "Expression"
+                                },
+                                "condition": {
+                                    "value": "@equals(item().settings.name, 'deploy-sewer-cctv-tasks')",
+                                    "type": "Expression"
+                                }
+                            }
+                        },
+                        {
+                            "name": "set-pipeline-job-exists",
+                            "type": "SetVariable",
+                            "dependsOn": [
+                                {
+                                    "activity": "filter-sewer-cctv-pipeline-job",
+                                    "dependencyConditions": [
+                                        "Succeeded"
+                                    ]
+                                }
+                            ],
+                            "userProperties": [],
+                            "typeProperties": {
+                                "variableName": "PipelineJobExists",
+                                "value": {
+                                    "value": "@not(empty(activity('filter-sewer-cctv-pipeline-job').output.Value))",
+                                    "type": "Expression"
+                                }
+                            }
+                        },
+                        {
+                            "name": "set-register-model-job-exists",
+                            "type": "SetVariable",
+                            "dependsOn": [
+                                {
+                                    "activity": "filter-register-sewer-cctv-model-job",
+                                    "dependencyConditions": [
+                                        "Succeeded"
+                                    ]
+                                }
+                            ],
+                            "userProperties": [],
+                            "typeProperties": {
+                                "variableName": "RegisterModelJobExists",
+                                "value": {
+                                    "value": "@not(empty(activity('filter-register-sewer-cctv-model-job').output.Value))",
+                                    "type": "Expression"
+                                }
+                            }
+                        }
+                    ]
+                }
+            },
+            {
+                "name": "filter-job-pool-batch-exists",
+                "type": "Filter",
+                "dependsOn": [
+                    {
+                        "activity": "get-databricks-job-pools",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "userProperties": [],
+                "typeProperties": {
+                    "items": {
+                        "value": "@activity('get-databricks-job-pools').output.instance_pools",
+                        "type": "Expression"
+                    },
+                    "condition": {
+                        "value": "@equals(item().instance_pool_name, pipeline().parameters.BatchPoolName)",
+                        "type": "Expression"
+                    }
+                }
+            },
+            {
+                "name": "set-job-pool-id",
+                "type": "SetVariable",
+                "dependsOn": [
+                    {
+                        "activity": "filter-job-pool-batch-exists",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "userProperties": [],
+                "typeProperties": {
+                    "variableName": "JobPoolId",
+                    "value": {
+                        "value": "@string(activity('filter-job-pool-batch-exists').output.Value[0].instance_pool_id)",
+                        "type": "Expression"
+                    }
+                }
+            },
+            {
+                "name": "run-job-pool-deployment",
+                "type": "ExecutePipeline",
+                "dependsOn": [
+                    {
+                        "activity": "set-secret-variable",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "userProperties": [],
+                "typeProperties": {
+                    "pipeline": {
+                        "referenceName": "util-job-pool-deployment",
+                        "type": "PipelineReference"
+                    },
+                    "waitOnCompletion": true,
+                    "parameters": {
+                        "DatabricksSecret": {
+                            "value": "@variables('DatabricksSecret')",
+                            "type": "Expression"
+                        },
+                        "JobPoolName": {
+                            "value": "@pipeline().parameters.BatchPoolName",
+                            "type": "Expression"
+                        },
+                        "ApplicationTag": "Sewer CCTV Application",
+                        "MaxCapacity": "75",
+                        "IdleTerminationTime": "20"
+                    }
+                }
+            },
+            {
+                "name": "if-registered-models-exist",
+                "type": "IfCondition",
+                "dependsOn": [
+                    {
+                        "activity": "get-mlflow-models",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "userProperties": [],
+                "typeProperties": {
+                    "expression": {
+                        "value": "@bool(contains(activity('get-mlflow-models').output, 'registered_models'))",
+                        "type": "Expression"
+                    },
+                    "ifTrueActivities": [
+                        {
+                            "name": "filter-sewer-cctv-model",
+                            "type": "Filter",
+                            "dependsOn": [],
+                            "userProperties": [],
+                            "typeProperties": {
+                                "items": {
+                                    "value": "@activity('get-mlflow-models').output.registered_models",
+                                    "type": "Expression"
+                                },
+                                "condition": {
+                                    "value": "@equals(item().latest_versions[0].name, 'sewer-cctv-image-classifier')",
+                                    "type": "Expression"
+                                }
+                            }
+                        },
+                        {
+                            "name": "set-model-exists",
+                            "type": "SetVariable",
+                            "dependsOn": [
+                                {
+                                    "activity": "filter-sewer-cctv-model",
+                                    "dependencyConditions": [
+                                        "Succeeded"
+                                    ]
+                                }
+                            ],
+                            "userProperties": [],
+                            "typeProperties": {
+                                "variableName": "ModelExists",
+                                "value": {
+                                    "value": "@and(\n    not(empty(activity('filter-sewer-cctv-model').output.Value)),\n    equals(activity('filter-sewer-cctv-model').output.Value[0].latest_versions[0].current_stage, 'Production')\n)",
+                                    "type": "Expression"
+                                }
+                            }
+                        }
+                    ]
+                }
+            },
+            {
+                "name": "run-azure-sql-deployment",
+                "type": "ExecutePipeline",
+                "dependsOn": [],
+                "userProperties": [],
+                "typeProperties": {
+                    "pipeline": {
+                        "referenceName": "scctv-deploy-azure-sql-tables",
+                        "type": "PipelineReference"
+                    },
+                    "waitOnCompletion": true
+                }
+            }
+        ],
+        "parameters": {
+            "DatabricksJobsUser": {
+                "type": "string",
+                "defaultValue": "onyu@sydneywater.com.au"
+            },
+            "BatchPoolName": {
+                "type": "string",
+                "defaultValue": "SCCTV_POOL"
+            }
+        },
+        "variables": {
+            "PipelineJobExists": {
+                "type": "Boolean",
+                "defaultValue": false
+            },
+            "PipelineJobID": {
+                "type": "String"
+            },
+            "DatabricksSecret": {
+                "type": "String"
+            },
+            "ModelExists": {
+                "type": "Boolean",
+                "defaultValue": false
+            },
+            "RegisterModelJobExists": {
+                "type": "Boolean",
+                "defaultValue": false
+            },
+            "RegisterModelJobID": {
+                "type": "String"
+            },
+            "RegisterModelState": {
+                "type": "String"
+            },
+            "JobPoolExists": {
+                "type": "Boolean",
+                "defaultValue": false
+            },
+            "JobPoolId": {
+                "type": "String"
+            },
+            "ClusterExists": {
+                "type": "Boolean",
+                "defaultValue": false
+            },
+            "ClusterId": {
+                "type": "String"
+            }
+        },
+        "folder": {
+            "name": "AI-ML/Sewer CCTV"
+        },
+        "annotations": []
+    }
+}

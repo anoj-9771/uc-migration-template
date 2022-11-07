@@ -1,0 +1,171 @@
+{
+    "name": "scctv-wait-until-databricks-job-complete",
+    "properties": {
+        "activities": [
+            {
+                "name": "wait_for_job_status_complete",
+                "type": "Until",
+                "dependsOn": [
+                    {
+                        "activity": "ForEach1",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "userProperties": [],
+                "typeProperties": {
+                    "expression": {
+                        "value": "@or(equals(activity('check-job-status-register-model').output.metadata.state.life_cycle_state, 'TERMINATED'), equals(activity('check-job-status-register-model').output.metadata.state.life_cycle_state, 'SKIPPED'))",
+                        "type": "Expression"
+                    },
+                    "activities": [
+                        {
+                            "name": "check-job-status-register-model",
+                            "type": "WebActivity",
+                            "dependsOn": [
+                                {
+                                    "activity": "wait-60-seconds",
+                                    "dependencyConditions": [
+                                        "Succeeded"
+                                    ]
+                                }
+                            ],
+                            "policy": {
+                                "timeout": "0.12:00:00",
+                                "retry": 0,
+                                "retryIntervalInSeconds": 30,
+                                "secureOutput": false,
+                                "secureInput": false
+                            },
+                            "userProperties": [],
+                            "typeProperties": {
+                                "url": {
+                                    "value": "@concat('https://australiaeast.azuredatabricks.net/api/2.1/jobs/runs/get-output?run_id=', variables('Save_Data_To_Azure_SQLRunID'))",
+                                    "type": "Expression"
+                                },
+                                "method": "GET",
+                                "headers": {
+                                    "Authorization": {
+                                        "value": "Bearer @{pipeline().parameters.DatabricksSecret}",
+                                        "type": "Expression"
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "name": "wait-60-seconds",
+                            "type": "Wait",
+                            "dependsOn": [],
+                            "userProperties": [],
+                            "typeProperties": {
+                                "waitTimeInSeconds": 60
+                            }
+                        }
+                    ],
+                    "timeout": "0.12:00:00"
+                }
+            },
+            {
+                "name": "ForEach1",
+                "type": "ForEach",
+                "dependsOn": [
+                    {
+                        "activity": "get-run-task-id",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "userProperties": [],
+                "typeProperties": {
+                    "items": {
+                        "value": "@activity('get-run-task-id').output.tasks",
+                        "type": "Expression"
+                    },
+                    "activities": [
+                        {
+                            "name": "If Condition1",
+                            "type": "IfCondition",
+                            "dependsOn": [],
+                            "userProperties": [],
+                            "typeProperties": {
+                                "expression": {
+                                    "value": "@equals(item().task_key, 'Save_Data_To_Azure_SQL')",
+                                    "type": "Expression"
+                                },
+                                "ifTrueActivities": [
+                                    {
+                                        "name": "set-run-id",
+                                        "type": "SetVariable",
+                                        "dependsOn": [],
+                                        "userProperties": [],
+                                        "typeProperties": {
+                                            "variableName": "Save_Data_To_Azure_SQLRunID",
+                                            "value": {
+                                                "value": "@string(item().run_id)",
+                                                "type": "Expression"
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            },
+            {
+                "name": "get-run-task-id",
+                "type": "WebActivity",
+                "dependsOn": [],
+                "policy": {
+                    "timeout": "0.12:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "url": {
+                        "value": "@concat('https://australiaeast.azuredatabricks.net/api/2.1/jobs/runs/get?run_id=', pipeline().parameters.pipelineRunID,'&active_only=true&expand_tasks=true')",
+                        "type": "Expression"
+                    },
+                    "method": "GET",
+                    "headers": {
+                        "Authorization": {
+                            "value": "Bearer @{pipeline().parameters.DatabricksSecret}",
+                            "type": "Expression"
+                        }
+                    }
+                }
+            }
+        ],
+        "parameters": {
+            "RunID": {
+                "type": "string"
+            },
+            "DatabricksSecret": {
+                "type": "string"
+            },
+            "pipelineRunID": {
+                "type": "string"
+            }
+        },
+        "variables": {
+            "RegisterModelState": {
+                "type": "String"
+            },
+            "Save_Data_To_Azure_SQLRunID": {
+                "type": "String"
+            },
+            "sewer-cctv-pipeline-run-id": {
+                "type": "String"
+            }
+        },
+        "folder": {
+            "name": "AI-ML/Sewer CCTV"
+        },
+        "annotations": []
+    }
+}

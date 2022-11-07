@@ -1,0 +1,26 @@
+{
+	"name": "Oracle_Server",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_Oracle",
+			"type": "LinkedServiceReference",
+			"parameters": {
+				"kvSecret": {
+					"value": "@dataset().kvSecret",
+					"type": "Expression"
+				}
+			}
+		},
+		"parameters": {
+			"kvSecret": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "MDP-Framework/Oracle"
+		},
+		"annotations": [],
+		"type": "OracleTable",
+		"schema": []
+	}
+}

@@ -1,0 +1,89 @@
+{
+	"name": "wait-until-databricks-job-complete",
+	"properties": {
+		"activities": [
+			{
+				"name": "wait_for_job_status_complete",
+				"type": "Until",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@or(equals(activity('check-job-status-register-model').output.metadata.state.life_cycle_state, 'TERMINATED'), equals(activity('check-job-status-register-model').output.metadata.state.life_cycle_state, 'SKIPPED'))",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "check-job-status-register-model",
+							"type": "WebActivity",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"url": {
+									"value": "@concat('https://australiaeast.azuredatabricks.net/api/2.1/jobs/runs/get-output?run_id=', pipeline().parameters.RunID)",
+									"type": "Expression"
+								},
+								"method": "GET",
+								"headers": {
+									"Authorization": {
+										"value": "Bearer @{pipeline().parameters.DatabricksSecret}",
+										"type": "Expression"
+									}
+								}
+							}
+						},
+						{
+							"name": "wait",
+							"type": "Wait",
+							"dependsOn": [
+								{
+									"activity": "check-job-status-register-model",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"waitTimeInSeconds": 15
+							}
+						}
+					],
+					"timeout": "0.12:00:00"
+				}
+			}
+		],
+		"parameters": {
+			"RunID": {
+				"type": "string"
+			},
+			"DatabricksSecret": {
+				"type": "string"
+			}
+		},
+		"variables": {
+			"RegisterModelState": {
+				"type": "String"
+			},
+			"Save_Data_To_Azure_SQLRunID": {
+				"type": "String"
+			},
+			"sewer-cctv-pipeline-run-id": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "AI-ML"
+		},
+		"annotations": [],
+		"lastPublishTime": "2022-09-19T01:00:40Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

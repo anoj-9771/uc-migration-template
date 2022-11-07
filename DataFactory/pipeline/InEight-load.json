@@ -1,0 +1,277 @@
+{
+	"name": "InEight-load",
+	"properties": {
+		"activities": [
+			{
+				"name": "Get Project List",
+				"type": "WebActivity",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"url": "https://au2.doc.ineight.com//TBWS/session.asmx/GetUserProjectsList",
+					"method": "POST",
+					"body": {
+						"userID": "SWADMIN",
+						"companyID": "SW",
+						"password": "20SWpdBSi20#"
+					}
+				}
+			},
+			{
+				"name": "Set Projects",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "Get Project List",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "projects",
+					"value": {
+						"value": "@json(activity('Get Project List').output.d.fprojects)",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "ForEach Project",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Set Projects",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@variables('projects')",
+						"type": "Expression"
+					},
+					"isSequential": true,
+					"activities": [
+						{
+							"name": "Set ProjectNo",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "projectNo",
+								"value": {
+									"value": "@item().ProjNo",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "Set Project Key Int",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "projectKeyInt",
+								"value": {
+									"value": "@string(item().Int_Proj)",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "Get Project Token",
+							"type": "WebActivity",
+							"dependsOn": [
+								{
+									"activity": "Set ProjectNo",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								},
+								{
+									"activity": "Set Project Key Int",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"url": "https://au2.doc.ineight.com//TBWS/session.asmx/LogonTFAWithApplication",
+								"method": "POST",
+								"headers": {
+									"Content-Type": "application/x-www-form-urlencoded",
+									"Accept": "application/json"
+								},
+								"body": {
+									"value": "userID=SWADMIN&companyID=SW&password=20SWpdBSi20%23&tfaToken=&projNo=@{variables('projectNo')}&connectingProduct=ADF'",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "Set Session Key",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "Get Project Token",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "sessionKey",
+								"value": {
+									"value": "@json(replace(string(json(xml(activity('Get Project Token').output.response)).string),'#','')).text",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "Get Project Details",
+							"type": "WebActivity",
+							"dependsOn": [
+								{
+									"activity": "Set Session Key",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"url": "https://au2.doc.ineight.com//TBWS/project.asmx/GetProjectDetails",
+								"method": "POST",
+								"headers": {
+									"Content-Type": "application/x-www-form-urlencoded"
+								},
+								"body": {
+									"value": "sessionKey=@{variables('sessionKey')}&projectIntKey=@{variables('projectKeyInt')}",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "Logoff Session",
+							"type": "WebActivity",
+							"dependsOn": [
+								{
+									"activity": "Get Project Details",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								},
+								{
+									"activity": "List Documents For All Projects",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"url": "https://au2.doc.ineight.com//TBWS/session.asmx/LogoffStatus",
+								"method": "POST",
+								"headers": {
+									"Content-Type": "application/x-www-form-urlencoded",
+									"Accept": "application/json"
+								},
+								"body": {
+									"value": "sessionKey=@{variables('sessionKey')}",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "List Documents For All Projects",
+							"description": "Requires pagination",
+							"type": "WebActivity",
+							"dependsOn": [
+								{
+									"activity": "Set Session Key",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"url": "https://au2.doc.ineight.com//TBWS/document.asmx/ListDocument",
+								"method": "POST",
+								"headers": {
+									"Content-Type": "application/x-www-form-urlencoded"
+								},
+								"body": {
+									"value": "sessionKey=@{variables('sessionKey')}&documentFilter=&orderBy=&startRowPosition=0&noOfRows=100",
+									"type": "Expression"
+								}
+							}
+						}
+					]
+				}
+			}
+		],
+		"variables": {
+			"projects": {
+				"type": "Array"
+			},
+			"projectNo": {
+				"type": "String"
+			},
+			"projectKeyInt": {
+				"type": "String"
+			},
+			"sessionKey": {
+				"type": "String"
+			},
+			"bearerToken": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "MDP-Framework/SourceHandler/InEight"
+		},
+		"annotations": []
+	}
+}

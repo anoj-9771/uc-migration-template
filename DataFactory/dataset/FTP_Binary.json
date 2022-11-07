@@ -1,0 +1,51 @@
+{
+	"name": "FTP_Binary",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_FTP",
+			"type": "LinkedServiceReference",
+			"parameters": {
+				"host": {
+					"value": "@dataset().host",
+					"type": "Expression"
+				},
+				"username": {
+					"value": "@dataset().username",
+					"type": "Expression"
+				},
+				"password": {
+					"value": "@dataset().password",
+					"type": "Expression"
+				}
+			}
+		},
+		"parameters": {
+			"host": {
+				"type": "string"
+			},
+			"filePath": {
+				"type": "string"
+			},
+			"username": {
+				"type": "string"
+			},
+			"password": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "MDP-Framework/FTP"
+		},
+		"annotations": [],
+		"type": "Binary",
+		"typeProperties": {
+			"location": {
+				"type": "FtpServerLocation",
+				"fileName": {
+					"value": "@if(startswith(dataset().filePath, '/'), substring(dataset().filePath, 1, add(length(dataset().filePath),-1)), dataset().filePath)",
+					"type": "Expression"
+				}
+			}
+		}
+	}
+}

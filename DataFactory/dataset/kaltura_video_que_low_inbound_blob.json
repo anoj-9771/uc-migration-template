@@ -1,0 +1,22 @@
+{
+	"name": "kaltura_video_que_low_inbound_blob",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_AzureBlobStorage",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "AI-ML/Sewer CCTV"
+		},
+		"annotations": [],
+		"type": "Binary",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"folderPath": "queue-low",
+				"container": "sewercctvvideos"
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}
