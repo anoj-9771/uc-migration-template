@@ -1,0 +1,34 @@
+{
+	"name": "HTTP_Binary_Zip",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_HTTP_Anonymous",
+			"type": "LinkedServiceReference",
+			"parameters": {
+				"url": {
+					"value": "@dataset().httpUrl",
+					"type": "Expression"
+				}
+			}
+		},
+		"parameters": {
+			"httpUrl": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "MDP-Framework/HTTP"
+		},
+		"annotations": [],
+		"type": "Binary",
+		"typeProperties": {
+			"location": {
+				"type": "HttpServerLocation"
+			},
+			"compression": {
+				"type": "ZipDeflate",
+				"level": "Optimal"
+			}
+		}
+	}
+}

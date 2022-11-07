@@ -1,0 +1,350 @@
+{
+	"name": "Cleansed",
+	"properties": {
+		"activities": [
+			{
+				"name": "if-cleansed-handler",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "log-status-start",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@not(empty(pipeline().parameters.task.CleansedHandler))",
+						"type": "Expression"
+					},
+					"ifTrueActivities": [
+						{
+							"name": "cleansed-databricks",
+							"type": "DatabricksNotebook",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"notebookPath": {
+									"value": "/MDP-Framework/Zone/@{pipeline().parameters.task.CleansedHandler}",
+									"type": "Expression"
+								},
+								"baseParameters": {
+									"task": {
+										"value": "@{pipeline().parameters.task}",
+										"type": "Expression"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "LS-AzureDatabricks_DefinedCluster",
+								"type": "LinkedServiceReference",
+								"parameters": {
+									"kvSecret": "databricks-token",
+									"clusterId": {
+										"value": "@pipeline().parameters.ClusterId",
+										"type": "Expression"
+									}
+								}
+							}
+						},
+						{
+							"name": "log-databricks",
+							"type": "ExecutePipeline",
+							"dependsOn": [
+								{
+									"activity": "cleansed-databricks",
+									"dependencyConditions": [
+										"Completed"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "log-message",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": false,
+								"parameters": {
+									"ID": {
+										"value": "@pipeline().parameters.task.ID",
+										"type": "Expression"
+									},
+									"ActivityType": "cleansed-databricks",
+									"Message": {
+										"value": "@{activity('cleansed-databricks')}",
+										"type": "Expression"
+									}
+								}
+							}
+						},
+						{
+							"name": "raw-databricks-fail",
+							"type": "Fail",
+							"dependsOn": [
+								{
+									"activity": "cleansed-databricks",
+									"dependencyConditions": [
+										"Failed"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"message": {
+									"value": "@activity('cleansed-databricks').output.Error",
+									"type": "Expression"
+								},
+								"errorCode": "500"
+							}
+						},
+						{
+							"name": "set-cleansed-sink-flag",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "cleansed-databricks",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "CleansedSinkFlag",
+								"value": {
+									"value": "@string(bool(contains(activity('cleansed-databricks').output,'runOutput')))",
+									"type": "Expression"
+								}
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "log-status-start",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "log-status-update",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": false,
+					"parameters": {
+						"ID": {
+							"value": "@pipeline().parameters.task.ID",
+							"type": "Expression"
+						},
+						"Property": "CleansedStartDTS",
+						"Value": {
+							"value": "@formatDateTime(convertTimeZone(utcnow(), 'UTC', 'AUS Eastern Standard Time'), 'yyyy-MM-dd HH:mm:ss')",
+							"type": "Expression"
+						},
+						"TableName": "ExtractLoadStatus"
+					}
+				}
+			},
+			{
+				"name": "log-status-end",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "if-cleansed-handler",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "log-status-update",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": false,
+					"parameters": {
+						"ID": {
+							"value": "@pipeline().parameters.task.ID",
+							"type": "Expression"
+						},
+						"Property": "CleansedEndDTS",
+						"Value": {
+							"value": "@formatDateTime(convertTimeZone(utcnow(), 'UTC', 'AUS Eastern Standard Time'), 'yyyy-MM-dd HH:mm:ss')",
+							"type": "Expression"
+						},
+						"TableName": "ExtractLoadStatus"
+					}
+				}
+			},
+			{
+				"name": "log-status-fail",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "if-cleansed-handler",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "log-status-update",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": false,
+					"parameters": {
+						"ID": {
+							"value": "@pipeline().parameters.task.ID",
+							"type": "Expression"
+						},
+						"Property": "CleansedStatus",
+						"Value": "Fail",
+						"TableName": "ExtractLoadStatus"
+					}
+				}
+			},
+			{
+				"name": "log-status-success",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "if-cleansed-handler",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "log-status-update",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": false,
+					"parameters": {
+						"ID": {
+							"value": "@pipeline().parameters.task.ID",
+							"type": "Expression"
+						},
+						"Property": "CleansedStatus",
+						"Value": "Success",
+						"TableName": "ExtractLoadStatus"
+					}
+				}
+			},
+			{
+				"name": "log-status-end-fail",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "if-cleansed-handler",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "log-status-update",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": false,
+					"parameters": {
+						"ID": {
+							"value": "@pipeline().parameters.task.ID",
+							"type": "Expression"
+						},
+						"Property": "CleansedEndDTS",
+						"Value": {
+							"value": "@formatDateTime(convertTimeZone(utcnow(), 'UTC', 'AUS Eastern Standard Time'), 'yyyy-MM-dd HH:mm:ss')",
+							"type": "Expression"
+						},
+						"TableName": "ExtractLoadStatus"
+					}
+				}
+			},
+			{
+				"name": "if-cleansed-sink-flag",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "if-cleansed-handler",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@equals(variables('CleansedSinkFlag'),'True')",
+						"type": "Expression"
+					},
+					"ifTrueActivities": [
+						{
+							"name": "task-cleansed-sink-count",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "log-status-update",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": false,
+								"parameters": {
+									"ID": {
+										"value": "@pipeline().parameters.task.ID",
+										"type": "Expression"
+									},
+									"Property": "CleansedSinkCount",
+									"Value": {
+										"value": "@string(activity('cleansed-databricks').output.runOutput.CleansedSinkCount)",
+										"type": "Expression"
+									}
+								}
+							}
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"task": {
+				"type": "object"
+			},
+			"ClusterId": {
+				"type": "string"
+			}
+		},
+		"variables": {
+			"CleansedSinkCount": {
+				"type": "String"
+			},
+			"CleansedSinkFlag": {
+				"type": "String"
+			},
+			"RawSinkFlag": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "MDP-Framework/Zone"
+		},
+		"annotations": []
+	}
+}

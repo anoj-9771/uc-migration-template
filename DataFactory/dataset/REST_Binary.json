@@ -1,0 +1,26 @@
+{
+	"name": "REST_Binary",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_REST_Anonymous",
+			"type": "LinkedServiceReference",
+			"parameters": {
+				"url": {
+					"value": "@dataset().url",
+					"type": "Expression"
+				}
+			}
+		},
+		"parameters": {
+			"url": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "MDP-Framework/REST"
+		},
+		"annotations": [],
+		"type": "RestResource",
+		"schema": []
+	}
+}

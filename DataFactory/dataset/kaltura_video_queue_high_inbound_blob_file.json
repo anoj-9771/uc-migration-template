@@ -1,0 +1,31 @@
+{
+	"name": "kaltura_video_queue_high_inbound_blob_file",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_AzureBlobStorage",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"fileName": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "AI-ML/Sewer CCTV"
+		},
+		"annotations": [],
+		"type": "Binary",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": {
+					"value": "@dataset().fileName",
+					"type": "Expression"
+				},
+				"folderPath": "queue-high",
+				"container": "sewercctvvideos"
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}
