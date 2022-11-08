@@ -193,8 +193,8 @@ df_cleansed = spark.sql(f"SELECT \
 	case when substr(T_TIME_SUPD,1,2) between '00' and '23' \
 			and substr(T_TIME_SUPD,3,2) between '00' and '59' \
 			and substr(T_TIME_SUPD,5,2) between '00' and '59' \
-		then ToValidDateTime(tbl.D_SUPD||' '||substr(tbl.T_TIME_SUPD,1,6)) \
-		else ToValidDateTime(tbl.D_SUPD||' 120000') end as rowSupersededTimestamp, \
+		then ToValidDateTime(D_SUPD||' '||substr(T_TIME_SUPD,1,6)) \
+		else ToValidDateTime(D_SUPD||' 120000') end as rowSupersededTimestamp, \
 	M_PROC as modifiedByProcess, \
 	C_USER_ID as modifiedByUserID, \
 	C_TERM_ID as modifiedByTerminalID, \

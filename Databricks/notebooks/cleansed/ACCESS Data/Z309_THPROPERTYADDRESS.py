@@ -190,11 +190,11 @@ df_cleansed = spark.sql(f"SELECT \
 	cast(tbl.N_PROP as int) as propertyNumber, \
 	tbl.C_STRE_GUID as streetGuideCode, \
 	tbl.C_DPID as DPID, \
-	tbl.C_FLOR_LVL as floorLevelType, \
-	ref2.itemNameAbbreviation as itemNameAbbreviation, \
+	tbl.C_FLOR_LVL as floorLevelTypeCode, \
+	ref2.itemNameAbbreviation as floorLevelType, \
 	tbl.N_FLOR_LVL as floorLevelNumber, \
-	tbl.C_FLAT_UNIT as flatUnitType, \
-	ref3.itemNameAbbreviation as itemNameAbbreviation, \
+	tbl.C_FLAT_UNIT as flatUnitTypeCode, \
+	ref3.itemNameAbbreviation as flatUnitType, \
 	tbl.N_FLAT_UNIT as flatUnitNumber, \
 	cast(tbl.N_HOUS_1 as int) as houseNumber1, \
 	tbl.T_HOUS_1_SUFX as houseNumber1Suffix, \
@@ -219,8 +219,8 @@ df_cleansed = spark.sql(f"SELECT \
 	tbl._RecordCurrent \
 	FROM {ADS_DATABASE_STAGE}.{source_object} tbl \
 left outer join cleansed.access_Z309_TLOCALGOVT ref1 on tbl.C_LGA = ref1.LGA \
-left outer join cleansed.access_Z309_TDPIDCODE ref2 on tbl.C_FLOR_LVL = ref2.itemNameAbbreviation \
-left outer join cleansed.access_Z309_TDPIDCODE ref3 on tbl.C_FLAT_UNIT = ref3.itemNameAbbreviation \
+left outer join cleansed.access_Z309_TDPIDCODE ref2 on tbl.C_FLOR_LVL = ref2.itemNameAbbreviation and ref2.itemCode = 'FLT' and ref2.validForUse = 'V' \
+left outer join cleansed.access_Z309_TDPIDCODE ref3 on tbl.C_FLAT_UNIT = ref3.itemNameAbbreviation and ref3.itemCode = 'FUT' and ref3.validForUse = 'V' \
                                 ")
 
 # COMMAND ----------
@@ -231,11 +231,11 @@ newSchema = StructType([
 	StructField('propertyNumber',IntegerType(),False),
 	StructField('streetGuideCode',StringType(),True),
 	StructField('DPID',StringType(),True),
+	StructField('floorLevelTypeCode',StringType(),True),
 	StructField('floorLevelType',StringType(),True),
-	StructField('itemNameAbbreviation',StringType(),True),
 	StructField('floorLevelNumber',StringType(),True),
+	StructField('flatUnitTypeCode',StringType(),True),
 	StructField('flatUnitType',StringType(),True),
-	StructField('itemNameAbbreviation',StringType(),True),
 	StructField('flatUnitNumber',StringType(),True),
 	StructField('houseNumber1',IntegerType(),False),
 	StructField('houseNumber1Suffix',StringType(),True),

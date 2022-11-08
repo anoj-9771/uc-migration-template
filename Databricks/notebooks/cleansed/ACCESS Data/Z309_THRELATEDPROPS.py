@@ -187,9 +187,9 @@ DeltaSaveToDeltaTable (
 df_cleansed = spark.sql(f"SELECT \
 	cast(tbl.N_PROP as int) as propertyNumber, \
 	cast(tbl.N_RELA_PROP as int) as relatedPropertyNumber, \
-	tbl.C_PROP_RELA_TYPE as propertyRelationshipTypeCode, \
-	ref1.propertyRelationshipType as propertyRelationshipType, \
-	ToValidDate(tbl.D_RELA_PROP_UPDA) as propertyRelationshipUpdatedDate, \
+	tbl.C_PROP_RELA_TYPE as relationshipTypeCode, \
+	ref1.relationshipType as relationshipType, \
+	ToValidDate(tbl.D_RELA_PROP_UPDA) as relationshipUpdatedDate, \
 	case when substr(T_TIME_SUPD,1,2) between '00' and '23' \
 			and substr(T_TIME_SUPD,3,2) between '00' and '59' \
 			and substr(T_TIME_SUPD,5,2) between '00' and '59' \
@@ -204,7 +204,7 @@ df_cleansed = spark.sql(f"SELECT \
 	tbl._RecordDeleted, \
 	tbl._RecordCurrent \
 	FROM {ADS_DATABASE_STAGE}.{source_object} tbl \
-left outer join cleansed.access_Z309_TPROPRELATYPE ref1 on tbl.C_PROP_RELA_TYPE = ref1.propertyRelationshipType \
+left outer join cleansed.access_Z309_TPROPRELATYPE ref1 on tbl.C_PROP_RELA_TYPE = ref1.relationshipTypeCode \
                                 ")
 
 # COMMAND ----------
@@ -212,9 +212,9 @@ left outer join cleansed.access_Z309_TPROPRELATYPE ref1 on tbl.C_PROP_RELA_TYPE 
 newSchema = StructType([
 	StructField('propertyNumber',IntegerType(),False),
 	StructField('relatedPropertyNumber',IntegerType(),False),
-	StructField('propertyRelationshipTypeCode',StringType(),True),
-	StructField('propertyRelationshipType',StringType(),True),
-	StructField('propertyRelationshipUpdatedDate',DateType(),True),
+	StructField('relationshipTypeCode',StringType(),True),
+	StructField('relationshipType',StringType(),True),
+	StructField('relationshipUpdatedDate',DateType(),True),
 	StructField('rowSupersededTimestamp',TimestampType(),True),
 	StructField('modifiedByProcess',StringType(),True),
 	StructField('modifiedByUserID',StringType(),True),
@@ -231,6 +231,12 @@ newSchema = StructType([
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
 DeltaSaveDataframeDirect(df_cleansed, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", newSchema, "")
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC select *
+# MAGIC from cleansed.access_z309_threlatedprops
 
 # COMMAND ----------
 

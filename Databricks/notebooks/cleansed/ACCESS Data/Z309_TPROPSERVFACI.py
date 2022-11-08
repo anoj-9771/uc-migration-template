@@ -188,10 +188,10 @@ df_cleansed = spark.sql(f"SELECT \
 	cast(tbl.N_PROP as int) as propertyNumber, \
 	tbl.C_SERV_TYPE as serviceTypeCode, \
 	ref1.serviceType as serviceType, \
-	ToValidDate(tbl.D_PROP_SERV_CONN) as serviceConnectionDate, \
+	case when d_prop_serv_conn = '00000000' then ToValidDate(tbl.D_PROP_SERV_LIAB) else ToValidDate(tbl.D_PROP_SERV_CONN) end as serviceConnectionDate, \
 	cast(tbl.Q_PROP_SERV_WC as int) as numberOfWaterClosets, \
 	cast(tbl.Q_PROP_SERV_UC as int) as numberOfUrinaryCisterns, \
-	ToValidDate(tbl.D_PROP_SERV_AVAI) as serviceAvailableDate, \
+	case when D_PROP_SERV_AVAI = '00000000' then ToValidDate(tbl.D_PROP_SERV_LIAB) else ToValidDate(tbl.D_PROP_SERV_AVAI) end as serviceAvailableDate, \
 	ToValidDate(tbl.D_PROP_SERV_LIAB) as serviceLiableDate, \
 	cast(tbl.P_PROP_SERV_LIAB as dec(5,2)) as serviceLiablePercentage, \
 	ToValidDate(tbl.D_SERV_FACI_UPDA) as serviceDetailsUpdatedDate, \
@@ -200,7 +200,7 @@ df_cleansed = spark.sql(f"SELECT \
 	tbl._RecordDeleted, \
 	tbl._RecordCurrent \
 	FROM {ADS_DATABASE_STAGE}.{source_object} tbl \
-left outer join cleansed.access_Z309_TSERVICETYPE ref1 on tbl.C_SERV_TYPE = ref1.serviceType \
+left outer join cleansed.access_Z309_TSERVICETYPE ref1 on tbl.C_SERV_TYPE = ref1.serviceTypeCode \
                                 ")
 
 # COMMAND ----------
@@ -227,6 +227,12 @@ newSchema = StructType([
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 #Save Data frame into Cleansed Delta table (final)
 DeltaSaveDataframeDirect(df_cleansed, source_group, target_table, ADS_DATABASE_CLEANSED, ADS_CONTAINER_CLEANSED, "overwrite", newSchema, "")
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC select * 
+# MAGIC from   cleansed.access_Z309_TPROPSERVFACI
 
 # COMMAND ----------
 

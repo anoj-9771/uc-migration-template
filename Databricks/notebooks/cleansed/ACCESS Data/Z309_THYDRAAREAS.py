@@ -190,18 +190,14 @@ df_cleansed = spark.sql(f"SELECT \
 	tbl.C_PROP_AREA_TYPE as propertyAreaTypeCode, \
 	ref1.propertyAreaType as propertyAreaType, \
 	tbl.C_SUPE_LAND_USE as superiorPropertyTypeCode, \
-	ref2.propertyTypeCode as propertyTypeCode, \
 	tbl.C_LAND_USE as propertyTypeCode, \
-	ref3.propertyTypeCode as propertyTypeCode, \
 	ToValidDate(tbl.D_UPDA) as rowUpdatedDate, \
 	tbl._RecordStart, \
 	tbl._RecordEnd, \
 	tbl._RecordDeleted, \
 	tbl._RecordCurrent \
 	FROM {ADS_DATABASE_STAGE}.{source_object} tbl \
-left outer join cleansed.access_Z309_TPROPAREATYPE ref1 on tbl.C_PROP_AREA_TYPE = ref1.propertyAreaType \
-left outer join cleansed.access_Z309_TPROPTYPE ref2 on tbl.C_SUPE_LAND_USE = ref2.propertyTypeCode \
-left outer join cleansed.access_Z309_TPROPTYPE ref3 on tbl.C_LAND_USE = ref3.propertyTypeCode \
+left outer join cleansed.access_Z309_TPROPAREATYPE ref1 on tbl.C_PROP_AREA_TYPE = ref1.propertyAreaTypeCode \
                                 ")
 
 # COMMAND ----------
@@ -212,8 +208,6 @@ newSchema = StructType([
 	StructField('propertyAreaTypeCode',StringType(),True),
 	StructField('propertyAreaType',StringType(),True),
 	StructField('superiorPropertyTypeCode',StringType(),True),
-	StructField('propertyTypeCode',StringType(),True),
-	StructField('propertyTypeCode',StringType(),True),
 	StructField('propertyTypeCode',StringType(),True),
 	StructField('rowUpdatedDate',DateType(),True),
 	StructField('_RecordStart',TimestampType(),False),
