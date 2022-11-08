@@ -119,8 +119,7 @@ def getMeterConsumptionBillingLineItem():
 
 df, schema = getMeterConsumptionBillingLineItem()
 #TemplateEtl(df, entity="dimMeterConsumptionBillingLineItem", businessKey="sourceSystemCode,billingDocumentNumber,billingDocumentLineItemId", schema=schema, writeMode=ADS_WRITE_MODE_OVERWRITE, AddSK=True)
-#TemplateEtlSCD(df, entity="dimMeterConsumptionBillingLineItem", businessKey="sourceSystemCode,billingDocumentNumber,billingDocumentLineItemId", schema=schema)
-TemplateTimeSliceEtlSCD(df, entity="dimMeterConsumptionBillingLineItem", businessKey="sourceSystemCode,billingDocumentNumber,billingDocumentLineItemId", schema=schema)
+TemplateEtlSCD(df, entity="dimMeterConsumptionBillingLineItem", businessKey="sourceSystemCode,billingDocumentNumber,billingDocumentLineItemId", schema=schema)
 
 # COMMAND ----------
 
