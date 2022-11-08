@@ -12,7 +12,7 @@ WITH dateDriver AS
 ),
 effectiveDateranges AS 
 (
-    SELECT contractId, _effectiveFrom, COALESCE(TIMESTAMP(DATE_ADD(LEAD(_effectiveFrom,1) OVER(PARTITION BY contractId ORDER BY _effectiveFrom), -1)), '9999-12-31') AS _effectiveTo
+    SELECT contractId, _effectiveFrom, COALESCE(TIMESTAMP(DATE_ADD(LEAD(_effectiveFrom,1) OVER(PARTITION BY contractId ORDER BY _effectiveFrom), -1)), TIMESTAMP('9999-12-31')) AS _effectiveTo
     FROM dateDriver
 )
 SELECT
