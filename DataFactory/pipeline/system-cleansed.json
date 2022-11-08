@@ -103,6 +103,10 @@
 									"task": {
 										"value": "@item()",
 										"type": "Expression"
+									},
+									"ClusterId": {
+										"value": "@variables('ClusterId')",
+										"type": "Expression"
 									}
 								}
 							}
