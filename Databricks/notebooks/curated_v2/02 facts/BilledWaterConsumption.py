@@ -93,6 +93,7 @@ def isuConsumption():
             "billingPeriodEndDate", 
             "meteredWaterConsumption"
         )
+    )
     return isuConsDf
 
 # COMMAND ----------
