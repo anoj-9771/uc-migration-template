@@ -61,7 +61,7 @@ def getMeterConsumptionBillingLineItem():
                                left join cleansed.isu_0uc_tvorg_text as tvorg_text on tvorg_text.mainTransactionCode = erch.mainTransactionCode 
                                                               and tvorg_text.subTransactionCode = dberchz1.subTransactionCode 
                                where erch._RecordCurrent = 1 and dberchz1._RecordCurrent = 1 and dberchz2._RecordCurrent = 1
-                   """)
+                   """).dropDuplicates()
     
     dummyDimRecDf = spark.createDataFrame([("Unknown","-1","-1")], ["sourceSystemCode","billingDocumentNumber","billingDocumentLineItemId"])
     df = df_isu.unionByName(dummyDimRecDf, allowMissingColumns = True)
