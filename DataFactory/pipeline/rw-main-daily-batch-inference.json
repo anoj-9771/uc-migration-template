@@ -58,7 +58,13 @@
 				"type": "WebActivity",
 				"dependsOn": [
 					{
-						"activity": "set-current-model-run-time",
+						"activity": "set-job-pool-id",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "if-jobs-exist",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -70,13 +76,7 @@
 						]
 					},
 					{
-						"activity": "set-job-pool-id",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					},
-					{
-						"activity": "if-jobs-exist",
+						"activity": "set-current-model-run-time",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -165,48 +165,6 @@
 							"value": "Bearer @{variables('DatabricksSecret')}",
 							"type": "Expression"
 						}
-					}
-				}
-			},
-			{
-				"name": "set-current-model-run-time",
-				"description": "",
-				"type": "SetVariable",
-				"dependsOn": [
-					{
-						"activity": "Ingest Beachwatch BoM and IICATS Data",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
-				"userProperties": [],
-				"typeProperties": {
-					"variableName": "CurrentModelRuntime",
-					"value": {
-						"value": "@coalesce(pipeline().parameters.currentModelRuntimeOverride,startOfHour(convertTimeZone(utcNow(),'UTC','AUS Eastern Standard Time')))",
-						"type": "Expression"
-					}
-				}
-			},
-			{
-				"name": "set-last-model-run-time",
-				"description": "",
-				"type": "SetVariable",
-				"dependsOn": [
-					{
-						"activity": "Ingest Beachwatch BoM and IICATS Data",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
-				"userProperties": [],
-				"typeProperties": {
-					"variableName": "LastModelRuntime",
-					"value": {
-						"value": "@coalesce(pipeline().parameters.lastModelRuntimeOverride,startOfHour(convertTimeZone(addDays(utcNow(), -1),'UTC','AUS Eastern Standard Time')))",
-						"type": "Expression"
 					}
 				}
 			},
@@ -777,6 +735,48 @@
 					"waitOnCompletion": true,
 					"parameters": {
 						"SystemCodes": "beachwatch,bom,iicats_rw"
+					}
+				}
+			},
+			{
+				"name": "set-current-model-run-time",
+				"description": "",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "Ingest Beachwatch BoM and IICATS Data",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "CurrentModelRuntime",
+					"value": {
+						"value": "@substring(replace(coalesce(pipeline().parameters.currentModelRuntimeOverride,startOfHour(convertTimeZone(utcNow(),'UTC','AUS Eastern Standard Time'))),'T',' '),0,23)",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "set-last-model-run-time",
+				"description": "",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "Ingest Beachwatch BoM and IICATS Data",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "LastModelRuntime",
+					"value": {
+						"value": "@substring(replace(coalesce(pipeline().parameters.lastModelRuntimeOverride,startOfHour(convertTimeZone(addDays(utcNow(), -1),'UTC','AUS Eastern Standard Time'))),'T',' '),0,23)",
+						"type": "Expression"
 					}
 				}
 			}
