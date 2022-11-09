@@ -35,7 +35,7 @@ SELECT 'iicats_rw' SystemCode, 'scxstg' SourceSchema, 'daf-oracle-IICATS-stg-con
 UNION 
 SELECT 'iicats_rw' SystemCode, 'scxstg' SourceSchema, 'daf-oracle-IICATS-stg-connectionstring' SourceKeyVaultSecret, 'oracle-load' SourceHandler, NULL RawFileExtension, 'raw-load-delta' RawHandler, 'cleansed-load-delta' CleansedHandler, 'point_cnfgn' SourceTableName, null SourceQuery, NULL ExtendedProperties, 'HT_CRT_DT' WatermarkColumn
 UNION 
-SELECT 'iicats_rw' SystemCode, 'scxstg' SourceSchema, 'daf-oracle-IICATS-stg-connectionstring' SourceKeyVaultSecret, 'oracle-load' SourceHandler, NULL RawFileExtension, 'raw-load-delta' RawHandler, 'cleansed-load-delta' CleansedHandler, 'tsv' SourceTableName, 'select * from scxstg.tsv where HT_CRT_DT > (select SYSDATE - 7 from DUAL)' SourceQuery, NULL ExtendedProperties, NULL WatermarkColumn
+SELECT 'iicats_rw' SystemCode, 'scxstg' SourceSchema, 'daf-oracle-IICATS-stg-connectionstring' SourceKeyVaultSecret, 'oracle-load' SourceHandler, NULL RawFileExtension, 'raw-load-delta' RawHandler, 'cleansed-load-delta' CleansedHandler, 'tsv' SourceTableName, "select tsv.* from scxstg.tsv inner join scxstg.tsv_point_cnfgn t on tsv.cdb_obj_id = t.pnt_cdb_obj_id inner join scxstg.hierarchy_cnfgn h on t.cdb_obj_id = h.cdb_obj_id where h. site_cd in(''GG0022'',''GG0064'',''GG0020'',''GG0008'',''GG0019'',''GG0047'',''GG0016'') and h.obj_nm = ''Rainfall 15M Total'' and tsv.ht_crt_dt > (select sysdate - 7 from dual)" SourceQuery, NULL ExtendedProperties, NULL WatermarkColumn
 
 /* -- CHANGED TO ONLY TAKE NECESSARY TABLES TO REDUCE LOAD
 SELECT 'iicats_rw' SystemCode, 'scxstg' SourceSchema, 'daf-oracle-IICATS-stg-connectionstring' SourceKeyVaultSecret, 'oracle-load' SourceHandler, NULL RawFileExtension, 'raw-load-delta' RawHandler, 'cleansed-load-delta' CleansedHandler, 'dly_prof_cnfgn' SourceTableName, null SourceQuery, NULL ExtendedProperties
@@ -101,6 +101,7 @@ for i in dfNonIicats.rdd.collect():
       ,@CleansedHandler
     """)
 
+    
 ##DO IICATS
 dfIicats = df.where("systemCode = 'iicats_rw'")
 
