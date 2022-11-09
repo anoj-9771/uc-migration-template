@@ -9,19 +9,19 @@ variables:
 
   # Used to set Log Analytics deployability
   - name: loganalytics
-    value: false
+    value: true
   # Used to set Azure SQL Server deployability
   - name: azuresqlserver
-    value: false
+    value: true
   # Used to add Control DB to Azure SQL server 
   - name: controldb
-    value: false
+    value: true
   # Used to set Blob Storage deployability..
   - name: azureblobstorage
-    value: false
+    value: true
   # Used to set Data Lake Storage deployability...
   - name: azuredatalakestorage
-    value: false
+    value: true
   # Used to set Databricks Workspace deployability - With Vnet injection
   - name: databricksvnet
     value: true
@@ -30,7 +30,7 @@ variables:
     value: false
   # Used to set DataFactory deployability
   - name: datafactory
-    value: false
+    value: true
   # Use to set Synapse Analytics worksspace deployability...
   - name: synapseanalyticsworkspace
     value: false
