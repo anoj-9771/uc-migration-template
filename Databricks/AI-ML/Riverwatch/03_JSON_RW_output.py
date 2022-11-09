@@ -46,6 +46,16 @@ display(df_rwBN_water_quality)
 
 # COMMAND ----------
 
+dbutils.widgets.text(name="process_timestamp", defaultValue="2022-02-07T12:00:00.000", label="process_timestamp")
+ 
+TIME_VARIABLE=dbutils.widgets.get("process_timestamp")
+
+# COMMAND ----------
+
+TIME_VARIABLE
+
+# COMMAND ----------
+
 from datetime import datetime, timedelta
 import time
 
@@ -191,27 +201,44 @@ for index,location in enumerate(RW_locations_InactiveRevmoved['locations']):
 
         #-----------obtain water quality and header info @ Bay View Park------------
         if location["source"] == "RiverWatch":
-            Water_quality = (df_rwBN_water_quality
-                               .where(psf.col("locationId") == location["locationId"])
-                               .withColumn("SW_pollu_num",psf.when(psf.col("waterQualityPredictionSW")=="Unlikely",0)
-                                                             .when(psf.col("waterQualityPredictionSW")=="Possible",1)
-                                                             .when(psf.col("waterQualityPredictionSW")=="Likely",2)
+            try:
+#                 display(df_rwBN_water_quality)
+                Water_quality = (df_rwBN_water_quality
+                             .where(psf.col("locationId") == location["locationId"])
+                             .withColumn("feature_date",psf.to_date("timestamp"))
+                             .withColumn("current_date", psf.to_date(psf.lit(TIME_VARIABLE)
+                                                                      )
                                           )
-                               .withColumn("BW_pollu_num",psf.when(psf.col("waterQualityPredictionBeachwatch")=="Unlikely",0)
-                                                             .when(psf.col("waterQualityPredictionBeachwatch")=="Possible",1)
-                                                             .when(psf.col("waterQualityPredictionBeachwatch")=="Likely",2)
-                                          )
-                               .orderBy("timestamp", ascending=False)
-                               .withColumn("split_timestamp", psf.split(psf.col("timestamp"),'T'))
-                               .withColumn("Date", psf.split(psf.col("split_timestamp")[0],' ').getItem(0))
-                               .withColumn("Time", psf.split(psf.col("split_timestamp")[0],' ').getItem(1))
-                               .toPandas()
+                             .where(psf.col("feature_date") == psf.col("current_date"))
+#                              .where(psf.col("timestamp") == psf.to_timestamp(psf.lit(TIME_VARIABLE), format='yyyy-MM-dd HH:mm:ss.SSS'))
+                             .withColumn("SW_pollu_num",psf.when(psf.col("waterQualityPredictionSW")=="Unlikely",0)
+                                                           .when(psf.col("waterQualityPredictionSW")=="Possible",1)
+                                                           .when(psf.col("waterQualityPredictionSW")=="Likely",2)
+                                        )
+                             .withColumn("BW_pollu_num",psf.when(psf.col("waterQualityPredictionBeachwatch")=="Unlikely",0)
+                                                           .when(psf.col("waterQualityPredictionBeachwatch")=="Possible",1)
+                                                           .when(psf.col("waterQualityPredictionBeachwatch")=="Likely",2)
+                                        )
+                             .orderBy("timestamp", ascending=False)
+                             .withColumn("split_timestamp", psf.split(psf.col("timestamp"),'T'))
+                             .withColumn("Date", psf.split(psf.col("split_timestamp")[0],' ').getItem(0))
+                             .withColumn("Time", psf.split(psf.col("split_timestamp")[0],' ').getItem(1))
+                             .toPandas()
                             )
-            # when BW method predict more risk than SW model, use BW method results                               
-            if Water_quality.SW_pollu_num[0] > Water_quality.BW_pollu_num[0]:
-                water_quality = Water_quality.waterQualityPredictionSW[0] #unlikely/possible/likely
-            else:
-                water_quality = Water_quality.waterQualityPredictionBeachwatch[0] #unlikely/possible/likely
+                display(Water_quality)
+                # when BW method predict more risk than SW model, use BW method results                               
+                if Water_quality.SW_pollu_num[0] > Water_quality.BW_pollu_num[0]:
+                    water_quality = Water_quality.waterQualityPredictionSW[0] #unlikely/possible/likely
+                else:
+                    water_quality = Water_quality.waterQualityPredictionBeachwatch[0] #unlikely/possible/likely
+                
+            except ValueError:
+                print("Water Quality Failed to be found from Riverwatch model - falling back to 'Unlikely'")
+                water_quality = "Unlikely"
+            
+            
+                
+                
             ocean_temp = str(Dawn_Fraser_Pool_tempinfo.oceanTemp[0]) 
             current_temp= str(Dawn_Fraser_Pool_tempinfo.airTemp[0]) 
             

@@ -8,7 +8,7 @@
 # COMMAND ----------
 
 dbutils.widgets.text(name="current_model_runtime", defaultValue="2022-02-10T08:33:00.000", label="current_model_runtime")
-dbutils.widgets.text(name="last_model_runtime", defaultValue="2022-02-09T08:00:00.000", label="current_model_runtime")
+dbutils.widgets.text(name="last_model_runtime", defaultValue="2022-02-09T08:00:00.000", label="last_model_runtime")
 
 # COMMAND ----------
 
@@ -74,10 +74,10 @@ try:
     df_solar=spark.table("cleansed.bom_dailyclimatedata_sydneyairport")
     print("BoM Climate Data loaded from cleansed")
 except:
-    try:
-        df_solar=spark.table("datalab.solar_exposure_2022")
-        print("BoM Climate Data loaded from datalab")
-    except:
+#     try:
+#         df_solar=spark.table("datalab.solar_exposure_2022")
+#         print("BoM Climate Data loaded from datalab")
+#     except:
         schema = StructType([
             StructField('Product Code', StringType()),
             StructField('Bureau of Meteorology station number', StringType()),
@@ -496,8 +496,25 @@ model_realtime_input = (rain_24
                                ,"Rintensity","Rduration","Rdistribution","days_after_rain_20mm","sun_24","solar_24")
                        .na.fill(value=0,subset=["rain_24","rain_48","rain_72","rain_7d"
                                ,"Rintensity","Rduration","Rdistribution","days_after_rain_20mm"])
-                        .where(psf.col("timestamp") == (psf.floor(psf.unix_timestamp(psf.lit(CURRENT_MODEL_RUNTIME), "yyyy-MM-dd'T'hh:mm:ss.SSS")/3600)*3600).cast("timestamp") - psf.expr('INTERVAL 1 HOURS'))
-                       )
+                )
+                        
+
+max_timestamp = (model_realtime_input
+                 .groupBy("siteName")
+                 .agg(psf.max(psf.col("timestamp")).alias("max_timestamp"))
+                 .withColumnRenamed("siteName", "maxSiteName")
+                ).alias("max")
+
+model_realtime_input = (max_timestamp
+                         .join(model_realtime_input, on=((max_timestamp.max_timestamp==model_realtime_input.timestamp) &
+                                                         (max_timestamp.maxSiteName==model_realtime_input.siteName)
+                                                        ),
+                               how='left'
+                              )
+                        .drop("max_timestamp")
+                        .drop("maxSiteName")
+                        )
+
 display(model_realtime_input)
 
 # COMMAND ----------
