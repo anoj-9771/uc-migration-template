@@ -10,3 +10,4 @@ jobs:
     inputs:
       pathToPublish: '$(Build.ArtifactStagingDirectory)/arm_templates'
       artifactName: 'arm_templates'
+
