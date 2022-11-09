@@ -1,13 +1,15 @@
 # Databricks notebook source
 # DBTITLE 1,Generate parameter and source object name for unit testing
 import json
-accessTable = 'Z309_TSTREETGUIDE'
+accessTable = 'Z309_THSTRATAUNITS'
+businessKeys = 'N_PROP,D_SUPD,T_TIME_SUPD'
 
-runParm = '{"SourceType":"Flat File","SourceServer":"saswcnonprod01landingdev-sastoken","SourceGroup":"access","SourceName":"access_access/####_csv","SourceLocation":"access/####.csv","AdditionalProperty":"","Processor":"databricks-token|0705-044124-gored835|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive","IsAuditTable":false,"SoftDeleteSource":"","ProjectName":"Access Data","ProjectId":2,"TargetType":"BLOB Storage (csv)","TargetName":"access_access/####_csv","TargetLocation":"access/####","TargetServer":"daf-sa-lake-sastoken","DataLoadMode":"TRUNCATE-LOAD","DeltaExtract":false,"CDCSource":false,"TruncateTarget":true,"UpsertTarget":false,"AppendTarget":null,"TrackChanges":false,"LoadToSqlEDW":true,"TaskName":"access_access/####_csv","ControlStageId":1,"TaskId":4,"StageSequence":100,"StageName":"Source to Raw","SourceId":4,"TargetId":4,"ObjectGrain":"Day","CommandTypeId":5,"Watermarks":"","WatermarksDT":null,"WatermarkColumn":"","BusinessKeyColumn":"","UpdateMetaData":null,"SourceTimeStampFormat":"","Command":"","LastLoadedFile":null}'
+runParm = '{"SourceType":"BLOB Storage (csv)","SourceServer":"daf-sa-lake-sastoken","SourceGroup":"accessdata","SourceName":"access_####","SourceLocation":"accessdata/####","AdditionalProperty":"","Processor":"databricks-token|1103-023442-me8nqcm9|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive","IsAuditTable":false,"SoftDeleteSource":"","ProjectName":"CLEANSED DATA ACCESS","ProjectId":2,"TargetType":"BLOB Storage (csv)","TargetName":"access_####","TargetLocation":"accessdata/####","TargetServer":"daf-sa-lake-sastoken","DataLoadMode":"TRUNCATE-LOAD","DeltaExtract":false,"CDCSource":false,"TruncateTarget":true,"UpsertTarget":false,"AppendTarget":false,"TrackChanges":false,"LoadToSqlEDW":true,"TaskName":"access_####","ControlStageId":2,"TaskId":40,"StageSequence":200,"StageName":"Raw to Cleansed","SourceId":40,"TargetId":40,"ObjectGrain":"Day","CommandTypeId":8,"Watermarks":"","WatermarksDT":null,"WatermarkColumn":"","BusinessKeyColumn":"yyyy","PartitionColumn":null,"UpdateMetaData":null,"SourceTimeStampFormat":"","Command":"/build/cleansed/accessdata/####","LastLoadedFile":null}'
 
 s = json.loads(runParm)
-for parm in ['SourceName','SourceLocation','TargetName','TargetLocation','TaskName']:
-    s[parm] = s[parm].replace('####',accessTable)
+for parm in ['SourceName','SourceLocation','TargetName','TargetLocation','TaskName','BusinessKeyColumn','Command']:
+    s[parm] = s[parm].replace('####',accessTable).replace('yyyy',businessKeys)
+
 runParm = json.dumps(s)
 
 # COMMAND ----------
@@ -69,12 +71,11 @@ spark = SparkSession.builder.getOrCreate()
 
 # DBTITLE 1,3. Define Widgets (Parameters) at the start
 #3.Define Widgets/Parameters
-#Initialise the Entity source_object to be passed to the Notebook
-dbutils.widgets.text("source_object", "", "Source Object")
+dbutils.widgets.text("source_object", f'access_{accessTable.lower()}', "Source Object")
 dbutils.widgets.text("start_counter", "", "Start Counter")
 dbutils.widgets.text("end_counter", "", "End Counter")
 dbutils.widgets.text("delta_column", "", "Delta Column")
-dbutils.widgets.text("source_param", "", "Param")
+dbutils.widgets.text("source_param", runParm, "Param")
 
 
 # COMMAND ----------
@@ -183,39 +184,45 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_cleansed = spark.sql(f"SELECT C_STRE_GUID AS streetGuideCode, \
-		C_LGA AS LGACode, \
-		M_STRE AS streetName, \
-		C_VALI_STRE_TYPE AS streetType, \
-		C_VALI_ADDI_STRE AS streetSuffix, \
-		M_SUBU AS suburb, \
-		C_POST AS postCode, \
-        ToValidDate(D_STRE_GUID_EFFE) AS streetGuideEffectiveDate, \
-        ToValidDate(D_STRE_GUID_CANC) AS streetGuideCancelledDate, \
-		_RecordStart, \
-		_RecordEnd, \
-		_RecordDeleted, \
-		_RecordCurrent \
-	FROM {ADS_DATABASE_STAGE}.{source_object}")
-
-#print(f'Number of rows: {df_cleansed.count()}')
+df_cleansed = spark.sql(f"SELECT \
+	cast(N_PROP as int) as propertyNumber, \
+	N_STRA_PLAN as strataPlanNumber, \
+	N_STRA_PLAN_LOT as strataLotNumber, \
+	cast(Q_UNIT_ENTI as int) as unitEntitlement, \
+	ToValidDate(D_STRA_UNIT_UPDA) as strataUnitUpdatedDate, \
+	case when substr(T_TIME_SUPD,1,2) between '00' and '23' \
+			and substr(T_TIME_SUPD,3,2) between '00' and '59' \
+			and substr(T_TIME_SUPD,5,2) between '00' and '59' \
+		then ToValidDateTime(D_SUPD||' '||substr(T_TIME_SUPD,1,6)) \
+		else ToValidDateTime(D_SUPD||' 120000') end as rowSupersededTimestamp, \
+	M_PROC as modifiedByProcess, \
+	C_USER_ID as modifiedByUserID, \
+	C_TERM_ID as modifiedByTerminalID, \
+	F_ADJU as rowAdjusted, \
+	_RecordStart, \
+	_RecordEnd, \
+	_RecordDeleted, \
+	_RecordCurrent \
+	FROM {ADS_DATABASE_STAGE}.{source_object} \
+                                ")
 
 # COMMAND ----------
 
 newSchema = StructType([
-	StructField('streetGuideCode',StringType(),False),
-    StructField('LGACode',StringType(),False),
-	StructField('streetName',StringType(),False),
-    StructField('streetType',StringType(),True),
-    StructField('streetSuffix',StringType(),True),
-    StructField('suburb',StringType(),False),
-    StructField('postCode',StringType(),False),
-    StructField('streetGuideEffectiveDate',DateType(),True),
-	StructField('streetGuideCancelledDate',DateType(),True),
-    StructField('_RecordStart',TimestampType(),False),
-    StructField('_RecordEnd',TimestampType(),False),
-    StructField('_RecordDeleted',IntegerType(),False),
-    StructField('_RecordCurrent',IntegerType(),False)
+	StructField('propertyNumber',IntegerType(),False),
+	StructField('strataPlanNumber',StringType(),True),
+	StructField('strataLotNumber',StringType(),True),
+	StructField('unitEntitlement',IntegerType(),False),
+	StructField('strataUnitUpdatedDate',DateType(),True),
+	StructField('rowSupersededTimestamp',TimestampType(),True),
+	StructField('modifiedByProcess',StringType(),True),
+	StructField('modifiedByUserID',StringType(),True),
+	StructField('modifiedByTerminalID',StringType(),True),
+	StructField('rowAdjusted',StringType(),True),
+	StructField('_RecordStart',TimestampType(),False),
+	StructField('_RecordEnd',TimestampType(),False),
+	StructField('_RecordDeleted',IntegerType(),False),
+	StructField('_RecordCurrent',IntegerType(),False)
 ])
 
 # COMMAND ----------

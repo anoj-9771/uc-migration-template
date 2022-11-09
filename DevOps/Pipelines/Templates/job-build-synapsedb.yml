@@ -1,6 +1,7 @@
   jobs:
   - job: 'Synpase_db'
     steps:
+
     - task: MSBuild@1
       displayName: 'Build SynapseDB'
       continueOnError: 'true'
@@ -9,6 +10,5 @@
 
     - task: PublishBuildArtifacts@1
       inputs:
-        pathToPublish: Synapse-Databases/Synapse-Databases/bin/Debug
-        artifactName: sql_Synapsedb
-
+        pathToPublish: Synapse-Databases/Synapse-Databases/bin/Debug 
+        artifactName: 'sql_Synapsedb'
