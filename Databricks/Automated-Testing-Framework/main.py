@@ -12,7 +12,10 @@ def RunTests():
     rawPath = firstRow.Path
     batchId = firstRow.BatchId
 
-    for p in ["/tests/cleansed", "/tests/curated", "/tests/curated_v2"]:
+    for p in [
+          "/tests/cleansed",
+          "/tests/curated", 
+          "/tests/curated_v2"]:
         df = ListWorkspaces(CurrentNotebookPath() + p)
         df = df.selectExpr(f"explode({df.columns[0]}) o").where("o.object_type != 'DIRECTORY'")
 
