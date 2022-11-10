@@ -51,7 +51,7 @@ class CuratedTransform( BlankClass ):
     #   self.BK = f"{self.Name}_BK"      
       self.BK = "_BusinessKey"
     #   self.EntityName = f"{self.EntityType[0:1]}_{self.Name}"
-      self.EntityName = f"{'dim' if IsDimension() else 'fact'}{self.Name}"
+      self.EntityName = f"{'dim' if self.EntityType == 'Dimension' else 'fact'}{self.Name}"
       self.Destination = f"{DEFAULT_TARGET}.{self.EntityName}"
       self.DataLakePath = f"/mnt/datalake-{DEFAULT_TARGET}/{self.EntityType}/{self.EntityName}"
       self.Tables = []
