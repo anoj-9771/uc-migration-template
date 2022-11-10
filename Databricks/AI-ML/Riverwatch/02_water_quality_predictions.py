@@ -39,15 +39,20 @@ loaded_model = mlflow.pyfunc.spark_udf(spark, model_uri=logged_model, env_manage
 # # ----------------------- input data---------------------------
 df_up_water_quality_features = spark.table("cleansed.urbanplunge_water_quality_features")
 # .repartition(10)
-
+# # display(df_up_water_quality_features)
 df_water_quality_prediction = (df_up_water_quality_features
-                               .where(psf.col("timestamp") == 
-                                      (psf.floor(psf.unix_timestamp(psf.lit(CURRENT_MODEL_RUNTIME),
-                                                                    "yyyy-MM-dd'T'hh:mm:ss.SSS"
-                                                                   )/3600
-                                                )*3600
-                                      ).cast("timestamp") - psf.expr('INTERVAL 1 HOURS')
-                                     )
+                               .withColumn("feature_date",psf.to_date("timestamp"))
+                               .withColumn("current_date", psf.to_date(psf.lit(CURRENT_MODEL_RUNTIME)
+                                                                      )
+                                          )
+                               .where(psf.col("feature_date") == psf.col("current_date"))
+#                                .where(psf.col("timestamp") == 
+#                                       (psf.floor(psf.unix_timestamp(psf.lit(CURRENT_MODEL_RUNTIME),
+#                                                                     "yyyy-MM-dd HH:mm:ss.SSS"
+#                                                                    )/3600
+#                                                 )*3600
+#                                       ).cast("timestamp") - psf.expr('INTERVAL 1 HOURS')
+#                                      )
                                .withColumn('waterQualityPredictionSW',loaded_model())
                                .withColumn("waterQualityPredictionBeachwatch",psf.when(((psf.col("rain_48") >= 0)           
                                              & (psf.col("rain_48") < 12)), "Unlikely")
@@ -62,8 +67,8 @@ df_water_quality_prediction = (df_up_water_quality_features
                                        "waterQualityPredictionBeachwatch",
                                        "_DLCleansedZoneTimeStamp"
                                       )
-            )
-display(df_water_quality_prediction)
+                              )
+# display(df_water_quality_prediction)
 
 ## adding the site name/id for specific sites
 
@@ -89,3 +94,7 @@ display(df_water_quality_prediction)
 # COMMAND ----------
 
 df_water_quality_prediction.write.mode("append").insertInto('cleansed.urbanplunge_water_quality_predictions')
+
+# COMMAND ----------
+
+
