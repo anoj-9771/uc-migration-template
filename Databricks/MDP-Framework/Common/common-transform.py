@@ -243,9 +243,9 @@ def Save(sourceDataFrame):
 
     if (not(TableExists(targetTableFqn))):
         print(f"Creating {targetTableFqn}...")
-        CreateDeltaTable(sourceDataFrame, targetTableFqn, _.DataLakePath)  
-
+        # Adjust _RecordStart date for first load
         sourceDataFrame = sourceDataFrame.withColumn("_recordStart", expr("CAST('1900-01-01' AS TIMESTAMP)"))
+        CreateDeltaTable(sourceDataFrame, targetTableFqn, _.DataLakePath)  
         EndNotebook(sourceDataFrame)
         return
 
