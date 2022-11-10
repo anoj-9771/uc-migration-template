@@ -258,7 +258,7 @@ df = spark.sql(f"""
             SIMRUNID                                                            as simulationPeriodId, 
             KTOKLASSE                                                           as accountClassCode, 
             ORIGDOC                                                             as billingDocumentOriginCode, 
-            NOCANC                                                              as billingDonotExecuteIndicator, 
+            NOCANC                                                              as billingDoNotExecuteIndicator, 
             ABSCHLPAN                                                           as billingPlanAdjustIndicator, 
             MEM_OPBEL                                                           as newBillingDocumentNumberForReversedInvoicing, 
             ToValidDate(MEM_BUDAT)                                              as billingPostingDateInDocument, 
