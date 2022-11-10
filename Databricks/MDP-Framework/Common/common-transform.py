@@ -203,6 +203,14 @@ def _InjectSK(dataFrame):
 def _AddSCD(dataFrame):
     cols = dataFrame.columns
     df = dataFrame
+    
+    #Move BK to the end
+    if _.BK in cols:
+        cols.remove(_.BK)
+        cols.append(_.BK)
+    df = df.select(columns)    
+
+    df = df.withColumn("_DLCuratedZoneTimeStamp", expr("now()"))
     df = df.withColumn("_recordStart", expr(f"CAST({DEFAULT_START_DATE} AS TIMESTAMP)"))
     # df = df.withColumn("_recordEnd", expr("CAST(NULL AS TIMESTAMP)" if DEFAULT_END_DATE == "NULL" else f"CAST('{DEFAULT_END_DATE}' AS TIMESTAMP) + INTERVAL 1 DAY - INTERVAL 1 SECOND"))
     df = df.withColumn("_recordEnd", 
@@ -220,7 +228,6 @@ def _AddSCD(dataFrame):
 
     # cols = [c for c in cols if c.lower() not in ["_recordcurrent","_recorddeleted"]]
     
-    df = df.withColumn("_DLCuratedZoneTimeStamp", expr("now()"))
     # df = df.withColumn("_Batch_SK", expr(f"DATE_FORMAT(_Created, '{DATE_FORMAT}') || COALESCE(DATE_FORMAT(_Ended, '{DATE_FORMAT}'), '{BATCH_END_CODE}') || _Current"))
     #THIS IS LARGER THAN BIGINT 
     # df = df.withColumn("_Batch_SK", expr("CAST(_Batch_SK AS DECIMAL(25, 0))"))
@@ -269,13 +276,13 @@ def Save(sourceDataFrame):
     insertValues = {
         f"{_.SK}": f"{_.SK}", 
         f"{_.BK}": f"COALESCE(s.BK, s.{_.BK})",
+        "_DLCuratedZoneTimeStamp": "s._DLCuratedZoneTimeStamp",
         "_recordStart": "s._recordStart",
         "_recordEnd": "s._recordEnd",
         #Question
         # "_recordCurrent": "1",
         "_recordCurrent": "s._recordCurrent",
         "_recordDeleted": "s._recordDeleted",
-        "_DLCuratedZoneTimeStamp": "s._DLCuratedZoneTimeStamp",
         # "_Batch_SK": expr(f"DATE_FORMAT(s._Created, 'yyMMddHHmmss') || COALESCE(DATE_FORMAT({DEFAULT_END_DATE}, '{DATE_FORMAT}'), '{BATCH_END_CODE}') || 1")
     }
     for c in [i for i in targetTable.columns if i not in _exclude]:
