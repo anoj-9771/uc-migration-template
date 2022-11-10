@@ -97,7 +97,7 @@ SELECT
      ,dimAccountBusinessPartner.clearingCategory
      ,dimAccountBusinessPartner.createdBy as accountBpCreatedBy
      ,dimAccountBusinessPartner.createdDate as accountBpCreatedDate
-     ,dimAccountBusinessPartner.changedBy as accountBpChangedBy
+     ,dimAccountBusinessPartner.lastChangedBy as accountBpChangedBy
      ,dimAccountBusinessPartner.lastChangedDate as accountBplastChangedDate
      ,effectiveDateRanges._effectiveFrom
      ,effectiveDateRanges._effectiveTo

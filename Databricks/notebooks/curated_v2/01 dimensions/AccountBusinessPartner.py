@@ -71,7 +71,7 @@ def getAccountBusinessPartner():
           clearingCategory,
           createdBy,
           createdDate,
-          changedBy,
+          lastChangedBy,
           lastChangedDate,
           _RecordDeleted 
           from {ADS_DATABASE_CLEANSED}.isu_0uc_accntbp_attr_2 
@@ -147,7 +147,7 @@ def getAccountBusinessPartner():
                       StructField('clearingCategory',StringType(), True),
                       StructField('createdBy',StringType(), True),
                       StructField('createdDate',DateType(), True),
-                      StructField('changedBy',StringType(), True),
+                      StructField('lastChangedBy',StringType(), True),
                       StructField('lastChangedDate',DateType(), True)])
     
     return df, schema

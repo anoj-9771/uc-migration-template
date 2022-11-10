@@ -74,7 +74,7 @@ SELECT
     ,dimregisterhistory.reactiveApparentOrActiveRegisterCode
     ,dimregisterhistory.reactiveApparentOrActiveRegister
     ,dimregisterhistory.unitOfMeasurementMeterReading
-    ,dimregisterhistory.doNotReadIndicator	
+    ,dimregisterhistory.doNotReadFlag	
     ,dimregisterinstallationhistory.registerInstallationHistorySK
     ,dimregisterinstallationhistory.validToDate AS registerInstallationHistoryValidToDate
     ,dimregisterinstallationhistory.validFromDate AS registerInstallationHistoryValidFromDate
