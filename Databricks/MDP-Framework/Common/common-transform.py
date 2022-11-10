@@ -208,7 +208,7 @@ def _AddSCD(dataFrame):
     if _.BK in cols:
         cols.remove(_.BK)
         cols.append(_.BK)
-    df = df.select(columns)    
+    df = df.select(cols)
 
     df = df.withColumn("_DLCuratedZoneTimeStamp", expr("now()"))
     df = df.withColumn("_recordStart", expr(f"CAST({DEFAULT_START_DATE} AS TIMESTAMP)"))
