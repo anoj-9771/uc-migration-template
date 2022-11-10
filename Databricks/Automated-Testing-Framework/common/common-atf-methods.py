@@ -13,6 +13,15 @@ _automatedMethods = {
 
 # COMMAND ----------
 
+def loadSourceDf(source):
+    global columns
+    source.createOrReplaceTempView("sourceView")
+    sourceDf = spark.sql(f"SELECT {columns} FROM sourceView")
+    
+    return sourceDf
+
+# COMMAND ----------
+
 def loadActiveSourceDf(source):
     global sourceColumns
     source.createOrReplaceTempView("sourceView")
@@ -38,7 +47,67 @@ def loadInactiveSourceDf(source):
 
 # COMMAND ----------
 
-def loadActiveTargetDf(target):
+ef GetTargetDf():
+    global columns
+    target = spark.sql(f"""
+    select {columns}
+    ,_recordStart
+    ,_recordEnd
+    ,_recordCurrent
+    ,_recordDeleted
+    from 
+    {GetSelfFqn()}
+    """) 
+    return target
+
+# COMMAND ----------
+
+# This version includes the dummy record when extracting the target table, and source-target queries will fail since target will have an extra record
+def loadActiveTargetDf():
+    global columns
+    global keyColumns
+    
+    target = GetTargetDf()
+    target.createOrReplaceTempView("targetView")
+    
+    keyColsList = keyColumns.split(",")
+    sqlQuery = f"SELECT {columns} FROM targetView WHERE _recordDeleted = 0 " 
+        
+    #print(sqlQuery)
+    targetDf = spark.sql(sqlQuery) 
+
+    return targetDf
+
+# COMMAND ----------
+
+# not implemented, this version is WIP, aim is to exclude dummy record when extracting target table 
+def loadActiveTargetDf_test():
+    global columns
+    global keyColumns
+    
+    target = GetTargetDf()
+    target.createOrReplaceTempView("targetView")
+    
+    keyColsList = keyColumns.split(",")
+    sqlQuery = f"SELECT {columns} FROM targetView WHERE _recordDeleted = 0 and sourceSystemCode is not NULL" # added a condition to ignore the dummy record
+    
+    if (columns.upper().find('SOURCESYSTEMCODE') != -1):
+        sqlQuery = sqlQuery + f"AND sourceSystemCode is not NULL "
+    
+    for column in keyColsList:
+        column = column.strip()
+        if (column.upper().find('DATE') == -1 and column.find('SK') == -1):
+            sqlQuery = sqlQuery + f"AND {column} <> -1 "
+            break
+        
+    #print(sqlQuery)
+    targetDf = spark.sql(sqlQuery) 
+
+    return targetDf
+
+# COMMAND ----------
+
+def loadActiveTargetDf_original(target):
     global targetColumns
     global keyColumns
     target.createOrReplaceTempView("targetView")
@@ -53,6 +122,16 @@ def loadActiveTargetDf(target):
     print(sqlQuery)
     targetDf = spark.sql(sqlQuery) 
 
+    return targetDf
+
+# COMMAND ----------
+
+def loadInactiveTargetDf():
+    global columns
+    target = GetTargetDf()
+    target.createOrReplaceTempView("targetView")
+    targetDf = spark.sql(f"""SELECT {columns} FROM targetView 
+                         WHERE _recordDeleted = 1 and _recordCurrent = 0""")
     return targetDf
 
 # COMMAND ----------
