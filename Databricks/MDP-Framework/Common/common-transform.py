@@ -125,7 +125,7 @@ def GetSelf():
 def _ValidateBK(sourceDataFrame):
     print(f"Validating {_.Name} {_.BK}...")
     # dupesDf = sourceDataFrame.groupBy(f"{_.Name}_BK").count() \
-    dupesDf = sourceDataFrame.groupBy(f"{_.BK}").count() \    
+    dupesDf = sourceDataFrame.groupBy(f"{_.BK}").count() \
       .withColumnRenamed("count", "n") \
       .where("n > 1") 
     
