@@ -88,10 +88,6 @@ print(source_param)
 
 # COMMAND ----------
 
-source_param = '{"SourceType":"BLOB Storage (json)","SourceServer":"daf-sa-lake-sastoken","SourceGroup":"isudata","SourceName":"isu_erch","SourceLocation":"isudata/erch","AdditionalProperty":"","Processor":"databricks-token|0506-101427-nd8jc4td|Standard_DS12_v2|10.4.x-scala2.12|2:28|interactive","IsAuditTable":false,"SoftDeleteSource":"","ProjectName":"CLEANSED ISU DATA","ProjectId":12,"TargetType":"BLOB Storage (json)","TargetName":"isu_erch","TargetLocation":"isudata/erch","TargetServer":"daf-sa-lake-sastoken","DataLoadMode":"INCREMENTAL","DeltaExtract":true,"CDCSource":false,"TruncateTarget":false,"UpsertTarget":true,"AppendTarget":null,"TrackChanges":false,"LoadToSqlEDW":true,"TaskName":"isu_erch","ControlStageId":2,"TaskId":142,"StageSequence":200,"StageName":"Raw to Cleansed","SourceId":142,"TargetId":142,"ObjectGrain":"Day","CommandTypeId":8,"Watermarks":"2000-01-01 00:00:00","WatermarksDT":"2000-01-01T00:00:00","WatermarkColumn":"_FileDateTimeStamp","BusinessKeyColumn":"billingDocumentNumber","UpdateMetaData":null,"SourceTimeStampFormat":"","WhereClause":"WHERE _recordcurrent = 1 and _recorddeleted = 0","Command":"/build/cleansed/ISU Data/erch","LastSuccessfulExecutionTS":"2022-01-01T23:34:23.873","LastLoadedFile":null}'
-
-# COMMAND ----------
-
 # DBTITLE 1,5. Format the Parameters into JSON
 #5.Format the Source_param parameter value into JSON
 import json
