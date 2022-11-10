@@ -47,7 +47,7 @@ def loadInactiveSourceDf(source):
 
 # COMMAND ----------
 
-ef GetTargetDf():
+def GetTargetDf():
     global columns
     target = spark.sql(f"""
     select {columns}
