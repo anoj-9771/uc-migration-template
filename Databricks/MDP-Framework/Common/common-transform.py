@@ -47,7 +47,7 @@ class CuratedTransform( BlankClass ):
       self.EntityType = list[count-2]
       self.Name = list[count-1]
       self.SK = f"{self.Name}SK"
-      self.SK = self.Name[0].lower() + self.Name[1:]        
+      self.SK = self.SK[0].lower() + self.SK[1:]        
     #   self.BK = f"{self.Name}_BK"      
       self.BK = "_BusinessKey"
     #   self.EntityName = f"{self.EntityType[0:1]}_{self.Name}"
@@ -244,6 +244,8 @@ def Save(sourceDataFrame):
     if (not(TableExists(targetTableFqn))):
         print(f"Creating {targetTableFqn}...")
         CreateDeltaTable(sourceDataFrame, targetTableFqn, _.DataLakePath)  
+
+        sourceDataFrame = sourceDataFrame.withColumn("_recordStart", expr("CAST('1900-01-01' AS TIMESTAMP)"))
         EndNotebook(sourceDataFrame)
         return
 
