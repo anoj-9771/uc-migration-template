@@ -158,8 +158,19 @@ def AssertEquals(inputValue, outputValue):
     Assert(inputValue, outputValue, compare="Equals")
 def GreaterThan(inputValue, outputValue):
     Assert(inputValue, outputValue, compare="Greater Than")
+def GreaterThanEqual(inputValue, outputValue):
+    Assert(inputValue, outputValue, compare="Greater Than Equal") 
 def LessThan(inputValue, outputValue):
     Assert(inputValue, outputValue, compare="Less Than")
+
+# COMMAND ----------
+
+def TestNotImplemented():
+    inputValue = 0
+    outputValue = 0
+    passed = 1
+    comment = "Test not applicable to current table"
+    _LogResults(inputValue, outputValue, passed, comment)
 
 # COMMAND ----------
 
@@ -171,6 +182,8 @@ def Assert(inputValue, outputValue, compare="Equals", errorMessage=None):
             assert inputValue == outputValue, f"Expecting value {compare} {outputValue}, got: {inputValue}" if errorMessage is None else errorMessage
         elif compare == "Greater Than":
             assert inputValue > outputValue, f"Expecting value {compare} {outputValue}, got: {inputValue}"
+        elif compare == "Greater Than Equal":
+            assert inputValue >= outputValue, f"Expecting value {compare} {outputValue}, got: {inputValue}"    
         elif compare == "Less Than":
             assert inputValue < outputValue, f"Expecting value {compare} {outputValue}, got: {inputValue}"
         else:
