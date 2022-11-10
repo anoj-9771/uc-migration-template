@@ -55,6 +55,7 @@ def getDeviceCharacteristics():
                                                 ,timeMinimumValue,timeMaximumValue,validFromDate,validToDate
                                                 ,decimalMinimumValue,decimalMaximumValue,currencyMinimumValue,currencyMaximumValue 
                                               FROM isu_ausp_cawnt 
+                                              WHERE TRIM(characteristicValueCode) <> "" AND characteristicValueCode IS NOT NULL
                                               GROUP BY classificationObjectInternalId,characteristicInternalId,
                                                     classifiedEntityType,classTypeCode,classType,archivingObjectsInternalId,
                                                     minimumValue,minimumValueUnit,maximumValue,maximumValueUnit,valueDependencyCode,
