@@ -15,7 +15,7 @@ def SapCleansedPreprocess(sourceDataFrame,businessKey,sourceRecordDeletion,water
     partitionSpec = Window.partitionBy([col(x) for x in businessKeyList]).orderBy([col(x).desc() for x in sortOrderList])
     sourceDataFrame = sourceDataFrame.withColumn("rowNumber",row_number().over(partitionSpec)) \
                                      .where("rowNumber == 1")
-    sourceDataFrame = sourceDataFrame.withColumn("_RecordCurrent",lit('1')).withColumn("_RecordDeleted",lit('0')).drop("rowNumber")
+    sourceDataFrame = sourceDataFrame.withColumn("_RecordCurrent",lit('1')).withColumn("_RecordDeleted",lit('0')).drop("rowNumber").drop("extract_datetime")
     return sourceDataFrame
 
 # COMMAND ----------
@@ -27,5 +27,5 @@ def SapCleansedPostprocess(sourceDataFrame,businessKey,sourceRecordDeletion,wate
     partitionSpec = Window.partitionBy([col(x) for x in businessKeyList]).orderBy([col(x).desc() for x in sortOrderList])
     sourceDataFrame = sourceDataFrame.withColumn("rowNumber",row_number().over(partitionSpec)) \
                                      .where("rowNumber == 1 AND (di_operation_type == 'X' OR di_operation_type == 'D')" )
-    sourceDataFrame = sourceDataFrame.withColumn("_RecordCurrent",lit('0')).withColumn("_RecordDeleted",lit('1')).drop("rowNumber")
+    sourceDataFrame = sourceDataFrame.withColumn("_RecordCurrent",lit('0')).withColumn("_RecordDeleted",lit('1')).drop("rowNumber").drop("extract_datetime")
     return sourceDataFrame
