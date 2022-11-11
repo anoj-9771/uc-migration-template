@@ -1,5 +1,5 @@
 # Databricks notebook source
-# MAGIC %run ../../atf-common
+# MAGIC %run ../../common/common-atf
 
 # COMMAND ----------
 
