@@ -119,7 +119,7 @@
 						"referenceName": "log-status-update",
 						"type": "PipelineReference"
 					},
-					"waitOnCompletion": false,
+					"waitOnCompletion": true,
 					"parameters": {
 						"ID": {
 							"value": "@pipeline().parameters.task.ID",
