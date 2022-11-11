@@ -261,8 +261,6 @@ def Save(sourceDataFrame):
     # newRecords = sourceDataFrame.join(targetTable.where('_recordCurrent = 1'), [f"{_.BK}"], 'leftanti')
     # newCount = newRecords.count()
 
-    # print(changeColumns)
-
     # if newCount > 0:
     #     print(f"Inserting {newCount} new...")
     #     newRecords.write.insertInto(tableName=targetTableFqn)
