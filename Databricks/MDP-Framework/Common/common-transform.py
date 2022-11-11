@@ -252,38 +252,40 @@ def Save(sourceDataFrame):
     targetTable = spark.table(targetTableFqn)
     # _exclude = {f"{_.SK}", f"{_.BK}", '_recordStart', '_recordEnd', '_Current', "_Batch_SK"}
     #Question - _recordCurrent, and _recordDeleted are not excluded, agree?    
-    _exclude = {f"{_.SK}", f"{_.BK}", '_recordStart', '_recordEnd', '_DLCuratedZoneTimeStamp'}
-    changeColumns = " OR ".join([f"s.{c} <=> t.{c}" for c in targetTable.columns if c not in _exclude])
-    bkList = "','".join([str(c[f"{_.BK}"]) for c in spark.table(targetTableFqn).select(f"{_.BK}").rdd.collect()])
+    _exclude = {f"{_.SK}", f"{_.BK}", '_recordStart', '_recordEnd', '_recordCurrent', '_DLCuratedZoneTimeStamp'}
+    # changeColumns = " OR ".join([f"s.{c} <=> t.{c}" for c in targetTable.columns if c not in _exclude])
+    changeColumns = "!(" + " AND ".join([f"s.{c} <=> t.{c}" for c in targetTable.columns if c not in _exclude]) + ")"
+    # bkList = "','".join([str(c[f"{_.BK}"]) for c in spark.table(targetTableFqn).select(f"{_.BK}").rdd.collect()])
     # newRecords = sourceDataFrame.where(f"{_.Name}_BK NOT IN ('{bkList}')")
     #Question - should we use recordCurrent or high date?
-    newRecords = sourceDataFrame.join(targetTable.where('_recordCurrent = 1'), [f"{_.BK}"], 'leftanti')
-    newCount = newRecords.count()
+    # newRecords = sourceDataFrame.join(targetTable.where('_recordCurrent = 1'), [f"{_.BK}"], 'leftanti')
+    # newCount = newRecords.count()
 
-    if newCount > 0:
-        print(f"Inserting {newCount} new...")
-        newRecords.write.insertInto(tableName=targetTableFqn)
+    # if newCount > 0:
+    #     print(f"Inserting {newCount} new...")
+    #     newRecords.write.insertInto(tableName=targetTableFqn)
 
-    sourceDataFrame = sourceDataFrame.where(f"{_.BK} IN ('{bkList}')")
+    # sourceDataFrame = sourceDataFrame.where(f"{_.BK} IN ('{bkList}')")
     
     changeRecords = sourceDataFrame.alias("s") \
         .join(targetTable.alias("t"), f"{_.BK}") \
         .where(f"t._recordCurrent = 1 AND ({changeColumns})") 
 
     stagedUpdates = changeRecords.selectExpr("NULL BK", "s.*") \
-        .union( \
+        .unionByName( \
           sourceDataFrame.selectExpr(f"{_.BK} BK", "*") \
         )
 
     insertValues = {
         f"{_.SK}": f"{_.SK}", 
-        f"{_.BK}": f"COALESCE(s.BK, s.{_.BK})",
+        # f"{_.BK}": f"COALESCE(s.BK, s.{_.BK})",
+        f"{_.BK}": f"s.{_.BK}",
         "_DLCuratedZoneTimeStamp": "s._DLCuratedZoneTimeStamp",
         "_recordStart": "s._recordStart",
         "_recordEnd": "s._recordEnd",
         #Question
-        # "_recordCurrent": "1",
-        "_recordCurrent": "s._recordCurrent",
+        "_recordCurrent": "1",
+        # "_recordCurrent": "s._recordCurrent",
         "_recordDeleted": "s._recordDeleted",
         # "_Batch_SK": expr(f"DATE_FORMAT(s._Created, 'yyMMddHHmmss') || COALESCE(DATE_FORMAT({DEFAULT_END_DATE}, '{DATE_FORMAT}'), '{BATCH_END_CODE}') || 1")
     }
@@ -297,7 +299,7 @@ def Save(sourceDataFrame):
           set = {
             "_recordEnd": expr(f"{DEFAULT_START_DATE} - INTERVAL 1 SECOND"),
             #Question
-            # "_recordCurrent": "0",
+            "_recordCurrent": "0",
             # "_Batch_SK": expr(f"DATE_FORMAT(s._Created, '{DATE_FORMAT}') || COALESCE(DATE_FORMAT({DEFAULT_START_DATE} - INTERVAL 1 SECOND, '{DATE_FORMAT}'), '{BATCH_END_CODE}') || 0") 
           }
         ) \
