@@ -11,7 +11,7 @@ def Transform():
 
     # ------------- TRANSFORMS ------------- #
     _.Transforms = [
-        f"statusProfile||statusCode {BK}"
+        f"statusProfile||' | '|| statusCode {BK}"
         ,"statusProfile statusProfile"
         ,"statusCode statusCode"
         ,"statusShortDescription statusShortDescription"
@@ -29,3 +29,7 @@ def Transform():
     #DisplaySelf()
 pass
 Transform()
+
+# COMMAND ----------
+
+
