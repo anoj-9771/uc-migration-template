@@ -18,7 +18,7 @@ import pytz
 DEFAULT_SOURCE = "cleansed"
 DEFAULT_TARGET = "curated"
 DEFAULT_START_DATE = "NOW()"
-DEFAULT_END_DATE = "NULL"
+DEFAULT_END_DATE = "9999-12-31"
 BATCH_END_CODE = "000000000000"
 DATE_FORMAT = "yyMMddHHmmss"
 DEBUG = 0
@@ -46,8 +46,12 @@ class CuratedTransform( BlankClass ):
       count=len(list)
       self.EntityType = list[count-2]
       self.Name = list[count-1]
-      self.BK = f"{self.Name}_BK"
-      self.EntityName = f"{self.EntityType[0:1]}_{self.Name}"
+      self.SK = f"{self.Name}SK"
+      self.SK = self.SK[0].lower() + self.SK[1:]        
+    #   self.BK = f"{self.Name}_BK"      
+      self.BK = "_BusinessKey"
+    #   self.EntityName = f"{self.EntityType[0:1]}_{self.Name}"
+      self.EntityName = f"{'dim' if self.EntityType == 'Dimension' else 'fact'}{self.Name}"
       self.Destination = f"{DEFAULT_TARGET}.{self.EntityName}"
       self.DataLakePath = f"/mnt/datalake-{DEFAULT_TARGET}/{self.EntityType}/{self.EntityName}"
       self.Tables = []
@@ -88,7 +92,8 @@ def IsDimension():
 # COMMAND ----------
 
 def _WrapSystemColumns(dataFrame):
-  return _AddSCD(_InjectSK(dataFrame)) #if IsDimension() else _InjectSK(dataFrame) 
+#   return _AddSCD(_InjectSK(dataFrame)) #if IsDimension() else _InjectSK(dataFrame) 
+  return _InjectSK(_AddSCD(dataFrame)) #if IsDimension() else _InjectSK(dataFrame) 
 
 # COMMAND ----------
 
@@ -118,13 +123,14 @@ def GetSelf():
 # COMMAND ----------
 
 def _ValidateBK(sourceDataFrame):
-    print(f"Validating {_.Name}_BK...")
-    dupesDf = sourceDataFrame.groupBy(f"{_.Name}_BK").count() \
+    print(f"Validating {_.Name} {_.BK}...")
+    # dupesDf = sourceDataFrame.groupBy(f"{_.Name}_BK").count() \
+    dupesDf = sourceDataFrame.groupBy(f"{_.BK}").count() \
       .withColumnRenamed("count", "n") \
       .where("n > 1") 
     
     if (dupesDf.count() > 1):
-        print(f"WARNING! THERE ARE DUPES ON {_.Name}_BK!")       
+        print(f"WARNING! THERE ARE DUPES ON {_.Name} {_.BK}!")
         dupesDf.show()
 
 # COMMAND ----------
@@ -132,7 +138,8 @@ def _ValidateBK(sourceDataFrame):
 def Update(sourceDataFrame):
     targetTableFqn = f"{_.Destination}"
     dt = DeltaTable.forName(spark, targetTableFqn)
-    _exclude = {f"{_.Name}_SK", f"{_.Name}_BK", '_Created', '_Ended', '_Current'}
+    # _exclude = {f"{_.SK}", f"{_.BK}", '_Created', '_Ended', '_Current'}
+    _exclude = {f"{_.SK}", f"{_.BK}", '_recordStart', '_recordEnd'}
     targetTable = spark.table(targetTableFqn)
     updates = {
     }
@@ -141,7 +148,7 @@ def Update(sourceDataFrame):
     
     dt.alias("t").merge(
         sourceDataFrame.alias("s")
-        ,f"t.{_.Name}_BK = s.{_.Name}_BK"
+        ,f"t.{_.BK} = s.{_.BK}"
         ) \
         .whenMatchedUpdate(
         set = updates
@@ -177,10 +184,11 @@ def UnioniseQuery(query):
 # COMMAND ----------
 
 def _InjectSK(dataFrame):
-    skName = f"{_.Name}_SK"
+    skName = _.SK
     df = dataFrame
     #df = df.withColumn(skName, expr(f"XXHASH64(CONCAT(date_format(now(), '{DATE_FORMAT}'), '-', {_.Name}_BK), 512)"))
-    df = df.withColumn(skName, expr(f"CONCAT(date_format(now(), '{DATE_FORMAT}'), '-', {_.Name}_BK)"))
+    # df = df.withColumn(skName, expr(f"CONCAT(date_format(now(), '{DATE_FORMAT}'), '-', {_.BK})"))
+    df = df.withColumn(skName, md5(expr(f"concat({_.BK},'|',_recordStart)")))
     #df = df.withColumn(skName, expr(f"XXHASH64({_.Name}_BK, 512) || DATE_FORMAT(NOW(), '{DATE_FORMAT}')"))
     #df = df.withColumn(skName, expr(f"CAST((XXHASH64({_.Name}_BK, 512) || DATE_FORMAT(NOW(), '{DATE_FORMAT}')) AS BIGINT)"))
     #df = df.withColumn(skName, expr(f"CAST(LEFT({_.Name}_SK, 32) AS BIGINT)"))
@@ -193,13 +201,36 @@ def _InjectSK(dataFrame):
 # COMMAND ----------
 
 def _AddSCD(dataFrame):
+    cols = dataFrame.columns
     df = dataFrame
-    df = df.withColumn("_Created", expr(f"CAST({DEFAULT_START_DATE} AS TIMESTAMP)"))
-    df = df.withColumn("_Ended", expr("CAST(NULL AS TIMESTAMP)" if DEFAULT_END_DATE == "NULL" else f"CAST(({DEFAULT_END_DATE} + INTERVAL 1 DAY) - INTERVAL 1 SECOND AS TIMESTAMP)"))
-    df = df.withColumn("_Current", expr("CAST(1 AS INT)"))
-    df = df.withColumn("_Batch_SK", expr(f"DATE_FORMAT(_Created, '{DATE_FORMAT}') || COALESCE(DATE_FORMAT(_Ended, '{DATE_FORMAT}'), '{BATCH_END_CODE}') || _Current"))
+    
+    #Move BK to the end
+    if _.BK in cols:
+        cols.remove(_.BK)
+        cols.append(_.BK)
+    df = df.select(cols)
+
+    df = df.withColumn("_DLCuratedZoneTimeStamp", expr("now()"))
+    df = df.withColumn("_recordStart", expr(f"CAST({DEFAULT_START_DATE} AS TIMESTAMP)"))
+    # df = df.withColumn("_recordEnd", expr("CAST(NULL AS TIMESTAMP)" if DEFAULT_END_DATE == "NULL" else f"CAST('{DEFAULT_END_DATE}' AS TIMESTAMP) + INTERVAL 1 DAY - INTERVAL 1 SECOND"))
+    df = df.withColumn("_recordEnd", 
+                    expr("CAST(NULL AS TIMESTAMP)" if DEFAULT_END_DATE == "NULL" else f"CAST('{DEFAULT_END_DATE}' AS TIMESTAMP)"))
+    
+    if "_recordcurrent" in [c.lower() for c in cols]:
+        df = df.withColumn("_recordCurrent", expr("COALESCE(_recordCurrent, CAST(1 AS INT))"))
+    else:    
+        df = df.withColumn("_recordCurrent", expr("CAST(1 AS INT)"))
+
+    if "_recorddeleted" in [c.lower() for c in cols]:
+        df = df.withColumn("_recordDeleted", expr("COALESCE(_recordDeleted, CAST(0 AS INT))"))
+    else:    
+        df = df.withColumn("_recordDeleted", expr("CAST(0 AS INT)"))
+
+    # cols = [c for c in cols if c.lower() not in ["_recordcurrent","_recorddeleted"]]
+    
+    # df = df.withColumn("_Batch_SK", expr(f"DATE_FORMAT(_Created, '{DATE_FORMAT}') || COALESCE(DATE_FORMAT(_Ended, '{DATE_FORMAT}'), '{BATCH_END_CODE}') || _Current"))
     #THIS IS LARGER THAN BIGINT 
-    df = df.withColumn("_Batch_SK", expr("CAST(_Batch_SK AS DECIMAL(25, 0))"))
+    # df = df.withColumn("_Batch_SK", expr("CAST(_Batch_SK AS DECIMAL(25, 0))"))
 
     return df
 
@@ -212,52 +243,64 @@ def Save(sourceDataFrame):
 
     if (not(TableExists(targetTableFqn))):
         print(f"Creating {targetTableFqn}...")
+        # Adjust _RecordStart date for first load
+        sourceDataFrame = sourceDataFrame.withColumn("_recordStart", expr("CAST('1900-01-01' AS TIMESTAMP)"))
         CreateDeltaTable(sourceDataFrame, targetTableFqn, _.DataLakePath)  
         EndNotebook(sourceDataFrame)
         return
 
     targetTable = spark.table(targetTableFqn)
-    _exclude = {f"{_.Name}_SK", f"{_.Name}_BK", '_Created', '_Ended', '_Current', "_Batch_SK"}
-    changeColumns = " OR ".join([f"s.{c} <> t.{c}" for c in targetTable.columns if c not in _exclude])
-    bkList = "','".join([str(c[f"{_.Name}_BK"]) for c in spark.table(targetTableFqn).select(f"{_.Name}_BK").rdd.collect()])
+    # _exclude = {f"{_.SK}", f"{_.BK}", '_recordStart', '_recordEnd', '_Current', "_Batch_SK"}
+    #Question - _recordCurrent, and _recordDeleted are not excluded, agree?    
+    _exclude = {f"{_.SK}", f"{_.BK}", '_recordStart', '_recordEnd', '_recordCurrent', '_DLCuratedZoneTimeStamp'}
+    # changeColumns = " OR ".join([f"s.{c} <=> t.{c}" for c in targetTable.columns if c not in _exclude])
+    changeColumns = "!(" + " AND ".join([f"s.{c} <=> t.{c}" for c in targetTable.columns if c not in _exclude]) + ")"
+    # bkList = "','".join([str(c[f"{_.BK}"]) for c in spark.table(targetTableFqn).select(f"{_.BK}").rdd.collect()])
+    # newRecords = sourceDataFrame.where(f"{_.Name}_BK NOT IN ('{bkList}')")
+    #Question - should we use recordCurrent or high date?
+    # newRecords = sourceDataFrame.join(targetTable.where('_recordCurrent = 1'), [f"{_.BK}"], 'leftanti')
+    # newCount = newRecords.count()
 
-    newRecords = sourceDataFrame.where(f"{_.Name}_BK NOT IN ('{bkList}')")
-    newCount = newRecords.count()
+    # if newCount > 0:
+    #     print(f"Inserting {newCount} new...")
+    #     newRecords.write.insertInto(tableName=targetTableFqn)
 
-    if newCount > 0:
-        print(f"Inserting {newCount} new...")
-        newRecords.write.insertInto(tableName=targetTableFqn)
-
-    sourceDataFrame = sourceDataFrame.where(f"{_.Name}_BK IN ('{bkList}')")
+    # sourceDataFrame = sourceDataFrame.where(f"{_.BK} IN ('{bkList}')")
     
     changeRecords = sourceDataFrame.alias("s") \
-        .join(targetTable.alias("t"), f"{_.Name}_BK") \
-        .where(f"t._Current = 1 AND ({changeColumns})") 
+        .join(targetTable.alias("t"), f"{_.BK}") \
+        .where(f"t._recordCurrent = 1 AND ({changeColumns})") 
 
     stagedUpdates = changeRecords.selectExpr("NULL BK", "s.*") \
-        .union( \
-          sourceDataFrame.selectExpr(f"{_.Name}_BK BK", "*") \
+        .unionByName( \
+          sourceDataFrame.selectExpr(f"{_.BK} BK", "*") \
         )
 
     insertValues = {
-        f"{_.Name}_SK": f"{_.Name}_SK", 
-        f"{_.Name}_BK": f"COALESCE(s.BK, s.{_.Name}_BK)",
-        "_Created": "s._Created",
-        "_Ended": DEFAULT_END_DATE,
-        "_Current": "1",
-        "_Batch_SK": expr(f"DATE_FORMAT(s._Created, 'yyMMddHHmmss') || COALESCE(DATE_FORMAT({DEFAULT_END_DATE}, '{DATE_FORMAT}'), '{BATCH_END_CODE}') || 1")
+        f"{_.SK}": f"{_.SK}", 
+        # f"{_.BK}": f"COALESCE(s.BK, s.{_.BK})",
+        f"{_.BK}": f"s.{_.BK}",
+        "_DLCuratedZoneTimeStamp": "s._DLCuratedZoneTimeStamp",
+        "_recordStart": "s._recordStart",
+        "_recordEnd": "s._recordEnd",
+        #Question
+        "_recordCurrent": "1",
+        # "_recordCurrent": "s._recordCurrent",
+        "_recordDeleted": "s._recordDeleted",
+        # "_Batch_SK": expr(f"DATE_FORMAT(s._Created, 'yyMMddHHmmss') || COALESCE(DATE_FORMAT({DEFAULT_END_DATE}, '{DATE_FORMAT}'), '{BATCH_END_CODE}') || 1")
     }
     for c in [i for i in targetTable.columns if i not in _exclude]:
         insertValues[f"{c}"] = f"s.{c}"
 
     print("Merging...")
-    DeltaTable.forName(spark, targetTableFqn).alias("t").merge(stagedUpdates.alias("s"), f"t.{_.Name}_BK = BK") \
+    DeltaTable.forName(spark, targetTableFqn).alias("t").merge(stagedUpdates.alias("s"), f"t.{_.BK} = BK") \
         .whenMatchedUpdate(
-          condition = f"t._Current = 1 AND ({changeColumns})", 
+          condition = f"t._recordCurrent = 1 AND ({changeColumns})", 
           set = {
-            "_Ended": expr(f"{DEFAULT_START_DATE} - INTERVAL 1 SECOND"),
-            "_Current": "0",
-            "_Batch_SK": expr(f"DATE_FORMAT(s._Created, '{DATE_FORMAT}') || COALESCE(DATE_FORMAT({DEFAULT_START_DATE} - INTERVAL 1 SECOND, '{DATE_FORMAT}'), '{BATCH_END_CODE}') || 0") 
+            "_recordEnd": expr(f"{DEFAULT_START_DATE} - INTERVAL 1 SECOND"),
+            #Question
+            "_recordCurrent": "0",
+            # "_Batch_SK": expr(f"DATE_FORMAT(s._Created, '{DATE_FORMAT}') || COALESCE(DATE_FORMAT({DEFAULT_START_DATE} - INTERVAL 1 SECOND, '{DATE_FORMAT}'), '{BATCH_END_CODE}') || 0") 
           }
         ) \
         .whenNotMatchedInsert(
