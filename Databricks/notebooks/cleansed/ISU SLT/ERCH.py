@@ -305,7 +305,7 @@ df = spark.sql(f"""
             dd07t.domainValueSingleUpperLimit = stg.ABRVORG
         LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_dd07t dd07t2 ON 
             dd07t2.domainName = 'NINVOICE' 
-            and domainValueSingleUpperLimit = isu_erch.NINVOICE
+            and dd07t2.domainValueSingleUpperLimit = stg.NINVOICE
         LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_dd07t dd07t3 ON 
             dd07t3.domainName = 'BACKBI' AND
             dd07t3.domainValueSingleUpperLimit = stg.BACKBI
@@ -321,7 +321,7 @@ df = spark.sql(f"""
 # COMMAND ----------
 
 newSchema = StructType([
-    StructField('billingDocumentNumber', StringType(), True),
+    StructField('billingDocumentNumber', StringType(), False),
     StructField('companyCode', StringType(), True),
     StructField('companyName', StringType(), True),
     StructField('divisionCode', StringType(), True),
@@ -381,11 +381,11 @@ newSchema = StructType([
     StructField('backbillingTypeCode', StringType(), True),
     StructField('backbillingType', StringType(), True),
     StructField('billingPeriodEndType', StringType(), True),
-    StructField('backbillingPeriodNumber', IntType(), True),
+    StructField('backbillingPeriodNumber', IntegerType(), True),
     StructField('periodEndBillingStartDate', DateType(), True),
     StructField('backbillingPeriodEndIndicator', StringType(), True),
     StructField('billingPeriodEndIndicator', StringType(), True),
-    StructField('billingPeriodEndCount', IntType(), True),
+    StructField('billingPeriodEndCount', IntegerType(), True),
     StructField('billingDocumentAdjustmentReversalCount', StringType(), True),
     StructField('billingDocumentNumberForAdjustmentReversal', StringType(), True),
     StructField('billingAllocationDate', DateType(), True),
