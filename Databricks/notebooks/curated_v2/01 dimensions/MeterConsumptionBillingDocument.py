@@ -52,7 +52,7 @@ def getMeterConsumptionBillingDocument():
                                from {ADS_DATABASE_CLEANSED}.isu_erchc where _RecordCurrent = 1 ) erchc
                                           on erch.billingDocumentNumber =  erchc.billingDocumentNumber and erchc.rec_num = 1 
            where erch._RecordCurrent = 1 and dberchz1._RecordCurrent = 1 and dberchz2._RecordCurrent = 1 
-        """)
+        """).dropDuplicates()
     
     dummyDimRecDf = spark.createDataFrame([("Unknown","-1")], ["sourceSystemCode","billingDocumentNumber"])
     df = df_isu.unionByName(dummyDimRecDf, allowMissingColumns = True)
