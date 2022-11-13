@@ -321,7 +321,7 @@ df = spark.sql(f"""
 # COMMAND ----------
 
 newSchema = StructType([
-    StructField('billingDocumentNumber', StringType(), True),
+    StructField('billingDocumentNumber', StringType(), False),
     StructField('companyCode', StringType(), True),
     StructField('companyName', StringType(), True),
     StructField('divisionCode', StringType(), True),
