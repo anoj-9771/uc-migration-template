@@ -2,12 +2,7 @@
 _automatedMethods = {
     "tests" : []
     ,"cleansed" : ["RowCounts", "ColumnColumns","CountValidateCurrentRecords","CountValidateDeletedRecords","DuplicateCheck","DuplicateActiveCheck","BusinessKeyNullCk","BusinessKeyLengthCk"]
-    ,"curated" : [ "RowCounts", "DuplicateSK", "DuplicateActiveSK", "MD5ValueSK", "DateValidation",  "CountValidateCurrentRecords", "CountValidateDeletedRecords"
-                  #, "DuplicateCheck"
-                  #"OverlapAndGapValidation",
-                  #, "DuplicateActiveCheck"
-                  #, "ExactDuplicates", "BusinessKeyNullCk", "BusinessKeyLengthCk", "ManBusinessColNullCk", "SourceTargetCountCheckActiveRecords", "SourceMinusTargetCountCheckActiveRecords", "TargetMinusSourceCountCheckActiveRecords", "SourceTargetCountCheckDeletedRecords", "SourceMinusTargetCountCheckDeletedRecords", "TargetMinusSourceCountCheckDeletedRecords", "ColumnColumns" 
-                 ] 
+    ,"curated" : ["RowCounts", "DuplicateSK", "DuplicateActiveSK", "MD5ValueSK", "DateValidation","DateValidation1","CountCurrentRecordsC1D0", "CountCurrentRecordsC0D0", "OverlapAndGapValidation", "CountValidateCurrentRecords", "CountValidateDeletedRecords","CountDeletedRecords", "DuplicateCheck", "DuplicateActiveCheck", "ExactDuplicates", "BusinessKeyNullCk", "BusinessKeyLengthCk", "ManBusinessColNullCk", "SourceTargetCountCheckActiveRecords", "SourceMinusTargetCountCheckActiveRecords", "TargetMinusSourceCountCheckActiveRecords", "SourceTargetCountCheckDeletedRecords", "SourceMinusTargetCountCheckDeletedRecords", "TargetMinusSourceCountCheckDeletedRecords", "ColumnColumns","auditEndDateChk","auditCurrentChk","auditActiveOtherChk","auditDeletedChk"] 
     ,"curated_v2" : ["RowCounts", "DuplicateSK", "DuplicateActiveSK", "MD5ValueSK", "DateValidation","DateValidation1","CountCurrentRecordsC1D0", "CountCurrentRecordsC0D0", "OverlapAndGapValidation", "CountValidateCurrentRecords", "CountValidateDeletedRecords","CountDeletedRecords", "DuplicateCheck", "DuplicateActiveCheck", "ExactDuplicates", "BusinessKeyNullCk", "BusinessKeyLengthCk", "ManBusinessColNullCk", "SourceTargetCountCheckActiveRecords", "SourceMinusTargetCountCheckActiveRecords", "TargetMinusSourceCountCheckActiveRecords", "SourceTargetCountCheckDeletedRecords", "SourceMinusTargetCountCheckDeletedRecords", "TargetMinusSourceCountCheckDeletedRecords", "ColumnColumns","auditEndDateChk","auditCurrentChk","auditActiveOtherChk","auditDeletedChk" ]
 }
 
