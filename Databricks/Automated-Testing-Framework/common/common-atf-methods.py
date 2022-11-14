@@ -2,7 +2,7 @@
 _automatedMethods = {
     "tests" : []
     ,"cleansed" : ["RowCounts", "ColumnColumns","CountValidateCurrentRecords","CountValidateDeletedRecords","DuplicateCheck","DuplicateActiveCheck","BusinessKeyNullCk","BusinessKeyLengthCk"]
-    ,"curated" : ["RowCounts", "DuplicateSK", "DuplicateActiveSK", "MD5ValueSK", "DateValidation","DateValidation1","CountCurrentRecordsC1D0", "CountCurrentRecordsC0D0", "OverlapAndGapValidation", "CountValidateCurrentRecords", "CountValidateDeletedRecords","CountDeletedRecords", "DuplicateCheck", "DuplicateActiveCheck", "ExactDuplicates", "BusinessKeyNullCk", "BusinessKeyLengthCk", "ManBusinessColNullCk", "SourceTargetCountCheckActiveRecords", "SourceMinusTargetCountCheckActiveRecords", "TargetMinusSourceCountCheckActiveRecords", "SourceTargetCountCheckDeletedRecords", "SourceMinusTargetCountCheckDeletedRecords", "TargetMinusSourceCountCheckDeletedRecords", "ColumnColumns","auditEndDateChk","auditCurrentChk","auditActiveOtherChk","auditDeletedChk"] 
+    ,"curated" : ["RowCounts", "DuplicateSK", "DuplicateActiveSK", "MD5ValueSK", "DateValidation","DateValidation1","CountCurrentRecordsC1D0", "CountCurrentRecordsC0D0", "CountValidateCurrentRecords", "CountValidateDeletedRecords","CountDeletedRecords", "DuplicateCheck", "DuplicateActiveCheck", "ExactDuplicates", "BusinessKeyNullCk", "BusinessKeyLengthCk", "ManBusinessColNullCk", "ColumnColumns","auditEndDateChk","auditCurrentChk","auditActiveOtherChk","auditDeletedChk"] 
     ,"curated_v2" : ["RowCounts", "DuplicateSK", "DuplicateActiveSK", "MD5ValueSK", "DateValidation","DateValidation1","CountCurrentRecordsC1D0", "CountCurrentRecordsC0D0", "OverlapAndGapValidation", "CountValidateCurrentRecords", "CountValidateDeletedRecords","CountDeletedRecords", "DuplicateCheck", "DuplicateActiveCheck", "ExactDuplicates", "BusinessKeyNullCk", "BusinessKeyLengthCk", "ManBusinessColNullCk", "SourceTargetCountCheckActiveRecords", "SourceMinusTargetCountCheckActiveRecords", "TargetMinusSourceCountCheckActiveRecords", "SourceTargetCountCheckDeletedRecords", "SourceMinusTargetCountCheckDeletedRecords", "TargetMinusSourceCountCheckDeletedRecords", "ColumnColumns","auditEndDateChk","auditCurrentChk","auditActiveOtherChk","auditDeletedChk" ]
 }
 
@@ -328,44 +328,63 @@ def DuplicateActiveCheck():
 # COMMAND ----------
 
 def ExactDuplicates():
-    global keyColumns
-    global targetColumns
-    target.createOrReplaceTempView("target_view")
-    table = GetNotebookName()
-    df = spark.sql(f"SELECT {targetColumns}, COUNT(*) as recCount \
+    global columns
+    df = spark.sql(f"SELECT {columns}, COUNT(*) as recCount \
                    FROM {GetSelfFqn()} \
-                   GROUP BY {targetColumns} HAVING COUNT(*) > 1")
+                   GROUP BY {columns} HAVING COUNT(*) > 1")
     count = df.count()
+    if count > 0: display(df)
     Assert(count,0)
 
 # COMMAND ----------
 
 def BusinessKeyNullCk():
-    global businessKey
-    table = GetNotebookName()
-    df = spark.sql(f"SELECT * FROM {GetSelfFqn()} \
-                WHERE ({businessKey} is NULL or {businessKey} in ('',' ') or UPPER({businessKey})='NULL')")
+    global keyColumns
+    keyColsList = keyColumns.split(",")
+    firstColumn = keyColsList[0].strip()
+    sqlQuery = f"Select * from {GetSelfFqn()} "
+    
+    for column in keyColsList:
+        column = column.strip()
+        if column == firstColumn:
+            sqlQuery = sqlQuery + f"WHERE ({column} is NULL or {column} in ('',' ') or UPPER({column})='NULL') "
+        else:
+            sqlQuery = sqlQuery + f"OR ({column} is NULL or {column} in ('',' ') or UPPER({column})='NULL') "
+        
+    #print(sqlQuery)
+    
+    df = spark.sql(sqlQuery)
     count = df.count()
+    if count > 0: display(df)
     Assert(count,0)
 
 
 # COMMAND ----------
 
 def BusinessKeyLengthCk():
-    global businessKey
-    table = GetNotebookName()
-    df = spark.sql(f"SELECT DISTINCT length({businessKey}) from {GetSelfFqn()} \
-                      WHERE length({businessKey})<>2")
-    count = df.count()
-    Assert(count,1)
+    global keyColumns
+    keyColsList = keyColumns.split(",")
+    
+    for column in keyColsList:
+        column = column.strip()
+        
+        sqlQuery = f"SELECT DISTINCT length({column}) from {GetSelfFqn()} \
+                     WHERE length({column}) <> 2 "
+
+        if (column.upper().find('DATE') == -1): # if not a date column, add extra condition
+            sqlQuery = sqlQuery + f"AND {column} <> 'Unknown'"
+            
+        df = spark.sql(sqlQuery)
+        count = df.count()
+        if count > 1: display(df)
+        Assert(count,1, errorMessage = f"Failed check for key column: {column}")
     
 
 # COMMAND ----------
 
 def ManBusinessColNullCk():
-    global businessColumns
-    table = GetNotebookName()
-    busColsList = businessColumns.split(",")
+    global mandatoryColumns
+    busColsList = mandatoryColumns.split(",")
     firstColumn = busColsList[0].strip()
     sqlQuery = f"Select * from {GetSelfFqn()} "
     
@@ -380,6 +399,7 @@ def ManBusinessColNullCk():
             
     df = spark.sql(sqlQuery)
     count = df.count()
+    if count > 0: display(df)
     Assert(count,0)
 
 
