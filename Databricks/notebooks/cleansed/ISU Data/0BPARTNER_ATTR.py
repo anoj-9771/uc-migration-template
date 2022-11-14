@@ -256,9 +256,9 @@ df = (
             CASE 
                 WHEN businessPartnerCategoryCode = '2' 
                 THEN concat( 
-                    coalesce(NAME_ORG1, ''), 
-                    ' ', coalesce(NAME_ORG2, ''), 
-                    ' ', coalesce(NAME_ORG3, '')) 
+                    TRIM(coalesce(NAME_ORG1, '')), 
+                    ' ', TRIM(coalesce(NAME_ORG2, '')), 
+                    ' ', TRIM(coalesce(NAME_ORG3, ''))) 
                 ELSE NAME_ORG1 
             END                                                                   as organizationName, -- TRANSFORMATION
             CASE 
