@@ -139,75 +139,74 @@ def getBilledWaterConsumption():
     #4.Load dimension tables into dataframe
     dimPropertyDf = spark.sql(f"""
         SELECT sourceSystemCode, propertySK, propertyNumber, _RecordStart, _RecordEnd
-        FROM {ADS_DATABASE_CURATED}.dimProperty
+        FROM {ADS_DATABASE_CURATED_V2}.dimProperty
         """
      )
 
     dimLocationDf = spark.sql(f"""
         SELECT sourceSystemCode, locationSK, locationId, _RecordStart, _RecordEnd 
-        FROM {ADS_DATABASE_CURATED}.dimLocation
+        FROM {ADS_DATABASE_CURATED_V2}.dimLocation
         """
     )
 
     dimDeviceDf = spark.sql(f"""
         SELECT sourceSystemCode, deviceSK, deviceNumber, _RecordStart, _RecordEnd 
-        FROM {ADS_DATABASE_CURATED}.dimDevice
+        FROM {ADS_DATABASE_CURATED_V2}.dimDevice
         """
     )
     
     dimBillDocDf = spark.sql(f"""
-        SELECT sourceSystemCode, meterConsumptionBillingDocumentSK, billingDocumentNumber, _RecordStart, _RecordEnd \
-        FROM {ADS_DATABASE_CURATED}.dimMeterConsumptionBillingDocument
+        SELECT sourceSystemCode, meterConsumptionBillingDocumentSK, billingDocumentNumber, _RecordStart, _RecordEnd
+        FROM {ADS_DATABASE_CURATED_V2}.dimMeterConsumptionBillingDocument
         """
     )
     
     dimBillLineItemDf = spark.sql(f"""
-        SELECT sourceSystemCode, meterConsumptionBillingLineItemSK, billingDocumentNumber, billingDocumentLineItemId, _RecordStart, _RecordEnd \
-        FROM {ADS_DATABASE_CURATED}.dimMeterConsumptionBillingLineItem
+        SELECT sourceSystemCode, meterConsumptionBillingLineItemSK, billingDocumentNumber, billingDocumentLineItemId, _RecordStart, _RecordEnd
+        FROM {ADS_DATABASE_CURATED_V2}.dimMeterConsumptionBillingLineItem
         """
     )
 
     dimBusinessPartnerGroupDf = spark.sql(f"""
         SELECT sourceSystemCode, businessPartnerGroupSK, ltrim('0', businessPartnerGroupNumber) as businessPartnerGroupNumber, _RecordStart, _RecordEnd 
-        FROM {ADS_DATABASE_CURATED}.dimBusinessPartnerGroup
+        FROM {ADS_DATABASE_CURATED_V2}.dimBusinessPartnerGroup
         """
     )
 
     dimContractDf = spark.sql(f"""
         SELECT sourceSystemCode, contractSK, contractId, _RecordStart, _RecordEnd 
-        FROM {ADS_DATABASE_CURATED}.dimContract 
-        WHERE _RecordCurrent = 1
+        FROM {ADS_DATABASE_CURATED_V2}.dimContract 
         """
     )
 
     dummyDimRecDf = spark.sql(f"""
     /* Union All Dimensions 'dummy' Records */
     SELECT PropertySk as dummyDimSK, 'dimProperty' as dimension 
-    FROM {ADS_DATABASE_CURATED}.dimProperty 
+    FROM {ADS_DATABASE_CURATED_V2}.dimProperty 
     WHERE propertyNumber = '-1' UNION
      
     SELECT LocationSk as dummyDimSK, 'dimLocation' as dimension 
-    FROM {ADS_DATABASE_CURATED}.dimLocation 
+    FROM {ADS_DATABASE_CURATED_V2}.dimLocation 
     WHERE LocationId = '-1' UNION
      
     SELECT deviceSK as dummyDimSK, 'dimDevice' as dimension 
-    FROM {ADS_DATABASE_CURATED}.dimDevice 
+    FROM {ADS_DATABASE_CURATED_V2}.dimDevice 
     WHERE deviceNumber = '-1' UNION
      
     SELECT meterConsumptionBillingDocumentSK as dummyDimSK, 'dimMeterConsumptionBillingDocument' as dimension 
-    FROM {ADS_DATABASE_CURATED}.dimMeterConsumptionBillingDocument 
+    FROM {ADS_DATABASE_CURATED_V2}.dimMeterConsumptionBillingDocument 
     WHERE billingDocumentNumber = '-1' UNION
      
     SELECT meterConsumptionBillingLineItemSK as dummyDimSK, 'dimMeterConsumptionBillingLineItem' as dimension 
-    FROM {ADS_DATABASE_CURATED}.dimMeterConsumptionBillingLineItem 
+    FROM {ADS_DATABASE_CURATED_V2}.dimMeterConsumptionBillingLineItem 
     WHERE billingDocumentLineItemId = '-1' UNION
      
     SELECT businessPartnerGroupSK as dummyDimSK, 'dimBusinessPartnerGroup' as dimension 
-    FROM {ADS_DATABASE_CURATED}.dimBusinessPartnerGroup 
+    FROM {ADS_DATABASE_CURATED_V2}.dimBusinessPartnerGroup 
     WHERE BusinessPartnerGroupNumber = '-1' UNION
      
     SELECT contractSK as dummyDimSK, 'dimContract' as dimension 
-    FROM {ADS_DATABASE_CURATED}.dimContract 
+    FROM {ADS_DATABASE_CURATED_V2}.dimContract 
     WHERE contractId = '-1' 
     """
     )
@@ -221,9 +220,9 @@ def getBilledWaterConsumption():
         .join(
             dimPropertyDf, 
             (   # join conditions 
-                billedConsDf.businessPartnerGroupNumber == dimPropertyDf.propertyNumber 
-                & dimPropertyDf._RecordStart  <= billedConsDf.billingPeriodEndDate 
-                & dimPropertyDf._RecordEnd >= billedConsDf.billingPeriodEndDate
+                (billedConsDf.businessPartnerGroupNumber == dimPropertyDf.propertyNumber) 
+                & (dimPropertyDf._RecordStart  <= billedConsDf.billingPeriodEndDate)
+                & (dimPropertyDf._RecordEnd >= billedConsDf.billingPeriodEndDate)
             ), 
             how="left"
         )
@@ -236,9 +235,9 @@ def getBilledWaterConsumption():
             .join(
                 dimLocationDf, 
                 (   # join conditions
-                    billedConsDf.businessPartnerGroupNumber == dimLocationDf.locationId 
-                    & dimLocationDf._RecordStart  <= billedConsDf.billingPeriodEndDate 
-                    & dimLocationDf._RecordEnd >= billedConsDf.billingPeriodEndDate
+                    (billedConsDf.businessPartnerGroupNumber == dimLocationDf.locationId) 
+                    & (dimLocationDf._RecordStart  <= billedConsDf.billingPeriodEndDate)
+                    & (dimLocationDf._RecordEnd >= billedConsDf.billingPeriodEndDate)
                 ), 
                 how="left"
             ) 
@@ -251,9 +250,9 @@ def getBilledWaterConsumption():
         .join(
             dimDeviceDf, 
             (   # join conditions
-                billedConsDf.equipmentNumber == dimDeviceDf.deviceNumber 
-                & dimDeviceDf._RecordStart  <= billedConsDf.billingPeriodEndDate 
-                & dimDeviceDf._RecordEnd >= billedConsDf.billingPeriodEndDate
+                (billedConsDf.equipmentNumber == dimDeviceDf.deviceNumber) 
+                & (dimDeviceDf._RecordStart  <= billedConsDf.billingPeriodEndDate)
+                & (dimDeviceDf._RecordEnd >= billedConsDf.billingPeriodEndDate)
             ), 
             how="left"
         ) 
@@ -266,9 +265,9 @@ def getBilledWaterConsumption():
         .join(
             dimBillDocDf, 
             (   # join conditions
-                billedConsDf.billingDocumentNumber == dimBillDocDf.billingDocumentNumber 
-                & dimBillDocDf._RecordStart  <= billedConsDf.billingPeriodEndDate 
-                & dimBillDocDf._RecordEnd >= billedConsDf.billingPeriodEndDate
+                (billedConsDf.billingDocumentNumber == dimBillDocDf.billingDocumentNumber)
+                & (dimBillDocDf._RecordStart  <= billedConsDf.billingPeriodEndDate)
+                & (dimBillDocDf._RecordEnd >= billedConsDf.billingPeriodEndDate)
             ), 
             how="left"
         ) 
@@ -281,10 +280,10 @@ def getBilledWaterConsumption():
         .join(
             dimBillLineItemDf,
             (   # join conditions
-                billedConsDf.billingDocumentNumber == dimBillLineItemDf.billingDocumentNumber 
-                & billedConsDf.billingDocumentLineItemId == dimBillLineItemDf.billingDocumentLineItemId  
-                & dimBillLineItemDf._RecordStart  <= billedConsDf.billingPeriodEndDate 
-                & dimBillLineItemDf._RecordEnd >= billedConsDf.billingPeriodEndDate, 
+                (billedConsDf.billingDocumentNumber == dimBillLineItemDf.billingDocumentNumber)
+                & (billedConsDf.billingDocumentLineItemId == dimBillLineItemDf.billingDocumentLineItemId) 
+                & (dimBillLineItemDf._RecordStart  <= billedConsDf.billingPeriodEndDate) 
+                & (dimBillLineItemDf._RecordEnd >= billedConsDf.billingPeriodEndDate) 
             ),
             how="left"
         ) 
@@ -297,9 +296,9 @@ def getBilledWaterConsumption():
         .join(
             dimContractDf, 
             (   # join conditions
-                billedConsDf.contractId == dimContractDf.contractId 
-                & dimContractDf._RecordStart  <= billedConsDf.billingPeriodEndDate 
-                & dimContractDf._RecordEnd >= billedConsDf.billingPeriodEndDate
+                (billedConsDf.contractId == dimContractDf.contractId)
+                & (dimContractDf._RecordStart  <= billedConsDf.billingPeriodEndDate)
+                & (dimContractDf._RecordEnd >= billedConsDf.billingPeriodEndDate)
             ), 
             how="left"
         ) 
@@ -312,9 +311,9 @@ def getBilledWaterConsumption():
         .join(
             dimBusinessPartnerGroupDf, 
             (
-                billedConsDf.businessPartnerGroupNumber == dimBusinessPartnerGroupDf.businessPartnerGroupNumber \
-                & dimBusinessPartnerGroupDf._RecordStart  <= billedConsDf.billingPeriodEndDate \
-                & dimBusinessPartnerGroupDf._RecordEnd >= billedConsDf.billingPeriodEndDate
+                (billedConsDf.businessPartnerGroupNumber == dimBusinessPartnerGroupDf.businessPartnerGroupNumber)
+                & (dimBusinessPartnerGroupDf._RecordStart  <= billedConsDf.billingPeriodEndDate)
+                & (dimBusinessPartnerGroupDf._RecordEnd >= billedConsDf.billingPeriodEndDate)
             ), 
             how="left"
         ) 
@@ -416,7 +415,7 @@ def getBilledWaterConsumption():
             "meterConsumptionBillingDocumentSK", 
             "meterConsumptionBillingLineItemSK", 
             "propertySK", 
-            "meterSK", 
+            "deviceSK", 
             "locationSK",
             "businessPartnerGroupSK",
             "contractSK", 
