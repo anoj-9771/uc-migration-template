@@ -190,8 +190,8 @@ df_cleansed = spark.sql(f"SELECT C_STRE_GUID AS streetGuideCode, \
 		C_VALI_ADDI_STRE AS streetSuffix, \
 		M_SUBU AS suburb, \
 		C_POST AS postCode, \
-        to_date(D_STRE_GUID_EFFE, 'yyyyMMdd') AS streetGuideEffectiveDate, \
-        to_date(D_STRE_GUID_CANC, 'yyyyMMdd') AS streetGuideCancelledDate, \
+        ToValidDate(D_STRE_GUID_EFFE) AS streetGuideEffectiveDate, \
+        ToValidDate(D_STRE_GUID_CANC) AS streetGuideCancelledDate, \
 		_RecordStart, \
 		_RecordEnd, \
 		_RecordDeleted, \

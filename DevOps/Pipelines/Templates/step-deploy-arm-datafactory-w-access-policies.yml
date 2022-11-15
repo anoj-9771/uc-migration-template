@@ -5,8 +5,6 @@ parameters:
   type: string
 - name: log_analytics
   type: boolean
-- name: log_storage
-  type: boolean
 
 steps:
   - task: AzureResourceGroupDeployment@2
@@ -16,7 +14,7 @@ steps:
       resourceGroupName: ${{ parameters.resource_group }}
       location: $(LOCATION)
       templateLocation: 'Linked artifact'
-      csmFile: '$(Pipeline.Workspace)/arm_templates/arm-datafactory-w-shir.json'
+      csmFile: '$(Build.ArtifactStagingDirectory)/arm_templates/arm-datafactory-w-shir.json'
       overrideParameters: '-dataFactoryName $(DATAFACTORYNAME) -dataFactorySHIRName $(DATAFACTORYSHIRNAME) -location $(LOCATION) -isRepoEnabled $(ISREPOENABLED)'
       deploymentMode: 'Incremental'
     displayName: 'Deploy Datafactory with Access Policies'

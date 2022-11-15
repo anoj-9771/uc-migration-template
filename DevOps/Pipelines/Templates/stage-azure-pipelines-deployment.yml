@@ -19,6 +19,8 @@ parameters:
   type: string
 - name: run_condition
   type: string
+- name: pool
+  type: string
 
 stages:
 # ---------------------------------------------------------------------------
@@ -36,9 +38,11 @@ stages:
   # through templates. Introduce or remove templates from this build script
   # as needed for your deployment
   - job: 'deploy_arm'
+    pool: ${{ parameters.pool }}
     steps:
-    - download: current
-      artifact: arm_templates
+    - task: DownloadBuildArtifacts@0
+      inputs:
+        artifactName: 'arm_templates' 
 
     # ------------------------------------------------------------------------
     # Deploy Azure Log related resources
@@ -93,7 +97,7 @@ stages:
               "minCapacity": 0.5
             }
           log_analytics: ${{ variables.loganalytics }}
-          log_storage: ${{ variables.logstorage }}
+          
     # Deploy S0 EDW DB. Update parameters here if different to required.
     - ${{ if eq(variables['edw'], true) }}:
       - template: step-deploy-arm-azuresqldb.yml
@@ -119,7 +123,7 @@ stages:
               "autoPauseDelay": ""
             } 
           log_analytics: ${{ variables.loganalytics }}
-          log_storage: ${{ variables.logstorage }}
+          
     # Deploy BLOB Storage accounts for Data Lake
     - ${{ if eq(variables['azureblobstorage'], true) }}:
       - template: step-deploy-arm-blobstoragev2.yml
@@ -152,21 +156,7 @@ stages:
           databricks_workers : ${{ variables.databricksworkers }}
           databricks_autotermination : ${{ variables.databricksautotermination }}
           log_analytics: ${{ variables.loganalytics }}
-          
-    # Deploy Databricks Workspace without v-net integration
-    - ${{ if eq(variables['databricksnovnet'], true) }}:
-      - template: step-deploy-arm-databricks-no-vnet-injection.yml
-        parameters:
-          AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
-          resource_group: ${{ variables.resourcegroupname }}
-          databricksclustername: ${{ variables.databricksclustername }}
-          databricks_driver_node_type_id : ${{ variables.databricksdrivernodetypeid }}
-          databricks_node_type_id : ${{ variables.databricksnodetypeid }}
-          databricks_spark_version : ${{ variables.sparkClusterVersion }}
-          databricks_workers : ${{ variables.databricksworkers }}
-          databricks_autotermination : ${{ variables.databricksautotermination }}
-          log_analytics: ${{ variables.loganalytics }}
-
+                    
     # Deploy Data Factory with access policies for AKV
     - ${{ if eq(variables['datafactory'], true) }}:
       - template: step-deploy-arm-datafactory-w-access-policies.yml
@@ -174,7 +164,6 @@ stages:
           AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
           resource_group: ${{ variables.resourcegroupname }}
           log_analytics: ${{ variables.loganalytics }}
-          log_storage: ${{ variables.logstorage }}
 
     # Deploy Synapse Analytics Workspace.
     - ${{ if eq(variables['synapseanalyticsworkspace'], true) }}:
@@ -186,6 +175,7 @@ stages:
           defaultDataLakeStorageAccountName: ${{ variables.defaultDataLakeStorageAccountName }}
           defaultDataLakeStorageFilesystemName: ${{ variables.defaultDataLakeStorageFilesystemName }}
           synapsesqlPoolName: ${{ variables.synapsesqlPoolName }}
+          defaultAdlsGen2AccountResourceId: ${{ variables.defaultAdlsGen2AccountResourceId }}
 
     # Deploy Private Endpoints
     - ${{ if eq(variables['privateendpoints'], true) }}:
@@ -193,6 +183,13 @@ stages:
         parameters:
           AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
           resource_group: ${{ variables.resourcegroupname }}
+
+    # Deploy Azure Monitor Audit Settings
+    # - ${{ if eq(variables['auditsettings'], true) }}:
+    #   - template: step-deploy-arm-audit-settings.yml
+    #     parameters:
+    #       AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
+    #       resource_group: ${{ variables.resourcegroupname }}
 
     # Add Tags to resources
     - ${{ if eq(variables['applytags'], true) }}:
@@ -208,11 +205,10 @@ stages:
             az resource tag --tags $(TAGS) --ids $ids 
 
   # Deploy Control DB schema / DACPAC.
-  - ${{ if eq(variables['controldb'], true) }}:
-    - template: job-deploy-controldb.yml
-      parameters:
-        AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
-
+  # - ${{ if eq(variables['controldb'], true) }}:
+  #   - template: job-deploy-controldb.yml
+  #     parameters:
+  #       AzDoServiceConnection: ${{ variables.azdoresourceconnection }}
  
   
   

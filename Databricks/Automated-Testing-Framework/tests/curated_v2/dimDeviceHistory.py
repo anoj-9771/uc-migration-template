@@ -1,54 +1,41 @@
 # Databricks notebook source
-# MAGIC %run ../../common/common-atf
+# MAGIC %run /build/includes/util-general
 
 # COMMAND ----------
 
-keyColumns = 'deviceNumber, validToDate'
-businessKey = '_BusinessKey'
-businessColumns = 'sourceSystemCode'
+# MAGIC %run ../../atf-common
 
 # COMMAND ----------
 
-sourceColumns = ("""sourceSystemCode
-, deviceNumber
-, validToDate
-, validFromDate
-, logicalDeviceNumber
-, deviceLocation
-, deviceCategoryCombination
-, registerGroupCode
-, registerGroup
-, installationDate
-, deviceRemovalDate
-, activityReasonCode
-, activityReason
-, windingGroup
-, advancedMeterCapabilityGroup
-, messageAttributeId
-, firstInstallationDate
-, lastDeviceRemovalDate
-""")
+# MAGIC %sql
+# MAGIC select * from curated_v2.dimDeviceHistory
 
-source = spark.sql(f"""
-Select {sourceColumns}
-,_RecordStart
-,_RecordEnd
-,_RecordCurrent
-,_RecordDeleted
-From
-(
-Select
+# COMMAND ----------
+
+# DBTITLE 1,[Target] Schema Check
+target_df = spark.sql("select * from curated_v2.dimDeviceHistory")
+target_df.printSchema()
+
+# COMMAND ----------
+
+
+
+# COMMAND ----------
+
+# DBTITLE 1,Source with mapping for active and deleted records
+source_isu=spark.sql("""
+select 
 'ISU' as sourceSystemCode
 , a.equipmentNumber as deviceNumber
-, a.validToDate as validToDate
-, a.validFromDate as validFromDate
+, ToValidDate(a.validToDate) as validToDate
+, ToValidDate(a.validFromDate) as validFromDate
 , a.logicalDeviceNumber as logicalDeviceNumber
 , a.deviceLocation as deviceLocation
 , a.deviceCategoryCombination as deviceCategoryCombination
 , a.registerGroupCode as registerGroupCode
 , a.registerGroup as registerGroup
-, a.installationDate as installationDate
-, a.deviceRemovalDate as deviceRemovalDate
+, ToValidDate(a.installationDate) as installationDate
+, ToValidDate(a.deviceRemovalDate) as deviceRemovalDate
 , a.activityReasonCode as activityReasonCode
 , a.activityReason as activityReason
 , a.windingGroup as windingGroup
@@ -59,65 +46,78 @@ Select
 when (a.validFromDate <= current_date and a.validToDate >= current_date) then a.deviceRemovalDate
 else null
 END as lastDeviceRemovalDate
-, a._RecordStart as _RecordStart
-, a._RecordEnd as _RecordEnd
-, a._RecordCurrent as _RecordCurrent
+,coalesce(ToValidDate(a.validFromDate), '1900-01-01') as _RecordStart
+, ToValidDate(a.validToDate) as _RecordEnd
 , a._RecordDeleted as _RecordDeleted
-From
-cleansed.isu_0uc_deviceh_attr a
-)
-
+, a._RecordCurrent as _RecordCurrent
+from
+cleansed.isu_0uc_deviceh_attr a 
+where _RecordDeleted not in ('1') and _RecordCurrent not in ('0') 
 """)
-#display(source)
-#source.count()
+source_isu.createOrReplaceTempView("source_view")
+src_a = spark.sql("Select * except(_RecordCurrent,_recordDeleted) from source_view where _RecordCurrent=1 and _recordDeleted=0 ")
+src_d = spark.sql("Select * except(_RecordCurrent,_recordDeleted) from source_view where _RecordCurrent=0 and _recordDeleted=1 ")
+src_a.createOrReplaceTempView("src_a")
+src_d.createOrReplaceTempView("src_d")
+
 
 # COMMAND ----------
 
-# only include the columns you wish to compare with the source table columns
-targetColumns = ("""
-sourceSystemCode
-, deviceNumber
-, validToDate
-, validFromDate
-, logicalDeviceNumber
-, deviceLocation
-, deviceCategoryCombination
-, registerGroupCode
-, registerGroup
-, installationDate
-, deviceRemovalDate
-, activityReasonCode
-, activityReason
-, windingGroup
-, advancedMeterCapabilityGroup
-, messageAttributeId
-, firstInstallationDate
-, lastDeviceRemovalDate
+# DBTITLE 1,Define Variables for ATF
+keyColumns = 'deviceNumber,validToDate'
+mandatoryColumns = 'deviceNumber,validToDate'
+columns = ("""
+sourceSystemCode,
+deviceNumber,
+validToDate,
+validFromDate,
+logicalDeviceNumber,
+deviceLocation,
+deviceCategoryCombination,
+registerGroupCode,
+registerGroup,
+installationDate,
+deviceRemovalDate,
+activityReasonCode,
+activityReason,
+windingGroup,
+advancedMeterCapabilityGroup,
+messageAttributeId,
+firstInstallationDate,
+lastDeviceRemovalDate
 """)
 
-target = spark.sql(f"""
-select {targetColumns}
-,_RecordStart
-,_RecordEnd
-,_RecordCurrent
-,_RecordDeleted
-from 
-curated_v2.dimDeviceHistory
+source_a = spark.sql(f"""
+Select {columns}
+From src_a
 """)
-#display(target)
-#target.count()
 
-# COMMAND ----------
+source_d = spark.sql(f"""
+Select {columns}
+From src_d
+""")
 
-def ManualDupeCheck():
-    df = spark.sql(f"SELECT {keyColumns}, COUNT(*) as recCount from curated_v2.dimDeviceHistory \
-                GROUP BY {keyColumns} HAVING COUNT(*) > 1")
-    count = df.count()
-    #display(df)
-    Assert(count, 0)
-#ManualDupeCheck()
 
 # COMMAND ----------
 
 #ALWAYS RUN THIS AT THE END
 RunTests()
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC select count(*) from curated_v2.dimDeviceHistory
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC select count(*) from source_view
+
+# COMMAND ----------
+
+
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC select count(*) from curated_v2.dimDeviceHistory  where _RecordCurrent=0 and _recordDeleted=0

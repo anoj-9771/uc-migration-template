@@ -22,7 +22,7 @@ trigger: none
 #     - DevOps/Pipelines/datafactory-deploy-pipeline-cicd.yml
 #     - DevOps/Pipelines/stage-datafactory-integration.yml
 
-pool: Daf-Self-Hosted-Preprod-Linux
+pool: Daf-Self-Hosted-Prod-Linux
 
 stages:
 # ---------------------------------------------------------------------------
@@ -38,7 +38,6 @@ stages:
 # Release to Non-Prod - Dev Environment
 - template: Templates/stage-datafactory-integration.yml
   parameters:
-    #dependencies: ['uat'] # Used to define any stage dependencies
     stage_name: 'deploy_adf_dev'
     variable_template_name: dev-variables
     run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/develop'))
@@ -47,17 +46,23 @@ stages:
 # Release to Non-Prod - Test Environment..
 - template: Templates/stage-datafactory-integration.yml
   parameters:
-    #dependencies: ['uat'] # Used to define any stage dependencies
     stage_name: 'deploy_adf_test'
     variable_template_name: test-variables
     run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/test'))
 
 # ---------------------------------------------------------------------------
-# Release to Production - PreProd Environment
+# Release to PreProduction - PreProd Environment
 - template: Templates/stage-datafactory-integration.yml
   parameters:
-    #dependencies: ['uat'] # Used to define any stage dependencies
     stage_name: 'deploy_adf_preprod'
     variable_template_name: preprd-variables
     run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/preprod'))
+
+# ---------------------------------------------------------------------------
+# Release to Production - Prod Environment
+- template: Templates/stage-datafactory-integration.yml
+  parameters:
+    stage_name: 'deploy_adf_prod'
+    variable_template_name: prod-variables
+    run_condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
 
