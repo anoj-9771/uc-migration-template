@@ -1,19 +1,48 @@
 # Databricks notebook source
 _automatedMethods = {
-    "tests" : []
-    ,"cleansed" : ["RowCounts", "ColumnColumns","CountValidateCurrentRecords","CountValidateDeletedRecords","DuplicateCheck","DuplicateActiveCheck","BusinessKeyNullCk","BusinessKeyLengthCk"]
-    ,"curated" : ["RowCounts", "DuplicateSK", "DuplicateActiveSK", "MD5ValueSK", "DateValidation","DateValidation1","CountCurrentRecordsC1D0", "CountCurrentRecordsC0D0", "CountValidateCurrentRecords", "CountValidateDeletedRecords","CountDeletedRecords", "DuplicateCheck", "DuplicateActiveCheck", "ExactDuplicates", "BusinessKeyNullCk", "BusinessKeyLengthCk", "ManBusinessColNullCk", "ColumnColumns","auditEndDateChk","auditCurrentChk","auditActiveOtherChk","auditDeletedChk"] 
-    ,"curated_v2" : ["RowCounts", "DuplicateSK", "DuplicateActiveSK", "MD5ValueSK", "DateValidation","DateValidation1","CountCurrentRecordsC1D0", "CountCurrentRecordsC0D0", "CountValidateCurrentRecords", "CountValidateDeletedRecords","CountDeletedRecords", "DuplicateCheck", "DuplicateActiveCheck", "ExactDuplicates", "BusinessKeyNullCk", "BusinessKeyLengthCk", "ManBusinessColNullCk", "ColumnColumns","auditEndDateChk","auditCurrentChk","auditActiveOtherChk","auditDeletedChk" ]
+    "tests": [],
+    "cleansed": [
+        "RowCounts"
+        ,"ColumnCounts"
+        ,"CountValidateCurrentRecords"
+        ,"CountValidateDeletedRecords"
+        
+        #,"DuplicateCount"
+        #,"DuplicateActive"
+        #,"BusinessKeyNull"
+        #,"BusinessKeyLength"
+    ],
+    "curated": [
+        "RowCounts"
+        ,"ColumnCounts"
+        ,"CountValidateCurrentRecords"
+        ,"CountValidateDeletedRecords"
+        
+        ,"Duplicate"
+        ,"DuplicateActive"
+        ,"BusinessKeyNull"
+        ,"BusinessKeyLength"
+        
+        ,"DuplicateSK"
+        ,"DuplicateActiveSK"
+        ,"MD5ValueSK"
+        ,"DateValidation"
+        ,"CountCurrentRecordsC1D0"
+        ,"CountCurrentRecordsC0D0"
+        ,"CountDeletedRecords"
+        ,"ExactDuplicates"
+        ,"ManBusinessColNull"
+        ,"AuditEndDate"
+        ,"AuditCurrent"
+        ,"AuditActiveOther"
+        ,"AuditDeleted"
+    ],
+    "curated_v2": [
+    ]
 }
 
-# COMMAND ----------
-
-def loadSourceDf(source):
-    global columns
-    source.createOrReplaceTempView("sourceView")
-    sourceDf = spark.sql(f"SELECT {columns} FROM sourceView")
-    
-    return sourceDf
+#COPY THE AUTOMATED TESTS
+_automatedMethods["curated_v2"] = _automatedMethods["curated"]
 
 # COMMAND ----------
 
@@ -306,7 +335,7 @@ def CountDeletedRecords():
 
 # COMMAND ----------
 
-def DuplicateCheck():
+def DuplicateCount():
     global keyColumns
     table = GetNotebookName()
     df = spark.sql(f"SELECT {keyColumns}, COUNT(*) as recCount from {GetSelfFqn()} \
@@ -338,7 +367,7 @@ def ExactDuplicates():
 
 # COMMAND ----------
 
-def BusinessKeyNullCk():
+def BusinessKeyNull():
     global keyColumns
     keyColsList = keyColumns.split(",")
     firstColumn = keyColsList[0].strip()
@@ -361,7 +390,7 @@ def BusinessKeyNullCk():
 
 # COMMAND ----------
 
-def BusinessKeyLengthCk():
+def BusinessKeyLength():
     global keyColumns
     keyColsList = keyColumns.split(",")
     
@@ -382,7 +411,7 @@ def BusinessKeyLengthCk():
 
 # COMMAND ----------
 
-def ManBusinessColNullCk():
+def ManBusinessColNull():
     global mandatoryColumns
     busColsList = mandatoryColumns.split(",")
     firstColumn = busColsList[0].strip()
@@ -459,7 +488,6 @@ def SourceTargetCountCheckDeletedRecords():
     targetCount = targetDf.count()
 
     Assert(sourceCount, targetCount)
-    
 
 # COMMAND ----------
 
@@ -473,8 +501,6 @@ def SourceMinusTargetCountCheckDeletedRecords():
     df = sourceDf.subtract(targetDf)
     count = df.count()
     Assert(count, 0)    
-
-    
 
 # COMMAND ----------
 
@@ -491,13 +517,13 @@ def TargetMinusSourceCountCheckDeletedRecords():
 
 # COMMAND ----------
 
-def ColumnColumns():
+def ColumnCounts():
     count = len(GetSelf().columns)
     Assert(count,count)
 
 # COMMAND ----------
 
-def auditEndDateChk():
+def AuditEndDate():
     global keyColumns
     df = spark.sql(f"Select * from {GetSelfFqn()} \
                      where date(_RecordEnd) < (select date(max(_DLCuratedZoneTimeStamp)) as max_date from {GetSelfFqn()}) \
@@ -508,7 +534,7 @@ def auditEndDateChk():
 
 # COMMAND ----------
 
-def auditCurrentChk():
+def AuditCurrent():
     global keyColumns
     table = GetNotebookName()
     df = spark.sql(f"select * from (\
@@ -540,7 +566,7 @@ def auditActiveOtherChk():
 
 # COMMAND ----------
 
-def auditDeletedChk():
+def AuditDeleted():
     global keyColumns
     table = GetNotebookName()
     df = spark.sql(f"select * from (\
