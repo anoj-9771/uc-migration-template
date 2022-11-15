@@ -278,7 +278,7 @@ DeltaSaveDataFrameToDeltaTable(
     ADS_DATALAKE_ZONE_CLEANSED, 
     ADS_DATABASE_CLEANSED, 
     data_lake_folder, 
-    ADS_WRITE_MODE_MERGE, 
+    ADS_WRITE_MODE_OVERWRITE, 
     newSchema, 
     track_changes, 
     is_delta_extract, 

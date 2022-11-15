@@ -218,7 +218,7 @@ df = spark.sql(f"""
         SELECT 
             *, 
             ROW_NUMBER() OVER (
-                PARTITION BY PARTNER,TYPE,IDNUMBER 
+                PARTITION BY PARTNER,TYPE,trim(IDNUMBER)  
                 ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC
             ) AS _RecordVersion FROM {delta_raw_tbl_name} 
         WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}'
@@ -275,8 +275,8 @@ df = spark.sql(f"""
     LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_t005u t005u 
         ON BP.REGION = t005u.stateCode 
         AND BP.COUNTRY = t005u.countryCode 
-        AND t005t._RecordDeleted = 0 
-        AND t005t._RecordCurrent = 1 
+        AND t005u._RecordDeleted = 0 
+        AND t005u._RecordCurrent = 1 
     where BP._RecordVersion = 1 
 """
 )
