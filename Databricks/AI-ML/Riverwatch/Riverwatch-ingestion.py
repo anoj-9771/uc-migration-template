@@ -23,7 +23,6 @@ UNION
 SELECT 'BoM' SystemCode, 'BoM' SourceSchema, '' SourceKeyVaultSecret, 'http-binary-load' SourceHandler, 'xml' RawFileExtension, 'raw-load' RawHandler, 'cleansed-load' CleansedHandler, 'FortDenision_Tide' SourceTableName, 'http://www.bom.gov.au/ntc/IDO59001/IDO59001_2023_NSW_TP007.xml' SourceQuery
 ,     '{"rowTag" : "forecast-period", "TransformMethod": "ExpandTable"}' ExtendedProperties, NULL WatermarkColumn
 
-
 UNION
 SELECT 'BoM' SystemCode, 'BoM' SourceSchema, '' SourceKeyVaultSecret, 'ftp-binary-load' SourceHandler, 'xml' RawFileExtension, 'raw-load' RawHandler, 'cleansed-load' CleansedHandler, 'WeatherForecast' SourceTableName, 'ftp://ftp.bom.gov.au/anon/gen/fwo/IDN10064.xml' SourceQuery, '{"rowTag" : "area"}' ExtendedProperties, NULL WatermarkColumn
 
@@ -32,30 +31,13 @@ SELECT 'BoM' SystemCode, 'BoM' SourceSchema, '' SourceKeyVaultSecret, 'http-bina
 
 UNION 
 SELECT 'iicats_rw' SystemCode, 'scxstg' SourceSchema, 'daf-oracle-IICATS-stg-connectionstring' SourceKeyVaultSecret, 'oracle-load' SourceHandler, NULL RawFileExtension, 'raw-load-delta' RawHandler, 'cleansed-load-delta' CleansedHandler, 'hierarchy_cnfgn' SourceTableName, null SourceQuery, NULL ExtendedProperties, 'HT_CRT_DT' WatermarkColumn
+
 UNION 
-SELECT 'iicats_rw' SystemCode, 'scxstg' SourceSchema, 'daf-oracle-IICATS-stg-connectionstring' SourceKeyVaultSecret, 'oracle-load' SourceHandler, NULL RawFileExtension, 'raw-load-delta' RawHandler, 'cleansed-load-delta' CleansedHandler, 'point_cnfgn' SourceTableName, null SourceQuery, NULL ExtendedProperties, 'HT_CRT_DT' WatermarkColumn
+SELECT 'iicats_rw' SystemCode, 'scxstg' SourceSchema, 'daf-oracle-IICATS-stg-connectionstring' SourceKeyVaultSecret, 'oracle-load' SourceHandler, NULL RawFileExtension, 'raw-load-delta' RawHandler, 'cleansed-load-delta' CleansedHandler, 'tsv_point_cnfgn' SourceTableName, null SourceQuery, NULL ExtendedProperties, 'HT_CRT_DT' WatermarkColumn
 UNION 
+
 SELECT 'iicats_rw' SystemCode, 'scxstg' SourceSchema, 'daf-oracle-IICATS-stg-connectionstring' SourceKeyVaultSecret, 'oracle-load' SourceHandler, NULL RawFileExtension, 'raw-load-delta' RawHandler, 'cleansed-load-delta' CleansedHandler, 'tsv' SourceTableName, "select tsv.* from scxstg.tsv inner join scxstg.tsv_point_cnfgn t on tsv.cdb_obj_id = t.pnt_cdb_obj_id inner join scxstg.hierarchy_cnfgn h on t.cdb_obj_id = h.cdb_obj_id where h. site_cd in(''GG0022'',''GG0064'',''GG0020'',''GG0008'',''GG0019'',''GG0047'',''GG0016'') and h.obj_nm = ''Rainfall 15M Total'' and tsv.ht_crt_dt > (select sysdate - 7 from dual)" SourceQuery, NULL ExtendedProperties, NULL WatermarkColumn
 
-/* -- CHANGED TO ONLY TAKE NECESSARY TABLES TO REDUCE LOAD
-SELECT 'iicats_rw' SystemCode, 'scxstg' SourceSchema, 'daf-oracle-IICATS-stg-connectionstring' SourceKeyVaultSecret, 'oracle-load' SourceHandler, NULL RawFileExtension, 'raw-load-delta' RawHandler, 'cleansed-load-delta' CleansedHandler, 'dly_prof_cnfgn' SourceTableName, null SourceQuery, NULL ExtendedProperties
-UNION 
-SELECT 'iicats_rw' SystemCode, 'scxstg' SourceSchema, 'daf-oracle-IICATS-stg-connectionstring' SourceKeyVaultSecret, 'oracle-load' SourceHandler, NULL RawFileExtension, 'raw-load-delta' RawHandler, 'cleansed-load-delta' CleansedHandler, 'event' SourceTableName, null SourceQuery, NULL ExtendedProperties
-UNION 
-
-UNION 
-SELECT 'iicats_rw' SystemCode, 'scxstg' SourceSchema, 'daf-oracle-IICATS-stg-connectionstring' SourceKeyVaultSecret, 'oracle-load' SourceHandler, NULL RawFileExtension, 'raw-load-delta' RawHandler, 'cleansed-load-delta' CleansedHandler, 'iicats_work_orders' SourceTableName, null SourceQuery, NULL ExtendedProperties
-
-UNION 
-SELECT 'iicats_rw' SystemCode, 'scxstg' SourceSchema, 'daf-oracle-IICATS-stg-connectionstring' SourceKeyVaultSecret, 'oracle-load' SourceHandler, NULL RawFileExtension, 'raw-load-delta' RawHandler, 'cleansed-load-delta' CleansedHandler, 'point_limit' SourceTableName, null SourceQuery, NULL ExtendedProperties
-UNION 
-SELECT 'iicats_rw' SystemCode, 'scxstg' SourceSchema, 'daf-oracle-IICATS-stg-connectionstring' SourceKeyVaultSecret, 'oracle-load' SourceHandler, NULL RawFileExtension, 'raw-load-delta' RawHandler, 'cleansed-load-delta' CleansedHandler, 'rtu' SourceTableName, null SourceQuery, NULL ExtendedProperties
-
-UNION 
-SELECT 'iicats_rw' SystemCode, 'scxstg' SourceSchema, 'daf-oracle-IICATS-stg-connectionstring' SourceKeyVaultSecret, 'oracle-load' SourceHandler, NULL RawFileExtension, 'raw-load-delta' RawHandler, 'cleansed-load-delta' CleansedHandler, 'tsv_point_cnfgn' SourceTableName, null SourceQuery, NULL ExtendedProperties
-UNION 
-SELECT 'iicats_rw' SystemCode, 'scxstg' SourceSchema, 'daf-oracle-IICATS-stg-connectionstring' SourceKeyVaultSecret, 'oracle-load' SourceHandler, NULL RawFileExtension, 'raw-load-delta' RawHandler, 'cleansed-load-delta' CleansedHandler, 'wkly_prof_cnfgn' SourceTableName, null SourceQuery, NULL ExtendedProperties
-*/
 """)
 display(df)
 
@@ -153,6 +135,13 @@ ExecuteStatement("""
 update dbo.extractLoadManifest set
 waterMarkColumn = NULL
 where systemCode = 'iicats_rw' and sourceSchema = 'scxstg' and waterMarkColumn = 'None'
+""")
+
+#ADD BUSINESS KEY
+ExecuteStatement("""
+update dbo.extractLoadManifest set
+businessKeyColumn = 'CDB_OBJ_ID,HT_CRT_DT,EFF_FROM_DT'
+where systemCode = 'iicats_rw' and businessKeyColumn <> 'CDB_OBJ_ID,HT_CRT_DT,EFF_FROM_DT'
 """)
 
 # COMMAND ----------

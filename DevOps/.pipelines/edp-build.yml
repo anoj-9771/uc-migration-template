@@ -4,7 +4,7 @@ trigger:
   branches:
     include: [ 'develop', 'test', 'preprod' ]
   paths:
-    include: [ 'ADS-Databases', 'DataFactory', 'Databricks' ] 
+    include: [ 'ADS-Databases', 'DataFactory', 'Databricks', 'Includes/dls/raw/cleansed_csv' ] 
 stages:
 - stage: BuildStage
   jobs:
