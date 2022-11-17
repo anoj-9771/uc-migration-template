@@ -2,7 +2,7 @@
 	"name": "DS_RAW_ADLS_DELTALAKE",
 	"properties": {
 		"linkedServiceName": {
-			"referenceName": "LS_DeltaLake",
+			"referenceName": "LS_DeltaLake_SLT",
 			"type": "LinkedServiceReference"
 		},
 		"parameters": {

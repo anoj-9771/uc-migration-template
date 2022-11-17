@@ -1,0 +1,26 @@
+{
+	"name": "LS_DeltaLake_SLT",
+	"properties": {
+		"type": "AzureDatabricksDeltaLake",
+		"annotations": [],
+		"typeProperties": {
+			"domain": "https://adb-7004525605760210.10.azuredatabricks.net",
+			"clusterId": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "LS-AzureKeyVault",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "databricks-slt-cluster-id"
+			},
+			"workspaceResourceId": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "LS-AzureKeyVault",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "databricks-workspace-resource-id"
+			}
+		}
+	}
+}
