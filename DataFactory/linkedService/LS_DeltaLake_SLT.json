@@ -4,7 +4,14 @@
 		"type": "AzureDatabricksDeltaLake",
 		"annotations": [],
 		"typeProperties": {
-			"domain": "https://adb-7004525605760210.10.azuredatabricks.net",
+			"domain": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "LS-AzureKeyVault",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "databricks-domain"
+			},
 			"clusterId": {
 				"type": "AzureKeyVaultSecret",
 				"store": {
@@ -21,6 +28,10 @@
 				},
 				"secretName": "databricks-workspace-resource-id"
 			}
+		},
+		"connectVia": {
+			"referenceName": "IntegrationRuntime-Azure-ManagedVnet-01",
+			"type": "IntegrationRuntimeReference"
 		}
 	}
 }
