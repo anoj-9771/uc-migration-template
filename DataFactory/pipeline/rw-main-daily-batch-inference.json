@@ -394,7 +394,7 @@
 				"typeProperties": {
 					"notebookPath": "/AI-ML/Riverwatch/03_JSON_RW_output",
 					"baseParameters": {
-						"processed_timestamp": {
+						"process_timestamp": {
 							"value": "@variables('CurrentModelRuntime')",
 							"type": "Expression"
 						}
