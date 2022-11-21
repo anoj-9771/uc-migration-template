@@ -3,7 +3,7 @@
 import json
 #For unit testing...
 #Use this string in the Param widget: 
-# {"SourceType": "BLOB Storage (json)", "SourceServer": "daf-sa-lake-sastoken", "SourceGroup": "isu", "SourceName": "isu_0UC_DEVICEH_ATTR", "SourceLocation": "isu/0UC_DEVICEH_ATTR", "AdditionalProperty": "", "Processor": "databricks-token|0711-011053-turfs581|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive", "IsAuditTable": false, "SoftDeleteSource": "", "ProjectName": "SAP DATA", "ProjectId": 2, "TargetType": "BLOB Storage (json)", "TargetName": "isu_0UC_DEVICEH_ATTR", "TargetLocation": "isu/0UC_DEVICEH_ATTR", "TargetServer": "daf-sa-lake-sastoken", "DataLoadMode": "FULL-EXTRACT", "DeltaExtract": false, "CDCSource": false, "TruncateTarget": false, "UpsertTarget": true, "AppendTarget": null, "TrackChanges": false, "LoadToSqlEDW": true, "TaskName": "isu_0UC_DEVICEH_ATTR", "ControlStageId": 2, "TaskId": 46, "StageSequence": 200, "StageName": "Raw to Cleansed", "SourceId": 46, "TargetId": 46, "ObjectGrain": "Day", "CommandTypeId": 8, "Watermarks": "", "WatermarksDT": null, "WatermarkColumn": "", "BusinessKeyColumn": "EQUNR,BIS", "UpdateMetaData": null, "SourceTimeStampFormat": "", "Command": "", "LastLoadedFile": null}
+# {"SourceType":"BLOB Storage (json)","SourceServer":"daf-sa-blob-sastoken","SourceGroup":"isudata","SourceName":"isu_0UC_DEVICEH_ATTR","SourceLocation":"isudata/0UC_DEVICEH_ATTR","AdditionalProperty":"","Processor":"databricks-token|1018-021846-1a1ycoqc|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive","IsAuditTable":false,"SoftDeleteSource":"","ProjectName":"CLEANSED ISU DATA","ProjectId":12,"TargetType":"BLOB Storage (json)","TargetName":"isu_0UC_DEVICEH_ATTR","TargetLocation":"isudata/0UC_DEVICEH_ATTR","TargetServer":"daf-sa-lake-sastoken","DataLoadMode":"INCREMENTAL","DeltaExtract":true,"CDCSource":false,"TruncateTarget":false,"UpsertTarget":true,"AppendTarget":null,"TrackChanges":false,"LoadToSqlEDW":true,"TaskName":"isu_0UC_DEVICEH_ATTR","ControlStageId":2,"TaskId":228,"StageSequence":200,"StageName":"Raw to Cleansed","SourceId":228,"TargetId":228,"ObjectGrain":"Day","CommandTypeId":8,"Watermarks":"2000-01-01 00:00:00","WatermarksDT":"2000-01-01T00:00:00","WatermarkColumn":"_FileDateTimeStamp","BusinessKeyColumn":"equipmentNumber,validToDate","PartitionColumn":null,"UpdateMetaData":null,"SourceTimeStampFormat":"","WhereClause":"","Command":"/build/cleansed/ISU Data/0UC_DEVICEH_ATTR","LastSuccessfulExecutionTS":"2000-01-01T23:46:12.39","LastLoadedFile":null}
 
 #Use this string in the Source Object widget
 #isu_0UC_DEVICEH_ATTR
@@ -170,8 +170,13 @@ print(delta_raw_tbl_name)
 # COMMAND ----------
 
 # DBTITLE 1,10. Load Raw to Dataframe & Do Transformations
-df = spark.sql(f"WITH stage AS \
-                      (Select *, ROW_NUMBER() OVER (PARTITION BY EQUNR,BIS ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' and DI_OPERATION_TYPE !='X' ) \
+df = spark.sql(f"WITH stageUpsert AS \
+                      (select *, 'U' as _upsertFlag from (Select *, ROW_NUMBER() OVER (PARTITION BY EQUNR,BIS ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} \
+                      WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' and DI_OPERATION_TYPE !='X' ) where _RecordVersion = 1), \
+                      stageDelete AS \
+                      (select *, 'D' as _upsertFlag from ( \
+Select *, ROW_NUMBER() OVER (PARTITION BY EQUNR,AB,BIS ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}') where  _RecordVersion = 1 and DI_OPERATION_TYPE ='X'), \
+                      stage AS (select * from stageUpsert union select * from stageDelete) \
                            SELECT \
                                 case when dev.EQUNR = 'na' then '' else dev.EQUNR end as equipmentNumber, \
                                 ToValidDate((case when dev.BIS = 'na' then '9999-12-31' else dev.BIS end),'MANDATORY') as validToDate, \
@@ -203,13 +208,13 @@ df = spark.sql(f"WITH stage AS \
                                 dev.ZERNAM as createdBy, \
                                 cast('1900-01-01' as TimeStamp) as _RecordStart, \
                                 cast('9999-12-31' as TimeStamp) as _RecordEnd, \
-                                '0' as _RecordDeleted, \
+                                (CASE WHEN _upsertFlag = 'U' THEN '0' ELSE '1' END) as _RecordDeleted, \
                                 '1' as _RecordCurrent, \
                                 cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
                         FROM stage dev \
-                            left outer join cleansed.isu_0UC_GERWECHS_TEXT b on dev.GERWECHS = b.activityReasonCode \
-                            left outer join cleansed.isu_0UC_REGGRP_TEXT c on dev.ZWGRUPPE = c.registerGroupCode \
-                        where dev._RecordVersion = 1 ")
+                            left outer join {ADS_DATABASE_CLEANSED}.isu_0UC_GERWECHS_TEXT b on dev.GERWECHS = b.activityReasonCode \
+                            left outer join {ADS_DATABASE_CLEANSED}.isu_0UC_REGGRP_TEXT c on dev.ZWGRUPPE = c.registerGroupCode \
+                        ")
 
 #print(f'Number of rows: {df.count()}')
 
@@ -256,36 +261,48 @@ newSchema = StructType([
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
-DeltaSaveDataFrameToDeltaTable(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
+DeltaSaveDataFrameToDeltaTable(df.filter("_RecordDeleted = '0'"), target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
 
 # COMMAND ----------
 
-# DBTITLE 1,13.1 Identify Deleted records from Raw table
-# df = spark.sql(f"select distinct EQUNR,AB,BIS from {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' and   DI_OPERATION_TYPE ='X'")
-# df.createOrReplaceTempView("isu_device_deleted_records")
-
-df = spark.sql(f"select distinct coalesce(EQUNR,'') as EQUNR, coalesce(AB,'') as AB, coalesce(BIS,'') as BIS from ( \
-Select *, ROW_NUMBER() OVER (PARTITION BY EQUNR,AB,BIS ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' ) \
-where  _RecordVersion = 1 and DI_OPERATION_TYPE ='X'")
-df.createOrReplaceTempView("isu_device_deleted_records")
-
-# COMMAND ----------
-
-# DBTITLE 1,13.2 Update _RecordDeleted and _RecordCurrent Flags
-#Get current time
-CurrentTimeStamp = GeneralLocalDateTime()
-CurrentTimeStamp = CurrentTimeStamp.strftime("%Y-%m-%d %H:%M:%S")
-
+# DBTITLE 1,13 Update _RecordDeleted and _RecordCurrent Flags
+# Load deleted records to replace the existing Deleted records implementation logic
+df.filter("_RecordDeleted=1").createOrReplaceTempView("isu_device_deleted_records")
 spark.sql(f" \
     MERGE INTO cleansed.isu_0UC_DEVICEH_ATTR \
     using isu_device_deleted_records \
-    on isu_0UC_DEVICEH_ATTR.equipmentNumber = isu_device_deleted_records.EQUNR \
-    and isu_0UC_DEVICEH_ATTR.validFromDate = isu_device_deleted_records.AB \
-    and isu_0UC_DEVICEH_ATTR.validToDate = isu_device_deleted_records.BIS \
+    on isu_0UC_DEVICEH_ATTR.equipmentNumber = isu_device_deleted_records.equipmentNumber \
+    and isu_0UC_DEVICEH_ATTR.validFromDate = isu_device_deleted_records.validFromDate \
+    and isu_0UC_DEVICEH_ATTR.validToDate = isu_device_deleted_records.validToDate \
     WHEN MATCHED THEN UPDATE SET \
-    _DLCleansedZoneTimeStamp = cast('{CurrentTimeStamp}' as TimeStamp) \
+    deviceCategoryCombination=isu_device_deleted_records.deviceCategoryCombination \
+    ,logicalDeviceNumber=isu_device_deleted_records.logicalDeviceNumber \
+    ,registerGroupCode=isu_device_deleted_records.registerGroupCode \
+    ,registerGroup=isu_device_deleted_records.registerGroup \
+    ,installationDate=isu_device_deleted_records.installationDate \
+    ,deviceRemovalDate=isu_device_deleted_records.deviceRemovalDate \
+    ,activityReasonCode=isu_device_deleted_records.activityReasonCode \
+    ,activityReason=isu_device_deleted_records.activityReason \
+    ,deviceLocation=isu_device_deleted_records.deviceLocation \
+    ,windingGroup=isu_device_deleted_records.windingGroup \
+    ,deletedFlag=isu_device_deleted_records.deletedFlag \
+    ,bwDeltaProcess=isu_device_deleted_records.bwDeltaProcess \
+    ,advancedMeterCapabilityGroup=isu_device_deleted_records.advancedMeterCapabilityGroup \
+    ,messageAttributeId=isu_device_deleted_records.messageAttributeId \
+    ,materialNumber=isu_device_deleted_records.materialNumber \
+    ,installationId=isu_device_deleted_records.installationId \
+    ,addressNumber=isu_device_deleted_records.addressNumber \
+    ,cityName=isu_device_deleted_records.cityName \
+    ,houseNumber=isu_device_deleted_records.houseNumber \
+    ,streetName=isu_device_deleted_records.streetName \
+    ,postalCode=isu_device_deleted_records.postalCode \
+    ,superiorFunctionalLocationNumber=isu_device_deleted_records.superiorFunctionalLocationNumber \
+    ,policeEventNumber=isu_device_deleted_records.policeEventNumber \
+    ,orderNumber=isu_device_deleted_records.orderNumber \
+    ,createdBy=isu_device_deleted_records.createdBy \
+    ,_DLCleansedZoneTimeStamp = cast('{CurrentTimeStamp}' as TimeStamp) \
     ,_RecordDeleted=1 \
-    ,_RecordCurrent=0 \
+    ,_RecordCurrent=1 \
     ")
 
 # COMMAND ----------
