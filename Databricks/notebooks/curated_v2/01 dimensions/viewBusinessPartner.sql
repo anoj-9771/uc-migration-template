@@ -250,15 +250,16 @@ CREATE OR REPLACE VIEW curated_v2.viewBusinessPartner AS
      /*=====================================
         Build 'Effective From and To table
      =======================================*/
-     dateDriver AS (
+     dateDriverNonDelete AS (
          SELECT DISTINCT
              sourceSystemCode,
              businessPartnerNumber,
              _recordStart AS _effectiveFrom
          FROM curated_v2.dimBusinessPartner
+         WHERE _RecordDeleted = 0
      ),
  
-     effectiveDateRanges AS (
+     effectiveDateRangesNonDelete AS (
          SELECT 
              sourceSystemCode,
              businessPartnerNumber, 
@@ -270,17 +271,43 @@ CREATE OR REPLACE VIEW curated_v2.viewBusinessPartner AS
                  ), 
                  TIMESTAMP('9999-12-31')
              ) AS _effectiveTo
-         FROM dateDriver
-     )  
+         FROM dateDriverNonDelete
+     ),
+     dateDriverDelete AS (
+         SELECT DISTINCT
+             sourceSystemCode,
+             businessPartnerNumber,
+             _recordStart AS _effectiveFrom
+         FROM curated_v2.dimBusinessPartner
+         WHERE _RecordDeleted = 1
+     ),
+ 
+     effectiveDateRangesDelete AS (
+         SELECT 
+             sourceSystemCode,
+             businessPartnerNumber, 
+             _effectiveFrom, 
+             COALESCE(
+                 TIMESTAMP(
+                     DATE_ADD(
+                         LEAD(_effectiveFrom,1) OVER (PARTITION BY sourceSystemCode, businessPartnerNumber ORDER BY _effectiveFrom),-1)
+                 ), 
+                 TIMESTAMP('9999-12-31')
+             ) AS _effectiveTo
+         FROM dateDriverDelete
+     )
  
  /*============================
     viewBusinessPartner
  ==============================*/
+SELECT * FROM
+(
  SELECT
     /* Business Partner Columns */
     BP.businessPartnerSK,
+    ADDR.businesspartnerAddressSK,
     BP.sourceSystemCode,
-    BP.businessPartnerNumber,
+    coalesce(BP.businessPartnerNumber, ADDR.businessPartnerNumber, ID.businessPartnerNumber, -1) as businessPartnerNumber,
     BP.businessPartnerCategoryCode,
     BP.businessPartnerCategory,
     BP.businessPartnerTypeCode,
@@ -322,7 +349,6 @@ CREATE OR REPLACE VIEW curated_v2.viewBusinessPartner AS
     BP.lastUpdatedDateTime,
     BP.lastUpdatedBy,
     /* Address Columns */
-    ADDR.businesspartnerAddressSK,
     ADDR.businessPartnerAddressNumber,
     ADDR.addressValidFromDate,
     ADDR.addressValidToDate,
@@ -399,27 +425,173 @@ CREATE OR REPLACE VIEW curated_v2.viewBusinessPartner AS
     ID.fathersFirstNameEntryDate,
     DR._effectiveFrom, 
     DR._effectiveTo,
-    CASE
-      WHEN CURRENT_DATE() BETWEEN 
-        DR._effectiveFrom AND DR._effectiveTo 
-      THEN 'Y'
-      ELSE 'N'
-    END AS currentIndicator 
-FROM effectiveDateRanges DR
+    BP._recordDeleted as _dimBusinessPartnerRecordDeleted,
+    ADDR._recordDeleted as _dimBusinessPartnerAddressRecordDeleted,
+    BP._recordCurrent as _dimBusinessPartnerRecordCurrent,
+    ADDR._recordCurrent as _dimBusinessPartnerAddressRecordCurrent
+FROM effectiveDateRangesNonDelete DR
 LEFT JOIN curated_v2.dimbusinesspartner BP ON 
     DR.businessPartnerNumber = BP.businessPartnerNumber AND
     DR.sourceSystemCode = BP.sourceSystemCode AND
     DR._effectiveFrom <= BP._RecordEnd AND
-    DR._effectiveTo >= BP._RecordStart 
+    DR._effectiveTo >= BP._RecordStart AND
+    BP._recordDeleted = 0
 LEFT JOIN curated_v2.dimbusinesspartneraddress ADDR ON 
     DR.businessPartnerNumber = ADDR.businessPartnerNumber AND
     DR.sourceSystemCode = ADDR.sourceSystemCode AND
     DR._effectiveFrom <= ADDR._RecordEnd AND
-    DR._effectiveTo >= ADDR._RecordStart 
+    DR._effectiveTo >= ADDR._RecordStart AND
+    ADDR._recordDeleted = 0
 LEFT JOIN curated_v2.viewBusinessPartnerIdentification ID ON 
     DR.businessPartnerNumber = ID.businessPartnerNumber AND
     DR.sourceSystemCode = ID.sourceSystemCode
 WHERE businessPartnerSK IS NOT NULL
+UNION
+ SELECT
+    /* Business Partner Columns */
+    BP.businessPartnerSK,
+    ADDR.businesspartnerAddressSK,
+    BP.sourceSystemCode,
+    coalesce(BP.businessPartnerNumber, ADDR.businessPartnerNumber, ID.businessPartnerNumber, -1) as businessPartnerNumber,
+    BP.businessPartnerCategoryCode,
+    BP.businessPartnerCategory,
+    BP.businessPartnerTypeCode,
+    BP.businessPartnerType,
+    BP.businessPartnerGroupCode,
+    BP.businessPartnerGroup,
+    BP.externalNumber,
+    BP.businessPartnerGUID,
+    BP.firstName,
+    BP.lastName,
+    BP.middleName,
+    BP.nickName,
+    BP.titleCode,
+    BP.title,
+    BP.dateOfBirth,
+    BP.dateOfDeath,
+    BP.validFromDate,
+    BP.validToDate,
+    BP.warWidowFlag,
+    BP.deceasedFlag,
+    BP.disabilityFlag,
+    BP.goldCardHolderFlag,
+    BP.naturalPersonFlag,
+    BP.consent1Indicator,
+    BP.consent2Indicator,
+    BP.eligibilityFlag,
+    BP.paymentAssistSchemeFlag,
+    BP.plannedChangeDocument,
+    BP.paymentStartDate,
+    BP.dateOfCheck,
+    BP.pensionConcessionCardFlag,
+    BP.pensionType,
+    BP.personNumber,
+    BP.personnelNumber,
+    BP.organizationName,
+    BP.organizationFoundedDate,
+    BP.createdDateTime,
+    BP.createdBy,
+    BP.lastUpdatedDateTime,
+    BP.lastUpdatedBy,
+    /* Address Columns */
+    ADDR.businessPartnerAddressNumber,
+    ADDR.addressValidFromDate,
+    ADDR.addressValidToDate,
+    ADDR.phoneNumber,
+    ADDR.phoneExtension,
+    ADDR.faxNumber,
+    ADDR.faxExtension,
+    ADDR.emailAddress,
+    ADDR.personalAddressFlag,
+    ADDR.coName,
+    ADDR.shortFormattedAddress2,
+    ADDR.streetLine5,
+    ADDR.building,
+    ADDR.floorNumber,
+    ADDR.apartmentNumber,
+    ADDR.housePrimaryNumber,
+    ADDR.houseSupplementNumber,
+    ADDR.streetPrimaryName,
+    ADDR.streetSupplementName1,
+    ADDR.streetSupplementName2,
+    ADDR.otherLocationName,
+    ADDR.houseNumber,
+    ADDR.streetName,
+    ADDR.streetCode,
+    ADDR.cityName,
+    ADDR.cityCode,
+    ADDR.stateCode,
+    ADDR.stateName,
+    ADDR.postalCode,
+    ADDR.countryCode,
+    ADDR.countryName,
+    ADDR.addressFullText,
+    ADDR.poBoxCode,
+    ADDR.poBoxCity,
+    ADDR.postalCodeExtension,
+    ADDR.poBoxExtension,
+    ADDR.deliveryServiceTypeCode,
+    ADDR.deliveryServiceType,
+    ADDR.deliveryServiceNumber,
+    ADDR.addressTimeZone,
+    ADDR.communicationAddressNumber,
+    /* Identification Columns */
+    ID.driverLicenseNumber,
+    ID.driverLicenseNumberValidFrom,
+    ID.driverLicenseNumberValidTo,
+    ID.driverLicenseNumberEntryDate,
+    ID.pensionNumber,
+    ID.pensionNumberValidFrom,
+    ID.pensionNumberValidTo,
+    ID.pensionNumberEntryDate,
+    ID.australianBusinessNumber,
+    ID.australianBusinessNumberValidFrom,
+    ID.australianBusinessNumberValidTo,
+    ID.australianBusinessNumberEntryDate,
+    ID.australianCompanyNumber,
+    ID.australianCompanyNumberValidFrom,
+    ID.australianCompanyNumberValidTo,
+    ID.australianCompanyNumberEntryDate,
+    ID.dvaNumber,
+    ID.dvaNumberValidFrom,
+    ID.dvaNumberValidTo,
+    ID.dvaNumberEntryDate,
+    ID.userPassword,
+    ID.userPasswordEntryDate,
+    ID.placeofBirth,
+    ID.placeofBirthEntryDate,
+    ID.petsName,
+    ID.petsNameEntryDate,
+    ID.mothersFirstName,
+    ID.mothersFirstNameEntryDate,
+    ID.mothersMaidenName,
+    ID.mothersMaidenNameEntryDate,
+    ID.fathersFirstName,
+    ID.fathersFirstNameEntryDate,
+    DR._effectiveFrom, 
+    DR._effectiveTo,
+    BP._recordDeleted as _dimBusinessPartnerRecordDeleted,
+    ADDR._recordDeleted as _dimBusinessPartnerAddressRecordDeleted,
+    BP._recordCurrent as _dimBusinessPartnerRecordCurrent,
+    ADDR._recordCurrent as _dimBusinessPartnerAddressRecordCurrent
+FROM effectiveDateRangesDelete DR
+LEFT JOIN curated_v2.dimbusinesspartner BP ON 
+    DR.businessPartnerNumber = BP.businessPartnerNumber AND
+    DR.sourceSystemCode = BP.sourceSystemCode AND
+    DR._effectiveFrom <= BP._RecordEnd AND
+    DR._effectiveTo >= BP._RecordStart AND
+    BP._recordDeleted = 1
+LEFT JOIN curated_v2.dimbusinesspartneraddress ADDR ON 
+    DR.businessPartnerNumber = ADDR.businessPartnerNumber AND
+    DR.sourceSystemCode = ADDR.sourceSystemCode AND
+    DR._effectiveFrom <= ADDR._RecordEnd AND
+    DR._effectiveTo >= ADDR._RecordStart AND
+    ADDR._recordDeleted = 1
+LEFT JOIN curated_v2.viewBusinessPartnerIdentification ID ON 
+    DR.businessPartnerNumber = ID.businessPartnerNumber AND
+    DR.sourceSystemCode = ID.sourceSystemCode
+WHERE businessPartnerSK IS NOT NULL
+)
 
 -- COMMAND ----------
 
@@ -436,15 +608,16 @@ WITH
     /*==============================
         Effective From and To Dates
     ================================*/
-     dateDriver AS (
+     dateDriverNonDelete AS (
          SELECT DISTINCT
              sourceSystemCode,
              businessPartnerGroupNumber,
              _recordStart AS _effectiveFrom
          FROM curated_v2.dimBusinessPartnerGroup
+         WHERE _RecordDeleted = 0
      ),
  
-     effectiveDateRanges AS (
+     effectiveDateRangesNonDelete AS (
          SELECT 
              sourceSystemCode,
              businessPartnerGroupNumber, 
@@ -455,16 +628,42 @@ WITH
                          LEAD(_effectiveFrom,1) OVER (PARTITION BY sourceSystemCode, businessPartnerGroupNumber ORDER BY _effectiveFrom),-1)
                  ), 
              TIMESTAMP('9999-12-31')) AS _effectiveTo
-         from dateDriver
+         from dateDriverNonDelete
+     ),
+     dateDriverDelete AS (
+         SELECT DISTINCT
+             sourceSystemCode,
+             businessPartnerGroupNumber,
+             _recordStart AS _effectiveFrom
+         FROM curated_v2.dimBusinessPartnerGroup
+         WHERE _RecordDeleted = 1
+     ),
+ 
+     effectiveDateRangesDelete AS (
+         SELECT 
+             sourceSystemCode,
+             businessPartnerGroupNumber, 
+             _effectiveFrom, 
+             COALESCE(
+                 TIMESTAMP(
+                     DATE_ADD(
+                         LEAD(_effectiveFrom,1) OVER (PARTITION BY sourceSystemCode, businessPartnerGroupNumber ORDER BY _effectiveFrom),-1)
+                 ), 
+             TIMESTAMP('9999-12-31')) AS _effectiveTo
+         from dateDriverDelete
      )
     
 /*============================
     viewBusinessPartnerGroup
 ==============================*/    
+SELECT * FROM
+(
 SELECT 
     /* Business Partner Group Columns */
+    BPG.businessPartnerGroupSK,
+    ADDR.businessPartnerAddressSK,
     BPG.sourceSystemCode,
-    BPG.businessPartnerGroupNumber,
+    coalesce(BPG.businessPartnerGroupNumber, ADDR.businessPartnerAddressNumber, ID.businessPartnerNumber, -1) as businessPartnerGroupNumber,
     BPG.businessPartnerGroupCode,
     BPG.businessPartnerGroup,
     BPG.businessPartnerCategoryCode,
@@ -552,27 +751,143 @@ SELECT
     ID.userPassword,
     DR._effectiveFrom,
     DR._effectiveTo,
-    CASE
-      WHEN CURRENT_DATE() BETWEEN 
-        DR._effectiveFrom AND DR._effectiveTo 
-      THEN 'Y'
-      ELSE 'N'
-    END AS currentIndicator 
-FROM effectiveDateRanges DR
+    BPG._recordDeleted as _dimBusinessPartnerGroupRecordDeleted,
+    ADDR._recordDeleted as _dimBusinessPartnerAddressRecordDeleted,
+    BPG._recordCurrent as _dimBusinessPartnerGroupRecordCurrent,
+    ADDR._recordCurrent as _dimBusinessPartnerAddressRecordCurrent
+FROM effectiveDateRangesNonDelete DR
 LEFT JOIN curated_v2.dimBusinessPartnerGroup BPG ON 
     DR.businessPartnerGroupNumber = BPG.businessPartnerGroupNumber AND
     DR.sourceSystemCode = BPG.sourceSystemCode AND
     DR._effectiveFrom <= BPG._RecordEnd AND
-    DR._effectiveTo >= BPG._RecordStart 
+    DR._effectiveTo >= BPG._RecordStart AND
+    BPG._recordDeleted = 0
 LEFT JOIN curated_v2.dimbusinesspartneraddress ADDR ON 
     DR.businessPartnerGroupNumber = ADDR.businessPartnerNumber AND
     DR.sourceSystemCode = ADDR.sourceSystemCode AND
     DR._effectiveFrom <= ADDR._RecordEnd AND
-    DR._effectiveTo >= ADDR._RecordStart 
+    DR._effectiveTo >= ADDR._RecordStart AND
+    ADDR._recordDeleted = 0
 LEFT JOIN curated_v2.viewBusinessPartnerIdentification ID ON 
     DR.businessPartnerGroupNumber = ID.businessPartnerNumber AND
     DR.sourceSystemCode = ID.sourceSystemCode
 WHERE businessPartnerGroupSK IS NOT NULL
+UNION
+SELECT 
+    /* Business Partner Group Columns */
+    BPG.businessPartnerGroupSK,
+    ADDR.businessPartnerAddressSK,
+    BPG.sourceSystemCode,
+    coalesce(BPG.businessPartnerGroupNumber, ADDR.businessPartnerAddressNumber, ID.businessPartnerNumber, -1) as businessPartnerGroupNumber,
+    BPG.businessPartnerGroupCode,
+    BPG.businessPartnerGroup,
+    BPG.businessPartnerCategoryCode,
+    BPG.businessPartnerCategory,
+    BPG.businessPartnerTypeCode,
+    BPG.businessPartnerType,
+    BPG.externalNumber,
+    BPG.businessPartnerGUID,
+    BPG.businessPartnerGroupName1,
+    BPG.businessPartnerGroupName2,
+    BPG.paymentAssistSchemeFlag,
+    BPG.billAssistFlag,
+    BPG.consent1Indicator,
+    BPG.warWidowFlag,
+    BPG.indicatorCreatedUserId,
+    BPG.indicatorCreatedDate,
+    BPG.kidneyDialysisFlag,
+    BPG.patientUnit,
+    BPG.patientTitleCode,
+    BPG.patientTitle,
+    BPG.patientFirstName,
+    BPG.patientSurname,
+    BPG.patientAreaCode,
+    BPG.patientPhoneNumber,
+    BPG.hospitalCode,
+    BPG.hospitalName,
+    BPG.patientMachineTypeCode,
+    BPG.patientMachineType,
+    BPG.machineTypeValidFromDate,
+    BPG.machineTypeValidToDate,
+    BPG.machineOffReasonCode,
+    BPG.machineOffReason,
+    BPG.createdBy,
+    BPG.createdDateTime,
+    BPG.lastUpdatedBy,
+    BPG.lastUpdatedDateTime,
+    BPG.validFromDate AS businessPartnerGroupValidFromDate,
+    BPG.validToDate AS businessPartnerGroupValidToDate,
+    /* Address Columns */
+    ADDR.businessPartnerAddressNumber,
+    ADDR.addressValidFromDate,
+    ADDR.addressValidToDate,
+    ADDR.coName,
+    ADDR.streetLine5,
+    ADDR.building,
+    ADDR.floorNumber,
+    ADDR.apartmentNumber,
+    ADDR.housePrimaryNumber,
+    ADDR.houseSupplementNumber,
+    ADDR.streetPrimaryName,
+    ADDR.streetSupplementName1,
+    ADDR.streetSupplementName2,
+    ADDR.otherLocationName,
+    ADDR.streetCode,
+    ADDR.cityName,
+    ADDR.cityCode,
+    ADDR.postalCode,
+    ADDR.stateCode,
+    ADDR.countryCode,
+    ADDR.countryName,
+    ADDR.poBoxCode,
+    ADDR.poBoxCity,
+    ADDR.postalCodeExtension,
+    ADDR.poBoxExtension,
+    ADDR.deliveryServiceTypeCode,
+    ADDR.deliveryServiceType,
+    ADDR.deliveryServiceNumber,
+    ADDR.addressTimeZone,
+    ADDR.communicationAddressNumber,
+    ADDR.phoneNumber,
+    ADDR.faxNumber,
+    ADDR.emailAddress,
+    /* BP ID columns */
+    ID.ebillRegistrationPartyType,
+    ID.ebillRegistrationTelephoneNumber,
+    ID.ebillRegistrationEmail,
+    ID.ebillRegistrationEmailEntryDate,
+    ID.dealingNumber,
+    ID.dealingType,
+    ID.dealingAmount,
+    ID.dealingDate,
+    ID.directDebitTelephoneNumber,
+    ID.directDebitEmail,
+    ID.onlineId,
+    ID.userPassword,
+    DR._effectiveFrom,
+    DR._effectiveTo,
+    BPG._recordDeleted as _dimBusinessPartnerGroupRecordDeleted,
+    ADDR._recordDeleted as _dimBusinessPartnerAddressRecordDeleted,
+    BPG._recordCurrent as _dimBusinessPartnerGroupRecordCurrent,
+    ADDR._recordCurrent as _dimBusinessPartnerAddressRecordCurrent
+FROM effectiveDateRangesDelete DR
+LEFT JOIN curated_v2.dimBusinessPartnerGroup BPG ON 
+    DR.businessPartnerGroupNumber = BPG.businessPartnerGroupNumber AND
+    DR.sourceSystemCode = BPG.sourceSystemCode AND
+    DR._effectiveFrom <= BPG._RecordEnd AND
+    DR._effectiveTo >= BPG._RecordStart AND
+    BPG._recordDeleted = 1
+LEFT JOIN curated_v2.dimbusinesspartneraddress ADDR ON 
+    DR.businessPartnerGroupNumber = ADDR.businessPartnerNumber AND
+    DR.sourceSystemCode = ADDR.sourceSystemCode AND
+    DR._effectiveFrom <= ADDR._RecordEnd AND
+    DR._effectiveTo >= ADDR._RecordStart AND
+    ADDR._recordDeleted = 1
+LEFT JOIN curated_v2.viewBusinessPartnerIdentification ID ON 
+    DR.businessPartnerGroupNumber = ID.businessPartnerNumber AND
+    DR.sourceSystemCode = ID.sourceSystemCode
+WHERE businessPartnerGroupSK IS NOT NULL
+)
 
 -- COMMAND ----------
 

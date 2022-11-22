@@ -226,7 +226,7 @@ df = spark.sql(f"""
                 _DLRawZoneTimeStamp DESC
         ) AS _RecordVersion
     FROM {delta_raw_tbl_name}
-    WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' and DI_OPERATION_TYPE !='X' 
+    WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' and DI_OPERATION_TYPE not in ('X', 'D') 
     ) where _RecordVersion = 1), 
     stageDelete AS
           (SELECT *, 'D' as _upsertFlag 
@@ -242,7 +242,7 @@ df = spark.sql(f"""
     ) 
     WHERE  
         _RecordVersion = 1 
-        and DI_OPERATION_TYPE ='X'), 
+        and DI_OPERATION_TYPE in ('X', 'D')), 
     stage AS (select * from stageUpsert union select * from stageDelete) 
     SELECT  
         case 
