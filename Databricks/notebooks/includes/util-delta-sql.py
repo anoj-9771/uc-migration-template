@@ -679,10 +679,10 @@ def DeltaSaveDataFrameToRejectTable(dataframe,target_table,business_key,source_k
                          .select("tableName","rejectColumn","sourceKeyDesc","sourceKey","rejectRecordCleansed")
     
     #Build raw reject dataframe
-    raw_df = raw.isu_zcd_tpropty_hist.where(f"_DLRawZoneTimestamp >= '{lastExecutionTS}'").withColumn("sourceKey",concat()).withColumn("sourceKey", concat_ws('|', *(business_key.split(",")))) \
-    raw_df = spark.table('raw.isu_zcd_tpropty_hist').where(f"_DLRawZoneTimestamp >= '{lastExecutionTS}'") \
+    raw_df = raw.isu_zcd_tpropty_hist.where(f"_DLRawZoneTimestamp >= '{lastExecutionTS}'").withColumn("sourceKey",concat()).withColumn("sourceKey", concat_ws('|', *(business_key.split(",")))) 
+    raw_df = spark.table(raw_table).where(f"_DLRawZoneTimestamp >= '{lastExecutionTS}'") \
                                                     .withColumn("rawSourceKey", concat_ws('|', *(rawbusinessKey.split("|")))) \
-                                                    .withColumn('rejectRecordRaw', to_json(struct(col("*"))))
+                                                    .withColumn('rejectRecordRaw', to_json(struct(col("*")))) \
                                                     .select("rawSourceKey","rejectRecordRaw")
     
     #Join cleansed and raw reject dataframes

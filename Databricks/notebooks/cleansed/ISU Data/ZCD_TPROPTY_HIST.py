@@ -204,10 +204,6 @@ print(f'Number of rows: {df.count()}')
 
 # COMMAND ----------
 
-display(df)
-
-# COMMAND ----------
-
 # Create schema for the cleanse table
 newSchema = StructType([
                         StructField("propertyNumber", StringType(), False),
@@ -267,7 +263,7 @@ DeltaSaveDataFrameToDeltaTable(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS
 
 # DBTITLE 1,12.1 Save Reject Data Frame into Rejected Database
 if reject_df.count() > 0:
-    sourceKey = 'PROPERTY_NO|DATE_FROM'
+    source_key = 'PROPERTY_NO|DATE_FROM'
     DeltaSaveDataFrameToRejectTable(reject_df,target_table,business_key,source_key,LastSuccessfulExecutionTS)
 
 # COMMAND ----------
