@@ -679,9 +679,8 @@ def DeltaSaveDataFrameToRejectTable(dataframe,target_table,business_key,source_k
                          .select("tableName","rejectColumn","sourceKeyDesc","sourceKey","rejectRecordCleansed")
     
     #Build raw reject dataframe
-    raw_df = raw.isu_zcd_tpropty_hist.where(f"_DLRawZoneTimestamp >= '{lastExecutionTS}'").withColumn("sourceKey",concat()).withColumn("sourceKey", concat_ws('|', *(business_key.split(",")))) 
     raw_df = spark.table(raw_table).where(f"_DLRawZoneTimestamp >= '{lastExecutionTS}'") \
-                                                    .withColumn("rawSourceKey", concat_ws('|', *(rawbusinessKey.split("|")))) \
+                                                    .withColumn("rawSourceKey", concat_ws('|', *(source_key.split("|")))) \
                                                     .withColumn('rejectRecordRaw', to_json(struct(col("*")))) \
                                                     .select("rawSourceKey","rejectRecordRaw")
     
@@ -695,5 +694,4 @@ def DeltaSaveDataFrameToRejectTable(dataframe,target_table,business_key,source_k
     data_lake_path = DeltaGetDataLakePath(ADS_DATALAKE_ZONE_REJECTED, ADS_DATABASE_REJECTED, reject_table)  
 
     LogEtl(f"write to reject table")
-    reject_df.write.mode("append").option("overwriteSchema","true").option("path", data_lake_path).saveAsTable(reject_table)
-            
+    reject_df.write.mode("append").option("overwriteSchema","true").option("path", data_lake_path).saveAsTable(reject_table)            
