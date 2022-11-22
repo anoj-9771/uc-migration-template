@@ -60,7 +60,7 @@ def DeltaGetDataLakePath(data_lake_zone, data_lake_folder, object):
   
   if data_lake_zone == ADS_DATALAKE_ZONE_CURATED:
     data_lake_path = f"dbfs:{mount_point}/{object.lower()}/delta"
-  elif data_lake_zone == ADS_DATALAKE_ZONE_STAGE:
+  elif (data_lake_zone == ADS_DATALAKE_ZONE_STAGE or data_lake_zone == ADS_DATALAKE_ZONE_REJECTED):
     data_lake_path = f"dbfs:{mount_point}/{data_lake_folder.lower()}/{object.lower()}"
   else:
     data_lake_path = f"dbfs:{mount_point}/{data_lake_folder.lower()}/{object.lower()}/delta"
@@ -661,3 +661,32 @@ def DeltaSaveToStageTable(dataframe, target_database, target_table, stage_table_
   #Save the dataframe temporarily to Stage database
   LogEtl(f"write to stg table")
   dataframe.write.mode("overwrite").option("overwriteSchema","true").option("path", data_lake_path).saveAsTable(stage_table_name)
+
+# COMMAND ----------
+
+from pyspark.sql.functions import concat, col, lit, substring
+from pyspark.sql.functions import DataFrame
+
+def DeltaSaveDataFrameToRejectTable(dataframe,target_table,business_key,lastExecutionTS):
+  #This method uses the dataframe to load data into Cleansed Rejected Table
+    reject_table = 'cleansed_rejected'
+    reject_df = dataframe
+    unioned_df = None
+    for rows in reject_df.select("sourceKeyDesc", "sourceKey").collect():
+            df = reject_df.where(f"sourceKey = '{rows[1]}'") 
+            final_df = df.withColumn("tableName",lit(target_table)).withColumn(COL_DL_REJECTED_LOAD,current_timestamp()).select("tableName","rejectColumn","sourceKeyDesc","sourceKey")
+            json_str = df.toJSON().collect()[0]
+            final_df = final_df.withColumn("rejectRecordCleansed",lit(json_str)).withColumn(COL_DL_REJECTED_LOAD,current_timestamp())
+            if not unioned_df:
+                unioned_df = final_df
+            else:
+                unioned_df = unioned_df.union(final_df) 
+    print("Rejected Rows:")
+    display(unioned_df)
+
+    #Save the reject dataframe to reject table    
+    data_lake_path = DeltaGetDataLakePath(ADS_DATALAKE_ZONE_REJECTED, ADS_DATABASE_REJECTED, reject_table)  
+
+    LogEtl(f"write to reject table")
+    dataframe.write.mode("append").option("overwriteSchema","true").option("path", data_lake_path).saveAsTable(reject_table)
+            

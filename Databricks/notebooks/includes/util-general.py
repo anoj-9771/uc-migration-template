@@ -428,6 +428,7 @@ from dateutil import parser
 from datetime import datetime
 from dateutil.tz import gettz
 import pytz
+import string
 from pytz import timezone, utc
 
 # Initiate Global Variables
@@ -440,7 +441,7 @@ _dateRejected = parser.parse('0001-01-01 01:00:00 AET', tzinfos=_SydneyTimes)
 _mandatoryStr = "MANDATORY"
 _zeroDate = '00000000'
 
-def GeneralToValidDateTime1(dateIn, colType ="Optional"):
+def GeneralToValidDateTime(dateIn, colType ="Optional"):
     #-----------------------------------------------------------------------
     # Last Author: Dylan McCullough
     # **** Functions Purpose ****
@@ -470,7 +471,8 @@ def GeneralToValidDateTime1(dateIn, colType ="Optional"):
     # if there is no value or empty string and it's not mandatory, then return None
     # otherwise convert the date input to string
     #if (dateIn is None or dateIn == str(emptyPadDate)) and colType.upper() != mandatoryStr:
-    if (dateIn is None or dateIn.strip() == '') and colType.upper() != mandatoryStr:
+    #if (dateIn is None or dateIn.strip() == '') and colType.upper() != mandatoryStr:
+    if dateIn is None and colType.upper() != mandatoryStr:
         return None
     else:
         dateStr = str(dateIn) 
@@ -495,6 +497,9 @@ def GeneralToValidDateTime1(dateIn, colType ="Optional"):
         else:
             return dateInvalid
     
+    if dateStr.strip() == '': #emptyPadDate: '        '
+        return None
+
     # check for dates less than 10 in length
     if len(dateStr) <= 10:
         dateStr += ' 00:00:00'
@@ -514,10 +519,10 @@ from pyspark.sql.types import TimestampType, DateType
 
 #Register UDF for Spark SQL
 #    e.g) %sql SELECT ID, ToValidDate(DATECOL) FROM TABLE
-spark.udf.register("ToValidDate1", GeneralToValidDateTime1,DateType())
-spark.udf.register("ToValidDateTime1", GeneralToValidDateTime1,TimestampType())
+spark.udf.register("ToValidDate", GeneralToValidDateTime,DateType())
+spark.udf.register("ToValidDateTime", GeneralToValidDateTime,TimestampType())
 
 #Register the UDF for Dataframes
 #     e.g.) DateCol = df.ToValidDate_udf(df["StartDate"]))
-ToValidDate_udf1 = udf(GeneralToValidDateTime1, DateType())
-ToValidDateTime_udf1 = udf(GeneralToValidDateTime1, TimestampType())
+ToValidDate_udf = udf(GeneralToValidDateTime, DateType())
+ToValidDateTime_udf = udf(GeneralToValidDateTime, TimestampType())
