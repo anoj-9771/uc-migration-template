@@ -234,11 +234,14 @@ df = df.drop("sourceKeyDesc","sourceKey","rejectColumn")
 
 # COMMAND ----------
 
-# from pyspark.sql.functions import concat, col, lit, substring
-# from pyspark.sql.functions import DataFrame
-# tableName = 'isu_ZCD_TPROPTY_HIST'
-# COL_DL_REJECTED_LOAD = '_DLRejectedZoneTimeStamp'
-# unioned_df = None
+from pyspark.sql.functions import concat, col, lit, substring
+from pyspark.sql.functions import DataFrame
+tableName = 'isu_ZCD_TPROPTY_HIST'
+COL_DL_REJECTED_LOAD = '_DLRejectedZoneTimeStamp'
+
+reject_df = reject_df.withColumn('rejectRecordCleansed', to_json(struct(col("*"))))
+reject_df = reject_df.withColumn("tableName",lit(tableName)).withColumn(COL_DL_REJECTED_LOAD,current_timestamp()).select("tableName","rejectColumn","sourceKeyDesc","sourceKey","rejectRecordCleansed")
+
 # for rows in reject_df.select("sourceKeyDesc", "sourceKey").collect():
 #         df = reject_df.where(f"sourceKey = '{rows[1]}'") 
 #         final_df = df.withColumn("tableName",lit(tableName)).withColumn(COL_DL_REJECTED_LOAD,current_timestamp()).select("tableName","rejectColumn","sourceKeyDesc","sourceKey")
@@ -250,7 +253,7 @@ df = df.drop("sourceKeyDesc","sourceKey","rejectColumn")
 #             unioned_df = unioned_df.union(final_df) 
 
 
-# display(final_df)
+display(reject_df)
 # display(unioned_df)
 
 
