@@ -186,7 +186,7 @@ df = spark.sql(f"WITH stage AS \
                                 ToValidDateTime(stg.CHANGED_ON) as changedDate, \
                                 stg.CHANGED_BY as changedBy, \
                                 'PROPERTY_NO|DATE_FROM' as sourceKeyDesc, \
-                                concat(coalesce(stg.PROPERTY_NO,'NULL'),'|',coalesce(string(stg.DATE_FROM),'NULL')) as sourceKey, \
+                                concat_ws('|',stg.PROPERTY_NO,stg.DATE_FROM) as sourceKey, \
                                 'DATE_FROM' as rejectColumn, \
                                 cast('1900-01-01' as TimeStamp) as _RecordStart, \
                                 cast('9999-12-31' as TimeStamp) as _RecordEnd, \
@@ -201,6 +201,10 @@ df = spark.sql(f"WITH stage AS \
                         where stg._RecordVersion = 1")
 
 print(f'Number of rows: {df.count()}')
+
+# COMMAND ----------
+
+display(df)
 
 # COMMAND ----------
 
@@ -228,34 +232,31 @@ newSchema = StructType([
 # COMMAND ----------
 
 # DBTITLE 1,Handle Invalid Records
-reject_df =df.where("validFromDate = '2017-12-19'")
+reject_df =df.where("validFromDate = '2018-01-07'")
 df = df.subtract(reject_df)
 df = df.drop("sourceKeyDesc","sourceKey","rejectColumn")
 
 # COMMAND ----------
 
-from pyspark.sql.functions import concat, col, lit, substring
-from pyspark.sql.functions import DataFrame
-tableName = 'isu_ZCD_TPROPTY_HIST'
-COL_DL_REJECTED_LOAD = '_DLRejectedZoneTimeStamp'
+# from pyspark.sql.functions import concat, col, lit, substring
+# from pyspark.sql.functions import DataFrame
+# tableName = 'isu_ZCD_TPROPTY_HIST'
+# COL_DL_REJECTED_LOAD = '_DLRejectedZoneTimeStamp'
+# reject_table = 'rejected.cleansed_rejected'
+# lastExecutionTS = LastSuccessfulExecutionTS
 
-reject_df = reject_df.withColumn('rejectRecordCleansed', to_json(struct(col("*"))))
-reject_df = reject_df.withColumn("tableName",lit(tableName)).withColumn(COL_DL_REJECTED_LOAD,current_timestamp()).select("tableName","rejectColumn","sourceKeyDesc","sourceKey","rejectRecordCleansed")
-
-# for rows in reject_df.select("sourceKeyDesc", "sourceKey").collect():
-#         df = reject_df.where(f"sourceKey = '{rows[1]}'") 
-#         final_df = df.withColumn("tableName",lit(tableName)).withColumn(COL_DL_REJECTED_LOAD,current_timestamp()).select("tableName","rejectColumn","sourceKeyDesc","sourceKey")
-#         json_str = df.toJSON().collect()[0]
-#         final_df = final_df.withColumn("rejectRecord",lit(json_str)).withColumn(COL_DL_REJECTED_LOAD,current_timestamp())
-#         if not unioned_df:
-#             unioned_df = final_df
-#         else:
-#             unioned_df = unioned_df.union(final_df) 
+# reject_df = reject_df.withColumn('rejectRecordCleansed', to_json(struct(col("*"))))
+# reject_df = reject_df.withColumn("tableName",lit(tableName)).withColumn(COL_DL_REJECTED_LOAD,current_timestamp()).select("tableName","rejectColumn","sourceKeyDesc","sourceKey","rejectRecordCleansed")
+# rawbusinessKey = 'PROPERTY_NO|DATE_FROM'
+# print(reject_df.count())
+    
+# raw_df = spark.table('raw.isu_zcd_tpropty_hist').where(f"_DLRawZoneTimestamp >= '{lastExecutionTS}'").withColumn("rawSourceKey", concat_ws('|', *(rawbusinessKey.split("|")))).withColumn('rejectRecordRaw', to_json(struct(col("*")))).select("rawSourceKey","rejectRecordRaw")
 
 
-display(reject_df)
-# display(unioned_df)
-
+# reject_df =reject_df.join(raw_df,reject_df.sourceKey==raw_df.rawSourceKey,"left")
+# print(reject_df.count())
+# display(reject_df)
+# display(raw_df)
 
 # COMMAND ----------
 
@@ -265,8 +266,9 @@ DeltaSaveDataFrameToDeltaTable(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS
 # COMMAND ----------
 
 # DBTITLE 1,12.1 Save Reject Data Frame into Rejected Database
-if count(reject_df) > 0:
-    DeltaSaveDataFrameToRejectTable(reject_df,target_table,business_key,LastSuccessfulExecutionTS)
+if reject_df.count() > 0:
+    sourceKey = 'PROPERTY_NO|DATE_FROM'
+    DeltaSaveDataFrameToRejectTable(reject_df,target_table,business_key,source_key,LastSuccessfulExecutionTS)
 
 # COMMAND ----------
 

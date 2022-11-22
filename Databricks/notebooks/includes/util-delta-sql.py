@@ -667,23 +667,27 @@ def DeltaSaveToStageTable(dataframe, target_database, target_table, stage_table_
 from pyspark.sql.functions import concat, col, lit, substring
 from pyspark.sql.functions import DataFrame
 
-def DeltaSaveDataFrameToRejectTable(dataframe,target_table,business_key,lastExecutionTS):
+def DeltaSaveDataFrameToRejectTable(dataframe,target_table,business_key,source_key,lastExecutionTS):
   #This method uses the dataframe to load data into Cleansed Rejected Table
-    reject_table = 'cleansed_rejected'
-    reject_df = reject_df.withColumn('rejectRecordCleansed', to_json(struct(col("*"))))
-    reject_df = reject_df.withColumn("tableName",lit(tableName)).withColumn(COL_DL_REJECTED_LOAD,current_timestamp()).select("tableName","rejectColumn","sourceKeyDesc","sourceKey","rejectRecordCleansed")
+    reject_table = 'rejected.cleansed_rejected'
+    raw_table = f"raw.{target_table}"
     
-#     reject_df = dataframe
-#     unioned_df = None
-#     for rows in reject_df.select("sourceKeyDesc", "sourceKey").collect():
-#             df = reject_df.where(f"sourceKey = '{rows[1]}'") 
-#             final_df = df.withColumn("tableName",lit(target_table)).withColumn(COL_DL_REJECTED_LOAD,current_timestamp()).select("tableName","rejectColumn","sourceKeyDesc","sourceKey")
-#             json_str = df.toJSON().collect()[0]
-#             final_df = final_df.withColumn("rejectRecordCleansed",lit(json_str)).withColumn(COL_DL_REJECTED_LOAD,current_timestamp())
-#             if not unioned_df:
-#                 unioned_df = final_df
-#             else:
-#                 unioned_df = unioned_df.union(final_df) 
+    #Build cleansed reject dataframe
+    reject_df = dataframe.withColumn('rejectRecordCleansed', to_json(struct(col("*"))))
+    reject_df = reject_df.withColumn("tableName",lit(target_table)) \
+                         .withColumn(COL_DL_REJECTED_LOAD,current_timestamp()) \
+                         .select("tableName","rejectColumn","sourceKeyDesc","sourceKey","rejectRecordCleansed")
+    
+    #Build raw reject dataframe
+    raw_df = raw.isu_zcd_tpropty_hist.where(f"_DLRawZoneTimestamp >= '{lastExecutionTS}'").withColumn("sourceKey",concat()).withColumn("sourceKey", concat_ws('|', *(business_key.split(",")))) \
+    raw_df = spark.table('raw.isu_zcd_tpropty_hist').where(f"_DLRawZoneTimestamp >= '{lastExecutionTS}'") \
+                                                    .withColumn("rawSourceKey", concat_ws('|', *(rawbusinessKey.split("|")))) \
+                                                    .withColumn('rejectRecordRaw', to_json(struct(col("*"))))
+                                                    .select("rawSourceKey","rejectRecordRaw")
+    
+    #Join cleansed and raw reject dataframes
+    reject_df =reject_df.join(raw_df,reject_df.sourceKey==raw_df.rawSourceKey,"left")
+    
     print("Rejected Rows:")
     display(reject_df)
 
@@ -691,5 +695,5 @@ def DeltaSaveDataFrameToRejectTable(dataframe,target_table,business_key,lastExec
     data_lake_path = DeltaGetDataLakePath(ADS_DATALAKE_ZONE_REJECTED, ADS_DATABASE_REJECTED, reject_table)  
 
     LogEtl(f"write to reject table")
-    dataframe.write.mode("append").option("overwriteSchema","true").option("path", data_lake_path).saveAsTable(reject_table)
+    reject_df.write.mode("append").option("overwriteSchema","true").option("path", data_lake_path).saveAsTable(reject_table)
             
