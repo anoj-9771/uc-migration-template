@@ -670,6 +670,7 @@ from pyspark.sql.functions import DataFrame
 def DeltaSaveDataFrameToRejectTable(dataframe,target_table,business_key,source_key,lastExecutionTS):
   #This method uses the dataframe to load data into Cleansed Rejected Table
     reject_table = 'rejected.cleansed_rejected'
+    cleansed_table = f"rejected.{target_table}"
     raw_table = f"raw.{target_table}"
     
     #Build cleansed reject dataframe
@@ -690,8 +691,13 @@ def DeltaSaveDataFrameToRejectTable(dataframe,target_table,business_key,source_k
     print("Rejected Rows:")
     display(reject_df)
 
-    #Save the reject dataframe to reject table    
+    #Save the reject dataframe to generic reject table (cleansed_reject)    
     data_lake_path = DeltaGetDataLakePath(ADS_DATALAKE_ZONE_REJECTED, ADS_DATABASE_REJECTED, reject_table)  
-
     LogEtl(f"write to reject table")
-    reject_df.write.mode("append").option("overwriteSchema","true").option("path", data_lake_path).saveAsTable(reject_table)            
+    reject_df.write.mode("append").option("overwriteSchema","true").option("path", data_lake_path).saveAsTable(reject_table) 
+    
+    #Save the reject dataframe to individual reject table
+    data_lake_path = DeltaGetDataLakePath(ADS_DATALAKE_ZONE_REJECTED, ADS_DATABASE_REJECTED, cleansed_table)
+    #Drop columns 
+    cleansed_df = dataframe.drop("sourceKeyDesc","sourceKey","rejectColumn")
+    dataframe.write.mode("append").option("overwriteSchema","true").option("path", data_lake_path).saveAsTable(cleansed_table) 
