@@ -235,7 +235,7 @@ def TemplateTimeSliceEtlSCD(df : object, entity, businessKey, schema, target_lay
     
     # If current date is between vaildFrom and validTo, and _CurrentDeleted is 0, then _CurrentRecord = 1  
     df = df.withColumn("_RecordCurrent", when(
-        (current_timestamp().between(col("_RecordStart"),col("_RecordEnd"))) & (col("_RecordDeleted") == 0) , 1).otherwise(0))
+        (current_date().between(col("_RecordStart"),col("_RecordEnd"))) & (col("_RecordDeleted") == 0) , 1).otherwise(0))
     
     df = df.select([field.name for field in schema] + ['_BusinessKey','_DLCuratedZoneTimeStamp','_RecordStart','_RecordEnd','_RecordDeleted','_RecordCurrent'])
     
