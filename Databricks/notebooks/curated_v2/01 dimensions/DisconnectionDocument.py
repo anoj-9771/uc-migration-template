@@ -47,7 +47,7 @@ df_isu_0uc_isu_32 = spark.sql(f"""
 
 dummy_dim = (
     spark.createDataFrame(
-    [("-1", "-1", "-1")], 
+    [("-1", "-1", "Unknown")], 
     ["disconnectionDocumentNumber", "disconnectionObjectNumber", "disconnectionActivityPeriod"]
     )
 )

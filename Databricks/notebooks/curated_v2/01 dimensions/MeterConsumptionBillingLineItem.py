@@ -63,12 +63,12 @@ def getMeterConsumptionBillingLineItem():
                                where erch._RecordCurrent = 1 and dberchz1._RecordCurrent = 1 and dberchz2._RecordCurrent = 1
                    """).dropDuplicates()
     
-    dummyDimRecDf = spark.createDataFrame([("Unknown","-1","-1")], ["sourceSystemCode","billingDocumentNumber","billingDocumentLineItemId"])
+    dummyDimRecDf = spark.createDataFrame([("-1","-1")], ["billingDocumentNumber","billingDocumentLineItemId"])
     df = df_isu.unionByName(dummyDimRecDf, allowMissingColumns = True)
     
     schema = StructType([
                             StructField('meterConsumptionBillingLineItemSK', StringType(), False),
-                            StructField("sourceSystemCode", StringType(), False),
+                            StructField("sourceSystemCode", StringType(), True),
                             StructField("billingDocumentNumber", StringType(), False),
                             StructField("billingDocumentLineItemId", StringType(), False),
                             StructField("lineItemTypeCode", StringType(), True),
@@ -119,7 +119,7 @@ def getMeterConsumptionBillingLineItem():
 
 df, schema = getMeterConsumptionBillingLineItem()
 #TemplateEtl(df, entity="dimMeterConsumptionBillingLineItem", businessKey="sourceSystemCode,billingDocumentNumber,billingDocumentLineItemId", schema=schema, writeMode=ADS_WRITE_MODE_OVERWRITE, AddSK=True)
-TemplateEtlSCD(df, entity="dimMeterConsumptionBillingLineItem", businessKey="sourceSystemCode,billingDocumentNumber,billingDocumentLineItemId", schema=schema)
+TemplateEtlSCD(df, entity="dimMeterConsumptionBillingLineItem", businessKey="billingDocumentNumber,billingDocumentLineItemId", schema=schema)
 
 # COMMAND ----------
 

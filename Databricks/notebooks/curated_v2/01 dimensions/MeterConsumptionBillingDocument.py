@@ -54,12 +54,12 @@ def getMeterConsumptionBillingDocument():
            where erch._RecordCurrent = 1 and dberchz1._RecordCurrent = 1 and dberchz2._RecordCurrent = 1 
         """).dropDuplicates()
     
-    dummyDimRecDf = spark.createDataFrame([("Unknown","-1")], ["sourceSystemCode","billingDocumentNumber"])
+    dummyDimRecDf = spark.createDataFrame(["-1"], "string").toDF("billingDocumentNumber") 
     df = df_isu.unionByName(dummyDimRecDf, allowMissingColumns = True)
     
     schema = StructType([
                             StructField('meterConsumptionBillingDocumentSK', StringType(), False),
-                            StructField("sourceSystemCode", StringType(), False),
+                            StructField("sourceSystemCode", StringType(), True),
                             StructField("billingDocumentNumber", StringType(), False),
                             StructField("billingPeriodStartDate", DateType(), True),
                             StructField("billingPeriodEndDate", DateType(), True),
@@ -95,7 +95,7 @@ def getMeterConsumptionBillingDocument():
 
 df, schema = getMeterConsumptionBillingDocument()
 #TemplateEtl(df, entity="dimMeterConsumptionBillingDocument", businessKey="sourceSystemCode,billingDocumentNumber", schema=schema, writeMode=ADS_WRITE_MODE_OVERWRITE, AddSK=True)
-TemplateEtlSCD(df, entity="dimMeterConsumptionBillingDocument", businessKey="sourceSystemCode,billingDocumentNumber", schema=schema)
+TemplateEtlSCD(df, entity="dimMeterConsumptionBillingDocument", businessKey="billingDocumentNumber", schema=schema)
 
 # COMMAND ----------
 
