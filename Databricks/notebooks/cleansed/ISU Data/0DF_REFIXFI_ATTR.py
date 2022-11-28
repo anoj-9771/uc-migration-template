@@ -187,7 +187,7 @@ df = spark.sql(f"WITH stage AS \
                                 CHARACTPERCENT as characteristicPercentage, \
                                 cast(CHARACTAMTABS as dec(18,6)) as characteristicPriceAmount, \
                                 'INTRENO|FIXFITCHARACT|VALIDTO' as sourceKeyDesc, \
-                                concat_ws('|',stg.INTRENO,stg.FIXFITCHARACT,stg.VALIDTO) as sourceKey, \
+                                concat_ws('|',INTRENO,FIXFITCHARACT,VALIDTO) as sourceKey, \
                                 'VALIDTO' as rejectColumn, \
                                 cast('1900-01-01' as TimeStamp) as _RecordStart, \
                                 cast('9999-12-31' as TimeStamp) as _RecordEnd, \

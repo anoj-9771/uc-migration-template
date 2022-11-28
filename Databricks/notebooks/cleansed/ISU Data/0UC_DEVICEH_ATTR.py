@@ -202,7 +202,7 @@ df = spark.sql(f"WITH stage AS \
                                 dev.ZAUFNR as orderNumber, \
                                 dev.ZERNAM as createdBy, \
                                 'EQUNR|BIS' as sourceKeyDesc, \
-                                concat_ws('|',stg.EQUNR,stg.BIS) as sourceKey, \
+                                concat_ws('|',dev.EQUNR,dev.BIS) as sourceKey, \
                                 'BIS' as rejectColumn, \
                                 cast('1900-01-01' as TimeStamp) as _RecordStart, \
                                 cast('9999-12-31' as TimeStamp) as _RecordEnd, \
