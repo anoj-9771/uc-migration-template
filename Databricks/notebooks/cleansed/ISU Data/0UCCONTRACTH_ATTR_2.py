@@ -212,7 +212,7 @@ df = spark.sql(f"""
     
         SELECT 
             case when VERTRAG = 'na' then '' else VERTRAG end as contractId, 
-            ToValidDate((case when BIS = 'na' then '9999-12-31' else BIS end),'MANDATORY') as validToDate, 
+            ToValidDate(BIS,'MANDATORY') as validToDate, 
             ToValidDate(AB) as validFromDate, 
             ANLAGE as installationNumber, 
             CONTRACTHEAD as contractHeadGUID, 
@@ -232,6 +232,9 @@ df = spark.sql(f"""
             ToValidDate(AEDAT) as lastChangedDate, 
             OUCONTRACT as individualContractId, 
             AENAM as lastChangedBy, 
+            'VERTRAG|BIS' as sourceKeyDesc, 
+            concat_ws('|',VERTRAG,BIS) as sourceKey, 
+            'BIS' as rejectColumn, 
             cast('1900-01-01' as TimeStamp) as _RecordStart, 
             cast('9999-12-31' as TimeStamp) as _RecordEnd, 
             CASE 
@@ -282,6 +285,13 @@ newSchema = StructType([
     StructField('_RecordCurrent',IntegerType(),False),
     StructField('_DLCleansedZoneTimeStamp',TimestampType(),False)
 ])
+
+# COMMAND ----------
+
+# DBTITLE 1,Handle Invalid Records
+reject_df =df.where("validToDate = '0001-01-01'")
+df = df.subtract(reject_df)
+df = df.drop("sourceKeyDesc","sourceKey","rejectColumn")
 
 # COMMAND ----------
 
@@ -336,6 +346,13 @@ spark.sql(f" \
     ,_RecordDeleted=1 \
     ,_RecordCurrent=1 \
     ")
+
+# COMMAND ----------
+
+# DBTITLE 1,12.3 Save Reject Data Frame into Rejected Database
+if reject_df.count() > 0:
+    source_key = 'VERTRAG|BIS'
+    DeltaSaveDataFrameToRejectTable(reject_df,target_table,business_key,source_key,LastSuccessfulExecutionTS)
 
 # COMMAND ----------
 
