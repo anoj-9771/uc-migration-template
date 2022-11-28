@@ -213,6 +213,9 @@ df = spark.sql(f"WITH stage AS \
                                 XCOLL as submittedIndicator, \
                                 STAKZ as statisticalItemType, \
                                 cast(SUCPC as dec(5,0)) as successRate, \
+                                'LAUFD|LAUFI|GPART|VKONT|MAZAE' as sourceKeyDesc, \
+                                concat_ws('|',LAUFD,LAUFI,GPART,VKONT,MAZAE) as sourceKey, \
+                                'LAUFD' as rejectColumn, \
                                 cast('1900-01-01' as TimeStamp) as _RecordStart, \
                                 cast('9999-12-31' as TimeStamp) as _RecordEnd, \
                                 '0' as _RecordDeleted, \
@@ -327,8 +330,22 @@ newSchema = StructType([
 
 # COMMAND ----------
 
+# DBTITLE 1,Handle Invalid Records
+reject_df =df.where("dateId = '0001-01-01'") #2018-01-07
+df = df.subtract(reject_df)
+df = df.drop("sourceKeyDesc","sourceKey","rejectColumn")
+
+# COMMAND ----------
+
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
 DeltaSaveDataFrameToDeltaTable(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
+
+# COMMAND ----------
+
+# DBTITLE 1,12.1 Save Reject Data Frame into Rejected Database
+if reject_df.count() > 0:
+    source_key = 'LAUFD|LAUFI|GPART|VKONT|MAZAE'
+    DeltaSaveDataFrameToRejectTable(reject_df,target_table,business_key,source_key,LastSuccessfulExecutionTS)
 
 # COMMAND ----------
 
