@@ -225,7 +225,7 @@ df = spark.sql(f"""WITH stage AS
                                 RELDIR as relationshipDirection, 
                                 RELTYP as relationshipTypeCode, 
                                 BP_TXT.relationshipType as relationshipType, 
-                                ToValidDate(DATE_TO) as validToDate, 
+                                ToValidDate(DATE_TO,'MANDATORY') as validToDate, 
                                 ToValidDate(DATE_FROM) as validFromDate, 
                                 COUNTRY as countryShortName, 
                                 POST_CODE1 as postalCode, 
@@ -250,6 +250,9 @@ df = spark.sql(f"""WITH stage AS
                                     THEN 'Y'
                                     ELSE 'N'
                                 END as deletedFlag, 
+                                'RELNR|PARTNER1|PARTNER2|RELDIR|RELTYP|DATE_TO' as sourceKeyDesc, 
+                                concat_ws('|',RELNR,PARTNER1,PARTNER2,RELDIR,RELTYP,DATE_TO) as sourceKey, 
+                                'DATE_TO' as rejectColumn, 
                                 cast('1900-01-01' as TimeStamp) as _RecordStart, 
                                 cast('9999-12-31' as TimeStamp) as _RecordEnd, 
                                 CASE
@@ -354,6 +357,13 @@ newSchema = StructType([
 
 # COMMAND ----------
 
+# DBTITLE 1,Handle Invalid Records
+reject_df =df.where("validToDate = '0001-01-01'") 
+df = df.subtract(reject_df)
+df = df.drop("sourceKeyDesc","sourceKey","rejectColumn")
+
+# COMMAND ----------
+
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (New Records)
 DeltaSaveDataFrameToDeltaTable(
     df, 
@@ -371,6 +381,13 @@ DeltaSaveDataFrameToDeltaTable(
     start_counter = "0", 
     end_counter = "0"
 )
+
+# COMMAND ----------
+
+# DBTITLE 1,12.1 Save Reject Data Frame into Rejected Database
+if reject_df.count() > 0:
+    source_key = 'RELNR|PARTNER1|PARTNER2|RELDIR|RELTYP|DATE_TO'
+    DeltaSaveDataFrameToRejectTable(reject_df,target_table,business_key,source_key,LastSuccessfulExecutionTS)
 
 # COMMAND ----------
 

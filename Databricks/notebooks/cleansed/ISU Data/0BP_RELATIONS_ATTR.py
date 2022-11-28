@@ -253,7 +253,7 @@ df = spark.sql(f"""WITH stage AS
                                 END as deletedFlag, 
                                 'RELNR|PARTNER1|PARTNER2|RELDIR|RELTYP|DATE_TO' as sourceKeyDesc, 
                                 concat_ws('|',RELNR,PARTNER1,PARTNER2,RELDIR,RELTYP,DATE_TO) as sourceKey, 
-                                'DATE_FROM' as rejectColumn, 
+                                'DATE_TO' as rejectColumn, 
                                 cast('1900-01-01' as TimeStamp) as _RecordStart, 
                                 cast('9999-12-31' as TimeStamp) as _RecordEnd, 
                                 CASE 
