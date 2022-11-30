@@ -8,12 +8,6 @@
 
 # COMMAND ----------
 
-# MAGIC %sql 
-# MAGIC ALTER TABLE curated_v2.dimInstallationFacts
-# MAGIC RENAME TO curated_v2.dimInstallationFacts_20221130
-
-# COMMAND ----------
-
 # MAGIC %md
 # MAGIC ## 1. InstallationFact Dataframe
 
