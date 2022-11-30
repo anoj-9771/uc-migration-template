@@ -160,7 +160,7 @@ def TemplateTimeSliceEtlSCD_2(df : object, entity, businessKey, schema, target_l
     # based on TimeSlice validFromDate, validToDate to populate '_RecordStart', '_RecordEnd', '_RecordCurrent'
     df = df.withColumn("_BusinessKey", concat_ws('|', *(businessKey.split(","))))
     df = df.withColumn("_RecordStart", expr("CAST(ifnull(validFromDate,'1900-01-01') as timestamp)"))
-    df = df.withColumn("_RecordEnd", expr("CAST(ifnull(validToDate,'9999-12-31') as timestamp)"))
+    df = df.withColumn("_RecordEnd", expr("CAST((CAST(ifnull(validToDate,'9999-12-31') as date) +1) - INTERVAL 1 SECOND as timestamp)"))
     
     if "_RecordDeleted" not in df.columns:
         df = df.withColumn("_RecordDeleted", expr("CAST(0 AS INT)"))
@@ -217,7 +217,7 @@ def TemplateTimeSliceEtlSCD(df : object, entity, businessKey, schema, target_lay
     # based on TimeSlice validFromDate, validToDate to populate '_RecordStart', '_RecordEnd', '_RecordCurrent'
     df = df.withColumn("_BusinessKey", concat_ws('|', *(businessKey.split(","))))
     df = df.withColumn("_RecordStart", expr("CAST(ifnull(validFromDate,'1900-01-01') as timestamp)"))
-    df = df.withColumn("_RecordEnd", expr("CAST(ifnull(validToDate,'9999-12-31') as timestamp)"))
+    df = df.withColumn("_RecordEnd", expr("CAST((CAST(ifnull(validToDate,'9999-12-31') as date) +1) - INTERVAL 1 SECOND as timestamp)"))
     
     if "_RecordDeleted" not in df.columns:
         df = df.withColumn("_RecordDeleted", expr("CAST(0 AS INT)"))
