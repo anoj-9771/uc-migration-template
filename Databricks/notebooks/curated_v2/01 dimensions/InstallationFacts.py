@@ -8,6 +8,12 @@
 
 # COMMAND ----------
 
+# MAGIC %sql 
+# MAGIC ALTER TABLE curated_v2.dimInstallationFacts
+# MAGIC RENAME TO curated_v2.dimInstallationFacts_20221130
+
+# COMMAND ----------
+
 # MAGIC %md
 # MAGIC ## 1. InstallationFact Dataframe
 
@@ -22,6 +28,7 @@ df_installation_fact = spark.sql(f"""
         'ISU'                             AS sourceSystemCode,
         installationNumber                AS installationNumber,
         operandCode                       AS operandCode,
+        operand                           AS operand,
         validFromDate                     AS validFromDate, 
         consecutiveDaysFromDate           AS consecutiveDaysFromDate,
         validToDate                       AS validToDate, 
@@ -80,6 +87,7 @@ schema = StructType([
     StructField('sourceSystemCode',StringType(),True),
     StructField('installationNumber',StringType(),False),
     StructField('operandCode',StringType(),False),
+    StructField('operand',StringType(),False),
     StructField('validFromDate',DateType(),False),
     StructField('consecutiveDaysFromDate',StringType(),False),
     StructField('validToDate',DateType(),True),

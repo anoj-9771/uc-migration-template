@@ -151,7 +151,7 @@ df_crm_0bpartner_attr = (
         WHERE
             businessPartnerCategoryCode in ('1','2')
             AND _RecordCurrent = 1
-            AND _RecordDeleted = 1
+            AND _RecordDeleted = 0
     """
     )
     .cache()
