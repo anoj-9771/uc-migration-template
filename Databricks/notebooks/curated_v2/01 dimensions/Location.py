@@ -20,7 +20,7 @@ def getLocation():
 
     #1.Load Cleansed layer table data into dataframe
     #collect parent properties and then parents of child properties so you get the parent address against the child property
-    ISULocationDf = spark.sql(f"""select distinct d.propertyNumber as locationID, 
+    ISULocationDf = spark.sql(f"""select distinct d.propertyNumber as locationId, 
                                      'ISU' as sourceSystemCode, 
                                      upper(trim(trim(trim(trim(trim(coalesce(c.locationDescription,''))||' '||coalesce(c.buildingNumber,''))||' '||(coalesce(c.houseNumber2,'')||' '||(coalesce(c.floorNumber,'')||' '||coalesce(c.houseNumber1,''))||' '||coalesce(c.houseNumber3,''))||' '||trim(coalesce(c.streetName,'')||' '||coalesce(c.streetLine1,''))||' '||coalesce(c.streetLine2,''))||'  '||coalesce(c.cityName,'')||' NSW '||coalesce(c.postCode,''))))  as formattedAddress, 
                                      c.addressNumber as addressNumber, 
@@ -56,7 +56,7 @@ def getLocation():
                                      and c._RecordCurrent = 1 
                                      and d._RecordCurrent = 1 
                                      union all 
-                                     select distinct d.propertyNumber as locationID, 
+                                     select distinct d.propertyNumber as locationId, 
                                      'ISU' as sourceSystemCode, 
                                      upper(trim(trim(trim(trim(trim(coalesce(c.locationDescription,''))||' '||coalesce(c.buildingNumber,''))||' '||(coalesce(c.houseNumber2,'')||' '||(coalesce(c.floorNumber,'')||' '||coalesce(c.houseNumber1,''))||' '||coalesce(c.houseNumber3,''))||' '||trim(coalesce(c.streetName,'')||' '||coalesce(c.streetLine1,''))||' '||coalesce(c.streetLine2,''))||'  '||coalesce(c.cityName,'')||' NSW '||coalesce(c.postCode,''))))  as formattedAddress, 
                                      c.addressNumber as addressNumber, 
@@ -101,7 +101,7 @@ def getLocation():
                                from   {ADS_DATABASE_CLEANSED}.access_Z309_TPropertyAddress 
                                where  _RecordCurrent = 1 
                                minus 
-                               select locationID 
+                               select locationId 
                                from   allLocations""")
     
     missingProps.createOrReplaceTempView('missingProps')
@@ -153,7 +153,7 @@ def getLocation():
                             """)
     parentDf.createOrReplaceTempView('parents')
     
-    ACCESSDf = spark.sql(f"""select pa.propertyNumber as locationID, 
+    ACCESSDf = spark.sql(f"""select pa.propertyNumber as locationId, 
                                'ACCESS' as sourceSystemCode, 
                                trim(trim(coalesce(pa.buildingName1,'')||' '||coalesce(pa.buildingName2,''))||
                                 (case when pa.lotNumber is not null then ' LOT '||trim(pa.lotNumber) 
@@ -220,14 +220,14 @@ def getLocation():
     #Create dummy record
     #dummyRec = tuple([-1] + ['Unknown'] * (len(ISULocationDf.columns) - 3) + [0,0]) 
     #dummyDimRecDf = spark.createDataFrame([dummyRec],ISULocationDf.columns)
-    dummyDimRecDf = spark.createDataFrame(["-1"], "string").toDF("locationID")
+    dummyDimRecDf = spark.createDataFrame(["-1"], "string").toDF("locationId")
     
     ISULocationDf = ISULocationDf.unionByName(dummyDimRecDf, allowMissingColumns = True)
     locationDf = ISULocationDf.unionByName(ACCESSDf, allowMissingColumns = True)
 
     #4.SELECT / TRANSFORM
     df = locationDf.selectExpr( \
-                             "locationID" \
+                             "locationId" \
                             ,"sourceSystemCode" \
                             ,"formattedAddress" \
                             ,"addressNumber" \
@@ -254,7 +254,7 @@ def getLocation():
     #5.Apply schema definition
     schema = StructType([
                             StructField('locationSK', StringType(), False),
-                            StructField("locationID", StringType(), False),
+                            StructField("locationId", StringType(), False),
                             StructField("sourceSystemCode", StringType(), True),
                             StructField("formattedAddress", StringType(), True),
                             StructField("addressNumber", StringType(), True),
@@ -297,11 +297,11 @@ TemplateEtlSCD(df, entity="dimLocation", businessKey="locationId", schema=schema
 # MAGIC with t1 as (select cp.propertyNumber, LGA, latitude, longitude
 # MAGIC             from   curated_v2.dimLocation l,
 # MAGIC                    curated.ACCESSCancelledActiveProps cp
-# MAGIC             where  l.locationID = cp.activeProperty and l._RecordCurrent = 1)
+# MAGIC             where  l.locationId = cp.activeProperty and l._RecordCurrent = 1)
 # MAGIC 
 # MAGIC merge into curated.dimLocation l
 # MAGIC using      t1
-# MAGIC on         l.locationID = t1.propertyNumber and l._RecordCurrent = 1
+# MAGIC on         l.locationId = t1.propertyNumber and l._RecordCurrent = 1
 # MAGIC when matched then update 
 # MAGIC              set l.LGA = t1.LGA,
 # MAGIC                  l.latitude = t1.latitude,
