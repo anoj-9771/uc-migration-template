@@ -76,10 +76,10 @@ df_isu_0bpartner_attr = (
             externalBusinessPartnerNumber                           AS externalBusinessPartnerNumber, 
             createdDateTime                                         AS createdDateTime, 
             createdBy                                               AS createdBy, 
-            lastUpdatedDateTime, 
-            lastUpdatedBy,
+            lastUpdatedDateTime                                     AS lastUpdatedDateTime, 
+            lastUpdatedBy                                           AS lastUpdatedBy,
             naturalPersonFlag                                       AS naturalPersonFlag,
-            _RecordDeleted
+            _RecordDeleted                                          AS _RecordDeleted
         FROM {ADS_DATABASE_CLEANSED}.isu_0bpartner_attr isu
         WHERE
             businessPartnerCategoryCode in ('1','2') 
@@ -103,34 +103,34 @@ df_crm_0bpartner_attr = (
     spark.sql(f"""
         SELECT
             'CRM'                                                  AS sourceSystemCode, -- RENAMED
-            businessPartnerNumber                                  AS businessPartnerNumber, 
-            businessPartnerCategoryCode                            AS businessPartnerCategoryCode, 
-            businessPartnerCategory                                AS businessPartnerCategory, 
-            businessPartnerTypeCode                                AS businessPartnerTypeCode, 
-            businessPartnerType                                    AS businessPartnerType, 
-            businessPartnerGroupCode                               AS businessPartnerGroupCode, 
-            businessPartnerGroup                                   AS businessPartnerGroup, 
+            businessPartnerNumber                                  AS businessPartnerNumber,
+            businessPartnerCategoryCode                            AS businessPartnerCategoryCode,
+            businessPartnerCategory                                AS businessPartnerCategory,
+            businessPartnerTypeCode                                AS businessPartnerTypeCode,
+            businessPartnerType                                    AS businessPartnerType,
+            businessPartnerGroupCode                               AS businessPartnerGroupCode,
+            businessPartnerGroup                                   AS businessPartnerGroup,
             externalBusinessPartnerNumber                          AS externalNumber, -- RENAMED
-            businessPartnerGUID                                    AS businessPartnerGUID, 
-            firstName                                              AS firstName, 
-            lastName                                               AS lastName, 
-            middleName                                             AS middleName, 
-            nickName                                               AS nickName, 
-            titleCode                                              AS titleCode, 
-            title                                                  AS title, 
-            dateOfBirth                                            AS dateOfBirth, 
-            dateOfDeath                                            AS dateOfDeath, 
-            validFromDate                                          AS validFromDate, 
-            validToDate                                            AS validToDate, 
-            personNumber                                           AS personNumber, 
-            personnelNumber                                        AS personnelNumber, 
+            businessPartnerGUID                                    AS businessPartnerGUID,
+            firstName                                              AS firstName,
+            lastName                                               AS lastName,
+            middleName                                             AS middleName,
+            nickName                                               AS nickName,
+            titleCode                                              AS titleCode,
+            title                                                  AS title,
+            dateOfBirth                                            AS dateOfBirth,
+            dateOfDeath                                            AS dateOfDeath,
+            validFromDate                                          AS validFromDate,
+            validToDate                                            AS validToDate,
+            personNumber                                           AS personNumber,
+            personnelNumber                                        AS personnelNumber,
             organizationName                                       AS organizationName,
             organizationFoundedDate                                AS organizationFoundedDate,
-            externalBusinessPartnerNumber                          AS externalBusinessPartnerNumber, 
-            createdDateTime                                        AS createdDateTime, 
-            createdBy                                              AS createdBy, 
-            lastUpdatedDateTime, 
-            lastUpdatedBy,
+            externalBusinessPartnerNumber                          AS externalBusinessPartnerNumber,
+            createdDateTime                                        AS createdDateTime,
+            createdBy                                              AS createdBy,
+            lastUpdatedDateTime                                    AS lastUpdatedDateTime,
+            lastUpdatedBy                                          AS lastUpdatedBy,
             /* CRM columns */
             warWidowFlag                                           AS warWidowFlag,
             deceasedFlag                                           AS deceasedFlag,
@@ -146,11 +146,12 @@ df_crm_0bpartner_attr = (
             pensionConcessionCardFlag                              AS pensionConcessionCardFlag,
             pensionType                                            AS pensionType,
             naturalPersonFlag                                      AS naturalPersonFlag,
-            _RecordDeleted 
+            _RecordDeleted                                         AS _RecordDeleted
         FROM {ADS_DATABASE_CLEANSED}.crm_0bpartner_attr 
-        WHERE 
-            businessPartnerCategoryCode in ('1','2') 
-            AND _RecordCurrent = 1 
+        WHERE
+            businessPartnerCategoryCode in ('1','2')
+            AND _RecordCurrent = 1
+            AND _RecordDeleted = 0
     """
     )
     .cache()

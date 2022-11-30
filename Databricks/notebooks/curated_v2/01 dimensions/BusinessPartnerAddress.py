@@ -63,7 +63,7 @@ df_isu_addr_attr = (
             cityName                                                            AS cityName, 
             cityCode                                                            AS cityCode, 
             CASE 
-                WHEN countryCode = 'AU' AND cityCode IS NULL 
+                WHEN countryCode = 'AU' AND cityCode IS NULL
                 THEN '' 
                 ELSE stateCode 
             END                                                                 AS stateCode, -- TRANSFORMATION
@@ -164,7 +164,11 @@ df_crm_addr_attr = (
                 THEN '' 
                 ELSE stateCode 
             END                                                                 AS stateCode, -- TRANSFORMATION
-            stateName                                                           AS stateName,
+            CASE 
+                WHEN countryCode = 'AU' AND cityCode IS NULL 
+                THEN '' 
+                ELSE stateName 
+            END                                                                 AS stateName, -- TRANSFORMATION
             postalCode                                                          AS postalCode,
             countryCode                                                         AS countryCode,
             countryName                                                         AS countryName,
