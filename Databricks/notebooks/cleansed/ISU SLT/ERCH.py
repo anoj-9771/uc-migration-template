@@ -309,7 +309,8 @@ df = spark.sql(f"""
         LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_dd07t dd07t3 ON 
             dd07t3.domainName = 'BACKBI' AND
             dd07t3.domainValueSingleUpperLimit = stg.BACKBI
-        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_te003t documentType ON
+        LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_te003t documentType ON 
+            documentType.objectName = 'ISU_ERCH' AND 
             documentType.documentTypeCode = stg.BELEGART
         LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_te272t te272t ON
             te272t.reversalReasonCode = stg.BCREASON
