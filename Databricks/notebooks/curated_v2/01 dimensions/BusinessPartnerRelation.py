@@ -12,7 +12,7 @@
 
 # COMMAND ----------
 
-# MAGIC %run Databricks/notebooks/curated_v2/common/common-curated-includeMain
+# MAGIC %run ../common/common-curated-includeMain
 
 # COMMAND ----------
 
@@ -22,7 +22,8 @@ def getBusinessPartnerGroupRelationship():
     #Business Partner Group Relations Data from SAP ISU
     isu0bpRelationsAttrDf  = (
         spark.sql(f"""
-            select 'ISU' as sourceSystemCode, 
+            select 
+                'ISU'                               as sourceSystemCode, 
                 businessPartnerNumber1              as businessPartnerGroupNumber, 
                 businessPartnerNumber2              as businessPartnerNumber, 
                 validFromDate                       as validFromDate, 
@@ -33,9 +34,7 @@ def getBusinessPartnerGroupRelationship():
             FROM {ADS_DATABASE_CLEANSED}.isu_0bp_relations_attr 
             where 
                 relationshipDirection = '1' 
-                --and deletedFlag is null
                 and _RecordCurrent = 1 
-                --and _RecordDeleted = 0
             """
         )
     )
@@ -49,10 +48,9 @@ def getBusinessPartnerGroupRelationship():
                 businessPartnerNumber, 
                 validFromDate,
                 validToDate 
-            from {ADS_DATABASE_CURATED}.dimBusinessPartner 
+            from {ADS_DATABASE_CURATED_V2}.dimBusinessPartner 
             where 
                 _RecordCurrent = 1 
-                --and _RecordDeleted = 0
             """
         )
     )
@@ -65,10 +63,10 @@ def getBusinessPartnerGroupRelationship():
                 businessPartnerGroupNumber,
                 validFromDate,
                 validToDate 
-            from {ADS_DATABASE_CURATED}.dimBusinessPartnerGroup \
+            from {ADS_DATABASE_CURATED_V2}.dimBusinessPartnerGroup
             where 
                 _RecordCurrent = 1 
-                --and _RecordDeleted = 0"""
+            """
          )
     )
 
@@ -77,13 +75,13 @@ def getBusinessPartnerGroupRelationship():
             select 
                 businessPartnerSK         as dummyDimSK, 
                 'dimBusinessPartner'      as dimension 
-            from {ADS_DATABASE_CURATED}.dimBusinessPartner 
+            from {ADS_DATABASE_CURATED_V2}.dimBusinessPartner 
             where businessPartnerNumber = '-1' 
             union 
             select 
                 businessPartnerGroupSK    as dummyDimSK, 
                 'dimBusinessPartnerGroup' as dimension 
-            from {ADS_DATABASE_CURATED}.dimBusinessPartnerGroup 
+            from {ADS_DATABASE_CURATED_V2}.dimBusinessPartnerGroup 
             where businessPartnerGroupNumber = '-1'
         """
         )
@@ -119,34 +117,58 @@ def getBusinessPartnerGroupRelationship():
 
     #2.Joins to derive SKs of dummy dimension(-1) records, to be used when the lookup fails for dimensionSk
 
-    isu0bpRelationsAttrDf = isu0bpRelationsAttrDf.join(dummyDimRecDf, (dummyDimRecDf.dimension == 'dimBusinessPartner'), how="left") \
-    .select(isu0bpRelationsAttrDf['*'], dummyDimRecDf['dummyDimSK'].alias('dummyBusinessPartnerSK'))
+    isu0bpRelationsAttrDf = (
+        isu0bpRelationsAttrDf
+        .join(
+            dummyDimRecDf, 
+            (dummyDimRecDf.dimension == 'dimBusinessPartner'), 
+            how="left"
+        ) 
+        .select(
+            isu0bpRelationsAttrDf['*'], 
+            dummyDimRecDf['dummyDimSK'].alias('dummyBusinessPartnerSK')
+        )
+    )
 
-    isu0bpRelationsAttrDf = isu0bpRelationsAttrDf.join(dummyDimRecDf, (dummyDimRecDf.dimension == 'dimBusinessPartnerGroup'), how="left") \
-    .select(isu0bpRelationsAttrDf['*'], dummyDimRecDf['dummyDimSK'].alias('dummyBusinessPartnerGroupSK'))
+    isu0bpRelationsAttrDf = (
+        isu0bpRelationsAttrDf
+        .join(
+            dummyDimRecDf, 
+            (dummyDimRecDf.dimension == 'dimBusinessPartnerGroup'),
+             how="left"
+        )
+        .select(
+            isu0bpRelationsAttrDf['*'], 
+            dummyDimRecDf['dummyDimSK'].alias('dummyBusinessPartnerGroupSK')
+        )
+    )
 
     #3.UNION TABLES    
     #4.SELECT / TRANSFORM
-    isu0bpRelationsAttrDf = isu0bpRelationsAttrDf.selectExpr ( \
-    "sourceSystemCode" \
-    ,"coalesce(businessPartnerGroupSK, dummyBusinessPartnerGroupSK) as businessPartnerGroupSK" \
-    ,"coalesce(businessPartnerSK, dummyBusinessPartnerSK) as businessPartnerSK" \
-    ,"validFromDate" \
-    ,"validToDate" \
-    ,"relationshipNumber" \
-    ,"relationshipTypeCode" \
-    ,"relationshipType" \
-    ) 
+    isu0bpRelationsAttrDf = (
+        isu0bpRelationsAttrDf
+        .selectExpr ( 
+            "sourceSystemCode", 
+            "coalesce(businessPartnerGroupSK, dummyBusinessPartnerGroupSK) as businessPartnerGroupSK", 
+            "coalesce(businessPartnerSK, dummyBusinessPartnerSK) as businessPartnerSK", 
+            "validFromDate", 
+            "validToDate", 
+            "relationshipNumber", 
+            "relationshipTypeCode", 
+            "relationshipType" 
+        )
+    )
 
 
     #5.Apply schema definition
     schema = StructType([
+    StructField('businessPartnerRelationSK', StringType(), False),
     StructField('sourceSystemCode', StringType(), True),
     StructField('businessPartnerGroupSK', StringType(), False),
     StructField('businessPartnerSK', StringType(), False),
-    StructField('validFromDate', DateType(), False),
-    StructField('validToDate', DateType(), True),
-    StructField('relationshipNumber', StringType(), True),
+    StructField('validFromDate', DateType(), True),
+    StructField('validToDate', DateType(), False),
+    StructField('relationshipNumber', StringType(), False),
     StructField('relationshipTypeCode', StringType(), True),
     StructField('relationshipType', StringType(), True)
     ]) 
@@ -156,7 +178,12 @@ def getBusinessPartnerGroupRelationship():
 # COMMAND ----------
 
 df, schema = getBusinessPartnerGroupRelationship()
-TemplateEtlSCD(df, entity="dimBusinessPartnerRelation", businessKey="businessPartnerGroupSK,businessPartnerSK,relationshipNumber,validFromDate", schema=schema)
+TemplateEtlSCD(
+    df, 
+    entity="dimBusinessPartnerRelation", 
+    businessKey="businessPartnerGroupSK,businessPartnerSK,relationshipNumber,validToDate", 
+    schema=schema
+)
 
 # COMMAND ----------
 
