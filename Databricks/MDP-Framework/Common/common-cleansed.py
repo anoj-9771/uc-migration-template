@@ -229,4 +229,116 @@ def CleansedTransform(dataFrame, tableFqn, systemCode, showTransform=False):
 
 # COMMAND ----------
 
+def ApplyTransformRules(dataFrame, transform_rules):
+    df_columns = spark.createDataFrame(dataFrame.schema.fieldNames(),'string').withColumnRenamed('value','RawColumnName')
+    df_columns.createOrReplaceTempView("df_columns")
+    transform_rules.createOrReplaceTempView("transform_rules")    
+    
+    transforms=spark.sql("""
+        WITH _transform_rules AS
+        (
+            --only one set of RawTablePattern will be applied
+            select *
+            from transform_rules
+            where RawTablePattern = (
+                select RawTablePattern
+                from transform_rules
+                order by RulesOrder
+                limit 1
+            )
+        ),
+        _transforms AS (
+            select RawTablePattern, RawColumnName, RawColumnPattern,
+                   case 
+                    when CleansedColumnName = RawColumnPattern then RawColumnName
+                    when CleansedColumnName is null then lower(left(RawColumnName,1))||substr(RawColumnName,2)
+                    else CleansedColumnName 
+                   end as CleansedColumnName,
+                   DataType, TransformTag, CustomTransform, Lookup, 
+                   --Once Continue is set to 'N', ignore the rest of the rules
+                   min(Continue) over (partition by RawColumnName order by RulesOrder 
+                                       ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) Continue,
+                   RulesOrder
+            from df_columns, _transform_rules
+            where df_columns.RawColumnName rlike '^'||_transform_rules.RawColumnPattern||'$'
+        ),
+        transforms AS (
+            --Check which rules should be included
+            select _transforms.*,
+                   lag(Continue, 1, 'Y') over (partition by RawColumnName order by RulesOrder) Include
+            from _transforms
+        )    
+        select *
+        from transforms
+        where Include = 'Y'
+        order by RulesOrder
+    """    
+    )    
+    
+    return transforms
 
+from pyspark.sql.functions import expr, col
+def CleansedTransformByRules(dataFrame, tableFqn, systemCode, showTransform=False):
+    global transforms
+    tableFqn = tableFqn.lower()
+    dataFrame = spark.table(tableFqn) if dataFrame is None else dataFrame
+    systemCode = systemCode.lower()
+    
+    if systemCode[-3:] == 'ref': 
+        systemCode = systemCode.replace('ref','')
+    if systemCode[-4:] == 'data':
+        systemCode = systemCode.replace('data','')
+    
+    path = f"{CLEANSED_PATH}/{systemCode}_cleansed_by_rules.csv"
+
+    # 1. LOAD CLEANSED CSV
+    allTransforms = LoadCsv(path)
+    
+    # CSV NOT FOUND RETURN
+    if allTransforms is None:
+        return dataFrame
+    
+    # POPULATE LOOKUP TAGS
+    PopulateLookupTags()
+    
+    # 2. LOOKUP TRANSFORM
+    transform_rules = allTransforms.where(f"'{tableFqn.lower()}' rlike '^'||RawTablePattern||'$'")
+    display(transform_rules) if showTransform else None
+
+    # !NO TRANSFORMS!
+    if transform_rules.count() == 0:
+        print(f"Not Transforming, table {tableFqn} not found in sheet! ")
+        return dataFrame
+
+    transforms=ApplyTransformRules(dataFrame, transform_rules)
+    
+    try:
+        # 3. APPLY CUSTOM IN-LINE TRANSFORMS, THEN TAGS
+        transformedDataFrame = dataFrame.selectExpr(
+            [TransformRow(i.RawColumnName, i.TransformTag, i.CustomTransform, i.CleansedColumnName) for i in transforms.rdd.collect()]
+        )
+    except Exception as e:
+        print(f"Custom Transform failed, exception: {e}")
+        return dataFrame    
+
+    try:
+        # 4. LOOKUPS
+        for l in transforms.where("Lookup IS NOT NULL").dropDuplicates().rdd.collect():
+            transformedDataFrame = LookupValue(transformedDataFrame, l.Lookup.lower(), l.CleansedColumnName)
+    except Exception as e:
+        print(f"Lookup failed, exception: {e}")
+        return dataFrame
+
+    try:
+        # 5. APPLY DATA TYPE CONVERSION
+        transformedDataFrame = transformedDataFrame.selectExpr(
+            [f"{i.CleansedColumnName}" if i.DataType.lower() == 'nochange' else DataTypeConvertRow(i.CleansedColumnName, i.DataType.lower()) 
+             for i in transforms.rdd.collect()]
+        )
+    except Exception as e:
+        print(f"DataType failed, exception: {e}")
+        return dataFrame
+        
+    print(f"Successfully transformed {tableFqn}!")
+    # RETURN TRANSFORMED DATAFRAME
+    return transformedDataFrame
