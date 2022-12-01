@@ -107,6 +107,10 @@ SELECT
     ,dimdevicehistory._recordDeleted as _dimDeviceHistoryRecordDeleted
     ,dimdevice._recordCurrent as _dimDeviceRecordCurrent
     ,dimdevicehistory._recordCurrent as _dimDeviceHistoryRecordCurrent
+    ,CASE
+      WHEN CURRENT_DATE() BETWEEN effectiveDateRanges._effectiveFrom AND effectiveDateRanges._effectiveTo then 'Y'
+      ELSE 'N'
+      END AS currentRecordFlag
 FROM effectiveDaterangesNonDelete as effectiveDateRanges
 LEFT OUTER JOIN curated_v2.dimDevice dimdevice
     ON dimdevice.deviceNumber = effectiveDateRanges.deviceNumber 
@@ -215,6 +219,10 @@ SELECT
     ,dimdevicehistory._recordDeleted as _dimDeviceHistoryRecordDeleted
     ,dimdevice._recordCurrent as _dimDeviceRecordCurrent
     ,dimdevicehistory._recordCurrent as _dimDeviceHistoryRecordCurrent
+    ,CASE
+      WHEN CURRENT_DATE() BETWEEN effectiveDateRanges._effectiveFrom AND effectiveDateRanges._effectiveTo then 'Y'
+      ELSE 'N'
+      END AS currentRecordFlag
 FROM effectiveDaterangesDelete as effectiveDateRanges
 LEFT OUTER JOIN curated_v2.dimDevice dimdevice
     ON dimdevice.deviceNumber = effectiveDateRanges.deviceNumber 
