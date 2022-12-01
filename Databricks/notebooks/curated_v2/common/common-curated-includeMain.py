@@ -160,7 +160,7 @@ def TemplateTimeSliceEtlSCD_2(df : object, entity, businessKey, schema, target_l
     # based on TimeSlice validFromDate, validToDate to populate '_RecordStart', '_RecordEnd', '_RecordCurrent'
     df = df.withColumn("_BusinessKey", concat_ws('|', *(businessKey.split(","))))
     df = df.withColumn("_RecordStart", expr("CAST(ifnull(validFromDate,'1900-01-01') as timestamp)"))
-    df = df.withColumn("_RecordEnd", expr("CAST(ifnull(validToDate,'9999-12-31') as timestamp)"))
+    df = df.withColumn("_RecordEnd", expr("CAST((CAST(ifnull(validToDate,'9999-12-31') as date) +1) - INTERVAL 1 SECOND as timestamp)"))
     
     if "_RecordDeleted" not in df.columns:
         df = df.withColumn("_RecordDeleted", expr("CAST(0 AS INT)"))
@@ -217,7 +217,7 @@ def TemplateTimeSliceEtlSCD(df : object, entity, businessKey, schema, target_lay
     # based on TimeSlice validFromDate, validToDate to populate '_RecordStart', '_RecordEnd', '_RecordCurrent'
     df = df.withColumn("_BusinessKey", concat_ws('|', *(businessKey.split(","))))
     df = df.withColumn("_RecordStart", expr("CAST(ifnull(validFromDate,'1900-01-01') as timestamp)"))
-    df = df.withColumn("_RecordEnd", expr("CAST(ifnull(validToDate,'9999-12-31') as timestamp)"))
+    df = df.withColumn("_RecordEnd", expr("CAST((CAST(ifnull(validToDate,'9999-12-31') as date) +1) - INTERVAL 1 SECOND as timestamp)"))
     
     if "_RecordDeleted" not in df.columns:
         df = df.withColumn("_RecordDeleted", expr("CAST(0 AS INT)"))
@@ -234,8 +234,10 @@ def TemplateTimeSliceEtlSCD(df : object, entity, businessKey, schema, target_lay
     #df = df.drop("_RecordStart_Order")
     
     # If current date is between vaildFrom and validTo, and _CurrentDeleted is 0, then _CurrentRecord = 1  
-    df = df.withColumn("_RecordCurrent", when(
-        (current_date().between(col("_RecordStart"),col("_RecordEnd"))) & (col("_RecordDeleted") == 0) , 1).otherwise(0))
+    #df = df.withColumn("_RecordCurrent", when(
+    #    (current_date().between(col("_RecordStart"),col("_RecordEnd"))) & (col("_RecordDeleted") == 0) , 1).otherwise(0))
+    
+    df = df.withColumn("_RecordCurrent", when(col("_RecordDeleted") == 1 , 0).otherwise(1))
     
     df = df.select([field.name for field in schema] + ['_BusinessKey','_DLCuratedZoneTimeStamp','_RecordStart','_RecordEnd','_RecordDeleted','_RecordCurrent'])
     

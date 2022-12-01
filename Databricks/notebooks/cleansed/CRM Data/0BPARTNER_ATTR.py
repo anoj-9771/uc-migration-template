@@ -217,172 +217,176 @@ import pyspark.sql.functions as F
 
 df = (
     spark.sql(f"""
-     WITH stage AS (
-          SELECT 
-               *, 
-               ROW_NUMBER() OVER (
-                    PARTITION BY PARTNER 
-                    ORDER BY 
-                    _FileDateTimeStamp DESC, 
-                    DI_SEQUENCE_NUMBER DESC,
-                    _DLRawZoneTimeStamp DESC
-               ) AS _RecordVersion 
-          FROM {delta_raw_tbl_name}
-          WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}'
+        WITH stage AS (
+            SELECT 
+                *, 
+                ROW_NUMBER() OVER (
+                        PARTITION BY PARTNER 
+                        ORDER BY 
+                        _FileDateTimeStamp DESC, 
+                        DI_SEQUENCE_NUMBER DESC,
+                        _DLRawZoneTimeStamp DESC
+                ) AS _RecordVersion 
+            FROM {delta_raw_tbl_name}
+            WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}'
      )
-     SELECT 
-          case 
-               when PARTNER = 'na' 
-               then '' 
-               else PARTNER 
-          end                                                             as businessPartnerNumber, 
-          TYPE                                                            as businessPartnerCategoryCode, 
-          BP_TXT.businessPartnerCategory                                  as businessPartnerCategory, 
-          BPKIND                                                          as businessPartnerTypeCode, 
-          UPPER(BPTYPE.businessPartnerType)                               as businessPartnerType, 
-          BP.BU_GROUP                                                     as businessPartnerGroupCode, 
-          BPGRP.businessPartnerGroup                                      as businessPartnerGroup, 
-          BPEXT                                                           as externalBusinessPartnerNumber, 
-          BU_SORT1                                                        as searchTerm1, 
-          BU_SORT2                                                        as searchTerm2, 
-          BP.TITLE                                                        as titleCode, 
-          TITLE.TITLE                                                     as title, 
-          CASE
-              WHEN BP.XDELE = 'X'
-              THEN 'Y'                                                              
-              ELSE 'N'
-          END                                                             as deletedFlag,
-          XBLCK                                                           as centralBlockBusinessPartner, 
-          ZZUSER                                                          as userId, 
-          case 
-               when ZZPAS_INDICATOR = 'X' 
-               then 'Y' 
-               else 'N' 
-          end                                                             as paymentAssistSchemeFlag, 
-          case 
-               when ZZBA_INDICATOR = 'X' 
-               then 'Y' 
-               else 'N' 
-          end                                                             as billAssistFlag, 
-          ToValidDate(BP.ZZAFLD00001Z)                                    as createdDate, 
-          ZZ_CONSENT1                                                     as consent1Indicator, 
-          ZZWAR_WID                                                       as warWidowFlag, 
-          ZZDISABILITY                                                    as disabilityFlag, 
-          ZZGCH                                                           as goldCardHolderFlag, 
-          ZZDECEASED                                                      as deceasedFlag, 
-          ZZPCC                                                           as pensionConcessionCardFlag, 
-          ZZELIGIBILITY                                                   as eligibilityFlag, 
-          ToValidDate(ZZDT_CHK)                                           as dateOfCheck, 
-          ToValidDate(ZZPAY_ST_DT)                                        as paymentStartDate, 
-          ZZPEN_TY                                                        as pensionType, 
-          ZZ_CONSENT2                                                     as consent2Indicator, 
-          NAME_ORG1                                                       as organizationName1, 
-          NAME_ORG2                                                       as organizationName2, 
-          NAME_ORG3                                                       as organizationName3, 
-          CASE 
-              WHEN businessPartnerCategoryCode = '2' 
-              THEN concat( 
-                  TRIM(coalesce(NAME_ORG1, '')), 
-                  ' ', TRIM(coalesce(NAME_ORG2, '')), 
-                  ' ', TRIM(coalesce(NAME_ORG3, ''))) 
-              ELSE NAME_ORG1 
-          END                                                             as organizationName, -- TRANSFORMATION
-          CASE 
-              WHEN businessPartnerCategoryCode = '2' 
-              THEN ToValidDate(BP.FOUND_DAT) 
-              ELSE NULL 
-          END                                                             as organizationFoundedDate, -- TRANSFORMATION
-          CAST(LOCATION_1 AS string)                                      as internationalLocationNumber1, 
-          CAST(LOCATION_2 AS string)                                      as internationalLocationNumber2, 
-          CAST(LOCATION_3 AS string)                                      as internationalLocationNumber3, 
-          NAME_LAST                                                       as lastName, 
-          NAME_FIRST                                                      as firstName, 
-          NAMEMIDDLE                                                      as middleName, 
-          TITLE_ACA1                                                      as academicTitleCode, 
-          TITLE_ACA1.TITLE                                                as academicTitle, 
-          NICKNAME                                                        as nickName, 
-          INITIALS                                                        as nameInitials, 
+    SELECT 
+        case 
+            when PARTNER = 'na' 
+            then '' 
+            else PARTNER 
+        end                                                             as businessPartnerNumber, 
+        TYPE                                                            as businessPartnerCategoryCode, 
+        BP_TXT.businessPartnerCategory                                  as businessPartnerCategory, 
+        BPKIND                                                          as businessPartnerTypeCode, 
+        UPPER(BPTYPE.businessPartnerType)                               as businessPartnerType, 
+        BP.BU_GROUP                                                     as businessPartnerGroupCode, 
+        BPGRP.businessPartnerGroup                                      as businessPartnerGroup, 
+        BPEXT                                                           as externalBusinessPartnerNumber, 
+        BU_SORT1                                                        as searchTerm1, 
+        BU_SORT2                                                        as searchTerm2, 
+        BP.TITLE                                                        as titleCode, 
+        TITLE.TITLE                                                     as title, 
+        CASE
+            WHEN BP.XDELE = 'X'
+            THEN 'Y'                                                              
+            ELSE 'N'
+        END                                                             as deletedFlag,
+        XBLCK                                                           as centralBlockBusinessPartner, 
+        ZZUSER                                                          as userId, 
+        case 
+            when ZZPAS_INDICATOR = 'X' 
+            then 'Y' 
+            else 'N' 
+        end                                                             as paymentAssistSchemeFlag, 
+        case 
+            when ZZBA_INDICATOR = 'X' 
+            then 'Y' 
+            else 'N' 
+        end                                                             as billAssistFlag, 
+        ToValidDate(BP.ZZAFLD00001Z)                                    as createdDate, 
+        ZZ_CONSENT1                                                     as consent1Indicator, 
+        ZZWAR_WID                                                       as warWidowFlag, 
+        ZZDISABILITY                                                    as disabilityFlag, 
+        ZZGCH                                                           as goldCardHolderFlag, 
+        ZZDECEASED                                                      as deceasedFlag, 
+        ZZPCC                                                           as pensionConcessionCardFlag, 
+        ZZELIGIBILITY                                                   as eligibilityFlag, 
+        ToValidDate(ZZDT_CHK)                                           as dateOfCheck, 
+        ToValidDate(ZZPAY_ST_DT)                                        as paymentStartDate, 
+        ZZPEN_TY                                                        as pensionType, 
+        ZZ_CONSENT2                                                     as consent2Indicator, 
+        NAME_ORG1                                                       as organizationName1, 
+        NAME_ORG2                                                       as organizationName2, 
+        NAME_ORG3                                                       as organizationName3, 
+        CASE 
+            WHEN businessPartnerCategoryCode = '2' 
+            THEN concat( 
+                TRIM(coalesce(NAME_ORG1, '')), 
+                ' ', TRIM(coalesce(NAME_ORG2, '')), 
+                ' ', TRIM(coalesce(NAME_ORG3, ''))) 
+            ELSE NAME_ORG1 
+        END                                                             as organizationName, -- TRANSFORMATION
+        CASE 
+            WHEN businessPartnerCategoryCode = '2' 
+            THEN ToValidDate(BP.FOUND_DAT) 
+            ELSE NULL 
+        END                                                             as organizationFoundedDate, -- TRANSFORMATION
+        CAST(LOCATION_1 AS string)                                      as internationalLocationNumber1, 
+        CAST(LOCATION_2 AS string)                                      as internationalLocationNumber2, 
+        CAST(LOCATION_3 AS string)                                      as internationalLocationNumber3, 
+        NAME_LAST                                                       as lastName, 
+        NAME_FIRST                                                      as firstName, 
+        NAMEMIDDLE                                                      as middleName, 
+        TITLE_ACA1                                                      as academicTitleCode, 
+        TITLE_ACA1.TITLE                                                as academicTitle, 
+        NICKNAME                                                        as nickName, 
+        INITIALS                                                        as nameInitials, 
 
-          NAMCOUNTRY                                                      as countryCode,
-          t005t.countryName                                               as countryName,
-         
-          LANGU_CORR                                                      as correspondenceLanguage, 
-          NATIO                                                           as nationality, 
-          PERSNUMBER                                                      as personNumber, 
-          case 
-               when XSEXU = 'X' 
-               then 'Y' 
-               else 'N' 
-          end                                                             as unknownGenderFlag, 
-          ToValidDate(BP.BIRTHDT)                                         as dateOfBirth, 
-          ToValidDate(BP.DEATHDT)                                         as dateOfDeath, 
-          CAST(PERNO as string)                                           as personnelNumber, 
-          NAME_GRP1                                                       as nameGroup1, 
-          NAME_GRP2                                                       as nameGroup2, 
-          MC_NAME1                                                        as searchHelpLastName, 
-          MC_NAME2                                                        as searchHelpFirstName, 
-          CRUSR                                                           as createdBy, 
-          ToValidDateTime(
-               concat(BP.CRDAT, 'T', coalesce(BP.CRTIM,'00:00:00'))
-          )                                                               as createdDateTime, 
-          BP.CHUSR                                                        as lastUpdatedBy, 
-          ToValidDateTime(
-               concat(BP.CHDAT, 'T', coalesce(BP.CHTIM,'00:00:00'))
-          )                                                               as lastUpdatedDateTime, 
-          PARTNER_GUID                                                    as businessPartnerGUID, 
-          ADDRCOMM                                                        as communicationAddressNumber, 
-          TD_SWITCH                                                       as plannedChangeDocument, 
-          ToValidDate(substr(BP.VALID_FROM,0,8))                          as validFromDate, 
-          ToValidDate(substr(BP.VALID_TO,0,8))                            as validToDate, 
-          case 
-               when NATPERS = 'X' 
-               then 'Y' 
-               else 'N' 
-          end                                                             as naturalPersonFlag, 
-          case 
-               when ZZAFLD00000M = 'X' 
-               then 'Y' 
-               else 'N'
-          end                                                             as kidneyDialysisFlag, 
-          ZZUNIT                                                          as patientUnit, 
-          ZZTITLE                                                         as patientTitleCode, 
-          ZZTITLE.TITLE                                                   as patientTitle,
-          ZZF_NAME                                                        as patientFirstName, 
-          ZZSURNAME                                                       as patientSurname, 
-          ZZAREACODE                                                      as patientAreaCode, 
-          ZZPHONE                                                         as patientPhoneNumber, 
-          ZZHOSP_NAME                                                     as hospitalCode, 
-          substring(
-               dd07t_HOSP.domainValueText, 
-               instr(dd07t_HOSP.domainValueText, '-')
-               + 1,
-               100
-          )                                                               as hospitalName, 
-          ZZMACH_TYPE                                                     as patientMachineTypeCode, 
-          substring(
-               dd07t_MACH.domainValueText, 
-               instr(dd07t_MACH.domainValueText, '-') 
-               + 1, 
-               100
-          )                                                               as patientMachineType,
-          ToValidDate(BP.ZZON_DATE)                                       as machineTypeValidFromDate, 
-          ZZOFF_REAS                                                      as machineOffReasonCode, 
-          substr(
-               dd07t_OFF.domainValueText,
-               instr(dd07t_OFF.domainValueText, '-') 
-               + 1, 
-               100
-          )                                                               as machineOffReason, 
-          ToValidDate(BP.ZZOFF_DATE)                                      as machineTypeValidToDate, 
-          cast('1900-01-01' as TimeStamp)                                 as _RecordStart, 
-          cast('9999-12-31' as TimeStamp)                                 as _RecordEnd, 
-          CASE
-              WHEN BP.XDELE = 'X'
-              THEN '1'                                                              
-              ELSE '0'
-          END                                                             as _RecordDeleted,
-          '1'                                                             as _RecordCurrent, 
-          cast('{CurrentTimeStamp}' as TimeStamp)                         as _DLCleansedZoneTimeStamp 
+        NAMCOUNTRY                                                      as countryCode,
+        t005t.countryName                                               as countryName,
+        
+        LANGU_CORR                                                      as correspondenceLanguage, 
+        NATIO                                                           as nationality, 
+        PERSNUMBER                                                      as personNumber, 
+        case 
+            when XSEXU = 'X' 
+            then 'Y' 
+            else 'N' 
+        end                                                             as unknownGenderFlag, 
+        ToValidDate(BP.BIRTHDT)                                         as dateOfBirth, 
+        ToValidDate(BP.DEATHDT)                                         as dateOfDeath, 
+        CAST(PERNO as string)                                           as personnelNumber, 
+        NAME_GRP1                                                       as nameGroup1, 
+        NAME_GRP2                                                       as nameGroup2, 
+        MC_NAME1                                                        as searchHelpLastName, 
+        MC_NAME2                                                        as searchHelpFirstName, 
+        CRUSR                                                           as createdBy, 
+        ToValidDateTime(
+            concat(BP.CRDAT, 'T', coalesce(BP.CRTIM,'00:00:00'))
+        )                                                               as createdDateTime, 
+        BP.CHUSR                                                        as lastUpdatedBy, 
+        ToValidDateTime(
+            concat(BP.CHDAT, 'T', coalesce(BP.CHTIM,'00:00:00'))
+        )                                                               as lastUpdatedDateTime, 
+        PARTNER_GUID                                                    as businessPartnerGUID, 
+        ADDRCOMM                                                        as communicationAddressNumber, 
+        CASE
+            WHEN TD_SWITCH = 'X'
+            THEN 'Y'
+            ELSE 'N'
+        END                                                             as plannedChangeDocument, 
+        ToValidDate(substr(BP.VALID_FROM,0,8))                          as validFromDate, 
+        ToValidDate(substr(BP.VALID_TO,0,8))                            as validToDate, 
+        case 
+            when NATPERS = 'X' 
+            then 'Y' 
+            else 'N' 
+        end                                                             as naturalPersonFlag, 
+        case 
+            when ZZAFLD00000M = 'X' 
+            then 'Y' 
+            else 'N'
+        end                                                             as kidneyDialysisFlag, 
+        ZZUNIT                                                          as patientUnit, 
+        ZZTITLE                                                         as patientTitleCode, 
+        ZZTITLE.TITLE                                                   as patientTitle,
+        ZZF_NAME                                                        as patientFirstName, 
+        ZZSURNAME                                                       as patientSurname, 
+        ZZAREACODE                                                      as patientAreaCode, 
+        ZZPHONE                                                         as patientPhoneNumber, 
+        ZZHOSP_NAME                                                     as hospitalCode, 
+        substring(
+            dd07t_HOSP.domainValueText, 
+            instr(dd07t_HOSP.domainValueText, '-')
+            + 1,
+            100
+        )                                                               as hospitalName, 
+        ZZMACH_TYPE                                                     as patientMachineTypeCode, 
+        substring(
+            dd07t_MACH.domainValueText, 
+            instr(dd07t_MACH.domainValueText, '-') 
+            + 1, 
+            100
+        )                                                               as patientMachineType,
+        ToValidDate(BP.ZZON_DATE)                                       as machineTypeValidFromDate, 
+        ZZOFF_REAS                                                      as machineOffReasonCode, 
+        substr(
+            dd07t_OFF.domainValueText,
+            instr(dd07t_OFF.domainValueText, '-') 
+            + 1, 
+            100
+        )                                                               as machineOffReason, 
+        ToValidDate(BP.ZZOFF_DATE)                                      as machineTypeValidToDate, 
+        cast('1900-01-01' as TimeStamp)                                 as _RecordStart, 
+        cast('9999-12-31' as TimeStamp)                                 as _RecordEnd, 
+        CASE
+            WHEN BP.XDELE = 'X'
+            THEN '1'                                                              
+            ELSE '0'
+        END                                                             as _RecordDeleted,
+        '1'                                                             as _RecordCurrent, 
+        cast('{CurrentTimeStamp}' as TimeStamp)                         as _DLCleansedZoneTimeStamp 
     FROM stage  BP
     LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.crm_0BP_CAT_TEXT BP_TXT ON 
         BP.TYPE =BP_TXT.businessPartnerCategoryCode 

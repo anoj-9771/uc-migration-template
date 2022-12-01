@@ -122,6 +122,10 @@ SELECT
      ,effectiveDateRanges._effectiveTo
      ,dimContractAccount._recordDeleted as _dimContractAccountRecordDeleted
      ,dimContractAccount._recordCurrent as _dimContractAccountRecordCurrent
+     ,CASE
+      WHEN CURRENT_DATE() BETWEEN effectiveDateRanges._effectiveFrom AND effectiveDateRanges._effectiveTo then 'Y'
+      ELSE 'N'
+      END AS currentRecordFlag
 FROM effectiveDateRangesNonDelete as effectiveDateRanges
 LEFT OUTER JOIN curated_v2.dimContractAccount
   ON effectiveDateRanges.contractAccountNumber = dimContractAccount.contractAccountNumber
@@ -216,6 +220,10 @@ SELECT
      ,effectiveDateRanges._effectiveTo
      ,dimContractAccount._recordDeleted as _dimContractAccountRecordDeleted
      ,dimContractAccount._recordCurrent as _dimContractAccountRecordCurrent
+     ,CASE
+      WHEN CURRENT_DATE() BETWEEN effectiveDateRanges._effectiveFrom AND effectiveDateRanges._effectiveTo then 'Y'
+      ELSE 'N'
+      END AS currentRecordFlag
 FROM effectiveDateRangesDelete as effectiveDateRanges
 LEFT OUTER JOIN curated_v2.dimContractAccount
   ON effectiveDateRanges.contractAccountNumber = dimContractAccount.contractAccountNumber
