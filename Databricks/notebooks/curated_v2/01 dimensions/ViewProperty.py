@@ -107,6 +107,10 @@
 # MAGIC     dimPropertyTypeHistory._recordCurrent as _dimPropertyTypeHistoryRecordCurrent,
 # MAGIC     dimPropertyLot._recordCurrent as _dimPropertyLotRecordCurrent,
 # MAGIC     dimLocation._recordCurrent as _dimLocationRecordCurrent
+# MAGIC     ,CASE
+# MAGIC       WHEN CURRENT_DATE() BETWEEN effectiveDateRanges._effectiveFrom AND effectiveDateRanges._effectiveTo then 'Y'
+# MAGIC       ELSE 'N'
+# MAGIC       END AS currentRecordFlag
 # MAGIC from effectiveDateRangesNonDelete as effectiveDateRanges
 # MAGIC left outer join curated_v2.dimProperty dimProperty
 # MAGIC         on dimproperty.propertynumber = effectiveDateRanges.propertyNumber 
@@ -203,6 +207,10 @@
 # MAGIC     dimPropertyTypeHistory._recordCurrent as _dimPropertyTypeHistoryRecordCurrent,
 # MAGIC     dimPropertyLot._recordCurrent as _dimPropertyLotRecordCurrent,
 # MAGIC     dimLocation._recordCurrent as _dimLocationRecordCurrent
+# MAGIC     ,CASE
+# MAGIC       WHEN CURRENT_DATE() BETWEEN effectiveDateRanges._effectiveFrom AND effectiveDateRanges._effectiveTo then 'Y'
+# MAGIC       ELSE 'N'
+# MAGIC       END AS currentRecordFlag
 # MAGIC from effectiveDateRangesDelete as effectiveDateRanges
 # MAGIC left outer join curated_v2.dimProperty dimProperty
 # MAGIC         on dimproperty.propertynumber = effectiveDateRanges.propertyNumber 

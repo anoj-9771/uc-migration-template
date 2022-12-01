@@ -429,6 +429,10 @@ SELECT * FROM
     ADDR._recordDeleted as _dimBusinessPartnerAddressRecordDeleted,
     BP._recordCurrent as _dimBusinessPartnerRecordCurrent,
     ADDR._recordCurrent as _dimBusinessPartnerAddressRecordCurrent
+    , CASE
+      WHEN CURRENT_DATE() BETWEEN DR._effectiveFrom AND DR._effectiveTo then 'Y'
+      ELSE 'N'
+      END AS currentRecordFlag
 FROM effectiveDateRangesNonDelete DR
 LEFT JOIN curated_v2.dimbusinesspartner BP ON 
     DR.businessPartnerNumber = BP.businessPartnerNumber AND
@@ -574,6 +578,10 @@ UNION
     ADDR._recordDeleted as _dimBusinessPartnerAddressRecordDeleted,
     BP._recordCurrent as _dimBusinessPartnerRecordCurrent,
     ADDR._recordCurrent as _dimBusinessPartnerAddressRecordCurrent
+    , CASE
+      WHEN CURRENT_DATE() BETWEEN DR._effectiveFrom AND DR._effectiveTo then 'Y'
+      ELSE 'N'
+      END AS currentRecordFlag
 FROM effectiveDateRangesDelete DR
 LEFT JOIN curated_v2.dimbusinesspartner BP ON 
     DR.businessPartnerNumber = BP.businessPartnerNumber AND
@@ -755,6 +763,10 @@ SELECT
     ADDR._recordDeleted as _dimBusinessPartnerAddressRecordDeleted,
     BPG._recordCurrent as _dimBusinessPartnerGroupRecordCurrent,
     ADDR._recordCurrent as _dimBusinessPartnerAddressRecordCurrent
+    , CASE
+      WHEN CURRENT_DATE() BETWEEN DR._effectiveFrom AND DR._effectiveTo then 'Y'
+      ELSE 'N'
+      END AS currentRecordFlag
 FROM effectiveDateRangesNonDelete DR
 LEFT JOIN curated_v2.dimBusinessPartnerGroup BPG ON 
     DR.businessPartnerGroupNumber = BPG.businessPartnerGroupNumber AND
@@ -870,6 +882,10 @@ SELECT
     ADDR._recordDeleted as _dimBusinessPartnerAddressRecordDeleted,
     BPG._recordCurrent as _dimBusinessPartnerGroupRecordCurrent,
     ADDR._recordCurrent as _dimBusinessPartnerAddressRecordCurrent
+    , CASE
+      WHEN CURRENT_DATE() BETWEEN DR._effectiveFrom AND DR._effectiveTo then 'Y'
+      ELSE 'N'
+      END AS currentRecordFlag
 FROM effectiveDateRangesDelete DR
 LEFT JOIN curated_v2.dimBusinessPartnerGroup BPG ON 
     DR.businessPartnerGroupNumber = BPG.businessPartnerGroupNumber AND

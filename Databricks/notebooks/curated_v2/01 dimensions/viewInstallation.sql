@@ -111,6 +111,10 @@ SELECT * FROM
         dimInstallation._recordCurrent as _dimInstallationRecordCurrent,
         dimInstallationHistory._recordCurrent as _dimInstallationHistoryRecordCurrent,
         dimDisconnectionDocument._recordCurrent as _dimDisconnectionDocumentRecordCurrent
+       ,CASE
+        WHEN CURRENT_DATE() BETWEEN effectiveDateRanges._effectiveFrom AND effectiveDateRanges._effectiveTo then 'Y'
+        ELSE 'N'
+        END AS currentRecordFlag
     FROM effectiveDaterangesNonDelete as effectiveDateRanges
     LEFT OUTER JOIN curated_v2.dimInstallation dimInstallation
         ON dimInstallation.installationNumber = effectiveDateRanges.installationNumber
@@ -196,6 +200,10 @@ SELECT * FROM
         dimInstallation._recordCurrent as _dimInstallationRecordCurrent,
         dimInstallationHistory._recordCurrent as _dimInstallationHistoryRecordCurrent,
         dimDisconnectionDocument._recordCurrent as _dimDisconnectionDocumentRecordCurrent
+       ,CASE
+        WHEN CURRENT_DATE() BETWEEN effectiveDateRanges._effectiveFrom AND effectiveDateRanges._effectiveTo then 'Y'
+        ELSE 'N'
+        END AS currentRecordFlag
     FROM effectiveDaterangesDelete as effectiveDateRanges
     LEFT OUTER JOIN curated_v2.dimInstallation dimInstallation
         ON dimInstallation.installationNumber = effectiveDateRanges.installationNumber
