@@ -436,7 +436,7 @@ _SydneyTimes = {'AEDT': gettz('Australia/NSW'), 'AET': 11*60*60} #standard 11 ho
 _nullDate = parser.parse('9999-12-31 22:59:59 AEDT', tzinfos=_SydneyTimes)
 
 _dateInvalid = parser.parse('9999-12-31 22:59:59 AEDT', tzinfos=_SydneyTimes)
-_dateRejected = parser.parse('0001-01-01 01:00:00 AET', tzinfos=_SydneyTimes)
+_dateRejected = parser.parse('1000-01-01 12:00:00 AET', tzinfos=_SydneyTimes)
 
 _mandatoryStr = "MANDATORY"
 _zeroDate = '00000000'
