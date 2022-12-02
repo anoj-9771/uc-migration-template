@@ -75,7 +75,6 @@ def EnrichResponses(dataFrame):
             if k in ['answers','choices']:
                 #Choices can be a string if they're not all dictionaries for all questions.
                 if isinstance(value[k], str):
-                    print(f"value[k] => {value[k]}")
                     d[k] = json.loads(value[k])
                 else:
                     d[k] = value[k]
