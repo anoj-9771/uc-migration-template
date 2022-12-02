@@ -62,19 +62,20 @@ def EnrichResponses(dataFrame):
     global qid_dict
     global qid_dict2
     dfq = spark.table(f"cleansed.{destinationSchema}_{re.sub('Responses$','Questions',destinationTableName)}")
-    questions = [row.asDict(True) for row in dfq.select('QuestionID','QuestionText','Choices','Answers','QuestionType','Selector','SubSelector').collect()]
+    questions = [row.asDict(True) for row in dfq.select('questionID','questionText','choices','answers','questionType','selector','subSelector').collect()]
     qid_dict = {}
     for question in questions:
-       qid = question.pop('QuestionID')
+       qid = question.pop('questionID')
        qid_dict[qid] = question
         
     qid_dict2 = {}
     for key,value in qid_dict.items():
         d={}
         for k in value:
-            if k in ['Answers','Choices']:
+            if k in ['answers','choices']:
                 #Choices can be a string if they're not all dictionaries for all questions.
                 if isinstance(value[k], str):
+                    print(f"value[k] => {value[k]}")
                     d[k] = json.loads(value[k])
                 else:
                     d[k] = value[k]
@@ -90,8 +91,8 @@ def EnrichResponses(dataFrame):
 
     #Add column for each main question
     for qid in set(column.split('_')[0] for column in qid_columns):
-        if qid_dict.get(qid, {}).get('QuestionType') not in ['Meta']:
-            dataFrame = dataFrame.withColumn(f'question{re.sub("^QID","",qid)}QuestionText', lit(qid_dict.get(qid, {}).get('QuestionText')))
+        if qid_dict.get(qid, {}).get('questionType') not in ['Meta']:
+            dataFrame = dataFrame.withColumn(f'question{re.sub("^QID","",qid)}QuestionText', lit(qid_dict.get(qid, {}).get('questionText')))
     
     rtext_dict={'TopicSenScore': 'TopicSentimentScore', 'ParTopics': 'ParTopicsText',
                 'TopicSenLabel': 'TopicsSentimentsLabel','Sentiment': 'SentimentDsc',
@@ -117,32 +118,32 @@ def EnrichResponses(dataFrame):
         else:        
             rtext_col_name = f'{prefix_col_name}ResponseText'   
 
-        if qid_dict.get(qid, {}).get('QuestionType') == 'Meta':
+        if qid_dict.get(qid, {}).get('questionType') == 'Meta':
             continue
-        elif qid_dict.get(qid, {}).get('QuestionType') == 'TE' or col_has_text:
+        elif qid_dict.get(qid, {}).get('questionType') == 'TE' or col_has_text:
             dataFrame = dataFrame.withColumnRenamed(column, rtext_col_name)
         
-        elif qid_dict.get(qid, {}).get('QuestionType') == 'DB' and qid_dict.get(qid, {}).get('Selector') == 'TB':
+        elif qid_dict.get(qid, {}).get('questionType') == 'DB' and qid_dict.get(qid, {}).get('selector') == 'TB':
             continue        
             
-        elif qid_dict.get(qid, {}).get('QuestionType') == 'MC' and qid_dict.get(qid, {}).get('Selector') == 'DL':
-            dataFrame = dataFrame.withColumn(rtext_col_name, col('qid_lookup')[qid]['Choices'][col(column)]['Display'])
+        elif qid_dict.get(qid, {}).get('questionType') == 'MC' and qid_dict.get(qid, {}).get('selector') == 'DL':
+            dataFrame = dataFrame.withColumn(rtext_col_name, col('qid_lookup')[qid]['choices'][col(column)]['Display'])
             
-        elif qid_dict.get(qid, {}).get('QuestionType') == 'MC' and qid_dict.get(qid, {}).get('Selector') == 'SAVR':
-            dataFrame = dataFrame.withColumn(rtext_col_name, col('qid_lookup')[qid]['Choices'][col(column)]['Display'])
+        elif qid_dict.get(qid, {}).get('questionType') == 'MC' and qid_dict.get(qid, {}).get('selector') == 'SAVR':
+            dataFrame = dataFrame.withColumn(rtext_col_name, col('qid_lookup')[qid]['choices'][col(column)]['Display'])
 
-        elif qid_dict.get(qid, {}).get('QuestionType') == 'MC' and qid_dict.get(qid, {}).get('Selector') == 'SAHR':
-            dataFrame = dataFrame.withColumn(rtext_col_name, col('qid_lookup')[qid]['Choices'][col(column)]['Display'])
+        elif qid_dict.get(qid, {}).get('questionType') == 'MC' and qid_dict.get(qid, {}).get('selector') == 'SAHR':
+            dataFrame = dataFrame.withColumn(rtext_col_name, col('qid_lookup')[qid]['choices'][col(column)]['Display'])
 
-        elif qid_dict.get(qid, {}).get('QuestionType') == 'MC' and qid_dict.get(qid, {}).get('Selector') == 'MAVR' and not(col_has_text):
-            dataFrame = dataFrame.withColumn(rtext_col_name, transform(col(column), lambda x: col('qid_lookup')[qid]['Choices'][x]['Display']))
+        elif qid_dict.get(qid, {}).get('questionType') == 'MC' and qid_dict.get(qid, {}).get('selector') == 'MAVR' and not(col_has_text):
+            dataFrame = dataFrame.withColumn(rtext_col_name, transform(col(column), lambda x: col('qid_lookup')[qid]['choices'][x]['Display']))
 
-        elif qid_dict.get(qid, {}).get('QuestionType') == 'Matrix' and qid_dict.get(qid, {}).get('Selector') == 'Likert':
-            dataFrame = dataFrame.withColumn(qtext_col_name, col('qid_lookup')[qid]['Choices'][qid_part]['Display'])
-            dataFrame = dataFrame.withColumn(rtext_col_name, col('qid_lookup')[qid]['Answers'][col(column)]['Display'])
+        elif qid_dict.get(qid, {}).get('questionType') == 'Matrix' and qid_dict.get(qid, {}).get('selector') == 'Likert':
+            dataFrame = dataFrame.withColumn(qtext_col_name, col('qid_lookup')[qid]['choices'][qid_part]['Display'])
+            dataFrame = dataFrame.withColumn(rtext_col_name, col('qid_lookup')[qid]['answers'][col(column)]['Display'])
 
         #Rename qid column to Response code
-        if qid_dict.get(qid, {}).get('QuestionType') not in ['Meta','TE'] and not(col_has_text):
+        if qid_dict.get(qid, {}).get('questionType') not in ['Meta','TE'] and not(col_has_text):
             dataFrame = dataFrame.withColumnRenamed(column, rcode_col_name)
             
     dataFrame = dataFrame.select(sorted(dataFrame.columns)).drop('qid_lookup')
