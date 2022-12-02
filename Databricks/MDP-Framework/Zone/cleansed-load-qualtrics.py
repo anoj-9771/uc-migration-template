@@ -62,7 +62,9 @@ def EnrichResponses(dataFrame):
     global qid_dict
     global qid_dict2
     dfq = spark.table(f"cleansed.{destinationSchema}_{re.sub('Responses$','Questions',destinationTableName)}")
-    questions = [row.asDict(True) for row in dfq.select('questionID','questionText','choices','answers','questionType','selector','subSelector').collect()]
+    dfq_columns = dfq.schema.fieldNames()
+    sel_columns = set(dfq_columns) & set(['questionID','questionText','choices','answers','questionType','selector','subSelector'])
+    questions = [row.asDict(True) for row in dfq.select(*sel_columns).collect()]
     qid_dict = {}
     for question in questions:
        qid = question.pop('questionID')
