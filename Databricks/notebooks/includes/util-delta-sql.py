@@ -60,7 +60,7 @@ def DeltaGetDataLakePath(data_lake_zone, data_lake_folder, object):
   
   if data_lake_zone == ADS_DATALAKE_ZONE_CURATED:
     data_lake_path = f"dbfs:{mount_point}/{object.lower()}/delta"
-  elif data_lake_zone == ADS_DATALAKE_ZONE_STAGE:
+  elif (data_lake_zone == ADS_DATALAKE_ZONE_STAGE or data_lake_zone == ADS_DATALAKE_ZONE_REJECTED):
     data_lake_path = f"dbfs:{mount_point}/{data_lake_folder.lower()}/{object.lower()}"
   else:
     data_lake_path = f"dbfs:{mount_point}/{data_lake_folder.lower()}/{object.lower()}/delta"
@@ -661,3 +661,44 @@ def DeltaSaveToStageTable(dataframe, target_database, target_table, stage_table_
   #Save the dataframe temporarily to Stage database
   LogEtl(f"write to stg table")
   dataframe.write.mode("overwrite").option("overwriteSchema","true").option("path", data_lake_path).saveAsTable(stage_table_name)
+
+# COMMAND ----------
+
+from pyspark.sql.functions import concat, col, lit, substring
+from pyspark.sql.functions import DataFrame
+
+def DeltaSaveDataFrameToRejectTable(dataframe,target_table,business_key,source_key,lastExecutionTS):
+  #This method uses the dataframe to load data into Cleansed Rejected Table
+    reject_table = 'cleansed_rejected'
+    raw_table = f"raw.{target_table}"
+    
+    #Build cleansed reject dataframe
+    reject_df = dataframe.withColumn('rejectRecordCleansed', to_json(struct(col("*"))))
+    reject_df = reject_df.withColumn("tableName",lit(target_table)) \
+                         .withColumn(COL_DL_REJECTED_LOAD,current_timestamp()) \
+                         .select("tableName","rejectColumn","sourceKeyDesc","sourceKey","rejectRecordCleansed")
+    
+    #Build raw reject dataframe
+    raw_df = spark.table(raw_table).where(f"_DLRawZoneTimestamp >= '{lastExecutionTS}'") \
+                                                    .withColumn("rawSourceKey", concat_ws('|', *(source_key.split("|")))) \
+                                                    .withColumn('rejectRecordRaw', to_json(struct(col("*")))) \
+                                                    .select("rawSourceKey","rejectRecordRaw")
+    
+    #Join cleansed and raw reject dataframes
+    reject_df =reject_df.join(raw_df,reject_df.sourceKey==raw_df.rawSourceKey,"left")
+    
+    print("Rejected Rows:")
+    display(reject_df)
+
+    #Save the reject dataframe to generic reject table (cleansed_reject)    
+    data_lake_path = DeltaGetDataLakePath(ADS_DATALAKE_ZONE_REJECTED, ADS_DATABASE_REJECTED, reject_table) 
+    print(data_lake_path)
+    LogEtl(f"write to reject table")
+    reject_df.write.mode("append").option("overwriteSchema","true").option("path", data_lake_path).saveAsTable(f"rejected.{reject_table}") 
+    
+    #Save the reject dataframe to individual reject table
+    data_lake_path = DeltaGetDataLakePath(ADS_DATALAKE_ZONE_REJECTED, ADS_DATABASE_REJECTED, target_table)
+    print(data_lake_path)
+    #Drop columns 
+    cleansed_df = dataframe.drop("sourceKeyDesc","sourceKey","rejectColumn")
+    dataframe.write.mode("append").option("overwriteSchema","true").option("path", data_lake_path).saveAsTable(f"rejected.{target_table}") 
