@@ -321,7 +321,7 @@ newSchema = StructType([
 # COMMAND ----------
 
 # DBTITLE 1,Handle Invalid Records
-reject_df =df.where("validToDate = '0001-01-01'")
+reject_df =df.where("validToDate = '1000-01-01'")
 df = df.subtract(reject_df)
 df = df.drop("sourceKeyDesc","sourceKey","rejectColumn")
 

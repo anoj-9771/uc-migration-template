@@ -471,7 +471,6 @@ def GeneralToValidDateTime(dateIn, colType ="Optional"):
     # if there is no value or empty string and it's not mandatory, then return None
     # otherwise convert the date input to string
     #if (dateIn is None or dateIn == str(emptyPadDate)) and colType.upper() != mandatoryStr:
-    #if (dateIn is None or dateIn.strip() == '') and colType.upper() != mandatoryStr:
     if dateIn is None and colType.upper() != mandatoryStr:
         return None
     else:
@@ -481,15 +480,7 @@ def GeneralToValidDateTime(dateIn, colType ="Optional"):
     # Check Mandatory, but null or 0 length or empty string
     if colType.upper() == str(mandatoryStr) and (len(dateStr) == 0 or dateStr is None or dateStr.strip() == ''):
         return dateRejected 
-        
-    # Don't allow for dates without century    
-    dash = dateStr.find('-')
-    if (dash > -1 and dash <= 2) or (dateStr.find(' ') == 6 or len(dateStr) <= 7):
-        if colType.upper() == str(mandatoryStr):
-            return dateRejected
-        else:
-            return dateInvalid
-    
+           
     # Check for 'zeroed' dates ('00000000')
     if dateStr == str(zeroDate):
         if colType.upper() == str(mandatoryStr):
@@ -500,6 +491,14 @@ def GeneralToValidDateTime(dateIn, colType ="Optional"):
     if dateStr.strip() == '': #emptyPadDate: '        '
         return None
 
+    # Don't allow for dates without century    
+    dash = dateStr.find('-')
+    if (dash > -1 and dash <= 2) or (dateStr.find(' ') == 6 or len(dateStr) <= 7):
+        if colType.upper() == str(mandatoryStr):
+            return dateRejected
+        else:
+            return dateInvalid
+        
     # check for dates less than 10 in length
     if len(dateStr) <= 10:
         dateStr += ' 00:00:00'
