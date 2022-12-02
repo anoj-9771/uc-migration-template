@@ -214,84 +214,95 @@ print(delta_raw_tbl_name)
 
 # DBTITLE 1,10. Load Raw to Dataframe & Do Transformations
 df = spark.sql(f"""
-     WITH stage AS (
-          SELECT
-               *, 
-               ROW_NUMBER() OVER (
-                    PARTITION BY ANLAGE,OPERAND,SAISON,AB,ABLFDNR 
-                    ORDER BY _DLRawZoneTimestamp DESC, DELTA_TS DESC
-               ) AS _RecordVersion 
-          FROM {delta_raw_tbl_name} 
-          WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}'
-     ) 
-          SELECT 
-               case when ANLAGE = 'na' then '' else ANLAGE end     as installationNumber,
-               case when OPERAND = 'na' then '' else OPERAND end   as operandCode, 
-               ToValidDate(AB,'MANDATORY')                         as validFromDate, 
-               case when ABLFDNR = 'na' then '' else ABLFDNR end   as consecutiveDaysFromDate, 
-               ToValidDate(BIS)                                    as validToDate, 
-               BELNR                                               as billingDocumentNumber, 
-               MBELNR                                              as mBillingDocumentNumber, 
-               CASE
-                   WHEN MAUSZUG = 'X'
-                   THEN 'Y'
-                   ELSE 'N'
-               END                                                 as moveOutFlag, 
-               ToValidDate(ALTBIS)                                 as expiryDate, 
-               CASE
-                   WHEN INAKTIV = 'X'
-                   THEN 'Y'
-                   ELSE 'N' 
-               END                                                 as inactiveFlag, 
-               CASE
-                   WHEN MANAEND = 'X'
-                   THEN 'Y'
-                   ELSE 'N'
-               END                                                 as manualChangeFlag, 
-               TARIFART                                            as rateTypeCode, 
-               te.rateType                                         as rateType, 
-               KONDIGR                                             as rateFactGroupCode, 
-               te067t.rateFactGroup                                as rateFactGroup, 
-               cast(WERT1 as dec(16,7))                            as entryValue, 
-               cast(WERT2 as dec(16,7))                            as valueToBeBilled, 
-               STRING1                                             as operandValue1,
-               CASE
-                   WHEN STRING3 = 'X'
-                   THEN 'Y'
-                   ELSE 'N' 
-               END                                                 as operandValue3Flag, 
-               cast(BETRAG as dec(13,2))                           as amount, 
-               WAERS                                               as currencyKey, 
-               'ANLAGE|OPERAND|SAISON|AB|ABLFDNR'                  as sourceKeyDesc, 
-               concat_ws('|',ANLAGE,OPERAND,SAISON,AB,ABLFDNR)     as sourceKey, 
-               'AB'                                         as rejectColumn, 
-               cast('1900-01-01' as TimeStamp)                     as _RecordStart, 
-               cast('9999-12-31' as TimeStamp)                     as _RecordEnd, 
-               '0'                                                 as _RecordDeleted, 
-               '1'                                                 as _RecordCurrent, 
-               cast('{CurrentTimeStamp}' as TimeStamp)             as _DLCleansedZoneTimeStamp 
-     FROM stage ef 
-     LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UC_STATTART_TEXT te ON 
-          ef.TARIFART = te.rateTypeCode and 
-          te._RecordDeleted = 0 and 
-          te._RecordCurrent = 1 
-     LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_te067t te067t ON
-          ef.KONDIGR = te067t.rateFactGroupCode AND
-          te067t._RecordDeleted = 0 and 
-          te067t._RecordCurrent = 1 
-     WHERE 
-          ef._RecordVersion = 1 AND
-          ef.ANLAGE IS NOT NULL
+    WITH stage AS (
+        SELECT
+            *, 
+            ROW_NUMBER() OVER (
+                PARTITION BY 
+                    raw.ANLAGE,
+                    raw.OPERAND,
+                    raw.SAISON,
+                    raw.AB,
+                    raw.ABLFDNR 
+                ORDER BY 
+                    _DLRawZoneTimestamp DESC, 
+                    DELTA_TS DESC
+            ) AS _RecordVersion 
+        FROM {delta_raw_tbl_name} raw
+        WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}'
+    ) 
+        SELECT 
+            case when ANLAGE = 'na' then '' else ANLAGE end           as installationNumber,
+            case when ef.OPERAND = 'na' then '' else ef.OPERAND end   as operandCode, 
+            op.operand                                                as operand,
+            ToValidDate(AB,'MANDATORY')                               as validFromDate, 
+            case when ABLFDNR = 'na' then '' else ABLFDNR end         as consecutiveDaysFromDate, 
+            ToValidDate(BIS)                                          as validToDate, 
+            BELNR                                                     as billingDocumentNumber, 
+            MBELNR                                                    as mBillingDocumentNumber, 
+            CASE
+                WHEN MAUSZUG = 'X'
+                THEN 'Y'
+                ELSE 'N'
+            END                                                       as moveOutFlag, 
+            ToValidDate(ALTBIS)                                       as expiryDate, 
+            CASE
+                WHEN INAKTIV = 'X'
+                THEN 'Y'
+                ELSE 'N' 
+            END                                                       as inactiveFlag, 
+            CASE
+                WHEN MANAEND = 'X'
+                THEN 'Y'
+                ELSE 'N'
+            END                                                       as manualChangeFlag, 
+            TARIFART                                                  as rateTypeCode, 
+            te.rateType                                               as rateType, 
+            KONDIGR                                                   as rateFactGroupCode, 
+            te067t.rateFactGroup                                      as rateFactGroup, 
+            cast(WERT1 as dec(16,7))                                  as entryValue, 
+            cast(WERT2 as dec(16,7))                                  as valueToBeBilled, 
+            STRING1                                                   as operandValue1,
+            CASE
+                WHEN STRING3 = 'X'
+                THEN 'Y'
+                ELSE 'N' 
+            END                                                       as operandValue3Flag, 
+            cast(BETRAG as dec(13,2))                                 as amount, 
+            WAERS                                                     as currencyKey, 
+            'ANLAGE|OPERAND|SAISON|AB|ABLFDNR'                        as sourceKeyDesc, 
+            concat_ws('|',ANLAGE,OPERAND,SAISON,AB,ABLFDNR)           as sourceKey, 
+            'AB'                                                      as rejectColumn,            
+            cast('1900-01-01' as TimeStamp)                           as _RecordStart, 
+            cast('9999-12-31' as TimeStamp)                           as _RecordEnd, 
+            '0'                                                       as _RecordDeleted, 
+            '1'                                                       as _RecordCurrent, 
+            cast('{CurrentTimeStamp}' as TimeStamp)                   as _DLCleansedZoneTimeStamp 
+    FROM stage ef 
+    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UC_STATTART_TEXT te ON 
+        ef.TARIFART = te.rateTypeCode and 
+        te._RecordDeleted = 0 and 
+        te._RecordCurrent = 1 
+    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_te067t te067t ON
+        ef.KONDIGR = te067t.rateFactGroupCode AND
+        te067t._RecordDeleted = 0 and 
+        te067t._RecordCurrent = 1 
+    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UC_OPERAND_TEXT op ON
+        op.operandcode = ef.OPERAND AND
+        op._RecordDeleted = 0 AND
+        op._RecordCurrent = 1 
+    WHERE 
+        ef._RecordVersion = 1 AND
+        ef.ANLAGE IS NOT NULL
      """
 )
-
-#print(f'Number of rows: {df.count()}')
 
 # COMMAND ----------
 
 newSchema = StructType([
     StructField('installationNumber',StringType(),False),
     StructField('operandCode',StringType(),False),
+    StructField('operand',StringType(),False),
     StructField('validFromDate',DateType(),False),
     StructField('consecutiveDaysFromDate',StringType(),False),
     StructField('validToDate',DateType(),True),
