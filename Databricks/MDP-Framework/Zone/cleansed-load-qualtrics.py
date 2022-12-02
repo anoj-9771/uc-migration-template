@@ -59,8 +59,6 @@ def MaskTable(dataFrame):
 
 import json, re
 def EnrichResponses(dataFrame):
-    global qid_dict
-    global qid_dict2
     dfq = spark.table(f"cleansed.{destinationSchema}_{re.sub('Responses$','Questions',destinationTableName)}")
     dfq_columns = dfq.schema.fieldNames()
     sel_columns = set(dfq_columns) & set(['questionID','questionText','choices','answers','questionType','selector','subSelector'])
