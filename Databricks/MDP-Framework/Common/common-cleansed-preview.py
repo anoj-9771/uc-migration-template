@@ -126,6 +126,86 @@ Custom Transform Failures = {customTransformFailures}
 
 # COMMAND ----------
 
+def ImportCleansedMappingByRules(systemCode):
+    if systemCode.lower()[-3:] == 'ref': 
+        systemCode = systemCode.replace('ref','')
+    if systemCode.lower()[-4:] == 'data':
+        systemCode = systemCode.replace('data','')    
+        
+    path = f"/FileStore/Cleansed/{systemCode.lower()}_cleansed_by_rules.csv"
+    transforms = LoadCsv(path)
+    dataTypeFailures, transformFailures, lookupFailures, customTransformFailures = 0, 0, 0, 0
+    
+    if transforms is None:
+        return
+    
+    # VALIDATE DATATYPES
+    df = transforms.selectExpr("TRIM(LOWER(DataType)) DataType").dropDuplicates().na.drop()
+    print("""
+    Validating Data Types...
+    -------------------------
+    """)
+    for t in df.rdd.collect():
+        if t.DataType.lower() == 'nochange':
+            continue
+        
+        dataType = defaultDataTypes.get(t.DataType.lower())
+        dataType = t.DataType if dataType is None else dataType
+        
+        sql = f"SELECT CAST('' AS {dataType.lower()}) A"
+        try:
+            spark.sql(sql).count()
+        except Exception as error:
+            dataTypeFailures+=1
+            message = str(error).split(".")[0]
+            print(f"[ !! ] - {sql} - {message}")
+
+    # VALIDATE TRANSFORM TAGS
+    print("""
+    Validating Transform Tags...
+    -------------------------
+    """)
+    df = transforms.selectExpr("TRIM(LOWER(TransformTag)) TransformTag").dropDuplicates().na.drop()
+    #display(df)
+    for t in df.rdd.collect():
+        tag = t.TransformTag
+        try:
+            o = defaultTransformTags[tag]
+        except Exception as error:
+            transformFailures+=1
+            print(f"[ !! ] - {tag} - {error}")
+
+    # VALIDATE CUSTOM TRANSFORM
+    print("""
+    Validating Custom Transform...
+    -------------------------
+    """)
+    df = transforms.where("CustomTransform IS NOT NULL")
+    for t in df.rdd.collect():
+        try:
+            spark.table(t.RawTable).selectExpr(f"{t.CustomTransform}").count()
+        except Exception as e:
+            customTransformFailures+=1
+            print(f"[ !! ] - {t.CustomTransform} - {e}")
+
+    total = dataTypeFailures + transformFailures + lookupFailures + customTransformFailures
+    total = dataTypeFailures
+    if total == 0:
+        print(f"""{path} is all good! Copying...""")
+        dbutils.fs.cp(path, f"/mnt/datalake-raw/cleansed_csv/{systemCode}_cleansed_by_rules.csv", True)
+
+    else:
+        print(f"""
+===================================================================
+{path} has {total} failures!
+===================================================================
+Data Type Failures = {dataTypeFailures}
+Transform Tag Failures = {transformFailures}
+Custom Transform Failures = {customTransformFailures}
+        """)        
+
+# COMMAND ----------
+
 def ImportCleansedReference():
     path = f"/FileStore/Cleansed/reference_lookup.csv"
     referenceFile = LoadCsv(path)
