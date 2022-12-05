@@ -69,8 +69,8 @@ raw.qualtrics_.*responses,.*,,string,,,,N,69
 raw.qualtrics_.*questions,QuestionID,questionID,string,,,,N,70
 raw.qualtrics_.*questions,QuestionText,questionText,string,,,,N,71
 raw.qualtrics_.*questions,QuestionDescription,questionDescription,string,,,,N,72
-raw.qualtrics_.*questions,Answers,answers,string,,,,N,73
-raw.qualtrics_.*questions,Choices,choices,string,,,,N,74
+raw.qualtrics_.*questions,Answers,answers,nochange,,,,N,73
+raw.qualtrics_.*questions,Choices,choices,nochange,,,,N,74
 raw.qualtrics_.*questions,DataExportTag,dataExportTag,string,,,,N,75
 raw.qualtrics_.*questions,QuestionType,questionType,string,,,,N,76
 raw.qualtrics_.*questions,Selector,selector,string,,,,N,77
