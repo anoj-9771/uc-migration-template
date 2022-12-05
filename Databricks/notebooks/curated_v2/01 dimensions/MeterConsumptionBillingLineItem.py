@@ -9,6 +9,8 @@ def getMeterConsumptionBillingLineItem():
                     select 
                     'ISU' as sourceSystemCode,
                     erch.billingDocumentNumber as billingDocumentNumber,
+                    erch.startBillingPeriod as billingPeriodStartDate,
+                    erch.endBillingPeriod as billingPeriodEndDate,
                     dberchz1.billingDocumentLineItemId as billingDocumentLineItemId,
                     dberchz1.lineItemTypeCode as lineItemTypeCode,
                     dberchz1.lineItemType as lineItemType,
@@ -71,6 +73,8 @@ def getMeterConsumptionBillingLineItem():
                             StructField("sourceSystemCode", StringType(), True),
                             StructField("billingDocumentNumber", StringType(), False),
                             StructField("billingDocumentLineItemId", StringType(), False),
+                            StructField("billingPeriodStartDate", DateType(), True),
+                            StructField("billingPeriodEndDate", DateType(), True),
                             StructField("lineItemTypeCode", StringType(), True),
                             StructField("lineItemType", StringType(), True),
                             StructField("billingLineItemBudgetBillingFlag", StringType(), True),
@@ -119,7 +123,7 @@ def getMeterConsumptionBillingLineItem():
 
 df, schema = getMeterConsumptionBillingLineItem()
 #TemplateEtl(df, entity="dimMeterConsumptionBillingLineItem", businessKey="sourceSystemCode,billingDocumentNumber,billingDocumentLineItemId", schema=schema, writeMode=ADS_WRITE_MODE_OVERWRITE, AddSK=True)
-TemplateEtlSCD(df, entity="dimMeterConsumptionBillingLineItem", businessKey="billingDocumentNumber,billingDocumentLineItemId", schema=schema)
+TemplateTimeSliceEtlSCD(df, entity="dimMeterConsumptionBillingLineItem", businessKey="billingDocumentNumber,billingDocumentLineItemId", schema=schema, fromDateCol='billingPeriodStartDate', toDateCol='billingPeriodEndDate')
 
 # COMMAND ----------
 
