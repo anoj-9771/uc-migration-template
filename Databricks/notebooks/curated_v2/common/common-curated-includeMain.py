@@ -191,7 +191,7 @@ def TemplateTimeSliceEtlSCD_2(df : object, entity, businessKey, schema, target_l
 
 # COMMAND ----------
 
-def TemplateTimeSliceEtlSCD(df : object, entity, businessKey, schema, target_layer='curated'):
+def TemplateTimeSliceEtlSCD(df : object, entity, businessKey, schema, fromDateCol='validFromDate', toDateCol='validToDate', target_layer='curated'):
     
     LogEtl(f"Starting {entity}.")
 
@@ -216,8 +216,8 @@ def TemplateTimeSliceEtlSCD(df : object, entity, businessKey, schema, target_lay
     
     # based on TimeSlice validFromDate, validToDate to populate '_RecordStart', '_RecordEnd', '_RecordCurrent'
     df = df.withColumn("_BusinessKey", concat_ws('|', *(businessKey.split(","))))
-    df = df.withColumn("_RecordStart", expr("CAST(ifnull(validFromDate,'1900-01-01') as timestamp)"))
-    df = df.withColumn("_RecordEnd", expr("CAST((CAST(ifnull(validToDate,'9999-12-31') as date) +1) - INTERVAL 1 SECOND as timestamp)"))
+    df = df.withColumn("_RecordStart", expr(f"CAST(ifnull({fromDateCol},'1900-01-01') as timestamp)"))
+    df = df.withColumn("_RecordEnd", expr(f"CAST((CAST(ifnull({toDateCol},'9999-12-31') as date) +1) - INTERVAL 1 SECOND as timestamp)"))
     
     if "_RecordDeleted" not in df.columns:
         df = df.withColumn("_RecordDeleted", expr("CAST(0 AS INT)"))
