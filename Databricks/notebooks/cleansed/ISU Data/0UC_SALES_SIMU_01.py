@@ -227,9 +227,9 @@ df = spark.sql(f"WITH stage AS \
                                 '0' as _RecordDeleted, \
                                 '1' as _RecordCurrent, \
                                 cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
-                        from stage where _RecordVersion = 1 ")
+                        from stage where _RecordVersion = 1 ").cache()
 
-#print(f'Number of rows: {df.count()}')
+print(f'Number of rows: {df.count()}')
 
 # COMMAND ----------
 
@@ -349,14 +349,14 @@ newSchema = StructType([
 # COMMAND ----------
 
 # DBTITLE 1,Handle Invalid Records
-reject_df =df.where("validToDate = '1000-01-01'")
-df = df.subtract(reject_df)
-df = df.drop("sourceKeyDesc","sourceKey","rejectColumn")
+reject_df =df.where("validToDate = '1000-01-01'").cache()
+cleansed_df = df.subtract(reject_df)
+cleansed_df = cleansed_df.drop("sourceKeyDesc","sourceKey","rejectColumn")
 
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
-DeltaSaveDataFrameToDeltaTable(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
+DeltaSaveDataFrameToDeltaTable(cleansed_df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
 
 # COMMAND ----------
 
@@ -364,6 +364,8 @@ DeltaSaveDataFrameToDeltaTable(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS
 if reject_df.count() > 0:
     source_key = 'SIMRUNID|BELNR|BELZEILE|BIS'
     DeltaSaveDataFrameToRejectTable(reject_df,target_table,business_key,source_key,LastSuccessfulExecutionTS)
+    reject_df.unpersist()
+df.unpersist()
 
 # COMMAND ----------
 
