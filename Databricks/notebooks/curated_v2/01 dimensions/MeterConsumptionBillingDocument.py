@@ -95,7 +95,7 @@ def getMeterConsumptionBillingDocument():
 
 df, schema = getMeterConsumptionBillingDocument()
 #TemplateEtl(df, entity="dimMeterConsumptionBillingDocument", businessKey="sourceSystemCode,billingDocumentNumber", schema=schema, writeMode=ADS_WRITE_MODE_OVERWRITE, AddSK=True)
-TemplateEtlSCD(df, entity="dimMeterConsumptionBillingDocument", businessKey="billingDocumentNumber", schema=schema)
+TemplateTimeSliceEtlSCD(df, entity="dimMeterConsumptionBillingDocument", businessKey="billingDocumentNumber", schema=schema, fromDateCol='billingPeriodStartDate', toDateCol='billingPeriodEndDate')
 
 # COMMAND ----------
 
