@@ -267,55 +267,9 @@ df = spark.sql(f"""WITH stage AS
                           LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0BP_RELTYPES_TEXT BP_TXT 
                                 ON BP.RELDIR = BP_TXT.relationshipDirection AND BP.RELTYP =BP_TXT.relationshipTypeCode 
                                 AND BP_TXT._RecordDeleted = 0 AND BP_TXT._RecordCurrent = 1 
-                          where BP._RecordVersion = 1 """)
+                          where BP._RecordVersion = 1 """).cache()
 
-#print(f'Number of rows: {df.count()}')
-
-# COMMAND ----------
-
-# DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
-#Update/rename Column
-#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
-# df_cleansed = spark.sql(f"SELECT \
-#                                 case when RELNR = 'na' then '' else RELNR end as businessPartnerRelationshipNumber, \
-#                                 case when PARTNER1 = 'na' then '' else PARTNER1 end as businessPartnerNumber1, \
-#                                 case when PARTNER2 = 'na' then '' else PARTNER2 end as businessPartnerNumber2, \
-#                                 PARTNER1_GUID as businessPartnerGUID1, \
-#                                 PARTNER2_GUID as businessPartnerGUID2, \
-#                                 RELDIR as relationshipDirection, \
-#                                 RELTYP as relationshipTypeCode, \
-#                                 BP_TXT.relationshipType as relationshipType, \
-#                                 ToValidDate((case when DATE_TO = 'na' then '9999-12-31' else DATE_TO end),'MANDATORY') as validToDate, \
-#                                 ToValidDate(DATE_FROM) as validFromDate, \
-#                                 COUNTRY as countryShortName, \
-#                                 POST_CODE1 as postalCode, \
-#                                 CITY1 as cityName, \
-#                                 STREET as streetName, \
-#                                 HOUSE_NUM1 as houseNumber, \
-#                                 TEL_NUMBER as phoneNumber, \
-#                                 SMTP_ADDR as emailAddress, \
-#                                 cast(CMPY_PART_PER as long) as capitalInterestPercentage, \
-#                                 cast(CMPY_PART_AMO as dec(13,0)) as capitalInterestAmount, \
-#                                 ADDR_SHORT as shortFormattedAddress, \
-#                                 ADDR_SHORT_S as shortFormattedAddress2, \
-#                                 LINE0 as addressLine0, \
-#                                 LINE1 as addressLine1, \
-#                                 LINE2 as addressLine2, \
-#                                 LINE3 as addressLine3, \
-#                                 LINE4 as addressLine4, \
-#                                 LINE5 as addressLine5, \
-#                                 LINE6 as addressLine6, \
-#                                 FLG_DELETED as deletedIndicator, \
-#                                 BP._RecordStart, \
-#                                 BP._RecordEnd, \
-#                                 BP._RecordDeleted, \
-#                                 BP._RecordCurrent \
-#                           FROM {ADS_DATABASE_STAGE}.{source_object} BP \
-#                           LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0BP_RELTYPES_TEXT BP_TXT \
-#                                 ON BP.RELDIR = BP_TXT.relationshipDirection AND BP.RELTYP =BP_TXT.relationshipTypeCode \
-#                                 AND BP_TXT._RecordDeleted = 0 AND BP_TXT._RecordCurrent = 1")
-
-# print(f'Number of rows: {df_cleansed.count()}')
+print(f'Number of rows: {df.count()}')
 
 # COMMAND ----------
 
@@ -360,14 +314,14 @@ newSchema = StructType([
 # COMMAND ----------
 
 # DBTITLE 1,Handle Invalid Records
-reject_df =df.where("validToDate = '1000-01-01'") 
-df = df.subtract(reject_df)
-df = df.drop("sourceKeyDesc","sourceKey","rejectColumn")
+reject_df = df.where("validToDate = '1000-01-01'").cache()
+cleansed_df = df.subtract(reject_df)
+cleansed_df = cleansed_df.drop("sourceKeyDesc","sourceKey","rejectColumn")
 
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (New Records)
-DeltaSaveDataFrameToDeltaTable(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
+DeltaSaveDataFrameToDeltaTable(cleansed_df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
 
 # COMMAND ----------
 
@@ -375,6 +329,8 @@ DeltaSaveDataFrameToDeltaTable(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS
 if reject_df.count() > 0:
     source_key = 'RELNR|PARTNER1|PARTNER2|RELDIR|RELTYP|DATE_TO'
     DeltaSaveDataFrameToRejectTable(reject_df,target_table,business_key,source_key,LastSuccessfulExecutionTS)
+    reject_df.unpersist()
+df.unpersist()    
 
 # COMMAND ----------
 
