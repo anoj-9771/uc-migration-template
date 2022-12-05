@@ -277,6 +277,8 @@ spark.sql(f" \
 if reject_df.count() > 0:
     source_key = 'ANLAGE|LOGIKNR|BIS'
     DeltaSaveDataFrameToRejectTable(reject_df,target_table,business_key,source_key,LastSuccessfulExecutionTS)
+    reject_df.unpersist()
+df.unpersist()
 
 # COMMAND ----------
 
