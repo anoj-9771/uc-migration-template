@@ -271,7 +271,7 @@ df = spark.sql(f"""
             cast(BETRAG as dec(13,2))                                 as amount, 
             WAERS                                                     as currencyKey, 
             'ANLAGE|OPERAND|SAISON|AB|ABLFDNR'                        as sourceKeyDesc, 
-            concat_ws('|',ANLAGE,OPERAND,SAISON,AB,ABLFDNR)           as sourceKey, 
+            concat_ws('|',ANLAGE,ef.OPERAND,SAISON,AB,ABLFDNR)           as sourceKey, 
             'AB'                                                      as rejectColumn,            
             cast('1900-01-01' as TimeStamp)                           as _RecordStart, 
             cast('9999-12-31' as TimeStamp)                           as _RecordEnd, 
