@@ -247,7 +247,10 @@ df = spark.sql(f"""
                     STRING1                                             as operandValue1, 
                     STRING3                                             as operandValue3, 
                     cast(BETRAG as dec(13,2))                           as amount, 
-                    WAERS                                               as currencyKey, 
+                    WAERS                                               as currencyKey,
+                    'ANLAGE|OPERAND|SAISON|AB|ABLFDNR'                  as sourceKeyDesc,
+                    concat_ws('|',ANLAGE,OPERAND,SAISON,AB,ABLFDNR)     as sourceKey,
+                    'AB'                                                as rejectColumn,                
                     cast('1900-01-01' as TimeStamp)                     as _RecordStart, 
                     cast('9999-12-31' as TimeStamp)                     as _RecordEnd, 
                     '0'                                                 as _RecordDeleted, 
@@ -265,49 +268,8 @@ df = spark.sql(f"""
             WHERE 
                     ef._RecordVersion = 1
         """
-)
-#print(f'Number of rows: {df.count()}')
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC SELECT * FROM raw.isu_ETTIFN
-
-# COMMAND ----------
-
-# DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
-#Update/rename Column
-#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
-# df_cleansed = spark.sql(f"SELECT \
-#                                 case when ANLAGE = 'na' then '' else ANLAGE end as installationId, \
-#                                 case when OPERAND = 'na' then '' else OPERAND end as operandCode, \
-#                                 ToValidDate(AB,'MANDATORY') as validFromDate, \
-#                                 case when ABLFDNR = 'na' then '' else ABLFDNR end as consecutiveDaysFromDate, \
-#                                 ToValidDate(BIS) as validToDate, \
-#                                 BELNR as billingDocumentNumber, \
-#                                 MBELNR as mBillingDocumentNumber, \
-#                                 MAUSZUG as moveOutIndicator, \
-#                                 ToValidDate(ALTBIS) as expiryDate, \
-#                                 INAKTIV as inactiveIndicator, \
-#                                 MANAEND as manualChangeIndicator, \
-#                                 TARIFART as rateTypeCode, \
-#                                 te.rateType as rateType, \
-#                                 KONDIGR as rateFactGroupCode, \
-#                                 cast(WERT1 as dec(16,7)) as entryValue, \
-#                                 cast(WERT2 as dec(16,7)) as valueToBeBilled, \
-#                                 STRING1 as operandValue1, \
-#                                 STRING3 as operandValue3, \
-#                                 cast(BETRAG as dec(13,2)) as amount, \
-#                                 WAERS as currencyKey, \
-#                                 ef._RecordStart, \
-#                                 ef._RecordEnd, \
-#                                 ef._RecordDeleted, \
-#                                 ef._RecordCurrent \
-#                          FROM {ADS_DATABASE_STAGE}.{source_object} ef \
-#                          LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UC_STATTART_TEXT te ON ef.TARIFART = te.rateTypeCode \
-#                                                                                                     and te._RecordDeleted = 0 and te._RecordCurrent = 1")
-
-# print(f'Number of rows: {df_cleansed.count()}')
+).cache()
+print(f'Number of rows: {df.count()}')
 
 # COMMAND ----------
 
@@ -345,8 +307,24 @@ newSchema = StructType([
 
 # COMMAND ----------
 
+# DBTITLE 1,Handle Invalid Records
+reject_df =df.where("validFromDate = '1000-01-01'").cache()
+cleansed_df = df.subtract(reject_df)
+cleansed_df = cleansed_df.drop("sourceKeyDesc","sourceKey","rejectColumn")
+
+# COMMAND ----------
+
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
-DeltaSaveDataFrameToDeltaTable(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
+DeltaSaveDataFrameToDeltaTable(cleansed_df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
+
+# COMMAND ----------
+
+# DBTITLE 1,12.2 Save Reject Data Frame into Rejected Database
+if reject_df.count() > 0:
+    source_key = 'ANLAGE|OPERAND|SAISON|AB|ABLFDNR'
+    DeltaSaveDataFrameToRejectTable(reject_df,target_table,business_key,source_key,LastSuccessfulExecutionTS)
+    reject_df.unpersist()
+df.unpersist()
 
 # COMMAND ----------
 

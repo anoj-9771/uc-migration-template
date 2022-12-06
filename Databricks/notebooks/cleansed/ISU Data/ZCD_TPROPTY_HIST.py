@@ -198,7 +198,7 @@ df = spark.sql(f"WITH stage AS \
                                                                                                     and supty._RecordDeleted = 0 and supty._RecordCurrent = 1 \
                           LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_zcd_tinfprty_tx infty on infty.inferiorPropertyTypeCode = stg.INF_PROP_TYPE \
                                                                                                     and infty._RecordDeleted = 0 and infty._RecordCurrent = 1 \
-                        where stg._RecordVersion = 1")
+                        where stg._RecordVersion = 1").cache()
 
 print(f'Number of rows: {df.count()}')
 
@@ -228,9 +228,9 @@ newSchema = StructType([
 # COMMAND ----------
 
 # DBTITLE 1,Handle Invalid Records
-reject_df =df.where("validFromDate = '1000-01-01'") #2018-01-07
-df = df.subtract(reject_df)
-df = df.drop("sourceKeyDesc","sourceKey","rejectColumn")
+reject_df =df.where("validFromDate = '1000-01-01'").cache() #2018-01-07
+cleansed_df = df.subtract(reject_df)
+cleansed_df = cleansed_df.drop("sourceKeyDesc","sourceKey","rejectColumn")
 
 # COMMAND ----------
 
@@ -257,7 +257,7 @@ df = df.drop("sourceKeyDesc","sourceKey","rejectColumn")
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
-DeltaSaveDataFrameToDeltaTable(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_OVERWRITE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
+DeltaSaveDataFrameToDeltaTable(cleansed_df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_OVERWRITE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
 
 # COMMAND ----------
 
@@ -265,6 +265,8 @@ DeltaSaveDataFrameToDeltaTable(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS
 if reject_df.count() > 0:
     source_key = 'PROPERTY_NO|DATE_FROM'
     DeltaSaveDataFrameToRejectTable(reject_df,target_table,business_key,source_key,LastSuccessfulExecutionTS)
+    reject_df.unpersist()
+df.unpersist()       
 
 # COMMAND ----------
 

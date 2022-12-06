@@ -204,7 +204,9 @@ Select *, ROW_NUMBER() OVER (PARTITION BY ANLAGE,LOGIKNR,AB,BIS ORDER BY _FileDa
                                                                                                     and ip._RecordDeleted = 0 and ip._RecordCurrent = 1 \
                            LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0UC_STATTART_TEXT sp ON dev.TARIFART = sp.rateTypeCode \
                                                                                                     and sp._RecordDeleted = 0 and sp._RecordCurrent = 1 \
-                        ")
+                        ").cache()
+
+print(f'Number of rows: {df.count()}')
 
 # COMMAND ----------
 
@@ -233,21 +235,21 @@ newSchema = StructType([
 # COMMAND ----------
 
 # DBTITLE 1,Handle Invalid Records
-reject_df =df.where("validToDate = '1000-01-01''")
-df = df.subtract(reject_df)
-df = df.drop("sourceKeyDesc","sourceKey","rejectColumn")
+reject_df =df.where("validToDate = '1000-01-01'").cache()
+cleansed_df = df.subtract(reject_df)
+cleansed_df = cleansed_df.drop("sourceKeyDesc","sourceKey","rejectColumn")
 
 # COMMAND ----------
 
 # DBTITLE 1,12.1 Save Non Deleted Records Data frame into Cleansed Delta table (Final)
 # Load Non deleted records same as earlier
-DeltaSaveDataFrameToDeltaTable(df.filter("_RecordDeleted = '0'"), target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
+DeltaSaveDataFrameToDeltaTable(cleansed_df.filter("_RecordDeleted = '0'"), target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
 
 # COMMAND ----------
 
 # DBTITLE 1,12.2 Save Deleted records Data frame into Cleansed Delta table
 # Load deleted records to replace the existing Deleted records implementation logic
-df.filter("_RecordDeleted=1").createOrReplaceTempView("isu_devinst_deleted_records")
+cleansed_df.filter("_RecordDeleted=1").createOrReplaceTempView("isu_devinst_deleted_records")
 spark.sql(f" \
     MERGE INTO cleansed.isu_0UC_DEVINST_ATTR \
     using isu_devinst_deleted_records \
@@ -275,6 +277,8 @@ spark.sql(f" \
 if reject_df.count() > 0:
     source_key = 'ANLAGE|LOGIKNR|BIS'
     DeltaSaveDataFrameToRejectTable(reject_df,target_table,business_key,source_key,LastSuccessfulExecutionTS)
+    reject_df.unpersist()
+df.unpersist()
 
 # COMMAND ----------
 

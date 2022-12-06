@@ -262,99 +262,9 @@ df = spark.sql(f"WITH stage AS \
                         from stage cu \
                          LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.crm_DD07T dd ON cu.ProductType = dd.domainValueSingleUpperLimit \
                                                                     and dd.domainName = 'CRM_PRODUCT_KIND' and dd._RecordDeleted = 0 and dd._RecordCurrent = 1 \
-                        where cu._RecordVersion = 1 ")
+                        where cu._RecordVersion = 1 ").cache()
 
-#print(f'Number of rows: {df.count()}')
-
-# COMMAND ----------
-
-# DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
-#Update/rename Column
-#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
-# df_cleansed = spark.sql(f"SELECT \
-# 	ItemUUID as itemUUID, \
-# 	PodUUID as podUUID, \
-# 	HeaderUUID as headerUUID, \
-# 	case when UtilitiesContract = 'na' then '' else UtilitiesContract end as utilitiesContract, \
-# 	BusinessPartner as businessPartnerGroupNumber, \
-# 	BusinessPartnerFullName as businessPartnerGroupName, \
-# 	BusinessAgreement as businessAgreement, \
-# 	BusinessAgreementUUID as businessAgreementUUID, \
-# 	IncomingPaymentMethod as incomingPaymentMethod, \
-# 	IncomingPaymentMethodName as incomingPaymentMethodName, \
-# 	PaymentTerms as paymentTerms, \
-# 	PaymentTermsName as paymentTermsName, \
-# 	SoldToParty as soldToParty, \
-# 	SoldToPartyName as businessPartnerFullName, \
-# 	Division as divisionCode, \
-# 	DivisionName as division, \
-# 	ToValidDate(ContractStartDate) as contractStartDate, \
-# 	ToValidDate(ContractEndDate) as contractEndDate, \
-# 	ToValidDateTime(CreationDate) as creationDate, \
-# 	CreatedByUser as createdBy, \
-# 	ToValidDateTime(LastChangeDate) as lastChangedDate, \
-# 	LastChangedByUser as changedBy, \
-# 	ItemCategory as itemCategory, \
-# 	ItemCategoryName as itemCategoryName, \
-# 	Product as product, \
-# 	ProductDescription as productDescription, \
-# 	ItemType as itemType, \
-# 	ItemTypeName as itemTypeName, \
-# 	ProductType as productType, \
-# 	HeaderType as headerType, \
-# 	HeaderTypeName as headerTypeName, \
-# 	HeaderCategory as headerCategory, \
-# 	HeaderCategoryName as headerCategoryName, \
-# 	HeaderDescription as headerDescription, \
-# 	IsDeregulationPod as isDeregulationPod, \
-# 	UtilitiesPremise as premise, \
-# 	NumberOfPersons as numberOfPersons, \
-# 	CityName as cityName, \
-# 	StreetName as streetName, \
-# 	HouseNumber as houseNumber, \
-# 	PostalCode as postalCode, \
-# 	Building as building, \
-# 	AddressTimeZone as addressTimeZone, \
-# 	CountryName as countryName, \
-# 	RegionName as regionName, \
-# 	NumberOfContractChanges as numberOfContractChanges, \
-# 	IsOpen as isOpen, \
-# 	IsDistributed as isDistributed, \
-# 	HasError as hasError, \
-# 	IsToBeDistributed as isToBeDistributed, \
-# 	IsIncomplete as isIncomplete, \
-# 	IsStartedDueToProductChange as isStartedDueToProductChange, \
-# 	IsInActivation as isInActivation, \
-# 	IsInDeactivation as isInDeactivation, \
-# 	IsCancelled as isCancelled, \
-# 	CancellationMessageIsCreated as cancellationMessageIsCreated, \
-# 	SupplyEndCanclnMsgIsCreated as supplyEndCanclnMsgIsCreated, \
-# 	ActivationIsRejected as activationIsRejected, \
-# 	DeactivationIsRejected as deactivationIsRejected, \
-# 	cast(NumberOfContracts as int) as numberOfContracts, \
-# 	cast(NumberOfActiveContracts as int) as numberOfActiveContracts, \
-# 	cast(NumberOfIncompleteContracts as int) as numberOfIncompleteContracts, \
-# 	cast(NumberOfDistributedContracts as int) as numberOfDistributedContracts, \
-# 	cast(NmbrOfContractsToBeDistributed as int) as numberOfContractsToBeDistributed, \
-# 	cast(NumberOfBlockedContracts as int) as numberOfBlockedContracts, \
-# 	cast(NumberOfCancelledContracts as int) as numberOfCancelledContracts, \
-# 	cast(NumberOfProductChanges as int) as numberOfProductChanges, \
-# 	cast(NmbrOfContractsWProductChanges as int) as numberOfContractsWProductChanges, \
-# 	cast(NmbrOfContrWthEndOfSupRjctd as int) as numberOfContrWthEndOfSupRjctd, \
-# 	cast(NmbrOfContrWthStartOfSupRjctd as int) as numberOfContrWthStartOfSupRjctd, \
-# 	cast(NmbrOfContrWaitingForEndOfSup as int) as numberOfContrWaitingForEndOfSup, \
-# 	cast(NmbrOfContrWaitingForStrtOfSup as int) as numberOfContrWaitingForStrtOfSup, \
-# 	ToValidDate(CreationDate_E) as creationDateE, \
-# 	ToValidDate(LastChangeDate_E) as lastChangedDateE, \
-# 	ToValidDate(ContractStartDate_E) as contractStartDateE, \
-# 	ToValidDate(ContractEndDate_E,'MANDATORY') as contractEndDateE, \
-# 	_RecordStart, \
-# 	_RecordEnd, \
-# 	_RecordDeleted, \
-# 	_RecordCurrent \
-# 	FROM {ADS_DATABASE_STAGE}.{source_object}")
-
-# print(f'Number of rows: {df_cleansed.count()}')
+print(f'Number of rows: {df.count()}')
 
 # COMMAND ----------
 
@@ -446,14 +356,14 @@ newSchema = StructType([
 # COMMAND ----------
 
 # DBTITLE 1,Handle Invalid Records
-reject_df =df.where("contractEndDateE = '1000-01-01'")
-df = df.subtract(reject_df)
-df = df.drop("sourceKeyDesc","sourceKey","rejectColumn")
+reject_df =df.where("contractEndDateE = '1000-01-01'").cache()
+cleansed_df = df.subtract(reject_df)
+cleansed_df = cleansed_df.drop("sourceKeyDesc","sourceKey","rejectColumn")
 
 # COMMAND ----------
 
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
-DeltaSaveDataFrameToDeltaTable(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_OVERWRITE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
+DeltaSaveDataFrameToDeltaTable(cleansed_df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_OVERWRITE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
 
 # COMMAND ----------
 
@@ -461,6 +371,8 @@ DeltaSaveDataFrameToDeltaTable(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS
 if reject_df.count() > 0:
     source_key = 'UTILITIESCONTRACT|CONTRACTENDDATE_E'
     DeltaSaveDataFrameToRejectTable(reject_df,target_table,business_key,source_key,LastSuccessfulExecutionTS)
+    reject_df.unpersist()
+df.unpersist()
 
 # COMMAND ----------
 
