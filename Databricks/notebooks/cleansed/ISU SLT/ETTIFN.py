@@ -297,6 +297,8 @@ df = spark.sql(f"""
      """
 ).cache()
 
+print(f'Number of rows: {df.count()}')
+
 # COMMAND ----------
 
 newSchema = StructType([
