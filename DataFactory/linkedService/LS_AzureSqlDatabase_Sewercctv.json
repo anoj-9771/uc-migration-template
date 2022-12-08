@@ -1,6 +1,5 @@
 {
 	"name": "LS_AzureSqlDatabase_Sewercctv",
-	"type": "Microsoft.DataFactory/factories/linkedservices",
 	"properties": {
 		"annotations": [],
 		"type": "AzureSqlDatabase",
@@ -15,8 +14,9 @@
 			}
 		},
 		"connectVia": {
-			"referenceName": "IntegrationRuntime-Azure-ManagedVnet-01",
+			"referenceName": "IntegrationRuntime-SelfHosted",
 			"type": "IntegrationRuntimeReference"
 		}
-	}
+	},
+	"type": "Microsoft.DataFactory/factories/linkedservices"
 }
