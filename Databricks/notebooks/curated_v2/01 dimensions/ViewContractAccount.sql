@@ -7,6 +7,11 @@ WITH dateDriverNonDelete AS (
              contractAccountNumber,
              _recordStart AS _effectiveFrom
          FROM curated_v2.dimContractAccount WHERE _recordDeleted = 0
+         UNION
+         SELECT DISTINCT
+             contractAccountNumber,
+             _recordStart AS _effectiveFrom
+         FROM curated_v2.dimAccountBusinessPartner WHERE _recordDeleted = 0
      ),
      effectiveDateRangesNonDelete AS (
          SELECT 
@@ -25,6 +30,11 @@ WITH dateDriverNonDelete AS (
              contractAccountNumber,
              _recordStart AS _effectiveFrom
          FROM curated_v2.dimContractAccount WHERE _recordDeleted = 1
+         UNION
+         SELECT DISTINCT
+             contractAccountNumber,
+             _recordStart AS _effectiveFrom
+         FROM curated_v2.dimAccountBusinessPartner WHERE _recordDeleted = 1
      ),
      effectiveDateRangesDelete AS (
          SELECT 

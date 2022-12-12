@@ -46,7 +46,7 @@ def getContractHistory():
                                       from {ADS_DATABASE_CLEANSED}.isu_0uccontracth_attr_2 ch
                                       left outer join {ADS_DATABASE_CLEANSED}.crm_utilitiescontract uc
                                           on ch.contractId = uc.utilitiesContract and ch.validToDate = uc.contractEndDateE
-                                      where ch._RecordCurrent = 1 
+                                      where ch._RecordCurrent = 1 and ch._RecordDeleted <> -1
                                           and uc._RecordCurrent = 1 
                                       """)
     dummyDimRecDf = spark.createDataFrame([("-1","1900-01-01", "9999-12-31")], ["contractId","validFromDate","validToDate"])   

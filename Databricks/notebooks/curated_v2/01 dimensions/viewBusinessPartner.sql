@@ -1,9 +1,4 @@
 -- Databricks notebook source
--- MAGIC %md 
--- MAGIC # Business Partner Identification
-
--- COMMAND ----------
-
 -- MAGIC %md
 -- MAGIC # Business Partner
 
@@ -18,22 +13,26 @@ CREATE OR REPLACE VIEW curated_v2.viewBusinessPartner AS
      =======================================*/
      dateDriverNonDelete AS (
          SELECT DISTINCT
-             sourceSystemCode,
              businessPartnerNumber,
              _recordStart AS _effectiveFrom
          FROM curated_v2.dimBusinessPartner
+         WHERE _RecordDeleted = 0
+         UNION
+         SELECT DISTINCT
+             businessPartnerNumber,
+             _recordStart AS _effectiveFrom
+         FROM curated_v2.dimBusinessPartnerAddress
          WHERE _RecordDeleted = 0
      ),
  
      effectiveDateRangesNonDelete AS (
          SELECT 
-             sourceSystemCode,
              businessPartnerNumber, 
              _effectiveFrom, 
              cast(COALESCE(
                  TIMESTAMP(
                      DATE_ADD(
-                         LEAD(_effectiveFrom,1) OVER (PARTITION BY sourceSystemCode, businessPartnerNumber ORDER BY _effectiveFrom),-1)
+                         LEAD(_effectiveFrom,1) OVER (PARTITION BY businessPartnerNumber ORDER BY _effectiveFrom),-1)
                  ), 
                  TIMESTAMP('9999-12-31')
              ) as timestamp) AS _effectiveTo
@@ -41,22 +40,26 @@ CREATE OR REPLACE VIEW curated_v2.viewBusinessPartner AS
      ),
      dateDriverDelete AS (
          SELECT DISTINCT
-             sourceSystemCode,
              businessPartnerNumber,
              _recordStart AS _effectiveFrom
          FROM curated_v2.dimBusinessPartner
+         WHERE _RecordDeleted = 1
+         UNION
+         SELECT DISTINCT
+             businessPartnerNumber,
+             _recordStart AS _effectiveFrom
+         FROM curated_v2.dimBusinessPartnerAddress
          WHERE _RecordDeleted = 1
      ),
  
      effectiveDateRangesDelete AS (
          SELECT 
-             sourceSystemCode,
              businessPartnerNumber, 
              _effectiveFrom, 
              cast(COALESCE(
                  TIMESTAMP(
                      DATE_ADD(
-                         LEAD(_effectiveFrom,1) OVER (PARTITION BY sourceSystemCode, businessPartnerNumber ORDER BY _effectiveFrom),-1)
+                         LEAD(_effectiveFrom,1) OVER (PARTITION BY businessPartnerNumber ORDER BY _effectiveFrom),-1)
                  ), 
                  TIMESTAMP('9999-12-31')
              ) as timestamp) AS _effectiveTo
@@ -163,19 +166,17 @@ SELECT * FROM
     BP._recordCurrent as _dimBusinessPartnerRecordCurrent,
     ADDR._recordCurrent as _dimBusinessPartnerAddressRecordCurrent
     , CASE
-      WHEN CURRENT_DATE() BETWEEN DR._effectiveFrom AND DR._effectiveTo then 'Y'
+      WHEN CURRENT_TIMESTAMP() BETWEEN DR._effectiveFrom AND DR._effectiveTo then 'Y'
       ELSE 'N'
       END AS currentRecordFlag
 FROM effectiveDateRangesNonDelete DR
 LEFT JOIN curated_v2.dimbusinesspartner BP ON 
     DR.businessPartnerNumber = BP.businessPartnerNumber AND
-    DR.sourceSystemCode = BP.sourceSystemCode AND
     DR._effectiveFrom <= BP._RecordEnd AND
     DR._effectiveTo >= BP._RecordStart AND
     BP._recordDeleted = 0
 LEFT JOIN curated_v2.dimbusinesspartneraddress ADDR ON 
     DR.businessPartnerNumber = ADDR.businessPartnerNumber AND
-    DR.sourceSystemCode = ADDR.sourceSystemCode AND
     DR._effectiveFrom <= ADDR._RecordEnd AND
     DR._effectiveTo >= ADDR._RecordStart AND
     ADDR._recordDeleted = 0
@@ -276,19 +277,17 @@ UNION
     BP._recordCurrent as _dimBusinessPartnerRecordCurrent,
     ADDR._recordCurrent as _dimBusinessPartnerAddressRecordCurrent
     , CASE
-      WHEN CURRENT_DATE() BETWEEN DR._effectiveFrom AND DR._effectiveTo then 'Y'
+      WHEN CURRENT_TIMESTAMP() BETWEEN DR._effectiveFrom AND DR._effectiveTo then 'Y'
       ELSE 'N'
       END AS currentRecordFlag
 FROM effectiveDateRangesDelete DR
 LEFT JOIN curated_v2.dimbusinesspartner BP ON 
     DR.businessPartnerNumber = BP.businessPartnerNumber AND
-    DR.sourceSystemCode = BP.sourceSystemCode AND
     DR._effectiveFrom <= BP._RecordEnd AND
     DR._effectiveTo >= BP._RecordStart AND
     BP._recordDeleted = 1
 LEFT JOIN curated_v2.dimbusinesspartneraddress ADDR ON 
     DR.businessPartnerNumber = ADDR.businessPartnerNumber AND
-    DR.sourceSystemCode = ADDR.sourceSystemCode AND
     DR._effectiveFrom <= ADDR._RecordEnd AND
     DR._effectiveTo >= ADDR._RecordStart AND
     ADDR._recordDeleted = 1
@@ -317,7 +316,7 @@ all_ID AS (
 		SELECT
         *,
         RANK() OVER (
-          PARTITION BY sourceSystemCode, businessPartnerNumber, identificationType 
+          PARTITION BY businessPartnerNumber, identificationType 
           ORDER BY ifnull(validToDate, '9999-01-01') DESC, ifnull(entryDate, '1900-01-01') DESC
         ) AS _rank,
         CASE 
@@ -540,44 +539,52 @@ SELECT * FROM (
     ================================*/
      dateDriverNonDelete AS (
          SELECT DISTINCT
-             sourceSystemCode,
              businessPartnerGroupNumber,
              _recordStart AS _effectiveFrom
          FROM curated_v2.dimBusinessPartnerGroup
+         WHERE _RecordDeleted = 0
+         UNION
+         SELECT DISTINCT
+             businessPartnerNumber,
+             _recordStart AS _effectiveFrom
+         FROM curated_v2.dimBusinessPartnerAddress
          WHERE _RecordDeleted = 0
      ),
  
      effectiveDateRangesNonDelete AS (
          SELECT 
-             sourceSystemCode,
              businessPartnerGroupNumber, 
              _effectiveFrom, 
              cast(COALESCE(
                  TIMESTAMP(
                      DATE_ADD(
-                         LEAD(_effectiveFrom,1) OVER (PARTITION BY sourceSystemCode, businessPartnerGroupNumber ORDER BY _effectiveFrom),-1)
+                         LEAD(_effectiveFrom,1) OVER (PARTITION BY businessPartnerGroupNumber ORDER BY _effectiveFrom),-1)
                  ), 
              TIMESTAMP('9999-12-31')) as timestamp) AS _effectiveTo
          from dateDriverNonDelete
      ),
      dateDriverDelete AS (
          SELECT DISTINCT
-             sourceSystemCode,
              businessPartnerGroupNumber,
              _recordStart AS _effectiveFrom
          FROM curated_v2.dimBusinessPartnerGroup
+         WHERE _RecordDeleted = 1
+         UNION
+         SELECT DISTINCT
+             businessPartnerNumber,
+             _recordStart AS _effectiveFrom
+         FROM curated_v2.dimBusinessPartnerAddress
          WHERE _RecordDeleted = 1
      ),
  
      effectiveDateRangesDelete AS (
          SELECT 
-             sourceSystemCode,
              businessPartnerGroupNumber, 
              _effectiveFrom, 
              cast(COALESCE(
                  TIMESTAMP(
                      DATE_ADD(
-                         LEAD(_effectiveFrom,1) OVER (PARTITION BY sourceSystemCode, businessPartnerGroupNumber ORDER BY _effectiveFrom),-1)
+                         LEAD(_effectiveFrom,1) OVER (PARTITION BY businessPartnerGroupNumber ORDER BY _effectiveFrom),-1)
                  ), 
              TIMESTAMP('9999-12-31')) as timestamp) AS _effectiveTo
          from dateDriverDelete
@@ -593,7 +600,7 @@ SELECT
     BPG.businessPartnerGroupSK,
     ADDR.businessPartnerAddressSK,
     BPG.sourceSystemCode,
-    coalesce(BPG.businessPartnerGroupNumber, ADDR.businessPartnerAddressNumber, ID.businessPartnerNumber, -1) as businessPartnerGroupNumber,
+    coalesce(BPG.businessPartnerGroupNumber, ADDR.businessPartnerNumber, ID.businessPartnerNumber, -1) as businessPartnerGroupNumber,
     BPG.businessPartnerGroupCode,
     BPG.businessPartnerGroup,
     BPG.businessPartnerCategoryCode,
@@ -684,25 +691,22 @@ SELECT
     BPG._recordCurrent as _dimBusinessPartnerGroupRecordCurrent,
     ADDR._recordCurrent as _dimBusinessPartnerAddressRecordCurrent
     , CASE
-      WHEN CURRENT_DATE() BETWEEN DR._effectiveFrom AND DR._effectiveTo then 'Y'
+      WHEN CURRENT_TIMESTAMP() BETWEEN DR._effectiveFrom AND DR._effectiveTo then 'Y'
       ELSE 'N'
       END AS currentRecordFlag
 FROM effectiveDateRangesNonDelete DR
 LEFT JOIN curated_v2.dimBusinessPartnerGroup BPG ON 
     DR.businessPartnerGroupNumber = BPG.businessPartnerGroupNumber AND
-    DR.sourceSystemCode = BPG.sourceSystemCode AND
     DR._effectiveFrom <= BPG._RecordEnd AND
     DR._effectiveTo >= BPG._RecordStart AND
     BPG._recordDeleted = 0
 LEFT JOIN curated_v2.dimbusinesspartneraddress ADDR ON 
     DR.businessPartnerGroupNumber = ADDR.businessPartnerNumber AND
-    DR.sourceSystemCode = ADDR.sourceSystemCode AND
     DR._effectiveFrom <= ADDR._RecordEnd AND
     DR._effectiveTo >= ADDR._RecordStart AND
     ADDR._recordDeleted = 0
 LEFT JOIN businessPartnerIdentification ID ON 
-    DR.businessPartnerGroupNumber = ID.businessPartnerNumber AND
-    DR.sourceSystemCode = ID.sourceSystemCode
+    DR.businessPartnerGroupNumber = ID.businessPartnerNumber
 WHERE businessPartnerGroupSK IS NOT NULL
 UNION
 SELECT 
@@ -710,7 +714,7 @@ SELECT
     BPG.businessPartnerGroupSK,
     ADDR.businessPartnerAddressSK,
     BPG.sourceSystemCode,
-    coalesce(BPG.businessPartnerGroupNumber, ADDR.businessPartnerAddressNumber, ID.businessPartnerNumber, -1) as businessPartnerGroupNumber,
+    coalesce(BPG.businessPartnerGroupNumber, ADDR.businessPartnerNumber, ID.businessPartnerNumber, -1) as businessPartnerGroupNumber,
     BPG.businessPartnerGroupCode,
     BPG.businessPartnerGroup,
     BPG.businessPartnerCategoryCode,
@@ -801,25 +805,22 @@ SELECT
     BPG._recordCurrent as _dimBusinessPartnerGroupRecordCurrent,
     ADDR._recordCurrent as _dimBusinessPartnerAddressRecordCurrent
     , CASE
-      WHEN CURRENT_DATE() BETWEEN DR._effectiveFrom AND DR._effectiveTo then 'Y'
+      WHEN CURRENT_TIMESTAMP() BETWEEN DR._effectiveFrom AND DR._effectiveTo then 'Y'
       ELSE 'N'
       END AS currentRecordFlag
 FROM effectiveDateRangesDelete DR
 LEFT JOIN curated_v2.dimBusinessPartnerGroup BPG ON 
     DR.businessPartnerGroupNumber = BPG.businessPartnerGroupNumber AND
-    DR.sourceSystemCode = BPG.sourceSystemCode AND
     DR._effectiveFrom <= BPG._RecordEnd AND
     DR._effectiveTo >= BPG._RecordStart AND
     BPG._recordDeleted = 1
 LEFT JOIN curated_v2.dimbusinesspartneraddress ADDR ON 
     DR.businessPartnerGroupNumber = ADDR.businessPartnerNumber AND
-    DR.sourceSystemCode = ADDR.sourceSystemCode AND
     DR._effectiveFrom <= ADDR._RecordEnd AND
     DR._effectiveTo >= ADDR._RecordStart AND
     ADDR._recordDeleted = 1
 LEFT JOIN businessPartnerIdentification ID ON 
-    DR.businessPartnerGroupNumber = ID.businessPartnerNumber AND
-    DR.sourceSystemCode = ID.sourceSystemCode
+    DR.businessPartnerGroupNumber = ID.businessPartnerNumber
 WHERE businessPartnerGroupSK IS NOT NULL
 )
 
