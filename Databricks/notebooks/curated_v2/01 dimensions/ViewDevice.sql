@@ -12,7 +12,7 @@ WITH dateDriverNonDelete AS
 ),
 effectiveDaterangesNonDelete AS 
 (
-    SELECT deviceNumber, _effectiveFrom, COALESCE(TIMESTAMP(DATE_ADD(LEAD(_effectiveFrom,1) OVER(PARTITION BY deviceNumber ORDER BY _effectiveFrom), -1)), '9999-12-31') AS _effectiveTo
+    SELECT deviceNumber, _effectiveFrom, cast(COALESCE(TIMESTAMP(DATE_ADD(LEAD(_effectiveFrom,1) OVER(PARTITION BY deviceNumber ORDER BY _effectiveFrom), -1)), '9999-12-31') as timestamp) AS _effectiveTo
     FROM dateDriverNonDelete
 ),
 dateDriverDelete AS
@@ -25,7 +25,7 @@ dateDriverDelete AS
 ),
 effectiveDaterangesDelete AS 
 (
-    SELECT deviceNumber, _effectiveFrom, COALESCE(TIMESTAMP(DATE_ADD(LEAD(_effectiveFrom,1) OVER(PARTITION BY deviceNumber ORDER BY _effectiveFrom), -1)), '9999-12-31') AS _effectiveTo
+    SELECT deviceNumber, _effectiveFrom, cast(COALESCE(TIMESTAMP(DATE_ADD(LEAD(_effectiveFrom,1) OVER(PARTITION BY deviceNumber ORDER BY _effectiveFrom), -1)), '9999-12-31') as timestamp) AS _effectiveTo
     FROM dateDriverDelete
 )
 SELECT * FROM 
@@ -108,7 +108,7 @@ SELECT
     ,dimdevice._recordCurrent as _dimDeviceRecordCurrent
     ,dimdevicehistory._recordCurrent as _dimDeviceHistoryRecordCurrent
     ,CASE
-      WHEN CURRENT_DATE() BETWEEN effectiveDateRanges._effectiveFrom AND effectiveDateRanges._effectiveTo then 'Y'
+      WHEN CURRENT_TIMESTAMP() BETWEEN effectiveDateRanges._effectiveFrom AND effectiveDateRanges._effectiveTo then 'Y'
       ELSE 'N'
       END AS currentRecordFlag
 FROM effectiveDaterangesNonDelete as effectiveDateRanges
@@ -220,7 +220,7 @@ SELECT
     ,dimdevice._recordCurrent as _dimDeviceRecordCurrent
     ,dimdevicehistory._recordCurrent as _dimDeviceHistoryRecordCurrent
     ,CASE
-      WHEN CURRENT_DATE() BETWEEN effectiveDateRanges._effectiveFrom AND effectiveDateRanges._effectiveTo then 'Y'
+      WHEN CURRENT_TIMESTAMP() BETWEEN effectiveDateRanges._effectiveFrom AND effectiveDateRanges._effectiveTo then 'Y'
       ELSE 'N'
       END AS currentRecordFlag
 FROM effectiveDaterangesDelete as effectiveDateRanges

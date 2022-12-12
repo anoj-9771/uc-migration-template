@@ -81,7 +81,7 @@ schema = StructType([
     StructField('sourceSystemCode',StringType(),True),
     StructField('installationNumber',StringType(),False),
     StructField('operandCode',StringType(),False),
-    StructField('operand',StringType(),False),
+    StructField('operand',StringType(),True),
     StructField('validFromDate',DateType(),False),
     StructField('consecutiveDaysFromDate',StringType(),False),
     StructField('validToDate',DateType(),True),
