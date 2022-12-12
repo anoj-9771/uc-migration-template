@@ -12,7 +12,7 @@ WITH dateDriverNonDelete AS
 ),
 effectiveDaterangesNonDelete AS 
 (
-    SELECT contractId, _effectiveFrom, COALESCE(TIMESTAMP(DATE_ADD(LEAD(_effectiveFrom,1) OVER(PARTITION BY contractId ORDER BY _effectiveFrom), -1)), TIMESTAMP('9999-12-31')) AS _effectiveTo
+    SELECT contractId, _effectiveFrom, cast(COALESCE(TIMESTAMP(DATE_ADD(LEAD(_effectiveFrom,1) OVER(PARTITION BY contractId ORDER BY _effectiveFrom), -1)), TIMESTAMP('9999-12-31')) as timestamp) AS _effectiveTo
     FROM dateDriverNonDelete
 ),
 dateDriverDelete AS
@@ -25,7 +25,7 @@ dateDriverDelete AS
 ),
 effectiveDaterangesDelete AS 
 (
-    SELECT contractId, _effectiveFrom, COALESCE(TIMESTAMP(DATE_ADD(LEAD(_effectiveFrom,1) OVER(PARTITION BY contractId ORDER BY _effectiveFrom), -1)), TIMESTAMP('9999-12-31')) AS _effectiveTo
+    SELECT contractId, _effectiveFrom, cast(COALESCE(TIMESTAMP(DATE_ADD(LEAD(_effectiveFrom,1) OVER(PARTITION BY contractId ORDER BY _effectiveFrom), -1)), TIMESTAMP('9999-12-31')) as timestamp) AS _effectiveTo
     FROM dateDriverDelete
 )
 SELECT * FROM 
@@ -108,7 +108,7 @@ SELECT
     ,dimContractHistory._recordStart as _dimContractHistoryRecordStart
     ,dimContractHistory._recordEnd as _dimContractHistoryRecordEnd
     , CASE
-      WHEN CURRENT_DATE() BETWEEN effectiveDateRanges._effectiveFrom AND effectiveDateRanges._effectiveTo then 'Y'
+      WHEN CURRENT_TIMESTAMP() BETWEEN effectiveDateRanges._effectiveFrom AND effectiveDateRanges._effectiveTo then 'Y'
       ELSE 'N'
       END AS currentRecordFlag
 FROM effectiveDaterangesNonDelete as effectiveDateRanges
@@ -201,7 +201,7 @@ SELECT
     ,dimContractHistory._recordStart as _dimContractHistoryRecordStart
     ,dimContractHistory._recordEnd as _dimContractHistoryRecordEnd
     , CASE
-      WHEN CURRENT_DATE() BETWEEN effectiveDateRanges._effectiveFrom AND effectiveDateRanges._effectiveTo then 'Y'
+      WHEN CURRENT_TIMESTAMP() BETWEEN effectiveDateRanges._effectiveFrom AND effectiveDateRanges._effectiveTo then 'Y'
       ELSE 'N'
       END AS currentRecordFlag
 FROM effectiveDaterangesDelete as effectiveDateRanges
