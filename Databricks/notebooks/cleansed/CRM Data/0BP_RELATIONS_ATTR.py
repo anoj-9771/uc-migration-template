@@ -225,7 +225,7 @@ df = spark.sql(f"""WITH stage AS
                                 RELDIR as relationshipDirection, 
                                 RELTYP as relationshipTypeCode, 
                                 BP_TXT.relationshipType as relationshipType, 
-                                ToValidDate(DATE_TO) as validToDate, 
+                                ToValidDate(DATE_TO,'MANDATORY') as validToDate, 
                                 ToValidDate(DATE_FROM) as validFromDate, 
                                 COUNTRY as countryShortName, 
                                 POST_CODE1 as postalCode, 
@@ -250,6 +250,9 @@ df = spark.sql(f"""WITH stage AS
                                     THEN 'Y'
                                     ELSE 'N'
                                 END as deletedFlag, 
+                                'RELNR|PARTNER1|PARTNER2|RELDIR|RELTYP|DATE_TO' as sourceKeyDesc, 
+                                concat_ws('|',RELNR,PARTNER1,PARTNER2,RELDIR,RELTYP,DATE_TO) as sourceKey, 
+                                'DATE_TO' as rejectColumn, 
                                 cast('1900-01-01' as TimeStamp) as _RecordStart, 
                                 cast('9999-12-31' as TimeStamp) as _RecordEnd, 
                                 CASE
@@ -263,9 +266,9 @@ df = spark.sql(f"""WITH stage AS
                           LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.crm_0BP_RELTYPES_TEXT BP_TXT 
                                 ON BP.RELDIR = BP_TXT.relationshipDirection AND BP.RELTYP =BP_TXT.relationshipTypeCode 
                                 AND BP_TXT._RecordDeleted = 0 AND BP_TXT._RecordCurrent = 1 
-                           where BP._RecordVersion = 1 """)
+                           where BP._RecordVersion = 1 """).cache()
 
-#print(f'Number of rows: {df.count()}')
+print(f'Number of rows: {df.count()}')
 
 # COMMAND ----------
 
@@ -354,9 +357,16 @@ newSchema = StructType([
 
 # COMMAND ----------
 
+# DBTITLE 1,Handle Invalid Records
+reject_df =df.where("validToDate = '1000-01-01'").cache()
+cleansed_df = df.subtract(reject_df)
+cleansed_df = cleansed_df.drop("sourceKeyDesc","sourceKey","rejectColumn")
+
+# COMMAND ----------
+
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (New Records)
 DeltaSaveDataFrameToDeltaTable(
-    df, 
+    cleansed_df, 
     target_table, 
     ADS_DATALAKE_ZONE_CLEANSED,
     ADS_DATABASE_CLEANSED, 
@@ -371,6 +381,15 @@ DeltaSaveDataFrameToDeltaTable(
     start_counter = "0", 
     end_counter = "0"
 )
+
+# COMMAND ----------
+
+# DBTITLE 1,12.1 Save Reject Data Frame into Rejected Database
+if reject_df.count() > 0:
+    source_key = 'RELNR|PARTNER1|PARTNER2|RELDIR|RELTYP|DATE_TO'
+    DeltaSaveDataFrameToRejectTable(reject_df,target_table,business_key,source_key,LastSuccessfulExecutionTS)
+    reject_df.unpersist()
+df.unpersist()
 
 # COMMAND ----------
 

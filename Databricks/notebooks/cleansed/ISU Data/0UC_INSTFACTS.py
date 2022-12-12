@@ -190,12 +190,17 @@ where  _RecordVersion = 1 and DI_OPERATION_TYPE ='D'), \
                                 cast(BETRAG as dec(13,2)) as amount, \
                                 UPDMOD as bwDeltaProcess, \
                                 MASS as measurementUnit, \
+                                'SAISON|ANLAGE|OPERAND|AB' as sourceKeyDesc, \
+                                concat_ws('|',SAISON,ANLAGE,OPERAND,AB) as sourceKey, \
+                                'AB' as rejectColumn, \
                                 cast('1900-01-01' as TimeStamp) as _RecordStart, \
                                 cast('9999-12-31' as TimeStamp) as _RecordEnd, \
                                 (CASE WHEN _upsertFlag = 'U' THEN '0' ELSE '1' END) as _RecordDeleted, \
                                 '1' as _RecordCurrent, \
                                 cast('{CurrentTimeStamp}' as TimeStamp) as _DLCleansedZoneTimeStamp \
-                        from stage ")
+                        from stage ").cache()
+
+print(f'Number of rows: {df.count()}')
 
 # COMMAND ----------
 
@@ -218,19 +223,33 @@ newSchema = StructType([
     StructField('_DLCleansedZoneTimeStamp',TimestampType(),False)
 ])
 
+# COMMAND ----------
 
+# DBTITLE 1,Handle Invalid Records
+reject_df =df.where("validFromDate = '1000-01-01'").cache()
+cleansed_df = df.subtract(reject_df)
+cleansed_df = cleansed_df.drop("sourceKeyDesc","sourceKey","rejectColumn")
 
 # COMMAND ----------
 
 # DBTITLE 1,12.1 Save Non Deleted Records Data frame into Cleansed Delta table (Final)
 # Load Non deleted records same as earlier
-DeltaSaveDataFrameToDeltaTable(df.filter("_RecordDeleted = '0'"), target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
+DeltaSaveDataFrameToDeltaTable(cleansed_df.filter("_RecordDeleted = '0'"), target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
 
 # COMMAND ----------
 
 # DBTITLE 1,12.2 Save Deleted records Data frame into Cleansed Delta table
 # Load deleted records to replace the existing Deleted records implementation logic
-DeltaSaveDataFrameToDeltaTable(df.filter("_RecordDeleted = '1'"), target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
+DeltaSaveDataFrameToDeltaTable(cleansed_df.filter("_RecordDeleted = '1'"), target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
+
+# COMMAND ----------
+
+# DBTITLE 1,12.3 Save Reject Data Frame into Rejected Database
+if reject_df.count() > 0:
+    source_key = 'SAISON|ANLAGE|OPERAND|AB'
+    DeltaSaveDataFrameToRejectTable(reject_df,target_table,business_key,source_key,LastSuccessfulExecutionTS)
+    reject_df.unpersist()
+df.unpersist()
 
 # COMMAND ----------
 

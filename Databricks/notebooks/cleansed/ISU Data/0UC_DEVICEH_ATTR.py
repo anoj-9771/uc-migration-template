@@ -179,7 +179,7 @@ Select *, ROW_NUMBER() OVER (PARTITION BY EQUNR,AB,BIS ORDER BY _FileDateTimeSta
                       stage AS (select * from stageUpsert union select * from stageDelete) \
                            SELECT \
                                 case when dev.EQUNR = 'na' then '' else dev.EQUNR end as equipmentNumber, \
-                                ToValidDate((case when dev.BIS = 'na' then '9999-12-31' else dev.BIS end),'MANDATORY') as validToDate, \
+                                ToValidDate(dev.BIS,'MANDATORY') as validToDate, \
                                 ToValidDate(dev.AB) as validFromDate, \
                                 dev.KOMBINAT as deviceCategoryCombination, \
                                 dev.LOGIKNR as logicalDeviceNumber, \
@@ -206,6 +206,9 @@ Select *, ROW_NUMBER() OVER (PARTITION BY EQUNR,AB,BIS ORDER BY _FileDateTimeSta
                                 dev.ZZ_POLICE_EVENT as policeEventNumber, \
                                 dev.ZAUFNR as orderNumber, \
                                 dev.ZERNAM as createdBy, \
+                                'EQUNR|BIS' as sourceKeyDesc, \
+                                concat_ws('|',dev.EQUNR,dev.BIS) as sourceKey, \
+                                'BIS' as rejectColumn, \
                                 cast('1900-01-01' as TimeStamp) as _RecordStart, \
                                 cast('9999-12-31' as TimeStamp) as _RecordEnd, \
                                 (CASE WHEN _upsertFlag = 'U' THEN '0' ELSE '1' END) as _RecordDeleted, \
@@ -214,9 +217,9 @@ Select *, ROW_NUMBER() OVER (PARTITION BY EQUNR,AB,BIS ORDER BY _FileDateTimeSta
                         FROM stage dev \
                             left outer join {ADS_DATABASE_CLEANSED}.isu_0UC_GERWECHS_TEXT b on dev.GERWECHS = b.activityReasonCode \
                             left outer join {ADS_DATABASE_CLEANSED}.isu_0UC_REGGRP_TEXT c on dev.ZWGRUPPE = c.registerGroupCode \
-                        ")
+                        ").cache()
 
-#print(f'Number of rows: {df.count()}')
+print(f'Number of rows: {df.count()}')
 
 # COMMAND ----------
 
@@ -260,14 +263,21 @@ newSchema = StructType([
 
 # COMMAND ----------
 
+# DBTITLE 1,Handle Invalid Records
+reject_df =df.where("validToDate = '1000-01-01'").cache()
+cleansed_df = df.subtract(reject_df)
+cleansed_df = cleansed_df.drop("sourceKeyDesc","sourceKey","rejectColumn")
+
+# COMMAND ----------
+
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
-DeltaSaveDataFrameToDeltaTable(df.filter("_RecordDeleted = '0'"), target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
+DeltaSaveDataFrameToDeltaTable(cleansed_df.filter("_RecordDeleted = '0'"), target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
 
 # COMMAND ----------
 
 # DBTITLE 1,13 Update _RecordDeleted and _RecordCurrent Flags
 # Load deleted records to replace the existing Deleted records implementation logic
-df.filter("_RecordDeleted=1").createOrReplaceTempView("isu_device_deleted_records")
+cleansed_df.filter("_RecordDeleted=1").createOrReplaceTempView("isu_device_deleted_records")
 spark.sql(f" \
     MERGE INTO cleansed.isu_0UC_DEVICEH_ATTR \
     using isu_device_deleted_records \
@@ -304,6 +314,15 @@ spark.sql(f" \
     ,_RecordDeleted=1 \
     ,_RecordCurrent=1 \
     ")
+
+# COMMAND ----------
+
+# DBTITLE 1,13.3 Save Reject Data Frame into Rejected Database
+if reject_df.count() > 0:
+    source_key = 'EQUNR|BIS'
+    DeltaSaveDataFrameToRejectTable(reject_df,target_table,business_key,source_key,LastSuccessfulExecutionTS)
+    reject_df.unpersist()
+df.unpersist()
 
 # COMMAND ----------
 

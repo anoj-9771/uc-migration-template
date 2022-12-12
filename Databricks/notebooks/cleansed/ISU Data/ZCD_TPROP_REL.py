@@ -182,6 +182,9 @@ df = spark.sql(f"WITH stage AS \
                                 rtyp2.relationshipType as relationshipType2, \
                                 ToValidDate(stg.DATE_FROM,'MANDATORY') as validFromDate, \
                                 ToValidDate(stg.DATE_TO) as validToDate, \
+                                'PROPERTY1|PROPERTY2|REL_TYPE1|DATE_FROM' as sourceKeyDesc, \
+                                concat_ws('|',stg.PROPERTY1,stg.PROPERTY2,stg.REL_TYPE1,stg.DATE_FROM) as sourceKey, \
+                                'DATE_FROM' as rejectColumn, \
                                 cast('1900-01-01' as TimeStamp) as _RecordStart, \
                                 cast('9999-12-31' as TimeStamp) as _RecordEnd, \
                                 '0' as _RecordDeleted, \
@@ -192,36 +195,9 @@ df = spark.sql(f"WITH stage AS \
                                                                                     and rtyp1._RecordCurrent = 1 and rtyp1._RecordDeleted = 0 \
                             left outer join {ADS_DATABASE_CLEANSED}.isu_zcd_vireltyp2tx rtyp2 on stg.REL_TYPE2 = rtyp2.relationshipTypeCode \
                                                                                     and rtyp2._RecordCurrent = 1 and rtyp2._RecordDeleted = 0 \
-                        where stg._RecordVersion = 1 ")
+                        where stg._RecordVersion = 1 ").cache()
 
-#print(f'Number of rows: {df.count()}')
-
-# COMMAND ----------
-
-# DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
-#Update/rename Column
-#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
-# df_cleansed = spark.sql(f"SELECT \
-#                             case when stg.PROPERTY1 = 'na' then '' else stg.PROPERTY1 end as property1Number, \
-#                             case when stg.PROPERTY2 = 'na' then '' else stg.PROPERTY2 end as property2Number, \
-#                             case when stg.REL_TYPE1 = 'na' then '' else stg.REL_TYPE1 end as relationshipTypeCode1, \
-#                             rtyp1.relationshipType as relationshipType1, \
-#                             stg.REL_TYPE2 as relationshipTypeCode2, \
-#                             rtyp2.relationshipType as relationshipType2, \
-#                             ToValidDate(stg.DATE_FROM,'MANDATORY') as validFromDate, \
-#                             ToValidDate(stg.DATE_TO) as validToDate, \
-#                             stg._RecordStart, \
-#                             stg._RecordEnd, \
-#                             stg._RecordDeleted, \
-#                             stg._RecordCurrent \
-#                             FROM {ADS_DATABASE_STAGE}.{source_object} stg\
-#                             left outer join {ADS_DATABASE_CLEANSED}.isu_zcd_vireltyptx rtyp1 on stg.REL_TYPE1 = rtyp1.relationshipTypeCode \
-#                                                                                     and rtyp1._RecordCurrent = 1 and rtyp1._RecordDeleted = 0 \
-#                             left outer join {ADS_DATABASE_CLEANSED}.isu_zcd_vireltyp2tx rtyp2 on stg.REL_TYPE2 = rtyp2.relationshipTypeCode \
-#                                                                                     and rtyp2._RecordCurrent = 1 and rtyp2._RecordDeleted = 0 \
-#                        ")
-
-# print(f'Number of rows: {df_cleansed.count()}')
+print(f'Number of rows: {df.count()}')
 
 # COMMAND ----------
 
@@ -244,8 +220,24 @@ newSchema = StructType([
 
 # COMMAND ----------
 
+# DBTITLE 1,Handle Invalid Records
+reject_df =df.where("validFromDate = '1000-01-01'").cache()
+cleansed_df = df.subtract(reject_df)
+cleansed_df = cleansed_df.drop("sourceKeyDesc","sourceKey","rejectColumn")
+
+# COMMAND ----------
+
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
-DeltaSaveDataFrameToDeltaTable(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_OVERWRITE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
+DeltaSaveDataFrameToDeltaTable(cleansed_df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_OVERWRITE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
+
+# COMMAND ----------
+
+# DBTITLE 1,12.1 Save Reject Data Frame into Rejected Database
+if reject_df.count() > 0:
+    source_key = 'PROPERTY1|PROPERTY2|REL_TYPE1|DATE_FROM'
+    DeltaSaveDataFrameToRejectTable(reject_df,target_table,business_key,source_key,LastSuccessfulExecutionTS)
+    reject_df.unpersist()
+df.unpersist()    
 
 # COMMAND ----------
 
