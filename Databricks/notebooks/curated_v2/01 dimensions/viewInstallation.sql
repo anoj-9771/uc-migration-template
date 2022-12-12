@@ -123,8 +123,8 @@ SELECT * FROM
         AND dimInstallation._recordDeleted = 0
     LEFT OUTER JOIN curated_v2.dimInstallationHistory dimInstallationHistory 
         ON dimInstallationHistory.installationNumber = effectiveDateRanges.installationNumber 
-        AND dimInstallationHistory.validToDate >= effectiveDateRanges._effectiveFrom 
-        AND dimInstallationHistory.validFromDate <= effectiveDateRanges._effectiveTo
+        AND dimInstallationHistory._recordEnd >= effectiveDateRanges._effectiveFrom 
+        AND dimInstallationHistory._recordStart <= effectiveDateRanges._effectiveTo
         AND dimInstallationHistory._recordDeleted = 0
     LEFT OUTER JOIN curated_v2.dimDisconnectionDocument dimDisconnectionDocument 
         ON dimDisconnectionDocument.installationNumber = effectiveDateRanges.installationNumber 
@@ -212,8 +212,8 @@ SELECT * FROM
         AND dimInstallation._recordDeleted = 1
     LEFT OUTER JOIN curated_v2.dimInstallationHistory dimInstallationHistory 
         ON dimInstallationHistory.installationNumber = effectiveDateRanges.installationNumber 
-        AND dimInstallationHistory.validToDate >= effectiveDateRanges._effectiveFrom 
-        AND dimInstallationHistory.validFromDate <= effectiveDateRanges._effectiveTo
+        AND dimInstallationHistory._recordEnd >= effectiveDateRanges._effectiveFrom 
+        AND dimInstallationHistory._recordStart <= effectiveDateRanges._effectiveTo
         AND dimInstallationHistory._recordDeleted = 1
     LEFT OUTER JOIN curated_v2.dimDisconnectionDocument dimDisconnectionDocument 
         ON dimDisconnectionDocument.installationNumber = effectiveDateRanges.installationNumber 

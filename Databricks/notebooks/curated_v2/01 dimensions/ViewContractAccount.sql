@@ -132,6 +132,8 @@ SELECT
      ,effectiveDateRanges._effectiveTo
      ,dimContractAccount._recordDeleted as _dimContractAccountRecordDeleted
      ,dimContractAccount._recordCurrent as _dimContractAccountRecordCurrent
+     ,dimAccountBusinessPartner._recordDeleted as _dimAccountBusinessPartnerRecordDeleted
+     ,dimAccountBusinessPartner._recordCurrent as _dimAccountBusinessPartnerRecordCurrent
      ,CASE
       WHEN CURRENT_TIMESTAMP() BETWEEN effectiveDateRanges._effectiveFrom AND effectiveDateRanges._effectiveTo then 'Y'
       ELSE 'N'
@@ -230,6 +232,8 @@ SELECT
      ,effectiveDateRanges._effectiveTo
      ,dimContractAccount._recordDeleted as _dimContractAccountRecordDeleted
      ,dimContractAccount._recordCurrent as _dimContractAccountRecordCurrent
+     ,dimAccountBusinessPartner._recordDeleted as _dimAccountBusinessPartnerRecordDeleted
+     ,dimAccountBusinessPartner._recordCurrent as _dimAccountBusinessPartnerRecordCurrent
      ,CASE
       WHEN CURRENT_TIMESTAMP() BETWEEN effectiveDateRanges._effectiveFrom AND effectiveDateRanges._effectiveTo then 'Y'
       ELSE 'N'
