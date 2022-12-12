@@ -12,12 +12,12 @@ WITH dateDriverNonDelete AS (
          SELECT 
              contractAccountNumber, 
              _effectiveFrom, 
-             COALESCE(
+             cast(COALESCE(
                  TIMESTAMP(
                      DATE_ADD(
                          LEAD(_effectiveFrom,1) OVER (PARTITION BY contractAccountNumber ORDER BY _effectiveFrom),-1)
                  ), 
-             TIMESTAMP('9999-12-31')) AS _effectiveTo
+             TIMESTAMP('9999-12-31')) as timestamp) AS _effectiveTo
          from dateDriverNonDelete
      ),
      dateDriverDelete AS (
@@ -30,12 +30,12 @@ WITH dateDriverNonDelete AS (
          SELECT 
              contractAccountNumber, 
              _effectiveFrom, 
-             COALESCE(
+             cast(COALESCE(
                  TIMESTAMP(
                      DATE_ADD(
                          LEAD(_effectiveFrom,1) OVER (PARTITION BY contractAccountNumber ORDER BY _effectiveFrom),-1)
                  ), 
-             TIMESTAMP('9999-12-31')) AS _effectiveTo
+             TIMESTAMP('9999-12-31')) as timestamp) AS _effectiveTo
          from dateDriverDelete
      )
 SELECT * FROM 
@@ -123,7 +123,7 @@ SELECT
      ,dimContractAccount._recordDeleted as _dimContractAccountRecordDeleted
      ,dimContractAccount._recordCurrent as _dimContractAccountRecordCurrent
      ,CASE
-      WHEN CURRENT_DATE() BETWEEN effectiveDateRanges._effectiveFrom AND effectiveDateRanges._effectiveTo then 'Y'
+      WHEN CURRENT_TIMESTAMP() BETWEEN effectiveDateRanges._effectiveFrom AND effectiveDateRanges._effectiveTo then 'Y'
       ELSE 'N'
       END AS currentRecordFlag
 FROM effectiveDateRangesNonDelete as effectiveDateRanges
@@ -221,7 +221,7 @@ SELECT
      ,dimContractAccount._recordDeleted as _dimContractAccountRecordDeleted
      ,dimContractAccount._recordCurrent as _dimContractAccountRecordCurrent
      ,CASE
-      WHEN CURRENT_DATE() BETWEEN effectiveDateRanges._effectiveFrom AND effectiveDateRanges._effectiveTo then 'Y'
+      WHEN CURRENT_TIMESTAMP() BETWEEN effectiveDateRanges._effectiveFrom AND effectiveDateRanges._effectiveTo then 'Y'
       ELSE 'N'
       END AS currentRecordFlag
 FROM effectiveDateRangesDelete as effectiveDateRanges

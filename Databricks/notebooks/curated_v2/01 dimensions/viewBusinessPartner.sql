@@ -30,13 +30,13 @@ CREATE OR REPLACE VIEW curated_v2.viewBusinessPartner AS
              sourceSystemCode,
              businessPartnerNumber, 
              _effectiveFrom, 
-             COALESCE(
+             cast(COALESCE(
                  TIMESTAMP(
                      DATE_ADD(
                          LEAD(_effectiveFrom,1) OVER (PARTITION BY sourceSystemCode, businessPartnerNumber ORDER BY _effectiveFrom),-1)
                  ), 
                  TIMESTAMP('9999-12-31')
-             ) AS _effectiveTo
+             ) as timestamp) AS _effectiveTo
          FROM dateDriverNonDelete
      ),
      dateDriverDelete AS (
@@ -53,13 +53,13 @@ CREATE OR REPLACE VIEW curated_v2.viewBusinessPartner AS
              sourceSystemCode,
              businessPartnerNumber, 
              _effectiveFrom, 
-             COALESCE(
+             cast(COALESCE(
                  TIMESTAMP(
                      DATE_ADD(
                          LEAD(_effectiveFrom,1) OVER (PARTITION BY sourceSystemCode, businessPartnerNumber ORDER BY _effectiveFrom),-1)
                  ), 
                  TIMESTAMP('9999-12-31')
-             ) AS _effectiveTo
+             ) as timestamp) AS _effectiveTo
          FROM dateDriverDelete
      )
  
@@ -552,12 +552,12 @@ SELECT * FROM (
              sourceSystemCode,
              businessPartnerGroupNumber, 
              _effectiveFrom, 
-             COALESCE(
+             cast(COALESCE(
                  TIMESTAMP(
                      DATE_ADD(
                          LEAD(_effectiveFrom,1) OVER (PARTITION BY sourceSystemCode, businessPartnerGroupNumber ORDER BY _effectiveFrom),-1)
                  ), 
-             TIMESTAMP('9999-12-31')) AS _effectiveTo
+             TIMESTAMP('9999-12-31')) as timestamp) AS _effectiveTo
          from dateDriverNonDelete
      ),
      dateDriverDelete AS (
@@ -574,12 +574,12 @@ SELECT * FROM (
              sourceSystemCode,
              businessPartnerGroupNumber, 
              _effectiveFrom, 
-             COALESCE(
+             cast(COALESCE(
                  TIMESTAMP(
                      DATE_ADD(
                          LEAD(_effectiveFrom,1) OVER (PARTITION BY sourceSystemCode, businessPartnerGroupNumber ORDER BY _effectiveFrom),-1)
                  ), 
-             TIMESTAMP('9999-12-31')) AS _effectiveTo
+             TIMESTAMP('9999-12-31')) as timestamp) AS _effectiveTo
          from dateDriverDelete
      )
     

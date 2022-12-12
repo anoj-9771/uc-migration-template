@@ -12,34 +12,34 @@ as
 
 with dateDriverNonDelete as
 (
-	select distinct installationNumber, to_date(_recordStart) as _effectiveFrom from curated_v2.dimInstallation where isnotnull(installationNumber) and _RecordDeleted = 0  
+	select distinct installationNumber, _recordStart as _effectiveFrom from curated_v2.dimInstallation where isnotnull(installationNumber) and _RecordDeleted = 0  
 	union
-	select distinct installationNumber,to_date(_recordStart) as _effectiveFrom from curated_v2.dimInstallationHistory  where isnotnull(installationNumber) and _RecordDeleted = 0  
+	select distinct installationNumber, _recordStart as _effectiveFrom from curated_v2.dimInstallationHistory  where isnotnull(installationNumber) and _RecordDeleted = 0  
     union
-    select distinct installationNumber, to_date(_recordStart) as _effectiveFrom from curated_v2.dimDisconnectionDocument where isnotnull(installationNumber) and _RecordDeleted = 0 
+    select distinct installationNumber, _recordStart as _effectiveFrom from curated_v2.dimDisconnectionDocument where isnotnull(installationNumber) and _RecordDeleted = 0 
 ),
 effectiveDaterangesNonDelete as 
 (
 	select 
 		installationNumber, 
-		to_date(_effectiveFrom) AS _effectiveFrom, 
-		to_date(coalesce(timestamp(date_add(lead(_effectiveFrom,1) over(partition by installationNumber order by _effectiveFrom), -1)), '9999-12-31 00:00:00')) as _effectiveTo
+		_effectiveFrom, 
+		cast(coalesce(timestamp(date_add(lead(_effectiveFrom,1) over(partition by installationNumber order by _effectiveFrom), -1)), '9999-12-31 00:00:00') as timestamp) as _effectiveTo
 	from dateDriverNonDelete 
 ),
 dateDriverDelete as
 (
-	select distinct installationNumber, to_date(_recordStart) as _effectiveFrom from curated_v2.dimInstallation where isnotnull(installationNumber) and _RecordDeleted = 1  
+	select distinct installationNumber, _recordStart as _effectiveFrom from curated_v2.dimInstallation where isnotnull(installationNumber) and _RecordDeleted = 1  
 	union
-	select distinct installationNumber,to_date(_recordStart) as _effectiveFrom from curated_v2.dimInstallationHistory  where isnotnull(installationNumber) and _RecordDeleted = 1 
+	select distinct installationNumber, _recordStart as _effectiveFrom from curated_v2.dimInstallationHistory  where isnotnull(installationNumber) and _RecordDeleted = 1 
     union
-    select distinct installationNumber, to_date(_recordStart) as _effectiveFrom from curated_v2.dimDisconnectionDocument where isnotnull(installationNumber) and _RecordDeleted = 1 
+    select distinct installationNumber, _recordStart as _effectiveFrom from curated_v2.dimDisconnectionDocument where isnotnull(installationNumber) and _RecordDeleted = 1 
 ),
 effectiveDaterangesDelete as 
 (
 	select 
 		installationNumber, 
-		to_date(_effectiveFrom) AS _effectiveFrom, 
-		to_date(coalesce(timestamp(date_add(lead(_effectiveFrom,1) over(partition by installationNumber order by _effectiveFrom), -1)), '9999-12-31 00:00:00')) as _effectiveTo
+		_effectiveFrom, 
+		cast(coalesce(timestamp(date_add(lead(_effectiveFrom,1) over(partition by installationNumber order by _effectiveFrom), -1)), '9999-12-31 00:00:00') as timestamp) as _effectiveTo
 	from dateDriverDelete 
 )
 SELECT * FROM
@@ -112,7 +112,7 @@ SELECT * FROM
         dimInstallationHistory._recordCurrent as _dimInstallationHistoryRecordCurrent,
         dimDisconnectionDocument._recordCurrent as _dimDisconnectionDocumentRecordCurrent
        ,CASE
-        WHEN CURRENT_DATE() BETWEEN effectiveDateRanges._effectiveFrom AND effectiveDateRanges._effectiveTo then 'Y'
+        WHEN CURRENT_TIMESTAMP() BETWEEN effectiveDateRanges._effectiveFrom AND effectiveDateRanges._effectiveTo then 'Y'
         ELSE 'N'
         END AS currentRecordFlag
     FROM effectiveDaterangesNonDelete as effectiveDateRanges
@@ -201,7 +201,7 @@ SELECT * FROM
         dimInstallationHistory._recordCurrent as _dimInstallationHistoryRecordCurrent,
         dimDisconnectionDocument._recordCurrent as _dimDisconnectionDocumentRecordCurrent
        ,CASE
-        WHEN CURRENT_DATE() BETWEEN effectiveDateRanges._effectiveFrom AND effectiveDateRanges._effectiveTo then 'Y'
+        WHEN CURRENT_TIMESTAMP() BETWEEN effectiveDateRanges._effectiveFrom AND effectiveDateRanges._effectiveTo then 'Y'
         ELSE 'N'
         END AS currentRecordFlag
     FROM effectiveDaterangesDelete as effectiveDateRanges
