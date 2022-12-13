@@ -40,7 +40,7 @@ df_installation_history = spark.sql(f"""
         i.meterReadingUnit = m.meterReadingUnit AND
         m._recordCurrent = 1 
     WHERE 
-        i._RecordCurrent = 1 
+        i._RecordCurrent = 1 and i._RecordDeleted <> -1
 """    
 ).drop_duplicates()
 
