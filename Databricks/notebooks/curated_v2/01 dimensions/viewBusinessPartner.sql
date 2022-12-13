@@ -164,11 +164,11 @@ SELECT * FROM
     BP._recordDeleted as _dimBusinessPartnerRecordDeleted,
     ADDR._recordDeleted as _dimBusinessPartnerAddressRecordDeleted,
     BP._recordCurrent as _dimBusinessPartnerRecordCurrent,
-    ADDR._recordCurrent as _dimBusinessPartnerAddressRecordCurrent
-    , CASE
+    ADDR._recordCurrent as _dimBusinessPartnerAddressRecordCurrent, 
+    CASE
       WHEN CURRENT_TIMESTAMP() BETWEEN DR._effectiveFrom AND DR._effectiveTo then 'Y'
       ELSE 'N'
-      END AS currentRecordFlag
+    END AS currentRecordFlag
 FROM effectiveDateRangesNonDelete DR
 LEFT JOIN curated_v2.dimbusinesspartner BP ON 
     DR.businessPartnerNumber = BP.businessPartnerNumber AND
