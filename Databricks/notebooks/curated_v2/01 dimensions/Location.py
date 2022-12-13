@@ -38,8 +38,9 @@ def getLocation():
                                      d.cityCode as cityCode, 
                                      c.postcode as postcode, 
                                      c.stateCode as stateCode, 
-                                     coalesce(a.LGA,d.LGA) as LGA, 
-                                     d.politicalRegionCode as LGACode, 
+                                     --coalesce(a.LGA,d.LGA) as LGA, 
+                                     --d.politicalRegionCode as LGACode, This info must come from Hydra
+                                     a.LGA as LGA,
                                      a.latitude, 
                                      a.longitude,
                                      d._RecordDeleted 
@@ -74,8 +75,9 @@ def getLocation():
                                      d.cityCode as cityCode, 
                                      c.postcode as postcode, 
                                      c.stateCode as stateCode, 
-                                     coalesce(a.LGA,d.LGA) as LGA, 
-                                     d.politicalRegionCode as LGACode, 
+                                     --coalesce(a.LGA,d.LGA) as LGA, 
+                                     --d.politicalRegionCode as LGACode, 
+                                     a.LGA AS LGA,
                                      a.latitude, 
                                      a.longitude,
                                      d._RecordDeleted 
@@ -191,8 +193,9 @@ def getLocation():
                            sg.suburb as cityCode, 
                            sg.postcode as postCode, 
                            'NSW' as stateCode, 
-                           sg.LGACode as LGACode, 
-                           coalesce(hy.LGA,pr.LGA) as LGA, 
+                           --sg.LGACode as LGACode, 
+                           --coalesce(hy.LGA,pr.LGA) as LGA, 
+                           hy.LGA AS LGA,
                            latitude, 
                            longitude,
                            pa._RecordDeleted 
@@ -245,7 +248,7 @@ def getLocation():
                             ,"cityCode" \
                             ,"postCode" \
                             ,"stateCode" \
-                            ,"LGACode"\
+                            #,"LGACode"\
                             ,"LGA" \
                             ,"CAST(latitude AS DECIMAL(9,6)) as latitude" \
                             ,"CAST(longitude AS DECIMAL(9,6)) as longitude" \
@@ -272,7 +275,7 @@ def getLocation():
                             StructField("cityCode", StringType(), True),
                             StructField("postCode", StringType(), True),
                             StructField("stateCode", StringType(), True),
-                            StructField("LGACode", StringType(), True),
+                            #StructField("LGACode", StringType(), True),
                             StructField("LGA", StringType(), True),
                             StructField("latitude", DecimalType(9,6), True),
                             StructField("longitude", DecimalType(9,6), True)
