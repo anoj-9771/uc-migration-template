@@ -8,20 +8,41 @@ def ExecuteJDBCQuery(sql, targetJdbcKVSecretName):
   connection = spark._sc._gateway.jvm.java.sql.DriverManager.getConnection(jdbc)
   connection.prepareCall(sql).execute()
   connection.close()
-    
+
+# COMMAND ----------
+
+def RunQuery(sql):
+    jdbc = JdbcConnectionFromSqlConnectionString(GetJdbc("daf-sql-controldb-connectionstring"))
+    return spark.read.option("driver", "com.microsoft.sqlserver.jdbc.SQLServerDriver").jdbc(url=jdbc, table=f"({sql}) T")
+
+# COMMAND ----------
+
+def ExecuteStatement(sql):
+    jdbc = JdbcConnectionFromSqlConnectionString(GetJdbc("daf-sql-controldb-connectionstring"))
+    connection = spark._sc._gateway.jvm.java.sql.DriverManager.getConnection(jdbc)
+    connection.prepareCall(sql).execute()
+    connection.close()
+
+# COMMAND ----------
+
 def WriteTable(sourceTable, targetTable, mode, jdbc):
-  df = spark.table(sourceTable)
-  df.write \
-  .mode(mode) \
-  .jdbc(jdbc, targetTable)
-    
+    (spark.table(sourceTable)
+    .write.mode(mode)
+    .jdbc(jdbc, targetTable))
+
+# COMMAND ----------
+
 def GetJdbc(jdbcKVSecret):
   return dbutils.secrets.get(scope = SECRET_SCOPE, key = jdbcKVSecret)
+
+# COMMAND ----------
 
 def AppendTable(sourceTable, targetTable, targetJdbcKVSecretName):
   jdbc = GetJdbc(targetJdbcKVSecretName)
   WriteTable(sourceTable, targetTable, "append", jdbc)
-  
+
+# COMMAND ----------
+
 def WriteSynapseTable(sourceDataFrame, targetTable, mode="overwrite"):
     accessKey = GetStorageKey()
     jdbc = GetSynapseJdbc()
@@ -40,6 +61,8 @@ def WriteSynapseTable(sourceDataFrame, targetTable, mode="overwrite"):
     .option("tempdir", tempDir) \
     .mode(mode).save()
 
+# COMMAND ----------
+
 def CreateSqlTableFromSource(sourceTable, targetTable, targetJdbcKVSecretName):
     jdbc = GetJdbc(targetJdbcKVSecretName)
     sql = f"CREATE TABLE {targetTable} \
@@ -49,10 +72,14 @@ def CreateSqlTableFromSource(sourceTable, targetTable, targetJdbcKVSecretName):
                   dbtable \"{sourceTable}\" \
                 )"
     spark.sql(sql)
-    
+
+# COMMAND ----------
+
 def GetSqlDataFrame(tableFqn, targetJdbcKVSecretName):
     jdbc = GetJdbc(targetJdbcKVSecretName)
     return spark.read.option("driver", "com.microsoft.sqlserver.jdbc.SQLServerDriver").jdbc(url=jdbc, table=tableFqn)
+
+# COMMAND ----------
 
 def JdbcConnectionFromSqlConnectionString(connectionString):
     connectionList = dict()
