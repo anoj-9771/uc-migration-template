@@ -39,7 +39,7 @@ import json
 # 	"Watermarks": "2000-01-01 00:00:00", 
 # 	"WatermarksDT": "2000-01-01T00:00:00", 
 # 	"WatermarkColumn": "_FileDateTimeStamp", 
-# 	"BusinessKeyColumn": "businessPartnerNumber,addressNumber", 
+# 	"BusinessKeyColumn": "businessPartnerNumber", 
 # 	"UpdateMetaData": null, 
 # 	"SourceTimeStampFormat": "", 
 # 	"Command": "/build/cleansed/CRM Data/0BP_DEF_ADDRESS_ATTR", 
