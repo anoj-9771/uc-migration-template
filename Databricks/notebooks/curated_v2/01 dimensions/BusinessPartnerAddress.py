@@ -379,7 +379,7 @@ schema = StructType([
 TemplateEtlSCD(
     df_bp_addr_master, 
     entity="dimBusinessPartnerAddress", 
-    businessKey="businessPartnerAddressNumber,businessPartnerNumber",
+    businessKey="businessPartnerNumber",
     schema=schema
 )
 
