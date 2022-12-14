@@ -39,7 +39,7 @@ import json
 # 	"Watermarks": "2000-01-01 00:00:00", 
 # 	"WatermarksDT": "2000-01-01T00:00:00", 
 # 	"WatermarkColumn": "_FileDateTimeStamp", 
-# 	"BusinessKeyColumn": "businessPartnerNumber,addressNumber", 
+# 	"BusinessKeyColumn": "businessPartnerNumber", 
 # 	"PartitionColumn": null, 
 # 	"UpdateMetaData": null, 
 # 	"SourceTimeStampFormat": "", 
@@ -216,7 +216,15 @@ df = spark.sql(f"""
     WITH stage AS (
         SELECT
             *, 
-            ROW_NUMBER() OVER (PARTITION BY PARTNER,ADDRNUMBER ORDER BY _FileDateTimeStamp DESC, DI_SEQUENCE_NUMBER DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion 
+            ROW_NUMBER() OVER (
+                PARTITION BY 
+                    PARTNER 
+                ORDER BY 
+                    _FileDateTimeStamp DESC, 
+                    DI_SEQUENCE_NUMBER DESC, 
+                    _DLRawZoneTimeStamp DESC,
+                    ToValidDate(DATE_FROM) DESC 
+            ) AS _RecordVersion 
         FROM {delta_raw_tbl_name} 
         WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' 
     ) 

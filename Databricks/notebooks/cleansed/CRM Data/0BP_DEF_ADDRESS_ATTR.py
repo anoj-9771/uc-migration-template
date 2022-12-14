@@ -217,8 +217,12 @@ WITH stage AS (
     SELECT 
         *, 
         ROW_NUMBER() OVER (
-            PARTITION BY PARTNER,ADDRNUMBER 
-            ORDER BY _FileDateTimeStamp DESC, _DLRawZoneTimeStamp DESC
+            PARTITION BY 
+                PARTNER 
+            ORDER BY 
+                _FileDateTimeStamp DESC, 
+                _DLRawZoneTimeStamp DESC,
+                ToValidDate(DATE_FROM) DESC 
         ) AS _RecordVersion 
     FROM {delta_raw_tbl_name} 
     WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}'
@@ -308,7 +312,7 @@ WITH stage AS (
 """
 )
 
-print(f'Number of rows: {df.count()}')
+# print(f'Number of rows: {df.count()}')
 # display(df)
 
 # COMMAND ----------
