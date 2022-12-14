@@ -57,6 +57,99 @@ def MaskTable(dataFrame):
 
 # COMMAND ----------
 
+import json, re
+def EnrichResponses(dataFrame):
+    dfq = spark.table(f"cleansed.{destinationSchema}_{re.sub('Responses$','Questions',destinationTableName)}")
+    dfq_columns = dfq.schema.fieldNames()
+    sel_columns = set(dfq_columns) & set(['questionID','questionText','choices','answers','questionType','selector','subSelector'])
+    questions = [row.asDict(True) for row in dfq.select(*sel_columns).collect()]
+    qid_dict = {}
+    for question in questions:
+       qid = question.pop('questionID')
+       qid_dict[qid] = question
+        
+    qid_dict2 = {}
+    for key,value in qid_dict.items():
+        d={}
+        for k in value:
+            if k in ['answers','choices']:
+                #Choices can be a string if they're not all dictionaries for all questions.
+                if isinstance(value[k], str):
+                    d[k] = json.loads(value[k])
+                else:
+                    d[k] = value[k]
+                #Some Choices are lists instead of dicts. 
+                #Convert to dict to satisfy from_json's expectation of consistent data type.
+                if isinstance(d[k], list):
+                    d[k] = {str(i):item for i, item in enumerate(d[k])}
+        qid_dict2[key] = d
+        
+    dataFrame = dataFrame.withColumn('qid_lookup', from_json(lit(json.dumps(qid_dict2)), 'map<string, map<string, map<string, map<string, string>>>>'))
+    
+    qid_columns = [column for column in dataFrame.schema.fieldNames() if column.startswith('QID')]    
+
+    #Add column for each main question
+    for qid in set(column.split('_')[0] for column in qid_columns):
+        if qid_dict.get(qid, {}).get('questionType') not in ['Meta']:
+            dataFrame = dataFrame.withColumn(f'question{re.sub("^QID","",qid)}QuestionText', lit(qid_dict.get(qid, {}).get('questionText')))
+    
+    rtext_dict={'TopicSenScore': 'TopicSentimentScore', 'ParTopics': 'ParTopicsText',
+                'TopicSenLabel': 'TopicsSentimentsLabel','Sentiment': 'SentimentDsc',
+                'SenPol': 'SentimentPolarityNumber', 'SenScore': 'SentimentScore',
+                'Topics': 'TopicsText'}    
+    for column in qid_columns:
+        parts = column.split('_')
+        qid = parts[0]
+        prefix_col_name = f'question{re.sub("^QID","",qid)}'
+        col_has_text = False
+        if len(parts) > 1 and parts[1].isnumeric():
+            qid_part = parts[1]
+            prefix_col_name = f'{prefix_col_name}Part{qid_part}'    
+            col_has_text = 'TEXT' in parts
+            qtext_col_name = f'{prefix_col_name}QuestionText'
+
+        rcode_col_name = f'{prefix_col_name}ResponseCode'
+        
+        for key,value in rtext_dict.items():
+            if column.endswith(key):        
+                rtext_col_name = f'{prefix_col_name}{value}'
+                break
+        else:        
+            rtext_col_name = f'{prefix_col_name}ResponseText'   
+
+        if qid_dict.get(qid, {}).get('questionType') == 'Meta':
+            continue
+        elif qid_dict.get(qid, {}).get('questionType') == 'TE' or col_has_text:
+            dataFrame = dataFrame.withColumnRenamed(column, rtext_col_name)
+        
+        elif qid_dict.get(qid, {}).get('questionType') == 'DB' and qid_dict.get(qid, {}).get('selector') == 'TB':
+            continue        
+            
+        elif qid_dict.get(qid, {}).get('questionType') == 'MC' and qid_dict.get(qid, {}).get('selector') == 'DL':
+            dataFrame = dataFrame.withColumn(rtext_col_name, col('qid_lookup')[qid]['choices'][col(column)]['Display'])
+            
+        elif qid_dict.get(qid, {}).get('questionType') == 'MC' and qid_dict.get(qid, {}).get('selector') == 'SAVR':
+            dataFrame = dataFrame.withColumn(rtext_col_name, col('qid_lookup')[qid]['choices'][col(column)]['Display'])
+
+        elif qid_dict.get(qid, {}).get('questionType') == 'MC' and qid_dict.get(qid, {}).get('selector') == 'SAHR':
+            dataFrame = dataFrame.withColumn(rtext_col_name, col('qid_lookup')[qid]['choices'][col(column)]['Display'])
+
+        elif qid_dict.get(qid, {}).get('questionType') == 'MC' and qid_dict.get(qid, {}).get('selector') == 'MAVR' and not(col_has_text):
+            dataFrame = dataFrame.withColumn(rtext_col_name, transform(col(column), lambda x: col('qid_lookup')[qid]['choices'][x]['Display']))
+
+        elif qid_dict.get(qid, {}).get('questionType') == 'Matrix' and qid_dict.get(qid, {}).get('selector') == 'Likert':
+            dataFrame = dataFrame.withColumn(qtext_col_name, col('qid_lookup')[qid]['choices'][qid_part]['Display'])
+            dataFrame = dataFrame.withColumn(rtext_col_name, col('qid_lookup')[qid]['answers'][col(column)]['Display'])
+
+        #Rename qid column to Response code
+        if qid_dict.get(qid, {}).get('questionType') not in ['Meta','TE'] and not(col_has_text):
+            dataFrame = dataFrame.withColumnRenamed(column, rcode_col_name)
+            
+    dataFrame = dataFrame.select(sorted(dataFrame.columns)).drop('qid_lookup')
+    return dataFrame
+
+# COMMAND ----------
+
 sourceDataFrame = spark.table(sourceTableName)
 
 # CLEANSED QUERY FROM RAW TO FLATTEN OBJECT
@@ -72,8 +165,12 @@ sourceDataFrame = sourceDataFrame.toDF(*(RemoveBadCharacters(c) for c in sourceD
 # REMOVE DUPE COLUMNS
 sourceDataFrame = RemoveDuplicateColumns(sourceDataFrame)
 
-# APPLY CLEANSED FRAMEWORK
-sourceDataFrame = CleansedTransform(sourceDataFrame, sourceTableName, systemCode)
+# APPLY RULES-BASED CLEANSED FRAMEWORK
+sourceDataFrame = CleansedTransformByRules(sourceDataFrame, sourceTableName, systemCode)
+
+# Enrich responses with questions information
+if destinationTableName.endswith('Responses'):
+    sourceDataFrame = EnrichResponses(sourceDataFrame)
 
 # MASK TABLE
 sourceDataFrame = MaskTable(sourceDataFrame)
