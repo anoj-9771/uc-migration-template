@@ -208,7 +208,7 @@ def getBilledWaterConsumptionMonthly():
     
     dimDateDf = spark.sql(f"""
         SELECT calendarYear, monthOfYear, monthStartDate, monthEndDate
-        FROM {ADS_DATABASE_CURATED}.dimDate 
+        FROM {ADS_DATABASE_CURATED_V2}.dimDate 
         """
     ).dropDuplicates()
     
