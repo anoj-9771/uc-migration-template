@@ -93,6 +93,10 @@ df_water_quality_prediction = (df_up_water_quality_features
 
 # COMMAND ----------
 
+display(df_water_quality_prediction)
+
+# COMMAND ----------
+
 df_water_quality_prediction.write.mode("append").insertInto('cleansed.urbanplunge_water_quality_predictions')
 
 # COMMAND ----------
