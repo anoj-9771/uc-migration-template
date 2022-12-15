@@ -140,8 +140,8 @@ conda_environment = {
                 "cloudpickle==1.6.0",
                 "dill==0.3.2",
                 "ipython==7.22.0",
-                "torch",
-                "torchvision",
+                "torch==1.13.0",
+                "torchvision==0.14.0",
                 "/dbfs/mnt/blob-sewercctvmodel/MainModel-0.1.0-py3-none-any.whl"
             ],
         },
