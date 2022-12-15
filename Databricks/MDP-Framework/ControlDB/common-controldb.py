@@ -36,23 +36,19 @@ def AddIngestion(df, clean = False):
         CleanConfig()
         
     for i in df.rdd.collect():
-        
-        #cleansedHandler = i.CleansedHandler 
-        cleansedHandler = 'NULL'
-        
-        ExecuteStatement(f"""
+        ExecuteStatement(f"""    
         DECLARE @RC int
-        DECLARE @SystemCode varchar(max) = '{i.SystemCode}'
-        DECLARE @Schema varchar(max) = '{i.SystemCode}'
-        DECLARE @Table varchar(max) = '{i.SourceTableName}'
-        DECLARE @Query varchar(max) = '{i.SourceQuery}'
+        DECLARE @SystemCode varchar(max) = NULLIF('{i.SystemCode}','')
+        DECLARE @Schema varchar(max) = NULLIF('{i.SourceSchema}','')
+        DECLARE @Table varchar(max) = NULLIF('{i.SourceTableName}','')
+        DECLARE @Query varchar(max) = NULLIF('{i.SourceQuery}','')
         DECLARE @WatermarkColumn varchar(max) = NULL
-        DECLARE @SourceHandler varchar(max) = '{i.SourceHandler}'
-        DECLARE @RawFileExtension varchar(max) = '{i.RawFileExtension}'
-        DECLARE @KeyVaultSecret varchar(max) = '{i.SourceKeyVaultSecret}'
-        DECLARE @ExtendedProperties varchar(max) = '{i.ExtendedProperties}'
-        DECLARE @RawHandler varchar(max) = '{i.RawHandler}'
-        DECLARE @CleansedHandler varchar(max) = {cleansedHandler}
+        DECLARE @SourceHandler varchar(max) = NULLIF('{i.SourceHandler}','')
+        DECLARE @RawFileExtension varchar(max) = NULLIF('{i.RawFileExtension}','')
+        DECLARE @KeyVaultSecret varchar(max) = NULLIF('{i.SourceKeyVaultSecret}','')
+        DECLARE @ExtendedProperties varchar(max) = NULLIF('{i.ExtendedProperties}','')
+        DECLARE @RawHandler varchar(max) = NULLIF('{i.RawHandler}','') 
+        DECLARE @CleansedHandler varchar(max) = NULLIF('{i.CleansedHandler}','')    
 
         EXECUTE @RC = [dbo].[AddIngestion] 
            @SystemCode
@@ -65,8 +61,8 @@ def AddIngestion(df, clean = False):
           ,@KeyVaultSecret
           ,@ExtendedProperties
           ,@RawHandler
-          ,@RawHandler
-        """)
+          ,@CleansedHandler
+        """)   
 
 # COMMAND ----------
 
