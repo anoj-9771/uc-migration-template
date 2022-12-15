@@ -12,8 +12,7 @@
 						"value": "@pipeline().parameters.SystemCodes",
 						"type": "Expression"
 					},
-					"isSequential": false,
-					"batchCount": 4,
+					"isSequential": true,
 					"activities": [
 						{
 							"name": "execute-system",
