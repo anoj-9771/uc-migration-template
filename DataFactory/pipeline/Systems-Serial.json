@@ -1,0 +1,74 @@
+{
+	"name": "Systems-Serial",
+	"properties": {
+		"activities": [
+			{
+				"name": "for-each-source",
+				"type": "ForEach",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@pipeline().parameters.SystemCodes",
+						"type": "Expression"
+					},
+					"isSequential": false,
+					"batchCount": 4,
+					"activities": [
+						{
+							"name": "execute-system",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "System",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"SystemCode": {
+										"value": "@item().SystemCode",
+										"type": "Expression"
+									},
+									"ParentBatchID": {
+										"value": "@variables('ParentBatchID')",
+										"type": "Expression"
+									}
+								}
+							}
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"SystemCodes": {
+				"type": "array"
+			},
+			"ParentBatchID": {
+				"type": "string"
+			}
+		},
+		"variables": {
+			"ParentBatchID": {
+				"type": "String"
+			},
+			"DatabricksSecret": {
+				"type": "String"
+			},
+			"ExtraConfig": {
+				"type": "Array"
+			},
+			"PoolId": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "MDP-Framework"
+		},
+		"annotations": [],
+		"lastPublishTime": "2021-07-08T02:50:54Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}
