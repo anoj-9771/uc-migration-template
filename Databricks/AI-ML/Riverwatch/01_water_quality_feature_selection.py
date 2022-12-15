@@ -3,6 +3,12 @@
 
 # COMMAND ----------
 
+# MAGIC %sql
+# MAGIC -- SET JOB POOL TO USE UTC DATE. THIS IS NECESSARY OTHERWISE OLD DATA WOULD OTHERWISE BE RETRIEVED
+# MAGIC SET TIME ZONE 'Australia/Sydney';
+
+# COMMAND ----------
+
 # MAGIC %run /build/includes/global-variables-python
 
 # COMMAND ----------
@@ -160,7 +166,7 @@ df_time_series_values = (df_time_series_values
 # COMMAND ----------
 
 def getHourlyIntervals(first_timestamp, last_timestamp, secs_interval):
-    return list(range(first_timestamp,last_timestamp, secs_interval))
+    return list(range(first_timestamp,last_timestamp+secs_interval, secs_interval))
 
 getHourlyIntervalsUDF = psf.udf(lambda a,b,c: getHourlyIntervals(a,b,c), t.ArrayType(t.IntegerType()))
 
@@ -208,8 +214,9 @@ print(LAST_MODEL_RUNTIME)
 df = (df_iicats_rainfall
       .groupBy("SITE_NM", "PNT_CDB_OBJ_ID")
       .agg(psf.min(psf.col("timestamp")).alias("first_timestamp"),
-           psf.max(psf.col("timestamp")).alias("last_timestamp")
+#            psf.max(psf.col("timestamp")).alias("last_timestamp")
           )
+      .where(psf.col("first_timestamp").isNotNull())
        )
 
 # COMMAND ----------
@@ -223,7 +230,8 @@ df = (df_iicats_rainfall
 # COMMAND ----------
 
 realtime_ref  = (df
-        .withColumn("hourly_timestamps", getHourlyIntervalsUDF(psf.col("first_timestamp"), psf.col("last_timestamp"), psf.lit(3600)))
+        .withColumn("hourly_timestamps", getHourlyIntervalsUDF(psf.col("first_timestamp"),
+                                                               psf.unix_timestamp(psf.date_trunc("hour",psf.lit(CURRENT_MODEL_RUNTIME)).cast("timestamp")), psf.lit(3600)))
         .withColumn("epoch_timestamp", psf.explode(psf.col("hourly_timestamps")))
         .withColumn("timestamp", psf.to_timestamp(psf.from_unixtime(psf.col("epoch_timestamp"))))
         .select("SITE_NM", "PNT_CDB_OBJ_ID", "epoch_timestamp","timestamp")

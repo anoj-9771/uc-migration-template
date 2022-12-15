@@ -3,6 +3,12 @@
 
 # COMMAND ----------
 
+# MAGIC %sql
+# MAGIC -- SET JOB POOL TO USE UTC DATE. THIS IS NECESSARY OTHERWISE OLD DATA WOULD OTHERWISE BE RETRIEVED
+# MAGIC SET TIME ZONE 'Australia/Sydney';
+
+# COMMAND ----------
+
 # MAGIC %md # Import libraries
 
 # COMMAND ----------
@@ -514,7 +520,7 @@ conda_environment = {
         
         {
             "pip": [
-                "mlflow",
+                "mlflow==1.30.0",
                 "cloudpickle==2.2.0",
                 "pybbn==3.2.1"
             ],

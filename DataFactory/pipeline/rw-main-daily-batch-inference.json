@@ -5,14 +5,7 @@
 			{
 				"name": "get-bearer-token",
 				"type": "WebActivity",
-				"dependsOn": [
-					{
-						"activity": "run-deployment-pipeline",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
+				"dependsOn": [],
 				"policy": {
 					"timeout": "0.12:00:00",
 					"retry": 0,
@@ -202,19 +195,6 @@
 				}
 			},
 			{
-				"name": "run-deployment-pipeline",
-				"type": "ExecutePipeline",
-				"dependsOn": [],
-				"userProperties": [],
-				"typeProperties": {
-					"pipeline": {
-						"referenceName": "rw-deployment-pipeline",
-						"type": "PipelineReference"
-					},
-					"waitOnCompletion": true
-				}
-			},
-			{
 				"name": "Fetch Model Output JSON",
 				"type": "Lookup",
 				"dependsOn": [
@@ -227,7 +207,7 @@
 				],
 				"policy": {
 					"timeout": "0.12:00:00",
-					"retry": 0,
+					"retry": 2,
 					"retryIntervalInSeconds": 30,
 					"secureOutput": false,
 					"secureInput": false
@@ -718,14 +698,7 @@
 			{
 				"name": "Ingest Beachwatch BoM and IICATS Data",
 				"type": "ExecutePipeline",
-				"dependsOn": [
-					{
-						"activity": "run-deployment-pipeline",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
+				"dependsOn": [],
 				"userProperties": [],
 				"typeProperties": {
 					"pipeline": {
