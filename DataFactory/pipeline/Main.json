@@ -159,6 +159,10 @@
 				],
 				"userProperties": [],
 				"typeProperties": {
+					"expression": {
+						"value": "@equals(pipeline().parameters.RunParallel, 'Y')",
+						"type": "Expression"
+					},
 					"ifFalseActivities": [
 						{
 							"name": "execute-systems-serial",
