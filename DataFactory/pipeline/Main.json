@@ -39,52 +39,6 @@
 				}
 			},
 			{
-				"name": "for-each-source",
-				"type": "ForEach",
-				"dependsOn": [
-					{
-						"activity": "get-extract-load",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
-				"userProperties": [],
-				"typeProperties": {
-					"items": {
-						"value": "@activity('get-extract-load').output.value",
-						"type": "Expression"
-					},
-					"isSequential": false,
-					"batchCount": 4,
-					"activities": [
-						{
-							"name": "execute-system",
-							"type": "ExecutePipeline",
-							"dependsOn": [],
-							"userProperties": [],
-							"typeProperties": {
-								"pipeline": {
-									"referenceName": "System",
-									"type": "PipelineReference"
-								},
-								"waitOnCompletion": true,
-								"parameters": {
-									"SystemCode": {
-										"value": "@item().SystemCode",
-										"type": "Expression"
-									},
-									"ParentBatchID": {
-										"value": "@variables('ParentBatchID')",
-										"type": "Expression"
-									}
-								}
-							}
-						}
-					]
-				}
-			},
-			{
 				"name": "set-parent-batch",
 				"type": "SetVariable",
 				"dependsOn": [],
@@ -102,13 +56,13 @@
 				"type": "IfCondition",
 				"dependsOn": [
 					{
-						"activity": "for-each-source",
+						"activity": "set-transform",
 						"dependencyConditions": [
 							"Succeeded"
 						]
 					},
 					{
-						"activity": "set-transform",
+						"activity": "If-RunParallel",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -191,11 +145,84 @@
 						"type": "Expression"
 					}
 				}
+			},
+			{
+				"name": "If-RunParallel",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "get-extract-load",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@equals(pipeline().parameters.RunParallel, 'Y')",
+						"type": "Expression"
+					},
+					"ifFalseActivities": [
+						{
+							"name": "execute-systems-serial",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "Systems-Serial",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"SystemCodes": {
+										"value": "@activity('get-extract-load').output.value",
+										"type": "Expression"
+									},
+									"ParentBatchID": {
+										"value": "@variables('ParentBatchID')",
+										"type": "Expression"
+									}
+								}
+							}
+						}
+					],
+					"ifTrueActivities": [
+						{
+							"name": "execute-systems-parallel",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "Systems-Parallel",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"SystemCodes": {
+										"value": "@activity('get-extract-load').output.value",
+										"type": "Expression"
+									},
+									"ParentBatchID": {
+										"value": "@variables('ParentBatchID')",
+										"type": "Expression"
+									}
+								}
+							}
+						}
+					]
+				}
 			}
 		],
 		"parameters": {
 			"SystemCodes": {
 				"type": "string"
+			},
+			"RunParallel": {
+				"type": "string",
+				"defaultValue": "Y"
 			}
 		},
 		"variables": {
