@@ -31,7 +31,7 @@
 										"type": "Expression"
 									},
 									"ParentBatchID": {
-										"value": "@variables('ParentBatchID')",
+										"value": "@pipeline().parameters.ParentBatchID",
 										"type": "Expression"
 									}
 								}
