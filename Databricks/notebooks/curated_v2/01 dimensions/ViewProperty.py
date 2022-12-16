@@ -5,32 +5,32 @@
 # MAGIC as (
 # MAGIC with dateDriverNonDelete as
 # MAGIC (
-# MAGIC 	select distinct propertyNumber, to_date(_recordStart) as _effectiveFrom from curated_v2.dimProperty where isnotnull(propertyNumber) and _RecordDeleted = 0 
+# MAGIC 	select distinct propertyNumber, _recordStart as _effectiveFrom from curated_v2.dimProperty where isnotnull(propertyNumber) and _RecordDeleted = 0 
 # MAGIC 	union
-# MAGIC 	select distinct propertyNumber,to_date(validFromDate) as _effectiveFrom from curated_v2.dimPropertyTypeHistory  where isnotnull(propertyNumber) and  _RecordDeleted = 0
+# MAGIC 	select distinct propertyNumber, _recordStart as _effectiveFrom from curated_v2.dimPropertyTypeHistory  where isnotnull(propertyNumber) and  _RecordDeleted = 0
 # MAGIC     union
-# MAGIC     select distinct propertyNumber, to_date(_recordStart) as _effectiveFrom from curated_v2.dimPropertyLot where isnotnull(propertyNumber) and _RecordDeleted = 0
+# MAGIC     select distinct propertyNumber, _recordStart as _effectiveFrom from curated_v2.dimPropertyLot where isnotnull(propertyNumber) and _RecordDeleted = 0
 # MAGIC     union
-# MAGIC     select distinct locationID as propertyNumber, to_date(_recordStart) as _effectiveFrom from curated_v2.dimLocation where isnotnull(locationID) and  _RecordDeleted = 0
+# MAGIC     select distinct locationID as propertyNumber, _recordStart as _effectiveFrom from curated_v2.dimLocation where isnotnull(locationID) and  _RecordDeleted = 0
 # MAGIC ),
 # MAGIC effectiveDaterangesNonDelete as 
 # MAGIC (
-# MAGIC 	select propertyNumber, _effectiveFrom, coalesce(timestamp(date_add(lead(_effectiveFrom,1) over(partition by propertyNumber order by _effectiveFrom), -1)), '9999-12-31') as _effectiveTo
+# MAGIC 	select propertyNumber, _effectiveFrom, cast(coalesce(timestamp(date_add(lead(_effectiveFrom,1) over(partition by propertyNumber order by _effectiveFrom), -1)), '9999-12-31') as timestamp) as _effectiveTo
 # MAGIC 	from dateDriverNonDelete 
 # MAGIC ),
 # MAGIC dateDriverDelete as
 # MAGIC (
-# MAGIC 	select distinct propertyNumber, to_date(_recordStart) as _effectiveFrom from curated_v2.dimProperty where isnotnull(propertyNumber) and _RecordDeleted = 1 
+# MAGIC 	select distinct propertyNumber, _recordStart as _effectiveFrom from curated_v2.dimProperty where isnotnull(propertyNumber) and _RecordDeleted = 1 
 # MAGIC 	union
-# MAGIC 	select distinct propertyNumber,to_date(validFromDate) as _effectiveFrom from curated_v2.dimPropertyTypeHistory  where isnotnull(propertyNumber) and  _RecordDeleted = 1
+# MAGIC 	select distinct propertyNumber, _recordStart as _effectiveFrom from curated_v2.dimPropertyTypeHistory  where isnotnull(propertyNumber) and  _RecordDeleted = 1
 # MAGIC     union
-# MAGIC     select distinct propertyNumber, to_date(_recordStart) as _effectiveFrom from curated_v2.dimPropertyLot where isnotnull(propertyNumber) and _RecordDeleted = 1
+# MAGIC     select distinct propertyNumber, _recordStart as _effectiveFrom from curated_v2.dimPropertyLot where isnotnull(propertyNumber) and _RecordDeleted = 1
 # MAGIC     union
-# MAGIC     select distinct locationID as propertyNumber, to_date(_recordStart) as _effectiveFrom from curated_v2.dimLocation where isnotnull(locationID) and  _RecordDeleted = 1
+# MAGIC     select distinct locationID as propertyNumber, _recordStart as _effectiveFrom from curated_v2.dimLocation where isnotnull(locationID) and  _RecordDeleted = 1
 # MAGIC ),
 # MAGIC effectiveDaterangesDelete as 
 # MAGIC (
-# MAGIC 	select propertyNumber, _effectiveFrom, coalesce(timestamp(date_add(lead(_effectiveFrom,1) over(partition by propertyNumber order by _effectiveFrom), -1)), '9999-12-31') as _effectiveTo
+# MAGIC 	select propertyNumber, _effectiveFrom, cast(coalesce(timestamp(date_add(lead(_effectiveFrom,1) over(partition by propertyNumber order by _effectiveFrom), -1)), '9999-12-31') as timestamp) as _effectiveTo
 # MAGIC 	from dateDriverDelete 
 # MAGIC )
 # MAGIC select * from (
@@ -97,8 +97,8 @@
 # MAGIC     dimLocation.longitude,
 # MAGIC 	dimPropertyTypeHistory.ValidFromDate as propertyTypeValidFromDate,
 # MAGIC 	dimPropertyTypeHistory.ValidToDate as propertyTypeValidToDate,
-# MAGIC 	cast(effectiveDateRanges._effectiveFrom as date),
-# MAGIC 	cast(effectiveDateRanges._effectiveTo as date),
+# MAGIC 	effectiveDateRanges._effectiveFrom,
+# MAGIC 	effectiveDateRanges._effectiveTo,
 # MAGIC     dimProperty._recordDeleted as _dimPropertyRecordDeleted,
 # MAGIC     dimPropertyTypeHistory._recordDeleted as _dimPropertyTypeHistoryRecordDeleted,
 # MAGIC     dimPropertyLot._recordDeleted as _dimPropertyLotRecordDeleted,
@@ -108,7 +108,7 @@
 # MAGIC     dimPropertyLot._recordCurrent as _dimPropertyLotRecordCurrent,
 # MAGIC     dimLocation._recordCurrent as _dimLocationRecordCurrent
 # MAGIC     ,CASE
-# MAGIC       WHEN CURRENT_DATE() BETWEEN effectiveDateRanges._effectiveFrom AND effectiveDateRanges._effectiveTo then 'Y'
+# MAGIC       WHEN CURRENT_TIMESTAMP() BETWEEN effectiveDateRanges._effectiveFrom AND effectiveDateRanges._effectiveTo then 'Y'
 # MAGIC       ELSE 'N'
 # MAGIC       END AS currentRecordFlag
 # MAGIC from effectiveDateRangesNonDelete as effectiveDateRanges
@@ -197,8 +197,8 @@
 # MAGIC     dimLocation.longitude,
 # MAGIC 	dimPropertyTypeHistory.ValidFromDate as propertyTypeValidFromDate,
 # MAGIC 	dimPropertyTypeHistory.ValidToDate as propertyTypeValidToDate,
-# MAGIC 	cast(effectiveDateRanges._effectiveFrom as date),
-# MAGIC 	cast(effectiveDateRanges._effectiveTo as date),
+# MAGIC 	effectiveDateRanges._effectiveFrom,
+# MAGIC 	effectiveDateRanges._effectiveTo,
 # MAGIC     dimProperty._recordDeleted as _dimPropertyRecordDeleted,
 # MAGIC     dimPropertyTypeHistory._recordDeleted as _dimPropertyTypeHistoryRecordDeleted,
 # MAGIC     dimPropertyLot._recordDeleted as _dimPropertyLotRecordDeleted,
@@ -208,7 +208,7 @@
 # MAGIC     dimPropertyLot._recordCurrent as _dimPropertyLotRecordCurrent,
 # MAGIC     dimLocation._recordCurrent as _dimLocationRecordCurrent
 # MAGIC     ,CASE
-# MAGIC       WHEN CURRENT_DATE() BETWEEN effectiveDateRanges._effectiveFrom AND effectiveDateRanges._effectiveTo then 'Y'
+# MAGIC       WHEN CURRENT_TIMESTAMP() BETWEEN effectiveDateRanges._effectiveFrom AND effectiveDateRanges._effectiveTo then 'Y'
 # MAGIC       ELSE 'N'
 # MAGIC       END AS currentRecordFlag
 # MAGIC from effectiveDateRangesDelete as effectiveDateRanges

@@ -7,17 +7,22 @@ WITH dateDriverNonDelete AS (
              contractAccountNumber,
              _recordStart AS _effectiveFrom
          FROM curated_v2.dimContractAccount WHERE _recordDeleted = 0
+         UNION
+         SELECT DISTINCT
+             contractAccountNumber,
+             _recordStart AS _effectiveFrom
+         FROM curated_v2.dimAccountBusinessPartner WHERE _recordDeleted = 0
      ),
      effectiveDateRangesNonDelete AS (
          SELECT 
              contractAccountNumber, 
              _effectiveFrom, 
-             COALESCE(
+             cast(COALESCE(
                  TIMESTAMP(
                      DATE_ADD(
                          LEAD(_effectiveFrom,1) OVER (PARTITION BY contractAccountNumber ORDER BY _effectiveFrom),-1)
                  ), 
-             TIMESTAMP('9999-12-31')) AS _effectiveTo
+             TIMESTAMP('9999-12-31')) as timestamp) AS _effectiveTo
          from dateDriverNonDelete
      ),
      dateDriverDelete AS (
@@ -25,17 +30,22 @@ WITH dateDriverNonDelete AS (
              contractAccountNumber,
              _recordStart AS _effectiveFrom
          FROM curated_v2.dimContractAccount WHERE _recordDeleted = 1
+         UNION
+         SELECT DISTINCT
+             contractAccountNumber,
+             _recordStart AS _effectiveFrom
+         FROM curated_v2.dimAccountBusinessPartner WHERE _recordDeleted = 1
      ),
      effectiveDateRangesDelete AS (
          SELECT 
              contractAccountNumber, 
              _effectiveFrom, 
-             COALESCE(
+             cast(COALESCE(
                  TIMESTAMP(
                      DATE_ADD(
                          LEAD(_effectiveFrom,1) OVER (PARTITION BY contractAccountNumber ORDER BY _effectiveFrom),-1)
                  ), 
-             TIMESTAMP('9999-12-31')) AS _effectiveTo
+             TIMESTAMP('9999-12-31')) as timestamp) AS _effectiveTo
          from dateDriverDelete
      )
 SELECT * FROM 
@@ -122,8 +132,10 @@ SELECT
      ,effectiveDateRanges._effectiveTo
      ,dimContractAccount._recordDeleted as _dimContractAccountRecordDeleted
      ,dimContractAccount._recordCurrent as _dimContractAccountRecordCurrent
+     ,dimAccountBusinessPartner._recordDeleted as _dimAccountBusinessPartnerRecordDeleted
+     ,dimAccountBusinessPartner._recordCurrent as _dimAccountBusinessPartnerRecordCurrent
      ,CASE
-      WHEN CURRENT_DATE() BETWEEN effectiveDateRanges._effectiveFrom AND effectiveDateRanges._effectiveTo then 'Y'
+      WHEN CURRENT_TIMESTAMP() BETWEEN effectiveDateRanges._effectiveFrom AND effectiveDateRanges._effectiveTo then 'Y'
       ELSE 'N'
       END AS currentRecordFlag
 FROM effectiveDateRangesNonDelete as effectiveDateRanges
@@ -220,8 +232,10 @@ SELECT
      ,effectiveDateRanges._effectiveTo
      ,dimContractAccount._recordDeleted as _dimContractAccountRecordDeleted
      ,dimContractAccount._recordCurrent as _dimContractAccountRecordCurrent
+     ,dimAccountBusinessPartner._recordDeleted as _dimAccountBusinessPartnerRecordDeleted
+     ,dimAccountBusinessPartner._recordCurrent as _dimAccountBusinessPartnerRecordCurrent
      ,CASE
-      WHEN CURRENT_DATE() BETWEEN effectiveDateRanges._effectiveFrom AND effectiveDateRanges._effectiveTo then 'Y'
+      WHEN CURRENT_TIMESTAMP() BETWEEN effectiveDateRanges._effectiveFrom AND effectiveDateRanges._effectiveTo then 'Y'
       ELSE 'N'
       END AS currentRecordFlag
 FROM effectiveDateRangesDelete as effectiveDateRanges

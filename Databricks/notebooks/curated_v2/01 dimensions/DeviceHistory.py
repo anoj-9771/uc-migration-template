@@ -37,7 +37,7 @@ def getDeviceHistory():
                                                else null end as lastDeviceRemovalDate,
                                            dh._RecordDeleted 
                                       from {ADS_DATABASE_CLEANSED}.isu_0UC_DEVICEH_ATTR dh
-                                      where dh._RecordCurrent = 1 
+                                      where dh._RecordCurrent = 1 and dh._RecordDeleted <> -1
                                       """)
     dummyDimRecDf = spark.createDataFrame([("-1","1900-01-01", "9999-12-31")], ["deviceNumber","validFromDate","validToDate"])   
     dfResult = isuDeviceHistDf.unionByName(dummyDimRecDf, allowMissingColumns = True) 
