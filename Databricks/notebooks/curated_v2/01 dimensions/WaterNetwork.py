@@ -22,7 +22,7 @@ def getWaterNetwork():
     baseDf = spark.sql(f"""select level30 as deliverySystem, 
                                 level40 as distributionSystem, 
                                 level50 as supplyZone, 
-                                coalesce(level60,'Unknown')  as pressureArea, 
+                                coalesce(case when trim(level60) = '' then null else level60 end,'Unknown')  as pressureArea, 
                                 case when product = 'Water'  then 'Y' else 'N' end as isPotableWaterNetwork, 
                                 case when product = 'RecycledWater'  then 'Y' else 'N' end as isRecycledWaterNetwork ,
                                 _RecordDeleted 
@@ -56,7 +56,7 @@ def getWaterNetwork():
                             StructField("deliverySystem", StringType(), False),
                             StructField("distributionSystem", StringType(), False),
                             StructField("supplyZone", StringType(), False),
-                            StructField("pressureArea", StringType(), True),
+                            StructField("pressureArea", StringType(), False),
                             StructField("isPotableWaterNetwork", StringType(), False),
                             StructField("isRecycledWaterNetwork", StringType(), False)
                       ])

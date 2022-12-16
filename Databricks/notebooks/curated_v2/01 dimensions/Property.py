@@ -202,7 +202,7 @@ def getProperty():
     sapisuDf = spark.sql(f"""select 
                                 'ISU' as sourceSystemCode, 
                                 co.propertyNumber, 
-                                coalesce(0ucp.premise,'-1') as premise, 
+                                coalesce(regexp_replace(0ucp.premise, r'^[0]*', ''),'-1') as premise, 
                                 potableSK as waterNetworkSK_drinkingWater, 
                                 recycledSK as waterNetworkSK_recycledWater, 
                                 sewerNetworkSK, 
