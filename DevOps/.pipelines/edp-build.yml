@@ -2,7 +2,7 @@ name: $(Build.BuildId).$(date:yyyyMMdd)
 
 trigger:
   branches:
-    include: [ 'develop', 'test', 'preprod' ]
+    include: [ 'develop', 'test', 'preprod', 'main' ]
   paths:
     include: [ 'ADS-Databases', 'DataFactory', 'Databricks', 'Includes/dls/raw/cleansed_csv' ] 
 stages:
