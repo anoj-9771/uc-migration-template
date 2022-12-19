@@ -200,16 +200,6 @@ def GetPoolIdByName(name):
 
 # COMMAND ----------
 
-def InstallLibraries(clusterId):
-    headers = GetAuthenticationHeader()
-    url = f'{INSTANCE_NAME}/api/2.0/libraries/install'
-    libraryTemplate["cluster_id"] = clusterId
-    response = requests.post(url, json=libraryTemplate, headers=headers)
-    jsonResponse = response.json()
-    print(jsonResponse)
-
-# COMMAND ----------
-
 def CreateCluster(cluster, pin=True):
     headers = GetAuthenticationHeader()
     url = f'{INSTANCE_NAME}/api/2.0/clusters/create'
@@ -246,16 +236,6 @@ clusterTemplate = {
 
 # COMMAND ----------
 
-def EditCluster(id):
-    headers = GetAuthenticationHeader()
-    url = f'{INSTANCE_NAME}/api/2.0/clusters/edit'
-    clusterTemplate["cluster_id"] = id
-    response = requests.post(url, json=clusterTemplate, headers=headers)
-    jsonResponse = response.json()
-    print(jsonResponse)
-
-# COMMAND ----------
-
 libraryTemplate = {
   "libraries": [
     {
@@ -278,6 +258,26 @@ libraryTemplate = {
     }
   ]
 }
+
+# COMMAND ----------
+
+def EditCluster(id):
+    headers = GetAuthenticationHeader()
+    url = f'{INSTANCE_NAME}/api/2.0/clusters/edit'
+    clusterTemplate["cluster_id"] = id
+    response = requests.post(url, json=clusterTemplate, headers=headers)
+    jsonResponse = response.json()
+    print(jsonResponse)
+
+# COMMAND ----------
+
+def InstallLibraries(clusterId):
+    headers = GetAuthenticationHeader()
+    url = f'{INSTANCE_NAME}/api/2.0/libraries/install'
+    libraryTemplate["cluster_id"] = clusterId
+    response = requests.post(url, json=libraryTemplate, headers=headers)
+    jsonResponse = response.json()
+    print(jsonResponse)
 
 # COMMAND ----------
 
@@ -305,4 +305,111 @@ def CreateClusterForPool(clusterName, poolName):
 
 # COMMAND ----------
 
+def GetGroupByName(name):
+    headers = GetAuthenticationHeader()
+    url = f'{INSTANCE_NAME}/api/2.0/preview/scim/v2/Groups?filter=displayName+eq+{name}'
+    response = requests.get(url, headers=headers)
+    jsonResponse = response.json()
+    return jsonResponse
 
+# COMMAND ----------
+
+def CreateUser(user, groupId=None):
+    newUser = {
+        "schemas": [ "urn:ietf:params:scim:schemas:core:2.0:User" ],
+        "userName": f"{user}",
+        "groups": [
+            {
+            "value":f"{groupId}"
+            }
+        ]
+    }
+    headers = GetAuthenticationHeader()
+    url = f'{INSTANCE_NAME}/api/2.0/preview/scim/v2/Users'
+    response = requests.post(url, json=newUser, headers=headers)
+    jsonResponse = response.json()
+    return jsonResponse
+
+# COMMAND ----------
+
+def CreateUser(user, groupId=None):
+    newUser = {
+        "schemas": [ "urn:ietf:params:scim:schemas:core:2.0:User" ],
+        "userName": f"{user}",
+        "groups": [
+            {
+            "value":f"{groupId}"
+            }
+        ]
+    }
+    headers = GetAuthenticationHeader()
+    url = f'{INSTANCE_NAME}/api/2.0/preview/scim/v2/Users'
+    response = requests.post(url, json=newUser, headers=headers)
+    jsonResponse = response.json()
+    return jsonResponse
+
+# COMMAND ----------
+
+def GetUserByName(name):
+    headers = GetAuthenticationHeader()
+    url = f'{INSTANCE_NAME}/api/2.0/preview/scim/v2/Users?filter=userName+eq+{name}'
+    response = requests.get(url, headers=headers)
+    jsonResponse = response.json()
+    return jsonResponse
+
+# COMMAND ----------
+
+def DeleteUser(id):
+    headers = GetAuthenticationHeader()
+    url = f'{INSTANCE_NAME}/api/2.0/preview/scim/v2/Users/{id}'
+    response = requests.delete(url, headers=headers)
+
+# COMMAND ----------
+
+def CreateUsers(list, groupId=None):
+    for u in list:
+        if spark.sql(f"SHOW USERS LIKE '{u}*'").count() > 0:
+            continue
+        j = CreateUser(u, groupId)
+
+# COMMAND ----------
+
+def DeleteUsers(list):
+    for u in list:
+        if spark.sql(f"SHOW USERS LIKE '{u}*'").count() == 0:
+            continue
+        j = GetUserByName(u)
+        id = j["Resources"][0]["id"]
+        #print(id)
+        DeleteUser(id)
+
+# COMMAND ----------
+
+def UpdateGroup(groupId, addGroupId):
+    json = {
+      "schemas": [ "urn:ietf:params:scim:api:messages:2.0:PatchOp" ],
+      "Operations": [
+        {
+          "op":"add",
+          "value": {
+            "members": [
+              {
+                "value":f"{addGroupId}"
+              }
+            ]
+          }
+        }
+      ]
+    }
+    headers = GetAuthenticationHeader()
+    url = f'{INSTANCE_NAME}/api/2.0/preview/scim/v2/Groups/{groupId}'
+    response = requests.patch(url, json=json, headers=headers)
+    jsonResponse = response.json()
+    return jsonResponse
+
+# COMMAND ----------
+
+def AssignGroup(groupName, targetGroupName):
+    groupId = GetGroupByName(targetGroupName)["Resources"][0]["id"]
+    addGroupId = GetGroupByName(groupName)["Resources"][0]["id"]
+    return UpdateGroup(groupId, addGroupId)
