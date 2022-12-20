@@ -46,18 +46,18 @@ df_isu_addr_attr = (
             streetSupplementName2                                               AS streetSupplementName2, 
             otherLocationName                                                   AS otherLocationName, 
             concat( 
-                coalesce(concat(streetLine5, ', '), ''), 
-                coalesce(concat(building, ', '), ''), 
-                coalesce(concat(floorNumber, ', '), ''), 
-                coalesce(concat(apartmentNumber, ', '), ''), 
-                coalesce(concat(houseSupplementNumber, ', '), ''), 
-                coalesce(concat(housePrimaryNumber, ', '), '') 
+                coalesce(concat(streetLine5, ','), ''), 
+                coalesce(concat(building, ','), ''), 
+                coalesce(concat(floorNumber, ','), ''), 
+                coalesce(concat(apartmentNumber, ','), ''), 
+                coalesce(concat(houseSupplementNumber, ','), ''), 
+                coalesce(concat(housePrimaryNumber, ','), '') 
             )                                                                   AS houseNumber, -- TRANSFORMATION
             concat( 
-                coalesce(concat(streetName, ', '), ''), 
-                coalesce(concat(streetSupplementName1, ', '), ''),
-                coalesce(concat(streetSupplementName2, ', '), ''), 
-                coalesce(concat(otherLocationName, ', '), '')  
+                coalesce(concat(streetName, ','), ''), 
+                coalesce(concat(streetSupplementName1, ','), ''),
+                coalesce(concat(streetSupplementName2, ','), ''), 
+                coalesce(concat(otherLocationName, ','), '')  
             )                                                                   AS streetName, -- TRANSFORMATION
             streetCode                                                          AS streetCode,   
             cityName                                                            AS cityName, 
@@ -88,20 +88,20 @@ df_isu_addr_attr = (
                 WHEN countryCode = 'AU' AND cityCode IS NULL 
                 THEN ''
                 ELSE CONCAT(
-                    coalesce(concat(streetLine5, ', '), ''), 
-                    coalesce(concat(building, ', '), ''), 
-                    coalesce(concat(floorNumber, ', '), ''), 
-                    coalesce(concat(apartmentNumber, ', '), ''), 
-                    coalesce(concat(houseSupplementNumber, ', '), ''), 
-                    coalesce(concat(housePrimaryNumber, ', '), ''),
-                    coalesce(concat(streetName, ', '), ''), 
-                    coalesce(concat(streetSupplementName1, ', '), ''),
-                    coalesce(concat(streetSupplementName2, ', '), ''), 
-                    coalesce(concat(otherLocationName, ', '), ''),
-                    coalesce(concat(deliveryServiceTypeCode, ', '), ''),
-                    coalesce(concat(deliveryServiceNumber, ', '), ''),
-                    coalesce(concat(cityName, ', '), ''),
-                    coalesce(concat(stateCode, ', '), ''),
+                    coalesce(concat(streetLine5, ','), ''), 
+                    coalesce(concat(building, ','), ''), 
+                    coalesce(concat(floorNumber, ','), ''), 
+                    coalesce(concat(apartmentNumber, ','), ''), 
+                    coalesce(concat(houseSupplementNumber, ','), ''), 
+                    coalesce(concat(housePrimaryNumber, ','), ''),
+                    coalesce(concat(streetName, ','), ''), 
+                    coalesce(concat(streetSupplementName1, ','), ''),
+                    coalesce(concat(streetSupplementName2, ','), ''), 
+                    coalesce(concat(otherLocationName, ','), ''),
+                    coalesce(concat(deliveryServiceTypeCode, ','), ''),
+                    coalesce(concat(deliveryServiceNumber, ','), ''),
+                    coalesce(concat(cityName, ','), ''),
+                    coalesce(concat(stateCode, ','), ''),
                     coalesce(postalCode, '')
                 )
             END                                                                 AS addressFullText,  -- TRANSFORMATION
@@ -143,18 +143,18 @@ df_crm_addr_attr = (
             streetSupplementName2                                               AS streetSupplementName2,
             otherLocationName                                                   AS otherLocationName,
             concat( 
-                coalesce(concat(streetLine5, ', '), ''), 
-                coalesce(concat(building, ', '), ''), 
-                coalesce(concat(floorNumber, ', '), ''), 
-                coalesce(concat(apartmentNumber, ', '), ''), 
-                coalesce(concat(houseSupplementNumber, ', '), ''), 
-                coalesce(concat(housePrimaryNumber, ', '), '') 
+                coalesce(concat(streetLine5, ','), ''), 
+                coalesce(concat(building, ','), ''), 
+                coalesce(concat(floorNumber, ','), ''), 
+                coalesce(concat(apartmentNumber, ','), ''), 
+                coalesce(concat(houseSupplementNumber, ','), ''), 
+                coalesce(concat(housePrimaryNumber, ','), '') 
             )                                                                   AS houseNumber, -- TRANSFORMATION
             concat( 
-                coalesce(concat(streetName, ', '), ''), 
-                coalesce(concat(streetSupplementName1, ', '), ''),
-                coalesce(concat(streetSupplementName2, ', '), ''), 
-                coalesce(concat(otherLocationName, ', '), '')  
+                coalesce(concat(streetName, ','), ''), 
+                coalesce(concat(streetSupplementName1, ','), ''),
+                coalesce(concat(streetSupplementName2, ','), ''), 
+                coalesce(concat(otherLocationName, ','), '')  
             )                                                                   AS streetName, -- TRANSFORMATION 
             streetCode                                                          AS streetCode,
             cityName                                                            AS cityName,
@@ -185,20 +185,20 @@ df_crm_addr_attr = (
                 WHEN countryCode = 'AU' AND cityCode IS NULL 
                 THEN ''
                 ELSE CONCAT(
-                    coalesce(concat(streetLine5, ', '), ''), 
-                    coalesce(concat(building, ', '), ''), 
-                    coalesce(concat(floorNumber, ', '), ''), 
-                    coalesce(concat(apartmentNumber, ', '), ''), 
-                    coalesce(concat(houseSupplementNumber, ', '), ''), 
-                    coalesce(concat(housePrimaryNumber, ', '), ''),
-                    coalesce(concat(streetName, ', '), ''), 
-                    coalesce(concat(streetSupplementName1, ', '), ''),
-                    coalesce(concat(streetSupplementName2, ', '), ''), 
-                    coalesce(concat(otherLocationName, ', '), ''),
-                    -- coalesce(concat(deliveryServiceTypeCode, ', '), ''), -- N/A for CRM
-                    -- coalesce(concat(deliveryServiceNumber, ', '), ''), -- N/A for CRM
-                    coalesce(concat(cityName, ', '), ''),
-                    coalesce(concat(stateCode, ', '), ''),
+                    coalesce(concat(streetLine5, ','), ''), 
+                    coalesce(concat(building, ','), ''), 
+                    coalesce(concat(floorNumber, ','), ''), 
+                    coalesce(concat(apartmentNumber, ','), ''), 
+                    coalesce(concat(houseSupplementNumber, ','), ''), 
+                    coalesce(concat(housePrimaryNumber, ','), ''),
+                    coalesce(concat(streetName, ','), ''), 
+                    coalesce(concat(streetSupplementName1, ','), ''),
+                    coalesce(concat(streetSupplementName2, ','), ''), 
+                    coalesce(concat(otherLocationName, ','), ''),
+                    -- coalesce(concat(deliveryServiceTypeCode, ','), ''), -- N/A for CRM
+                    -- coalesce(concat(deliveryServiceNumber, ','), ''), -- N/A for CRM
+                    coalesce(concat(cityName, ','), ''),
+                    coalesce(concat(stateCode, ','), ''),
                     coalesce(postalCode, '')
                 )
             END                                                                 AS addressFullText, -- TRANSFORMATION

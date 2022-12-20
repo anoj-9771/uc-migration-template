@@ -41,8 +41,8 @@ def getLocation():
                                      --coalesce(a.LGA,d.LGA) as LGA, 
                                      --d.politicalRegionCode as LGACode, This info must come from Hydra
                                      a.LGA as LGA,
-                                     a.latitude, 
-                                     a.longitude,
+                                     --a.latitude, 
+                                     --a.longitude,
                                      d._RecordDeleted 
                                      from {ADS_DATABASE_CLEANSED}.isu_0uc_connobj_attr_2 d left outer join {ADS_DATABASE_CLEANSED}.isu_vibdnode b on d.propertyNumber = b.architecturalObjectNumber 
                                          left outer join (select propertyNumber, lga, latitude, longitude from 
@@ -78,8 +78,8 @@ def getLocation():
                                      --coalesce(a.LGA,d.LGA) as LGA, 
                                      --d.politicalRegionCode as LGACode, 
                                      a.LGA AS LGA,
-                                     a.latitude, 
-                                     a.longitude,
+                                     --a.latitude, 
+                                     --a.longitude,
                                      d._RecordDeleted 
                                      from {ADS_DATABASE_CLEANSED}.isu_0uc_connobj_attr_2 d left outer join {ADS_DATABASE_CLEANSED}.isu_vibdnode b on d.propertyNumber = b.architecturalObjectNumber 
                                          left outer join (select propertyNumber, lga, latitude, longitude from 
@@ -196,8 +196,8 @@ def getLocation():
                            --sg.LGACode as LGACode, 
                            --coalesce(hy.LGA,pr.LGA) as LGA, 
                            hy.LGA AS LGA,
-                           latitude, 
-                           longitude,
+                           --latitude, 
+                           --longitude,
                            pa._RecordDeleted 
                            from {ADS_DATABASE_CLEANSED}.access_z309_tpropertyaddress pa left outer join 
                                  {ADS_DATABASE_CLEANSED}.access_z309_tstreetguide sg on pa.streetGuideCode = sg.streetGuideCode, 
@@ -250,8 +250,8 @@ def getLocation():
                             ,"stateCode" \
                             #,"LGACode"\
                             ,"LGA" \
-                            ,"CAST(latitude AS DECIMAL(9,6)) as latitude" \
-                            ,"CAST(longitude AS DECIMAL(9,6)) as longitude" \
+#                             ,"CAST(latitude AS DECIMAL(9,6)) as latitude" \
+#                             ,"CAST(longitude AS DECIMAL(9,6)) as longitude" \
                             ,"_RecordDeleted" 
                             )
     #5.Apply schema definition
@@ -276,9 +276,9 @@ def getLocation():
                             StructField("postCode", StringType(), True),
                             StructField("stateCode", StringType(), True),
                             #StructField("LGACode", StringType(), True),
-                            StructField("LGA", StringType(), True),
-                            StructField("latitude", DecimalType(9,6), True),
-                            StructField("longitude", DecimalType(9,6), True)
+                            StructField("LGA", StringType(), True)
+#                             StructField("latitude", DecimalType(9,6), True),
+#                             StructField("longitude", DecimalType(9,6), True)
                       ])
 
     return df, schema

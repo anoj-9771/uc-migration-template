@@ -48,10 +48,11 @@ SELECT * FROM
         /* Installation */
         dimInstallation.installationSK                                 AS installationSK,
         dimInstallationHistory.installationHistorySK                   AS installationHistorySK,
-        dimInstallation.sourceSystemCode                               AS sourceSystemCode,
+        COALESCE(dimInstallation.sourceSystemCode, dimInstallationHistory.sourceSystemCode, dimDisconnectionDocument.sourceSystemCode) AS sourceSystemCode,
         COALESCE(
           dimInstallation.installationNumber,
-          dimInstallationHistory.installationNumber
+          dimInstallationHistory.installationNumber,
+          dimDisconnectionDocument.installationNumber
         )                                                              AS installationNumber,
         dimInstallation.divisionCode                                   AS divisionCode,
         dimInstallation.division                                       AS division,
@@ -137,10 +138,11 @@ SELECT * FROM
         /* Installation */
         dimInstallation.installationSK                                 AS installationSK,
         dimInstallationHistory.installationHistorySK                   AS installationHistorySK,
-        dimInstallation.sourceSystemCode                               AS sourceSystemCode,
+        COALESCE(dimInstallation.sourceSystemCode, dimInstallationHistory.sourceSystemCode, dimDisconnectionDocument.sourceSystemCode) AS sourceSystemCode,
         COALESCE(
           dimInstallation.installationNumber,
-          dimInstallationHistory.installationNumber
+          dimInstallationHistory.installationNumber,
+          dimDisconnectionDocument.installationNumber
         )                                                              AS installationNumber,
         dimInstallation.divisionCode                                   AS divisionCode,
         dimInstallation.division                                       AS division,
