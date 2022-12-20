@@ -178,7 +178,7 @@ def getBusinessPartnerGroupRelationship():
 # COMMAND ----------
 
 df, schema = getBusinessPartnerGroupRelationship()
-TemplateEtlSCD(
+TemplateTimeSliceEtlSCD(
     df, 
     entity="dimBusinessPartnerRelation", 
     businessKey="businessPartnerGroupSK,businessPartnerSK,relationshipNumber,validToDate", 
