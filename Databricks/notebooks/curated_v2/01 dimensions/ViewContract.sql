@@ -33,7 +33,7 @@ SELECT * FROM
 SELECT
      dimContract.contractSK
     ,dimContractHistory.contractHistorySK
-    ,dimContract.sourceSystemCode
+    ,coalesce(dimContract.sourceSystemCode, dimContractHistory.sourceSystemCode) as sourceSystemCode
     ,coalesce(dimContract.contractId, dimContractHistory.contractId, -1) as contractId    
     ,dimContract.companyCode
     ,dimContract.companyName
@@ -103,10 +103,6 @@ SELECT
     ,dimContractHistory._recordDeleted as _dimContractHistoryRecordDeleted
     ,dimContract._recordCurrent as _dimContractRecordCurrent
     ,dimContractHistory._recordCurrent as _dimContractHistoryRecordCurrent
-    ,dimContract._recordStart as _dimContractRecordStart
-    ,dimContract._recordEnd as _dimContractRecordEnd
-    ,dimContractHistory._recordStart as _dimContractHistoryRecordStart
-    ,dimContractHistory._recordEnd as _dimContractHistoryRecordEnd
     , CASE
       WHEN CURRENT_TIMESTAMP() BETWEEN effectiveDateRanges._effectiveFrom AND effectiveDateRanges._effectiveTo then 'Y'
       ELSE 'N'
@@ -126,7 +122,7 @@ UNION
 SELECT
      dimContract.contractSK
     ,dimContractHistory.contractHistorySK
-    ,dimContract.sourceSystemCode
+    ,coalesce(dimContract.sourceSystemCode, dimContractHistory.sourceSystemCode) as sourceSystemCode
     ,coalesce(dimContract.contractId, dimContractHistory.contractId, -1) as contractId   
     ,dimContract.companyCode
     ,dimContract.companyName
@@ -196,10 +192,6 @@ SELECT
     ,dimContractHistory._recordDeleted as _dimContractHistoryRecordDeleted
     ,dimContract._recordCurrent as _dimContractRecordCurrent
     ,dimContractHistory._recordCurrent as _dimContractHistoryRecordCurrent
-    ,dimContract._recordStart as _dimContractRecordStart
-    ,dimContract._recordEnd as _dimContractRecordEnd
-    ,dimContractHistory._recordStart as _dimContractHistoryRecordStart
-    ,dimContractHistory._recordEnd as _dimContractHistoryRecordEnd
     , CASE
       WHEN CURRENT_TIMESTAMP() BETWEEN effectiveDateRanges._effectiveFrom AND effectiveDateRanges._effectiveTo then 'Y'
       ELSE 'N'

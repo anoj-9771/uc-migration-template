@@ -212,7 +212,7 @@ df = spark.sql(f"""
     
         SELECT 
             case when VERTRAG = 'na' then '' else VERTRAG end as contractId, 
-            ToValidDate((case when BIS = 'na' then '9999-12-31' else BIS end),'MANDATORY') as validToDate, 
+            ToValidDate(BIS,'MANDATORY') as validToDate, 
             ToValidDate(AB) as validFromDate, 
             ANLAGE as installationNumber, 
             CONTRACTHEAD as contractHeadGUID, 
@@ -232,6 +232,9 @@ df = spark.sql(f"""
             ToValidDate(AEDAT) as lastChangedDate, 
             OUCONTRACT as individualContractId, 
             AENAM as lastChangedBy, 
+            'VERTRAG|BIS' as sourceKeyDesc, 
+            concat_ws('|',VERTRAG,BIS) as sourceKey, 
+            'BIS' as rejectColumn, 
             cast('1900-01-01' as TimeStamp) as _RecordStart, 
             cast('9999-12-31' as TimeStamp) as _RecordEnd, 
             CASE 
@@ -248,9 +251,9 @@ df = spark.sql(f"""
             and dd._RecordDeleted = 0 
             and dd._RecordCurrent = 1 
         """
-)
+).cache()
 
-#print(f'Number of rows: {df.count()}')
+print(f'Number of rows: {df.count()}')
 
 # COMMAND ----------
 
@@ -285,9 +288,16 @@ newSchema = StructType([
 
 # COMMAND ----------
 
+# DBTITLE 1,Handle Invalid Records
+reject_df =df.where("validToDate = '1000-01-01'").cache()
+cleansed_df = df.subtract(reject_df)
+cleansed_df = cleansed_df.drop("sourceKeyDesc","sourceKey","rejectColumn")
+
+# COMMAND ----------
+
 # DBTITLE 1,12.1 Save Data frame into Cleansed Delta table (Non-Delete Records)
 DeltaSaveDataFrameToDeltaTable(
-    df.filter("_RecordDeleted=0"), 
+    cleansed_df.filter("_RecordDeleted=0"), 
     target_table, 
     ADS_DATALAKE_ZONE_CLEANSED, 
     ADS_DATABASE_CLEANSED, 
@@ -306,7 +316,7 @@ DeltaSaveDataFrameToDeltaTable(
 # COMMAND ----------
 
 # DBTITLE 1,12.2 Save Data frame into Cleansed Delta table (Delete Records)
-df.filter("_RecordDeleted=1").createOrReplaceTempView("isu_contract_deleted_records")
+cleansed_df.filter("_RecordDeleted=1").createOrReplaceTempView("isu_contract_deleted_records")
 spark.sql(f" \
     MERGE INTO cleansed.isu_0UCCONTRACTH_ATTR_2 \
     using isu_contract_deleted_records \
@@ -336,6 +346,15 @@ spark.sql(f" \
     ,_RecordDeleted=1 \
     ,_RecordCurrent=1 \
     ")
+
+# COMMAND ----------
+
+# DBTITLE 1,12.3 Save Reject Data Frame into Rejected Database
+if reject_df.count() > 0:
+    source_key = 'VERTRAG|BIS'
+    DeltaSaveDataFrameToRejectTable(reject_df,target_table,business_key,source_key,LastSuccessfulExecutionTS)
+    reject_df.unpersist()
+df.unpersist()    
 
 # COMMAND ----------
 

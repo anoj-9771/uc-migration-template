@@ -185,6 +185,9 @@ df = spark.sql(f"WITH stage AS \
                                 stg.CREATED_BY as createdBy, \
                                 ToValidDateTime(stg.CHANGED_ON) as changedDate, \
                                 stg.CHANGED_BY as changedBy, \
+                                'PROPERTY_NO|DATE_FROM' as sourceKeyDesc, \
+                                concat_ws('|',stg.PROPERTY_NO,stg.DATE_FROM) as sourceKey, \
+                                'DATE_FROM' as rejectColumn, \
                                 cast('1900-01-01' as TimeStamp) as _RecordStart, \
                                 cast('9999-12-31' as TimeStamp) as _RecordEnd, \
                                 '0' as _RecordDeleted, \
@@ -195,38 +198,9 @@ df = spark.sql(f"WITH stage AS \
                                                                                                     and supty._RecordDeleted = 0 and supty._RecordCurrent = 1 \
                           LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_zcd_tinfprty_tx infty on infty.inferiorPropertyTypeCode = stg.INF_PROP_TYPE \
                                                                                                     and infty._RecordDeleted = 0 and infty._RecordCurrent = 1 \
-                        where stg._RecordVersion = 1")
+                        where stg._RecordVersion = 1").cache()
 
-#print(f'Number of rows: {df.count()}')
-
-# COMMAND ----------
-
-# DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
-#Update/rename Column
-#Pass 'MANDATORY' as second argument to function ToValidDate() on key columns to ensure correct value settings for those columns
-# df_cleansed = spark.sql(f"SELECT  \
-#                             case when stg.PROPERTY_NO = 'na' then '' else stg.PROPERTY_NO end as propertyNumber, \
-#                             stg.SUP_PROP_TYPE as superiorPropertyTypeCode, \
-#                             supty.superiorPropertyType, \
-#                             stg.INF_PROP_TYPE as inferiorPropertyTypeCode, \
-#                             infty.inferiorPropertyType, \
-#                             ToValidDate(stg.DATE_FROM,'MANDATORY') as validFromDate, \
-#                             ToValidDate(stg.DATE_TO) as validToDate, \
-#                             ToValidDateTime(stg.CREATED_ON) as createdDate, \
-#                             stg.CREATED_BY as createdBy, \
-#                             ToValidDateTime(stg.CHANGED_ON) as changedDate, \
-#                             stg.CHANGED_BY as changedBy, \
-#                             stg._RecordStart, \
-#                             stg._RecordEnd, \
-#                             stg._RecordDeleted, \
-#                             stg._RecordCurrent \
-#                           FROM {ADS_DATABASE_STAGE}.{source_object} stg \
-#                           LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_zcd_tsupprtyp_tx supty on supty.superiorPropertyTypeCode = stg.SUP_PROP_TYPE \
-#                                                                                                     and supty._RecordDeleted = 0 and supty._RecordCurrent = 1 \
-#                           LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_zcd_tinfprty_tx infty on infty.inferiorPropertyTypeCode = stg.INF_PROP_TYPE \
-#                                                                                                     and infty._RecordDeleted = 0 and infty._RecordCurrent = 1")
-
-# print(f'Number of rows: {df_cleansed.count()}')
+print(f'Number of rows: {df.count()}')
 
 # COMMAND ----------
 
@@ -253,8 +227,46 @@ newSchema = StructType([
 
 # COMMAND ----------
 
+# DBTITLE 1,Handle Invalid Records
+reject_df =df.where("validFromDate = '1000-01-01'").cache() #2018-01-07
+cleansed_df = df.subtract(reject_df)
+cleansed_df = cleansed_df.drop("sourceKeyDesc","sourceKey","rejectColumn")
+
+# COMMAND ----------
+
+# from pyspark.sql.functions import concat, col, lit, substring
+# from pyspark.sql.functions import DataFrame
+# tableName = 'isu_ZCD_TPROPTY_HIST'
+# COL_DL_REJECTED_LOAD = '_DLRejectedZoneTimeStamp'
+# reject_table = 'rejected.cleansed_rejected'
+# lastExecutionTS = LastSuccessfulExecutionTS
+
+# reject_df = reject_df.withColumn('rejectRecordCleansed', to_json(struct(col("*"))))
+# reject_df = reject_df.withColumn("tableName",lit(tableName)).withColumn(COL_DL_REJECTED_LOAD,current_timestamp()).select("tableName","rejectColumn","sourceKeyDesc","sourceKey","rejectRecordCleansed")
+# rawbusinessKey = 'PROPERTY_NO|DATE_FROM'
+# print(reject_df.count())
+    
+# raw_df = spark.table('raw.isu_zcd_tpropty_hist').where(f"_DLRawZoneTimestamp >= '{lastExecutionTS}'").withColumn("rawSourceKey", concat_ws('|', *(rawbusinessKey.split("|")))).withColumn('rejectRecordRaw', to_json(struct(col("*")))).select("rawSourceKey","rejectRecordRaw")
+
+
+# reject_df =reject_df.join(raw_df,reject_df.sourceKey==raw_df.rawSourceKey,"left")
+# print(reject_df.count())
+# display(reject_df)
+# display(raw_df)
+
+# COMMAND ----------
+
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
-DeltaSaveDataFrameToDeltaTable(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_OVERWRITE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
+DeltaSaveDataFrameToDeltaTable(cleansed_df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_OVERWRITE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
+
+# COMMAND ----------
+
+# DBTITLE 1,12.1 Save Reject Data Frame into Rejected Database
+if reject_df.count() > 0:
+    source_key = 'PROPERTY_NO|DATE_FROM'
+    DeltaSaveDataFrameToRejectTable(reject_df,target_table,business_key,source_key,LastSuccessfulExecutionTS)
+    reject_df.unpersist()
+df.unpersist()       
 
 # COMMAND ----------
 

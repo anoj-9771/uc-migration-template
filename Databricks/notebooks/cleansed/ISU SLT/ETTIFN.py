@@ -270,6 +270,9 @@ df = spark.sql(f"""
             END                                                       as operandValue3Flag, 
             cast(BETRAG as dec(13,2))                                 as amount, 
             WAERS                                                     as currencyKey, 
+            'ANLAGE|OPERAND|SAISON|AB|ABLFDNR'                        as sourceKeyDesc, 
+            concat_ws('|',ANLAGE,ef.OPERAND,SAISON,AB,ABLFDNR)           as sourceKey, 
+            'AB'                                                      as rejectColumn,            
             cast('1900-01-01' as TimeStamp)                           as _RecordStart, 
             cast('9999-12-31' as TimeStamp)                           as _RecordEnd, 
             '0'                                                       as _RecordDeleted, 
@@ -292,7 +295,9 @@ df = spark.sql(f"""
         ef._RecordVersion = 1 AND
         ef.ANLAGE IS NOT NULL
      """
-)
+).cache()
+
+print(f'Number of rows: {df.count()}')
 
 # COMMAND ----------
 
@@ -328,16 +333,23 @@ newSchema = StructType([
 
 # COMMAND ----------
 
+# DBTITLE 1,Handle Invalid Records
+reject_df =df.where("validFromDate = '1000-01-01'").cache()
+cleansed_df = df.subtract(reject_df)
+cleansed_df = cleansed_df.drop("sourceKeyDesc","sourceKey","rejectColumn")
+
+# COMMAND ----------
+
 # DBTITLE 1,12. Save Data frame into Cleansed Delta table (Final)
-DeltaSaveDataFrameToDeltaTable(df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
+DeltaSaveDataFrameToDeltaTable(cleansed_df, target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
 
 # COMMAND ----------
 
 # DBTITLE 1,13.1 Identify Deleted records from Raw table
-df = spark.sql(f"select distinct (case when ANLAGE = 'na' then '' else ANLAGE end) as ANLAGE, (case when OPERAND = 'na' then '' else OPERAND end) as OPERAND, ToValidDate(AB,'MANDATORY') as AB, (case when ABLFDNR = 'na' then '' else ABLFDNR end) as ABLFDNR from ( \
+cleansed_df = spark.sql(f"select distinct (case when ANLAGE = 'na' then '' else ANLAGE end) as ANLAGE, (case when OPERAND = 'na' then '' else OPERAND end) as OPERAND, ToValidDate(AB,'MANDATORY') as AB, (case when ABLFDNR = 'na' then '' else ABLFDNR end) as ABLFDNR from ( \
 Select *, ROW_NUMBER() OVER (PARTITION BY ANLAGE,OPERAND,SAISON,AB,ABLFDNR ORDER BY _DLRawZoneTimestamp DESC, DELTA_TS DESC) AS _RecordVersion FROM {delta_raw_tbl_name} WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' ) \
 where  _RecordVersion = 1 and IS_DELETED ='Y'")
-df.createOrReplaceTempView("isu_ettifn_deleted_records")
+cleansed_df.createOrReplaceTempView("isu_ettifn_deleted_records")
 
 # COMMAND ----------
 
@@ -358,6 +370,15 @@ spark.sql(f" \
     ,_RecordDeleted=1 \
     ,_RecordCurrent=1 \
     ")
+
+# COMMAND ----------
+
+# DBTITLE 1,13.3 Save Reject Data Frame into Rejected Database
+if reject_df.count() > 0:
+    source_key = 'ANLAGE|OPERAND|SAISON|AB|ABLFDNR'
+    DeltaSaveDataFrameToRejectTable(reject_df,target_table,business_key,source_key,LastSuccessfulExecutionTS)
+    reject_df.unpersist()
+df.unpersist()    
 
 # COMMAND ----------
 

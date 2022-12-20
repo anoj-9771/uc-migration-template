@@ -250,13 +250,7 @@ df = spark.sql(f"""
             then '' 
             else stg.ANLAGE 
         end                                             as installationNumber, 
-        ToValidDate((
-            case 
-                when stg.BIS = 'na' 
-                then '9999-12-31' 
-                else stg.BIS 
-            end),
-            'MANDATORY')                                as validToDate, 
+        ToValidDate(stg.BIS,'MANDATORY') as validToDate,
         ToValidDate(stg.AB)                             as validFromDate, 
         stg.TARIFTYP                                    as rateCategoryCode, 
         tt.TTYPBEZ                                      as rateCategory, 
@@ -269,6 +263,9 @@ df = spark.sql(f"""
         nt.industry                                     as industrySystem, 
         stg.UPDMOD                                      as deltaProcessRecordMode, 
         cast(stg.ZLOGIKNR as string)                    as logicalDeviceNumber, 
+        'ANLAGE|BIS'                                    as sourceKeyDesc,
+        concat_ws('|',stg.ANLAGE,stg.BIS)               as sourceKey,
+        'BIS'                                           as rejectColumn,
         cast('1900-01-01' as TimeStamp)                 as _RecordStart, 
         cast('9999-12-31' as TimeStamp)                 as _RecordEnd, 
         (CASE WHEN _upsertFlag = 'U' THEN '0' ELSE '1' END) as _RecordDeleted, 
@@ -295,7 +292,8 @@ df = spark.sql(f"""
     WHERE 
         ANLAGE IS NOT NULL
      """
-)
+).cache()
+print(f'Number of rows: {df.count()}')
 
 # COMMAND ----------
 
@@ -323,15 +321,22 @@ newSchema = StructType([
 
 # COMMAND ----------
 
+# DBTITLE 1,Handle Invalid Records
+reject_df =df.where("validToDate = '1000-01-01'").cache()
+cleansed_df = df.subtract(reject_df)
+cleansed_df = cleansed_df.drop("sourceKeyDesc","sourceKey","rejectColumn")
+
+# COMMAND ----------
+
 # DBTITLE 1,12.1 Save Non Deleted Records Data frame into Cleansed Delta table (Final)
 # Load Non deleted records same as earlier
-DeltaSaveDataFrameToDeltaTable(df.filter("_RecordDeleted = '0'"), target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
+DeltaSaveDataFrameToDeltaTable(cleansed_df.filter("_RecordDeleted = '0'"), target_table, ADS_DATALAKE_ZONE_CLEANSED, ADS_DATABASE_CLEANSED, data_lake_folder, ADS_WRITE_MODE_MERGE, newSchema, track_changes, is_delta_extract, business_key, AddSKColumn = False, delta_column = "", start_counter = "0", end_counter = "0")
 
 # COMMAND ----------
 
 # DBTITLE 1,12.2 Save Deleted records Data frame into Cleansed Delta table
 # Load deleted records to replace the existing Deleted records implementation logic
-df.filter("_RecordDeleted = '1'").createOrReplaceTempView("isu_installation_deleted_records")
+cleansed_df.filter("_RecordDeleted = '1'").createOrReplaceTempView("isu_installation_deleted_records")
 spark.sql(f" \
     MERGE INTO cleansed.isu_0UCINSTALLAH_ATTR_2 \
     using isu_installation_deleted_records \
@@ -354,6 +359,15 @@ spark.sql(f" \
     ,_RecordCurrent=1 \
     ,deltaProcessRecordMode='D'\
     ")
+
+# COMMAND ----------
+
+# DBTITLE 1,12.3 Save Reject Data Frame into Rejected Database
+if reject_df.count() > 0:
+    source_key = 'ANLAGE|BIS'
+    DeltaSaveDataFrameToRejectTable(reject_df,target_table,business_key,source_key,LastSuccessfulExecutionTS)
+    reject_df.unpersist()
+df.unpersist()
 
 # COMMAND ----------
 
