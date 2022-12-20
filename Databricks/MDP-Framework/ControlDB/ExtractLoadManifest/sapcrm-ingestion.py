@@ -127,14 +127,8 @@ ExecuteStatement("""
 update dbo.extractLoadManifest set
 WatermarkColumn = case sourceTableName
 when '0CRM_SALES_ACT_1' then  'DELTA'
-when 'ZPSTXHWITHCGUID' then  'DELTA'
 when 'ZCS_LONG_TEXT_ACT' then  'DELTA'
 when 'ZCS_LONG_TEXT_F' then  'DELTA'
-when 'CRMC_ERMS_CAT_AS' then  'DELTA'
-when 'CRMC_ERMS_CAT_CT' then  'DELTA'
-when 'CRMC_ERMS_CAT_CA' then  'DELTA'
-when 'CRM_SVY_DB_S' then  'DELTA'
-when 'CRMORDERPHIO' then  'DELTA'
 else WatermarkColumn
 end
 where systemCode in ('crmref','crmdata')
