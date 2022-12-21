@@ -1,4 +1,8 @@
 # Databricks notebook source
+import json
+
+# COMMAND ----------
+
 def ExpandTable(df):
     newDf = df
     for i in df.dtypes:
@@ -17,3 +21,11 @@ def ExpandTable(df):
             newDf = newDf.drop(columnName)
             return ExpandTable(newDf)
     return newDf
+
+# COMMAND ----------
+
+def LoadJsonFile(path):
+    f = open(path)
+    data = json.load(f)
+    f.close()
+    return data
