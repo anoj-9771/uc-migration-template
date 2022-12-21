@@ -167,11 +167,12 @@ update_business_key(pending_tables)
     .display()
 )
 
-# COMMAND ----------
-
-# this section can be uncommented out and run in order to check the status of the tables (once the pipelines have been run)
-# for table_name in pending_tables:    
-#     print (f'displaying contents of raw.maximo_{table_name} and cleansed.maximo_{table_name}')
-#     spark.table(f'raw.maximo_{table_name}').display()
-#     spark.table(f'cleansed.maximo_{table_name}').display()# table_name = 'ASSETSPEC'
+# # this section can be uncommented out and run in order to check the status of the tables (once the pipelines have been run)
+# for table_name in pending_tables:
+#     try:
+#         print (f'displaying contents of raw.maximo_{table_name} and cleansed.maximo_{table_name}')
+#         spark.table(f'raw.maximo_{table_name}').limit(5).display()
+#         spark.table(f'cleansed.maximo_{table_name}').limit(5).display()
+#     except Exception as e:
+#         print (f'error occurred {e}')
 
