@@ -173,8 +173,8 @@
 												"dependsOn": [],
 												"policy": {
 													"timeout": "0.02:00:00",
-													"retry": 0,
-													"retryIntervalInSeconds": 30,
+													"retry": 4,
+													"retryIntervalInSeconds": 120,
 													"secureOutput": false,
 													"secureInput": false
 												},
@@ -264,8 +264,8 @@
 												"dependsOn": [],
 												"policy": {
 													"timeout": "0.02:00:00",
-													"retry": 0,
-													"retryIntervalInSeconds": 30,
+													"retry": 4,
+													"retryIntervalInSeconds": 120,
 													"secureOutput": false,
 													"secureInput": false
 												},
@@ -359,8 +359,8 @@
 												"dependsOn": [],
 												"policy": {
 													"timeout": "0.02:00:00",
-													"retry": 0,
-													"retryIntervalInSeconds": 30,
+													"retry": 4,
+													"retryIntervalInSeconds": 120,
 													"secureOutput": false,
 													"secureInput": false
 												},
