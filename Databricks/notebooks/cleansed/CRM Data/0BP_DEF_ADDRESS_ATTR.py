@@ -301,7 +301,7 @@ WITH stage AS (
         '1'                                                      as _RecordCurrent, 
         cast('{CurrentTimeStamp}' as TimeStamp)                  as _DLCleansedZoneTimeStamp 
     from stage ADDR 
-    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_t005t t005t ON 
+    LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.crm_t005t t005t ON 
         ADDR.COUNTRY = t005t.countryCode 
     LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.crm_tsad3t tsad3t ON
         ADDR.TITLE = tsad3t.titleCode
@@ -392,7 +392,7 @@ WITH stage AS (
 newSchema = StructType([
 	StructField('businessPartnerNumber', StringType(), False),
 	StructField('businessPartnerGUID', StringType(), True),
-	StructField('addressNumber', StringType(), False),
+	StructField('addressNumber', StringType(), True),
 	StructField('validFromDate', DateType(), True),
 	StructField('validToDate', DateType(), True),
 	StructField('titleCode', StringType(), True),
