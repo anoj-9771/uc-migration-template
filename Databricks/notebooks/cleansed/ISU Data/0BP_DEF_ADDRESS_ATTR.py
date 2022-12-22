@@ -416,7 +416,7 @@ df = spark.sql(f"""
 newSchema = StructType([
     StructField('businessPartnerNumber', StringType(), False),
     StructField('businessPartnerGUID', StringType(), True),
-    StructField('addressNumber', StringType(), False),
+    StructField('addressNumber', StringType(), True),
     StructField('validFromDate', DateType(), True),
     StructField('validToDate', DateType(), True),
     StructField('titleCode', StringType(), True),
