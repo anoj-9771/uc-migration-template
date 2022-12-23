@@ -1,4 +1,4 @@
-name: $(Build.BuildId).$(date:yyyyMMdd)
+name: $(Build.BuildId).$(date:yyyyMMdd).$(Build.SourceBranchName)
 
 trigger:
   branches:
