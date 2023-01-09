@@ -14,7 +14,7 @@
 # COMMAND ----------
 
 ## list the maximo tables here
-tables = ['A_LOCATIONSPEC','ADDRESS','ALNDOMAIN','ASSET','ASSETATTRIBUTE','ASSETMETER','ASSETSPEC', 'CLASSIFICATION','CLASSSTRUCTURE','CONTRACT','DOCLINKS','FAILURECODE','FAILUREREPORT','FINCNTRL','JOBLABOR','JOBPLAN','LABOR','LABTRANS','LOCANCESTOR','LOCATIONMETER','LOCATIONS','LOCATIONSPEC','LOCHIERARCHY','LOCOPER','LONGDESCRIPTION','MATUSETRANS','MAXINTMSGTRK','MULTIASSETLOCCI','PERSON', 'PERSONGROUP', 'PERSONGROUPTEAM', 'PHONE','PM','RELATEDRECORD','ROUTES','ROUTE_STOP','SERVRECTRANS','SR','SWCBUSSTATUS','SWCHIERARCHY','SWCLGA','SWCPROBLEMTYPE','SWCWOEXT','TICKET','TOOLTRANS','WOACTIVITY','WOANCESTOR','WORKLOG','WORKORDER','WORKORDERSPEC','WOSTATUS', 'SYNONYMDOMAIN', 'A_ASSETSPEC', 'A_ASSET', 'A_FAILUREREPORT', 'A_GROUPUSER', 'A_JOBPLAN', 'A_INVENTORY', 'A_LONGDESCRIPTION', 'A_LOCOPER', 'A_PM', 'A_ROUTE_STOP', 'A_PO', 'A_SWCCLAIM', 'A_ROUTES', 'A_SWCCONACCESS', 'A_SWCCRSECURITY', 'A_SWCVALIDATIONRULE']
+tables = ['A_LOCATIONSPEC','ADDRESS','ALNDOMAIN','ASSET','ASSETATTRIBUTE','ASSETMETER','ASSETSPEC', 'CLASSIFICATION','CLASSSTRUCTURE','CONTRACT','DOCLINKS','FAILURECODE','FAILUREREPORT','FINCNTRL','JOBLABOR','JOBPLAN','LABOR','LABTRANS','LOCANCESTOR','LOCATIONMETER','LOCATIONS','LOCATIONSPEC','LOCHIERARCHY','LOCOPER','LONGDESCRIPTION','MATUSETRANS','MAXINTMSGTRK','MULTIASSETLOCCI','PERSON', 'PERSONGROUP', 'PERSONGROUPTEAM', 'PHONE','PM','RELATEDRECORD','ROUTES','ROUTE_STOP','SERVRECTRANS','SWCBUSSTATUS','SWCHIERARCHY','SWCLGA','SWCPROBLEMTYPE','SWCWOEXT','TICKET','TOOLTRANS','WOANCESTOR','WORKLOG','WORKORDER','WORKORDERSPEC','WOSTATUS', 'SYNONYMDOMAIN', 'A_ASSETSPEC', 'A_ASSET', 'A_FAILUREREPORT', 'A_GROUPUSER', 'A_JOBPLAN', 'A_INVENTORY', 'A_LONGDESCRIPTION', 'A_LOCOPER', 'A_PM', 'A_ROUTE_STOP', 'A_PO', 'A_SWCCLAIM', 'A_ROUTES', 'A_SWCCONACCESS', 'A_SWCCRSECURITY', 'A_SWCVALIDATIONRULE']
 
 tables = sorted(set(tables)) # to get rid of duplicates and make the list alphabetical (so it's easier to read)
 
@@ -88,7 +88,7 @@ def inject_to_controldb() -> None or str:
 
 # COMMAND ----------
 
-def enable_records(table_list: list) -> None:
+def update_controldb(table_list: list) -> None:
     """update extractloadmanifest table entries for given tables; mark Enabled as 'true' and BusinessKeyColumn to output of get_business_key function. also mark all the other tables as disabled."""
     ExecuteStatement("""
     UPDATE controldb.dbo.extractloadmanifest
@@ -97,33 +97,22 @@ def enable_records(table_list: list) -> None:
     """)
     
     for table in table_list:
-        ExecuteStatement (f"""
-                UPDATE controldb.dbo.extractloadmanifest
-                SET Enabled = 'true'
-                WHERE SourceTableName = '{table}'
-                """)
-
-# COMMAND ----------
-
-def update_business_key(table_list: list) -> None:
-    """update extractloadmanifest table entries for given tables; mark Enabled as 'true' and BusinessKeyColumn to output of get_business_key function. also mark all the other tables as disabled."""
-
-    for table in table_list:
         business_key = get_business_key(f'{table}') 
         if get_business_key(table) != None:
              ExecuteStatement (f"""
                 UPDATE controldb.dbo.extractloadmanifest
-                SET BusinessKeyColumn = '{','.join(business_key)}'
+                SET Enabled = 'true', BusinessKeyColumn = '{','.join(business_key)}'
                 WHERE SourceTableName = '{table}'
                 """)
         else:
             ExecuteStatement (f"""
                 UPDATE controldb.dbo.extractloadmanifest
-                SET BusinessKeyColumn = null
+                SET Enabled = 'true', BusinessKeyColumn = null
                 WHERE SourceTableName = '{table}'
                 """)
             
-        print (f"Business key updated for table {table} to: {business_key}")
+        print (table, business_key)
+
 
 # COMMAND ----------
 
@@ -141,25 +130,20 @@ print (f'The number of tables pending : {len(pending_tables)}. \n {pending_table
 
 # COMMAND ----------
 
+# pending_tables.remove('A_LOCATIONSPEC')
+# pending_tables.remove('A_SWCCRSECURITY')
+# pending_tables.remove('A_SWCVALIDATIONRULE')
+
+# COMMAND ----------
+
 inject_to_controldb()
 
 # COMMAND ----------
 
-pending_tables
+update_controldb(pending_tables)
 
 # COMMAND ----------
 
-# update the business_key_columns in controldb_extractloadmanifest for the pending_tables
-update_business_key(pending_tables)
-
-# COMMAND ----------
-
-# enable the pending tables in controldb_extractloadmanifest. 
-# enable_records(pending_tables)
-
-# COMMAND ----------
-
-# check what tables have been enabled in controldb_extractloadmanifest
 (
     spark.table("controldb.dbo_extractloadmanifest")
     .filter("SourceSchema = 'maximo'")
@@ -176,3 +160,10 @@ update_business_key(pending_tables)
 #     except Exception as e:
 #         print (f'error occurred {e}')
 
+
+# COMMAND ----------
+
+# for table in spark.catalog.listTables('cleansed'):
+#     if 'maximo' in table.name:
+#         print (table.name)
+#         spark.table(f'cleansed.{table.name}').display()
