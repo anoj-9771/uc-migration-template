@@ -158,22 +158,20 @@ def update_business_key(table_list: list) -> None:
 
 def update_watermark_column(table_list: list, watermark_column: str = None) -> None:
     """update watermark column for given tables in extractloadmanifest table to null (default) or with the given value."""
-
-     for table in table_list:
+    for table in table_list:
         if watermark_column is None:
             ExecuteStatement (f"""
-                UPDATE controldb.dbo.extractloadmanifest
-                SET WatermarkColumn = null
-                WHERE SourceTableName = '{table}'
-                """)
+            UPDATE controldb.dbo.extractloadmanifest
+            SET WatermarkColumn = null
+            WHERE SourceTableName = '{table}'
+            """)
         else:
              ExecuteStatement (f"""
-                UPDATE controldb.dbo.extractloadmanifest
-                SET WatermarkColumn = {watermark_column}
-                WHERE SourceTableName = '{table}'
-                """)
-            
-        print (f"WatermarkColumn updated for table {table} to: {watermark_column}")
+             UPDATE controldb.dbo.extractloadmanifest
+             SET WatermarkColumn = {watermark_column}
+             WHERE SourceTableName = '{table}'
+             """)
+        print (f"WatermarkColumn updated for table {table} to: {watermark_column}")            
 
 # COMMAND ----------
 
