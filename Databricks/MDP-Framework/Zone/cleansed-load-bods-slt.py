@@ -61,7 +61,9 @@ if(extendedProperties):
     
 # APPLY CLEANSED FRAMEWORK
 sourceDataFrame = CleansedTransform(sourceDataFrame, sourceTableName.lower(), systemCode)
-sourceDataFrame = sourceDataFrame.withColumn("_DLCleansedZoneTimeStamp",current_timestamp())
+sourceDataFrame = sourceDataFrame.withColumn("_DLCleansedZoneTimeStamp",current_timestamp()) \
+                                 .withColumn("_RecordStart",current_timestamp()) \
+                                 .withColumn("_RecordEnd",to_timestamp(lit("9999-12-31"), "yyyy-MM-dd"))
 
 # HANDLE SAP ISU, SAP CRM & SAP SLT DATA
 rawDataFrame = sourceDataFrame
