@@ -4,12 +4,18 @@ parameters:
   - name: environment
     displayName:  "environment"
     type: string
-    default: DEVELOP
+    default: dev
     values:
-     - DEVELOP
-     - TEST    
-     - PREPROD
-     - PROD
+     - dev
+     - test    
+     - preprod
+     - prod 
+    # default: DEVELOP
+    # values:
+    #  - DEVELOP
+    #  - TEST    
+    #  - PREPROD
+    #  - PROD
 
 trigger: none    
 pr: none
@@ -17,13 +23,14 @@ pr: none
 variables:
 - name: DevOpsDirectory
   value: DevOps/.pipelines/AzureResources
-- name: vgname
-  ${{ if eq(parameters.environment, 'DEVELOP') }}:
-    value: DEV
-  ${{ else }}:
-    value: ${{ parameters.environment }}
+# - name: vgname
+#   ${{ if eq(parameters.environment, 'DEVELOP') }}:
+#     value: DEV
+#   ${{ else }}:
+#     value: ${{ parameters.environment }}
 - group: 'VG-SHARED'
-- group: 'VG-${{variables.vgname}}'
+# - group: 'VG-${{variables.vgname}}'
+- group: 'VG-${{parameters.environment}}'
 
 pool:
   vmImage: windows-latest
