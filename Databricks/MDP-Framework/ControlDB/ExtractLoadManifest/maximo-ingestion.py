@@ -188,7 +188,7 @@ def nullify_cleansed_handler(table_list: list) -> None:
 
 # COMMAND ----------
 
-def update_extended_properties(table_list:list, property:str):
+def update_extended_properties(table_list:list, property:str) -> None:
     """update the ExtendedProperties values for gien set of tables."""
     for table in table_list:
         query = f"""
