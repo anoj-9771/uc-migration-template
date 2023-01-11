@@ -158,22 +158,20 @@ def update_business_key(table_list: list) -> None:
 
 def update_watermark_column(table_list: list, watermark_column: str = None) -> None:
     """update watermark column for given tables in extractloadmanifest table to null (default) or with the given value."""
-
-     for table in table_list:
+    for table in table_list:
         if watermark_column is None:
             ExecuteStatement (f"""
-                UPDATE controldb.dbo.extractloadmanifest
-                SET WatermarkColumn = null
-                WHERE SourceTableName = '{table}'
-                """)
+            UPDATE controldb.dbo.extractloadmanifest
+            SET WatermarkColumn = null
+            WHERE SourceTableName = '{table}'
+            """)
         else:
              ExecuteStatement (f"""
-                UPDATE controldb.dbo.extractloadmanifest
-                SET WatermarkColumn = {watermark_column}
-                WHERE SourceTableName = '{table}'
-                """)
-            
-        print (f"WatermarkColumn updated for table {table} to: {watermark_column}")
+             UPDATE controldb.dbo.extractloadmanifest
+             SET WatermarkColumn = {watermark_column}
+             WHERE SourceTableName = '{table}'
+             """)
+        print (f"WatermarkColumn updated for table {table} to: {watermark_column}")            
 
 # COMMAND ----------
 
@@ -187,6 +185,18 @@ def nullify_cleansed_handler(table_list: list) -> None:
                 """)
             
         print (f"CleansedHandler nullified for table: {table}")
+
+# COMMAND ----------
+
+def update_extended_properties(table_list:list, property:str) -> None:
+    """update the ExtendedProperties values for gien set of tables."""
+    for table in table_list:
+        query = f"""
+                UPDATE controldb.dbo.extractloadmanifest
+                SET ExtendedProperties = '{property}'
+                WHERE SourceTableName = '{table}'
+                """
+        ExecuteStatement (query)        
 
 # COMMAND ----------
 
@@ -223,6 +233,11 @@ else:
 
 # there are some tables where the watermarkColumn is not the default column ; ROWSTAMP. run code below to remove the watermarkColumn for those tables
 update_watermark_column(['SWCFMISWOMATPROCESSING','SWCCCAUDIT','SWCEXTFMISINVOICE','SWCINVOICESENT','SWCXLLOADPROCESSING'])
+
+# COMMAND ----------
+
+tables_with_duplicate_entries = ['labor', 'locoper', 'locations', 'longdescription']
+update_extended_properties(tables_with_duplicate_entries, '{"GroupOrderBy" : "rowStamp Desc"}')
 
 # COMMAND ----------
 
