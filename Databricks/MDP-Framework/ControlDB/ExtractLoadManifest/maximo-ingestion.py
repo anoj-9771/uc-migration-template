@@ -188,6 +188,18 @@ def nullify_cleansed_handler(table_list: list) -> None:
 
 # COMMAND ----------
 
+def update_extended_properties(table_list:list, property:str):
+    """update the ExtendedProperties values for gien set of tables."""
+    for table in table_list:
+        query = f"""
+                UPDATE controldb.dbo.extractloadmanifest
+                SET ExtendedProperties = '{property}'
+                WHERE SourceTableName = '{table}'
+                """
+        ExecuteStatement (query)        
+
+# COMMAND ----------
+
 ## identify tables that are yet to be setup
 pending_tables = []
 for table in list(sorted(set(tables))):
@@ -221,6 +233,11 @@ else:
 
 # there are some tables where the watermarkColumn is not the default column ; ROWSTAMP. run code below to remove the watermarkColumn for those tables
 update_watermark_column(['SWCFMISWOMATPROCESSING','SWCCCAUDIT','SWCEXTFMISINVOICE','SWCINVOICESENT','SWCXLLOADPROCESSING'])
+
+# COMMAND ----------
+
+tables_with_duplicate_entries = ['labor', 'locoper', 'locations', 'longdescription']
+update_extended_properties(tables_with_duplicate_entries, '{"GroupOrderBy" : "rowStamp Desc"}')
 
 # COMMAND ----------
 
