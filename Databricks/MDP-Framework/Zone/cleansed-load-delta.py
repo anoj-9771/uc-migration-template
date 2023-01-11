@@ -45,6 +45,7 @@ sourceDataFrame = sourceDataFrame.toDF(*(c.replace(' ', '_') for c in sourceData
 if(extendedProperties):
     extendedProperties = json.loads(extendedProperties)
     cleansedPath = extendedProperties.get("CleansedQuery")
+    groupOrderBy = extendedProperties.get("GroupOrderBy")
     if(cleansedPath):
         sourceDataFrame = spark.sql(cleansedPath.replace("{tableFqn}", sourceTableName))
     
@@ -52,7 +53,14 @@ if(extendedProperties):
 cleanseDataFrame = CleansedTransform(sourceDataFrame, sourceTableName.lower(), systemCode)
 cleanseDataFrame = cleanseDataFrame.withColumn("_DLCleansedZoneTimeStamp",current_timestamp()) \
                                    .withColumn("_RecordCurrent",lit('1')) \
-                                   .withColumn("_RecordDeleted",lit('0')) 
+                                   .withColumn("_RecordDeleted",lit('0')) \
+                                   .withColumn("_RecordStart",current_timestamp()) \
+                                   .withColumn("_RecordEnd",to_timestamp(lit("9999-12-31"), "yyyy-MM-dd"))
+
+# GET LATEST RECORD OF THE BUSINESS KEY
+if(groupOrderBy):
+    cleanseDataFrame.createOrReplaceTempView("vwCleanseDataFrame")
+    cleanseDataFrame = spark.sql(f"select * from (select vwCleanseDataFrame.*, row_number() OVER (Partition By {businessKey} order by {groupOrderBy}) row_num from vwCleanseDataFrame) where row_num = 1 ").drop("row_num")   
 
 tableName = f"{destinationSchema}_{destinationTableName}"
 CreateDeltaTable(cleanseDataFrame, f"cleansed.{tableName}", dataLakePath) if j.get("BusinessKeyColumn") is None else CreateOrMerge(cleanseDataFrame, f"cleansed.{tableName}", dataLakePath, j.get("BusinessKeyColumn"))
