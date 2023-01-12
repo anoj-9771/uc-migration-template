@@ -29,13 +29,7 @@ CREATE OR REPLACE VIEW curated_v2.viewBusinessPartner AS
          SELECT 
              businessPartnerNumber, 
              _effectiveFrom, 
-             cast(COALESCE(
-                 TIMESTAMP(
-                     DATE_ADD(
-                         LEAD(_effectiveFrom,1) OVER (PARTITION BY businessPartnerNumber ORDER BY _effectiveFrom),-1)
-                 ), 
-                 TIMESTAMP('9999-12-31')
-             ) as timestamp) AS _effectiveTo
+             cast(COALESCE(TIMESTAMP((LEAD(_effectiveFrom,1) OVER(PARTITION BY businessPartnerNumber ORDER BY _effectiveFrom)) - INTERVAL 1 seconds), '9999-12-31') as timestamp) AS _effectiveTo
          FROM dateDriverNonDelete
      ),
      dateDriverDelete AS (
@@ -56,13 +50,7 @@ CREATE OR REPLACE VIEW curated_v2.viewBusinessPartner AS
          SELECT 
              businessPartnerNumber, 
              _effectiveFrom, 
-             cast(COALESCE(
-                 TIMESTAMP(
-                     DATE_ADD(
-                         LEAD(_effectiveFrom,1) OVER (PARTITION BY businessPartnerNumber ORDER BY _effectiveFrom),-1)
-                 ), 
-                 TIMESTAMP('9999-12-31')
-             ) as timestamp) AS _effectiveTo
+             cast(COALESCE(TIMESTAMP((LEAD(_effectiveFrom,1) OVER(PARTITION BY businessPartnerNumber ORDER BY _effectiveFrom)) - INTERVAL 1 seconds), '9999-12-31') as timestamp) AS _effectiveTo
          FROM dateDriverDelete
      )
  
@@ -553,12 +541,7 @@ SELECT * FROM (
          SELECT 
              businessPartnerGroupNumber, 
              _effectiveFrom, 
-             cast(COALESCE(
-                 TIMESTAMP(
-                     DATE_ADD(
-                         LEAD(_effectiveFrom,1) OVER (PARTITION BY businessPartnerGroupNumber ORDER BY _effectiveFrom),-1)
-                 ), 
-             TIMESTAMP('9999-12-31')) as timestamp) AS _effectiveTo
+             cast(COALESCE(TIMESTAMP((LEAD(_effectiveFrom,1) OVER(PARTITION BY businessPartnerGroupNumber ORDER BY _effectiveFrom)) - INTERVAL 1 seconds), '9999-12-31') as timestamp) AS _effectiveTo
          from dateDriverNonDelete
      ),
      dateDriverDelete AS (
@@ -579,12 +562,7 @@ SELECT * FROM (
          SELECT 
              businessPartnerGroupNumber, 
              _effectiveFrom, 
-             cast(COALESCE(
-                 TIMESTAMP(
-                     DATE_ADD(
-                         LEAD(_effectiveFrom,1) OVER (PARTITION BY businessPartnerGroupNumber ORDER BY _effectiveFrom),-1)
-                 ), 
-             TIMESTAMP('9999-12-31')) as timestamp) AS _effectiveTo
+             cast(COALESCE(TIMESTAMP((LEAD(_effectiveFrom,1) OVER(PARTITION BY businessPartnerGroupNumber ORDER BY _effectiveFrom)) - INTERVAL 1 seconds), '9999-12-31') as timestamp) AS _effectiveTo
          from dateDriverDelete
      )
     

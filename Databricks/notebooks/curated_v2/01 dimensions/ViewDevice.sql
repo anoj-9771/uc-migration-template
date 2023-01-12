@@ -12,7 +12,7 @@ WITH dateDriverNonDelete AS
 ),
 effectiveDaterangesNonDelete AS 
 (
-    SELECT deviceNumber, _effectiveFrom, cast(COALESCE(TIMESTAMP(DATE_ADD(LEAD(_effectiveFrom,1) OVER(PARTITION BY deviceNumber ORDER BY _effectiveFrom), -1)), '9999-12-31') as timestamp) AS _effectiveTo
+    SELECT deviceNumber, _effectiveFrom, cast(COALESCE(TIMESTAMP((LEAD(_effectiveFrom,1) OVER(PARTITION BY deviceNumber ORDER BY _effectiveFrom)) - INTERVAL 1 seconds), '9999-12-31') as timestamp) AS _effectiveTo
     FROM dateDriverNonDelete
 ),
 dateDriverDelete AS
@@ -25,7 +25,7 @@ dateDriverDelete AS
 ),
 effectiveDaterangesDelete AS 
 (
-    SELECT deviceNumber, _effectiveFrom, cast(COALESCE(TIMESTAMP(DATE_ADD(LEAD(_effectiveFrom,1) OVER(PARTITION BY deviceNumber ORDER BY _effectiveFrom), -1)), '9999-12-31') as timestamp) AS _effectiveTo
+    SELECT deviceNumber, _effectiveFrom, cast(COALESCE(TIMESTAMP((LEAD(_effectiveFrom,1) OVER(PARTITION BY deviceNumber ORDER BY _effectiveFrom)) - INTERVAL 1 seconds), '9999-12-31') as timestamp) AS _effectiveTo
     FROM dateDriverDelete
 )
 SELECT * FROM 
@@ -105,8 +105,14 @@ SELECT
     ,effectiveDateRanges._effectiveTo
     ,dimdevice._recordDeleted as _dimDeviceRecordDeleted
     ,dimdevicehistory._recordDeleted as _dimDeviceHistoryRecordDeleted
+    ,dimdeviceinstallationhistory._recordDeleted as _dimDeviceInstallationHistoryRecordDeleted
+    ,dimregisterhistory._recordDeleted as _dimRegisterHistoryRecordDeleted
+    ,dimregisterinstallationhistory._recordDeleted as _dimRegisterInstallationHistoryRecordDeleted
     ,dimdevice._recordCurrent as _dimDeviceRecordCurrent
     ,dimdevicehistory._recordCurrent as _dimDeviceHistoryRecordCurrent
+    ,dimdeviceinstallationhistory._recordCurrent as _dimDeviceInstallationHistoryRecordCurrent
+    ,dimregisterhistory._recordCurrent as _dimRegisterHistoryRecordCurrent
+    ,dimregisterinstallationhistory._recordCurrent as _dimRegisterInstallationHistoryRecordCurrent
     ,CASE
       WHEN CURRENT_TIMESTAMP() BETWEEN effectiveDateRanges._effectiveFrom AND effectiveDateRanges._effectiveTo then 'Y'
       ELSE 'N'
@@ -217,8 +223,14 @@ SELECT
     ,effectiveDateRanges._effectiveTo
     ,dimdevice._recordDeleted as _dimDeviceRecordDeleted
     ,dimdevicehistory._recordDeleted as _dimDeviceHistoryRecordDeleted
+    ,dimdeviceinstallationhistory._recordDeleted as _dimDeviceInstallationHistoryRecordDeleted
+    ,dimregisterhistory._recordDeleted as _dimRegisterHistoryRecordDeleted
+    ,dimregisterinstallationhistory._recordDeleted as _dimRegisterInstallationHistoryRecordDeleted
     ,dimdevice._recordCurrent as _dimDeviceRecordCurrent
     ,dimdevicehistory._recordCurrent as _dimDeviceHistoryRecordCurrent
+    ,dimdeviceinstallationhistory._recordCurrent as _dimDeviceInstallationHistoryRecordCurrent
+    ,dimregisterhistory._recordCurrent as _dimRegisterHistoryRecordCurrent
+    ,dimregisterinstallationhistory._recordCurrent as _dimRegisterInstallationHistoryRecordCurrent
     ,CASE
       WHEN CURRENT_TIMESTAMP() BETWEEN effectiveDateRanges._effectiveFrom AND effectiveDateRanges._effectiveTo then 'Y'
       ELSE 'N'
