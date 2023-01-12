@@ -236,7 +236,7 @@ update_watermark_column(['SWCFMISWOMATPROCESSING','SWCCCAUDIT','SWCEXTFMISINVOIC
 
 # COMMAND ----------
 
-tables_with_duplicate_entries = ['labor', 'locoper', 'locations', 'longdescription']
+tables_with_duplicate_entries = ['labor', 'locoper', 'locations', 'longdescription', 'jobplan', 'assetspec']
 update_extended_properties(tables_with_duplicate_entries, '{"GroupOrderBy" : "rowStamp Desc"}')
 
 # COMMAND ----------
