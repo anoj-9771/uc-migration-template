@@ -105,8 +105,14 @@ SELECT
     ,effectiveDateRanges._effectiveTo
     ,dimdevice._recordDeleted as _dimDeviceRecordDeleted
     ,dimdevicehistory._recordDeleted as _dimDeviceHistoryRecordDeleted
+    ,dimdeviceinstallationhistory._recordDeleted as _dimDeviceInstallationHistoryRecordDeleted
+    ,dimregisterhistory._recordDeleted as _dimRegisterHistoryRecordDeleted
+    ,dimregisterinstallationhistory._recordDeleted as _dimRegisterInstallationHistoryRecordDeleted
     ,dimdevice._recordCurrent as _dimDeviceRecordCurrent
     ,dimdevicehistory._recordCurrent as _dimDeviceHistoryRecordCurrent
+    ,dimdeviceinstallationhistory._recordCurrent as _dimDeviceInstallationHistoryRecordCurrent
+    ,dimregisterhistory._recordCurrent as _dimRegisterHistoryRecordCurrent
+    ,dimregisterinstallationhistory._recordCurrent as _dimRegisterInstallationHistoryRecordCurrent
     ,CASE
       WHEN CURRENT_TIMESTAMP() BETWEEN effectiveDateRanges._effectiveFrom AND effectiveDateRanges._effectiveTo then 'Y'
       ELSE 'N'
@@ -217,8 +223,14 @@ SELECT
     ,effectiveDateRanges._effectiveTo
     ,dimdevice._recordDeleted as _dimDeviceRecordDeleted
     ,dimdevicehistory._recordDeleted as _dimDeviceHistoryRecordDeleted
+    ,dimdeviceinstallationhistory._recordDeleted as _dimDeviceInstallationHistoryRecordDeleted
+    ,dimregisterhistory._recordDeleted as _dimRegisterHistoryRecordDeleted
+    ,dimregisterinstallationhistory._recordDeleted as _dimRegisterInstallationHistoryRecordDeleted
     ,dimdevice._recordCurrent as _dimDeviceRecordCurrent
     ,dimdevicehistory._recordCurrent as _dimDeviceHistoryRecordCurrent
+    ,dimdeviceinstallationhistory._recordCurrent as _dimDeviceInstallationHistoryRecordCurrent
+    ,dimregisterhistory._recordCurrent as _dimRegisterHistoryRecordCurrent
+    ,dimregisterinstallationhistory._recordCurrent as _dimRegisterInstallationHistoryRecordCurrent
     ,CASE
       WHEN CURRENT_TIMESTAMP() BETWEEN effectiveDateRanges._effectiveFrom AND effectiveDateRanges._effectiveTo then 'Y'
       ELSE 'N'
