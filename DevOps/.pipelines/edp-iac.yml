@@ -10,12 +10,6 @@ parameters:
      - test    
      - preprod
      - prod 
-    # default: DEVELOP
-    # values:
-    #  - DEVELOP
-    #  - TEST    
-    #  - PREPROD
-    #  - PROD
 
 trigger: none    
 pr: none
@@ -23,13 +17,7 @@ pr: none
 variables:
 - name: DevOpsDirectory
   value: DevOps/.pipelines/AzureResources
-# - name: vgname
-#   ${{ if eq(parameters.environment, 'DEVELOP') }}:
-#     value: DEV
-#   ${{ else }}:
-#     value: ${{ parameters.environment }}
 - group: 'VG-SHARED'
-# - group: 'VG-${{variables.vgname}}'
 - group: 'VG-${{parameters.environment}}'
 
 pool:
@@ -57,6 +45,6 @@ stages:
                   location: $(location)
                   templateLocation: 'Linked artifact'
                   csmFile: '$(DevOpsDirectory)/alerts/templates/alerts.bicep'
-                  csmParametersFile: '$(DevOpsDirectory)/parameters/${{parameters.environment}}/alerts.parameters.json'
+                  overrideParameters: '-environment ${{parameters.environment}} -program $(program) -dataFactoryName $(dataFactoryName) -emailForAlerts $(emailForAlerts)'
                   deploymentMode: 'Incremental'
                   deploymentOutputs: 'armOutputs'
