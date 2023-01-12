@@ -2,6 +2,7 @@ param environment string
 param program string
 param dataFactoryName string
 param emailForAlerts string
+param enableAlerts bool
 
 var increment = 1
 var incrementStr = padLeft(increment, 2, '0')
@@ -34,7 +35,7 @@ resource environment_adf_trigger_failure_alert 'microsoft.insights/metricalerts@
   properties: {
     description: 'This alert goes off when there are failed activities in ADF'
     severity: 1
-    enabled: true
+    enabled: enableAlerts
     scopes: [
       resourceId('Microsoft.DataFactory/factories', dataFactoryName)
     ]
