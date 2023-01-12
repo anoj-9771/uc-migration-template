@@ -17,12 +17,7 @@ WITH dateDriverNonDelete AS (
          SELECT 
              contractAccountNumber, 
              _effectiveFrom, 
-             cast(COALESCE(
-                 TIMESTAMP(
-                     DATE_ADD(
-                         LEAD(_effectiveFrom,1) OVER (PARTITION BY contractAccountNumber ORDER BY _effectiveFrom),-1)
-                 ), 
-             TIMESTAMP('9999-12-31')) as timestamp) AS _effectiveTo
+             cast(COALESCE(TIMESTAMP((LEAD(_effectiveFrom,1) OVER(PARTITION BY contractAccountNumber ORDER BY _effectiveFrom)) - INTERVAL 1 seconds), '9999-12-31') as timestamp) AS _effectiveTo
          from dateDriverNonDelete
      ),
      dateDriverDelete AS (
@@ -40,12 +35,7 @@ WITH dateDriverNonDelete AS (
          SELECT 
              contractAccountNumber, 
              _effectiveFrom, 
-             cast(COALESCE(
-                 TIMESTAMP(
-                     DATE_ADD(
-                         LEAD(_effectiveFrom,1) OVER (PARTITION BY contractAccountNumber ORDER BY _effectiveFrom),-1)
-                 ), 
-             TIMESTAMP('9999-12-31')) as timestamp) AS _effectiveTo
+             cast(COALESCE(TIMESTAMP((LEAD(_effectiveFrom,1) OVER(PARTITION BY contractAccountNumber ORDER BY _effectiveFrom)) - INTERVAL 1 seconds), '9999-12-31') as timestamp) AS _effectiveTo
          from dateDriverDelete
      )
 SELECT * FROM 

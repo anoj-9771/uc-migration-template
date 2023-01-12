@@ -12,7 +12,7 @@ WITH dateDriverNonDelete AS
 ),
 effectiveDaterangesNonDelete AS 
 (
-    SELECT contractId, _effectiveFrom, cast(COALESCE(TIMESTAMP(DATE_ADD(LEAD(_effectiveFrom,1) OVER(PARTITION BY contractId ORDER BY _effectiveFrom), -1)), TIMESTAMP('9999-12-31')) as timestamp) AS _effectiveTo
+    SELECT contractId, _effectiveFrom, cast(COALESCE(TIMESTAMP((LEAD(_effectiveFrom,1) OVER(PARTITION BY contractId ORDER BY _effectiveFrom)) - INTERVAL 1 seconds), '9999-12-31') as timestamp) AS _effectiveTo
     FROM dateDriverNonDelete
 ),
 dateDriverDelete AS
@@ -25,7 +25,7 @@ dateDriverDelete AS
 ),
 effectiveDaterangesDelete AS 
 (
-    SELECT contractId, _effectiveFrom, cast(COALESCE(TIMESTAMP(DATE_ADD(LEAD(_effectiveFrom,1) OVER(PARTITION BY contractId ORDER BY _effectiveFrom), -1)), TIMESTAMP('9999-12-31')) as timestamp) AS _effectiveTo
+    SELECT contractId, _effectiveFrom, cast(COALESCE(TIMESTAMP((LEAD(_effectiveFrom,1) OVER(PARTITION BY contractId ORDER BY _effectiveFrom)) - INTERVAL 1 seconds), '9999-12-31') as timestamp) AS _effectiveTo
     FROM dateDriverDelete
 )
 SELECT * FROM 
