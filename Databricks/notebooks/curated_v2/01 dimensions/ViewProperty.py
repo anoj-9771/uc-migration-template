@@ -15,7 +15,7 @@
 # MAGIC ),
 # MAGIC effectiveDaterangesNonDelete as 
 # MAGIC (
-# MAGIC 	select propertyNumber, _effectiveFrom, cast(coalesce(timestamp(date_add(lead(_effectiveFrom,1) over(partition by propertyNumber order by _effectiveFrom), -1)), '9999-12-31') as timestamp) as _effectiveTo
+# MAGIC 	select propertyNumber, _effectiveFrom, cast(COALESCE(TIMESTAMP((LEAD(_effectiveFrom,1) OVER(PARTITION BY propertyNumber ORDER BY _effectiveFrom)) - INTERVAL 1 seconds), '9999-12-31') as timestamp) AS _effectiveTo
 # MAGIC 	from dateDriverNonDelete 
 # MAGIC ),
 # MAGIC dateDriverDelete as
@@ -30,7 +30,7 @@
 # MAGIC ),
 # MAGIC effectiveDaterangesDelete as 
 # MAGIC (
-# MAGIC 	select propertyNumber, _effectiveFrom, cast(coalesce(timestamp(date_add(lead(_effectiveFrom,1) over(partition by propertyNumber order by _effectiveFrom), -1)), '9999-12-31') as timestamp) as _effectiveTo
+# MAGIC 	select propertyNumber, _effectiveFrom, cast(COALESCE(TIMESTAMP((LEAD(_effectiveFrom,1) OVER(PARTITION BY propertyNumber ORDER BY _effectiveFrom)) - INTERVAL 1 seconds), '9999-12-31') as timestamp) AS _effectiveTo
 # MAGIC 	from dateDriverDelete 
 # MAGIC )
 # MAGIC select * from (

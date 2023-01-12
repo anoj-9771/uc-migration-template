@@ -23,7 +23,7 @@ effectiveDaterangesNonDelete as
 	select 
 		installationNumber, 
 		_effectiveFrom, 
-		cast(coalesce(timestamp(date_add(lead(_effectiveFrom,1) over(partition by installationNumber order by _effectiveFrom), -1)), '9999-12-31 00:00:00') as timestamp) as _effectiveTo
+		cast(COALESCE(TIMESTAMP((LEAD(_effectiveFrom,1) OVER(PARTITION BY installationNumber ORDER BY _effectiveFrom)) - INTERVAL 1 seconds), '9999-12-31') as timestamp) AS _effectiveTo
 	from dateDriverNonDelete 
 ),
 dateDriverDelete as
@@ -39,7 +39,7 @@ effectiveDaterangesDelete as
 	select 
 		installationNumber, 
 		_effectiveFrom, 
-		cast(coalesce(timestamp(date_add(lead(_effectiveFrom,1) over(partition by installationNumber order by _effectiveFrom), -1)), '9999-12-31 00:00:00') as timestamp) as _effectiveTo
+		cast(COALESCE(TIMESTAMP((LEAD(_effectiveFrom,1) OVER(PARTITION BY installationNumber ORDER BY _effectiveFrom)) - INTERVAL 1 seconds), '9999-12-31') as timestamp) AS _effectiveTo
 	from dateDriverDelete 
 )
 SELECT * FROM
