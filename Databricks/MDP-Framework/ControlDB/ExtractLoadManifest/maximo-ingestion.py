@@ -1,4 +1,8 @@
 # Databricks notebook source
+import json
+
+# COMMAND ----------
+
 # MAGIC %run ../common-controldb
 
 # COMMAND ----------
@@ -14,9 +18,30 @@
 # COMMAND ----------
 
 ## list the maximo tables here
-tables = ['A_LOCATIONSPEC','ADDRESS','ALNDOMAIN','ASSET','ASSETATTRIBUTE','ASSETMETER','ASSETSPEC', 'CLASSIFICATION','CLASSSTRUCTURE','CONTRACT','DOCLINKS','FAILURECODE','FAILUREREPORT','FINCNTRL','JOBLABOR','JOBPLAN','LABOR','LABTRANS','LOCANCESTOR','LOCATIONMETER','LOCATIONS','LOCATIONSPEC','LOCHIERARCHY','LOCOPER','LONGDESCRIPTION','MATUSETRANS','MAXINTMSGTRK','MULTIASSETLOCCI','PERSON', 'PERSONGROUP', 'PERSONGROUPTEAM', 'PHONE','PM','RELATEDRECORD','ROUTES','ROUTE_STOP','SERVRECTRANS','SWCBUSSTATUS','SWCHIERARCHY','SWCLGA','SWCPROBLEMTYPE','SWCWOEXT','TICKET','TOOLTRANS','WOANCESTOR','WORKLOG','WORKORDER','WORKORDERSPEC','WOSTATUS', 'SYNONYMDOMAIN', 'A_ASSETSPEC', 'A_ASSET', 'A_FAILUREREPORT', 'A_GROUPUSER', 'A_JOBPLAN', 'A_INVENTORY', 'A_LONGDESCRIPTION', 'A_LOCOPER', 'A_PM', 'A_ROUTE_STOP', 'A_PO', 'A_SWCCLAIM', 'A_ROUTES', 'A_SWCCONACCESS', 'A_SWCCRSECURITY', 'A_SWCVALIDATIONRULE']
+mapping_df = spark.read.option('header', True).csv('/mnt/datalake-raw/cleansed_csv/maximo_cleansed.csv')
+tables = (
+    mapping_df
+    .withColumnRenamed('Maximo Extractor', 'MaximoExtractor')
+    .select('MaximoExtractor')
+    .filter("MaximoExtractor is Not Null")   #to avoid blank data coming in and causing issues when sorting
+    .distinct()
+    .rdd.map(lambda x: x.MaximoExtractor)
+    .collect()
+)
+
+# tables = ['A_LOCATIONSPEC','ADDRESS','ALNDOMAIN','ASSET','ASSETATTRIBUTE','ASSETMETER','ASSETSPEC', 'CLASSIFICATION','CLASSSTRUCTURE','CONTRACT','DOCLINKS','FAILURECODE','FAILUREREPORT','FINCNTRL','JOBLABOR','JOBPLAN','LABOR','LABTRANS','LOCANCESTOR','LOCATIONMETER','LOCATIONS','LOCATIONSPEC','LOCHIERARCHY','LOCOPER','LONGDESCRIPTION','MATUSETRANS','MAXINTMSGTRK','MULTIASSETLOCCI','PERSON', 'PERSONGROUP', 'PERSONGROUPTEAM', 'PHONE','PM','RELATEDRECORD','ROUTES','ROUTE_STOP','SERVRECTRANS','SWCBUSSTATUS','SWCHIERARCHY','SWCLGA','SWCPROBLEMTYPE','SWCWOEXT','TICKET','TOOLTRANS','WOANCESTOR','WORKLOG','WORKORDER','WORKORDERSPEC','WOSTATUS', 'SYNONYMDOMAIN', 'A_ASSETSPEC', 'A_ASSET', 'A_FAILUREREPORT', 'A_GROUPUSER', 'A_JOBPLAN', 'A_INVENTORY', 'A_LONGDESCRIPTION', 'A_LOCOPER', 'A_PM', 'A_ROUTE_STOP', 'A_PO', 'A_SWCCLAIM', 'A_ROUTES', 'A_SWCCONACCESS', 'A_SWCCRSECURITY', 'A_SWCVALIDATIONRULE']
 
 tables = sorted(set(tables)) # to get rid of duplicates and make the list alphabetical (so it's easier to read)
+
+# COMMAND ----------
+
+def get_env_name():
+    """get the name of the current environment"""
+    cluster_config = spark.conf.get("spark.databricks.clusterUsageTags.clusterAllTags")
+    cluster_config = json.loads(cluster_config)
+    for x in cluster_config:
+        if x['key'] == 'Environment':
+            return (x['value'])
 
 # COMMAND ----------
 
@@ -30,6 +55,10 @@ def get_business_key(table_name: str) -> list or None:
          .filter(mapping_df.RawTable == f'raw.maximo_{table_name.lower()}')
          .toPandas()['CleansedColumnName'].tolist()          
             )
+        if len(business_key) > 0:
+            businesss_key = business_key
+        else:
+            business_key = None
     except Exception as e:
         print (f"error {e} occurred")
         business_key = None
@@ -88,7 +117,7 @@ def inject_to_controldb() -> None or str:
 
 # COMMAND ----------
 
-def update_controldb(table_list: list) -> None:
+def enable_records(table_list: list) -> None:
     """update extractloadmanifest table entries for given tables; mark Enabled as 'true' and BusinessKeyColumn to output of get_business_key function. also mark all the other tables as disabled."""
     ExecuteStatement("""
     UPDATE controldb.dbo.extractloadmanifest
@@ -97,22 +126,77 @@ def update_controldb(table_list: list) -> None:
     """)
     
     for table in table_list:
+        ExecuteStatement (f"""
+                UPDATE controldb.dbo.extractloadmanifest
+                SET Enabled = 'true'
+                WHERE SourceTableName = '{table}'
+                """)
+
+# COMMAND ----------
+
+def update_business_key(table_list: list) -> None:
+    """update extractloadmanifest table entries for given tables; mark Enabled as 'true' and BusinessKeyColumn to output of get_business_key function. also mark all the other tables as disabled."""
+
+    for table in table_list:
         business_key = get_business_key(f'{table}') 
         if get_business_key(table) != None:
              ExecuteStatement (f"""
                 UPDATE controldb.dbo.extractloadmanifest
-                SET Enabled = 'true', BusinessKeyColumn = '{','.join(business_key)}'
+                SET BusinessKeyColumn = '{','.join(business_key)}'
                 WHERE SourceTableName = '{table}'
                 """)
         else:
             ExecuteStatement (f"""
                 UPDATE controldb.dbo.extractloadmanifest
-                SET Enabled = 'true', BusinessKeyColumn = null
+                SET BusinessKeyColumn = null
                 WHERE SourceTableName = '{table}'
                 """)
             
-        print (table, business_key)
+        print (f"Business key updated for table {table} to: {business_key}")
 
+# COMMAND ----------
+
+def update_watermark_column(table_list: list, watermark_column: str = None) -> None:
+    """update watermark column for given tables in extractloadmanifest table to null (default) or with the given value."""
+    for table in table_list:
+        if watermark_column is None:
+            ExecuteStatement (f"""
+            UPDATE controldb.dbo.extractloadmanifest
+            SET WatermarkColumn = null
+            WHERE SourceTableName = '{table}'
+            """)
+        else:
+             ExecuteStatement (f"""
+             UPDATE controldb.dbo.extractloadmanifest
+             SET WatermarkColumn = {watermark_column}
+             WHERE SourceTableName = '{table}'
+             """)
+        print (f"WatermarkColumn updated for table {table} to: {watermark_column}")            
+
+# COMMAND ----------
+
+def nullify_cleansed_handler(table_list: list) -> None:
+    """null the CleansedHandler values for given set of tables."""
+    for table in table_list:
+        ExecuteStatement (f"""
+                UPDATE controldb.dbo.extractloadmanifest
+                SET CleansedHandler = null
+                WHERE SourceTableName = '{table}'
+                """)
+            
+        print (f"CleansedHandler nullified for table: {table}")
+
+# COMMAND ----------
+
+def update_extended_properties(table_list:list, property:str) -> None:
+    """update the ExtendedProperties values for gien set of tables."""
+    for table in table_list:
+        query = f"""
+                UPDATE controldb.dbo.extractloadmanifest
+                SET ExtendedProperties = '{property}'
+                WHERE SourceTableName = '{table}'
+                """
+        ExecuteStatement (query)        
 
 # COMMAND ----------
 
@@ -126,13 +210,8 @@ for table in list(sorted(set(tables))):
         print (f'Table setup not complete for {table}')
         pending_tables.append(table)
 
-print (f'The number of tables pending : {len(pending_tables)}. \n {pending_tables}')
+print (f'The number of tables pending : {len(pending_tables)}/{len(tables)}. \n {pending_tables}')
 
-# COMMAND ----------
-
-# pending_tables.remove('A_LOCATIONSPEC')
-# pending_tables.remove('A_SWCCRSECURITY')
-# pending_tables.remove('A_SWCVALIDATIONRULE')
 
 # COMMAND ----------
 
@@ -140,16 +219,42 @@ inject_to_controldb()
 
 # COMMAND ----------
 
-update_controldb(pending_tables)
+# update the business_key_columns in controldb_extractloadmanifest for the pending_tables
+update_business_key(pending_tables)
 
 # COMMAND ----------
 
+if get_env_name == 'PRD':
+    nullify_cleansed_handler(pending_tables)
+else:
+    pass
+
+# COMMAND ----------
+
+# there are some tables where the watermarkColumn is not the default column ; ROWSTAMP. run code below to remove the watermarkColumn for those tables
+update_watermark_column(['SWCFMISWOMATPROCESSING','SWCCCAUDIT','SWCEXTFMISINVOICE','SWCINVOICESENT','SWCXLLOADPROCESSING'])
+
+# COMMAND ----------
+
+tables_with_duplicate_entries = ['labor', 'locoper', 'locations', 'longdescription', 'jobplan', 'assetspec']
+update_extended_properties(tables_with_duplicate_entries, '{"GroupOrderBy" : "rowStamp Desc"}')
+
+# COMMAND ----------
+
+# enable the pending tables in controldb_extractloadmanifest. 
+enable_records(pending_tables)
+
+# COMMAND ----------
+
+# check what tables have been enabled in controldb_extractloadmanifest
 (
     spark.table("controldb.dbo_extractloadmanifest")
     .filter("SourceSchema = 'maximo'")
     .filter("Enabled = 'true'")
     .display()
 )
+
+# COMMAND ----------
 
 # # this section can be uncommented out and run in order to check the status of the tables (once the pipelines have been run)
 # for table_name in pending_tables:
@@ -159,11 +264,3 @@ update_controldb(pending_tables)
 #         spark.table(f'cleansed.maximo_{table_name}').limit(5).display()
 #     except Exception as e:
 #         print (f'error occurred {e}')
-
-
-# COMMAND ----------
-
-# for table in spark.catalog.listTables('cleansed'):
-#     if 'maximo' in table.name:
-#         print (table.name)
-#         spark.table(f'cleansed.{table.name}').display()
