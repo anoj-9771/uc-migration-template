@@ -13,7 +13,7 @@ def getPropertyLot():
                                         lotType, 
                                         lotNumber,
                                         sectionNumber,
-                                        propertyNumber,
+                                        isu_0uc_connobj_attr_2.propertyNumber,
                                         CAST(a.latitude AS DECIMAL(9,6)) as latitude,
                                         CAST(a.longitude AS DECIMAL(9,6)) as longitude,
                                         _RecordDeleted from {ADS_DATABASE_CLEANSED}.isu_0uc_connobj_attr_2 
