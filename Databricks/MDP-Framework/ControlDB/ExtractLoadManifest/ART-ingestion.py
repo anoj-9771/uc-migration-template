@@ -4,6 +4,8 @@
 # COMMAND ----------
 
 SYSTEM_CODE = "ART"
+j = json.loads(spark.conf.get("spark.databricks.clusterUsageTags.clusterAllTags"))
+environment = [x['value'] for x in j if x['key'] == 'Environment'][0]
 
 # COMMAND ----------
 
@@ -23,8 +25,8 @@ df = spark.sql("""
     SELECT 'ART_CONCEPT' SourceTableName, NULL SourceQuery, * FROM _Base
     UNION 
     SELECT 'ART_CONCEPT_ASSET' SourceTableName, NULL SourceQuery, * FROM _Base
-    --UNION 
-    --SELECT 'ART_CONCEPT_COMMENT' SourceTableName, NULL SourceQuery, * FROM _Base
+    UNION 
+    SELECT 'ART_CONCEPT_COMMENT' SourceTableName, NULL SourceQuery, * FROM _Base
     UNION 
     SELECT 'ART_PROJECT_CASHFLOW' SourceTableName, NULL SourceQuery, * FROM _Base
     UNION 
@@ -84,6 +86,14 @@ def ConfigureManifest(df):
     when 'RENEWALS_CONCEPT_ASSET' then 'conceptId,locationId'
     end
     where systemCode = 'art'
+    """)
+    
+    #the below table does not exist in dev and test environment. Only enable it in preprod and prod.
+    ExecuteStatement(f"""
+    update dbo.extractLoadManifest set
+    enabled = iif('{environment}' in ('preprod','prod'),1,0)
+    where systemCode = 'art'
+    and sourceTableName = 'ART_CONCEPT_COMMENT'
     """)
     
     # ------------- ShowConfig ----------------- #
