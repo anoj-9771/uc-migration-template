@@ -142,3 +142,33 @@ businessKeyColumn = 'recordId'
 where systemCode in ('Qualtricsref','Qualtricsdata')
 and sourceTableName like '%responses'
 """)      
+
+# COMMAND ----------
+
+#ADD RECORD INTO CONFIG TABLE TO MASK COLUMNS IN CLEANSED-LOAD-QUALTRICS
+#Manually run this for environments (dev,test,preprod) that needs masking. 
+# ExecuteStatement("""
+# merge into dbo.config as target using(
+#     select
+#         keyGroup = 'maskColumns'
+#         ,[key] = 'Qualtrics'
+#         ,value = 1
+# ) as source on
+#     target.keyGroup = source.keyGroup
+#     and target.[key] = source.[key]
+# when not matched then insert(
+#     keyGroup
+#     ,[key]
+#     ,value
+#     ,createdDTS
+# )
+# values(
+#     source.keyGroup
+#     ,source.[key]
+#     ,source.value
+#     ,CONVERT(DATETIME, CONVERT(DATETIMEOFFSET, GETDATE()) AT TIME ZONE 'AUS Eastern Standard Time')
+# )
+# when matched then update
+#     set value = source.value
+# ;
+# """)
