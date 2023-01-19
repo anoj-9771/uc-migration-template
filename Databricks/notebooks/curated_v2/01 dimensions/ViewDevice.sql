@@ -147,6 +147,7 @@ LEFT OUTER JOIN curated_v2.dimRegisterInstallationHistory dimregisterinstallatio
 LEFT OUTER JOIN cleansed.isu_0UCINSTALLA_ATTR_2 installAttr
     ON installAttr.installationNumber = dimdeviceinstallationhistory.installationNumber
     AND installAttr._recordDeleted = 0
+WHERE dimregisterinstallationhistory.registerNotRelevantToBilling = 'N'
 UNION
 SELECT
      dimdevice.deviceSK
@@ -265,6 +266,7 @@ LEFT OUTER JOIN curated_v2.dimRegisterInstallationHistory dimregisterinstallatio
 LEFT OUTER JOIN cleansed.isu_0UCINSTALLA_ATTR_2 installAttr
     ON installAttr.installationNumber = dimdeviceinstallationhistory.installationNumber
     AND installAttr._recordDeleted = 1
+WHERE dimregisterinstallationhistory.registerNotRelevantToBilling = 'N'
 )
 ORDER BY _effectiveFrom
 
