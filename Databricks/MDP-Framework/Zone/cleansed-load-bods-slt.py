@@ -45,6 +45,10 @@ except Exception as e:
     if "Table or view not found" in str(e):
         dbutils.notebook.exit({"CleansedSinkCount": 0})
 
+<<<<<<< HEAD
+=======
+sourceDataFrame = spark.table(sourceTableName).where(f"_DLRawZoneTimeStamp > '{lastLoadTimeStamp}'")
+>>>>>>> a3155080 (Simplify handling of logic for SLT and non-SLT modules)
 if sourceDataFrame.count() <= 0:
     try:
         CleansedSinkCount = spark.table(cleansedTableName).count()
