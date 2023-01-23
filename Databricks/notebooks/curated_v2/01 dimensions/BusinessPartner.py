@@ -228,6 +228,8 @@ df_bpartner_isu = (
         "_naturalPersonFlag",
         "naturalPersonFlag"
     )
+    # --- Replace NULL with 'N' --- #
+    .fillna("N",["warWidowFlag","deceasedFlag","disabilityFlag","goldCardHolderFlag","naturalPersonFlag","eligibilityFlag","pensionConcessionCardFlag"])
     .drop_duplicates()
 )
 
