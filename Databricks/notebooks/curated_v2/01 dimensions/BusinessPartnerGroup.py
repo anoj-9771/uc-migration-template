@@ -190,6 +190,8 @@ df_bpartner_isu = (
         "crm.machineOffReasonCode",
         "crm.machineOffReason"
     )
+    # --- Replace NULL with 'N' --- #
+    .fillna("N",["paymentAssistSchemeFlag","billAssistFlag","warWidowFlag","kidneyDialysisFlag"])  
     .drop_duplicates()
 )
 
