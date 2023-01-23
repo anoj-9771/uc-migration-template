@@ -114,7 +114,13 @@ SELECT
     ,dimregisterhistory._recordCurrent as _dimRegisterHistoryRecordCurrent
     ,dimregisterinstallationhistory._recordCurrent as _dimRegisterInstallationHistoryRecordCurrent
     ,CASE
-      WHEN CURRENT_TIMESTAMP() BETWEEN effectiveDateRanges._effectiveFrom AND effectiveDateRanges._effectiveTo then 'Y'
+      WHEN CURRENT_TIMESTAMP() BETWEEN effectiveDateRanges._effectiveFrom AND effectiveDateRanges._effectiveTo and    
+      (dimdeviceinstallationhistory.validToDate is null or CURRENT_TIMESTAMP() BETWEEN dimdeviceinstallationhistory.validFromDate and  
+                     dimdeviceinstallationhistory.validToDate) and 
+      (dimregisterhistory.validToDate is null or CURRENT_TIMESTAMP() BETWEEN dimregisterhistory.validFromDate and 
+                      dimregisterhistory.validToDate)  and
+      (dimregisterinstallationhistory.validToDate is null or CURRENT_TIMESTAMP() BETWEEN dimregisterinstallationhistory.validFromDate and 
+                       dimregisterinstallationhistory.validToDate) then 'Y'
       ELSE 'N'
       END AS currentRecordFlag
 FROM effectiveDaterangesNonDelete as effectiveDateRanges
@@ -233,7 +239,13 @@ SELECT
     ,dimregisterhistory._recordCurrent as _dimRegisterHistoryRecordCurrent
     ,dimregisterinstallationhistory._recordCurrent as _dimRegisterInstallationHistoryRecordCurrent
     ,CASE
-      WHEN CURRENT_TIMESTAMP() BETWEEN effectiveDateRanges._effectiveFrom AND effectiveDateRanges._effectiveTo then 'Y'
+      WHEN CURRENT_TIMESTAMP() BETWEEN effectiveDateRanges._effectiveFrom AND effectiveDateRanges._effectiveTo and    
+      (dimdeviceinstallationhistory.validToDate is null or CURRENT_TIMESTAMP() BETWEEN dimdeviceinstallationhistory.validFromDate and  
+                     dimdeviceinstallationhistory.validToDate) and 
+      (dimregisterhistory.validToDate is null or CURRENT_TIMESTAMP() BETWEEN dimregisterhistory.validFromDate and 
+                      dimregisterhistory.validToDate)  and
+      (dimregisterinstallationhistory.validToDate is null or CURRENT_TIMESTAMP() BETWEEN dimregisterinstallationhistory.validFromDate and 
+                       dimregisterinstallationhistory.validToDate) then 'Y'
       ELSE 'N'
       END AS currentRecordFlag
 FROM effectiveDaterangesDelete as effectiveDateRanges
