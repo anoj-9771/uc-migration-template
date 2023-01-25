@@ -226,7 +226,8 @@ def getLocation():
     dummyDimRecDf = spark.createDataFrame(["-1"], "string").toDF("locationId")
     
     ISULocationDf = ISULocationDf.unionByName(dummyDimRecDf, allowMissingColumns = True)
-    locationDf = ISULocationDf.unionByName(ACCESSDf, allowMissingColumns = True)
+#     locationDf = ISULocationDf.unionByName(ACCESSDf, allowMissingColumns = True)
+    locationDf = ISULocationDf
 
     #4.SELECT / TRANSFORM
     df = locationDf.selectExpr( \
