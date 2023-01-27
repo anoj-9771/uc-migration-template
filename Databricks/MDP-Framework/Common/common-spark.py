@@ -10,26 +10,32 @@ def GetDeltaTablePath(tableFqn):
 
 # COMMAND ----------
 
-def CreateDeltaTable(dataFrame, targetTableFqn, dataLakePath):
-  dataLakePath = dataLakePath.lower()
-  dataFrame.write \
-    .format("delta") \
-    .option("mergeSchema", "true") \
-    .mode("overwrite") \
-    .save(dataLakePath)
-  spark.sql(f"CREATE TABLE IF NOT EXISTS {targetTableFqn} USING DELTA LOCATION \'{dataLakePath}\'")
+def CreateDeltaTable(dataFrame, targetTableFqn, dataLakePath, businessKeys = None):
+    dataFrame.write \
+             .format("delta") \
+             .option("mergeSchema", "true") \
+             .mode("overwrite") \
+             .save(dataLakePath)
+    CreateDeltaTableConstraints(targetTableFqn, dataLakePath, businessKeys)
 
 # COMMAND ----------
 
-def AppendDeltaTable(dataFrame, targetTableFqn, dataLakePath):
-  dataLakePath = dataLakePath.lower()
-  dataFrame.write \
-    .format("delta") \
-    .option("mergeSchema", "true") \
-    .mode("append") \
-    .save(dataLakePath)
-  if (not(TableExists(targetTableFqn))):
+def AppendDeltaTable(dataFrame, targetTableFqn, dataLakePath, businessKeys = None):
+    dataFrame.write \
+             .format("delta") \
+             .option("mergeSchema", "true") \
+             .mode("append") \
+             .save(dataLakePath)
+    if (not(TableExists(targetTableFqn))):
+        CreateDeltaTableConstraints(targetTableFqn, dataLakePath, businessKeys)
+
+# COMMAND ----------
+
+def CreateDeltaTableConstraints(targetTableFqn, dataLakePath, businessKeys = None):
     spark.sql(f"CREATE TABLE IF NOT EXISTS {targetTableFqn} USING DELTA LOCATION \'{dataLakePath}\'")
+    if businessKeys is not None:
+        for businessKey in businessKeys.split(","):
+            spark.sql(f"ALTER TABLE {targetTableFqn} ALTER COLUMN {businessKey} SET NOT NULL")
 
 # COMMAND ----------
 
