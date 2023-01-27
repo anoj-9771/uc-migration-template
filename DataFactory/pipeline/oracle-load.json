@@ -180,7 +180,13 @@
 							"type": "SetVariable",
 							"dependsOn": [
 								{
-									"activity": "low-high-watermark",
+									"activity": "set-high-watermark",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								},
+								{
+									"activity": "set-low-watermark",
 									"dependencyConditions": [
 										"Succeeded"
 									]
@@ -190,7 +196,7 @@
 							"typeProperties": {
 								"variableName": "QueryClause",
 								"value": {
-									"value": "@concat('WHERE ', variables('WatermarkColumn'),' >= ''', activity('low-high-watermark').output.firstRow.LowWatermark,''' AND ', variables('WatermarkColumn'),' <= ''', activity('low-high-watermark').output.firstRow.HighWatermark,'''')",
+									"value": "@if(equals(pipeline().parameters.task.LowWatermark,variables('HighWatermark')),coalesce(pipeline().parameters.task.QueryFilter, concat('WHERE ', variables('WatermarkColumn'),' > ', variables('LowWatermark'),' AND ', variables('WatermarkColumn'),' <= ', variables('HighWatermark'))) ,coalesce(pipeline().parameters.task.QueryFilter, concat('WHERE ', variables('WatermarkColumn'),' >= ', variables('LowWatermark'),' AND ', variables('WatermarkColumn'),' <= ', variables('HighWatermark'))) )",
 									"type": "Expression"
 								}
 							}
@@ -254,6 +260,82 @@
 										"value": "@{activity('low-high-watermark').output.firstRow.HighWatermark}",
 										"type": "Expression"
 									}
+								}
+							}
+						},
+						{
+							"name": "check-watermarks",
+							"type": "Script",
+							"dependsOn": [
+								{
+									"activity": "low-high-watermark",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"linkedServiceName": {
+								"referenceName": "LS-AzureSqlDatabase_Ctrldb",
+								"type": "LinkedServiceReference"
+							},
+							"typeProperties": {
+								"scripts": [
+									{
+										"type": "Query",
+										"text": {
+											"value": "@concat(\n    '\n    select \n        isnumeric(''',activity('low-high-watermark').output.firstRow.LowWatermark,''') as lowWaterMarkIsNumeric\n        ,isnumeric(''',activity('low-high-watermark').output.firstRow.HighWatermark,''') as highWaterMarkIsNumeric\n    '\n)",
+											"type": "Expression"
+										}
+									}
+								],
+								"scriptBlockExecutionTimeout": "02:00:00"
+							}
+						},
+						{
+							"name": "set-low-watermark",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "check-watermarks",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "LowWatermark",
+								"value": {
+									"value": "@if(\n    equals(\n        activity('check-watermarks').output.resultSets[0].rows[0].lowWatermarkIsNumeric,\n        1\n    ),\n    string(activity('low-high-watermark').output.firstRow.LowWatermark),\n    concat('''',activity('low-high-watermark').output.firstRow.LowWatermark,'''')\n)",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "set-high-watermark",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "check-watermarks",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "HighWatermark",
+								"value": {
+									"value": "@if(\n    equals(\n        activity('check-watermarks').output.resultSets[0].rows[0].highWatermarkIsNumeric,\n        1\n    ),\n    string(activity('low-high-watermark').output.firstRow.HighWatermark),\n    concat('''',activity('low-high-watermark').output.firstRow.HighWatermark,'''')\n)",
+									"type": "Expression"
 								}
 							}
 						}
@@ -626,6 +708,12 @@
 			},
 			"IsDelta": {
 				"type": "Boolean"
+			},
+			"HighWatermark": {
+				"type": "String"
+			},
+			"LowWatermark": {
+				"type": "String"
 			}
 		},
 		"folder": {
