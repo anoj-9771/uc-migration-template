@@ -247,20 +247,20 @@ def getProperty():
     #2.JOIN TABLES
     
     #3.UNION TABLES
-    df = spark.sql(f"""with propsFromACCESS as ( 
-                         select propertyNumber 
-                         from   ACCESS 
-                         minus 
-                         select propertyNumber 
-                         from   ISU) 
-                    select a.* 
-                    from   ACCESS a, 
-                           propsFromACCESS b 
-                    where  a.propertyNumber = b.propertyNumber 
-                    union all 
-                    select * 
-                    from   ISU""")
-    
+#     df = spark.sql(f"""with propsFromACCESS as ( 
+#                          select propertyNumber 
+#                          from   ACCESS 
+#                          minus 
+#                          select propertyNumber 
+#                          from   ISU) 
+#                     select a.* 
+#                     from   ACCESS a, 
+#                            propsFromACCESS b 
+#                     where  a.propertyNumber = b.propertyNumber 
+#                     union all 
+#                     select * 
+#                     from   ISU""")
+    df = sapisuDf
     dummyDimRecDf = spark.sql(f"""select waterNetworkSK as dummyDimSK, 'dimWaterNetwork_drinkingWater' as dimension from {ADS_DATABASE_CURATED_V2}.dimWaterNetwork where pressureArea='Unknown' and isPotableWaterNetwork='Y' 
                           union select waterNetworkSK as dummyDimSK, 'dimWaterNetwork_recycledWater' as dimension from {ADS_DATABASE_CURATED_V2}.dimWaterNetwork where supplyZone='Unknown' and isRecycledWaterNetwork='Y' 
                           union select sewerNetworkSK as dummyDimSK, 'dimSewerNetwork' as dimension from {ADS_DATABASE_CURATED_V2}.dimSewerNetwork where SCAMP='Unknown' 
