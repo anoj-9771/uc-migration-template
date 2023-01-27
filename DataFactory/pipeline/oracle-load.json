@@ -196,7 +196,7 @@
 							"typeProperties": {
 								"variableName": "QueryClause",
 								"value": {
-									"value": "@if(equals(pipeline().parameters.task.LowWatermark,variables('HighWatermark')),coalesce(pipeline().parameters.task.QueryFilter, concat('WHERE ', variables('WatermarkColumn'),' > ', variables('LowWatermark'),' AND ', variables('WatermarkColumn'),' <= ', variables('HighWatermark'))) ,coalesce(pipeline().parameters.task.QueryFilter, concat('WHERE ', variables('WatermarkColumn'),' >= ', variables('LowWatermark'),' AND ', variables('WatermarkColumn'),' <= ', variables('HighWatermark'))) )",
+									"value": "@if(equals(pipeline().parameters.task.LowWatermark,variables('HighWatermark')),concat('WHERE ', variables('WatermarkColumn'),' > ', variables('LowWatermark'),' AND ', variables('WatermarkColumn'),' <= ', variables('HighWatermark')) ,concat('WHERE ', variables('WatermarkColumn'),' >= ', variables('LowWatermark'),' AND ', variables('WatermarkColumn'),' <= ', variables('HighWatermark')) )",
 									"type": "Expression"
 								}
 							}
