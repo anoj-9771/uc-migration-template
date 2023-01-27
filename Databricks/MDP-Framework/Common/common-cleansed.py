@@ -9,13 +9,20 @@ defaultTransformTags = {
     ,"ltrim" : "ltrim($c$)"
     ,"rtrim" : "rtrim($c$)"
     ,"trim" : "trim($c$)"
+    ,"trimcoalesce": "coalesce(trim($c$),'')"
+    ,"trimcoalesceint": "coalesce(trim(cast($c$ as bigint)),'')"
+    ,"str-dd-MMM-yy-to-date" : "to_date(right(concat('0',$c$),9),'dd-MMM-yy')"
     ,"str-yyyy-mm-dd-to-date" : "to_date(trim($c$),'yyyy-MM-dd')"
-    ,"flag-x-yes-no" : "case WHEN $c$='X' then 'Yes' Else 'No' end "
-    ,"flag-x-true-false" : "case WHEN $c$='X' then 'True' Else 'False' end "
-    ,"flag-1or0-yes-no" : "case WHEN $c$='1' then 'Yes' when $c$='0' then 'No' end "
-    ,"flag-int-inbound-outbound" : "'A'"
-    ,"int-utc-to-sydney-datetime" : "'A'"
-    ,"int-to-datetime" : "'A'"
+    ,"str-dd-MMM-yyyy-HH-mm-to-timestamp" : "to_timestamp(right(concat('0',$c$),17),'dd-MMM-yyyy HH:mm')"
+    ,"flag-x-yes-no" : "case WHEN $c$='X' then 'Y' Else 'N' end "
+    ,"flag-x-true-false" : "case WHEN $c$='X' then 'T' Else 'F' end "
+    ,"flag-1or0-yes-no" : "case WHEN $c$='1' then 'Y' when $c$='0' then 'N' end "
+    ,"flag-int-inbound-outbound" : " case WHEN $c$='0' then 'I' Else 'O' end "
+    ,"int-utc-to-sydney-datetime" : " case WHEN $c$='99991231235959' then to_timestamp(substring($c$,1,4)||'-'||substring($c$,5,2)||'-'||substring($c$,7,2) \
+||' '||substring($c$,9,2)||':'||substring($c$,11,2)||':'||substring($c$,13,2)) else from_utc_timestamp(substring($c$,1,4)||'-'||substring($c$,5,2)||'-'||substring($c$,7,2) \
+||' '||substring($c$,9,2)||':'||substring($c$,11,2)||':'||substring($c$,13,2)||'.0','Australia/Sydney') end "
+    ,"int-to-datetime" : " to_timestamp(substring($c$,1,4)||'-'||substring($c$,5,2)||'-'||substring($c$,7,2) \
+||' '||substring($c$,9,2)||':'||substring($c$,11,2)||':'||substring($c$,13,2)) "
 }
 
 # COMMAND ----------
