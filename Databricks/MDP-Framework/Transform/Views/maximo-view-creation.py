@@ -1,12 +1,11 @@
 # Databricks notebook source
 systemCode = dbutils.widgets.get("system_code")
-#systemCode = 'maximo'
 
 # COMMAND ----------
 
 # SR View
 spark.sql("""
-CREATE OR REPLACE VIEW curated.vw_maximo_sr AS
+CREATE OR REPLACE VIEW cleansed.vw_maximo_sr AS
 SELECT
   *
 FROM
@@ -18,8 +17,8 @@ WHERE
     FROM
       cleansed.maximo_synonymdomain
     WHERE
-      domainid = 'TKCLASS'
-      AND maxvalue = 'SR'
+      domain = 'TKCLASS'
+      AND internalValue = 'SR'
   )
 """)
 
@@ -27,7 +26,7 @@ WHERE
 
 #WOACTIVITY View
 spark.sql("""
-CREATE OR REPLACE VIEW curated.vw_maximo_woactivity AS
+CREATE OR REPLACE VIEW cleansed.vw_maximo_woactivity AS
 SELECT
   *
 FROM
@@ -39,7 +38,7 @@ WHERE
     from
       cleansed.maximo_synonymdomain
     WHERE
-      domainid = 'WOCLASS'
-      AND maxvalue = 'ACTIVITY'
+      domain = 'WOCLASS'
+      AND internalValue = 'ACTIVITY'
   )
 """)
