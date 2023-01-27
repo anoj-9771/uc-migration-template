@@ -3,12 +3,6 @@
 
 # COMMAND ----------
 
-# MAGIC %sql
-# MAGIC -- SET JOB POOL TO USE UTC DATE. THIS IS NECESSARY OTHERWISE OLD DATA WOULD OTHERWISE BE RETRIEVED
-# MAGIC SET TIME ZONE 'Australia/Sydney';
-
-# COMMAND ----------
-
 # MAGIC %md # Import libraries
 
 # COMMAND ----------
