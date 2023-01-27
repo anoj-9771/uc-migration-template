@@ -93,6 +93,8 @@ SELECT * FROM
         dimDisconnectionDocument.disconnectionActivityPeriod           AS disconnectionActivityPeriod,
         dimDisconnectionDocument.disconnectionObjectNumber             AS disconnectionObjectNumber,
         dimDisconnectionDocument.disconnectionDate                     AS disconnectionDate,
+        dimDisconnectionDocument.validFromDate                         AS disconnectionValidFromDate,
+        dimDisconnectionDocument.validToDate                           AS disconnectionValidToDate,        
         dimDisconnectionDocument.disconnectionActivityTypeCode         AS disconnectionActivityTypeCode,
         dimDisconnectionDocument.disconnectionActivityType             AS disconnectionActivityType,
         dimDisconnectionDocument.disconnectionObjectTypeCode           AS disconnectionObjectTypeCode,
@@ -130,8 +132,8 @@ SELECT * FROM
     LEFT OUTER JOIN curated_v2.dimDisconnectionDocument dimDisconnectionDocument 
         ON dimDisconnectionDocument.installationNumber = effectiveDateRanges.installationNumber 
         AND dimDisconnectionDocument.referenceObjectTypeCode = 'INSTLN'
-        AND dimDisconnectionDocument.validToDate >= effectiveDateRanges._effectiveFrom 
-        AND dimDisconnectionDocument.validFromDate <= effectiveDateRanges._effectiveTo
+        AND dimDisconnectionDocument.validFromDate <= current_date 
+        AND dimDisconnectionDocument.validToDate >= current_date
         AND dimDisconnectionDocument._recordDeleted = 0
     UNION
     SELECT
@@ -183,6 +185,8 @@ SELECT * FROM
         dimDisconnectionDocument.disconnectionActivityPeriod           AS disconnectionActivityPeriod,
         dimDisconnectionDocument.disconnectionObjectNumber             AS disconnectionObjectNumber,
         dimDisconnectionDocument.disconnectionDate                     AS disconnectionDate,
+        dimDisconnectionDocument.validFromDate                         AS disconnectionValidFromDate,
+        dimDisconnectionDocument.validToDate                           AS disconnectionValidToDate,        
         dimDisconnectionDocument.disconnectionActivityTypeCode         AS disconnectionActivityTypeCode,
         dimDisconnectionDocument.disconnectionActivityType             AS disconnectionActivityType,
         dimDisconnectionDocument.disconnectionObjectTypeCode           AS disconnectionObjectTypeCode,
@@ -220,8 +224,8 @@ SELECT * FROM
     LEFT OUTER JOIN curated_v2.dimDisconnectionDocument dimDisconnectionDocument 
         ON dimDisconnectionDocument.installationNumber = effectiveDateRanges.installationNumber 
         AND dimDisconnectionDocument.referenceObjectTypeCode = 'INSTLN'
-        AND dimDisconnectionDocument.validToDate >= effectiveDateRanges._effectiveFrom 
-        AND dimDisconnectionDocument.validFromDate <= effectiveDateRanges._effectiveTo
+        AND dimDisconnectionDocument.validFromDate <= current_date 
+        AND dimDisconnectionDocument.validToDate >= current_date
         AND dimDisconnectionDocument._recordDeleted = 1
 )
 ORDER BY _effectiveFrom
