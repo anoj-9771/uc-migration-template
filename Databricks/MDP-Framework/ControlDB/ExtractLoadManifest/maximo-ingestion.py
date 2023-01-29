@@ -18,18 +18,18 @@ import json
 # COMMAND ----------
 
 ## list the maximo tables here
-mapping_df = spark.read.option('header', True).csv('/mnt/datalake-raw/cleansed_csv/maximo_cleansed.csv')
-tables = (
-    mapping_df
-    .withColumnRenamed('Maximo Extractor', 'MaximoExtractor')
-    .select('MaximoExtractor')
-    .filter("MaximoExtractor is Not Null")   #to avoid blank data coming in and causing issues when sorting
-    .distinct()
-    .rdd.map(lambda x: x.MaximoExtractor)
-    .collect()
-)
+# mapping_df = spark.read.option('header', True).csv('/mnt/datalake-raw/cleansed_csv/maximo_cleansed.csv')
+# tables = (
+#     mapping_df
+#     .withColumnRenamed('Maximo Extractor', 'MaximoExtractor')
+#     .select('MaximoExtractor')
+#     .filter("MaximoExtractor is Not Null")   #to avoid blank data coming in and causing issues when sorting
+#     .distinct()
+#     .rdd.map(lambda x: x.MaximoExtractor)
+#     .collect()
+# )
 
-# tables = ['A_LOCATIONSPEC','ADDRESS','ALNDOMAIN','ASSET','ASSETATTRIBUTE','ASSETMETER','ASSETSPEC', 'CLASSIFICATION','CLASSSTRUCTURE','CONTRACT','DOCLINKS','FAILURECODE','FAILUREREPORT','FINCNTRL','JOBLABOR','JOBPLAN','LABOR','LABTRANS','LOCANCESTOR','LOCATIONMETER','LOCATIONS','LOCATIONSPEC','LOCHIERARCHY','LOCOPER','LONGDESCRIPTION','MATUSETRANS','MAXINTMSGTRK','MULTIASSETLOCCI','PERSON', 'PERSONGROUP', 'PERSONGROUPTEAM', 'PHONE','PM','RELATEDRECORD','ROUTES','ROUTE_STOP','SERVRECTRANS','SWCBUSSTATUS','SWCHIERARCHY','SWCLGA','SWCPROBLEMTYPE','SWCWOEXT','TICKET','TOOLTRANS','WOANCESTOR','WORKLOG','WORKORDER','WORKORDERSPEC','WOSTATUS', 'SYNONYMDOMAIN', 'A_ASSETSPEC', 'A_ASSET', 'A_FAILUREREPORT', 'A_GROUPUSER', 'A_JOBPLAN', 'A_INVENTORY', 'A_LONGDESCRIPTION', 'A_LOCOPER', 'A_PM', 'A_ROUTE_STOP', 'A_PO', 'A_SWCCLAIM', 'A_ROUTES', 'A_SWCCONACCESS', 'A_SWCCRSECURITY', 'A_SWCVALIDATIONRULE']
+tables = ['A_LOCATIONSPEC','ADDRESS','ALNDOMAIN','ASSET','ASSETATTRIBUTE','ASSETMETER','ASSETSPEC', 'CLASSIFICATION','CLASSSTRUCTURE','CONTRACT','DOCLINKS', 'DOCINFO', 'FAILURECODE','FAILUREREPORT','FINCNTRL','JOBLABOR','JOBPLAN','LABOR','LABTRANS','LOCANCESTOR','LOCATIONMETER','LOCATIONS','LOCATIONSPEC','LOCHIERARCHY','LOCOPER','LONGDESCRIPTION','MATUSETRANS','MAXINTMSGTRK','MULTIASSETLOCCI','PERSON', 'PERSONGROUP', 'PERSONGROUPTEAM', 'PHONE','PM','RELATEDRECORD','ROUTES','ROUTE_STOP','SERVRECTRANS','SWCBUSSTATUS','SWCHIERARCHY','SWCLGA','SWCPROBLEMTYPE','SWCWOEXT','TICKET','TOOLTRANS','WOANCESTOR','WORKLOG','WORKORDER','WORKORDERSPEC','WOSTATUS', 'SYNONYMDOMAIN', 'A_ASSETSPEC', 'A_ASSET', 'A_FAILUREREPORT', 'A_GROUPUSER', 'A_JOBPLAN', 'A_INVENTORY', 'A_LONGDESCRIPTION', 'A_LOCOPER', 'A_PM', 'A_ROUTE_STOP', 'A_PO', 'A_SWCCLAIM', 'A_ROUTES', 'A_SWCCONACCESS', 'A_SWCCRSECURITY', 'A_SWCVALIDATIONRULE']
 
 tables = sorted(set(tables)) # to get rid of duplicates and make the list alphabetical (so it's easier to read)
 
