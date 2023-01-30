@@ -132,19 +132,19 @@ df_crm_0bpartner_attr = (
             lastUpdatedDateTime                                    AS lastUpdatedDateTime,
             lastUpdatedBy                                          AS lastUpdatedBy,
             /* CRM columns */
-            (CASE WHEN warWidowFlag = 'X' THEN 'Y' ELSE 'N' END)   AS warWidowFlag,
-            (CASE WHEN deceasedFlag = 'X' THEN 'Y' ELSE 'N' END)   AS deceasedFlag,
-            (CASE WHEN disabilityFlag = 'X' THEN 'Y' ELSE 'N' END) AS disabilityFlag,
-            (CASE WHEN goldCardHolderFlag = 'X' THEN 'Y' ELSE 'N' END) AS goldCardHolderFlag,
+            warWidowFlag                                           AS warWidowFlag,
+            deceasedFlag                                           AS deceasedFlag,
+            disabilityFlag                                         AS disabilityFlag,
+            goldCardHolderFlag                                     AS goldCardHolderFlag,
             consent1Indicator                                      AS consent1Indicator,
             consent2Indicator                                      AS consent2Indicator,
-            (CASE WHEN eligibilityFlag = 'X' THEN 'Y' ELSE 'N' END) AS eligibilityFlag,
+            eligibilityFlag                                        AS eligibilityFlag,
             plannedChangeDocument                                  AS plannedChangeDocument,
             paymentStartDate                                       AS paymentStartDate,
             dateOfCheck                                            AS dateOfCheck,
-            (CASE WHEN pensionConcessionCardFlag = 'X' THEN 'Y' ELSE 'N' END) AS pensionConcessionCardFlag,
+            pensionConcessionCardFlag                              AS pensionConcessionCardFlag,
             pensionType                                            AS pensionType,
-            (CASE WHEN naturalPersonFlag = 'X' THEN 'Y' ELSE 'N' END) AS naturalPersonFlag,
+            naturalPersonFlag                                      AS naturalPersonFlag,
             _RecordDeleted                                         AS _RecordDeleted
         FROM {ADS_DATABASE_CLEANSED}.crm_0bpartner_attr 
         WHERE
@@ -244,6 +244,7 @@ df_bpartner_crm_unique = (
         how = 'leftanti'
     )
     .select("crm.*")
+    .fillna("N",["warWidowFlag","deceasedFlag","disabilityFlag","goldCardHolderFlag","naturalPersonFlag","eligibilityFlag","pensionConcessionCardFlag"])
     .drop_duplicates()
 )
 

@@ -206,6 +206,7 @@ df_bpartner_crm_unique = (
         how = 'leftanti'
     )
     .select("crm.*")
+    .fillna("N",["paymentAssistSchemeFlag","billAssistFlag","warWidowFlag","kidneyDialysisFlag"])
     .drop_duplicates()
 )
 
