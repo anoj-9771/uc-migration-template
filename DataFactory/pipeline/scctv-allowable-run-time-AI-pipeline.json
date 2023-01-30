@@ -1,0 +1,104 @@
+{
+    "name": "scctv-allowable-run-time-AI-pipeline",
+    "properties": {
+        "activities": [
+            {
+                "name": "if-in-allowed-run-time",
+                "type": "IfCondition",
+                "dependsOn": [],
+                "userProperties": [],
+                "typeProperties": {
+                    "expression": {
+                        "value": "@and(\n    greaterOrEquals(int(utcNow('HH')), pipeline().parameters.processStartTime),\n    lessOrEquals(int(utcNow('HH')), pipeline().parameters.processEndTime)\n    )",
+                        "type": "Expression"
+                    },
+                    "ifTrueActivities": [
+                        {
+                            "name": "run-databricks-job",
+                            "type": "WebActivity",
+                            "dependsOn": [],
+                            "policy": {
+                                "timeout": "0.12:00:00",
+                                "retry": 0,
+                                "retryIntervalInSeconds": 30,
+                                "secureOutput": false,
+                                "secureInput": false
+                            },
+                            "userProperties": [],
+                            "typeProperties": {
+                                "url": "https://australiaeast.azuredatabricks.net/api/2.1/jobs/run-now",
+                                "method": "POST",
+                                "headers": {
+                                    "Authorization": {
+                                        "value": "Bearer @{pipeline().parameters.DatabricksSecret}",
+                                        "type": "Expression"
+                                    }
+                                },
+                                "body": {
+                                    "value": "{\n    \"job_id\": @{pipeline().parameters.PipelineJobID\n    },\n    \"notebook_params\": {\n        \"video_id\": @{concat('\"', pipeline().parameters.videoID, '\"')},\n        \"priority\": @{concat('\"', pipeline().parameters.Priority, '\"')}\n    }\n}",
+                                    "type": "Expression"
+                                }
+                            }
+                        },
+                        {
+                            "name": "wait_for_job_to_complete",
+                            "type": "ExecutePipeline",
+                            "dependsOn": [
+                                {
+                                    "activity": "run-databricks-job",
+                                    "dependencyConditions": [
+                                        "Succeeded"
+                                    ]
+                                }
+                            ],
+                            "userProperties": [],
+                            "typeProperties": {
+                                "pipeline": {
+                                    "referenceName": "scctv-wait-until-databricks-job-complete",
+                                    "type": "PipelineReference"
+                                },
+                                "waitOnCompletion": true,
+                                "parameters": {
+                                    "DatabricksSecret": {
+                                        "value": "@pipeline().parameters.DatabricksSecret",
+                                        "type": "Expression"
+                                    },
+                                    "pipelineRunID": {
+                                        "value": "@string(activity('run-databricks-job').output.run_id)",
+                                        "type": "Expression"
+                                    }
+                                }
+                            }
+                        }
+                    ]
+                }
+            }
+        ],
+        "parameters": {
+            "DatabricksSecret": {
+                "type": "string"
+            },
+            "processStartTime": {
+                "type": "int",
+                "defaultValue": 8
+            },
+            "processEndTime": {
+                "type": "int",
+                "defaultValue": 19
+            },
+            "PipelineJobID": {
+                "type": "string"
+            },
+            "videoID": {
+                "type": "string"
+            },
+            "Priority": {
+                "type": "string"
+            }
+        },
+        "folder": {
+            "name": "AI-ML/Sewer CCTV"
+        },
+        "annotations": []
+    }
+}

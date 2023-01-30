@@ -142,9 +142,6 @@
             }
         ],
         "parameters": {
-            "RunID": {
-                "type": "string"
-            },
             "DatabricksSecret": {
                 "type": "string"
             },

@@ -47,7 +47,7 @@
                 "userProperties": [],
                 "typeProperties": {
                     "expression": {
-                        "value": "@or(or(greater(int(utcNow('HH')), pipeline().parameters.processEndTime), less(int(utcNow('HH')), pipeline().parameters.processStartTime)), or(equals(variables('fail'), true), equals(variables('complete'), true)))",
+                        "value": "@or(\n    and(\n        greaterOrEquals(int(utcNow('HH')), pipeline().parameters.processEndTime),\n        lessOrEquals(int(utcNow('HH')), pipeline().parameters.processStartTime)\n        ),\n    or(\n        equals(variables('fail'), true),\n        equals(variables('complete'), true)\n        )\n    )",
                         "type": "Expression"
                     },
                     "activities": [
@@ -69,6 +69,14 @@
                                     },
                                     "kalturaId": {
                                         "value": "@pipeline().parameters.kalturaId",
+                                        "type": "Expression"
+                                    },
+                                    "processStartTime": {
+                                        "value": "@pipeline().parameters.processStartTime",
+                                        "type": "Expression"
+                                    },
+                                    "processEndTime": {
+                                        "value": "@pipeline().parameters.processEndTime",
                                         "type": "Expression"
                                     }
                                 }
