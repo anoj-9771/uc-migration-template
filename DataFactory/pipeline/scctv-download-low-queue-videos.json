@@ -64,11 +64,19 @@
                                 "waitOnCompletion": true,
                                 "parameters": {
                                     "videoBatch": {
-                                        "value": "@activity('get-low-priority-que-videos').output.childItems",
+                                        "value": "@take(activity('get-low-priority-que-videos').output.childItems, 300)",
                                         "type": "Expression"
                                     },
                                     "kalturaId": {
                                         "value": "@pipeline().parameters.kalturaId",
+                                        "type": "Expression"
+                                    },
+                                    "processStartTime": {
+                                        "value": "@pipeline().parameters.processStartTime",
+                                        "type": "Expression"
+                                    },
+                                    "processEndTime": {
+                                        "value": "@pipeline().parameters.processEndTime",
                                         "type": "Expression"
                                     }
                                 }

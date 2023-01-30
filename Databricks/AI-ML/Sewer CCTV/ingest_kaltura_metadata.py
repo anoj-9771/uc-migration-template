@@ -1,4 +1,10 @@
 # Databricks notebook source
+# MAGIC %sql
+# MAGIC -- SET JOB POOL TO USE UTC DATE. THIS IS NECESSARY OTHERWISE OLD DATA WOULD OTHERWISE BE RETRIEVED
+# MAGIC SET TIME ZONE 'Australia/Sydney';
+
+# COMMAND ----------
+
 # MAGIC %md
 # MAGIC ## 0. Create Kaltura Tables in the cleansed layer if they don't exist
 
@@ -155,6 +161,7 @@
 # MAGIC   sourceType STRING,
 # MAGIC   dataUrl STRING,
 # MAGIC   flavorParamsIds STRING,
+# MAGIC   sourceFileName STRING,
 # MAGIC   processed_timestamp TIMESTAMP
 # MAGIC )
 # MAGIC USING DELTA 
@@ -442,9 +449,10 @@ schema = StructType([
 from pyspark.sql import functions as psf
 
 df_kaltura_flavors = (spark.read.schema(schema).json(filepath)
-                      .withColumn("flavors", psf.col("flavors")[0])
+                     .withColumn("flavors", psf.explode(psf.col("flavors")))
                       .withColumn("createdAt", psf.to_timestamp(psf.col("flavors.createdAt"), format='yyyy-MM-dd HH:mm:ss'))
                       .withColumn("updatedAt", psf.to_timestamp(psf.col("flavors.updatedAt"), format='yyyy-MM-dd HH:mm:ss'))
+                      .withColumn("language", psf.col("flavors.language").cast('long'))
                       .withColumn("processed_timestamp", psf.current_timestamp())
                       .where(psf.col("flavors").isNotNull())
                       .select("update", 
@@ -470,7 +478,7 @@ df_kaltura_flavors = (spark.read.schema(schema).json(filepath)
                               "flavors.videoCodecId",
                               "flavors.status",
                               "flavors.isDefault",
-                              "flavors.language",
+                              "language",
                               "processed_timestamp"
                              )
                          )
@@ -480,22 +488,42 @@ df_kaltura_attachments = (spark.read.schema(schema).json(filepath)
                           .withColumn("attachments", psf.col("attachments")[0])
                           .withColumn("createdAt", psf.to_timestamp(psf.col("attachments.createdAt"), format='yyyy-MM-dd HH:mm:ss'))
                           .withColumn("updatedAt", psf.to_timestamp(psf.col("attachments.updatedAt"), format='yyyy-MM-dd HH:mm:ss'))
+                          .withColumn("id", 
+                                   psf.when(psf.length(psf.col("attachments.id")) > 10,
+                                            "Error - String Length Exceeded (10)"
+                                           ).otherwise(psf.col("attachments.id"))
+                                  )
+                          .withColumn("filename", 
+                                   psf.when(psf.length(psf.col("attachments.filename")) > 500,
+                                            "Error - String Length Exceeded (500)"
+                                           ).otherwise(psf.col("attachments.filename"))
+                                  )
+                          .withColumn("title", 
+                                   psf.when(psf.length(psf.col("attachments.title")) > 500,
+                                            "Error - String Length Exceeded (500)"
+                                           ).otherwise(psf.col("attachments.title"))
+                                  )
+                          .withColumn("fileExt", 
+                                   psf.when(psf.length(psf.col("attachments.fileExt")) > 10,
+                                            "Error - String Length Exceeded (10)"
+                                           ).otherwise(psf.col("attachments.fileExt"))
+                                  )
                           .withColumn("processed_timestamp", psf.current_timestamp())
                           .where(psf.col("attachments").isNotNull())
                           .select("update", 
-                                  "attachments.id",
+                                  "id",
                                   "attachments.entryId",
                                   "attachments.partnerId",
                                   "attachments.version",
                                   "attachments.size",
                                   "attachments.tags",
-                                  "attachments.fileExt",
+                                  "fileExt",
                                   "createdAt",
                                   "updatedAt",
                                   "attachments.description",
                                   "attachments.partnerDescription",
                                   "attachments.sizeInBytes",
-                                  "attachments.filename",
+                                  "filename",
                                   "attachments.title",
                                   "attachments.format",
                                   "attachments.status",
@@ -508,12 +536,111 @@ df_kaltura_attachments.createOrReplaceTempView("tmp_datalake_kaltura_attachments
 df_kaltura_metadata = spark.read.schema(schema).json(filepath).withColumn("metadata", psf.col("metadata")[0])
 df_kaltura_metadata = (df_kaltura_metadata
                        .withColumn("AssessedByDate", psf.to_timestamp(psf.col("metadata.jsonData.AssessedByDate"), format='yyyy-MM-dd HH:mm:ss'))
+                       .withColumn("AssessedByDate", 
+                                   psf.when(psf.col("AssessedByDate") < psf.lit("1754-01-01T00:00:00.000+1100"), 
+                                            psf.to_timestamp(psf.lit("1754-01-01 00:00:00.000"), format='yyyy-MM-dd HH:mm:ss.SSSS')).otherwise(psf.col("AssessedByDate")))
                        .withColumn("DiscardDate", psf.to_timestamp(psf.col("metadata.jsonData.DiscardDate"), format='yyyy-MM-dd HH:mm:ss'))
+                      .withColumn("DiscardDate", 
+                                   psf.when(psf.col("DiscardDate") < psf.lit("1754-01-01T00:00:00.000+1100"), 
+                                            psf.to_timestamp(psf.lit("1754-01-01 00:00:00.000"), format='yyyy-MM-dd HH:mm:ss.SSSS')).otherwise(psf.col("DiscardDate"))
+                                 )
                        .withColumn("DateOfCompletedInspectionString", psf.col("metadata.jsonData.DateOfCompletedInspection"))
+                       .withColumn("DateOfCompletedInspectionString", 
+                                   psf.when((((psf.length(psf.col("DateOfCompletedInspectionString")) != 10) |
+                                             ~(psf.col("DateOfCompletedInspectionString").contains("/"))) &
+                                             (psf.length(psf.col("DateOfCompletedInspectionString")) != 0)
+                                            ), psf.lit("01/01/1753")).otherwise(psf.col("DateOfCompletedInspectionString"))
+                                  )
                        .withColumn("TimeOfCompletedInspectionString", psf.col("metadata.jsonData.TimeOfCompletedInspection"))
                        .withColumn("createdAt", psf.to_timestamp(psf.col("metadata.createdAt"), format='yyyy-MM-dd HH:mm:ss'))
+                       .withColumn("createdAt", 
+                                   psf.when(psf.col("createdAt") < psf.lit("1754-01-01T00:00:00.000+1100"), 
+                                            psf.to_timestamp(psf.lit("1754-01-01 00:00:00.000"), format='yyyy-MM-dd HH:mm:ss.SSSS')).otherwise(psf.col("createdAt")))
                        .withColumn("updatedAt", psf.to_timestamp(psf.col("metadata.updatedAt"), format='yyyy-MM-dd HH:mm:ss'))
+                       .withColumn("updatedAt", 
+                                   psf.when(psf.col("updatedAt") < psf.lit("1754-01-01T00:00:00.000+1100"), 
+                                            psf.to_timestamp(psf.lit("1754-01-01 00:00:00.000"), format='yyyy-MM-dd HH:mm:ss.SSSS')).otherwise(psf.col("updatedAt")))
                        .withColumn("SurveyedLength", psf.col("metadata.jsonData.SurveyedLength").cast('decimal'))
+                       .withColumn("ParentWorkOrderNumber", 
+                                   psf.when(psf.length(psf.col("metadata.jsonData.ParentWorkOrderNumber")) > 50,
+                                            "Error - String Length Exceeded (50)"
+                                           ).otherwise(psf.col("metadata.jsonData.ParentWorkOrderNumber"))
+                                  )
+                       .withColumn("ChildWorkOrderNumbers", 
+                                   psf.when(psf.length(psf.col("metadata.jsonData.ChildWorkOrderNumbers")) > 500,
+                                            "Error - String Length Exceeded (500)"
+                                           ).otherwise(psf.col("metadata.jsonData.ChildWorkOrderNumbers"))
+                                  )
+                       .withColumn("AssetNumbers", 
+                                   psf.when(psf.length(psf.col("metadata.jsonData.AssetNumbers")) > 200,
+                                            "Error - String Length Exceeded (200)"
+                                           ).otherwise(psf.col("metadata.jsonData.AssetNumbers"))
+                                  )
+                       .withColumn("TaskCode", 
+                                   psf.when(psf.length(psf.col("metadata.jsonData.TaskCode")) > 200,
+                                            "Error - String Length Exceeded (200)"
+                                           ).otherwise(psf.col("metadata.jsonData.TaskCode"))
+                                  )
+                       .withColumn("Suburb", 
+                                   psf.when(psf.length(psf.col("metadata.jsonData.Suburb")) > 200,
+                                            "Error - String Length Exceeded (200)"
+                                           ).otherwise(psf.col("metadata.jsonData.Suburb"))
+                                  )
+                       .withColumn("AddressStreet", 
+                                   psf.when(psf.length(psf.col("metadata.jsonData.AddressStreet")) > 200,
+                                            "Error - String Length Exceeded (200)"
+                                           ).otherwise(psf.col("metadata.jsonData.AddressStreet"))
+                                  )
+                       .withColumn("Product", 
+                                   psf.when(psf.length(psf.col("metadata.jsonData.Product")) > 200,
+                                            "Error - String Length Exceeded (200)"
+                                           ).otherwise(psf.col("metadata.jsonData.Product"))
+                                  )
+                       .withColumn("Contractor", 
+                                   psf.when(psf.length(psf.col("metadata.jsonData.Contractor")) > 200,
+                                            "Error - String Length Exceeded (200)"
+                                           ).otherwise(psf.col("metadata.jsonData.Contractor"))
+                                  )
+                       .withColumn("UpstreamMH", 
+                                   psf.when(psf.length(psf.col("metadata.jsonData.UpstreamMH")) > 200,
+                                            "Error - String Length Exceeded (200)"
+                                           ).otherwise(psf.col("metadata.jsonData.UpstreamMH"))
+                                  )
+                       .withColumn("DownstreamMH", 
+                                   psf.when(psf.length(psf.col("metadata.jsonData.DownstreamMH")) > 200,
+                                            "Error - String Length Exceeded (200)"
+                                           ).otherwise(psf.col("metadata.jsonData.DownstreamMH"))
+                                  )
+                       .withColumn("DirectionOfSurvey", 
+                                   psf.when(psf.length(psf.col("metadata.jsonData.DirectionOfSurvey")) > 200,
+                                            "Error - String Length Exceeded (200)"
+                                           ).otherwise(psf.col("metadata.jsonData.DirectionOfSurvey"))
+                                  )
+                       .withColumn("PackageName", 
+                                   psf.when(psf.length(psf.col("metadata.jsonData.PackageName")) > 200,
+                                            "Error - String Length Exceeded (200)"
+                                           ).otherwise(psf.col("metadata.jsonData.PackageName"))
+                                  )
+                       .withColumn("Cleaned", 
+                                   psf.when(psf.length(psf.col("metadata.jsonData.Cleaned")) > 200,
+                                            "Error - String Length Exceeded (200)"
+                                           ).otherwise(psf.col("metadata.jsonData.Cleaned"))
+                                  )
+                       .withColumn("Condition", 
+                                   psf.when(psf.length(psf.col("metadata.jsonData.Condition")) > 10,
+                                            "Error - String Length Exceeded (10)"
+                                           ).otherwise(psf.col("metadata.jsonData.Condition"))
+                                  )
+                       .withColumn("Serviceability", 
+                                   psf.when(psf.length(psf.col("metadata.jsonData.Serviceability")) > 10,
+                                            "Error - String Length Exceeded (10)"
+                                           ).otherwise(psf.col("metadata.jsonData.Serviceability"))
+                                  )
+                       .withColumn("Infiltration", 
+                                   psf.when(psf.length(psf.col("metadata.jsonData.Infiltration")) > 10,
+                                            "Error - String Length Exceeded (10)"
+                                           ).otherwise(psf.col("metadata.jsonData.Infiltration"))
+                                  )
                        .withColumn("processed_timestamp", psf.current_timestamp())
                        .where(psf.col("metadata").isNotNull())
                        .select("update", 
@@ -527,27 +654,27 @@ df_kaltura_metadata = (df_kaltura_metadata
                                "metadata.status",
                                "metadata.jsonData.AssessedByName",
                                "AssessedByDate",
-                               "metadata.jsonData.ParentWorkOrderNumber",
-                               "metadata.jsonData.ChildWorkOrderNumbers",
+                               "ParentWorkOrderNumber",
+                               "ChildWorkOrderNumbers",
                                "metadata.jsonData.WorkOrderDescription",
-                               "metadata.jsonData.AssetNumbers",
-                               "metadata.jsonData.TaskCode",
-                               "metadata.jsonData.Suburb",
-                               "metadata.jsonData.AddressStreet",
-                               "metadata.jsonData.Product",
-                               "metadata.jsonData.Contractor",
-                               "metadata.jsonData.UpstreamMH",
-                               "metadata.jsonData.DownstreamMH",
-                               "metadata.jsonData.DirectionOfSurvey",
+                               "AssetNumbers",
+                               "TaskCode",
+                               "Suburb",
+                               "AddressStreet",
+                               "Product",
+                               "Contractor",
+                               "UpstreamMH",
+                               "DownstreamMH",
+                               "DirectionOfSurvey",
                                "DateOfCompletedInspectionString",
                                "TimeOfCompletedInspectionString",
-                               "metadata.jsonData.PackageName",
-                               "metadata.jsonData.Cleaned",
+                               "PackageName",
+                               "Cleaned",
                                "SurveyedLength",
                                "DiscardDate",
-                               "metadata.jsonData.Condition",
-                               "metadata.jsonData.Serviceability",
-                               "metadata.jsonData.Infiltration",
+                               "Condition",
+                               "Serviceability",
+                               "Infiltration",
                                "createdAt",
                                "updatedAt",
                                "processed_timestamp")
@@ -557,17 +684,38 @@ df_kaltura_metadata.createOrReplaceTempView("tmp_datalake_kaltura_metadata")
 df_kaltura_media_entry = (spark.read.schema(schema).json(filepath)
                           .withColumn("processed_timestamp", psf.current_timestamp())
                           .where(psf.col("mediaEntry").isNotNull())
+                          .withColumn("sourceFileName", psf.lit(filepath))
                           .withColumn("createdAt", psf.to_timestamp(psf.col("mediaEntry.createdAt"), format='yyyy-MM-dd HH:mm:ss'))
                           .withColumn("updatedAt", psf.to_timestamp(psf.col("mediaEntry.updatedAt"), format='yyyy-MM-dd HH:mm:ss'))
                           .withColumn("lastPlayedAt", psf.to_timestamp(psf.col("mediaEntry.lastPlayedAt"), format='yyyy-MM-dd HH:mm:ss'))
                           .withColumn("operationAttributes", psf.col("mediaEntry.operationAttributes").cast("string"))
+                          .withColumn("id", 
+                                   psf.when(psf.length(psf.col("mediaEntry.id")) > 10,
+                                            "Error - String Length Exceeded (10)"
+                                           ).otherwise(psf.col("mediaEntry.id"))
+                                  )
+                          .withColumn("name", 
+                                   psf.when(psf.length(psf.col("mediaEntry.name")) > 500,
+                                            "Error - String Length Exceeded (500)"
+                                           ).otherwise(psf.col("mediaEntry.name"))
+                                  )
+                          .withColumn("creatorId", 
+                                   psf.when(psf.length(psf.col("mediaEntry.creatorId")) > 50,
+                                            "Error - String Length Exceeded (50)"
+                                           ).otherwise(psf.col("mediaEntry.creatorId"))
+                                  )
+                          .withColumn("downloadUrl", 
+                                   psf.when(psf.length(psf.col("mediaEntry.downloadUrl")) > 200,
+                                            "Error - String Length Exceeded (200)"
+                                           ).otherwise(psf.col("mediaEntry.downloadUrl"))
+                                  )
                           .select("update", 
-                                  "mediaEntry.id",
-                                  "mediaEntry.name",
+                                  "id",
+                                  "name",
                                   "mediaEntry.description",
                                   "mediaEntry.partnerId",
                                   "mediaEntry.userId",
-                                  "mediaEntry.creatorId",
+                                  "creatorId",
                                   "mediaEntry.tags",
                                   "mediaEntry.categories",
                                   "mediaEntry.categoriesIds",
@@ -580,7 +728,7 @@ df_kaltura_media_entry = (spark.read.schema(schema).json(filepath)
                                   "mediaEntry.rank",
                                   "mediaEntry.totalRank",
                                   "mediaEntry.votes",
-                                  "mediaEntry.downloadUrl",
+                                  "downloadUrl",
                                   "mediaEntry.searchText",
                                   "mediaEntry.licenseType",
                                   "mediaEntry.version",
@@ -608,13 +756,10 @@ df_kaltura_media_entry = (spark.read.schema(schema).json(filepath)
                                   "mediaEntry.sourceType",
                                   "mediaEntry.dataUrl",
                                   "mediaEntry.flavorParamsIds",
+                                  "sourceFileName",
                                   "processed_timestamp")
                          )
 df_kaltura_media_entry.createOrReplaceTempView("tmp_datalake_kaltura_media_entry")
-
-# COMMAND ----------
-
-display(df_kaltura_metadata)
 
 # COMMAND ----------
 
@@ -942,6 +1087,7 @@ display(df_kaltura_metadata)
 # MAGIC         sourceType = src.sourceType,
 # MAGIC         dataUrl = src.dataUrl,
 # MAGIC         flavorParamsIds = src.flavorParamsIds,
+# MAGIC         sourceFileName = src.sourceFileName,
 # MAGIC         processed_timestamp = src.processed_timestamp
 # MAGIC WHEN NOT MATCHED THEN
 # MAGIC     INSERT (
@@ -991,6 +1137,7 @@ display(df_kaltura_metadata)
 # MAGIC     sourceType,
 # MAGIC     dataUrl,
 # MAGIC     flavorParamsIds,
+# MAGIC     sourceFileName,
 # MAGIC     processed_timestamp
 # MAGIC   )
 # MAGIC   VALUES (
@@ -1040,6 +1187,7 @@ display(df_kaltura_metadata)
 # MAGIC     src.sourceType,
 # MAGIC     src.dataUrl,
 # MAGIC     src.flavorParamsIds,
+# MAGIC     src.sourceFileName,
 # MAGIC     src.processed_timestamp
 # MAGIC   )
 
@@ -1053,7 +1201,7 @@ display(df_kaltura_metadata)
 WriteTableToAzureSQL(df=df_kaltura_flavors, mode="overwrite", targetTable="tmp_datalake_kaltura_flavors")
 WriteTableToAzureSQL(df=df_kaltura_attachments, mode="overwrite", targetTable="tmp_datalake_kaltura_attachments")
 WriteTableToAzureSQL(df=df_kaltura_metadata, mode="overwrite", targetTable="tmp_datalake_kaltura_metadata")
-WriteTableToAzureSQL(df=df_kaltura_media_entry, mode="overwrite", targetTable="tmp_datalake_kaltura_media_entry")
+WriteTableToAzureSQL(df=df_kaltura_media_entry.drop("sourceFileName"), mode="overwrite", targetTable="tmp_datalake_kaltura_media_entry")
 
 # COMMAND ----------
 
@@ -1063,6 +1211,9 @@ WriteTableToAzureSQL(df=df_kaltura_media_entry, mode="overwrite", targetTable="t
 # COMMAND ----------
 
 ExecuteStatement("EXEC  [dbo].[sp_merge_datalakeview_to_dbo_kaltura]")
+
+# COMMAND ----------
+
 ExecuteStatement("EXEC  [dbo].[sp_merge_dbo_to_CCTVPortal_kaltura]")
 
 # COMMAND ----------

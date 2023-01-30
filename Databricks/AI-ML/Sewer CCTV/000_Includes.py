@@ -318,7 +318,7 @@ def predictImagesUDF(iterator: Iterator[pd.DataFrame]) -> Iterator[pd.DataFrame]
     """
     Wrapper call for mapInPandas
     """
-    logged_model = 'models:/sewer-cctv-image-classifier/Production' # {latest_model_version}
+    logged_model = '/dbfs/mnt/blob-sewercctvmodel/mlflow artifacts'
     loaded_model = mlflow.pyfunc.load_model(logged_model)
     
     for df_p in iterator:
