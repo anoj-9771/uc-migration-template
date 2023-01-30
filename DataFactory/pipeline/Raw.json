@@ -259,6 +259,54 @@
 									}
 								}
 							]
+						},
+						{
+							"value": "bom-nc-load",
+							"activities": [
+								{
+									"name": "execute-bom-nc-load",
+									"type": "ExecutePipeline",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "bom-nc-load",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": true,
+										"parameters": {
+											"task": {
+												"value": "@pipeline().parameters.task",
+												"type": "Expression"
+											}
+										}
+									}
+								}
+							]
+						},
+						{
+							"value": "skip-load",
+							"activities": [
+								{
+									"name": "execute-skip-load",
+									"type": "ExecutePipeline",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "skip-load",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": true,
+										"parameters": {
+											"task": {
+												"value": "@pipeline().parameters.task",
+												"type": "Expression"
+											}
+										}
+									}
+								}
+							]
 						}
 					],
 					"defaultActivities": [
@@ -297,53 +345,6 @@
 					},
 					"ifTrueActivities": [
 						{
-							"name": "raw-databricks",
-							"type": "DatabricksNotebook",
-							"dependsOn": [
-								{
-									"activity": "task-status",
-									"dependencyConditions": [
-										"Succeeded"
-									]
-								}
-							],
-							"policy": {
-								"timeout": "7.00:00:00",
-								"retry": 0,
-								"retryIntervalInSeconds": 30,
-								"secureOutput": false,
-								"secureInput": false
-							},
-							"userProperties": [],
-							"typeProperties": {
-								"notebookPath": {
-									"value": "/MDP-Framework/Zone/@{pipeline().parameters.task.RawHandler}",
-									"type": "Expression"
-								},
-								"baseParameters": {
-									"rawPath": {
-										"value": "@activity('task-status').output.firstRow.RawPath",
-										"type": "Expression"
-									},
-									"task": {
-										"value": "@{pipeline().parameters.task}",
-										"type": "Expression"
-									}
-								}
-							},
-							"linkedServiceName": {
-								"referenceName": "LS-AzureDatabricks_DefinedCluster",
-								"type": "LinkedServiceReference",
-								"parameters": {
-									"kvSecret": "databricks-token",
-									"clusterId": {
-										"value": "@pipeline().parameters.ClusterId",
-										"type": "Expression"
-									}
-								}
-							}
-						},
-						{
 							"name": "task-status",
 							"type": "Lookup",
 							"dependsOn": [],
@@ -372,62 +373,11 @@
 							}
 						},
 						{
-							"name": "log-databricks",
+							"name": "execute-raw-databricks",
 							"type": "ExecutePipeline",
 							"dependsOn": [
 								{
-									"activity": "raw-databricks",
-									"dependencyConditions": [
-										"Completed"
-									]
-								}
-							],
-							"userProperties": [],
-							"typeProperties": {
-								"pipeline": {
-									"referenceName": "log-message",
-									"type": "PipelineReference"
-								},
-								"waitOnCompletion": false,
-								"parameters": {
-									"ID": {
-										"value": "@pipeline().parameters.task.ID",
-										"type": "Expression"
-									},
-									"ActivityType": "raw-databricks",
-									"Message": {
-										"value": "@{activity('raw-databricks')}",
-										"type": "Expression"
-									}
-								}
-							}
-						},
-						{
-							"name": "raw-databricks-fail",
-							"type": "Fail",
-							"dependsOn": [
-								{
-									"activity": "raw-databricks",
-									"dependencyConditions": [
-										"Failed"
-									]
-								}
-							],
-							"userProperties": [],
-							"typeProperties": {
-								"message": {
-									"value": "@activity('raw-databricks').output.Error",
-									"type": "Expression"
-								},
-								"errorCode": "500"
-							}
-						},
-						{
-							"name": "set-raw-sink-flag",
-							"type": "SetVariable",
-							"dependsOn": [
-								{
-									"activity": "raw-databricks",
+									"activity": "task-status",
 									"dependencyConditions": [
 										"Succeeded"
 									]
@@ -435,10 +385,20 @@
 							],
 							"userProperties": [],
 							"typeProperties": {
-								"variableName": "RawSinkFlag",
-								"value": {
-									"value": "@string(bool(contains(activity('raw-databricks').output,'runOutput')))",
-									"type": "Expression"
+								"pipeline": {
+									"referenceName": "run-databricks-notebook",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"task": {
+										"value": "@json(\n    replace(\n        string(pipeline().parameters.task),\n        pipeline().parameters.task.RawPath,\n        activity('task-status').output.firstRow.RawPath\n    )\n)",
+										"type": "Expression"
+									},
+									"config": {
+										"value": "@json(concat(\n    '{',\n    '\"notebookPath\":\"/Repos/o4qu@sydneywater.com.au/DAF/Databricks/MDP-Framework/Zone/',pipeline().parameters.task.RawHandler,'\",',\n    '\"sinkCountProperty\":\"SinkRowCount\",',\n    '\"activityType\":\"raw-databricks\"',\n    '}'\n))",
+										"type": "Expression"
+									}
 								}
 							}
 						}
@@ -652,69 +612,15 @@
 						"TableName": "ExtractLoadStatus"
 					}
 				}
-			},
-			{
-				"name": "if-raw-sink-flag",
-				"type": "IfCondition",
-				"dependsOn": [
-					{
-						"activity": "if-raw-handler",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
-				"userProperties": [],
-				"typeProperties": {
-					"expression": {
-						"value": "@equals(variables('RawSinkFlag'),'True')",
-						"type": "Expression"
-					},
-					"ifTrueActivities": [
-						{
-							"name": "task-raw-sink-count",
-							"type": "ExecutePipeline",
-							"dependsOn": [],
-							"userProperties": [],
-							"typeProperties": {
-								"pipeline": {
-									"referenceName": "log-status-update",
-									"type": "PipelineReference"
-								},
-								"waitOnCompletion": false,
-								"parameters": {
-									"ID": {
-										"value": "@pipeline().parameters.task.ID",
-										"type": "Expression"
-									},
-									"Property": "SinkRowCount",
-									"Value": {
-										"value": "@string(activity('raw-databricks').output.runOutput.SinkRowCount)",
-										"type": "Expression"
-									}
-								}
-							}
-						}
-					]
-				}
 			}
 		],
 		"parameters": {
 			"task": {
 				"type": "object"
-			},
-			"ClusterId": {
-				"type": "string"
 			}
 		},
 		"variables": {
 			"RawSinkCount": {
-				"type": "String"
-			},
-			"CleansedSinkFlag": {
-				"type": "String"
-			},
-			"RawSinkFlag": {
 				"type": "String"
 			}
 		},

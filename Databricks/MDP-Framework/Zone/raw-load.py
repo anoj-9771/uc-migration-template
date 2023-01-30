@@ -3,8 +3,11 @@
 
 # COMMAND ----------
 
+dbutils.widgets.text("task","")
+
+# COMMAND ----------
+
 task = dbutils.widgets.get("task")
-rawPath = dbutils.widgets.get("rawPath").replace("/raw", "/mnt/datalake-raw")
 
 # COMMAND ----------
 
@@ -12,6 +15,7 @@ j = json.loads(task)
 
 schemaName = j.get("DestinationSchema")
 tableName = j.get("DestinationTableName")
+rawPath = j.get("RawPath").replace("/raw", "/mnt/datalake-raw")
 rawTargetPath = j.get("RawPath")
 rawFolderPath = "/".join(rawPath.split("/")[0:-1])
 
@@ -39,6 +43,7 @@ tableFqn = f"raw.{schemaName}_{tableName}"
 sql = f"DROP TABLE IF EXISTS {tableFqn};"
 spark.sql(sql)
 sql = f"CREATE TABLE {tableFqn} USING {fileFormat} OPTIONS (path \"{rawFolderPath}\" {fileOptions});"
+print(sql)
 spark.sql(sql)
 
 print(spark.table(f"{tableFqn}").count())

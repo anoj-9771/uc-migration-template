@@ -16,6 +16,7 @@ destinationKeyVaultSecret = j.get("DestinationKeyVaultSecret")
 extendedProperties = j.get("ExtendedProperties")
 dataLakePath = cleansedPath.replace("/cleansed", "/mnt/datalake-cleansed")
 sourceTableName = f"raw.{destinationSchema}_{destinationTableName}"
+loadType = ""
 
 # COMMAND ----------
 
@@ -24,6 +25,7 @@ sourceDataFrame = spark.table(sourceTableName)
 # CLEANSED QUERY FROM RAW TO FLATTEN OBJECT
 if(extendedProperties):
   extendedProperties = json.loads(extendedProperties)
+  loadType = extendedProperties.get("LoadType")
   cleansedQuery = extendedProperties.get("CleansedQuery")
   transformMethod = extendedProperties.get("TransformMethod")
   if(cleansedQuery):
@@ -36,6 +38,10 @@ sourceDataFrame = sourceDataFrame.toDF(*(RemoveBadCharacters(c) for c in sourceD
 
 # APPLY CLEANSED FRAMEWORK
 sourceDataFrame = CleansedTransform(sourceDataFrame, sourceTableName, systemCode)
-
+ 
 tableName = f"{destinationSchema}_{destinationTableName}"
-CreateDeltaTable(sourceDataFrame, f"cleansed.{tableName}", dataLakePath) if j.get("BusinessKeyColumn") is None else CreateOrMerge(sourceDataFrame, f"cleansed.{tableName}", dataLakePath, j.get("BusinessKeyColumn"))
+
+if loadType == "Append":
+     AppendDeltaTable(sourceDataFrame, f"cleansed.{tableName}", dataLakePath)
+else:
+    CreateDeltaTable(sourceDataFrame, f"cleansed.{tableName}", dataLakePath) if j.get("BusinessKeyColumn") is None else CreateOrMerge(sourceDataFrame, f"cleansed.{tableName}", dataLakePath, j.get("BusinessKeyColumn"))

@@ -20,6 +20,12 @@ sourceTableName = f"raw.{destinationSchema}_{destinationTableName}"
 
 # COMMAND ----------
 
+import re
+systemCodeCleaned = re.sub('(ref|data)$','',systemCode)
+maskColumns = spark.sql(f"select cast(ifnull(max(Value),0) as boolean) from controldb.dbo_config where KeyGroup = 'maskColumns' and Key = '{systemCodeCleaned}'").collect()[0][0]
+
+# COMMAND ----------
+
 def RemoveDuplicateColumns(dataFrame):
     seen = set()
     dupes = [x for x in dataFrame.columns if x.lower() in seen or seen.add(x.lower())]
@@ -40,9 +46,90 @@ masks = {
     ,"mobile" : template
     ,"mob" : template
     ,"datareference" : template
+    ,"latitude" : template
     ,"longitude" : template
     ,"applicant" : template
+    ,"accountnumber" : template
+    ,"agegroup" : template
+    ,"agent" : template
+    ,"applicant" : template
+    ,"assignedto" : template
+    ,"casenumber" : template
+    ,"comments" : template
+    ,"contactnumber" : template
+    ,"contractorcost" : template
+    ,"developer" : template
+    ,"developmentlocationtext" : template
+    ,"invoicenumber" : template
+    ,"objectid" : template
+    ,"agent" : template
+    ,"paidamount" : template
+    ,"paiddate" : template
+    ,"paymentcode" : template
+    ,"paymentmethod" : template
+    ,"plumbername" : template
+    ,"postcode" : template
+    ,"propertynumber" : template
+    ,"partnernumber" : template
+    ,"telephone" : template
+    ,"state" : template
+    ,"suburb" : template
 }
+
+tableColumnMasks = {
+    "qualtrics_billpaidsuccessfullyresponses": {
+        "question16part6responsetext" : template
+        ,"question17responsetext" : template
+        ,"question21part5responsetext" : template
+        ,"question3responsetext" : template
+        ,"question7responsetext" : template
+    },
+    "qualtrics_businessconnectservicerequestcloseresponses": {
+        "question3responsetext" : template
+        ,"question7part4responsetext" : template
+    },
+    "qualtrics_complaintscomplaintclosedresponses": {
+        "question10responsetext" : template
+        ,"question14part3responsetext" : template
+        ,"question14responsecode" : template
+        ,"question6responsetext" : template
+    },
+    "qualtrics_contactcentreinteractionmeasurementsurveyresponses": {
+        "question11part8responsetext" : template
+        ,"question14part6responsetext" : template
+        ,"question15responsetext" : template
+        ,"question18responsetext" : template
+        ,"question4responsetext" : template
+        ,"question7responsetext" : template
+    },
+    "qualtrics_customercareresponses": {
+        "question13part7responsetext" : template
+        ,"question14responsetext" : template
+        ,"question16part5responsetext" : template
+        ,"question4responsetext" : template
+        ,"question8responsetext" : template
+    },
+    "qualtrics_daftestsurveyresponses": {
+        "question3responsetext" : template
+    },
+    "qualtrics_developerapplicationreceivedresponses": {
+        "question5responsetext" : template
+        ,"question7responsetext" : template
+    },
+    "qualtrics_feedbacktabgoliveresponses": {
+        "question2responsetext" : template
+    },
+    "qualtrics_s73surveyresponses": {
+        "question3responsetext" : template
+    },
+    "qualtrics_waterfixpostinteractionfeedbackresponses": {
+        "question13responsetext" : template
+        ,"question9responsetext" : template
+    }    
+}
+
+#Add table-specific column masks
+masks.update(tableColumnMasks.get(sourceTableName.replace('raw.','').lower()) or {})
 
 def MaskPIIColumn(column):
     for k, v in masks.items():
@@ -173,7 +260,8 @@ if destinationTableName.endswith('Responses'):
     sourceDataFrame = EnrichResponses(sourceDataFrame)
 
 # MASK TABLE
-sourceDataFrame = MaskTable(sourceDataFrame)
+if maskColumns:
+    sourceDataFrame = MaskTable(sourceDataFrame)
 
 tableName = f"{destinationSchema}_{destinationTableName}"
 CreateDeltaTable(sourceDataFrame, f"cleansed.{tableName}", dataLakePath) if j.get("BusinessKeyColumn") is None else CreateOrMerge(sourceDataFrame, f"cleansed.{tableName}", dataLakePath, j.get("BusinessKeyColumn"))

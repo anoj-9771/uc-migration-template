@@ -2,15 +2,14 @@
 _automatedMethods = {
     "tests": [],
     "cleansed": [
-        "RowCounts"
-        ,"ColumnCounts"
-        ,"CountValidateCurrentRecords"
-        ,"CountValidateDeletedRecords"
-        
-        #,"DuplicateCount"
-        #,"DuplicateActive"
-        #,"BusinessKeyNull"
-        #,"BusinessKeyLength"
+        "CleansedSchemaCheck"
+        ,"DuplicateKeysCheck"
+        ,"BusinessKeysNullCk"
+        ,"CountRecordsC1D0" 
+        ,"CountRecordsC0D1" 
+        ,"CheckAuditColsPresent"
+        ,"RowCounts"
+        ,"ColumnColumns"
     ],
     "curated": [
         "RowCounts"
@@ -43,6 +42,9 @@ _automatedMethods = {
 
 #COPY THE AUTOMATED TESTS
 _automatedMethods["curated_v2"] = _automatedMethods["curated"]
+
+DOC_PATH = ''
+SHEET_NAME = ''
 
 # COMMAND ----------
 
@@ -578,3 +580,222 @@ def AuditDeleted():
     count = df.count()
     if count > 0: display(df)
     Assert(count,0)
+
+# COMMAND ----------
+
+# removes non ascii characters
+def ascii_ignore(x):
+    return x.encode('ascii', 'ignore').decode('ascii')
+ascii_udf = udf(ascii_ignore)
+
+# COMMAND ----------
+
+def TrimWhitespace(df):
+    for column in df.columns:
+        df = df.withColumn(column, regexp_replace(column, r"^\s+|\s+$", ""))
+        if column != "UniqueKey":
+            df = df.withColumn(column, ascii_udf(column))
+    return df 
+
+# COMMAND ----------
+
+def loadMappingDocument():
+    
+    mappingData = spark.read.format("com.crealytics.spark.excel") \
+    .option("header", "true") \
+    .option("inferSchema", "true") \
+    .option("dataAddress", f"{SHEET_NAME}!A1") \
+    .load(f"{DOC_PATH}")
+    
+    return mappingData
+
+# COMMAND ----------
+
+def GetTargetSchemaDf():
+    target = spark.sql(f"Select * from {GetSelfFqn()}")
+    tgtSchema = target._jdf.schema().treeString()
+    tgtSchema = tgtSchema.strip(" rot").strip().splitlines()
+    tgtSchemaList = []
+
+    for line in tgtSchema:
+        line = line.replace('nullable = ', "")
+        
+        filterChars = '|-:='
+        for char in filterChars:
+            line = line.replace(char, "")
+        
+        line = line.replace('(f', "f").replace('(t', "t").strip(')').strip()
+
+        if line.startswith("_") == True:
+            continue
+
+        row = tuple(map(str, line.split()))
+        tgtSchemaList.append(row)
+        
+    
+    dfStructure = StructType([StructField('CleansedColumnName', StringType()),
+                              StructField('DataType', StringType()),
+                              StructField('UniqueKey', StringType())])
+
+    targetDf = spark.createDataFrame(tgtSchemaList, dfStructure)
+    targetDf.createOrReplaceTempView("tableView")
+    targetDf = spark.sql("""
+        Select 
+        CleansedColumnName, 
+        UPPER(DataType) as DataType,
+        case when UniqueKey = 'false' then 'Y' else null end as UniqueKey
+        from tableView
+        order by CleansedColumnName
+    """)
+    return targetDf
+
+# COMMAND ----------
+
+def GetMappingSchemaDf():
+    mappingData = loadMappingDocument()
+    mappingData.createOrReplaceTempView("mappingView")
+    
+    df = spark.sql(f"""
+        Select 
+        CleansedTable,
+        CleansedColumnName, 
+        DataType,
+        UniqueKey
+        from mappingView
+        where UPPER(CleansedTable) = UPPER("{GetSelfFqn()}")
+    """)
+    
+    df = TrimWhitespace(df)
+    df = df.withColumn("DataType", upper("DataType"))
+    df = df.withColumn("UniqueKey", upper("UniqueKey"))
+    df.createOrReplaceTempView("cleanMappingView")
+    
+    mappingDf = spark.sql(f"""
+        Select 
+        CleansedColumnName, 
+        case 
+            when DataType = 'DATETIME' then 'TIMESTAMP'
+            when DataType = 'TIME' then 'TIMESTAMP'
+            when DataType = 'BIGINT' then 'LONG'
+            when DataType like "%CHAR%" then 'STRING'
+            when DataType like "INT%" then 'INTEGER'
+            when DataType like "DAT%" then 'DATE'
+            else DataType
+        end as DataType,
+        UniqueKey
+        from cleanMappingView
+        where UPPER(CleansedTable) = UPPER("{GetSelfFqn()}")
+        order by CleansedColumnName
+    """)
+    return mappingDf
+
+# COMMAND ----------
+
+# mapping doc is currently stored at: 'dbfs:/mnt/data/mapping_documents_UC3/<mapping doc name>'
+def CleansedSchemaCheck():
+    targetDf = GetTargetSchemaDf()
+    
+    mappingDf = GetMappingSchemaDf()
+    
+    diff1 = targetDf.subtract(mappingDf)
+    count = diff1.count()
+    diff2 = mappingDf.subtract(targetDf)
+    if diff2.count() > count: count = diff2.count()
+    if count > 0: 
+        print('Target Schema:')
+        display(targetDf)
+        print('Mapping Schema:')
+        display(mappingDf)
+        print('Mismatching fields - Columns in Target that are not in Mapping (Target-Mapping):')
+        display(diff1)
+        print('Mismatching fields - Columns in Mapping that are not in Target (Mapping-Target):')
+        display(diff2)
+
+    Assert(count, 0) 
+
+# COMMAND ----------
+
+def GetUniqueKeys():
+    mappingData = loadMappingDocument()
+    mappingData.createOrReplaceTempView("mappingView")
+    
+    df = spark.sql(f"""
+        Select 
+        CleansedColumnName
+        from mappingView
+        where UPPER(CleansedTable) = UPPER("{GetSelfFqn()}")
+        and UniqueKey = 'Y'
+    """)
+    
+    keys = ""
+    for index, key in enumerate(df.collect()):
+        keys = keys + key.CleansedColumnName
+        if index != len(df.collect()) - 1:
+            keys = keys + ",\n"
+        else: 
+            keys = keys + "\n"
+    
+    return keys
+
+# COMMAND ----------
+
+def DuplicateKeysCheck():
+    keyColumns = GetUniqueKeys()
+    df = spark.sql(f"""SELECT {keyColumns}, COUNT(*) as RecCount FROM {GetSelfFqn()} 
+                   GROUP BY {keyColumns} HAVING COUNT(*) > 1""")
+    count = df.count()
+    if count > 0: display(df)
+    Assert(count,0)
+
+# COMMAND ----------
+
+def BusinessKeysNullCk():
+    keyColumns = GetUniqueKeys()
+    keyColsList = keyColumns.split(",")
+    firstColumn = keyColsList[0].strip()
+    sqlQuery = f"SELECT * FROM {GetSelfFqn()} "
+    
+    for column in keyColsList:
+        column = column.strip()
+        if column == firstColumn:
+            sqlQuery = sqlQuery + f"WHERE ({column} is NULL or {column} in ('',' ') or UPPER({column})='NULL') "
+        else:
+            sqlQuery = sqlQuery + f"OR ({column} is NULL or {column} in ('',' ') or UPPER({column})='NULL') "
+
+    df = spark.sql(sqlQuery)
+    count = df.count()
+    if count > 0: display(df)
+    Assert(count,0)
+
+# COMMAND ----------
+
+def CountRecordsCnDn(C, D):
+    df = spark.sql(f"SELECT count(*) as recCount FROM {GetSelfFqn()} \
+                WHERE _RecordCurrent = {C} and _RecordDeleted = {D}")
+    count = df.select("recCount").collect()[0][0]
+    
+    if C == 1 and D == 0:
+        GreaterThan(count,0)
+    else:
+        GreaterThanEqual(count,0)
+
+# COMMAND ----------
+
+def CountRecordsC1D0():
+    CountRecordsCnDn(1, 0)
+def CountRecordsC0D1():
+    CountRecordsCnDn(0, 1)
+
+# COMMAND ----------
+
+def CheckAuditColsPresent():
+    df = spark.sql(f"select * from {GetSelfFqn()}")
+    auditCols = ['_RecordStart', '_RecordEnd', '_RecordCurrent', '_RecordDeleted', '_DLCleansedZoneTimeStamp']
+    targetAuditCols = []
+    for column in df.columns:
+        if column.startswith("_") == True:
+            targetAuditCols.append(column)
+    
+    auditColsNotInTarget = [x for x in auditCols if x not in targetAuditCols]
+    
+    Assert(len(auditColsNotInTarget), 0, errorMessage = f"Missing audit column(s): {auditColsNotInTarget}")

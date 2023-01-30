@@ -10,12 +10,13 @@ dbutils.widgets.text("rawPath", "", "rawPath")
 # COMMAND ----------
 
 task = dbutils.widgets.get("task")
-rawPath = dbutils.widgets.get("rawPath").replace("/raw", "/mnt/datalake-raw")
+#rawPath = dbutils.widgets.get("rawPath").replace("/raw", "/mnt/datalake-raw")
 
 # COMMAND ----------
 
 j = json.loads(task)
  
+rawPath = j.get("RawPath").replace("/raw", "/mnt/datalake-raw")  
 schemaName = j.get("DestinationSchema")
 tableName = j.get("DestinationTableName")
 rawTargetPath = j.get("RawPath")

@@ -3,6 +3,10 @@
 
 # COMMAND ----------
 
+TABLE_FQN = ''
+
+# COMMAND ----------
+
 from pyspark.sql.types import *
 from pyspark.sql.functions import *
 from pyspark.sql.window import *
@@ -38,14 +42,22 @@ def GetNotebookName():
 # COMMAND ----------
 
 def GetDatabaseName():
-    list = dbutils.notebook.entry_point.getDbutils().notebook().getContext().notebookPath().get().split("/")
-    count=len(list)
-    return list[count-2]
+    if not TABLE_FQN:
+        list = dbutils.notebook.entry_point.getDbutils().notebook().getContext().notebookPath().get().split("/")
+        count=len(list)
+        database = list[count-2]
+    else:
+        database = TABLE_FQN.split(".")[0]
+    return database
 
 # COMMAND ----------
 
 def GetSelfFqn():
-    return f"{GetDatabaseName()}.{GetNotebookName()}"
+    if not TABLE_FQN:
+        table_fqn = f"{GetDatabaseName()}.{GetNotebookName()}"
+    else:
+        table_fqn = TABLE_FQN
+    return table_fqn
 
 # COMMAND ----------
 
@@ -151,6 +163,7 @@ def RunTests():
                     _LogResults(0, 0, 0, str(e).split(";")[0])
                     pass
     _TestingEnd()
+    del _results[0:len(_results)]
 
 # COMMAND ----------
 
@@ -158,8 +171,19 @@ def AssertEquals(inputValue, outputValue):
     Assert(inputValue, outputValue, compare="Equals")
 def GreaterThan(inputValue, outputValue):
     Assert(inputValue, outputValue, compare="Greater Than")
+def GreaterThanEqual(inputValue, outputValue):
+    Assert(inputValue, outputValue, compare="Greater Than Equal") 
 def LessThan(inputValue, outputValue):
     Assert(inputValue, outputValue, compare="Less Than")
+
+# COMMAND ----------
+
+def TestNotImplemented():
+    inputValue = 0
+    outputValue = 0
+    passed = 1
+    comment = "Test not applicable to current table"
+    _LogResults(inputValue, outputValue, passed, comment)
 
 # COMMAND ----------
 
@@ -171,6 +195,8 @@ def Assert(inputValue, outputValue, compare="Equals", errorMessage=None):
             assert inputValue == outputValue, f"Expecting value {compare} {outputValue}, got: {inputValue}" if errorMessage is None else errorMessage
         elif compare == "Greater Than":
             assert inputValue > outputValue, f"Expecting value {compare} {outputValue}, got: {inputValue}"
+        elif compare == "Greater Than Equal":
+            assert inputValue >= outputValue, f"Expecting value {compare} {outputValue}, got: {inputValue}"    
         elif compare == "Less Than":
             assert inputValue < outputValue, f"Expecting value {compare} {outputValue}, got: {inputValue}"
         else:

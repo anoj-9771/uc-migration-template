@@ -39,7 +39,12 @@ print(lastLoadTimeStamp)
 
 # COMMAND ----------
 
-sourceDataFrame = spark.table(sourceTableName).where(f"_DLRawZoneTimeStamp > '{lastLoadTimeStamp}'")
+try:
+    sourceDataFrame = spark.table(sourceTableName).where(f"_DLRawZoneTimeStamp > '{lastLoadTimeStamp}'")
+except Exception as e:
+    if "Table or view not found" in str(e):
+        dbutils.notebook.exit({"CleansedSinkCount": 0})
+
 if sourceDataFrame.count() <= 0:
     try:
         CleansedSinkCount = spark.table(cleansedTableName).count()
@@ -67,14 +72,14 @@ sourceDataFrame = sourceDataFrame.withColumn("_DLCleansedZoneTimeStamp",current_
 
 # HANDLE SAP ISU, SAP CRM & SAP SLT DATA
 rawDataFrame = sourceDataFrame
-sourceDataFrame = SapPreprocessCleansed(sourceDataFrame,businessKey,sourceRecordDeletion,sourceQuery,watermarkColumn) if sourceQuery[0:3].lower() in ('crm','isu','slt') else sourceDataFrame
+sourceDataFrame = SapPreprocessCleansed(sourceDataFrame,businessKey,sourceRecordDeletion,sourceQuery,watermarkColumn) #if sourceQuery[0:3].lower() in ('crm','isu','slt','ppm') else sourceDataFrame
 
 #UPSERT CLEANSED TABLE
 CreateDeltaTable(sourceDataFrame, cleansedTableName, dataLakePath) if j.get("BusinessKeyColumn") is None else CreateOrMerge(sourceDataFrame, cleansedTableName, dataLakePath, j.get("BusinessKeyColumn"))
     
 # HANDLE SAP ISU, SAP CRM & SAP SLT (FOR DELETED RECORDS)
 if sourceRecordDeletion.lower() == "true":
-    whereClause = "di_operation_type == 'X' OR di_operation_type == 'D'" if sourceQuery[0:3].lower() in ('crm','isu') else "is_deleted == 'Y'"
+    whereClause = "di_operation_type == 'X' OR di_operation_type == 'D'" if sourceQuery[0:3].lower() != 'slt' else "is_deleted == 'Y'"
     if rawDataFrame.where(whereClause).count() > 0:
         sourceDataFrame = SapPostprocessCleansed(rawDataFrame,businessKey,sourceRecordDeletion,sourceQuery,watermarkColumn)
         CreateOrMerge(sourceDataFrame, cleansedTableName, dataLakePath, j.get("BusinessKeyColumn")) if sourceDataFrame.count() > 0 else None
