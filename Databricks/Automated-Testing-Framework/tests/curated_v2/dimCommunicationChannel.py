@@ -3,11 +3,14 @@
 
 # COMMAND ----------
 
-keyColumns =  'channelCode'
-mandatoryColumns = 'channel,channelCode'
+keyColumns =  'sourceChannelCode'
+mandatoryColumns = 'sourceChannelCode'
 
-columns = ("""channel
+columns = ("""sourceChannelCode
+,sourceChannelDescription
 ,channelCode
+,channelDescription
+,sourceSystemCode
 """)
 
 
