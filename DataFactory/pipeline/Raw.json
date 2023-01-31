@@ -396,7 +396,7 @@
 										"type": "Expression"
 									},
 									"config": {
-										"value": "@json(concat(\n    '{',\n    '\"notebookPath\":\"/Repos/o4qu@sydneywater.com.au/DAF/Databricks/MDP-Framework/Zone/',pipeline().parameters.task.RawHandler,'\",',\n    '\"sinkCountProperty\":\"SinkRowCount\",',\n    '\"activityType\":\"raw-databricks\"',\n    '}'\n))",
+										"value": "@json(concat(\n    '{',\n    '\"notebookPath\":\"/MDP-Framework/Zone/',pipeline().parameters.task.RawHandler,'\",',\n    '\"sinkCountProperty\":\"SinkRowCount\",',\n    '\"activityType\":\"raw-databricks\"',\n    '}'\n))",
 										"type": "Expression"
 									}
 								}

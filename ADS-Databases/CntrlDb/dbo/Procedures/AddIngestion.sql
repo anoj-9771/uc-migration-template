@@ -11,10 +11,18 @@ CREATE PROCEDURE [dbo].[AddIngestion]
 	@KeyVaultSecret VARCHAR(MAX),
 	@ExtendedProperties VARCHAR(MAX),
 	@RawHandler VARCHAR(MAX) = 'raw-load',
-	@CleansedHandler VARCHAR(MAX) = 'cleansed-load'
+	@CleansedHandler VARCHAR(MAX) = 'cleansed-load',
+	@SystemPath VARCHAR(MAX) = null,
+	@DestinationSchema VARCHAR(MAX) = null
 
 AS
 BEGIN
+
+SET @SystemPath = COALESCE(@SystemPath,@SystemCode)
+SET @DestinationSchema = COALESCE(@DestinationSchema,@Schema)
+SET @RawHandler = COALESCE(@RawHandler,'raw-load')
+SET @CleansedHandler = COALESCE(@CleansedHandler,'cleansed-load')
+
 
 /* TODO: UPDATE EXISTING CONFIGURATION */
 IF (EXISTS(SELECT * FROM [dbo].[ExtractLoadManifest] WHERE SystemCode = @SystemCode AND SourceSchema = @Schema AND SourceTableName = @Table))
@@ -104,8 +112,8 @@ FROM (
 	,@WatermarkColumn [WatermarkColumn]
 	,REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(
 	(SELECT [RawPath] FROM [Config])
-	,'$SYSTEM$', @SystemCode) 
-	,'$SCHEMA$', @Schema) 
+	,'$SYSTEM$', @SystemPath) 
+	,'$SCHEMA$', @DestinationSchema) 
 	,'$TABLE$', @Table) 
 	,'$EXT$', ISNULL(@RawFileExtension, 'parquet'))
 	,'$guid$.', IIF(@RawFileExtension='', '', '$guid$.'))
@@ -114,10 +122,10 @@ FROM (
 	,@CleansedHandler [CleansedHandler]
 	,REPLACE(REPLACE(REPLACE(
 	(SELECT [CleansedPath] FROM [Config])
-	,'$SYSTEM$', @SystemCode) 
-	,'$SCHEMA$', @Schema) 
+	,'$SYSTEM$', @SystemPath) 
+	,'$SCHEMA$', @DestinationSchema) 
 	,'$TABLE$', @Table)[CleansedPath]
-	,REPLACE(REPLACE(@Schema
+	,REPLACE(REPLACE(@DestinationSchema
 	,'', '')
 	,' ', '') [DestinationSchema]
 	,REPLACE(REPLACE(@Table
@@ -129,5 +137,5 @@ FROM (
 LEFT JOIN [Systems] S ON S.[SystemCode] = R.[SystemCode]
 
 END
-GO
 
+GO

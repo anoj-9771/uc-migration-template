@@ -4,7 +4,8 @@
 
 CREATE PROCEDURE [dbo].[ExtractLoadInit] 
 	@BatchID VARCHAR(MAX),
-	@SystemCode VARCHAR(MAX)
+	@SystemCode VARCHAR(MAX),
+	@ExtraConfig varchar(MAX) = NULL
 AS
 BEGIN
 
@@ -52,6 +53,7 @@ BEGIN
 END
 
 BEGIN
+
 	SELECT S.BatchID, S.ID, S.LowWatermark
 	,R.[SourceID]
     ,R.[SystemCode]
@@ -73,8 +75,12 @@ BEGIN
     ,[DestinationTableName]
     ,[DestinationKeyVaultSecret]
     ,[ExtendedProperties]
+	,COALESCE(C2.Value, C1.Value) AS QueryFilter
+	,@ExtraConfig AS ExtraConfig
 	FROM [dbo].[ExtractLoadStatus] S
 	JOIN [dbo].[ExtractLoadManifest] R ON R.SourceID = S.SourceID
+	LEFT JOIN [dbo].[Config] C1 ON C1.KeyGroup = R.SystemCode AND C1.[Key] = 'DefaultDataFilter'
+	LEFT JOIN [dbo].[Config] C2 ON C2.KeyGroup = R.SystemCode AND C2.[Key] = R.SourceTableName
 	WHERE 
 	S.BatchID = @BatchID
 	AND S.SystemCode = @SystemCode
