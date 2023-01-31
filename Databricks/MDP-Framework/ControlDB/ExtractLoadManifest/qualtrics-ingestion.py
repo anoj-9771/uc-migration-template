@@ -6,10 +6,10 @@
 df_main = spark.sql("""
 WITH _Base AS 
 (
-    SELECT 'Questions' Type, 'Qualtricsref' SystemCode, 'Qualtrics' SourceSchema, 'qualtrics-auth-clientId' SourceKeyVaultSecret, 'qualtrics-load' SourceHandler, 'raw-load' RawHandler, 'cleansed-load-qualtrics' CleansedHandler, 'json' RawFileExtension
+    SELECT 'Questions' Type, 'Qualtricsref' SystemCode, 'Qualtrics' SourceSchema, 'qualtrics-auth-clientId' SourceKeyVaultSecret, 'qualtrics-load' SourceHandler, 'raw-load' RawHandler, 'cleansed-load-qualtrics' CleansedHandler, 'json' RawFileExtension, '' WatermarkColumn
     ,'{ "CleansedQuery" : "SELECT r.* FROM ( SELECT explode(result.elements) r FROM {tableFqn} ) Q" }' ExtendedProperties
     ,'https://syd1.qualtrics.com/API/v3/survey-definitions/$SURVEY_ID$/questions' SourceQuery
-    UNION SELECT 'Responses' Type, 'Qualtricsdata' SystemCode, 'Qualtrics' SourceSchema, 'qualtrics-auth-clientId' SourceKeyVaultSecret, 'qualtrics-responses-load' SourceHandler, 'raw-load' RawHandler, 'cleansed-load-qualtrics' CleansedHandler, 'json' RawFileExtension
+    UNION SELECT 'Responses' Type, 'Qualtricsdata' SystemCode, 'Qualtrics' SourceSchema, 'qualtrics-auth-clientId' SourceKeyVaultSecret, 'qualtrics-responses-load' SourceHandler, 'raw-load' RawHandler, 'cleansed-load-qualtrics' CleansedHandler, 'json' RawFileExtension, '' WatermarkColumn
     ,'{ "CleansedQuery" : "SELECT r.values.* FROM ( SELECT explode(responses) r FROM {tableFqn}) R" }' ExtendedProperties
     ,'https://syd1.qualtrics.com/API/v3/surveys/$SURVEY_ID$/export-responses' SourceQuery
 ),
@@ -28,7 +28,7 @@ _Surveys AS (
     UNION SELECT 'SV_6SxFZRoY4nOAoDA' SurveyId, 'Websitegolive' TableName
     UNION SELECT 'SV_6VAdcfAD8inWnXL' SurveyId, 'WSCS73ExperienceSurvey' TableName
 )
-SELECT 'Qualtricsref' SystemCode, 'Qualtrics' SourceSchema, 'Surveys' SourceTableName, 'https://syd1.qualtrics.com/API/v3/surveys' SourceQuery, 'qualtrics-auth-clientId' SourceKeyVaultSecret, 'qualtrics-load' SourceHandler, 'json' RawFileExtension, '' ExtendedProperties, 'raw-load' RawHandler, 'cleansed-load-qualtrics' CleansedHandler
+SELECT 'Qualtricsref' SystemCode, 'Qualtrics' SourceSchema, 'Surveys' SourceTableName, 'https://syd1.qualtrics.com/API/v3/surveys' SourceQuery, 'qualtrics-auth-clientId' SourceKeyVaultSecret, 'qualtrics-load' SourceHandler, 'json' RawFileExtension, '' ExtendedProperties, 'raw-load' RawHandler, 'cleansed-load-qualtrics' CleansedHandler, '' WatermarkColumn
 UNION
 SELECT 
 SystemCode
@@ -41,6 +41,7 @@ SystemCode
 ,ExtendedProperties
 ,RawHandler
 ,CleansedHandler
+,WatermarkColumn
 FROM _Base B
 JOIN _Surveys S ON 1=1
 """)
@@ -141,3 +142,33 @@ businessKeyColumn = 'recordId'
 where systemCode in ('Qualtricsref','Qualtricsdata')
 and sourceTableName like '%responses'
 """)      
+
+# COMMAND ----------
+
+#ADD RECORD INTO CONFIG TABLE TO MASK COLUMNS IN CLEANSED-LOAD-QUALTRICS
+#Manually run this for environments (dev,test,preprod) that needs masking. 
+# ExecuteStatement("""
+# merge into dbo.config as target using(
+#     select
+#         keyGroup = 'maskColumns'
+#         ,[key] = 'Qualtrics'
+#         ,value = 1
+# ) as source on
+#     target.keyGroup = source.keyGroup
+#     and target.[key] = source.[key]
+# when not matched then insert(
+#     keyGroup
+#     ,[key]
+#     ,value
+#     ,createdDTS
+# )
+# values(
+#     source.keyGroup
+#     ,source.[key]
+#     ,source.value
+#     ,CONVERT(DATETIME, CONVERT(DATETIMEOFFSET, GETDATE()) AT TIME ZONE 'AUS Eastern Standard Time')
+# )
+# when matched then update
+#     set value = source.value
+# ;
+# """)

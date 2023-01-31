@@ -6,12 +6,12 @@ from pyspark.sql.functions import *
 
 def SapPreprocessCleansed(sourceDataFrame,businessKey,sourceRecordDeletion,sourceQuery,watermarkColumn=None):
     businessKeyList = list(businessKey.split(","))
-    if sourceQuery[0:3].lower() in ('crm','isu'):
-        sortOrderList = ["extract_datetime","di_sequence_number"] if watermarkColumn else ["extract_datetime"]
-        whereClause = "di_operation_type != 'X' AND di_operation_type != 'D'"
-    else:
+    if sourceQuery[0:3].lower() == 'slt':
         sortOrderList = ["delta_ts"]
         whereClause = "is_deleted != 'Y'"
+    else:
+        sortOrderList = ["extract_datetime","di_sequence_number"] if watermarkColumn else ["extract_datetime"]
+        whereClause = "di_operation_type != 'X' AND di_operation_type != 'D'"
         
     #FILTER DELETED RECORDS FROM SOURCE    
     sourceDataFrame = sourceDataFrame.where(whereClause) if sourceRecordDeletion.lower() == "true" else sourceDataFrame
@@ -28,12 +28,13 @@ def SapPreprocessCleansed(sourceDataFrame,businessKey,sourceRecordDeletion,sourc
 def SapPostprocessCleansed(sourceDataFrame,businessKey,sourceRecordDeletion,sourceQuery,watermarkColumn=None):
     businessKeyList = list(businessKey.split(","))
     #PICK DELETED RECORDS FROM SOURCE
-    if sourceQuery[0:3].lower() in ('crm','isu'):
-        sortOrderList = ["extract_datetime","di_sequence_number"] if watermarkColumn else ["extract_datetime"]
-        whereClause = "rowNumber == 1 AND (di_operation_type == 'X' OR di_operation_type == 'D')"
-    else:
+    if sourceQuery[0:3].lower() == 'slt':  
         sortOrderList = ["delta_ts"]
         whereClause = "rowNumber == 1 AND (is_deleted =='Y')"
+    else:
+        sortOrderList = ["extract_datetime","di_sequence_number"] if watermarkColumn else ["extract_datetime"]
+        whereClause = "rowNumber == 1 AND (di_operation_type == 'X' OR di_operation_type == 'D')"
+        
 #         partitionSpec = Window.partitionBy([col(x) for x in businessKeyList]).orderBy([col(x).desc() for x in sortOrderList])    
 #         sourceDataFrame = sourceDataFrame.withColumn("rowNumber",row_number().over(partitionSpec)) \
 #                                          .where("rowNumber == 1 AND (di_operation_type == 'X' OR di_operation_type == 'D')" )  

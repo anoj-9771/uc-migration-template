@@ -1,0 +1,50 @@
+name: $(Build.BuildId).$(date:yyyyMMdd)
+
+parameters:
+  - name: environment
+    displayName:  "environment"
+    type: string
+    default: dev
+    values:
+     - dev
+     - test    
+     - preprod
+     - prod 
+
+trigger: none    
+pr: none
+
+variables:
+- name: DevOpsDirectory
+  value: DevOps/.pipelines/AzureResources
+- group: 'VG-SHARED'
+- group: 'VG-${{parameters.environment}}'
+
+pool:
+  vmImage: windows-latest
+
+stages:
+- stage: 'Deploy_Alerts'
+  displayName: 'Deploy Alerts in ${{ parameters.environment }}'
+  jobs:
+  - deployment: 'Deploy_Alerts'
+    displayName: 'Deploy Alerts in ${{ parameters.environment }}'
+    environment: ${{ parameters.environment }}
+    strategy:
+        runOnce:
+          deploy:
+            steps:
+              - checkout: self
+              - task: AzureResourceManagerTemplateDeployment@3
+                displayName: 'Deploy Azure Alerts in $(resourceGroupName)'
+                inputs:
+                  deploymentScope: 'Resource Group'
+                  azureResourceManagerConnection: '$(azdoResourceConnection)'
+                  action: 'Create Or Update Resource Group'
+                  resourceGroupName: '$(resourceGroupName)'
+                  location: $(location)
+                  templateLocation: 'Linked artifact'
+                  csmFile: '$(DevOpsDirectory)/alerts/templates/alerts.bicep'
+                  overrideParameters: '-environment ${{parameters.environment}} -program $(program) -dataFactoryName $(dataFactoryName) -emailForAlerts $(emailForAlerts) -enableAlerts $(enableAlerts)'
+                  deploymentMode: 'Incremental'
+                  deploymentOutputs: 'armOutputs'
