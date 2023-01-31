@@ -48,77 +48,6 @@ JOIN _Surveys S ON 1=1
 
 # COMMAND ----------
 
-#Redefine AddIngestion for
-# 1. to add NULLIF to handle null columns
-# 2. to populate cleansedHandler based on config
-def AddIngestion(df, clean = False):
-    df = AddSystemCode(df)
-    if clean:
-        CleanConfig()
-        
-#     for i in df.rdd.collect():
-        
-#         #cleansedHandler = i.CleansedHandler 
-#         cleansedHandler = 'NULL'
-        
-#         ExecuteStatement(f"""
-#         DECLARE @RC int
-#         DECLARE @SystemCode varchar(max) = '{i.SystemCode}'
-#         DECLARE @Schema varchar(max) = '{i.SystemCode}'
-#         DECLARE @Table varchar(max) = '{i.SourceTableName}'
-#         DECLARE @Query varchar(max) = '{i.SourceQuery}'
-#         DECLARE @WatermarkColumn varchar(max) = NULL
-#         DECLARE @SourceHandler varchar(max) = '{i.SourceHandler}'
-#         DECLARE @RawFileExtension varchar(max) = '{i.RawFileExtension}'
-#         DECLARE @KeyVaultSecret varchar(max) = '{i.SourceKeyVaultSecret}'
-#         DECLARE @ExtendedProperties varchar(max) = '{i.ExtendedProperties}'
-#         DECLARE @RawHandler varchar(max) = '{i.RawHandler}'
-#         DECLARE @CleansedHandler varchar(max) = {cleansedHandler}
-
-#         EXECUTE @RC = [dbo].[AddIngestion] 
-#            @SystemCode
-#           ,@Schema
-#           ,@Table
-#           ,@Query
-#           ,@WatermarkColumn
-#           ,@SourceHandler
-#           ,@RawFileExtension
-#           ,@KeyVaultSecret
-#           ,@ExtendedProperties
-#           ,@RawHandler
-#           ,@RawHandler
-#         """)
-    for i in df.rdd.collect():
-        ExecuteStatement(f"""    
-        DECLARE @RC int
-        DECLARE @SystemCode varchar(max) = NULLIF('{i.SystemCode}','')
-        DECLARE @Schema varchar(max) = NULLIF('{i.SourceSchema}','')
-        DECLARE @Table varchar(max) = NULLIF('{i.SourceTableName}','')
-        DECLARE @Query varchar(max) = NULLIF('{i.SourceQuery}','')
-        DECLARE @WatermarkColumn varchar(max) = NULL
-        DECLARE @SourceHandler varchar(max) = NULLIF('{i.SourceHandler}','')
-        DECLARE @RawFileExtension varchar(max) = NULLIF('{i.RawFileExtension}','')
-        DECLARE @KeyVaultSecret varchar(max) = NULLIF('{i.SourceKeyVaultSecret}','')
-        DECLARE @ExtendedProperties varchar(max) = NULLIF('{i.ExtendedProperties}','')
-        DECLARE @RawHandler varchar(max) = NULLIF('{i.RawHandler}','') 
-        DECLARE @CleansedHandler varchar(max) = NULLIF('{i.CleansedHandler}','')    
-
-        EXECUTE @RC = [dbo].[AddIngestion] 
-           @SystemCode
-          ,@Schema
-          ,@Table
-          ,@Query
-          ,@WatermarkColumn
-          ,@SourceHandler
-          ,@RawFileExtension
-          ,@KeyVaultSecret
-          ,@ExtendedProperties
-          ,@RawHandler
-          ,@CleansedHandler
-        """)        
-
-# COMMAND ----------
-
 def ConfigureManifest(dataFrameConfig, whereClause=None):
     # ------------- CONSTRUCT QUERY ----------------- #
     df = dataFrameConfig.where(whereClause)
@@ -126,7 +55,7 @@ def ConfigureManifest(dataFrameConfig, whereClause=None):
 #     ShowQuery(df)
 
     # ------------- SAVE ----------------- #
-    AddIngestion(df, clean=True)
+    AddIngestion(df)
     
     # ------------- ShowConfig ----------------- #
     ShowConfig()
@@ -145,8 +74,8 @@ and sourceTableName like '%responses'
 
 # COMMAND ----------
 
-#ADD RECORD INTO CONFIG TABLE TO MASK COLUMNS IN CLEANSED-LOAD-QUALTRICS
-#Manually run this for environments (dev,test,preprod) that needs masking. 
+# #ADD RECORD INTO CONFIG TABLE TO MASK COLUMNS IN CLEANSED-LOAD-QUALTRICS
+# Manually run this for environments (dev,test,preprod) that needs masking. 
 # ExecuteStatement("""
 # merge into dbo.config as target using(
 #     select

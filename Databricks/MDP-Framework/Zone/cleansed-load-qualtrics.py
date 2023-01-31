@@ -148,11 +148,11 @@ import json, re
 def EnrichResponses(dataFrame):
     dfq = spark.table(f"cleansed.{destinationSchema}_{re.sub('Responses$','Questions',destinationTableName)}")
     dfq_columns = dfq.schema.fieldNames()
-    sel_columns = set(dfq_columns) & set(['questionID','questionText','choices','answers','questionType','selector','subSelector'])
+    sel_columns = set(dfq_columns) & set(['questionId','questionText','choices','answers','questionType','selector','subSelector'])
     questions = [row.asDict(True) for row in dfq.select(*sel_columns).collect()]
     qid_dict = {}
     for question in questions:
-       qid = question.pop('questionID')
+       qid = question.pop('questionId')
        qid_dict[qid] = question
         
     qid_dict2 = {}
