@@ -4,22 +4,20 @@
 # COMMAND ----------
 
 def Transform():
+    global df
     # ------------- TABLES ----------------- #
-    df = GetTable(f"{SOURCE}.crm_0crm_category_text")
+    df = GetTable(f"{SOURCE}.maximo_swcProblemType").select("problemTypeId","problemType","description")
+   
     # ------------- JOINS ------------------ #
-
+    
+    
     # ------------- TRANSFORMS ------------- #
-    df = df.withColumn("sourceSystemCode",lit("CRM")) \
-    .withColumn("channelCode",lit("")) \
-    .withColumn("channelDescription",lit(""))
-        
     _.Transforms = [
-         f"categoryCode||'|'||categoryDescription {BK}"
-        ,"categoryCode sourceChannelCode"
-        ,"categoryDescription sourceChannelDescription"
-        ,"channelCode channelCode"
-        ,"channelDescription channelDescription"
-        ,"sourceSystemCode sourceSystemCode"
+        f"problemType {BK}"
+        ,"problemTypeId problemTypeIdSK"
+        ,"problemType problemType"
+        ,"description problemDescription"
+       
     ]
     df = df.selectExpr(
         _.Transforms
@@ -28,7 +26,7 @@ def Transform():
 
     # ------------- SAVE ------------------- #
 #     display(df)
-#     CleanSelf()
+    #CleanSelf()
     Save(df)
     #DisplaySelf()
 pass

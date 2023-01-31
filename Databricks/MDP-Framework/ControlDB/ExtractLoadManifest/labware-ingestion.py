@@ -3,15 +3,6 @@
 
 # COMMAND ----------
 
-(
-    spark.table("controldb.dbo_extractloadmanifest")
-    .filter("SystemCode in ('labwaredata','labwareref')")
-    .filter("Enabled = 'true'")
-    .display()
-)
-
-# COMMAND ----------
-
 labwaredata_tables =['ACCOUNT'
 ,'BATCH'
 ,'BATCH_RESULT'
@@ -162,24 +153,24 @@ for code in group_names:
 ExecuteStatement("""
 update dbo.extractLoadManifest set
 businessKeyColumn = case sourceTableName
-when 'ACCOUNT' then 'account_number'
+when 'ACCOUNT' then 'accountNumber'
 when 'ADDRESS_BOOK' then 'name'
 when 'ALGAL_MNEMONICS' then 'name'
-when 'ANALYSIS' then 'name,version'
-when 'ANALYSIS_LIMITS' then 'limit_number,analysis,version'
+when 'ANALYSIS' then 'analysisName,version'
+when 'ANALYSIS_LIMITS' then 'limitNumber,analysis,version'
 when 'ANALYSIS_TYPES' then 'name'
 when 'ANALYSIS_VARIATION' then 'analysis,variation,version'
-when 'APPROVAL' then 'approval_id'
-when 'APPROVAL_DETAILS' then 'approval_id,approval_step'
+when 'APPROVAL' then 'approvalId'
+when 'APPROVAL_DETAILS' then 'approvalId,approvalStep'
 when 'BATCH' then 'name'
 when 'BATCH_COMPONENT' then 'template,name,version'
 when 'BATCH_HDR_TEMPLATE' then 'name,version'
 when 'BATCH_LINK' then 'name'
-when 'BATCH_RESULT' then 'result_number'
-when 'BATCH_STANDARD' then 'batch_protocol,order_number'
+when 'BATCH_RESULT' then 'resultNumber'
+when 'BATCH_STANDARD' then 'batchProtocol,orderNumber'
 when 'CATALOGUE' then 'name,version'
-when 'CATALOGUE_ITEM' then 'catalogue,version,cost_item_no'
-when 'CHARGES' then 'charge_entry'
+when 'CATALOGUE_ITEM' then 'catalogue,version,costItemNo'
+when 'CHARGES' then 'chargeEntry'
 when 'CHARGE_CODE' then 'name'
 when 'COLLECTION_RUN' then 'name'
 when 'COMMON_NAME' then 'name'
@@ -187,49 +178,49 @@ when 'COMPONENT' then 'analysis,name,version'
 when 'COMPONENT_CODES' then 'analysis,component,version,code'
 when 'COMP_VARIATION' then 'analysis,variation,component,version'
 when 'CONDITION' then 'name'
-when 'CONTACT' then 'contact_number'
+when 'CONTACT' then 'contactNumber'
 when 'CONTAINER' then 'name'
-when 'CONTAINER_LIST_ENTRY' then 'container_list,entry_name,order_number'
+when 'CONTAINER_LIST_ENTRY' then 'containerList,entryName,orderNumber'
 when 'CONTRACT_CURRENCY' then 'name'
-when 'CONTRACT_QUOTE' then 'contract_quote_no'
-when 'CONTRACT_QUOTE_ITM' then 'contract_quote_no,cntrct_qte_item_no'
-when 'COST_ITEM' then 'cost_item_no'
-when 'COST_ITEM_RPT' then 'cost_item_rpt_no'
+when 'CONTRACT_QUOTE' then 'contractQuoteNo'
+when 'CONTRACT_QUOTE_ITM' then 'contractQuoteNo,cntrctQteItemNo'
+when 'COST_ITEM' then 'costItemNo'
+when 'COST_ITEM_RPT' then 'costItemRptNo'
 when 'COUNTRY' then 'name'
 when 'CUSTOMER' then 'name'
 when 'C_CUSTOMER_GROUP' then 'name'
 when 'C_ENV_CONSTANTS' then 'name'
-when 'C_ENV_CONST_PARAM' then 'c_env_constants,seq_num'
-when 'DB_FILES' then 'file_name'
-when 'EXPERIMENT' then 'name,experiment_number'
+when 'C_ENV_CONST_PARAM' then 'cEnvConstants,seqNum'
+when 'DB_FILES' then 'fileName'
+when 'EXPERIMENT' then 'name,experimentNumber'
 when 'HAZARD' then 'name'
 when 'HOLIDAY_SCHED_ENTRY' then 'name,month,year'
 when 'HTML_FILES' then 'name'
 when 'INSTRUMENTS' then 'name'
-when 'INVENTORY_ITEM' then 'item_number'
+when 'INVENTORY_ITEM' then 'itemNumber'
 when 'INVENTORY_LOCATION' then 'name'
-when 'INVOICE' then 'invoice_number'
-when 'INVOICE_ADJUSTMENT' then 'invoice_number,invoice_adjust_no'
-when 'INVOICE_ITEM' then 'invoice_item_no'
+when 'INVOICE' then 'invoiceNumber'
+when 'INVOICE_ADJUSTMENT' then 'invoiceNumber,invoiceAdjustNo'
+when 'INVOICE_ITEM' then 'invoiceItemNo'
 when 'LIMS_CONSTANTS' then 'name'
-when 'LIMS_NOTES' then 'note_id'
+when 'LIMS_NOTES' then 'noteId'
 when 'LIST' then 'name'
 when 'LIST_ENTRY' then 'list,name'
 when 'LOCATION' then 'name'
-when 'PERSON' then 'person_number'
-when 'PERSON_LINKING' then 'counter,link_number'
+when 'PERSON' then 'personNumber'
+when 'PERSON_LINKING' then 'counter,linkNumber'
 when 'PRODUCT' then 'name,version'
-when 'PRODUCT_GRADE' then 'product,version,sampling_point,grade'
-when 'PRODUCT_SPEC' then 'product,entry_code'
-when 'PROD_GRADE_STAGE' then 'product,version,sampling_point,grade,stage,analysis,spec_type'
+when 'PRODUCT_GRADE' then 'product,version,samplingPoint,grade'
+when 'PRODUCT_SPEC' then 'product,entryCode'
+when 'PROD_GRADE_STAGE' then 'product,version,samplingPoint,grade,stage,analysis,specType'
 when 'PROJECT' then 'name'
-when 'PROJECT_RESULT' then 'result_number'
+when 'PROJECT_RESULT' then 'resultNumber'
 when 'QC_SAMPLES' then 'name'
-when 'REPORTED_RESULT' then 'result_number,gu_id,revision_no'
-when 'REPORTS' then 'report_number'
-when 'RESULT' then 'result_number'
-when 'RESULT_SPEC' then 'result_number,product_spec_code'
-when 'SAMPLE' then 'sample_number'
+when 'REPORTED_RESULT' then 'resultNumber,guId,revisionNo'
+when 'REPORTS' then 'reportNumber'
+when 'RESULT' then 'resultNumber'
+when 'RESULT_SPEC' then 'resultNumber,productSpecCode'
+when 'SAMPLE' then 'sampleNumber'
 when 'SAMPLING_POINT' then 'name'
 when 'SERVICE_RESERVOIR' then 'name'
 when 'STANDARD_REAGENT' then 'name'
@@ -240,31 +231,31 @@ when 'SWC_ABC_CODE' then 'name'
 when 'SWC_ANALYTE_MAP' then 'name'
 when 'SWC_COMP_TAUKEY' then 'name'
 when 'SWC_HAZARD_NAME' then 'name'
-when 'SWC_QUOTE_REVENUE' then 'contract_quote_no,seq_num'
-when 'SWC_SAP_BTCH_CUS_HDR' then 'sap_btch_hdr_num,sap_btch_cus_hdr_num'
-when 'SWC_SAP_BTCH_HDR' then 'sap_btch_hdr_num'
-when 'SWC_SP_HAZARDS' then 'sampling_point,order_number'
-when 'SWC_X_ACCRED_USERS' then 'lab,accredited_user,accredited_test'
+when 'SWC_QUOTE_REVENUE' then 'contractQuoteNo,seqNum'
+when 'SWC_SAP_BTCH_CUS_HDR' then 'sapBtchHdrNum,sapBtchCusHdrNum'
+when 'SWC_SAP_BTCH_HDR' then 'sapBtchHdrNum'
+when 'SWC_SP_HAZARDS' then 'samplingPoint,orderNumber'
+when 'SWC_X_ACCRED_USERS' then 'lab,accreditedUser,accreditedTest'
 when 'TAX_GROUP' then 'name'
 when 'TAX_PLAN' then 'name'
-when 'TAX_PLAN_ITEM' then 'tax_plan,tax_plan_item_no'
-when 'TEST' then 'test_number'
+when 'TAX_PLAN_ITEM' then 'taxPlan,taxPlanItemNo'
+when 'TEST' then 'testNumber'
 when 'TEST_LIST' then 'name'
-when 'TEST_LIST_COMP' then 'test_list,analysis,component,analysis_count'
-when 'TEST_LIST_ENTRY' then 'name,analysis,analysis_count'
+when 'TEST_LIST_COMP' then 'refToTestList,analysis,component,analysisCount'
+when 'TEST_LIST_ENTRY' then 'name,analysis,analysisCount'
 when 'TREATMENT_WORKS' then 'name'
-when 'T_DISTRIBUTION_ITEM' then 't_distribution_list,person'
+when 'T_DISTRIBUTION_ITEM' then 'tDistributionList,person'
 when 'T_DISTRIBUTION_LIST' then 'name'
-when 'T_UNCERTAINTY' then 'analysis,version,entry_code'
-when 'UNITS' then 'unit_code'
+when 'T_UNCERTAINTY' then 'analysis,version,entryCode'
+when 'UNITS' then 'unitCode'
 when 'VENDOR' then 'name'
-when 'VERSIONS' then 'table_name,name'
+when 'VERSIONS' then 'tableName,name'
 when 'WATER_SOURCE' then 'name'
-when 'WORKBOOK' then 'workbook_number'
-when 'WORKBOOK_FILES' then 'file_name'
-when 'WORKBOOK_IMAGE' then 'workbook_number,image_number'
+when 'WORKBOOK' then 'workbookNumber'
+when 'WORKBOOK_FILES' then 'fileName'
+when 'WORKBOOK_IMAGE' then 'workbookNumber,imageNumber'
 when 'X_ERESULTS_TRANSLATE' then 'name'
-when 'X_ERESULTS_TRANS_DET' then 'x_eresults_translate,item_id'
+when 'X_ERESULTS_TRANS_DET' then 'xEresultsTranslate,itemId'
 when 'ZONE' then 'name'
 else businessKeyColumn
 end
@@ -279,7 +270,7 @@ where systemCode in ('labwaredata','labwareref')
 ExecuteStatement("""
     UPDATE controldb.dbo.extractloadmanifest
     SET WatermarkColumn = 'CHANGED_ON' 
-    WHERE (SystemCode = 'labwaredata' and SourceTableName in ('ACCOUNT','BATCH','BATCH_RESULT','CONTRACT_QUOTE','DB_FILES','EXPERIMENT','INVENTORY_ITEM','INVENTORY_LOCATION','INVOICE','INVOICE_ITEM','LIMS_NOTES','PERSON','PROJECT_RESULT','RESULT','RESULT_SPEC','SAMPLE','SWC_SAP_BTCH_HDR','TEST','WORKBOOK','WORKBOOK_FILES')) OR (SystemCode = 'labwareref' and SourceTableName in ('ADDRESS_BOOK','ALGAL_MNEMONICS','ANALYSIS','ANALYSIS_TYPES','BATCH_HDR_TEMPLATE','BATCH_LINK','C_CUSTOMER_GROUP','C_ENV_CONSTANTS','CATALOGUE','CHARGE_CODE','COLLECTION_RUN','COMMON_NAME','CONDITION','CONTACT','CONTAINER','CONTRACT_CURRENCY','COST_ITEM','COST_ITEM_RPT','COUNTRY','CUSTOMER','HAZARD','HTML_FILES','INSTRUMENTS','LIMS_CONSTANTS','LIST','LOCATION','PRODUCT','QC_SAMPLES','SAMPLING_POINT','SERVICE_RESERVOIR','STANDARD_REAGENT','STOCK','SUPPLIER','SWC_611SITES','SWC_ABC_CODE','SWC_ANALYTE_MAP','SWC_COMP_TAUKEY','SWC_HAZARD_NAME','SWC_REPORT_TEMPLATE','SWC_TWAG','SWC_X_ACCRED_USERS','T_DISTRIBUTION_LIST','TAX_GROUP','TAX_PLAN','TEST', 'TEST_LIST','TREATMENT_WORKS','UNITS','VENDOR','WATER_SOURCE','WORKBOOK_IMAGE','X_ERESULTS_TRANSLATE','ZONE'))""")
+    WHERE (SystemCode = 'labwaredata' and SourceTableName in ('ACCOUNT','BATCH','BATCH_RESULT','CONTRACT_QUOTE','DB_FILES','EXPERIMENT','INVENTORY_ITEM','INVENTORY_LOCATION','INVOICE','INVOICE_ITEM','LIMS_NOTES','PERSON','PROJECT_RESULT','RESULT',''RESULT_SPEC,'SAMPLE','SWC_SAP_BTCH_HDR','TEST','WORKBOOK','WORKBOOK_FILES')) OR (SystemCode = 'labwareref' and SourceTableName in ('ADDRESS_BOOK','ALGAL_MNEMONICS','ANALYSIS','ANALYSIS_TYPES','BATCH_HDR_TEMPLATE','BATCH_LINK','C_CUSTOMER_GROUP','C_ENV_CONSTANTS','CATALOGUE','CHARGE_CODE','COLLECTION_RUN','COMMON_NAME','CONDITION','CONTACT','CONTAINER','CONTRACT_CURRENCY','COST_ITEM','COST_ITEM_RPT','COUNTRY','CUSTOMER','HAZARD','HTML_FILES','INSTRUMENTS','LIMS_CONSTANTS','LIST','LOCATION','PRODUCT','QC_SAMPLES','SAMPLING_POINT','SERVICE_RESERVOIR','STANDARD_REAGENT','STOCK','SUPPLIER','SWC_611SITES','SWC_ABC_CODE','SWC_ANALYTE_MAP','SWC_COMP_TAUKEY','SWC_HAZARD_NAME','SWC_REPORT_TEMPLATE','SWC_TWAG','SWC_X_ACCRED_USERS','T_DISTRIBUTION_LIST','TAX_GROUP','TAX_PLAN','TEST', 'TEST_LIST','TREATMENT_WORKS','UNITS','VENDOR','WATER_SOURCE','WORKBOOK_IMAGE','X_ERESULTS_TRANSLATE','ZONE'))""")
 
 # COMMAND ----------
 
@@ -292,13 +283,14 @@ ExecuteStatement("""
 
  #ADD SOURCE QUERY
 ExecuteStatement("""
-update dbo.extractLoadManifest set SourceQuery = case sourceTableName
-when 'INVOICE_ITEM' then 'select I2.*,I.CHANGED_ON from lims.INVOICE_ITEM I2 Inner join lims.INVOICE I on I.INVOICE_NUMBER = I2.INVOICE_NUMBER'
-when 'RESULT_SPEC' then 'select RS.*,R.CHANGED_ON from lims.RESULT_SPEC RS Inner join lims.RESULT R on R.RESULT_NUMBER = RS.RESULT_NUMBER'
-when 'WORKBOOK_FILES' then 'select DIR_NUM,FILE_NAME,ORIGINAL_PATH,ORIGINAL_NAME,CHANGED_BY,CHANGED_ON,LAST_MODIFIED,FILE_SIZE,DESCRIPTION,GROUP_NAME,COMPUTER_NAME,HASH,FILE_LABEL,WORKBOOK_NUMBER,DOCUMENT_NUMBER from lims.WORKBOOK_FILES'
-when 'RESULT' then 'SELECT r.* FROM lims.RESULT r INNER JOIN lims.sample s ON r.SAMPLE_NUMBER = s.SAMPLE_NUMBER WHERE s.CUSTOMER not like ''Z%'''
-when 'SAMPLE' then 'SELECT * FROM lims.SAMPLE s WHERE s.CUSTOMER not like ''Z%'''
-when 'TEST' then 'SELECT t.* FROM lims.TEST t INNER JOIN lims.sample s ON t.SAMPLE_NUMBER = s.SAMPLE_NUMBER WHERE s.CUSTOMER not like ''Z%'''
+update dbo.extractLoadManifest set
+SourceQuery = case sourceTableName
+when 'INVOICE_ITEM' then 'select INVOICE_ITEM.*,INVOICE.CHANGED_ON from lims.INVOICE_ITEM Inner join lims.INVOICE on INVOICE.INVOICE_NUMBER = INVOICE_ITEM.INVOICE_NUMBER'
+when 'RESULT' then "SELECT r.* FROM lims.RESULT r INNER JOIN lims.sample s ON r.SAMPLE_NUMBER = s.SAMPLE_NUMBER
+WHERE s.CUSTOMER not like 'Z%'"
+when 'RESULT_SPEC' then 'select RESULT_SPEC.*,RESULT.CHANGED_ON from lims.RESULT_SPEC Inner join lims.RESULT on RESULT.RESULT_NUMBER = RESULT_SPEC.RESULT_NUMBER'
+when 'SAMPLE' then "SELECT * FROM lims.SAMPLE s WHERE s.CUSTOMER not like 'Z%'"
+when 'TEST' then "SELECT t.* FROM lims.TEST t INNER JOIN lims.sample s ON t.SAMPLE_NUMBER = s.SAMPLE_NUMBER WHERE s.CUSTOMER not like 'Z%'"
 else SourceQuery
 end
 where systemCode in ('labwaredata','labwareref')

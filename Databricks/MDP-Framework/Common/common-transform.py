@@ -10,6 +10,7 @@
 from pyspark.sql.types import *
 from pyspark.sql.functions import *
 from pyspark.sql.window import *
+from dateutil import parser
 from datetime import *
 import pytz
 
@@ -51,7 +52,7 @@ class CuratedTransform( BlankClass ):
     #   self.BK = f"{self.Name}_BK"      
       self.BK = "_BusinessKey"
     #   self.EntityName = f"{self.EntityType[0:1]}_{self.Name}"
-      self.EntityName = f"{'dim' if self.EntityType == 'Dimension' else 'fact'}{self.Name}"
+      self.EntityName = f"{'dim' if self.EntityType == 'Dimension' else 'fact' if self.EntityType == 'Fact' else ''}{self.Name}"
       self.Destination = f"{DEFAULT_TARGET}.{self.EntityName}"
       self.DataLakePath = f"/mnt/datalake-{DEFAULT_TARGET}/{self.EntityType}/{self.EntityName}"
       self.Tables = []
@@ -91,9 +92,11 @@ def IsDimension():
 
 # COMMAND ----------
 
-def _WrapSystemColumns(dataFrame):
-#   return _AddSCD(_InjectSK(dataFrame)) #if IsDimension() else _InjectSK(dataFrame) 
-  return _InjectSK(_AddSCD(dataFrame)) #if IsDimension() else _InjectSK(dataFrame) 
+def _WrapSystemColumns(dataFrame,scdFromSource):  
+  if scdFromSource:
+    return _InjectSK(_AddSCDFromSource(dataFrame))
+  else:
+    return _InjectSK(_AddSCD(dataFrame))
 
 # COMMAND ----------
 
@@ -211,7 +214,7 @@ def _AddSCD(dataFrame):
     df = df.select(cols)
 
     df = df.withColumn("_DLCuratedZoneTimeStamp", expr("now()"))
-    df = df.withColumn("_recordStart", expr(f"CAST({DEFAULT_START_DATE} AS TIMESTAMP)"))
+    df = df.withColumn("_recordStart", expr(f"COALESCE(_recordStart, CAST({DEFAULT_START_DATE} AS TIMESTAMP))"))
     # df = df.withColumn("_recordEnd", expr("CAST(NULL AS TIMESTAMP)" if DEFAULT_END_DATE == "NULL" else f"CAST('{DEFAULT_END_DATE}' AS TIMESTAMP) + INTERVAL 1 DAY - INTERVAL 1 SECOND"))
     df = df.withColumn("_recordEnd", 
                     expr("CAST(NULL AS TIMESTAMP)" if DEFAULT_END_DATE == "NULL" else f"CAST('{DEFAULT_END_DATE}' AS TIMESTAMP)"))
@@ -236,77 +239,65 @@ def _AddSCD(dataFrame):
 
 # COMMAND ----------
 
+def _AddSCDFromSource(dataFrame):
+    cols = dataFrame.columns
+    df = dataFrame
+    
+    #Move BK to the end
+    if _.BK in cols:
+        cols.remove(_.BK)
+        cols.append(_.BK)
+    df = df.select(cols)
+
+    df = df.withColumn("_DLCuratedZoneTimeStamp", expr("now()"))
+    df = df.withColumn("_recordStart",expr(f"CAST(ifnull(validFromDatetime,{DEFAULT_START_DATE}) as timestamp)"))
+    df = df.withColumn("_recordEnd", expr(f"CAST(ifnull(validToDatetime,'{DEFAULT_END_DATE}') as timestamp) - INTERVAL 1 SECOND"))
+   
+    if "_recordcurrent" in [c.lower() for c in cols]:
+        df = df.withColumn("_recordCurrent", expr("COALESCE(_recordCurrent, CAST(1 AS INT))"))
+    else:    
+        df = df.withColumn("_recordCurrent", when(df.validToDatetime > parser.parse(f'{DEFAULT_END_DATE}'), 1).otherwise(0))
+
+    if "_recorddeleted" in [c.lower() for c in cols]:
+        df = df.withColumn("_recordDeleted", expr("COALESCE(_recordDeleted, CAST(0 AS INT))"))
+    else:    
+        df = df.withColumn("_recordDeleted", expr("CAST(0 AS INT)"))
+
+    return df
+
+# COMMAND ----------
+
 def Save(sourceDataFrame):
+    scdFromSource = False
     targetTableFqn = f"{_.Destination}"
     print(f"Saving {targetTableFqn}...")
-    sourceDataFrame = _WrapSystemColumns(sourceDataFrame) if sourceDataFrame is not None else None
-
     if (not(TableExists(targetTableFqn))):
         print(f"Creating {targetTableFqn}...")
         # Adjust _RecordStart date for first load
         sourceDataFrame = sourceDataFrame.withColumn("_recordStart", expr("CAST('1900-01-01' AS TIMESTAMP)"))
+        sourceDataFrame = _WrapSystemColumns(sourceDataFrame, scdFromSource) if sourceDataFrame is not None else None
+        CreateDeltaTable(sourceDataFrame, targetTableFqn, _.DataLakePath)  
+        EndNotebook(sourceDataFrame)
+        return
+    sourceDataFrame = _WrapSystemColumns(sourceDataFrame, scdFromSource) if sourceDataFrame is not None else None
+    MergeSCDTable(sourceDataFrame, targetTableFqn, scdFromSource,_.BK,_.SK)
+    EndNotebook(sourceDataFrame)
+    return 
+
+# COMMAND ----------
+
+def SaveSCDFromSource(sourceDataFrame):
+    scdFromSource = True
+    sourceDataFrame = _WrapSystemColumns(sourceDataFrame, scdFromSource) if sourceDataFrame is not None else None
+    targetTableFqn = f"{_.Destination}"
+    print(f"Saving SCD from source {targetTableFqn}...")
+    if (not(TableExists(targetTableFqn))):
+        print(f"Creating SCD from source {targetTableFqn}...")
         CreateDeltaTable(sourceDataFrame, targetTableFqn, _.DataLakePath)  
         EndNotebook(sourceDataFrame)
         return
 
-    targetTable = spark.table(targetTableFqn)
-    # _exclude = {f"{_.SK}", f"{_.BK}", '_recordStart', '_recordEnd', '_Current', "_Batch_SK"}
-    #Question - _recordCurrent, and _recordDeleted are not excluded, agree?    
-    _exclude = {f"{_.SK}", f"{_.BK}", '_recordStart', '_recordEnd', '_recordCurrent', '_DLCuratedZoneTimeStamp'}
-    # changeColumns = " OR ".join([f"s.{c} <=> t.{c}" for c in targetTable.columns if c not in _exclude])
-    changeColumns = "!(" + " AND ".join([f"s.{c} <=> t.{c}" for c in targetTable.columns if c not in _exclude]) + ")"
-    # bkList = "','".join([str(c[f"{_.BK}"]) for c in spark.table(targetTableFqn).select(f"{_.BK}").rdd.collect()])
-    # newRecords = sourceDataFrame.where(f"{_.Name}_BK NOT IN ('{bkList}')")
-    #Question - should we use recordCurrent or high date?
-    # newRecords = sourceDataFrame.join(targetTable.where('_recordCurrent = 1'), [f"{_.BK}"], 'leftanti')
-    # newCount = newRecords.count()
-
-    # if newCount > 0:
-    #     print(f"Inserting {newCount} new...")
-    #     newRecords.write.insertInto(tableName=targetTableFqn)
-
-    # sourceDataFrame = sourceDataFrame.where(f"{_.BK} IN ('{bkList}')")
-    
-    changeRecords = sourceDataFrame.alias("s") \
-        .join(targetTable.alias("t"), f"{_.BK}") \
-        .where(f"t._recordCurrent = 1 AND ({changeColumns})") 
-
-    stagedUpdates = changeRecords.selectExpr("NULL BK", "s.*") \
-        .unionByName( \
-          sourceDataFrame.selectExpr(f"{_.BK} BK", "*") \
-        )
-
-    insertValues = {
-        f"{_.SK}": f"{_.SK}", 
-        # f"{_.BK}": f"COALESCE(s.BK, s.{_.BK})",
-        f"{_.BK}": f"s.{_.BK}",
-        "_DLCuratedZoneTimeStamp": "s._DLCuratedZoneTimeStamp",
-        "_recordStart": "s._recordStart",
-        "_recordEnd": "s._recordEnd",
-        #Question
-        "_recordCurrent": "1",
-        # "_recordCurrent": "s._recordCurrent",
-        "_recordDeleted": "s._recordDeleted",
-        # "_Batch_SK": expr(f"DATE_FORMAT(s._Created, 'yyMMddHHmmss') || COALESCE(DATE_FORMAT({DEFAULT_END_DATE}, '{DATE_FORMAT}'), '{BATCH_END_CODE}') || 1")
-    }
-    for c in [i for i in targetTable.columns if i not in _exclude]:
-        insertValues[f"{c}"] = f"s.{c}"
-
-    print("Merging...")
-    DeltaTable.forName(spark, targetTableFqn).alias("t").merge(stagedUpdates.alias("s"), f"t.{_.BK} = BK") \
-        .whenMatchedUpdate(
-          condition = f"t._recordCurrent = 1 AND ({changeColumns})", 
-          set = {
-            "_recordEnd": expr(f"{DEFAULT_START_DATE} - INTERVAL 1 SECOND"),
-            #Question
-            "_recordCurrent": "0",
-            # "_Batch_SK": expr(f"DATE_FORMAT(s._Created, '{DATE_FORMAT}') || COALESCE(DATE_FORMAT({DEFAULT_START_DATE} - INTERVAL 1 SECOND, '{DATE_FORMAT}'), '{BATCH_END_CODE}') || 0") 
-          }
-        ) \
-        .whenNotMatchedInsert(
-          values = insertValues
-        ).execute()
-    
-    
+    MergeSCDTable(sourceDataFrame, targetTableFqn, scdFromSource,_.BK,_.SK) 
     EndNotebook(sourceDataFrame)
     return 
+    
