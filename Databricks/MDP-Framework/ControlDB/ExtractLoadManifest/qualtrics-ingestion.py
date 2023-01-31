@@ -145,8 +145,8 @@ and sourceTableName like '%responses'
 
 # COMMAND ----------
 
-#ADD RECORD INTO CONFIG TABLE TO MASK COLUMNS IN CLEANSED-LOAD-QUALTRICS
-#Manually run this for environments (dev,test,preprod) that needs masking. 
+# #ADD RECORD INTO CONFIG TABLE TO MASK COLUMNS IN CLEANSED-LOAD-QUALTRICS
+# Manually run this for environments (dev,test,preprod) that needs masking. 
 # ExecuteStatement("""
 # merge into dbo.config as target using(
 #     select
