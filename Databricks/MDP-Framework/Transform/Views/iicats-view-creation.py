@@ -33,6 +33,7 @@ dedupQuery = 'dedupe = 1'
 filterQuery = 'sourceRecordSystemId in(89,90)'
 
 for i in df.rdd.collect():
+    partitionKey = i.BusinessKeyColumn.replace(f",{i.WatermarkColumnMapped}","")
     # if in dedup list create a view containing dedupe logic
     # if also in filter list add sys filter
     if dedupeList.count(i.SourceTableName) > 0:
@@ -43,7 +44,7 @@ for i in df.rdd.collect():
         sql = (f"""
         create or replace view curated.vw_{i.DestinationSchema}_{i.DestinationTableName} as
         with cteDedup as(
-          select *, row_number() over (partition by {i.BusinessKeyColumn} order by {i.WatermarkColumnMapped} desc) dedupe
+          select *, row_number() over (partition by {partitionKey} order by {i.WatermarkColumnMapped} desc) dedupe
           from cleansed.{i.DestinationSchema}_{i.DestinationTableName}
         )
         select *
@@ -61,3 +62,13 @@ for i in df.rdd.collect():
         """)
     print(sql)
     spark.sql(sql)
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC 
+# MAGIC select * from controldb.dbo_extractLoadManifest where systemCode in ('iicatsdata','iicatsref')
+
+# COMMAND ----------
+
+

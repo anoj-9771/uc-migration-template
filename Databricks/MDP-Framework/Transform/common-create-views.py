@@ -31,7 +31,7 @@ notebookPath = f"{basePath}{notebookName}"
 df = ListWorkspaces(basePath)
 df = ExpandTable(df)
 
-if exists run notebook otherwise return
+#if exists run notebook otherwise return
 if df.where(f"lower(objects_path) = '{notebookPath.lower()}'").count() > 0:
     print(f"Notebook {notebookName} exists! Running now...")
     dbutils.notebook.run(notebookPath, 0, {"system_code":f"{systemCode}"})

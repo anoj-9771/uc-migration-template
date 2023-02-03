@@ -16,6 +16,7 @@ defaultTransformTags = {
     ,"str-dd-MMM-yyyy-HH-mm-to-timestamp" : "to_timestamp(right(concat('0',$c$),17),'dd-MMM-yyyy HH:mm')"
     ,"flag-x-yes-no" : "case WHEN $c$='X' then 'Y' Else 'N' end "
     ,"flag-x-true-false" : "case WHEN $c$='X' then 'T' Else 'F' end "
+    ,"flag-TorF-yes-no" : "case when $c$='T' then 'Y'   when $c$='F' then 'N'  end "
     ,"flag-1or0-yes-no" : "case WHEN $c$='1' then 'Y' when $c$='0' then 'N' end "
     ,"flag-int-inbound-outbound" : " case WHEN $c$='0' then 'I' Else 'O' end "
     ,"int-utc-to-sydney-datetime" : " case WHEN $c$='99991231235959' then to_timestamp(substring($c$,1,4)||'-'||substring($c$,5,2)||'-'||substring($c$,7,2) \

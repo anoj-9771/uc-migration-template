@@ -22,11 +22,11 @@ df = spark.sql("""
     (
       SELECT 'iicatsdata' SystemCode, 'iicats' SourceSchema, 'daf-oracle-IICATS-connectionstring' SourceKeyVaultSecret, 'oracle-load' SourceHandler, '' RawFileExtension, 'raw-load-delta' RawHandler, '' ExtendedProperties, 'cleansed-load-delta' CleansedHandler
     )
-    SELECT 'scx_facility' SourceTableName, 'M_DATE' WatermarkColumn, 'select * from iicats.scx_facility where lower(edw_export_config) = ''y''' SourceQuery, * FROM _Base
+    SELECT 'scx_facility' SourceTableName, 'M_DATE' WatermarkColumn, "select * from iicats.scx_facility where lower(edw_export_config) = ''y''" SourceQuery, * FROM _Base
     UNION 
     SELECT 'groups' SourceTableName, 'M_DATE' WatermarkColumn, '' SourceQuery, * FROM _Base
     UNION 
-    SELECT 'scx_point' SourceTableName, 'M_DATE' WatermarkColumn, 'select * from iicats.scx_point where lower(edw_export_config) = ''y''' SourceQuery, * FROM _Base
+    SELECT 'scx_point' SourceTableName, 'M_DATE' WatermarkColumn, "select * from iicats.scx_point where lower(edw_export_config) = ''y''" SourceQuery, * FROM _Base
     UNION 
     SELECT 'wfp_daily_demand_archive' SourceTableName, 'M_DATE' WatermarkColumn, '' SourceQuery, * FROM _Base
     UNION 
@@ -62,7 +62,7 @@ df = spark.sql("""
     UNION 
     SELECT 'scxuser' SourceTableName, 'EFF_FROM_DT' WatermarkColumn, '' SourceQuery, * FROM _Base
     UNION 
-    SELECT 'scxfield' SourceTableName, 'HT_CRT_DT' WatermarkColumn, '' SourceQuery, * FROM _Base
+    SELECT 'scxfield' SourceTableName, '' WatermarkColumn, '' SourceQuery, * FROM _Base
     )    
     ORDER BY SourceSchema, SourceTableName
     """)
@@ -84,7 +84,6 @@ def ConfigureManifest(df):
 for system_code in ['iicatsref','iicatsdata']:
     SYSTEM_CODE = system_code
     print(SYSTEM_CODE)
-    ExecuteStatement(f"delete from dbo.extractLoadManifest where systemCode = '{SYSTEM_CODE}'")
     ConfigureManifest(df.where(f"SystemCode = '{SYSTEM_CODE}'"))       
 
 # COMMAND ----------
@@ -114,20 +113,20 @@ when 'std_unit' then 'unitId'
 when 'scx_facility' then 'facilityInternalId'
 when 'groups' then 'legacyPointGroupName'
 when 'scx_point' then 'pointInternalId'
-when 'wfp_daily_demand_archive' then 'legacyRTUInternalId,measurementResultDateTime,measurementResultValue,sourceRecordModifiedDateTime,legacyPointInternalId'
-when 'site_hierarchy' then 'siteInternalId'
+when 'wfp_daily_demand_archive' then 'measurementResultDateTime,sourceRecordModifiedDateTime,legacyPointInternalId'
+when 'site_hierarchy' then 'siteInternalId,sourceRecordModifiedDateTime'
 when 'event' then 'objectInternalId,eventAESTDateTime,eventSequenceNumber,eventTimeMilliseconds,sourceRecordCreationDateTime'
 when 'iicats_work_orders' then 'IICATSWorkOrderRequestNumber,workOrderModifiedDate'
-when 'point_limit' then 'pointInternalId,pointLimitTypeCd'
-when 'qlty_config' then 'objectInternalId,effectiveFromDateTime,sourceRecordCreationDateTime'
-when 'tsv_point_cnfgn' then 'objectInternalId,pointStatisticTypeCd,timeBaseCd,sourceRecordCreationDateTime'
-when 'wkly_prof_cnfgn' then 'pointInternalId'
-when 'dly_prof_cnfgn' then 'dailyProfileId'
-when 'point_cnfgn' then 'pointInternalId'
-when 'rtu' then 'RTUInternalId'
-when 'scxuser' then 'userInternalId'
+when 'point_limit' then 'pointInternalId,pointLimitTypeCd,effectiveFromDateTime'
+when 'qlty_config' then 'objectInternalId,effectiveFromDateTime'
+when 'tsv_point_cnfgn' then 'objectInternalId,effectiveFromDateTime,pointStatisticTypeCd,timeBaseCd'
+when 'wkly_prof_cnfgn' then 'pointInternalId,effectiveFromDateTime'
+when 'dly_prof_cnfgn' then 'dailyProfileId,effectiveFromDateTime'
+when 'point_cnfgn' then 'pointInternalId,effectiveFromDateTime'
+when 'rtu' then 'RTUInternalId,effectiveFromDateTime'
+when 'scxuser' then 'userInternalId,effectiveFromDateTime'
 when 'scxfield' then 'fieldName,IICATSStagingTableName,IICATSStagingFieldName,sourceRecordSystemId'
-when 'hierarchy_cnfgn' then 'objectInternalId,effectiveFromDateTime,sourceRecordCreationDateTime'
+when 'hierarchy_cnfgn' then 'objectInternalId,effectiveFromDateTime'
 when 'tsv' then 'objectInternalId,measurementResultAESTDateTime,statisticTypeCd,timeBaseCd,sourceRecordCreationDateTime'
 when 'bi_reference_codes' then 'referenceField,referenceCd'
 else businessKeyColumn
