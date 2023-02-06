@@ -290,6 +290,11 @@ def ListClusters():
 
 # COMMAND ----------
 
+df = spark.table("controldb.dbo_extractloadmanifest").where("lower(systemcode) like '%bom%'")
+df.display()
+
+# COMMAND ----------
+
 def GetClusterIdByName(name):
     v = [a for a in ListClusters()['clusters'] if a["cluster_name"]==name]
     return "" if len(v) == 0 else v[0]["cluster_id"]
@@ -309,24 +314,6 @@ def GetGroupByName(name):
     headers = GetAuthenticationHeader()
     url = f'{INSTANCE_NAME}/api/2.0/preview/scim/v2/Groups?filter=displayName+eq+{name}'
     response = requests.get(url, headers=headers)
-    jsonResponse = response.json()
-    return jsonResponse
-
-# COMMAND ----------
-
-def CreateUser(user, groupId=None):
-    newUser = {
-        "schemas": [ "urn:ietf:params:scim:schemas:core:2.0:User" ],
-        "userName": f"{user}",
-        "groups": [
-            {
-            "value":f"{groupId}"
-            }
-        ]
-    }
-    headers = GetAuthenticationHeader()
-    url = f'{INSTANCE_NAME}/api/2.0/preview/scim/v2/Users'
-    response = requests.post(url, json=newUser, headers=headers)
     jsonResponse = response.json()
     return jsonResponse
 
@@ -385,6 +372,14 @@ def DeleteUsers(list):
 
 # COMMAND ----------
 
+def DeleteGroup(groupId):
+    headers = GetAuthenticationHeader()
+    url = f'{INSTANCE_NAME}/api/2.0/preview/scim/v2/Groups/{groupId}'
+    response = requests.delete(url, headers=headers)
+    return response
+
+# COMMAND ----------
+
 def UpdateGroup(groupId, addGroupId):
     json = {
       "schemas": [ "urn:ietf:params:scim:api:messages:2.0:PatchOp" ],
@@ -413,3 +408,174 @@ def AssignGroup(groupName, targetGroupName):
     groupId = GetGroupByName(targetGroupName)["Resources"][0]["id"]
     addGroupId = GetGroupByName(groupName)["Resources"][0]["id"]
     return UpdateGroup(groupId, addGroupId)
+
+# COMMAND ----------
+
+def GetUsers():
+    headers = GetAuthenticationHeader()
+    url = f'{INSTANCE_NAME}/api/2.0/preview/scim/v2/Users'
+    response = requests.get(url, headers=headers)
+    jsonResponse = response.json()
+    return jsonResponse
+
+# COMMAND ----------
+
+def AddGroupMembers(groupId, userIds):
+    jsonOperation = {
+      "schemas": [ "urn:ietf:params:scim:api:messages:2.0:PatchOp" ],
+      "Operations": [
+        {
+          "op":"add",
+          "value": {
+            "members": [ { "value" : f"{i}" } for i in userIds] }
+        }
+      ]
+    }
+    
+    headers = GetAuthenticationHeader()
+    url = f'{INSTANCE_NAME}/api/2.0/preview/scim/v2/Groups/{groupId}'
+    response = requests.patch(url, json=jsonOperation, headers=headers)
+    jsonResponse = response.json()
+
+# COMMAND ----------
+
+def EditGroupMembersByName(groupName, users):
+    userIds = [ i["id"] for i in GetUsers()["Resources"] if i["userName"] in [ f"{i}@sydneywater.com.au" for i in users] ]
+    groupId = GetGroupByName(groupName)["Resources"][0]["id"]
+    AddGroupMembers(groupId, userIds)
+
+# COMMAND ----------
+
+def ListUsersInGroup(name):
+    df = JsonToDataFrame(GetGroupByName(name)).selectExpr("explode(Resources[0].members) col").select("col.*")
+    display(df)
+
+# COMMAND ----------
+
+def GetWarehouses():
+    headers = GetAuthenticationHeader()
+    url = f'{INSTANCE_NAME}/api/2.0/sql/warehouses'
+    response = requests.get(url, headers=headers)
+    jsonResponse = response.json()
+    return jsonResponse
+
+# COMMAND ----------
+
+#NOTE: DEVELOPMENTAL USING databricks-sql-connector
+def ExecuteSqlDWCommand(warehouseId, commands):
+    from databricks import sql
+    pat = dbutils.secrets.get(scope = SECRET_SCOPE, key = DATABRICKS_PAT_SECRET_NAME)
+    connection = sql.connect(
+        server_hostname = "australiaeast.azuredatabricks.net",
+        http_path= f"/sql/1.0/warehouses/{warehouseId}",
+        access_token= f'{pat}'
+    )
+
+    cursor = connection.cursor()
+
+    for c in commands:
+        cursor.execute(c)
+
+    cursor.close()
+    connection.close()
+
+# COMMAND ----------
+
+def CreateContext(clusterId):
+    command = {
+       "clusterId": f"{clusterId}",
+       "language": "sql"
+    }
+    headers = GetAuthenticationHeader()
+    url = f'{INSTANCE_NAME}/api/1.2/contexts/create'
+    response = requests.post(url, json=command, headers=headers)
+    jsonResponse = response.json()
+    
+    if jsonResponse.get("error") is not None:
+        raise Exception(str(jsonResponse["error"])) 
+
+    return jsonResponse
+
+# COMMAND ----------
+
+def GetCommandStatus(commandId, contextId, clusterId):
+    command = {
+       "clusterId": f"{clusterId}",
+       "contextId": f"{contextId}",
+       "commandId": f"{commandId}",
+    }
+    headers = GetAuthenticationHeader()
+    url = f'{INSTANCE_NAME}/api/1.2/commands/status'
+    response = requests.get(url, params=command, headers=headers)
+    jsonResponse = response.json()
+    #print(command)
+    return jsonResponse
+
+# COMMAND ----------
+
+def ExecuteCommand(sql, clusterId, contextId=None, waitOnCompletion=True):
+    import time
+    #clusterId = clusterId if clusterId is not None else [c["cluster_id"] for c in ListClusters()["clusters"] if c["cluster_source"] == "UI"][0]
+    contextId = contextId if contextId is not None else CreateContext(clusterId)["id"]
+    
+    command = {
+       "clusterId": f"{clusterId}",
+       "contextId": f"{contextId}",
+       "language": "sql",
+       "command": f"{sql}"
+    }
+    #print(command)
+    headers = GetAuthenticationHeader()
+    url = f'{INSTANCE_NAME}/api/1.2/commands/execute'
+    response = requests.post(url, json=command, headers=headers)
+    jsonResponse = response.json()
+    
+    commandId = jsonResponse["id"]
+    
+    if waitOnCompletion:
+        while True:
+            s = GetCommandStatus(commandId, contextId, clusterId) 
+            print(s)
+            #print("Running...")
+            time.sleep(10)
+
+            if s["status"] not in ("Running", "Queued"):
+                print(f"Done! {s}")
+                break
+    
+    #print(GetCommandStatus(commandId, contextId, clusterId))
+    return jsonResponse
+
+# COMMAND ----------
+
+def GetFirstAclEnabledCluster():
+    return [c for c in ListClusters()["clusters"] if c["cluster_source"] == "UI" and "spark.databricks.acl.dfAclsEnabled" in c["spark_conf"]][0]
+
+# COMMAND ----------
+
+def RevokePermissionsForGroup(groupName, database):
+    df = spark.sql(f"SHOW TABLES FROM {database}")
+    clusterId = GetFirstAclEnabledCluster()["cluster_id"]
+    sql = "\n".join([f"REVOKE ALL PRIVILEGES ON TABLE {i.database}.{i.tableName} FROM `{groupName}`;" for i in df.rdd.collect()])
+    ExecuteCommand(sql, clusterId)
+
+# COMMAND ----------
+
+def StartCluster(clusterId):
+    command = {
+       "cluster_id": f"{clusterId}"
+    }
+    headers = GetAuthenticationHeader()
+    url = f'{INSTANCE_NAME}/api/2.0/clusters/start'
+    response = requests.post(url, json=command, headers=headers)
+    jsonResponse = response.json()
+    return jsonResponse
+
+# COMMAND ----------
+
+def ListGroups():
+    headers = GetAuthenticationHeader()
+    url = f'{INSTANCE_NAME}/api/2.0/preview/scim/v2/Groups'
+    response = requests.get(url, headers=headers)
+    jsonResponse = response.json()
+    return jsonResponse

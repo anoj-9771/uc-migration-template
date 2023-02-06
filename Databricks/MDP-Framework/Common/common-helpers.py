@@ -1,5 +1,7 @@
 # Databricks notebook source
 import json
+from pyspark.sql.types import *
+from pyspark.sql.functions import *
 
 # COMMAND ----------
 
@@ -29,3 +31,16 @@ def LoadJsonFile(path):
     data = json.load(f)
     f.close()
     return data
+
+# COMMAND ----------
+
+def DataFrameFromFilePath(path):
+    fsSchema = StructType([
+        StructField('path', StringType()),
+        StructField('name', StringType()),
+        StructField('size', LongType()),
+        StructField('modificationTime', LongType())
+    ])
+    list = dbutils.fs.ls(path)
+    df = spark.createDataFrame(list, fsSchema).withColumn("modificationTime", expr("from_unixtime(modificationTime / 1000)"))
+    return df
