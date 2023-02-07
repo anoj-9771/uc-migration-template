@@ -24,6 +24,9 @@ defaultTransformTags = {
 ||' '||substring($c$,9,2)||':'||substring($c$,11,2)||':'||substring($c$,13,2)||'.0','Australia/Sydney') end "
     ,"int-to-datetime" : " to_timestamp(substring($c$,1,4)||'-'||substring($c$,5,2)||'-'||substring($c$,7,2) \
 ||' '||substring($c$,9,2)||':'||substring($c$,11,2)||':'||substring($c$,13,2)) "
+    ,"double-to-datetime" : " to_timestamp(substring(cast($c$ as BIGINT),1,4)||'-'||substring(cast($c$ as BIGINT),5,2) \
+    ||'-'||substring(cast($c$ as BIGINT),7,2)||' '||substring(cast($c$ as BIGINT),9,2)||':'||substring(cast($c$ as BIGINT),11,2) \
+    ||':'||substring(cast($c$ as BIGINT),13,2)) "
 }
 
 # COMMAND ----------
