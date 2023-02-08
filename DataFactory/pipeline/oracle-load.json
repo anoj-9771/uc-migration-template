@@ -196,7 +196,7 @@
 							"typeProperties": {
 								"variableName": "QueryClause",
 								"value": {
-									"value": "@if(equals(pipeline().parameters.task.LowWatermark,variables('HighWatermark')),coalesce(pipeline().parameters.task.QueryFilter, concat('WHERE ', variables('WatermarkColumn'),' > ', variables('LowWatermark'),' AND ', variables('WatermarkColumn'),' <= ', variables('HighWatermark'))) ,coalesce(pipeline().parameters.task.QueryFilter, concat('WHERE ', variables('WatermarkColumn'),' >= ', variables('LowWatermark'),' AND ', variables('WatermarkColumn'),' <= ', variables('HighWatermark'))) )",
+									"value": "@if(equals(pipeline().parameters.task.LowWatermark,variables('HighWatermark')),\n  coalesce(pipeline().parameters.task.QueryFilter, \n    concat('WHERE ', \n    if(empty(activity('low-high-watermark').output.firstRow.LowWatermark), '1=1', concat(variables('WatermarkColumn'),' > ', variables('LowWatermark'))),\n    ' AND ',\n    if(empty(activity('low-high-watermark').output.firstRow.HighWatermark), '1=1', concat(variables('WatermarkColumn'),' <= ', variables('HighWatermark'))))) ,\n  coalesce(pipeline().parameters.task.QueryFilter, \n    concat('WHERE ', \n    if(empty(activity('low-high-watermark').output.firstRow.LowWatermark), '1=1', concat(variables('WatermarkColumn'),' > ', variables('LowWatermark'))),\n    ' AND ',\n    if(empty(activity('low-high-watermark').output.firstRow.HighWatermark), '1=1', concat(variables('WatermarkColumn'),' <= ', variables('HighWatermark')))) ))  ",
 									"type": "Expression"
 								}
 							}
@@ -687,7 +687,34 @@
 		],
 		"parameters": {
 			"task": {
-				"type": "object"
+				"type": "object",
+				"defaultValue": {
+					"BatchID": "dd656a6d",
+					"ID": 1946,
+					"LowWatermark": null,
+					"SourceID": 57001,
+					"SystemCode": "iicatsref",
+					"SourceSchema": "iicats",
+					"SourceTableName": "bi_reference_codes",
+					"SourceQuery": null,
+					"SourceFolderPath": null,
+					"SourceFileName": null,
+					"SourceKeyVaultSecret": "daf-oracle-IICATS-connectionstring",
+					"SourceHandler": "oracle-load",
+					"LoadType": null,
+					"BusinessKeyColumn": null,
+					"WatermarkColumn": "TO_CHAR(M_DATE, 'DD/MON/YYYY HH24:MI:SS')",
+					"RawHandler": "raw-load-delta",
+					"RawPath": "/raw/iicatsref/iicats_bi_reference_codes/$yyyy$/$MM$/$dd$/$HH$$mm$/$guid$.parquet",
+					"CleansedHandler": "cleansed-load-delta",
+					"CleansedPath": "/cleansed/iicatsref/iicats_bi_reference_codes/",
+					"DestinationSchema": "iicats",
+					"DestinationTableName": "bi_reference_codes",
+					"DestinationKeyVaultSecret": null,
+					"ExtendedProperties": null,
+					"QueryFilter": null,
+					"ExtraConfig": "[{\"DefaultPoolName\":\"pool-small\"}]"
+				}
 			}
 		},
 		"variables": {
