@@ -142,7 +142,7 @@
 								"source": {
 									"type": "OracleSource",
 									"oracleReaderQuery": {
-										"value": "@replace(replace(replace(\n'SELECT COALESCE($PLW$, ''''||MIN($WC$))||'''' LowWatermark,  ''''||MAX($WC$)||'''' HighWatermark FROM $Q$ T'\n,'$PLW$', if(empty(pipeline().parameters.task.LowWatermark), 'NULL', concat('''', pipeline().parameters.task.LowWatermark, '''')))\n,'$WC$', variables('WatermarkColumn'))\n,'$Q$', concat('(',variables('BaseQuery'),')'))",
+										"value": "@replace(replace(replace(\n'SELECT $PLW$ LowWatermark,  ''''||MAX($WC$)||'''' HighWatermark FROM $Q$ T'\n,'$PLW$', if(empty(pipeline().parameters.task.LowWatermark), 'NULL', concat('''', pipeline().parameters.task.LowWatermark, '''')))\n,'$WC$', variables('WatermarkColumn'))\n,'$Q$', concat('(',variables('BaseQuery'),')'))",
 										"type": "Expression"
 									},
 									"partitionOption": "None",
@@ -196,7 +196,7 @@
 							"typeProperties": {
 								"variableName": "QueryClause",
 								"value": {
-									"value": "@if(equals(pipeline().parameters.task.LowWatermark,variables('HighWatermark')),coalesce(pipeline().parameters.task.QueryFilter, concat('WHERE ', variables('WatermarkColumn'),' > ', variables('LowWatermark'),' AND ', variables('WatermarkColumn'),' <= ', variables('HighWatermark'))) ,coalesce(pipeline().parameters.task.QueryFilter, concat('WHERE ', variables('WatermarkColumn'),' >= ', variables('LowWatermark'),' AND ', variables('WatermarkColumn'),' <= ', variables('HighWatermark'))) )",
+									"value": "@if(equals(pipeline().parameters.task.LowWatermark,variables('HighWatermark')),\n  coalesce(pipeline().parameters.task.QueryFilter, \n    concat('WHERE ', \n    if(or(empty(activity('low-high-watermark').output.firstRow.LowWatermark), empty(activity('low-high-watermark').output.firstRow.HighWatermark))\n      , '1=1', concat(variables('WatermarkColumn'),' > ', variables('LowWatermark'))),\n    ' AND ',\n    if(or(empty(activity('low-high-watermark').output.firstRow.LowWatermark), empty(activity('low-high-watermark').output.firstRow.HighWatermark))\n      , '1=1', concat(variables('WatermarkColumn'),' <= ', variables('HighWatermark'))))) ,\n  coalesce(pipeline().parameters.task.QueryFilter, \n    concat('WHERE ', \n    if(or(empty(activity('low-high-watermark').output.firstRow.LowWatermark), empty(activity('low-high-watermark').output.firstRow.HighWatermark))\n      , '1=1', concat(variables('WatermarkColumn'),' >= ', variables('LowWatermark'))),\n    ' AND ',\n    if(or(empty(activity('low-high-watermark').output.firstRow.LowWatermark), empty(activity('low-high-watermark').output.firstRow.HighWatermark))\n      , '1=1', concat(variables('WatermarkColumn'),' <= ', variables('HighWatermark')))) ))",
 									"type": "Expression"
 								}
 							}
