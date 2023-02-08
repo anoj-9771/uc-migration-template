@@ -691,7 +691,7 @@
 				"defaultValue": {
 					"BatchID": "dd656a6d",
 					"ID": 1946,
-					"LowWatermark": "25/SEP/2012 13:46:39",
+					"LowWatermark": null,
 					"SourceID": 57001,
 					"SystemCode": "iicatsref",
 					"SourceSchema": "iicats",
