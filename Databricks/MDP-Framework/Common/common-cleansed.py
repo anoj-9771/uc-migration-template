@@ -12,6 +12,7 @@ defaultTransformTags = {
     ,"trimcoalesce": "coalesce(trim($c$),'')"
     ,"trimcoalesceint": "coalesce(trim(cast($c$ as bigint)),'')"
     ,"str-dd-MMM-yy-to-date" : "to_date(right(concat('0',$c$),9),'dd-MMM-yy')"
+    ,"str-yyyymmdd-to-date" : "to_date(trim($c$),'yyyyMMdd')"
     ,"str-yyyy-mm-dd-to-date" : "to_date(trim($c$),'yyyy-MM-dd')"
     ,"str-dd-MMM-yyyy-HH-mm-to-timestamp" : "to_timestamp(right(concat('0',$c$),17),'dd-MMM-yyyy HH:mm')"
     ,"flag-x-yes-no" : "case WHEN $c$='X' then 'Y' Else 'N' end "

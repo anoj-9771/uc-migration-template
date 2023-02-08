@@ -1,7 +1,7 @@
 # Databricks notebook source
-# DBTITLE 1,Input 1 system code and at least 2 tables
-SystemCode = ('maximo')
-TableList = ('SWCLGA','docinfo')
+# DBTITLE 1,Input system code(s) and tables
+SystemCode = "('maximo','iicatsref')"
+TableList = ('SWCLGA','docinfo','std_asset_type')
 
 # COMMAND ----------
 
@@ -17,7 +17,7 @@ from pyspark.sql.types import *
 # DBTITLE 1,Extract Load Manifest
 manifest_df = ( 
                 spark.table("controldb.dbo_extractloadmanifest")
-                    .filter(f"SystemCode in ('{SystemCode}')")
+                    .filter(f"SystemCode in {SystemCode}")
                     .filter(f"SourceTableName in {TableList}")
                )
 display(manifest_df)
@@ -25,7 +25,7 @@ display(manifest_df)
 # COMMAND ----------
 
 # DBTITLE 1,Latest Batch Info
-dataLoadStatus_df = spark.sql(f"select dataLoadStatus.SourceID,dataLoadStatus.SystemCode,dataLoadStatus.BatchID,dataLoadManifest.SourceTableName,dataLoadStatus.ID from (Select ROW_NUMBER() over (partition by systemcode, sourceid order by rawstartdts desc) row_num, systemCode, SourceId, BatchID, ID from controldb.dbo_ExtractLoadStatus) dataLoadStatus, controldb.dbo_ExtractLoadManifest dataLoadManifest where dataLoadStatus.SourceID = dataLoadManifest.SourceID and dataLoadStatus.SystemCode = dataLoadManifest.SystemCode and dataLoadStatus.row_num = 1 and dataLoadManifest.SystemCode in ('{SystemCode}') and dataLoadManifest.SourceTableName in {TableList}")
+dataLoadStatus_df = spark.sql(f"select dataLoadStatus.SourceID,dataLoadStatus.SystemCode,dataLoadStatus.BatchID,dataLoadManifest.SourceTableName,dataLoadStatus.ID from (Select ROW_NUMBER() over (partition by systemcode, sourceid order by rawstartdts desc) row_num, systemCode, SourceId, BatchID, ID from controldb.dbo_ExtractLoadStatus) dataLoadStatus, controldb.dbo_ExtractLoadManifest dataLoadManifest where dataLoadStatus.SourceID = dataLoadManifest.SourceID and dataLoadStatus.SystemCode = dataLoadManifest.SystemCode and dataLoadStatus.row_num = 1 and dataLoadManifest.SystemCode in {SystemCode} and dataLoadManifest.SourceTableName in {TableList}")
 display(dataLoadStatus_df)
 dataLoadStatus_df.createOrReplaceTempView("vwDataLoadBatchInfo")
 
