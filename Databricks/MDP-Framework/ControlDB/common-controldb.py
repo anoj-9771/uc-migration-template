@@ -72,3 +72,13 @@ def ShowConfig():
         spark.table("controldb.dbo_extractloadmanifest")
         .where(f"LOWER(SystemCode) = LOWER('{SYSTEM_CODE}')")
     )
+
+# COMMAND ----------
+
+def ViewStoredProcedureDefinition(storedProcedureName):
+    print(RunQuery(f"SELECT OBJECT_DEFINITION (OBJECT_ID(N'{storedProcedureName}')) Definition ").rdd.collect()[0][0])
+
+# COMMAND ----------
+
+def LogMessage(activityType, message):
+    ExecuteStatement(f"EXEC LogMessage NULL, 0, '{activityType}', '{message}'")
