@@ -1,4 +1,4 @@
-﻿Labware Extractor,Labware Field,Labware Field Description,UniqueKey,ForeignKey,DataType,ReferenceTableIndicator,RawTable,CleansedTable,RawColumnName,CleansedColumnName,TransformTag,CustomTransform,Lookup
+Labware Extractor,Labware Field,Labware Field Description,UniqueKey,ForeignKey,DataType,ReferenceTableIndicator,RawTable,CleansedTable,RawColumnName,CleansedColumnName,TransformTag,CustomTransform,Lookup
 ACCOUNT,account_number,,Y,,BIGINT,,raw.labware_account,cleansed.labware_account,account_number,accountNumber,trimcoalesceint,,
 ACCOUNT,customer,,,,STRING,,raw.labware_account,cleansed.labware_account,customer,customer,,,
 ACCOUNT,changed_by,,,,STRING,,raw.labware_account,cleansed.labware_account,changed_by,changedBy,,,
@@ -1467,7 +1467,7 @@ REPORTS,c_email_sent,,,,STRING,,raw.labware_reports,cleansed.labware_reports,c_e
 REPORTS,c_email_sent_datetime,,,,TIMESTAMP,,raw.labware_reports,cleansed.labware_reports,c_email_sent_datetime,cEmailSentDatetime,,,
 REPORT_OBJECTS,report_number,,Y,,BIGINT,,raw.labware_report_objects,cleansed.labware_report_objects,report_number,reportNumber,,,
 REPORT_OBJECTS,object_id,,Y,,BIGINT,,raw.labware_report_objects,cleansed.labware_report_objects,object_id,objectId,,,
-REPORT_OBJECTS,object_name,,Y,,STRING,,raw.labware_report_objects,cleansed.labware_report_objects,object_name,objectName,,,
+REPORT_OBJECTS,object_name,,,,STRING,,raw.labware_report_objects,cleansed.labware_report_objects,object_name,objectName,,,
 RESULT,result_number,,Y,,BIGINT,,raw.labware_result,cleansed.labware_result,result_number,resultNumber,trimcoalesceint,,
 RESULT,test_number,,,,BIGINT,,raw.labware_result,cleansed.labware_result,test_number,testNumber,,,
 RESULT,name,,,,STRING,,raw.labware_result,cleansed.labware_result,name,name,,,
