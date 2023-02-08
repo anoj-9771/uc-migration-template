@@ -1,40 +1,43 @@
 # Databricks notebook source
+# DBTITLE 1,Note: Please call ClearCache() after running the ATF Script
 _automatedMethods = {
     "tests": [],
     "cleansed": [
-        "CleansedSchemaCheck"
-        ,"DuplicateKeysCheck"
-        ,"BusinessKeysNullCk"
+        "CleansedSchemaChk"
+        ,"DuplicateKeysChk"
+        ,"KeysNotNullOrBlankChk"
+        ,"AuditColsIncludedChk"
         ,"CountRecordsC1D0" 
         ,"CountRecordsC0D1" 
-        ,"CheckAuditColsPresent"
+        ,"SrcTgtCountChk"
         ,"RowCounts"
-        ,"ColumnColumns"
+        ,"ColumnCounts"
+        ,"CleansedSrcTgtCountChk"
+        ,"CleansedSrcMinusTgtChk"
+        ,"CleansedTgtMinusSrcChk"
     ],
     "curated": [
-        "RowCounts"
-        ,"ColumnCounts"
-        ,"CountValidateCurrentRecords"
-        ,"CountValidateDeletedRecords"
-        
-        ,"Duplicate"
-        ,"DuplicateActive"
-        ,"BusinessKeyNull"
-        ,"BusinessKeyLength"
-        
-        ,"DuplicateSK"
-        ,"DuplicateActiveSK"
-        ,"MD5ValueSK"
+        "DummyRecChk"
+        ,"DuplicateKeysChk"
+        ,"DuplicateKeysActiveRecsChk"
+        ,"KeysNotNullOrBlankChk"
+        ,"KeysAreSameLengthChk"
+        ,"DuplicateSKChk"
+        ,"DuplicateSKActiveRecsChk"
+        ,"SKNotNullOrBlankChk"
         ,"DateValidation"
-        ,"CountCurrentRecordsC1D0"
-        ,"CountCurrentRecordsC0D0"
-        ,"CountDeletedRecords"
-        ,"ExactDuplicates"
-        ,"ManBusinessColNull"
-        ,"AuditEndDate"
-        ,"AuditCurrent"
-        ,"AuditActiveOther"
-        ,"AuditDeleted"
+        ,"AuditColsIncludedChk"
+        ,"AuditEndDateChk"
+        ,"AuditCurrentChk"
+        ,"AuditActiveOtherChk"
+        ,"AuditDeletedChk"
+        ,"CountRecordsC1D0" 
+        ,"CountRecordsC0D0"
+        ,"CountRecordsC1D1" 
+        ,"CountRecordsC0D1"
+        ,"SrcTgtCountChk"
+        ,"RowCounts"
+        ,"ColumnCounts"
     ],
     "curated_v2": [
     ]
@@ -45,545 +48,13 @@ _automatedMethods["curated_v2"] = _automatedMethods["curated"]
 
 DOC_PATH = ''
 SHEET_NAME = ''
+UNIQUE_KEYS = ''
+MAPPING_DOC = ''
+TAG_SHEET = ''
 
 # COMMAND ----------
 
-def loadActiveSourceDf(source):
-    global sourceColumns
-    source.createOrReplaceTempView("sourceView")
-    
-    try: 
-        sourceDf = spark.sql(f"""SELECT {sourceColumns}
-                             FROM sourceView 
-                             WHERE _RecordDeleted = 0 and _RecordCurrent = 1""")
-    except:
-        sourceDf = spark.sql(f"SELECT {sourceColumns} FROM sourceView")
-    
-    return sourceDf
-
-# COMMAND ----------
-
-def loadInactiveSourceDf(source):
-    global sourceColumns
-    source.createOrReplaceTempView("sourceView")
-    sourceDf = spark.sql(f"""SELECT {sourceColumns}
-                         FROM sourceView 
-                         WHERE _RecordDeleted = 1 and _RecordCurrent = 0""")
-    return sourceDf
-
-# COMMAND ----------
-
-def GetTargetDf():
-    global columns
-    target = spark.sql(f"""
-    select {columns}
-    ,_recordStart
-    ,_recordEnd
-    ,_recordCurrent
-    ,_recordDeleted
-    from 
-    {GetSelfFqn()}
-    """) 
-    return target
-
-# COMMAND ----------
-
-# This version includes the dummy record when extracting the target table, and source-target queries will fail since target will have an extra record
-def loadActiveTargetDf():
-    global columns
-    global keyColumns
-    
-    target = GetTargetDf()
-    target.createOrReplaceTempView("targetView")
-    
-    keyColsList = keyColumns.split(",")
-    sqlQuery = f"SELECT {columns} FROM targetView WHERE _recordDeleted = 0 " 
-        
-    #print(sqlQuery)
-    targetDf = spark.sql(sqlQuery) 
-
-    return targetDf
-
-# COMMAND ----------
-
-# not implemented, this version is WIP, aim is to exclude dummy record when extracting target table 
-def loadActiveTargetDf_test():
-    global columns
-    global keyColumns
-    
-    target = GetTargetDf()
-    target.createOrReplaceTempView("targetView")
-    
-    keyColsList = keyColumns.split(",")
-    sqlQuery = f"SELECT {columns} FROM targetView WHERE _recordDeleted = 0 and sourceSystemCode is not NULL" # added a condition to ignore the dummy record
-    
-    if (columns.upper().find('SOURCESYSTEMCODE') != -1):
-        sqlQuery = sqlQuery + f"AND sourceSystemCode is not NULL "
-    
-    for column in keyColsList:
-        column = column.strip()
-        if (column.upper().find('DATE') == -1 and column.find('SK') == -1):
-            sqlQuery = sqlQuery + f"AND {column} <> -1 "
-            break
-        
-    #print(sqlQuery)
-    targetDf = spark.sql(sqlQuery) 
-
-    return targetDf
-
-# COMMAND ----------
-
-def loadActiveTargetDf_original(target):
-    global targetColumns
-    global keyColumns
-    target.createOrReplaceTempView("targetView")
-    
-    keyColsList = keyColumns.split(",")
-    sqlQuery = f"SELECT {targetColumns} FROM targetView WHERE _RecordDeleted = 0 "
-    
-    for column in keyColsList:
-        column = column.strip()
-        sqlQuery = sqlQuery + f"AND {column} <> -1 "
-        
-    print(sqlQuery)
-    targetDf = spark.sql(sqlQuery) 
-
-    return targetDf
-
-# COMMAND ----------
-
-def loadInactiveTargetDf():
-    global columns
-    target = GetTargetDf()
-    target.createOrReplaceTempView("targetView")
-    targetDf = spark.sql(f"""SELECT {columns} FROM targetView 
-                         WHERE _recordDeleted = 1 and _recordCurrent = 0""")
-    return targetDf
-
-# COMMAND ----------
-
-def loadInactiveTargetDf(target):
-    target.createOrReplaceTempView("targetView")
-    targetDf = spark.sql(f"""SELECT {targetColumns} FROM targetView 
-                         WHERE _RecordDeleted = 1 and _RecordCurrent = 0""")
-    return targetDf
-
-# COMMAND ----------
-
-def RowCounts():
-    count = GetSelf().count()
-    GreaterThan(count, 0)
-
-# COMMAND ----------
-
-def DuplicateSK():
-    skColumn = GetSelf().columns[0]
-    table = GetNotebookName()
-    df = spark.sql(f"SELECT COUNT (*) as recCount FROM {GetSelfFqn()} GROUP BY {skColumn} HAVING COUNT (*) > 1")
-    count = df.count()
-    Assert(count, 0)
-
-# COMMAND ----------
-
-# automated function for sk_chk2 in "SK columns validation" in dimBusinessPartner_SCD_woTS
-def DuplicateActiveSK():
-    skColumn = GetSelf().columns[0]
-    table = GetNotebookName()
-    df = spark.sql(f"SELECT COUNT (*) as recCount FROM {GetSelfFqn()} WHERE _RecordCurrent = 1 and _recordDeleted = 0 GROUP BY {skColumn} HAVING COUNT(*) > 1")
-    count = df.count()
-    Assert(count, 0)
-
-# COMMAND ----------
-
-def MD5ValueSK():
-    skColumn = GetSelf().columns[0]
-    table = GetNotebookName()
-    df = spark.sql(f"SELECT COUNT (*) as recCount FROM {GetSelfFqn()} WHERE {skColumn} is null or {skColumn} = '' or {skColumn} = ' ' or upper({skColumn}) ='NULL'")
-    count = df.select("recCount").collect()[0][0]
-    Assert(count, 0)
-
-# COMMAND ----------
-
-# date validation automated function
-def DateValidation():
-    table = GetNotebookName()
-    df = spark.sql(f"SELECT * FROM {GetSelfFqn()} \
-                WHERE date(_recordStart) > date(_recordEnd)")
-    count = df.count()
-    Assert(count, 0)
-
-# COMMAND ----------
-
-# Date validation for _RecordStart and _RecordEnd
-def DateValidation1():
-    table = GetNotebookName()
-    df = spark.sql(f"SELECT * FROM {GetSelfFqn()} \
-                WHERE date(_recordStart) > date(_recordEnd)")
-    count = df.count()
-    if count > 0: display(df)
-    Assert(count, 0, errorMessage = "Failed date validation for _RecordStart and _RecordEnd")
-
-# COMMAND ----------
-
-# Date validation for validToDate and validFromDate
-# not implemented yet
-def DateValidation2():
-    table = spark.sql(f"SELECT * FROM {GetSelfFqn()} ")
-    columns = table.columns
-    validToDateFlag = 0
-    validFromDateFlag = 0
-    
-    for column in columns:
-        column = column.upper()
-        if column == 'VALIDTODATE': 
-            validToDateFlag = 1
-        if column == 'VALIDFROMDATE':
-            validFromDateFlag = 1
-            
-    if validToDateFlag == 1 & validFromDateFlag == 1:
-        df = spark.sql(f"SELECT * FROM {GetSelfFqn()} \
-                        WHERE validFromDate > validToDate")
-    
-        count = df.count()
-        if count > 0: display(df)
-        Assert(count, 0, errorMessage = "Failed date validation for validToDate and validFromDate")
-    
-    else:
-        TestNotImplemented()
-
-# COMMAND ----------
-
-# Date validation for _RecordStart = validToDate and _RecordEnd = validFromDate
-# not implemented yet
-def DateValidation3():
-    table = spark.sql(f"SELECT * FROM {GetSelfFqn()} ")
-    columns = table.columns
-    validToDateFlag = 0
-    validFromDateFlag = 0
-    
-    for column in columns:
-        column = column.upper()
-        if column == 'VALIDTODATE': 
-            validToDateFlag = 1
-        if column == 'VALIDFROMDATE':
-            validFromDateFlag = 1
-            
-    if validToDateFlag == 1 & validFromDateFlag == 1:
-        df = spark.sql(f"SELECT * FROM {GetSelfFqn()} \
-                        WHERE (date(_recordStart) <> ValidFromDate) \
-                        OR (date(_recordEnd)<>ValidToDate)")
-        count = df.count()
-        if count > 0: display(df)
-        Assert(count, 0, errorMessage = f"Failed Date validation for _RecordStart = validToDate and _RecordEnd = validFromDate")
-    
-    else:
-        TestNotImplemented()
-
-# COMMAND ----------
-
-def CountCurrentRecordsC1D0():
-    df = spark.sql(f"select count(*) as recCount from {GetSelfFqn()} \
-                WHERE _RecordCurrent=1 and _RecordDeleted=0")
-    count = df.select("recCount").collect()[0][0]
-    GreaterThan(count,0)
-
-# COMMAND ----------
-
-def CountCurrentRecordsC1D0():
-    df = spark.sql(f"select count(*) as recCount from {GetSelfFqn()} \
-                WHERE _RecordCurrent=1 and _RecordDeleted=0")
-    count = df.select("recCount").collect()[0][0]
-    GreaterThan(count,0)
-
-# COMMAND ----------
-
-def OverlapAndGapValidation():
-    global keyColumns
-    table = GetNotebookName()
-    df = spark.sql(f"Select {keyColumns}, start_date, end_date \
-                   from (Select {keyColumns}, date(_recordStart) as start_date, date(_recordEnd) as end_date, \
-                   max(date(_recordStart)) over (partition by {keyColumns} order by _recordStart rows between 1 following and 1 following) as nxt_date \
-                   from {GetSelfFqn()}) \
-                   where  DATEDIFF(day, nxt_date, end_date) <> 1")
-    count = df.count()
-    Assert(count, 0)
-
-# COMMAND ----------
-
-def CountValidateCurrentRecords():
-    table = GetNotebookName()
-    df = spark.sql(f"select count(*) as recCount from {GetSelfFqn()} \
-                WHERE _RecordCurrent=1 and _RecordDeleted=0")
-    count = df.select("recCount").collect()[0][0]
-    GreaterThan(count,0)
-
-# COMMAND ----------
-
-def CountValidateDeletedRecords():
-    table = GetNotebookName()
-    df = spark.sql(f"select count(*) as recCount from {GetSelfFqn()} \
-                WHERE _RecordCurrent=0 and _RecordDeleted=1")
-    count = df.select("recCount").collect()[0][0]
-    Assert(count,count)
-
-# COMMAND ----------
-
-def CountDeletedRecords():
-    table = GetNotebookName()
-    df = spark.sql(f"select count(*) as recCount from {GetSelfFqn()} \
-                WHERE _RecordCurrent=0 and _RecordDeleted=1")
-    count = df.select("recCount").collect()[0][0]
-    Assert(count,count)
-
-# COMMAND ----------
-
-def DuplicateCount():
-    global keyColumns
-    table = GetNotebookName()
-    df = spark.sql(f"SELECT {keyColumns}, COUNT(*) as recCount from {GetSelfFqn()} \
-                GROUP BY {keyColumns} HAVING COUNT(*) > 1")
-    count = df.count()
-    Assert(count,0)
-
-# COMMAND ----------
-
-def DuplicateActiveCheck():
-    global keyColumns
-    table = GetNotebookName()
-    df = spark.sql(f"SELECT {keyColumns}, COUNT(*) as recCount from {GetSelfFqn()} \
-                WHERE _RecordCurrent=1 and _recordDeleted=0 \
-                GROUP BY {keyColumns} HAVING COUNT(*) > 1")
-    count = df.count()
-    Assert(count,0)
-
-# COMMAND ----------
-
-def ExactDuplicates():
-    global columns
-    df = spark.sql(f"SELECT {columns}, COUNT(*) as recCount \
-                   FROM {GetSelfFqn()} \
-                   GROUP BY {columns} HAVING COUNT(*) > 1")
-    count = df.count()
-    if count > 0: display(df)
-    Assert(count,0)
-
-# COMMAND ----------
-
-def BusinessKeyNull():
-    global keyColumns
-    keyColsList = keyColumns.split(",")
-    firstColumn = keyColsList[0].strip()
-    sqlQuery = f"Select * from {GetSelfFqn()} "
-    
-    for column in keyColsList:
-        column = column.strip()
-        if column == firstColumn:
-            sqlQuery = sqlQuery + f"WHERE ({column} is NULL or {column} in ('',' ') or UPPER({column})='NULL') "
-        else:
-            sqlQuery = sqlQuery + f"OR ({column} is NULL or {column} in ('',' ') or UPPER({column})='NULL') "
-        
-    #print(sqlQuery)
-    
-    df = spark.sql(sqlQuery)
-    count = df.count()
-    if count > 0: display(df)
-    Assert(count,0)
-
-
-# COMMAND ----------
-
-def BusinessKeyLength():
-    global keyColumns
-    keyColsList = keyColumns.split(",")
-    
-    for column in keyColsList:
-        column = column.strip()
-        
-        sqlQuery = f"SELECT DISTINCT length({column}) from {GetSelfFqn()} \
-                     WHERE length({column}) <> 2 "
-
-        if (column.upper().find('DATE') == -1): # if not a date column, add extra condition
-            sqlQuery = sqlQuery + f"AND {column} <> 'Unknown'"
-            
-        df = spark.sql(sqlQuery)
-        count = df.count()
-        if count > 1: display(df)
-        Assert(count,1, errorMessage = f"Failed check for key column: {column}")
-    
-
-# COMMAND ----------
-
-def ManBusinessColNull():
-    global mandatoryColumns
-    busColsList = mandatoryColumns.split(",")
-    firstColumn = busColsList[0].strip()
-    sqlQuery = f"Select * from {GetSelfFqn()} "
-    
-    for column in busColsList:
-        column = column.strip()
-        if column == firstColumn:
-            sqlQuery = sqlQuery + f"WHERE ({column} is NULL or {column} in ('',' ') or UPPER({column})='NULL') "
-        else:
-            sqlQuery = sqlQuery + f"OR ({column} is NULL or {column} in ('',' ') or UPPER({column})='NULL') "
-    
-    #print(sqlQuery)
-            
-    df = spark.sql(sqlQuery)
-    count = df.count()
-    if count > 0: display(df)
-    Assert(count,0)
-
-
-# COMMAND ----------
-
-def SourceTargetCountCheckActiveRecords():
-    global source
-    sourceDf = loadActiveSourceDf(source)
-    
-    global target
-    targetDf = loadActiveTargetDf(target)
-    
-    sourceCount = sourceDf.count()
-    targetCount = targetDf.count()
-    
-    Assert(sourceCount, targetCount)
-
-
-# COMMAND ----------
-
-def SourceMinusTargetCountCheckActiveRecords():
-    global source
-    sourceDf = loadActiveSourceDf(source)
-    
-    global target
-    targetDf = loadActiveTargetDf(target)
-    
-    df = sourceDf.subtract(targetDf)
-    count = df.count()
-    
-    Assert(count, 0)
-
-# COMMAND ----------
-
-def TargetMinusSourceCountCheckActiveRecords():
-    global source
-    sourceDf = loadActiveSourceDf(source)
-    
-    global target
-    targetDf = loadActiveTargetDf(target)
-    
-    df = targetDf.subtract(sourceDf)
-    count = df.count()
-    
-    Assert(count, 0) 
-
-# COMMAND ----------
-
-def SourceTargetCountCheckDeletedRecords():
-    global source
-    sourceDf = loadInactiveSourceDf(source)
-
-    global target
-    targetDf = loadInactiveTargetDf(target)
-
-    sourceCount = sourceDf.count()
-    targetCount = targetDf.count()
-
-    Assert(sourceCount, targetCount)
-
-# COMMAND ----------
-
-def SourceMinusTargetCountCheckDeletedRecords():
-    global source
-    sourceDf = loadInactiveSourceDf(source)
-
-    global target
-    targetDf = loadInactiveTargetDf(target)
-
-    df = sourceDf.subtract(targetDf)
-    count = df.count()
-    Assert(count, 0)    
-
-# COMMAND ----------
-
-def TargetMinusSourceCountCheckDeletedRecords():
-    global source
-    sourceDf = loadInactiveSourceDf(source)
-
-    global target
-    targetDf = loadInactiveTargetDf(target)
-
-    df = targetDf.subtract(sourceDf)
-    count = df.count()
-    Assert(count, 0)    
-
-# COMMAND ----------
-
-def ColumnCounts():
-    count = len(GetSelf().columns)
-    Assert(count,count)
-
-# COMMAND ----------
-
-def AuditEndDate():
-    global keyColumns
-    df = spark.sql(f"Select * from {GetSelfFqn()} \
-                     where date(_RecordEnd) < (select date(max(_DLCuratedZoneTimeStamp)) as max_date from {GetSelfFqn()}) \
-                     and _recordCurrent=1 and _recordDeleted=0")
-    count = df.count()
-    if count > 0: display(df)
-    Assert(count,0)
-
-# COMMAND ----------
-
-def AuditCurrent():
-    global keyColumns
-    table = GetNotebookName()
-    df = spark.sql(f"select * from (\
-                   select * from (   \
-                   SELECT {keyColumns},date(_RecordStart) as start_dt ,date(_RecordEnd) as end_dt ,_RecordCurrent,_RecordDeleted,max_date from {GetSelfFqn()} as a, \
-                       (Select date(max(_DLCuratedZoneTimeStamp)) as max_date from {GetSelfFqn()}) as b\
-                       )where ((max_date < end_dt) and (max_date > start_dt))\
-                       )where _RecordCurrent <> 1 and _RecordDeleted <> 0\
-                   ")
-    count = df.count()
-    if count > 0: display(df)
-    Assert(count,0)
-
-# COMMAND ----------
-
-def auditActiveOtherChk():
-    global keyColumns
-    table = GetNotebookName()
-    df = spark.sql(f"select * from (\
-                   select * from (   \
-                   SELECT {keyColumns},date(_RecordStart) as start_dt ,date(_RecordEnd) as end_dt ,_RecordCurrent,_RecordDeleted,max_date from {GetSelfFqn()} as a, \
-                       (Select date(max(_DLCuratedZoneTimeStamp)) as max_date from {GetSelfFqn()}) as b\
-                       )where ((max_date > end_dt) and (max_date < start_dt))\
-                       )where _RecordCurrent <> 0 and _RecordDeleted <> 0\
-                   ")
-    count = df.count()
-    if count > 0: display(df)
-    Assert(count,0)
-
-# COMMAND ----------
-
-def AuditDeleted():
-    global keyColumns
-    table = GetNotebookName()
-    df = spark.sql(f"select * from (\
-                   SELECT {keyColumns},date(_RecordStart) as start_dt ,date(_RecordEnd) as end_dt ,_RecordCurrent,_RecordDeleted,max_date from {GetSelfFqn()} as a, \
-                       (Select date(max(_DLCuratedZoneTimeStamp)) as max_date from {GetSelfFqn()}) as b\
-                        where _RecordDeleted =1\
-                        )where ((max_date > end_dt) and (max_date > start_dt))\
-                   ")
-    count = df.count()
-    if count > 0: display(df)
-    Assert(count,0)
-
-# COMMAND ----------
-
-# removes non ascii characters
+# DBTITLE 1,Helper Functions
 def ascii_ignore(x):
     return x.encode('ascii', 'ignore').decode('ascii')
 ascii_udf = udf(ascii_ignore)
@@ -591,22 +62,44 @@ ascii_udf = udf(ascii_ignore)
 # COMMAND ----------
 
 def TrimWhitespace(df):
-    for column in df.columns:
+    columns = [
+        "CleansedColumnName", 
+        "DataType"
+    ]
+    for column in columns:
         df = df.withColumn(column, regexp_replace(column, r"^\s+|\s+$", ""))
-        if column != "UniqueKey":
-            df = df.withColumn(column, ascii_udf(column))
+        df = df.withColumn(column, ascii_udf(column))
     return df 
 
 # COMMAND ----------
 
-def loadMappingDocument():
-    
+def loadMappingDocument(sheetName = ""):
+    if sheetName == "":
+        sheetName = SHEET_NAME
+        
     mappingData = spark.read.format("com.crealytics.spark.excel") \
     .option("header", "true") \
     .option("inferSchema", "true") \
-    .option("dataAddress", f"{SHEET_NAME}!A1") \
+    .option("dataAddress", f"{sheetName}!A1") \
     .load(f"{DOC_PATH}")
     
+    if sheetName == SHEET_NAME:
+        mappingData = mappingData.selectExpr(
+                                     "UPPER(UniqueKey) as UniqueKey",
+                                     "UPPER(DataType) as DataType",
+                                     "RawTable",
+                                     "UPPER(CleansedTable) as CleansedTable",
+                                     "RawColumnName",
+                                     "CleansedColumnName",
+                                     "TransformTag",
+                                     "CustomTransform"        
+                      ).filter(mappingData.CleansedTable.isNotNull())
+        mappingData = TrimWhitespace(mappingData)
+    elif sheetName == 'TAG':
+        mappingData = mappingData.selectExpr(
+                                 "`Tag Name` as TagName",
+                                 "`SQL syntax` as SQLsyntax"
+                      )
     return mappingData
 
 # COMMAND ----------
@@ -645,30 +138,14 @@ def GetTargetSchemaDf():
         UPPER(DataType) as DataType,
         case when UniqueKey = 'false' then 'Y' else null end as UniqueKey
         from tableView
-        order by CleansedColumnName
     """)
     return targetDf
 
 # COMMAND ----------
 
 def GetMappingSchemaDf():
-    mappingData = loadMappingDocument()
+    mappingData = MAPPING_DOC
     mappingData.createOrReplaceTempView("mappingView")
-    
-    df = spark.sql(f"""
-        Select 
-        CleansedTable,
-        CleansedColumnName, 
-        DataType,
-        UniqueKey
-        from mappingView
-        where UPPER(CleansedTable) = UPPER("{GetSelfFqn()}")
-    """)
-    
-    df = TrimWhitespace(df)
-    df = df.withColumn("DataType", upper("DataType"))
-    df = df.withColumn("UniqueKey", upper("UniqueKey"))
-    df.createOrReplaceTempView("cleanMappingView")
     
     mappingDf = spark.sql(f"""
         Select 
@@ -682,17 +159,134 @@ def GetMappingSchemaDf():
             when DataType like "DAT%" then 'DATE'
             else DataType
         end as DataType,
-        UniqueKey
-        from cleanMappingView
-        where UPPER(CleansedTable) = UPPER("{GetSelfFqn()}")
-        order by CleansedColumnName
+        case 
+            when trim(UniqueKey) = '' then Null
+            when trim(UniqueKey) = ' ' then Null
+            else UniqueKey
+        end as UniqueKey
+        from mappingView
+        where CleansedTable = UPPER("{GetSelfFqn()}")
     """)
     return mappingDf
 
 # COMMAND ----------
 
-# mapping doc is currently stored at: 'dbfs:/mnt/data/mapping_documents_UC3/<mapping doc name>'
-def CleansedSchemaCheck():
+def GetUniqueKeys():
+    mappingData = MAPPING_DOC
+    mappingData.createOrReplaceTempView("mappingView")
+    
+    df = spark.sql(f"""
+        Select 
+        CleansedColumnName
+        from mappingView
+        where CleansedTable = UPPER("{GetSelfFqn()}")
+        and UniqueKey = 'Y'
+    """)
+    
+    keys = ""
+    for row in df.collect():
+        keys = keys + row.CleansedColumnName + ",\n"                
+    keys = keys.strip().strip(',')
+    
+    return keys
+
+# COMMAND ----------
+
+def AutomatedSourceQuery(tablename = ""):
+    if tablename == "":
+        tablename = GetSelfFqn()
+
+    mappingData = MAPPING_DOC
+    tags = TAG_SHEET
+    #lookup = LOOKUP_SHEET
+
+    mappingData.createOrReplaceTempView("mappingView")
+    tags.createOrReplaceTempView("tagView")
+    #lookup.createOrReplaceTempView("lookupView")
+    
+    df = spark.sql(f"""
+        Select 
+        DataType,
+        TransformTag,
+        CustomTransform,
+        RawColumnName,
+        CleansedColumnName,
+        RawTable
+        from mappingView
+        where CleansedTable = UPPER("{tablename}")
+    """)
+    
+    sourceSystem = GetNotebookName().split("_")[0]
+    sqlQuery = "SELECT \n"
+    for row in df.collect():
+        if row.TransformTag is not None:
+            sqlCode = spark.sql(f"Select * from tagView where TagName = '{row.TransformTag}'") \
+                            .select("SQLsyntax").collect()[0][0] 
+            if row.TransformTag.upper() == 'TRIMCOALESCE' and row.DataType == 'DATETIME':
+                sqlCode = sqlCode.replace("$c$", f"CAST(a.{row.RawColumnName} AS TIMESTAMP)") 
+            elif row.TransformTag.upper() == 'TRIMCOALESCE':
+                sqlCode = sqlCode.replace("$c$", f"CAST(a.{row.RawColumnName} AS {row.DataType})") 
+            else: 
+                sqlCode = sqlCode.replace("$c$", f"a.{row.RawColumnName}") 
+        elif row.CustomTransform is not None:
+            sqlCode = row.CustomTransform
+        elif row.DataType == 'DATETIME' or row.DataType == 'TIME':
+            sqlCode = f"CAST(a.{row.RawColumnName} AS TIMESTAMP)"
+        else:
+            sqlCode = f"CAST(a.{row.RawColumnName} AS {row.DataType})"
+        
+        sqlCode = sqlCode + " as " + row.CleansedColumnName + ",\n"
+        
+        sqlQuery = sqlQuery + sqlCode
+    
+    sqlQuery = sqlQuery.strip().strip(',')
+    
+    rawTable = df.select("RawTable").collect()[0][0]
+    sqlQuery = sqlQuery + "\n" + f"from {rawTable} a\n"
+    
+    return sqlQuery
+
+# COMMAND ----------
+
+def AutomatedTargetQuery(tablename = ""):
+    if tablename == "":
+        tablename = GetSelfFqn()
+        
+    mappingData = MAPPING_DOC
+    mappingData.createOrReplaceTempView("mappingView")
+    
+    df = spark.sql(f"""
+        Select 
+        DataType,
+        CleansedColumnName
+        from mappingView
+        where CleansedTable = UPPER("{tablename}")
+    """)
+    
+    sqlCode = ""
+    for row in df.collect():
+        sqlCode = sqlCode + row.CleansedColumnName + ",\n"    
+            
+    sqlCode = sqlCode.strip().strip(',')
+    sqlQuery = "Select \n" + f"{sqlCode} \n" + f"from {tablename}"
+    
+    return sqlQuery
+
+# COMMAND ----------
+
+def GetSrcTgtDfs(tablename):
+    srcQuery = AutomatedSourceQuery(tablename)
+    tgtQuery = AutomatedTargetQuery(tablename)
+    sourceDf = spark.sql(srcQuery).drop_duplicates()
+    targetDf = spark.sql(tgtQuery)
+    return sourceDf, targetDf
+
+# COMMAND ----------
+
+# DBTITLE 1,Common Test Cases - Cleansed + Curated
+# Mapping doc path: 'dbfs:/mnt/data/mapping_documents_UC3/<DOC_PATH>'
+# Schema Check can currently only handle Cleansed tables
+def CleansedSchemaChk():
     targetDf = GetTargetSchemaDf()
     
     mappingDf = GetMappingSchemaDf()
@@ -715,81 +309,47 @@ def CleansedSchemaCheck():
 
 # COMMAND ----------
 
-def GetUniqueKeys():
-    mappingData = loadMappingDocument()
-    mappingData.createOrReplaceTempView("mappingView")
-    
-    df = spark.sql(f"""
-        Select 
-        CleansedColumnName
-        from mappingView
-        where UPPER(CleansedTable) = UPPER("{GetSelfFqn()}")
-        and UniqueKey = 'Y'
-    """)
-    
-    keys = ""
-    for index, key in enumerate(df.collect()):
-        keys = keys + key.CleansedColumnName
-        if index != len(df.collect()) - 1:
-            keys = keys + ",\n"
-        else: 
-            keys = keys + "\n"
-    
-    return keys
-
-# COMMAND ----------
-
-def DuplicateKeysCheck():
-    keyColumns = GetUniqueKeys()
-    df = spark.sql(f"""SELECT {keyColumns}, COUNT(*) as RecCount FROM {GetSelfFqn()} 
-                   GROUP BY {keyColumns} HAVING COUNT(*) > 1""")
-    count = df.count()
-    if count > 0: display(df)
-    Assert(count,0)
-
-# COMMAND ----------
-
-def BusinessKeysNullCk():
-    keyColumns = GetUniqueKeys()
-    keyColsList = keyColumns.split(",")
-    firstColumn = keyColsList[0].strip()
-    sqlQuery = f"SELECT * FROM {GetSelfFqn()} "
-    
-    for column in keyColsList:
-        column = column.strip()
-        if column == firstColumn:
-            sqlQuery = sqlQuery + f"WHERE ({column} is NULL or {column} in ('',' ') or UPPER({column})='NULL') "
-        else:
-            sqlQuery = sqlQuery + f"OR ({column} is NULL or {column} in ('',' ') or UPPER({column})='NULL') "
-
-    df = spark.sql(sqlQuery)
-    count = df.count()
-    if count > 0: display(df)
-    Assert(count,0)
-
-# COMMAND ----------
-
-def CountRecordsCnDn(C, D):
-    df = spark.sql(f"SELECT count(*) as recCount FROM {GetSelfFqn()} \
-                WHERE _RecordCurrent = {C} and _RecordDeleted = {D}")
-    count = df.select("recCount").collect()[0][0]
-    
-    if C == 1 and D == 0:
-        GreaterThan(count,0)
+def DuplicateKeysChk():
+    keyColumns = UNIQUE_KEYS
+    if keyColumns.strip() == "":
+        Assert(0, 0, compare = "Greater Than", errorMessage = f"Test could not be executed, No Unique Key column/s were specified in the mapping.")
     else:
-        GreaterThanEqual(count,0)
+        if GetDatabaseName().upper() == 'CURATED' or GetDatabaseName().upper() == "CURATED_V2":
+            keyColumns = keyColumns + ', _RecordStart'
+        df = spark.sql(f"""SELECT {keyColumns}, COUNT(*) as RecCount FROM {GetSelfFqn()} 
+                           GROUP BY {keyColumns} HAVING COUNT(*) > 1""")
+        count = df.count()
+        if count > 0: display(df)
+        Assert(count,0)
 
 # COMMAND ----------
 
-def CountRecordsC1D0():
-    CountRecordsCnDn(1, 0)
-def CountRecordsC0D1():
-    CountRecordsCnDn(0, 1)
+# DBTITLE 0,Untitled
+def KeysNotNullOrBlankChk():
+    keyColumns = UNIQUE_KEYS
+    if keyColumns.strip() == "":
+        Assert(0, 0, compare = "Greater Than", errorMessage = f"Test could not be executed, No Unique Key column/s were specified in the mapping.")
+    else:
+        keyColsList = keyColumns.split(",")
+        firstColumn = keyColsList[0].strip()
+        sqlQuery = f"SELECT * FROM {GetSelfFqn()} "
+
+        for column in keyColsList:
+            column = column.strip()
+            if column == firstColumn:
+                sqlQuery = sqlQuery + f"WHERE ({column} is NULL or {column} in ('',' ') or UPPER({column})='NULL') "
+            else:
+                sqlQuery = sqlQuery + f"OR ({column} is NULL or {column} in ('',' ') or UPPER({column})='NULL') "
+
+        df = spark.sql(sqlQuery)
+        count = df.count()
+        if count > 0: display(df)
+        Assert(count,0)
 
 # COMMAND ----------
 
-def CheckAuditColsPresent():
-    df = spark.sql(f"select * from {GetSelfFqn()}")
+def AuditColsIncludedChk():
+    df = spark.table(GetSelfFqn())
     auditCols = ['_RecordStart', '_RecordEnd', '_RecordCurrent', '_RecordDeleted', '_DLCleansedZoneTimeStamp']
     targetAuditCols = []
     for column in df.columns:
@@ -799,3 +359,268 @@ def CheckAuditColsPresent():
     auditColsNotInTarget = [x for x in auditCols if x not in targetAuditCols]
     
     Assert(len(auditColsNotInTarget), 0, errorMessage = f"Missing audit column(s): {auditColsNotInTarget}")
+
+# COMMAND ----------
+
+def CountRecordsCnDn(C, D):
+    try:
+        df = spark.sql(f"""SELECT count(*) as RecCount FROM {GetSelfFqn()} 
+                       WHERE _RecordCurrent = {C} and _RecordDeleted = {D}""")
+        count = df.select("RecCount").collect()[0][0]
+
+        if C == 1 and D == 0:
+            GreaterThan(count,0)
+        else:
+            GreaterThanEqual(count,0)
+    except:
+        Assert(0, 0, compare = "Greater Than", errorMessage = f"Test could not be executed, columns '_RecordCurrent' and/or '_RecordDeleted' were not found in Target table.")
+
+# COMMAND ----------
+
+def CountRecordsC1D0():
+    CountRecordsCnDn(1, 0)
+def CountRecordsC0D0():
+    CountRecordsCnDn(0, 0)
+def CountRecordsC1D1():
+    CountRecordsCnDn(1, 1)
+def CountRecordsC0D1():
+    CountRecordsCnDn(0, 1)
+
+# COMMAND ----------
+
+def SrcTgtCountChk():
+    if DO_ST_TESTS == False:
+        if GetDatabaseName().upper() == 'CURATED' or GetDatabaseName().upper() == "CURATED_V2":
+            source = 'cleansed'
+        else:
+            source = 'raw'
+
+        tablename = GetSelfFqn().split(".")[1]
+
+        sourceDf = spark.table(f"{source}.{tablename}").drop_duplicates()
+        targetDf = spark.table(f"{GetSelfFqn()}")
+
+        sourceCount = sourceDf.count()
+        targetCount = targetDf.count()
+
+        Assert(sourceCount, targetCount, errorMessage = f"""Record counts are not matching - Source contains {sourceCount} records, Target contains {targetCount} records. Note: If records in Target have been filtered from Source using a watermark column (e.g. rowStamp, di_Sequence_Number etc), this test case may be ignored.""")
+
+# COMMAND ----------
+
+def RowCounts():
+    count = GetSelf().count()
+    GreaterThan(count, 0)
+
+# COMMAND ----------
+
+def ColumnCounts():
+    count = len(GetSelf().columns)
+    Assert(count,count)
+
+# COMMAND ----------
+
+# DBTITLE 1,Cleansed Test Cases
+def CleansedSrcTgtCountChk():
+    if DO_ST_TESTS == True:
+        sourceDf, targetDf = SRC_DF, TGT_DF
+
+        sourceCount = sourceDf.count()
+        targetCount = targetDf.count()
+
+        Assert(sourceCount, targetCount)
+
+# COMMAND ----------
+
+def CleansedSrcMinusTgtChk():    
+    if DO_ST_TESTS == True:
+        sourceDf, targetDf = SRC_DF, TGT_DF
+
+        df = sourceDf.subtract(targetDf)
+        count = df.count()
+        if count > 0: 
+            print(f'Records that are in source but not in target ({count} total records): ')
+            display(df)
+
+        Assert(count, 0, errorMessage = f"""Mismatching records found - {count} records are in source but not in target""")
+
+# COMMAND ----------
+
+def CleansedTgtMinusSrcChk():   
+    if DO_ST_TESTS == True:
+        sourceDf, targetDf = SRC_DF, TGT_DF
+
+        df = targetDf.subtract(sourceDf)
+        count = df.count()
+        if count > 0: 
+            print(f'Records that are in target but not in source ({count} total records): ')
+            display(df)
+
+        Assert(count, 0, errorMessage = f"""Mismatching records found - {count} records are in target but not in source""")
+
+# COMMAND ----------
+
+# DBTITLE 1,Curated Test Cases
+def DuplicateKeysActiveRecsChk():
+    keyColumns = UNIQUE_KEYS
+    if keyColumns.strip() == "":
+        Assert(0, 0, compare = "Greater Than", errorMessage = f"Test could not be executed, No Unique Key column/s were specified in the mapping.")
+    else:
+        df = spark.sql(f"""SELECT {keyColumns}, COUNT(*) as recCount FROM {GetSelfFqn()} 
+                           WHERE _RecordCurrent=1 and _recordDeleted=0 
+                           GROUP BY {keyColumns} HAVING COUNT(*) > 1""")
+        count = df.count()
+        if count > 0: display(df)
+        Assert(count,0)
+
+# COMMAND ----------
+
+def KeysAreSameLengthChk():
+    keyColumns = UNIQUE_KEYS
+    if keyColumns.strip() == "":
+        Assert(0, 0, compare = "Greater Than", errorMessage = f"Test could not be executed, No Unique Key column/s were specified in the mapping.")
+    else:
+        keyColsList = keyColumns.split(",")
+
+        for column in keyColsList:
+            column = column.strip()
+
+            sqlQuery = f"SELECT DISTINCT length({column}) FROM {GetSelfFqn()} \
+                         WHERE length({column}) <> 2 "
+
+            if (column.upper().find('DATE') == -1): # if not a date column, add extra condition
+                sqlQuery = sqlQuery + f"AND {column} <> 'Unknown'"
+
+            df = spark.sql(sqlQuery)
+            count = df.count()
+            if count > 1: display(df)
+            Assert(count,1, errorMessage = f"Failed check for key column: {column}")
+
+# COMMAND ----------
+
+# DBTITLE 1,Curated Test Cases from UC1 
+def DummyRecChk():
+    try:
+        df = spark.sql(f"SELECT COUNT (*) as RecCount FROM {GetSelfFqn()} WHERE sourceSystemCode is NULL")
+        count = df.count()
+        if count != 1: display(df)
+        Assert(count, 1)
+    # added to handle dim tables which do not have column 'sourceSystemCode' - dimWaterNetwork, dimSewerNetwork, dimStormWaterNetwork
+    except:
+        keyColumns = UNIQUE_KEYS
+        if keyColumns.strip() == "":
+            Assert(0, 0, compare = "Greater Than", errorMessage = f"Test could not be executed, No Unique Key column/s were specified in the mapping.")
+        else:
+            keyColsList = keyColumns.split(",")
+            firstColumn = keyColsList[0].strip()
+            sqlQuery = f"SELECT COUNT (*) as RecCount FROM {GetSelfFqn()} "
+
+            for column in keyColsList:
+                column = column.strip()
+                if column == firstColumn:
+                    sqlQuery = sqlQuery + f"WHERE {column} = 'Unknown' "
+                else:
+                    sqlQuery = sqlQuery + f"OR {column} = 'Unknown' "
+
+# COMMAND ----------
+
+def DuplicateSKChk():
+    skColumn = GetSelf().columns[0]
+    df = spark.sql(f"SELECT COUNT (*) as RecCount FROM {GetSelfFqn()} GROUP BY {skColumn} HAVING COUNT (*) > 1")
+    count = df.count()
+    if count > 0: display(df)
+    Assert(count, 0)
+
+# COMMAND ----------
+
+def DuplicateSKActiveRecsChk():
+    skColumn = GetSelf().columns[0]
+    df = spark.sql(f"SELECT COUNT (*) as RecCount FROM {GetSelfFqn()} WHERE _RecordCurrent = 1 and _RecordDeleted = 0 GROUP BY {skColumn} HAVING COUNT(*) > 1")
+    count = df.count()
+    if count > 0: display(df)
+    Assert(count, 0)
+
+# COMMAND ----------
+
+def SKNotNullOrBlankChk():
+    skColumn = GetSelf().columns[0]
+    df = spark.sql(f"SELECT COUNT (*) as RecCount FROM {GetSelfFqn()} WHERE {skColumn} is null or {skColumn} = '' or {skColumn} = ' ' or upper({skColumn}) ='NULL'")
+    count = df.select("RecCount").collect()[0][0]
+    if count > 0: display(df)
+    Assert(count, 0)
+
+# COMMAND ----------
+
+def DateValidation():
+    df = spark.sql(f"""SELECT * FROM {GetSelfFqn()} 
+                   WHERE date(_RecordStart) > date(_RecordEnd)""")
+    count = df.count()
+    if count > 0: display(df)
+    Assert(count, 0, errorMessage = "Failed date validation for _RecordStart and _RecordEnd")
+
+# COMMAND ----------
+
+def AuditEndDateChk():
+    keyColumns = UNIQUE_KEYS
+    if keyColumns.strip() == "":
+        Assert(0, 0, compare = "Greater Than", errorMessage = f"Test could not be executed, No Unique Key column/s were specified in the mapping.")
+    else:
+        df = spark.sql(f"""SELECT * FROM {GetSelfFqn()} 
+                         WHERE date(_RecordEnd) < (SELECT date(max(_DLCuratedZoneTimeStamp)) as max_date FROM {GetSelfFqn()}) 
+                         and _RecordCurrent = 1 and _RecordDeleted = 0""")
+        count = df.count()
+        if count > 0: display(df)
+        Assert(count,0)
+
+# COMMAND ----------
+
+def AuditCurrentChk():
+    keyColumns = UNIQUE_KEYS
+    if keyColumns.strip() == "":
+        Assert(0, 0, compare = "Greater Than", errorMessage = f"Test could not be executed, No Unique Key column/s were specified in the mapping.")
+    else:
+        df = spark.sql(f"""SELECT * FROM (
+                       SELECT * FROM (   
+                       SELECT {keyColumns}, date(_RecordStart) as start_dt,date(_RecordEnd) as end_dt, _RecordCurrent, _RecordDeleted, max_date FROM {GetSelfFqn()} as a, 
+                           (SELECT date(max(_DLCuratedZoneTimeStamp)) as max_date FROM {GetSelfFqn()}) as b 
+                           )WHERE ((max_date < end_dt) and (max_date > start_dt)) and _RecordDeleted <> 1 
+                           )WHERE _RecordCurrent <> 1 
+                       """)
+        count = df.count()
+        if count > 0: display(df)
+        Assert(count,0)
+
+# COMMAND ----------
+
+def AuditActiveOtherChk():
+    keyColumns = UNIQUE_KEYS
+    if keyColumns.strip() == "":
+        Assert(0, 0, compare = "Greater Than", errorMessage = f"Test could not be executed, No Unique Key column/s were specified in the mapping.")
+    else:
+        df = spark.sql(f"""SELECT * FROM (
+                       SELECT * FROM (   
+                       SELECT {keyColumns}, date(_RecordStart) as start_dt, date(_RecordEnd) as end_dt, _RecordCurrent, _RecordDeleted, max_date FROM {GetSelfFqn()} as a, 
+                           (SELECT date(max(_DLCuratedZoneTimeStamp)) as max_date FROM {GetSelfFqn()}) as b 
+                           )WHERE ((max_date > end_dt) and (max_date < start_dt)) 
+                           )WHERE _RecordCurrent <> 0 and _RecordDeleted <> 0 
+                       """)
+        count = df.count()
+        if count > 0: display(df)
+        Assert(count,0)
+
+# COMMAND ----------
+
+def AuditDeletedChk():
+    keyColumns = UNIQUE_KEYS
+    if keyColumns.strip() == "":
+        Assert(0, 0, compare = "Greater Than", errorMessage = f"Test could not be executed, No Unique Key column/s were specified in the mapping.")
+    else:
+        df = spark.sql(f"""SELECT * FROM (
+                       SELECT * FROM (   
+                       SELECT {keyColumns},date(_RecordStart) as start_dt, date(_RecordEnd) as end_dt, _RecordCurrent, _RecordDeleted, max_date FROM {GetSelfFqn()} as a, 
+                           (SELECT date(max(_DLCuratedZoneTimeStamp)) as max_date FROM {GetSelfFqn()}) as b
+                           )WHERE ((max_date < end_dt) and (max_date > start_dt)) and (end_dt<> '9999-12-31')
+                           )WHERE _RecordCurrent = 1 and _RecordDeleted = 1 
+                       """)
+        count = df.count()
+        if count > 0: display(df)
+        Assert(count,0)

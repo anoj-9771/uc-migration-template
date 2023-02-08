@@ -1,9 +1,12 @@
 # Databricks notebook source
+# DBTITLE 1,Note: Please call ClearCache() after running the ATF Script
 # MAGIC %run ./common-atf-methods
 
 # COMMAND ----------
 
 TABLE_FQN = ''
+LOAD_MAPPING_FLAG = False
+DO_ST_TESTS = False
 
 # COMMAND ----------
 
@@ -147,6 +150,20 @@ def RunTests():
     if len(methods) == 0:
         print("No tests!")
         return
+    
+    global MAPPING_DOC, TAG_SHEET, LOAD_MAPPING_FLAG, UNIQUE_KEYS, SRC_DF, TGT_DF
+    if not MAPPING_DOC and LOAD_MAPPING_FLAG == False:
+        MAPPING_DOC = loadMappingDocument().cache()
+        TAG_SHEET = loadMappingDocument('TAG').cache()
+        MAPPING_DOC.count()
+        TAG_SHEET.count()
+        LOAD_MAPPING_FLAG = True
+    
+    UNIQUE_KEYS = GetUniqueKeys()
+    
+    if DO_ST_TESTS == True or (GetNotebookName().find('_') != -1):
+        SRC_DF, TGT_DF = GetSrcTgtDfs(TABLE_FQN)
+    
     for key, value in globals().items():
         if ((callable(value) 
             and value.__module__ == __name__ 
@@ -164,6 +181,13 @@ def RunTests():
                     pass
     _TestingEnd()
     del _results[0:len(_results)]
+
+# COMMAND ----------
+
+def ClearCache():
+    global MAPPING_DOC, TAG_SHEET
+    MAPPING_DOC.unpersist()
+    TAG_SHEET.unpersist()
 
 # COMMAND ----------
 
@@ -194,11 +218,11 @@ def Assert(inputValue, outputValue, compare="Equals", errorMessage=None):
         if compare == "Equals":
             assert inputValue == outputValue, f"Expecting value {compare} {outputValue}, got: {inputValue}" if errorMessage is None else errorMessage
         elif compare == "Greater Than":
-            assert inputValue > outputValue, f"Expecting value {compare} {outputValue}, got: {inputValue}"
+            assert inputValue > outputValue, f"Expecting value {compare} {outputValue}, got: {inputValue}" if errorMessage is None else errorMessage
         elif compare == "Greater Than Equal":
-            assert inputValue >= outputValue, f"Expecting value {compare} {outputValue}, got: {inputValue}"    
+            assert inputValue >= outputValue, f"Expecting value {compare} {outputValue}, got: {inputValue}" if errorMessage is None else errorMessage   
         elif compare == "Less Than":
-            assert inputValue < outputValue, f"Expecting value {compare} {outputValue}, got: {inputValue}"
+            assert inputValue < outputValue, f"Expecting value {compare} {outputValue}, got: {inputValue}" if errorMessage is None else errorMessage
         else:
             raise Exception("Not implemented!")
         passed = 1
