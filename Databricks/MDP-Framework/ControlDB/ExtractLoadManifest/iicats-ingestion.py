@@ -69,10 +69,6 @@ df = spark.sql("""
 
 # COMMAND ----------
 
-display(df)
-
-# COMMAND ----------
-
 def ConfigureManifest(df):
     # ------------- CONSTRUCT QUERY ----------------- #
     
