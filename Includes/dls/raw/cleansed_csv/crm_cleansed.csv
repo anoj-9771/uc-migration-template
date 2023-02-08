@@ -105,7 +105,7 @@ raw.crm_0crm_sales_act_1,cleansed.crm_0crm_sales_act_1,CC_CATEGORY_GUID,multiLev
 raw.crm_crm_jcds,cleansed.crm_crm_jcds,CDTCODE,cdtCode,String,,,
 raw.crm_scapptseg,cleansed.crm_scapptseg,CHANGE_BY,changedBy,String,,,
 raw.crm_crmd_erms_header,cleansed.crm_crmd_erms_header,CHANGE_ON,changedDate,Date,,,
-raw.crm_scapptseg,cleansed.crm_scapptseg,CHANGE_TST,changedDatetime,Datetime,double-to-datetime,,
+raw.crm_scapptseg,cleansed.crm_scapptseg,CHANGE_TST,changedDatetime,Datetime,,"to_timestamp(substring(cast(CHANGE_TST as bigint),1,4)||'-'||substring(cast(CHANGE_TST as bigint),5,2)||'-'||substring(cast(CHANGE_TST as bigint),7,2) ||' '||substring(cast(CHANGE_TST as bigint),9,2)||':'||substring(cast(CHANGE_TST as bigint),11,2)||':'||substring(cast(CHANGE_TST as bigint),13,2))",
 raw.crm_0crm_srv_req_inci_h,cleansed.crm_0crm_srv_req_inci_h,CHANGED_AT,lastChangedDate,Date,str-yyyy-mm-dd-to-date,,
 raw.crm_0crm_srv_req_inci_h,cleansed.crm_0crm_srv_req_inci_h,CHANGED_BY,changedBy,String,,,
 raw.crm_0crm_srv_req_inci_h,cleansed.crm_0crm_srv_req_inci_h,CHANGED_TS,lastChangedDateTime,Datetime,int-utc-to-sydney-datetime,,
@@ -208,7 +208,7 @@ raw.crm_crmc_proc_type,cleansed.crm_crmc_proc_type,ELIGIBLE_PARTNER,eligiblePart
 raw.crm_crmd_erms_header,cleansed.crm_crmd_erms_header,EMAIL_TYPE,emailType,String,,,
 raw.crm_0crm_sales_act_1,cleansed.crm_0crm_sales_act_1,END_CUSTOMER,endCustomerNumber,String,,,
 raw.crm_scapptseg,cleansed.crm_scapptseg,ENTRY_BY,entryBy,String,,,
-raw.crm_scapptseg,cleansed.crm_scapptseg,ENTRY_TST,entryTimestamp,Datetime,double-to-datetime,,
+raw.crm_scapptseg,cleansed.crm_scapptseg,ENTRY_TST,entryTimestamp,Datetime,,"to_timestamp(substring(cast(ENTRY_TST as bigint),1,4)||'-'||substring(cast(ENTRY_TST as bigint),5,2)||'-'||substring(cast(ENTRY_TST as bigint),7,2) ||' '||substring(cast(ENTRY_TST as bigint),9,2)||':'||substring(cast(ENTRY_TST as bigint),11,2)||':'||substring(cast(ENTRY_TST as bigint),13,2))",
 raw.crm_crmc_proc_type,cleansed.crm_crmc_proc_type,ERR_GRP,incompletenessGroup,String,,,
 raw.crm_crmd_partner,cleansed.crm_crmd_partner,ERROR_FLAG,errorFlag,String,flag-x-yes-no,,
 raw.crm_crmd_erms_header,cleansed.crm_crmd_erms_header,ESC_TIME_IN_HRS,escalationTimeInHours,Double,,,
@@ -240,7 +240,7 @@ raw.crm_0crm_sales_act_1,cleansed.crm_0crm_sales_act_1,EXTRACT_DATETIME,extract_
 raw.crm_crmd_erms_header,cleansed.crm_crmd_erms_header,EXTRACT_DATETIME,extract_datetime,String,,,
 raw.crm_crmd_erms_stas_t,cleansed.crm_crmd_erms_stas_t,EXTRACT_DATETIME,extract_datetime,String,,,
 raw.crm_crmd_erms_contnt,cleansed.crm_crmd_erms_contnt,EXTRACT_DATETIME,extract_datetime,String,,,
-raw.crm_scapptseg,cleansed.crm_scapptseg,EXTRACT_DATETIME,extract_datetime,String,int-to-datetime,,
+raw.crm_scapptseg,cleansed.crm_scapptseg,EXTRACT_DATETIME,extract_datetime,String,,,
 raw.crm_crmd_brelvonae,cleansed.crm_crmd_brelvonae,EXTRACT_DATETIME,extract_datetime,String,,,
 raw.crm_crmd_erms_step,cleansed.crm_crmd_erms_step,EXTRACT_DATETIME,extract_datetime,String,,,
 raw.crm_crmd_erms_eventt,cleansed.crm_crmd_erms_eventt,EXTRACT_DATETIME,extract_datetime,String,,,
@@ -592,7 +592,7 @@ raw.crm_crmc_proc_type,cleansed.crm_crmc_proc_type,USER_STAT_PROC,userStatusProf
 raw.crm_crmd_srv_subject,cleansed.crm_crmd_srv_subject,USERNAME,userName,String,,,
 raw.crm_crm_jcds,cleansed.crm_crm_jcds,USNAM,changeBy,String,,,
 raw.crm_0crm_sales_act_1,cleansed.crm_0crm_sales_act_1,USSTAT,statusCode,String,,,
-raw.crm_0crm_sales_act_1,cleansed.crm_0crm_sales_act_1,USSTAT,status,String,,"concat(STSMA,USSTAT)",lookup-crm-status-text
+raw.crm_0crm_sales_act_1,cleansed.crm_0crm_sales_act_1,USSTAT,status,String,,"concat(STSMA,'|',USSTAT)",lookup-crm-status-text
 raw.crm_skwg_brel,cleansed.crm_skwg_brel,UTCTIME,brelDatetime,DateTime,int-utc-to-sydney-datetime,,
 raw.crm_crm_jcds,cleansed.crm_crm_jcds,UTIME,changeTS,String,,,
 raw.crm_crmc_erms_cat_as,cleansed.crm_crmc_erms_cat_as,VAL_FROM,validFromDatetime,Timestamp,int-utc-to-sydney-datetime,,
@@ -634,10 +634,10 @@ raw.crm_0crm_srv_req_inci_h,cleansed.crm_0crm_srv_req_inci_h,ZZ_SR_CATEGORY_CD,s
 raw.crm_0crm_srv_req_inci_h,cleansed.crm_0crm_srv_req_inci_h,ZZ_SR_SUB_AREA,receivedSubCategory1,String,,,
 raw.crm_0crm_srv_req_inci_h,cleansed.crm_0crm_srv_req_inci_h,ZZ_X_FACILITY_NAME_CD,resolutionSubCategory2,String,,,
 raw.crm_0crm_srv_req_inci_h,cleansed.crm_0crm_srv_req_inci_h,ZZ_X_SECONDARY_ANALYSIS_CD,resolutionSubCategory3,String,,,
-raw.crm_0crm_srv_req_inci_h,cleansed.crm_0crm_srv_req_inci_h,ZZAFLD000026,source,String,,,lookup-crm-source
+raw.crm_0crm_srv_req_inci_h,cleansed.crm_0crm_srv_req_inci_h,ZZAFLD000026,source,String,,cast( ZZAFLD000026 as bigint),lookup-crm-source
 raw.crm_0crm_srv_req_inci_h,cleansed.crm_0crm_srv_req_inci_h,ZZAFLD000026,sourceCode,String,,,
 raw.crm_0crm_srv_req_inci_h,cleansed.crm_0crm_srv_req_inci_h,ZZAFLD000027,projectId,String,,,
-raw.crm_0crm_srv_req_inci_h,cleansed.crm_0crm_srv_req_inci_h,ZZAFLD000028,issueResponsibility,String,,"concat('ZZ_ISSUE_RESP',ZZAFLD000028)",lookup-crm-domain-text
+raw.crm_0crm_srv_req_inci_h,cleansed.crm_0crm_srv_req_inci_h,ZZAFLD000028,issueResponsibility,String,,"concat('ZZ_ISSUE_RESP',cast(ZZAFLD000028 as bigint))",lookup-crm-domain-text
 raw.crm_0crm_srv_req_inci_h,cleansed.crm_0crm_srv_req_inci_h,ZZAFLD000028,issueResponsibilityCode,String,,,
 raw.crm_0crm_srv_req_inci_h,cleansed.crm_0crm_srv_req_inci_h,ZZAGREEMENT_N,agreementNumber,String,,,
 raw.crm_0crm_srv_req_inci_h,cleansed.crm_0crm_srv_req_inci_h,ZZREPORTED_BY,reportedByPersonNumber,String,,,
