@@ -142,7 +142,7 @@
 								"source": {
 									"type": "OracleSource",
 									"oracleReaderQuery": {
-										"value": "@replace(replace(replace(\n'SELECT COALESCE($PLW$, ''''||MIN($WC$))||'''' LowWatermark,  ''''||MAX($WC$)||'''' HighWatermark FROM $Q$ T'\n,'$PLW$', if(empty(pipeline().parameters.task.LowWatermark), 'NULL', concat('''', pipeline().parameters.task.LowWatermark, '''')))\n,'$WC$', variables('WatermarkColumn'))\n,'$Q$', concat('(',variables('BaseQuery'),')'))",
+										"value": "@replace(replace(\n'SELECT ''''||MIN($WC$)||'''' LowWatermark,  ''''||MAX($WC$)||'''' HighWatermark FROM $Q$ T'\n,'$WC$', variables('WatermarkColumn'))\n,'$Q$', concat('(',variables('BaseQuery'),')'))",
 										"type": "Expression"
 									},
 									"partitionOption": "None",
