@@ -15,10 +15,10 @@ df = (
     spark.table("controldb.dbo_extractLoadManifest")
     .where(f"systemCode = '{systemCode}'")
     .withColumn("WatermarkColumnMapped", expr("""
-    case WatermarkColumn 
-    when 'M_DATE' then 'sourceRecordModifiedDateTime'
-    when 'EFF_FROM_DT' then 'effectiveFromDateTime'
-    when 'HT_CRT_DT' then 'sourceRecordCreationDateTime'
+    case  
+    when WatermarkColumn like '%M_DATE%' then 'sourceRecordModifiedDateTime'
+    when WatermarkColumn like '%EFF_FROM_DT%' then 'effectiveFromDateTime'
+    when WatermarkColumn like '%HT_CRT_DT%' then 'sourceRecordCreationDateTime'
     end
     """)
     )
