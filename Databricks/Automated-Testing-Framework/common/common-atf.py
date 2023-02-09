@@ -38,9 +38,13 @@ except:
 # COMMAND ----------
 
 def GetNotebookName():
-    list = dbutils.notebook.entry_point.getDbutils().notebook().getContext().notebookPath().get().split("/")
-    count=len(list)
-    return list[count-1]
+    if not TABLE_FQN:
+        list = dbutils.notebook.entry_point.getDbutils().notebook().getContext().notebookPath().get().split("/")
+        count=len(list)
+        database = list[count-1]
+    else:
+        database = TABLE_FQN.split(".")[1]
+    return database
 
 # COMMAND ----------
 
@@ -153,10 +157,13 @@ def RunTests():
     
     global MAPPING_DOC, TAG_SHEET, LOAD_MAPPING_FLAG, UNIQUE_KEYS, SRC_DF, TGT_DF
     if not MAPPING_DOC and LOAD_MAPPING_FLAG == False:
-        MAPPING_DOC = loadMappingDocument().cache()
-        TAG_SHEET = loadMappingDocument('TAG').cache()
+        if GetDatabaseName().upper() == 'CLEANSED':
+            MAPPING_DOC = loadCleansedMapping().cache()
+            TAG_SHEET = loadCleansedMapping('TAG').cache()
+            TAG_SHEET.count()
+        else:
+            MAPPING_DOC = loadCuratedMapping().cache()
         MAPPING_DOC.count()
-        TAG_SHEET.count()
         LOAD_MAPPING_FLAG = True
     
     UNIQUE_KEYS = GetUniqueKeys()
@@ -187,7 +194,8 @@ def RunTests():
 def ClearCache():
     global MAPPING_DOC, TAG_SHEET
     MAPPING_DOC.unpersist()
-    TAG_SHEET.unpersist()
+    if GetDatabaseName().upper() == 'CLEANSED':
+        TAG_SHEET.unpersist()
 
 # COMMAND ----------
 

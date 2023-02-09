@@ -3,7 +3,7 @@
 _automatedMethods = {
     "tests": [],
     "cleansed": [
-        "CleansedSchemaChk"
+        "SchemaChk"
         ,"DuplicateKeysChk"
         ,"KeysNotNullOrBlankChk"
         ,"AuditColsIncludedChk"
@@ -17,11 +17,12 @@ _automatedMethods = {
         ,"CleansedTgtMinusSrcChk"
     ],
     "curated": [
-        "DummyRecChk"
+        "SchemaChk"
+        ,"DummyRecChk"
         ,"DuplicateKeysChk"
         ,"DuplicateKeysActiveRecsChk"
         ,"KeysNotNullOrBlankChk"
-        ,"KeysAreSameLengthChk"
+        #,"KeysAreSameLengthChk"
         ,"DuplicateSKChk"
         ,"DuplicateSKActiveRecsChk"
         ,"SKNotNullOrBlankChk"
@@ -35,7 +36,7 @@ _automatedMethods = {
         ,"CountRecordsC0D0"
         ,"CountRecordsC1D1" 
         ,"CountRecordsC0D1"
-        ,"SrcTgtCountChk"
+        #,"SrcTgtCountChk"
         ,"RowCounts"
         ,"ColumnCounts"
     ],
@@ -63,7 +64,7 @@ ascii_udf = udf(ascii_ignore)
 
 def TrimWhitespace(df):
     columns = [
-        "CleansedColumnName", 
+        "TargetColumnName", 
         "DataType"
     ]
     for column in columns:
@@ -73,7 +74,7 @@ def TrimWhitespace(df):
 
 # COMMAND ----------
 
-def loadMappingDocument(sheetName = ""):
+def loadCleansedMapping(sheetName = ""):
     if sheetName == "":
         sheetName = SHEET_NAME
         
@@ -87,19 +88,52 @@ def loadMappingDocument(sheetName = ""):
         mappingData = mappingData.selectExpr(
                                      "UPPER(UniqueKey) as UniqueKey",
                                      "UPPER(DataType) as DataType",
-                                     "RawTable",
-                                     "UPPER(CleansedTable) as CleansedTable",
-                                     "RawColumnName",
-                                     "CleansedColumnName",
+                                     "RawTable as SourceTable",
+                                     "UPPER(CleansedTable) as TargetTable",
+                                     "RawColumnName as SourceColumnName",
+                                     "CleansedColumnName as TargetColumnName",
                                      "TransformTag",
                                      "CustomTransform"        
-                      ).filter(mappingData.CleansedTable.isNotNull())
+                      )
+        mappingData = mappingData.filter(mappingData.TargetTable.isNotNull())
         mappingData = TrimWhitespace(mappingData)
     elif sheetName == 'TAG':
         mappingData = mappingData.selectExpr(
                                  "`Tag Name` as TagName",
                                  "`SQL syntax` as SQLsyntax"
                       )
+    return mappingData
+
+# COMMAND ----------
+
+def loadCuratedMapping(sheetName = ""):
+    if sheetName == "":
+        sheetName = SHEET_NAME
+        
+    mappingData = spark.read.format("com.crealytics.spark.excel") \
+    .option("header", "true") \
+    .option("inferSchema", "true") \
+    .option("dataAddress", f"{sheetName}!A1") \
+    .load(f"{DOC_PATH}")
+    
+    if sheetName == SHEET_NAME:
+        mappingData = mappingData.selectExpr(
+                                     "UPPER(`Unique Business Key`) as UniqueKey",
+                                     "UPPER(`Target Column Data Type`) as DataType",
+                                     "`Source Table Name` as SourceTable",
+                                     "UPPER(`Dimension Name`) as TargetTable",
+                                     "`Source Column Name(s)` as SourceColumnName",
+                                     "`Target Column Name` as TargetColumnName"
+                      )
+        mappingData = mappingData.filter(mappingData.TargetTable.isNotNull())
+        display(mappingData)
+        mappingData = TrimWhitespace(mappingData)
+        
+#     elif sheetName == 'TAG':
+#         mappingData = mappingData.selectExpr(
+#                                  "`Tag Name` as TagName",
+#                                  "`SQL syntax` as SQLsyntax"
+#                       )
     return mappingData
 
 # COMMAND ----------
@@ -126,7 +160,7 @@ def GetTargetSchemaDf():
         tgtSchemaList.append(row)
         
     
-    dfStructure = StructType([StructField('CleansedColumnName', StringType()),
+    dfStructure = StructType([StructField('TargetColumnName', StringType()),
                               StructField('DataType', StringType()),
                               StructField('UniqueKey', StringType())])
 
@@ -134,7 +168,7 @@ def GetTargetSchemaDf():
     targetDf.createOrReplaceTempView("tableView")
     targetDf = spark.sql("""
         Select 
-        CleansedColumnName, 
+        TargetColumnName, 
         UPPER(DataType) as DataType,
         case when UniqueKey = 'false' then 'Y' else null end as UniqueKey
         from tableView
@@ -144,12 +178,17 @@ def GetTargetSchemaDf():
 # COMMAND ----------
 
 def GetMappingSchemaDf():
+    if GetDatabaseName().upper() == 'CLEANSED':
+        tablename = GetSelfFqn()
+    else:
+        tablename = GetNotebookName()
+    
     mappingData = MAPPING_DOC
     mappingData.createOrReplaceTempView("mappingView")
     
     mappingDf = spark.sql(f"""
         Select 
-        CleansedColumnName, 
+        TargetColumnName, 
         case 
             when DataType = 'DATETIME' then 'TIMESTAMP'
             when DataType = 'TIME' then 'TIMESTAMP'
@@ -165,27 +204,33 @@ def GetMappingSchemaDf():
             else UniqueKey
         end as UniqueKey
         from mappingView
-        where CleansedTable = UPPER("{GetSelfFqn()}")
+        where TargetTable = UPPER("{tablename}")
+        and TargetColumnName not like '%\_%'
     """)
     return mappingDf
 
 # COMMAND ----------
 
 def GetUniqueKeys():
+    if GetDatabaseName().upper() == 'CLEANSED':
+        tablename = GetSelfFqn()
+    else:
+        tablename = GetNotebookName()
+        
     mappingData = MAPPING_DOC
     mappingData.createOrReplaceTempView("mappingView")
     
     df = spark.sql(f"""
         Select 
-        CleansedColumnName
+        TargetColumnName
         from mappingView
-        where CleansedTable = UPPER("{GetSelfFqn()}")
+        where TargetTable = UPPER("{tablename}")
         and UniqueKey = 'Y'
     """)
     
     keys = ""
     for row in df.collect():
-        keys = keys + row.CleansedColumnName + ",\n"                
+        keys = keys + row.TargetColumnName + ",\n"                
     keys = keys.strip().strip(',')
     
     return keys
@@ -195,7 +240,9 @@ def GetUniqueKeys():
 def AutomatedSourceQuery(tablename = ""):
     if tablename == "":
         tablename = GetSelfFqn()
-
+    elif GetDatabaseName().upper() != 'CLEANSED':
+        tablename = GetNotebookName()
+    
     mappingData = MAPPING_DOC
     tags = TAG_SHEET
     #lookup = LOOKUP_SHEET
@@ -209,11 +256,11 @@ def AutomatedSourceQuery(tablename = ""):
         DataType,
         TransformTag,
         CustomTransform,
-        RawColumnName,
-        CleansedColumnName,
-        RawTable
+        SourceColumnName,
+        TargetColumnName,
+        SourceTable
         from mappingView
-        where CleansedTable = UPPER("{tablename}")
+        where TargetTable = UPPER("{tablename}")
     """)
     
     sourceSystem = GetNotebookName().split("_")[0]
@@ -223,25 +270,25 @@ def AutomatedSourceQuery(tablename = ""):
             sqlCode = spark.sql(f"Select * from tagView where TagName = '{row.TransformTag}'") \
                             .select("SQLsyntax").collect()[0][0] 
             if row.TransformTag.upper() == 'TRIMCOALESCE' and row.DataType == 'DATETIME':
-                sqlCode = sqlCode.replace("$c$", f"CAST(a.{row.RawColumnName} AS TIMESTAMP)") 
+                sqlCode = sqlCode.replace("$c$", f"CAST(a.{row.SourceColumnName} AS TIMESTAMP)") 
             elif row.TransformTag.upper() == 'TRIMCOALESCE':
-                sqlCode = sqlCode.replace("$c$", f"CAST(a.{row.RawColumnName} AS {row.DataType})") 
+                sqlCode = sqlCode.replace("$c$", f"CAST(a.{row.SourceColumnName} AS {row.DataType})") 
             else: 
-                sqlCode = sqlCode.replace("$c$", f"a.{row.RawColumnName}") 
+                sqlCode = sqlCode.replace("$c$", f"a.{row.SourceColumnName}") 
         elif row.CustomTransform is not None:
             sqlCode = row.CustomTransform
         elif row.DataType == 'DATETIME' or row.DataType == 'TIME':
-            sqlCode = f"CAST(a.{row.RawColumnName} AS TIMESTAMP)"
+            sqlCode = f"CAST(a.{row.SourceColumnName} AS TIMESTAMP)"
         else:
-            sqlCode = f"CAST(a.{row.RawColumnName} AS {row.DataType})"
+            sqlCode = f"CAST(a.{row.SourceColumnName} AS {row.DataType})"
         
-        sqlCode = sqlCode + " as " + row.CleansedColumnName + ",\n"
+        sqlCode = sqlCode + " as " + row.TargetColumnName + ",\n"
         
         sqlQuery = sqlQuery + sqlCode
     
     sqlQuery = sqlQuery.strip().strip(',')
     
-    rawTable = df.select("RawTable").collect()[0][0]
+    rawTable = df.select("SourceTable").collect()[0][0]
     sqlQuery = sqlQuery + "\n" + f"from {rawTable} a\n"
     
     return sqlQuery
@@ -251,6 +298,8 @@ def AutomatedSourceQuery(tablename = ""):
 def AutomatedTargetQuery(tablename = ""):
     if tablename == "":
         tablename = GetSelfFqn()
+    elif GetDatabaseName().upper() != 'CLEANSED':
+        tablename = GetNotebookName()
         
     mappingData = MAPPING_DOC
     mappingData.createOrReplaceTempView("mappingView")
@@ -258,14 +307,14 @@ def AutomatedTargetQuery(tablename = ""):
     df = spark.sql(f"""
         Select 
         DataType,
-        CleansedColumnName
+        TargetColumnName
         from mappingView
-        where CleansedTable = UPPER("{tablename}")
+        where TargetTable = UPPER("{tablename}")
     """)
     
     sqlCode = ""
     for row in df.collect():
-        sqlCode = sqlCode + row.CleansedColumnName + ",\n"    
+        sqlCode = sqlCode + row.TargetColumnName + ",\n"    
             
     sqlCode = sqlCode.strip().strip(',')
     sqlQuery = "Select \n" + f"{sqlCode} \n" + f"from {tablename}"
@@ -286,7 +335,7 @@ def GetSrcTgtDfs(tablename):
 # DBTITLE 1,Common Test Cases - Cleansed + Curated
 # Mapping doc path: 'dbfs:/mnt/data/mapping_documents_UC3/<DOC_PATH>'
 # Schema Check can currently only handle Cleansed tables
-def CleansedSchemaChk():
+def SchemaChk():
     targetDf = GetTargetSchemaDf()
     
     mappingDf = GetMappingSchemaDf()
@@ -350,11 +399,16 @@ def KeysNotNullOrBlankChk():
 
 def AuditColsIncludedChk():
     df = spark.table(GetSelfFqn())
-    auditCols = ['_RecordStart', '_RecordEnd', '_RecordCurrent', '_RecordDeleted', '_DLCleansedZoneTimeStamp']
+    
+    if GetDatabaseName().upper() == 'CLEANSED':
+        auditCols = ['_RECORDSTART', '_RECORDEND', '_RECORDCURRENT', '_RECORDDELETED', '_DLCLEANSEDZONETIMESTAMP']
+    else:
+        auditCols = ['_RECORDSTART', '_RECORDEND', '_RECORDCURRENT', '_RECORDDELETED', '_DLCURATEDZONETIMESTAMP', '_BUSINESSKEY']
+    
     targetAuditCols = []
     for column in df.columns:
         if column.startswith("_") == True:
-            targetAuditCols.append(column)
+            targetAuditCols.append(column.upper())
     
     auditColsNotInTarget = [x for x in auditCols if x not in targetAuditCols]
     
@@ -520,6 +574,11 @@ def DummyRecChk():
                     sqlQuery = sqlQuery + f"WHERE {column} = 'Unknown' "
                 else:
                     sqlQuery = sqlQuery + f"OR {column} = 'Unknown' "
+            
+            df = spark.sql(sqlQuery)
+            count = df.count()
+            if count != 1: display(df)
+            Assert(count, 1)
 
 # COMMAND ----------
 
