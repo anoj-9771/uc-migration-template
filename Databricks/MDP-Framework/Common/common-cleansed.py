@@ -15,7 +15,7 @@ defaultTransformTags = {
     ,"str-yyyymmdd-to-date" : "to_date(trim($c$),'yyyyMMdd')"
     ,"str-yyyy-mm-dd-to-date" : "to_date(trim($c$),'yyyy-MM-dd')"
     ,"str-dd-MMM-yyyy-HH-mm-to-timestamp" : "to_timestamp(right(concat('0',$c$),17),'dd-MMM-yyyy HH:mm')"
-    ,"str-dd/MM/yyyy-HH-mm-to-timestamp" : "to_timestamp(right(concat('0',split(($c$,' ' )[0]),10)||' '||right(concat('0',split(($c$,' ' )[1]),5),'dd/MM/yyyy HH:mm')"
+     ,"str-dd/MM/yyyy-HH-mm-to-timestamp" : "to_timestamp(right(concat('0',split($c$,' ' )[0]),10)||' '||right(concat('0',split($c$,' ' )[1]),5),'dd/MM/yyyy HH:mm')"
     ,"flag-x-yes-no" : "case WHEN $c$='X' then 'Y' Else 'N' end "
     ,"flag-x-true-false" : "case WHEN $c$='X' then 'T' Else 'F' end "
     ,"flag-TorF-yes-no" : "case when $c$='T' then 'Y'   when $c$='F' then 'N'  end "
