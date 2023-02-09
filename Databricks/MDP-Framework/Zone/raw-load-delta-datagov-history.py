@@ -3,7 +3,7 @@
 
 # COMMAND ----------
 
-files = dbutils.fs.ls("/mnt/datalake-raw/dataGov/AustraliaPublicHolidays/history")
+files = dbutils.fs.ls("/mnt/datalake-raw/datagov/datagov_AustraliaPublicHolidays/history")
 display(files)
 
 # COMMAND ----------
@@ -13,10 +13,10 @@ tableName = "AustraliaPublicHolidays"
 tableFqn = f"raw.{schemaName}_{tableName}"
 
 systemCode = "datagov"
-dataLakePath = "/mnt/datalake-raw/dataGov/AustraliaPublicHolidays/delta"
-rawFolderPath = "/mnt/datalake-raw/dataGov/AustraliaPublicHolidays/history"
+dataLakePath = "/mnt/datalake-raw/datagov/datagov_AustraliaPublicHolidays/delta"
+rawFolderPath = "/mnt/datalake-raw/datagov/datagov_AustraliaPublicHolidays/history"
 
-rawPath = "/mnt/datalake-raw/dataGov/AustraliaPublicHolidays/history"
+rawPath = "/mnt/datalake-raw/datagov/datagov_AustraliaPublicHolidays/history"
 
 fileFormat = "CSV"
 fileOptions = {"header":"true", "inferSchema":"true", "multiline":"true"}
