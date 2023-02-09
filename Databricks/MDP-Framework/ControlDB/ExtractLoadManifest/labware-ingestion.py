@@ -124,6 +124,7 @@ source_key_vault_secret = "daf-oracle-labware-connectionstring"
 source_handler = 'oracle-load'
 raw_handler = 'raw-load-delta'
 cleansed_handler = 'cleansed-load-delta'
+watermark_column = None
 
 # COMMAND ----------
 
@@ -132,7 +133,7 @@ for code in group_names:
     base_query = f"""
     WITH _Base AS 
     (
-    SELECT "{code}" SystemCode, "{source_schema}" SourceSchema, "{source_key_vault_secret}" SourceKeyVaultSecret, '' SourceQuery, "{source_handler}" SourceHandler, '' RawFileExtension, "{raw_handler}" RawHandler, '' ExtendedProperties, "{cleansed_handler}" CleansedHandler
+    SELECT "{code}" SystemCode, "{source_schema}" SourceSchema, "{source_key_vault_secret}" SourceKeyVaultSecret, '' SourceQuery, "{source_handler}" SourceHandler, '' RawFileExtension, "{raw_handler}" RawHandler, '' ExtendedProperties, "{cleansed_handler}" CleansedHandler, "{watermark_column}" WatermarkColumn
     )"""
     select_list = [
         'SELECT "' + x + '" SourceTableName, * FROM _Base' for x in group_names[code]
@@ -272,8 +273,8 @@ where systemCode in ('labwaredata','labwareref')
 # Tables with Changed_on watermark Column
 ExecuteStatement("""
     UPDATE controldb.dbo.extractloadmanifest
-    SET WatermarkColumn = 'CHANGED_ON' 
-    WHERE (SystemCode = 'labwaredata' and SourceTableName in ('ACCOUNT','BATCH','BATCH_RESULT','CONTRACT_QUOTE','DB_FILES','EXPERIMENT','INVENTORY_ITEM','INVENTORY_LOCATION','INVOICE','INVOICE_ITEM','LIMS_NOTES','PERSON','PROJECT_RESULT','RESULT',''RESULT_SPEC,'SAMPLE','SWC_SAP_BTCH_HDR','TEST','WORKBOOK','WORKBOOK_FILES')) OR (SystemCode = 'labwareref' and SourceTableName in ('ADDRESS_BOOK','ALGAL_MNEMONICS','ANALYSIS','ANALYSIS_TYPES','BATCH_HDR_TEMPLATE','BATCH_LINK','C_CUSTOMER_GROUP','C_ENV_CONSTANTS','CATALOGUE','CHARGE_CODE','COLLECTION_RUN','COMMON_NAME','CONDITION','CONTACT','CONTAINER','CONTRACT_CURRENCY','COST_ITEM','COST_ITEM_RPT','COUNTRY','CUSTOMER','HAZARD','HTML_FILES','INSTRUMENTS','LIMS_CONSTANTS','LIST','LOCATION','PRODUCT','QC_SAMPLES','SAMPLING_POINT','SERVICE_RESERVOIR','STANDARD_REAGENT','STOCK','SUPPLIER','SWC_611SITES','SWC_ABC_CODE','SWC_ANALYTE_MAP','SWC_COMP_TAUKEY','SWC_HAZARD_NAME','SWC_REPORT_TEMPLATE','SWC_TWAG','SWC_X_ACCRED_USERS','T_DISTRIBUTION_LIST','TAX_GROUP','TAX_PLAN','TEST', 'TEST_LIST','TREATMENT_WORKS','UNITS','VENDOR','WATER_SOURCE','WORKBOOK_IMAGE','X_ERESULTS_TRANSLATE','ZONE'))""")
+    SET WatermarkColumn = 'TO_CHAR(CHANGED_ON, ''DD/MON/YYYY HH24:MI:SS'')' 
+    WHERE (SystemCode = 'labwaredata' and SourceTableName in ('ACCOUNT','BATCH','BATCH_RESULT','CONTRACT_QUOTE','DB_FILES','EXPERIMENT','INVENTORY_ITEM','INVENTORY_LOCATION','INVOICE','INVOICE_ITEM','LIMS_NOTES','PERSON','PROJECT_RESULT','RESULT','RESULT_SPEC','SAMPLE','SWC_SAP_BTCH_HDR','TEST','WORKBOOK','WORKBOOK_FILES')) OR (SystemCode = 'labwareref' and SourceTableName in ('ADDRESS_BOOK','ALGAL_MNEMONICS','ANALYSIS','ANALYSIS_TYPES','BATCH_HDR_TEMPLATE','BATCH_LINK','C_CUSTOMER_GROUP','C_ENV_CONSTANTS','CATALOGUE','CHARGE_CODE','COLLECTION_RUN','COMMON_NAME','CONDITION','CONTACT','CONTAINER','CONTRACT_CURRENCY','COST_ITEM','COST_ITEM_RPT','COUNTRY','CUSTOMER','HAZARD','HTML_FILES','INSTRUMENTS','LIMS_CONSTANTS','LIST','LOCATION','PRODUCT','QC_SAMPLES','SAMPLING_POINT','SERVICE_RESERVOIR','STANDARD_REAGENT','STOCK','SUPPLIER','SWC_611SITES','SWC_ABC_CODE','SWC_ANALYTE_MAP','SWC_COMP_TAUKEY','SWC_HAZARD_NAME','SWC_REPORT_TEMPLATE','SWC_TWAG','SWC_X_ACCRED_USERS','T_DISTRIBUTION_LIST','TAX_GROUP','TAX_PLAN','TEST', 'TEST_LIST','TREATMENT_WORKS','UNITS','VENDOR','WATER_SOURCE','WORKBOOK_IMAGE','X_ERESULTS_TRANSLATE','ZONE'))""")
 
 # COMMAND ----------
 
@@ -289,11 +290,11 @@ ExecuteStatement("""
 update dbo.extractLoadManifest set
 SourceQuery = case sourceTableName
 when 'INVOICE_ITEM' then 'select INVOICE_ITEM.*,INVOICE.CHANGED_ON from lims.INVOICE_ITEM Inner join lims.INVOICE on INVOICE.INVOICE_NUMBER = INVOICE_ITEM.INVOICE_NUMBER'
-when 'RESULT' then "SELECT r.* FROM lims.RESULT r INNER JOIN lims.sample s ON r.SAMPLE_NUMBER = s.SAMPLE_NUMBER
-WHERE s.CUSTOMER not like 'Z%'"
+when 'RESULT' then 'SELECT r.* FROM lims.RESULT r INNER JOIN lims.sample s ON r.SAMPLE_NUMBER = s.SAMPLE_NUMBER
+WHERE s.CUSTOMER not like ''Z%'''
 when 'RESULT_SPEC' then 'select RESULT_SPEC.*,RESULT.CHANGED_ON from lims.RESULT_SPEC Inner join lims.RESULT on RESULT.RESULT_NUMBER = RESULT_SPEC.RESULT_NUMBER'
-when 'SAMPLE' then "SELECT * FROM lims.SAMPLE s WHERE s.CUSTOMER not like 'Z%'"
-when 'TEST' then "SELECT t.* FROM lims.TEST t INNER JOIN lims.sample s ON t.SAMPLE_NUMBER = s.SAMPLE_NUMBER WHERE s.CUSTOMER not like 'Z%'"
+when 'SAMPLE' then 'SELECT * FROM lims.SAMPLE s WHERE s.CUSTOMER not like ''Z%'''
+when 'TEST' then 'SELECT t.* FROM lims.TEST t INNER JOIN lims.sample s ON t.SAMPLE_NUMBER = s.SAMPLE_NUMBER WHERE s.CUSTOMER not like ''Z%'''
 else SourceQuery
 end
 where systemCode in ('labwaredata','labwareref')

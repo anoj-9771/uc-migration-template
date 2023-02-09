@@ -160,7 +160,7 @@ def Transform():
 
     # ------------- SAVE ------------------- #
 #     display(df)
-#     CleanSelf()
+    CleanSelf()
     Save(df)
 #     DisplaySelf()
 pass
@@ -170,6 +170,6 @@ Transform()
 
 # MAGIC %sql
 # MAGIC select relationshipType, count(*)
-# MAGIC from curated_v2.bridgeservicerequesttest
+# MAGIC from curated_v2.bridgeservicerequest
 # MAGIC group by relationshipType
 # MAGIC order by 1

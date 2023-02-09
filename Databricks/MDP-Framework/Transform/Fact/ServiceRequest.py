@@ -3,14 +3,6 @@
 
 # COMMAND ----------
 
-df = GetTable(f"{SOURCE}.crm_0crm_srv_req_inci_h")
-date_df = GetTable("curated.dimdate").select("dateSK","calendarDate")
-df = df.join(date_df, to_date(df.requestStartDate) == date_df.calendarDate,"inner").withColumnRenamed('dateSK','serviceRequestStartDateFK').drop("calendarDate") 
-display(df)
-
-
-# COMMAND ----------
-
 def Transform():
     global df
     # ------------- TABLES ----------------- #
@@ -92,8 +84,8 @@ def Transform():
     .join(status_df,(df.status_BK == status_df._BusinessKey) & (df.lastChangedDateTime.between (status_df._recordStart,status_df._recordEnd)),"left") \
     .join(location_df,(df.propertyNumber == location_df.locationID) & (df.lastChangedDateTime.between (location_df._RecordStart,location_df._RecordEnd)),"left") \
     .drop("_BusinessKey","_recordStart","_recordEnd") \
-    .join(date_df, to_date(df.requestStartDate) == date_df.calendarDate,"inner").withColumnRenamed('dateSK','serviceRequestStartDateFK').drop("calendarDate") \
-    .join(date_df, to_date(df.requestEndDate) == date_df.calendarDate,"inner").withColumnRenamed('dateSK','serviceRequestEndDateFK').drop("calendarDate") \
+    .join(date_df, to_date(df.requestStartDate) == date_df.calendarDate,"left").withColumnRenamed('dateSK','serviceRequestStartDateFK').drop("calendarDate") \
+    .join(date_df, to_date(df.requestEndDate) == date_df.calendarDate,"left").withColumnRenamed('dateSK','serviceRequestEndDateFK').drop("calendarDate") \
     .join(aurion_df, (df.responsibleEmployeeNumber == aurion_df.personNumber) & (df.lastChangedDateTime.between (aurion_df.dateCommenced,aurion_df.dateTo)),"left")
    
 
@@ -154,7 +146,7 @@ def Transform():
     ]
     df = df.selectExpr(
         _.Transforms
-    )
+    ).dropDuplicates()
     # ------------- CLAUSES ---------------- #
 
     # ------------- SAVE ------------------- #
@@ -164,7 +156,3 @@ def Transform():
     #DisplaySelf()
 pass
 Transform()
-
-# COMMAND ----------
-
-

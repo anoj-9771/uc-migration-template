@@ -3,24 +3,14 @@
 
 # COMMAND ----------
 
-# %sql
-# select * from cleansed.crm_scapttxt limit 10
-
-# COMMAND ----------
-
-# %sql
-# select * from cleansed.crm_scapptseg limit 10
-
-# COMMAND ----------
-
 def Transform():
     global df
     # ------------- TABLES ----------------- #
     df = GetTable(f"{SOURCE}.crm_scapptseg")
-    desc_df = GetTable(f"{SOURCE}.crm_scapttxt").select('apptType','apptTypeDescription')
+#     desc_df = GetTable(f"{SOURCE}.crm_scapttxt").select('apptType','apptTypeDescription')
   
     # ------------- JOINS ------------------ #
-    df = df.join(desc_df,"apptType","inner") 
+#     df = df.join(desc_df,"apptType","inner") 
 
     # ------------- TRANSFORMS ------------- #
     _.Transforms = [
@@ -30,7 +20,7 @@ def Transform():
         ,"apptType transactionCode"
         ,"entryBy createdBy"
         ,"entryTimestamp createdDateTime"
-        ,"changeBy changedBy"
+        ,"changedBy changedBy"
         ,"changedDatetime changedDateTime"
     ]
     df = df.selectExpr(
@@ -40,7 +30,7 @@ def Transform():
 
     # ------------- SAVE ------------------- #
 #     display(df)
-#     CleanSelf()
+    CleanSelf()
     Save(df)
     #DisplaySelf()
 pass
