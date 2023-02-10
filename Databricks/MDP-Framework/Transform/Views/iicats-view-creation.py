@@ -23,7 +23,7 @@ df = (
     """)
     )
 )
-dedupeList = ['point_cnfgn','point_limit','rtu','event','iicats_work_orders','tsv','qlty_config','wfP_daily_demand_archive','dly_prof_cnfgn','hierarchy_cnfgn','point_cnfgn','point_limit','scxuser','tsv_point_cnfgn','wkly_prof_cnfgn','scx_facility','site_hierarchy','scx_point']
+dedupeList = ['point_cnfgn','point_limit','rtu','event','iicats_work_orders','tsv','qlty_config','wfp_daily_demand_archive','dly_prof_cnfgn','hierarchy_cnfgn','point_cnfgn','point_limit','scxuser','tsv_point_cnfgn','wkly_prof_cnfgn','scx_facility','site_hierarchy','scx_point']
 
 sourceRecordSystemFilterList = ['dly_prof_cnfgn','hierarchy_cnfgn','scxuser','tsv_point_cnfgn','wkly_prof_cnfgn']
 
