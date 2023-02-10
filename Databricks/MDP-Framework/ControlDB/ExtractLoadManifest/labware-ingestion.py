@@ -124,7 +124,6 @@ source_key_vault_secret = "daf-oracle-labware-connectionstring"
 source_handler = 'oracle-load'
 raw_handler = 'raw-load-delta'
 cleansed_handler = 'cleansed-load-delta'
-watermark_column = None
 
 # COMMAND ----------
 
@@ -133,7 +132,7 @@ for code in group_names:
     base_query = f"""
     WITH _Base AS 
     (
-    SELECT "{code}" SystemCode, "{source_schema}" SourceSchema, "{source_key_vault_secret}" SourceKeyVaultSecret, '' SourceQuery, "{source_handler}" SourceHandler, '' RawFileExtension, "{raw_handler}" RawHandler, '' ExtendedProperties, "{cleansed_handler}" CleansedHandler, "{watermark_column}" WatermarkColumn
+    SELECT "{code}" SystemCode, "{source_schema}" SourceSchema, "{source_key_vault_secret}" SourceKeyVaultSecret, '' SourceQuery, "{source_handler}" SourceHandler, '' RawFileExtension, "{raw_handler}" RawHandler, '' ExtendedProperties, "{cleansed_handler}" CleansedHandler, '' WatermarkColumn
     )"""
     select_list = [
         'SELECT "' + x + '" SourceTableName, * FROM _Base' for x in group_names[code]
@@ -299,3 +298,15 @@ else SourceQuery
 end
 where systemCode in ('labwaredata','labwareref')
 """)
+
+# COMMAND ----------
+
+ExecuteStatement("""
+update dbo.extractLoadManifest set
+SourceQuery = 'select DIR_NUM, FILE_NAME ,ORIGINAL_PATH, ORIGINAL_NAME, CHANGED_BY, CHANGED_ON, LAST_MODIFIED, FILE_SIZE, DESCRIPTION, GROUP_NAME, COMPUTER_NAME, HASH, FILE_LABEL, WORKBOOK_NUMBER, DOCUMENT_NUMBER from lims.WORKBOOK_FILES'
+where systemCode = 'labwaredata' and sourceTableName = 'WORKBOOK_FILES'
+""")
+
+# COMMAND ----------
+
+
