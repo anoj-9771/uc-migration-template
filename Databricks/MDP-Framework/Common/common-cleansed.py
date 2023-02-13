@@ -21,6 +21,7 @@ defaultTransformTags = {
     ,"flag-TorF-yes-no" : "case when $c$='T' then 'Y'   when $c$='F' then 'N'  end "
     ,"flag-1or0-yes-no" : "case WHEN $c$='1' then 'Y' when $c$='0' then 'N' end "
     ,"flag-int-inbound-outbound" : " case WHEN $c$='0' then 'I' Else 'O' end "
+    ,"flag-trueorfalse-yes-no" : "case when $c$='true' then 'Y'   when $c$='false' then 'N'  end "
     ,"int-utc-to-sydney-datetime" : " case WHEN $c$='99991231235959' then to_timestamp(substring($c$,1,4)||'-'||substring($c$,5,2)||'-'||substring($c$,7,2) \
 ||' '||substring($c$,9,2)||':'||substring($c$,11,2)||':'||substring($c$,13,2)) else from_utc_timestamp(substring($c$,1,4)||'-'||substring($c$,5,2)||'-'||substring($c$,7,2) \
 ||' '||substring($c$,9,2)||':'||substring($c$,11,2)||':'||substring($c$,13,2)||'.0','Australia/Sydney') end "
