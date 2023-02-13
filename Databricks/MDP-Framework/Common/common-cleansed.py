@@ -30,7 +30,26 @@ defaultTransformTags = {
     ,"double-to-datetime" : " to_timestamp(substring(cast($c$ as BIGINT),1,4)||'-'||substring(cast($c$ as BIGINT),5,2) \
     ||'-'||substring(cast($c$ as BIGINT),7,2)||' '||substring(cast($c$ as BIGINT),9,2)||':'||substring(cast($c$ as BIGINT),11,2) \
     ||':'||substring(cast($c$ as BIGINT),13,2)) "
+    ,"sydneyts-to-utcts" : "to_utc_timestamp($c$, 'Australia/Sydney')"
 }
+
+# COMMAND ----------
+
+from pyspark.sql.types import *
+defaultSystemTransformTags = {
+    "iicats": [
+        {
+            "dataType" : TimestampType
+            ,"transform": "sydneyts-to-utcts"
+        }
+    ],
+    "maximo": [
+        {
+            "dataType" : TimestampType
+            ,"transform": "sydneyts-to-utcts"
+        }
+    ],    
+} 
 
 # COMMAND ----------
 
@@ -186,6 +205,19 @@ def DataTypeConvertRow(columnName, dataType):
 
 # COMMAND ----------
 
+def SystemDefaultTransform(sourceDataFrame, transformTags, columnName):    
+    if transformTags:
+        for tag in transformTags:
+            dataType = tag.get("dataType")
+            if dataType and isinstance(sourceDataFrame.schema[columnName].dataType, dataType):
+                transform = defaultTransformTags.get(tag.get("transform"))
+                if transform:
+                    sourceDataFrame = sourceDataFrame.withColumn(columnName, expr(transform.replace("$c$", columnName)))
+        
+    return sourceDataFrame
+
+# COMMAND ----------
+
 from pyspark.sql.functions import expr, col
 def CleansedTransform(dataFrame, tableFqn, systemCode, showTransform=False):
     tableFqn = tableFqn.lower()
@@ -198,13 +230,23 @@ def CleansedTransform(dataFrame, tableFqn, systemCode, showTransform=False):
         systemCode = systemCode.replace('data','')
     
     path = f"{CLEANSED_PATH}/{systemCode}_cleansed.csv"
+    
+    # 0. SYSTEM DEFAULT TRANSFORM
+    try:
+        transformTags = defaultSystemTransformTags.get(systemCode)
+        transformedDataFrame = dataFrame
+        for col in dataFrame.schema:
+            transformedDataFrame = SystemDefaultTransform(transformedDataFrame, transformTags, col.name)
+    except Exception as e:
+        print(f"System Default Transform failed, exception: {e}")
+        return dataFrame
 
     # 1. LOAD CLEANSED CSV
     allTransforms = LoadCsv(path)
     
     # CSV NOT FOUND RETURN
     if allTransforms is None:
-        return dataFrame
+        return transformedDataFrame
     
     # POPULATE LOOKUP TAGS
     PopulateLookupTags()
@@ -216,11 +258,11 @@ def CleansedTransform(dataFrame, tableFqn, systemCode, showTransform=False):
     # !NO TRANSFORMS!
     if transforms.count() == 0:
         print(f"Not Transforming, table {tableFqn} not found in sheet! ")
-        return dataFrame
+        return transformedDataFrame
 
     try:
         # 3. APPLY CUSTOM IN-LINE TRANSFORMS, THEN TAGS
-        transformedDataFrame = dataFrame.selectExpr(
+        transformedDataFrame = transformedDataFrame.selectExpr(
             [TransformRow(i.RawColumnName, i.TransformTag, i.CustomTransform, i.CleansedColumnName) for i in transforms.rdd.collect()]
         )
     except Exception as e:
