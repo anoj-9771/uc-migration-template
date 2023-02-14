@@ -62,13 +62,3 @@ for i in df.rdd.collect():
         """)
     print(sql)
     spark.sql(sql)
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC 
-# MAGIC select * from controldb.dbo_extractLoadManifest where systemCode in ('iicatsdata','iicatsref')
-
-# COMMAND ----------
-
-

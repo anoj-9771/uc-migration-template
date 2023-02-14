@@ -141,7 +141,11 @@ ExecuteStatement("""
 merge into dbo.config as target using(
     select
         keyGroup = 'runviewCreation'
-        ,[key] = 'iicats'
+        ,[key] = 'iicatsref'
+    union all
+    select
+        keyGroup = 'runviewCreation'
+        ,[key] = 'iicatsdata'
 ) as source on
     target.keyGroup = source.keyGroup
     and target.[key] = source.[key]
