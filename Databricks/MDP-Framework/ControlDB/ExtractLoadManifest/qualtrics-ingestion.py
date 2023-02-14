@@ -28,7 +28,7 @@ _Surveys AS (
     UNION SELECT 'SV_6SxFZRoY4nOAoDA' SurveyId, 'Websitegolive' TableName
     UNION SELECT 'SV_6VAdcfAD8inWnXL' SurveyId, 'WSCS73ExperienceSurvey' TableName
 )
-SELECT 'Qualtricsref' SystemCode, 'Qualtrics' SourceSchema, 'Surveys' SourceTableName, 'https://syd1.qualtrics.com/API/v3/surveys' SourceQuery, 'qualtrics-auth-clientId' SourceKeyVaultSecret, 'qualtrics-load' SourceHandler, 'json' RawFileExtension, '' ExtendedProperties, 'raw-load' RawHandler, 'cleansed-load-qualtrics' CleansedHandler, '' WatermarkColumn
+SELECT 'Qualtricsref' SystemCode, 'Qualtrics' SourceSchema, 'Surveys' SourceTableName, 'https://syd1.qualtrics.com/API/v3/surveys' SourceQuery, 'qualtrics-auth-clientId' SourceKeyVaultSecret, 'qualtrics-load' SourceHandler, 'json' RawFileExtension, '' ExtendedProperties, 'raw-load' RawHandler, '' CleansedHandler, '' WatermarkColumn
 UNION
 SELECT 
 SystemCode
@@ -70,6 +70,14 @@ update dbo.extractLoadManifest set
 businessKeyColumn = 'recordId'
 where systemCode in ('Qualtricsref','Qualtricsdata')
 and sourceTableName like '%responses'
+""")      
+
+#Remove cleansed handler for Surveys
+ExecuteStatement("""
+update dbo.extractLoadManifest set
+CleansedHandler = null
+where systemCode in ('Qualtricsref','Qualtricsdata')
+and sourceTableName = 'Surveys'
 """)      
 
 # COMMAND ----------
