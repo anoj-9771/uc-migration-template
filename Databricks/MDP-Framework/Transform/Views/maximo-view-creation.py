@@ -1,4 +1,5 @@
 # Databricks notebook source
+# DBTITLE 1,Input system code if run manually. sequence is cleansed views followed by curated views
 from pyspark.sql.functions import *
 dbutils.widgets.text("system_code","")
 
@@ -8,7 +9,63 @@ systemCode = dbutils.widgets.get("system_code")
 
 # COMMAND ----------
 
-dedupeList = ('RELATEDRECORD', 'PM', 'PERSONGROUP', 'PERSONGROUPTEAM', 'WOACTIVITY', 'WORKORDER')
+dedupeList = ('RELATEDRECORD', 'PM', 'PERSONGROUP', 'PERSONGROUPTEAM', 'WORKORDER')
+
+# COMMAND ----------
+
+#Cleansed view SR
+spark.sql("""
+CREATE OR REPLACE VIEW cleansed.vw_maximo_sr AS
+SELECT
+  *
+FROM
+  cleansed.maximo_ticket
+WHERE
+  class IN (
+    SELECT
+      value
+    FROM
+      cleansed.maximo_synonymdomain
+    WHERE
+      domain = 'TKCLASS'
+      AND internalValue = 'SR'
+  )
+""")
+
+# COMMAND ----------
+
+#Cleansed view WOACTIVITY
+spark.sql("""
+CREATE OR REPLACE VIEW cleansed.vw_maximo_woactivity AS
+SELECT
+  *
+FROM
+  cleansed.maximo_workorder
+WHERE
+  class IN (
+    SELECT
+      value
+    from
+      cleansed.maximo_synonymdomain
+    WHERE
+      domain = 'WOCLASS'
+      AND internalValue = 'ACTIVITY'
+  )
+""")
+
+# COMMAND ----------
+
+#Curated view WOACTIVITY
+spark.sql("""
+CREATE OR REPLACE VIEW curated.vw_maximo_WOACTIVITY as
+        with cteDedup as(
+          select *, row_number() over (partition by site,workOrder order by rowStamp desc) dedupe
+          from cleansed.vw_maximo_WOACTIVITY
+        )
+        select * EXCEPT (dedupe)
+        from cteDedup 
+        where dedupe = 1
+""")        
 
 # COMMAND ----------
 
@@ -48,45 +105,3 @@ for i in df.rdd.collect():
         """)
     print(sql)
     spark.sql(sql)
-
-# COMMAND ----------
-
-# SR View
-spark.sql("""
-CREATE OR REPLACE VIEW cleansed.vw_maximo_sr AS
-SELECT
-  *
-FROM
-  cleansed.maximo_ticket
-WHERE
-  class IN (
-    SELECT
-      value
-    FROM
-      cleansed.maximo_synonymdomain
-    WHERE
-      domain = 'TKCLASS'
-      AND internalValue = 'SR'
-  )
-""")
-
-# COMMAND ----------
-
-#WOACTIVITY View
-spark.sql("""
-CREATE OR REPLACE VIEW cleansed.vw_maximo_woactivity AS
-SELECT
-  *
-FROM
-  cleansed.maximo_workorder
-WHERE
-  class IN (
-    SELECT
-      value
-    from
-      cleansed.maximo_synonymdomain
-    WHERE
-      domain = 'WOCLASS'
-      AND internalValue = 'ACTIVITY'
-  )
-""")
