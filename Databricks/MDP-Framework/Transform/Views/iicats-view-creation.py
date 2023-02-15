@@ -47,7 +47,7 @@ for i in df.rdd.collect():
           select *, row_number() over (partition by {partitionKey} order by {i.WatermarkColumnMapped} desc) dedupe
           from cleansed.{i.DestinationSchema}_{i.DestinationTableName}
         )
-        select *
+        select * except(dedupe)
         from cteDedup 
         {whereClause}
         """)
