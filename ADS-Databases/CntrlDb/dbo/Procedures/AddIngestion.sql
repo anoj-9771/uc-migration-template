@@ -23,7 +23,7 @@ SET @DestinationSchema = COALESCE(@DestinationSchema,@Schema)
 SET @RawHandler = COALESCE(@RawHandler,'raw-load')
 SET @CleansedHandler = COALESCE(@CleansedHandler,'cleansed-load')
 
-WITH [Systems] AS
+;WITH [Systems] AS
 (
 	SELECT 
 	LEFT([SourceID], 2) [Order], [SystemCode], MAX([SourceID]) [LastSourceID]
