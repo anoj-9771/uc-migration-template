@@ -12,7 +12,7 @@ tables = ['ADDRESS', 'ALNDOMAIN', 'ASSET', 'ASSETATTRIBUTE', 'ASSETMETER', 'ASSE
 # COMMAND ----------
 
 base_query = """    WITH _Base AS (
-      SELECT 'maximo' SourceSchema, 'oracle-load' SourceHandler, 'raw-load-delta' RawHandler, 'cleansed-load-delta' CleansedHandler, '{"GroupOrderBy" : "rowStamp Desc"}' ExtendedProperties, 'CAST(rowstamp as INT)' WatermarkColumn, 'daf-oracle-maximo-connectionstring' SourceKeyVaultSecret, '' SourceQuery, '' RawFileExtension
+      SELECT 'maximo' SourceSchema, 'oracle-load' SourceHandler, 'raw-load-delta' RawHandler, 'cleansed-load-delta' CleansedHandler, '{"GroupOrderBy" : "CAST(rowStamp as bigint) Desc"}' ExtendedProperties, 'CAST(rowstamp as INT)' WatermarkColumn, 'daf-oracle-maximo-connectionstring' SourceKeyVaultSecret, '' SourceQuery, '' RawFileExtension
     )"""
 
 # COMMAND ----------
