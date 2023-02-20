@@ -141,11 +141,11 @@ def StaticReplacement(sourceDataFrame, lookupTag, columnName):
     
     # SET DEFAULT VALUE
     defaultDf = df.select("Key", "Value").where("Key = 'DEFAULT_NULL'").rdd.collect()
-    defaultValue = "NULL" if len(defaultDf) == 0 else defaultDf[0].Value
+    defaultValue = "NULL" if len(defaultDf) == 0 else f"'{defaultDf[0].Value}'"
     
     # CONSTRUCT CASE STATEMENT
     caseStatement = "".join([f"WHEN $c$ = '{i.Key}' THEN '{i.Value}' " for i in df.select("Key", "Value").where("Key != 'DEFAULT_NULL'").rdd.collect()])
-    caseStatement = "CASE " + caseStatement + f" ELSE '{defaultValue}' END "
+    caseStatement = "CASE " + caseStatement + f" ELSE {defaultValue} END "
     caseStatement = caseStatement.replace("$c$", columnName)
     
     return sourceDataFrame.withColumn(columnName, expr(caseStatement))
