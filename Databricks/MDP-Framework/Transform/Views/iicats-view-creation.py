@@ -36,24 +36,21 @@ for i in df.rdd.collect():
     partitionKey = i.BusinessKeyColumn.replace(f",{i.WatermarkColumnMapped}","")
     # if in dedup list create a view containing dedupe logic
     # if also in filter list add sys filter
-    if dedupeList.count(i.SourceTableName) > 0:
-        if sourceRecordSystemFilterList.count(i.SourceTableName) > 0:
-            whereClause = 'where dedupe = 1 and sourceRecordSystemId in(89,90)'
-        else:
-            whereClause = 'where dedupe = 1'
+    whereClause = 'where sourceRecordSystemId in(89,90)' if sourceRecordSystemFilterList.count(i.SourceTableName) > 0 else ''
+    if dedupeList.count(i.SourceTableName) > 0:        
         sql = (f"""
         create or replace view curated.vw_{i.DestinationSchema}_{i.DestinationTableName} as
         with cteDedup as(
           select *, row_number() over (partition by {partitionKey} order by {i.WatermarkColumnMapped} desc) dedupe
           from cleansed.{i.DestinationSchema}_{i.DestinationTableName}
+          {whereClause}
         )
         select * except(dedupe)
         from cteDedup 
-        {whereClause}
+        where dedupe = 1
         """)
     # else create basic view with filter logic if applicable
     else:
-        whereClause = 'where sourceRecordSystemId in(89,90)' if sourceRecordSystemFilterList.count(i.SourceTableName) > 0 else ''
         sql = (f"""
         create or replace view curated.vw_{i.DestinationSchema}_{i.DestinationTableName} as
         select *
