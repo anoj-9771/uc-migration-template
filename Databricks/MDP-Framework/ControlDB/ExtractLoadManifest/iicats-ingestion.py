@@ -109,7 +109,7 @@ update dbo.extractLoadManifest set
 businessKeyColumn = case sourceTableName
 when 'std_asset_type' then 'assetType'
 when 'std_facility_type' then 'facilityType'
-when 'std_unit' then 'unitId'
+when 'std_unit' then 'unitId,sourceRecordModifiedDateTime'
 when 'scx_facility' then 'facilityInternalId,sourceRecordModifiedDateTime'
 when 'groups' then 'legacyPointGroupName'
 when 'scx_point' then 'pointInternalId,sourceRecordModifiedDateTime'
