@@ -10,7 +10,7 @@ CREATE TABLE [dbo].[ExtractLoadManifest] (
     [SourceMetaData]            NVARCHAR (MAX) NULL,
     [SourceHandler]             NVARCHAR (100) NOT NULL,
     [LoadType]                  NVARCHAR (50)  NULL,
-    [BusinessKeyColumn]         NVARCHAR (200) NULL,
+    [BusinessKeyColumn]         NVARCHAR (300) NULL,
     [WatermarkColumn]           NVARCHAR (100) NULL,
     [RawHandler]                NVARCHAR (MAX) NULL,
     [RawPath]                   NVARCHAR (MAX) NULL,
