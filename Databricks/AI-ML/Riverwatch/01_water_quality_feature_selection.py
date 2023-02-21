@@ -41,8 +41,8 @@ table_names_in_datalab_db = [t.name for t in spark.catalog.listTables("datalab")
 
 
 #----- Load IICATS Hierarchy Configuration table -----
-if "iicats_hierarchy_cnfgn" in table_names_in_cleansed_db:
-    df_hierarchy_cnfgn = spark.table("cleansed.iicats_hierarchy_cnfgn").alias("hcnfg")
+if "iicats_rw_hierarchy_cnfgn" in table_names_in_cleansed_db:
+    df_hierarchy_cnfgn = spark.table("cleansed.iicats_rw_hierarchy_cnfgn").alias("hcnfg")
     print("IICATS Hierarchy Config loaded from cleansed")
 elif "iicats_hierarchy_cnfgn_riverwatch_2022" in table_names_in_datalab_db:
     df_hierarchy_cnfgn = spark.table("datalab.iicats_hierarchy_cnfgn_riverwatch_2022").alias("hcnfg")
@@ -52,8 +52,8 @@ else:
 
     
 #----- Load IICATS TSV Point Configuration table -----    
-if "iicats_tsv_point_cnfgn" in table_names_in_cleansed_db:
-    df_time_series_values_cnfgn = spark.table("cleansed.iicats_tsv_point_cnfgn").alias("tsvptcnfg")
+if "iicats_rw_tsv_point_cnfgn" in table_names_in_cleansed_db:
+    df_time_series_values_cnfgn = spark.table("cleansed.iicats_rw_tsv_point_cnfgn").alias("tsvptcnfg")
     print("IICATS TSV Point Config loaded from cleansed")
 elif "iicats_tsv_point_cnfgn_riverwatch_2022" in table_names_in_datalab_db:
     df_time_series_values_cnfgn = spark.table("datalab.iicats_tsv_point_cnfgn_riverwatch_2022").alias("tsvptcnfg")
@@ -63,8 +63,8 @@ else:
     
     
 #----- Load IICATS TSV table -----        
-if "iicats_tsv" in table_names_in_cleansed_db:
-    df_time_series_values = spark.table("cleansed.iicats_tsv").alias("tsv")
+if "iicats_rw_tsv" in table_names_in_cleansed_db:
+    df_time_series_values = spark.table("cleansed.iicats_rw_tsv").alias("tsv")
     print("IICATS TSV loaded from cleansed")
 elif "iicats_tsv_riverwatch_2022" in table_names_in_datalab_db:
     df_time_series_values = spark.table("datalab.iicats_tsv_riverwatch_2022").alias("tsv")

@@ -28,7 +28,7 @@ UNION
 SELECT 'BoM' SystemCode, 'BoM' SourceSchema, '' SourceKeyVaultSecret, 'ftp-binary-load' SourceHandler, 'xml' RawFileExtension, 'raw-load' RawHandler, 'cleansed-load' CleansedHandler, 'WeatherForecast' SourceTableName, 'ftp://ftp.bom.gov.au/anon/gen/fwo/IDN10064.xml' SourceQuery, '{"rowTag" : "area"}' ExtendedProperties, NULL WatermarkColumn
 
 UNION
-SELECT 'BoM' SystemCode, 'BoM' SourceSchema, '' SourceKeyVaultSecret, 'http-binary-load' SourceHandler, 'csv' RawFileExtension, 'raw-bom-csv' RawHandler, 'cleansed-load' CleansedHandler, 'DailyWeatherObservation_SydneyAirport' SourceTableName, 'http://www.bom.gov.au/climate/dwo/$yyyy$$MM$/text/IDCJDW2125.$yyyy$$MM$.csv' SourceQuery, '' ExtendedProperties, NULL WatermarkColumn
+SELECT 'BoM' SystemCode, 'BoM' SourceSchema, '' SourceKeyVaultSecret, 'http-binary-load' SourceHandler, 'csv' RawFileExtension, 'raw-bom-csv' RawHandler, 'cleansed-load' CleansedHandler, 'DailyWeatherObservation_SydneyAirport' SourceTableName, 'http://www.bom.gov.au/climate/dwo/$yyyy$$MM$/text/IDCJDW2125.$yyyy$$MM$.csv' SourceQuery, '{"DayOffset" : "-1"}' ExtendedProperties, NULL WatermarkColumn
 
 UNION 
 SELECT 'iicats_rw' SystemCode, 'scxstg' SourceSchema, 'daf-oracle-IICATS-stg-connectionstring' SourceKeyVaultSecret, 'oracle-load' SourceHandler, NULL RawFileExtension, 'raw-load-delta' RawHandler, 'cleansed-load-delta' CleansedHandler, 'hierarchy_cnfgn' SourceTableName, null SourceQuery, NULL ExtendedProperties, 'HT_CRT_DT' WatermarkColumn
@@ -137,7 +137,7 @@ for i in dfIicats.rdd.collect():
 #FIX DESTINATION SCHEMA
 ExecuteStatement("""
 update dbo.extractLoadManifest set
-destinationSchema = 'iicats'
+destinationSchema = 'iicats_rw'
 where systemCode = 'iicats_rw' and sourceSchema = 'scxstg' and destinationSchema <> 'iicats'
 """)
 
@@ -156,4 +156,5 @@ where systemCode = 'iicats_rw' and sourceSchema = 'scxstg' and waterMarkColumn =
 """)
 
 # COMMAND ----------
+
 

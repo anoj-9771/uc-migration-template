@@ -19,12 +19,19 @@
 			{
 				"name": "set-url",
 				"type": "SetVariable",
-				"dependsOn": [],
+				"dependsOn": [
+					{
+						"activity": "set-days-offset",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
 				"userProperties": [],
 				"typeProperties": {
 					"variableName": "Url",
 					"value": {
-						"value": "@replace(replace(replace(replace(replace(\npipeline().parameters.task.SourceQuery\n,'$yyyy$', formatDateTime(convertTimeZone(utcnow(), 'UTC', 'AUS Eastern Standard Time'), 'yyyy'))\n,'$MM$', formatDateTime(convertTimeZone(utcnow(), 'UTC', 'AUS Eastern Standard Time'), 'MM'))\n,'$dd$', formatDateTime(convertTimeZone(utcnow(), 'UTC', 'AUS Eastern Standard Time'), 'dd'))\n,'$HH$', formatDateTime(convertTimeZone(utcnow(), 'UTC', 'AUS Eastern Standard Time'), 'HH'))\n,'$mm$', formatDateTime(convertTimeZone(utcnow(), 'UTC', 'AUS Eastern Standard Time'), 'mm'))\n",
+						"value": "@replace(replace(replace(replace(replace(\npipeline().parameters.task.SourceQuery\n,'$yyyy$', formatDateTime(convertTimeZone(addDays(utcnow(),int(variables('DayOffset'))), 'UTC', 'AUS Eastern Standard Time'), 'yyyy'))\n,'$MM$', formatDateTime(convertTimeZone(addDays(utcnow(),int(variables('DayOffset'))), 'UTC', 'AUS Eastern Standard Time'), 'MM'))\n,'$dd$', formatDateTime(convertTimeZone(addDays(utcnow(),int(variables('DayOffset'))), 'UTC', 'AUS Eastern Standard Time'), 'dd'))\n,'$HH$', formatDateTime(convertTimeZone(addDays(utcnow(),int(variables('DayOffset'))), 'UTC', 'AUS Eastern Standard Time'), 'HH'))\n,'$mm$', formatDateTime(convertTimeZone(addDays(utcnow(),int(variables('DayOffset'))), 'UTC', 'AUS Eastern Standard Time'), 'mm'))",
 						"type": "Expression"
 					}
 				}
@@ -187,6 +194,19 @@
 						"type": "Expression"
 					}
 				}
+			},
+			{
+				"name": "set-days-offset",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "DayOffset",
+					"value": {
+						"value": "@string(\n    if(\n        contains(coalesce(pipeline().parameters.task.ExtendedProperties, ''), 'DayOffset'),\n        json(coalesce(pipeline().parameters.task.ExtendedProperties, '{}')).DayOffset,\n        '0'\n    )\n)",
+						"type": "Expression"
+					}
+				}
 			}
 		],
 		"parameters": {
@@ -199,6 +219,9 @@
 				"type": "String"
 			},
 			"Url": {
+				"type": "String"
+			},
+			"DayOffset": {
 				"type": "String"
 			}
 		},
