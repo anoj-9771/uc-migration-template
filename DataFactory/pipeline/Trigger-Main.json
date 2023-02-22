@@ -1,0 +1,211 @@
+{
+	"name": "Trigger-Main",
+	"properties": {
+		"activities": [
+			{
+				"name": "get-system-codes",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": {
+							"value": "DECLARE @SystemCodes VARCHAR(50) = (\nSELECT \n[Value]\nFROM [dbo].[Config]\nWHERE [KeyGroup] = 'TriggerInterval'\nAND [Key] = '15Min'\nAND [Key] = '@{pipeline().parameters.triggerInterval}'\n);\n\nWITH [_SystemCodes] AS (\n    SELECT DISTINCT TRIM(value) [SystemCode] FROM STRING_SPLIT(IIF(LEN(TRIM(@SystemCodes))=0, NULL, @SystemCodes), ',')\n)\n,[_SystemStatus] as(\n    SELECT \n        bsl.SystemCode\n        ,bsl.SystemStartDTS\n        ,bsl.SystemStatus\n        ,RANK() OVER (PARTITION BY bsl.SystemCode ORDER BY bsl.SystemStartDTS) Rank\n    FROM [dbo].[BatchStatusLog] bsl\n    GROUP BY\n        bsl.systemCode\n        ,bsl.SystemStartDTS\n        ,bsl.SystemStatus\n)\nSELECT \nSTRING_AGG(IIF(SS.SystemStatus!='In Progess' OR SS.SystemStatus IS NULL, SC.SystemCode, NULL), ',') [Run]\n,STRING_AGG(IIF(SS.SystemStatus='In Progess', SC.SystemCode, NULL), ',') [Skip]\n\nFROM [_SystemCodes] SC\nLEFT JOIN (\n    SELECT SystemCode, SystemStatus\n    FROM _SystemStatus\n    WHERE Rank = 1\n) SS ON SS.SystemCode = SC.SystemCode\n",
+							"type": "Expression"
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "SQL_ControlDB",
+						"type": "DatasetReference"
+					},
+					"firstRowOnly": true
+				}
+			},
+			{
+				"name": "set-system-codes",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "get-system-codes",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "systemCodes",
+					"value": {
+						"value": "@activity('get-system-codes').output.firstRow.Run",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "if-system-codes",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "set-message",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@not(empty(variables('systemCodes')))",
+						"type": "Expression"
+					},
+					"ifFalseActivities": [
+						{
+							"name": "log-message-none",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "log-message",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"ActivityType": {
+										"value": "trigger-main-@{pipeline().parameters.triggerInterval}",
+										"type": "Expression"
+									},
+									"Message": {
+										"value": "@variables('message')",
+										"type": "Expression"
+									}
+								}
+							}
+						}
+					],
+					"ifTrueActivities": [
+						{
+							"name": "log-message-trigger-main",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "log-message",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"ActivityType": {
+										"value": "trigger-main-@{pipeline().parameters.triggerInterval}",
+										"type": "Expression"
+									},
+									"Message": {
+										"value": "@variables('message')",
+										"type": "Expression"
+									}
+								}
+							}
+						},
+						{
+							"name": "execute-main",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "Main",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"SystemCodes": {
+										"value": "@variables('systemCodes')",
+										"type": "Expression"
+									}
+								}
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "set-message",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "set-system-codes",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "message",
+					"value": {
+						"value": "{ \n    \"PipelineRunId\" : \"@{pipeline().RunId}\",\n    \"Trigger\" : \"@{pipeline().parameters.triggerInterval}\",\n    \"Message\" : \"@{if(empty(coalesce(activity('get-system-codes').output.firstRow.Run)), 'Nothing run!', concat('Running (', string(length(split(activity('get-system-codes').output.firstRow.Run, ','))), ') - ', activity('get-system-codes').output.firstRow.Run))}\",\n    \"Running\" : \"@{activity('get-system-codes').output.firstRow.Run}\",\n    \"Skipping\" : \"@{activity('get-system-codes').output.firstRow.Skip}\"\n}",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "log-message-trigger-done",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "if-system-codes",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "log-message",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"ActivityType": {
+							"value": "trigger-main-@{pipeline().parameters.triggerInterval}",
+							"type": "Expression"
+						},
+						"Message": {
+							"value": "{ \n    \"PipelineRunId\" : \"@{pipeline().RunId}\",\n    \"Trigger\" : \"@{pipeline().parameters.triggerInterval}\",\n    \"Message\" : \"Done\"\n}",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"parameters": {
+			"triggerInterval": {
+				"type": "string"
+			}
+		},
+		"variables": {
+			"systemCodes": {
+				"type": "String"
+			},
+			"message": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "MDP-Framework"
+		},
+		"annotations": []
+	}
+}
