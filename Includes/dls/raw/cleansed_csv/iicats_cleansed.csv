@@ -318,9 +318,6 @@ raw.iicats_scx_point,cleansed.iicats_scx_point,SCX_FACILITY_CODE,String,facility
 raw.iicats_scx_point,cleansed.iicats_scx_point,POINT_REPORT_ID,BigInt,pointReportedId,,,
 raw.iicats_scx_point,cleansed.iicats_scx_point,AREA_OF_INTEREST,String,areaOfInterest,,,
 raw.iicats_scx_point,cleansed.iicats_scx_point,EQUIPMENT_CODE,String,equipmentCd,,,
-raw.iicats_scx_point,cleansed.iicats_scx_point,PRIM_POINT_NAME,BigInt,parentAlarmPointId,,,
-raw.iicats_scx_point,cleansed.iicats_scx_point,MAINT_CONS_FLAG,String,parentAlarmTypeCd,,,
-raw.iicats_scx_point,cleansed.iicats_scx_point,MAINT_CONS_FLAG,String,parentAlarmType,,,iicats-custom-ref-parent-alarm-type
 raw.iicats_scx_point,cleansed.iicats_scx_point,POINT_INTERNAL_ID,BigInt,pointInternalId,,,
 raw.iicats_bi_reference_codes,cleansed.iicats_bi_reference_codes,FIELD,String,referenceField,,,
 raw.iicats_bi_reference_codes,cleansed.iicats_bi_reference_codes,REF_CODE,String,referenceCd,,,
