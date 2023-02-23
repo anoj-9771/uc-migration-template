@@ -30,6 +30,14 @@ def DatabaseAllRowCounts():
 
 # COMMAND ----------
 
+def WriteOutput():
+    df = spark.table("edp.f_database_tables")
+    df = df.withColumn("Date", expr("CAST('2022-11-30' AS DATE)"))
+    df.coalesce(1).write.format("csv").mode("overwrite").save("/mnt/datalake-raw/reporting")
+    dbutils.fs.ls("/mnt/datalake-raw/reporting")
+
+# COMMAND ----------
+
 def Transform():
     j = json.loads(spark.conf.get("spark.databricks.clusterUsageTags.clusterAllTags"))
     environment = [x['value'] for x in j if x['key'] == 'Environment'][0]
@@ -71,26 +79,10 @@ def Transform():
     )
     df = df.withColumn("Date", expr("CURRENT_TIMESTAMP()"))
     #display(df)
-    #spark.sql(f"DROP TABLE IF EXISTS atf.f_database_tables")
-    #df.write.saveAsTable("atf.f_database_tables")
-    df.write.mode("append").saveAsTable("atf.f_database_tables")
-Transform()
-
-# COMMAND ----------
-
-def WriteOutput():
-    df = spark.table("atf.f_database_tables")
-    df = df.withColumn("Date", expr("CAST('2022-11-30' AS DATE)"))
-    df.coalesce(1).write.format("csv").mode("overwrite").save("/mnt/datalake-raw/reporting")
-    dbutils.fs.ls("/mnt/datalake-raw/reporting")
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC SELECT 
-# MAGIC Date, COUNT(*)
-# MAGIC FROM atf.f_database_tables
-# MAGIC GROUP BY DATE
+    #spark.sql(f"DROP TABLE IF EXISTS edp.f_database_tables")
+    #df.write.saveAsTable("edp.f_database_tables")
+    df.write.mode("append").saveAsTable("edp.f_database_tables")
+#Transform()
 
 # COMMAND ----------
 

@@ -461,6 +461,26 @@ def GetWarehouses():
 
 # COMMAND ----------
 
+def StartWarehouse(id):
+    headers = GetAuthenticationHeader()
+    url = f'{INSTANCE_NAME}/api/2.0/sql/warehouses/{id}/start'
+    response = requests.post(url, headers=headers)
+    jsonResponse = response.json()
+    return jsonResponse
+
+# COMMAND ----------
+
+def GetFirstWarehouse():
+    return [c["id"] for c in GetWarehouses()["warehouses"]][0]
+
+# COMMAND ----------
+
+def StartFirstWarehouse():
+    StartWarehouse(GetFirstWarehouse())
+StartFirstWarehouse()
+
+# COMMAND ----------
+
 #NOTE: DEVELOPMENTAL USING databricks-sql-connector
 def ExecuteSqlDWCommand(warehouseId, commands):
     from databricks import sql
