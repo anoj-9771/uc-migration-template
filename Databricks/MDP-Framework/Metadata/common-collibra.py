@@ -8,6 +8,7 @@ SECRET_SCOPE = "ADS"
 domain = dbutils.secrets.get(scope = SECRET_SCOPE, key = "daf-collibra-api-domain")
 user = dbutils.secrets.get(scope = SECRET_SCOPE, key = "daf-collibra-api-user")
 secret = dbutils.secrets.get(scope = SECRET_SCOPE, key = "daf-collibra-api-secret")
+DESCRIPTION_TYPE_ID = "00000000-0000-0000-0000-000000003114"
 
 # COMMAND ----------
 
@@ -39,16 +40,21 @@ def GetAsset(assetId):
 def GetTableFqn(fqnTableName):
     if "." not in fqnTableName:
         raise Exception("Should be in . (dot) notation!") 
-        return
-    schema = fqnTableName.split(".")[0]    
-    tableName = fqnTableName.split(".")[0]
+    schema = fqnTableName.split(".")[0]
+    tableName = fqnTableName.split(".")[1]
     return GetAssetByName(tableName, GetDomainByName(schema)["results"][0]["id"])
 #print(GetTableFqn("raw.hydra_tsystemarea"))
+#print(GetTableFqn("raw.access_z309_tdebit"))
+
+# COMMAND ----------
+
+def GetTableAssetId(tableFqn):
+    return GetTableFqn(tableFqn)["results"][0]["id"]
 
 # COMMAND ----------
 
 def GetTableAttributes(tableFqn):
-    assetId = GetTableFqn(tableFqn)["results"][0]["id"]
+    assetId = GetTableAssetId(tableFqn)
     url = f"https://{domain}/rest/2.0/attributes?assetId={assetId}"
     response = requests.get(url, auth=(f"{user}", f"{secret}"))
     jsonResponse = response.json()
@@ -57,26 +63,46 @@ def GetTableAttributes(tableFqn):
 
 # COMMAND ----------
 
-def SetTableAttributes(tableFqn, description):
-    assetId = "84642f6f-9e8a-4ff5-b9fe-36fa35158fb7"
-    url = f"https://{domain}/rest/2.0/attributes"
-    response = requests.post(url, json={ "assetId": assetId, "typeId" : "00000000-0000-0000-0000-000000003114", "value" : description }, auth=(f"{user}", f"{secret}"))
-    return response.json()
-#print(SetTableAttributes("raw.hydra_tsystemarea", "kh-test"))
+ def GetTableDescriptionAttribute(tableFqn):
+    assetId = GetTableAssetId(tableFqn)
+    url = f"https://{domain}/rest/2.0/attributes?offset=0&limit=0&countLimit=-1&typeIds={DESCRIPTION_TYPE_ID}&assetId={assetId}"
+    response = requests.get(url, auth=(f"{user}", f"{secret}"))
+    jsonResponse = response.json()
+    return jsonResponse
+#print(GetTableDescriptionAttribute("raw.hydra_tsystemarea"))
 
 # COMMAND ----------
 
-def SetTableAttributes(tableFqn, description):
-    #'POST' \
-    #'https://sydneywater-dev.collibra.com/rest/2.0/attributes' \
-    #-H 'accept: application/json' \
-    #-H 'Content-Type: application/json' \
-    #-d '{
-    #"assetId": "84642f6f-9e8a-4ff5-b9fe-36fa35158fb7",
-    #"typeId": "00000000-0000-0000-0000-000000003114",
-    #"value": "test dsc"
-    #}'
-    return
+def SetTableDescriptionAttribute(tableFqn, description):
+    assetId = GetTableAssetId(tableFqn)
+    url = f"https://{domain}/rest/2.0/attributes"
+    response = requests.post(url, json={ "assetId": assetId, "typeId" : DESCRIPTION_TYPE_ID, "value" : description }, auth=(f"{user}", f"{secret}"))
+    return response.json()
+#print(SetTableDescriptionAttribute("raw.hydra_tsystemarea", "kh-test-2"))
+
+# COMMAND ----------
+
+def UpdateTableDescriptionAttribute(tableFqn, description):
+    assetId = GetTableDescriptionAttribute(tableFqn)["results"][0]["id"]
+    url = f"https://{domain}/rest/2.0/attributes/{assetId}"
+    response = requests.patch(url, json={ "value" : description }, auth=(f"{user}", f"{secret}"))
+    return response.json()
+#print(UpdateTableDescriptionAttribute("raw.hydra_tsystemarea", "kh-update-4"))
+
+# COMMAND ----------
+
+def SetOrUpdateTableDescriptionAttribute(tableFqn, description):
+    attributes = GetTableDescriptionAttribute(tableFqn)
+    SetTableDescriptionAttribute(tableFqn, description) if attributes["total"] == 0 else UpdateTableDescriptionAttribute(tableFqn, description)
+#SetOrUpdateTableDescriptionAttribute("raw.access_z309_tdebit", "kh-update-111")
+
+# COMMAND ----------
+
+ def GetTableDescriptionAttributeByAssetId(assetId):
+    url = f"https://{domain}/rest/2.0/attributes?offset=0&limit=0&countLimit=-1&typeIds={DESCRIPTION_TYPE_ID}&assetId={assetId}"
+    response = requests.get(url, auth=(f"{user}", f"{secret}"))
+    jsonResponse = response.json()
+    return jsonResponse
 
 # COMMAND ----------
 
@@ -85,8 +111,6 @@ def GetAssetType(assetTypeId):
     response = requests.get(url, auth=(f"{user}", f"{secret}"))
     jsonResponse = response.json()
     return jsonResponse
-#print(GetAssetType("00000000-0000-0000-0001-000500000018"))
-
 
 # COMMAND ----------
 
@@ -102,7 +126,3 @@ def GetTableMetadata(tableFqn, key):
         return None
     return df.collect()[0][0]
 #print(GetTableMetadata("cleansed.access_facilitytimeslice", "meta"))
-
-# COMMAND ----------
-
-
