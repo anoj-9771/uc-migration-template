@@ -36,7 +36,7 @@ def delete_multiple_element(outerlayer, indices):
 
 #---------1
 bom_weatherforecast_original = (spark.table("cleansed.bom_weatherforecast")
-                                .withColumn("forecast-period", psf.when(psf.col("forecast-period").isNull(), psf.col("forecastperiod")).otherwise(psf.col(("forecast-period"))))
+                                .withColumn("forecastperiod", psf.when(psf.col("forecastperiod").isNull(), psf.col("forecastperiod")).otherwise(psf.col(("forecastperiod"))))
                       )
 # display(bom_weatherforecast_original)
 #---------2
@@ -148,7 +148,7 @@ for index,location in enumerate(RW_locations_InactiveRevmoved['locations']):
                                  .where(psf.col("_type")=="location")
                                  .where(psf.col("_description")==location['BOM_station'])
                                  #---only look at column we need---
-                                 .withColumn("available_days_data",psf.explode(psf.col("forecast-period")))
+                                 .withColumn("available_days_data",psf.explode(psf.col("forecastperiod")))
                                  .withColumn("_start-time-local",psf.to_date(psf.col("available_days_data")["_start-time-local"]))
                                  .withColumn("elements",psf.explode(psf.col("available_days_data")["element"]))
                                  .withColumn("types",psf.col("elements")["_type"])
@@ -174,7 +174,7 @@ for index,location in enumerate(RW_locations_InactiveRevmoved['locations']):
                                   .where(psf.col("_type")=="metropolitan")
                                   .where(psf.col("_description") == location['BOM_station'])
                                   #---only look at column we need---
-                                  .withColumn("available_days_data",psf.explode(psf.col("forecast-period")))
+                                  .withColumn("available_days_data",psf.explode(psf.col("forecastperiod")))
                                   .withColumn("_start-time-local",psf.to_date(psf.col("available_days_data")["_start-time-local"]))
                                   .withColumn("IssueTime",psf.col("available_days_data")["_start-time-local"])
                                   .orderBy("_start-time-local")
@@ -190,7 +190,7 @@ for index,location in enumerate(RW_locations_InactiveRevmoved['locations']):
                               .where(psf.col("_type")=="metropolitan")
                               .where(psf.col("_description") == location['BOM_station'])
                               #---only look at column we need---
-                              .withColumn("available_days_data",psf.explode(psf.col("forecast-period")))
+                              .withColumn("available_days_data",psf.explode(psf.col("forecastperiod")))
                               .withColumn("_start-time-local",psf.to_date(psf.col("available_days_data")["_start-time-local"]))
                               .withColumn("text",psf.explode(psf.col("available_days_data")["text"]))
                               .withColumn("types",psf.col("text")["_type"])
@@ -435,4 +435,5 @@ with open('/dbfs/mnt/blob-urbanplunge/RW_output.json', 'w') as f:
     json.dump(RW_output, f, cls=NpEncoder, indent=4)
 
 # COMMAND ----------
+
 
