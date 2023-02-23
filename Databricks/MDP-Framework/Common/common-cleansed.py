@@ -32,6 +32,7 @@ defaultTransformTags = {
     ||'-'||substring(cast($c$ as BIGINT),7,2)||' '||substring(cast($c$ as BIGINT),9,2)||':'||substring(cast($c$ as BIGINT),11,2) \
     ||':'||substring(cast($c$ as BIGINT),13,2)) "
     ,"sydneyts-to-utcts" : "to_utc_timestamp($c$, 'Australia/Sydney')"
+    ,"int-to-date" : "to_date(trim($c$),'yyyyMMdd')"
 }
 
 # COMMAND ----------
