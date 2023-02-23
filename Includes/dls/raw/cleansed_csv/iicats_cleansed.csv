@@ -19,11 +19,11 @@ raw.iicats_tsv,cleansed.iicats_tsv,PNT_FAILD_IND,String,pointFailedIndicator,,,
 raw.iicats_tsv,cleansed.iicats_tsv,PNT_ALRM_IND,String,pointAlarmIndicator,,,
 raw.iicats_tsv,cleansed.iicats_tsv,PNT_OUT_OF_SVC_IND,String,pointOutofServiceIndicator,,,
 raw.iicats_tsv,cleansed.iicats_tsv,PNT_OPC_QLTY_IND,Integer,opcQualityIndicator,,,
-raw.iicats_tsv,cleansed.iicats_tsv,PNT_OPC_QLTY_IND,Integer,opcQuality,,,iicats-custom-ref-opc-quality
+raw.iicats_tsv,cleansed.iicats_tsv,PNT_OPC_QLTY_IND,String,opcQuality,,,iicats-custom-ref-opc-quality
 raw.iicats_tsv,cleansed.iicats_tsv,PNT_UNDR_MNTNC_IND,String,maintenanceIndicator,,,
 raw.iicats_tsv,cleansed.iicats_tsv,PNT_VAL_BAD_IND,String,badOrSuspectIndicator,,,
 raw.iicats_tsv,cleansed.iicats_tsv,PNT_RSN_CD,Integer,pointReasonCd,,,
-raw.iicats_tsv,cleansed.iicats_tsv,PNT_RSN_CD,Integer,pointReason,,"concat('PNT_RSN_CD',PNT_RSN_CD)",lookup-iicats-bi-reference
+raw.iicats_tsv,cleansed.iicats_tsv,PNT_RSN_CD,String,pointReason,,"concat('PNT_RSN_CD',cast( PNT_RSN_CD  as Int))",lookup-iicats-bi-reference
 raw.iicats_tsv,cleansed.iicats_tsv,HT_SYS_ID,Integer,sourceRecordSystemId,,,
 raw.iicats_tsv,cleansed.iicats_tsv,HT_COMMAND,String,sourceRecordUpsertLogic,,,
 raw.iicats_tsv,cleansed.iicats_tsv,HT_CRT_DT,Datetime,sourceRecordCreationDateTime,,,
@@ -204,7 +204,7 @@ raw.iicats_tsv_point_cnfgn,cleansed.iicats_tsv_point_cnfgn,ACQSN_MTHD_CD,string,
 raw.iicats_tsv_point_cnfgn,cleansed.iicats_tsv_point_cnfgn,ACQSN_MTHD_CD,String,acquisitionMethod,,"concat('ACQUISITION_METHOD',ACQSN_MTHD_CD)",lookup-iicats-bi-reference
 raw.iicats_tsv_point_cnfgn,cleansed.iicats_tsv_point_cnfgn,TM_BASE,BigInt,pointTimeBaseinSeconds,,,
 raw.iicats_tsv_point_cnfgn,cleansed.iicats_tsv_point_cnfgn,SGNFCNT_CHG_TYP_CD,Integer,significantChangeTypeCd,,,
-raw.iicats_tsv_point_cnfgn,cleansed.iicats_tsv_point_cnfgn,SGNFCNT_CHG_TYP_CD,String,significantChangeType,,"concat('SGNFCNT_CHG_TYP_CD',SGNFCNT_CHG_TYP_CD)",lookup-iicats-bi-reference
+raw.iicats_tsv_point_cnfgn,cleansed.iicats_tsv_point_cnfgn,SGNFCNT_CHG_TYP_CD,String,significantChangeType,,"concat('SGNFCNT_CHG_TYP_CD',Cast(SGNFCNT_CHG_TYP_CD As INT))",lookup-iicats-bi-reference
 raw.iicats_tsv_point_cnfgn,cleansed.iicats_tsv_point_cnfgn,MIN_TM_VAL,"Decimal (38,18)",minimumTime,,,
 raw.iicats_tsv_point_cnfgn,cleansed.iicats_tsv_point_cnfgn,SGNFCNT_CHG_DEADBAND_VAL,"Decimal (38,18)",significantChangeDeadbandValue,,,
 raw.iicats_tsv_point_cnfgn,cleansed.iicats_tsv_point_cnfgn,HT_SYS_ID,Integer,sourceRecordSystemId,,,
