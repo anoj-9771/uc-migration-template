@@ -1,0 +1,52 @@
+{
+	"name": "LS_NAS",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"parameters": {
+			"systemCode": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "FileServer",
+		"typeProperties": {
+			"host": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "LS-AzureKeyVault",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": {
+					"value": "@concat('daf-nas-', linkedService().systemCode, '-host')",
+					"type": "Expression"
+				}
+			},
+			"userId": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "LS-AzureKeyVault",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": {
+					"value": "@concat('daf-nas-', linkedService().systemCode, '-username')",
+					"type": "Expression"
+				}
+			},
+			"password": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "LS-AzureKeyVault",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": {
+					"value": "@concat('daf-nas-', linkedService().systemCode, '-password')",
+					"type": "Expression"
+				}
+			}
+		},
+		"connectVia": {
+			"referenceName": "IntegrationRuntime-SelfHosted-onPrem",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

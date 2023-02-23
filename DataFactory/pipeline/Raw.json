@@ -307,6 +307,30 @@
 									}
 								}
 							]
+						},
+						{
+							"value": "nas-binary-load",
+							"activities": [
+								{
+									"name": "execute-nas-binary-load",
+									"type": "ExecutePipeline",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "nas-binary-load",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": true,
+										"parameters": {
+											"task": {
+												"value": "@pipeline().parameters.task",
+												"type": "Expression"
+											}
+										}
+									}
+								}
+							]
 						}
 					],
 					"defaultActivities": [
