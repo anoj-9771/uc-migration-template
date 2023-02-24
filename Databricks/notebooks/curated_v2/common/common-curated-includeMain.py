@@ -216,7 +216,8 @@ def TemplateTimeSliceEtlSCD(df : object, entity, businessKey, schema, fromDateCo
     
     # based on TimeSlice validFromDate, validToDate to populate '_RecordStart', '_RecordEnd', '_RecordCurrent'
     df = df.withColumn("_BusinessKey", concat_ws('|', *(businessKey.split(","))))
-    df = df.withColumn("_RecordStart", expr(f"CAST(ifnull({fromDateCol},'1900-01-01') as timestamp)"))
+    #df = df.withColumn("_RecordStart", expr(f"CAST(ifnull({fromDateCol},'1900-01-01') as timestamp)"))
+    df = df.withColumn("_RecordStart", expr(f"cast(case when {fromDateCol} = '1000-01-01' then '1000-01-01T00:00:00.000+1000' when isnull({fromDateCol}) then '1900-01-01' else {fromDateCol} end as timestamp)"))
     df = df.withColumn("_RecordEnd", expr(f"CAST((CAST(ifnull({toDateCol},'9999-12-31') as date) +1) - INTERVAL 1 SECOND as timestamp)"))
     
     if "_RecordDeleted" not in df.columns:
@@ -257,3 +258,51 @@ def DatabaseChanges():
   spark.sql("CREATE DATABASE IF NOT EXISTS stage")
   spark.sql("CREATE DATABASE IF NOT EXISTS curated")  
 
+
+# COMMAND ----------
+
+#curnt_table = f'{ADS_DATABASE_CURATED_V2}.dimDevice'
+#curnt_pk = 'deviceNumber' 
+#curnt_recordStart_pk = 'deviceNumber'
+#history_table = f'{ADS_DATABASE_CURATED_V2}.dimDeviceHistory'
+#history_table_pk = 'deviceNumber'
+
+def appendRecordStartFromHistoryTable(df,history_table,history_table_pk,curnt_pk,history_table_pk_convert,curnt_recordStart_pk):
+    
+    history_table = spark.sql(f"""
+                            select {history_table_pk_convert}, min(_RecordStart) as _RecordStart from {history_table} group by {history_table_pk} 
+                                """)
+    df_ = df.join(history_table, curnt_recordStart_pk, how='left').select(df.columns + ['_RecordStart'])
+    return df_   
+
+#df_ = appendRecordStartFromHistoryTable(df,history_table,history_table_pk)
+
+def updateDBTableWithLatestRecordStart(df_, curnt_table, curnt_pk):
+    
+    if (not(TableExists(curnt_table))):
+        return
+
+    df_db = spark.sql(f"""
+                        select {curnt_pk}, min(_RecordStart) as _RecordStart from {curnt_table} group by {curnt_pk} 
+                            """)
+
+    df_update = df_db.alias('db')\
+                    .join(df_.alias('new'), curnt_pk.split(','), how='inner')\
+                    .where('db._RecordStart > new._RecordStart')\
+                    .selectExpr(*(curnt_pk.split(',') + ['db._RecordStart as db_RecordStart','new._RecordStart as new_RecordStart'])) 
+    
+    num_update = df_update.count()
+    
+    print(f"There are {num_update} records have historic earlist start dates changes")
+    
+    if num_update == 0 :
+        return
+
+    key_conditions = " AND ".join(['s.' + c + '=' + 't.' + c for c in curnt_pk.split(",")])
+
+    DeltaTable.forName(spark, curnt_table).alias('t')\
+        .merge(df_update.alias('s'),'(' + key_conditions + ') AND (t._RecordStart = s.db_RecordStart)')\
+        .whenMatchedUpdate(set={"_RecordStart":"s.new_RecordStart"})\
+        .execute()
+    
+#updateDBTableWithLatestRecordStart(df_, curnt_table, curnt_pk)

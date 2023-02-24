@@ -47,7 +47,7 @@ def getPropertyService():
 
 df, schema = getPropertyService()
 #TemplateEtl(df, entity="dimPropertyService", businessKey="propertyNumber,fixtureAndFittingCharacteristicCode,validFromDate", schema=schema, writeMode=ADS_WRITE_MODE_OVERWRITE, AddSK=True)
-TemplateTimeSliceEtlSCD(df, entity="dimPropertyService", businessKey="propertyNumber,fixtureAndFittingCharacteristicCode,validFromDate,validToDate", schema=schema)
+TemplateTimeSliceEtlSCD(df, entity="dimPropertyService", businessKey="propertyNumber,fixtureAndFittingCharacteristicCode,validToDate", schema=schema)
 
 # COMMAND ----------
 

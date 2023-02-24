@@ -13,6 +13,16 @@
 
 # COMMAND ----------
 
+# MAGIC %md
+# MAGIC 
+# MAGIC Need to Run Contract History Before Contract
+
+# COMMAND ----------
+
+# MAGIC %run ./ContractHistory
+
+# COMMAND ----------
+
 def getContract():
 
     #Contract Data from SAP ISU
@@ -132,7 +142,18 @@ def getContract():
 # COMMAND ----------
 
 df, schema = getContract()
-TemplateEtlSCD(df, entity="dimContract", businessKey="contractId", schema=schema)
+
+curnt_table = f'{ADS_DATABASE_CURATED_V2}.dimContract'
+curnt_pk = 'contractId' 
+curnt_recordStart_pk = 'contractId'
+history_table = f'{ADS_DATABASE_CURATED_V2}.dimContractHistory'
+history_table_pk = 'contractId'
+history_table_pk_convert = 'contractId'
+
+df_ = appendRecordStartFromHistoryTable(df,history_table,history_table_pk,curnt_pk,history_table_pk_convert,curnt_recordStart_pk)
+updateDBTableWithLatestRecordStart(df_, curnt_table, curnt_pk)
+
+TemplateEtlSCD(df_, entity="dimContract", businessKey="contractId", schema=schema)
 
 # COMMAND ----------
 

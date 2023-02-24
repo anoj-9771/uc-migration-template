@@ -16,7 +16,7 @@ def SimpleTestFail():
 # COMMAND ----------
 
 # DBTITLE 1,Exception thrown (no table)
-def ThowError():
+def ThrowError():
     df = spark.table("curated.dimlocation")
     df = df.select("LocationID1")
     

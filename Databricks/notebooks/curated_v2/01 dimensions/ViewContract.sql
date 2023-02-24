@@ -2,32 +2,52 @@
 -- View: viewContract
 -- Description: viewContract
 CREATE OR REPLACE VIEW curated_v2.viewContract AS
-WITH dateDriverNonDelete AS
+
+With ContractDateRanges AS
 (
-    SELECT DISTINCT contractId, _recordStart AS _effectiveFrom FROM curated_v2.dimContract
-    WHERE _recordDeleted = 0
-    union
-    SELECT DISTINCT contractId, _recordStart AS _effectiveFrom FROM curated_v2.dimContractHistory
-    WHERE _recordDeleted = 0
+                SELECT
+                contractId, 
+                _recordStart, 
+                _recordEnd,
+                COALESCE( LEAD( _recordStart, 1 ) OVER( PARTITION BY contractId ORDER BY _recordStart ), 
+                  CASE WHEN _recordEnd < cast('9999-12-31T23:59:59' as timestamp) then _recordEnd + INTERVAL 1 SECOND else _recordEnd end) AS _newRecordEnd
+                FROM curated_v2.dimContract
+                --WHERE _recordDeleted = 0
 ),
-effectiveDaterangesNonDelete AS 
+
+ContractHistoryDateRanges AS
 (
-    SELECT contractId, _effectiveFrom, cast(COALESCE(TIMESTAMP((LEAD(_effectiveFrom,1) OVER(PARTITION BY contractId ORDER BY _effectiveFrom)) - INTERVAL 1 seconds), '9999-12-31') as timestamp) AS _effectiveTo
-    FROM dateDriverNonDelete
+                SELECT
+                contractId, 
+                _recordStart, 
+                _recordEnd,
+                COALESCE( LEAD( _recordStart, 1 ) OVER( PARTITION BY contractId ORDER BY _recordStart ), 
+                  CASE WHEN _recordEnd < cast('9999-12-31T23:59:59' as timestamp) then _recordEnd + INTERVAL 1 SECOND else _recordEnd end) AS _newRecordEnd
+                FROM curated_v2.dimContractHistory
+                WHERE _recordDeleted = 0
 ),
-dateDriverDelete AS
+
+dateDriver AS
 (
-    SELECT DISTINCT contractId, _recordStart AS _effectiveFrom FROM curated_v2.dimContract
-    WHERE _recordDeleted = 1
-    union
-    SELECT DISTINCT contractId, _recordStart AS _effectiveFrom FROM curated_v2.dimContractHistory
-    WHERE _recordDeleted = 1
+                SELECT contractId, _recordStart from ContractDateRanges
+                UNION
+                SELECT contractId, _newRecordEnd as _recordStart from ContractDateRanges
+                UNION
+                SELECT contractId, _recordStart from ContractHistoryDateRanges
+                UNION
+                SELECT contractId, _newRecordEnd as _recordStart from ContractHistoryDateRanges
 ),
-effectiveDaterangesDelete AS 
+
+effectiveDateRanges AS
 (
-    SELECT contractId, _effectiveFrom, cast(COALESCE(TIMESTAMP((LEAD(_effectiveFrom,1) OVER(PARTITION BY contractId ORDER BY _effectiveFrom)) - INTERVAL 1 seconds), '9999-12-31') as timestamp) AS _effectiveTo
-    FROM dateDriverDelete
-)
+                SELECT 
+                contractId, 
+                _recordStart AS _effectiveFrom,
+                COALESCE( LEAD( _recordStart, 1 ) OVER( PARTITION BY contractId ORDER BY _recordStart ) - INTERVAL 1 SECOND, 
+                  cast( '9999-12-31T23:59:59' as timestamp ) ) AS _effectiveTo                           
+                FROM dateDriver where _recordStart < cast('9999-12-31T23:59:59' as timestamp)                            
+)              
+
 SELECT * FROM 
 (
 SELECT
@@ -99,114 +119,21 @@ SELECT
     ,dimContractHistory.isCancelledFlag
     ,effectiveDateRanges._effectiveFrom
     ,effectiveDateRanges._effectiveTo
-    ,dimContract._recordDeleted as _dimContractRecordDeleted
-    ,dimContractHistory._recordDeleted as _dimContractHistoryRecordDeleted
-    ,dimContract._recordCurrent as _dimContractRecordCurrent
-    ,dimContractHistory._recordCurrent as _dimContractHistoryRecordCurrent
     , CASE
       WHEN CURRENT_TIMESTAMP() BETWEEN effectiveDateRanges._effectiveFrom AND effectiveDateRanges._effectiveTo then 'Y'
       ELSE 'N'
-      END AS currentRecordFlag
-FROM effectiveDaterangesNonDelete as effectiveDateRanges
+      END AS currentFlag
+FROM effectiveDateRanges as effectiveDateRanges
 LEFT OUTER JOIN curated_v2.dimContract
     ON dimContract.contractId = effectiveDateRanges.contractId 
         AND dimContract._recordEnd >= effectiveDateRanges._effectiveFrom 
         AND dimContract._recordStart <= effectiveDateRanges._effectiveTo
-        AND dimContract._recordDeleted = 0
+        --AND dimContract._recordDeleted = 0
 LEFT OUTER JOIN curated_v2.dimContractHistory
     ON dimContractHistory.contractId = effectiveDateRanges.contractId 
         AND dimContractHistory._recordEnd >= effectiveDateRanges._effectiveFrom 
         AND dimContractHistory._recordStart <= effectiveDateRanges._effectiveTo
         AND dimContractHistory._recordDeleted = 0
-UNION
-SELECT
-     dimContract.contractSK
-    ,dimContractHistory.contractHistorySK
-    ,coalesce(dimContract.sourceSystemCode, dimContractHistory.sourceSystemCode) as sourceSystemCode
-    ,coalesce(dimContract.contractId, dimContractHistory.contractId, -1) as contractId   
-    ,dimContract.companyCode
-    ,dimContract.companyName
-    ,dimContract.divisionCode
-    ,dimContract.division
-    ,dimContract.installationNumber
-    ,dimContract.contractAccountNumber
-    ,dimContract.accountDeterminationCode
-    ,dimContract.accountDetermination
-    ,dimContract.allowableBudgetBillingCyclesCode
-    ,dimContract.allowableBudgetBillingCycles
-    ,dimContract.invoiceContractsJointlyCode
-    ,dimContract.invoiceContractsJointly
-    ,dimContract.manualBillContractflag
-    ,dimContract.billBlockingReasonCode
-    ,dimContract.billBlockingReason
-    ,dimContract.specialMoveOutCaseCode
-    ,dimContract.specialMoveOutCase
-    ,dimContract.contractText
-    ,dimContract.legacyMoveInDate
-    ,dimContract.numberOfCancellations
-    ,dimContract.numberOfRenewals
-    ,dimContract.personnelNumber
-    ,dimContract.contractNumberLegacy
-    ,dimContract.isContractInvoicedFlag
-    ,dimContract.isContractTransferredFlag
-    ,dimContract.outsortingCheckGroupForBilling
-    ,dimContract.manualOutsortingCount
-    ,dimContract.serviceProvider
-    ,dimContract.contractTerminatedForBillingFlag
-    ,dimContract.invoicingParty
-    ,dimContract.cancellationReasonCRM
-    ,dimContract.moveInDate
-    ,dimContract.moveOutDate
-    ,dimContract.budgetBillingStopDate
-    ,dimContract.premise
-    ,dimContract.propertyNumber
-    ,dimContract.validFromDate
-    ,dimContract.agreementNumber
-    ,dimContract.addressNumber
-    ,dimContract.alternativeAddressNumber
-    ,dimContract.identificationNumber
-    ,dimContract.objectReferenceIndicator
-    ,dimContract.objectNumber
-    ,dimContract.createdDate
-    ,dimContract.createdBy
-    ,dimContract.lastChangedDate
-    ,dimContract.lastChangedBy
-    ,dimContractHistory.validFromDate as contractHistoryValidFromDate
-    ,dimContractHistory.validToDate as contractHistoryValidToDate
-    ,dimContractHistory.CRMProduct
-    ,dimContractHistory.CRMObjectId
-    ,dimContractHistory.CRMDocumentItemNumber
-    ,dimContractHistory.marketingCampaign
-    ,dimContractHistory.individualContractId
-    ,dimContractHistory.productBeginFlag
-    ,dimContractHistory.productChangeFlag
-    ,dimContractHistory.replicationControlsCode
-    ,dimContractHistory.replicationControls
-    ,dimContractHistory.podUUID
-    ,dimContractHistory.headerTypeCode
-    ,dimContractHistory.headerType
-    ,dimContractHistory.isCancelledFlag
-    ,effectiveDateRanges._effectiveFrom
-    ,effectiveDateRanges._effectiveTo
-    ,dimContract._recordDeleted as _dimContractRecordDeleted
-    ,dimContractHistory._recordDeleted as _dimContractHistoryRecordDeleted
-    ,dimContract._recordCurrent as _dimContractRecordCurrent
-    ,dimContractHistory._recordCurrent as _dimContractHistoryRecordCurrent
-    , CASE
-      WHEN CURRENT_TIMESTAMP() BETWEEN effectiveDateRanges._effectiveFrom AND effectiveDateRanges._effectiveTo then 'Y'
-      ELSE 'N'
-      END AS currentRecordFlag
-FROM effectiveDaterangesDelete as effectiveDateRanges
-LEFT OUTER JOIN curated_v2.dimContract
-    ON dimContract.contractId = effectiveDateRanges.contractId 
-        AND dimContract._recordEnd >= effectiveDateRanges._effectiveFrom 
-        AND dimContract._recordStart <= effectiveDateRanges._effectiveTo
-        AND dimContract._recordDeleted = 1
-LEFT OUTER JOIN curated_v2.dimContractHistory
-    ON dimContractHistory.contractId = effectiveDateRanges.contractId 
-        AND dimContractHistory._recordEnd >= effectiveDateRanges._effectiveFrom 
-        AND dimContractHistory._recordStart <= effectiveDateRanges._effectiveTo
-        AND dimContractHistory._recordDeleted = 1
 )
 ORDER BY _effectiveFrom
 

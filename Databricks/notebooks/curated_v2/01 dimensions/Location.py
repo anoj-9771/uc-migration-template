@@ -16,6 +16,12 @@
 
 # COMMAND ----------
 
+# MAGIC %md
+# MAGIC 
+# MAGIC Need to Run Property Type History Before Location
+
+# COMMAND ----------
+
 def getLocation():
 
     #1.Load Cleansed layer table data into dataframe
@@ -47,7 +53,7 @@ def getLocation():
                                      from {ADS_DATABASE_CLEANSED}.isu_0uc_connobj_attr_2 d left outer join {ADS_DATABASE_CLEANSED}.isu_vibdnode b on d.propertyNumber = b.architecturalObjectNumber 
                                          left outer join (select propertyNumber, lga, latitude, longitude from 
                                               (select propertyNumber, lga, latitude, longitude, 
-                                                row_number() over (partition by propertyNumber order by areaSize desc,latitude,longitude) recNum 
+                                                row_number() over (partition by propertyNumber order by areaSize desc,latitude,longitude,lga) recNum 
                                                 from cleansed.hydra_tlotparcel where  _RecordCurrent = 1 ) 
                                                 where recNum = 1) a on a.propertyNumber = b.architecturalObjectNumber, 
                                           {ADS_DATABASE_CLEANSED}.isu_0funct_loc_attr c 
@@ -84,7 +90,7 @@ def getLocation():
                                      from {ADS_DATABASE_CLEANSED}.isu_0uc_connobj_attr_2 d left outer join {ADS_DATABASE_CLEANSED}.isu_vibdnode b on d.propertyNumber = b.architecturalObjectNumber 
                                          left outer join (select propertyNumber, lga, latitude, longitude from 
                                               (select propertyNumber, lga, latitude, longitude, 
-                                                row_number() over (partition by propertyNumber order by areaSize desc,latitude,longitude) recNum 
+                                                row_number() over (partition by propertyNumber order by areaSize desc,latitude,longitude,lga) recNum 
                                                 from {ADS_DATABASE_CLEANSED}.hydra_tlotparcel where _RecordCurrent = 1 ) 
                                                 where recNum = 1) a on a.propertyNumber = b.parentArchitecturalObjectNumber, 
                                           {ADS_DATABASE_CLEANSED}.isu_0funct_loc_attr c, 
@@ -288,7 +294,18 @@ def getLocation():
 
 df, schema = getLocation()
 #TemplateEtl(df, entity="dimLocation", businessKey="locationId", schema=schema, writeMode=ADS_WRITE_MODE_OVERWRITE, AddSK=True)
-TemplateEtlSCD(df, entity="dimLocation", businessKey="locationId", schema=schema)
+
+curnt_table = f'{ADS_DATABASE_CURATED_V2}.dimLocation'
+curnt_pk = 'locationId' 
+curnt_recordStart_pk = 'locationId'
+history_table = f'{ADS_DATABASE_CURATED_V2}.dimPropertyTypeHistory'
+history_table_pk = 'propertyNumber'
+history_table_pk_convert = 'propertyNumber as locationId'
+
+df_ = appendRecordStartFromHistoryTable(df,history_table,history_table_pk,curnt_pk,history_table_pk_convert,curnt_recordStart_pk)
+updateDBTableWithLatestRecordStart(df_, curnt_table, curnt_pk)
+
+TemplateEtlSCD(df_, entity="dimLocation", businessKey="locationId", schema=schema)
 
 # COMMAND ----------
 
@@ -311,4 +328,4 @@ TemplateEtlSCD(df, entity="dimLocation", businessKey="locationId", schema=schema
 
 # COMMAND ----------
 
-dbutils.notebook.exit("1")
+#dbutils.notebook.exit("1")

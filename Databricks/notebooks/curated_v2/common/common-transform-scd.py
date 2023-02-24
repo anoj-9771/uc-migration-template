@@ -66,7 +66,13 @@ def addSCDColumns(dataFrame, scd_start_date = SCD_START_DATE, scd_end_date = SCD
     cols = dataFrame.columns
     df = dataFrame
     df = df.withColumn(_.BK, concat_ws('|', *(_.BusinessKeyCols.split(","))))
-    df = df.withColumn("_RecordStart", expr(f"CAST('{scd_start_date}' AS TIMESTAMP)"))
+    
+    if "_RecordStart" not in cols:
+        df = df.withColumn("_RecordStart", expr(f"CAST('{scd_start_date}' AS TIMESTAMP)"))
+    else:
+        cols.remove("_RecordStart")
+        df = df.withColumn("_RecordStart", when(col('_RecordStart').isNull(),expr(f"CAST('{scd_start_date}' AS TIMESTAMP)")).otherwise(col('_RecordStart')))
+    
     df = df.withColumn("_RecordEnd", 
                        expr("CAST(NULL AS TIMESTAMP)" if scd_end_date == "NULL" else f"CAST('{scd_end_date}' AS TIMESTAMP)"))
     df = df.withColumn("_RecordCurrent", expr("CAST(1 AS INT)"))
@@ -224,18 +230,18 @@ def SCDMerge(sourceDataFrame, scd_start_date = SCD_START_DATE, scd_end_date = SC
     # Consider hard deletion case
     #if _.Snapshot == 1 and hardDelRecords.count() > 0:
     #    stagedUpdates = stagedUpdates.unionByName(stagedHardDel)
-        
+    
     insertValues = {
-        f"{_.SurrogateKey}": f"s.{_.SurrogateKey}", 
+        f"{_.SurrogateKey}": expr(f"md5(concat(s.{_.BK},'|','{scd_start_date}'))"), #f"s.{_.SurrogateKey}"
         f"{_.BK}": f"s.{_.BK}",
-        "_RecordStart": "s._RecordStart",
+        "_RecordStart": expr(f"'{scd_start_date}'"),
         "_RecordEnd": "s._RecordEnd",
         "_RecordCurrent": "1",
         "_RecordDeleted": "s._RecordDeleted",
         "_DLCuratedZoneTimeStamp": expr("now()")
         #"_Batch_SK": expr(f"DATE_FORMAT(s._RecordStart, 'yyMMddHHmmss') || COALESCE(DATE_FORMAT(s._RecordEnd, '{DATE_FORMAT}'), '{BATCH_END_CODE}') || 1")
     }
-    for c in [i for i in targetTable.columns if i not in _exclude]:
+    for c in [i for i in targetTable.columns if i.lower() not in _exclude]:
         insertValues[f"{c}"] = f"s.{c}"
     
     print(f"SCD Merge {targetTableFqn} Started")

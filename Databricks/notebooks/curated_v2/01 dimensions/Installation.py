@@ -14,6 +14,16 @@
 
 # COMMAND ----------
 
+# MAGIC %md
+# MAGIC 
+# MAGIC Need to Run Installation History Before Installation
+
+# COMMAND ----------
+
+# MAGIC %run ./InstallationHistory
+
+# COMMAND ----------
+
 def getInstallation():
 
     #1.Load Cleansed layer table data into dataframe
@@ -89,8 +99,19 @@ def getInstallation():
 
 df, schema = getInstallation()
 
+curnt_table = f'{ADS_DATABASE_CURATED_V2}.dimInstallation'
+curnt_pk = 'installationNumber' 
+curnt_recordStart_pk = 'installationNumber'
+history_table = f'{ADS_DATABASE_CURATED_V2}.dimInstallationHistory'
+history_table_pk = 'installationNumber'
+history_table_pk_convert = 'installationNumber'
+
+df_ = appendRecordStartFromHistoryTable(df,history_table,history_table_pk,curnt_pk,history_table_pk_convert,curnt_recordStart_pk)
+updateDBTableWithLatestRecordStart(df_, curnt_table, curnt_pk)
+
+
 TemplateEtlSCD(
-    df, 
+    df_, 
     entity="dimInstallation", 
     businessKey="installationNumber", 
     schema=schema

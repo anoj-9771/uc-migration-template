@@ -172,7 +172,7 @@ print(delta_raw_tbl_name)
 # DBTITLE 1,10. Load Raw to Dataframe & Do Transformations
 df = spark.sql(f"WITH stage AS \
                       (Select *, ROW_NUMBER() OVER (PARTITION BY PROPERTY_NO,DATE_FROM ORDER BY _FileDateTimeStamp DESC, _DLRawZoneTimeStamp DESC) AS _RecordVersion FROM {delta_raw_tbl_name} \
-                                  WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' and (DATE_FROM < DATE_TO)) \
+                                  WHERE _DLRawZoneTimestamp >= '{LastSuccessfulExecutionTS}' and (DATE_FROM <= DATE_TO)) \
                            SELECT  \
                                 case when stg.PROPERTY_NO = 'na' then '' else stg.PROPERTY_NO end as propertyNumber, \
                                 stg.SUP_PROP_TYPE as superiorPropertyTypeCode, \

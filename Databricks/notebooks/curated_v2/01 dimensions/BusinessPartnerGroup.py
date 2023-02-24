@@ -161,7 +161,7 @@ df_bpartner_isu = (
     .join(
         df_crm_0bpartner_attr.alias("crm"),
         col("isu.businessPartnerGroupNumber") == col("crm.businessPartnerGroupNumber"),
-        how = 'left'
+        how = 'inner'
     )
     # --- Select Columns --- #
     .select(
@@ -190,8 +190,6 @@ df_bpartner_isu = (
         "crm.machineOffReasonCode",
         "crm.machineOffReason"
     )
-    # --- Replace NULL with 'N' --- #
-    .fillna("N",["paymentAssistSchemeFlag","billAssistFlag","warWidowFlag","kidneyDialysisFlag"])  
     .drop_duplicates()
 )
 
@@ -206,7 +204,42 @@ df_bpartner_crm_unique = (
         how = 'leftanti'
     )
     .select("crm.*")
-    .fillna("N",["paymentAssistSchemeFlag","billAssistFlag","warWidowFlag","kidneyDialysisFlag"])
+    .drop_duplicates()
+)
+
+# ------------------------------- #
+# ISU Unique
+# ------------------------------- #
+df_bpartner_isu_unique = (
+    df_isu_0bpartner_attr.alias("isu")
+    .join(
+        df_crm_0bpartner_attr.alias("crm"),
+        col("isu.businessPartnerGroupNumber") == col("crm.businessPartnerGroupNumber"),
+        how = 'leftanti'
+    )
+    .select("isu.*")
+    .withColumn("paymentAssistSchemeFlag",lit("N"))
+    .withColumn("billAssistFlag",lit("N"))
+    .withColumn("consent1Indicator",lit(None).cast(StringType()))
+    .withColumn("warWidowFlag",lit("N"))
+    .withColumn("indicatorCreatedUserId",lit(None).cast(StringType()))
+    .withColumn("indicatorCreatedDate",lit(None).cast(DateType()))
+    .withColumn("kidneyDialysisFlag",lit("N"))
+    .withColumn("patientUnit",lit(None).cast(StringType()))
+    .withColumn("patientTitleCode",lit(None).cast(StringType()))
+    .withColumn("patientTitle",lit(None).cast(StringType()))
+    .withColumn("patientFirstName",lit(None).cast(StringType()))
+    .withColumn("patientSurname",lit(None).cast(StringType()))
+    .withColumn("patientAreaCode",lit(None).cast(StringType()))
+    .withColumn("patientPhoneNumber",lit(None).cast(StringType()))
+    .withColumn("hospitalCode",lit(None).cast(StringType()))
+    .withColumn("hospitalName",lit(None).cast(StringType()))
+    .withColumn("patientMachineTypeCode",lit(None).cast(StringType()))
+    .withColumn("patientMachineType",lit(None).cast(StringType()))
+    .withColumn("machineTypeValidFromDate",lit(None).cast(DateType()))
+    .withColumn("machineTypeValidToDate",lit(None).cast(DateType()))
+    .withColumn("machineOffReasonCode",lit(None).cast(StringType()))
+    .withColumn("machineOffReason",lit(None).cast(StringType()))
     .drop_duplicates()
 )
 
@@ -228,10 +261,8 @@ df_bpartnergroup_master = (
     df_bpartner_isu
     # --- Append Dataframes --- #
     .unionByName(df_bpartner_crm_unique)
-    .unionByName(
-        dummyDimRecDf,
-        allowMissingColumns = True
-    )
+    .unionByName(df_bpartner_isu_unique)
+    .unionByName(dummyDimRecDf, allowMissingColumns = True)   
     # --- order columms --- #
     .select(
         "sourceSystemCode",
@@ -280,10 +311,14 @@ df_bpartnergroup_master = (
     .cache()
 )
 
-# print('df_bpartner_inner count:', df_bpartner_inner.count())
+# print('df_bpartner_inner count:', df_bpartner_isu.count())
+# display(df_bpartner_isu)
 # print('df_bpartner_isu_unique count:', df_bpartner_isu_unique.count())
+# display(df_bpartner_isu_unique)
 # print('df_bpartner_crm_unique count', df_bpartner_crm_unique.count())
+# display(df_bpartner_crm_unique)
 # print('dummyDimRecDf count:', dummyDimRecDf.count())
+# display(dummyDimRecDf)
 # print('df_bpartnergroup_master count:', df_bpartnergroup_master.count())
 # display(df_bpartnergroup_master)
 
@@ -351,4 +386,4 @@ TemplateEtlSCD(
 
 # COMMAND ----------
 
-dbutils.notebook.exit("1")
+#dbutils.notebook.exit("1")

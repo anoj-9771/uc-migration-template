@@ -13,6 +13,20 @@
 
 # COMMAND ----------
 
+# MAGIC %md
+# MAGIC 
+# MAGIC Need to Run Device History Before Device
+
+# COMMAND ----------
+
+# MAGIC %run ./DeviceHistory
+
+# COMMAND ----------
+
+# MAGIC %run ./DeviceCharacteristics
+
+# COMMAND ----------
+
 def getDevice():
 
     #Device Data from SAP ISU
@@ -77,7 +91,18 @@ def getDevice():
 # COMMAND ----------
 
 df, schema = getDevice()
-TemplateEtlSCD(df, entity="dimDevice", businessKey="deviceNumber", schema=schema)
+
+curnt_table = f'{ADS_DATABASE_CURATED_V2}.dimDevice'
+curnt_pk = 'deviceNumber' 
+curnt_recordStart_pk = 'deviceNumber'
+history_table = f'{ADS_DATABASE_CURATED_V2}.dimDeviceHistory'
+history_table_pk = 'deviceNumber'
+history_table_pk_convert = 'deviceNumber'
+
+df_ = appendRecordStartFromHistoryTable(df,history_table,history_table_pk,curnt_pk,history_table_pk_convert,curnt_recordStart_pk)
+updateDBTableWithLatestRecordStart(df_, curnt_table, curnt_pk)
+
+TemplateEtlSCD(df_, entity="dimDevice", businessKey="deviceNumber", schema=schema)
 
 # COMMAND ----------
 

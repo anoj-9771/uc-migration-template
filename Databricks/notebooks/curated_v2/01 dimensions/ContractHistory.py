@@ -93,4 +93,4 @@ TemplateTimeSliceEtlSCD(df, entity="dimContractHistory", businessKey="contractId
 
 # COMMAND ----------
 
-dbutils.notebook.exit("1")
+#dbutils.notebook.exit("1")

@@ -137,8 +137,19 @@ def getDeviceCharacteristics():
 # COMMAND ----------
 
 df, schema = getDeviceCharacteristics()
-TemplateEtlSCD(df, entity="dimDeviceCharacteristics", businessKey="deviceNumber,characteristicInternalId,classifiedEntityType,classTypeCode,archivingObjectsInternalId", schema=schema)
+
+curnt_table = f'{ADS_DATABASE_CURATED_V2}.dimDeviceCharacteristics'
+curnt_pk = 'deviceNumber,characteristicInternalId,classifiedEntityType,classTypeCode,archivingObjectsInternalId' 
+curnt_recordStart_pk = 'deviceNumber'
+history_table = f'{ADS_DATABASE_CURATED_V2}.dimDeviceHistory'
+history_table_pk = 'deviceNumber'
+history_table_pk_convert = 'deviceNumber'
+
+df_ = appendRecordStartFromHistoryTable(df,history_table,history_table_pk,curnt_pk,history_table_pk_convert,curnt_recordStart_pk)
+updateDBTableWithLatestRecordStart(df_, curnt_table, curnt_pk)
+
+TemplateEtlSCD(df_, entity="dimDeviceCharacteristics", businessKey="deviceNumber,characteristicInternalId,classifiedEntityType,classTypeCode,archivingObjectsInternalId", schema=schema)
 
 # COMMAND ----------
 
-dbutils.notebook.exit("1")
+#dbutils.notebook.exit("1")

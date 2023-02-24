@@ -97,12 +97,16 @@ schema = StructType([
 
 # COMMAND ----------
 
-TemplateEtlSCD(
-    df_disconnection_document, 
-    entity="dimDisconnectionDocument", 
-    businessKey="sourceSystemCode,disconnectionDocumentNumber,disconnectionObjectNumber,disconnectionActivityPeriod",
-    schema=schema
-)
+#TemplateEtlSCD(
+#    df_disconnection_document, 
+#    entity="dimDisconnectionDocument", 
+#    businessKey="sourceSystemCode,disconnectionDocumentNumber,disconnectionObjectNumber,disconnectionActivityPeriod",
+#    schema=schema
+#)
+
+TemplateTimeSliceEtlSCD(df_disconnection_document, 
+                        entity="dimDisconnectionDocument", 
+                        businessKey="sourceSystemCode,disconnectionDocumentNumber,disconnectionObjectNumber,disconnectionActivityPeriod", schema=schema)
 
 # COMMAND ----------
 

@@ -3,6 +3,12 @@
 
 # COMMAND ----------
 
+# MAGIC %md
+# MAGIC 
+# MAGIC Need to Run Property Type History Before Property
+
+# COMMAND ----------
+
 def getPropertyLot():
     
     df_isu = spark.sql(f"""select distinct 'ISU' as sourceSystemCode, 
@@ -50,8 +56,19 @@ def getPropertyLot():
 
 df, schema = getPropertyLot()
 #TemplateEtl(df, entity="dimPropertyLot", businessKey="planTypeCode,planNumber,lotTypeCode,lotNumber,sectionNumber,propertyNumber", schema=schema, writeMode=ADS_WRITE_MODE_OVERWRITE, AddSK=True)
-TemplateEtlSCD(df, entity="dimPropertyLot", businessKey="propertyNumber", schema=schema)
+
+curnt_table = f'{ADS_DATABASE_CURATED_V2}.dimPropertyLot'
+curnt_pk = 'propertyNumber' 
+curnt_recordStart_pk = 'propertyNumber'
+history_table = f'{ADS_DATABASE_CURATED_V2}.dimPropertyTypeHistory'
+history_table_pk = 'propertyNumber'
+history_table_pk_convert = 'propertyNumber'
+
+df_ = appendRecordStartFromHistoryTable(df,history_table,history_table_pk,curnt_pk,history_table_pk_convert,curnt_recordStart_pk)
+updateDBTableWithLatestRecordStart(df_, curnt_table, curnt_pk)
+
+TemplateEtlSCD(df_, entity="dimPropertyLot", businessKey="propertyNumber", schema=schema)
 
 # COMMAND ----------
 
-dbutils.notebook.exit("1")
+#dbutils.notebook.exit("1")

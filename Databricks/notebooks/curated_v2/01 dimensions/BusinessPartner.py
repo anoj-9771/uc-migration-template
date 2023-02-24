@@ -192,7 +192,7 @@ df_bpartner_isu = (
     .join(
         df_crm_0bpartner_attr.alias("crm"),
         col("isu.businessPartnerNumber") == col("crm.businessPartnerNumber"),
-        how = 'left'
+        how = 'inner'
     )
     .drop("crm.sourceSystemCode")
     # --- Transformations --- #
@@ -228,10 +228,10 @@ df_bpartner_isu = (
         "_naturalPersonFlag",
         "naturalPersonFlag"
     )
-    # --- Replace NULL with 'N' --- #
-    .fillna("N",["warWidowFlag","deceasedFlag","disabilityFlag","goldCardHolderFlag","naturalPersonFlag","eligibilityFlag","pensionConcessionCardFlag"])
     .drop_duplicates()
 )
+# print('df_bpartner_isu count:', df_bpartner_isu.count())
+# display(df_bpartner_isu)
 
 # ------------------------------- #
 # 1.2) CRM Unique
@@ -244,9 +244,39 @@ df_bpartner_crm_unique = (
         how = 'leftanti'
     )
     .select("crm.*")
-    .fillna("N",["warWidowFlag","deceasedFlag","disabilityFlag","goldCardHolderFlag","naturalPersonFlag","eligibilityFlag","pensionConcessionCardFlag"])
     .drop_duplicates()
 )
+# print('df_bpartner_crm_unique count:', df_bpartner_crm_unique.count())
+# display(df_bpartner_crm_unique)
+
+
+# ------------------------------- #
+# 1.3) ISU Unique
+# ------------------------------- #
+df_bpartner_isu_unique = (
+    df_isu_0bpartner_attr.alias("isu")
+    .join(
+        df_crm_0bpartner_attr.alias("crm"),
+        col("isu.businessPartnerNumber") == col("crm.businessPartnerNumber"),
+        how = 'leftanti'
+    )
+    .select("isu.*")
+    .withColumn("warWidowFlag",lit("N"))
+    .withColumn("deceasedFlag",lit("N"))
+    .withColumn("disabilityFlag",lit("N"))
+    .withColumn("goldCardHolderFlag",lit("N"))
+    .withColumn("consent1Indicator",lit(None).cast(StringType()))
+    .withColumn("consent2Indicator",lit(None).cast(StringType()))
+    .withColumn("eligibilityFlag",lit("N"))
+    .withColumn("plannedChangeDocument",lit(None).cast(StringType()))
+    .withColumn("paymentStartDate",lit(None).cast(StringType()))
+    .withColumn("dateOfCheck",lit(None).cast(StringType()))
+    .withColumn("pensionConcessionCardFlag",lit("N"))
+    .withColumn("pensionType",lit(None).cast(StringType()))
+    .drop_duplicates()
+)
+# print('df_bpartner_isu_unique count:', df_bpartner_isu_unique.count())
+# display(df_bpartner_isu_unique)
 
 # ------------------------------- #
 # 2) Dummy Dimension
@@ -266,6 +296,7 @@ df_bpartner_master = (
     df_bpartner_isu
     # --- Union Dataframes --- #
     .unionByName(df_bpartner_crm_unique)
+    .unionByName(df_bpartner_isu_unique)
     .unionByName(dummyDimRecDf, allowMissingColumns = True)
     
     # --- Order Columns --- #
@@ -315,6 +346,8 @@ df_bpartner_master = (
     )
     .cache()
 )
+# print('df_bpartner_master count:', df_bpartner_master.count())
+# display(df_bpartner_master)
 
 # COMMAND ----------
 
@@ -380,4 +413,4 @@ TemplateEtlSCD(
 
 # COMMAND ----------
 
-dbutils.notebook.exit("1")
+#dbutils.notebook.exit("1")
