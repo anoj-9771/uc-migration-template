@@ -32,6 +32,8 @@ defaultTransformTags = {
     ||'-'||substring(cast($c$ as BIGINT),7,2)||' '||substring(cast($c$ as BIGINT),9,2)||':'||substring(cast($c$ as BIGINT),11,2) \
     ||':'||substring(cast($c$ as BIGINT),13,2)) "
     ,"sydneyts-to-utcts" : "to_utc_timestamp($c$, 'Australia/Sydney')"
+    ,"int-to-date" : "to_date(trim($c$),'yyyyMMdd')"
+    ,"utc+10ts-to-utcts" : "to_utc_timestamp($c$, 'UTC+10')"
 }
 
 # COMMAND ----------
@@ -39,6 +41,12 @@ defaultTransformTags = {
 from pyspark.sql.types import *
 defaultSystemTransformTags = {
     "iicats": [
+        {
+            "columnPattern": ".*AEST.*"
+            ,"dataType" : TimestampType
+            ,"transform": "utc+10ts-to-utcts"
+            ,"continueProcessing" : "N"
+        },    
         {
             "dataType" : TimestampType
             ,"transform": "sydneyts-to-utcts"
@@ -199,6 +207,8 @@ def GetLast(path, delim="/"):
 # COMMAND ----------
 
 def DataTypeConvertRow(columnName, dataType):
+    if dataType == "inherit":
+        return f"{columnName}"
     changedDataType = defaultDataTypes.get(dataType)
     changedDataType = dataType if changedDataType is None else changedDataType
     
@@ -206,14 +216,28 @@ def DataTypeConvertRow(columnName, dataType):
 
 # COMMAND ----------
 
+import re
 def SystemDefaultTransform(sourceDataFrame, transformTags, columnName):    
     if transformTags:
         for tag in transformTags:
+            transform = defaultTransformTags.get(tag.get("transform"))
+            if transform:
+                applyTransform = True
+            else:
+                continue
+            
             dataType = tag.get("dataType")
-            if dataType and isinstance(sourceDataFrame.schema[columnName].dataType, dataType):
-                transform = defaultTransformTags.get(tag.get("transform"))
-                if transform:
-                    sourceDataFrame = sourceDataFrame.withColumn(columnName, expr(transform.replace("$c$", columnName)))
+            if dataType:
+                applyTransform = applyTransform and isinstance(sourceDataFrame.schema[columnName].dataType, dataType)
+            
+            columnPattern = tag.get("columnPattern")
+            if columnPattern:
+                applyTransform = applyTransform and bool(re.search(columnPattern, columnName, re.IGNORECASE))
+            
+            if applyTransform:
+                sourceDataFrame = sourceDataFrame.withColumn(columnName, expr(transform.replace("$c$", columnName)))                
+                if tag.get("continueProcessing", "Y") == "N":
+                    break
         
     return sourceDataFrame
 
