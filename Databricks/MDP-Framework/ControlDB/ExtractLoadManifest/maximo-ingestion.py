@@ -782,6 +782,14 @@ def ConfigureManifest(df):
     where systemCode in ('maximo')
     and SourceTableName in ('PERSONGROUP', 'PERSONGROUPTEAM', 'PM', 'RELATEDRECORD', 'WORKORDER', 'ASSET', 'LOCATIONS')
     """)
+    
+    #updating systemcode for 15min frequency load
+    ExecuteStatement("""
+    update dbo.extractLoadManifest set
+    systemCode = 'maximo|15Min'
+    where systemCode in ('maximo')
+    and SourceTableName in ('DOCLINKS', 'FAILUREREPORT', 'LABTRANS', 'LONGDESCRIPTION', 'MAXINTMSGTRK', 'MULTIASSETLOCCI', 'RELATEDRECORD', 'TICKET', 'SWCBUSSTATUS', 'SWCWOEXT', 'TOOLTRANS', 'WORKLOG', 'WORKORDER', 'WORKORDERSPEC', 'WOSTATUS')
+    """)
 
     # ------------- ShowConfig ----------------- #
     ShowConfig()
