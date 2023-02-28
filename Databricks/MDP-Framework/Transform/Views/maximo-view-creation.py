@@ -1,7 +1,7 @@
 # Databricks notebook source
 # DBTITLE 1,Input system code if run manually. sequence is cleansed views followed by curated views
 from pyspark.sql.functions import *
-dbutils.widgets.text("system_code","")
+dbutils.widgets.text("system_code","maximo")
 
 # COMMAND ----------
 
@@ -9,7 +9,7 @@ systemCode = dbutils.widgets.get("system_code")
 
 # COMMAND ----------
 
-dedupeList = ('RELATEDRECORD', 'PM', 'PERSONGROUP', 'PERSONGROUPTEAM', 'WORKORDER')
+dedupeList = ('RELATEDRECORD', 'PM', 'PERSONGROUP', 'PERSONGROUPTEAM', 'WORKORDER', 'ASSET', 'LOCATIONS')
 
 # COMMAND ----------
 

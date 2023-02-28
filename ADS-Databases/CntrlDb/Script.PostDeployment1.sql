@@ -11,6 +11,7 @@ USING (
         UNION SELECT 'IngestionSheet' [KeyGroup], 'Index' [Key], '0' [Value]
         UNION SELECT 'IngestionSheet' [KeyGroup], 'Limit' [Key], '0' [Value]
         UNION SELECT 'IngestionSheet' [KeyGroup], 'Path' [Key], 'testonly/labware_upload.csv' [Value]
+        UNION SELECT 'TriggerInterval' [KeyGroup], '15Min' [Key], 'maximo|15min' [Value]
     ) T
 )
 AS SRC ([KeyGroup],[Key],[Value],[CreatedDTS]) ON TGT.[KeyGroup] = SRC.[KeyGroup] AND TGT.[Key] = SRC.[Key]
