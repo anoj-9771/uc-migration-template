@@ -57,7 +57,13 @@ defaultSystemTransformTags = {
             "dataType" : TimestampType
             ,"transform": "sydneyts-to-utcts"
         }
-    ],    
+    ],
+     "labware": [
+        {
+            "dataType" : TimestampType
+            ,"transform": "sydneyts-to-utcts"
+        }
+    ],     
 } 
 
 # COMMAND ----------
