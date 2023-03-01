@@ -97,6 +97,10 @@ print(source_param)
 
 # COMMAND ----------
 
+source_param='{"SourceType": "BLOB Storage (csv)", "SourceServer": "daf-sa-lake-sastoken", "SourceGroup": "accessdata", "SourceName": "access_Z309_TPROPSERVFACI", "SourceLocation": "accessdata/Z309_TPROPSERVFACI", "AdditionalProperty": "", "Processor": "databricks-token|1103-023442-me8nqcm9|Standard_DS3_v2|8.3.x-scala2.12|2:8|interactive", "IsAuditTable": false, "SoftDeleteSource": "", "ProjectName": "CLEANSED DATA ACCESS", "ProjectId": 2, "TargetType": "BLOB Storage (csv)", "TargetName": "access_Z309_TPROPSERVFACI", "TargetLocation": "accessdata/Z309_TPROPSERVFACI", "TargetServer": "daf-sa-lake-sastoken", "DataLoadMode": "TRUNCATE-LOAD", "DeltaExtract": false, "CDCSource": false, "TruncateTarget": true, "UpsertTarget": false, "AppendTarget": false, "TrackChanges": false, "LoadToSqlEDW": true, "TaskName": "access_Z309_TPROPSERVFACI", "ControlStageId": 2, "TaskId": 40, "StageSequence": 200, "StageName": "Raw to Cleansed", "SourceId": 40, "TargetId": 40, "ObjectGrain": "Day", "CommandTypeId": 8, "Watermarks": "", "WatermarksDT": null, "WatermarkColumn": "", "BusinessKeyColumn": "N_PROP,C_SERV_TYPE", "PartitionColumn": null, "UpdateMetaData": null, "SourceTimeStampFormat": "", "Command": "/build/cleansed/accessdata/Z309_TPROPSERVFACI", "LastLoadedFile": null}'
+
+# COMMAND ----------
+
 # DBTITLE 1,5. Format the Parameters into JSON
 #5.Format the Source_param parameter value into JSON
 import json
@@ -165,7 +169,7 @@ print(delta_raw_tbl_name)
 
 # DBTITLE 1,10. Load to Cleanse Delta Table from Raw Delta Table
 #This method uses the source table to load data into target Delta Table
-DeltaSaveToDeltaTable (
+DeltaSaveToDeltaTable_Access (
     source_table = delta_raw_tbl_name,
     target_table = target_table,
     target_data_lake_zone = ADS_DATALAKE_ZONE_CLEANSED,

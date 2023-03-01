@@ -128,6 +128,7 @@ SELECT
       WHEN CURRENT_TIMESTAMP() BETWEEN effectiveDateRanges._effectiveFrom AND effectiveDateRanges._effectiveTo then 'Y'
       ELSE 'N'
       END AS currentFlag 
+    ,if(dimdevice._RecordDeleted = 0,'Y','N') AS currentRecordFlag
 FROM effectiveDateRanges as effectiveDateRanges
 LEFT OUTER JOIN curated_v2.dimDevice dimdevice
     ON dimdevice.deviceNumber = effectiveDateRanges.deviceNumber 

@@ -171,7 +171,8 @@ SELECT
     CASE
       WHEN CURRENT_TIMESTAMP() BETWEEN DR._effectiveFrom AND DR._effectiveTo then 'Y'
       ELSE 'N'
-    END AS currentFlag
+    END AS currentFlag,
+    if(BP._RecordDeleted = 0,'Y','N') AS currentRecordFlag 
 FROM effectiveDateRanges DR
 INNER JOIN curated_v2.dimbusinesspartner BP ON 
     DR.businessPartnerNumber = BP.businessPartnerNumber AND
@@ -184,7 +185,7 @@ INNER JOIN curated_v2.dimbusinesspartner BP ON
     BP.businessPartnerCategoryCode in ('1','2') AND
     DR._effectiveFrom <= BR._RecordEnd AND
     DR._effectiveTo >= BR._RecordStart AND
-    BP._recordDeleted = 0
+    BR._recordDeleted = 0
     --INNER JOIN curated_v2.dimbusinesspartnergroup BP2 ON 
     --BR.businessPartnerGroupSK = BP2.businessPartnerGroupSK AND
     --BP2.businessPartnerCategoryCode ='3' AND
@@ -543,7 +544,8 @@ FROM
         WHEN CURRENT_TIMESTAMP() BETWEEN DR._effectiveFrom
         AND DR._effectiveTo then 'Y'
         ELSE 'N'
-      END AS currentFlag
+      END AS currentFlag,
+      if(BPG._RecordDeleted = 0,'Y','N') AS currentRecordFlag 
     FROM
       effectiveDateRanges DR
       LEFT JOIN curated_v2.dimBusinessPartnerGroup BPG ON DR.businessPartnerGroupNumber = BPG.businessPartnerGroupNumber

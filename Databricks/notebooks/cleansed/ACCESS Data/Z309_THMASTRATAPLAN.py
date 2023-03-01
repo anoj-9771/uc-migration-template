@@ -165,7 +165,7 @@ print(delta_raw_tbl_name)
 
 # DBTITLE 1,10. Load to Cleanse Delta Table from Raw Delta Table
 #This method uses the source table to load data into target Delta Table
-DeltaSaveToDeltaTable (
+DeltaSaveToDeltaTable_Access (
     source_table = delta_raw_tbl_name,
     target_table = target_table,
     target_data_lake_zone = ADS_DATALAKE_ZONE_CLEANSED,
@@ -185,11 +185,11 @@ DeltaSaveToDeltaTable (
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
 df_cleansed = spark.sql(f"SELECT \
-	cast(N_MAST_PROP as int) as masterStratePropertyNumber, \
+	cast(N_MAST_PROP as int) as masterPropertyNumber, \
 	N_STRA_PLAN as strataPlanNumber, \
-	cast(Q_TOTA_PLAN_LOTS as int) as totalLotCount, \
+	cast(Q_TOTA_PLAN_LOTS as int) as numberOfLots, \
 	cast(Q_TOTA_UNIT_ENTI as int) as totalUnitEntitlement, \
-	ToValidDate(D_MAST_STRA_UPDA) as masterStrataPlanUpdatedDate, \
+	ToValidDate(D_MAST_STRA_UPDA) as masterStrataUpdatedDate, \
 	case when substr(T_TIME_SUPD,1,2) between '00' and '23' \
 			and substr(T_TIME_SUPD,3,2) between '00' and '59' \
 			and substr(T_TIME_SUPD,5,2) between '00' and '59' \
@@ -209,12 +209,12 @@ df_cleansed = spark.sql(f"SELECT \
 # COMMAND ----------
 
 newSchema = StructType([
-	StructField('masterStratePropertyNumber',IntegerType(),False),
-	StructField('strataPlanNumber',StringType(),True),
-	StructField('totalLotCount',IntegerType(),False),
-	StructField('totalUnitEntitlement',IntegerType(),False),
-	StructField('masterStrataPlanUpdatedDate',DateType(),True),
-	StructField('rowSupersededTimestamp',TimestampType(),True),
+    StructField('masterPropertyNumber',IntegerType(),False),
+    StructField('strataPlanNumber',StringType(),False),
+    StructField('numberOfLots',DecimalType(9,0),False),
+    StructField('totalUnitEntitlement',DecimalType(7,0),False),
+	StructField('masterStrataUpdatedDate',DateType(),True),
+    StructField('rowSupersededTimestamp',TimestampType(),True),
 	StructField('modifiedByProcess',StringType(),True),
 	StructField('modifiedByUserID',StringType(),True),
 	StructField('modifiedByTerminalID',StringType(),True),

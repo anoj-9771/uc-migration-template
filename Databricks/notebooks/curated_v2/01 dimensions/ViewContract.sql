@@ -123,6 +123,7 @@ SELECT
       WHEN CURRENT_TIMESTAMP() BETWEEN effectiveDateRanges._effectiveFrom AND effectiveDateRanges._effectiveTo then 'Y'
       ELSE 'N'
       END AS currentFlag
+    , if(dimContract._RecordDeleted = 0,'Y','N') AS currentRecordFlag 
 FROM effectiveDateRanges as effectiveDateRanges
 LEFT OUTER JOIN curated_v2.dimContract
     ON dimContract.contractId = effectiveDateRanges.contractId 

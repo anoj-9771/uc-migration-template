@@ -124,7 +124,8 @@ SELECT * FROM
         CASE
         WHEN CURRENT_TIMESTAMP() BETWEEN effectiveDateRanges._effectiveFrom AND effectiveDateRanges._effectiveTo then 'Y'
         ELSE 'N'
-        END AS currentFlag
+        END AS currentFlag,
+        if(dimInstallation._RecordDeleted = 0,'Y','N') AS currentRecordFlag 
     FROM effectiveDateRanges as effectiveDateRanges
     LEFT OUTER JOIN curated_v2.dimInstallation dimInstallation
         ON dimInstallation.installationNumber = effectiveDateRanges.installationNumber

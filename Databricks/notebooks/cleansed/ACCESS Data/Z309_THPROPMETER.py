@@ -168,7 +168,7 @@ print(delta_raw_tbl_name)
 
 # DBTITLE 1,10. Load to Cleanse Delta Table from Raw Delta Table
 #This method uses the source table to load data into target Delta Table
-DeltaSaveToDeltaTable (
+DeltaSaveToDeltaTable_Access (
     source_table = delta_raw_tbl_name,
     target_table = target_table,
     target_data_lake_zone = ADS_DATALAKE_ZONE_CLEANSED,

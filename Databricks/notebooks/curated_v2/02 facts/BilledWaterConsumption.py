@@ -49,7 +49,7 @@
 
 # COMMAND ----------
 
-# %run ../common/functions/commonBilledWaterConsumptionAccess
+# MAGIC %run ../common/functions/commonBilledWaterConsumptionAccess
 
 # COMMAND ----------
 
@@ -59,7 +59,7 @@
 
 # COMMAND ----------
 
-dbutils.widgets.text("Source System", "ISU")
+dbutils.widgets.text("Source System", "ISU & ACCESS")
 
 # COMMAND ----------
 
@@ -98,23 +98,23 @@ def isuConsumption():
 
 # COMMAND ----------
 
-# def accessConsumption():
-#     accessConsDf = getBilledWaterConsumptionAccess()
-#     isuConsDf = isuConsumption()
+def accessConsumption():
+    accessConsDf = getBilledWaterConsumptionAccess()
+    isuConsDf = isuConsumption()
         
-#     legacyConsDf = accessConsDf.select('propertyNumber', 'billingPeriodStartDate', 'billingPeriodEndDate') \
-#                            .subtract(isuConsDf.select('businessPartnerGroupNumber', 'billingPeriodStartDate', 'billingPeriodEndDate'))
+    legacyConsDf = accessConsDf.select('propertyNumber', 'billingPeriodStartDate', 'billingPeriodEndDate') \
+                           .subtract(isuConsDf.select('businessPartnerGroupNumber', 'billingPeriodStartDate', 'billingPeriodEndDate'))
 
-#     accessConsDf = accessConsDf.join(legacyConsDf, (legacyConsDf.propertyNumber == accessConsDf.propertyNumber) \
-#                                            & ((legacyConsDf.billingPeriodStartDate == accessConsDf.billingPeriodStartDate) \
-#                                            & (legacyConsDf.billingPeriodEndDate == accessConsDf.billingPeriodEndDate)), how="inner" ) \
-#                            .select(accessConsDf['*'])
+    accessConsDf = accessConsDf.join(legacyConsDf, (legacyConsDf.propertyNumber == accessConsDf.propertyNumber) \
+                                           & ((legacyConsDf.billingPeriodStartDate == accessConsDf.billingPeriodStartDate) \
+                                           & (legacyConsDf.billingPeriodEndDate == accessConsDf.billingPeriodEndDate)), how="inner" ) \
+                           .select(accessConsDf['*'])
     
-#     accessConsDf = accessConsDf.selectExpr("sourceSystemCode", "-1 as billingDocumentNumber", "-1 as billingDocumentLineItemId", \
-#                                 "PropertyNumber as businessPartnerGroupNumber", "meterNumber as equipmentNumber", "-1 as contractId", \
-#                                 "billingPeriodStartDate", "billingPeriodEndDate", \
-#                                 "meteredWaterConsumption")
-#     return accessConsDf
+    accessConsDf = accessConsDf.selectExpr("sourceSystemCode", "-1 as billingDocumentNumber", "-1 as billingDocumentLineItemId", \
+                                "PropertyNumber as businessPartnerGroupNumber", "deviceNumber as equipmentNumber", "-1 as contractId", \
+                                "billingPeriodStartDate", "billingPeriodEndDate", \
+                                "meteredWaterConsumption")
+    return accessConsDf
 
 # COMMAND ----------
 
@@ -478,6 +478,7 @@ if loadConsumption:
     dfAccess.write \
       .format("delta") \
       .mode("overwrite") \
+      .partitionBy("sourceSystemCode") \
       .option("replaceWhere", "sourceSystemCode = 'ACCESS'") \
       .option("overwriteSchema","true").saveAsTable("curated_v2.factBilledWaterConsumption")
     
@@ -485,12 +486,14 @@ if loadConsumption:
     dfISU.write \
       .format("delta") \
       .mode("overwrite") \
+      .partitionBy("sourceSystemCode") \
       .option("replaceWhere", "sourceSystemCode = 'ISU'") \
       .option("overwriteSchema","true").saveAsTable("curated_v2.factBilledWaterConsumption")
 else:
     df.write \
       .format("delta") \
       .mode("overwrite") \
+      .partitionBy("sourceSystemCode") \
       .option("replaceWhere", f"sourceSystemCode = '{source_system}'") \
       .option("overwriteSchema","true").saveAsTable("curated_v2.factBilledWaterConsumption")
     
@@ -507,7 +510,7 @@ verifyTableSchema(f"curated_v2.factBilledWaterConsumption", schema)
 
 # MAGIC %sql
 # MAGIC OPTIMIZE curated_v2.factBilledWaterConsumption
-# MAGIC WHERE sourceSystemCode = 'ISU'
+# MAGIC --WHERE sourceSystemCode = 'ISU'
 
 # COMMAND ----------
 

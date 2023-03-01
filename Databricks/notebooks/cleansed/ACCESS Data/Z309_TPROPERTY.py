@@ -71,11 +71,11 @@ spark = SparkSession.builder.getOrCreate()
 # DBTITLE 1,3. Define Widgets (Parameters) at the start
 #3.Define Widgets/Parameters
 #Initialise the Entity source_object to be passed to the Notebook
-dbutils.widgets.text("source_object", "", "Source Object")
+dbutils.widgets.text("source_object", f'access_{accessTable.lower()}', "Source Object")
 dbutils.widgets.text("start_counter", "", "Start Counter")
 dbutils.widgets.text("end_counter", "", "End Counter")
 dbutils.widgets.text("delta_column", "", "Delta Column")
-dbutils.widgets.text("source_param", "", "Param")
+dbutils.widgets.text("source_param", runParm, "Param")
 
 
 # COMMAND ----------
@@ -165,7 +165,7 @@ print(delta_raw_tbl_name)
 
 # DBTITLE 1,10. Load to Cleanse Delta Table from Raw Delta Table
 #This method uses the source table to load data into target Delta Table
-DeltaSaveToDeltaTable (
+DeltaSaveToDeltaTable_Access (
     source_table = delta_raw_tbl_name,
     target_table = target_table,
     target_data_lake_zone = ADS_DATALAKE_ZONE_CLEANSED,
@@ -184,7 +184,8 @@ DeltaSaveToDeltaTable (
 
 # DBTITLE 1,11. Update/Rename Columns and Load into a Dataframe
 #Update/rename Column
-df_cleansed = spark.sql(f"SELECT cast(N_PROP as int) AS propertyNumber, \
+df_cleansed = spark.sql(f"SELECT \
+        cast(N_PROP as int) AS propertyNumber, \
 		C_LGA AS LGACode, \
         b.LGA, \
 		C_PROP_TYPE AS propertyTypeCode, \

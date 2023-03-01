@@ -71,11 +71,11 @@ spark = SparkSession.builder.getOrCreate()
 # DBTITLE 1,3. Define Widgets (Parameters) at the start
 #3.Define Widgets/Parameters
 #Initialise the Entity source_object to be passed to the Notebook
-dbutils.widgets.text("source_object", "", "Source Object")
+dbutils.widgets.text("source_object", f'access_{accessTable.lower()}', "Source Object")
 dbutils.widgets.text("start_counter", "", "Start Counter")
 dbutils.widgets.text("end_counter", "", "End Counter")
 dbutils.widgets.text("delta_column", "", "Delta Column")
-dbutils.widgets.text("source_param", "", "Param")
+dbutils.widgets.text("source_param", runParm, "Param")
 
 
 # COMMAND ----------
@@ -165,7 +165,7 @@ print(delta_raw_tbl_name)
 
 # DBTITLE 1,10. Load to Cleanse Delta Table from Raw Delta Table
 #This method uses the source table to load data into target Delta Table
-DeltaSaveToDeltaTable (
+DeltaSaveToDeltaTable_Access (
     source_table = delta_raw_tbl_name,
     target_table = target_table,
     target_data_lake_zone = ADS_DATALAKE_ZONE_CLEANSED,
@@ -196,10 +196,10 @@ df_cleansed = spark.sql(f"SELECT \
             plt.lotType as lotType, \
             N_PORT AS portionNumber, \
             N_SUBD as subdivisionNumber, \
-            cast(Q_LOT_AREA as decimal(9,3)) AS areaSize, \
-            C_LOT_AREA_TYPE AS lotAreaType, \
+            cast(Q_LOT_AREA as decimal(9,3)) AS lotAreaSize, \
+            C_LOT_AREA_TYPE AS lotAreaSizeUnit, \
             M_PARI AS parishName, \
-            to_date(D_LOT_UPDA, 'yyyyMMdd') AS lotUpdatedDate, \
+            to_date(D_LOT_UPDA, 'yyyyMMdd') AS lotDetailsUpdatedDate, \
             l._RecordStart, \
             l._RecordEnd, \
             l._RecordDeleted, \
@@ -226,10 +226,10 @@ newSchema = StructType([
 	StructField('lotType',StringType(),True),
 	StructField('portionNumber',StringType(),True),
     StructField('subdivisionNumber',StringType(),True),
-    StructField('areaSize',DecimalType(9,3),False),
-    StructField('lotAreaType',StringType(),True),
+    StructField('lotAreaSize',DecimalType(9,3),False),
+    StructField('lotAreaSizeUnit',StringType(),True),
     StructField('parishName',StringType(),True),
-	StructField('lotUpdatedDate',DateType(),True),
+	StructField('lotDetailsUpdatedDate',DateType(),True),
     StructField('_RecordStart',TimestampType(),False),
     StructField('_RecordEnd',TimestampType(),False),
     StructField('_RecordDeleted',IntegerType(),False),

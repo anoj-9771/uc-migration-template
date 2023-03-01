@@ -54,7 +54,7 @@ SELECT * FROM
 SELECT
       dimContractAccount.contractAccountSK
      ,dimAccountBusinessPartner.accountBusinessPartnerSK
-     ,dimContractAccount.sourceSystemCode
+     ,coalesce(dimContractAccount.sourceSystemCode, dimAccountBusinessPartner.sourceSystemCode) as sourceSystemCode
      ,coalesce(dimContractAccount.contractAccountNumber, dimAccountBusinessPartner.contractAccountNumber, -1) as contractAccountNumber     
      ,dimContractAccount.legacyContractAccountNumber
      ,dimContractAccount.applicationAreaCode
@@ -135,6 +135,7 @@ SELECT
       WHEN CURRENT_TIMESTAMP() BETWEEN effectiveDateRanges._effectiveFrom AND effectiveDateRanges._effectiveTo then 'Y'
       ELSE 'N'
       END AS currentFlag
+      ,if(dimContractAccount._RecordDeleted = 0,'Y','N') AS currentRecordFlag
 FROM effectiveDateRanges as effectiveDateRanges
 LEFT OUTER JOIN curated_v2.dimContractAccount
   ON effectiveDateRanges.contractAccountNumber = dimContractAccount.contractAccountNumber

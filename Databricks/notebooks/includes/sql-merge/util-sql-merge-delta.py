@@ -552,6 +552,32 @@ def SQLMerge_DeltaTable_GenerateSQL(source_table_name, target_table_name, busine
 
 # COMMAND ----------
 
+def SQLMerge_DeltaTable_GenerateSQL_ACCESS(source_table_name, target_table_name, business_key, delta_column, start_counter, end_counter, is_delta_extract, data_load_mode, track_changes, target_data_lake_zone, delete_data = False):
+  
+  curr_time_stamp = GeneralLocalDateTime()
+  curr_time_stamp = str(curr_time_stamp.strftime("%Y-%m-%d %H:%M:%S"))
+  
+  query = f"SELECT * FROM {target_table_name} LIMIT 0"
+  df_col_list = spark.sql(query)
+  
+  sql_query = ""
+  if data_load_mode == ADS_WRITE_MODE_MERGE:
+    sql_query = _GenerateMergeSQL_DeltaTable(source_table_name, target_table_name, business_key, delta_column, start_counter, end_counter, is_delta_extract, track_changes, target_data_lake_zone, df_col_list, curr_time_stamp, delete_data)
+  else:
+    delta_column = COL_DL_RAW_LOAD
+    sql_query = _SQLInsertSyntax_DeltaTable_Insert_ACCESS(df_col_list, is_delta_extract, delta_column, curr_time_stamp, target_data_lake_zone, source_table_name, target_table_name)
+    
+  if data_load_mode == ADS_WRITE_MODE_OVERWRITE:
+      sql_query = sql_query.replace("INSERT INTO", "INSERT OVERWRITE") 
+  elif data_load_mode == ADS_WRITE_MODE_APPEND and target_data_lake_zone == ADS_DATABASE_CLEANSED:
+      print(f"Generating append query. Zone : {target_data_lake_zone}")
+      sql_query += f" WHERE date_trunc('Second', {COL_DL_RAW_LOAD}) >= to_timestamp('{start_counter}')" 
+    
+    
+  return sql_query
+
+# COMMAND ----------
+
 def _GenerateMergeSQL_DeltaTable(source_table_name, target_table_name, business_key, delta_column, start_counter, end_counter, is_delta_extract, track_changes, target_data_lake_zone, df_col_list, curr_time_stamp, delete_data = False):
   
   ALIAS_TABLE_SOURCE = "SRC"
@@ -757,6 +783,106 @@ def _SQLInsertSyntax_DeltaTable_Insert(dataframe, is_delta_extract, delta_column
   insert_merge_sql = _SQLInsertSyntax_DeltaTable_Generate(dataframe, is_delta_extract, delta_column, curr_time_stamp, target_data_lake_zone, source_table, target_table, True, False)
   
   return insert_merge_sql
+
+# COMMAND ----------
+
+def _SQLInsertSyntax_DeltaTable_Insert_ACCESS(dataframe, is_delta_extract, delta_column, curr_time_stamp, target_data_lake_zone, source_table, target_table):
+  #Generate SQL for INSERT
+  
+  #insert_merge_sql = _SQLInsertSyntax_DeltaTable_Generate(dataframe, is_delta_extract, delta_column, curr_time_stamp, target_data_lake_zone, source_table, target_table, True, False)
+
+  only_insert = True
+  delete_data = False
+
+  #Exclude the following columns from INSERT. We will add them with new values
+  if target_data_lake_zone == ADS_DATABASE_CLEANSED:
+    col_exception_list = [COL_RECORD_VERSION, COL_RECORD_START, COL_RECORD_END, COL_RECORD_CURRENT, COL_RECORD_DELETED]
+  elif target_data_lake_zone == ADS_DATABASE_CURATED:
+    col_exception_list = [COL_RECORD_VERSION, COL_RECORD_START, COL_RECORD_END, COL_RECORD_CURRENT, COL_RECORD_DELETED]
+  
+  delete_flag = 1 if delete_data else 0
+
+  #Chose the timestamp column based on data lake zone
+  if target_data_lake_zone == ADS_DATABASE_CLEANSED:
+    col_exception_list.append(COL_DL_CLEANSED_LOAD)
+    COL_TIMESTAMP = COL_DL_CLEANSED_LOAD
+  elif target_data_lake_zone == ADS_DATABASE_CURATED:
+    col_exception_list.append(COL_DL_CURATED_LOAD)
+    COL_TIMESTAMP = COL_DL_CURATED_LOAD
+
+#Start of Fix for Handling Null in Key Columns  
+  if target_data_lake_zone == ADS_DATABASE_CLEANSED:
+    business_key_inp =  Params[PARAMS_BUSINESS_KEY_COLUMN]
+    business_key_list = business_key_inp.split(",")
+    col_exception_list.extend(business_key_list) 
+
+  #Get the list of columns which does not include the exception list 
+  updated_col_list = _GetExclusiveList(dataframe.columns, col_exception_list)
+  updated_col_list.sort()
+  
+#End of Fix for Handling Null in Key Columns  
+  
+  sql_col = _GetSQLCollectiveColumnsFromColumnNames(updated_col_list, alias = "", func = "", column_qualifer = DELTA_COL_QUALIFER)
+#Start of Fix for Handling Null in Key Columns  
+
+  #sql_values = _GetSQLCollectiveColumnsFromColumnNames(updated_col_list, alias = "", func = "", column_qualifer = DELTA_COL_QUALIFER)
+  sql_values = sql_col
+  if target_data_lake_zone == ADS_DATABASE_CLEANSED:
+    business_key = _GetSQLCollectiveColumnsFromColumnNames(business_key_list, alias = "", func = "", column_qualifer = DELTA_COL_QUALIFER)
+
+  
+    if is_delta_extract:
+      business_key_tx_list = [item + "-TX" for item in business_key_list]
+      business_key_tx = _GetSQLCollectiveColumnsFromColumnNames(business_key_tx_list, alias = "", func = "", column_qualifer = DELTA_COL_QUALIFER)
+
+    if not is_delta_extract:
+      #Generating the sql string for the additional '-TX' coulmns
+      business_key_col = business_key.split(",")
+      business_key_col_list =["COALESCE(" + item + ", '') " for item in business_key_col]
+      business_key_tx = ",".join(business_key_col_list)
+
+    sql_col += f", {business_key}"
+    sql_values += f", {business_key_tx}"
+#End of Fix for Handling Null in Key Columns
+ 
+
+  #Add current timestamp column for data load
+  sql_col += f", {COL_TIMESTAMP}, "
+  sql_values += f", to_timestamp('{curr_time_stamp}'), "
+
+#Start of Fix for Handling Null in Key Columns  
+  #SCD columns
+###  col_record_start = delta_column if is_delta_extract else f"'{curr_time_stamp}'"
+  col_record_start = f"'{curr_time_stamp}'"
+  #sql_col += f"{COL_RECORD_START}, {COL_RECORD_END}, {COL_RECORD_DELETED}, {COL_RECORD_CURRENT}"
+  #sql_values += f"{col_record_start}, to_timestamp('9999-12-31 00:00:00'), {delete_flag}, 1"
+  if target_data_lake_zone == ADS_DATABASE_CLEANSED:
+    sql_col += f"{COL_RECORD_START}, {COL_RECORD_END}, {COL_RECORD_DELETED}, {COL_RECORD_CURRENT}"
+  elif target_data_lake_zone == ADS_DATABASE_CURATED:
+    sql_col += f"{COL_RECORD_START}, {COL_RECORD_END}, {COL_RECORD_DELETED}, {COL_RECORD_CURRENT}"
+###  if is_delta_extract:
+###  sql_values += f"to_timestamp(cast({col_record_start} as string), 'yyyyMMddHHmmss'), "
+  sql_values += f"to_timestamp('{curr_time_stamp}'), "
+###  else:
+###    sql_values += f"{col_record_start}, "
+  if target_data_lake_zone == ADS_DATABASE_CLEANSED:
+    sql_values += f"to_timestamp('9999-12-31 00:00:00'), {delete_flag}, 1"
+  elif target_data_lake_zone == ADS_DATABASE_CURATED:
+    sql_values += f"to_timestamp('9999-12-31 00:00:00'), {delete_flag}, 1"
+  #Build the INSERT SQL with column list and values list
+#   if not is_delta_extract and target_data_lake_zone == ADS_DATABASE_CLEANSED and only_insert:
+#     sql = f"INSERT INTO {target_table} ({sql_col}) SELECT {sql_values} FROM {source_table}" 
+#   else:
+#     sql = f"INSERT ({sql_col}) {NEW_LINE}VALUES ({sql_values})"
+  if not is_delta_extract and target_data_lake_zone == ADS_DATABASE_CLEANSED and only_insert:
+      sql = f"INSERT INTO {target_table} ({sql_col}) SELECT {sql_values} FROM {source_table}"
+  elif not is_delta_extract and target_data_lake_zone == ADS_DATABASE_CURATED and only_insert:
+      sql = f"INSERT INTO {target_table} ({sql_col}) SELECT {sql_values} FROM {source_table}"
+  else:
+      sql = f"INSERT ({sql_col}) {NEW_LINE}VALUES ({sql_values})"
+#End of Fix for Handling Null in Key Columns  
+      
+  return sql
 
 # COMMAND ----------
 

@@ -150,7 +150,8 @@
 # MAGIC     CASE
 # MAGIC       WHEN CURRENT_TIMESTAMP() BETWEEN effectiveDateRanges._effectiveFrom AND effectiveDateRanges._effectiveTo then 'Y'
 # MAGIC       ELSE 'N'
-# MAGIC       END AS currentFlag
+# MAGIC       END AS currentFlag,
+# MAGIC     if(dimProperty._RecordDeleted = 0,'Y','N') AS currentRecordFlag 
 # MAGIC from effectiveDateRanges as effectiveDateRanges
 # MAGIC left outer join curated_v2.dimProperty dimProperty
 # MAGIC         on dimproperty.propertynumber = effectiveDateRanges.propertyNumber 

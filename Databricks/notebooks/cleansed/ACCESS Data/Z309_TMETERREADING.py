@@ -177,7 +177,7 @@ print(delta_raw_tbl_name)
 tableReplace = ['',".replace('TMETERREADING','TMETEREADING_HISTORY')",".replace('TMETERREADING','TMETERREADING_BI')"]
 
 for replacement in tableReplace:
-    DeltaSaveToDeltaTable (
+    DeltaSaveToDeltaTable_Access (
         source_table = eval(repr(delta_raw_tbl_name) + replacement),
         target_table = eval(repr(target_table) + replacement),
         target_data_lake_zone = ADS_DATALAKE_ZONE_CLEANSED,

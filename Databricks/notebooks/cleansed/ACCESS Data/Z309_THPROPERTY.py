@@ -71,11 +71,11 @@ spark = SparkSession.builder.getOrCreate()
 # DBTITLE 1,3. Define Widgets (Parameters) at the start
 #3.Define Widgets/Parameters
 #Initialise the Entity source_object to be passed to the Notebook
-dbutils.widgets.text("source_object", "", "Source Object")
+dbutils.widgets.text("source_object", f'access_{accessTable.lower()}', "Source Object")
 dbutils.widgets.text("start_counter", "", "Start Counter")
 dbutils.widgets.text("end_counter", "", "End Counter")
 dbutils.widgets.text("delta_column", "", "Delta Column")
-dbutils.widgets.text("source_param", "", "Param")
+dbutils.widgets.text("source_param", runParm, "Param")
 
 
 # COMMAND ----------
@@ -170,7 +170,7 @@ print(delta_raw_tbl_name)
 
 # DBTITLE 1,10. Load to Cleanse Delta Table from Raw Delta Table
 #This method uses the source table to load data into target Delta Table
-DeltaSaveToDeltaTable (
+DeltaSaveToDeltaTable_Access (
     source_table = delta_raw_tbl_name,
     target_table = target_table,
     target_data_lake_zone = ADS_DATALAKE_ZONE_CLEANSED,
@@ -192,102 +192,102 @@ DeltaSaveToDeltaTable (
 # LGACode 225 was 
 df_cleansed = spark.sql(f"SELECT \
         cast(N_PROP as int) AS propertyNumber, \
-    C_LGA AS LGACode, \
-    ref1.LGA, \
-    C_PROP_TYPE AS propertyTypeCode, \
-    ref3.propertyType, \
-    ref3a.propertyTypeCode as superiorPropertyTypeCode, \
-    ref3a.propertyType as superiorPropertyType, \
-    case when D_PROP_TYPE_EFFE is not null \
-              then ToValidDate(D_PROP_TYPE_EFFE) \
-         when D_PROP_RATE_CANC is not null \
-              then ToValidDate(D_PROP_RATE_CANC) \
-              else ToValidDate(D_PROP_UPDA) \
-    end AS propertyTypeEffectiveFrom, \
-    C_RATA_TYPE AS rateabilityTypeCode, \
-    ref4.rateabilityType as rateabilityType, \
-    coalesce(cast(Q_RESI_PORT as decimal(5,0)),0) AS residentialPortionCount, \
-    case when F_RATE_INCL = 'R' \
-              then true \
-              else false \
-    end AS hasIncludedRatings, \
-    case when F_RATE_INCL = 'I' \
-              then true \
-              else false \
-    end AS isIncludedInOtherRating, \
-    case when F_VALU_INCL = 'Y' \
-              then true \
-              else false \
-    end AS hasIncludedValuations, \
-    case when F_METE_INCL = 'M' \
-              then true \
-              else false \
-    end AS meterServesOtherProperties, \
-    case when F_METE_INCL = 'L' \
-              then true \
-              else false \
-    end AS hasMeterOnOtherProperty, \
-    case when F_SPEC_METE_ALLO = '1' \
-              then true \
-              else false \
-    end AS hasSpecialMeterAllocation, \
-    case when F_FREE_SUPP = 'K' \
-              then true \
-              else false \
-    end AS hasKidneyFreeSupply, \
-    case when F_FREE_SUPP in ('Y','1') \
-              then true \
-              else false \
-    end AS hasNonKidneyFreeSupply, \
-    case when F_SPEC_PROP_DESC = '1' \
-              then true \
-              else false \
-    end AS hasSpecialPropertyDescription, \
-    C_SEWE_USAG_TYPE AS sewerUsageTypeCode, \
-    ref5.sewerUsageType as sewerUsageType, \
-    coalesce(cast(Q_PROP_METE as int),0) AS propertyMeterCount, \
-    coalesce(cast(Q_PROP_AREA as decimal(9,3)),0) AS propertyArea, \
-    C_PROP_AREA_TYPE AS propertyAreaTypeCode, \
-    ref6.propertyAreaType as propertyAreaType, \
-    coalesce(cast(A_PROP_PURC_PRIC as decimal(11,0)),0) AS purchasePrice, \
-    case when d_prop_sale_sett = '00000000' \
-              then null \
-         when D_PROP_SALE_SETT = '00181029' \
-              then ToValidDate('20181029') \
-              else ToValidDate(D_PROP_SALE_SETT) \
-    end AS settlementDate, \
-    ToValidDate(D_CNTR) AS contractDate, \
-    C_EXTR_LOT AS extractLotCode, \
-    ref7.extractLotDescription as extractLotDescription, \
-    ToValidDate(D_PROP_UPDA) AS propertyUpdatedDate, \
-    T_PROP_LOT AS lotDescription, \
-    ToValidDate(D_SUPD) as rowSupersededDate, \
-    T_TIME_SUPD as rowSupersededTime, \
-    C_USER_CREA AS createdByUserId, \
-    C_PLAN_CREA AS createdByPlan, \
-    ToValidDateTime(H_CREA) as createdTimestamp, \
-    case when substr(hex(c_user_modi),1,2) = '00' or c_user_modi = ' ' then null else C_USER_MODI end AS modifiedByUserId, \
-    C_PLAN_MODI AS modifiedByPlan, \
-    ToValidDateTime(H_MODI) as modifiedTimestamp, \
-	tbl.M_PROC as modifiedByProcess, \
-    case when substr(T_TIME_SUPD,1,2) between '00' and '23' \
-              and substr(T_TIME_SUPD,3,2) between '00' and '59' \
-              and substr(T_TIME_SUPD,5,2) between '00' and '59' \
-              then ToValidDateTime(tbl.D_SUPD||' '||substr(tbl.T_TIME_SUPD,1,6)) \
-              else ToValidDateTime(tbl.D_SUPD||' 120000') end as rowSupersededTimestamp, \
-	tbl._RecordStart, \
-	tbl._RecordEnd, \
-	tbl._RecordDeleted, \
-	tbl._RecordCurrent \
-	FROM {ADS_DATABASE_STAGE}.{source_object} tbl \
-                left outer join cleansed.access_Z309_TLOCALGOVT ref1 on tbl.C_LGA = ref1.LGACode and ref1._RecordCurrent = 1 \
-                left outer join cleansed.access_Z309_TPROPTYPE ref3 on tbl.C_PROP_TYPE = ref3.propertyTypeCode and ref3._RecordCurrent = 1 \
-                left outer join cleansed.access_Z309_TPropType ref3a on ref3.superiorPropertyTypeCode = ref3a.propertyTypeCode and ref3a._RecordCurrent = 1 \
-                left outer join cleansed.access_Z309_TRATATYPE ref4 on tbl.C_RATA_TYPE = ref4.rateabilityTypeCode and ref4._RecordCurrent = 1 \
-                left outer join cleansed.access_Z309_TSEWEUSAGETYPE ref5 on tbl.C_SEWE_USAG_TYPE = ref5.sewerUsageTypeCode and ref5._RecordCurrent = 1 \
-                left outer join cleansed.access_Z309_TPROPAREATYPE ref6 on tbl.C_PROP_AREA_TYPE = ref6.propertyAreaTypeCode and ref6._RecordCurrent = 1 \
-                left outer join cleansed.access_Z309_TEXTRACTLOT ref7 on tbl.C_EXTR_LOT = ref7.extractLotCode and ref7._RecordCurrent = 1 \
-                                ")
+        C_LGA AS LGACode, \
+        ref1.LGA, \
+        C_PROP_TYPE AS propertyTypeCode, \
+        ref3.propertyType, \
+        ref3a.propertyTypeCode as superiorPropertyTypeCode, \
+        ref3a.propertyType as superiorPropertyType, \
+        case when D_PROP_TYPE_EFFE is not null \
+                then ToValidDate(D_PROP_TYPE_EFFE) \
+           when D_PROP_RATE_CANC is not null \
+                then ToValidDate(D_PROP_RATE_CANC) \
+                else ToValidDate(D_PROP_UPDA) \
+        end AS propertyTypeEffectiveFrom, \
+        C_RATA_TYPE AS rateabilityTypeCode, \
+        ref4.rateabilityType as rateabilityType, \
+        coalesce(cast(Q_RESI_PORT as decimal(5,0)),0) AS residentialPortionCount, \
+        case when F_RATE_INCL = 'R' \
+                then true \
+                else false \
+        end AS hasIncludedRatings, \
+        case when F_RATE_INCL = 'I' \
+                then true \
+                else false \
+        end AS isIncludedInOtherRating, \
+        case when F_VALU_INCL = 'Y' \
+                then true \
+                else false \
+        end AS hasIncludedValuations, \
+        case when F_METE_INCL = 'M' \
+                then true \
+                else false \
+        end AS meterServesOtherProperties, \
+        case when F_METE_INCL = 'L' \
+                then true \
+                else false \
+        end AS hasMeterOnOtherProperty, \
+        case when F_SPEC_METE_ALLO = '1' \
+                then true \
+                else false \
+        end AS hasSpecialMeterAllocation, \
+        case when F_FREE_SUPP = 'K' \
+                then true \
+                else false \
+        end AS hasKidneyFreeSupply, \
+        case when F_FREE_SUPP in ('Y','1') \
+                then true \
+                else false \
+        end AS hasNonKidneyFreeSupply, \
+        case when F_SPEC_PROP_DESC = '1' \
+                then true \
+                else false \
+        end AS hasSpecialPropertyDescription, \
+        C_SEWE_USAG_TYPE AS sewerUsageTypeCode, \
+        ref5.sewerUsageType as sewerUsageType, \
+        coalesce(cast(Q_PROP_METE as int),0) AS propertyMeterCount, \
+        coalesce(cast(Q_PROP_AREA as decimal(9,3)),0) AS propertyArea, \
+        C_PROP_AREA_TYPE AS propertyAreaTypeCode, \
+        ref6.propertyAreaType as propertyAreaType, \
+        coalesce(cast(A_PROP_PURC_PRIC as decimal(11,0)),0) AS purchasePrice, \
+        case when d_prop_sale_sett = '00000000' \
+                then null \
+           when D_PROP_SALE_SETT = '00181029' \
+                then ToValidDate('20181029') \
+                else ToValidDate(D_PROP_SALE_SETT) \
+        end AS settlementDate, \
+        ToValidDate(D_CNTR) AS contractDate, \
+        C_EXTR_LOT AS extractLotCode, \
+        ref7.extractLotDescription as extractLotDescription, \
+        ToValidDate(D_PROP_UPDA) AS propertyUpdatedDate, \
+        T_PROP_LOT AS lotDescription, \
+        ToValidDate(D_SUPD) as rowSupersededDate, \
+        T_TIME_SUPD as rowSupersededTime, \
+        C_USER_CREA AS createdByUserId, \
+        C_PLAN_CREA AS createdByPlan, \
+        ToValidDateTime(H_CREA) as createdTimestamp, \
+        case when substr(hex(c_user_modi),1,2) = '00' or c_user_modi = ' ' then null else C_USER_MODI end AS modifiedByUserId, \
+        C_PLAN_MODI AS modifiedByPlan, \
+        ToValidDateTime(H_MODI) as modifiedTimestamp, \
+        tbl.M_PROC as modifiedByProcess, \
+        case when substr(T_TIME_SUPD,1,2) between '00' and '23' \
+                and substr(T_TIME_SUPD,3,2) between '00' and '59' \
+                and substr(T_TIME_SUPD,5,2) between '00' and '59' \
+                then ToValidDateTime(tbl.D_SUPD||' '||substr(tbl.T_TIME_SUPD,1,6)) \
+                else ToValidDateTime(tbl.D_SUPD||' 120000') end as rowSupersededTimestamp, \
+        tbl._RecordStart, \
+        tbl._RecordEnd, \
+        tbl._RecordDeleted, \
+        tbl._RecordCurrent \
+        FROM {ADS_DATABASE_STAGE}.{source_object} tbl \
+                  left outer join cleansed.access_Z309_TLOCALGOVT ref1 on tbl.C_LGA = ref1.LGACode and ref1._RecordCurrent = 1 \
+                  left outer join cleansed.access_Z309_TPROPTYPE ref3 on tbl.C_PROP_TYPE = ref3.propertyTypeCode and ref3._RecordCurrent = 1 \
+                  left outer join cleansed.access_Z309_TPropType ref3a on ref3.superiorPropertyTypeCode = ref3a.propertyTypeCode and ref3a._RecordCurrent = 1 \
+                  left outer join cleansed.access_Z309_TRATATYPE ref4 on tbl.C_RATA_TYPE = ref4.rateabilityTypeCode and ref4._RecordCurrent = 1 \
+                  left outer join cleansed.access_Z309_TSEWEUSAGETYPE ref5 on tbl.C_SEWE_USAG_TYPE = ref5.sewerUsageTypeCode and ref5._RecordCurrent = 1 \
+                  left outer join cleansed.access_Z309_TPROPAREATYPE ref6 on tbl.C_PROP_AREA_TYPE = ref6.propertyAreaTypeCode and ref6._RecordCurrent = 1 \
+                  left outer join cleansed.access_Z309_TEXTRACTLOT ref7 on tbl.C_EXTR_LOT = ref7.extractLotCode and ref7._RecordCurrent = 1 \
+                                  ")
 
 # COMMAND ----------
 

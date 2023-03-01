@@ -3,63 +3,8 @@
 -- Description: viewDeviceCharacteristics
 CREATE OR REPLACE VIEW curated_v2.viewDeviceCharacteristics AS
 
-WITH DeviceCharacteristicsDateRanges AS (
-         SELECT DISTINCT
-             deviceNumber,
-             characteristicInternalId,
-             classifiedEntityType,
-             classTypeCode,
-             archivingObjectsInternalId,
-             _recordStart, 
-             _recordEnd,
-             COALESCE( LEAD( _recordStart, 1 ) OVER( PARTITION BY 
-                       deviceNumber,
-                       characteristicInternalId,
-                       classifiedEntityType,
-                       classTypeCode,
-                       archivingObjectsInternalId ORDER BY _recordStart ), 
-                      CASE WHEN _recordEnd < cast('9999-12-31T23:59:59' as timestamp) then _recordEnd + INTERVAL 1 SECOND else _recordEnd end) AS _newRecordEnd 
-         FROM curated_v2.dimDeviceCharacteristics --WHERE _recordDeleted = 0
-     ),
-     
-dateDriver AS
-(
-                SELECT deviceNumber,
-                       characteristicInternalId,
-                       classifiedEntityType,
-                       classTypeCode,
-                       archivingObjectsInternalId, 
-                       _recordStart from DeviceCharacteristicsDateRanges
-                UNION
-                SELECT deviceNumber,
-                       characteristicInternalId,
-                       classifiedEntityType,
-                       classTypeCode,
-                       archivingObjectsInternalId,
-                      _newRecordEnd as _recordStart from DeviceCharacteristicsDateRanges
-),
-
-effectiveDateRanges AS
-(
-                SELECT 
-                       deviceNumber,
-                       characteristicInternalId,
-                       classifiedEntityType,
-                       classTypeCode,
-                       archivingObjectsInternalId, 
-                _recordStart AS _effectiveFrom,
-                COALESCE( LEAD( _recordStart, 1 ) OVER( PARTITION BY 
-                                                        deviceNumber,
-                                                         characteristicInternalId,
-                                                         classifiedEntityType,
-                                                         classTypeCode,
-                                                         archivingObjectsInternalId ORDER BY _recordStart ) - INTERVAL 1 SECOND, 
-                                                          cast( '9999-12-31T23:59:59' as timestamp ) ) AS _effectiveTo                           
-                FROM dateDriver where _recordStart < cast('9999-12-31T23:59:59' as timestamp)                            
-)            
-
 SELECT deviceNumber,classifiedEntityType,classTypeCode,classType,archivingObjectsInternalId,max(meterGridLocationInternalId) as meterGridLocationInternalId,	max(meterGridLocationCode) as meterGridLocationCode,	max(meterGridLocation) as meterGridLocation,	max(meterReadLocationInternalId) as meterReadLocationInternalId,	max(meterReadLocationCode) as meterReadLocationCode,	max(meterReadLocation) as meterReadLocation,	max(commonAreaMeterInternalId) as commonAreaMeterInternalId,	max(commonAreaMeterCode) as commonAreaMeterCode,	max(commonAreaMeter) as commonAreaMeter,	max(meterLocationLevelInternalId) as meterLocationLevelInternalId,	max(meterLocationLevelCode) as meterLocationLevelCode,	max(meterLocationLevel) as meterLocationLevel,	max(meterLocationInternalId) as meterLocationInternalId,	max(meterLocationCode) as meterLocationCode,	max(meterLocation) as meterLocation,	max(meterPropertyPositionInternalId) as meterPropertyPositionInternalId,	max(meterPropertyPositionId) as meterPropertyPositionId,	max(meterPropertyPosition) as meterPropertyPosition,	max(meterReadGridLocationInternalId) as meterReadGridLocationInternalId,	max(meterReadGridLocationCode) as meterReadGridLocationCode,	max(meterReadGridLocation) as meterReadGridLocation,	max(RFDeviceModelInternalId) as RFDeviceModelInternalId,	max(RFDeviceModelCode) as RFDeviceModelCode,	max(RFDeviceModel) as RFDeviceModel,	max(RFDeviceMakerInternalId) as RFDeviceMakerInternalId,	max(RFDeviceMakerCode) as RFDeviceMakerCode,	max(RFDeviceMaker) as RFDeviceMaker,	max(RFIDInternalId) as RFIDInternalId,	max(RFID) as RFID,	max(RFIDDescription) as RFIDDescription,	max(warningNotesInternalId) as warningNotesInternalId,	max(warningNotes) as warningNotes,	max(warningDescription) as warningDescription,	max(meterAccessNoteInternalId) as meterAccessNoteInternalId,	max(meterAccessNoteCode) as meterAccessNoteCode,	max(meterAccessNote) as meterAccessNote,	max(meterReadingInternalId) as meterReadingInternalId,	max(meterReadingNote) as meterReadingNote,	max(meterReadingNoteDescription) as meterReadingNoteDescription,	max(meterServesInternalId) as meterServesInternalId,	max(meterServesCode) as meterServesCode,	max(meterServes) as meterServes,	max(SOCommentsInternalId) as SOCommentsInternalId,	max(SOComments) as SOComments,	max(SODescription) as SODescription,	max(commentsCodeInternalId) as commentsCodeInternalId,	max(commentsCode) as commentsCode,	max(comments) as comments,	max(meterCompleteNotesInternalId) as meterCompleteNotesInternalId,	max(meterCompleteNotes) as meterCompleteNotes,	max(meterCompleteNotesDescription) as meterCompleteNotesDescription,	max(simItemNumberInternalId) as simItemNumberInternalId,	max(simItemNumber) as simItemNumber,	max(simItem) as simItem,	max(ProjectNumberInternalId) as ProjectNumberInternalId,	max(ProjectNumber) as ProjectNumber,	max(Project) as Project,	max(IOTFirmwareInternalId) as IOTFirmwareInternalId,	max(IOTFirmwareCode) as IOTFirmwareCode,	max(IOTFirmware) as IOTFirmware,	max(additionalInformationInternalId) as additionalInformationInternalId,	max(additionalInformationCode) as additionalInformationCode,	max(additionalInformationDescription) as additionalInformationDescription,	max(cantDoCodeInternalId) as cantDoCodeInternalId,	max(cantDoCode) as cantDoCode,	max(cantDoDescription) as cantDoDescription,	max(barcodeInternalId) as barcodeInternalId,	max(barcode) as barcode,	max(barcodeDescription) as barcodeDescription,	max(centralisedHotwaterInternalId) as centralisedHotwaterInternalId,	max(centralisedHotwaterCode) as centralisedHotwaterCode,	max(centralisedHotwater) as centralisedHotwater,	max(mlimSystemInternalId) as mlimSystemInternalId,	max(mlimSystemCode) as mlimSystemCode,	max(mlimSystem) as mlimSystem,	max(siteIdInternalId) as siteIdInternalId,	max(siteId) as siteId,	max(siteIdDescription) as siteIdDescription,	max(tapTestedInternalId) as tapTestedInternalId,	max(tapTestedCode) as tapTestedCode,	max(tapTested) as tapTested,	max(IOTTypeInternalId) as IOTTypeInternalId,	max(IOTTypeCode) as IOTTypeCode,	max(IOTType) as IOTType,	max(IOTNetworkInternalId) as IOTNetworkInternalId,	max(IOTNetworkCode) as IOTNetworkCode,	max(IOTNetwork) as IOTNetwork,	max(IOTNetworkProviderInternalId) as IOTNetworkProviderInternalId,	max(IOTNetworkProviderCode) as IOTNetworkProviderCode,	max(IOTNetworkProvider) as IOTNetworkProvider,	max(IOTPressureSensorInternalId) as IOTPressureSensorInternalId,	max(IOTPressureSensorCode) as IOTPressureSensorCode,	max(IOTPressureSensor) as IOTPressureSensor,	max(IOTProgramCategoryInternalId) as IOTProgramCategoryInternalId,	max(IOTProgramCategoryCode) as IOTProgramCategoryCode,	max(IOTProgramCategory) as IOTProgramCategory,	max(IOTProgramCategory2InternalId) as IOTProgramCategory2InternalId,	max(IOTProgramCategory2Code) as IOTProgramCategory2Code,	max(IOTProgramCategory2) as IOTProgramCategory2,	max(IOTProgramCategory3InternalId) as IOTProgramCategory3InternalId,	max(IOTProgramCategory3Code) as IOTProgramCategory3Code,	max(IOTProgramCategory3) as IOTProgramCategory3,	max(IOTMeterInternalId) as IOTMeterInternalId,	max(IOTMeterCode) as IOTMeterCode,	max(IOTMeter) as IOTMeter,	max(meterGPSSourceInternalId) as meterGPSSourceInternalId,	max(meterGPSSourceCode) as meterGPSSourceCode,	max(meterGPSSource) as meterGPSSource,	max(meterCouplingInternalId) as meterCouplingInternalId,	max(meterCouplingCode) as meterCouplingCode,	max(meterCoupling) as meterCoupling,	max(IOTRadioModelInternalId) as IOTRadioModelInternalId,	max(IOTRadioModelCode) as IOTRadioModelCode,	max(IOTRadioModel) as IOTRadioModel,	max(pulseSensorInternalId) as pulseSensorInternalId,	max(pulseSensorCode) as pulseSensorCode,	max(pulseSensor) as pulseSensor,	max(pulseSplitterInternalId) as pulseSplitterInternalId,	max(pulseSplitterCode) as pulseSplitterCode,	max(pulseSplitter) as pulseSplitter,	max(meterLocationGPSLatitudeInternalId) as meterLocationGPSLatitudeInternalId,	max(meterLocationGPSLatitude) as meterLocationGPSLatitude,	max(meterLocationGPSLongitudeInternalId) as meterLocationGPSLongitudeInternalId,	max(meterLocationGPSLongitude) as meterLocationGPSLongitude,	max(meterReadGPSLatitudeInternalId) as meterReadGPSLatitudeInternalId,	max(meterReadGPSLatitude) as meterReadGPSLatitude,	max(meterReadGPSLongitudeInternalId) as meterReadGPSLongitudeInternalId,	max(meterReadGPSLongitude) as meterReadGPSLongitude,	max(meterOffsetInternalId) as meterOffsetInternalId,	max(meterOffset) as meterOffset,	max(IOTMultiplierInternalId) as IOTMultiplierInternalId,	max(IOTMultiplier) as IOTMultiplier,	max(IOTHighDailyConsumptionInternalId) as IOTHighDailyConsumptionInternalId,	max(IOTHighDailyConsumption) as IOTHighDailyConsumption,	max(IOTLeakAlarmThresholdInternalId) as IOTLeakAlarmThresholdInternalId,	max(IOTLeakAlarmThreshold) as IOTLeakAlarmThreshold,	max(numberOfBedroomsInternalId) as numberOfBedroomsInternalId,	max(numberOfBedrooms) as numberOfBedrooms,	max(certificateDateInternalId) as certificateDateInternalId,	max(certificateDate) as certificateDate,	max(IOTRadioFitDateInternalId) as IOTRadioFitDateInternalId,	max(IOTRadioFitDate) as IOTRadioFitDate,	max(meterGPSCapturedDateInternalId) as meterGPSCapturedDateInternalId,	max(meterGPSCapturedDate) as meterGPSCapturedDate,	max(totalRevenueCostInternalId) as totalRevenueCostInternalId,	max(totalRevenueCost) as totalRevenueCost,
- max(_effectiveFrom) as _effectiveFrom , max(_effectiveTo) as _effectiveTo ,currentFlag
+ max(_effectiveFrom) as _effectiveFrom , max(_effectiveTo) as _effectiveTo,currentFlag,currentRecordFlag 
 from 
 (
 SELECT
@@ -215,26 +160,26 @@ SELECT
     , CASE WHEN characteristicName in ('METER_GPS_DATE_CAPTURED') THEN characteristicValueMaximumDate ELSE NULL END AS meterGPSCapturedDate
     , CASE WHEN characteristicName in ('TOTAL_REVENUE_COST') THEN dimDeviceCharacteristics.characteristicInternalId ELSE NULL END AS totalRevenueCostInternalId
     , CASE WHEN characteristicName in ('TOTAL_REVENUE_COST') THEN currencyMaximumValue ELSE NULL END AS totalRevenueCost
-    , effectiveDateRanges._effectiveFrom as _effectiveFrom
-    , effectiveDateRanges._effectiveTo as _effectiveTo
-    , dimDeviceCharacteristics._recordDeleted as _dimDeviceCharacteristicsRecordDeleted
-    , dimDeviceCharacteristics._recordCurrent as _dimDeviceCharacteristicsRecordCurrent
+    , dimDeviceCharacteristics._RecordStart as _effectiveFrom
+    , dimDeviceCharacteristics._RecordEnd as _effectiveTo
+    --, dimDeviceCharacteristics._recordDeleted as _dimDeviceCharacteristicsRecordDeleted
+    --, dimDeviceCharacteristics._recordCurrent as _dimDeviceCharacteristicsRecordCurrent
     ,CASE
-      WHEN CURRENT_DATE() BETWEEN effectiveDateRanges._effectiveFrom AND effectiveDateRanges._effectiveTo then 'Y'
+      WHEN CURRENT_DATE() BETWEEN dimDeviceCharacteristics._RecordStart AND dimDeviceCharacteristics._RecordEnd then 'Y'
       ELSE 'N'
       END AS currentFlag
-FROM effectiveDateRanges as effectiveDateRanges
-LEFT OUTER JOIN curated_v2.dimDeviceCharacteristics
-  ON effectiveDateRanges.deviceNumber = dimDeviceCharacteristics.deviceNumber
-        AND effectiveDateRanges.characteristicInternalId = dimDeviceCharacteristics.characteristicInternalId
-        AND effectiveDateRanges.classifiedEntityType = dimDeviceCharacteristics.classifiedEntityType
-        AND effectiveDateRanges.classTypeCode = dimDeviceCharacteristics.classTypeCode
-        AND effectiveDateRanges.archivingObjectsInternalId = dimDeviceCharacteristics.archivingObjectsInternalId
-        AND effectiveDateRanges._effectiveFrom <= dimDeviceCharacteristics._RecordEnd
-        AND effectiveDateRanges._effectiveTo >= dimDeviceCharacteristics._RecordStart 
-        AND dimDeviceCharacteristics._recordDeleted = 0
+    ,if(dimDeviceCharacteristics._RecordDeleted = 0,'Y','N') AS currentRecordFlag 
+FROM  curated_v2.dimDeviceCharacteristics
+  --ON effectiveDateRanges.deviceNumber = dimDeviceCharacteristics.deviceNumber
+   --     AND effectiveDateRanges.characteristicInternalId = dimDeviceCharacteristics.characteristicInternalId
+     --   AND effectiveDateRanges.classifiedEntityType = dimDeviceCharacteristics.classifiedEntityType
+     --   AND effectiveDateRanges.classTypeCode = dimDeviceCharacteristics.classTypeCode
+     --   AND effectiveDateRanges.archivingObjectsInternalId = dimDeviceCharacteristics.archivingObjectsInternalId
+     --   AND effectiveDateRanges._effectiveFrom <= dimDeviceCharacteristics._RecordEnd
+      --  AND effectiveDateRanges._effectiveTo >= dimDeviceCharacteristics._RecordStart 
+       -- A dimDeviceCharacteristics._recordDeleted = 0
 )
-group by  deviceNumber,classifiedEntityType,classTypeCode,classType,archivingObjectsInternalId,currentFlag
+group by  deviceNumber,classifiedEntityType,classTypeCode,classType,archivingObjectsInternalId,currentFlag,currentRecordFlag
 ORDER BY _effectiveFrom
 
 -- COMMAND ----------

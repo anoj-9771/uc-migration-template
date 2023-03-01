@@ -12,27 +12,28 @@
 
 # COMMAND ----------
 
-# FOLLOWING TABLE TO BE CREATED MANUALLY FIRST TIME LOADING AFTER THE TABLE CLEANUP
+# %sql
+#FOLLOWING TABLE TO BE CREATED MANUALLY FIRST TIME LOADING AFTER THE TABLE CLEANUP
 # CREATE TABLE `curated_v2`.`factMonthlyApportionedConsumption` (
 #   `sourceSystemCode` STRING NOT NULL,
 #   `consumptionYear` INT NOT NULL,
 #   `consumptionMonth` INT NOT NULL,
 #   `billingPeriodStartDate` DATE NOT NULL,
 #   `billingPeriodEndDate` DATE NOT NULL,
-#   `meterActiveStartDate` DATE NOT NULL,
-#   `meterActiveEndDate` DATE NOT NULL,
 #   `firstDayOfMeterActiveMonth` DATE NOT NULL,
 #   `lastDayOfMeterActiveMonth` DATE NOT NULL,
 #   `meterActiveMonthStartDate` DATE NOT NULL,
 #   `meterActiveMonthEndDate` DATE NOT NULL,
 #   `meterConsumptionBillingDocumentSK` STRING NOT NULL,
-#   `meterConsumptionBillingLineItemSK` STRING NOT NULL,
 #   `propertySK` STRING NOT NULL,
 #   `deviceSK` STRING NOT NULL,
 #   `locationSK` STRING NOT NULL,
 #   `businessPartnerGroupSK` STRING NOT NULL,
 #   `contractSK` STRING NOT NULL,
-#   `totalMeterActiveDaysPerMonth` INT NOT NULL,
+#   `totalMeteredWaterConsumption` DECIMAL(24,12),
+#   `totalMeterActiveDays` INT,
+#   `avgMeteredWaterConsumption` DECIMAL(24,12),
+#   `totalMeterActiveDaysPerMonth` INT,
 #   `monthlyApportionedConsumption` DECIMAL(24,12),
 #   `_DLCuratedZoneTimeStamp` TIMESTAMP NOT NULL,
 #   `_RecordStart` TIMESTAMP NOT NULL,
@@ -58,7 +59,7 @@
 
 # COMMAND ----------
 
-# %run ../common/functions/commonBilledWaterConsumptionAccess
+# MAGIC %run ../common/functions/commonBilledWaterConsumptionAccess
 
 # COMMAND ----------
 
@@ -68,7 +69,7 @@
 
 # COMMAND ----------
 
-dbutils.widgets.text("Source System", "ISU")
+dbutils.widgets.text("Source System", "ISU & ACCESS")
 
 # COMMAND ----------
 
@@ -88,34 +89,44 @@ print(f"Load both Sources = {loadConsumption}")
 # COMMAND ----------
 
 import pyspark.sql.functions as F
+import pyspark.sql.window
 
 # COMMAND ----------
 
 def isuConsumption():
     isuConsDf = getBilledWaterConsumptionIsu()
-    isuConsDf = isuConsDf.select("sourceSystemCode", "billingDocumentNumber", "billingDocumentLineItemId", \
+    isuConsDf = isuConsDf.select("sourceSystemCode", "billingDocumentNumber", \
                                   "businessPartnerGroupNumber", "equipmentNumber", "contractID", \
                                   "billingPeriodStartDate", "billingPeriodEndDate", \
                                   "validFromDate", "validToDate", \
-                                  (datediff("validToDate", "validFromDate") + 1).alias("meterActiveDays"), \
                                   "meteredWaterConsumption") \
-                            .withColumnRenamed("validFromDate", "meterActiveStartDate") \
-                            .withColumnRenamed("validToDate", "meterActiveEndDate")
-    isuConsDfAgg = isuConsDf.groupby("sourceSystemCode", "billingDocumentNumber", "billingPeriodStartDate", "billingPeriodEndDate", "equipmentNumber") \
-                            .agg(sum("meterActiveDays").alias("totalMeterActiveDays") \
-                                  ,sum("meteredWaterConsumption").alias("totalMeteredWaterConsumption")) 
-    isuConsDf = isuConsDf.join(isuConsDfAgg, (isuConsDf.sourceSystemCode == isuConsDfAgg.sourceSystemCode) \
-                               & (isuConsDf.billingDocumentNumber == isuConsDfAgg.billingDocumentNumber) \
-                               & (isuConsDf.billingPeriodStartDate == isuConsDfAgg.billingPeriodStartDate) \
-                               & (isuConsDf.billingPeriodEndDate == isuConsDfAgg.billingPeriodEndDate) \
-                               & (isuConsDf.equipmentNumber == isuConsDfAgg.equipmentNumber), how="left") \
-                         .select(isuConsDf['*'], isuConsDfAgg['totalMeterActiveDays'], isuConsDfAgg['totalMeteredWaterConsumption']) \
-                         .selectExpr("sourceSystemCode", "billingDocumentNumber", "billingDocumentLineItemId", \
+                         .withColumnRenamed("validFromDate", "meterActiveStartDate") \
+                         .withColumnRenamed("validToDate", "meterActiveEndDate")
+    return isuConsDf
+
+# COMMAND ----------
+
+# isuConsDf = isuConsumption()
+# isuConsDf.write.mode("Overwrite").saveAsTable("tempBilledCons")
+# df = spark.sql("""select * from tempBilledCons""")
+df = isuConsumption()
+partition = Window.partitionBy("billingDocumentNumber", "businessPartnerGroupNumber", "equipmentNumber", "billingperiodStartDate", "billingPeriodEndDate").orderBy("meterActiveStartDate", "meterActiveEndDate").rowsBetween(Window.unboundedPreceding, -1)
+df = df.withColumn("maxEndDate", max("meterActiveEndDate").over(partition))
+df = df.selectExpr("*", "case when meterActiveStartDate > maxEndDate then 1 else 0 end as groupStarts")
+partition = Window.partitionBy("billingDocumentNumber", "businessPartnerGroupNumber", "equipmentNumber", "billingperiodStartDate", "billingPeriodEndDate").orderBy("meterActiveStartDate", "meterActiveEndDate")
+df = df.withColumn("group", sum("groupStarts").over(partition))
+df = df.groupBy("sourceSystemCode", "billingDocumentNumber", "businessPartnerGroupNumber", "equipmentNumber", "contractId", "billingperiodStartDate", "billingPeriodEndDate", "group") \
+                .agg(min("meterActiveStartDate").alias("meterActiveStartDate"), \
+                     max("meterActiveEndDate").alias("meterActiveEndDate"), \
+                     sum("meteredWaterConsumption").alias("meteredWaterConsumption"))
+df = df.selectExpr("sourceSystemCode", "billingDocumentNumber", \
                                   "businessPartnerGroupNumber", "equipmentNumber", "contractId", \
                                   "billingPeriodStartDate", "billingPeriodEndDate", \
                                   "meterActiveStartDate", "meterActiveEndDate", \
-                                  "totalMeterActiveDays", "totalMeteredWaterConsumption")
-    return isuConsDf
+                                  "meteredWaterConsumption")
+partition = Window.partitionBy("sourceSystemCode", "billingDocumentNumber", "businessPartnerGroupNumber", "equipmentNumber", "contractId", "billingperiodStartDate", "billingPeriodEndDate")
+df = df.withColumn("totalMeteredWaterConsumption", sum("meteredWaterConsumption").over(partition))
+df.createOrReplaceTempView("billedConsDf")
 
 # COMMAND ----------
 
@@ -146,21 +157,24 @@ def getBilledWaterConsumptionMonthly():
 
     #1.Load Cleansed layer tables into dataframe
     if loadISUConsumption :
-        billedConsDf = isuConsumption()
+#         billedConsDf = isuConsumption()
+        billedConsDf = spark.sql("""select * from billedConsDf""")
 
 #     if loadAccessConsumption :
 #         billedConsDf = accessConsumption()
 
     if loadConsumption :
-        isuConsDf = isuConsumption()
+#         isuConsDf = isuConsumption()
+        billedConsDf = spark.sql("""select * from billedConsDf""")
         accessConsDf = accessConsumption()
-        billedConsDf = isuConsDf.unionByName(accessConsDf)
+#         billedConsDf = isuConsDf.unionByName(accessConsDf)
+        billedConsDf = billedConsDf.unionByName(accessConsDf)
 
     #2.Join Tables
     
     #3.Union Access and isu billed consumption datasets
 
-    billedConsDf = billedConsDf.withColumn("avgMeteredWaterConsumption", F.col("totalMeteredWaterConsumption")/F.col("totalMeterActiveDays"))
+    #billedConsDf = billedConsDf.withColumn("avgMeteredWaterConsumption", F.col("totalMeteredWaterConsumption")/F.col("totalMeterActiveDays"))
     #billedConsDf = billedConsDf.withColumn("avgMeteredWaterConsumption",col("avgMeteredWaterConsumption").cast("decimal(18,6)"))
 
     #4.Load Dmension tables into dataframe    
@@ -305,22 +319,6 @@ def getBilledWaterConsumptionMonthly():
         .select(billedConsDf['*'], dimBillDocDf['meterConsumptionBillingDocumentSK'])
     )
     
-    # --- dimBillLineItem --- #
-    billedConsDf = (
-        billedConsDf
-        .join(
-            dimBillLineItemDf,
-            (   # join conditions
-                (billedConsDf.billingDocumentNumber == dimBillLineItemDf.billingDocumentNumber)
-                & (billedConsDf.billingDocumentLineItemId == dimBillLineItemDf.billingDocumentLineItemId) 
-                & (dimBillLineItemDf._RecordStart  <= billedConsDf.billingPeriodEndDate) 
-                & (dimBillLineItemDf._RecordEnd >= billedConsDf.billingPeriodEndDate) 
-            ),
-            how="left"
-        ) 
-        .select(billedConsDf['*'], dimBillLineItemDf['meterConsumptionBillingLineItemSK'])
-    )
-    
     # --- dimContract ---#
     billedConsDf = (
         billedConsDf
@@ -335,12 +333,7 @@ def getBilledWaterConsumptionMonthly():
         ) 
         .select(billedConsDf['*'], dimContractDf['contractSK'])
     )
-    # TBD
-#        billedConsDf = billedConsDf.join(dimContractDf, (billedConsDf.contractID == dimContractDf.contractId) \
-#                              & (billedConsDf.billingPeriodStartDate >= dimContractDf.validFromDate) \
-#                              & (billedConsDf.billingPeriodStartDate <= dimContractDf.validToDate), how="left") \
-#                   .select(billedConsDf['*'], dimContractDf['contractSK'])
-
+    
     # --- dimBusinessPartnerGroup --- #
     billedConsDf = (
         billedConsDf
@@ -369,12 +362,23 @@ def getBilledWaterConsumptionMonthly():
         ) 
         .select(billedConsDf['*'], dimDateDf['calendarYear'].alias('consumptionYear').cast("int"), dimDateDf['monthOfYear'].alias('consumptionMonth').cast("int"), dimDateDf['monthStartDate'].alias('firstDayOfMeterActiveMonth'), dimDateDf['monthEndDate'].alias('lastDayOfMeterActiveMonth'))
     )
-    
+
+
     billedConsDf = billedConsDf.withColumn("meterActiveMonthStartDate", when((col("meterActiveStartDate") >= col("firstDayOfMeterActiveMonth")) & (col("meterActiveStartDate") <= col("lastDayOfMeterActiveMonth")), col("meterActiveStartDate")).otherwise(col("firstDayOfMeterActiveMonth"))) \
                     .withColumn("meterActiveMonthEndDate", when((col("meterActiveEndDate") >= col("firstDayOfMeterActiveMonth")) & (col("meterActiveEndDate") <= col("lastDayOfMeterActiveMonth")), col("meterActiveEndDate")).otherwise(col("lastDayOfMeterActiveMonth"))) \
-                    .withColumn("totalMeterActiveDaysPerMonth", (datediff("meterActiveMonthEndDate", "meterActiveMonthStartDate") + 1)) \
-                    .withColumn("avgMeteredWaterConsumptionPerMonth", (col("avgMeteredWaterConsumption")*col("totalMeterActiveDaysPerMonth")))
-					
+                    .withColumn("meterActiveDaysPerMonth", (datediff("meterActiveMonthEndDate", "meterActiveMonthStartDate") + 1).cast("int")) \
+    
+    billedConsDf = billedConsDf.groupBy("sourceSystemCode", "billingDocumentNumber", "businessPartnerGroupNumber", "equipmentNumber", "contractId", "billingperiodStartDate", "billingPeriodEndDate", "consumptionYear", "consumptionMonth", "firstDayOfMeterActiveMonth", "lastDayOfMeterActiveMonth", "totalMeteredWaterConsumption", "meterConsumptionBillingDocumentSK", "propertySK", "deviceSK", "locationSK", "businessPartnerGroupSK", "contractSK") \
+                                .agg(min("meterActiveMonthStartDate").alias("meterActiveMonthStartDate"), \
+                                     max("meterActiveMonthEndDate").alias("meterActiveMonthEndDate"), \
+                                     sum("meterActiveDaysPerMonth").alias("totalMeterActiveDaysPerMonth"))
+    
+    partition = Window.partitionBy("sourceSystemCode", "billingDocumentNumber", "businessPartnerGroupNumber", "equipmentNumber", "contractId", "billingperiodStartDate", "billingPeriodEndDate")
+    billedConsDf = billedConsDf.withColumn("totalMeterActiveDays", sum("totalMeterActiveDaysPerMonth").over(partition))
+    
+    billedConsDf = billedConsDf.withColumn("avgMeteredWaterConsumption", F.col("totalMeteredWaterConsumption")/F.col("totalMeterActiveDays")) \
+                               .withColumn("avgMeteredWaterConsumptionPerMonth", (col("avgMeteredWaterConsumption")*col("totalMeterActiveDaysPerMonth")))
+
     #6.Joins to derive SKs of dummy dimension(-1) records, to be used when the lookup fails for dimensionSk
     
     # --- dimProperty --- #
@@ -417,16 +421,6 @@ def getBilledWaterConsumptionMonthly():
         .select(billedConsDf['*'], dummyDimRecDf['dummyDimSK'].alias('dummyMeterConsumptionBillingDocumentSK'))
     )
     
-    # --- dimMeterConsumptionBillingLineItem --- #
-    billedConsDf = (
-        billedConsDf
-        .join(
-            dummyDimRecDf, 
-            (dummyDimRecDf.dimension == 'dimMeterConsumptionBillingLineItem'), how="left" 
-        )
-        .select(billedConsDf['*'], dummyDimRecDf['dummyDimSK'].alias('dummyMeterConsumptionBillingLineItemSK'))
-    )
-
     # --- dimContract --- #
     billedConsDf = (
         billedConsDf
@@ -449,55 +443,27 @@ def getBilledWaterConsumptionMonthly():
 
     #7.SELECT / TRANSFORM
     billedConsDf = billedConsDf.selectExpr \
-                              ( \
-                               "sourceSystemCode" \
-                              ,"consumptionYear" \
-                              ,"consumptionMonth" \
-                              ,"billingPeriodStartDate" \
-                              ,"billingPeriodEndDate" \
-                              ,"meterActiveStartDate" \
-                              ,"meterActiveEndDate" \
-                              ,"firstDayOfMeterActiveMonth" \
-                              ,"lastDayOfMeterActiveMonth" \
-                              ,"meterActiveMonthStartDate" \
-                              ,"meterActiveMonthEndDate" \
-                              ,"coalesce(meterConsumptionBillingDocumentSK, dummyMeterConsumptionBillingDocumentSK) as meterConsumptionBillingDocumentSK" \
-                              ,"coalesce(meterConsumptionBillingLineItemSK, dummyMeterConsumptionBillingLineItemSK) as meterConsumptionBillingLineItemSK" \
-                              ,"coalesce(propertySK, dummyPropertySK) as propertySK" \
-                              ,"coalesce(deviceSK, dummyDeviceSK) as deviceSK" \
-                              ,"coalesce(locationSK, dummyLocationSK) as locationSK" \
-                              ,"coalesce(BusinessPartnerGroupSk, dummyBusinessPartnerGroupSK) as businessPartnerGroupSK" \
-                              ,"coalesce(contractSK, dummyContractSK) as contractSK" \
-                              ,"totalMeterActiveDaysPerMonth" \
-                              ,"avgMeteredWaterConsumptionPerMonth as monthlyApportionedConsumption" \
-                              ) \
-                          .groupby("sourceSystemCode", "consumptionYear", "consumptionMonth", "billingPeriodStartDate", "billingPeriodEndDate" \
-                                   ,"meterActiveStartDate", "meterActiveEndDate", "firstDayOfMeterActiveMonth", "lastDayOfMeterActiveMonth" \
-                                   ,"meterActiveMonthStartDate", "meterActiveMonthEndDate", "meterConsumptionBillingDocumentSK", "meterConsumptionBillingLineItemSK", "propertySK", "deviceSK" \
-                                   ,"locationSK", "businessPartnerGroupSK", "contractSK") \
-                          .agg(max("totalMeterActiveDaysPerMonth").alias("totalMeterActiveDaysPerMonth"), sum("monthlyApportionedConsumption").alias("monthlyApportionedConsumption")) \
-                          .selectExpr \
                                   ( \
                                    "sourceSystemCode" \
                                   ,"consumptionYear" \
                                   ,"consumptionMonth" \
                                   ,"billingPeriodStartDate" \
                                   ,"billingPeriodEndDate" \
-                                  ,"meterActiveStartDate" \
-                                  ,"meterActiveEndDate" \
                                   ,"firstDayOfMeterActiveMonth" \
                                   ,"lastDayOfMeterActiveMonth" \
                                   ,"meterActiveMonthStartDate" \
                                   ,"meterActiveMonthEndDate" \
-                                  ,"meterConsumptionBillingDocumentSK" \
-                                  ,"meterConsumptionBillingLineItemSK" \
-                                  ,"propertySK" \
-                                  ,"deviceSK" \
-                                  ,"locationSK" \
-                                  ,"businessPartnerGroupSK" \
-                                  ,"contractSK" \
-                                  ,"totalMeterActiveDaysPerMonth" \
-                                  ,"cast(monthlyApportionedConsumption as decimal(24,12)) as monthlyApportionedConsumption" \
+                                  ,"coalesce(meterConsumptionBillingDocumentSK, dummyMeterConsumptionBillingDocumentSK) as meterConsumptionBillingDocumentSK" \
+                                  ,"coalesce(propertySK, dummyPropertySK) as propertySK" \
+                                  ,"coalesce(deviceSK, dummyDeviceSK) as deviceSK" \
+                                  ,"coalesce(locationSK, dummyLocationSK) as locationSK" \
+                                  ,"coalesce(BusinessPartnerGroupSk, dummyBusinessPartnerGroupSK) as businessPartnerGroupSK" \
+                                  ,"coalesce(contractSK, dummyContractSK) as contractSK" \
+                                  ,"cast(totalMeteredWaterConsumption as decimal(24,12)) as totalMeteredWaterConsumption" \
+                                  ,"cast(totalMeterActiveDays as int) as totalMeterActiveDays"  \
+                                  ,"cast(avgMeteredWaterConsumption as decimal(24,12)) as avgMeteredWaterConsumption" \
+                                  ,"cast(totalMeterActiveDaysPerMonth as int) as totalMeterActiveDaysPerMonth" \
+                                  ,"cast(avgMeteredWaterConsumptionPerMonth as decimal(24,12)) as monthlyApportionedConsumption" \
                                   )
     
     #8.Apply schema definition
@@ -507,19 +473,19 @@ def getBilledWaterConsumptionMonthly():
                             StructField("consumptionMonth", IntegerType(), False),
                             StructField("billingPeriodStartDate", DateType(), False),
                             StructField("billingPeriodEndDate", DateType(), False),
-                            StructField("meterActiveStartDate", DateType(), False),
-                            StructField("meterActiveEndDate", DateType(), False),
                             StructField("firstDayOfMeterActiveMonth", DateType(), False),
                             StructField("lastDayOfMeterActiveMonth", DateType(), False),
                             StructField("meterActiveMonthStartDate", DateType(), False),
                             StructField("meterActiveMonthEndDate", DateType(), False),
                             StructField("meterConsumptionBillingDocumentSK", StringType(), False),
-                            StructField("meterConsumptionBillingLineItemSK", StringType(), False),
                             StructField("propertySK", StringType(), False),
                             StructField("deviceSK", StringType(), False),
                             StructField("locationSK", StringType(), False),
                             StructField("businessPartnerGroupSK", StringType(), False),
                             StructField("contractSK", StringType(), False),
+                            StructField("totalMeteredWaterConsumption", DecimalType(24,12), True),
+                            StructField("totalMeterActiveDays", IntegerType(), True),
+                            StructField("avgMeteredWaterConsumption", DecimalType(24,12), True),
                             StructField("totalMeterActiveDaysPerMonth", IntegerType(), True),
                             StructField("monthlyApportionedConsumption", DecimalType(24,12), True)
                         ])
@@ -540,6 +506,7 @@ if loadConsumption:
     dfAccess.write \
       .format("delta") \
       .mode("overwrite") \
+      .partitionBy("sourceSystemCode") \
       .option("replaceWhere", "sourceSystemCode = 'ACCESS'") \
       .option("overwriteSchema","true").saveAsTable("curated_v2.factMonthlyApportionedConsumption")
     
@@ -547,12 +514,14 @@ if loadConsumption:
     dfISU.write \
       .format("delta") \
       .mode("overwrite") \
+      .partitionBy("sourceSystemCode") \
       .option("replaceWhere", "sourceSystemCode = 'ISU'") \
       .option("overwriteSchema","true").saveAsTable("curated_v2.factMonthlyApportionedConsumption")
 else:
     df.write \
       .format("delta") \
       .mode("overwrite") \
+      .partitionBy("sourceSystemCode") \
       .option("replaceWhere", f"sourceSystemCode = '{source_system}'") \
       .option("overwriteSchema","true").saveAsTable("curated_v2.factMonthlyApportionedConsumption")
     

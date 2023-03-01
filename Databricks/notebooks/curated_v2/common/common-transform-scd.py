@@ -193,7 +193,7 @@ def SCDMerge(sourceDataFrame, scd_start_date = SCD_START_DATE, scd_end_date = SC
     
     # Get Source data recordes which have changes compared with Target table
     
-    _exclude = [_.SurrogateKey, _.BK, '_RecordStart', '_RecordEnd', '_RecordCurrent', "_Batch_SK","_DLCuratedZoneTimeStamp"] #,"_RecordDeleted"
+    _exclude = [_.SurrogateKey, _.BK, '_RecordStart', '_RecordEnd', '_RecordCurrent', "_Batch_SK","_DLCuratedZoneTimeStamp","sourceSystemCode"] #,"_RecordDeleted"
     _exclude = [c.lower() for c in _exclude]
     
     changeCondition = " OR ".join([f"ifnull(s.{c},'%^%') <> ifnull(t.{c},'%^%')" for c in targetTable.columns if c.lower() not in _exclude])
@@ -234,6 +234,7 @@ def SCDMerge(sourceDataFrame, scd_start_date = SCD_START_DATE, scd_end_date = SC
     insertValues = {
         f"{_.SurrogateKey}": expr(f"md5(concat(s.{_.BK},'|','{scd_start_date}'))"), #f"s.{_.SurrogateKey}"
         f"{_.BK}": f"s.{_.BK}",
+        "sourceSystemCode":"s.sourceSystemCode",
         "_RecordStart": expr(f"'{scd_start_date}'"),
         "_RecordEnd": "s._RecordEnd",
         "_RecordCurrent": "1",

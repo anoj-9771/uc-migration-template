@@ -98,7 +98,7 @@ def TemplateEtl(df : object, entity, businessKey, schema, writeMode, AddSK = Tru
 
 # COMMAND ----------
 
-def TemplateEtlSCD(df : object, entity, businessKey, schema, target_layer='curated', scd_valid_start_date='now', scd_valid_end_date='9999-12-31', snap_shot=1, date_granularity='Second'):
+def TemplateEtlSCD(df : object, entity, businessKey, schema, target_layer='curated', scd_valid_start_date='now', scd_valid_end_date='9999-12-31T23:59:59', snap_shot=1, date_granularity='Second'):
     
     Entity_Type = 'dimension'
     TARGET_LAYER = ADS_DATABASE_CURATED_V2
@@ -244,7 +244,12 @@ def TemplateTimeSliceEtlSCD(df : object, entity, businessKey, schema, fromDateCo
     
     print("Overwrite Target Table")
     
-    df.write.mode("overwrite").saveAsTable(TargetTable, path=TargetTableDataLakePath)
+    #df.write.mode("overwrite").saveAsTable(TargetTable, path=TargetTableDataLakePath)
+    
+    df.filter("isnull(sourceSystemCode) or sourceSystemCode <> 'ACCESS'").write.mode("overwrite") \
+        .format("delta") \
+        .option("replaceWhere", "isnull(sourceSystemCode) or sourceSystemCode <> 'ACCESS'") \
+        .saveAsTable(TargetTable, path=TargetTableDataLakePath)
     
     verifyTableSchema(f"{TARGET_LAYER}.{entity}", schema)
 

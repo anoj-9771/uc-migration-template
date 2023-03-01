@@ -71,11 +71,11 @@ spark = SparkSession.builder.getOrCreate()
 # DBTITLE 1,3. Define Widgets (Parameters) at the start
 #3.Define Widgets/Parameters
 #Initialise the Entity source_object to be passed to the Notebook
-dbutils.widgets.text("source_object", "", "Source Object")
+dbutils.widgets.text("source_object", f'access_{accessTable.lower()}', "Source Object")
 dbutils.widgets.text("start_counter", "", "Start Counter")
 dbutils.widgets.text("end_counter", "", "End Counter")
 dbutils.widgets.text("delta_column", "", "Delta Column")
-dbutils.widgets.text("source_param", "", "Param")
+dbutils.widgets.text("source_param", runParm, "Param")
 
 
 # COMMAND ----------
@@ -165,7 +165,7 @@ print(delta_raw_tbl_name)
 
 # DBTITLE 1,10. Load to Cleanse Delta Table from Raw Delta Table
 #This method uses the source table to load data into target Delta Table
-DeltaSaveToDeltaTable (
+DeltaSaveToDeltaTable_Access (
     source_table = delta_raw_tbl_name,
     target_table = target_table,
     target_data_lake_zone = ADS_DATALAKE_ZONE_CLEANSED,
@@ -187,7 +187,10 @@ DeltaSaveToDeltaTable (
 df_cleansed = spark.sql(f"SELECT \
 	C_METE_CHAN_REAS as meterExchangeReasonCode, \
 	C_METE_CHAN_ABBR as meterExchangeReasonAbbreviation, \
-	initcap(T_METE_CHAN_REAS) as meterExchangeReason, \
+	case when T_METE_CHAN_REAS = 'SWC ACCURACY TEST' then 'SWC Accuracy Test' \
+         when T_METE_CHAN_REAS = 'ROLLERS OUT OF ALIGNMENT' then 'Rollers out of Alignment' \
+              else initcap(T_METE_CHAN_REAS) \
+    end as meterExchangeReason, \
 	ToValidDate(D_CHAN_REAS_EFFE) as meterExchangeReasonEffectiveDate, \
 	ToValidDate(D_CHAN_REAS_CANC) as meterExchangeReasonCancelledDate, \
 	_RecordStart, \
