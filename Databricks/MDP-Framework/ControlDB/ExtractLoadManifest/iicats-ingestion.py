@@ -127,7 +127,7 @@ when 'rtu' then 'RTUInternalId,effectiveFromDateTime'
 when 'scxuser' then 'userInternalId,effectiveFromDateTime'
 when 'scxfield' then 'fieldName,IICATSStagingTableName,IICATSStagingFieldName,sourceRecordSystemId'
 when 'hierarchy_cnfgn' then 'objectInternalId,effectiveFromDateTime'
-when 'tsv' then 'objectInternalId,measurementResultAESTDateTime,statisticTypeCd,timeBaseCd,sourceRecordCreationDateTime'
+when 'tsv' then 'objectInternalId,measurementResultAESTDateTime,statisticTypeCd,timeBaseCd,sourceRecordCreationDateTime,sourceRecordUpsertLogic'
 when 'bi_reference_codes' then 'referenceField,referenceCd'
 else businessKeyColumn
 end
