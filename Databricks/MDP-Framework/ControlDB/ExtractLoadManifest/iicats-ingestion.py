@@ -3,6 +3,7 @@
 
 # COMMAND ----------
 
+from pyspark.sql.functions import lit, when, lower, expr
 df = spark.sql("""
     WITH _Base AS 
     (
@@ -67,6 +68,14 @@ df = spark.sql("""
     ORDER BY SourceSchema, SourceTableName
     """)
 
+#Tables that needs to be refreshed every 15 mins
+tables15Mins = ['event','iicats_work_orders','tsv','qlty_config','wfp_daily_demand_archive']
+df = (
+    df.withColumn('SystemCode', when(lower(df.SourceTableName).isin(tables15Mins),lit('iicats|15min')) 
+                                        .otherwise(expr('SystemCode')))
+)
+display(df)
+
 # COMMAND ----------
 
 def ConfigureManifest(df):
@@ -81,7 +90,7 @@ def ConfigureManifest(df):
     # ------------- ShowConfig ----------------- #
     ShowConfig()
     
-for system_code in ['iicatsref','iicatsdata']:
+for system_code in ['iicatsref','iicatsdata','iicats|15min']:
     SYSTEM_CODE = system_code
     print(SYSTEM_CODE)
     ConfigureManifest(df.where(f"SystemCode = '{SYSTEM_CODE}'"))       
@@ -93,14 +102,14 @@ for system_code in ['iicatsref','iicatsdata']:
 ExecuteStatement("""
 update dbo.extractLoadManifest set
 destinationSchema = 'iicats'
-where systemCode in ('iicatsref','iicatsdata')-- and sourceSchema = 'scxstg' and destinationSchema <> 'iicats'
+where systemCode in ('iicatsref','iicatsdata','iicats|15min')-- and sourceSchema = 'scxstg' and destinationSchema <> 'iicats'
 """)
 
 #FIX DESTINATION Table
 ExecuteStatement("""
 update dbo.extractLoadManifest set
 DestinationTableName = 'work_orders'
-where systemCode in ('iicatsref','iicatsdata') and DestinationTableName = 'iicats_work_orders'
+where systemCode in ('iicatsref','iicatsdata','iicats|15min') and DestinationTableName = 'iicats_work_orders'
 """)
 
 #ADD BUSINESS KEY
@@ -131,7 +140,7 @@ when 'tsv' then 'objectInternalId,measurementResultAESTDateTime,statisticTypeCd,
 when 'bi_reference_codes' then 'referenceField,referenceCd'
 else businessKeyColumn
 end
-where systemCode in ('iicatsref','iicatsdata')
+where systemCode in ('iicatsref','iicatsdata','iicats|15min')
 """)
 
 # COMMAND ----------
@@ -146,6 +155,10 @@ merge into dbo.config as target using(
     select
         keyGroup = 'runviewCreation'
         ,[key] = 'iicatsdata'
+    union all
+    select
+        keyGroup = 'runviewCreation'
+        ,[key] = 'iicats|15min'
 ) as source on
     target.keyGroup = source.keyGroup
     and target.[key] = source.[key]
@@ -161,4 +174,34 @@ values(
     ,1
     ,getutcdate()
 );
+""")
+
+# COMMAND ----------
+
+#ADD RECORD INTO CONFIG TABLE FOR 15 MIN TRIGGER IN ADF
+ExecuteStatement("""
+merge into dbo.config as target using(
+    select
+        keyGroup = 'TriggerInterval'
+        ,[key] = '15min'
+) as source on
+    target.keyGroup = source.keyGroup
+    and target.[key] = source.[key]
+when not matched then insert(
+    keyGroup
+    ,[key]
+    ,value
+    ,createdDTS
+)
+values(
+    source.keyGroup
+    ,source.[key]
+    ,'iicats|15min'
+    ,getutcdate()
+)
+when matched then update set
+    target.[keyGroup] = source.[keyGroup]
+    ,target.[key] = source.[key]
+    ,target.[value] = iif(charindex('iicats|15min', target.[value]) > 0, target.[value], target.[value] + ',' + 'iicats|15min')
+;
 """)
