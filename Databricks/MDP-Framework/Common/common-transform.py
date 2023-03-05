@@ -82,6 +82,12 @@ def GetTable(tableFqn):
 
 # COMMAND ----------
 
+def GetTableName(tableFqn):
+    _.Tables.append(tableFqn) if tableFqn not in _.Tables else _.Tables
+    return tableFqn
+
+# COMMAND ----------
+
 def GetCurrentTable(tableFqn):
     return GetTable(tableFqn).where(expr("_current = 1"))
 
