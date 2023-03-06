@@ -165,17 +165,16 @@ def AADGroupAssignment():
 # COMMAND ----------
 
 def LegacyCleansedDataAnalystAdvUsrAssignment():
+    clusterId = StartFirstAclEnabledCluster()["cluster_id"]
     groupName = g = [g["displayName"] for g in ListGroups()["Resources"] if "DataAnalystAdvUsr" in g["displayName"]][0]
-    for s in ["access", "isu", "crm", "hydra"]:
-        df = spark.sql(f"SHOW TABLES FROM cleansed LIKE '{s}*'")
-        sql = [f"GRANT READ_METADATA, SELECT ON TABLE {i.database}.{i.tableName} TO `{groupName}`;" for i in df.rdd.collect()]
-        print("\n".join(sql))
+    for db in ["raw", "cleansed"]:
+        for s in ["access", "isu", "crm", "hydra"][0]:
+            df = spark.sql(f"SHOW TABLES FROM cleansed LIKE '{s}*'")
+            sql = [f"GRANT READ_METADATA, SELECT ON TABLE {i.database}.{i.tableName} TO `{groupName}`;" for i in df.rdd.collect()]
+            #print("\n".join(sql))
+            ExecuteCommand("".join([f"GRANT READ_METADATA, SELECT ON TABLE {i.database}.{i.tableName} TO `{groupName}`;" for i in df.collect()]), clusterId)
+LegacyCleansedDataAnalystAdvUsrAssignment()
 
 # COMMAND ----------
 
-def Run():
-    CreateGroups()
-    CreateUserGroups()
-    GrantPermissions()
-    CreateCustomGroups()
-#Run()
+

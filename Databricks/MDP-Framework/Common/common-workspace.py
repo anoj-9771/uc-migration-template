@@ -44,6 +44,24 @@ def ListClusters():
 
 # COMMAND ----------
 
+def ChangeClusterOwner(clusterId, newOwner):
+    json={
+        "cluster_id": f"{clusterId}", "owner_username": f"{newOwner}"
+    }
+    headers = GetAuthenticationHeader()
+    url = f'{INSTANCE_NAME}/api/2.0/clusters/change-owner'
+    response = requests.post(url, json=json, headers=headers)
+    jsonResponse = response.json()
+    return jsonResponse
+
+# COMMAND ----------
+
+def GetClusterByName(name):
+    v = [a for a in ListClusters()['clusters'] if a["cluster_name"]==name]
+    return "" if len(v) == 0 else v[0]
+
+# COMMAND ----------
+
 def ListWorkspaces(path="/"):
     headers = GetAuthenticationHeader()
     url = f'{INSTANCE_NAME}/api/2.0/workspace/list'
@@ -290,11 +308,6 @@ def ListClusters():
 
 # COMMAND ----------
 
-df = spark.table("controldb.dbo_extractloadmanifest").where("lower(systemcode) like '%bom%'")
-df.display()
-
-# COMMAND ----------
-
 def GetClusterIdByName(name):
     v = [a for a in ListClusters()['clusters'] if a["cluster_name"]==name]
     return "" if len(v) == 0 else v[0]["cluster_id"]
@@ -332,6 +345,15 @@ def CreateUser(user, groupId=None):
     headers = GetAuthenticationHeader()
     url = f'{INSTANCE_NAME}/api/2.0/preview/scim/v2/Users'
     response = requests.post(url, json=newUser, headers=headers)
+    jsonResponse = response.json()
+    return jsonResponse
+
+# COMMAND ----------
+
+def GetUser(id):
+    headers = GetAuthenticationHeader()
+    url = f'{INSTANCE_NAME}/api/2.0/preview/scim/v2/Users/{id}'
+    response = requests.get(url, headers=headers)
     jsonResponse = response.json()
     return jsonResponse
 
@@ -581,7 +603,17 @@ def RevokePermissionsForGroup(groupName, database):
 
 # COMMAND ----------
 
-def StartCluster(clusterId):
+def GetCluster(clusterId):
+    headers = GetAuthenticationHeader()
+    url = f'{INSTANCE_NAME}/api/2.0/clusters/get'
+    response = requests.get(url, {"cluster_id": f"{clusterId}"}, headers=headers)
+    jsonResponse = response.json()
+    return jsonResponse
+
+# COMMAND ----------
+
+def StartCluster(clusterId, waitOnCompletion=True):
+    import time
     command = {
        "cluster_id": f"{clusterId}"
     }
@@ -589,7 +621,27 @@ def StartCluster(clusterId):
     url = f'{INSTANCE_NAME}/api/2.0/clusters/start'
     response = requests.post(url, json=command, headers=headers)
     jsonResponse = response.json()
-    return jsonResponse
+
+    if waitOnCompletion:
+        while True:
+            s = GetCluster(clusterId) 
+
+            if s["state"] in ("RUNNING"):
+                name = s["cluster_name"]
+                print(f"{name} Started!")
+                return s
+                break
+            if s["state"] in ("TERMINATED", "TERMINATING"):
+                print(f"TERMINATED/TERMINATING, retry.")
+                break
+            print(s["state"])
+            time.sleep(20)
+    #return jsonResponse
+
+# COMMAND ----------
+
+def StartFirstAclEnabledCluster():
+    return StartCluster(GetFirstAclEnabledCluster()["cluster_id"])
 
 # COMMAND ----------
 

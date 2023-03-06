@@ -40,7 +40,10 @@
 							},
 							"userProperties": [],
 							"typeProperties": {
-								"url": "https://prod-25.australiaeast.logic.azure.com:443/workflows/45fb47afe30440d4b44d366083c67a03/triggers/manual/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=becXj3bx_fy80h5fNusQ1n4GO8o32_nlQGINSOVwwOM",
+								"url": {
+									"value": "@pipeline().globalParameters.logicAppAlertUrl",
+									"type": "Expression"
+								},
 								"method": "POST",
 								"body": {
 									"value": "{\n\"importance\": \"\",\n\"body\": \"@{variables('body')}\",\n\"recipient\": \"@{activity('log-copy').output.firstRow.RecipientList}\",\n\"sender\": \"logicAppTestMailbox@sydneywater.com.au\",\n\"subject\": \"ADF Pipeline Failure\"\n}",
@@ -117,6 +120,60 @@
 						"referenceName": "SQL_ControlDB",
 						"type": "DatasetReference"
 					}
+				}
+			},
+			{
+				"name": "if-log-storage",
+				"description": "",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "log-copy",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "false()",
+						"type": "Expression"
+					},
+					"ifTrueActivities": [
+						{
+							"name": "log-storage",
+							"type": "WebActivity",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"url": {
+									"value": "@replace(replace(replace(replace(replace(replace(replace(\n'https://$STORAGE_NAME$.blob.core.windows.net/raw/log/$yyyy$/$MM$/$dd$/$HH$$mm$/$guid$.json?resource=filesystem'\n,'$STORAGE_NAME$', pipeline().globalParameters.storageName)\n,'$yyyy$', formatDateTime(convertTimeZone(utcnow(), 'UTC', 'AUS Eastern Standard Time'), 'yyyy'))\n,'$MM$', formatDateTime(convertTimeZone(utcnow(), 'UTC', 'AUS Eastern Standard Time'), 'MM'))\n,'$dd$', formatDateTime(convertTimeZone(utcnow(), 'UTC', 'AUS Eastern Standard Time'), 'dd'))\n,'$HH$', formatDateTime(convertTimeZone(utcnow(), 'UTC', 'AUS Eastern Standard Time'), 'HH'))\n,'$mm$', formatDateTime(convertTimeZone(utcnow(), 'UTC', 'AUS Eastern Standard Time'), 'mm'))\n,'$guid$', guid())\n",
+									"type": "Expression"
+								},
+								"method": "PUT",
+								"headers": {
+									"x-ms-version": "2017-11-09",
+									"x-ms-blob-type": "BlockBlob"
+								},
+								"body": {
+									"value": "{\n    \"id\" : \"@{pipeline().RunId}\",\n    \"pipeline_run_id\" : \"@{pipeline().RunId}\",\n    \"extract_load_status_id\" : @{if(not(coalesce(pipeline().parameters.IsTransform, false)), pipeline().parameters.ID, 0)},\n    \"transform_status_id\" : @{if(coalesce(pipeline().parameters.IsTransform, false), pipeline().parameters.ID, 0)},\n    \"activity_type\" : \"@{pipeline().parameters.ActivityType}\",\n    \"created_dts\" : \"@{convertTimeZone(utcnow(), 'UTC', 'AUS Eastern Standard Time')}\",\n    \"message\" : @{pipeline().parameters.Message}\n}\n",
+									"type": "Expression"
+								},
+								"authentication": {
+									"type": "MSI",
+									"resource": "https://storage.azure.com/"
+								}
+							}
+						}
+					]
 				}
 			}
 		],
