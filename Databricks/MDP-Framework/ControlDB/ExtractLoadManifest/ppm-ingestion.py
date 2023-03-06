@@ -1,0 +1,162 @@
+# Databricks notebook source
+# MAGIC %run ../common-controldb
+
+# COMMAND ----------
+
+from pyspark.sql.functions import lit, when, lower, expr
+df = spark.sql("""
+WITH _Base AS 
+(
+  SELECT 'ppmref' SystemCode, 'ppm' SourceSchema, 'daf-sa-blob-sastoken' SourceKeyVaultSecret, 'ppm' DestinationSchema, 'bods-load' SourceHandler, 'json' RawFileExtension, 'raw-load-bods' RawHandler, --'{ "DeleteSourceFiles" : "True" }' ExtendedProperties,
+    'cleansed-load-bods-slt' CleansedHandler, '' SystemPath
+)
+SELECT '0INM_INITIATIVE_GUID_TEXT' SourceTableName, 'ppmref/0INM_INITIATIVE_GUID_TEXT' SourceQuery, 'DELTA' WatermarkColumn, * FROM _Base
+UNION 
+SELECT '0INM_INITIATIVE_GUID_ATTR' SourceTableName, 'ppmref/0INM_INITIATIVE_GUID_ATTR' SourceQuery, 'DELTA' WatermarkColumn, * FROM _Base
+UNION 
+SELECT '0WBS_ELEMT_ATTR' SourceTableName, 'ppmdata/0WBS_ELEMT_ATTR' SourceQuery, 'DELTA' WatermarkColumn, * FROM _Base
+UNION 
+SELECT '0RPM_PORT_GUID_ID_TEXT' SourceTableName, 'ppmref/0RPM_PORT_GUID_ID_TEXT' SourceQuery, 'DELTA' WatermarkColumn, * FROM _Base
+UNION 
+SELECT '0RPM_ITEM_TYPE_TEXT' SourceTableName, 'ppmref/0RPM_ITEM_TYPE_TEXT' SourceQuery, '' WatermarkColumn, * FROM _Base
+UNION 
+SELECT '0RPM_DECISION_ID_TEXT' SourceTableName, 'ppmref/0RPM_DECISION_ID_TEXT' SourceQuery, '' WatermarkColumn, * FROM _Base
+UNION 
+SELECT '0PROJECT_TEXT' SourceTableName, 'ppmref/0PROJECT_TEXT' SourceQuery, 'DELTA' WatermarkColumn, * FROM _Base
+UNION 
+SELECT '0WBS_ELEMT_TEXT' SourceTableName, 'ppmref/0WBS_ELEMT_TEXT' SourceQuery, 'DELTA' WatermarkColumn, * FROM _Base
+UNION 
+SELECT '0RPM_DECISION_GUID_ID_TEXT' SourceTableName, 'ppmref/0RPM_DECISION_GUID_ID_TEXT' SourceQuery, 'DELTA' WatermarkColumn, * FROM _Base
+UNION 
+SELECT '0RPM_BUCKET_GUID_ID_TEXT' SourceTableName, 'ppmref/0RPM_BUCKET_GUID_ID_TEXT' SourceQuery, 'DELTA' WatermarkColumn, * FROM _Base
+UNION
+--Start of tables that may get converted to SLT later
+SELECT 'RPM_STATUS_T' SourceTableName, 'ppmref/RPM_STATUS_T' SourceQuery, '' WatermarkColumn, * FROM _Base  
+UNION
+SELECT 'TCJ4T' SourceTableName, 'ppmref/TCJ4T' SourceQuery, '' WatermarkColumn, * FROM _Base  
+UNION
+SELECT 'ZEPT_SUB_DELPART' SourceTableName, 'ppmref/ZEPT_SUB_DELPART' SourceQuery, '' WatermarkColumn, * FROM _Base  
+--End of tables that may get converted to SLT later
+UNION
+(
+WITH _Base AS 
+(
+  SELECT 'ppmdata' SystemCode, 'ppm' SourceSchema, 'daf-sa-blob-sastoken' SourceKeyVaultSecret, 'ppm' DestinationSchema, 'bods-load' SourceHandler, 'json' RawFileExtension, 'raw-load-bods' RawHandler, --'{ "DeleteSourceFiles" : "True" }' ExtendedProperties,
+  'cleansed-load-bods-slt' CleansedHandler, '' SystemPath
+)
+SELECT '0RPM_DECISION_GUID_ATTR' SourceTableName, 'ppmdata/0RPM_DECISION_GUID_ATTR' SourceQuery, 'DELTA' WatermarkColumn, * FROM _Base
+UNION
+SELECT '0PROJECT_ATTR' SourceTableName, 'ppmdata/0PROJECT_ATTR' SourceQuery, 'DELTA' WatermarkColumn, * FROM _Base   
+UNION
+SELECT '0RPM_PORT_GUID_ATTR' SourceTableName, 'ppmdata/0RPM_PORT_GUID_ATTR' SourceQuery, 'DELTA' WatermarkColumn, * FROM _Base  
+UNION
+--Start of tables that may get converted to SLT later
+SELECT 'RPM_ITEM_D' SourceTableName, 'ppmdata/RPM_ITEM_D' SourceQuery, '' WatermarkColumn, * FROM _Base  
+UNION
+SELECT 'IHPA' SourceTableName, 'ppmdata/IHPA' SourceQuery, '' WatermarkColumn, * FROM _Base  
+UNION
+SELECT 'RPSCO' SourceTableName, 'ppmdata/RPSCO' SourceQuery, '' WatermarkColumn, * FROM _Base  
+UNION
+SELECT 'RPM_RELATION_D' SourceTableName, 'ppmdata/RPM_RELATION_D' SourceQuery, '' WatermarkColumn, * FROM _Base  
+--End of tables that may get converted to SLT later
+)    
+ORDER BY SourceSchema, SourceTableName
+""")
+
+#Delta Tables with delete image. These tables would have di_operation_type column. 
+tables = ['0inm_initiative_guid_attr','0inm_initiative_guid_text','0project_attr','0project_text','0rpm_bucket_guid_id_text','0rpm_decision_guid_attr','0rpm_port_guid_attr','0rpm_port_guid_id_text','0wbs_elemt_attr','0wbs_elemt_text']
+tablesWithNullableKeys = ['rpsco']
+#Non-Prod "DeleteSourceFiles" : "False" while testing
+deleteSourceFiles = "False"
+#Production
+# deleteSourceFiles = "True"
+df = (
+    df.withColumn('ExtendedProperties', lit(f'"DeleteSourceFiles" : "{deleteSourceFiles}"'))
+      .withColumn('ExtendedProperties', when(lower(df.SourceTableName).isin(tables),expr('ExtendedProperties ||", "||\'\"SourceRecordDeletion\" : \"True\"\'')) 
+                                        .otherwise(expr('ExtendedProperties')))
+      .withColumn('ExtendedProperties', when(lower(df.SourceTableName).isin(tablesWithNullableKeys),expr('ExtendedProperties ||", "||\'\"CreateTableConstraints\" : \"False\"\''))
+                                        .otherwise(expr('ExtendedProperties')))
+      .withColumn('ExtendedProperties', expr('"{"||ExtendedProperties ||"}"'))    
+)
+display(df)
+
+# COMMAND ----------
+
+def ConfigureManifest(dataFrameConfig, whereClause=None):
+    # ------------- CONSTRUCT QUERY ----------------- #
+    df = dataFrameConfig.where(whereClause)
+    # ------------- DISPLAY ----------------- #
+#     ShowQuery(df)
+
+    # ------------- SAVE ----------------- #
+    AddIngestion(df)
+    
+    # ------------- ShowConfig ----------------- #
+    ShowConfig()
+
+for system_code in ['ppmref','ppmdata']:
+    SYSTEM_CODE = system_code
+    ConfigureManifest(df, whereClause=f"SystemCode = '{SYSTEM_CODE}'")
+
+#ADD BUSINESS KEY
+ExecuteStatement("""
+update dbo.extractLoadManifest set
+businessKeyColumn = case sourceTableName
+when '0INM_INITIATIVE_GUID_ATTR' then 'GUID'
+when '0INM_INITIATIVE_GUID_TEXT' then 'uniqueIdentifier'
+when '0PROJECT_ATTR' then 'projectDefinition'
+when '0PROJECT_TEXT' then 'projectDefinition'
+when '0RPM_BUCKET_GUID_ID_TEXT' then 'projectPlanningGUID'
+when '0RPM_DECISION_GUID_ATTR' then 'guidforApplicationObjects'
+when '0RPM_DECISION_GUID_ID_TEXT' then 'cgpl_GUID'
+when '0RPM_DECISION_ID_TEXT' then 'decisionPointId,itemType'
+when '0RPM_ITEM_TYPE_TEXT' then 'itemType'
+when '0RPM_PORT_GUID_ATTR' then 'applicationObjectGUID'
+when '0RPM_PORT_GUID_ID_TEXT' then 'projectPlanningGUID'
+when '0WBS_ELEMT_ATTR' then 'projectDefinition,workBreakdownStructureElement'
+when '0WBS_ELEMT_TEXT' then 'wbsElement'
+when 'RPM_ITEM_D' then 'applicationObjectsGuid'
+when 'IHPA' then 'objectNumber,partnerFunction,counterDigit'
+when 'RPSCO' then 'objectNumber,budgerLedger,valueType,objectIndicator,fiscalYear,valuecategory,budgetPlanning,planningVersion,analysisCategory,fund,transactionCurrency,periodBlock'
+when 'RPM_RELATION_D' then 'Guid'
+when 'RPM_STATUS_T' then 'status'
+when 'TCJ4T' then 'projectProfile'
+when 'ZEPT_SUB_DELPART' then 'projectType,subDeliveryPartner'
+else businessKeyColumn
+end
+where systemCode in ('ppmref','ppmdata')
+""")
+
+# #Retain this until bxp landing folders are migrated to ppm
+# ExecuteStatement("""
+# update dbo.extractLoadManifest set
+# SourceQuery = replace(SourceQuery, 'ppm', 'bxp')
+# where systemCode in ('ppmref','ppmdata')
+# and SourceTableName != '0RPM_DECISION_GUID_ID_TEXT'
+# """) 
+
+# COMMAND ----------
+
+#Delete all cells below once this goes to Production
+
+# COMMAND ----------
+
+# MAGIC %run /MDP-Framework/Common/common-spark
+
+# COMMAND ----------
+
+df_c = spark.table("controldb.dbo_extractloadmanifest")
+display(df_c.where("SystemCode in ('ppmref','ppmdata')"))
+
+# COMMAND ----------
+
+# for z in ["raw", "cleansed"]:
+for z in ["cleansed"]:
+    for t in df_c.where("SystemCode in ('ppmref','ppmdata')").rdd.collect():
+        tableFqn = f"{z}.{t.DestinationSchema}_{t.SourceTableName}"
+        print(tableFqn)
+#         CleanTable(tableFqn)
+
+# COMMAND ----------
+
+# CleanTable('cleaned.ppm_0RPM_DECISION_GUID_ID_TEXT')
