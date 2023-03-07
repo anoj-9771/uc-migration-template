@@ -8,7 +8,7 @@ var increment = 1
 var incrementStr = padLeft(increment, 2, '0')
 var subscriptionName = toLower(subscription().displayName)
 var resourceNameSuffix = '${subscriptionName}-${program}-${environment}'
-var shortResourceNameSuffix = environment
+var shortResourceNameSuffix = environment == 'preprod' ? 'ppd' : environment
 var emailForAlertsArray = split(emailForAlerts, ',')
 
 var alertsActionGroupName = 'ag-${resourceNameSuffix}-${incrementStr}'
