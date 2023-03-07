@@ -28,7 +28,7 @@ ORDER BY SourceSchema, SourceTableName
 
 #Delta Tables with delete image. These tables would have di_operation_type column. 
 tables = ['']
-tablesWithNullableKeys = ['']
+tablesWithNullableKeys = ['zblt_redress']
 #Non-Prod "DeleteSourceFiles" : "False" while testing
 deleteSourceFiles = "False"
 #Production
@@ -61,23 +61,15 @@ for system_code in ['isuref','isudata']:
     SYSTEM_CODE = system_code
     ConfigureManifest(df, whereClause=f"SystemCode = '{SYSTEM_CODE}'")
 
-# #ADD BUSINESS KEY
-# ExecuteStatement("""
-# update dbo.extractLoadManifest set
-# businessKeyColumn = case sourceTableName
-# when '0INM_INITIATIVE_GUID_ATTR' then 'GUID'
-# else businessKeyColumn
-# end
-# where systemCode in ('isuref','isudata')
-# """)
-
-# #Retain this until bxp landing folders are migrated to isu
-# ExecuteStatement("""
-# update dbo.extractLoadManifest set
-# SourceQuery = replace(SourceQuery, 'isu', 'bxp')
-# where systemCode in ('isuref','isudata')
-# and SourceTableName != '0RPM_DECISION_GUID_ID_TEXT'
-# """) 
+#ADD BUSINESS KEY
+ExecuteStatement("""
+update dbo.extractLoadManifest set
+businessKeyColumn = case sourceTableName
+when 'ZBLT_REDRESS' then 'incidentDate,jobNumber,propertyNumber,taskID'
+else businessKeyColumn
+end
+where systemCode in ('isuref','isudata')
+""")
 
 # COMMAND ----------
 
