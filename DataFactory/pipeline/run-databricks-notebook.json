@@ -97,52 +97,8 @@
 						"type": "Expression"
 					},
 					"condition": {
-						"value": "@equals(item().instance_pool_name, variables('InstancePoolName'))",
+						"value": "@equals(toLower(item().instance_pool_name), toLower(variables('InstancePoolName')))",
 						"type": "Expression"
-					}
-				}
-			},
-			{
-				"name": "run-databricks-notebook",
-				"type": "DatabricksNotebook",
-				"dependsOn": [
-					{
-						"activity": "set-instance-pool-id",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
-				"policy": {
-					"timeout": "7.00:00:00",
-					"retry": 0,
-					"retryIntervalInSeconds": 30,
-					"secureOutput": false,
-					"secureInput": false
-				},
-				"userProperties": [],
-				"typeProperties": {
-					"notebookPath": {
-						"value": "@pipeline().parameters.config.notebookPath",
-						"type": "Expression"
-					},
-					"baseParameters": {
-						"task": {
-							"value": "@{pipeline().parameters.task}",
-							"type": "Expression"
-						}
-					}
-				},
-				"linkedServiceName": {
-					"referenceName": "LS_AzureDatabricks_InstancePool",
-					"type": "LinkedServiceReference",
-					"parameters": {
-						"kvSecret": "databricks-token",
-						"PoolId": {
-							"value": "@variables('InstancePoolId')",
-							"type": "Expression"
-						},
-						"DatabricksVersion": "9.1.x-scala2.12"
 					}
 				}
 			},
@@ -167,65 +123,90 @@
 				}
 			},
 			{
-				"name": "log-databricks",
-				"type": "ExecutePipeline",
+				"name": "set-instance-pool-name",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "InstancePoolName",
+					"value": {
+						"value": "@if(\n\tcontains(\n\t\tcoalesce(\n\t\t\tpipeline().parameters.task.ExtendedProperties, ''), \n\t\t\t'OverridePoolName'\n\t), \n\tjson(\n\t\tcoalesce(\n\t\t\tpipeline().parameters.task.ExtendedProperties, \n\t\t\t'{}'\n\t\t)\n\t).OverridePoolName,\n\tjson(pipeline().parameters.task.ExtraConfig)[0].DefaultPoolName\n)",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "set-cluster-name",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "ClusterName",
+					"value": {
+						"value": "@if(\n\tcontains(\n\t\tcoalesce(\n\t\t\tpipeline().parameters.task.ExtendedProperties, ''), \n\t\t\t'OverrideClusterName'\n\t), \n\tjson(\n\t\tcoalesce(\n\t\t\tpipeline().parameters.task.ExtendedProperties, \n\t\t\t'{}'\n\t\t)\n\t).OverrideClusterName,\n\t'None'\n)",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "get-databricks-clusters",
+				"type": "WebActivity",
 				"dependsOn": [
 					{
-						"activity": "run-databricks-notebook",
+						"activity": "get-bearer-token",
 						"dependencyConditions": [
-							"Completed"
+							"Succeeded"
 						]
 					}
 				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
 				"userProperties": [],
 				"typeProperties": {
-					"pipeline": {
-						"referenceName": "log-message",
-						"type": "PipelineReference"
-					},
-					"waitOnCompletion": false,
-					"parameters": {
-						"ID": {
-							"value": "@pipeline().parameters.task.ID",
-							"type": "Expression"
-						},
-						"ActivityType": {
-							"value": "@pipeline().parameters.config.activityType",
-							"type": "Expression"
-						},
-						"Message": {
-							"value": "@{activity('run-databricks-notebook')}",
+					"url": "https://australiaeast.azuredatabricks.net/api/2.0/clusters/list",
+					"method": "GET",
+					"headers": {
+						"Authorization": {
+							"value": "Bearer @{activity('get-bearer-token').output.value}",
 							"type": "Expression"
 						}
-					}
-				}
-			},
-			{
-				"name": "databricks-fail",
-				"type": "Fail",
-				"dependsOn": [
-					{
-						"activity": "run-databricks-notebook",
-						"dependencyConditions": [
-							"Failed"
-						]
-					}
-				],
-				"userProperties": [],
-				"typeProperties": {
-					"message": {
-						"value": "@activity('run-databricks-notebook').output.Error",
-						"type": "Expression"
 					},
-					"errorCode": "500"
+					"body": {
+						"autoscale": {
+							"min_workers": 2,
+							"max_workers": 10
+						},
+						"cluster_name": "sewer-cctv",
+						"spark_version": "10.4.x-cpu-ml-scala2.12",
+						"spark_conf": {
+							"spark.databricks.delta.preview.enabled": "true"
+						},
+						"ssh_public_keys": [],
+						"autotermination_minutes": 60,
+						"init_scripts": [],
+						"instance_pool_id": "1024-005500-twain3-pool-jk2lh0go",
+						"driver_instance_pool_id": "1024-005500-twain3-pool-jk2lh0go",
+						"runtime_engine": "STANDARD"
+					}
 				}
 			},
 			{
-				"name": "set-sink-flag",
-				"type": "SetVariable",
+				"name": "filter-clusters",
+				"type": "Filter",
 				"dependsOn": [
 					{
-						"activity": "run-databricks-notebook",
+						"activity": "set-cluster-name",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "get-databricks-clusters",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -233,11 +214,284 @@
 				],
 				"userProperties": [],
 				"typeProperties": {
-					"variableName": "SinkFlag",
-					"value": {
-						"value": "@string(bool(contains(activity('run-databricks-notebook').output,'runOutput')))",
+					"items": {
+						"value": "@activity('get-databricks-clusters').output.clusters",
+						"type": "Expression"
+					},
+					"condition": {
+						"value": "@equals(toLower(item().cluster_name), toLower(variables('ClusterName')))",
 						"type": "Expression"
 					}
+				}
+			},
+			{
+				"name": "set-cluster-id",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "filter-clusters",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "ClusterId",
+					"value": {
+						"value": "@if(equals(variables('ClusterName'),'None'), '', activity('filter-clusters').output.value[0].cluster_id)",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "if-cluster",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "set-instance-pool-id",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "set-cluster-id",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@if(equals(variables('ClusterId'),''),bool(false),bool(true))",
+						"type": "Expression"
+					},
+					"ifFalseActivities": [
+						{
+							"name": "run-databricks-notebook-instance-pool",
+							"type": "DatabricksNotebook",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"notebookPath": {
+									"value": "@pipeline().parameters.config.notebookPath",
+									"type": "Expression"
+								},
+								"baseParameters": {
+									"task": {
+										"value": "@{pipeline().parameters.task}",
+										"type": "Expression"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "LS_AzureDatabricks_InstancePool",
+								"type": "LinkedServiceReference",
+								"parameters": {
+									"kvSecret": "databricks-token",
+									"PoolId": {
+										"value": "@variables('InstancePoolId')",
+										"type": "Expression"
+									},
+									"DatabricksVersion": "9.1.x-scala2.12"
+								}
+							}
+						},
+						{
+							"name": "log-databricks-instance-pool",
+							"type": "ExecutePipeline",
+							"dependsOn": [
+								{
+									"activity": "run-databricks-notebook-instance-pool",
+									"dependencyConditions": [
+										"Completed"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "log-message",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": false,
+								"parameters": {
+									"ID": {
+										"value": "@pipeline().parameters.task.ID",
+										"type": "Expression"
+									},
+									"ActivityType": {
+										"value": "@pipeline().parameters.config.activityType",
+										"type": "Expression"
+									},
+									"Message": {
+										"value": "@{activity('run-databricks-notebook-instance-pool')}",
+										"type": "Expression"
+									}
+								}
+							}
+						},
+						{
+							"name": "databricks-fail-instance-pool",
+							"type": "Fail",
+							"dependsOn": [
+								{
+									"activity": "run-databricks-notebook-instance-pool",
+									"dependencyConditions": [
+										"Failed"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"message": {
+									"value": "@activity('run-databricks-notebook-instance-pool').output.Error",
+									"type": "Expression"
+								},
+								"errorCode": "500"
+							}
+						},
+						{
+							"name": "set-sink-flag-instance-pool",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "run-databricks-notebook-instance-pool",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "SinkFlag",
+								"value": {
+									"value": "@string(bool(contains(activity('run-databricks-notebook-instance-pool').output,'runOutput')))",
+									"type": "Expression"
+								}
+							}
+						}
+					],
+					"ifTrueActivities": [
+						{
+							"name": "run-databricks-notebook-cluster",
+							"type": "DatabricksNotebook",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"notebookPath": {
+									"value": "@pipeline().parameters.config.notebookPath",
+									"type": "Expression"
+								},
+								"baseParameters": {
+									"task": {
+										"value": "@{pipeline().parameters.task}",
+										"type": "Expression"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "LS-AzureDatabricks_DefinedCluster",
+								"type": "LinkedServiceReference",
+								"parameters": {
+									"kvSecret": "databricks-token",
+									"clusterId": {
+										"value": "@variables('ClusterId')",
+										"type": "Expression"
+									}
+								}
+							}
+						},
+						{
+							"name": "log-databricks-cluster",
+							"type": "ExecutePipeline",
+							"dependsOn": [
+								{
+									"activity": "run-databricks-notebook-cluster",
+									"dependencyConditions": [
+										"Completed"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "log-message",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": false,
+								"parameters": {
+									"ID": {
+										"value": "@pipeline().parameters.task.ID",
+										"type": "Expression"
+									},
+									"ActivityType": {
+										"value": "@pipeline().parameters.config.activityType",
+										"type": "Expression"
+									},
+									"Message": {
+										"value": "@{activity('run-databricks-notebook-cluster')}",
+										"type": "Expression"
+									}
+								}
+							}
+						},
+						{
+							"name": "databricks-fail-cluster",
+							"type": "Fail",
+							"dependsOn": [
+								{
+									"activity": "run-databricks-notebook-cluster",
+									"dependencyConditions": [
+										"Failed"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"message": {
+									"value": "@activity('run-databricks-notebook-cluster').output.Error",
+									"type": "Expression"
+								},
+								"errorCode": "500"
+							}
+						},
+						{
+							"name": "set-sink-flag-cluster",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "run-databricks-notebook-cluster",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "SinkFlag",
+								"value": {
+									"value": "@string(bool(contains(activity('run-databricks-notebook-cluster').output,'runOutput')))",
+									"type": "Expression"
+								}
+							}
+						}
+					]
 				}
 			},
 			{
@@ -245,7 +499,7 @@
 				"type": "IfCondition",
 				"dependsOn": [
 					{
-						"activity": "set-sink-flag",
+						"activity": "if-cluster",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -279,26 +533,13 @@
 										"type": "Expression"
 									},
 									"Value": {
-										"value": "@string(if(\n    equals(pipeline().parameters.config.activityType, 'raw-databricks'),\n    activity('run-databricks-notebook').output.runOutput.SinkRowCount,\n    activity('run-databricks-notebook').output.runOutput.CleansedSinkCount\n))\n\n",
+										"value": "@string(if(\n    equals(pipeline().parameters.config.activityType, 'raw-databricks'),\n    coalesce(activity('run-databricks-notebook-instance-pool').output.runOutput.SinkRowCount, activity('run-databricks-notebook-cluster').output.runOutput.SinkRowCount),\n    coalesce(activity('run-databricks-notebook-instance-pool').output.runOutput.CleansedSinkCount, activity('run-databricks-notebook-cluster').output.runOutput.CleansedSinkCount)\n))\n\n",
 										"type": "Expression"
 									}
 								}
 							}
 						}
 					]
-				}
-			},
-			{
-				"name": "set-instance-pool-name",
-				"type": "SetVariable",
-				"dependsOn": [],
-				"userProperties": [],
-				"typeProperties": {
-					"variableName": "InstancePoolName",
-					"value": {
-						"value": "@if(\n\tcontains(\n\t\tcoalesce(\n\t\t\tpipeline().parameters.task.ExtendedProperties, ''), \n\t\t\t'OverridePoolName'\n\t), \n\tjson(\n\t\tcoalesce(\n\t\t\tpipeline().parameters.task.ExtendedProperties, \n\t\t\t'{}'\n\t\t)\n\t).OverridePoolName,\n\tjson(pipeline().parameters.task.ExtraConfig)[0].DefaultPoolName\n)",
-						"type": "Expression"
-					}
 				}
 			}
 		],
@@ -322,6 +563,12 @@
 				"defaultValue": "pool-small"
 			},
 			"SinkFlag": {
+				"type": "String"
+			},
+			"ClusterId": {
+				"type": "String"
+			},
+			"ClusterName": {
 				"type": "String"
 			}
 		},

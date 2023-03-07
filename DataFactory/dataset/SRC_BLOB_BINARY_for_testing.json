@@ -7,10 +7,12 @@
 		},
 		"parameters": {
 			"BlobContainer": {
-				"type": "string"
+				"type": "string",
+				"defaultValue": "test"
 			},
 			"BlobName": {
-				"type": "string"
+				"type": "string",
+				"defaultValue": "test NAS.txt"
 			}
 		},
 		"folder": {

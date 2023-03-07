@@ -92,8 +92,9 @@ def MergeSCDTable(sourceDataFrame, targetTableFqn, scdFromSource, BK, SK):
 
 # COMMAND ----------
 
-def CreateOrMerge(sourceDataFrame, targetTableFqn, dataLakePath, businessKey=None):
+def CreateOrMerge(sourceDataFrame, targetTableFqn, dataLakePath, businessKey=None, createTableConstraints = True):
     if (TableExists(targetTableFqn)):
         BasicMerge(sourceDataFrame, targetTableFqn, businessKey)
     else:
-        CreateDeltaTable(sourceDataFrame, targetTableFqn, dataLakePath, businessKey)  
+        #create delta table with not null constraints on buiness keys
+        CreateDeltaTable(sourceDataFrame, targetTableFqn, dataLakePath, businessKey, createTableConstraints)

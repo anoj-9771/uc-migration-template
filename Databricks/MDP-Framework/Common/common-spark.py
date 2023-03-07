@@ -10,13 +10,54 @@ def GetDeltaTablePath(tableFqn):
 
 # COMMAND ----------
 
-def CreateDeltaTable(dataFrame, targetTableFqn, dataLakePath, businessKeys = None):
+def CreateDeltaTable(dataFrame, targetTableFqn, dataLakePath, businessKeys = None, createTableConstraints=True):
     dataFrame.write \
              .format("delta") \
              .option("mergeSchema", "true") \
              .mode("overwrite") \
              .save(dataLakePath)
-    CreateDeltaTableConstraints(targetTableFqn, dataLakePath, businessKeys)
+    CreateDeltaTableConstraints(targetTableFqn, dataLakePath, businessKeys, createTableConstraints)
+
+# COMMAND ----------
+
+#A streaming variant of AppendDeltaTable function. The other difference is that the table creation has been decoupled. We should look at saving the dataframe to table directly.
+def AppendDeltaTableStream(dataFrame, targetTableFqn, dataLakePath, businessKeys = None, triggerType = "once"):
+    if triggerType == "once":
+        kwArgs = {"once":True}
+    elif triggerType == "continuous" or triggerType == "processingTime":
+        kwArgs = {f"{triggerType}":"5 seconds"}
+    else:
+        print("Trigger type must be one of: 'once', 'continuous', 'processingTime'.")
+        return
+    query = (
+        dataFrame
+        .writeStream
+        .format("delta")
+        .outputMode("append")
+        .option("mergeSchema", "true")
+        .option("checkpointLocation", f"{rawPath}/checkpoints")
+        .option("path", dataLakePath)
+        .queryName(targetTableFqn.split(".")[1] + "_stream")
+        .trigger(**kwArgs)
+        .table(targetTableFqn)
+    )
+    #Unable to use "CreateDeltaTableConstraints" functio as above code automatically creates the raw table. Below code checks if the business keys columns are nullable on the table. If so they're set to not null
+    if (businessKeys):
+        columnSchema = StructType([
+            StructField('name', StringType(), True)
+            ,StructField('description', StringType(), True)
+            ,StructField('dataType', StringType(), True)
+            ,StructField('nullable', StringType(), True)
+            ,StructField('isPartition', StringType(), True)
+            ,StructField('isBucket', StringType(), True)
+        ])
+        columns = spark.catalog.listColumns(targetTableFqn.split(".")[1], targetTableFqn.split(".")[0])
+        df = spark.createDataFrame(columns, columnSchema)
+        for businessKey in businessKeys.split(","):
+            if df.where(f"name = '{businessKey}' and nullable = 'true'").count() > 0:
+                spark.sql(f"ALTER TABLE {targetTableFqn} ALTER COLUMN {businessKey} SET NOT NULL")
+                
+    return query
 
 # COMMAND ----------
 
@@ -31,9 +72,20 @@ def AppendDeltaTable(dataFrame, targetTableFqn, dataLakePath, businessKeys = Non
 
 # COMMAND ----------
 
-def CreateDeltaTableConstraints(targetTableFqn, dataLakePath, businessKeys = None):
+def delete_files_recursive(file_path: str) -> None:
+    """delete the given folder including all it's contents"""
+    for file_folder in dbutils.fs.ls(file_path):
+        if len(dbutils.fs.ls(file_folder.path[5:])) == 1:
+            dbutils.fs.rm(f'{file_folder.path[5:]}', True)
+        else:
+            delete_files_recursive(file_folder.path[5:])
+    dbutils.fs.rm(file_path, True)
+
+# COMMAND ----------
+
+def CreateDeltaTableConstraints(targetTableFqn, dataLakePath, businessKeys = None, createTableConstraints = True):
     spark.sql(f"CREATE TABLE IF NOT EXISTS {targetTableFqn} USING DELTA LOCATION \'{dataLakePath}\'")
-    if businessKeys is not None:
+    if businessKeys is not None and createTableConstraints:
         for businessKey in businessKeys.split(","):
             spark.sql(f"ALTER TABLE {targetTableFqn} ALTER COLUMN {businessKey} SET NOT NULL")
 

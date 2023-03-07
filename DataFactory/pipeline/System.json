@@ -312,7 +312,7 @@
 					"source": {
 						"type": "AzureSqlSource",
 						"sqlReaderQuery": {
-							"value": "declare @val bit = 0\n\ndeclare @sysCode varchar(100) = '@{pipeline().parameters.SystemCode}'\n\nselect @sysCode = \n    case \n    when right(@sysCode, 3) = 'ref'\n    then left(@sysCode, len(@sysCode) - 3)\n    when right(@sysCode, 4) = 'data'\n    then left(@sysCode, len(@sysCode) - 4)\n    end\n\nselect @val = value\nfrom dbo.config\nwhere keygroup = 'runviewcreation'\nand [key] = @sysCode\n\nselect value = @val\n",
+							"value": "declare @val bit = 0\n\ndeclare @sysCode varchar(100) = '@{pipeline().parameters.SystemCode}'\n\nselect @val = value\nfrom dbo.config\nwhere keygroup = 'runviewcreation'\nand [key] = @sysCode\n\nselect value = @val\n",
 							"type": "Expression"
 						},
 						"partitionOption": "None"

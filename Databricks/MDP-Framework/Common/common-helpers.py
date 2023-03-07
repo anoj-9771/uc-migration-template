@@ -5,23 +5,31 @@ from pyspark.sql.functions import *
 
 # COMMAND ----------
 
-def ExpandTable(df):
+def ExpandTable(df, includeParentNames = False, sep = "_", excludeColumns = ""):
     newDf = df
     for i in df.dtypes:
         columnName = i[0]
         
+        #skip explosion if column name in comma delimitted exclude column list
+        if columnName in excludeColumns.split(","):
+            continue
+        
+        #if the column is a structure data type loop through and explode appending the parent column name to the root object
         if i[1].startswith("struct"):
             newDf = newDf.selectExpr("*", f"`{columnName}`.*")
+            if includeParentNames:
+                for c in newDf.selectExpr(f"`{columnName}`.*").columns:
+                    newDf = newDf.withColumnRenamed(c, f"{columnName}{sep}{c}".replace("__", "_"))
             newDf = newDf.drop(columnName)
-            return ExpandTable(newDf)
+            return ExpandTable(newDf, includeParentNames, sep, excludeColumns)
+        
         if i[1].startswith("array") and "struct" in i[1]:
             explodedDf = newDf.withColumn(f"{columnName}", expr(f"explode(`{columnName}`)"))
             newDf = explodedDf.selectExpr("*", f"`{columnName}`.*")
-
             for c in explodedDf.selectExpr(f"`{columnName}`.*").columns:
-                newDf = newDf.withColumnRenamed(c, f"{columnName}_{c}".replace("__", "_"))
-            newDf = newDf.drop(columnName)
-            return ExpandTable(newDf)
+                newDf = newDf.withColumnRenamed(c, f"{columnName}{sep}{c}".replace("__", "_"))
+            newDf = newDf.drop(columnName, columnName)
+            return ExpandTable(newDf, includeParentNames, sep, excludeColumns)
     return newDf
 
 # COMMAND ----------

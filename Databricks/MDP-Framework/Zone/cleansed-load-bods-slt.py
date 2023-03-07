@@ -63,6 +63,7 @@ sourceRecordDeletion=""
 if(extendedProperties):
     extendedProperties = json.loads(extendedProperties)
     sourceRecordDeletion = extendedProperties.get("SourceRecordDeletion") if extendedProperties.get("SourceRecordDeletion") else ""
+    createTableConstraints = True if extendedProperties.get("CreateTableConstraints", "True").lower() == "true" else False
     
 # APPLY CLEANSED FRAMEWORK
 sourceDataFrame = CleansedTransform(sourceDataFrame, sourceTableName.lower(), systemCode)
@@ -75,7 +76,7 @@ rawDataFrame = sourceDataFrame
 sourceDataFrame = SapPreprocessCleansed(sourceDataFrame,businessKey,sourceRecordDeletion,sourceQuery,watermarkColumn) #if sourceQuery[0:3].lower() in ('crm','isu','slt','ppm') else sourceDataFrame
 
 #UPSERT CLEANSED TABLE
-CreateDeltaTable(sourceDataFrame, cleansedTableName, dataLakePath) if j.get("BusinessKeyColumn") is None else CreateOrMerge(sourceDataFrame, cleansedTableName, dataLakePath, j.get("BusinessKeyColumn"))
+CreateDeltaTable(sourceDataFrame, cleansedTableName, dataLakePath) if j.get("BusinessKeyColumn") is None else CreateOrMerge(sourceDataFrame, cleansedTableName, dataLakePath, j.get("BusinessKeyColumn"), createTableConstraints)
     
 # HANDLE SAP ISU, SAP CRM & SAP SLT (FOR DELETED RECORDS)
 if sourceRecordDeletion.lower() == "true":

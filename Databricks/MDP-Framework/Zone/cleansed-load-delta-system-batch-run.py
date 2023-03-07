@@ -139,7 +139,15 @@ for j in manifest_df.rdd.collect():
         extendedProperties = j.ExtendedProperties
         watermarkColumn = j.WatermarkColumn
         dataLakePath = cleansedPath.replace("/cleansed", "/mnt/datalake-cleansed")
-        sourceTableName = f"raw.{destinationSchema}_{destinationTableName}"
+        rawTableNameMatchSource = None
+        if extendedProperties:
+            extendedProperties = json.loads(extendedProperties)
+            rawTableNameMatchSource = extendedProperties.get("RawTableNameMatchSource")
+
+        if rawTableNameMatchSource:
+            sourceTableName = f"raw.{destinationSchema}_{sourceTable}".lower()
+        else:
+            sourceTableName = f"raw.{destinationSchema}_{destinationTableName}".lower()
         cleansedTableName = f"cleansed.{destinationSchema}_{destinationTableName}"
         
         #print(f" Cleaning up table: {cleansedTableName}")
@@ -165,7 +173,6 @@ for j in manifest_df.rdd.collect():
         
         # CLEANSED QUERY FROM RAW TO FLATTEN OBJECT
         if(extendedProperties):
-            extendedProperties = json.loads(extendedProperties)
             cleansedPath = extendedProperties.get("CleansedQuery")
             if(cleansedPath):
                 sourceDataFrame = spark.sql(cleansedPath.replace("{tableFqn}", sourceTableName))

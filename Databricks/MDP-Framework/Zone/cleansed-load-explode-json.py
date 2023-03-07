@@ -12,7 +12,6 @@ spark.conf.set("spark.sql.legacy.parquet.datetimeRebaseModeInWrite", "CORRECTED"
 task = dbutils.widgets.get("task")
 j = json.loads(task)
 systemCode = j.get("SystemCode")
-sourceTable = j.get("SourceTableName")
 destinationSchema = j.get("DestinationSchema")
 destinationTableName = j.get("DestinationTableName")
 cleansedPath = j.get("CleansedPath")
@@ -20,15 +19,7 @@ businessKey = j.get("BusinessKeyColumn")
 destinationKeyVaultSecret = j.get("DestinationKeyVaultSecret")
 extendedProperties = j.get("ExtendedProperties")
 dataLakePath = cleansedPath.replace("/cleansed", "/mnt/datalake-cleansed")
-rawTableNameMatchSource = None
-
-if extendedProperties:
-    extendedProperties = json.loads(extendedProperties)
-    rawTableNameMatchSource = extendedProperties.get("RawTableNameMatchSource")
-if rawTableNameMatchSource:
-    sourceTableName = f"raw.{destinationSchema}_{sourceTable}".lower()
-else:
-    sourceTableName = f"raw.{destinationSchema}_{destinationTableName}".lower()
+sourceTableName = f"raw.{destinationSchema}_{destinationTableName}"
 cleansedTableName = f"cleansed.{destinationSchema}_{destinationTableName}"
 
 # COMMAND ----------
@@ -43,20 +34,18 @@ except Exception as e:
 
 # COMMAND ----------
 
-sourceDataFrame = spark.sql(f"select * from {sourceTableName} where _DLRawZoneTimeStamp > '{lastLoadTimeStamp}'")
-sourceDataFrame = sourceDataFrame.groupby(sourceDataFrame.columns[0:-1]).count().drop("count")
-CleansedSourceCount = sourceDataFrame.count()
-
-# FIX BAD COLUMNS
-sourceDataFrame = sourceDataFrame.toDF(*(c.replace(' ', '_') for c in sourceDataFrame.columns))
-
-# CLEANSED QUERY FROM RAW TO FLATTEN OBJECT
-if(extendedProperties):
-    cleansedPath = extendedProperties.get("CleansedQuery")
-    if(cleansedPath):
-        sourceDataFrame = spark.sql(cleansedPath.replace("{tableFqn}", sourceTableName))
+excludeColumns = ""
+whereClause = "1 = 1"
+if systemCode == "hydra":
+    excludeColumns = "ChildJoins"
+    whereClause = 'ChildJoins is not null'
     
-# APPLY CLEANSED FRAMEWORK
+sourceDataFrame = spark.sql(f"select * from {sourceTableName} where _DLRawZoneTimeStamp > '{lastLoadTimeStamp}'")
+
+sourceDataFrame = sourceDataFrame.where(whereClause)
+    
+sourceDataFrame = ExpandTable(sourceDataFrame, True, "_", excludeColumns)
+
 cleanseDataFrame = CleansedTransform(sourceDataFrame, sourceTableName.lower(), systemCode)
 cleanseDataFrame = cleanseDataFrame.withColumn("_DLCleansedZoneTimeStamp",current_timestamp()) \
                                    .withColumn("_RecordCurrent",lit('1')) \
@@ -64,12 +53,7 @@ cleanseDataFrame = cleanseDataFrame.withColumn("_DLCleansedZoneTimeStamp",curren
                                    .withColumn("_RecordStart",current_timestamp()) \
                                    .withColumn("_RecordEnd",to_timestamp(lit("9999-12-31"), "yyyy-MM-dd"))
 
-# GET LATEST RECORD OF THE BUSINESS KEY
-if(extendedProperties):
-    groupOrderBy = extendedProperties.get("GroupOrderBy")
-    if(groupOrderBy):
-        cleanseDataFrame.createOrReplaceTempView("vwCleanseDataFrame")
-        cleanseDataFrame = spark.sql(f"select * from (select vwCleanseDataFrame.*, row_number() OVER (Partition By {businessKey} order by {groupOrderBy}) row_num from vwCleanseDataFrame) where row_num = 1 ").drop("row_num")   
+cleanseDataFrame.display()
 
 tableName = f"{destinationSchema}_{destinationTableName}"
 CreateDeltaTable(cleanseDataFrame, f"cleansed.{tableName}", dataLakePath) if j.get("BusinessKeyColumn") is None else CreateOrMerge(cleanseDataFrame, f"cleansed.{tableName}", dataLakePath, j.get("BusinessKeyColumn"))

@@ -16,8 +16,21 @@ task = dbutils.widgets.get("task")
 j = json.loads(task)
 
 rawPath = j.get("RawPath").replace("/raw", "/mnt/datalake-raw")
+
+extendedProperties = j.get("ExtendedProperties")
+
 schemaName = j.get("DestinationSchema")
-tableName = j.get("DestinationTableName")
+rawTableNameMatchSource = None
+
+if extendedProperties:
+    extendedProperties = json.loads(extendedProperties)
+    rawTableNameMatchSource = extendedProperties.get("RawTableNameMatchSource")
+
+if rawTableNameMatchSource: 
+    tableName = j.get("SourceTableName").lower()
+else:
+    tableName = j.get("DestinationTableName").lower()
+    
 rawTargetPath = j.get("RawPath")
 systemCode = j.get("SystemCode")
 rawFolderPath = "/".join(rawPath.split("/")[0:-1])
@@ -26,7 +39,6 @@ fileFormat = ""
 fileOptions = ""
 
 if("xml" in rawTargetPath):
-    extendedProperties = json.loads(j.get("ExtendedProperties"))
     rowTag = extendedProperties.get("rowTag")
     fileFormat = "XML"
     fileOptions = {"ignoreNamespace":"true", "rowTag":f"{rowTag}"}
