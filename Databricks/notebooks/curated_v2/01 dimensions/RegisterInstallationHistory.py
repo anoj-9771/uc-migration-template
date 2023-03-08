@@ -28,7 +28,8 @@ def getRegisterInstallationHistory():
                                                   registerNotRelevantToBilling,
                                                   rateFactGroupCode,
                                                   rateFactGroup,
-                                                  rih._RecordDeleted 
+                                                  rih._RecordDeleted,
+                                                  rih._DLCleansedZoneTimeStamp 
                                               from {ADS_DATABASE_CLEANSED}.isu_0UC_REGINST_STR_ATTR rih
                                               where rih._RecordCurrent = 1 
                                         """)

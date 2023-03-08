@@ -42,7 +42,8 @@ def getContractHistory():
                                             ,ch.createdBy
                                             ,ch.lastChangedDate
                                             ,ch.lastChangedBy
-                                            ,ch._RecordDeleted 
+                                            ,ch._RecordDeleted
+                                            ,ch._DLCleansedZoneTimeStamp 
                                       from {ADS_DATABASE_CLEANSED}.isu_0uccontracth_attr_2 ch
                                       left outer join {ADS_DATABASE_CLEANSED}.crm_utilitiescontract uc
                                           on ch.contractId = uc.utilitiesContract and ch.validToDate = uc.contractEndDateE

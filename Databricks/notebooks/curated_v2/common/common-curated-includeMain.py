@@ -11,6 +11,7 @@
 # COMMAND ----------
 
 from pyspark.sql.window import Window
+from datetime import datetime
 
 # COMMAND ----------
 
@@ -218,12 +219,15 @@ def TemplateTimeSliceEtlSCD(df : object, entity, businessKey, schema, fromDateCo
     df = df.withColumn("_BusinessKey", concat_ws('|', *(businessKey.split(","))))
     #df = df.withColumn("_RecordStart", expr(f"CAST(ifnull({fromDateCol},'1900-01-01') as timestamp)"))
     df = df.withColumn("_RecordStart", expr(f"cast(case when {fromDateCol} = '1000-01-01' then '1000-01-01T00:00:00.000+1000' when isnull({fromDateCol}) then '1900-01-01' else {fromDateCol} end as timestamp)"))
-    df = df.withColumn("_RecordEnd", expr(f"CAST((CAST(ifnull({toDateCol},'9999-12-31') as date) +1) - INTERVAL 1 SECOND as timestamp)"))
+    #df = df.withColumn("_RecordEnd", expr(f"CAST((CAST(ifnull({toDateCol},'9999-12-31') as date) +1) - INTERVAL 1 SECOND as timestamp)"))
     
     if "_RecordDeleted" not in df.columns:
         df = df.withColumn("_RecordDeleted", expr("CAST(0 AS INT)"))
     else:
         df = df.withColumn("_RecordDeleted", when(col('_RecordDeleted').isNull(),expr(f"CAST(0 AS INT)")).otherwise(col('_RecordDeleted'))) 
+    
+    df = df.withColumn("_RecordEnd", when((col('_RecordDeleted')==1) & (col(toDateCol) > col('_DLCleansedZoneTimeStamp')), col('_DLCleansedZoneTimeStamp'))\
+                       .otherwise(expr(f"CAST((CAST(ifnull({toDateCol},'9999-12-31') as date) +1) - INTERVAL 1 SECOND as timestamp)")))
     
     df = df.withColumn("_DLCuratedZoneTimeStamp", expr("now()"))
     df = df.withColumn(SurrogateKey, md5(expr(f"concat(_BusinessKey,'|',_RecordStart)")))
@@ -244,12 +248,7 @@ def TemplateTimeSliceEtlSCD(df : object, entity, businessKey, schema, fromDateCo
     
     print("Overwrite Target Table")
     
-    #df.write.mode("overwrite").saveAsTable(TargetTable, path=TargetTableDataLakePath)
-    
-    df.filter("isnull(sourceSystemCode) or sourceSystemCode <> 'ACCESS'").write.mode("overwrite") \
-        .format("delta") \
-        .option("replaceWhere", "isnull(sourceSystemCode) or sourceSystemCode <> 'ACCESS'") \
-        .saveAsTable(TargetTable, path=TargetTableDataLakePath)
+    df.write.mode("overwrite").saveAsTable(TargetTable, path=TargetTableDataLakePath)
     
     verifyTableSchema(f"{TARGET_LAYER}.{entity}", schema)
 

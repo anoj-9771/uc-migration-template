@@ -52,7 +52,8 @@ def getMeterConsumptionBillingLineItem():
                     dberchz2.meterReaderNoteText,
                     dberchz2.quantityDeterminationProcedureCode,
                     dberchz2.meterReadingDocumentId,
-                    erch._RecordDeleted as _RecordDeleted 
+                    erch._RecordDeleted as _RecordDeleted,
+                    erch._DLCleansedZoneTimeStamp 
                     from cleansed.isu_erch erch 
                                inner join cleansed.isu_dberchz1 as dberchz1 on erch.billingDocumentNumber = dberchz1.billingDocumentNumber                               
                                                               and (dberchz1.lineItemTypeCode = 'ZDQUAN' or dberchz1.lineItemTypeCode = 'ZRQUAN')         

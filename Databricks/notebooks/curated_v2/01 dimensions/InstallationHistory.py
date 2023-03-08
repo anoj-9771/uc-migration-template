@@ -34,7 +34,8 @@ df_installation_history = spark.sql(f"""
         i.meterReadingUnit             AS meterReadingUnit,
         i.industrySystemCode           AS industrySystemCode,
         i.IndustrySystem               AS IndustrySystem,
-        i._RecordDeleted 
+        i._RecordDeleted,
+        i._DLCleansedZoneTimeStamp 
     FROM {ADS_DATABASE_CLEANSED}.isu_0ucinstallah_attr_2 i
     LEFT OUTER JOIN {ADS_DATABASE_CLEANSED}.isu_0ucmtrdunit_attr m ON 
         i.meterReadingUnit = m.meterReadingUnit AND

@@ -47,7 +47,8 @@ isu0bpRelationsAttrDf  = (
                 businessPartnerRelationshipNumber   as relationshipNumber, 
                 relationshipTypeCode                as relationshipTypeCode, 
                 relationshipType                    as relationshipType,
-                _RecordDeleted
+                _RecordDeleted,
+                _DLCleansedZoneTimeStamp 
             FROM {ADS_DATABASE_CLEANSED}.isu_0bp_relations_attr 
             where 
                 relationshipDirection = '1' 
@@ -77,7 +78,8 @@ crm0bpRelationsAttrDf  = (
                 businessPartnerRelationshipNumber   as relationshipNumber, 
                 relationshipTypeCode                as relationshipTypeCode, 
                 relationshipType                    as relationshipType,
-                _RecordDeleted
+                _RecordDeleted,
+                _DLCleansedZoneTimeStamp 
             FROM {ADS_DATABASE_CLEANSED}.crm_0bp_relations_attr 
             where 
                 relationshipDirection = '1' 
@@ -152,7 +154,8 @@ def getBusinessPartnerGroupRelationship():
             "relationshipNumber", 
             "relationshipTypeCode", 
             "relationshipType",
-            "_RecordDeleted"
+            "_RecordDeleted",
+            "_DLCleansedZoneTimeStamp" 
             )
     )
 #     print('df_bprelation_master count:', df_bprelation_master.count())
@@ -284,7 +287,8 @@ def getBusinessPartnerGroupRelationship():
             "relationshipNumber", 
             "relationshipTypeCode", 
             "relationshipType",
-            "_RecordDeleted"
+            "_RecordDeleted",
+            "_DLCleansedZoneTimeStamp" 
         )
     )
 

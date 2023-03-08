@@ -35,7 +35,8 @@ def getDeviceHistory():
                                           min(installationDate) over (partition by equipmentNumber) as firstInstallationDate,
                                           case when validFromDate  <= current_date and validToDate >= current_date then deviceRemovalDate
                                                else null end as lastDeviceRemovalDate,
-                                           dh._RecordDeleted 
+                                           dh._RecordDeleted,
+                                           dh._DLCleansedZoneTimeStamp 
                                       from {ADS_DATABASE_CLEANSED}.isu_0UC_DEVICEH_ATTR dh
                                       where dh._RecordCurrent = 1 and dh._RecordDeleted <> -1
                                       """)

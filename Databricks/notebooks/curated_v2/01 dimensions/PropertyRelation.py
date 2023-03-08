@@ -18,7 +18,8 @@ def getPropertyRelation():
                                         relationshipType1,
                                         relationshipTypeCode2,
                                         relationshipType2,
-                                        _RecordDeleted   
+                                        _RecordDeleted,
+                                        _DLCleansedZoneTimeStamp 
                                         from {ADS_DATABASE_CLEANSED}.isu_zcd_tprop_rel where _RecordCurrent = 1 """)
     
     dummyDimRecDf = spark.createDataFrame([("-1","-1",

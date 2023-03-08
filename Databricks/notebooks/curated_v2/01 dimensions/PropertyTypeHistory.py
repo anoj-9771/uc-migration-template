@@ -13,7 +13,8 @@ def getPropertyTypeHistory():
                     inferiorPropertyType, 
                     ValidFromDate, 
                     ValidToDate,
-                    _RecordDeleted 
+                    _RecordDeleted,
+                    _DLCleansedZoneTimeStamp 
                     from {ADS_DATABASE_CLEANSED}.isu_zcd_tpropty_hist where _RecordCurrent = 1 and _RecordDeleted <> -1 """)
     '''
     spark.sql(f"""CREATE OR REPLACE TEMP VIEW view_access_property_hist 

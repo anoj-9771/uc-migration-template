@@ -26,7 +26,8 @@ def getDeviceInstallationHistory():
                                               rateTypeCode,
                                               rateType,
                                               payRentalPrice,
-                                              dih._RecordDeleted 
+                                              dih._RecordDeleted,
+                                              dih._DLCleansedZoneTimeStamp 
                                           from {ADS_DATABASE_CLEANSED}.isu_0UC_DEVINST_ATTR dih
                                           where dih._RecordCurrent = 1 
                                       """)

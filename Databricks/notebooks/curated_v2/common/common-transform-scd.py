@@ -126,7 +126,8 @@ def SCDMerge(sourceDataFrame, scd_start_date = SCD_START_DATE, scd_end_date = SC
         scd_expire_date = (datetime.strptime(scd_start_date, '%Y-%m-%d') - timedelta(days=1)).strftime('%Y-%m-%d')
     else:
         if scd_start_date == 'now':
-            dt_tp = spark.sql("select cast(now() as string), cast(now() - INTERVAL 1 SECOND as string) ").collect()[0]
+            #dt_tp = spark.sql("select cast(now() as string), cast(now() - INTERVAL 1 SECOND as string) ").collect()[0]
+            dt_tp = spark.sql(" select current_date(), cast(current_date() - INTERVAL 1 SECOND as string)  ").collect()[0]
             scd_start_date, scd_expire_date = str(dt_tp[0]), str(dt_tp[1])
     
     print("Add SCD Columns to Source Dataframe")

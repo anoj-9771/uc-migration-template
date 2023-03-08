@@ -42,7 +42,8 @@ df_installation_fact = spark.sql(f"""
         operandValue3Flag                 AS operandValue3Flag,
         amount                            AS amount,
         currencyKey                       AS currencyKey,
-        _RecordDeleted 
+        _RecordDeleted,
+        _DLCleansedZoneTimeStamp 
     FROM {ADS_DATABASE_CLEANSED}.isu_ettifn
     WHERE 
         _RecordCurrent = 1 

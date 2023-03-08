@@ -17,7 +17,8 @@ def getPropertyService():
                         isu_vibdcharact.fixtureAndFittingCharacteristicCode, 
                         isu_vibdcharact.fixtureAndFittingCharacteristic, 
                         isu_vibdcharact.supplementInfo,
-                        isu_vibdcharact._RecordDeleted 
+                        isu_vibdcharact._RecordDeleted,
+                        isu_vibdcharact._DLCleansedZoneTimeStamp 
                         from {ADS_DATABASE_CLEANSED}.isu_vibdcharact isu_vibdcharact inner join {ADS_DATABASE_CLEANSED}.isu_vibdnode isu_vibdnode 
                         on isu_vibdcharact.architecturalObjectInternalId = isu_vibdnode.architecturalObjectInternalId 
                         where isu_vibdcharact._RecordCurrent = 1 

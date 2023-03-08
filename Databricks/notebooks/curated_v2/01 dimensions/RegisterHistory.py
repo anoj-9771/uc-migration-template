@@ -34,7 +34,8 @@ def getRegisterHistory():
                                           reactiveApparentOrActiveRegisterTxt as reactiveApparentOrActiveRegister,
                                           unitOfMeasurementMeterReading,
                                           doNotReadFlag,
-                                          rh._RecordDeleted 
+                                          rh._RecordDeleted,
+                                          rh._DLCleansedZoneTimeStamp 
                                       from {ADS_DATABASE_CLEANSED}.isu_0UC_REGIST_ATTR rh
                                       where rh._RecordCurrent = 1 
                                       """)

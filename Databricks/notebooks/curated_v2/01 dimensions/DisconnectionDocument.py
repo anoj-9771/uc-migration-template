@@ -38,7 +38,8 @@ df_isu_0uc_isu_32 = spark.sql(f"""
         installationNumber                                        AS installationNumber,
         equipmentNumber                                           AS equipmentNumber,
         propertyNumber                                            AS propertyNumber,
-        _RecordDeleted 
+        _RecordDeleted,
+        _DLCleansedZoneTimeStamp 
     FROM {ADS_DATABASE_CLEANSED}.isu_0uc_isu_32
     WHERE 
         _RecordCurrent = 1 

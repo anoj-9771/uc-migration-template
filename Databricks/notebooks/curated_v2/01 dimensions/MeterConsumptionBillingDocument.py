@@ -40,7 +40,8 @@ def getMeterConsumptionBillingDocument():
         erchc.documentNotReleasedFlag as documentNotReleasedFlag,
         erchc.invoiceReversalPostingDate as invoiceReversalPostingDate,
         erchc.sequenceNumber as invoiceMaxSequenceNumber,
-        erch._RecordDeleted as _RecordDeleted 
+        erch._RecordDeleted as _RecordDeleted,
+        erch._DLCleansedZoneTimeStamp 
         from {ADS_DATABASE_CLEANSED}.isu_erch erch 
            inner join {ADS_DATABASE_CLEANSED}.isu_dberchz1 as dberchz1 on erch.billingDocumentNumber = dberchz1.billingDocumentNumber                               
                                           and (dberchz1.lineItemTypeCode = 'ZDQUAN' or dberchz1.lineItemTypeCode = 'ZRQUAN')         

@@ -147,6 +147,7 @@ LEFT OUTER JOIN curated_v2.dimAccountBusinessPartner
       AND effectiveDateRanges._effectiveFrom <= dimAccountBusinessPartner._RecordEnd
       AND effectiveDateRanges._effectiveTo >= dimAccountBusinessPartner._RecordStart
       --AND dimAccountBusinessPartner._recordDeleted = 0
+      --WHERE dimContractAccount.contractAccountSK is not null 
 )
 ORDER BY _effectiveFrom
 
