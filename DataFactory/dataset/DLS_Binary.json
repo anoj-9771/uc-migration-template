@@ -21,8 +21,7 @@
 				"fileName": {
 					"value": "@dataset().filePath",
 					"type": "Expression"
-				},
-				"fileSystem": "raw"
+				}
 			}
 		}
 	}
