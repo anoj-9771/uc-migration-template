@@ -331,6 +331,30 @@
 									}
 								}
 							]
+						},
+						{
+							"value": "sharepointlist-load",
+							"activities": [
+								{
+									"name": "execute-sharepointonlinelist-load",
+									"type": "ExecutePipeline",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "sharepointonlinelist-load",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": true,
+										"parameters": {
+											"task": {
+												"value": "@pipeline().parameters.task",
+												"type": "Expression"
+											}
+										}
+									}
+								}
+							]
 						}
 					],
 					"defaultActivities": [

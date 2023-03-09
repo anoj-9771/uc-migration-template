@@ -1,0 +1,35 @@
+{
+	"name": "SharePointOnlineList",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_SharePointOnlineList",
+			"type": "LinkedServiceReference",
+			"parameters": {
+				"url": {
+					"value": "@dataset().url",
+					"type": "Expression"
+				}
+			}
+		},
+		"parameters": {
+			"list": {
+				"type": "string"
+			},
+			"url": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "MDP-Framework/SharepointOnlineList"
+		},
+		"annotations": [],
+		"type": "SharePointOnlineListResource",
+		"schema": [],
+		"typeProperties": {
+			"listName": {
+				"value": "@dataset().list",
+				"type": "Expression"
+			}
+		}
+	}
+}

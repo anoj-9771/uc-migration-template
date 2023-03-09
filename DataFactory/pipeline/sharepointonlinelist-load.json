@@ -1,0 +1,203 @@
+{
+	"name": "sharepointonlinelist-load",
+	"properties": {
+		"activities": [
+			{
+				"name": "copy-sharepointonline-list",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "set-root-folder",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 2,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SharePointOnlineListSource",
+						"httpRequestTimeout": "00:05:00"
+					},
+					"sink": {
+						"type": "ParquetSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "ParquetWriteSettings"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SharePointOnlineList",
+						"type": "DatasetReference",
+						"parameters": {
+							"list": {
+								"value": "@pipeline().parameters.task.SourceTableName",
+								"type": "Expression"
+							},
+							"url": {
+								"value": "@pipeline().parameters.task.SourceQuery",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "DLS_Parquet",
+						"type": "DatasetReference",
+						"parameters": {
+							"BlobPath": "@variables('OutputFullPath')"
+						}
+					}
+				]
+			},
+			{
+				"name": "set-root-folder",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "OutputFullPath",
+					"value": {
+						"value": "@replace(replace(replace(replace(replace(replace(\npipeline().parameters.task.RawPath\n,'$yyyy$', formatDateTime(convertTimeZone(utcnow(), 'UTC', 'AUS Eastern Standard Time'), 'yyyy'))\n,'$MM$', formatDateTime(convertTimeZone(utcnow(), 'UTC', 'AUS Eastern Standard Time'), 'MM'))\n,'$dd$', formatDateTime(convertTimeZone(utcnow(), 'UTC', 'AUS Eastern Standard Time'), 'dd'))\n,'$HH$', formatDateTime(convertTimeZone(utcnow(), 'UTC', 'AUS Eastern Standard Time'), 'HH'))\n,'$mm$', formatDateTime(convertTimeZone(utcnow(), 'UTC', 'AUS Eastern Standard Time'), 'mm'))\n,'$guid$', guid())",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "log-copy",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "copy-sharepointonline-list",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "log-message",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": false,
+					"parameters": {
+						"ID": {
+							"value": "@pipeline().parameters.task.ID",
+							"type": "Expression"
+						},
+						"ActivityType": "copy-data",
+						"Message": {
+							"value": "@{activity('copy-sharepointonline-list')}",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "task-raw-path",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "copy-sharepointonline-list",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "log-status-update",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"ID": {
+							"value": "@pipeline().parameters.task.ID",
+							"type": "Expression"
+						},
+						"Property": "RawPath",
+						"Value": {
+							"value": "@variables('OutputFullPath')",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "sharepointonlinelist-failed",
+				"type": "Fail",
+				"dependsOn": [
+					{
+						"activity": "copy-sharepointonline-list",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"message": {
+						"value": "@activity('copy-sharepointonline-list').output.errors[0].Message",
+						"type": "Expression"
+					},
+					"errorCode": {
+						"value": "@activity('copy-sharepointonline-list').output.errors[0].Code",
+						"type": "Expression"
+					}
+				}
+			}
+		],
+		"parameters": {
+			"task": {
+				"type": "object"
+			}
+		},
+		"variables": {
+			"auth-client-id": {
+				"type": "String"
+			},
+			"survey-list": {
+				"type": "String"
+			},
+			"bearer-token": {
+				"type": "String"
+			},
+			"export-status": {
+				"type": "String"
+			},
+			"progress-id": {
+				"type": "String"
+			},
+			"OutputFullPath": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "MDP-Framework/SourceHandler/SharePointOnlineList"
+		},
+		"annotations": []
+	}
+}
