@@ -255,11 +255,7 @@ def CleansedTransform(dataFrame, tableFqn, systemCode, showTransform=False):
     dataFrame = spark.table(tableFqn) if dataFrame is None else dataFrame
     systemCode = systemCode.lower()
     
-    if systemCode[-3:] == 'ref': 
-        systemCode = systemCode.replace('ref','')
-    if systemCode[-4:] == 'data':
-        systemCode = systemCode.replace('data','')
-    
+    systemCode = re.sub('(ref|data|\|15min)$','',systemCode)
     path = f"{CLEANSED_PATH}/{systemCode}_cleansed.csv"
     
     # 0. SYSTEM DEFAULT TRANSFORM
@@ -378,11 +374,7 @@ def CleansedTransformByRules(dataFrame, tableFqn, systemCode, showTransform=Fals
     dataFrame = spark.table(tableFqn) if dataFrame is None else dataFrame
     systemCode = systemCode.lower()
     
-    if systemCode[-3:] == 'ref': 
-        systemCode = systemCode.replace('ref','')
-    if systemCode[-4:] == 'data':
-        systemCode = systemCode.replace('data','')
-    
+    systemCode = re.sub('(ref|data|\|15min)$','',systemCode)
     path = f"{CLEANSED_PATH}/{systemCode}_cleansed_by_rules.csv"
 
     # 1. LOAD CLEANSED CSV
