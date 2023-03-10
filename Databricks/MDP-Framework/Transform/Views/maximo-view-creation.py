@@ -21,13 +21,13 @@ SELECT
 FROM
   cleansed.maximo_ticket
 WHERE
-  class IN (
+  ticketClass IN (
     SELECT
-      value
+      synonymdomainValue
     FROM
       cleansed.maximo_synonymdomain
     WHERE
-      domain = 'TKCLASS'
+      synonymdomainDomain = 'TKCLASS'
       AND internalValue = 'SR'
   )
 """)
@@ -42,13 +42,13 @@ SELECT
 FROM
   cleansed.maximo_workorder
 WHERE
-  class IN (
+  workorderClass IN (
     SELECT
-      value
+      synonymdomainValue
     from
       cleansed.maximo_synonymdomain
     WHERE
-      domain = 'WOCLASS'
+      synonymdomainDomain = 'WOCLASS'
       AND internalValue = 'ACTIVITY'
   )
 """)
@@ -71,7 +71,7 @@ CREATE OR REPLACE VIEW curated.vw_maximo_WOACTIVITY as
 
 df = (
     spark.table("controldb.dbo_extractLoadManifest")
-    .filter(f"systemCode = '{systemCode}'")
+    .filter(f"systemCode like '%{systemCode}%'")
     .filter(f"SourceTableName in {dedupeList}")
     .withColumn("WatermarkColumnMapped", expr("""
     case  
