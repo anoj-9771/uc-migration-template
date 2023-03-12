@@ -176,6 +176,7 @@
     <Build Include="dbo\Procedures\LogMessage.sql" />
     <Build Include="dbo\Procedures\StatusUpdate.sql" />
     <Build Include="dbo\Procedures\TransformInit.sql" />
+    <Build Include="dbo\Views\BatchStatusLog.sql" />
   </ItemGroup>
   <ItemGroup>
     <PostDeploy Include="Script.PostDeployment1.sql" />
