@@ -2,10 +2,6 @@
 	"name": "adf-swcnonprod01-daf-dev-01",
 	"properties": {
 		"globalParameters": {
-			"environment": {
-				"type": "string",
-				"value": "dev"
-			},
 			"keyVaultName": {
 				"type": "string",
 				"value": "kv-daf-dev-01"

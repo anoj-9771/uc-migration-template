@@ -26,7 +26,14 @@
 								{
 									"name": "curated-databricks",
 									"type": "DatabricksNotebook",
-									"dependsOn": [],
+									"dependsOn": [
+										{
+											"activity": "get-default-pool-id",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
 									"policy": {
 										"timeout": "7.00:00:00",
 										"retry": 0,
@@ -37,7 +44,7 @@
 									"userProperties": [],
 									"typeProperties": {
 										"notebookPath": {
-											"value": "/ELT-Framework/@{pipeline().parameters.task.Command}",
+											"value": "@{pipeline().parameters.task.Command}",
 											"type": "Expression"
 										},
 										"baseParameters": {
@@ -48,11 +55,15 @@
 										}
 									},
 									"linkedServiceName": {
-										"referenceName": "LS-AzureDatabricks_DefinedCluster",
+										"referenceName": "LS_AzureDatabricks_InstancePool",
 										"type": "LinkedServiceReference",
 										"parameters": {
 											"kvSecret": "databricks-token",
-											"clusterId": "1103-023442-me8nqcm9"
+											"PoolId": {
+												"value": "@activity('get-default-pool-id').output.value",
+												"type": "Expression"
+											},
+											"DatabricksVersion": "9.1.x-scala2.12"
 										}
 									}
 								},
@@ -105,6 +116,30 @@
 										"value": {
 											"value": "@string(activity('curated-databricks').output.runOutput.Counts)",
 											"type": "Expression"
+										}
+									}
+								},
+								{
+									"name": "get-default-pool-id",
+									"type": "WebActivity",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "0.00:03:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": true,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"url": {
+											"value": "https://@{pipeline().globalParameters.keyVaultName}.vault.azure.net/secrets/daf-databricks-default-pool-id?api-version=7.0",
+											"type": "Expression"
+										},
+										"method": "GET",
+										"authentication": {
+											"type": "MSI",
+											"resource": "https://vault.azure.net"
 										}
 									}
 								}
