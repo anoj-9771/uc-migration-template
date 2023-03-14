@@ -9,29 +9,29 @@ df = spark.sql("""
     (
       SELECT 'iicatsref' SystemCode, 'iicats' SourceSchema, 'daf-oracle-IICATS-connectionstring' SourceKeyVaultSecret, 'oracle-load' SourceHandler, '' RawFileExtension, 'raw-load-delta' RawHandler, '' ExtendedProperties, 'cleansed-load-delta' CleansedHandler
     )
-    SELECT 'std_asset_type' SourceTableName, "TO_CHAR(M_DATE, ''DD/MON/YYYY HH24:MI:SS'')" WatermarkColumn, '' SourceQuery, * FROM _Base
+    SELECT 'std_asset_type' SourceTableName, "TO_CHAR(M_DATE, ''YYYY/MM/DD HH24:MI:SS'')" WatermarkColumn, '' SourceQuery, * FROM _Base
     UNION 
-    SELECT 'std_facility_type' SourceTableName, "TO_CHAR(M_DATE, ''DD/MON/YYYY HH24:MI:SS'')" WatermarkColumn, '' SourceQuery, * FROM _Base
+    SELECT 'std_facility_type' SourceTableName, "TO_CHAR(M_DATE, ''YYYY/MM/DD HH24:MI:SS'')" WatermarkColumn, '' SourceQuery, * FROM _Base
     UNION 
     
-    SELECT 'bi_reference_codes' SourceTableName, "TO_CHAR(M_DATE, ''DD/MON/YYYY HH24:MI:SS'')" WatermarkColumn, '' SourceQuery, * FROM _Base
+    SELECT 'bi_reference_codes' SourceTableName, "TO_CHAR(M_DATE, ''YYYY/MM/DD HH24:MI:SS'')" WatermarkColumn, '' SourceQuery, * FROM _Base
     UNION 
-    SELECT 'std_unit' SourceTableName, "TO_CHAR(M_DATE, ''DD/MON/YYYY HH24:MI:SS'')" WatermarkColumn, '' SourceQuery, * FROM _Base
+    SELECT 'std_unit' SourceTableName, "TO_CHAR(M_DATE, ''YYYY/MM/DD HH24:MI:SS'')" WatermarkColumn, '' SourceQuery, * FROM _Base
     UNION
     (
     WITH _Base AS 
     (
       SELECT 'iicatsdata' SystemCode, 'iicats' SourceSchema, 'daf-oracle-IICATS-connectionstring' SourceKeyVaultSecret, 'oracle-load' SourceHandler, '' RawFileExtension, 'raw-load-delta' RawHandler, '' ExtendedProperties, 'cleansed-load-delta' CleansedHandler
     )
-    SELECT 'scx_facility' SourceTableName, "TO_CHAR(M_DATE, ''DD/MON/YYYY HH24:MI:SS'')" WatermarkColumn, "select * from iicats.scx_facility where lower(edw_export_config) = ''y''" SourceQuery, * FROM _Base
+    SELECT 'scx_facility' SourceTableName, "TO_CHAR(M_DATE, ''YYYY/MM/DD HH24:MI:SS'')" WatermarkColumn, "select * from iicats.scx_facility where lower(edw_export_config) = ''y''" SourceQuery, * FROM _Base
     UNION 
-    SELECT 'groups' SourceTableName, "TO_CHAR(M_DATE, ''DD/MON/YYYY HH24:MI:SS'')" WatermarkColumn, '' SourceQuery, * FROM _Base
+    SELECT 'groups' SourceTableName, "TO_CHAR(M_DATE, ''YYYY/MM/DD HH24:MI:SS'')" WatermarkColumn, '' SourceQuery, * FROM _Base
     UNION 
-    SELECT 'scx_point' SourceTableName, "TO_CHAR(M_DATE, ''DD/MON/YYYY HH24:MI:SS'')" WatermarkColumn, "select * from iicats.scx_point where lower(edw_export_config) = ''y''" SourceQuery, * FROM _Base
+    SELECT 'scx_point' SourceTableName, "TO_CHAR(M_DATE, ''YYYY/MM/DD HH24:MI:SS'')" WatermarkColumn, "select * from iicats.scx_point where lower(edw_export_config) = ''y''" SourceQuery, * FROM _Base
     UNION 
-    SELECT 'wfp_daily_demand_archive' SourceTableName, "TO_CHAR(M_DATE, ''DD/MON/YYYY HH24:MI:SS'')" WatermarkColumn, '' SourceQuery, * FROM _Base
+    SELECT 'wfp_daily_demand_archive' SourceTableName, "TO_CHAR(M_DATE, ''YYYY/MM/DD HH24:MI:SS'')" WatermarkColumn, '' SourceQuery, * FROM _Base
     UNION 
-    SELECT 'site_hierarchy' SourceTableName, "TO_CHAR(M_DATE, ''DD/MON/YYYY HH24:MI:SS'')" WatermarkColumn, "select * from iicats.site_hierarchy where lower(substr(scx_site_code,1,2)) <> ''tw'' and lower(edw_export_config) = ''y''" SourceQuery, * FROM _Base    
+    SELECT 'site_hierarchy' SourceTableName, "TO_CHAR(M_DATE, ''YYYY/MM/DD HH24:MI:SS'')" WatermarkColumn, "select * from iicats.site_hierarchy where lower(substr(scx_site_code,1,2)) <> ''tw'' and lower(edw_export_config) = ''y''" SourceQuery, * FROM _Base    
     )    
     UNION
     (
@@ -39,29 +39,29 @@ df = spark.sql("""
     (
       SELECT 'iicatsdata' SystemCode, 'scxstg' SourceSchema, 'daf-oracle-IICATS-stg-connectionstring' SourceKeyVaultSecret, 'oracle-load' SourceHandler, '' RawFileExtension, 'raw-load-delta' RawHandler, '' ExtendedProperties, 'cleansed-load-delta' CleansedHandler
     )
-    SELECT 'event' SourceTableName, "TO_CHAR(HT_CRT_DT, ''DD/MON/YYYY HH24:MI:SS'')" WatermarkColumn, '' SourceQuery, * FROM _Base
+    SELECT 'event' SourceTableName, "TO_CHAR(HT_CRT_DT, ''YYYY/MM/DD HH24:MI:SS'')" WatermarkColumn, '' SourceQuery, * FROM _Base
     UNION 
-    SELECT 'iicats_work_orders' SourceTableName, "TO_CHAR(HT_CRT_DT, ''DD/MON/YYYY HH24:MI:SS'')" WatermarkColumn, '' SourceQuery, * FROM _Base
+    SELECT 'iicats_work_orders' SourceTableName, "TO_CHAR(HT_CRT_DT, ''YYYY/MM/DD HH24:MI:SS'')" WatermarkColumn, '' SourceQuery, * FROM _Base
     UNION 
-    SELECT 'point_limit' SourceTableName, "TO_CHAR(EFF_FROM_DT, ''DD/MON/YYYY HH24:MI:SS'')" WatermarkColumn, '' SourceQuery, * FROM _Base
+    SELECT 'point_limit' SourceTableName, "TO_CHAR(EFF_FROM_DT, ''YYYY/MM/DD HH24:MI:SS'')" WatermarkColumn, '' SourceQuery, * FROM _Base
     UNION 
-    SELECT 'tsv' SourceTableName, "TO_CHAR(HT_CRT_DT, ''DD/MON/YYYY HH24:MI:SS'')" WatermarkColumn, '' SourceQuery, * FROM _Base
+    SELECT 'tsv' SourceTableName, "TO_CHAR(HT_CRT_DT, ''YYYY/MM/DD HH24:MI:SS'')" WatermarkColumn, '' SourceQuery, * FROM _Base
     UNION 
-    SELECT 'tsv_point_cnfgn' SourceTableName, "TO_CHAR(EFF_FROM_DT, ''DD/MON/YYYY HH24:MI:SS'')" WatermarkColumn, '' SourceQuery, * FROM _Base
+    SELECT 'tsv_point_cnfgn' SourceTableName, "TO_CHAR(EFF_FROM_DT, ''YYYY/MM/DD HH24:MI:SS'')" WatermarkColumn, '' SourceQuery, * FROM _Base
     UNION 
-    SELECT 'wkly_prof_cnfgn' SourceTableName, "TO_CHAR(EFF_FROM_DT, ''DD/MON/YYYY HH24:MI:SS'')" WatermarkColumn, '' SourceQuery, * FROM _Base
+    SELECT 'wkly_prof_cnfgn' SourceTableName, "TO_CHAR(EFF_FROM_DT, ''YYYY/MM/DD HH24:MI:SS'')" WatermarkColumn, '' SourceQuery, * FROM _Base
     UNION 
-    SELECT 'dly_prof_cnfgn' SourceTableName, "TO_CHAR(EFF_FROM_DT, ''DD/MON/YYYY HH24:MI:SS'')" WatermarkColumn, '' SourceQuery, * FROM _Base
+    SELECT 'dly_prof_cnfgn' SourceTableName, "TO_CHAR(EFF_FROM_DT, ''YYYY/MM/DD HH24:MI:SS'')" WatermarkColumn, '' SourceQuery, * FROM _Base
     UNION 
-    SELECT 'hierarchy_cnfgn' SourceTableName, "TO_CHAR(EFF_FROM_DT, ''DD/MON/YYYY HH24:MI:SS'')" WatermarkColumn, "select * from scxstg.hierarchy_cnfgn where lower(substr(site_cd,1,2)) <> ''tw''" SourceQuery, * FROM _Base
+    SELECT 'hierarchy_cnfgn' SourceTableName, "TO_CHAR(EFF_FROM_DT, ''YYYY/MM/DD HH24:MI:SS'')" WatermarkColumn, "select * from scxstg.hierarchy_cnfgn where lower(substr(site_cd,1,2)) <> ''tw''" SourceQuery, * FROM _Base
     UNION 
-    SELECT 'point_cnfgn' SourceTableName, "TO_CHAR(EFF_FROM_DT, ''DD/MON/YYYY HH24:MI:SS'')" WatermarkColumn, '' SourceQuery, * FROM _Base
+    SELECT 'point_cnfgn' SourceTableName, "TO_CHAR(EFF_FROM_DT, ''YYYY/MM/DD HH24:MI:SS'')" WatermarkColumn, '' SourceQuery, * FROM _Base
     UNION 
-    SELECT 'rtu' SourceTableName, "TO_CHAR(EFF_FROM_DT, ''DD/MON/YYYY HH24:MI:SS'')" WatermarkColumn, '' SourceQuery, * FROM _Base    
+    SELECT 'rtu' SourceTableName, "TO_CHAR(EFF_FROM_DT, ''YYYY/MM/DD HH24:MI:SS'')" WatermarkColumn, '' SourceQuery, * FROM _Base    
     UNION 
-    SELECT 'qlty_config' SourceTableName, "TO_CHAR(EFF_FROM_DT, ''DD/MON/YYYY HH24:MI:SS'')" WatermarkColumn, '' SourceQuery, * FROM _Base        
+    SELECT 'qlty_config' SourceTableName, "TO_CHAR(EFF_FROM_DT, ''YYYY/MM/DD HH24:MI:SS'')" WatermarkColumn, '' SourceQuery, * FROM _Base        
     UNION 
-    SELECT 'scxuser' SourceTableName, "TO_CHAR(EFF_FROM_DT, ''DD/MON/YYYY HH24:MI:SS'')" WatermarkColumn, '' SourceQuery, * FROM _Base
+    SELECT 'scxuser' SourceTableName, "TO_CHAR(EFF_FROM_DT, ''YYYY/MM/DD HH24:MI:SS'')" WatermarkColumn, '' SourceQuery, * FROM _Base
     UNION 
     SELECT 'scxfield' SourceTableName, '' WatermarkColumn, '' SourceQuery, * FROM _Base
     )    
