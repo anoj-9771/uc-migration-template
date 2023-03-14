@@ -10,15 +10,29 @@
 		"type": "SharePointOnlineList",
 		"typeProperties": {
 			"siteUrl": "@{linkedService().url}",
-			"tenantId": "8351bb5c-749d-4ee4-b1c4-71a3971acbe9",
-			"servicePrincipalId": "acff96db-8630-433b-bbb1-35a3813fa036",
+			"tenantId": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "LS-AzureKeyVault",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "daf-tenant-id"
+			},
+			"servicePrincipalId": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "LS-AzureKeyVault",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "daf-serviceprincipal-app-id"
+			},
 			"servicePrincipalKey": {
 				"type": "AzureKeyVaultSecret",
 				"store": {
 					"referenceName": "LS-AzureKeyVault",
 					"type": "LinkedServiceReference"
 				},
-				"secretName": "SERVICE-PRINCIPAL-SECRET"
+				"secretName": "daf-serviceprincipal-app-secret"
 			}
 		},
 		"connectVia": {
