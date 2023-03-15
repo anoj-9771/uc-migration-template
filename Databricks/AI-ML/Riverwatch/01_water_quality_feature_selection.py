@@ -120,6 +120,7 @@ EPOCH_TIMESTAMP_2d=3600*24*2
 # COMMAND ----------
 
 df_time_series_values = (df_time_series_values
+                          .withColumn("TSV_AEST_DT",psf.col("TSV_AEST_DT") - psf.expr("INTERVAL 10 HOURS"))
                           .withColumn("epoch_LAST_RUNTIME",psf.unix_timestamp(psf.date_trunc("hour",psf.lit(LAST_MODEL_RUNTIME)).cast("timestamp")))
                           .withColumn("epoch_CURRENT_RUNTIME",psf.unix_timestamp(psf.date_trunc("hour",psf.lit(CURRENT_MODEL_RUNTIME)).cast("timestamp")))
                           .withColumn("epoch_TSV_AEST_DT",psf.unix_timestamp(psf.col("TSV_AEST_DT")))
