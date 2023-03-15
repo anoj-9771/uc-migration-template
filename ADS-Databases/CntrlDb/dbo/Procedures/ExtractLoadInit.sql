@@ -18,6 +18,7 @@ BEGIN
 			,RANK() OVER (PARTITION BY [SourceID] ORDER BY [CreatedDTS] DESC) [Rank]
 			FROM [dbo].[ExtractLoadStatus]
 			WHERE [HighWatermark] IS NOT NULL
+			AND RawStatus = 'Success'
 		) T WHERE [Rank] = 1
 	)
 	INSERT INTO [dbo].[ExtractLoadStatus] (
