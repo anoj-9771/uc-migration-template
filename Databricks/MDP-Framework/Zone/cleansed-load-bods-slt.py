@@ -64,6 +64,8 @@ if(extendedProperties):
     extendedProperties = json.loads(extendedProperties)
     sourceRecordDeletion = extendedProperties.get("SourceRecordDeletion") if extendedProperties.get("SourceRecordDeletion") else ""
     createTableConstraints = True if extendedProperties.get("CreateTableConstraints", "True").lower() == "true" else False
+else:
+    createTableConstraints = True
     
 # APPLY CLEANSED FRAMEWORK
 sourceDataFrame = CleansedTransform(sourceDataFrame, sourceTableName.lower(), systemCode)
