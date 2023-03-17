@@ -69,10 +69,3 @@ ExecuteStatement(f"update dbo.extractLoadManifest set enabled = 1 where systemCo
 # MAGIC %sql
 # MAGIC 
 # MAGIC select * from controldb.dbo_extractloadmanifest where systemCode = 'aurion'
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC 
-# MAGIC select
-# MAGIC * from raw.aurion_employee_history
