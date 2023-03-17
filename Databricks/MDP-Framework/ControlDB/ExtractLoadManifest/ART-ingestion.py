@@ -3,6 +3,10 @@
 
 # COMMAND ----------
 
+import json
+
+# COMMAND ----------
+
 SYSTEM_CODE = "ART"
 j = json.loads(spark.conf.get("spark.databricks.clusterUsageTags.clusterAllTags"))
 environment = [x['value'] for x in j if x['key'] == 'Environment'][0]
