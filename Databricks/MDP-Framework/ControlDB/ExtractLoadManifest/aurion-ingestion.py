@@ -10,17 +10,17 @@ SYSTEM_CODE = "aurion"
 df = spark.sql("""
     WITH _Base AS 
     (
-      SELECT 'aurion' SystemCode, 'aurion' SourceSchema, '' SourceKeyVaultSecret, 'file-binary-load' SourceHandler, 'csv' RawFileExtension, 'raw-load-delta' RawHandler, '' ExtendedProperties, 'cleansed-load-delta' CleansedHandler, '' WatermarkColumn
+      SELECT 'aurion' SystemCode, 'aurion' SourceSchema, '' SourceKeyVaultSecret, 'nas-binary-load' SourceHandler, 'csv' RawFileExtension, 'raw-load-delta' RawHandler, '' ExtendedProperties, 'cleansed-load-delta' CleansedHandler, '' WatermarkColumn
     )
-    SELECT 'organisation' SourceTableName, 'aurion/70094_org_dev_230119.csv' as SourceQuery, * FROM _Base
+    SELECT 'organisation' SourceTableName, '70094_org' as SourceQuery, * FROM _Base
     UNION 
-    SELECT 'position' SourceTableName, 'aurion/70095_pos_dev_230119.csv' as SourceQuery, * FROM _Base
+    SELECT 'position' SourceTableName, '70095_pos' as SourceQuery, * FROM _Base
     UNION 
-    SELECT 'active_employees' SourceTableName, 'aurion/70096_active_dev_230119.csv' as SourceQuery, * FROM _Base
+    SELECT 'active_employees' SourceTableName, '70096_active' as SourceQuery, * FROM _Base
     UNION 
-    SELECT 'terminated_employees' SourceTableName, 'aurion/70097_term_dev_230119.csv' as SourceQuery, * FROM _Base
+    SELECT 'terminated_employees' SourceTableName, '70097_term' as SourceQuery, * FROM _Base
     UNION
-    SELECT 'employee_history' SourceTableName, 'aurion/70098_emp_pos_hist_post_190101.csv' as SourceQuery, * FROM _Base
+    SELECT 'employee_history' SourceTableName, '70098_emp_pos_hist' as SourceQuery, * FROM _Base
     """)
 
 # COMMAND ----------
