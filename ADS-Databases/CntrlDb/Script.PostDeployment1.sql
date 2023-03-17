@@ -21,7 +21,7 @@ WITH [_Common] AS
 (
     SELECT *
     FROM (
-        SELECT 'cleansedLayer' [KeyGroup], 'skipIngestion' [Key], 'iicats,scada' [Value]
+        SELECT 'cleansedLayer' [KeyGroup], 'skipIngestion' [Key], 'iicats,scada,swirlref,swirldata' [Value]
     ) O
     WHERE EXISTS(SELECT * FROM [_Env] WHERE VALUE = 'PROD')
 ),

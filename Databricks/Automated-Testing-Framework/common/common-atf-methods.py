@@ -275,7 +275,7 @@ def AutomatedSourceQuery(tablename = ""):
                 sqlCode = sqlCode.replace("$c$", f"CAST(a.{row.SourceColumnName} AS {row.DataType})") 
             else: 
                 sqlCode = sqlCode.replace("$c$", f"a.{row.SourceColumnName}") 
-        elif row.CustomTransform is not None:
+        elif row.CustomTransform is not None and row.CustomTransform != "":
             sqlCode = row.CustomTransform
         elif row.DataType == 'DATETIME' or row.DataType == 'TIME':
             sqlCode = f"CAST(a.{row.SourceColumnName} AS TIMESTAMP)"

@@ -4147,7 +4147,7 @@ BMS_9999999_817,BMS_ID,,Y,,STRING,,raw.swirl_bms_9999999_817,cleansed.swirl_inci
 BMS_9999999_817,BMS_FK_9999999_8058_ID,,,Y,STRING,,raw.swirl_bms_9999999_817,cleansed.swirl_incident_impact,BMS_FK_9999999_8058_ID,incident_FK,,,,TRUE,
 ,,,,,STRING,,raw.swirl_bms_9999999_817,cleansed.swirl_incident_impact,,incidentCategoryParent,,"concat(BMS_0002185_8864,'||','0002185_8119')",lookup-swirl,TRUE,
 BMS_9999999_817,BMS_0002185_8864,,,,STRING,,raw.swirl_bms_9999999_817,cleansed.swirl_incident_impact,BMS_0002185_8864,incidentCategoryParentCode,,,,TRUE,
-,,,,,STRING,,0,cleansed.swirl_incident_impact,,incidentImpact,,"concat(,'||','9999999_8025')",lookup-swirl,TRUE,
+,,,,,STRING,,raw.swirl_bms_9999999_817,cleansed.swirl_incident_impact,,incidentImpact,,"concat(BMS_9999999_8182,'||','9999999_8025')",lookup-swirl,TRUE,
 ,,,,,STRING,,raw.swirl_bms_9999999_817,cleansed.swirl_incident_impact,,incidentImpact2,,"concat(BMS_0002185_8506,'||','9999999_8069')",lookup-swirl,TRUE,
 BMS_9999999_817,BMS_0002185_8506,,,,STRING,,raw.swirl_bms_9999999_817,cleansed.swirl_incident_impact,BMS_0002185_8506,incidentImpact2Code,,,,TRUE,
 BMS_9999999_817,BMS_9999999_8182,,,,STRING,,raw.swirl_bms_9999999_817,cleansed.swirl_incident_impact,BMS_9999999_8182,incidentImpactCode,,,,TRUE,
