@@ -346,7 +346,7 @@ for code in group_names:
  WHEN 'BMS_0002185_854' THEN 'incident_security_assault'
  WHEN 'BMS_0002185_851' THEN 'incident_security_break_and_enter'
  WHEN 'BMS_0002185_857' THEN 'incident_security_graffiti'
- WHEN 'BMS_0002185_858' THEN 'incident_security_high-level_security_response'
+ WHEN 'BMS_0002185_858' THEN 'incident_security_high_level_security_response'
  WHEN 'BMS_0002185_853' THEN 'incident_security_malicious_damage'
  WHEN 'BMS_0002185_859' THEN 'incident_security_security_equipment_performance'
  WHEN 'BMS_0002185_856' THEN 'incident_security_suspicious_activity'
