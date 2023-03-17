@@ -474,6 +474,29 @@ def ListUsersInGroup(name):
 
 # COMMAND ----------
 
+def AddUsersToGroup(groupName, users):
+    groupId = GetGroupByName(groupName)["Resources"][0]["id"]
+    CreateUsers(users)
+    allUsers = GetUsers()
+    userIds = [ i["id"] for i in allUsers["Resources"] if i["userName"] in users ]
+    jsonOperation = {
+      "schemas": [ "urn:ietf:params:scim:api:messages:2.0:PatchOp" ],
+      "Operations": [
+        {
+          "op":"add",
+          "value": {
+            "members": [ { "value" : f"{i}" } for i in userIds] }
+        }
+      ]
+    }
+    
+    headers = GetAuthenticationHeader()
+    url = f'{INSTANCE_NAME}/api/2.0/preview/scim/v2/Groups/{groupId}'
+    response = requests.patch(url, json=jsonOperation, headers=headers)
+    jsonResponse = response.json()
+
+# COMMAND ----------
+
 def GetWarehouses():
     headers = GetAuthenticationHeader()
     url = f'{INSTANCE_NAME}/api/2.0/sql/warehouses'

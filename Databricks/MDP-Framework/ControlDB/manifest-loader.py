@@ -9,7 +9,10 @@ def RunAllConfigs():
     
     for i in df.rdd.collect():
         path = i.o.path
-        r = dbutils.notebook.run(path, 0, {})
+        try:
+            r = dbutils.notebook.run(path, 0, {})
+        except:
+            print(f"Notebook path "{path}" failed!")
 
 RunAllConfigs()
 

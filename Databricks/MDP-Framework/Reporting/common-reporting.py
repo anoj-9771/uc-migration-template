@@ -82,7 +82,7 @@ def Transform():
     #spark.sql(f"DROP TABLE IF EXISTS edp.f_database_tables")
     #df.write.saveAsTable("edp.f_database_tables")
     df.write.mode("append").saveAsTable("edp.f_database_tables")
-#Transform()
+Transform()
 
 # COMMAND ----------
 
