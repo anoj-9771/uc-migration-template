@@ -12,7 +12,7 @@ def RunAllConfigs():
         try:
             r = dbutils.notebook.run(path, 0, {})
         except:
-            print(f"Notebook path "{path}" failed!")
+            print(f"Notebook path \"{path}\" failed!")
 
 RunAllConfigs()
 
