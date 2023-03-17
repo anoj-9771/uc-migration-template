@@ -94,7 +94,8 @@ WITH [_Log] AS (
 ),[_SystemDuration] AS (
 	SELECT *
 	,CAST(ISNULL([SystemEndDTS], CONVERT(DATETIME, CONVERT(DATETIMEOFFSET, GETDATE()) AT TIME ZONE 'AUS Eastern Standard Time'))-[SystemStartDTS] AS TIME) [SystemDuration]
-	,IIF(([SystemCompletedTasks]+[SystemFailTasks])=[SystemTotalTasks] AND [SystemEndDTS] IS NOT NULL, 'Completed', 'In Progress') [SystemStatus]
+	-- ,IIF(([SystemCompletedTasks]+[SystemFailTasks])=[SystemTotalTasks] AND [SystemEndDTS] IS NOT NULL, 'Completed', 'In Progress') [SystemStatus]
+	,IIF([SystemEndDTS] IS NOT NULL, 'Completed', 'In Progress') [SystemStatus]
 	FROM [_SystemEnd]
 /* ================ BATCH ================ */
 ),[_Batch] AS (
