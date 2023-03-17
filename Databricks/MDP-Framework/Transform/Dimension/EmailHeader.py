@@ -6,27 +6,30 @@
 def Transform():
     global df
     # ------------- TABLES ----------------- #
-    df = GetTable(f"{SOURCE}.crm_crmd_erms_header")
-    crmd_erms_contnt_df = GetTable(f"{SOURCE}.crm_crmd_erms_contnt").select("EmailID", "subject")
-    businessPartner_agent_df = GetTable(f"curated_v2.dimbusinessPartner").select("businessPartnerSK", "businessPartnerNumber")
-    businessPartner_orgunit_df = GetTable(f"curated_v2.dimbusinessPartner").select("businessPartnerSK", "businessPartnerNumber")
+    df = GetTable(f"{SOURCE}.crm_crmd_erms_header").withColumn("email_id",expr("right(emailID, 17)"))
+    windowSpec1  = Window.partitionBy("email_id") 
+    df = df.withColumn("row_number",row_number().over(windowSpec1.orderBy(col("changedDate").desc()))).filter("row_number == 1").drop("row_number","email_id")
+    
+    crmd_erms_contnt_df = GetTable(f"{SOURCE}.crm_crmd_erms_contnt").select(col("EmailID").alias('emailID'), "subject")
+    businessPartner_agent_df = GetTable(f"{DEFAULT_TARGET}.dimbusinessPartner").select(col("businessPartnerSK").alias("responsibleAgentSK"), "businessPartnerNumber")
+    businessPartner_orgunit_df = GetTable(f"{DEFAULT_TARGET}.dimbusinessPartner").select(col("businessPartnerSK").alias("serviceTeamSK"), "businessPartnerNumber")
     
     # ------------- JOINS ------------------ #
-    df = df.join(crmd_erms_contnt_df, crmd_erms_contnt_df.EmailID == df.emailID, "left").select(df["*"],crmd_erms_contnt_df["subject"])
-    df = df.join(businessPartner_agent_df, df.responsibleAgent == businessPartner_agent_df.businessPartnerNumber, "left").select(df["*"],businessPartner_agent_df["businessPartnerSK"].alias("responsibleAgentSK"))
-    df = df.join(businessPartner_orgunit_df, concat(lit("OU"), col("organisationUnit").substr(-8,8)) == businessPartner_orgunit_df.businessPartnerNumber, "left").select(df["*"],businessPartner_orgunit_df["businessPartnerSK"].alias("serviceTeamSK"))
+    df = df.join(crmd_erms_contnt_df, "emailID", "left") \
+    .join(businessPartner_agent_df, df.responsibleAgent == businessPartner_agent_df.businessPartnerNumber,"left").drop("businessPartnerNumber") \
+    .join(businessPartner_orgunit_df, concat(lit("OU"), col("organisationUnit").substr(-8,8)) == businessPartner_orgunit_df.businessPartnerNumber,"left") \
 
     # ------------- TRANSFORMS ------------- #
     _.Transforms = [
-        f"emailID {BK}"
+        f"right(emailID, 17) {BK}"
         ,"right(emailID, 17) emailID"
-        ,"case when connectionDirection = 1 then ""externalEmailAddress"" when connectionDirection = 2 then ""internalEmailAddress"" end emailSender"
-        ,"case when connectionDirection = 1 then ""internalEmailAddress"" when connectionDirection = 2 then ""externalEmailAddress"" end emailRecepient"
+        ,"case when connectionDirection = 1 then 'externalEmailAddress' when connectionDirection = 2 then 'internalEmailAddress' end emailSender"
+        ,"case when connectionDirection = 1 then 'internalEmailAddress' when connectionDirection = 2 then 'externalEmailAddress' end emailRecepient"
         ,"emailStatusCode emailStatusCode"
         ,"emailStatus emailStatusDescription"
         ,"case when connectionDirection = 1 then 'Inbound' when connectionDirection = 2 then 'Outbound' end emailDirection"
         ,"serviceTeamSK serviceTeamFK"
-        ,"handlingTime emailHandlingTime"
+        ,"handlingTime handlingTime"
         ,"responseTime emailResponseTime"
         ,"workItemID workItemId"
         ,"responsibleAgentSK responsibleAgentFK"
@@ -42,8 +45,12 @@ def Transform():
 
     # ------------- SAVE ------------------- #
 #     display(df)
-#     CleanSelf()
+    # CleanSelf()
     Save(df)
     #DisplaySelf()
 pass
 Transform()
+
+# COMMAND ----------
+
+

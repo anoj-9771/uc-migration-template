@@ -52,12 +52,10 @@ def MergeSCDTable(sourceDataFrame, targetTableFqn, scdFromSource, BK, SK):
     changeRecords = sourceDataFrame.alias("s") \
         .join(targetTable.alias("t"), BK) \
         .where(f"t._recordCurrent = 1 AND ({changeColumns})") 
-
     stagedUpdates = changeRecords.selectExpr("NULL BK", "s.*") \
         .unionByName( \
-          sourceDataFrame.selectExpr("BK BK", "*") \
+          sourceDataFrame.selectExpr(f"{BK} BK", "*") \
         )
-
     insertValues = {
         f"{_.SK}": f"{_.SK}", 
         # f"{_.BK}": f"COALESCE(s.BK, s.{_.BK})",
@@ -68,13 +66,13 @@ def MergeSCDTable(sourceDataFrame, targetTableFqn, scdFromSource, BK, SK):
         "_recordDeleted": "s._recordDeleted",
         # "_Batch_SK": expr(f"DATE_FORMAT(s._Created, 'yyMMddHHmmss') || COALESCE(DATE_FORMAT({DEFAULT_END_DATE}, '{DATE_FORMAT}'), '{BATCH_END_CODE}') || 1")
     }
-    insertValues["_recordCurrent"]  = "s._recordCurrent" if scdFromSource else 1
+    insertValues["_recordCurrent"]  = "s._recordCurrent" if scdFromSource else "1"
        
     for c in [i for i in targetTable.columns if i not in _exclude]:
         insertValues[f"{c}"] = f"s.{c}"
 
     print("Merging...")
-    DeltaTable.forName(spark, targetTableFqn).alias("t").merge(stagedUpdates.alias("s"), f"t.BK = BK") \
+    DeltaTable.forName(spark, targetTableFqn).alias("t").merge(stagedUpdates.alias("s"), f"t.{BK} = s.BK") \
         .whenMatchedUpdate(
           condition = f"t._recordCurrent = 1 AND ({changeColumns})", 
           set = {

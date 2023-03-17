@@ -220,7 +220,10 @@ def _AddSCD(dataFrame):
     df = df.select(cols)
 
     df = df.withColumn("_DLCuratedZoneTimeStamp", expr("now()"))
-    df = df.withColumn("_recordStart", expr(f"COALESCE(_recordStart, CAST({DEFAULT_START_DATE} AS TIMESTAMP))"))
+    if "_recordStart" in [c.lower() for c in cols]:
+        df = df.withColumn("_recordStart", expr(f"COALESCE(_recordStart, CAST({DEFAULT_START_DATE} AS TIMESTAMP))"))
+    else:    
+        df = df.withColumn("_recordStart", expr(f"CAST({DEFAULT_START_DATE} AS TIMESTAMP)"))
     # df = df.withColumn("_recordEnd", expr("CAST(NULL AS TIMESTAMP)" if DEFAULT_END_DATE == "NULL" else f"CAST('{DEFAULT_END_DATE}' AS TIMESTAMP) + INTERVAL 1 DAY - INTERVAL 1 SECOND"))
     df = df.withColumn("_recordEnd", 
                     expr("CAST(NULL AS TIMESTAMP)" if DEFAULT_END_DATE == "NULL" else f"CAST('{DEFAULT_END_DATE}' AS TIMESTAMP)"))

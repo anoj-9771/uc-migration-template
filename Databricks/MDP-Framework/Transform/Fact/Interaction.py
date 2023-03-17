@@ -10,24 +10,24 @@ def Transform():
     .withColumn("processType_BK",expr("concat(ProcessTypeCode,'|','CRM')")) \
     .withColumn("status_BK",expr("concat(interactionCategory, '|', statusProfile, '|', statusCode)"))
    
-    process_type_df = GetTable("curated_v2.dimProcessType") \
+    process_type_df = GetTable(f"{DEFAULT_TARGET}.dimProcessType") \
     .select("processTypeSK","_BusinessKey","_recordStart","_recordEnd")
         
-    status_df = GetTable("curated_v2.dimStatus") \
+    status_df = GetTable(f"{DEFAULT_TARGET}.dimStatus") \
     .select("StatusSK","_BusinessKey","_recordStart","_recordEnd")
        
-    responsible_employee_df = GetTable("curated_v2.dimBusinessPartner") \
+    responsible_employee_df = GetTable(f"{DEFAULT_TARGET}.dimBusinessPartner") \
     .select("businessPartnerSK","businessPartnerNumber","_recordStart","_recordEnd") \
     .withColumnRenamed("businessPartnerSK","responsibleEmployeeFK")
     
-    contact_person_df = GetTable("curated_v2.dimBusinessPartner") \
+    contact_person_df = GetTable(f"{DEFAULT_TARGET}.dimBusinessPartner") \
     .select("businessPartnerSK","businessPartnerNumber","_recordStart","_recordEnd") \
     .withColumnRenamed("businessPartnerSK","contactPersonFK")
    
-    property_df = GetTable("curated_v2.dimProperty") \
+    property_df = GetTable(f"{DEFAULT_TARGET}.dimProperty") \
     .select("propertySK","_BusinessKey","_recordStart","_recordEnd") 
     
-    date_df = GetTable("curated.dimdate").select("dateSK","calendarDate")
+    date_df = GetTable(f"{DEFAULT_TARGET}.dimdate").select("dateSK","calendarDate")
     
     
     # ------------- JOINS ------------------ #

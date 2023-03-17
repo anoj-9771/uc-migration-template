@@ -24,7 +24,7 @@ def Transform():
     summary_res_match_regex = "(\[\s)(SUMMARY|RESOLUTION)(\sTEXT\-\sDATE\-\s)([0-9]{8})(\sTIME:\s)([0-9]{6})(\s\])([^\[]*)"
     interaction_match_regex = "(\[\s)(Summary)(\sText\-\-\sDate\-\s)([0-9]{8})(\sTime\-\s)([0-9]{6})(\s\])([^\[]*)"
     
-    summary_res_notes_df =  GetTable(f"cleansed.crm_zcs_long_text_f") \
+    summary_res_notes_df =  GetTable(f"{SOURCE}.crm_zcs_long_text_f") \
     .select("serviceRequestGUID","serviceRequestID","summaryNote1","summaryNote2","summaryNote3","resolutionNote1","resolutionNote2","resolutionNote3")
 
 #     Prepare Summary DF
@@ -83,7 +83,7 @@ def Transform():
     worknote_df = worknote_df.withColumnRenamed("serviceRequestID","objectID") \
     .withColumnRenamed("changedDatetime","modifiedTimeStamp")
     
-    interaction_df =  GetTable(f"cleansed.crm_zcs_long_text_act")
+    interaction_df =  GetTable(f"{SOURCE}.crm_zcs_long_text_act")
     interaction_df = interaction_df.select(interaction_df.
 actitivtyObjectGUID.alias("activityObjectGUID"),interaction_df.
 actitivtyObjectID.alias("objectID"),"createdDate","summaryDescription1","summaryDescription2","summaryDescription3") \
@@ -137,7 +137,7 @@ actitivtyObjectID.alias("objectID"),"createdDate","summaryDescription1","summary
 
     # ------------- SAVE ------------------- #
 #     display(df)
-    CleanSelf()
+    # CleanSelf()
     Save(df)
     #DisplaySelf()
 pass
