@@ -285,7 +285,7 @@ df = spark.sql(f"""
             cast('1900-01-01' as TimeStamp) as _RecordStart, 
             cast('9999-12-31' as TimeStamp) as _RecordEnd, 
             CASE 
-                WHEN ca.LOEVM = 'X'
+                WHEN ca.di_operation_type in ('X','D')
                 THEN '1' 
                 ELSE '0' 
             END as _RecordDeleted, 

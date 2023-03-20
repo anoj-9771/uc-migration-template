@@ -120,7 +120,7 @@ SELECT
     ,effectiveDateRanges._effectiveFrom
     ,effectiveDateRanges._effectiveTo
     , CASE
-      WHEN CURRENT_TIMESTAMP() BETWEEN effectiveDateRanges._effectiveFrom AND effectiveDateRanges._effectiveTo then 'Y'
+      WHEN  coalesce(dimContractHistory.validToDate, '1900-01-01') = '9999-12-31' and _effectiveTo = '9999-12-31 23:59:59.000' then 'Y'
       ELSE 'N'
       END AS currentFlag
     , if(dimContract._RecordDeleted = 0,'Y','N') AS currentRecordFlag 
