@@ -17,7 +17,7 @@ import pytz
 # COMMAND ----------
 
 DEFAULT_SOURCE = "cleansed"
-DEFAULT_TARGET = "curated"
+DEFAULT_TARGET = "curated_v2"
 DEFAULT_START_DATE = "NOW()"
 DEFAULT_END_DATE = "9999-12-31"
 BATCH_END_CODE = "000000000000"
