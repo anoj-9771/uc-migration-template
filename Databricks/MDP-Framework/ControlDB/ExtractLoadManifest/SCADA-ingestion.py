@@ -30,7 +30,7 @@ df = spark.sql("""
     UNION 
     SELECT 'scxfield' SourceTableName, '' WatermarkColumn, '' SourceQuery, * FROM _Base
      UNION 
-    SELECT 'scxuser' SourceTableName, '' WatermarkColumn, '' SourceQuery, * FROM _Base
+    SELECT 'scxuser' SourceTableName, 'EFF_FROM_DT' WatermarkColumn, '' SourceQuery, * FROM _Base
     ORDER BY SourceSchema, SourceTableName
     """)
 
@@ -57,22 +57,21 @@ ConfigureManifest(df)
 ExecuteStatement(f"""
 update dbo.extractLoadManifest set
 businessKeyColumn = case sourceTableName
-when 'tsv' then 'objectInternalId,measurementResultAESTDateTime,statisticTypeCd,timeBaseCd,sourceRecordCreationDateTime'
+when 'tsv' then 'objectInternalId,measurementResultAESTDateTime,statisticTypeCd,timeBaseCd,sourceRecordCreationDateTime,sourceRecordUpsertLogic'
 when 'event' then 'objectInternalId,eventAESTDateTime,eventSequenceNumber,eventTimeMilliseconds,sourceRecordCreationDateTime'
-when 'hierarchy_cnfgn' then 'objectInternalId,effectiveFromDateTime,sourceRecordCreationDateTime'
-when 'point_cnfgn' then 'pointInternalId'
-when 'point_limit' then 'pointInternalId,pointLimitTypeCd'
-when 'rtu' then 'RTUInternalId'
-when 'tsv_point_cnfgn' then 'objectInternalId,pointStatisticTypeCd,timeBaseCd,sourceRecordCreationDateTime'
-when 'qlty_config' then 'objectInternalId,effectiveFromDateTime,sourceRecordCreationDateTime'
+when 'hierarchy_cnfgn' then 'objectInternalId,effectiveFromDateTime'
+when 'point_cnfgn' then 'pointInternalId,effectiveFromDateTime'
+when 'point_limit' then 'pointInternalId,pointLimitTypeCd,effectiveFromDateTime'
+when 'rtu' then 'RTUInternalId,effectiveFromDateTime'
+when 'tsv_point_cnfgn' then 'objectInternalId,pointStatisticTypeCd,timeBaseCd,effectiveFromDateTime'
+when 'qlty_config' then 'objectInternalId,effectiveFromDateTime'
 when 'scxfield' then 'fieldName,IICATSStagingTableName,IICATSStagingFieldName,sourceRecordSystemId'
-when 'scxuser' then 'userInternalId'
+when 'scxuser' then 'userInternalId,effectiveFromDateTime'
 else businessKeyColumn
 end
 ,destinationSchema = systemCode
 where systemCode = '{SYSTEM_CODE}'
 """)
-
 
 # COMMAND ----------
 
