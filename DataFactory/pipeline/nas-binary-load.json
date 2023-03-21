@@ -37,7 +37,16 @@
 						"type": "BinarySource",
 						"storeSettings": {
 							"type": "FileServerReadSettings",
-							"recursive": true
+							"recursive": true,
+							"wildcardFolderPath": {
+								"value": "@toLower(pipeline().parameters.task.SystemCode)",
+								"type": "Expression"
+							},
+							"wildcardFileName": {
+								"value": "@concat(variables('SourceFilePath'),'*')",
+								"type": "Expression"
+							},
+							"deleteFilesAfterCompletion": false
 						},
 						"formatSettings": {
 							"type": "BinaryReadSettings"
@@ -61,7 +70,7 @@
 								"type": "Expression"
 							},
 							"filePath": {
-								"value": "@variables('SourceFilePath')",
+								"value": "@concat(variables('SourceFilePath'),'*')",
 								"type": "Expression"
 							}
 						}
