@@ -2,7 +2,7 @@
 raw.scada_tsv,cleansed.scada_tsv,CDB_OBJ_ID,Bigint,objectInternalId,,,
 raw.scada_tsv,cleansed.scada_tsv,TSV_AEST_DT,Datetime,measurementResultAESTDateTime,,,
 raw.scada_tsv,cleansed.scada_tsv,STAT_TYP_CD,String,statisticTypeCd,,,
-raw.scada_tsv,cleansed.scada_tsv,STAT_TYP_CD,String,statisticType,,"concat(' STATISTIC_TYPE',STAT_TYP_CD)",lookup-iicats-bi-reference
+raw.scada_tsv,cleansed.scada_tsv,STAT_TYP_CD,String,statisticType,,"concat('STATISTIC_TYPE',STAT_TYP_CD)",lookup-iicats-bi-reference
 raw.scada_tsv,cleansed.scada_tsv,TM_BASE_CD,String,timeBaseCd,,,
 raw.scada_tsv,cleansed.scada_tsv,TM_BASE_CD,String,timeBase,,"concat('TIME_BASE_TYPE',TM_BASE_CD)",lookup-iicats-bi-reference
 raw.scada_tsv,cleansed.scada_tsv,ACQSN_MTHD_CD,String,acquisitionMethodId,,,
@@ -19,11 +19,11 @@ raw.scada_tsv,cleansed.scada_tsv,PNT_FAILD_IND,String,pointFailedIndicator,,,
 raw.scada_tsv,cleansed.scada_tsv,PNT_ALRM_IND,String,pointAlarmIndicator,,,
 raw.scada_tsv,cleansed.scada_tsv,PNT_OUT_OF_SVC_IND,String,pointOutofServiceIndicator,,,
 raw.scada_tsv,cleansed.scada_tsv,PNT_OPC_QLTY_IND,Integer,opcQualityIndicator,,,
-raw.scada_tsv,cleansed.scada_tsv,PNT_OPC_QLTY_IND,Integer,opcQuality,,,iicats-custom-ref-opc-quality
+raw.scada_tsv,cleansed.scada_tsv,PNT_OPC_QLTY_IND,String,opcQuality,,,iicats-custom-ref-opc-quality
 raw.scada_tsv,cleansed.scada_tsv,PNT_UNDR_MNTNC_IND,String,maintenanceIndicator,,,
 raw.scada_tsv,cleansed.scada_tsv,PNT_VAL_BAD_IND,String,badOrSuspectIndicator,,,
 raw.scada_tsv,cleansed.scada_tsv,PNT_RSN_CD,Integer,pointReasonCd,,,
-raw.scada_tsv,cleansed.scada_tsv,PNT_RSN_CD,Integer,pointReason,,"concat('PNT_RSN_CD',PNT_RSN_CD)",lookup-iicats-bi-reference
+raw.scada_tsv,cleansed.scada_tsv,PNT_RSN_CD,String,pointReason,,"concat('PNT_RSN_CD',cast( PNT_RSN_CD  as Int))",lookup-iicats-bi-reference
 raw.scada_tsv,cleansed.scada_tsv,HT_SYS_ID,Integer,sourceRecordSystemId,,,
 raw.scada_tsv,cleansed.scada_tsv,HT_COMMAND,String,sourceRecordUpsertLogic,,,
 raw.scada_tsv,cleansed.scada_tsv,HT_CRT_DT,Datetime,sourceRecordCreationDateTime,,,
