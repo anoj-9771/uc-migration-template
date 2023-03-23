@@ -244,8 +244,8 @@ for index,location in enumerate(RW_locations_InactiveRevmoved['locations']):
                     water_quality = Water_quality.waterQualityPredictionBeachwatch[0] #unlikely/possible/likely          
             except Exception as e:
                 print(e)
-                print("Water Quality Failed to be found from Riverwatch model - falling back to 'Possible'")
-                water_quality = "Possible"    
+                print("Water Quality Failed to be found from Riverwatch model - falling back to 'Unmonitored'")
+                water_quality = "Unmonitored"    
                 
             ocean_temp = str(Dawn_Fraser_Pool_tempinfo.oceanTemp[0]) 
             current_temp= str(Dawn_Fraser_Pool_tempinfo.airTemp[0])       
