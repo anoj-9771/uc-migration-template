@@ -21,7 +21,7 @@ WITH [_Common] AS
 (
     SELECT *
     FROM (
-        SELECT 'cleansedLayer' [KeyGroup], 'skipIngestion' [Key], 'iicats,scada,swirlref,swirldata' [Value]
+        SELECT 'cleansedLayer' [KeyGroup], 'skipIngestion' [Key], 'iicatsref,iicatsdata,iicats|15min,scada,swirlref,swirldata' [Value]
     ) O
     WHERE EXISTS(SELECT * FROM [_Env] WHERE VALUE = 'PROD')
 ),
@@ -40,6 +40,8 @@ USING [_SourceConfig]
 AS SRC ON TGT.[KeyGroup] = SRC.[KeyGroup] AND TGT.[Key] = SRC.[Key]
 WHEN NOT MATCHED BY TARGET THEN
     INSERT ([KeyGroup],[Key],[Value],[CreatedDTS]) VALUES ([KeyGroup],[Key],[Value],[CreatedDTS])
+WHEN MATCHED THEN
+	UPDATE SET [Value] = SRC.[Value]    
 OUTPUT $action 
     INTO @SummaryOfChanges;
 SELECT * FROM @SummaryOfChanges;
