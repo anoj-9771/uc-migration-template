@@ -70,7 +70,19 @@ BEGIN
     ,[WatermarkColumn]
     ,[RawHandler]
     ,R.[RawPath]
-    ,[CleansedHandler]
+    ,[CleansedHandler] = 
+        iif(
+                @systemCode in (
+                select ss.value
+                from dbo.Config c
+                cross apply string_split(value,',') ss
+                where 
+                        KeyGroup = 'cleansedLayer' 
+                    and [key] = 'skipIngestion'
+            ), 
+            '',
+            r.CleansedHandler
+         )
     ,[CleansedPath]
     ,[DestinationSchema]
     ,[DestinationTableName]
@@ -90,4 +102,5 @@ END
 
 END
 GO
+
 
