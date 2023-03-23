@@ -85,7 +85,7 @@
 						]
 					},
 					{
-						"activity": "get-cluster-id",
+						"activity": "set-secret-variable",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -115,10 +115,6 @@
 									"task": {
 										"value": "@item()",
 										"type": "Expression"
-									},
-									"ClusterId": {
-										"value": "@variables('ClusterId')",
-										"type": "Expression"
 									}
 								}
 							}
@@ -131,7 +127,7 @@
 				"type": "Lookup",
 				"dependsOn": [
 					{
-						"activity": "for-each-cleansed",
+						"activity": "if-view-creation",
 						"dependencyConditions": [
 							"Completed"
 						]
@@ -160,84 +156,6 @@
 						"type": "DatasetReference"
 					},
 					"firstRowOnly": false
-				}
-			},
-			{
-				"name": "get-databricks-clusters",
-				"type": "WebActivity",
-				"dependsOn": [
-					{
-						"activity": "set-secret-variable",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
-				"policy": {
-					"timeout": "0.12:00:00",
-					"retry": 0,
-					"retryIntervalInSeconds": 30,
-					"secureOutput": false,
-					"secureInput": false
-				},
-				"userProperties": [],
-				"typeProperties": {
-					"url": "https://australiaeast.azuredatabricks.net/api/2.0/clusters/list",
-					"method": "GET",
-					"headers": {
-						"Authorization": {
-							"value": "Bearer @{variables('DatabricksSecret')}",
-							"type": "Expression"
-						}
-					}
-				}
-			},
-			{
-				"name": "get-cluster-id",
-				"type": "ForEach",
-				"dependsOn": [
-					{
-						"activity": "get-databricks-clusters",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
-				"userProperties": [],
-				"typeProperties": {
-					"items": {
-						"value": "@activity('get-databricks-clusters').output.clusters",
-						"type": "Expression"
-					},
-					"activities": [
-						{
-							"name": "check-cluster-name-is-interactive",
-							"type": "IfCondition",
-							"dependsOn": [],
-							"userProperties": [],
-							"typeProperties": {
-								"expression": {
-									"value": "@equals(item().cluster_name, 'interactive')",
-									"type": "Expression"
-								},
-								"ifTrueActivities": [
-									{
-										"name": "set-cluster-id",
-										"type": "SetVariable",
-										"dependsOn": [],
-										"userProperties": [],
-										"typeProperties": {
-											"variableName": "ClusterId",
-											"value": {
-												"value": "@item().cluster_id",
-												"type": "Expression"
-											}
-										}
-									}
-								]
-							}
-						}
-					]
 				}
 			},
 			{
@@ -285,6 +203,147 @@
 				}
 			},
 			{
+				"name": "set-extra-config",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "get-default-pool-name",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "ExtraConfig",
+					"value": {
+						"value": "@json(\n    concat(\n        '[{',\n        '\"DefaultPoolName\":\"',activity('get-default-pool-name').output.value,'\"',\n        '}]'\n    )\n)",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "get-default-pool-name",
+				"type": "WebActivity",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"url": {
+						"value": "@concat('https://', pipeline().globalParameters.keyVaultName, '.vault.azure.net/secrets/daf-databricks-default-pool-name?api-version=7.0')",
+						"type": "Expression"
+					},
+					"method": "GET",
+					"authentication": {
+						"type": "MSI",
+						"resource": "https://vault.azure.net"
+					}
+				}
+			},
+			{
+				"name": "get-view-creation-flag",
+				"description": "",
+				"type": "Lookup",
+				"dependsOn": [
+					{
+						"activity": "for-each-cleansed",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": {
+							"value": "declare @val bit = 0\n\ndeclare @sysCode varchar(100) = '@{pipeline().parameters.SystemCode}'\n\nselect @val = value\nfrom dbo.config\nwhere keygroup = 'runviewcreation'\nand [key] = @sysCode\n\nselect value = @val\n",
+							"type": "Expression"
+						},
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "SQL_ControlDB",
+						"type": "DatasetReference"
+					},
+					"firstRowOnly": true
+				}
+			},
+			{
+				"name": "if-view-creation",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "get-view-creation-flag",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "set-default-pool-id",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@activity('get-view-creation-flag').output.firstRow.value",
+						"type": "Expression"
+					},
+					"ifTrueActivities": [
+						{
+							"name": "run-common-create-views",
+							"type": "DatabricksNotebook",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"notebookPath": "/MDP-Framework/Transform/common-create-views",
+								"baseParameters": {
+									"system_code": {
+										"value": "@pipeline().parameters.SystemCode",
+										"type": "Expression"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "LS_AzureDatabricks_InstancePool",
+								"type": "LinkedServiceReference",
+								"parameters": {
+									"kvSecret": "databricks-token",
+									"PoolId": {
+										"value": "@variables('PoolId')",
+										"type": "Expression"
+									},
+									"DatabricksVersion": "10.4.x-scala2.12"
+								}
+							}
+						}
+					]
+				}
+			},
+			{
 				"name": "get-default-pool-id",
 				"type": "WebActivity",
 				"dependsOn": [],
@@ -309,7 +368,7 @@
 				}
 			},
 			{
-				"name": "set-extra-config",
+				"name": "set-default-pool-id",
 				"type": "SetVariable",
 				"dependsOn": [
 					{
@@ -321,9 +380,9 @@
 				],
 				"userProperties": [],
 				"typeProperties": {
-					"variableName": "ExtraConfig",
+					"variableName": "PoolId",
 					"value": {
-						"value": "@json(\n    concat(\n        '[{',\n        '\"DefaultPoolId\":\"',activity('get-default-pool-id').output.value,'\"',\n        '}]'\n    )\n)",
+						"value": "@activity('get-default-pool-id').output.value",
 						"type": "Expression"
 					}
 				}
@@ -342,17 +401,14 @@
 			"ParentBatchID": {
 				"type": "String"
 			},
-			"dummy": {
-				"type": "String"
-			},
 			"DatabricksSecret": {
-				"type": "String"
-			},
-			"ClusterId": {
 				"type": "String"
 			},
 			"ExtraConfig": {
 				"type": "Array"
+			},
+			"PoolId": {
+				"type": "String"
 			}
 		},
 		"folder": {

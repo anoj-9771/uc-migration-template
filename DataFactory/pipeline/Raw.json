@@ -355,6 +355,30 @@
 									}
 								}
 							]
+						},
+						{
+							"value": "dataverse-load",
+							"activities": [
+								{
+									"name": "execute-dataverse-load",
+									"type": "ExecutePipeline",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "dataverse-load",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": true,
+										"parameters": {
+											"task": {
+												"value": "@pipeline().parameters.task",
+												"type": "Expression"
+											}
+										}
+									}
+								}
+							]
 						}
 					],
 					"defaultActivities": [

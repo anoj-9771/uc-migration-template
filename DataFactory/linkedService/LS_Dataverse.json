@@ -1,0 +1,54 @@
+{
+	"name": "LS_Dataverse",
+	"properties": {
+		"type": "CommonDataServiceForApps",
+		"parameters": {
+			"systemCode": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"typeProperties": {
+			"deploymentType": "Online",
+			"serviceUri": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "LS-AzureKeyVault",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": {
+					"value": "@concat('daf-dataverse-', linkedService().systemCode, '-serviceuri')",
+					"type": "Expression"
+				}
+			},
+			"authenticationType": "AADServicePrincipal",
+			"servicePrincipalCredentialType": "ServicePrincipalKey",
+			"servicePrincipalId": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "LS-AzureKeyVault",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": {
+					"value": "@concat('daf-dataverse-', linkedService().systemCode, '-serviceprincipalid')",
+					"type": "Expression"
+				}
+			},
+			"servicePrincipalKey": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "LS-AzureKeyVault",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": {
+					"value": "@concat('daf-dataverse-', linkedService().systemCode, '-serviceprincipalkey')",
+					"type": "Expression"
+				}
+			}
+		},
+		"connectVia": {
+			"referenceName": "IntegrationRuntime-SelfHosted",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

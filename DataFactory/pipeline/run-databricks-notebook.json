@@ -495,7 +495,7 @@
 				}
 			},
 			{
-				"name": "if-sink-flag",
+				"name": "if-sink-flag-cluster",
 				"type": "IfCondition",
 				"dependsOn": [
 					{
@@ -508,12 +508,12 @@
 				"userProperties": [],
 				"typeProperties": {
 					"expression": {
-						"value": "@equals(variables('SinkFlag'),'True')",
+						"value": "@and(\n    equals(variables('SinkFlag'),'True'),\n    if(equals(variables('ClusterId'),''),bool(false),bool(true))\n)",
 						"type": "Expression"
 					},
 					"ifTrueActivities": [
 						{
-							"name": "task-sink-count",
+							"name": "task-sink-count-cluster",
 							"type": "ExecutePipeline",
 							"dependsOn": [],
 							"userProperties": [],
@@ -533,7 +533,55 @@
 										"type": "Expression"
 									},
 									"Value": {
-										"value": "@string(if(\n    equals(pipeline().parameters.config.activityType, 'raw-databricks'),\n    coalesce(activity('run-databricks-notebook-instance-pool').output.runOutput.SinkRowCount, activity('run-databricks-notebook-cluster').output.runOutput.SinkRowCount),\n    coalesce(activity('run-databricks-notebook-instance-pool').output.runOutput.CleansedSinkCount, activity('run-databricks-notebook-cluster').output.runOutput.CleansedSinkCount)\n))\n\n",
+										"value": "@string(if(\n    equals(pipeline().parameters.config.activityType, 'raw-databricks'),\n    activity('run-databricks-notebook-cluster').output.runOutput.SinkRowCount,\n    activity('run-databricks-notebook-cluster').output.runOutput.CleansedSinkCount\n    )\n)",
+										"type": "Expression"
+									}
+								}
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "if-sink-flag-instance-pool",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "if-cluster",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@and(\n    equals(variables('SinkFlag'),'True'),\n    if(equals(variables('ClusterId'),''),bool(true),bool(false))\n)",
+						"type": "Expression"
+					},
+					"ifTrueActivities": [
+						{
+							"name": "task-sink-count-instance-pool",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "log-status-update",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": false,
+								"parameters": {
+									"ID": {
+										"value": "@pipeline().parameters.task.ID",
+										"type": "Expression"
+									},
+									"Property": {
+										"value": "@pipeline().parameters.config.sinkCountProperty",
+										"type": "Expression"
+									},
+									"Value": {
+										"value": "@string(if(\n    equals(pipeline().parameters.config.activityType, 'raw-databricks'),\n    activity('run-databricks-notebook-instance-pool').output.runOutput.SinkRowCount,\n    activity('run-databricks-notebook-instance-pool').output.runOutput.CleansedSinkCount\n    )\n)",
 										"type": "Expression"
 									}
 								}

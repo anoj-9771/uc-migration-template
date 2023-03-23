@@ -1,0 +1,277 @@
+{
+	"name": "dataverse-load",
+	"properties": {
+		"activities": [
+			{
+				"name": "set-full-path",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "OutputFullPath",
+					"value": {
+						"value": "@replace(replace(replace(replace(replace(replace(\ncoalesce(pipeline().parameters.task.RawPath, '')\n,'$yyyy$', formatDateTime(convertTimeZone(utcnow(), 'UTC', 'AUS Eastern Standard Time'), 'yyyy'))\n,'$MM$', formatDateTime(convertTimeZone(utcnow(), 'UTC', 'AUS Eastern Standard Time'), 'MM'))\n,'$dd$', formatDateTime(convertTimeZone(utcnow(), 'UTC', 'AUS Eastern Standard Time'), 'dd'))\n,'$HH$', formatDateTime(convertTimeZone(utcnow(), 'UTC', 'AUS Eastern Standard Time'), 'HH'))\n,'$mm$', formatDateTime(convertTimeZone(utcnow(), 'UTC', 'AUS Eastern Standard Time'), 'mm'))\n,'$guid$', guid())",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "set-query",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "if-delta",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "Query",
+					"value": {
+						"value": "<fetch>\n  <entity name=\"@{pipeline().parameters.task.SourceTableName}\">\n    <all-attributes />\n    @{variables('QueryClause')}\n  </entity>\n</fetch>",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "copy-dataverse",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "set-full-path",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "set-query",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "CommonDataServiceForAppsSource",
+						"query": {
+							"value": "@variables('Query')",
+							"type": "Expression"
+						}
+					},
+					"sink": {
+						"type": "JsonSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "JsonWriteSettings"
+						}
+					},
+					"enableStaging": false
+				},
+				"inputs": [
+					{
+						"referenceName": "Dataverse",
+						"type": "DatasetReference",
+						"parameters": {
+							"SystemCode": {
+								"value": "@replace(toLower(pipeline().parameters.task.SystemCode),'_','')",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "DLS_Json",
+						"type": "DatasetReference",
+						"parameters": {
+							"filePath": {
+								"value": "@variables('OutputFullPath')",
+								"type": "Expression"
+							}
+						}
+					}
+				]
+			},
+			{
+				"name": "task-raw-path",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "copy-dataverse",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "log-status-update",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"ID": {
+							"value": "@pipeline().parameters.task.ID",
+							"type": "Expression"
+						},
+						"Property": "RawPath",
+						"Value": {
+							"value": "@variables('OutputFullPath')",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "task-sink-row-count",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "copy-dataverse",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "log-status-update",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": false,
+					"parameters": {
+						"ID": {
+							"value": "@pipeline().parameters.task.ID",
+							"type": "Expression"
+						},
+						"Property": "SinkRowCount",
+						"Value": {
+							"value": "@{activity('copy-dataverse').output.rowsCopied}",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "log-copy",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "copy-dataverse",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "log-message",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": false,
+					"parameters": {
+						"ID": {
+							"value": "@pipeline().parameters.task.ID",
+							"type": "Expression"
+						},
+						"ActivityType": "copy-data",
+						"Message": {
+							"value": "@{activity('copy-dataverse')}",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "set-is-delta",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "IsDelta",
+					"value": {
+						"value": "@not(empty(pipeline().parameters.task.LowWatermark))",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "if-delta",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "set-is-delta",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@variables('IsDelta')",
+						"type": "Expression"
+					},
+					"ifTrueActivities": [
+						{
+							"name": "set-query-clause",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "QueryClause",
+								"value": {
+									"value": "<filter type=\"and\">\n    <condition attribute =\"@{pipeline().parameters.task.WatermarkColumn}\" operator=\"gt\" value=\"@{pipeline().parameters.task.LowWaterMark}\"></condition>\n</filter>\n",
+									"type": "Expression"
+								}
+							}
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"task": {
+				"type": "object"
+			}
+		},
+		"variables": {
+			"Query": {
+				"type": "String"
+			},
+			"OutputFullPath": {
+				"type": "String"
+			},
+			"BaseQuery": {
+				"type": "String"
+			},
+			"QueryClause": {
+				"type": "String"
+			},
+			"IsDelta": {
+				"type": "Boolean"
+			}
+		},
+		"folder": {
+			"name": "MDP-Framework/SourceHandler/DATAVERSE"
+		},
+		"annotations": [],
+		"lastPublishTime": "2021-07-08T10:40:24Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}
