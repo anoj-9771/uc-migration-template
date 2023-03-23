@@ -164,7 +164,6 @@ swirldata_tables =['BMS_0002185_849',
 'BMS_9999999_846',
 'BMS_9999999_90',
 'BMS_9999999_91',
-'PENDINGINCIDENTS_TEMP',
 'BMS_9999999_108_T9999999_102',
 'BMS_9999999_108_T9999999_120',
 'BMS_9999999_108_T9999999_121',
@@ -266,8 +265,6 @@ for code in group_names:
 
     df = spark.sql(f"""{base_query} {select_statement}""")
     SYSTEM_CODE = code
-
-    CleanConfig()
 
     AddIngestion(df)
 
@@ -458,3 +455,14 @@ ExecuteStatement("""
     UPDATE controldb.dbo.extractloadmanifest
     SET DestinationSchema = 'swirl' 
     WHERE (SystemCode in ('swirldata','swirlref'))""")
+
+# COMMAND ----------
+
+ExecuteStatement("""
+    UPDATE controldb.dbo.extractloadmanifest
+    SET BusinessKeyColumn = CASE 
+                            WHEN DestinationTableName = 'lookup_items' THEN 'lookupid,lookupitemid'
+                            ELSE 'id'
+                            END
+    WHERE SystemCode in ('swirldata','swirlref')
+    """)

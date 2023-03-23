@@ -143,8 +143,6 @@ for code in group_names:
     df = spark.sql(f"""{base_query} {select_statement}""")
     SYSTEM_CODE = code
 
-    CleanConfig()
-
     AddIngestion(df)
 
 # COMMAND ----------
