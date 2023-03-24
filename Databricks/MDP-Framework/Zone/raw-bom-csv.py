@@ -4,12 +4,11 @@
 # COMMAND ----------
 
 task = dbutils.widgets.get("task")
-rawTargetPath = dbutils.widgets.get("rawPath").replace("/raw", "/mnt/datalake-raw")
 
 # COMMAND ----------
 
 j = json.loads(task)
-
+rawPath = j.get("RawPath").replace("/raw", "/mnt/datalake-raw")
 schemaName = j.get("DestinationSchema")
 tableName = j.get("DestinationTableName")
 tableFqn = f"raw.{schemaName}_{tableName}"
@@ -29,7 +28,7 @@ sql = f"DROP TABLE IF EXISTS {tableFqn};"
 spark.sql(sql)
 
 startAtColumn = 2
-df = (sc.textFile(rawTargetPath)
+df = (sc.textFile(rawPath)
           .mapPartitions(lambda line: csv.reader(line)).filter(lambda line: len(line)>=startAtColumn)
           .toDF()
      )
