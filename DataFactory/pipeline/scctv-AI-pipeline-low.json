@@ -76,7 +76,7 @@
                 "userProperties": [],
                 "typeProperties": {
                     "items": {
-                        "value": "@take(activity('get-inbound-videos').output.childItems, 400)",
+                        "value": "@take(activity('get-inbound-videos').output.childItems, 700)",
                         "type": "Expression"
                     },
                     "isSequential": false,
